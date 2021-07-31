@@ -19,17 +19,14 @@ func NewBasicColor(cl color.Color) Color {
 	return c
 }
 
-func (c *Color) IsRGB() bool {
+func (c Color) IsRGB() bool {
 	return c.rgb != nil
 }
 
-func (c *Color) ToRGB() Color {
+func (c Color) ToRGB() Color {
 	if c.IsRGB() {
-		return *c
+		return c
 	}
 
-	rgb := c.basic.RGB()
-	c.rgb = &rgb
-
-	return NewRGBColor(rgb)
+	return NewRGBColor(c.basic.RGB())
 }

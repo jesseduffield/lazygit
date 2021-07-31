@@ -42,9 +42,11 @@ func (d Decoration) Merge(other Decoration) Decoration {
 	if other.bold {
 		d.bold = true
 	}
+
 	if other.underline {
 		d.underline = true
 	}
+
 	if other.reverse {
 		d.reverse = true
 	}

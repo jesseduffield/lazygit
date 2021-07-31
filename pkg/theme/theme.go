@@ -42,13 +42,13 @@ var (
 
 // UpdateTheme updates all theme variables
 func UpdateTheme(themeConfig config.ThemeConfig) {
-	ActiveBorderColor = GetGocuiColor(themeConfig.ActiveBorderColor)
-	InactiveBorderColor = GetGocuiColor(themeConfig.InactiveBorderColor)
-	SelectedLineBgColor = style.SetConfigStyles(themeConfig.SelectedLineBgColor, true)
-	SelectedRangeBgColor = style.SetConfigStyles(themeConfig.SelectedRangeBgColor, true)
-	GocuiSelectedLineBgColor = GetGocuiColor(themeConfig.SelectedLineBgColor)
-	OptionsColor = GetGocuiColor(themeConfig.OptionsTextColor)
-	OptionsFgColor = style.SetConfigStyles(themeConfig.OptionsTextColor, false)
+	ActiveBorderColor = GetGocuiStyle(themeConfig.ActiveBorderColor)
+	InactiveBorderColor = GetGocuiStyle(themeConfig.InactiveBorderColor)
+	SelectedLineBgColor = GetTextStyle(themeConfig.SelectedLineBgColor, true)
+	SelectedRangeBgColor = GetTextStyle(themeConfig.SelectedRangeBgColor, true)
+	GocuiSelectedLineBgColor = GetGocuiStyle(themeConfig.SelectedLineBgColor)
+	OptionsColor = GetGocuiStyle(themeConfig.OptionsTextColor)
+	OptionsFgColor = GetTextStyle(themeConfig.OptionsTextColor, false)
 
 	isLightTheme := themeConfig.LightTheme
 	if isLightTheme {
@@ -90,11 +90,61 @@ func GetGocuiAttribute(key string) gocui.Attribute {
 	return gocui.ColorWhite
 }
 
-// GetGocuiColor bitwise OR's a list of attributes obtained via the given keys
-func GetGocuiColor(keys []string) gocui.Attribute {
+// GetGocuiStyle bitwise OR's a list of attributes obtained via the given keys
+func GetGocuiStyle(keys []string) gocui.Attribute {
 	var attribute gocui.Attribute
 	for _, key := range keys {
 		attribute |= GetGocuiAttribute(key)
 	}
 	return attribute
+}
+
+var colorMap = map[string]struct {
+	foreground style.TextStyle
+	background style.TextStyle
+}{
+	"default": {style.FgWhite, style.BgBlack},
+	"black":   {style.FgBlack, style.BgBlack},
+	"red":     {style.FgRed, style.BgRed},
+	"green":   {style.FgGreen, style.BgGreen},
+	"yellow":  {style.FgYellow, style.BgYellow},
+	"blue":    {style.FgBlue, style.BgBlue},
+	"magenta": {style.FgMagenta, style.BgMagenta},
+	"cyan":    {style.FgCyan, style.BgCyan},
+	"white":   {style.FgWhite, style.BgWhite},
+}
+
+func GetTextStyle(keys []string, background bool) style.TextStyle {
+	s := style.New()
+
+	for _, key := range keys {
+		switch key {
+		case "bold":
+			s = s.SetBold()
+		case "reverse":
+			s = s.SetReverse()
+		case "underline":
+			s = s.SetUnderline()
+		default:
+			value, present := colorMap[key]
+			if present {
+				var c style.TextStyle
+				if background {
+					c = value.background
+				} else {
+					c = value.foreground
+				}
+				s = s.MergeStyle(c)
+			} else if utils.IsValidHexValue(key) {
+				c := style.NewRGBColor(color.HEX(key, background))
+				if background {
+					s.SetBg(c)
+				} else {
+					s.SetFg(c)
+				}
+			}
+		}
+	}
+
+	return s
 }
