@@ -53,39 +53,39 @@ func TestNewStyle(t *testing.T) {
 func TestBasicSetColor(t *testing.T) {
 	type scenario struct {
 		name       string
-		colorToSet BasicTextStyle
-		expect     BasicTextStyle
+		colorToSet TextStyle
+		expect     TextStyle
 	}
 
 	scenarios := []scenario{
 		{
 			"empty color",
-			BasicTextStyle{},
-			BasicTextStyle{fg: color.FgRed, bg: color.BgBlue, opts: []color.Color{color.OpBold}}},
+			TextStyle{},
+			TextStyle{fg: color.FgRed, bg: color.BgBlue, opts: []color.Color{color.OpBold}}},
 		{
 			"set new fg color",
-			BasicTextStyle{fg: color.FgCyan},
-			BasicTextStyle{fg: color.FgCyan, bg: color.BgBlue, opts: []color.Color{color.OpBold}},
+			TextStyle{fg: color.FgCyan},
+			TextStyle{fg: color.FgCyan, bg: color.BgBlue, opts: []color.Color{color.OpBold}},
 		},
 		{
 			"set new bg color",
-			BasicTextStyle{bg: color.BgGray},
-			BasicTextStyle{fg: color.FgRed, bg: color.BgGray, opts: []color.Color{color.OpBold}},
+			TextStyle{bg: color.BgGray},
+			TextStyle{fg: color.FgRed, bg: color.BgGray, opts: []color.Color{color.OpBold}},
 		},
 		{
 			"set new fg and bg color",
-			BasicTextStyle{fg: color.FgCyan, bg: color.BgGray},
-			BasicTextStyle{fg: color.FgCyan, bg: color.BgGray, opts: []color.Color{color.OpBold}},
+			TextStyle{fg: color.FgCyan, bg: color.BgGray},
+			TextStyle{fg: color.FgCyan, bg: color.BgGray, opts: []color.Color{color.OpBold}},
 		},
 		{
 			"add options",
-			BasicTextStyle{opts: []color.Color{color.OpUnderscore}},
-			BasicTextStyle{fg: color.FgRed, bg: color.BgBlue, opts: []color.Color{color.OpBold, color.OpUnderscore}},
+			TextStyle{opts: []color.Color{color.OpUnderscore}},
+			TextStyle{fg: color.FgRed, bg: color.BgBlue, opts: []color.Color{color.OpBold, color.OpUnderscore}},
 		},
 		{
 			"add options that already exists",
-			BasicTextStyle{opts: []color.Color{color.OpBold}},
-			BasicTextStyle{fg: color.FgRed, bg: color.BgBlue, opts: []color.Color{color.OpBold}},
+			TextStyle{opts: []color.Color{color.OpBold}},
+			TextStyle{fg: color.FgRed, bg: color.BgBlue, opts: []color.Color{color.OpBold}},
 		},
 	}
 
@@ -127,12 +127,12 @@ func TestRGBSetColor(t *testing.T) {
 		},
 		{
 			"empty BasicTextStyle input",
-			BasicTextStyle{},
+			TextStyle{},
 			RGBTextStyle{fgSet: true, fg: red, bg: toBg(blue), opts: []color.Color{color.OpBold}},
 		},
 		{
 			"set fg and bg color using BasicTextStyle",
-			BasicTextStyle{fg: color.FgCyan, bg: color.BgGray},
+			TextStyle{fg: color.FgCyan, bg: color.BgGray},
 			RGBTextStyle{fgSet: true, fg: cyan, bg: toBg(gray), opts: []color.Color{color.OpBold}},
 		},
 		{
@@ -147,7 +147,7 @@ func TestRGBSetColor(t *testing.T) {
 		},
 		{
 			"add options using BasicTextStyle",
-			BasicTextStyle{opts: []color.Color{color.OpUnderscore}},
+			TextStyle{opts: []color.Color{color.OpUnderscore}},
 			RGBTextStyle{fgSet: true, fg: red, bg: toBg(blue), opts: []color.Color{color.OpBold, color.OpUnderscore}},
 		},
 		{
@@ -159,10 +159,10 @@ func TestRGBSetColor(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			style, ok := New(color.FgRed, color.BgBlue).SetBold(true).(BasicTextStyle)
+			style, ok := New(color.FgRed, color.BgBlue).SetBold().(BasicTextStyle)
 			assert.True(t, ok, "SetBold should return a interface of type BasicTextStyle")
 
-			rgbStyle, ok := style.convertToRGB().SetColor(s.colorToSet).(RGBTextStyle)
+			rgbStyle, ok := style.convertToRGB().MergeStyle(s.colorToSet).(RGBTextStyle)
 			assert.True(t, ok, "SetColor should return a interface of type RGBTextColor")
 
 			rgbStyle.style = color.RGBStyle{}

@@ -24,31 +24,31 @@ var (
 	OptionsColor gocui.Attribute
 
 	// DefaultTextColor is the default text color
-	DefaultTextColor = style.New(color.FgWhite, 0)
+	DefaultTextColor = style.FgWhite
 
 	// DefaultHiTextColor is the default highlighted text color
-	DefaultHiTextColor = style.New(color.FgLightWhite, 0)
+	DefaultHiTextColor = style.FgLightWhite
 
 	// SelectedLineBgColor is the background color for the selected line
-	SelectedLineBgColor = style.New(0, 0)
+	SelectedLineBgColor = style.New()
 
 	// SelectedRangeBgColor is the background color of the selected range of lines
-	SelectedRangeBgColor = style.New(0, 0)
+	SelectedRangeBgColor = style.New()
 
-	OptionsFgColor = style.New(0, 0)
+	OptionsFgColor = style.New()
 
-	DiffTerminalColor = style.New(color.FgMagenta, 0)
+	DiffTerminalColor = style.FgMagenta
 )
 
 // UpdateTheme updates all theme variables
 func UpdateTheme(themeConfig config.ThemeConfig) {
 	ActiveBorderColor = GetGocuiColor(themeConfig.ActiveBorderColor)
 	InactiveBorderColor = GetGocuiColor(themeConfig.InactiveBorderColor)
-	SelectedLineBgColor = style.SetConfigStyles(SelectedLineBgColor, themeConfig.SelectedLineBgColor, true)
-	SelectedRangeBgColor = style.SetConfigStyles(SelectedRangeBgColor, themeConfig.SelectedRangeBgColor, true)
+	SelectedLineBgColor = style.SetConfigStyles(themeConfig.SelectedLineBgColor, true)
+	SelectedRangeBgColor = style.SetConfigStyles(themeConfig.SelectedRangeBgColor, true)
 	GocuiSelectedLineBgColor = GetGocuiColor(themeConfig.SelectedLineBgColor)
 	OptionsColor = GetGocuiColor(themeConfig.OptionsTextColor)
-	OptionsFgColor = style.SetConfigStyles(OptionsFgColor, themeConfig.OptionsTextColor, false)
+	OptionsFgColor = style.SetConfigStyles(themeConfig.OptionsTextColor, false)
 
 	isLightTheme := themeConfig.LightTheme
 	if isLightTheme {
@@ -64,9 +64,9 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 
 // GetAttribute gets the gocui color attribute from the string
 func GetGocuiAttribute(key string) gocui.Attribute {
-	r, g, b, validHexColor := utils.GetHexColorValues(key)
-	if validHexColor {
-		return gocui.NewRGBColor(int32(r), int32(g), int32(b))
+	if utils.IsValidHexValue(key) {
+		values := color.HEX(key).Values()
+		return gocui.NewRGBColor(int32(values[0]), int32(values[1]), int32(values[2]))
 	}
 
 	colorMap := map[string]gocui.Attribute{

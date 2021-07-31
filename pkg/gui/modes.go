@@ -27,7 +27,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 		{
 			isActive: gui.GitCommand.PatchManager.Active,
 			description: func() string {
-				return style.FgYellow.SetBold(true).Sprintf(
+				return style.FgYellow.SetBold().Sprintf(
 					"%s %s",
 					gui.Tr.LcBuildingPatch,
 					style.AttrUnderline.Sprint(gui.Tr.ResetInParentheses),
@@ -38,7 +38,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 		{
 			isActive: gui.State.Modes.Filtering.Active,
 			description: func() string {
-				return style.FgRed.SetBold(true).Sprintf(
+				return style.FgRed.SetBold().Sprintf(
 					"%s '%s' %s",
 					gui.Tr.LcFilteringBy,
 					gui.State.Modes.Filtering.GetPath(),

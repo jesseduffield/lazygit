@@ -5,91 +5,90 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type TextStyle interface {
-	Sprint(a ...interface{}) string
-	Sprintf(format string, a ...interface{}) string
-	SetBold(v bool) TextStyle
-	SetReverse(v bool) TextStyle
-	SetUnderline(v bool) TextStyle
-	SetColor(style TextStyle) TextStyle
-	SetRGBColor(r, g, b uint8, background bool) TextStyle
-}
-
 var (
-	FgWhite        = New(color.FgWhite, 0)
-	FgLightWhite   = New(color.FgLightWhite, 0)
-	FgBlack        = New(color.FgBlack, 0)
-	FgBlackLighter = New(color.FgBlack.Light(), 0)
-	FgCyan         = New(color.FgCyan, 0)
-	FgRed          = New(color.FgRed, 0)
-	FgGreen        = New(color.FgGreen, 0)
-	FgBlue         = New(color.FgBlue, 0)
-	FgYellow       = New(color.FgYellow, 0)
-	FgMagenta      = New(color.FgMagenta, 0)
+	// FgWhite        = New(pointerTo(color.FgWhite), nil)
+	FgWhite        = FromBasicFg(color.FgWhite)
+	FgLightWhite   = FromBasicFg(color.FgLightWhite)
+	FgBlack        = FromBasicFg(color.FgBlack)
+	FgBlackLighter = FromBasicFg(color.FgBlack.Light())
+	FgCyan         = FromBasicFg(color.FgCyan)
+	FgRed          = FromBasicFg(color.FgRed)
+	FgGreen        = FromBasicFg(color.FgGreen)
+	FgBlue         = FromBasicFg(color.FgBlue)
+	FgYellow       = FromBasicFg(color.FgYellow)
+	FgMagenta      = FromBasicFg(color.FgMagenta)
 
-	BgWhite   = New(0, color.BgWhite)
-	BgBlack   = New(0, color.BgBlack)
-	BgRed     = New(0, color.BgRed)
-	BgGreen   = New(0, color.BgGreen)
-	BgYellow  = New(0, color.BgYellow)
-	BgBlue    = New(0, color.BgBlue)
-	BgMagenta = New(0, color.BgMagenta)
-	BgCyan    = New(0, color.BgCyan)
+	BgWhite   = FromBasicBg(color.BgWhite)
+	BgBlack   = FromBasicBg(color.BgBlack)
+	BgRed     = FromBasicBg(color.BgRed)
+	BgGreen   = FromBasicBg(color.BgGreen)
+	BgYellow  = FromBasicBg(color.BgYellow)
+	BgBlue    = FromBasicBg(color.BgBlue)
+	BgMagenta = FromBasicBg(color.BgMagenta)
+	BgCyan    = FromBasicBg(color.BgCyan)
 
-	AttrUnderline = New(0, 0).SetUnderline(true)
-	AttrBold      = New(0, 0).SetUnderline(true)
+	AttrUnderline = New().SetUnderline()
+	AttrBold      = New().SetBold()
 )
 
-func New(fg color.Color, bg color.Color, opts ...color.Color) TextStyle {
-	return BasicTextStyle{
-		fg:    fg,
-		bg:    bg,
-		opts:  opts,
-		style: color.Style{},
-	}.deriveStyle()
+func New() TextStyle {
+	return TextStyle{}
 }
 
-func SetConfigStyles(s TextStyle, keys []string, background bool) TextStyle {
+func FromBasicFg(fg color.Color) TextStyle {
+	s := New()
+	c := NewBasicColor(fg)
+	s.fg = &c
+	return s
+}
+
+func FromBasicBg(bg color.Color) TextStyle {
+	s := New()
+	c := NewBasicColor(bg)
+	s.bg = &c
+	return s
+}
+
+var colorMap = map[string]struct {
+	forground  TextStyle
+	background TextStyle
+}{
+	"default": {FgWhite, BgBlack},
+	"black":   {FgBlack, BgBlack},
+	"red":     {FgRed, BgRed},
+	"green":   {FgGreen, BgGreen},
+	"yellow":  {FgYellow, BgYellow},
+	"blue":    {FgBlue, BgBlue},
+	"magenta": {FgMagenta, BgMagenta},
+	"cyan":    {FgCyan, BgCyan},
+	"white":   {FgWhite, BgWhite},
+}
+
+func SetConfigStyles(keys []string, background bool) TextStyle {
+	s := New()
+
 	for _, key := range keys {
-		colorMap := map[string]struct {
-			forground  TextStyle
-			background TextStyle
-		}{
-			"default": {FgWhite, BgBlack},
-			"black":   {FgBlack, BgBlack},
-			"red":     {FgRed, BgRed},
-			"green":   {FgGreen, BgGreen},
-			"yellow":  {FgYellow, BgYellow},
-			"blue":    {FgBlue, BgBlue},
-			"magenta": {FgMagenta, BgMagenta},
-			"cyan":    {FgCyan, BgCyan},
-			"white":   {FgWhite, BgWhite},
-		}
-		value, present := colorMap[key]
-		if present {
-			if background {
-				s = s.SetColor(value.background)
-			} else {
-				s = s.SetColor(value.forground)
+		switch key {
+		case "bold":
+			s = s.SetBold()
+		case "reverse":
+			s = s.SetReverse()
+		case "underline":
+			s = s.SetUnderline()
+		default:
+			value, present := colorMap[key]
+			if present {
+				var c TextStyle
+				if background {
+					c = value.background
+				} else {
+					c = value.forground
+				}
+				s = s.MergeStyle(c)
+			} else if utils.IsValidHexValue(key) {
+				c := NewRGBColor(color.HEX(key, background))
+				s.bg = &c
 			}
-			continue
-		}
-
-		if key == "bold" {
-			s = s.SetBold(true)
-			continue
-		} else if key == "reverse" {
-			s = s.SetReverse(true)
-			continue
-		} else if key == "underline" {
-			s = s.SetUnderline(true)
-			continue
-		}
-
-		r, g, b, validHexColor := utils.GetHexColorValues(key)
-		if validHexColor {
-			s = s.SetRGBColor(r, g, b, background)
-			continue
 		}
 	}
 
