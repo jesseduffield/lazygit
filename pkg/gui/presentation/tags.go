@@ -3,7 +3,6 @@ package presentation
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func GetTagListDisplayStrings(tags []*models.Tag, diffName string) [][]string {
@@ -23,5 +22,5 @@ func getTagDisplayStrings(t *models.Tag, diffed bool) []string {
 	if diffed {
 		attr = theme.DiffTerminalColor
 	}
-	return []string{utils.ColoredString(t.Name, attr)}
+	return []string{attr.Sprint(t.Name)}
 }

@@ -1,10 +1,9 @@
 package gui
 
 import (
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 func (gui *Gui) menuListContext() *ListContext {
@@ -278,7 +277,7 @@ func (gui *Gui) commitFilesListContext() *ListContext {
 		ResetMainViewOriginOnFocus: true,
 		GetDisplayStrings: func() [][]string {
 			if gui.State.CommitFileManager.GetItemsLength() == 0 {
-				return [][]string{{utils.ColoredString("(none)", color.FgRed)}}
+				return [][]string{{style.FgRed.Sprint("(none)")}}
 			}
 
 			lines := gui.State.CommitFileManager.Render(gui.State.Modes.Diffing.Ref, gui.GitCommand.PatchManager)

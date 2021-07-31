@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -24,6 +23,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
@@ -611,7 +611,7 @@ func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
 	subprocess.Stderr = os.Stdout
 	subprocess.Stdin = os.Stdin
 
-	fmt.Fprintf(os.Stdout, "\n%s\n\n", utils.ColoredString("+ "+strings.Join(subprocess.Args, " "), color.FgBlue))
+	fmt.Fprintf(os.Stdout, "\n%s\n\n", style.FgBlue.Sprint("+ "+strings.Join(subprocess.Args, " ")))
 
 	if err := subprocess.Run(); err != nil {
 		// not handling the error explicitly because usually we're going to see it
@@ -623,7 +623,7 @@ func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
 	subprocess.Stderr = ioutil.Discard
 	subprocess.Stdin = nil
 
-	fmt.Fprintf(os.Stdout, "\n%s", utils.ColoredString(gui.Tr.PressEnterToReturn, color.FgGreen))
+	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
 	fmt.Scanln() // wait for enter press
 
 	return nil

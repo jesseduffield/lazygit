@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
@@ -287,7 +287,7 @@ func (app *App) runSubprocess(cmd *exec.Cmd) {
 	cmd.Stderr = nil
 	cmd.Stdout = nil
 
-	fmt.Fprintf(os.Stdout, "\n%s", coloredString("press enter to return", color.FgGreen))
+	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint("press enter to return"))
 	fmt.Scanln() // wait for enter press
 
 	if err := gocui.Screen.Resume(); err != nil {
@@ -381,15 +381,4 @@ func (app *App) layout(g *gocui.Gui) error {
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
-}
-
-func coloredString(str string, colorAttributes ...color.Attribute) string {
-	colour := color.New(colorAttributes...)
-	return coloredStringDirect(str, colour)
-}
-
-// coloredStringDirect used for aggregating a few color attributes rather than
-// just sending a single one
-func coloredStringDirect(str string, colour *color.Color) string {
-	return colour.SprintFunc()(fmt.Sprint(str))
 }

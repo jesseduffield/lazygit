@@ -1,24 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"regexp"
-
-	"github.com/fatih/color"
 )
-
-// ColoredString takes a string and a colour attribute and returns a colored
-// string with that attribute
-func ColoredString(str string, colorAttributes ...color.Attribute) string {
-	colour := color.New(colorAttributes...)
-	return ColoredStringDirect(str, colour)
-}
-
-// ColoredStringDirect used for aggregating a few color attributes rather than
-// just sending a single one
-func ColoredStringDirect(str string, colour *color.Color) string {
-	return colour.SprintFunc()(fmt.Sprint(str))
-}
 
 // Decolorise strips a string of color
 func Decolorise(str string) string {
@@ -46,4 +30,25 @@ func getPadWidths(stringArrays [][]string) []int {
 		}
 	}
 	return padWidths
+}
+
+func IsValidHexValue(v string) bool {
+	if len(v) != 4 && len(v) != 7 {
+		return false
+	}
+
+	if v[0] != '#' {
+		return false
+	}
+
+	for _, char := range v[1:] {
+		switch char {
+		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F':
+			continue
+		default:
+			return false
+		}
+	}
+
+	return true
 }

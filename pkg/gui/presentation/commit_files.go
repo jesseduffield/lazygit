@@ -1,30 +1,23 @@
 package presentation
 
 import (
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func GetCommitFileLine(name string, diffName string, commitFile *models.CommitFile, status patch.PatchStatus) string {
-	yellow := color.New(color.FgYellow)
-	green := color.New(color.FgGreen)
-	defaultColor := color.New(theme.DefaultTextColor)
-	diffTerminalColor := color.New(theme.DiffTerminalColor)
-
-	colour := defaultColor
+	colour := theme.DefaultTextColor
 	if diffName == name {
-		colour = diffTerminalColor
+		colour = theme.DiffTerminalColor
 	} else {
 		switch status {
-		case patch.UNSELECTED:
-			colour = defaultColor
 		case patch.WHOLE:
-			colour = green
+			colour = style.FgGreen
 		case patch.PART:
-			colour = yellow
+			colour = style.FgYellow
 		}
 	}
 
@@ -33,21 +26,21 @@ func GetCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 		return colour.Sprint(name)
 	}
 
-	return utils.ColoredString(commitFile.ChangeStatus, getColorForChangeStatus(commitFile.ChangeStatus)) + " " + colour.Sprint(name)
+	return getColorForChangeStatus(commitFile.ChangeStatus).Sprint(commitFile.ChangeStatus) + " " + colour.Sprint(name)
 }
 
-func getColorForChangeStatus(changeStatus string) color.Attribute {
+func getColorForChangeStatus(changeStatus string) style.TextStyle {
 	switch changeStatus {
 	case "A":
-		return color.FgGreen
+		return style.FgGreen
 	case "M", "R":
-		return color.FgYellow
+		return style.FgYellow
 	case "D":
-		return color.FgRed
+		return style.FgRed
 	case "C":
-		return color.FgCyan
+		return style.FgCyan
 	case "T":
-		return color.FgMagenta
+		return style.FgMagenta
 	default:
 		return theme.DefaultTextColor
 	}

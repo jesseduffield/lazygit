@@ -265,7 +265,7 @@ The available attributes are:
 - magenta
 - cyan
 - white
-- '#ff00ff' # can't be used on text
+- '#ff00ff'
 
 **Modifiers**
 

@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/sirupsen/logrus"
 )
@@ -165,8 +165,7 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Commit
 
 	if rebaseMode != "" {
 		currentCommit := commits[len(rebasingCommits)]
-		blue := color.New(color.FgYellow)
-		youAreHere := blue.Sprintf("<-- %s ---", c.Tr.YouAreHere)
+		youAreHere := style.FgYellow.Sprintf("<-- %s ---", c.Tr.YouAreHere)
 		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
 	}
 

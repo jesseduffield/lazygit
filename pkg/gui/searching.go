@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) handleOpenSearch(viewName string) error {
@@ -53,10 +52,7 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 				fmt.Sprintf(
 					"no matches for '%s' %s",
 					gui.State.Searching.searchString,
-					utils.ColoredString(
-						fmt.Sprintf("%s: exit search mode", gui.getKeyDisplay(keybindingConfig.Universal.Return)),
-						theme.OptionsFgColor,
-					),
+					theme.OptionsFgColor.Sprintf("%s: exit search mode", gui.getKeyDisplay(keybindingConfig.Universal.Return)),
 				),
 			)
 			return nil
@@ -68,14 +64,11 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 				gui.State.Searching.searchString,
 				index+1,
 				total,
-				utils.ColoredString(
-					fmt.Sprintf(
-						"%s: next match, %s: previous match, %s: exit search mode",
-						gui.getKeyDisplay(keybindingConfig.Universal.NextMatch),
-						gui.getKeyDisplay(keybindingConfig.Universal.PrevMatch),
-						gui.getKeyDisplay(keybindingConfig.Universal.Return),
-					),
-					theme.OptionsFgColor,
+				theme.OptionsFgColor.Sprintf(
+					"%s: next match, %s: previous match, %s: exit search mode",
+					gui.getKeyDisplay(keybindingConfig.Universal.NextMatch),
+					gui.getKeyDisplay(keybindingConfig.Universal.PrevMatch),
+					gui.getKeyDisplay(keybindingConfig.Universal.Return),
 				),
 			),
 		)
