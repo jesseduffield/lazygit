@@ -44,22 +44,6 @@ func New() TextStyle {
 	return s
 }
 
-func FromBasicFg(fg color.Color) TextStyle {
-	s := New()
-	c := NewBasicColor(fg)
-	s.fg = &c
-	s.style = s.deriveStyle()
-	return s
-}
-
-func FromBasicBg(bg color.Color) TextStyle {
-	s := New()
-	c := NewBasicColor(bg)
-	s.bg = &c
-	s.style = s.deriveStyle()
-	return s
-}
-
 func (b TextStyle) Sprint(a ...interface{}) string {
 	return b.style.Sprint(a...)
 }
@@ -68,6 +52,9 @@ func (b TextStyle) Sprintf(format string, a ...interface{}) string {
 	return b.style.Sprintf(format, a...)
 }
 
+// note that our receiver here is not a pointer which means we're receiving a
+// copy of the original TextStyle. This allows us to mutate and return that
+// TextStyle receiver without actually modifying the original.
 func (b TextStyle) SetBold() TextStyle {
 	b.decoration.SetBold()
 	b.style = b.deriveStyle()

@@ -28,3 +28,11 @@ var (
 	AttrUnderline = New().SetUnderline()
 	AttrBold      = New().SetBold()
 )
+
+func FromBasicFg(fg color.Color) TextStyle {
+	return New().SetFg(NewBasicColor(fg))
+}
+
+func FromBasicBg(bg color.Color) TextStyle {
+	return New().SetBg(NewBasicColor(bg))
+}
