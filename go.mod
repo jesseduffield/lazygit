@@ -37,6 +37,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stretchr/testify v1.6.1
+	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0 // indirect
 	golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c // indirect
 	golang.org/x/sys v0.0.0-20210611083646-a4fc73990273 // indirect

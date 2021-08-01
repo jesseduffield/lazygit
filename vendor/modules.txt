@@ -215,6 +215,7 @@ github.com/stretchr/testify/assert
 # github.com/xanzy/ssh-agent v0.2.1
 github.com/xanzy/ssh-agent
 # github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
+## explicit
 github.com/xo/terminfo
 # golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 ## explicit
