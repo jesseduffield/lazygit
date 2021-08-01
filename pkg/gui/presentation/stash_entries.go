@@ -18,9 +18,9 @@ func GetStashEntryListDisplayStrings(stashEntries []*models.StashEntry, diffName
 
 // getStashEntryDisplayStrings returns the display string of branch
 func getStashEntryDisplayStrings(s *models.StashEntry, diffed bool) []string {
-	attr := theme.DefaultTextColor
+	textStyle := theme.DefaultTextColor
 	if diffed {
-		attr = theme.DiffTerminalColor
+		textStyle = theme.DiffTerminalColor
 	}
-	return []string{attr.Sprint(s.Name)}
+	return []string{textStyle.Sprint(s.Name)}
 }

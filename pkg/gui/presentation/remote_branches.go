@@ -18,10 +18,10 @@ func GetRemoteBranchListDisplayStrings(branches []*models.RemoteBranch, diffName
 
 // getRemoteBranchDisplayStrings returns the display string of branch
 func getRemoteBranchDisplayStrings(b *models.RemoteBranch, diffed bool) []string {
-	nameColorAttr := GetBranchColor(b.Name)
+	textStyle := GetBranchTextStyle(b.Name)
 	if diffed {
-		nameColorAttr = theme.DiffTerminalColor
+		textStyle = theme.DiffTerminalColor
 	}
 
-	return []string{nameColorAttr.Sprint(b.Name)}
+	return []string{textStyle.Sprint(b.Name)}
 }

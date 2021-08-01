@@ -118,15 +118,16 @@ func coloredString(textStyle style.TextStyle, str string, selected bool, include
 		textStyle = textStyle.MergeStyle(theme.SelectedRangeBgColor)
 	}
 
-	if len(str) < 2 {
-		return textStyle.Sprint(str)
+	firstCharStyle := textStyle
+	if included {
+		firstCharStyle = firstCharStyle.MergeStyle(style.BgGreen)
 	}
 
-	res := textStyle.Sprint(str[:1])
-	if included {
-		return res + textStyle.MergeStyle(style.BgGreen).Sprint(str[1:])
+	if len(str) < 2 {
+		return firstCharStyle.Sprint(str)
 	}
-	return res + textStyle.Sprint(str[1:])
+
+	return firstCharStyle.Sprint(str[:1]) + textStyle.Sprint(str[1:])
 }
 
 func parsePatch(patch string) ([]int, []int, []*PatchLine) {

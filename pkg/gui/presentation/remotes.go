@@ -21,10 +21,10 @@ func GetRemoteListDisplayStrings(remotes []*models.Remote, diffName string) [][]
 func getRemoteDisplayStrings(r *models.Remote, diffed bool) []string {
 	branchCount := len(r.Branches)
 
-	nameColorAttr := theme.DefaultTextColor
+	textStyle := theme.DefaultTextColor
 	if diffed {
-		nameColorAttr = theme.DiffTerminalColor
+		textStyle = theme.DiffTerminalColor
 	}
 
-	return []string{nameColorAttr.Sprint(r.Name), style.FgBlue.Sprintf("%d branches", branchCount)}
+	return []string{textStyle.Sprint(r.Name), style.FgBlue.Sprintf("%d branches", branchCount)}
 }
