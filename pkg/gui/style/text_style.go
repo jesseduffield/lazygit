@@ -7,7 +7,7 @@ import (
 // A TextStyle contains a foreground color, background color, and
 // decorations (bold/underline/reverse).
 //
-// Colors may each be either 16-bit or 256-bit RGB colors. When
+// Colors may each be either 16-bit or 24-bit RGB colors. When
 // we need to produce a string with a TextStyle, if either foreground or
 // background color is RGB, we'll promote the other color component to RGB as well.
 // We could simplify this code by forcing everything to be RGB, but we're not
