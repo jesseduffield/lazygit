@@ -31,7 +31,7 @@ func (gui *Gui) refreshStatus() {
 		status += style.FgYellow.Sprintf("(%s) ", gui.GitCommand.WorkingTreeState())
 	}
 
-	name := presentation.GetBranchColor(currentBranch.Name).Sprint(currentBranch.Name)
+	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
 	repoName := utils.GetCurrentRepoName()
 	status += fmt.Sprintf("%s → %s ", repoName, name)
 

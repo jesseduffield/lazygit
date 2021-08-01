@@ -59,7 +59,7 @@ func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCom
 	if c.Action != "" {
 		secondColumnString = actionColorMap(c.Action).Sprint(c.Action)
 	} else if c.ExtraInfo != "" {
-		tagString = theme.DiffTerminalColor.SetBold().Sprint(c.ExtraInfo) + " "
+		tagString = style.FgMagenta.SetBold().Sprint(c.ExtraInfo) + " "
 	}
 
 	truncatedAuthor := utils.TruncateWithEllipsis(c.Author, 17)

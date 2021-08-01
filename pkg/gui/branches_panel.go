@@ -554,7 +554,7 @@ func (gui *Gui) findBranchNameSuggestions(input string) []*types.Suggestion {
 	for i, branchName := range matchingBranchNames {
 		suggestions[i] = &types.Suggestion{
 			Value: branchName,
-			Label: presentation.GetBranchColor(branchName).Sprint(branchName),
+			Label: presentation.GetBranchTextStyle(branchName).Sprint(branchName),
 		}
 	}
 

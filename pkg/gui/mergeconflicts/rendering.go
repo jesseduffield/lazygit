@@ -21,7 +21,7 @@ func ColoredConflictFile(content string, state *State, hasFocus bool) string {
 		}
 
 		if hasFocus && state.conflictIndex < len(state.conflicts) && *state.conflicts[state.conflictIndex] == *conflict && shouldHighlightLine(i, conflict, state.conflictTop) {
-			textStyle = theme.SelectedRangeBgColor.SetBold()
+			textStyle = textStyle.MergeStyle(theme.SelectedRangeBgColor).SetBold()
 		}
 		if i == conflict.end && len(remainingConflicts) > 0 {
 			conflict, remainingConflicts = shiftConflict(remainingConflicts)

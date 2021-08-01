@@ -27,11 +27,11 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 		displayName = b.DisplayName
 	}
 
-	nameColorAttr := GetBranchColor(b.Name)
+	nameTextStyle := GetBranchTextStyle(b.Name)
 	if diffed {
-		nameColorAttr = theme.DiffTerminalColor
+		nameTextStyle = theme.DiffTerminalColor
 	}
-	coloredName := nameColorAttr.Sprint(displayName)
+	coloredName := nameTextStyle.Sprint(displayName)
 	if b.IsTrackingRemote() {
 		coloredName = fmt.Sprintf("%s %s", coloredName, ColoredBranchStatus(b))
 	}
@@ -48,8 +48,8 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 	return res
 }
 
-// GetBranchColor branch color
-func GetBranchColor(name string) style.TextStyle {
+// GetBranchTextStyle branch color
+func GetBranchTextStyle(name string) style.TextStyle {
 	branchType := strings.Split(name, "/")[0]
 
 	switch branchType {
