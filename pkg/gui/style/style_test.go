@@ -5,6 +5,7 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/stretchr/testify/assert"
+	"github.com/xo/terminfo"
 )
 
 func TestMerge(t *testing.T) {
@@ -12,7 +13,11 @@ func TestMerge(t *testing.T) {
 		name          string
 		toMerge       []TextStyle
 		expectedStyle TextStyle
+		expectedStr   string
 	}
+
+	// on CI we've got no color capability so we're forcing it here
+	color.ForceSetColorLevel(terminfo.ColorLevelMillions)
 
 	fgRed := color.FgRed
 	bgRed := color.BgRed
@@ -24,21 +29,26 @@ func TestMerge(t *testing.T) {
 	rgbYellowLib := color.Rgb(0xFF, 0xFF, 0x00)
 	rgbYellow := NewRGBColor(rgbYellowLib)
 
+	strToPrint := "foo"
+
 	scenarios := []scenario{
 		{
 			"no color",
 			nil,
 			TextStyle{style: color.Style{}},
+			"foo",
 		},
 		{
 			"only fg color",
 			[]TextStyle{FgRed},
 			TextStyle{fg: &Color{basic: &fgRed}, style: color.Style{fgRed}},
+			"\x1b[31mfoo\x1b[0m",
 		},
 		{
 			"only bg color",
 			[]TextStyle{BgRed},
 			TextStyle{bg: &Color{basic: &bgRed}, style: color.Style{bgRed}},
+			"\x1b[41mfoo\x1b[0m",
 		},
 		{
 			"fg and bg color",
@@ -48,6 +58,7 @@ func TestMerge(t *testing.T) {
 				bg:    &Color{basic: &bgRed},
 				style: color.Style{fgBlue, bgRed},
 			},
+			"\x1b[34;41mfoo\x1b[0m",
 		},
 		{
 			"single attribute",
@@ -56,6 +67,7 @@ func TestMerge(t *testing.T) {
 				decoration: Decoration{bold: true},
 				style:      color.Style{color.OpBold},
 			},
+			"\x1b[1mfoo\x1b[0m",
 		},
 		{
 			"multiple attributes",
@@ -67,6 +79,7 @@ func TestMerge(t *testing.T) {
 				},
 				style: color.Style{color.OpBold, color.OpUnderscore},
 			},
+			"\x1b[1;4mfoo\x1b[0m",
 		},
 		{
 			"multiple attributes and colors",
@@ -80,6 +93,7 @@ func TestMerge(t *testing.T) {
 				},
 				style: color.Style{fgBlue, bgRed, color.OpBold, color.OpUnderscore},
 			},
+			"\x1b[34;41;1;4mfoo\x1b[0m",
 		},
 		{
 			"rgb fg color",
@@ -88,6 +102,8 @@ func TestMerge(t *testing.T) {
 				fg:    &rgbPink,
 				style: color.NewRGBStyle(rgbPinkLib).SetOpts(color.Opts{}),
 			},
+			// '38;2' qualifies an RGB foreground color
+			"\x1b[38;2;255;0;255mfoo\x1b[0m",
 		},
 		{
 			"rgb fg and bg color",
@@ -97,6 +113,8 @@ func TestMerge(t *testing.T) {
 				bg:    &rgbYellow,
 				style: color.NewRGBStyle(rgbPinkLib, rgbYellowLib).SetOpts(color.Opts{}),
 			},
+			// '48;2' qualifies an RGB background color
+			"\x1b[38;2;255;0;255;48;2;255;255;0mfoo\x1b[0m",
 		},
 		{
 			"rgb fg and bg color with opts",
@@ -110,6 +128,7 @@ func TestMerge(t *testing.T) {
 				},
 				style: color.NewRGBStyle(rgbPinkLib, rgbYellowLib).SetOpts(color.Opts{color.OpBold, color.OpUnderscore}),
 			},
+			"\x1b[38;2;255;0;255;48;2;255;255;0;1;4mfoo\x1b[0m",
 		},
 		{
 			"mix color-16 with rgb colors",
@@ -122,16 +141,19 @@ func TestMerge(t *testing.T) {
 					fgRed.RGB(), // We need to use FG here,  https://github.com/gookit/color/issues/39
 				).SetOpts(color.Opts{}),
 			},
+			"\x1b[38;2;255;255;0;48;2;197;30;20mfoo\x1b[0m",
 		},
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.name, func(t *testing.T) {
 			style := New()
 			for _, other := range s.toMerge {
 				style = style.MergeStyle(other)
 			}
 			assert.Equal(t, s.expectedStyle, style)
+			assert.Equal(t, s.expectedStr, style.Sprint(strToPrint))
 		})
 	}
 }
