@@ -474,30 +474,28 @@ func (gui *Gui) handleCommitEditorPress() error {
 }
 
 func (gui *Gui) handleStatusFilterPressed() error {
-	menuItems := []*menuItem{}
-
-	menuItems = append(menuItems, &menuItem{
-		displayString: gui.Tr.FilterStagedFiles,
-		onPress: func() error {
-			return gui.setStatusFiltering(filetree.DisplayStaged)
+		menuItems := []*menuItem{
+		{
+			displayString: gui.Tr.FilterStagedFiles,
+			onPress: func() error {
+				return gui.setStatusFiltering(filetree.DisplayStaged)
+			},
 		},
-	})
-
-	menuItems = append(menuItems, &menuItem{
-		displayString: gui.Tr.FilterUnstagedFiles,
-		onPress: func() error {
-			return gui.setStatusFiltering(filetree.DisplayUnstaged)
+		{
+			displayString: gui.Tr.FilterUnstagedFiles,
+			onPress: func() error {
+				return gui.setStatusFiltering(filetree.DisplayUnstaged)
+			},
 		},
-	})
-
-	menuItems = append(menuItems, &menuItem{
-		displayString: gui.Tr.ResetCommitFilterState,
-		onPress: func() error {
-			return gui.setStatusFiltering(filetree.DisplayAll)
+		{
+			displayString: gui.Tr.ResetCommitFilterState,
+			onPress: func() error {
+				return gui.setStatusFiltering(filetree.DisplayAll)
+			},
 		},
-	})
+	}
 
-	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{showCancel: false})
+	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{showCancel: true })
 }
 
 func (gui *Gui) setStatusFiltering(filter filetree.FileManagerDisplayFilter) error {
