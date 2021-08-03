@@ -5,7 +5,8 @@ package config
 // GetPlatformDefaultConfig gets the defaults for the platform
 func GetPlatformDefaultConfig() OSConfig {
 	return OSConfig{
-		EditCommand:     ``,
+		Editor:          ``,
+		EditCommand:     `{{editor}} {{filename}}`,
 		OpenCommand:     "open {{filename}}",
 		OpenLinkCommand: "open {{link}}",
 	}

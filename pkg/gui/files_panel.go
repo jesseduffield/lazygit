@@ -474,13 +474,17 @@ func (gui *Gui) handleCommitEditorPress() error {
 }
 
 func (gui *Gui) editFile(filename string) error {
-	cmdStr, err := gui.GitCommand.EditFileCmdStr(filename)
+	return gui.editFileAtLine(filename, 1)
+}
+
+func (gui *Gui) editFileAtLine(filename string, lineNumber int) error {
+	cmdStr, err := gui.GitCommand.EditFileCmdStr(filename, lineNumber)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
 
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).PrepareShellSubProcess(cmdStr),
+		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).ShellCommandFromString(cmdStr),
 	)
 }
 
