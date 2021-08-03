@@ -208,7 +208,11 @@ func (gui *Gui) handleOpenFileAtLine() error {
 		}
 
 		// need to look at current index, then work out what my hunk's header information is, and see how far my line is away from the hunk header
-		lineNumber := state.CurrentLineNumber()
+		lineNumber, err := state.CurrentLineNumber()
+		if err != nil {
+			lineNumber = 1
+		}
+
 		filenameWithLineNum := fmt.Sprintf("%s:%d", filename, lineNumber)
 		if err := gui.OSCommand.OpenFile(filenameWithLineNum); err != nil {
 			return err
@@ -279,7 +283,10 @@ func (gui *Gui) handleLineByLineEdit() error {
 		return nil
 	}
 
-	lineNumber := gui.State.Panels.LineByLine.CurrentLineNumber()
+	lineNumber, err := gui.State.Panels.LineByLine.CurrentLineNumber()
+	if err != nil {
+		lineNumber = 1
+	}
 
 	return gui.editFileAtLine(file.Name, lineNumber)
 }
