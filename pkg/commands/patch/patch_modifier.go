@@ -137,12 +137,17 @@ func ModifiedPatchForLines(log *logrus.Entry, filename string, diffText string, 
 }
 
 // I want to know, given a hunk, what line a given index is on
-func (hunk *PatchHunk) LineNumberOfLine(idx int) int {
-	lines := hunk.bodyLines[0 : idx-hunk.FirstLineIdx-1]
+func (hunk *PatchHunk) LineNumberOfLine(idx int) (int, error) {
+	n := idx - hunk.FirstLineIdx - 1
+	if n < 0 || len(hunk.bodyLines) <= n {
+		return -1, fmt.Errorf("line index out of range")
+	}
+
+	lines := hunk.bodyLines[0:n]
 
 	offset := nLinesWithPrefix(lines, []string{"+", " "})
 
-	return hunk.newStart + offset
+	return hunk.newStart + offset, nil
 }
 
 func nLinesWithPrefix(lines []string, chars []string) int {

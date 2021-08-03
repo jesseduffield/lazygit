@@ -167,7 +167,7 @@ func (s *State) SelectedRange() (int, int) {
 	}
 }
 
-func (s *State) CurrentLineNumber() int {
+func (s *State) CurrentLineNumber() (int, error) {
 	return s.CurrentHunk().LineNumberOfLine(s.selectedLineIdx)
 }
 
