@@ -474,7 +474,7 @@ func (gui *Gui) handleCommitEditorPress() error {
 }
 
 func (gui *Gui) handleStatusFilterPressed() error {
-		menuItems := []*menuItem{
+	menuItems := []*menuItem{
 		{
 			displayString: gui.Tr.FilterStagedFiles,
 			onPress: func() error {
@@ -495,7 +495,7 @@ func (gui *Gui) handleStatusFilterPressed() error {
 		},
 	}
 
-	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{showCancel: true })
+	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) setStatusFiltering(filter filetree.FileManagerDisplayFilter) error {
