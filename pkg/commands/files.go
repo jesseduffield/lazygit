@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -321,8 +322,8 @@ func (c *GitCommand) ResetAndClean() error {
 	return c.RemoveUntrackedFiles()
 }
 
-func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
-	editor := c.Config.GetUserConfig().OS.EditCommand
+func (c *GitCommand) EditFileCmdStr(filename string, lineNumber int) (string, error) {
+	editor := c.Config.GetUserConfig().OS.Editor
 
 	if editor == "" {
 		editor = c.GetConfigValue("core.editor")
@@ -346,5 +347,12 @@ func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
 		return "", errors.New("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 	}
 
-	return fmt.Sprintf("%s %s", editor, c.OSCommand.Quote(filename)), nil
+	templateValues := map[string]string{
+		"editor":   editor,
+		"filename": c.OSCommand.Quote(filename),
+		"line":     strconv.Itoa(lineNumber),
+	}
+
+	editTemplate := c.Config.GetUserConfig().OS.EditCommand
+	return utils.ResolvePlaceholderString(editTemplate, templateValues), nil
 }

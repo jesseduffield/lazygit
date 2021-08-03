@@ -1301,7 +1301,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_STAGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.Edit),
-			Handler:     gui.handleFileEdit,
+			Handler:     gui.handleLineByLineEdit,
 			Description: gui.Tr.LcEditFile,
 		},
 		{
