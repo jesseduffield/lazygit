@@ -323,7 +323,7 @@ func (c *GitCommand) ResetAndClean() error {
 }
 
 func (c *GitCommand) EditFileCmdStr(filename string, lineNumber int) (string, error) {
-	editor := c.Config.GetUserConfig().OS.Editor
+	editor := c.Config.GetUserConfig().OS.EditCommand
 
 	if editor == "" {
 		editor = c.GetConfigValue("core.editor")
@@ -353,6 +353,6 @@ func (c *GitCommand) EditFileCmdStr(filename string, lineNumber int) (string, er
 		"line":     strconv.Itoa(lineNumber),
 	}
 
-	editTemplate := c.Config.GetUserConfig().OS.EditCommand
-	return utils.ResolvePlaceholderString(editTemplate, templateValues), nil
+	editCmdTemplate := c.Config.GetUserConfig().OS.EditCommandTemplate
+	return utils.ResolvePlaceholderString(editCmdTemplate, templateValues), nil
 }

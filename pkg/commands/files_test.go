@@ -741,13 +741,13 @@ func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
 // TestEditFileCmdStr is a function.
 func TestEditFileCmdStr(t *testing.T) {
 	type scenario struct {
-		filename          string
-		configEditor      string
-		configEditCommand string
-		command           func(string, ...string) *exec.Cmd
-		getenv            func(string) string
-		getGitConfigValue func(string) (string, error)
-		test              func(string, error)
+		filename                  string
+		configEditCommand         string
+		configEditCommandTemplate string
+		command                   func(string, ...string) *exec.Cmd
+		getenv                    func(string) string
+		getGitConfigValue         func(string) (string, error)
+		test                      func(string, error)
 	}
 
 	scenarios := []scenario{
@@ -912,8 +912,8 @@ func TestEditFileCmdStr(t *testing.T) {
 
 	for _, s := range scenarios {
 		gitCmd := NewDummyGitCommand()
-		gitCmd.Config.GetUserConfig().OS.Editor = s.configEditor
 		gitCmd.Config.GetUserConfig().OS.EditCommand = s.configEditCommand
+		gitCmd.Config.GetUserConfig().OS.EditCommandTemplate = s.configEditCommandTemplate
 		gitCmd.OSCommand.Command = s.command
 		gitCmd.OSCommand.Getenv = s.getenv
 		gitCmd.getGitConfigValue = s.getGitConfigValue
