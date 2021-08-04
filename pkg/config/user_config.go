@@ -252,11 +252,11 @@ type KeybindingSubmodulesConfig struct {
 
 // OSConfig contains config on the level of the os
 type OSConfig struct {
-	// Editor is the command for editing a file
-	Editor string `yaml:"editor,omitempty"`
-
-	// EditCommand is the command template for editing a file
+	// EditCommand is the command for editing a file
 	EditCommand string `yaml:"editCommand,omitempty"`
+
+	// EditCommandTemplate is the command template for editing a file
+	EditCommandTemplate string `yaml:"editCommandTemplate,omitempty"`
 
 	// OpenCommand is the command for opening a file
 	OpenCommand string `yaml:"openCommand,omitempty"`

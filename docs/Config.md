@@ -64,8 +64,8 @@ git:
   disableForcePushing: false
   parseEmoji: false
 os:
-  editor: '' # see 'Configuring File Editing' section
-  editCommand: '{{editor}} {{filename}}'
+  editCommand: '' # see 'Configuring File Editing' section
+  editCommandTemplate: '{{editor}} {{filename}}'
   openCommand: ''
 refresher:
   refreshInterval: 10 # file/submodule refresh interval in seconds
@@ -231,7 +231,7 @@ Lazygit will edit a file with the first set editor in the following:
 
 ```yaml
 os:
-  editor: 'vim' # as an example
+  editCommand: 'vim' # as an example
 ```
 
 2. \$(git config core.editor)

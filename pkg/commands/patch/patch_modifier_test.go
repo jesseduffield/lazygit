@@ -539,7 +539,7 @@ func TestLineNumberOfLine(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			result, _ := s.hunk.LineNumberOfLine(s.idx)
+			result := s.hunk.LineNumberOfLine(s.idx)
 			if !assert.Equal(t, s.expected, result) {
 				fmt.Println(result)
 			}
