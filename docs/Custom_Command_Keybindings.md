@@ -47,7 +47,8 @@ customCommands:
         title: 'Remote branch:'
         command: 'git branch  -r --list {{index .PromptResponses 0}}/*'
         filter: '.*{{index .PromptResponses 0}}/(?P<branch>.*)'
-        format: '{{ .branch }}'
+        itemFormat: '{{ .branch }}'
+        descriptionFormat: ''
 ```
 
 Looking at the command assigned to the 'n' key, here's what the result looks like:
@@ -92,19 +93,24 @@ The permitted contexts are:
 
 The permitted prompt fields are:
 
-| _field_      | _description_                                                                    | _required_ |
-| ------------ | -------------------------------------------------------------------------------- | ---------- |
-| type         | one of 'input' or 'menu'                                                         | yes        |
-| title        | the title to display in the popup panel                                          | no         |
-| initialValue | (only applicable to 'input' prompts) the initial value to appear in the text box | no         |
-| options      | (only applicable to 'menu' prompts) the options to display in the menu           | no         |
-| command      | (only applicable to 'menuFromCommand' prompts) the command to run to generate    | yes        |
-|              | menu options                                                                     |            |
-| filter       | (only applicable to 'menuFromCommand' prompts) the regexp to run specifying      | yes        |
-|              | groups which are going to be kept from the command's output                      |            |
-| format       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
-|              | the filter. You can use named groups, or `{{ .group_GROUPID }}`.                 | yes        |
-|              | PS: named groups keep first match only                                           | yes        |
+| _field_           | _description_                                                                    | _required_ |
+| ------------      | -------------------------------------------------------------------------------- | ---------- |
+| type              | one of 'input' or 'menu'                                                         | yes        |
+| title             | the title to display in the popup panel                                          | no         |
+| initialValue      | (only applicable to 'input' prompts) the initial value to appear in the text box | no         |
+| options           | (only applicable to 'menu' prompts) the options to display in the menu           | no         |
+| command           | (only applicable to 'menuFromCommand' prompts) the command to run to generate    | yes        |
+|                   | menu options                                                                     |            |
+| filter            | (only applicable to 'menuFromCommand' prompts) the regexp to run specifying      | yes        |
+|                   | groups which are going to be kept from the command's output                      |            |
+| itemFormat        | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
+|                   | the filter to construct a menu item. You can use named groups,                   | yes        |
+|                   | or `{{ .group_GROUPID }}`.                                                       |            |
+|                   | PS: named groups keep first match only                                           | yes        |
+| descriptionFormat | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
+|                   | the filter to construct a menu item's description. You can use named groups,     | yes        |
+|                   | or `{{ .group_GROUPID }}`.                                                       |            |
+|                   | PS: named groups keep first match only                                           | yes        |
 
 The permitted option fields are:
 | _field_ | _description_ | _required_ |

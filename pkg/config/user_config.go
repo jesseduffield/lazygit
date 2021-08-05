@@ -285,7 +285,8 @@ type CustomCommandPrompt struct {
 	// this only applies to menuFromCommand
 	Command string `yaml:"command"`
 	Filter  string `yaml:"filter"`
-	Format  string `yaml:"format"`
+	TFormat string `yaml:"itemFormat"`
+	DFormat string `yaml:"descriptionFormat"`
 }
 
 type CustomCommandMenuOption struct {
