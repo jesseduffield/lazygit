@@ -118,16 +118,22 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 }
 
-func (gui *Gui) GenerateMenuCandidates(commandOutput string, filter string, format string) ([]string, error) {
+func (gui *Gui) GenerateMenuCandidates(commandOutput string, filter string, tFormat string, dFormat string) ([]string, []string, error) {
 	candidates := []string{}
+	descriptions := []string{}
 	reg, err := regexp.Compile(filter)
 	if err != nil {
-		return candidates, gui.surfaceError(errors.New("unable to parse filter regex, error: " + err.Error()))
+		return candidates, descriptions, gui.surfaceError(errors.New("unable to parse filter regex, error: " + err.Error()))
 	}
-	buff := bytes.NewBuffer(nil)
-	temp, err := template.New("format").Parse(format)
+	buffTitle := bytes.NewBuffer(nil)
+	tempTitle, err := template.New("format").Parse(tFormat)
 	if err != nil {
-		return candidates, gui.surfaceError(errors.New("unable to parse format, error: " + err.Error()))
+		return candidates, descriptions, gui.surfaceError(errors.New("unable to parse item format, error: " + err.Error()))
+	}
+	buffDescr := bytes.NewBuffer(nil)
+	tempDescr, err := template.New("format").Parse(dFormat)
+	if err != nil {
+		return candidates, descriptions, gui.surfaceError(errors.New("unable to parse item description format, error: " + err.Error()))
 	}
 	for _, str := range strings.Split(string(commandOutput), "\n") {
 		if str == "" {
@@ -146,15 +152,21 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput string, filter string, form
 				}
 			}
 		}
-		err = temp.Execute(buff, tmplData)
+		err = tempTitle.Execute(buffTitle, tmplData)
 		if err != nil {
-			return candidates, gui.surfaceError(err)
+			return candidates, descriptions, gui.surfaceError(err)
+		}
+		err = tempDescr.Execute(buffDescr, tmplData)
+		if err != nil {
+			return candidates, descriptions, gui.surfaceError(err)
 		}
 
-		candidates = append(candidates, strings.TrimSpace(buff.String()))
-		buff.Reset()
+		candidates = append(candidates, strings.TrimSpace(buffTitle.String()))
+		descriptions = append(descriptions, strings.TrimSpace(buffDescr.String()))
+		buffTitle.Reset()
+		buffDescr.Reset()
 	}
-	return candidates, err
+	return candidates, descriptions, err
 }
 
 func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptResponses []string, responseIdx int, wrappedF func() error) error {
@@ -177,7 +189,7 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 	}
 
 	// Need to make a menu out of what the cmd has displayed
-	candidates, err := gui.GenerateMenuCandidates(message, filter, prompt.Format)
+	candidates, descriptions, err := gui.GenerateMenuCandidates(message, filter, prompt.TFormat, prompt.DFormat)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -185,7 +197,8 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 	menuItems := make([]*menuItem, len(candidates))
 	for i := range candidates {
 		menuItems[i] = &menuItem{
-			displayStrings: []string{candidates[i]},
+			// Put in candidate and its description
+			displayStrings: []string{candidates[i], style.FgYellow.Sprint(descriptions[i])},
 			onPress: func() error {
 				promptResponses[responseIdx] = candidates[i]
 				return wrappedF()

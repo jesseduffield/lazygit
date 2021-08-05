@@ -86,29 +86,34 @@ func TestGuiGenerateMenuCandidates(t *testing.T) {
 		testName string
 		cmdOut   string
 		filter   string
-		format   string
-		test     func([]string, error)
+		tFormat  string
+		dFormat  string
+		test     func([]string, []string, error)
 	}
 
 	scenarios := []scenario{
 		{
 			"Extract remote branch name",
 			"upstream/pr-1",
-			"upstream/(?P<branch>.*)",
+			"(?P<remote>[a-z_]+)/(?P<branch>.*)",
 			"{{ .branch }}",
-			func(actual []string, err error) {
+			"Remote: {{ .remote }}",
+			func(actualCandidate []string, actualDescr []string, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "pr-1", actual[0])
+				assert.EqualValues(t, "pr-1", actualCandidate[0])
+				assert.EqualValues(t, "Remote: upstream", actualDescr[0])
 			},
 		},
 		{
-			"Multiple named groups",
+			"Multiple named groups with empty description",
 			"upstream/pr-1",
 			"(?P<remote>[a-z]*)/(?P<branch>.*)",
 			"{{ .branch }}|{{ .remote }}",
-			func(actual []string, err error) {
+			"",
+			func(actualCandidate []string, actualDescr []string, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "pr-1|upstream", actual[0])
+				assert.EqualValues(t, "pr-1|upstream", actualCandidate[0])
+				assert.EqualValues(t, "", actualDescr[0])
 			},
 		},
 		{
@@ -116,16 +121,18 @@ func TestGuiGenerateMenuCandidates(t *testing.T) {
 			"upstream/pr-1",
 			"(?P<remote>[a-z]*)/(?P<branch>.*)",
 			"{{ .group_2 }}|{{ .group_1 }}",
-			func(actual []string, err error) {
+			"Remote: {{ .group_1 }}",
+			func(actualCandidate []string, actualDescr []string, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "pr-1|upstream", actual[0])
+				assert.EqualValues(t, "pr-1|upstream", actualCandidate[0])
+				assert.EqualValues(t, "Remote: upstream", actualDescr[0])
 			},
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			s.test(NewDummyGui().GenerateMenuCandidates(s.cmdOut, s.filter, s.format))
+			s.test(NewDummyGui().GenerateMenuCandidates(s.cmdOut, s.filter, s.tFormat, s.dFormat))
 		})
 	}
 }
