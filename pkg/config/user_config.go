@@ -37,6 +37,7 @@ type GuiConfig struct {
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
 	ShowListFooter           bool               `yaml:"showListFooter"`
 	ShowFileTree             bool               `yaml:"showFileTree"`
+	ShowUntrackedFiles       bool               `yaml:"showUntrackedFiles"`
 	ShowRandomTip            bool               `yaml:"showRandomTip"`
 	ShowCommandLog           bool               `yaml:"showCommandLog"`
 	CommandLogSize           int                `yaml:"commandLogSize"`
@@ -320,6 +321,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowListFooter:           true,
 			ShowCommandLog:           true,
 			ShowFileTree:             false,
+			ShowUntrackedFiles:       true,
 			ShowRandomTip:            true,
 			CommandLogSize:           8,
 		},

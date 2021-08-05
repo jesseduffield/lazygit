@@ -369,6 +369,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	}
 
 	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
+	showUntracked := gui.Config.GetUserConfig().Gui.ShowUntrackedFiles
 
 	contexts := gui.contextTree()
 
@@ -380,7 +381,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	}
 
 	gui.State = &guiState{
-		FileManager:           filetree.NewFileManager(make([]*models.File, 0), gui.Log, showTree),
+		FileManager:           filetree.NewFileManager(make([]*models.File, 0), gui.Log, showTree, showUntracked),
 		CommitFileManager:     filetree.NewCommitFileManager(make([]*models.CommitFile, 0), gui.Log, showTree),
 		Commits:               make([]*models.Commit, 0),
 		FilteredReflogCommits: make([]*models.Commit, 0),

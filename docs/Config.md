@@ -41,6 +41,7 @@ gui:
   skipUnstageLineWarning: false
   skipStashWarning: true
   showFileTree: false # for rendering changes files in a tree format
+  showUntrackedFiles: true # for showing untracking files in flat files view
   showListFooter: true # for seeing the '5 of 20' message in list panels
   showRandomTip: true
   showCommandLog: true

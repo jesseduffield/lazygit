@@ -18,12 +18,12 @@ type FileManager struct {
 	sync.RWMutex
 }
 
-func NewFileManager(files []*models.File, log *logrus.Entry, showTree bool) *FileManager {
+func NewFileManager(files []*models.File, log *logrus.Entry, showTree bool, showUntracked bool) *FileManager {
 	return &FileManager{
 		files:          files,
 		log:            log,
 		showTree:       showTree,
-		showUntracked:  true,
+		showUntracked:  showUntracked,
 		collapsedPaths: CollapsedPaths{},
 		RWMutex:        sync.RWMutex{},
 	}
