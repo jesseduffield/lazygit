@@ -185,6 +185,7 @@
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>g</kbd>: view upstream reset options
   <kbd>`</kbd>: toggle file tree view
+  <kbd>ctrl+]</kbd>: toggle showing tracked files in flat files view
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
 </pre>
