@@ -188,6 +188,7 @@ type KeybindingFilesConfig struct {
 	ViewResetOptions         string `yaml:"viewResetOptions"`
 	Fetch                    string `yaml:"fetch"`
 	ToggleTreeView           string `yaml:"toggleTreeView"`
+	ToggleShowUntracked      string `yaml:"toggleShowUntrackedFilesInFlatView"`
 	OpenMergeTool            string `yaml:"openMergeTool"`
 }
 
@@ -434,6 +435,7 @@ func GetDefaultConfig() *UserConfig {
 				ViewResetOptions:         "D",
 				Fetch:                    "f",
 				ToggleTreeView:           "`",
+				ToggleShowUntracked:      "<c-]>",
 				OpenMergeTool:            "M",
 			},
 			Branches: KeybindingBranchesConfig{

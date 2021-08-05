@@ -527,6 +527,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "files",
 			Contexts:    []string{string(FILES_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Files.ToggleShowUntracked),
+			Handler:     gui.handleToggleShowUntracked,
+			Description: gui.Tr.LcToggleShowUntrackedFiles,
+		},
+		{
+			ViewName:    "files",
+			Contexts:    []string{string(FILES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Files.OpenMergeTool),
 			Handler:     gui.handleOpenMergeTool,
 			Description: gui.Tr.LcOpenMergeTool,

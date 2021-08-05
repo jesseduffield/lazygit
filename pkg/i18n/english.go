@@ -47,6 +47,7 @@ type TranslationSet struct {
 	LcToggleStaged                      string
 	LcToggleStagedAll                   string
 	LcToggleTreeView                    string
+	LcToggleShowUntrackedFiles          string
 	LcOpenMergeTool                     string
 	LcRefresh                           string
 	LcPush                              string
@@ -598,6 +599,7 @@ func englishTranslationSet() TranslationSet {
 		LcToggleStaged:                      "toggle staged",
 		LcToggleStagedAll:                   "stage/unstage all",
 		LcToggleTreeView:                    "toggle file tree view",
+		LcToggleShowUntrackedFiles:          "toggle showing untracked files in flat files view",
 		LcOpenMergeTool:                     "open external merge tool (git mergetool)",
 		LcRefresh:                           "refresh",
 		LcPush:                              "push",

@@ -12,6 +12,7 @@ type FileManager struct {
 	files          []*models.File
 	tree           *FileNode
 	showTree       bool
+	showUntracked  bool
 	log            *logrus.Entry
 	collapsedPaths CollapsedPaths
 	sync.RWMutex
@@ -22,6 +23,7 @@ func NewFileManager(files []*models.File, log *logrus.Entry, showTree bool) *Fil
 		files:          files,
 		log:            log,
 		showTree:       showTree,
+		showUntracked:  true,
 		collapsedPaths: CollapsedPaths{},
 		RWMutex:        sync.RWMutex{},
 	}
@@ -37,6 +39,11 @@ func (m *FileManager) ExpandToPath(path string) {
 
 func (m *FileManager) ToggleShowTree() {
 	m.showTree = !m.showTree
+	m.SetTree()
+}
+
+func (m *FileManager) ToggleShowUntrackedFiles() {
+	m.showUntracked = !m.showUntracked
 	m.SetTree()
 }
 
@@ -76,7 +83,18 @@ func (m *FileManager) SetTree() {
 	if m.showTree {
 		m.tree = BuildTreeFromFiles(m.files)
 	} else {
-		m.tree = BuildFlatTreeFromFiles(m.files)
+		files := m.files
+		if !m.showUntracked {
+			// If not showing untracked files, remove them now
+			for i := len(files) - 1; i >= 0; i-- {
+				file := files[i]
+				// Condition to decide if current element has to be deleted:
+				if !file.Tracked {
+					files = append(files[:i], files[i+1:]...)
+				}
+			}
+		}
+		m.tree = BuildFlatTreeFromFiles(files)
 	}
 }
 

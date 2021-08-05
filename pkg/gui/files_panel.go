@@ -912,6 +912,33 @@ func (gui *Gui) handleToggleFileTreeView() error {
 	return nil
 }
 
+func (gui *Gui) handleToggleShowUntracked() error {
+	// get path of currently selected file
+	path := gui.getSelectedPath()
+
+	gui.State.FileManager.ToggleShowUntrackedFiles()
+
+	// find that same node in the new format and move the cursor to it
+	if path != "" {
+		gui.State.FileManager.ExpandToPath(path)
+		index, found := gui.State.FileManager.GetIndexForPath(path)
+		if found {
+			gui.filesListContext().GetPanelState().SetSelectedLineIdx(index)
+		}
+	}
+
+	if ContextKey(gui.Views.Files.Context) == FILES_CONTEXT_KEY {
+		if err := gui.State.Contexts.Files.HandleRender(); err != nil {
+			return err
+		}
+		if err := gui.State.Contexts.Files.HandleFocus(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (gui *Gui) handleOpenMergeTool() error {
 	return gui.ask(askOpts{
 		title:  gui.Tr.MergeToolTitle,
