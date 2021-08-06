@@ -33,7 +33,7 @@ type CustomCommandObjects struct {
 	PromptResponses        []string
 }
 
-type CommandMenuEntry struct {
+type commandMenuEntry struct {
 	label string
 	value string
 }
@@ -123,30 +123,30 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 }
 
-func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, labelFormat string) ([]CommandMenuEntry, error) {
-	candidates := []CommandMenuEntry{}
-
+func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, labelFormat string) ([]commandMenuEntry, error) {
 	reg, err := regexp.Compile(filter)
 	if err != nil {
-		return candidates, gui.surfaceError(errors.New("unable to parse filter regex, error: " + err.Error()))
+		return nil, gui.surfaceError(errors.New("unable to parse filter regex, error: " + err.Error()))
 	}
 
-	valueBuff := bytes.NewBuffer(nil)
+	buff := bytes.NewBuffer(nil)
+
 	valueTemp, err := template.New("format").Parse(valueFormat)
 	if err != nil {
-		return candidates, gui.surfaceError(errors.New("unable to parse value format, error: " + err.Error()))
+		return nil, gui.surfaceError(errors.New("unable to parse value format, error: " + err.Error()))
 	}
 
-	descBuff := bytes.NewBuffer(nil)
 	descTemp, err := template.New("format").Parse(labelFormat)
 	if err != nil {
-		return candidates, gui.surfaceError(errors.New("unable to parse label format, error: " + err.Error()))
+		return nil, gui.surfaceError(errors.New("unable to parse label format, error: " + err.Error()))
 	}
 
+	candidates := []commandMenuEntry{}
 	for _, str := range strings.Split(string(commandOutput), "\n") {
 		if str == "" {
 			continue
 		}
+
 		tmplData := map[string]string{}
 		out := reg.FindAllStringSubmatch(str, -1)
 		if len(out) > 0 {
@@ -161,28 +161,28 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, label
 			}
 		}
 
-		err = valueTemp.Execute(valueBuff, tmplData)
+		err = valueTemp.Execute(buff, tmplData)
 		if err != nil {
 			return candidates, gui.surfaceError(err)
 		}
+		entry := commandMenuEntry{
+			value: strings.TrimSpace(buff.String()),
+		}
 
 		if labelFormat != "" {
-			err = descTemp.Execute(descBuff, tmplData)
+			buff.Reset()
+			err = descTemp.Execute(buff, tmplData)
 			if err != nil {
 				return candidates, gui.surfaceError(err)
 			}
+			entry.label = strings.TrimSpace(buff.String())
 		} else {
-			descBuff.Write(valueBuff.Bytes())
+			entry.label = entry.value
 		}
 
-		entry := CommandMenuEntry{
-			strings.TrimSpace(descBuff.String()),
-			strings.TrimSpace(valueBuff.String()),
-		}
 		candidates = append(candidates, entry)
 
-		valueBuff.Reset()
-		descBuff.Reset()
+		buff.Reset()
 	}
 	return candidates, err
 }
