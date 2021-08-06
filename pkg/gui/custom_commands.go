@@ -125,20 +125,24 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 
 func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, labelFormat string) ([]CommandMenuEntry, error) {
 	candidates := []CommandMenuEntry{}
+
 	reg, err := regexp.Compile(filter)
 	if err != nil {
 		return candidates, gui.surfaceError(errors.New("unable to parse filter regex, error: " + err.Error()))
 	}
-	buffItem := bytes.NewBuffer(nil)
-	tempItem, err := template.New("format").Parse(valueFormat)
+
+	valueBuff := bytes.NewBuffer(nil)
+	valueTemp, err := template.New("format").Parse(valueFormat)
 	if err != nil {
-		return candidates, gui.surfaceError(errors.New("unable to parse item format, error: " + err.Error()))
+		return candidates, gui.surfaceError(errors.New("unable to parse value format, error: " + err.Error()))
 	}
-	buffDescr := bytes.NewBuffer(nil)
-	tempDescr, err := template.New("format").Parse(labelFormat)
+
+	descBuff := bytes.NewBuffer(nil)
+	descTemp, err := template.New("format").Parse(labelFormat)
 	if err != nil {
-		return candidates, gui.surfaceError(errors.New("unable to parse item description format, error: " + err.Error()))
+		return candidates, gui.surfaceError(errors.New("unable to parse label format, error: " + err.Error()))
 	}
+
 	for _, str := range strings.Split(string(commandOutput), "\n") {
 		if str == "" {
 			continue
@@ -156,26 +160,29 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, label
 				}
 			}
 		}
-		err = tempItem.Execute(buffItem, tmplData)
-		if err != nil {
-			return candidates, gui.surfaceError(err)
-		}
-		err = tempDescr.Execute(buffDescr, tmplData)
+
+		err = valueTemp.Execute(valueBuff, tmplData)
 		if err != nil {
 			return candidates, gui.surfaceError(err)
 		}
 
-		// Populate menu entry
-		// label formatted as labelFormat
-		// value as valueFormat
+		if labelFormat != "" {
+			err = descTemp.Execute(descBuff, tmplData)
+			if err != nil {
+				return candidates, gui.surfaceError(err)
+			}
+		} else {
+			descBuff.Write(valueBuff.Bytes())
+		}
+
 		entry := CommandMenuEntry{
-			strings.TrimSpace(buffDescr.String()),
-			//"Description",
-			strings.TrimSpace(buffItem.String()),
+			strings.TrimSpace(descBuff.String()),
+			strings.TrimSpace(valueBuff.String()),
 		}
 		candidates = append(candidates, entry)
-		buffItem.Reset()
-		buffDescr.Reset()
+
+		valueBuff.Reset()
+		descBuff.Reset()
 	}
 	return candidates, err
 }
@@ -208,8 +215,7 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 	menuItems := make([]*menuItem, len(candidates))
 	for i := range candidates {
 		menuItems[i] = &menuItem{
-			// Put in candidate and its description
-			displayStrings: []string{candidates[i].value, style.FgYellow.Sprint(candidates[i].label)},
+			displayStrings: []string{candidates[i].label},
 			onPress: func() error {
 				promptResponses[responseIdx] = candidates[i].value
 				return wrappedF()
