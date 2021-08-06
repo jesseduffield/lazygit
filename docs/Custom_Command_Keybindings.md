@@ -47,8 +47,8 @@ customCommands:
         title: 'Remote branch:'
         command: 'git branch  -r --list {{index .PromptResponses 0}}/*'
         filter: '.*{{index .PromptResponses 0}}/(?P<branch>.*)'
-        itemFormat: '{{ .branch }}'
-        descriptionFormat: ''
+        valueFormat: '{{ .branch }}'
+        labelFormat: ''
 ```
 
 Looking at the command assigned to the 'n' key, here's what the result looks like:
@@ -103,11 +103,11 @@ The permitted prompt fields are:
 |                   | menu options                                                                     |            |
 | filter            | (only applicable to 'menuFromCommand' prompts) the regexp to run specifying      | yes        |
 |                   | groups which are going to be kept from the command's output                      |            |
-| itemFormat        | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
+| valueFormat        | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
 |                   | the filter to construct a menu item. You can use named groups,                   | yes        |
 |                   | or `{{ .group_GROUPID }}`.                                                       |            |
 |                   | PS: named groups keep first match only                                           | yes        |
-| descriptionFormat | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
+| labelFormat | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
 |                   | the filter to construct a menu item's description. You can use named groups,     | yes        |
 |                   | or `{{ .group_GROUPID }}`.                                                       |            |
 |                   | PS: named groups keep first match only                                           | yes        |

@@ -83,12 +83,12 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 
 func TestGuiGenerateMenuCandidates(t *testing.T) {
 	type scenario struct {
-		testName string
-		cmdOut   string
-		filter   string
-		tFormat  string
-		dFormat  string
-		test     func([]string, []string, error)
+		testName    string
+		cmdOut      string
+		filter      string
+		valueFormat string
+		labelFormat string
+		test        func([]CommandMenuEntry, error)
 	}
 
 	scenarios := []scenario{
@@ -98,10 +98,10 @@ func TestGuiGenerateMenuCandidates(t *testing.T) {
 			"(?P<remote>[a-z_]+)/(?P<branch>.*)",
 			"{{ .branch }}",
 			"Remote: {{ .remote }}",
-			func(actualCandidate []string, actualDescr []string, err error) {
+			func(actualEntry []CommandMenuEntry, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "pr-1", actualCandidate[0])
-				assert.EqualValues(t, "Remote: upstream", actualDescr[0])
+				assert.EqualValues(t, "pr-1", actualEntry[0].value)
+				assert.EqualValues(t, "Remote: upstream", actualEntry[0].label)
 			},
 		},
 		{
@@ -110,10 +110,10 @@ func TestGuiGenerateMenuCandidates(t *testing.T) {
 			"(?P<remote>[a-z]*)/(?P<branch>.*)",
 			"{{ .branch }}|{{ .remote }}",
 			"",
-			func(actualCandidate []string, actualDescr []string, err error) {
+			func(actualEntry []CommandMenuEntry, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "pr-1|upstream", actualCandidate[0])
-				assert.EqualValues(t, "", actualDescr[0])
+				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].value)
+				assert.EqualValues(t, "", actualEntry[0].label)
 			},
 		},
 		{
@@ -122,17 +122,17 @@ func TestGuiGenerateMenuCandidates(t *testing.T) {
 			"(?P<remote>[a-z]*)/(?P<branch>.*)",
 			"{{ .group_2 }}|{{ .group_1 }}",
 			"Remote: {{ .group_1 }}",
-			func(actualCandidate []string, actualDescr []string, err error) {
+			func(actualEntry []CommandMenuEntry, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "pr-1|upstream", actualCandidate[0])
-				assert.EqualValues(t, "Remote: upstream", actualDescr[0])
+				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].value)
+				assert.EqualValues(t, "Remote: upstream", actualEntry[0].label)
 			},
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			s.test(NewDummyGui().GenerateMenuCandidates(s.cmdOut, s.filter, s.tFormat, s.dFormat))
+			s.test(NewDummyGui().GenerateMenuCandidates(s.cmdOut, s.filter, s.valueFormat, s.labelFormat))
 		})
 	}
 }
