@@ -33,6 +33,11 @@ type CustomCommandObjects struct {
 	PromptResponses        []string
 }
 
+type CommandMenuEntry struct {
+	label string
+	value string
+}
+
 func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (string, error) {
 	objects := CustomCommandObjects{
 		SelectedFile:           gui.getSelectedFile(),
@@ -118,22 +123,21 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
 }
 
-func (gui *Gui) GenerateMenuCandidates(commandOutput string, filter string, tFormat string, dFormat string) ([]string, []string, error) {
-	candidates := []string{}
-	descriptions := []string{}
+func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, labelFormat string) ([]CommandMenuEntry, error) {
+	candidates := []CommandMenuEntry{}
 	reg, err := regexp.Compile(filter)
 	if err != nil {
-		return candidates, descriptions, gui.surfaceError(errors.New("unable to parse filter regex, error: " + err.Error()))
+		return candidates, gui.surfaceError(errors.New("unable to parse filter regex, error: " + err.Error()))
 	}
-	buffTitle := bytes.NewBuffer(nil)
-	tempTitle, err := template.New("format").Parse(tFormat)
+	buffItem := bytes.NewBuffer(nil)
+	tempItem, err := template.New("format").Parse(valueFormat)
 	if err != nil {
-		return candidates, descriptions, gui.surfaceError(errors.New("unable to parse item format, error: " + err.Error()))
+		return candidates, gui.surfaceError(errors.New("unable to parse item format, error: " + err.Error()))
 	}
 	buffDescr := bytes.NewBuffer(nil)
-	tempDescr, err := template.New("format").Parse(dFormat)
+	tempDescr, err := template.New("format").Parse(labelFormat)
 	if err != nil {
-		return candidates, descriptions, gui.surfaceError(errors.New("unable to parse item description format, error: " + err.Error()))
+		return candidates, gui.surfaceError(errors.New("unable to parse item description format, error: " + err.Error()))
 	}
 	for _, str := range strings.Split(string(commandOutput), "\n") {
 		if str == "" {
@@ -152,21 +156,28 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput string, filter string, tFor
 				}
 			}
 		}
-		err = tempTitle.Execute(buffTitle, tmplData)
+		err = tempItem.Execute(buffItem, tmplData)
 		if err != nil {
-			return candidates, descriptions, gui.surfaceError(err)
+			return candidates, gui.surfaceError(err)
 		}
 		err = tempDescr.Execute(buffDescr, tmplData)
 		if err != nil {
-			return candidates, descriptions, gui.surfaceError(err)
+			return candidates, gui.surfaceError(err)
 		}
 
-		candidates = append(candidates, strings.TrimSpace(buffTitle.String()))
-		descriptions = append(descriptions, strings.TrimSpace(buffDescr.String()))
-		buffTitle.Reset()
+		// Populate menu entry
+		// label formatted as labelFormat
+		// value as valueFormat
+		entry := CommandMenuEntry{
+			strings.TrimSpace(buffDescr.String()),
+			//"Description",
+			strings.TrimSpace(buffItem.String()),
+		}
+		candidates = append(candidates, entry)
+		buffItem.Reset()
 		buffDescr.Reset()
 	}
-	return candidates, descriptions, err
+	return candidates, err
 }
 
 func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptResponses []string, responseIdx int, wrappedF func() error) error {
@@ -189,7 +200,7 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 	}
 
 	// Need to make a menu out of what the cmd has displayed
-	candidates, descriptions, err := gui.GenerateMenuCandidates(message, filter, prompt.TFormat, prompt.DFormat)
+	candidates, err := gui.GenerateMenuCandidates(message, filter, prompt.ValueFormat, prompt.LabelFormat)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -198,9 +209,9 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 	for i := range candidates {
 		menuItems[i] = &menuItem{
 			// Put in candidate and its description
-			displayStrings: []string{candidates[i], style.FgYellow.Sprint(descriptions[i])},
+			displayStrings: []string{candidates[i].value, style.FgYellow.Sprint(candidates[i].label)},
 			onPress: func() error {
-				promptResponses[responseIdx] = candidates[i]
+				promptResponses[responseIdx] = candidates[i].value
 				return wrappedF()
 			},
 		}
