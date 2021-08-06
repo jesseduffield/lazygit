@@ -105,7 +105,7 @@ func TestGuiGenerateMenuCandidates(t *testing.T) {
 			},
 		},
 		{
-			"Multiple named groups with empty description",
+			"Multiple named groups with empty labelFormat",
 			"upstream/pr-1",
 			"(?P<remote>[a-z]*)/(?P<branch>.*)",
 			"{{ .branch }}|{{ .remote }}",
@@ -113,7 +113,7 @@ func TestGuiGenerateMenuCandidates(t *testing.T) {
 			func(actualEntry []CommandMenuEntry, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].value)
-				assert.EqualValues(t, "", actualEntry[0].label)
+				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].label)
 			},
 		},
 		{

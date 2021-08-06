@@ -103,14 +103,16 @@ The permitted prompt fields are:
 |                   | menu options                                                                     |            |
 | filter            | (only applicable to 'menuFromCommand' prompts) the regexp to run specifying      | yes        |
 |                   | groups which are going to be kept from the command's output                      |            |
-| valueFormat        | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
-|                   | the filter to construct a menu item. You can use named groups,                   | yes        |
+| valueFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
+|                   | the filter to construct a menu item's value (What gets appended to prompt        |            |
+|                   | responses when the item is selected). You can use named groups,                  |            |
 |                   | or `{{ .group_GROUPID }}`.                                                       |            |
-|                   | PS: named groups keep first match only                                           | yes        |
-| labelFormat | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
-|                   | the filter to construct a menu item's description. You can use named groups,     | yes        |
-|                   | or `{{ .group_GROUPID }}`.                                                       |            |
-|                   | PS: named groups keep first match only                                           | yes        |
+|                   | PS: named groups keep first match only                                           |            |
+| labelFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | no         |
+|                   | the filter to construct the item's label (What's shown on screen). You can use   |            |
+|                   | named groups, or `{{ .group_GROUPID }}`. If this is not specified, `valueFormat` |            |
+|                   | is shown instead.                                                                |            |
+|                   | PS: named groups keep first match only                                           |            |
 
 The permitted option fields are:
 | _field_ | _description_ | _required_ |
