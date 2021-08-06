@@ -3,11 +3,15 @@ package filetree
 import (
 	"testing"
 
+	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/xo/terminfo"
 )
 
 func TestRender(t *testing.T) {
+	color.ForceSetColorLevel(terminfo.ColorLevelNone)
+
 	scenarios := []struct {
 		name           string
 		root           *FileNode
