@@ -27,6 +27,21 @@ var (
 
 	AttrUnderline = New().SetUnderline()
 	AttrBold      = New().SetBold()
+
+	ColorMap = map[string]struct {
+		Foreground TextStyle
+		Background TextStyle
+	}{
+		"default": {FgWhite, BgBlack},
+		"black":   {FgBlack, BgBlack},
+		"red":     {FgRed, BgRed},
+		"green":   {FgGreen, BgGreen},
+		"yellow":  {FgYellow, BgYellow},
+		"blue":    {FgBlue, BgBlue},
+		"magenta": {FgMagenta, BgMagenta},
+		"cyan":    {FgCyan, BgCyan},
+		"white":   {FgWhite, BgWhite},
+	}
 )
 
 func FromBasicFg(fg color.Color) TextStyle {
