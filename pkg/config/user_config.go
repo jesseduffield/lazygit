@@ -283,9 +283,10 @@ type CustomCommandPrompt struct {
 	Options []CustomCommandMenuOption
 
 	// this only applies to menuFromCommand
-	Command string `yaml:"command"`
-	Filter  string `yaml:"filter"`
-	Format  string `yaml:"format"`
+	Command     string `yaml:"command"`
+	Filter      string `yaml:"filter"`
+	ValueFormat string `yaml:"valueFormat"`
+	LabelFormat string `yaml:"labelFormat"`
 }
 
 type CustomCommandMenuOption struct {
