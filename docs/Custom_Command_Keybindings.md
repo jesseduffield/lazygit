@@ -48,7 +48,7 @@ customCommands:
         command: 'git branch  -r --list {{index .PromptResponses 0}}/*'
         filter: '.*{{index .PromptResponses 0}}/(?P<branch>.*)'
         valueFormat: '{{ .branch }}'
-        labelFormat: ''
+        labelFormat: '{{ .branch | green }}'
 ```
 
 Looking at the command assigned to the 'n' key, here's what the result looks like:
@@ -110,8 +110,10 @@ The permitted prompt fields are:
 |                   | PS: named groups keep first match only                                           |            |
 | labelFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | no         |
 |                   | the filter to construct the item's label (What's shown on screen). You can use   |            |
-|                   | named groups, or `{{ .group_GROUPID }}`. If this is not specified, `valueFormat` |            |
-|                   | is shown instead.                                                                |            |
+|                   | named groups, or `{{ .group_GROUPID }}`. You can also color each match with      |            |
+|                   | `{{ .group_GROUPID | colorname }}` (Color names from                             |            |
+|                   | [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md))     |            |
+|                   | If `labelFormat` is not specified, `valueFormat` is shown instead.               |            |
 |                   | PS: named groups keep first match only                                           |            |
 
 The permitted option fields are:
