@@ -1,7 +1,9 @@
 package style
 
 import (
+	"bytes"
 	"testing"
+	"text/template"
 
 	"github.com/gookit/color"
 	"github.com/stretchr/testify/assert"
@@ -154,6 +156,56 @@ func TestMerge(t *testing.T) {
 			}
 			assert.Equal(t, s.expectedStyle, style)
 			assert.Equal(t, s.expectedStr, style.Sprint(strToPrint))
+		})
+	}
+}
+
+func TestTemplateFuncMapAddColors(t *testing.T) {
+	type scenario struct {
+		name   string
+		tmpl   string
+		expect string
+	}
+
+	scenarios := []scenario{
+		{
+			"normal template",
+			"{{ .Foo }}",
+			"bar",
+		},
+		{
+			"colored string",
+			"{{ .Foo | red }}",
+			"\x1b[31mbar\x1b[0m",
+		},
+		{
+			"string with decorator",
+			"{{ .Foo | bold }}",
+			"\x1b[1mbar\x1b[0m",
+		},
+		{
+			"string with color and decorator",
+			"{{ .Foo | bold | red }}",
+			"\x1b[31m\x1b[1mbar\x1b[0m\x1b[0m",
+		},
+		{
+			"multiple string with diffrent colors",
+			"{{ .Foo | red }} - {{ .Foo | blue }}",
+			"\x1b[31mbar\x1b[0m - \x1b[34mbar\x1b[0m",
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.name, func(t *testing.T) {
+			tmpl, err := template.New("test template").Funcs(TemplateFuncMapAddColors(template.FuncMap{})).Parse(s.tmpl)
+			assert.NoError(t, err)
+
+			buff := bytes.NewBuffer(nil)
+			err = tmpl.Execute(buff, struct{ Foo string }{"bar"})
+			assert.NoError(t, err)
+
+			assert.Equal(t, s.expect, buff.String())
 		})
 	}
 }
