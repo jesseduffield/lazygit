@@ -136,10 +136,7 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, label
 		return nil, gui.surfaceError(errors.New("unable to parse value format, error: " + err.Error()))
 	}
 
-	colorFuncMap := template.FuncMap{}
-	for k, v := range style.ColorMap {
-		colorFuncMap[k] = v.Foreground.Sprint
-	}
+	colorFuncMap := style.TemplateFuncMapAddColors(template.FuncMap{})
 
 	descTemp, err := template.New("format").Funcs(colorFuncMap).Parse(labelFormat)
 	if err != nil {

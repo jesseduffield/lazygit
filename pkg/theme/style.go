@@ -6,8 +6,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-var colorMap = style.ColorMap
-
 func GetTextStyle(keys []string, background bool) style.TextStyle {
 	s := style.New()
 
@@ -20,7 +18,7 @@ func GetTextStyle(keys []string, background bool) style.TextStyle {
 		case "underline":
 			s = s.SetUnderline()
 		default:
-			value, present := colorMap[key]
+			value, present := style.ColorMap[key]
 			if present {
 				var c style.TextStyle
 				if background {
