@@ -2,6 +2,7 @@ package style
 
 import (
 	"github.com/gookit/color"
+	"text/template"
 )
 
 var (
@@ -50,4 +51,13 @@ func FromBasicFg(fg color.Color) TextStyle {
 
 func FromBasicBg(bg color.Color) TextStyle {
 	return New().SetBg(NewBasicColor(bg))
+}
+
+func TemplateFuncMapAddColors(m template.FuncMap) template.FuncMap {
+	for k, v := range ColorMap {
+		m[k] = v.Foreground.Sprint
+	}
+	m["underline"] = color.OpUnderscore.Sprint
+	m["bold"] = color.OpBold.Sprint
+	return m
 }
