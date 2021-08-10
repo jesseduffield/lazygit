@@ -72,6 +72,7 @@ type GitConfig struct {
 	// this shoudl really be under 'gui', not 'git'
 	ParseEmoji bool      `yaml:"parseEmoji"`
 	Log        LogConfig `yaml:"log"`
+	DiffContextSize     int                           `yaml:"diffContextSize"`
 }
 
 type PagingConfig struct {
@@ -359,6 +360,7 @@ func GetDefaultConfig() *UserConfig {
 			DisableForcePushing: false,
 			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
 			ParseEmoji:          false,
+			DiffContextSize:     3,
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval: 10,
