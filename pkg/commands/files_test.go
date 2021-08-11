@@ -317,6 +317,7 @@ func TestGitCommandDiff(t *testing.T) {
 		plain            bool
 		cached           bool
 		ignoreWhitespace bool
+		contextSize      int
 	}
 
 	scenarios := []scenario{
@@ -324,7 +325,7 @@ func TestGitCommandDiff(t *testing.T) {
 			"Default case",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--", "test.txt"}, args)
 
 				return secureexec.Command("echo")
 			},
@@ -336,12 +337,13 @@ func TestGitCommandDiff(t *testing.T) {
 			false,
 			false,
 			false,
+			3,
 		},
 		{
 			"cached",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "--cached", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--cached", "--", "test.txt"}, args)
 
 				return secureexec.Command("echo")
 			},
@@ -353,12 +355,13 @@ func TestGitCommandDiff(t *testing.T) {
 			false,
 			true,
 			false,
+			3,
 		},
 		{
 			"plain",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=never", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=never", "--", "test.txt"}, args)
 
 				return secureexec.Command("echo")
 			},
@@ -370,12 +373,13 @@ func TestGitCommandDiff(t *testing.T) {
 			true,
 			false,
 			false,
+			3,
 		},
 		{
 			"File not tracked and file has no staged changes",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "--no-index", "--", "/dev/null", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--no-index", "--", "/dev/null", "test.txt"}, args)
 
 				return secureexec.Command("echo")
 			},
@@ -387,12 +391,13 @@ func TestGitCommandDiff(t *testing.T) {
 			false,
 			false,
 			false,
+			3,
 		},
 		{
 			"Default case (ignore whitespace)",
 			func(cmd string, args ...string) *exec.Cmd {
 				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--color=always", "--ignore-all-space", "--", "test.txt"}, args)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--ignore-all-space", "--", "test.txt"}, args)
 
 				return secureexec.Command("echo")
 			},
@@ -404,6 +409,25 @@ func TestGitCommandDiff(t *testing.T) {
 			false,
 			false,
 			true,
+			3,
+		},
+		{
+			"Show diff with custom context size",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=17", "--color=always", "--", "test.txt"}, args)
+
+				return secureexec.Command("echo")
+			},
+			&models.File{
+				Name:             "test.txt",
+				HasStagedChanges: false,
+				Tracked:          true,
+			},
+			false,
+			false,
+			false,
+			17,
 		},
 	}
 
@@ -411,6 +435,7 @@ func TestGitCommandDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.Command = s.command
+			gitCmd.Config.GetUserConfig().Git.DiffContextSize = s.contextSize
 			gitCmd.WorktreeFileDiff(s.file, s.plain, s.cached, s.ignoreWhitespace)
 		})
 	}

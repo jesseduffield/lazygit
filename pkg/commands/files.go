@@ -207,6 +207,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 	colorArg := c.colorArg()
 	quotedPath := c.OSCommand.Quote(node.GetPath())
 	ignoreWhitespaceArg := ""
+	contextSize := c.Config.GetUserConfig().Git.DiffContextSize
 	if cached {
 		cachedArg = "--cached"
 	}
@@ -220,7 +221,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 		ignoreWhitespaceArg = "--ignore-all-space"
 	}
 
-	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s %s", colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath)
+	return fmt.Sprintf("git diff --submodule --no-ext-diff --unified=%d --color=%s %s %s %s %s", contextSize, colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
