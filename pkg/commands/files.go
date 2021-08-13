@@ -255,7 +255,7 @@ func (c *GitCommand) ShowFileDiffCmdStr(from string, to string, reverse bool, fi
 
 // CheckoutFile checks out the file for the given commit
 func (c *GitCommand) CheckoutFile(commitSha, fileName string) error {
-	return c.RunCommand("git checkout %s %s", commitSha, fileName)
+	return c.RunCommand("git checkout %s -- %s", commitSha, c.OSCommand.Quote(fileName))
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
