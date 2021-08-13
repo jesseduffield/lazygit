@@ -250,7 +250,7 @@ func (c *GitCommand) ShowFileDiffCmdStr(from string, to string, reverse bool, fi
 		reverseFlag = " -R "
 	}
 
-	return fmt.Sprintf(`git diff --submodule --no-ext-diff --no-renames --color=%s %s %s %s -- "%s"`, colorArg, from, to, reverseFlag, fileName)
+	return fmt.Sprintf("git diff --submodule --no-ext-diff --no-renames --color=%s %s %s %s -- %s", colorArg, from, to, reverseFlag, c.OSCommand.Quote(fileName))
 }
 
 // CheckoutFile checks out the file for the given commit
