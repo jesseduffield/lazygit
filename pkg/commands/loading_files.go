@@ -8,8 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-const RENAME_SEPARATOR = " -> "
-
 // GetStatusFiles git status files
 type GetStatusFileOptions struct {
 	NoRenames bool
