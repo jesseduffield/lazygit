@@ -29,8 +29,6 @@ type IFile interface {
 	GetPath() string
 }
 
-const RENAME_SEPARATOR = " -> "
-
 func (f *File) IsRename() bool {
 	return f.PreviousName != ""
 }
