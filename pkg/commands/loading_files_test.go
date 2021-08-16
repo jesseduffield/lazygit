@@ -139,6 +139,81 @@ func TestGitCommandGetStatusFiles(t *testing.T) {
 				assert.EqualValues(t, expected, files)
 			},
 		},
+		{
+			"Renamed files",
+			func(cmd string, args ...string) *exec.Cmd {
+				return secureexec.Command(
+					"printf",
+					`R  after1.txt\0before1.txt\0RM after2.txt\0before2.txt`,
+				)
+			},
+			func(files []*models.File) {
+				assert.Len(t, files, 2)
+
+				expected := []*models.File{
+					{
+						Name:                    "after1.txt",
+						PreviousName:            "before1.txt",
+						HasStagedChanges:        true,
+						HasUnstagedChanges:      false,
+						Tracked:                 true,
+						Added:                   false,
+						Deleted:                 false,
+						HasMergeConflicts:       false,
+						HasInlineMergeConflicts: false,
+						DisplayString:           "R  before1.txt -> after1.txt",
+						Type:                    "other",
+						ShortStatus:             "R ",
+					},
+					{
+						Name:                    "after2.txt",
+						PreviousName:            "before2.txt",
+						HasStagedChanges:        true,
+						HasUnstagedChanges:      true,
+						Tracked:                 true,
+						Added:                   false,
+						Deleted:                 false,
+						HasMergeConflicts:       false,
+						HasInlineMergeConflicts: false,
+						DisplayString:           "RM before2.txt -> after2.txt",
+						Type:                    "other",
+						ShortStatus:             "RM",
+					},
+				}
+
+				assert.EqualValues(t, expected, files)
+			},
+		},
+		{
+			"File with arrow in name",
+			func(cmd string, args ...string) *exec.Cmd {
+				return secureexec.Command(
+					"printf",
+					`?? a -> b.txt`,
+				)
+			},
+			func(files []*models.File) {
+				assert.Len(t, files, 1)
+
+				expected := []*models.File{
+					{
+						Name:                    "a -> b.txt",
+						HasStagedChanges:        false,
+						HasUnstagedChanges:      true,
+						Tracked:                 false,
+						Added:                   true,
+						Deleted:                 false,
+						HasMergeConflicts:       false,
+						HasInlineMergeConflicts: false,
+						DisplayString:           "?? a -> b.txt",
+						Type:                    "other",
+						ShortStatus:             "??",
+					},
+				}
+
+				assert.EqualValues(t, expected, files)
+			},
+		},
 	}
 
 	for _, s := range scenarios {
