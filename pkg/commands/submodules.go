@@ -69,7 +69,7 @@ func (c *GitCommand) SubmoduleStash(submodule *models.SubmoduleConfig) error {
 		return nil
 	}
 
-	return c.RunCommand("git -C %s stash --include-untracked", submodule.Path)
+	return c.RunCommand("git -C %s stash --include-untracked", c.OSCommand.Quote(submodule.Path))
 }
 
 func (c *GitCommand) SubmoduleReset(submodule *models.SubmoduleConfig) error {
