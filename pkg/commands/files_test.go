@@ -455,7 +455,7 @@ func TestGitCommandCheckoutFile(t *testing.T) {
 			"test999.txt",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git checkout 11af912 test999.txt",
+					Expect:  "git checkout 11af912 -- test999.txt",
 					Replace: "echo",
 				},
 			}),
@@ -469,7 +469,7 @@ func TestGitCommandCheckoutFile(t *testing.T) {
 			"test999.txt",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git checkout 11af912 test999.txt",
+					Expect:  "git checkout 11af912 -- test999.txt",
 					Replace: "test",
 				},
 			}),
@@ -606,7 +606,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 					Replace: "echo",
 				},
 				{
-					Expect:  "git checkout HEAD^ test999.txt",
+					Expect:  "git checkout HEAD^ -- test999.txt",
 					Replace: "echo",
 				},
 				{
