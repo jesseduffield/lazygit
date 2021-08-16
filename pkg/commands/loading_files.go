@@ -94,10 +94,11 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) ([]string, error) {
 		original := splitLines[i]
 		if len(original) < 2 {
 			continue
-		} else if strings.HasPrefix(original, "R  ") {
+		} else if strings.HasPrefix(original, "R") {
 			// if a line starts with 'R' then the next line is the original file.
 			next := strings.TrimSpace(splitLines[i+1])
-			original = "R  " + next + RENAME_SEPARATOR + strings.TrimPrefix(original, "R  ")
+			prefix := original[:3] // /^R. /
+			original = prefix + next + RENAME_SEPARATOR + strings.TrimPrefix(original, prefix)
 			i++
 		}
 		response = append(response, original)
