@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -114,13 +115,38 @@ func (gui *Gui) handleStatusSelect() error {
 	})
 }
 
+func (gui *Gui) askForConfigFile(action func(file string) error) error {
+	confFiles := gui.Config.GetUserConfigFiles()
+	switch len(confFiles) {
+	case 0:
+		return errors.New("no config file found")
+	case 1:
+		return action(confFiles[0])
+	default:
+		menuItems := make([]*menuItem, len(confFiles))
+		for i, file := range confFiles {
+			i := i
+			menuItems[i] = &menuItem{
+				displayString: file,
+				onPress: func() error {
+					return action(confFiles[i])
+				},
+			}
+		}
+		return gui.createMenu("select config file", menuItems, createMenuOptions{})
+	}
+}
+
 func (gui *Gui) handleOpenConfig() error {
-	return gui.openFile(gui.Config.GetUserConfigPath())
+	return gui.askForConfigFile(func(file string) error {
+		return gui.openFile(file)
+	})
 }
 
 func (gui *Gui) handleEditConfig() error {
-	filename := gui.Config.GetUserConfigPath()
-	return gui.editFile(filename)
+	return gui.askForConfigFile(func(file string) error {
+		return gui.editFile(file)
+	})
 }
 
 func lazygitTitle() string {
