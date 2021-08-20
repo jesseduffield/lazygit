@@ -242,6 +242,24 @@ os:
 
 Lazygit will log an error if none of these options are set.
 
+You can give the number of lines you are currently pointing to in the line-by-line panel.
+
+```yaml
+os:
+  editCommand: 'vim'
+  editCommandTemplate: '{{editor}} +{{line}} {{filename}}'
+```
+
+or
+
+```yaml
+os:
+  editCommand: 'code'
+  editCommandTemplate: '{{editor}} --goto {{filename}}:{{line}}'
+```
+
+`{{editor}}` in `editCommandTemplate` is replaced with `editCommand`.
+
 ### Recommended Config Values
 
 for users of VSCode
