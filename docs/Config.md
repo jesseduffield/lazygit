@@ -242,7 +242,7 @@ os:
 
 Lazygit will log an error if none of these options are set.
 
-You can give the number of lines you are currently pointing to in the line-by-line panel.
+You can specify a line number you are currently at when in the line-by-line mode.
 
 ```yaml
 os:
