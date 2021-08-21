@@ -30,10 +30,14 @@ func findConflicts(content string) []*mergeConflict {
 		case START:
 			newConflict = &mergeConflict{start: i}
 		case MIDDLE:
-			newConflict.middle = i
+			if newConflict != nil {
+				newConflict.middle = i
+			}
 		case END:
-			newConflict.end = i
-			conflicts = append(conflicts, newConflict)
+			if newConflict != nil {
+				newConflict.end = i
+				conflicts = append(conflicts, newConflict)
+			}
 			// reset value to avoid any possible silent mutations in further iterations
 			newConflict = nil
 		default:
