@@ -441,6 +441,59 @@ func TestGitCommandDiff(t *testing.T) {
 	}
 }
 
+// TestGitCommandShowFileDiff is a function.
+func TestGitCommandShowFileDiff(t *testing.T) {
+	type scenario struct {
+		testName         string
+		command          func(string, ...string) *exec.Cmd
+		from             string
+		to               string
+		reverse          bool
+		plain            bool
+		contextSize      int
+	}
+
+	scenarios := []scenario{
+		{
+			"Default case",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--no-renames", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, args)
+
+				return secureexec.Command("echo")
+			},
+			"1234567890",
+			"0987654321",
+			false,
+			false,
+			3,
+		},
+		{
+			"Show diff with custom context size",
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=123", "--no-renames", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, args)
+
+				return secureexec.Command("echo")
+			},
+			"1234567890",
+			"0987654321",
+			false,
+			false,
+			123,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := NewDummyGitCommand()
+			gitCmd.OSCommand.Command = s.command
+			gitCmd.Config.GetUserConfig().Git.DiffContextSize = s.contextSize
+			gitCmd.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
+		})
+	}
+}
+
 // TestGitCommandCheckoutFile is a function.
 func TestGitCommandCheckoutFile(t *testing.T) {
 	type scenario struct {
