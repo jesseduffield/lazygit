@@ -43,11 +43,15 @@ func TestDetermineLineType(t *testing.T) {
 		},
 		{
 			line:     "=======",
-			expected: MIDDLE,
+			expected: TARGET,
 		},
 		{
 			line:     ">>>>>>> blah",
 			expected: END,
+		},
+		{
+			line:     "||||||| adf33b9",
+			expected: ANCESTOR,
 		},
 	}
 

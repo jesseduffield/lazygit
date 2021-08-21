@@ -11,42 +11,62 @@ type Selection int
 
 const (
 	TOP Selection = iota
+	MIDDLE
 	BOTTOM
 	BOTH
 )
 
-// mergeConflict : A git conflict with a start middle and end corresponding to line
+// mergeConflict : A git conflict with a start, ancestor (if exists), target, and end corresponding to line
 // numbers in the file where the conflict markers appear
 type mergeConflict struct {
-	start  int
-	middle int
-	end    int
+	start    int
+	ancestor int
+	target   int
+	end      int
 }
 
 type State struct {
 	sync.Mutex
-	conflictIndex int
-	conflictTop   bool
-	conflicts     []*mergeConflict
-	EditHistory   *stack.Stack
+	conflictIndex     int
+	conflictSelection Selection
+	conflicts         []*mergeConflict
+	EditHistory       *stack.Stack
 }
 
 func NewState() *State {
 	return &State{
-		Mutex:         sync.Mutex{},
-		conflictIndex: 0,
-		conflictTop:   true,
-		conflicts:     []*mergeConflict{},
-		EditHistory:   stack.New(),
+		Mutex:             sync.Mutex{},
+		conflictIndex:     0,
+		conflictSelection: TOP,
+		conflicts:         []*mergeConflict{},
+		EditHistory:       stack.New(),
 	}
 }
 
-func (s *State) SelectTopOption() {
-	s.conflictTop = true
+func (s *State) SelectPrevConflictHunk() {
+	switch s.conflictSelection {
+	case MIDDLE:
+		s.conflictSelection = TOP
+	case BOTTOM:
+		if s.currentConflict().ancestor >= 0 {
+			s.conflictSelection = MIDDLE
+		} else {
+			s.conflictSelection = TOP
+		}
+	}
 }
 
-func (s *State) SelectBottomOption() {
-	s.conflictTop = false
+func (s *State) SelectNextConflictHunk() {
+	switch s.conflictSelection {
+	case TOP:
+		if s.currentConflict().ancestor >= 0 {
+			s.conflictSelection = MIDDLE
+		} else {
+			s.conflictSelection = BOTTOM
+		}
+	case MIDDLE:
+		s.conflictSelection = BOTTOM
+	}
 }
 
 func (s *State) SelectNextConflict() {
@@ -100,11 +120,7 @@ func (s *State) NoConflicts() bool {
 }
 
 func (s *State) Selection() Selection {
-	if s.conflictTop {
-		return TOP
-	} else {
-		return BOTTOM
-	}
+	return s.conflictSelection
 }
 
 func (s *State) IsFinalConflict() bool {
@@ -116,7 +132,7 @@ func (s *State) Reset() {
 }
 
 func (s *State) GetConflictMiddle() int {
-	return s.currentConflict().middle
+	return s.currentConflict().target
 }
 
 func (s *State) ContentAfterConflictResolve(path string, selection Selection) (bool, string, error) {
@@ -141,13 +157,23 @@ func (s *State) ContentAfterConflictResolve(path string, selection Selection) (b
 
 func isIndexToDelete(i int, conflict *mergeConflict, selection Selection) bool {
 	isMarkerLine :=
-		i == conflict.middle ||
-			i == conflict.start ||
+		i == conflict.start ||
+			i == conflict.ancestor ||
+			i == conflict.target ||
 			i == conflict.end
 
-	isUnwantedContent :=
-		(selection == BOTTOM && conflict.start < i && i < conflict.middle) ||
-			(selection == TOP && conflict.middle < i && i < conflict.end)
-
-	return isMarkerLine || isUnwantedContent
+	var isWantedContent bool
+	switch selection {
+	case TOP:
+		if conflict.ancestor >= 0 {
+			isWantedContent = conflict.start < i && i < conflict.ancestor
+		} else {
+			isWantedContent = conflict.start < i && i < conflict.target
+		}
+	case MIDDLE:
+		isWantedContent = conflict.ancestor < i && i < conflict.target
+	case BOTTOM:
+		isWantedContent = conflict.target < i && i < conflict.end
+	}
+	return isMarkerLine || !isWantedContent
 }
