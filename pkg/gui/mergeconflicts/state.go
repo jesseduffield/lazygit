@@ -156,11 +156,9 @@ func (s *State) ContentAfterConflictResolve(path string, selection Selection) (b
 }
 
 func isIndexToDelete(i int, conflict *mergeConflict, selection Selection) bool {
-	isMarkerLine :=
-		i == conflict.start ||
-			i == conflict.ancestor ||
-			i == conflict.target ||
-			i == conflict.end
+	if i < conflict.start || conflict.end < i {
+		return false
+	}
 
 	var isWantedContent bool
 	switch selection {
@@ -175,5 +173,6 @@ func isIndexToDelete(i int, conflict *mergeConflict, selection Selection) bool {
 	case BOTTOM:
 		isWantedContent = conflict.target < i && i < conflict.end
 	}
-	return isMarkerLine || !isWantedContent
+
+	return !isWantedContent
 }
