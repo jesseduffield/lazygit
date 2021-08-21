@@ -16,11 +16,11 @@ func ColoredConflictFile(content string, state *State, hasFocus bool) string {
 	var outputBuffer bytes.Buffer
 	for i, line := range utils.SplitLines(content) {
 		textStyle := theme.DefaultTextColor
-		if i == conflict.start || i == conflict.middle || i == conflict.end {
+		if i == conflict.start || i == conflict.ancestor || i == conflict.target || i == conflict.end {
 			textStyle = style.FgRed
 		}
 
-		if hasFocus && state.conflictIndex < len(state.conflicts) && *state.conflicts[state.conflictIndex] == *conflict && shouldHighlightLine(i, conflict, state.conflictTop) {
+		if hasFocus && state.conflictIndex < len(state.conflicts) && *state.conflicts[state.conflictIndex] == *conflict && shouldHighlightLine(i, conflict, state.conflictSelection) {
 			textStyle = textStyle.MergeStyle(theme.SelectedRangeBgColor).SetBold()
 		}
 		if i == conflict.end && len(remainingConflicts) > 0 {
@@ -35,6 +35,19 @@ func shiftConflict(conflicts []*mergeConflict) (*mergeConflict, []*mergeConflict
 	return conflicts[0], conflicts[1:]
 }
 
-func shouldHighlightLine(index int, conflict *mergeConflict, top bool) bool {
-	return (index >= conflict.start && index <= conflict.middle && top) || (index >= conflict.middle && index <= conflict.end && !top)
+func shouldHighlightLine(index int, conflict *mergeConflict, selection Selection) bool {
+	switch selection {
+	case TOP:
+		if conflict.ancestor >= 0 {
+			return index >= conflict.start && index <= conflict.ancestor
+		} else {
+			return index >= conflict.start && index <= conflict.target
+		}
+	case MIDDLE:
+		return index >= conflict.ancestor && index <= conflict.target
+	case BOTTOM:
+		return index >= conflict.target && index <= conflict.end
+	default:
+		return false
+	}
 }

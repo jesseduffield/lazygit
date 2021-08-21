@@ -14,18 +14,18 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 )
 
-func (gui *Gui) handleSelectTop() error {
+func (gui *Gui) handleSelectPrevConflictHunk() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
-		gui.State.Panels.Merging.SelectTopOption()
+		gui.State.Panels.Merging.SelectPrevConflictHunk()
 		return gui.refreshMergePanel()
 	})
 }
 
-func (gui *Gui) handleSelectBottom() error {
+func (gui *Gui) handleSelectNextConflictHunk() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
-		gui.State.Panels.Merging.SelectBottomOption()
+		gui.State.Panels.Merging.SelectNextConflictHunk()
 		return gui.refreshMergePanel()
 	})
 }
@@ -135,6 +135,8 @@ func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error
 	switch selection {
 	case mergeconflicts.TOP:
 		logStr = "Picking top hunk"
+	case mergeconflicts.MIDDLE:
+		logStr = "Picking middle hunk"
 	case mergeconflicts.BOTTOM:
 		logStr = "Picking bottom hunk"
 	case mergeconflicts.BOTH:
