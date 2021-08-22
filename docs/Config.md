@@ -258,7 +258,7 @@ os:
   editCommandTemplate: '{{editor}} --goto {{filename}}:{{line}}'
 ```
 
-`{{editor}}` in `editCommandTemplate` is replaced with `editCommand`.
+`{{editor}}` in `editCommandTemplate` is replaced with the value of `editCommand`.
 
 ### Recommended Config Values
 
