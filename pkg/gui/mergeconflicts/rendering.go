@@ -20,7 +20,7 @@ func ColoredConflictFile(content string, state *State, hasFocus bool) string {
 			textStyle = style.FgRed
 		}
 
-		if hasFocus && state.conflictIndex < len(state.conflicts) && *state.conflicts[state.conflictIndex] == *conflict && shouldHighlightLine(i, conflict, state.conflictSelection) {
+		if hasFocus && state.conflictIndex < len(state.conflicts) && *state.conflicts[state.conflictIndex] == *conflict && shouldHighlightLine(i, conflict, state.Selection()) {
 			textStyle = textStyle.MergeStyle(theme.SelectedRangeBgColor).SetBold()
 		}
 		if i == conflict.end && len(remainingConflicts) > 0 {
@@ -38,7 +38,7 @@ func shiftConflict(conflicts []*mergeConflict) (*mergeConflict, []*mergeConflict
 func shouldHighlightLine(index int, conflict *mergeConflict, selection Selection) bool {
 	switch selection {
 	case TOP:
-		if conflict.ancestor >= 0 {
+		if conflict.hasAncestor() {
 			return index >= conflict.start && index <= conflict.ancestor
 		} else {
 			return index >= conflict.start && index <= conflict.target
