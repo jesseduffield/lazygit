@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -15,7 +16,11 @@ import (
 
 // CatFile obtains the content of a file
 func (c *GitCommand) CatFile(fileName string) (string, error) {
-	return c.OSCommand.CatFile(fileName)
+	buf, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return "", nil
+	}
+	return string(buf), nil
 }
 
 func (c *GitCommand) OpenMergeToolCmd() string {

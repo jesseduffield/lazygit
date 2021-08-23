@@ -24,7 +24,6 @@ import (
 // Platform stores the os state
 type Platform struct {
 	OS              string
-	CatCmd          []string
 	Shell           string
 	ShellArg        string
 	EscapedQuote    string
@@ -215,18 +214,6 @@ func (c *OSCommand) ShellCommandFromString(commandStr string) *exec.Cmd {
 // RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
 func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string) string) error {
 	return RunCommandWithOutputLiveWrapper(c, command, output)
-}
-
-func (c *OSCommand) CatFile(filename string) (string, error) {
-	arr := append(c.Platform.CatCmd, filename)
-	cmdStr := strings.Join(arr, " ")
-	c.Log.WithField("command", cmdStr).Info("Cat")
-	cmd := c.Command(arr[0], arr[1:]...)
-	output, err := sanitisedCommandOutput(cmd.CombinedOutput())
-	if err != nil {
-		c.Log.WithField("command", cmdStr).Error(output)
-	}
-	return output, err
 }
 
 // DetectUnamePass detect a username / password / passphrase question in a command

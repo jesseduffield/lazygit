@@ -9,7 +9,6 @@ import (
 func getPlatform() *Platform {
 	return &Platform{
 		OS:              runtime.GOOS,
-		CatCmd:          []string{"cat"},
 		Shell:           "bash",
 		ShellArg:        "-c",
 		EscapedQuote:    `"`,
