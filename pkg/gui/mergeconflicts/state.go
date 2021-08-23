@@ -25,6 +25,10 @@ type mergeConflict struct {
 	end      int
 }
 
+func (c *mergeConflict) hasAncestor() bool {
+	return c.ancestor >= 0
+}
+
 type State struct {
 	sync.Mutex
 	conflictIndex     int
@@ -48,7 +52,7 @@ func (s *State) SelectPrevConflictHunk() {
 	case MIDDLE:
 		s.conflictSelection = TOP
 	case BOTTOM:
-		if s.currentConflict().ancestor >= 0 {
+		if s.currentConflict().hasAncestor() {
 			s.conflictSelection = MIDDLE
 		} else {
 			s.conflictSelection = TOP
@@ -59,7 +63,7 @@ func (s *State) SelectPrevConflictHunk() {
 func (s *State) SelectNextConflictHunk() {
 	switch s.conflictSelection {
 	case TOP:
-		if s.currentConflict().ancestor >= 0 {
+		if s.currentConflict().hasAncestor() {
 			s.conflictSelection = MIDDLE
 		} else {
 			s.conflictSelection = BOTTOM
@@ -163,7 +167,7 @@ func isIndexToDelete(i int, conflict *mergeConflict, selection Selection) bool {
 	var isWantedContent bool
 	switch selection {
 	case TOP:
-		if conflict.ancestor >= 0 {
+		if conflict.hasAncestor() {
 			isWantedContent = conflict.start < i && i < conflict.ancestor
 		} else {
 			isWantedContent = conflict.start < i && i < conflict.target
