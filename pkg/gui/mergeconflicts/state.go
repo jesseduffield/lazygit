@@ -7,6 +7,15 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+func clamp(x int, min int, max int) int {
+	if x < min {
+		return min
+	} else if x > max {
+		return max
+	}
+	return x
+}
+
 type Selection int
 
 const (
@@ -29,60 +38,61 @@ func (c *mergeConflict) hasAncestor() bool {
 	return c.ancestor >= 0
 }
 
+func (c *mergeConflict) availableSelections() []Selection {
+	if c.hasAncestor() {
+		return []Selection{TOP, MIDDLE, BOTTOM}
+	} else {
+		return []Selection{TOP, BOTTOM}
+	}
+}
+
 type State struct {
 	sync.Mutex
-	conflictIndex     int
-	conflictSelection Selection
-	conflicts         []*mergeConflict
-	EditHistory       *stack.Stack
+	conflictIndex  int
+	selectionIndex int
+	conflicts      []*mergeConflict
+	EditHistory    *stack.Stack
 }
 
 func NewState() *State {
 	return &State{
-		Mutex:             sync.Mutex{},
-		conflictIndex:     0,
-		conflictSelection: TOP,
-		conflicts:         []*mergeConflict{},
-		EditHistory:       stack.New(),
+		Mutex:          sync.Mutex{},
+		conflictIndex:  0,
+		selectionIndex: 0,
+		conflicts:      []*mergeConflict{},
+		EditHistory:    stack.New(),
 	}
 }
 
-func (s *State) SelectPrevConflictHunk() {
-	switch s.conflictSelection {
-	case MIDDLE:
-		s.conflictSelection = TOP
-	case BOTTOM:
-		if s.currentConflict().hasAncestor() {
-			s.conflictSelection = MIDDLE
-		} else {
-			s.conflictSelection = TOP
-		}
+func (s *State) setConflictIndex(index int) {
+	if len(s.conflicts) == 0 {
+		s.conflictIndex = clamp(index, 0, len(s.conflicts)-1)
+	} else {
+		s.conflictIndex = 0
+	}
+	s.setSelectionIndex(s.selectionIndex)
+}
+
+func (s *State) setSelectionIndex(index int) {
+	if selections := s.availableSelections(); len(selections) != 0 {
+		s.selectionIndex = clamp(index, 0, len(selections)-1)
 	}
 }
 
 func (s *State) SelectNextConflictHunk() {
-	switch s.conflictSelection {
-	case TOP:
-		if s.currentConflict().hasAncestor() {
-			s.conflictSelection = MIDDLE
-		} else {
-			s.conflictSelection = BOTTOM
-		}
-	case MIDDLE:
-		s.conflictSelection = BOTTOM
-	}
+	s.setSelectionIndex(s.selectionIndex + 1)
+}
+
+func (s *State) SelectPrevConflictHunk() {
+	s.setSelectionIndex(s.selectionIndex - 1)
 }
 
 func (s *State) SelectNextConflict() {
-	if s.conflictIndex < len(s.conflicts)-1 {
-		s.conflictIndex++
-	}
+	s.setConflictIndex(s.conflictIndex + 1)
 }
 
 func (s *State) SelectPrevConflict() {
-	if s.conflictIndex > 0 {
-		s.conflictIndex--
-	}
+	s.setConflictIndex(s.conflictIndex - 1)
 }
 
 func (s *State) PushFileSnapshot(content string) {
@@ -111,12 +121,7 @@ func (s *State) SetConflictsFromCat(cat string) {
 
 func (s *State) setConflicts(conflicts []*mergeConflict) {
 	s.conflicts = conflicts
-
-	if s.conflictIndex > len(s.conflicts)-1 {
-		s.conflictIndex = len(s.conflicts) - 1
-	} else if s.conflictIndex < 0 {
-		s.conflictIndex = 0
-	}
+	s.setConflictIndex(s.conflictIndex)
 }
 
 func (s *State) NoConflicts() bool {
@@ -124,7 +129,17 @@ func (s *State) NoConflicts() bool {
 }
 
 func (s *State) Selection() Selection {
-	return s.conflictSelection
+	if selections := s.availableSelections(); len(selections) > 0 {
+		return selections[s.selectionIndex]
+	}
+	return TOP
+}
+
+func (s *State) availableSelections() []Selection {
+	if conflict := s.currentConflict(); conflict != nil {
+		return conflict.availableSelections()
+	}
+	return nil
 }
 
 func (s *State) IsFinalConflict() bool {
