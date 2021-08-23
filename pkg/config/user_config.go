@@ -255,6 +255,9 @@ type OSConfig struct {
 	// EditCommand is the command for editing a file
 	EditCommand string `yaml:"editCommand,omitempty"`
 
+	// EditCommandTemplate is the command template for editing a file
+	EditCommandTemplate string `yaml:"editCommandTemplate,omitempty"`
+
 	// OpenCommand is the command for opening a file
 	OpenCommand string `yaml:"openCommand,omitempty"`
 

@@ -272,3 +272,13 @@ func (gui *Gui) withLBLActiveCheck(f func(*LblPanelState) error) error {
 
 	return f(state)
 }
+
+func (gui *Gui) handleLineByLineEdit() error {
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
+	}
+
+	lineNumber := gui.State.Panels.LineByLine.CurrentLineNumber()
+	return gui.editFileAtLine(file.Name, lineNumber)
+}

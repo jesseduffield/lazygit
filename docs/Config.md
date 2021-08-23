@@ -65,6 +65,7 @@ git:
   parseEmoji: false
 os:
   editCommand: '' # see 'Configuring File Editing' section
+  editCommandTemplate: '{{editor}} {{filename}}'
   openCommand: ''
 refresher:
   refreshInterval: 10 # file/submodule refresh interval in seconds
@@ -240,6 +241,24 @@ os:
 6. \$(which vi)
 
 Lazygit will log an error if none of these options are set.
+
+You can specify a line number you are currently at when in the line-by-line mode.
+
+```yaml
+os:
+  editCommand: 'vim'
+  editCommandTemplate: '{{editor}} +{{line}} {{filename}}'
+```
+
+or
+
+```yaml
+os:
+  editCommand: 'code'
+  editCommandTemplate: '{{editor}} --goto {{filename}}:{{line}}'
+```
+
+`{{editor}}` in `editCommandTemplate` is replaced with the value of `editCommand`.
 
 ### Recommended Config Values
 
