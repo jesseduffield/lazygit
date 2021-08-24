@@ -95,7 +95,7 @@ func (gui *Gui) handlePickHunk() error {
 	})
 }
 
-func (gui *Gui) handlePickBothHunks() error {
+func (gui *Gui) handlePickAllHunks() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
 
@@ -233,7 +233,7 @@ func (gui *Gui) getMergingOptions() map[string]string {
 		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)):   gui.Tr.LcSelectHunk,
 		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock)): gui.Tr.LcNavigateConflicts,
 		gui.getKeyDisplay(keybindingConfig.Universal.Select):   gui.Tr.LcPickHunk,
-		gui.getKeyDisplay(keybindingConfig.Main.PickBothHunks): gui.Tr.LcPickBothHunks,
+		gui.getKeyDisplay(keybindingConfig.Main.PickBothHunks): gui.Tr.LcPickAllHunks,
 		gui.getKeyDisplay(keybindingConfig.Universal.Undo):     gui.Tr.LcUndo,
 	}
 }
