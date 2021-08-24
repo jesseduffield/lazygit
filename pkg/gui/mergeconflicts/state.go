@@ -22,7 +22,7 @@ const (
 	TOP Selection = iota
 	MIDDLE
 	BOTTOM
-	BOTH
+	ALL
 )
 
 // mergeConflict : A git conflict with a start, ancestor (if exists), target, and end corresponding to line
@@ -179,6 +179,12 @@ func isIndexToDelete(i int, conflict *mergeConflict, selection Selection) bool {
 		return false
 	}
 
+	isMarkerLine :=
+		i == conflict.start ||
+			i == conflict.ancestor ||
+			i == conflict.target ||
+			i == conflict.end
+
 	var isWantedContent bool
 	switch selection {
 	case TOP:
@@ -191,7 +197,9 @@ func isIndexToDelete(i int, conflict *mergeConflict, selection Selection) bool {
 		isWantedContent = conflict.ancestor < i && i < conflict.target
 	case BOTTOM:
 		isWantedContent = conflict.target < i && i < conflict.end
+	case ALL:
+		isWantedContent = true
 	}
 
-	return !isWantedContent
+	return isMarkerLine || !isWantedContent
 }

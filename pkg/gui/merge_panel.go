@@ -99,7 +99,7 @@ func (gui *Gui) handlePickBothHunks() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
 
-		ok, err := gui.resolveConflict(mergeconflicts.BOTH)
+		ok, err := gui.resolveConflict(mergeconflicts.ALL)
 		if err != nil {
 			return err
 		}
@@ -139,8 +139,8 @@ func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error
 		logStr = "Picking middle hunk"
 	case mergeconflicts.BOTTOM:
 		logStr = "Picking bottom hunk"
-	case mergeconflicts.BOTH:
-		logStr = "Picking both hunks"
+	case mergeconflicts.ALL:
+		logStr = "Picking all hunks"
 	}
 	gui.OnRunCommand(oscommands.NewCmdLogEntry(logStr, "Resolve merge conflict", false))
 	return true, ioutil.WriteFile(gitFile.Name, []byte(output), 0644)
