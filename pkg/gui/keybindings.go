@@ -1464,8 +1464,8 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Main.PickBothHunks),
-			Handler:     gui.handlePickBothHunks,
-			Description: gui.Tr.PickBothHunks,
+			Handler:     gui.handlePickAllHunks,
+			Description: gui.Tr.PickAllHunks,
 		},
 		{
 			ViewName:    "main",
@@ -1486,14 +1486,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Contexts:    []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.PrevItem),
 			Handler:     gui.handleSelectPrevConflictHunk,
-			Description: gui.Tr.SelectTop,
+			Description: gui.Tr.SelectPrevHunk,
 		},
 		{
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.NextItem),
 			Handler:     gui.handleSelectNextConflictHunk,
-			Description: gui.Tr.SelectBottom,
+			Description: gui.Tr.SelectNextHunk,
 		},
 		{
 			ViewName: "main",

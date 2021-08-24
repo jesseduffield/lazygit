@@ -127,7 +127,7 @@ type TranslationSet struct {
 	LcSelectHunk                        string
 	LcNavigateConflicts                 string
 	LcPickHunk                          string
-	LcPickBothHunks                     string
+	LcPickAllHunks                      string
 	LcUndo                              string
 	LcUndoReflog                        string
 	LcRedoReflog                        string
@@ -198,7 +198,7 @@ type TranslationSet struct {
 	FoundConflictsTitle                 string
 	Undo                                string
 	PickHunk                            string
-	PickBothHunks                       string
+	PickAllHunks                        string
 	ViewMergeRebaseOptions              string
 	NotMergingOrRebasing                string
 	RecentRepos                         string
@@ -243,8 +243,8 @@ type TranslationSet struct {
 	NextHunk                            string
 	PrevConflict                        string
 	NextConflict                        string
-	SelectTop                           string
-	SelectBottom                        string
+	SelectPrevHunk                      string
+	SelectNextHunk                      string
 	ScrollDown                          string
 	ScrollUp                            string
 	LcScrollUpMainPanel                 string
@@ -682,7 +682,7 @@ func englishTranslationSet() TranslationSet {
 		LcSelectHunk:                        "select hunk",
 		LcNavigateConflicts:                 "navigate conflicts",
 		LcPickHunk:                          "pick hunk",
-		LcPickBothHunks:                     "pick both hunks",
+		LcPickAllHunks:                      "pick all hunks",
 		LcUndo:                              "undo",
 		LcUndoReflog:                        "undo (via reflog) (experimental)",
 		LcRedoReflog:                        "redo (via reflog) (experimental)",
@@ -753,7 +753,7 @@ func englishTranslationSet() TranslationSet {
 		FoundConflictsTitle:                 "Auto-merge failed",
 		Undo:                                "undo",
 		PickHunk:                            "pick hunk",
-		PickBothHunks:                       "pick both hunks",
+		PickAllHunks:                        "pick all hunks",
 		ViewMergeRebaseOptions:              "view merge/rebase options",
 		NotMergingOrRebasing:                "You are currently neither rebasing nor merging",
 		RecentRepos:                         "recent repositories",
@@ -799,8 +799,8 @@ func englishTranslationSet() TranslationSet {
 		NextHunk:                            "select next hunk",
 		PrevConflict:                        "select previous conflict",
 		NextConflict:                        "select next conflict",
-		SelectTop:                           "select top hunk",
-		SelectBottom:                        "select bottom hunk",
+		SelectPrevHunk:                      "select previous hunk",
+		SelectNextHunk:                      "select next hunk",
 		ScrollDown:                          "scroll down",
 		ScrollUp:                            "scroll up",
 		LcScrollUpMainPanel:                 "scroll up main panel",

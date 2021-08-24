@@ -208,11 +208,11 @@
   <kbd>esc</kbd>: return to files panel
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>space</kbd>: pick hunk
-  <kbd>b</kbd>: pick both hunks
+  <kbd>b</kbd>: pick all hunks
   <kbd>◄</kbd>: select previous conflict
   <kbd>►</kbd>: select next conflict
-  <kbd>▲</kbd>: select top hunk
-  <kbd>▼</kbd>: select bottom hunk
+  <kbd>▲</kbd>: select previous hunk
+  <kbd>▼</kbd>: select next hunk
   <kbd>z</kbd>: undo
 </pre>
 
