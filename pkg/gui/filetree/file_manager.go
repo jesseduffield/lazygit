@@ -13,7 +13,8 @@ type FileManagerDisplayFilter int
 const (
 	DisplayAll FileManagerDisplayFilter = iota
 	DisplayStaged
-	DisplayUnstaged
+	DisplayModified
+	DisplayUntracked
 )
 
 type FileManager struct {
@@ -58,9 +59,15 @@ func (m *FileManager) GetFilesForDisplay() []*models.File {
 				result = append(result, file)
 			}
 		}
-	} else {
+	} else if m.filter == DisplayModified {
 		for _, file := range files {
-			if !file.HasStagedChanges {
+			if file.HasUnstagedChanges && file.Tracked {
+				result = append(result, file)
+			}
+		}
+	} else if m.filter == DisplayUntracked {
+		for _, file := range files {
+			if !file.Tracked {
 				result = append(result, file)
 			}
 		}
