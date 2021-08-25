@@ -482,9 +482,15 @@ func (gui *Gui) handleStatusFilterPressed() error {
 			},
 		},
 		{
-			displayString: gui.Tr.FilterUnstagedFiles,
+			displayString: gui.Tr.FilterModifiedFiles,
 			onPress: func() error {
-				return gui.setStatusFiltering(filetree.DisplayUnstaged)
+				return gui.setStatusFiltering(filetree.DisplayModified)
+			},
+		},
+		{
+			displayString: gui.Tr.FilterUntrackedFiles,
+			onPress: func() error {
+				return gui.setStatusFiltering(filetree.DisplayUntracked)
 			},
 		},
 		{
