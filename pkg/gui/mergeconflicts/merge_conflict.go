@@ -42,8 +42,7 @@ func (s Selection) isIndexToKeep(conflict *mergeConflict, i int) bool {
 		return false
 	}
 
-	selectionStart, selectionEnd := s.bounds(conflict)
-	return selectionStart < i && i < selectionEnd
+	return s.selected(conflict, i)
 }
 
 func (s Selection) bounds(c *mergeConflict) (int, int) {
