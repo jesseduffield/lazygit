@@ -102,17 +102,27 @@ func TestFilterAction(t *testing.T) {
 		expected []*models.File
 	}{
 		{
+			name:   "filter untracked files",
+			filter: DisplayUntracked,
+			files: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: true},
+				{Name: "dir2/file5", ShortStatus: "M ", HasStagedChanges: true, Tracked: true},
+				{Name: "file1", ShortStatus: "??", Tracked: false},
+			},
+			expected: []*models.File{
+				{Name: "file1", ShortStatus: "??", Tracked: false},
+			},
+		},
+		{
 			name:   "filter modified files",
 			filter: DisplayModified,
 			files: []*models.File{
-				{Name: "dir2/dir2/file4", ShortStatus: " M", HasUnstagedChanges: true, Tracked: true},
-				{Name: "dir2/file5", ShortStatus: " M", HasUnstagedChanges: false, Tracked: true},
-				{Name: "file1", ShortStatus: "??", HasUnstagedChanges: true, Tracked: false},
-				{Name: "file2", ShortStatus: "AD", HasUnstagedChanges: true, Tracked: true},
+				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: true},
+				{Name: "dir2/file5", ShortStatus: "M ", HasStagedChanges: true},
+				{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: false},
 			},
 			expected: []*models.File{
-				{Name: "dir2/dir2/file4", ShortStatus: " M", HasUnstagedChanges: true, Tracked: true},
-				{Name: "file2", ShortStatus: "AD", HasUnstagedChanges: true, Tracked: true},
+				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: true},
 			},
 		},
 		{
@@ -122,25 +132,10 @@ func TestFilterAction(t *testing.T) {
 				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasStagedChanges: true},
 				{Name: "dir2/file5", ShortStatus: "M ", HasStagedChanges: false},
 				{Name: "file1", ShortStatus: "M ", HasStagedChanges: true},
-				{Name: "file2", ShortStatus: "AD", HasStagedChanges: true, Tracked: true},
 			},
 			expected: []*models.File{
 				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasStagedChanges: true},
 				{Name: "file1", ShortStatus: "M ", HasStagedChanges: true},
-				{Name: "file2", ShortStatus: "AD", HasStagedChanges: true, Tracked: true},
-			},
-		},
-		{
-			name:   "filter untracked files",
-			filter: DisplayUntracked,
-			files: []*models.File{
-				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasStagedChanges: true},
-				{Name: "dir2/file5", ShortStatus: "M ", HasStagedChanges: false},
-				{Name: "file1", ShortStatus: "M ", HasStagedChanges: true},
-				{Name: "file2", ShortStatus: "??"},
-			},
-			expected: []*models.File{
-				{Name: "file2", ShortStatus: "??"},
 			},
 		},
 		{
@@ -149,8 +144,7 @@ func TestFilterAction(t *testing.T) {
 			files: []*models.File{
 				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true},
 				{Name: "dir2/file5", ShortStatus: "M ", HasUnstagedChanges: true},
-				{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: true},
-				{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: false},
+				{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
 			},
 			expected: []*models.File{
 				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true},
