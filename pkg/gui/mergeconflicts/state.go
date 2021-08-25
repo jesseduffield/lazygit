@@ -7,51 +7,19 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func clamp(x int, min int, max int) int {
-	if x < min {
-		return min
-	} else if x > max {
-		return max
-	}
-	return x
-}
-
-type Selection int
-
-const (
-	TOP Selection = iota
-	MIDDLE
-	BOTTOM
-	ALL
-)
-
-// mergeConflict : A git conflict with a start, ancestor (if exists), target, and end corresponding to line
-// numbers in the file where the conflict markers appear
-type mergeConflict struct {
-	start    int
-	ancestor int
-	target   int
-	end      int
-}
-
-func (c *mergeConflict) hasAncestor() bool {
-	return c.ancestor >= 0
-}
-
-func (c *mergeConflict) availableSelections() []Selection {
-	if c.hasAncestor() {
-		return []Selection{TOP, MIDDLE, BOTTOM}
-	} else {
-		return []Selection{TOP, BOTTOM}
-	}
-}
-
 type State struct {
 	sync.Mutex
-	conflictIndex  int
+
+	conflicts []*mergeConflict
+	// this is the index of the above `conflicts` field which is currently selected
+	conflictIndex int
+
+	// this is the index of the selected conflict's available selections slice e.g. [TOP, MIDDLE, BOTTOM]
+	// We use this to know which hunk of the conflict is selected.
 	selectionIndex int
-	conflicts      []*mergeConflict
-	EditHistory    *stack.Stack
+
+	// this allows us to undo actions
+	EditHistory *stack.Stack
 }
 
 func NewState() *State {
@@ -66,9 +34,9 @@ func NewState() *State {
 
 func (s *State) setConflictIndex(index int) {
 	if len(s.conflicts) == 0 {
-		s.conflictIndex = clamp(index, 0, len(s.conflicts)-1)
-	} else {
 		s.conflictIndex = 0
+	} else {
+		s.conflictIndex = clamp(index, 0, len(s.conflicts)-1)
 	}
 	s.setSelectionIndex(s.selectionIndex)
 }
@@ -137,7 +105,7 @@ func (s *State) Selection() Selection {
 
 func (s *State) availableSelections() []Selection {
 	if conflict := s.currentConflict(); conflict != nil {
-		return conflict.availableSelections()
+		return availableSelections(conflict)
 	}
 	return nil
 }
@@ -154,7 +122,10 @@ func (s *State) GetConflictMiddle() int {
 	return s.currentConflict().target
 }
 
-func (s *State) ContentAfterConflictResolve(path string, selection Selection) (bool, string, error) {
+func (s *State) ContentAfterConflictResolve(
+	path string,
+	selection Selection,
+) (bool, string, error) {
 	conflict := s.currentConflict()
 	if conflict == nil {
 		return false, "", nil
@@ -162,7 +133,7 @@ func (s *State) ContentAfterConflictResolve(path string, selection Selection) (b
 
 	content := ""
 	err := utils.ForEachLineInFile(path, func(line string, i int) {
-		if !isIndexToDelete(i, conflict, selection) {
+		if selection.isIndexToKeep(conflict, i) {
 			content += line
 		}
 	})
@@ -174,32 +145,11 @@ func (s *State) ContentAfterConflictResolve(path string, selection Selection) (b
 	return true, content, nil
 }
 
-func isIndexToDelete(i int, conflict *mergeConflict, selection Selection) bool {
-	if i < conflict.start || conflict.end < i {
-		return false
+func clamp(x int, min int, max int) int {
+	if x < min {
+		return min
+	} else if x > max {
+		return max
 	}
-
-	isMarkerLine :=
-		i == conflict.start ||
-			i == conflict.ancestor ||
-			i == conflict.target ||
-			i == conflict.end
-
-	var isWantedContent bool
-	switch selection {
-	case TOP:
-		if conflict.hasAncestor() {
-			isWantedContent = conflict.start < i && i < conflict.ancestor
-		} else {
-			isWantedContent = conflict.start < i && i < conflict.target
-		}
-	case MIDDLE:
-		isWantedContent = conflict.ancestor < i && i < conflict.target
-	case BOTTOM:
-		isWantedContent = conflict.target < i && i < conflict.end
-	case ALL:
-		isWantedContent = true
-	}
-
-	return isMarkerLine || !isWantedContent
+	return x
 }
