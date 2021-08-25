@@ -16,7 +16,7 @@ func ColoredConflictFile(content string, state *State, hasFocus bool) string {
 	var outputBuffer bytes.Buffer
 	for i, line := range utils.SplitLines(content) {
 		textStyle := theme.DefaultTextColor
-		if i == conflict.start || i == conflict.ancestor || i == conflict.target || i == conflict.end {
+		if conflict.isMarkerLine(i) {
 			textStyle = style.FgRed
 		}
 
@@ -36,18 +36,6 @@ func shiftConflict(conflicts []*mergeConflict) (*mergeConflict, []*mergeConflict
 }
 
 func shouldHighlightLine(index int, conflict *mergeConflict, selection Selection) bool {
-	switch selection {
-	case TOP:
-		if conflict.hasAncestor() {
-			return index >= conflict.start && index <= conflict.ancestor
-		} else {
-			return index >= conflict.start && index <= conflict.target
-		}
-	case MIDDLE:
-		return index >= conflict.ancestor && index <= conflict.target
-	case BOTTOM:
-		return index >= conflict.target && index <= conflict.end
-	default:
-		return false
-	}
+	selectionStart, selectionEnd := selection.bounds(conflict)
+	return index >= selectionStart && index <= selectionEnd
 }
