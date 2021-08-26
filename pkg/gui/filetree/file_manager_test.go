@@ -102,16 +102,40 @@ func TestFilterAction(t *testing.T) {
 		expected []*models.File
 	}{
 		{
-			name:   "filter files with unstaged changes",
-			filter: DisplayUnstaged,
+			name:   "filter untracked files",
+			filter: DisplayUntracked,
 			files: []*models.File{
-				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true},
-				{Name: "dir2/file5", ShortStatus: "M ", HasStagedChanges: true},
-				{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: true},
+				{Name: "dir2/file5", ShortStatus: "M ", HasStagedChanges: true, Tracked: true},
+				{Name: "file1", ShortStatus: "??", Tracked: false},
 			},
 			expected: []*models.File{
-				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true},
-				{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Name: "file1", ShortStatus: "??", Tracked: false},
+			},
+		},
+		{
+			name:   "filter modified files",
+			filter: DisplayModified,
+			files: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: true},
+				{Name: "dir2/file5", ShortStatus: "M ", HasStagedChanges: true},
+				{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: false},
+			},
+			expected: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: true},
+			},
+		},
+		{
+			name:   "filter files with conflicts",
+			filter: DisplayConflicted,
+			files: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "UU", HasUnstagedChanges: true, HasMergeConflicts: true},
+				{Name: "dir2/file5", ShortStatus: "UU", HasMergeConflicts: false, HasInlineMergeConflicts: true},
+				{Name: "file1", ShortStatus: "M ", HasStagedChanges: true, HasMergeConflicts: false},
+			},
+			expected: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "UU", HasUnstagedChanges: true, HasMergeConflicts: true},
+				{Name: "dir2/file5", ShortStatus: "UU", HasMergeConflicts: false, HasInlineMergeConflicts: true},
 			},
 		},
 		{
