@@ -58,6 +58,7 @@ type TranslationSet struct {
 	LcCommitFileFilter                  string
 	FilterStagedFiles                   string
 	FilterModifiedFiles                 string
+	FilterConflictedFiles               string
 	FilterUntrackedFiles                string
 	ResetCommitFilterState              string
 	MergeConflictsTitle                 string
@@ -616,6 +617,7 @@ func englishTranslationSet() TranslationSet {
 		LcCommitFileFilter:                  "Filter commit files",
 		FilterStagedFiles:                   "Show only staged files",
 		FilterModifiedFiles:                 "Show only modified files",
+		FilterConflictedFiles:               "Show only files with conflicts",
 		FilterUntrackedFiles:                "Show only untracked files",
 		ResetCommitFilterState:              "Reset filter",
 		NoChangedFiles:                      "No changed files",

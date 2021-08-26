@@ -44,6 +44,7 @@ func dutchTranslationSet() TranslationSet {
 		LcResolveMergeConflicts:             "los merge conflicten op",
 		LcCommitFileFilter:                  "Commit dossiers filteren",
 		FilterModifiedFiles:                 "Show only modified files",
+		FilterConflictedFiles:               "Show only files with conflicts",
 		FilterUntrackedFiles:                "Show only untracked files",
 		ResetCommitFilterState:              "Reset commit file state filter",
 		MergeConflictsTitle:                 "Merge Conflicten",

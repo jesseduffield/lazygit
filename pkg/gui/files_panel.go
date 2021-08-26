@@ -488,6 +488,12 @@ func (gui *Gui) handleStatusFilterPressed() error {
 			},
 		},
 		{
+			displayString: gui.Tr.FilterConflictedFiles,
+			onPress: func() error {
+				return gui.setStatusFiltering(filetree.DisplayConflicted)
+			},
+		},
+		{
 			displayString: gui.Tr.FilterUntrackedFiles,
 			onPress: func() error {
 				return gui.setStatusFiltering(filetree.DisplayUntracked)

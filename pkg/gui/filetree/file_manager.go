@@ -15,6 +15,7 @@ const (
 	DisplayStaged
 	DisplayModified
 	DisplayUntracked
+	DisplayConflicted
 )
 
 type FileManager struct {
@@ -62,6 +63,12 @@ func (m *FileManager) GetFilesForDisplay() []*models.File {
 	} else if m.filter == DisplayModified {
 		for _, file := range files {
 			if file.HasUnstagedChanges && file.Tracked {
+				result = append(result, file)
+			}
+		}
+	} else if m.filter == DisplayConflicted {
+		for _, file := range files {
+			if file.HasMergeConflicts || file.HasInlineMergeConflicts {
 				result = append(result, file)
 			}
 		}
