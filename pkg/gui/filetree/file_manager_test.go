@@ -126,6 +126,19 @@ func TestFilterAction(t *testing.T) {
 			},
 		},
 		{
+			name:   "filter files with conflicts",
+			filter: DisplayConflicted,
+			files: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "UU", HasUnstagedChanges: true, HasMergeConflicts: true},
+				{Name: "dir2/file5", ShortStatus: "UU", HasMergeConflicts: false, HasInlineMergeConflicts: true},
+				{Name: "file1", ShortStatus: "M ", HasStagedChanges: true, HasMergeConflicts: false},
+			},
+			expected: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "UU", HasUnstagedChanges: true, HasMergeConflicts: true},
+				{Name: "dir2/file5", ShortStatus: "UU", HasMergeConflicts: false, HasInlineMergeConflicts: true},
+			},
+		},
+		{
 			name:   "filter files with staged changes",
 			filter: DisplayStaged,
 			files: []*models.File{

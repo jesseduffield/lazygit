@@ -40,6 +40,7 @@ func polishTranslationSet() TranslationSet {
 		LcCommitFileFilter:                  "Filtrowanie plików commitować",
 		FilterStagedFiles:                   "Pokaż tylko pliki etapowe",
 		FilterModifiedFiles:                 "Show only modified files",
+		FilterConflictedFiles:               "Show only files with conflicts",
 		FilterUntrackedFiles:                "Show only untracked files",
 		ResetCommitFilterState:              "Resetuj filtr stanu pliku commit",
 		LcCheckout:                          "przełącz",
