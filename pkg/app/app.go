@@ -102,7 +102,10 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 	}
 	var err error
 	app.Log = newLogger(config)
-	app.Tr = i18n.NewTranslationSet(app.Log)
+	app.Tr, err = i18n.NewTranslationSetFromConfig(app.Log, config.GetUserConfig().Gui.Language)
+	if err != nil {
+		return app, err
+	}
 
 	// if we are being called in 'demon' mode, we can just return here
 	app.ClientContext = os.Getenv("LAZYGIT_CLIENT_COMMAND")

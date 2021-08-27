@@ -32,6 +32,7 @@ type GuiConfig struct {
 	SidePanelWidth           float64            `yaml:"sidePanelWidth"`
 	ExpandFocusedSidePanel   bool               `yaml:"expandFocusedSidePanel"`
 	MainPanelSplitMode       string             `yaml:"mainPanelSplitMode"`
+	Language                 string             `yaml:"language"`
 	Theme                    ThemeConfig        `yaml:"theme"`
 	CommitLength             CommitLengthConfig `yaml:"commitLength"`
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
@@ -310,6 +311,7 @@ func GetDefaultConfig() *UserConfig {
 			SidePanelWidth:         0.3333,
 			ExpandFocusedSidePanel: false,
 			MainPanelSplitMode:     "flexible",
+			Language:               "auto",
 			Theme: ThemeConfig{
 				LightTheme:           false,
 				ActiveBorderColor:    []string{"green", "bold"},
