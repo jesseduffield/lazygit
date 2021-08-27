@@ -14,11 +14,12 @@ func NewDummyGitCommand() *GitCommand {
 
 // NewDummyGitCommandWithOSCommand creates a new dummy GitCommand for testing
 func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitCommand {
+	newAppConfig := config.NewDummyAppConfig()
 	return &GitCommand{
 		Log:               utils.NewDummyLog(),
 		OSCommand:         osCommand,
-		Tr:                i18n.NewTranslationSet(utils.NewDummyLog()),
-		Config:            config.NewDummyAppConfig(),
+		Tr:                i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language),
+		Config:            newAppConfig,
 		getGitConfigValue: func(string) (string, error) { return "", nil },
 	}
 }

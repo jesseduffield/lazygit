@@ -19,7 +19,7 @@ func NewDummyCommitListBuilder() *CommitListBuilder {
 		Log:        utils.NewDummyLog(),
 		GitCommand: NewDummyGitCommandWithOSCommand(osCommand),
 		OSCommand:  osCommand,
-		Tr:         i18n.NewTranslationSet(utils.NewDummyLog()),
+		Tr:         i18n.NewTranslationSet(utils.NewDummyLog(), "auto"),
 	}
 }
 
