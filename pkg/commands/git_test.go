@@ -209,7 +209,8 @@ func TestNewGitCommand(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			s.setup()
-			s.test(NewGitCommand(utils.NewDummyLog(), oscommands.NewDummyOSCommand(), i18n.NewTranslationSet(utils.NewDummyLog()), config.NewDummyAppConfig()))
+			newAppConfig := config.NewDummyAppConfig()
+			s.test(NewGitCommand(utils.NewDummyLog(), oscommands.NewDummyOSCommand(), i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language), newAppConfig))
 		})
 	}
 }
