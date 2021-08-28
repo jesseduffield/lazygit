@@ -39,6 +39,8 @@ type GitCommand struct {
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	PushToCurrent bool
+
+	MainBranch string // Usually "master" or "main"
 }
 
 // NewGitCommand it runs git commands

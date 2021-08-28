@@ -101,6 +101,50 @@ func (c *GitCommand) GetBranchUpstreamDifferenceCount(branchName string) (string
 	return c.GetCommitDifferences(branchName, branchName+"@{u}")
 }
 
+// TryGetMainBranch tries to get the main branch
+// For old repo's this is usually master and for newer once it is main
+// Note that this function might return a branch name that does not exist
+func (c *GitCommand) TryGetMainBranch() string {
+	// Firstly try to get the main branch from the origins
+	cmdStr := `git branch --remotes --list '*/HEAD' --format '%(symref:short)'`
+	output, _ := c.OSCommand.RunCommandWithOutput(cmdStr)
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	for _, line := range lines {
+		parts := strings.SplitN(line, "/", 2)
+		if len(parts) == 2 {
+			return parts[len(parts)-1]
+		}
+	}
+
+	// If we didn't find a main branch from the remotes we check if there is a main or master branch
+	cmdStr = `git branch --format "%(refname:short)" --list "master" --list "main"`
+	output, _ = c.OSCommand.RunCommandWithOutput(cmdStr)
+	lines = append(lines[:0], strings.Split(strings.TrimSpace(output), "\n")...)
+
+	// Some repo's use "master" while having a "main" branch
+	// so we favor "master" over "main"
+	foundMainBranch := false
+	for _, line := range lines {
+		if line == "master" {
+			return line
+		}
+		if line == "main" {
+			foundMainBranch = true
+		}
+	}
+	if foundMainBranch {
+		return "main"
+	}
+
+	return "master"
+}
+
+func (c *GitCommand) HasDevelopmentBranch() bool {
+	cmdStr := `git branch --format "%(refname:short)" --list "develop"`
+	output, _ := c.OSCommand.RunCommandWithOutput(cmdStr)
+	return strings.TrimSpace(output) == "develop"
+}
+
 // GetCommitDifferences checks how many pushables/pullables there are for the
 // current branch
 func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
