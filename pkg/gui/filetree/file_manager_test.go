@@ -97,13 +97,19 @@ func TestRender(t *testing.T) {
 func TestFilterAction(t *testing.T) {
 	scenarios := []struct {
 		name     string
-		filter   FileManagerDisplayFilter
+		filters  []bool
 		files    []*models.File
 		expected []*models.File
 	}{
 		{
-			name:   "filter untracked files",
-			filter: DisplayUntracked,
+			name: "filter untracked files",
+			filters: []bool{
+				DisplayAll:        false,
+				DisplayStaged:     false,
+				DisplayModified:   false,
+				DisplayConflicted: false,
+				DisplayUntracked:  true,
+			},
 			files: []*models.File{
 				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: true},
 				{Name: "dir2/file5", ShortStatus: "M ", HasStagedChanges: true, Tracked: true},
@@ -114,8 +120,14 @@ func TestFilterAction(t *testing.T) {
 			},
 		},
 		{
-			name:   "filter modified files",
-			filter: DisplayModified,
+			name: "filter modified files",
+			filters: []bool{
+				DisplayAll:        false,
+				DisplayStaged:     false,
+				DisplayModified:   true,
+				DisplayConflicted: false,
+				DisplayUntracked:  false,
+			},
 			files: []*models.File{
 				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true, Tracked: true},
 				{Name: "dir2/file5", ShortStatus: "M ", HasStagedChanges: true},
@@ -126,8 +138,14 @@ func TestFilterAction(t *testing.T) {
 			},
 		},
 		{
-			name:   "filter files with conflicts",
-			filter: DisplayConflicted,
+			name: "filter files with conflicts",
+			filters: []bool{
+				DisplayAll:        false,
+				DisplayStaged:     false,
+				DisplayModified:   false,
+				DisplayConflicted: true,
+				DisplayUntracked:  false,
+			},
 			files: []*models.File{
 				{Name: "dir2/dir2/file4", ShortStatus: "UU", HasUnstagedChanges: true, HasMergeConflicts: true},
 				{Name: "dir2/file5", ShortStatus: "UU", HasMergeConflicts: false, HasInlineMergeConflicts: true},
@@ -135,12 +153,17 @@ func TestFilterAction(t *testing.T) {
 			},
 			expected: []*models.File{
 				{Name: "dir2/dir2/file4", ShortStatus: "UU", HasUnstagedChanges: true, HasMergeConflicts: true},
-				{Name: "dir2/file5", ShortStatus: "UU", HasMergeConflicts: false, HasInlineMergeConflicts: true},
 			},
 		},
 		{
-			name:   "filter files with staged changes",
-			filter: DisplayStaged,
+			name: "filter files with staged changes",
+			filters: []bool{
+				DisplayAll:        false,
+				DisplayStaged:     true,
+				DisplayModified:   false,
+				DisplayConflicted: false,
+				DisplayUntracked:  false,
+			},
 			files: []*models.File{
 				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasStagedChanges: true},
 				{Name: "dir2/file5", ShortStatus: "M ", HasStagedChanges: false},
@@ -152,8 +175,14 @@ func TestFilterAction(t *testing.T) {
 			},
 		},
 		{
-			name:   "filter all files",
-			filter: DisplayAll,
+			name: "filter all files",
+			filters: []bool{
+				DisplayAll:        true,
+				DisplayStaged:     false,
+				DisplayModified:   false,
+				DisplayConflicted: false,
+				DisplayUntracked:  false,
+			},
 			files: []*models.File{
 				{Name: "dir2/dir2/file4", ShortStatus: "M ", HasUnstagedChanges: true},
 				{Name: "dir2/file5", ShortStatus: "M ", HasUnstagedChanges: true},
@@ -170,7 +199,7 @@ func TestFilterAction(t *testing.T) {
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.name, func(t *testing.T) {
-			mngr := &FileManager{files: s.files, filter: s.filter}
+			mngr := &FileManager{files: s.files, filters: s.filters}
 			result := mngr.GetFilesForDisplay()
 			assert.EqualValues(t, s.expected, result)
 		})

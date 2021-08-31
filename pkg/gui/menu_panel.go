@@ -13,6 +13,7 @@ type menuItem struct {
 	displayString  string
 	displayStrings []string
 	onPress        func() error
+	onSelect       func() error
 }
 
 // every item in a list context needs an ID
@@ -99,6 +100,16 @@ func (gui *Gui) onMenuPress() error {
 	}
 
 	if err := gui.State.MenuItems[selectedLine].onPress(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gui *Gui) onMenuSelect() error {
+	selectedLine := gui.State.Panels.Menu.SelectedLineIdx
+
+	if err := gui.State.MenuItems[selectedLine].onSelect(); err != nil {
 		return err
 	}
 

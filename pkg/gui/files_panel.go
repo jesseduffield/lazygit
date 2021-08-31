@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -473,47 +474,127 @@ func (gui *Gui) handleCommitEditorPress() error {
 	)
 }
 
+func (gui *Gui) renderOnSelectDisplayString(displayString string, filter filetree.FileManagerDisplayFilter) string {
+	if gui.getStatusFiltering(filter) {
+		return style.FgGreen.Sprint(displayString)
+	}
+	return style.FgWhite.Sprint(displayString)
+}
+
 func (gui *Gui) handleStatusFilterPressed() error {
 	menuItems := []*menuItem{
 		{
 			displayString: gui.Tr.FilterStagedFiles,
 			onPress: func() error {
+				return nil
+			},
+			onSelect: func() error {
+				gui.g.Update(func(g *gocui.Gui) error {
+					id := gui.Views.Menu.SelectedLineIdx() //gui.Views.Menu.Clear()
+					line := gui.renderOnSelectDisplayString(gui.Tr.FilterStagedFiles, filetree.DisplayStaged)
+					if err := gui.Views.Menu.SetLine(id, line); err != nil {
+						return err
+					}
+					return nil
+				})
 				return gui.setStatusFiltering(filetree.DisplayStaged)
 			},
 		},
 		{
-			displayString: gui.Tr.FilterModifiedFiles,
+			displayString: gui.renderOnSelectDisplayString(gui.Tr.FilterModifiedFiles, filetree.DisplayModified),
 			onPress: func() error {
+				return nil
+			},
+			onSelect: func() error {
+				gui.g.Update(func(g *gocui.Gui) error {
+					id := gui.Views.Menu.SelectedLineIdx()
+					line := gui.renderOnSelectDisplayString(gui.Tr.FilterModifiedFiles, filetree.DisplayModified)
+					if err := gui.Views.Menu.SetLine(id, line); err != nil {
+						return err
+					}
+					return nil
+				})
 				return gui.setStatusFiltering(filetree.DisplayModified)
 			},
 		},
 		{
-			displayString: gui.Tr.FilterConflictedFiles,
+			displayString: gui.renderOnSelectDisplayString(gui.Tr.FilterConflictedFiles, filetree.DisplayConflicted),
 			onPress: func() error {
+				return nil
+			},
+			onSelect: func() error {
+				gui.g.Update(func(g *gocui.Gui) error {
+					id := gui.Views.Menu.SelectedLineIdx()
+					line := gui.renderOnSelectDisplayString(gui.Tr.FilterConflictedFiles, filetree.DisplayConflicted)
+					if err := gui.Views.Menu.SetLine(id, line); err != nil {
+						return err
+					}
+					return nil
+				})
 				return gui.setStatusFiltering(filetree.DisplayConflicted)
 			},
 		},
 		{
-			displayString: gui.Tr.FilterUntrackedFiles,
+			displayString: gui.renderOnSelectDisplayString(gui.Tr.FilterUntrackedFiles, filetree.DisplayUntracked),
 			onPress: func() error {
+				return nil
+			},
+			onSelect: func() error {
+				gui.g.Update(func(g *gocui.Gui) error {
+					id := gui.Views.Menu.SelectedLineIdx()
+					line := gui.renderOnSelectDisplayString(gui.Tr.FilterUntrackedFiles, filetree.DisplayUntracked)
+					if err := gui.Views.Menu.SetLine(id, line); err != nil {
+						return err
+					}
+					return nil
+				})
 				return gui.setStatusFiltering(filetree.DisplayUntracked)
 			},
 		},
 		{
 			displayString: gui.Tr.ResetCommitFilterState,
 			onPress: func() error {
-				return gui.setStatusFiltering(filetree.DisplayAll)
+				return gui.resetFiltering()
+			},
+			onSelect: func() error {
+				gui.g.Update(func(g *gocui.Gui) error {
+					id := gui.Views.Menu.SelectedLineIdx()
+					for i := 0; i < id; i++ {
+						line := style.FgWhite.Sprint(gui.Views.Menu.BufferLines()[i])
+						if err := gui.Views.Menu.SetLine(i, line); err != nil {
+							return err
+						}
+					}
+					return nil
+				})
+				return gui.resetFiltering()
 			},
 		},
 	}
 
-	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{showCancel: false})
 }
 
 func (gui *Gui) setStatusFiltering(filter filetree.FileManagerDisplayFilter) error {
 	state := gui.State
-	state.FileManager.SetDisplayFilter(filter)
+	state.FileManager.ToggleDisplayFilter(filter)
 	return gui.handleRefreshFiles()
+}
+
+func (gui *Gui) resetFiltering() error {
+	filters := gui.State.FileManager.Filters()
+	filters[filetree.DisplayAll] = true
+	filters[filetree.DisplayStaged] = false
+	filters[filetree.DisplayModified] = false
+	filters[filetree.DisplayConflicted] = false
+	filters[filetree.DisplayUntracked] = false
+	gui.State.FileManager.SetTree()
+	return gui.handleRefreshFiles()
+}
+
+func (gui *Gui) getStatusFiltering(filter filetree.FileManagerDisplayFilter) bool {
+	state := gui.State
+	return state.FileManager.GetDisplayFilter(filter)
 }
 
 func (gui *Gui) editFile(filename string) error {

@@ -1661,7 +1661,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName: "menu",
 			Key:      gui.getKey(config.Universal.Select),
 			Modifier: gocui.ModNone,
-			Handler:  gui.onMenuPress,
+			Handler:  gui.onMenuSelect,
 		},
 		{
 			ViewName: "menu",

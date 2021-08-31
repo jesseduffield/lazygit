@@ -11,11 +11,11 @@ import (
 type FileManagerDisplayFilter int
 
 const (
-	DisplayAll FileManagerDisplayFilter = iota
-	DisplayStaged
-	DisplayModified
-	DisplayUntracked
-	DisplayConflicted
+	DisplayAll        FileManagerDisplayFilter = 0
+	DisplayStaged     FileManagerDisplayFilter = 1
+	DisplayModified   FileManagerDisplayFilter = 2
+	DisplayUntracked  FileManagerDisplayFilter = 3
+	DisplayConflicted FileManagerDisplayFilter = 4
 )
 
 type FileManager struct {
@@ -23,17 +23,23 @@ type FileManager struct {
 	tree           *FileNode
 	showTree       bool
 	log            *logrus.Entry
-	filter         FileManagerDisplayFilter
+	filters        []bool
 	collapsedPaths CollapsedPaths
 	sync.RWMutex
 }
 
 func NewFileManager(files []*models.File, log *logrus.Entry, showTree bool) *FileManager {
 	return &FileManager{
-		files:          files,
-		log:            log,
-		showTree:       showTree,
-		filter:         DisplayAll,
+		files:    files,
+		log:      log,
+		showTree: showTree,
+		filters: []bool{
+			DisplayAll:        true,
+			DisplayStaged:     false,
+			DisplayModified:   false,
+			DisplayConflicted: false,
+			DisplayUntracked:  false,
+		},
 		collapsedPaths: CollapsedPaths{},
 		RWMutex:        sync.RWMutex{},
 	}
@@ -43,49 +49,60 @@ func (m *FileManager) InTreeMode() bool {
 	return m.showTree
 }
 
+func (m *FileManager) Filters() []bool {
+	return m.filters
+}
+
 func (m *FileManager) ExpandToPath(path string) {
 	m.collapsedPaths.ExpandToPath(path)
 }
 
 func (m *FileManager) GetFilesForDisplay() []*models.File {
 	files := m.files
-	if m.filter == DisplayAll {
+	if m.filters[DisplayAll] {
 		return files
 	}
 
 	result := make([]*models.File, 0)
-	if m.filter == DisplayStaged {
-		for _, file := range files {
-			if file.HasStagedChanges {
-				result = append(result, file)
-			}
+	for _, file := range files {
+		if m.filters[DisplayConflicted] && file.HasMergeConflicts {
+			result = append(result, file)
+			continue
 		}
-	} else if m.filter == DisplayModified {
-		for _, file := range files {
-			if file.HasUnstagedChanges && file.Tracked {
-				result = append(result, file)
-			}
+
+		if m.filters[DisplayStaged] && file.HasStagedChanges {
+			result = append(result, file)
+			continue
 		}
-	} else if m.filter == DisplayConflicted {
-		for _, file := range files {
-			if file.HasMergeConflicts || file.HasInlineMergeConflicts {
-				result = append(result, file)
-			}
+
+		if m.filters[DisplayModified] && file.HasUnstagedChanges && file.Tracked {
+			result = append(result, file)
+			continue
 		}
-	} else if m.filter == DisplayUntracked {
-		for _, file := range files {
-			if !file.Tracked {
-				result = append(result, file)
-			}
+
+		if m.filters[DisplayUntracked] && !file.Tracked {
+			result = append(result, file)
+			continue
 		}
 	}
 
 	return result
 }
 
-func (m *FileManager) SetDisplayFilter(filter FileManagerDisplayFilter) {
-	m.filter = filter
+func (m *FileManager) ToggleDisplayFilter(filter FileManagerDisplayFilter) {
+	if filter != DisplayAll {
+		// Disable DisplayAll if not requested
+		m.filters[DisplayAll] = false
+		// Toggle the filter
+		m.filters[filter] = !m.filters[filter]
+	} else {
+		m.filters[filter] = true
+	}
 	m.SetTree()
+}
+
+func (m *FileManager) GetDisplayFilter(filter FileManagerDisplayFilter) bool {
+	return m.filters[filter]
 }
 
 func (m *FileManager) ToggleShowTree() {
