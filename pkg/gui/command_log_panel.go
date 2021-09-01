@@ -173,7 +173,7 @@ func (gui *Gui) getRandomTip() string {
 			constants.Links.Docs.CustomCommands,
 		),
 		fmt.Sprintf(
-			"If you ever find a bug, do not hesistate to raise an issue on the repo:\n%s",
+			"If you ever find a bug, do not hesitate to raise an issue on the repo:\n%s",
 			constants.Links.Issues,
 		),
 	}
