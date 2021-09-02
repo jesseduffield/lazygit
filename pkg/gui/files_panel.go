@@ -484,7 +484,7 @@ func (gui *Gui) renderOnSelectDisplayString(displayString string, filter filetre
 func (gui *Gui) handleStatusFilterPressed() error {
 	menuItems := []*menuItem{
 		{
-			displayString: gui.Tr.FilterStagedFiles,
+			displayString: gui.renderOnSelectDisplayString(gui.Tr.FilterStagedFiles, filetree.DisplayStaged),
 			onPress: func() error {
 				return nil
 			},
