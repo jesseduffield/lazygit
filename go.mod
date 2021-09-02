@@ -44,5 +44,3 @@ require (
 	golang.org/x/term v0.0.0-20210503060354-a79de5458b56 // indirect
 	golang.org/x/text v0.3.6 // indirect
 )
-
-replace github.com/go-git/go-git/v5 => github.com/jesseduffield/go-git/v5 v5.1.1
