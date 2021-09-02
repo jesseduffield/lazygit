@@ -11,7 +11,7 @@ import (
 )
 
 // macs for some bizarre reason cap the number of watchable files to 256.
-// there's no obvious platform agonstic way to check the situation of the user's
+// there's no obvious platform agnostic way to check the situation of the user's
 // computer so we're just arbitrarily capping at 200. This isn't so bad because
 // file watching is only really an added bonus for faster refreshing.
 const MAX_WATCHED_FILES = 50

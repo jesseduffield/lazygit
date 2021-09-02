@@ -189,7 +189,7 @@ func TestTemplateFuncMapAddColors(t *testing.T) {
 			"\x1b[31m\x1b[1mbar\x1b[0m\x1b[0m",
 		},
 		{
-			"multiple string with diffrent colors",
+			"multiple string with different colors",
 			"{{ .Foo | red }} - {{ .Foo | blue }}",
 			"\x1b[31mbar\x1b[0m - \x1b[34mbar\x1b[0m",
 		},
