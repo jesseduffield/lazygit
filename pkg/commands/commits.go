@@ -61,11 +61,12 @@ func (c *GitCommand) AmendHeadCmdStr() string {
 }
 
 func (c *GitCommand) ShowCmdStr(sha string, filterPath string) string {
+	contextSize := c.Config.GetUserConfig().Git.DiffContextSize
 	filterPathArg := ""
 	if filterPath != "" {
 		filterPathArg = fmt.Sprintf(" -- %s", c.OSCommand.Quote(filterPath))
 	}
-	return fmt.Sprintf("git show --submodule --color=%s --no-renames --stat -p %s %s", c.colorArg(), sha, filterPathArg)
+	return fmt.Sprintf("git show --submodule --color=%s --unified=%d --no-renames --stat -p %s %s", c.colorArg(), contextSize, sha, filterPathArg)
 }
 
 // Revert reverts the selected commit by sha
