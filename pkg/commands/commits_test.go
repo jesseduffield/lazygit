@@ -110,3 +110,43 @@ func TestGitCommandCreateFixupCommit(t *testing.T) {
 		})
 	}
 }
+
+// TestGitCommandShowCmdStr is a function.
+func TestGitCommandShowCmdStr(t *testing.T) {
+	type scenario struct {
+		testName    string
+		filterPath  string
+		contextSize int
+		expected    string
+	}
+
+	scenarios := []scenario{
+		{
+			testName:    "Default case without filter path",
+			filterPath:  "",
+			contextSize: 3,
+			expected:    "git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890 ",
+		},
+		{
+			testName:    "Default case with filter path",
+			filterPath:  "file.txt",
+			contextSize: 3,
+			expected:    "git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890  -- \"file.txt\"",
+		},
+		{
+			testName:    "Show diff with custom context size",
+			filterPath:  "",
+			contextSize: 77,
+			expected:    "git show --submodule --color=always --unified=77 --no-renames --stat -p 1234567890 ",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := NewDummyGitCommand()
+			gitCmd.Config.GetUserConfig().Git.DiffContextSize = s.contextSize
+			cmdStr := gitCmd.ShowCmdStr("1234567890", s.filterPath)
+			assert.Equal(t, s.expected, cmdStr)
+		})
+	}
+}
