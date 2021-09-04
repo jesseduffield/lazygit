@@ -298,7 +298,7 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) err
 		handleConfirm: func() error {
 			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteBranch).DeleteBranch(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
-				if !force && strings.Contains(errMessage, "is not fully merged") {
+				if !force && strings.Contains(errMessage, "git branch -D ") {
 					return gui.deleteNamedBranch(selectedBranch, true)
 				}
 				return gui.createErrorPanel(errMessage)
