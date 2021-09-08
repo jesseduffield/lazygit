@@ -19,12 +19,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// this takes something like:
-// * (HEAD detached at 264fc6f5)
-//	remotes
-// and returns '264fc6f5' as the second match
-const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
-
 // GitCommand is our main git interface
 type GitCommand struct {
 	Log                  *logrus.Entry

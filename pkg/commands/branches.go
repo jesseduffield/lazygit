@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -23,20 +22,27 @@ func (c *GitCommand) CurrentBranchName() (string, string, error) {
 		trimmedBranchName := strings.TrimSpace(branchName)
 		return trimmedBranchName, trimmedBranchName, nil
 	}
+
+	if tagName, err := c.RunCommandWithOutput("git describe --exact-match --tags HEAD"); err == nil {
+		branchName = strings.TrimSpace(tagName)
+	} else if commitSha, err := c.RunCommandWithOutput("git rev-parse --short HEAD"); err == nil {
+		branchName = strings.TrimSpace(commitSha)
+	} else {
+		branchName = "HEAD"
+	}
+
 	output, err := c.RunCommandWithOutput("git branch --contains")
 	if err != nil {
 		return "", "", err
 	}
+	displayBranchName := branchName
 	for _, line := range utils.SplitLines(output) {
-		re := regexp.MustCompile(CurrentBranchNameRegex)
-		match := re.FindStringSubmatch(line)
-		if len(match) > 0 {
-			branchName = match[1]
-			displayBranchName := match[0][2:]
-			return branchName, displayBranchName, nil
+		if strings.HasPrefix(line, "* ") {
+			displayBranchName = strings.TrimSpace(line[2:])
+			break
 		}
 	}
-	return "HEAD", "HEAD", nil
+	return branchName, displayBranchName, nil
 }
 
 // DeleteBranch delete branch
