@@ -35,10 +35,10 @@ func NewFileManager(files []*models.File, log *logrus.Entry, showTree bool) *Fil
 		showTree: showTree,
 		filters: []bool{
 			DisplayAll:        true,
-			DisplayStaged:     false,
-			DisplayModified:   false,
-			DisplayConflicted: false,
-			DisplayUntracked:  false,
+			DisplayStaged:     true,
+			DisplayModified:   true,
+			DisplayConflicted: true,
+			DisplayUntracked:  true,
 		},
 		collapsedPaths: CollapsedPaths{},
 		RWMutex:        sync.RWMutex{},
@@ -97,6 +97,17 @@ func (m *FileManager) ToggleDisplayFilter(filter FileManagerDisplayFilter) {
 		m.filters[filter] = !m.filters[filter]
 	} else {
 		m.filters[filter] = true
+	}
+	m.SetTree()
+}
+
+func (m *FileManager) SetDisplayFilter(filter FileManagerDisplayFilter) {
+	for i := 0; i < len(m.filters); i++ {
+		if i == int(filter) {
+			m.filters[filter] = true
+		} else if i != int(DisplayUntracked) {
+			m.filters[i] = false
+		}
 	}
 	m.SetTree()
 }
