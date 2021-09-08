@@ -244,6 +244,9 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
 					return secureexec.Command("test")
+				case "describe":
+					assert.EqualValues(t, []string{"describe", "--exact-match", "--tags", "HEAD"}, args)
+					return secureexec.Command("echo", "master")
 				case "branch":
 					assert.EqualValues(t, []string{"branch", "--contains"}, args)
 					return secureexec.Command("echo", "* master")
@@ -266,6 +269,12 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 				case "symbolic-ref":
 					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
 					return secureexec.Command("test")
+				case "describe":
+					assert.EqualValues(t, []string{"describe", "--exact-match", "--tags", "HEAD"}, args)
+					return secureexec.Command("test")
+				case "rev-parse":
+					assert.EqualValues(t, []string{"rev-parse", "--short", "HEAD"}, args)
+					return secureexec.Command("echo", "123abcd")
 				case "branch":
 					assert.EqualValues(t, []string{"branch", "--contains"}, args)
 					return secureexec.Command("echo", "* (HEAD detached at 123abcd)")
