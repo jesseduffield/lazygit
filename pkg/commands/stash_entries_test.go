@@ -33,3 +33,37 @@ func TestGitCommandStashSave(t *testing.T) {
 
 	assert.NoError(t, gitCmd.StashSave("A stash message"))
 }
+
+// TestGitCommandShowStashEntryCmdStr is a function.
+func TestGitCommandShowStashEntryCmdStr(t *testing.T) {
+	type scenario struct {
+		testName    string
+		index       int
+		contextSize int
+		expected    string
+	}
+
+	scenarios := []scenario{
+		{
+			testName:    "Default case",
+			index:       5,
+			contextSize: 3,
+			expected:    "git stash show -p --stat --color=always --unified=3 stash@{5}",
+		},
+		{
+			testName:    "Show diff with custom context size",
+			index:       5,
+			contextSize: 77,
+			expected:    "git stash show -p --stat --color=always --unified=77 stash@{5}",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := NewDummyGitCommand()
+			gitCmd.Config.GetUserConfig().Git.DiffContextSize = s.contextSize
+			cmdStr := gitCmd.ShowStashEntryCmdStr(s.index)
+			assert.Equal(t, s.expected, cmdStr)
+		})
+	}
+}
