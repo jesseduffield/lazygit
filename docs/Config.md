@@ -155,6 +155,7 @@ keybinding:
     extrasMenu: '@'
     toggleWhitespaceInDiffView: '<c-w>'
     increaseContextInDiffView: '}'
+    decreaseContextInDiffView: '{'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'

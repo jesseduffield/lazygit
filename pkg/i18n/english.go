@@ -428,6 +428,7 @@ type TranslationSet struct {
 	IgnoringWhitespaceInDiffView        string
 	ShowingWhitespaceInDiffView         string
 	IncreaseContextInDiffView           string
+	DecreaseContextInDiffView           string
 	CreatePullRequestOptions            string
 	LcCreatePullRequestOptions          string
 	LcDefaultBranch                     string
@@ -969,6 +970,7 @@ func englishTranslationSet() TranslationSet {
 		IgnoringWhitespaceInDiffView:        "Whitespace will be ignored in the diff view",
 		ShowingWhitespaceInDiffView:         "Whitespace will be shown in the diff view",
 		IncreaseContextInDiffView:           "Increase the size of the context shown around changes in the diff view",
+		DecreaseContextInDiffView:           "Decrease the size of the context shown around changes in the diff view",
 		CreatePullRequest:                   "Create pull request",
 		CreatePullRequestOptions:            "Create pull request options",
 		LcCreatePullRequestOptions:          "create pull request options",

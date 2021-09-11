@@ -1777,6 +1777,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.IncreaseContextInDiffView,
 		},
 		{
+			ViewName:    "",
+			Key:         gui.getKey(config.Universal.DecreaseContextInDiffView),
+			Handler:     gui.DecreaseContextInDiffView,
+			Description: gui.Tr.DecreaseContextInDiffView,
+		},
+		{
 			ViewName: "extras",
 			Key:      gocui.MouseWheelUp,
 			Handler:  gui.scrollUpExtra,
