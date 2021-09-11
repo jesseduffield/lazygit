@@ -154,6 +154,7 @@ keybinding:
     appendNewline: '<a-enter>'
     extrasMenu: '@'
     toggleWhitespaceInDiffView: '<c-w>'
+    increaseContextInDiffView: '}'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'

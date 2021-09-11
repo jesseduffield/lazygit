@@ -177,6 +177,7 @@ type KeybindingUniversalConfig struct {
 	AppendNewline                string   `yaml:"appendNewline"`
 	ExtrasMenu                   string   `yaml:"extrasMenu"`
 	ToggleWhitespaceInDiffView   string   `yaml:"toggleWhitespaceInDiffView"`
+	IncreaseContextInDiffView    string   `yaml:"increaseContextInDiffView"`
 }
 
 type KeybindingStatusConfig struct {
@@ -438,6 +439,7 @@ func GetDefaultConfig() *UserConfig {
 				AppendNewline:                "<a-enter>",
 				ExtrasMenu:                   "@",
 				ToggleWhitespaceInDiffView:   "<c-w>",
+				IncreaseContextInDiffView:    "}",
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:      "u",
