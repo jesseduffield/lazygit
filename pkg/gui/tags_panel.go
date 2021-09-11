@@ -15,29 +15,8 @@ func (gui *Gui) getSelectedTag() *models.Tag {
 }
 
 func (gui *Gui) handleCreateTag() error {
-	return gui.prompt(promptOpts{
-		title: gui.Tr.CreateTagTitle,
-		handleConfirm: func(tagName string) error {
-			// leaving commit SHA blank so that we're just creating the tag for the current commit
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateLightweightTag).CreateLightweightTag(tagName, ""); err != nil {
-				return gui.surfaceError(err)
-			}
-			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{COMMITS, TAGS}, then: func() {
-				// find the index of the tag and set that as the currently selected line
-				for i, tag := range gui.State.Tags {
-					if tag.Name == tagName {
-						gui.State.Panels.Tags.SelectedLineIdx = i
-						if err := gui.State.Contexts.Tags.HandleRender(); err != nil {
-							gui.Log.Error(err)
-						}
-
-						return
-					}
-				}
-			},
-			})
-		},
-	})
+	// leaving commit SHA blank so that we're just creating the tag for the current commit
+	return gui.createTagMenu("")
 }
 
 func (gui *Gui) tagsRenderToMain() error {
