@@ -14,3 +14,14 @@ func (gui *Gui) IncreaseContextInDiffView() error {
 
 	return nil
 }
+
+func (gui *Gui) DecreaseContextInDiffView() error {
+	old_size := gui.Config.GetUserConfig().Git.DiffContextSize
+
+	if isShowingDiff(gui) && old_size > 1 {
+		gui.Config.GetUserConfig().Git.DiffContextSize = old_size - 1
+		return gui.postRefreshUpdate(gui.currentStaticContext())
+	}
+
+	return nil
+}
