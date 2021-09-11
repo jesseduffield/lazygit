@@ -1771,6 +1771,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.ToggleWhitespaceInDiffView,
 		},
 		{
+			ViewName:    "",
+			Key:         gui.getKey(config.Universal.IncreaseContextInDiffView),
+			Handler:     gui.IncreaseContextInDiffView,
+			Description: gui.Tr.IncreaseContextInDiffView,
+		},
+		{
 			ViewName: "extras",
 			Key:      gocui.MouseWheelUp,
 			Handler:  gui.scrollUpExtra,
