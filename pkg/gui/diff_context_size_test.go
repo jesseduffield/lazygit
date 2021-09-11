@@ -80,3 +80,63 @@ func TestDoesntIncreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
 		assert.Equal(t, 1, gui.Config.GetUserConfig().Git.DiffContextSize, string(context.GetKey()))
 	}
 }
+
+func TestDecreasesContextInDiffViewByOneInContextWithDiff(t *testing.T) {
+	contexts := []func(gui *Gui) Context {
+		func(gui *Gui) Context { return gui.State.Contexts.Files },
+		func(gui *Gui) Context { return gui.State.Contexts.BranchCommits },
+		func(gui *Gui) Context { return gui.State.Contexts.CommitFiles },
+		func(gui *Gui) Context { return gui.State.Contexts.Stash },
+		func(gui *Gui) Context { return gui.State.Contexts.Staging },
+		func(gui *Gui) Context { return gui.State.Contexts.PatchBuilding },
+		func(gui *Gui) Context { return gui.State.Contexts.SubCommits },
+	}
+
+	for _, c := range contexts {
+		gui := NewDummyGui()
+		context := c(gui)
+		setupGuiForTest(gui)
+		gui.Config.GetUserConfig().Git.DiffContextSize = 2
+		gui.pushContextDirect(context)
+
+		gui.DecreaseContextInDiffView()
+
+		assert.Equal(t, 1, gui.Config.GetUserConfig().Git.DiffContextSize, string(context.GetKey()))
+	}
+}
+
+func TestDoesntDecreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
+	contexts := []func(gui *Gui) Context {
+		func(gui *Gui) Context { return gui.State.Contexts.Status },
+		func(gui *Gui) Context { return gui.State.Contexts.Submodules },
+		func(gui *Gui) Context { return gui.State.Contexts.Remotes },
+		func(gui *Gui) Context { return gui.State.Contexts.Normal },
+		func(gui *Gui) Context { return gui.State.Contexts.ReflogCommits },
+		func(gui *Gui) Context { return gui.State.Contexts.RemoteBranches },
+		func(gui *Gui) Context { return gui.State.Contexts.Tags },
+		func(gui *Gui) Context { return gui.State.Contexts.Merging },
+		func(gui *Gui) Context { return gui.State.Contexts.CommandLog },
+	}
+
+	for _, c := range contexts {
+    gui := NewDummyGui()
+		context := c(gui)
+		setupGuiForTest(gui)
+		gui.Config.GetUserConfig().Git.DiffContextSize = 2
+		gui.pushContextDirect(context)
+
+		gui.DecreaseContextInDiffView()
+
+		assert.Equal(t, 2, gui.Config.GetUserConfig().Git.DiffContextSize, string(context.GetKey()))
+	}
+}
+
+func TestDecreasesContextInDiffViewNoFurtherThanOne(t *testing.T) {
+	gui := NewDummyGui()
+	setupGuiForTest(gui)
+	gui.Config.GetUserConfig().Git.DiffContextSize = 1
+
+	gui.DecreaseContextInDiffView()
+
+	assert.Equal(t, 1, gui.Config.GetUserConfig().Git.DiffContextSize)
+}
