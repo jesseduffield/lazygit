@@ -584,29 +584,52 @@ func (gui *Gui) handleTagCommit() error {
 		return nil
 	}
 
+	return gui.createTagMenu(commit.Sha)
+}
+
+func (gui *Gui) createTagMenu(commitSha string) error {
 	items := []*menuItem{
-		{displayString: gui.Tr.LightweightTag, onPress: func() error {
-			return gui.handleCreateLightweightTag(commit.Sha)
-		}},
-		{displayString: gui.Tr.AnnotatedTag, onPress: func() error {
-			return gui.handleCreateAnnotatedTag(commit.Sha)
-		}},
+		{
+			displayString: gui.Tr.LightweightTag,
+			onPress: func() error {
+				return gui.handleCreateLightweightTag(commitSha)
+			}},
+		{
+			displayString: gui.Tr.AnnotatedTag,
+			onPress: func() error {
+				return gui.handleCreateAnnotatedTag(commitSha)
+			}},
 	}
 
 	return gui.createMenu(gui.Tr.TagMenuTitle, items, createMenuOptions{showCancel: false})
 }
 
+func (gui *Gui) afterTagCreate(tagName string) error {
+	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}, then: func() {
+		// find the index of the tag and set that as the currently selected line
+		for i, tag := range gui.State.Tags {
+			if tag.Name == tagName {
+				gui.State.Panels.Tags.SelectedLineIdx = i
+				if err := gui.State.Contexts.Tags.HandleRender(); err != nil {
+					gui.Log.Error(err)
+				}
+				return
+			}
+		}
+	}})
+}
+
 func (gui *Gui) handleCreateAnnotatedTag(commitSha string) error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.TagNameTitle,
-		handleConfirm: func(tagname string) error {
+		handleConfirm: func(tagName string) error {
 			return gui.prompt(promptOpts{
 				title: gui.Tr.TagMessageTitle,
 				handleConfirm: func(msg string) error {
-					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateAnnotatedTag).CreateAnnotatedTag(tagname, commitSha, msg); err != nil {
+					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateAnnotatedTag).CreateAnnotatedTag(tagName, commitSha, msg); err != nil {
 						return gui.surfaceError(err)
 					}
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
+					return gui.afterTagCreate(tagName)
 				},
 			})
 		},
@@ -616,11 +639,11 @@ func (gui *Gui) handleCreateAnnotatedTag(commitSha string) error {
 func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.TagNameTitle,
-		handleConfirm: func(response string) error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateLightweightTag).CreateLightweightTag(response, commitSha); err != nil {
+		handleConfirm: func(tagName string) error {
+			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateLightweightTag).CreateLightweightTag(tagName, commitSha); err != nil {
 				return gui.surfaceError(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
+			return gui.afterTagCreate(tagName)
 		},
 	})
 }
