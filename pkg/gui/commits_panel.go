@@ -579,15 +579,38 @@ func (gui *Gui) handleSquashAllAboveFixupCommits() error {
 }
 
 func (gui *Gui) handleTagCommit() error {
-	// TODO: bring up menu asking if you want to make a lightweight or annotated tag
-	// if annotated, switch to a subprocess to create the message
-
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
 	}
 
-	return gui.handleCreateLightweightTag(commit.Sha)
+	items := []*menuItem{
+		{displayString: gui.Tr.LightweightTag, onPress: func() error {
+			return gui.handleCreateLightweightTag(commit.Sha)
+		}},
+		{displayString: gui.Tr.AnnotatedTag, onPress: func() error {
+			return gui.handleCreateAnnotatedTag(commit.Sha)
+		}},
+	}
+
+	return gui.createMenu(gui.Tr.TagMenuTitle, items, createMenuOptions{showCancel: false})
+}
+
+func (gui *Gui) handleCreateAnnotatedTag(commitSha string) error {
+	return gui.prompt(promptOpts{
+		title: gui.Tr.TagNameTitle,
+		handleConfirm: func(tagname string) error {
+			return gui.prompt(promptOpts{
+				title: gui.Tr.TagMessageTitle,
+				handleConfirm: func(msg string) error {
+					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateAnnotatedTag).CreateAnnotatedTag(tagname, commitSha, msg); err != nil {
+						return gui.surfaceError(err)
+					}
+					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
+				},
+			})
+		},
+	})
 }
 
 func (gui *Gui) handleCreateLightweightTag(commitSha string) error {

@@ -8,6 +8,10 @@ func (c *GitCommand) CreateLightweightTag(tagName string, commitSha string) erro
 	return c.RunCommand("git tag -- %s %s", c.OSCommand.Quote(tagName), commitSha)
 }
 
+func (c *GitCommand) CreateAnnotatedTag(tagName, commitSha, msg string) error {
+	return c.RunCommand("git tag %s %s -m '%s'", tagName, commitSha, msg)
+}
+
 func (c *GitCommand) DeleteTag(tagName string) error {
 	return c.RunCommand("git tag -d %s", c.OSCommand.Quote(tagName))
 }

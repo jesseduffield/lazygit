@@ -299,7 +299,11 @@ type TranslationSet struct {
 	SetUpstreamMessage                  string
 	LcEditRemote                        string
 	LcTagCommit                         string
+	TagMenuTitle                        string
 	TagNameTitle                        string
+	TagMessageTitle                     string
+	LightweightTag                      string
+	AnnotatedTag                        string
 	LcDeleteTag                         string
 	DeleteTagTitle                      string
 	DeleteTagPrompt                     string
@@ -523,6 +527,7 @@ type Spans struct {
 	BulkDeinitialiseSubmodules        string
 	UpdateSubmodule                   string
 	CreateLightweightTag              string
+	CreateAnnotatedTag                string
 	DeleteTag                         string
 	PushTag                           string
 	NukeWorkingTree                   string
@@ -842,7 +847,11 @@ func englishTranslationSet() TranslationSet {
 		SetUpstreamMessage:                  "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
 		LcEditRemote:                        "edit remote",
 		LcTagCommit:                         "tag commit",
+		TagMenuTitle:                        "create tag",
 		TagNameTitle:                        "Tag name:",
+		TagMessageTitle:                     "Tag message: ",
+		AnnotatedTag:                        "annotated tag",
+		LightweightTag:                      "lightweight tag",
 		LcDeleteTag:                         "delete tag",
 		DeleteTagTitle:                      "Delete tag",
 		DeleteTagPrompt:                     "Are you sure you want to delete tag '{{.tagName}}'?",
@@ -1018,6 +1027,7 @@ func englishTranslationSet() TranslationSet {
 			CreateFixupCommit:                 "Create fixup commit",
 			SquashAllAboveFixupCommits:        "Squash all above fixup commits",
 			CreateLightweightTag:              "Create lightweight tag",
+			CreateAnnotatedTag:                "Create annotated tag",
 			CopyCommitMessageToClipboard:      "Copy commit message to clipboard",
 			MoveCommitUp:                      "Move commit up",
 			MoveCommitDown:                    "Move commit down",
