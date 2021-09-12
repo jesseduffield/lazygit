@@ -601,7 +601,7 @@ func (gui *Gui) createTagMenu(commitSha string) error {
 			}},
 	}
 
-	return gui.createMenu(gui.Tr.TagMenuTitle, items, createMenuOptions{showCancel: false})
+	return gui.createMenu(gui.Tr.TagMenuTitle, items, createMenuOptions{showCancel: true})
 }
 
 func (gui *Gui) afterTagCreate(tagName string) error {
