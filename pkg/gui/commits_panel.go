@@ -593,12 +593,14 @@ func (gui *Gui) createTagMenu(commitSha string) error {
 			displayString: gui.Tr.LcLightweightTag,
 			onPress: func() error {
 				return gui.handleCreateLightweightTag(commitSha)
-			}},
+			},
+		},
 		{
 			displayString: gui.Tr.LcAnnotatedTag,
 			onPress: func() error {
 				return gui.handleCreateAnnotatedTag(commitSha)
-			}},
+			},
+		},
 	}
 
 	return gui.createMenu(gui.Tr.TagMenuTitle, items, createMenuOptions{showCancel: true})
