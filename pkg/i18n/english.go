@@ -302,8 +302,8 @@ type TranslationSet struct {
 	TagMenuTitle                        string
 	TagNameTitle                        string
 	TagMessageTitle                     string
-	LightweightTag                      string
-	AnnotatedTag                        string
+	LcLightweightTag                    string
+	LcAnnotatedTag                      string
 	LcDeleteTag                         string
 	DeleteTagTitle                      string
 	DeleteTagPrompt                     string
@@ -847,11 +847,11 @@ func englishTranslationSet() TranslationSet {
 		SetUpstreamMessage:                  "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
 		LcEditRemote:                        "edit remote",
 		LcTagCommit:                         "tag commit",
-		TagMenuTitle:                        "create tag",
+		TagMenuTitle:                        "Create tag",
 		TagNameTitle:                        "Tag name:",
 		TagMessageTitle:                     "Tag message: ",
-		AnnotatedTag:                        "annotated tag",
-		LightweightTag:                      "lightweight tag",
+		LcAnnotatedTag:                      "annotated tag",
+		LcLightweightTag:                    "lightweight tag",
 		LcDeleteTag:                         "delete tag",
 		DeleteTagTitle:                      "Delete tag",
 		DeleteTagPrompt:                     "Are you sure you want to delete tag '{{.tagName}}'?",

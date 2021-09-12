@@ -590,12 +590,12 @@ func (gui *Gui) handleTagCommit() error {
 func (gui *Gui) createTagMenu(commitSha string) error {
 	items := []*menuItem{
 		{
-			displayString: gui.Tr.LightweightTag,
+			displayString: gui.Tr.LcLightweightTag,
 			onPress: func() error {
 				return gui.handleCreateLightweightTag(commitSha)
 			}},
 		{
-			displayString: gui.Tr.AnnotatedTag,
+			displayString: gui.Tr.LcAnnotatedTag,
 			onPress: func() error {
 				return gui.handleCreateAnnotatedTag(commitSha)
 			}},
