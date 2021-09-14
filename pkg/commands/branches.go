@@ -22,25 +22,16 @@ func (c *GitCommand) CurrentBranchName() (string, string, error) {
 		trimmedBranchName := strings.TrimSpace(branchName)
 		return trimmedBranchName, trimmedBranchName, nil
 	}
-
-	if tagName, err := c.RunCommandWithOutput("git describe --exact-match --tags HEAD"); err == nil {
-		branchName = strings.TrimSpace(tagName)
-	} else if commitSha, err := c.RunCommandWithOutput("git rev-parse --short HEAD"); err == nil {
-		branchName = strings.TrimSpace(commitSha)
-	} else {
-		branchName = "HEAD"
-	}
-
-	output, err := c.RunCommandWithOutput("git branch --contains")
+	output, err := c.RunCommandWithOutput(`git branch --format=%s --points-at=HEAD`, "%(if)%(HEAD)%(then)%(objectname:short)%09%(refname:short)%(end)")
 	if err != nil {
 		return "", "", err
 	}
-	displayBranchName := branchName
-	for _, line := range utils.SplitLines(output) {
-		if strings.HasPrefix(line, "* ") {
-			displayBranchName = strings.TrimSpace(line[2:])
-			break
-		}
+	fields := strings.SplitN(strings.TrimSpace(output), "\t", 2)
+	branchName = fields[0]
+	displayBranchName := fields[1]
+
+	if tagName, err := c.RunCommandWithOutput("git describe --exact-match --tags HEAD"); err == nil {
+		branchName = strings.TrimSpace(tagName)
 	}
 	return branchName, displayBranchName, nil
 }

@@ -222,6 +222,8 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 		test     func(string, string, error)
 	}
 
+	formatOption := `--format=%(if)%(HEAD)%(then)%(objectname:short)%09%(refname:short)%(end)`
+
 	scenarios := []scenario{
 		{
 			"says we are on the master branch if we are",
@@ -248,8 +250,8 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 					assert.EqualValues(t, []string{"describe", "--exact-match", "--tags", "HEAD"}, args)
 					return secureexec.Command("echo", "master")
 				case "branch":
-					assert.EqualValues(t, []string{"branch", "--contains"}, args)
-					return secureexec.Command("echo", "* master")
+					assert.EqualValues(t, []string{"branch", formatOption, "--points-at=HEAD"}, args)
+					return secureexec.Command("echo", "123abcd\tmaster")
 				}
 
 				return nil
@@ -272,12 +274,9 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 				case "describe":
 					assert.EqualValues(t, []string{"describe", "--exact-match", "--tags", "HEAD"}, args)
 					return secureexec.Command("test")
-				case "rev-parse":
-					assert.EqualValues(t, []string{"rev-parse", "--short", "HEAD"}, args)
-					return secureexec.Command("echo", "123abcd")
 				case "branch":
-					assert.EqualValues(t, []string{"branch", "--contains"}, args)
-					return secureexec.Command("echo", "* (HEAD detached at 123abcd)")
+					assert.EqualValues(t, []string{"branch", formatOption, "--points-at=HEAD"}, args)
+					return secureexec.Command("echo", "123abcd\t(HEAD detached at 123abcd)")
 				}
 
 				return nil
