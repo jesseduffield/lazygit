@@ -1,8 +1,5 @@
 package i18n
 
-// 本翻译文件中的词语的翻译参考了第二版的 Pro Git 的中文翻译版本 (https://git-scm.com/book/zh/v2)
-// 感谢github用户black-desk的工作
-
 const chineseIntroPopupMessage = `
 感谢您使用 lazygit! 与您分享三件事:
 
@@ -114,7 +111,7 @@ func chineseTranslationSet() TranslationSet {
 		YouNoCommitsToSquash:                "您没有提交来压缩",
 		CantFixupWhileUnstagedChanges:       "当有未暂存的更改时无法修正",
 		Fixup:                               "修正",
-		SureFixupThisCommit:                 "您确定要'修复'此提交吗?? 它将合并到下面的提交中",
+		SureFixupThisCommit:                 "您确定要修复此提交吗? 它将合并到下面的提交中",
 		SureSquashThisCommit:                "您确定要将这个提交压缩到下面的提交中吗?",
 		Squash:                              "压缩",
 		LcPickCommit:                        "选择提交 (mid-rebase时)",
@@ -454,7 +451,7 @@ func chineseTranslationSet() TranslationSet {
 		CommitMessageCopiedToClipboard:      "提交消息复制到剪贴板",
 		LcCopiedToClipboard:                 "复制到剪贴板",
 		ErrCannotEditDirectory:              "无法编辑目录:您只能编辑单个文件",
-		ErrStageDirWithInlineMergeConflicts: "无法 暂存/取消暂存 包含具有内联合并冲突的文件的目录.请先解决合并冲突",
+		ErrStageDirWithInlineMergeConflicts: "无法 暂存/取消暂存 包含具有合并冲突的文件的目录.请先解决合并冲突",
 		ErrRepositoryMovedOrDeleted:         "找不到仓库.它可能已被移动或删除¯\\ _(ツ)_ /¯ ¯\\_(ツ)_/¯",
 		CommandLog:                          "命令日志",
 		ToggleShowCommandLog:                "切换 显示/隐藏 命令日志",
