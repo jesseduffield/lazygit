@@ -213,7 +213,7 @@ func chineseTranslationSet() TranslationSet {
 		CommitMessageTitle:                  "提交讯息",
 		LocalBranchesTitle:                  "分支标签",
 		SearchTitle:                         "搜索",
-		TagsTitle:                           "标签页面,
+		TagsTitle:                           "标签页面",
 		BranchCommitsTitle:                  "提交页面",
 		MenuTitle:                           "菜单",
 		RemotesTitle:                        "远程页面",
