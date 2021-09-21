@@ -205,7 +205,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := c.colorArg()
-	path := c.OSCommand.Quote(node.GetPath())
+	quotedPath := c.OSCommand.Quote(node.GetPath())
 	ignoreWhitespaceArg := ""
 	if cached {
 		cachedArg = "--cached"
@@ -220,7 +220,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 		ignoreWhitespaceArg = "--ignore-all-space"
 	}
 
-	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s %s", colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, path)
+	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s %s", colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
@@ -271,7 +271,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex
 	}
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
-	if err := c.RunCommand("git cat-file -e HEAD^:%s", fileName); err != nil {
+	if err := c.RunCommand("git cat-file -e HEAD^:%s", c.OSCommand.Quote(fileName)); err != nil {
 		if err := c.OSCommand.Remove(fileName); err != nil {
 			return err
 		}
@@ -299,7 +299,7 @@ func (c *GitCommand) DiscardAnyUnstagedFileChanges() error {
 
 // RemoveTrackedFiles will delete the given file(s) even if they are currently tracked
 func (c *GitCommand) RemoveTrackedFiles(name string) error {
-	return c.RunCommand("git rm -r --cached %s", name)
+	return c.RunCommand("git rm -r --cached %s", c.OSCommand.Quote(name))
 }
 
 // RemoveUntrackedFiles runs `git clean -fd`
