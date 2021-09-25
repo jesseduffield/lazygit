@@ -128,31 +128,35 @@ func (gui *Gui) pushContextWithView(viewName string) error {
 
 func (gui *Gui) returnFromContext() error {
 	gui.g.Update(func(*gocui.Gui) error {
-		gui.State.ContextManager.Lock()
-
-		if len(gui.State.ContextManager.ContextStack) == 1 {
-			// cannot escape from bottommost context
-			gui.State.ContextManager.Unlock()
-			return nil
-		}
-
-		n := len(gui.State.ContextManager.ContextStack) - 1
-
-		currentContext := gui.State.ContextManager.ContextStack[n]
-		newContext := gui.State.ContextManager.ContextStack[n-1]
-
-		gui.State.ContextManager.ContextStack = gui.State.ContextManager.ContextStack[:n]
-
-		gui.State.ContextManager.Unlock()
-
-		if err := gui.deactivateContext(currentContext); err != nil {
-			return err
-		}
-
-		return gui.activateContext(newContext)
+		return gui.returnFromContextSync()
 	})
 
 	return nil
+}
+
+func (gui *Gui) returnFromContextSync() error {
+	gui.State.ContextManager.Lock()
+
+	if len(gui.State.ContextManager.ContextStack) == 1 {
+		// cannot escape from bottommost context
+		gui.State.ContextManager.Unlock()
+		return nil
+	}
+
+	n := len(gui.State.ContextManager.ContextStack) - 1
+
+	currentContext := gui.State.ContextManager.ContextStack[n]
+	newContext := gui.State.ContextManager.ContextStack[n-1]
+
+	gui.State.ContextManager.ContextStack = gui.State.ContextManager.ContextStack[:n]
+
+	gui.State.ContextManager.Unlock()
+
+	if err := gui.deactivateContext(currentContext); err != nil {
+		return err
+	}
+
+	return gui.activateContext(newContext)
 }
 
 func (gui *Gui) deactivateContext(c Context) error {
