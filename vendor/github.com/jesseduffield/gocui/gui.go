@@ -147,10 +147,6 @@ type Gui struct {
 	// match any known sequence, ESC means KeyEsc.
 	InputEsc bool
 
-	// If ASCII is true then use ASCII instead of unicode to draw the
-	// interface. Using ASCII is more portable.
-	ASCII bool
-
 	// SupportOverlaps is true when we allow for view edges to overlap with other
 	// view edges
 	SupportOverlaps bool
@@ -754,9 +750,7 @@ func (g *Gui) clear(fg, bg Attribute) (int, int) {
 // drawFrameEdges draws the horizontal and vertical edges of a view.
 func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 	runeH, runeV := '─', '│'
-	if g.ASCII {
-		runeH, runeV = '-', '|'
-	} else if len(v.FrameRunes) >= 2 {
+	if len(v.FrameRunes) >= 2 {
 		runeH, runeV = v.FrameRunes[0], v.FrameRunes[1]
 	}
 
@@ -881,9 +875,6 @@ func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) error {
 		runeTR = corner(v, BOTTOM|LEFT)
 		runeBL = corner(v, TOP|RIGHT)
 		runeBR = corner(v, TOP|LEFT)
-	}
-	if g.ASCII {
-		runeTL, runeTR, runeBL, runeBR = '+', '+', '+', '+'
 	}
 
 	corners := []struct {

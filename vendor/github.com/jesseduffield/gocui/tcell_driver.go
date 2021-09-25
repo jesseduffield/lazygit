@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/mattn/go-runewidth"
 )
 
 // We probably don't want this being a global variable for YOLO for now
@@ -20,16 +21,47 @@ type oldStyle struct {
 	outputMode OutputMode
 }
 
+var runeReplacements = map[rune]string{
+	'┌': "+",
+	'┐': "+",
+	'└': "+",
+	'┘': "+",
+	'─': "-",
+
+	// using a hyphen here actually looks weird.
+	// We see these characters when in portrait mode
+	'╶': " ",
+	'╴': " ",
+
+	'├': "+",
+	'│': "|",
+	'▼': "v",
+	'►': ">",
+	'▲': "^",
+	'◄': "<",
+}
+
 // tcellInit initializes tcell screen for use.
 func (g *Gui) tcellInit() error {
+	runewidth.DefaultCondition.EastAsianWidth = false
+	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
+
 	if s, e := tcell.NewScreen(); e != nil {
 		return e
 	} else if e = s.Init(); e != nil {
 		return e
 	} else {
+		registerRuneFallbacks(s)
+
 		g.screen = s
 		Screen = s
 		return nil
+	}
+}
+
+func registerRuneFallbacks(s tcell.Screen) {
+	for before, after := range runeReplacements {
+		s.RegisterRuneFallback(before, after)
 	}
 }
 
