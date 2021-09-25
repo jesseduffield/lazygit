@@ -169,7 +169,7 @@ func (gui *Gui) deactivateContext(c Context) error {
 	}
 
 	// if we are the kind of context that is sent to back upon deactivation, we should do that
-	if view != nil && c.GetKind() == TEMPORARY_POPUP || c.GetKind() == PERSISTENT_POPUP || c.GetKey() == COMMIT_FILES_CONTEXT_KEY {
+	if view != nil && (c.GetKind() == TEMPORARY_POPUP || c.GetKind() == PERSISTENT_POPUP || c.GetKey() == COMMIT_FILES_CONTEXT_KEY) {
 		view.Visible = false
 	}
 
