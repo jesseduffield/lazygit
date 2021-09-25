@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"runtime"
 	"sync"
 
 	"os/exec"
@@ -30,7 +29,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/mattn/go-runewidth"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,10 +48,6 @@ const StartupPopupVersion = 5
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
-
-func init() {
-	runewidth.DefaultCondition.EastAsianWidth = false
-}
 
 type ContextManager struct {
 	ContextStack []Context
@@ -496,8 +490,6 @@ func (gui *Gui) Run() error {
 	g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
 	g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
 	g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
-
-	g.ASCII = runtime.GOOS == "windows" && runewidth.IsEastAsian()
 
 	g.ShowListFooter = userConfig.Gui.ShowListFooter
 
