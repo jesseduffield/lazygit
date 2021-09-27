@@ -224,7 +224,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
-	filepath := filepath.Join(c.Config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
+	filepath := filepath.Join(c.Config.GetTempDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
 	c.Log.Infof("saving temporary patch to %s", filepath)
 	if err := c.OSCommand.CreateFileWithContent(filepath, patch); err != nil {
 		return err
