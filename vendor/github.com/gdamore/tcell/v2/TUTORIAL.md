@@ -1,30 +1,32 @@
-= tcell tutorial
+# _Tcell_ Tutorial
 
-tcell provides a low-level, portable API for building terminal-based programs.
-A https://en.wikipedia.org/wiki/Terminal_emulator[terminal emulator] is used to
-interact with such a program.
+_Tcell_ provides a low-level, portable API for building terminal-based programs.
+A [terminal emulator](https://en.wikipedia.org/wiki/Terminal_emulator)
+(or a real terminal such as a DEC VT-220) is used to interact with such a program.
 
-Applications typically initialize a screen and enter an event loop, then
-finalize the screen before exiting.
+_Tcell_'s interface is fairly low-level.
+While it provides a reasonably portable way of dealing with all the usual terminal
+features, it may be easier to utilize a higher level framework.
+A number of such frameworks are listed on the _Tcell_ main [README](README.md).
 
-Application frameworks such as https://github.com/rivo/tview[tview] and
-https://gitlab.com/tslocum/cview[cview] provide widgets and additional features.
+This tutorial provides the details of _Tcell_, and is appropriate for developers
+wishing to create their own application frameworks or needing more direct access
+to the terminal capabilities.
 
-== Resize events
+## Resize events
 
 Applications receive an event of type `EventResize` when they are first initialized and each time the terminal is resized.
 The new size is available as `Size`.
 
-[source,go]
-----
+```golang
 switch ev := ev.(type) {
 case *tcell.EventResize:
 	w, h := ev.Size()
 	logMessage(fmt.Sprintf("Resized to %dx%d", w, h))
 }
-----
+```
 
-== Key events
+## Key events
 
 When a key is pressed, applications receive an event of type `EventKey`.
 This event describes the modifier keys pressed (if any) and the pressed key or rune.
@@ -33,16 +35,15 @@ When a rune key is pressed, an event with its `Key` set to `KeyRune` is dispatch
 
 When a non-rune key is pressed, it is available as the `Key` of the event.
 
-[source,go]
-----
+```golang
 switch ev := ev.(type) {
 case *tcell.EventKey:
     mod, key, ch := ev.Mod(), ev.Key(), ev.Rune()
     logMessage(fmt.Sprintf("EventKey Modifiers: %d Key: %d Rune: %d", mod, key, ch))
 }
-----
+```
 
-=== Key event restrictions
+### Key event restrictions
 
 Terminal-based programs have less visibility into keyboard activity than graphical applications.
 
@@ -53,12 +54,7 @@ Key release events are not available.
 It is not possible to distinguish runes typed while holding shift and runes typed using caps lock.
 Capital letters are reported without the Shift modifier.
 
-=== Key event handling library
-
-https://gitlab.com/tslocum/cbind[cbind] provides key event encoding and decoding
-to and from human-readable strings. It also provides keybinding-based input handling.
-
-== Mouse events
+## Mouse events
 
 Applications receive an event of type `EventMouse` when the mouse moves, or a mouse button is pressed or released.
 Mouse events are only delivered if
@@ -66,8 +62,7 @@ Mouse events are only delivered if
 
 The mouse buttons being pressed (if any) are available as `Buttons`, and the position of the mouse is available as `Position`.
 
-[source,go]
-----
+```golang
 switch ev := ev.(type) {
 case *tcell.EventMouse:
 	mod := ev.Modifiers()
@@ -75,46 +70,23 @@ case *tcell.EventMouse:
 	x, y := ev.Position()
 	logMessage(fmt.Sprintf("EventMouse Modifiers: %d Buttons: %d Position: %d,%d", mod, btns, x, y))
 }
-----
+```
 
-=== Mouse buttons
+### Mouse buttons
 
-[cols=3*,options=header]
-|===
+Identifier | Alias           | Description
+-----------|-----------------|-----------
+Button1    | ButtonPrimary   | Left button
+Button2    | ButtonSecondary | Right button
+Button3    | ButtonMiddle    | Middle button
+Button4    |                 | Side button (thumb/next)
+Button5    |                 | Side button (thumb/prev)
 
-|Identifier
-|Alias
-|Description
-
-|Button1
-|ButtonPrimary
-|Left button
-
-|Button2
-|ButtonSecondary
-|Right button
-
-|Button3
-|ButtonMiddle
-|Middle button
-
-|Button4
-|
-|Side button (thumb/next)
-
-|Button5
-|
-|Side button (thumb/prev)
-
-|===
-
-== Usage
+## Usage
 
 To create a tcell application, first initialize a screen to hold it.
 
-[source,go]
-----
-// Initialize screen
+```golang
 s, err := tcell.NewScreen()
 if err != nil {
 	log.Fatalf("%+v", err)
@@ -129,21 +101,19 @@ s.SetStyle(defStyle)
 
 // Clear screen
 s.Clear()
-----
+```
 
 Text may be drawn on the screen using `SetContent`.
 
-[source,go]
-----
+```golang
 s.SetContent(0, 0, 'H', nil, defStyle)
 s.SetContent(1, 0, 'i', nil, defStyle)
 s.SetContent(2, 0, '!', nil, defStyle)
-----
+```
 
 To draw text more easily, define a render function.
 
-[source,go]
-----
+```golang
 func drawText(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string) {
 	row := y1
 	col := x1
@@ -159,12 +129,11 @@ func drawText(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string
 		}
 	}
 }
-----
+```
 
 Lastly, define an event loop to handle user input and update application state.
 
-[source,go]
-----
+```golang
 quit := func() {
     s.Fini()
     os.Exit(0)
@@ -186,14 +155,13 @@ for {
         }
     }
 }
-----
+```
 
-== Demo application
+## Demo application
 
 The following demonstrates how to initialize a screen, draw text/graphics and handle user input.
 
-[source,go]
-----
+```golang
 package main
 
 import (
@@ -322,4 +290,4 @@ func main() {
 		}
 	}
 }
-----
+```

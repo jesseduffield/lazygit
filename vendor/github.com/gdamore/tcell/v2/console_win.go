@@ -343,6 +343,26 @@ func (s *cScreen) PostEvent(ev Event) error {
 	}
 }
 
+func (s *cScreen) ChannelEvents(ch chan<- Event, quit <-chan struct{}) {
+	defer close(ch)
+	for {
+		select {
+		case <-quit:
+			return
+		case <-s.stopQ:
+			return
+		case ev := <-s.evch:
+			select {
+			case <-quit:
+				return
+			case <-s.stopQ:
+				return
+			case ch <- ev:
+			}
+		}
+	}
+}
+
 func (s *cScreen) PollEvent() Event {
 	select {
 	case <-s.stopQ:

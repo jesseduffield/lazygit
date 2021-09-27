@@ -346,6 +346,7 @@ var (
 	procVirtualLock                                          = modkernel32.NewProc("VirtualLock")
 	procVirtualProtect                                       = modkernel32.NewProc("VirtualProtect")
 	procVirtualUnlock                                        = modkernel32.NewProc("VirtualUnlock")
+	procWTSGetActiveConsoleSessionId                         = modkernel32.NewProc("WTSGetActiveConsoleSessionId")
 	procWaitForMultipleObjects                               = modkernel32.NewProc("WaitForMultipleObjects")
 	procWaitForSingleObject                                  = modkernel32.NewProc("WaitForSingleObject")
 	procWriteConsoleW                                        = modkernel32.NewProc("WriteConsoleW")
@@ -376,7 +377,12 @@ var (
 	procCoTaskMemFree                                        = modole32.NewProc("CoTaskMemFree")
 	procCoUninitialize                                       = modole32.NewProc("CoUninitialize")
 	procStringFromGUID2                                      = modole32.NewProc("StringFromGUID2")
+	procEnumProcessModules                                   = modpsapi.NewProc("EnumProcessModules")
+	procEnumProcessModulesEx                                 = modpsapi.NewProc("EnumProcessModulesEx")
 	procEnumProcesses                                        = modpsapi.NewProc("EnumProcesses")
+	procGetModuleBaseNameW                                   = modpsapi.NewProc("GetModuleBaseNameW")
+	procGetModuleFileNameExW                                 = modpsapi.NewProc("GetModuleFileNameExW")
+	procGetModuleInformation                                 = modpsapi.NewProc("GetModuleInformation")
 	procSubscribeServiceChangeNotifications                  = modsechost.NewProc("SubscribeServiceChangeNotifications")
 	procUnsubscribeServiceChangeNotifications                = modsechost.NewProc("UnsubscribeServiceChangeNotifications")
 	procGetUserNameExW                                       = modsecur32.NewProc("GetUserNameExW")
@@ -2992,6 +2998,12 @@ func VirtualUnlock(addr uintptr, length uintptr) (err error) {
 	return
 }
 
+func WTSGetActiveConsoleSessionId() (sessionID uint32) {
+	r0, _, _ := syscall.Syscall(procWTSGetActiveConsoleSessionId.Addr(), 0, 0, 0, 0)
+	sessionID = uint32(r0)
+	return
+}
+
 func waitForMultipleObjects(count uint32, handles uintptr, waitAll bool, waitMilliseconds uint32) (event uint32, err error) {
 	var _p0 uint32
 	if waitAll {
@@ -3218,12 +3230,52 @@ func stringFromGUID2(rguid *GUID, lpsz *uint16, cchMax int32) (chars int32) {
 	return
 }
 
+func EnumProcessModules(process Handle, module *Handle, cb uint32, cbNeeded *uint32) (err error) {
+	r1, _, e1 := syscall.Syscall6(procEnumProcessModules.Addr(), 4, uintptr(process), uintptr(unsafe.Pointer(module)), uintptr(cb), uintptr(unsafe.Pointer(cbNeeded)), 0, 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func EnumProcessModulesEx(process Handle, module *Handle, cb uint32, cbNeeded *uint32, filterFlag uint32) (err error) {
+	r1, _, e1 := syscall.Syscall6(procEnumProcessModulesEx.Addr(), 5, uintptr(process), uintptr(unsafe.Pointer(module)), uintptr(cb), uintptr(unsafe.Pointer(cbNeeded)), uintptr(filterFlag), 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
 func EnumProcesses(processIds []uint32, bytesReturned *uint32) (err error) {
 	var _p0 *uint32
 	if len(processIds) > 0 {
 		_p0 = &processIds[0]
 	}
 	r1, _, e1 := syscall.Syscall(procEnumProcesses.Addr(), 3, uintptr(unsafe.Pointer(_p0)), uintptr(len(processIds)), uintptr(unsafe.Pointer(bytesReturned)))
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func GetModuleBaseName(process Handle, module Handle, baseName *uint16, size uint32) (err error) {
+	r1, _, e1 := syscall.Syscall6(procGetModuleBaseNameW.Addr(), 4, uintptr(process), uintptr(module), uintptr(unsafe.Pointer(baseName)), uintptr(size), 0, 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func GetModuleFileNameEx(process Handle, module Handle, filename *uint16, size uint32) (err error) {
+	r1, _, e1 := syscall.Syscall6(procGetModuleFileNameExW.Addr(), 4, uintptr(process), uintptr(module), uintptr(unsafe.Pointer(filename)), uintptr(size), 0, 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func GetModuleInformation(process Handle, module Handle, modinfo *ModuleInfo, cb uint32) (err error) {
+	r1, _, e1 := syscall.Syscall6(procGetModuleInformation.Addr(), 4, uintptr(process), uintptr(module), uintptr(unsafe.Pointer(modinfo)), uintptr(cb), 0, 0)
 	if r1 == 0 {
 		err = errnoErr(e1)
 	}

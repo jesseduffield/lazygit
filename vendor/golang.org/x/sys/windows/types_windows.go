@@ -243,6 +243,14 @@ const (
 )
 
 const (
+	// flags for EnumProcessModulesEx
+	LIST_MODULES_32BIT   = 0x01
+	LIST_MODULES_64BIT   = 0x02
+	LIST_MODULES_ALL     = 0x03
+	LIST_MODULES_DEFAULT = 0x00
+)
+
+const (
 	// filters for ReadDirectoryChangesW and FindFirstChangeNotificationW
 	FILE_NOTIFY_CHANGE_FILE_NAME   = 0x001
 	FILE_NOTIFY_CHANGE_DIR_NAME    = 0x002
@@ -680,7 +688,7 @@ const (
 	WTD_CHOICE_CERT    = 5
 
 	WTD_STATEACTION_IGNORE           = 0x00000000
-	WTD_STATEACTION_VERIFY           = 0x00000010
+	WTD_STATEACTION_VERIFY           = 0x00000001
 	WTD_STATEACTION_CLOSE            = 0x00000002
 	WTD_STATEACTION_AUTO_CACHE       = 0x00000003
 	WTD_STATEACTION_AUTO_CACHE_FLUSH = 0x00000004
@@ -2773,3 +2781,9 @@ const (
 
 // Flag for QueryFullProcessImageName.
 const PROCESS_NAME_NATIVE = 1
+
+type ModuleInfo struct {
+	BaseOfDll   uintptr
+	SizeOfImage uint32
+	EntryPoint  uintptr
+}
