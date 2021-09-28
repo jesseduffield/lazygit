@@ -336,6 +336,7 @@ func (c *OSCommand) Quote(message string) string {
 	if c.Platform.OS == "windows" {
 		message = strings.Replace(message, `"`, `"'"'"`, -1)
 		message = strings.Replace(message, `\"`, `\\"`, -1)
+		message = strings.Replace(message, `&`, `^&`, -1)
 	} else {
 		message = strings.Replace(message, `\`, `\\`, -1)
 		message = strings.Replace(message, `"`, `\"`, -1)

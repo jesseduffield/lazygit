@@ -185,7 +185,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 	}
 }
 
-// TestOSCommandQuote is a function.
+// TestOSCommandQuote tests the quote function with ` character explicitly for Linux
 func TestOSCommandQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
@@ -224,8 +224,8 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
-// TestOSCommandQuoteWindows tests the quote function for Windows
-func TestOSCommandQuoteWindows(t *testing.T) {
+// TestOSCommandQuoteWindows tests the quote function with " quotes explicitly for Windows
+func TestOSCommandQuoteWindowsDoubleQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
 	osCommand.Platform.OS = "windows"
@@ -233,6 +233,19 @@ func TestOSCommandQuoteWindows(t *testing.T) {
 	actual := osCommand.Quote(`hello "test"`)
 
 	expected := osCommand.Platform.EscapedQuote + `hello "'"'"test"'"'"` + osCommand.Platform.EscapedQuote
+
+	assert.EqualValues(t, expected, actual)
+}
+
+// TestOSCommandQuoteWindows tests the quote function with & character explicitly for Windows
+func TestOSCommandQuoteWindowsAndCharacter(t *testing.T) {
+	osCommand := NewDummyOSCommand()
+
+	osCommand.Platform.OS = "windows"
+
+	actual := osCommand.Quote("hello & test")
+
+	expected := osCommand.Platform.EscapedQuote + "hello ^& test" + osCommand.Platform.EscapedQuote
 
 	assert.EqualValues(t, expected, actual)
 }
