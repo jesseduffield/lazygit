@@ -224,7 +224,7 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
-// TestOSCommandQuoteWindows tests the quote function with " quotes explicitly for Windows
+// TestOSCommandQuoteWindowsDoubleQuote tests the quote function with " quotes explicitly for Windows
 func TestOSCommandQuoteWindowsDoubleQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
@@ -237,7 +237,7 @@ func TestOSCommandQuoteWindowsDoubleQuote(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
-// TestOSCommandQuoteWindows tests the quote function with & character explicitly for Windows
+// TestOSCommandQuoteWindowsAndCharacter tests the quote function with & character explicitly for Windows
 func TestOSCommandQuoteWindowsAndCharacter(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
