@@ -10,8 +10,6 @@ import (
 	"github.com/kyokomi/emoji/v2"
 )
 
-var cherryPickedCommitTextStyle = style.FgCyan.MergeStyle(style.BgBlue)
-
 func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string, parseEmoji bool) [][]string {
 	lines := make([][]string, len(commits))
 
@@ -51,7 +49,7 @@ func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCom
 		// for some reason, setting the background to blue pads out the other commits
 		// horizontally. For the sake of accessibility I'm considering this a feature,
 		// not a bug
-		shaColor = cherryPickedCommitTextStyle
+		shaColor = theme.CherryPickedCommitTextStyle
 	}
 
 	tagString := ""
@@ -98,7 +96,7 @@ func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[s
 		// for some reason, setting the background to blue pads out the other commits
 		// horizontally. For the sake of accessibility I'm considering this a feature,
 		// not a bug
-		shaColor = cherryPickedCommitTextStyle
+		shaColor = theme.CherryPickedCommitTextStyle
 	}
 
 	actionString := ""
