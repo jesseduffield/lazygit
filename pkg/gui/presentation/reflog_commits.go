@@ -29,7 +29,7 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 func coloredReflogSha(c *models.Commit, cherryPickedCommitShaMap map[string]bool) string {
 	shaColor := style.FgBlue
 	if cherryPickedCommitShaMap[c.Sha] {
-		shaColor = cherryPickedCommitTextStyle
+		shaColor = theme.CherryPickedCommitTextStyle
 	}
 
 	return shaColor.Sprint(c.ShortSha())

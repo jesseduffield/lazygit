@@ -44,12 +44,14 @@ type GuiConfig struct {
 }
 
 type ThemeConfig struct {
-	LightTheme           bool     `yaml:"lightTheme"`
-	ActiveBorderColor    []string `yaml:"activeBorderColor"`
-	InactiveBorderColor  []string `yaml:"inactiveBorderColor"`
-	OptionsTextColor     []string `yaml:"optionsTextColor"`
-	SelectedLineBgColor  []string `yaml:"selectedLineBgColor"`
-	SelectedRangeBgColor []string `yaml:"selectedRangeBgColor"`
+	LightTheme                  bool     `yaml:"lightTheme"`
+	ActiveBorderColor           []string `yaml:"activeBorderColor"`
+	InactiveBorderColor         []string `yaml:"inactiveBorderColor"`
+	OptionsTextColor            []string `yaml:"optionsTextColor"`
+	SelectedLineBgColor         []string `yaml:"selectedLineBgColor"`
+	SelectedRangeBgColor        []string `yaml:"selectedRangeBgColor"`
+	CherryPickedCommitBgColor   []string `yaml:"cherryPickedCommitBgColor"`
+	CherryPickedCommitFgColor   []string `yaml:"cherryPickedCommitFgColor"`
 }
 
 type CommitLengthConfig struct {
@@ -319,6 +321,8 @@ func GetDefaultConfig() *UserConfig {
 				OptionsTextColor:     []string{"blue"},
 				SelectedLineBgColor:  []string{"default"},
 				SelectedRangeBgColor: []string{"blue"},
+				CherryPickedCommitBgColor: []string{"blue"},
+				CherryPickedCommitFgColor: []string{"cyan"},
 			},
 			CommitLength:             CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning: false,

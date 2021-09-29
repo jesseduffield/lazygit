@@ -36,6 +36,10 @@ gui:
       - default
     selectedRangeBgColor:
       - blue
+    cherryPickedCommitBgColor:
+      - blue
+    cherryPickedCommitFgColor:
+      - cyan
   commitLength:
     show: true
   mouseEvents: true
