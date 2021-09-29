@@ -44,14 +44,14 @@ type GuiConfig struct {
 }
 
 type ThemeConfig struct {
-	LightTheme                  bool     `yaml:"lightTheme"`
-	ActiveBorderColor           []string `yaml:"activeBorderColor"`
-	InactiveBorderColor         []string `yaml:"inactiveBorderColor"`
-	OptionsTextColor            []string `yaml:"optionsTextColor"`
-	SelectedLineBgColor         []string `yaml:"selectedLineBgColor"`
-	SelectedRangeBgColor        []string `yaml:"selectedRangeBgColor"`
-	CherryPickedCommitBgColor   []string `yaml:"cherryPickedCommitBgColor"`
-	CherryPickedCommitFgColor   []string `yaml:"cherryPickedCommitFgColor"`
+	LightTheme                bool     `yaml:"lightTheme"`
+	ActiveBorderColor         []string `yaml:"activeBorderColor"`
+	InactiveBorderColor       []string `yaml:"inactiveBorderColor"`
+	OptionsTextColor          []string `yaml:"optionsTextColor"`
+	SelectedLineBgColor       []string `yaml:"selectedLineBgColor"`
+	SelectedRangeBgColor      []string `yaml:"selectedRangeBgColor"`
+	CherryPickedCommitBgColor []string `yaml:"cherryPickedCommitBgColor"`
+	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor"`
 }
 
 type CommitLengthConfig struct {
