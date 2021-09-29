@@ -48,7 +48,7 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 	SelectedLineBgColor = GetTextStyle(themeConfig.SelectedLineBgColor, true)
 	SelectedRangeBgColor = GetTextStyle(themeConfig.SelectedRangeBgColor, true)
 	
-	cherryPickedCommitBgTextStyle :=	GetTextStyle(themeConfig.CherryPickedCommitBgColor, true)
+	cherryPickedCommitBgTextStyle := GetTextStyle(themeConfig.CherryPickedCommitBgColor, true)
 	cherryPickedCommitFgTextStyle :=	GetTextStyle(themeConfig.CherryPickedCommitFgColor, false)
 	CherryPickedCommitTextStyle = cherryPickedCommitBgTextStyle.MergeStyle(cherryPickedCommitFgTextStyle)
 	
