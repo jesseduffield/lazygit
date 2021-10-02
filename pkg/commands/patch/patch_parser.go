@@ -194,6 +194,22 @@ func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int, incLineIndic
 	return result
 }
 
+// RenderLines returns the coloured string of diff part from firstLineIndex to
+// lastLineIndex
+func (p *PatchParser) RenderLines(firstLineIndex, lastLineIndex int) string {
+	renderedLines := make([]string, lastLineIndex-firstLineIndex+1)
+	for index := firstLineIndex; index <= lastLineIndex; index++ {
+		renderedLines[index-firstLineIndex] = p.PatchLines[index].render(
+			false, false,
+		)
+	}
+	result := strings.Join(renderedLines, "\n")
+	if strings.TrimSpace(utils.Decolorise(result)) == "" {
+		return ""
+	}
+	return result
+}
+
 // GetNextStageableLineIndex takes a line index and returns the line index of the next stageable line
 // note this will actually include the current index if it is stageable
 func (p *PatchParser) GetNextStageableLineIndex(currentIndex int) int {
