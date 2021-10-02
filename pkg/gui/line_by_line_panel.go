@@ -2,11 +2,13 @@ package gui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // Currently there are two 'pseudo-panels' that make use of this 'pseudo-panel'.
@@ -83,6 +85,22 @@ func (gui *Gui) handleSelectNextHunk() error {
 		state.CycleHunk(true)
 
 		return gui.refreshAndFocusLblPanel(state)
+	})
+}
+
+func (gui *Gui) copySelectedToClipboard() error {
+	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
+
+		colorSelected := state.RenderSelected()
+		selected := strings.TrimSpace(utils.Decolorise(colorSelected))
+
+		if err := gui.OSCommand.WithSpan(
+			gui.Tr.Spans.CopySelectedTextToClipboard,
+		).CopyToClipboard(selected); err != nil {
+			return gui.surfaceError(err)
+		}
+
+		return nil
 	})
 }
 

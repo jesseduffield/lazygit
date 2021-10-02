@@ -479,6 +479,7 @@ type Spans struct {
 	GitFlowFinish                     string
 	GitFlowStart                      string
 	CopyToClipboard                   string
+	CopySelectedTextToClipboard       string
 	RemovePatchFromCommit             string
 	MovePatchToSelectedCommit         string
 	MovePatchIntoIndex                string
@@ -999,6 +1000,7 @@ func englishTranslationSet() TranslationSet {
 			GitFlowFinish:                     "Git flow finish",
 			GitFlowStart:                      "Git Flow start",
 			CopyToClipboard:                   "Copy to clipboard",
+			CopySelectedTextToClipboard:       "Copy Selected Text to clipboard",
 			RemovePatchFromCommit:             "Remove patch from commit",
 			MovePatchToSelectedCommit:         "Move patch to selected commit",
 			MovePatchIntoIndex:                "Move patch into index",
