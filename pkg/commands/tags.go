@@ -3,7 +3,7 @@ package commands
 import "fmt"
 
 func (c *GitCommand) CreateLightweightTag(tagName string, commitSha string) error {
-	return c.RunCommand("git tag %s %s", tagName, commitSha)
+	return c.RunCommand("git tag -- %s %s", tagName, commitSha)
 }
 
 func (c *GitCommand) DeleteTag(tagName string) error {
