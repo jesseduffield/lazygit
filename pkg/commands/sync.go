@@ -19,7 +19,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, args s
 
 	setUpstreamArg := ""
 	if upstream != "" {
-		setUpstreamArg = "--set-upstream " + upstream
+		setUpstreamArg = "--set-upstream " + c.OSCommand.Quote(upstream)
 	}
 
 	cmd := fmt.Sprintf("git push %s %s %s %s", followTagsFlag, forceFlag, setUpstreamArg, args)

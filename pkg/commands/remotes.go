@@ -29,7 +29,7 @@ func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, pr
 func (c *GitCommand) CheckRemoteBranchExists(branchName string) bool {
 	_, err := c.OSCommand.RunCommandWithOutput(
 		"git show-ref --verify -- refs/remotes/origin/%s",
-		branchName,
+		c.OSCommand.Quote(branchName),
 	)
 
 	return err == nil
