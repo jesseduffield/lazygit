@@ -123,14 +123,14 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 		if err := c.RunCommand("git checkout --ours --  %s", quotedFileName); err != nil {
 			return err
 		}
-		if err := c.RunCommand("git add %s", quotedFileName); err != nil {
+		if err := c.RunCommand("git add -- %s", quotedFileName); err != nil {
 			return err
 		}
 		return nil
 	}
 
 	if file.ShortStatus == "DU" {
-		return c.RunCommand("git rm %s", quotedFileName)
+		return c.RunCommand("git rm -- %s", quotedFileName)
 	}
 
 	// if the file isn't tracked, we assume you want to delete it
@@ -299,7 +299,7 @@ func (c *GitCommand) DiscardAnyUnstagedFileChanges() error {
 
 // RemoveTrackedFiles will delete the given file(s) even if they are currently tracked
 func (c *GitCommand) RemoveTrackedFiles(name string) error {
-	return c.RunCommand("git rm -r --cached %s", c.OSCommand.Quote(name))
+	return c.RunCommand("git rm -r --cached -- %s", c.OSCommand.Quote(name))
 }
 
 // RemoveUntrackedFiles runs `git clean -fd`
