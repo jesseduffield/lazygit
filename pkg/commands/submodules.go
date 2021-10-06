@@ -119,7 +119,7 @@ func (c *GitCommand) SubmoduleAdd(name string, path string, url string) error {
 
 func (c *GitCommand) SubmoduleUpdateUrl(name string, path string, newUrl string) error {
 	// the set-url command is only for later git versions so we're doing it manually here
-	if err := c.RunCommand("git config --file .gitmodules submodule.%s.url %s", c.OSCommand.Quote(name), newUrl); err != nil {
+	if err := c.RunCommand("git config --file .gitmodules submodule.%s.url %s", c.OSCommand.Quote(name), c.OSCommand.Quote(newUrl)); err != nil {
 		return err
 	}
 
