@@ -322,7 +322,7 @@ func (c *CommitListBuilder) getMergeBase(refName string) (string, error) {
 	}
 
 	// swallowing error because it's not a big deal; probably because there are no commits yet
-	output, _ := c.OSCommand.RunCommandWithOutput("git merge-base %s %s", refName, baseBranch)
+	output, _ := c.OSCommand.RunCommandWithOutput("git merge-base %s %s", c.OSCommand.Quote(refName), c.OSCommand.Quote(baseBranch))
 	return ignoringWarnings(output), nil
 }
 
@@ -339,7 +339,7 @@ func ignoringWarnings(commandOutput string) string {
 // getFirstPushedCommit returns the first commit SHA which has been pushed to the ref's upstream.
 // all commits above this are deemed unpushed and marked as such.
 func (c *CommitListBuilder) getFirstPushedCommit(refName string) (string, error) {
-	output, err := c.OSCommand.RunCommandWithOutput("git merge-base %s %s@{u}", refName, refName)
+	output, err := c.OSCommand.RunCommandWithOutput("git merge-base %s %s@{u}", c.OSCommand.Quote(refName), c.OSCommand.Quote(refName))
 	if err != nil {
 		return "", err
 	}
@@ -362,7 +362,7 @@ func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) *exec.Cmd {
 	return c.OSCommand.ExecutableFromString(
 		fmt.Sprintf(
 			"git log %s --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\" %s --abbrev=%d --date=unix %s",
-			opts.RefName,
+			c.OSCommand.Quote(opts.RefName),
 			SEPARATION_CHAR,
 			SEPARATION_CHAR,
 			SEPARATION_CHAR,

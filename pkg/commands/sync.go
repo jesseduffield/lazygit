@@ -19,7 +19,7 @@ func (c *GitCommand) Push(branchName string, force bool, upstream string, args s
 
 	setUpstreamArg := ""
 	if upstream != "" {
-		setUpstreamArg = "--set-upstream " + upstream
+		setUpstreamArg = "--set-upstream " + c.OSCommand.Quote(upstream)
 	}
 
 	cmd := fmt.Sprintf("git push %s %s %s %s", followTagsFlag, forceFlag, setUpstreamArg, args)
@@ -37,10 +37,10 @@ func (c *GitCommand) Fetch(opts FetchOptions) error {
 	command := "git fetch"
 
 	if opts.RemoteName != "" {
-		command = fmt.Sprintf("%s %s", command, opts.RemoteName)
+		command = fmt.Sprintf("%s %s", command, c.OSCommand.Quote(opts.RemoteName))
 	}
 	if opts.BranchName != "" {
-		command = fmt.Sprintf("%s %s", command, opts.BranchName)
+		command = fmt.Sprintf("%s %s", command, c.OSCommand.Quote(opts.BranchName))
 	}
 
 	return c.OSCommand.DetectUnamePass(command, func(question string) string {
@@ -52,12 +52,12 @@ func (c *GitCommand) Fetch(opts FetchOptions) error {
 }
 
 func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string, promptUserForCredential func(string) string) error {
-	command := fmt.Sprintf("git fetch %s %s:%s", remoteName, remoteBranchName, branchName)
+	command := fmt.Sprintf("git fetch %s %s:%s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(remoteBranchName), c.OSCommand.Quote(branchName))
 	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
 }
 
 func (c *GitCommand) FetchRemote(remoteName string, promptUserForCredential func(string) string) error {
-	command := fmt.Sprintf("git fetch %s", remoteName)
+	command := fmt.Sprintf("git fetch %s", c.OSCommand.Quote(remoteName))
 	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
 }
 
