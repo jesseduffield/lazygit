@@ -5,7 +5,7 @@ func GetPlatformDefaultConfig() OSConfig {
 	return OSConfig{
 		EditCommand:         ``,
 		EditCommandTemplate: `{{editor}} {{filename}}`,
-		OpenCommand:         `cmd /c start "" {{filename}}`,
-		OpenLinkCommand:     `cmd /c start "" {{link}}`,
+		OpenCommand:         `start "" {{filename}}`,
+		OpenLinkCommand:     `start "" {{link}}`,
 	}
 }

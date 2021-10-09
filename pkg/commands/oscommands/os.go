@@ -202,7 +202,7 @@ func (c *OSCommand) ShellCommandFromString(commandStr string) *exec.Cmd {
 	quotedCommand := ""
 	// Windows does not seem to like quotes around the command
 	if c.Platform.OS == "windows" {
-		quotedCommand = commandStr
+		quotedCommand = strings.Replace(commandStr, "&", "^&", -1)
 	} else {
 		quotedCommand = c.Quote(commandStr)
 	}
@@ -252,7 +252,7 @@ func (c *OSCommand) RunCommand(formatString string, formatArgs ...interface{}) e
 // RunShellCommand runs shell commands i.e. 'sh -c <command>'. Good for when you
 // need access to the shell
 func (c *OSCommand) RunShellCommand(command string) error {
-	cmd := c.Command(c.Platform.Shell, c.Platform.ShellArg, command)
+	cmd := c.ShellCommandFromString(command)
 	c.LogExecCmd(cmd)
 
 	_, err := sanitisedCommandOutput(cmd.CombinedOutput())
@@ -288,17 +288,11 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 // OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(filename string) error {
 	commandTemplate := c.Config.GetUserConfig().OS.OpenCommand
-	quoted := c.Quote(filename)
-	if c.Platform.OS == "linux" {
-		// Add extra quoting to avoid issues with shell command string
-		quoted = c.Quote(quoted)
-		quoted = quoted[1 : len(quoted)-1]
-	}
 	templateValues := map[string]string{
-		"filename": quoted,
+		"filename": c.Quote(filename),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	err := c.RunCommand(command)
+	err := c.RunShellCommand(command)
 	return err
 }
 
@@ -311,7 +305,7 @@ func (c *OSCommand) OpenLink(link string) error {
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	err := c.RunCommand(command)
+	err := c.RunShellCommand(command)
 	return err
 }
 
