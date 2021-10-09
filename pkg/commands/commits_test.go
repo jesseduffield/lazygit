@@ -38,6 +38,8 @@ func TestGitCommandResetToCommit(t *testing.T) {
 
 // TestGitCommandCommitStr is a function.
 func TestGitCommandCommitStr(t *testing.T) {
+	gitCmd := NewDummyGitCommand()
+
 	type scenario struct {
 		testName string
 		message  string
@@ -50,25 +52,24 @@ func TestGitCommandCommitStr(t *testing.T) {
 			testName: "Commit",
 			message:  "test",
 			flags:    "",
-			expected: "git commit -m \"test\"",
+			expected: "git commit -m " + gitCmd.OSCommand.Quote("test"),
 		},
 		{
 			testName: "Commit with --no-verify flag",
 			message:  "test",
 			flags:    "--no-verify",
-			expected: "git commit --no-verify -m \"test\"",
+			expected: "git commit --no-verify -m " + gitCmd.OSCommand.Quote("test"),
 		},
 		{
 			testName: "Commit with multiline message",
 			message:  "line1\nline2",
 			flags:    "",
-			expected: "git commit -m \"line1\" -m \"line2\"",
+			expected: "git commit -m " + gitCmd.OSCommand.Quote("line1") + " -m " + gitCmd.OSCommand.Quote("line2"),
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
 			cmdStr := gitCmd.CommitCmdStr(s.message, s.flags)
 			assert.Equal(t, s.expected, cmdStr)
 		})

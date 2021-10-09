@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
@@ -111,8 +112,12 @@ func TestOSCommandOpenFile(t *testing.T) {
 	}
 }
 
-// TestOSCommandOpenFile tests the OpenFile command on Linux
+// TestOSCommandOpenFileLinux tests the OpenFile command on Linux
 func TestOSCommandOpenFileLinux(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
+
 	type scenario struct {
 		filename string
 		command  func(string, ...string) *exec.Cmd
@@ -185,6 +190,84 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 	}
 }
 
+// TestOSCommandOpenFileWindows tests the OpenFile command on Linux
+func TestOSCommandOpenFileWindows(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		return
+	}
+
+	type scenario struct {
+		filename string
+		command  func(string, ...string) *exec.Cmd
+		test     func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"test",
+			func(name string, arg ...string) *exec.Cmd {
+				return secureexec.Command("exit", "1")
+			},
+			func(err error) {
+				assert.Error(t, err)
+			},
+		},
+		{
+			"test",
+			func(name string, arg ...string) *exec.Cmd {
+				assert.Equal(t, "cmd", name)
+				assert.Equal(t, []string{"/c", "start", "", "test"}, arg)
+				return secureexec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"filename with spaces",
+			func(name string, arg ...string) *exec.Cmd {
+				assert.Equal(t, "cmd", name)
+				assert.Equal(t, []string{"/c", "start", "", "filename with spaces"}, arg)
+				return secureexec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"let's_test_with_single_quote",
+			func(name string, arg ...string) *exec.Cmd {
+				assert.Equal(t, "cmd", name)
+				assert.Equal(t, []string{"/c", "start", "", "let's_test_with_single_quote"}, arg)
+				return secureexec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"$USER.txt",
+			func(name string, arg ...string) *exec.Cmd {
+				assert.Equal(t, "cmd", name)
+				assert.Equal(t, []string{"/c", "start", "", "$USER.txt"}, arg)
+				return secureexec.Command("echo")
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		OSCmd := NewDummyOSCommand()
+		OSCmd.Command = s.command
+		OSCmd.Platform.OS = "windows"
+		OSCmd.Config.GetUserConfig().OS.OpenCommand = `cmd /c start "" {{filename}}`
+
+		s.test(OSCmd.OpenFile(s.filename))
+	}
+}
+
 // TestOSCommandQuote is a function.
 func TestOSCommandQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
@@ -193,7 +276,7 @@ func TestOSCommandQuote(t *testing.T) {
 
 	actual := osCommand.Quote("hello `test`")
 
-	expected := osCommand.Platform.EscapedQuote + "hello \\`test\\`" + osCommand.Platform.EscapedQuote
+	expected := "\"hello \\`test\\`\""
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -206,7 +289,7 @@ func TestOSCommandQuoteSingleQuote(t *testing.T) {
 
 	actual := osCommand.Quote("hello 'test'")
 
-	expected := osCommand.Platform.EscapedQuote + "hello 'test'" + osCommand.Platform.EscapedQuote
+	expected := `"hello 'test'"`
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -219,7 +302,7 @@ func TestOSCommandQuoteDoubleQuote(t *testing.T) {
 
 	actual := osCommand.Quote(`hello "test"`)
 
-	expected := osCommand.Platform.EscapedQuote + `hello \"test\"` + osCommand.Platform.EscapedQuote
+	expected := `"hello \"test\""`
 
 	assert.EqualValues(t, expected, actual)
 }
@@ -230,9 +313,9 @@ func TestOSCommandQuoteWindows(t *testing.T) {
 
 	osCommand.Platform.OS = "windows"
 
-	actual := osCommand.Quote(`hello "test"`)
+	actual := osCommand.Quote(`hello "test" 'test2'`)
 
-	expected := osCommand.Platform.EscapedQuote + `hello "'"'"test"'"'"` + osCommand.Platform.EscapedQuote
+	expected := `\"hello "'"'"test"'"'" 'test2'\"`
 
 	assert.EqualValues(t, expected, actual)
 }

@@ -26,7 +26,6 @@ type Platform struct {
 	OS              string
 	Shell           string
 	ShellArg        string
-	EscapedQuote    string
 	OpenCommand     string
 	OpenLinkCommand string
 }
@@ -334,12 +333,15 @@ func (c *OSCommand) PrepareShellSubProcess(command string) *exec.Cmd {
 
 // Quote wraps a message in platform-specific quotation marks
 func (c *OSCommand) Quote(message string) string {
+	var quote string
 	if c.Platform.OS == "windows" {
+		quote = `\"`
 		message = strings.NewReplacer(
 			`"`, `"'"'"`,
 			`\"`, `\\"`,
 		).Replace(message)
 	} else {
+		quote = `"`
 		message = strings.NewReplacer(
 			`\`, `\\`,
 			`"`, `\"`,
@@ -347,8 +349,7 @@ func (c *OSCommand) Quote(message string) string {
 			"`", "\\`",
 		).Replace(message)
 	}
-	escapedQuote := c.Platform.EscapedQuote
-	return escapedQuote + message + escapedQuote
+	return quote + message + quote
 }
 
 // AppendLineToFile adds a new line in file
