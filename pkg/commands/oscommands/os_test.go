@@ -80,8 +80,8 @@ func TestOSCommandOpenFile(t *testing.T) {
 		{
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "open", name)
-				assert.Equal(t, []string{"test"}, arg)
+				assert.Equal(t, "bash", name)
+				assert.Equal(t, []string{"-c", `open "test"`}, arg)
 				return secureexec.Command("echo")
 			},
 			func(err error) {
@@ -91,8 +91,8 @@ func TestOSCommandOpenFile(t *testing.T) {
 		{
 			"filename with spaces",
 			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "open", name)
-				assert.Equal(t, []string{"filename with spaces"}, arg)
+				assert.Equal(t, "bash", name)
+				assert.Equal(t, []string{"-c", `open "filename with spaces"`}, arg)
 				return secureexec.Command("echo")
 			},
 			func(err error) {
@@ -132,7 +132,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		{
 			"test",
 			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "sh", name)
+				assert.Equal(t, "bash", name)
 				assert.Equal(t, []string{"-c", "xdg-open \"test\" > /dev/null"}, arg)
 				return secureexec.Command("echo")
 			},
@@ -143,7 +143,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		{
 			"filename with spaces",
 			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "sh", name)
+				assert.Equal(t, "bash", name)
 				assert.Equal(t, []string{"-c", "xdg-open \"filename with spaces\" > /dev/null"}, arg)
 				return secureexec.Command("echo")
 			},
@@ -154,7 +154,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		{
 			"let's_test_with_single_quote",
 			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "sh", name)
+				assert.Equal(t, "bash", name)
 				assert.Equal(t, []string{"-c", "xdg-open \"let's_test_with_single_quote\" > /dev/null"}, arg)
 				return secureexec.Command("echo")
 			},
@@ -165,7 +165,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		{
 			"$USER.txt",
 			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "sh", name)
+				assert.Equal(t, "bash", name)
 				assert.Equal(t, []string{"-c", "xdg-open \"\\$USER.txt\" > /dev/null"}, arg)
 				return secureexec.Command("echo")
 			},
@@ -179,7 +179,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		OSCmd := NewDummyOSCommand()
 		OSCmd.Command = s.command
 		OSCmd.Platform.OS = "linux"
-		OSCmd.Config.GetUserConfig().OS.OpenCommand = `sh -c "xdg-open {{filename}} > /dev/null"`
+		OSCmd.Config.GetUserConfig().OS.OpenCommand = `xdg-open {{filename}} > /dev/null`
 
 		s.test(OSCmd.OpenFile(s.filename))
 	}

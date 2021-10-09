@@ -65,8 +65,8 @@ func TestCreatePullRequest(t *testing.T) {
 					return secureexec.Command("echo", "git@bitbucket.org:johndoe/social_network.git")
 				}
 
-				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1"})
+				assert.Equal(t, cmd, "bash")
+				assert.Equal(t, args, []string{"-c", `open "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1"`})
 				return secureexec.Command("echo")
 			},
 			test: func(url string, err error) {
@@ -84,8 +84,8 @@ func TestCreatePullRequest(t *testing.T) {
 					return secureexec.Command("echo", "https://my_username@bitbucket.org/johndoe/social_network.git")
 				}
 
-				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/events&t=1"})
+				assert.Equal(t, cmd, "bash")
+				assert.Equal(t, args, []string{"-c", `open "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/events&t=1"`})
 				return secureexec.Command("echo")
 			},
 			test: func(url string, err error) {
@@ -103,8 +103,8 @@ func TestCreatePullRequest(t *testing.T) {
 					return secureexec.Command("echo", "git@github.com:peter/calculator.git")
 				}
 
-				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://github.com/peter/calculator/compare/feature/sum-operation?expand=1"})
+				assert.Equal(t, cmd, "bash")
+				assert.Equal(t, args, []string{"-c", `open "https://github.com/peter/calculator/compare/feature/sum-operation?expand=1"`})
 				return secureexec.Command("echo")
 			},
 			test: func(url string, err error) {
@@ -123,8 +123,8 @@ func TestCreatePullRequest(t *testing.T) {
 					return secureexec.Command("echo", "git@bitbucket.org:johndoe/social_network.git")
 				}
 
-				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page/avatar&dest=feature/profile-page&t=1"})
+				assert.Equal(t, cmd, "bash")
+				assert.Equal(t, args, []string{"-c", `open "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page/avatar&dest=feature/profile-page&t=1"`})
 				return secureexec.Command("echo")
 			},
 			test: func(url string, err error) {
@@ -143,8 +143,8 @@ func TestCreatePullRequest(t *testing.T) {
 					return secureexec.Command("echo", "https://my_username@bitbucket.org/johndoe/social_network.git")
 				}
 
-				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/remote-events&dest=feature/events&t=1"})
+				assert.Equal(t, cmd, "bash")
+				assert.Equal(t, args, []string{"-c", `open "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/remote-events&dest=feature/events&t=1"`})
 				return secureexec.Command("echo")
 			},
 			test: func(url string, err error) {
@@ -163,8 +163,8 @@ func TestCreatePullRequest(t *testing.T) {
 					return secureexec.Command("echo", "git@github.com:peter/calculator.git")
 				}
 
-				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://github.com/peter/calculator/compare/feature/operations...feature/sum-operation?expand=1"})
+				assert.Equal(t, cmd, "bash")
+				assert.Equal(t, args, []string{"-c", `open "https://github.com/peter/calculator/compare/feature/operations...feature/sum-operation?expand=1"`})
 				return secureexec.Command("echo")
 			},
 			test: func(url string, err error) {
@@ -182,8 +182,8 @@ func TestCreatePullRequest(t *testing.T) {
 					return secureexec.Command("echo", "git@gitlab.com:peter/calculator.git")
 				}
 
-				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature/ui"})
+				assert.Equal(t, cmd, "bash")
+				assert.Equal(t, args, []string{"-c", `open "https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature/ui"`})
 				return secureexec.Command("echo")
 			},
 			test: func(url string, err error) {
@@ -201,8 +201,8 @@ func TestCreatePullRequest(t *testing.T) {
 					return secureexec.Command("echo", "git@gitlab.com:peter/calculator.git")
 				}
 
-				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature/ui"})
+				assert.Equal(t, cmd, "bash")
+				assert.Equal(t, args, []string{"-c", `open "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature/ui"`})
 				return secureexec.Command("echo")
 			},
 			test: func(url string, err error) {
@@ -221,8 +221,8 @@ func TestCreatePullRequest(t *testing.T) {
 					return secureexec.Command("echo", "git@gitlab.com:peter/calculator.git")
 				}
 
-				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature/commit-ui&merge_request[target_branch]=epic/ui"})
+				assert.Equal(t, cmd, "bash")
+				assert.Equal(t, args, []string{"-c", `open "https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature/commit-ui&merge_request[target_branch]=epic/ui"`})
 				return secureexec.Command("echo")
 			},
 			test: func(url string, err error) {
@@ -241,8 +241,8 @@ func TestCreatePullRequest(t *testing.T) {
 					return secureexec.Command("echo", "git@gitlab.com:peter/calculator.git")
 				}
 
-				assert.Equal(t, cmd, "open")
-				assert.Equal(t, args, []string{"https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature/commit-ui&merge_request[target_branch]=epic/ui"})
+				assert.Equal(t, cmd, "bash")
+				assert.Equal(t, args, []string{"-c", `open "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature/commit-ui&merge_request[target_branch]=epic/ui"`})
 				return secureexec.Command("echo")
 			},
 			test: func(url string, err error) {
