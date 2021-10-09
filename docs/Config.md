@@ -211,14 +211,14 @@ keybinding:
 
 ```yaml
 os:
-  openCommand: 'cmd /c "start "" {{filename}}"'
+  openCommand: 'start "" {{filename}}'
 ```
 
 ### Linux
 
 ```yaml
 os:
-  openCommand: 'sh -c "xdg-open {{filename}} >/dev/null"'
+  openCommand: 'xdg-open {{filename}} >/dev/null'
 ```
 
 ### OSX
