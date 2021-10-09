@@ -717,6 +717,8 @@ func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
 
 // TestEditFileCmdStr is a function.
 func TestEditFileCmdStr(t *testing.T) {
+	gitCmd := NewDummyGitCommand()
+
 	type scenario struct {
 		filename                  string
 		configEditCommand         string
@@ -761,7 +763,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			},
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "nano \"test\"", cmdStr)
+				assert.Equal(t, "nano "+gitCmd.OSCommand.Quote("test"), cmdStr)
 			},
 		},
 		{
@@ -780,7 +782,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			},
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "nano \"test\"", cmdStr)
+				assert.Equal(t, "nano "+gitCmd.OSCommand.Quote("test"), cmdStr)
 			},
 		},
 		{
@@ -825,7 +827,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			},
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "emacs \"test\"", cmdStr)
+				assert.Equal(t, "emacs "+gitCmd.OSCommand.Quote("test"), cmdStr)
 			},
 		},
 		{
@@ -844,7 +846,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			},
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "vi \"test\"", cmdStr)
+				assert.Equal(t, "vi "+gitCmd.OSCommand.Quote("test"), cmdStr)
 			},
 		},
 		{
@@ -863,7 +865,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			},
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "vi \"file/with space\"", cmdStr)
+				assert.Equal(t, "vi "+gitCmd.OSCommand.Quote("file/with space"), cmdStr)
 			},
 		},
 		{
@@ -882,13 +884,12 @@ func TestEditFileCmdStr(t *testing.T) {
 			},
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "vim +1 \"open file/at line\"", cmdStr)
+				assert.Equal(t, "vim +1 "+gitCmd.OSCommand.Quote("open file/at line"), cmdStr)
 			},
 		},
 	}
 
 	for _, s := range scenarios {
-		gitCmd := NewDummyGitCommand()
 		gitCmd.Config.GetUserConfig().OS.EditCommand = s.configEditCommand
 		gitCmd.Config.GetUserConfig().OS.EditCommandTemplate = s.configEditCommandTemplate
 		gitCmd.OSCommand.Command = s.command

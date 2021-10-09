@@ -12,7 +12,6 @@ func getPlatform() *Platform {
 		OS:              runtime.GOOS,
 		Shell:           "bash",
 		ShellArg:        "-c",
-		EscapedQuote:    `"`,
 		OpenCommand:     "open {{filename}}",
 		OpenLinkCommand: "open {{link}}",
 	}
