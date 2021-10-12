@@ -202,7 +202,13 @@ func (c *OSCommand) ShellCommandFromString(commandStr string) *exec.Cmd {
 	quotedCommand := ""
 	// Windows does not seem to like quotes around the command
 	if c.Platform.OS == "windows" {
-		quotedCommand = strings.Replace(commandStr, "&", "^&", -1)
+		quotedCommand = commandStr
+		quotedCommand = strings.Replace(quotedCommand, "^", "^^", -1)
+		quotedCommand = strings.Replace(quotedCommand, "&", "^&", -1)
+		quotedCommand = strings.Replace(quotedCommand, "|", "^|", -1)
+		quotedCommand = strings.Replace(quotedCommand, "<", "^<", -1)
+		quotedCommand = strings.Replace(quotedCommand, ">", "^>", -1)
+		quotedCommand = strings.Replace(quotedCommand, "%", "^%", -1)
 	} else {
 		quotedCommand = c.Quote(commandStr)
 	}
