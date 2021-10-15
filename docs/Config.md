@@ -103,6 +103,7 @@ keybinding:
     nextBlock: '<right>' # goto the next block / panel
     prevBlock-alt: 'h' # goto the previous block / panel
     nextBlock-alt: 'l' # goto the next block / panel
+    jumpToBlock: "1", "2", "3", "4", "5" # goto the Nth block / panel
     nextMatch: 'n'
     prevMatch: 'N'
     optionMenu: 'x' # show help menu
