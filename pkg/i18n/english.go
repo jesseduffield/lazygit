@@ -361,6 +361,7 @@ type TranslationSet struct {
 	LcCopyFileNameToClipboard           string
 	LcCopyCommitFileNameToClipboard     string
 	LcCommitPrefixPatternError          string
+	LcCopySelectedTexToClipboard        string
 	NoFilesStagedTitle                  string
 	NoFilesStagedPrompt                 string
 	BranchNotFoundTitle                 string
@@ -881,6 +882,7 @@ func englishTranslationSet() TranslationSet {
 		LcCopyBranchNameToClipboard:         "copy branch name to clipboard",
 		LcCopyFileNameToClipboard:           "copy the file name to the clipboard",
 		LcCopyCommitFileNameToClipboard:     "copy the committed file name to the clipboard",
+		LcCopySelectedTexToClipboard:        "copy the selected text to the clipboard",
 		LcCommitPrefixPatternError:          "Error in commitPrefix pattern",
 		NoFilesStagedTitle:                  "No files staged",
 		NoFilesStagedPrompt:                 "You have not staged any files. Commit all files?",
@@ -996,7 +998,7 @@ func englishTranslationSet() TranslationSet {
 			GitFlowFinish:                     "Git flow finish",
 			GitFlowStart:                      "Git Flow start",
 			CopyToClipboard:                   "Copy to clipboard",
-			CopySelectedTextToClipboard:       "Copy Selected Text to clipboard",
+			CopySelectedTextToClipboard:       "Copy selected text to clipboard",
 			RemovePatchFromCommit:             "Remove patch from commit",
 			MovePatchToSelectedCommit:         "Move patch to selected commit",
 			MovePatchIntoIndex:                "Move patch into index",

@@ -1304,11 +1304,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Handler:  gui.handleSelectNextHunk,
 		},
 		{
-			ViewName: "main",
-			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			Key:      gui.getKey(config.Universal.CopyToClipboard),
-			Modifier: gocui.ModNone,
-			Handler:  gui.copySelectedToClipboard,
+			ViewName:    "main",
+			Contexts:    []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Universal.CopyToClipboard),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.copySelectedToClipboard,
+			Description: gui.Tr.LcCopySelectedTexToClipboard,
 		},
 		{
 			ViewName:    "main",

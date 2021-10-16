@@ -194,20 +194,17 @@ func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int, incLineIndic
 	return result
 }
 
-// RenderLines returns the coloured string of diff part from firstLineIndex to
+// PlainRenderLines returns the non-coloured string of diff part from firstLineIndex to
 // lastLineIndex
-func (p *PatchParser) RenderLines(firstLineIndex, lastLineIndex int) string {
-	renderedLines := make([]string, lastLineIndex-firstLineIndex+1)
-	for index := firstLineIndex; index <= lastLineIndex; index++ {
-		renderedLines[index-firstLineIndex] = p.PatchLines[index].render(
-			false, false,
-		)
+func (p *PatchParser) PlainRenderLines(firstLineIndex, lastLineIndex int) string {
+	linesToCopy := p.PatchLines[firstLineIndex : lastLineIndex+1]
+
+	renderedLines := make([]string, len(linesToCopy))
+	for index, line := range linesToCopy {
+		renderedLines[index] = line.Content
 	}
-	result := strings.Join(renderedLines, "\n")
-	if strings.TrimSpace(utils.Decolorise(result)) == "" {
-		return ""
-	}
-	return result
+
+	return strings.Join(renderedLines, "\n")
 }
 
 // GetNextStageableLineIndex takes a line index and returns the line index of the next stageable line
