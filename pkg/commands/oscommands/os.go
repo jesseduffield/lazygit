@@ -546,7 +546,9 @@ func RunLineOutputCmd(cmd *exec.Cmd, onLine func(line string) (bool, error)) err
 }
 
 func (c *OSCommand) CopyToClipboard(str string) error {
-	c.LogCommand(fmt.Sprintf("Copying '%s' to clipboard", utils.TruncateWithEllipsis(str, 40)), false)
+	escaped := strings.Replace(str, "\n", "\\n", -1)
+	truncated := utils.TruncateWithEllipsis(escaped, 40)
+	c.LogCommand(fmt.Sprintf("Copying '%s' to clipboard", truncated), false)
 	return clipboard.WriteAll(str)
 }
 
