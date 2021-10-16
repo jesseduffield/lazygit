@@ -19,9 +19,8 @@ type AppConfig struct {
 	Name             string `long:"name" env:"NAME" default:"lazygit"`
 	BuildSource      string `long:"build-source" env:"BUILD_SOURCE" default:""`
 	UserConfig       *UserConfig
-	UserConfigFiles  []string
+	UserConfigPaths  []string
 	DeafultConfFiles bool
-	UserConfigPath   string
 	UserConfigDir    string
 	TempDir          string
 	AppState         *AppState
@@ -38,9 +37,8 @@ type AppConfigurer interface {
 	GetName() string
 	GetBuildSource() string
 	GetUserConfig() *UserConfig
-	GetUserConfigFiles() []string
+	GetUserConfigPaths() []string
 	GetUserConfigDir() string
-	GetUserConfigPath() string
 	GetTempDir() string
 	GetAppState() *AppState
 	SaveAppState() error
@@ -56,17 +54,17 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		return nil, err
 	}
 
-	var userConfigFiles []string
+	var userConfigPaths []string
 	customConfigFiles := os.Getenv("LG_CONFIG_FILE")
 	if customConfigFiles != "" {
 		// Load user defined config files
-		userConfigFiles = strings.Split(customConfigFiles, ",")
+		userConfigPaths = strings.Split(customConfigFiles, ",")
 	} else {
 		// Load default config files
-		userConfigFiles = []string{filepath.Join(configDir, ConfigFilename)}
+		userConfigPaths = []string{filepath.Join(configDir, ConfigFilename)}
 	}
 
-	userConfig, err := loadUserConfigWithDefaults(userConfigFiles)
+	userConfig, err := loadUserConfigWithDefaults(userConfigPaths)
 	if err != nil {
 		return nil, err
 	}
@@ -90,9 +88,8 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		Debug:           debuggingFlag,
 		BuildSource:     buildSource,
 		UserConfig:      userConfig,
-		UserConfigFiles: userConfigFiles,
+		UserConfigPaths: userConfigPaths,
 		UserConfigDir:   configDir,
-		UserConfigPath:  filepath.Join(configDir, "config.yml"),
 		TempDir:         tempDir,
 		AppState:        appState,
 		IsNewRepo:       false,
@@ -220,8 +217,8 @@ func (c *AppConfig) GetAppState() *AppState {
 	return c.AppState
 }
 
-func (c *AppConfig) GetUserConfigFiles() []string {
-	return c.UserConfigFiles
+func (c *AppConfig) GetUserConfigPaths() []string {
+	return c.UserConfigPaths
 }
 
 func (c *AppConfig) GetUserConfigDir() string {
@@ -233,7 +230,7 @@ func (c *AppConfig) GetTempDir() string {
 }
 
 func (c *AppConfig) ReloadUserConfig() error {
-	userConfig, err := loadUserConfigWithDefaults(c.UserConfigFiles)
+	userConfig, err := loadUserConfigWithDefaults(c.UserConfigPaths)
 	if err != nil {
 		return err
 	}

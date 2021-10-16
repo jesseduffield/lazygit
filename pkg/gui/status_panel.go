@@ -116,20 +116,20 @@ func (gui *Gui) handleStatusSelect() error {
 }
 
 func (gui *Gui) askForConfigFile(action func(file string) error) error {
-	confFiles := gui.Config.GetUserConfigFiles()
-	switch len(confFiles) {
+	confPaths := gui.Config.GetUserConfigPaths()
+	switch len(confPaths) {
 	case 0:
 		return errors.New(gui.Tr.NoConfigFileFoundErr)
 	case 1:
-		return action(confFiles[0])
+		return action(confPaths[0])
 	default:
-		menuItems := make([]*menuItem, len(confFiles))
-		for i, file := range confFiles {
+		menuItems := make([]*menuItem, len(confPaths))
+		for i, file := range confPaths {
 			i := i
 			menuItems[i] = &menuItem{
 				displayString: file,
 				onPress: func() error {
-					return action(confFiles[i])
+					return action(confPaths[i])
 				},
 			}
 		}
