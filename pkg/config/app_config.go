@@ -284,6 +284,7 @@ func loadAppState() (*AppState, error) {
 	filepath, err := configFilePath("state.yml")
 	if err != nil {
 		if os.IsPermission(err) {
+			// apparently when people have read-only permissions they prefer us to fail silently
 			return getDefaultAppState(), nil
 		}
 		return nil, err
