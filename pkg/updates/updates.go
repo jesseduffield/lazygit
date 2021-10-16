@@ -76,11 +76,7 @@ func (u *Updater) getLatestVersionNumber() (string, error) {
 // RecordLastUpdateCheck records last time an update check was performed
 func (u *Updater) RecordLastUpdateCheck() error {
 	u.Config.GetAppState().LastUpdateCheck = time.Now().Unix()
-	err := u.Config.SaveAppState()
-	if err != nil && os.IsPermission(err) {
-		return nil
-	}
-	return err
+	return u.Config.SaveAppState()
 }
 
 // expecting version to be of the form `v12.34.56`

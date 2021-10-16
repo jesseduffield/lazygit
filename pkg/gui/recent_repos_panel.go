@@ -114,11 +114,7 @@ func (gui *Gui) updateRecentRepoList() error {
 	known, recentRepos := newRecentReposList(recentRepos, currentRepo)
 	gui.Config.SetIsNewRepo(known)
 	gui.Config.GetAppState().RecentRepos = recentRepos
-	err = gui.Config.SaveAppState()
-	if err != nil && os.IsPermission(err) {
-		return nil
-	}
-	return err
+	return gui.Config.SaveAppState()
 }
 
 // newRecentReposList returns a new repo list with a new entry but only when it doesn't exist yet
