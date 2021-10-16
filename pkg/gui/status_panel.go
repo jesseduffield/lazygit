@@ -119,7 +119,7 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 	confFiles := gui.Config.GetUserConfigFiles()
 	switch len(confFiles) {
 	case 0:
-		return errors.New("no config file found")
+		return errors.New(gui.Tr.NoConfigFileFoundErr)
 	case 1:
 		return action(confFiles[0])
 	default:
@@ -133,20 +133,16 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 				},
 			}
 		}
-		return gui.createMenu("select config file", menuItems, createMenuOptions{})
+		return gui.createMenu(gui.Tr.SelectConfigFile, menuItems, createMenuOptions{})
 	}
 }
 
 func (gui *Gui) handleOpenConfig() error {
-	return gui.askForConfigFile(func(file string) error {
-		return gui.openFile(file)
-	})
+	return gui.askForConfigFile(gui.openFile)
 }
 
 func (gui *Gui) handleEditConfig() error {
-	return gui.askForConfigFile(func(file string) error {
-		return gui.editFile(file)
-	})
+	return gui.askForConfigFile(gui.editFile)
 }
 
 func lazygitTitle() string {

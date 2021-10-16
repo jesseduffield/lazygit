@@ -57,19 +57,16 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	}
 
 	var userConfigFiles []string
-
-	userConfigFilesOverwrite := os.Getenv("LG_CONFIG_FILE")
-	deafultConfFiles := true
-	if userConfigFilesOverwrite != "" {
+	customConfigFiles := os.Getenv("LG_CONFIG_FILE")
+	if customConfigFiles != "" {
 		// Load user defined config files
-		userConfigFiles = strings.Split(userConfigFilesOverwrite, ",")
-		deafultConfFiles = false
+		userConfigFiles = strings.Split(customConfigFiles, ",")
 	} else {
 		// Load default config files
 		userConfigFiles = []string{filepath.Join(configDir, ConfigFilename)}
 	}
 
-	userConfig, err := loadUserConfigWithDefaults(userConfigFiles, deafultConfFiles)
+	userConfig, err := loadUserConfigWithDefaults(userConfigFiles)
 	if err != nil {
 		return nil, err
 	}
@@ -86,23 +83,26 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	}
 
 	appConfig := &AppConfig{
-		Name:             "lazygit",
-		Version:          version,
-		Commit:           commit,
-		BuildDate:        date,
-		Debug:            debuggingFlag,
-		BuildSource:      buildSource,
-		UserConfig:       userConfig,
-		UserConfigFiles:  userConfigFiles,
-		UserConfigDir:    configDir,
-		DeafultConfFiles: deafultConfFiles,
-		UserConfigPath:   filepath.Join(configDir, "config.yml"),
-		TempDir:          tempDir,
-		AppState:         appState,
-		IsNewRepo:        false,
+		Name:            "lazygit",
+		Version:         version,
+		Commit:          commit,
+		BuildDate:       date,
+		Debug:           debuggingFlag,
+		BuildSource:     buildSource,
+		UserConfig:      userConfig,
+		UserConfigFiles: userConfigFiles,
+		UserConfigDir:   configDir,
+		UserConfigPath:  filepath.Join(configDir, "config.yml"),
+		TempDir:         tempDir,
+		AppState:        appState,
+		IsNewRepo:       false,
 	}
 
 	return appConfig, nil
+}
+
+func isCustomConfigFile(path string) bool {
+	return path != filepath.Join(ConfigDir(), ConfigFilename)
 }
 
 func ConfigDir() string {
@@ -128,35 +128,37 @@ func findOrCreateConfigDir() (string, error) {
 	return folder, os.MkdirAll(folder, 0755)
 }
 
-func loadUserConfigWithDefaults(configFiles []string, deafultConfFiles bool) (*UserConfig, error) {
-	return loadUserConfig(configFiles, GetDefaultConfig(), deafultConfFiles)
+func loadUserConfigWithDefaults(configFiles []string) (*UserConfig, error) {
+	return loadUserConfig(configFiles, GetDefaultConfig())
 }
 
-func loadUserConfig(configFiles []string, base *UserConfig, deafultConfFiles bool) (*UserConfig, error) {
-	for _, fileName := range configFiles {
-		content, readConfFileErr := ioutil.ReadFile(fileName)
-		if readConfFileErr != nil {
-			if !deafultConfFiles {
-				return nil, readConfFileErr
-			}
-
-			_, err := os.Stat(fileName)
-			if err == nil {
-				return nil, readConfFileErr
-			}
+func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error) {
+	for _, path := range configFiles {
+		if _, err := os.Stat(path); err != nil {
 			if !os.IsNotExist(err) {
-				return nil, readConfFileErr
+				return nil, err
 			}
 
-			file, err := os.Create(fileName)
+			// if use has supplied their own custom config file path(s), we assume
+			// the files have already been created, so we won't go and create them here.
+			if isCustomConfigFile(path) {
+				return nil, err
+			}
+
+			file, err := os.Create(path)
 			if err != nil {
 				if os.IsPermission(err) {
+					// apparently when people have read-only permissions they prefer us to fail silently
 					continue
-				} else {
-					return nil, readConfFileErr
 				}
+				return nil, err
 			}
 			file.Close()
+		}
+
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			return nil, err
 		}
 
 		if err := yaml.Unmarshal(content, base); err != nil {
@@ -231,7 +233,7 @@ func (c *AppConfig) GetTempDir() string {
 }
 
 func (c *AppConfig) ReloadUserConfig() error {
-	userConfig, err := loadUserConfigWithDefaults(c.UserConfigFiles, c.DeafultConfFiles)
+	userConfig, err := loadUserConfigWithDefaults(c.UserConfigFiles)
 	if err != nil {
 		return err
 	}
@@ -268,7 +270,13 @@ func (c *AppConfig) SaveAppState() error {
 		return err
 	}
 
-	return ioutil.WriteFile(filepath, marshalledAppState, 0644)
+	err = ioutil.WriteFile(filepath, marshalledAppState, 0644)
+	if err != nil && os.IsPermission(err) {
+		// apparently when people have read-only permissions they prefer us to fail silently
+		return nil
+	}
+
+	return err
 }
 
 // loadAppState loads recorded AppState from file

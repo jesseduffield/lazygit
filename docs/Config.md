@@ -265,10 +265,19 @@ os:
 
 `{{editor}}` in `editCommandTemplate` is replaced with the value of `editCommand`.
 
-### Change config file used
+### Overriding default config file location
 
-- Use `--config-file=~/.base_lg_conf,~/.light_theme_lg_conf` or `$LG_CONFIG_FILE="~/.base_lg_conf,~/.light_theme_lg_conf"`
-- Change the default config directory `$CONFIG_DIR="~/.config/lazygit"`
+To override the default config directory, use `$CONFIG_DIR="~/.config/lazygit"`. This directory contains the config file in addition to some other files lazygit uses to keep track of state across sessions.
+
+To override the individual config file used, use the `--use-config-file` arg or the `LG_CONFIG_FILE` env var.
+
+If you want to merge a specific config file into a more general config file, perhaps for the sake of setting some theme-specific options, you can supply a list of comma-separated config file paths, like so:
+
+```sh
+lazygit --use-config-file=~/.base_lg_conf,~/.light_theme_lg_conf
+or
+LG_CONFIG_FILE="~/.base_lg_conf,~/.light_theme_lg_conf" lazygit
+```
 
 ### Recommended Config Values
 

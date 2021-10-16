@@ -427,6 +427,8 @@ type TranslationSet struct {
 	LcSelectBranch                      string
 	CreatePullRequest                   string
 	CreatingPullRequestAtUrl            string
+	SelectConfigFile                    string
+	NoConfigFileFoundErr                string
 	Spans                               Spans
 }
 
@@ -947,6 +949,8 @@ func englishTranslationSet() TranslationSet {
 		LcDefaultBranch:                     "default branch",
 		LcSelectBranch:                      "select branch",
 		CreatingPullRequestAtUrl:            "Creating pull request at URL: %s",
+		SelectConfigFile:                    "Select config file",
+		NoConfigFileFoundErr:                "No config file found",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
