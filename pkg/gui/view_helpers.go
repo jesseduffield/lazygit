@@ -244,10 +244,6 @@ func (gui *Gui) renderOptionsMap(optionsMap map[string]string) {
 	gui.renderString(gui.Views.Options, gui.optionsMapToString(optionsMap))
 }
 
-func (gui *Gui) trimmedContent(v *gocui.View) string {
-	return strings.TrimSpace(v.Buffer())
-}
-
 func (gui *Gui) currentViewName() string {
 	currentView := gui.g.CurrentView()
 	if currentView == nil {
@@ -262,15 +258,14 @@ func (gui *Gui) resizeCurrentPopupPanel() error {
 		return nil
 	}
 	if gui.isPopupPanel(v.Name()) {
-		return gui.resizePopupPanel(v)
+		return gui.resizePopupPanel(v, v.Buffer())
 	}
 	return nil
 }
 
-func (gui *Gui) resizePopupPanel(v *gocui.View) error {
+func (gui *Gui) resizePopupPanel(v *gocui.View, content string) error {
 	// If the confirmation panel is already displayed, just resize the width,
 	// otherwise continue
-	content := v.Buffer()
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(v.Wrap, content)
 	vx0, vy0, vx1, vy1 := v.Dimensions()
 	if vx0 == x0 && vy0 == y0 && vx1 == x1 && vy1 == y1 {
@@ -346,9 +341,8 @@ func (gui *Gui) secondaryViewFocused() bool {
 }
 
 func (gui *Gui) clearEditorView(v *gocui.View) {
-	v.Clear()
-	_ = v.SetCursor(0, 0)
-	_ = v.SetOrigin(0, 0)
+	v.TextArea.Clear()
+	v.RenderTextArea()
 }
 
 func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {

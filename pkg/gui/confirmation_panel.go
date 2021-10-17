@@ -1,9 +1,5 @@
 // lots of this has been directly ported from one of the example files, will brush up later
 
-// Copyright 2014 The gocui Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package gui
 
 import (
@@ -169,7 +165,7 @@ func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, i
 		height/2 + panelHeight/2
 }
 
-func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, findSuggestionsFunc func(string) []*types.Suggestion) error {
+func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, findSuggestionsFunc func(string) []*types.Suggestion, editable bool) error {
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(true, prompt)
 	// calling SetView on an existing view returns the same view, so I'm not bothering
 	// to reassign to gui.Views.Confirmation
@@ -182,7 +178,8 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, f
 		gui.g.StartTicking()
 	}
 	gui.Views.Confirmation.Title = title
-	gui.Views.Confirmation.Wrap = true
+	// for now we do not support wrapping in our editor
+	gui.Views.Confirmation.Wrap = !editable
 	gui.Views.Confirmation.FgColor = theme.GocuiDefaultTextColor
 
 	gui.findSuggestions = findSuggestionsFunc
@@ -209,19 +206,27 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 		// remove any previous keybindings
 		gui.clearConfirmationViewKeyBindings()
 
-		err := gui.prepareConfirmationPanel(opts.title, opts.prompt, opts.hasLoader, opts.findSuggestionsFunc)
+		err := gui.prepareConfirmationPanel(
+			opts.title,
+			opts.prompt,
+			opts.hasLoader,
+			opts.findSuggestionsFunc,
+			opts.editable,
+		)
 		if err != nil {
 			return err
 		}
-		gui.Views.Confirmation.Editable = opts.editable
-		gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.defaultEditor)
+		confirmationView := gui.Views.Confirmation
+		confirmationView.Editable = opts.editable
+		confirmationView.Editor = gocui.EditorFunc(gui.defaultEditor)
 
 		if opts.editable {
-			if err := gui.Views.Confirmation.SetEditorContent(opts.prompt); err != nil {
-				return err
-			}
+			textArea := confirmationView.TextArea
+			textArea.Clear()
+			textArea.TypeString(opts.prompt)
+			confirmationView.RenderTextArea()
 		} else {
-			if err := gui.renderStringSync(gui.Views.Confirmation, opts.prompt); err != nil {
+			if err := gui.renderStringSync(confirmationView, opts.prompt); err != nil {
 				return err
 			}
 		}

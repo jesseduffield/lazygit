@@ -78,3 +78,4 @@ This package is licensed under the MIT license, see LICENSE.MIT for details.
 >.  errors.AsError(errors.Wrap(err)).ErrorStack()
 > ```
 * v1.4.0 *BREAKING* v1.4.0 reverted all changes from v1.3.0 and is identical to v1.2.0
+* v1.4.1 no code change, but now without an unnecessary cover.out file.

@@ -15,7 +15,7 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 	gui.State.Searching.isSearching = true
 	gui.State.Searching.view = view
 
-	gui.renderString(gui.Views.Search, "")
+	gui.Views.Search.ClearTextArea()
 
 	if err := gui.pushContext(gui.State.Contexts.Search); err != nil {
 		return err
@@ -25,7 +25,7 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 }
 
 func (gui *Gui) handleSearch() error {
-	gui.State.Searching.searchString = gui.Views.Search.Buffer()
+	gui.State.Searching.searchString = gui.Views.Search.TextArea.GetContent()
 	if err := gui.returnFromContext(); err != nil {
 		return err
 	}
