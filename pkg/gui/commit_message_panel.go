@@ -23,8 +23,8 @@ func (gui *Gui) handleCommitConfirm() error {
 	cmdStr := gui.GitCommand.CommitCmdStr(message, flags)
 	gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdStr, gui.Tr.Spans.Commit, true))
 	return gui.withGpgHandling(cmdStr, gui.Tr.CommittingStatus, func() error {
+		gui.Views.CommitMessage.ClearTextArea()
 		_ = gui.returnFromContext()
-		gui.clearEditorView(gui.Views.CommitMessage)
 		return nil
 	})
 }

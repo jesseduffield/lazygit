@@ -43,7 +43,7 @@ func (gui *Gui) handleSubmitCredential() error {
 	credentialsView := gui.Views.Credentials
 	message := strings.TrimSpace(credentialsView.TextArea.GetContent())
 	gui.credentials <- message
-	gui.clearEditorView(credentialsView)
+	credentialsView.ClearTextArea()
 	if err := gui.returnFromContext(); err != nil {
 		return err
 	}

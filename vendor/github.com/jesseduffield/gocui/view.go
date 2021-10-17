@@ -1160,6 +1160,12 @@ func updatedCursorAndOrigin(prevOrigin int, size int, cursor int) (int, int) {
 }
 
 func (v *View) ClearTextArea() {
-	v.TextArea.Clear()
 	v.Clear()
+
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.TextArea.Clear()
+	_ = v.SetOrigin(0, 0)
+	_ = v.SetCursor(0, 0)
 }
