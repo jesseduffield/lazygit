@@ -54,7 +54,7 @@ includes_AIX='
 
 includes_Darwin='
 #define _DARWIN_C_SOURCE
-#define KERNEL
+#define KERNEL 1
 #define _DARWIN_USE_64_BIT_INODE
 #define __APPLE_USE_RFC_3542
 #include <stdint.h>
@@ -75,6 +75,7 @@ includes_Darwin='
 #include <sys/utsname.h>
 #include <sys/wait.h>
 #include <sys/xattr.h>
+#include <sys/vsock.h>
 #include <net/bpf.h>
 #include <net/if.h>
 #include <net/if_types.h>
@@ -82,6 +83,9 @@ includes_Darwin='
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <termios.h>
+
+// for backwards compatibility because moved TIOCREMOTE to Kernel.framework after MacOSX12.0.sdk.
+#define TIOCREMOTE 0x80047469
 '
 
 includes_DragonFly='
@@ -466,7 +470,6 @@ ccflags="$@"
 		$2 !~ /^EQUIV_/ &&
 		$2 !~ /^EXPR_/ &&
 		$2 !~ /^EVIOC/ &&
-		$2 !~ /^EV_/ &&
 		$2 ~ /^E[A-Z0-9_]+$/ ||
 		$2 ~ /^B[0-9_]+$/ ||
 		$2 ~ /^(OLD|NEW)DEV$/ ||

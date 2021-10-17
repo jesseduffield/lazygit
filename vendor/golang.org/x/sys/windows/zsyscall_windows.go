@@ -303,6 +303,7 @@ var (
 	procReadConsoleW                                         = modkernel32.NewProc("ReadConsoleW")
 	procReadDirectoryChangesW                                = modkernel32.NewProc("ReadDirectoryChangesW")
 	procReadFile                                             = modkernel32.NewProc("ReadFile")
+	procReadProcessMemory                                    = modkernel32.NewProc("ReadProcessMemory")
 	procReleaseMutex                                         = modkernel32.NewProc("ReleaseMutex")
 	procRemoveDirectoryW                                     = modkernel32.NewProc("RemoveDirectoryW")
 	procResetEvent                                           = modkernel32.NewProc("ResetEvent")
@@ -345,12 +346,16 @@ var (
 	procVirtualFree                                          = modkernel32.NewProc("VirtualFree")
 	procVirtualLock                                          = modkernel32.NewProc("VirtualLock")
 	procVirtualProtect                                       = modkernel32.NewProc("VirtualProtect")
+	procVirtualProtectEx                                     = modkernel32.NewProc("VirtualProtectEx")
+	procVirtualQuery                                         = modkernel32.NewProc("VirtualQuery")
+	procVirtualQueryEx                                       = modkernel32.NewProc("VirtualQueryEx")
 	procVirtualUnlock                                        = modkernel32.NewProc("VirtualUnlock")
 	procWTSGetActiveConsoleSessionId                         = modkernel32.NewProc("WTSGetActiveConsoleSessionId")
 	procWaitForMultipleObjects                               = modkernel32.NewProc("WaitForMultipleObjects")
 	procWaitForSingleObject                                  = modkernel32.NewProc("WaitForSingleObject")
 	procWriteConsoleW                                        = modkernel32.NewProc("WriteConsoleW")
 	procWriteFile                                            = modkernel32.NewProc("WriteFile")
+	procWriteProcessMemory                                   = modkernel32.NewProc("WriteProcessMemory")
 	procAcceptEx                                             = modmswsock.NewProc("AcceptEx")
 	procGetAcceptExSockaddrs                                 = modmswsock.NewProc("GetAcceptExSockaddrs")
 	procTransmitFile                                         = modmswsock.NewProc("TransmitFile")
@@ -2636,6 +2641,14 @@ func ReadFile(handle Handle, buf []byte, done *uint32, overlapped *Overlapped) (
 	return
 }
 
+func ReadProcessMemory(process Handle, baseAddress uintptr, buffer *byte, size uintptr, numberOfBytesRead *uintptr) (err error) {
+	r1, _, e1 := syscall.Syscall6(procReadProcessMemory.Addr(), 5, uintptr(process), uintptr(baseAddress), uintptr(unsafe.Pointer(buffer)), uintptr(size), uintptr(unsafe.Pointer(numberOfBytesRead)), 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
 func ReleaseMutex(mutex Handle) (err error) {
 	r1, _, e1 := syscall.Syscall(procReleaseMutex.Addr(), 1, uintptr(mutex), 0, 0)
 	if r1 == 0 {
@@ -2990,6 +3003,30 @@ func VirtualProtect(address uintptr, size uintptr, newprotect uint32, oldprotect
 	return
 }
 
+func VirtualProtectEx(process Handle, address uintptr, size uintptr, newProtect uint32, oldProtect *uint32) (err error) {
+	r1, _, e1 := syscall.Syscall6(procVirtualProtectEx.Addr(), 5, uintptr(process), uintptr(address), uintptr(size), uintptr(newProtect), uintptr(unsafe.Pointer(oldProtect)), 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func VirtualQuery(address uintptr, buffer *MemoryBasicInformation, length uintptr) (err error) {
+	r1, _, e1 := syscall.Syscall(procVirtualQuery.Addr(), 3, uintptr(address), uintptr(unsafe.Pointer(buffer)), uintptr(length))
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func VirtualQueryEx(process Handle, address uintptr, buffer *MemoryBasicInformation, length uintptr) (err error) {
+	r1, _, e1 := syscall.Syscall6(procVirtualQueryEx.Addr(), 4, uintptr(process), uintptr(address), uintptr(unsafe.Pointer(buffer)), uintptr(length), 0, 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
 func VirtualUnlock(addr uintptr, length uintptr) (err error) {
 	r1, _, e1 := syscall.Syscall(procVirtualUnlock.Addr(), 2, uintptr(addr), uintptr(length), 0)
 	if r1 == 0 {
@@ -3040,6 +3077,14 @@ func WriteFile(handle Handle, buf []byte, done *uint32, overlapped *Overlapped) 
 		_p0 = &buf[0]
 	}
 	r1, _, e1 := syscall.Syscall6(procWriteFile.Addr(), 5, uintptr(handle), uintptr(unsafe.Pointer(_p0)), uintptr(len(buf)), uintptr(unsafe.Pointer(done)), uintptr(unsafe.Pointer(overlapped)), 0)
+	if r1 == 0 {
+		err = errnoErr(e1)
+	}
+	return
+}
+
+func WriteProcessMemory(process Handle, baseAddress uintptr, buffer *byte, size uintptr, numberOfBytesWritten *uintptr) (err error) {
+	r1, _, e1 := syscall.Syscall6(procWriteProcessMemory.Addr(), 5, uintptr(process), uintptr(baseAddress), uintptr(unsafe.Pointer(buffer)), uintptr(size), uintptr(unsafe.Pointer(numberOfBytesWritten)), 0)
 	if r1 == 0 {
 		err = errnoErr(e1)
 	}

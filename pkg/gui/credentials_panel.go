@@ -41,7 +41,7 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 
 func (gui *Gui) handleSubmitCredential() error {
 	credentialsView := gui.Views.Credentials
-	message := gui.trimmedContent(credentialsView)
+	message := strings.TrimSpace(credentialsView.TextArea.GetContent())
 	gui.credentials <- message
 	gui.clearEditorView(credentialsView)
 	if err := gui.returnFromContext(); err != nil {

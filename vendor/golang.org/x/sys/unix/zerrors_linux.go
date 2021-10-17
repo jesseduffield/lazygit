@@ -1397,6 +1397,8 @@ const (
 	MADV_NOHUGEPAGE                             = 0xf
 	MADV_NORMAL                                 = 0x0
 	MADV_PAGEOUT                                = 0x15
+	MADV_POPULATE_READ                          = 0x16
+	MADV_POPULATE_WRITE                         = 0x17
 	MADV_RANDOM                                 = 0x1
 	MADV_REMOVE                                 = 0x9
 	MADV_SEQUENTIAL                             = 0x2

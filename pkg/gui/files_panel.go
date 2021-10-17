@@ -347,9 +347,10 @@ func (gui *Gui) handleWIPCommitPress() error {
 		return gui.createErrorPanel(gui.Tr.SkipHookPrefixNotConfigured)
 	}
 
-	if err := gui.Views.CommitMessage.SetEditorContent(skipHookPrefix); err != nil {
-		return err
-	}
+	textArea := gui.Views.CommitMessage.TextArea
+	textArea.Clear()
+	textArea.TypeString(skipHookPrefix)
+	gui.Views.CommitMessage.RenderTextArea()
 
 	return gui.handleCommitPress()
 }
