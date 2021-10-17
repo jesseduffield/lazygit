@@ -281,7 +281,12 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		{
 			viewName: "confirmation",
 			key:      gui.getKey(keybindingConfig.Universal.TogglePanel),
-			handler:  func() error { return gui.replaceContext(gui.State.Contexts.Suggestions) },
+			handler: func() error {
+				if len(gui.State.Suggestions) > 0 {
+					return gui.replaceContext(gui.State.Contexts.Suggestions)
+				}
+				return nil
+			},
 		},
 		{
 			viewName: "suggestions",
