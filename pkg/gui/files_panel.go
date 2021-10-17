@@ -57,13 +57,6 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	}
 
 	if !alreadySelected {
-		// TODO: pull into update task interface
-		if err := gui.resetOrigin(gui.Views.Main); err != nil {
-			return err
-		}
-		if err := gui.resetOrigin(gui.Views.Secondary); err != nil {
-			return err
-		}
 		gui.takeOverMergeConflictScrolling()
 	}
 

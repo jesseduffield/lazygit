@@ -11,8 +11,7 @@ type ListContext struct {
 	SelectedItem  func() (ListItem, bool)
 	GetPanelState func() IListPanelState
 
-	Gui                        *Gui
-	ResetMainViewOriginOnFocus bool
+	Gui *Gui
 
 	*BasicContext
 }
@@ -78,15 +77,6 @@ func (lc *ListContext) HandleFocus() error {
 	}
 
 	view.FocusPoint(0, lc.GetPanelState().GetSelectedLineIdx())
-
-	if lc.ResetMainViewOriginOnFocus {
-		if err := lc.Gui.resetOrigin(lc.Gui.Views.Main); err != nil {
-			return err
-		}
-		if err := lc.Gui.resetOrigin(lc.Gui.Views.Secondary); err != nil {
-			return err
-		}
-	}
 
 	if lc.Gui.State.Modes.Diffing.Active() {
 		return lc.Gui.renderDiff()
