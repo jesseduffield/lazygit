@@ -152,7 +152,7 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/filesystem
 github.com/jesseduffield/go-git/v5/utils/merkletrie/index
 github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
-# github.com/jesseduffield/gocui v0.3.1-0.20211017091015-8bf4a4666b77
+# github.com/jesseduffield/gocui v0.3.1-0.20211017220056-b2fc03c74a6f
 ## explicit
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/yaml v2.1.0+incompatible

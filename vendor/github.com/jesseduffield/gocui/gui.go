@@ -15,6 +15,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-errors/errors"
+	"github.com/mattn/go-runewidth"
 )
 
 // OutputMode represents an output mode, which determines how colors
@@ -921,8 +922,8 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 
 	str := strings.Join(tabs, separator)
 
+	x := v.x0 + 2
 	for i, ch := range str {
-		x := v.x0 + i + 2
 		if x < 0 {
 			continue
 		} else if x > v.x1-2 || x >= g.maxX {
@@ -948,6 +949,7 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
 			return err
 		}
+		x += runewidth.RuneWidth(ch)
 	}
 	return nil
 }
@@ -962,14 +964,15 @@ func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
 	if start < v.x0 {
 		return nil
 	}
-	for i, ch := range v.Subtitle {
-		x := start + i
+	x := start
+	for _, ch := range v.Subtitle {
 		if x >= v.x1 {
 			break
 		}
 		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
 			return err
 		}
+		x += runewidth.RuneWidth(ch)
 	}
 	return nil
 }
@@ -990,14 +993,15 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 	if start < v.x0 {
 		return nil
 	}
-	for i, ch := range message {
-		x := start + i
+	x := start
+	for _, ch := range message {
 		if x >= v.x1 {
 			break
 		}
 		if err := g.SetRune(x, v.y1, ch, fgColor, bgColor); err != nil {
 			return err
 		}
+		x += runewidth.RuneWidth(ch)
 	}
 	return nil
 }
