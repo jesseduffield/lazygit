@@ -90,7 +90,7 @@ func (gui *Gui) handleSetBranchUpstream() error {
 		prompt: message,
 		handleConfirm: func() error {
 			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.SetBranchUpstream).SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
-				return err
+				return gui.surfaceError(err)
 			}
 
 			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
