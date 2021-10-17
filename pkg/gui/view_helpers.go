@@ -327,7 +327,7 @@ func (gui *Gui) globalOptionsMap() map[string]string {
 		gui.getKeyDisplay(keybindingConfig.Universal.Return):     gui.Tr.LcCancel,
 		gui.getKeyDisplay(keybindingConfig.Universal.Quit):       gui.Tr.LcQuit,
 		gui.getKeyDisplay(keybindingConfig.Universal.OptionMenu): gui.Tr.LcMenu,
-		fmt.Sprintf("%s-%s", gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[0]), gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[4])): gui.Tr.LcJump,
+		fmt.Sprintf("%s-%s", gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[0]), gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): gui.Tr.LcJump,
 	}
 }
 

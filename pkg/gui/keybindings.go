@@ -1810,12 +1810,16 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 	}
 
 	// Appends keybindings to jump to a particular sideView using numbers
-	for i, window := range []string{"status", "files", "branches", "commits", "stash"} {
-		bindings = append(bindings, &Binding{
-			ViewName: "",
-			Key:      gui.getKey(config.Universal.JumpToBlock[i]),
-			Modifier: gocui.ModNone,
-			Handler:  gui.goToSideWindow(window)})
+	if len(config.Universal.JumpToBlock) != 5 {
+		log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
+	} else {
+		for i, window := range []string{"status", "files", "branches", "commits", "stash"} {
+			bindings = append(bindings, &Binding{
+				ViewName: "",
+				Key:      gui.getKey(config.Universal.JumpToBlock[i]),
+				Modifier: gocui.ModNone,
+				Handler:  gui.goToSideWindow(window)})
+		}
 	}
 
 	for viewName := range gui.State.Contexts.initialViewTabContextMap() {
