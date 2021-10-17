@@ -340,11 +340,6 @@ func (gui *Gui) secondaryViewFocused() bool {
 	return state != nil && state.SecondaryFocused
 }
 
-func (gui *Gui) clearEditorView(v *gocui.View) {
-	v.TextArea.Clear()
-	v.RenderTextArea()
-}
-
 func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
 	context := gui.State.ViewTabContextMap[viewName][tabIndex].contexts[0]
 
