@@ -49,9 +49,9 @@ func simpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 		v.TextArea.ToggleOverwrite()
 	case key == KeyCtrlU:
 		v.TextArea.DeleteToStartOfLine()
-	case key == KeyCtrlA:
+	case key == KeyCtrlA || key == KeyHome:
 		v.TextArea.GoToStartOfLine()
-	case key == KeyCtrlE:
+	case key == KeyCtrlE || key == KeyEnd:
 		v.TextArea.GoToEndOfLine()
 
 		// TODO: see if we need all three of these conditions: maybe the final one is sufficient

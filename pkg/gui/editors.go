@@ -37,9 +37,9 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.ToggleOverwrite()
 	case key == gocui.KeyCtrlU:
 		textArea.DeleteToStartOfLine()
-	case key == gocui.KeyCtrlA:
+	case key == gocui.KeyCtrlA || key == gocui.KeyHome:
 		textArea.GoToStartOfLine()
-	case key == gocui.KeyCtrlE:
+	case key == gocui.KeyCtrlE || key == gocui.KeyEnd:
 		textArea.GoToEndOfLine()
 
 		// TODO: see if we need all three of these conditions: maybe the final one is sufficient
