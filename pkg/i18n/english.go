@@ -430,6 +430,7 @@ type TranslationSet struct {
 	CreatingPullRequestAtUrl            string
 	SelectConfigFile                    string
 	NoConfigFileFoundErr                string
+	LcLoadingFileSuggestions            string
 	Spans                               Spans
 }
 
@@ -954,6 +955,7 @@ func englishTranslationSet() TranslationSet {
 		CreatingPullRequestAtUrl:            "Creating pull request at URL: %s",
 		SelectConfigFile:                    "Select config file",
 		NoConfigFileFoundErr:                "No config file found",
+		LcLoadingFileSuggestions:            "loading file suggestions",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

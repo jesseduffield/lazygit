@@ -1,0 +1,10 @@
+testgitignore
+*.o
+
+*.out*
+#*.ou
+aa
+bbb
+ccc/
+**/Makefile 
+/testfs/ignoredfile*

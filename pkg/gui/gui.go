@@ -30,6 +30,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
 // screen sizing determines how much space your selected window takes up (window
@@ -116,6 +117,8 @@ type Gui struct {
 
 	// the extras window contains things like the command log
 	ShowExtrasWindow bool
+
+	suggestionsAsyncHandler *tasks.AsyncHandler
 }
 
 type listPanelState struct {
@@ -336,6 +339,9 @@ type guiState struct {
 
 	// flag as to whether or not the diff view should ignore whitespace
 	IgnoreWhitespaceInDiffView bool
+
+	// for displaying suggestions while typing in a file name
+	FilesTrie *patricia.Trie
 }
 
 // reuseState determines if we pull the repo state from our repo state map or
@@ -412,6 +418,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		// TODO: put contexts in the context manager
 		ContextManager: NewContextManager(initialContext),
 		Contexts:       contexts,
+		FilesTrie:      patricia.NewTrie(),
 	}
 
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
@@ -421,19 +428,20 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
 	gui := &Gui{
-		Log:                  log,
-		GitCommand:           gitCommand,
-		OSCommand:            oSCommand,
-		Config:               config,
-		Tr:                   tr,
-		Updater:              updater,
-		statusManager:        &statusManager{},
-		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
-		showRecentRepos:      showRecentRepos,
-		RepoPathStack:        []string{},
-		RepoStateMap:         map[Repo]*guiState{},
-		CmdLog:               []string{},
-		ShowExtrasWindow:     config.GetUserConfig().Gui.ShowCommandLog,
+		Log:                     log,
+		GitCommand:              gitCommand,
+		OSCommand:               oSCommand,
+		Config:                  config,
+		Tr:                      tr,
+		Updater:                 updater,
+		statusManager:           &statusManager{},
+		viewBufferManagerMap:    map[string]*tasks.ViewBufferManager{},
+		showRecentRepos:         showRecentRepos,
+		RepoPathStack:           []string{},
+		RepoStateMap:            map[Repo]*guiState{},
+		CmdLog:                  []string{},
+		ShowExtrasWindow:        config.GetUserConfig().Gui.ShowCommandLog,
+		suggestionsAsyncHandler: tasks.NewAsyncHandler(),
 	}
 
 	gui.resetState(filterPath, false)
