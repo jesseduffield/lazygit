@@ -77,8 +77,10 @@ func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 
 	if gui.findSuggestions != nil {
 		input := v.TextArea.GetContent()
-		suggestions := gui.findSuggestions(input)
-		gui.setSuggestions(suggestions)
+		gui.suggestionsAsyncHandler.Do(func() func() {
+			suggestions := gui.findSuggestions(input)
+			return func() { gui.setSuggestions(suggestions) }
+		})
 	}
 
 	return matched

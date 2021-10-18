@@ -189,7 +189,7 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, f
 		if err != nil {
 			return err
 		}
-		suggestionsView.Wrap = true
+		suggestionsView.Wrap = false
 		suggestionsView.FgColor = theme.GocuiDefaultTextColor
 		gui.setSuggestions([]*types.Suggestion{})
 		suggestionsView.Visible = true
