@@ -361,7 +361,7 @@ func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) *exec.Cmd {
 
 	return c.OSCommand.ExecutableFromString(
 		fmt.Sprintf(
-			"git log %s --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\" %s --abbrev=%d --date=unix %s",
+			"git log %s --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\" %s --abbrev=%d %s",
 			c.OSCommand.Quote(opts.RefName),
 			SEPARATION_CHAR,
 			SEPARATION_CHAR,

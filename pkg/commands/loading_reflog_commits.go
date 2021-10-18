@@ -2,8 +2,8 @@ package commands
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -13,26 +13,25 @@ import (
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
 func (c *GitCommand) GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
 	commits := make([]*models.Commit, 0)
-	re := regexp.MustCompile(`(\w+).*HEAD@\{([^\}]+)\}: (.*)`)
 
 	filterPathArg := ""
 	if filterPath != "" {
 		filterPathArg = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(filterPath))
 	}
 
-	cmd := c.OSCommand.ExecutableFromString(fmt.Sprintf("git reflog --abbrev=20 --date=unix %s", filterPathArg))
+	cmd := c.OSCommand.ExecutableFromString(fmt.Sprintf(`git log -g --abbrev=20 --format="%%h %%ct %%gs" %s`, filterPathArg))
 	onlyObtainedNewReflogCommits := false
 	err := oscommands.RunLineOutputCmd(cmd, func(line string) (bool, error) {
-		match := re.FindStringSubmatch(line)
-		if len(match) <= 1 {
+		fields := strings.SplitN(line, " ", 3)
+		if len(fields) <= 2 {
 			return false, nil
 		}
 
-		unixTimestamp, _ := strconv.Atoi(match[2])
+		unixTimestamp, _ := strconv.Atoi(fields[1])
 
 		commit := &models.Commit{
-			Sha:           match[1],
-			Name:          match[3],
+			Sha:           fields[0],
+			Name:          fields[2],
 			UnixTimestamp: int64(unixTimestamp),
 			Status:        "reflog",
 		}
