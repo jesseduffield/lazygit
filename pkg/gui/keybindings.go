@@ -1810,10 +1810,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 	}
 
 	// Appends keybindings to jump to a particular sideView using numbers
-	if len(config.Universal.JumpToBlock) != 5 {
+	windows := []string{"status", "files", "branches", "commits", "stash"}
+
+	if len(config.Universal.JumpToBlock) != len(windows) {
 		log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
 	} else {
-		for i, window := range []string{"status", "files", "branches", "commits", "stash"} {
+		for i, window := range windows {
 			bindings = append(bindings, &Binding{
 				ViewName: "",
 				Key:      gui.getKey(config.Universal.JumpToBlock[i]),
