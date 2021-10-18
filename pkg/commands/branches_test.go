@@ -222,7 +222,7 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 		test     func(string, string, error)
 	}
 
-	formatOption := `--format=%(if)%(HEAD)%(then)%(objectname:short)%09%(refname:short)%(end)`
+	formatOption := `--format=%(HEAD) %(objectname:short)%09%(refname:short)`
 
 	scenarios := []scenario{
 		{
@@ -251,7 +251,7 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 					return secureexec.Command("echo", "master")
 				case "branch":
 					assert.EqualValues(t, []string{"branch", formatOption, "--points-at=HEAD"}, args)
-					return secureexec.Command("echo", "123abcd\tmaster")
+					return secureexec.Command("echo", "* 123abcd\tmaster")
 				}
 
 				return nil
@@ -276,7 +276,7 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 					return secureexec.Command("test")
 				case "branch":
 					assert.EqualValues(t, []string{"branch", formatOption, "--points-at=HEAD"}, args)
-					return secureexec.Command("echo", "123abcd\t(HEAD detached at 123abcd)")
+					return secureexec.Command("echo", "* 123abcd\t(HEAD detached at 123abcd)")
 				}
 
 				return nil
