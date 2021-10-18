@@ -604,11 +604,17 @@ func (v *View) parseInput(ch rune) []cell {
 		}
 		v.ei.reset()
 	} else {
-		if isEscape {
-			return nil
-		}
 		repeatCount := 1
-		if ch == '\t' {
+		if v.ei.instruction.kind == ERASE_IN_LINE && v.ei.instruction.param1 == 0 {
+			// fill rest of line
+			v.ei.instructionRead()
+			repeatCount = v.x1 - v.x0 - v.wx - 1
+			ch = ' '
+		} else if isEscape {
+			// do not output anything
+			return nil
+		} else if ch == '\t' {
+			// fill tab-sized space
 			ch = ' '
 			repeatCount = 4
 		}
