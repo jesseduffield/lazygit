@@ -730,14 +730,27 @@ func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
 	}
 }
 
-func (gui *Gui) pushWithForceFlag(force bool, upstream string, args string) error {
+type pushOpts struct {
+	force          bool
+	upstreamRemote string
+	upstreamBranch string
+	setUpstream    bool
+}
+
+func (gui *Gui) push(opts pushOpts) error {
 	if err := gui.createLoaderPanel(gui.Tr.PushWait); err != nil {
 		return err
 	}
 	go utils.Safe(func() {
-		branchName := gui.getCheckedOutBranch().Name
-		err := gui.GitCommand.WithSpan(gui.Tr.Spans.Push).Push(branchName, force, upstream, args, gui.promptUserForCredential)
-		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
+		err := gui.GitCommand.WithSpan(gui.Tr.Spans.Push).Push(commands.PushOpts{
+			Force:                   opts.force,
+			UpstreamRemote:          opts.upstreamRemote,
+			UpstreamBranch:          opts.upstreamBranch,
+			SetUpstream:             opts.setUpstream,
+			PromptUserForCredential: gui.promptUserForCredential,
+		})
+
+		if err != nil && !opts.force && strings.Contains(err.Error(), "Updates were rejected") {
 			forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
 			if forcePushDisabled {
 				_ = gui.createErrorPanel(gui.Tr.UpdatesRejectedAndForcePushDisabled)
@@ -747,7 +760,10 @@ func (gui *Gui) pushWithForceFlag(force bool, upstream string, args string) erro
 				title:  gui.Tr.ForcePush,
 				prompt: gui.Tr.ForcePushPrompt,
 				handleConfirm: func() error {
-					return gui.pushWithForceFlag(true, upstream, args)
+					newOpts := opts
+					newOpts.force = true
+
+					return gui.push(newOpts)
 				},
 			})
 			return
@@ -774,27 +790,48 @@ func (gui *Gui) pushFiles() error {
 		if currentBranch.HasCommitsToPull() {
 			return gui.requestToForcePush()
 		} else {
-			return gui.pushWithForceFlag(false, "", "")
+			return gui.push(pushOpts{})
 		}
 	} else {
 		// see if we have an upstream for this branch in our config
-		upstream, err := gui.upstreamForBranchInConfig(currentBranch.Name)
+		upstreamRemote, upstreamBranch, err := gui.upstreamForBranchInConfig(currentBranch.Name)
 		if err != nil {
 			return gui.surfaceError(err)
 		}
 
-		if upstream != "" {
-			return gui.pushWithForceFlag(false, "", upstream)
+		if upstreamBranch != "" {
+			return gui.push(
+				pushOpts{
+					force:          false,
+					upstreamRemote: upstreamRemote,
+					upstreamBranch: upstreamBranch,
+				},
+			)
 		}
 
 		if gui.GitCommand.PushToCurrent {
-			return gui.pushWithForceFlag(false, "", "--set-upstream")
+			return gui.push(pushOpts{setUpstream: true})
 		} else {
 			return gui.prompt(promptOpts{
 				title:          gui.Tr.EnterUpstream,
 				initialContent: "origin " + currentBranch.Name,
 				handleConfirm: func(upstream string) error {
-					return gui.pushWithForceFlag(false, upstream, "")
+					var upstreamBranch, upstreamRemote string
+					split := strings.Split(upstream, " ")
+					if len(split) == 2 {
+						upstreamRemote = split[0]
+						upstreamBranch = split[1]
+					} else {
+						upstreamRemote = upstream
+						upstreamBranch = ""
+					}
+
+					return gui.push(pushOpts{
+						force:          false,
+						upstreamRemote: upstreamRemote,
+						upstreamBranch: upstreamBranch,
+						setUpstream:    true,
+					})
 				},
 			})
 		}
@@ -811,24 +848,24 @@ func (gui *Gui) requestToForcePush() error {
 		title:  gui.Tr.ForcePush,
 		prompt: gui.Tr.ForcePushPrompt,
 		handleConfirm: func() error {
-			return gui.pushWithForceFlag(true, "", "")
+			return gui.push(pushOpts{force: true})
 		},
 	})
 }
 
-func (gui *Gui) upstreamForBranchInConfig(branchName string) (string, error) {
+func (gui *Gui) upstreamForBranchInConfig(branchName string) (string, string, error) {
 	conf, err := gui.GitCommand.Repo.Config()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	for configBranchName, configBranch := range conf.Branches {
 		if configBranchName == branchName {
-			return fmt.Sprintf("%s %s", configBranch.Remote, configBranchName), nil
+			return configBranch.Remote, configBranchName, nil
 		}
 	}
 
-	return "", nil
+	return "", "", nil
 }
 
 func (gui *Gui) handleSwitchToMerge() error {
