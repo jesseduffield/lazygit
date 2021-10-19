@@ -3,27 +3,46 @@ package commands
 import (
 	"fmt"
 	"sync"
+
+	"github.com/go-errors/errors"
 )
 
 // Push pushes to a branch
-func (c *GitCommand) Push(branchName string, force bool, upstream string, args string, promptUserForCredential func(string) string) error {
-	followTagsFlag := "--follow-tags"
-	if c.GetConfigValue("push.followTags") == "false" {
-		followTagsFlag = ""
+type PushOpts struct {
+	Force                   bool
+	UpstreamRemote          string
+	UpstreamBranch          string
+	SetUpstream             bool
+	PromptUserForCredential func(string) string
+}
+
+func (c *GitCommand) Push(opts PushOpts) error {
+	cmd := "git push"
+
+	if c.GetConfigValue("push.followTags") != "false" {
+		cmd += " --follow-tags"
 	}
 
-	forceFlag := ""
-	if force {
-		forceFlag = "--force-with-lease"
+	if opts.Force {
+		cmd += " --force-with-lease"
 	}
 
-	setUpstreamArg := ""
-	if upstream != "" {
-		setUpstreamArg = "--set-upstream " + c.OSCommand.Quote(upstream)
+	if opts.SetUpstream {
+		cmd += " --set-upstream"
 	}
 
-	cmd := fmt.Sprintf("git push %s %s %s %s", followTagsFlag, forceFlag, setUpstreamArg, args)
-	return c.OSCommand.DetectUnamePass(cmd, promptUserForCredential)
+	if opts.UpstreamRemote != "" {
+		cmd += " " + c.OSCommand.Quote(opts.UpstreamRemote)
+	}
+
+	if opts.UpstreamBranch != "" {
+		if opts.UpstreamRemote == "" {
+			return errors.New(c.Tr.MustSpecifyOriginError)
+		}
+		cmd += " " + c.OSCommand.Quote(opts.UpstreamBranch)
+	}
+
+	return c.OSCommand.DetectUnamePass(cmd, opts.PromptUserForCredential)
 }
 
 type FetchOptions struct {

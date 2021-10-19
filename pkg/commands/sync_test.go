@@ -14,8 +14,12 @@ func TestGitCommandPush(t *testing.T) {
 		testName          string
 		getGitConfigValue func(string) (string, error)
 		command           func(string, ...string) *exec.Cmd
-		forcePush         bool
+		opts              PushOpts
 		test              func(error)
+	}
+
+	prompt := func(passOrUname string) string {
+		return "\n"
 	}
 
 	scenarios := []scenario{
@@ -30,7 +34,7 @@ func TestGitCommandPush(t *testing.T) {
 
 				return secureexec.Command("echo")
 			},
-			false,
+			PushOpts{Force: false, PromptUserForCredential: prompt},
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -46,7 +50,7 @@ func TestGitCommandPush(t *testing.T) {
 
 				return secureexec.Command("echo")
 			},
-			true,
+			PushOpts{Force: true, PromptUserForCredential: prompt},
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -62,7 +66,7 @@ func TestGitCommandPush(t *testing.T) {
 
 				return secureexec.Command("echo")
 			},
-			false,
+			PushOpts{Force: false, PromptUserForCredential: prompt},
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -77,9 +81,159 @@ func TestGitCommandPush(t *testing.T) {
 				assert.EqualValues(t, []string{"push", "--follow-tags"}, args)
 				return secureexec.Command("test")
 			},
-			false,
+			PushOpts{Force: false, PromptUserForCredential: prompt},
 			func(err error) {
 				assert.Error(t, err)
+			},
+		},
+		{
+			"Push with force disabled, follow-tags off, upstream supplied",
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "origin", "master"}, args)
+
+				return secureexec.Command("echo")
+			},
+			PushOpts{
+				Force:                   false,
+				UpstreamRemote:          "origin",
+				UpstreamBranch:          "master",
+				PromptUserForCredential: prompt,
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Push with force disabled, follow-tags off, setting upstream",
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "--set-upstream", "origin", "master"}, args)
+
+				return secureexec.Command("echo")
+			},
+			PushOpts{
+				Force:                   false,
+				UpstreamRemote:          "origin",
+				UpstreamBranch:          "master",
+				PromptUserForCredential: prompt,
+				SetUpstream:             true,
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Push with force enabled, follow-tags off, setting upstream",
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "--force-with-lease", "--set-upstream", "origin", "master"}, args)
+
+				return secureexec.Command("echo")
+			},
+			PushOpts{
+				Force:                   true,
+				UpstreamRemote:          "origin",
+				UpstreamBranch:          "master",
+				PromptUserForCredential: prompt,
+				SetUpstream:             true,
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Push with remote branch but no origin",
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd string, args ...string) *exec.Cmd {
+				return nil
+			},
+			PushOpts{
+				Force:                   true,
+				UpstreamRemote:          "",
+				UpstreamBranch:          "master",
+				PromptUserForCredential: prompt,
+				SetUpstream:             true,
+			},
+			func(err error) {
+				assert.Error(t, err)
+				assert.EqualValues(t, "Must specify a remote if specifying a branch", err.Error())
+			},
+		},
+		{
+			"Push with force disabled, follow-tags off, upstream supplied",
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "origin", "master"}, args)
+
+				return secureexec.Command("echo")
+			},
+			PushOpts{
+				Force:                   false,
+				UpstreamRemote:          "origin",
+				UpstreamBranch:          "master",
+				PromptUserForCredential: prompt,
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Push with force disabled, follow-tags off, setting upstream",
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "--set-upstream", "origin", "master"}, args)
+
+				return secureexec.Command("echo")
+			},
+			PushOpts{
+				Force:                   false,
+				UpstreamRemote:          "origin",
+				UpstreamBranch:          "master",
+				PromptUserForCredential: prompt,
+				SetUpstream:             true,
+			},
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Push with force enabled, follow-tags off, setting upstream",
+			func(string) (string, error) {
+				return "false", nil
+			},
+			func(cmd string, args ...string) *exec.Cmd {
+				assert.EqualValues(t, "git", cmd)
+				assert.EqualValues(t, []string{"push", "--force-with-lease", "--set-upstream", "origin", "master"}, args)
+
+				return secureexec.Command("echo")
+			},
+			PushOpts{
+				Force:                   true,
+				UpstreamRemote:          "origin",
+				UpstreamBranch:          "master",
+				PromptUserForCredential: prompt,
+				SetUpstream:             true,
+			},
+			func(err error) {
+				assert.NoError(t, err)
 			},
 		},
 	}
@@ -89,9 +243,7 @@ func TestGitCommandPush(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.Command = s.command
 			gitCmd.getGitConfigValue = s.getGitConfigValue
-			err := gitCmd.Push("test", s.forcePush, "", "", func(passOrUname string) string {
-				return "\n"
-			})
+			err := gitCmd.Push(s.opts)
 			s.test(err)
 		})
 	}
