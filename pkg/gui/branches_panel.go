@@ -414,7 +414,7 @@ func (gui *Gui) handleFastForward() error {
 		_ = gui.createLoaderPanel(message)
 
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
-			_ = gui.pullWithMode("ff-only", PullFilesOptions{span: span})
+			_ = gui.pullWithLock(PullFilesOptions{span: span, FastForwardOnly: true})
 		} else {
 			err := gui.GitCommand.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName, gui.promptUserForCredential)
 			gui.handleCredentialsPopup(err)

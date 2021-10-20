@@ -678,9 +678,10 @@ func (gui *Gui) handlePullFiles() error {
 }
 
 type PullFilesOptions struct {
-	RemoteName string
-	BranchName string
-	span       string
+	RemoteName      string
+	BranchName      string
+	FastForwardOnly bool
+	span            string
 }
 
 func (gui *Gui) pullFiles(opts PullFilesOptions) error {
@@ -688,46 +689,30 @@ func (gui *Gui) pullFiles(opts PullFilesOptions) error {
 		return err
 	}
 
-	mode := &gui.Config.GetUserConfig().Git.Pull.Mode
-	*mode = gui.GitCommand.GetPullMode(*mode)
-
 	// TODO: this doesn't look like a good idea. Why the goroutine?
-	go utils.Safe(func() { _ = gui.pullWithMode(*mode, opts) })
+	go utils.Safe(func() { _ = gui.pullWithLock(opts) })
 
 	return nil
 }
 
-func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
+func (gui *Gui) pullWithLock(opts PullFilesOptions) error {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
 	gitCommand := gui.GitCommand.WithSpan(opts.span)
 
-	err := gitCommand.Fetch(
-		commands.FetchOptions{
+	err := gitCommand.Pull(
+		commands.PullOptions{
 			PromptUserForCredential: gui.promptUserForCredential,
 			RemoteName:              opts.RemoteName,
 			BranchName:              opts.BranchName,
+			FastForwardOnly:         opts.FastForwardOnly,
 		},
 	)
-	gui.handleCredentialsPopup(err)
-	if err != nil {
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	if err == nil {
+		_ = gui.closeConfirmationPrompt(false)
 	}
-
-	switch mode {
-	case "rebase":
-		err := gitCommand.RebaseBranch("FETCH_HEAD")
-		return gui.handleGenericMergeCommandResult(err)
-	case "merge":
-		err := gitCommand.Merge("FETCH_HEAD", commands.MergeOpts{})
-		return gui.handleGenericMergeCommandResult(err)
-	case "ff-only":
-		err := gitCommand.Merge("FETCH_HEAD", commands.MergeOpts{FastForwardOnly: true})
-		return gui.handleGenericMergeCommandResult(err)
-	default:
-		return gui.createErrorPanel(fmt.Sprintf("git pull mode '%s' unrecognised", mode))
-	}
+	return gui.handleGenericMergeCommandResult(err)
 }
 
 type pushOpts struct {

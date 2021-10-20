@@ -246,3 +246,7 @@ func (c *GitCommand) RunCommandWithOutput(formatString string, formatArgs ...int
 		return output, err
 	}
 }
+
+func (c *GitCommand) NewCmdObjFromStr(cmdStr string) oscommands.ICmdObj {
+	return c.OSCommand.NewCmdObjFromStr(cmdStr).AddEnvVars("GIT_OPTIONAL_LOCKS=0")
+}

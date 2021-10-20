@@ -59,8 +59,6 @@ git:
     manualCommit: false
     # extra args passed to `git merge`, e.g. --no-ff
     args: ''
-  pull:
-    mode: 'auto' # one of 'auto' | 'merge' | 'rebase' | 'ff-only', auto reads from git configuration
   skipHookPrefix: WIP
   autoFetch: true
   branchLogCmd: 'git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --'

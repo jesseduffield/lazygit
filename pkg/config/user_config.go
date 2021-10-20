@@ -61,7 +61,6 @@ type CommitLengthConfig struct {
 type GitConfig struct {
 	Paging              PagingConfig                  `yaml:"paging"`
 	Merging             MergingConfig                 `yaml:"merging"`
-	Pull                PullConfig                    `yaml:"pull"`
 	SkipHookPrefix      string                        `yaml:"skipHookPrefix"`
 	AutoFetch           bool                          `yaml:"autoFetch"`
 	BranchLogCmd        string                        `yaml:"branchLogCmd"`
@@ -81,10 +80,6 @@ type PagingConfig struct {
 type MergingConfig struct {
 	ManualCommit bool   `yaml:"manualCommit"`
 	Args         string `yaml:"args"`
-}
-
-type PullConfig struct {
-	Mode string `yaml:"mode"`
 }
 
 type CommitPrefixConfig struct {
@@ -340,9 +335,6 @@ func GetDefaultConfig() *UserConfig {
 			Merging: MergingConfig{
 				ManualCommit: false,
 				Args:         "",
-			},
-			Pull: PullConfig{
-				Mode: "auto",
 			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,

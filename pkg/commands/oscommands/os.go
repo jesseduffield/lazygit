@@ -218,16 +218,16 @@ func (c *OSCommand) ShellCommandFromString(commandStr string) *exec.Cmd {
 }
 
 // RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
-func (c *OSCommand) RunCommandWithOutputLive(command string, output func(string) string) error {
-	return RunCommandWithOutputLiveWrapper(c, command, output)
+func (c *OSCommand) RunCommandWithOutputLive(cmdObj ICmdObj, output func(string) string) error {
+	return RunCommandWithOutputLiveWrapper(c, cmdObj, output)
 }
 
 // DetectUnamePass detect a username / password / passphrase question in a command
 // promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (c *OSCommand) DetectUnamePass(command string, promptUserForCredential func(string) string) error {
+func (c *OSCommand) DetectUnamePass(cmdObj ICmdObj, promptUserForCredential func(string) string) error {
 	ttyText := ""
-	errMessage := c.RunCommandWithOutputLive(command, func(word string) string {
+	errMessage := c.RunCommandWithOutputLive(cmdObj, func(word string) string {
 		ttyText = ttyText + " " + word
 
 		prompts := map[string]string{
@@ -562,4 +562,31 @@ func (c *OSCommand) RemoveFile(path string) error {
 	c.LogCommand(fmt.Sprintf("Deleting path '%s'", path), false)
 
 	return c.removeFile(path)
+}
+
+func (c *OSCommand) NewCmdObjFromStr(cmdStr string) ICmdObj {
+	args := str.ToArgv(cmdStr)
+	cmd := c.Command(args[0], args[1:]...)
+	cmd.Env = os.Environ()
+
+	return &CmdObj{
+		cmdStr: cmdStr,
+		cmd:    cmd,
+	}
+}
+
+func (c *OSCommand) NewCmdObjFromArgs(args []string) ICmdObj {
+	cmd := c.Command(args[0], args[1:]...)
+
+	return &CmdObj{
+		cmdStr: strings.Join(args, " "),
+		cmd:    cmd,
+	}
+}
+
+func (c *OSCommand) NewCmdObj(cmd *exec.Cmd) ICmdObj {
+	return &CmdObj{
+		cmdStr: strings.Join(cmd.Args, " "),
+		cmd:    cmd,
+	}
 }
