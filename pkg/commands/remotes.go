@@ -22,7 +22,8 @@ func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error
 
 func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(string) string) error {
 	command := fmt.Sprintf("git push %s --delete %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(branchName))
-	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
+	cmdObj := c.NewCmdObjFromStr(command)
+	return c.OSCommand.DetectUnamePass(cmdObj, promptUserForCredential)
 }
 
 // CheckRemoteBranchExists Returns remote branch
