@@ -56,8 +56,8 @@ func Test(t *testing.T) {
 		updateSnapshots,
 		record,
 		speedEnv,
-		func(t *testing.T, expected string, actual string) {
-			assert.Equal(t, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
+		func(t *testing.T, expected string, actual string, prefix string) {
+			assert.Equal(t, expected, actual, fmt.Sprintf("Unexpected %s. Expected:\n%s\nActual:\n%s\n", prefix, expected, actual))
 		},
 		includeSkipped,
 	)
@@ -80,60 +80,4 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	_, _ = io.Copy(ioutil.Discard, f)
 
 	return f.Close()
-}
-
-func TestGuiGenerateMenuCandidates(t *testing.T) {
-	type scenario struct {
-		testName    string
-		cmdOut      string
-		filter      string
-		valueFormat string
-		labelFormat string
-		test        func([]commandMenuEntry, error)
-	}
-
-	scenarios := []scenario{
-		{
-			"Extract remote branch name",
-			"upstream/pr-1",
-			"(?P<remote>[a-z_]+)/(?P<branch>.*)",
-			"{{ .branch }}",
-			"Remote: {{ .remote }}",
-			func(actualEntry []commandMenuEntry, err error) {
-				assert.NoError(t, err)
-				assert.EqualValues(t, "pr-1", actualEntry[0].value)
-				assert.EqualValues(t, "Remote: upstream", actualEntry[0].label)
-			},
-		},
-		{
-			"Multiple named groups with empty labelFormat",
-			"upstream/pr-1",
-			"(?P<remote>[a-z]*)/(?P<branch>.*)",
-			"{{ .branch }}|{{ .remote }}",
-			"",
-			func(actualEntry []commandMenuEntry, err error) {
-				assert.NoError(t, err)
-				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].value)
-				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].label)
-			},
-		},
-		{
-			"Multiple named groups with group ids",
-			"upstream/pr-1",
-			"(?P<remote>[a-z]*)/(?P<branch>.*)",
-			"{{ .group_2 }}|{{ .group_1 }}",
-			"Remote: {{ .group_1 }}",
-			func(actualEntry []commandMenuEntry, err error) {
-				assert.NoError(t, err)
-				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].value)
-				assert.EqualValues(t, "Remote: upstream", actualEntry[0].label)
-			},
-		},
-	}
-
-	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			s.test(NewDummyGui().GenerateMenuCandidates(s.cmdOut, s.filter, s.valueFormat, s.labelFormat))
-		})
-	}
 }
