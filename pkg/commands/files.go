@@ -331,7 +331,7 @@ func (c *GitCommand) EditFileCmdStr(filename string, lineNumber int) (string, er
 	editor := c.Config.GetUserConfig().OS.EditCommand
 
 	if editor == "" {
-		editor = c.GetConfigValue("core.editor")
+		editor = c.GitConfig.Get("core.editor")
 	}
 
 	if editor == "" {
