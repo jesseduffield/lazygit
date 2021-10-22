@@ -324,7 +324,7 @@ func GetDefaultConfig() *UserConfig {
 			SkipNoStagedFilesWarning: false,
 			ShowListFooter:           true,
 			ShowCommandLog:           true,
-			ShowFileTree:             false,
+			ShowFileTree:             true,
 			ShowRandomTip:            true,
 			CommandLogSize:           8,
 		},
