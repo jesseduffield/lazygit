@@ -121,8 +121,9 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 	)
 
 	return gui.prompt(promptOpts{
-		title:          title,
-		initialContent: "origin",
+		title:               title,
+		initialContent:      "origin",
+		findSuggestionsFunc: gui.getRemoteSuggestionsFunc(),
 		handleConfirm: func(response string) error {
 			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
 				err := gui.GitCommand.WithSpan(gui.Tr.Spans.PushTag).PushTag(response, tag.Name, gui.promptUserForCredential)
