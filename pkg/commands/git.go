@@ -10,6 +10,7 @@ import (
 	"github.com/go-errors/errors"
 
 	gogit "github.com/jesseduffield/go-git/v5"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -32,32 +33,32 @@ type GitCommand struct {
 	Repo                 *gogit.Repository
 	Tr                   *i18n.TranslationSet
 	Config               config.AppConfigurer
-	getGitConfigValue    func(string) (string, error)
 	DotGitDir            string
 	onSuccessfulContinue func() error
 	PatchManager         *patch.PatchManager
+	GitConfig            git_config.IGitConfig
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	PushToCurrent bool
 }
 
 // NewGitCommand it runs git commands
-func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer) (*GitCommand, error) {
+func NewGitCommand(
+	log *logrus.Entry,
+	osCommand *oscommands.OSCommand,
+	tr *i18n.TranslationSet,
+	config config.AppConfigurer,
+	gitConfig git_config.IGitConfig,
+) (*GitCommand, error) {
 	var repo *gogit.Repository
 
-	// see what our default push behaviour is
-	output, err := osCommand.RunCommandWithOutput("git config --get push.default")
-	pushToCurrent := false
-	if err != nil {
-		log.Errorf("error reading git config: %v", err)
-	} else {
-		pushToCurrent = strings.TrimSpace(output) == "current"
-	}
+	pushToCurrent := gitConfig.Get("push.default") == "current"
 
 	if err := navigateToRepoRootDirectory(os.Stat, os.Chdir); err != nil {
 		return nil, err
 	}
 
+	var err error
 	if repo, err = setupRepository(gogit.PlainOpen, tr.GitconfigParseErr); err != nil {
 		return nil, err
 	}
@@ -68,14 +69,14 @@ func NewGitCommand(log *logrus.Entry, osCommand *oscommands.OSCommand, tr *i18n.
 	}
 
 	gitCommand := &GitCommand{
-		Log:               log,
-		OSCommand:         osCommand,
-		Tr:                tr,
-		Repo:              repo,
-		Config:            config,
-		getGitConfigValue: getGitConfigValue,
-		DotGitDir:         dotGitDir,
-		PushToCurrent:     pushToCurrent,
+		Log:           log,
+		OSCommand:     osCommand,
+		Tr:            tr,
+		Repo:          repo,
+		Config:        config,
+		DotGitDir:     dotGitDir,
+		PushToCurrent: pushToCurrent,
+		GitConfig:     gitConfig,
 	}
 
 	gitCommand.PatchManager = patch.NewPatchManager(log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)

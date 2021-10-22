@@ -18,10 +18,6 @@ type PushOpts struct {
 func (c *GitCommand) Push(opts PushOpts) error {
 	cmdStr := "git push"
 
-	if c.GetConfigValue("push.followTags") != "false" {
-		cmdStr += " --follow-tags"
-	}
-
 	if opts.Force {
 		cmdStr += " --force-with-lease"
 	}

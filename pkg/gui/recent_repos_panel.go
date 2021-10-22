@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -72,7 +73,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 		return err
 	}
 
-	newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config)
+	newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config, git_config.NewStdCachedGitConfig(gui.Log))
 	if err != nil {
 		return err
 	}

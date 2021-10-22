@@ -38,5 +38,5 @@ func (c *GitCommand) CheckRemoteBranchExists(branchName string) bool {
 
 // GetRemoteURL returns current repo remote url
 func (c *GitCommand) GetRemoteURL() string {
-	return c.GetConfigValue("remote.origin.url")
+	return c.GitConfig.Get("remote.origin.url")
 }

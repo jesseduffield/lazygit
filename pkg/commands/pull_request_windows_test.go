@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/stretchr/testify/assert"
 )
@@ -247,10 +248,7 @@ func TestCreatePullRequestOnWindows(t *testing.T) {
 				"invalid.work.com":   "noservice:invalid.work.com",
 				"noservice.work.com": "noservice.work.com",
 			}
-			gitCommand.getGitConfigValue = func(path string) (string, error) {
-				assert.Equal(t, path, "remote.origin.url")
-				return s.remoteUrl, nil
-			}
+			gitCommand.GitConfig = git_config.NewFakeGitConfig(map[string]string{"remote.origin.url": s.remoteUrl})
 			dummyPullRequest := NewPullRequest(gitCommand)
 			s.test(dummyPullRequest.Create(s.from, s.to))
 		})

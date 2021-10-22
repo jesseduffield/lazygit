@@ -15,7 +15,7 @@ type GetStatusFileOptions struct {
 
 func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 	// check if config wants us ignoring untracked files
-	untrackedFilesSetting := c.GetConfigValue("status.showUntrackedFiles")
+	untrackedFilesSetting := c.GitConfig.Get("status.showUntrackedFiles")
 
 	if untrackedFilesSetting == "" {
 		untrackedFilesSetting = "all"

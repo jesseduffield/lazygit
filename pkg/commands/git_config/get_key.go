@@ -1,4 +1,4 @@
-package commands
+package git_config
 
 import (
 	"bytes"

@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/test"
@@ -523,24 +524,21 @@ func TestGitCommandApplyPatch(t *testing.T) {
 	}
 }
 
-// TestGitCommandDiscardOldFileChanges is a function.
 func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 	type scenario struct {
-		testName          string
-		getGitConfigValue func(string) (string, error)
-		commits           []*models.Commit
-		commitIndex       int
-		fileName          string
-		command           func(string, ...string) *exec.Cmd
-		test              func(error)
+		testName               string
+		gitConfigMockResponses map[string]string
+		commits                []*models.Commit
+		commitIndex            int
+		fileName               string
+		command                func(string, ...string) *exec.Cmd
+		test                   func(error)
 	}
 
 	scenarios := []scenario{
 		{
 			"returns error when index outside of range of commits",
-			func(string) (string, error) {
-				return "", nil
-			},
+			nil,
 			[]*models.Commit{},
 			0,
 			"test999.txt",
@@ -551,9 +549,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 		},
 		{
 			"returns error when using gpg",
-			func(string) (string, error) {
-				return "true", nil
-			},
+			map[string]string{"commit.gpgsign": "true"},
 			[]*models.Commit{{Name: "commit", Sha: "123456"}},
 			0,
 			"test999.txt",
@@ -564,9 +560,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 		},
 		{
 			"checks out file if it already existed",
-			func(string) (string, error) {
-				return "", nil
-			},
+			nil,
 			[]*models.Commit{
 				{Name: "commit", Sha: "123456"},
 				{Name: "commit2", Sha: "abcdef"},
@@ -608,7 +602,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.Command = s.command
-			gitCmd.getGitConfigValue = s.getGitConfigValue
+			gitCmd.GitConfig = git_config.NewFakeGitConfig(s.gitConfigMockResponses)
 			s.test(gitCmd.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
 		})
 	}
@@ -725,7 +719,7 @@ func TestEditFileCmdStr(t *testing.T) {
 		configEditCommandTemplate string
 		command                   func(string, ...string) *exec.Cmd
 		getenv                    func(string) string
-		getGitConfigValue         func(string) (string, error)
+		gitConfigMockResponses    map[string]string
 		test                      func(string, error)
 	}
 
@@ -740,9 +734,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.EqualError(t, err, "No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 			},
@@ -758,9 +750,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "nano "+gitCmd.OSCommand.Quote("test"), cmdStr)
@@ -777,9 +767,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "nano", nil
-			},
+			map[string]string{"core.editor": "nano"},
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "nano "+gitCmd.OSCommand.Quote("test"), cmdStr)
@@ -800,9 +788,7 @@ func TestEditFileCmdStr(t *testing.T) {
 
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
 			},
@@ -822,9 +808,7 @@ func TestEditFileCmdStr(t *testing.T) {
 
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "emacs "+gitCmd.OSCommand.Quote("test"), cmdStr)
@@ -841,9 +825,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "vi "+gitCmd.OSCommand.Quote("test"), cmdStr)
@@ -860,9 +842,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "vi "+gitCmd.OSCommand.Quote("file/with space"), cmdStr)
@@ -879,9 +859,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "vim +1 "+gitCmd.OSCommand.Quote("open file/at line"), cmdStr)
@@ -894,7 +872,7 @@ func TestEditFileCmdStr(t *testing.T) {
 		gitCmd.Config.GetUserConfig().OS.EditCommandTemplate = s.configEditCommandTemplate
 		gitCmd.OSCommand.Command = s.command
 		gitCmd.OSCommand.Getenv = s.getenv
-		gitCmd.getGitConfigValue = s.getGitConfigValue
+		gitCmd.GitConfig = git_config.NewFakeGitConfig(s.gitConfigMockResponses)
 		s.test(gitCmd.EditFileCmdStr(s.filename, 1))
 	}
 }
