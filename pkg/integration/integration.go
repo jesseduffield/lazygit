@@ -33,7 +33,7 @@ func RunTests(
 	updateSnapshots bool,
 	record bool,
 	speedEnv string,
-	onFail func(t *testing.T, expected string, actual string),
+	onFail func(t *testing.T, expected string, actual string, prefix string),
 	includeSkipped bool,
 ) error {
 	rootDir := GetRootDirectory()
@@ -66,8 +66,10 @@ func RunTests(
 		fnWrapper(test, func(t *testing.T) error {
 			speeds := getTestSpeeds(test.Speed, updateSnapshots, speedEnv)
 			testPath := filepath.Join(testDir, test.Name)
-			actualDir := filepath.Join(testPath, "actual")
-			expectedDir := filepath.Join(testPath, "expected")
+			actualRepoDir := filepath.Join(testPath, "actual")
+			expectedRepoDir := filepath.Join(testPath, "expected")
+			actualRemoteDir := filepath.Join(testPath, "actual_remote")
+			expectedRemoteDir := filepath.Join(testPath, "expected_remote")
 			logf("path: %s", testPath)
 
 			// three retries at normal speed for the sake of flakey tests
@@ -76,8 +78,9 @@ func RunTests(
 				logf("%s: attempting test at speed %f\n", test.Name, speed)
 
 				findOrCreateDir(testPath)
-				prepareIntegrationTestDir(actualDir)
-				err := createFixture(testPath, actualDir)
+				prepareIntegrationTestDir(actualRepoDir)
+				removeRemoteDir(actualRemoteDir)
+				err := createFixture(testPath, actualRepoDir)
 				if err != nil {
 					return err
 				}
@@ -95,25 +98,46 @@ func RunTests(
 				}
 
 				if updateSnapshots {
-					err = oscommands.CopyDir(actualDir, expectedDir)
+					err = oscommands.CopyDir(actualRepoDir, expectedRepoDir)
 					if err != nil {
 						return err
 					}
 					err = os.Rename(
-						filepath.Join(expectedDir, ".git"),
-						filepath.Join(expectedDir, ".git_keep"),
+						filepath.Join(expectedRepoDir, ".git"),
+						filepath.Join(expectedRepoDir, ".git_keep"),
 					)
 					if err != nil {
 						return err
 					}
+
+					// see if we have a remote dir and if so, copy it over. Otherwise, delete the expected dir because we have no remote folder.
+					if folderExists(actualRemoteDir) {
+						err = oscommands.CopyDir(actualRemoteDir, expectedRemoteDir)
+						if err != nil {
+							return err
+						}
+					} else {
+						removeRemoteDir(expectedRemoteDir)
+					}
 				}
 
-				actual, expected, err := generateSnapshots(actualDir, expectedDir)
+				actualRepo, expectedRepo, err := generateSnapshots(actualRepoDir, expectedRepoDir)
 				if err != nil {
 					return err
 				}
 
-				if expected == actual {
+				actualRemote := "remote folder does not exist"
+				expectedRemote := "remote folder does not exist"
+				if folderExists(expectedRemoteDir) {
+					actualRemote, expectedRemote, err = generateSnapshotsForRemote(actualRemoteDir, expectedRemoteDir)
+					if err != nil {
+						return err
+					}
+				} else if folderExists(actualRemoteDir) {
+					actualRemote = "remote folder exists"
+				}
+
+				if expectedRepo == actualRepo && expectedRemote == actualRemote {
 					logf("%s: success at speed %f\n", test.Name, speed)
 					break
 				}
@@ -126,7 +150,11 @@ func RunTests(
 						return err
 					}
 					logf("%s", string(bytes))
-					onFail(t, expected, actual)
+					if expectedRepo != actualRepo {
+						onFail(t, expectedRepo, actualRepo, "repo")
+					} else {
+						onFail(t, expectedRemote, actualRemote, "remote")
+					}
 				}
 			}
 
@@ -135,6 +163,13 @@ func RunTests(
 	}
 
 	return nil
+}
+
+func removeRemoteDir(dir string) {
+	err := os.RemoveAll(dir)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func prepareIntegrationTestDir(actualDir string) {
@@ -351,6 +386,20 @@ func generateSnapshots(actualDir string, expectedDir string) (string, string, er
 	return actual, expected, nil
 }
 
+func generateSnapshotsForRemote(actualDir string, expectedDir string) (string, string, error) {
+	actual, err := generateSnapshot(actualDir)
+	if err != nil {
+		return "", "", err
+	}
+
+	expected, err := generateSnapshot(expectedDir)
+	if err != nil {
+		return "", "", err
+	}
+
+	return actual, expected, nil
+}
+
 func getLazygitCommand(testPath string, rootDir string, record bool, speed float64, extraCmdArgs string) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
@@ -396,4 +445,9 @@ func getLazygitCommand(testPath string, rootDir string, record bool, speed float
 	}
 
 	return cmd, nil
+}
+
+func folderExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }

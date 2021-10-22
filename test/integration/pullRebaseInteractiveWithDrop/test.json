@@ -1,0 +1,1 @@
+{ "description": "When user has configured pull with interactive rebase, ensure we handle conflicts and show commits yet to be rebased", "speed": 5 }
