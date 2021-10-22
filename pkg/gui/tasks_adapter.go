@@ -43,8 +43,20 @@ func (gui *Gui) newStringTask(view *gocui.View, str string) error {
 }
 
 func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
-	// using empty key so that on subsequent calls we won't reset the view's origin
-	return gui.newStringTaskWithKey(view, str, "")
+	manager := gui.getManager(view)
+
+	f := func(stop chan struct{}) error {
+		gui.setViewContent(view, str)
+		return nil
+	}
+
+	// Using empty key so that on subsequent calls we won't reset the view's origin.
+	// Note this means that we will be scrolling back to the top if we're switching from a different key
+	if err := manager.NewTask(f, ""); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) error {
