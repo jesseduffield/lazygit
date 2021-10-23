@@ -124,8 +124,8 @@ var authorInitialCache = make(map[string]string)
 var authorNameCache = make(map[string]string)
 
 func shortAuthor(authorName string) string {
-	if _, ok := authorInitialCache[authorName]; ok {
-		return authorInitialCache[authorName]
+	if value, ok := authorInitialCache[authorName]; ok {
+		return value
 	}
 
 	initials := getInitials(authorName)
@@ -140,8 +140,8 @@ func shortAuthor(authorName string) string {
 }
 
 func longAuthor(authorName string) string {
-	if _, ok := authorNameCache[authorName]; ok {
-		return authorNameCache[authorName]
+	if value, ok := authorNameCache[authorName]; ok {
+		return value
 	}
 
 	truncatedName := utils.TruncateWithEllipsis(authorName, 17)
@@ -184,7 +184,7 @@ func getInitials(authorName string) string {
 		return utils.LimitStr(authorName, 2)
 	}
 
-	return split[0][0:1] + split[1][0:1]
+	return utils.LimitStr(split[0], 1) + utils.LimitStr(split[1], 1)
 }
 
 func actionColorMap(str string) style.TextStyle {
