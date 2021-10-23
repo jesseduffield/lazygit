@@ -41,6 +41,7 @@ type GuiConfig struct {
 	ShowRandomTip            bool               `yaml:"showRandomTip"`
 	ShowCommandLog           bool               `yaml:"showCommandLog"`
 	CommandLogSize           int                `yaml:"commandLogSize"`
+	AuthorColors             map[string]string  `yaml:"authorColors"`
 }
 
 type ThemeConfig struct {

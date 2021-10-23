@@ -142,6 +142,13 @@ func (gui *Gui) tagsListContext() *ListContext {
 	}
 }
 
+func (gui *Gui) SetCustomAuthorColorMap() {
+	authorConfiguration := gui.Config.GetUserConfig().Gui.AuthorColors
+	if len(authorConfiguration) > 0 {
+		presentation.SetCustomAuthors(authorConfiguration)
+	}
+}
+
 func (gui *Gui) branchCommitsListContext() *ListContext {
 	parseEmoji := gui.Config.GetUserConfig().Git.ParseEmoji
 	return &ListContext{

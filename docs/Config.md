@@ -50,6 +50,8 @@ gui:
   showRandomTip: true
   showCommandLog: true
   commandLogSize: 8
+  authorColors:
+    "Author Name": "255, 0, 0"
 git:
   paging:
     colorArg: always

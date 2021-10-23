@@ -447,6 +447,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 	gui.resetState(filterPath, false)
 
 	gui.watchFilesForChanges()
+	gui.SetCustomAuthorColorMap()
 
 	onRunCommand := gui.GetOnRunCommand()
 	oSCommand.SetOnRunCommand(onRunCommand)
