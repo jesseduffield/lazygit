@@ -127,7 +127,13 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, err
 	}
 
-	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr, app.Config, git_config.NewStdCachedGitConfig(app.Log))
+	app.GitCommand, err = commands.NewGitCommand(
+		app.Log,
+		app.OSCommand,
+		app.Tr,
+		app.Config,
+		git_config.NewStdCachedGitConfig(app.Log),
+	)
 	if err != nil {
 		return app, err
 	}

@@ -2,6 +2,8 @@ package commands
 
 import (
 	"fmt"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 func (c *GitCommand) AddRemote(name string, url string) error {
@@ -23,7 +25,11 @@ func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error
 func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(string) string) error {
 	command := fmt.Sprintf("git push %s --delete %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(branchName))
 	cmdObj := c.NewCmdObjFromStr(command)
-	return c.OSCommand.DetectUnamePass(cmdObj, promptUserForCredential)
+	return c.DetectUnamePass(cmdObj, promptUserForCredential)
+}
+
+func (c *GitCommand) DetectUnamePass(cmdObj oscommands.ICmdObj, promptUserForCredential func(string) string) error {
+	return c.OSCommand.DetectUnamePass(cmdObj, c.GetCmdWriter(), promptUserForCredential)
 }
 
 // CheckRemoteBranchExists Returns remote branch

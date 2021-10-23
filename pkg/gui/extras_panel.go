@@ -1,5 +1,11 @@
 package gui
 
+import (
+	"io"
+
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
+)
+
 func (gui *Gui) handleCreateExtrasMenuPanel() error {
 	menuItems := []*menuItem{
 		{
@@ -47,4 +53,29 @@ func (gui *Gui) scrollDownExtra() error {
 	}
 
 	return nil
+}
+
+func (gui *Gui) getCmdWriter() io.Writer {
+	return &prefixWriter{writer: gui.Views.Extras, prefix: style.FgMagenta.Sprintf("\n\n%s\n", gui.Tr.GitOutput)}
+}
+
+// Ensures that the first write is preceded by writing a prefix.
+// This allows us to say 'Git output:' before writing the actual git output.
+// We could just write directly to the view in this package before running the command but we already have code in the commands package that writes to the same view beforehand (with the command it's about to run) so things would be out of order.
+type prefixWriter struct {
+	prefix        string
+	prefixWritten bool
+	writer        io.Writer
+}
+
+func (self *prefixWriter) Write(p []byte) (n int, err error) {
+	if !self.prefixWritten {
+		self.prefixWritten = true
+		// assuming we can write this prefix in one go
+		_, err = self.writer.Write([]byte(self.prefix))
+		if err != nil {
+			return
+		}
+	}
+	return self.writer.Write(p)
 }

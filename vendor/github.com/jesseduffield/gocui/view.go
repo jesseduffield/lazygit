@@ -359,7 +359,32 @@ func (v *View) Dimensions() (int, int, int, int) {
 
 // Size returns the number of visible columns and rows in the View.
 func (v *View) Size() (x, y int) {
-	return v.x1 - v.x0 - 1, v.y1 - v.y0 - 1
+	return v.Width(), v.Height()
+}
+
+func (v *View) Width() int {
+	return v.x1 - v.x0 - 1
+}
+
+func (v *View) Height() int {
+	return v.y1 - v.y0 - 1
+}
+
+// if a view has a frame, that leaves less space for its writeable area
+func (v *View) InnerWidth() int {
+	return v.Width() - v.frameOffset()
+}
+
+func (v *View) InnerHeight() int {
+	return v.Height() - v.frameOffset()
+}
+
+func (v *View) frameOffset() int {
+	if v.Frame {
+		return 1
+	} else {
+		return 0
+	}
 }
 
 // Name returns the name of the view.
@@ -576,12 +601,14 @@ func (v *View) writeRunes(p []rune) {
 		case '\r':
 			v.wx = 0
 		default:
-			cells := v.parseInput(r)
+			moveCursor, cells := v.parseInput(r)
 			if cells == nil {
 				continue
 			}
 			v.writeCells(v.wx, v.wy, cells)
-			v.wx += len(cells)
+			if moveCursor {
+				v.wx += len(cells)
+			}
 		}
 	}
 }
@@ -589,8 +616,9 @@ func (v *View) writeRunes(p []rune) {
 // parseInput parses char by char the input written to the View. It returns nil
 // while processing ESC sequences. Otherwise, it returns a cell slice that
 // contains the processed data.
-func (v *View) parseInput(ch rune) []cell {
+func (v *View) parseInput(ch rune) (bool, []cell) {
 	cells := []cell{}
+	moveCursor := true
 
 	isEscape, err := v.ei.parseOne(ch)
 	if err != nil {
@@ -604,25 +632,32 @@ func (v *View) parseInput(ch rune) []cell {
 		}
 		v.ei.reset()
 	} else {
-		if isEscape {
-			return nil
-		}
 		repeatCount := 1
-		if ch == '\t' {
+		if _, ok := v.ei.instruction.(eraseInLineFromCursor); ok {
+			// fill rest of line
+			v.ei.instructionRead()
+			repeatCount = v.InnerWidth() - v.wx
+			ch = ' '
+			moveCursor = false
+		} else if isEscape {
+			// do not output anything
+			return moveCursor, nil
+		} else if ch == '\t' {
+			// fill tab-sized space
 			ch = ' '
 			repeatCount = 4
 		}
+		c := cell{
+			fgColor: v.ei.curFgColor,
+			bgColor: v.ei.curBgColor,
+			chr:     ch,
+		}
 		for i := 0; i < repeatCount; i++ {
-			c := cell{
-				fgColor: v.ei.curFgColor,
-				bgColor: v.ei.curBgColor,
-				chr:     ch,
-			}
 			cells = append(cells, c)
 		}
 	}
 
-	return cells
+	return moveCursor, cells
 }
 
 // Read reads data into p from the current reading position set by SetReadPos.
@@ -767,6 +802,8 @@ func (v *View) IsTainted() bool {
 
 // draw re-draws the view's contents.
 func (v *View) draw() error {
+	v.clearRunes()
+
 	if !v.Visible {
 		return nil
 	}
@@ -809,8 +846,9 @@ func (v *View) draw() error {
 		}
 	}
 
-	if v.Autoscroll && len(v.viewLines) > maxY {
-		v.oy = len(v.viewLines) - maxY
+	visibleViewLinesHeight := v.viewLineLengthIgnoringTrailingBlankLines()
+	if v.Autoscroll && visibleViewLinesHeight > maxY {
+		v.oy = visibleViewLinesHeight - maxY
 	}
 	y := 0
 	for i, vline := range v.viewLines {
@@ -856,6 +894,18 @@ func (v *View) draw() error {
 		y++
 	}
 	return nil
+}
+
+// if autoscroll is enabled but we only have a single row of cells shown to the
+// user, we don't want to scroll to the final line if it contains no text. So
+// this tells us the view lines height when we ignore any trailing blank lines
+func (v *View) viewLineLengthIgnoringTrailingBlankLines() int {
+	for i := len(v.viewLines) - 1; i >= 0; i-- {
+		if len(v.viewLines[i].line) > 0 {
+			return i + 1
+		}
+	}
+	return 0
 }
 
 func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
@@ -1008,23 +1058,6 @@ func indexFunc(r rune) bool {
 	return r == ' ' || r == 0
 }
 
-// SetLine changes the contents of an existing line.
-func (v *View) SetLine(y int, text string) error {
-	if y < 0 || y >= len(v.lines) {
-		err := ErrInvalidPoint
-		return err
-	}
-
-	v.tainted = true
-	line := make([]cell, 0)
-	for _, r := range text {
-		c := v.parseInput(r)
-		line = append(line, c...)
-	}
-	v.lines[y] = line
-	return nil
-}
-
 // SetHighlight toggles highlighting of separate lines, for custom lists
 // or multiple selection in views.
 func (v *View) SetHighlight(y int, on bool) error {
@@ -1129,14 +1162,10 @@ func (v *View) RenderTextArea() {
 	fmt.Fprint(v, v.TextArea.GetContent())
 	cursorX, cursorY := v.TextArea.GetCursorXY()
 	prevOriginX, prevOriginY := v.Origin()
-	width, height := v.Size()
+	width, height := v.InnerWidth(), v.InnerHeight()
 
-	frameAdjustment := 0
-	if v.Frame {
-		frameAdjustment = -1
-	}
-	newViewCursorX, newOriginX := updatedCursorAndOrigin(prevOriginX, width+frameAdjustment, cursorX)
-	newViewCursorY, newOriginY := updatedCursorAndOrigin(prevOriginY, height+frameAdjustment, cursorY)
+	newViewCursorX, newOriginX := updatedCursorAndOrigin(prevOriginX, width, cursorX)
+	newViewCursorY, newOriginY := updatedCursorAndOrigin(prevOriginY, height, cursorY)
 
 	_ = v.SetCursor(newViewCursorX, newViewCursorY)
 	_ = v.SetOrigin(newOriginX, newOriginY)
