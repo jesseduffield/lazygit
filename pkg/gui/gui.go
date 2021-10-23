@@ -440,7 +440,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		RepoPathStack:           []string{},
 		RepoStateMap:            map[Repo]*guiState{},
 		CmdLog:                  []string{},
-		ShowExtrasWindow:        config.GetUserConfig().Gui.ShowCommandLog,
+		ShowExtrasWindow:        config.ShowCommandLogOnStartup(),
 		suggestionsAsyncHandler: tasks.NewAsyncHandler(),
 	}
 

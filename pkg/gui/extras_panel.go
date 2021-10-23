@@ -11,15 +11,16 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 						return err
 					}
 				}
-				gui.ShowExtrasWindow = !gui.ShowExtrasWindow
+				show := !gui.ShowExtrasWindow
+				gui.ShowExtrasWindow = show
+				gui.Config.GetAppState().HideCommandLog = !show
+				_ = gui.Config.SaveAppState()
 				return nil
 			},
 		},
 		{
 			displayString: gui.Tr.FocusCommandLog,
-			onPress: func() error {
-				return gui.handleFocusCommandLog()
-			},
+			onPress:       gui.handleFocusCommandLog,
 		},
 	}
 
