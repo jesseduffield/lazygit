@@ -327,7 +327,7 @@ func dutchTranslationSet() TranslationSet {
 		LcFilterBy:                          "filter bij",
 		LcExitFilterMode:                    "stop met filteren bij pad",
 		LcFilterPathOption:                  "vulin pad om op te filteren",
-		LcEnterFileName:                     "vulin path:",
+		EnterFileName:                       "Vulin path:",
 		FilteringMenuTitle:                  "Filteren",
 		MustExitFilterModeTitle:             "Command niet beschikbaar",
 		MustExitFilterModePrompt:            "Command niet beschikbaar in filter modus. Sluit filter modus?",

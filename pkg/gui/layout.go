@@ -111,6 +111,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Credentials.Editable = true
 
 	gui.Views.Suggestions.Visible = false
+	gui.Views.Suggestions.ContainsList = true
 
 	gui.Views.Menu.Visible = false
 

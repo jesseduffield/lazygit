@@ -311,6 +311,9 @@ type AppState struct {
 	LastUpdateCheck     int64
 	RecentRepos         []string
 	StartupPopupVersion int
+
+	// these are for custom commands typed in directly, not for custom commands in the lazygit config
+	CustomCommandsHistory []string
 }
 
 func getDefaultAppState() *AppState {

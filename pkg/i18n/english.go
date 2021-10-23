@@ -342,7 +342,7 @@ type TranslationSet struct {
 	LcFilterBy                          string
 	LcExitFilterMode                    string
 	LcFilterPathOption                  string
-	LcEnterFileName                     string
+	EnterFileName                       string
 	FilteringMenuTitle                  string
 	MustExitFilterModeTitle             string
 	MustExitFilterModePrompt            string
@@ -404,6 +404,8 @@ type TranslationSet struct {
 	SubCommitsTitle                     string
 	SubmodulesTitle                     string
 	NavigationTitle                     string
+	SuggestionsCheatsheetTitle          string
+	// Unlike the cheatsheet title above, the real suggestions title has a little message saying press tab to focus
 	SuggestionsTitle                    string
 	ExtrasTitle                         string
 	PushingTagStatus                    string
@@ -867,7 +869,7 @@ func englishTranslationSet() TranslationSet {
 		LcFilterBy:                          "filter by",
 		LcExitFilterMode:                    "stop filtering by path",
 		LcFilterPathOption:                  "enter path to filter by",
-		LcEnterFileName:                     "enter path:",
+		EnterFileName:                       "Enter path:",
 		FilteringMenuTitle:                  "Filtering",
 		MustExitFilterModeTitle:             "Command not available",
 		MustExitFilterModePrompt:            "Command not available in filtered mode. Exit filtered mode?",
@@ -930,7 +932,8 @@ func englishTranslationSet() TranslationSet {
 		SubCommitsTitle:                     "Sub-commits",
 		SubmodulesTitle:                     "Submodules",
 		NavigationTitle:                     "List Panel Navigation",
-		SuggestionsTitle:                    "Suggestions",
+		SuggestionsCheatsheetTitle:          "Suggestions",
+		SuggestionsTitle:                    "Suggestions (press %s to focus)",
 		ExtrasTitle:                         "Extras",
 		PushingTagStatus:                    "pushing tag",
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",

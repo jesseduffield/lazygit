@@ -116,3 +116,31 @@ func StringArraysOverlap(strArrA []string, strArrB []string) bool {
 
 	return false
 }
+
+func Uniq(values []string) []string {
+	added := make(map[string]bool)
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if added[value] {
+			continue
+		}
+		added[value] = true
+		result = append(result, value)
+	}
+	return result
+}
+
+func Limit(values []string, limit int) []string {
+	if len(values) > limit {
+		return values[:limit]
+	}
+	return values
+}
+
+func Reverse(values []string) []string {
+	result := make([]string, len(values))
+	for i, val := range values {
+		result[len(values)-i-1] = val
+	}
+	return result
+}

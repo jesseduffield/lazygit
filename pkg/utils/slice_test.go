@@ -165,3 +165,86 @@ func TestEscapeSpecialChars(t *testing.T) {
 		})
 	}
 }
+
+func TestUniq(t *testing.T) {
+	for _, test := range []struct {
+		values []string
+		want   []string
+	}{
+		{
+			values: []string{"a", "b", "c"},
+			want:   []string{"a", "b", "c"},
+		},
+		{
+			values: []string{"a", "b", "a", "b", "c"},
+			want:   []string{"a", "b", "c"},
+		},
+	} {
+		if got := Uniq(test.values); !assert.EqualValues(t, got, test.want) {
+			t.Errorf("Uniq(%v) = %v; want %v", test.values, got, test.want)
+		}
+	}
+}
+
+func TestLimit(t *testing.T) {
+	for _, test := range []struct {
+		values []string
+		limit  int
+		want   []string
+	}{
+		{
+			values: []string{"a", "b", "c"},
+			limit:  3,
+			want:   []string{"a", "b", "c"},
+		},
+		{
+			values: []string{"a", "b", "c"},
+			limit:  4,
+			want:   []string{"a", "b", "c"},
+		},
+		{
+			values: []string{"a", "b", "c"},
+			limit:  2,
+			want:   []string{"a", "b"},
+		},
+		{
+			values: []string{"a", "b", "c"},
+			limit:  1,
+			want:   []string{"a"},
+		},
+		{
+			values: []string{"a", "b", "c"},
+			limit:  0,
+			want:   []string{},
+		},
+		{
+			values: []string{},
+			limit:  0,
+			want:   []string{},
+		},
+	} {
+		if got := Limit(test.values, test.limit); !assert.EqualValues(t, got, test.want) {
+			t.Errorf("Limit(%v, %d) = %v; want %v", test.values, test.limit, got, test.want)
+		}
+	}
+}
+
+func TestReverse(t *testing.T) {
+	for _, test := range []struct {
+		values []string
+		want   []string
+	}{
+		{
+			values: []string{"a", "b", "c"},
+			want:   []string{"c", "b", "a"},
+		},
+		{
+			values: []string{},
+			want:   []string{},
+		},
+	} {
+		if got := Reverse(test.values); !assert.EqualValues(t, got, test.want) {
+			t.Errorf("Reverse(%v) = %v; want %v", test.values, got, test.want)
+		}
+	}
+}
