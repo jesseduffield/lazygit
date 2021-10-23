@@ -45,6 +45,7 @@ type AppConfigurer interface {
 	SetIsNewRepo(bool)
 	GetIsNewRepo() bool
 	ReloadUserConfig() error
+	ShowCommandLogOnStartup() bool
 }
 
 // NewAppConfig makes a new app config
@@ -276,6 +277,17 @@ func (c *AppConfig) SaveAppState() error {
 	return err
 }
 
+// originally we could only hide the command log permanently via the config
+// but now we do it via state. So we need to still support the config for the
+// sake of backwards compatibility
+func (c *AppConfig) ShowCommandLogOnStartup() bool {
+	if !c.UserConfig.Gui.ShowCommandLog {
+		return false
+	}
+
+	return !c.AppState.HideCommandLog
+}
+
 // loadAppState loads recorded AppState from file
 func loadAppState() (*AppState, error) {
 	filepath, err := configFilePath("state.yml")
@@ -314,6 +326,7 @@ type AppState struct {
 
 	// these are for custom commands typed in directly, not for custom commands in the lazygit config
 	CustomCommandsHistory []string
+	HideCommandLog        bool
 }
 
 func getDefaultAppState() *AppState {

@@ -14,6 +14,7 @@ func NewDummyAppConfig() *AppConfig {
 		Debug:       false,
 		BuildSource: "",
 		UserConfig:  GetDefaultConfig(),
+		AppState:    &AppState{},
 	}
 	_ = yaml.Unmarshal([]byte{}, appConfig.AppState)
 	return appConfig
