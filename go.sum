@@ -84,6 +84,8 @@ github.com/jesseduffield/gocui v0.3.1-0.20211017091015-8bf4a4666b77 h1:MQUxSxVBT
 github.com/jesseduffield/gocui v0.3.1-0.20211017091015-8bf4a4666b77/go.mod h1:znJuCDnF2Ph40YZSlBwdX/4GEofnIoWLGdT4mK5zRAU=
 github.com/jesseduffield/gocui v0.3.1-0.20211017220056-b2fc03c74a6f h1:JHrb78pj+gYC3KiJKL1WW6lYzlatBIF46oREn68plTM=
 github.com/jesseduffield/gocui v0.3.1-0.20211017220056-b2fc03c74a6f/go.mod h1:znJuCDnF2Ph40YZSlBwdX/4GEofnIoWLGdT4mK5zRAU=
+github.com/jesseduffield/gocui v0.3.1-0.20211024041248-681a61c53ed0 h1:To4mMbu6oQpbbyHa4WtMTc/DHa9dqiRWZpDLMNK+Hdk=
+github.com/jesseduffield/gocui v0.3.1-0.20211024041248-681a61c53ed0/go.mod h1:znJuCDnF2Ph40YZSlBwdX/4GEofnIoWLGdT4mK5zRAU=
 github.com/jesseduffield/minimal v0.0.0-20211018110810-9cde264e6b1e h1:WZc73tBVMMhcO6zXyZBItLEF4jgBpBH0lFCZzDgrjDg=
 github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e h1:uw/oo+kg7t/oeMs6sqlAwr85ND/9cpO3up3VxphxY0U=
 github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e/go.mod h1:u60qdFGXRd36jyEXxetz0vQceQIxzI13lIo3EFUDf4I=
@@ -195,6 +197,8 @@ golang.org/x/sys v0.0.0-20210330210617-4fbd30eecc44/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211015200801-69063c4bb744 h1:KzbpndAYEM+4oHRp9JmB2ewj0NHHxO3Z0g7Gus2O1kk=
 golang.org/x/sys v0.0.0-20211015200801-69063c4bb744/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20211023085530-d6a326fbbf70 h1:SeSEfdIxyvwGJliREIJhRPPXvW6sDlLT+UQ3B0hD0NA=
+golang.org/x/sys v0.0.0-20211023085530-d6a326fbbf70/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 h1:JGgROgKl9N8DuW20oFS5gxc+lE67/N3FcwmBPMe7ArY=
 golang.org/x/term v0.0.0-20210927222741-03fcf44c2211/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=

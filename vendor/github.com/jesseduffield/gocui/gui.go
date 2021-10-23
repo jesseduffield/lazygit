@@ -1041,7 +1041,6 @@ func (g *Gui) draw(v *View) error {
 		Screen.HideCursor()
 	}
 
-	v.clearRunes()
 	if err := v.draw(); err != nil {
 		return err
 	}
