@@ -248,3 +248,51 @@ func TestReverse(t *testing.T) {
 		}
 	}
 }
+
+func TestLimitStr(t *testing.T) {
+	for _, test := range []struct {
+		values string
+		limit  int
+		want   string
+	}{
+		{
+			values: "",
+			limit:  10,
+			want:   "",
+		},
+		{
+			values: "",
+			limit:  0,
+			want:   "",
+		},
+		{
+			values: "a",
+			limit:  1,
+			want:   "a",
+		},
+		{
+			values: "ab",
+			limit:  2,
+			want:   "ab",
+		},
+		{
+			values: "abc",
+			limit:  3,
+			want:   "abc",
+		},
+		{
+			values: "abcd",
+			limit:  3,
+			want:   "abc",
+		},
+		{
+			values: "abcde",
+			limit:  3,
+			want:   "abc",
+		},
+	} {
+		if got := LimitStr(test.values, test.limit); !assert.EqualValues(t, got, test.want) {
+			t.Errorf("LimitString(%v, %d) = %v; want %v", test.values, test.limit, got, test.want)
+		}
+	}
+}

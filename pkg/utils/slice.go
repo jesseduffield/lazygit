@@ -144,3 +144,10 @@ func Reverse(values []string) []string {
 	}
 	return result
 }
+
+func LimitStr(value string, limit int) string {
+	if len(value) > limit {
+		return value[:limit]
+	}
+	return value
+}
