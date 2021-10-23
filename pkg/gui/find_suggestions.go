@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -42,11 +43,7 @@ func matchesToSuggestions(matches []string) []*types.Suggestion {
 func (gui *Gui) getRemoteSuggestionsFunc() func(string) []*types.Suggestion {
 	remoteNames := gui.getRemoteNames()
 
-	return func(input string) []*types.Suggestion {
-		return matchesToSuggestions(
-			utils.FuzzySearch(input, remoteNames),
-		)
-	}
+	return fuzzySearchFunc(remoteNames)
 }
 
 func (gui *Gui) getBranchNames() []string {
@@ -61,7 +58,12 @@ func (gui *Gui) getBranchNameSuggestionsFunc() func(string) []*types.Suggestion 
 	branchNames := gui.getBranchNames()
 
 	return func(input string) []*types.Suggestion {
-		matchingBranchNames := utils.FuzzySearch(sanitizedBranchName(input), branchNames)
+		var matchingBranchNames []string
+		if input == "" {
+			matchingBranchNames = branchNames
+		} else {
+			matchingBranchNames = utils.FuzzySearch(input, branchNames)
+		}
 
 		suggestions := make([]*types.Suggestion, len(matchingBranchNames))
 		for i, branchName := range matchingBranchNames {
@@ -79,6 +81,8 @@ func (gui *Gui) getBranchNameSuggestionsFunc() func(string) []*types.Suggestion 
 // gui.State.FilesTrie. On the main thread we'll be doing a fuzzy search via
 // gui.State.FilesTrie. So if we've looked for a file previously, we'll start with
 // the old trie and eventually it'll be swapped out for the new one.
+// Notably, unlike other suggestion functions we're not showing all the options
+// if nothing has been typed because there'll be too much to display efficiently
 func (gui *Gui) getFilePathSuggestionsFunc() func(string) []*types.Suggestion {
 	_ = gui.WithWaitingStatus(gui.Tr.LcLoadingFileSuggestions, func() error {
 		trie := patricia.NewTrie()
@@ -129,5 +133,58 @@ func (gui *Gui) getFilePathSuggestionsFunc() func(string) []*types.Suggestion {
 		}
 
 		return suggestions
+	}
+}
+
+func (gui *Gui) getRemoteBranchNames(separator string) []string {
+	result := []string{}
+	for _, remote := range gui.State.Remotes {
+		for _, branch := range remote.Branches {
+			result = append(result, fmt.Sprintf("%s%s%s", remote.Name, separator, branch.Name))
+		}
+	}
+	return result
+}
+
+func (gui *Gui) getRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion {
+	return fuzzySearchFunc(gui.getRemoteBranchNames(separator))
+}
+
+func (gui *Gui) getTagNames() []string {
+	result := make([]string, len(gui.State.Tags))
+	for i, tag := range gui.State.Tags {
+		result[i] = tag.Name
+	}
+	return result
+}
+
+func (gui *Gui) getRefsSuggestionsFunc() func(string) []*types.Suggestion {
+	remoteBranchNames := gui.getRemoteBranchNames("/")
+	localBranchNames := gui.getBranchNames()
+	tagNames := gui.getTagNames()
+	additionalRefNames := []string{"HEAD", "FETCH_HEAD", "MERGE_HEAD", "ORIG_HEAD"}
+
+	refNames := append(append(append(remoteBranchNames, localBranchNames...), tagNames...), additionalRefNames...)
+
+	return fuzzySearchFunc(refNames)
+}
+
+func (gui *Gui) getCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {
+	// reversing so that we display the latest command first
+	history := utils.Reverse(gui.Config.GetAppState().CustomCommandsHistory)
+
+	return fuzzySearchFunc(history)
+}
+
+func fuzzySearchFunc(options []string) func(string) []*types.Suggestion {
+	return func(input string) []*types.Suggestion {
+		var matches []string
+		if input == "" {
+			matches = options
+		} else {
+			matches = utils.FuzzySearch(input, options)
+		}
+
+		return matchesToSuggestions(matches)
 	}
 }

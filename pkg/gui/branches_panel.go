@@ -218,7 +218,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 func (gui *Gui) handleCheckoutByName() error {
 	return gui.prompt(promptOpts{
 		title:               gui.Tr.BranchName + ":",
-		findSuggestionsFunc: gui.getBranchNameSuggestionsFunc(),
+		findSuggestionsFunc: gui.getRefsSuggestionsFunc(),
 		handleConfirm: func(response string) error {
 			return gui.handleCheckoutRef(response, handleCheckoutRefOptions{
 				span: "Checkout branch",
