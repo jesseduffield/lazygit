@@ -15,5 +15,5 @@ func (c *GitCommand) DeleteTag(tagName string) error {
 func (c *GitCommand) PushTag(remoteName string, tagName string, promptUserForCredential func(string) string) error {
 	cmdStr := fmt.Sprintf("git push %s %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(tagName))
 	cmdObj := c.NewCmdObjFromStr(cmdStr)
-	return c.OSCommand.DetectUnamePass(cmdObj, promptUserForCredential)
+	return c.DetectUnamePass(cmdObj, promptUserForCredential)
 }

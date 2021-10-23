@@ -1,6 +1,9 @@
 package commands
 
 import (
+	"io"
+	"io/ioutil"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -17,10 +20,11 @@ func NewDummyGitCommand() *GitCommand {
 func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitCommand {
 	newAppConfig := config.NewDummyAppConfig()
 	return &GitCommand{
-		Log:       utils.NewDummyLog(),
-		OSCommand: osCommand,
-		Tr:        i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language),
-		Config:    newAppConfig,
-		GitConfig: git_config.NewFakeGitConfig(map[string]string{}),
+		Log:          utils.NewDummyLog(),
+		OSCommand:    osCommand,
+		Tr:           i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language),
+		Config:       newAppConfig,
+		GitConfig:    git_config.NewFakeGitConfig(map[string]string{}),
+		GetCmdWriter: func() io.Writer { return ioutil.Discard },
 	}
 }

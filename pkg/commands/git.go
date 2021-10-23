@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -40,6 +41,11 @@ type GitCommand struct {
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	PushToCurrent bool
+
+	// this is just a view that we write to when running certain commands.
+	// Coincidentally at the moment it's the same view that OnRunCommand logs to
+	// but that need not always be the case.
+	GetCmdWriter func() io.Writer
 }
 
 // NewGitCommand it runs git commands
@@ -77,6 +83,7 @@ func NewGitCommand(
 		DotGitDir:     dotGitDir,
 		PushToCurrent: pushToCurrent,
 		GitConfig:     gitConfig,
+		GetCmdWriter:  func() io.Writer { return ioutil.Discard },
 	}
 
 	gitCommand.PatchManager = patch.NewPatchManager(log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
