@@ -25,6 +25,11 @@ func TestWithPadding(t *testing.T) {
 			14,
 			"hello world ! ",
 		},
+		{
+			"Güçlü",
+			7,
+			"Güçlü  ",
+		},
 	}
 
 	for _, s := range scenarios {
