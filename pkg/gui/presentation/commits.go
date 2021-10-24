@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/kyokomi/emoji/v2"
 	colorful "github.com/lucasb-eyer/go-colorful"
+	"github.com/mattn/go-runewidth"
 )
 
 func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string, parseEmoji bool) [][]string {
@@ -166,17 +167,14 @@ func randFloat(hash []byte) float64 {
 	return float64(sum) / 100
 }
 
-var authorStyles = []style.TextStyle{
-	style.FgGreen,
-	style.FgYellow,
-	style.FgMagenta,
-	style.FgCyan,
-	style.FgRed,
-}
-
 func getInitials(authorName string) string {
 	if authorName == "" {
 		return authorName
+	}
+
+	firstRune := getFirstRune(authorName)
+	if runewidth.RuneWidth(firstRune) > 1 {
+		return string(firstRune)
 	}
 
 	split := strings.Split(authorName, " ")
@@ -185,6 +183,15 @@ func getInitials(authorName string) string {
 	}
 
 	return utils.LimitStr(split[0], 1) + utils.LimitStr(split[1], 1)
+}
+
+func getFirstRune(str string) rune {
+	// just using the loop for the sake of getting the first rune
+	for _, r := range str {
+		return r
+	}
+	// should never land here
+	return 0
 }
 
 func actionColorMap(str string) style.TextStyle {
