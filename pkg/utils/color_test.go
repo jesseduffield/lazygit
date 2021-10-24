@@ -1,6 +1,8 @@
 package utils
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestDecolorise(t *testing.T) {
 	var tests = []struct {

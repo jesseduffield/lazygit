@@ -10,28 +10,6 @@ func Decolorise(str string) string {
 	return re.ReplaceAllString(str, "")
 }
 
-func getPadWidths(stringArrays [][]string) []int {
-	maxWidth := 0
-	for _, stringArray := range stringArrays {
-		if len(stringArray) > maxWidth {
-			maxWidth = len(stringArray)
-		}
-	}
-	if maxWidth-1 < 0 {
-		return []int{}
-	}
-	padWidths := make([]int, maxWidth-1)
-	for i := range padWidths {
-		for _, strings := range stringArrays {
-			uncoloredString := Decolorise(strings[i])
-			if len(uncoloredString) > padWidths[i] {
-				padWidths[i] = len(uncoloredString)
-			}
-		}
-	}
-	return padWidths
-}
-
 func IsValidHexValue(v string) bool {
 	if len(v) != 4 && len(v) != 7 {
 		return false
