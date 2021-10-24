@@ -6,7 +6,7 @@ import (
 
 // Decolorise strips a string of color
 func Decolorise(str string) string {
-	re := regexp.MustCompile(`\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]`)
+	re := regexp.MustCompile(`\x1B\[([0-9]{1,3}(;[0-9]{1,3})*)?[mGK]`)
 	return re.ReplaceAllString(str, "")
 }
 
