@@ -3,15 +3,18 @@ package presentation
 import "testing"
 
 func TestGetInitials(t *testing.T) {
-	for input, output := range map[string]string{
+	for input, expectedOutput := range map[string]string{
 		"Jesse Duffield":     "JD",
 		"Jesse Duffield Man": "JD",
 		"JesseDuffield":      "Je",
 		"J":                  "J",
+		"六书六書":               "六",
+		"書":                  "書",
 		"":                   "",
 	} {
-		if output != getInitials(input) {
-			t.Errorf("Expected %s to be %s", input, output)
+		output := getInitials(input)
+		if output != expectedOutput {
+			t.Errorf("Expected %s to be %s", output, expectedOutput)
 		}
 	}
 }
