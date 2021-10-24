@@ -141,6 +141,9 @@ func (gui *Gui) contextTree() ContextTree {
 				// TODO: centralise the code here
 				// return gui.refreshStagingPanel(false, -1)
 			},
+			OnRender: func() error {
+				return gui.handleRefreshStagingPanel(false, -1)
+			},
 			Kind:     MAIN_CONTEXT,
 			ViewName: "main",
 			Key:      MAIN_STAGING_CONTEXT_KEY,
@@ -150,6 +153,9 @@ func (gui *Gui) contextTree() ContextTree {
 				return nil
 				// TODO: centralise the code here
 				// return gui.refreshPatchBuildingPanel(-1)
+			},
+			OnRender: func() error {
+				return gui.handleRefreshPatchBuildingPanel(-1)
 			},
 			Kind:     MAIN_CONTEXT,
 			ViewName: "main",
