@@ -393,10 +393,11 @@ func (gui *Gui) handleCommitPress() error {
 			return gui.createErrorPanel(fmt.Sprintf("%s: %s", gui.Tr.LcCommitPrefixPatternError, err.Error()))
 		}
 		prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
-		gui.renderString(gui.Views.CommitMessage, prefix)
-		if err := gui.Views.CommitMessage.SetCursor(len(prefix), 0); err != nil {
-			return err
-		}
+		gui.Views.CommitMessage.ClearTextArea()
+		gui.Views.CommitMessage.TextArea.TypeString(prefix)
+		gui.g.Update(func(*gocui.Gui) error {
+			return nil
+		})
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
