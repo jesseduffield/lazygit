@@ -290,6 +290,16 @@ func TestLimitStr(t *testing.T) {
 			limit:  3,
 			want:   "abc",
 		},
+		{
+			values: "あいう",
+			limit:  1,
+			want:   "あ",
+		},
+		{
+			values: "あいう",
+			limit:  2,
+			want:   "あい",
+		},
 	} {
 		if got := LimitStr(test.values, test.limit); !assert.EqualValues(t, got, test.want) {
 			t.Errorf("LimitString(%v, %d) = %v; want %v", test.values, test.limit, got, test.want)

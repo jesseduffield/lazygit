@@ -1,14 +1,19 @@
 package utils
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/mattn/go-runewidth"
+)
 
 // WithPadding pads a string as much as you want
 func WithPadding(str string, padding int) string {
 	uncoloredStr := Decolorise(str)
-	if padding < len(uncoloredStr) {
+	width := runewidth.StringWidth(uncoloredStr)
+	if padding < width {
 		return str
 	}
-	return str + strings.Repeat(" ", padding-len(uncoloredStr))
+	return str + strings.Repeat(" ", padding-width)
 }
 
 func RenderDisplayStrings(displayStringsArr [][]string) string {
@@ -36,4 +41,28 @@ func getPaddedDisplayStrings(stringArrays [][]string, padWidths []int) []string 
 		paddedDisplayStrings[i] += stringArray[len(padWidths)]
 	}
 	return paddedDisplayStrings
+}
+
+func getPadWidths(stringArrays [][]string) []int {
+	maxWidth := 0
+	for _, stringArray := range stringArrays {
+		if len(stringArray) > maxWidth {
+			maxWidth = len(stringArray)
+		}
+	}
+	if maxWidth-1 < 0 {
+		return []int{}
+	}
+	padWidths := make([]int, maxWidth-1)
+	for i := range padWidths {
+		for _, strings := range stringArrays {
+			uncoloredStr := Decolorise(strings[i])
+
+			width := runewidth.StringWidth(uncoloredStr)
+			if width > padWidths[i] {
+				padWidths[i] = width
+			}
+		}
+	}
+	return padWidths
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/kyokomi/emoji/v2"
 	colorful "github.com/lucasb-eyer/go-colorful"
+	"github.com/mattn/go-runewidth"
 )
 
 func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string, parseEmoji bool) [][]string {
@@ -148,8 +149,8 @@ func unpackRGBColor(color string) (uint8, uint8, uint8) {
 }
 
 func shortAuthor(authorName string) string {
-	if _, ok := authorInitialCache[authorName]; ok {
-		return authorInitialCache[authorName]
+	if value, ok := authorInitialCache[authorName]; ok {
+		return value
 	}
 
 	initials := getInitials(authorName)
@@ -164,8 +165,8 @@ func shortAuthor(authorName string) string {
 }
 
 func longAuthor(authorName string) string {
-	if _, ok := authorNameCache[authorName]; ok {
-		return authorNameCache[authorName]
+	if value, ok := authorNameCache[authorName]; ok {
+		return value
 	}
 
 	truncatedName := utils.TruncateWithEllipsis(authorName, 17)
@@ -190,17 +191,14 @@ func randFloat(hash []byte) float64 {
 	return float64(sum) / 100
 }
 
-var authorStyles = []style.TextStyle{
-	style.FgGreen,
-	style.FgYellow,
-	style.FgMagenta,
-	style.FgCyan,
-	style.FgRed,
-}
-
 func getInitials(authorName string) string {
 	if authorName == "" {
 		return authorName
+	}
+
+	firstRune := getFirstRune(authorName)
+	if runewidth.RuneWidth(firstRune) > 1 {
+		return string(firstRune)
 	}
 
 	split := strings.Split(authorName, " ")
@@ -208,7 +206,16 @@ func getInitials(authorName string) string {
 		return utils.LimitStr(authorName, 2)
 	}
 
-	return split[0][0:1] + split[1][0:1]
+	return utils.LimitStr(split[0], 1) + utils.LimitStr(split[1], 1)
+}
+
+func getFirstRune(str string) rune {
+	// just using the loop for the sake of getting the first rune
+	for _, r := range str {
+		return r
+	}
+	// should never land here
+	return 0
 }
 
 func actionColorMap(str string) style.TextStyle {
