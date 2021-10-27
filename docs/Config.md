@@ -51,7 +51,7 @@ gui:
   showCommandLog: true
   commandLogSize: 8
   authorColors:
-    "Author Name": "255, 0, 0"
+    "Author Name": "#ff0000"
 git:
   paging:
     colorArg: always

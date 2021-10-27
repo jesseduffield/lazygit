@@ -2,7 +2,6 @@ package presentation
 
 import (
 	"crypto/md5"
-	"strconv"
 	"strings"
 
 	"github.com/gookit/color"
@@ -127,25 +126,14 @@ var authorNameCache = make(map[string]string)
 
 func SetCustomAuthors(customAuthorColors map[string]string) {
 	for authorName, colorSequence := range customAuthorColors {
-		red, green, blue := unpackRGBColor(colorSequence)
 
 		initials := getInitials(authorName)
 		if initials != "" {
-			style := style.New().SetFg(style.NewRGBColor(color.RGB(red, green, blue)))
+			style := style.New().SetFg(style.NewRGBColor(color.HEX(colorSequence, false)))
 
 			authorInitialCache[authorName] = style.Sprint(initials)
 		}
 	}
-}
-
-func unpackRGBColor(color string) (uint8, uint8, uint8) {
-	parts := strings.Split(color, ",")
-
-	red, _ := strconv.ParseUint(parts[0], 10, 8)
-	green, _ := strconv.ParseUint(parts[1], 10, 8)
-	blue, _ := strconv.ParseUint(parts[2], 10, 8)
-
-	return uint8(red), uint8(green), uint8(blue)
 }
 
 func shortAuthor(authorName string) string {
