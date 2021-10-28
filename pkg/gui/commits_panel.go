@@ -607,18 +607,8 @@ func (gui *Gui) createTagMenu(commitSha string) error {
 }
 
 func (gui *Gui) afterTagCreate(tagName string) error {
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}, then: func() {
-		// find the index of the tag and set that as the currently selected line
-		for i, tag := range gui.State.Tags {
-			if tag.Name == tagName {
-				gui.State.Panels.Tags.SelectedLineIdx = i
-				if err := gui.State.Contexts.Tags.HandleRender(); err != nil {
-					gui.Log.Error(err)
-				}
-				return
-			}
-		}
-	}})
+	gui.State.Panels.Tags.SelectedLineIdx = 0 // Set to the top
+	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
 }
 
 func (gui *Gui) handleCreateAnnotatedTag(commitSha string) error {
