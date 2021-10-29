@@ -9,9 +9,10 @@ import (
 )
 
 func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
+	cmdStr := strings.Join(cmd.Args, " ")
 	gui.Log.WithField(
 		"command",
-		strings.Join(cmd.Args, " "),
+		cmdStr,
 	).Debug("RunCommand")
 
 	_, height := view.Size()
@@ -29,17 +30,7 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		return err
 	}
 
-	if err := manager.NewTask(manager.NewCmdTask(r, cmd, prefix, height+oy+10, nil)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (gui *Gui) newTask(view *gocui.View, f func(chan struct{}) error) error {
-	manager := gui.getManager(view)
-
-	if err := manager.NewTask(f); err != nil {
+	if err := manager.NewTask(manager.NewCmdTask(r, cmd, prefix, height+oy+10, nil), cmdStr); err != nil {
 		return err
 	}
 
@@ -47,18 +38,8 @@ func (gui *Gui) newTask(view *gocui.View, f func(chan struct{}) error) error {
 }
 
 func (gui *Gui) newStringTask(view *gocui.View, str string) error {
-	manager := gui.getManager(view)
-
-	f := func(stop chan struct{}) error {
-		gui.renderString(view, str)
-		return nil
-	}
-
-	if err := manager.NewTask(f); err != nil {
-		return err
-	}
-
-	return nil
+	// using str so that if rendering the exact same thing we don't reset the origin
+	return gui.newStringTaskWithKey(view, str, str)
 }
 
 func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
@@ -69,7 +50,24 @@ func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 		return nil
 	}
 
-	if err := manager.NewTask(f); err != nil {
+	// Using empty key so that on subsequent calls we won't reset the view's origin.
+	// Note this means that we will be scrolling back to the top if we're switching from a different key
+	if err := manager.NewTask(f, ""); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) error {
+	manager := gui.getManager(view)
+
+	f := func(stop chan struct{}) error {
+		gui.renderString(view, str)
+		return nil
+	}
+
+	if err := manager.NewTask(f, key); err != nil {
 		return err
 	}
 
@@ -97,7 +95,28 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				})
 			},
 			func() {
+				// Need to check if the content of the view is well past the origin.
+				// It would be better to use .ViewLinesHeight here (given it considers
+				// wrapping) but when this function is called they haven't been written to yet.
+				linesHeight := view.LinesHeight()
+				_, height := view.Size()
+				_, originY := view.Origin()
+				if linesHeight < originY {
+					newOriginY := linesHeight - height
+					if newOriginY < 0 {
+						newOriginY = 0
+					}
+					err := view.SetOrigin(0, newOriginY)
+					if err != nil {
+						panic(err)
+					}
+
+				}
+
 				view.FlushStaleCells()
+			},
+			func() {
+				_ = view.SetOrigin(0, 0)
 			},
 		)
 		gui.viewBufferManagerMap[view.Name()] = manager

@@ -4,15 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/aybabtme/humanlog"
-	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/env"
-	"github.com/jesseduffield/lazygit/pkg/gui"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/jesseduffield/lazygit/pkg/updates"
-	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,6 +12,17 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/aybabtme/humanlog"
+	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/gui"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/updates"
+	"github.com/sirupsen/logrus"
 )
 
 // App struct
@@ -102,7 +104,10 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 	}
 	var err error
 	app.Log = newLogger(config)
-	app.Tr = i18n.NewTranslationSet(app.Log)
+	app.Tr, err = i18n.NewTranslationSetFromConfig(app.Log, config.GetUserConfig().Gui.Language)
+	if err != nil {
+		return app, err
+	}
 
 	// if we are being called in 'demon' mode, we can just return here
 	app.ClientContext = os.Getenv("LAZYGIT_CLIENT_COMMAND")
@@ -122,7 +127,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, err
 	}
 
-	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr, app.Config)
+	app.GitCommand, err = commands.NewGitCommand(app.Log, app.OSCommand, app.Tr, app.Config, git_config.NewStdCachedGitConfig(app.Log))
 	if err != nil {
 		return app, err
 	}

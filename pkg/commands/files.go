@@ -2,8 +2,10 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -14,7 +16,11 @@ import (
 
 // CatFile obtains the content of a file
 func (c *GitCommand) CatFile(fileName string) (string, error) {
-	return c.OSCommand.CatFile(fileName)
+	buf, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return "", nil
+	}
+	return string(buf), nil
 }
 
 func (c *GitCommand) OpenMergeToolCmd() string {
@@ -117,14 +123,14 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 		if err := c.RunCommand("git checkout --ours --  %s", quotedFileName); err != nil {
 			return err
 		}
-		if err := c.RunCommand("git add %s", quotedFileName); err != nil {
+		if err := c.RunCommand("git add -- %s", quotedFileName); err != nil {
 			return err
 		}
 		return nil
 	}
 
 	if file.ShortStatus == "DU" {
-		return c.RunCommand("git rm %s", quotedFileName)
+		return c.RunCommand("git rm -- %s", quotedFileName)
 	}
 
 	// if the file isn't tracked, we assume you want to delete it
@@ -199,7 +205,7 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 	cachedArg := ""
 	trackedArg := "--"
 	colorArg := c.colorArg()
-	path := c.OSCommand.Quote(node.GetPath())
+	quotedPath := c.OSCommand.Quote(node.GetPath())
 	ignoreWhitespaceArg := ""
 	if cached {
 		cachedArg = "--cached"
@@ -214,11 +220,11 @@ func (c *GitCommand) WorktreeFileDiffCmdStr(node models.IFile, plain bool, cache
 		ignoreWhitespaceArg = "--ignore-all-space"
 	}
 
-	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s %s", colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, path)
+	return fmt.Sprintf("git diff --submodule --no-ext-diff --color=%s %s %s %s %s", colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath)
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
-	filepath := filepath.Join(c.Config.GetUserConfigDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
+	filepath := filepath.Join(c.Config.GetTempDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
 	c.Log.Infof("saving temporary patch to %s", filepath)
 	if err := c.OSCommand.CreateFileWithContent(filepath, patch); err != nil {
 		return err
@@ -250,12 +256,12 @@ func (c *GitCommand) ShowFileDiffCmdStr(from string, to string, reverse bool, fi
 		reverseFlag = " -R "
 	}
 
-	return fmt.Sprintf("git diff --submodule --no-ext-diff --no-renames --color=%s %s %s %s -- %s", colorArg, from, to, reverseFlag, fileName)
+	return fmt.Sprintf("git diff --submodule --no-ext-diff --no-renames --color=%s %s %s %s -- %s", colorArg, from, to, reverseFlag, c.OSCommand.Quote(fileName))
 }
 
 // CheckoutFile checks out the file for the given commit
 func (c *GitCommand) CheckoutFile(commitSha, fileName string) error {
-	return c.RunCommand("git checkout %s %s", commitSha, fileName)
+	return c.RunCommand("git checkout %s -- %s", commitSha, c.OSCommand.Quote(fileName))
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
@@ -265,7 +271,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex
 	}
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
-	if err := c.RunCommand("git cat-file -e HEAD^:%s", fileName); err != nil {
+	if err := c.RunCommand("git cat-file -e HEAD^:%s", c.OSCommand.Quote(fileName)); err != nil {
 		if err := c.OSCommand.Remove(fileName); err != nil {
 			return err
 		}
@@ -293,7 +299,7 @@ func (c *GitCommand) DiscardAnyUnstagedFileChanges() error {
 
 // RemoveTrackedFiles will delete the given file(s) even if they are currently tracked
 func (c *GitCommand) RemoveTrackedFiles(name string) error {
-	return c.RunCommand("git rm -r --cached %s", name)
+	return c.RunCommand("git rm -r --cached -- %s", c.OSCommand.Quote(name))
 }
 
 // RemoveUntrackedFiles runs `git clean -fd`
@@ -321,11 +327,11 @@ func (c *GitCommand) ResetAndClean() error {
 	return c.RemoveUntrackedFiles()
 }
 
-func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
+func (c *GitCommand) EditFileCmdStr(filename string, lineNumber int) (string, error) {
 	editor := c.Config.GetUserConfig().OS.EditCommand
 
 	if editor == "" {
-		editor = c.GetConfigValue("core.editor")
+		editor = c.GitConfig.Get("core.editor")
 	}
 
 	if editor == "" {
@@ -346,5 +352,12 @@ func (c *GitCommand) EditFileCmdStr(filename string) (string, error) {
 		return "", errors.New("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 	}
 
-	return fmt.Sprintf("%s %s", editor, c.OSCommand.Quote(filename)), nil
+	templateValues := map[string]string{
+		"editor":   editor,
+		"filename": c.OSCommand.Quote(filename),
+		"line":     strconv.Itoa(lineNumber),
+	}
+
+	editCmdTemplate := c.Config.GetUserConfig().OS.EditCommandTemplate
+	return utils.ResolvePlaceholderString(editCmdTemplate, templateValues), nil
 }

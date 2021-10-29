@@ -6,6 +6,7 @@ package gocui
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 	"sync"
@@ -158,6 +159,8 @@ type View struct {
 	// KeybindOnEdit should be set to true when you want to execute keybindings even when the view is editable
 	// (this is usually not the case)
 	KeybindOnEdit bool
+
+	TextArea *TextArea
 }
 
 // call this in the event of a view resize, or if you want to render new content
@@ -340,6 +343,7 @@ func newView(name string, x0, y0, x1, y1 int, mode OutputMode) *View {
 		outMode:  mode,
 		ei:       newEscapeInterpreter(mode),
 		searcher: &searcher{},
+		TextArea: &TextArea{},
 	}
 
 	v.FgColor, v.BgColor = ColorDefault, ColorDefault
@@ -1118,4 +1122,50 @@ func (v *View) SelectedPoint() (int, int) {
 	cx, cy := v.Cursor()
 	ox, oy := v.Origin()
 	return cx + ox, cy + oy
+}
+
+func (v *View) RenderTextArea() {
+	v.Clear()
+	fmt.Fprint(v, v.TextArea.GetContent())
+	cursorX, cursorY := v.TextArea.GetCursorXY()
+	prevOriginX, prevOriginY := v.Origin()
+	width, height := v.Size()
+
+	frameAdjustment := 0
+	if v.Frame {
+		frameAdjustment = -1
+	}
+	newViewCursorX, newOriginX := updatedCursorAndOrigin(prevOriginX, width+frameAdjustment, cursorX)
+	newViewCursorY, newOriginY := updatedCursorAndOrigin(prevOriginY, height+frameAdjustment, cursorY)
+
+	_ = v.SetCursor(newViewCursorX, newViewCursorY)
+	_ = v.SetOrigin(newOriginX, newOriginY)
+}
+
+func updatedCursorAndOrigin(prevOrigin int, size int, cursor int) (int, int) {
+	var newViewCursor int
+	newOrigin := prevOrigin
+
+	if cursor > prevOrigin+size {
+		newOrigin = cursor - size
+		newViewCursor = size
+	} else if cursor < prevOrigin {
+		newOrigin = cursor
+		newViewCursor = 0
+	} else {
+		newViewCursor = cursor - prevOrigin
+	}
+
+	return newViewCursor, newOrigin
+}
+
+func (v *View) ClearTextArea() {
+	v.Clear()
+
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.TextArea.Clear()
+	_ = v.SetOrigin(0, 0)
+	_ = v.SetCursor(0, 0)
 }

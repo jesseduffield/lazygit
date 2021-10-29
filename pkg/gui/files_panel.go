@@ -57,13 +57,6 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 	}
 
 	if !alreadySelected {
-		// TODO: pull into update task interface
-		if err := gui.resetOrigin(gui.Views.Main); err != nil {
-			return err
-		}
-		if err := gui.resetOrigin(gui.Views.Secondary); err != nil {
-			return err
-		}
 		gui.takeOverMergeConflictScrolling()
 	}
 
@@ -347,9 +340,10 @@ func (gui *Gui) handleWIPCommitPress() error {
 		return gui.createErrorPanel(gui.Tr.SkipHookPrefixNotConfigured)
 	}
 
-	if err := gui.Views.CommitMessage.SetEditorContent(skipHookPrefix); err != nil {
-		return err
-	}
+	textArea := gui.Views.CommitMessage.TextArea
+	textArea.Clear()
+	textArea.TypeString(skipHookPrefix)
+	gui.Views.CommitMessage.RenderTextArea()
 
 	return gui.handleCommitPress()
 }
@@ -399,10 +393,11 @@ func (gui *Gui) handleCommitPress() error {
 			return gui.createErrorPanel(fmt.Sprintf("%s: %s", gui.Tr.LcCommitPrefixPatternError, err.Error()))
 		}
 		prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
-		gui.renderString(gui.Views.CommitMessage, prefix)
-		if err := gui.Views.CommitMessage.SetCursor(len(prefix), 0); err != nil {
-			return err
-		}
+		gui.Views.CommitMessage.ClearTextArea()
+		gui.Views.CommitMessage.TextArea.TypeString(prefix)
+		gui.g.Update(func(*gocui.Gui) error {
+			return nil
+		})
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
@@ -473,14 +468,49 @@ func (gui *Gui) handleCommitEditorPress() error {
 	)
 }
 
+func (gui *Gui) handleStatusFilterPressed() error {
+	menuItems := []*menuItem{
+		{
+			displayString: gui.Tr.FilterStagedFiles,
+			onPress: func() error {
+				return gui.setStatusFiltering(filetree.DisplayStaged)
+			},
+		},
+		{
+			displayString: gui.Tr.FilterUnstagedFiles,
+			onPress: func() error {
+				return gui.setStatusFiltering(filetree.DisplayUnstaged)
+			},
+		},
+		{
+			displayString: gui.Tr.ResetCommitFilterState,
+			onPress: func() error {
+				return gui.setStatusFiltering(filetree.DisplayAll)
+			},
+		},
+	}
+
+	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{showCancel: true})
+}
+
+func (gui *Gui) setStatusFiltering(filter filetree.FileManagerDisplayFilter) error {
+	state := gui.State
+	state.FileManager.SetDisplayFilter(filter)
+	return gui.handleRefreshFiles()
+}
+
 func (gui *Gui) editFile(filename string) error {
-	cmdStr, err := gui.GitCommand.EditFileCmdStr(filename)
+	return gui.editFileAtLine(filename, 1)
+}
+
+func (gui *Gui) editFileAtLine(filename string, lineNumber int) error {
+	cmdStr, err := gui.GitCommand.EditFileCmdStr(filename, lineNumber)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
 
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).PrepareShellSubProcess(cmdStr),
+		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).ShellCommandFromString(cmdStr),
 	)
 }
 
@@ -630,8 +660,9 @@ func (gui *Gui) handlePullFiles() error {
 		}
 
 		return gui.prompt(promptOpts{
-			title:          gui.Tr.EnterUpstream,
-			initialContent: "origin/" + currentBranch.Name,
+			title:               gui.Tr.EnterUpstream,
+			initialContent:      "origin/" + currentBranch.Name,
+			findSuggestionsFunc: gui.getRemoteBranchesSuggestionsFunc("/"),
 			handleConfirm: func(upstream string) error {
 				if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
 					errorMessage := err.Error()
@@ -649,9 +680,10 @@ func (gui *Gui) handlePullFiles() error {
 }
 
 type PullFilesOptions struct {
-	RemoteName string
-	BranchName string
-	span       string
+	RemoteName      string
+	BranchName      string
+	FastForwardOnly bool
+	span            string
 }
 
 func (gui *Gui) pullFiles(opts PullFilesOptions) error {
@@ -659,56 +691,53 @@ func (gui *Gui) pullFiles(opts PullFilesOptions) error {
 		return err
 	}
 
-	mode := &gui.Config.GetUserConfig().Git.Pull.Mode
-	*mode = gui.GitCommand.GetPullMode(*mode)
-
 	// TODO: this doesn't look like a good idea. Why the goroutine?
-	go utils.Safe(func() { _ = gui.pullWithMode(*mode, opts) })
+	go utils.Safe(func() { _ = gui.pullWithLock(opts) })
 
 	return nil
 }
 
-func (gui *Gui) pullWithMode(mode string, opts PullFilesOptions) error {
+func (gui *Gui) pullWithLock(opts PullFilesOptions) error {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
 	gitCommand := gui.GitCommand.WithSpan(opts.span)
 
-	err := gitCommand.Fetch(
-		commands.FetchOptions{
+	err := gitCommand.Pull(
+		commands.PullOptions{
 			PromptUserForCredential: gui.promptUserForCredential,
 			RemoteName:              opts.RemoteName,
 			BranchName:              opts.BranchName,
+			FastForwardOnly:         opts.FastForwardOnly,
 		},
 	)
-	gui.handleCredentialsPopup(err)
-	if err != nil {
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	if err == nil {
+		_ = gui.closeConfirmationPrompt(false)
 	}
-
-	switch mode {
-	case "rebase":
-		err := gitCommand.RebaseBranch("FETCH_HEAD")
-		return gui.handleGenericMergeCommandResult(err)
-	case "merge":
-		err := gitCommand.Merge("FETCH_HEAD", commands.MergeOpts{})
-		return gui.handleGenericMergeCommandResult(err)
-	case "ff-only":
-		err := gitCommand.Merge("FETCH_HEAD", commands.MergeOpts{FastForwardOnly: true})
-		return gui.handleGenericMergeCommandResult(err)
-	default:
-		return gui.createErrorPanel(fmt.Sprintf("git pull mode '%s' unrecognised", mode))
-	}
+	return gui.handleGenericMergeCommandResult(err)
 }
 
-func (gui *Gui) pushWithForceFlag(force bool, upstream string, args string) error {
+type pushOpts struct {
+	force          bool
+	upstreamRemote string
+	upstreamBranch string
+	setUpstream    bool
+}
+
+func (gui *Gui) push(opts pushOpts) error {
 	if err := gui.createLoaderPanel(gui.Tr.PushWait); err != nil {
 		return err
 	}
 	go utils.Safe(func() {
-		branchName := gui.getCheckedOutBranch().Name
-		err := gui.GitCommand.WithSpan(gui.Tr.Spans.Push).Push(branchName, force, upstream, args, gui.promptUserForCredential)
-		if err != nil && !force && strings.Contains(err.Error(), "Updates were rejected") {
+		err := gui.GitCommand.WithSpan(gui.Tr.Spans.Push).Push(commands.PushOpts{
+			Force:                   opts.force,
+			UpstreamRemote:          opts.upstreamRemote,
+			UpstreamBranch:          opts.upstreamBranch,
+			SetUpstream:             opts.setUpstream,
+			PromptUserForCredential: gui.promptUserForCredential,
+		})
+
+		if err != nil && !opts.force && strings.Contains(err.Error(), "Updates were rejected") {
 			forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
 			if forcePushDisabled {
 				_ = gui.createErrorPanel(gui.Tr.UpdatesRejectedAndForcePushDisabled)
@@ -718,7 +747,10 @@ func (gui *Gui) pushWithForceFlag(force bool, upstream string, args string) erro
 				title:  gui.Tr.ForcePush,
 				prompt: gui.Tr.ForcePushPrompt,
 				handleConfirm: func() error {
-					return gui.pushWithForceFlag(true, upstream, args)
+					newOpts := opts
+					newOpts.force = true
+
+					return gui.push(newOpts)
 				},
 			})
 			return
@@ -745,27 +777,49 @@ func (gui *Gui) pushFiles() error {
 		if currentBranch.HasCommitsToPull() {
 			return gui.requestToForcePush()
 		} else {
-			return gui.pushWithForceFlag(false, "", "")
+			return gui.push(pushOpts{})
 		}
 	} else {
 		// see if we have an upstream for this branch in our config
-		upstream, err := gui.upstreamForBranchInConfig(currentBranch.Name)
+		upstreamRemote, upstreamBranch, err := gui.upstreamForBranchInConfig(currentBranch.Name)
 		if err != nil {
 			return gui.surfaceError(err)
 		}
 
-		if upstream != "" {
-			return gui.pushWithForceFlag(false, "", upstream)
+		if upstreamBranch != "" {
+			return gui.push(
+				pushOpts{
+					force:          false,
+					upstreamRemote: upstreamRemote,
+					upstreamBranch: upstreamBranch,
+				},
+			)
 		}
 
 		if gui.GitCommand.PushToCurrent {
-			return gui.pushWithForceFlag(false, "", "--set-upstream")
+			return gui.push(pushOpts{setUpstream: true})
 		} else {
 			return gui.prompt(promptOpts{
-				title:          gui.Tr.EnterUpstream,
-				initialContent: "origin " + currentBranch.Name,
+				title:               gui.Tr.EnterUpstream,
+				initialContent:      "origin " + currentBranch.Name,
+				findSuggestionsFunc: gui.getRemoteBranchesSuggestionsFunc(" "),
 				handleConfirm: func(upstream string) error {
-					return gui.pushWithForceFlag(false, upstream, "")
+					var upstreamBranch, upstreamRemote string
+					split := strings.Split(upstream, " ")
+					if len(split) == 2 {
+						upstreamRemote = split[0]
+						upstreamBranch = split[1]
+					} else {
+						upstreamRemote = upstream
+						upstreamBranch = ""
+					}
+
+					return gui.push(pushOpts{
+						force:          false,
+						upstreamRemote: upstreamRemote,
+						upstreamBranch: upstreamBranch,
+						setUpstream:    true,
+					})
 				},
 			})
 		}
@@ -782,24 +836,24 @@ func (gui *Gui) requestToForcePush() error {
 		title:  gui.Tr.ForcePush,
 		prompt: gui.Tr.ForcePushPrompt,
 		handleConfirm: func() error {
-			return gui.pushWithForceFlag(true, "", "")
+			return gui.push(pushOpts{force: true})
 		},
 	})
 }
 
-func (gui *Gui) upstreamForBranchInConfig(branchName string) (string, error) {
+func (gui *Gui) upstreamForBranchInConfig(branchName string) (string, string, error) {
 	conf, err := gui.GitCommand.Repo.Config()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	for configBranchName, configBranch := range conf.Branches {
 		if configBranchName == branchName {
-			return fmt.Sprintf("%s %s", configBranch.Remote, configBranchName), nil
+			return configBranch.Remote, configBranchName, nil
 		}
 	}
 
-	return "", nil
+	return "", "", nil
 }
 
 func (gui *Gui) handleSwitchToMerge() error {
@@ -833,8 +887,21 @@ func (gui *Gui) anyFilesWithMergeConflicts() bool {
 
 func (gui *Gui) handleCustomCommand() error {
 	return gui.prompt(promptOpts{
-		title: gui.Tr.CustomCommand,
+		title:               gui.Tr.CustomCommand,
+		findSuggestionsFunc: gui.getCustomCommandsHistorySuggestionsFunc(),
 		handleConfirm: func(command string) error {
+			gui.Config.GetAppState().CustomCommandsHistory = utils.Limit(
+				utils.Uniq(
+					append(gui.Config.GetAppState().CustomCommandsHistory, command),
+				),
+				1000,
+			)
+
+			err := gui.Config.SaveAppState()
+			if err != nil {
+				gui.Log.Error(err)
+			}
+
 			gui.OnRunCommand(oscommands.NewCmdLogEntry(command, gui.Tr.Spans.CustomCommand, true))
 			return gui.runSubprocessWithSuspenseAndRefresh(
 				gui.OSCommand.PrepareShellSubProcess(command),

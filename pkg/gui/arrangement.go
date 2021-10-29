@@ -210,7 +210,7 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 
 // The stash window by default only contains one line so that it's not hogging
 // too much space, but if you access it it should take up some space. This is
-// the default behaviour when accordian mode is NOT in effect. If it is in effect
+// the default behaviour when accordion mode is NOT in effect. If it is in effect
 // then when it's accessed it will have weight 2, not 1.
 func (gui *Gui) getDefaultStashWindowBox() *boxlayout.Box {
 	gui.State.ContextManager.RLock()
@@ -259,9 +259,9 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 			fullHeightBox("stash"),
 		}
 	} else if height >= 28 {
-		accordianMode := gui.Config.GetUserConfig().Gui.ExpandFocusedSidePanel
-		accordianBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
-			if accordianMode && defaultBox.Window == currentWindow {
+		accordionMode := gui.Config.GetUserConfig().Gui.ExpandFocusedSidePanel
+		accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
+			if accordionMode && defaultBox.Window == currentWindow {
 				return &boxlayout.Box{
 					Window: defaultBox.Window,
 					Weight: 2,
@@ -276,10 +276,10 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 				Window: "status",
 				Size:   3,
 			},
-			accordianBox(&boxlayout.Box{Window: "files", Weight: 1}),
-			accordianBox(&boxlayout.Box{Window: "branches", Weight: 1}),
-			accordianBox(&boxlayout.Box{Window: "commits", Weight: 1}),
-			accordianBox(gui.getDefaultStashWindowBox()),
+			accordionBox(&boxlayout.Box{Window: "files", Weight: 1}),
+			accordionBox(&boxlayout.Box{Window: "branches", Weight: 1}),
+			accordionBox(&boxlayout.Box{Window: "commits", Weight: 1}),
+			accordionBox(gui.getDefaultStashWindowBox()),
 		}
 	} else {
 		squashedHeight := 1

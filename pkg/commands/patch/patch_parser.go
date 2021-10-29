@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/fatih/color"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -95,45 +95,39 @@ func (l *PatchLine) render(selected bool, included bool) string {
 	if l.Kind == HUNK_HEADER {
 		re := regexp.MustCompile("(@@.*?@@)(.*)")
 		match := re.FindStringSubmatch(content)
-		return coloredString(color.FgCyan, match[1], selected, included) + coloredString(theme.DefaultTextColor, match[2], selected, false)
+		return coloredString(style.FgCyan, match[1], selected, included) + coloredString(theme.DefaultTextColor, match[2], selected, false)
 	}
 
-	var colorAttr color.Attribute
+	textStyle := theme.DefaultTextColor
 	switch l.Kind {
 	case PATCH_HEADER:
-		colorAttr = color.Bold
+		textStyle = textStyle.SetBold()
 	case ADDITION:
-		colorAttr = color.FgGreen
+		textStyle = style.FgGreen
 	case DELETION:
-		colorAttr = color.FgRed
+		textStyle = style.FgRed
 	case COMMIT_SHA:
-		colorAttr = color.FgYellow
-	default:
-		colorAttr = theme.DefaultTextColor
+		textStyle = style.FgYellow
 	}
 
-	return coloredString(colorAttr, content, selected, included)
+	return coloredString(textStyle, content, selected, included)
 }
 
-func coloredString(colorAttr color.Attribute, str string, selected bool, included bool) string {
-	var cl *color.Color
-	attributes := []color.Attribute{colorAttr}
+func coloredString(textStyle style.TextStyle, str string, selected bool, included bool) string {
 	if selected {
-		attributes = append(attributes, theme.SelectedRangeBgColor)
+		textStyle = textStyle.MergeStyle(theme.SelectedRangeBgColor)
 	}
-	cl = color.New(attributes...)
-	var clIncluded *color.Color
+
+	firstCharStyle := textStyle
 	if included {
-		clIncluded = color.New(append(attributes, color.BgGreen)...)
-	} else {
-		clIncluded = color.New(attributes...)
+		firstCharStyle = firstCharStyle.MergeStyle(style.BgGreen)
 	}
 
 	if len(str) < 2 {
-		return utils.ColoredStringDirect(str, clIncluded)
+		return firstCharStyle.Sprint(str)
 	}
 
-	return utils.ColoredStringDirect(str[:1], clIncluded) + utils.ColoredStringDirect(str[1:], cl)
+	return firstCharStyle.Sprint(str[:1]) + textStyle.Sprint(str[1:])
 }
 
 func parsePatch(patch string) ([]int, []int, []*PatchLine) {
@@ -198,6 +192,19 @@ func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int, incLineIndic
 		return ""
 	}
 	return result
+}
+
+// PlainRenderLines returns the non-coloured string of diff part from firstLineIndex to
+// lastLineIndex
+func (p *PatchParser) PlainRenderLines(firstLineIndex, lastLineIndex int) string {
+	linesToCopy := p.PatchLines[firstLineIndex : lastLineIndex+1]
+
+	renderedLines := make([]string, len(linesToCopy))
+	for index, line := range linesToCopy {
+		renderedLines[index] = line.Content
+	}
+
+	return strings.Join(renderedLines, "\n")
 }
 
 // GetNextStageableLineIndex takes a line index and returns the line index of the next stageable line

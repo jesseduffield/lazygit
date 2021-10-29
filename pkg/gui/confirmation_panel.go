@@ -1,16 +1,13 @@
 // lots of this has been directly ported from one of the example files, will brush up later
 
-// Copyright 2014 The gocui Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package gui
 
 import (
+	"fmt"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -37,7 +34,6 @@ type askOpts struct {
 	handleConfirm       func() error
 	handleClose         func() error
 	handlersManageFocus bool
-	findSuggestionsFunc func(string) []*types.Suggestion
 }
 
 type promptOpts struct {
@@ -54,7 +50,6 @@ func (gui *Gui) ask(opts askOpts) error {
 		handleConfirm:       opts.handleConfirm,
 		handleClose:         opts.handleClose,
 		handlersManageFocus: opts.handlersManageFocus,
-		findSuggestionsFunc: opts.findSuggestionsFunc,
 	})
 }
 
@@ -105,13 +100,6 @@ func (gui *Gui) wrappedPromptConfirmationFunction(handlersManageFocus bool, func
 
 		return nil
 	}
-}
-
-func (gui *Gui) clearConfirmationViewKeyBindings() {
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
-	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone)
 }
 
 func (gui *Gui) closeConfirmationPrompt(handlersManageFocus bool) error {
@@ -169,7 +157,13 @@ func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, i
 		height/2 + panelHeight/2
 }
 
-func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, findSuggestionsFunc func(string) []*types.Suggestion) error {
+func (gui *Gui) prepareConfirmationPanel(
+	title,
+	prompt string,
+	hasLoader bool,
+	findSuggestionsFunc func(string) []*types.Suggestion,
+	editable bool,
+) error {
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(true, prompt)
 	// calling SetView on an existing view returns the same view, so I'm not bothering
 	// to reassign to gui.Views.Confirmation
@@ -182,20 +176,22 @@ func (gui *Gui) prepareConfirmationPanel(title, prompt string, hasLoader bool, f
 		gui.g.StartTicking()
 	}
 	gui.Views.Confirmation.Title = title
-	gui.Views.Confirmation.Wrap = true
+	// for now we do not support wrapping in our editor
+	gui.Views.Confirmation.Wrap = !editable
 	gui.Views.Confirmation.FgColor = theme.GocuiDefaultTextColor
 
 	gui.findSuggestions = findSuggestionsFunc
 	if findSuggestionsFunc != nil {
 		suggestionsViewHeight := 11
-		suggestionsView, err := gui.g.SetView("suggestions", x0, y1, x1, y1+suggestionsViewHeight, 0)
+		suggestionsView, err := gui.g.SetView("suggestions", x0, y1+1, x1, y1+suggestionsViewHeight, 0)
 		if err != nil {
 			return err
 		}
-		suggestionsView.Wrap = true
+		suggestionsView.Wrap = false
 		suggestionsView.FgColor = theme.GocuiDefaultTextColor
-		gui.setSuggestions([]*types.Suggestion{})
+		gui.setSuggestions(findSuggestionsFunc(""))
 		suggestionsView.Visible = true
+		suggestionsView.Title = fmt.Sprintf(gui.Tr.SuggestionsTitle, gui.Config.GetUserConfig().Keybinding.Universal.TogglePanel)
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
@@ -209,19 +205,27 @@ func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
 		// remove any previous keybindings
 		gui.clearConfirmationViewKeyBindings()
 
-		err := gui.prepareConfirmationPanel(opts.title, opts.prompt, opts.hasLoader, opts.findSuggestionsFunc)
+		err := gui.prepareConfirmationPanel(
+			opts.title,
+			opts.prompt,
+			opts.hasLoader,
+			opts.findSuggestionsFunc,
+			opts.editable,
+		)
 		if err != nil {
 			return err
 		}
-		gui.Views.Confirmation.Editable = opts.editable
-		gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.defaultEditor)
+		confirmationView := gui.Views.Confirmation
+		confirmationView.Editable = opts.editable
+		confirmationView.Editor = gocui.EditorFunc(gui.defaultEditor)
 
 		if opts.editable {
-			if err := gui.Views.Confirmation.SetEditorContent(opts.prompt); err != nil {
-				return err
-			}
+			textArea := confirmationView.TextArea
+			textArea.Clear()
+			textArea.TypeString(opts.prompt)
+			confirmationView.RenderTextArea()
 		} else {
-			if err := gui.renderStringSync(gui.Views.Confirmation, opts.prompt); err != nil {
+			if err := gui.renderStringSync(confirmationView, opts.prompt); err != nil {
 				return err
 			}
 		}
@@ -243,7 +247,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 	gui.renderString(gui.Views.Options, actions)
 	var onConfirm func() error
 	if opts.handleConfirmPrompt != nil {
-		onConfirm = gui.wrappedPromptConfirmationFunction(opts.handlersManageFocus, opts.handleConfirmPrompt, func() string { return gui.Views.Confirmation.Buffer() })
+		onConfirm = gui.wrappedPromptConfirmationFunction(opts.handlersManageFocus, opts.handleConfirmPrompt, func() string { return gui.Views.Confirmation.TextArea.GetContent() })
 	} else {
 		onConfirm = gui.wrappedConfirmationFunction(opts.handlersManageFocus, opts.handleConfirm)
 	}
@@ -255,7 +259,11 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 	}
 
 	keybindingConfig := gui.Config.GetUserConfig().Keybinding
-	onSuggestionConfirm := gui.wrappedPromptConfirmationFunction(opts.handlersManageFocus, opts.handleConfirmPrompt, func() string { return gui.getSelectedSuggestionValue() })
+	onSuggestionConfirm := gui.wrappedPromptConfirmationFunction(
+		opts.handlersManageFocus,
+		opts.handleConfirmPrompt,
+		gui.getSelectedSuggestionValue,
+	)
 
 	confirmationKeybindings := []confirmationKeybinding{
 		{
@@ -276,7 +284,12 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		{
 			viewName: "confirmation",
 			key:      gui.getKey(keybindingConfig.Universal.TogglePanel),
-			handler:  func() error { return gui.replaceContext(gui.State.Contexts.Suggestions) },
+			handler: func() error {
+				if len(gui.State.Suggestions) > 0 {
+					return gui.replaceContext(gui.State.Contexts.Suggestions)
+				}
+				return nil
+			},
 		},
 		{
 			viewName: "suggestions",
@@ -309,6 +322,16 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 	return nil
 }
 
+func (gui *Gui) clearConfirmationViewKeyBindings() {
+	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("suggestions", gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("suggestions", gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("suggestions", gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone)
+}
+
 func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		return f()
@@ -316,8 +339,7 @@ func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View)
 }
 
 func (gui *Gui) createErrorPanel(message string) error {
-	colorFunction := color.New(color.FgRed).SprintFunc()
-	coloredMessage := colorFunction(strings.TrimSpace(message))
+	coloredMessage := style.FgRed.Sprint(strings.TrimSpace(message))
 	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
 		return err
 	}

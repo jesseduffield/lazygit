@@ -3,8 +3,8 @@ package gui
 import (
 	"fmt"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 func (gui *Gui) informationStr() string {
@@ -15,8 +15,8 @@ func (gui *Gui) informationStr() string {
 	}
 
 	if gui.g.Mouse {
-		donate := color.New(color.FgMagenta, color.Underline).Sprint(gui.Tr.Donate)
-		askQuestion := color.New(color.FgYellow, color.Underline).Sprint(gui.Tr.AskQuestion)
+		donate := style.FgMagenta.SetUnderline().Sprint(gui.Tr.Donate)
+		askQuestion := style.FgYellow.SetUnderline().Sprint(gui.Tr.AskQuestion)
 		return fmt.Sprintf("%s %s %s", donate, askQuestion, gui.Config.GetVersion())
 	} else {
 		return gui.Config.GetVersion()

@@ -2,13 +2,11 @@ package presentation
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string, showGithub bool) [][]string {
@@ -29,67 +27,52 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed, sho
 		displayName = b.DisplayName
 	}
 
-	nameColorAttr := GetBranchColor(b.Name)
+	nameTextStyle := GetBranchTextStyle(b.Name)
 	if diffed {
-		nameColorAttr = theme.DiffTerminalColor
+		nameTextStyle = theme.DiffTerminalColor
 	}
-	coloredName := utils.ColoredString(displayName, nameColorAttr)
+	coloredName := nameTextStyle.Sprint(displayName)
 	if b.IsTrackingRemote() {
 		coloredName = fmt.Sprintf("%s %s", coloredName, ColoredBranchStatus(b))
 	}
 
-	recencyColor := color.FgCyan
+	recencyColor := style.FgCyan
 	if b.Recency == "  *" {
-		recencyColor = color.FgGreen
+		recencyColor = style.FgGreen
 	}
 
-	res := []string{utils.ColoredString(b.Recency, recencyColor)}
-	if showGithub {
-		if b.PR != nil {
-			colour := color.FgMagenta // = state MERGED
-			switch b.PR.State {
-			case "OPEN":
-				colour = color.FgGreen
-			case "CLOSED":
-				colour = color.FgRed
-			}
-			res = append(res, utils.ColoredString("#"+strconv.Itoa(b.PR.Number), colour))
-		} else {
-			res = append(res, "")
-		}
-	}
-
+	res := []string{recencyColor.Sprint(b.Recency), coloredName}
 	if fullDescription {
-		return append(res, coloredName, utils.ColoredString(b.UpstreamName, color.FgYellow))
+		return append(res, style.FgYellow.Sprint(b.UpstreamName))
 	}
-	return append(res, coloredName)
+	return res
 }
 
-// GetBranchColor branch color
-func GetBranchColor(name string) color.Attribute {
+// GetBranchTextStyle branch color
+func GetBranchTextStyle(name string) style.TextStyle {
 	branchType := strings.Split(name, "/")[0]
 
 	switch branchType {
 	case "feature":
-		return color.FgGreen
+		return style.FgGreen
 	case "bugfix":
-		return color.FgYellow
+		return style.FgYellow
 	case "hotfix":
-		return color.FgRed
+		return style.FgRed
 	default:
 		return theme.DefaultTextColor
 	}
 }
 
 func ColoredBranchStatus(branch *models.Branch) string {
-	colour := color.FgYellow
+	colour := style.FgYellow
 	if branch.MatchesUpstream() {
-		colour = color.FgGreen
+		colour = style.FgGreen
 	} else if !branch.IsTrackingRemote() {
-		colour = color.FgRed
+		colour = style.FgRed
 	}
 
-	return utils.ColoredString(BranchStatus(branch), colour)
+	return colour.Sprint(BranchStatus(branch))
 }
 
 func BranchStatus(branch *models.Branch) string {

@@ -1,12 +1,9 @@
 package presentation
 
 import (
-	"fmt"
-
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func GetRemoteListDisplayStrings(remotes []*models.Remote, diffName string) [][]string {
@@ -24,10 +21,10 @@ func GetRemoteListDisplayStrings(remotes []*models.Remote, diffName string) [][]
 func getRemoteDisplayStrings(r *models.Remote, diffed bool) []string {
 	branchCount := len(r.Branches)
 
-	nameColorAttr := theme.DefaultTextColor
+	textStyle := theme.DefaultTextColor
 	if diffed {
-		nameColorAttr = theme.DiffTerminalColor
+		textStyle = theme.DiffTerminalColor
 	}
 
-	return []string{utils.ColoredString(r.Name, nameColorAttr), utils.ColoredString(fmt.Sprintf("%d branches", branchCount), color.FgBlue)}
+	return []string{textStyle.Sprint(r.Name), style.FgBlue.Sprintf("%d branches", branchCount)}
 }

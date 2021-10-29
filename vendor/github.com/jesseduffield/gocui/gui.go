@@ -15,6 +15,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-errors/errors"
+	"github.com/mattn/go-runewidth"
 )
 
 // OutputMode represents an output mode, which determines how colors
@@ -146,10 +147,6 @@ type Gui struct {
 	// If InputEsc is true, when ESC sequence is in the buffer and it doesn't
 	// match any known sequence, ESC means KeyEsc.
 	InputEsc bool
-
-	// If ASCII is true then use ASCII instead of unicode to draw the
-	// interface. Using ASCII is more portable.
-	ASCII bool
 
 	// SupportOverlaps is true when we allow for view edges to overlap with other
 	// view edges
@@ -754,9 +751,7 @@ func (g *Gui) clear(fg, bg Attribute) (int, int) {
 // drawFrameEdges draws the horizontal and vertical edges of a view.
 func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 	runeH, runeV := '─', '│'
-	if g.ASCII {
-		runeH, runeV = '-', '|'
-	} else if len(v.FrameRunes) >= 2 {
+	if len(v.FrameRunes) >= 2 {
 		runeH, runeV = v.FrameRunes[0], v.FrameRunes[1]
 	}
 
@@ -882,9 +877,6 @@ func (g *Gui) drawFrameCorners(v *View, fgColor, bgColor Attribute) error {
 		runeBL = corner(v, TOP|RIGHT)
 		runeBR = corner(v, TOP|LEFT)
 	}
-	if g.ASCII {
-		runeTL, runeTR, runeBL, runeBR = '+', '+', '+', '+'
-	}
 
 	corners := []struct {
 		x, y int
@@ -930,8 +922,8 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 
 	str := strings.Join(tabs, separator)
 
+	x := v.x0 + 2
 	for i, ch := range str {
-		x := v.x0 + i + 2
 		if x < 0 {
 			continue
 		} else if x > v.x1-2 || x >= g.maxX {
@@ -957,6 +949,7 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
 			return err
 		}
+		x += runewidth.RuneWidth(ch)
 	}
 	return nil
 }
@@ -971,14 +964,15 @@ func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
 	if start < v.x0 {
 		return nil
 	}
-	for i, ch := range v.Subtitle {
-		x := start + i
+	x := start
+	for _, ch := range v.Subtitle {
 		if x >= v.x1 {
 			break
 		}
 		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
 			return err
 		}
+		x += runewidth.RuneWidth(ch)
 	}
 	return nil
 }
@@ -999,14 +993,15 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 	if start < v.x0 {
 		return nil
 	}
-	for i, ch := range message {
-		x := start + i
+	x := start
+	for _, ch := range message {
 		if x >= v.x1 {
 			break
 		}
 		if err := g.SetRune(x, v.y1, ch, fgColor, bgColor); err != nil {
 			return err
 		}
+		x += runewidth.RuneWidth(ch)
 	}
 	return nil
 }

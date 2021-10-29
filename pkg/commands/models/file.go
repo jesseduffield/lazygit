@@ -29,8 +29,6 @@ type IFile interface {
 	GetPath() string
 }
 
-const RENAME_SEPARATOR = " -> "
-
 func (f *File) IsRename() bool {
 	return f.PreviousName != ""
 }
@@ -63,7 +61,7 @@ func (f *File) IsSubmodule(configs []*SubmoduleConfig) bool {
 
 func (f *File) SubmoduleConfig(configs []*SubmoduleConfig) *SubmoduleConfig {
 	for _, config := range configs {
-		if f.Name == config.Name {
+		if f.Name == config.Path {
 			return config
 		}
 	}

@@ -58,37 +58,57 @@ bar
 =======
 baz
 >>>>>>> branch
+
+<<<<<<< HEAD
+foo
+||||||| fffffff
+bar
+=======
+baz
+>>>>>>> branch
 `,
 			expected: []*mergeConflict{
 				{
-					start:  0,
-					middle: 2,
-					end:    4,
+					start:    0,
+					ancestor: -1,
+					target:   2,
+					end:      4,
 				},
 				{
-					start:  6,
-					middle: 9,
-					end:    11,
+					start:    6,
+					ancestor: -1,
+					target:   9,
+					end:      11,
 				},
 				{
-					start:  13,
-					middle: 15,
-					end:    17,
+					start:    13,
+					ancestor: -1,
+					target:   15,
+					end:      17,
 				},
 				{
-					start:  19,
-					middle: 21,
-					end:    23,
+					start:    19,
+					ancestor: -1,
+					target:   21,
+					end:      23,
 				},
 				{
-					start:  25,
-					middle: 27,
-					end:    29,
+					start:    25,
+					ancestor: -1,
+					target:   27,
+					end:      29,
 				},
 				{
-					start:  31,
-					middle: 34,
-					end:    36,
+					start:    31,
+					ancestor: -1,
+					target:   34,
+					end:      36,
+				},
+				{
+					start:    38,
+					ancestor: 40,
+					target:   42,
+					end:      44,
 				},
 			},
 		},

@@ -1,9 +1,11 @@
+//go:build !windows
 // +build !windows
 
 package gui
 
 import (
 	"os/exec"
+	"strings"
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/gocui"
@@ -39,6 +41,8 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
+	cmdStr := strings.Join(cmd.Args, " ")
+
 	cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
 
 	_, height := view.Size()
@@ -61,7 +65,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		return err
 	}
 
-	if err := manager.NewTask(manager.NewCmdTask(ptmx, cmd, prefix, height+oy+10, onClose)); err != nil {
+	if err := manager.NewTask(manager.NewCmdTask(ptmx, cmd, prefix, height+oy+10, onClose), cmdStr); err != nil {
 		return err
 	}
 

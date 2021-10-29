@@ -1,0 +1,1 @@
+{ "description": "When user has configured pull with merge, ensure a merge commit is created upon pull", "speed": 10 }

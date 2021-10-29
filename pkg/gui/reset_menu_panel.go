@@ -3,8 +3,8 @@ package gui
 import (
 	"fmt"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 func (gui *Gui) resetToRef(ref string, strength string, span string, options oscommands.RunCommandOptions) error {
@@ -36,9 +36,7 @@ func (gui *Gui) createResetMenu(ref string) error {
 		menuItems[i] = &menuItem{
 			displayStrings: []string{
 				fmt.Sprintf("%s reset", strength),
-				color.New(color.FgRed).Sprint(
-					fmt.Sprintf("reset --%s %s", strength, ref),
-				),
+				style.FgRed.Sprintf("reset --%s %s", strength, ref),
 			},
 			onPress: func() error {
 				return gui.resetToRef(ref, strength, "Reset", oscommands.RunCommandOptions{})

@@ -7,58 +7,60 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type Selection int
-
-const (
-	TOP Selection = iota
-	BOTTOM
-	BOTH
-)
-
-// mergeConflict : A git conflict with a start middle and end corresponding to line
-// numbers in the file where the conflict markers appear
-type mergeConflict struct {
-	start  int
-	middle int
-	end    int
-}
-
 type State struct {
 	sync.Mutex
+
+	conflicts []*mergeConflict
+	// this is the index of the above `conflicts` field which is currently selected
 	conflictIndex int
-	conflictTop   bool
-	conflicts     []*mergeConflict
-	EditHistory   *stack.Stack
+
+	// this is the index of the selected conflict's available selections slice e.g. [TOP, MIDDLE, BOTTOM]
+	// We use this to know which hunk of the conflict is selected.
+	selectionIndex int
+
+	// this allows us to undo actions
+	EditHistory *stack.Stack
 }
 
 func NewState() *State {
 	return &State{
-		Mutex:         sync.Mutex{},
-		conflictIndex: 0,
-		conflictTop:   true,
-		conflicts:     []*mergeConflict{},
-		EditHistory:   stack.New(),
+		Mutex:          sync.Mutex{},
+		conflictIndex:  0,
+		selectionIndex: 0,
+		conflicts:      []*mergeConflict{},
+		EditHistory:    stack.New(),
 	}
 }
 
-func (s *State) SelectTopOption() {
-	s.conflictTop = true
+func (s *State) setConflictIndex(index int) {
+	if len(s.conflicts) == 0 {
+		s.conflictIndex = 0
+	} else {
+		s.conflictIndex = clamp(index, 0, len(s.conflicts)-1)
+	}
+	s.setSelectionIndex(s.selectionIndex)
 }
 
-func (s *State) SelectBottomOption() {
-	s.conflictTop = false
+func (s *State) setSelectionIndex(index int) {
+	if selections := s.availableSelections(); len(selections) != 0 {
+		s.selectionIndex = clamp(index, 0, len(selections)-1)
+	}
+}
+
+func (s *State) SelectNextConflictHunk() {
+	s.setSelectionIndex(s.selectionIndex + 1)
+}
+
+func (s *State) SelectPrevConflictHunk() {
+	s.setSelectionIndex(s.selectionIndex - 1)
 }
 
 func (s *State) SelectNextConflict() {
-	if s.conflictIndex < len(s.conflicts)-1 {
-		s.conflictIndex++
-	}
+	s.setConflictIndex(s.conflictIndex + 1)
 }
 
 func (s *State) SelectPrevConflict() {
-	if s.conflictIndex > 0 {
-		s.conflictIndex--
-	}
+	s.setConflictIndex(s.conflictIndex - 1)
 }
 
 func (s *State) PushFileSnapshot(content string) {
@@ -87,12 +89,7 @@ func (s *State) SetConflictsFromCat(cat string) {
 
 func (s *State) setConflicts(conflicts []*mergeConflict) {
 	s.conflicts = conflicts
-
-	if s.conflictIndex > len(s.conflicts)-1 {
-		s.conflictIndex = len(s.conflicts) - 1
-	} else if s.conflictIndex < 0 {
-		s.conflictIndex = 0
-	}
+	s.setConflictIndex(s.conflictIndex)
 }
 
 func (s *State) NoConflicts() bool {
@@ -100,11 +97,17 @@ func (s *State) NoConflicts() bool {
 }
 
 func (s *State) Selection() Selection {
-	if s.conflictTop {
-		return TOP
-	} else {
-		return BOTTOM
+	if selections := s.availableSelections(); len(selections) > 0 {
+		return selections[s.selectionIndex]
 	}
+	return TOP
+}
+
+func (s *State) availableSelections() []Selection {
+	if conflict := s.currentConflict(); conflict != nil {
+		return availableSelections(conflict)
+	}
+	return nil
 }
 
 func (s *State) IsFinalConflict() bool {
@@ -116,10 +119,13 @@ func (s *State) Reset() {
 }
 
 func (s *State) GetConflictMiddle() int {
-	return s.currentConflict().middle
+	return s.currentConflict().target
 }
 
-func (s *State) ContentAfterConflictResolve(path string, selection Selection) (bool, string, error) {
+func (s *State) ContentAfterConflictResolve(
+	path string,
+	selection Selection,
+) (bool, string, error) {
 	conflict := s.currentConflict()
 	if conflict == nil {
 		return false, "", nil
@@ -127,7 +133,7 @@ func (s *State) ContentAfterConflictResolve(path string, selection Selection) (b
 
 	content := ""
 	err := utils.ForEachLineInFile(path, func(line string, i int) {
-		if !isIndexToDelete(i, conflict, selection) {
+		if selection.isIndexToKeep(conflict, i) {
 			content += line
 		}
 	})
@@ -139,15 +145,11 @@ func (s *State) ContentAfterConflictResolve(path string, selection Selection) (b
 	return true, content, nil
 }
 
-func isIndexToDelete(i int, conflict *mergeConflict, selection Selection) bool {
-	isMarkerLine :=
-		i == conflict.middle ||
-			i == conflict.start ||
-			i == conflict.end
-
-	isUnwantedContent :=
-		(selection == BOTTOM && conflict.start < i && i < conflict.middle) ||
-			(selection == TOP && conflict.middle < i && i < conflict.end)
-
-	return isMarkerLine || isUnwantedContent
+func clamp(x int, min int, max int) int {
+	if x < min {
+		return min
+	} else if x > max {
+		return max
+	}
+	return x
 }

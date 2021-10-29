@@ -180,6 +180,11 @@ func (s *State) RenderForLineIndices(includedLineIndices []int) string {
 	return s.patchParser.Render(firstLineIdx, lastLineIdx, includedLineIndices)
 }
 
+func (s *State) PlainRenderSelected() string {
+	firstLineIdx, lastLineIdx := s.SelectedRange()
+	return s.patchParser.PlainRenderLines(firstLineIdx, lastLineIdx)
+}
+
 func (s *State) SelectBottom() {
 	s.SetLineSelectMode()
 	s.SelectLine(len(s.patchParser.PatchLines) - 1)

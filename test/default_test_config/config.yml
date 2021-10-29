@@ -6,3 +6,5 @@ gui:
     - bold
     SelectedRangeBgcolor:
     - reverse
+  # TODO: we should update most tests to use a file tree now that it's the default
+  showFileTree: false

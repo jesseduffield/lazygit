@@ -244,10 +244,6 @@ func (gui *Gui) renderOptionsMap(optionsMap map[string]string) {
 	gui.renderString(gui.Views.Options, gui.optionsMapToString(optionsMap))
 }
 
-func (gui *Gui) trimmedContent(v *gocui.View) string {
-	return strings.TrimSpace(v.Buffer())
-}
-
 func (gui *Gui) currentViewName() string {
 	currentView := gui.g.CurrentView()
 	if currentView == nil {
@@ -262,15 +258,14 @@ func (gui *Gui) resizeCurrentPopupPanel() error {
 		return nil
 	}
 	if gui.isPopupPanel(v.Name()) {
-		return gui.resizePopupPanel(v)
+		return gui.resizePopupPanel(v, v.Buffer())
 	}
 	return nil
 }
 
-func (gui *Gui) resizePopupPanel(v *gocui.View) error {
+func (gui *Gui) resizePopupPanel(v *gocui.View, content string) error {
 	// If the confirmation panel is already displayed, just resize the width,
 	// otherwise continue
-	content := v.Buffer()
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(v.Wrap, content)
 	vx0, vy0, vx1, vy1 := v.Dimensions()
 	if vx0 == x0 && vy0 == y0 && vx1 == x1 && vy1 == y1 {
@@ -327,7 +322,7 @@ func (gui *Gui) globalOptionsMap() map[string]string {
 		gui.getKeyDisplay(keybindingConfig.Universal.Return):     gui.Tr.LcCancel,
 		gui.getKeyDisplay(keybindingConfig.Universal.Quit):       gui.Tr.LcQuit,
 		gui.getKeyDisplay(keybindingConfig.Universal.OptionMenu): gui.Tr.LcMenu,
-		"1-5": gui.Tr.LcJump,
+		fmt.Sprintf("%s-%s", gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[0]), gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): gui.Tr.LcJump,
 	}
 }
 
@@ -343,12 +338,6 @@ func (gui *Gui) popupPanelFocused() bool {
 func (gui *Gui) secondaryViewFocused() bool {
 	state := gui.State.Panels.LineByLine
 	return state != nil && state.SecondaryFocused
-}
-
-func (gui *Gui) clearEditorView(v *gocui.View) {
-	v.Clear()
-	_ = v.SetCursor(0, 0)
-	_ = v.SetOrigin(0, 0)
 }
 
 func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {

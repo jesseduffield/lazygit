@@ -5,14 +5,12 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"runtime"
 	"sync"
 
 	"os/exec"
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -24,14 +22,15 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/mattn/go-runewidth"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
 // screen sizing determines how much space your selected window takes up (window
@@ -50,10 +49,6 @@ const StartupPopupVersion = 5
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
-
-func init() {
-	runewidth.DefaultCondition.EastAsianWidth = false
-}
 
 type ContextManager struct {
 	ContextStack []Context
@@ -122,6 +117,8 @@ type Gui struct {
 
 	// the extras window contains things like the command log
 	ShowExtrasWindow bool
+
+	suggestionsAsyncHandler *tasks.AsyncHandler
 }
 
 type listPanelState struct {
@@ -343,6 +340,9 @@ type guiState struct {
 
 	// flag as to whether or not the diff view should ignore whitespace
 	IgnoreWhitespaceInDiffView bool
+
+	// for displaying suggestions while typing in a file name
+	FilesTrie *patricia.Trie
 }
 
 // reuseState determines if we pull the repo state from our repo state map or
@@ -419,6 +419,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		// TODO: put contexts in the context manager
 		ContextManager: NewContextManager(initialContext),
 		Contexts:       contexts,
+		FilesTrie:      patricia.NewTrie(),
 	}
 
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
@@ -428,19 +429,20 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 // NewGui builds a new gui handler
 func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
 	gui := &Gui{
-		Log:                  log,
-		GitCommand:           gitCommand,
-		OSCommand:            oSCommand,
-		Config:               config,
-		Tr:                   tr,
-		Updater:              updater,
-		statusManager:        &statusManager{},
-		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
-		showRecentRepos:      showRecentRepos,
-		RepoPathStack:        []string{},
-		RepoStateMap:         map[Repo]*guiState{},
-		CmdLog:               []string{},
-		ShowExtrasWindow:     config.GetUserConfig().Gui.ShowCommandLog,
+		Log:                     log,
+		GitCommand:              gitCommand,
+		OSCommand:               oSCommand,
+		Config:                  config,
+		Tr:                      tr,
+		Updater:                 updater,
+		statusManager:           &statusManager{},
+		viewBufferManagerMap:    map[string]*tasks.ViewBufferManager{},
+		showRecentRepos:         showRecentRepos,
+		RepoPathStack:           []string{},
+		RepoStateMap:            map[Repo]*guiState{},
+		CmdLog:                  []string{},
+		ShowExtrasWindow:        config.ShowCommandLogOnStartup(),
+		suggestionsAsyncHandler: tasks.NewAsyncHandler(),
 	}
 
 	gui.resetState(filterPath, false)
@@ -497,8 +499,6 @@ func (gui *Gui) Run() error {
 	g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
 	g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
 	g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
-
-	g.ASCII = runtime.GOOS == "windows" && runewidth.IsEastAsian()
 
 	g.ShowListFooter = userConfig.Gui.ShowListFooter
 
@@ -612,7 +612,7 @@ func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
 	subprocess.Stderr = os.Stdout
 	subprocess.Stdin = os.Stdin
 
-	fmt.Fprintf(os.Stdout, "\n%s\n\n", utils.ColoredString("+ "+strings.Join(subprocess.Args, " "), color.FgBlue))
+	fmt.Fprintf(os.Stdout, "\n%s\n\n", style.FgBlue.Sprint("+ "+strings.Join(subprocess.Args, " ")))
 
 	if err := subprocess.Run(); err != nil {
 		// not handling the error explicitly because usually we're going to see it
@@ -624,7 +624,7 @@ func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
 	subprocess.Stderr = ioutil.Discard
 	subprocess.Stdin = nil
 
-	fmt.Fprintf(os.Stdout, "\n%s", utils.ColoredString(gui.Tr.PressEnterToReturn, color.FgGreen))
+	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
 	fmt.Scanln() // wait for enter press
 
 	return nil

@@ -13,15 +13,12 @@ package i18n
 type TranslationSet struct {
 	NotEnoughSpace                      string
 	DiffTitle                           string
-	LogTitle                            string
 	FilesTitle                          string
 	BranchesTitle                       string
 	CommitsTitle                        string
 	StashTitle                          string
 	UnstagedChanges                     string
 	StagedChanges                       string
-	PatchBuildingMainTitle              string
-	MergingMainTitle                    string
 	MainTitle                           string
 	StagingTitle                        string
 	MergingTitle                        string
@@ -41,9 +38,6 @@ type TranslationSet struct {
 	LcNavigate                          string
 	LcMenu                              string
 	LcExecute                           string
-	LcOpen                              string
-	LcIgnore                            string
-	LcDelete                            string
 	LcToggleStaged                      string
 	LcToggleStagedAll                   string
 	LcToggleTreeView                    string
@@ -51,15 +45,14 @@ type TranslationSet struct {
 	LcRefresh                           string
 	LcPush                              string
 	LcPull                              string
-	LcEdit                              string
 	LcScroll                            string
-	LcAbortMerge                        string
-	LcResolveMergeConflicts             string
+	LcCommitFileFilter                  string
+	FilterStagedFiles                   string
+	FilterUnstagedFiles                 string
+	ResetCommitFilterState              string
 	MergeConflictsTitle                 string
 	LcCheckout                          string
 	NoChangedFiles                      string
-	FileHasNoUnstagedChanges            string
-	CannotGitAdd                        string
 	NoFilesDisplay                      string
 	NotAFile                            string
 	PullWait                            string
@@ -67,7 +60,6 @@ type TranslationSet struct {
 	FetchWait                           string
 	FileNoMergeCons                     string
 	LcSoftReset                         string
-	SureTo                              string
 	AlreadyCheckedOutBranch             string
 	SureForceCheckout                   string
 	ForceCheckoutBranch                 string
@@ -81,27 +73,20 @@ type TranslationSet struct {
 	CantRebaseOntoSelf                  string
 	CantMergeBranchIntoItself           string
 	LcForceCheckout                     string
-	LcMerge                             string
 	LcCheckoutByName                    string
 	LcNewBranch                         string
 	LcDeleteBranch                      string
-	LcForceDeleteBranch                 string
 	NoBranchesThisRepo                  string
-	NoTrackingThisBranch                string
 	CommitMessageConfirm                string
 	CommitWithoutMessageErr             string
 	CloseConfirm                        string
 	LcClose                             string
 	LcQuit                              string
-	SureResetThisCommit                 string
-	ResetToCommit                       string
 	LcSquashDown                        string
-	LcRename                            string
 	LcResetToThisCommit                 string
 	LcFixupCommit                       string
 	OnlySquashTopmostCommit             string
 	YouNoCommitsToSquash                string
-	CantFixupWhileUnstagedChanges       string
 	Fixup                               string
 	SureFixupThisCommit                 string
 	SureSquashThisCommit                string
@@ -116,14 +101,12 @@ type TranslationSet struct {
 	LcEditCommit                        string
 	LcAmendToCommit                     string
 	LcRenameCommitEditor                string
-	PotentialErrInGetselectedCommit     string
 	NoCommitsThisBranch                 string
 	Error                               string
-	RunningSubprocess                   string
 	LcSelectHunk                        string
 	LcNavigateConflicts                 string
 	LcPickHunk                          string
-	LcPickBothHunks                     string
+	LcPickAllHunks                      string
 	LcUndo                              string
 	LcUndoReflog                        string
 	LcRedoReflog                        string
@@ -140,8 +123,6 @@ type TranslationSet struct {
 	NoStashTo                           string
 	NoTrackedStagedFilesStash           string
 	StashChanges                        string
-	IssntListOfViews                    string
-	LcNewFocusedViewIs                  string
 	MergeAborted                        string
 	OpenConfig                          string
 	EditConfig                          string
@@ -154,8 +135,6 @@ type TranslationSet struct {
 	OnLatestVersionErr                  string
 	MajorVersionErr                     string
 	CouldNotFindBinaryErr               string
-	AnonymousReportingTitle             string
-	AnonymousReportingPrompt            string
 	MergeToolTitle                      string
 	MergeToolPrompt                     string
 	IntroPopupMessage                   string
@@ -177,24 +156,19 @@ type TranslationSet struct {
 	NoAutomaticGitFetchBody             string
 	FileEnter                           string
 	FileStagingRequirements             string
-	SelectHunk                          string
 	StageSelection                      string
 	ResetSelection                      string
 	ToggleDragSelect                    string
 	ToggleSelectHunk                    string
 	ToggleSelectionForPatch             string
 	TogglePanel                         string
-	CantStageStaged                     string
 	ReturnToFilesPanel                  string
-	CantFindHunks                       string
-	CantFindHunk                        string
 	FastForward                         string
 	Fetching                            string
 	FoundConflicts                      string
 	FoundConflictsTitle                 string
-	Undo                                string
 	PickHunk                            string
-	PickBothHunks                       string
+	PickAllHunks                        string
 	ViewMergeRebaseOptions              string
 	NotMergingOrRebasing                string
 	RecentRepos                         string
@@ -204,7 +178,6 @@ type TranslationSet struct {
 	LocalBranchesTitle                  string
 	SearchTitle                         string
 	TagsTitle                           string
-	BranchCommitsTitle                  string
 	MenuTitle                           string
 	RemotesTitle                        string
 	CredentialsTitle                    string
@@ -213,7 +186,6 @@ type TranslationSet struct {
 	InformationTitle                    string
 	SecondaryTitle                      string
 	ReflogCommitsTitle                  string
-	Title                               string
 	ConflictsResolved                   string
 	RebasingTitle                       string
 	ConfirmRebase                       string
@@ -239,8 +211,8 @@ type TranslationSet struct {
 	NextHunk                            string
 	PrevConflict                        string
 	NextConflict                        string
-	SelectTop                           string
-	SelectBottom                        string
+	SelectPrevHunk                      string
+	SelectNextHunk                      string
 	ScrollDown                          string
 	ScrollUp                            string
 	LcScrollUpMainPanel                 string
@@ -263,8 +235,6 @@ type TranslationSet struct {
 	CommitFiles                         string
 	LcViewCommitFiles                   string
 	CommitFilesTitle                    string
-	LcGoBack                            string
-	NoCommiteFiles                      string
 	LcCheckoutCommitFile                string
 	LcDiscardOldFileChange              string
 	DiscardFileChangesTitle             string
@@ -282,7 +252,6 @@ type TranslationSet struct {
 	LcDiscardAnyUnstagedChanges         string
 	LcDiscardUntrackedFiles             string
 	LcHardReset                         string
-	LcHardResetUpstream                 string
 	LcViewResetOptions                  string
 	LcCreateFixupCommit                 string
 	LcSquashAboveCommits                string
@@ -312,8 +281,6 @@ type TranslationSet struct {
 	LcEnterFile                         string
 	ExitLineByLineMode                  string
 	EnterUpstream                       string
-	EnterUpstreamWithSlash              string
-	LcNotTrackingRemote                 string
 	ReturnToRemotesList                 string
 	LcAddNewRemote                      string
 	LcNewRemoteName                     string
@@ -375,7 +342,7 @@ type TranslationSet struct {
 	LcFilterBy                          string
 	LcExitFilterMode                    string
 	LcFilterPathOption                  string
-	LcEnterFileName                     string
+	EnterFileName                       string
 	FilteringMenuTitle                  string
 	MustExitFilterModeTitle             string
 	MustExitFilterModePrompt            string
@@ -394,6 +361,7 @@ type TranslationSet struct {
 	LcCopyFileNameToClipboard           string
 	LcCopyCommitFileNameToClipboard     string
 	LcCommitPrefixPatternError          string
+	LcCopySelectedTexToClipboard        string
 	NoFilesStagedTitle                  string
 	NoFilesStagedPrompt                 string
 	BranchNotFoundTitle                 string
@@ -436,6 +404,8 @@ type TranslationSet struct {
 	SubCommitsTitle                     string
 	SubmodulesTitle                     string
 	NavigationTitle                     string
+	SuggestionsCheatsheetTitle          string
+	// Unlike the cheatsheet title above, the real suggestions title has a little message saying press tab to focus
 	SuggestionsTitle                    string
 	ExtrasTitle                         string
 	PushingTagStatus                    string
@@ -460,6 +430,10 @@ type TranslationSet struct {
 	LcSelectBranch                      string
 	CreateOrShowPullRequest             string
 	CreatingPullRequestAtUrl            string
+	SelectConfigFile                    string
+	NoConfigFileFoundErr                string
+	LcLoadingFileSuggestions            string
+	MustSpecifyOriginError              string
 	Spans                               Spans
 }
 
@@ -510,6 +484,7 @@ type Spans struct {
 	GitFlowFinish                     string
 	GitFlowStart                      string
 	CopyToClipboard                   string
+	CopySelectedTextToClipboard       string
 	RemovePatchFromCommit             string
 	MovePatchToSelectedCommit         string
 	MovePatchIntoIndex                string
@@ -565,15 +540,12 @@ func englishTranslationSet() TranslationSet {
 	return TranslationSet{
 		NotEnoughSpace:                      "Not enough space to render panels",
 		DiffTitle:                           "Diff",
-		LogTitle:                            "Log",
 		FilesTitle:                          "Files",
 		BranchesTitle:                       "Branches",
 		CommitsTitle:                        "Commits",
 		StashTitle:                          "Stash",
 		UnstagedChanges:                     `Unstaged Changes`,
 		StagedChanges:                       `Staged Changes`,
-		PatchBuildingMainTitle:              `Add Lines/Hunks To Patch`,
-		MergingMainTitle:                    "Resolve merge conflicts",
 		MainTitle:                           "Main",
 		StagingTitle:                        "Staging",
 		MergingTitle:                        "Merging",
@@ -592,9 +564,6 @@ func englishTranslationSet() TranslationSet {
 		LcNavigate:                          "navigate",
 		LcMenu:                              "menu",
 		LcExecute:                           "execute",
-		LcOpen:                              "open",
-		LcIgnore:                            "ignore",
-		LcDelete:                            "delete",
 		LcToggleStaged:                      "toggle staged",
 		LcToggleStagedAll:                   "stage/unstage all",
 		LcToggleTreeView:                    "toggle file tree view",
@@ -602,15 +571,14 @@ func englishTranslationSet() TranslationSet {
 		LcRefresh:                           "refresh",
 		LcPush:                              "push",
 		LcPull:                              "pull",
-		LcEdit:                              "edit",
 		LcScroll:                            "scroll",
-		LcAbortMerge:                        "abort merge",
-		LcResolveMergeConflicts:             "resolve merge conflicts",
 		MergeConflictsTitle:                 "Merge Conflicts",
 		LcCheckout:                          "checkout",
+		LcCommitFileFilter:                  "Filter commit files",
+		FilterStagedFiles:                   "Show only staged files",
+		FilterUnstagedFiles:                 "Show only unstaged files",
+		ResetCommitFilterState:              "Reset filter",
 		NoChangedFiles:                      "No changed files",
-		FileHasNoUnstagedChanges:            "File has no unstaged changes to add",
-		CannotGitAdd:                        "Cannot git add --patch untracked files",
 		NoFilesDisplay:                      "No file to display",
 		NotAFile:                            "Not a file",
 		PullWait:                            "Pulling...",
@@ -618,7 +586,6 @@ func englishTranslationSet() TranslationSet {
 		FetchWait:                           "Fetching...",
 		FileNoMergeCons:                     "This file has no inline merge conflicts",
 		LcSoftReset:                         "soft reset",
-		SureTo:                              "Are you sure you want to {{.deleteVerb}} {{.fileName}} (you will lose your changes)?",
 		AlreadyCheckedOutBranch:             "You have already checked out this branch",
 		SureForceCheckout:                   "Are you sure you want force checkout? You will lose all local changes",
 		ForceCheckoutBranch:                 "Force Checkout Branch",
@@ -632,28 +599,21 @@ func englishTranslationSet() TranslationSet {
 		CantRebaseOntoSelf:                  "You cannot rebase a branch onto itself",
 		CantMergeBranchIntoItself:           "You cannot merge a branch into itself",
 		LcForceCheckout:                     "force checkout",
-		LcMerge:                             "merge",
 		LcCheckoutByName:                    "checkout by name",
 		LcNewBranch:                         "new branch",
 		LcDeleteBranch:                      "delete branch",
-		LcForceDeleteBranch:                 "delete branch (force)",
 		NoBranchesThisRepo:                  "No branches for this repo",
-		NoTrackingThisBranch:                "There is no tracking for this branch",
 		CommitMessageConfirm:                "{{.keyBindClose}}: close, {{.keyBindNewLine}}: new line, {{.keyBindConfirm}}: confirm",
 		CommitWithoutMessageErr:             "You cannot commit without a commit message",
 		CloseConfirm:                        "{{.keyBindClose}}: close, {{.keyBindConfirm}}: confirm",
 		LcClose:                             "close",
 		LcQuit:                              "quit",
-		SureResetThisCommit:                 "Are you sure you want to reset to this commit?",
-		ResetToCommit:                       "Reset To Commit",
 		LcSquashDown:                        "squash down",
-		LcRename:                            "rename",
 		LcResetToThisCommit:                 "reset to this commit",
 		LcFixupCommit:                       "fixup commit",
 		NoCommitsThisBranch:                 "No commits for this branch",
 		OnlySquashTopmostCommit:             "Can only squash topmost commit",
 		YouNoCommitsToSquash:                "You have no commits to squash with",
-		CantFixupWhileUnstagedChanges:       "Can't fixup while there are unstaged changes",
 		Fixup:                               "Fixup",
 		SureFixupThisCommit:                 "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
 		SureSquashThisCommit:                "Are you sure you want to squash this commit into the commit below?",
@@ -668,13 +628,11 @@ func englishTranslationSet() TranslationSet {
 		LcEditCommit:                        "edit commit",
 		LcAmendToCommit:                     "amend commit with staged changes",
 		LcRenameCommitEditor:                "rename commit with editor",
-		PotentialErrInGetselectedCommit:     "potential error in getSelected Commit (mismatched ui and state)",
 		Error:                               "Error",
-		RunningSubprocess:                   "running subprocess",
 		LcSelectHunk:                        "select hunk",
 		LcNavigateConflicts:                 "navigate conflicts",
 		LcPickHunk:                          "pick hunk",
-		LcPickBothHunks:                     "pick both hunks",
+		LcPickAllHunks:                      "pick all hunks",
 		LcUndo:                              "undo",
 		LcUndoReflog:                        "undo (via reflog) (experimental)",
 		LcRedoReflog:                        "redo (via reflog) (experimental)",
@@ -691,8 +649,6 @@ func englishTranslationSet() TranslationSet {
 		NoStashTo:                           "No stash to {{.method}}",
 		NoTrackedStagedFilesStash:           "You have no tracked/staged files to stash",
 		StashChanges:                        "Stash changes",
-		IssntListOfViews:                    "{{.name}} is not in the list of views",
-		LcNewFocusedViewIs:                  "new focused view is {{.newFocusedView}}",
 		MergeAborted:                        "Merge aborted",
 		OpenConfig:                          "open config file",
 		EditConfig:                          "edit config file",
@@ -705,8 +661,6 @@ func englishTranslationSet() TranslationSet {
 		OnLatestVersionErr:                  "You already have the latest version",
 		MajorVersionErr:                     "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
 		CouldNotFindBinaryErr:               "Could not find any binary at {{.url}}",
-		AnonymousReportingTitle:             "Help make lazygit better",
-		AnonymousReportingPrompt:            "Would you like to enable anonymous reporting data to help improve lazygit? (enter/esc)",
 		MergeToolTitle:                      "Merge tool",
 		MergeToolPrompt:                     "Are you sure you want to open `git mergetool`?",
 		IntroPopupMessage:                   englishIntroPopupMessage,
@@ -728,24 +682,19 @@ func englishTranslationSet() TranslationSet {
 		NoAutomaticGitFetchBody:             `Lazygit can't use "git fetch" in a private repo; use 'f' in the files panel to run "git fetch" manually`,
 		FileEnter:                           `stage individual hunks/lines for file, or collapse/expand for directory`,
 		FileStagingRequirements:             `Can only stage individual lines for tracked files`,
-		SelectHunk:                          `select hunk`,
 		StageSelection:                      `toggle line staged / unstaged`,
 		ResetSelection:                      `delete change (git reset)`,
 		ToggleDragSelect:                    `toggle drag select`,
 		ToggleSelectHunk:                    `toggle select hunk`,
 		ToggleSelectionForPatch:             `add/remove line(s) to patch`,
 		TogglePanel:                         `switch to other panel`,
-		CantStageStaged:                     `You can't stage an already staged change!`,
 		ReturnToFilesPanel:                  `return to files panel`,
-		CantFindHunks:                       `Could not find any hunks in this patch`,
-		CantFindHunk:                        `Could not find hunk`,
 		FastForward:                         `fast-forward this branch from its upstream`,
 		Fetching:                            "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
 		FoundConflicts:                      "Conflicts! To abort press 'esc', otherwise press 'enter'",
 		FoundConflictsTitle:                 "Auto-merge failed",
-		Undo:                                "undo",
 		PickHunk:                            "pick hunk",
-		PickBothHunks:                       "pick both hunks",
+		PickAllHunks:                        "pick all hunks",
 		ViewMergeRebaseOptions:              "view merge/rebase options",
 		NotMergingOrRebasing:                "You are currently neither rebasing nor merging",
 		RecentRepos:                         "recent repositories",
@@ -755,7 +704,6 @@ func englishTranslationSet() TranslationSet {
 		LocalBranchesTitle:                  "Branches Tab",
 		SearchTitle:                         "Search",
 		TagsTitle:                           "Tags Tab",
-		BranchCommitsTitle:                  "Commits Tab",
 		MenuTitle:                           "Menu",
 		RemotesTitle:                        "Remotes Tab",
 		CredentialsTitle:                    "Credentials",
@@ -764,7 +712,6 @@ func englishTranslationSet() TranslationSet {
 		InformationTitle:                    "Information",
 		SecondaryTitle:                      "Secondary",
 		ReflogCommitsTitle:                  "Reflog Tab",
-		Title:                               "Title",
 		GlobalTitle:                         "Global Keybindings",
 		ConflictsResolved:                   "all merge conflicts resolved. Continue?",
 		RebasingTitle:                       "Rebasing",
@@ -791,8 +738,8 @@ func englishTranslationSet() TranslationSet {
 		NextHunk:                            "select next hunk",
 		PrevConflict:                        "select previous conflict",
 		NextConflict:                        "select next conflict",
-		SelectTop:                           "select top hunk",
-		SelectBottom:                        "select bottom hunk",
+		SelectPrevHunk:                      "select previous hunk",
+		SelectNextHunk:                      "select next hunk",
 		ScrollDown:                          "scroll down",
 		ScrollUp:                            "scroll up",
 		LcScrollUpMainPanel:                 "scroll up main panel",
@@ -815,8 +762,6 @@ func englishTranslationSet() TranslationSet {
 		CommitFiles:                         "Commit files",
 		LcViewCommitFiles:                   "view commit's files",
 		CommitFilesTitle:                    "Commit Files",
-		LcGoBack:                            "go back",
-		NoCommiteFiles:                      "No files for this commit",
 		LcCheckoutCommitFile:                "checkout file",
 		LcDiscardOldFileChange:              "discard this commit's changes to this file",
 		DiscardFileChangesTitle:             "Discard file changes",
@@ -834,7 +779,6 @@ func englishTranslationSet() TranslationSet {
 		LcDiscardAnyUnstagedChanges:         "discard unstaged changes",
 		LcDiscardUntrackedFiles:             "discard untracked files",
 		LcHardReset:                         "hard reset",
-		LcHardResetUpstream:                 "hard reset to upstream branch",
 		LcViewResetOptions:                  `view reset options`,
 		LcCreateFixupCommit:                 `create fixup commit for this commit`,
 		LcSquashAboveCommits:                `squash all 'fixup!' commits above selected commit (autosquash)`,
@@ -864,8 +808,6 @@ func englishTranslationSet() TranslationSet {
 		LcEnterFile:                         "enter file to add selected lines to the patch (or toggle directory collapsed)",
 		ExitLineByLineMode:                  `exit line-by-line mode`,
 		EnterUpstream:                       `Enter upstream as '<remote> <branchname>'`,
-		EnterUpstreamWithSlash:              `Enter upstream as '<remote>/<branchname>'`,
-		LcNotTrackingRemote:                 "(not tracking any remote)",
 		ReturnToRemotesList:                 `Return to remotes list`,
 		LcAddNewRemote:                      `add new remote`,
 		LcNewRemoteName:                     `New remote name:`,
@@ -927,7 +869,7 @@ func englishTranslationSet() TranslationSet {
 		LcFilterBy:                          "filter by",
 		LcExitFilterMode:                    "stop filtering by path",
 		LcFilterPathOption:                  "enter path to filter by",
-		LcEnterFileName:                     "enter path:",
+		EnterFileName:                       "Enter path:",
 		FilteringMenuTitle:                  "Filtering",
 		MustExitFilterModeTitle:             "Command not available",
 		MustExitFilterModePrompt:            "Command not available in filtered mode. Exit filtered mode?",
@@ -946,6 +888,7 @@ func englishTranslationSet() TranslationSet {
 		LcCopyBranchNameToClipboard:         "copy branch name to clipboard",
 		LcCopyFileNameToClipboard:           "copy the file name to the clipboard",
 		LcCopyCommitFileNameToClipboard:     "copy the committed file name to the clipboard",
+		LcCopySelectedTexToClipboard:        "copy the selected text to the clipboard",
 		LcCommitPrefixPatternError:          "Error in commitPrefix pattern",
 		NoFilesStagedTitle:                  "No files staged",
 		NoFilesStagedPrompt:                 "You have not staged any files. Commit all files?",
@@ -989,7 +932,8 @@ func englishTranslationSet() TranslationSet {
 		SubCommitsTitle:                     "Sub-commits",
 		SubmodulesTitle:                     "Submodules",
 		NavigationTitle:                     "List Panel Navigation",
-		SuggestionsTitle:                    "Suggestions",
+		SuggestionsCheatsheetTitle:          "Suggestions",
+		SuggestionsTitle:                    "Suggestions (press %s to focus)",
 		ExtrasTitle:                         "Extras",
 		PushingTagStatus:                    "pushing tag",
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
@@ -1001,7 +945,7 @@ func englishTranslationSet() TranslationSet {
 		CommandLog:                          "Command Log",
 		ToggleShowCommandLog:                "Toggle show/hide command log",
 		FocusCommandLog:                     "Focus command log",
-		CommandLogHeader:                    "You can hide/focus this panel by pressing '%s' or hide it permanently in your config with `gui.showCommandLog: false`\n",
+		CommandLogHeader:                    "You can hide/focus this panel by pressing '%s'\n",
 		RandomTip:                           "Random Tip",
 		SelectParentCommitForMerge:          "Select parent commit for merge",
 		ToggleWhitespaceInDiffView:          "Toggle whether or not whitespace changes are shown in the diff view",
@@ -1013,6 +957,10 @@ func englishTranslationSet() TranslationSet {
 		LcDefaultBranch:                     "default branch",
 		LcSelectBranch:                      "select branch",
 		CreatingPullRequestAtUrl:            "Creating pull request at URL: %s",
+		SelectConfigFile:                    "Select config file",
+		NoConfigFileFoundErr:                "No config file found",
+		LcLoadingFileSuggestions:            "loading file suggestions",
+		MustSpecifyOriginError:              "Must specify a remote if specifying a branch",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
@@ -1061,6 +1009,7 @@ func englishTranslationSet() TranslationSet {
 			GitFlowFinish:                     "Git flow finish",
 			GitFlowStart:                      "Git Flow start",
 			CopyToClipboard:                   "Copy to clipboard",
+			CopySelectedTextToClipboard:       "Copy selected text to clipboard",
 			RemovePatchFromCommit:             "Remove patch from commit",
 			MovePatchToSelectedCommit:         "Move patch to selected commit",
 			MovePatchIntoIndex:                "Move patch into index",

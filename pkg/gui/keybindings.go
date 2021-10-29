@@ -383,6 +383,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "files",
+			Key:         gui.getKey("<c-b>"),
+			Handler:     gui.handleStatusFilterPressed,
+			Description: gui.Tr.LcCommitFileFilter,
+		},
+		{
+			ViewName:    "files",
 			Contexts:    []string{string(FILES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Files.CommitChanges),
 			Handler:     gui.handleCommitPress,
@@ -1299,9 +1305,17 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "main",
+			Contexts:    []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Universal.CopyToClipboard),
+			Modifier:    gocui.ModNone,
+			Handler:     gui.copySelectedToClipboard,
+			Description: gui.Tr.LcCopySelectedTexToClipboard,
+		},
+		{
+			ViewName:    "main",
 			Contexts:    []string{string(MAIN_STAGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.Edit),
-			Handler:     gui.handleFileEdit,
+			Handler:     gui.handleLineByLineEdit,
 			Description: gui.Tr.LcEditFile,
 		},
 		{
@@ -1458,8 +1472,8 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Main.PickBothHunks),
-			Handler:     gui.handlePickBothHunks,
-			Description: gui.Tr.PickBothHunks,
+			Handler:     gui.handlePickAllHunks,
+			Description: gui.Tr.PickAllHunks,
 		},
 		{
 			ViewName:    "main",
@@ -1479,29 +1493,29 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.PrevItem),
-			Handler:     gui.handleSelectTop,
-			Description: gui.Tr.SelectTop,
+			Handler:     gui.handleSelectPrevConflictHunk,
+			Description: gui.Tr.SelectPrevHunk,
 		},
 		{
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.NextItem),
-			Handler:     gui.handleSelectBottom,
-			Description: gui.Tr.SelectBottom,
+			Handler:     gui.handleSelectNextConflictHunk,
+			Description: gui.Tr.SelectNextHunk,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:      gocui.MouseWheelUp,
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectTop,
+			Handler:  gui.handleSelectPrevConflictHunk,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:      gocui.MouseWheelDown,
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectBottom,
+			Handler:  gui.handleSelectNextConflictHunk,
 		},
 		{
 			ViewName: "main",
@@ -1522,14 +1536,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:      gui.getKey(config.Universal.PrevItemAlt),
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectTop,
+			Handler:  gui.handleSelectPrevConflictHunk,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:      gui.getKey(config.Universal.NextItemAlt),
 			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectBottom,
+			Handler:  gui.handleSelectNextConflictHunk,
 		},
 		{
 			ViewName:    "main",
@@ -1804,8 +1818,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 	}
 
 	// Appends keybindings to jump to a particular sideView using numbers
-	for i, window := range []string{"status", "files", "branches", "commits", "stash"} {
-		bindings = append(bindings, &Binding{ViewName: "", Key: rune(i+1) + '0', Modifier: gocui.ModNone, Handler: gui.goToSideWindow(window)})
+	windows := []string{"status", "files", "branches", "commits", "stash"}
+
+	if len(config.Universal.JumpToBlock) != len(windows) {
+		log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
+	} else {
+		for i, window := range windows {
+			bindings = append(bindings, &Binding{
+				ViewName: "",
+				Key:      gui.getKey(config.Universal.JumpToBlock[i]),
+				Modifier: gocui.ModNone,
+				Handler:  gui.goToSideWindow(window)})
+		}
 	}
 
 	for viewName := range gui.State.Contexts.initialViewTabContextMap() {

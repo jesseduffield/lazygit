@@ -40,8 +40,8 @@ func main() {
 		updateSnapshots,
 		record,
 		speedEnv,
-		func(_t *testing.T, expected string, actual string) {
-			assert.Equal(MockTestingT{}, expected, actual, fmt.Sprintf("expected:\n%s\nactual:\n%s\n", expected, actual))
+		func(_t *testing.T, expected string, actual string, prefix string) {
+			assert.Equal(MockTestingT{}, expected, actual, fmt.Sprintf("Unexpected %s. Expected:\n%s\nActual:\n%s\n", prefix, expected, actual))
 		},
 		includeSkipped,
 	)

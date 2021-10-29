@@ -10,7 +10,7 @@ import (
 )
 
 func (gui *Gui) handleCommitConfirm() error {
-	message := gui.trimmedContent(gui.Views.CommitMessage)
+	message := strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
 	if message == "" {
 		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
 	}
@@ -23,8 +23,8 @@ func (gui *Gui) handleCommitConfirm() error {
 	cmdStr := gui.GitCommand.CommitCmdStr(message, flags)
 	gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdStr, gui.Tr.Spans.Commit, true))
 	return gui.withGpgHandling(cmdStr, gui.Tr.CommittingStatus, func() error {
+		gui.Views.CommitMessage.ClearTextArea()
 		_ = gui.returnFromContext()
-		gui.clearEditorView(gui.Views.CommitMessage)
 		return nil
 	})
 }
@@ -48,7 +48,7 @@ func (gui *Gui) handleCommitMessageFocused() error {
 }
 
 func (gui *Gui) getBufferLength(view *gocui.View) string {
-	return " " + strconv.Itoa(strings.Count(view.Buffer(), "")-1) + " "
+	return " " + strconv.Itoa(strings.Count(view.TextArea.GetContent(), "")-1) + " "
 }
 
 // RenderCommitLength is a function.

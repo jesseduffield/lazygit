@@ -351,6 +351,26 @@ func (s *simscreen) Colors() int {
 	return 256
 }
 
+func (s *simscreen) ChannelEvents(ch chan<- Event, quit <-chan struct{}) {
+	defer close(ch)
+	for {
+		select {
+		case <-quit:
+			return
+		case <-s.quit:
+			return
+		case ev := <-s.evch:
+			select {
+			case <-quit:
+				return
+			case <-s.quit:
+				return
+			case ch <- ev:
+			}
+		}
+	}
+}
+
 func (s *simscreen) PollEvent() Event {
 	select {
 	case <-s.quit:

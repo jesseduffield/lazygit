@@ -12,7 +12,8 @@ type LineType int
 
 const (
 	START LineType = iota
-	MIDDLE
+	ANCESTOR
+	TARGET
 	END
 	NOT_A_MARKER
 )
@@ -28,12 +29,20 @@ func findConflicts(content string) []*mergeConflict {
 	for i, line := range utils.SplitLines(content) {
 		switch determineLineType(line) {
 		case START:
-			newConflict = &mergeConflict{start: i}
-		case MIDDLE:
-			newConflict.middle = i
+			newConflict = &mergeConflict{start: i, ancestor: -1}
+		case ANCESTOR:
+			if newConflict != nil {
+				newConflict.ancestor = i
+			}
+		case TARGET:
+			if newConflict != nil {
+				newConflict.target = i
+			}
 		case END:
-			newConflict.end = i
-			conflicts = append(conflicts, newConflict)
+			if newConflict != nil {
+				newConflict.end = i
+				conflicts = append(conflicts, newConflict)
+			}
 			// reset value to avoid any possible silent mutations in further iterations
 			newConflict = nil
 		default:
@@ -50,8 +59,10 @@ func determineLineType(line string) LineType {
 	switch {
 	case strings.HasPrefix(trimmedLine, "<<<<<<< "):
 		return START
+	case strings.HasPrefix(trimmedLine, "||||||| "):
+		return ANCESTOR
 	case trimmedLine == "=======":
-		return MIDDLE
+		return TARGET
 	case strings.HasPrefix(trimmedLine, ">>>>>>> "):
 		return END
 	default:

@@ -52,7 +52,7 @@ Github Sponsors is matching all donations dollar-for-dollar for 12 months so if 
 
 ### Binary Releases
 
-For Windows, Mac OS(10.10+) or Linux, you can download a binary release [here](../../releases).
+For Windows, Mac OS(10.12+) or Linux, you can download a binary release [here](../../releases).
 
 ### Homebrew
 

@@ -32,6 +32,7 @@ type GuiConfig struct {
 	SidePanelWidth           float64            `yaml:"sidePanelWidth"`
 	ExpandFocusedSidePanel   bool               `yaml:"expandFocusedSidePanel"`
 	MainPanelSplitMode       string             `yaml:"mainPanelSplitMode"`
+	Language                 string             `yaml:"language"`
 	Theme                    ThemeConfig        `yaml:"theme"`
 	CommitLength             CommitLengthConfig `yaml:"commitLength"`
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
@@ -43,12 +44,14 @@ type GuiConfig struct {
 }
 
 type ThemeConfig struct {
-	LightTheme           bool     `yaml:"lightTheme"`
-	ActiveBorderColor    []string `yaml:"activeBorderColor"`
-	InactiveBorderColor  []string `yaml:"inactiveBorderColor"`
-	OptionsTextColor     []string `yaml:"optionsTextColor"`
-	SelectedLineBgColor  []string `yaml:"selectedLineBgColor"`
-	SelectedRangeBgColor []string `yaml:"selectedRangeBgColor"`
+	LightTheme                bool     `yaml:"lightTheme"`
+	ActiveBorderColor         []string `yaml:"activeBorderColor"`
+	InactiveBorderColor       []string `yaml:"inactiveBorderColor"`
+	OptionsTextColor          []string `yaml:"optionsTextColor"`
+	SelectedLineBgColor       []string `yaml:"selectedLineBgColor"`
+	SelectedRangeBgColor      []string `yaml:"selectedRangeBgColor"`
+	CherryPickedCommitBgColor []string `yaml:"cherryPickedCommitBgColor"`
+	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor"`
 }
 
 type CommitLengthConfig struct {
@@ -58,7 +61,6 @@ type CommitLengthConfig struct {
 type GitConfig struct {
 	Paging              PagingConfig                  `yaml:"paging"`
 	Merging             MergingConfig                 `yaml:"merging"`
-	Pull                PullConfig                    `yaml:"pull"`
 	SkipHookPrefix      string                        `yaml:"skipHookPrefix"`
 	AutoFetch           bool                          `yaml:"autoFetch"`
 	BranchLogCmd        string                        `yaml:"branchLogCmd"`
@@ -78,10 +80,6 @@ type PagingConfig struct {
 type MergingConfig struct {
 	ManualCommit bool   `yaml:"manualCommit"`
 	Args         string `yaml:"args"`
-}
-
-type PullConfig struct {
-	Mode string `yaml:"mode"`
 }
 
 type CommitPrefixConfig struct {
@@ -108,65 +106,66 @@ type KeybindingConfig struct {
 
 // damn looks like we have some inconsistencies here with -alt and -alt1
 type KeybindingUniversalConfig struct {
-	Quit                         string `yaml:"quit"`
-	QuitAlt1                     string `yaml:"quit-alt1"`
-	Return                       string `yaml:"return"`
-	QuitWithoutChangingDirectory string `yaml:"quitWithoutChangingDirectory"`
-	TogglePanel                  string `yaml:"togglePanel"`
-	PrevItem                     string `yaml:"prevItem"`
-	NextItem                     string `yaml:"nextItem"`
-	PrevItemAlt                  string `yaml:"prevItem-alt"`
-	NextItemAlt                  string `yaml:"nextItem-alt"`
-	PrevPage                     string `yaml:"prevPage"`
-	NextPage                     string `yaml:"nextPage"`
-	GotoTop                      string `yaml:"gotoTop"`
-	GotoBottom                   string `yaml:"gotoBottom"`
-	PrevBlock                    string `yaml:"prevBlock"`
-	NextBlock                    string `yaml:"nextBlock"`
-	PrevBlockAlt                 string `yaml:"prevBlock-alt"`
-	NextBlockAlt                 string `yaml:"nextBlock-alt"`
-	NextBlockAlt2                string `yaml:"nextBlock-alt2"`
-	PrevBlockAlt2                string `yaml:"prevBlock-alt2"`
-	NextMatch                    string `yaml:"nextMatch"`
-	PrevMatch                    string `yaml:"prevMatch"`
-	StartSearch                  string `yaml:"startSearch"`
-	OptionMenu                   string `yaml:"optionMenu"`
-	OptionMenuAlt1               string `yaml:"optionMenu-alt1"`
-	Select                       string `yaml:"select"`
-	GoInto                       string `yaml:"goInto"`
-	Confirm                      string `yaml:"confirm"`
-	ConfirmAlt1                  string `yaml:"confirm-alt1"`
-	Remove                       string `yaml:"remove"`
-	New                          string `yaml:"new"`
-	Edit                         string `yaml:"edit"`
-	OpenFile                     string `yaml:"openFile"`
-	ScrollUpMain                 string `yaml:"scrollUpMain"`
-	ScrollDownMain               string `yaml:"scrollDownMain"`
-	ScrollUpMainAlt1             string `yaml:"scrollUpMain-alt1"`
-	ScrollDownMainAlt1           string `yaml:"scrollDownMain-alt1"`
-	ScrollUpMainAlt2             string `yaml:"scrollUpMain-alt2"`
-	ScrollDownMainAlt2           string `yaml:"scrollDownMain-alt2"`
-	ExecuteCustomCommand         string `yaml:"executeCustomCommand"`
-	CreateRebaseOptionsMenu      string `yaml:"createRebaseOptionsMenu"`
-	PushFiles                    string `yaml:"pushFiles"`
-	PullFiles                    string `yaml:"pullFiles"`
-	Refresh                      string `yaml:"refresh"`
-	CreatePatchOptionsMenu       string `yaml:"createPatchOptionsMenu"`
-	NextTab                      string `yaml:"nextTab"`
-	PrevTab                      string `yaml:"prevTab"`
-	NextScreenMode               string `yaml:"nextScreenMode"`
-	PrevScreenMode               string `yaml:"prevScreenMode"`
-	Undo                         string `yaml:"undo"`
-	Redo                         string `yaml:"redo"`
-	FilteringMenu                string `yaml:"filteringMenu"`
-	DiffingMenu                  string `yaml:"diffingMenu"`
-	DiffingMenuAlt               string `yaml:"diffingMenu-alt"`
-	CopyToClipboard              string `yaml:"copyToClipboard"`
-	OpenRecentRepos              string `yaml:"openRecentRepos"`
-	SubmitEditorText             string `yaml:"submitEditorText"`
-	AppendNewline                string `yaml:"appendNewline"`
-	ExtrasMenu                   string `yaml:"extrasMenu"`
-	ToggleWhitespaceInDiffView   string `yaml:"toggleWhitespaceInDiffView"`
+	Quit                         string   `yaml:"quit"`
+	QuitAlt1                     string   `yaml:"quit-alt1"`
+	Return                       string   `yaml:"return"`
+	QuitWithoutChangingDirectory string   `yaml:"quitWithoutChangingDirectory"`
+	TogglePanel                  string   `yaml:"togglePanel"`
+	PrevItem                     string   `yaml:"prevItem"`
+	NextItem                     string   `yaml:"nextItem"`
+	PrevItemAlt                  string   `yaml:"prevItem-alt"`
+	NextItemAlt                  string   `yaml:"nextItem-alt"`
+	PrevPage                     string   `yaml:"prevPage"`
+	NextPage                     string   `yaml:"nextPage"`
+	GotoTop                      string   `yaml:"gotoTop"`
+	GotoBottom                   string   `yaml:"gotoBottom"`
+	PrevBlock                    string   `yaml:"prevBlock"`
+	NextBlock                    string   `yaml:"nextBlock"`
+	PrevBlockAlt                 string   `yaml:"prevBlock-alt"`
+	NextBlockAlt                 string   `yaml:"nextBlock-alt"`
+	NextBlockAlt2                string   `yaml:"nextBlock-alt2"`
+	PrevBlockAlt2                string   `yaml:"prevBlock-alt2"`
+	JumpToBlock                  []string `yaml:"jumpToBlock"`
+	NextMatch                    string   `yaml:"nextMatch"`
+	PrevMatch                    string   `yaml:"prevMatch"`
+	StartSearch                  string   `yaml:"startSearch"`
+	OptionMenu                   string   `yaml:"optionMenu"`
+	OptionMenuAlt1               string   `yaml:"optionMenu-alt1"`
+	Select                       string   `yaml:"select"`
+	GoInto                       string   `yaml:"goInto"`
+	Confirm                      string   `yaml:"confirm"`
+	ConfirmAlt1                  string   `yaml:"confirm-alt1"`
+	Remove                       string   `yaml:"remove"`
+	New                          string   `yaml:"new"`
+	Edit                         string   `yaml:"edit"`
+	OpenFile                     string   `yaml:"openFile"`
+	ScrollUpMain                 string   `yaml:"scrollUpMain"`
+	ScrollDownMain               string   `yaml:"scrollDownMain"`
+	ScrollUpMainAlt1             string   `yaml:"scrollUpMain-alt1"`
+	ScrollDownMainAlt1           string   `yaml:"scrollDownMain-alt1"`
+	ScrollUpMainAlt2             string   `yaml:"scrollUpMain-alt2"`
+	ScrollDownMainAlt2           string   `yaml:"scrollDownMain-alt2"`
+	ExecuteCustomCommand         string   `yaml:"executeCustomCommand"`
+	CreateRebaseOptionsMenu      string   `yaml:"createRebaseOptionsMenu"`
+	PushFiles                    string   `yaml:"pushFiles"`
+	PullFiles                    string   `yaml:"pullFiles"`
+	Refresh                      string   `yaml:"refresh"`
+	CreatePatchOptionsMenu       string   `yaml:"createPatchOptionsMenu"`
+	NextTab                      string   `yaml:"nextTab"`
+	PrevTab                      string   `yaml:"prevTab"`
+	NextScreenMode               string   `yaml:"nextScreenMode"`
+	PrevScreenMode               string   `yaml:"prevScreenMode"`
+	Undo                         string   `yaml:"undo"`
+	Redo                         string   `yaml:"redo"`
+	FilteringMenu                string   `yaml:"filteringMenu"`
+	DiffingMenu                  string   `yaml:"diffingMenu"`
+	DiffingMenuAlt               string   `yaml:"diffingMenu-alt"`
+	CopyToClipboard              string   `yaml:"copyToClipboard"`
+	OpenRecentRepos              string   `yaml:"openRecentRepos"`
+	SubmitEditorText             string   `yaml:"submitEditorText"`
+	AppendNewline                string   `yaml:"appendNewline"`
+	ExtrasMenu                   string   `yaml:"extrasMenu"`
+	ToggleWhitespaceInDiffView   string   `yaml:"toggleWhitespaceInDiffView"`
 }
 
 type KeybindingStatusConfig struct {
@@ -189,6 +188,7 @@ type KeybindingFilesConfig struct {
 	Fetch                    string `yaml:"fetch"`
 	ToggleTreeView           string `yaml:"toggleTreeView"`
 	OpenMergeTool            string `yaml:"openMergeTool"`
+	OpenStatusFilter         string `yaml:"openStatusFilter"`
 }
 
 type KeybindingBranchesConfig struct {
@@ -255,6 +255,9 @@ type OSConfig struct {
 	// EditCommand is the command for editing a file
 	EditCommand string `yaml:"editCommand,omitempty"`
 
+	// EditCommandTemplate is the command template for editing a file
+	EditCommandTemplate string `yaml:"editCommandTemplate,omitempty"`
+
 	// OpenCommand is the command for opening a file
 	OpenCommand string `yaml:"openCommand,omitempty"`
 
@@ -283,9 +286,10 @@ type CustomCommandPrompt struct {
 	Options []CustomCommandMenuOption
 
 	// this only applies to menuFromCommand
-	Command string `yaml:"command"`
-	Filter  string `yaml:"filter"`
-	Format  string `yaml:"format"`
+	Command     string `yaml:"command"`
+	Filter      string `yaml:"filter"`
+	ValueFormat string `yaml:"valueFormat"`
+	LabelFormat string `yaml:"labelFormat"`
 }
 
 type CustomCommandMenuOption struct {
@@ -305,19 +309,22 @@ func GetDefaultConfig() *UserConfig {
 			SidePanelWidth:         0.3333,
 			ExpandFocusedSidePanel: false,
 			MainPanelSplitMode:     "flexible",
+			Language:               "auto",
 			Theme: ThemeConfig{
-				LightTheme:           false,
-				ActiveBorderColor:    []string{"green", "bold"},
-				InactiveBorderColor:  []string{"white"},
-				OptionsTextColor:     []string{"blue"},
-				SelectedLineBgColor:  []string{"default"},
-				SelectedRangeBgColor: []string{"blue"},
+				LightTheme:                false,
+				ActiveBorderColor:         []string{"green", "bold"},
+				InactiveBorderColor:       []string{"white"},
+				OptionsTextColor:          []string{"blue"},
+				SelectedLineBgColor:       []string{"default"},
+				SelectedRangeBgColor:      []string{"blue"},
+				CherryPickedCommitBgColor: []string{"blue"},
+				CherryPickedCommitFgColor: []string{"cyan"},
 			},
 			CommitLength:             CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning: false,
 			ShowListFooter:           true,
 			ShowCommandLog:           true,
-			ShowFileTree:             false,
+			ShowFileTree:             true,
 			ShowRandomTip:            true,
 			CommandLogSize:           8,
 		},
@@ -329,9 +336,6 @@ func GetDefaultConfig() *UserConfig {
 			Merging: MergingConfig{
 				ManualCommit: false,
 				Args:         "",
-			},
-			Pull: PullConfig{
-				Mode: "auto",
 			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,
@@ -374,6 +378,7 @@ func GetDefaultConfig() *UserConfig {
 				NextBlockAlt:                 "l",
 				PrevBlockAlt2:                "<backtab>",
 				NextBlockAlt2:                "<tab>",
+				JumpToBlock:                  []string{"1", "2", "3", "4", "5"},
 				NextMatch:                    "n",
 				PrevMatch:                    "N",
 				StartSearch:                  "/",
@@ -434,6 +439,7 @@ func GetDefaultConfig() *UserConfig {
 				Fetch:                    "f",
 				ToggleTreeView:           "`",
 				OpenMergeTool:            "M",
+				OpenStatusFilter:         "<c-b>",
 			},
 			Branches: KeybindingBranchesConfig{
 				CopyPullRequestURL:      "<c-y>",

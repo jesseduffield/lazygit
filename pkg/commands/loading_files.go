@@ -8,8 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-const RENAME_SEPARATOR = " -> "
-
 // GetStatusFiles git status files
 type GetStatusFileOptions struct {
 	NoRenames bool
@@ -17,43 +15,36 @@ type GetStatusFileOptions struct {
 
 func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 	// check if config wants us ignoring untracked files
-	untrackedFilesSetting := c.GetConfigValue("status.showUntrackedFiles")
+	untrackedFilesSetting := c.GitConfig.Get("status.showUntrackedFiles")
 
 	if untrackedFilesSetting == "" {
 		untrackedFilesSetting = "all"
 	}
 	untrackedFilesArg := fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
 
-	statusStrings, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
+	statuses, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
 	if err != nil {
 		c.Log.Error(err)
 	}
 	files := []*models.File{}
 
-	for _, statusString := range statusStrings {
-		if strings.HasPrefix(statusString, "warning") {
-			c.Log.Warningf("warning when calling git status: %s", statusString)
+	for _, status := range statuses {
+		if strings.HasPrefix(status.StatusString, "warning") {
+			c.Log.Warningf("warning when calling git status: %s", status.StatusString)
 			continue
 		}
-		change := statusString[0:2]
+		change := status.Change
 		stagedChange := change[0:1]
-		unstagedChange := statusString[1:2]
-		name := statusString[3:]
+		unstagedChange := change[1:2]
 		untracked := utils.IncludesString([]string{"??", "A ", "AM"}, change)
 		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
 		hasMergeConflicts := utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, change)
 		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
-		previousName := ""
-		if strings.Contains(name, RENAME_SEPARATOR) {
-			split := strings.Split(name, RENAME_SEPARATOR)
-			name = split[1]
-			previousName = split[0]
-		}
 
 		file := &models.File{
-			Name:                    name,
-			PreviousName:            previousName,
-			DisplayString:           statusString,
+			Name:                    status.Name,
+			PreviousName:            status.PreviousName,
+			DisplayString:           status.StatusString,
 			HasStagedChanges:        !hasNoStagedChanges,
 			HasUnstagedChanges:      unstagedChange != " ",
 			Tracked:                 !untracked,
@@ -61,7 +52,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 			Added:                   unstagedChange == "A" || untracked,
 			HasMergeConflicts:       hasMergeConflicts,
 			HasInlineMergeConflicts: hasInlineMergeConflicts,
-			Type:                    c.OSCommand.FileType(name),
+			Type:                    c.OSCommand.FileType(status.Name),
 			ShortStatus:             change,
 		}
 		files = append(files, file)
@@ -70,13 +61,20 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 	return files
 }
 
-// GitStatus returns the plaintext short status of the repo
+// GitStatus returns the file status of the repo
 type GitStatusOptions struct {
 	NoRenames         bool
 	UntrackedFilesArg string
 }
 
-func (c *GitCommand) GitStatus(opts GitStatusOptions) ([]string, error) {
+type FileStatus struct {
+	StatusString string
+	Change       string // ??, MM, AM, ...
+	Name         string
+	PreviousName string
+}
+
+func (c *GitCommand) GitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 	noRenamesFlag := ""
 	if opts.NoRenames {
 		noRenamesFlag = "--no-renames"
@@ -84,23 +82,34 @@ func (c *GitCommand) GitStatus(opts GitStatusOptions) ([]string, error) {
 
 	statusLines, err := c.RunCommandWithOutput("git status %s --porcelain -z %s", opts.UntrackedFilesArg, noRenamesFlag)
 	if err != nil {
-		return []string{}, err
+		return []FileStatus{}, err
 	}
 
 	splitLines := strings.Split(statusLines, "\x00")
-	response := []string{}
+	response := []FileStatus{}
 
 	for i := 0; i < len(splitLines); i++ {
 		original := splitLines[i]
-		if len(original) < 2 {
+
+		if len(original) < 3 {
 			continue
-		} else if strings.HasPrefix(original, "R  ") {
+		}
+
+		status := FileStatus{
+			StatusString: original,
+			Change:       original[:2],
+			Name:         original[3:],
+			PreviousName: "",
+		}
+
+		if strings.HasPrefix(status.Change, "R") {
 			// if a line starts with 'R' then the next line is the original file.
-			next := strings.TrimSpace(splitLines[i+1])
-			original = "R  " + next + RENAME_SEPARATOR + strings.TrimPrefix(original, "R  ")
+			status.PreviousName = strings.TrimSpace(splitLines[i+1])
+			status.StatusString = fmt.Sprintf("%s %s -> %s", status.Change, status.PreviousName, status.Name)
 			i++
 		}
-		response = append(response, original)
+
+		response = append(response, status)
 	}
 
 	return response, nil

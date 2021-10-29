@@ -63,6 +63,23 @@ func (gui *Gui) genericMergeCommand(command string) error {
 	return nil
 }
 
+var conflictStrings = []string{
+	"Failed to merge in the changes",
+	"When you have resolved this problem",
+	"fix conflicts",
+	"Resolve all conflicts manually",
+}
+
+func isMergeConflictErr(errStr string) bool {
+	for _, str := range conflictStrings {
+		if strings.Contains(errStr, str) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
 		return err
@@ -76,7 +93,7 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
-	} else if strings.Contains(result.Error(), "When you have resolved this problem") || strings.Contains(result.Error(), "fix conflicts") || strings.Contains(result.Error(), "Resolve all conflicts manually") {
+	} else if isMergeConflictErr(result.Error()) {
 		return gui.ask(askOpts{
 			title:               gui.Tr.FoundConflictsTitle,
 			prompt:              gui.Tr.FoundConflicts,

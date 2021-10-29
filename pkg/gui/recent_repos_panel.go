@@ -4,17 +4,18 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fatih/color"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) handleCreateRecentReposMenu() error {
 	recentRepoPaths := gui.Config.GetAppState().RecentRepos
 	reposCount := utils.Min(len(recentRepoPaths), 20)
-	yellow := color.New(color.FgMagenta)
+
 	// we won't show the current repo hence the -1
 	menuItems := make([]*menuItem, reposCount-1)
 	for i, path := range recentRepoPaths[1:reposCount] {
@@ -22,7 +23,7 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 		menuItems[i] = &menuItem{
 			displayStrings: []string{
 				filepath.Base(path),
-				yellow.Sprint(path),
+				style.FgMagenta.Sprint(path),
 			},
 			onPress: func() error {
 				// if we were in a submodule, we want to forget about that stack of repos
@@ -72,7 +73,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 		return err
 	}
 
-	newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config)
+	newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config, git_config.NewStdCachedGitConfig(gui.Log))
 	if err != nil {
 		return err
 	}

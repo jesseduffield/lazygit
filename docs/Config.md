@@ -22,6 +22,7 @@ gui:
   sidePanelWidth: 0.3333 # number from 0 to 1
   expandFocusedSidePanel: false
   mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
+  language: 'auto' # one of 'auto' | 'en' | 'zh' | 'pl' | 'nl'
   theme:
     lightTheme: false # For terminals with a light background
     activeBorderColor:
@@ -35,6 +36,10 @@ gui:
       - default
     selectedRangeBgColor:
       - blue
+    cherryPickedCommitBgColor:
+      - blue
+    cherryPickedCommitFgColor:
+      - cyan
   commitLength:
     show: true
   mouseEvents: true
@@ -54,8 +59,6 @@ git:
     manualCommit: false
     # extra args passed to `git merge`, e.g. --no-ff
     args: ''
-  pull:
-    mode: 'auto' # one of 'auto' | 'merge' | 'rebase' | 'ff-only', auto reads from git configuration
   skipHookPrefix: WIP
   autoFetch: true
   branchLogCmd: 'git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --'
@@ -65,6 +68,7 @@ git:
   parseEmoji: false
 os:
   editCommand: '' # see 'Configuring File Editing' section
+  editCommandTemplate: '{{editor}} {{filename}}'
   openCommand: ''
 refresher:
   refreshInterval: 10 # file/submodule refresh interval in seconds
@@ -97,6 +101,7 @@ keybinding:
     nextBlock: '<right>' # goto the next block / panel
     prevBlock-alt: 'h' # goto the previous block / panel
     nextBlock-alt: 'l' # goto the next block / panel
+    jumpToBlock: ["1", "2", "3", "4", "5"] # goto the Nth block / panel
     nextMatch: 'n'
     prevMatch: 'N'
     optionMenu: 'x' # show help menu
@@ -133,7 +138,9 @@ keybinding:
     diffingMenu-alt: '<c-e>' # deprecated
     copyToClipboard: '<c-o>'
     submitEditorText: '<enter>'
-    appendNewline: '<tab>'
+    appendNewline: '<a-enter>'
+    extrasMenu: '@'
+    toggleWhitespaceInDiffView: '<c-w>'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'
@@ -203,14 +210,14 @@ keybinding:
 
 ```yaml
 os:
-  openCommand: 'cmd /c "start "" {{filename}}"'
+  openCommand: 'start "" {{filename}}'
 ```
 
 ### Linux
 
 ```yaml
 os:
-  openCommand: 'sh -c "xdg-open {{filename}} >/dev/null"'
+  openCommand: 'xdg-open {{filename}} >/dev/null'
 ```
 
 ### OSX
@@ -239,6 +246,38 @@ os:
 
 Lazygit will log an error if none of these options are set.
 
+You can specify a line number you are currently at when in the line-by-line mode.
+
+```yaml
+os:
+  editCommand: 'vim'
+  editCommandTemplate: '{{editor}} +{{line}} {{filename}}'
+```
+
+or
+
+```yaml
+os:
+  editCommand: 'code'
+  editCommandTemplate: '{{editor}} --goto {{filename}}:{{line}}'
+```
+
+`{{editor}}` in `editCommandTemplate` is replaced with the value of `editCommand`.
+
+### Overriding default config file location
+
+To override the default config directory, use `$CONFIG_DIR="~/.config/lazygit"`. This directory contains the config file in addition to some other files lazygit uses to keep track of state across sessions.
+
+To override the individual config file used, use the `--use-config-file` arg or the `LG_CONFIG_FILE` env var.
+
+If you want to merge a specific config file into a more general config file, perhaps for the sake of setting some theme-specific options, you can supply a list of comma-separated config file paths, like so:
+
+```sh
+lazygit --use-config-file=~/.base_lg_conf,~/.light_theme_lg_conf
+or
+LG_CONFIG_FILE="~/.base_lg_conf,~/.light_theme_lg_conf" lazygit
+```
+
 ### Recommended Config Values
 
 for users of VSCode
@@ -263,7 +302,7 @@ The available attributes are:
 - magenta
 - cyan
 - white
-- '#ff00ff' # can't be used on text
+- '#ff00ff'
 
 **Modifiers**
 

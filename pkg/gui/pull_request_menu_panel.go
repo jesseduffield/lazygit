@@ -29,7 +29,7 @@ func (gui *Gui) createOrOpenPullRequestMenu(selectedBranch *models.Branch, check
 				onPress: func() error {
 					return gui.prompt(promptOpts{
 						title:               branch.Name + " →",
-						findSuggestionsFunc: gui.findBranchNameSuggestions,
+						findSuggestionsFunc: gui.getBranchNameSuggestionsFunc(),
 						handleConfirm: func(targetBranchName string) error {
 							return gui.createPullRequest(branch.Name, targetBranchName)
 						}},

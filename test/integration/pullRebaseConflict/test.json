@@ -1,0 +1,1 @@
+{ "description": "When user has configured pull with rebase, ensure we handle conflicts", "speed": 10 }

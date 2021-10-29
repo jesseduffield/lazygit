@@ -31,15 +31,36 @@ type ViewBufferManager struct {
 	Log          *logrus.Entry
 	newTaskId    int
 	readLines    chan int
+	taskKey      string
+	onNewKey     func()
 
 	// beforeStart is the function that is called before starting a new task
-	beforeStart     func()
-	refreshView     func()
-	flushStaleCells func()
+	beforeStart  func()
+	refreshView  func()
+	onEndOfInput func()
 }
 
-func NewViewBufferManager(log *logrus.Entry, writer io.Writer, beforeStart func(), refreshView func(), flushStaleCells func()) *ViewBufferManager {
-	return &ViewBufferManager{Log: log, writer: writer, beforeStart: beforeStart, refreshView: refreshView, flushStaleCells: flushStaleCells, readLines: make(chan int, 1024)}
+func (m *ViewBufferManager) GetTaskKey() string {
+	return m.taskKey
+}
+
+func NewViewBufferManager(
+	log *logrus.Entry,
+	writer io.Writer,
+	beforeStart func(),
+	refreshView func(),
+	onEndOfInput func(),
+	onNewKey func(),
+) *ViewBufferManager {
+	return &ViewBufferManager{
+		Log:          log,
+		writer:       writer,
+		beforeStart:  beforeStart,
+		refreshView:  refreshView,
+		onEndOfInput: onEndOfInput,
+		readLines:    make(chan int, 1024),
+		onNewKey:     onNewKey,
+	}
 }
 
 func (m *ViewBufferManager) ReadLines(n int) {
@@ -117,11 +138,11 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string
 						if !ok {
 							// if we're here then there's nothing left to scan from the source
 							// so we're at the EOF and can flush the stale content
-							m.flushStaleCells()
+							m.onEndOfInput()
 							m.refreshView()
 							break outer
 						}
-						_, _ = m.writer.Write(append(scanner.Bytes(), []byte("\n")...))
+						_, _ = m.writer.Write(append(scanner.Bytes(), '\n'))
 					}
 					m.refreshView()
 				case <-stop:
@@ -179,11 +200,17 @@ func (t *ViewBufferManager) Close() {
 // 1) command based, where the manager can be asked to read more lines,  but the command can be killed
 // 2) string based, where the manager can also be asked to read more lines
 
-func (m *ViewBufferManager) NewTask(f func(stop chan struct{}) error) error {
+func (m *ViewBufferManager) NewTask(f func(stop chan struct{}) error, key string) error {
 	go utils.Safe(func() {
 		m.taskIDMutex.Lock()
 		m.newTaskId++
 		taskID := m.newTaskId
+
+		if m.GetTaskKey() != key && m.onNewKey != nil {
+			m.onNewKey()
+		}
+		m.taskKey = key
+
 		m.taskIDMutex.Unlock()
 
 		m.waitingMutex.Lock()

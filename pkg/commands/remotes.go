@@ -6,31 +6,32 @@ import (
 )
 
 func (c *GitCommand) AddRemote(name string, url string) error {
-	return c.RunCommand("git remote add %s %s", name, url)
+	return c.RunCommand("git remote add %s %s", c.OSCommand.Quote(name), c.OSCommand.Quote(url))
 }
 
 func (c *GitCommand) RemoveRemote(name string) error {
-	return c.RunCommand("git remote remove %s", name)
+	return c.RunCommand("git remote remove %s", c.OSCommand.Quote(name))
 }
 
 func (c *GitCommand) RenameRemote(oldRemoteName string, newRemoteName string) error {
-	return c.RunCommand("git remote rename %s %s", oldRemoteName, newRemoteName)
+	return c.RunCommand("git remote rename %s %s", c.OSCommand.Quote(oldRemoteName), c.OSCommand.Quote(newRemoteName))
 }
 
 func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error {
-	return c.RunCommand("git remote set-url %s %s", remoteName, updatedUrl)
+	return c.RunCommand("git remote set-url %s %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(updatedUrl))
 }
 
 func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(string) string) error {
-	command := fmt.Sprintf("git push %s --delete %s", remoteName, branchName)
-	return c.OSCommand.DetectUnamePass(command, promptUserForCredential)
+	command := fmt.Sprintf("git push %s --delete %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(branchName))
+	cmdObj := c.NewCmdObjFromStr(command)
+	return c.OSCommand.DetectUnamePass(cmdObj, promptUserForCredential)
 }
 
 // CheckRemoteBranchExists Returns remote branch
 func (c *GitCommand) CheckRemoteBranchExists(branchName string) bool {
 	_, err := c.OSCommand.RunCommandWithOutput(
 		"git show-ref --verify -- refs/remotes/origin/%s",
-		branchName,
+		c.OSCommand.Quote(branchName),
 	)
 
 	return err == nil
@@ -38,7 +39,7 @@ func (c *GitCommand) CheckRemoteBranchExists(branchName string) bool {
 
 // GetRemoteURL returns current repo remote url
 func (c *GitCommand) GetRemoteURL() string {
-	return c.GetConfigValue("remote.origin.url")
+	return c.GitConfig.Get("remote.origin.url")
 }
 
 func (c *GitCommand) GetRemoteURLs() (map[string]string, error) {

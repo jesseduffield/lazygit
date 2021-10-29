@@ -29,7 +29,6 @@ type TaskKind int
 const (
 	RENDER_STRING TaskKind = iota
 	RENDER_STRING_WITHOUT_SCROLL
-	RUN_FUNCTION
 	RUN_COMMAND
 	RUN_PTY
 )
@@ -97,19 +96,6 @@ func NewRunPtyTask(cmd *exec.Cmd) *runPtyTask {
 // 	return &runPtyTask{cmd: cmd, prefix: prefix}
 // }
 
-type runFunctionTask struct {
-	f func(chan struct{}) error
-}
-
-func (t *runFunctionTask) GetKind() TaskKind {
-	return RUN_FUNCTION
-}
-
-// currently unused
-// func (gui *Gui) createRunFunctionTask(f func(chan struct{}) error) *runFunctionTask {
-// 	return &runFunctionTask{f: f}
-// }
-
 func (gui *Gui) runTaskForView(view *gocui.View, task updateTask) error {
 	switch task.GetKind() {
 	case RENDER_STRING:
@@ -119,10 +105,6 @@ func (gui *Gui) runTaskForView(view *gocui.View, task updateTask) error {
 	case RENDER_STRING_WITHOUT_SCROLL:
 		specificTask := task.(*renderStringWithoutScrollTask)
 		return gui.newStringTaskWithoutScroll(view, specificTask.str)
-
-	case RUN_FUNCTION:
-		specificTask := task.(*runFunctionTask)
-		return gui.newTask(view, specificTask.f)
 
 	case RUN_COMMAND:
 		specificTask := task.(*runCommandTask)

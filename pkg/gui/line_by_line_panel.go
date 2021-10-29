@@ -86,6 +86,20 @@ func (gui *Gui) handleSelectNextHunk() error {
 	})
 }
 
+func (gui *Gui) copySelectedToClipboard() error {
+	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
+		selected := state.PlainRenderSelected()
+
+		if err := gui.OSCommand.WithSpan(
+			gui.Tr.Spans.CopySelectedTextToClipboard,
+		).CopyToClipboard(selected); err != nil {
+			return gui.surfaceError(err)
+		}
+
+		return nil
+	})
+}
+
 func (gui *Gui) refreshAndFocusLblPanel(state *LblPanelState) error {
 	if err := gui.refreshMainViewForLineByLine(state); err != nil {
 		return err
@@ -271,4 +285,14 @@ func (gui *Gui) withLBLActiveCheck(f func(*LblPanelState) error) error {
 	}
 
 	return f(state)
+}
+
+func (gui *Gui) handleLineByLineEdit() error {
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
+	}
+
+	lineNumber := gui.State.Panels.LineByLine.CurrentLineNumber()
+	return gui.editFileAtLine(file.Name, lineNumber)
 }

@@ -7,8 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -230,7 +228,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 func (gui *Gui) handleCheckoutByName() error {
 	return gui.prompt(promptOpts{
 		title:               gui.Tr.BranchName + ":",
-		findSuggestionsFunc: gui.findBranchNameSuggestions,
+		findSuggestionsFunc: gui.getRefsSuggestionsFunc(),
 		handleConfirm: func(response string) error {
 			return gui.handleCheckoutRef(response, handleCheckoutRefOptions{
 				span: "Checkout branch",
@@ -308,7 +306,7 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) err
 		handleConfirm: func() error {
 			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteBranch).DeleteBranch(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
-				if !force && strings.Contains(errMessage, "is not fully merged") {
+				if !force && strings.Contains(errMessage, "git branch -D ") {
 					return gui.deleteNamedBranch(selectedBranch, true)
 				}
 				return gui.createErrorPanel(errMessage)
@@ -424,7 +422,7 @@ func (gui *Gui) handleFastForward() error {
 		_ = gui.createLoaderPanel(message)
 
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
-			_ = gui.pullWithMode("ff-only", PullFilesOptions{span: span})
+			_ = gui.pullWithLock(PullFilesOptions{span: span, FastForwardOnly: true})
 		} else {
 			err := gui.GitCommand.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName, gui.promptUserForCredential)
 			gui.handleCredentialsPopup(err)
@@ -543,32 +541,6 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 		},
 	})
-}
-
-func (gui *Gui) getBranchNames() []string {
-	result := make([]string, len(gui.State.Branches))
-
-	for i, branch := range gui.State.Branches {
-		result[i] = branch.Name
-	}
-
-	return result
-}
-
-func (gui *Gui) findBranchNameSuggestions(input string) []*types.Suggestion {
-	branchNames := gui.getBranchNames()
-
-	matchingBranchNames := utils.FuzzySearch(sanitizedBranchName(input), branchNames)
-
-	suggestions := make([]*types.Suggestion, len(matchingBranchNames))
-	for i, branchName := range matchingBranchNames {
-		suggestions[i] = &types.Suggestion{
-			Value: branchName,
-			Label: utils.ColoredString(branchName, presentation.GetBranchColor(branchName)),
-		}
-	}
-
-	return suggestions
 }
 
 // sanitizedBranchName will remove all spaces in favor of a dash "-" to meet

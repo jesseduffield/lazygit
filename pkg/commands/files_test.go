@@ -4,36 +4,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os/exec"
-	"runtime"
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
-
-// TestGitCommandCatFile tests emitting a file using commands, where commands vary by OS.
-func TestGitCommandCatFile(t *testing.T) {
-	var osCmd string
-	switch os := runtime.GOOS; os {
-	case "windows":
-		osCmd = "type"
-	default:
-		osCmd = "cat"
-	}
-	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, osCmd, cmd)
-		assert.EqualValues(t, []string{"test.txt"}, args)
-
-		return secureexec.Command("echo", "-n", "test")
-	}
-
-	o, err := gitCmd.CatFile("test.txt")
-	assert.NoError(t, err)
-	assert.Equal(t, "test", o)
-}
 
 // TestGitCommandStageFile is a function.
 func TestGitCommandStageFile(t *testing.T) {
@@ -455,7 +433,7 @@ func TestGitCommandCheckoutFile(t *testing.T) {
 			"test999.txt",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git checkout 11af912 test999.txt",
+					Expect:  "git checkout 11af912 -- test999.txt",
 					Replace: "echo",
 				},
 			}),
@@ -469,7 +447,7 @@ func TestGitCommandCheckoutFile(t *testing.T) {
 			"test999.txt",
 			test.CreateMockCommand(t, []*test.CommandSwapper{
 				{
-					Expect:  "git checkout 11af912 test999.txt",
+					Expect:  "git checkout 11af912 -- test999.txt",
 					Replace: "test",
 				},
 			}),
@@ -546,24 +524,21 @@ func TestGitCommandApplyPatch(t *testing.T) {
 	}
 }
 
-// TestGitCommandDiscardOldFileChanges is a function.
 func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 	type scenario struct {
-		testName          string
-		getGitConfigValue func(string) (string, error)
-		commits           []*models.Commit
-		commitIndex       int
-		fileName          string
-		command           func(string, ...string) *exec.Cmd
-		test              func(error)
+		testName               string
+		gitConfigMockResponses map[string]string
+		commits                []*models.Commit
+		commitIndex            int
+		fileName               string
+		command                func(string, ...string) *exec.Cmd
+		test                   func(error)
 	}
 
 	scenarios := []scenario{
 		{
 			"returns error when index outside of range of commits",
-			func(string) (string, error) {
-				return "", nil
-			},
+			nil,
 			[]*models.Commit{},
 			0,
 			"test999.txt",
@@ -574,9 +549,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 		},
 		{
 			"returns error when using gpg",
-			func(string) (string, error) {
-				return "true", nil
-			},
+			map[string]string{"commit.gpgsign": "true"},
 			[]*models.Commit{{Name: "commit", Sha: "123456"}},
 			0,
 			"test999.txt",
@@ -587,9 +560,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 		},
 		{
 			"checks out file if it already existed",
-			func(string) (string, error) {
-				return "", nil
-			},
+			nil,
 			[]*models.Commit{
 				{Name: "commit", Sha: "123456"},
 				{Name: "commit2", Sha: "abcdef"},
@@ -606,7 +577,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 					Replace: "echo",
 				},
 				{
-					Expect:  "git checkout HEAD^ test999.txt",
+					Expect:  "git checkout HEAD^ -- test999.txt",
 					Replace: "echo",
 				},
 				{
@@ -631,7 +602,7 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.OSCommand.Command = s.command
-			gitCmd.getGitConfigValue = s.getGitConfigValue
+			gitCmd.GitConfig = git_config.NewFakeGitConfig(s.gitConfigMockResponses)
 			s.test(gitCmd.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
 		})
 	}
@@ -740,28 +711,30 @@ func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
 
 // TestEditFileCmdStr is a function.
 func TestEditFileCmdStr(t *testing.T) {
+	gitCmd := NewDummyGitCommand()
+
 	type scenario struct {
-		filename          string
-		configEditCommand string
-		command           func(string, ...string) *exec.Cmd
-		getenv            func(string) string
-		getGitConfigValue func(string) (string, error)
-		test              func(string, error)
+		filename                  string
+		configEditCommand         string
+		configEditCommandTemplate string
+		command                   func(string, ...string) *exec.Cmd
+		getenv                    func(string) string
+		gitConfigMockResponses    map[string]string
+		test                      func(string, error)
 	}
 
 	scenarios := []scenario{
 		{
 			"test",
 			"",
+			"{{editor}} {{filename}}",
 			func(name string, arg ...string) *exec.Cmd {
 				return secureexec.Command("exit", "1")
 			},
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.EqualError(t, err, "No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 			},
@@ -769,6 +742,7 @@ func TestEditFileCmdStr(t *testing.T) {
 		{
 			"test",
 			"nano",
+			"{{editor}} {{filename}}",
 			func(name string, args ...string) *exec.Cmd {
 				assert.Equal(t, "which", name)
 				return secureexec.Command("echo")
@@ -776,17 +750,16 @@ func TestEditFileCmdStr(t *testing.T) {
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "nano \"test\"", cmdStr)
+				assert.Equal(t, "nano "+gitCmd.OSCommand.Quote("test"), cmdStr)
 			},
 		},
 		{
 			"test",
 			"",
+			"{{editor}} {{filename}}",
 			func(name string, arg ...string) *exec.Cmd {
 				assert.Equal(t, "which", name)
 				return secureexec.Command("exit", "1")
@@ -794,17 +767,16 @@ func TestEditFileCmdStr(t *testing.T) {
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "nano", nil
-			},
+			map[string]string{"core.editor": "nano"},
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "nano \"test\"", cmdStr)
+				assert.Equal(t, "nano "+gitCmd.OSCommand.Quote("test"), cmdStr)
 			},
 		},
 		{
 			"test",
 			"",
+			"{{editor}} {{filename}}",
 			func(name string, arg ...string) *exec.Cmd {
 				assert.Equal(t, "which", name)
 				return secureexec.Command("exit", "1")
@@ -816,9 +788,7 @@ func TestEditFileCmdStr(t *testing.T) {
 
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
 			},
@@ -826,6 +796,7 @@ func TestEditFileCmdStr(t *testing.T) {
 		{
 			"test",
 			"",
+			"{{editor}} {{filename}}",
 			func(name string, arg ...string) *exec.Cmd {
 				assert.Equal(t, "which", name)
 				return secureexec.Command("exit", "1")
@@ -837,17 +808,16 @@ func TestEditFileCmdStr(t *testing.T) {
 
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "emacs \"test\"", cmdStr)
+				assert.Equal(t, "emacs "+gitCmd.OSCommand.Quote("test"), cmdStr)
 			},
 		},
 		{
 			"test",
 			"",
+			"{{editor}} {{filename}}",
 			func(name string, arg ...string) *exec.Cmd {
 				assert.Equal(t, "which", name)
 				return secureexec.Command("echo")
@@ -855,17 +825,16 @@ func TestEditFileCmdStr(t *testing.T) {
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "vi \"test\"", cmdStr)
+				assert.Equal(t, "vi "+gitCmd.OSCommand.Quote("test"), cmdStr)
 			},
 		},
 		{
 			"file/with space",
 			"",
+			"{{editor}} {{filename}}",
 			func(name string, args ...string) *exec.Cmd {
 				assert.Equal(t, "which", name)
 				return secureexec.Command("echo")
@@ -873,22 +842,37 @@ func TestEditFileCmdStr(t *testing.T) {
 			func(env string) string {
 				return ""
 			},
-			func(cf string) (string, error) {
-				return "", nil
-			},
+			nil,
 			func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "vi \"file/with space\"", cmdStr)
+				assert.Equal(t, "vi "+gitCmd.OSCommand.Quote("file/with space"), cmdStr)
+			},
+		},
+		{
+			"open file/at line",
+			"vim",
+			"{{editor}} +{{line}} {{filename}}",
+			func(name string, args ...string) *exec.Cmd {
+				assert.Equal(t, "which", name)
+				return secureexec.Command("echo")
+			},
+			func(env string) string {
+				return ""
+			},
+			nil,
+			func(cmdStr string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "vim +1 "+gitCmd.OSCommand.Quote("open file/at line"), cmdStr)
 			},
 		},
 	}
 
 	for _, s := range scenarios {
-		gitCmd := NewDummyGitCommand()
 		gitCmd.Config.GetUserConfig().OS.EditCommand = s.configEditCommand
+		gitCmd.Config.GetUserConfig().OS.EditCommandTemplate = s.configEditCommandTemplate
 		gitCmd.OSCommand.Command = s.command
 		gitCmd.OSCommand.Getenv = s.getenv
-		gitCmd.getGitConfigValue = s.getGitConfigValue
-		s.test(gitCmd.EditFileCmdStr(s.filename))
+		gitCmd.GitConfig = git_config.NewFakeGitConfig(s.gitConfigMockResponses)
+		s.test(gitCmd.EditFileCmdStr(s.filename, 1))
 	}
 }

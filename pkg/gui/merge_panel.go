@@ -14,18 +14,18 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 )
 
-func (gui *Gui) handleSelectTop() error {
+func (gui *Gui) handleSelectPrevConflictHunk() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
-		gui.State.Panels.Merging.SelectTopOption()
+		gui.State.Panels.Merging.SelectPrevConflictHunk()
 		return gui.refreshMergePanel()
 	})
 }
 
-func (gui *Gui) handleSelectBottom() error {
+func (gui *Gui) handleSelectNextConflictHunk() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
-		gui.State.Panels.Merging.SelectBottomOption()
+		gui.State.Panels.Merging.SelectNextConflictHunk()
 		return gui.refreshMergePanel()
 	})
 }
@@ -95,11 +95,11 @@ func (gui *Gui) handlePickHunk() error {
 	})
 }
 
-func (gui *Gui) handlePickBothHunks() error {
+func (gui *Gui) handlePickAllHunks() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
 
-		ok, err := gui.resolveConflict(mergeconflicts.BOTH)
+		ok, err := gui.resolveConflict(mergeconflicts.ALL)
 		if err != nil {
 			return err
 		}
@@ -135,10 +135,12 @@ func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error
 	switch selection {
 	case mergeconflicts.TOP:
 		logStr = "Picking top hunk"
+	case mergeconflicts.MIDDLE:
+		logStr = "Picking middle hunk"
 	case mergeconflicts.BOTTOM:
 		logStr = "Picking bottom hunk"
-	case mergeconflicts.BOTH:
-		logStr = "Picking both hunks"
+	case mergeconflicts.ALL:
+		logStr = "Picking all hunks"
 	}
 	gui.OnRunCommand(oscommands.NewCmdLogEntry(logStr, "Resolve merge conflict", false))
 	return true, ioutil.WriteFile(gitFile.Name, []byte(output), 0644)
@@ -231,7 +233,7 @@ func (gui *Gui) getMergingOptions() map[string]string {
 		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)):   gui.Tr.LcSelectHunk,
 		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock)): gui.Tr.LcNavigateConflicts,
 		gui.getKeyDisplay(keybindingConfig.Universal.Select):   gui.Tr.LcPickHunk,
-		gui.getKeyDisplay(keybindingConfig.Main.PickBothHunks): gui.Tr.LcPickBothHunks,
+		gui.getKeyDisplay(keybindingConfig.Main.PickBothHunks): gui.Tr.LcPickAllHunks,
 		gui.getKeyDisplay(keybindingConfig.Universal.Undo):     gui.Tr.LcUndo,
 	}
 }
