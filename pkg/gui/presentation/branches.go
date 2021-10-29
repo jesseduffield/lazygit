@@ -10,19 +10,31 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
-func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string, showGithub bool) [][]string {
+func GetBranchListDisplayStrings(
+	branches []*models.Branch,
+	prs map[string]models.GithubPullRequest,
+	remotesToOwnersMap map[string]string,
+	fullDescription bool,
+	diffName string,
+	showGithub bool) [][]string {
 	lines := make([][]string, len(branches))
 
 	for i := range branches {
 		diffed := branches[i].Name == diffName
-		lines[i] = getBranchDisplayStrings(branches[i], fullDescription, diffed, showGithub)
+		lines[i] = getBranchDisplayStrings(branches[i], prs, remotesToOwnersMap, fullDescription, diffed, showGithub)
 	}
 
 	return lines
 }
 
 // getBranchDisplayStrings returns the display string of branch
-func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed, showGithub bool) []string {
+func getBranchDisplayStrings(
+	b *models.Branch,
+	prs map[string]models.GithubPullRequest,
+	remotesToOwnersMap map[string]string,
+	fullDescription bool,
+	diffed,
+	showGithub bool) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
 		displayName = b.DisplayName
@@ -44,15 +56,16 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed, sho
 
 	res := []string{recencyColor.Sprint(b.Recency), coloredName}
 	if showGithub {
-		if b.PR != nil {
+		pr, has_pr := GetPr(b, remotesToOwnersMap, prs)
+		if has_pr {
 			colour := style.FgMagenta // = state MERGED
-			switch b.PR.State {
+			switch pr.State {
 			case "OPEN":
 				colour = style.FgGreen
 			case "CLOSED":
 				colour = style.FgRed
 			}
-			res = append(res, colour.Sprint("#"+strconv.Itoa(b.PR.Number)))
+			res = append(res, colour.Sprint("#"+strconv.Itoa(pr.Number)))
 		} else {
 			res = append(res, "")
 		}
@@ -93,4 +106,23 @@ func ColoredBranchStatus(branch *models.Branch) string {
 
 func BranchStatus(branch *models.Branch) string {
 	return fmt.Sprintf("↑%s↓%s", branch.Pushables, branch.Pullables)
+}
+
+func GetPr(branch *models.Branch, remotesToOwnersMap map[string]string, prs map[string]models.GithubPullRequest) (*models.GithubPullRequest, bool) {
+	if len(prs) == 0 {
+		return nil, false
+	}
+
+	if len(remotesToOwnersMap) == 0 {
+		return nil, false
+	}
+
+	remoteAndName := strings.SplitN(branch.UpstreamName, "/", 2)
+	owner, foundRemoteOwner := remotesToOwnersMap[remoteAndName[0]]
+	if len(remoteAndName) != 2 || !foundRemoteOwner {
+		return nil, false
+	}
+	pr, hasPr := prs[owner+":"+remoteAndName[1]]
+
+	return &pr, hasPr
 }

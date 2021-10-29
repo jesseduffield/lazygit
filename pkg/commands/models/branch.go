@@ -11,7 +11,6 @@ type Branch struct {
 	Pullables    string
 	UpstreamName string
 	Head         bool
-	PR           *GithubPullRequest
 }
 
 func (b *Branch) RefName() string {

@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -67,7 +68,7 @@ func (gui *Gui) refreshBranches() {
 		_ = gui.surfaceError(err)
 	}
 	gui.State.Branches = builder.Build()
-	gui.State.BranchesWithGithubPullRequests = builder.GitCommand.InjectGithubPullRequests(gui.State.GithubRecentPRs, gui.State.Branches)
+	gui.State.BranchesWithGithubPullRequests = builder.GitCommand.FoundBranchWithGithubPullRequest(gui.State.GithubRecentPRs, gui.State.Branches)
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
 	}
@@ -76,7 +77,11 @@ func (gui *Gui) refreshBranches() {
 }
 
 func (gui *Gui) refreshGithubPullRequests() {
-	prs := gui.GitCommand.GithubMostRecentPRs()
+	prs, err := gui.GitCommand.GithubMostRecentPRs()
+	if err != nil {
+		gui.Log.Error(err)
+	}
+
 	if len(prs) > 0 {
 		gui.State.GithubRecentPRs = prs
 	}
@@ -97,8 +102,13 @@ func (gui *Gui) handleBranchPress() error {
 
 func (gui *Gui) handleCreateOrShowPullRequestPress() error {
 	branch := gui.getSelectedBranch()
-	if branch.PR != nil {
-		return gui.OSCommand.OpenLink(branch.PR.Url)
+	remotesToOwnersMap, _ := gui.GitCommand.GetRemotesToOwnersMap()
+	prs := gui.State.GithubRecentPRs
+
+	pr, has_pr := presentation.GetPr(branch, remotesToOwnersMap, prs)
+
+	if has_pr {
+		return gui.OSCommand.OpenLink(pr.Url)
 	}
 	return gui.createPullRequest(branch.Name, "")
 }
