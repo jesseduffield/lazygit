@@ -2,34 +2,31 @@ package commands
 
 import (
 	"encoding/json"
-	"fmt"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
-func (c *GitCommand) GithubMostRecentPRs() map[string]models.GithubPullRequest {
+func (c *GitCommand) GithubMostRecentPRs() (map[string]models.GithubPullRequest, error) {
 	commandOutput, err := c.OSCommand.RunCommandWithOutput("gh pr list --limit 50 --state all --json state,url,number,headRefName,headRepositoryOwner")
 	if err != nil {
-		fmt.Println(1, err)
-		return nil
+		return nil, err
 	}
 
 	prs := []models.GithubPullRequest{}
 	err = json.Unmarshal([]byte(commandOutput), &prs)
 	if err != nil {
-		fmt.Println(2, err)
-		return nil
+		return nil, err
 	}
 
 	res := map[string]models.GithubPullRequest{}
 	for _, pr := range prs {
 		res[pr.HeadRepositoryOwner.Login+":"+pr.HeadRefName] = pr
 	}
-	return res
+	return res, nil
 }
 
-func (c *GitCommand) InjectGithubPullRequests(prs map[string]models.GithubPullRequest, branches []*models.Branch) bool {
+func (c *GitCommand) FoundBranchWithGithubPullRequest(prs map[string]models.GithubPullRequest, branches []*models.Branch) bool {
 	if len(prs) == 0 {
 		return false
 	}
@@ -42,23 +39,11 @@ func (c *GitCommand) InjectGithubPullRequests(prs map[string]models.GithubPullRe
 	foundBranchWithGithubPullRequest := false
 
 	for _, branch := range branches {
-		if branch.UpstreamName == "" {
-			continue
-		}
+		_, has_pr := presentation.GetPr(branch, remotesToOwnersMap, prs)
 
-		remoteAndName := strings.SplitN(branch.UpstreamName, "/", 2)
-		owner, foundRemoteOwner := remotesToOwnersMap[remoteAndName[0]]
-		if len(remoteAndName) != 2 || !foundRemoteOwner {
-			continue
+		if has_pr {
+			foundBranchWithGithubPullRequest = true
 		}
-
-		pr, hasPr := prs[owner+":"+remoteAndName[1]]
-		if !hasPr {
-			continue
-		}
-
-		foundBranchWithGithubPullRequest = true
-		branch.PR = &pr
 	}
 
 	return foundBranchWithGithubPullRequest

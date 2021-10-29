@@ -68,8 +68,9 @@ func TestGithubMostRecentPRs(t *testing.T) {
 				return secureexec.Command("echo", s.response)
 			}
 
-			res := gitCmd.GithubMostRecentPRs()
+			res, _ := gitCmd.GithubMostRecentPRs()
 			assert.Equal(t, s.expect, res)
+
 		})
 	}
 }

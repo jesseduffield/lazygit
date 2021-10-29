@@ -72,9 +72,12 @@ func (gui *Gui) refreshReflogCommitsConsideringStartup() {
 		})
 		go utils.Safe(func() {
 			// The github cli can be quite slow so we load the github PRs sparately
-			gui.refreshGithubPullRequests()
-			wg.Wait()
 			gui.State.BranchesWithGithubPullRequests = gui.GitCommand.FoundBranchWithGithubPullRequest(gui.State.GithubRecentPRs, gui.State.Branches)
+			if gui.State.BranchesWithGithubPullRequests {
+				gui.refreshGithubPullRequests()
+			}
+
+			wg.Wait()
 			_ = gui.postRefreshUpdate(gui.State.Contexts.Branches)
 			gui.refreshStatus()
 		})
