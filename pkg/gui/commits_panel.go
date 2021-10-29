@@ -74,7 +74,7 @@ func (gui *Gui) refreshReflogCommitsConsideringStartup() {
 			// The github cli can be quite slow so we load the github PRs sparately
 			gui.refreshGithubPullRequests()
 			wg.Wait()
-			gui.State.BranchesWithGithubPullRequests = gui.GitCommand.InjectGithubPullRequests(gui.GitCommand.GithubRecentPRs, gui.State.Branches)
+			gui.State.BranchesWithGithubPullRequests = gui.GitCommand.InjectGithubPullRequests(gui.State.GithubRecentPRs, gui.State.Branches)
 			_ = gui.postRefreshUpdate(gui.State.Contexts.Branches)
 			gui.refreshStatus()
 		})

@@ -11,7 +11,6 @@ import (
 
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -41,8 +40,6 @@ type GitCommand struct {
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	PushToCurrent bool
-
-	GithubRecentPRs map[string]models.GithubPullRequest
 }
 
 // NewGitCommand it runs git commands

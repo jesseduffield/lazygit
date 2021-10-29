@@ -286,10 +286,11 @@ type guiMutexes struct {
 type guiState struct {
 	// the file panels (files and commit files) can render as a tree, so we have
 	// managers for them which handle rendering a flat list of files in tree form
-	FileManager                    *filetree.FileManager
-	CommitFileManager              *filetree.CommitFileManager
-	Submodules                     []*models.SubmoduleConfig
-	Branches                       []*models.Branch
+	FileManager       *filetree.FileManager
+	CommitFileManager *filetree.CommitFileManager
+	Submodules        []*models.SubmoduleConfig
+	Branches          []*models.Branch
+	GithubRecentPRs   map[string]models.GithubPullRequest
 	BranchesWithGithubPullRequests bool
 	Commits                        []*models.Commit
 	StashEntries                   []*models.StashEntry

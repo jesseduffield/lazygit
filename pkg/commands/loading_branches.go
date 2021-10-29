@@ -99,7 +99,7 @@ func (b *BranchListBuilder) obtainBranches() []*models.Branch {
 }
 
 // Build the list of branches for the current repo
-func (b *BranchListBuilder) Build() (branches []*models.Branch, branchesWithGithubPullRequests bool) {
+func (b *BranchListBuilder) Build() (branches []*models.Branch) {
 	branches = b.obtainBranches()
 
 	reflogBranches := b.obtainReflogBranches()
@@ -146,9 +146,7 @@ outer:
 		}}, branches...)
 	}
 
-	branchesWithGithubPullRequests = b.GitCommand.InjectGithubPullRequests(b.GitCommand.GithubRecentPRs, branches)
-
-	return
+	return branches
 }
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in

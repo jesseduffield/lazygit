@@ -66,8 +66,8 @@ func (gui *Gui) refreshBranches() {
 	if err != nil {
 		_ = gui.surfaceError(err)
 	}
-	gui.State.Branches, gui.State.BranchesWithGithubPullRequests = builder.Build()
-
+	gui.State.Branches = builder.Build()
+	gui.State.BranchesWithGithubPullRequests = builder.GitCommand.InjectGithubPullRequests(gui.State.GithubRecentPRs, gui.State.Branches)
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
 	}
@@ -78,7 +78,7 @@ func (gui *Gui) refreshBranches() {
 func (gui *Gui) refreshGithubPullRequests() {
 	prs := gui.GitCommand.GithubMostRecentPRs()
 	if len(prs) > 0 {
-		gui.GitCommand.GithubRecentPRs = prs
+		gui.State.GithubRecentPRs = prs
 	}
 }
 
