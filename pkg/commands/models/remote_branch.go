@@ -1,9 +1,12 @@
 package models
 
+import "time"
+
 // Remote Branch : A git remote branch
 type RemoteBranch struct {
-	Name       string
-	RemoteName string
+	Name               string
+	RemoteName         string
+	LastCommitUnixTime time.Time
 }
 
 func (r *RemoteBranch) FullName() string {

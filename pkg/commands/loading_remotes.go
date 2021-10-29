@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
@@ -30,12 +32,39 @@ func (c *GitCommand) GetRemotes() ([]*models.Remote, error) {
 		re := regexp.MustCompile(fmt.Sprintf(`%s\/([\S]+)`, remoteName))
 		matches := re.FindAllStringSubmatch(remoteBranchesStr, -1)
 		branches := make([]*models.RemoteBranch, len(matches))
+
 		for j, match := range matches {
-			branches[j] = &models.RemoteBranch{
+			branch := &models.RemoteBranch{
 				Name:       match[1],
 				RemoteName: remoteName,
 			}
+
+			unescaped := "git --no-pager log -1 " + branch.FullName() + " --format=%at"
+			remoteBranchDateStr, err := c.OSCommand.RunCommandWithOutput(unescaped)
+			if err != nil {
+				return nil, err
+			}
+
+			i, err := strconv.ParseInt(strings.TrimSuffix(remoteBranchDateStr, "\n"), 10, 64)
+
+			if err != nil {
+				return nil, err
+			}
+
+			tm := time.Unix(i, 0)
+
+			if err != nil {
+				return nil, err
+			}
+
+			branch.LastCommitUnixTime = tm
+			branches[j] = branch
 		}
+
+		// sort branches by commit date
+		sort.Slice(branches, func(i, j int) bool {
+			return (branches[j].LastCommitUnixTime.Before(branches[i].LastCommitUnixTime))
+		})
 
 		remotes[i] = &models.Remote{
 			Name:     goGitRemote.Config().Name,
