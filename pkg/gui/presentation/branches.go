@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -42,6 +43,21 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed, sho
 	}
 
 	res := []string{recencyColor.Sprint(b.Recency), coloredName}
+	if showGithub {
+		if b.PR != nil {
+			colour := style.FgMagenta // = state MERGED
+			switch b.PR.State {
+			case "OPEN":
+				colour = style.FgGreen
+			case "CLOSED":
+				colour = style.FgRed
+			}
+			res = append(res, colour.Sprint("#"+strconv.Itoa(b.PR.Number)))
+		} else {
+			res = append(res, "")
+		}
+	}
+
 	if fullDescription {
 		return append(res, style.FgYellow.Sprint(b.UpstreamName))
 	}
