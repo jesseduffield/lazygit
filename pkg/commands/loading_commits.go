@@ -110,7 +110,7 @@ func (c *CommitListBuilder) MergeRebasingCommits(commits []*models.Commit) ([]*m
 		return result, nil
 	}
 
-	rebasingCommits, err := c.getRebasingCommits(rebaseMode)
+	rebasingCommits, err := c.getHydratedRebasingCommits(rebaseMode)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Commit
 	cmd := c.getLogCmd(opts)
 
 	err = oscommands.RunLineOutputCmd(cmd, func(line string) (bool, error) {
-		if strings.Split(line, " ")[0] != "gpg:" {
+		if canExtractCommit(line) {
 			commit := c.extractCommitFromLine(line)
 			if commit.Sha == firstPushedCommit {
 				passedFirstPushedCommit = true
@@ -175,6 +175,47 @@ func (c *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Commit
 	}
 
 	return commits, nil
+}
+
+func (c *CommitListBuilder) getHydratedRebasingCommits(rebaseMode string) ([]*models.Commit, error) {
+	commits, err := c.getRebasingCommits(rebaseMode)
+	if err != nil {
+		return nil, err
+	}
+
+	commitShas := make([]string, len(commits))
+	for i, commit := range commits {
+		commitShas[i] = commit.Sha
+	}
+
+	// note that we're not filtering these as we do non-rebasing commits just because
+	// I suspect that will cause some damage
+	cmd := c.OSCommand.ExecutableFromString(
+		fmt.Sprintf(
+			"git show %s --no-patch --oneline %s --abbrev=%d",
+			strings.Join(commitShas, " "),
+			prettyFormat,
+			20,
+		),
+	)
+
+	hydratedCommits := make([]*models.Commit, 0, len(commits))
+	i := 0
+	err = oscommands.RunLineOutputCmd(cmd, func(line string) (bool, error) {
+		c.Log.Warn(line)
+		if canExtractCommit(line) {
+			commit := c.extractCommitFromLine(line)
+			commit.Action = commits[i].Action
+			commit.Status = commits[i].Status
+			hydratedCommits = append(hydratedCommits, commit)
+			i++
+		}
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return hydratedCommits, nil
 }
 
 // getRebasingCommits obtains the commits that we're in the process of rebasing
@@ -361,16 +402,25 @@ func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) *exec.Cmd {
 
 	return c.OSCommand.ExecutableFromString(
 		fmt.Sprintf(
-			"git log %s --oneline --pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\" %s --abbrev=%d %s",
+			"git log %s --oneline %s %s --abbrev=%d %s",
 			c.OSCommand.Quote(opts.RefName),
-			SEPARATION_CHAR,
-			SEPARATION_CHAR,
-			SEPARATION_CHAR,
-			SEPARATION_CHAR,
-			SEPARATION_CHAR,
+			prettyFormat,
 			limitFlag,
 			20,
 			filterFlag,
 		),
 	)
+}
+
+var prettyFormat = fmt.Sprintf(
+	"--pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\"",
+	SEPARATION_CHAR,
+	SEPARATION_CHAR,
+	SEPARATION_CHAR,
+	SEPARATION_CHAR,
+	SEPARATION_CHAR,
+)
+
+func canExtractCommit(line string) bool {
+	return strings.Split(line, " ")[0] != "gpg:"
 }
