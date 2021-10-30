@@ -66,3 +66,19 @@ func getPadWidths(stringArrays [][]string) []int {
 	}
 	return padWidths
 }
+
+// TruncateWithEllipsis returns a string, truncated to a certain length, with an ellipsis
+func TruncateWithEllipsis(str string, limit int) string {
+	if runewidth.StringWidth(str) > limit && limit <= 3 {
+		return strings.Repeat(".", limit)
+	}
+	return runewidth.Truncate(str, limit, "...")
+}
+
+func SafeTruncate(str string, limit int) string {
+	if len(str) > limit {
+		return str[0:limit]
+	} else {
+		return str
+	}
+}
