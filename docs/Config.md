@@ -50,6 +50,8 @@ gui:
   showRandomTip: true
   showCommandLog: true
   commandLogSize: 8
+  authorColors: # in case you're not happy with the randomly assigned colour
+    'John Smith': '#ff0000'
 git:
   paging:
     colorArg: always
