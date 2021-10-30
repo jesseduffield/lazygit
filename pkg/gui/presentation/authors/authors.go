@@ -11,6 +11,8 @@ import (
 	"github.com/mattn/go-runewidth"
 )
 
+// if these being global variables causes trouble we can wrap them in a struct
+// attached to the gui state.
 var authorInitialCache = make(map[string]string)
 var authorNameCache = make(map[string]string)
 var authorStyleCache = make(map[string]style.TextStyle)
@@ -100,4 +102,11 @@ func getFirstRune(str string) rune {
 	}
 	// should never land here
 	return 0
+}
+
+func SetCustomAuthors(customAuthorColors map[string]string) {
+	for authorName, colorSequence := range customAuthorColors {
+		style := style.New().SetFg(style.NewRGBColor(color.HEX(colorSequence, false)))
+		authorStyleCache[authorName] = style
+	}
 }
