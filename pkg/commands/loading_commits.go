@@ -183,6 +183,10 @@ func (c *CommitListBuilder) getHydratedRebasingCommits(rebaseMode string) ([]*mo
 		return nil, err
 	}
 
+	if len(commits) == 0 {
+		return nil, nil
+	}
+
 	commitShas := make([]string, len(commits))
 	for i, commit := range commits {
 		commitShas[i] = commit.Sha
@@ -202,11 +206,11 @@ func (c *CommitListBuilder) getHydratedRebasingCommits(rebaseMode string) ([]*mo
 	hydratedCommits := make([]*models.Commit, 0, len(commits))
 	i := 0
 	err = oscommands.RunLineOutputCmd(cmd, func(line string) (bool, error) {
-		c.Log.Warn(line)
 		if canExtractCommit(line) {
 			commit := c.extractCommitFromLine(line)
-			commit.Action = commits[i].Action
-			commit.Status = commits[i].Status
+			matchingCommit := commits[i]
+			commit.Action = matchingCommit.Action
+			commit.Status = matchingCommit.Status
 			hydratedCommits = append(hydratedCommits, commit)
 			i++
 		}
