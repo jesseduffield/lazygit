@@ -1,17 +1,14 @@
 package presentation
 
 import (
-	"crypto/md5"
 	"strings"
 
-	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/kyokomi/emoji/v2"
-	colorful "github.com/lucasb-eyer/go-colorful"
-	"github.com/mattn/go-runewidth"
 )
 
 func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string, parseEmoji bool) [][]string {
@@ -72,7 +69,7 @@ func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCom
 	return []string{
 		shaColor.Sprint(c.ShortSha()),
 		secondColumnString,
-		longAuthor(c.Author),
+		authors.LongAuthor(c.Author),
 		tagString + theme.DefaultTextColor.Sprint(name),
 	}
 }
@@ -116,82 +113,9 @@ func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[s
 
 	return []string{
 		shaColor.Sprint(c.ShortSha()),
-		shortAuthor(c.Author),
+		authors.ShortAuthor(c.Author),
 		actionString + tagString + theme.DefaultTextColor.Sprint(name),
 	}
-}
-
-var authorInitialCache = make(map[string]string)
-var authorNameCache = make(map[string]string)
-
-func shortAuthor(authorName string) string {
-	if value, ok := authorInitialCache[authorName]; ok {
-		return value
-	}
-
-	initials := getInitials(authorName)
-	if initials == "" {
-		return ""
-	}
-
-	value := authorColor(authorName).Sprint(initials)
-	authorInitialCache[authorName] = value
-
-	return value
-}
-
-func longAuthor(authorName string) string {
-	if value, ok := authorNameCache[authorName]; ok {
-		return value
-	}
-
-	truncatedName := utils.TruncateWithEllipsis(authorName, 17)
-	value := authorColor(authorName).Sprint(truncatedName)
-	authorNameCache[authorName] = value
-
-	return value
-}
-
-func authorColor(authorName string) style.TextStyle {
-	hash := md5.Sum([]byte(authorName))
-	c := colorful.Hsl(randFloat(hash[0:4])*360.0, 0.6+0.4*randFloat(hash[4:8]), 0.4+randFloat(hash[8:12])*0.2)
-
-	return style.New().SetFg(style.NewRGBColor(color.RGB(uint8(c.R*255), uint8(c.G*255), uint8(c.B*255))))
-}
-
-func randFloat(hash []byte) float64 {
-	sum := 0
-	for _, b := range hash {
-		sum = (sum + int(b)) % 100
-	}
-	return float64(sum) / 100
-}
-
-func getInitials(authorName string) string {
-	if authorName == "" {
-		return authorName
-	}
-
-	firstRune := getFirstRune(authorName)
-	if runewidth.RuneWidth(firstRune) > 1 {
-		return string(firstRune)
-	}
-
-	split := strings.Split(authorName, " ")
-	if len(split) == 1 {
-		return utils.LimitStr(authorName, 2)
-	}
-
-	return utils.LimitStr(split[0], 1) + utils.LimitStr(split[1], 1)
-}
-
-func getFirstRune(str string) rune {
-	// just using the loop for the sake of getting the first rune
-	for _, r := range str {
-		return r
-	}
-	// should never land here
-	return 0
 }
 
 func actionColorMap(str string) style.TextStyle {
