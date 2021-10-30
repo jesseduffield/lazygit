@@ -1,4 +1,4 @@
-package presentation
+package authors
 
 import "testing"
 
