@@ -55,18 +55,7 @@ func getBranchDisplayStrings(
 	res := []string{recencyColor.Sprint(b.Recency), coloredName}
 	if showGithub {
 		pr, hasPr := prs[b]
-		if hasPr {
-			colour := style.FgMagenta // = state MERGED
-			switch pr.State {
-			case "OPEN":
-				colour = style.FgGreen
-			case "CLOSED":
-				colour = style.FgRed
-			}
-			res = append(res, colour.Sprint("#"+strconv.Itoa(pr.Number)))
-		} else {
-			res = append(res, "")
-		}
+		res = append(res, coloredPrNumber(pr, hasPr))
 	}
 
 	if fullDescription {
@@ -104,4 +93,19 @@ func ColoredBranchStatus(branch *models.Branch) string {
 
 func BranchStatus(branch *models.Branch) string {
 	return fmt.Sprintf("↑%s↓%s", branch.Pushables, branch.Pullables)
+}
+
+func coloredPrNumber(pr *models.GithubPullRequest, hasPr bool) string {
+	if hasPr {
+		colour := style.FgMagenta // = state MERGED
+		switch pr.State {
+		case "OPEN":
+			colour = style.FgGreen
+		case "CLOSED":
+			colour = style.FgRed
+		}
+		return colour.Sprint("#" + strconv.Itoa(pr.Number))
+	}
+
+	return ""
 }
