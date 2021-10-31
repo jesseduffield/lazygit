@@ -9,9 +9,11 @@ import (
 	"github.com/xo/terminfo"
 )
 
-func TestRender(t *testing.T) {
+func init() {
 	color.ForceSetColorLevel(terminfo.ColorLevelNone)
+}
 
+func TestRender(t *testing.T) {
 	scenarios := []struct {
 		name           string
 		root           *FileNode

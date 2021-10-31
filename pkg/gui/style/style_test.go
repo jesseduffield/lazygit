@@ -10,6 +10,11 @@ import (
 	"github.com/xo/terminfo"
 )
 
+func init() {
+	// on CI we've got no color capability so we're forcing it here
+	color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+}
+
 func TestMerge(t *testing.T) {
 	type scenario struct {
 		name          string
@@ -17,9 +22,6 @@ func TestMerge(t *testing.T) {
 		expectedStyle TextStyle
 		expectedStr   string
 	}
-
-	// on CI we've got no color capability so we're forcing it here
-	color.ForceSetColorLevel(terminfo.ColorLevelMillions)
 
 	fgRed := color.FgRed
 	bgRed := color.BgRed
