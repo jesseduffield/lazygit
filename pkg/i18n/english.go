@@ -436,6 +436,7 @@ type TranslationSet struct {
 	MustSpecifyOriginError              string
 	GitOutput                           string
 	GitCommandFailed                    string
+	OpenPr                              string
 	Spans                               Spans
 }
 
@@ -965,6 +966,8 @@ func englishTranslationSet() TranslationSet {
 		MustSpecifyOriginError:              "Must specify a remote if specifying a branch",
 		GitOutput:                           "Git output:",
 		GitCommandFailed:                    "Git command failed. Check command log for details (open with %s)",
+		OpenPr:                              "Open PR #",
+
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
