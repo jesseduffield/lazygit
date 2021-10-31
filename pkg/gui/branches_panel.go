@@ -78,7 +78,8 @@ func (gui *Gui) refreshBranches() {
 func (gui *Gui) refreshGithubPullRequests() {
 	prs, err := gui.GitCommand.GithubMostRecentPRs()
 	if err != nil {
-		gui.Log.Error(err)
+		_ = gui.surfaceError(err)
+		return
 	}
 
 	gui.State.GithubState.RecentPRs = prs
