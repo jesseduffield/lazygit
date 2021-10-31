@@ -83,9 +83,7 @@ func (gui *Gui) refreshGithubPullRequests() {
 		gui.Log.Error(err)
 	}
 
-	if len(prs) > 0 {
-		gui.State.GithubRecentPRs = prs
-	}
+	gui.State.GithubRecentPRs = prs
 }
 
 // specific functions
