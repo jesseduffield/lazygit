@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 func (gui *Gui) createOrOpenPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
@@ -40,11 +39,10 @@ func (gui *Gui) createOrOpenPullRequestMenu(selectedBranch *models.Branch, check
 		}
 	}
 
-	remotesToOwnersMap, _ := gui.GitCommand.GetRemotesToOwnersMap()
-	prs := gui.State.GithubRecentPRs
-	pr, has_pr := presentation.GetPr(selectedBranch, remotesToOwnersMap, prs)
+	prs, _ := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, []*models.Branch{selectedBranch})
+	pr, hasPr := prs[selectedBranch]
 
-	if has_pr {
+	if hasPr {
 		menuItems = append(menuItems, &menuItem{
 			displayString: "open #" + strconv.Itoa(pr.Number),
 			onPress: func() error {

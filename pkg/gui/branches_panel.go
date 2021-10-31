@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -68,7 +67,9 @@ func (gui *Gui) refreshBranches() {
 		_ = gui.surfaceError(err)
 	}
 	gui.State.Branches = builder.Build()
-	gui.State.BranchesWithGithubPullRequests = builder.GitCommand.FoundBranchWithGithubPullRequest(gui.State.GithubRecentPRs, gui.State.Branches)
+	_, branchesWithGithubPullRequests := builder.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, gui.State.Branches)
+	gui.State.BranchesWithGithubPullRequests = branchesWithGithubPullRequests
+
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
 	}
@@ -102,12 +103,11 @@ func (gui *Gui) handleBranchPress() error {
 
 func (gui *Gui) handleCreateOrShowPullRequestPress() error {
 	branch := gui.getSelectedBranch()
-	remotesToOwnersMap, _ := gui.GitCommand.GetRemotesToOwnersMap()
-	prs := gui.State.GithubRecentPRs
 
-	pr, has_pr := presentation.GetPr(branch, remotesToOwnersMap, prs)
+	prs, _ := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, []*models.Branch{branch})
+	pr, hasPr := prs[branch]
 
-	if has_pr {
+	if hasPr {
 		return gui.OSCommand.OpenLink(pr.Url)
 	}
 	return gui.createPullRequest(branch.Name, "")

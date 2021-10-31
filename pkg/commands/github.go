@@ -2,9 +2,9 @@ package commands
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 )
 
 func (c *GitCommand) GithubMostRecentPRs() (map[string]models.GithubPullRequest, error) {
@@ -26,25 +26,40 @@ func (c *GitCommand) GithubMostRecentPRs() (map[string]models.GithubPullRequest,
 	return res, nil
 }
 
-func (c *GitCommand) FoundBranchWithGithubPullRequest(prs map[string]models.GithubPullRequest, branches []*models.Branch) bool {
+func (c *GitCommand) GenerateGithubPullRequestMap(prs map[string]models.GithubPullRequest, branches []*models.Branch) (map[*models.Branch]*models.GithubPullRequest, bool) {
+	res := map[*models.Branch]*models.GithubPullRequest{}
+
 	if len(prs) == 0 {
-		return false
+		return res, false
 	}
 
 	remotesToOwnersMap, _ := c.GetRemotesToOwnersMap()
 	if len(remotesToOwnersMap) == 0 {
-		return false
+		return res, false
 	}
 
 	foundBranchWithGithubPullRequest := false
 
 	for _, branch := range branches {
-		_, has_pr := presentation.GetPr(branch, remotesToOwnersMap, prs)
-
-		if has_pr {
-			foundBranchWithGithubPullRequest = true
+		if branch.UpstreamName == "" {
+			continue
 		}
+
+		remoteAndName := strings.SplitN(branch.UpstreamName, "/", 2)
+		owner, foundRemoteOwner := remotesToOwnersMap[remoteAndName[0]]
+		if len(remoteAndName) != 2 || !foundRemoteOwner {
+			continue
+		}
+
+		pr, hasPr := prs[owner+":"+remoteAndName[1]]
+		if !hasPr {
+			continue
+		}
+
+		foundBranchWithGithubPullRequest = true
+
+		res[branch] = &pr
 	}
 
-	return foundBranchWithGithubPullRequest
+	return res, foundBranchWithGithubPullRequest
 }

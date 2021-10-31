@@ -66,12 +66,12 @@ func (gui *Gui) branchesListContext() *ListContext {
 		OnFocus:        gui.handleBranchSelect,
 		Gui:            gui,
 		GetDisplayStrings: func() [][]string {
-			remotesToOwnersMap, _ := gui.GitCommand.GetRemotesToOwnersMap()
+			prs, branchesWithGithubPullRequests := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, gui.State.Branches)
+			gui.State.BranchesWithGithubPullRequests = branchesWithGithubPullRequests
 
 			return presentation.GetBranchListDisplayStrings(
 				gui.State.Branches,
-				gui.State.GithubRecentPRs,
-				remotesToOwnersMap,
+				prs,
 				gui.State.ScreenMode != SCREEN_NORMAL,
 				gui.State.Modes.Diffing.Ref,
 				gui.State.BranchesWithGithubPullRequests,

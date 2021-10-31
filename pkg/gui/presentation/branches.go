@@ -12,8 +12,7 @@ import (
 
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
-	prs map[string]models.GithubPullRequest,
-	remotesToOwnersMap map[string]string,
+	prs map[*models.Branch]*models.GithubPullRequest,
 	fullDescription bool,
 	diffName string,
 	showGithub bool) [][]string {
@@ -21,7 +20,7 @@ func GetBranchListDisplayStrings(
 
 	for i := range branches {
 		diffed := branches[i].Name == diffName
-		lines[i] = getBranchDisplayStrings(branches[i], prs, remotesToOwnersMap, fullDescription, diffed, showGithub)
+		lines[i] = getBranchDisplayStrings(branches[i], prs, fullDescription, diffed, showGithub)
 	}
 
 	return lines
@@ -30,8 +29,7 @@ func GetBranchListDisplayStrings(
 // getBranchDisplayStrings returns the display string of branch
 func getBranchDisplayStrings(
 	b *models.Branch,
-	prs map[string]models.GithubPullRequest,
-	remotesToOwnersMap map[string]string,
+	prs map[*models.Branch]*models.GithubPullRequest,
 	fullDescription bool,
 	diffed,
 	showGithub bool) []string {
@@ -56,8 +54,8 @@ func getBranchDisplayStrings(
 
 	res := []string{recencyColor.Sprint(b.Recency), coloredName}
 	if showGithub {
-		pr, has_pr := GetPr(b, remotesToOwnersMap, prs)
-		if has_pr {
+		pr, hasPr := prs[b]
+		if hasPr {
 			colour := style.FgMagenta // = state MERGED
 			switch pr.State {
 			case "OPEN":
@@ -106,23 +104,4 @@ func ColoredBranchStatus(branch *models.Branch) string {
 
 func BranchStatus(branch *models.Branch) string {
 	return fmt.Sprintf("↑%s↓%s", branch.Pushables, branch.Pullables)
-}
-
-func GetPr(branch *models.Branch, remotesToOwnersMap map[string]string, prs map[string]models.GithubPullRequest) (*models.GithubPullRequest, bool) {
-	if len(prs) == 0 {
-		return nil, false
-	}
-
-	if len(remotesToOwnersMap) == 0 {
-		return nil, false
-	}
-
-	remoteAndName := strings.SplitN(branch.UpstreamName, "/", 2)
-	owner, foundRemoteOwner := remotesToOwnersMap[remoteAndName[0]]
-	if len(remoteAndName) != 2 || !foundRemoteOwner {
-		return nil, false
-	}
-	pr, hasPr := prs[owner+":"+remoteAndName[1]]
-
-	return &pr, hasPr
 }
