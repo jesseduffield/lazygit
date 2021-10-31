@@ -37,27 +37,6 @@ func TestWithPadding(t *testing.T) {
 	}
 }
 
-// TestGetPaddedDisplayStrings is a function.
-func TestGetPaddedDisplayStrings(t *testing.T) {
-	type scenario struct {
-		stringArrays [][]string
-		padWidths    []int
-		expected     []string
-	}
-
-	scenarios := []scenario{
-		{
-			[][]string{{"a", "b"}, {"c", "d"}},
-			[]int{1},
-			[]string{"a b", "c d"},
-		},
-	}
-
-	for _, s := range scenarios {
-		assert.EqualValues(t, s.expected, getPaddedDisplayStrings(s.stringArrays, s.padWidths))
-	}
-}
-
 func TestGetPadWidths(t *testing.T) {
 	type scenario struct {
 		input    [][]string
@@ -160,5 +139,46 @@ func TestTruncateWithEllipsis(t *testing.T) {
 
 	for _, s := range scenarios {
 		assert.EqualValues(t, s.expected, TruncateWithEllipsis(s.str, s.limit))
+	}
+}
+
+func TestRenderDisplayStrings(t *testing.T) {
+	type scenario struct {
+		input    [][]string
+		expected string
+	}
+
+	tests := []scenario{
+		{
+			[][]string{{""}, {""}},
+			"",
+		},
+		{
+			[][]string{{"a"}, {""}},
+			"a\n",
+		},
+		{
+			[][]string{{"a"}, {"b"}},
+			"a\nb",
+		},
+		{
+			[][]string{{"a", "b"}, {"c", "d"}},
+			"a b\nc d",
+		},
+		{
+			[][]string{{"a", "", "c"}, {"d", "", "f"}},
+			"a c\nd f",
+		},
+		{
+			[][]string{{"a", "", "c", ""}, {"d", "", "f", ""}},
+			"a c\nd f",
+		},
+	}
+
+	for _, test := range tests {
+		output := RenderDisplayStrings(test.input)
+		if !assert.EqualValues(t, output, test.expected) {
+			t.Errorf("RenderDisplayStrings(%v) = %v, want %v", test.input, output, test.expected)
+		}
 	}
 }

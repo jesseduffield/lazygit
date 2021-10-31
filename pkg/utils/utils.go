@@ -52,6 +52,13 @@ func Min(x, y int) int {
 	return y
 }
 
+func Max(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
+}
+
 func AsJson(i interface{}) string {
 	bytes, _ := json.MarshalIndent(i, "", "    ")
 	return string(bytes)

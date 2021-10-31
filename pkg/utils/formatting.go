@@ -17,14 +17,48 @@ func WithPadding(str string, padding int) string {
 }
 
 func RenderDisplayStrings(displayStringsArr [][]string) string {
+	displayStringsArr = excludeBlankColumns(displayStringsArr)
 	padWidths := getPadWidths(displayStringsArr)
-	paddedDisplayStrings := getPaddedDisplayStrings(displayStringsArr, padWidths)
+	output := getPaddedDisplayStrings(displayStringsArr, padWidths)
 
-	return strings.Join(paddedDisplayStrings, "\n")
+	return output
 }
 
-func getPaddedDisplayStrings(stringArrays [][]string, padWidths []int) []string {
-	paddedDisplayStrings := make([]string, len(stringArrays))
+// NOTE: this mutates the input slice for the sake of performance
+func excludeBlankColumns(displayStringsArr [][]string) [][]string {
+	if len(displayStringsArr) == 0 {
+		return displayStringsArr
+	}
+
+	// if all rows share a blank column, we want to remove that column
+	toRemove := []int{}
+outer:
+	for i := range displayStringsArr[0] {
+		for _, strings := range displayStringsArr {
+			if strings[i] != "" {
+				continue outer
+			}
+		}
+		toRemove = append(toRemove, i)
+	}
+
+	if len(toRemove) == 0 {
+		return displayStringsArr
+	}
+
+	// remove the columns
+	for i, strings := range displayStringsArr {
+		for j := len(toRemove) - 1; j >= 0; j-- {
+			strings = append(strings[:toRemove[j]], strings[toRemove[j]+1:]...)
+		}
+		displayStringsArr[i] = strings
+	}
+
+	return displayStringsArr
+}
+
+func getPaddedDisplayStrings(stringArrays [][]string, padWidths []int) string {
+	builder := strings.Builder{}
 	for i, stringArray := range stringArrays {
 		if len(stringArray) == 0 {
 			continue
@@ -33,14 +67,19 @@ func getPaddedDisplayStrings(stringArrays [][]string, padWidths []int) []string 
 			if len(stringArray)-1 < j {
 				continue
 			}
-			paddedDisplayStrings[i] += WithPadding(stringArray[j], padWidth) + " "
+			builder.WriteString(WithPadding(stringArray[j], padWidth))
+			builder.WriteString(" ")
 		}
 		if len(stringArray)-1 < len(padWidths) {
 			continue
 		}
-		paddedDisplayStrings[i] += stringArray[len(padWidths)]
+		builder.WriteString(stringArray[len(padWidths)])
+
+		if i < len(stringArrays)-1 {
+			builder.WriteString("\n")
+		}
 	}
-	return paddedDisplayStrings
+	return builder.String()
 }
 
 func getPadWidths(stringArrays [][]string) []int {
