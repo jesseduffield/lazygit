@@ -78,7 +78,6 @@ func (gui *Gui) refreshReflogCommitsConsideringStartup() {
 			gui.State.BranchesWithGithubPullRequests = branchesWithGithubPullRequests
 
 			_ = gui.postRefreshUpdate(gui.State.Contexts.Branches)
-			gui.refreshStatus()
 		})
 	case COMPLETE:
 		_ = gui.refreshReflogCommits()
