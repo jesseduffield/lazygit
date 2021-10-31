@@ -7,11 +7,19 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 )
 
+type RebaseOption string
+
+const (
+	REBASE_OPTION_CONTINUE = "continue"
+	REBASE_OPTION_ABORT    = "abort"
+	REBASE_OPTION_SKIP     = "skip"
+)
+
 func (gui *Gui) handleCreateRebaseOptionsMenu() error {
-	options := []string{"continue", "abort"}
+	options := []string{REBASE_OPTION_CONTINUE, REBASE_OPTION_ABORT}
 
 	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
-		options = append(options, "skip")
+		options = append(options, REBASE_OPTION_SKIP)
 	}
 
 	menuItems := make([]*menuItem, len(options))
@@ -49,7 +57,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	if status == commands.REBASE_MODE_MERGING && command != "abort" && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
+	if status == commands.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
 		sub := gitCommand.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
 		if sub != nil {
 			return gui.runSubprocessWithSuspenseAndRefresh(sub)
@@ -87,9 +95,9 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 	if result == nil {
 		return nil
 	} else if strings.Contains(result.Error(), "No changes - did you forget to use") {
-		return gui.genericMergeCommand("skip")
+		return gui.genericMergeCommand(REBASE_OPTION_SKIP)
 	} else if strings.Contains(result.Error(), "The previous cherry-pick is now empty") {
-		return gui.genericMergeCommand("continue")
+		return gui.genericMergeCommand(REBASE_OPTION_CONTINUE)
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
@@ -106,10 +114,34 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 					return err
 				}
 
-				return gui.genericMergeCommand("abort")
+				return gui.genericMergeCommand(REBASE_OPTION_ABORT)
 			},
 		})
 	} else {
 		return gui.createErrorPanel(result.Error())
+	}
+}
+
+func (gui *Gui) abortMergeOrRebaseWithConfirm() error {
+	// prompt user to confirm that they want to abort, then do it
+	mode := gui.workingTreeStateNoun()
+	return gui.ask(askOpts{
+		title:  fmt.Sprintf(gui.Tr.AbortTitle, mode),
+		prompt: fmt.Sprintf(gui.Tr.AbortPrompt, mode),
+		handleConfirm: func() error {
+			return gui.genericMergeCommand(REBASE_OPTION_ABORT)
+		},
+	})
+}
+
+func (gui *Gui) workingTreeStateNoun() string {
+	workingTreeState := gui.GitCommand.WorkingTreeState()
+	switch workingTreeState {
+	case commands.REBASE_MODE_NORMAL:
+		return ""
+	case commands.REBASE_MODE_MERGING:
+		return "merge"
+	default:
+		return "rebase"
 	}
 }

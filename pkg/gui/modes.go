@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
@@ -57,6 +58,20 @@ func (gui *Gui) modeStatuses() []modeStatus {
 				)
 			},
 			reset: gui.exitCherryPickingMode,
+		},
+		{
+			isActive: func() bool {
+				return gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL
+			},
+			description: func() string {
+				workingTreeState := gui.GitCommand.WorkingTreeState()
+				return style.FgYellow.Sprintf(
+					"%s %s",
+					workingTreeState,
+					style.AttrUnderline.Sprint(gui.Tr.ResetInParentheses),
+				)
+			},
+			reset: gui.abortMergeOrRebaseWithConfirm,
 		},
 	}
 }
