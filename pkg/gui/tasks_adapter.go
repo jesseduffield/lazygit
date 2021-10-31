@@ -90,9 +90,8 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				view.Reset()
 			},
 			func() {
-				gui.g.Update(func(*gocui.Gui) error {
-					return nil
-				})
+				// gui.g.Draw(view) // doing this causes an issue when there's a popup panel in front of the main view.
+				gui.render()
 			},
 			func() {
 				// Need to check if the content of the view is well past the origin.

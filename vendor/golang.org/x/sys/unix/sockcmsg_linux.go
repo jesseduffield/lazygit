@@ -56,3 +56,34 @@ func PktInfo6(info *Inet6Pktinfo) []byte {
 	*(*Inet6Pktinfo)(h.data(0)) = *info
 	return b
 }
+
+// ParseOrigDstAddr decodes a socket control message containing the original
+// destination address. To receive such a message the IP_RECVORIGDSTADDR or
+// IPV6_RECVORIGDSTADDR option must be enabled on the socket.
+func ParseOrigDstAddr(m *SocketControlMessage) (Sockaddr, error) {
+	switch {
+	case m.Header.Level == SOL_IP && m.Header.Type == IP_ORIGDSTADDR:
+		pp := (*RawSockaddrInet4)(unsafe.Pointer(&m.Data[0]))
+		sa := new(SockaddrInet4)
+		p := (*[2]byte)(unsafe.Pointer(&pp.Port))
+		sa.Port = int(p[0])<<8 + int(p[1])
+		for i := 0; i < len(sa.Addr); i++ {
+			sa.Addr[i] = pp.Addr[i]
+		}
+		return sa, nil
+
+	case m.Header.Level == SOL_IPV6 && m.Header.Type == IPV6_ORIGDSTADDR:
+		pp := (*RawSockaddrInet6)(unsafe.Pointer(&m.Data[0]))
+		sa := new(SockaddrInet6)
+		p := (*[2]byte)(unsafe.Pointer(&pp.Port))
+		sa.Port = int(p[0])<<8 + int(p[1])
+		sa.ZoneId = pp.Scope_id
+		for i := 0; i < len(sa.Addr); i++ {
+			sa.Addr[i] = pp.Addr[i]
+		}
+		return sa, nil
+
+	default:
+		return nil, EINVAL
+	}
+}

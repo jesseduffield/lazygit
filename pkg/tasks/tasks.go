@@ -131,7 +131,6 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string
 
 						select {
 						case <-stop:
-							m.refreshView()
 							break outer
 						default:
 						}
@@ -139,17 +138,17 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string
 							// if we're here then there's nothing left to scan from the source
 							// so we're at the EOF and can flush the stale content
 							m.onEndOfInput()
-							m.refreshView()
 							break outer
 						}
 						_, _ = m.writer.Write(append(scanner.Bytes(), '\n'))
 					}
 					m.refreshView()
 				case <-stop:
-					m.refreshView()
 					break outer
 				}
 			}
+
+			m.refreshView()
 
 			if err := cmd.Wait(); err != nil {
 				// it's fine if we've killed this program ourselves
@@ -157,8 +156,6 @@ func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string
 					m.Log.Error(err)
 				}
 			}
-
-			m.refreshView()
 
 			if onDone != nil {
 				onDone()

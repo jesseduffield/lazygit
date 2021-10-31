@@ -202,8 +202,7 @@ func (gui *Gui) cleanString(s string) string {
 }
 
 func (gui *Gui) setViewContentSync(v *gocui.View, s string) {
-	v.Clear()
-	fmt.Fprint(v, gui.cleanString(s))
+	v.SetContent(gui.cleanString(s))
 }
 
 func (gui *Gui) setViewContent(v *gocui.View, s string) {
@@ -305,12 +304,8 @@ func (gui *Gui) refreshSelectedLine(panelState IListPanelState, total int) {
 }
 
 func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {
-	gui.g.Update(func(g *gocui.Gui) error {
-		list := utils.RenderDisplayStrings(displayStrings)
-		v.Clear()
-		fmt.Fprint(v, list)
-		return nil
-	})
+	list := utils.RenderDisplayStrings(displayStrings)
+	v.SetContent(list)
 }
 
 func (gui *Gui) globalOptionsMap() map[string]string {
@@ -387,4 +382,8 @@ func getTabbedView(gui *Gui) *gocui.View {
 	context := gui.currentStaticContext()
 	view, _ := gui.g.View(context.GetViewName())
 	return view
+}
+
+func (gui *Gui) render() {
+	gui.g.Update(func(g *gocui.Gui) error { return nil })
 }

@@ -458,6 +458,12 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 	return gui, nil
 }
 
+var RuneReplacements = map[rune]string{
+	// for the commit graph
+	'⏣': "M",
+	'⎔': "o",
+}
+
 // Run setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run() error {
 	recordEvents := recordingEvents()
@@ -468,7 +474,7 @@ func (gui *Gui) Run() error {
 		playMode = gocui.REPLAYING
 	}
 
-	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode, headless())
+	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode, headless(), RuneReplacements)
 	if err != nil {
 		return err
 	}
@@ -712,6 +718,7 @@ func (gui *Gui) startBackgroundFetch() {
 	} else {
 		gui.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), gui.stopChan, func() error {
 			err := gui.fetch(false, "")
+			gui.render()
 			return err
 		})
 	}

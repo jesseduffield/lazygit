@@ -1,19 +1,47 @@
 package gui
 
+import (
+	"fmt"
+)
+
 type ListContext struct {
 	GetItemsLength      func() int
-	GetDisplayStrings   func() [][]string
+	GetDisplayStrings   func(startIdx int, length int) [][]string
 	OnFocus             func() error
 	OnFocusLost         func() error
 	OnClickSelectedItem func() error
 
 	// the boolean here tells us whether the item is nil. This is needed because you can't work it out on the calling end once the pointer is wrapped in an interface (unless you want to use reflection)
-	SelectedItem  func() (ListItem, bool)
-	GetPanelState func() IListPanelState
+	SelectedItem    func() (ListItem, bool)
+	OnGetPanelState func() IListPanelState
 
 	Gui *Gui
 
 	*BasicContext
+}
+
+type IListContext interface {
+	GetSelectedItem() (ListItem, bool)
+	GetSelectedItemId() string
+	OnRender() error
+	handlePrevLine() error
+	handleNextLine() error
+	handleLineChange(change int) error
+	handleNextPage() error
+	handleGotoTop() error
+	handleGotoBottom() error
+	handlePrevPage() error
+	handleClick() error
+	onSearchSelect(selectedLineIdx int) error
+	FocusLine()
+
+	GetPanelState() IListPanelState
+
+	Context
+}
+
+func (self *ListContext) GetPanelState() IListPanelState {
+	return self.OnGetPanelState()
 }
 
 type IListPanelState interface {
@@ -29,12 +57,26 @@ type ListItem interface {
 	Description() string
 }
 
-func (lc *ListContext) GetSelectedItem() (ListItem, bool) {
-	return lc.SelectedItem()
+func (self *ListContext) FocusLine() {
+	view, err := self.Gui.g.View(self.ViewName)
+	if err != nil {
+		return
+	}
+
+	view.FocusPoint(0, self.GetPanelState().GetSelectedLineIdx())
+	view.Footer = formatListFooter(self.GetPanelState().GetSelectedLineIdx(), self.GetItemsLength())
 }
 
-func (lc *ListContext) GetSelectedItemId() string {
-	item, ok := lc.SelectedItem()
+func formatListFooter(selectedLineIdx int, length int) string {
+	return fmt.Sprintf("%d of %d", selectedLineIdx+1, length)
+}
+
+func (self *ListContext) GetSelectedItem() (ListItem, bool) {
+	return self.SelectedItem()
+}
+
+func (self *ListContext) GetSelectedItemId() string {
+	item, ok := self.GetSelectedItem()
 
 	if !ok {
 		return ""
@@ -44,145 +86,135 @@ func (lc *ListContext) GetSelectedItemId() string {
 }
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
-func (lc *ListContext) OnRender() error {
-	view, err := lc.Gui.g.View(lc.ViewName)
+func (self *ListContext) OnRender() error {
+	view, err := self.Gui.g.View(self.ViewName)
 	if err != nil {
 		return nil
 	}
 
-	if lc.GetDisplayStrings != nil {
-		lc.Gui.refreshSelectedLine(lc.GetPanelState(), lc.GetItemsLength())
-		lc.Gui.renderDisplayStrings(view, lc.GetDisplayStrings())
+	if self.GetDisplayStrings != nil {
+		self.Gui.refreshSelectedLine(self.GetPanelState(), self.GetItemsLength())
+		self.Gui.renderDisplayStrings(view, self.GetDisplayStrings(0, self.GetItemsLength()))
+		self.Gui.render()
 	}
 
 	return nil
 }
 
-func (lc *ListContext) HandleFocusLost() error {
-	if lc.OnFocusLost != nil {
-		return lc.OnFocusLost()
+func (self *ListContext) HandleFocusLost() error {
+	if self.OnFocusLost != nil {
+		return self.OnFocusLost()
 	}
 
 	return nil
 }
 
-func (lc *ListContext) HandleFocus() error {
-	if lc.Gui.popupPanelFocused() {
+func (self *ListContext) HandleFocus() error {
+	if self.Gui.popupPanelFocused() {
 		return nil
 	}
 
-	view, err := lc.Gui.g.View(lc.ViewName)
-	if err != nil {
-		return nil
+	self.FocusLine()
+
+	if self.Gui.State.Modes.Diffing.Active() {
+		return self.Gui.renderDiff()
 	}
 
-	view.FocusPoint(0, lc.GetPanelState().GetSelectedLineIdx())
-
-	if lc.Gui.State.Modes.Diffing.Active() {
-		return lc.Gui.renderDiff()
-	}
-
-	if lc.OnFocus != nil {
-		return lc.OnFocus()
+	if self.OnFocus != nil {
+		return self.OnFocus()
 	}
 
 	return nil
 }
 
-func (lc *ListContext) HandleRender() error {
-	return lc.OnRender()
+func (self *ListContext) HandleRender() error {
+	return self.OnRender()
 }
 
-func (lc *ListContext) handlePrevLine() error {
-	return lc.handleLineChange(-1)
+func (self *ListContext) handlePrevLine() error {
+	return self.handleLineChange(-1)
 }
 
-func (lc *ListContext) handleNextLine() error {
-	return lc.handleLineChange(1)
+func (self *ListContext) handleNextLine() error {
+	return self.handleLineChange(1)
 }
 
-func (lc *ListContext) handleLineChange(change int) error {
-	if !lc.Gui.isPopupPanel(lc.ViewName) && lc.Gui.popupPanelFocused() {
+func (self *ListContext) handleLineChange(change int) error {
+	if !self.Gui.isPopupPanel(self.ViewName) && self.Gui.popupPanelFocused() {
 		return nil
 	}
 
-	view, err := lc.Gui.g.View(lc.ViewName)
-	if err != nil {
-		return err
-	}
-
-	selectedLineIdx := lc.GetPanelState().GetSelectedLineIdx()
-	if (change < 0 && selectedLineIdx == 0) || (change > 0 && selectedLineIdx == lc.GetItemsLength()-1) {
+	selectedLineIdx := self.GetPanelState().GetSelectedLineIdx()
+	if (change < 0 && selectedLineIdx == 0) || (change > 0 && selectedLineIdx == self.GetItemsLength()-1) {
 		return nil
 	}
 
-	lc.Gui.changeSelectedLine(lc.GetPanelState(), lc.GetItemsLength(), change)
-	view.FocusPoint(0, lc.GetPanelState().GetSelectedLineIdx())
+	self.Gui.changeSelectedLine(self.GetPanelState(), self.GetItemsLength(), change)
 
-	return lc.HandleFocus()
+	return self.HandleFocus()
 }
 
-func (lc *ListContext) handleNextPage() error {
-	view, err := lc.Gui.g.View(lc.ViewName)
+func (self *ListContext) handleNextPage() error {
+	view, err := self.Gui.g.View(self.ViewName)
 	if err != nil {
 		return nil
 	}
-	delta := lc.Gui.pageDelta(view)
+	delta := self.Gui.pageDelta(view)
 
-	return lc.handleLineChange(delta)
+	return self.handleLineChange(delta)
 }
 
-func (lc *ListContext) handleGotoTop() error {
-	return lc.handleLineChange(-lc.GetItemsLength())
+func (self *ListContext) handleGotoTop() error {
+	return self.handleLineChange(-self.GetItemsLength())
 }
 
-func (lc *ListContext) handleGotoBottom() error {
-	return lc.handleLineChange(lc.GetItemsLength())
+func (self *ListContext) handleGotoBottom() error {
+	return self.handleLineChange(self.GetItemsLength())
 }
 
-func (lc *ListContext) handlePrevPage() error {
-	view, err := lc.Gui.g.View(lc.ViewName)
+func (self *ListContext) handlePrevPage() error {
+	view, err := self.Gui.g.View(self.ViewName)
 	if err != nil {
 		return nil
 	}
 
-	delta := lc.Gui.pageDelta(view)
+	delta := self.Gui.pageDelta(view)
 
-	return lc.handleLineChange(-delta)
+	return self.handleLineChange(-delta)
 }
 
-func (lc *ListContext) handleClick() error {
-	if !lc.Gui.isPopupPanel(lc.ViewName) && lc.Gui.popupPanelFocused() {
+func (self *ListContext) handleClick() error {
+	if !self.Gui.isPopupPanel(self.ViewName) && self.Gui.popupPanelFocused() {
 		return nil
 	}
 
-	view, err := lc.Gui.g.View(lc.ViewName)
+	view, err := self.Gui.g.View(self.ViewName)
 	if err != nil {
 		return nil
 	}
 
-	prevSelectedLineIdx := lc.GetPanelState().GetSelectedLineIdx()
+	prevSelectedLineIdx := self.GetPanelState().GetSelectedLineIdx()
 	newSelectedLineIdx := view.SelectedLineIdx()
 
 	// we need to focus the view
-	if err := lc.Gui.pushContext(lc); err != nil {
+	if err := self.Gui.pushContext(self); err != nil {
 		return err
 	}
 
-	if newSelectedLineIdx > lc.GetItemsLength()-1 {
+	if newSelectedLineIdx > self.GetItemsLength()-1 {
 		return nil
 	}
 
-	lc.GetPanelState().SetSelectedLineIdx(newSelectedLineIdx)
+	self.GetPanelState().SetSelectedLineIdx(newSelectedLineIdx)
 
-	prevViewName := lc.Gui.currentViewName()
-	if prevSelectedLineIdx == newSelectedLineIdx && prevViewName == lc.ViewName && lc.OnClickSelectedItem != nil {
-		return lc.OnClickSelectedItem()
+	prevViewName := self.Gui.currentViewName()
+	if prevSelectedLineIdx == newSelectedLineIdx && prevViewName == self.ViewName && self.OnClickSelectedItem != nil {
+		return self.OnClickSelectedItem()
 	}
-	return lc.HandleFocus()
+	return self.HandleFocus()
 }
 
-func (lc *ListContext) onSearchSelect(selectedLineIdx int) error {
-	lc.GetPanelState().SetSelectedLineIdx(selectedLineIdx)
-	return lc.HandleFocus()
+func (self *ListContext) onSearchSelect(selectedLineIdx int) error {
+	self.GetPanelState().SetSelectedLineIdx(selectedLineIdx)
+	return self.HandleFocus()
 }

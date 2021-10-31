@@ -6,7 +6,6 @@ package gocui
 
 import (
 	standardErrors "errors"
-	"fmt"
 	"log"
 	"runtime"
 	"strings"
@@ -76,6 +75,8 @@ type GuiMutexes struct {
 	tickingMutex sync.Mutex
 
 	ViewsMutex sync.Mutex
+
+	drawMutex sync.Mutex
 }
 
 type PlayMode int
@@ -166,14 +167,14 @@ type Gui struct {
 }
 
 // NewGui returns a new Gui object with a given output mode.
-func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless bool) (*Gui, error) {
+func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless bool, runeReplacements map[rune]string) (*Gui, error) {
 	g := &Gui{}
 
 	var err error
 	if headless {
 		err = g.tcellInitSimulation()
 	} else {
-		err = g.tcellInit()
+		err = g.tcellInit(runeReplacements)
 	}
 	if err != nil {
 		return nil, err
@@ -664,79 +665,6 @@ func (g *Gui) onResize() {
 	// g.screen.Sync()
 }
 
-// flush updates the gui, re-drawing frames and buffers.
-func (g *Gui) flush() error {
-	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
-	// g.clear(g.FgColor, g.BgColor)
-
-	maxX, maxY := Screen.Size()
-	// if GUI's size has changed, we need to redraw all views
-	if maxX != g.maxX || maxY != g.maxY {
-		for _, v := range g.views {
-			v.clearViewLines()
-		}
-	}
-	g.maxX, g.maxY = maxX, maxY
-
-	for _, m := range g.managers {
-		if err := m.Layout(g); err != nil {
-			return err
-		}
-	}
-	for _, v := range g.views {
-		if !v.Visible || v.y1 < v.y0 {
-			continue
-		}
-		if v.Frame {
-			var fgColor, bgColor, frameColor Attribute
-			if g.Highlight && v == g.currentView {
-				fgColor = g.SelFgColor
-				bgColor = g.SelBgColor
-				frameColor = g.SelFrameColor
-			} else {
-				bgColor = g.BgColor
-				if v.TitleColor != ColorDefault {
-					fgColor = v.TitleColor
-				} else {
-					fgColor = g.FgColor
-				}
-				if v.FrameColor != ColorDefault {
-					frameColor = v.FrameColor
-				} else {
-					frameColor = g.FrameColor
-				}
-			}
-
-			if err := g.drawFrameEdges(v, frameColor, bgColor); err != nil {
-				return err
-			}
-			if err := g.drawFrameCorners(v, frameColor, bgColor); err != nil {
-				return err
-			}
-			if v.Title != "" || len(v.Tabs) > 0 {
-				if err := g.drawTitle(v, fgColor, bgColor); err != nil {
-					return err
-				}
-			}
-			if v.Subtitle != "" {
-				if err := g.drawSubtitle(v, fgColor, bgColor); err != nil {
-					return err
-				}
-			}
-			if v.ContainsList && g.ShowListFooter {
-				if err := g.drawListFooter(v, fgColor, bgColor); err != nil {
-					return err
-				}
-			}
-		}
-		if err := g.draw(v); err != nil {
-			return err
-		}
-	}
-	Screen.Show()
-	return nil
-}
-
 func (g *Gui) clear(fg, bg Attribute) (int, int) {
 	st := getTcellStyle(oldStyle{fg: fg, bg: bg, outputMode: g.outputMode})
 	w, h := Screen.Size()
@@ -983,7 +911,7 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 		return nil
 	}
 
-	message := fmt.Sprintf("%d of %d", v.cy+v.oy+1, len(v.lines))
+	message := v.Footer
 
 	if v.y1 < 0 || v.y1 >= g.maxY {
 		return nil
@@ -1006,10 +934,100 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 	return nil
 }
 
+// flush updates the gui, re-drawing frames and buffers.
+func (g *Gui) flush() error {
+	g.Mutexes.drawMutex.Lock()
+	defer g.Mutexes.drawMutex.Unlock()
+
+	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
+	// g.clear(g.FgColor, g.BgColor)
+
+	maxX, maxY := Screen.Size()
+	// if GUI's size has changed, we need to redraw all views
+	if maxX != g.maxX || maxY != g.maxY {
+		for _, v := range g.views {
+			v.clearViewLines()
+		}
+	}
+	g.maxX, g.maxY = maxX, maxY
+
+	for _, m := range g.managers {
+		if err := m.Layout(g); err != nil {
+			return err
+		}
+	}
+	for _, v := range g.views {
+		if err := g.draw(v); err != nil {
+			return err
+		}
+	}
+
+	Screen.Show()
+	return nil
+}
+
+func (g *Gui) Draw(v *View) error {
+	g.Mutexes.drawMutex.Lock()
+	defer g.Mutexes.drawMutex.Unlock()
+
+	if err := g.draw(v); err != nil {
+		return err
+	}
+
+	Screen.Show()
+	return nil
+}
+
 // draw manages the cursor and calls the draw function of a view.
 func (g *Gui) draw(v *View) error {
 	if g.suspended {
 		return nil
+	}
+
+	if !v.Visible || v.y1 < v.y0 {
+		return nil
+	}
+	if v.Frame {
+		var fgColor, bgColor, frameColor Attribute
+		if g.Highlight && v == g.currentView {
+			fgColor = g.SelFgColor
+			bgColor = g.SelBgColor
+			frameColor = g.SelFrameColor
+		} else {
+			bgColor = g.BgColor
+			if v.TitleColor != ColorDefault {
+				fgColor = v.TitleColor
+			} else {
+				fgColor = g.FgColor
+			}
+			if v.FrameColor != ColorDefault {
+				frameColor = v.FrameColor
+			} else {
+				frameColor = g.FrameColor
+			}
+		}
+
+		if err := g.drawFrameEdges(v, frameColor, bgColor); err != nil {
+			return err
+		}
+		if err := g.drawFrameCorners(v, frameColor, bgColor); err != nil {
+			return err
+		}
+		if v.Title != "" || len(v.Tabs) > 0 {
+			if err := g.drawTitle(v, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+		if v.Subtitle != "" {
+			if err := g.drawSubtitle(v, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
+		if v.Footer != "" && g.ShowListFooter {
+			if err := g.drawListFooter(v, fgColor, bgColor); err != nil {
+				return err
+			}
+		}
 	}
 
 	if g.Cursor {

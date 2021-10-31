@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
@@ -66,7 +67,7 @@ func main() {
 	app := &App{testDir: testDir}
 	app.loadTests()
 
-	g, err := gocui.NewGui(gocui.OutputTrue, false, gocui.NORMAL, false)
+	g, err := gocui.NewGui(gocui.OutputTrue, false, gocui.NORMAL, false, gui.RuneReplacements)
 	if err != nil {
 		log.Panicln(err)
 	}

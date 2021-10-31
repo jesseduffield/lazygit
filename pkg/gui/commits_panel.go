@@ -640,7 +640,7 @@ func (gui *Gui) handleGotoBottomForCommitsPanel() error {
 	}
 
 	for _, context := range gui.getListContexts() {
-		if context.ViewName == "commits" {
+		if context.GetViewName() == "commits" {
 			return context.handleGotoBottom()
 		}
 	}

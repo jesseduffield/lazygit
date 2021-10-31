@@ -26,6 +26,10 @@ var runeReplacements = map[rune]string{
 	'┐': "+",
 	'└': "+",
 	'┘': "+",
+	'╭': "+",
+	'╮': "+",
+	'╰': "+",
+	'╯': "+",
 	'─': "-",
 
 	// using a hyphen here actually looks weird.
@@ -33,6 +37,9 @@ var runeReplacements = map[rune]string{
 	'╶': " ",
 	'╴': " ",
 
+	'┴': "+",
+	'┬': "+",
+	'╷': "|",
 	'├': "+",
 	'│': "|",
 	'▼': "v",
@@ -42,7 +49,7 @@ var runeReplacements = map[rune]string{
 }
 
 // tcellInit initializes tcell screen for use.
-func (g *Gui) tcellInit() error {
+func (g *Gui) tcellInit(runeReplacements map[rune]string) error {
 	runewidth.DefaultCondition.EastAsianWidth = false
 	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
 
@@ -51,7 +58,7 @@ func (g *Gui) tcellInit() error {
 	} else if e = s.Init(); e != nil {
 		return e
 	} else {
-		registerRuneFallbacks(s)
+		registerRuneFallbacks(s, runeReplacements)
 
 		g.screen = s
 		Screen = s
@@ -59,8 +66,12 @@ func (g *Gui) tcellInit() error {
 	}
 }
 
-func registerRuneFallbacks(s tcell.Screen) {
+func registerRuneFallbacks(s tcell.Screen, additional map[rune]string) {
 	for before, after := range runeReplacements {
+		s.RegisterRuneFallback(before, after)
+	}
+
+	for before, after := range additional {
 		s.RegisterRuneFallback(before, after)
 	}
 }
