@@ -48,31 +48,6 @@ func (c *GitCommand) GetRemoteURL() string {
 	return c.GitConfig.Get("remote.origin.url")
 }
 
-func (c *GitCommand) GetRemoteURLs() (map[string]string, error) {
-	res := map[string]string{}
-	out, err := c.OSCommand.RunCommandWithOutput("git remote -v")
-	if err != nil {
-		return nil, err
-	}
-	lines := strings.Split(strings.TrimSpace(out), "\n")
-	for _, line := range lines {
-		lineParts := strings.Split(line, "\t")
-		if len(lineParts) < 2 {
-			continue
-		}
-
-		name := lineParts[0] // "origin"
-		for _, mightBeUrl := range lineParts[1:] {
-			if len(mightBeUrl) > 0 {
-				// mightBeUrl = "git@github.com:jesseduffield/lazygit.git (fetch)"
-				res[name] = strings.SplitN(mightBeUrl, " ", 2)[0]
-				break
-			}
-		}
-	}
-	return res, nil
-}
-
 func GetRepoInfoFromURL(url string) *RepoInformation {
 	isHTTP := strings.HasPrefix(url, "http")
 
@@ -99,14 +74,14 @@ func GetRepoInfoFromURL(url string) *RepoInformation {
 }
 
 func (c *GitCommand) GetRemotesToOwnersMap() (map[string]string, error) {
-	remotes, err := c.GetRemoteURLs()
+	remotes, err := c.GetRemotes()
 	if err != nil {
 		return nil, err
 	}
 
 	res := map[string]string{}
-	for remoteName, remoteUrl := range remotes {
-		res[remoteName] = GetRepoInfoFromURL(remoteUrl).Owner
+	for _, remote := range remotes {
+		res[remote.Name] = GetRepoInfoFromURL(remote.Urls[0]).Owner
 	}
 	return res, nil
 }
