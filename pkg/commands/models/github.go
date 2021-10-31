@@ -8,6 +8,14 @@ type GithubPullRequest struct {
 	HeadRepositoryOwner GithubRepositoryOwner `json:"headRepositoryOwner"`
 }
 
+func (pr *GithubPullRequest) UserName() string {
+	return pr.HeadRepositoryOwner.Login
+}
+
+func (pr *GithubPullRequest) BranchName() string {
+	return pr.HeadRefName
+}
+
 type GithubRepositoryOwner struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`

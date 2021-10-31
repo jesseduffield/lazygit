@@ -39,11 +39,11 @@ func (c *GitCommand) GenerateGithubPullRequestMap(prs []*models.GithubPullReques
 	prWithStringKey := map[string]models.GithubPullRequest{}
 
 	for _, pr := range prs {
-		prWithStringKey[pr.HeadRepositoryOwner.Login+":"+pr.HeadRefName] = *pr
+		prWithStringKey[pr.UserName()+":"+pr.BranchName()] = *pr
 	}
 
 	for _, branch := range branches {
-		if branch.UpstreamName == "" {
+		if !branch.IsTrackingRemote() {
 			continue
 		}
 

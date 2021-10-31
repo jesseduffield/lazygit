@@ -99,8 +99,8 @@ func (b *BranchListBuilder) obtainBranches() []*models.Branch {
 }
 
 // Build the list of branches for the current repo
-func (b *BranchListBuilder) Build() (branches []*models.Branch) {
-	branches = b.obtainBranches()
+func (b *BranchListBuilder) Build() []*models.Branch {
+	branches := b.obtainBranches()
 
 	reflogBranches := b.obtainReflogBranches()
 
