@@ -395,9 +395,7 @@ func (gui *Gui) handleCommitPress() error {
 		prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
 		gui.Views.CommitMessage.ClearTextArea()
 		gui.Views.CommitMessage.TextArea.TypeString(prefix)
-		gui.g.Update(func(*gocui.Gui) error {
-			return nil
-		})
+		gui.render()
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {

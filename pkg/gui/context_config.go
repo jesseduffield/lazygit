@@ -56,19 +56,19 @@ var allContextKeys = []ContextKey{
 
 type ContextTree struct {
 	Status         Context
-	Files          *ListContext
-	Submodules     *ListContext
-	Menu           *ListContext
-	Branches       *ListContext
-	Remotes        *ListContext
-	RemoteBranches *ListContext
-	Tags           *ListContext
-	BranchCommits  *ListContext
-	CommitFiles    *ListContext
-	ReflogCommits  *ListContext
-	SubCommits     *ListContext
-	Stash          *ListContext
-	Suggestions    *ListContext
+	Files          IListContext
+	Submodules     IListContext
+	Menu           IListContext
+	Branches       IListContext
+	Remotes        IListContext
+	RemoteBranches IListContext
+	Tags           IListContext
+	BranchCommits  IListContext
+	CommitFiles    IListContext
+	ReflogCommits  IListContext
+	SubCommits     IListContext
+	Stash          IListContext
+	Suggestions    IListContext
 	Normal         Context
 	Staging        Context
 	PatchBuilding  Context

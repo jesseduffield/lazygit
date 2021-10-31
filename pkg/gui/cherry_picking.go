@@ -33,7 +33,7 @@ func (gui *Gui) handleCopyCommit() error {
 		return err
 	}
 
-	item, ok := context.SelectedItem()
+	item, ok := context.GetSelectedItem()
 	if !ok {
 		return nil
 	}

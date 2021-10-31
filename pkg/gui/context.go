@@ -285,9 +285,9 @@ func (gui *Gui) currentContextWithoutLock() Context {
 
 // the status panel is not yet a list context (and may never be), so this method is not
 // quite the same as currentSideContext()
-func (gui *Gui) currentSideListContext() *ListContext {
+func (gui *Gui) currentSideListContext() IListContext {
 	context := gui.currentSideContext()
-	listContext, ok := context.(*ListContext)
+	listContext, ok := context.(IListContext)
 	if !ok {
 		return nil
 	}
