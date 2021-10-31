@@ -29,12 +29,15 @@ type (
 	fontEffect  int
 )
 
-type instruction struct {
-	kind    int
-	param1  int
-	param2  int
-	toWrite []rune
-}
+type instruction interface{ isInstruction() }
+
+type eraseInLineFromCursor struct{}
+
+func (self eraseInLineFromCursor) isInstruction() {}
+
+type noInstruction struct{}
+
+func (self noInstruction) isInstruction() {}
 
 const (
 	stateNone escapeState = iota
@@ -87,7 +90,7 @@ func newEscapeInterpreter(mode OutputMode) *escapeInterpreter {
 		curFgColor:  ColorDefault,
 		curBgColor:  ColorDefault,
 		mode:        mode,
-		instruction: instruction{kind: NONE},
+		instruction: noInstruction{},
 	}
 	return ei
 }
@@ -101,7 +104,7 @@ func (ei *escapeInterpreter) reset() {
 }
 
 func (ei *escapeInterpreter) instructionRead() {
-	ei.instruction.kind = NONE
+	ei.instruction = noInstruction{}
 }
 
 // parseOne parses a rune. If isEscape is true, it means that the rune is part
@@ -137,6 +140,8 @@ func (ei *escapeInterpreter) parseOne(ch rune) (isEscape bool, err error) {
 			ei.csiParam = append(ei.csiParam, "")
 		case ch == 'm':
 			ei.csiParam = append(ei.csiParam, "0")
+		case ch == 'K':
+			// fall through
 		default:
 			return false, errCSIParseError
 		}
@@ -168,12 +173,20 @@ func (ei *escapeInterpreter) parseOne(ch rune) (isEscape bool, err error) {
 			ei.csiParam = nil
 			return true, nil
 		case ch == 'K':
-			p, err := strconv.Atoi(ei.csiParam[0])
-			if err != nil {
-				return false, errCSIParseError
+			p := 0
+			if len(ei.csiParam) != 0 && ei.csiParam[0] != "" {
+				p, err = strconv.Atoi(ei.csiParam[0])
+				if err != nil {
+					return false, errCSIParseError
+				}
 			}
-			ei.instruction.kind = ERASE_IN_LINE
-			ei.instruction.param1 = p
+
+			if p == 0 {
+				ei.instruction = eraseInLineFromCursor{}
+			} else {
+				// non-zero values of P not supported
+				ei.instruction = noInstruction{}
+			}
 
 			ei.state = stateNone
 			ei.csiParam = nil

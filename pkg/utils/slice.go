@@ -144,3 +144,14 @@ func Reverse(values []string) []string {
 	}
 	return result
 }
+
+func LimitStr(value string, limit int) string {
+	n := 0
+	for i := range value {
+		if n >= limit {
+			return value[:i]
+		}
+		n++
+	}
+	return value
+}

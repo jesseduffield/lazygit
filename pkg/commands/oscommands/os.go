@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -215,38 +214,6 @@ func (c *OSCommand) ShellCommandFromString(commandStr string) *exec.Cmd {
 
 	shellCommand := fmt.Sprintf("%s %s %s", c.Platform.Shell, c.Platform.ShellArg, quotedCommand)
 	return c.ExecutableFromString(shellCommand)
-}
-
-// RunCommandWithOutputLive runs RunCommandWithOutputLiveWrapper
-func (c *OSCommand) RunCommandWithOutputLive(cmdObj ICmdObj, output func(string) string) error {
-	return RunCommandWithOutputLiveWrapper(c, cmdObj, output)
-}
-
-// DetectUnamePass detect a username / password / passphrase question in a command
-// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
-// The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (c *OSCommand) DetectUnamePass(cmdObj ICmdObj, promptUserForCredential func(string) string) error {
-	ttyText := ""
-	errMessage := c.RunCommandWithOutputLive(cmdObj, func(word string) string {
-		ttyText = ttyText + " " + word
-
-		prompts := map[string]string{
-			`.+'s password:`:                         "password",
-			`Password\s*for\s*'.+':`:                 "password",
-			`Username\s*for\s*'.+':`:                 "username",
-			`Enter\s*passphrase\s*for\s*key\s*'.+':`: "passphrase",
-		}
-
-		for pattern, askFor := range prompts {
-			if match, _ := regexp.MatchString(pattern, ttyText); match {
-				ttyText = ""
-				return promptUserForCredential(askFor)
-			}
-		}
-
-		return ""
-	})
-	return errMessage
 }
 
 // RunCommand runs a command and just returns the error

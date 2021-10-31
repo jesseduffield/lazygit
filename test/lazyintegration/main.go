@@ -81,6 +81,11 @@ func main() {
 		if app.itemIdx > 0 {
 			app.itemIdx--
 		}
+		listView, err := g.View("list")
+		if err != nil {
+			return err
+		}
+		listView.FocusPoint(0, app.itemIdx)
 		return nil
 	}); err != nil {
 		log.Panicln(err)
@@ -324,9 +329,6 @@ func (app *App) layout(g *gocui.Gui) error {
 			return err
 		}
 	}
-	if err := listView.SetCursor(0, app.itemIdx); err != nil {
-		return err
-	}
 
 	descriptionView, err := g.SetViewBeneath("description", "list", descriptionViewHeight)
 	if err != nil {
@@ -371,6 +373,12 @@ func (app *App) layout(g *gocui.Gui) error {
 		if app.itemIdx < len(app.tests)-1 {
 			app.itemIdx++
 		}
+
+		listView, err := g.View("list")
+		if err != nil {
+			return err
+		}
+		listView.FocusPoint(0, app.itemIdx)
 		return nil
 	}); err != nil {
 		log.Panicln(err)

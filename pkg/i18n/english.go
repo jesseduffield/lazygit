@@ -434,6 +434,8 @@ type TranslationSet struct {
 	NoConfigFileFoundErr                string
 	LcLoadingFileSuggestions            string
 	MustSpecifyOriginError              string
+	GitOutput                           string
+	GitCommandFailed                    string
 	Spans                               Spans
 }
 
@@ -961,6 +963,8 @@ func englishTranslationSet() TranslationSet {
 		NoConfigFileFoundErr:                "No config file found",
 		LcLoadingFileSuggestions:            "loading file suggestions",
 		MustSpecifyOriginError:              "Must specify a remote if specifying a branch",
+		GitOutput:                           "Git output:",
+		GitCommandFailed:                    "Git command failed. Check command log for details (open with %s)",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

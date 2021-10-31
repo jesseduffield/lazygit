@@ -123,11 +123,14 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Extras.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Extras.Autoscroll = true
 	gui.Views.Extras.Wrap = true
+
 	gui.printCommandLogHeader()
 
 	if _, err := gui.g.SetCurrentView(gui.defaultSideContext().GetViewName()); err != nil {
 		return err
 	}
+
+	gui.GitCommand.GetCmdWriter = gui.getCmdWriter
 
 	return nil
 }

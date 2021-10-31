@@ -24,6 +24,7 @@ type RefresherConfig struct {
 }
 
 type GuiConfig struct {
+	AuthorColors             map[string]string  `yaml:"authorColors"`
 	ScrollHeight             int                `yaml:"scrollHeight"`
 	ScrollPastBottom         bool               `yaml:"scrollPastBottom"`
 	MouseEvents              bool               `yaml:"mouseEvents"`

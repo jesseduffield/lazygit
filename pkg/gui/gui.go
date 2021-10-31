@@ -22,6 +22,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -453,6 +454,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 	onRunCommand := gui.GetOnRunCommand()
 	oSCommand.SetOnRunCommand(onRunCommand)
 	gui.OnRunCommand = onRunCommand
+
+	authors.SetCustomAuthors(gui.Config.GetUserConfig().Gui.AuthorColors)
 
 	return gui, nil
 }

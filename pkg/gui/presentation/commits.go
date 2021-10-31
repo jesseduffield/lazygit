@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -60,8 +61,6 @@ func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCom
 		tagString = style.FgMagenta.SetBold().Sprint(c.ExtraInfo) + " "
 	}
 
-	truncatedAuthor := utils.TruncateWithEllipsis(c.Author, 17)
-
 	name := c.Name
 	if parseEmoji {
 		name = emoji.Sprint(name)
@@ -70,7 +69,7 @@ func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCom
 	return []string{
 		shaColor.Sprint(c.ShortSha()),
 		secondColumnString,
-		style.FgYellow.Sprint(truncatedAuthor),
+		authors.LongAuthor(c.Author),
 		tagString + theme.DefaultTextColor.Sprint(name),
 	}
 }
@@ -114,6 +113,7 @@ func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[s
 
 	return []string{
 		shaColor.Sprint(c.ShortSha()),
+		authors.ShortAuthor(c.Author),
 		actionString + tagString + theme.DefaultTextColor.Sprint(name),
 	}
 }
