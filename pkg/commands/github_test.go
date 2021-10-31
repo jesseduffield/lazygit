@@ -13,7 +13,7 @@ func TestGithubMostRecentPRs(t *testing.T) {
 	scenarios := []struct {
 		testName string
 		response string
-		expect   map[string]models.GithubPullRequest
+		expect   []*models.GithubPullRequest
 	}{
 		{
 			"no response",
@@ -28,7 +28,7 @@ func TestGithubMostRecentPRs(t *testing.T) {
 		{
 			"empty response",
 			"[]",
-			map[string]models.GithubPullRequest{},
+			[]*models.GithubPullRequest{},
 		},
 		{
 			"response with data",
@@ -43,19 +43,13 @@ func TestGithubMostRecentPRs(t *testing.T) {
 					"login": "jesseduffield"
 				}
 			}]`,
-			map[string]models.GithubPullRequest{
-				"jesseduffield:command-log-2": {
-					HeadRefName: "command-log-2",
-					Number:      1249,
-					State:       "MERGED",
-					Url:         "https://github.com/jesseduffield/lazygit/pull/1249",
-					HeadRepositoryOwner: models.GithubRepositoryOwner{
-						ID:    "MDQ6VXNlcjg0NTY2MzM=",
-						Name:  "Jesse Duffield",
-						Login: "jesseduffield",
-					},
-				},
-			},
+			[]*models.GithubPullRequest{{
+				HeadRefName:         "command-log-2",
+				Number:              1249,
+				State:               "MERGED",
+				Url:                 "https://github.com/jesseduffield/lazygit/pull/1249",
+				HeadRepositoryOwner: models.GithubRepositoryOwner{ID: "MDQ6VXNlcjg0NTY2MzM=", Name: "Jesse Duffield", Login: "jesseduffield"},
+			}},
 		},
 	}
 

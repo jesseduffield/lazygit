@@ -291,7 +291,7 @@ type guiState struct {
 	CommitFileManager              *filetree.CommitFileManager
 	Submodules                     []*models.SubmoduleConfig
 	Branches                       []*models.Branch
-	GithubRecentPRs                map[string]models.GithubPullRequest
+	GithubRecentPRs                []*models.GithubPullRequest
 	BranchesWithGithubPullRequests bool
 	Commits                        []*models.Commit
 	StashEntries                   []*models.StashEntry

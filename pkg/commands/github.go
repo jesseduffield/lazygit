@@ -7,26 +7,22 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-func (c *GitCommand) GithubMostRecentPRs() (map[string]models.GithubPullRequest, error) {
+func (c *GitCommand) GithubMostRecentPRs() ([]*models.GithubPullRequest, error) {
 	commandOutput, err := c.OSCommand.RunCommandWithOutput("gh pr list --limit 50 --state all --json state,url,number,headRefName,headRepositoryOwner")
 	if err != nil {
 		return nil, err
 	}
 
-	prs := []models.GithubPullRequest{}
+	prs := []*models.GithubPullRequest{}
 	err = json.Unmarshal([]byte(commandOutput), &prs)
 	if err != nil {
 		return nil, err
 	}
 
-	res := map[string]models.GithubPullRequest{}
-	for _, pr := range prs {
-		res[pr.HeadRepositoryOwner.Login+":"+pr.HeadRefName] = pr
-	}
-	return res, nil
+	return prs, nil
 }
 
-func (c *GitCommand) GenerateGithubPullRequestMap(prs map[string]models.GithubPullRequest, branches []*models.Branch) (map[*models.Branch]*models.GithubPullRequest, bool) {
+func (c *GitCommand) GenerateGithubPullRequestMap(prs []*models.GithubPullRequest, branches []*models.Branch) (map[*models.Branch]*models.GithubPullRequest, bool) {
 	res := map[*models.Branch]*models.GithubPullRequest{}
 
 	if len(prs) == 0 {
@@ -40,6 +36,12 @@ func (c *GitCommand) GenerateGithubPullRequestMap(prs map[string]models.GithubPu
 
 	foundBranchWithGithubPullRequest := false
 
+	prWithStringKey := map[string]models.GithubPullRequest{}
+
+	for _, pr := range prs {
+		prWithStringKey[pr.HeadRepositoryOwner.Login+":"+pr.HeadRefName] = *pr
+	}
+
 	for _, branch := range branches {
 		if branch.UpstreamName == "" {
 			continue
@@ -51,7 +53,7 @@ func (c *GitCommand) GenerateGithubPullRequestMap(prs map[string]models.GithubPu
 			continue
 		}
 
-		pr, hasPr := prs[owner+":"+remoteAndName[1]]
+		pr, hasPr := prWithStringKey[owner+":"+remoteAndName[1]]
 		if !hasPr {
 			continue
 		}
