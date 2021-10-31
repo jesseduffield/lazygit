@@ -2,7 +2,6 @@ package commands
 
 import (
 	"encoding/json"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
@@ -47,13 +46,12 @@ func (c *GitCommand) GenerateGithubPullRequestMap(prs []*models.GithubPullReques
 			continue
 		}
 
-		remoteAndName := strings.SplitN(branch.UpstreamName, "/", 2)
-		owner, foundRemoteOwner := remotesToOwnersMap[remoteAndName[0]]
-		if len(remoteAndName) != 2 || !foundRemoteOwner {
+		owner, foundRemoteOwner := remotesToOwnersMap[branch.RemoteName()]
+		if branch.BranchName() == "" || !foundRemoteOwner {
 			continue
 		}
 
-		pr, hasPr := prWithStringKey[owner+":"+remoteAndName[1]]
+		pr, hasPr := prWithStringKey[owner+":"+branch.BranchName()]
 		if !hasPr {
 			continue
 		}
