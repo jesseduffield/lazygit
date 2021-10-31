@@ -68,6 +68,7 @@ git:
   overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
   disableForcePushing: false
   parseEmoji: false
+  enableGhCommand: false
 os:
   editCommand: '' # see 'Configuring File Editing' section
   editCommandTemplate: '{{editor}} {{filename}}'

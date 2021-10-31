@@ -70,6 +70,7 @@ type GitConfig struct {
 	DisableForcePushing bool                          `yaml:"disableForcePushing"`
 	CommitPrefixes      map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
 	ParseEmoji          bool                          `yaml:"parseEmoji"`
+	EnableGhCommand     bool                          `yaml:"enableGhCommand"`
 }
 
 type PagingConfig struct {
@@ -345,6 +346,7 @@ func GetDefaultConfig() *UserConfig {
 			DisableForcePushing: false,
 			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
 			ParseEmoji:          false,
+			EnableGhCommand:     false,
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval: 10,
