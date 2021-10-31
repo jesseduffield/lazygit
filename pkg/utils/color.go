@@ -2,12 +2,27 @@ package utils
 
 import (
 	"regexp"
+	"sync"
 )
+
+var decoloriseCache = make(map[string]string)
+var decoloriseMutex sync.Mutex
 
 // Decolorise strips a string of color
 func Decolorise(str string) string {
+	decoloriseMutex.Lock()
+	defer decoloriseMutex.Unlock()
+
+	if decoloriseCache[str] != "" {
+		return decoloriseCache[str]
+	}
+
 	re := regexp.MustCompile(`\x1B\[([0-9]{1,3}(;[0-9]{1,3})*)?[mGK]`)
-	return re.ReplaceAllString(str, "")
+	ret := re.ReplaceAllString(str, "")
+
+	decoloriseCache[str] = ret
+
+	return ret
 }
 
 func IsValidHexValue(v string) bool {
