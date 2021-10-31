@@ -291,7 +291,7 @@ type guiState struct {
 	CommitFileManager *filetree.CommitFileManager
 	Submodules        []*models.SubmoduleConfig
 	Branches          []*models.Branch
-	GithubRecentPRs   []*models.GithubPullRequest
+	GithubState       *GithubState
 	Commits           []*models.Commit
 	StashEntries      []*models.StashEntry
 	// Suggestions will sometimes appear when typing into a prompt
@@ -344,6 +344,10 @@ type guiState struct {
 
 	// for displaying suggestions while typing in a file name
 	FilesTrie *patricia.Trie
+}
+
+type GithubState struct {
+	RecentPRs []*models.GithubPullRequest
 }
 
 // reuseState determines if we pull the repo state from our repo state map or
@@ -408,7 +412,8 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 				UserScrolling: false,
 			},
 		},
-		Ptmx: nil,
+		GithubState: &GithubState{},
+		Ptmx:        nil,
 		Modes: Modes{
 			Filtering:     filtering.New(filterPath),
 			CherryPicking: cherrypicking.New(),
@@ -732,7 +737,7 @@ func (gui *Gui) setColorScheme() error {
 }
 
 func (gui *Gui) GetPr(branch *models.Branch) (*models.GithubPullRequest, bool) {
-	prs := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, []*models.Branch{branch})
+	prs := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubState.RecentPRs, []*models.Branch{branch})
 	pr, hasPr := prs[branch]
 
 	return pr, hasPr
