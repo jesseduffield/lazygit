@@ -287,14 +287,13 @@ type guiMutexes struct {
 type guiState struct {
 	// the file panels (files and commit files) can render as a tree, so we have
 	// managers for them which handle rendering a flat list of files in tree form
-	FileManager                    *filetree.FileManager
-	CommitFileManager              *filetree.CommitFileManager
-	Submodules                     []*models.SubmoduleConfig
-	Branches                       []*models.Branch
-	GithubRecentPRs                []*models.GithubPullRequest
-	BranchesWithGithubPullRequests bool
-	Commits                        []*models.Commit
-	StashEntries                   []*models.StashEntry
+	FileManager       *filetree.FileManager
+	CommitFileManager *filetree.CommitFileManager
+	Submodules        []*models.SubmoduleConfig
+	Branches          []*models.Branch
+	GithubRecentPRs   []*models.GithubPullRequest
+	Commits           []*models.Commit
+	StashEntries      []*models.StashEntry
 	// Suggestions will sometimes appear when typing into a prompt
 	Suggestions []*types.Suggestion
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
@@ -733,7 +732,7 @@ func (gui *Gui) setColorScheme() error {
 }
 
 func (gui *Gui) GetPr(branch *models.Branch) (*models.GithubPullRequest, bool) {
-	prs, _ := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, []*models.Branch{branch})
+	prs := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, []*models.Branch{branch})
 	pr, hasPr := prs[branch]
 
 	return pr, hasPr

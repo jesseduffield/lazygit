@@ -67,8 +67,6 @@ func (gui *Gui) refreshBranches() {
 		_ = gui.surfaceError(err)
 	}
 	gui.State.Branches = builder.Build()
-	_, branchesWithGithubPullRequests := builder.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, gui.State.Branches)
-	gui.State.BranchesWithGithubPullRequests = branchesWithGithubPullRequests
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)

@@ -14,13 +14,12 @@ func GetBranchListDisplayStrings(
 	branches []*models.Branch,
 	prs map[*models.Branch]*models.GithubPullRequest,
 	fullDescription bool,
-	diffName string,
-	showGithub bool) [][]string {
+	diffName string) [][]string {
 	lines := make([][]string, len(branches))
 
 	for i := range branches {
 		diffed := branches[i].Name == diffName
-		lines[i] = getBranchDisplayStrings(branches[i], prs, fullDescription, diffed, showGithub)
+		lines[i] = getBranchDisplayStrings(branches[i], prs, fullDescription, diffed)
 	}
 
 	return lines
@@ -31,8 +30,7 @@ func getBranchDisplayStrings(
 	b *models.Branch,
 	prs map[*models.Branch]*models.GithubPullRequest,
 	fullDescription bool,
-	diffed,
-	showGithub bool) []string {
+	diffed bool) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
 		displayName = b.DisplayName
@@ -53,10 +51,8 @@ func getBranchDisplayStrings(
 	}
 
 	res := []string{recencyColor.Sprint(b.Recency), coloredName}
-	if showGithub {
-		pr, hasPr := prs[b]
-		res = append(res, coloredPrNumber(pr, hasPr))
-	}
+	pr, hasPr := prs[b]
+	res = append(res, coloredPrNumber(pr, hasPr))
 
 	if fullDescription {
 		return append(res, style.FgYellow.Sprint(b.UpstreamName))
@@ -107,5 +103,5 @@ func coloredPrNumber(pr *models.GithubPullRequest, hasPr bool) string {
 		return colour.Sprint("#" + strconv.Itoa(pr.Number))
 	}
 
-	return ""
+	return ("")
 }
