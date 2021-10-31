@@ -39,12 +39,11 @@ func (gui *Gui) createOrOpenPullRequestMenu(selectedBranch *models.Branch, check
 		}
 	}
 
-	prs, _ := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, []*models.Branch{selectedBranch})
-	pr, hasPr := prs[selectedBranch]
+	pr, hasPr := gui.GetPr(selectedBranch)
 
 	if hasPr {
 		menuItems = append(menuItems, &menuItem{
-			displayString: gui.GitCommand.Tr.OpenPr + strconv.Itoa(pr.Number),
+			displayString: gui.GitCommand.Tr.MustSpecifyOriginError + strconv.Itoa(pr.Number),
 			onPress: func() error {
 				return gui.OSCommand.OpenLink(pr.Url)
 			},

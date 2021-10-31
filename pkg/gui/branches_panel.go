@@ -101,9 +101,7 @@ func (gui *Gui) handleBranchPress() error {
 
 func (gui *Gui) handleCreateOrShowPullRequestPress() error {
 	branch := gui.getSelectedBranch()
-
-	prs, _ := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, []*models.Branch{branch})
-	pr, hasPr := prs[branch]
+	pr, hasPr := gui.GetPr(branch)
 
 	if hasPr {
 		return gui.OSCommand.OpenLink(pr.Url)

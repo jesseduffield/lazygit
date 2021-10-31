@@ -731,3 +731,10 @@ func (gui *Gui) setColorScheme() error {
 
 	return nil
 }
+
+func (gui *Gui) GetPr(branch *models.Branch) (*models.GithubPullRequest, bool) {
+	prs, _ := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubRecentPRs, []*models.Branch{branch})
+	pr, hasPr := prs[branch]
+
+	return pr, hasPr
+}
