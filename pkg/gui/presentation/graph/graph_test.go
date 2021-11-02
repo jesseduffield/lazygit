@@ -45,20 +45,20 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Sha: "D", Parents: []string{"G"}},
 			},
 			expectedOutput: `
-			1 ⎔
-			2 ⎔
-			3 ⎔
+			1 ◯
+			2 ◯
+			3 ◯
 			4 ⏣─╮
-			7 │ ⎔
-			5 ⎔─╯
-			8 ⎔
+			7 │ ◯
+			5 ◯─╯
+			8 ◯
 			9 ⏣─╮
-			B │ ⎔
-			D │ ⎔
-			A ⎔ │
-			E ⎔ │
-			F ⎔ │
-			D ⎔─╯`,
+			B │ ◯
+			D │ ◯
+			A ◯ │
+			E ◯ │
+			F ◯ │
+			D ◯─╯`,
 		},
 		{
 			name: "with a path that has room to move to the left",
@@ -71,12 +71,12 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Sha: "6", Parents: []string{"7"}},
 			},
 			expectedOutput: `
-			1 ⎔
+			1 ◯
 			2 ⏣─╮
 			4 │ ⏣─╮
-			3 ⎔─╯ │
-			5 ⎔───╯
-			6 ⎔`,
+			3 ◯─╯ │
+			5 ◯───╯
+			6 ◯`,
 		},
 		{
 			name: "with a new commit",
@@ -90,13 +90,13 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Sha: "6", Parents: []string{"7"}},
 			},
 			expectedOutput: `
-			1 ⎔
+			1 ◯
 			2 ⏣─╮
 			4 │ ⏣─╮
-			Z │ │ │ ⎔
-			3 ⎔─╯ │ │
-			5 ⎔───╯ │
-			6 ⎔ ╭───╯`,
+			Z │ │ │ ◯
+			3 ◯─╯ │ │
+			5 ◯───╯ │
+			6 ◯ ╭───╯`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -109,12 +109,12 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Sha: "7", Parents: []string{"11"}},
 			},
 			expectedOutput: `
-			1 ⎔
+			1 ◯
 			2 ⏣─╮
 			3 ⏣─│─╮
 			5 ⏣─│─│─╮
-			4 │ ⎔─╯ │
-			7 ⎔─╯ ╭─╯`,
+			4 │ ◯─╯ │
+			7 ◯─╯ ╭─╯`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -128,13 +128,13 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Sha: "B", Parents: []string{"C"}},
 			},
 			expectedOutput: `
-			1 ⎔
+			1 ◯
 			2 ⏣─╮
 			3 ⏣─│─╮
 			5 ⏣─│─│─╮
 			7 ⏣─│─│─│─╮
-			4 ⎔─┴─╯ │ │
-			B ⎔ ╭───╯ │`,
+			4 ◯─┴─╯ │ │
+			B ◯ ╭───╯ │`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -147,10 +147,10 @@ func TestRenderCommitGraph(t *testing.T) {
 			},
 			expectedOutput: `
 			1 ⏣─╮
-			3 │ ⎔
+			3 │ ◯
 			2 ⏣─│
 			4 ⏣─│─╮
-			6 ⎔ │ │`,
+			6 ◯ │ │`,
 		},
 		{
 			name: "new merge path fills gap before continuing path on right",
@@ -163,10 +163,10 @@ func TestRenderCommitGraph(t *testing.T) {
 			},
 			expectedOutput: `
 			1 ⏣─┬─┬─╮
-			4 │ │ ⎔ │
-			2 ⎔─│─╯ │
+			4 │ │ ◯ │
+			2 ◯─│─╯ │
 			A ⏣─│─╮ │
-			B │ │ ⎔ │`,
+			B │ │ ◯ │`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -181,14 +181,14 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Sha: "C", Parents: []string{"D"}},
 			},
 			expectedOutput: `
-			1 ⎔
+			1 ◯
 			2 ⏣─╮
 			3 ⏣─│─╮
 			5 ⏣─│─│─╮
 			7 ⏣─│─│─│─╮
-			4 ⎔─┴─╯ │ │
-			B ⎔ ╭───╯ │
-			C ⎔ │ ╭───╯`,
+			4 ◯─┴─╯ │ │
+			B ◯ ╭───╯ │
+			C ◯ │ ╭───╯`,
 		},
 		{
 			name: "with a path that has room to move to the left and continues",
@@ -205,16 +205,16 @@ func TestRenderCommitGraph(t *testing.T) {
 				{Sha: "D", Parents: []string{"F"}},
 			},
 			expectedOutput: `
-			1 ⎔
+			1 ◯
 			2 ⏣─╮
 			3 ⏣─│─╮
 			5 ⏣─│─│─╮
 			7 ⏣─│─│─│─╮
 			8 ⏣─│─│─│─│─╮
-			4 ⎔─┴─╯ │ │ │
-			B ⎔ ╭───╯ │ │
-			C ⎔ │ ╭───╯ │
-			D ⎔ │ │ ╭───╯`,
+			4 ◯─┴─╯ │ │ │
+			B ◯ ╭───╯ │ │
+			C ◯ │ ╭───╯ │
+			D ◯ │ │ ╭───╯`,
 		},
 	}
 
@@ -269,7 +269,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "c", kind: STARTS, style: green},
 			},
 			prevCommit:     &models.Commit{Sha: "a"},
-			expectedStr:    "⎔",
+			expectedStr:    "◯",
 			expectedStyles: []style.TextStyle{green},
 		},
 		{
@@ -279,7 +279,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "c", kind: STARTS, style: green},
 			},
 			prevCommit:     &models.Commit{Sha: "a"},
-			expectedStr:    "⎔",
+			expectedStr:    "◯",
 			expectedStyles: []style.TextStyle{highlightStyle},
 		},
 		{
@@ -349,7 +349,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 2, toPos: 0, fromSha: "c1", toSha: "a2", kind: TERMINATES, style: green},
 			},
 			prevCommit:  &models.Commit{Sha: "a1"},
-			expectedStr: "⎔─┴─╯",
+			expectedStr: "◯─┴─╯",
 			expectedStyles: []style.TextStyle{
 				yellow, magenta, magenta, green, green,
 			},
@@ -406,7 +406,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
 			},
 			prevCommit:  &models.Commit{Sha: "selected"},
-			expectedStr: "⎔",
+			expectedStr: "◯",
 			expectedStyles: []style.TextStyle{
 				yellow,
 			},
@@ -418,7 +418,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 1, toPos: 1, fromSha: "selected", toSha: "b3", kind: CONTINUES, style: red},
 			},
 			prevCommit:  &models.Commit{Sha: "selected"},
-			expectedStr: "⎔ │",
+			expectedStr: "◯ │",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, nothing, highlightStyle,
 			},
@@ -431,7 +431,7 @@ func TestRenderPipeSet(t *testing.T) {
 				{fromPos: 2, toPos: 2, fromSha: "selected", toSha: "b3", kind: CONTINUES, style: red},
 			},
 			prevCommit:  &models.Commit{Sha: "selected"},
-			expectedStr: "⎔ │ │",
+			expectedStr: "◯ │ │",
 			expectedStyles: []style.TextStyle{
 				highlightStyle, nothing, green, nothing, highlightStyle,
 			},

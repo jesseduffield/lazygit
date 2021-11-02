@@ -23,6 +23,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -462,8 +463,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 
 var RuneReplacements = map[rune]string{
 	// for the commit graph
-	'⏣': "M",
-	'⎔': "o",
+	graph.MergeSymbol:  "M",
+	graph.CommitSymbol: "o",
 }
 
 // Run setup the gui with keybindings and start the mainloop

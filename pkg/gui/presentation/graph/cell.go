@@ -8,8 +8,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
-const mergeSymbol = "⏣"
-const commitSymbol = "⎔"
+const MergeSymbol = '⏣'
+const CommitSymbol = '◯'
 
 type cellType int
 
@@ -35,9 +35,9 @@ func (cell *Cell) render(writer io.StringWriter) {
 	case CONNECTION:
 		adjustedFirst = first
 	case COMMIT:
-		adjustedFirst = commitSymbol
+		adjustedFirst = string(CommitSymbol)
 	case MERGE:
-		adjustedFirst = mergeSymbol
+		adjustedFirst = string(MergeSymbol)
 	}
 
 	var rightStyle *style.TextStyle
