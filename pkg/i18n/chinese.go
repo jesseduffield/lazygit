@@ -388,6 +388,7 @@ func chineseTranslationSet() TranslationSet {
 		LcBuildingPatch:                     "正在构建补丁",
 		LcViewCommits:                       "查看提交",
 		MinGitVersionError:                  "Git 版本必须至少为 2.0（即从 2014 年开始）。请升级您的 git 版本。或者在 https://github.com/jesseduffield/lazygit/issues 上提出一个问题，以使 lazygit 更加向后兼容。",
+		MinGhVersionError:                   "GH版本必须至少是2.0 请升级您的gh版本。或者在https://github.com/jesseduffield/lazygit/issues 提出一个问题，以使lazygit更加向后兼容。",
 		LcRunningCustomCommandStatus:        "正在运行自定义命令",
 		LcSubmoduleStashAndReset:            "存放未提交的子模块更改和更新",
 		LcAndResetSubmodules:                "和重置子模块",

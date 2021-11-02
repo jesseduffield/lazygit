@@ -142,7 +142,24 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 	if err != nil {
 		return app, err
 	}
+
 	return app, nil
+}
+
+func (app *App) validateGhVersion() error {
+	output, err := app.OSCommand.RunCommandWithOutput("gh --version")
+	// if we get an error anywhere here we'll show the same status
+	minVersionError := errors.New(app.Tr.MinGhVersionError)
+	if err != nil {
+		return minVersionError
+	}
+
+	if isGhVersionValid(output) {
+		return nil
+	}
+
+	return minVersionError
+
 }
 
 func (app *App) validateGitVersion() error {
@@ -171,6 +188,29 @@ func isGitVersionValid(versionStr string) bool {
 
 	gitVersion := matches[1]
 	majorVersion, err := strconv.Atoi(gitVersion[0:1])
+	if err != nil {
+		return false
+	}
+	if majorVersion < 2 {
+		return false
+	}
+
+	return true
+}
+
+func isGhVersionValid(versionStr string) bool {
+	// output should be something like:
+	// gh version 2.0.0 (2021-08-23)
+	// https://github.com/cli/cli/releases/tag/v2.0.0
+	re := regexp.MustCompile(`[^\d]+([\d\.]+)`)
+	matches := re.FindStringSubmatch(versionStr)
+
+	if len(matches) == 0 {
+		return false
+	}
+
+	ghVersion := matches[1]
+	majorVersion, err := strconv.Atoi(ghVersion[0:1])
 	if err != nil {
 		return false
 	}
@@ -234,6 +274,10 @@ func (app *App) setupRepo() (bool, error) {
 		if err := app.OSCommand.RunCommand("git init"); err != nil {
 			return false, err
 		}
+	}
+
+	if err := app.validateGhVersion(); err != nil {
+		return false, err
 	}
 
 	return false, nil

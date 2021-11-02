@@ -373,6 +373,7 @@ type TranslationSet struct {
 	LcBuildingPatch                     string
 	LcViewCommits                       string
 	MinGitVersionError                  string
+	MinGhVersionError                   string
 	LcRunningCustomCommandStatus        string
 	LcSubmoduleStashAndReset            string
 	LcAndResetSubmodules                string
@@ -906,6 +907,7 @@ func englishTranslationSet() TranslationSet {
 		LcBuildingPatch:                     "building patch",
 		LcViewCommits:                       "view commits",
 		MinGitVersionError:                  "Git version must be at least 2.0 (i.e. from 2014 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
+		MinGhVersionError:                   "GH version must be at least 2.0. Please upgrade your gh version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
 		LcRunningCustomCommandStatus:        "running custom command",
 		LcSubmoduleStashAndReset:            "stash uncommitted submodule changes and update",
 		LcAndResetSubmodules:                "and reset submodules",

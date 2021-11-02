@@ -42,3 +42,34 @@ func TestIsGitVersionValid(t *testing.T) {
 		})
 	}
 }
+
+func TestIsValidGhVersion(t *testing.T) {
+	type scenario struct {
+		versionStr     string
+		expectedResult bool
+	}
+
+	scenarios := []scenario{
+		{
+			"",
+			false,
+		},
+		{
+			`gh version 1.0.0 (2020-08-23)
+			https://github.com/cli/cli/releases/tag/v1.0.0`,
+			false,
+		},
+		{
+			`gh version 2.0.0 (2021-08-23)
+			https://github.com/cli/cli/releases/tag/v2.0.0`,
+			true,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.versionStr, func(t *testing.T) {
+			result := isGhVersionValid(s.versionStr)
+			assert.Equal(t, result, s.expectedResult)
+		})
+	}
+}
