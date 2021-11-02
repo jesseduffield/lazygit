@@ -218,7 +218,7 @@ func (v *View) SelectSearchResult(index int) error {
 	}
 
 	y := v.searcher.searchPositions[index].y
-	v.FocusPoint(0, y)
+	v.FocusPoint(v.ox, y)
 	if v.searcher.onSelectItem != nil {
 		return v.searcher.onSelectItem(y, index, itemCount)
 	}
@@ -227,10 +227,9 @@ func (v *View) SelectSearchResult(index int) error {
 
 func (v *View) Search(str string) error {
 	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
 	v.searcher.search(str)
 	v.updateSearchPositions()
+
 	if len(v.searcher.searchPositions) > 0 {
 		// get the first result past the current cursor
 		currentIndex := 0
@@ -243,8 +242,10 @@ func (v *View) Search(str string) error {
 			}
 		}
 		v.searcher.currentSearchIndex = currentIndex
+		v.writeMutex.Unlock()
 		return v.SelectSearchResult(currentIndex)
 	} else {
+		v.writeMutex.Unlock()
 		return v.searcher.onSelectItem(-1, -1, 0)
 	}
 }
