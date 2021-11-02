@@ -29,6 +29,15 @@ func (gui *Gui) getRemoteNames() []string {
 	return result
 }
 
+// func (gui *Gui) getRemoteUrls() []string {
+// 	result := make([]string, len(gui.State.Remotes))
+// 	for i, remote := range gui.State.Remotes {
+// 		result[i] = remote.Urls[0]
+// 		gui.GitCommand.GetRemotesToOwnersMap()
+// 	}
+// 	return result
+// }
+
 func matchesToSuggestions(matches []string) []*types.Suggestion {
 	suggestions := make([]*types.Suggestion, len(matches))
 	for i, match := range matches {
@@ -44,6 +53,17 @@ func (gui *Gui) getRemoteSuggestionsFunc() func(string) []*types.Suggestion {
 	remoteNames := gui.getRemoteNames()
 
 	return fuzzySearchFunc(remoteNames)
+}
+
+func (gui *Gui) getRemoteUrlSuggestionsFunc() func(string) []*types.Suggestion {
+	remotesToOwnersMap, _ := gui.GitCommand.GetRemotesToRepositoryMap()
+	result := make([]string, len(remotesToOwnersMap))
+	i := 0
+	for owner, repository := range remotesToOwnersMap {
+		result[i] = owner + "/" + repository
+		i++
+	}
+	return fuzzySearchFunc(result)
 }
 
 func (gui *Gui) getBranchNames() []string {

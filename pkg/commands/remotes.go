@@ -85,3 +85,18 @@ func (c *GitCommand) GetRemotesToOwnersMap() (map[string]string, error) {
 	}
 	return res, nil
 }
+
+func (c *GitCommand) GetRemotesToRepositoryMap() (map[string]string, error) {
+	remotes, err := c.GetRemotes()
+	if err != nil {
+		return nil, err
+	}
+
+	res := map[string]string{}
+	for _, remote := range remotes {
+		info := GetRepoInfoFromURL(remote.Urls[0])
+		res[info.Owner] = info.Repository
+	}
+
+	return res, nil
+}

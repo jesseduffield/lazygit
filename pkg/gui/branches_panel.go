@@ -76,13 +76,47 @@ func (gui *Gui) refreshBranches() {
 }
 
 func (gui *Gui) refreshGithubPullRequests() {
-	prs, err := gui.GitCommand.GithubMostRecentPRs()
-	if err != nil {
-		_ = gui.surfaceError(err)
+	_, err := gui.GitCommand.RunCommandWithOutput("git config --local --get-regexp .gh-resolved$")
+
+	if err == nil {
+		_ = gui.setGithubPullRequests()
 		return
 	}
 
+	// when config not exits
+	_ = gui.refreshRemotes()
+	_ = gui.prompt(promptOpts{
+		title:               "Select remote Repository",
+		initialContent:      "",
+		findSuggestionsFunc: gui.getRemoteUrlSuggestionsFunc(),
+		handleConfirm: func(repository string) error {
+			return gui.WithWaitingStatus(gui.Tr.SelectRemoteRepository, func() error {
+				// ex git config --local --add "remote.origin.gh-resolved" "jesseduffield/lazygit"
+				_, err := gui.GitCommand.RunCommandWithOutput(fmt.Sprintf("git config --local --add \"remote.origin.gh-resolved\" \"%s\"", repository))
+
+				if err != nil {
+					return err
+				}
+
+				err = gui.setGithubPullRequests()
+
+				if err != nil {
+					return err
+				}
+				_ = gui.postRefreshUpdate(gui.State.Contexts.Branches)
+				return nil
+			})
+		},
+	})
+}
+
+func (gui *Gui) setGithubPullRequests() error {
+	prs, err := gui.GitCommand.GithubMostRecentPRs()
+	if err != nil {
+		return gui.surfaceError(err)
+	}
 	gui.State.GithubState.RecentPRs = prs
+	return nil
 }
 
 // specific functions

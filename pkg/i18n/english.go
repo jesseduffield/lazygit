@@ -440,6 +440,7 @@ type TranslationSet struct {
 	OpenPr                              string
 	AbortTitle                          string
 	AbortPrompt                         string
+	SelectRemoteRepository              string
 	Spans                               Spans
 }
 
@@ -943,6 +944,7 @@ func englishTranslationSet() TranslationSet {
 		SuggestionsTitle:                    "Suggestions (press %s to focus)",
 		ExtrasTitle:                         "Extras",
 		PushingTagStatus:                    "pushing tag",
+		SelectRemoteRepository:              "Select Remote Repository",
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
 		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
 		LcCopiedToClipboard:                 "copied to clipboard",
