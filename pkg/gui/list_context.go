@@ -14,6 +14,10 @@ type ListContext struct {
 	// the boolean here tells us whether the item is nil. This is needed because you can't work it out on the calling end once the pointer is wrapped in an interface (unless you want to use reflection)
 	SelectedItem    func() (ListItem, bool)
 	OnGetPanelState func() IListPanelState
+	// if this is true, we'll call GetDisplayStrings for just the visible part of the
+	// view and re-render that. This is useful when you need to render different
+	// content based on the selection (e.g. for showing the selected commit)
+	RenderSelection bool
 
 	Gui *Gui
 
@@ -60,10 +64,17 @@ type ListItem interface {
 func (self *ListContext) FocusLine() {
 	view, err := self.Gui.g.View(self.ViewName)
 	if err != nil {
+		// ignoring error for now
 		return
 	}
 
+	// we need a way of knowing whether we've rendered to the view yet.
 	view.FocusPoint(0, self.GetPanelState().GetSelectedLineIdx())
+	if self.RenderSelection {
+		_, originY := view.Origin()
+		displayStrings := self.GetDisplayStrings(originY, view.InnerHeight())
+		self.Gui.renderDisplayStringsAtPos(view, originY, displayStrings)
+	}
 	view.Footer = formatListFooter(self.GetPanelState().GetSelectedLineIdx(), self.GetItemsLength())
 }
 

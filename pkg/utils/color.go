@@ -6,21 +6,24 @@ import (
 )
 
 var decoloriseCache = make(map[string]string)
-var decoloriseMutex sync.Mutex
+var decoloriseMutex sync.RWMutex
 
 // Decolorise strips a string of color
 func Decolorise(str string) string {
-	decoloriseMutex.Lock()
-	defer decoloriseMutex.Unlock()
+	decoloriseMutex.RLock()
+	val := decoloriseCache[str]
+	decoloriseMutex.RUnlock()
 
-	if decoloriseCache[str] != "" {
-		return decoloriseCache[str]
+	if val != "" {
+		return val
 	}
 
 	re := regexp.MustCompile(`\x1B\[([0-9]{1,3}(;[0-9]{1,3})*)?[mGK]`)
 	ret := re.ReplaceAllString(str, "")
 
+	decoloriseMutex.Lock()
 	decoloriseCache[str] = ret
+	decoloriseMutex.Unlock()
 
 	return ret
 }

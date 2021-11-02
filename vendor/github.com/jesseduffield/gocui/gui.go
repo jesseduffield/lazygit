@@ -75,8 +75,6 @@ type GuiMutexes struct {
 	tickingMutex sync.Mutex
 
 	ViewsMutex sync.Mutex
-
-	drawMutex sync.Mutex
 }
 
 type PlayMode int
@@ -936,8 +934,6 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 
 // flush updates the gui, re-drawing frames and buffers.
 func (g *Gui) flush() error {
-	g.Mutexes.drawMutex.Lock()
-	defer g.Mutexes.drawMutex.Unlock()
 
 	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
 	// g.clear(g.FgColor, g.BgColor)
@@ -960,18 +956,6 @@ func (g *Gui) flush() error {
 		if err := g.draw(v); err != nil {
 			return err
 		}
-	}
-
-	Screen.Show()
-	return nil
-}
-
-func (g *Gui) Draw(v *View) error {
-	g.Mutexes.drawMutex.Lock()
-	defer g.Mutexes.drawMutex.Unlock()
-
-	if err := g.draw(v); err != nil {
-		return err
 	}
 
 	Screen.Show()

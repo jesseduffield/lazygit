@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"io"
 	"os/exec"
 	"strings"
 
@@ -20,18 +21,22 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 	manager := gui.getManager(view)
 
-	r, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	cmd.Stderr = cmd.Stdout
+	start := func() (*exec.Cmd, io.Reader) {
+		r, err := cmd.StdoutPipe()
+		if err != nil {
+			gui.Log.Warn(err)
+		}
+		cmd.Stderr = cmd.Stdout
 
-	if err := cmd.Start(); err != nil {
-		return err
+		if err := cmd.Start(); err != nil {
+			gui.Log.Warn(err)
+		}
+
+		return cmd, r
 	}
 
-	if err := manager.NewTask(manager.NewCmdTask(r, cmd, prefix, height+oy+10, nil), cmdStr); err != nil {
-		return err
+	if err := manager.NewTask(manager.NewCmdTask(start, prefix, height+oy+10, nil), cmdStr); err != nil {
+		gui.Log.Warn(err)
 	}
 
 	return nil
@@ -90,7 +95,6 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 				view.Reset()
 			},
 			func() {
-				// gui.g.Draw(view) // doing this causes an issue when there's a popup panel in front of the main view.
 				gui.render()
 			},
 			func() {

@@ -406,7 +406,7 @@ func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) *exec.Cmd {
 
 	return c.OSCommand.ExecutableFromString(
 		fmt.Sprintf(
-			"git log %s --oneline %s %s --abbrev=%d %s",
+			"git log --topo-order %s --oneline %s %s --abbrev=%d %s",
 			c.OSCommand.Quote(opts.RefName),
 			prettyFormat,
 			limitFlag,

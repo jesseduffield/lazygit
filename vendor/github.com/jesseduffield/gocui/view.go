@@ -879,11 +879,18 @@ func (v *View) draw() error {
 	if v.Autoscroll && visibleViewLinesHeight > maxY {
 		v.oy = visibleViewLinesHeight - maxY
 	}
+
+	if len(v.viewLines) == 0 {
+		return nil
+	}
+
+	start := v.oy
+	if start > len(v.viewLines)-1 {
+		start = len(v.viewLines) - 1
+	}
+
 	y := 0
-	for i, vline := range v.viewLines {
-		if i < v.oy {
-			continue
-		}
+	for _, vline := range v.viewLines[start:] {
 		if y >= maxY {
 			break
 		}
@@ -1112,14 +1119,6 @@ func (v *View) SetHighlight(y int, on bool) error {
 	return nil
 }
 
-func lineWidth(line []cell) (n int) {
-	for i := range line {
-		n += runewidth.RuneWidth(line[i].chr)
-	}
-
-	return
-}
-
 func lineWrap(line []cell, columns int) [][]cell {
 	if columns == 0 {
 		return [][]cell{line}
@@ -1226,4 +1225,17 @@ func (v *View) ClearTextArea() {
 	v.TextArea.Clear()
 	_ = v.SetOrigin(0, 0)
 	_ = v.SetCursor(0, 0)
+}
+
+// only call this function if you don't care where v.wx and v.wy end up
+func (v *View) OverwriteLines(y int, content string) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	// break by newline, then for each line, write it, then add that erase command
+	v.wx = 0
+	v.wy = y
+
+	lines := strings.Replace(content, "\n", "\x1b[K\n", -1)
+	v.writeString(lines)
 }
