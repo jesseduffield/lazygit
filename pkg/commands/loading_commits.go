@@ -404,10 +404,15 @@ func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) *exec.Cmd {
 		filterFlag = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(opts.FilterPath))
 	}
 
+	config := c.GitCommand.Config.GetUserConfig().Git.Log
+
+	orderFlag := "--" + config.Order
+
 	return c.OSCommand.ExecutableFromString(
 		fmt.Sprintf(
-			"git log --topo-order %s --oneline %s %s --abbrev=%d %s",
+			"git log %s %s --oneline %s %s --abbrev=%d %s",
 			c.OSCommand.Quote(opts.RefName),
+			orderFlag,
 			prettyFormat,
 			limitFlag,
 			20,
