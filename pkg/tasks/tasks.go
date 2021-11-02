@@ -16,6 +16,9 @@ import (
 
 const THROTTLE_TIME = time.Millisecond * 30
 
+// we use this to check if the system is under stress right now. Hopefully this makes sense on other machines
+const COMMAND_START_THRESHOLD = time.Millisecond * 10
+
 type Task struct {
 	stop          chan struct{}
 	stopped       bool
@@ -91,12 +94,16 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 		}
 
 		startTime := time.Now()
-
 		cmd, r := start()
+		timeToStart := time.Since(startTime)
 
 		go utils.Safe(func() {
 			<-stop
-			m.throttle = time.Since(startTime) < THROTTLE_TIME
+			// we use the time it took to start the program as a way of checking if things
+			// are running slow at the moment. This is admittedly a crude estimate, but
+			// the point is that we only want to throttle when things are running slow
+			// and the user is flicking through a bunch of items.
+			m.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
 			if err := oscommands.Kill(cmd); err != nil {
 				if !strings.Contains(err.Error(), "process already finished") {
 					m.Log.Errorf("error when running cmd task: %v", err)
