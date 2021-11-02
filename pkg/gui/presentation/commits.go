@@ -57,6 +57,9 @@ func GetCommitListDisplayStrings(
 		pipeSetCache[cacheKey] = pipeSets
 	}
 
+	if startIdx > len(commits) {
+		return nil
+	}
 	end := startIdx + length
 	if end > len(commits)-1 {
 		end = len(commits) - 1
