@@ -314,6 +314,8 @@ type guiState struct {
 	RetainOriginalDir bool
 	IsRefreshingFiles bool
 	Searching         searchingState
+	// if this is true, we'll load our commits using `git log --all`
+	ShowWholeGitGraph bool
 	ScreenMode        WindowMaximisation
 	Ptmx              *os.File
 	PrevMainWidth     int

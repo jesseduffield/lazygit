@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -13,6 +14,8 @@ type menuItem struct {
 	displayString  string
 	displayStrings []string
 	onPress        func() error
+	// only applies when displayString is used
+	opensMenu bool
 }
 
 // every item in a list context needs an ID
@@ -65,8 +68,16 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 
 	stringArrays := make([][]string, len(items))
 	for i, item := range items {
+		if item.opensMenu && item.displayStrings != nil {
+			return errors.New("Message for the developer of this app: you've set opensMenu with displaystrings on the menu panel. Bad developer!. Apologies, user")
+		}
+
 		if item.displayStrings == nil {
-			stringArrays[i] = []string{item.displayString}
+			styledStr := item.displayString
+			if item.opensMenu {
+				styledStr = opensMenuStyle(styledStr)
+			}
+			stringArrays[i] = []string{styledStr}
 		} else {
 			stringArrays[i] = item.displayStrings
 		}

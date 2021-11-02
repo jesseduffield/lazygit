@@ -436,11 +436,17 @@ type TranslationSet struct {
 	SelectConfigFile                    string
 	NoConfigFileFoundErr                string
 	LcLoadingFileSuggestions            string
+	LcLoadingCommits                    string
 	MustSpecifyOriginError              string
 	GitOutput                           string
 	GitCommandFailed                    string
 	AbortTitle                          string
 	AbortPrompt                         string
+	LcOpenLogMenu                       string
+	LogMenuTitle                        string
+	ToggleShowGitGraphAll               string
+	ShowGitGraph                        string
+	SortCommits                         string
 	Spans                               Spans
 }
 
@@ -970,11 +976,17 @@ func englishTranslationSet() TranslationSet {
 		SelectConfigFile:                    "Select config file",
 		NoConfigFileFoundErr:                "No config file found",
 		LcLoadingFileSuggestions:            "loading file suggestions",
+		LcLoadingCommits:                    "loading commits",
 		MustSpecifyOriginError:              "Must specify a remote if specifying a branch",
 		GitOutput:                           "Git output:",
 		GitCommandFailed:                    "Git command failed. Check command log for details (open with %s)",
 		AbortTitle:                          "Abort %s",
 		AbortPrompt:                         "Are you sure you want to abort the current %s?",
+		LcOpenLogMenu:                       "open log menu",
+		LogMenuTitle:                        "Commit Log Options",
+		ToggleShowGitGraphAll:               "toggle show whole git graph (pass the `--all` flag to `git log`)",
+		ShowGitGraph:                        "show git graph",
+		SortCommits:                         "commit sort order",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
