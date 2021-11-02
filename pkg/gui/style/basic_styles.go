@@ -1,8 +1,9 @@
 package style
 
 import (
-	"github.com/gookit/color"
 	"text/template"
+
+	"github.com/gookit/color"
 )
 
 var (
@@ -16,6 +17,7 @@ var (
 	FgBlue         = FromBasicFg(color.FgBlue)
 	FgYellow       = FromBasicFg(color.FgYellow)
 	FgMagenta      = FromBasicFg(color.FgMagenta)
+	FgDefault      = FromBasicFg(color.FgDefault)
 
 	BgWhite   = FromBasicBg(color.BgWhite)
 	BgBlack   = FromBasicBg(color.BgBlack)
@@ -25,6 +27,9 @@ var (
 	BgBlue    = FromBasicBg(color.BgBlue)
 	BgMagenta = FromBasicBg(color.BgMagenta)
 	BgCyan    = FromBasicBg(color.BgCyan)
+
+	// will not print any colour escape codes, including the reset escape code
+	Nothing = New()
 
 	AttrUnderline = New().SetUnderline()
 	AttrBold      = New().SetBold()

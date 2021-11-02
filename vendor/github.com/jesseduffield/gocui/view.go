@@ -153,14 +153,14 @@ type View struct {
 
 	searcher *searcher
 
-	// when ContainsList is true, we show the current index and total count in the view
-	ContainsList bool
-
 	// KeybindOnEdit should be set to true when you want to execute keybindings even when the view is editable
 	// (this is usually not the case)
 	KeybindOnEdit bool
 
 	TextArea *TextArea
+
+	// something like '1 of 20' for a list view
+	Footer string
 }
 
 // call this in the event of a view resize, or if you want to render new content
@@ -372,11 +372,21 @@ func (v *View) Height() int {
 
 // if a view has a frame, that leaves less space for its writeable area
 func (v *View) InnerWidth() int {
-	return v.Width() - v.frameOffset()
+	innerWidth := v.Width() - v.frameOffset()
+	if innerWidth < 0 {
+		return 0
+	}
+
+	return innerWidth
 }
 
 func (v *View) InnerHeight() int {
-	return v.Height() - v.frameOffset()
+	innerHeight := v.Height() - v.frameOffset()
+	if innerHeight < 0 {
+		return 0
+	}
+
+	return innerHeight
 }
 
 func (v *View) frameOffset() int {
@@ -563,8 +573,6 @@ func (v *View) Write(p []byte) (n int, err error) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	v.tainted = true
-	v.makeWriteable(v.wx, v.wy)
 	v.writeRunes(bytes.Runes(p))
 
 	return len(p), nil
@@ -574,20 +582,16 @@ func (v *View) WriteRunes(p []rune) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
+	v.writeRunes(p)
+}
+
+// writeRunes copies slice of runes into internal lines buffer.
+func (v *View) writeRunes(p []rune) {
 	v.tainted = true
 
 	// Fill with empty cells, if writing outside current view buffer
 	v.makeWriteable(v.wx, v.wy)
-	v.writeRunes(p)
-}
 
-func (v *View) WriteString(s string) {
-	v.WriteRunes([]rune(s))
-}
-
-// writeRunes copies slice of runes into internal lines buffer.
-// caller must make sure that writing position is accessable.
-func (v *View) writeRunes(p []rune) {
 	for _, r := range p {
 		switch r {
 		case '\n':
@@ -611,6 +615,16 @@ func (v *View) writeRunes(p []rune) {
 			}
 		}
 	}
+}
+
+// exported functions use the mutex. Non-exported functions are for internal use
+// and a calling function should use a mutex
+func (v *View) WriteString(s string) {
+	v.WriteRunes([]rune(s))
+}
+
+func (v *View) writeString(s string) {
+	v.writeRunes([]rune(s))
 }
 
 // parseInput parses char by char the input written to the View. It returns nil
@@ -696,16 +710,28 @@ func (v *View) Read(p []byte) (n int, err error) {
 	return offset, io.EOF
 }
 
+// only use this if the calling function has a lock on writeMutex
+func (v *View) clear() {
+	v.rewind()
+	v.lines = nil
+	v.clearViewLines()
+}
+
 // Clear empties the view's internal buffer.
 // And resets reading and writing offsets.
 func (v *View) Clear() {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
-	v.rewind()
-	v.lines = nil
-	v.clearViewLines()
-	v.clearRunes()
+	v.clear()
+}
+
+func (v *View) SetContent(str string) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.clear()
+	v.writeString(str)
 }
 
 // Rewind sets read and write pos to (0, 0).
@@ -802,6 +828,9 @@ func (v *View) IsTainted() bool {
 
 // draw re-draws the view's contents.
 func (v *View) draw() error {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	v.clearRunes()
 
 	if !v.Visible {

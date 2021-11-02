@@ -285,7 +285,7 @@ func (gui *Gui) promptToContinueRebase() error {
 				return err
 			}
 
-			return gui.genericMergeCommand("continue")
+			return gui.genericMergeCommand(REBASE_OPTION_CONTINUE)
 		},
 		handleClose: func() error {
 			return gui.pushContext(gui.State.Contexts.Files)

@@ -52,24 +52,19 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Stash.Title = gui.Tr.StashTitle
 	gui.Views.Stash.FgColor = theme.GocuiDefaultTextColor
-	gui.Views.Stash.ContainsList = true
 
 	gui.Views.Commits.Title = gui.Tr.CommitsTitle
 	gui.Views.Commits.FgColor = theme.GocuiDefaultTextColor
-	gui.Views.Commits.ContainsList = true
 
 	gui.Views.CommitFiles.Title = gui.Tr.CommitFiles
 	gui.Views.CommitFiles.FgColor = theme.GocuiDefaultTextColor
-	gui.Views.CommitFiles.ContainsList = true
 
 	gui.Views.Branches.Title = gui.Tr.BranchesTitle
 	gui.Views.Branches.FgColor = theme.GocuiDefaultTextColor
-	gui.Views.Branches.ContainsList = true
 
 	gui.Views.Files.Highlight = true
 	gui.Views.Files.Title = gui.Tr.FilesTitle
 	gui.Views.Files.FgColor = theme.GocuiDefaultTextColor
-	gui.Views.Files.ContainsList = true
 
 	gui.Views.Secondary.Title = gui.Tr.DiffTitle
 	gui.Views.Secondary.Wrap = true
@@ -111,7 +106,6 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Credentials.Editable = true
 
 	gui.Views.Suggestions.Visible = false
-	gui.Views.Suggestions.ContainsList = true
 
 	gui.Views.Menu.Visible = false
 
@@ -264,7 +258,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	}
 
 	for _, listContext := range gui.getListContexts() {
-		view, err := gui.g.View(listContext.ViewName)
+		view, err := gui.g.View(listContext.GetViewName())
 		if err != nil {
 			continue
 		}
@@ -274,8 +268,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			continue
 		}
 
-		// check if the selected line is now out of view and if so refocus it
-		view.FocusPoint(0, listContext.GetPanelState().GetSelectedLineIdx())
+		listContext.FocusLine()
 
 		view.SelBgColor = theme.GocuiSelectedLineBgColor
 
