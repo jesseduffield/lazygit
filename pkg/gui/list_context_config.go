@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"log"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -173,6 +175,7 @@ func (gui *Gui) branchCommitsListContext() IListContext {
 				selectedCommitSha,
 				startIdx,
 				length,
+				gui.shouldShowGraph(),
 			)
 		},
 		SelectedItem: func() (ListItem, bool) {
@@ -181,6 +184,21 @@ func (gui *Gui) branchCommitsListContext() IListContext {
 		},
 		RenderSelection: true,
 	}
+}
+
+func (gui *Gui) shouldShowGraph() bool {
+	value := gui.Config.GetUserConfig().Git.Log.ShowGraph
+	switch value {
+	case "always":
+		return true
+	case "never":
+		return false
+	case "when-maximised":
+		return gui.State.ScreenMode != SCREEN_NORMAL
+	}
+
+	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
+	return false
 }
 
 func (gui *Gui) reflogCommitsListContext() IListContext {
@@ -242,6 +260,7 @@ func (gui *Gui) subCommitsListContext() IListContext {
 				selectedCommitSha,
 				0,
 				len(gui.State.SubCommits),
+				gui.shouldShowGraph(),
 			)
 		},
 		SelectedItem: func() (ListItem, bool) {

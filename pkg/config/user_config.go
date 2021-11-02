@@ -69,7 +69,9 @@ type GitConfig struct {
 	OverrideGpg         bool                          `yaml:"overrideGpg"`
 	DisableForcePushing bool                          `yaml:"disableForcePushing"`
 	CommitPrefixes      map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
-	ParseEmoji          bool                          `yaml:"parseEmoji"`
+	// this shoudl really be under 'gui', not 'git'
+	ParseEmoji bool      `yaml:"parseEmoji"`
+	Log        LogConfig `yaml:"log"`
 }
 
 type PagingConfig struct {
@@ -81,6 +83,11 @@ type PagingConfig struct {
 type MergingConfig struct {
 	ManualCommit bool   `yaml:"manualCommit"`
 	Args         string `yaml:"args"`
+}
+
+type LogConfig struct {
+	Order     string `yaml:"order"`     // one of date-order, reverse, author-date-order, topo-order
+	ShowGraph string `yaml:"showGraph"` // one of always, never, when-maximised
 }
 
 type CommitPrefixConfig struct {
@@ -337,6 +344,10 @@ func GetDefaultConfig() *UserConfig {
 			Merging: MergingConfig{
 				ManualCommit: false,
 				Args:         "",
+			},
+			Log: LogConfig{
+				Order:     "topo-order",
+				ShowGraph: "when-maximised",
 			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,

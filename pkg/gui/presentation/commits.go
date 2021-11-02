@@ -30,6 +30,7 @@ func GetCommitListDisplayStrings(
 	selectedCommitSha string,
 	startIdx int,
 	length int,
+	showGraph bool,
 ) [][]string {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -61,13 +62,20 @@ func GetCommitListDisplayStrings(
 		end = len(commits) - 1
 	}
 
-	filteredPipeSets := pipeSets[startIdx : end+1]
 	filteredCommits := commits[startIdx : end+1]
-	graphLines := graph.RenderAux(filteredPipeSets, filteredCommits, selectedCommitSha)
 
-	lines := make([][]string, 0, len(graphLines))
+	var getGraphLine func(int) string
+	if showGraph {
+		filteredPipeSets := pipeSets[startIdx : end+1]
+		graphLines := graph.RenderAux(filteredPipeSets, filteredCommits, selectedCommitSha)
+		getGraphLine = func(idx int) string { return graphLines[idx] }
+	} else {
+		getGraphLine = func(idx int) string { return "" }
+	}
+
+	lines := make([][]string, 0, len(filteredCommits))
 	for i, commit := range filteredCommits {
-		lines = append(lines, displayCommit(commit, cherryPickedCommitShaMap, diffName, parseEmoji, graphLines[i], fullDescription))
+		lines = append(lines, displayCommit(commit, cherryPickedCommitShaMap, diffName, parseEmoji, getGraphLine(i), fullDescription))
 	}
 	return lines
 }
