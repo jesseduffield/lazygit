@@ -1428,6 +1428,20 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "main",
+			Contexts:    []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY), string(MAIN_MERGING_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Universal.ScrollLeft),
+			Handler:     gui.scrollLeftMain,
+			Description: gui.Tr.LcScrollLeft,
+		},
+		{
+			ViewName:    "main",
+			Contexts:    []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY), string(MAIN_MERGING_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Universal.ScrollRight),
+			Handler:     gui.scrollRightMain,
+			Description: gui.Tr.LcScrollRight,
+		},
+		{
+			ViewName:    "main",
 			Contexts:    []string{string(MAIN_STAGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Files.CommitChanges),
 			Handler:     gui.handleCommitPress,

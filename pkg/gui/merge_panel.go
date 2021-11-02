@@ -203,7 +203,7 @@ func (gui *Gui) catSelectedFile() (string, error) {
 }
 
 func (gui *Gui) scrollToConflict() error {
-	if gui.State.Panels.Merging.UserScrolling {
+	if gui.State.Panels.Merging.UserVerticalScrolling {
 		return nil
 	}
 
@@ -315,5 +315,5 @@ func (gui *Gui) withMergeConflictLock(f func() error) error {
 }
 
 func (gui *Gui) takeOverMergeConflictScrolling() {
-	gui.State.Panels.Merging.UserScrolling = false
+	gui.State.Panels.Merging.UserVerticalScrolling = false
 }

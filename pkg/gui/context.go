@@ -399,6 +399,8 @@ func (gui *Gui) onViewFocusLost(oldView *gocui.View, newView *gocui.View) error 
 		return nil
 	}
 
+	_ = oldView.SetOriginX(0)
+
 	if oldView == gui.Views.CommitFiles && newView != gui.Views.Main && newView != gui.Views.Secondary && newView != gui.Views.Search {
 		gui.resetWindowForView(gui.Views.CommitFiles)
 		if err := gui.deactivateContext(gui.State.Contexts.CommitFiles); err != nil {

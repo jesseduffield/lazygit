@@ -10,6 +10,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+const HORIZONTAL_SCROLL_FACTOR = 3
+
 // these views need to be re-rendered when the screen mode changes. The commits view,
 // for example, will show authorship information in half and full screen mode.
 func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
@@ -114,7 +116,7 @@ func (gui *Gui) linesToScrollDown(view *gocui.View) int {
 
 func (gui *Gui) scrollUpMain() error {
 	if gui.canScrollMergePanel() {
-		gui.State.Panels.Merging.UserScrolling = true
+		gui.State.Panels.Merging.UserVerticalScrolling = true
 	}
 
 	return gui.scrollUpView(gui.Views.Main)
@@ -122,10 +124,31 @@ func (gui *Gui) scrollUpMain() error {
 
 func (gui *Gui) scrollDownMain() error {
 	if gui.canScrollMergePanel() {
-		gui.State.Panels.Merging.UserScrolling = true
+		gui.State.Panels.Merging.UserVerticalScrolling = true
 	}
 
 	return gui.scrollDownView(gui.Views.Main)
+}
+
+func (gui *Gui) scrollLeftMain() error {
+	gui.scrollLeft(gui.Views.Main)
+
+	return nil
+}
+
+func (gui *Gui) scrollRightMain() error {
+	gui.scrollRight(gui.Views.Main)
+
+	return nil
+}
+
+func (gui *Gui) scrollLeft(view *gocui.View) {
+	newOriginX := utils.Max(view.OriginX()-view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR, 0)
+	_ = view.SetOriginX(newOriginX)
+}
+
+func (gui *Gui) scrollRight(view *gocui.View) {
+	_ = view.SetOriginX(view.OriginX() + view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR)
 }
 
 func (gui *Gui) scrollUpSecondary() error {

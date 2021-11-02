@@ -174,7 +174,7 @@ func (gui *Gui) focusSelection(state *LblPanelState) error {
 	newOrigin := state.CalculateOrigin(origin, bufferHeight)
 
 	gui.g.Update(func(*gocui.Gui) error {
-		if err := stagingView.SetOrigin(0, newOrigin); err != nil {
+		if err := stagingView.SetOriginY(newOrigin); err != nil {
 			return err
 		}
 

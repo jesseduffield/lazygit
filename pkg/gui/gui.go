@@ -145,9 +145,9 @@ type LblPanelState struct {
 type MergingPanelState struct {
 	*mergeconflicts.State
 
-	// UserScrolling tells us if the user has started scrolling through the file themselves
+	// UserVerticalScrolling tells us if the user has started scrolling through the file themselves
 	// in which case we won't auto-scroll to a conflict.
-	UserScrolling bool
+	UserVerticalScrolling bool
 }
 
 type filePanelState struct {
@@ -403,8 +403,8 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, OnPress: nil},
 			Suggestions:    &suggestionsPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}},
 			Merging: &MergingPanelState{
-				State:         mergeconflicts.NewState(),
-				UserScrolling: false,
+				State:                 mergeconflicts.NewState(),
+				UserVerticalScrolling: false,
 			},
 		},
 		Ptmx: nil,

@@ -271,6 +271,9 @@ type TranslationSet struct {
 	LcStashOptions                      string
 	NotARepository                      string
 	LcJump                              string
+	LcScrollLeftRight                   string
+	LcScrollLeft                        string
+	LcScrollRight                       string
 	DiscardPatch                        string
 	DiscardPatchConfirm                 string
 	CantPatchWhileRebasingError         string
@@ -802,6 +805,9 @@ func englishTranslationSet() TranslationSet {
 		LcStashOptions:                      "Stash options",
 		NotARepository:                      "Error: must be run inside a git repository",
 		LcJump:                              "jump to panel",
+		LcScrollLeftRight:                   "scroll left/right",
+		LcScrollLeft:                        "scroll left",
+		LcScrollRight:                       "scroll right",
 		DiscardPatch:                        "Discard Patch",
 		DiscardPatchConfirm:                 "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
 		CantPatchWhileRebasingError:         "You cannot build a patch or run patch commands while in a merging or rebasing state",
