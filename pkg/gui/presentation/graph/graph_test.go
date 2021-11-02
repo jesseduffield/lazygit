@@ -1,11 +1,14 @@
 package graph
 
 import (
+	"fmt"
+	"math/rand"
 	"strings"
 	"testing"
 
 	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
@@ -253,7 +256,7 @@ func TestRenderPipeSet(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		pipes          []Pipe
+		pipes          []*Pipe
 		commit         *models.Commit
 		prevCommit     *models.Commit
 		expectedStr    string
@@ -261,7 +264,7 @@ func TestRenderPipeSet(t *testing.T) {
 	}{
 		{
 			name: "single cell",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "b", kind: TERMINATES, style: cyan},
 				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "c", kind: STARTS, style: green},
 			},
@@ -271,7 +274,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "single cell, selected",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "selected", kind: TERMINATES, style: cyan},
 				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "c", kind: STARTS, style: green},
 			},
@@ -281,7 +284,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "terminating hook and starting hook, selected",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "selected", kind: TERMINATES, style: cyan},
 				{fromPos: 1, toPos: 0, fromSha: "c", toSha: "selected", kind: TERMINATES, style: yellow},
 				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "d", kind: STARTS, style: green},
@@ -294,8 +297,8 @@ func TestRenderPipeSet(t *testing.T) {
 			},
 		},
 		{
-			name: "terminating hook and starting hook, prioritise the starting one",
-			pipes: []Pipe{
+			name: "terminating hook and starting hook, prioritise the terminating one",
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "b", kind: TERMINATES, style: red},
 				{fromPos: 1, toPos: 0, fromSha: "c", toSha: "b", kind: TERMINATES, style: magenta},
 				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "d", kind: STARTS, style: green},
@@ -309,7 +312,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "starting and terminating pipe sharing some space",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
 				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
 				{fromPos: 1, toPos: 1, fromSha: "b1", toSha: "b2", kind: CONTINUES, style: magenta},
@@ -324,7 +327,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "starting and terminating pipe sharing some space, with selection",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "selected", kind: TERMINATES, style: red},
 				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "a3", kind: STARTS, style: yellow},
 				{fromPos: 1, toPos: 1, fromSha: "b1", toSha: "b2", kind: CONTINUES, style: magenta},
@@ -339,7 +342,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "many terminating pipes",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
 				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
 				{fromPos: 1, toPos: 0, fromSha: "b1", toSha: "a2", kind: TERMINATES, style: magenta},
@@ -353,7 +356,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "starting pipe passing through",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
 				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
 				{fromPos: 0, toPos: 3, fromSha: "a2", toSha: "d3", kind: STARTS, style: yellow},
@@ -368,7 +371,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "starting and terminating path crossing continuing path",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
 				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
 				{fromPos: 0, toPos: 1, fromSha: "a2", toSha: "b3", kind: STARTS, style: yellow},
@@ -383,7 +386,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "another clash of starting and terminating paths",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
 				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
 				{fromPos: 0, toPos: 1, fromSha: "a2", toSha: "b3", kind: STARTS, style: yellow},
@@ -398,7 +401,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "commit whose previous commit is selected",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "a2", kind: TERMINATES, style: red},
 				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: yellow},
 			},
@@ -410,7 +413,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "commit whose previous commit is selected and is a merge commit",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "a2", kind: TERMINATES, style: red},
 				{fromPos: 1, toPos: 1, fromSha: "selected", toSha: "b3", kind: CONTINUES, style: red},
 			},
@@ -422,7 +425,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "commit whose previous commit is selected and is a merge commit, with continuing pipe inbetween",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "selected", toSha: "a2", kind: TERMINATES, style: red},
 				{fromPos: 1, toPos: 1, fromSha: "z1", toSha: "z3", kind: CONTINUES, style: green},
 				{fromPos: 2, toPos: 2, fromSha: "selected", toSha: "b3", kind: CONTINUES, style: red},
@@ -435,7 +438,7 @@ func TestRenderPipeSet(t *testing.T) {
 		},
 		{
 			name: "when previous commit is selected, not a merge commit, and spawns a continuing pipe",
-			pipes: []Pipe{
+			pipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a1", toSha: "a2", kind: TERMINATES, style: red},
 				{fromPos: 0, toPos: 0, fromSha: "a2", toSha: "a3", kind: STARTS, style: green},
 				{fromPos: 0, toPos: 1, fromSha: "a2", toSha: "b3", kind: STARTS, style: green},
@@ -471,57 +474,27 @@ func TestRenderPipeSet(t *testing.T) {
 	}
 }
 
-func TestCellRender(t *testing.T) {
-	tests := []struct {
-		cell           *Cell
-		expectedString string
-	}{
-		{
-			cell: &Cell{
-				up:       true,
-				down:     true,
-				cellType: CONNECTION,
-				style:    style.FgCyan,
-			},
-			expectedString: "\x1b[36m│\x1b[0m ",
-		},
-		{
-			cell: &Cell{
-				up:       true,
-				down:     true,
-				cellType: COMMIT,
-				style:    style.FgCyan,
-			},
-			expectedString: "\x1b[36m⎔\x1b[0m ",
-		},
-	}
-
-	for _, test := range tests {
-		assert.EqualValues(t, test.expectedString, test.cell.render())
-	}
-}
-
 func TestGetNextPipes(t *testing.T) {
 	tests := []struct {
-		prevPipes []Pipe
+		prevPipes []*Pipe
 		commit    *models.Commit
-		expected  []Pipe
+		expected  []*Pipe
 	}{
 		{
-			prevPipes: []Pipe{
+			prevPipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "b", kind: STARTS, style: style.FgDefault},
 			},
 			commit: &models.Commit{
 				Sha:     "b",
 				Parents: []string{"c"},
 			},
-			expected: []Pipe{
+			expected: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "b", kind: TERMINATES, style: style.FgDefault},
 				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "c", kind: STARTS, style: style.FgDefault},
 			},
 		},
 		{
-			prevPipes: []Pipe{
+			prevPipes: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "b", kind: TERMINATES, style: style.FgDefault},
 				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "c", kind: STARTS, style: style.FgDefault},
 				{fromPos: 0, toPos: 1, fromSha: "b", toSha: "d", kind: STARTS, style: style.FgDefault},
@@ -530,7 +503,7 @@ func TestGetNextPipes(t *testing.T) {
 				Sha:     "d",
 				Parents: []string{"e"},
 			},
-			expected: []Pipe{
+			expected: []*Pipe{
 				{fromPos: 0, toPos: 0, fromSha: "b", toSha: "c", kind: CONTINUES, style: style.FgDefault},
 				{fromPos: 1, toPos: 1, fromSha: "b", toSha: "d", kind: TERMINATES, style: style.FgDefault},
 				{fromPos: 1, toPos: 1, fromSha: "d", toSha: "e", kind: STARTS, style: style.FgDefault},
@@ -550,4 +523,48 @@ func TestGetNextPipes(t *testing.T) {
 		t.Log(actualStr)
 		assert.EqualValues(t, test.expected, pipes)
 	}
+}
+
+func BenchmarkRenderCommitGraph(b *testing.B) {
+	commits := generateCommits(50)
+	getStyle := func(commit *models.Commit) style.TextStyle {
+		return authors.AuthorStyle(commit.Author)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		RenderCommitGraph(commits, "selected", getStyle)
+	}
+}
+
+func generateCommits(count int) []*models.Commit {
+	rand.Seed(1234)
+	pool := []*models.Commit{{Sha: "a", Author: "A"}}
+	commits := make([]*models.Commit, 0, count)
+	authorPool := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+	for len(commits) < count {
+		currentCommitIdx := rand.Intn(len(pool))
+		currentCommit := pool[currentCommitIdx]
+		pool = append(pool[0:currentCommitIdx], pool[currentCommitIdx+1:]...)
+		// I need to pick a random number of parents to add
+		parentCount := rand.Intn(2) + 1
+
+		for j := 0; j < parentCount; j++ {
+			reuseParent := rand.Intn(6) != 1 && j <= len(pool)-1 && j != 0
+			var newParent *models.Commit
+			if reuseParent {
+				newParent = pool[j]
+			} else {
+				newParent = &models.Commit{
+					Sha:    fmt.Sprintf("%s%d", currentCommit.Sha, j),
+					Author: authorPool[rand.Intn(len(authorPool))],
+				}
+				pool = append(pool, newParent)
+			}
+			currentCommit.Parents = append(currentCommit.Parents, newParent.Sha)
+		}
+
+		commits = append(commits, currentCommit)
+	}
+
+	return commits
 }

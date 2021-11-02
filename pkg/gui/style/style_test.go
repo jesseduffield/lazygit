@@ -39,19 +39,19 @@ func TestMerge(t *testing.T) {
 		{
 			"no color",
 			nil,
-			TextStyle{style: color.Style{}},
+			TextStyle{Style: color.Style{}},
 			"foo",
 		},
 		{
 			"only fg color",
 			[]TextStyle{FgRed},
-			TextStyle{fg: &Color{basic: &fgRed}, style: color.Style{fgRed}},
+			TextStyle{fg: &Color{basic: &fgRed}, Style: color.Style{fgRed}},
 			"\x1b[31mfoo\x1b[0m",
 		},
 		{
 			"only bg color",
 			[]TextStyle{BgRed},
-			TextStyle{bg: &Color{basic: &bgRed}, style: color.Style{bgRed}},
+			TextStyle{bg: &Color{basic: &bgRed}, Style: color.Style{bgRed}},
 			"\x1b[41mfoo\x1b[0m",
 		},
 		{
@@ -60,7 +60,7 @@ func TestMerge(t *testing.T) {
 			TextStyle{
 				fg:    &Color{basic: &fgBlue},
 				bg:    &Color{basic: &bgRed},
-				style: color.Style{fgBlue, bgRed},
+				Style: color.Style{fgBlue, bgRed},
 			},
 			"\x1b[34;41mfoo\x1b[0m",
 		},
@@ -69,7 +69,7 @@ func TestMerge(t *testing.T) {
 			[]TextStyle{AttrBold},
 			TextStyle{
 				decoration: Decoration{bold: true},
-				style:      color.Style{color.OpBold},
+				Style:      color.Style{color.OpBold},
 			},
 			"\x1b[1mfoo\x1b[0m",
 		},
@@ -81,7 +81,7 @@ func TestMerge(t *testing.T) {
 					bold:      true,
 					underline: true,
 				},
-				style: color.Style{color.OpBold, color.OpUnderscore},
+				Style: color.Style{color.OpBold, color.OpUnderscore},
 			},
 			"\x1b[1;4mfoo\x1b[0m",
 		},
@@ -95,7 +95,7 @@ func TestMerge(t *testing.T) {
 					bold:      true,
 					underline: true,
 				},
-				style: color.Style{fgBlue, bgRed, color.OpBold, color.OpUnderscore},
+				Style: color.Style{fgBlue, bgRed, color.OpBold, color.OpUnderscore},
 			},
 			"\x1b[34;41;1;4mfoo\x1b[0m",
 		},
@@ -104,7 +104,7 @@ func TestMerge(t *testing.T) {
 			[]TextStyle{New().SetFg(rgbPink)},
 			TextStyle{
 				fg:    &rgbPink,
-				style: color.NewRGBStyle(rgbPinkLib).SetOpts(color.Opts{}),
+				Style: color.NewRGBStyle(rgbPinkLib).SetOpts(color.Opts{}),
 			},
 			// '38;2' qualifies an RGB foreground color
 			"\x1b[38;2;255;0;255mfoo\x1b[0m",
@@ -115,7 +115,7 @@ func TestMerge(t *testing.T) {
 			TextStyle{
 				fg:    &rgbPink,
 				bg:    &rgbYellow,
-				style: color.NewRGBStyle(rgbPinkLib, rgbYellowLib).SetOpts(color.Opts{}),
+				Style: color.NewRGBStyle(rgbPinkLib, rgbYellowLib).SetOpts(color.Opts{}),
 			},
 			// '48;2' qualifies an RGB background color
 			"\x1b[38;2;255;0;255;48;2;255;255;0mfoo\x1b[0m",
@@ -130,7 +130,7 @@ func TestMerge(t *testing.T) {
 					bold:      true,
 					underline: true,
 				},
-				style: color.NewRGBStyle(rgbPinkLib, rgbYellowLib).SetOpts(color.Opts{color.OpBold, color.OpUnderscore}),
+				Style: color.NewRGBStyle(rgbPinkLib, rgbYellowLib).SetOpts(color.Opts{color.OpBold, color.OpUnderscore}),
 			},
 			"\x1b[38;2;255;0;255;48;2;255;255;0;1;4mfoo\x1b[0m",
 		},
@@ -140,7 +140,7 @@ func TestMerge(t *testing.T) {
 			TextStyle{
 				fg: &rgbYellow,
 				bg: &Color{basic: &bgRed},
-				style: color.NewRGBStyle(
+				Style: color.NewRGBStyle(
 					rgbYellowLib,
 					fgRed.RGB(), // We need to use FG here,  https://github.com/gookit/color/issues/39
 				).SetOpts(color.Opts{}),

@@ -14,6 +14,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const THROTTLE_TIME = time.Millisecond * 30
+
 type Task struct {
 	stop          chan struct{}
 	stopped       bool
@@ -38,6 +40,12 @@ type ViewBufferManager struct {
 	beforeStart  func()
 	refreshView  func()
 	onEndOfInput func()
+
+	// if the user flicks through a heap of items, with each one
+	// spawning a process to render something to the main view,
+	// it can slow things down quite a bit. In these situations we
+	// want to throttle the spawning of processes.
+	throttle bool
 }
 
 func (m *ViewBufferManager) GetTaskKey() string {
@@ -69,17 +77,30 @@ func (m *ViewBufferManager) ReadLines(n int) {
 	})
 }
 
-func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string, linesToRead int, onDone func()) func(chan struct{}) error {
+func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead int, onDone func()) func(chan struct{}) error {
 	return func(stop chan struct{}) error {
+		if m.throttle {
+			m.Log.Info("throttling task")
+			time.Sleep(THROTTLE_TIME)
+		}
+
+		select {
+		case <-stop:
+			return nil
+		default:
+		}
+
+		startTime := time.Now()
+
+		cmd, r := start()
+
 		go utils.Safe(func() {
 			<-stop
+			m.throttle = time.Since(startTime) < THROTTLE_TIME
 			if err := oscommands.Kill(cmd); err != nil {
 				if !strings.Contains(err.Error(), "process already finished") {
 					m.Log.Errorf("error when running cmd task: %v", err)
 				}
-			}
-			if onDone != nil {
-				onDone()
 			}
 		})
 

@@ -2,120 +2,152 @@ package presentation
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/kyokomi/emoji/v2"
 )
 
-func GetCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string, parseEmoji bool) [][]string {
-	lines := make([][]string, len(commits))
+type pipeSetCacheKey struct {
+	commitSha   string
+	commitCount int
+}
 
-	var displayFunc func(*models.Commit, map[string]bool, bool, bool) []string
-	if fullDescription {
-		displayFunc = getFullDescriptionDisplayStringsForCommit
-	} else {
-		displayFunc = getDisplayStringsForCommit
+var pipeSetCache = make(map[pipeSetCacheKey][][]*graph.Pipe)
+var mutex sync.Mutex
+
+func GetCommitListDisplayStrings(
+	commits []*models.Commit,
+	fullDescription bool,
+	cherryPickedCommitShaMap map[string]bool,
+	diffName string,
+	parseEmoji bool,
+	selectedCommitSha string,
+	startIdx int,
+	length int,
+) [][]string {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if len(commits) == 0 {
+		return nil
 	}
 
-	for i := range commits {
-		diffed := commits[i].Sha == diffName
-		lines[i] = displayFunc(commits[i], cherryPickedCommitShaMap, diffed, parseEmoji)
+	// given that our cache key is a commit sha and a commit count, it's very important that we don't actually try to render pipes
+	// when dealing with things like filtered commits.
+	cacheKey := pipeSetCacheKey{
+		commitSha:   commits[0].Sha,
+		commitCount: len(commits),
 	}
 
+	pipeSets, ok := pipeSetCache[cacheKey]
+	if !ok {
+		// pipe sets are unique to a commit head. and a commit count. Sometimes we haven't loaded everything for that.
+		// so let's just cache it based on that.
+		getStyle := func(commit *models.Commit) style.TextStyle {
+			return authors.AuthorStyle(commit.Author)
+		}
+		pipeSets = graph.GetPipeSets(commits, getStyle)
+		pipeSetCache[cacheKey] = pipeSets
+	}
+
+	end := startIdx + length
+	if end > len(commits)-1 {
+		end = len(commits) - 1
+	}
+
+	filteredPipeSets := pipeSets[startIdx : end+1]
+	filteredCommits := commits[startIdx : end+1]
+	graphLines := graph.RenderAux(filteredPipeSets, filteredCommits, selectedCommitSha)
+
+	lines := make([][]string, 0, len(graphLines))
+	for i, commit := range filteredCommits {
+		lines = append(lines, displayCommit(commit, cherryPickedCommitShaMap, diffName, parseEmoji, graphLines[i], fullDescription))
+	}
 	return lines
 }
 
-func getFullDescriptionDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed, parseEmoji bool) []string {
-	shaColor := theme.DefaultTextColor
-	switch c.Status {
-	case "unpushed":
-		shaColor = style.FgRed
-	case "pushed":
-		shaColor = style.FgYellow
-	case "merged":
-		shaColor = style.FgGreen
-	case "rebasing":
-		shaColor = style.FgBlue
-	case "reflog":
-		shaColor = style.FgBlue
-	}
+func displayCommit(
+	commit *models.Commit,
+	cherryPickedCommitShaMap map[string]bool,
+	diffName string,
+	parseEmoji bool,
+	graphLine string,
+	fullDescription bool,
+) []string {
 
-	if diffed {
-		shaColor = theme.DiffTerminalColor
-	} else if cherryPickedCommitShaMap[c.Sha] {
-		// for some reason, setting the background to blue pads out the other commits
-		// horizontally. For the sake of accessibility I'm considering this a feature,
-		// not a bug
-		shaColor = theme.CherryPickedCommitTextStyle
-	}
-
-	tagString := ""
-	secondColumnString := style.FgBlue.Sprint(utils.UnixToDate(c.UnixTimestamp))
-	if c.Action != "" {
-		secondColumnString = actionColorMap(c.Action).Sprint(c.Action)
-	} else if c.ExtraInfo != "" {
-		tagString = style.FgMagenta.SetBold().Sprint(c.ExtraInfo) + " "
-	}
-
-	name := c.Name
-	if parseEmoji {
-		name = emoji.Sprint(name)
-	}
-
-	return []string{
-		shaColor.Sprint(c.ShortSha()),
-		secondColumnString,
-		authors.LongAuthor(c.Author),
-		tagString + theme.DefaultTextColor.Sprint(name),
-	}
-}
-
-func getDisplayStringsForCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed, parseEmoji bool) []string {
-	shaColor := theme.DefaultTextColor
-	switch c.Status {
-	case "unpushed":
-		shaColor = style.FgRed
-	case "pushed":
-		shaColor = style.FgYellow
-	case "merged":
-		shaColor = style.FgGreen
-	case "rebasing":
-		shaColor = style.FgBlue
-	case "reflog":
-		shaColor = style.FgBlue
-	}
-
-	if diffed {
-		shaColor = theme.DiffTerminalColor
-	} else if cherryPickedCommitShaMap[c.Sha] {
-		// for some reason, setting the background to blue pads out the other commits
-		// horizontally. For the sake of accessibility I'm considering this a feature,
-		// not a bug
-		shaColor = theme.CherryPickedCommitTextStyle
-	}
+	shaColor := getShaColor(commit, diffName, cherryPickedCommitShaMap)
 
 	actionString := ""
-	tagString := ""
-	if c.Action != "" {
-		actionString = actionColorMap(c.Action).Sprint(utils.WithPadding(c.Action, 7)) + " "
-	} else if len(c.Tags) > 0 {
-		tagString = theme.DiffTerminalColor.SetBold().Sprint(strings.Join(c.Tags, " ")) + " "
+	if commit.Action != "" {
+		actionString = actionColorMap(commit.Action).Sprint(commit.Action) + " "
 	}
 
-	name := c.Name
+	tagString := ""
+	if fullDescription {
+		if commit.ExtraInfo != "" {
+			tagString = style.FgMagenta.SetBold().Sprint(commit.ExtraInfo) + " "
+		}
+	} else {
+		if len(commit.Tags) > 0 {
+			tagString = theme.DiffTerminalColor.SetBold().Sprint(strings.Join(commit.Tags, " ")) + " "
+		}
+	}
+
+	name := commit.Name
 	if parseEmoji {
 		name = emoji.Sprint(name)
 	}
 
-	return []string{
-		shaColor.Sprint(c.ShortSha()),
-		authors.ShortAuthor(c.Author),
-		actionString + tagString + theme.DefaultTextColor.Sprint(name),
+	authorFunc := authors.ShortAuthor
+	if fullDescription {
+		authorFunc = authors.LongAuthor
 	}
+
+	cols := make([]string, 0, 5)
+	cols = append(cols, shaColor.Sprint(commit.ShortSha()))
+	if fullDescription {
+		cols = append(cols, style.FgBlue.Sprint(utils.UnixToDate(commit.UnixTimestamp)))
+	}
+	cols = append(
+		cols,
+		actionString,
+		authorFunc(commit.Author),
+		graphLine+tagString+theme.DefaultTextColor.Sprint(name),
+	)
+
+	return cols
+
+}
+
+func getShaColor(commit *models.Commit, diffName string, cherryPickedCommitShaMap map[string]bool) style.TextStyle {
+	diffed := commit.Sha == diffName
+	shaColor := theme.DefaultTextColor
+	switch commit.Status {
+	case "unpushed":
+		shaColor = style.FgRed
+	case "pushed":
+		shaColor = style.FgYellow
+	case "merged":
+		shaColor = style.FgGreen
+	case "rebasing":
+		shaColor = style.FgBlue
+	case "reflog":
+		shaColor = style.FgBlue
+	}
+
+	if diffed {
+		shaColor = theme.DiffTerminalColor
+	} else if cherryPickedCommitShaMap[commit.Sha] {
+		shaColor = theme.CherryPickedCommitTextStyle
+	}
+
+	return shaColor
 }
 
 func actionColorMap(str string) style.TextStyle {

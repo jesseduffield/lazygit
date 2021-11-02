@@ -308,6 +308,11 @@ func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {
 	v.SetContent(list)
 }
 
+func (gui *Gui) renderDisplayStringsAtPos(v *gocui.View, y int, displayStrings [][]string) {
+	list := utils.RenderDisplayStrings(displayStrings)
+	v.OverwriteLines(y, list)
+}
+
 func (gui *Gui) globalOptionsMap() map[string]string {
 	keybindingConfig := gui.Config.GetUserConfig().Keybinding
 

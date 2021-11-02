@@ -10,6 +10,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// after selecting the 200th commit, we'll load in all the rest
+const COMMIT_THRESHOLD = 200
+
 // list panel functions
 
 func (gui *Gui) getSelectedLocalCommit() *models.Commit {
@@ -23,7 +26,7 @@ func (gui *Gui) getSelectedLocalCommit() *models.Commit {
 
 func (gui *Gui) handleCommitSelect() error {
 	state := gui.State.Panels.Commits
-	if state.SelectedLineIdx > 290 && state.LimitCommits {
+	if state.SelectedLineIdx > COMMIT_THRESHOLD && state.LimitCommits {
 		state.LimitCommits = false
 		go utils.Safe(func() {
 			if err := gui.refreshCommitsWithLimit(); err != nil {

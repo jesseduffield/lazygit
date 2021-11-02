@@ -4,6 +4,7 @@
 package gui
 
 import (
+	"io"
 	"os/exec"
 	"strings"
 
@@ -50,14 +51,19 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 	manager := gui.getManager(view)
 
-	ptmx, err := pty.Start(cmd)
-	if err != nil {
-		return err
+	start := func() (*exec.Cmd, io.Reader) {
+		ptmx, err := pty.Start(cmd)
+		if err != nil {
+			gui.Log.Error(err)
+		}
+
+		gui.State.Ptmx = ptmx
+
+		return cmd, ptmx
 	}
 
-	gui.State.Ptmx = ptmx
 	onClose := func() {
-		ptmx.Close()
+		gui.State.Ptmx.Close()
 		gui.State.Ptmx = nil
 	}
 
@@ -65,7 +71,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		return err
 	}
 
-	if err := manager.NewTask(manager.NewCmdTask(ptmx, cmd, prefix, height+oy+10, onClose), cmdStr); err != nil {
+	if err := manager.NewTask(manager.NewCmdTask(start, prefix, height+oy+10, onClose), cmdStr); err != nil {
 		return err
 	}
 
