@@ -727,6 +727,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "commits",
 			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Commits.OpenLogMenu),
+			Handler:     gui.handleOpenLogMenu,
+			Description: gui.Tr.LcOpenLogMenu,
+			OpensMenu:   true,
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.SquashDown),
 			Handler:     gui.handleCommitSquashDown,
 			Description: gui.Tr.LcSquashDown,

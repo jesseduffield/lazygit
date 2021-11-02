@@ -36,10 +36,14 @@ func (gui *Gui) getBindings(v *gocui.View) []*Binding {
 
 func (gui *Gui) displayDescription(binding *Binding) string {
 	if binding.OpensMenu {
-		return style.FgMagenta.Sprintf("%s...", binding.Description)
+		return opensMenuStyle(binding.Description)
 	}
 
 	return style.FgCyan.Sprint(binding.Description)
+}
+
+func opensMenuStyle(str string) string {
+	return style.FgMagenta.Sprintf("%s...", str)
 }
 
 func (gui *Gui) handleCreateOptionsMenu() error {

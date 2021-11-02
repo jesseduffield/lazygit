@@ -86,7 +86,7 @@ type MergingConfig struct {
 }
 
 type LogConfig struct {
-	Order     string `yaml:"order"`     // one of date-order, reverse, author-date-order, topo-order
+	Order     string `yaml:"order"`     // one of date-order, author-date-order, topo-order
 	ShowGraph string `yaml:"showGraph"` // one of always, never, when-maximised
 }
 
@@ -237,6 +237,7 @@ type KeybindingCommitsConfig struct {
 	CheckoutCommit               string `yaml:"checkoutCommit"`
 	ResetCherryPick              string `yaml:"resetCherryPick"`
 	CopyCommitMessageToClipboard string `yaml:"copyCommitMessageToClipboard"`
+	OpenLogMenu                  string `yaml:"openLogMenu"`
 }
 
 type KeybindingStashConfig struct {
@@ -492,6 +493,7 @@ func GetDefaultConfig() *UserConfig {
 				CheckoutCommit:               "<space>",
 				ResetCherryPick:              "<c-R>",
 				CopyCommitMessageToClipboard: "<c-y>",
+				OpenLogMenu:                  "<c-l>",
 			},
 			Stash: KeybindingStashConfig{
 				PopStash: "g",
