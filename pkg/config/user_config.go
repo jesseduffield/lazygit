@@ -125,6 +125,8 @@ type KeybindingUniversalConfig struct {
 	NextItemAlt                  string   `yaml:"nextItem-alt"`
 	PrevPage                     string   `yaml:"prevPage"`
 	NextPage                     string   `yaml:"nextPage"`
+	ScrollLeft                   string   `yaml:"scrollLeft"`
+	ScrollRight                  string   `yaml:"scrollRight"`
 	GotoTop                      string   `yaml:"gotoTop"`
 	GotoBottom                   string   `yaml:"gotoBottom"`
 	PrevBlock                    string   `yaml:"prevBlock"`
@@ -382,6 +384,8 @@ func GetDefaultConfig() *UserConfig {
 				NextItemAlt:                  "j",
 				PrevPage:                     ",",
 				NextPage:                     ".",
+				ScrollLeft:                   "H",
+				ScrollRight:                  "L",
 				GotoTop:                      "<",
 				GotoBottom:                   ">",
 				PrevBlock:                    "<left>",

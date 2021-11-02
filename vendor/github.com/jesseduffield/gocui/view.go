@@ -475,9 +475,33 @@ func (v *View) SetOrigin(x, y int) error {
 	return nil
 }
 
+func (v *View) SetOriginX(x int) error {
+	if x < 0 {
+		return ErrInvalidPoint
+	}
+	v.ox = x
+	return nil
+}
+
+func (v *View) SetOriginY(y int) error {
+	if y < 0 {
+		return ErrInvalidPoint
+	}
+	v.oy = y
+	return nil
+}
+
 // Origin returns the origin position of the view.
 func (v *View) Origin() (x, y int) {
-	return v.ox, v.oy
+	return v.OriginX(), v.OriginY()
+}
+
+func (v *View) OriginX() int {
+	return v.ox
+}
+
+func (v *View) OriginY() int {
+	return v.oy
 }
 
 // SetWritePos sets the write position of the view's internal buffer.

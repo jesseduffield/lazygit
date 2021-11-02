@@ -30,6 +30,8 @@ type IListContext interface {
 	OnRender() error
 	handlePrevLine() error
 	handleNextLine() error
+	handleScrollLeft() error
+	handleScrollRight() error
 	handleLineChange(change int) error
 	handleNextPage() error
 	handleGotoTop() error
@@ -69,7 +71,7 @@ func (self *ListContext) FocusLine() {
 	}
 
 	// we need a way of knowing whether we've rendered to the view yet.
-	view.FocusPoint(0, self.GetPanelState().GetSelectedLineIdx())
+	view.FocusPoint(view.OriginX(), self.GetPanelState().GetSelectedLineIdx())
 	if self.RenderSelection {
 		_, originY := view.Origin()
 		displayStrings := self.GetDisplayStrings(originY, view.InnerHeight())
@@ -117,6 +119,13 @@ func (self *ListContext) HandleFocusLost() error {
 		return self.OnFocusLost()
 	}
 
+	view, err := self.Gui.g.View(self.ViewName)
+	if err != nil {
+		return nil
+	}
+
+	_ = view.SetOriginX(0)
+
 	return nil
 }
 
@@ -150,8 +159,44 @@ func (self *ListContext) handleNextLine() error {
 	return self.handleLineChange(1)
 }
 
+func (self *ListContext) handleScrollLeft() error {
+	if self.ignoreKeybinding() {
+		return nil
+	}
+
+	// get the view, move the origin
+	view, err := self.Gui.g.View(self.ViewName)
+	if err != nil {
+		return nil
+	}
+
+	self.Gui.scrollLeft(view)
+
+	return self.HandleFocus()
+}
+
+func (self *ListContext) handleScrollRight() error {
+	if self.ignoreKeybinding() {
+		return nil
+	}
+
+	// get the view, move the origin
+	view, err := self.Gui.g.View(self.ViewName)
+	if err != nil {
+		return nil
+	}
+
+	self.Gui.scrollRight(view)
+
+	return self.HandleFocus()
+}
+
+func (self *ListContext) ignoreKeybinding() bool {
+	return !self.Gui.isPopupPanel(self.ViewName) && self.Gui.popupPanelFocused()
+}
+
 func (self *ListContext) handleLineChange(change int) error {
-	if !self.Gui.isPopupPanel(self.ViewName) && self.Gui.popupPanelFocused() {
+	if self.ignoreKeybinding() {
 		return nil
 	}
 
@@ -195,7 +240,7 @@ func (self *ListContext) handlePrevPage() error {
 }
 
 func (self *ListContext) handleClick() error {
-	if !self.Gui.isPopupPanel(self.ViewName) && self.Gui.popupPanelFocused() {
+	if self.ignoreKeybinding() {
 		return nil
 	}
 
