@@ -2,6 +2,8 @@ package gui
 
 import (
 	"fmt"
+
+	"github.com/jesseduffield/gocui"
 )
 
 type ListContext struct {
@@ -160,22 +162,14 @@ func (self *ListContext) handleNextLine() error {
 }
 
 func (self *ListContext) handleScrollLeft() error {
-	if self.ignoreKeybinding() {
-		return nil
-	}
-
-	// get the view, move the origin
-	view, err := self.Gui.g.View(self.ViewName)
-	if err != nil {
-		return nil
-	}
-
-	self.Gui.scrollLeft(view)
-
-	return self.HandleFocus()
+	return self.scroll(self.Gui.scrollLeft)
 }
 
 func (self *ListContext) handleScrollRight() error {
+	return self.scroll(self.Gui.scrollRight)
+}
+
+func (self *ListContext) scroll(scrollFunc func(*gocui.View)) error {
 	if self.ignoreKeybinding() {
 		return nil
 	}
@@ -186,7 +180,7 @@ func (self *ListContext) handleScrollRight() error {
 		return nil
 	}
 
-	self.Gui.scrollRight(view)
+	scrollFunc(view)
 
 	return self.HandleFocus()
 }
