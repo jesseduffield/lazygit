@@ -308,6 +308,11 @@ func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {
 	v.SetContent(list)
 }
 
+func (gui *Gui) renderDisplayStringsAtPos(v *gocui.View, y int, displayStrings [][]string) {
+	list := utils.RenderDisplayStrings(displayStrings)
+	v.OverwriteLines(y, list)
+}
+
 func (gui *Gui) globalOptionsMap() map[string]string {
 	keybindingConfig := gui.Config.GetUserConfig().Keybinding
 
@@ -318,6 +323,7 @@ func (gui *Gui) globalOptionsMap() map[string]string {
 		gui.getKeyDisplay(keybindingConfig.Universal.Quit):       gui.Tr.LcQuit,
 		gui.getKeyDisplay(keybindingConfig.Universal.OptionMenu): gui.Tr.LcMenu,
 		fmt.Sprintf("%s-%s", gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[0]), gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): gui.Tr.LcJump,
+		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollLeft), gui.getKeyDisplay(keybindingConfig.Universal.ScrollRight)):                                                    gui.Tr.LcScrollLeftRight,
 	}
 }
 

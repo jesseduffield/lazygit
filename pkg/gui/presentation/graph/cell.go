@@ -1,11 +1,15 @@
 package graph
 
 import (
+	"io"
+	"sync"
+
+	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
-const mergeSymbol = '⏣'
-const commitSymbol = '⎔'
+const MergeSymbol = '⏣'
+const CommitSymbol = '◯'
 
 type cellType int
 
@@ -22,18 +26,18 @@ type Cell struct {
 	style                 style.TextStyle
 }
 
-func (cell *Cell) render() string {
+func (cell *Cell) render(writer io.StringWriter) {
 	up, down, left, right := cell.up, cell.down, cell.left, cell.right
 
 	first, second := getBoxDrawingChars(up, down, left, right)
-	var adjustedFirst rune
+	var adjustedFirst string
 	switch cell.cellType {
 	case CONNECTION:
 		adjustedFirst = first
 	case COMMIT:
-		adjustedFirst = commitSymbol
+		adjustedFirst = string(CommitSymbol)
 	case MERGE:
-		adjustedFirst = mergeSymbol
+		adjustedFirst = string(MergeSymbol)
 	}
 
 	var rightStyle *style.TextStyle
@@ -47,13 +51,46 @@ func (cell *Cell) render() string {
 	// assert on the style of a space given a space has no styling (assuming we
 	// stick to only using foreground styles)
 	var styledSecondChar string
-	if second == ' ' {
+	if second == " " {
 		styledSecondChar = " "
 	} else {
-		styledSecondChar = rightStyle.Sprint(string(second))
+		styledSecondChar = cachedSprint(*rightStyle, second)
 	}
 
-	return cell.style.Sprint(string(adjustedFirst)) + styledSecondChar
+	_, _ = writer.WriteString(cachedSprint(cell.style, adjustedFirst))
+	_, _ = writer.WriteString(styledSecondChar)
+}
+
+type rgbCacheKey struct {
+	*color.RGBStyle
+	str string
+}
+
+var rgbCache = make(map[rgbCacheKey]string)
+var rgbCacheMutex sync.RWMutex
+
+func cachedSprint(style style.TextStyle, str string) string {
+	switch v := style.Style.(type) {
+	case *color.RGBStyle:
+		rgbCacheMutex.RLock()
+		key := rgbCacheKey{v, str}
+		value, ok := rgbCache[key]
+		rgbCacheMutex.RUnlock()
+		if ok {
+			return value
+		}
+		value = style.Sprint(str)
+		rgbCacheMutex.Lock()
+		rgbCache[key] = value
+		rgbCacheMutex.Unlock()
+		return value
+	case color.Basic:
+		return style.Sprint(str)
+	case color.Style:
+		value := style.Sprint(str)
+		return value
+	}
+	return style.Sprint(str)
 }
 
 func (cell *Cell) reset() {
@@ -102,39 +139,39 @@ func (cell *Cell) setType(cellType cellType) *Cell {
 	return cell
 }
 
-func getBoxDrawingChars(up, down, left, right bool) (rune, rune) {
+func getBoxDrawingChars(up, down, left, right bool) (string, string) {
 	if up && down && left && right {
-		return '│', '─'
+		return "│", "─"
 	} else if up && down && left && !right {
-		return '│', ' '
+		return "│", " "
 	} else if up && down && !left && right {
-		return '│', '─'
+		return "│", "─"
 	} else if up && down && !left && !right {
-		return '│', ' '
+		return "│", " "
 	} else if up && !down && left && right {
-		return '┴', '─'
+		return "┴", "─"
 	} else if up && !down && left && !right {
-		return '╯', ' '
+		return "╯", " "
 	} else if up && !down && !left && right {
-		return '╰', '─'
+		return "╰", "─"
 	} else if up && !down && !left && !right {
-		return '╵', ' '
+		return "╵", " "
 	} else if !up && down && left && right {
-		return '┬', '─'
+		return "┬", "─"
 	} else if !up && down && left && !right {
-		return '╮', ' '
+		return "╮", " "
 	} else if !up && down && !left && right {
-		return '╭', '─'
+		return "╭", "─"
 	} else if !up && down && !left && !right {
-		return '╷', ' '
+		return "╷", " "
 	} else if !up && !down && left && right {
-		return '─', '─'
+		return "─", "─"
 	} else if !up && !down && left && !right {
-		return '─', ' '
+		return "─", " "
 	} else if !up && !down && !left && right {
-		return '╶', '─'
+		return "╶", "─"
 	} else if !up && !down && !left && !right {
-		return ' ', ' '
+		return " ", " "
 	} else {
 		panic("should not be possible")
 	}

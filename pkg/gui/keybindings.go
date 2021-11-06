@@ -727,6 +727,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "commits",
 			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Commits.OpenLogMenu),
+			Handler:     gui.handleOpenLogMenu,
+			Description: gui.Tr.LcOpenLogMenu,
+			OpensMenu:   true,
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.SquashDown),
 			Handler:     gui.handleCommitSquashDown,
 			Description: gui.Tr.LcSquashDown,
@@ -1425,6 +1433,20 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:      gocui.MouseWheelDown,
 			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownMain,
+		},
+		{
+			ViewName:    "main",
+			Contexts:    []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY), string(MAIN_MERGING_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Universal.ScrollLeft),
+			Handler:     gui.scrollLeftMain,
+			Description: gui.Tr.LcScrollLeft,
+		},
+		{
+			ViewName:    "main",
+			Contexts:    []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY), string(MAIN_MERGING_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Universal.ScrollRight),
+			Handler:     gui.scrollRightMain,
+			Description: gui.Tr.LcScrollRight,
 		},
 		{
 			ViewName:    "main",

@@ -61,6 +61,14 @@ git:
     manualCommit: false
     # extra args passed to `git merge`, e.g. --no-ff
     args: ''
+  log:
+    # one of date-order, author-date-order, topo-order.
+    # topo-order makes it easier to read the git log graph, but commits may not
+    # appear chronologically. See https://git-scm.com/docs/git-log#_commit_ordering
+    order: 'topo-order'
+    # one of always, never, when-maximised
+    # this determines whether the git graph is rendered in the commits panel
+    showGraph: 'when-maximised'
   skipHookPrefix: WIP
   autoFetch: true
   branchLogCmd: 'git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --'
@@ -100,11 +108,13 @@ keybinding:
     nextPage: '.' # go to previous page in list
     gotoTop: '<' # go to top of list
     gotoBottom: '>' # go to bottom of list
+    scrollLeft: 'H' # scroll left within list view
+    scrollRight: 'L' # scroll right within list view
     prevBlock: '<left>' # goto the previous block / panel
     nextBlock: '<right>' # goto the next block / panel
     prevBlock-alt: 'h' # goto the previous block / panel
     nextBlock-alt: 'l' # goto the next block / panel
-    jumpToBlock: ["1", "2", "3", "4", "5"] # goto the Nth block / panel
+    jumpToBlock: ['1', '2', '3', '4', '5'] # goto the Nth block / panel
     nextMatch: 'n'
     prevMatch: 'N'
     optionMenu: 'x' # show help menu
@@ -192,6 +202,7 @@ keybinding:
     checkoutCommit: '<space>'
     resetCherryPick: '<c-R>'
     copyCommitMessageToClipboard: '<c-y>'
+    openLogMenu: '<c-l>'
   stash:
     popStash: 'g'
   commitFiles:

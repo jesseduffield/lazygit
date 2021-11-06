@@ -69,8 +69,10 @@ type GitConfig struct {
 	OverrideGpg         bool                          `yaml:"overrideGpg"`
 	DisableForcePushing bool                          `yaml:"disableForcePushing"`
 	CommitPrefixes      map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
-	ParseEmoji          bool                          `yaml:"parseEmoji"`
-	EnableGhCommand     bool                          `yaml:"enableGhCommand"`
+	// this shoudl really be under 'gui', not 'git'
+	ParseEmoji      bool      `yaml:"parseEmoji"`
+	Log             LogConfig `yaml:"log"`
+	EnableGhCommand bool      `yaml:"enableGhCommand"`
 }
 
 type PagingConfig struct {
@@ -82,6 +84,11 @@ type PagingConfig struct {
 type MergingConfig struct {
 	ManualCommit bool   `yaml:"manualCommit"`
 	Args         string `yaml:"args"`
+}
+
+type LogConfig struct {
+	Order     string `yaml:"order"`     // one of date-order, author-date-order, topo-order
+	ShowGraph string `yaml:"showGraph"` // one of always, never, when-maximised
 }
 
 type CommitPrefixConfig struct {
@@ -119,6 +126,8 @@ type KeybindingUniversalConfig struct {
 	NextItemAlt                  string   `yaml:"nextItem-alt"`
 	PrevPage                     string   `yaml:"prevPage"`
 	NextPage                     string   `yaml:"nextPage"`
+	ScrollLeft                   string   `yaml:"scrollLeft"`
+	ScrollRight                  string   `yaml:"scrollRight"`
 	GotoTop                      string   `yaml:"gotoTop"`
 	GotoBottom                   string   `yaml:"gotoBottom"`
 	PrevBlock                    string   `yaml:"prevBlock"`
@@ -229,6 +238,7 @@ type KeybindingCommitsConfig struct {
 	CheckoutCommit               string `yaml:"checkoutCommit"`
 	ResetCherryPick              string `yaml:"resetCherryPick"`
 	CopyCommitMessageToClipboard string `yaml:"copyCommitMessageToClipboard"`
+	OpenLogMenu                  string `yaml:"openLogMenu"`
 }
 
 type KeybindingStashConfig struct {
@@ -339,6 +349,10 @@ func GetDefaultConfig() *UserConfig {
 				ManualCommit: false,
 				Args:         "",
 			},
+			Log: LogConfig{
+				Order:     "topo-order",
+				ShowGraph: "when-maximised",
+			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,
 			BranchLogCmd:        "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
@@ -373,6 +387,8 @@ func GetDefaultConfig() *UserConfig {
 				NextItemAlt:                  "j",
 				PrevPage:                     ",",
 				NextPage:                     ".",
+				ScrollLeft:                   "H",
+				ScrollRight:                  "L",
 				GotoTop:                      "<",
 				GotoBottom:                   ">",
 				PrevBlock:                    "<left>",
@@ -479,6 +495,7 @@ func GetDefaultConfig() *UserConfig {
 				CheckoutCommit:               "<space>",
 				ResetCherryPick:              "<c-R>",
 				CopyCommitMessageToClipboard: "<c-y>",
+				OpenLogMenu:                  "<c-l>",
 			},
 			Stash: KeybindingStashConfig{
 				PopStash: "g",

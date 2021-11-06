@@ -37,7 +37,12 @@ type CommitListBuilder struct {
 }
 
 // NewCommitListBuilder builds a new commit list builder
-func NewCommitListBuilder(log *logrus.Entry, gitCommand *GitCommand, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet) *CommitListBuilder {
+func NewCommitListBuilder(
+	log *logrus.Entry,
+	gitCommand *GitCommand,
+	osCommand *oscommands.OSCommand,
+	tr *i18n.TranslationSet,
+) *CommitListBuilder {
 	return &CommitListBuilder{
 		Log:        log,
 		GitCommand: gitCommand,
@@ -88,6 +93,8 @@ type GetCommitsOptions struct {
 	FilterPath           string
 	IncludeRebaseCommits bool
 	RefName              string // e.g. "HEAD" or "my_branch"
+	// determines if we show the whole git graph i.e. pass the '--all' flag
+	All bool
 }
 
 func (c *CommitListBuilder) MergeRebasingCommits(commits []*models.Commit) ([]*models.Commit, error) {
@@ -404,10 +411,20 @@ func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) *exec.Cmd {
 		filterFlag = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(opts.FilterPath))
 	}
 
+	config := c.GitCommand.Config.GetUserConfig().Git.Log
+
+	orderFlag := "--" + config.Order
+	allFlag := ""
+	if opts.All {
+		allFlag = " --all"
+	}
+
 	return c.OSCommand.ExecutableFromString(
 		fmt.Sprintf(
-			"git log %s --oneline %s %s --abbrev=%d %s",
+			"git log %s %s %s --oneline %s %s --abbrev=%d %s",
 			c.OSCommand.Quote(opts.RefName),
+			orderFlag,
+			allFlag,
 			prettyFormat,
 			limitFlag,
 			20,

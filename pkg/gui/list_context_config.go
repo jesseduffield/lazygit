@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"log"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -158,19 +160,46 @@ func (gui *Gui) branchCommitsListContext() IListContext {
 		OnClickSelectedItem: gui.handleViewCommitFiles,
 		Gui:                 gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
+			selectedCommitSha := ""
+			if gui.currentContext().GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
+				selectedCommit := gui.getSelectedLocalCommit()
+				if selectedCommit != nil {
+					selectedCommitSha = selectedCommit.Sha
+				}
+			}
 			return presentation.GetCommitListDisplayStrings(
 				gui.State.Commits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
 				gui.cherryPickedCommitShaMap(),
 				gui.State.Modes.Diffing.Ref,
 				parseEmoji,
+				selectedCommitSha,
+				startIdx,
+				length,
+				gui.shouldShowGraph(),
 			)
 		},
 		SelectedItem: func() (ListItem, bool) {
 			item := gui.getSelectedLocalCommit()
 			return item, item != nil
 		},
+		RenderSelection: true,
 	}
+}
+
+func (gui *Gui) shouldShowGraph() bool {
+	value := gui.Config.GetUserConfig().Git.Log.ShowGraph
+	switch value {
+	case "always":
+		return true
+	case "never":
+		return false
+	case "when-maximised":
+		return gui.State.ScreenMode != SCREEN_NORMAL
+	}
+
+	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
+	return false
 }
 
 func (gui *Gui) reflogCommitsListContext() IListContext {
@@ -216,18 +245,30 @@ func (gui *Gui) subCommitsListContext() IListContext {
 		OnFocus:         gui.handleSubCommitSelect,
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
+			selectedCommitSha := ""
+			if gui.currentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
+				selectedCommit := gui.getSelectedSubCommit()
+				if selectedCommit != nil {
+					selectedCommitSha = selectedCommit.Sha
+				}
+			}
 			return presentation.GetCommitListDisplayStrings(
 				gui.State.SubCommits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
 				gui.cherryPickedCommitShaMap(),
 				gui.State.Modes.Diffing.Ref,
 				parseEmoji,
+				selectedCommitSha,
+				0,
+				len(gui.State.SubCommits),
+				gui.shouldShowGraph(),
 			)
 		},
 		SelectedItem: func() (ListItem, bool) {
 			item := gui.getSelectedSubCommit()
 			return item, item != nil
 		},
+		RenderSelection: true,
 	}
 }
 
@@ -362,6 +403,8 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.GotoTop), Modifier: gocui.ModNone, Handler: listContext.handleGotoTop, Description: gui.Tr.LcGotoTop},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
 			{ViewName: listContext.GetViewName(), Contexts: []string{string(listContext.GetKey())}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listContext.handleClick},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.ScrollLeft), Modifier: gocui.ModNone, Handler: listContext.handleScrollLeft},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.ScrollRight), Modifier: gocui.ModNone, Handler: listContext.handleScrollRight},
 		}...)
 
 		// the commits panel needs to lazyload things so it has a couple of its own handlers

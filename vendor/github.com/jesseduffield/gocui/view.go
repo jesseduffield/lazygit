@@ -218,7 +218,7 @@ func (v *View) SelectSearchResult(index int) error {
 	}
 
 	y := v.searcher.searchPositions[index].y
-	v.FocusPoint(0, y)
+	v.FocusPoint(v.ox, y)
 	if v.searcher.onSelectItem != nil {
 		return v.searcher.onSelectItem(y, index, itemCount)
 	}
@@ -227,10 +227,9 @@ func (v *View) SelectSearchResult(index int) error {
 
 func (v *View) Search(str string) error {
 	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
 	v.searcher.search(str)
 	v.updateSearchPositions()
+
 	if len(v.searcher.searchPositions) > 0 {
 		// get the first result past the current cursor
 		currentIndex := 0
@@ -243,8 +242,10 @@ func (v *View) Search(str string) error {
 			}
 		}
 		v.searcher.currentSearchIndex = currentIndex
+		v.writeMutex.Unlock()
 		return v.SelectSearchResult(currentIndex)
 	} else {
+		v.writeMutex.Unlock()
 		return v.searcher.onSelectItem(-1, -1, 0)
 	}
 }
@@ -475,9 +476,33 @@ func (v *View) SetOrigin(x, y int) error {
 	return nil
 }
 
+func (v *View) SetOriginX(x int) error {
+	if x < 0 {
+		return ErrInvalidPoint
+	}
+	v.ox = x
+	return nil
+}
+
+func (v *View) SetOriginY(y int) error {
+	if y < 0 {
+		return ErrInvalidPoint
+	}
+	v.oy = y
+	return nil
+}
+
 // Origin returns the origin position of the view.
 func (v *View) Origin() (x, y int) {
-	return v.ox, v.oy
+	return v.OriginX(), v.OriginY()
+}
+
+func (v *View) OriginX() int {
+	return v.ox
+}
+
+func (v *View) OriginY() int {
+	return v.oy
 }
 
 // SetWritePos sets the write position of the view's internal buffer.
@@ -879,11 +904,18 @@ func (v *View) draw() error {
 	if v.Autoscroll && visibleViewLinesHeight > maxY {
 		v.oy = visibleViewLinesHeight - maxY
 	}
+
+	if len(v.viewLines) == 0 {
+		return nil
+	}
+
+	start := v.oy
+	if start > len(v.viewLines)-1 {
+		start = len(v.viewLines) - 1
+	}
+
 	y := 0
-	for i, vline := range v.viewLines {
-		if i < v.oy {
-			continue
-		}
+	for _, vline := range v.viewLines[start:] {
 		if y >= maxY {
 			break
 		}
@@ -1112,14 +1144,6 @@ func (v *View) SetHighlight(y int, on bool) error {
 	return nil
 }
 
-func lineWidth(line []cell) (n int) {
-	for i := range line {
-		n += runewidth.RuneWidth(line[i].chr)
-	}
-
-	return
-}
-
 func lineWrap(line []cell, columns int) [][]cell {
 	if columns == 0 {
 		return [][]cell{line}
@@ -1226,4 +1250,17 @@ func (v *View) ClearTextArea() {
 	v.TextArea.Clear()
 	_ = v.SetOrigin(0, 0)
 	_ = v.SetCursor(0, 0)
+}
+
+// only call this function if you don't care where v.wx and v.wy end up
+func (v *View) OverwriteLines(y int, content string) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	// break by newline, then for each line, write it, then add that erase command
+	v.wx = 0
+	v.wy = y
+
+	lines := strings.Replace(content, "\n", "\x1b[K\n", -1)
+	v.writeString(lines)
 }

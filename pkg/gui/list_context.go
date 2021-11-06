@@ -2,6 +2,8 @@ package gui
 
 import (
 	"fmt"
+
+	"github.com/jesseduffield/gocui"
 )
 
 type ListContext struct {
@@ -14,6 +16,10 @@ type ListContext struct {
 	// the boolean here tells us whether the item is nil. This is needed because you can't work it out on the calling end once the pointer is wrapped in an interface (unless you want to use reflection)
 	SelectedItem    func() (ListItem, bool)
 	OnGetPanelState func() IListPanelState
+	// if this is true, we'll call GetDisplayStrings for just the visible part of the
+	// view and re-render that. This is useful when you need to render different
+	// content based on the selection (e.g. for showing the selected commit)
+	RenderSelection bool
 
 	Gui *Gui
 
@@ -26,6 +32,8 @@ type IListContext interface {
 	OnRender() error
 	handlePrevLine() error
 	handleNextLine() error
+	handleScrollLeft() error
+	handleScrollRight() error
 	handleLineChange(change int) error
 	handleNextPage() error
 	handleGotoTop() error
@@ -60,10 +68,17 @@ type ListItem interface {
 func (self *ListContext) FocusLine() {
 	view, err := self.Gui.g.View(self.ViewName)
 	if err != nil {
+		// ignoring error for now
 		return
 	}
 
-	view.FocusPoint(0, self.GetPanelState().GetSelectedLineIdx())
+	// we need a way of knowing whether we've rendered to the view yet.
+	view.FocusPoint(view.OriginX(), self.GetPanelState().GetSelectedLineIdx())
+	if self.RenderSelection {
+		_, originY := view.Origin()
+		displayStrings := self.GetDisplayStrings(originY, view.InnerHeight())
+		self.Gui.renderDisplayStringsAtPos(view, originY, displayStrings)
+	}
 	view.Footer = formatListFooter(self.GetPanelState().GetSelectedLineIdx(), self.GetItemsLength())
 }
 
@@ -106,6 +121,13 @@ func (self *ListContext) HandleFocusLost() error {
 		return self.OnFocusLost()
 	}
 
+	view, err := self.Gui.g.View(self.ViewName)
+	if err != nil {
+		return nil
+	}
+
+	_ = view.SetOriginX(0)
+
 	return nil
 }
 
@@ -139,8 +161,36 @@ func (self *ListContext) handleNextLine() error {
 	return self.handleLineChange(1)
 }
 
+func (self *ListContext) handleScrollLeft() error {
+	return self.scroll(self.Gui.scrollLeft)
+}
+
+func (self *ListContext) handleScrollRight() error {
+	return self.scroll(self.Gui.scrollRight)
+}
+
+func (self *ListContext) scroll(scrollFunc func(*gocui.View)) error {
+	if self.ignoreKeybinding() {
+		return nil
+	}
+
+	// get the view, move the origin
+	view, err := self.Gui.g.View(self.ViewName)
+	if err != nil {
+		return nil
+	}
+
+	scrollFunc(view)
+
+	return self.HandleFocus()
+}
+
+func (self *ListContext) ignoreKeybinding() bool {
+	return !self.Gui.isPopupPanel(self.ViewName) && self.Gui.popupPanelFocused()
+}
+
 func (self *ListContext) handleLineChange(change int) error {
-	if !self.Gui.isPopupPanel(self.ViewName) && self.Gui.popupPanelFocused() {
+	if self.ignoreKeybinding() {
 		return nil
 	}
 
@@ -184,7 +234,7 @@ func (self *ListContext) handlePrevPage() error {
 }
 
 func (self *ListContext) handleClick() error {
-	if !self.Gui.isPopupPanel(self.ViewName) && self.Gui.popupPanelFocused() {
+	if self.ignoreKeybinding() {
 		return nil
 	}
 

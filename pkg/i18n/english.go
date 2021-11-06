@@ -271,6 +271,9 @@ type TranslationSet struct {
 	LcStashOptions                      string
 	NotARepository                      string
 	LcJump                              string
+	LcScrollLeftRight                   string
+	LcScrollLeft                        string
+	LcScrollRight                       string
 	DiscardPatch                        string
 	DiscardPatchConfirm                 string
 	CantPatchWhileRebasingError         string
@@ -434,6 +437,7 @@ type TranslationSet struct {
 	SelectConfigFile                    string
 	NoConfigFileFoundErr                string
 	LcLoadingFileSuggestions            string
+	LcLoadingCommits                    string
 	MustSpecifyOriginError              string
 	GitOutput                           string
 	GitCommandFailed                    string
@@ -441,6 +445,11 @@ type TranslationSet struct {
 	AbortTitle                          string
 	AbortPrompt                         string
 	SelectRemoteRepository              string
+	LcOpenLogMenu                       string
+	LogMenuTitle                        string
+	ToggleShowGitGraphAll               string
+	ShowGitGraph                        string
+	SortCommits                         string
 	Spans                               Spans
 }
 
@@ -805,6 +814,9 @@ func englishTranslationSet() TranslationSet {
 		LcStashOptions:                      "Stash options",
 		NotARepository:                      "Error: must be run inside a git repository",
 		LcJump:                              "jump to panel",
+		LcScrollLeftRight:                   "scroll left/right",
+		LcScrollLeft:                        "scroll left",
+		LcScrollRight:                       "scroll right",
 		DiscardPatch:                        "Discard Patch",
 		DiscardPatchConfirm:                 "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
 		CantPatchWhileRebasingError:         "You cannot build a patch or run patch commands while in a merging or rebasing state",
@@ -969,12 +981,18 @@ func englishTranslationSet() TranslationSet {
 		SelectConfigFile:                    "Select config file",
 		NoConfigFileFoundErr:                "No config file found",
 		LcLoadingFileSuggestions:            "loading file suggestions",
+		LcLoadingCommits:                    "loading commits",
 		MustSpecifyOriginError:              "Must specify a remote if specifying a branch",
 		GitOutput:                           "Git output:",
 		GitCommandFailed:                    "Git command failed. Check command log for details (open with %s)",
 		OpenPr:                              "Open PR #",
 		AbortTitle:                          "Abort %s",
 		AbortPrompt:                         "Are you sure you want to abort the current %s?",
+		LcOpenLogMenu:                       "open log menu",
+		LogMenuTitle:                        "Commit Log Options",
+		ToggleShowGitGraphAll:               "toggle show whole git graph (pass the `--all` flag to `git log`)",
+		ShowGitGraph:                        "show git graph",
+		SortCommits:                         "commit sort order",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

@@ -29,15 +29,6 @@ func (gui *Gui) getRemoteNames() []string {
 	return result
 }
 
-// func (gui *Gui) getRemoteUrls() []string {
-// 	result := make([]string, len(gui.State.Remotes))
-// 	for i, remote := range gui.State.Remotes {
-// 		result[i] = remote.Urls[0]
-// 		gui.GitCommand.GetRemotesToOwnersMap()
-// 	}
-// 	return result
-// }
-
 func matchesToSuggestions(matches []string) []*types.Suggestion {
 	suggestions := make([]*types.Suggestion, len(matches))
 	for i, match := range matches {

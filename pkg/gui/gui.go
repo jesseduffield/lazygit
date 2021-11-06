@@ -23,6 +23,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -145,9 +146,9 @@ type LblPanelState struct {
 type MergingPanelState struct {
 	*mergeconflicts.State
 
-	// UserScrolling tells us if the user has started scrolling through the file themselves
+	// UserVerticalScrolling tells us if the user has started scrolling through the file themselves
 	// in which case we won't auto-scroll to a conflict.
-	UserScrolling bool
+	UserVerticalScrolling bool
 }
 
 type filePanelState struct {
@@ -315,6 +316,8 @@ type guiState struct {
 	RetainOriginalDir bool
 	IsRefreshingFiles bool
 	Searching         searchingState
+	// if this is true, we'll load our commits using `git log --all`
+	ShowWholeGitGraph bool
 	ScreenMode        WindowMaximisation
 	Ptmx              *os.File
 	PrevMainWidth     int
@@ -400,7 +403,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			Remotes:        &remotePanelState{listPanelState{SelectedLineIdx: 0}},
 			RemoteBranches: &remoteBranchesState{listPanelState{SelectedLineIdx: -1}},
 			Tags:           &tagsPanelState{listPanelState{SelectedLineIdx: -1}},
-			Commits:        &commitPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, LimitCommits: true},
+			Commits:        &commitPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, LimitCommits: true},
 			ReflogCommits:  &reflogCommitPanelState{listPanelState{SelectedLineIdx: 0}},
 			SubCommits:     &subCommitPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, refName: ""},
 			CommitFiles:    &commitFilesPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, refName: ""},
@@ -408,8 +411,8 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, OnPress: nil},
 			Suggestions:    &suggestionsPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}},
 			Merging: &MergingPanelState{
-				State:         mergeconflicts.NewState(),
-				UserScrolling: false,
+				State:                 mergeconflicts.NewState(),
+				UserVerticalScrolling: false,
 			},
 		},
 		GithubState: &GithubState{},
@@ -466,8 +469,8 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 
 var RuneReplacements = map[rune]string{
 	// for the commit graph
-	'⏣': "M",
-	'⎔': "o",
+	graph.MergeSymbol:  "M",
+	graph.CommitSymbol: "o",
 }
 
 // Run setup the gui with keybindings and start the mainloop

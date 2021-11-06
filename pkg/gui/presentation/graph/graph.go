@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -29,7 +30,7 @@ type Pipe struct {
 
 var highlightStyle = style.FgLightWhite.SetBold()
 
-func ContainsCommitSha(pipes []Pipe, sha string) bool {
+func ContainsCommitSha(pipes []*Pipe, sha string) bool {
 	for _, pipe := range pipes {
 		if equalHashes(pipe.fromSha, sha) {
 			return true
@@ -57,14 +58,14 @@ func RenderCommitGraph(commits []*models.Commit, selectedCommitSha string, getSt
 	return lines
 }
 
-func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style.TextStyle) [][]Pipe {
+func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style.TextStyle) [][]*Pipe {
 	if len(commits) == 0 {
 		return nil
 	}
 
-	pipes := []Pipe{{fromPos: 0, toPos: 0, fromSha: "START", toSha: commits[0].Sha, kind: STARTS, style: style.FgDefault}}
+	pipes := []*Pipe{{fromPos: 0, toPos: 0, fromSha: "START", toSha: commits[0].Sha, kind: STARTS, style: style.FgDefault}}
 
-	pipeSets := [][]Pipe{}
+	pipeSets := [][]*Pipe{}
 	for _, commit := range commits {
 		pipes = getNextPipes(pipes, commit, getStyle)
 		pipeSets = append(pipeSets, pipes)
@@ -73,29 +74,51 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style
 	return pipeSets
 }
 
-func RenderAux(pipeSets [][]Pipe, commits []*models.Commit, selectedCommitSha string) []string {
-	lines := make([]string, len(pipeSets))
+func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitSha string) []string {
+	maxProcs := runtime.GOMAXPROCS(0)
+
+	lines := make([]string, 0, len(pipeSets))
+	// splitting up the rendering of the graph into multiple goroutines allows us to render the graph in parallel
+	chunks := make([][]string, maxProcs)
+	perProc := len(pipeSets) / maxProcs
+
 	wg := sync.WaitGroup{}
-	wg.Add(len(pipeSets))
-	for i, pipeSet := range pipeSets {
+	wg.Add(maxProcs)
+
+	for i := 0; i < maxProcs; i++ {
 		i := i
-		pipeSet := pipeSet
 		go func() {
-			defer wg.Done()
-			var prevCommit *models.Commit
-			if i > 0 {
-				prevCommit = commits[i-1]
+			from := i * perProc
+			to := (i + 1) * perProc
+			if i == maxProcs-1 {
+				to = len(pipeSets)
 			}
-			line := renderPipeSet(pipeSet, selectedCommitSha, prevCommit)
-			lines[i] = line
+			innerLines := make([]string, 0, to-from)
+			for j, pipeSet := range pipeSets[from:to] {
+				k := from + j
+				var prevCommit *models.Commit
+				if k > 0 {
+					prevCommit = commits[k-1]
+				}
+				line := renderPipeSet(pipeSet, selectedCommitSha, prevCommit)
+				innerLines = append(innerLines, line)
+			}
+			chunks[i] = innerLines
+			wg.Done()
 		}()
 	}
+
 	wg.Wait()
+
+	for _, chunk := range chunks {
+		lines = append(lines, chunk...)
+	}
+
 	return lines
 }
 
-func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *models.Commit) style.TextStyle) []Pipe {
-	currentPipes := make([]Pipe, 0, len(prevPipes))
+func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *models.Commit) style.TextStyle) []*Pipe {
+	currentPipes := make([]*Pipe, 0, len(prevPipes))
 	maxPos := 0
 	for _, pipe := range prevPipes {
 		// a pipe that terminated in the previous line has no bearing on the current line
@@ -106,7 +129,7 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 		maxPos = utils.Max(maxPos, pipe.toPos)
 	}
 
-	newPipes := make([]Pipe, 0, len(currentPipes)+len(commit.Parents))
+	newPipes := make([]*Pipe, 0, len(currentPipes)+len(commit.Parents))
 	// start by assuming that we've got a brand new commit not related to any preceding commit.
 	// (this only happens when we're doing `git log --all`). These will be tacked onto the far end.
 	pos := maxPos + 1
@@ -124,7 +147,7 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 	traversedSpots := make(map[int]bool)
 
 	if len(commit.Parents) > 0 {
-		newPipes = append(newPipes, Pipe{
+		newPipes = append(newPipes, &Pipe{
 			fromPos: pos,
 			toPos:   pos,
 			fromSha: commit.Sha,
@@ -177,7 +200,7 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 	for _, pipe := range currentPipes {
 		if equalHashes(pipe.toSha, commit.Sha) {
 			// terminating here
-			newPipes = append(newPipes, Pipe{
+			newPipes = append(newPipes, &Pipe{
 				fromPos: pipe.toPos,
 				toPos:   pos,
 				fromSha: pipe.fromSha,
@@ -189,7 +212,7 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 		} else if pipe.toPos < pos {
 			// continuing here
 			availablePos := getNextAvailablePosForContinuingPipe()
-			newPipes = append(newPipes, Pipe{
+			newPipes = append(newPipes, &Pipe{
 				fromPos: pipe.toPos,
 				toPos:   availablePos,
 				fromSha: pipe.fromSha,
@@ -205,7 +228,7 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 		for _, parent := range commit.Parents[1:] {
 			availablePos := getNextAvailablePosForNewPipe()
 			// need to act as if continuing pipes are going to continue on the same line.
-			newPipes = append(newPipes, Pipe{
+			newPipes = append(newPipes, &Pipe{
 				fromPos: pos,
 				toPos:   availablePos,
 				fromSha: commit.Sha,
@@ -229,7 +252,7 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 					last = i
 				}
 			}
-			newPipes = append(newPipes, Pipe{
+			newPipes = append(newPipes, &Pipe{
 				fromPos: pipe.toPos,
 				toPos:   last,
 				fromSha: pipe.fromSha,
@@ -253,7 +276,7 @@ func getNextPipes(prevPipes []Pipe, commit *models.Commit, getStyle func(c *mode
 }
 
 func renderPipeSet(
-	pipes []Pipe,
+	pipes []*Pipe,
 	selectedCommitSha string,
 	prevCommit *models.Commit,
 ) string {
@@ -279,7 +302,7 @@ func renderPipeSet(
 		cells[i] = &Cell{cellType: CONNECTION, style: style.FgDefault}
 	}
 
-	renderPipe := func(pipe Pipe, style style.TextStyle, overrideRightStyle bool) {
+	renderPipe := func(pipe *Pipe, style style.TextStyle, overrideRightStyle bool) {
 		left := pipe.left()
 		right := pipe.right()
 
@@ -313,9 +336,9 @@ func renderPipeSet(
 
 	// so we have our commit pos again, now it's time to build the cells.
 	// we'll handle the one that's sourced from our selected commit last so that it can override the other cells.
-	selectedPipes := []Pipe{}
+	selectedPipes := []*Pipe{}
 	// pre-allocating this one because most of the time we'll only have non-selected pipes
-	nonSelectedPipes := make([]Pipe, 0, len(pipes))
+	nonSelectedPipes := make([]*Pipe, 0, len(pipes))
 
 	for _, pipe := range pipes {
 		if highlight && equalHashes(pipe.fromSha, selectedCommitSha) {
@@ -356,11 +379,13 @@ func renderPipeSet(
 
 	cells[commitPos].setType(cType)
 
-	renderedCells := make([]string, len(cells))
-	for i, cell := range cells {
-		renderedCells[i] = cell.render()
+	// using a string builder here for the sake of performance
+	writer := &strings.Builder{}
+	writer.Grow(len(cells) * 2)
+	for _, cell := range cells {
+		cell.render(writer)
 	}
-	return strings.Join(renderedCells, "")
+	return writer.String()
 }
 
 func equalHashes(a, b string) bool {

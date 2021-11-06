@@ -10,6 +10,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// after selecting the 200th commit, we'll load in all the rest
+const COMMIT_THRESHOLD = 200
+
 // list panel functions
 
 func (gui *Gui) getSelectedLocalCommit() *models.Commit {
@@ -23,7 +26,7 @@ func (gui *Gui) getSelectedLocalCommit() *models.Commit {
 
 func (gui *Gui) handleCommitSelect() error {
 	state := gui.State.Panels.Commits
-	if state.SelectedLineIdx > 290 && state.LimitCommits {
+	if state.SelectedLineIdx > COMMIT_THRESHOLD && state.LimitCommits {
 		state.LimitCommits = false
 		go utils.Safe(func() {
 			if err := gui.refreshCommitsWithLimit(); err != nil {
@@ -134,6 +137,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
 			RefName:              "HEAD",
+			All:                  gui.State.ShowWholeGitGraph,
 		},
 	)
 	if err != nil {
@@ -678,4 +682,88 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 	gui.raiseToast(gui.Tr.CommitMessageCopiedToClipboard)
 
 	return nil
+}
+
+func (gui *Gui) handleOpenLogMenu() error {
+	return gui.createMenu(gui.Tr.LogMenuTitle, []*menuItem{
+		{
+			displayString: gui.Tr.ToggleShowGitGraphAll,
+			onPress: func() error {
+				gui.State.ShowWholeGitGraph = !gui.State.ShowWholeGitGraph
+
+				if gui.State.ShowWholeGitGraph {
+					gui.State.Panels.Commits.LimitCommits = false
+				}
+
+				return gui.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
+					return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}})
+				})
+			},
+		},
+		{
+			displayString: gui.Tr.ShowGitGraph,
+			opensMenu:     true,
+			onPress: func() error {
+				onSelect := func(value string) {
+					gui.Config.GetUserConfig().Git.Log.ShowGraph = value
+					gui.render()
+				}
+				return gui.createMenu(gui.Tr.LogMenuTitle, []*menuItem{
+					{
+						displayString: "always",
+						onPress: func() error {
+							onSelect("always")
+							return nil
+						},
+					},
+					{
+						displayString: "never",
+						onPress: func() error {
+							onSelect("never")
+							return nil
+						},
+					},
+					{
+						displayString: "when maximised",
+						onPress: func() error {
+							onSelect("when-maximised")
+							return nil
+						},
+					},
+				}, createMenuOptions{showCancel: true})
+			},
+		},
+		{
+			displayString: gui.Tr.SortCommits,
+			opensMenu:     true,
+			onPress: func() error {
+				onSelect := func(value string) error {
+					gui.Config.GetUserConfig().Git.Log.Order = value
+					return gui.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
+						return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}})
+					})
+				}
+				return gui.createMenu(gui.Tr.LogMenuTitle, []*menuItem{
+					{
+						displayString: "topological (topo-order)",
+						onPress: func() error {
+							return onSelect("topo-order")
+						},
+					},
+					{
+						displayString: "date-order",
+						onPress: func() error {
+							return onSelect("date-order")
+						},
+					},
+					{
+						displayString: "author-date-order",
+						onPress: func() error {
+							return onSelect("author-date-order")
+						},
+					},
+				}, createMenuOptions{showCancel: true})
+			},
+		},
+	}, createMenuOptions{showCancel: true})
 }

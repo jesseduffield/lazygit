@@ -14,6 +14,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const THROTTLE_TIME = time.Millisecond * 30
+
+// we use this to check if the system is under stress right now. Hopefully this makes sense on other machines
+const COMMAND_START_THRESHOLD = time.Millisecond * 10
+
 type Task struct {
 	stop          chan struct{}
 	stopped       bool
@@ -38,6 +43,12 @@ type ViewBufferManager struct {
 	beforeStart  func()
 	refreshView  func()
 	onEndOfInput func()
+
+	// if the user flicks through a heap of items, with each one
+	// spawning a process to render something to the main view,
+	// it can slow things down quite a bit. In these situations we
+	// want to throttle the spawning of processes.
+	throttle bool
 }
 
 func (m *ViewBufferManager) GetTaskKey() string {
@@ -69,17 +80,34 @@ func (m *ViewBufferManager) ReadLines(n int) {
 	})
 }
 
-func (m *ViewBufferManager) NewCmdTask(r io.Reader, cmd *exec.Cmd, prefix string, linesToRead int, onDone func()) func(chan struct{}) error {
+func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead int, onDone func()) func(chan struct{}) error {
 	return func(stop chan struct{}) error {
+		if m.throttle {
+			m.Log.Info("throttling task")
+			time.Sleep(THROTTLE_TIME)
+		}
+
+		select {
+		case <-stop:
+			return nil
+		default:
+		}
+
+		startTime := time.Now()
+		cmd, r := start()
+		timeToStart := time.Since(startTime)
+
 		go utils.Safe(func() {
 			<-stop
+			// we use the time it took to start the program as a way of checking if things
+			// are running slow at the moment. This is admittedly a crude estimate, but
+			// the point is that we only want to throttle when things are running slow
+			// and the user is flicking through a bunch of items.
+			m.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
 			if err := oscommands.Kill(cmd); err != nil {
 				if !strings.Contains(err.Error(), "process already finished") {
 					m.Log.Errorf("error when running cmd task: %v", err)
 				}
-			}
-			if onDone != nil {
-				onDone()
 			}
 		})
 
