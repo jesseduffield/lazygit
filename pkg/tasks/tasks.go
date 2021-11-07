@@ -109,6 +109,10 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 					m.Log.Errorf("error when running cmd task: %v", err)
 				}
 			}
+
+			if onDone != nil {
+				onDone()
+			}
 		})
 
 		loadingMutex := sync.Mutex{}
