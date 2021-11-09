@@ -186,6 +186,47 @@ func (gui *Gui) branchCommitsListContext() IListContext {
 	}
 }
 
+func (gui *Gui) subCommitsListContext() IListContext {
+	parseEmoji := gui.Config.GetUserConfig().Git.ParseEmoji
+	return &ListContext{
+		BasicContext: &BasicContext{
+			ViewName:   "branches",
+			WindowName: "branches",
+			Key:        SUB_COMMITS_CONTEXT_KEY,
+			Kind:       SIDE_CONTEXT,
+		},
+		GetItemsLength:  func() int { return len(gui.State.SubCommits) },
+		OnGetPanelState: func() IListPanelState { return gui.State.Panels.SubCommits },
+		OnFocus:         gui.handleSubCommitSelect,
+		Gui:             gui,
+		GetDisplayStrings: func(startIdx int, length int) [][]string {
+			selectedCommitSha := ""
+			if gui.currentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
+				selectedCommit := gui.getSelectedSubCommit()
+				if selectedCommit != nil {
+					selectedCommitSha = selectedCommit.Sha
+				}
+			}
+			return presentation.GetCommitListDisplayStrings(
+				gui.State.SubCommits,
+				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.cherryPickedCommitShaMap(),
+				gui.State.Modes.Diffing.Ref,
+				parseEmoji,
+				selectedCommitSha,
+				startIdx,
+				length,
+				gui.shouldShowGraph(),
+			)
+		},
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedSubCommit()
+			return item, item != nil
+		},
+		RenderSelection: true,
+	}
+}
+
 func (gui *Gui) shouldShowGraph() bool {
 	value := gui.Config.GetUserConfig().Git.Log.ShowGraph
 	switch value {
@@ -227,47 +268,6 @@ func (gui *Gui) reflogCommitsListContext() IListContext {
 			item := gui.getSelectedReflogCommit()
 			return item, item != nil
 		},
-	}
-}
-
-func (gui *Gui) subCommitsListContext() IListContext {
-	parseEmoji := gui.Config.GetUserConfig().Git.ParseEmoji
-	return &ListContext{
-		BasicContext: &BasicContext{
-			ViewName:   "branches",
-			WindowName: "branches",
-			Key:        SUB_COMMITS_CONTEXT_KEY,
-			Kind:       SIDE_CONTEXT,
-		},
-		GetItemsLength:  func() int { return len(gui.State.SubCommits) },
-		OnGetPanelState: func() IListPanelState { return gui.State.Panels.SubCommits },
-		OnFocus:         gui.handleSubCommitSelect,
-		Gui:             gui,
-		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			selectedCommitSha := ""
-			if gui.currentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
-				selectedCommit := gui.getSelectedSubCommit()
-				if selectedCommit != nil {
-					selectedCommitSha = selectedCommit.Sha
-				}
-			}
-			return presentation.GetCommitListDisplayStrings(
-				gui.State.SubCommits,
-				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.cherryPickedCommitShaMap(),
-				gui.State.Modes.Diffing.Ref,
-				parseEmoji,
-				selectedCommitSha,
-				0,
-				len(gui.State.SubCommits),
-				gui.shouldShowGraph(),
-			)
-		},
-		SelectedItem: func() (ListItem, bool) {
-			item := gui.getSelectedSubCommit()
-			return item, item != nil
-		},
-		RenderSelection: true,
 	}
 }
 
