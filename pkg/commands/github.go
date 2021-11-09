@@ -40,7 +40,7 @@ func (c *GitCommand) GenerateGithubPullRequestMap(prs []*models.GithubPullReques
 	}
 
 	for _, branch := range branches {
-		if !branch.IsTrackingRemote() {
+		if !branch.IsTrackingRemote() || branch.BranchName() == "" {
 			continue
 		}
 
