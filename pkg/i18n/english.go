@@ -445,6 +445,7 @@ type TranslationSet struct {
 	AbortTitle                          string
 	AbortPrompt                         string
 	SelectRemoteRepository              string
+	LcSelectingRemote                   string
 	LcOpenLogMenu                       string
 	LogMenuTitle                        string
 	ToggleShowGitGraphAll               string
@@ -956,7 +957,8 @@ func englishTranslationSet() TranslationSet {
 		SuggestionsTitle:                    "Suggestions (press %s to focus)",
 		ExtrasTitle:                         "Extras",
 		PushingTagStatus:                    "pushing tag",
-		SelectRemoteRepository:              "Select Remote Repository",
+		SelectRemoteRepository:              "select base remote repository",
+		LcSelectingRemote:                   "selecting remote",
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
 		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
 		LcCopiedToClipboard:                 "copied to clipboard",

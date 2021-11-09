@@ -50,12 +50,12 @@ func getBranchDisplayStrings(
 		recencyColor = style.FgGreen
 	}
 
-	res := []string{recencyColor.Sprint(b.Recency), coloredName}
+	res := []string{recencyColor.Sprint(b.Recency)}
 	pr, hasPr := prs[b]
-	res = append(res, coloredPrNumber(pr, hasPr))
+	res = append(res, coloredPrNumber(pr, hasPr), coloredName)
 
 	if fullDescription {
-		return append(res, style.FgYellow.Sprint(b.UpstreamName))
+		res = append(res, style.FgYellow.Sprint(b.UpstreamName))
 	}
 	return res
 }

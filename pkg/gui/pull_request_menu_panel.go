@@ -39,7 +39,10 @@ func (gui *Gui) createOrOpenPullRequestMenu(selectedBranch *models.Branch, check
 		}
 	}
 
-	pr, hasPr := gui.GetPr(selectedBranch)
+	pr, hasPr, err := gui.GetPr(selectedBranch)
+	if err != nil {
+		return err
+	}
 
 	if hasPr {
 		menuItems = append(menuItems, &menuItem{

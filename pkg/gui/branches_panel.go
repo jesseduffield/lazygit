@@ -77,7 +77,6 @@ func (gui *Gui) refreshBranches() {
 
 func (gui *Gui) refreshGithubPullRequests() {
 	_, err := gui.GitCommand.RunCommandWithOutput("git config --local --get-regexp .gh-resolved$")
-
 	if err == nil {
 		_ = gui.setGithubPullRequests()
 		return
@@ -86,20 +85,18 @@ func (gui *Gui) refreshGithubPullRequests() {
 	// when config not exits
 	_ = gui.refreshRemotes()
 	_ = gui.prompt(promptOpts{
-		title:               "Select remote Repository",
+		title:               gui.Tr.SelectRemoteRepository,
 		initialContent:      "",
-		findSuggestionsFunc: gui.getRemoteUrlSuggestionsFunc(),
+		findSuggestionsFunc: gui.getRemoteRepoSuggestionsFunc(),
 		handleConfirm: func(repository string) error {
-			return gui.WithWaitingStatus(gui.Tr.SelectRemoteRepository, func() error {
+			return gui.WithWaitingStatus(gui.Tr.LcSelectingRemote, func() error {
 				// ex git config --local --add "remote.origin.gh-resolved" "jesseduffield/lazygit"
 				_, err := gui.GitCommand.RunCommandWithOutput(fmt.Sprintf("git config --local --add \"remote.origin.gh-resolved\" \"%s\"", repository))
-
 				if err != nil {
 					return err
 				}
 
 				err = gui.setGithubPullRequests()
-
 				if err != nil {
 					return err
 				}
@@ -134,7 +131,10 @@ func (gui *Gui) handleBranchPress() error {
 
 func (gui *Gui) handleCreateOrShowPullRequestPress() error {
 	branch := gui.getSelectedBranch()
-	pr, hasPr := gui.GetPr(branch)
+	pr, hasPr, err := gui.GetPr(branch)
+	if err != nil {
+		return err
+	}
 
 	if hasPr {
 		return gui.OSCommand.OpenLink(pr.Url)

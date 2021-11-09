@@ -21,16 +21,17 @@ func (c *GitCommand) GithubMostRecentPRs() ([]*models.GithubPullRequest, error) 
 	return prs, nil
 }
 
-func (c *GitCommand) GenerateGithubPullRequestMap(prs []*models.GithubPullRequest, branches []*models.Branch) map[*models.Branch]*models.GithubPullRequest {
+func (c *GitCommand) GenerateGithubPullRequestMap(prs []*models.GithubPullRequest, branches []*models.Branch, remotes []*models.Remote) (map[*models.Branch]*models.GithubPullRequest, error) {
 	res := map[*models.Branch]*models.GithubPullRequest{}
 
 	if len(prs) == 0 {
-		return res
+		return res, nil
 	}
 
-	remotesToOwnersMap, _ := c.GetRemotesToOwnersMap()
+	remotesToOwnersMap, err := c.GetRemotesToOwnersMap(remotes)
+
 	if len(remotesToOwnersMap) == 0 {
-		return res
+		return res, err
 	}
 
 	prWithStringKey := map[string]models.GithubPullRequest{}
@@ -57,5 +58,5 @@ func (c *GitCommand) GenerateGithubPullRequestMap(prs []*models.GithubPullReques
 		res[branch] = &pr
 	}
 
-	return res
+	return res, nil
 }

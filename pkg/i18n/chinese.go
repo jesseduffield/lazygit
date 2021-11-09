@@ -434,6 +434,7 @@ func chineseTranslationSet() TranslationSet {
 		CommandLogHeader:                    "您可以通过按 '%s' 隐藏或集中显示该面板，或使用 `gui.showCommandLog: false`\n将其永久隐藏在您的配置中",
 		RandomTip:                           "随机提示",
 		SelectRemoteRepository:              "选择存储库",
+		LcSelectingRemote:                   "选择遥控器",
 		SelectParentCommitForMerge:          "选择父提交进行合并",
 		ToggleWhitespaceInDiffView:          "切换是否在差异视图中显示空白更改",
 		IgnoringWhitespaceInDiffView:        "差异视图中的空格将被忽略",

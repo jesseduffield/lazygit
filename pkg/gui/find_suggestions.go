@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -46,15 +47,24 @@ func (gui *Gui) getRemoteSuggestionsFunc() func(string) []*types.Suggestion {
 	return fuzzySearchFunc(remoteNames)
 }
 
-func (gui *Gui) getRemoteUrlSuggestionsFunc() func(string) []*types.Suggestion {
-	remotesToOwnersMap, _ := gui.GitCommand.GetRemotesToRepositoryMap()
-	result := make([]string, len(remotesToOwnersMap))
-	i := 0
-	for owner, repository := range remotesToOwnersMap {
-		result[i] = owner + "/" + repository
-		i++
+func (gui *Gui) getRemoteRepoSuggestionsFunc() func(string) []*types.Suggestion {
+	remotesNames := gui.getRemoteRepoNames()
+
+	return fuzzySearchFunc(remotesNames)
+}
+
+func (gui *Gui) getRemoteRepoNames() []string {
+	remotes := gui.State.Remotes
+	result := make([]string, 0, len(remotes))
+	for _, remote := range remotes {
+		if len(remote.Urls) == 0 {
+			continue
+		}
+		info := commands.GetRepoInfoFromURL(remote.Urls[0])
+		result = append(result, fmt.Sprintf("%s/%s", info.Owner, info.Repository))
 	}
-	return fuzzySearchFunc(result)
+
+	return result
 }
 
 func (gui *Gui) getBranchNames() []string {

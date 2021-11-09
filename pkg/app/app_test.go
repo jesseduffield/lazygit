@@ -64,6 +64,15 @@ func TestIsValidGhVersion(t *testing.T) {
 			https://github.com/cli/cli/releases/tag/v2.0.0`,
 			true,
 		},
+		{
+			`gh version 1.1.0 (2021-10-14)
+			https://github.com/cli/cli/releases/tag/v1.1.0
+
+			A new release of gh is available: 1.1.0 → v2.2.0
+			To upgrade, run: brew update && brew upgrade gh
+			https://github.com/cli/cli/releases/tag/v2.2.0`,
+			false,
+		},
 	}
 
 	for _, s := range scenarios {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
@@ -48,7 +49,7 @@ func (c *GitCommand) GetRemoteURL() string {
 	return c.GitConfig.Get("remote.origin.url")
 }
 
-func GetRepoInfoFromURL(url string) *RepoInformation {
+func GetRepoInfoFromURL(url string) RepoInformation {
 	isHTTP := strings.HasPrefix(url, "http")
 
 	if isHTTP {
@@ -56,7 +57,7 @@ func GetRepoInfoFromURL(url string) *RepoInformation {
 		owner := strings.Join(splits[3:len(splits)-1], "/")
 		repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
 
-		return &RepoInformation{
+		return RepoInformation{
 			Owner:      owner,
 			Repository: repo,
 		}
@@ -67,33 +68,31 @@ func GetRepoInfoFromURL(url string) *RepoInformation {
 	owner := strings.Join(splits[0:len(splits)-1], "/")
 	repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
 
-	return &RepoInformation{
+	return RepoInformation{
 		Owner:      owner,
 		Repository: repo,
 	}
 }
 
-func (c *GitCommand) GetRemotesToOwnersMap() (map[string]string, error) {
-	remotes, err := c.GetRemotes()
-	if err != nil {
-		return nil, err
-	}
-
+func (c *GitCommand) GetRemotesToOwnersMap(remotes []*models.Remote) (map[string]string, error) {
 	res := map[string]string{}
 	for _, remote := range remotes {
+		if len(remote.Urls) == 0 {
+			continue
+		}
+
 		res[remote.Name] = GetRepoInfoFromURL(remote.Urls[0]).Owner
 	}
 	return res, nil
 }
 
-func (c *GitCommand) GetRemotesToRepositoryMap() (map[string]string, error) {
-	remotes, err := c.GetRemotes()
-	if err != nil {
-		return nil, err
-	}
-
+func (c *GitCommand) GetRemotesToRepositoryMap(remotes []*models.Remote) (map[string]string, error) {
 	res := map[string]string{}
 	for _, remote := range remotes {
+		if len(remote.Urls) == 0 {
+			continue
+		}
+
 		info := GetRepoInfoFromURL(remote.Urls[0])
 		res[info.Owner] = info.Repository
 	}

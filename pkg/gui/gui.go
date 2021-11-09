@@ -746,9 +746,17 @@ func (gui *Gui) setColorScheme() error {
 	return nil
 }
 
-func (gui *Gui) GetPr(branch *models.Branch) (*models.GithubPullRequest, bool) {
-	prs := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubState.RecentPRs, []*models.Branch{branch})
+func (gui *Gui) GetPr(branch *models.Branch) (*models.GithubPullRequest, bool, error) {
+	prs, err := gui.GitCommand.GenerateGithubPullRequestMap(
+		gui.State.GithubState.RecentPRs,
+		[]*models.Branch{branch},
+		gui.State.Remotes,
+	)
+	if err != nil {
+		return nil, false, err
+	}
+
 	pr, hasPr := prs[branch]
 
-	return pr, hasPr
+	return pr, hasPr, nil
 }

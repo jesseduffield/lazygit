@@ -11,14 +11,14 @@ func TestGetRepoInfoFromURL(t *testing.T) {
 	type scenario struct {
 		testName string
 		repoURL  string
-		test     func(*RepoInformation)
+		test     func(RepoInformation)
 	}
 
 	scenarios := []scenario{
 		{
 			"Returns repository information for git remote url",
 			"git@github.com:petersmith/super_calculator",
-			func(repoInfo *RepoInformation) {
+			func(repoInfo RepoInformation) {
 				assert.EqualValues(t, repoInfo.Owner, "petersmith")
 				assert.EqualValues(t, repoInfo.Repository, "super_calculator")
 			},
@@ -26,7 +26,7 @@ func TestGetRepoInfoFromURL(t *testing.T) {
 		{
 			"Returns repository information for http remote url",
 			"https://my_username@bitbucket.org/johndoe/social_network.git",
-			func(repoInfo *RepoInformation) {
+			func(repoInfo RepoInformation) {
 				assert.EqualValues(t, repoInfo.Owner, "johndoe")
 				assert.EqualValues(t, repoInfo.Repository, "social_network")
 			},

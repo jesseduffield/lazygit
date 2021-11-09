@@ -143,6 +143,12 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, err
 	}
 
+	if app.Gui.Config.GetUserConfig().Git.EnableGhCommand {
+		if err := app.validateGhVersion(); err != nil {
+			return nil, err
+		}
+	}
+
 	return app, nil
 }
 
@@ -159,7 +165,6 @@ func (app *App) validateGhVersion() error {
 	}
 
 	return minVersionError
-
 }
 
 func (app *App) validateGitVersion() error {
@@ -274,10 +279,6 @@ func (app *App) setupRepo() (bool, error) {
 		if err := app.OSCommand.RunCommand("git init"); err != nil {
 			return false, err
 		}
-	}
-
-	if err := app.validateGhVersion(); err != nil {
-		return false, err
 	}
 
 	return false, nil
