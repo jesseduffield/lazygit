@@ -61,6 +61,7 @@ type CommitLengthConfig struct {
 
 type GitConfig struct {
 	Paging              PagingConfig                  `yaml:"paging"`
+	Commit              CommitConfig                  `yaml:"commit"`
 	Merging             MergingConfig                 `yaml:"merging"`
 	SkipHookPrefix      string                        `yaml:"skipHookPrefix"`
 	AutoFetch           bool                          `yaml:"autoFetch"`
@@ -79,6 +80,10 @@ type PagingConfig struct {
 	ColorArg  string `yaml:"colorArg"`
 	Pager     string `yaml:"pager"`
 	UseConfig bool   `yaml:"useConfig"`
+}
+
+type CommitConfig struct {
+	SignOff bool `yaml:"signOff"`
 }
 
 type MergingConfig struct {
@@ -347,6 +352,9 @@ func GetDefaultConfig() *UserConfig {
 				ColorArg:  "always",
 				Pager:     "",
 				UseConfig: false},
+			Commit: CommitConfig{
+				SignOff: false,
+			},
 			Merging: MergingConfig{
 				ManualCommit: false,
 				Args:         "",
