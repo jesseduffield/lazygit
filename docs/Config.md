@@ -56,6 +56,8 @@ git:
   paging:
     colorArg: always
     useConfig: false
+  commit:
+    signOff: false
   merging:
     # only applicable to unix users
     manualCommit: false
