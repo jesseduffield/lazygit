@@ -14,13 +14,17 @@ func (gui *Gui) handleCommitConfirm() error {
 	if message == "" {
 		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
 	}
-	flags := ""
+	flags := []string{}
 	skipHookPrefix := gui.Config.GetUserConfig().Git.SkipHookPrefix
 	if skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix) {
-		flags = "--no-verify"
+		flags = append(flags, "--no-verify")
 	}
 
-	cmdStr := gui.GitCommand.CommitCmdStr(message, flags)
+	if gui.Config.GetUserConfig().Git.Commit.SignOff {
+		flags = append(flags, "--signoff")
+	}
+
+	cmdStr := gui.GitCommand.CommitCmdStr(message, strings.Join(flags, " "))
 	gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdStr, gui.Tr.Spans.Commit, true))
 	_ = gui.returnFromContext()
 	return gui.withGpgHandling(cmdStr, gui.Tr.CommittingStatus, func() error {

@@ -458,8 +458,14 @@ func (gui *Gui) handleCommitEditorPress() error {
 		return gui.promptToStageAllAndRetry(gui.handleCommitEditorPress)
 	}
 
+	args := []string{"commit"}
+
+	if gui.Config.GetUserConfig().Git.Commit.SignOff {
+		args = append(args, "--signoff")
+	}
+
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan(gui.Tr.Spans.Commit).PrepareSubProcess("git", "commit"),
+		gui.OSCommand.WithSpan(gui.Tr.Spans.Commit).PrepareSubProcess("git", args...),
 	)
 }
 
