@@ -263,7 +263,7 @@ func chineseTranslationSet() TranslationSet {
 		LcViewDiscardOptions:                "查看'放弃更改‘选项",
 		LcCancel:                            "取消",
 		LcDiscardAllChanges:                 "放弃所有更改",
-		LcDiscardUnstagedChanges:            "放弃未进行的变更",
+		LcDiscardUnstagedChanges:            "放弃未暂存的变更",
 		LcDiscardAllChangesToAllFiles:       "清空工作区",
 		LcDiscardAnyUnstagedChanges:         "丢弃未暂存的变更",
 		LcDiscardUntrackedFiles:             "丢弃未跟踪的文件",
