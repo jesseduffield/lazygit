@@ -1,11 +1,10 @@
 package gui
 
 import (
-	"strings"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"strings"
 )
 
 func (gui *Gui) getBindings(v *gocui.View) []*Binding {
@@ -72,5 +71,7 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 		}
 	}
 
-	return gui.createMenu(strings.Title(gui.Tr.LcMenu), menuItems, createMenuOptions{})
+	return gui.createMenu(strings.Title(gui.Tr.LcMenu), menuItems, createMenuOptions{
+		allowFiltering: true,
+	})
 }
