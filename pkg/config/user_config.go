@@ -1,21 +1,22 @@
 package config
 
 type UserConfig struct {
-	Gui                  GuiConfig        `yaml:"gui"`
-	Git                  GitConfig        `yaml:"git"`
-	Update               UpdateConfig     `yaml:"update"`
-	Refresher            RefresherConfig  `yaml:"refresher"`
-	Reporting            string           `yaml:"reporting"`
-	SplashUpdatesIndex   int              `yaml:"splashUpdatesIndex"`
-	ConfirmOnQuit        bool             `yaml:"confirmOnQuit"`
-	QuitOnTopLevelReturn bool             `yaml:"quitOnTopLevelReturn"`
-	Keybinding           KeybindingConfig `yaml:"keybinding"`
+	Gui                       GuiConfig         `yaml:"gui"`
+	Git                       GitConfig         `yaml:"git"`
+	Update                    UpdateConfig      `yaml:"update"`
+	Refresher                 RefresherConfig   `yaml:"refresher"`
+	Reporting                 string            `yaml:"reporting"`
+	SplashUpdatesIndex        int               `yaml:"splashUpdatesIndex"`
+	ConfirmOnQuit             bool              `yaml:"confirmOnQuit"`
+	QuitOnTopLevelReturn      bool              `yaml:"quitOnTopLevelReturn"`
+	Keybinding                KeybindingConfig  `yaml:"keybinding"`
 	// OS determines what defaults are set for opening files and links
-	OS                   OSConfig          `yaml:"os,omitempty"`
-	DisableStartupPopups bool              `yaml:"disableStartupPopups"`
-	CustomCommands       []CustomCommand   `yaml:"customCommands"`
-	Services             map[string]string `yaml:"services"`
-	NotARepository       string            `yaml:"notARepository"`
+	OS                        OSConfig          `yaml:"os,omitempty"`
+	DisableStartupPopups      bool              `yaml:"disableStartupPopups"`
+	CustomCommands            []CustomCommand   `yaml:"customCommands"`
+	Services                  map[string]string `yaml:"services"`
+	NotARepository            string            `yaml:"notARepository"`
+	DisplayConfirmationWindow bool              `yaml:"displayConfirmationWindow"`
 }
 
 type RefresherConfig struct {

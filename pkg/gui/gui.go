@@ -635,8 +635,10 @@ func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
 	subprocess.Stderr = ioutil.Discard
 	subprocess.Stdin = nil
 
-	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
-	fmt.Scanln() // wait for enter press
+	if gui.Config.GetUserConfig().DisplayConfirmationWindow {
+		fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
+		fmt.Scanln() // wait for enter press
+	}
 
 	return nil
 }
