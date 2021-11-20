@@ -1,15 +1,15 @@
 package config
 
 type UserConfig struct {
-	Gui                       GuiConfig         `yaml:"gui"`
-	Git                       GitConfig         `yaml:"git"`
-	Update                    UpdateConfig      `yaml:"update"`
-	Refresher                 RefresherConfig   `yaml:"refresher"`
-	Reporting                 string            `yaml:"reporting"`
-	SplashUpdatesIndex        int               `yaml:"splashUpdatesIndex"`
-	ConfirmOnQuit             bool              `yaml:"confirmOnQuit"`
-	QuitOnTopLevelReturn      bool              `yaml:"quitOnTopLevelReturn"`
-	Keybinding                KeybindingConfig  `yaml:"keybinding"`
+	Gui                  GuiConfig        `yaml:"gui"`
+	Git                  GitConfig        `yaml:"git"`
+	Update               UpdateConfig     `yaml:"update"`
+	Refresher            RefresherConfig  `yaml:"refresher"`
+	Reporting            string           `yaml:"reporting"`
+	SplashUpdatesIndex   int              `yaml:"splashUpdatesIndex"`
+	ConfirmOnQuit        bool             `yaml:"confirmOnQuit"`
+	QuitOnTopLevelReturn bool             `yaml:"quitOnTopLevelReturn"`
+	Keybinding           KeybindingConfig `yaml:"keybinding"`
 	// OS determines what defaults are set for opening files and links
 	OS                        OSConfig          `yaml:"os,omitempty"`
 	DisableStartupPopups      bool              `yaml:"disableStartupPopups"`
@@ -344,7 +344,8 @@ func GetDefaultConfig() *UserConfig {
 			Paging: PagingConfig{
 				ColorArg:  "always",
 				Pager:     "",
-				UseConfig: false},
+				UseConfig: false,
+			},
 			Merging: MergingConfig{
 				ManualCommit: false,
 				Args:         "",
@@ -514,11 +515,11 @@ func GetDefaultConfig() *UserConfig {
 				BulkMenu: "b",
 			},
 		},
-		OS:                   GetPlatformDefaultConfig(),
-		DisableStartupPopups: false,
-		CustomCommands:       []CustomCommand(nil),
-		Services:             map[string]string(nil),
-		NotARepository:       "prompt",
+		OS:                        GetPlatformDefaultConfig(),
+		DisableStartupPopups:      false,
+		CustomCommands:            []CustomCommand(nil),
+		Services:                  map[string]string(nil),
+		NotARepository:            "prompt",
 		DisplayConfirmationWindow: true,
 	}
 }
