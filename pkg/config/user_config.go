@@ -519,5 +519,6 @@ func GetDefaultConfig() *UserConfig {
 		CustomCommands:       []CustomCommand(nil),
 		Services:             map[string]string(nil),
 		NotARepository:       "prompt",
+		DisplayConfirmationWindow: true,
 	}
 }
