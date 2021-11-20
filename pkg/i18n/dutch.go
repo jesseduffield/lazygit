@@ -255,6 +255,7 @@ func dutchTranslationSet() TranslationSet {
 		LcStashStagedChanges:                "stash staged wijzigingen",
 		LcStashOptions:                      "Stash opties",
 		NotARepository:                      "Fout: moet in een git repository uitgevoerd worden",
+		DisplayConfirmationWindow:           "Bevestiging weergeven wanneer subproces wordt beëindigd",
 		LcJump:                              "ga naar paneel",
 		DiscardPatch:                        "Patch weg gooien",
 		DiscardPatchConfirm:                 "Je kan alleen maar een patch bouwen van 1 commit. Huidige patch weggooien?",

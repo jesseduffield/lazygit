@@ -286,6 +286,7 @@ func chineseTranslationSet() TranslationSet {
 		LcStashStagedChanges:                "将已暂存的更改加入贮藏",
 		LcStashOptions:                      "贮藏选项",
 		NotARepository:                      "错误：必须在 git 仓库中运行",
+		DisplayConfirmationWindow:           "子進程終止時顯示確認",
 		LcJump:                              "跳到面板",
 		DiscardPatch:                        "丢弃补丁",
 		DiscardPatchConfirm:                 "您一次只能通过一个提交或贮藏条目构建补丁。需要放弃当前补丁吗？",

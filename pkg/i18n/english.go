@@ -270,6 +270,7 @@ type TranslationSet struct {
 	LcStashStagedChanges                string
 	LcStashOptions                      string
 	NotARepository                      string
+	DisplayConfirmationWindow           string
 	LcJump                              string
 	LcScrollLeftRight                   string
 	LcScrollLeft                        string
@@ -810,6 +811,7 @@ func englishTranslationSet() TranslationSet {
 		LcStashStagedChanges:                "stash staged changes",
 		LcStashOptions:                      "Stash options",
 		NotARepository:                      "Error: must be run inside a git repository",
+		DisplayConfirmationWindow:           "Display confirmation when subprocess terminates",
 		LcJump:                              "jump to panel",
 		LcScrollLeftRight:                   "scroll left/right",
 		LcScrollLeft:                        "scroll left",

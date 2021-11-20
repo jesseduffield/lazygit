@@ -216,6 +216,7 @@ func polishTranslationSet() TranslationSet {
 		LcStashStagedChanges:                "przechowaj zmiany z poczekalni",
 		LcStashOptions:                      "Opcje schowka",
 		NotARepository:                      "Błąd: nie jesteś w repozytorium",
+		DisplayConfirmationWindow:           "Wyświetl potwierdzenie po zakończeniu podprocesu",
 		LcJump:                              "przeskocz do panelu",
 		ExitLineByLineMode:                  `wyście z trybu "linia po linii"`,
 		EnterUpstream:                       `Podaj gałąź nadrzędną jako '<remote> <branchname>'`,
