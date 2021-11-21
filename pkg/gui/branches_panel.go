@@ -25,7 +25,7 @@ func (gui *Gui) getSelectedBranch() *models.Branch {
 	return gui.State.Branches[selectedLine]
 }
 
-func (gui *Gui) handleBranchSelect() error {
+func (gui *Gui) branchesRenderToMain() error {
 	var task updateTask
 	branch := gui.getSelectedBranch()
 	if branch == nil {

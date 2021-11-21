@@ -18,7 +18,7 @@ func (gui *Gui) getSelectedRemoteBranch() *models.RemoteBranch {
 	return gui.State.RemoteBranches[selectedLine]
 }
 
-func (gui *Gui) handleRemoteBranchSelect() error {
+func (gui *Gui) remoteBranchesRenderToMain() error {
 	var task updateTask
 	remoteBranch := gui.getSelectedRemoteBranch()
 	if remoteBranch == nil {

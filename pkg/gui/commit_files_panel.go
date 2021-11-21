@@ -31,9 +31,12 @@ func (gui *Gui) getSelectedCommitFilePath() string {
 	return node.GetPath()
 }
 
-func (gui *Gui) handleCommitFileSelect() error {
+func (gui *Gui) onCommitFileFocus() error {
 	gui.escapeLineByLinePanel()
+	return nil
+}
 
+func (gui *Gui) commitFilesRenderToMain() error {
 	node := gui.getSelectedCommitFileNode()
 	if node == nil {
 		return nil
@@ -198,10 +201,10 @@ func (gui *Gui) startPatchManager() error {
 }
 
 func (gui *Gui) handleEnterCommitFile() error {
-	return gui.enterCommitFile(-1)
+	return gui.enterCommitFile(OnFocusOpts{ClickedViewName: "", ClickedViewLineIdx: -1})
 }
 
-func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
+func (gui *Gui) enterCommitFile(opts OnFocusOpts) error {
 	node := gui.getSelectedCommitFileNode()
 	if node == nil {
 		return nil
@@ -211,17 +214,14 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		return gui.handleToggleCommitFileDirCollapsed()
 	}
 
-	enterTheFile := func(selectedLineIdx int) error {
+	enterTheFile := func() error {
 		if !gui.GitCommand.PatchManager.Active() {
 			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
 		}
 
-		if err := gui.pushContext(gui.State.Contexts.PatchBuilding); err != nil {
-			return err
-		}
-		return gui.handleRefreshPatchBuildingPanel(selectedLineIdx)
+		return gui.pushContext(gui.State.Contexts.PatchBuilding, opts)
 	}
 
 	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != gui.State.CommitFileManager.GetParent() {
@@ -231,7 +231,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 			handlersManageFocus: true,
 			handleConfirm: func() error {
 				gui.GitCommand.PatchManager.Reset()
-				return enterTheFile(selectedLineIdx)
+				return enterTheFile()
 			},
 			handleClose: func() error {
 				return gui.pushContext(gui.State.Contexts.CommitFiles)
@@ -239,7 +239,7 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		})
 	}
 
-	return enterTheFile(selectedLineIdx)
+	return enterTheFile()
 }
 
 func (gui *Gui) handleToggleCommitFileDirCollapsed() error {

@@ -19,7 +19,7 @@ func (gui *Gui) getSelectedSubmodule() *models.SubmoduleConfig {
 	return gui.State.Submodules[selectedLine]
 }
 
-func (gui *Gui) handleSubmoduleSelect() error {
+func (gui *Gui) submodulesRenderToMain() error {
 	var task updateTask
 	submodule := gui.getSelectedSubmodule()
 	if submodule == nil {

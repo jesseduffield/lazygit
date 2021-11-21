@@ -20,7 +20,7 @@ func (gui *Gui) getSelectedRemote() *models.Remote {
 	return gui.State.Remotes[selectedLine]
 }
 
-func (gui *Gui) handleRemoteSelect() error {
+func (gui *Gui) remotesRenderToMain() error {
 	var task updateTask
 	remote := gui.getSelectedRemote()
 	if remote == nil {
