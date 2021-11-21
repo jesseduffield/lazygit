@@ -86,10 +86,10 @@ func (gui *Gui) handleStatusClick() error {
 		}
 	}
 
-	return gui.handleStatusSelect()
+	return nil
 }
 
-func (gui *Gui) handleStatusSelect() error {
+func (gui *Gui) statusRenderToMain() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
 	if gui.popupPanelFocused() {
 		return nil

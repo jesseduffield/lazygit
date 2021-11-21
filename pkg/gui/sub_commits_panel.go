@@ -17,7 +17,7 @@ func (gui *Gui) getSelectedSubCommit() *models.Commit {
 	return commits[selectedLine]
 }
 
-func (gui *Gui) handleSubCommitSelect() error {
+func (gui *Gui) subCommitsRenderToMain() error {
 	commit := gui.getSelectedSubCommit()
 	var task updateTask
 	if commit == nil {

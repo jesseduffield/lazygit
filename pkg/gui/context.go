@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
@@ -16,10 +17,16 @@ const (
 	EXTRAS_CONTEXT
 )
 
+type OnFocusOpts struct {
+	ClickedViewName    string
+	ClickedViewLineIdx int
+}
+
 type Context interface {
-	HandleFocus() error
+	HandleFocus(opts ...OnFocusOpts) error
 	HandleFocusLost() error
 	HandleRender() error
+	HandleRenderToMain() error
 	GetKind() ContextKind
 	GetViewName() string
 	GetWindowName() string
@@ -81,15 +88,20 @@ func (gui *Gui) replaceContext(c Context) error {
 	return nil
 }
 
-func (gui *Gui) pushContext(c Context) error {
+func (gui *Gui) pushContext(c Context, opts ...OnFocusOpts) error {
+	// using triple dot but you should only ever pass one of these opt structs
+	if len(opts) > 1 {
+		return errors.New("cannot pass multiple opts to pushContext")
+	}
+
 	gui.g.Update(func(*gocui.Gui) error {
-		return gui.pushContextDirect(c)
+		return gui.pushContextDirect(c, opts...)
 	})
 
 	return nil
 }
 
-func (gui *Gui) pushContextDirect(c Context) error {
+func (gui *Gui) pushContextDirect(c Context, opts ...OnFocusOpts) error {
 	gui.State.ContextManager.Lock()
 
 	// push onto stack
@@ -114,7 +126,7 @@ func (gui *Gui) pushContextDirect(c Context) error {
 
 	gui.State.ContextManager.Unlock()
 
-	return gui.activateContext(c)
+	return gui.activateContext(c, opts...)
 }
 
 // asynchronous code idea: functions return an error via a channel, when done
@@ -206,7 +218,7 @@ func (gui *Gui) postRefreshUpdate(c Context) error {
 	return nil
 }
 
-func (gui *Gui) activateContext(c Context) error {
+func (gui *Gui) activateContext(c Context, opts ...OnFocusOpts) error {
 	viewName := c.GetViewName()
 	v, err := gui.g.View(viewName)
 	if err != nil {
@@ -249,7 +261,7 @@ func (gui *Gui) activateContext(c Context) error {
 	}
 	gui.renderOptionsMap(optionsMap)
 
-	if err := c.HandleFocus(); err != nil {
+	if err := c.HandleFocus(opts...); err != nil {
 		return err
 	}
 

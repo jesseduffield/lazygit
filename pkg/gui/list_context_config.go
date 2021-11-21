@@ -18,7 +18,6 @@ func (gui *Gui) menuListContext() IListContext {
 		},
 		GetItemsLength:      func() int { return gui.Views.Menu.LinesHeight() },
 		OnGetPanelState:     func() IListPanelState { return gui.State.Panels.Menu },
-		OnFocus:             gui.handleMenuSelect,
 		OnClickSelectedItem: gui.onMenuPress,
 		Gui:                 gui,
 
@@ -36,7 +35,8 @@ func (gui *Gui) filesListContext() IListContext {
 		},
 		GetItemsLength:      func() int { return gui.State.FileManager.GetItemsLength() },
 		OnGetPanelState:     func() IListPanelState { return gui.State.Panels.Files },
-		OnFocus:             gui.focusAndSelectFile,
+		OnFocus:             OnFocusWrapper(gui.onFocusFile),
+		OnRenderToMain:      OnFocusWrapper(gui.filesRenderToMain),
 		OnClickSelectedItem: gui.handleFilePress,
 		Gui:                 gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
@@ -65,7 +65,7 @@ func (gui *Gui) branchesListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.Branches) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.Branches },
-		OnFocus:         gui.handleBranchSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.branchesRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref)
@@ -87,7 +87,7 @@ func (gui *Gui) remotesListContext() IListContext {
 		},
 		GetItemsLength:      func() int { return len(gui.State.Remotes) },
 		OnGetPanelState:     func() IListPanelState { return gui.State.Panels.Remotes },
-		OnFocus:             gui.handleRemoteSelect,
+		OnRenderToMain:      OnFocusWrapper(gui.remotesRenderToMain),
 		OnClickSelectedItem: gui.handleRemoteEnter,
 		Gui:                 gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
@@ -110,7 +110,7 @@ func (gui *Gui) remoteBranchesListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.RemoteBranches) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.RemoteBranches },
-		OnFocus:         gui.handleRemoteBranchSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.remoteBranchesRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Modes.Diffing.Ref)
@@ -132,7 +132,7 @@ func (gui *Gui) tagsListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.Tags) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.Tags },
-		OnFocus:         gui.handleTagSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.tagsRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Modes.Diffing.Ref)
@@ -155,7 +155,8 @@ func (gui *Gui) branchCommitsListContext() IListContext {
 		},
 		GetItemsLength:      func() int { return len(gui.State.Commits) },
 		OnGetPanelState:     func() IListPanelState { return gui.State.Panels.Commits },
-		OnFocus:             gui.handleCommitSelect,
+		OnFocus:             OnFocusWrapper(gui.onCommitFocus),
+		OnRenderToMain:      OnFocusWrapper(gui.branchCommitsRenderToMain),
 		OnClickSelectedItem: gui.handleViewCommitFiles,
 		Gui:                 gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
@@ -197,7 +198,7 @@ func (gui *Gui) subCommitsListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.SubCommits) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.SubCommits },
-		OnFocus:         gui.handleSubCommitSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.subCommitsRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			selectedCommitSha := ""
@@ -253,7 +254,7 @@ func (gui *Gui) reflogCommitsListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.FilteredReflogCommits) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.ReflogCommits },
-		OnFocus:         gui.handleReflogCommitSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.reflogCommitsRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetReflogCommitListDisplayStrings(
@@ -281,7 +282,7 @@ func (gui *Gui) stashListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.StashEntries) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.Stash },
-		OnFocus:         gui.handleStashEntrySelect,
+		OnRenderToMain:  OnFocusWrapper(gui.stashRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Modes.Diffing.Ref)
@@ -303,7 +304,8 @@ func (gui *Gui) commitFilesListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return gui.State.CommitFileManager.GetItemsLength() },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.CommitFiles },
-		OnFocus:         gui.handleCommitFileSelect,
+		OnFocus:         OnFocusWrapper(gui.onCommitFileFocus),
+		OnRenderToMain:  OnFocusWrapper(gui.commitFilesRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			if gui.State.CommitFileManager.GetItemsLength() == 0 {
@@ -335,7 +337,7 @@ func (gui *Gui) submodulesListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.Submodules) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.Submodules },
-		OnFocus:         gui.handleSubmoduleSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.submodulesRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetSubmoduleListDisplayStrings(gui.State.Submodules)
@@ -357,7 +359,6 @@ func (gui *Gui) suggestionsListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.Suggestions) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.Suggestions },
-		OnFocus:         func() error { return nil },
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetSuggestionListDisplayStrings(gui.State.Suggestions)

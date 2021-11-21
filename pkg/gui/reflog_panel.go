@@ -16,7 +16,7 @@ func (gui *Gui) getSelectedReflogCommit() *models.Commit {
 	return reflogComits[selectedLine]
 }
 
-func (gui *Gui) handleReflogCommitSelect() error {
+func (gui *Gui) reflogCommitsRenderToMain() error {
 	commit := gui.getSelectedReflogCommit()
 	var task updateTask
 	if commit == nil {

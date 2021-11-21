@@ -16,7 +16,7 @@ func (gui *Gui) getSelectedStashEntry() *models.StashEntry {
 	return gui.State.StashEntries[selectedLine]
 }
 
-func (gui *Gui) handleStashEntrySelect() error {
+func (gui *Gui) stashRenderToMain() error {
 	var task updateTask
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {

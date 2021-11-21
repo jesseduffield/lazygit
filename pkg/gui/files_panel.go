@@ -42,9 +42,7 @@ func (gui *Gui) getSelectedPath() string {
 	return node.GetPath()
 }
 
-func (gui *Gui) selectFile(alreadySelected bool) error {
-	gui.Views.Files.FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
-
+func (gui *Gui) filesRenderToMain() error {
 	node := gui.getSelectedFileNode()
 
 	if node == nil {
@@ -54,10 +52,6 @@ func (gui *Gui) selectFile(alreadySelected bool) error {
 				task:  NewRenderStringTask(gui.Tr.NoChangedFiles),
 			},
 		})
-	}
-
-	if !alreadySelected {
-		gui.takeOverMergeConflictScrolling()
 	}
 
 	if node.File != nil && node.File.HasInlineMergeConflicts {
@@ -121,9 +115,12 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY || (g.CurrentView() == gui.Views.Main && ContextKey(g.CurrentView().Context) == MAIN_MERGING_CONTEXT_KEY) {
 			newSelectedPath := gui.getSelectedPath()
 			alreadySelected := selectedPath != "" && newSelectedPath == selectedPath
-			if err := gui.selectFile(alreadySelected); err != nil {
-				return err
+			if !alreadySelected {
+				gui.takeOverMergeConflictScrolling()
 			}
+
+			gui.Views.Files.FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
+			return gui.filesRenderToMain()
 		}
 
 		return nil
@@ -166,10 +163,10 @@ func (gui *Gui) stageSelectedFile() error {
 }
 
 func (gui *Gui) handleEnterFile() error {
-	return gui.enterFile(false, -1)
+	return gui.enterFile(OnFocusOpts{ClickedViewName: "", ClickedViewLineIdx: -1})
 }
 
-func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error {
+func (gui *Gui) enterFile(opts OnFocusOpts) error {
 	node := gui.getSelectedFileNode()
 	if node == nil {
 		return nil
@@ -193,9 +190,8 @@ func (gui *Gui) enterFile(forceSecondaryFocused bool, selectedLineIdx int) error
 	if file.HasMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.FileStagingRequirements)
 	}
-	_ = gui.pushContext(gui.State.Contexts.Staging)
 
-	return gui.handleRefreshStagingPanel(forceSecondaryFocused, selectedLineIdx) // TODO: check if this is broken, try moving into context code
+	return gui.pushContext(gui.State.Contexts.Staging, opts)
 }
 
 func (gui *Gui) handleFilePress() error {
@@ -243,7 +239,7 @@ func (gui *Gui) handleFilePress() error {
 		return err
 	}
 
-	return gui.selectFile(true)
+	return gui.State.Contexts.Files.HandleFocus()
 }
 
 func (gui *Gui) allFilesStaged() bool {
@@ -255,8 +251,9 @@ func (gui *Gui) allFilesStaged() bool {
 	return true
 }
 
-func (gui *Gui) focusAndSelectFile() error {
-	return gui.selectFile(false)
+func (gui *Gui) onFocusFile() error {
+	gui.takeOverMergeConflictScrolling()
+	return nil
 }
 
 func (gui *Gui) handleStageAll() error {
@@ -274,7 +271,7 @@ func (gui *Gui) handleStageAll() error {
 		return err
 	}
 
-	return gui.selectFile(false)
+	return gui.State.Contexts.Files.HandleFocus()
 }
 
 func (gui *Gui) handleIgnoreFile() error {

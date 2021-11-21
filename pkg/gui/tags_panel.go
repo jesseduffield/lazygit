@@ -40,9 +40,7 @@ func (gui *Gui) handleCreateTag() error {
 	})
 }
 
-// tag-specific handlers
-// view model would need to raise an event called 'tag selected', perhaps containing a tag. The listener would _be_ the main view, or the main context, and it would be able to render to itself.
-func (gui *Gui) handleTagSelect() error {
+func (gui *Gui) tagsRenderToMain() error {
 	var task updateTask
 	tag := gui.getSelectedTag()
 	if tag == nil {
@@ -84,6 +82,8 @@ func (gui *Gui) withSelectedTag(f func(tag *models.Tag) error) func() error {
 		return f(tag)
 	}
 }
+
+// tag-specific handlers
 
 func (gui *Gui) handleCheckoutTag(tag *models.Tag) error {
 	if err := gui.handleCheckoutRef(tag.Name, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutTag}); err != nil {

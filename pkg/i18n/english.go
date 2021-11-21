@@ -449,6 +449,7 @@ type TranslationSet struct {
 	ToggleShowGitGraphAll               string
 	ShowGitGraph                        string
 	SortCommits                         string
+	CantChangeContextSizeError          string
 	Spans                               Spans
 }
 
@@ -991,6 +992,7 @@ func englishTranslationSet() TranslationSet {
 		ToggleShowGitGraphAll:               "toggle show whole git graph (pass the `--all` flag to `git log`)",
 		ShowGitGraph:                        "show git graph",
 		SortCommits:                         "commit sort order",
+		CantChangeContextSizeError:          "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

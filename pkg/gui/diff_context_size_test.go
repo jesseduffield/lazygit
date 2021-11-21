@@ -28,11 +28,11 @@ func setupGuiForTest(gui *Gui) {
 	gui.Views.Main, _ = gui.prepareView("main")
 	gui.Views.Secondary, _ = gui.prepareView("secondary")
 	gui.GitCommand.PatchManager = &patch.PatchManager{}
-  gui.refreshLineByLinePanel(diffForTest, "", false, 11)
+	gui.refreshLineByLinePanel(diffForTest, "", false, 11)
 }
 
 func TestIncreasesContextInDiffViewByOneInContextWithDiff(t *testing.T) {
-	contexts := []func(gui *Gui) Context {
+	contexts := []func(gui *Gui) Context{
 		func(gui *Gui) Context { return gui.State.Contexts.Files },
 		func(gui *Gui) Context { return gui.State.Contexts.BranchCommits },
 		func(gui *Gui) Context { return gui.State.Contexts.CommitFiles },
@@ -56,7 +56,7 @@ func TestIncreasesContextInDiffViewByOneInContextWithDiff(t *testing.T) {
 }
 
 func TestDoesntIncreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
-	contexts := []func(gui *Gui) Context {
+	contexts := []func(gui *Gui) Context{
 		func(gui *Gui) Context { return gui.State.Contexts.Status },
 		func(gui *Gui) Context { return gui.State.Contexts.Submodules },
 		func(gui *Gui) Context { return gui.State.Contexts.Remotes },
@@ -82,7 +82,7 @@ func TestDoesntIncreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
 }
 
 func TestDecreasesContextInDiffViewByOneInContextWithDiff(t *testing.T) {
-	contexts := []func(gui *Gui) Context {
+	contexts := []func(gui *Gui) Context{
 		func(gui *Gui) Context { return gui.State.Contexts.Files },
 		func(gui *Gui) Context { return gui.State.Contexts.BranchCommits },
 		func(gui *Gui) Context { return gui.State.Contexts.CommitFiles },
@@ -106,7 +106,7 @@ func TestDecreasesContextInDiffViewByOneInContextWithDiff(t *testing.T) {
 }
 
 func TestDoesntDecreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
-	contexts := []func(gui *Gui) Context {
+	contexts := []func(gui *Gui) Context{
 		func(gui *Gui) Context { return gui.State.Contexts.Status },
 		func(gui *Gui) Context { return gui.State.Contexts.Submodules },
 		func(gui *Gui) Context { return gui.State.Contexts.Remotes },
@@ -119,7 +119,7 @@ func TestDoesntDecreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
 	}
 
 	for _, c := range contexts {
-    gui := NewDummyGui()
+		gui := NewDummyGui()
 		context := c(gui)
 		setupGuiForTest(gui)
 		gui.Config.GetUserConfig().Git.DiffContextSize = 2
@@ -129,6 +129,30 @@ func TestDoesntDecreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
 
 		assert.Equal(t, 2, gui.Config.GetUserConfig().Git.DiffContextSize, string(context.GetKey()))
 	}
+}
+
+func TestDoesntIncreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *testing.T) {
+	gui := NewDummyGui()
+	setupGuiForTest(gui)
+	gui.Config.GetUserConfig().Git.DiffContextSize = 2
+	gui.pushContextDirect(gui.State.Contexts.CommitFiles)
+	gui.GitCommand.PatchManager.Start("from", "to", false, false)
+
+	gui.IncreaseContextInDiffView()
+
+	assert.Equal(t, 2, gui.Config.GetUserConfig().Git.DiffContextSize)
+}
+
+func TestDoesntDecreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *testing.T) {
+	gui := NewDummyGui()
+	setupGuiForTest(gui)
+	gui.Config.GetUserConfig().Git.DiffContextSize = 2
+	gui.pushContextDirect(gui.State.Contexts.CommitFiles)
+	gui.GitCommand.PatchManager.Start("from", "to", false, false)
+
+	gui.DecreaseContextInDiffView()
+
+	assert.Equal(t, 2, gui.Config.GetUserConfig().Git.DiffContextSize)
 }
 
 func TestDecreasesContextInDiffViewNoFurtherThanOne(t *testing.T) {

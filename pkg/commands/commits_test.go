@@ -120,6 +120,8 @@ func TestGitCommandShowCmdStr(t *testing.T) {
 		expected    string
 	}
 
+	gitCmd := NewDummyGitCommand()
+
 	scenarios := []scenario{
 		{
 			testName:    "Default case without filter path",
@@ -131,7 +133,7 @@ func TestGitCommandShowCmdStr(t *testing.T) {
 			testName:    "Default case with filter path",
 			filterPath:  "file.txt",
 			contextSize: 3,
-			expected:    "git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890  -- \"file.txt\"",
+			expected:    "git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890  -- " + gitCmd.OSCommand.Quote("file.txt"),
 		},
 		{
 			testName:    "Show diff with custom context size",
@@ -143,7 +145,6 @@ func TestGitCommandShowCmdStr(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
 			gitCmd.Config.GetUserConfig().Git.DiffContextSize = s.contextSize
 			cmdStr := gitCmd.ShowCmdStr("1234567890", s.filterPath)
 			assert.Equal(t, s.expected, cmdStr)

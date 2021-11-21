@@ -24,7 +24,7 @@ func (gui *Gui) getSelectedLocalCommit() *models.Commit {
 	return gui.State.Commits[selectedLine]
 }
 
-func (gui *Gui) handleCommitSelect() error {
+func (gui *Gui) onCommitFocus() error {
 	state := gui.State.Panels.Commits
 	if state.SelectedLineIdx > COMMIT_THRESHOLD && state.LimitCommits {
 		state.LimitCommits = false
@@ -37,6 +37,10 @@ func (gui *Gui) handleCommitSelect() error {
 
 	gui.escapeLineByLinePanel()
 
+	return nil
+}
+
+func (gui *Gui) branchCommitsRenderToMain() error {
 	var task updateTask
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {

@@ -444,13 +444,13 @@ func TestGitCommandDiff(t *testing.T) {
 // TestGitCommandShowFileDiff is a function.
 func TestGitCommandShowFileDiff(t *testing.T) {
 	type scenario struct {
-		testName         string
-		command          func(string, ...string) *exec.Cmd
-		from             string
-		to               string
-		reverse          bool
-		plain            bool
-		contextSize      int
+		testName    string
+		command     func(string, ...string) *exec.Cmd
+		from        string
+		to          string
+		reverse     bool
+		plain       bool
+		contextSize int
 	}
 
 	scenarios := []scenario{
@@ -489,7 +489,7 @@ func TestGitCommandShowFileDiff(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.Command = s.command
 			gitCmd.Config.GetUserConfig().Git.DiffContextSize = s.contextSize
-			gitCmd.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
+			_, _ = gitCmd.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
 		})
 	}
 }
