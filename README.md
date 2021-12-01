@@ -21,6 +21,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Binary releases](#binary-releases)
   - [Homebrew](#homebrew)
   - [MacPorts](#macports)
+  - [Ubuntu](#ubuntu)
   - [Void Linux](#void-linux)
   - [Scoop (Windows)](#scoop-windows)
   - [Arch Linux](#arch-linux)
