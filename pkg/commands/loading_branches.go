@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -37,7 +38,10 @@ func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand, reflogCommi
 }
 
 func (b *BranchListBuilder) obtainBranches() []*models.Branch {
-	cmdStr := `git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`
+	cmdStr := fmt.Sprintf(
+		"git for-each-ref --sort=-committerdate --format=%s refs/heads",
+		b.GitCommand.OSCommand.Quote("%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)"),
+	)
 	output, err := b.GitCommand.OSCommand.RunCommandWithOutput(cmdStr)
 	if err != nil {
 		panic(err)
