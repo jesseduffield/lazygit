@@ -634,7 +634,8 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error {
 
 	fmt.Fprintf(os.Stdout, "\n%s\n\n", style.FgBlue.Sprint("+ "+strings.Join(subprocess.Args, " ")))
 
-	if err := subprocess.Run(); err != nil {
+	err := subprocess.Run()
+	if err != nil {
 		// not handling the error explicitly because usually we're going to see it
 		// in the output anyway
 		gui.Log.Error(err)
@@ -647,7 +648,7 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error {
 	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
 	fmt.Scanln() // wait for enter press
 
-	return nil
+	return err
 }
 
 func (gui *Gui) loadNewRepo() error {
