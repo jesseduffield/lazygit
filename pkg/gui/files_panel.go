@@ -660,9 +660,11 @@ func (gui *Gui) handlePullFiles() error {
 			}
 		}
 
+		suggestedRemote := getSuggestedRemote(gui.State.Remotes)
+
 		return gui.prompt(promptOpts{
 			title:               gui.Tr.EnterUpstream,
-			initialContent:      "origin/" + currentBranch.Name,
+			initialContent:      suggestedRemote + "/" + currentBranch.Name,
 			findSuggestionsFunc: gui.getRemoteBranchesSuggestionsFunc("/"),
 			handleConfirm: func(upstream string) error {
 				if err := gui.GitCommand.SetUpstreamBranch(upstream); err != nil {
@@ -797,12 +799,14 @@ func (gui *Gui) pushFiles() error {
 			)
 		}
 
+		suggestedRemote := getSuggestedRemote(gui.State.Remotes)
+
 		if gui.GitCommand.PushToCurrent {
 			return gui.push(pushOpts{setUpstream: true})
 		} else {
 			return gui.prompt(promptOpts{
 				title:               gui.Tr.EnterUpstream,
-				initialContent:      "origin " + currentBranch.Name,
+				initialContent:      suggestedRemote + " " + currentBranch.Name,
 				findSuggestionsFunc: gui.getRemoteBranchesSuggestionsFunc(" "),
 				handleConfirm: func(upstream string) error {
 					var upstreamBranch, upstreamRemote string
@@ -825,6 +829,20 @@ func (gui *Gui) pushFiles() error {
 			})
 		}
 	}
+}
+
+func getSuggestedRemote(remotes []*models.Remote) string {
+	if len(remotes) == 0 {
+		return "origin"
+	}
+
+	for _, remote := range remotes {
+		if remote.Name == "origin" {
+			return remote.Name
+		}
+	}
+
+	return remotes[0].Name
 }
 
 func (gui *Gui) requestToForcePush() error {
