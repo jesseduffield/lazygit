@@ -346,6 +346,9 @@ type guiState struct {
 
 	// for displaying suggestions while typing in a file name
 	FilesTrie *patricia.Trie
+
+	// this is the message of the last failed commit attempt
+	messageFailedCommit string
 }
 
 // reuseState determines if we pull the repo state from our repo state map or
