@@ -384,18 +384,24 @@ func (gui *Gui) handleCommitPress() error {
 		return gui.promptToStageAllAndRetry(gui.handleCommitPress)
 	}
 
-	commitPrefixConfig := gui.commitPrefixConfigForRepo()
-	if commitPrefixConfig != nil {
-		prefixPattern := commitPrefixConfig.Pattern
-		prefixReplace := commitPrefixConfig.Replace
-		rgx, err := regexp.Compile(prefixPattern)
-		if err != nil {
-			return gui.createErrorPanel(fmt.Sprintf("%s: %s", gui.Tr.LcCommitPrefixPatternError, err.Error()))
-		}
-		prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
+	if len(gui.State.messageFailedCommit) > 0 {
 		gui.Views.CommitMessage.ClearTextArea()
-		gui.Views.CommitMessage.TextArea.TypeString(prefix)
-		gui.render()
+		gui.Views.CommitMessage.TextArea.TypeString(gui.State.messageFailedCommit)
+		gui.Views.CommitMessage.RenderTextArea()
+	} else {
+		commitPrefixConfig := gui.commitPrefixConfigForRepo()
+		if commitPrefixConfig != nil {
+			prefixPattern := commitPrefixConfig.Pattern
+			prefixReplace := commitPrefixConfig.Replace
+			rgx, err := regexp.Compile(prefixPattern)
+			if err != nil {
+				return gui.createErrorPanel(fmt.Sprintf("%s: %s", gui.Tr.LcCommitPrefixPatternError, err.Error()))
+			}
+			prefix := rgx.ReplaceAllString(gui.getCheckedOutBranch().Name, prefixReplace)
+			gui.Views.CommitMessage.ClearTextArea()
+			gui.Views.CommitMessage.TextArea.TypeString(prefix)
+			gui.Views.CommitMessage.RenderTextArea()
+		}
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
