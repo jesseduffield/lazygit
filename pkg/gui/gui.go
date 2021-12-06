@@ -121,6 +121,8 @@ type Gui struct {
 	ShowExtrasWindow bool
 
 	suggestionsAsyncHandler *tasks.AsyncHandler
+
+	PopupHandler PopupHandler
 }
 
 type listPanelState struct {
@@ -455,6 +457,7 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 	onRunCommand := gui.GetOnRunCommand()
 	oSCommand.SetOnRunCommand(onRunCommand)
 	gui.OnRunCommand = onRunCommand
+	gui.PopupHandler = &RealPopupHandler{gui: gui}
 
 	authors.SetCustomAuthors(gui.Config.GetUserConfig().Gui.AuthorColors)
 

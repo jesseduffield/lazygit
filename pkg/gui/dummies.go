@@ -12,12 +12,12 @@ import (
 // NewDummyGui creates a new dummy GUI for testing
 func NewDummyUpdater() *updates.Updater {
 	newAppConfig := config.NewDummyAppConfig()
-	DummyUpdater, _ := updates.NewUpdater(utils.NewDummyLog(), newAppConfig, oscommands.NewDummyOSCommand(), i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language))
-	return DummyUpdater
+	dummyUpdater, _ := updates.NewUpdater(utils.NewDummyLog(), newAppConfig, oscommands.NewDummyOSCommand(), i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language))
+	return dummyUpdater
 }
 
 func NewDummyGui() *Gui {
 	newAppConfig := config.NewDummyAppConfig()
-	DummyGui, _ := NewGui(utils.NewDummyLog(), commands.NewDummyGitCommand(), oscommands.NewDummyOSCommand(), i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language), newAppConfig, NewDummyUpdater(), "", false)
-	return DummyGui
+	dummyGui, _ := NewGui(utils.NewDummyLog(), commands.NewDummyGitCommand(), oscommands.NewDummyOSCommand(), i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language), newAppConfig, NewDummyUpdater(), "", false)
+	return dummyGui
 }
