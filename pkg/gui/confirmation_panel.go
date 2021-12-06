@@ -1,5 +1,3 @@
-// lots of this has been directly ported from one of the example files, will brush up later
-
 package gui
 
 import (
@@ -7,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -44,30 +41,15 @@ type promptOpts struct {
 }
 
 func (gui *Gui) ask(opts askOpts) error {
-	return gui.createPopupPanel(createPopupPanelOpts{
-		title:               opts.title,
-		prompt:              opts.prompt,
-		handleConfirm:       opts.handleConfirm,
-		handleClose:         opts.handleClose,
-		handlersManageFocus: opts.handlersManageFocus,
-	})
+	return gui.PopupHandler.Ask(opts)
 }
 
 func (gui *Gui) prompt(opts promptOpts) error {
-	return gui.createPopupPanel(createPopupPanelOpts{
-		title:               opts.title,
-		prompt:              opts.initialContent,
-		editable:            true,
-		handleConfirmPrompt: opts.handleConfirm,
-		findSuggestionsFunc: opts.findSuggestionsFunc,
-	})
+	return gui.PopupHandler.Prompt(opts)
 }
 
 func (gui *Gui) createLoaderPanel(prompt string) error {
-	return gui.createPopupPanel(createPopupPanelOpts{
-		prompt:    prompt,
-		hasLoader: true,
-	})
+	return gui.PopupHandler.Loader(prompt)
 }
 
 func (gui *Gui) wrappedConfirmationFunction(handlersManageFocus bool, function func() error) func() error {
@@ -339,15 +321,7 @@ func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View)
 }
 
 func (gui *Gui) createErrorPanel(message string) error {
-	coloredMessage := style.FgRed.Sprint(strings.TrimSpace(message))
-	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
-		return err
-	}
-
-	return gui.ask(askOpts{
-		title:  gui.Tr.Error,
-		prompt: coloredMessage,
-	})
+	return gui.PopupHandler.Error(message)
 }
 
 func (gui *Gui) surfaceError(err error) error {
