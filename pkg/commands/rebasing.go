@@ -3,17 +3,15 @@ package commands
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/mgutz/str"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
-func (c *GitCommand) RewordCommit(commits []*models.Commit, index int) (*exec.Cmd, error) {
+func (c *GitCommand) RewordCommit(commits []*models.Commit, index int) (oscommands.ICmdObj, error) {
 	todo, sha, err := c.GenerateGenericRebaseTodo(commits, index, "reword")
 	if err != nil {
 		return nil, err
@@ -40,7 +38,7 @@ func (c *GitCommand) MoveCommitDown(commits []*models.Commit, index int) error {
 		return err
 	}
 
-	return c.OSCommand.RunPreparedCommand(cmd)
+	return c.OSCommand.Run(cmd)
 }
 
 func (c *GitCommand) InteractiveRebase(commits []*models.Commit, index int, action string) error {
@@ -54,13 +52,13 @@ func (c *GitCommand) InteractiveRebase(commits []*models.Commit, index int, acti
 		return err
 	}
 
-	return c.OSCommand.RunPreparedCommand(cmd)
+	return c.OSCommand.Run(cmd)
 }
 
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit a todo string to write to the todo file
-func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string, overrideEditor bool) (*exec.Cmd, error) {
+func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string, overrideEditor bool) (oscommands.ICmdObj, error) {
 	ex := c.OSCommand.GetLazygitPath()
 
 	debug := "FALSE"
@@ -70,9 +68,8 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 
 	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty %s", baseSha)
 	c.Log.WithField("command", cmdStr).Info("RunCommand")
-	splitCmd := str.ToArgv(cmdStr)
 
-	cmd := c.OSCommand.Command(splitCmd[0], splitCmd[1:]...)
+	cmdObj := c.NewCmdObj(cmdStr)
 
 	gitSequenceEditor := ex
 	if todo == "" {
@@ -81,9 +78,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 		c.OSCommand.LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
 	}
 
-	cmd.Env = os.Environ()
-	cmd.Env = append(
-		cmd.Env,
+	cmdObj.AddEnvVars(
 		"LAZYGIT_CLIENT_COMMAND=INTERACTIVE_REBASE",
 		"LAZYGIT_REBASE_TODO="+todo,
 		"DEBUG="+debug,
@@ -93,10 +88,10 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 	)
 
 	if overrideEditor {
-		cmd.Env = append(cmd.Env, "GIT_EDITOR="+ex)
+		cmdObj.AddEnvVars("GIT_EDITOR=" + ex)
 	}
 
-	return cmd, nil
+	return cmdObj, nil
 }
 
 func (c *GitCommand) GenerateGenericRebaseTodo(commits []*models.Commit, actionIndex int, action string) (string, string, error) {
@@ -227,7 +222,7 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, c
 		return err
 	}
 
-	if err := c.OSCommand.RunPreparedCommand(cmd); err != nil {
+	if err := c.OSCommand.Run(cmd); err != nil {
 		return err
 	}
 
@@ -241,7 +236,7 @@ func (c *GitCommand) RebaseBranch(branchName string) error {
 		return err
 	}
 
-	return c.OSCommand.RunPreparedCommand(cmd)
+	return c.OSCommand.Run(cmd)
 }
 
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
@@ -276,14 +271,13 @@ func (c *GitCommand) GenericMergeOrRebaseAction(commandType string, command stri
 }
 
 func (c *GitCommand) runSkipEditorCommand(command string) error {
-	cmd := c.OSCommand.ExecutableFromString(command)
+	cmdObj := c.OSCommand.NewCmdObj(command)
 	lazyGitPath := c.OSCommand.GetLazygitPath()
-	cmd.Env = append(
-		cmd.Env,
+	cmdObj.AddEnvVars(
 		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
 		"GIT_EDITOR="+lazyGitPath,
 		"EDITOR="+lazyGitPath,
 		"VISUAL="+lazyGitPath,
 	)
-	return c.OSCommand.RunExecutable(cmd)
+	return c.OSCommand.Run(cmdObj)
 }

@@ -37,7 +37,7 @@ func (c *GitCommand) Push(opts PushOpts) error {
 		cmdStr += " " + c.OSCommand.Quote(opts.UpstreamBranch)
 	}
 
-	cmdObj := c.NewCmdObjFromStr(cmdStr)
+	cmdObj := c.NewCmdObj(cmdStr)
 	return c.DetectUnamePass(cmdObj, opts.PromptUserForCredential)
 }
 
@@ -58,7 +58,7 @@ func (c *GitCommand) Fetch(opts FetchOptions) error {
 		cmdStr = fmt.Sprintf("%s %s", cmdStr, c.OSCommand.Quote(opts.BranchName))
 	}
 
-	cmdObj := c.NewCmdObjFromStr(cmdStr)
+	cmdObj := c.NewCmdObj(cmdStr)
 	return c.DetectUnamePass(cmdObj, func(question string) string {
 		if opts.PromptUserForCredential != nil {
 			return opts.PromptUserForCredential(question)
@@ -94,18 +94,18 @@ func (c *GitCommand) Pull(opts PullOptions) error {
 
 	// setting GIT_SEQUENCE_EDITOR to ':' as a way of skipping it, in case the user
 	// has 'pull.rebase = interactive' configured.
-	cmdObj := c.NewCmdObjFromStr(cmdStr).AddEnvVars("GIT_SEQUENCE_EDITOR=:")
+	cmdObj := c.NewCmdObj(cmdStr).AddEnvVars("GIT_SEQUENCE_EDITOR=:")
 	return c.DetectUnamePass(cmdObj, opts.PromptUserForCredential)
 }
 
 func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string, promptUserForCredential func(string) string) error {
 	cmdStr := fmt.Sprintf("git fetch %s %s:%s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(remoteBranchName), c.OSCommand.Quote(branchName))
-	cmdObj := c.NewCmdObjFromStr(cmdStr)
+	cmdObj := c.NewCmdObj(cmdStr)
 	return c.DetectUnamePass(cmdObj, promptUserForCredential)
 }
 
 func (c *GitCommand) FetchRemote(remoteName string, promptUserForCredential func(string) string) error {
 	cmdStr := fmt.Sprintf("git fetch %s", c.OSCommand.Quote(remoteName))
-	cmdObj := c.NewCmdObjFromStr(cmdStr)
+	cmdObj := c.NewCmdObj(cmdStr)
 	return c.DetectUnamePass(cmdObj, promptUserForCredential)
 }

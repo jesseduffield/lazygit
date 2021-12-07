@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
@@ -10,12 +11,11 @@ import (
 // WithWaitingStatus we get stuck there and can't return to lazygit. We could
 // fix this bug, or just stop running subprocesses from within there, given that
 // we don't need to see a loading status if we're in a subprocess.
-func (gui *Gui) withGpgHandling(cmdStr string, waitingStatus string, onSuccess func() error) error {
+// TODO: work out if we actually need to use a shell command here
+func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
 	useSubprocess := gui.GitCommand.UsingGpg()
 	if useSubprocess {
-		// Need to remember why we use the shell for the subprocess but not in the other case
-		// Maybe there's no good reason
-		success, err := gui.runSubprocessWithSuspense(gui.OSCommand.ShellCommandFromString(cmdStr))
+		success, err := gui.runSubprocessWithSuspense(gui.OSCommand.NewShellCmdObjFromString(cmdObj.ToString()))
 		if success && onSuccess != nil {
 			if err := onSuccess(); err != nil {
 				return err
@@ -27,15 +27,16 @@ func (gui *Gui) withGpgHandling(cmdStr string, waitingStatus string, onSuccess f
 
 		return err
 	} else {
-		return gui.RunAndStream(cmdStr, waitingStatus, onSuccess)
+		return gui.RunAndStream(cmdObj, waitingStatus, onSuccess)
 	}
 }
 
-func (gui *Gui) RunAndStream(cmdStr string, waitingStatus string, onSuccess func() error) error {
+func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
 	return gui.WithWaitingStatus(waitingStatus, func() error {
-		cmd := gui.OSCommand.ShellCommandFromString(cmdStr)
-		cmd.Env = append(cmd.Env, "TERM=dumb")
+		cmdObj := gui.OSCommand.NewShellCmdObjFromString(cmdObj.ToString())
+		cmdObj.AddEnvVars("TERM=dumb")
 		cmdWriter := gui.getCmdWriter()
+		cmd := cmdObj.GetCmd()
 		cmd.Stdout = cmdWriter
 		cmd.Stderr = cmdWriter
 

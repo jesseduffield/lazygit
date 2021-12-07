@@ -25,10 +25,8 @@ func (gui *Gui) tagsRenderToMain() error {
 	if tag == nil {
 		task = NewRenderStringTask("No tags")
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.GetBranchGraphCmdStr(tag.Name),
-		)
-		task = NewRunCommandTask(cmd)
+		cmdObj := gui.GitCommand.GetBranchGraphCmdObj(tag.Name)
+		task = NewRunCommandTask(cmdObj.GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

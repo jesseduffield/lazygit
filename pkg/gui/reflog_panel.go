@@ -22,11 +22,9 @@ func (gui *Gui) reflogCommitsRenderToMain() error {
 	if commit == nil {
 		task = NewRenderStringTask("No reflog history")
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
-		)
+		cmdObj := gui.GitCommand.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
 
-		task = NewRunPtyTask(cmd)
+		task = NewRunPtyTask(cmdObj.GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

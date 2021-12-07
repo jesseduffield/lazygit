@@ -4,7 +4,6 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -33,11 +32,11 @@ func TestGitCommandResetToCommit(t *testing.T) {
 		return secureexec.Command("echo")
 	}
 
-	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard", oscommands.RunCommandOptions{}))
+	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard", []string{}))
 }
 
-// TestGitCommandCommitStr is a function.
-func TestGitCommandCommitStr(t *testing.T) {
+// TestGitCommandCommitObj is a function.
+func TestGitCommandCommitObj(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
 
 	type scenario struct {
@@ -70,7 +69,7 @@ func TestGitCommandCommitStr(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			cmdStr := gitCmd.CommitCmdStr(s.message, s.flags)
+			cmdStr := gitCmd.CommitCmdObj(s.message, s.flags).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}
@@ -111,8 +110,8 @@ func TestGitCommandCreateFixupCommit(t *testing.T) {
 	}
 }
 
-// TestGitCommandShowCmdStr is a function.
-func TestGitCommandShowCmdStr(t *testing.T) {
+// TestGitCommandShowCmdObj is a function.
+func TestGitCommandShowCmdObj(t *testing.T) {
 	type scenario struct {
 		testName    string
 		filterPath  string
@@ -146,7 +145,7 @@ func TestGitCommandShowCmdStr(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd.Config.GetUserConfig().Git.DiffContextSize = s.contextSize
-			cmdStr := gitCmd.ShowCmdStr("1234567890", s.filterPath)
+			cmdStr := gitCmd.ShowCmdObj("1234567890", s.filterPath).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}

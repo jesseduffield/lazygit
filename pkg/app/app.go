@@ -146,7 +146,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 }
 
 func (app *App) validateGitVersion() error {
-	output, err := app.OSCommand.RunCommandWithOutput("git --version")
+	output, err := app.OSCommand.RunWithOutput(app.OSCommand.NewCmdObj("git --version"))
 	// if we get an error anywhere here we'll show the same status
 	minVersionError := errors.New(app.Tr.MinGitVersionError)
 	if err != nil {
@@ -231,7 +231,7 @@ func (app *App) setupRepo() (bool, error) {
 
 			os.Exit(1)
 		}
-		if err := app.OSCommand.RunCommand("git init"); err != nil {
+		if err := app.OSCommand.Run(app.OSCommand.NewCmdObj("git init")); err != nil {
 			return false, err
 		}
 	}

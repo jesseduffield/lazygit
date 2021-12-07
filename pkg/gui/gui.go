@@ -7,7 +7,6 @@ import (
 	"os"
 	"sync"
 
-	"os/exec"
 	"strings"
 	"time"
 
@@ -578,7 +577,7 @@ func (gui *Gui) RunAndHandleError() error {
 }
 
 // returns whether command exited without error or not
-func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *exec.Cmd) error {
+func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess oscommands.ICmdObj) error {
 	_, err := gui.runSubprocessWithSuspense(subprocess)
 	if err != nil {
 		return err
@@ -592,7 +591,7 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *exec.Cmd) error 
 }
 
 // returns whether command exited without error or not
-func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
+func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, error) {
 	gui.Mutexes.SubprocessMutex.Lock()
 	defer gui.Mutexes.SubprocessMutex.Unlock()
 
@@ -621,7 +620,8 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
 	return cmdErr == nil, gui.surfaceError(cmdErr)
 }
 
-func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
+func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error {
+	subprocess := cmdObj.GetCmd()
 	subprocess.Stdout = os.Stdout
 	subprocess.Stderr = os.Stdout
 	subprocess.Stdin = os.Stdin

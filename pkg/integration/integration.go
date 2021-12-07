@@ -45,7 +45,7 @@ func RunTests(
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	osCommand := oscommands.NewDummyOSCommand()
-	err = osCommand.RunCommand("go build -o %s", tempLazygitPath())
+	err = osCommand.Run(osCommand.NewCmdObj("go build -o " + tempLazygitPath()))
 	if err != nil {
 		return err
 	}
@@ -216,11 +216,10 @@ func GetRootDirectory() string {
 }
 
 func createFixture(testPath, actualDir string) error {
-	osCommand := oscommands.NewDummyOSCommand()
 	bashScriptPath := filepath.Join(testPath, "setup.sh")
 	cmd := secureexec.Command("bash", bashScriptPath, actualDir)
 
-	if err := osCommand.RunExecutable(cmd); err != nil {
+	if _, err := cmd.CombinedOutput(); err != nil {
 		return err
 	}
 
@@ -320,7 +319,7 @@ func generateSnapshot(dir string) (string, error) {
 
 	for _, cmdStr := range cmdStrs {
 		// ignoring error for now. If there's an error it could be that there are no results
-		output, _ := osCommand.RunCommandWithOutput(cmdStr)
+		output, _ := osCommand.RunWithOutput(osCommand.NewCmdObj(cmdStr))
 
 		snapshot += output + "\n"
 	}
@@ -429,22 +428,16 @@ func getLazygitCommand(testPath string, rootDir string, record bool, speed float
 
 	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s %s", tempLazygitPath(), configDir, actualDir, extraCmdArgs)
 
-	cmd := osCommand.ExecutableFromString(cmdStr)
-	cmd.Env = append(cmd.Env, fmt.Sprintf("SPEED=%f", speed))
+	cmdObj := osCommand.NewCmdObj(cmdStr)
+	cmdObj.AddEnvVars(fmt.Sprintf("SPEED=%f", speed))
 
 	if record {
-		cmd.Env = append(
-			cmd.Env,
-			fmt.Sprintf("RECORD_EVENTS_TO=%s", replayPath),
-		)
+		cmdObj.AddEnvVars(fmt.Sprintf("RECORD_EVENTS_TO=%s", replayPath))
 	} else {
-		cmd.Env = append(
-			cmd.Env,
-			fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath),
-		)
+		cmdObj.AddEnvVars(fmt.Sprintf("REPLAY_EVENTS_FROM=%s", replayPath))
 	}
 
-	return cmd, nil
+	return cmdObj.GetCmd(), nil
 }
 
 func folderExists(path string) bool {
