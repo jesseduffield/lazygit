@@ -13,9 +13,13 @@ import (
 
 // if these being global variables causes trouble we can wrap them in a struct
 // attached to the gui state.
-var authorInitialCache = make(map[string]string)
-var authorNameCache = make(map[string]string)
-var authorStyleCache = make(map[string]style.TextStyle)
+var (
+	authorInitialCache = make(map[string]string)
+	authorNameCache    = make(map[string]string)
+	authorStyleCache   = make(map[string]style.TextStyle)
+)
+
+const authorNameWildcard = "*"
 
 func ShortAuthor(authorName string) string {
 	if value, ok := authorInitialCache[authorName]; ok {
@@ -48,6 +52,11 @@ func LongAuthor(authorName string) string {
 
 func AuthorStyle(authorName string) style.TextStyle {
 	if value, ok := authorStyleCache[authorName]; ok {
+		return value
+	}
+
+	// use the unified style whatever the autor name is
+	if value, ok := authorStyleCache[authorNameWildcard]; ok {
 		return value
 	}
 
