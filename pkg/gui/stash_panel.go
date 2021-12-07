@@ -22,10 +22,10 @@ func (gui *Gui) stashRenderToMain() error {
 	if stashEntry == nil {
 		task = NewRenderStringTask(gui.Tr.NoStashEntries)
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
+		cmdObj := gui.OSCommand.NewCmdObj(
 			gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
 		)
-		task = NewRunPtyTask(cmd)
+		task = NewRunPtyTask(cmdObj.GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{

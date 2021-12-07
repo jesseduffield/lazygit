@@ -58,22 +58,20 @@ func (gui *Gui) filesRenderToMain() error {
 		return gui.refreshMergePanelWithLock()
 	}
 
-	cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges(), gui.State.IgnoreWhitespaceInDiffView)
-	cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+	cmdObj := gui.GitCommand.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges(), gui.State.IgnoreWhitespaceInDiffView)
 
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
 		title: gui.Tr.UnstagedChanges,
-		task:  NewRunPtyTask(cmd),
+		task:  NewRunPtyTask(cmdObj.GetCmd()),
 	}}
 
 	if node.GetHasUnstagedChanges() {
 		if node.GetHasStagedChanges() {
-			cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(node, false, true, gui.State.IgnoreWhitespaceInDiffView)
-			cmd := gui.OSCommand.ExecutableFromString(cmdStr)
+			cmdObj := gui.GitCommand.WorktreeFileDiffCmdObj(node, false, true, gui.State.IgnoreWhitespaceInDiffView)
 
 			refreshOpts.secondary = &viewUpdateOpts{
 				title: gui.Tr.StagedChanges,
-				task:  NewRunPtyTask(cmd),
+				task:  NewRunPtyTask(cmdObj.GetCmd()),
 			}
 		}
 	} else {
@@ -440,9 +438,9 @@ func (gui *Gui) handleAmendCommitPress() error {
 		title:  strings.Title(gui.Tr.AmendLastCommit),
 		prompt: gui.Tr.SureToAmend,
 		handleConfirm: func() error {
-			cmdStr := gui.GitCommand.AmendHeadCmdStr()
-			gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdStr, gui.Tr.Spans.AmendCommit, true))
-			return gui.withGpgHandling(cmdStr, gui.Tr.AmendingStatus, nil)
+			cmdObj := gui.GitCommand.AmendHeadCmdObj()
+			gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdObj.ToString(), gui.Tr.Spans.AmendCommit, true))
+			return gui.withGpgHandling(cmdObj, gui.Tr.AmendingStatus, nil)
 		},
 	})
 }
@@ -464,8 +462,10 @@ func (gui *Gui) handleCommitEditorPress() error {
 		args = append(args, "--signoff")
 	}
 
+	cmdStr := "git " + strings.Join(args, " ")
+
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan(gui.Tr.Spans.Commit).PrepareSubProcess("git", args...),
+		gui.GitCommand.WithSpan(gui.Tr.Spans.Commit).NewCmdObjWithLog(cmdStr),
 	)
 }
 
@@ -511,7 +511,7 @@ func (gui *Gui) editFileAtLine(filename string, lineNumber int) error {
 	}
 
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).ShellCommandFromString(cmdStr),
+		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).NewShellCmdObjFromString(cmdStr),
 	)
 }
 
@@ -923,7 +923,7 @@ func (gui *Gui) handleCustomCommand() error {
 
 			gui.OnRunCommand(oscommands.NewCmdLogEntry(command, gui.Tr.Spans.CustomCommand, true))
 			return gui.runSubprocessWithSuspenseAndRefresh(
-				gui.OSCommand.PrepareShellSubProcess(command),
+				gui.OSCommand.NewShellCmdObjFromString2(command),
 			)
 		},
 	})
@@ -1004,7 +1004,7 @@ func (gui *Gui) handleOpenMergeTool() error {
 		prompt: gui.Tr.MergeToolPrompt,
 		handleConfirm: func() error {
 			return gui.runSubprocessWithSuspenseAndRefresh(
-				gui.OSCommand.ExecutableFromString(gui.GitCommand.OpenMergeToolCmd()),
+				gui.GitCommand.OpenMergeToolCmdObj(),
 			)
 		},
 	})

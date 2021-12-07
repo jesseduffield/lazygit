@@ -13,10 +13,10 @@ func (gui *Gui) exitDiffMode() error {
 }
 
 func (gui *Gui) renderDiff() error {
-	cmd := gui.OSCommand.ExecutableFromString(
+	cmdObj := gui.OSCommand.NewCmdObj(
 		fmt.Sprintf("git diff --submodule --no-ext-diff --color %s", gui.diffStr()),
 	)
-	task := NewRunPtyTask(cmd)
+	task := NewRunPtyTask(cmdObj.GetCmd())
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
