@@ -10,9 +10,7 @@ import (
 )
 
 func (c *GitCommand) GetRemotes() ([]*models.Remote, error) {
-	// get remote branches
-	unescaped := "git branch -r"
-	remoteBranchesStr, err := c.OSCommand.RunCommandWithOutput(unescaped)
+	remoteBranchesStr, err := c.RunWithOutput(c.NewCmdObj("git branch -r"))
 	if err != nil {
 		return nil, err
 	}

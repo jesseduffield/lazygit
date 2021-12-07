@@ -11,6 +11,7 @@ type ICmdObj interface {
 	GetCmd() *exec.Cmd
 	ToString() string
 	AddEnvVars(...string) ICmdObj
+	GetEnvVars() []string
 }
 
 type CmdObj struct {
@@ -30,4 +31,8 @@ func (self *CmdObj) AddEnvVars(vars ...string) ICmdObj {
 	self.cmd.Env = append(self.cmd.Env, vars...)
 
 	return self
+}
+
+func (self *CmdObj) GetEnvVars() []string {
+	return self.cmd.Env
 }

@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestOSCommandRunCommandWithOutput is a function.
-func TestOSCommandRunCommandWithOutput(t *testing.T) {
+// TestOSCommandRunWithOutput is a function.
+func TestOSCommandRunWithOutput(t *testing.T) {
 	type scenario struct {
 		command string
 		test    func(string, error)
@@ -32,12 +32,13 @@ func TestOSCommandRunCommandWithOutput(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewDummyOSCommand().RunCommandWithOutput(s.command))
+		c := NewDummyOSCommand()
+		s.test(NewDummyOSCommand().RunWithOutput(c.NewCmdObj(s.command)))
 	}
 }
 
-// TestOSCommandRunCommand is a function.
-func TestOSCommandRunCommand(t *testing.T) {
+// TestOSCommandRun is a function.
+func TestOSCommandRun(t *testing.T) {
 	type scenario struct {
 		command string
 		test    func(error)
@@ -53,7 +54,8 @@ func TestOSCommandRunCommand(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewDummyOSCommand().RunCommand(s.command))
+		c := NewDummyOSCommand()
+		s.test(c.Run(c.NewCmdObj(s.command)))
 	}
 }
 

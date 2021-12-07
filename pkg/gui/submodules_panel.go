@@ -36,9 +36,8 @@ func (gui *Gui) submodulesRenderToMain() error {
 		if file == nil {
 			task = NewRenderStringTask(prefix)
 		} else {
-			cmdStr := gui.GitCommand.WorktreeFileDiffCmdStr(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, gui.State.IgnoreWhitespaceInDiffView)
-			cmd := gui.OSCommand.ExecutableFromString(cmdStr)
-			task = NewRunCommandTaskWithPrefix(cmd, prefix)
+			cmdObj := gui.GitCommand.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, gui.State.IgnoreWhitespaceInDiffView)
+			task = NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix)
 		}
 	}
 
@@ -212,10 +211,10 @@ func (gui *Gui) handleResetRemoveSubmodule(submodule *models.SubmoduleConfig) er
 func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 	menuItems := []*menuItem{
 		{
-			displayStrings: []string{gui.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(gui.GitCommand.SubmoduleBulkInitCmdStr())},
+			displayStrings: []string{gui.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(gui.GitCommand.SubmoduleBulkInitCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkInitialiseSubmodules).RunCommand(gui.GitCommand.SubmoduleBulkInitCmdStr()); err != nil {
+					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkInitialiseSubmodules).Run(gui.GitCommand.SubmoduleBulkInitCmdObj()); err != nil {
 						return gui.surfaceError(err)
 					}
 
@@ -224,10 +223,10 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			},
 		},
 		{
-			displayStrings: []string{gui.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(gui.GitCommand.SubmoduleBulkUpdateCmdStr())},
+			displayStrings: []string{gui.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(gui.GitCommand.SubmoduleBulkUpdateCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkUpdateSubmodules).RunCommand(gui.GitCommand.SubmoduleBulkUpdateCmdStr()); err != nil {
+					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkUpdateSubmodules).Run(gui.GitCommand.SubmoduleBulkUpdateCmdObj()); err != nil {
 						return gui.surfaceError(err)
 					}
 
@@ -236,7 +235,7 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			},
 		},
 		{
-			displayStrings: []string{gui.Tr.LcSubmoduleStashAndReset, style.FgRed.Sprintf("git stash in each submodule && %s", gui.GitCommand.SubmoduleForceBulkUpdateCmdStr())},
+			displayStrings: []string{gui.Tr.LcSubmoduleStashAndReset, style.FgRed.Sprintf("git stash in each submodule && %s", gui.GitCommand.SubmoduleForceBulkUpdateCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
 					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.BulkStashAndResetSubmodules).ResetSubmodules(gui.State.Submodules); err != nil {
@@ -248,10 +247,10 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			},
 		},
 		{
-			displayStrings: []string{gui.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(gui.GitCommand.SubmoduleBulkDeinitCmdStr())},
+			displayStrings: []string{gui.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(gui.GitCommand.SubmoduleBulkDeinitCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkDeinitialiseSubmodules).RunCommand(gui.GitCommand.SubmoduleBulkDeinitCmdStr()); err != nil {
+					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkDeinitialiseSubmodules).Run(gui.GitCommand.SubmoduleBulkDeinitCmdObj()); err != nil {
 						return gui.surfaceError(err)
 					}
 

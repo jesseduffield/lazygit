@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 // GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
@@ -19,9 +18,9 @@ func (c *GitCommand) GetReflogCommits(lastReflogCommit *models.Commit, filterPat
 		filterPathArg = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(filterPath))
 	}
 
-	cmd := c.OSCommand.ExecutableFromString(fmt.Sprintf(`git log -g --abbrev=20 --format="%%h %%ct %%gs" %s`, filterPathArg))
+	cmdObj := c.OSCommand.NewCmdObj(fmt.Sprintf(`git log -g --abbrev=20 --format="%%h %%ct %%gs" %s`, filterPathArg))
 	onlyObtainedNewReflogCommits := false
-	err := oscommands.RunLineOutputCmd(cmd, func(line string) (bool, error) {
+	err := c.OSCommand.RunLineOutputCmd(cmdObj, func(line string) (bool, error) {
 		fields := strings.SplitN(line, " ", 3)
 		if len(fields) <= 2 {
 			return false, nil

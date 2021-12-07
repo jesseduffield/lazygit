@@ -210,7 +210,7 @@ func TestGitCommandGetAllBranchGraph(t *testing.T) {
 		return secureexec.Command("echo")
 	}
 	cmdStr := gitCmd.Config.GetUserConfig().Git.AllBranchesLogCmd
-	_, err := gitCmd.OSCommand.RunCommandWithOutput(cmdStr)
+	_, err := gitCmd.OSCommand.RunWithOutput(gitCmd.NewCmdObj(cmdStr))
 	assert.NoError(t, err)
 }
 
