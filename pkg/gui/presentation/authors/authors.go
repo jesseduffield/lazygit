@@ -55,7 +55,7 @@ func AuthorStyle(authorName string) style.TextStyle {
 		return value
 	}
 
-	// use the unified style whatever the autor name is
+	// use the unified style whatever the author name is
 	if value, ok := authorStyleCache[authorNameWildcard]; ok {
 		return value
 	}

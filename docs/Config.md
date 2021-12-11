@@ -376,22 +376,22 @@ If you're still having trouble please raise an issue.
 
 ## Custom Author Color
 
-Lazygit will assgin a random color for every commit author in the commits pane by default.
+Lazygit will assign a random color for every commit author in the commits pane by default.
 
 You can customize the color in case you're not happy with the randomly assigned one:
 
 ```yaml
 gui:
   authorColors:
-    'John Smith': '#ff0000 # use red for John Smith
+    'John Smith': '#ff0000' # use red for John Smith
 ```
 
-You can use wildcard to set a unified color in case your are lazy to customize the color for every author or you are just want a single color for all/other authors:
+You can use wildcard to set a unified color in case your are lazy to customize the color for every author or you just want a single color for all/other authors:
 ```yaml
 gui:
   authorColors:
     # use red for John Smith
-    'John Smith': '#ff0000
+    'John Smith': '#ff0000'
     # use blue for other authors
     '*': '#0000ff'
 ```
