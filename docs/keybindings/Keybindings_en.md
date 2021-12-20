@@ -121,7 +121,7 @@
 <pre>
   <kbd>s</kbd>: squash down
   <kbd>r</kbd>: reword commit
-  <kbd>R</kbd>: rename commit with editor
+  <kbd>R</kbd>: reword commit with editor
   <kbd>g</kbd>: reset to this commit
   <kbd>f</kbd>: fixup commit
   <kbd>F</kbd>: create fixup commit for this commit
