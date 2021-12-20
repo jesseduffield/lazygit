@@ -257,7 +257,7 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 - Easily check out recent branches
 - Scroll through logs/diffs of branches/commits/stash
 - Quick pushing/pulling
-- Squash down and rename commits
+- Squash down and reword commits
 
 ### Resolving merge conflicts
 

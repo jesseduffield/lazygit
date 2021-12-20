@@ -643,7 +643,7 @@ func englishTranslationSet() TranslationSet {
 		LcMoveUpCommit:                      "move commit up one",
 		LcEditCommit:                        "edit commit",
 		LcAmendToCommit:                     "amend commit with staged changes",
-		LcRenameCommitEditor:                "rename commit with editor",
+		LcRenameCommitEditor:                "reword commit with editor",
 		Error:                               "Error",
 		LcSelectHunk:                        "select hunk",
 		LcNavigateConflicts:                 "navigate conflicts",
