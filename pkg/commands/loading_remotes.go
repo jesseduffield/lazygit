@@ -27,7 +27,7 @@ func (c *GitCommand) GetRemotes() ([]*models.Remote, error) {
 	for i, goGitRemote := range goGitRemotes {
 		remoteName := goGitRemote.Config().Name
 
-		re := regexp.MustCompile(fmt.Sprintf(`%s\/([\S]+)`, remoteName))
+		re := regexp.MustCompile(fmt.Sprintf(`(?m)^\s*%s\/([\S]+)`, remoteName))
 		matches := re.FindAllStringSubmatch(remoteBranchesStr, -1)
 		branches := make([]*models.RemoteBranch, len(matches))
 		for j, match := range matches {
