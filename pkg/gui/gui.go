@@ -662,7 +662,10 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unpara
 
 	if gui.Config.GetUserConfig().PromptToReturnFromSubprocess {
 		fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
-		fmt.Scanln() // wait for enter press
+
+		// scan to buffer to prevent run unintentional operations when TUI resumes.
+		var buffer string
+		fmt.Scanln(&buffer) // wait for enter press
 	}
 
 	return err
