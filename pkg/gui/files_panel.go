@@ -384,9 +384,9 @@ func (gui *Gui) handleCommitPress() error {
 		return gui.promptToStageAllAndRetry(gui.handleCommitPress)
 	}
 
-	if len(gui.State.messageFailedCommit) > 0 {
+	if len(gui.State.failedCommitMessage) > 0 {
 		gui.Views.CommitMessage.ClearTextArea()
-		gui.Views.CommitMessage.TextArea.TypeString(gui.State.messageFailedCommit)
+		gui.Views.CommitMessage.TextArea.TypeString(gui.State.failedCommitMessage)
 		gui.Views.CommitMessage.RenderTextArea()
 	} else {
 		commitPrefixConfig := gui.commitPrefixConfigForRepo()

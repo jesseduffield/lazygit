@@ -11,7 +11,7 @@ import (
 
 func (gui *Gui) handleCommitConfirm() error {
 	message := strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
-	gui.State.messageFailedCommit = message
+	gui.State.failedCommitMessage = message
 	if message == "" {
 		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
 	}
@@ -26,7 +26,7 @@ func (gui *Gui) handleCommitConfirm() error {
 	_ = gui.returnFromContext()
 	return gui.withGpgHandling(cmdStr, gui.Tr.CommittingStatus, func() error {
 		gui.Views.CommitMessage.ClearTextArea()
-		gui.State.messageFailedCommit = ""
+		gui.State.failedCommitMessage = ""
 		return nil
 	})
 }
