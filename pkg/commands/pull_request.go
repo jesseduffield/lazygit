@@ -161,9 +161,10 @@ func (pr *PullRequest) getPullRequestURL(from string, to string) (string, error)
 }
 
 func getRepoInfoFromURL(url string) *RepoInformation {
-	isHTTP := strings.HasPrefix(url, "http")
+	hasHTTPScheme := strings.HasPrefix(url, "http")
+	hasSSHScheme := strings.HasPrefix(url, "ssh")
 
-	if isHTTP {
+	if hasHTTPScheme || hasSSHScheme {
 		splits := strings.Split(url, "/")
 		owner := strings.Join(splits[3:len(splits)-1], "/")
 		repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
