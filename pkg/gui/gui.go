@@ -636,8 +636,6 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error {
 
 	err := subprocess.Run()
 	if err != nil {
-		// not handling the error explicitly because usually we're going to see it
-		// in the output anyway
 		gui.Log.Error(err)
 	}
 
