@@ -36,6 +36,15 @@ func TestGetRepoInfoFromURL(t *testing.T) {
 		},
 		{
 			NewGithubService("github.com", "github.com"),
+			"Returns repository information for ssh remote url",
+			"ssh://git@github.com/petersmith/super_calculator",
+			func(repoInfo *RepoInformation) {
+				assert.EqualValues(t, repoInfo.Owner, "petersmith")
+				assert.EqualValues(t, repoInfo.Repository, "super_calculator")
+			},
+		},
+		{
+			NewGithubService("github.com", "github.com"),
 			"Returns repository information for http remote url",
 			"https://my_username@bitbucket.org/johndoe/social_network.git",
 			func(repoInfo *RepoInformation) {
