@@ -2,72 +2,81 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
+
+// if you want to make a custom regex for a given service feel free to test it out
+// at regoio.herokuapp.com
+var defaultUrlRegexStrings = []string{
+	`^https?://.*/(?P<owner>.*)/(?P<repo>.*?)(\.git)?$`,
+	`^git@.*:(?P<owner>.*)/(?P<repo>.*?)(\.git)?$`,
+}
 
 // Service is a service that repository is on (Github, Bitbucket, ...)
 type Service struct {
 	Name                            string
 	pullRequestURLIntoDefaultBranch func(owner string, repository string, from string) string
 	pullRequestURLIntoTargetBranch  func(owner string, repository string, from string, to string) string
+	URLRegexStrings                 []string
 }
 
-// NewService builds a Service based on the host type
-func NewService(typeName string, repositoryDomain string, siteDomain string) *Service {
-	var service *Service
-
-	switch typeName {
-	case "github":
-		service = &Service{
-			Name: repositoryDomain,
-			pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
-				return fmt.Sprintf("https://%s/%s/%s/compare/%s?expand=1", siteDomain, owner, repository, from)
-			},
-			pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
-				return fmt.Sprintf("https://%s/%s/%s/compare/%s...%s?expand=1", siteDomain, owner, repository, to, from)
-			},
-		}
-	case "bitbucket":
-		service = &Service{
-			Name: repositoryDomain,
-			pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
-				return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&t=1", siteDomain, owner, repository, from)
-			},
-			pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
-				return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&dest=%s&t=1", siteDomain, owner, repository, from, to)
-			},
-		}
-	case "gitlab":
-		service = &Service{
-			Name: repositoryDomain,
-			pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
-				return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s", siteDomain, owner, repository, from)
-			},
-			pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
-				return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s&merge_request[target_branch]=%s", siteDomain, owner, repository, from, to)
-			},
-		}
+func NewGithubService(repositoryDomain string, siteDomain string) *Service {
+	return &Service{
+		Name: repositoryDomain,
+		pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
+			return fmt.Sprintf("https://%s/%s/%s/compare/%s?expand=1", siteDomain, owner, repository, from)
+		},
+		pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
+			return fmt.Sprintf("https://%s/%s/%s/compare/%s...%s?expand=1", siteDomain, owner, repository, to, from)
+		},
+		URLRegexStrings: defaultUrlRegexStrings,
 	}
-
-	return service
 }
 
-func (s *Service) PullRequestURL(owner string, repository string, from string, to string) string {
+func NewBitBucketService(repositoryDomain string, siteDomain string) *Service {
+	return &Service{
+		Name: repositoryDomain,
+		pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
+			return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&t=1", siteDomain, owner, repository, from)
+		},
+		pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
+			return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&dest=%s&t=1", siteDomain, owner, repository, from, to)
+		},
+		URLRegexStrings: defaultUrlRegexStrings,
+	}
+}
+
+func NewGitLabService(repositoryDomain string, siteDomain string) *Service {
+	return &Service{
+		Name: repositoryDomain,
+		pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
+			return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s", siteDomain, owner, repository, from)
+		},
+		pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
+			return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s&merge_request[target_branch]=%s", siteDomain, owner, repository, from, to)
+		},
+		URLRegexStrings: defaultUrlRegexStrings,
+	}
+}
+
+func (s *Service) PullRequestURL(repoURL string, from string, to string) string {
+	repoInfo := s.getRepoInfoFromURL(repoURL)
+
 	if to == "" {
-		return s.pullRequestURLIntoDefaultBranch(owner, repository, from)
+		return s.pullRequestURLIntoDefaultBranch(repoInfo.Owner, repoInfo.Repository, from)
 	} else {
-		return s.pullRequestURLIntoTargetBranch(owner, repository, from, to)
+		return s.pullRequestURLIntoTargetBranch(repoInfo.Owner, repoInfo.Repository, from, to)
 	}
 }
 
 // PullRequest opens a link in browser to create new pull request
 // with selected branch
 type PullRequest struct {
-	GitServices []*Service
-	GitCommand  *GitCommand
+	GitCommand *GitCommand
 }
 
 // RepoInformation holds some basic information about the repo
@@ -76,40 +85,51 @@ type RepoInformation struct {
 	Repository string
 }
 
-func getServices(config config.AppConfigurer) []*Service {
-	services := []*Service{
-		NewService("github", "github.com", "github.com"),
-		NewService("bitbucket", "bitbucket.org", "bitbucket.org"),
-		NewService("gitlab", "gitlab.com", "gitlab.com"),
-	}
-
-	configServices := config.GetUserConfig().Services
-
-	for repoDomain, typeAndDomain := range configServices {
-		splitData := strings.Split(typeAndDomain, ":")
-		if len(splitData) != 2 {
-			// TODO log this misconfiguration
-			continue
-		}
-
-		service := NewService(splitData[0], repoDomain, splitData[1])
-		if service == nil {
-			// TODO log this unsupported service
-			continue
-		}
-
-		services = append(services, service)
-	}
-
-	return services
-}
-
 // NewPullRequest creates new instance of PullRequest
 func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 	return &PullRequest{
-		GitServices: getServices(gitCommand.Config),
-		GitCommand:  gitCommand,
+		GitCommand: gitCommand,
 	}
+}
+
+func (pr *PullRequest) getServices() []*Service {
+	services := []*Service{
+		NewGithubService("github.com", "github.com"),
+		NewBitBucketService("bitbucket.org", "bitbucket.org"),
+		NewGitLabService("gitlab.com", "gitlab.com"),
+	}
+
+	configServices := pr.GitCommand.Config.GetUserConfig().Services
+
+	if len(configServices) > 0 {
+		serviceFuncMap := map[string]func(repositoryDomain string, siteDomain string) *Service{
+			"github":    NewGithubService,
+			"bitbucket": NewBitBucketService,
+			"gitlab":    NewGitLabService,
+		}
+
+		for repoDomain, typeAndDomain := range configServices {
+			splitData := strings.Split(typeAndDomain, ":")
+			if len(splitData) != 2 {
+				pr.GitCommand.Log.Errorf("Unexpected format for git service: '%s'. Expected something like 'github.com:github.com'", typeAndDomain)
+				continue
+			}
+
+			serviceFunc := serviceFuncMap[splitData[0]]
+			if serviceFunc == nil {
+				serviceNames := []string{}
+				for serviceName := range serviceFuncMap {
+					serviceNames = append(serviceNames, serviceName)
+				}
+				pr.GitCommand.Log.Errorf("Unknown git service type: '%s'. Expected one of %s", splitData[0], strings.Join(serviceNames, ", "))
+				continue
+			}
+
+			services = append(services, serviceFunc(repoDomain, splitData[1]))
+		}
+	}
+
+	return services
 }
 
 // Create opens link to new pull request in browser
@@ -142,7 +162,7 @@ func (pr *PullRequest) getPullRequestURL(from string, to string) (string, error)
 	repoURL := pr.GitCommand.GetRemoteURL()
 	var gitService *Service
 
-	for _, service := range pr.GitServices {
+	for _, service := range pr.getServices() {
 		if strings.Contains(repoURL, service.Name) {
 			gitService = service
 			break
@@ -153,34 +173,22 @@ func (pr *PullRequest) getPullRequestURL(from string, to string) (string, error)
 		return "", errors.New(pr.GitCommand.Tr.UnsupportedGitService)
 	}
 
-	repoInfo := getRepoInfoFromURL(repoURL)
-
-	pullRequestURL := gitService.PullRequestURL(repoInfo.Owner, repoInfo.Repository, from, to)
+	pullRequestURL := gitService.PullRequestURL(repoURL, from, to)
 
 	return pullRequestURL, nil
 }
 
-func getRepoInfoFromURL(url string) *RepoInformation {
-	isHTTP := strings.HasPrefix(url, "http")
-
-	if isHTTP {
-		splits := strings.Split(url, "/")
-		owner := strings.Join(splits[3:len(splits)-1], "/")
-		repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
-
-		return &RepoInformation{
-			Owner:      owner,
-			Repository: repo,
+func (s *Service) getRepoInfoFromURL(url string) *RepoInformation {
+	for _, regexStr := range s.URLRegexStrings {
+		re := regexp.MustCompile(regexStr)
+		matches := utils.FindNamedMatches(re, url)
+		if matches != nil {
+			return &RepoInformation{
+				Owner:      matches["owner"],
+				Repository: matches["repo"],
+			}
 		}
 	}
 
-	tmpSplit := strings.Split(url, ":")
-	splits := strings.Split(tmpSplit[1], "/")
-	owner := strings.Join(splits[0:len(splits)-1], "/")
-	repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
-
-	return &RepoInformation{
-		Owner:      owner,
-		Repository: repo,
-	}
+	return nil
 }
