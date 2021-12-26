@@ -12,8 +12,8 @@ import (
 // if you want to make a custom regex for a given service feel free to test it out
 // at regoio.herokuapp.com
 var defaultUrlRegexStrings = []string{
-	`^https?://.*/(?P<owner>.*)/(?P<repo>.*?)(\.git)?$`,
-	`^git@.*:(?P<owner>.*)/(?P<repo>.*?)(\.git)?$`,
+	`^(?:https?|ssh)://.*/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+	`^git@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 }
 
 // Service is a service that repository is on (Github, Bitbucket, ...)
