@@ -401,17 +401,17 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.PrevPage), Modifier: gocui.ModNone, Handler: listContext.handlePrevPage, Description: gui.Tr.LcPrevPage},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.NextPage), Modifier: gocui.ModNone, Handler: listContext.handleNextPage, Description: gui.Tr.LcNextPage},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.GotoTop), Modifier: gocui.ModNone, Handler: listContext.handleGotoTop, Description: gui.Tr.LcGotoTop},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.GotoBottom), Modifier: gocui.ModNone, Handler: listContext.handleGotoBottom, Description: gui.Tr.LcGotoBottom},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
 			{ViewName: listContext.GetViewName(), Contexts: []string{string(listContext.GetKey())}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listContext.handleClick},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.ScrollLeft), Modifier: gocui.ModNone, Handler: listContext.handleScrollLeft},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.ScrollRight), Modifier: gocui.ModNone, Handler: listContext.handleScrollRight},
 		}...)
 
-		// the commits panel needs to lazyload things so it has a couple of its own handlers
 		openSearchHandler := gui.handleOpenSearch
 		gotoBottomHandler := listContext.handleGotoBottom
-		if listContext.GetViewName() == "commits" {
+
+		// the branch commits context needs to lazyload things so it has a couple of its own handlers
+		if listContext.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
 			openSearchHandler = gui.handleOpenSearchForCommitsPanel
 			gotoBottomHandler = gui.handleGotoBottomForCommitsPanel
 		}
