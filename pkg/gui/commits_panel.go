@@ -804,11 +804,17 @@ func (gui *Gui) handleOpenCommitInBrowser() error {
 		return nil
 	}
 
-	pullRequest := commands.NewPullRequest(gui.GitCommand)
-	url, err := pullRequest.OpenCommitInBrowser(commit.Sha)
+	hostingServiceMgr := gui.getHostingServiceMgr()
+
+	url, err := hostingServiceMgr.GetCommitURL(commit.Sha)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
+
+	if err := gui.GitCommand.OSCommand.OpenLink(url); err != nil {
+		return gui.surfaceError(err)
+	}
+
 	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf(gui.Tr.OpeningCommitInBrowser, url), gui.Tr.CreatePullRequest, false))
 
 	return nil

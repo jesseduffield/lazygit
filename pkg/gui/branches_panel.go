@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -104,13 +105,24 @@ func (gui *Gui) handleCreatePullRequestMenu() error {
 }
 
 func (gui *Gui) handleCopyPullRequestURLPress() error {
-	pullRequest := commands.NewPullRequest(gui.GitCommand)
+	hostingServiceMgr := gui.getHostingServiceMgr()
 
 	branch := gui.getSelectedBranch()
-	url, err := pullRequest.CopyURL(branch.Name, "")
+
+	branchExistsOnRemote := gui.GitCommand.CheckRemoteBranchExists(branch.Name)
+
+	if !branchExistsOnRemote {
+		return gui.surfaceError(errors.New(gui.Tr.NoBranchOnRemote))
+	}
+
+	url, err := hostingServiceMgr.GetPullRequestURL(branch.Name, "")
 	if err != nil {
 		return gui.surfaceError(err)
 	}
+	if err := gui.GitCommand.OSCommand.CopyToClipboard(url); err != nil {
+		return gui.surfaceError(err)
+	}
+
 	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf("Copying to clipboard: '%s'", url), "Copy URL", false))
 
 	gui.raiseToast(gui.Tr.PullRequestURLCopiedToClipboard)
