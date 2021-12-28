@@ -250,7 +250,7 @@ func TestCreatePullRequest(t *testing.T) {
 			}
 			gitCommand.GitConfig = git_config.NewFakeGitConfig(map[string]string{"remote.origin.url": s.remoteUrl})
 			dummyPullRequest := NewPullRequest(gitCommand)
-			s.test(dummyPullRequest.Create(s.from, s.to))
+			s.test(dummyPullRequest.CreatePullRequest(s.from, s.to))
 		})
 	}
 }

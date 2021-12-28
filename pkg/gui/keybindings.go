@@ -903,6 +903,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "commits",
+			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Commits.OpenInBrowser),
+			Handler:     gui.handleOpenCommitInBrowser,
+			Description: gui.Tr.LcOpenCommitInBrowser,
+		},
+		{
+			ViewName:    "commits",
 			Contexts:    []string{string(REFLOG_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.GoInto),
 			Handler:     gui.handleViewReflogCommitFiles,
