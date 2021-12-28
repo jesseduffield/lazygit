@@ -8,7 +8,8 @@ git config user.name "CI"
 
 git checkout -b master
 
-echo "test" > file1
+echo "file1" > file1
+echo "file2" > file2
 echo "disruptive" > disruptive
 cat > .git/hooks/pre-commit <<EOL
 #!/bin/bash
