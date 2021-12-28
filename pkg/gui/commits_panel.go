@@ -797,3 +797,19 @@ func (gui *Gui) handleOpenLogMenu() error {
 		},
 	}, createMenuOptions{showCancel: true})
 }
+
+func (gui *Gui) handleOpenCommitInBrowser() error {
+	commit := gui.getSelectedLocalCommit()
+	if commit == nil {
+		return nil
+	}
+
+	pullRequest := commands.NewPullRequest(gui.GitCommand)
+	url, err := pullRequest.OpenCommitInBrowser(commit.Sha)
+	if err != nil {
+		return gui.surfaceError(err)
+	}
+	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf(gui.Tr.OpeningCommitInBrowser, url), gui.Tr.CreatePullRequest, false))
+
+	return nil
+}

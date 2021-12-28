@@ -16,61 +16,112 @@ var defaultUrlRegexStrings = []string{
 	`^git@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 }
 
-// Service is a service that repository is on (Github, Bitbucket, ...)
+type ServiceDefinition struct {
+	provider                        string
+	pullRequestURLIntoDefaultBranch string
+	pullRequestURLIntoTargetBranch  string
+	commitURL                       string
+	regexStrings                    []string
+}
+
+func (self ServiceDefinition) getRepoInfoFromURL(url string) (*RepoInformation, error) {
+	for _, regexStr := range self.regexStrings {
+		re := regexp.MustCompile(regexStr)
+		matches := utils.FindNamedMatches(re, url)
+		if matches != nil {
+			return &RepoInformation{
+				Owner:      matches["owner"],
+				Repository: matches["repo"],
+			}, nil
+		}
+	}
+
+	return nil, errors.New("Failed to parse repo information from url")
+}
+
+// a service domains pairs a service definition with the actual domain it's being served from.
+// Sometimes the git service is hosted in a custom domains so although it'll use say
+// the github service definition, it'll actually be served from e.g. my-custom-github.com
+type ServiceDomain struct {
+	gitDomain         string // the one that appears in the git remote url
+	webDomain         string // the one that appears in the web url
+	serviceDefinition ServiceDefinition
+}
+
+func (self ServiceDomain) getRootFromRepoURL(repoURL string) (string, error) {
+	// we may want to make this more specific to the service in future e.g. if
+	// some new service comes along which has a different root url structure.
+	repoInfo, err := self.serviceDefinition.getRepoInfoFromURL(repoURL)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("https://%s/%s/%s", self.webDomain, repoInfo.Owner, repoInfo.Repository), nil
+}
+
+// we've got less type safety using go templates but this lends itself better to
+// users adding custom service definitions in their config
+var GithubServiceDef = ServiceDefinition{
+	provider:                        "github",
+	pullRequestURLIntoDefaultBranch: "/compare/{{.From}}?expand=1",
+	pullRequestURLIntoTargetBranch:  "/compare/{{.To}}...{{.From}}?expand=1",
+	commitURL:                       "/commit/{{.CommitSha}}",
+	regexStrings:                    defaultUrlRegexStrings,
+}
+
+var BitbucketServiceDef = ServiceDefinition{
+	provider:                        "bitbucket",
+	pullRequestURLIntoDefaultBranch: "/pull-requests/new?source={{.From}}&t=1",
+	pullRequestURLIntoTargetBranch:  "/pull-requests/new?source={{.From}}&dest={{.To}}&t=1",
+	commitURL:                       "/commits/{{.CommitSha}}",
+	regexStrings:                    defaultUrlRegexStrings,
+}
+
+var GitLabServiceDef = ServiceDefinition{
+	provider:                        "gitlab",
+	pullRequestURLIntoDefaultBranch: "/merge_requests/new?merge_request[source_branch]={{.From}}",
+	pullRequestURLIntoTargetBranch:  "/merge_requests/new?merge_request[source_branch]={{.From}}&merge_request[target_branch]={{.To}}",
+	commitURL:                       "/commit/{{.CommitSha}}",
+	regexStrings:                    defaultUrlRegexStrings,
+}
+
+var serviceDefinitions = []ServiceDefinition{GithubServiceDef, BitbucketServiceDef, GitLabServiceDef}
+var defaultServiceDomains = []ServiceDomain{
+	{
+		serviceDefinition: GithubServiceDef,
+		gitDomain:         "github.com",
+		webDomain:         "github.com",
+	},
+	{
+		serviceDefinition: BitbucketServiceDef,
+		gitDomain:         "bitbucket.org",
+		webDomain:         "bitbucket.org",
+	},
+	{
+		serviceDefinition: GitLabServiceDef,
+		gitDomain:         "gitlab.com",
+		webDomain:         "gitlab.com",
+	},
+}
+
 type Service struct {
-	Name                            string
-	pullRequestURLIntoDefaultBranch func(owner string, repository string, from string) string
-	pullRequestURLIntoTargetBranch  func(owner string, repository string, from string, to string) string
-	URLRegexStrings                 []string
+	root string
+	ServiceDefinition
 }
 
-func NewGithubService(repositoryDomain string, siteDomain string) *Service {
-	return &Service{
-		Name: repositoryDomain,
-		pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
-			return fmt.Sprintf("https://%s/%s/%s/compare/%s?expand=1", siteDomain, owner, repository, from)
-		},
-		pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
-			return fmt.Sprintf("https://%s/%s/%s/compare/%s...%s?expand=1", siteDomain, owner, repository, to, from)
-		},
-		URLRegexStrings: defaultUrlRegexStrings,
-	}
+func (self *Service) getPullRequestURLIntoDefaultBranch(from string) string {
+	return self.resolveUrl(self.pullRequestURLIntoDefaultBranch, map[string]string{"From": from})
 }
 
-func NewBitBucketService(repositoryDomain string, siteDomain string) *Service {
-	return &Service{
-		Name: repositoryDomain,
-		pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
-			return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&t=1", siteDomain, owner, repository, from)
-		},
-		pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
-			return fmt.Sprintf("https://%s/%s/%s/pull-requests/new?source=%s&dest=%s&t=1", siteDomain, owner, repository, from, to)
-		},
-		URLRegexStrings: defaultUrlRegexStrings,
-	}
+func (self *Service) getPullRequestURLIntoTargetBranch(from string, to string) string {
+	return self.resolveUrl(self.pullRequestURLIntoTargetBranch, map[string]string{"From": from, "To": to})
 }
 
-func NewGitLabService(repositoryDomain string, siteDomain string) *Service {
-	return &Service{
-		Name: repositoryDomain,
-		pullRequestURLIntoDefaultBranch: func(owner string, repository string, from string) string {
-			return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s", siteDomain, owner, repository, from)
-		},
-		pullRequestURLIntoTargetBranch: func(owner string, repository string, from string, to string) string {
-			return fmt.Sprintf("https://%s/%s/%s/merge_requests/new?merge_request[source_branch]=%s&merge_request[target_branch]=%s", siteDomain, owner, repository, from, to)
-		},
-		URLRegexStrings: defaultUrlRegexStrings,
-	}
+func (self *Service) getCommitURL(commitSha string) string {
+	return self.resolveUrl(self.commitURL, map[string]string{"CommitSha": commitSha})
 }
 
-func (s *Service) PullRequestURL(repoURL string, from string, to string) string {
-	repoInfo := s.getRepoInfoFromURL(repoURL)
-
-	if to == "" {
-		return s.pullRequestURLIntoDefaultBranch(repoInfo.Owner, repoInfo.Repository, from)
-	} else {
-		return s.pullRequestURLIntoTargetBranch(repoInfo.Owner, repoInfo.Repository, from, to)
-	}
+func (self *Service) resolveUrl(templateString string, args map[string]string) string {
+	return self.root + utils.ResolvePlaceholderString(templateString, args)
 }
 
 // PullRequest opens a link in browser to create new pull request
@@ -92,48 +143,86 @@ func NewPullRequest(gitCommand *GitCommand) *PullRequest {
 	}
 }
 
-func (pr *PullRequest) getServices() []*Service {
-	services := []*Service{
-		NewGithubService("github.com", "github.com"),
-		NewBitBucketService("bitbucket.org", "bitbucket.org"),
-		NewGitLabService("gitlab.com", "gitlab.com"),
+func (pr *PullRequest) getService() (*Service, error) {
+	serviceDomain, err := pr.getServiceDomain()
+	if err != nil {
+		return nil, err
 	}
 
-	configServices := pr.GitCommand.Config.GetUserConfig().Services
+	repoURL := pr.GitCommand.GetRemoteURL()
 
-	if len(configServices) > 0 {
-		serviceFuncMap := map[string]func(repositoryDomain string, siteDomain string) *Service{
-			"github":    NewGithubService,
-			"bitbucket": NewBitBucketService,
-			"gitlab":    NewGitLabService,
+	root, err := serviceDomain.getRootFromRepoURL(repoURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Service{
+		root:              root,
+		ServiceDefinition: serviceDomain.serviceDefinition,
+	}, nil
+}
+
+func (pr *PullRequest) getServiceDomain() (*ServiceDomain, error) {
+	candidateServiceDomains := pr.getCandidateServiceDomains()
+
+	repoURL := pr.GitCommand.GetRemoteURL()
+
+	for _, serviceDomain := range candidateServiceDomains {
+		// I feel like it makes more sense to see if the repo url contains the service domain's git domain,
+		// but I don't want to break anything by changing that right now.
+		if strings.Contains(repoURL, serviceDomain.serviceDefinition.provider) {
+			return &serviceDomain, nil
 		}
+	}
 
-		for repoDomain, typeAndDomain := range configServices {
+	return nil, errors.New(pr.GitCommand.Tr.UnsupportedGitService)
+}
+
+func (pr *PullRequest) getCandidateServiceDomains() []ServiceDomain {
+	serviceDefinitionByProvider := map[string]ServiceDefinition{}
+	for _, serviceDefinition := range serviceDefinitions {
+		serviceDefinitionByProvider[serviceDefinition.provider] = serviceDefinition
+	}
+
+	var serviceDomains = make([]ServiceDomain, len(defaultServiceDomains))
+	copy(serviceDomains, defaultServiceDomains)
+
+	// see https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls
+	configServices := pr.GitCommand.Config.GetUserConfig().Services
+	if len(configServices) > 0 {
+		for gitDomain, typeAndDomain := range configServices {
 			splitData := strings.Split(typeAndDomain, ":")
 			if len(splitData) != 2 {
 				pr.GitCommand.Log.Errorf("Unexpected format for git service: '%s'. Expected something like 'github.com:github.com'", typeAndDomain)
 				continue
 			}
 
-			serviceFunc := serviceFuncMap[splitData[0]]
-			if serviceFunc == nil {
-				serviceNames := []string{}
-				for serviceName := range serviceFuncMap {
-					serviceNames = append(serviceNames, serviceName)
+			provider := splitData[0]
+			webDomain := splitData[1]
+
+			serviceDefinition, ok := serviceDefinitionByProvider[provider]
+			if !ok {
+				providerNames := []string{}
+				for _, serviceDefinition := range serviceDefinitions {
+					providerNames = append(providerNames, serviceDefinition.provider)
 				}
-				pr.GitCommand.Log.Errorf("Unknown git service type: '%s'. Expected one of %s", splitData[0], strings.Join(serviceNames, ", "))
+				pr.GitCommand.Log.Errorf("Unknown git service type: '%s'. Expected one of %s", provider, strings.Join(providerNames, ", "))
 				continue
 			}
 
-			services = append(services, serviceFunc(repoDomain, splitData[1]))
+			serviceDomains = append(serviceDomains, ServiceDomain{
+				gitDomain:         gitDomain,
+				webDomain:         webDomain,
+				serviceDefinition: serviceDefinition,
+			})
 		}
 	}
 
-	return services
+	return serviceDomains
 }
 
-// Create opens link to new pull request in browser
-func (pr *PullRequest) Create(from string, to string) (string, error) {
+// CreatePullRequest opens link to new pull request in browser
+func (pr *PullRequest) CreatePullRequest(from string, to string) (string, error) {
 	pullRequestURL, err := pr.getPullRequestURL(from, to)
 	if err != nil {
 		return "", err
@@ -159,36 +248,34 @@ func (pr *PullRequest) getPullRequestURL(from string, to string) (string, error)
 		return "", errors.New(pr.GitCommand.Tr.NoBranchOnRemote)
 	}
 
-	repoURL := pr.GitCommand.GetRemoteURL()
-	var gitService *Service
-
-	for _, service := range pr.getServices() {
-		if strings.Contains(repoURL, service.Name) {
-			gitService = service
-			break
-		}
+	gitService, err := pr.getService()
+	if err != nil {
+		return "", err
 	}
 
-	if gitService == nil {
-		return "", errors.New(pr.GitCommand.Tr.UnsupportedGitService)
+	if to == "" {
+		return gitService.getPullRequestURLIntoDefaultBranch(from), nil
+	} else {
+		return gitService.getPullRequestURLIntoTargetBranch(from, to), nil
+	}
+}
+
+func (pr *PullRequest) getCommitURL(commitSha string) (string, error) {
+	gitService, err := pr.getService()
+	if err != nil {
+		return "", err
 	}
 
-	pullRequestURL := gitService.PullRequestURL(repoURL, from, to)
+	pullRequestURL := gitService.getCommitURL(commitSha)
 
 	return pullRequestURL, nil
 }
 
-func (s *Service) getRepoInfoFromURL(url string) *RepoInformation {
-	for _, regexStr := range s.URLRegexStrings {
-		re := regexp.MustCompile(regexStr)
-		matches := utils.FindNamedMatches(re, url)
-		if matches != nil {
-			return &RepoInformation{
-				Owner:      matches["owner"],
-				Repository: matches["repo"],
-			}
-		}
+func (pr *PullRequest) OpenCommitInBrowser(commitSha string) (string, error) {
+	url, err := pr.getCommitURL(commitSha)
+	if err != nil {
+		return "", err
 	}
 
-	return nil
+	return url, pr.GitCommand.OSCommand.OpenLink(url)
 }

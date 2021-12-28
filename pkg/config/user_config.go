@@ -246,6 +246,7 @@ type KeybindingCommitsConfig struct {
 	ResetCherryPick              string `yaml:"resetCherryPick"`
 	CopyCommitMessageToClipboard string `yaml:"copyCommitMessageToClipboard"`
 	OpenLogMenu                  string `yaml:"openLogMenu"`
+	OpenInBrowser                string `yaml:"openInBrowser"`
 }
 
 type KeybindingStashConfig struct {
@@ -508,6 +509,7 @@ func GetDefaultConfig() *UserConfig {
 				ResetCherryPick:              "<c-R>",
 				CopyCommitMessageToClipboard: "<c-y>",
 				OpenLogMenu:                  "<c-l>",
+				OpenInBrowser:                "o",
 			},
 			Stash: KeybindingStashConfig{
 				PopStash: "g",

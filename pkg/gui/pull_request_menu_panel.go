@@ -57,7 +57,7 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 
 func (gui *Gui) createPullRequest(from string, to string) error {
 	pullRequest := commands.NewPullRequest(gui.GitCommand)
-	url, err := pullRequest.Create(from, to)
+	url, err := pullRequest.CreatePullRequest(from, to)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

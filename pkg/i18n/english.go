@@ -439,6 +439,7 @@ type TranslationSet struct {
 	LcSelectBranch                      string
 	CreatePullRequest                   string
 	CreatingPullRequestAtUrl            string
+	OpeningCommitInBrowser              string
 	SelectConfigFile                    string
 	NoConfigFileFoundErr                string
 	LcLoadingFileSuggestions            string
@@ -454,6 +455,7 @@ type TranslationSet struct {
 	ShowGitGraph                        string
 	SortCommits                         string
 	CantChangeContextSizeError          string
+	LcOpenCommitInBrowser               string
 	Spans                               Spans
 }
 
@@ -987,6 +989,7 @@ func englishTranslationSet() TranslationSet {
 		LcDefaultBranch:                     "default branch",
 		LcSelectBranch:                      "select branch",
 		CreatingPullRequestAtUrl:            "Creating pull request at URL: %s",
+		OpeningCommitInBrowser:              "Opening commit in browser at URL: %s",
 		SelectConfigFile:                    "Select config file",
 		NoConfigFileFoundErr:                "No config file found",
 		LcLoadingFileSuggestions:            "loading file suggestions",
@@ -1002,6 +1005,7 @@ func englishTranslationSet() TranslationSet {
 		ShowGitGraph:                        "show git graph",
 		SortCommits:                         "commit sort order",
 		CantChangeContextSizeError:          "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
+		LcOpenCommitInBrowser:               "open commit in browser",
 		Spans: Spans{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
