@@ -3,7 +3,7 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
@@ -56,12 +56,23 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 }
 
 func (gui *Gui) createPullRequest(from string, to string) error {
-	pullRequest := commands.NewPullRequest(gui.GitCommand)
-	url, err := pullRequest.CreatePullRequest(from, to)
+	hostingServiceMgr := gui.getHostingServiceMgr()
+	url, err := hostingServiceMgr.GetPullRequestURL(from, to)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
+
+	if err := gui.GitCommand.OSCommand.OpenLink(url); err != nil {
+		return gui.surfaceError(err)
+	}
+
 	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf(gui.Tr.CreatingPullRequestAtUrl, url), gui.Tr.CreatePullRequest, false))
 
 	return nil
+}
+
+func (gui *Gui) getHostingServiceMgr() *hosting_service.HostingServiceMgr {
+	remoteUrl := gui.GitCommand.GetRemoteURL()
+	configServices := gui.Config.GetUserConfig().Services
+	return hosting_service.NewHostingServiceMgr(gui.Log, gui.Tr, remoteUrl, configServices)
 }

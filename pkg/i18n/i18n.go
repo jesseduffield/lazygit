@@ -33,7 +33,7 @@ func NewTranslationSetFromConfig(log *logrus.Entry, configLanguage string) (*Tra
 func NewTranslationSet(log *logrus.Entry, language string) *TranslationSet {
 	log.Info("language: " + language)
 
-	baseSet := englishTranslationSet()
+	baseSet := EnglishTranslationSet()
 
 	for languageCode, translationSet := range GetTranslationSets() {
 		if strings.HasPrefix(language, languageCode) {
@@ -48,7 +48,7 @@ func GetTranslationSets() map[string]TranslationSet {
 	return map[string]TranslationSet{
 		"pl": polishTranslationSet(),
 		"nl": dutchTranslationSet(),
-		"en": englishTranslationSet(),
+		"en": EnglishTranslationSet(),
 		"zh": chineseTranslationSet(),
 	}
 }
