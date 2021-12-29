@@ -29,7 +29,7 @@ func (i *menuItem) ID() string {
 // specific functions
 
 func (gui *Gui) getMenuOptions() map[string]string {
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 
 	return map[string]string{
 		gui.getKeyDisplay(keybindingConfig.Universal.Return): gui.Tr.LcClose,

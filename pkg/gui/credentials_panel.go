@@ -57,7 +57,7 @@ func (gui *Gui) handleCloseCredentialsView() error {
 }
 
 func (gui *Gui) handleCredentialsViewFocused() error {
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 
 	message := utils.ResolvePlaceholderString(
 		gui.Tr.CloseConfirm,

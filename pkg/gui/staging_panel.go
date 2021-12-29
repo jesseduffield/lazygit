@@ -100,7 +100,7 @@ func (gui *Gui) handleResetSelection() error {
 			return gui.applySelection(true, state)
 		}
 
-		if !gui.Config.GetUserConfig().Gui.SkipUnstageLineWarning {
+		if !gui.UserConfig.Gui.SkipUnstageLineWarning {
 			return gui.ask(askOpts{
 				title:               gui.Tr.UnstageLinesTitle,
 				prompt:              gui.Tr.UnstageLinesPrompt,

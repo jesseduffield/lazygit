@@ -204,7 +204,7 @@ func (gui *Gui) getKey(key string) interface{} {
 
 // GetInitialKeybindings is a function.
 func (gui *Gui) GetInitialKeybindings() []*Binding {
-	config := gui.Config.GetUserConfig().Keybinding
+	config := gui.UserConfig.Keybinding
 
 	bindings := []*Binding{
 		{

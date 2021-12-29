@@ -374,7 +374,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 		return err
 	}
 
-	if !gui.Config.GetUserConfig().DisableStartupPopups {
+	if !gui.UserConfig.DisableStartupPopups {
 		popupTasks := []func(chan struct{}) error{}
 		storedPopupVersion := gui.Config.GetAppState().StartupPopupVersion
 		if storedPopupVersion < StartupPopupVersion {

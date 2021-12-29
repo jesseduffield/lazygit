@@ -60,7 +60,7 @@ func (gui *Gui) handleTopLevelReturn() error {
 		return gui.dispatchSwitchToRepo(path, true)
 	}
 
-	if gui.Config.GetUserConfig().QuitOnTopLevelReturn {
+	if gui.UserConfig.QuitOnTopLevelReturn {
 		return gui.handleQuit()
 	}
 
@@ -72,7 +72,7 @@ func (gui *Gui) quit() error {
 		return gui.createUpdateQuitConfirmation()
 	}
 
-	if gui.Config.GetUserConfig().ConfirmOnQuit {
+	if gui.UserConfig.ConfirmOnQuit {
 		return gui.ask(askOpts{
 			title:  "",
 			prompt: gui.Tr.ConfirmQuit,

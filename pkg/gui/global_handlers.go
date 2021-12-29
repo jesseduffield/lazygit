@@ -64,7 +64,7 @@ func (gui *Gui) prevScreenMode() error {
 
 func (gui *Gui) scrollUpView(view *gocui.View) error {
 	ox, oy := view.Origin()
-	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().Gui.ScrollHeight)))
+	newOy := int(math.Max(0, float64(oy-gui.UserConfig.Gui.ScrollHeight)))
 	return view.SetOrigin(ox, newOy)
 }
 
@@ -86,12 +86,12 @@ func (gui *Gui) scrollDownView(view *gocui.View) error {
 func (gui *Gui) linesToScrollDown(view *gocui.View) int {
 	_, oy := view.Origin()
 	y := oy
-	canScrollPastBottom := gui.Config.GetUserConfig().Gui.ScrollPastBottom
+	canScrollPastBottom := gui.UserConfig.Gui.ScrollPastBottom
 	if !canScrollPastBottom {
 		_, sy := view.Size()
 		y += sy
 	}
-	scrollHeight := gui.Config.GetUserConfig().Gui.ScrollHeight
+	scrollHeight := gui.UserConfig.Gui.ScrollHeight
 	scrollableLines := view.ViewLinesHeight() - y
 	if scrollableLines < 0 {
 		return 0
