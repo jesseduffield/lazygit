@@ -55,6 +55,8 @@ type OSCommand struct {
 
 	removeFile func(string) error
 
+	Cmd ICmdObjBuilder
+
 	ICmdObjRunner
 }
 
@@ -162,8 +164,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 		"filename": c.Quote(filename),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	err := c.Run(c.NewShellCmdObj(command))
-	return err
+	return c.NewShellCmdObj(command).Run()
 }
 
 // OpenLink opens a file with the given
@@ -175,8 +176,7 @@ func (c *OSCommand) OpenLink(link string) error {
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	err := c.Run(c.NewShellCmdObj(command))
-	return err
+	return c.NewShellCmdObj(command).Run()
 }
 
 // Quote wraps a message in platform-specific quotation marks
@@ -381,8 +381,10 @@ func (c *OSCommand) NewCmdObj(cmdStr string) ICmdObj {
 	cmd.Env = os.Environ()
 
 	return &CmdObj{
-		cmdStr: cmdStr,
-		cmd:    cmd,
+		cmdStr:     cmdStr,
+		cmd:        cmd,
+		runner:     c.ICmdObjRunner,
+		logCommand: c.LogCmdObj,
 	}
 }
 
@@ -391,8 +393,10 @@ func (c *OSCommand) NewCmdObjFromArgs(args []string) ICmdObj {
 	cmd.Env = os.Environ()
 
 	return &CmdObj{
-		cmdStr: strings.Join(args, " "),
-		cmd:    cmd,
+		cmdStr:     strings.Join(args, " "),
+		cmd:        cmd,
+		runner:     c.ICmdObjRunner,
+		logCommand: c.LogCmdObj,
 	}
 }
 

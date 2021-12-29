@@ -26,10 +26,16 @@ import (
 
 const SEPARATION_CHAR = "|"
 
+// TODO: swap out for 'cmd'
+type CmdObjBuilder interface {
+	NewCmdObj(command string) oscommands.ICmdObj
+	Quote(str string) string
+}
+
 // CommitListBuilder returns a list of Branch objects for the current repo
 type CommitListBuilder struct {
 	*common.Common
-	cmd oscommands.ICmdObjBuilder
+	cmd CmdObjBuilder
 
 	getCurrentBranchName func() (string, string, error)
 	getRebaseMode        func() (string, error)
@@ -44,9 +50,8 @@ func NewCommitListBuilder(
 	osCommand *oscommands.OSCommand,
 ) *CommitListBuilder {
 	return &CommitListBuilder{
-		Common: cmn,
-		cmd:    gitCommand,
-
+		Common:               cmn,
+		cmd:                  gitCommand,
 		getCurrentBranchName: gitCommand.CurrentBranchName,
 		getRebaseMode:        gitCommand.RebaseMode,
 		dotGitDir:            gitCommand.DotGitDir,
@@ -202,7 +207,7 @@ func (c *CommitListBuilder) getHydratedRebasingCommits(rebaseMode string) ([]*mo
 
 	// note that we're not filtering these as we do non-rebasing commits just because
 	// I suspect that will cause some damage
-	cmdObj := c.cmd.New(
+	cmdObj := c.cmd.NewCmdObj(
 		fmt.Sprintf(
 			"git show %s --no-patch --oneline %s --abbrev=%d",
 			strings.Join(commitShas, " "),
@@ -375,7 +380,7 @@ func (c *CommitListBuilder) getMergeBase(refName string) (string, error) {
 	}
 
 	// swallowing error because it's not a big deal; probably because there are no commits yet
-	output, _ := c.cmd.New(fmt.Sprintf("git merge-base %s %s", c.cmd.Quote(refName), c.cmd.Quote(baseBranch))).RunWithOutput()
+	output, _ := c.cmd.NewCmdObj(fmt.Sprintf("git merge-base %s %s", c.cmd.Quote(refName), c.cmd.Quote(baseBranch))).RunWithOutput()
 	return ignoringWarnings(output), nil
 }
 
@@ -392,7 +397,7 @@ func ignoringWarnings(commandOutput string) string {
 // getFirstPushedCommit returns the first commit SHA which has been pushed to the ref's upstream.
 // all commits above this are deemed unpushed and marked as such.
 func (c *CommitListBuilder) getFirstPushedCommit(refName string) (string, error) {
-	output, err := c.cmd.New(fmt.Sprintf("git merge-base %s %s@{u}", c.cmd.Quote(refName), c.cmd.Quote(refName))).RunWithOutput()
+	output, err := c.cmd.NewCmdObj(fmt.Sprintf("git merge-base %s %s@{u}", c.cmd.Quote(refName), c.cmd.Quote(refName))).RunWithOutput()
 	if err != nil {
 		return "", err
 	}
@@ -420,7 +425,7 @@ func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj
 		allFlag = " --all"
 	}
 
-	return c.cmd.New(
+	return c.cmd.NewCmdObj(
 		fmt.Sprintf(
 			"git log %s %s %s --oneline %s %s --abbrev=%d %s",
 			c.cmd.Quote(opts.RefName),

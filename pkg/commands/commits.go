@@ -10,18 +10,17 @@ import (
 
 // RenameCommit renames the topmost commit with the given name
 func (c *GitCommand) RenameCommit(name string) error {
-	return c.Run(c.NewCmdObj("git commit --allow-empty --amend --only -m " + c.OSCommand.Quote(name)))
+	return c.NewCmdObj("git commit --allow-empty --amend --only -m " + c.OSCommand.Quote(name)).Run()
 }
 
 // ResetToCommit reset to commit
 func (c *GitCommand) ResetToCommit(sha string, strength string, envVars []string) error {
-	cmdObj := c.NewCmdObj(fmt.Sprintf("git reset --%s %s", strength, sha)).
+	return c.NewCmdObj(fmt.Sprintf("git reset --%s %s", strength, sha)).
 		// prevents git from prompting us for input which would freeze the program
 		// TODO: see if this is actually needed here
 		AddEnvVars("GIT_TERMINAL_PROMPT=0").
-		AddEnvVars(envVars...)
-
-	return c.OSCommand.Run(cmdObj)
+		AddEnvVars(envVars...).
+		Run()
 }
 
 func (c *GitCommand) CommitCmdObj(message string, flags string) oscommands.ICmdObj {
@@ -41,24 +40,24 @@ func (c *GitCommand) CommitCmdObj(message string, flags string) oscommands.ICmdO
 
 // Get the subject of the HEAD commit
 func (c *GitCommand) GetHeadCommitMessage() (string, error) {
-	message, err := c.RunWithOutput(c.NewCmdObj("git log -1 --pretty=%s"))
+	message, err := c.NewCmdObj("git log -1 --pretty=%s").RunWithOutput()
 	return strings.TrimSpace(message), err
 }
 
 func (c *GitCommand) GetCommitMessage(commitSha string) (string, error) {
 	cmdStr := "git rev-list --format=%B --max-count=1 " + commitSha
-	messageWithHeader, err := c.RunWithOutput(c.NewCmdObj(cmdStr))
+	messageWithHeader, err := c.NewCmdObj(cmdStr).RunWithOutput()
 	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "\n")
 	return strings.TrimSpace(message), err
 }
 
 func (c *GitCommand) GetCommitMessageFirstLine(sha string) (string, error) {
-	return c.RunWithOutput(c.NewCmdObj(fmt.Sprintf("git show --no-patch --pretty=format:%%s %s", sha)))
+	return c.NewCmdObj(fmt.Sprintf("git show --no-patch --pretty=format:%%s %s", sha)).RunWithOutput()
 }
 
 // AmendHead amends HEAD with whatever is staged in your working tree
 func (c *GitCommand) AmendHead() error {
-	return c.OSCommand.Run(c.AmendHeadCmdObj())
+	return c.AmendHeadCmdObj().Run()
 }
 
 func (c *GitCommand) AmendHeadCmdObj() oscommands.ICmdObj {
@@ -78,11 +77,11 @@ func (c *GitCommand) ShowCmdObj(sha string, filterPath string) oscommands.ICmdOb
 
 // Revert reverts the selected commit by sha
 func (c *GitCommand) Revert(sha string) error {
-	return c.Run(c.NewCmdObj(fmt.Sprintf("git revert %s", sha)))
+	return c.NewCmdObj(fmt.Sprintf("git revert %s", sha)).Run()
 }
 
 func (c *GitCommand) RevertMerge(sha string, parentNumber int) error {
-	return c.Run(c.NewCmdObj(fmt.Sprintf("git revert %s -m %d", sha, parentNumber)))
+	return c.NewCmdObj(fmt.Sprintf("git revert %s -m %d", sha, parentNumber)).Run()
 }
 
 // CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD
@@ -92,15 +91,15 @@ func (c *GitCommand) CherryPickCommits(commits []*models.Commit) error {
 		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand("HEAD", todo, false)
+	cmdObj, err := c.PrepareInteractiveRebaseCommand("HEAD", todo, false)
 	if err != nil {
 		return err
 	}
 
-	return c.OSCommand.Run(cmd)
+	return cmdObj.Run()
 }
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
 func (c *GitCommand) CreateFixupCommit(sha string) error {
-	return c.Run(c.NewCmdObj(fmt.Sprintf("git commit --fixup=%s", sha)))
+	return c.NewCmdObj(fmt.Sprintf("git commit --fixup=%s", sha)).Run()
 }

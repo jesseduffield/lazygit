@@ -29,22 +29,22 @@ func (c *GitCommand) OpenMergeToolCmdObj() oscommands.ICmdObj {
 }
 
 func (c *GitCommand) OpenMergeTool() error {
-	return c.Run(c.OpenMergeToolCmdObj())
+	return c.OpenMergeToolCmdObj().Run()
 }
 
 // StageFile stages a file
 func (c *GitCommand) StageFile(fileName string) error {
-	return c.Run(c.NewCmdObj("git add -- " + c.OSCommand.Quote(fileName)))
+	return c.NewCmdObj("git add -- " + c.OSCommand.Quote(fileName)).Run()
 }
 
 // StageAll stages all files
 func (c *GitCommand) StageAll() error {
-	return c.Run(c.NewCmdObj("git add -A"))
+	return c.NewCmdObj("git add -A").Run()
 }
 
 // UnstageAll unstages all files
 func (c *GitCommand) UnstageAll() error {
-	return c.Run(c.NewCmdObj("git reset"))
+	return c.NewCmdObj("git reset").Run()
 }
 
 // UnStageFile unstages a file
@@ -57,8 +57,8 @@ func (c *GitCommand) UnStageFile(fileNames []string, reset bool) error {
 	}
 
 	for _, name := range fileNames {
-		cmdObj := c.NewCmdObj(fmt.Sprintf(command, c.OSCommand.Quote(name)))
-		if err := c.Run(cmdObj); err != nil {
+		err := c.NewCmdObj(fmt.Sprintf(command, c.OSCommand.Quote(name))).Run()
+		if err != nil {
 			return err
 		}
 	}
@@ -122,22 +122,22 @@ func (c *GitCommand) DiscardAllFileChanges(file *models.File) error {
 	quotedFileName := c.OSCommand.Quote(file.Name)
 
 	if file.ShortStatus == "AA" {
-		if err := c.Run(c.NewCmdObj("git checkout --ours --  " + quotedFileName)); err != nil {
+		if err := c.NewCmdObj("git checkout --ours --  " + quotedFileName).Run(); err != nil {
 			return err
 		}
-		if err := c.Run(c.NewCmdObj("git add -- " + quotedFileName)); err != nil {
+		if err := c.NewCmdObj("git add -- " + quotedFileName).Run(); err != nil {
 			return err
 		}
 		return nil
 	}
 
 	if file.ShortStatus == "DU" {
-		return c.Run(c.NewCmdObj("git rm -- " + quotedFileName))
+		return c.NewCmdObj("git rm -- " + quotedFileName).Run()
 	}
 
 	// if the file isn't tracked, we assume you want to delete it
 	if file.HasStagedChanges || file.HasMergeConflicts {
-		if err := c.Run(c.NewCmdObj("git reset -- " + quotedFileName)); err != nil {
+		if err := c.NewCmdObj("git reset -- " + quotedFileName).Run(); err != nil {
 			return err
 		}
 	}
@@ -163,7 +163,7 @@ func (c *GitCommand) DiscardUnstagedDirChanges(node *filetree.FileNode) error {
 	}
 
 	quotedPath := c.OSCommand.Quote(node.GetPath())
-	if err := c.Run(c.NewCmdObj("git checkout -- " + quotedPath)); err != nil {
+	if err := c.NewCmdObj("git checkout -- " + quotedPath).Run(); err != nil {
 		return err
 	}
 
@@ -188,7 +188,7 @@ func (c *GitCommand) RemoveUntrackedDirFiles(node *filetree.FileNode) error {
 // DiscardUnstagedFileChanges directly
 func (c *GitCommand) DiscardUnstagedFileChanges(file *models.File) error {
 	quotedFileName := c.OSCommand.Quote(file.Name)
-	return c.Run(c.NewCmdObj("git checkout -- " + quotedFileName))
+	return c.NewCmdObj("git checkout -- " + quotedFileName).Run()
 }
 
 // Ignore adds a file to the gitignore for the repo
@@ -199,7 +199,7 @@ func (c *GitCommand) Ignore(filename string) error {
 // WorktreeFileDiff returns the diff of a file
 func (c *GitCommand) WorktreeFileDiff(file *models.File, plain bool, cached bool, ignoreWhitespace bool) string {
 	// for now we assume an error means the file was deleted
-	s, _ := c.OSCommand.RunWithOutput(c.WorktreeFileDiffCmdObj(file, plain, cached, ignoreWhitespace))
+	s, _ := c.WorktreeFileDiffCmdObj(file, plain, cached, ignoreWhitespace).RunWithOutput()
 	return s
 }
 
@@ -240,14 +240,13 @@ func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 		flagStr += " --" + flag
 	}
 
-	return c.Run(c.NewCmdObj(fmt.Sprintf("git apply %s %s", flagStr, c.OSCommand.Quote(filepath))))
+	return c.NewCmdObj(fmt.Sprintf("git apply %s %s", flagStr, c.OSCommand.Quote(filepath))).Run()
 }
 
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
 func (c *GitCommand) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
-	cmdObj := c.ShowFileDiffCmdObj(from, to, reverse, fileName, plain)
-	return c.RunWithOutput(cmdObj)
+	return c.ShowFileDiffCmdObj(from, to, reverse, fileName, plain).RunWithOutput()
 }
 
 func (c *GitCommand) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) oscommands.ICmdObj {
@@ -267,7 +266,7 @@ func (c *GitCommand) ShowFileDiffCmdObj(from string, to string, reverse bool, fi
 
 // CheckoutFile checks out the file for the given commit
 func (c *GitCommand) CheckoutFile(commitSha, fileName string) error {
-	return c.Run(c.NewCmdObj(fmt.Sprintf("git checkout %s -- %s", commitSha, c.OSCommand.Quote(fileName))))
+	return c.NewCmdObj(fmt.Sprintf("git checkout %s -- %s", commitSha, c.OSCommand.Quote(fileName))).Run()
 }
 
 // DiscardOldFileChanges discards changes to a file from an old commit
@@ -277,7 +276,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex
 	}
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
-	if err := c.Run(c.NewCmdObj("git cat-file -e HEAD^:" + c.OSCommand.Quote(fileName))); err != nil {
+	if err := c.NewCmdObj("git cat-file -e HEAD^:" + c.OSCommand.Quote(fileName)).Run(); err != nil {
 		if err := c.OSCommand.Remove(fileName); err != nil {
 			return err
 		}
@@ -300,17 +299,17 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex
 
 // DiscardAnyUnstagedFileChanges discards any unstages file changes via `git checkout -- .`
 func (c *GitCommand) DiscardAnyUnstagedFileChanges() error {
-	return c.Run(c.NewCmdObj("git checkout -- ."))
+	return c.NewCmdObj("git checkout -- .").Run()
 }
 
 // RemoveTrackedFiles will delete the given file(s) even if they are currently tracked
 func (c *GitCommand) RemoveTrackedFiles(name string) error {
-	return c.Run(c.NewCmdObj("git rm -r --cached -- " + c.OSCommand.Quote(name)))
+	return c.NewCmdObj("git rm -r --cached -- " + c.OSCommand.Quote(name)).Run()
 }
 
 // RemoveUntrackedFiles runs `git clean -fd`
 func (c *GitCommand) RemoveUntrackedFiles() error {
-	return c.Run(c.NewCmdObj("git clean -fd"))
+	return c.NewCmdObj("git clean -fd").Run()
 }
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
@@ -350,7 +349,7 @@ func (c *GitCommand) EditFileCmdStr(filename string, lineNumber int) (string, er
 		editor = c.OSCommand.Getenv("EDITOR")
 	}
 	if editor == "" {
-		if err := c.OSCommand.Run(c.NewCmdObj("which vi")); err == nil {
+		if err := c.OSCommand.NewCmdObj("which vi").Run(); err == nil {
 			editor = "vi"
 		}
 	}

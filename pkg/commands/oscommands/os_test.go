@@ -33,7 +33,7 @@ func TestOSCommandRunWithOutput(t *testing.T) {
 
 	for _, s := range scenarios {
 		c := NewDummyOSCommand()
-		s.test(NewDummyOSCommand().RunWithOutput(c.NewCmdObj(s.command)))
+		s.test(c.NewCmdObj(s.command).RunWithOutput())
 	}
 }
 
@@ -55,7 +55,7 @@ func TestOSCommandRun(t *testing.T) {
 
 	for _, s := range scenarios {
 		c := NewDummyOSCommand()
-		s.test(c.Run(c.NewCmdObj(s.command)))
+		s.test(c.NewCmdObj(s.command)).Run()
 	}
 }
 

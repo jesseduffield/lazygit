@@ -214,7 +214,8 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(gui.GitCommand.SubmoduleBulkInitCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkInitialiseSubmodules).Run(gui.GitCommand.SubmoduleBulkInitCmdObj()); err != nil {
+					err := gui.GitCommand.WithSpan(gui.Tr.Spans.BulkInitialiseSubmodules).SubmoduleBulkInitCmdObj().Run()
+					if err != nil {
 						return gui.surfaceError(err)
 					}
 
@@ -226,7 +227,7 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(gui.GitCommand.SubmoduleBulkUpdateCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkUpdateSubmodules).Run(gui.GitCommand.SubmoduleBulkUpdateCmdObj()); err != nil {
+					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.BulkUpdateSubmodules).SubmoduleBulkUpdateCmdObj().Run(); err != nil {
 						return gui.surfaceError(err)
 					}
 
@@ -250,7 +251,7 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(gui.GitCommand.SubmoduleBulkDeinitCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.OSCommand.WithSpan(gui.Tr.Spans.BulkDeinitialiseSubmodules).Run(gui.GitCommand.SubmoduleBulkDeinitCmdObj()); err != nil {
+					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.BulkDeinitialiseSubmodules).SubmoduleBulkDeinitCmdObj().Run(); err != nil {
 						return gui.surfaceError(err)
 					}
 

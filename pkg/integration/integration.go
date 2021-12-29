@@ -45,7 +45,7 @@ func RunTests(
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	osCommand := oscommands.NewDummyOSCommand()
-	err = osCommand.Run(osCommand.NewCmdObj("go build -o " + tempLazygitPath()))
+	err = osCommand.NewCmdObj("go build -o " + tempLazygitPath()).Run()
 	if err != nil {
 		return err
 	}
@@ -319,7 +319,7 @@ func generateSnapshot(dir string) (string, error) {
 
 	for _, cmdStr := range cmdStrs {
 		// ignoring error for now. If there's an error it could be that there are no results
-		output, _ := osCommand.RunWithOutput(osCommand.NewCmdObj(cmdStr))
+		output, _ := osCommand.NewCmdObj(cmdStr).RunWithOutput()
 
 		snapshot += output + "\n"
 	}

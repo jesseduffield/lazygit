@@ -33,12 +33,12 @@ func (c *GitCommand) MoveCommitDown(commits []*models.Commit, index int) error {
 		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todo, true)
+	cmdObj, err := c.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todo, true)
 	if err != nil {
 		return err
 	}
 
-	return c.OSCommand.Run(cmd)
+	return cmdObj.Run()
 }
 
 func (c *GitCommand) InteractiveRebase(commits []*models.Commit, index int, action string) error {
@@ -47,12 +47,12 @@ func (c *GitCommand) InteractiveRebase(commits []*models.Commit, index int, acti
 		return err
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand(sha, todo, true)
+	cmdObj, err := c.PrepareInteractiveRebaseCommand(sha, todo, true)
 	if err != nil {
 		return err
 	}
 
-	return c.OSCommand.Run(cmd)
+	return cmdObj.Run()
 }
 
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
@@ -217,26 +217,22 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, c
 		return err
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand(sha, todo, true)
+	cmdObj, err := c.PrepareInteractiveRebaseCommand(sha, todo, true)
 	if err != nil {
 		return err
 	}
 
-	if err := c.OSCommand.Run(cmd); err != nil {
-		return err
-	}
-
-	return nil
+	return cmdObj.Run()
 }
 
 // RebaseBranch interactive rebases onto a branch
 func (c *GitCommand) RebaseBranch(branchName string) error {
-	cmd, err := c.PrepareInteractiveRebaseCommand(branchName, "", false)
+	cmdObj, err := c.PrepareInteractiveRebaseCommand(branchName, "", false)
 	if err != nil {
 		return err
 	}
 
-	return c.OSCommand.Run(cmd)
+	return cmdObj.Run()
 }
 
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
@@ -273,11 +269,12 @@ func (c *GitCommand) GenericMergeOrRebaseAction(commandType string, command stri
 func (c *GitCommand) runSkipEditorCommand(command string) error {
 	cmdObj := c.OSCommand.NewCmdObj(command)
 	lazyGitPath := c.OSCommand.GetLazygitPath()
-	cmdObj.AddEnvVars(
-		"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
-		"GIT_EDITOR="+lazyGitPath,
-		"EDITOR="+lazyGitPath,
-		"VISUAL="+lazyGitPath,
-	)
-	return c.OSCommand.Run(cmdObj)
+	return cmdObj.
+		AddEnvVars(
+			"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
+			"GIT_EDITOR="+lazyGitPath,
+			"EDITOR="+lazyGitPath,
+			"VISUAL="+lazyGitPath,
+		).
+		Run()
 }
