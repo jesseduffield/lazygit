@@ -96,13 +96,15 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 
 // NewApp bootstrap a new application
 func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
+	userConfig := config.GetUserConfig()
+
 	app := &App{
 		closers: []io.Closer{},
 		Config:  config,
 	}
 	var err error
 	log := newLogger(config)
-	tr, err := i18n.NewTranslationSetFromConfig(log, config.GetUserConfig().Gui.Language)
+	tr, err := i18n.NewTranslationSetFromConfig(log, userConfig.Gui.Language)
 	if err != nil {
 		return app, err
 	}
@@ -110,7 +112,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 	app.Common = &common.Common{
 		Log:        log,
 		Tr:         tr,
-		UserConfig: config.GetUserConfig(),
+		UserConfig: userConfig,
 		Debug:      config.GetDebug(),
 	}
 
@@ -122,7 +124,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 
 	app.OSCommand = oscommands.NewOSCommand(app.Common)
 
-	app.Updater, err = updates.NewUpdater(log, config, app.OSCommand, app.Tr)
+	app.Updater, err = updates.NewUpdater(app.Common, config, app.OSCommand)
 	if err != nil {
 		return app, err
 	}
@@ -135,7 +137,6 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 	app.GitCommand, err = commands.NewGitCommand(
 		app.Common,
 		app.OSCommand,
-		app.Config,
 		git_config.NewStdCachedGitConfig(app.Log),
 	)
 	if err != nil {
@@ -207,7 +208,7 @@ func (app *App) setupRepo() (bool, error) {
 		}
 
 		shouldInitRepo := true
-		notARepository := app.Config.GetUserConfig().NotARepository
+		notARepository := app.UserConfig.NotARepository
 		if notARepository == "prompt" {
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)

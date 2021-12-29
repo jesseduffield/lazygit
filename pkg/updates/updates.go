@@ -16,19 +16,17 @@ import (
 	"github.com/kardianos/osext"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sirupsen/logrus"
 )
 
 // Updater checks for updates and does updates
 type Updater struct {
-	Log       *logrus.Entry
+	*common.Common
 	Config    config.AppConfigurer
 	OSCommand *oscommands.OSCommand
-	Tr        *i18n.TranslationSet
 }
 
 // Updaterer implements the check and update methods
@@ -38,14 +36,11 @@ type Updaterer interface {
 }
 
 // NewUpdater creates a new updater
-func NewUpdater(log *logrus.Entry, config config.AppConfigurer, osCommand *oscommands.OSCommand, tr *i18n.TranslationSet) (*Updater, error) {
-	contextLogger := log.WithField("context", "updates")
-
+func NewUpdater(cmn *common.Common, config config.AppConfigurer, osCommand *oscommands.OSCommand) (*Updater, error) {
 	return &Updater{
-		Log:       contextLogger,
+		Common:    cmn,
 		Config:    config,
 		OSCommand: osCommand,
-		Tr:        tr,
 	}, nil
 }
 
@@ -177,7 +172,7 @@ func (u *Updater) skipUpdateCheck() bool {
 		return true
 	}
 
-	userConfig := u.Config.GetUserConfig()
+	userConfig := u.UserConfig
 	if userConfig.Update.Method == "never" {
 		u.Log.Info("Update method is set to never so we won't check for an update")
 		return true
