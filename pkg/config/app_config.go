@@ -39,7 +39,6 @@ type AppConfigurer interface {
 	GetUserConfig() *UserConfig
 	GetUserConfigPaths() []string
 	GetUserConfigDir() string
-	GetTempDir() string
 	GetAppState() *AppState
 	SaveAppState() error
 	SetIsNewRepo(bool)
@@ -224,10 +223,6 @@ func (c *AppConfig) GetUserConfigPaths() []string {
 
 func (c *AppConfig) GetUserConfigDir() string {
 	return c.UserConfigDir
-}
-
-func (c *AppConfig) GetTempDir() string {
-	return c.TempDir
 }
 
 func (c *AppConfig) ReloadUserConfig() error {

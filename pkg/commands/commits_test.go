@@ -144,7 +144,7 @@ func TestGitCommandShowCmdObj(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.Config.GetUserConfig().Git.DiffContextSize = s.contextSize
+			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
 			cmdStr := gitCmd.ShowCmdObj("1234567890", s.filterPath).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})

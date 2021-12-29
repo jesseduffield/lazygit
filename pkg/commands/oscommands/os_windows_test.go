@@ -79,7 +79,7 @@ func TestOSCommandOpenFileWindows(t *testing.T) {
 		OSCmd := NewDummyOSCommand()
 		OSCmd.Command = s.command
 		OSCmd.Platform.OS = "windows"
-		OSCmd.Config.GetUserConfig().OS.OpenCommand = `start "" {{filename}}`
+		OSCmd.UserConfig.OS.OpenCommand = `start "" {{filename}}`
 
 		s.test(OSCmd.OpenFile(s.filename))
 	}
