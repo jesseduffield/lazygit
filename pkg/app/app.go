@@ -17,6 +17,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
@@ -27,14 +28,12 @@ import (
 
 // App struct
 type App struct {
-	closers []io.Closer
-
+	*common.Common
+	closers       []io.Closer
 	Config        config.AppConfigurer
-	Log           *logrus.Entry
 	OSCommand     *oscommands.OSCommand
 	GitCommand    *commands.GitCommand
 	Gui           *gui.Gui
-	Tr            *i18n.TranslationSet
 	Updater       *updates.Updater // may only need this on the Gui
 	ClientContext string
 }
@@ -97,16 +96,22 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 
 // NewApp bootstrap a new application
 func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
-
 	app := &App{
 		closers: []io.Closer{},
 		Config:  config,
 	}
 	var err error
-	app.Log = newLogger(config)
-	app.Tr, err = i18n.NewTranslationSetFromConfig(app.Log, config.GetUserConfig().Gui.Language)
+	log := newLogger(config)
+	tr, err := i18n.NewTranslationSetFromConfig(log, config.GetUserConfig().Gui.Language)
 	if err != nil {
 		return app, err
+	}
+
+	app.Common = &common.Common{
+		Log:        log,
+		Tr:         tr,
+		UserConfig: config.GetUserConfig(),
+		Debug:      config.GetDebug(),
 	}
 
 	// if we are being called in 'demon' mode, we can just return here
@@ -115,9 +120,9 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, nil
 	}
 
-	app.OSCommand = oscommands.NewOSCommand(app.Log, config)
+	app.OSCommand = oscommands.NewOSCommand(app.Common)
 
-	app.Updater, err = updates.NewUpdater(app.Log, config, app.OSCommand, app.Tr)
+	app.Updater, err = updates.NewUpdater(log, config, app.OSCommand, app.Tr)
 	if err != nil {
 		return app, err
 	}
@@ -128,9 +133,8 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 	}
 
 	app.GitCommand, err = commands.NewGitCommand(
-		app.Log,
+		app.Common,
 		app.OSCommand,
-		app.Tr,
 		app.Config,
 		git_config.NewStdCachedGitConfig(app.Log),
 	)
@@ -138,7 +142,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, err
 	}
 
-	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater, filterPath, showRecentRepos)
+	app.Gui, err = gui.NewGui(app.Common, app.GitCommand, app.OSCommand, config, app.Updater, filterPath, showRecentRepos)
 	if err != nil {
 		return app, err
 	}

@@ -18,6 +18,6 @@ func NewDummyUpdater() *updates.Updater {
 
 func NewDummyGui() *Gui {
 	newAppConfig := config.NewDummyAppConfig()
-	dummyGui, _ := NewGui(utils.NewDummyLog(), commands.NewDummyGitCommand(), oscommands.NewDummyOSCommand(), i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language), newAppConfig, NewDummyUpdater(), "", false)
+	dummyGui, _ := NewGui(utils.NewDummyCommon(), commands.NewDummyGitCommand(), oscommands.NewDummyOSCommand(), newAppConfig, NewDummyUpdater(), "", false)
 	return dummyGui
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
@@ -25,12 +26,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
@@ -67,8 +66,8 @@ type Repo string
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
+	*common.Common
 	g          *gocui.Gui
-	Log        *logrus.Entry
 	GitCommand *commands.GitCommand
 	OSCommand  *oscommands.OSCommand
 
@@ -79,7 +78,6 @@ type Gui struct {
 	// gui state when returning from a subrepo
 	RepoStateMap         map[Repo]*guiState
 	Config               config.AppConfigurer
-	Tr                   *i18n.TranslationSet
 	Updater              *updates.Updater
 	statusManager        *statusManager
 	credentials          credentials
@@ -431,13 +429,12 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 
 // for now the split view will always be on
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
+func NewGui(cmn *common.Common, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
 	gui := &Gui{
-		Log:                     log,
+		Common:                  cmn,
 		GitCommand:              gitCommand,
 		OSCommand:               oSCommand,
 		Config:                  config,
-		Tr:                      tr,
 		Updater:                 updater,
 		statusManager:           &statusManager{},
 		viewBufferManagerMap:    map[string]*tasks.ViewBufferManager{},
