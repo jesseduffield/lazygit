@@ -85,12 +85,12 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		todo = a + " " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
-	cmd, err := c.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todo, true)
+	cmdObj, err := c.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todo, true)
 	if err != nil {
 		return err
 	}
 
-	if err := c.OSCommand.Run(cmd); err != nil {
+	if err := cmdObj.Run(); err != nil {
 		return err
 	}
 
@@ -217,7 +217,7 @@ func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx 
 
 	head_message, _ := c.GetHeadCommitMessage()
 	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	err := c.OSCommand.Run(c.CommitCmdObj(new_message, ""))
+	err := c.CommitCmdObj(new_message, "").Run()
 	if err != nil {
 		return err
 	}

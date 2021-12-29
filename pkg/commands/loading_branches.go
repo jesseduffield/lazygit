@@ -42,6 +42,51 @@ func NewBranchListBuilder(
 	}
 }
 
+// Build the list of branches for the current repo
+func (b *BranchListBuilder) Build() []*models.Branch {
+	branches := b.obtainBranches()
+
+	reflogBranches := b.obtainReflogBranches()
+
+	// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
+	branchesWithRecency := make([]*models.Branch, 0)
+outer:
+	for _, reflogBranch := range reflogBranches {
+		for j, branch := range branches {
+			if branch.Head {
+				continue
+			}
+			if strings.EqualFold(reflogBranch.Name, branch.Name) {
+				branch.Recency = reflogBranch.Recency
+				branchesWithRecency = append(branchesWithRecency, branch)
+				branches = append(branches[0:j], branches[j+1:]...)
+				continue outer
+			}
+		}
+	}
+
+	branches = append(branchesWithRecency, branches...)
+
+	foundHead := false
+	for i, branch := range branches {
+		if branch.Head {
+			foundHead = true
+			branch.Recency = "  *"
+			branches = append(branches[0:i], branches[i+1:]...)
+			branches = append([]*models.Branch{branch}, branches...)
+			break
+		}
+	}
+	if !foundHead {
+		currentBranchName, currentBranchDisplayName, err := b.getCurrentBranchName()
+		if err != nil {
+			panic(err)
+		}
+		branches = append([]*models.Branch{{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"}}, branches...)
+	}
+	return branches
+}
+
 func (b *BranchListBuilder) obtainBranches() []*models.Branch {
 	output, err := b.getRawBranches()
 	if err != nil {
@@ -100,51 +145,6 @@ func (b *BranchListBuilder) obtainBranches() []*models.Branch {
 		branches = append(branches, branch)
 	}
 
-	return branches
-}
-
-// Build the list of branches for the current repo
-func (b *BranchListBuilder) Build() []*models.Branch {
-	branches := b.obtainBranches()
-
-	reflogBranches := b.obtainReflogBranches()
-
-	// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
-	branchesWithRecency := make([]*models.Branch, 0)
-outer:
-	for _, reflogBranch := range reflogBranches {
-		for j, branch := range branches {
-			if branch.Head {
-				continue
-			}
-			if strings.EqualFold(reflogBranch.Name, branch.Name) {
-				branch.Recency = reflogBranch.Recency
-				branchesWithRecency = append(branchesWithRecency, branch)
-				branches = append(branches[0:j], branches[j+1:]...)
-				continue outer
-			}
-		}
-	}
-
-	branches = append(branchesWithRecency, branches...)
-
-	foundHead := false
-	for i, branch := range branches {
-		if branch.Head {
-			foundHead = true
-			branch.Recency = "  *"
-			branches = append(branches[0:i], branches[i+1:]...)
-			branches = append([]*models.Branch{branch}, branches...)
-			break
-		}
-	}
-	if !foundHead {
-		currentBranchName, currentBranchDisplayName, err := b.getCurrentBranchName()
-		if err != nil {
-			panic(err)
-		}
-		branches = append([]*models.Branch{{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"}}, branches...)
-	}
 	return branches
 }
 

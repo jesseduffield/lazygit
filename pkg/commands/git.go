@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/go-errors/errors"
 
@@ -42,6 +41,8 @@ type GitCommand struct {
 	// Coincidentally at the moment it's the same view that OnRunCommand logs to
 	// but that need not always be the case.
 	GetCmdWriter func() io.Writer
+
+	Cmd oscommands.ICmdObjBuilder
 }
 
 // NewGitCommand it runs git commands
@@ -68,6 +69,8 @@ func NewGitCommand(
 		return nil, err
 	}
 
+	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd)
+
 	gitCommand := &GitCommand{
 		Common:        cmn,
 		OSCommand:     osCommand,
@@ -76,6 +79,7 @@ func NewGitCommand(
 		PushToCurrent: pushToCurrent,
 		GitConfig:     gitConfig,
 		GetCmdWriter:  func() io.Writer { return ioutil.Discard },
+		Cmd:           cmd,
 	}
 
 	gitCommand.PatchManager = patch.NewPatchManager(gitCommand.Log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
@@ -215,44 +219,5 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 }
 
 func VerifyInGitRepo(osCommand *oscommands.OSCommand) error {
-	return osCommand.Run(osCommand.NewCmdObj("git rev-parse --git-dir"))
-}
-
-func (c *GitCommand) Run(cmdObj oscommands.ICmdObj) error {
-	_, err := c.RunWithOutput(cmdObj)
-	return err
-}
-
-func (c *GitCommand) RunWithOutput(cmdObj oscommands.ICmdObj) (string, error) {
-	// TODO: have this retry logic in other places we run the command
-	waitTime := 50 * time.Millisecond
-	retryCount := 5
-	attempt := 0
-
-	for {
-		output, err := c.OSCommand.RunWithOutput(cmdObj)
-		if err != nil {
-			// if we have an error based on the index lock, we should wait a bit and then retry
-			if strings.Contains(output, ".git/index.lock") {
-				c.Log.Error(output)
-				c.Log.Info("index.lock prevented command from running. Retrying command after a small wait")
-				attempt++
-				time.Sleep(waitTime)
-				if attempt < retryCount {
-					continue
-				}
-			}
-		}
-		return output, err
-	}
-}
-
-func (c *GitCommand) NewCmdObj(cmdStr string) oscommands.ICmdObj {
-	return c.OSCommand.NewCmdObj(cmdStr).AddEnvVars("GIT_OPTIONAL_LOCKS=0")
-}
-
-func (c *GitCommand) NewCmdObjWithLog(cmdStr string) oscommands.ICmdObj {
-	cmdObj := c.NewCmdObj(cmdStr)
-	c.OSCommand.LogCmdObj(cmdObj)
-	return cmdObj
+	return osCommand.Cmd.New("git rev-parse --git-dir").Run()
 }

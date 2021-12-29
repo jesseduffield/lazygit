@@ -38,7 +38,7 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 }
 
 func (gui *Gui) handleShowAllBranchLogs() error {
-	cmdObj := gui.OSCommand.NewCmdObj(
+	cmdObj := gui.OSCommand.Cmd.New(
 		gui.UserConfig.Git.AllBranchesLogCmd,
 	)
 	task := NewRunPtyTask(cmdObj.GetCmd())

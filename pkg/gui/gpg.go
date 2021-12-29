@@ -15,7 +15,7 @@ import (
 func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
 	useSubprocess := gui.GitCommand.UsingGpg()
 	if useSubprocess {
-		success, err := gui.runSubprocessWithSuspense(gui.OSCommand.NewShellCmdObjFromString(cmdObj.ToString()))
+		success, err := gui.runSubprocessWithSuspense(gui.OSCommand.Cmd.NewShell(cmdObj.ToString()))
 		if success && onSuccess != nil {
 			if err := onSuccess(); err != nil {
 				return err
@@ -33,7 +33,7 @@ func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string,
 
 func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
 	return gui.WithWaitingStatus(waitingStatus, func() error {
-		cmdObj := gui.OSCommand.NewShellCmdObjFromString(cmdObj.ToString())
+		cmdObj := gui.OSCommand.Cmd.NewShell(cmdObj.ToString())
 		cmdObj.AddEnvVars("TERM=dumb")
 		cmdWriter := gui.getCmdWriter()
 		cmd := cmdObj.GetCmd()

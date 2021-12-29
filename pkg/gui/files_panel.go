@@ -465,7 +465,7 @@ func (gui *Gui) handleCommitEditorPress() error {
 	cmdStr := "git " + strings.Join(args, " ")
 
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.GitCommand.WithSpan(gui.Tr.Spans.Commit).NewCmdObjWithLog(cmdStr),
+		gui.GitCommand.WithSpan(gui.Tr.Spans.Commit).Cmd.New(cmdStr).Log(),
 	)
 }
 
@@ -511,7 +511,7 @@ func (gui *Gui) editFileAtLine(filename string, lineNumber int) error {
 	}
 
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).NewShellCmdObjFromString(cmdStr),
+		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).Cmd.NewShell(cmdStr),
 	)
 }
 
@@ -923,7 +923,7 @@ func (gui *Gui) handleCustomCommand() error {
 
 			gui.OnRunCommand(oscommands.NewCmdLogEntry(command, gui.Tr.Spans.CustomCommand, true))
 			return gui.runSubprocessWithSuspenseAndRefresh(
-				gui.OSCommand.NewShellCmdObjFromString2(command),
+				gui.OSCommand.Cmd.NewShell(command),
 			)
 		},
 	})
