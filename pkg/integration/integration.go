@@ -45,7 +45,7 @@ func RunTests(
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	osCommand := oscommands.NewDummyOSCommand()
-	err = osCommand.Run(osCommand.NewCmdObj("go build -o " + tempLazygitPath()))
+	err = osCommand.Cmd.New("go build -o " + tempLazygitPath()).Run()
 	if err != nil {
 		return err
 	}
@@ -319,7 +319,7 @@ func generateSnapshot(dir string) (string, error) {
 
 	for _, cmdStr := range cmdStrs {
 		// ignoring error for now. If there's an error it could be that there are no results
-		output, _ := osCommand.RunWithOutput(osCommand.NewCmdObj(cmdStr))
+		output, _ := osCommand.Cmd.New(cmdStr).RunWithOutput()
 
 		snapshot += output + "\n"
 	}
@@ -428,7 +428,7 @@ func getLazygitCommand(testPath string, rootDir string, record bool, speed float
 
 	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s %s", tempLazygitPath(), configDir, actualDir, extraCmdArgs)
 
-	cmdObj := osCommand.NewCmdObj(cmdStr)
+	cmdObj := osCommand.Cmd.New(cmdStr)
 	cmdObj.AddEnvVars(fmt.Sprintf("SPEED=%f", speed))
 
 	if record {

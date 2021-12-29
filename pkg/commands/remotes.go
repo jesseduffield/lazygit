@@ -7,24 +7,24 @@ import (
 )
 
 func (c *GitCommand) AddRemote(name string, url string) error {
-	return c.Run(c.NewCmdObj(fmt.Sprintf("git remote add %s %s", c.OSCommand.Quote(name), c.OSCommand.Quote(url))))
+	return c.Cmd.New(fmt.Sprintf("git remote add %s %s", c.OSCommand.Quote(name), c.OSCommand.Quote(url))).Run()
 }
 
 func (c *GitCommand) RemoveRemote(name string) error {
-	return c.Run(c.NewCmdObj(fmt.Sprintf("git remote remove %s", c.OSCommand.Quote(name))))
+	return c.Cmd.New(fmt.Sprintf("git remote remove %s", c.OSCommand.Quote(name))).Run()
 }
 
 func (c *GitCommand) RenameRemote(oldRemoteName string, newRemoteName string) error {
-	return c.Run(c.NewCmdObj(fmt.Sprintf("git remote rename %s %s", c.OSCommand.Quote(oldRemoteName), c.OSCommand.Quote(newRemoteName))))
+	return c.Cmd.New(fmt.Sprintf("git remote rename %s %s", c.OSCommand.Quote(oldRemoteName), c.OSCommand.Quote(newRemoteName))).Run()
 }
 
 func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error {
-	return c.Run(c.NewCmdObj(fmt.Sprintf("git remote set-url %s %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(updatedUrl))))
+	return c.Cmd.New(fmt.Sprintf("git remote set-url %s %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(updatedUrl))).Run()
 }
 
 func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(string) string) error {
 	command := fmt.Sprintf("git push %s --delete %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(branchName))
-	cmdObj := c.NewCmdObj(command)
+	cmdObj := c.Cmd.New(command)
 	return c.DetectUnamePass(cmdObj, promptUserForCredential)
 }
 
@@ -34,10 +34,10 @@ func (c *GitCommand) DetectUnamePass(cmdObj oscommands.ICmdObj, promptUserForCre
 
 // CheckRemoteBranchExists Returns remote branch
 func (c *GitCommand) CheckRemoteBranchExists(branchName string) bool {
-	_, err := c.RunWithOutput(c.NewCmdObj(
+	_, err := c.Cmd.New(
 		fmt.Sprintf("git show-ref --verify -- refs/remotes/origin/%s",
 			c.OSCommand.Quote(branchName),
-		)))
+		)).RunWithOutput()
 
 	return err == nil
 }

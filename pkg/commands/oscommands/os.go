@@ -1,7 +1,6 @@
 package oscommands
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -16,7 +15,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/mgutz/str"
 )
 
 // Platform stores the os state
@@ -55,7 +53,7 @@ type OSCommand struct {
 
 	removeFile func(string) error
 
-	IRunner
+	Cmd *CmdObjBuilder
 }
 
 // TODO: make these fields private
@@ -90,15 +88,20 @@ func NewCmdLogEntry(cmdStr string, span string, commandLine bool) CmdLogEntry {
 
 // NewOSCommand os command runner
 func NewOSCommand(common *common.Common) *OSCommand {
+	command := secureexec.Command
+	platform := getPlatform()
+
 	c := &OSCommand{
 		Common:     common,
-		Platform:   getPlatform(),
-		Command:    secureexec.Command,
+		Platform:   platform,
+		Command:    command,
 		Getenv:     os.Getenv,
 		removeFile: os.RemoveAll,
 	}
 
-	c.IRunner = &RealRunner{c: c}
+	runner := &RealRunner{log: common.Log, logCmdObj: c.LogCmdObj}
+	c.Cmd = &CmdObjBuilder{runner: runner, command: command, logCmdObj: c.LogCmdObj, platform: platform}
+
 	return c
 }
 
@@ -162,8 +165,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 		"filename": c.Quote(filename),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	err := c.Run(c.NewShellCmdObjFromString(command))
-	return err
+	return c.Cmd.NewShell(command).Run()
 }
 
 // OpenLink opens a file with the given
@@ -175,14 +177,17 @@ func (c *OSCommand) OpenLink(link string) error {
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	err := c.Run(c.NewShellCmdObjFromString(command))
-	return err
+	return c.Cmd.NewShell(command).Run()
 }
 
 // Quote wraps a message in platform-specific quotation marks
 func (c *OSCommand) Quote(message string) string {
+	return c.Cmd.Quote(message)
+}
+
+func (self *CmdObjBuilder) Quote(message string) string {
 	var quote string
-	if c.Platform.OS == "windows" {
+	if self.platform.OS == "windows" {
 		quote = `\"`
 		message = strings.NewReplacer(
 			`"`, `"'"'"`,
@@ -289,7 +294,7 @@ func (c *OSCommand) PipeCommands(commandStrings ...string) error {
 			logCmdStr += " | "
 		}
 		logCmdStr += str
-		cmds[i] = c.NewCmdObj(str).GetCmd()
+		cmds[i] = c.Cmd.New(str).GetCmd()
 	}
 	c.LogCommand(logCmdStr, true)
 
@@ -363,127 +368,6 @@ func (c *OSCommand) RemoveFile(path string) error {
 	c.LogCommand(fmt.Sprintf("Deleting path '%s'", path), false)
 
 	return c.removeFile(path)
-}
-
-// builders
-
-func (c *OSCommand) NewCmdObj(cmdStr string) ICmdObj {
-	args := str.ToArgv(cmdStr)
-	cmd := c.Command(args[0], args[1:]...)
-	cmd.Env = os.Environ()
-
-	return &CmdObj{
-		cmdStr: cmdStr,
-		cmd:    cmd,
-	}
-}
-
-func (c *OSCommand) NewCmdObjFromArgs(args []string) ICmdObj {
-	cmd := c.Command(args[0], args[1:]...)
-	cmd.Env = os.Environ()
-
-	return &CmdObj{
-		cmdStr: strings.Join(args, " "),
-		cmd:    cmd,
-	}
-}
-
-// NewShellCmdObjFromString takes a string like `git commit` and returns an executable shell command for it
-func (c *OSCommand) NewShellCmdObjFromString(commandStr string) ICmdObj {
-	quotedCommand := ""
-	// Windows does not seem to like quotes around the command
-	if c.Platform.OS == "windows" {
-		quotedCommand = strings.NewReplacer(
-			"^", "^^",
-			"&", "^&",
-			"|", "^|",
-			"<", "^<",
-			">", "^>",
-			"%", "^%",
-		).Replace(commandStr)
-	} else {
-		quotedCommand = c.Quote(commandStr)
-	}
-
-	shellCommand := fmt.Sprintf("%s %s %s", c.Platform.Shell, c.Platform.ShellArg, quotedCommand)
-	return c.NewCmdObj(shellCommand)
-}
-
-// TODO: pick one of NewShellCmdObjFromString2 and ShellCommandFromString to use. I'm not sure
-// which one actually is better, but I suspect it's NewShellCmdObjFromString2
-func (c *OSCommand) NewShellCmdObjFromString2(command string) ICmdObj {
-	return c.NewCmdObjFromArgs([]string{c.Platform.Shell, c.Platform.ShellArg, command})
-}
-
-// runners
-
-type IRunner interface {
-	Run(cmdObj ICmdObj) error
-	RunWithOutput(cmdObj ICmdObj) (string, error)
-	RunLineOutputCmd(cmdObj ICmdObj, onLine func(line string) (bool, error)) error
-}
-
-type RunExpectation func(ICmdObj) (string, error)
-
-type RealRunner struct {
-	c *OSCommand
-}
-
-func (self *RealRunner) Run(cmdObj ICmdObj) error {
-	_, err := self.RunWithOutput(cmdObj)
-	return err
-}
-
-func (self *RealRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
-	self.c.LogCmdObj(cmdObj)
-	output, err := sanitisedCommandOutput(cmdObj.GetCmd().CombinedOutput())
-	if err != nil {
-		self.c.Log.WithField("command", cmdObj.ToString()).Error(output)
-	}
-	return output, err
-}
-
-func (self *RealRunner) RunLineOutputCmd(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
-	cmd := cmdObj.GetCmd()
-	stdoutPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-
-	scanner := bufio.NewScanner(stdoutPipe)
-	scanner.Split(bufio.ScanLines)
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		stop, err := onLine(line)
-		if err != nil {
-			return err
-		}
-		if stop {
-			_ = cmd.Process.Kill()
-			break
-		}
-	}
-
-	_ = cmd.Wait()
-
-	return nil
-}
-
-func sanitisedCommandOutput(output []byte, err error) (string, error) {
-	outputString := string(output)
-	if err != nil {
-		// errors like 'exit status 1' are not very useful so we'll create an error
-		// from the combined output
-		if outputString == "" {
-			return "", utils.WrapError(err)
-		}
-		return outputString, errors.New(outputString)
-	}
-	return outputString, nil
 }
 
 func GetTempDir() string {

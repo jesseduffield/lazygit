@@ -58,7 +58,7 @@ func (gui *Gui) genericMergeCommand(command string) error {
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
 	if status == commands.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && gui.UserConfig.Git.Merging.ManualCommit {
-		sub := gitCommand.NewCmdObj("git " + commandType + " --" + command)
+		sub := gitCommand.Cmd.New("git " + commandType + " --" + command)
 		if sub != nil {
 			return gui.runSubprocessWithSuspenseAndRefresh(sub)
 		}
