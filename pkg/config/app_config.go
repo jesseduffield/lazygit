@@ -41,8 +41,6 @@ type AppConfigurer interface {
 	GetUserConfigDir() string
 	GetAppState() *AppState
 	SaveAppState() error
-	SetIsNewRepo(bool)
-	GetIsNewRepo() bool
 	ReloadUserConfig() error
 	ShowCommandLogOnStartup() bool
 }
@@ -166,37 +164,22 @@ func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error)
 	return base, nil
 }
 
-// GetIsNewRepo returns known repo boolean
-func (c *AppConfig) GetIsNewRepo() bool {
-	return c.IsNewRepo
-}
-
-// SetIsNewRepo set if the current repo is known
-func (c *AppConfig) SetIsNewRepo(toSet bool) {
-	c.IsNewRepo = toSet
-}
-
-// GetDebug returns debug flag
 func (c *AppConfig) GetDebug() bool {
 	return c.Debug
 }
 
-// GetVersion returns debug flag
 func (c *AppConfig) GetVersion() string {
 	return c.Version
 }
 
-// GetCommit returns debug flag
 func (c *AppConfig) GetCommit() string {
 	return c.Commit
 }
 
-// GetBuildDate returns debug flag
 func (c *AppConfig) GetBuildDate() string {
 	return c.BuildDate
 }
 
-// GetName returns debug flag
 func (c *AppConfig) GetName() string {
 	return c.Name
 }

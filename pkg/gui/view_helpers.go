@@ -314,7 +314,7 @@ func (gui *Gui) renderDisplayStringsAtPos(v *gocui.View, y int, displayStrings [
 }
 
 func (gui *Gui) globalOptionsMap() map[string]string {
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 
 	return map[string]string{
 		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollUpMain), gui.getKeyDisplay(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.Tr.LcScroll,

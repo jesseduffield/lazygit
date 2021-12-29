@@ -330,7 +330,7 @@ func (gui *Gui) handleIgnoreFile() error {
 }
 
 func (gui *Gui) handleWIPCommitPress() error {
-	skipHookPrefix := gui.Config.GetUserConfig().Git.SkipHookPrefix
+	skipHookPrefix := gui.UserConfig.Git.SkipHookPrefix
 	if skipHookPrefix == "" {
 		return gui.createErrorPanel(gui.Tr.SkipHookPrefixNotConfigured)
 	}
@@ -344,7 +344,7 @@ func (gui *Gui) handleWIPCommitPress() error {
 }
 
 func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
-	cfg, ok := gui.Config.GetUserConfig().Git.CommitPrefixes[utils.GetCurrentRepoName()]
+	cfg, ok := gui.UserConfig.Git.CommitPrefixes[utils.GetCurrentRepoName()]
 	if !ok {
 		return nil
 	}
@@ -354,7 +354,7 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 
 func (gui *Gui) prepareFilesForCommit() error {
 	noStagedFiles := len(gui.stagedFiles()) == 0
-	if noStagedFiles && gui.Config.GetUserConfig().Gui.SkipNoStagedFilesWarning {
+	if noStagedFiles && gui.UserConfig.Gui.SkipNoStagedFilesWarning {
 		err := gui.GitCommand.WithSpan(gui.Tr.Spans.StageAllFiles).StageAll()
 		if err != nil {
 			return err
@@ -458,7 +458,7 @@ func (gui *Gui) handleCommitEditorPress() error {
 
 	args := []string{"commit"}
 
-	if gui.Config.GetUserConfig().Git.Commit.SignOff {
+	if gui.UserConfig.Git.Commit.SignOff {
 		args = append(args, "--signoff")
 	}
 
@@ -741,7 +741,7 @@ func (gui *Gui) push(opts pushOpts) error {
 		})
 
 		if err != nil && !opts.force && strings.Contains(err.Error(), "Updates were rejected") {
-			forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
+			forcePushDisabled := gui.UserConfig.Git.DisableForcePushing
 			if forcePushDisabled {
 				_ = gui.createErrorPanel(gui.Tr.UpdatesRejectedAndForcePushDisabled)
 				return
@@ -846,7 +846,7 @@ func getSuggestedRemote(remotes []*models.Remote) string {
 }
 
 func (gui *Gui) requestToForcePush() error {
-	forcePushDisabled := gui.Config.GetUserConfig().Git.DisableForcePushing
+	forcePushDisabled := gui.UserConfig.Git.DisableForcePushing
 	if forcePushDisabled {
 		return gui.createErrorPanel(gui.Tr.ForcePushDisabled)
 	}

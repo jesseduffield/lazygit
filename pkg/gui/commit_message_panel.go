@@ -15,12 +15,12 @@ func (gui *Gui) handleCommitConfirm() error {
 		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
 	}
 	flags := []string{}
-	skipHookPrefix := gui.Config.GetUserConfig().Git.SkipHookPrefix
+	skipHookPrefix := gui.UserConfig.Git.SkipHookPrefix
 	if skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix) {
 		flags = append(flags, "--no-verify")
 	}
 
-	if gui.Config.GetUserConfig().Git.Commit.SignOff {
+	if gui.UserConfig.Git.Commit.SignOff {
 		flags = append(flags, "--signoff")
 	}
 
@@ -42,9 +42,9 @@ func (gui *Gui) handleCommitMessageFocused() error {
 	message := utils.ResolvePlaceholderString(
 		gui.Tr.CommitMessageConfirm,
 		map[string]string{
-			"keyBindClose":   gui.getKeyDisplay(gui.Config.GetUserConfig().Keybinding.Universal.Return),
-			"keyBindConfirm": gui.getKeyDisplay(gui.Config.GetUserConfig().Keybinding.Universal.Confirm),
-			"keyBindNewLine": gui.getKeyDisplay(gui.Config.GetUserConfig().Keybinding.Universal.AppendNewline),
+			"keyBindClose":   gui.getKeyDisplay(gui.UserConfig.Keybinding.Universal.Return),
+			"keyBindConfirm": gui.getKeyDisplay(gui.UserConfig.Keybinding.Universal.Confirm),
+			"keyBindNewLine": gui.getKeyDisplay(gui.UserConfig.Keybinding.Universal.AppendNewline),
 		},
 	)
 
@@ -58,7 +58,7 @@ func (gui *Gui) getBufferLength(view *gocui.View) string {
 
 // RenderCommitLength is a function.
 func (gui *Gui) RenderCommitLength() {
-	if !gui.Config.GetUserConfig().Gui.CommitLength.Show {
+	if !gui.UserConfig.Gui.CommitLength.Show {
 		return
 	}
 

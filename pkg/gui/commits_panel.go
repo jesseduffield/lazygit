@@ -733,7 +733,7 @@ func (gui *Gui) handleOpenLogMenu() error {
 			opensMenu:     true,
 			onPress: func() error {
 				onSelect := func(value string) {
-					gui.Config.GetUserConfig().Git.Log.ShowGraph = value
+					gui.UserConfig.Git.Log.ShowGraph = value
 					gui.render()
 				}
 				return gui.createMenu(gui.Tr.LogMenuTitle, []*menuItem{
@@ -766,7 +766,7 @@ func (gui *Gui) handleOpenLogMenu() error {
 			opensMenu:     true,
 			onPress: func() error {
 				onSelect := func(value string) error {
-					gui.Config.GetUserConfig().Git.Log.Order = value
+					gui.UserConfig.Git.Log.Order = value
 					return gui.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
 						return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}})
 					})
