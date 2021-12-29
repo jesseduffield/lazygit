@@ -165,3 +165,7 @@ func (c *GitCommand) ResetMixed(ref string) error {
 func (c *GitCommand) RenameBranch(oldName string, newName string) error {
 	return c.Run(c.NewCmdObj(fmt.Sprintf("git branch --move %s %s", c.OSCommand.Quote(oldName), c.OSCommand.Quote(newName))))
 }
+
+func (c *GitCommand) GetRawBranches() (string, error) {
+	return c.RunWithOutput(c.NewCmdObj(`git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`))
+}

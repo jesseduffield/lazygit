@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -22,23 +23,31 @@ import (
 
 // BranchListBuilder returns a list of Branch objects for the current repo
 type BranchListBuilder struct {
-	Log           *logrus.Entry
-	GitCommand    *GitCommand
-	ReflogCommits []*models.Commit
+	*common.Common
+	log                  *logrus.Entry
+	getRawBranches       func() (string, error)
+	getCurrentBranchName func() (string, string, error)
+	reflogCommits        []*models.Commit
 }
 
-// NewBranchListBuilder builds a new branch list builder
-func NewBranchListBuilder(log *logrus.Entry, gitCommand *GitCommand, reflogCommits []*models.Commit) (*BranchListBuilder, error) {
+// common things: log, user config, Tr.
+
+func NewBranchListBuilder(
+	cmn *common.Common,
+	getRawBranches func() (string, error),
+	getCurrentBranchName func() (string, string, error),
+	reflogCommits []*models.Commit,
+) *BranchListBuilder {
 	return &BranchListBuilder{
-		Log:           log,
-		GitCommand:    gitCommand,
-		ReflogCommits: reflogCommits,
-	}, nil
+		Common:               cmn,
+		getRawBranches:       getRawBranches,
+		getCurrentBranchName: getCurrentBranchName,
+		reflogCommits:        reflogCommits,
+	}
 }
 
 func (b *BranchListBuilder) obtainBranches() []*models.Branch {
-	cmdStr := `git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`
-	output, err := b.GitCommand.RunWithOutput(b.GitCommand.NewCmdObj(cmdStr))
+	output, err := b.getRawBranches()
 	if err != nil {
 		panic(err)
 	}
@@ -134,7 +143,7 @@ outer:
 		}
 	}
 	if !foundHead {
-		currentBranchName, currentBranchDisplayName, err := b.GitCommand.CurrentBranchName()
+		currentBranchName, currentBranchDisplayName, err := b.getCurrentBranchName()
 		if err != nil {
 			panic(err)
 		}
@@ -148,8 +157,8 @@ outer:
 func (b *BranchListBuilder) obtainReflogBranches() []*models.Branch {
 	foundBranchesMap := map[string]bool{}
 	re := regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
-	reflogBranches := make([]*models.Branch, 0, len(b.ReflogCommits))
-	for _, commit := range b.ReflogCommits {
+	reflogBranches := make([]*models.Branch, 0, len(b.reflogCommits))
+	for _, commit := range b.reflogCommits {
 		if match := re.FindStringSubmatch(commit.Name); len(match) == 3 {
 			recency := utils.UnixToTimeAgo(commit.UnixTimestamp)
 			for _, branchName := range match[1:] {

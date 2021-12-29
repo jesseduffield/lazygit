@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -20,9 +19,8 @@ func NewDummyGitCommand() *GitCommand {
 func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitCommand {
 	newAppConfig := config.NewDummyAppConfig()
 	return &GitCommand{
-		Log:          utils.NewDummyLog(),
+		Common:       utils.NewDummyCommon(),
 		OSCommand:    osCommand,
-		Tr:           i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language),
 		Config:       newAppConfig,
 		GitConfig:    git_config.NewFakeGitConfig(map[string]string{}),
 		GetCmdWriter: func() io.Writer { return ioutil.Discard },

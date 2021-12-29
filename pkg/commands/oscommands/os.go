@@ -9,16 +9,14 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"testing"
 
 	"github.com/go-errors/errors"
 
 	"github.com/atotto/clipboard"
-	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mgutz/str"
-	"github.com/sirupsen/logrus"
 )
 
 // Platform stores the os state
@@ -44,9 +42,8 @@ func (self *RealCommander) Run(cmdObj ICmdObj) error {
 
 // OSCommand holds all the os commands
 type OSCommand struct {
-	Log      *logrus.Entry
+	*common.Common
 	Platform *Platform
-	Config   config.AppConfigurer
 	Command  func(string, ...string) *exec.Cmd
 	Getenv   func(string) string
 
@@ -92,11 +89,10 @@ func NewCmdLogEntry(cmdStr string, span string, commandLine bool) CmdLogEntry {
 }
 
 // NewOSCommand os command runner
-func NewOSCommand(log *logrus.Entry, config config.AppConfigurer) *OSCommand {
+func NewOSCommand(common *common.Common) *OSCommand {
 	c := &OSCommand{
-		Log:        log,
+		Common:     common,
 		Platform:   getPlatform(),
-		Config:     config,
 		Command:    secureexec.Command,
 		Getenv:     os.Getenv,
 		removeFile: os.RemoveAll,
@@ -161,7 +157,7 @@ func (c *OSCommand) FileType(path string) string {
 
 // OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(filename string) error {
-	commandTemplate := c.Config.GetUserConfig().OS.OpenCommand
+	commandTemplate := c.UserConfig.OS.OpenCommand
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
 	}
@@ -173,7 +169,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 // OpenLink opens a file with the given
 func (c *OSCommand) OpenLink(link string) error {
 	c.LogCommand(fmt.Sprintf("Opening link '%s'", link), false)
-	commandTemplate := c.Config.GetUserConfig().OS.OpenLinkCommand
+	commandTemplate := c.UserConfig.OS.OpenLinkCommand
 	templateValues := map[string]string{
 		"link": c.Quote(link),
 	}
@@ -428,14 +424,6 @@ type IRunner interface {
 }
 
 type RunExpectation func(ICmdObj) (string, error)
-
-type FakeRunner struct {
-	expectations []RunExpectation
-}
-
-func (self *RealRunner) Run(cmdObj ICmdObj) error {
-
-}
 
 type RealRunner struct {
 	c *OSCommand
