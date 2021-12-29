@@ -247,6 +247,10 @@ func (c *GitCommand) RunWithOutput(cmdObj oscommands.ICmdObj) (string, error) {
 	}
 }
 
+func (c *GitCommand) RunLineOutputCmd(cmdObj oscommands.ICmdObj, onLine func(line string) (bool, error)) error {
+	return c.OSCommand.RunLineOutputCmd(cmdObj, onLine)
+}
+
 func (c *GitCommand) NewCmdObj(cmdStr string) oscommands.ICmdObj {
 	return c.OSCommand.NewCmdObj(cmdStr).AddEnvVars("GIT_OPTIONAL_LOCKS=0")
 }

@@ -5,18 +5,27 @@ import (
 )
 
 // A command object is a general way to represent a command to be run on the
-// command line. If you want to log the command you'll use .ToString() and
-// if you want to run it you'll use .GetCmd()
+// command line.
 type ICmdObj interface {
 	GetCmd() *exec.Cmd
 	ToString() string
 	AddEnvVars(...string) ICmdObj
 	GetEnvVars() []string
+
+	Run() error
+	RunWithOutput() (string, error)
+	RunLineOutputCmd(onLine func(line string) (bool, error)) error
+
+	// logs command
+	Log()
 }
 
 type CmdObj struct {
 	cmdStr string
 	cmd    *exec.Cmd
+
+	runner     ICmdObjRunner
+	logCommand func(ICmdObj)
 }
 
 func (self *CmdObj) GetCmd() *exec.Cmd {
@@ -35,4 +44,20 @@ func (self *CmdObj) AddEnvVars(vars ...string) ICmdObj {
 
 func (self *CmdObj) GetEnvVars() []string {
 	return self.cmd.Env
+}
+
+func (self *CmdObj) Log() {
+	self.logCommand(self)
+}
+
+func (self *CmdObj) Run() error {
+	return self.runner.Run(self)
+}
+
+func (self *CmdObj) RunWithOutput() (string, error) {
+	return self.runner.RunWithOutput(self)
+}
+
+func (self *CmdObj) RunLineOutputCmd(onLine func(line string) (bool, error)) error {
+	return self.runner.RunLineOutputCmd(self, onLine)
 }

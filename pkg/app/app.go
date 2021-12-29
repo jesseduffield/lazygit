@@ -236,7 +236,7 @@ func (app *App) setupRepo() (bool, error) {
 
 			os.Exit(1)
 		}
-		if err := app.OSCommand.Run(app.OSCommand.NewCmdObj("git init")); err != nil {
+		if err := app.OSCommand.NewCmdObj("git init").Run(); err != nil {
 			return false, err
 		}
 	}

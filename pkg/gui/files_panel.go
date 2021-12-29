@@ -511,7 +511,7 @@ func (gui *Gui) editFileAtLine(filename string, lineNumber int) error {
 	}
 
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).NewShellCmdObjFromString(cmdStr),
+		gui.OSCommand.WithSpan(gui.Tr.Spans.EditFile).NewShellCmdObj(cmdStr),
 	)
 }
 
@@ -923,7 +923,7 @@ func (gui *Gui) handleCustomCommand() error {
 
 			gui.OnRunCommand(oscommands.NewCmdLogEntry(command, gui.Tr.Spans.CustomCommand, true))
 			return gui.runSubprocessWithSuspenseAndRefresh(
-				gui.OSCommand.NewShellCmdObjFromString2(command),
+				gui.OSCommand.NewShellCmdObj2(command),
 			)
 		},
 	})

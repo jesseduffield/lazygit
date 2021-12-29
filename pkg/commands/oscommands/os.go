@@ -55,7 +55,7 @@ type OSCommand struct {
 
 	removeFile func(string) error
 
-	IRunner
+	ICmdObjRunner
 }
 
 // TODO: make these fields private
@@ -98,7 +98,7 @@ func NewOSCommand(common *common.Common) *OSCommand {
 		removeFile: os.RemoveAll,
 	}
 
-	c.IRunner = &RealRunner{c: c}
+	c.ICmdObjRunner = &RealRunner{c: c}
 	return c
 }
 
@@ -162,7 +162,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 		"filename": c.Quote(filename),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	err := c.Run(c.NewShellCmdObjFromString(command))
+	err := c.Run(c.NewShellCmdObj(command))
 	return err
 }
 
@@ -175,7 +175,7 @@ func (c *OSCommand) OpenLink(link string) error {
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	err := c.Run(c.NewShellCmdObjFromString(command))
+	err := c.Run(c.NewShellCmdObj(command))
 	return err
 }
 
@@ -367,6 +367,14 @@ func (c *OSCommand) RemoveFile(path string) error {
 
 // builders
 
+type ICmdObjBuilder interface {
+	// returns a new command object based on the string provided
+	New(cmdStr string) ICmdObj
+	NewShell(commandStr string) ICmdObj
+	NewFromArgs(args []string) ICmdObj
+	Quote(str string) string
+}
+
 func (c *OSCommand) NewCmdObj(cmdStr string) ICmdObj {
 	args := str.ToArgv(cmdStr)
 	cmd := c.Command(args[0], args[1:]...)
@@ -388,8 +396,8 @@ func (c *OSCommand) NewCmdObjFromArgs(args []string) ICmdObj {
 	}
 }
 
-// NewShellCmdObjFromString takes a string like `git commit` and returns an executable shell command for it
-func (c *OSCommand) NewShellCmdObjFromString(commandStr string) ICmdObj {
+// NewShellCmdObj takes a string like `git commit` and returns an executable shell command for it
+func (c *OSCommand) NewShellCmdObj(commandStr string) ICmdObj {
 	quotedCommand := ""
 	// Windows does not seem to like quotes around the command
 	if c.Platform.OS == "windows" {
@@ -409,15 +417,15 @@ func (c *OSCommand) NewShellCmdObjFromString(commandStr string) ICmdObj {
 	return c.NewCmdObj(shellCommand)
 }
 
-// TODO: pick one of NewShellCmdObjFromString2 and ShellCommandFromString to use. I'm not sure
-// which one actually is better, but I suspect it's NewShellCmdObjFromString2
-func (c *OSCommand) NewShellCmdObjFromString2(command string) ICmdObj {
+// TODO: pick one of NewShellCmdObj2 and ShellCommandFromString to use. I'm not sure
+// which one actually is better, but I suspect it's NewShellCmdObj2
+func (c *OSCommand) NewShellCmdObj2(command string) ICmdObj {
 	return c.NewCmdObjFromArgs([]string{c.Platform.Shell, c.Platform.ShellArg, command})
 }
 
 // runners
 
-type IRunner interface {
+type ICmdObjRunner interface {
 	Run(cmdObj ICmdObj) error
 	RunWithOutput(cmdObj ICmdObj) (string, error)
 	RunLineOutputCmd(cmdObj ICmdObj, onLine func(line string) (bool, error)) error
