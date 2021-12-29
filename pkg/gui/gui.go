@@ -432,6 +432,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 // for now the split view will always be on
 // NewGui builds a new gui handler
 func NewGui(cmn *common.Common, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
+
 	gui := &Gui{
 		Common:                  cmn,
 		GitCommand:              gitCommand,
@@ -444,8 +445,12 @@ func NewGui(cmn *common.Common, gitCommand *commands.GitCommand, oSCommand *osco
 		RepoPathStack:           []string{},
 		RepoStateMap:            map[Repo]*guiState{},
 		CmdLog:                  []string{},
-		ShowExtrasWindow:        config.ShowCommandLogOnStartup(),
 		suggestionsAsyncHandler: tasks.NewAsyncHandler(),
+
+		// originally we could only hide the command log permanently via the config
+		// but now we do it via state. So we need to still support the config for the
+		// sake of backwards compatibility. We're making use of short circuiting here
+		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
 	}
 
 	gui.resetState(filterPath, false)
