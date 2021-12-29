@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sirupsen/logrus"
 )
 
 // context:
@@ -24,13 +23,10 @@ import (
 // BranchListBuilder returns a list of Branch objects for the current repo
 type BranchListBuilder struct {
 	*common.Common
-	log                  *logrus.Entry
 	getRawBranches       func() (string, error)
 	getCurrentBranchName func() (string, string, error)
 	reflogCommits        []*models.Commit
 }
-
-// common things: log, user config, Tr.
 
 func NewBranchListBuilder(
 	cmn *common.Common,

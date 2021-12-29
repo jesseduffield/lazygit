@@ -57,7 +57,7 @@ func TestOSCommandOpenFileDarwin(t *testing.T) {
 		OSCmd := NewDummyOSCommand()
 		OSCmd.Platform.OS = "darwin"
 		OSCmd.Command = s.command
-		OSCmd.Config.GetUserConfig().OS.OpenCommand = "open {{filename}}"
+		OSCmd.UserConfig.OS.OpenCommand = "open {{filename}}"
 
 		s.test(OSCmd.OpenFile(s.filename))
 	}
@@ -131,7 +131,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		OSCmd := NewDummyOSCommand()
 		OSCmd.Command = s.command
 		OSCmd.Platform.OS = "linux"
-		OSCmd.Config.GetUserConfig().OS.OpenCommand = `xdg-open {{filename}} > /dev/null`
+		OSCmd.UserConfig.OS.OpenCommand = `xdg-open {{filename}} > /dev/null`
 
 		s.test(OSCmd.OpenFile(s.filename))
 	}

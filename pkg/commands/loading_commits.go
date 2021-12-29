@@ -410,7 +410,7 @@ func (c *CommitListBuilder) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj
 		filterFlag = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(opts.FilterPath))
 	}
 
-	config := c.GitCommand.Config.GetUserConfig().Git.Log
+	config := c.GitCommand.UserConfig.Git.Log
 
 	orderFlag := "--" + config.Order
 	allFlag := ""

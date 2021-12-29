@@ -15,7 +15,7 @@ func (c *GitCommand) StashSave(message string) error {
 
 // GetStashEntryDiff stash diff
 func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
-	return fmt.Sprintf("git stash show -p --stat --color=%s --unified=%d stash@{%d}", c.colorArg(), c.Config.GetUserConfig().Git.DiffContextSize, index)
+	return fmt.Sprintf("git stash show -p --stat --color=%s --unified=%d stash@{%d}", c.colorArg(), c.UserConfig.Git.DiffContextSize, index)
 }
 
 // StashSaveStagedChanges stashes only the currently staged changes. This takes a few steps

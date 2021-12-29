@@ -435,7 +435,7 @@ func TestGitCommandDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.Command = s.command
-			gitCmd.Config.GetUserConfig().Git.DiffContextSize = s.contextSize
+			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
 			gitCmd.WorktreeFileDiff(s.file, s.plain, s.cached, s.ignoreWhitespace)
 		})
 	}
@@ -488,7 +488,7 @@ func TestGitCommandShowFileDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.OSCommand.Command = s.command
-			gitCmd.Config.GetUserConfig().Git.DiffContextSize = s.contextSize
+			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
 			_, _ = gitCmd.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
 		})
 	}
@@ -946,8 +946,8 @@ func TestEditFileCmdStr(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		gitCmd.Config.GetUserConfig().OS.EditCommand = s.configEditCommand
-		gitCmd.Config.GetUserConfig().OS.EditCommandTemplate = s.configEditCommandTemplate
+		gitCmd.UserConfig.OS.EditCommand = s.configEditCommand
+		gitCmd.UserConfig.OS.EditCommandTemplate = s.configEditCommandTemplate
 		gitCmd.OSCommand.Command = s.command
 		gitCmd.OSCommand.Getenv = s.getenv
 		gitCmd.GitConfig = git_config.NewFakeGitConfig(s.gitConfigMockResponses)
