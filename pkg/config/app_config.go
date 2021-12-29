@@ -31,18 +31,21 @@ type AppConfig struct {
 // from AppConfig and still be used by lazygit.
 type AppConfigurer interface {
 	GetDebug() bool
+
+	// build info
 	GetVersion() string
 	GetCommit() string
 	GetBuildDate() string
 	GetName() string
 	GetBuildSource() string
+
 	GetUserConfig() *UserConfig
 	GetUserConfigPaths() []string
 	GetUserConfigDir() string
+	ReloadUserConfig() error
+
 	GetAppState() *AppState
 	SaveAppState() error
-	ReloadUserConfig() error
-	ShowCommandLogOnStartup() bool
 }
 
 // NewAppConfig makes a new app config
@@ -253,17 +256,6 @@ func (c *AppConfig) SaveAppState() error {
 	}
 
 	return err
-}
-
-// originally we could only hide the command log permanently via the config
-// but now we do it via state. So we need to still support the config for the
-// sake of backwards compatibility
-func (c *AppConfig) ShowCommandLogOnStartup() bool {
-	if !c.UserConfig.Gui.ShowCommandLog {
-		return false
-	}
-
-	return !c.AppState.HideCommandLog
 }
 
 // loadAppState loads recorded AppState from file

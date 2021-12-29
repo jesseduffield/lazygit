@@ -18,10 +18,9 @@ func NewDummyLog() *logrus.Entry {
 
 func NewDummyCommon() *common.Common {
 	tr := i18n.EnglishTranslationSet()
-	newAppConfig := config.NewDummyAppConfig()
 	return &common.Common{
 		Log:        NewDummyLog(),
 		Tr:         &tr,
-		UserConfig: newAppConfig.GetUserConfig(),
+		UserConfig: config.GetDefaultConfig(),
 	}
 }

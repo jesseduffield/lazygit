@@ -15,7 +15,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -49,7 +48,6 @@ type GitCommand struct {
 func NewGitCommand(
 	cmn *common.Common,
 	osCommand *oscommands.OSCommand,
-	config config.AppConfigurer,
 	gitConfig git_config.IGitConfig,
 ) (*GitCommand, error) {
 	var repo *gogit.Repository
