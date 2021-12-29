@@ -209,7 +209,7 @@ func (c *GitCommand) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cache
 	colorArg := c.colorArg()
 	quotedPath := c.OSCommand.Quote(node.GetPath())
 	ignoreWhitespaceArg := ""
-	contextSize := c.Config.GetUserConfig().Git.DiffContextSize
+	contextSize := c.UserConfig.Git.DiffContextSize
 	if cached {
 		cachedArg = "--cached"
 	}
@@ -229,7 +229,7 @@ func (c *GitCommand) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cache
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
-	filepath := filepath.Join(c.Config.GetTempDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
+	filepath := filepath.Join(oscommands.GetTempDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
 	c.Log.Infof("saving temporary patch to %s", filepath)
 	if err := c.OSCommand.CreateFileWithContent(filepath, patch); err != nil {
 		return err
@@ -252,7 +252,7 @@ func (c *GitCommand) ShowFileDiff(from string, to string, reverse bool, fileName
 
 func (c *GitCommand) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) oscommands.ICmdObj {
 	colorArg := c.colorArg()
-	contextSize := c.Config.GetUserConfig().Git.DiffContextSize
+	contextSize := c.UserConfig.Git.DiffContextSize
 	if plain {
 		colorArg = "never"
 	}
@@ -334,7 +334,7 @@ func (c *GitCommand) ResetAndClean() error {
 }
 
 func (c *GitCommand) EditFileCmdStr(filename string, lineNumber int) (string, error) {
-	editor := c.Config.GetUserConfig().OS.EditCommand
+	editor := c.UserConfig.OS.EditCommand
 
 	if editor == "" {
 		editor = c.GitConfig.Get("core.editor")
@@ -364,6 +364,6 @@ func (c *GitCommand) EditFileCmdStr(filename string, lineNumber int) (string, er
 		"line":     strconv.Itoa(lineNumber),
 	}
 
-	editCmdTemplate := c.Config.GetUserConfig().OS.EditCommandTemplate
+	editCmdTemplate := c.UserConfig.OS.EditCommandTemplate
 	return utils.ResolvePlaceholderString(editCmdTemplate, templateValues), nil
 }

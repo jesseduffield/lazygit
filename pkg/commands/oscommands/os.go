@@ -485,3 +485,7 @@ func sanitisedCommandOutput(output []byte, err error) (string, error) {
 	}
 	return outputString, nil
 }
+
+func GetTempDir() string {
+	return filepath.Join(os.TempDir(), "lazygit")
+}

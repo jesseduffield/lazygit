@@ -31,7 +31,6 @@ type GitCommand struct {
 	*common.Common
 	OSCommand            *oscommands.OSCommand
 	Repo                 *gogit.Repository
-	Config               config.AppConfigurer
 	DotGitDir            string
 	onSuccessfulContinue func() error
 	PatchManager         *patch.PatchManager
@@ -75,7 +74,6 @@ func NewGitCommand(
 		Common:        cmn,
 		OSCommand:     osCommand,
 		Repo:          repo,
-		Config:        config,
 		DotGitDir:     dotGitDir,
 		PushToCurrent: pushToCurrent,
 		GitConfig:     gitConfig,

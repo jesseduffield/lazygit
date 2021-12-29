@@ -66,7 +66,7 @@ func (c *GitCommand) AmendHeadCmdObj() oscommands.ICmdObj {
 }
 
 func (c *GitCommand) ShowCmdObj(sha string, filterPath string) oscommands.ICmdObj {
-	contextSize := c.Config.GetUserConfig().Git.DiffContextSize
+	contextSize := c.UserConfig.Git.DiffContextSize
 	filterPathArg := ""
 	if filterPath != "" {
 		filterPathArg = fmt.Sprintf(" -- %s", c.OSCommand.Quote(filterPath))
