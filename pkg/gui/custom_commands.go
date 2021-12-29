@@ -203,7 +203,7 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 	}
 
 	// Run and save output
-	message, err := gui.GitCommand.NewCmdObj(cmdStr).RunWithOutput()
+	message, err := gui.GitCommand.Cmd.New(cmdStr).RunWithOutput()
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -252,7 +252,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 				loadingText = gui.Tr.LcRunningCustomCommandStatus
 			}
 			return gui.WithWaitingStatus(loadingText, func() error {
-				err := gui.OSCommand.WithSpan(gui.Tr.Spans.CustomCommand).NewShellCmdObj(cmdStr).Run()
+				err := gui.OSCommand.WithSpan(gui.Tr.Spans.CustomCommand).Cmd.NewShell(cmdStr).Run()
 				if err != nil {
 					return gui.surfaceError(err)
 				}

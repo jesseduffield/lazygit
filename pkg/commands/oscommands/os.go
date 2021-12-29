@@ -165,7 +165,7 @@ func (c *OSCommand) OpenFile(filename string) error {
 		"filename": c.Quote(filename),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	return c.NewShellCmdObj(command).Run()
+	return c.Cmd.NewShell(command).Run()
 }
 
 // OpenLink opens a file with the given
@@ -177,7 +177,7 @@ func (c *OSCommand) OpenLink(link string) error {
 	}
 
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
-	return c.NewShellCmdObj(command).Run()
+	return c.Cmd.NewShell(command).Run()
 }
 
 // Quote wraps a message in platform-specific quotation marks
@@ -294,7 +294,7 @@ func (c *OSCommand) PipeCommands(commandStrings ...string) error {
 			logCmdStr += " | "
 		}
 		logCmdStr += str
-		cmds[i] = c.NewCmdObj(str).GetCmd()
+		cmds[i] = c.Cmd.New(str).GetCmd()
 	}
 	c.LogCommand(logCmdStr, true)
 
@@ -368,18 +368,6 @@ func (c *OSCommand) RemoveFile(path string) error {
 	c.LogCommand(fmt.Sprintf("Deleting path '%s'", path), false)
 
 	return c.removeFile(path)
-}
-
-func (c *OSCommand) NewCmdObj(cmdStr string) ICmdObj {
-	return c.Cmd.New(cmdStr)
-}
-
-func (c *OSCommand) NewCmdObjFromArgs(args []string) ICmdObj {
-	return c.Cmd.NewFromArgs(args)
-}
-
-func (c *OSCommand) NewShellCmdObj(commandStr string) ICmdObj {
-	return c.Cmd.NewShell(commandStr)
 }
 
 func GetTempDir() string {

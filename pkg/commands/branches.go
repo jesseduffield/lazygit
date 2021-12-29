@@ -11,19 +11,19 @@ import (
 
 // NewBranch create new branch
 func (c *GitCommand) NewBranch(name string, base string) error {
-	return c.NewCmdObj(fmt.Sprintf("git checkout -b %s %s", c.OSCommand.Quote(name), c.OSCommand.Quote(base))).Run()
+	return c.Cmd.New(fmt.Sprintf("git checkout -b %s %s", c.OSCommand.Quote(name), c.OSCommand.Quote(base))).Run()
 }
 
 // CurrentBranchName get the current branch name and displayname.
 // the first returned string is the name and the second is the displayname
 // e.g. name is 123asdf and displayname is '(HEAD detached at 123asdf)'
 func (c *GitCommand) CurrentBranchName() (string, string, error) {
-	branchName, err := c.NewCmdObj("git symbolic-ref --short HEAD").RunWithOutput()
+	branchName, err := c.Cmd.New("git symbolic-ref --short HEAD").RunWithOutput()
 	if err == nil && branchName != "HEAD\n" {
 		trimmedBranchName := strings.TrimSpace(branchName)
 		return trimmedBranchName, trimmedBranchName, nil
 	}
-	output, err := c.NewCmdObj("git branch --contains").RunWithOutput()
+	output, err := c.Cmd.New("git branch --contains").RunWithOutput()
 	if err != nil {
 		return "", "", err
 	}
@@ -47,7 +47,7 @@ func (c *GitCommand) DeleteBranch(branch string, force bool) error {
 		command = "git branch -D"
 	}
 
-	return c.NewCmdObj(fmt.Sprintf("%s %s", command, c.OSCommand.Quote(branch))).Run()
+	return c.Cmd.New(fmt.Sprintf("%s %s", command, c.OSCommand.Quote(branch))).Run()
 }
 
 // Checkout checks out a branch (or commit), with --force if you set the force arg to true
@@ -62,7 +62,7 @@ func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 		forceArg = " --force"
 	}
 
-	return c.NewCmdObj(fmt.Sprintf("git checkout%s %s", forceArg, c.OSCommand.Quote(branch))).
+	return c.Cmd.New(fmt.Sprintf("git checkout%s %s", forceArg, c.OSCommand.Quote(branch))).
 		// prevents git from prompting us for input which would freeze the program
 		// TODO: see if this is actually needed here
 		AddEnvVars("GIT_TERMINAL_PROMPT=0").
@@ -78,7 +78,7 @@ func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
 }
 
 func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
-	output, err := c.NewCmdObj(fmt.Sprintf("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", c.OSCommand.Quote(branchName))).RunWithOutput()
+	output, err := c.Cmd.New(fmt.Sprintf("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", c.OSCommand.Quote(branchName))).RunWithOutput()
 	return strings.TrimSpace(output), err
 }
 
@@ -87,15 +87,15 @@ func (c *GitCommand) GetBranchGraphCmdObj(branchName string) oscommands.ICmdObj 
 	templateValues := map[string]string{
 		"branchName": c.OSCommand.Quote(branchName),
 	}
-	return c.NewCmdObj(utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues))
+	return c.Cmd.New(utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues))
 }
 
 func (c *GitCommand) SetUpstreamBranch(upstream string) error {
-	return c.NewCmdObj("git branch -u " + c.OSCommand.Quote(upstream)).Run()
+	return c.Cmd.New("git branch -u " + c.OSCommand.Quote(upstream)).Run()
 }
 
 func (c *GitCommand) SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error {
-	return c.NewCmdObj(fmt.Sprintf("git branch --set-upstream-to=%s/%s %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(remoteBranchName), c.OSCommand.Quote(branchName))).Run()
+	return c.Cmd.New(fmt.Sprintf("git branch --set-upstream-to=%s/%s %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(remoteBranchName), c.OSCommand.Quote(branchName))).Run()
 }
 
 func (c *GitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
@@ -110,11 +110,11 @@ func (c *GitCommand) GetBranchUpstreamDifferenceCount(branchName string) (string
 // current branch
 func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
 	command := "git rev-list %s..%s --count"
-	pushableCount, err := c.NewCmdObj(fmt.Sprintf(command, to, from)).RunWithOutput()
+	pushableCount, err := c.Cmd.New(fmt.Sprintf(command, to, from)).RunWithOutput()
 	if err != nil {
 		return "?", "?"
 	}
-	pullableCount, err := c.NewCmdObj(fmt.Sprintf(command, from, to)).RunWithOutput()
+	pullableCount, err := c.Cmd.New(fmt.Sprintf(command, from, to)).RunWithOutput()
 	if err != nil {
 		return "?", "?"
 	}
@@ -134,37 +134,37 @@ func (c *GitCommand) Merge(branchName string, opts MergeOpts) error {
 		command = fmt.Sprintf("%s --ff-only", command)
 	}
 
-	return c.OSCommand.NewCmdObj(command).Run()
+	return c.OSCommand.Cmd.New(command).Run()
 }
 
 // AbortMerge abort merge
 func (c *GitCommand) AbortMerge() error {
-	return c.NewCmdObj("git merge --abort").Run()
+	return c.Cmd.New("git merge --abort").Run()
 }
 
 func (c *GitCommand) IsHeadDetached() bool {
-	err := c.NewCmdObj("git symbolic-ref -q HEAD").Run()
+	err := c.Cmd.New("git symbolic-ref -q HEAD").Run()
 	return err != nil
 }
 
 // ResetHardHead runs `git reset --hard`
 func (c *GitCommand) ResetHard(ref string) error {
-	return c.NewCmdObj("git reset --hard " + c.OSCommand.Quote(ref)).Run()
+	return c.Cmd.New("git reset --hard " + c.OSCommand.Quote(ref)).Run()
 }
 
 // ResetSoft runs `git reset --soft HEAD`
 func (c *GitCommand) ResetSoft(ref string) error {
-	return c.NewCmdObj("git reset --soft " + c.OSCommand.Quote(ref)).Run()
+	return c.Cmd.New("git reset --soft " + c.OSCommand.Quote(ref)).Run()
 }
 
 func (c *GitCommand) ResetMixed(ref string) error {
-	return c.NewCmdObj("git reset --mixed " + c.OSCommand.Quote(ref)).Run()
+	return c.Cmd.New("git reset --mixed " + c.OSCommand.Quote(ref)).Run()
 }
 
 func (c *GitCommand) RenameBranch(oldName string, newName string) error {
-	return c.NewCmdObj(fmt.Sprintf("git branch --move %s %s", c.OSCommand.Quote(oldName), c.OSCommand.Quote(newName))).Run()
+	return c.Cmd.New(fmt.Sprintf("git branch --move %s %s", c.OSCommand.Quote(oldName), c.OSCommand.Quote(newName))).Run()
 }
 
 func (c *GitCommand) GetRawBranches() (string, error) {
-	return c.NewCmdObj(`git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`).RunWithOutput()
+	return c.Cmd.New(`git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`).RunWithOutput()
 }

@@ -10,7 +10,7 @@ import (
 func (c *GitCommand) GetTags() ([]*models.Tag, error) {
 	// get remote branches, sorted  by creation date (descending)
 	// see: https://git-scm.com/docs/git-tag#Documentation/git-tag.txt---sortltkeygt
-	remoteBranchesStr, err := c.NewCmdObj(`git tag --list --sort=-creatordate`).RunWithOutput()
+	remoteBranchesStr, err := c.Cmd.New(`git tag --list --sort=-creatordate`).RunWithOutput()
 	if err != nil {
 		return nil, err
 	}

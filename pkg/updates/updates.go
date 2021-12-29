@@ -295,7 +295,7 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	}
 
 	u.Log.Info("untarring tarball/unzipping zip file")
-	err = u.OSCommand.NewCmdObj(fmt.Sprintf("tar -zxf %s %s", u.OSCommand.Quote(zipPath), "lazygit")).Run()
+	err = u.OSCommand.Cmd.New(fmt.Sprintf("tar -zxf %s %s", u.OSCommand.Quote(zipPath), "lazygit")).Run()
 	if err != nil {
 		return err
 	}

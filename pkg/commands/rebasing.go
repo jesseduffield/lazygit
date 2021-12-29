@@ -69,7 +69,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty %s", baseSha)
 	c.Log.WithField("command", cmdStr).Info("RunCommand")
 
-	cmdObj := c.NewCmdObj(cmdStr)
+	cmdObj := c.Cmd.New(cmdStr)
 
 	gitSequenceEditor := ex
 	if todo == "" {
@@ -267,7 +267,7 @@ func (c *GitCommand) GenericMergeOrRebaseAction(commandType string, command stri
 }
 
 func (c *GitCommand) runSkipEditorCommand(command string) error {
-	cmdObj := c.OSCommand.NewCmdObj(command)
+	cmdObj := c.OSCommand.Cmd.New(command)
 	lazyGitPath := c.OSCommand.GetLazygitPath()
 	return cmdObj.
 		AddEnvVars(
