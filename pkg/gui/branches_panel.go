@@ -61,10 +61,12 @@ func (gui *Gui) refreshBranches() {
 		}
 	}
 
-	builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand, reflogCommits)
-	if err != nil {
-		_ = gui.surfaceError(err)
-	}
+	builder := commands.NewBranchListBuilder(
+		gui.Common,
+		gui.GitCommand.GetRawBranches,
+		gui.GitCommand.CurrentBranchName,
+		reflogCommits,
+	)
 	gui.State.Branches = builder.Build()
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {

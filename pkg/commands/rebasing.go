@@ -62,7 +62,7 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 	ex := c.OSCommand.GetLazygitPath()
 
 	debug := "FALSE"
-	if c.OSCommand.Config.GetDebug() {
+	if c.Debug {
 		debug = "TRUE"
 	}
 

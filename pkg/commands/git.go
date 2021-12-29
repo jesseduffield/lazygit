@@ -14,11 +14,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sirupsen/logrus"
 )
 
 // this takes something like:
@@ -29,10 +28,9 @@ const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	Log                  *logrus.Entry
+	*common.Common
 	OSCommand            *oscommands.OSCommand
 	Repo                 *gogit.Repository
-	Tr                   *i18n.TranslationSet
 	Config               config.AppConfigurer
 	DotGitDir            string
 	onSuccessfulContinue func() error
@@ -50,9 +48,8 @@ type GitCommand struct {
 
 // NewGitCommand it runs git commands
 func NewGitCommand(
-	log *logrus.Entry,
+	cmn *common.Common,
 	osCommand *oscommands.OSCommand,
-	tr *i18n.TranslationSet,
 	config config.AppConfigurer,
 	gitConfig git_config.IGitConfig,
 ) (*GitCommand, error) {
@@ -65,7 +62,7 @@ func NewGitCommand(
 	}
 
 	var err error
-	if repo, err = setupRepository(gogit.PlainOpen, tr.GitconfigParseErr); err != nil {
+	if repo, err = setupRepository(gogit.PlainOpen, cmn.Tr.GitconfigParseErr); err != nil {
 		return nil, err
 	}
 
@@ -75,9 +72,8 @@ func NewGitCommand(
 	}
 
 	gitCommand := &GitCommand{
-		Log:           log,
+		Common:        cmn,
 		OSCommand:     osCommand,
-		Tr:            tr,
 		Repo:          repo,
 		Config:        config,
 		DotGitDir:     dotGitDir,
@@ -86,7 +82,7 @@ func NewGitCommand(
 		GetCmdWriter:  func() io.Writer { return ioutil.Discard },
 	}
 
-	gitCommand.PatchManager = patch.NewPatchManager(log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
+	gitCommand.PatchManager = patch.NewPatchManager(gitCommand.Log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
 
 	return gitCommand, nil
 }
