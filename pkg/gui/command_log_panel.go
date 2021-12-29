@@ -41,11 +41,11 @@ func (gui *Gui) GetOnRunCommand() func(entry oscommands.CmdLogEntry) {
 func (gui *Gui) printCommandLogHeader() {
 	introStr := fmt.Sprintf(
 		gui.Tr.CommandLogHeader,
-		gui.getKeyDisplay(gui.Config.GetUserConfig().Keybinding.Universal.ExtrasMenu),
+		gui.getKeyDisplay(gui.UserConfig.Keybinding.Universal.ExtrasMenu),
 	)
 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(introStr))
 
-	if gui.Config.GetUserConfig().Gui.ShowRandomTip {
+	if gui.UserConfig.Gui.ShowRandomTip {
 		fmt.Fprintf(
 			gui.Views.Extras,
 			"%s: %s",
@@ -56,7 +56,7 @@ func (gui *Gui) printCommandLogHeader() {
 }
 
 func (gui *Gui) getRandomTip() string {
-	config := gui.Config.GetUserConfig().Keybinding
+	config := gui.UserConfig.Keybinding
 
 	formattedKey := func(key string) string {
 		return gui.getKeyDisplay(key)

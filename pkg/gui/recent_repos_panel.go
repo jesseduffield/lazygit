@@ -39,7 +39,7 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 
 func (gui *Gui) handleShowAllBranchLogs() error {
 	cmdObj := gui.OSCommand.NewCmdObj(
-		gui.Config.GetUserConfig().Git.AllBranchesLogCmd,
+		gui.UserConfig.Git.AllBranchesLogCmd,
 	)
 	task := NewRunPtyTask(cmdObj.GetCmd())
 
@@ -113,7 +113,7 @@ func (gui *Gui) updateRecentRepoList() error {
 		return err
 	}
 	known, recentRepos := newRecentReposList(recentRepos, currentRepo)
-	gui.Config.SetIsNewRepo(known)
+	gui.IsNewRepo = known
 	gui.Config.GetAppState().RecentRepos = recentRepos
 	return gui.Config.SaveAppState()
 }

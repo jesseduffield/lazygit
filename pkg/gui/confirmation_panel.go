@@ -173,7 +173,7 @@ func (gui *Gui) prepareConfirmationPanel(
 		suggestionsView.FgColor = theme.GocuiDefaultTextColor
 		gui.setSuggestions(findSuggestionsFunc(""))
 		suggestionsView.Visible = true
-		suggestionsView.Title = fmt.Sprintf(gui.Tr.SuggestionsTitle, gui.Config.GetUserConfig().Keybinding.Universal.TogglePanel)
+		suggestionsView.Title = fmt.Sprintf(gui.Tr.SuggestionsTitle, gui.UserConfig.Keybinding.Universal.TogglePanel)
 	}
 
 	gui.g.Update(func(g *gocui.Gui) error {
@@ -240,7 +240,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		handler  func() error
 	}
 
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 	onSuggestionConfirm := gui.wrappedPromptConfirmationFunction(
 		opts.handlersManageFocus,
 		opts.handleConfirmPrompt,
@@ -305,7 +305,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 }
 
 func (gui *Gui) clearConfirmationViewKeyBindings() {
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone)

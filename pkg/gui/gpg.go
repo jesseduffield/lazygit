@@ -47,7 +47,7 @@ func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, on
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 			return gui.surfaceError(
 				fmt.Errorf(
-					gui.Tr.GitCommandFailed, gui.Config.GetUserConfig().Keybinding.Universal.ExtrasMenu,
+					gui.Tr.GitCommandFailed, gui.UserConfig.Keybinding.Universal.ExtrasMenu,
 				),
 			)
 		}

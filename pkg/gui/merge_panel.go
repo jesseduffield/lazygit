@@ -227,7 +227,7 @@ func (gui *Gui) centerYPos(view *gocui.View, y int) {
 }
 
 func (gui *Gui) getMergingOptions() map[string]string {
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 
 	return map[string]string{
 		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)):   gui.Tr.LcSelectHunk,

@@ -120,6 +120,8 @@ type Gui struct {
 	suggestionsAsyncHandler *tasks.AsyncHandler
 
 	PopupHandler PopupHandler
+
+	IsNewRepo bool
 }
 
 type listPanelState struct {
@@ -371,7 +373,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		}
 	}
 
-	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
+	showTree := gui.UserConfig.Gui.ShowFileTree
 
 	contexts := gui.contextTree()
 
@@ -455,7 +457,7 @@ func NewGui(cmn *common.Common, gitCommand *commands.GitCommand, oSCommand *osco
 	gui.OnRunCommand = onRunCommand
 	gui.PopupHandler = &RealPopupHandler{gui: gui}
 
-	authors.SetCustomAuthors(gui.Config.GetUserConfig().Gui.AuthorColors)
+	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
 
 	return gui, nil
 }
@@ -505,7 +507,7 @@ func (gui *Gui) Run() error {
 	if err := gui.Config.ReloadUserConfig(); err != nil {
 		return nil
 	}
-	userConfig := gui.Config.GetUserConfig()
+	userConfig := gui.UserConfig
 	g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
 	g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
 	g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
@@ -521,7 +523,7 @@ func (gui *Gui) Run() error {
 	}
 
 	gui.waitForIntro.Add(1)
-	if gui.Config.GetUserConfig().Git.AutoFetch {
+	if gui.UserConfig.Git.AutoFetch {
 		go utils.Safe(gui.startBackgroundFetch)
 	}
 
@@ -707,8 +709,8 @@ func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function fun
 
 func (gui *Gui) startBackgroundFetch() {
 	gui.waitForIntro.Wait()
-	isNew := gui.Config.GetIsNewRepo()
-	userConfig := gui.Config.GetUserConfig()
+	isNew := gui.IsNewRepo
+	userConfig := gui.UserConfig
 	if !isNew {
 		time.After(time.Duration(userConfig.Refresher.FetchInterval) * time.Second)
 	}
@@ -729,7 +731,7 @@ func (gui *Gui) startBackgroundFetch() {
 
 // setColorScheme sets the color scheme for the app based on the user config
 func (gui *Gui) setColorScheme() error {
-	userConfig := gui.Config.GetUserConfig()
+	userConfig := gui.UserConfig
 	theme.UpdateTheme(userConfig.Gui.Theme)
 
 	gui.g.FgColor = theme.InactiveBorderColor

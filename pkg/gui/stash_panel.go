@@ -45,7 +45,7 @@ func (gui *Gui) refreshStashEntries() error {
 // specific functions
 
 func (gui *Gui) handleStashApply() error {
-	skipStashWarning := gui.Config.GetUserConfig().Gui.SkipStashWarning
+	skipStashWarning := gui.UserConfig.Gui.SkipStashWarning
 
 	apply := func() error {
 		return gui.stashDo("apply")
@@ -65,7 +65,7 @@ func (gui *Gui) handleStashApply() error {
 }
 
 func (gui *Gui) handleStashPop() error {
-	skipStashWarning := gui.Config.GetUserConfig().Gui.SkipStashWarning
+	skipStashWarning := gui.UserConfig.Gui.SkipStashWarning
 
 	pop := func() error {
 		return gui.stashDo("pop")

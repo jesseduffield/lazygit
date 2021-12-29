@@ -16,7 +16,7 @@ func (gui *Gui) IncreaseContextInDiffView() error {
 			return gui.surfaceError(err)
 		}
 
-		gui.Config.GetUserConfig().Git.DiffContextSize = gui.Config.GetUserConfig().Git.DiffContextSize + 1
+		gui.UserConfig.Git.DiffContextSize = gui.UserConfig.Git.DiffContextSize + 1
 		return gui.currentStaticContext().HandleRenderToMain()
 	}
 
@@ -24,14 +24,14 @@ func (gui *Gui) IncreaseContextInDiffView() error {
 }
 
 func (gui *Gui) DecreaseContextInDiffView() error {
-	old_size := gui.Config.GetUserConfig().Git.DiffContextSize
+	old_size := gui.UserConfig.Git.DiffContextSize
 
 	if isShowingDiff(gui) && old_size > 1 {
 		if err := gui.CheckCanChangeContext(); err != nil {
 			return gui.surfaceError(err)
 		}
 
-		gui.Config.GetUserConfig().Git.DiffContextSize = old_size - 1
+		gui.UserConfig.Git.DiffContextSize = old_size - 1
 		return gui.currentStaticContext().HandleRenderToMain()
 	}
 

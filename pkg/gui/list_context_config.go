@@ -145,7 +145,7 @@ func (gui *Gui) tagsListContext() IListContext {
 }
 
 func (gui *Gui) branchCommitsListContext() IListContext {
-	parseEmoji := gui.Config.GetUserConfig().Git.ParseEmoji
+	parseEmoji := gui.UserConfig.Git.ParseEmoji
 	return &ListContext{
 		BasicContext: &BasicContext{
 			ViewName:   "commits",
@@ -188,7 +188,7 @@ func (gui *Gui) branchCommitsListContext() IListContext {
 }
 
 func (gui *Gui) subCommitsListContext() IListContext {
-	parseEmoji := gui.Config.GetUserConfig().Git.ParseEmoji
+	parseEmoji := gui.UserConfig.Git.ParseEmoji
 	return &ListContext{
 		BasicContext: &BasicContext{
 			ViewName:   "branches",
@@ -229,7 +229,7 @@ func (gui *Gui) subCommitsListContext() IListContext {
 }
 
 func (gui *Gui) shouldShowGraph() bool {
-	value := gui.Config.GetUserConfig().Git.Log.ShowGraph
+	value := gui.UserConfig.Git.Log.ShowGraph
 	switch value {
 	case "always":
 		return true
@@ -244,7 +244,7 @@ func (gui *Gui) shouldShowGraph() bool {
 }
 
 func (gui *Gui) reflogCommitsListContext() IListContext {
-	parseEmoji := gui.Config.GetUserConfig().Git.ParseEmoji
+	parseEmoji := gui.UserConfig.Git.ParseEmoji
 	return &ListContext{
 		BasicContext: &BasicContext{
 			ViewName:   "commits",
@@ -387,7 +387,7 @@ func (gui *Gui) getListContexts() []IListContext {
 func (gui *Gui) getListContextKeyBindings() []*Binding {
 	bindings := make([]*Binding, 0)
 
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 
 	for _, listContext := range gui.getListContexts() {
 		listContext := listContext

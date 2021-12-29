@@ -296,7 +296,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 
 func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 	bindings := []*Binding{}
-	customCommands := gui.Config.GetUserConfig().CustomCommands
+	customCommands := gui.UserConfig.CustomCommands
 
 	for _, customCommand := range customCommands {
 		var viewName string
