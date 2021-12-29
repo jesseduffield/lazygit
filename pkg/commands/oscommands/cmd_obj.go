@@ -17,7 +17,7 @@ type ICmdObj interface {
 	RunLineOutputCmd(onLine func(line string) (bool, error)) error
 
 	// logs command
-	Log()
+	Log() ICmdObj
 }
 
 type CmdObj struct {
@@ -46,8 +46,10 @@ func (self *CmdObj) GetEnvVars() []string {
 	return self.cmd.Env
 }
 
-func (self *CmdObj) Log() {
+func (self *CmdObj) Log() ICmdObj {
 	self.logCommand(self)
+
+	return self
 }
 
 func (self *CmdObj) Run() error {

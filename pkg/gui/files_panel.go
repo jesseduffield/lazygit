@@ -465,7 +465,7 @@ func (gui *Gui) handleCommitEditorPress() error {
 	cmdStr := "git " + strings.Join(args, " ")
 
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.GitCommand.WithSpan(gui.Tr.Spans.Commit).NewCmdObjWithLog(cmdStr),
+		gui.GitCommand.WithSpan(gui.Tr.Spans.Commit).NewCmdObj(cmdStr).Log(),
 	)
 }
 
@@ -923,7 +923,7 @@ func (gui *Gui) handleCustomCommand() error {
 
 			gui.OnRunCommand(oscommands.NewCmdLogEntry(command, gui.Tr.Spans.CustomCommand, true))
 			return gui.runSubprocessWithSuspenseAndRefresh(
-				gui.OSCommand.NewShellCmdObj2(command),
+				gui.OSCommand.NewShellCmdObj(command),
 			)
 		},
 	})

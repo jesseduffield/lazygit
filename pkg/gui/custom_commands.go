@@ -244,7 +244,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 			}
 
 			if customCommand.Subprocess {
-				return gui.runSubprocessWithSuspenseAndRefresh(gui.OSCommand.NewShellCmdObj2(cmdStr))
+				return gui.runSubprocessWithSuspenseAndRefresh(gui.OSCommand.Cmd.NewShell(cmdStr))
 			}
 
 			loadingText := customCommand.LoadingText

@@ -111,14 +111,15 @@ func (c *GitCommand) SubmoduleDelete(submodule *models.SubmoduleConfig) error {
 }
 
 func (c *GitCommand) SubmoduleAdd(name string, path string, url string) error {
-	return c.OSCommand.Run(
-		c.OSCommand.NewCmdObj(
+	return c.Cmd.
+		New(
 			fmt.Sprintf(
 				"git submodule add --force --name %s -- %s %s ",
 				c.OSCommand.Quote(name),
 				c.OSCommand.Quote(url),
 				c.OSCommand.Quote(path),
-			)))
+			)).
+		Run()
 }
 
 func (c *GitCommand) SubmoduleUpdateUrl(name string, path string, newUrl string) error {
