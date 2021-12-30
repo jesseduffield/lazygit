@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -40,7 +41,7 @@ func (gui *Gui) remotesRenderToMain() error {
 func (gui *Gui) refreshRemotes() error {
 	prevSelectedRemote := gui.getSelectedRemote()
 
-	remotes, err := gui.GitCommand.GetRemotes()
+	remotes, err := loaders.NewRemoteLoader(gui.Common, gui.GitCommand.Cmd, gui.GitCommand.Repo.Remotes).GetRemotes()
 	if err != nil {
 		return gui.surfaceError(err)
 	}
