@@ -2,12 +2,14 @@ package loaders
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -35,23 +37,20 @@ type CommitLoader struct {
 	dotGitDir            string
 }
 
+// making our dependencies explicit for the sake of easier testing
 func NewCommitLoader(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-	getCurrentBranchName func() (string, string, error),
-	getRebaseMode func() (enums.RebaseMode, error),
-	readFile func(filename string) ([]byte, error),
-	walkFiles func(root string, fn filepath.WalkFunc) error,
-	dotGitDir string,
+	cmn *common.Common,
+	gitCommand *commands.GitCommand,
+	osCommand *oscommands.OSCommand,
 ) *CommitLoader {
 	return &CommitLoader{
-		Common:               common,
-		cmd:                  cmd,
-		getCurrentBranchName: getCurrentBranchName,
-		getRebaseMode:        getRebaseMode,
-		readFile:             readFile,
-		walkFiles:            walkFiles,
-		dotGitDir:            dotGitDir,
+		Common:               cmn,
+		cmd:                  gitCommand.Cmd,
+		getCurrentBranchName: gitCommand.CurrentBranchName,
+		getRebaseMode:        gitCommand.RebaseMode,
+		readFile:             ioutil.ReadFile,
+		walkFiles:            filepath.Walk,
+		dotGitDir:            gitCommand.DotGitDir,
 	}
 }
 

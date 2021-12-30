@@ -1,9 +1,10 @@
-package commands
+package loaders
 
 import (
 	"regexp"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -20,32 +21,29 @@ import (
 // if we find out we need to use one of these functions in the git.go file, we
 // can just pull them out of here and put them there and then call them from in here
 
-const SEPARATION_CHAR = "|"
-
-// BranchListBuilder returns a list of Branch objects for the current repo
-type BranchListBuilder struct {
+// BranchLoader returns a list of Branch objects for the current repo
+type BranchLoader struct {
 	*common.Common
 	getRawBranches       func() (string, error)
 	getCurrentBranchName func() (string, string, error)
 	reflogCommits        []*models.Commit
 }
 
-func NewBranchListBuilder(
+func NewBranchLoader(
 	cmn *common.Common,
-	getRawBranches func() (string, error),
-	getCurrentBranchName func() (string, string, error),
+	gitCommand *commands.GitCommand,
 	reflogCommits []*models.Commit,
-) *BranchListBuilder {
-	return &BranchListBuilder{
+) *BranchLoader {
+	return &BranchLoader{
 		Common:               cmn,
-		getRawBranches:       getRawBranches,
-		getCurrentBranchName: getCurrentBranchName,
+		getRawBranches:       gitCommand.GetRawBranches,
+		getCurrentBranchName: gitCommand.CurrentBranchName,
 		reflogCommits:        reflogCommits,
 	}
 }
 
-// Build the list of branches for the current repo
-func (b *BranchListBuilder) Build() []*models.Branch {
+// Load the list of branches for the current repo
+func (b *BranchLoader) Load() []*models.Branch {
 	branches := b.obtainBranches()
 
 	reflogBranches := b.obtainReflogBranches()
@@ -89,7 +87,7 @@ outer:
 	return branches
 }
 
-func (b *BranchListBuilder) obtainBranches() []*models.Branch {
+func (b *BranchLoader) obtainBranches() []*models.Branch {
 	output, err := b.getRawBranches()
 	if err != nil {
 		panic(err)
@@ -152,7 +150,7 @@ func (b *BranchListBuilder) obtainBranches() []*models.Branch {
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
 // int form against the branch to recalculate the time ago
-func (b *BranchListBuilder) obtainReflogBranches() []*models.Branch {
+func (b *BranchLoader) obtainReflogBranches() []*models.Branch {
 	foundBranchesMap := map[string]bool{}
 	re := regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
 	reflogBranches := make([]*models.Branch, 0, len(b.reflogCommits))
