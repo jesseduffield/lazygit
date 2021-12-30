@@ -223,3 +223,11 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 func VerifyInGitRepo(osCommand *oscommands.OSCommand) error {
 	return osCommand.Cmd.New("git rev-parse --git-dir").Run()
 }
+
+func (c *GitCommand) GetDotGitDir() string {
+	return c.DotGitDir
+}
+
+func (c *GitCommand) GetCmd() oscommands.ICmdObjBuilder {
+	return c.Cmd
+}

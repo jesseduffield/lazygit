@@ -127,9 +127,12 @@ type MergeOpts struct {
 
 // Merge merge
 func (c *GitCommand) Merge(branchName string, opts MergeOpts) error {
-	mergeArgs := c.UserConfig.Git.Merging.Args
+	mergeArg := ""
+	if c.UserConfig.Git.Merging.Args != "" {
+		mergeArg = " " + c.UserConfig.Git.Merging.Args
+	}
 
-	command := fmt.Sprintf("git merge --no-edit %s %s", mergeArgs, c.OSCommand.Quote(branchName))
+	command := fmt.Sprintf("git merge --no-edit%s %s", mergeArg, c.OSCommand.Quote(branchName))
 	if opts.FastForwardOnly {
 		command = fmt.Sprintf("%s --ff-only", command)
 	}

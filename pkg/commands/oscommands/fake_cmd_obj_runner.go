@@ -36,9 +36,11 @@ func (self *FakeCmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	}
 
 	expectedCmd := self.expectedCmds[self.expectedCmdIndex]
+	output, err := expectedCmd(cmdObj)
+
 	self.expectedCmdIndex++
 
-	return expectedCmd(cmdObj)
+	return output, err
 }
 
 func (self *FakeCmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
@@ -72,13 +74,29 @@ func (self *FakeCmdObjRunner) ExpectFunc(fn func(cmdObj ICmdObj) (string, error)
 func (self *FakeCmdObjRunner) Expect(expectedCmdStr string, output string, err error) *FakeCmdObjRunner {
 	self.ExpectFunc(func(cmdObj ICmdObj) (string, error) {
 		cmdStr := cmdObj.ToString()
-		if cmdStr != expectedCmdStr {
-			assert.Equal(self.t, expectedCmdStr, cmdStr, fmt.Sprintf("expected command %d to be %s, but was %s", self.expectedCmdIndex+1, expectedCmdStr, cmdStr))
-			return "", errors.New("expected cmd")
-		}
+		assert.Equal(self.t, expectedCmdStr, cmdStr, fmt.Sprintf("expected command %d to be %s, but was %s", self.expectedCmdIndex+1, expectedCmdStr, cmdStr))
 
 		return output, err
 	})
 
 	return self
+}
+
+func (self *FakeCmdObjRunner) ExpectArgs(expectedArgs []string, output string, err error) *FakeCmdObjRunner {
+	self.ExpectFunc(func(cmdObj ICmdObj) (string, error) {
+		args := cmdObj.GetCmd().Args
+		assert.EqualValues(self.t, expectedArgs, args, fmt.Sprintf("command %d did not match expectation", self.expectedCmdIndex+1))
+
+		return output, err
+	})
+
+	return self
+}
+
+func (self *FakeCmdObjRunner) CheckForMissingCalls() {
+	if self.expectedCmdIndex < len(self.expectedCmds) {
+		self.t.Errorf("expected command %d to be called, but was not", self.expectedCmdIndex+1)
+	}
+
+	return
 }
