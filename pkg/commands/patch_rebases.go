@@ -6,6 +6,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 )
 
 // DeletePatchesFromCommit applies a patch in reverse for a commit
@@ -149,7 +150,7 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 	}
 
 	if err := p.ApplyPatches(true); err != nil {
-		if c.WorkingTreeState() == REBASE_MODE_REBASING {
+		if c.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 				return err
 			}
@@ -169,7 +170,7 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 	c.onSuccessfulContinue = func() error {
 		// add patches to index
 		if err := p.ApplyPatches(false); err != nil {
-			if c.WorkingTreeState() == REBASE_MODE_REBASING {
+			if c.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 				if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 					return err
 				}

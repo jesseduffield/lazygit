@@ -1,8 +1,7 @@
-package commands
+package loaders
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
@@ -23,31 +23,35 @@ import (
 
 const SEPARATION_CHAR = "|"
 
-// CommitListBuilder returns a list of Commit objects for the current repo
-type CommitListBuilder struct {
+// CommitLoader returns a list of Commit objects for the current repo
+type CommitLoader struct {
 	*common.Common
 	cmd oscommands.ICmdObjBuilder
 
 	getCurrentBranchName func() (string, string, error)
-	getRebaseMode        func() (RebaseMode, error)
+	getRebaseMode        func() (enums.RebaseMode, error)
 	readFile             func(filename string) ([]byte, error)
 	walkFiles            func(root string, fn filepath.WalkFunc) error
 	dotGitDir            string
 }
 
-func NewCommitListBuilder(
-	cmn *common.Common,
-	gitCommand *GitCommand,
-	osCommand *oscommands.OSCommand,
-) *CommitListBuilder {
-	return &CommitListBuilder{
-		Common:               cmn,
-		cmd:                  gitCommand.Cmd,
-		getCurrentBranchName: gitCommand.CurrentBranchName,
-		getRebaseMode:        gitCommand.RebaseMode,
-		dotGitDir:            gitCommand.DotGitDir,
-		readFile:             ioutil.ReadFile,
-		walkFiles:            filepath.Walk,
+func NewCommitLoader(
+	common *common.Common,
+	cmd oscommands.ICmdObjBuilder,
+	getCurrentBranchName func() (string, string, error),
+	getRebaseMode func() (enums.RebaseMode, error),
+	readFile func(filename string) ([]byte, error),
+	walkFiles func(root string, fn filepath.WalkFunc) error,
+	dotGitDir string,
+) *CommitLoader {
+	return &CommitLoader{
+		Common:               common,
+		cmd:                  cmd,
+		getCurrentBranchName: getCurrentBranchName,
+		getRebaseMode:        getRebaseMode,
+		readFile:             readFile,
+		walkFiles:            walkFiles,
+		dotGitDir:            dotGitDir,
 	}
 }
 
@@ -61,7 +65,7 @@ type GetCommitsOptions struct {
 }
 
 // GetCommits obtains the commits of the current branch
-func (self *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Commit, error) {
+func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, error) {
 	commits := []*models.Commit{}
 	var rebasingCommits []*models.Commit
 	rebaseMode, err := self.getRebaseMode()
@@ -104,7 +108,7 @@ func (self *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Com
 		return commits, nil
 	}
 
-	if rebaseMode != REBASE_MODE_NONE {
+	if rebaseMode != enums.REBASE_MODE_NONE {
 		currentCommit := commits[len(rebasingCommits)]
 		youAreHere := style.FgYellow.Sprintf("<-- %s ---", self.Tr.YouAreHere)
 		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
@@ -118,7 +122,7 @@ func (self *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Com
 	return commits, nil
 }
 
-func (self *CommitListBuilder) MergeRebasingCommits(commits []*models.Commit) ([]*models.Commit, error) {
+func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*models.Commit, error) {
 	// chances are we have as many commits as last time so we'll set the capacity to be the old length
 	result := make([]*models.Commit, 0, len(commits))
 	for i, commit := range commits {
@@ -133,7 +137,7 @@ func (self *CommitListBuilder) MergeRebasingCommits(commits []*models.Commit) ([
 		return nil, err
 	}
 
-	if rebaseMode == REBASE_MODE_NONE {
+	if rebaseMode == enums.REBASE_MODE_NONE {
 		// not in rebase mode so return original commits
 		return result, nil
 	}
@@ -153,7 +157,7 @@ func (self *CommitListBuilder) MergeRebasingCommits(commits []*models.Commit) ([
 // then puts them into a commit object
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
-func (self *CommitListBuilder) extractCommitFromLine(line string) *models.Commit {
+func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
 	split := strings.Split(line, SEPARATION_CHAR)
 
 	sha := split[0]
@@ -186,7 +190,7 @@ func (self *CommitListBuilder) extractCommitFromLine(line string) *models.Commit
 	}
 }
 
-func (self *CommitListBuilder) getHydratedRebasingCommits(rebaseMode RebaseMode) ([]*models.Commit, error) {
+func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode) ([]*models.Commit, error) {
 	commits, err := self.getRebasingCommits(rebaseMode)
 	if err != nil {
 		return nil, err
@@ -232,18 +236,18 @@ func (self *CommitListBuilder) getHydratedRebasingCommits(rebaseMode RebaseMode)
 }
 
 // getRebasingCommits obtains the commits that we're in the process of rebasing
-func (self *CommitListBuilder) getRebasingCommits(rebaseMode RebaseMode) ([]*models.Commit, error) {
+func (self *CommitLoader) getRebasingCommits(rebaseMode enums.RebaseMode) ([]*models.Commit, error) {
 	switch rebaseMode {
-	case REBASE_MODE_MERGING:
+	case enums.REBASE_MODE_MERGING:
 		return self.getNormalRebasingCommits()
-	case REBASE_MODE_INTERACTIVE:
+	case enums.REBASE_MODE_INTERACTIVE:
 		return self.getInteractiveRebasingCommits()
 	default:
 		return nil, nil
 	}
 }
 
-func (self *CommitListBuilder) getNormalRebasingCommits() ([]*models.Commit, error) {
+func (self *CommitLoader) getNormalRebasingCommits() ([]*models.Commit, error) {
 	rewrittenCount := 0
 	bytesContent, err := self.readFile(filepath.Join(self.dotGitDir, "rebase-apply/rewritten"))
 	if err == nil {
@@ -296,7 +300,7 @@ func (self *CommitListBuilder) getNormalRebasingCommits() ([]*models.Commit, err
 // getInteractiveRebasingCommits takes our git-rebase-todo and our git-rebase-todo.backup files
 // and extracts out the sha and names of commits that we still have to go
 // in the rebase:
-func (self *CommitListBuilder) getInteractiveRebasingCommits() ([]*models.Commit, error) {
+func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, error) {
 	bytesContent, err := self.readFile(filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo"))
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
@@ -330,7 +334,7 @@ func (self *CommitListBuilder) getInteractiveRebasingCommits() ([]*models.Commit
 // From: Lazygit Tester <test@example.com>
 // Date: Wed, 5 Dec 2018 21:03:23 +1100
 // Subject: second commit on master
-func (self *CommitListBuilder) commitFromPatch(content string) (*models.Commit, error) {
+func (self *CommitLoader) commitFromPatch(content string) (*models.Commit, error) {
 	lines := strings.Split(content, "\n")
 	sha := strings.Split(lines[0], " ")[1]
 	name := strings.TrimPrefix(lines[3], "Subject: ")
@@ -341,7 +345,7 @@ func (self *CommitListBuilder) commitFromPatch(content string) (*models.Commit, 
 	}, nil
 }
 
-func (self *CommitListBuilder) setCommitMergedStatuses(refName string, commits []*models.Commit) ([]*models.Commit, error) {
+func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*models.Commit) ([]*models.Commit, error) {
 	ancestor, err := self.getMergeBase(refName)
 	if err != nil {
 		return nil, err
@@ -364,7 +368,7 @@ func (self *CommitListBuilder) setCommitMergedStatuses(refName string, commits [
 	return commits, nil
 }
 
-func (self *CommitListBuilder) getMergeBase(refName string) (string, error) {
+func (self *CommitLoader) getMergeBase(refName string) (string, error) {
 	currentBranch, _, err := self.getCurrentBranchName()
 	if err != nil {
 		return "", err
@@ -392,7 +396,7 @@ func ignoringWarnings(commandOutput string) string {
 
 // getFirstPushedCommit returns the first commit SHA which has been pushed to the ref's upstream.
 // all commits above this are deemed unpushed and marked as such.
-func (self *CommitListBuilder) getFirstPushedCommit(refName string) (string, error) {
+func (self *CommitLoader) getFirstPushedCommit(refName string) (string, error) {
 	output, err := self.cmd.
 		New(
 			fmt.Sprintf("git merge-base %s %s@{u}", self.cmd.Quote(refName), self.cmd.Quote(refName)),
@@ -406,7 +410,7 @@ func (self *CommitListBuilder) getFirstPushedCommit(refName string) (string, err
 }
 
 // getLog gets the git log.
-func (self *CommitListBuilder) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
+func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 	limitFlag := ""
 	if opts.Limit {
 		limitFlag = " -300"

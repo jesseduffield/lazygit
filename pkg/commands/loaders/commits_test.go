@@ -1,4 +1,4 @@
-package commands
+package loaders
 
 import (
 	"path/filepath"
@@ -6,18 +6,19 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-func NewDummyCommitListBuilder() *CommitListBuilder {
+func NewDummyCommitLoader() *CommitLoader {
 	cmn := utils.NewDummyCommon()
 
-	return &CommitListBuilder{
+	return &CommitLoader{
 		Common:               cmn,
 		cmd:                  nil,
 		getCurrentBranchName: func() (string, string, error) { return "master", "master", nil },
-		getRebaseMode:        func() (RebaseMode, error) { return REBASE_MODE_NONE, nil },
+		getRebaseMode:        func() (enums.RebaseMode, error) { return enums.REBASE_MODE_NONE, nil },
 		dotGitDir:            ".git",
 		readFile: func(filename string) ([]byte, error) {
 			return []byte(""), nil
@@ -43,7 +44,7 @@ func TestGetCommits(t *testing.T) {
 		runner            oscommands.ICmdObjRunner
 		expectedCommits   []*models.Commit
 		expectedError     error
-		rebaseMode        RebaseMode
+		rebaseMode        enums.RebaseMode
 		currentBranchName string
 		opts              GetCommitsOptions
 	}
@@ -51,7 +52,7 @@ func TestGetCommits(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName:          "should return no commits if there are none",
-			rebaseMode:        REBASE_MODE_NONE,
+			rebaseMode:        enums.REBASE_MODE_NONE,
 			currentBranchName: "master",
 			opts:              GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
@@ -63,7 +64,7 @@ func TestGetCommits(t *testing.T) {
 		},
 		{
 			testName:          "should return commits if they are present",
-			rebaseMode:        REBASE_MODE_NONE,
+			rebaseMode:        enums.REBASE_MODE_NONE,
 			currentBranchName: "master",
 			opts:              GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
@@ -186,13 +187,13 @@ func TestGetCommits(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
-			builder := &CommitListBuilder{
+			builder := &CommitLoader{
 				Common: utils.NewDummyCommon(),
 				cmd:    oscommands.NewCmdObjBuilderDummy(scenario.runner),
 				getCurrentBranchName: func() (string, string, error) {
 					return scenario.currentBranchName, scenario.currentBranchName, nil
 				},
-				getRebaseMode: func() (RebaseMode, error) { return scenario.rebaseMode, nil },
+				getRebaseMode: func() (enums.RebaseMode, error) { return scenario.rebaseMode, nil },
 				dotGitDir:     ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil
