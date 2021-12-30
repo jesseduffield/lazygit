@@ -1,164 +1,93 @@
 package commands
 
 import (
-	"os/exec"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/stretchr/testify/assert"
 )
 
-// TestGitCommandPush is a function.
 func TestGitCommandPush(t *testing.T) {
 	type scenario struct {
 		testName string
-		command  func(string, ...string) *exec.Cmd
 		opts     PushOpts
-		test     func(error)
-	}
-
-	prompt := func(passOrUname string) string {
-		return "\n"
+		test     func(oscommands.ICmdObj, error)
 	}
 
 	scenarios := []scenario{
 		{
-			"Push with force disabled",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push"}, args)
-
-				return secureexec.Command("echo")
-			},
-			PushOpts{Force: false, PromptUserForCredential: prompt},
-			func(err error) {
+			testName: "Push with force disabled",
+			opts:     PushOpts{Force: false},
+			test: func(cmdObj oscommands.ICmdObj, err error) {
+				assert.Equal(t, cmdObj.ToString(), "git push")
 				assert.NoError(t, err)
 			},
 		},
 		{
-			"Push with force enabled",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push", "--force-with-lease"}, args)
-
-				return secureexec.Command("echo")
-			},
-			PushOpts{Force: true, PromptUserForCredential: prompt},
-			func(err error) {
+			testName: "Push with force enabled",
+			opts:     PushOpts{Force: true},
+			test: func(cmdObj oscommands.ICmdObj, err error) {
+				assert.Equal(t, cmdObj.ToString(), "git push --force-with-lease")
 				assert.NoError(t, err)
 			},
 		},
 		{
-			"Push with an error occurring",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push"}, args)
-				return secureexec.Command("test")
+			testName: "Push with force disabled, upstream supplied",
+			opts: PushOpts{
+				Force:          false,
+				UpstreamRemote: "origin",
+				UpstreamBranch: "master",
 			},
-			PushOpts{Force: false, PromptUserForCredential: prompt},
-			func(err error) {
-				assert.Error(t, err)
-			},
-		},
-		{
-			"Push with force disabled, upstream supplied",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push", "origin", "master"}, args)
-
-				return secureexec.Command("echo")
-			},
-			PushOpts{
-				Force:                   false,
-				UpstreamRemote:          "origin",
-				UpstreamBranch:          "master",
-				PromptUserForCredential: prompt,
-			},
-			func(err error) {
+			test: func(cmdObj oscommands.ICmdObj, err error) {
+				assert.Equal(t, cmdObj.ToString(), `git push "origin" "master"`)
 				assert.NoError(t, err)
 			},
 		},
 		{
-			"Push with force disabled, setting upstream",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push", "--set-upstream", "origin", "master"}, args)
-
-				return secureexec.Command("echo")
+			testName: "Push with force disabled, setting upstream",
+			opts: PushOpts{
+				Force:          false,
+				UpstreamRemote: "origin",
+				UpstreamBranch: "master",
+				SetUpstream:    true,
 			},
-			PushOpts{
-				Force:                   false,
-				UpstreamRemote:          "origin",
-				UpstreamBranch:          "master",
-				PromptUserForCredential: prompt,
-				SetUpstream:             true,
-			},
-			func(err error) {
+			test: func(cmdObj oscommands.ICmdObj, err error) {
+				assert.Equal(t, cmdObj.ToString(), `git push --set-upstream "origin" "master"`)
 				assert.NoError(t, err)
 			},
 		},
 		{
-			"Push with force enabled, setting upstream",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push", "--force-with-lease", "--set-upstream", "origin", "master"}, args)
-
-				return secureexec.Command("echo")
+			testName: "Push with force enabled, setting upstream",
+			opts: PushOpts{
+				Force:          true,
+				UpstreamRemote: "origin",
+				UpstreamBranch: "master",
+				SetUpstream:    true,
 			},
-			PushOpts{
-				Force:                   true,
-				UpstreamRemote:          "origin",
-				UpstreamBranch:          "master",
-				PromptUserForCredential: prompt,
-				SetUpstream:             true,
-			},
-			func(err error) {
+			test: func(cmdObj oscommands.ICmdObj, err error) {
+				assert.Equal(t, cmdObj.ToString(), `git push --force-with-lease --set-upstream "origin" "master"`)
 				assert.NoError(t, err)
 			},
 		},
 		{
-			"Push with remote branch but no origin",
-			func(cmd string, args ...string) *exec.Cmd {
-				return nil
+			testName: "Push with remote branch but no origin",
+			opts: PushOpts{
+				Force:          true,
+				UpstreamRemote: "",
+				UpstreamBranch: "master",
+				SetUpstream:    true,
 			},
-			PushOpts{
-				Force:                   true,
-				UpstreamRemote:          "",
-				UpstreamBranch:          "master",
-				PromptUserForCredential: prompt,
-				SetUpstream:             true,
-			},
-			func(err error) {
+			test: func(cmdObj oscommands.ICmdObj, err error) {
 				assert.Error(t, err)
 				assert.EqualValues(t, "Must specify a remote if specifying a branch", err.Error())
-			},
-		},
-		{
-			"Push with force disabled, upstream supplied",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"push", "origin", "master"}, args)
-
-				return secureexec.Command("echo")
-			},
-			PushOpts{
-				Force:                   false,
-				UpstreamRemote:          "origin",
-				UpstreamBranch:          "master",
-				PromptUserForCredential: prompt,
-			},
-			func(err error) {
-				assert.NoError(t, err)
 			},
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
-			err := gitCmd.Push(s.opts)
-			s.test(err)
+			gitCmd := NewDummyGitCommandWithRunner(oscommands.NewFakeRunner(t))
+			s.test(gitCmd.PushCmdObj(s.opts))
 		})
 	}
 }
