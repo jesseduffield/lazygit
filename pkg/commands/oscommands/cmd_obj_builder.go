@@ -2,9 +2,9 @@ package oscommands
 
 import (
 	"os"
-	"os/exec"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/mgutz/str"
 )
 
@@ -22,10 +22,7 @@ type ICmdObjBuilder interface {
 type CmdObjBuilder struct {
 	runner    ICmdObjRunner
 	logCmdObj func(ICmdObj)
-	// TODO: see if you can just remove this entirely and use secureexec.Command,
-	// now that we're mocking out the runner itself.
-	command  func(string, ...string) *exec.Cmd
-	platform *Platform
+	platform  *Platform
 }
 
 // poor man's version of explicitly saying that struct X implements interface Y
@@ -33,7 +30,7 @@ var _ ICmdObjBuilder = &CmdObjBuilder{}
 
 func (self *CmdObjBuilder) New(cmdStr string) ICmdObj {
 	args := str.ToArgv(cmdStr)
-	cmd := self.command(args[0], args[1:]...)
+	cmd := secureexec.Command(args[0], args[1:]...)
 	cmd.Env = os.Environ()
 
 	return &CmdObj{
@@ -45,7 +42,7 @@ func (self *CmdObjBuilder) New(cmdStr string) ICmdObj {
 }
 
 func (self *CmdObjBuilder) NewFromArgs(args []string) ICmdObj {
-	cmd := self.command(args[0], args[1:]...)
+	cmd := secureexec.Command(args[0], args[1:]...)
 	cmd.Env = os.Environ()
 
 	return &CmdObj{
@@ -66,7 +63,6 @@ func (self *CmdObjBuilder) CloneWithNewRunner(decorate func(ICmdObjRunner) ICmdO
 	return &CmdObjBuilder{
 		runner:    decoratedRunner,
 		logCmdObj: self.logCmdObj,
-		command:   self.command,
 		platform:  self.platform,
 	}
 }
