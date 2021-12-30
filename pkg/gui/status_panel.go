@@ -157,7 +157,7 @@ func lazygitTitle() string {
                |___/ |___/       `
 }
 
-func (gui *Gui) workingTreeState() string {
+func (gui *Gui) workingTreeState() commands.RebaseMode {
 	rebaseMode, _ := gui.GitCommand.RebaseMode()
 	if rebaseMode != "" {
 		return commands.REBASE_MODE_REBASING

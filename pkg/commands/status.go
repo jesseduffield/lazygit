@@ -6,16 +6,18 @@ import (
 	gogit "github.com/jesseduffield/go-git/v5"
 )
 
+type RebaseMode string
+
 const (
-	REBASE_MODE_NORMAL      = "normal"
-	REBASE_MODE_INTERACTIVE = "interactive"
-	REBASE_MODE_REBASING    = "rebasing"
-	REBASE_MODE_MERGING     = "merging"
+	REBASE_MODE_NORMAL      RebaseMode = "normal"
+	REBASE_MODE_INTERACTIVE            = "interactive"
+	REBASE_MODE_REBASING               = "rebasing"
+	REBASE_MODE_MERGING                = "merging"
 )
 
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
 // and "interactive" for interactive rebase
-func (c *GitCommand) RebaseMode() (string, error) {
+func (c *GitCommand) RebaseMode() (RebaseMode, error) {
 	exists, err := c.OSCommand.FileExists(filepath.Join(c.DotGitDir, "rebase-apply"))
 	if err != nil {
 		return "", err
@@ -31,7 +33,7 @@ func (c *GitCommand) RebaseMode() (string, error) {
 	}
 }
 
-func (c *GitCommand) WorkingTreeState() string {
+func (c *GitCommand) WorkingTreeState() RebaseMode {
 	rebaseMode, _ := c.RebaseMode()
 	if rebaseMode != "" {
 		return REBASE_MODE_REBASING

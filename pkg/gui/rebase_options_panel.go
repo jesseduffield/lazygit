@@ -53,7 +53,14 @@ func (gui *Gui) genericMergeCommand(command string) error {
 
 	gitCommand := gui.GitCommand.WithSpan(fmt.Sprintf("Merge/Rebase: %s", command))
 
-	commandType := strings.Replace(status, "ing", "e", 1)
+	commandType := ""
+	switch status {
+	case commands.REBASE_MODE_MERGING:
+		commandType = "merge"
+	case commands.REBASE_MODE_REBASING:
+		commandType = "rebase"
+	}
+
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
