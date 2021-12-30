@@ -1,4 +1,4 @@
-package commands
+package loaders
 
 import (
 	"fmt"
@@ -6,16 +6,37 @@ import (
 	"sort"
 	"strings"
 
+	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
-func (c *GitCommand) GetRemotes() ([]*models.Remote, error) {
-	remoteBranchesStr, err := c.Cmd.New("git branch -r").RunWithOutput()
+type RemoteLoader struct {
+	*common.Common
+	cmd             oscommands.ICmdObjBuilder
+	getGoGitRemotes func() ([]*gogit.Remote, error)
+}
+
+func NewRemoteLoader(
+	common *common.Common,
+	cmd oscommands.ICmdObjBuilder,
+	getGoGitRemotes func() ([]*gogit.Remote, error),
+) *RemoteLoader {
+	return &RemoteLoader{
+		Common:          common,
+		cmd:             cmd,
+		getGoGitRemotes: getGoGitRemotes,
+	}
+}
+
+func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
+	remoteBranchesStr, err := self.cmd.New("git branch -r").RunWithOutput()
 	if err != nil {
 		return nil, err
 	}
 
-	goGitRemotes, err := c.Repo.Remotes()
+	goGitRemotes, err := self.getGoGitRemotes()
 	if err != nil {
 		return nil, err
 	}
