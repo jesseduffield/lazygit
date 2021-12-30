@@ -99,7 +99,7 @@ func NewOSCommand(common *common.Common) *OSCommand {
 		removeFile: os.RemoveAll,
 	}
 
-	runner := &RealRunner{log: common.Log, logCmdObj: c.LogCmdObj}
+	runner := &Runner{log: common.Log, logCmdObj: c.LogCmdObj}
 	c.Cmd = &CmdObjBuilder{runner: runner, command: command, logCmdObj: c.LogCmdObj, platform: platform}
 
 	return c

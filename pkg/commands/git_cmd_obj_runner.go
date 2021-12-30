@@ -44,6 +44,6 @@ func (self *gitCmdObjRunner) RunWithOutput(cmdObj oscommands.ICmdObj) (string, e
 	}
 }
 
-func (self *gitCmdObjRunner) RunLineOutputCmd(cmdObj oscommands.ICmdObj, onLine func(line string) (bool, error)) error {
-	return self.innerRunner.RunLineOutputCmd(cmdObj, onLine)
+func (self *gitCmdObjRunner) RunAndProcessLines(cmdObj oscommands.ICmdObj, onLine func(line string) (bool, error)) error {
+	return self.innerRunner.RunAndProcessLines(cmdObj, onLine)
 }
