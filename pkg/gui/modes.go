@@ -61,7 +61,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 		},
 		{
 			isActive: func() bool {
-				return gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL
+				return gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NONE
 			},
 			description: func() string {
 				workingTreeState := gui.GitCommand.WorkingTreeState()

@@ -6,13 +6,17 @@ import (
 	gogit "github.com/jesseduffield/go-git/v5"
 )
 
-type RebaseMode string
+type RebaseMode int
 
 const (
-	REBASE_MODE_NORMAL      RebaseMode = "normal"
-	REBASE_MODE_INTERACTIVE            = "interactive"
-	REBASE_MODE_REBASING               = "rebasing"
-	REBASE_MODE_MERGING                = "merging"
+	// this means we're neither rebasing nor merging
+	REBASE_MODE_NONE RebaseMode = iota
+	// this means normal rebase as opposed to interactive rebase
+	REBASE_MODE_NORMAL
+	REBASE_MODE_INTERACTIVE
+	// REBASE_MODE_REBASING is a general state that captures both REBASE_MODE_NORMAL and REBASE_MODE_INTERACTIVE
+	REBASE_MODE_REBASING
+	REBASE_MODE_MERGING
 )
 
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
@@ -20,7 +24,7 @@ const (
 func (c *GitCommand) RebaseMode() (RebaseMode, error) {
 	exists, err := c.OSCommand.FileExists(filepath.Join(c.DotGitDir, "rebase-apply"))
 	if err != nil {
-		return "", err
+		return REBASE_MODE_NONE, err
 	}
 	if exists {
 		return REBASE_MODE_NORMAL, nil
@@ -29,20 +33,20 @@ func (c *GitCommand) RebaseMode() (RebaseMode, error) {
 	if exists {
 		return REBASE_MODE_INTERACTIVE, err
 	} else {
-		return "", err
+		return REBASE_MODE_NONE, err
 	}
 }
 
 func (c *GitCommand) WorkingTreeState() RebaseMode {
 	rebaseMode, _ := c.RebaseMode()
-	if rebaseMode != "" {
+	if rebaseMode != REBASE_MODE_NONE {
 		return REBASE_MODE_REBASING
 	}
 	merging, _ := c.IsInMergeState()
 	if merging {
 		return REBASE_MODE_MERGING
 	}
-	return REBASE_MODE_NORMAL
+	return REBASE_MODE_NONE
 }
 
 // IsInMergeState states whether we are still mid-merge

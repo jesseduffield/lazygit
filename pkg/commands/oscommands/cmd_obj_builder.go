@@ -19,9 +19,6 @@ type ICmdObjBuilder interface {
 	Quote(str string) string
 }
 
-// poor man's version of explicitly saying that struct X implements interface Y
-var _ ICmdObjBuilder = &CmdObjBuilder{}
-
 type CmdObjBuilder struct {
 	runner    ICmdObjRunner
 	logCmdObj func(ICmdObj)
@@ -30,6 +27,9 @@ type CmdObjBuilder struct {
 	command  func(string, ...string) *exec.Cmd
 	platform *Platform
 }
+
+// poor man's version of explicitly saying that struct X implements interface Y
+var _ ICmdObjBuilder = &CmdObjBuilder{}
 
 func (self *CmdObjBuilder) New(cmdStr string) ICmdObj {
 	args := str.ToArgv(cmdStr)
