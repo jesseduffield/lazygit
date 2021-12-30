@@ -1,4 +1,4 @@
-package commands
+package loaders
 
 import (
 	"fmt"
@@ -6,19 +6,33 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 )
+
+type ReflogCommitLoader struct {
+	*common.Common
+	cmd oscommands.ICmdObjBuilder
+}
+
+func NewReflogCommitLoader(common *common.Common, cmd oscommands.ICmdObjBuilder) *ReflogCommitLoader {
+	return &ReflogCommitLoader{
+		Common: common,
+		cmd:    cmd,
+	}
+}
 
 // GetReflogCommits only returns the new reflog commits since the given lastReflogCommit
 // if none is passed (i.e. it's value is nil) then we get all the reflog commits
-func (c *GitCommand) GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
+func (self *ReflogCommitLoader) GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
 	commits := make([]*models.Commit, 0)
 
 	filterPathArg := ""
 	if filterPath != "" {
-		filterPathArg = fmt.Sprintf(" --follow -- %s", c.OSCommand.Quote(filterPath))
+		filterPathArg = fmt.Sprintf(" --follow -- %s", self.cmd.Quote(filterPath))
 	}
 
-	cmdObj := c.OSCommand.Cmd.New(fmt.Sprintf(`git log -g --abbrev=20 --format="%%h %%ct %%gs" %s`, filterPathArg))
+	cmdObj := self.cmd.New(fmt.Sprintf(`git log -g --abbrev=20 --format="%%h %%ct %%gs" %s`, filterPathArg))
 	onlyObtainedNewReflogCommits := false
 	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
 		fields := strings.SplitN(line, " ", 3)

@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
@@ -52,7 +53,9 @@ func (gui *Gui) refreshReflogCommits() error {
 	}
 
 	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
-		commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, filterPath)
+		commits, onlyObtainedNewReflogCommits, err := loaders.
+			NewReflogCommitLoader(gui.Common, gui.GitCommand.Cmd).
+			GetReflogCommits(lastReflogCommit, filterPath)
 		if err != nil {
 			return gui.surfaceError(err)
 		}
