@@ -8,6 +8,9 @@ import (
 // command line.
 type ICmdObj interface {
 	GetCmd() *exec.Cmd
+	// outputs string representation of command. Note that if the command was built
+	// using NewFromArgs, the output won't be quite the same as what you would type
+	// into a terminal e.g. 'sh -c git commit' as opposed to 'sh -c "git commit"'
 	ToString() string
 	AddEnvVars(...string) ICmdObj
 	GetEnvVars() []string

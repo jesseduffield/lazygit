@@ -26,7 +26,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 		},
 	}
 
-	if gui.GitCommand.PatchManager.CanRebase && gui.workingTreeState() == commands.REBASE_MODE_NORMAL {
+	if gui.GitCommand.PatchManager.CanRebase && gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_NONE {
 		menuItems = append(menuItems, []*menuItem{
 			{
 				displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.To),
@@ -74,7 +74,7 @@ func (gui *Gui) getPatchCommitIndex() int {
 }
 
 func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
-	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
+	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NONE {
 		return false, gui.createErrorPanel(gui.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil

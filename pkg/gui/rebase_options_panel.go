@@ -144,7 +144,7 @@ func (gui *Gui) abortMergeOrRebaseWithConfirm() error {
 func (gui *Gui) workingTreeStateNoun() string {
 	workingTreeState := gui.GitCommand.WorkingTreeState()
 	switch workingTreeState {
-	case commands.REBASE_MODE_NORMAL:
+	case commands.REBASE_MODE_NONE:
 		return ""
 	case commands.REBASE_MODE_MERGING:
 		return "merge"

@@ -28,7 +28,7 @@ func (gui *Gui) refreshStatus() {
 		status += presentation.ColoredBranchStatus(currentBranch) + " "
 	}
 
-	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
+	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NONE {
 		status += style.FgYellow.Sprintf("(%s) ", gui.GitCommand.WorkingTreeState())
 	}
 
@@ -155,16 +155,4 @@ func lazygitTitle() string {
   |_|\__,_/___|\__, |\__, |_|\__|
                 __/ | __/ |
                |___/ |___/       `
-}
-
-func (gui *Gui) workingTreeState() commands.RebaseMode {
-	rebaseMode, _ := gui.GitCommand.RebaseMode()
-	if rebaseMode != "" {
-		return commands.REBASE_MODE_REBASING
-	}
-	merging, _ := gui.GitCommand.IsInMergeState()
-	if merging {
-		return commands.REBASE_MODE_MERGING
-	}
-	return commands.REBASE_MODE_NORMAL
 }
