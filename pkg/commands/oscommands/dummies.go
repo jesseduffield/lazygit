@@ -24,3 +24,10 @@ func NewDummyCmdObjBuilder(runner ICmdObjRunner) *CmdObjBuilder {
 		},
 	}
 }
+
+func NewDummyOSCommandWithRunner(runner *FakeCmdObjRunner) *OSCommand {
+	osCommand := NewOSCommand(utils.NewDummyCommon())
+	osCommand.Cmd = NewDummyCmdObjBuilder(runner)
+
+	return osCommand
+}

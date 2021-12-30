@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestOSCommandRunWithOutput is a function.
 func TestOSCommandRunWithOutput(t *testing.T) {
 	type scenario struct {
 		command string
@@ -37,7 +36,6 @@ func TestOSCommandRunWithOutput(t *testing.T) {
 	}
 }
 
-// TestOSCommandRun is a function.
 func TestOSCommandRun(t *testing.T) {
 	type scenario struct {
 		command string
@@ -59,7 +57,6 @@ func TestOSCommandRun(t *testing.T) {
 	}
 }
 
-// TestOSCommandQuote is a function.
 func TestOSCommandQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
@@ -111,7 +108,6 @@ func TestOSCommandQuoteWindows(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
-// TestOSCommandFileType is a function.
 func TestOSCommandFileType(t *testing.T) {
 	type scenario struct {
 		path  string
