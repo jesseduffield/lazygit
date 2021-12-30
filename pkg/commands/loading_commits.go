@@ -32,7 +32,7 @@ type CommitListBuilder struct {
 	cmd oscommands.ICmdObjBuilder
 
 	getCurrentBranchName func() (string, string, error)
-	getRebaseMode        func() (string, error)
+	getRebaseMode        func() (RebaseMode, error)
 	readFile             func(filename string) ([]byte, error)
 	walkFiles            func(root string, fn filepath.WalkFunc) error
 	dotGitDir            string
@@ -186,7 +186,7 @@ func (self *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Com
 	return commits, nil
 }
 
-func (self *CommitListBuilder) getHydratedRebasingCommits(rebaseMode string) ([]*models.Commit, error) {
+func (self *CommitListBuilder) getHydratedRebasingCommits(rebaseMode RebaseMode) ([]*models.Commit, error) {
 	commits, err := self.getRebasingCommits(rebaseMode)
 	if err != nil {
 		return nil, err
@@ -232,7 +232,7 @@ func (self *CommitListBuilder) getHydratedRebasingCommits(rebaseMode string) ([]
 }
 
 // getRebasingCommits obtains the commits that we're in the process of rebasing
-func (self *CommitListBuilder) getRebasingCommits(rebaseMode string) ([]*models.Commit, error) {
+func (self *CommitListBuilder) getRebasingCommits(rebaseMode RebaseMode) ([]*models.Commit, error) {
 	switch rebaseMode {
 	case REBASE_MODE_MERGING:
 		return self.getNormalRebasingCommits()
