@@ -244,7 +244,7 @@ func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
 		flagStr += " --" + flag
 	}
 
-	return c.Cmd.New(fmt.Sprintf("git apply %s %s", flagStr, c.OSCommand.Quote(filepath))).Run()
+	return c.Cmd.New(fmt.Sprintf("git apply%s %s", flagStr, c.OSCommand.Quote(filepath))).Run()
 }
 
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
