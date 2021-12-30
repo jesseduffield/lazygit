@@ -3,544 +3,394 @@ package commands
 import (
 	"fmt"
 	"io/ioutil"
-	"os/exec"
+	"regexp"
 	"testing"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
-	"github.com/jesseduffield/lazygit/pkg/test"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/stretchr/testify/assert"
 )
 
-// TestGitCommandStageFile is a function.
 func TestGitCommandStageFile(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"add", "--", "test.txt"}, args)
-
-		return secureexec.Command("echo")
-	}
+	runner := oscommands.NewFakeRunner(t).
+		ExpectArgs([]string{"git", "add", "--", "test.txt"}, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.StageFile("test.txt"))
+	runner.CheckForMissingCalls()
 }
 
-// TestGitCommandUnstageFile is a function.
 func TestGitCommandUnstageFile(t *testing.T) {
 	type scenario struct {
 		testName string
-		command  func(string, ...string) *exec.Cmd
-		test     func(error)
 		reset    bool
+		runner   *oscommands.FakeCmdObjRunner
+		test     func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			"Remove an untracked file from staging",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"rm", "--cached", "--force", "--", "test.txt"}, args)
-
-				return secureexec.Command("echo")
-			},
-			func(err error) {
+			testName: "Remove an untracked file from staging",
+			reset:    false,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "rm", "--cached", "--force", "--", "test.txt"}, "", nil),
+			test: func(err error) {
 				assert.NoError(t, err)
 			},
-			false,
 		},
 		{
-			"Remove a tracked file from staging",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"reset", "HEAD", "--", "test.txt"}, args)
-
-				return secureexec.Command("echo")
-			},
-			func(err error) {
+			testName: "Remove a tracked file from staging",
+			reset:    true,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "reset", "HEAD", "--", "test.txt"}, "", nil),
+			test: func(err error) {
 				assert.NoError(t, err)
 			},
-			true,
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			s.test(gitCmd.UnStageFile([]string{"test.txt"}, s.reset))
 		})
 	}
 }
 
-// TestGitCommandDiscardAllFileChanges is a function.
 // these tests don't cover everything, in part because we already have an integration
 // test which does cover everything. I don't want to unnecessarily assert on the 'how'
 // when the 'what' is what matters
 func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 	type scenario struct {
-		testName   string
-		command    func() (func(string, ...string) *exec.Cmd, *[][]string)
-		test       func(*[][]string, error)
-		file       *models.File
-		removeFile func(string) error
+		testName      string
+		file          *models.File
+		removeFile    func(string) error
+		runner        *oscommands.FakeCmdObjRunner
+		expectedError string
 	}
 
 	scenarios := []scenario{
 		{
-			"An error occurred when resetting",
-			func() (func(string, ...string) *exec.Cmd, *[][]string) {
-				cmdsCalled := [][]string{}
-				return func(cmd string, args ...string) *exec.Cmd {
-					cmdsCalled = append(cmdsCalled, args)
-
-					return secureexec.Command("test")
-				}, &cmdsCalled
-			},
-			func(cmdsCalled *[][]string, err error) {
-				assert.Error(t, err)
-				assert.Len(t, *cmdsCalled, 1)
-				assert.EqualValues(t, *cmdsCalled, [][]string{
-					{"reset", "--", "test"},
-				})
-			},
-			&models.File{
+			testName: "An error occurred when resetting",
+			file: &models.File{
 				Name:             "test",
 				HasStagedChanges: true,
 			},
-			func(string) error {
-				return nil
-			},
+			removeFile: func(string) error { return nil },
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "reset", "--", "test"}, "", errors.New("error")),
+			expectedError: "error",
 		},
 		{
-			"An error occurred when removing file",
-			func() (func(string, ...string) *exec.Cmd, *[][]string) {
-				cmdsCalled := [][]string{}
-				return func(cmd string, args ...string) *exec.Cmd {
-					cmdsCalled = append(cmdsCalled, args)
-
-					return secureexec.Command("test")
-				}, &cmdsCalled
-			},
-			func(cmdsCalled *[][]string, err error) {
-				assert.Error(t, err)
-				assert.EqualError(t, err, "an error occurred when removing file")
-				assert.Len(t, *cmdsCalled, 0)
-			},
-			&models.File{
+			testName: "An error occurred when removing file",
+			file: &models.File{
 				Name:    "test",
 				Tracked: false,
 				Added:   true,
 			},
-			func(string) error {
+			removeFile: func(string) error {
 				return fmt.Errorf("an error occurred when removing file")
 			},
+			runner:        oscommands.NewFakeRunner(t),
+			expectedError: "an error occurred when removing file",
 		},
 		{
-			"An error occurred with checkout",
-			func() (func(string, ...string) *exec.Cmd, *[][]string) {
-				cmdsCalled := [][]string{}
-				return func(cmd string, args ...string) *exec.Cmd {
-					cmdsCalled = append(cmdsCalled, args)
-
-					return secureexec.Command("test")
-				}, &cmdsCalled
-			},
-			func(cmdsCalled *[][]string, err error) {
-				assert.Error(t, err)
-				assert.Len(t, *cmdsCalled, 1)
-				assert.EqualValues(t, *cmdsCalled, [][]string{
-					{"checkout", "--", "test"},
-				})
-			},
-			&models.File{
+			testName: "An error occurred with checkout",
+			file: &models.File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: false,
 			},
-			func(string) error {
-				return nil
-			},
+			removeFile: func(string) error { return nil },
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "checkout", "--", "test"}, "", errors.New("error")),
+			expectedError: "error",
 		},
 		{
-			"Checkout only",
-			func() (func(string, ...string) *exec.Cmd, *[][]string) {
-				cmdsCalled := [][]string{}
-				return func(cmd string, args ...string) *exec.Cmd {
-					cmdsCalled = append(cmdsCalled, args)
-
-					return secureexec.Command("echo")
-				}, &cmdsCalled
-			},
-			func(cmdsCalled *[][]string, err error) {
-				assert.NoError(t, err)
-				assert.Len(t, *cmdsCalled, 1)
-				assert.EqualValues(t, *cmdsCalled, [][]string{
-					{"checkout", "--", "test"},
-				})
-			},
-			&models.File{
+			testName: "Checkout only",
+			file: &models.File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: false,
 			},
-			func(string) error {
-				return nil
-			},
+			removeFile: func(string) error { return nil },
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "checkout", "--", "test"}, "", nil),
+			expectedError: "",
 		},
 		{
-			"Reset and checkout staged changes",
-			func() (func(string, ...string) *exec.Cmd, *[][]string) {
-				cmdsCalled := [][]string{}
-				return func(cmd string, args ...string) *exec.Cmd {
-					cmdsCalled = append(cmdsCalled, args)
-
-					return secureexec.Command("echo")
-				}, &cmdsCalled
-			},
-			func(cmdsCalled *[][]string, err error) {
-				assert.NoError(t, err)
-				assert.Len(t, *cmdsCalled, 2)
-				assert.EqualValues(t, *cmdsCalled, [][]string{
-					{"reset", "--", "test"},
-					{"checkout", "--", "test"},
-				})
-			},
-			&models.File{
+			testName: "Reset and checkout staged changes",
+			file: &models.File{
 				Name:             "test",
 				Tracked:          true,
 				HasStagedChanges: true,
 			},
-			func(string) error {
-				return nil
-			},
+			removeFile: func(string) error { return nil },
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "reset", "--", "test"}, "", nil).
+				ExpectArgs([]string{"git", "checkout", "--", "test"}, "", nil),
+			expectedError: "",
 		},
 		{
-			"Reset and checkout merge conflicts",
-			func() (func(string, ...string) *exec.Cmd, *[][]string) {
-				cmdsCalled := [][]string{}
-				return func(cmd string, args ...string) *exec.Cmd {
-					cmdsCalled = append(cmdsCalled, args)
-
-					return secureexec.Command("echo")
-				}, &cmdsCalled
-			},
-			func(cmdsCalled *[][]string, err error) {
-				assert.NoError(t, err)
-				assert.Len(t, *cmdsCalled, 2)
-				assert.EqualValues(t, *cmdsCalled, [][]string{
-					{"reset", "--", "test"},
-					{"checkout", "--", "test"},
-				})
-			},
-			&models.File{
+			testName: "Reset and checkout merge conflicts",
+			file: &models.File{
 				Name:              "test",
 				Tracked:           true,
 				HasMergeConflicts: true,
 			},
-			func(string) error {
-				return nil
-			},
+			removeFile: func(string) error { return nil },
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "reset", "--", "test"}, "", nil).
+				ExpectArgs([]string{"git", "checkout", "--", "test"}, "", nil),
+			expectedError: "",
 		},
 		{
-			"Reset and remove",
-			func() (func(string, ...string) *exec.Cmd, *[][]string) {
-				cmdsCalled := [][]string{}
-				return func(cmd string, args ...string) *exec.Cmd {
-					cmdsCalled = append(cmdsCalled, args)
-
-					return secureexec.Command("echo")
-				}, &cmdsCalled
-			},
-			func(cmdsCalled *[][]string, err error) {
-				assert.NoError(t, err)
-				assert.Len(t, *cmdsCalled, 1)
-				assert.EqualValues(t, *cmdsCalled, [][]string{
-					{"reset", "--", "test"},
-				})
-			},
-			&models.File{
+			testName: "Reset and remove",
+			file: &models.File{
 				Name:             "test",
 				Tracked:          false,
 				Added:            true,
 				HasStagedChanges: true,
 			},
-			func(filename string) error {
+			removeFile: func(filename string) error {
 				assert.Equal(t, "test", filename)
 				return nil
 			},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "reset", "--", "test"}, "", nil),
+			expectedError: "",
 		},
 		{
-			"Remove only",
-			func() (func(string, ...string) *exec.Cmd, *[][]string) {
-				cmdsCalled := [][]string{}
-				return func(cmd string, args ...string) *exec.Cmd {
-					cmdsCalled = append(cmdsCalled, args)
-
-					return secureexec.Command("echo")
-				}, &cmdsCalled
-			},
-			func(cmdsCalled *[][]string, err error) {
-				assert.NoError(t, err)
-				assert.Len(t, *cmdsCalled, 0)
-			},
-			&models.File{
+			testName: "Remove only",
+			file: &models.File{
 				Name:             "test",
 				Tracked:          false,
 				Added:            true,
 				HasStagedChanges: false,
 			},
-			func(filename string) error {
+			removeFile: func(filename string) error {
 				assert.Equal(t, "test", filename)
 				return nil
 			},
+			runner:        oscommands.NewFakeRunner(t),
+			expectedError: "",
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			var cmdsCalled *[][]string
-			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command, cmdsCalled = s.command()
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			gitCmd.OSCommand.SetRemoveFile(s.removeFile)
-			s.test(cmdsCalled, gitCmd.DiscardAllFileChanges(s.file))
+			err := gitCmd.DiscardAllFileChanges(s.file)
+
+			if s.expectedError == "" {
+				assert.Nil(t, err)
+			} else {
+				assert.Equal(t, s.expectedError, err.Error())
+			}
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandDiff is a function.
 func TestGitCommandDiff(t *testing.T) {
 	type scenario struct {
 		testName         string
-		command          func(string, ...string) *exec.Cmd
 		file             *models.File
 		plain            bool
 		cached           bool
 		ignoreWhitespace bool
 		contextSize      int
+		runner           *oscommands.FakeCmdObjRunner
 	}
+
+	const expectedResult = "pretend this is an actual git diff"
 
 	scenarios := []scenario{
 		{
-			"Default case",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--", "test.txt"}, args)
-
-				return secureexec.Command("echo")
-			},
-			&models.File{
+			testName: "Default case",
+			file: &models.File{
 				Name:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
-			false,
-			false,
-			false,
-			3,
+			plain:            false,
+			cached:           false,
+			ignoreWhitespace: false,
+			contextSize:      3,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
-			"cached",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--cached", "--", "test.txt"}, args)
-
-				return secureexec.Command("echo")
-			},
-			&models.File{
+			testName: "cached",
+			file: &models.File{
 				Name:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
-			false,
-			true,
-			false,
-			3,
+			plain:            false,
+			cached:           true,
+			ignoreWhitespace: false,
+			contextSize:      3,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--cached", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
-			"plain",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=never", "--", "test.txt"}, args)
-
-				return secureexec.Command("echo")
-			},
-			&models.File{
+			testName: "plain",
+			file: &models.File{
 				Name:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
-			true,
-			false,
-			false,
-			3,
+			plain:            true,
+			cached:           false,
+			ignoreWhitespace: false,
+			contextSize:      3,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=never", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
-			"File not tracked and file has no staged changes",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--no-index", "--", "/dev/null", "test.txt"}, args)
-
-				return secureexec.Command("echo")
-			},
-			&models.File{
+			testName: "File not tracked and file has no staged changes",
+			file: &models.File{
 				Name:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          false,
 			},
-			false,
-			false,
-			false,
-			3,
+			plain:            false,
+			cached:           false,
+			ignoreWhitespace: false,
+			contextSize:      3,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--no-index", "--", "/dev/null", "test.txt"}, expectedResult, nil),
 		},
 		{
-			"Default case (ignore whitespace)",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--ignore-all-space", "--", "test.txt"}, args)
-
-				return secureexec.Command("echo")
-			},
-			&models.File{
+			testName: "Default case (ignore whitespace)",
+			file: &models.File{
 				Name:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
-			false,
-			false,
-			true,
-			3,
+			plain:            false,
+			cached:           false,
+			ignoreWhitespace: true,
+			contextSize:      3,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--ignore-all-space", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
-			"Show diff with custom context size",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=17", "--color=always", "--", "test.txt"}, args)
-
-				return secureexec.Command("echo")
-			},
-			&models.File{
+			testName: "Show diff with custom context size",
+			file: &models.File{
 				Name:             "test.txt",
 				HasStagedChanges: false,
 				Tracked:          true,
 			},
-			false,
-			false,
-			false,
-			17,
+			plain:            false,
+			cached:           false,
+			ignoreWhitespace: false,
+			contextSize:      17,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=17", "--color=always", "--", "test.txt"}, expectedResult, nil),
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
-			gitCmd.WorktreeFileDiff(s.file, s.plain, s.cached, s.ignoreWhitespace)
+			result := gitCmd.WorktreeFileDiff(s.file, s.plain, s.cached, s.ignoreWhitespace)
+			assert.Equal(t, expectedResult, result)
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandShowFileDiff is a function.
 func TestGitCommandShowFileDiff(t *testing.T) {
 	type scenario struct {
 		testName    string
-		command     func(string, ...string) *exec.Cmd
 		from        string
 		to          string
 		reverse     bool
 		plain       bool
 		contextSize int
+		runner      *oscommands.FakeCmdObjRunner
 	}
+
+	const expectedResult = "pretend this is an actual git diff"
 
 	scenarios := []scenario{
 		{
-			"Default case",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--no-renames", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, args)
-
-				return secureexec.Command("echo")
-			},
-			"1234567890",
-			"0987654321",
-			false,
-			false,
-			3,
+			testName:    "Default case",
+			from:        "1234567890",
+			to:          "0987654321",
+			reverse:     false,
+			plain:       false,
+			contextSize: 3,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--no-renames", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
-			"Show diff with custom context size",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"diff", "--submodule", "--no-ext-diff", "--unified=123", "--no-renames", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, args)
-
-				return secureexec.Command("echo")
-			},
-			"1234567890",
-			"0987654321",
-			false,
-			false,
-			123,
+			testName:    "Show diff with custom context size",
+			from:        "1234567890",
+			to:          "0987654321",
+			reverse:     false,
+			plain:       false,
+			contextSize: 123,
+			runner: oscommands.NewFakeRunner(t).
+				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=123", "--no-renames", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
-			_, _ = gitCmd.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
+			result, err := gitCmd.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
+			assert.NoError(t, err)
+			assert.Equal(t, expectedResult, result)
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandCheckoutFile is a function.
 func TestGitCommandCheckoutFile(t *testing.T) {
 	type scenario struct {
 		testName  string
 		commitSha string
 		fileName  string
-		command   func(string, ...string) *exec.Cmd
+		runner    *oscommands.FakeCmdObjRunner
 		test      func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			"typical case",
-			"11af912",
-			"test999.txt",
-			test.CreateMockCommand(t, []*test.CommandSwapper{
-				{
-					Expect:  "git checkout 11af912 -- test999.txt",
-					Replace: "echo",
-				},
-			}),
-			func(err error) {
+			testName:  "typical case",
+			commitSha: "11af912",
+			fileName:  "test999.txt",
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git checkout 11af912 -- "test999.txt"`, "", nil),
+			test: func(err error) {
 				assert.NoError(t, err)
 			},
 		},
 		{
-			"returns error if there is one",
-			"11af912",
-			"test999.txt",
-			test.CreateMockCommand(t, []*test.CommandSwapper{
-				{
-					Expect:  "git checkout 11af912 -- test999.txt",
-					Replace: "test",
-				},
-			}),
-			func(err error) {
+			testName:  "returns error if there is one",
+			commitSha: "11af912",
+			fileName:  "test999.txt",
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git checkout 11af912 -- "test999.txt"`, "", errors.New("error")),
+			test: func(err error) {
 				assert.Error(t, err)
 			},
 		},
 	}
 
-	gitCmd := NewDummyGitCommand()
-
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			s.test(gitCmd.CheckoutFile(s.commitSha, s.fileName))
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
@@ -548,46 +398,41 @@ func TestGitCommandCheckoutFile(t *testing.T) {
 func TestGitCommandApplyPatch(t *testing.T) {
 	type scenario struct {
 		testName string
-		command  func(string, ...string) *exec.Cmd
+		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
+	}
+
+	expectFn := func(regexStr string, errToReturn error) func(cmdObj oscommands.ICmdObj) (string, error) {
+		return func(cmdObj oscommands.ICmdObj) (string, error) {
+			re := regexp.MustCompile(regexStr)
+			matches := re.FindStringSubmatch(cmdObj.ToString())
+			assert.Equal(t, 2, len(matches))
+
+			filename := matches[1]
+
+			content, err := ioutil.ReadFile(filename)
+			assert.NoError(t, err)
+
+			assert.Equal(t, "test", string(content))
+
+			return "", errToReturn
+		}
 	}
 
 	scenarios := []scenario{
 		{
-			"valid case",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.Equal(t, "git", cmd)
-				assert.EqualValues(t, []string{"apply", "--cached"}, args[0:2])
-				filename := args[2]
-				content, err := ioutil.ReadFile(filename)
-				assert.NoError(t, err)
-
-				assert.Equal(t, "test", string(content))
-
-				return secureexec.Command("echo", "done")
-			},
-			func(err error) {
+			testName: "valid case",
+			runner: oscommands.NewFakeRunner(t).
+				ExpectFunc(expectFn(`git apply --cached "(.*)"`, nil)),
+			test: func(err error) {
 				assert.NoError(t, err)
 			},
 		},
 		{
-			"command returns error",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.Equal(t, "git", cmd)
-				assert.EqualValues(t, []string{"apply", "--cached"}, args[0:2])
-				filename := args[2]
-				// TODO: Ideally we want to mock out OSCommand here so that we're not
-				// double handling testing it's CreateTempFile functionality,
-				// but it is going to take a bit of work to make a proper mock for it
-				// so I'm leaving it for another PR
-				content, err := ioutil.ReadFile(filename)
-				assert.NoError(t, err)
-
-				assert.Equal(t, "test", string(content))
-
-				return secureexec.Command("test")
-			},
-			func(err error) {
+			testName: "command returns error",
+			runner: oscommands.NewFakeRunner(t).
+				ExpectFunc(expectFn(`git apply --cached "(.*)"`, errors.New("error"))),
+			test: func(err error) {
 				assert.Error(t, err)
 			},
 		},
@@ -595,9 +440,9 @@ func TestGitCommandApplyPatch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			s.test(gitCmd.ApplyPatch("test", "cached"))
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
@@ -609,65 +454,49 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 		commits                []*models.Commit
 		commitIndex            int
 		fileName               string
-		command                func(string, ...string) *exec.Cmd
+		runner                 *oscommands.FakeCmdObjRunner
 		test                   func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			"returns error when index outside of range of commits",
-			nil,
-			[]*models.Commit{},
-			0,
-			"test999.txt",
-			nil,
-			func(err error) {
+			testName:               "returns error when index outside of range of commits",
+			gitConfigMockResponses: nil,
+			commits:                []*models.Commit{},
+			commitIndex:            0,
+			fileName:               "test999.txt",
+			runner:                 oscommands.NewFakeRunner(t),
+			test: func(err error) {
 				assert.Error(t, err)
 			},
 		},
 		{
-			"returns error when using gpg",
-			map[string]string{"commit.gpgsign": "true"},
-			[]*models.Commit{{Name: "commit", Sha: "123456"}},
-			0,
-			"test999.txt",
-			nil,
-			func(err error) {
+			testName:               "returns error when using gpg",
+			gitConfigMockResponses: map[string]string{"commit.gpgsign": "true"},
+			commits:                []*models.Commit{{Name: "commit", Sha: "123456"}},
+			commitIndex:            0,
+			fileName:               "test999.txt",
+			runner:                 oscommands.NewFakeRunner(t),
+			test: func(err error) {
 				assert.Error(t, err)
 			},
 		},
 		{
-			"checks out file if it already existed",
-			nil,
-			[]*models.Commit{
+			testName:               "checks out file if it already existed",
+			gitConfigMockResponses: nil,
+			commits: []*models.Commit{
 				{Name: "commit", Sha: "123456"},
 				{Name: "commit2", Sha: "abcdef"},
 			},
-			0,
-			"test999.txt",
-			test.CreateMockCommand(t, []*test.CommandSwapper{
-				{
-					Expect:  "git rebase --interactive --autostash --keep-empty abcdef",
-					Replace: "echo",
-				},
-				{
-					Expect:  "git cat-file -e HEAD^:test999.txt",
-					Replace: "echo",
-				},
-				{
-					Expect:  "git checkout HEAD^ -- test999.txt",
-					Replace: "echo",
-				},
-				{
-					Expect:  "git commit --amend --no-edit --allow-empty",
-					Replace: "echo",
-				},
-				{
-					Expect:  "git rebase --continue",
-					Replace: "echo",
-				},
-			}),
-			func(err error) {
+			commitIndex: 0,
+			fileName:    "test999.txt",
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git rebase --interactive --autostash --keep-empty abcdef`, "", nil).
+				Expect(`git cat-file -e HEAD^:"test999.txt"`, "", nil).
+				Expect(`git checkout HEAD^ -- "test999.txt"`, "", nil).
+				Expect(`git commit --amend --no-edit --allow-empty`, "", nil).
+				Expect(`git rebase --continue`, "", nil),
+			test: func(err error) {
 				assert.NoError(t, err)
 			},
 		},
@@ -675,127 +504,105 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 		// currently we'd need to mock out the os.Remove function and that's gonna introduce tech debt
 	}
 
-	gitCmd := NewDummyGitCommand()
-
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			gitCmd.GitConfig = git_config.NewFakeGitConfig(s.gitConfigMockResponses)
 			s.test(gitCmd.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandDiscardUnstagedFileChanges is a function.
 func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
 	type scenario struct {
 		testName string
 		file     *models.File
-		command  func(string, ...string) *exec.Cmd
+		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			"valid case",
-			&models.File{Name: "test.txt"},
-			test.CreateMockCommand(t, []*test.CommandSwapper{
-				{
-					Expect:  `git checkout -- "test.txt"`,
-					Replace: "echo",
-				},
-			}),
-			func(err error) {
+			testName: "valid case",
+			file:     &models.File{Name: "test.txt"},
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git checkout -- "test.txt"`, "", nil),
+			test: func(err error) {
 				assert.NoError(t, err)
 			},
 		},
 	}
 
-	gitCmd := NewDummyGitCommand()
-
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			s.test(gitCmd.DiscardUnstagedFileChanges(s.file))
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandDiscardAnyUnstagedFileChanges is a function.
 func TestGitCommandDiscardAnyUnstagedFileChanges(t *testing.T) {
 	type scenario struct {
 		testName string
-		command  func(string, ...string) *exec.Cmd
+		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			"valid case",
-			test.CreateMockCommand(t, []*test.CommandSwapper{
-				{
-					Expect:  `git checkout -- .`,
-					Replace: "echo",
-				},
-			}),
-			func(err error) {
+			testName: "valid case",
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git checkout -- .`, "", nil),
+			test: func(err error) {
 				assert.NoError(t, err)
 			},
 		},
 	}
 
-	gitCmd := NewDummyGitCommand()
-
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			s.test(gitCmd.DiscardAnyUnstagedFileChanges())
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandRemoveUntrackedFiles is a function.
 func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
 	type scenario struct {
 		testName string
-		command  func(string, ...string) *exec.Cmd
+		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			"valid case",
-			test.CreateMockCommand(t, []*test.CommandSwapper{
-				{
-					Expect:  `git clean -fd`,
-					Replace: "echo",
-				},
-			}),
-			func(err error) {
+			testName: "valid case",
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git clean -fd`, "", nil),
+			test: func(err error) {
 				assert.NoError(t, err)
 			},
 		},
 	}
 
-	gitCmd := NewDummyGitCommand()
-
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			s.test(gitCmd.RemoveUntrackedFiles())
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestEditFileCmdStr is a function.
 func TestEditFileCmdStr(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-
 	type scenario struct {
 		filename                  string
 		configEditCommand         string
 		configEditCommandTemplate string
-		command                   func(string, ...string) *exec.Cmd
+		runner                    *oscommands.FakeCmdObjRunner
 		getenv                    func(string) string
 		gitConfigMockResponses    map[string]string
 		test                      func(string, error)
@@ -803,154 +610,135 @@ func TestEditFileCmdStr(t *testing.T) {
 
 	scenarios := []scenario{
 		{
-			"test",
-			"",
-			"{{editor}} {{filename}}",
-			func(name string, arg ...string) *exec.Cmd {
-				return secureexec.Command("exit", "1")
-			},
-			func(env string) string {
+			filename:                  "test",
+			configEditCommand:         "",
+			configEditCommandTemplate: "{{editor}} {{filename}}",
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`which vi`, "", errors.New("error")),
+			getenv: func(env string) string {
 				return ""
 			},
-			nil,
-			func(cmdStr string, err error) {
+			gitConfigMockResponses: nil,
+			test: func(cmdStr string, err error) {
 				assert.EqualError(t, err, "No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
 			},
 		},
 		{
-			"test",
-			"nano",
-			"{{editor}} {{filename}}",
-			func(name string, args ...string) *exec.Cmd {
-				assert.Equal(t, "which", name)
-				return secureexec.Command("echo")
-			},
-			func(env string) string {
+			filename:                  "test",
+			configEditCommand:         "nano",
+			configEditCommandTemplate: "{{editor}} {{filename}}",
+			runner:                    oscommands.NewFakeRunner(t),
+			getenv: func(env string) string {
 				return ""
 			},
-			nil,
-			func(cmdStr string, err error) {
+			gitConfigMockResponses: nil,
+			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "nano "+gitCmd.OSCommand.Quote("test"), cmdStr)
+				assert.Equal(t, `nano "test"`, cmdStr)
 			},
 		},
 		{
-			"test",
-			"",
-			"{{editor}} {{filename}}",
-			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "which", name)
-				return secureexec.Command("exit", "1")
-			},
-			func(env string) string {
+			filename:                  "test",
+			configEditCommand:         "",
+			configEditCommandTemplate: "{{editor}} {{filename}}",
+			runner:                    oscommands.NewFakeRunner(t),
+			getenv: func(env string) string {
 				return ""
 			},
-			map[string]string{"core.editor": "nano"},
-			func(cmdStr string, err error) {
+			gitConfigMockResponses: map[string]string{"core.editor": "nano"},
+			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "nano "+gitCmd.OSCommand.Quote("test"), cmdStr)
+				assert.Equal(t, `nano "test"`, cmdStr)
 			},
 		},
 		{
-			"test",
-			"",
-			"{{editor}} {{filename}}",
-			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "which", name)
-				return secureexec.Command("exit", "1")
-			},
-			func(env string) string {
+			filename:                  "test",
+			configEditCommand:         "",
+			configEditCommandTemplate: "{{editor}} {{filename}}",
+			runner:                    oscommands.NewFakeRunner(t),
+			getenv: func(env string) string {
 				if env == "VISUAL" {
 					return "nano"
 				}
 
 				return ""
 			},
-			nil,
-			func(cmdStr string, err error) {
+			gitConfigMockResponses: nil,
+			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
 			},
 		},
 		{
-			"test",
-			"",
-			"{{editor}} {{filename}}",
-			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "which", name)
-				return secureexec.Command("exit", "1")
-			},
-			func(env string) string {
+			filename:                  "test",
+			configEditCommand:         "",
+			configEditCommandTemplate: "{{editor}} {{filename}}",
+			runner:                    oscommands.NewFakeRunner(t),
+			getenv: func(env string) string {
 				if env == "EDITOR" {
 					return "emacs"
 				}
 
 				return ""
 			},
-			nil,
-			func(cmdStr string, err error) {
+			gitConfigMockResponses: nil,
+			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "emacs "+gitCmd.OSCommand.Quote("test"), cmdStr)
+				assert.Equal(t, `emacs "test"`, cmdStr)
 			},
 		},
 		{
-			"test",
-			"",
-			"{{editor}} {{filename}}",
-			func(name string, arg ...string) *exec.Cmd {
-				assert.Equal(t, "which", name)
-				return secureexec.Command("echo")
-			},
-			func(env string) string {
+			filename:                  "test",
+			configEditCommand:         "",
+			configEditCommandTemplate: "{{editor}} {{filename}}",
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`which vi`, "/usr/bin/vi", nil),
+			getenv: func(env string) string {
 				return ""
 			},
-			nil,
-			func(cmdStr string, err error) {
+			gitConfigMockResponses: nil,
+			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "vi "+gitCmd.OSCommand.Quote("test"), cmdStr)
+				assert.Equal(t, `vi "test"`, cmdStr)
 			},
 		},
 		{
-			"file/with space",
-			"",
-			"{{editor}} {{filename}}",
-			func(name string, args ...string) *exec.Cmd {
-				assert.Equal(t, "which", name)
-				return secureexec.Command("echo")
-			},
-			func(env string) string {
+			filename:                  "file/with space",
+			configEditCommand:         "",
+			configEditCommandTemplate: "{{editor}} {{filename}}",
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`which vi`, "/usr/bin/vi", nil),
+			getenv: func(env string) string {
 				return ""
 			},
-			nil,
-			func(cmdStr string, err error) {
+			gitConfigMockResponses: nil,
+			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "vi "+gitCmd.OSCommand.Quote("file/with space"), cmdStr)
+				assert.Equal(t, `vi "file/with space"`, cmdStr)
 			},
 		},
 		{
-			"open file/at line",
-			"vim",
-			"{{editor}} +{{line}} {{filename}}",
-			func(name string, args ...string) *exec.Cmd {
-				assert.Equal(t, "which", name)
-				return secureexec.Command("echo")
-			},
-			func(env string) string {
+			filename:                  "open file/at line",
+			configEditCommand:         "vim",
+			configEditCommandTemplate: "{{editor}} +{{line}} {{filename}}",
+			runner:                    oscommands.NewFakeRunner(t),
+			getenv: func(env string) string {
 				return ""
 			},
-			nil,
-			func(cmdStr string, err error) {
+			gitConfigMockResponses: nil,
+			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "vim +1 "+gitCmd.OSCommand.Quote("open file/at line"), cmdStr)
+				assert.Equal(t, `vim +1 "open file/at line"`, cmdStr)
 			},
 		},
 	}
 
 	for _, s := range scenarios {
+		gitCmd := NewDummyGitCommandWithRunner(s.runner)
 		gitCmd.UserConfig.OS.EditCommand = s.configEditCommand
 		gitCmd.UserConfig.OS.EditCommandTemplate = s.configEditCommandTemplate
-		gitCmd.OSCommand.Command = s.command
 		gitCmd.OSCommand.Getenv = s.getenv
 		gitCmd.GitConfig = git_config.NewFakeGitConfig(s.gitConfigMockResponses)
 		s.test(gitCmd.EditFileCmdStr(s.filename, 1))
+		s.runner.CheckForMissingCalls()
 	}
 }
