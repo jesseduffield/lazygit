@@ -2,10 +2,9 @@ package commands
 
 import (
 	"os/exec"
+	"path/filepath"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
@@ -13,13 +12,20 @@ import (
 
 // NewDummyCommitListBuilder creates a new dummy CommitListBuilder for testing
 func NewDummyCommitListBuilder() *CommitListBuilder {
-	osCommand := oscommands.NewDummyOSCommand()
+	cmn := utils.NewDummyCommon()
 
 	return &CommitListBuilder{
-		Log:        utils.NewDummyLog(),
-		GitCommand: NewDummyGitCommandWithOSCommand(osCommand),
-		OSCommand:  osCommand,
-		Tr:         i18n.NewTranslationSet(utils.NewDummyLog(), "auto"),
+		Common:               cmn,
+		cmd:                  nil,
+		getCurrentBranchName: func() (string, string, error) { return "master", "master", nil },
+		getRebaseMode:        func() (string, error) { return REBASE_MODE_NORMAL, nil },
+		dotGitDir:            ".git",
+		readFile: func(filename string) ([]byte, error) {
+			return []byte(""), nil
+		},
+		walkFiles: func(root string, fn filepath.WalkFunc) error {
+			return nil
+		},
 	}
 }
 

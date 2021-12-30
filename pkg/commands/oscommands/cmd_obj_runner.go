@@ -11,22 +11,22 @@ import (
 type ICmdObjRunner interface {
 	Run(cmdObj ICmdObj) error
 	RunWithOutput(cmdObj ICmdObj) (string, error)
-	RunLineOutputCmd(cmdObj ICmdObj, onLine func(line string) (bool, error)) error
+	RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error
 }
 
 type RunExpectation func(ICmdObj) (string, error)
 
-type RealRunner struct {
+type Runner struct {
 	log       *logrus.Entry
 	logCmdObj func(ICmdObj)
 }
 
-func (self *RealRunner) Run(cmdObj ICmdObj) error {
+func (self *Runner) Run(cmdObj ICmdObj) error {
 	_, err := self.RunWithOutput(cmdObj)
 	return err
 }
 
-func (self *RealRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
+func (self *Runner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	self.logCmdObj(cmdObj)
 	output, err := sanitisedCommandOutput(cmdObj.GetCmd().CombinedOutput())
 	if err != nil {
@@ -35,7 +35,7 @@ func (self *RealRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	return output, err
 }
 
-func (self *RealRunner) RunLineOutputCmd(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+func (self *Runner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
 	cmd := cmdObj.GetCmd()
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
