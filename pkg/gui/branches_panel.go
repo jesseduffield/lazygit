@@ -56,7 +56,7 @@ func (gui *Gui) refreshBranches() {
 		// which allows us to order them correctly. So if we're filtering we'll just
 		// manually load all the reflog commits here
 		var err error
-		reflogCommits, _, err = gui.GitCommand.GetReflogCommits(nil, "")
+		reflogCommits, _, err = loaders.NewReflogCommitLoader(gui.Common, gui.GitCommand.Cmd).GetReflogCommits(nil, "")
 		if err != nil {
 			gui.Log.Error(err)
 		}
