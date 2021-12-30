@@ -116,6 +116,8 @@ func (c *OSCommand) WithSpan(span string) *OSCommand {
 	newOSCommand := &OSCommand{}
 	*newOSCommand = *c
 	newOSCommand.CmdLogSpan = span
+	newOSCommand.Cmd.logCmdObj = newOSCommand.LogCmdObj
+	newOSCommand.Cmd.runner = &Runner{log: c.Log, logCmdObj: newOSCommand.LogCmdObj}
 	return newOSCommand
 }
 
