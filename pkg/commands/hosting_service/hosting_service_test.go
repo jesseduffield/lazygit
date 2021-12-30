@@ -8,63 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetRepoInfoFromURL(t *testing.T) {
-	type scenario struct {
-		serviceDefinition ServiceDefinition
-		testName          string
-		repoURL           string
-		test              func(*RepoInformation)
-	}
-
-	scenarios := []scenario{
-		{
-			githubServiceDef,
-			"Returns repository information for git remote url",
-			"git@github.com:petersmith/super_calculator",
-			func(repoInfo *RepoInformation) {
-				assert.EqualValues(t, repoInfo.Owner, "petersmith")
-				assert.EqualValues(t, repoInfo.Repository, "super_calculator")
-			},
-		},
-		{
-			githubServiceDef,
-			"Returns repository information for git remote url, trimming trailing '.git'",
-			"git@github.com:petersmith/super_calculator.git",
-			func(repoInfo *RepoInformation) {
-				assert.EqualValues(t, repoInfo.Owner, "petersmith")
-				assert.EqualValues(t, repoInfo.Repository, "super_calculator")
-			},
-		},
-		{
-			githubServiceDef,
-			"Returns repository information for ssh remote url",
-			"ssh://git@github.com/petersmith/super_calculator",
-			func(repoInfo *RepoInformation) {
-				assert.EqualValues(t, repoInfo.Owner, "petersmith")
-				assert.EqualValues(t, repoInfo.Repository, "super_calculator")
-			},
-		},
-		{
-			githubServiceDef,
-			"Returns repository information for http remote url",
-			"https://my_username@bitbucket.org/johndoe/social_network.git",
-			func(repoInfo *RepoInformation) {
-				assert.EqualValues(t, repoInfo.Owner, "johndoe")
-				assert.EqualValues(t, repoInfo.Repository, "social_network")
-			},
-		},
-	}
-
-	for _, s := range scenarios {
-		s := s
-		t.Run(s.testName, func(t *testing.T) {
-			result, err := s.serviceDefinition.getRepoInfoFromURL(s.repoURL)
-			assert.NoError(t, err)
-			s.test(result)
-		})
-	}
-}
-
 func TestGetPullRequestURL(t *testing.T) {
 	type scenario struct {
 		testName             string
@@ -173,6 +116,44 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on Azure DevOps (SSH)",
+			from:      "feature/new",
+			remoteUrl: "git@ssh.dev.azure.com:v3/myorg/myproject/myrepo",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature/new", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Azure DevOps (SSH) with specifc target",
+			from:      "feature/new",
+			to:        "dev",
+			remoteUrl: "git@ssh.dev.azure.com:v3/myorg/myproject/myrepo",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature/new&targetRef=dev", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Azure DevOps (HTTP)",
+			from:      "feature/new",
+			remoteUrl: "https://myorg@dev.azure.com/myorg/myproject/_git/myrepo",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature/new", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Azure DevOps (HTTP) with specifc target",
+			from:      "feature/new",
+			to:        "dev",
+			remoteUrl: "https://myorg@dev.azure.com/myorg/myproject/_git/myrepo",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature/new&targetRef=dev", url)
+			},
+		},
+		{
 			testName:  "Throws an error if git service is unsupported",
 			from:      "feature/divide-operation",
 			remoteUrl: "git@something.com:peter/calculator.git",
@@ -218,7 +199,7 @@ func TestGetPullRequestURL(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
 			},
-			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab"},
+			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab, azuredevops"},
 		},
 		{
 			testName:  "Escapes reserved URL characters in from branch name",
