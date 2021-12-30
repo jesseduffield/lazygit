@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -120,7 +119,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
-	loader := commands.NewCommitLoader(gui.Common, gui.GitCommand, gui.OSCommand)
+	loader := loaders.NewCommitLoader(gui.Common, gui.GitCommand, gui.OSCommand)
 
 	commits, err := loader.GetCommits(
 		loaders.GetCommitsOptions{
@@ -143,7 +142,7 @@ func (gui *Gui) refreshRebaseCommits() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
-	loader := commands.NewCommitLoader(gui.Common, gui.GitCommand, gui.OSCommand)
+	loader := loaders.NewCommitLoader(gui.Common, gui.GitCommand, gui.OSCommand)
 
 	updatedCommits, err := loader.MergeRebasingCommits(gui.State.Commits)
 	if err != nil {
