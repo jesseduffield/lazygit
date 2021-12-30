@@ -12,9 +12,12 @@ type ICmdObj interface {
 	AddEnvVars(...string) ICmdObj
 	GetEnvVars() []string
 
+	// runs the command and returns an error if any
 	Run() error
+	// runs the command and returns the output as a string, and an error if any
 	RunWithOutput() (string, error)
-	RunLineOutputCmd(onLine func(line string) (bool, error)) error
+	// runs the command and runs a callback function on each line of the output. If the callback returns true for the boolean value, we kill the process and return.
+	RunAndProcessLines(onLine func(line string) (bool, error)) error
 
 	// logs command
 	Log() ICmdObj
@@ -60,6 +63,6 @@ func (self *CmdObj) RunWithOutput() (string, error) {
 	return self.runner.RunWithOutput(self)
 }
 
-func (self *CmdObj) RunLineOutputCmd(onLine func(line string) (bool, error)) error {
-	return self.runner.RunLineOutputCmd(self, onLine)
+func (self *CmdObj) RunAndProcessLines(onLine func(line string) (bool, error)) error {
+	return self.runner.RunAndProcessLines(self, onLine)
 }
