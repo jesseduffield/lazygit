@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// NewDummyCommitListBuilder creates a new dummy CommitListBuilder for testing
 func NewDummyCommitListBuilder() *CommitListBuilder {
 	cmn := utils.NewDummyCommon()
 
