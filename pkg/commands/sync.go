@@ -4,18 +4,18 @@ import (
 	"fmt"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 // Push pushes to a branch
 type PushOpts struct {
-	Force                   bool
-	UpstreamRemote          string
-	UpstreamBranch          string
-	SetUpstream             bool
-	PromptUserForCredential func(string) string
+	Force          bool
+	UpstreamRemote string
+	UpstreamBranch string
+	SetUpstream    bool
 }
 
-func (c *GitCommand) Push(opts PushOpts) error {
+func (c *GitCommand) PushCmdObj(opts PushOpts) (oscommands.ICmdObj, error) {
 	cmdStr := "git push"
 
 	if opts.Force {
@@ -32,13 +32,22 @@ func (c *GitCommand) Push(opts PushOpts) error {
 
 	if opts.UpstreamBranch != "" {
 		if opts.UpstreamRemote == "" {
-			return errors.New(c.Tr.MustSpecifyOriginError)
+			return nil, errors.New(c.Tr.MustSpecifyOriginError)
 		}
 		cmdStr += " " + c.OSCommand.Quote(opts.UpstreamBranch)
 	}
 
 	cmdObj := c.Cmd.New(cmdStr)
-	return c.DetectUnamePass(cmdObj, opts.PromptUserForCredential)
+	return cmdObj, nil
+}
+
+func (c *GitCommand) Push(opts PushOpts, promptUserForCredential func(string) string) error {
+	cmdObj, err := c.PushCmdObj(opts)
+	if err != nil {
+		return err
+	}
+
+	return c.DetectUnamePass(cmdObj, promptUserForCredential)
 }
 
 type FetchOptions struct {
