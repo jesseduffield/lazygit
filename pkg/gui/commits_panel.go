@@ -119,7 +119,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
-	loader := loaders.NewCommitLoader(gui.Common, gui.GitCommand, gui.OSCommand)
+	loader := loaders.NewCommitLoader(gui.Common, gui.GitCommand)
 
 	commits, err := loader.GetCommits(
 		loaders.GetCommitsOptions{
@@ -142,7 +142,7 @@ func (gui *Gui) refreshRebaseCommits() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
-	loader := loaders.NewCommitLoader(gui.Common, gui.GitCommand, gui.OSCommand)
+	loader := loaders.NewCommitLoader(gui.Common, gui.GitCommand)
 
 	updatedCommits, err := loader.MergeRebasingCommits(gui.State.Commits)
 	if err != nil {

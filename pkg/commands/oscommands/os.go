@@ -137,7 +137,7 @@ func (c *OSCommand) SetRemoveFile(f func(string) error) {
 }
 
 // FileType tells us if the file is a file, directory or other
-func (c *OSCommand) FileType(path string) string {
+func FileType(path string) string {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
 		return "other"

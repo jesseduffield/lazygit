@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -105,7 +106,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 	to := gui.State.Panels.CommitFiles.refName
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
-	files, err := gui.GitCommand.GetFilesInDiff(from, to, reverse)
+	files, err := loaders.NewCommitFileLoader(gui.Common, gui.GitCommand.Cmd).GetFilesInDiff(from, to, reverse)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

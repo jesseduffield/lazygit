@@ -189,7 +189,7 @@ func TestGetCommits(t *testing.T) {
 		t.Run(scenario.testName, func(t *testing.T) {
 			builder := &CommitLoader{
 				Common: utils.NewDummyCommon(),
-				cmd:    oscommands.NewCmdObjBuilderDummy(scenario.runner),
+				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
 				getCurrentBranchName: func() (string, string, error) {
 					return scenario.currentBranchName, scenario.currentBranchName, nil
 				},

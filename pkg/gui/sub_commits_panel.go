@@ -75,7 +75,7 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 
 func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	// need to populate my sub commits
-	loader := loaders.NewCommitLoader(gui.Common, gui.GitCommand, gui.OSCommand)
+	loader := loaders.NewCommitLoader(gui.Common, gui.GitCommand)
 
 	commits, err := loader.GetCommits(
 		loaders.GetCommitsOptions{
