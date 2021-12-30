@@ -55,43 +55,6 @@ func NewCommitListBuilder(
 	}
 }
 
-// extractCommitFromLine takes a line from a git log and extracts the sha, message, date, and tag if present
-// then puts them into a commit object
-// example input:
-// 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
-func (self *CommitListBuilder) extractCommitFromLine(line string) *models.Commit {
-	split := strings.Split(line, SEPARATION_CHAR)
-
-	sha := split[0]
-	unixTimestamp := split[1]
-	author := split[2]
-	extraInfo := strings.TrimSpace(split[3])
-	parentHashes := split[4]
-
-	message := strings.Join(split[5:], SEPARATION_CHAR)
-	tags := []string{}
-
-	if extraInfo != "" {
-		re := regexp.MustCompile(`tag: ([^,\)]+)`)
-		tagMatch := re.FindStringSubmatch(extraInfo)
-		if len(tagMatch) > 1 {
-			tags = append(tags, tagMatch[1])
-		}
-	}
-
-	unitTimestampInt, _ := strconv.Atoi(unixTimestamp)
-
-	return &models.Commit{
-		Sha:           sha,
-		Name:          message,
-		Tags:          tags,
-		ExtraInfo:     extraInfo,
-		UnixTimestamp: int64(unitTimestampInt),
-		Author:        author,
-		Parents:       strings.Split(parentHashes, " "),
-	}
-}
-
 type GetCommitsOptions struct {
 	Limit                bool
 	FilterPath           string
@@ -99,37 +62,6 @@ type GetCommitsOptions struct {
 	RefName              string // e.g. "HEAD" or "my_branch"
 	// determines if we show the whole git graph i.e. pass the '--all' flag
 	All bool
-}
-
-func (self *CommitListBuilder) MergeRebasingCommits(commits []*models.Commit) ([]*models.Commit, error) {
-	// chances are we have as many commits as last time so we'll set the capacity to be the old length
-	result := make([]*models.Commit, 0, len(commits))
-	for i, commit := range commits {
-		if commit.Status != "rebasing" { // removing the existing rebase commits so we can add the refreshed ones
-			result = append(result, commits[i:]...)
-			break
-		}
-	}
-
-	rebaseMode, err := self.getRebaseMode()
-	if err != nil {
-		return nil, err
-	}
-
-	if rebaseMode == "" {
-		// not in rebase mode so return original commits
-		return result, nil
-	}
-
-	rebasingCommits, err := self.getHydratedRebasingCommits(rebaseMode)
-	if err != nil {
-		return nil, err
-	}
-	if len(rebasingCommits) > 0 {
-		result = append(rebasingCommits, result...)
-	}
-
-	return result, nil
 }
 
 // GetCommits obtains the commits of the current branch
@@ -172,7 +104,11 @@ func (self *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Com
 		return nil, err
 	}
 
-	if rebaseMode != "" {
+	if len(commits) == 0 {
+		return commits, nil
+	}
+
+	if rebaseMode != REBASE_MODE_NONE {
 		currentCommit := commits[len(rebasingCommits)]
 		youAreHere := style.FgYellow.Sprintf("<-- %s ---", self.Tr.YouAreHere)
 		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
@@ -184,6 +120,74 @@ func (self *CommitListBuilder) GetCommits(opts GetCommitsOptions) ([]*models.Com
 	}
 
 	return commits, nil
+}
+
+func (self *CommitListBuilder) MergeRebasingCommits(commits []*models.Commit) ([]*models.Commit, error) {
+	// chances are we have as many commits as last time so we'll set the capacity to be the old length
+	result := make([]*models.Commit, 0, len(commits))
+	for i, commit := range commits {
+		if commit.Status != "rebasing" { // removing the existing rebase commits so we can add the refreshed ones
+			result = append(result, commits[i:]...)
+			break
+		}
+	}
+
+	rebaseMode, err := self.getRebaseMode()
+	if err != nil {
+		return nil, err
+	}
+
+	if rebaseMode == REBASE_MODE_NONE {
+		// not in rebase mode so return original commits
+		return result, nil
+	}
+
+	rebasingCommits, err := self.getHydratedRebasingCommits(rebaseMode)
+	if err != nil {
+		return nil, err
+	}
+	if len(rebasingCommits) > 0 {
+		result = append(rebasingCommits, result...)
+	}
+
+	return result, nil
+}
+
+// extractCommitFromLine takes a line from a git log and extracts the sha, message, date, and tag if present
+// then puts them into a commit object
+// example input:
+// 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
+func (self *CommitListBuilder) extractCommitFromLine(line string) *models.Commit {
+	split := strings.Split(line, SEPARATION_CHAR)
+
+	sha := split[0]
+	unixTimestamp := split[1]
+	author := split[2]
+	extraInfo := strings.TrimSpace(split[3])
+	parentHashes := split[4]
+
+	message := strings.Join(split[5:], SEPARATION_CHAR)
+	tags := []string{}
+
+	if extraInfo != "" {
+		re := regexp.MustCompile(`tag: ([^,\)]+)`)
+		tagMatch := re.FindStringSubmatch(extraInfo)
+		if len(tagMatch) > 1 {
+			tags = append(tags, tagMatch[1])
+		}
+	}
+
+	unitTimestampInt, _ := strconv.Atoi(unixTimestamp)
+
+	return &models.Commit{
+		Sha:           sha,
+		Name:          message,
+		Tags:          tags,
+		ExtraInfo:     extraInfo,
+		UnixTimestamp: int64(unitTimestampInt),
+		Author:        author,
+		Parents:       strings.Split(parentHashes, " "),
+	}
 }
 
 func (self *CommitListBuilder) getHydratedRebasingCommits(rebaseMode RebaseMode) ([]*models.Commit, error) {
@@ -409,7 +413,7 @@ func (self *CommitListBuilder) getFirstPushedCommit(refName string) (string, err
 func (self *CommitListBuilder) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 	limitFlag := ""
 	if opts.Limit {
-		limitFlag = "-300"
+		limitFlag = " -300"
 	}
 
 	filterFlag := ""
@@ -427,7 +431,7 @@ func (self *CommitListBuilder) getLogCmd(opts GetCommitsOptions) oscommands.ICmd
 
 	return self.cmd.New(
 		fmt.Sprintf(
-			"git log %s %s %s --oneline %s %s --abbrev=%d %s",
+			"git log %s %s %s --oneline %s%s --abbrev=%d%s",
 			self.cmd.Quote(opts.RefName),
 			orderFlag,
 			allFlag,
@@ -449,5 +453,5 @@ var prettyFormat = fmt.Sprintf(
 )
 
 func canExtractCommit(line string) bool {
-	return strings.Split(line, " ")[0] != "gpg:"
+	return line != "" && strings.Split(line, " ")[0] != "gpg:"
 }

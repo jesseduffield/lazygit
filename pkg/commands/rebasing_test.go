@@ -2,10 +2,8 @@ package commands
 
 import (
 	"os/exec"
-	"regexp"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,40 +56,40 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 	}
 }
 
-// TestGitCommandSkipEditorCommand confirms that SkipEditorCommand injects
-// environment variables that suppress an interactive editor
-func TestGitCommandSkipEditorCommand(t *testing.T) {
-	cmd := NewDummyGitCommand()
+// // TestGitCommandSkipEditorCommand confirms that SkipEditorCommand injects
+// // environment variables that suppress an interactive editor
+// func TestGitCommandSkipEditorCommand(t *testing.T) {
+// 	cmd := NewDummyGitCommand()
 
-	cmd.OSCommand.SetBeforeExecuteCmd(func(cmdObj oscommands.ICmdObj) {
-		test.AssertContainsMatch(
-			t,
-			cmdObj.GetEnvVars(),
-			regexp.MustCompile("^VISUAL="),
-			"expected VISUAL to be set for a non-interactive external command",
-		)
+// 	cmd.OSCommand.SetBeforeExecuteCmd(func(cmdObj oscommands.ICmdObj) {
+// 		test.AssertContainsMatch(
+// 			t,
+// 			cmdObj.GetEnvVars(),
+// 			regexp.MustCompile("^VISUAL="),
+// 			"expected VISUAL to be set for a non-interactive external command",
+// 		)
 
-		test.AssertContainsMatch(
-			t,
-			cmdObj.GetEnvVars(),
-			regexp.MustCompile("^EDITOR="),
-			"expected EDITOR to be set for a non-interactive external command",
-		)
+// 		test.AssertContainsMatch(
+// 			t,
+// 			cmdObj.GetEnvVars(),
+// 			regexp.MustCompile("^EDITOR="),
+// 			"expected EDITOR to be set for a non-interactive external command",
+// 		)
 
-		test.AssertContainsMatch(
-			t,
-			cmdObj.GetEnvVars(),
-			regexp.MustCompile("^GIT_EDITOR="),
-			"expected GIT_EDITOR to be set for a non-interactive external command",
-		)
+// 		test.AssertContainsMatch(
+// 			t,
+// 			cmdObj.GetEnvVars(),
+// 			regexp.MustCompile("^GIT_EDITOR="),
+// 			"expected GIT_EDITOR to be set for a non-interactive external command",
+// 		)
 
-		test.AssertContainsMatch(
-			t,
-			cmdObj.GetEnvVars(),
-			regexp.MustCompile("^LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY$"),
-			"expected LAZYGIT_CLIENT_COMMAND to be set for a non-interactive external command",
-		)
-	})
+// 		test.AssertContainsMatch(
+// 			t,
+// 			cmdObj.GetEnvVars(),
+// 			regexp.MustCompile("^LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY$"),
+// 			"expected LAZYGIT_CLIENT_COMMAND to be set for a non-interactive external command",
+// 		)
+// 	})
 
-	_ = cmd.runSkipEditorCommand("true")
-}
+// 	_ = cmd.runSkipEditorCommand("true")
+// }

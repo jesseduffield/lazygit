@@ -17,27 +17,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// Platform stores the os state
-type Platform struct {
-	OS              string
-	Shell           string
-	ShellArg        string
-	OpenCommand     string
-	OpenLinkCommand string
-}
-
-type ICommander interface {
-	Run(ICmdObj) error
-	RunWithOutput(ICmdObj) (string, error)
-}
-
-type RealCommander struct {
-}
-
-func (self *RealCommander) Run(cmdObj ICmdObj) error {
-	return cmdObj.GetCmd().Run()
-}
-
 // OSCommand holds all the os commands
 type OSCommand struct {
 	*common.Common
@@ -54,6 +33,15 @@ type OSCommand struct {
 	removeFile func(string) error
 
 	Cmd *CmdObjBuilder
+}
+
+// Platform stores the os state
+type Platform struct {
+	OS              string
+	Shell           string
+	ShellArg        string
+	OpenCommand     string
+	OpenLinkCommand string
 }
 
 // TODO: make these fields private
@@ -99,7 +87,7 @@ func NewOSCommand(common *common.Common) *OSCommand {
 		removeFile: os.RemoveAll,
 	}
 
-	runner := &Runner{log: common.Log, logCmdObj: c.LogCmdObj}
+	runner := &cmdObjRunner{log: common.Log, logCmdObj: c.LogCmdObj}
 	c.Cmd = &CmdObjBuilder{runner: runner, command: command, logCmdObj: c.LogCmdObj, platform: platform}
 
 	return c
@@ -117,7 +105,7 @@ func (c *OSCommand) WithSpan(span string) *OSCommand {
 	*newOSCommand = *c
 	newOSCommand.CmdLogSpan = span
 	newOSCommand.Cmd.logCmdObj = newOSCommand.LogCmdObj
-	newOSCommand.Cmd.runner = &Runner{log: c.Log, logCmdObj: newOSCommand.LogCmdObj}
+	newOSCommand.Cmd.runner = &cmdObjRunner{log: c.Log, logCmdObj: newOSCommand.LogCmdObj}
 	return newOSCommand
 }
 
