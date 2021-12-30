@@ -21,12 +21,9 @@ import (
 // be processed as part of a rebase (these won't appear in git log but we
 // grab them from the rebase-related files in the .git directory to show them
 
-// if we find out we need to use one of these functions in the git.go file, we
-// can just pull them out of here and put them there and then call them from in here
-
 const SEPARATION_CHAR = "|"
 
-// CommitListBuilder returns a list of Branch objects for the current repo
+// CommitListBuilder returns a list of Commit objects for the current repo
 type CommitListBuilder struct {
 	*common.Common
 	cmd oscommands.ICmdObjBuilder
@@ -38,7 +35,6 @@ type CommitListBuilder struct {
 	dotGitDir            string
 }
 
-// NewCommitListBuilder builds a new commit list builder
 func NewCommitListBuilder(
 	cmn *common.Common,
 	gitCommand *GitCommand,
