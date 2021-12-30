@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -39,7 +40,7 @@ func (gui *Gui) tagsRenderToMain() error {
 
 // this is a controller: it can't access tags directly. Or can it? It should be able to get but not set. But that's exactly what I'm doing here, setting it. but through a mutator which encapsulates the event.
 func (gui *Gui) refreshTags() error {
-	tags, err := gui.GitCommand.GetTags()
+	tags, err := loaders.NewTagLoader(gui.Common, gui.GitCommand.Cmd).GetTags()
 	if err != nil {
 		return gui.surfaceError(err)
 	}

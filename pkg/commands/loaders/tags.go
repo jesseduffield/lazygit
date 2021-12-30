@@ -1,16 +1,33 @@
-package commands
+package loaders
 
 import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (c *GitCommand) GetTags() ([]*models.Tag, error) {
+type TagLoader struct {
+	*common.Common
+	cmd oscommands.ICmdObjBuilder
+}
+
+func NewTagLoader(
+	common *common.Common,
+	cmd oscommands.ICmdObjBuilder,
+) *TagLoader {
+	return &TagLoader{
+		Common: common,
+		cmd:    cmd,
+	}
+}
+
+func (self *TagLoader) GetTags() ([]*models.Tag, error) {
 	// get remote branches, sorted  by creation date (descending)
 	// see: https://git-scm.com/docs/git-tag#Documentation/git-tag.txt---sortltkeygt
-	remoteBranchesStr, err := c.Cmd.New(`git tag --list --sort=-creatordate`).RunWithOutput()
+	remoteBranchesStr, err := self.cmd.New(`git tag --list --sort=-creatordate`).RunWithOutput()
 	if err != nil {
 		return nil, err
 	}
