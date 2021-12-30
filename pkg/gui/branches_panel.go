@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -61,13 +62,12 @@ func (gui *Gui) refreshBranches() {
 		}
 	}
 
-	builder := commands.NewBranchListBuilder(
+	loader := loaders.NewBranchLoader(
 		gui.Common,
-		gui.GitCommand.GetRawBranches,
-		gui.GitCommand.CurrentBranchName,
+		gui.GitCommand,
 		reflogCommits,
 	)
-	gui.State.Branches = builder.Build()
+	gui.State.Branches = loader.Load()
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
