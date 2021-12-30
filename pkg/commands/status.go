@@ -4,49 +4,37 @@ import (
 	"path/filepath"
 
 	gogit "github.com/jesseduffield/go-git/v5"
-)
-
-type RebaseMode int
-
-const (
-	// this means we're neither rebasing nor merging
-	REBASE_MODE_NONE RebaseMode = iota
-	// this means normal rebase as opposed to interactive rebase
-	REBASE_MODE_NORMAL
-	REBASE_MODE_INTERACTIVE
-	// REBASE_MODE_REBASING is a general state that captures both REBASE_MODE_NORMAL and REBASE_MODE_INTERACTIVE
-	REBASE_MODE_REBASING
-	REBASE_MODE_MERGING
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 )
 
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
 // and "interactive" for interactive rebase
-func (c *GitCommand) RebaseMode() (RebaseMode, error) {
+func (c *GitCommand) RebaseMode() (enums.RebaseMode, error) {
 	exists, err := c.OSCommand.FileExists(filepath.Join(c.DotGitDir, "rebase-apply"))
 	if err != nil {
-		return REBASE_MODE_NONE, err
+		return enums.REBASE_MODE_NONE, err
 	}
 	if exists {
-		return REBASE_MODE_NORMAL, nil
+		return enums.REBASE_MODE_NORMAL, nil
 	}
 	exists, err = c.OSCommand.FileExists(filepath.Join(c.DotGitDir, "rebase-merge"))
 	if exists {
-		return REBASE_MODE_INTERACTIVE, err
+		return enums.REBASE_MODE_INTERACTIVE, err
 	} else {
-		return REBASE_MODE_NONE, err
+		return enums.REBASE_MODE_NONE, err
 	}
 }
 
-func (c *GitCommand) WorkingTreeState() RebaseMode {
+func (c *GitCommand) WorkingTreeState() enums.RebaseMode {
 	rebaseMode, _ := c.RebaseMode()
-	if rebaseMode != REBASE_MODE_NONE {
-		return REBASE_MODE_REBASING
+	if rebaseMode != enums.REBASE_MODE_NONE {
+		return enums.REBASE_MODE_REBASING
 	}
 	merging, _ := c.IsInMergeState()
 	if merging {
-		return REBASE_MODE_MERGING
+		return enums.REBASE_MODE_MERGING
 	}
-	return REBASE_MODE_NONE
+	return enums.REBASE_MODE_NONE
 }
 
 // IsInMergeState states whether we are still mid-merge

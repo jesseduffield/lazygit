@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -88,7 +88,7 @@ func (gui *Gui) reflogUndo() error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := gui.Tr.UndoingStatus
 
-	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
+	if gui.GitCommand.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 		return gui.createErrorPanel(gui.Tr.LcCantUndoWhileRebasing)
 	}
 
@@ -123,7 +123,7 @@ func (gui *Gui) reflogRedo() error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := gui.Tr.RedoingStatus
 
-	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
+	if gui.GitCommand.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 		return gui.createErrorPanel(gui.Tr.LcCantRedoWhileRebasing)
 	}
 

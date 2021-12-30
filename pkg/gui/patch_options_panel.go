@@ -3,7 +3,7 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 )
 
 func (gui *Gui) handleCreatePatchOptionsMenu() error {
@@ -26,7 +26,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 		},
 	}
 
-	if gui.GitCommand.PatchManager.CanRebase && gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_NONE {
+	if gui.GitCommand.PatchManager.CanRebase && gui.GitCommand.WorkingTreeState() == enums.REBASE_MODE_NONE {
 		menuItems = append(menuItems, []*menuItem{
 			{
 				displayString: fmt.Sprintf("remove patch from original commit (%s)", gui.GitCommand.PatchManager.To),
@@ -74,7 +74,7 @@ func (gui *Gui) getPatchCommitIndex() int {
 }
 
 func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
-	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NONE {
+	if gui.GitCommand.WorkingTreeState() != enums.REBASE_MODE_NONE {
 		return false, gui.createErrorPanel(gui.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -28,7 +28,7 @@ func (gui *Gui) refreshStatus() {
 		status += presentation.ColoredBranchStatus(currentBranch) + " "
 	}
 
-	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NONE {
+	if gui.GitCommand.WorkingTreeState() != enums.REBASE_MODE_NONE {
 		status += style.FgYellow.Sprintf("(%s) ", gui.GitCommand.WorkingTreeState())
 	}
 
@@ -72,7 +72,7 @@ func (gui *Gui) handleStatusClick() error {
 	upstreamStatus := presentation.BranchStatus(currentBranch)
 	repoName := utils.GetCurrentRepoName()
 	switch gui.GitCommand.WorkingTreeState() {
-	case commands.REBASE_MODE_REBASING, commands.REBASE_MODE_MERGING:
+	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", gui.GitCommand.WorkingTreeState())
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
 			return gui.handleCreateRebaseOptionsMenu()

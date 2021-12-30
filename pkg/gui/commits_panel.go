@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -119,10 +120,10 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
-	builder := commands.NewCommitListBuilder(gui.Common, gui.GitCommand, gui.OSCommand)
+	loader := commands.NewCommitLoader(gui.Common, gui.GitCommand, gui.OSCommand)
 
-	commits, err := builder.GetCommits(
-		commands.GetCommitsOptions{
+	commits, err := loader.GetCommits(
+		loaders.GetCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
@@ -142,9 +143,9 @@ func (gui *Gui) refreshRebaseCommits() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
-	builder := commands.NewCommitListBuilder(gui.Common, gui.GitCommand, gui.OSCommand)
+	loader := commands.NewCommitLoader(gui.Common, gui.GitCommand, gui.OSCommand)
 
-	updatedCommits, err := builder.MergeRebasingCommits(gui.State.Commits)
+	updatedCommits, err := loader.MergeRebasingCommits(gui.State.Commits)
 	if err != nil {
 		return err
 	}

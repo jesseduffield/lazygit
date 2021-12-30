@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
@@ -61,7 +61,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 		},
 		{
 			isActive: func() bool {
-				return gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NONE
+				return gui.GitCommand.WorkingTreeState() != enums.REBASE_MODE_NONE
 			},
 			description: func() string {
 				workingTreeState := gui.GitCommand.WorkingTreeState()
