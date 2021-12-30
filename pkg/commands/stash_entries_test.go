@@ -1,40 +1,30 @@
 package commands
 
 import (
-	"os/exec"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/stretchr/testify/assert"
 )
 
-// TestGitCommandStashDo is a function.
 func TestGitCommandStashDo(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"stash", "drop", "stash@{1}"}, args)
-
-		return secureexec.Command("echo")
-	}
+	runner := oscommands.NewFakeRunner(t).
+		ExpectArgs([]string{"git", "stash", "drop", "stash@{1}"}, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.StashDo(1, "drop"))
+	runner.CheckForMissingCalls()
 }
 
-// TestGitCommandStashSave is a function.
 func TestGitCommandStashSave(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"stash", "save", "A stash message"}, args)
-
-		return secureexec.Command("echo")
-	}
+	runner := oscommands.NewFakeRunner(t).
+		ExpectArgs([]string{"git", "stash", "save", "A stash message"}, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.StashSave("A stash message"))
+	runner.CheckForMissingCalls()
 }
 
-// TestGitCommandShowStashEntryCmdStr is a function.
 func TestGitCommandShowStashEntryCmdStr(t *testing.T) {
 	type scenario struct {
 		testName    string

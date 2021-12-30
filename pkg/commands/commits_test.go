@@ -1,41 +1,30 @@
 package commands
 
 import (
-	"os/exec"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
-	"github.com/jesseduffield/lazygit/pkg/test"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/stretchr/testify/assert"
 )
 
-// TestGitCommandRenameCommit is a function.
 func TestGitCommandRenameCommit(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"commit", "--allow-empty", "--amend", "--only", "-m", "test"}, args)
-
-		return secureexec.Command("echo")
-	}
+	runner := oscommands.NewFakeRunner(t).
+		ExpectArgs([]string{"git", "commit", "--allow-empty", "--amend", "--only", "-m", "test"}, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.RenameCommit("test"))
+	runner.CheckForMissingCalls()
 }
 
-// TestGitCommandResetToCommit is a function.
 func TestGitCommandResetToCommit(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"reset", "--hard", "78976bc"}, args)
-
-		return secureexec.Command("echo")
-	}
+	runner := oscommands.NewFakeRunner(t).
+		ExpectArgs([]string{"git", "reset", "--hard", "78976bc"}, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard", []string{}))
+	runner.CheckForMissingCalls()
 }
 
-// TestGitCommandCommitObj is a function.
 func TestGitCommandCommitObj(t *testing.T) {
 	gitCmd := NewDummyGitCommand()
 
@@ -75,42 +64,35 @@ func TestGitCommandCommitObj(t *testing.T) {
 	}
 }
 
-// TestGitCommandCreateFixupCommit is a function.
 func TestGitCommandCreateFixupCommit(t *testing.T) {
 	type scenario struct {
 		testName string
 		sha      string
-		command  func(string, ...string) *exec.Cmd
+		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			"valid case",
-			"12345",
-			test.CreateMockCommand(t, []*test.CommandSwapper{
-				{
-					Expect:  `git commit --fixup=12345`,
-					Replace: "echo",
-				},
-			}),
-			func(err error) {
+			testName: "valid case",
+			sha:      "12345",
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git commit --fixup=12345`, "", nil),
+			test: func(err error) {
 				assert.NoError(t, err)
 			},
 		},
 	}
 
-	gitCmd := NewDummyGitCommand()
-
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			s.test(gitCmd.CreateFixupCommit(s.sha))
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandShowCmdObj is a function.
 func TestGitCommandShowCmdObj(t *testing.T) {
 	type scenario struct {
 		testName    string
