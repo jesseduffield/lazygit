@@ -736,12 +736,11 @@ func (gui *Gui) push(opts pushOpts) error {
 	}
 	go utils.Safe(func() {
 		err := gui.GitCommand.WithSpan(gui.Tr.Spans.Push).Push(commands.PushOpts{
-			Force:                   opts.force,
-			UpstreamRemote:          opts.upstreamRemote,
-			UpstreamBranch:          opts.upstreamBranch,
-			SetUpstream:             opts.setUpstream,
-			PromptUserForCredential: gui.promptUserForCredential,
-		})
+			Force:          opts.force,
+			UpstreamRemote: opts.upstreamRemote,
+			UpstreamBranch: opts.upstreamBranch,
+			SetUpstream:    opts.setUpstream,
+		}, gui.promptUserForCredential)
 
 		if err != nil && !opts.force && strings.Contains(err.Error(), "Updates were rejected") {
 			forcePushDisabled := gui.UserConfig.Git.DisableForcePushing
