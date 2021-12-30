@@ -1,7 +1,6 @@
 package oscommands
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -14,7 +13,6 @@ func NewDummyCmdObjBuilder(runner ICmdObjRunner) *CmdObjBuilder {
 	return &CmdObjBuilder{
 		runner:    runner,
 		logCmdObj: func(ICmdObj) {},
-		command:   secureexec.Command,
 		platform: &Platform{
 			OS:              "darwin",
 			Shell:           "bash",

@@ -13,7 +13,6 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -21,7 +20,6 @@ import (
 type OSCommand struct {
 	*common.Common
 	Platform *Platform
-	Command  func(string, ...string) *exec.Cmd
 	Getenv   func(string) string
 
 	// callback to run before running a command, i.e. for the purposes of logging
@@ -76,19 +74,17 @@ func NewCmdLogEntry(cmdStr string, span string, commandLine bool) CmdLogEntry {
 
 // NewOSCommand os command runner
 func NewOSCommand(common *common.Common) *OSCommand {
-	command := secureexec.Command
 	platform := getPlatform()
 
 	c := &OSCommand{
 		Common:     common,
 		Platform:   platform,
-		Command:    command,
 		Getenv:     os.Getenv,
 		removeFile: os.RemoveAll,
 	}
 
 	runner := &cmdObjRunner{log: common.Log, logCmdObj: c.LogCmdObj}
-	c.Cmd = &CmdObjBuilder{runner: runner, command: command, logCmdObj: c.LogCmdObj, platform: platform}
+	c.Cmd = &CmdObjBuilder{runner: runner, logCmdObj: c.LogCmdObj, platform: platform}
 
 	return c
 }
@@ -123,12 +119,6 @@ func (c *OSCommand) LogCommand(cmdStr string, commandLine bool) {
 
 func (c *OSCommand) SetOnRunCommand(f func(CmdLogEntry)) {
 	c.onRunCommand = f
-}
-
-// SetCommand sets the command function used by the struct.
-// To be used for testing only
-func (c *OSCommand) SetCommand(cmd func(string, ...string) *exec.Cmd) {
-	c.Command = cmd
 }
 
 // To be used for testing only
