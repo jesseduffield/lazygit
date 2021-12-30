@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// for use in testing
+
 type FakeCmdObjRunner struct {
 	t                *testing.T
 	expectedCmds     []func(ICmdObj) (string, error)

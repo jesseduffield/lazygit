@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
@@ -75,10 +76,10 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 
 func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	// need to populate my sub commits
-	builder := commands.NewCommitListBuilder(gui.Common, gui.GitCommand, gui.OSCommand)
+	loader := commands.NewCommitLoader(gui.Common, gui.GitCommand, gui.OSCommand)
 
-	commits, err := builder.GetCommits(
-		commands.GetCommitsOptions{
+	commits, err := loader.GetCommits(
+		loaders.GetCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: false,
