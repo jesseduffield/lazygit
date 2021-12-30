@@ -23,3 +23,12 @@ func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitComman
 		GetCmdWriter: func() io.Writer { return ioutil.Discard },
 	}
 }
+
+func NewDummyGitCommandWithRunner(runner oscommands.ICmdObjRunner) *GitCommand {
+	builder := oscommands.NewDummyCmdObjBuilder(runner)
+	gitCommand := NewDummyGitCommand()
+	gitCommand.Cmd = builder
+	gitCommand.OSCommand.Cmd = builder
+
+	return gitCommand
+}

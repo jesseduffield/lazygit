@@ -164,7 +164,7 @@ func TestOSCommandFileType(t *testing.T) {
 
 	for _, s := range scenarios {
 		s.setup()
-		s.test(NewDummyOSCommand().FileType(s.path))
+		s.test(FileType(s.path))
 		_ = os.RemoveAll(s.path)
 	}
 }

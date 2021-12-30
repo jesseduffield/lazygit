@@ -10,7 +10,7 @@ func NewDummyOSCommand() *OSCommand {
 	return NewOSCommand(utils.NewDummyCommon())
 }
 
-func NewCmdObjBuilderDummy(runner ICmdObjRunner) ICmdObjBuilder {
+func NewDummyCmdObjBuilder(runner ICmdObjRunner) *CmdObjBuilder {
 	return &CmdObjBuilder{
 		runner:    runner,
 		logCmdObj: func(ICmdObj) {},

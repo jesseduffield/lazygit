@@ -1,36 +1,54 @@
-package commands
+package loaders
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// GetStatusFiles git status files
+type FileLoader struct {
+	*common.Common
+	cmd         oscommands.ICmdObjBuilder
+	gitConfig   git_config.IGitConfig
+	getFileType func(string) string
+}
+
+func NewFileLoader(cmn *common.Common, cmd oscommands.ICmdObjBuilder, gitConfig git_config.IGitConfig) *FileLoader {
+	return &FileLoader{
+		Common:      cmn,
+		cmd:         cmd,
+		gitConfig:   gitConfig,
+		getFileType: oscommands.FileType,
+	}
+}
+
 type GetStatusFileOptions struct {
 	NoRenames bool
 }
 
-func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
+func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 	// check if config wants us ignoring untracked files
-	untrackedFilesSetting := c.GitConfig.Get("status.showUntrackedFiles")
+	untrackedFilesSetting := self.gitConfig.Get("status.showUntrackedFiles")
 
 	if untrackedFilesSetting == "" {
 		untrackedFilesSetting = "all"
 	}
 	untrackedFilesArg := fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
 
-	statuses, err := c.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
+	statuses, err := self.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
 	if err != nil {
-		c.Log.Error(err)
+		self.Log.Error(err)
 	}
 	files := []*models.File{}
 
 	for _, status := range statuses {
 		if strings.HasPrefix(status.StatusString, "warning") {
-			c.Log.Warningf("warning when calling git status: %s", status.StatusString)
+			self.Log.Warningf("warning when calling git status: %s", status.StatusString)
 			continue
 		}
 		change := status.Change
@@ -52,7 +70,7 @@ func (c *GitCommand) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 			Added:                   unstagedChange == "A" || untracked,
 			HasMergeConflicts:       hasMergeConflicts,
 			HasInlineMergeConflicts: hasInlineMergeConflicts,
-			Type:                    c.OSCommand.FileType(status.Name),
+			Type:                    self.getFileType(status.Name),
 			ShortStatus:             change,
 		}
 		files = append(files, file)
@@ -74,13 +92,13 @@ type FileStatus struct {
 	PreviousName string
 }
 
-func (c *GitCommand) GitStatus(opts GitStatusOptions) ([]FileStatus, error) {
+func (c *FileLoader) GitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 	noRenamesFlag := ""
 	if opts.NoRenames {
-		noRenamesFlag = "--no-renames"
+		noRenamesFlag = " --no-renames"
 	}
 
-	statusLines, err := c.Cmd.New(fmt.Sprintf("git status %s --porcelain -z %s", opts.UntrackedFilesArg, noRenamesFlag)).RunWithOutput()
+	statusLines, err := c.cmd.New(fmt.Sprintf("git status %s --porcelain -z%s", opts.UntrackedFilesArg, noRenamesFlag)).RunWithOutput()
 	if err != nil {
 		return []FileStatus{}, err
 	}

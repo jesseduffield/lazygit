@@ -1,120 +1,85 @@
 package commands
 
 import (
-	"os/exec"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
-	"github.com/jesseduffield/lazygit/pkg/test"
+	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/stretchr/testify/assert"
 )
 
-// TestGitCommandGetCommitDifferences is a function.
 func TestGitCommandGetCommitDifferences(t *testing.T) {
 	type scenario struct {
-		testName string
-		command  func(string, ...string) *exec.Cmd
-		test     func(string, string)
+		testName          string
+		runner            *oscommands.FakeCmdObjRunner
+		expectedPushables string
+		expectedPullables string
 	}
 
 	scenarios := []scenario{
 		{
 			"Can't retrieve pushable count",
-			func(string, ...string) *exec.Cmd {
-				return secureexec.Command("test")
-			},
-			func(pushableCount string, pullableCount string) {
-				assert.EqualValues(t, "?", pushableCount)
-				assert.EqualValues(t, "?", pullableCount)
-			},
+			oscommands.NewFakeRunner(t).
+				Expect("git rev-list @{u}..HEAD --count", "", errors.New("error")),
+			"?", "?",
 		},
 		{
 			"Can't retrieve pullable count",
-			func(cmd string, args ...string) *exec.Cmd {
-				if args[1] == "HEAD..@{u}" {
-					return secureexec.Command("test")
-				}
-
-				return secureexec.Command("echo")
-			},
-			func(pushableCount string, pullableCount string) {
-				assert.EqualValues(t, "?", pushableCount)
-				assert.EqualValues(t, "?", pullableCount)
-			},
+			oscommands.NewFakeRunner(t).
+				Expect("git rev-list @{u}..HEAD --count", "1\n", nil).
+				Expect("git rev-list HEAD..@{u} --count", "", errors.New("error")),
+			"?", "?",
 		},
 		{
 			"Retrieve pullable and pushable count",
-			func(cmd string, args ...string) *exec.Cmd {
-				if args[1] == "HEAD..@{u}" {
-					return secureexec.Command("echo", "10")
-				}
-
-				return secureexec.Command("echo", "11")
-			},
-			func(pushableCount string, pullableCount string) {
-				assert.EqualValues(t, "11", pushableCount)
-				assert.EqualValues(t, "10", pullableCount)
-			},
+			oscommands.NewFakeRunner(t).
+				Expect("git rev-list @{u}..HEAD --count", "1\n", nil).
+				Expect("git rev-list HEAD..@{u} --count", "2\n", nil),
+			"1", "2",
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
-			s.test(gitCmd.GetCommitDifferences("HEAD", "@{u}"))
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
+			pushables, pullables := gitCmd.GetCommitDifferences("HEAD", "@{u}")
+			assert.EqualValues(t, s.expectedPushables, pushables)
+			assert.EqualValues(t, s.expectedPullables, pullables)
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandNewBranch is a function.
 func TestGitCommandNewBranch(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"checkout", "-b", "test", "master"}, args)
-
-		return secureexec.Command("echo")
-	}
+	runner := oscommands.NewFakeRunner(t).
+		Expect(`git checkout -b "test" "master"`, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.NewBranch("test", "master"))
+	runner.CheckForMissingCalls()
 }
 
-// TestGitCommandDeleteBranch is a function.
 func TestGitCommandDeleteBranch(t *testing.T) {
 	type scenario struct {
 		testName string
-		branch   string
 		force    bool
-		command  func(string, ...string) *exec.Cmd
+		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
 	}
 
 	scenarios := []scenario{
 		{
 			"Delete a branch",
-			"test",
 			false,
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"branch", "-d", "test"}, args)
-
-				return secureexec.Command("echo")
-			},
+			oscommands.NewFakeRunner(t).Expect(`git branch -d "test"`, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},
 		},
 		{
 			"Force delete a branch",
-			"test",
 			true,
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"branch", "-D", "test"}, args)
-
-				return secureexec.Command("echo")
-			},
+			oscommands.NewFakeRunner(t).Expect(`git branch -D "test"`, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -123,31 +88,27 @@ func TestGitCommandDeleteBranch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
-			s.test(gitCmd.DeleteBranch(s.branch, s.force))
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
+
+			s.test(gitCmd.DeleteBranch("test", s.force))
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandMerge is a function.
 func TestGitCommandMerge(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"merge", "--no-edit", "test"}, args)
-
-		return secureexec.Command("echo")
-	}
+	runner := oscommands.NewFakeRunner(t).
+		Expect(`git merge --no-edit "test"`, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.Merge("test", MergeOpts{}))
+	runner.CheckForMissingCalls()
 }
 
-// TestGitCommandCheckout is a function.
 func TestGitCommandCheckout(t *testing.T) {
 	type scenario struct {
 		testName string
-		command  func(string, ...string) *exec.Cmd
+		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
 		force    bool
 	}
@@ -155,12 +116,7 @@ func TestGitCommandCheckout(t *testing.T) {
 	scenarios := []scenario{
 		{
 			"Checkout",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"checkout", "test"}, args)
-
-				return secureexec.Command("echo")
-			},
+			oscommands.NewFakeRunner(t).Expect(`git checkout "test"`, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -168,12 +124,7 @@ func TestGitCommandCheckout(t *testing.T) {
 		},
 		{
 			"Checkout forced",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-				assert.EqualValues(t, []string{"checkout", "--force", "test"}, args)
-
-				return secureexec.Command("echo")
-			},
+			oscommands.NewFakeRunner(t).Expect(`git checkout --force "test"`, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -183,52 +134,43 @@ func TestGitCommandCheckout(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			s.test(gitCmd.Checkout("test", CheckoutOptions{Force: s.force}))
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandGetBranchGraph is a function.
 func TestGitCommandGetBranchGraph(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--"}, args)
-		return secureexec.Command("echo")
-	}
+	runner := oscommands.NewFakeRunner(t).ExpectArgs([]string{
+		"git", "log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--",
+	}, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
 	_, err := gitCmd.GetBranchGraph("test")
 	assert.NoError(t, err)
 }
 
 func TestGitCommandGetAllBranchGraph(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-	gitCmd.OSCommand.Command = func(cmd string, args ...string) *exec.Cmd {
-		assert.EqualValues(t, "git", cmd)
-		assert.EqualValues(t, []string{"log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium"}, args)
-		return secureexec.Command("echo")
-	}
+	runner := oscommands.NewFakeRunner(t).ExpectArgs([]string{
+		"git", "log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium",
+	}, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
 	cmdStr := gitCmd.UserConfig.Git.AllBranchesLogCmd
 	_, err := gitCmd.Cmd.New(cmdStr).RunWithOutput()
 	assert.NoError(t, err)
 }
 
-// TestGitCommandCurrentBranchName is a function.
 func TestGitCommandCurrentBranchName(t *testing.T) {
 	type scenario struct {
 		testName string
-		command  func(string, ...string) *exec.Cmd
+		runner   *oscommands.FakeCmdObjRunner
 		test     func(string, string, error)
 	}
 
 	scenarios := []scenario{
 		{
 			"says we are on the master branch if we are",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.Equal(t, "git", cmd)
-				return secureexec.Command("echo", "master")
-			},
+			oscommands.NewFakeRunner(t).Expect(`git symbolic-ref --short HEAD`, "master", nil),
 			func(name string, displayname string, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "master", name)
@@ -237,20 +179,9 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 		},
 		{
 			"falls back to git `git branch --contains` if symbolic-ref fails",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-
-				switch args[0] {
-				case "symbolic-ref":
-					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
-					return secureexec.Command("test")
-				case "branch":
-					assert.EqualValues(t, []string{"branch", "--contains"}, args)
-					return secureexec.Command("echo", "* master")
-				}
-
-				return nil
-			},
+			oscommands.NewFakeRunner(t).
+				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
+				Expect(`git branch --contains`, "* master", nil),
 			func(name string, displayname string, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "master", name)
@@ -259,20 +190,9 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 		},
 		{
 			"handles a detached head",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.EqualValues(t, "git", cmd)
-
-				switch args[0] {
-				case "symbolic-ref":
-					assert.EqualValues(t, []string{"symbolic-ref", "--short", "HEAD"}, args)
-					return secureexec.Command("test")
-				case "branch":
-					assert.EqualValues(t, []string{"branch", "--contains"}, args)
-					return secureexec.Command("echo", "* (HEAD detached at 123abcd)")
-				}
-
-				return nil
-			},
+			oscommands.NewFakeRunner(t).
+				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
+				Expect(`git branch --contains`, "* (HEAD detached at 123abcd)", nil),
 			func(name string, displayname string, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "123abcd", name)
@@ -281,10 +201,9 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 		},
 		{
 			"bubbles up error if there is one",
-			func(cmd string, args ...string) *exec.Cmd {
-				assert.Equal(t, "git", cmd)
-				return secureexec.Command("test")
-			},
+			oscommands.NewFakeRunner(t).
+				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
+				Expect(`git branch --contains`, "", errors.New("error")),
 			func(name string, displayname string, err error) {
 				assert.Error(t, err)
 				assert.EqualValues(t, "", name)
@@ -295,19 +214,18 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			s.test(gitCmd.CurrentBranchName())
+			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-// TestGitCommandResetHard is a function.
 func TestGitCommandResetHard(t *testing.T) {
 	type scenario struct {
 		testName string
 		ref      string
-		command  func(string, ...string) *exec.Cmd
+		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
 	}
 
@@ -315,23 +233,17 @@ func TestGitCommandResetHard(t *testing.T) {
 		{
 			"valid case",
 			"HEAD",
-			test.CreateMockCommand(t, []*test.CommandSwapper{
-				{
-					Expect:  `git reset --hard HEAD`,
-					Replace: "echo",
-				},
-			}),
+			oscommands.NewFakeRunner(t).
+				Expect(`git reset --hard "HEAD"`, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},
 		},
 	}
 
-	gitCmd := NewDummyGitCommand()
-
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd.OSCommand.Command = s.command
+			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 			s.test(gitCmd.ResetHard(s.ref))
 		})
 	}

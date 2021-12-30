@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -75,7 +76,10 @@ func (c *GitCommand) BeforeAndAfterFileForRename(file *models.File) (*models.Fil
 	// all files, passing the --no-renames flag and then recursively call the function
 	// again for the before file and after file.
 
-	filesWithoutRenames := c.GetStatusFiles(GetStatusFileOptions{NoRenames: true})
+	filesWithoutRenames := loaders.
+		NewFileLoader(c.Common, c.Cmd, c.GitConfig).
+		GetStatusFiles(loaders.GetStatusFileOptions{NoRenames: true})
+
 	var beforeFile *models.File
 	var afterFile *models.File
 	for _, f := range filesWithoutRenames {

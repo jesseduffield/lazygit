@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -37,20 +36,26 @@ type CommitLoader struct {
 	dotGitDir            string
 }
 
+type CommitLoaderGitCommand interface {
+	CurrentBranchName() (string, string, error)
+	RebaseMode() (enums.RebaseMode, error)
+	GetCmd() oscommands.ICmdObjBuilder
+	GetDotGitDir() string
+}
+
 // making our dependencies explicit for the sake of easier testing
 func NewCommitLoader(
 	cmn *common.Common,
-	gitCommand *commands.GitCommand,
-	osCommand *oscommands.OSCommand,
+	gitCommand CommitLoaderGitCommand,
 ) *CommitLoader {
 	return &CommitLoader{
 		Common:               cmn,
-		cmd:                  gitCommand.Cmd,
+		cmd:                  gitCommand.GetCmd(),
 		getCurrentBranchName: gitCommand.CurrentBranchName,
 		getRebaseMode:        gitCommand.RebaseMode,
 		readFile:             ioutil.ReadFile,
 		walkFiles:            filepath.Walk,
-		dotGitDir:            gitCommand.DotGitDir,
+		dotGitDir:            gitCommand.GetDotGitDir(),
 	}
 }
 

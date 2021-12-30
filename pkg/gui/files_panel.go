@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -553,7 +554,9 @@ func (gui *Gui) refreshStateFiles() error {
 	prevNodes := gui.State.FileManager.GetAllItems()
 	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
 
-	files := gui.GitCommand.GetStatusFiles(commands.GetStatusFileOptions{})
+	files := loaders.
+		NewFileLoader(gui.Common, gui.GitCommand.Cmd, gui.GitCommand.GitConfig).
+		GetStatusFiles(loaders.GetStatusFileOptions{})
 
 	// for when you stage the old file of a rename and the new file is in a collapsed dir
 	state.FileManager.RWMutex.Lock()
