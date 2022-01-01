@@ -1,9 +1,7 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -23,7 +21,7 @@ func (gui *Gui) stashRenderToMain() error {
 	if stashEntry == nil {
 		task = NewRenderStringTask(gui.Tr.NoStashEntries)
 	} else {
-		task = NewRunPtyTask(gui.GitCommand.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
+		task = NewRunPtyTask(gui.GitCommand.Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -35,8 +33,7 @@ func (gui *Gui) stashRenderToMain() error {
 }
 
 func (gui *Gui) refreshStashEntries() error {
-	gui.State.StashEntries = loaders.
-		NewStashLoader(gui.Common, gui.GitCommand.Cmd).
+	gui.State.StashEntries = gui.GitCommand.Loaders.Stash.
 		GetStashEntries(gui.State.Modes.Filtering.GetPath())
 
 	return gui.State.Contexts.Stash.HandleRender()
@@ -45,10 +42,19 @@ func (gui *Gui) refreshStashEntries() error {
 // specific functions
 
 func (gui *Gui) handleStashApply() error {
+	stashEntry := gui.getSelectedStashEntry()
+	if stashEntry == nil {
+		return nil
+	}
+
 	skipStashWarning := gui.UserConfig.Gui.SkipStashWarning
 
 	apply := func() error {
-		return gui.stashDo("apply")
+		gui.logAction(gui.Tr.Actions.Stash)
+		if err := gui.GitCommand.Stash.Apply(stashEntry.Index); err != nil {
+			return gui.surfaceError(err)
+		}
+		return gui.postStashRefresh()
 	}
 
 	if skipStashWarning {
@@ -65,10 +71,19 @@ func (gui *Gui) handleStashApply() error {
 }
 
 func (gui *Gui) handleStashPop() error {
+	stashEntry := gui.getSelectedStashEntry()
+	if stashEntry == nil {
+		return nil
+	}
+
 	skipStashWarning := gui.UserConfig.Gui.SkipStashWarning
 
 	pop := func() error {
-		return gui.stashDo("pop")
+		gui.logAction(gui.Tr.Actions.Stash)
+		if err := gui.GitCommand.Stash.Pop(stashEntry.Index); err != nil {
+			return gui.surfaceError(err)
+		}
+		return gui.postStashRefresh()
 	}
 
 	if skipStashWarning {
@@ -85,31 +100,25 @@ func (gui *Gui) handleStashPop() error {
 }
 
 func (gui *Gui) handleStashDrop() error {
+	stashEntry := gui.getSelectedStashEntry()
+	if stashEntry == nil {
+		return nil
+	}
+
 	return gui.ask(askOpts{
 		title:  gui.Tr.StashDrop,
 		prompt: gui.Tr.SureDropStashEntry,
 		handleConfirm: func() error {
-			return gui.stashDo("drop")
+			gui.logAction(gui.Tr.Actions.Stash)
+			if err := gui.GitCommand.Stash.Drop(stashEntry.Index); err != nil {
+				return gui.surfaceError(err)
+			}
+			return gui.postStashRefresh()
 		},
 	})
 }
 
-func (gui *Gui) stashDo(method string) error {
-	stashEntry := gui.getSelectedStashEntry()
-	if stashEntry == nil {
-		errorMessage := utils.ResolvePlaceholderString(
-			gui.Tr.NoStashTo,
-			map[string]string{
-				"method": method,
-			},
-		)
-
-		return gui.createErrorPanel(errorMessage)
-	}
-	gui.logAction(gui.Tr.Actions.Stash)
-	if err := gui.GitCommand.StashDo(stashEntry.Index, method); err != nil {
-		return gui.surfaceError(err)
-	}
+func (gui *Gui) postStashRefresh() error {
 	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})
 }
 

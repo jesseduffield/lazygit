@@ -86,7 +86,7 @@ func (gui *Gui) handleAddRemote() error {
 				title: gui.Tr.LcNewRemoteUrl,
 				handleConfirm: func(remoteUrl string) error {
 					gui.logAction(gui.Tr.Actions.AddRemote)
-					if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
+					if err := gui.GitCommand.Remote.AddRemote(remoteName, remoteUrl); err != nil {
 						return err
 					}
 					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{REMOTES}})
@@ -108,7 +108,7 @@ func (gui *Gui) handleRemoveRemote() error {
 		prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.RemoveRemote)
-			if err := gui.GitCommand.RemoveRemote(remote.Name); err != nil {
+			if err := gui.GitCommand.Remote.RemoveRemote(remote.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 
@@ -136,7 +136,7 @@ func (gui *Gui) handleEditRemote() error {
 		handleConfirm: func(updatedRemoteName string) error {
 			if updatedRemoteName != remote.Name {
 				gui.logAction(gui.Tr.Actions.UpdateRemote)
-				if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
+				if err := gui.GitCommand.Remote.RenameRemote(remote.Name, updatedRemoteName); err != nil {
 					return gui.surfaceError(err)
 				}
 			}
@@ -159,7 +159,7 @@ func (gui *Gui) handleEditRemote() error {
 				initialContent: url,
 				handleConfirm: func(updatedRemoteUrl string) error {
 					gui.logAction(gui.Tr.Actions.UpdateRemote)
-					if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
+					if err := gui.GitCommand.Remote.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 						return gui.surfaceError(err)
 					}
 					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
@@ -179,7 +179,7 @@ func (gui *Gui) handleFetchRemote() error {
 		gui.Mutexes.FetchMutex.Lock()
 		defer gui.Mutexes.FetchMutex.Unlock()
 
-		err := gui.GitCommand.FetchRemote(remote.Name, gui.promptUserForCredential)
+		err := gui.GitCommand.Sync.FetchRemote(remote.Name)
 		gui.handleCredentialsPopup(err)
 
 		return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})

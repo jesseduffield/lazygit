@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -19,11 +18,31 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// this takes something like:
-// * (HEAD detached at 264fc6f5)
-//	remotes
-// and returns '264fc6f5' as the second match
-const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
+// GitCommand is our main git interface
+type GitCommand struct {
+	*common.Common
+	OSCommand *oscommands.OSCommand
+
+	Repo *gogit.Repository
+
+	Loaders Loaders
+
+	Cmd oscommands.ICmdObjBuilder
+
+	Submodule   *SubmoduleCommands
+	Tag         *TagCommands
+	WorkingTree *WorkingTreeCommands
+	File        *FileCommands
+	Branch      *BranchCommands
+	Commit      *CommitCommands
+	Rebase      *RebaseCommands
+	Stash       *StashCommands
+	Status      *StatusCommands
+	Config      *ConfigCommands
+	Patch       *PatchCommands
+	Remote      *RemoteCommands
+	Sync        *SyncCommands
+}
 
 type Loaders struct {
 	Commits       *loaders.CommitLoader
@@ -36,44 +55,17 @@ type Loaders struct {
 	Tags          *loaders.TagLoader
 }
 
-// GitCommand is our main git interface
-type GitCommand struct {
-	*common.Common
-	OSCommand            *oscommands.OSCommand
-	Repo                 *gogit.Repository
-	DotGitDir            string
-	onSuccessfulContinue func() error
-	PatchManager         *patch.PatchManager
-	GitConfig            git_config.IGitConfig
-	Loaders              Loaders
-
-	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
-	PushToCurrent bool
-
-	// this is just a view that we write to when running certain commands.
-	// Coincidentally at the moment it's the same view that OnRunCommand logs to
-	// but that need not always be the case.
-	GetCmdWriter func() io.Writer
-
-	Cmd oscommands.ICmdObjBuilder
-}
-
-// NewGitCommand it runs git commands
 func NewGitCommand(
 	cmn *common.Common,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
 ) (*GitCommand, error) {
-	var repo *gogit.Repository
-
-	pushToCurrent := gitConfig.Get("push.default") == "current"
-
 	if err := navigateToRepoRootDirectory(os.Stat, os.Chdir); err != nil {
 		return nil, err
 	}
 
-	var err error
-	if repo, err = setupRepository(gogit.PlainOpen, cmn.Tr.GitconfigParseErr); err != nil {
+	repo, err := setupRepository(gogit.PlainOpen, cmn.Tr.GitconfigParseErr)
+	if err != nil {
 		return nil, err
 	}
 
@@ -82,33 +74,81 @@ func NewGitCommand(
 		return nil, err
 	}
 
+	return NewGitCommandAux(
+		cmn,
+		osCommand,
+		gitConfig,
+		dotGitDir,
+		repo,
+	), nil
+}
+
+func NewGitCommandAux(
+	cmn *common.Common,
+	osCommand *oscommands.OSCommand,
+	gitConfig git_config.IGitConfig,
+	dotGitDir string,
+	repo *gogit.Repository,
+) *GitCommand {
 	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd)
 
-	gitCommand := &GitCommand{
-		Common:        cmn,
-		OSCommand:     osCommand,
-		Repo:          repo,
-		DotGitDir:     dotGitDir,
-		PushToCurrent: pushToCurrent,
-		GitConfig:     gitConfig,
-		GetCmdWriter:  func() io.Writer { return ioutil.Discard },
-		Cmd:           cmd,
+	configCommands := NewConfigCommands(cmn, gitConfig)
+	statusCommands := NewStatusCommands(cmn, osCommand, repo, dotGitDir)
+	fileLoader := loaders.NewFileLoader(cmn, cmd, configCommands)
+	remoteCommands := NewRemoteCommands(cmn, cmd)
+	branchCommands := NewBranchCommands(cmn, cmd)
+	syncCommands := NewSyncCommands(cmn, cmd)
+	tagCommands := NewTagCommands(cmn, cmd)
+	commitCommands := NewCommitCommands(cmn, cmd)
+	fileCommands := NewFileCommands(cmn, cmd, configCommands, osCommand)
+	submoduleCommands := NewSubmoduleCommands(cmn, cmd, dotGitDir)
+	workingTreeCommands := NewWorkingTreeCommands(cmn, cmd, submoduleCommands, osCommand, fileLoader)
+	rebaseCommands := NewRebaseCommands(
+		cmn,
+		cmd,
+		osCommand,
+		commitCommands,
+		workingTreeCommands,
+		configCommands,
+		dotGitDir,
+	)
+	stashCommands := NewStashCommands(cmn, cmd, osCommand, fileLoader, workingTreeCommands)
+	// TODO: have patch manager take workingTreeCommands in its entirety
+	patchManager := patch.NewPatchManager(cmn.Log, workingTreeCommands.ApplyPatch, workingTreeCommands.ShowFileDiff)
+	patchCommands := NewPatchCommands(cmn, cmd, rebaseCommands, commitCommands, configCommands, statusCommands, patchManager)
+
+	return &GitCommand{
+		Common:    cmn,
+		OSCommand: osCommand,
+
+		Repo: repo,
+
+		Cmd: cmd,
+
+		Submodule:   submoduleCommands,
+		Tag:         tagCommands,
+		WorkingTree: workingTreeCommands,
+		File:        fileCommands,
+		Branch:      branchCommands,
+		Commit:      commitCommands,
+		Rebase:      rebaseCommands,
+		Config:      configCommands,
+		Stash:       stashCommands,
+		Status:      statusCommands,
+		Patch:       patchCommands,
+		Remote:      remoteCommands,
+		Sync:        syncCommands,
+		Loaders: Loaders{
+			Commits:       loaders.NewCommitLoader(cmn, cmd, dotGitDir, branchCommands.CurrentBranchName, statusCommands.RebaseMode),
+			Branches:      loaders.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchName),
+			Files:         fileLoader,
+			CommitFiles:   loaders.NewCommitFileLoader(cmn, cmd),
+			Remotes:       loaders.NewRemoteLoader(cmn, cmd, repo.Remotes),
+			ReflogCommits: loaders.NewReflogCommitLoader(cmn, cmd),
+			Stash:         loaders.NewStashLoader(cmn, cmd),
+			Tags:          loaders.NewTagLoader(cmn, cmd),
+		},
 	}
-
-	gitCommand.Loaders = Loaders{
-		Commits:       loaders.NewCommitLoader(cmn, gitCommand),
-		Branches:      loaders.NewBranchLoader(cmn, gitCommand),
-		Files:         loaders.NewFileLoader(cmn, cmd, gitConfig),
-		CommitFiles:   loaders.NewCommitFileLoader(cmn, cmd),
-		Remotes:       loaders.NewRemoteLoader(cmn, cmd, gitCommand.Repo.Remotes),
-		ReflogCommits: loaders.NewReflogCommitLoader(cmn, cmd),
-		Stash:         loaders.NewStashLoader(cmn, cmd),
-		Tags:          loaders.NewTagLoader(cmn, cmd),
-	}
-
-	gitCommand.PatchManager = patch.NewPatchManager(gitCommand.Log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
-
-	return gitCommand, nil
 }
 
 func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir func(string) error) error {
@@ -223,12 +263,4 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 
 func VerifyInGitRepo(osCommand *oscommands.OSCommand) error {
 	return osCommand.Cmd.New("git rev-parse --git-dir").DontLog().Run()
-}
-
-func (c *GitCommand) GetDotGitDir() string {
-	return c.DotGitDir
-}
-
-func (c *GitCommand) GetCmd() oscommands.ICmdObjBuilder {
-	return c.Cmd
 }

@@ -18,7 +18,7 @@ func (gui *Gui) getFromAndReverseArgsForDiff(to string) (string, bool) {
 }
 
 func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *LblPanelState) error {
-	if !gui.GitCommand.PatchManager.Active() {
+	if !gui.GitCommand.Patch.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
 	}
 
@@ -33,12 +33,12 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *LblPanelSt
 
 	to := gui.State.CommitFileManager.GetParent()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
-	diff, err := gui.GitCommand.ShowFileDiff(from, to, reverse, node.GetPath(), true)
+	diff, err := gui.GitCommand.WorkingTree.ShowFileDiff(from, to, reverse, node.GetPath(), true)
 	if err != nil {
 		return err
 	}
 
-	secondaryDiff := gui.GitCommand.PatchManager.RenderPatchForFile(node.GetPath(), true, false, true)
+	secondaryDiff := gui.GitCommand.Patch.PatchManager.RenderPatchForFile(node.GetPath(), true, false, true)
 	if err != nil {
 		return err
 	}
@@ -64,15 +64,15 @@ func (gui *Gui) handleRefreshPatchBuildingPanel(selectedLineIdx int) error {
 
 func (gui *Gui) handleToggleSelectionForPatch() error {
 	err := gui.withLBLActiveCheck(func(state *LblPanelState) error {
-		toggleFunc := gui.GitCommand.PatchManager.AddFileLineRange
+		toggleFunc := gui.GitCommand.Patch.PatchManager.AddFileLineRange
 		filename := gui.getSelectedCommitFileName()
-		includedLineIndices, err := gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+		includedLineIndices, err := gui.GitCommand.Patch.PatchManager.GetFileIncLineIndices(filename)
 		if err != nil {
 			return err
 		}
 		currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.GetSelectedLineIdx())
 		if currentLineIsStaged {
-			toggleFunc = gui.GitCommand.PatchManager.RemoveFileLineRange
+			toggleFunc = gui.GitCommand.Patch.PatchManager.RemoveFileLineRange
 		}
 
 		// add range of lines to those set for the file
@@ -105,8 +105,8 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 func (gui *Gui) handleEscapePatchBuildingPanel() error {
 	gui.escapeLineByLinePanel()
 
-	if gui.GitCommand.PatchManager.IsEmpty() {
-		gui.GitCommand.PatchManager.Reset()
+	if gui.GitCommand.Patch.PatchManager.IsEmpty() {
+		gui.GitCommand.Patch.PatchManager.Reset()
 	}
 
 	if gui.currentContext().GetKey() == gui.State.Contexts.PatchBuilding.GetKey() {
@@ -118,8 +118,8 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 }
 
 func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
-	if gui.GitCommand.PatchManager.Active() {
-		patch := gui.GitCommand.PatchManager.RenderAggregatedPatchColored(false)
+	if gui.GitCommand.Patch.PatchManager.Active() {
+		patch := gui.GitCommand.Patch.PatchManager.RenderAggregatedPatchColored(false)
 
 		return &viewUpdateOpts{
 			title:     "Custom Patch",

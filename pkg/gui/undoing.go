@@ -88,7 +88,7 @@ func (gui *Gui) reflogUndo() error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := gui.Tr.UndoingStatus
 
-	if gui.GitCommand.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if gui.GitCommand.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 		return gui.createErrorPanel(gui.Tr.LcCantUndoWhileRebasing)
 	}
 
@@ -121,7 +121,7 @@ func (gui *Gui) reflogRedo() error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := gui.Tr.RedoingStatus
 
-	if gui.GitCommand.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if gui.GitCommand.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 		return gui.createErrorPanel(gui.Tr.LcCantRedoWhileRebasing)
 	}
 
@@ -176,14 +176,14 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 			prompt: gui.Tr.AutoStashPrompt,
 			handleConfirm: func() error {
 				return gui.WithWaitingStatus(options.WaitingStatus, func() error {
-					if err := gui.GitCommand.StashSave(gui.Tr.StashPrefix + commitSha); err != nil {
+					if err := gui.GitCommand.Stash.Save(gui.Tr.StashPrefix + commitSha); err != nil {
 						return gui.surfaceError(err)
 					}
 					if err := reset(); err != nil {
 						return err
 					}
 
-					err := gui.GitCommand.StashDo(0, "pop")
+					err := gui.GitCommand.Stash.Pop(0)
 					if err := gui.refreshSidePanels(refreshOptions{}); err != nil {
 						return err
 					}

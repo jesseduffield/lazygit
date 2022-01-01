@@ -26,7 +26,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 			reset: gui.exitDiffMode,
 		},
 		{
-			isActive: gui.GitCommand.PatchManager.Active,
+			isActive: gui.GitCommand.Patch.PatchManager.Active,
 			description: func() string {
 				return style.FgYellow.SetBold().Sprintf(
 					"%s %s",
@@ -61,10 +61,10 @@ func (gui *Gui) modeStatuses() []modeStatus {
 		},
 		{
 			isActive: func() bool {
-				return gui.GitCommand.WorkingTreeState() != enums.REBASE_MODE_NONE
+				return gui.GitCommand.Status.WorkingTreeState() != enums.REBASE_MODE_NONE
 			},
 			description: func() string {
-				workingTreeState := gui.GitCommand.WorkingTreeState()
+				workingTreeState := gui.GitCommand.Status.WorkingTreeState()
 				return style.FgYellow.Sprintf(
 					"%s %s",
 					workingTreeState,

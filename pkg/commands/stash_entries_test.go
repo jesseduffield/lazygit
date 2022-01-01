@@ -7,12 +7,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitCommandStashDo(t *testing.T) {
+func TestGitCommandStashDrop(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"stash", "drop", "stash@{1}"}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 
-	assert.NoError(t, gitCmd.StashDo(1, "drop"))
+	assert.NoError(t, gitCmd.Stash.Drop(1))
+	runner.CheckForMissingCalls()
+}
+
+func TestGitCommandStashApply(t *testing.T) {
+	runner := oscommands.NewFakeRunner(t).
+		ExpectGitArgs([]string{"stash", "apply", "stash@{1}"}, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
+
+	assert.NoError(t, gitCmd.Stash.Apply(1))
+	runner.CheckForMissingCalls()
+}
+
+func TestGitCommandStashPop(t *testing.T) {
+	runner := oscommands.NewFakeRunner(t).
+		ExpectGitArgs([]string{"stash", "pop", "stash@{1}"}, "", nil)
+	gitCmd := NewDummyGitCommandWithRunner(runner)
+
+	assert.NoError(t, gitCmd.Stash.Pop(1))
 	runner.CheckForMissingCalls()
 }
 
@@ -21,7 +39,7 @@ func TestGitCommandStashSave(t *testing.T) {
 		ExpectGitArgs([]string{"stash", "save", "A stash message"}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 
-	assert.NoError(t, gitCmd.StashSave("A stash message"))
+	assert.NoError(t, gitCmd.Stash.Save("A stash message"))
 	runner.CheckForMissingCalls()
 }
 
@@ -52,7 +70,7 @@ func TestGitCommandShowStashEntryCmdObj(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
-			cmdStr := gitCmd.ShowStashEntryCmdObj(s.index).ToString()
+			cmdStr := gitCmd.Stash.ShowStashEntryCmdObj(s.index).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}

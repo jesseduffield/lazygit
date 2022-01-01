@@ -11,19 +11,24 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+type FileLoaderConfig interface {
+	GetShowUntrackedFiles() string
+}
+
 type FileLoader struct {
 	*common.Common
 	cmd         oscommands.ICmdObjBuilder
+	config      FileLoaderConfig
 	gitConfig   git_config.IGitConfig
 	getFileType func(string) string
 }
 
-func NewFileLoader(cmn *common.Common, cmd oscommands.ICmdObjBuilder, gitConfig git_config.IGitConfig) *FileLoader {
+func NewFileLoader(cmn *common.Common, cmd oscommands.ICmdObjBuilder, config FileLoaderConfig) *FileLoader {
 	return &FileLoader{
 		Common:      cmn,
 		cmd:         cmd,
-		gitConfig:   gitConfig,
 		getFileType: oscommands.FileType,
+		config:      config,
 	}
 }
 
@@ -33,7 +38,7 @@ type GetStatusFileOptions struct {
 
 func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File {
 	// check if config wants us ignoring untracked files
-	untrackedFilesSetting := self.gitConfig.Get("status.showUntrackedFiles")
+	untrackedFilesSetting := self.config.GetShowUntrackedFiles()
 
 	if untrackedFilesSetting == "" {
 		untrackedFilesSetting = "all"

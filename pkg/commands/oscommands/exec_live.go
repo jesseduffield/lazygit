@@ -13,12 +13,12 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// DetectUnamePass detect a username / password / passphrase question in a command
+// RunAndDetectCredentialRequest detect a username / password / passphrase question in a command
 // promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (c *OSCommand) DetectUnamePass(cmdObj ICmdObj, writer io.Writer, promptUserForCredential func(string) string) error {
+func (self *cmdObjRunner) RunAndDetectCredentialRequest(cmdObj ICmdObj, promptUserForCredential func(string) string) error {
 	ttyText := ""
-	errMessage := c.RunCommandWithOutputLive(cmdObj, writer, func(word string) string {
+	err := self.RunCommandWithOutputLive(cmdObj, func(word string) string {
 		ttyText = ttyText + " " + word
 
 		prompts := map[string]string{
@@ -37,13 +37,7 @@ func (c *OSCommand) DetectUnamePass(cmdObj ICmdObj, writer io.Writer, promptUser
 
 		return ""
 	})
-	return errMessage
-}
-
-// Due to a lack of pty support on windows we have RunCommandWithOutputLiveWrapper being defined
-// separate for windows and other OS's
-func (c *OSCommand) RunCommandWithOutputLive(cmdObj ICmdObj, writer io.Writer, handleOutput func(string) string) error {
-	return RunCommandWithOutputLiveWrapper(c, cmdObj, writer, handleOutput)
+	return err
 }
 
 type cmdHandler struct {
@@ -56,23 +50,22 @@ type cmdHandler struct {
 // Output is a function that executes by every word that gets read by bufio
 // As return of output you need to give a string that will be written to stdin
 // NOTE: If the return data is empty it won't write anything to stdin
-func RunCommandWithOutputLiveAux(
-	c *OSCommand,
+func (self *cmdObjRunner) RunCommandWithOutputLiveAux(
 	cmdObj ICmdObj,
-	writer io.Writer,
 	// handleOutput takes a word from stdout and returns a string to be written to stdin.
-	// See DetectUnamePass above for how this is used to check for a username/password request
+	// See RunAndDetectCredentialRequest above for how this is used to check for a username/password request
 	handleOutput func(string) string,
 	startCmd func(cmd *exec.Cmd) (*cmdHandler, error),
 ) error {
-	c.Log.WithField("command", cmdObj.ToString()).Info("RunCommand")
+	cmdWriter := self.guiIO.newCmdWriterFn()
+	self.log.WithField("command", cmdObj.ToString()).Info("RunCommand")
 	if cmdObj.ShouldLog() {
-		c.LogCommand(cmdObj.ToString(), true)
+		self.logCmdObj(cmdObj)
 	}
 	cmd := cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8").GetCmd()
 
 	var stderr bytes.Buffer
-	cmd.Stderr = io.MultiWriter(writer, &stderr)
+	cmd.Stderr = io.MultiWriter(cmdWriter, &stderr)
 
 	handler, err := startCmd(cmd)
 	if err != nil {
@@ -81,11 +74,11 @@ func RunCommandWithOutputLiveAux(
 
 	defer func() {
 		if closeErr := handler.close(); closeErr != nil {
-			c.Log.Error(closeErr)
+			self.log.Error(closeErr)
 		}
 	}()
 
-	tr := io.TeeReader(handler.stdoutPipe, writer)
+	tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
 
 	go utils.Safe(func() {
 		scanner := bufio.NewScanner(tr)

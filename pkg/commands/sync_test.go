@@ -87,7 +87,7 @@ func TestGitCommandPush(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommandWithRunner(oscommands.NewFakeRunner(t))
-			s.test(gitCmd.PushCmdObj(s.opts))
+			s.test(gitCmd.Sync.PushCmdObj(s.opts))
 		})
 	}
 }

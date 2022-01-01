@@ -26,18 +26,14 @@ func (b *Buffer) Write(p []byte) (n int, err error) {
 	return b.b.Write(p)
 }
 
-// RunCommandWithOutputLiveWrapper runs a command live but because of windows compatibility this command can't be ran there
+// RunCommandWithOutputLive runs a command live but because of windows compatibility this command can't be ran there
 // TODO: Remove this hack and replace it with a proper way to run commands live on windows. We still have an issue where if a password is requested, the request for a password is written straight to stdout because we can't control the stdout of a subprocess of a subprocess. Keep an eye on https://github.com/creack/pty/pull/109
-func RunCommandWithOutputLiveWrapper(
-	c *OSCommand,
+func (self *cmdObjRunner) RunCommandWithOutputLive(
 	cmdObj ICmdObj,
-	writer io.Writer,
 	output func(string) string,
 ) error {
-	return RunCommandWithOutputLiveAux(
-		c,
+	return self.RunCommandWithOutputLiveAux(
 		cmdObj,
-		writer,
 		output,
 		func(cmd *exec.Cmd) (*cmdHandler, error) {
 			stdoutReader, stdoutWriter := io.Pipe()

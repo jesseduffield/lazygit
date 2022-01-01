@@ -5,7 +5,24 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 )
+
+type SyncCommands struct {
+	*common.Common
+
+	cmd oscommands.ICmdObjBuilder
+}
+
+func NewSyncCommands(
+	common *common.Common,
+	cmd oscommands.ICmdObjBuilder,
+) *SyncCommands {
+	return &SyncCommands{
+		Common: common,
+		cmd:    cmd,
+	}
+}
 
 // Push pushes to a branch
 type PushOpts struct {
@@ -15,7 +32,7 @@ type PushOpts struct {
 	SetUpstream    bool
 }
 
-func (c *GitCommand) PushCmdObj(opts PushOpts) (oscommands.ICmdObj, error) {
+func (self *SyncCommands) PushCmdObj(opts PushOpts) (oscommands.ICmdObj, error) {
 	cmdStr := "git push"
 
 	if opts.Force {
@@ -27,71 +44,62 @@ func (c *GitCommand) PushCmdObj(opts PushOpts) (oscommands.ICmdObj, error) {
 	}
 
 	if opts.UpstreamRemote != "" {
-		cmdStr += " " + c.OSCommand.Quote(opts.UpstreamRemote)
+		cmdStr += " " + self.cmd.Quote(opts.UpstreamRemote)
 	}
 
 	if opts.UpstreamBranch != "" {
 		if opts.UpstreamRemote == "" {
-			return nil, errors.New(c.Tr.MustSpecifyOriginError)
+			return nil, errors.New(self.Tr.MustSpecifyOriginError)
 		}
-		cmdStr += " " + c.OSCommand.Quote(opts.UpstreamBranch)
+		cmdStr += " " + self.cmd.Quote(opts.UpstreamBranch)
 	}
 
-	cmdObj := c.Cmd.New(cmdStr)
+	cmdObj := self.cmd.New(cmdStr).PromptOnCredentialRequest()
 	return cmdObj, nil
 }
 
-func (c *GitCommand) Push(opts PushOpts, promptUserForCredential func(string) string) error {
-	cmdObj, err := c.PushCmdObj(opts)
+func (self *SyncCommands) Push(opts PushOpts) error {
+	cmdObj, err := self.PushCmdObj(opts)
 	if err != nil {
 		return err
 	}
 
-	return c.DetectUnamePass(cmdObj, promptUserForCredential)
+	return cmdObj.Run()
 }
 
 type FetchOptions struct {
-	PromptUserForCredential func(string) string
-	RemoteName              string
-	BranchName              string
+	Background bool
+	RemoteName string
+	BranchName string
 }
 
 // Fetch fetch git repo
-func (c *GitCommand) Fetch(opts FetchOptions) error {
+func (self *SyncCommands) Fetch(opts FetchOptions) error {
 	cmdStr := "git fetch"
 
 	if opts.RemoteName != "" {
-		cmdStr = fmt.Sprintf("%s %s", cmdStr, c.OSCommand.Quote(opts.RemoteName))
+		cmdStr = fmt.Sprintf("%s %s", cmdStr, self.cmd.Quote(opts.RemoteName))
 	}
 	if opts.BranchName != "" {
-		cmdStr = fmt.Sprintf("%s %s", cmdStr, c.OSCommand.Quote(opts.BranchName))
+		cmdStr = fmt.Sprintf("%s %s", cmdStr, self.cmd.Quote(opts.BranchName))
 	}
 
-	cmdObj := c.Cmd.New(cmdStr)
-	userInitiated := opts.PromptUserForCredential != nil
-	if !userInitiated {
-		cmdObj.DontLog()
+	cmdObj := self.cmd.New(cmdStr)
+	if opts.Background {
+		cmdObj.DontLog().FailOnCredentialRequest()
+	} else {
+		cmdObj.PromptOnCredentialRequest()
 	}
-	return c.DetectUnamePass(cmdObj, func(question string) string {
-		if userInitiated {
-			return opts.PromptUserForCredential(question)
-		}
-		return "\n"
-	})
+	return cmdObj.Run()
 }
 
 type PullOptions struct {
-	PromptUserForCredential func(string) string
-	RemoteName              string
-	BranchName              string
-	FastForwardOnly         bool
+	RemoteName      string
+	BranchName      string
+	FastForwardOnly bool
 }
 
-func (c *GitCommand) Pull(opts PullOptions) error {
-	if opts.PromptUserForCredential == nil {
-		return errors.New("PromptUserForCredential is required")
-	}
-
+func (self *SyncCommands) Pull(opts PullOptions) error {
 	cmdStr := "git pull --no-edit"
 
 	if opts.FastForwardOnly {
@@ -99,26 +107,23 @@ func (c *GitCommand) Pull(opts PullOptions) error {
 	}
 
 	if opts.RemoteName != "" {
-		cmdStr = fmt.Sprintf("%s %s", cmdStr, c.OSCommand.Quote(opts.RemoteName))
+		cmdStr = fmt.Sprintf("%s %s", cmdStr, self.cmd.Quote(opts.RemoteName))
 	}
 	if opts.BranchName != "" {
-		cmdStr = fmt.Sprintf("%s %s", cmdStr, c.OSCommand.Quote(opts.BranchName))
+		cmdStr = fmt.Sprintf("%s %s", cmdStr, self.cmd.Quote(opts.BranchName))
 	}
 
 	// setting GIT_SEQUENCE_EDITOR to ':' as a way of skipping it, in case the user
 	// has 'pull.rebase = interactive' configured.
-	cmdObj := c.Cmd.New(cmdStr).AddEnvVars("GIT_SEQUENCE_EDITOR=:")
-	return c.DetectUnamePass(cmdObj, opts.PromptUserForCredential)
+	return self.cmd.New(cmdStr).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest().Run()
 }
 
-func (c *GitCommand) FastForward(branchName string, remoteName string, remoteBranchName string, promptUserForCredential func(string) string) error {
-	cmdStr := fmt.Sprintf("git fetch %s %s:%s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(remoteBranchName), c.OSCommand.Quote(branchName))
-	cmdObj := c.Cmd.New(cmdStr)
-	return c.DetectUnamePass(cmdObj, promptUserForCredential)
+func (self *SyncCommands) FastForward(branchName string, remoteName string, remoteBranchName string) error {
+	cmdStr := fmt.Sprintf("git fetch %s %s:%s", self.cmd.Quote(remoteName), self.cmd.Quote(remoteBranchName), self.cmd.Quote(branchName))
+	return self.cmd.New(cmdStr).PromptOnCredentialRequest().Run()
 }
 
-func (c *GitCommand) FetchRemote(remoteName string, promptUserForCredential func(string) string) error {
-	cmdStr := fmt.Sprintf("git fetch %s", c.OSCommand.Quote(remoteName))
-	cmdObj := c.Cmd.New(cmdStr)
-	return c.DetectUnamePass(cmdObj, promptUserForCredential)
+func (self *SyncCommands) FetchRemote(remoteName string) error {
+	cmdStr := fmt.Sprintf("git fetch %s", self.cmd.Quote(remoteName))
+	return self.cmd.New(cmdStr).PromptOnCredentialRequest().Run()
 }

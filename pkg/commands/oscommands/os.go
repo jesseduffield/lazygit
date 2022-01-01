@@ -20,7 +20,7 @@ import (
 type OSCommand struct {
 	*common.Common
 	Platform *Platform
-	Getenv   func(string) string
+	GetenvFn func(string) string
 
 	// callback to run before running a command, i.e. for the purposes of logging.
 	// the string argument is the command string e.g. 'git add .' and the bool is
@@ -43,22 +43,18 @@ type Platform struct {
 }
 
 // NewOSCommand os command runner
-func NewOSCommand(common *common.Common, platform *Platform) *OSCommand {
+func NewOSCommand(common *common.Common, platform *Platform, guiIO *guiIO) *OSCommand {
 	c := &OSCommand{
 		Common:     common,
 		Platform:   platform,
-		Getenv:     os.Getenv,
+		GetenvFn:   os.Getenv,
 		removeFile: os.RemoveAll,
 	}
 
-	runner := &cmdObjRunner{log: common.Log, logCmdObj: c.LogCmdObj}
+	runner := &cmdObjRunner{log: common.Log, guiIO: guiIO}
 	c.Cmd = &CmdObjBuilder{runner: runner, platform: platform}
 
 	return c
-}
-
-func (c *OSCommand) LogCmdObj(cmdObj ICmdObj) {
-	c.LogCommand(cmdObj.ToString(), true)
 }
 
 func (c *OSCommand) LogCommand(cmdStr string, commandLine bool) {
@@ -268,6 +264,10 @@ func (c *OSCommand) RemoveFile(path string) error {
 	c.LogCommand(fmt.Sprintf("Deleting path '%s'", path), false)
 
 	return c.removeFile(path)
+}
+
+func (c *OSCommand) Getenv(key string) string {
+	return c.GetenvFn(key)
 }
 
 func GetTempDir() string {

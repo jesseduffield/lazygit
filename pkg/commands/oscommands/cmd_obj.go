@@ -34,6 +34,11 @@ type ICmdObj interface {
 
 	// This returns false if DontLog() was called
 	ShouldLog() bool
+
+	PromptOnCredentialRequest() ICmdObj
+	FailOnCredentialRequest() ICmdObj
+
+	GetCredentialStrategy() CredentialStrategy
 }
 
 type CmdObj struct {
@@ -44,7 +49,27 @@ type CmdObj struct {
 
 	// if set to true, we don't want to log the command to the user.
 	dontLog bool
+
+	// if set to true, it means we might be asked to enter a username/password by this command.
+	credentialStrategy CredentialStrategy
 }
+
+type CredentialStrategy int
+
+const (
+	// do not expect a credential request. If we end up getting one
+	// we'll be in trouble because the command will hang indefinitely
+	NONE CredentialStrategy = iota
+	// expect a credential request and if we get one, prompt the user to enter their username/password
+	PROMPT
+	// in this case we will check for a credential request (i.e. the command pauses to ask for
+	// username/password) and if we get one, we just submit a newline, forcing the
+	// command to fail. We use this e.g. for a background `git fetch` to prevent it
+	// from hanging indefinitely.
+	FAIL
+)
+
+var _ ICmdObj = &CmdObj{}
 
 func (self *CmdObj) GetCmd() *exec.Cmd {
 	return self.cmd
@@ -83,4 +108,20 @@ func (self *CmdObj) RunWithOutput() (string, error) {
 
 func (self *CmdObj) RunAndProcessLines(onLine func(line string) (bool, error)) error {
 	return self.runner.RunAndProcessLines(self, onLine)
+}
+
+func (self *CmdObj) PromptOnCredentialRequest() ICmdObj {
+	self.credentialStrategy = PROMPT
+
+	return self
+}
+
+func (self *CmdObj) FailOnCredentialRequest() ICmdObj {
+	self.credentialStrategy = FAIL
+
+	return self
+}
+
+func (self *CmdObj) GetCredentialStrategy() CredentialStrategy {
+	return self.credentialStrategy
 }

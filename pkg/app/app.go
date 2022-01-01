@@ -32,7 +32,6 @@ type App struct {
 	closers       []io.Closer
 	Config        config.AppConfigurer
 	OSCommand     *oscommands.OSCommand
-	GitCommand    *commands.GitCommand
 	Gui           *gui.Gui
 	Updater       *updates.Updater // may only need this on the Gui
 	ClientContext string
@@ -122,7 +121,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, nil
 	}
 
-	app.OSCommand = oscommands.NewOSCommand(app.Common, oscommands.GetPlatform())
+	app.OSCommand = oscommands.NewOSCommand(app.Common, oscommands.GetPlatform(), oscommands.NewNullGuiIO(log))
 
 	app.Updater, err = updates.NewUpdater(app.Common, config, app.OSCommand)
 	if err != nil {
@@ -134,16 +133,9 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, err
 	}
 
-	app.GitCommand, err = commands.NewGitCommand(
-		app.Common,
-		app.OSCommand,
-		git_config.NewStdCachedGitConfig(app.Log),
-	)
-	if err != nil {
-		return app, err
-	}
+	gitConfig := git_config.NewStdCachedGitConfig(app.Log)
 
-	app.Gui, err = gui.NewGui(app.Common, app.GitCommand, app.OSCommand, config, app.Updater, filterPath, showRecentRepos)
+	app.Gui, err = gui.NewGui(app.Common, config, gitConfig, app.Updater, filterPath, showRecentRepos)
 	if err != nil {
 		return app, err
 	}

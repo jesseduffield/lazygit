@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitCommandRenameCommit(t *testing.T) {
+func TestGitCommandRewordCommit(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"commit", "--allow-empty", "--amend", "--only", "-m", "test"}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 
-	assert.NoError(t, gitCmd.RenameCommit("test"))
+	assert.NoError(t, gitCmd.Commit.RewordLastCommit("test"))
 	runner.CheckForMissingCalls()
 }
 
@@ -21,7 +21,7 @@ func TestGitCommandResetToCommit(t *testing.T) {
 		ExpectGitArgs([]string{"reset", "--hard", "78976bc"}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 
-	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard", []string{}))
+	assert.NoError(t, gitCmd.Commit.ResetToCommit("78976bc", "hard", []string{}))
 	runner.CheckForMissingCalls()
 }
 
@@ -57,7 +57,7 @@ func TestGitCommandCommitObj(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
-			cmdStr := gitCmd.CommitCmdObj(s.message, s.flags).ToString()
+			cmdStr := gitCmd.Commit.CommitCmdObj(s.message, s.flags).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}
@@ -86,7 +86,7 @@ func TestGitCommandCreateFixupCommit(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.CreateFixupCommit(s.sha))
+			s.test(gitCmd.Commit.CreateFixupCommit(s.sha))
 			s.runner.CheckForMissingCalls()
 		})
 	}
@@ -125,7 +125,7 @@ func TestGitCommandShowCmdObj(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
-			cmdStr := gitCmd.ShowCmdObj("1234567890", s.filterPath).ToString()
+			cmdStr := gitCmd.Commit.ShowCmdObj("1234567890", s.filterPath).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}

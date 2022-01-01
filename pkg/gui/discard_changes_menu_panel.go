@@ -13,7 +13,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				displayString: gui.Tr.LcDiscardAllChanges,
 				onPress: func() error {
 					gui.logAction(gui.Tr.Actions.DiscardAllChangesInDirectory)
-					if err := gui.GitCommand.DiscardAllDirChanges(node); err != nil {
+					if err := gui.GitCommand.WorkingTree.DiscardAllDirChanges(node); err != nil {
 						return gui.surfaceError(err)
 					}
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -26,7 +26,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				displayString: gui.Tr.LcDiscardUnstagedChanges,
 				onPress: func() error {
 					gui.logAction(gui.Tr.Actions.DiscardUnstagedChangesInDirectory)
-					if err := gui.GitCommand.DiscardUnstagedDirChanges(node); err != nil {
+					if err := gui.GitCommand.WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
 						return gui.surfaceError(err)
 					}
 
@@ -55,7 +55,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 					displayString: gui.Tr.LcDiscardAllChanges,
 					onPress: func() error {
 						gui.logAction(gui.Tr.Actions.DiscardAllChangesInFile)
-						if err := gui.GitCommand.DiscardAllFileChanges(file); err != nil {
+						if err := gui.GitCommand.WorkingTree.DiscardAllFileChanges(file); err != nil {
 							return gui.surfaceError(err)
 						}
 						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -68,7 +68,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 					displayString: gui.Tr.LcDiscardUnstagedChanges,
 					onPress: func() error {
 						gui.logAction(gui.Tr.Actions.DiscardAllUnstagedChangesInFile)
-						if err := gui.GitCommand.DiscardUnstagedFileChanges(file); err != nil {
+						if err := gui.GitCommand.WorkingTree.DiscardUnstagedFileChanges(file); err != nil {
 							return gui.surfaceError(err)
 						}
 

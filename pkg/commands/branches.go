@@ -6,24 +6,47 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// NewBranch create new branch
-func (c *GitCommand) NewBranch(name string, base string) error {
-	return c.Cmd.New(fmt.Sprintf("git checkout -b %s %s", c.OSCommand.Quote(name), c.OSCommand.Quote(base))).Run()
+// this takes something like:
+// * (HEAD detached at 264fc6f5)
+//	remotes
+// and returns '264fc6f5' as the second match
+const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
+
+type BranchCommands struct {
+	*common.Common
+
+	cmd oscommands.ICmdObjBuilder
+}
+
+func NewBranchCommands(
+	common *common.Common,
+	cmd oscommands.ICmdObjBuilder,
+) *BranchCommands {
+	return &BranchCommands{
+		Common: common,
+		cmd:    cmd,
+	}
+}
+
+// New creates a new branch
+func (self *BranchCommands) New(name string, base string) error {
+	return self.cmd.New(fmt.Sprintf("git checkout -b %s %s", self.cmd.Quote(name), self.cmd.Quote(base))).Run()
 }
 
 // CurrentBranchName get the current branch name and displayname.
 // the first returned string is the name and the second is the displayname
 // e.g. name is 123asdf and displayname is '(HEAD detached at 123asdf)'
-func (c *GitCommand) CurrentBranchName() (string, string, error) {
-	branchName, err := c.Cmd.New("git symbolic-ref --short HEAD").DontLog().RunWithOutput()
+func (self *BranchCommands) CurrentBranchName() (string, string, error) {
+	branchName, err := self.cmd.New("git symbolic-ref --short HEAD").DontLog().RunWithOutput()
 	if err == nil && branchName != "HEAD\n" {
 		trimmedBranchName := strings.TrimSpace(branchName)
 		return trimmedBranchName, trimmedBranchName, nil
 	}
-	output, err := c.Cmd.New("git branch --contains").DontLog().RunWithOutput()
+	output, err := self.cmd.New("git branch --contains").DontLog().RunWithOutput()
 	if err != nil {
 		return "", "", err
 	}
@@ -39,15 +62,15 @@ func (c *GitCommand) CurrentBranchName() (string, string, error) {
 	return "HEAD", "HEAD", nil
 }
 
-// DeleteBranch delete branch
-func (c *GitCommand) DeleteBranch(branch string, force bool) error {
+// Delete delete branch
+func (self *BranchCommands) Delete(branch string, force bool) error {
 	command := "git branch -d"
 
 	if force {
 		command = "git branch -D"
 	}
 
-	return c.Cmd.New(fmt.Sprintf("%s %s", command, c.OSCommand.Quote(branch))).Run()
+	return self.cmd.New(fmt.Sprintf("%s %s", command, self.cmd.Quote(branch))).Run()
 }
 
 // Checkout checks out a branch (or commit), with --force if you set the force arg to true
@@ -56,13 +79,13 @@ type CheckoutOptions struct {
 	EnvVars []string
 }
 
-func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
+func (self *BranchCommands) Checkout(branch string, options CheckoutOptions) error {
 	forceArg := ""
 	if options.Force {
 		forceArg = " --force"
 	}
 
-	return c.Cmd.New(fmt.Sprintf("git checkout%s %s", forceArg, c.OSCommand.Quote(branch))).
+	return self.cmd.New(fmt.Sprintf("git checkout%s %s", forceArg, self.cmd.Quote(branch))).
 		// prevents git from prompting us for input which would freeze the program
 		// TODO: see if this is actually needed here
 		AddEnvVars("GIT_TERMINAL_PROMPT=0").
@@ -70,104 +93,84 @@ func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 		Run()
 }
 
-// GetBranchGraph gets the color-formatted graph of the log for the given branch
+// GetGraph gets the color-formatted graph of the log for the given branch
 // Currently it limits the result to 100 commits, but when we get async stuff
 // working we can do lazy loading
-func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
-	return c.GetBranchGraphCmdObj(branchName).DontLog().RunWithOutput()
+func (self *BranchCommands) GetGraph(branchName string) (string, error) {
+	return self.GetGraphCmdObj(branchName).DontLog().RunWithOutput()
 }
 
-func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
-	output, err := c.Cmd.New(fmt.Sprintf("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", c.OSCommand.Quote(branchName))).DontLog().RunWithOutput()
+func (self *BranchCommands) GetGraphCmdObj(branchName string) oscommands.ICmdObj {
+	branchLogCmdTemplate := self.UserConfig.Git.BranchLogCmd
+	templateValues := map[string]string{
+		"branchName": self.cmd.Quote(branchName),
+	}
+	return self.cmd.New(utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)).DontLog()
+}
+
+func (self *BranchCommands) SetCurrentBranchUpstream(upstream string) error {
+	return self.cmd.New("git branch --set-upstream-to=" + self.cmd.Quote(upstream)).Run()
+}
+
+func (self *BranchCommands) GetUpstream(branchName string) (string, error) {
+	output, err := self.cmd.New(fmt.Sprintf("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", self.cmd.Quote(branchName))).DontLog().RunWithOutput()
 	return strings.TrimSpace(output), err
 }
 
-func (c *GitCommand) GetBranchGraphCmdObj(branchName string) oscommands.ICmdObj {
-	branchLogCmdTemplate := c.UserConfig.Git.BranchLogCmd
-	templateValues := map[string]string{
-		"branchName": c.OSCommand.Quote(branchName),
-	}
-	return c.Cmd.New(utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)).DontLog()
+func (self *BranchCommands) SetUpstream(remoteName string, remoteBranchName string, branchName string) error {
+	return self.cmd.New(fmt.Sprintf("git branch --set-upstream-to=%s/%s %s", self.cmd.Quote(remoteName), self.cmd.Quote(remoteBranchName), self.cmd.Quote(branchName))).Run()
 }
 
-func (c *GitCommand) SetUpstreamBranch(upstream string) error {
-	return c.Cmd.New("git branch -u " + c.OSCommand.Quote(upstream)).Run()
+func (self *BranchCommands) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
+	return self.GetCommitDifferences("HEAD", "HEAD@{u}")
 }
 
-func (c *GitCommand) SetBranchUpstream(remoteName string, remoteBranchName string, branchName string) error {
-	return c.Cmd.New(fmt.Sprintf("git branch --set-upstream-to=%s/%s %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(remoteBranchName), c.OSCommand.Quote(branchName))).Run()
-}
-
-func (c *GitCommand) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
-	return c.GetCommitDifferences("HEAD", "HEAD@{u}")
-}
-
-func (c *GitCommand) GetBranchUpstreamDifferenceCount(branchName string) (string, string) {
-	return c.GetCommitDifferences(branchName, branchName+"@{u}")
+func (self *BranchCommands) GetUpstreamDifferenceCount(branchName string) (string, string) {
+	return self.GetCommitDifferences(branchName, branchName+"@{u}")
 }
 
 // GetCommitDifferences checks how many pushables/pullables there are for the
 // current branch
-func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
+func (self *BranchCommands) GetCommitDifferences(from, to string) (string, string) {
 	command := "git rev-list %s..%s --count"
-	pushableCount, err := c.Cmd.New(fmt.Sprintf(command, to, from)).DontLog().RunWithOutput()
+	pushableCount, err := self.cmd.New(fmt.Sprintf(command, to, from)).DontLog().RunWithOutput()
 	if err != nil {
 		return "?", "?"
 	}
-	pullableCount, err := c.Cmd.New(fmt.Sprintf(command, from, to)).DontLog().RunWithOutput()
+	pullableCount, err := self.cmd.New(fmt.Sprintf(command, from, to)).DontLog().RunWithOutput()
 	if err != nil {
 		return "?", "?"
 	}
 	return strings.TrimSpace(pushableCount), strings.TrimSpace(pullableCount)
 }
 
+func (self *BranchCommands) IsHeadDetached() bool {
+	err := self.cmd.New("git symbolic-ref -q HEAD").DontLog().Run()
+	return err != nil
+}
+
+func (self *BranchCommands) Rename(oldName string, newName string) error {
+	return self.cmd.New(fmt.Sprintf("git branch --move %s %s", self.cmd.Quote(oldName), self.cmd.Quote(newName))).Run()
+}
+
+func (self *BranchCommands) GetRawBranches() (string, error) {
+	return self.cmd.New(`git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`).DontLog().RunWithOutput()
+}
+
 type MergeOpts struct {
 	FastForwardOnly bool
 }
 
-// Merge merge
-func (c *GitCommand) Merge(branchName string, opts MergeOpts) error {
+func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 	mergeArg := ""
-	if c.UserConfig.Git.Merging.Args != "" {
-		mergeArg = " " + c.UserConfig.Git.Merging.Args
+	if self.UserConfig.Git.Merging.Args != "" {
+		mergeArg = " " + self.UserConfig.Git.Merging.Args
 	}
 
-	command := fmt.Sprintf("git merge --no-edit%s %s", mergeArg, c.OSCommand.Quote(branchName))
+	command := fmt.Sprintf("git merge --no-edit%s %s", mergeArg, self.cmd.Quote(branchName))
 	if opts.FastForwardOnly {
 		command = fmt.Sprintf("%s --ff-only", command)
 	}
 
-	return c.OSCommand.Cmd.New(command).Run()
-}
-
-// AbortMerge abort merge
-func (c *GitCommand) AbortMerge() error {
-	return c.Cmd.New("git merge --abort").Run()
-}
-
-func (c *GitCommand) IsHeadDetached() bool {
-	err := c.Cmd.New("git symbolic-ref -q HEAD").DontLog().Run()
-	return err != nil
-}
-
-// ResetHardHead runs `git reset --hard`
-func (c *GitCommand) ResetHard(ref string) error {
-	return c.Cmd.New("git reset --hard " + c.OSCommand.Quote(ref)).Run()
-}
-
-// ResetSoft runs `git reset --soft HEAD`
-func (c *GitCommand) ResetSoft(ref string) error {
-	return c.Cmd.New("git reset --soft " + c.OSCommand.Quote(ref)).Run()
-}
-
-func (c *GitCommand) ResetMixed(ref string) error {
-	return c.Cmd.New("git reset --mixed " + c.OSCommand.Quote(ref)).Run()
-}
-
-func (c *GitCommand) RenameBranch(oldName string, newName string) error {
-	return c.Cmd.New(fmt.Sprintf("git branch --move %s %s", c.OSCommand.Quote(oldName), c.OSCommand.Quote(newName))).Run()
-}
-
-func (c *GitCommand) GetRawBranches() (string, error) {
-	return c.Cmd.New(`git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`).DontLog().RunWithOutput()
+	return self.cmd.New(command).Run()
 }

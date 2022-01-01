@@ -42,7 +42,7 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			pushables, pullables := gitCmd.GetCommitDifferences("HEAD", "@{u}")
+			pushables, pullables := gitCmd.Branch.GetCommitDifferences("HEAD", "@{u}")
 			assert.EqualValues(t, s.expectedPushables, pushables)
 			assert.EqualValues(t, s.expectedPullables, pullables)
 			s.runner.CheckForMissingCalls()
@@ -55,7 +55,7 @@ func TestGitCommandNewBranch(t *testing.T) {
 		Expect(`git checkout -b "test" "master"`, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 
-	assert.NoError(t, gitCmd.NewBranch("test", "master"))
+	assert.NoError(t, gitCmd.Branch.New("test", "master"))
 	runner.CheckForMissingCalls()
 }
 
@@ -90,7 +90,7 @@ func TestGitCommandDeleteBranch(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommandWithRunner(s.runner)
 
-			s.test(gitCmd.DeleteBranch("test", s.force))
+			s.test(gitCmd.Branch.Delete("test", s.force))
 			s.runner.CheckForMissingCalls()
 		})
 	}
@@ -101,7 +101,7 @@ func TestGitCommandMerge(t *testing.T) {
 		Expect(`git merge --no-edit "test"`, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 
-	assert.NoError(t, gitCmd.Merge("test", MergeOpts{}))
+	assert.NoError(t, gitCmd.Branch.Merge("test", MergeOpts{}))
 	runner.CheckForMissingCalls()
 }
 
@@ -135,7 +135,7 @@ func TestGitCommandCheckout(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.Checkout("test", CheckoutOptions{Force: s.force}))
+			s.test(gitCmd.Branch.Checkout("test", CheckoutOptions{Force: s.force}))
 			s.runner.CheckForMissingCalls()
 		})
 	}
@@ -146,7 +146,7 @@ func TestGitCommandGetBranchGraph(t *testing.T) {
 		"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--",
 	}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
-	_, err := gitCmd.GetBranchGraph("test")
+	_, err := gitCmd.Branch.GetGraph("test")
 	assert.NoError(t, err)
 }
 
@@ -215,36 +215,8 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.CurrentBranchName())
+			s.test(gitCmd.Branch.CurrentBranchName())
 			s.runner.CheckForMissingCalls()
-		})
-	}
-}
-
-func TestGitCommandResetHard(t *testing.T) {
-	type scenario struct {
-		testName string
-		ref      string
-		runner   *oscommands.FakeCmdObjRunner
-		test     func(error)
-	}
-
-	scenarios := []scenario{
-		{
-			"valid case",
-			"HEAD",
-			oscommands.NewFakeRunner(t).
-				Expect(`git reset --hard "HEAD"`, "", nil),
-			func(err error) {
-				assert.NoError(t, err)
-			},
-		},
-	}
-
-	for _, s := range scenarios {
-		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.ResetHard(s.ref))
 		})
 	}
 }

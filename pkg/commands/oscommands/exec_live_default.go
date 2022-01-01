@@ -4,22 +4,19 @@
 package oscommands
 
 import (
-	"io"
 	"os/exec"
 
 	"github.com/creack/pty"
 )
 
-func RunCommandWithOutputLiveWrapper(
-	c *OSCommand,
+// we define this separately for windows and non-windows given that windows does
+// not have great PTY support and we need a PTY to handle a credential request
+func (self *cmdObjRunner) RunCommandWithOutputLive(
 	cmdObj ICmdObj,
-	writer io.Writer,
 	output func(string) string,
 ) error {
-	return RunCommandWithOutputLiveAux(
-		c,
+	return self.RunCommandWithOutputLiveAux(
 		cmdObj,
-		writer,
 		output,
 		func(cmd *exec.Cmd) (*cmdHandler, error) {
 			ptmx, err := pty.Start(cmd)

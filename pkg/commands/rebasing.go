@@ -9,22 +9,56 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
-func (c *GitCommand) RewordCommit(commits []*models.Commit, index int) (oscommands.ICmdObj, error) {
-	todo, sha, err := c.GenerateGenericRebaseTodo(commits, index, "reword")
+type RebaseCommands struct {
+	*common.Common
+
+	cmd       oscommands.ICmdObjBuilder
+	osCommand *oscommands.OSCommand
+
+	commit               *CommitCommands
+	workingTree          *WorkingTreeCommands
+	config               *ConfigCommands
+	dotGitDir            string
+	onSuccessfulContinue func() error
+}
+
+func NewRebaseCommands(
+	common *common.Common,
+	cmd oscommands.ICmdObjBuilder,
+	osCommand *oscommands.OSCommand,
+	commitCommands *CommitCommands,
+	workingTreeCommands *WorkingTreeCommands,
+	configCommands *ConfigCommands,
+	dotGitDir string,
+) *RebaseCommands {
+	return &RebaseCommands{
+		Common:      common,
+		cmd:         cmd,
+		osCommand:   osCommand,
+		commit:      commitCommands,
+		workingTree: workingTreeCommands,
+		config:      configCommands,
+		dotGitDir:   dotGitDir,
+	}
+}
+
+func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int) (oscommands.ICmdObj, error) {
+	todo, sha, err := self.GenerateGenericRebaseTodo(commits, index, "reword")
 	if err != nil {
 		return nil, err
 	}
 
-	return c.PrepareInteractiveRebaseCommand(sha, todo, false)
+	return self.PrepareInteractiveRebaseCommand(sha, todo, false)
 }
 
-func (c *GitCommand) MoveCommitDown(commits []*models.Commit, index int) error {
+func (self *RebaseCommands) MoveCommitDown(commits []*models.Commit, index int) error {
 	// we must ensure that we have at least two commits after the selected one
 	if len(commits) <= index+2 {
 		// assuming they aren't picking the bottom commit
-		return errors.New(c.Tr.NoRoom)
+		return errors.New(self.Tr.NoRoom)
 	}
 
 	todo := ""
@@ -33,7 +67,7 @@ func (c *GitCommand) MoveCommitDown(commits []*models.Commit, index int) error {
 		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
-	cmdObj, err := c.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todo, true)
+	cmdObj, err := self.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todo, true)
 	if err != nil {
 		return err
 	}
@@ -41,13 +75,13 @@ func (c *GitCommand) MoveCommitDown(commits []*models.Commit, index int) error {
 	return cmdObj.Run()
 }
 
-func (c *GitCommand) InteractiveRebase(commits []*models.Commit, index int, action string) error {
-	todo, sha, err := c.GenerateGenericRebaseTodo(commits, index, action)
+func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index int, action string) error {
+	todo, sha, err := self.GenerateGenericRebaseTodo(commits, index, action)
 	if err != nil {
 		return err
 	}
 
-	cmdObj, err := c.PrepareInteractiveRebaseCommand(sha, todo, true)
+	cmdObj, err := self.PrepareInteractiveRebaseCommand(sha, todo, true)
 	if err != nil {
 		return err
 	}
@@ -58,24 +92,24 @@ func (c *GitCommand) InteractiveRebase(commits []*models.Commit, index int, acti
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit a todo string to write to the todo file
-func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string, overrideEditor bool) (oscommands.ICmdObj, error) {
+func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseSha string, todo string, overrideEditor bool) (oscommands.ICmdObj, error) {
 	ex := oscommands.GetLazygitPath()
 
 	debug := "FALSE"
-	if c.Debug {
+	if self.Debug {
 		debug = "TRUE"
 	}
 
 	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty %s", baseSha)
-	c.Log.WithField("command", cmdStr).Info("RunCommand")
+	self.Log.WithField("command", cmdStr).Info("RunCommand")
 
-	cmdObj := c.Cmd.New(cmdStr)
+	cmdObj := self.cmd.New(cmdStr)
 
 	gitSequenceEditor := ex
 	if todo == "" {
 		gitSequenceEditor = "true"
 	} else {
-		c.OSCommand.LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
+		self.osCommand.LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
 	}
 
 	cmdObj.AddEnvVars(
@@ -94,18 +128,18 @@ func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string
 	return cmdObj, nil
 }
 
-func (c *GitCommand) GenerateGenericRebaseTodo(commits []*models.Commit, actionIndex int, action string) (string, string, error) {
+func (self *RebaseCommands) GenerateGenericRebaseTodo(commits []*models.Commit, actionIndex int, action string) (string, string, error) {
 	baseIndex := actionIndex + 1
 
 	if len(commits) <= baseIndex {
-		return "", "", errors.New(c.Tr.CannotRebaseOntoFirstCommit)
+		return "", "", errors.New(self.Tr.CannotRebaseOntoFirstCommit)
 	}
 
 	if action == "squash" || action == "fixup" {
 		baseIndex++
 
 		if len(commits) <= baseIndex {
-			return "", "", errors.New(c.Tr.CannotSquashOntoSecondCommit)
+			return "", "", errors.New(self.Tr.CannotSquashOntoSecondCommit)
 		}
 	}
 
@@ -129,24 +163,24 @@ func (c *GitCommand) GenerateGenericRebaseTodo(commits []*models.Commit, actionI
 }
 
 // AmendTo amends the given commit with whatever files are staged
-func (c *GitCommand) AmendTo(sha string) error {
-	if err := c.CreateFixupCommit(sha); err != nil {
+func (self *RebaseCommands) AmendTo(sha string) error {
+	if err := self.commit.CreateFixupCommit(sha); err != nil {
 		return err
 	}
 
-	return c.SquashAllAboveFixupCommits(sha)
+	return self.SquashAllAboveFixupCommits(sha)
 }
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
-func (c *GitCommand) EditRebaseTodo(index int, action string) error {
-	fileName := filepath.Join(c.DotGitDir, "rebase-merge/git-rebase-todo")
+func (self *RebaseCommands) EditRebaseTodo(index int, action string) error {
+	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
 
 	content := strings.Split(string(bytes), "\n")
-	commitCount := c.getTodoCommitCount(content)
+	commitCount := self.getTodoCommitCount(content)
 
 	// we have the most recent commit at the bottom whereas the todo file has
 	// it at the bottom, so we need to subtract our index from the commit count
@@ -158,7 +192,7 @@ func (c *GitCommand) EditRebaseTodo(index int, action string) error {
 	return ioutil.WriteFile(fileName, []byte(result), 0644)
 }
 
-func (c *GitCommand) getTodoCommitCount(content []string) int {
+func (self *RebaseCommands) getTodoCommitCount(content []string) int {
 	// count lines that are not blank and are not comments
 	commitCount := 0
 	for _, line := range content {
@@ -170,15 +204,15 @@ func (c *GitCommand) getTodoCommitCount(content []string) int {
 }
 
 // MoveTodoDown moves a rebase todo item down by one position
-func (c *GitCommand) MoveTodoDown(index int) error {
-	fileName := filepath.Join(c.DotGitDir, "rebase-merge/git-rebase-todo")
+func (self *RebaseCommands) MoveTodoDown(index int) error {
+	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
 	bytes, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
 
 	content := strings.Split(string(bytes), "\n")
-	commitCount := c.getTodoCommitCount(content)
+	commitCount := self.getTodoCommitCount(content)
 	contentIndex := commitCount - 1 - index
 
 	rearrangedContent := append(content[0:contentIndex-1], content[contentIndex], content[contentIndex-1])
@@ -189,8 +223,8 @@ func (c *GitCommand) MoveTodoDown(index int) error {
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one
-func (c *GitCommand) SquashAllAboveFixupCommits(sha string) error {
-	return c.runSkipEditorCommand(
+func (self *RebaseCommands) SquashAllAboveFixupCommits(sha string) error {
+	return self.runSkipEditorCommand(
 		fmt.Sprintf(
 			"git rebase --interactive --autostash --autosquash %s^",
 			sha,
@@ -199,8 +233,8 @@ func (c *GitCommand) SquashAllAboveFixupCommits(sha string) error {
 }
 
 // BeginInteractiveRebaseForCommit starts an interactive rebase to edit the current
-// commit and pick all others. After this you'll want to call `c.GenericMergeOrRebaseAction("rebase", "continue")`
-func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, commitIndex int) error {
+// commit and pick all others. After this you'll want to call `self.GenericMergeOrRebaseAction("rebase", "continue")`
+func (self *RebaseCommands) BeginInteractiveRebaseForCommit(commits []*models.Commit, commitIndex int) error {
 	if len(commits)-1 < commitIndex {
 		return errors.New("index outside of range of commits")
 	}
@@ -208,16 +242,16 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, c
 	// we can make this GPG thing possible it just means we need to do this in two parts:
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
-	if c.UsingGpg() {
-		return errors.New(c.Tr.DisabledForGPG)
+	if self.config.UsingGpg() {
+		return errors.New(self.Tr.DisabledForGPG)
 	}
 
-	todo, sha, err := c.GenerateGenericRebaseTodo(commits, commitIndex, "edit")
+	todo, sha, err := self.GenerateGenericRebaseTodo(commits, commitIndex, "edit")
 	if err != nil {
 		return err
 	}
 
-	cmdObj, err := c.PrepareInteractiveRebaseCommand(sha, todo, true)
+	cmdObj, err := self.PrepareInteractiveRebaseCommand(sha, todo, true)
 	if err != nil {
 		return err
 	}
@@ -226,8 +260,8 @@ func (c *GitCommand) BeginInteractiveRebaseForCommit(commits []*models.Commit, c
 }
 
 // RebaseBranch interactive rebases onto a branch
-func (c *GitCommand) RebaseBranch(branchName string) error {
-	cmdObj, err := c.PrepareInteractiveRebaseCommand(branchName, "", false)
+func (self *RebaseCommands) RebaseBranch(branchName string) error {
+	cmdObj, err := self.PrepareInteractiveRebaseCommand(branchName, "", false)
 	if err != nil {
 		return err
 	}
@@ -237,8 +271,8 @@ func (c *GitCommand) RebaseBranch(branchName string) error {
 
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
-func (c *GitCommand) GenericMergeOrRebaseAction(commandType string, command string) error {
-	err := c.runSkipEditorCommand(
+func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, command string) error {
+	err := self.runSkipEditorCommand(
 		fmt.Sprintf(
 			"git %s --%s",
 			commandType,
@@ -249,25 +283,25 @@ func (c *GitCommand) GenericMergeOrRebaseAction(commandType string, command stri
 		if !strings.Contains(err.Error(), "no rebase in progress") {
 			return err
 		}
-		c.Log.Warn(err)
+		self.Log.Warn(err)
 	}
 
 	// sometimes we need to do a sequence of things in a rebase but the user needs to
 	// fix merge conflicts along the way. When this happens we queue up the next step
 	// so that after the next successful rebase continue we can continue from where we left off
-	if commandType == "rebase" && command == "continue" && c.onSuccessfulContinue != nil {
-		f := c.onSuccessfulContinue
-		c.onSuccessfulContinue = nil
+	if commandType == "rebase" && command == "continue" && self.onSuccessfulContinue != nil {
+		f := self.onSuccessfulContinue
+		self.onSuccessfulContinue = nil
 		return f()
 	}
 	if command == "abort" {
-		c.onSuccessfulContinue = nil
+		self.onSuccessfulContinue = nil
 	}
 	return nil
 }
 
-func (c *GitCommand) runSkipEditorCommand(command string) error {
-	cmdObj := c.Cmd.New(command)
+func (self *RebaseCommands) runSkipEditorCommand(command string) error {
+	cmdObj := self.cmd.New(command)
 	lazyGitPath := oscommands.GetLazygitPath()
 	return cmdObj.
 		AddEnvVars(
@@ -277,4 +311,47 @@ func (c *GitCommand) runSkipEditorCommand(command string) error {
 			"VISUAL="+lazyGitPath,
 		).
 		Run()
+}
+
+// DiscardOldFileChanges discards changes to a file from an old commit
+func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error {
+	if err := self.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
+		return err
+	}
+
+	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
+	if err := self.cmd.New("git cat-file -e HEAD^:" + self.cmd.Quote(fileName)).Run(); err != nil {
+		if err := self.osCommand.Remove(fileName); err != nil {
+			return err
+		}
+		if err := self.workingTree.StageFile(fileName); err != nil {
+			return err
+		}
+	} else if err := self.workingTree.CheckoutFile("HEAD^", fileName); err != nil {
+		return err
+	}
+
+	// amend the commit
+	err := self.commit.AmendHead()
+	if err != nil {
+		return err
+	}
+
+	// continue
+	return self.GenericMergeOrRebaseAction("rebase", "continue")
+}
+
+// CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD
+func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
+	todo := ""
+	for _, commit := range commits {
+		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
+	}
+
+	cmdObj, err := self.PrepareInteractiveRebaseCommand("HEAD", todo, false)
+	if err != nil {
+		return err
+	}
+
+	return cmdObj.Run()
 }
