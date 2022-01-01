@@ -11,6 +11,7 @@ import (
 
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -24,6 +25,17 @@ import (
 // and returns '264fc6f5' as the second match
 const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 
+type Loaders struct {
+	Commits       *loaders.CommitLoader
+	Branches      *loaders.BranchLoader
+	Files         *loaders.FileLoader
+	CommitFiles   *loaders.CommitFileLoader
+	Remotes       *loaders.RemoteLoader
+	ReflogCommits *loaders.ReflogCommitLoader
+	Stash         *loaders.StashLoader
+	Tags          *loaders.TagLoader
+}
+
 // GitCommand is our main git interface
 type GitCommand struct {
 	*common.Common
@@ -33,6 +45,7 @@ type GitCommand struct {
 	onSuccessfulContinue func() error
 	PatchManager         *patch.PatchManager
 	GitConfig            git_config.IGitConfig
+	Loaders              Loaders
 
 	// Push to current determines whether the user has configured to push to the remote branch of the same name as the current or not
 	PushToCurrent bool
@@ -80,6 +93,17 @@ func NewGitCommand(
 		GitConfig:     gitConfig,
 		GetCmdWriter:  func() io.Writer { return ioutil.Discard },
 		Cmd:           cmd,
+	}
+
+	gitCommand.Loaders = Loaders{
+		Commits:       loaders.NewCommitLoader(cmn, gitCommand),
+		Branches:      loaders.NewBranchLoader(cmn, gitCommand),
+		Files:         loaders.NewFileLoader(cmn, cmd, gitConfig),
+		CommitFiles:   loaders.NewCommitFileLoader(cmn, cmd),
+		Remotes:       loaders.NewRemoteLoader(cmn, cmd, gitCommand.Repo.Remotes),
+		ReflogCommits: loaders.NewReflogCommitLoader(cmn, cmd),
+		Stash:         loaders.NewStashLoader(cmn, cmd),
+		Tags:          loaders.NewTagLoader(cmn, cmd),
 	}
 
 	gitCommand.PatchManager = patch.NewPatchManager(gitCommand.Log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
