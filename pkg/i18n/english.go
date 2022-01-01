@@ -93,8 +93,8 @@ type TranslationSet struct {
 	Squash                              string
 	LcPickCommit                        string
 	LcRevertCommit                      string
-	OnlyRenameTopCommit                 string
-	LcRenameCommit                      string
+	OnlyRewordTopCommit                 string
+	LcRewordCommit                      string
 	LcDeleteCommit                      string
 	LcMoveDownCommit                    string
 	LcMoveUpCommit                      string
@@ -120,7 +120,6 @@ type TranslationSet struct {
 	SurePopStashEntry                   string
 	StashApply                          string
 	SureApplyStashEntry                 string
-	NoStashTo                           string
 	NoTrackedStagedFilesStash           string
 	StashChanges                        string
 	MergeAborted                        string
@@ -646,8 +645,8 @@ func EnglishTranslationSet() TranslationSet {
 		Squash:                              "Squash",
 		LcPickCommit:                        "pick commit (when mid-rebase)",
 		LcRevertCommit:                      "revert commit",
-		OnlyRenameTopCommit:                 "Can only reword topmost commit from within lazygit. Use shift+R instead",
-		LcRenameCommit:                      "reword commit",
+		OnlyRewordTopCommit:                 "Can only reword topmost commit from within lazygit. Use shift+R instead",
+		LcRewordCommit:                      "reword commit",
 		LcDeleteCommit:                      "delete commit",
 		LcMoveDownCommit:                    "move commit down one",
 		LcMoveUpCommit:                      "move commit up one",
@@ -672,7 +671,6 @@ func EnglishTranslationSet() TranslationSet {
 		SurePopStashEntry:                   "Are you sure you want to pop this stash entry?",
 		StashApply:                          "Stash apply",
 		SureApplyStashEntry:                 "Are you sure you want to apply this stash entry?",
-		NoStashTo:                           "No stash to {{.method}}",
 		NoTrackedStagedFilesStash:           "You have no tracked/staged files to stash",
 		StashChanges:                        "Stash changes",
 		MergeAborted:                        "Merge aborted",

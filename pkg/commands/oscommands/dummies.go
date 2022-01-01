@@ -6,7 +6,7 @@ import (
 
 // NewDummyOSCommand creates a new dummy OSCommand for testing
 func NewDummyOSCommand() *OSCommand {
-	osCmd := NewOSCommand(utils.NewDummyCommon(), dummyPlatform)
+	osCmd := NewOSCommand(utils.NewDummyCommon(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
 
 	return osCmd
 }
@@ -27,7 +27,7 @@ var dummyPlatform = &Platform{
 }
 
 func NewDummyOSCommandWithRunner(runner *FakeCmdObjRunner) *OSCommand {
-	osCommand := NewOSCommand(utils.NewDummyCommon(), dummyPlatform)
+	osCommand := NewOSCommand(utils.NewDummyCommon(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
 	osCommand.Cmd = NewDummyCmdObjBuilder(runner)
 
 	return osCommand

@@ -25,7 +25,7 @@ func (gui *Gui) tagsRenderToMain() error {
 	if tag == nil {
 		task = NewRenderStringTask("No tags")
 	} else {
-		cmdObj := gui.GitCommand.GetBranchGraphCmdObj(tag.Name)
+		cmdObj := gui.GitCommand.Branch.GetGraphCmdObj(tag.Name)
 		task = NewRunCommandTask(cmdObj.GetCmd())
 	}
 
@@ -83,7 +83,7 @@ func (gui *Gui) handleDeleteTag(tag *models.Tag) error {
 		prompt: prompt,
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.DeleteTag)
-			if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
+			if err := gui.GitCommand.Tag.Delete(tag.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
@@ -106,7 +106,7 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 		handleConfirm: func(response string) error {
 			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
 				gui.logAction(gui.Tr.Actions.PushTag)
-				err := gui.GitCommand.PushTag(response, tag.Name, gui.promptUserForCredential)
+				err := gui.GitCommand.Tag.Push(response, tag.Name)
 				gui.handleCredentialsPopup(err)
 
 				return nil

@@ -1,10 +1,6 @@
 package commands
 
 import (
-	"io"
-	"io/ioutil"
-
-	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -16,16 +12,13 @@ func NewDummyGitCommand() *GitCommand {
 
 // NewDummyGitCommandWithOSCommand creates a new dummy GitCommand for testing
 func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitCommand {
-	runner := &oscommands.FakeCmdObjRunner{}
-	builder := oscommands.NewDummyCmdObjBuilder(runner)
-
-	return &GitCommand{
-		Common:       utils.NewDummyCommon(),
-		Cmd:          builder,
-		OSCommand:    osCommand,
-		GitConfig:    git_config.NewFakeGitConfig(map[string]string{}),
-		GetCmdWriter: func() io.Writer { return ioutil.Discard },
-	}
+	return NewGitCommandAux(
+		utils.NewDummyCommon(),
+		osCommand,
+		utils.NewDummyGitConfig(),
+		".git",
+		nil,
+	)
 }
 
 func NewDummyGitCommandWithRunner(runner oscommands.ICmdObjRunner) *GitCommand {

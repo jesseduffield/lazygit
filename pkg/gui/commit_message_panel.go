@@ -24,7 +24,7 @@ func (gui *Gui) handleCommitConfirm() error {
 		flags = append(flags, "--signoff")
 	}
 
-	cmdObj := gui.GitCommand.CommitCmdObj(message, strings.Join(flags, " "))
+	cmdObj := gui.GitCommand.Commit.CommitCmdObj(message, strings.Join(flags, " "))
 	gui.logAction(gui.Tr.Actions.Commit)
 
 	_ = gui.returnFromContext()

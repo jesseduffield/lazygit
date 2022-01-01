@@ -5,64 +5,98 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
+type PatchCommands struct {
+	*common.Common
+
+	cmd          oscommands.ICmdObjBuilder
+	rebase       *RebaseCommands
+	commit       *CommitCommands
+	config       *ConfigCommands
+	stash        *StashCommands
+	status       *StatusCommands
+	PatchManager *patch.PatchManager
+}
+
+func NewPatchCommands(
+	common *common.Common,
+	cmd oscommands.ICmdObjBuilder,
+	rebaseCommands *RebaseCommands,
+	commitCommands *CommitCommands,
+	configCommands *ConfigCommands,
+	statusCommands *StatusCommands,
+	patchManager *patch.PatchManager,
+) *PatchCommands {
+	return &PatchCommands{
+		Common:       common,
+		cmd:          cmd,
+		rebase:       rebaseCommands,
+		commit:       commitCommands,
+		config:       configCommands,
+		status:       statusCommands,
+		PatchManager: patchManager,
+	}
+}
+
 // DeletePatchesFromCommit applies a patch in reverse for a commit
-func (c *GitCommand) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int, p *patch.PatchManager) error {
-	if err := c.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
+func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int) error {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
 		return err
 	}
 
 	// apply each patch in reverse
-	if err := p.ApplyPatches(true); err != nil {
-		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+	if err := self.PatchManager.ApplyPatches(true); err != nil {
+		if err := self.rebase.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 			return err
 		}
 		return err
 	}
 
 	// time to amend the selected commit
-	if err := c.AmendHead(); err != nil {
+	if err := self.commit.AmendHead(); err != nil {
 		return err
 	}
 
-	c.onSuccessfulContinue = func() error {
-		c.PatchManager.Reset()
+	self.rebase.onSuccessfulContinue = func() error {
+		self.PatchManager.Reset()
 		return nil
 	}
 
 	// continue
-	return c.GenericMergeOrRebaseAction("rebase", "continue")
+	return self.rebase.GenericMergeOrRebaseAction("rebase", "continue")
 }
 
-func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int, p *patch.PatchManager) error {
+func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int) error {
 	if sourceCommitIdx < destinationCommitIdx {
-		if err := c.BeginInteractiveRebaseForCommit(commits, destinationCommitIdx); err != nil {
+		if err := self.rebase.BeginInteractiveRebaseForCommit(commits, destinationCommitIdx); err != nil {
 			return err
 		}
 
 		// apply each patch forward
-		if err := p.ApplyPatches(false); err != nil {
-			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+		if err := self.PatchManager.ApplyPatches(false); err != nil {
+			if err := self.rebase.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 				return err
 			}
 			return err
 		}
 
 		// amend the destination commit
-		if err := c.AmendHead(); err != nil {
+		if err := self.commit.AmendHead(); err != nil {
 			return err
 		}
 
-		c.onSuccessfulContinue = func() error {
-			c.PatchManager.Reset()
+		self.rebase.onSuccessfulContinue = func() error {
+			self.PatchManager.Reset()
 			return nil
 		}
 
 		// continue
-		return c.GenericMergeOrRebaseAction("rebase", "continue")
+		return self.rebase.GenericMergeOrRebaseAction("rebase", "continue")
 	}
 
 	if len(commits)-1 < sourceCommitIdx {
@@ -72,8 +106,8 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	// we can make this GPG thing possible it just means we need to do this in two parts:
 	// one where we handle the possibility of a credential request, and the other
 	// where we continue the rebase
-	if c.UsingGpg() {
-		return errors.New(c.Tr.DisabledForGPG)
+	if self.config.UsingGpg() {
+		return errors.New(self.Tr.DisabledForGPG)
 	}
 
 	baseIndex := sourceCommitIdx + 1
@@ -86,7 +120,7 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 		todo = a + " " + commit.Sha + " " + commit.Name + "\n" + todo
 	}
 
-	cmdObj, err := c.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todo, true)
+	cmdObj, err := self.rebase.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todo, true)
 	if err != nil {
 		return err
 	}
@@ -96,62 +130,62 @@ func (c *GitCommand) MovePatchToSelectedCommit(commits []*models.Commit, sourceC
 	}
 
 	// apply each patch in reverse
-	if err := p.ApplyPatches(true); err != nil {
-		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+	if err := self.PatchManager.ApplyPatches(true); err != nil {
+		if err := self.rebase.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 			return err
 		}
 		return err
 	}
 
 	// amend the source commit
-	if err := c.AmendHead(); err != nil {
+	if err := self.commit.AmendHead(); err != nil {
 		return err
 	}
 
-	if c.onSuccessfulContinue != nil {
+	if self.rebase.onSuccessfulContinue != nil {
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
 
-	c.onSuccessfulContinue = func() error {
+	self.rebase.onSuccessfulContinue = func() error {
 		// now we should be up to the destination, so let's apply forward these patches to that.
 		// ideally we would ensure we're on the right commit but I'm not sure if that check is necessary
-		if err := p.ApplyPatches(false); err != nil {
-			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+		if err := self.PatchManager.ApplyPatches(false); err != nil {
+			if err := self.rebase.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 				return err
 			}
 			return err
 		}
 
 		// amend the destination commit
-		if err := c.AmendHead(); err != nil {
+		if err := self.commit.AmendHead(); err != nil {
 			return err
 		}
 
-		c.onSuccessfulContinue = func() error {
-			c.PatchManager.Reset()
+		self.rebase.onSuccessfulContinue = func() error {
+			self.PatchManager.Reset()
 			return nil
 		}
 
-		return c.GenericMergeOrRebaseAction("rebase", "continue")
+		return self.rebase.GenericMergeOrRebaseAction("rebase", "continue")
 	}
 
-	return c.GenericMergeOrRebaseAction("rebase", "continue")
+	return self.rebase.GenericMergeOrRebaseAction("rebase", "continue")
 }
 
-func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, p *patch.PatchManager, stash bool) error {
+func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, stash bool) error {
 	if stash {
-		if err := c.StashSave(c.Tr.StashPrefix + commits[commitIdx].Sha); err != nil {
+		if err := self.stash.Save(self.Tr.StashPrefix + commits[commitIdx].Sha); err != nil {
 			return err
 		}
 	}
 
-	if err := c.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
 		return err
 	}
 
-	if err := p.ApplyPatches(true); err != nil {
-		if c.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-			if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+	if err := self.PatchManager.ApplyPatches(true); err != nil {
+		if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+			if err := self.rebase.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 				return err
 			}
 		}
@@ -159,19 +193,19 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 	}
 
 	// amend the commit
-	if err := c.AmendHead(); err != nil {
+	if err := self.commit.AmendHead(); err != nil {
 		return err
 	}
 
-	if c.onSuccessfulContinue != nil {
+	if self.rebase.onSuccessfulContinue != nil {
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
 
-	c.onSuccessfulContinue = func() error {
+	self.rebase.onSuccessfulContinue = func() error {
 		// add patches to index
-		if err := p.ApplyPatches(false); err != nil {
-			if c.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-				if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+		if err := self.PatchManager.ApplyPatches(false); err != nil {
+			if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+				if err := self.rebase.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 					return err
 				}
 			}
@@ -179,54 +213,54 @@ func (c *GitCommand) MovePatchIntoIndex(commits []*models.Commit, commitIdx int,
 		}
 
 		if stash {
-			if err := c.StashDo(0, "apply"); err != nil {
+			if err := self.stash.Apply(0); err != nil {
 				return err
 			}
 		}
 
-		c.PatchManager.Reset()
+		self.PatchManager.Reset()
 		return nil
 	}
 
-	return c.GenericMergeOrRebaseAction("rebase", "continue")
+	return self.rebase.GenericMergeOrRebaseAction("rebase", "continue")
 }
 
-func (c *GitCommand) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, p *patch.PatchManager) error {
-	if err := c.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
+func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int) error {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
 		return err
 	}
 
-	if err := p.ApplyPatches(true); err != nil {
-		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+	if err := self.PatchManager.ApplyPatches(true); err != nil {
+		if err := self.rebase.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 			return err
 		}
 		return err
 	}
 
 	// amend the commit
-	if err := c.AmendHead(); err != nil {
+	if err := self.commit.AmendHead(); err != nil {
 		return err
 	}
 
 	// add patches to index
-	if err := p.ApplyPatches(false); err != nil {
-		if err := c.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
+	if err := self.PatchManager.ApplyPatches(false); err != nil {
+		if err := self.rebase.GenericMergeOrRebaseAction("rebase", "abort"); err != nil {
 			return err
 		}
 		return err
 	}
 
-	head_message, _ := c.GetHeadCommitMessage()
+	head_message, _ := self.commit.GetHeadCommitMessage()
 	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	err := c.CommitCmdObj(new_message, "").Run()
+	err := self.commit.CommitCmdObj(new_message, "").Run()
 	if err != nil {
 		return err
 	}
 
-	if c.onSuccessfulContinue != nil {
+	if self.rebase.onSuccessfulContinue != nil {
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
 
-	c.PatchManager.Reset()
-	return c.GenericMergeOrRebaseAction("rebase", "continue")
+	self.PatchManager.Reset()
+	return self.rebase.GenericMergeOrRebaseAction("rebase", "continue")
 }

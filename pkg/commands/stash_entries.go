@@ -5,59 +5,91 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
-// StashDo modify stash
-func (c *GitCommand) StashDo(index int, method string) error {
-	return c.Cmd.New(fmt.Sprintf("git stash %s stash@{%d}", method, index)).Run()
+type StashCommands struct {
+	*common.Common
+
+	cmd         oscommands.ICmdObjBuilder
+	fileLoader  *loaders.FileLoader
+	osCommand   *oscommands.OSCommand
+	workingTree *WorkingTreeCommands
 }
 
-// StashSave save stash
+func NewStashCommands(
+	common *common.Common,
+	cmd oscommands.ICmdObjBuilder,
+	osCommand *oscommands.OSCommand,
+	fileLoader *loaders.FileLoader,
+	workingTree *WorkingTreeCommands,
+) *StashCommands {
+	return &StashCommands{
+		Common:      common,
+		cmd:         cmd,
+		fileLoader:  fileLoader,
+		osCommand:   osCommand,
+		workingTree: workingTree,
+	}
+}
+
+func (self *StashCommands) Drop(index int) error {
+	return self.cmd.New(fmt.Sprintf("git stash drop stash@{%d}", index)).Run()
+}
+
+func (self *StashCommands) Pop(index int) error {
+	return self.cmd.New(fmt.Sprintf("git stash pop stash@{%d}", index)).Run()
+}
+
+func (self *StashCommands) Apply(index int) error {
+	return self.cmd.New(fmt.Sprintf("git stash apply stash@{%d}", index)).Run()
+}
+
+// Save save stash
 // TODO: before calling this, check if there is anything to save
-func (c *GitCommand) StashSave(message string) error {
-	return c.Cmd.New("git stash save " + c.OSCommand.Quote(message)).Run()
+func (self *StashCommands) Save(message string) error {
+	return self.cmd.New("git stash save " + self.cmd.Quote(message)).Run()
 }
 
-func (c *GitCommand) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
-	cmdStr := fmt.Sprintf("git stash show -p --stat --color=%s --unified=%d stash@{%d}", c.colorArg(), c.UserConfig.Git.DiffContextSize, index)
+func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
+	cmdStr := fmt.Sprintf("git stash show -p --stat --color=%s --unified=%d stash@{%d}", self.UserConfig.Git.Paging.ColorArg, self.UserConfig.Git.DiffContextSize, index)
 
-	return c.Cmd.New(cmdStr).DontLog()
+	return self.cmd.New(cmdStr).DontLog()
 }
 
-// StashSaveStagedChanges stashes only the currently staged changes. This takes a few steps
+// SaveStagedChanges stashes only the currently staged changes. This takes a few steps
 // shoutouts to Joe on https://stackoverflow.com/questions/14759748/stashing-only-staged-changes-in-git-is-it-possible
-func (c *GitCommand) StashSaveStagedChanges(message string) error {
+func (self *StashCommands) SaveStagedChanges(message string) error {
 	// wrap in 'writing', which uses a mutex
-	if err := c.Cmd.New("git stash --keep-index").Run(); err != nil {
+	if err := self.cmd.New("git stash --keep-index").Run(); err != nil {
 		return err
 	}
 
-	if err := c.StashSave(message); err != nil {
+	if err := self.Save(message); err != nil {
 		return err
 	}
 
-	if err := c.Cmd.New("git stash apply stash@{1}").Run(); err != nil {
+	if err := self.cmd.New("git stash apply stash@{1}").Run(); err != nil {
 		return err
 	}
 
-	if err := c.OSCommand.PipeCommands("git stash show -p", "git apply -R"); err != nil {
+	if err := self.osCommand.PipeCommands("git stash show -p", "git apply -R"); err != nil {
 		return err
 	}
 
-	if err := c.Cmd.New("git stash drop stash@{1}").Run(); err != nil {
+	if err := self.cmd.New("git stash drop stash@{1}").Run(); err != nil {
 		return err
 	}
 
 	// if you had staged an untracked file, that will now appear as 'AD' in git status
 	// meaning it's deleted in your working tree but added in your index. Given that it's
 	// now safely stashed, we need to remove it.
-	files := loaders.
-		NewFileLoader(c.Common, c.Cmd, c.GitConfig).
+	files := self.fileLoader.
 		GetStatusFiles(loaders.GetStatusFileOptions{})
 
 	for _, file := range files {
 		if file.ShortStatus == "AD" {
-			if err := c.UnStageFile(file.Names(), false); err != nil {
+			if err := self.workingTree.UnStageFile(file.Names(), false); err != nil {
 				return err
 			}
 		}

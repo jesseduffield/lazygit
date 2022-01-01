@@ -12,6 +12,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -433,12 +434,16 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 
 // for now the split view will always be on
 // NewGui builds a new gui handler
-func NewGui(cmn *common.Common, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
-
+func NewGui(
+	cmn *common.Common,
+	config config.AppConfigurer,
+	gitConfig git_config.IGitConfig,
+	updater *updates.Updater,
+	filterPath string,
+	showRecentRepos bool,
+) (*Gui, error) {
 	gui := &Gui{
 		Common:                  cmn,
-		GitCommand:              gitCommand,
-		OSCommand:               oSCommand,
 		Config:                  config,
 		Updater:                 updater,
 		statusManager:           &statusManager{},
@@ -455,11 +460,30 @@ func NewGui(cmn *common.Common, gitCommand *commands.GitCommand, oSCommand *osco
 		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
 	}
 
+	guiIO := oscommands.NewGuiIO(
+		cmn.Log,
+		gui.logCommand,
+		gui.getCmdWriter,
+		gui.promptUserForCredential,
+	)
+
+	osCommand := oscommands.NewOSCommand(cmn, oscommands.GetPlatform(), guiIO)
+
+	gui.OSCommand = osCommand
+	var err error
+	gui.GitCommand, err = commands.NewGitCommand(
+		cmn,
+		osCommand,
+		gitConfig,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	gui.resetState(filterPath, false)
 
 	gui.watchFilesForChanges()
 
-	oSCommand.SetLogCommandFn(gui.logCommand)
 	gui.PopupHandler = &RealPopupHandler{gui: gui}
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)

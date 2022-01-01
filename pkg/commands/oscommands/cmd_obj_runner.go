@@ -15,18 +15,46 @@ type ICmdObjRunner interface {
 }
 
 type cmdObjRunner struct {
-	log       *logrus.Entry
-	logCmdObj func(ICmdObj)
+	log   *logrus.Entry
+	guiIO *guiIO
 }
 
 var _ ICmdObjRunner = &cmdObjRunner{}
 
+func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
+	switch cmdObj.GetCredentialStrategy() {
+	case PROMPT:
+		return self.RunCommandWithOutputLive(cmdObj, self.guiIO.promptForCredentialFn)
+	case FAIL:
+		return self.RunCommandWithOutputLive(cmdObj, func(s string) string { return "\n" })
+	}
+
+	// we should never land here
+	return errors.New("runWithCredentialHandling called but cmdObj does not have a a credential strategy")
+}
+
 func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
-	_, err := self.RunWithOutput(cmdObj)
-	return err
+	if cmdObj.GetCredentialStrategy() == NONE {
+		_, err := self.RunWithOutput(cmdObj)
+		return err
+	} else {
+		return self.runWithCredentialHandling(cmdObj)
+	}
+}
+
+func (self *cmdObjRunner) logCmdObj(cmdObj ICmdObj) {
+	self.guiIO.logCommandFn(cmdObj.ToString(), true)
 }
 
 func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
+	if cmdObj.GetCredentialStrategy() != NONE {
+		err := self.runWithCredentialHandling(cmdObj)
+		// for now we're not capturing output, just because it would take a little more
+		// effort and there's currently no use case for it. Some commands call RunWithOutput
+		// but ignore the output, hence why we've got this check here.
+		return "", err
+	}
+
 	if cmdObj.ShouldLog() {
 		self.logCmdObj(cmdObj)
 	}
@@ -39,6 +67,10 @@ func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 }
 
 func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+	if cmdObj.GetCredentialStrategy() != NONE {
+		return errors.New("cannot call RunAndProcessLines with credential strategy. If you're seeing this then a contributor to Lazygit has accidentally called this method! Please raise an issue")
+	}
+
 	if cmdObj.ShouldLog() {
 		self.logCmdObj(cmdObj)
 	}

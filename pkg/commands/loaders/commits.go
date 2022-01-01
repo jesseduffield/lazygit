@@ -36,26 +36,22 @@ type CommitLoader struct {
 	dotGitDir            string
 }
 
-type CommitLoaderGitCommand interface {
-	CurrentBranchName() (string, string, error)
-	RebaseMode() (enums.RebaseMode, error)
-	GetCmd() oscommands.ICmdObjBuilder
-	GetDotGitDir() string
-}
-
 // making our dependencies explicit for the sake of easier testing
 func NewCommitLoader(
 	cmn *common.Common,
-	gitCommand CommitLoaderGitCommand,
+	cmd oscommands.ICmdObjBuilder,
+	dotGitDir string,
+	getCurrentBranchName func() (string, string, error),
+	getRebaseMode func() (enums.RebaseMode, error),
 ) *CommitLoader {
 	return &CommitLoader{
 		Common:               cmn,
-		cmd:                  gitCommand.GetCmd(),
-		getCurrentBranchName: gitCommand.CurrentBranchName,
-		getRebaseMode:        gitCommand.RebaseMode,
+		cmd:                  cmd,
+		getCurrentBranchName: getCurrentBranchName,
+		getRebaseMode:        getRebaseMode,
 		readFile:             ioutil.ReadFile,
 		walkFiles:            filepath.Walk,
-		dotGitDir:            gitCommand.GetDotGitDir(),
+		dotGitDir:            dotGitDir,
 	}
 }
 

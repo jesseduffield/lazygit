@@ -5,24 +5,42 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (c *GitCommand) ConfiguredPager() string {
+type ConfigCommands struct {
+	*common.Common
+
+	gitConfig git_config.IGitConfig
+}
+
+func NewConfigCommands(
+	common *common.Common,
+	gitConfig git_config.IGitConfig,
+) *ConfigCommands {
+	return &ConfigCommands{
+		Common:    common,
+		gitConfig: gitConfig,
+	}
+}
+
+func (self *ConfigCommands) ConfiguredPager() string {
 	if os.Getenv("GIT_PAGER") != "" {
 		return os.Getenv("GIT_PAGER")
 	}
 	if os.Getenv("PAGER") != "" {
 		return os.Getenv("PAGER")
 	}
-	output := c.GitConfig.Get("core.pager")
+	output := self.gitConfig.Get("core.pager")
 	return strings.Split(output, "\n")[0]
 }
 
-func (c *GitCommand) GetPager(width int) string {
-	useConfig := c.UserConfig.Git.Paging.UseConfig
+func (self *ConfigCommands) GetPager(width int) string {
+	useConfig := self.UserConfig.Git.Paging.UseConfig
 	if useConfig {
-		pager := c.ConfiguredPager()
+		pager := self.ConfiguredPager()
 		return strings.Split(pager, "| less")[0]
 	}
 
@@ -30,21 +48,35 @@ func (c *GitCommand) GetPager(width int) string {
 		"columnWidth": strconv.Itoa(width/2 - 6),
 	}
 
-	pagerTemplate := c.UserConfig.Git.Paging.Pager
+	pagerTemplate := self.UserConfig.Git.Paging.Pager
 	return utils.ResolvePlaceholderString(pagerTemplate, templateValues)
-}
-
-func (c *GitCommand) colorArg() string {
-	return c.UserConfig.Git.Paging.ColorArg
 }
 
 // UsingGpg tells us whether the user has gpg enabled so that we can know
 // whether we need to run a subprocess to allow them to enter their password
-func (c *GitCommand) UsingGpg() bool {
-	overrideGpg := c.UserConfig.Git.OverrideGpg
+func (self *ConfigCommands) UsingGpg() bool {
+	overrideGpg := self.UserConfig.Git.OverrideGpg
 	if overrideGpg {
 		return false
 	}
 
-	return c.GitConfig.GetBool("commit.gpgsign")
+	return self.gitConfig.GetBool("commit.gpgsign")
+}
+
+func (self *ConfigCommands) GetCoreEditor() string {
+	return self.gitConfig.Get("core.editor")
+}
+
+// GetRemoteURL returns current repo remote url
+func (self *ConfigCommands) GetRemoteURL() string {
+	return self.gitConfig.Get("remote.origin.url")
+}
+
+func (self *ConfigCommands) GetShowUntrackedFiles() string {
+	return self.gitConfig.Get("status.showUntrackedFiles")
+}
+
+// this determines whether the user has configured to push to the remote branch of the same name as the current or not
+func (self *ConfigCommands) GetPushToCurrent() bool {
+	return self.gitConfig.Get("push.default") == "current"
 }

@@ -124,8 +124,6 @@ func (gui *Gui) createAllViews() error {
 		return err
 	}
 
-	gui.GitCommand.GetCmdWriter = gui.getCmdWriter
-
 	return nil
 }
 

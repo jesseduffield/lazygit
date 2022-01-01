@@ -27,19 +27,15 @@ type BranchLoader struct {
 	getCurrentBranchName func() (string, string, error)
 }
 
-type BranchLoaderGitCommand interface {
-	GetRawBranches() (string, error)
-	CurrentBranchName() (string, string, error)
-}
-
 func NewBranchLoader(
 	cmn *common.Common,
-	gitCommand BranchLoaderGitCommand,
+	getRawBranches func() (string, error),
+	getCurrentBranchName func() (string, string, error),
 ) *BranchLoader {
 	return &BranchLoader{
 		Common:               cmn,
-		getRawBranches:       gitCommand.GetRawBranches,
-		getCurrentBranchName: gitCommand.CurrentBranchName,
+		getRawBranches:       getRawBranches,
+		getCurrentBranchName: getCurrentBranchName,
 	}
 }
 

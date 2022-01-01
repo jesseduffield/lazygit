@@ -743,8 +743,8 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "commits",
 			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.RenameCommit),
-			Handler:     gui.handleRenameCommit,
-			Description: gui.Tr.LcRenameCommit,
+			Handler:     gui.handleRewordCommit,
+			Description: gui.Tr.LcRewordCommit,
 		},
 		{
 			ViewName:    "commits",

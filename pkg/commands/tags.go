@@ -2,22 +2,36 @@ package commands
 
 import (
 	"fmt"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
-func (c *GitCommand) CreateLightweightTag(tagName string, commitSha string) error {
-	return c.Cmd.New(fmt.Sprintf("git tag -- %s %s", c.OSCommand.Quote(tagName), commitSha)).Run()
+type TagCommands struct {
+	*common.Common
+
+	cmd oscommands.ICmdObjBuilder
 }
 
-func (c *GitCommand) CreateAnnotatedTag(tagName, commitSha, msg string) error {
-	return c.Cmd.New(fmt.Sprintf("git tag %s %s -m %s", tagName, commitSha, c.OSCommand.Quote(msg))).Run()
+func NewTagCommands(common *common.Common, cmd oscommands.ICmdObjBuilder) *TagCommands {
+	return &TagCommands{
+		Common: common,
+		cmd:    cmd,
+	}
 }
 
-func (c *GitCommand) DeleteTag(tagName string) error {
-	return c.Cmd.New(fmt.Sprintf("git tag -d %s", c.OSCommand.Quote(tagName))).Run()
+func (self *TagCommands) CreateLightweight(tagName string, commitSha string) error {
+	return self.cmd.New(fmt.Sprintf("git tag -- %s %s", self.cmd.Quote(tagName), commitSha)).Run()
 }
 
-func (c *GitCommand) PushTag(remoteName string, tagName string, promptUserForCredential func(string) string) error {
-	cmdStr := fmt.Sprintf("git push %s %s", c.OSCommand.Quote(remoteName), c.OSCommand.Quote(tagName))
-	cmdObj := c.Cmd.New(cmdStr)
-	return c.DetectUnamePass(cmdObj, promptUserForCredential)
+func (self *TagCommands) CreateAnnotated(tagName, commitSha, msg string) error {
+	return self.cmd.New(fmt.Sprintf("git tag %s %s -m %s", tagName, commitSha, self.cmd.Quote(msg))).Run()
+}
+
+func (self *TagCommands) Delete(tagName string) error {
+	return self.cmd.New(fmt.Sprintf("git tag -d %s", self.cmd.Quote(tagName))).Run()
+}
+
+func (self *TagCommands) Push(remoteName string, tagName string) error {
+	return self.cmd.New(fmt.Sprintf("git push %s %s", self.cmd.Quote(remoteName), self.cmd.Quote(tagName))).PromptOnCredentialRequest().Run()
 }

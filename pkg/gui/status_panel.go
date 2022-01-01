@@ -28,8 +28,8 @@ func (gui *Gui) refreshStatus() {
 		status += presentation.ColoredBranchStatus(currentBranch) + " "
 	}
 
-	if gui.GitCommand.WorkingTreeState() != enums.REBASE_MODE_NONE {
-		status += style.FgYellow.Sprintf("(%s) ", gui.GitCommand.WorkingTreeState())
+	if gui.GitCommand.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		status += style.FgYellow.Sprintf("(%s) ", gui.GitCommand.Status.WorkingTreeState())
 	}
 
 	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
@@ -71,7 +71,7 @@ func (gui *Gui) handleStatusClick() error {
 	cx, _ := gui.Views.Status.Cursor()
 	upstreamStatus := presentation.BranchStatus(currentBranch)
 	repoName := utils.GetCurrentRepoName()
-	workingTreeState := gui.GitCommand.WorkingTreeState()
+	workingTreeState := gui.GitCommand.Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
 		var formattedState string

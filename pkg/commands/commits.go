@@ -4,18 +4,34 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
-// RenameCommit renames the topmost commit with the given name
-func (c *GitCommand) RenameCommit(name string) error {
-	return c.Cmd.New("git commit --allow-empty --amend --only -m " + c.OSCommand.Quote(name)).Run()
+type CommitCommands struct {
+	*common.Common
+
+	cmd oscommands.ICmdObjBuilder
+}
+
+func NewCommitCommands(
+	common *common.Common,
+	cmd oscommands.ICmdObjBuilder,
+) *CommitCommands {
+	return &CommitCommands{
+		Common: common,
+		cmd:    cmd,
+	}
+}
+
+// RewordLastCommit renames the topmost commit with the given name
+func (self *CommitCommands) RewordLastCommit(name string) error {
+	return self.cmd.New("git commit --allow-empty --amend --only -m " + self.cmd.Quote(name)).Run()
 }
 
 // ResetToCommit reset to commit
-func (c *GitCommand) ResetToCommit(sha string, strength string, envVars []string) error {
-	return c.Cmd.New(fmt.Sprintf("git reset --%s %s", strength, sha)).
+func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars []string) error {
+	return self.cmd.New(fmt.Sprintf("git reset --%s %s", strength, sha)).
 		// prevents git from prompting us for input which would freeze the program
 		// TODO: see if this is actually needed here
 		AddEnvVars("GIT_TERMINAL_PROMPT=0").
@@ -23,11 +39,11 @@ func (c *GitCommand) ResetToCommit(sha string, strength string, envVars []string
 		Run()
 }
 
-func (c *GitCommand) CommitCmdObj(message string, flags string) oscommands.ICmdObj {
+func (self *CommitCommands) CommitCmdObj(message string, flags string) oscommands.ICmdObj {
 	splitMessage := strings.Split(message, "\n")
 	lineArgs := ""
 	for _, line := range splitMessage {
-		lineArgs += fmt.Sprintf(" -m %s", c.OSCommand.Quote(line))
+		lineArgs += fmt.Sprintf(" -m %s", self.cmd.Quote(line))
 	}
 
 	flagsStr := ""
@@ -35,71 +51,56 @@ func (c *GitCommand) CommitCmdObj(message string, flags string) oscommands.ICmdO
 		flagsStr = fmt.Sprintf(" %s", flags)
 	}
 
-	return c.Cmd.New(fmt.Sprintf("git commit%s%s", flagsStr, lineArgs))
+	return self.cmd.New(fmt.Sprintf("git commit%s%s", flagsStr, lineArgs))
 }
 
 // Get the subject of the HEAD commit
-func (c *GitCommand) GetHeadCommitMessage() (string, error) {
-	message, err := c.Cmd.New("git log -1 --pretty=%s").DontLog().RunWithOutput()
+func (self *CommitCommands) GetHeadCommitMessage() (string, error) {
+	message, err := self.cmd.New("git log -1 --pretty=%s").DontLog().RunWithOutput()
 	return strings.TrimSpace(message), err
 }
 
-func (c *GitCommand) GetCommitMessage(commitSha string) (string, error) {
+func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 	cmdStr := "git rev-list --format=%B --max-count=1 " + commitSha
-	messageWithHeader, err := c.Cmd.New(cmdStr).DontLog().RunWithOutput()
+	messageWithHeader, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
 	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "\n")
 	return strings.TrimSpace(message), err
 }
 
-func (c *GitCommand) GetCommitMessageFirstLine(sha string) (string, error) {
-	return c.Cmd.New(fmt.Sprintf("git show --no-patch --pretty=format:%%s %s", sha)).DontLog().RunWithOutput()
+func (self *CommitCommands) GetCommitMessageFirstLine(sha string) (string, error) {
+	return self.cmd.New(fmt.Sprintf("git show --no-patch --pretty=format:%%s %s", sha)).DontLog().RunWithOutput()
 }
 
 // AmendHead amends HEAD with whatever is staged in your working tree
-func (c *GitCommand) AmendHead() error {
-	return c.AmendHeadCmdObj().Run()
+func (self *CommitCommands) AmendHead() error {
+	return self.AmendHeadCmdObj().Run()
 }
 
-func (c *GitCommand) AmendHeadCmdObj() oscommands.ICmdObj {
-	return c.Cmd.New("git commit --amend --no-edit --allow-empty")
+func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
+	return self.cmd.New("git commit --amend --no-edit --allow-empty")
 }
 
-func (c *GitCommand) ShowCmdObj(sha string, filterPath string) oscommands.ICmdObj {
-	contextSize := c.UserConfig.Git.DiffContextSize
+func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands.ICmdObj {
+	contextSize := self.UserConfig.Git.DiffContextSize
 	filterPathArg := ""
 	if filterPath != "" {
-		filterPathArg = fmt.Sprintf(" -- %s", c.OSCommand.Quote(filterPath))
+		filterPathArg = fmt.Sprintf(" -- %s", self.cmd.Quote(filterPath))
 	}
 
-	cmdStr := fmt.Sprintf("git show --submodule --color=%s --unified=%d --no-renames --stat -p %s %s", c.colorArg(), contextSize, sha, filterPathArg)
-	return c.Cmd.New(cmdStr).DontLog()
+	cmdStr := fmt.Sprintf("git show --submodule --color=%s --unified=%d --no-renames --stat -p %s %s", self.UserConfig.Git.Paging.ColorArg, contextSize, sha, filterPathArg)
+	return self.cmd.New(cmdStr).DontLog()
 }
 
 // Revert reverts the selected commit by sha
-func (c *GitCommand) Revert(sha string) error {
-	return c.Cmd.New(fmt.Sprintf("git revert %s", sha)).Run()
+func (self *CommitCommands) Revert(sha string) error {
+	return self.cmd.New(fmt.Sprintf("git revert %s", sha)).Run()
 }
 
-func (c *GitCommand) RevertMerge(sha string, parentNumber int) error {
-	return c.Cmd.New(fmt.Sprintf("git revert %s -m %d", sha, parentNumber)).Run()
-}
-
-// CherryPickCommits begins an interactive rebase with the given shas being cherry picked onto HEAD
-func (c *GitCommand) CherryPickCommits(commits []*models.Commit) error {
-	todo := ""
-	for _, commit := range commits {
-		todo = "pick " + commit.Sha + " " + commit.Name + "\n" + todo
-	}
-
-	cmdObj, err := c.PrepareInteractiveRebaseCommand("HEAD", todo, false)
-	if err != nil {
-		return err
-	}
-
-	return cmdObj.Run()
+func (self *CommitCommands) RevertMerge(sha string, parentNumber int) error {
+	return self.cmd.New(fmt.Sprintf("git revert %s -m %d", sha, parentNumber)).Run()
 }
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
-func (c *GitCommand) CreateFixupCommit(sha string) error {
-	return c.Cmd.New(fmt.Sprintf("git commit --fixup=%s", sha)).Run()
+func (self *CommitCommands) CreateFixupCommit(sha string) error {
+	return self.cmd.New(fmt.Sprintf("git commit --fixup=%s", sha)).Run()
 }

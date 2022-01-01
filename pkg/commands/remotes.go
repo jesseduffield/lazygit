@@ -4,58 +4,64 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
-func (c *GitCommand) AddRemote(name string, url string) error {
-	return c.Cmd.
-		New(fmt.Sprintf("git remote add %s %s", c.Cmd.Quote(name), c.Cmd.Quote(url))).
+type RemoteCommands struct {
+	*common.Common
+
+	cmd oscommands.ICmdObjBuilder
+}
+
+func NewRemoteCommands(
+	common *common.Common,
+	cmd oscommands.ICmdObjBuilder,
+) *RemoteCommands {
+	return &RemoteCommands{
+		Common: common,
+		cmd:    cmd,
+	}
+}
+
+func (self *RemoteCommands) AddRemote(name string, url string) error {
+	return self.cmd.
+		New(fmt.Sprintf("git remote add %s %s", self.cmd.Quote(name), self.cmd.Quote(url))).
 		Run()
 }
 
-func (c *GitCommand) RemoveRemote(name string) error {
-	return c.Cmd.
-		New(fmt.Sprintf("git remote remove %s", c.Cmd.Quote(name))).
+func (self *RemoteCommands) RemoveRemote(name string) error {
+	return self.cmd.
+		New(fmt.Sprintf("git remote remove %s", self.cmd.Quote(name))).
 		Run()
 }
 
-func (c *GitCommand) RenameRemote(oldRemoteName string, newRemoteName string) error {
-	return c.Cmd.
-		New(fmt.Sprintf("git remote rename %s %s", c.Cmd.Quote(oldRemoteName), c.Cmd.Quote(newRemoteName))).
+func (self *RemoteCommands) RenameRemote(oldRemoteName string, newRemoteName string) error {
+	return self.cmd.
+		New(fmt.Sprintf("git remote rename %s %s", self.cmd.Quote(oldRemoteName), self.cmd.Quote(newRemoteName))).
 		Run()
 }
 
-func (c *GitCommand) UpdateRemoteUrl(remoteName string, updatedUrl string) error {
-	return c.Cmd.
-		New(fmt.Sprintf("git remote set-url %s %s", c.Cmd.Quote(remoteName), c.Cmd.Quote(updatedUrl))).
+func (self *RemoteCommands) UpdateRemoteUrl(remoteName string, updatedUrl string) error {
+	return self.cmd.
+		New(fmt.Sprintf("git remote set-url %s %s", self.cmd.Quote(remoteName), self.cmd.Quote(updatedUrl))).
 		Run()
 }
 
-func (c *GitCommand) DeleteRemoteBranch(remoteName string, branchName string, promptUserForCredential func(string) string) error {
-	command := fmt.Sprintf("git push %s --delete %s", c.Cmd.Quote(remoteName), c.Cmd.Quote(branchName))
-	cmdObj := c.Cmd.
-		New(command)
-	return c.DetectUnamePass(cmdObj, promptUserForCredential)
-}
-
-func (c *GitCommand) DetectUnamePass(cmdObj oscommands.ICmdObj, promptUserForCredential func(string) string) error {
-	return c.OSCommand.DetectUnamePass(cmdObj, c.GetCmdWriter(), promptUserForCredential)
+func (self *RemoteCommands) DeleteRemoteBranch(remoteName string, branchName string) error {
+	command := fmt.Sprintf("git push %s --delete %s", self.cmd.Quote(remoteName), self.cmd.Quote(branchName))
+	return self.cmd.New(command).PromptOnCredentialRequest().Run()
 }
 
 // CheckRemoteBranchExists Returns remote branch
-func (c *GitCommand) CheckRemoteBranchExists(branchName string) bool {
-	_, err := c.Cmd.
+func (self *RemoteCommands) CheckRemoteBranchExists(branchName string) bool {
+	_, err := self.cmd.
 		New(
 			fmt.Sprintf("git show-ref --verify -- refs/remotes/origin/%s",
-				c.Cmd.Quote(branchName),
+				self.cmd.Quote(branchName),
 			),
 		).
 		DontLog().
 		RunWithOutput()
 
 	return err == nil
-}
-
-// GetRemoteURL returns current repo remote url
-func (c *GitCommand) GetRemoteURL() string {
-	return c.GitConfig.Get("remote.origin.url")
 }
