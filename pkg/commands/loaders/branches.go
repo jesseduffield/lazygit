@@ -25,7 +25,6 @@ type BranchLoader struct {
 	*common.Common
 	getRawBranches       func() (string, error)
 	getCurrentBranchName func() (string, string, error)
-	reflogCommits        []*models.Commit
 }
 
 type BranchLoaderGitCommand interface {
@@ -36,21 +35,19 @@ type BranchLoaderGitCommand interface {
 func NewBranchLoader(
 	cmn *common.Common,
 	gitCommand BranchLoaderGitCommand,
-	reflogCommits []*models.Commit,
 ) *BranchLoader {
 	return &BranchLoader{
 		Common:               cmn,
 		getRawBranches:       gitCommand.GetRawBranches,
 		getCurrentBranchName: gitCommand.CurrentBranchName,
-		reflogCommits:        reflogCommits,
 	}
 }
 
 // Load the list of branches for the current repo
-func (self *BranchLoader) Load() []*models.Branch {
+func (self *BranchLoader) Load(reflogCommits []*models.Commit) []*models.Branch {
 	branches := self.obtainBranches()
 
-	reflogBranches := self.obtainReflogBranches()
+	reflogBranches := self.obtainReflogBranches(reflogCommits)
 
 	// loop through reflog branches. If there is a match, merge them, then remove it from the branches and keep it in the reflog branches
 	branchesWithRecency := make([]*models.Branch, 0)
@@ -154,11 +151,11 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
 // int form against the branch to recalculate the time ago
-func (self *BranchLoader) obtainReflogBranches() []*models.Branch {
+func (self *BranchLoader) obtainReflogBranches(reflogCommits []*models.Commit) []*models.Branch {
 	foundBranchesMap := map[string]bool{}
 	re := regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
-	reflogBranches := make([]*models.Branch, 0, len(self.reflogCommits))
-	for _, commit := range self.reflogCommits {
+	reflogBranches := make([]*models.Branch, 0, len(reflogCommits))
+	for _, commit := range reflogCommits {
 		if match := re.FindStringSubmatch(commit.Name); len(match) == 3 {
 			recency := utils.UnixToTimeAgo(commit.UnixTimestamp)
 			for _, branchName := range match[1:] {

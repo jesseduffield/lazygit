@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -56,18 +55,13 @@ func (gui *Gui) refreshBranches() {
 		// which allows us to order them correctly. So if we're filtering we'll just
 		// manually load all the reflog commits here
 		var err error
-		reflogCommits, _, err = loaders.NewReflogCommitLoader(gui.Common, gui.GitCommand.Cmd).GetReflogCommits(nil, "")
+		reflogCommits, _, err = gui.GitCommand.Loaders.ReflogCommits.GetReflogCommits(nil, "")
 		if err != nil {
 			gui.Log.Error(err)
 		}
 	}
 
-	loader := loaders.NewBranchLoader(
-		gui.Common,
-		gui.GitCommand,
-		reflogCommits,
-	)
-	gui.State.Branches = loader.Load()
+	gui.State.Branches = gui.GitCommand.Loaders.Branches.Load(reflogCommits)
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
