@@ -1684,51 +1684,50 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			{ViewName: viewName, Key: gui.getKey(config.Universal.PrevBlockAlt2), Modifier: gocui.ModNone, Handler: gui.previousSideWindow},
 			{ViewName: viewName, Key: gui.getKey(config.Universal.NextBlockAlt2), Modifier: gocui.ModNone, Handler: gui.nextSideWindow},
 
-            // all the previously "global" keystrokes that aren't quit-ish: anything that wouldn't make sense in a popup, and are actually only toplevel window commands
+			// all the previously "global" keystrokes that aren't quit-ish: anything that wouldn't make sense in a popup, and are actually only toplevel window commands
 			{ViewName: viewName, Key: gui.getKey(config.Universal.Return), Modifier: gocui.ModNone, Handler: gui.handleTopLevelReturn},
-            {ViewName: viewName, Key: gui.getKey(config.Universal.OpenRecentRepos), Handler: gui.handleCreateRecentReposMenu, Alternative: "<c-r>", Description: gui.Tr.SwitchRepo},
-            {ViewName: viewName, Key: gui.getKey(config.Universal.ScrollUpMain), Handler: gui.scrollUpMain, Alternative: "fn+up", Description: gui.Tr.LcScrollUpMainPanel},
-            {ViewName: viewName, Key: gui.getKey(config.Universal.ScrollDownMain), Handler: gui.scrollDownMain, Alternative: "fn+down", Description: gui.Tr.LcScrollDownMainPanel},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.OpenRecentRepos), Handler: gui.handleCreateRecentReposMenu, Alternative: "<c-r>", Description: gui.Tr.SwitchRepo},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.ScrollUpMain), Handler: gui.scrollUpMain, Alternative: "fn+up", Description: gui.Tr.LcScrollUpMainPanel},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.ScrollDownMain), Handler: gui.scrollDownMain, Alternative: "fn+down", Description: gui.Tr.LcScrollDownMainPanel},
 			{ViewName: viewName, Key: gui.getKey(config.Universal.ScrollUpMainAlt1), Modifier: gocui.ModNone, Handler: gui.scrollUpMain},
 			{ViewName: viewName, Key: gui.getKey(config.Universal.ScrollDownMainAlt1), Modifier: gocui.ModNone, Handler: gui.scrollDownMain},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.ScrollUpMainAlt2), Modifier: gocui.ModNone, Handler: gui.scrollUpMain},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.ScrollDownMainAlt2), Modifier: gocui.ModNone, Handler:  gui.scrollDownMain},
-    		{ViewName: viewName, Key: gui.getKey(config.Universal.CreateRebaseOptionsMenu), Handler: gui.handleCreateRebaseOptionsMenu, Description: gui.Tr.ViewMergeRebaseOptions, OpensMenu: true},
-    		{ViewName: viewName, Key: gui.getKey(config.Universal.CreatePatchOptionsMenu), Handler: gui.handleCreatePatchOptionsMenu, Description: gui.Tr.ViewPatchOptions, OpensMenu: true},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.PushFiles), Handler: gui.pushFiles, Description: gui.Tr.LcPush},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.PullFiles), Handler: gui.handlePullFiles, Description: gui.Tr.LcPull},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.Refresh), Handler: gui.handleRefresh, Description: gui.Tr.LcRefresh},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.OptionMenu), Handler: gui.handleCreateOptionsMenu, Description: gui.Tr.LcOpenMenu, OpensMenu: true},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.OptionMenuAlt1), Modifier: gocui.ModNone, Handler: gui.handleCreateOptionsMenu},
-		    {ViewName: viewName, Key: gocui.MouseMiddle, Modifier: gocui.ModNone, Handler:  gui.handleCreateOptionsMenu},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.Undo), Handler: gui.reflogUndo, Description: gui.Tr.LcUndoReflog},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.Redo), Handler: gui.reflogRedo, Description: gui.Tr.LcRedoReflog},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.NextScreenMode), Handler: gui.nextScreenMode, Description: gui.Tr.LcNextScreenMode},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.PrevScreenMode), Handler: gui.prevScreenMode, Description: gui.Tr.LcPrevScreenMode},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.ExecuteCustomCommand), Handler: gui.handleCustomCommand, Description: gui.Tr.LcExecuteCustomCommand},
-    		{ViewName: viewName, Key: gui.getKey(config.Universal.FilteringMenu), Handler: gui.handleCreateFilteringMenuPanel, Description: gui.Tr.LcOpenFilteringMenu, OpensMenu: true},
-    		{ViewName: viewName, Key: gui.getKey(config.Universal.DiffingMenu), Handler: gui.handleCreateDiffingMenuPanel, Description: gui.Tr.LcOpenDiffingMenu, OpensMenu: true},
-    		{ViewName: viewName, Key: gui.getKey(config.Universal.DiffingMenuAlt), Handler: gui.handleCreateDiffingMenuPanel, Description: gui.Tr.LcOpenDiffingMenu, OpensMenu: true},
-    		{ViewName: viewName, Key: gui.getKey(config.Universal.ExtrasMenu), Handler: gui.handleCreateExtrasMenuPanel, Description: gui.Tr.LcOpenExtrasMenu, OpensMenu: true},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.IncreaseContextInDiffView), Handler: gui.IncreaseContextInDiffView, Description: gui.Tr.IncreaseContextInDiffView},
-		    {ViewName: viewName, Key: gui.getKey(config.Universal.DecreaseContextInDiffView), Handler: gui.DecreaseContextInDiffView, Description: gui.Tr.DecreaseContextInDiffView},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.ScrollUpMainAlt2), Modifier: gocui.ModNone, Handler: gui.scrollUpMain},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.ScrollDownMainAlt2), Modifier: gocui.ModNone, Handler: gui.scrollDownMain},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.CreateRebaseOptionsMenu), Handler: gui.handleCreateRebaseOptionsMenu, Description: gui.Tr.ViewMergeRebaseOptions, OpensMenu: true},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.CreatePatchOptionsMenu), Handler: gui.handleCreatePatchOptionsMenu, Description: gui.Tr.ViewPatchOptions, OpensMenu: true},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.PushFiles), Handler: gui.pushFiles, Description: gui.Tr.LcPush},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.PullFiles), Handler: gui.handlePullFiles, Description: gui.Tr.LcPull},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.Refresh), Handler: gui.handleRefresh, Description: gui.Tr.LcRefresh},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.OptionMenu), Handler: gui.handleCreateOptionsMenu, Description: gui.Tr.LcOpenMenu, OpensMenu: true},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.OptionMenuAlt1), Modifier: gocui.ModNone, Handler: gui.handleCreateOptionsMenu},
+			{ViewName: viewName, Key: gocui.MouseMiddle, Modifier: gocui.ModNone, Handler: gui.handleCreateOptionsMenu},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.Undo), Handler: gui.reflogUndo, Description: gui.Tr.LcUndoReflog},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.Redo), Handler: gui.reflogRedo, Description: gui.Tr.LcRedoReflog},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.NextScreenMode), Handler: gui.nextScreenMode, Description: gui.Tr.LcNextScreenMode},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.PrevScreenMode), Handler: gui.prevScreenMode, Description: gui.Tr.LcPrevScreenMode},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.ExecuteCustomCommand), Handler: gui.handleCustomCommand, Description: gui.Tr.LcExecuteCustomCommand},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.FilteringMenu), Handler: gui.handleCreateFilteringMenuPanel, Description: gui.Tr.LcOpenFilteringMenu, OpensMenu: true},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.DiffingMenu), Handler: gui.handleCreateDiffingMenuPanel, Description: gui.Tr.LcOpenDiffingMenu, OpensMenu: true},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.DiffingMenuAlt), Handler: gui.handleCreateDiffingMenuPanel, Description: gui.Tr.LcOpenDiffingMenu, OpensMenu: true},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.ExtrasMenu), Handler: gui.handleCreateExtrasMenuPanel, Description: gui.Tr.LcOpenExtrasMenu, OpensMenu: true},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.IncreaseContextInDiffView), Handler: gui.IncreaseContextInDiffView, Description: gui.Tr.IncreaseContextInDiffView},
+			{ViewName: viewName, Key: gui.getKey(config.Universal.DecreaseContextInDiffView), Handler: gui.DecreaseContextInDiffView, Description: gui.Tr.DecreaseContextInDiffView},
 		}...)
-    	// Appends keybindings to jump to a particular sideView using numbers
-    	windows := []string{"status", "files", "branches", "commits", "stash"}
-    
-    	if len(config.Universal.JumpToBlock) != len(windows) {
-    		log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
-    	} else {
-    		for i, window := range windows {
-    			bindings = append(bindings, &Binding{
-    				ViewName: viewName,
-    				Key:      gui.getKey(config.Universal.JumpToBlock[i]),
-    				Modifier: gocui.ModNone,
-    				Handler:  gui.goToSideWindow(window)})
-    		}
-    	}
-	}
+		// Appends keybindings to jump to a particular sideView using numbers
+		windows := []string{"status", "files", "branches", "commits", "stash"}
 
+		if len(config.Universal.JumpToBlock) != len(windows) {
+			log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
+		} else {
+			for i, window := range windows {
+				bindings = append(bindings, &Binding{
+					ViewName: viewName,
+					Key:      gui.getKey(config.Universal.JumpToBlock[i]),
+					Modifier: gocui.ModNone,
+					Handler:  gui.goToSideWindow(window)})
+			}
+		}
+	}
 
 	for viewName := range gui.State.Contexts.initialViewTabContextMap() {
 		bindings = append(bindings, []*Binding{
