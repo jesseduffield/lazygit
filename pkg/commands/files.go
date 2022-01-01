@@ -318,13 +318,13 @@ func (c *GitCommand) RemoveUntrackedFiles() error {
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
 func (c *GitCommand) ResetAndClean() error {
-	submoduleConfigs, err := c.GetSubmoduleConfigs()
+	submoduleConfigs, err := c.Submodules.GetConfigs()
 	if err != nil {
 		return err
 	}
 
 	if len(submoduleConfigs) > 0 {
-		if err := c.ResetSubmodules(submoduleConfigs); err != nil {
+		if err := c.Submodules.ResetSubmodules(submoduleConfigs); err != nil {
 			return err
 		}
 	}

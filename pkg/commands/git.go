@@ -56,6 +56,8 @@ type GitCommand struct {
 	GetCmdWriter func() io.Writer
 
 	Cmd oscommands.ICmdObjBuilder
+
+	Submodules SubmoduleCommands
 }
 
 // NewGitCommand it runs git commands
@@ -105,6 +107,8 @@ func NewGitCommand(
 		Stash:         loaders.NewStashLoader(cmn, cmd),
 		Tags:          loaders.NewTagLoader(cmn, cmd),
 	}
+
+	gitCommand.Submodules = NewSubmoduleCommands(cmn, cmd, dotGitDir)
 
 	gitCommand.PatchManager = patch.NewPatchManager(gitCommand.Log, gitCommand.ApplyPatch, gitCommand.ShowFileDiff)
 
