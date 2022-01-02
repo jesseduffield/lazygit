@@ -1675,7 +1675,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 	}
 
-	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash"} {
+	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu", "main", "secondary", "extras"} {
 		bindings = append(bindings, []*Binding{
 			{ViewName: viewName, Key: gui.getKey(config.Universal.PrevBlock), Modifier: gocui.ModNone, Handler: gui.previousSideWindow},
 			{ViewName: viewName, Key: gui.getKey(config.Universal.NextBlock), Modifier: gocui.ModNone, Handler: gui.nextSideWindow},
