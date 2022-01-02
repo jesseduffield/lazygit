@@ -944,6 +944,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.LcCloseMenu,
 		},
 		{
+			ViewName:    "menu",
+			Key:         gui.getKey(config.Universal.OptionMenu),
+			Handler:     gui.handleMenuClose,
+			Description: gui.Tr.LcCloseMenu,
+		},
+		{
+			ViewName:    "menu",
+			Key:         gui.getKey(config.Universal.OptionMenuAlt1),
+			Handler:     gui.handleMenuClose,
+			Description: gui.Tr.LcCloseMenu,
+		},
+		{
 			ViewName: "information",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
@@ -1675,7 +1687,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 	}
 
-	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu", "main", "secondary", "extras"} {
+	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "main", "secondary", "extras"} {
 		bindings = append(bindings, []*Binding{
 			{ViewName: viewName, Key: gui.getKey(config.Universal.PrevBlock), Modifier: gocui.ModNone, Handler: gui.previousSideWindow},
 			{ViewName: viewName, Key: gui.getKey(config.Universal.NextBlock), Modifier: gocui.ModNone, Handler: gui.nextSideWindow},
