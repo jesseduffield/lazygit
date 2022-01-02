@@ -105,13 +105,13 @@ func (gui *Gui) statusRenderToMain() error {
 	dashboardString := strings.Join(
 		[]string{
 			lazygitTitle(),
-			"Copyright (c) 2018 Jesse Duffield",
+			"Copyright 2022 Jesse Duffield",
 			fmt.Sprintf("Keybindings: %s", constants.Links.Docs.Keybindings),
 			fmt.Sprintf("Config Options: %s", constants.Links.Docs.Config),
 			fmt.Sprintf("Tutorial: %s", constants.Links.Docs.Tutorial),
 			fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
 			fmt.Sprintf("Release Notes: %s", constants.Links.Releases),
-			style.FgMagenta.Sprintf("Become a sponsor (github is matching all donations for 12 months): %s", constants.Links.Donate), // caffeine ain't free
+			style.FgMagenta.Sprintf("Become a sponsor: %s", constants.Links.Donate), // caffeine ain't free
 		}, "\n\n")
 
 	return gui.refreshMainViews(refreshMainOpts{
