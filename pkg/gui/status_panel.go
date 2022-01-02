@@ -71,9 +71,16 @@ func (gui *Gui) handleStatusClick() error {
 	cx, _ := gui.Views.Status.Cursor()
 	upstreamStatus := presentation.BranchStatus(currentBranch)
 	repoName := utils.GetCurrentRepoName()
-	switch gui.GitCommand.WorkingTreeState() {
+	workingTreeState := gui.GitCommand.WorkingTreeState()
+	switch workingTreeState {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
-		workingTreeStatus := fmt.Sprintf("(%s)", gui.GitCommand.WorkingTreeState())
+		var formattedState string
+		if workingTreeState == enums.REBASE_MODE_REBASING {
+			formattedState = "rebasing"
+		} else {
+			formattedState = "merging"
+		}
+		workingTreeStatus := fmt.Sprintf("(%s)", formattedState)
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
 			return gui.handleCreateRebaseOptionsMenu()
 		}
