@@ -1,3 +1,5 @@
+# This file is auto-generated. To update, make the changes in the pkg/i18n directory and then run `go run scripts/generate_cheatsheet.go` from the project root.
+
 # Lazygit Keybindings
 
 ## Global Keybindings
@@ -21,6 +23,8 @@
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
+  <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
+  <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
 </pre>
 
 ## List Panel Navigation
@@ -119,6 +123,7 @@
 ## Commits Panel (Commits)
 
 <pre>
+  <kbd>ctrl+l</kbd>: open log menu
   <kbd>s</kbd>: squash down
   <kbd>r</kbd>: reword commit
   <kbd>R</kbd>: reword commit with editor
@@ -143,6 +148,7 @@
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>ctrl+y</kbd>: copy commit message to clipboard
+  <kbd>o</kbd>: open commit in browser
 </pre>
 
 ## Commits Panel (Reflog Tab)
@@ -161,6 +167,12 @@
 
 <pre>
   <kbd>@</kbd>: open command log menu
+</pre>
+
+## Files Panel
+
+<pre>
+  <kbd>ctrl+b</kbd>: Filter commit files
 </pre>
 
 ## Files Panel (Files)
@@ -205,6 +217,8 @@
 ## Main Panel (Merging)
 
 <pre>
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
   <kbd>esc</kbd>: return to files panel
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>space</kbd>: pick hunk
@@ -232,10 +246,13 @@
   <kbd>▼</kbd>: select next line
   <kbd>◄</kbd>: select previous hunk
   <kbd>►</kbd>: select next hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
   <kbd>space</kbd>: add/remove line(s) to patch
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
 </pre>
 
 ## Main Panel (Staging)
@@ -250,11 +267,14 @@
   <kbd>▼</kbd>: select next line
   <kbd>◄</kbd>: select previous hunk
   <kbd>►</kbd>: select next hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
   <kbd>c</kbd>: commit changes
   <kbd>w</kbd>: commit changes without pre-commit hook
   <kbd>C</kbd>: commit changes using git editor

@@ -18,6 +18,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
 type bindingSection struct {
@@ -26,10 +27,10 @@ type bindingSection struct {
 }
 
 func main() {
-	langs := []string{"pl", "nl", "en"}
-	mConfig, _ := config.NewAppConfig("", "", "", "", "", true)
+	translationSetsByLang := i18n.GetTranslationSets()
+	mConfig := config.NewDummyAppConfig()
 
-	for _, lang := range langs {
+	for lang := range translationSetsByLang {
 		os.Setenv("LC_ALL", lang)
 		mApp, _ := app.NewApp(mConfig, "")
 		file, err := os.Create(getProjectRoot() + "/docs/keybindings/Keybindings_" + lang + ".md")
@@ -38,7 +39,9 @@ func main() {
 		}
 
 		bindingSections := getBindingSections(mApp)
-		content := formatSections(mApp, bindingSections)
+		content := formatSections(mApp.Tr, bindingSections)
+		content = fmt.Sprintf("# This file is auto-generated. To update, make the changes in the "+
+			"pkg/i18n directory and then run `go run scripts/generate_cheatsheet.go` from the project root.\n\n%s", content)
 		writeString(file, content)
 	}
 }
@@ -231,8 +234,8 @@ func addBinding(title string, bindingSections []*bindingSection, binding *gui.Bi
 	return append(bindingSections, section)
 }
 
-func formatSections(mApp *app.App, bindingSections []*bindingSection) string {
-	content := fmt.Sprintf("# Lazygit %s\n", mApp.Tr.Keybindings)
+func formatSections(tr *i18n.TranslationSet, bindingSections []*bindingSection) string {
+	content := fmt.Sprintf("# Lazygit %s\n", tr.Keybindings)
 
 	for _, section := range bindingSections {
 		content += formatTitle(section.title)
