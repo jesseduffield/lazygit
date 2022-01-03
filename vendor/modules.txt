@@ -206,6 +206,7 @@ github.com/mitchellh/go-homedir
 # github.com/onsi/gomega v1.7.1
 ## explicit
 # github.com/pmezard/go-difflib v1.0.0
+## explicit
 github.com/pmezard/go-difflib/difflib
 # github.com/rivo/uniseg v0.2.0
 github.com/rivo/uniseg

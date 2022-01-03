@@ -4,21 +4,21 @@
 // The content of this generated file is a keybindings cheatsheet.
 //
 // To generate cheatsheet in english run:
-//   LANG=en go run scripts/generate_cheatsheet.go
+//   go run scripts/generate_cheatsheet.go
 
-package main
+package cheatsheet
 
 import (
 	"fmt"
 	"log"
 	"os"
 	"sort"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/integration"
 )
 
 type bindingSection struct {
@@ -26,14 +26,25 @@ type bindingSection struct {
 	bindings []*gui.Binding
 }
 
-func main() {
+func CommandToRun() string {
+	return "go run scripts/cheatsheet/main.go generate"
+}
+
+func GetDir() string {
+	return integration.GetRootDirectory() + "/docs/keybindings"
+}
+
+func generateAtDir(cheatsheetDir string) {
+	os.Setenv("LANG", "en")
+
 	translationSetsByLang := i18n.GetTranslationSets()
 	mConfig := config.NewDummyAppConfig()
 
 	for lang := range translationSetsByLang {
 		os.Setenv("LC_ALL", lang)
 		mApp, _ := app.NewApp(mConfig, "")
-		file, err := os.Create(getProjectRoot() + "/docs/keybindings/Keybindings_" + lang + ".md")
+		path := cheatsheetDir + "/Keybindings_" + lang + ".md"
+		file, err := os.Create(path)
 		if err != nil {
 			panic(err)
 		}
@@ -41,9 +52,13 @@ func main() {
 		bindingSections := getBindingSections(mApp)
 		content := formatSections(mApp.Tr, bindingSections)
 		content = fmt.Sprintf("# This file is auto-generated. To update, make the changes in the "+
-			"pkg/i18n directory and then run `go run scripts/generate_cheatsheet.go` from the project root.\n\n%s", content)
+			"pkg/i18n directory and then run `%s` from the project root.\n\n%s", CommandToRun(), content)
 		writeString(file, content)
 	}
+}
+
+func Generate() {
+	generateAtDir(GetDir())
 }
 
 func writeString(file *os.File, str string) {
@@ -247,12 +262,4 @@ func formatSections(tr *i18n.TranslationSet, bindingSections []*bindingSection) 
 	}
 
 	return content
-}
-
-func getProjectRoot() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	return strings.Split(dir, "lazygit")[0] + "lazygit"
 }
