@@ -4,7 +4,6 @@
 package oscommands
 
 import (
-	"os/exec"
 	"testing"
 
 	"github.com/go-errors/errors"
@@ -59,7 +58,6 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 	type scenario struct {
 		filename string
 		runner   *FakeCmdObjRunner
-		command  func(string, ...string) *exec.Cmd
 		test     func(error)
 	}
 
@@ -119,7 +117,6 @@ func TestOSCommandOpenFileWindows(t *testing.T) {
 	type scenario struct {
 		filename string
 		runner   *FakeCmdObjRunner
-		command  func(string, ...string) *exec.Cmd
 		test     func(error)
 	}
 
