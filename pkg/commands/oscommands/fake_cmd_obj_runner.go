@@ -3,6 +3,7 @@ package oscommands
 import (
 	"bufio"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -93,10 +94,24 @@ func (self *FakeCmdObjRunner) ExpectArgs(expectedArgs []string, output string, e
 	return self
 }
 
+func (self *FakeCmdObjRunner) ExpectGitArgs(expectedArgs []string, output string, err error) *FakeCmdObjRunner {
+	self.ExpectFunc(func(cmdObj ICmdObj) (string, error) {
+		// first arg is 'git' on unix and something like '"C:\\Program Files\\Git\\mingw64\\bin\\git.exe" on windows so we'll just ensure it ends in either 'git' or 'git.exe'
+		re := regexp.MustCompile(`git(\.exe)?$`)
+		args := cmdObj.GetCmd().Args
+		if !re.MatchString(args[0]) {
+			self.t.Errorf("expected first arg to end in .git or .git.exe but was %s", args[0])
+		}
+		assert.EqualValues(self.t, expectedArgs, args[1:], fmt.Sprintf("command %d did not match expectation", self.expectedCmdIndex+1))
+
+		return output, err
+	})
+
+	return self
+}
+
 func (self *FakeCmdObjRunner) CheckForMissingCalls() {
 	if self.expectedCmdIndex < len(self.expectedCmds) {
 		self.t.Errorf("expected command %d to be called, but was not", self.expectedCmdIndex+1)
 	}
-
-	return
 }

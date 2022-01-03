@@ -18,7 +18,6 @@ import (
 )
 
 func main() {
-
 	version, err := ioutil.ReadFile("VERSION")
 	if err != nil {
 		log.Panicln(err.Error())

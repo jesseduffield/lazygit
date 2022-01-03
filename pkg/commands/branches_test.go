@@ -142,8 +142,8 @@ func TestGitCommandCheckout(t *testing.T) {
 }
 
 func TestGitCommandGetBranchGraph(t *testing.T) {
-	runner := oscommands.NewFakeRunner(t).ExpectArgs([]string{
-		"git", "log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--",
+	runner := oscommands.NewFakeRunner(t).ExpectGitArgs([]string{
+		"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--",
 	}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 	_, err := gitCmd.GetBranchGraph("test")
@@ -151,8 +151,8 @@ func TestGitCommandGetBranchGraph(t *testing.T) {
 }
 
 func TestGitCommandGetAllBranchGraph(t *testing.T) {
-	runner := oscommands.NewFakeRunner(t).ExpectArgs([]string{
-		"git", "log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium",
+	runner := oscommands.NewFakeRunner(t).ExpectGitArgs([]string{
+		"log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium",
 	}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 	cmdStr := gitCmd.UserConfig.Git.AllBranchesLogCmd

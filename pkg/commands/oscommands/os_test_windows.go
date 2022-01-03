@@ -4,18 +4,18 @@
 package oscommands
 
 import (
-	"os/exec"
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
+	"github.com/go-errors/errors"
 	"github.com/stretchr/testify/assert"
 )
+
+// handling this in a separate file because str.ToArgv has different behaviour if we're on windows
 
 func TestOSCommandOpenFileWindows(t *testing.T) {
 	type scenario struct {
 		filename string
 		runner   *FakeCmdObjRunner
-		command  func(string, ...string) *exec.Cmd
 		test     func(error)
 	}
 

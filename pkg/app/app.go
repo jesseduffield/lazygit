@@ -122,7 +122,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, nil
 	}
 
-	app.OSCommand = oscommands.NewOSCommand(app.Common)
+	app.OSCommand = oscommands.NewOSCommand(app.Common, oscommands.GetPlatform())
 
 	app.Updater, err = updates.NewUpdater(app.Common, config, app.OSCommand)
 	if err != nil {

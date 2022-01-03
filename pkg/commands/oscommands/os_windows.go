@@ -1,6 +1,6 @@
 package oscommands
 
-func getPlatform() *Platform {
+func GetPlatform() *Platform {
 	return &Platform{
 		OS:       "windows",
 		Shell:    "cmd",
