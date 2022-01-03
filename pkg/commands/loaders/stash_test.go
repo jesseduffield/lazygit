@@ -53,7 +53,7 @@ func TestGitCommandGetStashEntries(t *testing.T) {
 
 			loader := NewStashLoader(utils.NewDummyCommon(), cmd)
 
-			assert.EqualValues(t, s.expectedStashEntries, loader.GetStashEntries(""))
+			assert.EqualValues(t, s.expectedStashEntries, loader.GetStashEntries(s.filterPath))
 		})
 	}
 }
