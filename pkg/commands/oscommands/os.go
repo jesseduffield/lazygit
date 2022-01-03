@@ -73,9 +73,7 @@ func NewCmdLogEntry(cmdStr string, span string, commandLine bool) CmdLogEntry {
 }
 
 // NewOSCommand os command runner
-func NewOSCommand(common *common.Common) *OSCommand {
-	platform := getPlatform()
-
+func NewOSCommand(common *common.Common, platform *Platform) *OSCommand {
 	c := &OSCommand{
 		Common:     common,
 		Platform:   platform,
@@ -138,7 +136,6 @@ func FileType(path string) string {
 	return "file"
 }
 
-// OpenFile opens a file with the given
 func (c *OSCommand) OpenFile(filename string) error {
 	commandTemplate := c.UserConfig.OS.OpenCommand
 	templateValues := map[string]string{
@@ -148,7 +145,6 @@ func (c *OSCommand) OpenFile(filename string) error {
 	return c.Cmd.NewShell(command).Run()
 }
 
-// OpenLink opens a file with the given
 func (c *OSCommand) OpenLink(link string) error {
 	c.LogCommand(fmt.Sprintf("Opening link '%s'", link), false)
 	commandTemplate := c.UserConfig.OS.OpenLinkCommand

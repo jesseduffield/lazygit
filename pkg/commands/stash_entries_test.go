@@ -9,7 +9,7 @@ import (
 
 func TestGitCommandStashDo(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		ExpectArgs([]string{"git", "stash", "drop", "stash@{1}"}, "", nil)
+		ExpectGitArgs([]string{"stash", "drop", "stash@{1}"}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.StashDo(1, "drop"))
@@ -18,7 +18,7 @@ func TestGitCommandStashDo(t *testing.T) {
 
 func TestGitCommandStashSave(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		ExpectArgs([]string{"git", "stash", "save", "A stash message"}, "", nil)
+		ExpectGitArgs([]string{"stash", "save", "A stash message"}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.StashSave("A stash message"))

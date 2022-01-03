@@ -16,8 +16,12 @@ func NewDummyGitCommand() *GitCommand {
 
 // NewDummyGitCommandWithOSCommand creates a new dummy GitCommand for testing
 func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitCommand {
+	runner := &oscommands.FakeCmdObjRunner{}
+	builder := oscommands.NewDummyCmdObjBuilder(runner)
+
 	return &GitCommand{
 		Common:       utils.NewDummyCommon(),
+		Cmd:          builder,
 		OSCommand:    osCommand,
 		GitConfig:    git_config.NewFakeGitConfig(map[string]string{}),
 		GetCmdWriter: func() io.Writer { return ioutil.Discard },

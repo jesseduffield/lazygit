@@ -9,7 +9,7 @@ import (
 
 func TestGitCommandRenameCommit(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		ExpectArgs([]string{"git", "commit", "--allow-empty", "--amend", "--only", "-m", "test"}, "", nil)
+		ExpectGitArgs([]string{"commit", "--allow-empty", "--amend", "--only", "-m", "test"}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.RenameCommit("test"))
@@ -18,7 +18,7 @@ func TestGitCommandRenameCommit(t *testing.T) {
 
 func TestGitCommandResetToCommit(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		ExpectArgs([]string{"git", "reset", "--hard", "78976bc"}, "", nil)
+		ExpectGitArgs([]string{"reset", "--hard", "78976bc"}, "", nil)
 	gitCmd := NewDummyGitCommandWithRunner(runner)
 
 	assert.NoError(t, gitCmd.ResetToCommit("78976bc", "hard", []string{}))
@@ -26,8 +26,6 @@ func TestGitCommandResetToCommit(t *testing.T) {
 }
 
 func TestGitCommandCommitObj(t *testing.T) {
-	gitCmd := NewDummyGitCommand()
-
 	type scenario struct {
 		testName string
 		message  string
@@ -40,24 +38,25 @@ func TestGitCommandCommitObj(t *testing.T) {
 			testName: "Commit",
 			message:  "test",
 			flags:    "",
-			expected: "git commit -m " + gitCmd.OSCommand.Quote("test"),
+			expected: `git commit -m "test"`,
 		},
 		{
 			testName: "Commit with --no-verify flag",
 			message:  "test",
 			flags:    "--no-verify",
-			expected: "git commit --no-verify -m " + gitCmd.OSCommand.Quote("test"),
+			expected: `git commit --no-verify -m "test"`,
 		},
 		{
 			testName: "Commit with multiline message",
 			message:  "line1\nline2",
 			flags:    "",
-			expected: "git commit -m " + gitCmd.OSCommand.Quote("line1") + " -m " + gitCmd.OSCommand.Quote("line2"),
+			expected: `git commit -m "line1" -m "line2"`,
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := NewDummyGitCommand()
 			cmdStr := gitCmd.CommitCmdObj(s.message, s.flags).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
@@ -101,8 +100,6 @@ func TestGitCommandShowCmdObj(t *testing.T) {
 		expected    string
 	}
 
-	gitCmd := NewDummyGitCommand()
-
 	scenarios := []scenario{
 		{
 			testName:    "Default case without filter path",
@@ -114,7 +111,7 @@ func TestGitCommandShowCmdObj(t *testing.T) {
 			testName:    "Default case with filter path",
 			filterPath:  "file.txt",
 			contextSize: 3,
-			expected:    "git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890  -- " + gitCmd.OSCommand.Quote("file.txt"),
+			expected:    `git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890  -- "file.txt"`,
 		},
 		{
 			testName:    "Show diff with custom context size",
@@ -126,6 +123,7 @@ func TestGitCommandShowCmdObj(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
+			gitCmd := NewDummyGitCommand()
 			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
 			cmdStr := gitCmd.ShowCmdObj("1234567890", s.filterPath).ToString()
 			assert.Equal(t, s.expected, cmdStr)

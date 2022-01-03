@@ -1,6 +1,7 @@
 package oscommands
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -54,7 +55,23 @@ func (self *CmdObjBuilder) NewFromArgs(args []string) ICmdObj {
 }
 
 func (self *CmdObjBuilder) NewShell(commandStr string) ICmdObj {
-	return self.NewFromArgs([]string{self.platform.Shell, self.platform.ShellArg, commandStr})
+	quotedCommand := ""
+	// Windows does not seem to like quotes around the command
+	if self.platform.OS == "windows" {
+		quotedCommand = strings.NewReplacer(
+			"^", "^^",
+			"&", "^&",
+			"|", "^|",
+			"<", "^<",
+			">", "^>",
+			"%", "^%",
+		).Replace(commandStr)
+	} else {
+		quotedCommand = self.Quote(commandStr)
+	}
+
+	shellCommand := fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand)
+	return self.New(shellCommand)
 }
 
 func (self *CmdObjBuilder) CloneWithNewRunner(decorate func(ICmdObjRunner) ICmdObjRunner) *CmdObjBuilder {
