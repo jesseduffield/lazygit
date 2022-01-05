@@ -22,12 +22,19 @@ type cmdObjRunner struct {
 var _ ICmdObjRunner = &cmdObjRunner{}
 
 func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
+	if cmdObj.ShouldLog() {
+		self.logCmdObj(cmdObj)
+	}
+
 	_, err := self.RunWithOutput(cmdObj)
 	return err
 }
 
 func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
-	self.logCmdObj(cmdObj)
+	if cmdObj.ShouldLog() {
+		self.logCmdObj(cmdObj)
+	}
+
 	output, err := sanitisedCommandOutput(cmdObj.GetCmd().CombinedOutput())
 	if err != nil {
 		self.log.WithField("command", cmdObj.ToString()).Error(output)
@@ -36,6 +43,10 @@ func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 }
 
 func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+	if cmdObj.ShouldLog() {
+		self.logCmdObj(cmdObj)
+	}
+
 	cmd := cmdObj.GetCmd()
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {

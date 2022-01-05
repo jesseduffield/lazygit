@@ -18,12 +18,12 @@ func (c *GitCommand) NewBranch(name string, base string) error {
 // the first returned string is the name and the second is the displayname
 // e.g. name is 123asdf and displayname is '(HEAD detached at 123asdf)'
 func (c *GitCommand) CurrentBranchName() (string, string, error) {
-	branchName, err := c.Cmd.New("git symbolic-ref --short HEAD").RunWithOutput()
+	branchName, err := c.Cmd.New("git symbolic-ref --short HEAD").DontLog().RunWithOutput()
 	if err == nil && branchName != "HEAD\n" {
 		trimmedBranchName := strings.TrimSpace(branchName)
 		return trimmedBranchName, trimmedBranchName, nil
 	}
-	output, err := c.Cmd.New("git branch --contains").RunWithOutput()
+	output, err := c.Cmd.New("git branch --contains").DontLog().RunWithOutput()
 	if err != nil {
 		return "", "", err
 	}
@@ -74,11 +74,11 @@ func (c *GitCommand) Checkout(branch string, options CheckoutOptions) error {
 // Currently it limits the result to 100 commits, but when we get async stuff
 // working we can do lazy loading
 func (c *GitCommand) GetBranchGraph(branchName string) (string, error) {
-	return c.GetBranchGraphCmdObj(branchName).RunWithOutput()
+	return c.GetBranchGraphCmdObj(branchName).DontLog().RunWithOutput()
 }
 
 func (c *GitCommand) GetUpstreamForBranch(branchName string) (string, error) {
-	output, err := c.Cmd.New(fmt.Sprintf("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", c.OSCommand.Quote(branchName))).RunWithOutput()
+	output, err := c.Cmd.New(fmt.Sprintf("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", c.OSCommand.Quote(branchName))).DontLog().RunWithOutput()
 	return strings.TrimSpace(output), err
 }
 
@@ -87,7 +87,7 @@ func (c *GitCommand) GetBranchGraphCmdObj(branchName string) oscommands.ICmdObj 
 	templateValues := map[string]string{
 		"branchName": c.OSCommand.Quote(branchName),
 	}
-	return c.Cmd.New(utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues))
+	return c.Cmd.New(utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)).DontLog()
 }
 
 func (c *GitCommand) SetUpstreamBranch(upstream string) error {
@@ -110,11 +110,11 @@ func (c *GitCommand) GetBranchUpstreamDifferenceCount(branchName string) (string
 // current branch
 func (c *GitCommand) GetCommitDifferences(from, to string) (string, string) {
 	command := "git rev-list %s..%s --count"
-	pushableCount, err := c.Cmd.New(fmt.Sprintf(command, to, from)).RunWithOutput()
+	pushableCount, err := c.Cmd.New(fmt.Sprintf(command, to, from)).DontLog().RunWithOutput()
 	if err != nil {
 		return "?", "?"
 	}
-	pullableCount, err := c.Cmd.New(fmt.Sprintf(command, from, to)).RunWithOutput()
+	pullableCount, err := c.Cmd.New(fmt.Sprintf(command, from, to)).DontLog().RunWithOutput()
 	if err != nil {
 		return "?", "?"
 	}
@@ -146,7 +146,7 @@ func (c *GitCommand) AbortMerge() error {
 }
 
 func (c *GitCommand) IsHeadDetached() bool {
-	err := c.Cmd.New("git symbolic-ref -q HEAD").Run()
+	err := c.Cmd.New("git symbolic-ref -q HEAD").DontLog().Run()
 	return err != nil
 }
 
@@ -169,5 +169,5 @@ func (c *GitCommand) RenameBranch(oldName string, newName string) error {
 }
 
 func (c *GitCommand) GetRawBranches() (string, error) {
-	return c.Cmd.New(`git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`).RunWithOutput()
+	return c.Cmd.New(`git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`).DontLog().RunWithOutput()
 }

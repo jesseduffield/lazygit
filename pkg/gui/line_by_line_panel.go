@@ -90,9 +90,8 @@ func (gui *Gui) copySelectedToClipboard() error {
 	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		selected := state.PlainRenderSelected()
 
-		if err := gui.OSCommand.WithSpan(
-			gui.Tr.Spans.CopySelectedTextToClipboard,
-		).CopyToClipboard(selected); err != nil {
+		gui.logSpan(gui.Tr.Spans.CopySelectedTextToClipboard)
+		if err := gui.OSCommand.CopyToClipboard(selected); err != nil {
 			return gui.surfaceError(err)
 		}
 

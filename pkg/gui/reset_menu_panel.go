@@ -6,8 +6,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
-func (gui *Gui) resetToRef(ref string, strength string, span string, envVars []string) error {
-	if err := gui.GitCommand.WithSpan(span).ResetToCommit(ref, strength, envVars); err != nil {
+func (gui *Gui) resetToRef(ref string, strength string, envVars []string) error {
+	if err := gui.GitCommand.ResetToCommit(ref, strength, envVars); err != nil {
 		return gui.surfaceError(err)
 	}
 
@@ -38,7 +38,8 @@ func (gui *Gui) createResetMenu(ref string) error {
 				style.FgRed.Sprintf("reset --%s %s", strength, ref),
 			},
 			onPress: func() error {
-				return gui.resetToRef(ref, strength, "Reset", []string{})
+				gui.logSpan("Reset")
+				return gui.resetToRef(ref, strength, []string{})
 			},
 		}
 	}

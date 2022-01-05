@@ -31,7 +31,7 @@ func (self *StashLoader) GetStashEntries(filterPath string) []*models.StashEntry
 		return self.getUnfilteredStashEntries()
 	}
 
-	rawString, err := self.cmd.New("git stash list --name-only").RunWithOutput()
+	rawString, err := self.cmd.New("git stash list --name-only").DontLog().RunWithOutput()
 	if err != nil {
 		return self.getUnfilteredStashEntries()
 	}
@@ -64,7 +64,7 @@ outer:
 }
 
 func (self *StashLoader) getUnfilteredStashEntries() []*models.StashEntry {
-	rawString, _ := self.cmd.New("git stash list --pretty='%gs'").RunWithOutput()
+	rawString, _ := self.cmd.New("git stash list --pretty='%gs'").DontLog().RunWithOutput()
 	stashEntries := []*models.StashEntry{}
 	for i, line := range utils.SplitLines(rawString) {
 		stashEntries = append(stashEntries, self.stashEntryFromLine(line, i))

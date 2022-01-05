@@ -63,7 +63,8 @@ func (gui *Gui) withSelectedTag(f func(tag *models.Tag) error) func() error {
 // tag-specific handlers
 
 func (gui *Gui) handleCheckoutTag(tag *models.Tag) error {
-	if err := gui.handleCheckoutRef(tag.Name, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutTag}); err != nil {
+	gui.logSpan(gui.Tr.Spans.CheckoutTag)
+	if err := gui.handleCheckoutRef(tag.Name, handleCheckoutRefOptions{}); err != nil {
 		return err
 	}
 	return gui.pushContext(gui.State.Contexts.Branches)
@@ -81,7 +82,8 @@ func (gui *Gui) handleDeleteTag(tag *models.Tag) error {
 		title:  gui.Tr.DeleteTagTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteTag).DeleteTag(tag.Name); err != nil {
+			gui.logSpan(gui.Tr.Spans.DeleteTag)
+			if err := gui.GitCommand.DeleteTag(tag.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
@@ -103,7 +105,8 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 		findSuggestionsFunc: gui.getRemoteSuggestionsFunc(),
 		handleConfirm: func(response string) error {
 			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
-				err := gui.GitCommand.WithSpan(gui.Tr.Spans.PushTag).PushTag(response, tag.Name, gui.promptUserForCredential)
+				gui.logSpan(gui.Tr.Spans.PushTag)
+				err := gui.GitCommand.PushTag(response, tag.Name, gui.promptUserForCredential)
 				gui.handleCredentialsPopup(err)
 
 				return nil

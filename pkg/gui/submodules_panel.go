@@ -79,7 +79,8 @@ func (gui *Gui) removeSubmodule(submodule *models.SubmoduleConfig) error {
 		title:  gui.Tr.RemoveSubmodule,
 		prompt: fmt.Sprintf(gui.Tr.RemoveSubmodulePrompt, submodule.Name),
 		handleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemoveSubmodule).SubmoduleDelete(submodule); err != nil {
+			gui.logSpan(gui.Tr.Spans.RemoveSubmodule)
+			if err := gui.GitCommand.SubmoduleDelete(submodule); err != nil {
 				return gui.surfaceError(err)
 			}
 
@@ -105,19 +106,19 @@ func (gui *Gui) fileForSubmodule(submodule *models.SubmoduleConfig) *models.File
 }
 
 func (gui *Gui) resetSubmodule(submodule *models.SubmoduleConfig) error {
-	gitCommand := gui.GitCommand.WithSpan(gui.Tr.Spans.ResetSubmodule)
+	gui.logSpan(gui.Tr.Spans.ResetSubmodule)
 
 	file := gui.fileForSubmodule(submodule)
 	if file != nil {
-		if err := gitCommand.UnStageFile(file.Names(), file.Tracked); err != nil {
+		if err := gui.GitCommand.UnStageFile(file.Names(), file.Tracked); err != nil {
 			return gui.surfaceError(err)
 		}
 	}
 
-	if err := gitCommand.SubmoduleStash(submodule); err != nil {
+	if err := gui.GitCommand.SubmoduleStash(submodule); err != nil {
 		return gui.surfaceError(err)
 	}
-	if err := gitCommand.SubmoduleReset(submodule); err != nil {
+	if err := gui.GitCommand.SubmoduleReset(submodule); err != nil {
 		return gui.surfaceError(err)
 	}
 
@@ -140,7 +141,8 @@ func (gui *Gui) handleAddSubmodule() error {
 						initialContent: submoduleName,
 						handleConfirm: func(submodulePath string) error {
 							return gui.WithWaitingStatus(gui.Tr.LcAddingSubmoduleStatus, func() error {
-								err := gui.GitCommand.WithSpan(gui.Tr.Spans.AddSubmodule).SubmoduleAdd(submoduleName, submodulePath, submoduleUrl)
+								gui.logSpan(gui.Tr.Spans.AddSubmodule)
+								err := gui.GitCommand.SubmoduleAdd(submoduleName, submodulePath, submoduleUrl)
 								gui.handleCredentialsPopup(err)
 
 								return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
@@ -160,7 +162,8 @@ func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error 
 		initialContent: submodule.Url,
 		handleConfirm: func(newUrl string) error {
 			return gui.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleUrlStatus, func() error {
-				err := gui.GitCommand.WithSpan(gui.Tr.Spans.UpdateSubmoduleUrl).SubmoduleUpdateUrl(submodule.Name, submodule.Path, newUrl)
+				gui.logSpan(gui.Tr.Spans.UpdateSubmoduleUrl)
+				err := gui.GitCommand.SubmoduleUpdateUrl(submodule.Name, submodule.Path, newUrl)
 				gui.handleCredentialsPopup(err)
 
 				return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
@@ -171,7 +174,8 @@ func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error 
 
 func (gui *Gui) handleSubmoduleInit(submodule *models.SubmoduleConfig) error {
 	return gui.WithWaitingStatus(gui.Tr.LcInitializingSubmoduleStatus, func() error {
-		err := gui.GitCommand.WithSpan(gui.Tr.Spans.InitialiseSubmodule).SubmoduleInit(submodule.Path)
+		gui.logSpan(gui.Tr.Spans.InitialiseSubmodule)
+		err := gui.GitCommand.SubmoduleInit(submodule.Path)
 		gui.handleCredentialsPopup(err)
 
 		return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
@@ -214,7 +218,8 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(gui.GitCommand.SubmoduleBulkInitCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					err := gui.GitCommand.WithSpan(gui.Tr.Spans.BulkInitialiseSubmodules).SubmoduleBulkInitCmdObj().Run()
+					gui.logSpan(gui.Tr.Spans.BulkInitialiseSubmodules)
+					err := gui.GitCommand.SubmoduleBulkInitCmdObj().Run()
 					if err != nil {
 						return gui.surfaceError(err)
 					}
@@ -227,7 +232,8 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(gui.GitCommand.SubmoduleBulkUpdateCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.BulkUpdateSubmodules).SubmoduleBulkUpdateCmdObj().Run(); err != nil {
+					gui.logSpan(gui.Tr.Spans.BulkUpdateSubmodules)
+					if err := gui.GitCommand.SubmoduleBulkUpdateCmdObj().Run(); err != nil {
 						return gui.surfaceError(err)
 					}
 
@@ -239,7 +245,8 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcSubmoduleStashAndReset, style.FgRed.Sprintf("git stash in each submodule && %s", gui.GitCommand.SubmoduleForceBulkUpdateCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.BulkStashAndResetSubmodules).ResetSubmodules(gui.State.Submodules); err != nil {
+					gui.logSpan(gui.Tr.Spans.BulkStashAndResetSubmodules)
+					if err := gui.GitCommand.ResetSubmodules(gui.State.Submodules); err != nil {
 						return gui.surfaceError(err)
 					}
 
@@ -251,7 +258,8 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 			displayStrings: []string{gui.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(gui.GitCommand.SubmoduleBulkDeinitCmdObj().ToString())},
 			onPress: func() error {
 				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.BulkDeinitialiseSubmodules).SubmoduleBulkDeinitCmdObj().Run(); err != nil {
+					gui.logSpan(gui.Tr.Spans.BulkDeinitialiseSubmodules)
+					if err := gui.GitCommand.SubmoduleBulkDeinitCmdObj().Run(); err != nil {
 						return gui.surfaceError(err)
 					}
 
@@ -266,7 +274,8 @@ func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 
 func (gui *Gui) handleUpdateSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleStatus, func() error {
-		err := gui.GitCommand.WithSpan(gui.Tr.Spans.UpdateSubmodule).SubmoduleUpdate(submodule.Path)
+		gui.logSpan(gui.Tr.Spans.UpdateSubmodule)
+		err := gui.GitCommand.SubmoduleUpdate(submodule.Path)
 		gui.handleCredentialsPopup(err)
 
 		return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})

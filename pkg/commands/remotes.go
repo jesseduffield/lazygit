@@ -47,7 +47,9 @@ func (c *GitCommand) CheckRemoteBranchExists(branchName string) bool {
 		New(
 			fmt.Sprintf("git show-ref --verify -- refs/remotes/origin/%s",
 				c.Cmd.Quote(branchName),
-			)).
+			),
+		).
+		DontLog().
 		RunWithOutput()
 
 	return err == nil

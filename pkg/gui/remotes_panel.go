@@ -85,7 +85,8 @@ func (gui *Gui) handleAddRemote() error {
 			return gui.prompt(promptOpts{
 				title: gui.Tr.LcNewRemoteUrl,
 				handleConfirm: func(remoteUrl string) error {
-					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.AddRemote).AddRemote(remoteName, remoteUrl); err != nil {
+					gui.logSpan(gui.Tr.Spans.AddRemote)
+					if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
 						return err
 					}
 					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{REMOTES}})
@@ -106,7 +107,8 @@ func (gui *Gui) handleRemoveRemote() error {
 		title:  gui.Tr.LcRemoveRemote,
 		prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		handleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemoveRemote).RemoveRemote(remote.Name); err != nil {
+			gui.logSpan(gui.Tr.Spans.RemoveRemote)
+			if err := gui.GitCommand.RemoveRemote(remote.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 
@@ -128,14 +130,13 @@ func (gui *Gui) handleEditRemote() error {
 		},
 	)
 
-	gitCommand := gui.GitCommand.WithSpan(gui.Tr.Spans.UpdateRemote)
-
 	return gui.prompt(promptOpts{
 		title:          editNameMessage,
 		initialContent: remote.Name,
 		handleConfirm: func(updatedRemoteName string) error {
 			if updatedRemoteName != remote.Name {
-				if err := gitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
+				gui.logSpan(gui.Tr.Spans.UpdateRemote)
+				if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
 					return gui.surfaceError(err)
 				}
 			}
@@ -157,7 +158,8 @@ func (gui *Gui) handleEditRemote() error {
 				title:          editUrlMessage,
 				initialContent: url,
 				handleConfirm: func(updatedRemoteUrl string) error {
-					if err := gitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
+					gui.logSpan(gui.Tr.Spans.UpdateRemote)
+					if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 						return gui.surfaceError(err)
 					}
 					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})

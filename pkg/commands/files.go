@@ -229,7 +229,7 @@ func (c *GitCommand) WorktreeFileDiffCmdObj(node models.IFile, plain bool, cache
 
 	cmdStr := fmt.Sprintf("git diff --submodule --no-ext-diff --unified=%d --color=%s %s %s %s %s", contextSize, colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath)
 
-	return c.Cmd.New(cmdStr)
+	return c.Cmd.New(cmdStr).DontLog()
 }
 
 func (c *GitCommand) ApplyPatch(patch string, flags ...string) error {
@@ -265,7 +265,7 @@ func (c *GitCommand) ShowFileDiffCmdObj(from string, to string, reverse bool, fi
 		reverseFlag = " -R "
 	}
 
-	return c.Cmd.New(fmt.Sprintf("git diff --submodule --no-ext-diff --unified=%d --no-renames --color=%s %s %s %s -- %s", contextSize, colorArg, from, to, reverseFlag, c.OSCommand.Quote(fileName)))
+	return c.Cmd.New(fmt.Sprintf("git diff --submodule --no-ext-diff --unified=%d --no-renames --color=%s %s %s %s -- %s", contextSize, colorArg, from, to, reverseFlag, c.OSCommand.Quote(fileName))).DontLog()
 }
 
 // CheckoutFile checks out the file for the given commit
@@ -280,7 +280,7 @@ func (c *GitCommand) DiscardOldFileChanges(commits []*models.Commit, commitIndex
 	}
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
-	if err := c.Cmd.New("git cat-file -e HEAD^:" + c.OSCommand.Quote(fileName)).Run(); err != nil {
+	if err := c.Cmd.New("git cat-file -e HEAD^:" + c.OSCommand.Quote(fileName)).DontLog().Run(); err != nil {
 		if err := c.OSCommand.Remove(fileName); err != nil {
 			return err
 		}
@@ -353,7 +353,7 @@ func (c *GitCommand) EditFileCmdStr(filename string, lineNumber int) (string, er
 		editor = c.OSCommand.Getenv("EDITOR")
 	}
 	if editor == "" {
-		if err := c.OSCommand.Cmd.New("which vi").Run(); err == nil {
+		if err := c.OSCommand.Cmd.New("which vi").DontLog().Run(); err == nil {
 			editor = "vi"
 		}
 	}

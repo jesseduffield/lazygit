@@ -13,20 +13,12 @@ import (
 )
 
 func (gui *Gui) GetOnRunCommand() func(entry oscommands.CmdLogEntry) {
-	// closing over this so that nobody else can modify it
-	currentSpan := ""
-
 	return func(entry oscommands.CmdLogEntry) {
 		if gui.Views.Extras == nil {
 			return
 		}
 
 		gui.Views.Extras.Autoscroll = true
-
-		if entry.GetSpan() != currentSpan {
-			fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(entry.GetSpan()))
-			currentSpan = entry.GetSpan()
-		}
 
 		textStyle := theme.DefaultTextColor
 		if !entry.GetCommandLine() {
@@ -36,6 +28,16 @@ func (gui *Gui) GetOnRunCommand() func(entry oscommands.CmdLogEntry) {
 		indentedCmdStr := "  " + strings.Replace(entry.GetCmdStr(), "\n", "\n  ", -1)
 		fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
 	}
+}
+
+func (gui *Gui) logSpan(span string) {
+	if gui.Views.Extras == nil {
+		return
+	}
+
+	gui.Views.Extras.Autoscroll = true
+
+	fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(span))
 }
 
 func (gui *Gui) printCommandLogHeader() {
