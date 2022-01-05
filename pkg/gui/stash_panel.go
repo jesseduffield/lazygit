@@ -23,10 +23,7 @@ func (gui *Gui) stashRenderToMain() error {
 	if stashEntry == nil {
 		task = NewRenderStringTask(gui.Tr.NoStashEntries)
 	} else {
-		cmdObj := gui.OSCommand.Cmd.New(
-			gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
-		)
-		task = NewRunPtyTask(cmdObj.GetCmd())
+		task = NewRunPtyTask(gui.GitCommand.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -109,7 +106,8 @@ func (gui *Gui) stashDo(method string) error {
 
 		return gui.createErrorPanel(errorMessage)
 	}
-	if err := gui.GitCommand.WithSpan(gui.Tr.Spans.Stash).StashDo(stashEntry.Index, method); err != nil {
+	gui.logSpan(gui.Tr.Spans.Stash)
+	if err := gui.GitCommand.StashDo(stashEntry.Index, method); err != nil {
 		return gui.surfaceError(err)
 	}
 	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})

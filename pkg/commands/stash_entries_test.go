@@ -25,7 +25,7 @@ func TestGitCommandStashSave(t *testing.T) {
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandShowStashEntryCmdStr(t *testing.T) {
+func TestGitCommandShowStashEntryCmdObj(t *testing.T) {
 	type scenario struct {
 		testName    string
 		index       int
@@ -52,7 +52,7 @@ func TestGitCommandShowStashEntryCmdStr(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			gitCmd := NewDummyGitCommand()
 			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
-			cmdStr := gitCmd.ShowStashEntryCmdStr(s.index)
+			cmdStr := gitCmd.ShowStashEntryCmdObj(s.index).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}

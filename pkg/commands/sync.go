@@ -68,8 +68,12 @@ func (c *GitCommand) Fetch(opts FetchOptions) error {
 	}
 
 	cmdObj := c.Cmd.New(cmdStr)
+	userInitiated := opts.PromptUserForCredential != nil
+	if !userInitiated {
+		cmdObj.DontLog()
+	}
 	return c.DetectUnamePass(cmdObj, func(question string) string {
-		if opts.PromptUserForCredential != nil {
+		if userInitiated {
 			return opts.PromptUserForCredential(question)
 		}
 		return "\n"

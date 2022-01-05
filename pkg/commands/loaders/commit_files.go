@@ -28,7 +28,7 @@ func (self *CommitFileLoader) GetFilesInDiff(from string, to string, reverse boo
 		reverseFlag = " -R "
 	}
 
-	filenames, err := self.cmd.New(fmt.Sprintf("git diff --submodule --no-ext-diff --name-status -z --no-renames %s %s %s", reverseFlag, from, to)).RunWithOutput()
+	filenames, err := self.cmd.New(fmt.Sprintf("git diff --submodule --no-ext-diff --name-status -z --no-renames %s %s %s", reverseFlag, from, to)).DontLog().RunWithOutput()
 	if err != nil {
 		return nil, err
 	}

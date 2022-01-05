@@ -21,7 +21,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint(nukeStr),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.NukeWorkingTree).ResetAndClean(); err != nil {
+				gui.logSpan(gui.Tr.Spans.NukeWorkingTree)
+				if err := gui.GitCommand.ResetAndClean(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -34,7 +35,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git checkout -- ."),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardUnstagedFileChanges).DiscardAnyUnstagedFileChanges(); err != nil {
+				gui.logSpan(gui.Tr.Spans.DiscardUnstagedFileChanges)
+				if err := gui.GitCommand.DiscardAnyUnstagedFileChanges(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -47,7 +49,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git clean -fd"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemoveUntrackedFiles).RemoveUntrackedFiles(); err != nil {
+				gui.logSpan(gui.Tr.Spans.RemoveUntrackedFiles)
+				if err := gui.GitCommand.RemoveUntrackedFiles(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -60,7 +63,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --soft HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.SoftReset).ResetSoft("HEAD"); err != nil {
+				gui.logSpan(gui.Tr.Spans.SoftReset)
+				if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -73,7 +77,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --mixed HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.MixedReset).ResetMixed("HEAD"); err != nil {
+				gui.logSpan(gui.Tr.Spans.MixedReset)
+				if err := gui.GitCommand.ResetMixed("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -86,7 +91,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --hard HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.HardReset).ResetHard("HEAD"); err != nil {
+				gui.logSpan(gui.Tr.Spans.HardReset)
+				if err := gui.GitCommand.ResetHard("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 

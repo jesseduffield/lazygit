@@ -57,7 +57,8 @@ func (gui *Gui) handleDeleteRemoteBranch() error {
 		prompt: message,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
-				err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteRemoteBranch).DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name, gui.promptUserForCredential)
+				gui.logSpan(gui.Tr.Spans.DeleteRemoteBranch)
+				err := gui.GitCommand.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name, gui.promptUserForCredential)
 				gui.handleCredentialsPopup(err)
 
 				return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
@@ -87,7 +88,8 @@ func (gui *Gui) handleSetBranchUpstream() error {
 		title:  gui.Tr.SetUpstreamTitle,
 		prompt: message,
 		handleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.SetBranchUpstream).SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
+			gui.logSpan(gui.Tr.Spans.SetBranchUpstream)
+			if err := gui.GitCommand.SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 

@@ -66,7 +66,9 @@ func RunCommandWithOutputLiveAux(
 	startCmd func(cmd *exec.Cmd) (*cmdHandler, error),
 ) error {
 	c.Log.WithField("command", cmdObj.ToString()).Info("RunCommand")
-	c.LogCommand(cmdObj.ToString(), true)
+	if cmdObj.ShouldLog() {
+		c.LogCommand(cmdObj.ToString(), true)
+	}
 	cmd := cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8").GetCmd()
 
 	var stderr bytes.Buffer

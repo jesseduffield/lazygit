@@ -27,7 +27,7 @@ func NewTagLoader(
 func (self *TagLoader) GetTags() ([]*models.Tag, error) {
 	// get remote branches, sorted  by creation date (descending)
 	// see: https://git-scm.com/docs/git-tag#Documentation/git-tag.txt---sortltkeygt
-	remoteBranchesStr, err := self.cmd.New(`git tag --list --sort=-creatordate`).RunWithOutput()
+	remoteBranchesStr, err := self.cmd.New(`git tag --list --sort=-creatordate`).DontLog().RunWithOutput()
 	if err != nil {
 		return nil, err
 	}

@@ -218,7 +218,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 			prettyFormat,
 			20,
 		),
-	)
+	).DontLog()
 
 	hydratedCommits := make([]*models.Commit, 0, len(commits))
 	i := 0
@@ -384,7 +384,7 @@ func (self *CommitLoader) getMergeBase(refName string) (string, error) {
 	}
 
 	// swallowing error because it's not a big deal; probably because there are no commits yet
-	output, _ := self.cmd.New(fmt.Sprintf("git merge-base %s %s", self.cmd.Quote(refName), self.cmd.Quote(baseBranch))).RunWithOutput()
+	output, _ := self.cmd.New(fmt.Sprintf("git merge-base %s %s", self.cmd.Quote(refName), self.cmd.Quote(baseBranch))).DontLog().RunWithOutput()
 	return ignoringWarnings(output), nil
 }
 
@@ -405,6 +405,7 @@ func (self *CommitLoader) getFirstPushedCommit(refName string) (string, error) {
 		New(
 			fmt.Sprintf("git merge-base %s %s@{u}", self.cmd.Quote(refName), self.cmd.Quote(refName)),
 		).
+		DontLog().
 		RunWithOutput()
 	if err != nil {
 		return "", err
@@ -444,7 +445,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 			20,
 			filterFlag,
 		),
-	)
+	).DontLog()
 }
 
 var prettyFormat = fmt.Sprintf(

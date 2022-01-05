@@ -35,10 +35,9 @@ func (self *CmdObjBuilder) New(cmdStr string) ICmdObj {
 	cmd.Env = os.Environ()
 
 	return &CmdObj{
-		cmdStr:     cmdStr,
-		cmd:        cmd,
-		runner:     self.runner,
-		logCommand: self.logCmdObj,
+		cmdStr: cmdStr,
+		cmd:    cmd,
+		runner: self.runner,
 	}
 }
 
@@ -47,10 +46,9 @@ func (self *CmdObjBuilder) NewFromArgs(args []string) ICmdObj {
 	cmd.Env = os.Environ()
 
 	return &CmdObj{
-		cmdStr:     strings.Join(args, " "),
-		cmd:        cmd,
-		runner:     self.runner,
-		logCommand: self.logCmdObj,
+		cmdStr: strings.Join(args, " "),
+		cmd:    cmd,
+		runner: self.runner,
 	}
 }
 

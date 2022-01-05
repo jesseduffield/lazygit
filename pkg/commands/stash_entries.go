@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 // StashDo modify stash
@@ -17,9 +18,10 @@ func (c *GitCommand) StashSave(message string) error {
 	return c.Cmd.New("git stash save " + c.OSCommand.Quote(message)).Run()
 }
 
-// GetStashEntryDiff stash diff
-func (c *GitCommand) ShowStashEntryCmdStr(index int) string {
-	return fmt.Sprintf("git stash show -p --stat --color=%s --unified=%d stash@{%d}", c.colorArg(), c.UserConfig.Git.DiffContextSize, index)
+func (c *GitCommand) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
+	cmdStr := fmt.Sprintf("git stash show -p --stat --color=%s --unified=%d stash@{%d}", c.colorArg(), c.UserConfig.Git.DiffContextSize, index)
+
+	return c.Cmd.New(cmdStr).DontLog()
 }
 
 // StashSaveStagedChanges stashes only the currently staged changes. This takes a few steps

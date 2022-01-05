@@ -111,29 +111,6 @@ func NewGitCommand(
 	return gitCommand, nil
 }
 
-func (c *GitCommand) WithSpan(span string) *GitCommand {
-	// sometimes .WithSpan(span) will be called where span actually is empty, in
-	// which case we don't need to log anything so we can just return early here
-	// with the original struct
-	if span == "" {
-		return c
-	}
-
-	newGitCommand := &GitCommand{}
-	*newGitCommand = *c
-	newGitCommand.OSCommand = c.OSCommand.WithSpan(span)
-
-	newGitCommand.Cmd = NewGitCmdObjBuilder(c.Log, newGitCommand.OSCommand.Cmd)
-
-	// NOTE: unlike the other things here which create shallow clones, this will
-	// actually update the PatchManager on the original struct to have the new span.
-	// This means each time we call ApplyPatch in PatchManager, we need to ensure
-	// we've called .WithSpan() ahead of time with the new span value
-	newGitCommand.PatchManager.ApplyPatch = newGitCommand.ApplyPatch
-
-	return newGitCommand
-}
-
 func navigateToRepoRootDirectory(stat func(string) (os.FileInfo, error), chdir func(string) error) error {
 	gitDir := env.GetGitDirEnv()
 	if gitDir != "" {
@@ -245,7 +222,7 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 }
 
 func VerifyInGitRepo(osCommand *oscommands.OSCommand) error {
-	return osCommand.Cmd.New("git rev-parse --git-dir").Run()
+	return osCommand.Cmd.New("git rev-parse --git-dir").DontLog().Run()
 }
 
 func (c *GitCommand) GetDotGitDir() string {

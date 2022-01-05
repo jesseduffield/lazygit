@@ -216,10 +216,11 @@ func (gui *Gui) fetch(canPromptForCredentials bool, span string) (err error) {
 
 	fetchOpts := commands.FetchOptions{}
 	if canPromptForCredentials {
+		gui.logSpan(span)
 		fetchOpts.PromptUserForCredential = gui.promptUserForCredential
 	}
 
-	err = gui.GitCommand.WithSpan(span).Fetch(fetchOpts)
+	err = gui.GitCommand.Fetch(fetchOpts)
 
 	if canPromptForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
 		_ = gui.createErrorPanel(gui.Tr.PassUnameWrong)
@@ -238,7 +239,8 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 		return nil
 	}
 
-	if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CopyToClipboard).CopyToClipboard(itemId); err != nil {
+	gui.logSpan(gui.Tr.Spans.CopyToClipboard)
+	if err := gui.OSCommand.CopyToClipboard(itemId); err != nil {
 		return gui.surfaceError(err)
 	}
 
