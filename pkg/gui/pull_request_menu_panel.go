@@ -5,7 +5,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
@@ -62,11 +61,11 @@ func (gui *Gui) createPullRequest(from string, to string) error {
 		return gui.surfaceError(err)
 	}
 
+	gui.logAction(gui.Tr.CreatePullRequest)
+
 	if err := gui.GitCommand.OSCommand.OpenLink(url); err != nil {
 		return gui.surfaceError(err)
 	}
-
-	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf(gui.Tr.CreatingPullRequestAtUrl, url), gui.Tr.CreatePullRequest, false))
 
 	return nil
 }

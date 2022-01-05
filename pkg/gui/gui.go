@@ -111,8 +111,7 @@ type Gui struct {
 	PauseBackgroundThreads bool
 
 	// Log of the commands that get run, to be displayed to the user.
-	CmdLog       []string
-	OnRunCommand func(entry oscommands.CmdLogEntry)
+	CmdLog []string
 
 	// the extras window contains things like the command log
 	ShowExtrasWindow bool
@@ -457,9 +456,7 @@ func NewGui(cmn *common.Common, gitCommand *commands.GitCommand, oSCommand *osco
 
 	gui.watchFilesForChanges()
 
-	onRunCommand := gui.GetOnRunCommand()
-	oSCommand.SetOnRunCommand(onRunCommand)
-	gui.OnRunCommand = onRunCommand
+	oSCommand.SetLogCommandFn(gui.logCommand)
 	gui.PopupHandler = &RealPopupHandler{gui: gui}
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
@@ -625,6 +622,8 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 }
 
 func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error {
+	gui.logCommand(cmdObj.ToString(), true)
+
 	subprocess := cmdObj.GetCmd()
 	subprocess.Stdout = os.Stdout
 	subprocess.Stderr = os.Stdout

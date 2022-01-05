@@ -13,9 +13,8 @@ func NewDummyOSCommand() *OSCommand {
 
 func NewDummyCmdObjBuilder(runner ICmdObjRunner) *CmdObjBuilder {
 	return &CmdObjBuilder{
-		runner:    runner,
-		logCmdObj: func(ICmdObj) {},
-		platform:  dummyPlatform,
+		runner:   runner,
+		platform: dummyPlatform,
 	}
 }
 

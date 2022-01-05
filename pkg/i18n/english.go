@@ -438,7 +438,6 @@ type TranslationSet struct {
 	LcDefaultBranch                     string
 	LcSelectBranch                      string
 	CreatePullRequest                   string
-	CreatingPullRequestAtUrl            string
 	OpeningCommitInBrowser              string
 	SelectConfigFile                    string
 	NoConfigFileFoundErr                string
@@ -456,10 +455,10 @@ type TranslationSet struct {
 	SortCommits                         string
 	CantChangeContextSizeError          string
 	LcOpenCommitInBrowser               string
-	Spans                               Spans
+	Actions                             Actions
 }
 
-type Spans struct {
+type Actions struct {
 	CheckoutCommit                    string
 	CheckoutReflogCommit              string
 	CheckoutTag                       string
@@ -540,6 +539,8 @@ type Spans struct {
 	HardReset                         string
 	Undo                              string
 	Redo                              string
+	CopyPullRequestURL                string
+	OpenMergeTool                     string
 }
 
 const englishIntroPopupMessage = `
@@ -989,7 +990,6 @@ func EnglishTranslationSet() TranslationSet {
 		LcCreatePullRequestOptions:          "create pull request options",
 		LcDefaultBranch:                     "default branch",
 		LcSelectBranch:                      "select branch",
-		CreatingPullRequestAtUrl:            "Creating pull request at URL: %s",
 		OpeningCommitInBrowser:              "Opening commit in browser at URL: %s",
 		SelectConfigFile:                    "Select config file",
 		NoConfigFileFoundErr:                "No config file found",
@@ -1007,7 +1007,7 @@ func EnglishTranslationSet() TranslationSet {
 		SortCommits:                         "commit sort order",
 		CantChangeContextSizeError:          "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		LcOpenCommitInBrowser:               "open commit in browser",
-		Spans: Spans{
+		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
 			CheckoutReflogCommit:              "Checkout reflog commit",
@@ -1089,6 +1089,8 @@ func EnglishTranslationSet() TranslationSet {
 			FastForwardBranch:                 "Fast forward branch",
 			Undo:                              "Undo",
 			Redo:                              "Redo",
+			CopyPullRequestURL:                "Copy pull request URL",
+			OpenMergeTool:                     "Open merge tool",
 		},
 	}
 }

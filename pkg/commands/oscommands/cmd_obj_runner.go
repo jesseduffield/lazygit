@@ -22,10 +22,6 @@ type cmdObjRunner struct {
 var _ ICmdObjRunner = &cmdObjRunner{}
 
 func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
-	if cmdObj.ShouldLog() {
-		self.logCmdObj(cmdObj)
-	}
-
 	_, err := self.RunWithOutput(cmdObj)
 	return err
 }

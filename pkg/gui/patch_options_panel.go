@@ -98,7 +98,7 @@ func (gui *Gui) handleDeletePatchFromCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		gui.logSpan(gui.Tr.Spans.RemovePatchFromCommit)
+		gui.logAction(gui.Tr.Actions.RemovePatchFromCommit)
 		err := gui.GitCommand.DeletePatchesFromCommit(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
@@ -115,7 +115,7 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		gui.logSpan(gui.Tr.Spans.MovePatchToSelectedCommit)
+		gui.logAction(gui.Tr.Actions.MovePatchToSelectedCommit)
 		err := gui.GitCommand.MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLineIdx, gui.GitCommand.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
@@ -133,7 +133,7 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 	pull := func(stash bool) error {
 		return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 			commitIndex := gui.getPatchCommitIndex()
-			gui.logSpan(gui.Tr.Spans.MovePatchIntoIndex)
+			gui.logAction(gui.Tr.Actions.MovePatchIntoIndex)
 			err := gui.GitCommand.MovePatchIntoIndex(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager, stash)
 			return gui.handleGenericMergeCommandResult(err)
 		})
@@ -163,7 +163,7 @@ func (gui *Gui) handlePullPatchIntoNewCommit() error {
 
 	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
-		gui.logSpan(gui.Tr.Spans.MovePatchIntoNewCommit)
+		gui.logAction(gui.Tr.Actions.MovePatchIntoNewCommit)
 		err := gui.GitCommand.PullPatchIntoNewCommit(gui.State.Commits, commitIndex, gui.GitCommand.PatchManager)
 		return gui.handleGenericMergeCommandResult(err)
 	})
@@ -174,11 +174,11 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 		return err
 	}
 
-	span := gui.Tr.Spans.ApplyPatch
+	action := gui.Tr.Actions.ApplyPatch
 	if reverse {
-		span = "Apply patch in reverse"
+		action = "Apply patch in reverse"
 	}
-	gui.logSpan(span)
+	gui.logAction(action)
 	if err := gui.GitCommand.PatchManager.ApplyPatches(reverse); err != nil {
 		return gui.surfaceError(err)
 	}

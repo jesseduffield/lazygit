@@ -7,7 +7,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -80,7 +79,7 @@ func (gui *Gui) handleBranchPress() error {
 		return gui.createErrorPanel(gui.Tr.AlreadyCheckedOutBranch)
 	}
 	branch := gui.getSelectedBranch()
-	gui.logSpan(gui.Tr.Spans.CheckoutBranch)
+	gui.logAction(gui.Tr.Actions.CheckoutBranch)
 	return gui.handleCheckoutRef(branch.Name, handleCheckoutRefOptions{})
 }
 
@@ -114,11 +113,10 @@ func (gui *Gui) handleCopyPullRequestURLPress() error {
 	if err != nil {
 		return gui.surfaceError(err)
 	}
+	gui.logAction(gui.Tr.Actions.CopyPullRequestURL)
 	if err := gui.GitCommand.OSCommand.CopyToClipboard(url); err != nil {
 		return gui.surfaceError(err)
 	}
-
-	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf("Copying to clipboard: '%s'", url), "Copy URL", false))
 
 	gui.raiseToast(gui.Tr.PullRequestURLCopiedToClipboard)
 
@@ -146,7 +144,7 @@ func (gui *Gui) handleForceCheckout() error {
 		title:  title,
 		prompt: message,
 		handleConfirm: func() error {
-			gui.logSpan(gui.Tr.Spans.ForceCheckoutBranch)
+			gui.logAction(gui.Tr.Actions.ForceCheckoutBranch)
 			if err := gui.GitCommand.Checkout(branch.Name, commands.CheckoutOptions{Force: true}); err != nil {
 				_ = gui.surfaceError(err)
 			}
@@ -225,7 +223,7 @@ func (gui *Gui) handleCheckoutByName() error {
 		title:               gui.Tr.BranchName + ":",
 		findSuggestionsFunc: gui.getRefsSuggestionsFunc(),
 		handleConfirm: func(response string) error {
-			gui.logSpan("Checkout branch")
+			gui.logAction("Checkout branch")
 			return gui.handleCheckoutRef(response, handleCheckoutRefOptions{
 				onRefNotFound: func(ref string) error {
 					return gui.ask(askOpts{
@@ -298,7 +296,7 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) err
 		title:  title,
 		prompt: message,
 		handleConfirm: func() error {
-			gui.logSpan(gui.Tr.Spans.DeleteBranch)
+			gui.logAction(gui.Tr.Actions.DeleteBranch)
 			if err := gui.GitCommand.DeleteBranch(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
 				if !force && strings.Contains(errMessage, "git branch -D ") {
@@ -335,7 +333,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		title:  gui.Tr.MergingTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
-			gui.logSpan(gui.Tr.Spans.Merge)
+			gui.logAction(gui.Tr.Actions.Merge)
 			err := gui.GitCommand.Merge(branchName, commands.MergeOpts{})
 			return gui.handleGenericMergeCommandResult(err)
 		},
@@ -377,7 +375,7 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 		title:  gui.Tr.RebasingTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
-			gui.logSpan(gui.Tr.Spans.RebaseBranch)
+			gui.logAction(gui.Tr.Actions.RebaseBranch)
 			err := gui.GitCommand.RebaseBranch(selectedBranchName)
 			return gui.handleGenericMergeCommandResult(err)
 		},
@@ -402,7 +400,7 @@ func (gui *Gui) handleFastForward() error {
 		return gui.surfaceError(err)
 	}
 
-	span := gui.Tr.Spans.FastForwardBranch
+	action := gui.Tr.Actions.FastForwardBranch
 
 	split := strings.Split(upstream, "/")
 	remoteName := split[0]
@@ -419,9 +417,9 @@ func (gui *Gui) handleFastForward() error {
 		_ = gui.createLoaderPanel(message)
 
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
-			_ = gui.pullWithLock(PullFilesOptions{span: span, FastForwardOnly: true})
+			_ = gui.pullWithLock(PullFilesOptions{action: action, FastForwardOnly: true})
 		} else {
-			gui.logSpan(span)
+			gui.logAction(action)
 			err := gui.GitCommand.FastForward(branch.Name, remoteName, remoteBranchName, gui.promptUserForCredential)
 			gui.handleCredentialsPopup(err)
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{BRANCHES}})
@@ -450,7 +448,7 @@ func (gui *Gui) handleRenameBranch() error {
 			title:          gui.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
 			initialContent: branch.Name,
 			handleConfirm: func(newBranchName string) error {
-				gui.logSpan(gui.Tr.Spans.RenameBranch)
+				gui.logAction(gui.Tr.Actions.RenameBranch)
 				if err := gui.GitCommand.RenameBranch(branch.Name, newBranchName); err != nil {
 					return gui.surfaceError(err)
 				}
@@ -519,7 +517,7 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 		title:          message,
 		initialContent: prefilledName,
 		handleConfirm: func(response string) error {
-			gui.logSpan(gui.Tr.Spans.CreateBranch)
+			gui.logAction(gui.Tr.Actions.CreateBranch)
 			if err := gui.GitCommand.NewBranch(sanitizedBranchName(response), item.ID()); err != nil {
 				return err
 			}

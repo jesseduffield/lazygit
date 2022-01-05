@@ -59,7 +59,7 @@ func (c *GitCommand) InteractiveRebase(commits []*models.Commit, index int, acti
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit a todo string to write to the todo file
 func (c *GitCommand) PrepareInteractiveRebaseCommand(baseSha string, todo string, overrideEditor bool) (oscommands.ICmdObj, error) {
-	ex := c.OSCommand.GetLazygitPath()
+	ex := oscommands.GetLazygitPath()
 
 	debug := "FALSE"
 	if c.Debug {
@@ -267,8 +267,8 @@ func (c *GitCommand) GenericMergeOrRebaseAction(commandType string, command stri
 }
 
 func (c *GitCommand) runSkipEditorCommand(command string) error {
-	cmdObj := c.OSCommand.Cmd.New(command)
-	lazyGitPath := c.OSCommand.GetLazygitPath()
+	cmdObj := c.Cmd.New(command)
+	lazyGitPath := oscommands.GetLazygitPath()
 	return cmdObj.
 		AddEnvVars(
 			"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",

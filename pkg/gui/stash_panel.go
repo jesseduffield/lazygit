@@ -106,7 +106,7 @@ func (gui *Gui) stashDo(method string) error {
 
 		return gui.createErrorPanel(errorMessage)
 	}
-	gui.logSpan(gui.Tr.Spans.Stash)
+	gui.logAction(gui.Tr.Actions.Stash)
 	if err := gui.GitCommand.StashDo(stashEntry.Index, method); err != nil {
 		return gui.surfaceError(err)
 	}

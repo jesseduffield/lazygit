@@ -22,11 +22,11 @@ type OSCommand struct {
 	Platform *Platform
 	Getenv   func(string) string
 
-	// callback to run before running a command, i.e. for the purposes of logging
-	onRunCommand func(CmdLogEntry)
-
-	// something like 'Staging File': allows us to group cmd logs under a single title
-	CmdLogSpan string
+	// callback to run before running a command, i.e. for the purposes of logging.
+	// the string argument is the command string e.g. 'git add .' and the bool is
+	// whether we're dealing with a command line command or something more general
+	// like 'Opening PR URL', or something handled by Go's standard library.
+	logCommandFn func(string, bool)
 
 	removeFile func(string) error
 
@@ -42,36 +42,6 @@ type Platform struct {
 	OpenLinkCommand string
 }
 
-// TODO: make these fields private
-type CmdLogEntry struct {
-	// e.g. 'git commit -m "haha"'
-	cmdStr string
-	// Span is something like 'Staging File'. Multiple commands can be grouped under the same
-	// span
-	span string
-
-	// sometimes our command is direct like 'git commit', and sometimes it's a
-	// command to remove a file but through Go's standard library rather than the
-	// command line
-	commandLine bool
-}
-
-func (e CmdLogEntry) GetCmdStr() string {
-	return e.cmdStr
-}
-
-func (e CmdLogEntry) GetSpan() string {
-	return e.span
-}
-
-func (e CmdLogEntry) GetCommandLine() bool {
-	return e.commandLine
-}
-
-func NewCmdLogEntry(cmdStr string, span string, commandLine bool) CmdLogEntry {
-	return CmdLogEntry{cmdStr: cmdStr, span: span, commandLine: commandLine}
-}
-
 // NewOSCommand os command runner
 func NewOSCommand(common *common.Common, platform *Platform) *OSCommand {
 	c := &OSCommand{
@@ -82,7 +52,7 @@ func NewOSCommand(common *common.Common, platform *Platform) *OSCommand {
 	}
 
 	runner := &cmdObjRunner{log: common.Log, logCmdObj: c.LogCmdObj}
-	c.Cmd = &CmdObjBuilder{runner: runner, logCmdObj: c.LogCmdObj, platform: platform}
+	c.Cmd = &CmdObjBuilder{runner: runner, platform: platform}
 
 	return c
 }
@@ -94,13 +64,13 @@ func (c *OSCommand) LogCmdObj(cmdObj ICmdObj) {
 func (c *OSCommand) LogCommand(cmdStr string, commandLine bool) {
 	c.Log.WithField("command", cmdStr).Info("RunCommand")
 
-	if c.onRunCommand != nil {
-		c.onRunCommand(NewCmdLogEntry(cmdStr, c.CmdLogSpan, commandLine))
+	if c.logCommandFn != nil {
+		c.logCommandFn(cmdStr, commandLine)
 	}
 }
 
-func (c *OSCommand) SetOnRunCommand(f func(CmdLogEntry)) {
-	c.onRunCommand = f
+func (c *OSCommand) SetLogCommandFn(f func(string, bool)) {
+	c.logCommandFn = f
 }
 
 // To be used for testing only
@@ -143,26 +113,6 @@ func (c *OSCommand) OpenLink(link string) error {
 // Quote wraps a message in platform-specific quotation marks
 func (c *OSCommand) Quote(message string) string {
 	return c.Cmd.Quote(message)
-}
-
-func (self *CmdObjBuilder) Quote(message string) string {
-	var quote string
-	if self.platform.OS == "windows" {
-		quote = `\"`
-		message = strings.NewReplacer(
-			`"`, `"'"'"`,
-			`\"`, `\\"`,
-		).Replace(message)
-	} else {
-		quote = `"`
-		message = strings.NewReplacer(
-			`\`, `\\`,
-			`"`, `\"`,
-			`$`, `\$`,
-			"`", "\\`",
-		).Replace(message)
-	}
-	return quote + message + quote
 }
 
 // AppendLineToFile adds a new line in file
@@ -234,15 +184,6 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 		return false, err
 	}
 	return true, nil
-}
-
-// GetLazygitPath returns the path of the currently executed file
-func (c *OSCommand) GetLazygitPath() string {
-	ex, err := os.Executable() // get the executable path for git to use
-	if err != nil {
-		ex = os.Args[0] // fallback to the first call argument if needed
-	}
-	return `"` + filepath.ToSlash(ex) + `"`
 }
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
@@ -332,4 +273,13 @@ func (c *OSCommand) RemoveFile(path string) error {
 
 func GetTempDir() string {
 	return filepath.Join(os.TempDir(), "lazygit")
+}
+
+// GetLazygitPath returns the path of the currently executed file
+func GetLazygitPath() string {
+	ex, err := os.Executable() // get the executable path for git to use
+	if err != nil {
+		ex = os.Args[0] // fallback to the first call argument if needed
+	}
+	return `"` + filepath.ToSlash(ex) + `"`
 }
