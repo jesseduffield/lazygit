@@ -21,9 +21,8 @@ type ICmdObjBuilder interface {
 }
 
 type CmdObjBuilder struct {
-	runner    ICmdObjRunner
-	logCmdObj func(ICmdObj)
-	platform  *Platform
+	runner   ICmdObjRunner
+	platform *Platform
 }
 
 // poor man's version of explicitly saying that struct X implements interface Y
@@ -76,8 +75,27 @@ func (self *CmdObjBuilder) CloneWithNewRunner(decorate func(ICmdObjRunner) ICmdO
 	decoratedRunner := decorate(self.runner)
 
 	return &CmdObjBuilder{
-		runner:    decoratedRunner,
-		logCmdObj: self.logCmdObj,
-		platform:  self.platform,
+		runner:   decoratedRunner,
+		platform: self.platform,
 	}
+}
+
+func (self *CmdObjBuilder) Quote(message string) string {
+	var quote string
+	if self.platform.OS == "windows" {
+		quote = `\"`
+		message = strings.NewReplacer(
+			`"`, `"'"'"`,
+			`\"`, `\\"`,
+		).Replace(message)
+	} else {
+		quote = `"`
+		message = strings.NewReplacer(
+			`\`, `\\`,
+			`"`, `\"`,
+			`$`, `\$`,
+			"`", "\\`",
+		).Replace(message)
+	}
+	return quote + message + quote
 }

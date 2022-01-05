@@ -441,8 +441,7 @@ func chineseTranslationSet() TranslationSet {
 		LcCreatePullRequestOptions:          "创建抓取请求选项",
 		LcDefaultBranch:                     "默认分支",
 		LcSelectBranch:                      "选择分支",
-		CreatingPullRequestAtUrl:            "在 URL 创建抓取请求: %s",
-		Spans: Spans{
+		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "检出提交",
 			CheckoutReflogCommit:              "检出reflog提交",

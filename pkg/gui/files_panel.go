@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -207,12 +206,12 @@ func (gui *Gui) handleFilePress() error {
 		}
 
 		if file.HasUnstagedChanges {
-			gui.logSpan(gui.Tr.Spans.StageFile)
+			gui.logAction(gui.Tr.Actions.StageFile)
 			if err := gui.GitCommand.StageFile(file.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 		} else {
-			gui.logSpan(gui.Tr.Spans.UnstageFile)
+			gui.logAction(gui.Tr.Actions.UnstageFile)
 			if err := gui.GitCommand.UnStageFile(file.Names(), file.Tracked); err != nil {
 				return gui.surfaceError(err)
 			}
@@ -225,13 +224,13 @@ func (gui *Gui) handleFilePress() error {
 		}
 
 		if node.GetHasUnstagedChanges() {
-			gui.logSpan(gui.Tr.Spans.StageFile)
+			gui.logAction(gui.Tr.Actions.StageFile)
 			if err := gui.GitCommand.StageFile(node.Path); err != nil {
 				return gui.surfaceError(err)
 			}
 		} else {
 			// pretty sure it doesn't matter that we're always passing true here
-			gui.logSpan(gui.Tr.Spans.UnstageFile)
+			gui.logAction(gui.Tr.Actions.UnstageFile)
 			if err := gui.GitCommand.UnStageFile([]string{node.Path}, true); err != nil {
 				return gui.surfaceError(err)
 			}
@@ -262,10 +261,10 @@ func (gui *Gui) onFocusFile() error {
 func (gui *Gui) handleStageAll() error {
 	var err error
 	if gui.allFilesStaged() {
-		gui.logSpan(gui.Tr.Spans.UnstageAllFiles)
+		gui.logAction(gui.Tr.Actions.UnstageAllFiles)
 		err = gui.GitCommand.UnstageAll()
 	} else {
-		gui.logSpan(gui.Tr.Spans.StageAllFiles)
+		gui.logAction(gui.Tr.Actions.StageAllFiles)
 		err = gui.GitCommand.StageAll()
 	}
 	if err != nil {
@@ -289,7 +288,7 @@ func (gui *Gui) handleIgnoreFile() error {
 		return gui.createErrorPanel("Cannot ignore .gitignore")
 	}
 
-	gui.logSpan(gui.Tr.Spans.IgnoreFile)
+	gui.logAction(gui.Tr.Actions.IgnoreFile)
 
 	unstageFiles := func() error {
 		return node.ForEachFile(func(file *models.File) error {
@@ -362,7 +361,7 @@ func (gui *Gui) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
 func (gui *Gui) prepareFilesForCommit() error {
 	noStagedFiles := len(gui.stagedFiles()) == 0
 	if noStagedFiles && gui.UserConfig.Gui.SkipNoStagedFilesWarning {
-		gui.logSpan(gui.Tr.Spans.StageAllFiles)
+		gui.logAction(gui.Tr.Actions.StageAllFiles)
 		err := gui.GitCommand.StageAll()
 		if err != nil {
 			return err
@@ -417,7 +416,7 @@ func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 		title:  gui.Tr.NoFilesStagedTitle,
 		prompt: gui.Tr.NoFilesStagedPrompt,
 		handleConfirm: func() error {
-			gui.logSpan(gui.Tr.Spans.StageAllFiles)
+			gui.logAction(gui.Tr.Actions.StageAllFiles)
 			if err := gui.GitCommand.StageAll(); err != nil {
 				return gui.surfaceError(err)
 			}
@@ -448,7 +447,7 @@ func (gui *Gui) handleAmendCommitPress() error {
 		prompt: gui.Tr.SureToAmend,
 		handleConfirm: func() error {
 			cmdObj := gui.GitCommand.AmendHeadCmdObj()
-			gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdObj.ToString(), gui.Tr.Spans.AmendCommit, true))
+			gui.logAction(gui.Tr.Actions.AmendCommit)
 			return gui.withGpgHandling(cmdObj, gui.Tr.AmendingStatus, nil)
 		},
 	})
@@ -473,7 +472,7 @@ func (gui *Gui) handleCommitEditorPress() error {
 
 	cmdStr := "git " + strings.Join(args, " ")
 
-	gui.logSpan(gui.Tr.Spans.Commit)
+	gui.logAction(gui.Tr.Actions.Commit)
 	return gui.runSubprocessWithSuspenseAndRefresh(
 		gui.GitCommand.Cmd.New(cmdStr),
 	)
@@ -520,7 +519,7 @@ func (gui *Gui) editFileAtLine(filename string, lineNumber int) error {
 		return gui.surfaceError(err)
 	}
 
-	gui.logSpan(gui.Tr.Spans.EditFile)
+	gui.logAction(gui.Tr.Actions.EditFile)
 	return gui.runSubprocessWithSuspenseAndRefresh(
 		gui.OSCommand.Cmd.NewShell(cmdStr),
 	)
@@ -652,7 +651,7 @@ func (gui *Gui) handlePullFiles() error {
 		return nil
 	}
 
-	span := gui.Tr.Spans.Pull
+	action := gui.Tr.Actions.Pull
 
 	currentBranch := gui.currentBranch()
 	if currentBranch == nil {
@@ -669,7 +668,7 @@ func (gui *Gui) handlePullFiles() error {
 		}
 		for branchName, branch := range conf.Branches {
 			if branchName == currentBranch.Name {
-				return gui.pullFiles(PullFilesOptions{RemoteName: branch.Remote, BranchName: branch.Name, span: span})
+				return gui.pullFiles(PullFilesOptions{RemoteName: branch.Remote, BranchName: branch.Name, action: action})
 			}
 		}
 
@@ -687,19 +686,19 @@ func (gui *Gui) handlePullFiles() error {
 					}
 					return gui.createErrorPanel(errorMessage)
 				}
-				return gui.pullFiles(PullFilesOptions{span: span})
+				return gui.pullFiles(PullFilesOptions{action: action})
 			},
 		})
 	}
 
-	return gui.pullFiles(PullFilesOptions{span: span})
+	return gui.pullFiles(PullFilesOptions{action: action})
 }
 
 type PullFilesOptions struct {
 	RemoteName      string
 	BranchName      string
 	FastForwardOnly bool
-	span            string
+	action          string
 }
 
 func (gui *Gui) pullFiles(opts PullFilesOptions) error {
@@ -717,7 +716,7 @@ func (gui *Gui) pullWithLock(opts PullFilesOptions) error {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	gui.logSpan(opts.span)
+	gui.logAction(opts.action)
 
 	err := gui.GitCommand.Pull(
 		commands.PullOptions{
@@ -745,7 +744,7 @@ func (gui *Gui) push(opts pushOpts) error {
 		return err
 	}
 	go utils.Safe(func() {
-		gui.logSpan(gui.Tr.Spans.Push)
+		gui.logAction(gui.Tr.Actions.Push)
 		err := gui.GitCommand.Push(commands.PushOpts{
 			Force:          opts.force,
 			UpstreamRemote: opts.upstreamRemote,
@@ -902,7 +901,7 @@ func (gui *Gui) handleSwitchToMerge() error {
 }
 
 func (gui *Gui) openFile(filename string) error {
-	gui.logSpan(gui.Tr.Spans.OpenFile)
+	gui.logAction(gui.Tr.Actions.OpenFile)
 	if err := gui.OSCommand.OpenFile(filename); err != nil {
 		return gui.surfaceError(err)
 	}
@@ -935,7 +934,7 @@ func (gui *Gui) handleCustomCommand() error {
 				gui.Log.Error(err)
 			}
 
-			gui.OnRunCommand(oscommands.NewCmdLogEntry(command, gui.Tr.Spans.CustomCommand, true))
+			gui.logAction(gui.Tr.Actions.CustomCommand)
 			return gui.runSubprocessWithSuspenseAndRefresh(
 				gui.OSCommand.Cmd.NewShell(command),
 			)
@@ -948,14 +947,14 @@ func (gui *Gui) handleCreateStashMenu() error {
 		{
 			displayString: gui.Tr.LcStashAllChanges,
 			onPress: func() error {
-				gui.logSpan(gui.Tr.Spans.StashAllChanges)
+				gui.logAction(gui.Tr.Actions.StashAllChanges)
 				return gui.handleStashSave(gui.GitCommand.StashSave)
 			},
 		},
 		{
 			displayString: gui.Tr.LcStashStagedChanges,
 			onPress: func() error {
-				gui.logSpan(gui.Tr.Spans.StashStagedChanges)
+				gui.logAction(gui.Tr.Actions.StashStagedChanges)
 				return gui.handleStashSave(gui.GitCommand.StashSaveStagedChanges)
 			},
 		},
@@ -1019,6 +1018,7 @@ func (gui *Gui) handleOpenMergeTool() error {
 		title:  gui.Tr.MergeToolTitle,
 		prompt: gui.Tr.MergeToolPrompt,
 		handleConfirm: func() error {
+			gui.logAction(gui.Tr.Actions.OpenMergeTool)
 			return gui.runSubprocessWithSuspenseAndRefresh(
 				gui.GitCommand.OpenMergeToolCmdObj(),
 			)

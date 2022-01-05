@@ -12,7 +12,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 			{
 				displayString: gui.Tr.LcDiscardAllChanges,
 				onPress: func() error {
-					gui.logSpan(gui.Tr.Spans.DiscardAllChangesInDirectory)
+					gui.logAction(gui.Tr.Actions.DiscardAllChangesInDirectory)
 					if err := gui.GitCommand.DiscardAllDirChanges(node); err != nil {
 						return gui.surfaceError(err)
 					}
@@ -25,7 +25,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 			menuItems = append(menuItems, &menuItem{
 				displayString: gui.Tr.LcDiscardUnstagedChanges,
 				onPress: func() error {
-					gui.logSpan(gui.Tr.Spans.DiscardUnstagedChangesInDirectory)
+					gui.logAction(gui.Tr.Actions.DiscardUnstagedChangesInDirectory)
 					if err := gui.GitCommand.DiscardUnstagedDirChanges(node); err != nil {
 						return gui.surfaceError(err)
 					}
@@ -54,7 +54,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				{
 					displayString: gui.Tr.LcDiscardAllChanges,
 					onPress: func() error {
-						gui.logSpan(gui.Tr.Spans.DiscardAllChangesInFile)
+						gui.logAction(gui.Tr.Actions.DiscardAllChangesInFile)
 						if err := gui.GitCommand.DiscardAllFileChanges(file); err != nil {
 							return gui.surfaceError(err)
 						}
@@ -67,7 +67,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				menuItems = append(menuItems, &menuItem{
 					displayString: gui.Tr.LcDiscardUnstagedChanges,
 					onPress: func() error {
-						gui.logSpan(gui.Tr.Spans.DiscardAllUnstagedChangesInFile)
+						gui.logAction(gui.Tr.Actions.DiscardAllUnstagedChangesInFile)
 						if err := gui.GitCommand.DiscardUnstagedFileChanges(file); err != nil {
 							return gui.surfaceError(err)
 						}

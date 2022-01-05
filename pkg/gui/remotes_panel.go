@@ -85,7 +85,7 @@ func (gui *Gui) handleAddRemote() error {
 			return gui.prompt(promptOpts{
 				title: gui.Tr.LcNewRemoteUrl,
 				handleConfirm: func(remoteUrl string) error {
-					gui.logSpan(gui.Tr.Spans.AddRemote)
+					gui.logAction(gui.Tr.Actions.AddRemote)
 					if err := gui.GitCommand.AddRemote(remoteName, remoteUrl); err != nil {
 						return err
 					}
@@ -107,7 +107,7 @@ func (gui *Gui) handleRemoveRemote() error {
 		title:  gui.Tr.LcRemoveRemote,
 		prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		handleConfirm: func() error {
-			gui.logSpan(gui.Tr.Spans.RemoveRemote)
+			gui.logAction(gui.Tr.Actions.RemoveRemote)
 			if err := gui.GitCommand.RemoveRemote(remote.Name); err != nil {
 				return gui.surfaceError(err)
 			}
@@ -135,7 +135,7 @@ func (gui *Gui) handleEditRemote() error {
 		initialContent: remote.Name,
 		handleConfirm: func(updatedRemoteName string) error {
 			if updatedRemoteName != remote.Name {
-				gui.logSpan(gui.Tr.Spans.UpdateRemote)
+				gui.logAction(gui.Tr.Actions.UpdateRemote)
 				if err := gui.GitCommand.RenameRemote(remote.Name, updatedRemoteName); err != nil {
 					return gui.surfaceError(err)
 				}
@@ -158,7 +158,7 @@ func (gui *Gui) handleEditRemote() error {
 				title:          editUrlMessage,
 				initialContent: url,
 				handleConfirm: func(updatedRemoteUrl string) error {
-					gui.logSpan(gui.Tr.Spans.UpdateRemote)
+					gui.logAction(gui.Tr.Actions.UpdateRemote)
 					if err := gui.GitCommand.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 						return gui.surfaceError(err)
 					}

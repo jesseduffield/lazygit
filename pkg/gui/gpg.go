@@ -13,6 +13,8 @@ import (
 // we don't need to see a loading status if we're in a subprocess.
 // TODO: work out if we actually need to use a shell command here
 func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
+	gui.logCommand(cmdObj.ToString(), true)
+
 	useSubprocess := gui.GitCommand.UsingGpg()
 	if useSubprocess {
 		success, err := gui.runSubprocessWithSuspense(gui.OSCommand.Cmd.NewShell(cmdObj.ToString()))

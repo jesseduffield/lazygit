@@ -21,7 +21,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint(nukeStr),
 			},
 			onPress: func() error {
-				gui.logSpan(gui.Tr.Spans.NukeWorkingTree)
+				gui.logAction(gui.Tr.Actions.NukeWorkingTree)
 				if err := gui.GitCommand.ResetAndClean(); err != nil {
 					return gui.surfaceError(err)
 				}
@@ -35,7 +35,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git checkout -- ."),
 			},
 			onPress: func() error {
-				gui.logSpan(gui.Tr.Spans.DiscardUnstagedFileChanges)
+				gui.logAction(gui.Tr.Actions.DiscardUnstagedFileChanges)
 				if err := gui.GitCommand.DiscardAnyUnstagedFileChanges(); err != nil {
 					return gui.surfaceError(err)
 				}
@@ -49,7 +49,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git clean -fd"),
 			},
 			onPress: func() error {
-				gui.logSpan(gui.Tr.Spans.RemoveUntrackedFiles)
+				gui.logAction(gui.Tr.Actions.RemoveUntrackedFiles)
 				if err := gui.GitCommand.RemoveUntrackedFiles(); err != nil {
 					return gui.surfaceError(err)
 				}
@@ -63,7 +63,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --soft HEAD"),
 			},
 			onPress: func() error {
-				gui.logSpan(gui.Tr.Spans.SoftReset)
+				gui.logAction(gui.Tr.Actions.SoftReset)
 				if err := gui.GitCommand.ResetSoft("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
@@ -77,7 +77,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --mixed HEAD"),
 			},
 			onPress: func() error {
-				gui.logSpan(gui.Tr.Spans.MixedReset)
+				gui.logAction(gui.Tr.Actions.MixedReset)
 				if err := gui.GitCommand.ResetMixed("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
@@ -91,7 +91,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --hard HEAD"),
 			},
 			onPress: func() error {
-				gui.logSpan(gui.Tr.Spans.HardReset)
+				gui.logAction(gui.Tr.Actions.HardReset)
 				if err := gui.GitCommand.ResetHard("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}

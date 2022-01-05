@@ -63,7 +63,7 @@ func (gui *Gui) handleCheckoutCommitFile() error {
 		return nil
 	}
 
-	gui.logSpan(gui.Tr.Spans.CheckoutFile)
+	gui.logAction(gui.Tr.Actions.CheckoutFile)
 	if err := gui.GitCommand.CheckoutFile(gui.State.CommitFileManager.GetParent(), node.GetPath()); err != nil {
 		return gui.surfaceError(err)
 	}
@@ -83,7 +83,7 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 		prompt: gui.Tr.DiscardFileChangesPrompt,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
-				gui.logSpan(gui.Tr.Spans.DiscardOldFileChange)
+				gui.logAction(gui.Tr.Actions.DiscardOldFileChange)
 				if err := gui.GitCommand.DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
 					if err := gui.handleGenericMergeCommandResult(err); err != nil {
 						return err

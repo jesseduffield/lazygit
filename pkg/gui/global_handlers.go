@@ -210,13 +210,13 @@ func (gui *Gui) handleMouseDownSecondary() error {
 	return nil
 }
 
-func (gui *Gui) fetch(canPromptForCredentials bool, span string) (err error) {
+func (gui *Gui) fetch(canPromptForCredentials bool, action string) (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
 	fetchOpts := commands.FetchOptions{}
 	if canPromptForCredentials {
-		gui.logSpan(span)
+		gui.logAction(action)
 		fetchOpts.PromptUserForCredential = gui.promptUserForCredential
 	}
 
@@ -239,7 +239,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 		return nil
 	}
 
-	gui.logSpan(gui.Tr.Spans.CopyToClipboard)
+	gui.logAction(gui.Tr.Actions.CopyToClipboard)
 	if err := gui.OSCommand.CopyToClipboard(itemId); err != nil {
 		return gui.surfaceError(err)
 	}

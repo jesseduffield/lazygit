@@ -12,6 +12,7 @@ type ICmdObj interface {
 	// using NewFromArgs, the output won't be quite the same as what you would type
 	// into a terminal e.g. 'sh -c git commit' as opposed to 'sh -c "git commit"'
 	ToString() string
+
 	AddEnvVars(...string) ICmdObj
 	GetEnvVars() []string
 
@@ -22,9 +23,16 @@ type ICmdObj interface {
 	// runs the command and runs a callback function on each line of the output. If the callback returns true for the boolean value, we kill the process and return.
 	RunAndProcessLines(onLine func(line string) (bool, error)) error
 
-	// Marks the command object as readonly, so that when it is run, we don't log it to the user.
-	// We only want to log commands to the user which change state in some way.
+	// Be calling DontLog(), we're saying that once we call Run(), we don't want to
+	// log the command in the UI (it'll still be logged in the log file). The general rule
+	// is that if a command doesn't change the git state (e.g. read commands like `git diff`)
+	// then we don't want to log it. If we are changing something (e.g. `git add .`) then
+	// we do. The only exception is if we're running a command in the background periodically
+	// like `git fetch`, which technically does mutate stuff but isn't something we need
+	// to notify the user about.
 	DontLog() ICmdObj
+
+	// This returns false if DontLog() was called
 	ShouldLog() bool
 }
 

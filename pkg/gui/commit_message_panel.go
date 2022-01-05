@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -25,7 +24,7 @@ func (gui *Gui) handleCommitConfirm() error {
 	}
 
 	cmdObj := gui.GitCommand.CommitCmdObj(message, strings.Join(flags, " "))
-	gui.OnRunCommand(oscommands.NewCmdLogEntry(cmdObj.ToString(), gui.Tr.Spans.Commit, true))
+	gui.logAction(gui.Tr.Actions.Commit)
 
 	_ = gui.returnFromContext()
 	return gui.withGpgHandling(cmdObj, gui.Tr.CommittingStatus, func() error {

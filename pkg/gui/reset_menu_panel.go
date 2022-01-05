@@ -38,7 +38,7 @@ func (gui *Gui) createResetMenu(ref string) error {
 				style.FgRed.Sprintf("reset --%s %s", strength, ref),
 			},
 			onPress: func() error {
-				gui.logSpan("Reset")
+				gui.logAction("Reset")
 				return gui.resetToRef(ref, strength, []string{})
 			},
 		}
