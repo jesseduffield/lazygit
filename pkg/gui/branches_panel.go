@@ -127,8 +127,9 @@ func (gui *Gui) handleGitFetch() error {
 	if err := gui.createLoaderPanel(gui.Tr.FetchWait); err != nil {
 		return err
 	}
+
 	go utils.Safe(func() {
-		err := gui.fetch(true, "Fetch")
+		err := gui.fetch()
 		gui.handleCredentialsPopup(err)
 		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	})
