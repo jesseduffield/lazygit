@@ -438,7 +438,6 @@ type TranslationSet struct {
 	LcDefaultBranch                     string
 	LcSelectBranch                      string
 	CreatePullRequest                   string
-	OpeningCommitInBrowser              string
 	SelectConfigFile                    string
 	NoConfigFileFoundErr                string
 	LcLoadingFileSuggestions            string
@@ -541,6 +540,8 @@ type Actions struct {
 	Redo                              string
 	CopyPullRequestURL                string
 	OpenMergeTool                     string
+	OpenCommitInBrowser               string
+	OpenPullRequest                   string
 }
 
 const englishIntroPopupMessage = `
@@ -990,7 +991,6 @@ func EnglishTranslationSet() TranslationSet {
 		LcCreatePullRequestOptions:          "create pull request options",
 		LcDefaultBranch:                     "default branch",
 		LcSelectBranch:                      "select branch",
-		OpeningCommitInBrowser:              "Opening commit in browser at URL: %s",
 		SelectConfigFile:                    "Select config file",
 		NoConfigFileFoundErr:                "No config file found",
 		LcLoadingFileSuggestions:            "loading file suggestions",
@@ -1091,6 +1091,8 @@ func EnglishTranslationSet() TranslationSet {
 			Redo:                              "Redo",
 			CopyPullRequestURL:                "Copy pull request URL",
 			OpenMergeTool:                     "Open merge tool",
+			OpenCommitInBrowser:               "Open commit in browser",
+			OpenPullRequest:                   "Open pull request in browser",
 		},
 	}
 }

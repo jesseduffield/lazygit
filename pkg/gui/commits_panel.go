@@ -814,12 +814,10 @@ func (gui *Gui) handleOpenCommitInBrowser() error {
 		return gui.surfaceError(err)
 	}
 
+	gui.logAction(gui.Tr.Actions.OpenCommitInBrowser)
 	if err := gui.GitCommand.OSCommand.OpenLink(url); err != nil {
 		return gui.surfaceError(err)
 	}
-
-	gui.logAction(gui.Tr.CreatePullRequest)
-	gui.logCommand(fmt.Sprintf(gui.Tr.OpeningCommitInBrowser, url), false)
 
 	return nil
 }

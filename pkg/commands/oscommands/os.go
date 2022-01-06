@@ -100,7 +100,6 @@ func (c *OSCommand) OpenFile(filename string) error {
 }
 
 func (c *OSCommand) OpenLink(link string) error {
-	c.LogCommand(fmt.Sprintf("Opening link '%s'", link), false)
 	commandTemplate := c.UserConfig.OS.OpenLinkCommand
 	templateValues := map[string]string{
 		"link": c.Quote(link),
