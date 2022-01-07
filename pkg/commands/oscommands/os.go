@@ -21,12 +21,7 @@ type OSCommand struct {
 	*common.Common
 	Platform *Platform
 	GetenvFn func(string) string
-
-	// callback to run before running a command, i.e. for the purposes of logging.
-	// the string argument is the command string e.g. 'git add .' and the bool is
-	// whether we're dealing with a command line command or something more general
-	// like 'Opening PR URL', or something handled by Go's standard library.
-	logCommandFn func(string, bool)
+	guiIO    *guiIO
 
 	removeFile func(string) error
 
@@ -49,6 +44,7 @@ func NewOSCommand(common *common.Common, platform *Platform, guiIO *guiIO) *OSCo
 		Platform:   platform,
 		GetenvFn:   os.Getenv,
 		removeFile: os.RemoveAll,
+		guiIO:      guiIO,
 	}
 
 	runner := &cmdObjRunner{log: common.Log, guiIO: guiIO}
@@ -60,13 +56,7 @@ func NewOSCommand(common *common.Common, platform *Platform, guiIO *guiIO) *OSCo
 func (c *OSCommand) LogCommand(cmdStr string, commandLine bool) {
 	c.Log.WithField("command", cmdStr).Info("RunCommand")
 
-	if c.logCommandFn != nil {
-		c.logCommandFn(cmdStr, commandLine)
-	}
-}
-
-func (c *OSCommand) SetLogCommandFn(f func(string, bool)) {
-	c.logCommandFn = f
+	c.guiIO.logCommandFn(cmdStr, commandLine)
 }
 
 // To be used for testing only

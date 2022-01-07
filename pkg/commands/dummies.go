@@ -21,11 +21,8 @@ func NewDummyGitCommandWithOSCommand(osCommand *oscommands.OSCommand) *GitComman
 	)
 }
 
-func NewDummyGitCommandWithRunner(runner oscommands.ICmdObjRunner) *GitCommand {
-	builder := oscommands.NewDummyCmdObjBuilder(runner)
-	gitCommand := NewDummyGitCommand()
-	gitCommand.Cmd = builder
-	gitCommand.OSCommand.Cmd = builder
+func NewDummyGitCommandWithRunner(runner *oscommands.FakeCmdObjRunner) *GitCommand {
+	osCommand := oscommands.NewDummyOSCommandWithRunner(runner)
 
-	return gitCommand
+	return NewDummyGitCommandWithOSCommand(osCommand)
 }

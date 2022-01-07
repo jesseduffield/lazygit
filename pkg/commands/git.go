@@ -92,6 +92,10 @@ func NewGitCommandAux(
 ) *GitCommand {
 	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd)
 
+	// here we're doing a bunch of dependency injection for each of our commands structs.
+	// This is admittedly messy, but allows us to test each command struct in isolation,
+	// and allows for better namespacing when compared to having every method living
+	// on the one struct.
 	configCommands := NewConfigCommands(cmn, gitConfig)
 	statusCommands := NewStatusCommands(cmn, osCommand, repo, dotGitDir)
 	fileLoader := loaders.NewFileLoader(cmn, cmd, configCommands)
