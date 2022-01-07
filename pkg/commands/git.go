@@ -37,6 +37,7 @@ type GitCommand struct {
 	Patch       *PatchCommands
 	Remote      *RemoteCommands
 	Sync        *SyncCommands
+	Flow        *FlowCommands
 }
 
 type Loaders struct {
@@ -94,6 +95,7 @@ func NewGitCommandAux(
 	configCommands := NewConfigCommands(cmn, gitConfig)
 	statusCommands := NewStatusCommands(cmn, osCommand, repo, dotGitDir)
 	fileLoader := loaders.NewFileLoader(cmn, cmd, configCommands)
+	flowCommands := NewFlowCommands(cmn, cmd, configCommands)
 	remoteCommands := NewRemoteCommands(cmn, cmd)
 	branchCommands := NewBranchCommands(cmn, cmd)
 	syncCommands := NewSyncCommands(cmn, cmd)
@@ -132,6 +134,7 @@ func NewGitCommandAux(
 		Patch:       patchCommands,
 		Remote:      remoteCommands,
 		Sync:        syncCommands,
+		Flow:        flowCommands,
 		Loaders: Loaders{
 			Commits:       loaders.NewCommitLoader(cmn, cmd, dotGitDir, branchCommands.CurrentBranchName, statusCommands.RebaseMode),
 			Branches:      loaders.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchName),

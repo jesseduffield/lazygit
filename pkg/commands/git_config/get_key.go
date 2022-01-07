@@ -36,7 +36,8 @@ import (
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 func getGitConfigValue(key string) (string, error) {
-	gitArgs := []string{"config", "--get", "--null", key}
+	// allowing caller to say that key is '--local mykey' so that they can add extra flags.
+	gitArgs := append([]string{"config", "--get", "--null"}, strings.Split(key, " ")...)
 	var stdout bytes.Buffer
 	cmd := secureexec.Command("git", gitArgs...)
 	cmd.Stdout = &stdout
@@ -46,7 +47,7 @@ func getGitConfigValue(key string) (string, error) {
 	if exitError, ok := err.(*exec.ExitError); ok {
 		if waitStatus, ok := exitError.Sys().(syscall.WaitStatus); ok {
 			if waitStatus.ExitStatus() == 1 {
-				return "", fmt.Errorf("the key `%s` is not found", key)
+				return "", fmt.Errorf("the key is not found for %s", cmd.Args)
 			}
 		}
 		return "", err

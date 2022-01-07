@@ -2,39 +2,18 @@ package gui
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) gitFlowFinishBranch(gitFlowConfig string, branchName string) error {
-	// need to find out what kind of branch this is
-	prefix := strings.SplitAfterN(branchName, "/", 2)[0]
-	suffix := strings.Replace(branchName, prefix, "", 1)
-
-	branchType := ""
-	for _, line := range strings.Split(strings.TrimSpace(gitFlowConfig), "\n") {
-		if strings.HasPrefix(line, "gitflow.prefix.") && strings.HasSuffix(line, prefix) {
-			// now I just need to how do you say
-			regex := regexp.MustCompile("gitflow.prefix.([^ ]*) .*")
-			matches := regex.FindAllStringSubmatch(line, 1)
-
-			if len(matches) > 0 && len(matches[0]) > 1 {
-				branchType = matches[0][1]
-				break
-			}
-		}
-	}
-
-	if branchType == "" {
-		return gui.createErrorPanel(gui.Tr.NotAGitFlowBranch)
+func (gui *Gui) gitFlowFinishBranch(branchName string) error {
+	cmdObj, err := gui.GitCommand.Flow.FinishCmdObj(branchName)
+	if err != nil {
+		return gui.surfaceError(err)
 	}
 
 	gui.logAction(gui.Tr.Actions.GitFlowFinish)
-	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.GitCommand.Cmd.New("git flow " + branchType + " finish " + suffix),
-	)
+	return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }
 
 func (gui *Gui) handleCreateGitFlowMenu() error {
@@ -43,9 +22,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 		return nil
 	}
 
-	// get config
-	gitFlowConfig, err := gui.GitCommand.Cmd.New("git config --local --get-regexp gitflow").RunWithOutput()
-	if err != nil {
+	if !gui.GitCommand.Flow.GitFlowEnabled() {
 		return gui.createErrorPanel("You need to install git-flow and enable it in this repo to use git-flow features")
 	}
 
@@ -58,7 +35,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 				handleConfirm: func(name string) error {
 					gui.logAction(gui.Tr.Actions.GitFlowStart)
 					return gui.runSubprocessWithSuspenseAndRefresh(
-						gui.GitCommand.Cmd.New("git flow " + branchType + " start " + name),
+						gui.GitCommand.Flow.StartCmdObj(branchType, name),
 					)
 				},
 			})
@@ -70,7 +47,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 			// not localising here because it's one to one with the actual git flow commands
 			displayString: fmt.Sprintf("finish branch '%s'", branch.Name),
 			onPress: func() error {
-				return gui.gitFlowFinishBranch(gitFlowConfig, branch.Name)
+				return gui.gitFlowFinishBranch(branch.Name)
 			},
 		},
 		{
