@@ -20,8 +20,6 @@ import (
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	*common.Common
-
 	Loaders Loaders
 
 	Cmd oscommands.ICmdObjBuilder
@@ -119,8 +117,6 @@ func NewGitCommandAux(
 	patchCommands := NewPatchCommands(cmn, cmd, rebaseCommands, commitCommands, configCommands, statusCommands, patchManager)
 
 	return &GitCommand{
-		Common: cmn,
-
 		Cmd: cmd,
 
 		Submodule:   submoduleCommands,
