@@ -14,17 +14,8 @@ func (gui *Gui) handleCommitConfirm() error {
 	if message == "" {
 		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
 	}
-	flags := []string{}
-	skipHookPrefix := gui.UserConfig.Git.SkipHookPrefix
-	if skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix) {
-		flags = append(flags, "--no-verify")
-	}
 
-	if gui.UserConfig.Git.Commit.SignOff {
-		flags = append(flags, "--signoff")
-	}
-
-	cmdObj := gui.GitCommand.Commit.CommitCmdObj(message, strings.Join(flags, " "))
+	cmdObj := gui.GitCommand.Commit.CommitCmdObj(message)
 	gui.logAction(gui.Tr.Actions.Commit)
 
 	_ = gui.returnFromContext()

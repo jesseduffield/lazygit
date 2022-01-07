@@ -39,19 +39,33 @@ func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars [
 		Run()
 }
 
-func (self *CommitCommands) CommitCmdObj(message string, flags string) oscommands.ICmdObj {
+func (self *CommitCommands) CommitCmdObj(message string) oscommands.ICmdObj {
 	splitMessage := strings.Split(message, "\n")
 	lineArgs := ""
 	for _, line := range splitMessage {
 		lineArgs += fmt.Sprintf(" -m %s", self.cmd.Quote(line))
 	}
 
-	flagsStr := ""
-	if flags != "" {
-		flagsStr = fmt.Sprintf(" %s", flags)
+	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
+	noVerifyFlag := ""
+	if skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix) {
+		noVerifyFlag = " --no-verify"
 	}
 
-	return self.cmd.New(fmt.Sprintf("git commit%s%s", flagsStr, lineArgs))
+	return self.cmd.New(fmt.Sprintf("git commit%s%s%s", noVerifyFlag, self.signoffFlag(), lineArgs))
+}
+
+// runs git commit without the -m argument meaning it will invoke the user's editor
+func (self *CommitCommands) CommitEditorCmdObj() oscommands.ICmdObj {
+	return self.cmd.New(fmt.Sprintf("git commit%s", self.signoffFlag()))
+}
+
+func (self *CommitCommands) signoffFlag() string {
+	if self.UserConfig.Git.Commit.SignOff {
+		return " --signoff"
+	} else {
+		return ""
+	}
 }
 
 // Get the subject of the HEAD commit
