@@ -20,32 +20,32 @@ import (
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	Loaders Loaders
-
-	Submodule   *SubmoduleCommands
-	Tag         *TagCommands
-	WorkingTree *WorkingTreeCommands
-	File        *FileCommands
 	Branch      *BranchCommands
 	Commit      *CommitCommands
+	Config      *ConfigCommands
+	Custom      *CustomCommands
+	File        *FileCommands
+	Flow        *FlowCommands
+	Patch       *PatchCommands
 	Rebase      *RebaseCommands
+	Remote      *RemoteCommands
 	Stash       *StashCommands
 	Status      *StatusCommands
-	Config      *ConfigCommands
-	Patch       *PatchCommands
-	Remote      *RemoteCommands
+	Submodule   *SubmoduleCommands
 	Sync        *SyncCommands
-	Flow        *FlowCommands
-	Custom      *CustomCommands
+	Tag         *TagCommands
+	WorkingTree *WorkingTreeCommands
+
+	Loaders Loaders
 }
 
 type Loaders struct {
-	Commits       *loaders.CommitLoader
 	Branches      *loaders.BranchLoader
-	Files         *loaders.FileLoader
 	CommitFiles   *loaders.CommitFileLoader
-	Remotes       *loaders.RemoteLoader
+	Commits       *loaders.CommitLoader
+	Files         *loaders.FileLoader
 	ReflogCommits *loaders.ReflogCommitLoader
+	Remotes       *loaders.RemoteLoader
 	Stash         *loaders.StashLoader
 	Tags          *loaders.TagLoader
 }
@@ -119,28 +119,28 @@ func NewGitCommandAux(
 	patchCommands := NewPatchCommands(cmn, cmd, rebaseCommands, commitCommands, configCommands, statusCommands, patchManager)
 
 	return &GitCommand{
-		Submodule:   submoduleCommands,
-		Tag:         tagCommands,
-		WorkingTree: workingTreeCommands,
-		File:        fileCommands,
 		Branch:      branchCommands,
 		Commit:      commitCommands,
-		Rebase:      rebaseCommands,
 		Config:      configCommands,
+		Custom:      customCommands,
+		File:        fileCommands,
+		Flow:        flowCommands,
+		Patch:       patchCommands,
+		Rebase:      rebaseCommands,
+		Remote:      remoteCommands,
 		Stash:       stashCommands,
 		Status:      statusCommands,
-		Patch:       patchCommands,
-		Remote:      remoteCommands,
+		Submodule:   submoduleCommands,
 		Sync:        syncCommands,
-		Flow:        flowCommands,
-		Custom:      customCommands,
+		Tag:         tagCommands,
+		WorkingTree: workingTreeCommands,
 		Loaders: Loaders{
-			Commits:       loaders.NewCommitLoader(cmn, cmd, dotGitDir, branchCommands.CurrentBranchName, statusCommands.RebaseMode),
 			Branches:      loaders.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchName),
-			Files:         fileLoader,
 			CommitFiles:   loaders.NewCommitFileLoader(cmn, cmd),
-			Remotes:       loaders.NewRemoteLoader(cmn, cmd, repo.Remotes),
+			Commits:       loaders.NewCommitLoader(cmn, cmd, dotGitDir, branchCommands.CurrentBranchName, statusCommands.RebaseMode),
+			Files:         fileLoader,
 			ReflogCommits: loaders.NewReflogCommitLoader(cmn, cmd),
+			Remotes:       loaders.NewRemoteLoader(cmn, cmd, repo.Remotes),
 			Stash:         loaders.NewStashLoader(cmn, cmd),
 			Tags:          loaders.NewTagLoader(cmn, cmd),
 		},
