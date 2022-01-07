@@ -95,5 +95,5 @@ func (self *ConfigCommands) Branches() (map[string]*config.Branch, error) {
 }
 
 func (self *ConfigCommands) GetGitFlowPrefixes() string {
-	return self.gitConfig.Get("--local --get-regexp gitflow.prefix.")
+	return self.gitConfig.GetGeneral("--local --get-regexp gitflow.prefix")
 }

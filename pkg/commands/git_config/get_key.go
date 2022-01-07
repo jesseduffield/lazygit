@@ -35,11 +35,8 @@ import (
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-func getGitConfigValue(key string) (string, error) {
-	// allowing caller to say that key is '--local mykey' so that they can add extra flags.
-	gitArgs := append([]string{"config", "--get", "--null"}, strings.Split(key, " ")...)
+func runGitConfigCmd(cmd *exec.Cmd) (string, error) {
 	var stdout bytes.Buffer
-	cmd := secureexec.Command("git", gitArgs...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = ioutil.Discard
 
@@ -54,4 +51,14 @@ func getGitConfigValue(key string) (string, error) {
 	}
 
 	return strings.TrimRight(stdout.String(), "\000"), nil
+}
+
+func getGitConfigCmd(key string) *exec.Cmd {
+	gitArgs := []string{"config", "--get", "--null", key}
+	return secureexec.Command("git", gitArgs...)
+}
+
+func getGitConfigGeneralCmd(args string) *exec.Cmd {
+	gitArgs := append([]string{"config"}, strings.Split(args, " ")...)
+	return secureexec.Command("git", gitArgs...)
 }

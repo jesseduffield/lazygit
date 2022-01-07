@@ -29,7 +29,7 @@ func NewFlowCommands(
 }
 
 func (self *FlowCommands) GitFlowEnabled() bool {
-	return self.config.GetGitFlowPrefixes() == ""
+	return self.config.GetGitFlowPrefixes() != ""
 }
 
 func (self *FlowCommands) FinishCmdObj(branchName string) (oscommands.ICmdObj, error) {
