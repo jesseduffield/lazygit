@@ -22,8 +22,6 @@ import (
 type GitCommand struct {
 	*common.Common
 
-	Repo *gogit.Repository
-
 	Loaders Loaders
 
 	Cmd oscommands.ICmdObjBuilder
@@ -122,8 +120,6 @@ func NewGitCommandAux(
 
 	return &GitCommand{
 		Common: cmn,
-
-		Repo: repo,
 
 		Cmd: cmd,
 
