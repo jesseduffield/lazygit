@@ -6,16 +6,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) gitFlowFinishBranch(branchName string) error {
-	cmdObj, err := gui.GitCommand.Flow.FinishCmdObj(branchName)
-	if err != nil {
-		return gui.surfaceError(err)
-	}
-
-	gui.logAction(gui.Tr.Actions.GitFlowFinish)
-	return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
-}
-
 func (gui *Gui) handleCreateGitFlowMenu() error {
 	branch := gui.getSelectedBranch()
 	if branch == nil {
@@ -69,4 +59,14 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 	}
 
 	return gui.createMenu("git flow", menuItems, createMenuOptions{})
+}
+
+func (gui *Gui) gitFlowFinishBranch(branchName string) error {
+	cmdObj, err := gui.GitCommand.Flow.FinishCmdObj(branchName)
+	if err != nil {
+		return gui.surfaceError(err)
+	}
+
+	gui.logAction(gui.Tr.Actions.GitFlowFinish)
+	return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }

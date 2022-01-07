@@ -22,8 +22,6 @@ import (
 type GitCommand struct {
 	Loaders Loaders
 
-	Cmd oscommands.ICmdObjBuilder
-
 	Submodule   *SubmoduleCommands
 	Tag         *TagCommands
 	WorkingTree *WorkingTreeCommands
@@ -38,6 +36,7 @@ type GitCommand struct {
 	Remote      *RemoteCommands
 	Sync        *SyncCommands
 	Flow        *FlowCommands
+	Custom      *CustomCommands
 }
 
 type Loaders struct {
@@ -101,6 +100,7 @@ func NewGitCommandAux(
 	syncCommands := NewSyncCommands(cmn, cmd)
 	tagCommands := NewTagCommands(cmn, cmd)
 	commitCommands := NewCommitCommands(cmn, cmd)
+	customCommands := NewCustomCommands(cmn, cmd)
 	fileCommands := NewFileCommands(cmn, cmd, configCommands, osCommand)
 	submoduleCommands := NewSubmoduleCommands(cmn, cmd, dotGitDir)
 	workingTreeCommands := NewWorkingTreeCommands(cmn, cmd, submoduleCommands, osCommand, fileLoader)
@@ -119,8 +119,6 @@ func NewGitCommandAux(
 	patchCommands := NewPatchCommands(cmn, cmd, rebaseCommands, commitCommands, configCommands, statusCommands, patchManager)
 
 	return &GitCommand{
-		Cmd: cmd,
-
 		Submodule:   submoduleCommands,
 		Tag:         tagCommands,
 		WorkingTree: workingTreeCommands,
@@ -135,6 +133,7 @@ func NewGitCommandAux(
 		Remote:      remoteCommands,
 		Sync:        syncCommands,
 		Flow:        flowCommands,
+		Custom:      customCommands,
 		Loaders: Loaders{
 			Commits:       loaders.NewCommitLoader(cmn, cmd, dotGitDir, branchCommands.CurrentBranchName, statusCommands.RebaseMode),
 			Branches:      loaders.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchName),
