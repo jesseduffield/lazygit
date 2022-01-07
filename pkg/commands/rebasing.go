@@ -225,9 +225,11 @@ func (self *RebaseCommands) MoveTodoDown(index int) error {
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one
 func (self *RebaseCommands) SquashAllAboveFixupCommits(sha string) error {
 	return self.runSkipEditorCommand(
-		fmt.Sprintf(
-			"git rebase --interactive --autostash --autosquash %s^",
-			sha,
+		self.cmd.New(
+			fmt.Sprintf(
+				"git rebase --interactive --autostash --autosquash %s^",
+				sha,
+			),
 		),
 	)
 }
@@ -269,16 +271,14 @@ func (self *RebaseCommands) RebaseBranch(branchName string) error {
 	return cmdObj.Run()
 }
 
+func (self *RebaseCommands) GenericMergeOrRebaseActionCmdObj(commandType string, command string) oscommands.ICmdObj {
+	return self.cmd.New("git " + commandType + " --" + command)
+}
+
 // GenericMerge takes a commandType of "merge" or "rebase" and a command of "abort", "skip" or "continue"
 // By default we skip the editor in the case where a commit will be made
 func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, command string) error {
-	err := self.runSkipEditorCommand(
-		fmt.Sprintf(
-			"git %s --%s",
-			commandType,
-			command,
-		),
-	)
+	err := self.runSkipEditorCommand(self.GenericMergeOrRebaseActionCmdObj(commandType, command))
 	if err != nil {
 		if !strings.Contains(err.Error(), "no rebase in progress") {
 			return err
@@ -300,8 +300,7 @@ func (self *RebaseCommands) GenericMergeOrRebaseAction(commandType string, comma
 	return nil
 }
 
-func (self *RebaseCommands) runSkipEditorCommand(command string) error {
-	cmdObj := self.cmd.New(command)
+func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) error {
 	lazyGitPath := oscommands.GetLazygitPath()
 	return cmdObj.
 		AddEnvVars(

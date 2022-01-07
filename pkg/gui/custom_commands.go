@@ -203,7 +203,7 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 	}
 
 	// Run and save output
-	message, err := gui.GitCommand.Cmd.New(cmdStr).RunWithOutput()
+	message, err := gui.GitCommand.Custom.RunWithOutput(cmdStr)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
