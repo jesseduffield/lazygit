@@ -471,17 +471,9 @@ func (gui *Gui) handleCommitEditorPress() error {
 		return gui.promptToStageAllAndRetry(gui.handleCommitEditorPress)
 	}
 
-	args := []string{"commit"}
-
-	if gui.UserConfig.Git.Commit.SignOff {
-		args = append(args, "--signoff")
-	}
-
-	cmdStr := "git " + strings.Join(args, " ")
-
 	gui.logAction(gui.Tr.Actions.Commit)
 	return gui.runSubprocessWithSuspenseAndRefresh(
-		gui.GitCommand.Cmd.New(cmdStr),
+		gui.GitCommand.Commit.CommitEditorCmdObj(),
 	)
 }
 
