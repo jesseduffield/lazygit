@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	gogit "github.com/jesseduffield/go-git/v5"
+	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -14,6 +16,7 @@ type ConfigCommands struct {
 	*common.Common
 
 	gitConfig git_config.IGitConfig
+	repo      *gogit.Repository
 }
 
 func NewConfigCommands(
@@ -79,4 +82,14 @@ func (self *ConfigCommands) GetShowUntrackedFiles() string {
 // this determines whether the user has configured to push to the remote branch of the same name as the current or not
 func (self *ConfigCommands) GetPushToCurrent() bool {
 	return self.gitConfig.Get("push.default") == "current"
+}
+
+// returns the repo's branches as specified in the git config
+func (self *ConfigCommands) Branches() (map[string]*config.Branch, error) {
+	conf, err := self.repo.Config()
+	if err != nil {
+		return nil, err
+	}
+
+	return conf.Branches, nil
 }

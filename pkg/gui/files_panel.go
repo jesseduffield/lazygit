@@ -668,11 +668,11 @@ func (gui *Gui) handlePullFiles() error {
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
 		// see if we have this branch in our config with an upstream
-		conf, err := gui.GitCommand.Repo.Config()
+		branches, err := gui.GitCommand.Config.Branches()
 		if err != nil {
 			return gui.surfaceError(err)
 		}
-		for branchName, branch := range conf.Branches {
+		for branchName, branch := range branches {
 			if branchName == currentBranch.Name {
 				return gui.pullFiles(PullFilesOptions{RemoteName: branch.Remote, BranchName: branch.Name, action: action})
 			}
@@ -878,12 +878,12 @@ func (gui *Gui) requestToForcePush() error {
 }
 
 func (gui *Gui) upstreamForBranchInConfig(branchName string) (string, string, error) {
-	conf, err := gui.GitCommand.Repo.Config()
+	branches, err := gui.GitCommand.Config.Branches()
 	if err != nil {
 		return "", "", err
 	}
 
-	for configBranchName, configBranch := range conf.Branches {
+	for configBranchName, configBranch := range branches {
 		if configBranchName == branchName {
 			return configBranch.Remote, configBranchName, nil
 		}
