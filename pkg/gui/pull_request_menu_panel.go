@@ -63,7 +63,7 @@ func (gui *Gui) createPullRequest(from string, to string) error {
 
 	gui.logAction(gui.Tr.Actions.OpenPullRequest)
 
-	if err := gui.GitCommand.OSCommand.OpenLink(url); err != nil {
+	if err := gui.OSCommand.OpenLink(url); err != nil {
 		return gui.surfaceError(err)
 	}
 

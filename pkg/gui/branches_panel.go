@@ -114,7 +114,7 @@ func (gui *Gui) handleCopyPullRequestURLPress() error {
 		return gui.surfaceError(err)
 	}
 	gui.logAction(gui.Tr.Actions.CopyPullRequestURL)
-	if err := gui.GitCommand.OSCommand.CopyToClipboard(url); err != nil {
+	if err := gui.OSCommand.CopyToClipboard(url); err != nil {
 		return gui.surfaceError(err)
 	}
 
