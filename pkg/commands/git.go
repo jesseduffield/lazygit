@@ -21,7 +21,6 @@ import (
 // GitCommand is our main git interface
 type GitCommand struct {
 	*common.Common
-	OSCommand *oscommands.OSCommand
 
 	Repo *gogit.Repository
 
@@ -122,8 +121,7 @@ func NewGitCommandAux(
 	patchCommands := NewPatchCommands(cmn, cmd, rebaseCommands, commitCommands, configCommands, statusCommands, patchManager)
 
 	return &GitCommand{
-		Common:    cmn,
-		OSCommand: osCommand,
+		Common: cmn,
 
 		Repo: repo,
 

@@ -815,7 +815,7 @@ func (gui *Gui) handleOpenCommitInBrowser() error {
 	}
 
 	gui.logAction(gui.Tr.Actions.OpenCommitInBrowser)
-	if err := gui.GitCommand.OSCommand.OpenLink(url); err != nil {
+	if err := gui.OSCommand.OpenLink(url); err != nil {
 		return gui.surfaceError(err)
 	}
 
