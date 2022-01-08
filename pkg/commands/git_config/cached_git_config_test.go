@@ -55,7 +55,7 @@ func TestGetBool(t *testing.T) {
 			fake := NewFakeGitConfig(s.mockResponses)
 			real := NewCachedGitConfig(
 				func(cmd *exec.Cmd) (string, error) {
-					assert.Equal(t, "git config --get --null commit.gpgsign", strings.Join(cmd.Args, " "))
+					assert.Equal(t, "config --get --null commit.gpgsign", strings.Join(cmd.Args[1:], " "))
 					return fake.Get("commit.gpgsign"), nil
 				},
 				utils.NewDummyLog(),
@@ -92,7 +92,7 @@ func TestGet(t *testing.T) {
 			fake := NewFakeGitConfig(s.mockResponses)
 			real := NewCachedGitConfig(
 				func(cmd *exec.Cmd) (string, error) {
-					assert.Equal(t, "git config --get --null commit.gpgsign", strings.Join(cmd.Args, " "))
+					assert.Equal(t, "config --get --null commit.gpgsign", strings.Join(cmd.Args[1:], " "))
 					return fake.Get("commit.gpgsign"), nil
 				},
 				utils.NewDummyLog(),
@@ -107,7 +107,7 @@ func TestGet(t *testing.T) {
 	real := NewCachedGitConfig(
 		func(cmd *exec.Cmd) (string, error) {
 			count++
-			assert.Equal(t, "git config --get --null commit.gpgsign", strings.Join(cmd.Args, " "))
+			assert.Equal(t, "config --get --null commit.gpgsign", strings.Join(cmd.Args[1:], " "))
 			return "blah", nil
 		},
 		utils.NewDummyLog(),

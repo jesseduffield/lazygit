@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -19,7 +18,6 @@ type FileLoader struct {
 	*common.Common
 	cmd         oscommands.ICmdObjBuilder
 	config      FileLoaderConfig
-	gitConfig   git_config.IGitConfig
 	getFileType func(string) string
 }
 

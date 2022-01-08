@@ -15,7 +15,7 @@ import (
 
 func TestWorkingTreeStageFile(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		ExpectArgs([]string{"git", "add", "--", "test.txt"}, "", nil)
+		Expect(`git add -- "test.txt"`, "", nil)
 
 	instance := buildWorkingTreeCommands(commonDeps{runner: runner})
 
@@ -36,7 +36,7 @@ func TestWorkingTreeUnstageFile(t *testing.T) {
 			testName: "Remove an untracked file from staging",
 			reset:    false,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "rm", "--cached", "--force", "--", "test.txt"}, "", nil),
+				Expect(`git rm --cached --force -- "test.txt"`, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -45,7 +45,7 @@ func TestWorkingTreeUnstageFile(t *testing.T) {
 			testName: "Remove a tracked file from staging",
 			reset:    true,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "reset", "HEAD", "--", "test.txt"}, "", nil),
+				Expect(`git reset HEAD -- "test.txt"`, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -82,7 +82,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "reset", "--", "test"}, "", errors.New("error")),
+				Expect(`git reset -- "test"`, "", errors.New("error")),
 			expectedError: "error",
 		},
 		{
@@ -107,7 +107,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "checkout", "--", "test"}, "", errors.New("error")),
+				Expect(`git checkout -- "test"`, "", errors.New("error")),
 			expectedError: "error",
 		},
 		{
@@ -119,7 +119,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "checkout", "--", "test"}, "", nil),
+				Expect(`git checkout -- "test"`, "", nil),
 			expectedError: "",
 		},
 		{
@@ -131,8 +131,8 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "reset", "--", "test"}, "", nil).
-				ExpectArgs([]string{"git", "checkout", "--", "test"}, "", nil),
+				Expect(`git reset -- "test"`, "", nil).
+				Expect(`git checkout -- "test"`, "", nil),
 			expectedError: "",
 		},
 		{
@@ -144,8 +144,8 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "reset", "--", "test"}, "", nil).
-				ExpectArgs([]string{"git", "checkout", "--", "test"}, "", nil),
+				Expect(`git reset -- "test"`, "", nil).
+				Expect(`git checkout -- "test"`, "", nil),
 			expectedError: "",
 		},
 		{
@@ -161,7 +161,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 				return nil
 			},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "reset", "--", "test"}, "", nil),
+				Expect(`git reset -- "test"`, "", nil),
 			expectedError: "",
 		},
 		{
@@ -223,7 +223,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--", "test.txt"}, expectedResult, nil),
+				Expect(`git diff --submodule --no-ext-diff --unified=3 --color=always -- "test.txt"`, expectedResult, nil),
 		},
 		{
 			testName: "cached",
@@ -237,7 +237,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--cached", "--", "test.txt"}, expectedResult, nil),
+				Expect(`git diff --submodule --no-ext-diff --unified=3 --color=always --cached -- "test.txt"`, expectedResult, nil),
 		},
 		{
 			testName: "plain",
@@ -251,7 +251,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=never", "--", "test.txt"}, expectedResult, nil),
+				Expect(`git diff --submodule --no-ext-diff --unified=3 --color=never -- "test.txt"`, expectedResult, nil),
 		},
 		{
 			testName: "File not tracked and file has no staged changes",
@@ -265,7 +265,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--no-index", "--", "/dev/null", "test.txt"}, expectedResult, nil),
+				Expect(`git diff --submodule --no-ext-diff --unified=3 --color=always --no-index -- /dev/null "test.txt"`, expectedResult, nil),
 		},
 		{
 			testName: "Default case (ignore whitespace)",
@@ -279,7 +279,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: true,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--ignore-all-space", "--", "test.txt"}, expectedResult, nil),
+				Expect(`git diff --submodule --no-ext-diff --unified=3 --color=always --ignore-all-space -- "test.txt"`, expectedResult, nil),
 		},
 		{
 			testName: "Show diff with custom context size",
@@ -293,7 +293,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      17,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=17", "--color=always", "--", "test.txt"}, expectedResult, nil),
+				Expect(`git diff --submodule --no-ext-diff --unified=17 --color=always -- "test.txt"`, expectedResult, nil),
 		},
 	}
 
@@ -333,7 +333,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 			plain:       false,
 			contextSize: 3,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=3", "--no-renames", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
+				Expect(`git diff --submodule --no-ext-diff --unified=3 --no-renames --color=always 1234567890 0987654321 -- "test.txt"`, expectedResult, nil),
 		},
 		{
 			testName:    "Show diff with custom context size",
@@ -343,7 +343,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 			plain:       false,
 			contextSize: 123,
 			runner: oscommands.NewFakeRunner(t).
-				ExpectArgs([]string{"git", "diff", "--submodule", "--no-ext-diff", "--unified=123", "--no-renames", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
+				Expect(`git diff --submodule --no-ext-diff --unified=123 --no-renames --color=always 1234567890 0987654321 -- "test.txt"`, expectedResult, nil),
 		},
 	}
 
@@ -416,8 +416,9 @@ func TestWorkingTreeApplyPatch(t *testing.T) {
 	expectFn := func(regexStr string, errToReturn error) func(cmdObj oscommands.ICmdObj) (string, error) {
 		return func(cmdObj oscommands.ICmdObj) (string, error) {
 			re := regexp.MustCompile(regexStr)
-			matches := re.FindStringSubmatch(cmdObj.ToString())
-			assert.Equal(t, 2, len(matches))
+			cmdStr := cmdObj.ToString()
+			matches := re.FindStringSubmatch(cmdStr)
+			assert.Equal(t, 2, len(matches), fmt.Sprintf("unexpected command: %s", cmdStr))
 
 			filename := matches[1]
 
