@@ -26,6 +26,15 @@ func NewDummyCommon() *common.Common {
 	}
 }
 
+func NewDummyCommonWithUserConfig(userConfig *config.UserConfig) *common.Common {
+	tr := i18n.EnglishTranslationSet()
+	return &common.Common{
+		Log:        NewDummyLog(),
+		Tr:         &tr,
+		UserConfig: userConfig,
+	}
+}
+
 func NewDummyGitConfig() git_config.IGitConfig {
 	return git_config.NewFakeGitConfig(map[string]string{})
 }

@@ -5,10 +5,16 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitCommandGetCommitDifferences(t *testing.T) {
+func NewBranchCommandsWithRunner(runner *oscommands.FakeCmdObjRunner) *BranchCommands {
+	builder := oscommands.NewDummyCmdObjBuilder(runner)
+	return NewBranchCommands(utils.NewDummyCommon(), builder)
+}
+
+func TestBranchGetCommitDifferences(t *testing.T) {
 	type scenario struct {
 		testName          string
 		runner            *oscommands.FakeCmdObjRunner
@@ -41,8 +47,8 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			pushables, pullables := gitCmd.Branch.GetCommitDifferences("HEAD", "@{u}")
+			instance := NewBranchCommandsWithRunner(s.runner)
+			pushables, pullables := instance.GetCommitDifferences("HEAD", "@{u}")
 			assert.EqualValues(t, s.expectedPushables, pushables)
 			assert.EqualValues(t, s.expectedPullables, pullables)
 			s.runner.CheckForMissingCalls()
@@ -50,16 +56,16 @@ func TestGitCommandGetCommitDifferences(t *testing.T) {
 	}
 }
 
-func TestGitCommandNewBranch(t *testing.T) {
+func TestBranchNewBranch(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		Expect(`git checkout -b "test" "master"`, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
+	instance := NewBranchCommandsWithRunner(runner)
 
-	assert.NoError(t, gitCmd.Branch.New("test", "master"))
+	assert.NoError(t, instance.New("test", "master"))
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandDeleteBranch(t *testing.T) {
+func TestBranchDeleteBranch(t *testing.T) {
 	type scenario struct {
 		testName string
 		force    bool
@@ -88,24 +94,24 @@ func TestGitCommandDeleteBranch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
+			instance := NewBranchCommandsWithRunner(s.runner)
 
-			s.test(gitCmd.Branch.Delete("test", s.force))
+			s.test(instance.Delete("test", s.force))
 			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-func TestGitCommandMerge(t *testing.T) {
+func TestBranchMerge(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		Expect(`git merge --no-edit "test"`, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
+	instance := NewBranchCommandsWithRunner(runner)
 
-	assert.NoError(t, gitCmd.Branch.Merge("test", MergeOpts{}))
+	assert.NoError(t, instance.Merge("test", MergeOpts{}))
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandCheckout(t *testing.T) {
+func TestBranchCheckout(t *testing.T) {
 	type scenario struct {
 		testName string
 		runner   *oscommands.FakeCmdObjRunner
@@ -134,33 +140,32 @@ func TestGitCommandCheckout(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.Branch.Checkout("test", CheckoutOptions{Force: s.force}))
+			instance := NewBranchCommandsWithRunner(s.runner)
+			s.test(instance.Checkout("test", CheckoutOptions{Force: s.force}))
 			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-func TestGitCommandGetBranchGraph(t *testing.T) {
+func TestBranchGetBranchGraph(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).ExpectGitArgs([]string{
 		"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--",
 	}, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
-	_, err := gitCmd.Branch.GetGraph("test")
+	instance := NewBranchCommandsWithRunner(runner)
+	_, err := instance.GetGraph("test")
 	assert.NoError(t, err)
 }
 
-func TestGitCommandGetAllBranchGraph(t *testing.T) {
+func TestBranchGetAllBranchGraph(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).ExpectGitArgs([]string{
 		"log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium",
 	}, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
-	cmdStr := gitCmd.UserConfig.Git.AllBranchesLogCmd
-	_, err := gitCmd.Cmd.New(cmdStr).RunWithOutput()
+	instance := NewBranchCommandsWithRunner(runner)
+	err := instance.AllBranchesLogCmdObj().Run()
 	assert.NoError(t, err)
 }
 
-func TestGitCommandCurrentBranchName(t *testing.T) {
+func TestBranchCurrentBranchName(t *testing.T) {
 	type scenario struct {
 		testName string
 		runner   *oscommands.FakeCmdObjRunner
@@ -214,8 +219,8 @@ func TestGitCommandCurrentBranchName(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.Branch.CurrentBranchName())
+			instance := NewBranchCommandsWithRunner(s.runner)
+			s.test(instance.CurrentBranchName())
 			s.runner.CheckForMissingCalls()
 		})
 	}

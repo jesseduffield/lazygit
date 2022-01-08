@@ -9,19 +9,21 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitCommandStageFile(t *testing.T) {
+func TestWorkingTreeStageFile(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectArgs([]string{"git", "add", "--", "test.txt"}, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
 
-	assert.NoError(t, gitCmd.WorkingTree.StageFile("test.txt"))
+	instance := buildWorkingTreeCommands(commonDeps{runner: runner})
+
+	assert.NoError(t, instance.StageFile("test.txt"))
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandUnstageFile(t *testing.T) {
+func TestWorkingTreeUnstageFile(t *testing.T) {
 	type scenario struct {
 		testName string
 		reset    bool
@@ -52,8 +54,8 @@ func TestGitCommandUnstageFile(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.WorkingTree.UnStageFile([]string{"test.txt"}, s.reset))
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
+			s.test(instance.UnStageFile([]string{"test.txt"}, s.reset))
 		})
 	}
 }
@@ -61,7 +63,7 @@ func TestGitCommandUnstageFile(t *testing.T) {
 // these tests don't cover everything, in part because we already have an integration
 // test which does cover everything. I don't want to unnecessarily assert on the 'how'
 // when the 'what' is what matters
-func TestGitCommandDiscardAllFileChanges(t *testing.T) {
+func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 	type scenario struct {
 		testName      string
 		file          *models.File
@@ -180,9 +182,8 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			gitCmd.OSCommand.SetRemoveFile(s.removeFile)
-			err := gitCmd.WorkingTree.DiscardAllFileChanges(s.file)
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, removeFile: s.removeFile})
+			err := instance.DiscardAllFileChanges(s.file)
 
 			if s.expectedError == "" {
 				assert.Nil(t, err)
@@ -194,7 +195,7 @@ func TestGitCommandDiscardAllFileChanges(t *testing.T) {
 	}
 }
 
-func TestGitCommandDiff(t *testing.T) {
+func TestWorkingTreeDiff(t *testing.T) {
 	type scenario struct {
 		testName         string
 		file             *models.File
@@ -296,16 +297,18 @@ func TestGitCommandDiff(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
-			result := gitCmd.WorkingTree.WorktreeFileDiff(s.file, s.plain, s.cached, s.ignoreWhitespace)
+			userConfig := config.GetDefaultConfig()
+			userConfig.Git.DiffContextSize = s.contextSize
+
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig})
+			result := instance.WorktreeFileDiff(s.file, s.plain, s.cached, s.ignoreWhitespace)
 			assert.Equal(t, expectedResult, result)
 			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-func TestGitCommandShowFileDiff(t *testing.T) {
+func TestWorkingTreeShowFileDiff(t *testing.T) {
 	type scenario struct {
 		testName    string
 		from        string
@@ -343,9 +346,12 @@ func TestGitCommandShowFileDiff(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
-			result, err := gitCmd.WorkingTree.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
+			userConfig := config.GetDefaultConfig()
+			userConfig.Git.DiffContextSize = s.contextSize
+
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig})
+
+			result, err := instance.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
 			assert.NoError(t, err)
 			assert.Equal(t, expectedResult, result)
 			s.runner.CheckForMissingCalls()
@@ -353,7 +359,7 @@ func TestGitCommandShowFileDiff(t *testing.T) {
 	}
 }
 
-func TestGitCommandCheckoutFile(t *testing.T) {
+func TestWorkingTreeCheckoutFile(t *testing.T) {
 	type scenario struct {
 		testName  string
 		commitSha string
@@ -387,14 +393,15 @@ func TestGitCommandCheckoutFile(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.WorkingTree.CheckoutFile(s.commitSha, s.fileName))
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
+
+			s.test(instance.CheckoutFile(s.commitSha, s.fileName))
 			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-func TestGitCommandApplyPatch(t *testing.T) {
+func TestWorkingTreeApplyPatch(t *testing.T) {
 	type scenario struct {
 		testName string
 		runner   *oscommands.FakeCmdObjRunner
@@ -439,14 +446,14 @@ func TestGitCommandApplyPatch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.WorkingTree.ApplyPatch("test", "cached"))
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
+			s.test(instance.ApplyPatch("test", "cached"))
 			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
+func TestWorkingTreeDiscardUnstagedFileChanges(t *testing.T) {
 	type scenario struct {
 		testName string
 		file     *models.File
@@ -468,14 +475,14 @@ func TestGitCommandDiscardUnstagedFileChanges(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.WorkingTree.DiscardUnstagedFileChanges(s.file))
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
+			s.test(instance.DiscardUnstagedFileChanges(s.file))
 			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-func TestGitCommandDiscardAnyUnstagedFileChanges(t *testing.T) {
+func TestWorkingTreeDiscardAnyUnstagedFileChanges(t *testing.T) {
 	type scenario struct {
 		testName string
 		runner   *oscommands.FakeCmdObjRunner
@@ -495,14 +502,14 @@ func TestGitCommandDiscardAnyUnstagedFileChanges(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.WorkingTree.DiscardAnyUnstagedFileChanges())
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
+			s.test(instance.DiscardAnyUnstagedFileChanges())
 			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
+func TestWorkingTreeRemoveUntrackedFiles(t *testing.T) {
 	type scenario struct {
 		testName string
 		runner   *oscommands.FakeCmdObjRunner
@@ -522,14 +529,14 @@ func TestGitCommandRemoveUntrackedFiles(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.WorkingTree.RemoveUntrackedFiles())
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
+			s.test(instance.RemoveUntrackedFiles())
 			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-func TestGitCommandResetHard(t *testing.T) {
+func TestWorkingTreeResetHard(t *testing.T) {
 	type scenario struct {
 		testName string
 		ref      string
@@ -551,8 +558,8 @@ func TestGitCommandResetHard(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.WorkingTree.ResetHard(s.ref))
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner})
+			s.test(instance.ResetHard(s.ref))
 		})
 	}
 }

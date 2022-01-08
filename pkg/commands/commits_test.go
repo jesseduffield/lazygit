@@ -4,66 +4,91 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitCommandRewordCommit(t *testing.T) {
+func TestCommitRewordCommit(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"commit", "--allow-empty", "--amend", "--only", "-m", "test"}, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
+	instance := buildCommitCommands(commonDeps{runner: runner})
 
-	assert.NoError(t, gitCmd.Commit.RewordLastCommit("test"))
+	assert.NoError(t, instance.RewordLastCommit("test"))
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandResetToCommit(t *testing.T) {
+func TestCommitResetToCommit(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"reset", "--hard", "78976bc"}, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
 
-	assert.NoError(t, gitCmd.Commit.ResetToCommit("78976bc", "hard", []string{}))
+	instance := buildCommitCommands(commonDeps{runner: runner})
+
+	assert.NoError(t, instance.ResetToCommit("78976bc", "hard", []string{}))
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandCommitObj(t *testing.T) {
+func TestCommitCommitObj(t *testing.T) {
 	type scenario struct {
-		testName string
-		message  string
-		flags    string
-		expected string
+		testName             string
+		message              string
+		configSignoff        bool
+		configSkipHookPrefix string
+		expected             string
 	}
 
 	scenarios := []scenario{
 		{
-			testName: "Commit",
-			message:  "test",
-			flags:    "",
-			expected: `git commit -m "test"`,
+			testName:             "Commit",
+			message:              "test",
+			configSignoff:        false,
+			configSkipHookPrefix: "",
+			expected:             `git commit -m "test"`,
 		},
 		{
-			testName: "Commit with --no-verify flag",
-			message:  "test",
-			flags:    "--no-verify",
-			expected: `git commit --no-verify -m "test"`,
+			testName:             "Commit with --no-verify flag",
+			message:              "WIP: test",
+			configSignoff:        false,
+			configSkipHookPrefix: "WIP",
+			expected:             `git commit --no-verify -m "WIP: test"`,
 		},
 		{
-			testName: "Commit with multiline message",
-			message:  "line1\nline2",
-			flags:    "",
-			expected: `git commit -m "line1" -m "line2"`,
+			testName:             "Commit with multiline message",
+			message:              "line1\nline2",
+			configSignoff:        false,
+			configSkipHookPrefix: "",
+			expected:             `git commit -m "line1" -m "line2"`,
+		},
+		{
+			testName:             "Commit with signoff",
+			message:              "test",
+			configSignoff:        true,
+			configSkipHookPrefix: "",
+			expected:             `git commit --signoff -m "test"`,
+		},
+		{
+			testName:             "Commit with signoff and no-verify",
+			message:              "WIP: test",
+			configSignoff:        true,
+			configSkipHookPrefix: "WIP",
+			expected:             `git commit --no-verify --signoff -m "WIP: test"`,
 		},
 	}
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			cmdStr := gitCmd.Commit.CommitCmdObj(s.message, s.flags).ToString()
+			userConfig := config.GetDefaultConfig()
+			userConfig.Git.Commit.SignOff = s.configSignoff
+			userConfig.Git.SkipHookPrefix = s.configSkipHookPrefix
+
+			instance := buildCommitCommands(commonDeps{userConfig: userConfig})
+
+			cmdStr := instance.CommitCmdObj(s.message).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}
 }
 
-func TestGitCommandCreateFixupCommit(t *testing.T) {
+func TestCommitCreateFixupCommit(t *testing.T) {
 	type scenario struct {
 		testName string
 		sha      string
@@ -85,14 +110,14 @@ func TestGitCommandCreateFixupCommit(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.Commit.CreateFixupCommit(s.sha))
+			instance := buildCommitCommands(commonDeps{runner: s.runner})
+			s.test(instance.CreateFixupCommit(s.sha))
 			s.runner.CheckForMissingCalls()
 		})
 	}
 }
 
-func TestGitCommandShowCmdObj(t *testing.T) {
+func TestCommitShowCmdObj(t *testing.T) {
 	type scenario struct {
 		testName    string
 		filterPath  string
@@ -123,9 +148,12 @@ func TestGitCommandShowCmdObj(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
-			cmdStr := gitCmd.Commit.ShowCmdObj("1234567890", s.filterPath).ToString()
+			userConfig := config.GetDefaultConfig()
+			userConfig.Git.DiffContextSize = s.contextSize
+
+			instance := buildCommitCommands(commonDeps{userConfig: userConfig})
+
+			cmdStr := instance.ShowCmdObj("1234567890", s.filterPath).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}

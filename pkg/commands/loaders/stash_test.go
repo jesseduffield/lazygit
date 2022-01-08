@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitCommandGetStashEntries(t *testing.T) {
+func TestGetStashEntries(t *testing.T) {
 	type scenario struct {
 		testName             string
 		filterPath           string

@@ -174,3 +174,7 @@ func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 
 	return self.cmd.New(command).Run()
 }
+
+func (self *BranchCommands) AllBranchesLogCmdObj() oscommands.ICmdObj {
+	return self.cmd.New(self.UserConfig.Git.AllBranchesLogCmd).DontLog()
+}

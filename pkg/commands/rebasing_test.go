@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitCommandRebaseBranch(t *testing.T) {
+func TestRebaseRebaseBranch(t *testing.T) {
 	type scenario struct {
 		testName string
 		arg      string
@@ -43,15 +43,15 @@ func TestGitCommandRebaseBranch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			s.test(gitCmd.Rebase.RebaseBranch(s.arg))
+			instance := buildRebaseCommands(commonDeps{runner: s.runner})
+			s.test(instance.RebaseBranch(s.arg))
 		})
 	}
 }
 
-// TestGitCommandSkipEditorCommand confirms that SkipEditorCommand injects
+// TestRebaseSkipEditorCommand confirms that SkipEditorCommand injects
 // environment variables that suppress an interactive editor
-func TestGitCommandSkipEditorCommand(t *testing.T) {
+func TestRebaseSkipEditorCommand(t *testing.T) {
 	commandStr := "git blah"
 	runner := oscommands.NewFakeRunner(t).ExpectFunc(func(cmdObj oscommands.ICmdObj) (string, error) {
 		assert.Equal(t, commandStr, cmdObj.ToString())
@@ -71,13 +71,13 @@ func TestGitCommandSkipEditorCommand(t *testing.T) {
 		}
 		return "", nil
 	})
-	gitCmd := NewDummyGitCommandWithRunner(runner)
-	err := gitCmd.Rebase.runSkipEditorCommand(commandStr)
+	instance := buildRebaseCommands(commonDeps{runner: runner})
+	err := instance.runSkipEditorCommand(instance.cmd.New(commandStr))
 	assert.NoError(t, err)
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandDiscardOldFileChanges(t *testing.T) {
+func TestRebaseDiscardOldFileChanges(t *testing.T) {
 	type scenario struct {
 		testName               string
 		gitConfigMockResponses map[string]string
@@ -136,9 +136,12 @@ func TestGitCommandDiscardOldFileChanges(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(s.runner)
-			gitCmd.gitConfig = git_config.NewFakeGitConfig(s.gitConfigMockResponses)
-			s.test(gitCmd.Rebase.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
+			instance := buildRebaseCommands(commonDeps{
+				runner:    s.runner,
+				gitConfig: git_config.NewFakeGitConfig(s.gitConfigMockResponses),
+			})
+
+			s.test(instance.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
 			s.runner.CheckForMissingCalls()
 		})
 	}

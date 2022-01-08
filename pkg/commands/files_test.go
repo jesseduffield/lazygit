@@ -6,6 +6,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -145,12 +146,18 @@ func TestEditFileCmdStr(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		gitCmd := NewDummyGitCommandWithRunner(s.runner)
-		gitCmd.UserConfig.OS.EditCommand = s.configEditCommand
-		gitCmd.UserConfig.OS.EditCommandTemplate = s.configEditCommandTemplate
-		gitCmd.OSCommand.GetenvFn = s.getenv
-		gitCmd.gitConfig = git_config.NewFakeGitConfig(s.gitConfigMockResponses)
-		s.test(gitCmd.File.GetEditCmdStr(s.filename, 1))
+		userConfig := config.GetDefaultConfig()
+		userConfig.OS.EditCommand = s.configEditCommand
+		userConfig.OS.EditCommandTemplate = s.configEditCommandTemplate
+
+		instance := buildFileCommands(commonDeps{
+			runner:     s.runner,
+			userConfig: userConfig,
+			gitConfig:  git_config.NewFakeGitConfig(s.gitConfigMockResponses),
+			getenv:     s.getenv,
+		})
+
+		s.test(instance.GetEditCmdStr(s.filename, 1))
 		s.runner.CheckForMissingCalls()
 	}
 }
