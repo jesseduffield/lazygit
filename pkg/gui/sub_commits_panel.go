@@ -23,7 +23,7 @@ func (gui *Gui) subCommitsRenderToMain() error {
 	if commit == nil {
 		task = NewRenderStringTask("No commits")
 	} else {
-		cmdObj := gui.GitCommand.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
+		cmdObj := gui.Git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
 
 		task = NewRunPtyTask(cmdObj.GetCmd())
 	}
@@ -76,7 +76,7 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 
 func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	// need to populate my sub commits
-	commits, err := gui.GitCommand.Loaders.Commits.GetCommits(
+	commits, err := gui.Git.Loaders.Commits.GetCommits(
 		loaders.GetCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),

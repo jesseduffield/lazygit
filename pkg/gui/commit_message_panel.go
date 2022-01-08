@@ -15,7 +15,7 @@ func (gui *Gui) handleCommitConfirm() error {
 		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
 	}
 
-	cmdObj := gui.GitCommand.Commit.CommitCmdObj(message)
+	cmdObj := gui.Git.Commit.CommitCmdObj(message)
 	gui.logAction(gui.Tr.Actions.Commit)
 
 	_ = gui.returnFromContext()

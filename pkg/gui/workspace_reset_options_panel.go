@@ -22,7 +22,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.NukeWorkingTree)
-				if err := gui.GitCommand.WorkingTree.ResetAndClean(); err != nil {
+				if err := gui.Git.WorkingTree.ResetAndClean(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -36,7 +36,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.DiscardUnstagedFileChanges)
-				if err := gui.GitCommand.WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
+				if err := gui.Git.WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -50,7 +50,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.RemoveUntrackedFiles)
-				if err := gui.GitCommand.WorkingTree.RemoveUntrackedFiles(); err != nil {
+				if err := gui.Git.WorkingTree.RemoveUntrackedFiles(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -64,7 +64,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.SoftReset)
-				if err := gui.GitCommand.WorkingTree.ResetSoft("HEAD"); err != nil {
+				if err := gui.Git.WorkingTree.ResetSoft("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -78,7 +78,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.MixedReset)
-				if err := gui.GitCommand.WorkingTree.ResetMixed("HEAD"); err != nil {
+				if err := gui.Git.WorkingTree.ResetMixed("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -92,7 +92,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			},
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.HardReset)
-				if err := gui.GitCommand.WorkingTree.ResetHard("HEAD"); err != nil {
+				if err := gui.Git.WorkingTree.ResetHard("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 

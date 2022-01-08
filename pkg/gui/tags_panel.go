@@ -25,7 +25,7 @@ func (gui *Gui) tagsRenderToMain() error {
 	if tag == nil {
 		task = NewRenderStringTask("No tags")
 	} else {
-		cmdObj := gui.GitCommand.Branch.GetGraphCmdObj(tag.Name)
+		cmdObj := gui.Git.Branch.GetGraphCmdObj(tag.Name)
 		task = NewRunCommandTask(cmdObj.GetCmd())
 	}
 
@@ -39,7 +39,7 @@ func (gui *Gui) tagsRenderToMain() error {
 
 // this is a controller: it can't access tags directly. Or can it? It should be able to get but not set. But that's exactly what I'm doing here, setting it. but through a mutator which encapsulates the event.
 func (gui *Gui) refreshTags() error {
-	tags, err := gui.GitCommand.Loaders.Tags.GetTags()
+	tags, err := gui.Git.Loaders.Tags.GetTags()
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -83,7 +83,7 @@ func (gui *Gui) handleDeleteTag(tag *models.Tag) error {
 		prompt: prompt,
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.DeleteTag)
-			if err := gui.GitCommand.Tag.Delete(tag.Name); err != nil {
+			if err := gui.Git.Tag.Delete(tag.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
@@ -106,7 +106,7 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 		handleConfirm: func(response string) error {
 			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
 				gui.logAction(gui.Tr.Actions.PushTag)
-				err := gui.GitCommand.Tag.Push(response, tag.Name)
+				err := gui.Git.Tag.Push(response, tag.Name)
 				gui.handleCredentialsPopup(err)
 
 				return nil
