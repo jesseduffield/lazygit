@@ -3,7 +3,6 @@ package utils
 import (
 	"io/ioutil"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -33,8 +32,4 @@ func NewDummyCommonWithUserConfig(userConfig *config.UserConfig) *common.Common 
 		Tr:         &tr,
 		UserConfig: userConfig,
 	}
-}
-
-func NewDummyGitConfig() git_config.IGitConfig {
-	return git_config.NewFakeGitConfig(map[string]string{})
 }

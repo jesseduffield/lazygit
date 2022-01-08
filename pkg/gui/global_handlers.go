@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -215,7 +215,7 @@ func (gui *Gui) fetch() (err error) {
 	defer gui.Mutexes.FetchMutex.Unlock()
 
 	gui.logAction("Fetch")
-	err = gui.GitCommand.Sync.Fetch(commands.FetchOptions{})
+	err = gui.GitCommand.Sync.Fetch(git_commands.FetchOptions{})
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
 		_ = gui.createErrorPanel(gui.Tr.PassUnameWrong)
@@ -230,7 +230,7 @@ func (gui *Gui) backgroundFetch() (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	err = gui.GitCommand.Sync.Fetch(commands.FetchOptions{Background: true})
+	err = gui.GitCommand.Sync.Fetch(git_commands.FetchOptions{Background: true})
 
 	_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
 

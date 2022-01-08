@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -717,7 +717,7 @@ func (gui *Gui) pullWithLock(opts PullFilesOptions) error {
 	gui.logAction(opts.action)
 
 	err := gui.GitCommand.Sync.Pull(
-		commands.PullOptions{
+		git_commands.PullOptions{
 			RemoteName:      opts.RemoteName,
 			BranchName:      opts.BranchName,
 			FastForwardOnly: opts.FastForwardOnly,
@@ -742,7 +742,7 @@ func (gui *Gui) push(opts pushOpts) error {
 	}
 	go utils.Safe(func() {
 		gui.logAction(gui.Tr.Actions.Push)
-		err := gui.GitCommand.Sync.Push(commands.PushOpts{
+		err := gui.GitCommand.Sync.Push(git_commands.PushOpts{
 			Force:          opts.force,
 			UpstreamRemote: opts.upstreamRemote,
 			UpstreamBranch: opts.upstreamBranch,

@@ -1,4 +1,4 @@
-package commands
+package git_commands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
