@@ -27,7 +27,7 @@ func NewConfigCommands(
 	return &ConfigCommands{
 		Common:    common,
 		gitConfig: gitConfig,
-		// repo:      repo,
+		repo:      repo,
 	}
 }
 
