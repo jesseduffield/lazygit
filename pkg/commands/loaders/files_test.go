@@ -3,7 +3,6 @@ package loaders
 import (
 	"testing"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -189,16 +188,23 @@ func TestFileGetStatusFiles(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			cmd := oscommands.NewDummyCmdObjBuilder(s.runner)
-			gitConfig := git_config.NewFakeGitConfig(map[string]string{"status.showUntrackedFiles": "yes"})
 
 			loader := &FileLoader{
 				Common:      utils.NewDummyCommon(),
 				cmd:         cmd,
-				gitConfig:   gitConfig,
+				config:      &FakeFileLoaderConfig{showUntrackedFiles: "yes"},
 				getFileType: func(string) string { return "file" },
 			}
 
 			assert.EqualValues(t, s.expectedFiles, loader.GetStatusFiles(GetStatusFileOptions{}))
 		})
 	}
+}
+
+type FakeFileLoaderConfig struct {
+	showUntrackedFiles string
+}
+
+func (self *FakeFileLoaderConfig) GetShowUntrackedFiles() string {
+	return self.showUntrackedFiles
 }

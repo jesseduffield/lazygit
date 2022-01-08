@@ -233,7 +233,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	ignoreWhitespaceArg := ""
 	contextSize := self.UserConfig.Git.DiffContextSize
 	if cached {
-		cachedArg = "--cached"
+		cachedArg = " --cached"
 	}
 	if !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached {
 		trackedArg = "--no-index -- /dev/null"
@@ -242,10 +242,10 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 		colorArg = "never"
 	}
 	if ignoreWhitespace {
-		ignoreWhitespaceArg = "--ignore-all-space"
+		ignoreWhitespaceArg = " --ignore-all-space"
 	}
 
-	cmdStr := fmt.Sprintf("git diff --submodule --no-ext-diff --unified=%d --color=%s %s %s %s %s", contextSize, colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath)
+	cmdStr := fmt.Sprintf("git diff --submodule --no-ext-diff --unified=%d --color=%s%s%s %s %s", contextSize, colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath)
 
 	return self.cmd.New(cmdStr).DontLog()
 }
@@ -280,14 +280,14 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 
 	reverseFlag := ""
 	if reverse {
-		reverseFlag = " -R "
+		reverseFlag = " -R"
 	}
 
 	return self.cmd.
 		New(
 			fmt.Sprintf(
-				"git diff --submodule --no-ext-diff --unified=%d --no-renames --color=%s %s %s %s -- %s",
-				contextSize, colorArg, from, to, reverseFlag, self.cmd.Quote(fileName)),
+				"git diff --submodule --no-ext-diff --unified=%d --no-renames --color=%s%s%s%s -- %s",
+				contextSize, colorArg, pad(from), pad(to), reverseFlag, self.cmd.Quote(fileName)),
 		).
 		DontLog()
 }
@@ -344,4 +344,13 @@ func (self *WorkingTreeCommands) ResetSoft(ref string) error {
 
 func (self *WorkingTreeCommands) ResetMixed(ref string) error {
 	return self.cmd.New("git reset --mixed " + self.cmd.Quote(ref)).Run()
+}
+
+// so that we don't have unnecessary space in our commands we use this helper function to prepend spaces to args so that in the format string we can go '%s%s%s' and if any args are missing we won't have gaps.
+func pad(str string) string {
+	if str == "" {
+		return ""
+	}
+
+	return " " + str
 }
