@@ -274,10 +274,7 @@ func (self *CommitLoader) getNormalRebasingCommits() ([]*models.Commit, error) {
 			return err
 		}
 		content := string(bytesContent)
-		commit, err := self.commitFromPatch(content)
-		if err != nil {
-			return err
-		}
+		commit := self.commitFromPatch(content)
 		commits = append([]*models.Commit{commit}, commits...)
 		return nil
 	})
@@ -334,7 +331,7 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 // From: Lazygit Tester <test@example.com>
 // Date: Wed, 5 Dec 2018 21:03:23 +1100
 // Subject: second commit on master
-func (self *CommitLoader) commitFromPatch(content string) (*models.Commit, error) {
+func (self *CommitLoader) commitFromPatch(content string) *models.Commit {
 	lines := strings.Split(content, "\n")
 	sha := strings.Split(lines[0], " ")[1]
 	name := strings.TrimPrefix(lines[3], "Subject: ")
@@ -342,7 +339,7 @@ func (self *CommitLoader) commitFromPatch(content string) (*models.Commit, error
 		Sha:    sha,
 		Name:   name,
 		Status: "rebasing",
-	}, nil
+	}
 }
 
 func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*models.Commit) ([]*models.Commit, error) {

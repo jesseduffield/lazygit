@@ -42,7 +42,7 @@ type errorMapping struct {
 	newError      string
 }
 
-func newProductionLogger(config config.AppConfigurer) *logrus.Logger {
+func newProductionLogger() *logrus.Logger {
 	log := logrus.New()
 	log.Out = ioutil.Discard
 	log.SetLevel(logrus.ErrorLevel)
@@ -58,7 +58,7 @@ func getLogLevel() logrus.Level {
 	return level
 }
 
-func newDevelopmentLogger(configurer config.AppConfigurer) *logrus.Logger {
+func newDevelopmentLogger() *logrus.Logger {
 	logger := logrus.New()
 	logger.SetLevel(getLogLevel())
 	logPath, err := config.LogPath()
@@ -76,9 +76,9 @@ func newDevelopmentLogger(configurer config.AppConfigurer) *logrus.Logger {
 func newLogger(config config.AppConfigurer) *logrus.Entry {
 	var log *logrus.Logger
 	if config.GetDebug() || os.Getenv("DEBUG") == "TRUE" {
-		log = newDevelopmentLogger(config)
+		log = newDevelopmentLogger()
 	} else {
-		log = newProductionLogger(config)
+		log = newProductionLogger()
 	}
 
 	// highly recommended: tail -f development.log | humanlog

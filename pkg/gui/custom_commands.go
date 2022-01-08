@@ -144,7 +144,7 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, label
 	}
 
 	candidates := []commandMenuEntry{}
-	for _, str := range strings.Split(string(commandOutput), "\n") {
+	for _, str := range strings.Split(commandOutput, "\n") {
 		if str == "" {
 			continue
 		}
@@ -216,6 +216,7 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 
 	menuItems := make([]*menuItem, len(candidates))
 	for i := range candidates {
+		i := i
 		menuItems[i] = &menuItem{
 			displayStrings: []string{candidates[i].label},
 			onPress: func() error {

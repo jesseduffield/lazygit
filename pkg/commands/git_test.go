@@ -104,6 +104,7 @@ func TestNavigateToRepoRootDirectory(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(navigateToRepoRootDirectory(s.stat, s.chdir))
 		})
@@ -159,6 +160,7 @@ func TestSetupRepository(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(setupRepository(s.openGitRepository, s.errorStr))
 		})
@@ -206,6 +208,7 @@ func TestNewGitCommand(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.setup()
 			s.test(NewGitCommand(utils.NewDummyCommon(), oscommands.NewDummyOSCommand(), git_config.NewFakeGitConfig(nil)))
@@ -282,6 +285,7 @@ func TestFindDotGitDir(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(findDotGitDir(s.stat, s.readFile))
 		})

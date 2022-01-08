@@ -98,7 +98,7 @@ func (l *PatchLine) render(selected bool, included bool) string {
 		return coloredString(style.FgCyan, match[1], selected, included) + coloredString(theme.DefaultTextColor, match[2], selected, false)
 	}
 
-	textStyle := theme.DefaultTextColor
+	var textStyle style.TextStyle
 	switch l.Kind {
 	case PATCH_HEADER:
 		textStyle = textStyle.SetBold()
@@ -108,6 +108,8 @@ func (l *PatchLine) render(selected bool, included bool) string {
 		textStyle = style.FgRed
 	case COMMIT_SHA:
 		textStyle = style.FgYellow
+	default:
+		textStyle = theme.DefaultTextColor
 	}
 
 	return coloredString(textStyle, content, selected, included)

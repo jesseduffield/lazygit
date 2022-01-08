@@ -79,7 +79,7 @@ func (gui *Gui) refreshReflogCommitsConsideringStartup() {
 // whenever we change commits, we should update branches because the upstream/downstream
 // counts can change. Whenever we change branches we should probably also change commits
 // e.g. in the case of switching branches.
-func (gui *Gui) refreshCommits() error {
+func (gui *Gui) refreshCommits() {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
@@ -110,8 +110,6 @@ func (gui *Gui) refreshCommits() error {
 	})
 
 	wg.Wait()
-
-	return nil
 }
 
 func (gui *Gui) refreshCommitsWithLimit() error {
@@ -605,7 +603,7 @@ func (gui *Gui) createTagMenu(commitSha string) error {
 	return gui.createMenu(gui.Tr.TagMenuTitle, items, createMenuOptions{showCancel: true})
 }
 
-func (gui *Gui) afterTagCreate(tagName string) error {
+func (gui *Gui) afterTagCreate() error {
 	gui.State.Panels.Tags.SelectedLineIdx = 0 // Set to the top
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
 }
@@ -621,7 +619,7 @@ func (gui *Gui) handleCreateAnnotatedTag(commitSha string) error {
 					if err := gui.Git.Tag.CreateAnnotated(tagName, commitSha, msg); err != nil {
 						return gui.surfaceError(err)
 					}
-					return gui.afterTagCreate(tagName)
+					return gui.afterTagCreate()
 				},
 			})
 		},
@@ -636,7 +634,7 @@ func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
 			if err := gui.Git.Tag.CreateLightweight(tagName, commitSha); err != nil {
 				return gui.surfaceError(err)
 			}
-			return gui.afterTagCreate(tagName)
+			return gui.afterTagCreate()
 		},
 	})
 }
@@ -666,7 +664,7 @@ func (gui *Gui) handleCreateCommitResetMenu() error {
 	return gui.createResetMenu(commit.Sha)
 }
 
-func (gui *Gui) handleOpenSearchForCommitsPanel(_viewName string) error {
+func (gui *Gui) handleOpenSearchForCommitsPanel(string) error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false

@@ -4,10 +4,11 @@
 package app
 
 import (
-	"github.com/aybabtme/humanlog"
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"log"
 	"os"
+
+	"github.com/aybabtme/humanlog"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
 func TailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {

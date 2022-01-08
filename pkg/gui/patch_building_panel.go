@@ -17,7 +17,7 @@ func (gui *Gui) getFromAndReverseArgsForDiff(to string) (string, bool) {
 	return from, reverse
 }
 
-func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int, state *LblPanelState) error {
+func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	if !gui.Git.Patch.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
 	}
@@ -59,7 +59,7 @@ func (gui *Gui) handleRefreshPatchBuildingPanel(selectedLineIdx int) error {
 	gui.Mutexes.LineByLinePanelMutex.Lock()
 	defer gui.Mutexes.LineByLinePanelMutex.Unlock()
 
-	return gui.refreshPatchBuildingPanel(selectedLineIdx, gui.State.Panels.LineByLine)
+	return gui.refreshPatchBuildingPanel(selectedLineIdx)
 }
 
 func (gui *Gui) handleToggleSelectionForPatch() error {

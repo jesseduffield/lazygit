@@ -110,6 +110,8 @@ func (gui *Gui) reflogUndo() error {
 				EnvVars:       undoEnvVars,
 				WaitingStatus: undoingStatus,
 			})
+		case CURRENT_REBASE:
+			// do nothing
 		}
 
 		gui.Log.Error("didn't match on the user action when trying to undo")
@@ -146,6 +148,8 @@ func (gui *Gui) reflogRedo() error {
 				EnvVars:       redoEnvVars,
 				WaitingStatus: redoingStatus,
 			})
+		case CURRENT_REBASE:
+			// do nothing
 		}
 
 		gui.Log.Error("didn't match on the user action when trying to redo")

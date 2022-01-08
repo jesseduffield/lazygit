@@ -42,6 +42,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildRebaseCommands(commonDeps{runner: s.runner})
 			s.test(instance.RebaseBranch(s.arg))
@@ -62,6 +63,7 @@ func TestRebaseSkipEditorCommand(t *testing.T) {
 			`^GIT_EDITOR=.*$`,
 			"^LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY$",
 		} {
+			regexStr := regexStr
 			foundMatch := utils.IncludesStringFunc(envVars, func(envVar string) bool {
 				return regexp.MustCompile(regexStr).MatchString(envVar)
 			})
@@ -135,6 +137,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildRebaseCommands(commonDeps{
 				runner:    s.runner,
