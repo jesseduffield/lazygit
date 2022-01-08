@@ -33,7 +33,7 @@ type WorkingTreeOSCommand interface {
 func NewWorkingTreeCommands(
 	common *common.Common,
 	cmd oscommands.ICmdObjBuilder,
-	submodulesCommands *SubmoduleCommands,
+	submoduleCommands *SubmoduleCommands,
 	osCommand WorkingTreeOSCommand,
 	fileLoader *loaders.FileLoader,
 ) *WorkingTreeCommands {
@@ -41,7 +41,7 @@ func NewWorkingTreeCommands(
 		Common:     common,
 		cmd:        cmd,
 		os:         osCommand,
-		submodule:  submodulesCommands,
+		submodule:  submoduleCommands,
 		fileLoader: fileLoader,
 	}
 }
