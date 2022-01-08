@@ -46,7 +46,7 @@ Sometimes you will need to make a change in the gocui fork (https://github.com/j
 4. After that PR is merged, make a PR in lazygit bumping the gocui version. You can bump the version by running the following at the lazygit repo root:
 
 ```sh
-./bump_gocui.sh
+./scripts/bump_gocui.sh
 ```
 
 5. Raise a PR in lazygit with those changes
