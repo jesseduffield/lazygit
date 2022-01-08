@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"github.com/go-errors/errors"
+	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -61,7 +62,10 @@ func buildConfigCommands(deps commonDeps) *ConfigCommands {
 	deps = completeDeps(deps)
 	common := utils.NewDummyCommonWithUserConfig(deps.userConfig)
 
-	return NewConfigCommands(common, deps.gitConfig)
+	// TODO: think of a way to actually mock this outnil
+	var repo *gogit.Repository = nil
+
+	return NewConfigCommands(common, deps.gitConfig, repo)
 }
 
 func buildOSCommand(deps commonDeps) *oscommands.OSCommand {
