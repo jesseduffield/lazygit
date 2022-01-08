@@ -121,6 +121,7 @@ func (cell *Cell) setLeft(style style.TextStyle) *Cell {
 	return cell
 }
 
+//nolint:unparam
 func (cell *Cell) setRight(style style.TextStyle, override bool) *Cell {
 	cell.right = true
 	if cell.rightStyle == nil || override {

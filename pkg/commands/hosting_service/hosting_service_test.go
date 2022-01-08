@@ -56,6 +56,7 @@ func TestGetRepoInfoFromURL(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			result, err := s.serviceDefinition.getRepoInfoFromURL(s.repoURL)
 			assert.NoError(t, err)
@@ -222,6 +223,7 @@ func TestGetPullRequestURL(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			tr := i18n.EnglishTranslationSet()
 			log := &test.FakeFieldLogger{}

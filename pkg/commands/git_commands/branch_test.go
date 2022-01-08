@@ -46,6 +46,7 @@ func TestBranchGetCommitDifferences(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := NewBranchCommandsWithRunner(s.runner)
 			pushables, pullables := instance.GetCommitDifferences("HEAD", "@{u}")
@@ -93,6 +94,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := NewBranchCommandsWithRunner(s.runner)
 
@@ -139,6 +141,7 @@ func TestBranchCheckout(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := NewBranchCommandsWithRunner(s.runner)
 			s.test(instance.Checkout("test", CheckoutOptions{Force: s.force}))
@@ -218,6 +221,7 @@ func TestBranchCurrentBranchName(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := NewBranchCommandsWithRunner(s.runner)
 			s.test(instance.CurrentBranchName())

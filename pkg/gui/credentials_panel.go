@@ -11,18 +11,18 @@ import (
 type credentials chan string
 
 // promptUserForCredential wait for a username, password or passphrase input from the credentials popup
-func (gui *Gui) promptUserForCredential(passOrUname oscommands.CredentialName) string {
+func (gui *Gui) promptUserForCredential(passOrUname oscommands.CredentialType) string {
 	gui.credentials = make(chan string)
 	gui.g.Update(func(g *gocui.Gui) error {
 		credentialsView := gui.Views.Credentials
 		switch passOrUname {
-		case "username":
+		case oscommands.Username:
 			credentialsView.Title = gui.Tr.CredentialsUsername
 			credentialsView.Mask = 0
-		case "password":
+		case oscommands.Password:
 			credentialsView.Title = gui.Tr.CredentialsPassword
 			credentialsView.Mask = '*'
-		case "passphrase":
+		case oscommands.Passphrase:
 			credentialsView.Title = gui.Tr.CredentialsPassphrase
 			credentialsView.Mask = '*'
 		}

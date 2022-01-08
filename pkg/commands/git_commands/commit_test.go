@@ -75,6 +75,7 @@ func TestCommitCommitObj(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.Commit.SignOff = s.configSignoff
@@ -109,6 +110,7 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{runner: s.runner})
 			s.test(instance.CreateFixupCommit(s.sha))
@@ -147,6 +149,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.DiffContextSize = s.contextSize

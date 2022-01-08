@@ -186,6 +186,7 @@ func TestGetCommits(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
+		scenario := scenario
 		t.Run(scenario.testName, func(t *testing.T) {
 			builder := &CommitLoader{
 				Common: utils.NewDummyCommon(),

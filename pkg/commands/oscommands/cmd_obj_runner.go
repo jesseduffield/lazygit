@@ -26,11 +26,13 @@ func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
 	case PROMPT:
 		return self.RunAndDetectCredentialRequest(cmdObj, self.guiIO.promptForCredentialFn)
 	case FAIL:
-		return self.RunAndDetectCredentialRequest(cmdObj, func(CredentialName) string { return "\n" })
+		return self.RunAndDetectCredentialRequest(cmdObj, func(CredentialType) string { return "\n" })
+	case NONE:
+		// we should never land here
+		return errors.New("runWithCredentialHandling called but cmdObj does not have a a credential strategy")
 	}
 
-	// we should never land here
-	return errors.New("runWithCredentialHandling called but cmdObj does not have a a credential strategy")
+	return errors.New("unexpected credential strategy")
 }
 
 func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {

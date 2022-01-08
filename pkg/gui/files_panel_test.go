@@ -24,7 +24,7 @@ func TestGetSuggestedRemote(t *testing.T) {
 }
 
 func mkRemoteList(names ...string) []*models.Remote {
-	var result []*models.Remote
+	result := make([]*models.Remote, 0, len(names))
 
 	for _, name := range names {
 		result = append(result, &models.Remote{Name: name})

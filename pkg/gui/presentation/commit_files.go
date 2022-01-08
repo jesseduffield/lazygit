@@ -9,7 +9,7 @@ import (
 )
 
 func GetCommitFileLine(name string, diffName string, commitFile *models.CommitFile, status patch.PatchStatus) string {
-	colour := theme.DefaultTextColor
+	var colour style.TextStyle
 	if diffName == name {
 		colour = theme.DiffTerminalColor
 	} else {
@@ -18,6 +18,8 @@ func GetCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 			colour = style.FgGreen
 		case patch.PART:
 			colour = style.FgYellow
+		case patch.UNSELECTED:
+			colour = theme.DefaultTextColor
 		}
 	}
 

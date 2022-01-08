@@ -59,6 +59,8 @@ func (gui *Gui) genericMergeCommand(command string) error {
 		commandType = "merge"
 	case enums.REBASE_MODE_REBASING:
 		commandType = "rebase"
+	default:
+		// shouldn't be possible to land here
 	}
 
 	// we should end up with a command like 'git merge --continue'

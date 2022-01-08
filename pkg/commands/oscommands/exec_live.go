@@ -13,27 +13,27 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type CredentialName string
+type CredentialType int
 
 const (
-	Password   CredentialName = "password"
-	Username                  = "username"
-	Passphrase                = "passphrase"
+	Password CredentialType = iota
+	Username
+	Passphrase
 )
 
 // RunAndDetectCredentialRequest detect a username / password / passphrase question in a command
 // promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (self *cmdObjRunner) RunAndDetectCredentialRequest(cmdObj ICmdObj, promptUserForCredential func(CredentialName) string) error {
+func (self *cmdObjRunner) RunAndDetectCredentialRequest(cmdObj ICmdObj, promptUserForCredential func(CredentialType) string) error {
 	ttyText := ""
 	err := self.RunCommandWithOutputLive(cmdObj, func(word string) string {
 		ttyText = ttyText + " " + word
 
-		prompts := map[string]CredentialName{
-			`.+'s password:`:                         "password",
-			`Password\s*for\s*'.+':`:                 "password",
-			`Username\s*for\s*'.+':`:                 "username",
-			`Enter\s*passphrase\s*for\s*key\s*'.+':`: "passphrase",
+		prompts := map[string]CredentialType{
+			`.+'s password:`:                         Password,
+			`Password\s*for\s*'.+':`:                 Password,
+			`Username\s*for\s*'.+':`:                 Username,
+			`Enter\s*passphrase\s*for\s*key\s*'.+':`: Passphrase,
 		}
 
 		for pattern, askFor := range prompts {

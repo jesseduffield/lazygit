@@ -186,6 +186,7 @@ func TestFileGetStatusFiles(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			cmd := oscommands.NewDummyCmdObjBuilder(s.runner)
 			gitConfig := git_config.NewFakeGitConfig(map[string]string{"status.showUntrackedFiles": "yes"})
