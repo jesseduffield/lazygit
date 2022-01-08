@@ -28,8 +28,9 @@ func (gui *Gui) refreshStatus() {
 		status += presentation.ColoredBranchStatus(currentBranch) + " "
 	}
 
-	if gui.Git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
-		status += style.FgYellow.Sprintf("(%s) ", gui.Git.Status.WorkingTreeState())
+	workingTreeState := gui.Git.Status.WorkingTreeState()
+	if workingTreeState != enums.REBASE_MODE_NONE {
+		status += style.FgYellow.Sprintf("(%s) ", formatWorkingTreeState(workingTreeState))
 	}
 
 	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
@@ -74,13 +75,7 @@ func (gui *Gui) handleStatusClick() error {
 	workingTreeState := gui.Git.Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
-		var formattedState string
-		if workingTreeState == enums.REBASE_MODE_REBASING {
-			formattedState = "rebasing"
-		} else {
-			formattedState = "merging"
-		}
-		workingTreeStatus := fmt.Sprintf("(%s)", formattedState)
+		workingTreeStatus := fmt.Sprintf("(%s)", formatWorkingTreeState(workingTreeState))
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
 			return gui.handleCreateRebaseOptionsMenu()
 		}
@@ -94,6 +89,17 @@ func (gui *Gui) handleStatusClick() error {
 	}
 
 	return nil
+}
+
+func formatWorkingTreeState(rebaseMode enums.RebaseMode) string {
+	switch rebaseMode {
+	case enums.REBASE_MODE_REBASING:
+		return "rebasing"
+	case enums.REBASE_MODE_MERGING:
+		return "merging"
+	default:
+		return "none"
+	}
 }
 
 func (gui *Gui) statusRenderToMain() error {
