@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"os/exec"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -21,50 +20,20 @@ const (
 	Passphrase
 )
 
-// RunAndDetectCredentialRequest detect a username / password / passphrase question in a command
-// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
-// The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (self *cmdObjRunner) RunAndDetectCredentialRequest(cmdObj ICmdObj, promptUserForCredential func(CredentialType) string) error {
-	ttyText := ""
-	err := self.RunCommandWithOutputLive(cmdObj, func(word string) string {
-		ttyText = ttyText + " " + word
-
-		prompts := map[string]CredentialType{
-			`.+'s password:`:                         Password,
-			`Password\s*for\s*'.+':`:                 Password,
-			`Username\s*for\s*'.+':`:                 Username,
-			`Enter\s*passphrase\s*for\s*key\s*'.+':`: Passphrase,
-		}
-
-		for pattern, askFor := range prompts {
-			if match, _ := regexp.MatchString(pattern, ttyText); match {
-				ttyText = ""
-				return promptUserForCredential(askFor)
-			}
-		}
-
-		return ""
-	})
-	return err
-}
-
 type cmdHandler struct {
 	stdoutPipe io.Reader
 	stdinPipe  io.Writer
 	close      func() error
 }
 
-// RunCommandWithOutputLiveAux runs a command and return every word that gets written in stdout
-// Output is a function that executes by every word that gets read by bufio
-// As return of output you need to give a string that will be written to stdin
-// NOTE: If the return data is empty it won't write anything to stdin
-func (self *cmdObjRunner) RunCommandWithOutputLiveAux(
+// RunAndDetectCredentialRequest detect a username / password / passphrase question in a command
+// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
+// The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
+func (self *cmdObjRunner) RunAndDetectCredentialRequest(
 	cmdObj ICmdObj,
-	// handleOutput takes a word from stdout and returns a string to be written to stdin.
-	// See RunAndDetectCredentialRequest above for how this is used to check for a username/password request
-	handleOutput func(string) string,
-	startCmd func(cmd *exec.Cmd) (*cmdHandler, error),
+	promptUserForCredential func(CredentialType) string,
 ) error {
+	self.log.Warn("HERE")
 	cmdWriter := self.guiIO.newCmdWriterFn()
 	self.log.WithField("command", cmdObj.ToString()).Info("RunCommand")
 	if cmdObj.ShouldLog() {
@@ -75,7 +44,7 @@ func (self *cmdObjRunner) RunCommandWithOutputLiveAux(
 	var stderr bytes.Buffer
 	cmd.Stderr = io.MultiWriter(cmdWriter, &stderr)
 
-	handler, err := startCmd(cmd)
+	handler, err := self.getCmdHandler(cmd)
 	if err != nil {
 		return err
 	}
@@ -89,16 +58,7 @@ func (self *cmdObjRunner) RunCommandWithOutputLiveAux(
 	tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
 
 	go utils.Safe(func() {
-		scanner := bufio.NewScanner(tr)
-		scanner.Split(scanWordsWithNewLines)
-		for scanner.Scan() {
-			text := scanner.Text()
-			output := strings.Trim(text, " ")
-			toInput := handleOutput(output)
-			if toInput != "" {
-				_, _ = handler.stdinPipe.Write([]byte(toInput))
-			}
-		}
+		self.processOutput(tr, handler.stdinPipe, promptUserForCredential)
 	})
 
 	err = cmd.Wait()
@@ -107,6 +67,51 @@ func (self *cmdObjRunner) RunCommandWithOutputLiveAux(
 	}
 
 	return nil
+}
+
+func (self *cmdObjRunner) processOutput(reader io.Reader, writer io.Writer, promptUserForCredential func(CredentialType) string) {
+	checkForCredentialRequest := self.getCheckForCredentialRequestFunc()
+
+	scanner := bufio.NewScanner(reader)
+	scanner.Split(scanWordsWithNewLines)
+	for scanner.Scan() {
+		text := scanner.Text()
+		self.log.Info(text)
+		output := strings.Trim(text, " ")
+		askFor, ok := checkForCredentialRequest(output)
+		if ok {
+			toInput := promptUserForCredential(askFor)
+			// If the return data is empty we don't write anything to stdin
+			if toInput != "" {
+				_, _ = writer.Write([]byte(toInput))
+			}
+		}
+	}
+}
+
+// having a function that returns a function because we need to maintain some state inbetween calls hence the closure
+func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func(string) (CredentialType, bool) {
+	ttyText := ""
+	// this function takes each word of output from the command and builds up a string to see if we're being asked for a password
+	return func(word string) (CredentialType, bool) {
+		ttyText = ttyText + " " + word
+
+		prompts := map[string]CredentialType{
+			`.+'s password:`:                         Password,
+			`Password\s*for\s*'.+':`:                 Password,
+			`Username\s*for\s*'.+':`:                 Username,
+			`Enter\s*passphrase\s*for\s*key\s*'.+':`: Passphrase,
+		}
+
+		for pattern, askFor := range prompts {
+			if match, _ := regexp.MatchString(pattern, ttyText); match {
+				ttyText = ""
+				return askFor, true
+			}
+		}
+
+		return 0, false
+	}
 }
 
 // scanWordsWithNewLines is a copy of bufio.ScanWords but this also captures new lines
