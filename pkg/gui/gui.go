@@ -68,9 +68,9 @@ type Repo string
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
 	*common.Common
-	g          *gocui.Gui
-	GitCommand *commands.GitCommand
-	OSCommand  *oscommands.OSCommand
+	g         *gocui.Gui
+	Git       *commands.GitCommand
+	OSCommand *oscommands.OSCommand
 
 	// this is the state of the GUI for the current repo
 	State *guiState
@@ -471,7 +471,7 @@ func NewGui(
 
 	gui.OSCommand = osCommand
 	var err error
-	gui.GitCommand, err = commands.NewGitCommand(
+	gui.Git, err = commands.NewGitCommand(
 		cmn,
 		osCommand,
 		gitConfig,

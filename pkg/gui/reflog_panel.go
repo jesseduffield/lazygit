@@ -22,7 +22,7 @@ func (gui *Gui) reflogCommitsRenderToMain() error {
 	if commit == nil {
 		task = NewRenderStringTask("No reflog history")
 	} else {
-		cmdObj := gui.GitCommand.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
+		cmdObj := gui.Git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
 
 		task = NewRunPtyTask(cmdObj.GetCmd())
 	}
@@ -52,7 +52,7 @@ func (gui *Gui) refreshReflogCommits() error {
 	}
 
 	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
-		commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.Loaders.ReflogCommits.
+		commits, onlyObtainedNewReflogCommits, err := gui.Git.Loaders.ReflogCommits.
 			GetReflogCommits(lastReflogCommit, filterPath)
 		if err != nil {
 			return gui.surfaceError(err)

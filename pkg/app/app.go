@@ -184,7 +184,7 @@ func (app *App) setupRepo() (bool, error) {
 	}
 
 	if env.GetGitDirEnv() != "" {
-		// we've been given the git dir directly. We'll verify this dir when initializing our GitCommand object
+		// we've been given the git dir directly. We'll verify this dir when initializing our Git object
 		return false, nil
 	}
 

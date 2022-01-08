@@ -12,7 +12,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 		return nil
 	}
 
-	if !gui.GitCommand.Flow.GitFlowEnabled() {
+	if !gui.Git.Flow.GitFlowEnabled() {
 		return gui.createErrorPanel("You need to install git-flow and enable it in this repo to use git-flow features")
 	}
 
@@ -25,7 +25,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 				handleConfirm: func(name string) error {
 					gui.logAction(gui.Tr.Actions.GitFlowStart)
 					return gui.runSubprocessWithSuspenseAndRefresh(
-						gui.GitCommand.Flow.StartCmdObj(branchType, name),
+						gui.Git.Flow.StartCmdObj(branchType, name),
 					)
 				},
 			})
@@ -62,7 +62,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 }
 
 func (gui *Gui) gitFlowFinishBranch(branchName string) error {
-	cmdObj, err := gui.GitCommand.Flow.FinishCmdObj(branchName)
+	cmdObj, err := gui.Git.Flow.FinishCmdObj(branchName)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

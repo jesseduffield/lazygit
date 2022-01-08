@@ -149,7 +149,7 @@ func (gui *Gui) HandlePasteCommits() error {
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.CherryPickingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.CherryPick)
-				err := gui.GitCommand.Rebase.CherryPickCommits(gui.State.Modes.CherryPicking.CherryPickedCommits)
+				err := gui.Git.Rebase.CherryPickCommits(gui.State.Modes.CherryPicking.CherryPickedCommits)
 				return gui.handleGenericMergeCommandResult(err)
 			})
 		},

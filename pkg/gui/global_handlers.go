@@ -215,7 +215,7 @@ func (gui *Gui) fetch() (err error) {
 	defer gui.Mutexes.FetchMutex.Unlock()
 
 	gui.logAction("Fetch")
-	err = gui.GitCommand.Sync.Fetch(git_commands.FetchOptions{})
+	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{})
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
 		_ = gui.createErrorPanel(gui.Tr.PassUnameWrong)
@@ -230,7 +230,7 @@ func (gui *Gui) backgroundFetch() (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	err = gui.GitCommand.Sync.Fetch(git_commands.FetchOptions{Background: true})
+	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{Background: true})
 
 	_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
 

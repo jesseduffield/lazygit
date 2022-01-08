@@ -27,7 +27,7 @@ func setupGuiForTest(gui *Gui) {
 	gui.g = &gocui.Gui{}
 	gui.Views.Main, _ = gui.prepareView("main")
 	gui.Views.Secondary, _ = gui.prepareView("secondary")
-	gui.GitCommand.Patch.PatchManager = &patch.PatchManager{}
+	gui.Git.Patch.PatchManager = &patch.PatchManager{}
 	_, _ = gui.refreshLineByLinePanel(diffForTest, "", false, 11)
 }
 
@@ -136,7 +136,7 @@ func TestDoesntIncreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *test
 	setupGuiForTest(gui)
 	gui.UserConfig.Git.DiffContextSize = 2
 	_ = gui.pushContextDirect(gui.State.Contexts.CommitFiles)
-	gui.GitCommand.Patch.PatchManager.Start("from", "to", false, false)
+	gui.Git.Patch.PatchManager.Start("from", "to", false, false)
 
 	errorCount := 0
 	gui.PopupHandler = &TestPopupHandler{
@@ -158,7 +158,7 @@ func TestDoesntDecreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *test
 	setupGuiForTest(gui)
 	gui.UserConfig.Git.DiffContextSize = 2
 	_ = gui.pushContextDirect(gui.State.Contexts.CommitFiles)
-	gui.GitCommand.Patch.PatchManager.Start("from", "to", false, false)
+	gui.Git.Patch.PatchManager.Start("from", "to", false, false)
 
 	errorCount := 0
 	gui.PopupHandler = &TestPopupHandler{

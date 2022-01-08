@@ -7,7 +7,7 @@ import (
 )
 
 func (gui *Gui) resetToRef(ref string, strength string, envVars []string) error {
-	if err := gui.GitCommand.Commit.ResetToCommit(ref, strength, envVars); err != nil {
+	if err := gui.Git.Commit.ResetToCommit(ref, strength, envVars); err != nil {
 		return gui.surfaceError(err)
 	}
 

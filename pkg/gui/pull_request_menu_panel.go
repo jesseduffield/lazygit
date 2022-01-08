@@ -71,7 +71,7 @@ func (gui *Gui) createPullRequest(from string, to string) error {
 }
 
 func (gui *Gui) getHostingServiceMgr() *hosting_service.HostingServiceMgr {
-	remoteUrl := gui.GitCommand.Config.GetRemoteURL()
+	remoteUrl := gui.Git.Config.GetRemoteURL()
 	configServices := gui.UserConfig.Services
 	return hosting_service.NewHostingServiceMgr(gui.Log, gui.Tr, remoteUrl, configServices)
 }

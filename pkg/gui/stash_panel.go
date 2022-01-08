@@ -21,7 +21,7 @@ func (gui *Gui) stashRenderToMain() error {
 	if stashEntry == nil {
 		task = NewRenderStringTask(gui.Tr.NoStashEntries)
 	} else {
-		task = NewRunPtyTask(gui.GitCommand.Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
+		task = NewRunPtyTask(gui.Git.Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -33,7 +33,7 @@ func (gui *Gui) stashRenderToMain() error {
 }
 
 func (gui *Gui) refreshStashEntries() error {
-	gui.State.StashEntries = gui.GitCommand.Loaders.Stash.
+	gui.State.StashEntries = gui.Git.Loaders.Stash.
 		GetStashEntries(gui.State.Modes.Filtering.GetPath())
 
 	return gui.State.Contexts.Stash.HandleRender()
@@ -51,7 +51,7 @@ func (gui *Gui) handleStashApply() error {
 
 	apply := func() error {
 		gui.logAction(gui.Tr.Actions.Stash)
-		if err := gui.GitCommand.Stash.Apply(stashEntry.Index); err != nil {
+		if err := gui.Git.Stash.Apply(stashEntry.Index); err != nil {
 			return gui.surfaceError(err)
 		}
 		return gui.postStashRefresh()
@@ -80,7 +80,7 @@ func (gui *Gui) handleStashPop() error {
 
 	pop := func() error {
 		gui.logAction(gui.Tr.Actions.Stash)
-		if err := gui.GitCommand.Stash.Pop(stashEntry.Index); err != nil {
+		if err := gui.Git.Stash.Pop(stashEntry.Index); err != nil {
 			return gui.surfaceError(err)
 		}
 		return gui.postStashRefresh()
@@ -110,7 +110,7 @@ func (gui *Gui) handleStashDrop() error {
 		prompt: gui.Tr.SureDropStashEntry,
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.Stash)
-			if err := gui.GitCommand.Stash.Drop(stashEntry.Index); err != nil {
+			if err := gui.Git.Stash.Drop(stashEntry.Index); err != nil {
 				return gui.surfaceError(err)
 			}
 			return gui.postStashRefresh()

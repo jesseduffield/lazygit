@@ -39,7 +39,7 @@ func (gui *Gui) DecreaseContextInDiffView() error {
 }
 
 func (gui *Gui) CheckCanChangeContext() error {
-	if gui.GitCommand.Patch.PatchManager.Active() {
+	if gui.Git.Patch.PatchManager.Active() {
 		return errors.New(gui.Tr.CantChangeContextSizeError)
 	}
 

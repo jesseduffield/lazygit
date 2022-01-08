@@ -15,7 +15,7 @@ import (
 func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
 	gui.logCommand(cmdObj.ToString(), true)
 
-	useSubprocess := gui.GitCommand.Config.UsingGpg()
+	useSubprocess := gui.Git.Config.UsingGpg()
 	if useSubprocess {
 		success, err := gui.runSubprocessWithSuspense(gui.OSCommand.Cmd.NewShell(cmdObj.ToString()))
 		if success && onSuccess != nil {
