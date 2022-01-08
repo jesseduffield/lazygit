@@ -27,10 +27,10 @@ type guiIO struct {
 	// this allows us to request info from the user like username/password, in the event
 	// that a command requests it.
 	// the 'credential' arg is something like 'username' or 'password'
-	promptForCredentialFn func(credential string) string
+	promptForCredentialFn func(credential CredentialName) string
 }
 
-func NewGuiIO(log *logrus.Entry, logCommandFn func(string, bool), newCmdWriterFn func() io.Writer, promptForCredentialFn func(string) string) *guiIO {
+func NewGuiIO(log *logrus.Entry, logCommandFn func(string, bool), newCmdWriterFn func() io.Writer, promptForCredentialFn func(CredentialName) string) *guiIO {
 	return &guiIO{
 		log:                   log,
 		logCommandFn:          logCommandFn,
@@ -44,6 +44,6 @@ func NewNullGuiIO(log *logrus.Entry) *guiIO {
 		log:                   log,
 		logCommandFn:          func(string, bool) {},
 		newCmdWriterFn:        func() io.Writer { return ioutil.Discard },
-		promptForCredentialFn: func(string) string { return "" },
+		promptForCredentialFn: func(CredentialName) string { return "" },
 	}
 }

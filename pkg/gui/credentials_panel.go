@@ -4,13 +4,14 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type credentials chan string
 
 // promptUserForCredential wait for a username, password or passphrase input from the credentials popup
-func (gui *Gui) promptUserForCredential(passOrUname string) string {
+func (gui *Gui) promptUserForCredential(passOrUname oscommands.CredentialName) string {
 	gui.credentials = make(chan string)
 	gui.g.Update(func(g *gocui.Gui) error {
 		credentialsView := gui.Views.Credentials
@@ -21,7 +22,7 @@ func (gui *Gui) promptUserForCredential(passOrUname string) string {
 		case "password":
 			credentialsView.Title = gui.Tr.CredentialsPassword
 			credentialsView.Mask = '*'
-		default:
+		case "passphrase":
 			credentialsView.Title = gui.Tr.CredentialsPassphrase
 			credentialsView.Mask = '*'
 		}
