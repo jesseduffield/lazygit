@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -146,7 +146,7 @@ func (gui *Gui) handleForceCheckout() error {
 		prompt: message,
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.ForceCheckoutBranch)
-			if err := gui.GitCommand.Branch.Checkout(branch.Name, commands.CheckoutOptions{Force: true}); err != nil {
+			if err := gui.GitCommand.Branch.Checkout(branch.Name, git_commands.CheckoutOptions{Force: true}); err != nil {
 				_ = gui.surfaceError(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
@@ -166,7 +166,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 		waitingStatus = gui.Tr.CheckingOutStatus
 	}
 
-	cmdOptions := commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
+	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
 		gui.State.Panels.Branches.SelectedLineIdx = 0
@@ -335,7 +335,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		prompt: prompt,
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.Merge)
-			err := gui.GitCommand.Branch.Merge(branchName, commands.MergeOpts{})
+			err := gui.GitCommand.Branch.Merge(branchName, git_commands.MergeOpts{})
 			return gui.handleGenericMergeCommandResult(err)
 		},
 	})

@@ -9,6 +9,7 @@ import (
 	"github.com/go-errors/errors"
 
 	gogit "github.com/jesseduffield/go-git/v5"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -20,21 +21,21 @@ import (
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	Branch      *BranchCommands
-	Commit      *CommitCommands
-	Config      *ConfigCommands
-	Custom      *CustomCommands
-	File        *FileCommands
-	Flow        *FlowCommands
-	Patch       *PatchCommands
-	Rebase      *RebaseCommands
-	Remote      *RemoteCommands
-	Stash       *StashCommands
-	Status      *StatusCommands
-	Submodule   *SubmoduleCommands
-	Sync        *SyncCommands
-	Tag         *TagCommands
-	WorkingTree *WorkingTreeCommands
+	Branch      *git_commands.BranchCommands
+	Commit      *git_commands.CommitCommands
+	Config      *git_commands.ConfigCommands
+	Custom      *git_commands.CustomCommands
+	File        *git_commands.FileCommands
+	Flow        *git_commands.FlowCommands
+	Patch       *git_commands.PatchCommands
+	Rebase      *git_commands.RebaseCommands
+	Remote      *git_commands.RemoteCommands
+	Stash       *git_commands.StashCommands
+	Status      *git_commands.StatusCommands
+	Submodule   *git_commands.SubmoduleCommands
+	Sync        *git_commands.SyncCommands
+	Tag         *git_commands.TagCommands
+	WorkingTree *git_commands.WorkingTreeCommands
 
 	Loaders Loaders
 }
@@ -91,20 +92,20 @@ func NewGitCommandAux(
 	// This is admittedly messy, but allows us to test each command struct in isolation,
 	// and allows for better namespacing when compared to having every method living
 	// on the one struct.
-	configCommands := NewConfigCommands(cmn, gitConfig)
-	statusCommands := NewStatusCommands(cmn, osCommand, repo, dotGitDir)
+	configCommands := git_commands.NewConfigCommands(cmn, gitConfig)
+	statusCommands := git_commands.NewStatusCommands(cmn, osCommand, repo, dotGitDir)
 	fileLoader := loaders.NewFileLoader(cmn, cmd, configCommands)
-	flowCommands := NewFlowCommands(cmn, cmd, configCommands)
-	remoteCommands := NewRemoteCommands(cmn, cmd)
-	branchCommands := NewBranchCommands(cmn, cmd)
-	syncCommands := NewSyncCommands(cmn, cmd)
-	tagCommands := NewTagCommands(cmn, cmd)
-	commitCommands := NewCommitCommands(cmn, cmd)
-	customCommands := NewCustomCommands(cmn, cmd)
-	fileCommands := NewFileCommands(cmn, cmd, configCommands, osCommand)
-	submoduleCommands := NewSubmoduleCommands(cmn, cmd, dotGitDir)
-	workingTreeCommands := NewWorkingTreeCommands(cmn, cmd, submoduleCommands, osCommand, fileLoader)
-	rebaseCommands := NewRebaseCommands(
+	flowCommands := git_commands.NewFlowCommands(cmn, cmd, configCommands)
+	remoteCommands := git_commands.NewRemoteCommands(cmn, cmd)
+	branchCommands := git_commands.NewBranchCommands(cmn, cmd)
+	syncCommands := git_commands.NewSyncCommands(cmn, cmd)
+	tagCommands := git_commands.NewTagCommands(cmn, cmd)
+	commitCommands := git_commands.NewCommitCommands(cmn, cmd)
+	customCommands := git_commands.NewCustomCommands(cmn, cmd)
+	fileCommands := git_commands.NewFileCommands(cmn, cmd, configCommands, osCommand)
+	submoduleCommands := git_commands.NewSubmoduleCommands(cmn, cmd, dotGitDir)
+	workingTreeCommands := git_commands.NewWorkingTreeCommands(cmn, cmd, submoduleCommands, osCommand, fileLoader)
+	rebaseCommands := git_commands.NewRebaseCommands(
 		cmn,
 		cmd,
 		osCommand,
@@ -113,10 +114,10 @@ func NewGitCommandAux(
 		configCommands,
 		dotGitDir,
 	)
-	stashCommands := NewStashCommands(cmn, cmd, osCommand, fileLoader, workingTreeCommands)
+	stashCommands := git_commands.NewStashCommands(cmn, cmd, osCommand, fileLoader, workingTreeCommands)
 	// TODO: have patch manager take workingTreeCommands in its entirety
 	patchManager := patch.NewPatchManager(cmn.Log, workingTreeCommands.ApplyPatch, workingTreeCommands.ShowFileDiff)
-	patchCommands := NewPatchCommands(cmn, cmd, rebaseCommands, commitCommands, configCommands, statusCommands, patchManager)
+	patchCommands := git_commands.NewPatchCommands(cmn, cmd, rebaseCommands, commitCommands, configCommands, statusCommands, patchManager)
 
 	return &GitCommand{
 		Branch:      branchCommands,

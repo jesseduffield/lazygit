@@ -1,4 +1,4 @@
-package commands
+package git_commands
 
 import (
 	"io/ioutil"
@@ -45,23 +45,23 @@ func (self *FileCommands) Cat(fileName string) (string, error) {
 	return string(buf), nil
 }
 
-func (c *FileCommands) GetEditCmdStr(filename string, lineNumber int) (string, error) {
-	editor := c.UserConfig.OS.EditCommand
+func (self *FileCommands) GetEditCmdStr(filename string, lineNumber int) (string, error) {
+	editor := self.UserConfig.OS.EditCommand
 
 	if editor == "" {
-		editor = c.config.GetCoreEditor()
+		editor = self.config.GetCoreEditor()
 	}
 	if editor == "" {
-		editor = c.os.Getenv("GIT_EDITOR")
+		editor = self.os.Getenv("GIT_EDITOR")
 	}
 	if editor == "" {
-		editor = c.os.Getenv("VISUAL")
+		editor = self.os.Getenv("VISUAL")
 	}
 	if editor == "" {
-		editor = c.os.Getenv("EDITOR")
+		editor = self.os.Getenv("EDITOR")
 	}
 	if editor == "" {
-		if err := c.cmd.New("which vi").DontLog().Run(); err == nil {
+		if err := self.cmd.New("which vi").DontLog().Run(); err == nil {
 			editor = "vi"
 		}
 	}
@@ -71,10 +71,10 @@ func (c *FileCommands) GetEditCmdStr(filename string, lineNumber int) (string, e
 
 	templateValues := map[string]string{
 		"editor":   editor,
-		"filename": c.cmd.Quote(filename),
+		"filename": self.cmd.Quote(filename),
 		"line":     strconv.Itoa(lineNumber),
 	}
 
-	editCmdTemplate := c.UserConfig.OS.EditCommandTemplate
+	editCmdTemplate := self.UserConfig.OS.EditCommandTemplate
 	return utils.ResolvePlaceholderString(editCmdTemplate, templateValues), nil
 }
