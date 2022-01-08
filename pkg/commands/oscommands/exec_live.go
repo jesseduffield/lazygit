@@ -13,15 +13,23 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+type CredentialName string
+
+const (
+	Password   CredentialName = "password"
+	Username                  = "username"
+	Passphrase                = "passphrase"
+)
+
 // RunAndDetectCredentialRequest detect a username / password / passphrase question in a command
 // promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (self *cmdObjRunner) RunAndDetectCredentialRequest(cmdObj ICmdObj, promptUserForCredential func(string) string) error {
+func (self *cmdObjRunner) RunAndDetectCredentialRequest(cmdObj ICmdObj, promptUserForCredential func(CredentialName) string) error {
 	ttyText := ""
 	err := self.RunCommandWithOutputLive(cmdObj, func(word string) string {
 		ttyText = ttyText + " " + word
 
-		prompts := map[string]string{
+		prompts := map[string]CredentialName{
 			`.+'s password:`:                         "password",
 			`Password\s*for\s*'.+':`:                 "password",
 			`Username\s*for\s*'.+':`:                 "username",

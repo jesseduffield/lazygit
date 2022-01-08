@@ -24,9 +24,9 @@ var _ ICmdObjRunner = &cmdObjRunner{}
 func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
 	switch cmdObj.GetCredentialStrategy() {
 	case PROMPT:
-		return self.RunCommandWithOutputLive(cmdObj, self.guiIO.promptForCredentialFn)
+		return self.RunAndDetectCredentialRequest(cmdObj, self.guiIO.promptForCredentialFn)
 	case FAIL:
-		return self.RunCommandWithOutputLive(cmdObj, func(s string) string { return "\n" })
+		return self.RunAndDetectCredentialRequest(cmdObj, func(CredentialName) string { return "\n" })
 	}
 
 	// we should never land here
