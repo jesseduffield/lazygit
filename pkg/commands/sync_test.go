@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitCommandPush(t *testing.T) {
+func TestSyncPush(t *testing.T) {
 	type scenario struct {
 		testName string
 		opts     PushOpts
@@ -86,8 +86,8 @@ func TestGitCommandPush(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommandWithRunner(oscommands.NewFakeRunner(t))
-			s.test(gitCmd.Sync.PushCmdObj(s.opts))
+			instance := buildSyncCommands(commonDeps{})
+			s.test(instance.PushCmdObj(s.opts))
 		})
 	}
 }

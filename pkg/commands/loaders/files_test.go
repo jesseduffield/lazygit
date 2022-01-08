@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitCommandGetStatusFiles(t *testing.T) {
+func TestFileGetStatusFiles(t *testing.T) {
 	type scenario struct {
 		testName      string
 		runner        oscommands.ICmdObjRunner

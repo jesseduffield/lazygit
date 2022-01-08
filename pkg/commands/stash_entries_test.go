@@ -4,46 +4,47 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGitCommandStashDrop(t *testing.T) {
+func TestStashDrop(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"stash", "drop", "stash@{1}"}, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
+	instance := buildStashCommands(commonDeps{runner: runner})
 
-	assert.NoError(t, gitCmd.Stash.Drop(1))
+	assert.NoError(t, instance.Drop(1))
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandStashApply(t *testing.T) {
+func TestStashApply(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"stash", "apply", "stash@{1}"}, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
+	instance := buildStashCommands(commonDeps{runner: runner})
 
-	assert.NoError(t, gitCmd.Stash.Apply(1))
+	assert.NoError(t, instance.Apply(1))
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandStashPop(t *testing.T) {
+func TestStashPop(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"stash", "pop", "stash@{1}"}, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
+	instance := buildStashCommands(commonDeps{runner: runner})
 
-	assert.NoError(t, gitCmd.Stash.Pop(1))
+	assert.NoError(t, instance.Pop(1))
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandStashSave(t *testing.T) {
+func TestStashSave(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"stash", "save", "A stash message"}, "", nil)
-	gitCmd := NewDummyGitCommandWithRunner(runner)
+	instance := buildStashCommands(commonDeps{runner: runner})
 
-	assert.NoError(t, gitCmd.Stash.Save("A stash message"))
+	assert.NoError(t, instance.Save("A stash message"))
 	runner.CheckForMissingCalls()
 }
 
-func TestGitCommandShowStashEntryCmdObj(t *testing.T) {
+func TestStashStashEntryCmdObj(t *testing.T) {
 	type scenario struct {
 		testName    string
 		index       int
@@ -68,9 +69,11 @@ func TestGitCommandShowStashEntryCmdObj(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			gitCmd := NewDummyGitCommand()
-			gitCmd.UserConfig.Git.DiffContextSize = s.contextSize
-			cmdStr := gitCmd.Stash.ShowStashEntryCmdObj(s.index).ToString()
+			userConfig := config.GetDefaultConfig()
+			userConfig.Git.DiffContextSize = s.contextSize
+			instance := buildStashCommands(commonDeps{userConfig: userConfig})
+
+			cmdStr := instance.ShowStashEntryCmdObj(s.index).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}

@@ -51,7 +51,6 @@ func (c *FileCommands) GetEditCmdStr(filename string, lineNumber int) (string, e
 	if editor == "" {
 		editor = c.config.GetCoreEditor()
 	}
-
 	if editor == "" {
 		editor = c.os.Getenv("GIT_EDITOR")
 	}

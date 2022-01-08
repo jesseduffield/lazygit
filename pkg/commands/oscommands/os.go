@@ -20,10 +20,10 @@ import (
 type OSCommand struct {
 	*common.Common
 	Platform *Platform
-	GetenvFn func(string) string
+	getenvFn func(string) string
 	guiIO    *guiIO
 
-	removeFile func(string) error
+	removeFileFn func(string) error
 
 	Cmd *CmdObjBuilder
 }
@@ -40,11 +40,11 @@ type Platform struct {
 // NewOSCommand os command runner
 func NewOSCommand(common *common.Common, platform *Platform, guiIO *guiIO) *OSCommand {
 	c := &OSCommand{
-		Common:     common,
-		Platform:   platform,
-		GetenvFn:   os.Getenv,
-		removeFile: os.RemoveAll,
-		guiIO:      guiIO,
+		Common:       common,
+		Platform:     platform,
+		getenvFn:     os.Getenv,
+		removeFileFn: os.RemoveAll,
+		guiIO:        guiIO,
 	}
 
 	runner := &cmdObjRunner{log: common.Log, guiIO: guiIO}
@@ -57,11 +57,6 @@ func (c *OSCommand) LogCommand(cmdStr string, commandLine bool) {
 	c.Log.WithField("command", cmdStr).Info("RunCommand")
 
 	c.guiIO.logCommandFn(cmdStr, commandLine)
-}
-
-// To be used for testing only
-func (c *OSCommand) SetRemoveFile(f func(string) error) {
-	c.removeFile = f
 }
 
 // FileType tells us if the file is a file, directory or other
@@ -253,11 +248,11 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 func (c *OSCommand) RemoveFile(path string) error {
 	c.LogCommand(fmt.Sprintf("Deleting path '%s'", path), false)
 
-	return c.removeFile(path)
+	return c.removeFileFn(path)
 }
 
 func (c *OSCommand) Getenv(key string) string {
-	return c.GetenvFn(key)
+	return c.getenvFn(key)
 }
 
 func GetTempDir() string {

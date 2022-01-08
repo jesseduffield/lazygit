@@ -1,6 +1,7 @@
 package oscommands
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -9,6 +10,34 @@ func NewDummyOSCommand() *OSCommand {
 	osCmd := NewOSCommand(utils.NewDummyCommon(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
 
 	return osCmd
+}
+
+type OSCommandDeps struct {
+	Common       *common.Common
+	Platform     *Platform
+	GetenvFn     func(string) string
+	RemoveFileFn func(string) error
+	Cmd          *CmdObjBuilder
+}
+
+func NewDummyOSCommandWithDeps(deps OSCommandDeps) *OSCommand {
+	common := deps.Common
+	if common == nil {
+		common = utils.NewDummyCommon()
+	}
+
+	platform := deps.Platform
+	if platform == nil {
+		platform = dummyPlatform
+	}
+
+	return &OSCommand{
+		Common:       common,
+		Platform:     platform,
+		getenvFn:     deps.GetenvFn,
+		removeFileFn: deps.RemoveFileFn,
+		guiIO:        NewNullGuiIO(utils.NewDummyLog()),
+	}
 }
 
 func NewDummyCmdObjBuilder(runner ICmdObjRunner) *CmdObjBuilder {
