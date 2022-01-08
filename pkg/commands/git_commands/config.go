@@ -22,10 +22,12 @@ type ConfigCommands struct {
 func NewConfigCommands(
 	common *common.Common,
 	gitConfig git_config.IGitConfig,
+	repo *gogit.Repository,
 ) *ConfigCommands {
 	return &ConfigCommands{
 		Common:    common,
 		gitConfig: gitConfig,
+		repo:      repo,
 	}
 }
 

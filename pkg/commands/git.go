@@ -92,7 +92,7 @@ func NewGitCommandAux(
 	// This is admittedly messy, but allows us to test each command struct in isolation,
 	// and allows for better namespacing when compared to having every method living
 	// on the one struct.
-	configCommands := git_commands.NewConfigCommands(cmn, gitConfig)
+	configCommands := git_commands.NewConfigCommands(cmn, gitConfig, repo)
 	statusCommands := git_commands.NewStatusCommands(cmn, osCommand, repo, dotGitDir)
 	fileLoader := loaders.NewFileLoader(cmn, cmd, configCommands)
 	flowCommands := git_commands.NewFlowCommands(cmn, cmd, configCommands)
