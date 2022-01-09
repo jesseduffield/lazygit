@@ -67,7 +67,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 				workingTreeState := gui.Git.Status.WorkingTreeState()
 				return style.FgYellow.Sprintf(
 					"%s %s",
-					workingTreeState,
+					formatWorkingTreeState(workingTreeState),
 					style.AttrUnderline.Sprint(gui.Tr.ResetInParentheses),
 				)
 			},
