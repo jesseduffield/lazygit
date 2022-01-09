@@ -93,7 +93,6 @@ type TranslationSet struct {
 	Squash                              string
 	LcPickCommit                        string
 	LcRevertCommit                      string
-	OnlyRewordTopCommit                 string
 	LcRewordCommit                      string
 	LcDeleteCommit                      string
 	LcMoveDownCommit                    string
@@ -645,7 +644,6 @@ func EnglishTranslationSet() TranslationSet {
 		Squash:                              "Squash",
 		LcPickCommit:                        "pick commit (when mid-rebase)",
 		LcRevertCommit:                      "revert commit",
-		OnlyRewordTopCommit:                 "Can only reword topmost commit from within lazygit. Use shift+R instead",
 		LcRewordCommit:                      "reword commit",
 		LcDeleteCommit:                      "delete commit",
 		LcMoveDownCommit:                    "move commit down one",

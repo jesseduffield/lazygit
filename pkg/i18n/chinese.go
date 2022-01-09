@@ -109,7 +109,6 @@ func chineseTranslationSet() TranslationSet {
 		Squash:                              "压缩",
 		LcPickCommit:                        "选择提交（变基过程中）",
 		LcRevertCommit:                      "还原提交",
-		OnlyRewordTopCommit:                 "只能从 lazygit 内部重写最高的提交。请使用 shift-R",
 		LcRewordCommit:                      "改写提交",
 		LcDeleteCommit:                      "删除提交",
 		LcMoveDownCommit:                    "下移提交",

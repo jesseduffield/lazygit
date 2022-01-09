@@ -69,7 +69,6 @@ func polishTranslationSet() TranslationSet {
 		YouNoCommitsToSquash:                "Nie masz commitów do spłaszczenia",
 		Fixup:                               "Napraw",
 		SureFixupThisCommit:                 "Jesteś pewny, ze chcesz naprawić ten commit? Commit poniżej zostanie spłaszczony w górę wraz z tym",
-		OnlyRewordTopCommit:                 "Można zmienić nazwę tylko ostatniemu commitowi",
 		LcRewordCommit:                      "zmień nazwę commita",
 		LcRenameCommitEditor:                "zmień nazwę commita w edytorze",
 		Error:                               "Błąd",
