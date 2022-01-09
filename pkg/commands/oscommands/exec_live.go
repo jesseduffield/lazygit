@@ -6,7 +6,6 @@ import (
 	"io"
 	"regexp"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -73,12 +72,10 @@ func (self *cmdObjRunner) processOutput(reader io.Reader, writer io.Writer, prom
 	checkForCredentialRequest := self.getCheckForCredentialRequestFunc()
 
 	scanner := bufio.NewScanner(reader)
-	scanner.Split(scanWordsWithNewLines)
+	scanner.Split(bufio.ScanBytes)
 	for scanner.Scan() {
-		text := scanner.Text()
-		self.log.Info(text)
-		output := strings.Trim(text, " ")
-		askFor, ok := checkForCredentialRequest(output)
+		newBytes := scanner.Bytes()
+		askFor, ok := checkForCredentialRequest(newBytes)
 		if ok {
 			toInput := promptUserForCredential(askFor)
 			// If the return data is empty we don't write anything to stdin
@@ -90,13 +87,17 @@ func (self *cmdObjRunner) processOutput(reader io.Reader, writer io.Writer, prom
 }
 
 // having a function that returns a function because we need to maintain some state inbetween calls hence the closure
-func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func(string) (CredentialType, bool) {
-	ttyText := ""
+func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (CredentialType, bool) {
+	var ttyText strings.Builder
 	// this function takes each word of output from the command and builds up a string to see if we're being asked for a password
-	return func(word string) (CredentialType, bool) {
-		ttyText = ttyText + " " + word
+	return func(newBytes []byte) (CredentialType, bool) {
+		_, err := ttyText.Write(newBytes)
+		if err != nil {
+			self.log.Error(err)
+		}
 
 		prompts := map[string]CredentialType{
+			`Password:`:                              Password,
 			`.+'s password:`:                         Password,
 			`Password\s*for\s*'.+':`:                 Password,
 			`Username\s*for\s*'.+':`:                 Username,
@@ -104,58 +105,12 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func(string) (Crede
 		}
 
 		for pattern, askFor := range prompts {
-			if match, _ := regexp.MatchString(pattern, ttyText); match {
-				ttyText = ""
+			if match, _ := regexp.MatchString(pattern, ttyText.String()); match {
+				ttyText.Reset()
 				return askFor, true
 			}
 		}
 
 		return 0, false
 	}
-}
-
-// scanWordsWithNewLines is a copy of bufio.ScanWords but this also captures new lines
-// For specific comments about this function take a look at: bufio.ScanWords
-func scanWordsWithNewLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	start := 0
-	for width := 0; start < len(data); start += width {
-		var r rune
-		r, width = utf8.DecodeRune(data[start:])
-		if !isSpace(r) {
-			break
-		}
-	}
-	for width, i := 0, start; i < len(data); i += width {
-		var r rune
-		r, width = utf8.DecodeRune(data[i:])
-		if isSpace(r) {
-			return i + width, data[start:i], nil
-		}
-	}
-	if atEOF && len(data) > start {
-		return len(data), data[start:], nil
-	}
-	return start, nil, nil
-}
-
-// isSpace is also copied from the bufio package and has been modified to also captures new lines
-// For specific comments about this function take a look at: bufio.isSpace
-func isSpace(r rune) bool {
-	if r <= '\u00FF' {
-		switch r {
-		case ' ', '\t', '\v', '\f':
-			return true
-		case '\u0085', '\u00A0':
-			return true
-		}
-		return false
-	}
-	if '\u2000' <= r && r <= '\u200a' {
-		return true
-	}
-	switch r {
-	case '\u1680', '\u2028', '\u2029', '\u202f', '\u205f', '\u3000':
-		return true
-	}
-	return false
 }
