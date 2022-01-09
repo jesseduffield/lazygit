@@ -39,11 +39,13 @@ func NewGuiIO(log *logrus.Entry, logCommandFn func(string, bool), newCmdWriterFn
 	}
 }
 
+// we use this function when we want to access the functionality of our OS struct but we
+// don't have anywhere to log things, or request input from the user.
 func NewNullGuiIO(log *logrus.Entry) *guiIO {
 	return &guiIO{
 		log:                   log,
 		logCommandFn:          func(string, bool) {},
 		newCmdWriterFn:        func() io.Writer { return ioutil.Discard },
-		promptForCredentialFn: func(CredentialType) string { return "" },
+		promptForCredentialFn: failPromptFn,
 	}
 }
