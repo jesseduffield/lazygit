@@ -47,6 +47,7 @@ func getNeedAndWantLineIdx(firstLineIdx int, lastLineIdx int, selectedLineIdx in
 	case HUNK:
 		return firstLineIdx, lastLineIdx
 	default:
+		// we should never land here
 		panic("unknown mode")
 	}
 }

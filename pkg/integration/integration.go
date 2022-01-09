@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -210,7 +211,7 @@ func GetRootDirectory() string {
 		path = filepath.Dir(path)
 
 		if path == "/" {
-			panic("must run in lazygit folder or child folder")
+			log.Fatal("must run in lazygit folder or child folder")
 		}
 	}
 }
