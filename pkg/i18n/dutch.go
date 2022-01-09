@@ -79,7 +79,6 @@ func dutchTranslationSet() TranslationSet {
 		Squash:                              "Squash",
 		LcPickCommit:                        "kies commit (wanneer midden in rebase)",
 		LcRevertCommit:                      "commit ongedaan maken",
-		OnlyRewordTopCommit:                 "Je kan alleen de bovenste commit hernoemen",
 		LcRewordCommit:                      "hernoem commit",
 		LcDeleteCommit:                      "verwijder commit",
 		LcMoveDownCommit:                    "verplaats commit 1 naar beneden",

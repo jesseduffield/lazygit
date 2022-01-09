@@ -221,10 +221,6 @@ func (gui *Gui) handleRewordCommit() error {
 		return nil
 	}
 
-	if gui.State.Panels.Commits.SelectedLineIdx != 0 {
-		return gui.createErrorPanel(gui.Tr.OnlyRewordTopCommit)
-	}
-
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
 		return nil
@@ -240,7 +236,7 @@ func (gui *Gui) handleRewordCommit() error {
 		initialContent: message,
 		handleConfirm: func(response string) error {
 			gui.logAction(gui.Tr.Actions.RewordCommit)
-			if err := gui.Git.Commit.RewordLastCommit(response); err != nil {
+			if err := gui.Git.Rebase.RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, response); err != nil {
 				return gui.surfaceError(err)
 			}
 
@@ -249,7 +245,7 @@ func (gui *Gui) handleRewordCommit() error {
 	})
 }
 
-func (gui *Gui) handleRenameCommitEditor() error {
+func (gui *Gui) handleRewordCommitEditor() error {
 	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
 		return err
 	}
@@ -263,7 +259,7 @@ func (gui *Gui) handleRenameCommitEditor() error {
 	}
 
 	gui.logAction(gui.Tr.Actions.RewordCommit)
-	subProcess, err := gui.Git.Rebase.RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
+	subProcess, err := gui.Git.Rebase.RewordCommitInEditor(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

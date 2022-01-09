@@ -24,9 +24,9 @@ func NewCommitCommands(
 	}
 }
 
-// RewordLastCommit renames the topmost commit with the given name
-func (self *CommitCommands) RewordLastCommit(name string) error {
-	return self.cmd.New("git commit --allow-empty --amend --only -m " + self.cmd.Quote(name)).Run()
+// RewordLastCommit rewords the topmost commit with the given message
+func (self *CommitCommands) RewordLastCommit(message string) error {
+	return self.cmd.New("git commit --allow-empty --amend --only -m " + self.cmd.Quote(message)).Run()
 }
 
 // ResetToCommit reset to commit
