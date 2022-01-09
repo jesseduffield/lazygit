@@ -231,6 +231,7 @@ func (gui *Gui) handleRewordCommit() error {
 		return gui.surfaceError(err)
 	}
 
+	// TODO: use the commit message panel here
 	return gui.prompt(promptOpts{
 		title:          gui.Tr.LcRewordCommit,
 		initialContent: message,
