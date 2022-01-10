@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+    "net/url"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -42,9 +43,9 @@ func (self *HostingServiceMgr) GetPullRequestURL(from string, to string) (string
 	}
 
 	if to == "" {
-		return gitService.getPullRequestURLIntoDefaultBranch(from), nil
+		return gitService.getPullRequestURLIntoDefaultBranch(url.QueryEscape(from)), nil
 	} else {
-		return gitService.getPullRequestURLIntoTargetBranch(from, to), nil
+		return gitService.getPullRequestURLIntoTargetBranch(url.QueryEscape(from), url.QueryEscape(to)), nil
 	}
 }
 
