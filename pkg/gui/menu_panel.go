@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -88,7 +89,11 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 	menuView.SetContent(list)
 	gui.State.Panels.Menu.SelectedLineIdx = 0
 
-	return gui.pushContext(gui.State.Contexts.Menu)
+	gui.g.Update(func(g *gocui.Gui) error {
+		return gui.pushContext(gui.State.Contexts.Menu)
+	})
+
+	return nil
 }
 
 func (gui *Gui) onMenuPress() error {
