@@ -768,3 +768,9 @@ func (gui *Gui) setColorScheme() error {
 
 	return nil
 }
+
+func (gui *Gui) OnUIThread(f func() error) {
+	gui.g.Update(func(*gocui.Gui) error {
+		return f()
+	})
+}

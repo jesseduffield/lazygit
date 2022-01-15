@@ -40,8 +40,7 @@ func (gui *Gui) handleCommitMessageFocused() error {
 		},
 	)
 
-	gui.renderString(gui.Views.Options, message)
-	return nil
+	return gui.renderString(gui.Views.Options, message)
 }
 
 func (gui *Gui) getBufferLength(view *gocui.View) string {

@@ -68,8 +68,7 @@ func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) e
 	manager := gui.getManager(view)
 
 	f := func(stop chan struct{}) error {
-		gui.renderString(view, str)
-		return nil
+		return gui.renderString(view, str)
 	}
 
 	if err := manager.NewTask(f, key); err != nil {

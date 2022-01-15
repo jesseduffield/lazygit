@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -98,7 +97,7 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 		return err
 	}
 
-	gui.g.Update(func(g *gocui.Gui) error {
+	gui.OnUIThread(func() error {
 		if err := gui.postRefreshUpdate(gui.State.Contexts.Submodules); err != nil {
 			gui.Log.Error(err)
 		}
@@ -110,7 +109,7 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 			}
 		}
 
-		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY || (g.CurrentView() == gui.Views.Main && ContextKey(g.CurrentView().Context) == MAIN_MERGING_CONTEXT_KEY) {
+		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY || (gui.g.CurrentView() == gui.Views.Main && ContextKey(gui.g.CurrentView().Context) == MAIN_MERGING_CONTEXT_KEY) {
 			newSelectedPath := gui.getSelectedPath()
 			alreadySelected := selectedPath != "" && newSelectedPath == selectedPath
 			if !alreadySelected {
@@ -407,14 +406,11 @@ func (gui *Gui) handleCommitPress() error {
 		}
 	}
 
-	gui.g.Update(func(g *gocui.Gui) error {
-		if err := gui.pushContext(gui.State.Contexts.CommitMessage); err != nil {
-			return err
-		}
+	if err := gui.pushContext(gui.State.Contexts.CommitMessage); err != nil {
+		return err
+	}
 
-		gui.RenderCommitLength()
-		return nil
-	})
+	gui.RenderCommitLength()
 	return nil
 }
 

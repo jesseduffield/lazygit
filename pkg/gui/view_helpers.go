@@ -180,7 +180,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 	}
 
 	if options.mode == BLOCK_UI {
-		gui.g.Update(func(g *gocui.Gui) error {
+		gui.OnUIThread(func() error {
 			f()
 			return nil
 		})
@@ -201,32 +201,19 @@ func (gui *Gui) cleanString(s string) string {
 	return utils.NormalizeLinefeeds(output)
 }
 
-func (gui *Gui) setViewContentSync(v *gocui.View, s string) {
+func (gui *Gui) setViewContent(v *gocui.View, s string) {
 	v.SetContent(gui.cleanString(s))
 }
 
-func (gui *Gui) setViewContent(v *gocui.View, s string) {
-	gui.g.Update(func(*gocui.Gui) error {
-		gui.setViewContentSync(v, s)
-		return nil
-	})
-}
-
 // renderString resets the origin of a view and sets its content
-func (gui *Gui) renderString(view *gocui.View, s string) {
-	gui.g.Update(func(*gocui.Gui) error {
-		return gui.renderStringSync(view, s)
-	})
-}
-
-func (gui *Gui) renderStringSync(view *gocui.View, s string) error {
+func (gui *Gui) renderString(view *gocui.View, s string) error {
 	if err := view.SetOrigin(0, 0); err != nil {
 		return err
 	}
 	if err := view.SetCursor(0, 0); err != nil {
 		return err
 	}
-	gui.setViewContentSync(view, s)
+	gui.setViewContent(view, s)
 	return nil
 }
 
@@ -240,7 +227,7 @@ func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 }
 
 func (gui *Gui) renderOptionsMap(optionsMap map[string]string) {
-	gui.renderString(gui.Views.Options, gui.optionsMapToString(optionsMap))
+	_ = gui.renderString(gui.Views.Options, gui.optionsMapToString(optionsMap))
 }
 
 func (gui *Gui) currentViewName() string {
@@ -391,5 +378,5 @@ func getTabbedView(gui *Gui) *gocui.View {
 }
 
 func (gui *Gui) render() {
-	gui.g.Update(func(g *gocui.Gui) error { return nil })
+	gui.OnUIThread(func() error { return nil })
 }

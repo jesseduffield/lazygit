@@ -102,20 +102,12 @@ func (gui *Gui) handleResetSelection() error {
 
 		if !gui.UserConfig.Gui.SkipUnstageLineWarning {
 			return gui.ask(askOpts{
-				title:               gui.Tr.UnstageLinesTitle,
-				prompt:              gui.Tr.UnstageLinesPrompt,
-				handlersManageFocus: true,
+				title:  gui.Tr.UnstageLinesTitle,
+				prompt: gui.Tr.UnstageLinesPrompt,
 				handleConfirm: func() error {
 					return gui.withLBLActiveCheck(func(state *LblPanelState) error {
-						if err := gui.pushContext(gui.State.Contexts.Staging); err != nil {
-							return err
-						}
-
 						return gui.applySelection(true, state)
 					})
-				},
-				handleClose: func() error {
-					return gui.pushContext(gui.State.Contexts.Staging)
 				},
 			})
 		} else {

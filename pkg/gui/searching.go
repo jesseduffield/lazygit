@@ -47,7 +47,7 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 
 	return func(y int, index int, total int) error {
 		if total == 0 {
-			gui.renderString(
+			return gui.renderString(
 				gui.Views.Search,
 				fmt.Sprintf(
 					"no matches for '%s' %s",
@@ -55,9 +55,8 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 					theme.OptionsFgColor.Sprintf("%s: exit search mode", gui.getKeyDisplay(keybindingConfig.Universal.Return)),
 				),
 			)
-			return nil
 		}
-		gui.renderString(
+		_ = gui.renderString(
 			gui.Views.Search,
 			fmt.Sprintf(
 				"matches for '%s' (%d of %d) %s",
