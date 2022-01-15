@@ -52,6 +52,7 @@ func (gui *Gui) handleSubmitCredential() error {
 }
 
 func (gui *Gui) handleCloseCredentialsView() error {
+	gui.Views.Credentials.ClearTextArea()
 	gui.credentials <- ""
 	return gui.returnFromContext()
 }
@@ -68,19 +69,4 @@ func (gui *Gui) handleAskFocused() error {
 	)
 
 	return gui.renderString(gui.Views.Options, message)
-}
-
-// handleCredentialsPopup handles the views after executing a command that might ask for credentials
-func (gui *Gui) handleCredentialsPopup(cmdErr error) {
-	if cmdErr != nil {
-		errMessage := cmdErr.Error()
-		if strings.Contains(errMessage, "Invalid username, password or passphrase") {
-			errMessage = gui.Tr.PassUnameWrong
-		}
-		_ = gui.returnFromContext()
-		// we are not logging this error because it may contain a password or a passphrase
-		_ = gui.PopupHandler.ErrorMsg(errMessage)
-	} else {
-		_ = gui.closeConfirmationPrompt(false)
-	}
 }

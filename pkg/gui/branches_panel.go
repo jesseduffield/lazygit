@@ -130,8 +130,9 @@ func (gui *Gui) handleCopyPullRequestURLPress() error {
 
 func (gui *Gui) handleGitFetch() error {
 	return gui.PopupHandler.WithLoaderPanel(gui.Tr.FetchWait, func() error {
-		err := gui.fetch()
-		gui.handleCredentialsPopup(err)
+		if err := gui.fetch(); err != nil {
+			_ = gui.PopupHandler.Error(err)
+		}
 		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	})
 }
@@ -415,7 +416,9 @@ func (gui *Gui) handleFastForward() error {
 		} else {
 			gui.logAction(action)
 			err := gui.Git.Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
-			gui.handleCredentialsPopup(err)
+			if err != nil {
+				_ = gui.PopupHandler.Error(err)
+			}
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{BRANCHES}})
 		}
 

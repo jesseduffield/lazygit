@@ -107,7 +107,9 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 			return gui.PopupHandler.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
 				gui.logAction(gui.Tr.Actions.PushTag)
 				err := gui.Git.Tag.Push(response, tag.Name)
-				gui.handleCredentialsPopup(err)
+				if err != nil {
+					_ = gui.PopupHandler.Error(err)
+				}
 
 				return nil
 			})

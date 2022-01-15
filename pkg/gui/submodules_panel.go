@@ -143,7 +143,9 @@ func (gui *Gui) handleAddSubmodule() error {
 							return gui.PopupHandler.WithWaitingStatus(gui.Tr.LcAddingSubmoduleStatus, func() error {
 								gui.logAction(gui.Tr.Actions.AddSubmodule)
 								err := gui.Git.Submodule.Add(submoduleName, submodulePath, submoduleUrl)
-								gui.handleCredentialsPopup(err)
+								if err != nil {
+									_ = gui.PopupHandler.Error(err)
+								}
 
 								return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
 							})
@@ -164,7 +166,9 @@ func (gui *Gui) handleEditSubmoduleUrl(submodule *models.SubmoduleConfig) error 
 			return gui.PopupHandler.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleUrlStatus, func() error {
 				gui.logAction(gui.Tr.Actions.UpdateSubmoduleUrl)
 				err := gui.Git.Submodule.UpdateUrl(submodule.Name, submodule.Path, newUrl)
-				gui.handleCredentialsPopup(err)
+				if err != nil {
+					_ = gui.PopupHandler.Error(err)
+				}
 
 				return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
 			})
@@ -176,7 +180,9 @@ func (gui *Gui) handleSubmoduleInit(submodule *models.SubmoduleConfig) error {
 	return gui.PopupHandler.WithWaitingStatus(gui.Tr.LcInitializingSubmoduleStatus, func() error {
 		gui.logAction(gui.Tr.Actions.InitialiseSubmodule)
 		err := gui.Git.Submodule.Init(submodule.Path)
-		gui.handleCredentialsPopup(err)
+		if err != nil {
+			_ = gui.PopupHandler.Error(err)
+		}
 
 		return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
 	})
@@ -278,7 +284,9 @@ func (gui *Gui) handleUpdateSubmodule(submodule *models.SubmoduleConfig) error {
 	return gui.PopupHandler.WithWaitingStatus(gui.Tr.LcUpdatingSubmoduleStatus, func() error {
 		gui.logAction(gui.Tr.Actions.UpdateSubmodule)
 		err := gui.Git.Submodule.Update(submodule.Path)
-		gui.handleCredentialsPopup(err)
+		if err != nil {
+			_ = gui.PopupHandler.Error(err)
+		}
 
 		return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
 	})

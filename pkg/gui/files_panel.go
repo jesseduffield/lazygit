@@ -736,25 +736,27 @@ func (gui *Gui) push(opts pushOpts) error {
 			SetUpstream:    opts.setUpstream,
 		})
 
-		if err != nil && !opts.force && strings.Contains(err.Error(), "Updates were rejected") {
-			forcePushDisabled := gui.UserConfig.Git.DisableForcePushing
-			if forcePushDisabled {
-				_ = gui.PopupHandler.ErrorMsg(gui.Tr.UpdatesRejectedAndForcePushDisabled)
+		if err != nil {
+			if !opts.force && strings.Contains(err.Error(), "Updates were rejected") {
+				forcePushDisabled := gui.UserConfig.Git.DisableForcePushing
+				if forcePushDisabled {
+					_ = gui.PopupHandler.ErrorMsg(gui.Tr.UpdatesRejectedAndForcePushDisabled)
+					return nil
+				}
+				_ = gui.PopupHandler.Ask(askOpts{
+					title:  gui.Tr.ForcePush,
+					prompt: gui.Tr.ForcePushPrompt,
+					handleConfirm: func() error {
+						newOpts := opts
+						newOpts.force = true
+
+						return gui.push(newOpts)
+					},
+				})
 				return nil
 			}
-			_ = gui.PopupHandler.Ask(askOpts{
-				title:  gui.Tr.ForcePush,
-				prompt: gui.Tr.ForcePushPrompt,
-				handleConfirm: func() error {
-					newOpts := opts
-					newOpts.force = true
-
-					return gui.push(newOpts)
-				},
-			})
-			return nil
+			_ = gui.PopupHandler.Error(err)
 		}
-		gui.handleCredentialsPopup(err)
 		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	})
 }

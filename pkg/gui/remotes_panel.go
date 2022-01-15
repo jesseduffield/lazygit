@@ -180,7 +180,9 @@ func (gui *Gui) handleFetchRemote() error {
 		defer gui.Mutexes.FetchMutex.Unlock()
 
 		err := gui.Git.Sync.FetchRemote(remote.Name)
-		gui.handleCredentialsPopup(err)
+		if err != nil {
+			_ = gui.PopupHandler.Error(err)
+		}
 
 		return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 	})
