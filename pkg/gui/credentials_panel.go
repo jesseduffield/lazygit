@@ -56,7 +56,7 @@ func (gui *Gui) handleCloseCredentialsView() error {
 	return gui.returnFromContext()
 }
 
-func (gui *Gui) handleCredentialsViewFocused() error {
+func (gui *Gui) handleAskFocused() error {
 	keybindingConfig := gui.UserConfig.Keybinding
 
 	message := utils.ResolvePlaceholderString(

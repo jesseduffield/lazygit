@@ -629,7 +629,7 @@ func EnglishTranslationSet() TranslationSet {
 		NoBranchesThisRepo:                  "No branches for this repo",
 		CommitMessageConfirm:                "{{.keyBindClose}}: close, {{.keyBindNewLine}}: new line, {{.keyBindConfirm}}: confirm",
 		CommitWithoutMessageErr:             "You cannot commit without a commit message",
-		CloseConfirm:                        "{{.keyBindClose}}: close, {{.keyBindConfirm}}: confirm",
+		CloseConfirm:                        "{{.keyBindClose}}: close/cancel, {{.keyBindConfirm}}: confirm",
 		LcClose:                             "close",
 		LcQuit:                              "quit",
 		LcSquashDown:                        "squash down",

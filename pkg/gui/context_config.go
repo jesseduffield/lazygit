@@ -174,12 +174,13 @@ func (gui *Gui) contextTree() ContextTree {
 			OnGetOptionsMap: gui.getMergingOptions,
 		},
 		Credentials: &BasicContext{
-			OnFocus:  OnFocusWrapper(gui.handleCredentialsViewFocused),
+			OnFocus:  OnFocusWrapper(gui.handleAskFocused),
 			Kind:     PERSISTENT_POPUP,
 			ViewName: "credentials",
 			Key:      CREDENTIALS_CONTEXT_KEY,
 		},
 		Confirmation: &BasicContext{
+			OnFocus:  OnFocusWrapper(gui.handleAskFocused),
 			Kind:     TEMPORARY_POPUP,
 			ViewName: "confirmation",
 			Key:      CONFIRMATION_CONTEXT_KEY,
