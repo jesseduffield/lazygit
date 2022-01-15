@@ -72,5 +72,9 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 		}
 	}
 
-	return gui.createMenu(strings.Title(gui.Tr.LcMenu), menuItems, createMenuOptions{hideCancel: true})
+	return gui.createMenu(createMenuOptions{
+		title:      strings.Title(gui.Tr.LcMenu),
+		items:      menuItems,
+		hideCancel: true,
+	})
 }

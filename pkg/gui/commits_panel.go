@@ -494,7 +494,7 @@ func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
 		}
 	}
 
-	return gui.createMenu(gui.Tr.SelectParentCommitForMerge, menuItems, createMenuOptions{})
+	return gui.createMenu(createMenuOptions{title: gui.Tr.SelectParentCommitForMerge, items: menuItems})
 }
 
 func (gui *Gui) afterRevertCommit() error {
@@ -582,22 +582,23 @@ func (gui *Gui) handleTagCommit() error {
 }
 
 func (gui *Gui) createTagMenu(commitSha string) error {
-	items := []*menuItem{
-		{
-			displayString: gui.Tr.LcLightweightTag,
-			onPress: func() error {
-				return gui.handleCreateLightweightTag(commitSha)
+	return gui.createMenu(createMenuOptions{
+		title: gui.Tr.TagMenuTitle,
+		items: []*menuItem{
+			{
+				displayString: gui.Tr.LcLightweightTag,
+				onPress: func() error {
+					return gui.handleCreateLightweightTag(commitSha)
+				},
+			},
+			{
+				displayString: gui.Tr.LcAnnotatedTag,
+				onPress: func() error {
+					return gui.handleCreateAnnotatedTag(commitSha)
+				},
 			},
 		},
-		{
-			displayString: gui.Tr.LcAnnotatedTag,
-			onPress: func() error {
-				return gui.handleCreateAnnotatedTag(commitSha)
-			},
-		},
-	}
-
-	return gui.createMenu(gui.Tr.TagMenuTitle, items, createMenuOptions{})
+	})
 }
 
 func (gui *Gui) afterTagCreate() error {
@@ -713,87 +714,87 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 }
 
 func (gui *Gui) handleOpenLogMenu() error {
-	return gui.createMenu(gui.Tr.LogMenuTitle, []*menuItem{
-		{
-			displayString: gui.Tr.ToggleShowGitGraphAll,
-			onPress: func() error {
-				gui.State.ShowWholeGitGraph = !gui.State.ShowWholeGitGraph
+	return gui.createMenu(createMenuOptions{
+		title: gui.Tr.LogMenuTitle,
+		items: []*menuItem{
+			{
+				displayString: gui.Tr.ToggleShowGitGraphAll,
+				onPress: func() error {
+					gui.State.ShowWholeGitGraph = !gui.State.ShowWholeGitGraph
 
-				if gui.State.ShowWholeGitGraph {
-					gui.State.Panels.Commits.LimitCommits = false
-				}
+					if gui.State.ShowWholeGitGraph {
+						gui.State.Panels.Commits.LimitCommits = false
+					}
 
-				return gui.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
-					return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}})
-				})
-			},
-		},
-		{
-			displayString: gui.Tr.ShowGitGraph,
-			opensMenu:     true,
-			onPress: func() error {
-				onSelect := func(value string) {
-					gui.UserConfig.Git.Log.ShowGraph = value
-					gui.render()
-				}
-				return gui.createMenu(gui.Tr.LogMenuTitle, []*menuItem{
-					{
-						displayString: "always",
-						onPress: func() error {
-							onSelect("always")
-							return nil
-						},
-					},
-					{
-						displayString: "never",
-						onPress: func() error {
-							onSelect("never")
-							return nil
-						},
-					},
-					{
-						displayString: "when maximised",
-						onPress: func() error {
-							onSelect("when-maximised")
-							return nil
-						},
-					},
-				}, createMenuOptions{})
-			},
-		},
-		{
-			displayString: gui.Tr.SortCommits,
-			opensMenu:     true,
-			onPress: func() error {
-				onSelect := func(value string) error {
-					gui.UserConfig.Git.Log.Order = value
 					return gui.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
 						return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}})
 					})
-				}
-				return gui.createMenu(gui.Tr.LogMenuTitle, []*menuItem{
-					{
-						displayString: "topological (topo-order)",
-						onPress: func() error {
-							return onSelect("topo-order")
+				},
+			},
+			{
+				displayString: gui.Tr.ShowGitGraph,
+				opensMenu:     true,
+				onPress: func() error {
+					onPress := func(value string) func() error {
+						return func() error {
+							gui.UserConfig.Git.Log.ShowGraph = value
+							gui.render()
+							return nil
+						}
+					}
+					return gui.createMenu(createMenuOptions{
+						title: gui.Tr.LogMenuTitle,
+						items: []*menuItem{
+							{
+								displayString: "always",
+								onPress:       onPress("always"),
+							},
+							{
+								displayString: "never",
+								onPress:       onPress("never"),
+							},
+							{
+								displayString: "when maximised",
+								onPress:       onPress("when-maximised"),
+							},
 						},
-					},
-					{
-						displayString: "date-order",
-						onPress: func() error {
-							return onSelect("date-order")
+					})
+				},
+			},
+			{
+				displayString: gui.Tr.SortCommits,
+				opensMenu:     true,
+				onPress: func() error {
+					onPress := func(value string) func() error {
+						return func() error {
+							gui.UserConfig.Git.Log.Order = value
+							return gui.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
+								return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}})
+							})
+						}
+					}
+
+					return gui.createMenu(createMenuOptions{
+						title: gui.Tr.LogMenuTitle,
+						items: []*menuItem{
+							{
+								displayString: "topological (topo-order)",
+								onPress:       onPress("topo-order"),
+							},
+							{
+								displayString: "date-order",
+								onPress:       onPress("date-order"),
+							},
+							{
+								displayString: "author-date-order",
+								onPress:       onPress("author-date-order"),
+							},
 						},
-					},
-					{
-						displayString: "author-date-order",
-						onPress: func() error {
-							return onSelect("author-date-order")
-						},
-					},
-				}, createMenuOptions{})
+					})
+				},
 			},
 		},
-	}, createMenuOptions{})
+	})
 }
 
 func (gui *Gui) handleOpenCommitInBrowser() error {

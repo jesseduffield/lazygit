@@ -32,33 +32,34 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 		}
 	}
 
-	menuItems := []*menuItem{
-		{
-			// not localising here because it's one to one with the actual git flow commands
-			displayString: fmt.Sprintf("finish branch '%s'", branch.Name),
-			onPress: func() error {
-				return gui.gitFlowFinishBranch(branch.Name)
+	return gui.createMenu(createMenuOptions{
+		title: "git flow",
+		items: []*menuItem{
+			{
+				// not localising here because it's one to one with the actual git flow commands
+				displayString: fmt.Sprintf("finish branch '%s'", branch.Name),
+				onPress: func() error {
+					return gui.gitFlowFinishBranch(branch.Name)
+				},
+			},
+			{
+				displayString: "start feature",
+				onPress:       startHandler("feature"),
+			},
+			{
+				displayString: "start hotfix",
+				onPress:       startHandler("hotfix"),
+			},
+			{
+				displayString: "start bugfix",
+				onPress:       startHandler("bugfix"),
+			},
+			{
+				displayString: "start release",
+				onPress:       startHandler("release"),
 			},
 		},
-		{
-			displayString: "start feature",
-			onPress:       startHandler("feature"),
-		},
-		{
-			displayString: "start hotfix",
-			onPress:       startHandler("hotfix"),
-		},
-		{
-			displayString: "start bugfix",
-			onPress:       startHandler("bugfix"),
-		},
-		{
-			displayString: "start release",
-			onPress:       startHandler("release"),
-		},
-	}
-
-	return gui.createMenu("git flow", menuItems, createMenuOptions{})
+	})
 }
 
 func (gui *Gui) gitFlowFinishBranch(branchName string) error {

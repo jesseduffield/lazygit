@@ -7,30 +7,31 @@ import (
 )
 
 func (gui *Gui) handleCreateExtrasMenuPanel() error {
-	menuItems := []*menuItem{
-		{
-			displayString: gui.Tr.ToggleShowCommandLog,
-			onPress: func() error {
-				currentContext := gui.currentStaticContext()
-				if gui.ShowExtrasWindow && currentContext.GetKey() == COMMAND_LOG_CONTEXT_KEY {
-					if err := gui.returnFromContext(); err != nil {
-						return err
+	return gui.createMenu(createMenuOptions{
+		title: gui.Tr.CommandLog,
+		items: []*menuItem{
+			{
+				displayString: gui.Tr.ToggleShowCommandLog,
+				onPress: func() error {
+					currentContext := gui.currentStaticContext()
+					if gui.ShowExtrasWindow && currentContext.GetKey() == COMMAND_LOG_CONTEXT_KEY {
+						if err := gui.returnFromContext(); err != nil {
+							return err
+						}
 					}
-				}
-				show := !gui.ShowExtrasWindow
-				gui.ShowExtrasWindow = show
-				gui.Config.GetAppState().HideCommandLog = !show
-				_ = gui.Config.SaveAppState()
-				return nil
+					show := !gui.ShowExtrasWindow
+					gui.ShowExtrasWindow = show
+					gui.Config.GetAppState().HideCommandLog = !show
+					_ = gui.Config.SaveAppState()
+					return nil
+				},
+			},
+			{
+				displayString: gui.Tr.FocusCommandLog,
+				onPress:       gui.handleFocusCommandLog,
 			},
 		},
-		{
-			displayString: gui.Tr.FocusCommandLog,
-			onPress:       gui.handleFocusCommandLog,
-		},
-	}
-
-	return gui.createMenu(gui.Tr.CommandLog, menuItems, createMenuOptions{})
+	})
 }
 
 func (gui *Gui) handleFocusCommandLog() error {

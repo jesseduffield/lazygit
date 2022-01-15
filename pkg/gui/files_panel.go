@@ -474,28 +474,29 @@ func (gui *Gui) handleCommitEditorPress() error {
 }
 
 func (gui *Gui) handleStatusFilterPressed() error {
-	menuItems := []*menuItem{
-		{
-			displayString: gui.Tr.FilterStagedFiles,
-			onPress: func() error {
-				return gui.setStatusFiltering(filetree.DisplayStaged)
+	return gui.createMenu(createMenuOptions{
+		title: gui.Tr.FilteringMenuTitle,
+		items: []*menuItem{
+			{
+				displayString: gui.Tr.FilterStagedFiles,
+				onPress: func() error {
+					return gui.setStatusFiltering(filetree.DisplayStaged)
+				},
+			},
+			{
+				displayString: gui.Tr.FilterUnstagedFiles,
+				onPress: func() error {
+					return gui.setStatusFiltering(filetree.DisplayUnstaged)
+				},
+			},
+			{
+				displayString: gui.Tr.ResetCommitFilterState,
+				onPress: func() error {
+					return gui.setStatusFiltering(filetree.DisplayAll)
+				},
 			},
 		},
-		{
-			displayString: gui.Tr.FilterUnstagedFiles,
-			onPress: func() error {
-				return gui.setStatusFiltering(filetree.DisplayUnstaged)
-			},
-		},
-		{
-			displayString: gui.Tr.ResetCommitFilterState,
-			onPress: func() error {
-				return gui.setStatusFiltering(filetree.DisplayAll)
-			},
-		},
-	}
-
-	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{})
+	})
 }
 
 func (gui *Gui) setStatusFiltering(filter filetree.FileManagerDisplayFilter) error {
@@ -900,24 +901,25 @@ func (gui *Gui) handleCustomCommand() error {
 }
 
 func (gui *Gui) handleCreateStashMenu() error {
-	menuItems := []*menuItem{
-		{
-			displayString: gui.Tr.LcStashAllChanges,
-			onPress: func() error {
-				gui.logAction(gui.Tr.Actions.StashAllChanges)
-				return gui.handleStashSave(gui.Git.Stash.Save)
+	return gui.createMenu(createMenuOptions{
+		title: gui.Tr.LcStashOptions,
+		items: []*menuItem{
+			{
+				displayString: gui.Tr.LcStashAllChanges,
+				onPress: func() error {
+					gui.logAction(gui.Tr.Actions.StashAllChanges)
+					return gui.handleStashSave(gui.Git.Stash.Save)
+				},
+			},
+			{
+				displayString: gui.Tr.LcStashStagedChanges,
+				onPress: func() error {
+					gui.logAction(gui.Tr.Actions.StashStagedChanges)
+					return gui.handleStashSave(gui.Git.Stash.SaveStagedChanges)
+				},
 			},
 		},
-		{
-			displayString: gui.Tr.LcStashStagedChanges,
-			onPress: func() error {
-				gui.logAction(gui.Tr.Actions.StashStagedChanges)
-				return gui.handleStashSave(gui.Git.Stash.SaveStagedChanges)
-			},
-		},
-	}
-
-	return gui.createMenu(gui.Tr.LcStashOptions, menuItems, createMenuOptions{})
+	})
 }
 
 func (gui *Gui) handleStashChanges() error {

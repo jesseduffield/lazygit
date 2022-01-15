@@ -31,13 +31,16 @@ func (gui *Gui) handleMenuClose() error {
 }
 
 type createMenuOptions struct {
+	title      string
+	items      []*menuItem
 	hideCancel bool
 }
 
-func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions createMenuOptions) error {
-	if !createMenuOptions.hideCancel {
+// note: items option is mutated by this function
+func (gui *Gui) createMenu(opts createMenuOptions) error {
+	if !opts.hideCancel {
 		// this is mutative but I'm okay with that for now
-		items = append(items, &menuItem{
+		opts.items = append(opts.items, &menuItem{
 			displayStrings: []string{gui.Tr.LcCancel},
 			onPress: func() error {
 				return nil
@@ -45,10 +48,10 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 		})
 	}
 
-	gui.State.MenuItems = items
+	gui.State.MenuItems = opts.items
 
-	stringArrays := make([][]string, len(items))
-	for i, item := range items {
+	stringArrays := make([][]string, len(opts.items))
+	for i, item := range opts.items {
 		if item.opensMenu && item.displayStrings != nil {
 			return errors.New("Message for the developer of this app: you've set opensMenu with displaystrings on the menu panel. Bad developer!. Apologies, user")
 		}
@@ -68,7 +71,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(false, list)
 	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
-	menuView.Title = title
+	menuView.Title = opts.title
 	menuView.FgColor = theme.GocuiDefaultTextColor
 	menuView.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
 		return nil

@@ -51,5 +51,5 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 		})
 	}
 
-	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{})
+	return gui.createMenu(createMenuOptions{title: gui.Tr.FilteringMenuTitle, items: menuItems})
 }

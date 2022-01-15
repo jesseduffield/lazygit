@@ -51,7 +51,7 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 
 	menuItems = append(menuItems, menuItemsForBranch(selectedBranch)...)
 
-	return gui.createMenu(fmt.Sprintf(gui.Tr.CreatePullRequestOptions), menuItems, createMenuOptions{})
+	return gui.createMenu(createMenuOptions{title: fmt.Sprintf(gui.Tr.CreatePullRequestOptions), items: menuItems})
 }
 
 func (gui *Gui) createPullRequest(from string, to string) error {

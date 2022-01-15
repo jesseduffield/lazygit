@@ -79,5 +79,5 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 		}
 	}
 
-	return gui.createMenu(node.GetPath(), menuItems, createMenuOptions{})
+	return gui.createMenu(createMenuOptions{title: node.GetPath(), items: menuItems})
 }

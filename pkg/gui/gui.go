@@ -489,6 +489,7 @@ func NewGui(
 		gui.createPopupPanel,
 		func() error { return gui.refreshSidePanels(refreshOptions{mode: ASYNC}) },
 		func() error { return gui.closeConfirmationPrompt(false) },
+		gui.createMenu,
 	)
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)

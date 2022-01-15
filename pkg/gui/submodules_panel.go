@@ -194,82 +194,84 @@ func (gui *Gui) forSubmodule(callback func(*models.SubmoduleConfig) error) func(
 }
 
 func (gui *Gui) handleResetRemoveSubmodule(submodule *models.SubmoduleConfig) error {
-	menuItems := []*menuItem{
-		{
-			displayString: gui.Tr.LcSubmoduleStashAndReset,
-			onPress: func() error {
-				return gui.resetSubmodule(submodule)
+	return gui.createMenu(createMenuOptions{
+		title: submodule.Name,
+		items: []*menuItem{
+			{
+				displayString: gui.Tr.LcSubmoduleStashAndReset,
+				onPress: func() error {
+					return gui.resetSubmodule(submodule)
+				},
+			},
+			{
+				displayString: gui.Tr.LcRemoveSubmodule,
+				onPress: func() error {
+					return gui.removeSubmodule(submodule)
+				},
 			},
 		},
-		{
-			displayString: gui.Tr.LcRemoveSubmodule,
-			onPress: func() error {
-				return gui.removeSubmodule(submodule)
-			},
-		},
-	}
-
-	return gui.createMenu(submodule.Name, menuItems, createMenuOptions{})
+	})
 }
 
 func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
-	menuItems := []*menuItem{
-		{
-			displayStrings: []string{gui.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(gui.Git.Submodule.BulkInitCmdObj().ToString())},
-			onPress: func() error {
-				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					gui.logAction(gui.Tr.Actions.BulkInitialiseSubmodules)
-					err := gui.Git.Submodule.BulkInitCmdObj().Run()
-					if err != nil {
-						return gui.surfaceError(err)
-					}
+	return gui.createMenu(createMenuOptions{
+		title: gui.Tr.LcBulkSubmoduleOptions,
+		items: []*menuItem{
+			{
+				displayStrings: []string{gui.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(gui.Git.Submodule.BulkInitCmdObj().ToString())},
+				onPress: func() error {
+					return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
+						gui.logAction(gui.Tr.Actions.BulkInitialiseSubmodules)
+						err := gui.Git.Submodule.BulkInitCmdObj().Run()
+						if err != nil {
+							return gui.surfaceError(err)
+						}
 
-					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
-				})
+						return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
+					})
+				},
+			},
+			{
+				displayStrings: []string{gui.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(gui.Git.Submodule.BulkUpdateCmdObj().ToString())},
+				onPress: func() error {
+					return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
+						gui.logAction(gui.Tr.Actions.BulkUpdateSubmodules)
+						if err := gui.Git.Submodule.BulkUpdateCmdObj().Run(); err != nil {
+							return gui.surfaceError(err)
+						}
+
+						return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
+					})
+				},
+			},
+			{
+				displayStrings: []string{gui.Tr.LcSubmoduleStashAndReset, style.FgRed.Sprintf("git stash in each submodule && %s", gui.Git.Submodule.ForceBulkUpdateCmdObj().ToString())},
+				onPress: func() error {
+					return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
+						gui.logAction(gui.Tr.Actions.BulkStashAndResetSubmodules)
+						if err := gui.Git.Submodule.ResetSubmodules(gui.State.Submodules); err != nil {
+							return gui.surfaceError(err)
+						}
+
+						return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
+					})
+				},
+			},
+			{
+				displayStrings: []string{gui.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(gui.Git.Submodule.BulkDeinitCmdObj().ToString())},
+				onPress: func() error {
+					return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
+						gui.logAction(gui.Tr.Actions.BulkDeinitialiseSubmodules)
+						if err := gui.Git.Submodule.BulkDeinitCmdObj().Run(); err != nil {
+							return gui.surfaceError(err)
+						}
+
+						return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
+					})
+				},
 			},
 		},
-		{
-			displayStrings: []string{gui.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(gui.Git.Submodule.BulkUpdateCmdObj().ToString())},
-			onPress: func() error {
-				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					gui.logAction(gui.Tr.Actions.BulkUpdateSubmodules)
-					if err := gui.Git.Submodule.BulkUpdateCmdObj().Run(); err != nil {
-						return gui.surfaceError(err)
-					}
-
-					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
-				})
-			},
-		},
-		{
-			displayStrings: []string{gui.Tr.LcSubmoduleStashAndReset, style.FgRed.Sprintf("git stash in each submodule && %s", gui.Git.Submodule.ForceBulkUpdateCmdObj().ToString())},
-			onPress: func() error {
-				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					gui.logAction(gui.Tr.Actions.BulkStashAndResetSubmodules)
-					if err := gui.Git.Submodule.ResetSubmodules(gui.State.Submodules); err != nil {
-						return gui.surfaceError(err)
-					}
-
-					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
-				})
-			},
-		},
-		{
-			displayStrings: []string{gui.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(gui.Git.Submodule.BulkDeinitCmdObj().ToString())},
-			onPress: func() error {
-				return gui.WithWaitingStatus(gui.Tr.LcRunningCommand, func() error {
-					gui.logAction(gui.Tr.Actions.BulkDeinitialiseSubmodules)
-					if err := gui.Git.Submodule.BulkDeinitCmdObj().Run(); err != nil {
-						return gui.surfaceError(err)
-					}
-
-					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{SUBMODULES}})
-				})
-			},
-		},
-	}
-
-	return gui.createMenu(gui.Tr.LcBulkSubmoduleOptions, menuItems, createMenuOptions{})
+	})
 }
 
 func (gui *Gui) handleUpdateSubmodule(submodule *models.SubmoduleConfig) error {

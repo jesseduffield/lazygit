@@ -148,7 +148,11 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 				},
 			}
 		}
-		return gui.createMenu(gui.Tr.SelectConfigFile, menuItems, createMenuOptions{hideCancel: true})
+		return gui.createMenu(createMenuOptions{
+			title:      gui.Tr.SelectConfigFile,
+			items:      menuItems,
+			hideCancel: true,
+		})
 	}
 }
 

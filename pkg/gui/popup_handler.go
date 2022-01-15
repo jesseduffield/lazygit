@@ -14,7 +14,7 @@ type PopupHandler interface {
 	Ask(opts askOpts) error
 	Prompt(opts promptOpts) error
 	WithLoaderPanel(message string, f func() error)
-	// Menu(opts menuOpts) error
+	Menu(opts createMenuOptions) error
 }
 
 type RealPopupHandler struct {
@@ -24,6 +24,7 @@ type RealPopupHandler struct {
 	createPopupPanelFn func(createPopupPanelOpts) error
 	onErrorFn          func() error
 	closePopupFn       func() error
+	createMenuFn       func(createMenuOptions) error
 }
 
 var _ PopupHandler = &RealPopupHandler{}
@@ -33,6 +34,7 @@ func NewPopupHandler(
 	createPopupPanelFn func(createPopupPanelOpts) error,
 	onErrorFn func() error,
 	closePopupFn func() error,
+	createMenuFn func(createMenuOptions) error,
 ) PopupHandler {
 	return &RealPopupHandler{
 		Common:             common,
@@ -40,7 +42,12 @@ func NewPopupHandler(
 		createPopupPanelFn: createPopupPanelFn,
 		onErrorFn:          onErrorFn,
 		closePopupFn:       closePopupFn,
+		createMenuFn:       createMenuFn,
 	}
+}
+
+func (self *RealPopupHandler) Menu(opts createMenuOptions) error {
+	return self.createMenuFn(opts)
 }
 
 func (self *RealPopupHandler) Error(message string) error {
