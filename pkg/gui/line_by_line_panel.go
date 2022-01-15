@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
 )
@@ -172,15 +171,11 @@ func (gui *Gui) focusSelection(state *LblPanelState) error {
 
 	newOrigin := state.CalculateOrigin(origin, bufferHeight)
 
-	gui.g.Update(func(*gocui.Gui) error {
-		if err := stagingView.SetOriginY(newOrigin); err != nil {
-			return err
-		}
+	if err := stagingView.SetOriginY(newOrigin); err != nil {
+		return err
+	}
 
-		return stagingView.SetCursor(0, selectedLineIdx-newOrigin)
-	})
-
-	return nil
+	return stagingView.SetCursor(0, selectedLineIdx-newOrigin)
 }
 
 func (gui *Gui) handleToggleSelectRange() error {

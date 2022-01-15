@@ -27,6 +27,7 @@ func setupGuiForTest(gui *Gui) {
 	gui.g = &gocui.Gui{}
 	gui.Views.Main, _ = gui.prepareView("main")
 	gui.Views.Secondary, _ = gui.prepareView("secondary")
+	gui.Views.Options, _ = gui.prepareView("options")
 	gui.Git.Patch.PatchManager = &patch.PatchManager{}
 	_, _ = gui.refreshLineByLinePanel(diffForTest, "", false, 11)
 }
@@ -47,7 +48,7 @@ func TestIncreasesContextInDiffViewByOneInContextWithDiff(t *testing.T) {
 		context := c(gui)
 		setupGuiForTest(gui)
 		gui.UserConfig.Git.DiffContextSize = 1
-		_ = gui.pushContextDirect(context)
+		_ = gui.pushContext(context)
 
 		_ = gui.IncreaseContextInDiffView()
 
@@ -73,7 +74,7 @@ func TestDoesntIncreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
 		context := c(gui)
 		setupGuiForTest(gui)
 		gui.UserConfig.Git.DiffContextSize = 1
-		_ = gui.pushContextDirect(context)
+		_ = gui.pushContext(context)
 
 		_ = gui.IncreaseContextInDiffView()
 
@@ -97,7 +98,7 @@ func TestDecreasesContextInDiffViewByOneInContextWithDiff(t *testing.T) {
 		context := c(gui)
 		setupGuiForTest(gui)
 		gui.UserConfig.Git.DiffContextSize = 2
-		_ = gui.pushContextDirect(context)
+		_ = gui.pushContext(context)
 
 		_ = gui.DecreaseContextInDiffView()
 
@@ -123,7 +124,7 @@ func TestDoesntDecreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
 		context := c(gui)
 		setupGuiForTest(gui)
 		gui.UserConfig.Git.DiffContextSize = 2
-		_ = gui.pushContextDirect(context)
+		_ = gui.pushContext(context)
 
 		_ = gui.DecreaseContextInDiffView()
 
@@ -135,7 +136,7 @@ func TestDoesntIncreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *test
 	gui := NewDummyGui()
 	setupGuiForTest(gui)
 	gui.UserConfig.Git.DiffContextSize = 2
-	_ = gui.pushContextDirect(gui.State.Contexts.CommitFiles)
+	_ = gui.pushContext(gui.State.Contexts.CommitFiles)
 	gui.Git.Patch.PatchManager.Start("from", "to", false, false)
 
 	errorCount := 0
@@ -157,7 +158,7 @@ func TestDoesntDecreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *test
 	gui := NewDummyGui()
 	setupGuiForTest(gui)
 	gui.UserConfig.Git.DiffContextSize = 2
-	_ = gui.pushContextDirect(gui.State.Contexts.CommitFiles)
+	_ = gui.pushContext(gui.State.Contexts.CommitFiles)
 	gui.Git.Patch.PatchManager.Start("from", "to", false, false)
 
 	errorCount := 0

@@ -226,15 +226,11 @@ func (gui *Gui) enterCommitFile(opts OnFocusOpts) error {
 
 	if gui.Git.Patch.PatchManager.Active() && gui.Git.Patch.PatchManager.To != gui.State.CommitFileManager.GetParent() {
 		return gui.ask(askOpts{
-			title:               gui.Tr.DiscardPatch,
-			prompt:              gui.Tr.DiscardPatchConfirm,
-			handlersManageFocus: true,
+			title:  gui.Tr.DiscardPatch,
+			prompt: gui.Tr.DiscardPatchConfirm,
 			handleConfirm: func() error {
 				gui.Git.Patch.PatchManager.Reset()
 				return enterTheFile()
-			},
-			handleClose: func() error {
-				return gui.pushContext(gui.State.Contexts.CommitFiles)
 			},
 		})
 	}

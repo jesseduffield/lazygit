@@ -54,14 +54,14 @@ func (gui *Gui) createLoaderPanel(prompt string) error {
 
 func (gui *Gui) wrappedConfirmationFunction(handlersManageFocus bool, function func() error) func() error {
 	return func() error {
-		if function != nil {
-			if err := function(); err != nil {
-				return err
-			}
-		}
-
 		if err := gui.closeConfirmationPrompt(handlersManageFocus); err != nil {
 			return err
+		}
+
+		if function != nil {
+			if err := function(); err != nil {
+				return gui.surfaceError(err)
+			}
 		}
 
 		return nil
@@ -70,14 +70,14 @@ func (gui *Gui) wrappedConfirmationFunction(handlersManageFocus bool, function f
 
 func (gui *Gui) wrappedPromptConfirmationFunction(handlersManageFocus bool, function func(string) error, getResponse func() string) func() error {
 	return func() error {
+		if err := gui.closeConfirmationPrompt(handlersManageFocus); err != nil {
+			return err
+		}
+
 		if function != nil {
 			if err := function(getResponse()); err != nil {
 				return gui.surfaceError(err)
 			}
-		}
-
-		if err := gui.closeConfirmationPrompt(handlersManageFocus); err != nil {
-			return err
 		}
 
 		return nil
@@ -176,45 +176,43 @@ func (gui *Gui) prepareConfirmationPanel(
 		suggestionsView.Title = fmt.Sprintf(gui.Tr.SuggestionsTitle, gui.UserConfig.Keybinding.Universal.TogglePanel)
 	}
 
-	gui.g.Update(func(g *gocui.Gui) error {
-		return gui.pushContext(gui.State.Contexts.Confirmation)
-	})
 	return nil
 }
 
 func (gui *Gui) createPopupPanel(opts createPopupPanelOpts) error {
-	gui.g.Update(func(g *gocui.Gui) error {
-		// remove any previous keybindings
-		gui.clearConfirmationViewKeyBindings()
+	// remove any previous keybindings
+	gui.clearConfirmationViewKeyBindings()
 
-		err := gui.prepareConfirmationPanel(
-			opts.title,
-			opts.prompt,
-			opts.hasLoader,
-			opts.findSuggestionsFunc,
-			opts.editable,
-		)
-		if err != nil {
+	err := gui.prepareConfirmationPanel(
+		opts.title,
+		opts.prompt,
+		opts.hasLoader,
+		opts.findSuggestionsFunc,
+		opts.editable,
+	)
+	if err != nil {
+		return err
+	}
+	confirmationView := gui.Views.Confirmation
+	confirmationView.Editable = opts.editable
+	confirmationView.Editor = gocui.EditorFunc(gui.defaultEditor)
+
+	if opts.editable {
+		textArea := confirmationView.TextArea
+		textArea.Clear()
+		textArea.TypeString(opts.prompt)
+		confirmationView.RenderTextArea()
+	} else {
+		if err := gui.renderString(confirmationView, opts.prompt); err != nil {
 			return err
 		}
-		confirmationView := gui.Views.Confirmation
-		confirmationView.Editable = opts.editable
-		confirmationView.Editor = gocui.EditorFunc(gui.defaultEditor)
+	}
 
-		if opts.editable {
-			textArea := confirmationView.TextArea
-			textArea.Clear()
-			textArea.TypeString(opts.prompt)
-			confirmationView.RenderTextArea()
-		} else {
-			if err := gui.renderStringSync(confirmationView, opts.prompt); err != nil {
-				return err
-			}
-		}
+	if err := gui.setKeyBindings(opts); err != nil {
+		return err
+	}
 
-		return gui.setKeyBindings(opts)
-	})
-	return nil
+	return gui.pushContext(gui.State.Contexts.Confirmation)
 }
 
 func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
@@ -226,7 +224,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		},
 	)
 
-	gui.renderString(gui.Views.Options, actions)
+	_ = gui.renderString(gui.Views.Options, actions)
 	var onConfirm func() error
 	if opts.handleConfirmPrompt != nil {
 		onConfirm = gui.wrappedPromptConfirmationFunction(opts.handlersManageFocus, opts.handleConfirmPrompt, func() string { return gui.Views.Confirmation.TextArea.GetContent() })

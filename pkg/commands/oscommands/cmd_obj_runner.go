@@ -51,6 +51,8 @@ func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 		return "", err
 	}
 
+	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
+
 	if cmdObj.ShouldLog() {
 		self.logCmdObj(cmdObj)
 	}

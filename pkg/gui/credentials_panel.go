@@ -3,7 +3,6 @@ package gui
 import (
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -13,7 +12,7 @@ type credentials chan string
 // promptUserForCredential wait for a username, password or passphrase input from the credentials popup
 func (gui *Gui) promptUserForCredential(passOrUname oscommands.CredentialType) string {
 	gui.credentials = make(chan string)
-	gui.g.Update(func(g *gocui.Gui) error {
+	gui.OnUIThread(func() error {
 		credentialsView := gui.Views.Credentials
 		switch passOrUname {
 		case oscommands.Username:
@@ -68,8 +67,7 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 		},
 	)
 
-	gui.renderString(gui.Views.Options, message)
-	return nil
+	return gui.renderString(gui.Views.Options, message)
 }
 
 // handleCredentialsPopup handles the views after executing a command that might ask for credentials

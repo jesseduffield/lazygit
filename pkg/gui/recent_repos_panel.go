@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/env"
@@ -77,19 +76,15 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 	}
 	gui.Git = newGitCommand
 
-	gui.g.Update(func(*gocui.Gui) error {
-		// these two mutexes are used by our background goroutines (triggered via `gui.goEvery`. We don't want to
-		// switch to a repo while one of these goroutines is in the process of updating something
-		gui.Mutexes.FetchMutex.Lock()
-		defer gui.Mutexes.FetchMutex.Unlock()
+	// these two mutexes are used by our background goroutines (triggered via `gui.goEvery`. We don't want to
+	// switch to a repo while one of these goroutines is in the process of updating something
+	gui.Mutexes.FetchMutex.Lock()
+	defer gui.Mutexes.FetchMutex.Unlock()
 
-		gui.Mutexes.RefreshingFilesMutex.Lock()
-		defer gui.Mutexes.RefreshingFilesMutex.Unlock()
+	gui.Mutexes.RefreshingFilesMutex.Lock()
+	defer gui.Mutexes.RefreshingFilesMutex.Unlock()
 
-		gui.resetState("", reuse)
-
-		return nil
-	})
+	gui.resetState("", reuse)
 
 	return nil
 }

@@ -222,9 +222,7 @@ func (gui *Gui) centerYPos(view *gocui.View, y int) {
 	ox, _ := view.Origin()
 	_, height := view.Size()
 	newOriginY := int(math.Max(0, float64(y-(height/2))))
-	gui.g.Update(func(g *gocui.Gui) error {
-		return view.SetOrigin(ox, newOriginY)
-	})
+	_ = view.SetOrigin(ox, newOriginY)
 }
 
 func (gui *Gui) getMergingOptions() map[string]string {

@@ -71,21 +71,17 @@ func (gui *Gui) currentContextKeyIgnoringPopups() ContextKey {
 // use replaceContext when you don't want to return to the original context upon
 // hitting escape: you want to go that context's parent instead.
 func (gui *Gui) replaceContext(c Context) error {
-	gui.g.Update(func(*gocui.Gui) error {
-		gui.State.ContextManager.Lock()
-		defer gui.State.ContextManager.Unlock()
+	gui.State.ContextManager.Lock()
+	defer gui.State.ContextManager.Unlock()
 
-		if len(gui.State.ContextManager.ContextStack) == 0 {
-			gui.State.ContextManager.ContextStack = []Context{c}
-		} else {
-			// replace the last item with the given item
-			gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack[0:len(gui.State.ContextManager.ContextStack)-1], c)
-		}
+	if len(gui.State.ContextManager.ContextStack) == 0 {
+		gui.State.ContextManager.ContextStack = []Context{c}
+	} else {
+		// replace the last item with the given item
+		gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack[0:len(gui.State.ContextManager.ContextStack)-1], c)
+	}
 
-		return gui.activateContext(c)
-	})
-
-	return nil
+	return gui.activateContext(c)
 }
 
 func (gui *Gui) pushContext(c Context, opts ...OnFocusOpts) error {
@@ -94,14 +90,6 @@ func (gui *Gui) pushContext(c Context, opts ...OnFocusOpts) error {
 		return errors.New("cannot pass multiple opts to pushContext")
 	}
 
-	gui.g.Update(func(*gocui.Gui) error {
-		return gui.pushContextDirect(c, opts...)
-	})
-
-	return nil
-}
-
-func (gui *Gui) pushContextDirect(c Context, opts ...OnFocusOpts) error {
 	gui.State.ContextManager.Lock()
 
 	// push onto stack
@@ -139,14 +127,6 @@ func (gui *Gui) pushContextWithView(viewName string) error {
 }
 
 func (gui *Gui) returnFromContext() error {
-	gui.g.Update(func(*gocui.Gui) error {
-		return gui.returnFromContextSync()
-	})
-
-	return nil
-}
-
-func (gui *Gui) returnFromContextSync() error {
 	gui.State.ContextManager.Lock()
 
 	if len(gui.State.ContextManager.ContextStack) == 1 {
