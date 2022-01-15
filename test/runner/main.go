@@ -11,19 +11,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// see https://github.com/jesseduffield/lazygit/blob/master/docs/Integration_Tests.md
 // This file can be invoked directly, but you might find it easier to go through
-// test/lazyintegration/main.go, which provides a convenient gui wrapper to integration
-// tests.
+// test/lazyintegration/main.go, which provides a convenient gui wrapper to integration tests.
 //
 // If invoked directly, you can specify a test by passing it as the first argument.
-// You can also specify that you want to record a test by passing RECORD_EVENTS=true
+// You can also specify that you want to record a test by passing MODE=record
 // as an env var.
 
 func main() {
-	record := os.Getenv("RECORD_EVENTS") != ""
-	updateSnapshots := record || os.Getenv("UPDATE_SNAPSHOTS") != ""
+	mode := integration.GetModeFromEnv()
 	speedEnv := os.Getenv("SPEED")
-	includeSkipped := os.Getenv("INCLUDE_SKIPPED") != ""
+	includeSkipped := os.Getenv("INCLUDE_SKIPPED") == "true"
 	selectedTestName := os.Args[1]
 
 	err := integration.RunTests(
@@ -37,8 +36,7 @@ func main() {
 				log.Print(err.Error())
 			}
 		},
-		updateSnapshots,
-		record,
+		mode,
 		speedEnv,
 		func(_t *testing.T, expected string, actual string, prefix string) {
 			assert.Equal(MockTestingT{}, expected, actual, fmt.Sprintf("Unexpected %s. Expected:\n%s\nActual:\n%s\n", prefix, expected, actual))
