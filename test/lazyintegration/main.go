@@ -268,13 +268,11 @@ func main() {
 
 	err = g.MainLoop()
 	g.Close()
-	if err != nil {
-		switch err {
-		case gocui.ErrQuit:
-			return
-		default:
-			log.Panicln(err)
-		}
+	switch err {
+	case gocui.ErrQuit:
+		return
+	default:
+		log.Panicln(err)
 	}
 }
 
