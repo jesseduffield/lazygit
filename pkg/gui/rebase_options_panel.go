@@ -41,7 +41,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 		title = gui.Tr.RebaseOptionsTitle
 	}
 
-	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(title, menuItems, createMenuOptions{})
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {

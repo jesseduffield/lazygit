@@ -101,5 +101,5 @@ func (gui *Gui) handleCreateResetMenu() error {
 		},
 	}
 
-	return gui.createMenu("", menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu("", menuItems, createMenuOptions{})
 }

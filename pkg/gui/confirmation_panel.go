@@ -48,10 +48,6 @@ func (gui *Gui) prompt(opts promptOpts) error {
 	return gui.PopupHandler.Prompt(opts)
 }
 
-func (gui *Gui) createLoaderPanel(prompt string) error {
-	return gui.PopupHandler.Loader(prompt)
-}
-
 func (gui *Gui) wrappedConfirmationFunction(handlersManageFocus bool, function func() error) func() error {
 	return func() error {
 		if err := gui.closeConfirmationPrompt(handlersManageFocus); err != nil {

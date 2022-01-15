@@ -2,39 +2,69 @@ package gui
 
 import (
 	"strings"
+	"sync"
 
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type PopupHandler interface {
 	Error(message string) error
 	Ask(opts askOpts) error
 	Prompt(opts promptOpts) error
-	Loader(message string) error
+	WithLoaderPanel(message string, f func() error)
+	// Menu(opts menuOpts) error
 }
 
 type RealPopupHandler struct {
-	gui *Gui
+	*common.Common
+	index int
+	sync.Mutex
+	createPopupPanelFn func(createPopupPanelOpts) error
+	onErrorFn          func() error
+	closePopupFn       func() error
+}
+
+var _ PopupHandler = &RealPopupHandler{}
+
+func NewPopupHandler(
+	common *common.Common,
+	createPopupPanelFn func(createPopupPanelOpts) error,
+	onErrorFn func() error,
+	closePopupFn func() error,
+) PopupHandler {
+	return &RealPopupHandler{
+		Common:             common,
+		index:              0,
+		createPopupPanelFn: createPopupPanelFn,
+		onErrorFn:          onErrorFn,
+		closePopupFn:       closePopupFn,
+	}
 }
 
 func (self *RealPopupHandler) Error(message string) error {
-	gui := self.gui
+	self.Lock()
+	self.index++
+	self.Unlock()
 
 	coloredMessage := style.FgRed.Sprint(strings.TrimSpace(message))
-	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+	if err := self.onErrorFn(); err != nil {
 		return err
 	}
 
 	return self.Ask(askOpts{
-		title:  gui.Tr.Error,
+		title:  self.Tr.Error,
 		prompt: coloredMessage,
 	})
 }
 
 func (self *RealPopupHandler) Ask(opts askOpts) error {
-	gui := self.gui
+	self.Lock()
+	self.index++
+	self.Unlock()
 
-	return gui.createPopupPanel(createPopupPanelOpts{
+	return self.createPopupPanelFn(createPopupPanelOpts{
 		title:               opts.title,
 		prompt:              opts.prompt,
 		handleConfirm:       opts.handleConfirm,
@@ -44,9 +74,11 @@ func (self *RealPopupHandler) Ask(opts askOpts) error {
 }
 
 func (self *RealPopupHandler) Prompt(opts promptOpts) error {
-	gui := self.gui
+	self.Lock()
+	self.index++
+	self.Unlock()
 
-	return gui.createPopupPanel(createPopupPanelOpts{
+	return self.createPopupPanelFn(createPopupPanelOpts{
 		title:               opts.title,
 		prompt:              opts.initialContent,
 		editable:            true,
@@ -55,12 +87,32 @@ func (self *RealPopupHandler) Prompt(opts promptOpts) error {
 	})
 }
 
-func (self *RealPopupHandler) Loader(message string) error {
-	gui := self.gui
+func (self *RealPopupHandler) WithLoaderPanel(message string, f func() error) {
+	index := 0
+	self.Lock()
+	self.index++
+	index = self.index
+	self.Unlock()
 
-	return gui.createPopupPanel(createPopupPanelOpts{
+	err := self.createPopupPanelFn(createPopupPanelOpts{
 		prompt:    message,
 		hasLoader: true,
+	})
+	if err != nil {
+		self.Log.Error(err)
+		return
+	}
+
+	go utils.Safe(func() {
+		if err := f(); err != nil {
+			self.Log.Error(err)
+		}
+
+		self.Lock()
+		if index == self.index {
+			_ = self.closePopupFn()
+		}
+		self.Unlock()
 	})
 }
 
@@ -82,6 +134,6 @@ func (self *TestPopupHandler) Prompt(opts promptOpts) error {
 	return self.onPrompt(opts)
 }
 
-func (self *TestPopupHandler) Loader(message string) error {
-	return nil
+func (self *TestPopupHandler) WithLoaderPanel(message string, f func() error) error {
+	return f()
 }

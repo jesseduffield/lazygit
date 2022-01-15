@@ -44,5 +44,5 @@ func (gui *Gui) createResetMenu(ref string) error {
 		}
 	}
 
-	return gui.createMenu(fmt.Sprintf("%s %s", gui.Tr.LcResetTo, ref), menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(fmt.Sprintf("%s %s", gui.Tr.LcResetTo, ref), menuItems, createMenuOptions{})
 }

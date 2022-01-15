@@ -33,7 +33,7 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 		}
 	}
 
-	return gui.createMenu(gui.Tr.RecentRepos, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.RecentRepos, menuItems, createMenuOptions{})
 }
 
 func (gui *Gui) handleShowAllBranchLogs() error {

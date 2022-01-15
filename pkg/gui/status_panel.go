@@ -49,8 +49,10 @@ func cursorInSubstring(cx int, prefix string, substring string) bool {
 }
 
 func (gui *Gui) handleCheckForUpdate() error {
-	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
-	return gui.createLoaderPanel(gui.Tr.CheckingForUpdates)
+	return gui.WithWaitingStatus(gui.Tr.CheckingForUpdates, func() error {
+		gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
+		return nil
+	})
 }
 
 func (gui *Gui) handleStatusClick() error {
@@ -146,7 +148,7 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 				},
 			}
 		}
-		return gui.createMenu(gui.Tr.SelectConfigFile, menuItems, createMenuOptions{})
+		return gui.createMenu(gui.Tr.SelectConfigFile, menuItems, createMenuOptions{hideCancel: true})
 	}
 }
 

@@ -30,7 +30,7 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 		},
 	}
 
-	return gui.createMenu(gui.Tr.CommandLog, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.CommandLog, menuItems, createMenuOptions{})
 }
 
 func (gui *Gui) handleFocusCommandLog() error {

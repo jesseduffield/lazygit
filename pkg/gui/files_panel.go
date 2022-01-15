@@ -495,7 +495,7 @@ func (gui *Gui) handleStatusFilterPressed() error {
 		},
 	}
 
-	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{})
 }
 
 func (gui *Gui) setStatusFiltering(filter filetree.FileManagerDisplayFilter) error {
@@ -694,12 +694,9 @@ type PullFilesOptions struct {
 }
 
 func (gui *Gui) pullFiles(opts PullFilesOptions) error {
-	if err := gui.createLoaderPanel(gui.Tr.PullWait); err != nil {
-		return err
-	}
-
-	// TODO: this doesn't look like a good idea. Why the goroutine?
-	go utils.Safe(func() { _ = gui.pullWithLock(opts) })
+	gui.PopupHandler.WithLoaderPanel(gui.Tr.PullWait, func() error {
+		return gui.pullWithLock(opts)
+	})
 
 	return nil
 }
@@ -731,10 +728,7 @@ type pushOpts struct {
 }
 
 func (gui *Gui) push(opts pushOpts) error {
-	if err := gui.createLoaderPanel(gui.Tr.PushWait); err != nil {
-		return err
-	}
-	go utils.Safe(func() {
+	gui.PopupHandler.WithLoaderPanel(gui.Tr.PushWait, func() error {
 		gui.logAction(gui.Tr.Actions.Push)
 		err := gui.Git.Sync.Push(git_commands.PushOpts{
 			Force:          opts.force,
@@ -747,7 +741,7 @@ func (gui *Gui) push(opts pushOpts) error {
 			forcePushDisabled := gui.UserConfig.Git.DisableForcePushing
 			if forcePushDisabled {
 				_ = gui.createErrorPanel(gui.Tr.UpdatesRejectedAndForcePushDisabled)
-				return
+				return nil
 			}
 			_ = gui.ask(askOpts{
 				title:  gui.Tr.ForcePush,
@@ -759,11 +753,12 @@ func (gui *Gui) push(opts pushOpts) error {
 					return gui.push(newOpts)
 				},
 			})
-			return
+			return nil
 		}
 		gui.handleCredentialsPopup(err)
-		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	})
+
 	return nil
 }
 
@@ -922,7 +917,7 @@ func (gui *Gui) handleCreateStashMenu() error {
 		},
 	}
 
-	return gui.createMenu(gui.Tr.LcStashOptions, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.LcStashOptions, menuItems, createMenuOptions{})
 }
 
 func (gui *Gui) handleStashChanges() error {

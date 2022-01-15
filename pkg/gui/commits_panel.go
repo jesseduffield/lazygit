@@ -494,7 +494,7 @@ func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
 		}
 	}
 
-	return gui.createMenu(gui.Tr.SelectParentCommitForMerge, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.SelectParentCommitForMerge, menuItems, createMenuOptions{})
 }
 
 func (gui *Gui) afterRevertCommit() error {
@@ -597,7 +597,7 @@ func (gui *Gui) createTagMenu(commitSha string) error {
 		},
 	}
 
-	return gui.createMenu(gui.Tr.TagMenuTitle, items, createMenuOptions{showCancel: true})
+	return gui.createMenu(gui.Tr.TagMenuTitle, items, createMenuOptions{})
 }
 
 func (gui *Gui) afterTagCreate() error {
@@ -758,7 +758,7 @@ func (gui *Gui) handleOpenLogMenu() error {
 							return nil
 						},
 					},
-				}, createMenuOptions{showCancel: true})
+				}, createMenuOptions{})
 			},
 		},
 		{
@@ -790,10 +790,10 @@ func (gui *Gui) handleOpenLogMenu() error {
 							return onSelect("author-date-order")
 						},
 					},
-				}, createMenuOptions{showCancel: true})
+				}, createMenuOptions{})
 			},
 		},
-	}, createMenuOptions{showCancel: true})
+	}, createMenuOptions{})
 }
 
 func (gui *Gui) handleOpenCommitInBrowser() error {

@@ -3,7 +3,6 @@ package gui
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -16,17 +15,6 @@ type menuItem struct {
 	// only applies when displayString is used
 	opensMenu bool
 }
-
-// every item in a list context needs an ID
-func (i *menuItem) ID() string {
-	if i.displayString != "" {
-		return i.displayString
-	}
-
-	return strings.Join(i.displayStrings, "-")
-}
-
-// specific functions
 
 func (gui *Gui) getMenuOptions() map[string]string {
 	keybindingConfig := gui.UserConfig.Keybinding
@@ -43,11 +31,11 @@ func (gui *Gui) handleMenuClose() error {
 }
 
 type createMenuOptions struct {
-	showCancel bool
+	hideCancel bool
 }
 
 func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions createMenuOptions) error {
-	if createMenuOptions.showCancel {
+	if !createMenuOptions.hideCancel {
 		// this is mutative but I'm okay with that for now
 		items = append(items, &menuItem{
 			displayStrings: []string{gui.Tr.LcCancel},

@@ -484,7 +484,12 @@ func NewGui(
 
 	gui.watchFilesForChanges()
 
-	gui.PopupHandler = &RealPopupHandler{gui: gui}
+	gui.PopupHandler = NewPopupHandler(
+		cmn,
+		gui.createPopupPanel,
+		func() error { return gui.refreshSidePanels(refreshOptions{mode: ASYNC}) },
+		func() error { return gui.closeConfirmationPrompt(false) },
+	)
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
 

@@ -120,7 +120,7 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 		return gui.surfaceError(err)
 	}
 
-	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(title, menuItems, createMenuOptions{})
 }
 
 func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, labelFormat string) ([]commandMenuEntry, error) {
@@ -231,7 +231,7 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 		return gui.surfaceError(err)
 	}
 
-	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
+	return gui.createMenu(title, menuItems, createMenuOptions{})
 }
 
 func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand) func() error {
