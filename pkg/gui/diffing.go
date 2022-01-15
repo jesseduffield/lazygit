@@ -44,8 +44,8 @@ func (gui *Gui) currentDiffTerminals() []string {
 		branch := gui.getSelectedBranch()
 		if branch != nil {
 			names := []string{branch.ID()}
-			if branch.UpstreamName != "" {
-				names = append(names, branch.UpstreamName)
+			if branch.IsTrackingRemote() {
+				names = append(names, branch.ID()+"@{u}")
 			}
 			return names
 		}

@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -20,27 +21,34 @@ import (
 // if we find out we need to use one of these functions in the git.go file, we
 // can just pull them out of here and put them there and then call them from in here
 
+type BranchLoaderConfigCommands interface {
+	Branches() (map[string]*config.Branch, error)
+}
+
 // BranchLoader returns a list of Branch objects for the current repo
 type BranchLoader struct {
 	*common.Common
 	getRawBranches       func() (string, error)
 	getCurrentBranchName func() (string, string, error)
+	config               BranchLoaderConfigCommands
 }
 
 func NewBranchLoader(
 	cmn *common.Common,
 	getRawBranches func() (string, error),
 	getCurrentBranchName func() (string, string, error),
+	config BranchLoaderConfigCommands,
 ) *BranchLoader {
 	return &BranchLoader{
 		Common:               cmn,
 		getRawBranches:       getRawBranches,
 		getCurrentBranchName: getCurrentBranchName,
+		config:               config,
 	}
 }
 
 // Load the list of branches for the current repo
-func (self *BranchLoader) Load(reflogCommits []*models.Commit) []*models.Branch {
+func (self *BranchLoader) Load(reflogCommits []*models.Commit) ([]*models.Branch, error) {
 	branches := self.obtainBranches()
 
 	reflogBranches := self.obtainReflogBranches(reflogCommits)
@@ -77,11 +85,25 @@ outer:
 	if !foundHead {
 		currentBranchName, currentBranchDisplayName, err := self.getCurrentBranchName()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		branches = append([]*models.Branch{{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"}}, branches...)
 	}
-	return branches
+
+	configBranches, err := self.config.Branches()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, branch := range branches {
+		match := configBranches[branch.Name]
+		if match != nil {
+			branch.UpstreamRemote = match.Remote
+			branch.UpstreamBranch = match.Merge.Short()
+		}
+	}
+
+	return branches, nil
 }
 
 func (self *BranchLoader) obtainBranches() []*models.Branch {
@@ -116,11 +138,12 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 
 		upstreamName := split[2]
 		if upstreamName == "" {
+			// if we're here then it means we do not have a local version of the remote.
+			// The branch might still be tracking a remote though, we just don't know
+			// how many commits ahead/behind it is
 			branches = append(branches, branch)
 			continue
 		}
-
-		branch.UpstreamName = upstreamName
 
 		track := split[3]
 		re := regexp.MustCompile(`ahead (\d+)`)

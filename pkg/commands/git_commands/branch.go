@@ -108,13 +108,8 @@ func (self *BranchCommands) GetGraphCmdObj(branchName string) oscommands.ICmdObj
 	return self.cmd.New(utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)).DontLog()
 }
 
-func (self *BranchCommands) SetCurrentBranchUpstream(upstream string) error {
-	return self.cmd.New("git branch --set-upstream-to=" + self.cmd.Quote(upstream)).Run()
-}
-
-func (self *BranchCommands) GetUpstream(branchName string) (string, error) {
-	output, err := self.cmd.New(fmt.Sprintf("git rev-parse --abbrev-ref --symbolic-full-name %s@{u}", self.cmd.Quote(branchName))).DontLog().RunWithOutput()
-	return strings.TrimSpace(output), err
+func (self *BranchCommands) SetCurrentBranchUpstream(remoteName string, remoteBranchName string) error {
+	return self.cmd.New(fmt.Sprintf("git branch --set-upstream-to=%s/%s", self.cmd.Quote(remoteName), self.cmd.Quote(remoteBranchName))).Run()
 }
 
 func (self *BranchCommands) SetUpstream(remoteName string, remoteBranchName string, branchName string) error {

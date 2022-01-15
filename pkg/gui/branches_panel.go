@@ -60,7 +60,12 @@ func (gui *Gui) refreshBranches() {
 		}
 	}
 
-	gui.State.Branches = gui.Git.Loaders.Branches.Load(reflogCommits)
+	branches, err := gui.Git.Loaders.Branches.Load(reflogCommits)
+	if err != nil {
+		_ = gui.surfaceError(err)
+	}
+
+	gui.State.Branches = branches
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
@@ -392,25 +397,19 @@ func (gui *Gui) handleFastForward() error {
 	if !branch.IsTrackingRemote() {
 		return gui.createErrorPanel(gui.Tr.FwdNoUpstream)
 	}
+	if !branch.RemoteBranchStoredLocally() {
+		return gui.createErrorPanel(gui.Tr.FwdNoLocalUpstream)
+	}
 	if branch.HasCommitsToPush() {
 		return gui.createErrorPanel(gui.Tr.FwdCommitsToPush)
 	}
 
-	upstream, err := gui.Git.Branch.GetUpstream(branch.Name)
-	if err != nil {
-		return gui.surfaceError(err)
-	}
-
 	action := gui.Tr.Actions.FastForwardBranch
-
-	split := strings.Split(upstream, "/")
-	remoteName := split[0]
-	remoteBranchName := strings.Join(split[1:], "/")
 
 	message := utils.ResolvePlaceholderString(
 		gui.Tr.Fetching,
 		map[string]string{
-			"from": fmt.Sprintf("%s/%s", remoteName, remoteBranchName),
+			"from": fmt.Sprintf("%s/%s", branch.UpstreamRemote, branch.UpstreamBranch),
 			"to":   branch.Name,
 		},
 	)
@@ -421,7 +420,7 @@ func (gui *Gui) handleFastForward() error {
 			_ = gui.pullWithLock(PullFilesOptions{action: action, FastForwardOnly: true})
 		} else {
 			gui.logAction(action)
-			err := gui.Git.Sync.FastForward(branch.Name, remoteName, remoteBranchName)
+			err := gui.Git.Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
 			gui.handleCredentialsPopup(err)
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{BRANCHES}})
 		}
