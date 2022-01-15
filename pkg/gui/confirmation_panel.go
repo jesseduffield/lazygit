@@ -327,5 +327,9 @@ func (gui *Gui) surfaceError(err error) error {
 		return nil
 	}
 
+	if err == gocui.ErrQuit {
+		return err
+	}
+
 	return gui.createErrorPanel(err.Error())
 }
