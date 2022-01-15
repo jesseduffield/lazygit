@@ -54,7 +54,7 @@ func (gui *Gui) filesRenderToMain() error {
 	}
 
 	if node.File != nil && node.File.HasInlineMergeConflicts {
-		return gui.refreshMergePanelWithLock()
+		return gui.renderConflictsFromFilesPanel()
 	}
 
 	cmdObj := gui.Git.WorkingTree.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges(), gui.State.IgnoreWhitespaceInDiffView)
@@ -182,7 +182,7 @@ func (gui *Gui) enterFile(opts OnFocusOpts) error {
 	}
 
 	if file.HasInlineMergeConflicts {
-		return gui.handleSwitchToMerge()
+		return gui.switchToMerge()
 	}
 	if file.HasMergeConflicts {
 		return gui.createErrorPanel(gui.Tr.FileStagingRequirements)
@@ -201,7 +201,7 @@ func (gui *Gui) handleFilePress() error {
 		file := node.File
 
 		if file.HasInlineMergeConflicts {
-			return gui.handleSwitchToMerge()
+			return gui.switchToMerge()
 		}
 
 		if file.HasUnstagedChanges {
@@ -880,14 +880,10 @@ func (gui *Gui) upstreamForBranchInConfig(branchName string) (string, string, er
 	return "", "", nil
 }
 
-func (gui *Gui) handleSwitchToMerge() error {
+func (gui *Gui) switchToMerge() error {
 	file := gui.getSelectedFile()
 	if file == nil {
 		return nil
-	}
-
-	if !file.HasInlineMergeConflicts {
-		return gui.createErrorPanel(gui.Tr.FileNoMergeCons)
 	}
 
 	return gui.pushContext(gui.State.Contexts.Merging)

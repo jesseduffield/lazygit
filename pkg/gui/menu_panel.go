@@ -39,7 +39,7 @@ func (gui *Gui) getMenuOptions() map[string]string {
 }
 
 func (gui *Gui) handleMenuClose() error {
-	return gui.returnFromContextSync()
+	return gui.returnFromContext()
 }
 
 type createMenuOptions struct {

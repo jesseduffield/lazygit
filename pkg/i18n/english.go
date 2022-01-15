@@ -58,7 +58,6 @@ type TranslationSet struct {
 	PullWait                            string
 	PushWait                            string
 	FetchWait                           string
-	FileNoMergeCons                     string
 	LcSoftReset                         string
 	AlreadyCheckedOutBranch             string
 	SureForceCheckout                   string
@@ -608,7 +607,6 @@ func EnglishTranslationSet() TranslationSet {
 		PullWait:                            "Pulling...",
 		PushWait:                            "Pushing...",
 		FetchWait:                           "Fetching...",
-		FileNoMergeCons:                     "This file has no inline merge conflicts",
 		LcSoftReset:                         "soft reset",
 		AlreadyCheckedOutBranch:             "You have already checked out this branch",
 		SureForceCheckout:                   "Are you sure you want force checkout? You will lose all local changes",

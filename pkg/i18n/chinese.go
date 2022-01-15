@@ -73,7 +73,6 @@ func chineseTranslationSet() TranslationSet {
 		PullWait:                            "拉取中……",
 		PushWait:                            "推送中……",
 		FetchWait:                           "正在抓取……",
-		FileNoMergeCons:                     "该文件没有合并冲突",
 		LcSoftReset:                         "软重置",
 		AlreadyCheckedOutBranch:             "您已经检出了这个分支",
 		SureForceCheckout:                   "您确定要强制检出吗？您将丢失所有本地更改",
