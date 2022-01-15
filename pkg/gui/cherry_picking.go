@@ -143,11 +143,11 @@ func (gui *Gui) HandlePasteCommits() error {
 		return err
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.CherryPick,
 		prompt: gui.Tr.SureCherryPick,
 		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.CherryPickingStatus, func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.CherryPickingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.CherryPick)
 				err := gui.Git.Rebase.CherryPickCommits(gui.State.Modes.CherryPicking.CherryPickedCommits)
 				return gui.handleGenericMergeCommandResult(err)

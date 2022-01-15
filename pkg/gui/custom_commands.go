@@ -62,15 +62,15 @@ func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (s
 func (gui *Gui) inputPrompt(prompt config.CustomCommandPrompt, promptResponses []string, responseIdx int, wrappedF func() error) error {
 	title, err := gui.resolveTemplate(prompt.Title, promptResponses)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	initialValue, err := gui.resolveTemplate(prompt.InitialValue, promptResponses)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
-	return gui.prompt(promptOpts{
+	return gui.PopupHandler.Prompt(promptOpts{
 		title:          title,
 		initialContent: initialValue,
 		handleConfirm: func(str string) error {
@@ -93,17 +93,17 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 		}
 		name, err := gui.resolveTemplate(nameTemplate, promptResponses)
 		if err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 
 		description, err := gui.resolveTemplate(option.Description, promptResponses)
 		if err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 
 		value, err := gui.resolveTemplate(option.Value, promptResponses)
 		if err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 
 		menuItems[i] = &menuItem{
@@ -117,30 +117,30 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 
 	title, err := gui.resolveTemplate(prompt.Title, promptResponses)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
-	return gui.createMenu(createMenuOptions{title: title, items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: title, items: menuItems})
 }
 
 func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, labelFormat string) ([]commandMenuEntry, error) {
 	reg, err := regexp.Compile(filter)
 	if err != nil {
-		return nil, gui.surfaceError(errors.New("unable to parse filter regex, error: " + err.Error()))
+		return nil, gui.PopupHandler.Error(errors.New("unable to parse filter regex, error: " + err.Error()))
 	}
 
 	buff := bytes.NewBuffer(nil)
 
 	valueTemp, err := template.New("format").Parse(valueFormat)
 	if err != nil {
-		return nil, gui.surfaceError(errors.New("unable to parse value format, error: " + err.Error()))
+		return nil, gui.PopupHandler.Error(errors.New("unable to parse value format, error: " + err.Error()))
 	}
 
 	colorFuncMap := style.TemplateFuncMapAddColors(template.FuncMap{})
 
 	descTemp, err := template.New("format").Funcs(colorFuncMap).Parse(labelFormat)
 	if err != nil {
-		return nil, gui.surfaceError(errors.New("unable to parse label format, error: " + err.Error()))
+		return nil, gui.PopupHandler.Error(errors.New("unable to parse label format, error: " + err.Error()))
 	}
 
 	candidates := []commandMenuEntry{}
@@ -165,7 +165,7 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, label
 
 		err = valueTemp.Execute(buff, tmplData)
 		if err != nil {
-			return candidates, gui.surfaceError(err)
+			return candidates, gui.PopupHandler.Error(err)
 		}
 		entry := commandMenuEntry{
 			value: strings.TrimSpace(buff.String()),
@@ -175,7 +175,7 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, label
 			buff.Reset()
 			err = descTemp.Execute(buff, tmplData)
 			if err != nil {
-				return candidates, gui.surfaceError(err)
+				return candidates, gui.PopupHandler.Error(err)
 			}
 			entry.label = strings.TrimSpace(buff.String())
 		} else {
@@ -193,25 +193,25 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 	// Collect cmd to run from config
 	cmdStr, err := gui.resolveTemplate(prompt.Command, promptResponses)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	// Collect Filter regexp
 	filter, err := gui.resolveTemplate(prompt.Filter, promptResponses)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	// Run and save output
 	message, err := gui.Git.Custom.RunWithOutput(cmdStr)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	// Need to make a menu out of what the cmd has displayed
 	candidates, err := gui.GenerateMenuCandidates(message, filter, prompt.ValueFormat, prompt.LabelFormat)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	menuItems := make([]*menuItem, len(candidates))
@@ -228,10 +228,10 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 
 	title, err := gui.resolveTemplate(prompt.Title, promptResponses)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
-	return gui.createMenu(createMenuOptions{title: title, items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: title, items: menuItems})
 }
 
 func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand) func() error {
@@ -241,7 +241,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 		f := func() error {
 			cmdStr, err := gui.resolveTemplate(customCommand.Command, promptResponses)
 			if err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 
 			if customCommand.Subprocess {
@@ -252,11 +252,11 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 			if loadingText == "" {
 				loadingText = gui.Tr.LcRunningCustomCommandStatus
 			}
-			return gui.WithWaitingStatus(loadingText, func() error {
+			return gui.PopupHandler.WithWaitingStatus(loadingText, func() error {
 				gui.logAction(gui.Tr.Actions.CustomCommand)
 				err := gui.OSCommand.Cmd.NewShell(cmdStr).Run()
 				if err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 				return gui.refreshSidePanels(refreshOptions{})
 			})
@@ -287,7 +287,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 					return gui.menuPromptFromCommand(prompt, promptResponses, idx, wrappedF)
 				}
 			default:
-				return gui.createErrorPanel("custom command prompt must have a type of 'input', 'menu' or 'menuFromCommand'")
+				return gui.PopupHandler.ErrorMsg("custom command prompt must have a type of 'input', 'menu' or 'menuFromCommand'")
 			}
 
 		}

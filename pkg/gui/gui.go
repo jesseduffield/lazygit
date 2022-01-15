@@ -490,6 +490,7 @@ func NewGui(
 		func() error { return gui.refreshSidePanels(refreshOptions{mode: ASYNC}) },
 		func() error { return gui.closeConfirmationPrompt(false) },
 		gui.createMenu,
+		gui.withWaitingStatus,
 	)
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
@@ -638,7 +639,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	}
 
 	if err := gui.g.Suspend(); err != nil {
-		return false, gui.surfaceError(err)
+		return false, gui.PopupHandler.Error(err)
 	}
 
 	gui.PauseBackgroundThreads = true
@@ -652,7 +653,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	gui.PauseBackgroundThreads = false
 
 	if cmdErr != nil {
-		return false, gui.surfaceError(cmdErr)
+		return false, gui.PopupHandler.Error(cmdErr)
 	}
 
 	return true, nil
@@ -701,7 +702,7 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 			task := task
 			go utils.Safe(func() {
 				if err := task(done); err != nil {
-					_ = gui.surfaceError(err)
+					_ = gui.PopupHandler.Error(err)
 				}
 			})
 
@@ -718,7 +719,7 @@ func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 		return gui.Config.SaveAppState()
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:         "",
 		prompt:        gui.Tr.IntroPopupMessage,
 		handleConfirm: onConfirm,
@@ -753,7 +754,7 @@ func (gui *Gui) startBackgroundFetch() {
 	}
 	err := gui.backgroundFetch()
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = gui.ask(askOpts{
+		_ = gui.PopupHandler.Ask(askOpts{
 			title:  gui.Tr.NoAutomaticGitFetchTitle,
 			prompt: gui.Tr.NoAutomaticGitFetchBody,
 		})

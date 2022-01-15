@@ -112,7 +112,7 @@ func (gui *Gui) handleResetSelection() error {
 		}
 
 		if !gui.UserConfig.Gui.SkipUnstageLineWarning {
-			return gui.ask(askOpts{
+			return gui.PopupHandler.Ask(askOpts{
 				title:  gui.Tr.UnstageLinesTitle,
 				prompt: gui.Tr.UnstageLinesPrompt,
 				handleConfirm: func() error {
@@ -149,7 +149,7 @@ func (gui *Gui) applySelection(reverse bool, state *LblPanelState) error {
 	gui.logAction(gui.Tr.Actions.ApplyPatch)
 	err := gui.Git.WorkingTree.ApplyPatch(patch, applyFlags...)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	if state.SelectingRange() {

@@ -91,7 +91,7 @@ func (gui *Gui) copySelectedToClipboard() error {
 
 		gui.logAction(gui.Tr.Actions.CopySelectedTextToClipboard)
 		if err := gui.OSCommand.CopyToClipboard(selected); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 
 		return nil

@@ -56,7 +56,7 @@ func (gui *Gui) wrappedConfirmationFunction(handlersManageFocus bool, function f
 
 		if function != nil {
 			if err := function(); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 		}
 
@@ -72,7 +72,7 @@ func (gui *Gui) wrappedPromptConfirmationFunction(handlersManageFocus bool, func
 
 		if function != nil {
 			if err := function(getResponse()); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 		}
 
@@ -312,20 +312,4 @@ func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View)
 	return func(g *gocui.Gui, v *gocui.View) error {
 		return f()
 	}
-}
-
-func (gui *Gui) createErrorPanel(message string) error {
-	return gui.PopupHandler.Error(message)
-}
-
-func (gui *Gui) surfaceError(err error) error {
-	if err == nil {
-		return nil
-	}
-
-	if err == gocui.ErrQuit {
-		return err
-	}
-
-	return gui.createErrorPanel(err.Error())
 }

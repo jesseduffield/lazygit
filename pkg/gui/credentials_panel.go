@@ -79,7 +79,7 @@ func (gui *Gui) handleCredentialsPopup(cmdErr error) {
 		}
 		_ = gui.returnFromContext()
 		// we are not logging this error because it may contain a password or a passphrase
-		_ = gui.createErrorPanel(errMessage)
+		_ = gui.PopupHandler.ErrorMsg(errMessage)
 	} else {
 		_ = gui.closeConfirmationPrompt(false)
 	}

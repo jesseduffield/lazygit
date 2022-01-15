@@ -7,7 +7,7 @@ import (
 )
 
 func (gui *Gui) handleCreateExtrasMenuPanel() error {
-	return gui.createMenu(createMenuOptions{
+	return gui.PopupHandler.Menu(createMenuOptions{
 		title: gui.Tr.CommandLog,
 		items: []*menuItem{
 			{

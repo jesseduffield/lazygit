@@ -218,7 +218,7 @@ func (gui *Gui) fetch() (err error) {
 	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{})
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
-		_ = gui.createErrorPanel(gui.Tr.PassUnameWrong)
+		_ = gui.PopupHandler.ErrorMsg(gui.Tr.PassUnameWrong)
 	}
 
 	_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
@@ -247,7 +247,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 
 	gui.logAction(gui.Tr.Actions.CopyToClipboard)
 	if err := gui.OSCommand.CopyToClipboard(itemId); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	truncatedItemId := utils.TruncateWithEllipsis(strings.Replace(itemId, "\n", " ", -1), 50)

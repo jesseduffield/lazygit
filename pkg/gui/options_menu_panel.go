@@ -72,7 +72,7 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 		}
 	}
 
-	return gui.createMenu(createMenuOptions{
+	return gui.PopupHandler.Menu(createMenuOptions{
 		title:      strings.Title(gui.Tr.LcMenu),
 		items:      menuItems,
 		hideCancel: true,

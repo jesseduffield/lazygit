@@ -25,7 +25,7 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 			{
 				displayStrings: fromToDisplayStrings(branch.Name, gui.Tr.LcSelectBranch),
 				onPress: func() error {
-					return gui.prompt(promptOpts{
+					return gui.PopupHandler.Prompt(promptOpts{
 						title:               branch.Name + " →",
 						findSuggestionsFunc: gui.getBranchNameSuggestionsFunc(),
 						handleConfirm: func(targetBranchName string) error {
@@ -51,20 +51,20 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 
 	menuItems = append(menuItems, menuItemsForBranch(selectedBranch)...)
 
-	return gui.createMenu(createMenuOptions{title: fmt.Sprintf(gui.Tr.CreatePullRequestOptions), items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: fmt.Sprintf(gui.Tr.CreatePullRequestOptions), items: menuItems})
 }
 
 func (gui *Gui) createPullRequest(from string, to string) error {
 	hostingServiceMgr := gui.getHostingServiceMgr()
 	url, err := hostingServiceMgr.GetPullRequestURL(from, to)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.logAction(gui.Tr.Actions.OpenPullRequest)
 
 	if err := gui.OSCommand.OpenLink(url); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	return nil

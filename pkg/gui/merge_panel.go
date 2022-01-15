@@ -129,7 +129,7 @@ func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error
 	}
 
 	if err := gui.pushFileSnapshot(); err != nil {
-		return false, gui.surfaceError(err)
+		return false, gui.PopupHandler.Error(err)
 	}
 
 	var logStr string
@@ -289,7 +289,7 @@ func (gui *Gui) escapeMerge() error {
 func (gui *Gui) promptToContinueRebase() error {
 	gui.takeOverMergeConflictScrolling()
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:               "continue",
 		prompt:              gui.Tr.ConflictsResolved,
 		handlersManageFocus: true,

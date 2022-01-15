@@ -34,7 +34,7 @@ func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string,
 }
 
 func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
-	return gui.WithWaitingStatus(waitingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(waitingStatus, func() error {
 		cmdObj := gui.OSCommand.Cmd.NewShell(cmdObj.ToString())
 		cmdObj.AddEnvVars("TERM=dumb")
 		cmdWriter := gui.getCmdWriter()
@@ -47,7 +47,7 @@ func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, on
 				gui.Log.Error(err)
 			}
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-			return gui.surfaceError(
+			return gui.PopupHandler.Error(
 				fmt.Errorf(
 					gui.Tr.GitCommandFailed, gui.UserConfig.Keybinding.Universal.ExtrasMenu,
 				),

@@ -124,7 +124,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 		{
 			displayString: gui.Tr.LcEnterRefToDiff,
 			onPress: func() error {
-				return gui.prompt(promptOpts{
+				return gui.PopupHandler.Prompt(promptOpts{
 					title:               gui.Tr.LcEnteRefName,
 					findSuggestionsFunc: gui.getRefsSuggestionsFunc(),
 					handleConfirm: func(response string) error {
@@ -155,5 +155,5 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 		}...)
 	}
 
-	return gui.createMenu(createMenuOptions{title: gui.Tr.DiffingMenuTitle, items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: gui.Tr.DiffingMenuTitle, items: menuItems})
 }

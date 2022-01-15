@@ -73,7 +73,7 @@ func (gui *Gui) quit() error {
 	}
 
 	if gui.UserConfig.ConfirmOnQuit {
-		return gui.ask(askOpts{
+		return gui.PopupHandler.Ask(askOpts{
 			title:  "",
 			prompt: gui.Tr.ConfirmQuit,
 			handleConfirm: func() error {

@@ -29,7 +29,7 @@ func (gui *Gui) onCommitFocus() error {
 		state.LimitCommits = false
 		go utils.Safe(func() {
 			if err := gui.refreshCommitsWithLimit(); err != nil {
-				_ = gui.surfaceError(err)
+				_ = gui.PopupHandler.Error(err)
 			}
 		})
 	}
@@ -154,7 +154,7 @@ func (gui *Gui) handleCommitSquashDown() error {
 	}
 
 	if len(gui.State.Commits) <= 1 {
-		return gui.createErrorPanel(gui.Tr.YouNoCommitsToSquash)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.YouNoCommitsToSquash)
 	}
 
 	applied, err := gui.handleMidRebaseCommand("squash")
@@ -165,11 +165,11 @@ func (gui *Gui) handleCommitSquashDown() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.Squash,
 		prompt: gui.Tr.SureSquashThisCommit,
 		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.SquashCommitDown)
 				err := gui.Git.Rebase.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "squash")
 				return gui.handleGenericMergeCommandResult(err)
@@ -184,7 +184,7 @@ func (gui *Gui) handleCommitFixup() error {
 	}
 
 	if len(gui.State.Commits) <= 1 {
-		return gui.createErrorPanel(gui.Tr.YouNoCommitsToSquash)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.YouNoCommitsToSquash)
 	}
 
 	applied, err := gui.handleMidRebaseCommand("fixup")
@@ -195,11 +195,11 @@ func (gui *Gui) handleCommitFixup() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.Fixup,
 		prompt: gui.Tr.SureFixupThisCommit,
 		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.FixingStatus, func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.FixingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.FixupCommit)
 				err := gui.Git.Rebase.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "fixup")
 				return gui.handleGenericMergeCommandResult(err)
@@ -228,17 +228,17 @@ func (gui *Gui) handleRewordCommit() error {
 
 	message, err := gui.Git.Commit.GetCommitMessage(commit.Sha)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	// TODO: use the commit message panel here
-	return gui.prompt(promptOpts{
+	return gui.PopupHandler.Prompt(promptOpts{
 		title:          gui.Tr.LcRewordCommit,
 		initialContent: message,
 		handleConfirm: func(response string) error {
 			gui.logAction(gui.Tr.Actions.RewordCommit)
 			if err := gui.Git.Rebase.RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, response); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
@@ -262,7 +262,7 @@ func (gui *Gui) handleRewordCommitEditor() error {
 	gui.logAction(gui.Tr.Actions.RewordCommit)
 	subProcess, err := gui.Git.Rebase.RewordCommitInEditor(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 	if subProcess != nil {
 		return gui.runSubprocessWithSuspenseAndRefresh(subProcess)
@@ -285,7 +285,7 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 	// our input or we set a lazygit client as the EDITOR env variable and have it
 	// request us to edit the commit message when prompted.
 	if action == "reword" {
-		return true, gui.createErrorPanel(gui.Tr.LcRewordNotSupported)
+		return true, gui.PopupHandler.ErrorMsg(gui.Tr.LcRewordNotSupported)
 	}
 
 	gui.logAction("Update rebase TODO")
@@ -295,7 +295,7 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 	)
 
 	if err := gui.Git.Rebase.EditRebaseTodo(gui.State.Panels.Commits.SelectedLineIdx, action); err != nil {
-		return false, gui.surfaceError(err)
+		return false, gui.PopupHandler.Error(err)
 	}
 
 	return true, gui.refreshRebaseCommits()
@@ -314,11 +314,11 @@ func (gui *Gui) handleCommitDelete() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.DeleteCommitTitle,
 		prompt: gui.Tr.DeleteCommitPrompt,
 		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.DropCommit)
 				err := gui.Git.Rebase.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "drop")
 				return gui.handleGenericMergeCommandResult(err)
@@ -345,13 +345,13 @@ func (gui *Gui) handleCommitMoveDown() error {
 		gui.logCommand(fmt.Sprintf("Moving commit %s down", selectedCommit.ShortSha()), false)
 
 		if err := gui.Git.Rebase.MoveTodoDown(index); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 		gui.State.Panels.Commits.SelectedLineIdx++
 		return gui.refreshRebaseCommits()
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.MovingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.MovingStatus, func() error {
 		gui.logAction(gui.Tr.Actions.MoveCommitDown)
 		err := gui.Git.Rebase.MoveCommitDown(gui.State.Commits, index)
 		if err == nil {
@@ -382,13 +382,13 @@ func (gui *Gui) handleCommitMoveUp() error {
 		)
 
 		if err := gui.Git.Rebase.MoveTodoDown(index - 1); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 		gui.State.Panels.Commits.SelectedLineIdx--
 		return gui.refreshRebaseCommits()
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.MovingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.MovingStatus, func() error {
 		gui.logAction(gui.Tr.Actions.MoveCommitUp)
 		err := gui.Git.Rebase.MoveCommitDown(gui.State.Commits, index-1)
 		if err == nil {
@@ -411,7 +411,7 @@ func (gui *Gui) handleCommitEdit() error {
 		return nil
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		gui.logAction(gui.Tr.Actions.EditCommit)
 		err = gui.Git.Rebase.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "edit")
 		return gui.handleGenericMergeCommandResult(err)
@@ -423,11 +423,11 @@ func (gui *Gui) handleCommitAmendTo() error {
 		return err
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.AmendCommitTitle,
 		prompt: gui.Tr.AmendCommitPrompt,
 		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.AmendingStatus, func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.AmendingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.AmendCommit)
 				err := gui.Git.Rebase.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha)
 				return gui.handleGenericMergeCommandResult(err)
@@ -466,7 +466,7 @@ func (gui *Gui) handleCommitRevert() error {
 	} else {
 		gui.logAction(gui.Tr.Actions.RevertCommit)
 		if err := gui.Git.Commit.Revert(commit.Sha); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 		return gui.afterRevertCommit()
 	}
@@ -478,7 +478,7 @@ func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
 		i := i
 		message, err := gui.Git.Commit.GetCommitMessageFirstLine(parentSha)
 		if err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 
 		menuItems[i] = &menuItem{
@@ -487,14 +487,14 @@ func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
 				parentNumber := i + 1
 				gui.logAction(gui.Tr.Actions.RevertCommit)
 				if err := gui.Git.Commit.RevertMerge(commit.Sha, parentNumber); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 				return gui.afterRevertCommit()
 			},
 		}
 	}
 
-	return gui.createMenu(createMenuOptions{title: gui.Tr.SelectParentCommitForMerge, items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: gui.Tr.SelectParentCommitForMerge, items: menuItems})
 }
 
 func (gui *Gui) afterRevertCommit() error {
@@ -528,13 +528,13 @@ func (gui *Gui) handleCreateFixupCommit() error {
 		},
 	)
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.CreateFixupCommit,
 		prompt: prompt,
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.CreateFixupCommit)
 			if err := gui.Git.Commit.CreateFixupCommit(commit.Sha); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
@@ -559,11 +559,11 @@ func (gui *Gui) handleSquashAllAboveFixupCommits() error {
 		},
 	)
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.SquashAboveCommits,
 		prompt: prompt,
 		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.SquashAllAboveFixupCommits)
 				err := gui.Git.Rebase.SquashAllAboveFixupCommits(commit.Sha)
 				return gui.handleGenericMergeCommandResult(err)
@@ -582,7 +582,7 @@ func (gui *Gui) handleTagCommit() error {
 }
 
 func (gui *Gui) createTagMenu(commitSha string) error {
-	return gui.createMenu(createMenuOptions{
+	return gui.PopupHandler.Menu(createMenuOptions{
 		title: gui.Tr.TagMenuTitle,
 		items: []*menuItem{
 			{
@@ -607,15 +607,15 @@ func (gui *Gui) afterTagCreate() error {
 }
 
 func (gui *Gui) handleCreateAnnotatedTag(commitSha string) error {
-	return gui.prompt(promptOpts{
+	return gui.PopupHandler.Prompt(promptOpts{
 		title: gui.Tr.TagNameTitle,
 		handleConfirm: func(tagName string) error {
-			return gui.prompt(promptOpts{
+			return gui.PopupHandler.Prompt(promptOpts{
 				title: gui.Tr.TagMessageTitle,
 				handleConfirm: func(msg string) error {
 					gui.logAction(gui.Tr.Actions.CreateAnnotatedTag)
 					if err := gui.Git.Tag.CreateAnnotated(tagName, commitSha, msg); err != nil {
-						return gui.surfaceError(err)
+						return gui.PopupHandler.Error(err)
 					}
 					return gui.afterTagCreate()
 				},
@@ -625,12 +625,12 @@ func (gui *Gui) handleCreateAnnotatedTag(commitSha string) error {
 }
 
 func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
-	return gui.prompt(promptOpts{
+	return gui.PopupHandler.Prompt(promptOpts{
 		title: gui.Tr.TagNameTitle,
 		handleConfirm: func(tagName string) error {
 			gui.logAction(gui.Tr.Actions.CreateLightweightTag)
 			if err := gui.Git.Tag.CreateLightweight(tagName, commitSha); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 			return gui.afterTagCreate()
 		},
@@ -643,7 +643,7 @@ func (gui *Gui) handleCheckoutCommit() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.LcCheckoutCommit,
 		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {
@@ -656,7 +656,7 @@ func (gui *Gui) handleCheckoutCommit() error {
 func (gui *Gui) handleCreateCommitResetMenu() error {
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
-		return gui.createErrorPanel(gui.Tr.NoCommitsThisBranch)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.NoCommitsThisBranch)
 	}
 
 	return gui.createResetMenu(commit.Sha)
@@ -700,12 +700,12 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 
 	message, err := gui.Git.Commit.GetCommitMessage(commit.Sha)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.logAction(gui.Tr.Actions.CopyCommitMessageToClipboard)
 	if err := gui.OSCommand.CopyToClipboard(message); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.raiseToast(gui.Tr.CommitMessageCopiedToClipboard)
@@ -714,7 +714,7 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 }
 
 func (gui *Gui) handleOpenLogMenu() error {
-	return gui.createMenu(createMenuOptions{
+	return gui.PopupHandler.Menu(createMenuOptions{
 		title: gui.Tr.LogMenuTitle,
 		items: []*menuItem{
 			{
@@ -726,7 +726,7 @@ func (gui *Gui) handleOpenLogMenu() error {
 						gui.State.Panels.Commits.LimitCommits = false
 					}
 
-					return gui.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
+					return gui.PopupHandler.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
 						return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}})
 					})
 				},
@@ -742,7 +742,7 @@ func (gui *Gui) handleOpenLogMenu() error {
 							return nil
 						}
 					}
-					return gui.createMenu(createMenuOptions{
+					return gui.PopupHandler.Menu(createMenuOptions{
 						title: gui.Tr.LogMenuTitle,
 						items: []*menuItem{
 							{
@@ -768,13 +768,13 @@ func (gui *Gui) handleOpenLogMenu() error {
 					onPress := func(value string) func() error {
 						return func() error {
 							gui.UserConfig.Git.Log.Order = value
-							return gui.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
+							return gui.PopupHandler.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
 								return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}})
 							})
 						}
 					}
 
-					return gui.createMenu(createMenuOptions{
+					return gui.PopupHandler.Menu(createMenuOptions{
 						title: gui.Tr.LogMenuTitle,
 						items: []*menuItem{
 							{
@@ -807,12 +807,12 @@ func (gui *Gui) handleOpenCommitInBrowser() error {
 
 	url, err := hostingServiceMgr.GetCommitURL(commit.Sha)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.logAction(gui.Tr.Actions.OpenCommitInBrowser)
 	if err := gui.OSCommand.OpenLink(url); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	return nil

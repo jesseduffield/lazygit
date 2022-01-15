@@ -42,7 +42,7 @@ func (gui *Gui) refreshRemotes() error {
 
 	remotes, err := gui.Git.Loaders.Remotes.GetRemotes()
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.State.Remotes = remotes
@@ -79,10 +79,10 @@ func (gui *Gui) handleRemoteEnter() error {
 }
 
 func (gui *Gui) handleAddRemote() error {
-	return gui.prompt(promptOpts{
+	return gui.PopupHandler.Prompt(promptOpts{
 		title: gui.Tr.LcNewRemoteName,
 		handleConfirm: func(remoteName string) error {
-			return gui.prompt(promptOpts{
+			return gui.PopupHandler.Prompt(promptOpts{
 				title: gui.Tr.LcNewRemoteUrl,
 				handleConfirm: func(remoteUrl string) error {
 					gui.logAction(gui.Tr.Actions.AddRemote)
@@ -103,13 +103,13 @@ func (gui *Gui) handleRemoveRemote() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.LcRemoveRemote,
 		prompt: gui.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.RemoveRemote)
 			if err := gui.Git.Remote.RemoveRemote(remote.Name); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 
 			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
@@ -130,14 +130,14 @@ func (gui *Gui) handleEditRemote() error {
 		},
 	)
 
-	return gui.prompt(promptOpts{
+	return gui.PopupHandler.Prompt(promptOpts{
 		title:          editNameMessage,
 		initialContent: remote.Name,
 		handleConfirm: func(updatedRemoteName string) error {
 			if updatedRemoteName != remote.Name {
 				gui.logAction(gui.Tr.Actions.UpdateRemote)
 				if err := gui.Git.Remote.RenameRemote(remote.Name, updatedRemoteName); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 			}
 
@@ -154,13 +154,13 @@ func (gui *Gui) handleEditRemote() error {
 				url = urls[0]
 			}
 
-			return gui.prompt(promptOpts{
+			return gui.PopupHandler.Prompt(promptOpts{
 				title:          editUrlMessage,
 				initialContent: url,
 				handleConfirm: func(updatedRemoteUrl string) error {
 					gui.logAction(gui.Tr.Actions.UpdateRemote)
 					if err := gui.Git.Remote.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
-						return gui.surfaceError(err)
+						return gui.PopupHandler.Error(err)
 					}
 					return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
 				},
@@ -175,7 +175,7 @@ func (gui *Gui) handleFetchRemote() error {
 		return nil
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.FetchingRemoteStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.FetchingRemoteStatus, func() error {
 		gui.Mutexes.FetchMutex.Lock()
 		defer gui.Mutexes.FetchMutex.Unlock()
 

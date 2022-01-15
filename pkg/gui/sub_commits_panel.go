@@ -42,7 +42,7 @@ func (gui *Gui) handleCheckoutSubCommit() error {
 		return nil
 	}
 
-	err := gui.ask(askOpts{
+	err := gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.LcCheckoutCommit,
 		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {

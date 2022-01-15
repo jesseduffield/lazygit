@@ -89,7 +89,7 @@ func (gui *Gui) reflogUndo() error {
 	undoingStatus := gui.Tr.UndoingStatus
 
 	if gui.Git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-		return gui.createErrorPanel(gui.Tr.LcCantUndoWhileRebasing)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.LcCantUndoWhileRebasing)
 	}
 
 	return gui.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
@@ -124,7 +124,7 @@ func (gui *Gui) reflogRedo() error {
 	redoingStatus := gui.Tr.RedoingStatus
 
 	if gui.Git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-		return gui.createErrorPanel(gui.Tr.LcCantRedoWhileRebasing)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.LcCantRedoWhileRebasing)
 	}
 
 	return gui.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
@@ -166,7 +166,7 @@ type handleHardResetWithAutoStashOptions struct {
 func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHardResetWithAutoStashOptions) error {
 	reset := func() error {
 		if err := gui.resetToRef(commitSha, "hard", options.EnvVars); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 		return nil
 	}
@@ -175,13 +175,13 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 	dirtyWorkingTree := len(gui.trackedFiles()) > 0 || len(gui.stagedFiles()) > 0
 	if dirtyWorkingTree {
 		// offer to autostash changes
-		return gui.ask(askOpts{
+		return gui.PopupHandler.Ask(askOpts{
 			title:  gui.Tr.AutoStashTitle,
 			prompt: gui.Tr.AutoStashPrompt,
 			handleConfirm: func() error {
-				return gui.WithWaitingStatus(options.WaitingStatus, func() error {
+				return gui.PopupHandler.WithWaitingStatus(options.WaitingStatus, func() error {
 					if err := gui.Git.Stash.Save(gui.Tr.StashPrefix + commitSha); err != nil {
-						return gui.surfaceError(err)
+						return gui.PopupHandler.Error(err)
 					}
 					if err := reset(); err != nil {
 						return err
@@ -192,7 +192,7 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 						return err
 					}
 					if err != nil {
-						return gui.surfaceError(err)
+						return gui.PopupHandler.Error(err)
 					}
 					return nil
 				})
@@ -200,7 +200,7 @@ func (gui *Gui) handleHardResetWithAutoStash(commitSha string, options handleHar
 		})
 	}
 
-	return gui.WithWaitingStatus(options.WaitingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(options.WaitingStatus, func() error {
 		return reset()
 	})
 }

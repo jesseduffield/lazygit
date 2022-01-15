@@ -55,7 +55,7 @@ func (gui *Gui) refreshReflogCommits() error {
 		commits, onlyObtainedNewReflogCommits, err := gui.Git.Loaders.ReflogCommits.
 			GetReflogCommits(lastReflogCommit, filterPath)
 		if err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 
 		if onlyObtainedNewReflogCommits {
@@ -87,7 +87,7 @@ func (gui *Gui) handleCheckoutReflogCommit() error {
 		return nil
 	}
 
-	err := gui.ask(askOpts{
+	err := gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.LcCheckoutCommit,
 		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {

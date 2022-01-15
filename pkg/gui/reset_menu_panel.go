@@ -8,7 +8,7 @@ import (
 
 func (gui *Gui) resetToRef(ref string, strength string, envVars []string) error {
 	if err := gui.Git.Commit.ResetToCommit(ref, strength, envVars); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.State.Panels.Commits.SelectedLineIdx = 0
@@ -44,7 +44,7 @@ func (gui *Gui) createResetMenu(ref string) error {
 		}
 	}
 
-	return gui.createMenu(createMenuOptions{
+	return gui.PopupHandler.Menu(createMenuOptions{
 		title: fmt.Sprintf("%s %s", gui.Tr.LcResetTo, ref),
 		items: menuItems,
 	})

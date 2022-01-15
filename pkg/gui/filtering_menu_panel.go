@@ -34,7 +34,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 	menuItems = append(menuItems, &menuItem{
 		displayString: gui.Tr.LcFilterPathOption,
 		onPress: func() error {
-			return gui.prompt(promptOpts{
+			return gui.PopupHandler.Prompt(promptOpts{
 				findSuggestionsFunc: gui.getFilePathSuggestionsFunc(),
 				title:               gui.Tr.EnterFileName,
 				handleConfirm: func(response string) error {
@@ -51,5 +51,5 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 		})
 	}
 
-	return gui.createMenu(createMenuOptions{title: gui.Tr.FilteringMenuTitle, items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: gui.Tr.FilteringMenuTitle, items: menuItems})
 }

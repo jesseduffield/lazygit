@@ -14,7 +14,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				onPress: func() error {
 					gui.logAction(gui.Tr.Actions.DiscardAllChangesInDirectory)
 					if err := gui.Git.WorkingTree.DiscardAllDirChanges(node); err != nil {
-						return gui.surfaceError(err)
+						return gui.PopupHandler.Error(err)
 					}
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 				},
@@ -27,7 +27,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				onPress: func() error {
 					gui.logAction(gui.Tr.Actions.DiscardUnstagedChangesInDirectory)
 					if err := gui.Git.WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
-						return gui.surfaceError(err)
+						return gui.PopupHandler.Error(err)
 					}
 
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -56,7 +56,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 					onPress: func() error {
 						gui.logAction(gui.Tr.Actions.DiscardAllChangesInFile)
 						if err := gui.Git.WorkingTree.DiscardAllFileChanges(file); err != nil {
-							return gui.surfaceError(err)
+							return gui.PopupHandler.Error(err)
 						}
 						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
 					},
@@ -69,7 +69,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 					onPress: func() error {
 						gui.logAction(gui.Tr.Actions.DiscardAllUnstagedChangesInFile)
 						if err := gui.Git.WorkingTree.DiscardUnstagedFileChanges(file); err != nil {
-							return gui.surfaceError(err)
+							return gui.PopupHandler.Error(err)
 						}
 
 						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -79,5 +79,5 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 		}
 	}
 
-	return gui.createMenu(createMenuOptions{title: node.GetPath(), items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: node.GetPath(), items: menuItems})
 }

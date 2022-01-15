@@ -23,7 +23,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.NukeWorkingTree)
 				if err := gui.Git.WorkingTree.ResetAndClean(); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
 				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -37,7 +37,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.DiscardUnstagedFileChanges)
 				if err := gui.Git.WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
 				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -51,7 +51,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.RemoveUntrackedFiles)
 				if err := gui.Git.WorkingTree.RemoveUntrackedFiles(); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
 				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -65,7 +65,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.SoftReset)
 				if err := gui.Git.WorkingTree.ResetSoft("HEAD"); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
 				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -79,7 +79,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.MixedReset)
 				if err := gui.Git.WorkingTree.ResetMixed("HEAD"); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
 				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -93,7 +93,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 			onPress: func() error {
 				gui.logAction(gui.Tr.Actions.HardReset)
 				if err := gui.Git.WorkingTree.ResetHard("HEAD"); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
 				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -101,5 +101,5 @@ func (gui *Gui) handleCreateResetMenu() error {
 		},
 	}
 
-	return gui.createMenu(createMenuOptions{title: "", items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: "", items: menuItems})
 }

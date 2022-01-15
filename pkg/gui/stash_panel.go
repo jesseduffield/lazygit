@@ -52,7 +52,7 @@ func (gui *Gui) handleStashApply() error {
 	apply := func() error {
 		gui.logAction(gui.Tr.Actions.Stash)
 		if err := gui.Git.Stash.Apply(stashEntry.Index); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 		return gui.postStashRefresh()
 	}
@@ -61,7 +61,7 @@ func (gui *Gui) handleStashApply() error {
 		return apply()
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.StashApply,
 		prompt: gui.Tr.SureApplyStashEntry,
 		handleConfirm: func() error {
@@ -81,7 +81,7 @@ func (gui *Gui) handleStashPop() error {
 	pop := func() error {
 		gui.logAction(gui.Tr.Actions.Stash)
 		if err := gui.Git.Stash.Pop(stashEntry.Index); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 		return gui.postStashRefresh()
 	}
@@ -90,7 +90,7 @@ func (gui *Gui) handleStashPop() error {
 		return pop()
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.StashPop,
 		prompt: gui.Tr.SurePopStashEntry,
 		handleConfirm: func() error {
@@ -105,13 +105,13 @@ func (gui *Gui) handleStashDrop() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.StashDrop,
 		prompt: gui.Tr.SureDropStashEntry,
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.Stash)
 			if err := gui.Git.Stash.Drop(stashEntry.Index); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 			return gui.postStashRefresh()
 		},
@@ -124,14 +124,14 @@ func (gui *Gui) postStashRefresh() error {
 
 func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 	if len(gui.trackedFiles()) == 0 && len(gui.stagedFiles()) == 0 {
-		return gui.createErrorPanel(gui.Tr.NoTrackedStagedFilesStash)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.NoTrackedStagedFilesStash)
 	}
 
-	return gui.prompt(promptOpts{
+	return gui.PopupHandler.Prompt(promptOpts{
 		title: gui.Tr.StashChanges,
 		handleConfirm: func(stashComment string) error {
 			if err := stashFunc(stashComment); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})
 		},

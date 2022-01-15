@@ -33,7 +33,7 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 		}
 	}
 
-	return gui.createMenu(createMenuOptions{title: gui.Tr.RecentRepos, items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: gui.Tr.RecentRepos, items: menuItems})
 }
 
 func (gui *Gui) handleShowAllBranchLogs() error {
@@ -57,7 +57,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 
 	if err := os.Chdir(path); err != nil {
 		if os.IsNotExist(err) {
-			return gui.createErrorPanel(gui.Tr.ErrRepositoryMovedOrDeleted)
+			return gui.PopupHandler.ErrorMsg(gui.Tr.ErrRepositoryMovedOrDeleted)
 		}
 		return err
 	}

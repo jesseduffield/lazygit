@@ -41,14 +41,14 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 		title = gui.Tr.RebaseOptionsTitle
 	}
 
-	return gui.createMenu(createMenuOptions{title: title, items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: title, items: menuItems})
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {
 	status := gui.Git.Status.WorkingTreeState()
 
 	if status != enums.REBASE_MODE_MERGING && status != enums.REBASE_MODE_REBASING {
-		return gui.createErrorPanel(gui.Tr.NotMergingOrRebasing)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.NotMergingOrRebasing)
 	}
 
 	gui.logAction(fmt.Sprintf("Merge/Rebase: %s", command))
@@ -110,7 +110,7 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 		// assume in this case that we're already done
 		return nil
 	} else if isMergeConflictErr(result.Error()) {
-		return gui.ask(askOpts{
+		return gui.PopupHandler.Ask(askOpts{
 			title:               gui.Tr.FoundConflictsTitle,
 			prompt:              gui.Tr.FoundConflicts,
 			handlersManageFocus: true,
@@ -126,14 +126,14 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 			},
 		})
 	} else {
-		return gui.createErrorPanel(result.Error())
+		return gui.PopupHandler.ErrorMsg(result.Error())
 	}
 }
 
 func (gui *Gui) abortMergeOrRebaseWithConfirm() error {
 	// prompt user to confirm that they want to abort, then do it
 	mode := gui.workingTreeStateNoun()
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  fmt.Sprintf(gui.Tr.AbortTitle, mode),
 		prompt: fmt.Sprintf(gui.Tr.AbortPrompt, mode),
 		handleConfirm: func() error {

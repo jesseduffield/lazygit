@@ -41,7 +41,7 @@ func (gui *Gui) tagsRenderToMain() error {
 func (gui *Gui) refreshTags() error {
 	tags, err := gui.Git.Loaders.Tags.GetTags()
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.State.Tags = tags
@@ -78,13 +78,13 @@ func (gui *Gui) handleDeleteTag(tag *models.Tag) error {
 		},
 	)
 
-	return gui.ask(askOpts{
+	return gui.PopupHandler.Ask(askOpts{
 		title:  gui.Tr.DeleteTagTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.DeleteTag)
 			if err := gui.Git.Tag.Delete(tag.Name); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
 		},
@@ -99,12 +99,12 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 		},
 	)
 
-	return gui.prompt(promptOpts{
+	return gui.PopupHandler.Prompt(promptOpts{
 		title:               title,
 		initialContent:      "origin",
 		findSuggestionsFunc: gui.getRemoteSuggestionsFunc(),
 		handleConfirm: func(response string) error {
-			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
 				gui.logAction(gui.Tr.Actions.PushTag)
 				err := gui.Git.Tag.Push(response, tag.Name)
 				gui.handleCredentialsPopup(err)

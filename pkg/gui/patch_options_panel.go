@@ -8,7 +8,7 @@ import (
 
 func (gui *Gui) handleCreatePatchOptionsMenu() error {
 	if !gui.Git.Patch.PatchManager.Active() {
-		return gui.createErrorPanel(gui.Tr.NoPatchError)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.NoPatchError)
 	}
 
 	menuItems := []*menuItem{
@@ -61,7 +61,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 		}
 	}
 
-	return gui.createMenu(createMenuOptions{title: gui.Tr.PatchOptionsTitle, items: menuItems})
+	return gui.PopupHandler.Menu(createMenuOptions{title: gui.Tr.PatchOptionsTitle, items: menuItems})
 }
 
 func (gui *Gui) getPatchCommitIndex() int {
@@ -75,7 +75,7 @@ func (gui *Gui) getPatchCommitIndex() int {
 
 func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
 	if gui.Git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
-		return false, gui.createErrorPanel(gui.Tr.CantPatchWhileRebasingError)
+		return false, gui.PopupHandler.ErrorMsg(gui.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
 }
@@ -96,7 +96,7 @@ func (gui *Gui) handleDeletePatchFromCommit() error {
 		return err
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.logAction(gui.Tr.Actions.RemovePatchFromCommit)
 		err := gui.Git.Patch.DeletePatchesFromCommit(gui.State.Commits, commitIndex)
@@ -113,7 +113,7 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 		return err
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.logAction(gui.Tr.Actions.MovePatchToSelectedCommit)
 		err := gui.Git.Patch.MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLineIdx)
@@ -131,7 +131,7 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 	}
 
 	pull := func(stash bool) error {
-		return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
+		return gui.PopupHandler.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 			commitIndex := gui.getPatchCommitIndex()
 			gui.logAction(gui.Tr.Actions.MovePatchIntoIndex)
 			err := gui.Git.Patch.MovePatchIntoIndex(gui.State.Commits, commitIndex, stash)
@@ -140,7 +140,7 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 	}
 
 	if len(gui.trackedFiles()) > 0 {
-		return gui.ask(askOpts{
+		return gui.PopupHandler.Ask(askOpts{
 			title:  gui.Tr.MustStashTitle,
 			prompt: gui.Tr.MustStashWarning,
 			handleConfirm: func() error {
@@ -161,7 +161,7 @@ func (gui *Gui) handlePullPatchIntoNewCommit() error {
 		return err
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.logAction(gui.Tr.Actions.MovePatchIntoNewCommit)
 		err := gui.Git.Patch.PullPatchIntoNewCommit(gui.State.Commits, commitIndex)
@@ -180,7 +180,7 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 	}
 	gui.logAction(action)
 	if err := gui.Git.Patch.PatchManager.ApplyPatches(reverse); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 }
