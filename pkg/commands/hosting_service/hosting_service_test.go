@@ -83,7 +83,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@bitbucket.org:johndoe/social_network.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1", url)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
 			},
 		},
 		{
@@ -92,7 +92,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "https://my_username@bitbucket.org/johndoe/social_network.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/events&t=1", url)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fevents&t=1", url)
 			},
 		},
 		{
@@ -101,7 +101,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@github.com:peter/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://github.com/peter/calculator/compare/feature/sum-operation?expand=1", url)
+				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Fsum-operation?expand=1", url)
 			},
 		},
 		{
@@ -111,7 +111,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@bitbucket.org:johndoe/social_network.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page/avatar&dest=feature/profile-page&t=1", url)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page%2Favatar&dest=feature%2Fprofile-page&t=1", url)
 			},
 		},
 		{
@@ -121,7 +121,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "https://my_username@bitbucket.org/johndoe/social_network.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/remote-events&dest=feature/events&t=1", url)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fremote-events&dest=feature%2Fevents&t=1", url)
 			},
 		},
 		{
@@ -131,7 +131,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@github.com:peter/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://github.com/peter/calculator/compare/feature/operations...feature/sum-operation?expand=1", url)
+				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Foperations...feature%2Fsum-operation?expand=1", url)
 			},
 		},
 		{
@@ -140,7 +140,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@gitlab.com:peter/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature/ui", url)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature%2Fui", url)
 			},
 		},
 		{
@@ -149,7 +149,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature/ui", url)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature%2Fui", url)
 			},
 		},
 		{
@@ -159,7 +159,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@gitlab.com:peter/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature/commit-ui&merge_request[target_branch]=epic/ui", url)
+				assert.Equal(t, "https://gitlab.com/peter/calculator/merge_requests/new?merge_request[source_branch]=feature%2Fcommit-ui&merge_request[target_branch]=epic%2Fui", url)
 			},
 		},
 		{
@@ -169,7 +169,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature/commit-ui&merge_request[target_branch]=epic/ui", url)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature%2Fcommit-ui&merge_request[target_branch]=epic%2Fui", url)
 			},
 		},
 		{
@@ -190,7 +190,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1", url)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
 			},
 			expectedLoggedErrors: nil,
 		},
@@ -203,7 +203,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1", url)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
 			},
 			expectedLoggedErrors: []string{"Unexpected format for git service: 'noservice.work.com'. Expected something like 'github.com:github.com'"},
 		},
@@ -216,7 +216,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature/profile-page&t=1", url)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
 			},
 			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab"},
 		},
