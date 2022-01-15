@@ -36,8 +36,8 @@ type askOpts struct {
 type promptOpts struct {
 	title               string
 	initialContent      string
-	handleConfirm       func(string) error
 	findSuggestionsFunc func(string) []*types.Suggestion
+	handleConfirm       func(string) error
 }
 
 func (gui *Gui) ask(opts askOpts) error {

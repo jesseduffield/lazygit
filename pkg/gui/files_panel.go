@@ -655,42 +655,40 @@ func (gui *Gui) handlePullFiles() error {
 
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
-		// see if we have this branch in our config with an upstream
-		branches, err := gui.Git.Config.Branches()
-		if err != nil {
-			return gui.surfaceError(err)
-		}
-		for branchName, branch := range branches {
-			if branchName == currentBranch.Name {
-				return gui.pullFiles(PullFilesOptions{RemoteName: branch.Remote, BranchName: branch.Name, action: action})
-			}
-		}
-
 		suggestedRemote := getSuggestedRemote(gui.State.Remotes)
 
 		return gui.prompt(promptOpts{
 			title:               gui.Tr.EnterUpstream,
-			initialContent:      suggestedRemote + "/" + currentBranch.Name,
-			findSuggestionsFunc: gui.getRemoteBranchesSuggestionsFunc("/"),
+			initialContent:      suggestedRemote + " " + currentBranch.Name,
+			findSuggestionsFunc: gui.getRemoteBranchesSuggestionsFunc(" "),
 			handleConfirm: func(upstream string) error {
-				if err := gui.Git.Branch.SetCurrentBranchUpstream(upstream); err != nil {
+				var upstreamBranch, upstreamRemote string
+				split := strings.Split(upstream, " ")
+				if len(split) != 2 {
+					return gui.createErrorPanel(gui.Tr.InvalidUpstream)
+				}
+
+				upstreamRemote = split[0]
+				upstreamBranch = split[1]
+
+				if err := gui.Git.Branch.SetCurrentBranchUpstream(upstreamRemote, upstreamBranch); err != nil {
 					errorMessage := err.Error()
 					if strings.Contains(errorMessage, "does not exist") {
 						errorMessage = fmt.Sprintf("upstream branch %s not found.\nIf you expect it to exist, you should fetch (with 'f').\nOtherwise, you should push (with 'shift+P')", upstream)
 					}
 					return gui.createErrorPanel(errorMessage)
 				}
-				return gui.pullFiles(PullFilesOptions{action: action})
+				return gui.pullFiles(PullFilesOptions{UpstreamRemote: upstreamRemote, UpstreamBranch: upstreamBranch, action: action})
 			},
 		})
 	}
 
-	return gui.pullFiles(PullFilesOptions{action: action})
+	return gui.pullFiles(PullFilesOptions{UpstreamRemote: currentBranch.UpstreamRemote, UpstreamBranch: currentBranch.UpstreamBranch, action: action})
 }
 
 type PullFilesOptions struct {
-	RemoteName      string
-	BranchName      string
+	UpstreamRemote  string
+	UpstreamBranch  string
 	FastForwardOnly bool
 	action          string
 }
@@ -714,8 +712,8 @@ func (gui *Gui) pullWithLock(opts PullFilesOptions) error {
 
 	err := gui.Git.Sync.Pull(
 		git_commands.PullOptions{
-			RemoteName:      opts.RemoteName,
-			BranchName:      opts.BranchName,
+			RemoteName:      opts.UpstreamRemote,
+			BranchName:      opts.UpstreamBranch,
 			FastForwardOnly: opts.FastForwardOnly,
 		},
 	)
@@ -782,28 +780,18 @@ func (gui *Gui) pushFiles() error {
 	}
 
 	if currentBranch.IsTrackingRemote() {
+		opts := pushOpts{
+			force:          false,
+			upstreamRemote: currentBranch.UpstreamRemote,
+			upstreamBranch: currentBranch.UpstreamBranch,
+		}
 		if currentBranch.HasCommitsToPull() {
-			return gui.requestToForcePush()
+			opts.force = true
+			return gui.requestToForcePush(opts)
 		} else {
-			return gui.push(pushOpts{})
+			return gui.push(opts)
 		}
 	} else {
-		// see if we have an upstream for this branch in our config
-		upstreamRemote, upstreamBranch, err := gui.upstreamForBranchInConfig(currentBranch.Name)
-		if err != nil {
-			return gui.surfaceError(err)
-		}
-
-		if upstreamBranch != "" {
-			return gui.push(
-				pushOpts{
-					force:          false,
-					upstreamRemote: upstreamRemote,
-					upstreamBranch: upstreamBranch,
-				},
-			)
-		}
-
 		suggestedRemote := getSuggestedRemote(gui.State.Remotes)
 
 		if gui.Git.Config.GetPushToCurrent() {
@@ -850,7 +838,7 @@ func getSuggestedRemote(remotes []*models.Remote) string {
 	return remotes[0].Name
 }
 
-func (gui *Gui) requestToForcePush() error {
+func (gui *Gui) requestToForcePush(opts pushOpts) error {
 	forcePushDisabled := gui.UserConfig.Git.DisableForcePushing
 	if forcePushDisabled {
 		return gui.createErrorPanel(gui.Tr.ForcePushDisabled)
@@ -860,24 +848,9 @@ func (gui *Gui) requestToForcePush() error {
 		title:  gui.Tr.ForcePush,
 		prompt: gui.Tr.ForcePushPrompt,
 		handleConfirm: func() error {
-			return gui.push(pushOpts{force: true})
+			return gui.push(opts)
 		},
 	})
-}
-
-func (gui *Gui) upstreamForBranchInConfig(branchName string) (string, string, error) {
-	branches, err := gui.Git.Config.Branches()
-	if err != nil {
-		return "", "", err
-	}
-
-	for configBranchName, configBranch := range branches {
-		if configBranchName == branchName {
-			return configBranch.Remote, configBranchName, nil
-		}
-	}
-
-	return "", "", nil
 }
 
 func (gui *Gui) switchToMerge() error {

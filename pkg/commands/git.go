@@ -136,7 +136,7 @@ func NewGitCommandAux(
 		Tag:         tagCommands,
 		WorkingTree: workingTreeCommands,
 		Loaders: Loaders{
-			Branches:      loaders.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchName),
+			Branches:      loaders.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchName, configCommands),
 			CommitFiles:   loaders.NewCommitFileLoader(cmn, cmd),
 			Commits:       loaders.NewCommitLoader(cmn, cmd, dotGitDir, branchCommands.CurrentBranchName, statusCommands.RebaseMode),
 			Files:         fileLoader,

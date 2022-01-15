@@ -43,7 +43,13 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 
 	res := []string{recencyColor.Sprint(b.Recency), coloredName}
 	if fullDescription {
-		return append(res, style.FgYellow.Sprint(b.UpstreamName))
+		return append(
+			res,
+			fmt.Sprintf("%s %s",
+				style.FgYellow.Sprint(b.UpstreamRemote),
+				style.FgYellow.Sprint(b.UpstreamBranch),
+			),
+		)
 	}
 	return res
 }

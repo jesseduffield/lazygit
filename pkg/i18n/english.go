@@ -188,6 +188,7 @@ type TranslationSet struct {
 	ConfirmRebase                       string
 	ConfirmMerge                        string
 	FwdNoUpstream                       string
+	FwdNoLocalUpstream                  string
 	FwdCommitsToPush                    string
 	ErrorOccurred                       string
 	NoRoom                              string
@@ -281,6 +282,7 @@ type TranslationSet struct {
 	LcEnterFile                         string
 	ExitLineByLineMode                  string
 	EnterUpstream                       string
+	InvalidUpstream                     string
 	ReturnToRemotesList                 string
 	LcAddNewRemote                      string
 	LcNewRemoteName                     string
@@ -738,6 +740,7 @@ func EnglishTranslationSet() TranslationSet {
 		ConfirmRebase:                       "Are you sure you want to rebase '{{.checkedOutBranch}}' onto '{{.selectedBranch}}'?",
 		ConfirmMerge:                        "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
+		FwdNoLocalUpstream:                  "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                    "Cannot fast-forward a branch with commits to push",
 		ErrorOccurred:                       "An error occurred! Please create an issue at",
 		NoRoom:                              "Not enough room",
@@ -831,6 +834,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcEnterFile:                         "enter file to add selected lines to the patch (or toggle directory collapsed)",
 		ExitLineByLineMode:                  `exit line-by-line mode`,
 		EnterUpstream:                       `Enter upstream as '<remote> <branchname>'`,
+		InvalidUpstream:                     "Invalid upstream. Must be in the format '<remote> <branchname>'",
 		ReturnToRemotesList:                 `Return to remotes list`,
 		LcAddNewRemote:                      `add new remote`,
 		LcNewRemoteName:                     `New remote name:`,
