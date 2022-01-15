@@ -65,7 +65,9 @@ func TestDoesntIncreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
 		func(gui *Gui) Context { return gui.State.Contexts.ReflogCommits },
 		func(gui *Gui) Context { return gui.State.Contexts.RemoteBranches },
 		func(gui *Gui) Context { return gui.State.Contexts.Tags },
-		func(gui *Gui) Context { return gui.State.Contexts.Merging },
+		// not testing this because it will kick straight back to the files context
+		// upon pushing the context
+		// func(gui *Gui) Context { return gui.State.Contexts.Merging },
 		func(gui *Gui) Context { return gui.State.Contexts.CommandLog },
 	}
 
@@ -115,7 +117,9 @@ func TestDoesntDecreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
 		func(gui *Gui) Context { return gui.State.Contexts.ReflogCommits },
 		func(gui *Gui) Context { return gui.State.Contexts.RemoteBranches },
 		func(gui *Gui) Context { return gui.State.Contexts.Tags },
-		func(gui *Gui) Context { return gui.State.Contexts.Merging },
+		// not testing this because it will kick straight back to the files context
+		// upon pushing the context
+		// func(gui *Gui) Context { return gui.State.Contexts.Merging },
 		func(gui *Gui) Context { return gui.State.Contexts.CommandLog },
 	}
 

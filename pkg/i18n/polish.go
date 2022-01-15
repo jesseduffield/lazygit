@@ -39,7 +39,6 @@ func polishTranslationSet() TranslationSet {
 		PullWait:                            "Pobieranie zmian...",
 		PushWait:                            "Wysyłanie zmian...",
 		FetchWait:                           "Pobieram...",
-		FileNoMergeCons:                     "Brak konfliktów scalania w pliku",
 		AlreadyCheckedOutBranch:             "Już przęłączono na tą gałąź",
 		SureForceCheckout:                   "Jesteś pewny, że chcesz wymusić przełączenie? Stracisz wszystkie lokalne zmiany",
 		ForceCheckoutBranch:                 "Wymuś przełączenie gałęzi",

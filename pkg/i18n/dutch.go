@@ -44,7 +44,6 @@ func dutchTranslationSet() TranslationSet {
 		PullWait:                            "Pullen...",
 		PushWait:                            "Pushen...",
 		FetchWait:                           "Fetchen...",
-		FileNoMergeCons:                     "Dit bestand heeft geen merge conflicten",
 		LcSoftReset:                         "zacht reset",
 		AlreadyCheckedOutBranch:             "Je hebt deze branch al uitgecheckt",
 		SureForceCheckout:                   "Weet je zeker dat je het uitchecken wil forceren? Al je lokale verandering zullen worden verwijdert",

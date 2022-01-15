@@ -4,10 +4,25 @@ import (
 	"errors"
 )
 
+var CONTEXT_KEYS_SHOWING_DIFFS = []ContextKey{
+	FILES_CONTEXT_KEY,
+	COMMIT_FILES_CONTEXT_KEY,
+	STASH_CONTEXT_KEY,
+	BRANCH_COMMITS_CONTEXT_KEY,
+	SUB_COMMITS_CONTEXT_KEY,
+	MAIN_STAGING_CONTEXT_KEY,
+	MAIN_PATCH_BUILDING_CONTEXT_KEY,
+}
+
 func isShowingDiff(gui *Gui) bool {
 	key := gui.currentStaticContext().GetKey()
 
-	return key == FILES_CONTEXT_KEY || key == COMMIT_FILES_CONTEXT_KEY || key == STASH_CONTEXT_KEY || key == BRANCH_COMMITS_CONTEXT_KEY || key == SUB_COMMITS_CONTEXT_KEY || key == MAIN_STAGING_CONTEXT_KEY || key == MAIN_PATCH_BUILDING_CONTEXT_KEY
+	for _, contextKey := range CONTEXT_KEYS_SHOWING_DIFFS {
+		if key == contextKey {
+			return true
+		}
+	}
+	return false
 }
 
 func (gui *Gui) IncreaseContextInDiffView() error {

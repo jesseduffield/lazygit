@@ -90,6 +90,7 @@ func (gui *Gui) handlePickHunk() error {
 			if err := gui.handleCompleteMerge(); err != nil {
 				return err
 			}
+			return nil
 		}
 		return gui.refreshMergePanel()
 	})
@@ -151,11 +152,19 @@ func (gui *Gui) refreshMergePanelWithLock() error {
 	return gui.withMergeConflictLock(gui.refreshMergePanel)
 }
 
-func (gui *Gui) refreshMergePanel() error {
-	panelState := gui.State.Panels.Merging
+// not re-using state here because we can run into issues with mutexes when
+// doing that.
+func (gui *Gui) renderConflictsFromFilesPanel() error {
+	state := mergeconflicts.NewState()
+	_, err := gui.renderConflicts(state, false)
+
+	return err
+}
+
+func (gui *Gui) renderConflicts(state *mergeconflicts.State, hasFocus bool) (bool, error) {
 	cat, err := gui.catSelectedFile()
 	if err != nil {
-		return gui.refreshMainViews(refreshMainOpts{
+		return false, gui.refreshMainViews(refreshMainOpts{
 			main: &viewUpdateOpts{
 				title: "",
 				task:  NewRenderStringTask(err.Error()),
@@ -163,26 +172,39 @@ func (gui *Gui) refreshMergePanel() error {
 		})
 	}
 
-	panelState.SetConflictsFromCat(cat)
+	state.SetConflictsFromCat(cat)
 
-	if panelState.NoConflicts() {
-		return gui.handleCompleteMerge()
+	if state.NoConflicts() {
+		// we shouldn't end up here
+		return false, nil
 	}
 
-	hasFocus := gui.currentViewName() == "main"
-	content := mergeconflicts.ColoredConflictFile(cat, panelState.State, hasFocus)
+	content := mergeconflicts.ColoredConflictFile(cat, state, hasFocus)
 
-	if err := gui.scrollToConflict(); err != nil {
-		return err
+	if !gui.State.Panels.Merging.UserVerticalScrolling {
+		gui.centerYPos(gui.Views.Main, state.GetConflictMiddle())
 	}
 
-	return gui.refreshMainViews(refreshMainOpts{
+	return true, gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
 			title:  gui.Tr.MergeConflictsTitle,
 			task:   NewRenderStringWithoutScrollTask(content),
 			noWrap: true,
 		},
 	})
+}
+
+func (gui *Gui) refreshMergePanel() error {
+	conflictsFound, err := gui.renderConflicts(gui.State.Panels.Merging.State, true)
+	if err != nil {
+		return err
+	}
+
+	if !conflictsFound {
+		return gui.handleCompleteMerge()
+	}
+
+	return nil
 }
 
 func (gui *Gui) catSelectedFile() (string, error) {
@@ -201,21 +223,6 @@ func (gui *Gui) catSelectedFile() (string, error) {
 		return "", err
 	}
 	return cat, nil
-}
-
-func (gui *Gui) scrollToConflict() error {
-	if gui.State.Panels.Merging.UserVerticalScrolling {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Merging
-	if panelState.NoConflicts() {
-		return nil
-	}
-
-	gui.centerYPos(gui.Views.Main, panelState.GetConflictMiddle())
-
-	return nil
 }
 
 func (gui *Gui) centerYPos(view *gocui.View, y int) {
@@ -238,18 +245,11 @@ func (gui *Gui) getMergingOptions() map[string]string {
 }
 
 func (gui *Gui) handleEscapeMerge() error {
-	gui.takeOverMergeConflictScrolling()
-
-	gui.State.Panels.Merging.Reset()
 	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
 		return err
 	}
-	// it's possible this method won't be called from the merging view so we need to
-	// ensure we only 'return' focus if we already have it
-	if gui.g.CurrentView() == gui.Views.Main {
-		return gui.pushContext(gui.State.Contexts.Files)
-	}
-	return nil
+
+	return gui.escapeMerge()
 }
 
 func (gui *Gui) handleCompleteMerge() error {
@@ -259,16 +259,26 @@ func (gui *Gui) handleCompleteMerge() error {
 	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
 		return err
 	}
-	// if we got conflicts after unstashing, we don't want to call any git
-	// commands to continue rebasing/merging here
-	if gui.Git.Status.WorkingTreeState() == enums.REBASE_MODE_NONE {
-		return gui.handleEscapeMerge()
-	}
+
 	// if there are no more files with merge conflicts, we should ask whether the user wants to continue
-	if !gui.anyFilesWithMergeConflicts() {
+	if gui.Git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE && !gui.anyFilesWithMergeConflicts() {
 		return gui.promptToContinueRebase()
 	}
-	return gui.handleEscapeMerge()
+
+	return gui.escapeMerge()
+}
+
+func (gui *Gui) escapeMerge() error {
+	gui.takeOverMergeConflictScrolling()
+
+	gui.State.Panels.Merging.Reset()
+
+	// it's possible this method won't be called from the merging view so we need to
+	// ensure we only 'return' focus if we already have it
+	if gui.g.CurrentView() == gui.Views.Main {
+		return gui.pushContext(gui.State.Contexts.Files)
+	}
+	return nil
 }
 
 // promptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
