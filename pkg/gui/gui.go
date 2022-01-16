@@ -645,7 +645,11 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 
 	gui.PauseBackgroundThreads = false
 
-	return cmdErr == nil, gui.surfaceError(cmdErr)
+	if cmdErr != nil {
+		return false, gui.surfaceError(cmdErr)
+	}
+
+	return true, nil
 }
 
 func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unparam
