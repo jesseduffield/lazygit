@@ -123,30 +123,30 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Commity Panel (Commity)
 
 <pre>
-  <kbd>ctrl+l</kbd>: open log menu
-  <kbd>s</kbd>: ściśnij
-  <kbd>r</kbd>: zmień nazwę commita
-  <kbd>R</kbd>: zmień nazwę commita w edytorze
-  <kbd>g</kbd>: zresetuj do tego commita
-  <kbd>f</kbd>: napraw commit
-  <kbd>F</kbd>: utwórz commit naprawczy dla tego commita
-  <kbd>S</kbd>: spłaszcz wszystkie commity naprawcze powyżej zaznaczonych commitów (autosquash)
-  <kbd>d</kbd>: usuń commit
-  <kbd>ctrl+j</kbd>: przenieś commit 1 w dół
-  <kbd>ctrl+k</kbd>: przenieś commit 1 w górę
-  <kbd>e</kbd>: edytuj commit
-  <kbd>A</kbd>: popraw commit zmianami z poczekalni
-  <kbd>p</kbd>: wybierz commit (podczas zmiany bazy)
-  <kbd>t</kbd>: odwróć commit
   <kbd>c</kbd>: kopiuj commit (przebieranie)
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
   <kbd>v</kbd>: wklej commity (przebieranie)
+  <kbd>n</kbd>: create new branch off of commit
+  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>s</kbd>: ściśnij
+  <kbd>f</kbd>: napraw commit
+  <kbd>r</kbd>: zmień nazwę commita
+  <kbd>R</kbd>: zmień nazwę commita w edytorze
+  <kbd>d</kbd>: usuń commit
+  <kbd>e</kbd>: edytuj commit
+  <kbd>p</kbd>: wybierz commit (podczas zmiany bazy)
+  <kbd>F</kbd>: utwórz commit naprawczy dla tego commita
+  <kbd>S</kbd>: spłaszcz wszystkie commity naprawcze powyżej zaznaczonych commitów (autosquash)
+  <kbd>ctrl+j</kbd>: przenieś commit 1 w dół
+  <kbd>ctrl+k</kbd>: przenieś commit 1 w górę
+  <kbd>A</kbd>: popraw commit zmianami z poczekalni
+  <kbd>t</kbd>: odwróć commit
+  <kbd>ctrl+l</kbd>: open log menu
+  <kbd>g</kbd>: zresetuj do tego commita
   <kbd>enter</kbd>: przeglądaj pliki commita
   <kbd>space</kbd>: checkout commit
-  <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
-  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>ctrl+y</kbd>: copy commit message to clipboard
   <kbd>o</kbd>: open commit in browser
   <kbd>b</kbd>: view bisect options
@@ -183,7 +183,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
   <kbd>A</kbd>: Zmień ostatni commit
   <kbd>C</kbd>: Zatwierdź zmiany używając edytora
-  <kbd>space</kbd>: przełącz stan poczekalni
   <kbd>d</kbd>: pokaż opcje porzucania zmian
   <kbd>e</kbd>: edytuj plik
   <kbd>o</kbd>: otwórz plik
@@ -200,6 +199,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
+  <kbd>space</kbd>: przełącz stan poczekalni
 </pre>
 
 ## Pliki Panel (Submodules)

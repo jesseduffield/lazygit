@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -21,9 +22,30 @@ import (
 // finding suggestions in this file, so that it's easy to see if a function already
 // exists for fetching a particular model.
 
-func (gui *Gui) getRemoteNames() []string {
-	result := make([]string, len(gui.State.Remotes))
-	for i, remote := range gui.State.Remotes {
+type SuggestionsHelper struct {
+	c *controllers.ControllerCommon
+
+	State                *GuiRepoState
+	refreshSuggestionsFn func()
+}
+
+var _ controllers.ISuggestionsHelper = &SuggestionsHelper{}
+
+func NewSuggestionsHelper(
+	c *controllers.ControllerCommon,
+	state *GuiRepoState,
+	refreshSuggestionsFn func(),
+) *SuggestionsHelper {
+	return &SuggestionsHelper{
+		c:                    c,
+		State:                state,
+		refreshSuggestionsFn: refreshSuggestionsFn,
+	}
+}
+
+func (self *SuggestionsHelper) getRemoteNames() []string {
+	result := make([]string, len(self.State.Remotes))
+	for i, remote := range self.State.Remotes {
 		result[i] = remote.Name
 	}
 	return result
@@ -40,22 +62,22 @@ func matchesToSuggestions(matches []string) []*types.Suggestion {
 	return suggestions
 }
 
-func (gui *Gui) getRemoteSuggestionsFunc() func(string) []*types.Suggestion {
-	remoteNames := gui.getRemoteNames()
+func (self *SuggestionsHelper) GetRemoteSuggestionsFunc() func(string) []*types.Suggestion {
+	remoteNames := self.getRemoteNames()
 
 	return fuzzySearchFunc(remoteNames)
 }
 
-func (gui *Gui) getBranchNames() []string {
-	result := make([]string, len(gui.State.Branches))
-	for i, branch := range gui.State.Branches {
+func (self *SuggestionsHelper) getBranchNames() []string {
+	result := make([]string, len(self.State.Branches))
+	for i, branch := range self.State.Branches {
 		result[i] = branch.Name
 	}
 	return result
 }
 
-func (gui *Gui) getBranchNameSuggestionsFunc() func(string) []*types.Suggestion {
-	branchNames := gui.getBranchNames()
+func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*types.Suggestion {
+	branchNames := self.getBranchNames()
 
 	return func(input string) []*types.Suggestion {
 		var matchingBranchNames []string
@@ -78,13 +100,13 @@ func (gui *Gui) getBranchNameSuggestionsFunc() func(string) []*types.Suggestion 
 }
 
 // here we asynchronously fetch the latest set of paths in the repo and store in
-// gui.State.FilesTrie. On the main thread we'll be doing a fuzzy search via
-// gui.State.FilesTrie. So if we've looked for a file previously, we'll start with
+// self.State.FilesTrie. On the main thread we'll be doing a fuzzy search via
+// self.State.FilesTrie. So if we've looked for a file previously, we'll start with
 // the old trie and eventually it'll be swapped out for the new one.
 // Notably, unlike other suggestion functions we're not showing all the options
 // if nothing has been typed because there'll be too much to display efficiently
-func (gui *Gui) getFilePathSuggestionsFunc() func(string) []*types.Suggestion {
-	_ = gui.PopupHandler.WithWaitingStatus(gui.Tr.LcLoadingFileSuggestions, func() error {
+func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*types.Suggestion {
+	_ = self.c.WithWaitingStatus(self.c.Tr.LcLoadingFileSuggestions, func() error {
 		trie := patricia.NewTrie()
 		// load every non-gitignored file in the repo
 		ignore, err := gitignore.FromGit()
@@ -101,22 +123,16 @@ func (gui *Gui) getFilePathSuggestionsFunc() func(string) []*types.Suggestion {
 				return nil
 			})
 		// cache the trie for future use
-		gui.State.FilesTrie = trie
+		self.State.FilesTrie = trie
 
-		// refresh the selections view
-		gui.suggestionsAsyncHandler.Do(func() func() {
-			// assuming here that the confirmation view is what we're typing into.
-			// This assumption may prove false over time
-			suggestions := gui.findSuggestions(gui.Views.Confirmation.TextArea.GetContent())
-			return func() { gui.setSuggestions(suggestions) }
-		})
+		self.refreshSuggestionsFn()
 
 		return err
 	})
 
 	return func(input string) []*types.Suggestion {
 		matchingNames := []string{}
-		_ = gui.State.FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
+		_ = self.State.FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
 			matchingNames = append(matchingNames, item.(string))
 			return nil
 		})
@@ -136,9 +152,9 @@ func (gui *Gui) getFilePathSuggestionsFunc() func(string) []*types.Suggestion {
 	}
 }
 
-func (gui *Gui) getRemoteBranchNames(separator string) []string {
+func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
 	result := []string{}
-	for _, remote := range gui.State.Remotes {
+	for _, remote := range self.State.Remotes {
 		for _, branch := range remote.Branches {
 			result = append(result, fmt.Sprintf("%s%s%s", remote.Name, separator, branch.Name))
 		}
@@ -146,22 +162,22 @@ func (gui *Gui) getRemoteBranchNames(separator string) []string {
 	return result
 }
 
-func (gui *Gui) getRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion {
-	return fuzzySearchFunc(gui.getRemoteBranchNames(separator))
+func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion {
+	return fuzzySearchFunc(self.getRemoteBranchNames(separator))
 }
 
-func (gui *Gui) getTagNames() []string {
-	result := make([]string, len(gui.State.Tags))
-	for i, tag := range gui.State.Tags {
+func (self *SuggestionsHelper) getTagNames() []string {
+	result := make([]string, len(self.State.Tags))
+	for i, tag := range self.State.Tags {
 		result[i] = tag.Name
 	}
 	return result
 }
 
-func (gui *Gui) getRefsSuggestionsFunc() func(string) []*types.Suggestion {
-	remoteBranchNames := gui.getRemoteBranchNames("/")
-	localBranchNames := gui.getBranchNames()
-	tagNames := gui.getTagNames()
+func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Suggestion {
+	remoteBranchNames := self.getRemoteBranchNames("/")
+	localBranchNames := self.getBranchNames()
+	tagNames := self.getTagNames()
 	additionalRefNames := []string{"HEAD", "FETCH_HEAD", "MERGE_HEAD", "ORIG_HEAD"}
 
 	refNames := append(append(append(remoteBranchNames, localBranchNames...), tagNames...), additionalRefNames...)
@@ -169,9 +185,9 @@ func (gui *Gui) getRefsSuggestionsFunc() func(string) []*types.Suggestion {
 	return fuzzySearchFunc(refNames)
 }
 
-func (gui *Gui) getCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {
+func (self *SuggestionsHelper) GetCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {
 	// reversing so that we display the latest command first
-	history := utils.Reverse(gui.Config.GetAppState().CustomCommandsHistory)
+	history := utils.Reverse(self.c.GetAppState().CustomCommandsHistory)
 
 	return fuzzySearchFunc(history)
 }

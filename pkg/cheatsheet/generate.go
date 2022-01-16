@@ -17,13 +17,14 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/integration"
 )
 
 type bindingSection struct {
 	title    string
-	bindings []*gui.Binding
+	bindings []*types.Binding
 }
 
 func CommandToRun() string {
@@ -113,7 +114,7 @@ func formatTitle(title string) string {
 	return fmt.Sprintf("\n## %s\n\n", title)
 }
 
-func formatBinding(binding *gui.Binding) string {
+func formatBinding(binding *types.Binding) string {
 	if binding.Alternative != "" {
 		return fmt.Sprintf("  <kbd>%s</kbd>: %s (%s)\n", gui.GetKeyDisplay(binding.Key), binding.Description, binding.Alternative)
 	}
@@ -130,7 +131,7 @@ func getBindingSections(mApp *app.App) []*bindingSection {
 		title    string
 	}
 
-	contextAndViewBindingMap := map[contextAndViewType][]*gui.Binding{}
+	contextAndViewBindingMap := map[contextAndViewType][]*types.Binding{}
 
 outer:
 	for _, binding := range bindings {
@@ -138,7 +139,7 @@ outer:
 			key := contextAndViewType{subtitle: "", title: "navigation"}
 			existing := contextAndViewBindingMap[key]
 			if existing == nil {
-				contextAndViewBindingMap[key] = []*gui.Binding{binding}
+				contextAndViewBindingMap[key] = []*types.Binding{binding}
 			} else {
 				for _, navBinding := range contextAndViewBindingMap[key] {
 					if navBinding.Description == binding.Description {
@@ -162,7 +163,7 @@ outer:
 			key := contextAndViewType{subtitle: context, title: binding.ViewName}
 			existing := contextAndViewBindingMap[key]
 			if existing == nil {
-				contextAndViewBindingMap[key] = []*gui.Binding{binding}
+				contextAndViewBindingMap[key] = []*types.Binding{binding}
 			} else {
 				contextAndViewBindingMap[key] = append(contextAndViewBindingMap[key], binding)
 			}
@@ -171,7 +172,7 @@ outer:
 
 	type groupedBindingsType struct {
 		contextAndView contextAndViewType
-		bindings       []*gui.Binding
+		bindings       []*types.Binding
 	}
 
 	groupedBindings := make([]groupedBindingsType, len(contextAndViewBindingMap))
@@ -227,7 +228,7 @@ outer:
 	return bindingSections
 }
 
-func addBinding(title string, bindingSections []*bindingSection, binding *gui.Binding) []*bindingSection {
+func addBinding(title string, bindingSections []*bindingSection, binding *types.Binding) []*bindingSection {
 	if binding.Description == "" && binding.Alternative == "" {
 		return bindingSections
 	}
@@ -241,7 +242,7 @@ func addBinding(title string, bindingSections []*bindingSection, binding *gui.Bi
 
 	section := &bindingSection{
 		title:    title,
-		bindings: []*gui.Binding{binding},
+		bindings: []*types.Binding{binding},
 	}
 
 	return append(bindingSections, section)

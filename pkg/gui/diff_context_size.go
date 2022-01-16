@@ -2,9 +2,11 @@ package gui
 
 import (
 	"errors"
+
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-var CONTEXT_KEYS_SHOWING_DIFFS = []ContextKey{
+var CONTEXT_KEYS_SHOWING_DIFFS = []types.ContextKey{
 	FILES_CONTEXT_KEY,
 	COMMIT_FILES_CONTEXT_KEY,
 	STASH_CONTEXT_KEY,
@@ -28,10 +30,10 @@ func isShowingDiff(gui *Gui) bool {
 func (gui *Gui) IncreaseContextInDiffView() error {
 	if isShowingDiff(gui) {
 		if err := gui.CheckCanChangeContext(); err != nil {
-			return gui.PopupHandler.Error(err)
+			return gui.c.Error(err)
 		}
 
-		gui.UserConfig.Git.DiffContextSize = gui.UserConfig.Git.DiffContextSize + 1
+		gui.c.UserConfig.Git.DiffContextSize = gui.c.UserConfig.Git.DiffContextSize + 1
 		return gui.handleDiffContextSizeChange()
 	}
 
@@ -39,14 +41,14 @@ func (gui *Gui) IncreaseContextInDiffView() error {
 }
 
 func (gui *Gui) DecreaseContextInDiffView() error {
-	old_size := gui.UserConfig.Git.DiffContextSize
+	old_size := gui.c.UserConfig.Git.DiffContextSize
 
 	if isShowingDiff(gui) && old_size > 1 {
 		if err := gui.CheckCanChangeContext(); err != nil {
-			return gui.PopupHandler.Error(err)
+			return gui.c.Error(err)
 		}
 
-		gui.UserConfig.Git.DiffContextSize = old_size - 1
+		gui.c.UserConfig.Git.DiffContextSize = old_size - 1
 		return gui.handleDiffContextSizeChange()
 	}
 
@@ -67,8 +69,8 @@ func (gui *Gui) handleDiffContextSizeChange() error {
 }
 
 func (gui *Gui) CheckCanChangeContext() error {
-	if gui.Git.Patch.PatchManager.Active() {
-		return errors.New(gui.Tr.CantChangeContextSizeError)
+	if gui.git.Patch.PatchManager.Active() {
+		return errors.New(gui.c.Tr.CantChangeContextSizeError)
 	}
 
 	return nil

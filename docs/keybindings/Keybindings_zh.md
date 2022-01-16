@@ -123,30 +123,30 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 提交 面板 (提交)
 
 <pre>
-  <kbd>ctrl+l</kbd>: open log menu
-  <kbd>s</kbd>: 向下压缩
-  <kbd>r</kbd>: 改写提交
-  <kbd>R</kbd>: 使用编辑器重命名提交
-  <kbd>g</kbd>: 重置为此提交
-  <kbd>f</kbd>: 修正提交（fixup）
-  <kbd>F</kbd>: 为此提交创建修正
-  <kbd>S</kbd>: 压缩在所选提交之上的所有“fixup!”提交（自动压缩）
-  <kbd>d</kbd>: 删除提交
-  <kbd>ctrl+j</kbd>: 下移提交
-  <kbd>ctrl+k</kbd>: 上移提交
-  <kbd>e</kbd>: 编辑提交
-  <kbd>A</kbd>: 用已暂存的更改来修补提交
-  <kbd>p</kbd>: 选择提交（变基过程中）
-  <kbd>t</kbd>: 还原提交
   <kbd>c</kbd>: 复制提交（拣选）
   <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
   <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>v</kbd>: 粘贴提交（拣选）
+  <kbd>n</kbd>: 从提交创建新分支
+  <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
+  <kbd>s</kbd>: 向下压缩
+  <kbd>f</kbd>: 修正提交（fixup）
+  <kbd>r</kbd>: 改写提交
+  <kbd>R</kbd>: 使用编辑器重命名提交
+  <kbd>d</kbd>: 删除提交
+  <kbd>e</kbd>: 编辑提交
+  <kbd>p</kbd>: 选择提交（变基过程中）
+  <kbd>F</kbd>: 为此提交创建修正
+  <kbd>S</kbd>: 压缩在所选提交之上的所有“fixup!”提交（自动压缩）
+  <kbd>ctrl+j</kbd>: 下移提交
+  <kbd>ctrl+k</kbd>: 上移提交
+  <kbd>A</kbd>: 用已暂存的更改来修补提交
+  <kbd>t</kbd>: 还原提交
+  <kbd>ctrl+l</kbd>: open log menu
+  <kbd>g</kbd>: 重置为此提交
   <kbd>enter</kbd>: 查看提交的文件
   <kbd>space</kbd>: 检出提交
-  <kbd>n</kbd>: 从提交创建新分支
   <kbd>T</kbd>: 标签提交
-  <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
   <kbd>ctrl+y</kbd>: 将提交消息复制到剪贴板
   <kbd>o</kbd>: open commit in browser
   <kbd>b</kbd>: view bisect options
@@ -183,7 +183,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>w</kbd>: 提交更改而无需预先提交钩子
   <kbd>A</kbd>: 修补最后一次提交
   <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
-  <kbd>space</kbd>: 切换暂存状态
   <kbd>d</kbd>: 查看'放弃更改‘选项
   <kbd>e</kbd>: 编辑文件
   <kbd>o</kbd>: 打开文件
@@ -200,6 +199,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: 切换文件树视图
   <kbd>M</kbd>: 打开合并工具
   <kbd>ctrl+w</kbd>: 切换是否在差异视图中显示空白更改
+  <kbd>space</kbd>: 切换暂存状态
 </pre>
 
 ## 文件 面板 (子模块)

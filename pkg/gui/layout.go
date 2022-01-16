@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -50,36 +51,36 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.SearchPrefix.Frame = false
 	gui.setViewContent(gui.Views.SearchPrefix, SEARCH_PREFIX)
 
-	gui.Views.Stash.Title = gui.Tr.StashTitle
+	gui.Views.Stash.Title = gui.c.Tr.StashTitle
 	gui.Views.Stash.FgColor = theme.GocuiDefaultTextColor
 
-	gui.Views.Commits.Title = gui.Tr.CommitsTitle
+	gui.Views.Commits.Title = gui.c.Tr.CommitsTitle
 	gui.Views.Commits.FgColor = theme.GocuiDefaultTextColor
 
-	gui.Views.CommitFiles.Title = gui.Tr.CommitFiles
+	gui.Views.CommitFiles.Title = gui.c.Tr.CommitFiles
 	gui.Views.CommitFiles.FgColor = theme.GocuiDefaultTextColor
 
-	gui.Views.Branches.Title = gui.Tr.BranchesTitle
+	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
 	gui.Views.Branches.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Files.Highlight = true
-	gui.Views.Files.Title = gui.Tr.FilesTitle
+	gui.Views.Files.Title = gui.c.Tr.FilesTitle
 	gui.Views.Files.FgColor = theme.GocuiDefaultTextColor
 
-	gui.Views.Secondary.Title = gui.Tr.DiffTitle
+	gui.Views.Secondary.Title = gui.c.Tr.DiffTitle
 	gui.Views.Secondary.Wrap = true
 	gui.Views.Secondary.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Secondary.IgnoreCarriageReturns = true
 
-	gui.Views.Main.Title = gui.Tr.DiffTitle
+	gui.Views.Main.Title = gui.c.Tr.DiffTitle
 	gui.Views.Main.Wrap = true
 	gui.Views.Main.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Main.IgnoreCarriageReturns = true
 
-	gui.Views.Limit.Title = gui.Tr.NotEnoughSpace
+	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
 	gui.Views.Limit.Wrap = true
 
-	gui.Views.Status.Title = gui.Tr.StatusTitle
+	gui.Views.Status.Title = gui.c.Tr.StatusTitle
 	gui.Views.Status.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Search.BgColor = gocui.ColorDefault
@@ -93,7 +94,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.AppStatus.Visible = false
 
 	gui.Views.CommitMessage.Visible = false
-	gui.Views.CommitMessage.Title = gui.Tr.CommitMessage
+	gui.Views.CommitMessage.Title = gui.c.Tr.CommitMessage
 	gui.Views.CommitMessage.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.CommitMessage.Editable = true
 	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
@@ -101,7 +102,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Confirmation.Visible = false
 
 	gui.Views.Credentials.Visible = false
-	gui.Views.Credentials.Title = gui.Tr.CredentialsUsername
+	gui.Views.Credentials.Title = gui.c.Tr.CredentialsUsername
 	gui.Views.Credentials.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Credentials.Editable = true
 
@@ -113,7 +114,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Information.FgColor = gocui.ColorGreen
 	gui.Views.Information.Frame = false
 
-	gui.Views.Extras.Title = gui.Tr.CommandLog
+	gui.Views.Extras.Title = gui.c.Tr.CommandLog
 	gui.Views.Extras.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Extras.Autoscroll = true
 	gui.Views.Extras.Wrap = true
@@ -262,7 +263,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		// ignore contexts whose view is owned by another context right now
-		if ContextKey(view.Context) != listContext.GetKey() {
+		if types.ContextKey(view.Context) != listContext.GetKey() {
 			continue
 		}
 
@@ -271,7 +272,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		view.SelBgColor = theme.GocuiSelectedLineBgColor
 
 		// I doubt this is expensive though it's admittedly redundant after the first render
-		view.SetOnSelectItem(gui.onSelectItemWrapper(listContext.onSearchSelect))
+		view.SetOnSelectItem(gui.onSelectItemWrapper(listContext.OnSearchSelect))
 	}
 
 	gui.Views.Main.SetOnSelectItem(gui.onSelectItemWrapper(gui.handlelineByLineNavigateTo))
@@ -288,7 +289,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// here is a good place log some stuff
 	// if you run `lazygit --logs`
 	// this will let you see these branches as prettified json
-	// gui.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
+	// gui.c.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
 	return gui.resizeCurrentPopupPanel()
 }
 
@@ -310,7 +311,7 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 	}
 
 	initialContext := gui.currentSideContext()
-	if err := gui.pushContext(initialContext); err != nil {
+	if err := gui.c.PushContext(initialContext); err != nil {
 		return err
 	}
 
@@ -372,9 +373,9 @@ func (gui *Gui) onInitialViewsCreation() error {
 		return err
 	}
 
-	if !gui.UserConfig.DisableStartupPopups {
+	if !gui.c.UserConfig.DisableStartupPopups {
 		popupTasks := []func(chan struct{}) error{}
-		storedPopupVersion := gui.Config.GetAppState().StartupPopupVersion
+		storedPopupVersion := gui.c.GetAppState().StartupPopupVersion
 		if storedPopupVersion < StartupPopupVersion {
 			popupTasks = append(popupTasks, gui.showIntroPopupMessage)
 		}

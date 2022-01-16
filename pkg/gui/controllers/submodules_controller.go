@@ -5,65 +5,57 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-// if Go let me do private struct embedding of structs with public fields (which it should)
-// I would just do that. But alas.
-type ControllerCommon struct {
-	*common.Common
-	IGuiCommon
+type SubmodulesController struct {
+	c       *ControllerCommon
+	context types.IListContext
+	git     *commands.GitCommand
+
+	enterSubmodule       func(submodule *models.SubmoduleConfig) error
+	getSelectedSubmodule func() *models.SubmoduleConfig
 }
 
-type SubmodulesController struct {
-	// I've said publicly that I'm against single-letter variable names but in this
-	// case I would actually prefer a _zero_ letter variable name in the form of
-	// struct embedding, but Go does not allow hiding public fields in an embedded struct
-	// to the client
-	c                    *ControllerCommon
-	enterSubmoduleFn     func(submodule *models.SubmoduleConfig) error
-	getSelectedSubmodule func() *models.SubmoduleConfig
-	git                  *commands.GitCommand
-	submodules           []*models.SubmoduleConfig
-}
+var _ types.IController = &SubmodulesController{}
 
 func NewSubmodulesController(
 	c *ControllerCommon,
-	enterSubmoduleFn func(submodule *models.SubmoduleConfig) error,
+	context types.IListContext,
 	git *commands.GitCommand,
-	submodules []*models.SubmoduleConfig,
+	enterSubmodule func(submodule *models.SubmoduleConfig) error,
 	getSelectedSubmodule func() *models.SubmoduleConfig,
 ) *SubmodulesController {
 	return &SubmodulesController{
 		c:                    c,
-		enterSubmoduleFn:     enterSubmoduleFn,
+		context:              context,
 		git:                  git,
-		submodules:           submodules,
+		enterSubmodule:       enterSubmodule,
 		getSelectedSubmodule: getSelectedSubmodule,
 	}
 }
 
-func (self *SubmodulesController) Keybindings(getKey func(key string) interface{}, config config.KeybindingConfig) []*types.Binding {
-	return []*types.Binding{
+func (self *SubmodulesController) Keybindings(getKey func(key string) interface{}, config config.KeybindingConfig, guards types.KeybindingGuards) []*types.Binding {
+	bindings := []*types.Binding{
 		{
 			Key:         getKey(config.Universal.GoInto),
-			Handler:     self.forSubmodule(self.enter),
+			Handler:     self.checkSelected(self.enter),
 			Description: self.c.Tr.LcEnterSubmodule,
 		},
 		{
 			Key:         getKey(config.Universal.Remove),
-			Handler:     self.forSubmodule(self.remove),
+			Handler:     self.checkSelected(self.remove),
 			Description: self.c.Tr.LcRemoveSubmodule,
 		},
 		{
 			Key:         getKey(config.Submodules.Update),
-			Handler:     self.forSubmodule(self.update),
+			Handler:     self.checkSelected(self.update),
 			Description: self.c.Tr.LcSubmoduleUpdate,
 		},
 		{
@@ -73,12 +65,12 @@ func (self *SubmodulesController) Keybindings(getKey func(key string) interface{
 		},
 		{
 			Key:         getKey(config.Universal.Edit),
-			Handler:     self.forSubmodule(self.editURL),
+			Handler:     self.checkSelected(self.editURL),
 			Description: self.c.Tr.LcEditSubmoduleUrl,
 		},
 		{
 			Key:         getKey(config.Submodules.Init),
-			Handler:     self.forSubmodule(self.init),
+			Handler:     self.checkSelected(self.init),
 			Description: self.c.Tr.LcInitSubmodule,
 		},
 		{
@@ -87,11 +79,17 @@ func (self *SubmodulesController) Keybindings(getKey func(key string) interface{
 			Description: self.c.Tr.LcViewBulkSubmoduleOptions,
 			OpensMenu:   true,
 		},
+		{
+			Key:     gocui.MouseLeft,
+			Handler: func() error { return self.context.HandleClick(self.checkSelected(self.enter)) },
+		},
 	}
+
+	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
 }
 
 func (self *SubmodulesController) enter(submodule *models.SubmoduleConfig) error {
-	return self.enterSubmoduleFn(submodule)
+	return self.enterSubmodule(submodule)
 }
 
 func (self *SubmodulesController) add() error {
@@ -231,7 +229,7 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 	})
 }
 
-func (self *SubmodulesController) forSubmodule(callback func(*models.SubmoduleConfig) error) func() error {
+func (self *SubmodulesController) checkSelected(callback func(*models.SubmoduleConfig) error) func() error {
 	return func() error {
 		submodule := self.getSelectedSubmodule()
 		if submodule == nil {
@@ -240,4 +238,8 @@ func (self *SubmodulesController) forSubmodule(callback func(*models.SubmoduleCo
 
 		return callback(submodule)
 	}
+}
+
+func (self *SubmodulesController) Context() types.Context {
+	return self.context
 }

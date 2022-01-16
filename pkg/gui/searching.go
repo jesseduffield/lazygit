@@ -17,7 +17,7 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 
 	gui.Views.Search.ClearTextArea()
 
-	if err := gui.pushContext(gui.State.Contexts.Search); err != nil {
+	if err := gui.c.PushContext(gui.State.Contexts.Search); err != nil {
 		return err
 	}
 
@@ -43,7 +43,7 @@ func (gui *Gui) handleSearch() error {
 }
 
 func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, int) error {
-	keybindingConfig := gui.UserConfig.Keybinding
+	keybindingConfig := gui.c.UserConfig.Keybinding
 
 	return func(y int, index int, total int) error {
 		if total == 0 {

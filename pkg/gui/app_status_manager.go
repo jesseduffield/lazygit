@@ -83,7 +83,7 @@ func (m *statusManager) getStatusString() string {
 	return topStatus.message
 }
 
-func (gui *Gui) raiseToast(message string) {
+func (gui *Gui) toast(message string) {
 	gui.statusManager.addToastStatus(message)
 
 	gui.renderAppStatus()
@@ -119,7 +119,7 @@ func (gui *Gui) withWaitingStatus(message string, f func() error) error {
 
 		if err := f(); err != nil {
 			gui.OnUIThread(func() error {
-				return gui.PopupHandler.Error(err)
+				return gui.c.Error(err)
 			})
 		}
 	})

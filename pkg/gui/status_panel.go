@@ -18,7 +18,7 @@ func (gui *Gui) refreshStatus() {
 	gui.Mutexes.RefreshingStatusMutex.Lock()
 	defer gui.Mutexes.RefreshingStatusMutex.Unlock()
 
-	currentBranch := gui.currentBranch()
+	currentBranch := gui.getCheckedOutBranch()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
 		return
@@ -29,7 +29,7 @@ func (gui *Gui) refreshStatus() {
 		status += presentation.ColoredBranchStatus(currentBranch) + " "
 	}
 
-	workingTreeState := gui.Git.Status.WorkingTreeState()
+	workingTreeState := gui.git.Status.WorkingTreeState()
 	if workingTreeState != enums.REBASE_MODE_NONE {
 		status += style.FgYellow.Sprintf("(%s) ", formatWorkingTreeState(workingTreeState))
 	}
@@ -50,7 +50,7 @@ func cursorInSubstring(cx int, prefix string, substring string) bool {
 }
 
 func (gui *Gui) handleCheckForUpdate() error {
-	return gui.PopupHandler.WithWaitingStatus(gui.Tr.CheckingForUpdates, func() error {
+	return gui.c.WithWaitingStatus(gui.c.Tr.CheckingForUpdates, func() error {
 		gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
 		return nil
 	})
@@ -62,20 +62,20 @@ func (gui *Gui) handleStatusClick() error {
 		return nil
 	}
 
-	currentBranch := gui.currentBranch()
+	currentBranch := gui.getCheckedOutBranch()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
 		return nil
 	}
 
-	if err := gui.pushContext(gui.State.Contexts.Status); err != nil {
+	if err := gui.c.PushContext(gui.State.Contexts.Status); err != nil {
 		return err
 	}
 
 	cx, _ := gui.Views.Status.Cursor()
 	upstreamStatus := presentation.BranchStatus(currentBranch)
 	repoName := utils.GetCurrentRepoName()
-	workingTreeState := gui.Git.Status.WorkingTreeState()
+	workingTreeState := gui.git.Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", formatWorkingTreeState(workingTreeState))
@@ -135,7 +135,7 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 	confPaths := gui.Config.GetUserConfigPaths()
 	switch len(confPaths) {
 	case 0:
-		return errors.New(gui.Tr.NoConfigFileFoundErr)
+		return errors.New(gui.c.Tr.NoConfigFileFoundErr)
 	case 1:
 		return action(confPaths[0])
 	default:
@@ -149,8 +149,8 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 				},
 			}
 		}
-		return gui.PopupHandler.Menu(popup.CreateMenuOptions{
-			Title:      gui.Tr.SelectConfigFile,
+		return gui.c.Menu(popup.CreateMenuOptions{
+			Title:      gui.c.Tr.SelectConfigFile,
 			Items:      menuItems,
 			HideCancel: true,
 		})
@@ -158,11 +158,11 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 }
 
 func (gui *Gui) handleOpenConfig() error {
-	return gui.askForConfigFile(gui.openFile)
+	return gui.askForConfigFile(gui.fileHelper.OpenFile)
 }
 
 func (gui *Gui) handleEditConfig() error {
-	return gui.askForConfigFile(gui.editFile)
+	return gui.askForConfigFile(gui.fileHelper.EditFile)
 }
 
 func lazygitTitle() string {

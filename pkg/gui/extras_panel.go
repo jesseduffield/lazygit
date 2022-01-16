@@ -8,11 +8,11 @@ import (
 )
 
 func (gui *Gui) handleCreateExtrasMenuPanel() error {
-	return gui.PopupHandler.Menu(popup.CreateMenuOptions{
-		Title: gui.Tr.CommandLog,
+	return gui.c.Menu(popup.CreateMenuOptions{
+		Title: gui.c.Tr.CommandLog,
 		Items: []*popup.MenuItem{
 			{
-				DisplayString: gui.Tr.ToggleShowCommandLog,
+				DisplayString: gui.c.Tr.ToggleShowCommandLog,
 				OnPress: func() error {
 					currentContext := gui.currentStaticContext()
 					if gui.ShowExtrasWindow && currentContext.GetKey() == COMMAND_LOG_CONTEXT_KEY {
@@ -22,13 +22,13 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 					}
 					show := !gui.ShowExtrasWindow
 					gui.ShowExtrasWindow = show
-					gui.Config.GetAppState().HideCommandLog = !show
-					_ = gui.Config.SaveAppState()
+					gui.c.GetAppState().HideCommandLog = !show
+					_ = gui.c.SaveAppState()
 					return nil
 				},
 			},
 			{
-				DisplayString: gui.Tr.FocusCommandLog,
+				DisplayString: gui.c.Tr.FocusCommandLog,
 				OnPress:       gui.handleFocusCommandLog,
 			},
 		},
@@ -37,8 +37,9 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 
 func (gui *Gui) handleFocusCommandLog() error {
 	gui.ShowExtrasWindow = true
+	// TODO: is this necessary? Can't I just call 'return from context'?
 	gui.State.Contexts.CommandLog.SetParentContext(gui.currentSideContext())
-	return gui.pushContext(gui.State.Contexts.CommandLog)
+	return gui.c.PushContext(gui.State.Contexts.CommandLog)
 }
 
 func (gui *Gui) scrollUpExtra() error {
@@ -58,7 +59,7 @@ func (gui *Gui) scrollDownExtra() error {
 }
 
 func (gui *Gui) getCmdWriter() io.Writer {
-	return &prefixWriter{writer: gui.Views.Extras, prefix: style.FgMagenta.Sprintf("\n\n%s\n", gui.Tr.GitOutput)}
+	return &prefixWriter{writer: gui.Views.Extras, prefix: style.FgMagenta.Sprintf("\n\n%s\n", gui.c.Tr.GitOutput)}
 }
 
 // Ensures that the first write is preceded by writing a prefix.

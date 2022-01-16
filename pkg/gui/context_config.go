@@ -1,34 +1,37 @@
 package gui
 
-type ContextKey string
-
-const (
-	STATUS_CONTEXT_KEY              ContextKey = "status"
-	FILES_CONTEXT_KEY               ContextKey = "files"
-	LOCAL_BRANCHES_CONTEXT_KEY      ContextKey = "localBranches"
-	REMOTES_CONTEXT_KEY             ContextKey = "remotes"
-	REMOTE_BRANCHES_CONTEXT_KEY     ContextKey = "remoteBranches"
-	TAGS_CONTEXT_KEY                ContextKey = "tags"
-	BRANCH_COMMITS_CONTEXT_KEY      ContextKey = "commits"
-	REFLOG_COMMITS_CONTEXT_KEY      ContextKey = "reflogCommits"
-	SUB_COMMITS_CONTEXT_KEY         ContextKey = "subCommits"
-	COMMIT_FILES_CONTEXT_KEY        ContextKey = "commitFiles"
-	STASH_CONTEXT_KEY               ContextKey = "stash"
-	MAIN_NORMAL_CONTEXT_KEY         ContextKey = "normal"
-	MAIN_MERGING_CONTEXT_KEY        ContextKey = "merging"
-	MAIN_PATCH_BUILDING_CONTEXT_KEY ContextKey = "patchBuilding"
-	MAIN_STAGING_CONTEXT_KEY        ContextKey = "staging"
-	MENU_CONTEXT_KEY                ContextKey = "menu"
-	CREDENTIALS_CONTEXT_KEY         ContextKey = "credentials"
-	CONFIRMATION_CONTEXT_KEY        ContextKey = "confirmation"
-	SEARCH_CONTEXT_KEY              ContextKey = "search"
-	COMMIT_MESSAGE_CONTEXT_KEY      ContextKey = "commitMessage"
-	SUBMODULES_CONTEXT_KEY          ContextKey = "submodules"
-	SUGGESTIONS_CONTEXT_KEY         ContextKey = "suggestions"
-	COMMAND_LOG_CONTEXT_KEY         ContextKey = "cmdLog"
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-var allContextKeys = []ContextKey{
+const (
+	STATUS_CONTEXT_KEY              types.ContextKey = "status"
+	FILES_CONTEXT_KEY               types.ContextKey = "files"
+	LOCAL_BRANCHES_CONTEXT_KEY      types.ContextKey = "localBranches"
+	REMOTES_CONTEXT_KEY             types.ContextKey = "remotes"
+	REMOTE_BRANCHES_CONTEXT_KEY     types.ContextKey = "remoteBranches"
+	TAGS_CONTEXT_KEY                types.ContextKey = "tags"
+	BRANCH_COMMITS_CONTEXT_KEY      types.ContextKey = "commits"
+	REFLOG_COMMITS_CONTEXT_KEY      types.ContextKey = "reflogCommits"
+	SUB_COMMITS_CONTEXT_KEY         types.ContextKey = "subCommits"
+	COMMIT_FILES_CONTEXT_KEY        types.ContextKey = "commitFiles"
+	STASH_CONTEXT_KEY               types.ContextKey = "stash"
+	MAIN_NORMAL_CONTEXT_KEY         types.ContextKey = "normal"
+	MAIN_MERGING_CONTEXT_KEY        types.ContextKey = "merging"
+	MAIN_PATCH_BUILDING_CONTEXT_KEY types.ContextKey = "patchBuilding"
+	MAIN_STAGING_CONTEXT_KEY        types.ContextKey = "staging"
+	MENU_CONTEXT_KEY                types.ContextKey = "menu"
+	CREDENTIALS_CONTEXT_KEY         types.ContextKey = "credentials"
+	CONFIRMATION_CONTEXT_KEY        types.ContextKey = "confirmation"
+	SEARCH_CONTEXT_KEY              types.ContextKey = "search"
+	COMMIT_MESSAGE_CONTEXT_KEY      types.ContextKey = "commitMessage"
+	SUBMODULES_CONTEXT_KEY          types.ContextKey = "submodules"
+	SUGGESTIONS_CONTEXT_KEY         types.ContextKey = "suggestions"
+	COMMAND_LOG_CONTEXT_KEY         types.ContextKey = "cmdLog"
+)
+
+var AllContextKeys = []types.ContextKey{
 	STATUS_CONTEXT_KEY,
 	FILES_CONTEXT_KEY,
 	LOCAL_BRANCHES_CONTEXT_KEY,
@@ -54,34 +57,8 @@ var allContextKeys = []ContextKey{
 	COMMAND_LOG_CONTEXT_KEY,
 }
 
-type ContextTree struct {
-	Status         Context
-	Files          IListContext
-	Submodules     IListContext
-	Menu           IListContext
-	Branches       IListContext
-	Remotes        IListContext
-	RemoteBranches IListContext
-	Tags           IListContext
-	BranchCommits  IListContext
-	CommitFiles    IListContext
-	ReflogCommits  IListContext
-	SubCommits     IListContext
-	Stash          IListContext
-	Suggestions    IListContext
-	Normal         Context
-	Staging        Context
-	PatchBuilding  Context
-	Merging        Context
-	Credentials    Context
-	Confirmation   Context
-	CommitMessage  Context
-	Search         Context
-	CommandLog     Context
-}
-
-func (gui *Gui) allContexts() []Context {
-	return []Context{
+func (gui *Gui) allContexts() []types.Context {
+	return []types.Context{
 		gui.State.Contexts.Status,
 		gui.State.Contexts.Files,
 		gui.State.Contexts.Submodules,
@@ -107,11 +84,11 @@ func (gui *Gui) allContexts() []Context {
 	}
 }
 
-func (gui *Gui) contextTree() ContextTree {
-	return ContextTree{
+func (gui *Gui) contextTree() context.ContextTree {
+	return context.ContextTree{
 		Status: &BasicContext{
 			OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
-			Kind:           SIDE_CONTEXT,
+			Kind:           types.SIDE_CONTEXT,
 			ViewName:       "status",
 			Key:            STATUS_CONTEXT_KEY,
 		},
@@ -128,15 +105,15 @@ func (gui *Gui) contextTree() ContextTree {
 		Tags:           gui.tagsListContext(),
 		Stash:          gui.stashListContext(),
 		Normal: &BasicContext{
-			OnFocus: func(opts ...OnFocusOpts) error {
+			OnFocus: func(opts ...types.OnFocusOpts) error {
 				return nil // TODO: should we do something here? We should allow for scrolling the panel
 			},
-			Kind:     MAIN_CONTEXT,
+			Kind:     types.MAIN_CONTEXT,
 			ViewName: "main",
 			Key:      MAIN_NORMAL_CONTEXT_KEY,
 		},
 		Staging: &BasicContext{
-			OnFocus: func(opts ...OnFocusOpts) error {
+			OnFocus: func(opts ...types.OnFocusOpts) error {
 				forceSecondaryFocused := false
 				selectedLineIdx := -1
 				if len(opts) > 0 && opts[0].ClickedViewName != "" {
@@ -149,12 +126,12 @@ func (gui *Gui) contextTree() ContextTree {
 				}
 				return gui.onStagingFocus(forceSecondaryFocused, selectedLineIdx)
 			},
-			Kind:     MAIN_CONTEXT,
+			Kind:     types.MAIN_CONTEXT,
 			ViewName: "main",
 			Key:      MAIN_STAGING_CONTEXT_KEY,
 		},
 		PatchBuilding: &BasicContext{
-			OnFocus: func(opts ...OnFocusOpts) error {
+			OnFocus: func(opts ...types.OnFocusOpts) error {
 				selectedLineIdx := -1
 				if len(opts) > 0 && (opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary") {
 					selectedLineIdx = opts[0].ClickedViewLineIdx
@@ -162,7 +139,7 @@ func (gui *Gui) contextTree() ContextTree {
 
 				return gui.onPatchBuildingFocus(selectedLineIdx)
 			},
-			Kind:     MAIN_CONTEXT,
+			Kind:     types.MAIN_CONTEXT,
 			ViewName: "main",
 			Key:      MAIN_PATCH_BUILDING_CONTEXT_KEY,
 		},
@@ -175,30 +152,30 @@ func (gui *Gui) contextTree() ContextTree {
 		},
 		Credentials: &BasicContext{
 			OnFocus:  OnFocusWrapper(gui.handleAskFocused),
-			Kind:     PERSISTENT_POPUP,
+			Kind:     types.PERSISTENT_POPUP,
 			ViewName: "credentials",
 			Key:      CREDENTIALS_CONTEXT_KEY,
 		},
 		Confirmation: &BasicContext{
 			OnFocus:  OnFocusWrapper(gui.handleAskFocused),
-			Kind:     TEMPORARY_POPUP,
+			Kind:     types.TEMPORARY_POPUP,
 			ViewName: "confirmation",
 			Key:      CONFIRMATION_CONTEXT_KEY,
 		},
 		Suggestions: gui.suggestionsListContext(),
 		CommitMessage: &BasicContext{
 			OnFocus:  OnFocusWrapper(gui.handleCommitMessageFocused),
-			Kind:     PERSISTENT_POPUP,
+			Kind:     types.PERSISTENT_POPUP,
 			ViewName: "commitMessage",
 			Key:      COMMIT_MESSAGE_CONTEXT_KEY,
 		},
 		Search: &BasicContext{
-			Kind:     PERSISTENT_POPUP,
+			Kind:     types.PERSISTENT_POPUP,
 			ViewName: "search",
 			Key:      SEARCH_CONTEXT_KEY,
 		},
 		CommandLog: &BasicContext{
-			Kind:            EXTRAS_CONTEXT,
+			Kind:            types.EXTRAS_CONTEXT,
 			ViewName:        "extras",
 			Key:             COMMAND_LOG_CONTEXT_KEY,
 			OnGetOptionsMap: gui.getMergingOptions,
@@ -212,72 +189,8 @@ func (gui *Gui) contextTree() ContextTree {
 
 // using this wrapper for when an onFocus function doesn't care about any potential
 // props that could be passed
-func OnFocusWrapper(f func() error) func(opts ...OnFocusOpts) error {
-	return func(opts ...OnFocusOpts) error {
+func OnFocusWrapper(f func() error) func(opts ...types.OnFocusOpts) error {
+	return func(opts ...types.OnFocusOpts) error {
 		return f()
-	}
-}
-
-func (tree ContextTree) initialViewContextMap() map[string]Context {
-	return map[string]Context{
-		"status":        tree.Status,
-		"files":         tree.Files,
-		"branches":      tree.Branches,
-		"commits":       tree.BranchCommits,
-		"commitFiles":   tree.CommitFiles,
-		"stash":         tree.Stash,
-		"menu":          tree.Menu,
-		"confirmation":  tree.Confirmation,
-		"credentials":   tree.Credentials,
-		"commitMessage": tree.CommitMessage,
-		"main":          tree.Normal,
-		"secondary":     tree.Normal,
-		"extras":        tree.CommandLog,
-	}
-}
-
-func (tree ContextTree) initialViewTabContextMap() map[string][]tabContext {
-	return map[string][]tabContext{
-		"branches": {
-			{
-				tab:      "Local Branches",
-				contexts: []Context{tree.Branches},
-			},
-			{
-				tab: "Remotes",
-				contexts: []Context{
-					tree.Remotes,
-					tree.RemoteBranches,
-				},
-			},
-			{
-				tab:      "Tags",
-				contexts: []Context{tree.Tags},
-			},
-		},
-		"commits": {
-			{
-				tab:      "Commits",
-				contexts: []Context{tree.BranchCommits},
-			},
-			{
-				tab: "Reflog",
-				contexts: []Context{
-					tree.ReflogCommits,
-				},
-			},
-		},
-		"files": {
-			{
-				tab:      "Files",
-				contexts: []Context{tree.Files},
-			},
-			{
-				tab: "Submodules",
-				contexts: []Context{
-					tree.Submodules,
-				},
-			},
-		},
 	}
 }

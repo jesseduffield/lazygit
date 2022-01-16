@@ -17,21 +17,20 @@ func (gui *Gui) promptUserForCredential(passOrUname oscommands.CredentialType) s
 		credentialsView := gui.Views.Credentials
 		switch passOrUname {
 		case oscommands.Username:
-			credentialsView.Title = gui.Tr.CredentialsUsername
+			credentialsView.Title = gui.c.Tr.CredentialsUsername
 			credentialsView.Mask = 0
 		case oscommands.Password:
-			credentialsView.Title = gui.Tr.CredentialsPassword
+			credentialsView.Title = gui.c.Tr.CredentialsPassword
 			credentialsView.Mask = '*'
 		case oscommands.Passphrase:
-			credentialsView.Title = gui.Tr.CredentialsPassphrase
+			credentialsView.Title = gui.c.Tr.CredentialsPassphrase
 			credentialsView.Mask = '*'
 		}
 
-		if err := gui.pushContext(gui.State.Contexts.Credentials); err != nil {
+		if err := gui.c.PushContext(gui.State.Contexts.Credentials); err != nil {
 			return err
 		}
 
-		gui.RenderCommitLength()
 		return nil
 	})
 
@@ -49,7 +48,7 @@ func (gui *Gui) handleSubmitCredential() error {
 		return err
 	}
 
-	return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
+	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (gui *Gui) handleCloseCredentialsView() error {
@@ -59,10 +58,10 @@ func (gui *Gui) handleCloseCredentialsView() error {
 }
 
 func (gui *Gui) handleAskFocused() error {
-	keybindingConfig := gui.UserConfig.Keybinding
+	keybindingConfig := gui.c.UserConfig.Keybinding
 
 	message := utils.ResolvePlaceholderString(
-		gui.Tr.CloseConfirm,
+		gui.c.Tr.CloseConfirm,
 		map[string]string{
 			"keyBindClose":   gui.getKeyDisplay(keybindingConfig.Universal.Return),
 			"keyBindConfirm": gui.getKeyDisplay(keybindingConfig.Universal.Confirm),

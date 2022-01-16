@@ -123,30 +123,30 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Commits Paneel (Commits)
 
 <pre>
-  <kbd>ctrl+l</kbd>: open log menu
-  <kbd>s</kbd>: squash beneden
-  <kbd>r</kbd>: hernoem commit
-  <kbd>R</kbd>: hernoem commit met editor
-  <kbd>g</kbd>: reset naar deze commit
-  <kbd>f</kbd>: Fixup commit
-  <kbd>F</kbd>: creëer fixup commit voor deze commit
-  <kbd>S</kbd>: squash bovenstaande commits
-  <kbd>d</kbd>: verwijder commit
-  <kbd>ctrl+j</kbd>: verplaats commit 1 naar beneden
-  <kbd>ctrl+k</kbd>: verplaats commit 1 naar boven
-  <kbd>e</kbd>: wijzig commit
-  <kbd>A</kbd>: wijzig commit met staged veranderingen
-  <kbd>p</kbd>: kies commit (wanneer midden in rebase)
-  <kbd>t</kbd>: commit ongedaan maken
   <kbd>c</kbd>: kopieer commit (cherry-pick)
   <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
   <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
   <kbd>v</kbd>: plak commits (cherry-pick)
+  <kbd>n</kbd>: creëer nieuwe branch van commit
+  <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
+  <kbd>s</kbd>: squash beneden
+  <kbd>f</kbd>: Fixup commit
+  <kbd>r</kbd>: hernoem commit
+  <kbd>R</kbd>: hernoem commit met editor
+  <kbd>d</kbd>: verwijder commit
+  <kbd>e</kbd>: wijzig commit
+  <kbd>p</kbd>: kies commit (wanneer midden in rebase)
+  <kbd>F</kbd>: creëer fixup commit voor deze commit
+  <kbd>S</kbd>: squash bovenstaande commits
+  <kbd>ctrl+j</kbd>: verplaats commit 1 naar beneden
+  <kbd>ctrl+k</kbd>: verplaats commit 1 naar boven
+  <kbd>A</kbd>: wijzig commit met staged veranderingen
+  <kbd>t</kbd>: commit ongedaan maken
+  <kbd>ctrl+l</kbd>: open log menu
+  <kbd>g</kbd>: reset naar deze commit
   <kbd>enter</kbd>: bekijk gecommite bestanden
   <kbd>space</kbd>: checkout commit
-  <kbd>n</kbd>: creëer nieuwe branch van commit
   <kbd>T</kbd>: tag commit
-  <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
   <kbd>ctrl+y</kbd>: kopieer commit bericht naar klembord
   <kbd>o</kbd>: open commit in browser
   <kbd>b</kbd>: view bisect options
@@ -183,7 +183,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
   <kbd>A</kbd>: wijzig laatste commit
   <kbd>C</kbd>: commit veranderingen met de git editor
-  <kbd>space</kbd>: toggle staged
   <kbd>d</kbd>: bekijk 'veranderingen ongedaan maken' opties
   <kbd>e</kbd>: verander bestand
   <kbd>o</kbd>: open bestand
@@ -200,6 +199,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: toggle bestandsboom weergave
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
+  <kbd>space</kbd>: toggle staged
 </pre>
 
 ## Bestanden Paneel (Submodules)

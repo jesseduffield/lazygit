@@ -30,11 +30,11 @@ func (gui *Gui) submodulesRenderToMain() error {
 			style.FgCyan.Sprint(submodule.Url),
 		)
 
-		file := gui.fileForSubmodule(submodule)
+		file := gui.workingTreeHelper.FileForSubmodule(submodule)
 		if file == nil {
 			task = NewRenderStringTask(prefix)
 		} else {
-			cmdObj := gui.Git.WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, gui.IgnoreWhitespaceInDiffView)
+			cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, gui.IgnoreWhitespaceInDiffView)
 			task = NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix)
 		}
 	}
@@ -48,7 +48,7 @@ func (gui *Gui) submodulesRenderToMain() error {
 }
 
 func (gui *Gui) refreshStateSubmoduleConfigs() error {
-	configs, err := gui.Git.Submodule.GetConfigs()
+	configs, err := gui.git.Submodule.GetConfigs()
 	if err != nil {
 		return err
 	}

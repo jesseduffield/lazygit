@@ -19,6 +19,8 @@ type IPopupHandler interface {
 	WithLoaderPanel(message string, f func() error) error
 	WithWaitingStatus(message string, f func() error) error
 	Menu(opts CreateMenuOptions) error
+	Toast(message string)
+	GetPromptInput() string
 }
 
 type CreateMenuOptions struct {
@@ -74,6 +76,8 @@ type RealPopupHandler struct {
 	closePopupFn        func() error
 	createMenuFn        func(CreateMenuOptions) error
 	withWaitingStatusFn func(message string, f func() error) error
+	toastFn             func(message string)
+	getPromptInputFn    func() string
 }
 
 var _ IPopupHandler = &RealPopupHandler{}
@@ -85,6 +89,8 @@ func NewPopupHandler(
 	closePopupFn func() error,
 	createMenuFn func(CreateMenuOptions) error,
 	withWaitingStatusFn func(message string, f func() error) error,
+	toastFn func(message string),
+	getPromptInputFn func() string,
 ) *RealPopupHandler {
 	return &RealPopupHandler{
 		Common:              common,
@@ -94,11 +100,17 @@ func NewPopupHandler(
 		closePopupFn:        closePopupFn,
 		createMenuFn:        createMenuFn,
 		withWaitingStatusFn: withWaitingStatusFn,
+		toastFn:             toastFn,
+		getPromptInputFn:    getPromptInputFn,
 	}
 }
 
 func (self *RealPopupHandler) Menu(opts CreateMenuOptions) error {
 	return self.createMenuFn(opts)
+}
+
+func (self *RealPopupHandler) Toast(message string) {
+	self.toastFn(message)
 }
 
 func (self *RealPopupHandler) WithWaitingStatus(message string, f func() error) error {
@@ -188,6 +200,12 @@ func (self *RealPopupHandler) WithLoaderPanel(message string, f func() error) er
 	return nil
 }
 
+// returns the content that has currently been typed into the prompt. Useful for
+// asyncronously updating the suggestions list under the prompt.
+func (self *RealPopupHandler) GetPromptInput() string {
+	return self.getPromptInputFn()
+}
+
 type TestPopupHandler struct {
 	OnErrorMsg func(message string) error
 	OnAsk      func(opts AskOpts) error
@@ -219,5 +237,13 @@ func (self *TestPopupHandler) WithWaitingStatus(message string, f func() error) 
 }
 
 func (self *TestPopupHandler) Menu(opts CreateMenuOptions) error {
+	panic("not yet implemented")
+}
+
+func (self *TestPopupHandler) Toast(message string) {
+	panic("not yet implemented")
+}
+
+func (self *TestPopupHandler) CurrentInput() string {
 	panic("not yet implemented")
 }

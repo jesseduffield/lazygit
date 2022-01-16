@@ -5,6 +5,7 @@ type RefreshableView int
 
 const (
 	COMMITS RefreshableView = iota
+	REBASE_COMMITS
 	BRANCHES
 	FILES
 	STASH

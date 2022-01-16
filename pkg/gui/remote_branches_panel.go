@@ -26,7 +26,7 @@ func (gui *Gui) remoteBranchesRenderToMain() error {
 	if remoteBranch == nil {
 		task = NewRenderStringTask("No branches for this remote")
 	} else {
-		cmdObj := gui.Git.Branch.GetGraphCmdObj(remoteBranch.FullName())
+		cmdObj := gui.git.Branch.GetGraphCmdObj(remoteBranch.FullName())
 		task = NewRunCommandTask(cmdObj.GetCmd())
 	}
 
@@ -39,7 +39,7 @@ func (gui *Gui) remoteBranchesRenderToMain() error {
 }
 
 func (gui *Gui) handleRemoteBranchesEscape() error {
-	return gui.pushContext(gui.State.Contexts.Remotes)
+	return gui.c.PushContext(gui.State.Contexts.Remotes)
 }
 
 func (gui *Gui) handleMergeRemoteBranch() error {
@@ -52,20 +52,20 @@ func (gui *Gui) handleDeleteRemoteBranch() error {
 	if remoteBranch == nil {
 		return nil
 	}
-	message := fmt.Sprintf("%s '%s'?", gui.Tr.DeleteRemoteBranchMessage, remoteBranch.FullName())
+	message := fmt.Sprintf("%s '%s'?", gui.c.Tr.DeleteRemoteBranchMessage, remoteBranch.FullName())
 
-	return gui.PopupHandler.Ask(popup.AskOpts{
-		Title:  gui.Tr.DeleteRemoteBranch,
+	return gui.c.Ask(popup.AskOpts{
+		Title:  gui.c.Tr.DeleteRemoteBranch,
 		Prompt: message,
 		HandleConfirm: func() error {
-			return gui.PopupHandler.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
-				gui.logAction(gui.Tr.Actions.DeleteRemoteBranch)
-				err := gui.Git.Remote.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name)
+			return gui.c.WithWaitingStatus(gui.c.Tr.DeletingStatus, func() error {
+				gui.c.LogAction(gui.c.Tr.Actions.DeleteRemoteBranch)
+				err := gui.git.Remote.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name)
 				if err != nil {
-					_ = gui.PopupHandler.Error(err)
+					_ = gui.c.Error(err)
 				}
 
-				return gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+				return gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 			})
 		},
 	})
@@ -81,23 +81,23 @@ func (gui *Gui) handleSetBranchUpstream() error {
 	checkedOutBranch := gui.getCheckedOutBranch()
 
 	message := utils.ResolvePlaceholderString(
-		gui.Tr.SetUpstreamMessage,
+		gui.c.Tr.SetUpstreamMessage,
 		map[string]string{
 			"checkedOut": checkedOutBranch.Name,
 			"selected":   selectedBranch.FullName(),
 		},
 	)
 
-	return gui.PopupHandler.Ask(popup.AskOpts{
-		Title:  gui.Tr.SetUpstreamTitle,
+	return gui.c.Ask(popup.AskOpts{
+		Title:  gui.c.Tr.SetUpstreamTitle,
 		Prompt: message,
 		HandleConfirm: func() error {
-			gui.logAction(gui.Tr.Actions.SetBranchUpstream)
-			if err := gui.Git.Branch.SetUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
-				return gui.PopupHandler.Error(err)
+			gui.c.LogAction(gui.c.Tr.Actions.SetBranchUpstream)
+			if err := gui.git.Branch.SetUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
+				return gui.c.Error(err)
 			}
 
-			return gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+			return gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 		},
 	})
 }
@@ -108,5 +108,5 @@ func (gui *Gui) handleCreateResetToRemoteBranchMenu() error {
 		return nil
 	}
 
-	return gui.createResetMenu(selectedBranch.FullName())
+	return gui.refHelper.CreateGitResetMenu(selectedBranch.FullName())
 }

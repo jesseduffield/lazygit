@@ -13,64 +13,64 @@ func (gui *Gui) handleCreateResetMenu() error {
 
 	nukeStr := "reset --hard HEAD && git clean -fd"
 	if len(gui.State.Submodules) > 0 {
-		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, gui.Tr.LcAndResetSubmodules)
+		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, gui.c.Tr.LcAndResetSubmodules)
 	}
 
 	menuItems := []*popup.MenuItem{
 		{
 			DisplayStrings: []string{
-				gui.Tr.LcDiscardAllChangesToAllFiles,
+				gui.c.Tr.LcDiscardAllChangesToAllFiles,
 				red.Sprint(nukeStr),
 			},
 			OnPress: func() error {
-				gui.logAction(gui.Tr.Actions.NukeWorkingTree)
-				if err := gui.Git.WorkingTree.ResetAndClean(); err != nil {
-					return gui.PopupHandler.Error(err)
+				gui.c.LogAction(gui.c.Tr.Actions.NukeWorkingTree)
+				if err := gui.git.WorkingTree.ResetAndClean(); err != nil {
+					return gui.c.Error(err)
 				}
 
-				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 		{
 			DisplayStrings: []string{
-				gui.Tr.LcDiscardAnyUnstagedChanges,
+				gui.c.Tr.LcDiscardAnyUnstagedChanges,
 				red.Sprint("git checkout -- ."),
 			},
 			OnPress: func() error {
-				gui.logAction(gui.Tr.Actions.DiscardUnstagedFileChanges)
-				if err := gui.Git.WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
-					return gui.PopupHandler.Error(err)
+				gui.c.LogAction(gui.c.Tr.Actions.DiscardUnstagedFileChanges)
+				if err := gui.git.WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
+					return gui.c.Error(err)
 				}
 
-				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 		{
 			DisplayStrings: []string{
-				gui.Tr.LcDiscardUntrackedFiles,
+				gui.c.Tr.LcDiscardUntrackedFiles,
 				red.Sprint("git clean -fd"),
 			},
 			OnPress: func() error {
-				gui.logAction(gui.Tr.Actions.RemoveUntrackedFiles)
-				if err := gui.Git.WorkingTree.RemoveUntrackedFiles(); err != nil {
-					return gui.PopupHandler.Error(err)
+				gui.c.LogAction(gui.c.Tr.Actions.RemoveUntrackedFiles)
+				if err := gui.git.WorkingTree.RemoveUntrackedFiles(); err != nil {
+					return gui.c.Error(err)
 				}
 
-				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 		{
 			DisplayStrings: []string{
-				gui.Tr.LcSoftReset,
+				gui.c.Tr.LcSoftReset,
 				red.Sprint("git reset --soft HEAD"),
 			},
 			OnPress: func() error {
-				gui.logAction(gui.Tr.Actions.SoftReset)
-				if err := gui.Git.WorkingTree.ResetSoft("HEAD"); err != nil {
-					return gui.PopupHandler.Error(err)
+				gui.c.LogAction(gui.c.Tr.Actions.SoftReset)
+				if err := gui.git.WorkingTree.ResetSoft("HEAD"); err != nil {
+					return gui.c.Error(err)
 				}
 
-				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 		{
@@ -79,29 +79,29 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --mixed HEAD"),
 			},
 			OnPress: func() error {
-				gui.logAction(gui.Tr.Actions.MixedReset)
-				if err := gui.Git.WorkingTree.ResetMixed("HEAD"); err != nil {
-					return gui.PopupHandler.Error(err)
+				gui.c.LogAction(gui.c.Tr.Actions.MixedReset)
+				if err := gui.git.WorkingTree.ResetMixed("HEAD"); err != nil {
+					return gui.c.Error(err)
 				}
 
-				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 		{
 			DisplayStrings: []string{
-				gui.Tr.LcHardReset,
+				gui.c.Tr.LcHardReset,
 				red.Sprint("git reset --hard HEAD"),
 			},
 			OnPress: func() error {
-				gui.logAction(gui.Tr.Actions.HardReset)
-				if err := gui.Git.WorkingTree.ResetHard("HEAD"); err != nil {
-					return gui.PopupHandler.Error(err)
+				gui.c.LogAction(gui.c.Tr.Actions.HardReset)
+				if err := gui.git.WorkingTree.ResetHard("HEAD"); err != nil {
+					return gui.c.Error(err)
 				}
 
-				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 	}
 
-	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: "", Items: menuItems})
+	return gui.c.Menu(popup.CreateMenuOptions{Title: "", Items: menuItems})
 }

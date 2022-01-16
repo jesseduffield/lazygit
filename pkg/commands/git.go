@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/go-errors/errors"
 
@@ -56,6 +57,7 @@ func NewGitCommand(
 	cmn *common.Common,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
+	syncMutex *sync.Mutex,
 ) (*GitCommand, error) {
 	if err := navigateToRepoRootDirectory(os.Stat, os.Chdir); err != nil {
 		return nil, err
@@ -77,6 +79,7 @@ func NewGitCommand(
 		gitConfig,
 		dotGitDir,
 		repo,
+		syncMutex,
 	), nil
 }
 
@@ -86,6 +89,7 @@ func NewGitCommandAux(
 	gitConfig git_config.IGitConfig,
 	dotGitDir string,
 	repo *gogit.Repository,
+	syncMutex *sync.Mutex,
 ) *GitCommand {
 	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd)
 
@@ -95,7 +99,7 @@ func NewGitCommandAux(
 	// on the one struct.
 	// common ones are: cmn, osCommand, dotGitDir, configCommands
 	configCommands := git_commands.NewConfigCommands(cmn, gitConfig, repo)
-	gitCommon := git_commands.NewGitCommon(cmn, cmd, osCommand, dotGitDir, repo, configCommands)
+	gitCommon := git_commands.NewGitCommon(cmn, cmd, osCommand, dotGitDir, repo, configCommands, syncMutex)
 
 	statusCommands := git_commands.NewStatusCommands(gitCommon)
 	fileLoader := loaders.NewFileLoader(cmn, cmd, configCommands)

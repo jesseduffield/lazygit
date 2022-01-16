@@ -13,27 +13,27 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 		return nil
 	}
 
-	if !gui.Git.Flow.GitFlowEnabled() {
-		return gui.PopupHandler.ErrorMsg("You need to install git-flow and enable it in this repo to use git-flow features")
+	if !gui.git.Flow.GitFlowEnabled() {
+		return gui.c.ErrorMsg("You need to install git-flow and enable it in this repo to use git-flow features")
 	}
 
 	startHandler := func(branchType string) func() error {
 		return func() error {
-			title := utils.ResolvePlaceholderString(gui.Tr.NewGitFlowBranchPrompt, map[string]string{"branchType": branchType})
+			title := utils.ResolvePlaceholderString(gui.c.Tr.NewGitFlowBranchPrompt, map[string]string{"branchType": branchType})
 
-			return gui.PopupHandler.Prompt(popup.PromptOpts{
+			return gui.c.Prompt(popup.PromptOpts{
 				Title: title,
 				HandleConfirm: func(name string) error {
-					gui.logAction(gui.Tr.Actions.GitFlowStart)
+					gui.c.LogAction(gui.c.Tr.Actions.GitFlowStart)
 					return gui.runSubprocessWithSuspenseAndRefresh(
-						gui.Git.Flow.StartCmdObj(branchType, name),
+						gui.git.Flow.StartCmdObj(branchType, name),
 					)
 				},
 			})
 		}
 	}
 
-	return gui.PopupHandler.Menu(popup.CreateMenuOptions{
+	return gui.c.Menu(popup.CreateMenuOptions{
 		Title: "git flow",
 		Items: []*popup.MenuItem{
 			{
@@ -64,11 +64,11 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 }
 
 func (gui *Gui) gitFlowFinishBranch(branchName string) error {
-	cmdObj, err := gui.Git.Flow.FinishCmdObj(branchName)
+	cmdObj, err := gui.git.Flow.FinishCmdObj(branchName)
 	if err != nil {
-		return gui.PopupHandler.Error(err)
+		return gui.c.Error(err)
 	}
 
-	gui.logAction(gui.Tr.Actions.GitFlowFinish)
+	gui.c.LogAction(gui.c.Tr.Actions.GitFlowFinish)
 	return gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }

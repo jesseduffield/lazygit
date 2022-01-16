@@ -59,14 +59,14 @@ func arrToMap(arr []types.RefreshableView) map[types.RefreshableView]bool {
 	return output
 }
 
-func (gui *Gui) refreshSidePanels(options types.RefreshOptions) error {
+func (gui *Gui) Refresh(options types.RefreshOptions) error {
 	if options.Scope == nil {
-		gui.Log.Infof(
+		gui.c.Log.Infof(
 			"refreshing all scopes in %s mode",
 			getModeName(options.Mode),
 		)
 	} else {
-		gui.Log.Infof(
+		gui.c.Log.Infof(
 			"refreshing the following scopes in %s mode: %s",
 			getModeName(options.Mode),
 			strings.Join(getScopeNames(options.Scope), ","),
@@ -78,69 +78,55 @@ func (gui *Gui) refreshSidePanels(options types.RefreshOptions) error {
 	f := func() {
 		var scopeMap map[types.RefreshableView]bool
 		if len(options.Scope) == 0 {
-			scopeMap = arrToMap([]types.RefreshableView{types.COMMITS, types.BRANCHES, types.FILES, types.STASH, types.REFLOG, types.TAGS, types.REMOTES, types.STATUS, types.BISECT_INFO})
+			scopeMap = arrToMap([]types.RefreshableView{
+				types.COMMITS,
+				types.BRANCHES,
+				types.FILES,
+				types.STASH,
+				types.REFLOG,
+				types.TAGS,
+				types.REMOTES,
+				types.STATUS,
+				types.BISECT_INFO,
+			})
 		} else {
 			scopeMap = arrToMap(options.Scope)
 		}
 
-		if scopeMap[types.COMMITS] || scopeMap[types.BRANCHES] || scopeMap[types.REFLOG] || scopeMap[types.BISECT_INFO] {
+		refresh := func(f func()) {
 			wg.Add(1)
 			func() {
 				if options.Mode == types.ASYNC {
-					go utils.Safe(func() { gui.refreshCommits() })
+					go utils.Safe(f)
 				} else {
-					gui.refreshCommits()
+					f()
 				}
 				wg.Done()
 			}()
+		}
+
+		if scopeMap[types.COMMITS] || scopeMap[types.BRANCHES] || scopeMap[types.REFLOG] || scopeMap[types.BISECT_INFO] {
+			refresh(gui.refreshCommits)
+		} else if scopeMap[types.REBASE_COMMITS] {
+			// the above block handles rebase commits so we only need to call this one
+			// if we've asked specifically for rebase commits and not those other things
+			refresh(func() { _ = gui.refreshRebaseCommits() })
 		}
 
 		if scopeMap[types.FILES] || scopeMap[types.SUBMODULES] {
-			wg.Add(1)
-			func() {
-				if options.Mode == types.ASYNC {
-					go utils.Safe(func() { _ = gui.refreshFilesAndSubmodules() })
-				} else {
-					_ = gui.refreshFilesAndSubmodules()
-				}
-				wg.Done()
-			}()
+			refresh(func() { _ = gui.refreshFilesAndSubmodules() })
 		}
 
 		if scopeMap[types.STASH] {
-			wg.Add(1)
-			func() {
-				if options.Mode == types.ASYNC {
-					go utils.Safe(func() { _ = gui.refreshStashEntries() })
-				} else {
-					_ = gui.refreshStashEntries()
-				}
-				wg.Done()
-			}()
+			refresh(func() { _ = gui.refreshStashEntries() })
 		}
 
 		if scopeMap[types.TAGS] {
-			wg.Add(1)
-			func() {
-				if options.Mode == types.ASYNC {
-					go utils.Safe(func() { _ = gui.refreshTags() })
-				} else {
-					_ = gui.refreshTags()
-				}
-				wg.Done()
-			}()
+			refresh(func() { _ = gui.refreshTags() })
 		}
 
 		if scopeMap[types.REMOTES] {
-			wg.Add(1)
-			func() {
-				if options.Mode == types.ASYNC {
-					go utils.Safe(func() { _ = gui.refreshRemotes() })
-				} else {
-					_ = gui.refreshRemotes()
-				}
-				wg.Done()
-			}()
+			refresh(func() { _ = gui.refreshRemotes() })
 		}
 
 		wg.Wait()
@@ -234,7 +220,7 @@ func (gui *Gui) resizePopupPanel(v *gocui.View, content string) error {
 	return err
 }
 
-func (gui *Gui) changeSelectedLine(panelState IListPanelState, total int, change int) {
+func (gui *Gui) changeSelectedLine(panelState types.IListPanelState, total int, change int) {
 	// TODO: find out why we're doing this
 	line := panelState.GetSelectedLineIdx()
 
@@ -253,7 +239,7 @@ func (gui *Gui) changeSelectedLine(panelState IListPanelState, total int, change
 	panelState.SetSelectedLineIdx(newLine)
 }
 
-func (gui *Gui) refreshSelectedLine(panelState IListPanelState, total int) {
+func (gui *Gui) refreshSelectedLine(panelState types.IListPanelState, total int) {
 	line := panelState.GetSelectedLineIdx()
 
 	if line == -1 && total > 0 {
@@ -274,16 +260,16 @@ func (gui *Gui) renderDisplayStringsAtPos(v *gocui.View, y int, displayStrings [
 }
 
 func (gui *Gui) globalOptionsMap() map[string]string {
-	keybindingConfig := gui.UserConfig.Keybinding
+	keybindingConfig := gui.c.UserConfig.Keybinding
 
 	return map[string]string{
-		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollUpMain), gui.getKeyDisplay(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.Tr.LcScroll,
-		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock), gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.Tr.LcNavigate,
-		gui.getKeyDisplay(keybindingConfig.Universal.Return):     gui.Tr.LcCancel,
-		gui.getKeyDisplay(keybindingConfig.Universal.Quit):       gui.Tr.LcQuit,
-		gui.getKeyDisplay(keybindingConfig.Universal.OptionMenu): gui.Tr.LcMenu,
-		fmt.Sprintf("%s-%s", gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[0]), gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): gui.Tr.LcJump,
-		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollLeft), gui.getKeyDisplay(keybindingConfig.Universal.ScrollRight)):                                                    gui.Tr.LcScrollLeftRight,
+		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollUpMain), gui.getKeyDisplay(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.c.Tr.LcScroll,
+		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock), gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
+		gui.getKeyDisplay(keybindingConfig.Universal.Return):     gui.c.Tr.LcCancel,
+		gui.getKeyDisplay(keybindingConfig.Universal.Quit):       gui.c.Tr.LcQuit,
+		gui.getKeyDisplay(keybindingConfig.Universal.OptionMenu): gui.c.Tr.LcMenu,
+		fmt.Sprintf("%s-%s", gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[0]), gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): gui.c.Tr.LcJump,
+		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollLeft), gui.getKeyDisplay(keybindingConfig.Universal.ScrollRight)):                                                    gui.c.Tr.LcScrollLeftRight,
 	}
 }
 
@@ -302,9 +288,9 @@ func (gui *Gui) secondaryViewFocused() bool {
 }
 
 func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
-	context := gui.State.ViewTabContextMap[viewName][tabIndex].contexts[0]
+	context := gui.State.ViewTabContextMap[viewName][tabIndex].Contexts[0]
 
-	return gui.pushContext(context)
+	return gui.c.PushContext(context)
 }
 
 func (gui *Gui) handleNextTab() error {

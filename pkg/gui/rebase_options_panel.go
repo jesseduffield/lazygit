@@ -20,7 +20,7 @@ const (
 func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	options := []string{REBASE_OPTION_CONTINUE, REBASE_OPTION_ABORT}
 
-	if gui.Git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if gui.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 		options = append(options, REBASE_OPTION_SKIP)
 	}
 
@@ -37,23 +37,23 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	}
 
 	var title string
-	if gui.Git.Status.WorkingTreeState() == enums.REBASE_MODE_MERGING {
-		title = gui.Tr.MergeOptionsTitle
+	if gui.git.Status.WorkingTreeState() == enums.REBASE_MODE_MERGING {
+		title = gui.c.Tr.MergeOptionsTitle
 	} else {
-		title = gui.Tr.RebaseOptionsTitle
+		title = gui.c.Tr.RebaseOptionsTitle
 	}
 
-	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: title, Items: menuItems})
+	return gui.c.Menu(popup.CreateMenuOptions{Title: title, Items: menuItems})
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {
-	status := gui.Git.Status.WorkingTreeState()
+	status := gui.git.Status.WorkingTreeState()
 
 	if status != enums.REBASE_MODE_MERGING && status != enums.REBASE_MODE_REBASING {
-		return gui.PopupHandler.ErrorMsg(gui.Tr.NotMergingOrRebasing)
+		return gui.c.ErrorMsg(gui.c.Tr.NotMergingOrRebasing)
 	}
 
-	gui.logAction(fmt.Sprintf("Merge/Rebase: %s", command))
+	gui.c.LogAction(fmt.Sprintf("Merge/Rebase: %s", command))
 
 	commandType := ""
 	switch status {
@@ -68,14 +68,14 @@ func (gui *Gui) genericMergeCommand(command string) error {
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	if status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && gui.UserConfig.Git.Merging.ManualCommit {
+	if status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && gui.c.UserConfig.Git.Merging.ManualCommit {
 		// TODO: see if we should be calling more of the code from gui.Git.Rebase.GenericMergeOrRebaseAction
 		return gui.runSubprocessWithSuspenseAndRefresh(
-			gui.Git.Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command),
+			gui.git.Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command),
 		)
 	}
-	result := gui.Git.Rebase.GenericMergeOrRebaseAction(commandType, command)
-	if err := gui.handleGenericMergeCommandResult(result); err != nil {
+	result := gui.git.Rebase.GenericMergeOrRebaseAction(commandType, command)
+	if err := gui.checkMergeOrRebase(result); err != nil {
 		return err
 	}
 	return nil
@@ -98,8 +98,8 @@ func isMergeConflictErr(errStr string) bool {
 	return false
 }
 
-func (gui *Gui) handleGenericMergeCommandResult(result error) error {
-	if err := gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
+func (gui *Gui) checkMergeOrRebase(result error) error {
+	if err := gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
 		return err
 	}
 	if result == nil {
@@ -112,12 +112,12 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 		// assume in this case that we're already done
 		return nil
 	} else if isMergeConflictErr(result.Error()) {
-		return gui.PopupHandler.Ask(popup.AskOpts{
-			Title:               gui.Tr.FoundConflictsTitle,
-			Prompt:              gui.Tr.FoundConflicts,
+		return gui.c.Ask(popup.AskOpts{
+			Title:               gui.c.Tr.FoundConflictsTitle,
+			Prompt:              gui.c.Tr.FoundConflicts,
 			HandlersManageFocus: true,
 			HandleConfirm: func() error {
-				return gui.pushContext(gui.State.Contexts.Files)
+				return gui.c.PushContext(gui.State.Contexts.Files)
 			},
 			HandleClose: func() error {
 				if err := gui.returnFromContext(); err != nil {
@@ -128,16 +128,16 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 			},
 		})
 	} else {
-		return gui.PopupHandler.ErrorMsg(result.Error())
+		return gui.c.ErrorMsg(result.Error())
 	}
 }
 
 func (gui *Gui) abortMergeOrRebaseWithConfirm() error {
 	// prompt user to confirm that they want to abort, then do it
 	mode := gui.workingTreeStateNoun()
-	return gui.PopupHandler.Ask(popup.AskOpts{
-		Title:  fmt.Sprintf(gui.Tr.AbortTitle, mode),
-		Prompt: fmt.Sprintf(gui.Tr.AbortPrompt, mode),
+	return gui.c.Ask(popup.AskOpts{
+		Title:  fmt.Sprintf(gui.c.Tr.AbortTitle, mode),
+		Prompt: fmt.Sprintf(gui.c.Tr.AbortPrompt, mode),
 		HandleConfirm: func() error {
 			return gui.genericMergeCommand(REBASE_OPTION_ABORT)
 		},
@@ -145,7 +145,7 @@ func (gui *Gui) abortMergeOrRebaseWithConfirm() error {
 }
 
 func (gui *Gui) workingTreeStateNoun() string {
-	workingTreeState := gui.Git.Status.WorkingTreeState()
+	workingTreeState := gui.git.Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_NONE:
 		return ""

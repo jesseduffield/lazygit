@@ -5,17 +5,27 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-func (gui *Gui) validateNotInFilterMode() (bool, error) {
+func (gui *Gui) validateNotInFilterMode() bool {
 	if gui.State.Modes.Filtering.Active() {
-		err := gui.PopupHandler.Ask(popup.AskOpts{
-			Title:         gui.Tr.MustExitFilterModeTitle,
-			Prompt:        gui.Tr.MustExitFilterModePrompt,
+		_ = gui.c.Ask(popup.AskOpts{
+			Title:         gui.c.Tr.MustExitFilterModeTitle,
+			Prompt:        gui.c.Tr.MustExitFilterModePrompt,
 			HandleConfirm: gui.exitFilterMode,
 		})
 
-		return false, err
+		return false
 	}
-	return true, nil
+	return true
+}
+
+func (gui *Gui) outsideFilterMode(f func() error) func() error {
+	return func() error {
+		if !gui.validateNotInFilterMode() {
+			return nil
+		}
+
+		return f()
+	}
 }
 
 func (gui *Gui) exitFilterMode() error {
@@ -28,7 +38,7 @@ func (gui *Gui) clearFiltering() error {
 		gui.State.ScreenMode = SCREEN_NORMAL
 	}
 
-	return gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
+	return gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
 }
 
 func (gui *Gui) setFiltering(path string) error {
@@ -37,11 +47,11 @@ func (gui *Gui) setFiltering(path string) error {
 		gui.State.ScreenMode = SCREEN_HALF
 	}
 
-	if err := gui.pushContext(gui.State.Contexts.BranchCommits); err != nil {
+	if err := gui.c.PushContext(gui.State.Contexts.BranchCommits); err != nil {
 		return err
 	}
 
-	return gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() {
+	return gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() {
 		gui.State.Contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
 	}})
 }

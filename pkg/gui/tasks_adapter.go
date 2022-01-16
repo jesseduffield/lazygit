@@ -11,7 +11,7 @@ import (
 
 func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	cmdStr := strings.Join(cmd.Args, " ")
-	gui.Log.WithField(
+	gui.c.Log.WithField(
 		"command",
 		cmdStr,
 	).Debug("RunCommand")
@@ -24,19 +24,19 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	start := func() (*exec.Cmd, io.Reader) {
 		r, err := cmd.StdoutPipe()
 		if err != nil {
-			gui.Log.Warn(err)
+			gui.c.Log.Warn(err)
 		}
 		cmd.Stderr = cmd.Stdout
 
 		if err := cmd.Start(); err != nil {
-			gui.Log.Warn(err)
+			gui.c.Log.Warn(err)
 		}
 
 		return cmd, r
 	}
 
 	if err := manager.NewTask(manager.NewCmdTask(start, prefix, height+oy+10, nil), cmdStr); err != nil {
-		gui.Log.Warn(err)
+		gui.c.Log.Warn(err)
 	}
 
 	return nil

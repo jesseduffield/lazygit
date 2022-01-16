@@ -124,7 +124,7 @@ func (gui *Gui) refreshMainView(opts *viewUpdateOpts, view *gocui.View) error {
 	view.Highlight = opts.highlight
 
 	if err := gui.runTaskForView(view, opts.task); err != nil {
-		gui.Log.Error(err)
+		gui.c.Log.Error(err)
 		return nil
 	}
 

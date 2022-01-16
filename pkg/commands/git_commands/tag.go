@@ -27,5 +27,5 @@ func (self *TagCommands) Delete(tagName string) error {
 }
 
 func (self *TagCommands) Push(remoteName string, tagName string) error {
-	return self.cmd.New(fmt.Sprintf("git push %s %s", self.cmd.Quote(remoteName), self.cmd.Quote(tagName))).PromptOnCredentialRequest().Run()
+	return self.cmd.New(fmt.Sprintf("git push %s %s", self.cmd.Quote(remoteName), self.cmd.Quote(tagName))).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
 }
