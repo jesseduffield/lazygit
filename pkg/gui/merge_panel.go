@@ -182,7 +182,12 @@ func (gui *Gui) renderConflicts(state *mergeconflicts.State, hasFocus bool) (boo
 	content := mergeconflicts.ColoredConflictFile(cat, state, hasFocus)
 
 	if !gui.State.Panels.Merging.UserVerticalScrolling {
-		gui.centerYPos(gui.Views.Main, state.GetConflictMiddle())
+		// TODO: find a way to not have to do this OnUIThread thing. Why doesn't it work
+		// without it given that we're calling the 'no scroll' variant below?
+		gui.OnUIThread(func() error {
+			gui.centerYPos(gui.Views.Main, state.GetConflictMiddle())
+			return nil
+		})
 	}
 
 	return true, gui.refreshMainViews(refreshMainOpts{
