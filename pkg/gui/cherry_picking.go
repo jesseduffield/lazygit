@@ -3,12 +3,13 @@ package gui
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // you can only copy from one context at a time, because the order and position of commits matter
 
-func (gui *Gui) resetCherryPickingIfNecessary(context Context) error {
-	oldContextKey := ContextKey(gui.State.Modes.CherryPicking.ContextKey)
+func (gui *Gui) resetCherryPickingIfNecessary(context types.Context) error {
+	oldContextKey := types.ContextKey(gui.State.Modes.CherryPicking.ContextKey)
 
 	if oldContextKey != context.GetKey() {
 		// need to reset the cherry picking mode
@@ -22,10 +23,6 @@ func (gui *Gui) resetCherryPickingIfNecessary(context Context) error {
 }
 
 func (gui *Gui) handleCopyCommit() error {
-	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
-		return err
-	}
-
 	// get currently selected commit, add the sha to state.
 	context := gui.currentSideListContext()
 	if context == nil {
@@ -80,7 +77,7 @@ func (gui *Gui) commitsListForContext() []*models.Commit {
 	case SUB_COMMITS_CONTEXT_KEY:
 		return gui.State.SubCommits
 	default:
-		gui.Log.Errorf("no commit list for context %s", context.GetKey())
+		gui.c.Log.Errorf("no commit list for context %s", context.GetKey())
 		return nil
 	}
 }
@@ -102,10 +99,6 @@ func (gui *Gui) addCommitToCherryPickedCommits(index int) {
 }
 
 func (gui *Gui) handleCopyCommitRange() error {
-	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
-		return err
-	}
-
 	// get currently selected commit, add the sha to state.
 	context := gui.currentSideListContext()
 	if context == nil {
@@ -142,38 +135,34 @@ func (gui *Gui) handleCopyCommitRange() error {
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied
 func (gui *Gui) HandlePasteCommits() error {
-	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
-		return err
-	}
-
-	return gui.PopupHandler.Ask(popup.AskOpts{
-		Title:  gui.Tr.CherryPick,
-		Prompt: gui.Tr.SureCherryPick,
+	return gui.c.Ask(popup.AskOpts{
+		Title:  gui.c.Tr.CherryPick,
+		Prompt: gui.c.Tr.SureCherryPick,
 		HandleConfirm: func() error {
-			return gui.PopupHandler.WithWaitingStatus(gui.Tr.CherryPickingStatus, func() error {
-				gui.logAction(gui.Tr.Actions.CherryPick)
-				err := gui.Git.Rebase.CherryPickCommits(gui.State.Modes.CherryPicking.CherryPickedCommits)
-				return gui.handleGenericMergeCommandResult(err)
+			return gui.c.WithWaitingStatus(gui.c.Tr.CherryPickingStatus, func() error {
+				gui.c.LogAction(gui.c.Tr.Actions.CherryPick)
+				err := gui.git.Rebase.CherryPickCommits(gui.State.Modes.CherryPicking.CherryPickedCommits)
+				return gui.checkMergeOrRebase(err)
 			})
 		},
 	})
 }
 
 func (gui *Gui) exitCherryPickingMode() error {
-	contextKey := ContextKey(gui.State.Modes.CherryPicking.ContextKey)
+	contextKey := types.ContextKey(gui.State.Modes.CherryPicking.ContextKey)
 
 	gui.State.Modes.CherryPicking.ContextKey = ""
 	gui.State.Modes.CherryPicking.CherryPickedCommits = nil
 
 	if contextKey == "" {
-		gui.Log.Warn("context key blank when trying to exit cherry picking mode")
+		gui.c.Log.Warn("context key blank when trying to exit cherry picking mode")
 		return nil
 	}
 
 	return gui.rerenderContextViewIfPresent(contextKey)
 }
 
-func (gui *Gui) rerenderContextViewIfPresent(contextKey ContextKey) error {
+func (gui *Gui) rerenderContextViewIfPresent(contextKey types.ContextKey) error {
 	if contextKey == "" {
 		return nil
 	}
@@ -184,11 +173,11 @@ func (gui *Gui) rerenderContextViewIfPresent(contextKey ContextKey) error {
 
 	view, err := gui.g.View(viewName)
 	if err != nil {
-		gui.Log.Error(err)
+		gui.c.Log.Error(err)
 		return nil
 	}
 
-	if ContextKey(view.Context) == contextKey {
+	if types.ContextKey(view.Context) == contextKey {
 		if err := context.HandleRender(); err != nil {
 			return err
 		}

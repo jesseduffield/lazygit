@@ -65,7 +65,7 @@ func (gui *Gui) prevScreenMode() error {
 
 func (gui *Gui) scrollUpView(view *gocui.View) error {
 	ox, oy := view.Origin()
-	newOy := int(math.Max(0, float64(oy-gui.UserConfig.Gui.ScrollHeight)))
+	newOy := int(math.Max(0, float64(oy-gui.c.UserConfig.Gui.ScrollHeight)))
 	return view.SetOrigin(ox, newOy)
 }
 
@@ -87,12 +87,12 @@ func (gui *Gui) scrollDownView(view *gocui.View) error {
 func (gui *Gui) linesToScrollDown(view *gocui.View) int {
 	_, oy := view.Origin()
 	y := oy
-	canScrollPastBottom := gui.UserConfig.Gui.ScrollPastBottom
+	canScrollPastBottom := gui.c.UserConfig.Gui.ScrollPastBottom
 	if !canScrollPastBottom {
 		_, sy := view.Size()
 		y += sy
 	}
-	scrollHeight := gui.UserConfig.Gui.ScrollHeight
+	scrollHeight := gui.c.UserConfig.Gui.ScrollHeight
 	scrollableLines := view.ViewLinesHeight() - y
 	if scrollableLines < 0 {
 		return 0
@@ -177,7 +177,7 @@ func (gui *Gui) scrollDownConfirmationPanel() error {
 }
 
 func (gui *Gui) handleRefresh() error {
-	return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
+	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (gui *Gui) handleMouseDownMain() error {
@@ -190,9 +190,9 @@ func (gui *Gui) handleMouseDownMain() error {
 		// set filename, set primary/secondary selected, set line number, then switch context
 		// I'll need to know it was changed though.
 		// Could I pass something along to the context change?
-		return gui.enterFile(OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
+		return gui.Controllers.Files.EnterFile(types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
 	case gui.State.Contexts.CommitFiles:
-		return gui.enterCommitFile(OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
+		return gui.enterCommitFile(types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
 	}
 
 	return nil
@@ -205,35 +205,29 @@ func (gui *Gui) handleMouseDownSecondary() error {
 
 	switch gui.g.CurrentView() {
 	case gui.Views.Files:
-		return gui.enterFile(OnFocusOpts{ClickedViewName: "secondary", ClickedViewLineIdx: gui.Views.Secondary.SelectedLineIdx()})
+		return gui.Controllers.Files.EnterFile(types.OnFocusOpts{ClickedViewName: "secondary", ClickedViewLineIdx: gui.Views.Secondary.SelectedLineIdx()})
 	}
 
 	return nil
 }
 
 func (gui *Gui) fetch() (err error) {
-	gui.Mutexes.FetchMutex.Lock()
-	defer gui.Mutexes.FetchMutex.Unlock()
-
-	gui.logAction("Fetch")
-	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{})
+	gui.c.LogAction("Fetch")
+	err = gui.git.Sync.Fetch(git_commands.FetchOptions{})
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
-		_ = gui.PopupHandler.ErrorMsg(gui.Tr.PassUnameWrong)
+		_ = gui.c.ErrorMsg(gui.c.Tr.PassUnameWrong)
 	}
 
-	_ = gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
+	_ = gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
 
 	return err
 }
 
 func (gui *Gui) backgroundFetch() (err error) {
-	gui.Mutexes.FetchMutex.Lock()
-	defer gui.Mutexes.FetchMutex.Unlock()
+	err = gui.git.Sync.Fetch(git_commands.FetchOptions{Background: true})
 
-	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{Background: true})
-
-	_ = gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
+	_ = gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
 
 	return err
 }
@@ -246,14 +240,14 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 		return nil
 	}
 
-	gui.logAction(gui.Tr.Actions.CopyToClipboard)
+	gui.c.LogAction(gui.c.Tr.Actions.CopyToClipboard)
 	if err := gui.OSCommand.CopyToClipboard(itemId); err != nil {
-		return gui.PopupHandler.Error(err)
+		return gui.c.Error(err)
 	}
 
 	truncatedItemId := utils.TruncateWithEllipsis(strings.Replace(itemId, "\n", " ", -1), 50)
 
-	gui.raiseToast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.Tr.LcCopiedToClipboard))
+	gui.c.Toast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.c.Tr.LcCopiedToClipboard))
 
 	return nil
 }

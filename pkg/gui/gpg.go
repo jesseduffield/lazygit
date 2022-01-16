@@ -14,9 +14,9 @@ import (
 // we don't need to see a loading status if we're in a subprocess.
 // TODO: work out if we actually need to use a shell command here
 func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
-	gui.logCommand(cmdObj.ToString(), true)
+	gui.LogCommand(cmdObj.ToString(), true)
 
-	useSubprocess := gui.Git.Config.UsingGpg()
+	useSubprocess := gui.git.Config.UsingGpg()
 	if useSubprocess {
 		success, err := gui.runSubprocessWithSuspense(gui.OSCommand.Cmd.NewShell(cmdObj.ToString()))
 		if success && onSuccess != nil {
@@ -24,7 +24,7 @@ func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string,
 				return err
 			}
 		}
-		if err := gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
+		if err := gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
 			return err
 		}
 
@@ -35,7 +35,7 @@ func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string,
 }
 
 func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
-	return gui.PopupHandler.WithWaitingStatus(waitingStatus, func() error {
+	return gui.c.WithWaitingStatus(waitingStatus, func() error {
 		cmdObj := gui.OSCommand.Cmd.NewShell(cmdObj.ToString())
 		cmdObj.AddEnvVars("TERM=dumb")
 		cmdWriter := gui.getCmdWriter()
@@ -45,12 +45,12 @@ func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, on
 
 		if err := cmd.Run(); err != nil {
 			if _, err := cmd.Stdout.Write([]byte(fmt.Sprintf("%s\n", style.FgRed.Sprint(err.Error())))); err != nil {
-				gui.Log.Error(err)
+				gui.c.Log.Error(err)
 			}
-			_ = gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
-			return gui.PopupHandler.Error(
+			_ = gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			return gui.c.Error(
 				fmt.Errorf(
-					gui.Tr.GitCommandFailed, gui.UserConfig.Keybinding.Universal.ExtrasMenu,
+					gui.c.Tr.GitCommandFailed, gui.c.UserConfig.Keybinding.Universal.ExtrasMenu,
 				),
 			)
 		}
@@ -61,6 +61,6 @@ func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, on
 			}
 		}
 
-		return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
+		return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 	})
 }

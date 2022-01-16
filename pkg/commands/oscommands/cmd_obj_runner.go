@@ -34,6 +34,11 @@ type cmdObjRunner struct {
 var _ ICmdObjRunner = &cmdObjRunner{}
 
 func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
+	if cmdObj.Mutex() != nil {
+		cmdObj.Mutex().Lock()
+		defer cmdObj.Mutex().Unlock()
+	}
+
 	if cmdObj.GetCredentialStrategy() != NONE {
 		return self.runWithCredentialHandling(cmdObj)
 	}
@@ -42,17 +47,14 @@ func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
 		return self.runAndStream(cmdObj)
 	}
 
-	_, err := self.RunWithOutput(cmdObj)
+	_, err := self.RunWithOutputAux(cmdObj)
 	return err
 }
 
 func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
-	if cmdObj.ShouldStreamOutput() {
-		err := self.runAndStream(cmdObj)
-		// for now we're not capturing output, just because it would take a little more
-		// effort and there's currently no use case for it. Some commands call RunWithOutput
-		// but ignore the output, hence why we've got this check here.
-		return "", err
+	if cmdObj.Mutex() != nil {
+		cmdObj.Mutex().Lock()
+		defer cmdObj.Mutex().Unlock()
 	}
 
 	if cmdObj.GetCredentialStrategy() != NONE {
@@ -63,6 +65,18 @@ func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 		return "", err
 	}
 
+	if cmdObj.ShouldStreamOutput() {
+		err := self.runAndStream(cmdObj)
+		// for now we're not capturing output, just because it would take a little more
+		// effort and there's currently no use case for it. Some commands call RunWithOutput
+		// but ignore the output, hence why we've got this check here.
+		return "", err
+	}
+
+	return self.RunWithOutputAux(cmdObj)
+}
+
+func (self *cmdObjRunner) RunWithOutputAux(cmdObj ICmdObj) (string, error) {
 	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 
 	if cmdObj.ShouldLog() {
@@ -77,6 +91,11 @@ func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 }
 
 func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+	if cmdObj.Mutex() != nil {
+		cmdObj.Mutex().Lock()
+		defer cmdObj.Mutex().Unlock()
+	}
+
 	if cmdObj.GetCredentialStrategy() != NONE {
 		return errors.New("cannot call RunAndProcessLines with credential strategy. If you're seeing this then a contributor to Lazygit has accidentally called this method! Please raise an issue")
 	}

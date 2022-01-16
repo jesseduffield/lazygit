@@ -15,8 +15,8 @@ func (gui *Gui) informationStr() string {
 	}
 
 	if gui.g.Mouse {
-		donate := style.FgMagenta.SetUnderline().Sprint(gui.Tr.Donate)
-		askQuestion := style.FgYellow.SetUnderline().Sprint(gui.Tr.AskQuestion)
+		donate := style.FgMagenta.SetUnderline().Sprint(gui.c.Tr.Donate)
+		askQuestion := style.FgYellow.SetUnderline().Sprint(gui.c.Tr.AskQuestion)
 		return fmt.Sprintf("%s %s %s", donate, askQuestion, gui.Config.GetVersion())
 	} else {
 		return gui.Config.GetVersion()
@@ -35,7 +35,7 @@ func (gui *Gui) handleInfoClick() error {
 
 	for _, mode := range gui.modeStatuses() {
 		if mode.isActive() {
-			if width-cx > len(gui.Tr.ResetInParentheses) {
+			if width-cx > len(gui.c.Tr.ResetInParentheses) {
 				return nil
 			}
 			return mode.reset()
@@ -43,9 +43,9 @@ func (gui *Gui) handleInfoClick() error {
 	}
 
 	// if we're not in an active mode we show the donate button
-	if cx <= len(gui.Tr.Donate) {
+	if cx <= len(gui.c.Tr.Donate) {
 		return gui.OSCommand.OpenLink(constants.Links.Donate)
-	} else if cx <= len(gui.Tr.Donate)+1+len(gui.Tr.AskQuestion) {
+	} else if cx <= len(gui.c.Tr.Donate)+1+len(gui.c.Tr.AskQuestion) {
 		return gui.OSCommand.OpenLink(constants.Links.Discussions)
 	}
 	return nil

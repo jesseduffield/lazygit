@@ -123,30 +123,30 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Commits Panel (Commits)
 
 <pre>
-  <kbd>ctrl+l</kbd>: open log menu
-  <kbd>s</kbd>: squash down
-  <kbd>r</kbd>: reword commit
-  <kbd>R</kbd>: reword commit with editor
-  <kbd>g</kbd>: reset to this commit
-  <kbd>f</kbd>: fixup commit
-  <kbd>F</kbd>: create fixup commit for this commit
-  <kbd>S</kbd>: squash all 'fixup!' commits above selected commit (autosquash)
-  <kbd>d</kbd>: delete commit
-  <kbd>ctrl+j</kbd>: move commit down one
-  <kbd>ctrl+k</kbd>: move commit up one
-  <kbd>e</kbd>: edit commit
-  <kbd>A</kbd>: amend commit with staged changes
-  <kbd>p</kbd>: pick commit (when mid-rebase)
-  <kbd>t</kbd>: revert commit
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>v</kbd>: paste commits (cherry-pick)
+  <kbd>n</kbd>: create new branch off of commit
+  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>s</kbd>: squash down
+  <kbd>f</kbd>: fixup commit
+  <kbd>r</kbd>: reword commit
+  <kbd>R</kbd>: reword commit with editor
+  <kbd>d</kbd>: delete commit
+  <kbd>e</kbd>: edit commit
+  <kbd>p</kbd>: pick commit (when mid-rebase)
+  <kbd>F</kbd>: create fixup commit for this commit
+  <kbd>S</kbd>: squash all 'fixup!' commits above selected commit (autosquash)
+  <kbd>ctrl+j</kbd>: move commit down one
+  <kbd>ctrl+k</kbd>: move commit up one
+  <kbd>A</kbd>: amend commit with staged changes
+  <kbd>t</kbd>: revert commit
+  <kbd>ctrl+l</kbd>: open log menu
+  <kbd>g</kbd>: reset to this commit
   <kbd>enter</kbd>: view commit's files
   <kbd>space</kbd>: checkout commit
-  <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
-  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>ctrl+y</kbd>: copy commit message to clipboard
   <kbd>o</kbd>: open commit in browser
   <kbd>b</kbd>: view bisect options
@@ -183,7 +183,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>w</kbd>: commit changes without pre-commit hook
   <kbd>A</kbd>: amend last commit
   <kbd>C</kbd>: commit changes using git editor
-  <kbd>space</kbd>: toggle staged
   <kbd>d</kbd>: view 'discard changes' options
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
@@ -200,6 +199,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
+  <kbd>space</kbd>: toggle staged
 </pre>
 
 ## Files Panel (Submodules)

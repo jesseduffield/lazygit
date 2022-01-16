@@ -2,6 +2,7 @@ package filetree
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type FileNode struct {
@@ -12,8 +13,7 @@ type FileNode struct {
 }
 
 var _ INode = &FileNode{}
-
-// methods satisfying ListItem interface
+var _ types.ListItem = &FileNode{}
 
 func (s *FileNode) ID() string {
 	return s.GetPath()

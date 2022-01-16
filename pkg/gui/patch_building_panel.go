@@ -18,7 +18,7 @@ func (gui *Gui) getFromAndReverseArgsForDiff(to string) (string, bool) {
 }
 
 func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
-	if !gui.Git.Patch.PatchManager.Active() {
+	if !gui.git.Patch.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
 	}
 
@@ -33,12 +33,12 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 
 	to := gui.State.CommitFileTreeViewModel.GetParent()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
-	diff, err := gui.Git.WorkingTree.ShowFileDiff(from, to, reverse, node.GetPath(), true)
+	diff, err := gui.git.WorkingTree.ShowFileDiff(from, to, reverse, node.GetPath(), true)
 	if err != nil {
 		return err
 	}
 
-	secondaryDiff := gui.Git.Patch.PatchManager.RenderPatchForFile(node.GetPath(), true, false, true)
+	secondaryDiff := gui.git.Patch.PatchManager.RenderPatchForFile(node.GetPath(), true, false, true)
 	if err != nil {
 		return err
 	}
@@ -75,15 +75,15 @@ func (gui *Gui) onPatchBuildingFocus(selectedLineIdx int) error {
 
 func (gui *Gui) handleToggleSelectionForPatch() error {
 	err := gui.withLBLActiveCheck(func(state *LblPanelState) error {
-		toggleFunc := gui.Git.Patch.PatchManager.AddFileLineRange
+		toggleFunc := gui.git.Patch.PatchManager.AddFileLineRange
 		filename := gui.getSelectedCommitFileName()
-		includedLineIndices, err := gui.Git.Patch.PatchManager.GetFileIncLineIndices(filename)
+		includedLineIndices, err := gui.git.Patch.PatchManager.GetFileIncLineIndices(filename)
 		if err != nil {
 			return err
 		}
 		currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.GetSelectedLineIdx())
 		if currentLineIsStaged {
-			toggleFunc = gui.Git.Patch.PatchManager.RemoveFileLineRange
+			toggleFunc = gui.git.Patch.PatchManager.RemoveFileLineRange
 		}
 
 		// add range of lines to those set for the file
@@ -96,7 +96,7 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 
 		if err := toggleFunc(node.GetPath(), firstLineIdx, lastLineIdx); err != nil {
 			// might actually want to return an error here
-			gui.Log.Error(err)
+			gui.c.Log.Error(err)
 		}
 
 		return nil
@@ -116,12 +116,12 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 func (gui *Gui) handleEscapePatchBuildingPanel() error {
 	gui.escapeLineByLinePanel()
 
-	if gui.Git.Patch.PatchManager.IsEmpty() {
-		gui.Git.Patch.PatchManager.Reset()
+	if gui.git.Patch.PatchManager.IsEmpty() {
+		gui.git.Patch.PatchManager.Reset()
 	}
 
 	if gui.currentContext().GetKey() == gui.State.Contexts.PatchBuilding.GetKey() {
-		return gui.pushContext(gui.State.Contexts.CommitFiles)
+		return gui.c.PushContext(gui.State.Contexts.CommitFiles)
 	} else {
 		// need to re-focus in case the secondary view should now be hidden
 		return gui.currentContext().HandleFocus()
@@ -129,8 +129,8 @@ func (gui *Gui) handleEscapePatchBuildingPanel() error {
 }
 
 func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
-	if gui.Git.Patch.PatchManager.Active() {
-		patch := gui.Git.Patch.PatchManager.RenderAggregatedPatchColored(false)
+	if gui.git.Patch.PatchManager.Active() {
+		patch := gui.git.Patch.PatchManager.RenderAggregatedPatchColored(false)
 
 		return &viewUpdateOpts{
 			title:     "Custom Patch",

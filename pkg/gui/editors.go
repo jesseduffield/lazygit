@@ -7,7 +7,7 @@ import (
 )
 
 func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch rune, mod gocui.Modifier, allowMultiline bool) bool {
-	newlineKey, ok := gui.getKey(gui.UserConfig.Keybinding.Universal.AppendNewline).(gocui.Key)
+	newlineKey, ok := gui.getKey(gui.c.UserConfig.Keybinding.Universal.AppendNewline).(gocui.Key)
 	if !ok {
 		newlineKey = gocui.KeyAltEnter
 	}
@@ -62,7 +62,7 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	// considered out of bounds to add a newline, meaning we can avoid unnecessary scrolling.
 	err := gui.resizePopupPanel(v, v.TextArea.GetContent())
 	if err != nil {
-		gui.Log.Error(err)
+		gui.c.Log.Error(err)
 	}
 	v.RenderTextArea()
 	gui.RenderCommitLength()

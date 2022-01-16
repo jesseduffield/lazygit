@@ -12,14 +12,14 @@ func (gui *Gui) handleCommitConfirm() error {
 	message := strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
 	gui.State.failedCommitMessage = message
 	if message == "" {
-		return gui.PopupHandler.ErrorMsg(gui.Tr.CommitWithoutMessageErr)
+		return gui.c.ErrorMsg(gui.c.Tr.CommitWithoutMessageErr)
 	}
 
-	cmdObj := gui.Git.Commit.CommitCmdObj(message)
-	gui.logAction(gui.Tr.Actions.Commit)
+	cmdObj := gui.git.Commit.CommitCmdObj(message)
+	gui.c.LogAction(gui.c.Tr.Actions.Commit)
 
 	_ = gui.returnFromContext()
-	return gui.withGpgHandling(cmdObj, gui.Tr.CommittingStatus, func() error {
+	return gui.withGpgHandling(cmdObj, gui.c.Tr.CommittingStatus, func() error {
 		gui.Views.CommitMessage.ClearTextArea()
 		gui.State.failedCommitMessage = ""
 		return nil
@@ -32,13 +32,15 @@ func (gui *Gui) handleCommitClose() error {
 
 func (gui *Gui) handleCommitMessageFocused() error {
 	message := utils.ResolvePlaceholderString(
-		gui.Tr.CommitMessageConfirm,
+		gui.c.Tr.CommitMessageConfirm,
 		map[string]string{
-			"keyBindClose":   gui.getKeyDisplay(gui.UserConfig.Keybinding.Universal.Return),
-			"keyBindConfirm": gui.getKeyDisplay(gui.UserConfig.Keybinding.Universal.Confirm),
-			"keyBindNewLine": gui.getKeyDisplay(gui.UserConfig.Keybinding.Universal.AppendNewline),
+			"keyBindClose":   gui.getKeyDisplay(gui.c.UserConfig.Keybinding.Universal.Return),
+			"keyBindConfirm": gui.getKeyDisplay(gui.c.UserConfig.Keybinding.Universal.Confirm),
+			"keyBindNewLine": gui.getKeyDisplay(gui.c.UserConfig.Keybinding.Universal.AppendNewline),
 		},
 	)
+
+	gui.RenderCommitLength()
 
 	return gui.renderString(gui.Views.Options, message)
 }
@@ -49,7 +51,7 @@ func (gui *Gui) getBufferLength(view *gocui.View) string {
 
 // RenderCommitLength is a function.
 func (gui *Gui) RenderCommitLength() {
-	if !gui.UserConfig.Gui.CommitLength.Show {
+	if !gui.c.UserConfig.Gui.CommitLength.Show {
 		return
 	}
 

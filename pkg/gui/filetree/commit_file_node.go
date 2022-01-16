@@ -2,6 +2,7 @@ package filetree
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type CommitFileNode struct {
@@ -12,8 +13,7 @@ type CommitFileNode struct {
 }
 
 var _ INode = &CommitFileNode{}
-
-// methods satisfying ListItem interface
+var _ types.ListItem = &CommitFileNode{}
 
 func (s *CommitFileNode) ID() string {
 	return s.GetPath()

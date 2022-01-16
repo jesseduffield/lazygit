@@ -13,7 +13,7 @@ import (
 )
 
 func (gui *Gui) handleCreateRecentReposMenu() error {
-	recentRepoPaths := gui.Config.GetAppState().RecentRepos
+	recentRepoPaths := gui.c.GetAppState().RecentRepos
 	reposCount := utils.Min(len(recentRepoPaths), 20)
 
 	// we won't show the current repo hence the -1
@@ -34,11 +34,11 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 		}
 	}
 
-	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: gui.Tr.RecentRepos, Items: menuItems})
+	return gui.c.Menu(popup.CreateMenuOptions{Title: gui.c.Tr.RecentRepos, Items: menuItems})
 }
 
 func (gui *Gui) handleShowAllBranchLogs() error {
-	cmdObj := gui.Git.Branch.AllBranchesLogCmdObj()
+	cmdObj := gui.git.Branch.AllBranchesLogCmdObj()
 	task := NewRunPtyTask(cmdObj.GetCmd())
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -58,7 +58,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 
 	if err := os.Chdir(path); err != nil {
 		if os.IsNotExist(err) {
-			return gui.PopupHandler.ErrorMsg(gui.Tr.ErrRepositoryMovedOrDeleted)
+			return gui.c.ErrorMsg(gui.c.Tr.ErrRepositoryMovedOrDeleted)
 		}
 		return err
 	}
@@ -71,11 +71,16 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 		return err
 	}
 
-	newGitCommand, err := commands.NewGitCommand(gui.Common, gui.OSCommand, git_config.NewStdCachedGitConfig(gui.Log))
+	newGitCommand, err := commands.NewGitCommand(
+		gui.Common,
+		gui.OSCommand,
+		git_config.NewStdCachedGitConfig(gui.Log),
+		gui.Mutexes.FetchMutex,
+	)
 	if err != nil {
 		return err
 	}
-	gui.Git = newGitCommand
+	gui.git = newGitCommand
 
 	// these two mutexes are used by our background goroutines (triggered via `gui.goEvery`. We don't want to
 	// switch to a repo while one of these goroutines is in the process of updating something
@@ -97,23 +102,23 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
 // so that we can open the same repo via the 'recent repos' menu
 func (gui *Gui) updateRecentRepoList() error {
-	if gui.Git.Status.IsBareRepo() {
+	if gui.git.Status.IsBareRepo() {
 		// we could totally do this but it would require storing both the git-dir and the
 		// worktree in our recent repos list, which is a change that would need to be
 		// backwards compatible
-		gui.Log.Info("Not appending bare repo to recent repo list")
+		gui.c.Log.Info("Not appending bare repo to recent repo list")
 		return nil
 	}
 
-	recentRepos := gui.Config.GetAppState().RecentRepos
+	recentRepos := gui.c.GetAppState().RecentRepos
 	currentRepo, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 	known, recentRepos := newRecentReposList(recentRepos, currentRepo)
 	gui.IsNewRepo = known
-	gui.Config.GetAppState().RecentRepos = recentRepos
-	return gui.Config.SaveAppState()
+	gui.c.GetAppState().RecentRepos = recentRepos
+	return gui.c.SaveAppState()
 }
 
 // newRecentReposList returns a new repo list with a new entry but only when it doesn't exist yet

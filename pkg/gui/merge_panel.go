@@ -52,8 +52,8 @@ func (gui *Gui) handleMergeConflictUndo() error {
 		return nil
 	}
 
-	gui.logAction("Restoring file to previous state")
-	gui.logCommand("Undoing last conflict resolution", false)
+	gui.c.LogAction("Restoring file to previous state")
+	gui.LogCommand("Undoing last conflict resolution", false)
 	if err := ioutil.WriteFile(state.GetPath(), []byte(state.GetContent()), 0644); err != nil {
 		return err
 	}
@@ -124,8 +124,8 @@ func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error
 	case mergeconflicts.ALL:
 		logStr = "Picking all hunks"
 	}
-	gui.logAction("Resolve merge conflict")
-	gui.logCommand(logStr, false)
+	gui.c.LogAction("Resolve merge conflict")
+	gui.LogCommand(logStr, false)
 	state.PushContent(content)
 	return true, ioutil.WriteFile(state.GetPath(), []byte(content), 0644)
 }
@@ -153,7 +153,7 @@ func (gui *Gui) renderConflicts(hasFocus bool) error {
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
-			title:  gui.Tr.MergeConflictsTitle,
+			title:  gui.c.Tr.MergeConflictsTitle,
 			task:   NewRenderStringWithoutScrollTask(content),
 			noWrap: true,
 		},
@@ -178,19 +178,19 @@ func (gui *Gui) centerYPos(view *gocui.View, y int) {
 }
 
 func (gui *Gui) getMergingOptions() map[string]string {
-	keybindingConfig := gui.UserConfig.Keybinding
+	keybindingConfig := gui.c.UserConfig.Keybinding
 
 	return map[string]string{
-		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)):   gui.Tr.LcSelectHunk,
-		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock)): gui.Tr.LcNavigateConflicts,
-		gui.getKeyDisplay(keybindingConfig.Universal.Select):   gui.Tr.LcPickHunk,
-		gui.getKeyDisplay(keybindingConfig.Main.PickBothHunks): gui.Tr.LcPickAllHunks,
-		gui.getKeyDisplay(keybindingConfig.Universal.Undo):     gui.Tr.LcUndo,
+		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)):   gui.c.Tr.LcSelectHunk,
+		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock)): gui.c.Tr.LcNavigateConflicts,
+		gui.getKeyDisplay(keybindingConfig.Universal.Select):   gui.c.Tr.LcPickHunk,
+		gui.getKeyDisplay(keybindingConfig.Main.PickBothHunks): gui.c.Tr.LcPickAllHunks,
+		gui.getKeyDisplay(keybindingConfig.Universal.Undo):     gui.c.Tr.LcUndo,
 	}
 }
 
 func (gui *Gui) handleEscapeMerge() error {
-	if err := gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}}); err != nil {
+	if err := gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}}); err != nil {
 		return err
 	}
 
@@ -200,7 +200,7 @@ func (gui *Gui) handleEscapeMerge() error {
 func (gui *Gui) onLastConflictResolved() error {
 	// as part of refreshing files, we handle the situation where a file has had
 	// its merge conflicts resolved.
-	return gui.refreshSidePanels(types.RefreshOptions{mode: types.ASYNC, scope: []types.RefreshableView{types.FILES}})
+	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 }
 
 func (gui *Gui) resetMergeState() {
@@ -209,7 +209,7 @@ func (gui *Gui) resetMergeState() {
 }
 
 func (gui *Gui) setMergeState(path string) (bool, error) {
-	content, err := gui.Git.File.Cat(path)
+	content, err := gui.git.File.Cat(path)
 	if err != nil {
 		return false, err
 	}
@@ -269,7 +269,6 @@ func (gui *Gui) setConflictsAndRender(path string, hasFocus bool) (bool, error) 
 		return false, err
 	}
 
-	// if we don't have conflicts we'll fall through and show the diff
 	if hasConflicts {
 		return true, gui.renderConflicts(hasFocus)
 	}
@@ -294,7 +293,7 @@ func (gui *Gui) refreshMergeState() error {
 
 	hasConflicts, err := gui.setConflictsAndRender(gui.State.Panels.Merging.GetPath(), true)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.c.Error(err)
 	}
 
 	if !hasConflicts {
@@ -302,4 +301,20 @@ func (gui *Gui) refreshMergeState() error {
 	}
 
 	return nil
+}
+
+func (gui *Gui) switchToMerge(path string) error {
+	gui.takeOverMergeConflictScrolling()
+
+	if gui.State.Panels.Merging.GetPath() != path {
+		hasConflicts, err := gui.setMergeStateWithLock(path)
+		if err != nil {
+			return err
+		}
+		if !hasConflicts {
+			return nil
+		}
+	}
+
+	return gui.c.PushContext(gui.State.Contexts.Merging)
 }

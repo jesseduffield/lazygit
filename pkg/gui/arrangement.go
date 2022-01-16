@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gui/boxlayout"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -44,7 +45,7 @@ func (gui *Gui) getMidSectionWeights() (int, int) {
 	currentWindow := gui.currentWindow()
 
 	// we originally specified this as a ratio i.e. .20 would correspond to a weight of 1 against 4
-	sidePanelWidthRatio := gui.UserConfig.Gui.SidePanelWidth
+	sidePanelWidthRatio := gui.c.UserConfig.Gui.SidePanelWidth
 	// we could make this better by creating ratios like 2:3 rather than always 1:something
 	mainSectionWeight := int(1/sidePanelWidthRatio) - 1
 	sideSectionWeight := 1
@@ -115,7 +116,7 @@ func (gui *Gui) splitMainPanelSideBySide() bool {
 		return false
 	}
 
-	mainPanelSplitMode := gui.UserConfig.Gui.MainPanelSplitMode
+	mainPanelSplitMode := gui.c.UserConfig.Gui.MainPanelSplitMode
 	width, height := gui.g.Size()
 
 	switch mainPanelSplitMode {
@@ -143,7 +144,7 @@ func (gui *Gui) getExtrasWindowSize(screenHeight int) int {
 	} else if screenHeight < 40 {
 		baseSize = 1
 	} else {
-		baseSize = gui.UserConfig.Gui.CommandLogSize
+		baseSize = gui.c.UserConfig.Gui.CommandLogSize
 	}
 
 	frameSize := 2
@@ -259,7 +260,7 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 			fullHeightBox("stash"),
 		}
 	} else if height >= 28 {
-		accordionMode := gui.UserConfig.Gui.ExpandFocusedSidePanel
+		accordionMode := gui.c.UserConfig.Gui.ExpandFocusedSidePanel
 		accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
 			if accordionMode && defaultBox.Window == currentWindow {
 				return &boxlayout.Box{
@@ -320,7 +321,7 @@ func (gui *Gui) currentSideWindowName() string {
 		reversedIdx := len(gui.State.ContextManager.ContextStack) - 1 - idx
 		context := gui.State.ContextManager.ContextStack[reversedIdx]
 
-		if context.GetKind() == SIDE_CONTEXT {
+		if context.GetKind() == types.SIDE_CONTEXT {
 			return context.GetWindowName()
 		}
 	}

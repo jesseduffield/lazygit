@@ -74,8 +74,8 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 		}
 	}
 
-	return gui.PopupHandler.Menu(popup.CreateMenuOptions{
-		Title:      strings.Title(gui.Tr.LcMenu),
+	return gui.c.Menu(popup.CreateMenuOptions{
+		Title:      strings.Title(gui.c.Tr.LcMenu),
 		Items:      menuItems,
 		HideCancel: true,
 	})

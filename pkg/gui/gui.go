@@ -18,6 +18,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
@@ -25,6 +26,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
@@ -55,13 +57,13 @@ const StartupPopupVersion = 5
 var OverlappingEdges = false
 
 type ContextManager struct {
-	ContextStack []Context
+	ContextStack []types.Context
 	sync.RWMutex
 }
 
-func NewContextManager(initialContext Context) ContextManager {
+func NewContextManager(initialContext types.Context) ContextManager {
 	return ContextManager{
-		ContextStack: []Context{initialContext},
+		ContextStack: []types.Context{initialContext},
 		RWMutex:      sync.RWMutex{},
 	}
 }
@@ -72,7 +74,7 @@ type Repo string
 type Gui struct {
 	*common.Common
 	g         *gocui.Gui
-	Git       *commands.GitCommand
+	git       *commands.GitCommand
 	OSCommand *oscommands.OSCommand
 
 	// this is the state of the GUI for the current repo
@@ -126,6 +128,7 @@ type Gui struct {
 
 	IsNewRepo bool
 
+	// controllers define keybindings for a given context
 	Controllers Controllers
 
 	// flag as to whether or not the diff view should ignore whitespace
@@ -133,9 +136,18 @@ type Gui struct {
 
 	// if this is true, we'll load our commits using `git log --all`
 	ShowWholeGitGraph bool
+
+	// we use this to decide whether we'll return to the original directory that
+	// lazygit was opened in, or if we'll retain the one we're currently in.
 	RetainOriginalDir bool
 
 	PrevLayout PrevLayout
+
+	c                 *controllers.ControllerCommon
+	refHelper         *RefHelper
+	suggestionsHelper *SuggestionsHelper
+	fileHelper        *FileHelper
+	workingTreeHelper *WorkingTreeHelper
 
 	// this is the initial dir we are in upon opening lazygit. We hold onto this
 	// in case we want to restore it before quitting for users who have set up
@@ -182,7 +194,7 @@ type GuiRepoState struct {
 	Updating       bool
 	Panels         *panelStates
 	SplitMainPanel bool
-	MainContext    ContextKey // used to keep the main and secondary views' contexts in sync
+	MainContext    types.ContextKey // used to keep the main and secondary views' contexts in sync
 
 	IsRefreshingFiles bool
 	Searching         searchingState
@@ -192,9 +204,9 @@ type GuiRepoState struct {
 	Modes Modes
 
 	ContextManager    ContextManager
-	Contexts          ContextTree
-	ViewContextMap    map[string]Context
-	ViewTabContextMap map[string][]tabContext
+	Contexts          context.ContextTree
+	ViewContextMap    map[string]types.Context
+	ViewTabContextMap map[string][]context.TabContext
 
 	// WindowViewNameMap is a mapping of windows to the current view of that window.
 	// Some views move between windows for example the commitFiles view and when cycling through
@@ -212,12 +224,19 @@ type GuiRepoState struct {
 	// this is the message of the last failed commit attempt
 	failedCommitMessage string
 
-	// TODO: move these into the gui struct
 	ScreenMode WindowMaximisation
 }
 
 type Controllers struct {
-	Submodules *controllers.SubmodulesController
+	Submodules   *controllers.SubmodulesController
+	Tags         *controllers.TagsController
+	LocalCommits *controllers.LocalCommitsController
+	Files        *controllers.FilesController
+	Remotes      *controllers.RemotesController
+	Menu         *controllers.MenuController
+	Bisect       *controllers.BisectController
+	Undo         *controllers.UndoController
+	Sync         *controllers.SyncController
 }
 
 type listPanelState struct {
@@ -373,13 +392,15 @@ type Modes struct {
 	Diffing       diffing.Diffing
 }
 
+// if you add a new mutex here be sure to instantiate it. We're using pointers to
+// mutexes so that we can pass the mutexes to controllers.
 type guiMutexes struct {
-	RefreshingFilesMutex  sync.Mutex
-	RefreshingStatusMutex sync.Mutex
-	FetchMutex            sync.Mutex
-	BranchCommitsMutex    sync.Mutex
-	LineByLinePanelMutex  sync.Mutex
-	SubprocessMutex       sync.Mutex
+	RefreshingFilesMutex  *sync.Mutex
+	RefreshingStatusMutex *sync.Mutex
+	FetchMutex            *sync.Mutex
+	BranchCommitsMutex    *sync.Mutex
+	LineByLinePanelMutex  *sync.Mutex
+	SubprocessMutex       *sync.Mutex
 }
 
 // reuseState determines if we pull the repo state from our repo state map or
@@ -402,7 +423,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 				return
 			}
 		} else {
-			gui.Log.Error(err)
+			gui.c.Log.Error(err)
 		}
 	}
 
@@ -424,6 +445,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		FilteredReflogCommits:   make([]*models.Commit, 0),
 		ReflogCommits:           make([]*models.Commit, 0),
 		StashEntries:            make([]*models.StashEntry, 0),
+		BisectInfo:              git_commands.NewNullBisectInfo(),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},
@@ -450,8 +472,8 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			CherryPicking: cherrypicking.New(),
 			Diffing:       diffing.New(),
 		},
-		ViewContextMap:    contexts.initialViewContextMap(),
-		ViewTabContextMap: contexts.initialViewTabContextMap(),
+		ViewContextMap:    contexts.InitialViewContextMap(),
+		ViewTabContextMap: contexts.InitialViewTabContextMap(),
 		ScreenMode:        screenMode,
 		// TODO: put contexts in the context manager
 		ContextManager: NewContextManager(initialContext),
@@ -460,21 +482,6 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	}
 
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
-}
-
-type guiCommon struct {
-	gui *Gui
-	popup.IPopupHandler
-}
-
-var _ controllers.IGuiCommon = &guiCommon{}
-
-func (self *guiCommon) LogAction(msg string) {
-	self.gui.logAction(msg)
-}
-
-func (self *guiCommon) Refresh(opts types.RefreshOptions) error {
-	return self.gui.refreshSidePanels(opts)
 }
 
 // for now the split view will always be on
@@ -504,13 +511,20 @@ func NewGui(
 		// but now we do it via state. So we need to still support the config for the
 		// sake of backwards compatibility. We're making use of short circuiting here
 		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
-
+		Mutexes: guiMutexes{
+			RefreshingFilesMutex:  &sync.Mutex{},
+			RefreshingStatusMutex: &sync.Mutex{},
+			FetchMutex:            &sync.Mutex{},
+			BranchCommitsMutex:    &sync.Mutex{},
+			LineByLinePanelMutex:  &sync.Mutex{},
+			SubprocessMutex:       &sync.Mutex{},
+		},
 		InitialDir: initialDir,
 	}
 
 	guiIO := oscommands.NewGuiIO(
 		cmn.Log,
-		gui.logCommand,
+		gui.LogCommand,
 		gui.getCmdWriter,
 		gui.promptUserForCredential,
 	)
@@ -519,42 +533,151 @@ func NewGui(
 
 	gui.OSCommand = osCommand
 	var err error
-	gui.Git, err = commands.NewGitCommand(
+	gui.git, err = commands.NewGitCommand(
 		cmn,
 		osCommand,
 		gitConfig,
+		gui.Mutexes.FetchMutex,
 	)
 	if err != nil {
 		return nil, err
 	}
-
-	gui.resetState(filterPath, false)
 
 	gui.watchFilesForChanges()
 
 	gui.PopupHandler = popup.NewPopupHandler(
 		cmn,
 		gui.createPopupPanel,
-		func() error { return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC}) },
+		func() error { return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}) },
 		func() error { return gui.closeConfirmationPrompt(false) },
 		gui.createMenu,
 		gui.withWaitingStatus,
+		gui.toast,
+		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
 	)
-
-	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
-	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
 	controllerCommon := &controllers.ControllerCommon{IGuiCommon: guiCommon, Common: cmn}
 
+	// storing this stuff on the gui for now to ease refactoring
+	// TODO: reset these controllers upon changing repos due to state changing
+	gui.c = controllerCommon
+
+	gui.resetState(filterPath, false)
+	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
+	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
+
+	refHelper := NewRefHelper(
+		controllerCommon,
+		gui.git,
+		gui.State,
+	)
+	gui.refHelper = refHelper
+	gui.suggestionsHelper = NewSuggestionsHelper(controllerCommon, gui.State, gui.refreshSuggestions)
+	gui.fileHelper = NewFileHelper(controllerCommon, gui.git, osCommand)
+	gui.workingTreeHelper = NewWorkingTreeHelper(gui.State.FileTreeViewModel)
+
+	tagsController := controllers.NewTagsController(
+		controllerCommon,
+		gui.State.Contexts.Tags,
+		gui.git,
+		gui.State.Contexts,
+		refHelper,
+		gui.suggestionsHelper,
+		gui.getSelectedTag,
+		gui.switchToSubCommitsContext,
+	)
+
+	syncController := controllers.NewSyncController(
+		controllerCommon,
+		gui.git,
+		gui.getCheckedOutBranch,
+		gui.suggestionsHelper,
+		gui.getSuggestedRemote,
+		gui.checkMergeOrRebase,
+	)
+
 	gui.Controllers = Controllers{
 		Submodules: controllers.NewSubmodulesController(
 			controllerCommon,
+			gui.State.Contexts.Submodules,
+			gui.git,
 			gui.enterSubmodule,
-			gui.Git,
-			gui.State.Submodules,
 			gui.getSelectedSubmodule,
 		),
+		Files: controllers.NewFilesController(
+			controllerCommon,
+			gui.State.Contexts.Files,
+			gui.git,
+			osCommand,
+			gui.getSelectedFileNode,
+			gui.State.Contexts,
+			gui.State.FileTreeViewModel,
+			gui.enterSubmodule,
+			func() []*models.SubmoduleConfig { return gui.State.Submodules },
+			gui.getSetTextareaTextFn(gui.Views.CommitMessage),
+			gui.withGpgHandling,
+			func() string { return gui.State.failedCommitMessage },
+			func() []*models.Commit { return gui.State.Commits },
+			gui.getSelectedPath,
+			gui.switchToMerge,
+			gui.suggestionsHelper,
+			gui.refHelper,
+			gui.fileHelper,
+			gui.workingTreeHelper,
+		),
+		Tags: tagsController,
+
+		LocalCommits: controllers.NewLocalCommitsController(
+			controllerCommon,
+			gui.State.Contexts.BranchCommits,
+			osCommand,
+			gui.git,
+			refHelper,
+			gui.getSelectedLocalCommit,
+			func() []*models.Commit { return gui.State.Commits },
+			func() int { return gui.State.Panels.Commits.SelectedLineIdx },
+			gui.checkMergeOrRebase,
+			syncController.HandlePull,
+			tagsController.CreateTagMenu,
+			gui.getHostingServiceMgr,
+			gui.SwitchToCommitFilesContext,
+			gui.handleOpenSearch,
+			func() bool { return gui.State.Panels.Commits.LimitCommits },
+			func(value bool) { gui.State.Panels.Commits.LimitCommits = value },
+			func() bool { return gui.ShowWholeGitGraph },
+			func(value bool) { gui.ShowWholeGitGraph = value },
+		),
+
+		Remotes: controllers.NewRemotesController(
+			controllerCommon,
+			gui.State.Contexts.Remotes,
+			gui.git,
+			gui.State.Contexts,
+			gui.getSelectedRemote,
+			func(branches []*models.RemoteBranch) { gui.State.RemoteBranches = branches },
+			gui.Mutexes.FetchMutex,
+		),
+		Menu: controllers.NewMenuController(
+			controllerCommon,
+			gui.State.Contexts.Menu,
+			gui.getSelectedMenuItem,
+		),
+		Bisect: controllers.NewBisectController(
+			controllerCommon,
+			gui.State.Contexts.BranchCommits,
+			gui.git,
+			gui.getSelectedLocalCommit,
+			func() []*models.Commit { return gui.State.Commits },
+		),
+		Undo: controllers.NewUndoController(
+			controllerCommon,
+			gui.git,
+			refHelper,
+			gui.workingTreeHelper,
+			func() []*models.Commit { return gui.State.FilteredReflogCommits },
+		),
+		Sync: syncController,
 	}
 
 	return gui, nil
@@ -621,7 +744,7 @@ func (gui *Gui) Run() error {
 	}
 
 	gui.waitForIntro.Add(1)
-	if gui.UserConfig.Git.AutoFetch {
+	if gui.c.UserConfig.Git.AutoFetch {
 		go utils.Safe(gui.startBackgroundFetch)
 	}
 
@@ -629,7 +752,7 @@ func (gui *Gui) Run() error {
 
 	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 
-	gui.Log.Info("starting main loop")
+	gui.c.Log.Info("starting main loop")
 
 	err = g.MainLoop()
 	return err
@@ -684,7 +807,7 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess oscommands.ICmdOb
 		return err
 	}
 
-	if err := gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
+	if err := gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
 		return err
 	}
 
@@ -705,7 +828,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	}
 
 	if err := gui.g.Suspend(); err != nil {
-		return false, gui.PopupHandler.Error(err)
+		return false, gui.c.Error(err)
 	}
 
 	gui.PauseBackgroundThreads = true
@@ -719,14 +842,14 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	gui.PauseBackgroundThreads = false
 
 	if cmdErr != nil {
-		return false, gui.PopupHandler.Error(cmdErr)
+		return false, gui.c.Error(cmdErr)
 	}
 
 	return true, nil
 }
 
 func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unparam
-	gui.logCommand(cmdObj.ToString(), true)
+	gui.LogCommand(cmdObj.ToString(), true)
 
 	subprocess := cmdObj.GetCmd()
 	subprocess.Stdout = os.Stdout
@@ -754,7 +877,7 @@ func (gui *Gui) loadNewRepo() error {
 		return err
 	}
 
-	if err := gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
+	if err := gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
 		return err
 	}
 
@@ -774,7 +897,7 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 			task := task
 			go utils.Safe(func() {
 				if err := task(done); err != nil {
-					_ = gui.PopupHandler.Error(err)
+					_ = gui.c.Error(err)
 				}
 			})
 
@@ -787,13 +910,13 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 	onConfirm := func() error {
 		done <- struct{}{}
-		gui.Config.GetAppState().StartupPopupVersion = StartupPopupVersion
-		return gui.Config.SaveAppState()
+		gui.c.GetAppState().StartupPopupVersion = StartupPopupVersion
+		return gui.c.SaveAppState()
 	}
 
-	return gui.PopupHandler.Ask(popup.AskOpts{
+	return gui.c.Ask(popup.AskOpts{
 		Title:         "",
-		Prompt:        gui.Tr.IntroPopupMessage,
+		Prompt:        gui.c.Tr.IntroPopupMessage,
 		HandleConfirm: onConfirm,
 		HandleClose:   onConfirm,
 	})
@@ -826,9 +949,9 @@ func (gui *Gui) startBackgroundFetch() {
 	}
 	err := gui.backgroundFetch()
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = gui.PopupHandler.Ask(popup.AskOpts{
-			Title:  gui.Tr.NoAutomaticGitFetchTitle,
-			Prompt: gui.Tr.NoAutomaticGitFetchBody,
+		_ = gui.c.Ask(popup.AskOpts{
+			Title:  gui.c.Tr.NoAutomaticGitFetchTitle,
+			Prompt: gui.c.Tr.NoAutomaticGitFetchBody,
 		})
 	} else {
 		gui.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), gui.stopChan, func() error {

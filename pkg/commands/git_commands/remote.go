@@ -40,7 +40,7 @@ func (self *RemoteCommands) UpdateRemoteUrl(remoteName string, updatedUrl string
 
 func (self *RemoteCommands) DeleteRemoteBranch(remoteName string, branchName string) error {
 	command := fmt.Sprintf("git push %s --delete %s", self.cmd.Quote(remoteName), self.cmd.Quote(branchName))
-	return self.cmd.New(command).PromptOnCredentialRequest().Run()
+	return self.cmd.New(command).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
 }
 
 // CheckRemoteBranchExists Returns remote branch

@@ -29,7 +29,7 @@ func setupGuiForTest(gui *Gui) {
 	gui.Views.Main, _ = gui.prepareView("main")
 	gui.Views.Secondary, _ = gui.prepareView("secondary")
 	gui.Views.Options, _ = gui.prepareView("options")
-	gui.Git.Patch.PatchManager = &patch.PatchManager{}
+	gui.git.Patch.PatchManager = &patch.PatchManager{}
 	_, _ = gui.refreshLineByLinePanel(diffForTest, "", false, 11)
 }
 
@@ -48,12 +48,12 @@ func TestIncreasesContextInDiffViewByOneInContextWithDiff(t *testing.T) {
 		gui := NewDummyGui()
 		context := c(gui)
 		setupGuiForTest(gui)
-		gui.UserConfig.Git.DiffContextSize = 1
-		_ = gui.pushContext(context)
+		gui.c.UserConfig.Git.DiffContextSize = 1
+		_ = gui.c.PushContext(context)
 
 		_ = gui.IncreaseContextInDiffView()
 
-		assert.Equal(t, 2, gui.UserConfig.Git.DiffContextSize, string(context.GetKey()))
+		assert.Equal(t, 2, gui.c.UserConfig.Git.DiffContextSize, string(context.GetKey()))
 	}
 }
 
@@ -76,12 +76,12 @@ func TestDoesntIncreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
 		gui := NewDummyGui()
 		context := c(gui)
 		setupGuiForTest(gui)
-		gui.UserConfig.Git.DiffContextSize = 1
-		_ = gui.pushContext(context)
+		gui.c.UserConfig.Git.DiffContextSize = 1
+		_ = gui.c.PushContext(context)
 
 		_ = gui.IncreaseContextInDiffView()
 
-		assert.Equal(t, 1, gui.UserConfig.Git.DiffContextSize, string(context.GetKey()))
+		assert.Equal(t, 1, gui.c.UserConfig.Git.DiffContextSize, string(context.GetKey()))
 	}
 }
 
@@ -100,12 +100,12 @@ func TestDecreasesContextInDiffViewByOneInContextWithDiff(t *testing.T) {
 		gui := NewDummyGui()
 		context := c(gui)
 		setupGuiForTest(gui)
-		gui.UserConfig.Git.DiffContextSize = 2
-		_ = gui.pushContext(context)
+		gui.c.UserConfig.Git.DiffContextSize = 2
+		_ = gui.c.PushContext(context)
 
 		_ = gui.DecreaseContextInDiffView()
 
-		assert.Equal(t, 1, gui.UserConfig.Git.DiffContextSize, string(context.GetKey()))
+		assert.Equal(t, 1, gui.c.UserConfig.Git.DiffContextSize, string(context.GetKey()))
 	}
 }
 
@@ -128,26 +128,26 @@ func TestDoesntDecreaseContextInDiffViewInContextWithoutDiff(t *testing.T) {
 		gui := NewDummyGui()
 		context := c(gui)
 		setupGuiForTest(gui)
-		gui.UserConfig.Git.DiffContextSize = 2
-		_ = gui.pushContext(context)
+		gui.c.UserConfig.Git.DiffContextSize = 2
+		_ = gui.c.PushContext(context)
 
 		_ = gui.DecreaseContextInDiffView()
 
-		assert.Equal(t, 2, gui.UserConfig.Git.DiffContextSize, string(context.GetKey()))
+		assert.Equal(t, 2, gui.c.UserConfig.Git.DiffContextSize, string(context.GetKey()))
 	}
 }
 
 func TestDoesntIncreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *testing.T) {
 	gui := NewDummyGui()
 	setupGuiForTest(gui)
-	gui.UserConfig.Git.DiffContextSize = 2
-	_ = gui.pushContext(gui.State.Contexts.CommitFiles)
-	gui.Git.Patch.PatchManager.Start("from", "to", false, false)
+	gui.c.UserConfig.Git.DiffContextSize = 2
+	_ = gui.c.PushContext(gui.State.Contexts.CommitFiles)
+	gui.git.Patch.PatchManager.Start("from", "to", false, false)
 
 	errorCount := 0
 	gui.PopupHandler = &popup.TestPopupHandler{
 		OnErrorMsg: func(message string) error {
-			assert.Equal(t, gui.Tr.CantChangeContextSizeError, message)
+			assert.Equal(t, gui.c.Tr.CantChangeContextSizeError, message)
 			errorCount += 1
 			return nil
 		},
@@ -156,20 +156,20 @@ func TestDoesntIncreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *test
 	_ = gui.IncreaseContextInDiffView()
 
 	assert.Equal(t, 1, errorCount)
-	assert.Equal(t, 2, gui.UserConfig.Git.DiffContextSize)
+	assert.Equal(t, 2, gui.c.UserConfig.Git.DiffContextSize)
 }
 
 func TestDoesntDecreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *testing.T) {
 	gui := NewDummyGui()
 	setupGuiForTest(gui)
-	gui.UserConfig.Git.DiffContextSize = 2
-	_ = gui.pushContext(gui.State.Contexts.CommitFiles)
-	gui.Git.Patch.PatchManager.Start("from", "to", false, false)
+	gui.c.UserConfig.Git.DiffContextSize = 2
+	_ = gui.c.PushContext(gui.State.Contexts.CommitFiles)
+	gui.git.Patch.PatchManager.Start("from", "to", false, false)
 
 	errorCount := 0
 	gui.PopupHandler = &popup.TestPopupHandler{
 		OnErrorMsg: func(message string) error {
-			assert.Equal(t, gui.Tr.CantChangeContextSizeError, message)
+			assert.Equal(t, gui.c.Tr.CantChangeContextSizeError, message)
 			errorCount += 1
 			return nil
 		},
@@ -177,15 +177,15 @@ func TestDoesntDecreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *test
 
 	_ = gui.DecreaseContextInDiffView()
 
-	assert.Equal(t, 2, gui.UserConfig.Git.DiffContextSize)
+	assert.Equal(t, 2, gui.c.UserConfig.Git.DiffContextSize)
 }
 
 func TestDecreasesContextInDiffViewNoFurtherThanOne(t *testing.T) {
 	gui := NewDummyGui()
 	setupGuiForTest(gui)
-	gui.UserConfig.Git.DiffContextSize = 1
+	gui.c.UserConfig.Git.DiffContextSize = 1
 
 	_ = gui.DecreaseContextInDiffView()
 
-	assert.Equal(t, 1, gui.UserConfig.Git.DiffContextSize)
+	assert.Equal(t, 1, gui.c.UserConfig.Git.DiffContextSize)
 }

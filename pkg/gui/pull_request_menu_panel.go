@@ -18,17 +18,17 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 	menuItemsForBranch := func(branch *models.Branch) []*popup.MenuItem {
 		return []*popup.MenuItem{
 			{
-				DisplayStrings: fromToDisplayStrings(branch.Name, gui.Tr.LcDefaultBranch),
+				DisplayStrings: fromToDisplayStrings(branch.Name, gui.c.Tr.LcDefaultBranch),
 				OnPress: func() error {
 					return gui.createPullRequest(branch.Name, "")
 				},
 			},
 			{
-				DisplayStrings: fromToDisplayStrings(branch.Name, gui.Tr.LcSelectBranch),
+				DisplayStrings: fromToDisplayStrings(branch.Name, gui.c.Tr.LcSelectBranch),
 				OnPress: func() error {
-					return gui.PopupHandler.Prompt(popup.PromptOpts{
+					return gui.c.Prompt(popup.PromptOpts{
 						Title:               branch.Name + " →",
-						FindSuggestionsFunc: gui.getBranchNameSuggestionsFunc(),
+						FindSuggestionsFunc: gui.suggestionsHelper.GetBranchNameSuggestionsFunc(),
 						HandleConfirm: func(targetBranchName string) error {
 							return gui.createPullRequest(branch.Name, targetBranchName)
 						}},
@@ -52,27 +52,27 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 
 	menuItems = append(menuItems, menuItemsForBranch(selectedBranch)...)
 
-	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: fmt.Sprintf(gui.Tr.CreatePullRequestOptions), Items: menuItems})
+	return gui.c.Menu(popup.CreateMenuOptions{Title: fmt.Sprintf(gui.c.Tr.CreatePullRequestOptions), Items: menuItems})
 }
 
 func (gui *Gui) createPullRequest(from string, to string) error {
 	hostingServiceMgr := gui.getHostingServiceMgr()
 	url, err := hostingServiceMgr.GetPullRequestURL(from, to)
 	if err != nil {
-		return gui.PopupHandler.Error(err)
+		return gui.c.Error(err)
 	}
 
-	gui.logAction(gui.Tr.Actions.OpenPullRequest)
+	gui.c.LogAction(gui.c.Tr.Actions.OpenPullRequest)
 
 	if err := gui.OSCommand.OpenLink(url); err != nil {
-		return gui.PopupHandler.Error(err)
+		return gui.c.Error(err)
 	}
 
 	return nil
 }
 
 func (gui *Gui) getHostingServiceMgr() *hosting_service.HostingServiceMgr {
-	remoteUrl := gui.Git.Config.GetRemoteURL()
-	configServices := gui.UserConfig.Services
+	remoteUrl := gui.git.Config.GetRemoteURL()
+	configServices := gui.c.UserConfig.Services
 	return hosting_service.NewHostingServiceMgr(gui.Log, gui.Tr, remoteUrl, configServices)
 }

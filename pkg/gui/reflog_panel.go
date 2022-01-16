@@ -2,7 +2,9 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // list panel functions
@@ -23,7 +25,7 @@ func (gui *Gui) reflogCommitsRenderToMain() error {
 	if commit == nil {
 		task = NewRenderStringTask("No reflog history")
 	} else {
-		cmdObj := gui.Git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
+		cmdObj := gui.git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
 
 		task = NewRunPtyTask(cmdObj.GetCmd())
 	}
@@ -53,10 +55,10 @@ func (gui *Gui) refreshReflogCommits() error {
 	}
 
 	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
-		commits, onlyObtainedNewReflogCommits, err := gui.Git.Loaders.ReflogCommits.
+		commits, onlyObtainedNewReflogCommits, err := gui.git.Loaders.ReflogCommits.
 			GetReflogCommits(lastReflogCommit, filterPath)
 		if err != nil {
-			return gui.PopupHandler.Error(err)
+			return gui.c.Error(err)
 		}
 
 		if onlyObtainedNewReflogCommits {
@@ -79,21 +81,21 @@ func (gui *Gui) refreshReflogCommits() error {
 		state.FilteredReflogCommits = state.ReflogCommits
 	}
 
-	return gui.postRefreshUpdate(gui.State.Contexts.ReflogCommits)
+	return gui.c.PostRefreshUpdate(gui.State.Contexts.ReflogCommits)
 }
 
-func (gui *Gui) handleCheckoutReflogCommit() error {
+func (gui *Gui) CheckoutReflogCommit() error {
 	commit := gui.getSelectedReflogCommit()
 	if commit == nil {
 		return nil
 	}
 
-	err := gui.PopupHandler.Ask(popup.AskOpts{
-		Title:  gui.Tr.LcCheckoutCommit,
-		Prompt: gui.Tr.SureCheckoutThisCommit,
+	err := gui.c.Ask(popup.AskOpts{
+		Title:  gui.c.Tr.LcCheckoutCommit,
+		Prompt: gui.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {
-			gui.logAction(gui.Tr.Actions.CheckoutReflogCommit)
-			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
+			gui.c.LogAction(gui.c.Tr.Actions.CheckoutReflogCommit)
+			return gui.refHelper.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
 		},
 	})
 	if err != nil {
@@ -108,7 +110,7 @@ func (gui *Gui) handleCheckoutReflogCommit() error {
 func (gui *Gui) handleCreateReflogResetMenu() error {
 	commit := gui.getSelectedReflogCommit()
 
-	return gui.createResetMenu(commit.Sha)
+	return gui.refHelper.CreateGitResetMenu(commit.Sha)
 }
 
 func (gui *Gui) handleViewReflogCommitFiles() error {
@@ -117,5 +119,10 @@ func (gui *Gui) handleViewReflogCommitFiles() error {
 		return nil
 	}
 
-	return gui.switchToCommitFilesContext(commit.Sha, false, gui.State.Contexts.ReflogCommits, "commits")
+	return gui.SwitchToCommitFilesContext(controllers.SwitchToCommitFilesContextOpts{
+		RefName:    commit.Sha,
+		CanRebase:  false,
+		Context:    gui.State.Contexts.ReflogCommits,
+		WindowName: "commits",
+	})
 }

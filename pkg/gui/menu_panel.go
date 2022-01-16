@@ -10,12 +10,12 @@ import (
 )
 
 func (gui *Gui) getMenuOptions() map[string]string {
-	keybindingConfig := gui.UserConfig.Keybinding
+	keybindingConfig := gui.c.UserConfig.Keybinding
 
 	return map[string]string{
-		gui.getKeyDisplay(keybindingConfig.Universal.Return): gui.Tr.LcClose,
-		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.Tr.LcNavigate,
-		gui.getKeyDisplay(keybindingConfig.Universal.Select): gui.Tr.LcExecute,
+		gui.getKeyDisplay(keybindingConfig.Universal.Return): gui.c.Tr.LcClose,
+		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
+		gui.getKeyDisplay(keybindingConfig.Universal.Select): gui.c.Tr.LcExecute,
 	}
 }
 
@@ -28,7 +28,7 @@ func (gui *Gui) createMenu(opts popup.CreateMenuOptions) error {
 	if !opts.HideCancel {
 		// this is mutative but I'm okay with that for now
 		opts.Items = append(opts.Items, &popup.MenuItem{
-			DisplayStrings: []string{gui.Tr.LcCancel},
+			DisplayStrings: []string{gui.c.Tr.LcCancel},
 			OnPress: func() error {
 				return nil
 			},
@@ -66,18 +66,13 @@ func (gui *Gui) createMenu(opts popup.CreateMenuOptions) error {
 	menuView.SetContent(list)
 	gui.State.Panels.Menu.SelectedLineIdx = 0
 
-	return gui.pushContext(gui.State.Contexts.Menu)
+	return gui.c.PushContext(gui.State.Contexts.Menu)
 }
 
-func (gui *Gui) onMenuPress() error {
-	selectedLine := gui.State.Panels.Menu.SelectedLineIdx
-	if err := gui.returnFromContext(); err != nil {
-		return err
+func (gui *Gui) getSelectedMenuItem() *popup.MenuItem {
+	if len(gui.State.MenuItems) == 0 {
+		return nil
 	}
 
-	if err := gui.State.MenuItems[selectedLine].OnPress(); err != nil {
-		return err
-	}
-
-	return nil
+	return gui.State.MenuItems[gui.State.Panels.Menu.SelectedLineIdx]
 }

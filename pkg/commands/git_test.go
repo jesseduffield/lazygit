@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -211,7 +212,12 @@ func TestNewGitCommand(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.setup()
-			s.test(NewGitCommand(utils.NewDummyCommon(), oscommands.NewDummyOSCommand(), git_config.NewFakeGitConfig(nil)))
+			s.test(
+				NewGitCommand(utils.NewDummyCommon(),
+					oscommands.NewDummyOSCommand(),
+					git_config.NewFakeGitConfig(nil),
+					&sync.Mutex{},
+				))
 		})
 	}
 }

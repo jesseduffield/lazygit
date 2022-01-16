@@ -15,27 +15,27 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 	if node.File == nil {
 		menuItems = []*popup.MenuItem{
 			{
-				DisplayString: gui.Tr.LcDiscardAllChanges,
+				DisplayString: gui.c.Tr.LcDiscardAllChanges,
 				OnPress: func() error {
-					gui.logAction(gui.Tr.Actions.DiscardAllChangesInDirectory)
-					if err := gui.Git.WorkingTree.DiscardAllDirChanges(node); err != nil {
-						return gui.PopupHandler.Error(err)
+					gui.c.LogAction(gui.c.Tr.Actions.DiscardAllChangesInDirectory)
+					if err := gui.git.WorkingTree.DiscardAllDirChanges(node); err != nil {
+						return gui.c.Error(err)
 					}
-					return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+					return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 				},
 			},
 		}
 
 		if node.GetHasStagedChanges() && node.GetHasUnstagedChanges() {
 			menuItems = append(menuItems, &popup.MenuItem{
-				DisplayString: gui.Tr.LcDiscardUnstagedChanges,
+				DisplayString: gui.c.Tr.LcDiscardUnstagedChanges,
 				OnPress: func() error {
-					gui.logAction(gui.Tr.Actions.DiscardUnstagedChangesInDirectory)
-					if err := gui.Git.WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
-						return gui.PopupHandler.Error(err)
+					gui.c.LogAction(gui.c.Tr.Actions.DiscardUnstagedChangesInDirectory)
+					if err := gui.git.WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
+						return gui.c.Error(err)
 					}
 
-					return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+					return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 				},
 			})
 		}
@@ -48,41 +48,41 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 
 			menuItems = []*popup.MenuItem{
 				{
-					DisplayString: gui.Tr.LcSubmoduleStashAndReset,
+					DisplayString: gui.c.Tr.LcSubmoduleStashAndReset,
 					OnPress: func() error {
-						return gui.resetSubmodule(submodule)
+						return gui.Controllers.Files.ResetSubmodule(submodule)
 					},
 				},
 			}
 		} else {
 			menuItems = []*popup.MenuItem{
 				{
-					DisplayString: gui.Tr.LcDiscardAllChanges,
+					DisplayString: gui.c.Tr.LcDiscardAllChanges,
 					OnPress: func() error {
-						gui.logAction(gui.Tr.Actions.DiscardAllChangesInFile)
-						if err := gui.Git.WorkingTree.DiscardAllFileChanges(file); err != nil {
-							return gui.PopupHandler.Error(err)
+						gui.c.LogAction(gui.c.Tr.Actions.DiscardAllChangesInFile)
+						if err := gui.git.WorkingTree.DiscardAllFileChanges(file); err != nil {
+							return gui.c.Error(err)
 						}
-						return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+						return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 					},
 				},
 			}
 
 			if file.HasStagedChanges && file.HasUnstagedChanges {
 				menuItems = append(menuItems, &popup.MenuItem{
-					DisplayString: gui.Tr.LcDiscardUnstagedChanges,
+					DisplayString: gui.c.Tr.LcDiscardUnstagedChanges,
 					OnPress: func() error {
-						gui.logAction(gui.Tr.Actions.DiscardAllUnstagedChangesInFile)
-						if err := gui.Git.WorkingTree.DiscardUnstagedFileChanges(file); err != nil {
-							return gui.PopupHandler.Error(err)
+						gui.c.LogAction(gui.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
+						if err := gui.git.WorkingTree.DiscardUnstagedFileChanges(file); err != nil {
+							return gui.c.Error(err)
 						}
 
-						return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+						return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 					},
 				})
 			}
 		}
 	}
 
-	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: node.GetPath(), Items: menuItems})
+	return gui.c.Menu(popup.CreateMenuOptions{Title: node.GetPath(), Items: menuItems})
 }
