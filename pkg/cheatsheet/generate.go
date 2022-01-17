@@ -117,9 +117,9 @@ func formatTitle(title string) string {
 
 func formatBinding(binding *gui.Binding) string {
 	if binding.Alternative != "" {
-		return fmt.Sprintf("  <kbd>%s</kbd>: %s (%s)\n", gui.GetKeyDisplay(binding.Key), binding.Description, binding.Alternative)
+		return fmt.Sprintf("  <kbd>%s</kbd>: %s (%s)\n", gui.GetKeyDisplay(binding.KeyMod), binding.Description, binding.Alternative)
 	}
-	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", gui.GetKeyDisplay(binding.Key), binding.Description)
+	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", gui.GetKeyDisplay(binding.KeyMod), binding.Description)
 }
 
 func getBindingSections(mApp *app.App) []*bindingSection {

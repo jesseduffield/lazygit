@@ -6,6 +6,7 @@ package gocui
 
 import (
 	standardErrors "errors"
+	"fmt"
 	"log"
 	"runtime"
 	"strings"
@@ -520,7 +521,7 @@ func getKey(key interface{}) (Key, rune, error) {
 	case rune:
 		return 0, t, nil
 	default:
-		return 0, 0, errors.New("unknown type")
+		return 0, 0, errors.New("unknown type " + fmt.Sprint(key))
 	}
 }
 
@@ -595,7 +596,9 @@ func (g *Gui) MainLoop() error {
 			case <-g.stop:
 				return
 			default:
-				g.gEvents <- g.pollEvent()
+				ev := g.pollEvent()
+				//log.Println(ev.Mod)
+				g.gEvents <- ev
 			}
 		}
 	}()

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -337,8 +336,7 @@ func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 		bindings = append(bindings, &Binding{
 			ViewName:    viewName,
 			Contexts:    contexts,
-			Key:         gui.getKey(customCommand.Key),
-			Modifier:    gocui.ModNone,
+			KeyMod:      gui.getKey(customCommand.Key),
 			Handler:     gui.handleCustomCommandKeybinding(customCommand),
 			Description: description,
 		})

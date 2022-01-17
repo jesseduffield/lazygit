@@ -400,18 +400,18 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 		listContext := listContext
 
 		bindings = append(bindings, []*Binding{
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.PrevItemAlt), Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.PrevItem), Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: listContext.handlePrevLine},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.NextItemAlt), Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.NextItem), Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.PrevPage), Modifier: gocui.ModNone, Handler: listContext.handlePrevPage, Description: gui.Tr.LcPrevPage},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.NextPage), Modifier: gocui.ModNone, Handler: listContext.handleNextPage, Description: gui.Tr.LcNextPage},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.GotoTop), Modifier: gocui.ModNone, Handler: listContext.handleGotoTop, Description: gui.Tr.LcGotoTop},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: listContext.handleNextLine},
-			{ViewName: listContext.GetViewName(), Contexts: []string{string(listContext.GetKey())}, Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: listContext.handleClick},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.ScrollLeft), Modifier: gocui.ModNone, Handler: listContext.handleScrollLeft},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.ScrollRight), Modifier: gocui.ModNone, Handler: listContext.handleScrollRight},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.PrevItemAlt), Handler: listContext.handlePrevLine},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.PrevItem), Handler: listContext.handlePrevLine},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: KeyMod{gocui.MouseWheelUp, gocui.ModNone}, Handler: listContext.handlePrevLine},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.NextItemAlt), Handler: listContext.handleNextLine},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.NextItem), Handler: listContext.handleNextLine},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.PrevPage), Handler: listContext.handlePrevPage, Description: gui.Tr.LcPrevPage},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.NextPage), Handler: listContext.handleNextPage, Description: gui.Tr.LcNextPage},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.GotoTop), Handler: listContext.handleGotoTop, Description: gui.Tr.LcGotoTop},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: KeyMod{gocui.MouseWheelDown, gocui.ModNone}, Handler: listContext.handleNextLine},
+			{ViewName: listContext.GetViewName(), Contexts: []string{string(listContext.GetKey())}, KeyMod: KeyMod{gocui.MouseLeft, gocui.ModNone}, Handler: listContext.handleClick},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.ScrollLeft), Handler: listContext.handleScrollLeft},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.ScrollRight), Handler: listContext.handleScrollRight},
 		}...)
 
 		openSearchHandler := gui.handleOpenSearch
@@ -427,7 +427,7 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 			{
 				ViewName:    listContext.GetViewName(),
 				Contexts:    []string{string(listContext.GetKey())},
-				Key:         gui.getKey(keybindingConfig.Universal.StartSearch),
+				KeyMod:      gui.getKey(keybindingConfig.Universal.StartSearch),
 				Handler:     func() error { return openSearchHandler(listContext.GetViewName()) },
 				Description: gui.Tr.LcStartSearch,
 				Tag:         "navigation",
@@ -435,7 +435,7 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 			{
 				ViewName:    listContext.GetViewName(),
 				Contexts:    []string{string(listContext.GetKey())},
-				Key:         gui.getKey(keybindingConfig.Universal.GotoBottom),
+				KeyMod:      gui.getKey(keybindingConfig.Universal.GotoBottom),
 				Handler:     gotoBottomHandler,
 				Description: gui.Tr.LcGotoBottom,
 				Tag:         "navigation",

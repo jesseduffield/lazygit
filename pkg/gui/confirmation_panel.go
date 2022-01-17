@@ -234,7 +234,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 
 	type confirmationKeybinding struct {
 		viewName string
-		key      interface{}
+		keyMod   KeyMod
 		handler  func() error
 	}
 
@@ -248,22 +248,22 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 	confirmationKeybindings := []confirmationKeybinding{
 		{
 			viewName: "confirmation",
-			key:      gui.getKey(keybindingConfig.Universal.Confirm),
+			keyMod:   gui.getKey(keybindingConfig.Universal.Confirm),
 			handler:  onConfirm,
 		},
 		{
 			viewName: "confirmation",
-			key:      gui.getKey(keybindingConfig.Universal.ConfirmAlt1),
+			keyMod:   gui.getKey(keybindingConfig.Universal.ConfirmAlt1),
 			handler:  onConfirm,
 		},
 		{
 			viewName: "confirmation",
-			key:      gui.getKey(keybindingConfig.Universal.Return),
+			keyMod:   gui.getKey(keybindingConfig.Universal.Return),
 			handler:  gui.wrappedConfirmationFunction(opts.handlersManageFocus, opts.handleClose),
 		},
 		{
 			viewName: "confirmation",
-			key:      gui.getKey(keybindingConfig.Universal.TogglePanel),
+			keyMod:   gui.getKey(keybindingConfig.Universal.TogglePanel),
 			handler: func() error {
 				if len(gui.State.Suggestions) > 0 {
 					return gui.replaceContext(gui.State.Contexts.Suggestions)
@@ -273,28 +273,28 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 		},
 		{
 			viewName: "suggestions",
-			key:      gui.getKey(keybindingConfig.Universal.Confirm),
+			keyMod:   gui.getKey(keybindingConfig.Universal.Confirm),
 			handler:  onSuggestionConfirm,
 		},
 		{
 			viewName: "suggestions",
-			key:      gui.getKey(keybindingConfig.Universal.ConfirmAlt1),
+			keyMod:   gui.getKey(keybindingConfig.Universal.ConfirmAlt1),
 			handler:  onSuggestionConfirm,
 		},
 		{
 			viewName: "suggestions",
-			key:      gui.getKey(keybindingConfig.Universal.Return),
+			keyMod:   gui.getKey(keybindingConfig.Universal.Return),
 			handler:  gui.wrappedConfirmationFunction(opts.handlersManageFocus, opts.handleClose),
 		},
 		{
 			viewName: "suggestions",
-			key:      gui.getKey(keybindingConfig.Universal.TogglePanel),
+			keyMod:   gui.getKey(keybindingConfig.Universal.TogglePanel),
 			handler:  func() error { return gui.replaceContext(gui.State.Contexts.Confirmation) },
 		},
 	}
 
 	for _, binding := range confirmationKeybindings {
-		if err := gui.g.SetKeybinding(binding.viewName, nil, binding.key, gocui.ModNone, gui.wrappedHandler(binding.handler)); err != nil {
+		if err := gui.g.SetKeybinding(binding.viewName, nil, binding.keyMod.Key, binding.keyMod.Modifier, gui.wrappedHandler(binding.handler)); err != nil {
 			return err
 		}
 	}
@@ -304,12 +304,12 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 
 func (gui *Gui) clearConfirmationViewKeyBindings() {
 	keybindingConfig := gui.UserConfig.Keybinding
-	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("suggestions", gui.getKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("suggestions", gui.getKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("suggestions", gui.getKey(keybindingConfig.Universal.Return), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Confirm).Key, gui.getKey(keybindingConfig.Universal.Confirm).Modifier)
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.ConfirmAlt1).Key, gui.getKey(keybindingConfig.Universal.ConfirmAlt1).Modifier)
+	_ = gui.g.DeleteKeybinding("confirmation", gui.getKey(keybindingConfig.Universal.Return).Key, gui.getKey(keybindingConfig.Universal.Return).Modifier)
+	_ = gui.g.DeleteKeybinding("suggestions", gui.getKey(keybindingConfig.Universal.Confirm).Key, gui.getKey(keybindingConfig.Universal.Confirm).Modifier)
+	_ = gui.g.DeleteKeybinding("suggestions", gui.getKey(keybindingConfig.Universal.ConfirmAlt1).Key, gui.getKey(keybindingConfig.Universal.ConfirmAlt1).Modifier)
+	_ = gui.g.DeleteKeybinding("suggestions", gui.getKey(keybindingConfig.Universal.Return).Key, gui.getKey(keybindingConfig.Universal.Return).Modifier)
 }
 
 func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View) error {

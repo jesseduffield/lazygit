@@ -7,9 +7,9 @@ import (
 )
 
 func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch rune, mod gocui.Modifier, allowMultiline bool) bool {
-	newlineKey, ok := gui.getKey(gui.UserConfig.Keybinding.Universal.AppendNewline).(gocui.Key)
-	if !ok {
-		newlineKey = gocui.KeyAltEnter
+	newlineKey := gui.getKey(gui.UserConfig.Keybinding.Universal.AppendNewline)
+	if newlineKey.Key == nil {
+		newlineKey = KeyMod{gocui.KeyEnter, gocui.ModAlt}
 	}
 
 	switch {
@@ -25,7 +25,7 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.MoveCursorLeft()
 	case key == gocui.KeyArrowRight:
 		textArea.MoveCursorRight()
-	case key == newlineKey:
+	case KeyMod{key, mod} == newlineKey:
 		if allowMultiline {
 			textArea.TypeRune('\n')
 		} else {
