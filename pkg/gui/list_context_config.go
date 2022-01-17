@@ -229,6 +229,10 @@ func (gui *Gui) subCommitsListContext() IListContext {
 }
 
 func (gui *Gui) shouldShowGraph() bool {
+	if gui.State.Modes.Filtering.Active() {
+		return false
+	}
+
 	value := gui.UserConfig.Git.Log.ShowGraph
 	switch value {
 	case "always":
