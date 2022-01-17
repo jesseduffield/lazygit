@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-    "net/url"
+	"net/url"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
