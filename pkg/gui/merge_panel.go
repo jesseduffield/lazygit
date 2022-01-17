@@ -175,8 +175,7 @@ func (gui *Gui) renderConflicts(state *mergeconflicts.State, hasFocus bool) (boo
 	state.SetConflictsFromCat(cat)
 
 	if state.NoConflicts() {
-		// we shouldn't end up here
-		return false, nil
+		return false, gui.handleCompleteMerge()
 	}
 
 	content := mergeconflicts.ColoredConflictFile(cat, state, hasFocus)
