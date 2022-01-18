@@ -5,34 +5,16 @@ import (
 	"strconv"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type FileCommands struct {
-	*common.Common
-
-	cmd    oscommands.ICmdObjBuilder
-	config *ConfigCommands
-	os     FileOSCommand
+	*GitCommon
 }
 
-type FileOSCommand interface {
-	Getenv(string) string
-}
-
-func NewFileCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-	config *ConfigCommands,
-	osCommand FileOSCommand,
-) *FileCommands {
+func NewFileCommands(gitCommon *GitCommon) *FileCommands {
 	return &FileCommands{
-		Common: common,
-		cmd:    cmd,
-		config: config,
-		os:     osCommand,
+		GitCommon: gitCommon,
 	}
 }
 

@@ -10,7 +10,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 // .gitmodules looks like this:
@@ -19,17 +18,12 @@ import (
 //   url = git@github.com:subbo.git
 
 type SubmoduleCommands struct {
-	*common.Common
-
-	cmd       oscommands.ICmdObjBuilder
-	dotGitDir string
+	*GitCommon
 }
 
-func NewSubmoduleCommands(common *common.Common, cmd oscommands.ICmdObjBuilder, dotGitDir string) *SubmoduleCommands {
+func NewSubmoduleCommands(gitCommon *GitCommon) *SubmoduleCommands {
 	return &SubmoduleCommands{
-		Common:    common,
-		cmd:       cmd,
-		dotGitDir: dotGitDir,
+		GitCommon: gitCommon,
 	}
 }
 

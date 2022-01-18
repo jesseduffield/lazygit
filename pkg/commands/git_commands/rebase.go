@@ -9,39 +9,25 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type RebaseCommands struct {
-	*common.Common
+	*GitCommon
+	commit      *CommitCommands
+	workingTree *WorkingTreeCommands
 
-	cmd       oscommands.ICmdObjBuilder
-	osCommand *oscommands.OSCommand
-
-	commit               *CommitCommands
-	workingTree          *WorkingTreeCommands
-	config               *ConfigCommands
-	dotGitDir            string
 	onSuccessfulContinue func() error
 }
 
 func NewRebaseCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-	osCommand *oscommands.OSCommand,
+	gitCommon *GitCommon,
 	commitCommands *CommitCommands,
 	workingTreeCommands *WorkingTreeCommands,
-	configCommands *ConfigCommands,
-	dotGitDir string,
 ) *RebaseCommands {
 	return &RebaseCommands{
-		Common:      common,
-		cmd:         cmd,
-		osCommand:   osCommand,
+		GitCommon:   gitCommon,
 		commit:      commitCommands,
 		workingTree: workingTreeCommands,
-		config:      configCommands,
-		dotGitDir:   dotGitDir,
 	}
 }
 
@@ -119,7 +105,7 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseSha string, todo
 	if todo == "" {
 		gitSequenceEditor = "true"
 	} else {
-		self.osCommand.LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
+		self.os.LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
 	}
 
 	cmdObj.AddEnvVars(
@@ -328,7 +314,7 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
 	if err := self.cmd.New("git cat-file -e HEAD^:" + self.cmd.Quote(fileName)).Run(); err != nil {
-		if err := self.osCommand.Remove(fileName); err != nil {
+		if err := self.os.Remove(fileName); err != nil {
 			return err
 		}
 		if err := self.workingTree.StageFile(fileName); err != nil {

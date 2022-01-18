@@ -5,14 +5,8 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
-
-func NewBranchCommandsWithRunner(runner *oscommands.FakeCmdObjRunner) *BranchCommands {
-	builder := oscommands.NewDummyCmdObjBuilder(runner)
-	return NewBranchCommands(utils.NewDummyCommon(), builder)
-}
 
 func TestBranchGetCommitDifferences(t *testing.T) {
 	type scenario struct {
@@ -48,7 +42,7 @@ func TestBranchGetCommitDifferences(t *testing.T) {
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
-			instance := NewBranchCommandsWithRunner(s.runner)
+			instance := buildBranchCommands(commonDeps{runner: s.runner})
 			pushables, pullables := instance.GetCommitDifferences("HEAD", "@{u}")
 			assert.EqualValues(t, s.expectedPushables, pushables)
 			assert.EqualValues(t, s.expectedPullables, pullables)
@@ -60,7 +54,7 @@ func TestBranchGetCommitDifferences(t *testing.T) {
 func TestBranchNewBranch(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		Expect(`git checkout -b "test" "master"`, "", nil)
-	instance := NewBranchCommandsWithRunner(runner)
+	instance := buildBranchCommands(commonDeps{runner: runner})
 
 	assert.NoError(t, instance.New("test", "master"))
 	runner.CheckForMissingCalls()
@@ -96,7 +90,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
-			instance := NewBranchCommandsWithRunner(s.runner)
+			instance := buildBranchCommands(commonDeps{runner: s.runner})
 
 			s.test(instance.Delete("test", s.force))
 			s.runner.CheckForMissingCalls()
@@ -107,7 +101,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 func TestBranchMerge(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		Expect(`git merge --no-edit "test"`, "", nil)
-	instance := NewBranchCommandsWithRunner(runner)
+	instance := buildBranchCommands(commonDeps{runner: runner})
 
 	assert.NoError(t, instance.Merge("test", MergeOpts{}))
 	runner.CheckForMissingCalls()
@@ -143,7 +137,7 @@ func TestBranchCheckout(t *testing.T) {
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
-			instance := NewBranchCommandsWithRunner(s.runner)
+			instance := buildBranchCommands(commonDeps{runner: s.runner})
 			s.test(instance.Checkout("test", CheckoutOptions{Force: s.force}))
 			s.runner.CheckForMissingCalls()
 		})
@@ -154,7 +148,7 @@ func TestBranchGetBranchGraph(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).ExpectGitArgs([]string{
 		"log", "--graph", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium", "test", "--",
 	}, "", nil)
-	instance := NewBranchCommandsWithRunner(runner)
+	instance := buildBranchCommands(commonDeps{runner: runner})
 	_, err := instance.GetGraph("test")
 	assert.NoError(t, err)
 }
@@ -163,7 +157,7 @@ func TestBranchGetAllBranchGraph(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).ExpectGitArgs([]string{
 		"log", "--graph", "--all", "--color=always", "--abbrev-commit", "--decorate", "--date=relative", "--pretty=medium",
 	}, "", nil)
-	instance := NewBranchCommandsWithRunner(runner)
+	instance := buildBranchCommands(commonDeps{runner: runner})
 	err := instance.AllBranchesLogCmdObj().Run()
 	assert.NoError(t, err)
 }
@@ -223,7 +217,7 @@ func TestBranchCurrentBranchName(t *testing.T) {
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
-			instance := NewBranchCommandsWithRunner(s.runner)
+			instance := buildBranchCommands(commonDeps{runner: s.runner})
 			s.test(instance.CurrentBranchName())
 			s.runner.CheckForMissingCalls()
 		})

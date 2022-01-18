@@ -92,32 +92,27 @@ func NewGitCommandAux(
 	// This is admittedly messy, but allows us to test each command struct in isolation,
 	// and allows for better namespacing when compared to having every method living
 	// on the one struct.
+	// common ones are: cmn, osCommand, dotGitDir, configCommands
 	configCommands := git_commands.NewConfigCommands(cmn, gitConfig, repo)
-	statusCommands := git_commands.NewStatusCommands(cmn, osCommand, repo, dotGitDir)
+	gitCommon := git_commands.NewGitCommon(cmn, cmd, osCommand, dotGitDir, repo, configCommands)
+
+	statusCommands := git_commands.NewStatusCommands(gitCommon)
 	fileLoader := loaders.NewFileLoader(cmn, cmd, configCommands)
-	flowCommands := git_commands.NewFlowCommands(cmn, cmd, configCommands)
-	remoteCommands := git_commands.NewRemoteCommands(cmn, cmd)
-	branchCommands := git_commands.NewBranchCommands(cmn, cmd)
-	syncCommands := git_commands.NewSyncCommands(cmn, cmd)
-	tagCommands := git_commands.NewTagCommands(cmn, cmd)
-	commitCommands := git_commands.NewCommitCommands(cmn, cmd)
-	customCommands := git_commands.NewCustomCommands(cmn, cmd)
-	fileCommands := git_commands.NewFileCommands(cmn, cmd, configCommands, osCommand)
-	submoduleCommands := git_commands.NewSubmoduleCommands(cmn, cmd, dotGitDir)
-	workingTreeCommands := git_commands.NewWorkingTreeCommands(cmn, cmd, submoduleCommands, osCommand, fileLoader)
-	rebaseCommands := git_commands.NewRebaseCommands(
-		cmn,
-		cmd,
-		osCommand,
-		commitCommands,
-		workingTreeCommands,
-		configCommands,
-		dotGitDir,
-	)
-	stashCommands := git_commands.NewStashCommands(cmn, cmd, osCommand, fileLoader, workingTreeCommands)
+	flowCommands := git_commands.NewFlowCommands(gitCommon)
+	remoteCommands := git_commands.NewRemoteCommands(gitCommon)
+	branchCommands := git_commands.NewBranchCommands(gitCommon)
+	syncCommands := git_commands.NewSyncCommands(gitCommon)
+	tagCommands := git_commands.NewTagCommands(gitCommon)
+	commitCommands := git_commands.NewCommitCommands(gitCommon)
+	customCommands := git_commands.NewCustomCommands(gitCommon)
+	fileCommands := git_commands.NewFileCommands(gitCommon)
+	submoduleCommands := git_commands.NewSubmoduleCommands(gitCommon)
+	workingTreeCommands := git_commands.NewWorkingTreeCommands(gitCommon, submoduleCommands, fileLoader)
+	rebaseCommands := git_commands.NewRebaseCommands(gitCommon, commitCommands, workingTreeCommands)
+	stashCommands := git_commands.NewStashCommands(gitCommon, fileLoader, workingTreeCommands)
 	// TODO: have patch manager take workingTreeCommands in its entirety
 	patchManager := patch.NewPatchManager(cmn.Log, workingTreeCommands.ApplyPatch, workingTreeCommands.ShowFileDiff)
-	patchCommands := git_commands.NewPatchCommands(cmn, cmd, rebaseCommands, commitCommands, configCommands, statusCommands, patchManager)
+	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchManager)
 
 	return &GitCommand{
 		Branch:      branchCommands,

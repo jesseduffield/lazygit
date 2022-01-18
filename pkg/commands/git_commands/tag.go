@@ -2,21 +2,15 @@ package git_commands
 
 import (
 	"fmt"
-
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type TagCommands struct {
-	*common.Common
-
-	cmd oscommands.ICmdObjBuilder
+	*GitCommon
 }
 
-func NewTagCommands(common *common.Common, cmd oscommands.ICmdObjBuilder) *TagCommands {
+func NewTagCommands(gitCommon *GitCommon) *TagCommands {
 	return &TagCommands{
-		Common: common,
-		cmd:    cmd,
+		GitCommon: gitCommon,
 	}
 }
 

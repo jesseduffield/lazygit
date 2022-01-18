@@ -2,24 +2,15 @@ package git_commands
 
 import (
 	"fmt"
-
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type RemoteCommands struct {
-	*common.Common
-
-	cmd oscommands.ICmdObjBuilder
+	*GitCommon
 }
 
-func NewRemoteCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-) *RemoteCommands {
+func NewRemoteCommands(gitCommon *GitCommon) *RemoteCommands {
 	return &RemoteCommands{
-		Common: common,
-		cmd:    cmd,
+		GitCommon: gitCommon,
 	}
 }
 

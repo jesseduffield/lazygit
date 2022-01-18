@@ -10,38 +10,24 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type WorkingTreeCommands struct {
-	*common.Common
-
-	cmd        oscommands.ICmdObjBuilder
-	os         WorkingTreeOSCommand
+	*GitCommon
 	submodule  *SubmoduleCommands
 	fileLoader *loaders.FileLoader
 }
 
-type WorkingTreeOSCommand interface {
-	RemoveFile(string) error
-	CreateFileWithContent(string, string) error
-	AppendLineToFile(string, string) error
-}
-
 func NewWorkingTreeCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-	submoduleCommands *SubmoduleCommands,
-	osCommand WorkingTreeOSCommand,
+	gitCommon *GitCommon,
+	submodule *SubmoduleCommands,
 	fileLoader *loaders.FileLoader,
 ) *WorkingTreeCommands {
 	return &WorkingTreeCommands{
-		Common:     common,
-		cmd:        cmd,
-		os:         osCommand,
-		submodule:  submoduleCommands,
+		GitCommon:  gitCommon,
+		submodule:  submodule,
 		fileLoader: fileLoader,
 	}
 }
