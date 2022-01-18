@@ -2,9 +2,9 @@ package hosting_service
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
-	"net/url"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
