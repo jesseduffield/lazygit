@@ -15,8 +15,6 @@ import (
 
 // list panel functions
 
-func (gui *Gui) getSelectednodeNode() *nodetree.nodeNode {
-	selectedLine := gui.State.Panels.nodes.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
 	}
