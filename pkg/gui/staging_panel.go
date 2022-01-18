@@ -74,6 +74,17 @@ func (gui *Gui) handleRefreshStagingPanel(forceSecondaryFocused bool, selectedLi
 	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx)
 }
 
+func (gui *Gui) onStagingFocus(forceSecondaryFocused bool, selectedLineIdx int) error {
+	gui.Mutexes.LineByLinePanelMutex.Lock()
+	defer gui.Mutexes.LineByLinePanelMutex.Unlock()
+
+	if gui.State.Panels.LineByLine == nil || selectedLineIdx != -1 {
+		return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx)
+	}
+
+	return nil
+}
+
 func (gui *Gui) handleTogglePanel() error {
 	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		state.SecondaryFocused = !state.SecondaryFocused

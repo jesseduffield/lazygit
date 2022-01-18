@@ -32,7 +32,7 @@ func (gui *Gui) IncreaseContextInDiffView() error {
 		}
 
 		gui.UserConfig.Git.DiffContextSize = gui.UserConfig.Git.DiffContextSize + 1
-		return gui.currentStaticContext().HandleRenderToMain()
+		return gui.handleDiffContextSizeChange()
 	}
 
 	return nil
@@ -47,10 +47,23 @@ func (gui *Gui) DecreaseContextInDiffView() error {
 		}
 
 		gui.UserConfig.Git.DiffContextSize = old_size - 1
-		return gui.currentStaticContext().HandleRenderToMain()
+		return gui.handleDiffContextSizeChange()
 	}
 
 	return nil
+}
+
+func (gui *Gui) handleDiffContextSizeChange() error {
+	currentContext := gui.currentStaticContext()
+	switch currentContext.GetKey() {
+	// we make an exception for our staging and patch building contexts because they actually need to refresh their state afterwards.
+	case MAIN_PATCH_BUILDING_CONTEXT_KEY:
+		return gui.handleRefreshPatchBuildingPanel(-1)
+	case MAIN_STAGING_CONTEXT_KEY:
+		return gui.handleRefreshStagingPanel(false, -1)
+	default:
+		return currentContext.HandleRenderToMain()
+	}
 }
 
 func (gui *Gui) CheckCanChangeContext() error {
