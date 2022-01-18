@@ -221,20 +221,20 @@ func TestGetPullRequestURL(t *testing.T) {
 			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab"},
 		},
 		{
-			testName:   "Escapes reserved URL characters in from branch name",
-			from:       "feature/someIssue#123",
-			to:         "master",
-			remoteUrl:  "git@gitlab.com:me/public/repo-with-issues.git",
+			testName:  "Escapes reserved URL characters in from branch name",
+			from:      "feature/someIssue#123",
+			to:        "master",
+			remoteUrl: "git@gitlab.com:me/public/repo-with-issues.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://gitlab.com/me/public/repo-with-issues/merge_requests/new?merge_request[source_branch]=feature%2FsomeIssue%23123&merge_request[target_branch]=master", url)
 			},
 		},
 		{
-			testName:   "Escapes reserved URL characters in to branch name",
-			from:       "yolo",
-			to:         "archive/never-ending-feature#666",
-			remoteUrl:  "git@gitlab.com:me/public/repo-with-issues.git",
+			testName:  "Escapes reserved URL characters in to branch name",
+			from:      "yolo",
+			to:        "archive/never-ending-feature#666",
+			remoteUrl: "git@gitlab.com:me/public/repo-with-issues.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://gitlab.com/me/public/repo-with-issues/merge_requests/new?merge_request[source_branch]=yolo&merge_request[target_branch]=archive%2Fnever-ending-feature%23666", url)
