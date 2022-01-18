@@ -6,15 +6,15 @@
 # 3) checkout the commit that's known to be failing
 # 4) run this script supplying the commit sha / tag name that works and the name of the newly created test
 
-# usage: scripts/bisect.sh <ref that works> <integration test name>
+# usage: scripts/bisect.sh <ref that's broken> <ref that's working> <integration test name>
 # e.g.   scripts/bisect.sh v0.32.1 mergeConflictsResolvedExternally
 # It's assumed that the current commit (i.e. HEAD) is broken.
 
-set -o pipefail
+if [[ $# -ne 3 ]] ; then
+    echo 'Usage: scripts/bisect.sh <ref thats broken> <ref thats working> <integration test name>'
+    exit 1
+fi
 
-echo $1
-echo $2
-
-git bisect start HEAD $1
-git bisect run go test ./pkg/gui -run /$2
+git bisect start $1 $2
+git bisect run sh -c "(go build -o /dev/null || exit 125) && go test ./pkg/gui -run /$3"
 git bisect reset
