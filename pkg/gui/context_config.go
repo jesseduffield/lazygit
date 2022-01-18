@@ -136,7 +136,7 @@ func (gui *Gui) contextTree() ContextTree {
 			Key:      MAIN_NORMAL_CONTEXT_KEY,
 		},
 		Staging: &BasicContext{
-			OnRenderToMain: func(opts ...OnFocusOpts) error {
+			OnFocus: func(opts ...OnFocusOpts) error {
 				forceSecondaryFocused := false
 				selectedLineIdx := -1
 				if len(opts) > 0 && opts[0].ClickedViewName != "" {
@@ -147,20 +147,20 @@ func (gui *Gui) contextTree() ContextTree {
 						forceSecondaryFocused = true
 					}
 				}
-				return gui.handleRefreshStagingPanel(forceSecondaryFocused, selectedLineIdx)
+				return gui.onStagingFocus(forceSecondaryFocused, selectedLineIdx)
 			},
 			Kind:     MAIN_CONTEXT,
 			ViewName: "main",
 			Key:      MAIN_STAGING_CONTEXT_KEY,
 		},
 		PatchBuilding: &BasicContext{
-			OnRenderToMain: func(opts ...OnFocusOpts) error {
+			OnFocus: func(opts ...OnFocusOpts) error {
 				selectedLineIdx := -1
 				if len(opts) > 0 && (opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary") {
 					selectedLineIdx = opts[0].ClickedViewLineIdx
 				}
 
-				return gui.handleRefreshPatchBuildingPanel(selectedLineIdx)
+				return gui.onPatchBuildingFocus(selectedLineIdx)
 			},
 			Kind:     MAIN_CONTEXT,
 			ViewName: "main",

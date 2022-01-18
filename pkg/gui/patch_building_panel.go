@@ -62,6 +62,17 @@ func (gui *Gui) handleRefreshPatchBuildingPanel(selectedLineIdx int) error {
 	return gui.refreshPatchBuildingPanel(selectedLineIdx)
 }
 
+func (gui *Gui) onPatchBuildingFocus(selectedLineIdx int) error {
+	gui.Mutexes.LineByLinePanelMutex.Lock()
+	defer gui.Mutexes.LineByLinePanelMutex.Unlock()
+
+	if gui.State.Panels.LineByLine == nil || selectedLineIdx != -1 {
+		return gui.refreshPatchBuildingPanel(selectedLineIdx)
+	}
+
+	return nil
+}
+
 func (gui *Gui) handleToggleSelectionForPatch() error {
 	err := gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		toggleFunc := gui.Git.Patch.PatchManager.AddFileLineRange
