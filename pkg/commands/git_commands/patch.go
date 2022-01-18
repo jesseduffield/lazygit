@@ -5,40 +5,34 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type PatchCommands struct {
-	*common.Common
+	*GitCommon
+	rebase *RebaseCommands
+	commit *CommitCommands
+	status *StatusCommands
+	stash  *StashCommands
 
-	cmd          oscommands.ICmdObjBuilder
-	rebase       *RebaseCommands
-	commit       *CommitCommands
-	config       *ConfigCommands
-	stash        *StashCommands
-	status       *StatusCommands
 	PatchManager *patch.PatchManager
 }
 
 func NewPatchCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-	rebaseCommands *RebaseCommands,
-	commitCommands *CommitCommands,
-	configCommands *ConfigCommands,
-	statusCommands *StatusCommands,
+	gitCommon *GitCommon,
+	rebase *RebaseCommands,
+	commit *CommitCommands,
+	status *StatusCommands,
+	stash *StashCommands,
 	patchManager *patch.PatchManager,
 ) *PatchCommands {
 	return &PatchCommands{
-		Common:       common,
-		cmd:          cmd,
-		rebase:       rebaseCommands,
-		commit:       commitCommands,
-		config:       configCommands,
-		status:       statusCommands,
+		GitCommon:    gitCommon,
+		rebase:       rebase,
+		commit:       commit,
+		status:       status,
+		stash:        stash,
 		PatchManager: patchManager,
 	}
 }

@@ -4,43 +4,32 @@ import (
 	"path/filepath"
 
 	gogit "github.com/jesseduffield/go-git/v5"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type StatusCommands struct {
-	*common.Common
-	osCommand *oscommands.OSCommand
-	repo      *gogit.Repository
-	dotGitDir string
+	*GitCommon
 }
 
 func NewStatusCommands(
-	common *common.Common,
-	osCommand *oscommands.OSCommand,
-	repo *gogit.Repository,
-	dotGitDir string,
+	gitCommon *GitCommon,
 ) *StatusCommands {
 	return &StatusCommands{
-		Common:    common,
-		osCommand: osCommand,
-		repo:      repo,
-		dotGitDir: dotGitDir,
+		GitCommon: gitCommon,
 	}
 }
 
 // RebaseMode returns "" for non-rebase mode, "normal" for normal rebase
 // and "interactive" for interactive rebase
 func (self *StatusCommands) RebaseMode() (enums.RebaseMode, error) {
-	exists, err := self.osCommand.FileExists(filepath.Join(self.dotGitDir, "rebase-apply"))
+	exists, err := self.os.FileExists(filepath.Join(self.dotGitDir, "rebase-apply"))
 	if err != nil {
 		return enums.REBASE_MODE_NONE, err
 	}
 	if exists {
 		return enums.REBASE_MODE_NORMAL, nil
 	}
-	exists, err = self.osCommand.FileExists(filepath.Join(self.dotGitDir, "rebase-merge"))
+	exists, err = self.os.FileExists(filepath.Join(self.dotGitDir, "rebase-merge"))
 	if exists {
 		return enums.REBASE_MODE_INTERACTIVE, err
 	} else {
@@ -62,7 +51,7 @@ func (self *StatusCommands) WorkingTreeState() enums.RebaseMode {
 
 // IsInMergeState states whether we are still mid-merge
 func (self *StatusCommands) IsInMergeState() (bool, error) {
-	return self.osCommand.FileExists(filepath.Join(self.dotGitDir, "MERGE_HEAD"))
+	return self.os.FileExists(filepath.Join(self.dotGitDir, "MERGE_HEAD"))
 }
 
 func (self *StatusCommands) IsBareRepo() bool {

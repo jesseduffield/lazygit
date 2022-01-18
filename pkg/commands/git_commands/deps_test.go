@@ -22,120 +22,123 @@ type commonDeps struct {
 	cmd        *oscommands.CmdObjBuilder
 }
 
-func completeDeps(deps commonDeps) commonDeps {
-	if deps.runner == nil {
-		deps.runner = oscommands.NewFakeRunner(nil)
+func buildGitCommon(deps commonDeps) *GitCommon {
+	gitCommon := &GitCommon{}
+
+	gitCommon.Common = deps.common
+	if gitCommon.Common == nil {
+		gitCommon.Common = utils.NewDummyCommonWithUserConfig(deps.userConfig)
 	}
 
-	if deps.userConfig == nil {
-		deps.userConfig = config.GetDefaultConfig()
+	runner := deps.runner
+	if runner == nil {
+		runner = oscommands.NewFakeRunner(nil)
 	}
 
-	if deps.gitConfig == nil {
-		deps.gitConfig = git_config.NewFakeGitConfig(nil)
+	cmd := deps.cmd
+	// gotta check deps.cmd because it's not an interface type and an interface value of nil is not considered to be nil
+	if cmd == nil {
+		cmd = oscommands.NewDummyCmdObjBuilder(runner)
+	}
+	gitCommon.cmd = cmd
+
+	gitCommon.Common.UserConfig = deps.userConfig
+	if gitCommon.Common.UserConfig == nil {
+		gitCommon.Common.UserConfig = config.GetDefaultConfig()
 	}
 
-	if deps.getenv == nil {
-		deps.getenv = func(string) string { return "" }
+	gitConfig := deps.gitConfig
+	if gitConfig == nil {
+		gitConfig = git_config.NewFakeGitConfig(nil)
 	}
 
-	if deps.removeFile == nil {
-		deps.removeFile = func(string) error { return errors.New("unexpected call to removeFile") }
+	gitCommon.repo = buildRepo()
+	gitCommon.config = NewConfigCommands(gitCommon.Common, gitConfig, gitCommon.repo)
+
+	getenv := deps.getenv
+	if getenv == nil {
+		getenv = func(string) string { return "" }
 	}
 
-	if deps.dotGitDir == "" {
-		deps.dotGitDir = ".git"
+	removeFile := deps.removeFile
+	if removeFile == nil {
+		removeFile = func(string) error { return errors.New("unexpected call to removeFile") }
 	}
 
-	if deps.common == nil {
-		deps.common = utils.NewDummyCommonWithUserConfig(deps.userConfig)
-	}
-
-	if deps.cmd == nil {
-		deps.cmd = oscommands.NewDummyCmdObjBuilder(deps.runner)
-	}
-
-	return deps
-}
-
-func buildConfigCommands(deps commonDeps) *ConfigCommands {
-	deps = completeDeps(deps)
-	common := utils.NewDummyCommonWithUserConfig(deps.userConfig)
-
-	// TODO: think of a way to actually mock this outnil
-	var repo *gogit.Repository = nil
-
-	return NewConfigCommands(common, deps.gitConfig, repo)
-}
-
-func buildOSCommand(deps commonDeps) *oscommands.OSCommand {
-	deps = completeDeps(deps)
-
-	return oscommands.NewDummyOSCommandWithDeps(oscommands.OSCommandDeps{
-		Common:       deps.common,
-		GetenvFn:     deps.getenv,
-		Cmd:          deps.cmd,
-		RemoveFileFn: deps.removeFile,
+	gitCommon.os = oscommands.NewDummyOSCommandWithDeps(oscommands.OSCommandDeps{
+		Common:       gitCommon.Common,
+		GetenvFn:     getenv,
+		Cmd:          cmd,
+		RemoveFileFn: removeFile,
 	})
+
+	gitCommon.dotGitDir = deps.dotGitDir
+	if gitCommon.dotGitDir == "" {
+		gitCommon.dotGitDir = ".git"
+	}
+
+	return gitCommon
 }
 
-func buildFileLoader(deps commonDeps) *loaders.FileLoader {
-	deps = completeDeps(deps)
+func buildRepo() *gogit.Repository {
+	// TODO: think of a way to actually mock this out
+	var repo *gogit.Repository = nil
+	return repo
+}
 
-	configCommands := buildConfigCommands(deps)
-
-	return loaders.NewFileLoader(deps.common, deps.cmd, configCommands)
+func buildFileLoader(gitCommon *GitCommon) *loaders.FileLoader {
+	return loaders.NewFileLoader(gitCommon.Common, gitCommon.cmd, gitCommon.config)
 }
 
 func buildSubmoduleCommands(deps commonDeps) *SubmoduleCommands {
-	deps = completeDeps(deps)
+	gitCommon := buildGitCommon(deps)
 
-	return NewSubmoduleCommands(deps.common, deps.cmd, deps.dotGitDir)
+	return NewSubmoduleCommands(gitCommon)
 }
 
 func buildCommitCommands(deps commonDeps) *CommitCommands {
-	deps = completeDeps(deps)
-	return NewCommitCommands(deps.common, deps.cmd)
+	gitCommon := buildGitCommon(deps)
+	return NewCommitCommands(gitCommon)
 }
 
 func buildWorkingTreeCommands(deps commonDeps) *WorkingTreeCommands {
-	deps = completeDeps(deps)
-	osCommand := buildOSCommand(deps)
+	gitCommon := buildGitCommon(deps)
 	submoduleCommands := buildSubmoduleCommands(deps)
-	fileLoader := buildFileLoader(deps)
+	fileLoader := buildFileLoader(gitCommon)
 
-	return NewWorkingTreeCommands(deps.common, deps.cmd, submoduleCommands, osCommand, fileLoader)
+	return NewWorkingTreeCommands(gitCommon, submoduleCommands, fileLoader)
 }
 
 func buildStashCommands(deps commonDeps) *StashCommands {
-	deps = completeDeps(deps)
-	osCommand := buildOSCommand(deps)
-	fileLoader := buildFileLoader(deps)
+	gitCommon := buildGitCommon(deps)
+	fileLoader := buildFileLoader(gitCommon)
 	workingTreeCommands := buildWorkingTreeCommands(deps)
 
-	return NewStashCommands(deps.common, deps.cmd, osCommand, fileLoader, workingTreeCommands)
+	return NewStashCommands(gitCommon, fileLoader, workingTreeCommands)
 }
 
 func buildRebaseCommands(deps commonDeps) *RebaseCommands {
-	deps = completeDeps(deps)
-	configCommands := buildConfigCommands(deps)
-	osCommand := buildOSCommand(deps)
+	gitCommon := buildGitCommon(deps)
 	workingTreeCommands := buildWorkingTreeCommands(deps)
 	commitCommands := buildCommitCommands(deps)
 
-	return NewRebaseCommands(deps.common, deps.cmd, osCommand, commitCommands, workingTreeCommands, configCommands, deps.dotGitDir)
+	return NewRebaseCommands(gitCommon, commitCommands, workingTreeCommands)
 }
 
 func buildSyncCommands(deps commonDeps) *SyncCommands {
-	deps = completeDeps(deps)
+	gitCommon := buildGitCommon(deps)
 
-	return NewSyncCommands(deps.common, deps.cmd)
+	return NewSyncCommands(gitCommon)
 }
 
 func buildFileCommands(deps commonDeps) *FileCommands {
-	deps = completeDeps(deps)
-	configCommands := buildConfigCommands(deps)
-	osCommand := buildOSCommand(deps)
+	gitCommon := buildGitCommon(deps)
 
-	return NewFileCommands(deps.common, deps.cmd, configCommands, osCommand)
+	return NewFileCommands(gitCommon)
+}
+
+func buildBranchCommands(deps commonDeps) *BranchCommands {
+	gitCommon := buildGitCommon(deps)
+
+	return NewBranchCommands(gitCommon)
 }

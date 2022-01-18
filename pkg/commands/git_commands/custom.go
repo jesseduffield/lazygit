@@ -1,23 +1,12 @@
 package git_commands
 
-import (
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
-)
-
 type CustomCommands struct {
-	*common.Common
-
-	cmd oscommands.ICmdObjBuilder
+	*GitCommon
 }
 
-func NewCustomCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-) *CustomCommands {
+func NewCustomCommands(gitCommon *GitCommon) *CustomCommands {
 	return &CustomCommands{
-		Common: common,
-		cmd:    cmd,
+		GitCommon: gitCommon,
 	}
 }
 

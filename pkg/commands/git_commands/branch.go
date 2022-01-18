@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -17,18 +16,12 @@ import (
 const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 
 type BranchCommands struct {
-	*common.Common
-
-	cmd oscommands.ICmdObjBuilder
+	*GitCommon
 }
 
-func NewBranchCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-) *BranchCommands {
+func NewBranchCommands(gitCommon *GitCommon) *BranchCommands {
 	return &BranchCommands{
-		Common: common,
-		cmd:    cmd,
+		GitCommon: gitCommon,
 	}
 }
 

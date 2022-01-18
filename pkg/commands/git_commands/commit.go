@@ -5,22 +5,15 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type CommitCommands struct {
-	*common.Common
-
-	cmd oscommands.ICmdObjBuilder
+	*GitCommon
 }
 
-func NewCommitCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-) *CommitCommands {
+func NewCommitCommands(gitCommon *GitCommon) *CommitCommands {
 	return &CommitCommands{
-		Common: common,
-		cmd:    cmd,
+		GitCommon: gitCommon,
 	}
 }
 

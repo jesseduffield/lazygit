@@ -5,30 +5,22 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type StashCommands struct {
-	*common.Common
-
-	cmd         oscommands.ICmdObjBuilder
+	*GitCommon
 	fileLoader  *loaders.FileLoader
-	osCommand   *oscommands.OSCommand
 	workingTree *WorkingTreeCommands
 }
 
 func NewStashCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-	osCommand *oscommands.OSCommand,
+	gitCommon *GitCommon,
 	fileLoader *loaders.FileLoader,
 	workingTree *WorkingTreeCommands,
 ) *StashCommands {
 	return &StashCommands{
-		Common:      common,
-		cmd:         cmd,
+		GitCommon:   gitCommon,
 		fileLoader:  fileLoader,
-		osCommand:   osCommand,
 		workingTree: workingTree,
 	}
 }
@@ -73,7 +65,7 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 		return err
 	}
 
-	if err := self.osCommand.PipeCommands("git stash show -p", "git apply -R"); err != nil {
+	if err := self.os.PipeCommands("git stash show -p", "git apply -R"); err != nil {
 		return err
 	}
 

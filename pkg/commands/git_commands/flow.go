@@ -6,25 +6,17 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type FlowCommands struct {
-	*common.Common
-
-	config *ConfigCommands
-	cmd    oscommands.ICmdObjBuilder
+	*GitCommon
 }
 
 func NewFlowCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-	config *ConfigCommands,
+	gitCommon *GitCommon,
 ) *FlowCommands {
 	return &FlowCommands{
-		Common: common,
-		cmd:    cmd,
-		config: config,
+		GitCommon: gitCommon,
 	}
 }
 

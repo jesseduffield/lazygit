@@ -5,22 +5,15 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type SyncCommands struct {
-	*common.Common
-
-	cmd oscommands.ICmdObjBuilder
+	*GitCommon
 }
 
-func NewSyncCommands(
-	common *common.Common,
-	cmd oscommands.ICmdObjBuilder,
-) *SyncCommands {
+func NewSyncCommands(gitCommon *GitCommon) *SyncCommands {
 	return &SyncCommands{
-		Common: common,
-		cmd:    cmd,
+		GitCommon: gitCommon,
 	}
 }
 
