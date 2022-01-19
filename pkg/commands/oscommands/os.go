@@ -269,7 +269,7 @@ func GetLazygitPath() string {
 	return `"` + filepath.ToSlash(ex) + `"`
 }
 
-func UpdateWindowTitle() error {
+func (c *OSCommand) UpdateWindowTitle() error {
 	if runtime.GOOS != "windows" {
 		return nil
 	}
@@ -278,10 +278,6 @@ func UpdateWindowTitle() error {
 		return getWdErr
 	}
 	title := fmt.Sprint(filepath.Base(path), " - Lazygit")
-	args := append([]string{"/C", "title"}, strings.Split(title, " ")...)
-	cmd := exec.Command("cmd", args...)
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	return nil
+	args := append([]string{"cmd", "/C", "title"}, strings.Split(title, " ")...)
+	return c.Cmd.NewShell(strings.Join(args, " ")).Run()
 }
