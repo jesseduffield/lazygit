@@ -51,8 +51,8 @@ func generateAtDir(cheatsheetDir string) {
 
 		bindingSections := getBindingSections(mApp)
 		content := formatSections(mApp.Tr, bindingSections)
-		content = fmt.Sprintf("# This file is auto-generated. To update, make the changes in the "+
-			"pkg/i18n directory and then run `%s` from the project root.\n\n%s", CommandToRun(), content)
+		content = fmt.Sprintf("_This file is auto-generated. To update, make the changes in the "+
+			"pkg/i18n directory and then run `%s` from the project root._\n\n%s", CommandToRun(), content)
 		writeString(file, content)
 	}
 }
