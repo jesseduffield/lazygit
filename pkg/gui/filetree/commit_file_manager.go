@@ -3,7 +3,6 @@ package filetree
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/sirupsen/logrus"
 )
 
@@ -114,6 +113,6 @@ func (m *CommitFileManager) Render(diffName string, patchManager *patch.PatchMan
 			status = patch.PART
 		}
 
-		return presentation.GetCommitFileLine(castN.NameAtDepth(depth), diffName, castN.File, status)
+		return getCommitFileLine(castN.NameAtDepth(depth), diffName, castN.File, status)
 	})
 }

@@ -121,3 +121,10 @@ func SafeTruncate(str string, limit int) string {
 		return str
 	}
 }
+
+func ShortSha(sha string) string {
+	if len(sha) < 8 {
+		return sha
+	}
+	return sha[:8]
+}

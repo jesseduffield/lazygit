@@ -116,12 +116,19 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
+	refName := "HEAD"
+	bisectInfo := gui.Git.Bisect.GetInfo()
+	gui.State.BisectInfo = bisectInfo
+	if bisectInfo.Started() {
+		refName = bisectInfo.StartSha()
+	}
+
 	commits, err := gui.Git.Loaders.Commits.GetCommits(
 		loaders.GetCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
-			RefName:              "HEAD",
+			RefName:              refName,
 			All:                  gui.State.ShowWholeGitGraph,
 		},
 	)

@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
@@ -177,6 +178,7 @@ func (gui *Gui) branchCommitsListContext() IListContext {
 				startIdx,
 				length,
 				gui.shouldShowGraph(),
+				gui.State.BisectInfo,
 			)
 		},
 		SelectedItem: func() (ListItem, bool) {
@@ -218,6 +220,7 @@ func (gui *Gui) subCommitsListContext() IListContext {
 				startIdx,
 				length,
 				gui.shouldShowGraph(),
+				git_commands.NewNullBisectInfo(),
 			)
 		},
 		SelectedItem: func() (ListItem, bool) {

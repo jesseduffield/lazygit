@@ -36,6 +36,7 @@ type GitCommand struct {
 	Sync        *git_commands.SyncCommands
 	Tag         *git_commands.TagCommands
 	WorkingTree *git_commands.WorkingTreeCommands
+	Bisect      *git_commands.BisectCommands
 
 	Loaders Loaders
 }
@@ -113,6 +114,7 @@ func NewGitCommandAux(
 	// TODO: have patch manager take workingTreeCommands in its entirety
 	patchManager := patch.NewPatchManager(cmn.Log, workingTreeCommands.ApplyPatch, workingTreeCommands.ShowFileDiff)
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchManager)
+	bisectCommands := git_commands.NewBisectCommands(gitCommon)
 
 	return &GitCommand{
 		Branch:      branchCommands,
@@ -129,6 +131,7 @@ func NewGitCommandAux(
 		Submodule:   submoduleCommands,
 		Sync:        syncCommands,
 		Tag:         tagCommands,
+		Bisect:      bisectCommands,
 		WorkingTree: workingTreeCommands,
 		Loaders: Loaders{
 			Branches:      loaders.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchName, configCommands),
