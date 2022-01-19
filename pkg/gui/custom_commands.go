@@ -254,7 +254,11 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 			}
 			return gui.WithWaitingStatus(loadingText, func() error {
 				gui.logAction(gui.Tr.Actions.CustomCommand)
-				err := gui.OSCommand.Cmd.NewShell(cmdStr).Run()
+				cmdObj := gui.OSCommand.Cmd.NewShell(cmdStr)
+				if customCommand.Stream {
+					cmdObj.StreamOutput()
+				}
+				err := cmdObj.Run()
 				if err != nil {
 					return gui.surfaceError(err)
 				}

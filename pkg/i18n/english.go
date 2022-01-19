@@ -453,7 +453,24 @@ type TranslationSet struct {
 	SortCommits                         string
 	CantChangeContextSizeError          string
 	LcOpenCommitInBrowser               string
+	LcViewBisectOptions                 string
 	Actions                             Actions
+	Bisect                              Bisect
+}
+
+type Bisect struct {
+	MarkStart                   string
+	MarkSkipCurrent             string
+	MarkSkipSelected            string
+	ResetTitle                  string
+	ResetPrompt                 string
+	ResetOption                 string
+	BisectMenuTitle             string
+	Mark                        string
+	Skip                        string
+	CompleteTitle               string
+	CompletePrompt              string
+	CompletePromptIndeterminate string
 }
 
 type Actions struct {
@@ -541,6 +558,10 @@ type Actions struct {
 	OpenMergeTool                     string
 	OpenCommitInBrowser               string
 	OpenPullRequest                   string
+	StartBisect                       string
+	ResetBisect                       string
+	BisectSkip                        string
+	BisectMark                        string
 }
 
 const englishIntroPopupMessage = `
@@ -1005,6 +1026,7 @@ func EnglishTranslationSet() TranslationSet {
 		SortCommits:                         "commit sort order",
 		CantChangeContextSizeError:          "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		LcOpenCommitInBrowser:               "open commit in browser",
+		LcViewBisectOptions:                 "view bisect options",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
@@ -1091,6 +1113,22 @@ func EnglishTranslationSet() TranslationSet {
 			OpenMergeTool:                     "Open merge tool",
 			OpenCommitInBrowser:               "Open commit in browser",
 			OpenPullRequest:                   "Open pull request in browser",
+			StartBisect:                       "Start bisect",
+			ResetBisect:                       "Reset bisect",
+			BisectSkip:                        "Bisect skip",
+			BisectMark:                        "Bisect mark",
+		},
+		Bisect: Bisect{
+			Mark:                        "mark %s as %s",
+			MarkStart:                   "mark %s as %s (start bisect)",
+			Skip:                        "skip %s",
+			ResetTitle:                  "Reset 'git bisect'",
+			ResetPrompt:                 "Are you sure you want to reset 'git bisect'?",
+			ResetOption:                 "reset bisect",
+			BisectMenuTitle:             "Bisect",
+			CompleteTitle:               "Bisect complete",
+			CompletePrompt:              "Bisect complete! The following commit introduced the change:\n\n%s\n\nDo you want to reset 'git bisect' now?",
+			CompletePromptIndeterminate: "Bisect complete! Some commits were skipped, so any of the following commits may have introduced the change:\n\n%s\n\nDo you want to reset 'git bisect' now?",
 		},
 	}
 }

@@ -69,6 +69,7 @@ For a given custom command, here are the allowed fields:
 | prompts | a list of prompts that will request user input before running the final command | no |
 | loadingText | text to display while waiting for command to finish | no |
 | description | text to display in the keybindings menu that appears when you press 'x' | no |
+| stream | whether you want to stream the command's output to the Command Log panel | no |
 
 ### Contexts
 

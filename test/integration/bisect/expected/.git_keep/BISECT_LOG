@@ -1,0 +1,16 @@
+git bisect start
+# bad: [1e2780095cd8e95b93f89268f72cda21d528ab38] commit 19
+git bisect bad 1e2780095cd8e95b93f89268f72cda21d528ab38
+# good: [fbbb6006074afe8cc9009b649fae19f920b604ea] commit 10
+git bisect good fbbb6006074afe8cc9009b649fae19f920b604ea
+# skip: [1b06712fea4c03c8fce8e2b3862c059f8d7f8268] commit 11
+git bisect skip 1b06712fea4c03c8fce8e2b3862c059f8d7f8268
+# skip: [ee930b55b61910c0830b0c6ea1cf9ada066d27fc] commit 12
+git bisect skip ee930b55b61910c0830b0c6ea1cf9ada066d27fc
+# bad: [688bdfce6d5b16ebd7f5c6d6d5d68de7ea5344ed] commit 15
+git bisect bad 688bdfce6d5b16ebd7f5c6d6d5d68de7ea5344ed
+# good: [ac324deab67f1749eeec1531b37dfaff41e559ca] commit 13
+git bisect good ac324deab67f1749eeec1531b37dfaff41e559ca
+# bad: [dd9d90ed2d1fa5a284adba081199f18458977547] commit 14
+git bisect bad dd9d90ed2d1fa5a284adba081199f18458977547
+# first bad commit: [dd9d90ed2d1fa5a284adba081199f18458977547] commit 14

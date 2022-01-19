@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/sirupsen/logrus"
 )
 
@@ -136,6 +135,6 @@ func (m *FileManager) Render(diffName string, submoduleConfigs []*models.Submodu
 
 	return renderAux(m.tree, m.collapsedPaths, "", -1, func(n INode, depth int) string {
 		castN := n.(*FileNode)
-		return presentation.GetFileLine(castN.GetHasUnstagedChanges(), castN.GetHasStagedChanges(), castN.NameAtDepth(depth), diffName, submoduleConfigs, castN.File)
+		return getFileLine(castN.GetHasUnstagedChanges(), castN.GetHasStagedChanges(), castN.NameAtDepth(depth), diffName, submoduleConfigs, castN.File)
 	})
 }

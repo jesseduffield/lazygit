@@ -149,6 +149,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>ctrl+y</kbd>: copy commit message to clipboard
   <kbd>o</kbd>: open commit in browser
+  <kbd>b</kbd>: view bisect options
 </pre>
 
 ## Commits Panel (Reflog Tab)

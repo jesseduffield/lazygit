@@ -12,6 +12,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -309,6 +310,7 @@ type guiState struct {
 	RemoteBranches    []*models.RemoteBranch
 	Tags              []*models.Tag
 	MenuItems         []*menuItem
+	BisectInfo        *git_commands.BisectInfo
 	Updating          bool
 	Panels            *panelStates
 	SplitMainPanel    bool
@@ -394,6 +396,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		FilteredReflogCommits: make([]*models.Commit, 0),
 		ReflogCommits:         make([]*models.Commit, 0),
 		StashEntries:          make([]*models.StashEntry, 0),
+		BisectInfo:            gui.Git.Bisect.GetInfo(),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},

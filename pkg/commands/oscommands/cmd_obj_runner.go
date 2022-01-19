@@ -34,15 +34,27 @@ type cmdObjRunner struct {
 var _ ICmdObjRunner = &cmdObjRunner{}
 
 func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
-	if cmdObj.GetCredentialStrategy() == NONE {
-		_, err := self.RunWithOutput(cmdObj)
-		return err
-	} else {
+	if cmdObj.GetCredentialStrategy() != NONE {
 		return self.runWithCredentialHandling(cmdObj)
 	}
+
+	if cmdObj.ShouldStreamOutput() {
+		return self.runAndStream(cmdObj)
+	}
+
+	_, err := self.RunWithOutput(cmdObj)
+	return err
 }
 
 func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
+	if cmdObj.ShouldStreamOutput() {
+		err := self.runAndStream(cmdObj)
+		// for now we're not capturing output, just because it would take a little more
+		// effort and there's currently no use case for it. Some commands call RunWithOutput
+		// but ignore the output, hence why we've got this check here.
+		return "", err
+	}
+
 	if cmdObj.GetCredentialStrategy() != NONE {
 		err := self.runWithCredentialHandling(cmdObj)
 		// for now we're not capturing output, just because it would take a little more
@@ -145,6 +157,14 @@ type cmdHandler struct {
 	close      func() error
 }
 
+func (self *cmdObjRunner) runAndStream(cmdObj ICmdObj) error {
+	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
+		go func() {
+			_, _ = io.Copy(cmdWriter, handler.stdoutPipe)
+		}()
+	})
+}
+
 // runAndDetectCredentialRequest detect a username / password / passphrase question in a command
 // promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
 // The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
@@ -152,13 +172,29 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 	cmdObj ICmdObj,
 	promptUserForCredential func(CredentialType) string,
 ) error {
+	// setting the output to english so we can parse it for a username/password request
+	cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
+
+	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
+		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
+
+		go utils.Safe(func() {
+			self.processOutput(tr, handler.stdinPipe, promptUserForCredential)
+		})
+	})
+}
+
+func (self *cmdObjRunner) runAndStreamAux(
+	cmdObj ICmdObj,
+	onRun func(*cmdHandler, io.Writer),
+) error {
 	cmdWriter := self.guiIO.newCmdWriterFn()
 
 	if cmdObj.ShouldLog() {
 		self.logCmdObj(cmdObj)
 	}
 	self.log.WithField("command", cmdObj.ToString()).Info("RunCommand")
-	cmd := cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8").GetCmd()
+	cmd := cmdObj.GetCmd()
 
 	var stderr bytes.Buffer
 	cmd.Stderr = io.MultiWriter(cmdWriter, &stderr)
@@ -174,14 +210,14 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 		}
 	}()
 
-	tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
-
-	go utils.Safe(func() {
-		self.processOutput(tr, handler.stdinPipe, promptUserForCredential)
-	})
+	onRun(handler, cmdWriter)
 
 	err = cmd.Wait()
 	if err != nil {
+		errStr := stderr.String()
+		if cmdObj.ShouldIgnoreEmptyError() && errStr == "" {
+			return nil
+		}
 		return errors.New(stderr.String())
 	}
 

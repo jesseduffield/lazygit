@@ -1,6 +1,10 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/jesseduffield/lazygit/pkg/utils"
+)
 
 // Commit : A git commit
 type Commit struct {
@@ -18,10 +22,7 @@ type Commit struct {
 }
 
 func (c *Commit) ShortSha() string {
-	if len(c.Sha) < 8 {
-		return c.Sha
-	}
-	return c.Sha[:8]
+	return utils.ShortSha(c.Sha)
 }
 
 func (c *Commit) RefName() string {

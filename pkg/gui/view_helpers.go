@@ -28,6 +28,8 @@ const (
 	REMOTES
 	STATUS
 	SUBMODULES
+	// not actually a view. Will refactor this later
+	BISECT_INFO
 )
 
 func getScopeNames(scopes []RefreshableView) []string {
@@ -105,12 +107,12 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 	f := func() {
 		var scopeMap map[RefreshableView]bool
 		if len(options.scope) == 0 {
-			scopeMap = arrToMap([]RefreshableView{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES, STATUS})
+			scopeMap = arrToMap([]RefreshableView{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES, STATUS, BISECT_INFO})
 		} else {
 			scopeMap = arrToMap(options.scope)
 		}
 
-		if scopeMap[COMMITS] || scopeMap[BRANCHES] || scopeMap[REFLOG] {
+		if scopeMap[COMMITS] || scopeMap[BRANCHES] || scopeMap[REFLOG] || scopeMap[BISECT_INFO] {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {

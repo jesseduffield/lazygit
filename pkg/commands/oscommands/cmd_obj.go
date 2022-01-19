@@ -35,6 +35,18 @@ type ICmdObj interface {
 	// This returns false if DontLog() was called
 	ShouldLog() bool
 
+	// when you call this, then call Run(), we'll stream the output to the cmdWriter (i.e. the command log panel)
+	StreamOutput() ICmdObj
+	// returns true if StreamOutput() was called
+	ShouldStreamOutput() bool
+
+	// if you call this before ShouldStreamOutput we'll consider an error with no
+	// stderr content as a non-error. Not yet supported for Run or RunWithOutput (
+	// but adding support is trivial)
+	IgnoreEmptyError() ICmdObj
+	// returns true if IgnoreEmptyError() was called
+	ShouldIgnoreEmptyError() bool
+
 	PromptOnCredentialRequest() ICmdObj
 	FailOnCredentialRequest() ICmdObj
 
@@ -47,8 +59,14 @@ type CmdObj struct {
 
 	runner ICmdObjRunner
 
-	// if set to true, we don't want to log the command to the user.
+	// see DontLog()
 	dontLog bool
+
+	// see StreamOutput()
+	streamOutput bool
+
+	// see IgnoreEmptyError()
+	ignoreEmptyError bool
 
 	// if set to true, it means we might be asked to enter a username/password by this command.
 	credentialStrategy CredentialStrategy
@@ -96,6 +114,26 @@ func (self *CmdObj) DontLog() ICmdObj {
 
 func (self *CmdObj) ShouldLog() bool {
 	return !self.dontLog
+}
+
+func (self *CmdObj) StreamOutput() ICmdObj {
+	self.streamOutput = true
+
+	return self
+}
+
+func (self *CmdObj) ShouldStreamOutput() bool {
+	return self.streamOutput
+}
+
+func (self *CmdObj) IgnoreEmptyError() ICmdObj {
+	self.ignoreEmptyError = true
+
+	return self
+}
+
+func (self *CmdObj) ShouldIgnoreEmptyError() bool {
+	return self.ignoreEmptyError
 }
 
 func (self *CmdObj) Run() error {

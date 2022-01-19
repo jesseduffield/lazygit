@@ -205,6 +205,7 @@ keybinding:
     resetCherryPick: '<c-R>'
     copyCommitMessageToClipboard: '<c-y>'
     openLogMenu: '<c-l>'
+    viewBisectOptions: 'b'
   stash:
     popStash: 'g'
   commitFiles:
@@ -389,6 +390,7 @@ gui:
 ```
 
 You can use wildcard to set a unified color in case your are lazy to customize the color for every author or you just want a single color for all/other authors:
+
 ```yaml
 gui:
   authorColors:
