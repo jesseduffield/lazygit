@@ -683,7 +683,9 @@ func (gui *Gui) loadNewRepo() error {
 		return err
 	}
 
-	gui.OSCommand.UpdateWindowTitle()
+	if err := gui.OSCommand.UpdateWindowTitle(); err != nil {
+		return err
+	}
 
 	return nil
 }
