@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 
@@ -270,14 +269,13 @@ func GetLazygitPath() string {
 }
 
 func (c *OSCommand) UpdateWindowTitle() error {
-	if runtime.GOOS != "windows" {
+	if c.Platform.OS != "windows" {
 		return nil
 	}
 	path, getWdErr := os.Getwd()
 	if getWdErr != nil {
 		return getWdErr
 	}
-	title := fmt.Sprint(filepath.Base(path), " - Lazygit")
-	args := append([]string{"cmd", "/C", "title"}, strings.Split(title, " ")...)
-	return c.Cmd.NewShell(strings.Join(args, " ")).Run()
+	argString := fmt.Sprint("title ", filepath.Base(path), " - Lazygit")
+	return c.Cmd.NewShell(argString).Run()
 }
