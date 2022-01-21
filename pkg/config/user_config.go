@@ -184,6 +184,8 @@ type KeybindingUniversalConfig struct {
 	ToggleWhitespaceInDiffView   string   `yaml:"toggleWhitespaceInDiffView"`
 	IncreaseContextInDiffView    string   `yaml:"increaseContextInDiffView"`
 	DecreaseContextInDiffView    string   `yaml:"decreaseContextInDiffView"`
+	WithModPageUp                string   `yaml:"withModPageUp"`
+	WithModPageDown              string   `yaml:"withModPageDown"`
 }
 
 type KeybindingStatusConfig struct {
@@ -262,8 +264,6 @@ type KeybindingMainConfig struct {
 	ToggleDragSelectAlt string `yaml:"toggleDragSelect-alt"`
 	ToggleSelectHunk    string `yaml:"toggleSelectHunk"`
 	PickBothHunks       string `yaml:"pickBothHunks"`
-	WithModPageUp       string `yaml:"withModPageUp"`
-	WithModPageDown     string `yaml:"withModPageDown"`
 }
 
 type KeybindingSubmodulesConfig struct {
@@ -453,6 +453,8 @@ func GetDefaultConfig() *UserConfig {
 				ToggleWhitespaceInDiffView:   "<c-w>",
 				IncreaseContextInDiffView:    "}",
 				DecreaseContextInDiffView:    "{",
+				WithModPageUp:                "f",
+				WithModPageDown:              "b",
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:      "u",
@@ -524,8 +526,6 @@ func GetDefaultConfig() *UserConfig {
 				ToggleDragSelectAlt: "V",
 				ToggleSelectHunk:    "a",
 				PickBothHunks:       "b",
-				WithModPageUp:       "f",
-				WithModPageDown:     "b",
 			},
 			Submodules: KeybindingSubmodulesConfig{
 				Init:     "i",
