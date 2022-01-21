@@ -34,14 +34,14 @@ func (gui *Gui) filesListContext() IListContext {
 			Key:        FILES_CONTEXT_KEY,
 			Kind:       SIDE_CONTEXT,
 		},
-		GetItemsLength:      func() int { return gui.State.FileManager.GetItemsLength() },
+		GetItemsLength:      func() int { return gui.State.FileTreeViewModel.GetItemsLength() },
 		OnGetPanelState:     func() IListPanelState { return gui.State.Panels.Files },
 		OnFocus:             OnFocusWrapper(gui.onFocusFile),
 		OnRenderToMain:      OnFocusWrapper(gui.filesRenderToMain),
 		OnClickSelectedItem: gui.handleFilePress,
 		Gui:                 gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			lines := gui.State.FileManager.Render(gui.State.Modes.Diffing.Ref, gui.State.Submodules)
+			lines := presentation.RenderFileTree(gui.State.FileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.State.Submodules)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}
@@ -309,17 +309,17 @@ func (gui *Gui) commitFilesListContext() IListContext {
 			Key:        COMMIT_FILES_CONTEXT_KEY,
 			Kind:       SIDE_CONTEXT,
 		},
-		GetItemsLength:  func() int { return gui.State.CommitFileManager.GetItemsLength() },
+		GetItemsLength:  func() int { return gui.State.CommitFileTreeViewModel.GetItemsLength() },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.CommitFiles },
 		OnFocus:         OnFocusWrapper(gui.onCommitFileFocus),
 		OnRenderToMain:  OnFocusWrapper(gui.commitFilesRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			if gui.State.CommitFileManager.GetItemsLength() == 0 {
+			if gui.State.CommitFileTreeViewModel.GetItemsLength() == 0 {
 				return [][]string{{style.FgRed.Sprint("(none)")}}
 			}
 
-			lines := gui.State.CommitFileManager.Render(gui.State.Modes.Diffing.Ref, gui.Git.Patch.PatchManager)
+			lines := presentation.RenderCommitFileTree(gui.State.CommitFileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.Git.Patch.PatchManager)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}

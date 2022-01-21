@@ -31,7 +31,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 		return nil
 	}
 
-	to := gui.State.CommitFileManager.GetParent()
+	to := gui.State.CommitFileTreeViewModel.GetParent()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 	diff, err := gui.Git.WorkingTree.ShowFileDiff(from, to, reverse, node.GetPath(), true)
 	if err != nil {

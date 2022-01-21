@@ -133,7 +133,7 @@ func (gui *Gui) handleMouseDrag() error {
 func (gui *Gui) getSelectedCommitFileName() string {
 	idx := gui.State.Panels.CommitFiles.SelectedLineIdx
 
-	return gui.State.CommitFileManager.GetItemAtIndex(idx).GetPath()
+	return gui.State.CommitFileTreeViewModel.GetItemAtIndex(idx).GetPath()
 }
 
 func (gui *Gui) refreshMainViewForLineByLine(state *LblPanelState) error {

@@ -1,12 +1,11 @@
 package filetree
 
 import (
-	"fmt"
 	"sort"
-	"strings"
 )
 
 type INode interface {
+	IsNil() bool
 	IsLeaf() bool
 	GetPath() string
 	GetChildren() []INode
@@ -211,52 +210,4 @@ func getLeaves(node INode) []INode {
 	}
 
 	return output
-}
-
-func renderAux(s INode, collapsedPaths CollapsedPaths, prefix string, depth int, renderLine func(INode, int) string) []string {
-	isRoot := depth == -1
-
-	renderLineWithPrefix := func() string {
-		return prefix + renderLine(s, depth)
-	}
-
-	if s.IsLeaf() {
-		if isRoot {
-			return []string{}
-		}
-		return []string{renderLineWithPrefix()}
-	}
-
-	if collapsedPaths.IsCollapsed(s.GetPath()) {
-		return []string{fmt.Sprintf("%s %s", renderLineWithPrefix(), COLLAPSED_ARROW)}
-	}
-
-	arr := []string{}
-	if !isRoot {
-		arr = append(arr, fmt.Sprintf("%s %s", renderLineWithPrefix(), EXPANDED_ARROW))
-	}
-
-	newPrefix := prefix
-	if strings.HasSuffix(prefix, LAST_ITEM) {
-		newPrefix = strings.TrimSuffix(prefix, LAST_ITEM) + NOTHING
-	} else if strings.HasSuffix(prefix, INNER_ITEM) {
-		newPrefix = strings.TrimSuffix(prefix, INNER_ITEM) + NESTED
-	}
-
-	for i, child := range s.GetChildren() {
-		isLast := i == len(s.GetChildren())-1
-
-		var childPrefix string
-		if isRoot {
-			childPrefix = newPrefix
-		} else if isLast {
-			childPrefix = newPrefix + LAST_ITEM
-		} else {
-			childPrefix = newPrefix + INNER_ITEM
-		}
-
-		arr = append(arr, renderAux(child, collapsedPaths, childPrefix, depth+1+s.GetCompressionLevel(), renderLine)...)
-	}
-
-	return arr
 }

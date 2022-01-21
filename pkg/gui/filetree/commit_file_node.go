@@ -11,6 +11,8 @@ type CommitFileNode struct {
 	CompressionLevel int    // equal to the number of forward slashes you'll see in the path when it's rendered in tree mode
 }
 
+var _ INode = &CommitFileNode{}
+
 // methods satisfying ListItem interface
 
 func (s *CommitFileNode) ID() string {
@@ -22,6 +24,10 @@ func (s *CommitFileNode) Description() string {
 }
 
 // methods satisfying INode interface
+
+func (s *CommitFileNode) IsNil() bool {
+	return s == nil
+}
 
 func (s *CommitFileNode) IsLeaf() bool {
 	return s.File != nil
@@ -137,13 +143,6 @@ func (s *CommitFileNode) Compress() {
 	}
 
 	compressAux(s)
-}
-
-// This ignores the root
-func (node *CommitFileNode) GetPathsMatching(test func(*CommitFileNode) bool) []string {
-	return getPathsMatching(node, func(n INode) bool {
-		return test(n.(*CommitFileNode))
-	})
 }
 
 func (s *CommitFileNode) GetLeaves() []*CommitFileNode {

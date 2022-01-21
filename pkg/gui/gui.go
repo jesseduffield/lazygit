@@ -290,12 +290,12 @@ type guiMutexes struct {
 type guiState struct {
 	// the file panels (files and commit files) can render as a tree, so we have
 	// managers for them which handle rendering a flat list of files in tree form
-	FileManager       *filetree.FileManager
-	CommitFileManager *filetree.CommitFileManager
-	Submodules        []*models.SubmoduleConfig
-	Branches          []*models.Branch
-	Commits           []*models.Commit
-	StashEntries      []*models.StashEntry
+	FileTreeViewModel       *filetree.FileTreeViewModel
+	CommitFileTreeViewModel *filetree.CommitFileTreeViewModel
+	Submodules              []*models.SubmoduleConfig
+	Branches                []*models.Branch
+	Commits                 []*models.Commit
+	StashEntries            []*models.StashEntry
 	// Suggestions will sometimes appear when typing into a prompt
 	Suggestions []*types.Suggestion
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
@@ -390,13 +390,13 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	}
 
 	gui.State = &guiState{
-		FileManager:           filetree.NewFileManager(make([]*models.File, 0), gui.Log, showTree),
-		CommitFileManager:     filetree.NewCommitFileManager(make([]*models.CommitFile, 0), gui.Log, showTree),
-		Commits:               make([]*models.Commit, 0),
-		FilteredReflogCommits: make([]*models.Commit, 0),
-		ReflogCommits:         make([]*models.Commit, 0),
-		StashEntries:          make([]*models.StashEntry, 0),
-		BisectInfo:            gui.Git.Bisect.GetInfo(),
+		FileTreeViewModel:       filetree.NewFileTreeViewModel(make([]*models.File, 0), gui.Log, showTree),
+		CommitFileTreeViewModel: filetree.NewCommitFileTreeViewModel(make([]*models.CommitFile, 0), gui.Log, showTree),
+		Commits:                 make([]*models.Commit, 0),
+		FilteredReflogCommits:   make([]*models.Commit, 0),
+		ReflogCommits:           make([]*models.Commit, 0),
+		StashEntries:            make([]*models.StashEntry, 0),
+		BisectInfo:              gui.Git.Bisect.GetInfo(),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},

@@ -10,7 +10,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -160,12 +159,18 @@ func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error 
 	return self.DiscardUnstagedFileChanges(file)
 }
 
-func (self *WorkingTreeCommands) DiscardAllDirChanges(node *filetree.FileNode) error {
+type IFileNode interface {
+	ForEachFile(cb func(*models.File) error) error
+	GetFilePathsMatching(test func(*models.File) bool) []string
+	GetPath() string
+}
+
+func (self *WorkingTreeCommands) DiscardAllDirChanges(node IFileNode) error {
 	// this could be more efficient but we would need to handle all the edge cases
 	return node.ForEachFile(self.DiscardAllFileChanges)
 }
 
-func (self *WorkingTreeCommands) DiscardUnstagedDirChanges(node *filetree.FileNode) error {
+func (self *WorkingTreeCommands) DiscardUnstagedDirChanges(node IFileNode) error {
 	if err := self.RemoveUntrackedDirFiles(node); err != nil {
 		return err
 	}
@@ -178,9 +183,9 @@ func (self *WorkingTreeCommands) DiscardUnstagedDirChanges(node *filetree.FileNo
 	return nil
 }
 
-func (self *WorkingTreeCommands) RemoveUntrackedDirFiles(node *filetree.FileNode) error {
-	untrackedFilePaths := node.GetPathsMatching(
-		func(n *filetree.FileNode) bool { return n.File != nil && !n.File.GetIsTracked() },
+func (self *WorkingTreeCommands) RemoveUntrackedDirFiles(node IFileNode) error {
+	untrackedFilePaths := node.GetFilePathsMatching(
+		func(file *models.File) bool { return !file.GetIsTracked() },
 	)
 
 	for _, path := range untrackedFilePaths {
