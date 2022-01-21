@@ -80,9 +80,7 @@ func (self *HostingServiceMgr) getServiceDomain(repoURL string) (*ServiceDomain,
 	candidateServiceDomains := self.getCandidateServiceDomains()
 
 	for _, serviceDomain := range candidateServiceDomains {
-		// I feel like it makes more sense to see if the repo url contains the service domain's git domain,
-		// but I don't want to break anything by changing that right now.
-		if strings.Contains(repoURL, serviceDomain.serviceDefinition.provider) {
+		if strings.Contains(repoURL, serviceDomain.gitDomain) {
 			return &serviceDomain, nil
 		}
 	}
