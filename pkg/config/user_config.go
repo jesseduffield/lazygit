@@ -262,6 +262,8 @@ type KeybindingMainConfig struct {
 	ToggleDragSelectAlt string `yaml:"toggleDragSelect-alt"`
 	ToggleSelectHunk    string `yaml:"toggleSelectHunk"`
 	PickBothHunks       string `yaml:"pickBothHunks"`
+	WithModPageUp       string `yaml:"withModPageUp"`
+	WithModPageDown     string `yaml:"withModPageDown"`
 }
 
 type KeybindingSubmodulesConfig struct {
@@ -522,6 +524,8 @@ func GetDefaultConfig() *UserConfig {
 				ToggleDragSelectAlt: "V",
 				ToggleSelectHunk:    "a",
 				PickBothHunks:       "b",
+				WithModPageUp:       "f",
+				WithModPageDown:     "b",
 			},
 			Submodules: KeybindingSubmodulesConfig{
 				Init:     "i",

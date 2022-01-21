@@ -209,6 +209,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 	bindings := []*Binding{
 		{
 			ViewName: "",
+			Key:      gui.getKey(config.Main.WithModPageUp),
+			Modifier: gocui.ModAlt,
+			Handler:  gui.pageUpMain,
+		},
+		{
+			ViewName: "",
+			Key:      gui.getKey(config.Main.WithModPageDown),
+			Modifier: gocui.ModAlt,
+			Handler:  gui.pageDownMain,
+		},
+		{
+			ViewName: "",
 			Key:      gui.getKey(config.Universal.Quit),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleQuit,
