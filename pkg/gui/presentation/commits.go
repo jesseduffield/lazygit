@@ -49,6 +49,76 @@ func GetCommitListDisplayStrings(
 		return nil
 	}
 
+	if startIdx > len(commits) {
+		return nil
+	}
+
+	// this is where my non-TODO commits begin
+	rebaseOffset := indexOfFirstNonTODOCommit(commits)
+
+	end := utils.Min(startIdx+length, len(commits))
+
+	filteredCommits := commits[startIdx:end]
+
+	// function expects to be passed the index of the commit in terms of the `commits` slice
+	var getGraphLine func(int) string
+	if showGraph {
+		// this is where the graph begins (may be beyond the TODO commits depending on startIdx,
+		// but we'll never include TODO commits as part of the graph because it'll be messy)
+		graphOffset := utils.Max(startIdx, rebaseOffset)
+
+		pipeSets := loadPipesets(commits[rebaseOffset:])
+		pipeSetOffset := utils.Max(startIdx-rebaseOffset, 0)
+		graphPipeSets := pipeSets[pipeSetOffset:utils.Max(end-rebaseOffset, 0)]
+		graphCommits := commits[graphOffset:end]
+		graphLines := graph.RenderAux(
+			graphPipeSets,
+			graphCommits,
+			selectedCommitSha,
+		)
+		getGraphLine = func(idx int) string {
+			if idx >= graphOffset {
+				return graphLines[idx-graphOffset]
+			} else {
+				return ""
+			}
+		}
+	} else {
+		getGraphLine = func(idx int) string { return "" }
+	}
+
+	lines := make([][]string, 0, len(filteredCommits))
+	bisectProgress := BeforeNewCommit
+	var bisectStatus BisectStatus
+	for i, commit := range filteredCommits {
+		bisectStatus, bisectProgress = getBisectStatus(commit.Sha, bisectInfo, bisectProgress)
+		lines = append(lines, displayCommit(
+			commit,
+			cherryPickedCommitShaMap,
+			diffName,
+			parseEmoji,
+			getGraphLine(i+startIdx),
+			fullDescription,
+			bisectStatus,
+			bisectInfo,
+		))
+	}
+	return lines
+}
+
+// precondition: slice is not empty
+func indexOfFirstNonTODOCommit(commits []*models.Commit) int {
+	for i, commit := range commits {
+		if !commit.IsTODO() {
+			return i
+		}
+	}
+
+	// shouldn't land here
+	return 0
+}
+
+func loadPipesets(commits []*models.Commit) [][]*graph.Pipe {
 	// given that our cache key is a commit sha and a commit count, it's very important that we don't actually try to render pipes
 	// when dealing with things like filtered commits.
 	cacheKey := pipeSetCacheKey{
@@ -67,42 +137,7 @@ func GetCommitListDisplayStrings(
 		pipeSetCache[cacheKey] = pipeSets
 	}
 
-	if startIdx > len(commits) {
-		return nil
-	}
-	end := startIdx + length
-	if end > len(commits)-1 {
-		end = len(commits) - 1
-	}
-
-	filteredCommits := commits[startIdx : end+1]
-
-	var getGraphLine func(int) string
-	if showGraph {
-		filteredPipeSets := pipeSets[startIdx : end+1]
-		graphLines := graph.RenderAux(filteredPipeSets, filteredCommits, selectedCommitSha)
-		getGraphLine = func(idx int) string { return graphLines[idx] }
-	} else {
-		getGraphLine = func(idx int) string { return "" }
-	}
-
-	lines := make([][]string, 0, len(filteredCommits))
-	bisectProgress := BeforeNewCommit
-	var bisectStatus BisectStatus
-	for i, commit := range filteredCommits {
-		bisectStatus, bisectProgress = getBisectStatus(commit.Sha, bisectInfo, bisectProgress)
-		lines = append(lines, displayCommit(
-			commit,
-			cherryPickedCommitShaMap,
-			diffName,
-			parseEmoji,
-			getGraphLine(i),
-			fullDescription,
-			bisectStatus,
-			bisectInfo,
-		))
-	}
-	return lines
+	return pipeSets
 }
 
 // similar to the git_commands.BisectStatus but more gui-focused
