@@ -11,6 +11,8 @@ type FileNode struct {
 	CompressionLevel int    // equal to the number of forward slashes you'll see in the path when it's rendered in tree mode
 }
 
+var _ INode = &FileNode{}
+
 // methods satisfying ListItem interface
 
 func (s *FileNode) ID() string {
@@ -22,6 +24,12 @@ func (s *FileNode) Description() string {
 }
 
 // methods satisfying INode interface
+
+// interfaces values whose concrete value is nil are not themselves nil
+// hence the existence of this method
+func (s *FileNode) IsNil() bool {
+	return s == nil
+}
 
 func (s *FileNode) IsLeaf() bool {
 	return s.File != nil
@@ -124,10 +132,13 @@ func (s *FileNode) Compress() {
 	compressAux(s)
 }
 
-// This ignores the root
-func (node *FileNode) GetPathsMatching(test func(*FileNode) bool) []string {
+func (node *FileNode) GetFilePathsMatching(test func(*models.File) bool) []string {
 	return getPathsMatching(node, func(n INode) bool {
-		return test(n.(*FileNode))
+		castNode := n.(*FileNode)
+		if castNode.File == nil {
+			return false
+		}
+		return test(castNode.File)
 	})
 }
 

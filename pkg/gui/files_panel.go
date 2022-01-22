@@ -21,7 +21,7 @@ func (gui *Gui) getSelectedFileNode() *filetree.FileNode {
 		return nil
 	}
 
-	return gui.State.FileManager.GetItemAtIndex(selectedLine)
+	return gui.State.FileTreeViewModel.GetItemAtIndex(selectedLine)
 }
 
 func (gui *Gui) getSelectedFile() *models.File {
@@ -129,7 +129,7 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 // specific functions
 
 func (gui *Gui) stagedFiles() []*models.File {
-	files := gui.State.FileManager.GetAllFiles()
+	files := gui.State.FileTreeViewModel.GetAllFiles()
 	result := make([]*models.File, 0)
 	for _, file := range files {
 		if file.HasStagedChanges {
@@ -140,7 +140,7 @@ func (gui *Gui) stagedFiles() []*models.File {
 }
 
 func (gui *Gui) trackedFiles() []*models.File {
-	files := gui.State.FileManager.GetAllFiles()
+	files := gui.State.FileTreeViewModel.GetAllFiles()
 	result := make([]*models.File, 0, len(files))
 	for _, file := range files {
 		if file.Tracked {
@@ -244,7 +244,7 @@ func (gui *Gui) handleFilePress() error {
 }
 
 func (gui *Gui) allFilesStaged() bool {
-	for _, file := range gui.State.FileManager.GetAllFiles() {
+	for _, file := range gui.State.FileTreeViewModel.GetAllFiles() {
 		if file.HasUnstagedChanges {
 			return false
 		}
@@ -378,7 +378,7 @@ func (gui *Gui) handleCommitPress() error {
 		return gui.surfaceError(err)
 	}
 
-	if gui.State.FileManager.GetItemsLength() == 0 {
+	if gui.State.FileTreeViewModel.GetItemsLength() == 0 {
 		return gui.createErrorPanel(gui.Tr.NoFilesStagedTitle)
 	}
 
@@ -433,7 +433,7 @@ func (gui *Gui) promptToStageAllAndRetry(retry func() error) error {
 }
 
 func (gui *Gui) handleAmendCommitPress() error {
-	if gui.State.FileManager.GetItemsLength() == 0 {
+	if gui.State.FileTreeViewModel.GetItemsLength() == 0 {
 		return gui.createErrorPanel(gui.Tr.NoFilesStagedTitle)
 	}
 
@@ -459,7 +459,7 @@ func (gui *Gui) handleAmendCommitPress() error {
 // handleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (gui *Gui) handleCommitEditorPress() error {
-	if gui.State.FileManager.GetItemsLength() == 0 {
+	if gui.State.FileTreeViewModel.GetItemsLength() == 0 {
 		return gui.createErrorPanel(gui.Tr.NoFilesStagedTitle)
 	}
 
@@ -498,9 +498,9 @@ func (gui *Gui) handleStatusFilterPressed() error {
 	return gui.createMenu(gui.Tr.FilteringMenuTitle, menuItems, createMenuOptions{showCancel: true})
 }
 
-func (gui *Gui) setStatusFiltering(filter filetree.FileManagerDisplayFilter) error {
+func (gui *Gui) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
 	state := gui.State
-	state.FileManager.SetDisplayFilter(filter)
+	state.FileTreeViewModel.SetDisplayFilter(filter)
 	return gui.handleRefreshFiles()
 }
 
@@ -555,31 +555,31 @@ func (gui *Gui) refreshStateFiles() error {
 
 	selectedNode := gui.getSelectedFileNode()
 
-	prevNodes := gui.State.FileManager.GetAllItems()
+	prevNodes := gui.State.FileTreeViewModel.GetAllItems()
 	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
 
 	files := gui.Git.Loaders.Files.
 		GetStatusFiles(loaders.GetStatusFileOptions{})
 
 	// for when you stage the old file of a rename and the new file is in a collapsed dir
-	state.FileManager.RWMutex.Lock()
+	state.FileTreeViewModel.RWMutex.Lock()
 	for _, file := range files {
 		if selectedNode != nil && selectedNode.Path != "" && file.PreviousName == selectedNode.Path {
-			state.FileManager.ExpandToPath(file.Name)
+			state.FileTreeViewModel.ExpandToPath(file.Name)
 		}
 	}
 
-	state.FileManager.SetFiles(files)
-	state.FileManager.RWMutex.Unlock()
+	state.FileTreeViewModel.SetFiles(files)
+	state.FileTreeViewModel.RWMutex.Unlock()
 
 	if err := gui.fileWatcher.addFilesToFileWatcher(files); err != nil {
 		return err
 	}
 
 	if selectedNode != nil {
-		newIdx := gui.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], state.FileManager.GetAllItems())
+		newIdx := gui.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], state.FileTreeViewModel.GetAllItems())
 		if newIdx != -1 && newIdx != prevSelectedLineIdx {
-			newNode := state.FileManager.GetItemAtIndex(newIdx)
+			newNode := state.FileTreeViewModel.GetItemAtIndex(newIdx)
 			// when not in tree mode, we show merge conflict files at the top, so you
 			// can work through them one by one without having to sift through a large
 			// set of files. If you have just fixed the merge conflicts of a file, we
@@ -588,7 +588,7 @@ func (gui *Gui) refreshStateFiles() error {
 			// conflicts: the user in this case would rather work on the next file
 			// with merge conflicts, which will have moved up to fill the gap left by
 			// the last file, meaning the cursor doesn't need to move at all.
-			leaveCursor := !state.FileManager.InTreeMode() && newNode != nil &&
+			leaveCursor := !state.FileTreeViewModel.InTreeMode() && newNode != nil &&
 				selectedNode.File != nil && selectedNode.File.HasMergeConflicts &&
 				newNode.File != nil && !newNode.File.HasMergeConflicts
 
@@ -598,7 +598,7 @@ func (gui *Gui) refreshStateFiles() error {
 		}
 	}
 
-	gui.refreshSelectedLine(state.Panels.Files, state.FileManager.GetItemsLength())
+	gui.refreshSelectedLine(state.Panels.Files, state.FileTreeViewModel.GetItemsLength())
 	return nil
 }
 
@@ -871,7 +871,7 @@ func (gui *Gui) openFile(filename string) error {
 }
 
 func (gui *Gui) anyFilesWithMergeConflicts() bool {
-	for _, file := range gui.State.FileManager.GetAllFiles() {
+	for _, file := range gui.State.FileTreeViewModel.GetAllFiles() {
 		if file.HasMergeConflicts {
 			return true
 		}
@@ -939,7 +939,7 @@ func (gui *Gui) handleToggleDirCollapsed() error {
 		return nil
 	}
 
-	gui.State.FileManager.ToggleCollapsed(node.GetPath())
+	gui.State.FileTreeViewModel.ToggleCollapsed(node.GetPath())
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Files); err != nil {
 		gui.Log.Error(err)
@@ -952,12 +952,12 @@ func (gui *Gui) handleToggleFileTreeView() error {
 	// get path of currently selected file
 	path := gui.getSelectedPath()
 
-	gui.State.FileManager.ToggleShowTree()
+	gui.State.FileTreeViewModel.ToggleShowTree()
 
 	// find that same node in the new format and move the cursor to it
 	if path != "" {
-		gui.State.FileManager.ExpandToPath(path)
-		index, found := gui.State.FileManager.GetIndexForPath(path)
+		gui.State.FileTreeViewModel.ExpandToPath(path)
+		index, found := gui.State.FileTreeViewModel.GetIndexForPath(path)
 		if found {
 			gui.filesListContext().GetPanelState().SetSelectedLineIdx(index)
 		}

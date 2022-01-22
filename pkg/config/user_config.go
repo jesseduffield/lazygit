@@ -249,6 +249,7 @@ type KeybindingCommitsConfig struct {
 	CopyCommitMessageToClipboard string `yaml:"copyCommitMessageToClipboard"`
 	OpenLogMenu                  string `yaml:"openLogMenu"`
 	OpenInBrowser                string `yaml:"openInBrowser"`
+	ViewBisectOptions            string `yaml:"viewBisectOptions"`
 }
 
 type KeybindingStashConfig struct {
@@ -295,6 +296,7 @@ type CustomCommand struct {
 	Prompts     []CustomCommandPrompt `yaml:"prompts"`
 	LoadingText string                `yaml:"loadingText"`
 	Description string                `yaml:"description"`
+	Stream      bool                  `yaml:"stream"`
 }
 
 type CustomCommandPrompt struct {
@@ -514,6 +516,7 @@ func GetDefaultConfig() *UserConfig {
 				CopyCommitMessageToClipboard: "<c-y>",
 				OpenLogMenu:                  "<c-l>",
 				OpenInBrowser:                "o",
+				ViewBisectOptions:            "b",
 			},
 			Stash: KeybindingStashConfig{
 				PopStash: "g",

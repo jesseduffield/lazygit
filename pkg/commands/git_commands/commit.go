@@ -75,7 +75,19 @@ func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 }
 
 func (self *CommitCommands) GetCommitMessageFirstLine(sha string) (string, error) {
-	return self.cmd.New(fmt.Sprintf("git show --no-patch --pretty=format:%%s %s", sha)).DontLog().RunWithOutput()
+	return self.GetCommitMessagesFirstLine([]string{sha})
+}
+
+func (self *CommitCommands) GetCommitMessagesFirstLine(shas []string) (string, error) {
+	return self.cmd.New(
+		fmt.Sprintf("git show --no-patch --pretty=format:%%s %s", strings.Join(shas, " ")),
+	).DontLog().RunWithOutput()
+}
+
+func (self *CommitCommands) GetCommitsOneline(shas []string) (string, error) {
+	return self.cmd.New(
+		fmt.Sprintf("git show --no-patch --oneline %s", strings.Join(shas, " ")),
+	).DontLog().RunWithOutput()
 }
 
 // AmendHead amends HEAD with whatever is staged in your working tree

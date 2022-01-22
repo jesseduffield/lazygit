@@ -8,11 +8,11 @@ import (
 
 func (gui *Gui) getSelectedCommitFileNode() *filetree.CommitFileNode {
 	selectedLine := gui.State.Panels.CommitFiles.SelectedLineIdx
-	if selectedLine == -1 || selectedLine > gui.State.CommitFileManager.GetItemsLength()-1 {
+	if selectedLine == -1 || selectedLine > gui.State.CommitFileTreeViewModel.GetItemsLength()-1 {
 		return nil
 	}
 
-	return gui.State.CommitFileManager.GetItemAtIndex(selectedLine)
+	return gui.State.CommitFileTreeViewModel.GetItemAtIndex(selectedLine)
 }
 
 func (gui *Gui) getSelectedCommitFile() *models.CommitFile {
@@ -42,7 +42,7 @@ func (gui *Gui) commitFilesRenderToMain() error {
 		return nil
 	}
 
-	to := gui.State.CommitFileManager.GetParent()
+	to := gui.State.CommitFileTreeViewModel.GetParent()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
 	cmdObj := gui.Git.WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
@@ -64,7 +64,7 @@ func (gui *Gui) handleCheckoutCommitFile() error {
 	}
 
 	gui.logAction(gui.Tr.Actions.CheckoutFile)
-	if err := gui.Git.WorkingTree.CheckoutFile(gui.State.CommitFileManager.GetParent(), node.GetPath()); err != nil {
+	if err := gui.Git.WorkingTree.CheckoutFile(gui.State.CommitFileTreeViewModel.GetParent(), node.GetPath()); err != nil {
 		return gui.surfaceError(err)
 	}
 
@@ -111,7 +111,8 @@ func (gui *Gui) refreshCommitFilesView() error {
 	if err != nil {
 		return gui.surfaceError(err)
 	}
-	gui.State.CommitFileManager.SetFiles(files, to)
+	gui.State.CommitFileTreeViewModel.SetParent(to)
+	gui.State.CommitFileTreeViewModel.SetFiles(files)
 
 	return gui.postRefreshUpdate(gui.State.Contexts.CommitFiles)
 }
@@ -154,7 +155,7 @@ func (gui *Gui) handleToggleFileForPatch() error {
 		// if there is any file that hasn't been fully added we'll fully add everything,
 		// otherwise we'll remove everything
 		adding := node.AnyFile(func(file *models.CommitFile) bool {
-			return gui.Git.Patch.PatchManager.GetFileStatus(file.Name, gui.State.CommitFileManager.GetParent()) != patch.WHOLE
+			return gui.Git.Patch.PatchManager.GetFileStatus(file.Name, gui.State.CommitFileTreeViewModel.GetParent()) != patch.WHOLE
 		})
 
 		err := node.ForEachFile(func(file *models.CommitFile) error {
@@ -176,7 +177,7 @@ func (gui *Gui) handleToggleFileForPatch() error {
 		return gui.postRefreshUpdate(gui.State.Contexts.CommitFiles)
 	}
 
-	if gui.Git.Patch.PatchManager.Active() && gui.Git.Patch.PatchManager.To != gui.State.CommitFileManager.GetParent() {
+	if gui.Git.Patch.PatchManager.Active() && gui.Git.Patch.PatchManager.To != gui.State.CommitFileTreeViewModel.GetParent() {
 		return gui.ask(askOpts{
 			title:  gui.Tr.DiscardPatch,
 			prompt: gui.Tr.DiscardPatchConfirm,
@@ -224,7 +225,7 @@ func (gui *Gui) enterCommitFile(opts OnFocusOpts) error {
 		return gui.pushContext(gui.State.Contexts.PatchBuilding, opts)
 	}
 
-	if gui.Git.Patch.PatchManager.Active() && gui.Git.Patch.PatchManager.To != gui.State.CommitFileManager.GetParent() {
+	if gui.Git.Patch.PatchManager.Active() && gui.Git.Patch.PatchManager.To != gui.State.CommitFileTreeViewModel.GetParent() {
 		return gui.ask(askOpts{
 			title:  gui.Tr.DiscardPatch,
 			prompt: gui.Tr.DiscardPatchConfirm,
@@ -244,7 +245,7 @@ func (gui *Gui) handleToggleCommitFileDirCollapsed() error {
 		return nil
 	}
 
-	gui.State.CommitFileManager.ToggleCollapsed(node.GetPath())
+	gui.State.CommitFileTreeViewModel.ToggleCollapsed(node.GetPath())
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.CommitFiles); err != nil {
 		gui.Log.Error(err)
@@ -275,12 +276,12 @@ func (gui *Gui) switchToCommitFilesContext(refName string, canRebase bool, conte
 func (gui *Gui) handleToggleCommitFileTreeView() error {
 	path := gui.getSelectedCommitFilePath()
 
-	gui.State.CommitFileManager.ToggleShowTree()
+	gui.State.CommitFileTreeViewModel.ToggleShowTree()
 
 	// find that same node in the new format and move the cursor to it
 	if path != "" {
-		gui.State.CommitFileManager.ExpandToPath(path)
-		index, found := gui.State.CommitFileManager.GetIndexForPath(path)
+		gui.State.CommitFileTreeViewModel.ExpandToPath(path)
+		index, found := gui.State.CommitFileTreeViewModel.GetIndexForPath(path)
 		if found {
 			gui.State.Contexts.CommitFiles.GetPanelState().SetSelectedLineIdx(index)
 		}

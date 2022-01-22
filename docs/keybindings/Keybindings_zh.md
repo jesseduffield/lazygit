@@ -149,6 +149,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
   <kbd>ctrl+y</kbd>: 将提交消息复制到剪贴板
   <kbd>o</kbd>: open commit in browser
+  <kbd>b</kbd>: view bisect options
 </pre>
 
 ## 提交 面板 (Reflog)
