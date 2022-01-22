@@ -462,21 +462,30 @@ func (gui *Gui) handleCommitPick() error {
 }
 
 func (gui *Gui) handleCommitRevert() error {
-	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
-		return err
-	}
-
 	commit := gui.getSelectedLocalCommit()
+	return gui.ask(askOpts{
+		title: gui.Tr.Actions.RevertCommit,
+		prompt: utils.ResolvePlaceholderString(
+			gui.Tr.ConfirmRevertCommit,
+			map[string]string{
+				"selectedCommit": commit.ShortSha(),
+			}),
+		handleConfirm: func() error {
+			if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
+				return err
+			}
 
-	if commit.IsMerge() {
-		return gui.createRevertMergeCommitMenu(commit)
-	} else {
-		gui.logAction(gui.Tr.Actions.RevertCommit)
-		if err := gui.Git.Commit.Revert(commit.Sha); err != nil {
-			return gui.surfaceError(err)
-		}
-		return gui.afterRevertCommit()
-	}
+			if commit.IsMerge() {
+				return gui.createRevertMergeCommitMenu(commit)
+			} else {
+				gui.logAction(gui.Tr.Actions.RevertCommit)
+				if err := gui.Git.Commit.Revert(commit.Sha); err != nil {
+					return gui.surfaceError(err)
+				}
+				return gui.afterRevertCommit()
+			}
+		},
+	})
 }
 
 func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
