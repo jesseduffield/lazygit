@@ -362,5 +362,6 @@ func dutchTranslationSet() TranslationSet {
 		LcViewStashFiles:                    "bekijk bestanden van stash entry",
 		CreatePullRequestOptions:            "Bekijk opties voor pull-aanvraag",
 		LcCreatePullRequestOptions:          "bekijk opties voor pull-aanvraag",
+		ConfirmRevertCommit:                 "Weet u zeker dat u {{.selectedCommit}} ongedaan wilt maken?",
 	}
 }

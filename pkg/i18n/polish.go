@@ -229,5 +229,6 @@ func polishTranslationSet() TranslationSet {
 		LcCopiedToClipboard:                 "skopiowany do schowka",
 		CreatePullRequestOptions:            "Utwórz opcje żądania ściągnięcia",
 		LcCreatePullRequestOptions:          "utwórz opcje żądania ściągnięcia",
+		ConfirmRevertCommit:                 "Czy na pewno chcesz obrócić {{.selectedCommit}}?",
 	}
 }
