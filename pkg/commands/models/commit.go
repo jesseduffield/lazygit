@@ -40,3 +40,9 @@ func (c *Commit) Description() string {
 func (c *Commit) IsMerge() bool {
 	return len(c.Parents) > 1
 }
+
+// returns true if this commit is not actually in the git log but instead
+// is from a TODO file for an interactive rebase.
+func (c *Commit) IsTODO() bool {
+	return c.Action != ""
+}
