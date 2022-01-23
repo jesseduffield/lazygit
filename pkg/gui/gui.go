@@ -564,24 +564,34 @@ func NewGui(
 	gui.c = controllerCommon
 
 	gui.resetState(filterPath, false)
+	gui.setControllers()
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
 	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
 
+	return gui, nil
+}
+
+func (gui *Gui) setControllers() {
+	controllerCommon := gui.c
+	osCommand := gui.OSCommand
+	getState := func() *GuiRepoState { return gui.State }
+	getContexts := func() context.ContextTree { return gui.State.Contexts }
+	// TODO: have a getGit function too
 	refHelper := NewRefHelper(
 		controllerCommon,
 		gui.git,
-		gui.State,
+		getState,
 	)
 	gui.refHelper = refHelper
-	gui.suggestionsHelper = NewSuggestionsHelper(controllerCommon, gui.State, gui.refreshSuggestions)
+	gui.suggestionsHelper = NewSuggestionsHelper(controllerCommon, getState, gui.refreshSuggestions)
 	gui.fileHelper = NewFileHelper(controllerCommon, gui.git, osCommand)
-	gui.workingTreeHelper = NewWorkingTreeHelper(gui.State.FileTreeViewModel)
+	gui.workingTreeHelper = NewWorkingTreeHelper(func() *filetree.FileTreeViewModel { return gui.State.FileTreeViewModel })
 
 	tagsController := controllers.NewTagsController(
 		controllerCommon,
-		gui.State.Contexts.Tags,
+		func() types.IListContext { return gui.State.Contexts.Tags },
 		gui.git,
-		gui.State.Contexts,
+		getContexts,
 		refHelper,
 		gui.suggestionsHelper,
 		gui.getSelectedTag,
@@ -607,15 +617,15 @@ func NewGui(
 		),
 		Files: controllers.NewFilesController(
 			controllerCommon,
-			gui.State.Contexts.Files,
+			func() types.IListContext { return gui.State.Contexts.Files },
 			gui.git,
 			osCommand,
 			gui.getSelectedFileNode,
-			gui.State.Contexts,
-			gui.State.FileTreeViewModel,
+			getContexts,
+			func() *filetree.FileTreeViewModel { return gui.State.FileTreeViewModel },
 			gui.enterSubmodule,
 			func() []*models.SubmoduleConfig { return gui.State.Submodules },
-			gui.getSetTextareaTextFn(gui.Views.CommitMessage),
+			gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage }),
 			gui.withGpgHandling,
 			func() string { return gui.State.failedCommitMessage },
 			func() []*models.Commit { return gui.State.Commits },
@@ -630,7 +640,7 @@ func NewGui(
 
 		LocalCommits: controllers.NewLocalCommitsController(
 			controllerCommon,
-			gui.State.Contexts.BranchCommits,
+			func() types.IListContext { return gui.State.Contexts.BranchCommits },
 			osCommand,
 			gui.git,
 			refHelper,
@@ -651,21 +661,21 @@ func NewGui(
 
 		Remotes: controllers.NewRemotesController(
 			controllerCommon,
-			gui.State.Contexts.Remotes,
+			func() types.IListContext { return gui.State.Contexts.Remotes },
 			gui.git,
-			gui.State.Contexts,
+			getContexts,
 			gui.getSelectedRemote,
 			func(branches []*models.RemoteBranch) { gui.State.RemoteBranches = branches },
 			gui.Mutexes.FetchMutex,
 		),
 		Menu: controllers.NewMenuController(
 			controllerCommon,
-			gui.State.Contexts.Menu,
+			func() types.IListContext { return gui.State.Contexts.Menu },
 			gui.getSelectedMenuItem,
 		),
 		Bisect: controllers.NewBisectController(
 			controllerCommon,
-			gui.State.Contexts.BranchCommits,
+			func() types.IListContext { return gui.State.Contexts.BranchCommits },
 			gui.git,
 			gui.getSelectedLocalCommit,
 			func() []*models.Commit { return gui.State.Commits },
@@ -679,8 +689,6 @@ func NewGui(
 		),
 		Sync: syncController,
 	}
-
-	return gui, nil
 }
 
 var RuneReplacements = map[rune]string{

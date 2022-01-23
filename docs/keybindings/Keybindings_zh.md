@@ -10,21 +10,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>pgdown</kbd>: 向下滚动主面板 (fn+down)
   <kbd>m</kbd>: 查看 合并/变基 选项
   <kbd>ctrl+p</kbd>: 查看自定义补丁选项
-  <kbd>P</kbd>: 推送
-  <kbd>p</kbd>: 拉取
   <kbd>R</kbd>: 刷新
   <kbd>x</kbd>: 打开菜单
-  <kbd>z</kbd>: （通过 reflog）撤销「实验功能」
-  <kbd>ctrl+z</kbd>: （通过 reflog）重做「实验功能」
   <kbd>+</kbd>: 下一屏模式（正常/半屏/全屏）
   <kbd>_</kbd>: 上一屏模式
-  <kbd>:</kbd>: 执行自定义命令
   <kbd>ctrl+s</kbd>: 查看按路径过滤选项
   <kbd>W</kbd>: 打开 diff 菜单
   <kbd>ctrl+e</kbd>: 打开 diff 菜单
   <kbd>@</kbd>: 打开命令日志菜单
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
+  <kbd>z</kbd>: （通过 reflog）撤销「实验功能」
+  <kbd>ctrl+z</kbd>: （通过 reflog）重做「实验功能」
+  <kbd>P</kbd>: 推送
+  <kbd>p</kbd>: 拉取
 </pre>
 
 ## 列表面板导航
@@ -170,20 +169,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>@</kbd>: 打开命令日志菜单
 </pre>
 
-## 文件 面板
-
-<pre>
-  <kbd>ctrl+b</kbd>: 过滤提交文件
-</pre>
-
 ## 文件 面板 (文件)
 
 <pre>
+  <kbd>d</kbd>: 查看'放弃更改‘选项
+  <kbd>D</kbd>: 查看重置选项
+  <kbd>f</kbd>: 抓取
+  <kbd>ctrl+o</kbd>: 将文件名复制到剪贴板
+  <kbd>ctrl+w</kbd>: 切换是否在差异视图中显示空白更改
+  <kbd>space</kbd>: 切换暂存状态
+  <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
   <kbd>c</kbd>: 提交更改
   <kbd>w</kbd>: 提交更改而无需预先提交钩子
   <kbd>A</kbd>: 修补最后一次提交
   <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
-  <kbd>d</kbd>: 查看'放弃更改‘选项
   <kbd>e</kbd>: 编辑文件
   <kbd>o</kbd>: 打开文件
   <kbd>i</kbd>: 添加到 .gitignore
@@ -191,15 +190,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>s</kbd>: 将所有更改加入贮藏
   <kbd>S</kbd>: 查看隐藏选项
   <kbd>a</kbd>: 切换所有文件的暂存状态
-  <kbd>D</kbd>: 查看重置选项
   <kbd>enter</kbd>: 暂存单个 块/行 用于文件, 或 折叠/展开 目录
-  <kbd>f</kbd>: 抓取
-  <kbd>ctrl+o</kbd>: 将文件名复制到剪贴板
+  <kbd>:</kbd>: 执行自定义命令
   <kbd>g</kbd>: 查看上游重置选项
   <kbd>`</kbd>: 切换文件树视图
   <kbd>M</kbd>: 打开合并工具
-  <kbd>ctrl+w</kbd>: 切换是否在差异视图中显示空白更改
-  <kbd>space</kbd>: 切换暂存状态
 </pre>
 
 ## 文件 面板 (子模块)

@@ -12,9 +12,9 @@ import (
 
 type TagsController struct {
 	c           *ControllerCommon
-	context     types.IListContext
+	getContext  func() types.IListContext
 	git         *commands.GitCommand
-	allContexts context.ContextTree
+	getContexts func() context.ContextTree
 
 	refHelper         IRefHelper
 	suggestionsHelper ISuggestionsHelper
@@ -27,9 +27,9 @@ var _ types.IController = &TagsController{}
 
 func NewTagsController(
 	c *ControllerCommon,
-	context types.IListContext,
+	getContext func() types.IListContext,
 	git *commands.GitCommand,
-	allContexts context.ContextTree,
+	getContexts func() context.ContextTree,
 	refHelper IRefHelper,
 	suggestionsHelper ISuggestionsHelper,
 
@@ -38,9 +38,9 @@ func NewTagsController(
 ) *TagsController {
 	return &TagsController{
 		c:                 c,
-		context:           context,
+		getContext:        getContext,
 		git:               git,
-		allContexts:       allContexts,
+		getContexts:       getContexts,
 		refHelper:         refHelper,
 		suggestionsHelper: suggestionsHelper,
 
@@ -84,7 +84,7 @@ func (self *TagsController) Keybindings(getKey func(key string) interface{}, con
 		},
 	}
 
-	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
+	return append(bindings, self.getContext().Keybindings(getKey, config, guards)...)
 }
 
 func (self *TagsController) checkout(tag *models.Tag) error {
@@ -92,7 +92,7 @@ func (self *TagsController) checkout(tag *models.Tag) error {
 	if err := self.refHelper.CheckoutRef(tag.Name, types.CheckoutRefOptions{}); err != nil {
 		return err
 	}
-	return self.c.PushContext(self.allContexts.Branches)
+	return self.c.PushContext(self.getContexts().Branches)
 }
 
 func (self *TagsController) enter(tag *models.Tag) error {
@@ -171,7 +171,7 @@ func (self *TagsController) CreateTagMenu(commitSha string) error {
 }
 
 func (self *TagsController) afterTagCreate() error {
-	self.context.GetPanelState().SetSelectedLineIdx(0)
+	self.getContext().GetPanelState().SetSelectedLineIdx(0)
 	return self.c.Refresh(types.RefreshOptions{
 		Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS},
 	})
@@ -225,5 +225,5 @@ func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func(
 }
 
 func (self *TagsController) Context() types.Context {
-	return self.context
+	return self.getContext()
 }

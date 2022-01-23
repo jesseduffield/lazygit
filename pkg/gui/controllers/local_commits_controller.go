@@ -26,11 +26,11 @@ type (
 )
 
 type LocalCommitsController struct {
-	c         *ControllerCommon
-	context   types.IListContext
-	os        *oscommands.OSCommand
-	git       *commands.GitCommand
-	refHelper IRefHelper
+	c          *ControllerCommon
+	getContext func() types.IListContext
+	os         *oscommands.OSCommand
+	git        *commands.GitCommand
+	refHelper  IRefHelper
 
 	getSelectedLocalCommit     func() *models.Commit
 	getCommits                 func() []*models.Commit
@@ -51,7 +51,7 @@ var _ types.IController = &LocalCommitsController{}
 
 func NewLocalCommitsController(
 	c *ControllerCommon,
-	context types.IListContext,
+	getContext func() types.IListContext,
 	os *oscommands.OSCommand,
 	git *commands.GitCommand,
 	refHelper IRefHelper,
@@ -71,7 +71,7 @@ func NewLocalCommitsController(
 ) *LocalCommitsController {
 	return &LocalCommitsController{
 		c:                          c,
-		context:                    context,
+		getContext:                 getContext,
 		os:                         os,
 		git:                        git,
 		refHelper:                  refHelper,
@@ -178,7 +178,7 @@ func (self *LocalCommitsController) Keybindings(
 		},
 		{
 			Key:     gocui.MouseLeft,
-			Handler: func() error { return self.context.HandleClick(self.checkSelected(self.enter)) },
+			Handler: func() error { return self.getContext().HandleClick(self.checkSelected(self.enter)) },
 		},
 	}
 
@@ -225,7 +225,7 @@ func (self *LocalCommitsController) Keybindings(
 		},
 	}...)
 
-	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
+	return append(bindings, self.getContext().Keybindings(getKey, config, guards)...)
 }
 
 func (self *LocalCommitsController) squashDown() error {
@@ -420,7 +420,7 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action string) (bool,
 }
 
 func (self *LocalCommitsController) handleCommitMoveDown() error {
-	index := self.context.GetPanelState().GetSelectedLineIdx()
+	index := self.getContext().GetPanelState().GetSelectedLineIdx()
 	commits := self.getCommits()
 	selectedCommit := self.getCommits()[index]
 	if selectedCommit.Status == "rebasing" {
@@ -436,7 +436,7 @@ func (self *LocalCommitsController) handleCommitMoveDown() error {
 		if err := self.git.Rebase.MoveTodoDown(index); err != nil {
 			return self.c.Error(err)
 		}
-		self.context.HandleNextLine()
+		_ = self.getContext().HandleNextLine()
 		return self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
 		})
@@ -446,14 +446,14 @@ func (self *LocalCommitsController) handleCommitMoveDown() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 		err := self.git.Rebase.MoveCommitDown(self.getCommits(), index)
 		if err == nil {
-			self.context.HandleNextLine()
+			_ = self.getContext().HandleNextLine()
 		}
 		return self.checkMergeOrRebase(err)
 	})
 }
 
 func (self *LocalCommitsController) handleCommitMoveUp() error {
-	index := self.context.GetPanelState().GetSelectedLineIdx()
+	index := self.getContext().GetPanelState().GetSelectedLineIdx()
 	if index == 0 {
 		return nil
 	}
@@ -471,7 +471,7 @@ func (self *LocalCommitsController) handleCommitMoveUp() error {
 		if err := self.git.Rebase.MoveTodoDown(index - 1); err != nil {
 			return self.c.Error(err)
 		}
-		self.context.HandlePrevLine()
+		_ = self.getContext().HandlePrevLine()
 		return self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
 		})
@@ -481,7 +481,7 @@ func (self *LocalCommitsController) handleCommitMoveUp() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
 		err := self.git.Rebase.MoveCommitDown(self.getCommits(), index-1)
 		if err == nil {
-			self.context.HandlePrevLine()
+			_ = self.getContext().HandlePrevLine()
 		}
 		return self.checkMergeOrRebase(err)
 	})
@@ -549,7 +549,7 @@ func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.C
 }
 
 func (self *LocalCommitsController) afterRevertCommit() error {
-	self.context.HandleNextLine()
+	_ = self.getContext().HandleNextLine()
 	return self.c.Refresh(types.RefreshOptions{
 		Mode: types.BLOCK_UI, Scope: []types.RefreshableView{types.COMMITS, types.BRANCHES},
 	})
@@ -559,7 +559,7 @@ func (self *LocalCommitsController) enter(commit *models.Commit) error {
 	return self.switchToCommitFilesContext(SwitchToCommitFilesContextOpts{
 		RefName:    commit.Sha,
 		CanRebase:  true,
-		Context:    self.context,
+		Context:    self.getContext(),
 		WindowName: "commits",
 	})
 }
@@ -647,7 +647,7 @@ func (self *LocalCommitsController) gotoBottom() error {
 		}
 	}
 
-	self.context.HandleGotoBottom()
+	_ = self.getContext().HandleGotoBottom()
 
 	return nil
 }
@@ -779,5 +779,5 @@ func (self *LocalCommitsController) checkSelected(callback func(*models.Commit) 
 }
 
 func (self *LocalCommitsController) Context() types.Context {
-	return self.context
+	return self.getContext()
 }

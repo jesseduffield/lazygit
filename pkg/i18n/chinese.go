@@ -66,7 +66,6 @@ func chineseTranslationSet() TranslationSet {
 		LcScroll:                            "滚动",
 		MergeConflictsTitle:                 "合并冲突",
 		LcCheckout:                          "检出",
-		LcCommitFileFilter:                  "过滤提交文件",
 		NoChangedFiles:                      "没有更改过文件",
 		NoFilesDisplay:                      "没有文件可显示",
 		NotAFile:                            "不是文件",

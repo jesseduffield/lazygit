@@ -4,15 +4,16 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCanDeactivatePopupContextsWithoutViews(t *testing.T) {
-	contexts := []func(gui *Gui) Context{
-		func(gui *Gui) Context { return gui.State.Contexts.Credentials },
-		func(gui *Gui) Context { return gui.State.Contexts.Confirmation },
-		func(gui *Gui) Context { return gui.State.Contexts.CommitMessage },
-		func(gui *Gui) Context { return gui.State.Contexts.Search },
+	contexts := []func(gui *Gui) types.Context{
+		func(gui *Gui) types.Context { return gui.State.Contexts.Credentials },
+		func(gui *Gui) types.Context { return gui.State.Contexts.Confirmation },
+		func(gui *Gui) types.Context { return gui.State.Contexts.CommitMessage },
+		func(gui *Gui) types.Context { return gui.State.Contexts.Search },
 	}
 
 	for _, c := range contexts {

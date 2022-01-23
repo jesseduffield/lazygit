@@ -212,6 +212,8 @@ type TestPopupHandler struct {
 	OnPrompt   func(opts PromptOpts) error
 }
 
+var _ IPopupHandler = &TestPopupHandler{}
+
 func (self *TestPopupHandler) Error(err error) error {
 	return self.ErrorMsg(err.Error())
 }
@@ -244,6 +246,6 @@ func (self *TestPopupHandler) Toast(message string) {
 	panic("not yet implemented")
 }
 
-func (self *TestPopupHandler) CurrentInput() string {
+func (self *TestPopupHandler) GetPromptInput() string {
 	panic("not yet implemented")
 }

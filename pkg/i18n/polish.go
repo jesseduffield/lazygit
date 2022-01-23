@@ -29,7 +29,6 @@ func polishTranslationSet() TranslationSet {
 		LcToggleStagedAll:                   "przełącz stan poczekalni wszystkich",
 		LcRefresh:                           "odśwież",
 		LcScroll:                            "przewiń",
-		LcCommitFileFilter:                  "Filtrowanie commitów",
 		FilterStagedFiles:                   "Pokaż tylko pliki w poczekalni",
 		FilterUnstagedFiles:                 "Pokaż tylko pliki poza poczekalnią",
 		ResetCommitFilterState:              "Resetuj filtr commitów",
