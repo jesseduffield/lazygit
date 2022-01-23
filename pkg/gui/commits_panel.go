@@ -462,6 +462,9 @@ func (gui *Gui) handleCommitPick() error {
 }
 
 func (gui *Gui) handleCommitRevert() error {
+	if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
+		return err
+	}
 	commit := gui.getSelectedLocalCommit()
 	return gui.ask(askOpts{
 		title: gui.Tr.Actions.RevertCommit,
@@ -471,9 +474,6 @@ func (gui *Gui) handleCommitRevert() error {
 				"selectedCommit": commit.ShortSha(),
 			}),
 		handleConfirm: func() error {
-			if ok, err := gui.validateNotInFilterMode(); err != nil || !ok {
-				return err
-			}
 
 			if commit.IsMerge() {
 				return gui.createRevertMergeCommitMenu(commit)
@@ -496,16 +496,30 @@ func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
 		if err != nil {
 			return gui.surfaceError(err)
 		}
-
+		parentShortSha := utils.SafeTruncate(parentSha, 8)
 		menuItems[i] = &menuItem{
-			displayString: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
+			displayString: fmt.Sprintf("%s: %s", parentShortSha, message),
 			onPress: func() error {
 				parentNumber := i + 1
 				gui.logAction(gui.Tr.Actions.RevertCommit)
-				if err := gui.Git.Commit.RevertMerge(commit.Sha, parentNumber); err != nil {
-					return gui.surfaceError(err)
-				}
-				return gui.afterRevertCommit()
+				gui.ask(askOpts{
+					title: gui.Tr.SelectParentCommitForMerge,
+					prompt: utils.ResolvePlaceholderString(
+						"Are you sure you want use {{.selectedParentCommit}} as parent commit?",
+						map[string]string{
+							"selectedParentCommit": parentShortSha,
+						}),
+					handleConfirm: func() error {
+						if err := gui.Git.Commit.RevertMerge(commit.Sha, parentNumber); err != nil {
+							return gui.surfaceError(err)
+						}
+						return gui.afterRevertCommit()
+					},
+					handleClose: func() error {
+						return gui.pushContext(gui.State.Contexts.Menu)
+					},
+				})
+				return nil
 			},
 		}
 	}

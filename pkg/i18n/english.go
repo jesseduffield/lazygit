@@ -1028,7 +1028,7 @@ func EnglishTranslationSet() TranslationSet {
 		CantChangeContextSizeError:          "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
 		LcOpenCommitInBrowser:               "open commit in browser",
 		LcViewBisectOptions:                 "view bisect options",
-		ConfirmRevertCommit:                 "Are you sure you want to revert {{.selectedCommit}}? ",
+		ConfirmRevertCommit:                 "Are you sure you want to revert {{.selectedCommit}}?",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
