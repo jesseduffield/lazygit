@@ -25,7 +25,7 @@ import (
 type SuggestionsHelper struct {
 	c *controllers.ControllerCommon
 
-	State                *GuiRepoState
+	getState             func() *GuiRepoState
 	refreshSuggestionsFn func()
 }
 
@@ -33,19 +33,19 @@ var _ controllers.ISuggestionsHelper = &SuggestionsHelper{}
 
 func NewSuggestionsHelper(
 	c *controllers.ControllerCommon,
-	state *GuiRepoState,
+	getState func() *GuiRepoState,
 	refreshSuggestionsFn func(),
 ) *SuggestionsHelper {
 	return &SuggestionsHelper{
 		c:                    c,
-		State:                state,
+		getState:             getState,
 		refreshSuggestionsFn: refreshSuggestionsFn,
 	}
 }
 
 func (self *SuggestionsHelper) getRemoteNames() []string {
-	result := make([]string, len(self.State.Remotes))
-	for i, remote := range self.State.Remotes {
+	result := make([]string, len(self.getState().Remotes))
+	for i, remote := range self.getState().Remotes {
 		result[i] = remote.Name
 	}
 	return result
@@ -69,8 +69,8 @@ func (self *SuggestionsHelper) GetRemoteSuggestionsFunc() func(string) []*types.
 }
 
 func (self *SuggestionsHelper) getBranchNames() []string {
-	result := make([]string, len(self.State.Branches))
-	for i, branch := range self.State.Branches {
+	result := make([]string, len(self.getState().Branches))
+	for i, branch := range self.getState().Branches {
 		result[i] = branch.Name
 	}
 	return result
@@ -123,7 +123,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 				return nil
 			})
 		// cache the trie for future use
-		self.State.FilesTrie = trie
+		self.getState().FilesTrie = trie
 
 		self.refreshSuggestionsFn()
 
@@ -132,7 +132,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 
 	return func(input string) []*types.Suggestion {
 		matchingNames := []string{}
-		_ = self.State.FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
+		_ = self.getState().FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
 			matchingNames = append(matchingNames, item.(string))
 			return nil
 		})
@@ -154,7 +154,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 
 func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
 	result := []string{}
-	for _, remote := range self.State.Remotes {
+	for _, remote := range self.getState().Remotes {
 		for _, branch := range remote.Branches {
 			result = append(result, fmt.Sprintf("%s%s%s", remote.Name, separator, branch.Name))
 		}
@@ -167,8 +167,8 @@ func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string
 }
 
 func (self *SuggestionsHelper) getTagNames() []string {
-	result := make([]string, len(self.State.Tags))
-	for i, tag := range self.State.Tags {
+	result := make([]string, len(self.getState().Tags))
+	for i, tag := range self.getState().Tags {
 		result[i] = tag.Name
 	}
 	return result

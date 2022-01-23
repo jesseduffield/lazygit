@@ -145,7 +145,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 		},
 		Merging: &BasicContext{
 			OnFocus:         OnFocusWrapper(func() error { return gui.renderConflictsWithLock(true) }),
-			Kind:            MAIN_CONTEXT,
+			Kind:            types.MAIN_CONTEXT,
 			ViewName:        "main",
 			Key:             MAIN_MERGING_CONTEXT_KEY,
 			OnGetOptionsMap: gui.getMergingOptions,

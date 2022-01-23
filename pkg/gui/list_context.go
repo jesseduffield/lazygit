@@ -277,6 +277,7 @@ func (self *ListContext) Keybindings(
 		{
 			Key:         getKey(config.Universal.GotoBottom),
 			Description: self.Gui.c.Tr.LcGotoBottom,
+			Handler:     self.HandleGotoBottom,
 			Tag:         "navigation",
 		},
 	}

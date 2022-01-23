@@ -1400,6 +1400,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		gui.Controllers.Bisect,
 		gui.Controllers.Undo,
 		gui.Controllers.Sync,
+		gui.Controllers.Tags,
 	} {
 		context := controller.Context()
 		viewName := ""
@@ -1422,7 +1423,6 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 	for _, listContext := range []types.IListContext{
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
-		gui.State.Contexts.Tags,
 		gui.State.Contexts.ReflogCommits,
 		gui.State.Contexts.SubCommits,
 		gui.State.Contexts.Stash,

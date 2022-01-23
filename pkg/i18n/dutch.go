@@ -33,7 +33,6 @@ func dutchTranslationSet() TranslationSet {
 		LcPush:                              "push",
 		LcPull:                              "pull",
 		LcScroll:                            "scroll",
-		LcCommitFileFilter:                  "Commit dossiers filteren",
 		FilterStagedFiles:                   "Show only staged files",
 		FilterUnstagedFiles:                 "Show only unstaged files",
 		ResetCommitFilterState:              "Reset commit file state filter",

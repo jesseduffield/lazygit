@@ -16,18 +16,18 @@ type RefHelper struct {
 	c   *controllers.ControllerCommon
 	git *commands.GitCommand
 
-	State *GuiRepoState
+	getState func() *GuiRepoState
 }
 
 func NewRefHelper(
 	c *controllers.ControllerCommon,
 	git *commands.GitCommand,
-	state *GuiRepoState,
+	getState func() *GuiRepoState,
 ) *RefHelper {
 	return &RefHelper{
-		c:     c,
-		git:   git,
-		State: state,
+		c:        c,
+		git:      git,
+		getState: getState,
 	}
 }
 
@@ -42,10 +42,10 @@ func (self *RefHelper) CheckoutRef(ref string, options types.CheckoutRefOptions)
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
-		self.State.Panels.Branches.SelectedLineIdx = 0
-		self.State.Panels.Commits.SelectedLineIdx = 0
+		self.getState().Panels.Branches.SelectedLineIdx = 0
+		self.getState().Panels.Commits.SelectedLineIdx = 0
 		// loading a heap of commits is slow so we limit them whenever doing a reset
-		self.State.Panels.Commits.LimitCommits = true
+		self.getState().Panels.Commits.LimitCommits = true
 	}
 
 	return self.c.WithWaitingStatus(waitingStatus, func() error {
@@ -97,12 +97,12 @@ func (self *RefHelper) ResetToRef(ref string, strength string, envVars []string)
 		return self.c.Error(err)
 	}
 
-	self.State.Panels.Commits.SelectedLineIdx = 0
-	self.State.Panels.ReflogCommits.SelectedLineIdx = 0
+	self.getState().Panels.Commits.SelectedLineIdx = 0
+	self.getState().Panels.ReflogCommits.SelectedLineIdx = 0
 	// loading a heap of commits is slow so we limit them whenever doing a reset
-	self.State.Panels.Commits.LimitCommits = true
+	self.getState().Panels.Commits.LimitCommits = true
 
-	if err := self.c.PushContext(self.State.Contexts.BranchCommits); err != nil {
+	if err := self.c.PushContext(self.getState().Contexts.BranchCommits); err != nil {
 		return err
 	}
 

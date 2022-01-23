@@ -10,21 +10,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>pgdown</kbd>: scroll down main panel (fn+down)
   <kbd>m</kbd>: view merge/rebase options
   <kbd>ctrl+p</kbd>: view custom patch options
-  <kbd>P</kbd>: push
-  <kbd>p</kbd>: pull
   <kbd>R</kbd>: refresh
   <kbd>x</kbd>: open menu
-  <kbd>z</kbd>: undo (via reflog) (experimental)
-  <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
-  <kbd>:</kbd>: execute custom command
   <kbd>ctrl+s</kbd>: view filter-by-path options
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
+  <kbd>z</kbd>: undo (via reflog) (experimental)
+  <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
+  <kbd>P</kbd>: push
+  <kbd>p</kbd>: pull
 </pre>
 
 ## List Panel Navigation
@@ -170,20 +169,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>@</kbd>: open command log menu
 </pre>
 
-## Files Panel
-
-<pre>
-  <kbd>ctrl+b</kbd>: Filter commit files
-</pre>
-
 ## Files Panel (Files)
 
 <pre>
+  <kbd>d</kbd>: view 'discard changes' options
+  <kbd>D</kbd>: view reset options
+  <kbd>f</kbd>: fetch
+  <kbd>ctrl+o</kbd>: copy the file name to the clipboard
+  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
+  <kbd>space</kbd>: toggle staged
+  <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
   <kbd>c</kbd>: commit changes
   <kbd>w</kbd>: commit changes without pre-commit hook
   <kbd>A</kbd>: amend last commit
   <kbd>C</kbd>: commit changes using git editor
-  <kbd>d</kbd>: view 'discard changes' options
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
   <kbd>i</kbd>: add to .gitignore
@@ -191,15 +190,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>s</kbd>: stash changes
   <kbd>S</kbd>: view stash options
   <kbd>a</kbd>: stage/unstage all
-  <kbd>D</kbd>: view reset options
   <kbd>enter</kbd>: stage individual hunks/lines for file, or collapse/expand for directory
-  <kbd>f</kbd>: fetch
-  <kbd>ctrl+o</kbd>: copy the file name to the clipboard
+  <kbd>:</kbd>: execute custom command
   <kbd>g</kbd>: view upstream reset options
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
-  <kbd>space</kbd>: toggle staged
 </pre>
 
 ## Files Panel (Submodules)

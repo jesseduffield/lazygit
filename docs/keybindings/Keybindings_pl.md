@@ -10,21 +10,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>pgdown</kbd>: scroll down main panel (fn+down)
   <kbd>m</kbd>: widok scalenia/opcje zmiany bazy
   <kbd>ctrl+p</kbd>: view custom patch options
-  <kbd>P</kbd>: push
-  <kbd>p</kbd>: pull
   <kbd>R</kbd>: odśwież
   <kbd>x</kbd>: open menu
-  <kbd>z</kbd>: undo (via reflog) (experimental)
-  <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
-  <kbd>:</kbd>: wykonaj własną komendę
   <kbd>ctrl+s</kbd>: view filter-by-path options
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
+  <kbd>z</kbd>: undo (via reflog) (experimental)
+  <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
+  <kbd>P</kbd>: push
+  <kbd>p</kbd>: pull
 </pre>
 
 ## List Panel Navigation
@@ -170,20 +169,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>@</kbd>: open command log menu
 </pre>
 
-## Pliki Panel
-
-<pre>
-  <kbd>ctrl+b</kbd>: Filtrowanie commitów
-</pre>
-
 ## Pliki Panel (Pliki)
 
 <pre>
+  <kbd>d</kbd>: pokaż opcje porzucania zmian
+  <kbd>D</kbd>: wyświetl opcje resetu
+  <kbd>f</kbd>: pobierz
+  <kbd>ctrl+o</kbd>: copy the file name to the clipboard
+  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
+  <kbd>space</kbd>: przełącz stan poczekalni
+  <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
   <kbd>c</kbd>: Zatwierdź zmiany
   <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
   <kbd>A</kbd>: Zmień ostatni commit
   <kbd>C</kbd>: Zatwierdź zmiany używając edytora
-  <kbd>d</kbd>: pokaż opcje porzucania zmian
   <kbd>e</kbd>: edytuj plik
   <kbd>o</kbd>: otwórz plik
   <kbd>i</kbd>: dodaj do .gitignore
@@ -191,15 +190,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>s</kbd>: przechowaj zmiany
   <kbd>S</kbd>: wyświetl opcje schowka
   <kbd>a</kbd>: przełącz stan poczekalni wszystkich
-  <kbd>D</kbd>: wyświetl opcje resetu
   <kbd>enter</kbd>: zatwierdź pojedyncze linie
-  <kbd>f</kbd>: pobierz
-  <kbd>ctrl+o</kbd>: copy the file name to the clipboard
+  <kbd>:</kbd>: wykonaj własną komendę
   <kbd>g</kbd>: view upstream reset options
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
-  <kbd>space</kbd>: przełącz stan poczekalni
 </pre>
 
 ## Pliki Panel (Submodules)

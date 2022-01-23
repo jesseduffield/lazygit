@@ -6,17 +6,17 @@ import (
 )
 
 type WorkingTreeHelper struct {
-	fileTreeViewModel *filetree.FileTreeViewModel
+	getFileTreeViewModel func() *filetree.FileTreeViewModel
 }
 
-func NewWorkingTreeHelper(fileTreeViewModel *filetree.FileTreeViewModel) *WorkingTreeHelper {
+func NewWorkingTreeHelper(getFileTreeViewModel func() *filetree.FileTreeViewModel) *WorkingTreeHelper {
 	return &WorkingTreeHelper{
-		fileTreeViewModel: fileTreeViewModel,
+		getFileTreeViewModel: getFileTreeViewModel,
 	}
 }
 
 func (self *WorkingTreeHelper) AnyStagedFiles() bool {
-	files := self.fileTreeViewModel.GetAllFiles()
+	files := self.getFileTreeViewModel().GetAllFiles()
 	for _, file := range files {
 		if file.HasStagedChanges {
 			return true
@@ -26,7 +26,7 @@ func (self *WorkingTreeHelper) AnyStagedFiles() bool {
 }
 
 func (self *WorkingTreeHelper) AnyTrackedFiles() bool {
-	files := self.fileTreeViewModel.GetAllFiles()
+	files := self.getFileTreeViewModel().GetAllFiles()
 	for _, file := range files {
 		if file.Tracked {
 			return true
@@ -40,7 +40,7 @@ func (self *WorkingTreeHelper) IsWorkingTreeDirty() bool {
 }
 
 func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfig) *models.File {
-	for _, file := range self.fileTreeViewModel.GetAllFiles() {
+	for _, file := range self.getFileTreeViewModel().GetAllFiles() {
 		if file.IsSubmodule([]*models.SubmoduleConfig{submodule}) {
 			return file
 		}

@@ -14,7 +14,6 @@ require (
 	github.com/gdamore/tcell/v2 v2.4.1-0.20220313203054-2a1a1b586447 // indirect
 	github.com/go-errors/errors v1.4.1
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
-	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gookit/color v1.4.2
@@ -45,6 +44,5 @@ require (
 	golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
-	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
 )
