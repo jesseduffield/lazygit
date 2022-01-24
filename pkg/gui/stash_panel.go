@@ -51,10 +51,12 @@ func (gui *Gui) handleStashApply() error {
 
 	apply := func() error {
 		gui.logAction(gui.Tr.Actions.Stash)
-		if err := gui.Git.Stash.Apply(stashEntry.Index); err != nil {
+		err := gui.Git.Stash.Apply(stashEntry.Index)
+		_ = gui.postStashRefresh()
+		if err != nil {
 			return gui.surfaceError(err)
 		}
-		return gui.postStashRefresh()
+		return nil
 	}
 
 	if skipStashWarning {
@@ -80,10 +82,12 @@ func (gui *Gui) handleStashPop() error {
 
 	pop := func() error {
 		gui.logAction(gui.Tr.Actions.Stash)
-		if err := gui.Git.Stash.Pop(stashEntry.Index); err != nil {
+		err := gui.Git.Stash.Pop(stashEntry.Index)
+		_ = gui.postStashRefresh()
+		if err != nil {
 			return gui.surfaceError(err)
 		}
-		return gui.postStashRefresh()
+		return nil
 	}
 
 	if skipStashWarning {
@@ -110,10 +114,12 @@ func (gui *Gui) handleStashDrop() error {
 		prompt: gui.Tr.SureDropStashEntry,
 		handleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.Stash)
-			if err := gui.Git.Stash.Drop(stashEntry.Index); err != nil {
+			err := gui.Git.Stash.Drop(stashEntry.Index)
+			_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH}})
+			if err != nil {
 				return gui.surfaceError(err)
 			}
-			return gui.postStashRefresh()
+			return nil
 		},
 	})
 }
@@ -130,10 +136,12 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.StashChanges,
 		handleConfirm: func(stashComment string) error {
-			if err := stashFunc(stashComment); err != nil {
+			err := stashFunc(stashComment)
+			_ = gui.postStashRefresh()
+			if err != nil {
 				return gui.surfaceError(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})
+			return nil
 		},
 	})
 }
