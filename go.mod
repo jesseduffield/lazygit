@@ -11,6 +11,7 @@ require (
 	github.com/creack/pty v1.1.11
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
+	github.com/gdamore/tcell/v2 v2.4.1-0.20210926162909-66f061b1fc9b // indirect
 	github.com/go-errors/errors v1.4.1
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
 	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
