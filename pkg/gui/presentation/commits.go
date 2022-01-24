@@ -50,10 +50,9 @@ func GetCommitListDisplayStrings(
 		return nil
 	}
 
-	// this is where my non-TODO commits begin
-	rebaseOffset := indexOfFirstNonTODOCommit(commits)
-
 	end := utils.Min(startIdx+length, len(commits))
+	// this is where my non-TODO commits begin
+	rebaseOffset := utils.Min(indexOfFirstNonTODOCommit(commits), end)
 
 	filteredCommits := commits[startIdx:end]
 

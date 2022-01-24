@@ -34,6 +34,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		showGraph                bool
 		bisectInfo               *git_commands.BisectInfo
 		expected                 string
+		focus                    bool
 	}{
 		{
 			testName:   "no commits",
@@ -174,28 +175,55 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			sha5 ◯ commit5
 				`),
 		},
+		{
+			testName: "only TODO commits except last",
+			commits: []*models.Commit{
+				{Name: "commit1", Sha: "sha1", Parents: []string{"sha2", "sha3"}, Action: "pick"},
+				{Name: "commit2", Sha: "sha2", Parents: []string{"sha3"}, Action: "pick"},
+				{Name: "commit3", Sha: "sha3", Parents: []string{"sha4"}, Action: "pick"},
+				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}, Action: "pick"},
+				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
+			},
+			startIdx:   0,
+			length:     2,
+			showGraph:  true,
+			bisectInfo: git_commands.NewNullBisectInfo(),
+			expected: formatExpected(`
+			sha1 pick  commit1
+			sha2 pick  commit2
+				`),
+		},
+	}
+
+	focusing := false
+	for _, scenario := range scenarios {
+		if scenario.focus {
+			focusing = true
+		}
 	}
 
 	for _, s := range scenarios {
 		s := s
-		t.Run(s.testName, func(t *testing.T) {
-			result := GetCommitListDisplayStrings(
-				s.commits,
-				s.fullDescription,
-				s.cherryPickedCommitShaMap,
-				s.diffName,
-				s.parseEmoji,
-				s.selectedCommitSha,
-				s.startIdx,
-				s.length,
-				s.showGraph,
-				s.bisectInfo,
-			)
+		if !focusing || s.focus {
+			t.Run(s.testName, func(t *testing.T) {
+				result := GetCommitListDisplayStrings(
+					s.commits,
+					s.fullDescription,
+					s.cherryPickedCommitShaMap,
+					s.diffName,
+					s.parseEmoji,
+					s.selectedCommitSha,
+					s.startIdx,
+					s.length,
+					s.showGraph,
+					s.bisectInfo,
+				)
 
-			renderedResult := utils.RenderDisplayStrings(result)
-			t.Logf("\n%s", renderedResult)
+				renderedResult := utils.RenderDisplayStrings(result)
+				t.Logf("\n%s", renderedResult)
 
-			assert.EqualValues(t, s.expected, renderedResult)
-		})
+				assert.EqualValues(t, s.expected, renderedResult)
+			})
+		}
 	}
 }
