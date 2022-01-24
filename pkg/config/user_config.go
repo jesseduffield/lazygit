@@ -327,7 +327,7 @@ func GetDefaultConfig() *UserConfig {
 			ScrollPastBottom:       true,
 			MouseEvents:            true,
 			SkipUnstageLineWarning: false,
-			SkipStashWarning:       true,
+			SkipStashWarning:       false,
 			SidePanelWidth:         0.3333,
 			ExpandFocusedSidePanel: false,
 			MainPanelSplitMode:     "flexible",

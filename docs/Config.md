@@ -44,7 +44,7 @@ gui:
     show: true
   mouseEvents: true
   skipUnstageLineWarning: false
-  skipStashWarning: true
+  skipStashWarning: false
   showFileTree: true # for rendering changes files in a tree format
   showListFooter: true # for seeing the '5 of 20' message in list panels
   showRandomTip: true
