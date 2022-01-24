@@ -466,26 +466,25 @@ func (gui *Gui) handleCommitRevert() error {
 		return err
 	}
 	commit := gui.getSelectedLocalCommit()
-	return gui.ask(askOpts{
-		title: gui.Tr.Actions.RevertCommit,
-		prompt: utils.ResolvePlaceholderString(
-			gui.Tr.ConfirmRevertCommit,
-			map[string]string{
-				"selectedCommit": commit.ShortSha(),
-			}),
-		handleConfirm: func() error {
-
-			if commit.IsMerge() {
-				return gui.createRevertMergeCommitMenu(commit)
-			} else {
+	if commit.IsMerge() {
+		return gui.createRevertMergeCommitMenu(commit)
+	} else {
+		return gui.ask(askOpts{
+			title: gui.Tr.Actions.RevertCommit,
+			prompt: utils.ResolvePlaceholderString(
+				gui.Tr.ConfirmRevertCommit,
+				map[string]string{
+					"selectedCommit": commit.ShortSha(),
+				}),
+			handleConfirm: func() error {
 				gui.logAction(gui.Tr.Actions.RevertCommit)
 				if err := gui.Git.Commit.Revert(commit.Sha); err != nil {
 					return gui.surfaceError(err)
 				}
 				return gui.afterRevertCommit()
-			}
-		},
-	})
+			},
+		})
+	}
 }
 
 func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
@@ -496,30 +495,16 @@ func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
 		if err != nil {
 			return gui.surfaceError(err)
 		}
-		parentShortSha := utils.SafeTruncate(parentSha, 8)
+		
 		menuItems[i] = &menuItem{
-			displayString: fmt.Sprintf("%s: %s", parentShortSha, message),
+			displayString: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
 			onPress: func() error {
 				parentNumber := i + 1
 				gui.logAction(gui.Tr.Actions.RevertCommit)
-				gui.ask(askOpts{
-					title: gui.Tr.SelectParentCommitForMerge,
-					prompt: utils.ResolvePlaceholderString(
-						"Are you sure you want use {{.selectedParentCommit}} as parent commit?",
-						map[string]string{
-							"selectedParentCommit": parentShortSha,
-						}),
-					handleConfirm: func() error {
-						if err := gui.Git.Commit.RevertMerge(commit.Sha, parentNumber); err != nil {
-							return gui.surfaceError(err)
-						}
-						return gui.afterRevertCommit()
-					},
-					handleClose: func() error {
-						return gui.pushContext(gui.State.Contexts.Menu)
-					},
-				})
-				return nil
+				if err := gui.Git.Commit.RevertMerge(commit.Sha, parentNumber); err != nil {
+					return gui.surfaceError(err)
+				}
+				return gui.afterRevertCommit()
 			},
 		}
 	}
