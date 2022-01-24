@@ -33,7 +33,8 @@ github.com/fatih/color
 github.com/fsnotify/fsnotify
 # github.com/gdamore/encoding v1.0.0
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.4.0
+# github.com/gdamore/tcell/v2 v2.4.1-0.20210926162909-66f061b1fc9b
+## explicit
 github.com/gdamore/tcell/v2
 github.com/gdamore/tcell/v2/terminfo
 github.com/gdamore/tcell/v2/terminfo/a/aixterm
