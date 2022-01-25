@@ -495,7 +495,7 @@ func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
 		if err != nil {
 			return gui.surfaceError(err)
 		}
-		
+
 		menuItems[i] = &menuItem{
 			displayString: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
 			onPress: func() error {
