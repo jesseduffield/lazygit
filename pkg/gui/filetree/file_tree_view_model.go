@@ -86,6 +86,16 @@ func (self *FileTreeViewModel) GetItemAtIndex(index int) *FileNode {
 	return self.tree.GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
 }
 
+func (self *FileTreeViewModel) GetFile(path string) *models.File {
+	for _, file := range self.files {
+		if file.Name == path {
+			return file
+		}
+	}
+
+	return nil
+}
+
 func (self *FileTreeViewModel) GetIndexForPath(path string) (int, bool) {
 	index, found := self.tree.GetIndexForPath(path, self.collapsedPaths)
 	return index - 1, found

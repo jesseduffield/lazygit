@@ -8,8 +8,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -54,8 +56,18 @@ func (gui *Gui) filesRenderToMain() error {
 	}
 
 	if node.File != nil && node.File.HasInlineMergeConflicts {
-		return gui.renderConflictsFromFilesPanel()
+		hasConflicts, err := gui.setMergeState(node.File.Name)
+		if err != nil {
+			return err
+		}
+
+		// if we don't have conflicts we'll fall through and show the diff
+		if hasConflicts {
+			return gui.renderConflicts(false)
+		}
 	}
+
+	gui.resetMergeState()
 
 	cmdObj := gui.Git.WorkingTree.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges(), gui.State.IgnoreWhitespaceInDiffView)
 
@@ -88,11 +100,16 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 		gui.Mutexes.RefreshingFilesMutex.Unlock()
 	}()
 
-	selectedPath := gui.getSelectedPath()
+	prevSelectedPath := gui.getSelectedPath()
 
 	if err := gui.refreshStateSubmoduleConfigs(); err != nil {
 		return err
 	}
+
+	if err := gui.refreshMergeState(); err != nil {
+		return err
+	}
+
 	if err := gui.refreshStateFiles(); err != nil {
 		return err
 	}
@@ -109,9 +126,9 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 			}
 		}
 
-		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY || (gui.g.CurrentView() == gui.Views.Main && ContextKey(gui.g.CurrentView().Context) == MAIN_MERGING_CONTEXT_KEY) {
-			newSelectedPath := gui.getSelectedPath()
-			alreadySelected := selectedPath != "" && newSelectedPath == selectedPath
+		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY {
+			currentSelectedPath := gui.getSelectedPath()
+			alreadySelected := prevSelectedPath != "" && currentSelectedPath == prevSelectedPath
 			if !alreadySelected {
 				gui.takeOverMergeConflictScrolling()
 			}
@@ -122,6 +139,28 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 
 		return nil
 	})
+
+	return nil
+}
+
+func (gui *Gui) refreshMergeState() error {
+	gui.State.Panels.Merging.Lock()
+	defer gui.State.Panels.Merging.Unlock()
+
+	if gui.currentContext().GetKey() != MAIN_MERGING_CONTEXT_KEY {
+		return nil
+	}
+
+	hasConflicts, err := gui.setMergeState(gui.State.Panels.Merging.GetPath())
+	if err != nil {
+		return gui.surfaceError(err)
+	}
+	if hasConflicts {
+		_ = gui.renderConflicts(true)
+	} else {
+		_ = gui.escapeMerge()
+		return nil
+	}
 
 	return nil
 }
@@ -148,15 +187,6 @@ func (gui *Gui) trackedFiles() []*models.File {
 		}
 	}
 	return result
-}
-
-func (gui *Gui) stageSelectedFile() error {
-	file := gui.getSelectedFile()
-	if file == nil {
-		return nil
-	}
-
-	return gui.Git.WorkingTree.StageFile(file.Name)
 }
 
 func (gui *Gui) handleEnterFile() error {
@@ -558,8 +588,49 @@ func (gui *Gui) refreshStateFiles() error {
 	prevNodes := gui.State.FileTreeViewModel.GetAllItems()
 	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
 
+	// If git thinks any of our files have inline merge conflicts, but they actually don't,
+	// we stage them.
+	// Note that if files with merge conflicts have both arisen and have been resolved
+	// between refreshes, we won't stage them here. This is super unlikely though,
+	// and this approach spares us from having to call `git status` twice in a row.
+	// Although this also means that at startup we won't be staging anything until
+	// we call git status again.
+	pathsToStage := []string{}
+	prevConflictFileCount := 0
+	for _, file := range state.FileTreeViewModel.GetAllFiles() {
+		if file.HasMergeConflicts {
+			prevConflictFileCount++
+		}
+		if file.HasInlineMergeConflicts {
+			hasConflicts, err := mergeconflicts.FileHasConflictMarkers(file.Name)
+			if err != nil {
+				gui.Log.Error(err)
+			} else if !hasConflicts {
+				pathsToStage = append(pathsToStage, file.Name)
+			}
+		}
+	}
+
+	if len(pathsToStage) > 0 {
+		gui.logAction(gui.Tr.Actions.StageResolvedFiles)
+		if err := gui.Git.WorkingTree.StageFiles(pathsToStage); err != nil {
+			return gui.surfaceError(err)
+		}
+	}
+
 	files := gui.Git.Loaders.Files.
 		GetStatusFiles(loaders.GetStatusFileOptions{})
+
+	conflictFileCount := 0
+	for _, file := range files {
+		if file.HasMergeConflicts {
+			conflictFileCount++
+		}
+	}
+
+	if gui.Git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE && conflictFileCount == 0 && prevConflictFileCount > 0 {
+		gui.OnUIThread(func() error { return gui.promptToContinueRebase() })
+	}
 
 	// for when you stage the old file of a rename and the new file is in a collapsed dir
 	state.FileTreeViewModel.RWMutex.Lock()
@@ -600,6 +671,19 @@ func (gui *Gui) refreshStateFiles() error {
 
 	gui.refreshSelectedLine(state.Panels.Files, state.FileTreeViewModel.GetItemsLength())
 	return nil
+}
+
+// promptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
+func (gui *Gui) promptToContinueRebase() error {
+	gui.takeOverMergeConflictScrolling()
+
+	return gui.ask(askOpts{
+		title:  "continue",
+		prompt: gui.Tr.ConflictsResolved,
+		handleConfirm: func() error {
+			return gui.genericMergeCommand(REBASE_OPTION_CONTINUE)
+		},
+	})
 }
 
 // Let's try to find our file again and move the cursor to that.
@@ -859,6 +943,18 @@ func (gui *Gui) switchToMerge() error {
 		return nil
 	}
 
+	gui.takeOverMergeConflictScrolling()
+
+	if gui.State.Panels.Merging.GetPath() != file.Name {
+		hasConflicts, err := gui.setMergeState(file.Name)
+		if err != nil {
+			return err
+		}
+		if !hasConflicts {
+			return nil
+		}
+	}
+
 	return gui.pushContext(gui.State.Contexts.Merging)
 }
 
@@ -868,15 +964,6 @@ func (gui *Gui) openFile(filename string) error {
 		return gui.surfaceError(err)
 	}
 	return nil
-}
-
-func (gui *Gui) anyFilesWithMergeConflicts() bool {
-	for _, file := range gui.State.FileTreeViewModel.GetAllFiles() {
-		if file.HasMergeConflicts {
-			return true
-		}
-	}
-	return false
 }
 
 func (gui *Gui) handleCustomCommand() error {

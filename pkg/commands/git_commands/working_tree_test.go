@@ -23,6 +23,16 @@ func TestWorkingTreeStageFile(t *testing.T) {
 	runner.CheckForMissingCalls()
 }
 
+func TestWorkingTreeStageFiles(t *testing.T) {
+	runner := oscommands.NewFakeRunner(t).
+		Expect(`git add -- "test.txt" "test2.txt"`, "", nil)
+
+	instance := buildWorkingTreeCommands(commonDeps{runner: runner})
+
+	assert.NoError(t, instance.StageFiles([]string{"test.txt", "test2.txt"}))
+	runner.CheckForMissingCalls()
+}
+
 func TestWorkingTreeUnstageFile(t *testing.T) {
 	type scenario struct {
 		testName string

@@ -1543,20 +1543,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
-			Key:      gocui.MouseWheelUp,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectPrevConflictHunk,
-		},
-		{
-			ViewName: "main",
-			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
-			Key:      gocui.MouseWheelDown,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectNextConflictHunk,
-		},
-		{
-			ViewName: "main",
-			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:      gui.getKey(config.Universal.PrevBlockAlt),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleSelectPrevConflict,
@@ -1586,7 +1572,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.Undo),
-			Handler:     gui.handlePopFileSnapshot,
+			Handler:     gui.handleMergeConflictUndo,
 			Description: gui.Tr.LcUndo,
 		},
 		{

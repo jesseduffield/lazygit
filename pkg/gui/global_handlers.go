@@ -115,7 +115,7 @@ func (gui *Gui) linesToScrollDown(view *gocui.View) int {
 }
 
 func (gui *Gui) scrollUpMain() error {
-	if gui.canScrollMergePanel() {
+	if gui.renderingConflicts() {
 		gui.State.Panels.Merging.UserVerticalScrolling = true
 	}
 
@@ -123,7 +123,7 @@ func (gui *Gui) scrollUpMain() error {
 }
 
 func (gui *Gui) scrollDownMain() error {
-	if gui.canScrollMergePanel() {
+	if gui.renderingConflicts() {
 		gui.State.Panels.Merging.UserVerticalScrolling = true
 	}
 

@@ -1,0 +1,5 @@
+disableStartupPopups: true
+gui:
+  showFileTree: false
+refresher:
+  refreshInterval: 1

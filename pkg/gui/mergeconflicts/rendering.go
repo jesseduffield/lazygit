@@ -8,7 +8,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func ColoredConflictFile(content string, state *State, hasFocus bool) string {
+func ColoredConflictFile(state *State, hasFocus bool) string {
+	content := state.GetContent()
 	if len(state.conflicts) == 0 {
 		return content
 	}
