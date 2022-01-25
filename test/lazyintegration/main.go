@@ -156,6 +156,20 @@ func main() {
 		log.Panicln(err)
 	}
 
+	if err := g.SetKeybinding("list", nil, 't', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true SPEED=1 go run test/runner/main.go %s", currentTest.Name))
+		app.runSubprocess(cmd)
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
 	if err := g.SetKeybinding("list", nil, 'o', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
@@ -361,7 +375,7 @@ func (app *App) layout(g *gocui.Gui) error {
 		keybindingsView.Title = "Keybindings"
 		keybindingsView.Wrap = true
 		keybindingsView.FgColor = gocui.ColorDefault
-		fmt.Fprintln(keybindingsView, "up/down: navigate, enter: run test, u: run test and update snapshots, r: record test, s: sandbox, o: open test config, n: duplicate test, m: rename test, d: delete test")
+		fmt.Fprintln(keybindingsView, "up/down: navigate, enter: run test, u: run test and update snapshots, r: record test, s: sandbox, o: open test config, n: duplicate test, m: rename test, d: delete test, t: run test at original speed")
 	}
 
 	editorView, err := g.SetViewBeneath("editor", "keybindings", editorViewHeight)
