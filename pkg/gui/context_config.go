@@ -167,7 +167,7 @@ func (gui *Gui) contextTree() ContextTree {
 			Key:      MAIN_PATCH_BUILDING_CONTEXT_KEY,
 		},
 		Merging: &BasicContext{
-			OnFocus:         OnFocusWrapper(gui.refreshMergePanelWithLock),
+			OnFocus:         OnFocusWrapper(gui.renderConflictsWithFocus),
 			Kind:            MAIN_CONTEXT,
 			ViewName:        "main",
 			Key:             MAIN_MERGING_CONTEXT_KEY,

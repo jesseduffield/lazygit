@@ -3,12 +3,18 @@ package mergeconflicts
 import (
 	"sync"
 
-	"github.com/golang-collections/collections/stack"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type State struct {
 	sync.Mutex
+
+	// path of the file with the conflicts
+	path string
+
+	// This is a stack of the file content. It is used to undo changes.
+	// The last item is the current file content.
+	contents []string
 
 	conflicts []*mergeConflict
 	// this is the index of the above `conflicts` field which is currently selected
@@ -17,9 +23,6 @@ type State struct {
 	// this is the index of the selected conflict's available selections slice e.g. [TOP, MIDDLE, BOTTOM]
 	// We use this to know which hunk of the conflict is selected.
 	selectionIndex int
-
-	// this allows us to undo actions
-	EditHistory *stack.Stack
 }
 
 func NewState() *State {
@@ -28,7 +31,7 @@ func NewState() *State {
 		conflictIndex:  0,
 		selectionIndex: 0,
 		conflicts:      []*mergeConflict{},
-		EditHistory:    stack.New(),
+		contents:       []string{},
 	}
 }
 
@@ -63,18 +66,6 @@ func (s *State) SelectPrevConflict() {
 	s.setConflictIndex(s.conflictIndex - 1)
 }
 
-func (s *State) PushFileSnapshot(content string) {
-	s.EditHistory.Push(content)
-}
-
-func (s *State) PopFileSnapshot() (string, bool) {
-	if s.EditHistory.Len() == 0 {
-		return "", false
-	}
-
-	return s.EditHistory.Pop().(string), true
-}
-
 func (s *State) currentConflict() *mergeConflict {
 	if len(s.conflicts) == 0 {
 		return nil
@@ -83,8 +74,48 @@ func (s *State) currentConflict() *mergeConflict {
 	return s.conflicts[s.conflictIndex]
 }
 
-func (s *State) SetConflictsFromCat(cat string) {
-	s.setConflicts(findConflicts(cat))
+// this is for starting a new merge conflict session
+func (s *State) SetContent(content string, path string) {
+	if content == s.GetContent() && path == s.path {
+		return
+	}
+
+	s.path = path
+	s.contents = []string{}
+	s.PushContent(content)
+}
+
+// this is for when you've resolved a conflict. This allows you to undo to a previous
+// state
+func (s *State) PushContent(content string) {
+	s.contents = append(s.contents, content)
+	s.setConflicts(findConflicts(content))
+}
+
+func (s *State) GetContent() string {
+	if len(s.contents) == 0 {
+		return ""
+	}
+
+	return s.contents[len(s.contents)-1]
+}
+
+func (s *State) GetPath() string {
+	return s.path
+}
+
+func (s *State) Undo() bool {
+	if len(s.contents) <= 1 {
+		return false
+	}
+
+	s.contents = s.contents[:len(s.contents)-1]
+
+	newContent := s.GetContent()
+	// We could be storing the old conflicts and selected index on a stack too.
+	s.setConflicts(findConflicts(newContent))
+
+	return true
 }
 
 func (s *State) setConflicts(conflicts []*mergeConflict) {
@@ -110,29 +141,31 @@ func (s *State) availableSelections() []Selection {
 	return nil
 }
 
-func (s *State) IsFinalConflict() bool {
-	return len(s.conflicts) == 1
+func (s *State) AllConflictsResolved() bool {
+	return len(s.conflicts) == 0
 }
 
 func (s *State) Reset() {
-	s.EditHistory = stack.New()
+	s.contents = []string{}
+	s.path = ""
+}
+
+func (s *State) Active() bool {
+	return s.path != ""
 }
 
 func (s *State) GetConflictMiddle() int {
 	return s.currentConflict().target
 }
 
-func (s *State) ContentAfterConflictResolve(
-	path string,
-	selection Selection,
-) (bool, string, error) {
+func (s *State) ContentAfterConflictResolve(selection Selection) (bool, string, error) {
 	conflict := s.currentConflict()
 	if conflict == nil {
 		return false, "", nil
 	}
 
 	content := ""
-	err := utils.ForEachLineInFile(path, func(line string, i int) {
+	err := utils.ForEachLineInFile(s.path, func(line string, i int) {
 		if selection.isIndexToKeep(conflict, i) {
 			content += line
 		}

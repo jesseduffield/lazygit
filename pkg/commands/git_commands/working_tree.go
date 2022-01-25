@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -40,8 +41,16 @@ func (self *WorkingTreeCommands) OpenMergeTool() error {
 }
 
 // StageFile stages a file
-func (self *WorkingTreeCommands) StageFile(fileName string) error {
-	return self.cmd.New("git add -- " + self.cmd.Quote(fileName)).Run()
+func (self *WorkingTreeCommands) StageFile(path string) error {
+	return self.StageFiles([]string{path})
+}
+
+func (self *WorkingTreeCommands) StageFiles(paths []string) error {
+	quotedPaths := make([]string, len(paths))
+	for i, path := range paths {
+		quotedPaths[i] = self.cmd.Quote(path)
+	}
+	return self.cmd.New(fmt.Sprintf("git add -- %s", strings.Join(quotedPaths, " "))).Run()
 }
 
 // StageAll stages all files

@@ -1,6 +1,10 @@
 package mergeconflicts
 
 import (
+	"bufio"
+	"bytes"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -53,19 +57,59 @@ func findConflicts(content string) []*mergeConflict {
 	return conflicts
 }
 
+var CONFLICT_START = "<<<<<<< "
+var CONFLICT_END = ">>>>>>> "
+var CONFLICT_START_BYTES = []byte(CONFLICT_START)
+var CONFLICT_END_BYTES = []byte(CONFLICT_END)
+
 func determineLineType(line string) LineType {
+	// TODO: find out whether we ever actually get this prefix
 	trimmedLine := strings.TrimPrefix(line, "++")
 
 	switch {
-	case strings.HasPrefix(trimmedLine, "<<<<<<< "):
+	case strings.HasPrefix(trimmedLine, CONFLICT_START):
 		return START
 	case strings.HasPrefix(trimmedLine, "||||||| "):
 		return ANCESTOR
 	case trimmedLine == "=======":
 		return TARGET
-	case strings.HasPrefix(trimmedLine, ">>>>>>> "):
+	case strings.HasPrefix(trimmedLine, CONFLICT_END):
 		return END
 	default:
 		return NOT_A_MARKER
 	}
+}
+
+// tells us whether a file actually has inline merge conflicts. We need to run this
+// because git will continue showing a status of 'UU' even after the conflicts have
+// been resolved in the user's editor
+func FileHasConflictMarkers(path string) (bool, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return false, err
+	}
+
+	defer file.Close()
+
+	return fileHasConflictMarkersAux(file), nil
+}
+
+// Efficiently scans through a file looking for merge conflict markers. Returns true if it does
+func fileHasConflictMarkersAux(file io.Reader) bool {
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		line := scanner.Bytes()
+
+		// only searching for start/end markers because the others are more ambiguous
+		if bytes.HasPrefix(line, CONFLICT_START_BYTES) {
+			return true
+		}
+
+		if bytes.HasPrefix(line, CONFLICT_END_BYTES) {
+			return true
+		}
+	}
+
+	return false
 }

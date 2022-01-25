@@ -507,6 +507,7 @@ type Actions struct {
 	DiscardAllChangesInFile           string
 	DiscardAllUnstagedChangesInFile   string
 	StageFile                         string
+	StageResolvedFiles                string
 	UnstageFile                       string
 	UnstageAllFiles                   string
 	StageAllFiles                     string
@@ -1064,6 +1065,7 @@ func EnglishTranslationSet() TranslationSet {
 			DiscardAllChangesInFile:           "Discard all changes in file",
 			DiscardAllUnstagedChangesInFile:   "Discard all unstaged changes in file",
 			StageFile:                         "Stage file",
+			StageResolvedFiles:                "Stage files whose merge conflicts were resolved",
 			UnstageFile:                       "Unstage file",
 			UnstageAllFiles:                   "Unstage all files",
 			StageAllFiles:                     "Stage all files",

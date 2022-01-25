@@ -292,10 +292,11 @@ type guiState struct {
 	// managers for them which handle rendering a flat list of files in tree form
 	FileTreeViewModel       *filetree.FileTreeViewModel
 	CommitFileTreeViewModel *filetree.CommitFileTreeViewModel
-	Submodules              []*models.SubmoduleConfig
-	Branches                []*models.Branch
-	Commits                 []*models.Commit
-	StashEntries            []*models.StashEntry
+
+	Submodules   []*models.SubmoduleConfig
+	Branches     []*models.Branch
+	Commits      []*models.Commit
+	StashEntries []*models.StashEntry
 	// Suggestions will sometimes appear when typing into a prompt
 	Suggestions []*types.Suggestion
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
@@ -304,13 +305,14 @@ type guiState struct {
 	// ReflogCommits are the ones used by the branches panel to obtain recency values
 	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
 	// one and the same
-	ReflogCommits     []*models.Commit
-	SubCommits        []*models.Commit
-	Remotes           []*models.Remote
-	RemoteBranches    []*models.RemoteBranch
-	Tags              []*models.Tag
-	MenuItems         []*menuItem
-	BisectInfo        *git_commands.BisectInfo
+	ReflogCommits  []*models.Commit
+	SubCommits     []*models.Commit
+	Remotes        []*models.Remote
+	RemoteBranches []*models.RemoteBranch
+	Tags           []*models.Tag
+	MenuItems      []*menuItem
+	BisectInfo     *git_commands.BisectInfo
+
 	Updating          bool
 	Panels            *panelStates
 	SplitMainPanel    bool

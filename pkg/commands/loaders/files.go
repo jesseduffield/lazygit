@@ -59,8 +59,8 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 		unstagedChange := change[1:2]
 		untracked := utils.IncludesString([]string{"??", "A ", "AM"}, change)
 		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
-		hasMergeConflicts := utils.IncludesString([]string{"DD", "AA", "UU", "AU", "UA", "UD", "DU"}, change)
 		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
+		hasMergeConflicts := hasInlineMergeConflicts || utils.IncludesString([]string{"DD", "AU", "UA", "UD", "DU"}, change)
 
 		file := &models.File{
 			Name:                    status.Name,
