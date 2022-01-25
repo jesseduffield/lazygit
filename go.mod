@@ -36,6 +36,7 @@ require (
 	github.com/onsi/gomega v1.7.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/sahilm/fuzzy v0.1.0
+	github.com/sanity-io/litter v1.5.2
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stretchr/testify v1.7.0

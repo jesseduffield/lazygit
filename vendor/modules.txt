@@ -214,6 +214,9 @@ github.com/rivo/uniseg
 # github.com/sahilm/fuzzy v0.1.0
 ## explicit
 github.com/sahilm/fuzzy
+# github.com/sanity-io/litter v1.5.2
+## explicit
+github.com/sanity-io/litter
 # github.com/sergi/go-diff v1.1.0
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/sirupsen/logrus v1.4.2

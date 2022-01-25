@@ -41,7 +41,7 @@ d8084cd558925eb7c9c38afeed5725c21653ab90|1640821426|Jesse Duffield||65f910ebd852
 func TestGetCommits(t *testing.T) {
 	type scenario struct {
 		testName          string
-		runner            oscommands.ICmdObjRunner
+		runner            *oscommands.FakeCmdObjRunner
 		expectedCommits   []*models.Commit
 		expectedError     error
 		rebaseMode        enums.RebaseMode
@@ -208,6 +208,8 @@ func TestGetCommits(t *testing.T) {
 
 			assert.Equal(t, scenario.expectedCommits, commits)
 			assert.Equal(t, scenario.expectedError, err)
+
+			scenario.runner.CheckForMissingCalls()
 		})
 	}
 }

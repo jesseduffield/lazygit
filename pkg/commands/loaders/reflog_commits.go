@@ -32,7 +32,7 @@ func (self *ReflogCommitLoader) GetReflogCommits(lastReflogCommit *models.Commit
 		filterPathArg = fmt.Sprintf(" --follow -- %s", self.cmd.Quote(filterPath))
 	}
 
-	cmdObj := self.cmd.New(fmt.Sprintf(`git log -g --abbrev=20 --format="%%h %%ct %%gs" %s`, filterPathArg)).DontLog()
+	cmdObj := self.cmd.New(fmt.Sprintf(`git log -g --abbrev=20 --format="%%h %%ct %%gs"%s`, filterPathArg)).DontLog()
 	onlyObtainedNewReflogCommits := false
 	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
 		fields := strings.SplitN(line, " ", 3)
@@ -49,7 +49,11 @@ func (self *ReflogCommitLoader) GetReflogCommits(lastReflogCommit *models.Commit
 			Status:        "reflog",
 		}
 
-		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp {
+		// note that the unix timestamp here is the timestamp of the COMMIT, not the reflog entry itself,
+		// so two consequetive reflog entries may have both the same SHA and therefore same timestamp.
+		// We use the reflog message to disambiguate, and fingers crossed that we never see the same of those
+		// twice in a row. Reason being that it would mean we'd be erroneously exiting early.
+		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp && commit.Name == lastReflogCommit.Name {
 			onlyObtainedNewReflogCommits = true
 			// after this point we already have these reflogs loaded so we'll simply return the new ones
 			return true, nil
