@@ -22,13 +22,10 @@ type pipeSetCacheKey struct {
 var pipeSetCache = make(map[pipeSetCacheKey][][]*graph.Pipe)
 var mutex sync.Mutex
 
-type BisectProgress int
-
-const (
-	BeforeNewCommit BisectProgress = iota
-	InbetweenCommits
-	AfterOldCommit
-)
+type bisectBounds struct {
+	newIndex int
+	oldIndex int
+}
 
 func GetCommitListDisplayStrings(
 	commits []*models.Commit,
@@ -60,6 +57,8 @@ func GetCommitListDisplayStrings(
 
 	filteredCommits := commits[startIdx:end]
 
+	bisectBounds := getbisectBounds(commits, bisectInfo)
+
 	// function expects to be passed the index of the commit in terms of the `commits` slice
 	var getGraphLine func(int) string
 	if showGraph {
@@ -88,22 +87,45 @@ func GetCommitListDisplayStrings(
 	}
 
 	lines := make([][]string, 0, len(filteredCommits))
-	bisectProgress := BeforeNewCommit
 	var bisectStatus BisectStatus
 	for i, commit := range filteredCommits {
-		bisectStatus, bisectProgress = getBisectStatus(commit.Sha, bisectInfo, bisectProgress)
+		unfilteredIdx := i + startIdx
+		bisectStatus = getBisectStatus(unfilteredIdx, commit.Sha, bisectInfo, bisectBounds)
 		lines = append(lines, displayCommit(
 			commit,
 			cherryPickedCommitShaMap,
 			diffName,
 			parseEmoji,
-			getGraphLine(i+startIdx),
+			getGraphLine(unfilteredIdx),
 			fullDescription,
 			bisectStatus,
 			bisectInfo,
 		))
 	}
 	return lines
+}
+
+func getbisectBounds(commits []*models.Commit, bisectInfo *git_commands.BisectInfo) *bisectBounds {
+	if !bisectInfo.Bisecting() {
+		return nil
+	}
+
+	bisectBounds := &bisectBounds{}
+
+	for i, commit := range commits {
+		if commit.Sha == bisectInfo.GetNewSha() {
+			bisectBounds.newIndex = i
+		}
+
+		status, ok := bisectInfo.Status(commit.Sha)
+		if ok && status == git_commands.BisectStatusOld {
+			bisectBounds.oldIndex = i
+			return bisectBounds
+		}
+	}
+
+	// shouldn't land here
+	return nil
 }
 
 // precondition: slice is not empty
@@ -155,35 +177,35 @@ const (
 	BisectStatusCurrent
 )
 
-func getBisectStatus(commitSha string, bisectInfo *git_commands.BisectInfo, bisectProgress BisectProgress) (BisectStatus, BisectProgress) {
+func getBisectStatus(index int, commitSha string, bisectInfo *git_commands.BisectInfo, bisectBounds *bisectBounds) BisectStatus {
 	if !bisectInfo.Started() {
-		return BisectStatusNone, bisectProgress
+		return BisectStatusNone
 	}
 
 	if bisectInfo.GetCurrentSha() == commitSha {
-		return BisectStatusCurrent, bisectProgress
+		return BisectStatusCurrent
 	}
 
 	status, ok := bisectInfo.Status(commitSha)
 	if ok {
 		switch status {
 		case git_commands.BisectStatusNew:
-			return BisectStatusNew, InbetweenCommits
+			return BisectStatusNew
 		case git_commands.BisectStatusOld:
-			return BisectStatusOld, AfterOldCommit
+			return BisectStatusOld
 		case git_commands.BisectStatusSkipped:
-			return BisectStatusSkipped, bisectProgress
+			return BisectStatusSkipped
 		}
 	} else {
-		if bisectProgress == InbetweenCommits && bisectInfo.Bisecting() {
-			return BisectStatusCandidate, bisectProgress
+		if bisectBounds != nil && index >= bisectBounds.newIndex && index <= bisectBounds.oldIndex {
+			return BisectStatusCandidate
 		} else {
-			return BisectStatusNone, bisectProgress
+			return BisectStatusNone
 		}
 	}
 
 	// should never land here
-	return BisectStatusNone, bisectProgress
+	return BisectStatusNone
 }
 
 func getBisectStatusText(bisectStatus BisectStatus, bisectInfo *git_commands.BisectInfo) string {
