@@ -59,7 +59,7 @@ func (self *BisectInfo) GetCurrentSha() string {
 	return self.current
 }
 
-func (self *BisectInfo) StartSha() string {
+func (self *BisectInfo) GetStartSha() string {
 	return self.start
 }
 

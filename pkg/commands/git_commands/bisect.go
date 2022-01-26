@@ -163,9 +163,12 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 	return done, candidates, nil
 }
 
-func (self *BisectCommands) ReachableFromStart(ref string, startRef string) bool {
+// tells us whether the 'start' ref that we'll be sent back to after we're done
+// bisecting is actually a descendant of our current bisect commit. If it's not, we need to
+// render the commits from the bad commit.
+func (self *BisectCommands) ReachableFromStart(bisectInfo *BisectInfo) bool {
 	err := self.cmd.New(
-		fmt.Sprintf("git merge-base --is-ancestor %s %s", startRef, ref),
+		fmt.Sprintf("git merge-base --is-ancestor %s %s", bisectInfo.GetNewSha(), bisectInfo.GetStartSha()),
 	).DontLog().Run()
 
 	return err == nil

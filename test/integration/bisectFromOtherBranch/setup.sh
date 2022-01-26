@@ -24,4 +24,4 @@ done
 
 git checkout master
 
-git bisect start other~2 other~7
+git bisect start other~2 other~13
