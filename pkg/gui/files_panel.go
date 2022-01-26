@@ -530,7 +530,7 @@ func (gui *Gui) handleStatusFilterPressed() error {
 
 func (gui *Gui) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
 	state := gui.State
-	state.FileTreeViewModel.SetDisplayFilter(filter)
+	state.FileTreeViewModel.SetFilter(filter)
 	return gui.handleRefreshFiles()
 }
 
@@ -638,6 +638,19 @@ func (gui *Gui) refreshStateFiles() error {
 		if selectedNode != nil && selectedNode.Path != "" && file.PreviousName == selectedNode.Path {
 			state.FileTreeViewModel.ExpandToPath(file.Name)
 		}
+	}
+
+	// only taking over the filter if it hasn't already been set by the user.
+	// Though this does make it impossible for the user to actually say they want to display all if
+	// conflicts are currently being shown. Hmm. Worth it I reckon. If we need to add some
+	// extra state here to see if the user's set the filter themselves we can do that, but
+	// I'd prefer to maintain as little state as possible.
+	if conflictFileCount > 0 {
+		if state.FileTreeViewModel.GetFilter() == filetree.DisplayAll {
+			state.FileTreeViewModel.SetFilter(filetree.DisplayConflicted)
+		}
+	} else if state.FileTreeViewModel.GetFilter() == filetree.DisplayConflicted {
+		state.FileTreeViewModel.SetFilter(filetree.DisplayAll)
 	}
 
 	state.FileTreeViewModel.SetFiles(files)
