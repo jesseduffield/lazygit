@@ -35,6 +35,7 @@ func (self *SubmoduleCommands) GetConfigs() ([]*models.SubmoduleConfig, error) {
 		}
 		return nil, err
 	}
+	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
