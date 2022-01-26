@@ -47,3 +47,5 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
 )
+
+replace github.com/creack/pty => github.com/donorp/pty v1.1.12-0.20211004111936-294eccab62ed

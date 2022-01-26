@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/creack/pty"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -321,7 +322,7 @@ type guiState struct {
 	// if this is true, we'll load our commits using `git log --all`
 	ShowWholeGitGraph bool
 	ScreenMode        WindowMaximisation
-	Ptmx              *os.File
+	Ptmx              pty.Pty
 	PrevMainWidth     int
 	PrevMainHeight    int
 	OldInformation    string

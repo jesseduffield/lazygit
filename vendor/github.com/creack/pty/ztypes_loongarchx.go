@@ -1,5 +1,6 @@
-//go:build s390x
-//+build s390x
+//go:build (loongarch32 || loongarch64) && linux
+//+build linux
+//+build loongarch32 loongarch64
 
 // Created by cgo -godefs - DO NOT EDIT
 // cgo -godefs types.go

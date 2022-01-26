@@ -1,4 +1,5 @@
-// +build ppc64le
+//go:build ppc64le
+//+build ppc64le
 
 // Created by cgo -godefs - DO NOT EDIT
 // cgo -godefs types.go
