@@ -141,12 +141,12 @@ func (gui *Gui) refForLog() string {
 		return "HEAD"
 	}
 
-	// need to see if our bisect's current commit is reachable from our 'start' ref.
-	if bisectInfo.Bisecting() && !gui.Git.Bisect.ReachableFromStart(bisectInfo.StartSha(), bisectInfo.GetCurrentSha()) {
+	// need to see if our bisect's current commit is reachable from our 'new' ref.
+	if bisectInfo.Bisecting() && !gui.Git.Bisect.ReachableFromStart(bisectInfo) {
 		return bisectInfo.GetNewSha()
 	}
 
-	return bisectInfo.StartSha()
+	return bisectInfo.GetStartSha()
 }
 
 func (gui *Gui) refreshRebaseCommits() error {

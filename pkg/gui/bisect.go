@@ -35,6 +35,9 @@ func (gui *Gui) openMidBisectMenu(info *git_commands.BisectInfo, commit *models.
 	// they were talking about the selected commit or the current bisect commit,
 	// and that was a bit confusing (and required extra keypresses).
 	selectCurrentAfter := info.GetCurrentSha() == "" || info.GetCurrentSha() == commit.Sha
+	// we need to wait to reselect if our bisect commits aren't ancestors of our 'start'
+	// ref, because we'll be reloading our commits in that case.
+	waitToReselect := selectCurrentAfter && !gui.Git.Bisect.ReachableFromStart(info)
 
 	menuItems := []*menuItem{
 		{
@@ -45,7 +48,7 @@ func (gui *Gui) openMidBisectMenu(info *git_commands.BisectInfo, commit *models.
 					return gui.surfaceError(err)
 				}
 
-				return gui.afterMark(selectCurrentAfter)
+				return gui.afterMark(selectCurrentAfter, waitToReselect)
 			},
 		},
 		{
@@ -56,7 +59,7 @@ func (gui *Gui) openMidBisectMenu(info *git_commands.BisectInfo, commit *models.
 					return gui.surfaceError(err)
 				}
 
-				return gui.afterMark(selectCurrentAfter)
+				return gui.afterMark(selectCurrentAfter, waitToReselect)
 			},
 		},
 		{
@@ -67,7 +70,7 @@ func (gui *Gui) openMidBisectMenu(info *git_commands.BisectInfo, commit *models.
 					return gui.surfaceError(err)
 				}
 
-				return gui.afterMark(selectCurrentAfter)
+				return gui.afterMark(selectCurrentAfter, waitToReselect)
 			},
 		},
 		{
@@ -164,13 +167,13 @@ func (gui *Gui) showBisectCompleteMessage(candidateShas []string) error {
 	})
 }
 
-func (gui *Gui) afterMark(selectCurrent bool) error {
+func (gui *Gui) afterMark(selectCurrent bool, waitToReselect bool) error {
 	done, candidateShas, err := gui.Git.Bisect.IsDone()
 	if err != nil {
 		return gui.surfaceError(err)
 	}
 
-	if err := gui.postBisectCommandRefresh(); err != nil {
+	if err := gui.afterBisectMarkRefresh(selectCurrent, waitToReselect); err != nil {
 		return gui.surfaceError(err)
 	}
 
@@ -178,11 +181,27 @@ func (gui *Gui) afterMark(selectCurrent bool) error {
 		return gui.showBisectCompleteMessage(candidateShas)
 	}
 
-	if selectCurrent {
-		gui.selectCurrentBisectCommit()
+	return nil
+}
+
+func (gui *Gui) postBisectCommandRefresh() error {
+	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{}})
+}
+
+func (gui *Gui) afterBisectMarkRefresh(selectCurrent bool, waitToReselect bool) error {
+	selectFn := func() {
+		if selectCurrent {
+			gui.selectCurrentBisectCommit()
+		}
 	}
 
-	return nil
+	if waitToReselect {
+		return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{}, then: selectFn})
+	} else {
+		selectFn()
+
+		return gui.postBisectCommandRefresh()
+	}
 }
 
 func (gui *Gui) selectCurrentBisectCommit() {
@@ -197,8 +216,4 @@ func (gui *Gui) selectCurrentBisectCommit() {
 			}
 		}
 	}
-}
-
-func (gui *Gui) postBisectCommandRefresh() error {
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{}})
 }
