@@ -1,6 +1,7 @@
 package filetree
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -13,6 +14,8 @@ const (
 	DisplayAll FileTreeDisplayFilter = iota
 	DisplayStaged
 	DisplayUnstaged
+	// this shows files with merge conflicts
+	DisplayConflicted
 )
 
 type FileTreeViewModel struct {
@@ -49,29 +52,32 @@ func (self *FileTreeViewModel) ExpandToPath(path string) {
 
 func (self *FileTreeViewModel) GetFilesForDisplay() []*models.File {
 	files := self.files
-	if self.filter == DisplayAll {
+
+	switch self.filter {
+	case DisplayAll:
 		return files
+	case DisplayStaged:
+		return self.FilterFiles(func(file *models.File) bool { return file.HasStagedChanges })
+	case DisplayUnstaged:
+		return self.FilterFiles(func(file *models.File) bool { return file.HasUnstagedChanges })
+	case DisplayConflicted:
+		return self.FilterFiles(func(file *models.File) bool { return file.HasMergeConflicts })
+	default:
+		panic(fmt.Sprintf("Unexpected files display filter: %d", self.filter))
 	}
+}
 
+func (self *FileTreeViewModel) FilterFiles(test func(*models.File) bool) []*models.File {
 	result := make([]*models.File, 0)
-	if self.filter == DisplayStaged {
-		for _, file := range files {
-			if file.HasStagedChanges {
-				result = append(result, file)
-			}
-		}
-	} else {
-		for _, file := range files {
-			if !file.HasStagedChanges {
-				result = append(result, file)
-			}
+	for _, file := range self.files {
+		if test(file) {
+			result = append(result, file)
 		}
 	}
-
 	return result
 }
 
-func (self *FileTreeViewModel) SetDisplayFilter(filter FileTreeDisplayFilter) {
+func (self *FileTreeViewModel) SetFilter(filter FileTreeDisplayFilter) {
 	self.filter = filter
 	self.SetTree()
 }
@@ -146,4 +152,8 @@ func (self *FileTreeViewModel) Tree() INode {
 
 func (self *FileTreeViewModel) CollapsedPaths() CollapsedPaths {
 	return self.collapsedPaths
+}
+
+func (self *FileTreeViewModel) GetFilter() FileTreeDisplayFilter {
+	return self.filter
 }

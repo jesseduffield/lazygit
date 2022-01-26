@@ -54,6 +54,20 @@ func TestFilterAction(t *testing.T) {
 				{Name: "file1", ShortStatus: "M ", HasUnstagedChanges: true},
 			},
 		},
+		{
+			name:   "filter conflicted files",
+			filter: DisplayConflicted,
+			files: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "DU", HasMergeConflicts: true},
+				{Name: "dir2/file5", ShortStatus: "M ", HasUnstagedChanges: true},
+				{Name: "dir2/file6", ShortStatus: " M", HasStagedChanges: true},
+				{Name: "file1", ShortStatus: "UU", HasMergeConflicts: true, HasInlineMergeConflicts: true},
+			},
+			expected: []*models.File{
+				{Name: "dir2/dir2/file4", ShortStatus: "DU", HasMergeConflicts: true},
+				{Name: "file1", ShortStatus: "UU", HasMergeConflicts: true, HasInlineMergeConflicts: true},
+			},
+		},
 	}
 
 	for _, s := range scenarios {
