@@ -162,3 +162,11 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 
 	return done, candidates, nil
 }
+
+func (self *BisectCommands) ReachableFromStart(ref string, startRef string) bool {
+	err := self.cmd.New(
+		fmt.Sprintf("git merge-base --is-ancestor %s %s", startRef, ref),
+	).Run()
+
+	return err == nil
+}

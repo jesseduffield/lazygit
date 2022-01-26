@@ -175,7 +175,7 @@ func getBisectStatus(commitSha string, bisectInfo *git_commands.BisectInfo, bise
 			return BisectStatusSkipped, bisectProgress
 		}
 	} else {
-		if bisectProgress == InbetweenCommits {
+		if bisectProgress == InbetweenCommits && bisectInfo.Bisecting() {
 			return BisectStatusCandidate, bisectProgress
 		} else {
 			return BisectStatusNone, bisectProgress

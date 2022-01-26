@@ -116,19 +116,12 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
-	refName := "HEAD"
-	bisectInfo := gui.Git.Bisect.GetInfo()
-	gui.State.BisectInfo = bisectInfo
-	if bisectInfo.Started() {
-		refName = bisectInfo.StartSha()
-	}
-
 	commits, err := gui.Git.Loaders.Commits.GetCommits(
 		loaders.GetCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
-			RefName:              refName,
+			RefName:              gui.refForLog(),
 			All:                  gui.State.ShowWholeGitGraph,
 		},
 	)
@@ -138,6 +131,22 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	gui.State.Commits = commits
 
 	return gui.postRefreshUpdate(gui.State.Contexts.BranchCommits)
+}
+
+func (gui *Gui) refForLog() string {
+	bisectInfo := gui.Git.Bisect.GetInfo()
+	gui.State.BisectInfo = bisectInfo
+
+	if !bisectInfo.Started() {
+		return "HEAD"
+	}
+
+	// need to see if our bisect's current commit is reachable from our 'start' ref.
+	if bisectInfo.Bisecting() && !gui.Git.Bisect.ReachableFromStart(bisectInfo.StartSha(), bisectInfo.GetCurrentSha()) {
+		return bisectInfo.GetNewSha()
+	}
+
+	return bisectInfo.StartSha()
 }
 
 func (gui *Gui) refreshRebaseCommits() error {
