@@ -2,6 +2,8 @@
 
 set -e
 
+set -e
+
 cd $1
 
 git init

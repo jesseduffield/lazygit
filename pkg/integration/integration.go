@@ -2,6 +2,7 @@ package integration
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -251,8 +252,8 @@ func createFixture(testPath, actualDir string) error {
 	bashScriptPath := filepath.Join(testPath, "setup.sh")
 	cmd := secureexec.Command("bash", bashScriptPath, actualDir)
 
-	if _, err := cmd.CombinedOutput(); err != nil {
-		return err
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return errors.New(string(output))
 	}
 
 	return nil

@@ -1,0 +1,8 @@
+# bad: [96f59302fbb47e8abb38d110328500055c2eae8f] commit 18
+# good: [064b01d296b5d0a6d829b2c6da812000909144a3] commit 13
+git bisect start 'other~2' 'other~7'
+# good: [545ee64d47536092ef63907a18995827a74fa77d] commit 15
+git bisect good 545ee64d47536092ef63907a18995827a74fa77d
+# good: [b9c5ec23f6a30f26f7a742f01b8bbac17a5daf35] commit 17
+git bisect good b9c5ec23f6a30f26f7a742f01b8bbac17a5daf35
+# first bad commit: [96f59302fbb47e8abb38d110328500055c2eae8f] commit 18
