@@ -77,7 +77,7 @@ func (self *ListContext) FocusLine() {
 	view.FocusPoint(view.OriginX(), self.GetPanelState().GetSelectedLineIdx())
 	if self.RenderSelection {
 		_, originY := view.Origin()
-		displayStrings := self.GetDisplayStrings(originY, view.InnerHeight())
+		displayStrings := self.GetDisplayStrings(originY, view.InnerHeight()+1)
 		self.Gui.renderDisplayStringsAtPos(view, originY, displayStrings)
 	}
 	view.Footer = formatListFooter(self.GetPanelState().GetSelectedLineIdx(), self.GetItemsLength())
