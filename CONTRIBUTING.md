@@ -54,6 +54,35 @@ This makes the intent clearer and means that if we fail to satisfy the interface
 
 Boy that's a hard word to spell. Anyway, lazygit is translated into several languages within the pkg/i18n package. If you need to render text to the user, you should add a new field to the TranslationSet struct in `pkg/i18n/english.go` and add the actual content within the `EnglishTranslationSet()` method in the same file. Although it is appreciated if you translate the text into other languages, it's not expected of you (google translate will likely do a bad job anyway!).
 
+## Debugging
+
+The easiest way to debug lazygit is to have two terminal tabs open at once: one for running lazygit (via `go run main.go -debug` in the project root) and one for viewing lazygit's logs (which can be done via `go run main.go --logs` or just `lazygit --logs`).
+
+From most places in the codebase you have access to a logger e.g. `gui.Log.Warn("blah")`
+
+If you find that the existing logs are too noisy, you can set the log level with e.g. `LOG_LEVEL=warn go run main.go -debug` and then only use `Warn` logs yourself.
+
+If you keep having to do some setup steps to reproduce an issue, read the Testing section below to see how to create an integration test by recording a lazygit session. It's pretty easy!
+
+If you want to trigger a debug session from VSCode, you can use the following snippet. Note that the 'console' key is not, at the time of writing, in a stable release.
+
+```json
+// .vscode/launch.json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "debug lazygit",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "main.go",
+      "console": "externalTerminal" // <-- you need this to actually see the lazygit UI in a window while debugging
+    }
+  ]
+}
+```
+
 ## Testing
 
 Lazygit has two kinds of tests: unit tests and integration tests. Unit tests go in files that end in `_test.go`, and are written in Go. Lazygit has its own integration test system where you can build a sandbox repo with a shell script, record yourself doing something, and commit the resulting repo snapshot. It's pretty damn cool! To learn more see [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Integration_Tests.md)
