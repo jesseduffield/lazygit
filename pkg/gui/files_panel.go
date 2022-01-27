@@ -56,18 +56,16 @@ func (gui *Gui) filesRenderToMain() error {
 	}
 
 	if node.File != nil && node.File.HasInlineMergeConflicts {
-		hasConflicts, err := gui.setMergeState(node.File.Name)
+		ok, err := gui.setConflictsAndRenderWithLock(node.GetPath(), false)
 		if err != nil {
 			return err
 		}
-
-		// if we don't have conflicts we'll fall through and show the diff
-		if hasConflicts {
-			return gui.renderConflicts(false)
+		if ok {
+			return nil
 		}
 	}
 
-	gui.resetMergeState()
+	gui.resetMergeStateWithLock()
 
 	cmdObj := gui.Git.WorkingTree.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges(), gui.State.IgnoreWhitespaceInDiffView)
 
@@ -139,28 +137,6 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 
 		return nil
 	})
-
-	return nil
-}
-
-func (gui *Gui) refreshMergeState() error {
-	gui.State.Panels.Merging.Lock()
-	defer gui.State.Panels.Merging.Unlock()
-
-	if gui.currentContext().GetKey() != MAIN_MERGING_CONTEXT_KEY {
-		return nil
-	}
-
-	hasConflicts, err := gui.setMergeState(gui.State.Panels.Merging.GetPath())
-	if err != nil {
-		return gui.surfaceError(err)
-	}
-	if hasConflicts {
-		_ = gui.renderConflicts(true)
-	} else {
-		_ = gui.escapeMerge()
-		return nil
-	}
 
 	return nil
 }
@@ -959,7 +935,7 @@ func (gui *Gui) switchToMerge() error {
 	gui.takeOverMergeConflictScrolling()
 
 	if gui.State.Panels.Merging.GetPath() != file.Name {
-		hasConflicts, err := gui.setMergeState(file.Name)
+		hasConflicts, err := gui.setMergeStateWithLock(file.Name)
 		if err != nil {
 			return err
 		}

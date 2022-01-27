@@ -138,6 +138,13 @@ func (gui *Gui) renderConflicts(hasFocus bool) error {
 		// TODO: find a way to not have to do this OnUIThread thing. Why doesn't it work
 		// without it given that we're calling the 'no scroll' variant below?
 		gui.OnUIThread(func() error {
+			gui.State.Panels.Merging.Lock()
+			defer gui.State.Panels.Merging.Unlock()
+
+			if !state.Active() {
+				return nil
+			}
+
 			gui.centerYPos(gui.Views.Main, state.GetConflictMiddle())
 			return nil
 		})
@@ -154,6 +161,12 @@ func (gui *Gui) renderConflicts(hasFocus bool) error {
 
 func (gui *Gui) renderConflictsWithFocus() error {
 	return gui.renderConflicts(true)
+}
+
+func (gui *Gui) renderConflictsWithLock(hasFocus bool) error {
+	return gui.withMergeConflictLock(func() error {
+		return gui.renderConflicts(hasFocus)
+	})
 }
 
 func (gui *Gui) centerYPos(view *gocui.View, y int) {
@@ -205,15 +218,27 @@ func (gui *Gui) setMergeState(path string) (bool, error) {
 	return !gui.State.Panels.Merging.NoConflicts(), nil
 }
 
+func (gui *Gui) setMergeStateWithLock(path string) (bool, error) {
+	gui.State.Panels.Merging.Lock()
+	defer gui.State.Panels.Merging.Unlock()
+
+	return gui.setMergeState(path)
+}
+
+func (gui *Gui) resetMergeStateWithLock() {
+	gui.State.Panels.Merging.Lock()
+	defer gui.State.Panels.Merging.Unlock()
+
+	gui.resetMergeState()
+}
+
 func (gui *Gui) escapeMerge() error {
 	gui.resetMergeState()
 
-	// it's possible this method won't be called from the merging view so we need to
-	// ensure we only 'return' focus if we already have it
-
-	if gui.currentContext().GetKey() == MAIN_MERGING_CONTEXT_KEY {
+	// doing this in separate UI thread so that we're not still holding the lock by the time refresh the file
+	gui.OnUIThread(func() error {
 		return gui.pushContext(gui.State.Contexts.Files)
-	}
+	})
 	return nil
 }
 
@@ -235,4 +260,45 @@ func (gui *Gui) withMergeConflictLock(f func() error) error {
 
 func (gui *Gui) takeOverMergeConflictScrolling() {
 	gui.State.Panels.Merging.UserVerticalScrolling = false
+}
+
+func (gui *Gui) setConflictsAndRender(path string, hasFocus bool) (bool, error) {
+	hasConflicts, err := gui.setMergeState(path)
+	if err != nil {
+		return false, err
+	}
+
+	// if we don't have conflicts we'll fall through and show the diff
+	if hasConflicts {
+		return true, gui.renderConflicts(hasFocus)
+	}
+
+	return false, nil
+}
+
+func (gui *Gui) setConflictsAndRenderWithLock(path string, hasFocus bool) (bool, error) {
+	gui.State.Panels.Merging.Lock()
+	defer gui.State.Panels.Merging.Unlock()
+
+	return gui.setConflictsAndRender(path, hasFocus)
+}
+
+func (gui *Gui) refreshMergeState() error {
+	gui.State.Panels.Merging.Lock()
+	defer gui.State.Panels.Merging.Unlock()
+
+	if gui.currentContext().GetKey() != MAIN_MERGING_CONTEXT_KEY {
+		return nil
+	}
+
+	hasConflicts, err := gui.setConflictsAndRender(gui.State.Panels.Merging.GetPath(), true)
+	if err != nil {
+		return gui.surfaceError(err)
+	}
+
+	if !hasConflicts {
+		return gui.escapeMerge()
+	}
+
+	return nil
 }

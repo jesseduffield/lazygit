@@ -155,7 +155,13 @@ func (s *State) Active() bool {
 }
 
 func (s *State) GetConflictMiddle() int {
-	return s.currentConflict().target
+	currentConflict := s.currentConflict()
+
+	if currentConflict == nil {
+		return 0
+	}
+
+	return currentConflict.target
 }
 
 func (s *State) ContentAfterConflictResolve(selection Selection) (bool, string, error) {
