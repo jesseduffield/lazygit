@@ -167,7 +167,7 @@ func (gui *Gui) contextTree() ContextTree {
 			Key:      MAIN_PATCH_BUILDING_CONTEXT_KEY,
 		},
 		Merging: &BasicContext{
-			OnFocus:         OnFocusWrapper(gui.renderConflictsWithFocus),
+			OnFocus:         OnFocusWrapper(func() error { return gui.renderConflictsWithLock(true) }),
 			Kind:            MAIN_CONTEXT,
 			ViewName:        "main",
 			Key:             MAIN_MERGING_CONTEXT_KEY,
