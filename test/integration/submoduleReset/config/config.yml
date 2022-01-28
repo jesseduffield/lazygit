@@ -1,0 +1,6 @@
+disableStartupPopups: true
+customCommands:
+  - key: 'N'
+    description: 'Add file'
+    context: 'files'
+    command: 'echo "haha" > output.txt'

@@ -1,0 +1,4 @@
+{
+  "description": "Add submodule and enter. We enter the submodule, remove a couple of commits, and then stage the change in the parent repo",
+  "speed": 5
+}
