@@ -414,17 +414,26 @@ func generateSnapshots(actualDir string, expectedDir string) (string, string, er
 		return "", "", err
 	}
 
-	defer func() {
-		if err := renameGitDirs(expectedDir); err != nil {
-			panic(err)
-		}
-	}()
-
-	if err := restoreGitDirs(expectedDir); err != nil {
+	// there are a couple of reasons we're not generating the snapshot in expectedDir directly:
+	// Firstly we don't want to have to revert our .git file back to .git_keep.
+	// Secondly, the act of calling git commands like 'git status' actually changes the index
+	// for some reason, and we don't want to leave your lazygit working tree dirty as a result.
+	expectedDirCopyDir := filepath.Join(filepath.Dir(expectedDir), "expected_dir_test")
+	err = oscommands.CopyDir(expectedDir, expectedDirCopyDir)
+	if err != nil {
 		return "", "", err
 	}
 
-	expected, err := generateSnapshot(expectedDir)
+	if err := restoreGitDirs(expectedDirCopyDir); err != nil {
+		return "", "", err
+	}
+
+	expected, err := generateSnapshot(expectedDirCopyDir)
+	if err != nil {
+		return "", "", err
+	}
+
+	err = os.RemoveAll(expectedDirCopyDir)
 	if err != nil {
 		return "", "", err
 	}
