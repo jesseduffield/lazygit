@@ -54,6 +54,7 @@ type ThemeConfig struct {
 	SelectedRangeBgColor      []string `yaml:"selectedRangeBgColor"`
 	CherryPickedCommitBgColor []string `yaml:"cherryPickedCommitBgColor"`
 	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor"`
+	UnstagedChangesColor      []string `yaml:"unstagedChangesColor"`
 }
 
 type CommitLengthConfig struct {
@@ -342,6 +343,7 @@ func GetDefaultConfig() *UserConfig {
 				SelectedRangeBgColor:      []string{"blue"},
 				CherryPickedCommitBgColor: []string{"blue"},
 				CherryPickedCommitFgColor: []string{"cyan"},
+				UnstagedChangesColor:      []string{"red"},
 			},
 			CommitLength:             CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning: false,

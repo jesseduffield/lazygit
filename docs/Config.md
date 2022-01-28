@@ -40,6 +40,8 @@ gui:
       - blue
     cherryPickedCommitFgColor:
       - cyan
+    unstagedChangesColor:
+      - red
   commitLength:
     show: true
   mouseEvents: true
