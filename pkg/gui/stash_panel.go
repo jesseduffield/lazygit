@@ -36,7 +36,7 @@ func (gui *Gui) refreshStashEntries() error {
 	gui.State.StashEntries = gui.Git.Loaders.Stash.
 		GetStashEntries(gui.State.Modes.Filtering.GetPath())
 
-	return gui.State.Contexts.Stash.HandleRender()
+	return gui.postRefreshUpdate(gui.State.Contexts.Stash)
 }
 
 // specific functions
