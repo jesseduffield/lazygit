@@ -1,0 +1,3 @@
+[submodule "other_repo"]
+	path = other_repo
+	url = ../other_repo

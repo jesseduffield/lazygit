@@ -18,19 +18,21 @@ coverage.txt
 
 # Binaries
 lazygit
+lazygit.exe
 
 # Exceptions
 !.gitignore
 !.goreleaser.yml
 !.circleci/
 !.github/
+# these are for our integration tests
+!.git_keep
+!.gitmodules_keep
 
 test/git_server/data
 test/integration/*/actual/
 test/integration/*/actual_remote/
 test/integration/*/used_config/
 # these sample hooks waste too much space
-test/integration/*/expected/.git_keep/hooks/
-test/integration/*/expected_remote/hooks/
-!.git_keep/
-lazygit.exe
+test/integration/*/expected/**/hooks/
+test/integration/*/expected_remote/**/hooks/
