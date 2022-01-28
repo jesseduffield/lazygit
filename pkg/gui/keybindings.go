@@ -1724,8 +1724,8 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "files",
 			Contexts:    []string{string(SUBMODULES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.Remove),
-			Handler:     gui.forSubmodule(gui.handleResetRemoveSubmodule),
-			Description: gui.Tr.LcViewResetAndRemoveOptions,
+			Handler:     gui.forSubmodule(gui.removeSubmodule),
+			Description: gui.Tr.LcRemoveSubmodule,
 			OpensMenu:   true,
 		},
 		{

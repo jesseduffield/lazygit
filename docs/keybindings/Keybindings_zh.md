@@ -207,7 +207,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: 将子模块名称复制到剪贴板
   <kbd>enter</kbd>: 输入子模块
-  <kbd>d</kbd>: 查看重置和删除子模块选项
+  <kbd>d</kbd>: 删除子模块
   <kbd>u</kbd>: 更新子模块
   <kbd>n</kbd>: 添加新的子模块
   <kbd>e</kbd>: 更新子模块 URL

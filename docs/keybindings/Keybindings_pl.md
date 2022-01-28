@@ -207,7 +207,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: copy submodule name to clipboard
   <kbd>enter</kbd>: enter submodule
-  <kbd>d</kbd>: view reset and remove submodule options
+  <kbd>d</kbd>: remove submodule
   <kbd>u</kbd>: update submodule
   <kbd>n</kbd>: add new submodule
   <kbd>e</kbd>: update submodule URL

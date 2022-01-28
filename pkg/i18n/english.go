@@ -398,7 +398,6 @@ type TranslationSet struct {
 	LcEditSubmoduleUrl                  string
 	LcInitializingSubmoduleStatus       string
 	LcInitSubmodule                     string
-	LcViewResetAndRemoveOptions         string
 	LcSubmoduleUpdate                   string
 	LcUpdatingSubmoduleStatus           string
 	LcBulkInitSubmodules                string
@@ -974,7 +973,6 @@ func EnglishTranslationSet() TranslationSet {
 		LcEditSubmoduleUrl:                  "update submodule URL",
 		LcInitializingSubmoduleStatus:       "initializing submodule",
 		LcInitSubmodule:                     "initialize submodule",
-		LcViewResetAndRemoveOptions:         "view reset and remove submodule options",
 		LcSubmoduleUpdate:                   "update submodule",
 		LcUpdatingSubmoduleStatus:           "updating submodule",
 		LcBulkInitSubmodules:                "bulk init submodules",

@@ -404,7 +404,6 @@ func chineseTranslationSet() TranslationSet {
 		LcEditSubmoduleUrl:                  "更新子模块 URL",
 		LcInitializingSubmoduleStatus:       "正在初始化子模块",
 		LcInitSubmodule:                     "初始化子模块",
-		LcViewResetAndRemoveOptions:         "查看重置和删除子模块选项",
 		LcSubmoduleUpdate:                   "更新子模块",
 		LcUpdatingSubmoduleStatus:           "正在更新子模块",
 		LcBulkInitSubmodules:                "批量初始化子模块",

@@ -193,25 +193,6 @@ func (gui *Gui) forSubmodule(callback func(*models.SubmoduleConfig) error) func(
 	}
 }
 
-func (gui *Gui) handleResetRemoveSubmodule(submodule *models.SubmoduleConfig) error {
-	menuItems := []*menuItem{
-		{
-			displayString: gui.Tr.LcSubmoduleStashAndReset,
-			onPress: func() error {
-				return gui.resetSubmodule(submodule)
-			},
-		},
-		{
-			displayString: gui.Tr.LcRemoveSubmodule,
-			onPress: func() error {
-				return gui.removeSubmodule(submodule)
-			},
-		},
-	}
-
-	return gui.createMenu(submodule.Name, menuItems, createMenuOptions{showCancel: true})
-}
-
 func (gui *Gui) handleBulkSubmoduleActionsMenu() error {
 	menuItems := []*menuItem{
 		{
