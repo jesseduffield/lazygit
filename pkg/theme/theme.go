@@ -39,6 +39,8 @@ var (
 	OptionsFgColor = style.New()
 
 	DiffTerminalColor = style.FgMagenta
+
+	UnstagedChangesColor = style.New()
 )
 
 // UpdateTheme updates all theme variables
@@ -51,6 +53,9 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 	cherryPickedCommitBgTextStyle := GetTextStyle(themeConfig.CherryPickedCommitBgColor, true)
 	cherryPickedCommitFgTextStyle := GetTextStyle(themeConfig.CherryPickedCommitFgColor, false)
 	CherryPickedCommitTextStyle = cherryPickedCommitBgTextStyle.MergeStyle(cherryPickedCommitFgTextStyle)
+
+	unstagedChangesTextStyle := GetTextStyle(themeConfig.UnstagedChangesColor, false)
+	UnstagedChangesColor = unstagedChangesTextStyle
 
 	GocuiSelectedLineBgColor = GetGocuiStyle(themeConfig.SelectedLineBgColor)
 	OptionsColor = GetGocuiStyle(themeConfig.OptionsTextColor)
