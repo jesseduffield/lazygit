@@ -9,6 +9,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) handleSelectPrevConflictHunk() error {
@@ -189,7 +190,7 @@ func (gui *Gui) getMergingOptions() map[string]string {
 }
 
 func (gui *Gui) handleEscapeMerge() error {
-	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
+	if err := gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}}); err != nil {
 		return err
 	}
 
@@ -199,7 +200,7 @@ func (gui *Gui) handleEscapeMerge() error {
 func (gui *Gui) onLastConflictResolved() error {
 	// as part of refreshing files, we handle the situation where a file has had
 	// its merge conflicts resolved.
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+	return gui.refreshSidePanels(types.RefreshOptions{mode: types.ASYNC, scope: []types.RefreshableView{types.FILES}})
 }
 
 func (gui *Gui) resetMergeState() {

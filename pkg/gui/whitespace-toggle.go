@@ -1,10 +1,10 @@
 package gui
 
 func (gui *Gui) toggleWhitespaceInDiffView() error {
-	gui.State.IgnoreWhitespaceInDiffView = !gui.State.IgnoreWhitespaceInDiffView
+	gui.IgnoreWhitespaceInDiffView = !gui.IgnoreWhitespaceInDiffView
 
 	toastMessage := gui.Tr.ShowingWhitespaceInDiffView
-	if gui.State.IgnoreWhitespaceInDiffView {
+	if gui.IgnoreWhitespaceInDiffView {
 		toastMessage = gui.Tr.IgnoringWhitespaceInDiffView
 	}
 	gui.raiseToast(toastMessage)

@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -52,16 +54,18 @@ func (gui *Gui) handleDeleteRemoteBranch() error {
 	}
 	message := fmt.Sprintf("%s '%s'?", gui.Tr.DeleteRemoteBranchMessage, remoteBranch.FullName())
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.DeleteRemoteBranch,
-		prompt: message,
-		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.DeleteRemoteBranch,
+		Prompt: message,
+		HandleConfirm: func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.DeleteRemoteBranch)
 				err := gui.Git.Remote.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name)
-				gui.handleCredentialsPopup(err)
+				if err != nil {
+					_ = gui.PopupHandler.Error(err)
+				}
 
-				return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
+				return gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 			})
 		},
 	})
@@ -84,16 +88,16 @@ func (gui *Gui) handleSetBranchUpstream() error {
 		},
 	)
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.SetUpstreamTitle,
-		prompt: message,
-		handleConfirm: func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.SetUpstreamTitle,
+		Prompt: message,
+		HandleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.SetBranchUpstream)
 			if err := gui.Git.Branch.SetUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 
-			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
+			return gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
 		},
 	})
 }

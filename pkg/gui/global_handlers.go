@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -176,7 +177,7 @@ func (gui *Gui) scrollDownConfirmationPanel() error {
 }
 
 func (gui *Gui) handleRefresh() error {
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (gui *Gui) handleMouseDownMain() error {
@@ -218,10 +219,10 @@ func (gui *Gui) fetch() (err error) {
 	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{})
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
-		_ = gui.createErrorPanel(gui.Tr.PassUnameWrong)
+		_ = gui.PopupHandler.ErrorMsg(gui.Tr.PassUnameWrong)
 	}
 
-	_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
+	_ = gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
 
 	return err
 }
@@ -232,7 +233,7 @@ func (gui *Gui) backgroundFetch() (err error) {
 
 	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{Background: true})
 
-	_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
+	_ = gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
 
 	return err
 }
@@ -247,7 +248,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 
 	gui.logAction(gui.Tr.Actions.CopyToClipboard)
 	if err := gui.OSCommand.CopyToClipboard(itemId); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	truncatedItemId := utils.TruncateWithEllipsis(strings.Replace(itemId, "\n", " ", -1), 50)

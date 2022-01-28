@@ -5,30 +5,31 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 )
 
 func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
-	menuItems := make([]*menuItem, 0, 4)
+	menuItems := make([]*popup.MenuItem, 0, 4)
 
 	fromToDisplayStrings := func(from string, to string) []string {
 		return []string{fmt.Sprintf("%s → %s", from, to)}
 	}
 
-	menuItemsForBranch := func(branch *models.Branch) []*menuItem {
-		return []*menuItem{
+	menuItemsForBranch := func(branch *models.Branch) []*popup.MenuItem {
+		return []*popup.MenuItem{
 			{
-				displayStrings: fromToDisplayStrings(branch.Name, gui.Tr.LcDefaultBranch),
-				onPress: func() error {
+				DisplayStrings: fromToDisplayStrings(branch.Name, gui.Tr.LcDefaultBranch),
+				OnPress: func() error {
 					return gui.createPullRequest(branch.Name, "")
 				},
 			},
 			{
-				displayStrings: fromToDisplayStrings(branch.Name, gui.Tr.LcSelectBranch),
-				onPress: func() error {
-					return gui.prompt(promptOpts{
-						title:               branch.Name + " →",
-						findSuggestionsFunc: gui.getBranchNameSuggestionsFunc(),
-						handleConfirm: func(targetBranchName string) error {
+				DisplayStrings: fromToDisplayStrings(branch.Name, gui.Tr.LcSelectBranch),
+				OnPress: func() error {
+					return gui.PopupHandler.Prompt(popup.PromptOpts{
+						Title:               branch.Name + " →",
+						FindSuggestionsFunc: gui.getBranchNameSuggestionsFunc(),
+						HandleConfirm: func(targetBranchName string) error {
 							return gui.createPullRequest(branch.Name, targetBranchName)
 						}},
 					)
@@ -39,9 +40,9 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 
 	if selectedBranch != checkedOutBranch {
 		menuItems = append(menuItems,
-			&menuItem{
-				displayStrings: fromToDisplayStrings(checkedOutBranch.Name, selectedBranch.Name),
-				onPress: func() error {
+			&popup.MenuItem{
+				DisplayStrings: fromToDisplayStrings(checkedOutBranch.Name, selectedBranch.Name),
+				OnPress: func() error {
 					return gui.createPullRequest(checkedOutBranch.Name, selectedBranch.Name)
 				},
 			},
@@ -51,20 +52,20 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 
 	menuItems = append(menuItems, menuItemsForBranch(selectedBranch)...)
 
-	return gui.createMenu(fmt.Sprintf(gui.Tr.CreatePullRequestOptions), menuItems, createMenuOptions{showCancel: true})
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: fmt.Sprintf(gui.Tr.CreatePullRequestOptions), Items: menuItems})
 }
 
 func (gui *Gui) createPullRequest(from string, to string) error {
 	hostingServiceMgr := gui.getHostingServiceMgr()
 	url, err := hostingServiceMgr.GetPullRequestURL(from, to)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.logAction(gui.Tr.Actions.OpenPullRequest)
 
 	if err := gui.OSCommand.OpenLink(url); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	return nil

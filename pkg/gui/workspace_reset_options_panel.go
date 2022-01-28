@@ -3,7 +3,9 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) handleCreateResetMenu() error {
@@ -14,92 +16,92 @@ func (gui *Gui) handleCreateResetMenu() error {
 		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, gui.Tr.LcAndResetSubmodules)
 	}
 
-	menuItems := []*menuItem{
+	menuItems := []*popup.MenuItem{
 		{
-			displayStrings: []string{
+			DisplayStrings: []string{
 				gui.Tr.LcDiscardAllChangesToAllFiles,
 				red.Sprint(nukeStr),
 			},
-			onPress: func() error {
+			OnPress: func() error {
 				gui.logAction(gui.Tr.Actions.NukeWorkingTree)
 				if err := gui.Git.WorkingTree.ResetAndClean(); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 		{
-			displayStrings: []string{
+			DisplayStrings: []string{
 				gui.Tr.LcDiscardAnyUnstagedChanges,
 				red.Sprint("git checkout -- ."),
 			},
-			onPress: func() error {
+			OnPress: func() error {
 				gui.logAction(gui.Tr.Actions.DiscardUnstagedFileChanges)
 				if err := gui.Git.WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 		{
-			displayStrings: []string{
+			DisplayStrings: []string{
 				gui.Tr.LcDiscardUntrackedFiles,
 				red.Sprint("git clean -fd"),
 			},
-			onPress: func() error {
+			OnPress: func() error {
 				gui.logAction(gui.Tr.Actions.RemoveUntrackedFiles)
 				if err := gui.Git.WorkingTree.RemoveUntrackedFiles(); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 		{
-			displayStrings: []string{
+			DisplayStrings: []string{
 				gui.Tr.LcSoftReset,
 				red.Sprint("git reset --soft HEAD"),
 			},
-			onPress: func() error {
+			OnPress: func() error {
 				gui.logAction(gui.Tr.Actions.SoftReset)
 				if err := gui.Git.WorkingTree.ResetSoft("HEAD"); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 		{
-			displayStrings: []string{
+			DisplayStrings: []string{
 				"mixed reset",
 				red.Sprint("git reset --mixed HEAD"),
 			},
-			onPress: func() error {
+			OnPress: func() error {
 				gui.logAction(gui.Tr.Actions.MixedReset)
 				if err := gui.Git.WorkingTree.ResetMixed("HEAD"); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 		{
-			displayStrings: []string{
+			DisplayStrings: []string{
 				gui.Tr.LcHardReset,
 				red.Sprint("git reset --hard HEAD"),
 			},
-			onPress: func() error {
+			OnPress: func() error {
 				gui.logAction(gui.Tr.Actions.HardReset)
 				if err := gui.Git.WorkingTree.ResetHard("HEAD"); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 		},
 	}
 
-	return gui.createMenu("", menuItems, createMenuOptions{showCancel: true})
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: "", Items: menuItems})
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // Currently there is a bug where if we switch to a subprocess from within
@@ -23,7 +24,7 @@ func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string,
 				return err
 			}
 		}
-		if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+		if err := gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
 			return err
 		}
 
@@ -34,7 +35,7 @@ func (gui *Gui) withGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string,
 }
 
 func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
-	return gui.WithWaitingStatus(waitingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(waitingStatus, func() error {
 		cmdObj := gui.OSCommand.Cmd.NewShell(cmdObj.ToString())
 		cmdObj.AddEnvVars("TERM=dumb")
 		cmdWriter := gui.getCmdWriter()
@@ -46,8 +47,8 @@ func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, on
 			if _, err := cmd.Stdout.Write([]byte(fmt.Sprintf("%s\n", style.FgRed.Sprint(err.Error())))); err != nil {
 				gui.Log.Error(err)
 			}
-			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-			return gui.surfaceError(
+			_ = gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
+			return gui.PopupHandler.Error(
 				fmt.Errorf(
 					gui.Tr.GitCommandFailed, gui.UserConfig.Keybinding.Universal.ExtrasMenu,
 				),
@@ -60,6 +61,6 @@ func (gui *Gui) RunAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, on
 			}
 		}
 
-		return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+		return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 	})
 }

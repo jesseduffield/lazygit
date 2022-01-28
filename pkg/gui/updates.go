@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 )
 
 func (gui *Gui) showUpdatePrompt(newVersion string) error {
-	return gui.ask(askOpts{
-		title:  "New version available!",
-		prompt: fmt.Sprintf("Download version %s? (enter/esc)", newVersion),
-		handleConfirm: func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  "New version available!",
+		Prompt: fmt.Sprintf("Download version %s? (enter/esc)", newVersion),
+		HandleConfirm: func() error {
 			gui.startUpdating(newVersion)
 			return nil
 		},
@@ -19,10 +20,10 @@ func (gui *Gui) showUpdatePrompt(newVersion string) error {
 
 func (gui *Gui) onUserUpdateCheckFinish(newVersion string, err error) error {
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 	if newVersion == "" {
-		return gui.createErrorPanel("New version not found")
+		return gui.PopupHandler.ErrorMsg("New version not found")
 	}
 	return gui.showUpdatePrompt(newVersion)
 }
@@ -55,7 +56,7 @@ func (gui *Gui) onUpdateFinish(statusId int, err error) error {
 	gui.OnUIThread(func() error {
 		_ = gui.renderString(gui.Views.AppStatus, "")
 		if err != nil {
-			return gui.createErrorPanel("Update failed: " + err.Error())
+			return gui.PopupHandler.ErrorMsg("Update failed: " + err.Error())
 		}
 		return nil
 	})
@@ -64,10 +65,10 @@ func (gui *Gui) onUpdateFinish(statusId int, err error) error {
 }
 
 func (gui *Gui) createUpdateQuitConfirmation() error {
-	return gui.ask(askOpts{
-		title:  "Currently Updating",
-		prompt: "An update is in progress. Are you sure you want to quit?",
-		handleConfirm: func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  "Currently Updating",
+		Prompt: "An update is in progress. Are you sure you want to quit?",
+		HandleConfirm: func() error {
 			return gocui.ErrQuit
 		},
 	})

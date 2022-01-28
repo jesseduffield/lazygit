@@ -106,8 +106,8 @@ func (gui *Gui) renderAppStatus() {
 	})
 }
 
-// WithWaitingStatus wraps a function and shows a waiting status while the function is still executing
-func (gui *Gui) WithWaitingStatus(message string, f func() error) error {
+// withWaitingStatus wraps a function and shows a waiting status while the function is still executing
+func (gui *Gui) withWaitingStatus(message string, f func() error) error {
 	go utils.Safe(func() {
 		id := gui.statusManager.addWaitingStatus(message)
 
@@ -119,7 +119,7 @@ func (gui *Gui) WithWaitingStatus(message string, f func() error) error {
 
 		if err := f(); err != nil {
 			gui.OnUIThread(func() error {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			})
 		}
 	})

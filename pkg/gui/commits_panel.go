@@ -6,6 +6,8 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -29,7 +31,7 @@ func (gui *Gui) onCommitFocus() error {
 		state.LimitCommits = false
 		go utils.Safe(func() {
 			if err := gui.refreshCommitsWithLimit(); err != nil {
-				_ = gui.surfaceError(err)
+				_ = gui.PopupHandler.Error(err)
 			}
 		})
 	}
@@ -122,7 +124,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
 			RefName:              gui.refForLog(),
-			All:                  gui.State.ShowWholeGitGraph,
+			All:                  gui.ShowWholeGitGraph,
 		},
 	)
 	if err != nil {
@@ -170,7 +172,7 @@ func (gui *Gui) handleCommitSquashDown() error {
 	}
 
 	if len(gui.State.Commits) <= 1 {
-		return gui.createErrorPanel(gui.Tr.YouNoCommitsToSquash)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.YouNoCommitsToSquash)
 	}
 
 	applied, err := gui.handleMidRebaseCommand("squash")
@@ -181,11 +183,11 @@ func (gui *Gui) handleCommitSquashDown() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.Squash,
-		prompt: gui.Tr.SureSquashThisCommit,
-		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.Squash,
+		Prompt: gui.Tr.SureSquashThisCommit,
+		HandleConfirm: func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.SquashCommitDown)
 				err := gui.Git.Rebase.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "squash")
 				return gui.handleGenericMergeCommandResult(err)
@@ -200,7 +202,7 @@ func (gui *Gui) handleCommitFixup() error {
 	}
 
 	if len(gui.State.Commits) <= 1 {
-		return gui.createErrorPanel(gui.Tr.YouNoCommitsToSquash)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.YouNoCommitsToSquash)
 	}
 
 	applied, err := gui.handleMidRebaseCommand("fixup")
@@ -211,11 +213,11 @@ func (gui *Gui) handleCommitFixup() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.Fixup,
-		prompt: gui.Tr.SureFixupThisCommit,
-		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.FixingStatus, func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.Fixup,
+		Prompt: gui.Tr.SureFixupThisCommit,
+		HandleConfirm: func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.FixingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.FixupCommit)
 				err := gui.Git.Rebase.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "fixup")
 				return gui.handleGenericMergeCommandResult(err)
@@ -244,20 +246,20 @@ func (gui *Gui) handleRewordCommit() error {
 
 	message, err := gui.Git.Commit.GetCommitMessage(commit.Sha)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	// TODO: use the commit message panel here
-	return gui.prompt(promptOpts{
-		title:          gui.Tr.LcRewordCommit,
-		initialContent: message,
-		handleConfirm: func(response string) error {
+	return gui.PopupHandler.Prompt(popup.PromptOpts{
+		Title:          gui.Tr.LcRewordCommit,
+		InitialContent: message,
+		HandleConfirm: func(response string) error {
 			gui.logAction(gui.Tr.Actions.RewordCommit)
 			if err := gui.Git.Rebase.RewordCommit(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, response); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+			return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 		},
 	})
 }
@@ -278,7 +280,7 @@ func (gui *Gui) handleRewordCommitEditor() error {
 	gui.logAction(gui.Tr.Actions.RewordCommit)
 	subProcess, err := gui.Git.Rebase.RewordCommitInEditor(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 	if subProcess != nil {
 		return gui.runSubprocessWithSuspenseAndRefresh(subProcess)
@@ -301,7 +303,7 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 	// our input or we set a lazygit client as the EDITOR env variable and have it
 	// request us to edit the commit message when prompted.
 	if action == "reword" {
-		return true, gui.createErrorPanel(gui.Tr.LcRewordNotSupported)
+		return true, gui.PopupHandler.ErrorMsg(gui.Tr.LcRewordNotSupported)
 	}
 
 	gui.logAction("Update rebase TODO")
@@ -311,7 +313,7 @@ func (gui *Gui) handleMidRebaseCommand(action string) (bool, error) {
 	)
 
 	if err := gui.Git.Rebase.EditRebaseTodo(gui.State.Panels.Commits.SelectedLineIdx, action); err != nil {
-		return false, gui.surfaceError(err)
+		return false, gui.PopupHandler.Error(err)
 	}
 
 	return true, gui.refreshRebaseCommits()
@@ -330,11 +332,11 @@ func (gui *Gui) handleCommitDelete() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.DeleteCommitTitle,
-		prompt: gui.Tr.DeleteCommitPrompt,
-		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.DeleteCommitTitle,
+		Prompt: gui.Tr.DeleteCommitPrompt,
+		HandleConfirm: func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.DropCommit)
 				err := gui.Git.Rebase.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "drop")
 				return gui.handleGenericMergeCommandResult(err)
@@ -361,13 +363,13 @@ func (gui *Gui) handleCommitMoveDown() error {
 		gui.logCommand(fmt.Sprintf("Moving commit %s down", selectedCommit.ShortSha()), false)
 
 		if err := gui.Git.Rebase.MoveTodoDown(index); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 		gui.State.Panels.Commits.SelectedLineIdx++
 		return gui.refreshRebaseCommits()
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.MovingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.MovingStatus, func() error {
 		gui.logAction(gui.Tr.Actions.MoveCommitDown)
 		err := gui.Git.Rebase.MoveCommitDown(gui.State.Commits, index)
 		if err == nil {
@@ -398,13 +400,13 @@ func (gui *Gui) handleCommitMoveUp() error {
 		)
 
 		if err := gui.Git.Rebase.MoveTodoDown(index - 1); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 		gui.State.Panels.Commits.SelectedLineIdx--
 		return gui.refreshRebaseCommits()
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.MovingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.MovingStatus, func() error {
 		gui.logAction(gui.Tr.Actions.MoveCommitUp)
 		err := gui.Git.Rebase.MoveCommitDown(gui.State.Commits, index-1)
 		if err == nil {
@@ -427,7 +429,7 @@ func (gui *Gui) handleCommitEdit() error {
 		return nil
 	}
 
-	return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 		gui.logAction(gui.Tr.Actions.EditCommit)
 		err = gui.Git.Rebase.InteractiveRebase(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, "edit")
 		return gui.handleGenericMergeCommandResult(err)
@@ -439,11 +441,11 @@ func (gui *Gui) handleCommitAmendTo() error {
 		return err
 	}
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.AmendCommitTitle,
-		prompt: gui.Tr.AmendCommitPrompt,
-		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.AmendingStatus, func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.AmendCommitTitle,
+		Prompt: gui.Tr.AmendCommitPrompt,
+		HandleConfirm: func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.AmendingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.AmendCommit)
 				err := gui.Git.Rebase.AmendTo(gui.State.Commits[gui.State.Panels.Commits.SelectedLineIdx].Sha)
 				return gui.handleGenericMergeCommandResult(err)
@@ -478,17 +480,17 @@ func (gui *Gui) handleCommitRevert() error {
 	if commit.IsMerge() {
 		return gui.createRevertMergeCommitMenu(commit)
 	} else {
-		return gui.ask(askOpts{
-			title: gui.Tr.Actions.RevertCommit,
-			prompt: utils.ResolvePlaceholderString(
+		return gui.PopupHandler.Ask(popup.AskOpts{
+			Title: gui.Tr.Actions.RevertCommit,
+			Prompt: utils.ResolvePlaceholderString(
 				gui.Tr.ConfirmRevertCommit,
 				map[string]string{
 					"selectedCommit": commit.ShortSha(),
 				}),
-			handleConfirm: func() error {
+			HandleConfirm: func() error {
 				gui.logAction(gui.Tr.Actions.RevertCommit)
 				if err := gui.Git.Commit.Revert(commit.Sha); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 				return gui.afterRevertCommit()
 			},
@@ -497,33 +499,33 @@ func (gui *Gui) handleCommitRevert() error {
 }
 
 func (gui *Gui) createRevertMergeCommitMenu(commit *models.Commit) error {
-	menuItems := make([]*menuItem, len(commit.Parents))
+	menuItems := make([]*popup.MenuItem, len(commit.Parents))
 	for i, parentSha := range commit.Parents {
 		i := i
 		message, err := gui.Git.Commit.GetCommitMessageFirstLine(parentSha)
 		if err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 
-		menuItems[i] = &menuItem{
-			displayString: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
-			onPress: func() error {
+		menuItems[i] = &popup.MenuItem{
+			DisplayString: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
+			OnPress: func() error {
 				parentNumber := i + 1
 				gui.logAction(gui.Tr.Actions.RevertCommit)
 				if err := gui.Git.Commit.RevertMerge(commit.Sha, parentNumber); err != nil {
-					return gui.surfaceError(err)
+					return gui.PopupHandler.Error(err)
 				}
 				return gui.afterRevertCommit()
 			},
 		}
 	}
 
-	return gui.createMenu(gui.Tr.SelectParentCommitForMerge, menuItems, createMenuOptions{showCancel: true})
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: gui.Tr.SelectParentCommitForMerge, Items: menuItems})
 }
 
 func (gui *Gui) afterRevertCommit() error {
 	gui.State.Panels.Commits.SelectedLineIdx++
-	return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI, scope: []RefreshableView{COMMITS, BRANCHES}})
+	return gui.refreshSidePanels(types.RefreshOptions{Mode: types.BLOCK_UI, Scope: []types.RefreshableView{types.COMMITS, types.BRANCHES}})
 }
 
 func (gui *Gui) handleViewCommitFiles() error {
@@ -552,16 +554,16 @@ func (gui *Gui) handleCreateFixupCommit() error {
 		},
 	)
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.CreateFixupCommit,
-		prompt: prompt,
-		handleConfirm: func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.CreateFixupCommit,
+		Prompt: prompt,
+		HandleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.CreateFixupCommit)
 			if err := gui.Git.Commit.CreateFixupCommit(commit.Sha); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+			return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 		},
 	})
 }
@@ -583,11 +585,11 @@ func (gui *Gui) handleSquashAllAboveFixupCommits() error {
 		},
 	)
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.SquashAboveCommits,
-		prompt: prompt,
-		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.SquashAboveCommits,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.SquashingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.SquashAllAboveFixupCommits)
 				err := gui.Git.Rebase.SquashAllAboveFixupCommits(commit.Sha)
 				return gui.handleGenericMergeCommandResult(err)
@@ -606,39 +608,40 @@ func (gui *Gui) handleTagCommit() error {
 }
 
 func (gui *Gui) createTagMenu(commitSha string) error {
-	items := []*menuItem{
-		{
-			displayString: gui.Tr.LcLightweightTag,
-			onPress: func() error {
-				return gui.handleCreateLightweightTag(commitSha)
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{
+		Title: gui.Tr.TagMenuTitle,
+		Items: []*popup.MenuItem{
+			{
+				DisplayString: gui.Tr.LcLightweightTag,
+				OnPress: func() error {
+					return gui.handleCreateLightweightTag(commitSha)
+				},
+			},
+			{
+				DisplayString: gui.Tr.LcAnnotatedTag,
+				OnPress: func() error {
+					return gui.handleCreateAnnotatedTag(commitSha)
+				},
 			},
 		},
-		{
-			displayString: gui.Tr.LcAnnotatedTag,
-			onPress: func() error {
-				return gui.handleCreateAnnotatedTag(commitSha)
-			},
-		},
-	}
-
-	return gui.createMenu(gui.Tr.TagMenuTitle, items, createMenuOptions{showCancel: true})
+	})
 }
 
 func (gui *Gui) afterTagCreate() error {
 	gui.State.Panels.Tags.SelectedLineIdx = 0 // Set to the top
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
+	return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 }
 
 func (gui *Gui) handleCreateAnnotatedTag(commitSha string) error {
-	return gui.prompt(promptOpts{
-		title: gui.Tr.TagNameTitle,
-		handleConfirm: func(tagName string) error {
-			return gui.prompt(promptOpts{
-				title: gui.Tr.TagMessageTitle,
-				handleConfirm: func(msg string) error {
+	return gui.PopupHandler.Prompt(popup.PromptOpts{
+		Title: gui.Tr.TagNameTitle,
+		HandleConfirm: func(tagName string) error {
+			return gui.PopupHandler.Prompt(popup.PromptOpts{
+				Title: gui.Tr.TagMessageTitle,
+				HandleConfirm: func(msg string) error {
 					gui.logAction(gui.Tr.Actions.CreateAnnotatedTag)
 					if err := gui.Git.Tag.CreateAnnotated(tagName, commitSha, msg); err != nil {
-						return gui.surfaceError(err)
+						return gui.PopupHandler.Error(err)
 					}
 					return gui.afterTagCreate()
 				},
@@ -648,12 +651,12 @@ func (gui *Gui) handleCreateAnnotatedTag(commitSha string) error {
 }
 
 func (gui *Gui) handleCreateLightweightTag(commitSha string) error {
-	return gui.prompt(promptOpts{
-		title: gui.Tr.TagNameTitle,
-		handleConfirm: func(tagName string) error {
+	return gui.PopupHandler.Prompt(popup.PromptOpts{
+		Title: gui.Tr.TagNameTitle,
+		HandleConfirm: func(tagName string) error {
 			gui.logAction(gui.Tr.Actions.CreateLightweightTag)
 			if err := gui.Git.Tag.CreateLightweight(tagName, commitSha); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
 			return gui.afterTagCreate()
 		},
@@ -666,10 +669,10 @@ func (gui *Gui) handleCheckoutCommit() error {
 		return nil
 	}
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.LcCheckoutCommit,
-		prompt: gui.Tr.SureCheckoutThisCommit,
-		handleConfirm: func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.LcCheckoutCommit,
+		Prompt: gui.Tr.SureCheckoutThisCommit,
+		HandleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.CheckoutCommit)
 			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
 		},
@@ -679,7 +682,7 @@ func (gui *Gui) handleCheckoutCommit() error {
 func (gui *Gui) handleCreateCommitResetMenu() error {
 	commit := gui.getSelectedLocalCommit()
 	if commit == nil {
-		return gui.createErrorPanel(gui.Tr.NoCommitsThisBranch)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.NoCommitsThisBranch)
 	}
 
 	return gui.createResetMenu(commit.Sha)
@@ -689,7 +692,7 @@ func (gui *Gui) handleOpenSearchForCommitsPanel(string) error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false
-		if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS}}); err != nil {
+		if err := gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS}}); err != nil {
 			return err
 		}
 	}
@@ -701,7 +704,7 @@ func (gui *Gui) handleGotoBottomForCommitsPanel() error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if gui.State.Panels.Commits.LimitCommits {
 		gui.State.Panels.Commits.LimitCommits = false
-		if err := gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}}); err != nil {
+		if err := gui.refreshSidePanels(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}}); err != nil {
 			return err
 		}
 	}
@@ -723,12 +726,12 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 
 	message, err := gui.Git.Commit.GetCommitMessage(commit.Sha)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.logAction(gui.Tr.Actions.CopyCommitMessageToClipboard)
 	if err := gui.OSCommand.CopyToClipboard(message); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.raiseToast(gui.Tr.CommitMessageCopiedToClipboard)
@@ -737,87 +740,87 @@ func (gui *Gui) handleCopySelectedCommitMessageToClipboard() error {
 }
 
 func (gui *Gui) handleOpenLogMenu() error {
-	return gui.createMenu(gui.Tr.LogMenuTitle, []*menuItem{
-		{
-			displayString: gui.Tr.ToggleShowGitGraphAll,
-			onPress: func() error {
-				gui.State.ShowWholeGitGraph = !gui.State.ShowWholeGitGraph
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{
+		Title: gui.Tr.LogMenuTitle,
+		Items: []*popup.MenuItem{
+			{
+				DisplayString: gui.Tr.ToggleShowGitGraphAll,
+				OnPress: func() error {
+					gui.ShowWholeGitGraph = !gui.ShowWholeGitGraph
 
-				if gui.State.ShowWholeGitGraph {
-					gui.State.Panels.Commits.LimitCommits = false
-				}
+					if gui.ShowWholeGitGraph {
+						gui.State.Panels.Commits.LimitCommits = false
+					}
 
-				return gui.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
-					return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}})
-				})
-			},
-		},
-		{
-			displayString: gui.Tr.ShowGitGraph,
-			opensMenu:     true,
-			onPress: func() error {
-				onSelect := func(value string) {
-					gui.UserConfig.Git.Log.ShowGraph = value
-					gui.render()
-				}
-				return gui.createMenu(gui.Tr.LogMenuTitle, []*menuItem{
-					{
-						displayString: "always",
-						onPress: func() error {
-							onSelect("always")
-							return nil
-						},
-					},
-					{
-						displayString: "never",
-						onPress: func() error {
-							onSelect("never")
-							return nil
-						},
-					},
-					{
-						displayString: "when maximised",
-						onPress: func() error {
-							onSelect("when-maximised")
-							return nil
-						},
-					},
-				}, createMenuOptions{showCancel: true})
-			},
-		},
-		{
-			displayString: gui.Tr.SortCommits,
-			opensMenu:     true,
-			onPress: func() error {
-				onSelect := func(value string) error {
-					gui.UserConfig.Git.Log.Order = value
-					return gui.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
-						return gui.refreshSidePanels(refreshOptions{mode: SYNC, scope: []RefreshableView{COMMITS}})
+					return gui.PopupHandler.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
+						return gui.refreshSidePanels(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}})
 					})
-				}
-				return gui.createMenu(gui.Tr.LogMenuTitle, []*menuItem{
-					{
-						displayString: "topological (topo-order)",
-						onPress: func() error {
-							return onSelect("topo-order")
+				},
+			},
+			{
+				DisplayString: gui.Tr.ShowGitGraph,
+				OpensMenu:     true,
+				OnPress: func() error {
+					onPress := func(value string) func() error {
+						return func() error {
+							gui.UserConfig.Git.Log.ShowGraph = value
+							gui.render()
+							return nil
+						}
+					}
+					return gui.PopupHandler.Menu(popup.CreateMenuOptions{
+						Title: gui.Tr.LogMenuTitle,
+						Items: []*popup.MenuItem{
+							{
+								DisplayString: "always",
+								OnPress:       onPress("always"),
+							},
+							{
+								DisplayString: "never",
+								OnPress:       onPress("never"),
+							},
+							{
+								DisplayString: "when maximised",
+								OnPress:       onPress("when-maximised"),
+							},
 						},
-					},
-					{
-						displayString: "date-order",
-						onPress: func() error {
-							return onSelect("date-order")
+					})
+				},
+			},
+			{
+				DisplayString: gui.Tr.SortCommits,
+				OpensMenu:     true,
+				OnPress: func() error {
+					onPress := func(value string) func() error {
+						return func() error {
+							gui.UserConfig.Git.Log.Order = value
+							return gui.PopupHandler.WithWaitingStatus(gui.Tr.LcLoadingCommits, func() error {
+								return gui.refreshSidePanels(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}})
+							})
+						}
+					}
+
+					return gui.PopupHandler.Menu(popup.CreateMenuOptions{
+						Title: gui.Tr.LogMenuTitle,
+						Items: []*popup.MenuItem{
+							{
+								DisplayString: "topological (topo-order)",
+								OnPress:       onPress("topo-order"),
+							},
+							{
+								DisplayString: "date-order",
+								OnPress:       onPress("date-order"),
+							},
+							{
+								DisplayString: "author-date-order",
+								OnPress:       onPress("author-date-order"),
+							},
 						},
-					},
-					{
-						displayString: "author-date-order",
-						onPress: func() error {
-							return onSelect("author-date-order")
-						},
-					},
-				}, createMenuOptions{showCancel: true})
+					})
+				},
 			},
 		},
-	}, createMenuOptions{showCancel: true})
+	})
 }
 
 func (gui *Gui) handleOpenCommitInBrowser() error {
@@ -830,12 +833,12 @@ func (gui *Gui) handleOpenCommitInBrowser() error {
 
 	url, err := hostingServiceMgr.GetCommitURL(commit.Sha)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.logAction(gui.Tr.Actions.OpenCommitInBrowser)
 	if err := gui.OSCommand.OpenLink(url); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	return nil

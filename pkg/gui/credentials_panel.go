@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -48,15 +49,16 @@ func (gui *Gui) handleSubmitCredential() error {
 		return err
 	}
 
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (gui *Gui) handleCloseCredentialsView() error {
+	gui.Views.Credentials.ClearTextArea()
 	gui.credentials <- ""
 	return gui.returnFromContext()
 }
 
-func (gui *Gui) handleCredentialsViewFocused() error {
+func (gui *Gui) handleAskFocused() error {
 	keybindingConfig := gui.UserConfig.Keybinding
 
 	message := utils.ResolvePlaceholderString(
@@ -68,19 +70,4 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 	)
 
 	return gui.renderString(gui.Views.Options, message)
-}
-
-// handleCredentialsPopup handles the views after executing a command that might ask for credentials
-func (gui *Gui) handleCredentialsPopup(cmdErr error) {
-	if cmdErr != nil {
-		errMessage := cmdErr.Error()
-		if strings.Contains(errMessage, "Invalid username, password or passphrase") {
-			errMessage = gui.Tr.PassUnameWrong
-		}
-		_ = gui.returnFromContext()
-		// we are not logging this error because it may contain a password or a passphrase
-		_ = gui.createErrorPanel(errMessage)
-	} else {
-		_ = gui.closeConfirmationPrompt(false)
-	}
 }

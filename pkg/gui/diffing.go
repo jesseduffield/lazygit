@@ -5,11 +5,13 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) exitDiffMode() error {
 	gui.State.Modes.Diffing = diffing.New()
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (gui *Gui) renderDiff() error {
@@ -105,31 +107,31 @@ func (gui *Gui) diffStr() string {
 func (gui *Gui) handleCreateDiffingMenuPanel() error {
 	names := gui.currentDiffTerminals()
 
-	menuItems := []*menuItem{}
+	menuItems := []*popup.MenuItem{}
 	for _, name := range names {
 		name := name
-		menuItems = append(menuItems, []*menuItem{
+		menuItems = append(menuItems, []*popup.MenuItem{
 			{
-				displayString: fmt.Sprintf("%s %s", gui.Tr.LcDiff, name),
-				onPress: func() error {
+				DisplayString: fmt.Sprintf("%s %s", gui.Tr.LcDiff, name),
+				OnPress: func() error {
 					gui.State.Modes.Diffing.Ref = name
 					// can scope this down based on current view but too lazy right now
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 				},
 			},
 		}...)
 	}
 
-	menuItems = append(menuItems, []*menuItem{
+	menuItems = append(menuItems, []*popup.MenuItem{
 		{
-			displayString: gui.Tr.LcEnterRefToDiff,
-			onPress: func() error {
-				return gui.prompt(promptOpts{
-					title:               gui.Tr.LcEnteRefName,
-					findSuggestionsFunc: gui.getRefsSuggestionsFunc(),
-					handleConfirm: func(response string) error {
+			DisplayString: gui.Tr.LcEnterRefToDiff,
+			OnPress: func() error {
+				return gui.PopupHandler.Prompt(popup.PromptOpts{
+					Title:               gui.Tr.LcEnteRefName,
+					FindSuggestionsFunc: gui.getRefsSuggestionsFunc(),
+					HandleConfirm: func(response string) error {
 						gui.State.Modes.Diffing.Ref = strings.TrimSpace(response)
-						return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+						return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 					},
 				})
 			},
@@ -137,23 +139,23 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 	}...)
 
 	if gui.State.Modes.Diffing.Active() {
-		menuItems = append(menuItems, []*menuItem{
+		menuItems = append(menuItems, []*popup.MenuItem{
 			{
-				displayString: gui.Tr.LcSwapDiff,
-				onPress: func() error {
+				DisplayString: gui.Tr.LcSwapDiff,
+				OnPress: func() error {
 					gui.State.Modes.Diffing.Reverse = !gui.State.Modes.Diffing.Reverse
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 				},
 			},
 			{
-				displayString: gui.Tr.LcExitDiffMode,
-				onPress: func() error {
+				DisplayString: gui.Tr.LcExitDiffMode,
+				OnPress: func() error {
 					gui.State.Modes.Diffing = diffing.New()
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 				},
 			},
 		}...)
 	}
 
-	return gui.createMenu(gui.Tr.DiffingMenuTitle, menuItems, createMenuOptions{showCancel: true})
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: gui.Tr.DiffingMenuTitle, Items: menuItems})
 }

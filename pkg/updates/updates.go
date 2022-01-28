@@ -144,12 +144,10 @@ func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error, userRequ
 		return
 	}
 
-	go utils.Safe(func() {
-		newVersion, err := u.checkForNewUpdate()
-		if err = onFinish(newVersion, err); err != nil {
-			u.Log.Error(err)
-		}
-	})
+	newVersion, err := u.checkForNewUpdate()
+	if err = onFinish(newVersion, err); err != nil {
+		u.Log.Error(err)
+	}
 }
 
 func (u *Updater) skipUpdateCheck() bool {
