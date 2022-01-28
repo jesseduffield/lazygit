@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -16,24 +17,24 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 	reposCount := utils.Min(len(recentRepoPaths), 20)
 
 	// we won't show the current repo hence the -1
-	menuItems := make([]*menuItem, reposCount-1)
+	menuItems := make([]*popup.MenuItem, reposCount-1)
 	for i, path := range recentRepoPaths[1:reposCount] {
 		path := path // cos we're closing over the loop variable
-		menuItems[i] = &menuItem{
-			displayStrings: []string{
+		menuItems[i] = &popup.MenuItem{
+			DisplayStrings: []string{
 				filepath.Base(path),
 				style.FgMagenta.Sprint(path),
 			},
-			onPress: func() error {
+			OnPress: func() error {
 				// if we were in a submodule, we want to forget about that stack of repos
 				// so that hitting escape in the new repo does nothing
-				gui.RepoPathStack = []string{}
+				gui.RepoPathStack.Clear()
 				return gui.dispatchSwitchToRepo(path, false)
 			},
 		}
 	}
 
-	return gui.createMenu(gui.Tr.RecentRepos, menuItems, createMenuOptions{showCancel: true})
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: gui.Tr.RecentRepos, Items: menuItems})
 }
 
 func (gui *Gui) handleShowAllBranchLogs() error {
@@ -57,7 +58,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 
 	if err := os.Chdir(path); err != nil {
 		if os.IsNotExist(err) {
-			return gui.createErrorPanel(gui.Tr.ErrRepositoryMovedOrDeleted)
+			return gui.PopupHandler.ErrorMsg(gui.Tr.ErrRepositoryMovedOrDeleted)
 		}
 		return err
 	}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -144,8 +145,8 @@ func TestDoesntIncreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *test
 	gui.Git.Patch.PatchManager.Start("from", "to", false, false)
 
 	errorCount := 0
-	gui.PopupHandler = &TestPopupHandler{
-		onError: func(message string) error {
+	gui.PopupHandler = &popup.TestPopupHandler{
+		OnErrorMsg: func(message string) error {
 			assert.Equal(t, gui.Tr.CantChangeContextSizeError, message)
 			errorCount += 1
 			return nil
@@ -166,8 +167,8 @@ func TestDoesntDecreaseContextInDiffViewInContextWhenInPatchBuildingMode(t *test
 	gui.Git.Patch.PatchManager.Start("from", "to", false, false)
 
 	errorCount := 0
-	gui.PopupHandler = &TestPopupHandler{
-		onError: func(message string) error {
+	gui.PopupHandler = &popup.TestPopupHandler{
+		OnErrorMsg: func(message string) error {
 			assert.Equal(t, gui.Tr.CantChangeContextSizeError, message)
 			errorCount += 1
 			return nil

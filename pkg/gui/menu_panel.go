@@ -3,30 +3,11 @@ package gui
 import (
 	"errors"
 	"fmt"
-	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
-
-type menuItem struct {
-	displayString  string
-	displayStrings []string
-	onPress        func() error
-	// only applies when displayString is used
-	opensMenu bool
-}
-
-// every item in a list context needs an ID
-func (i *menuItem) ID() string {
-	if i.displayString != "" {
-		return i.displayString
-	}
-
-	return strings.Join(i.displayStrings, "-")
-}
-
-// specific functions
 
 func (gui *Gui) getMenuOptions() map[string]string {
 	keybindingConfig := gui.UserConfig.Keybinding
@@ -42,37 +23,34 @@ func (gui *Gui) handleMenuClose() error {
 	return gui.returnFromContext()
 }
 
-type createMenuOptions struct {
-	showCancel bool
-}
-
-func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions createMenuOptions) error {
-	if createMenuOptions.showCancel {
+// note: items option is mutated by this function
+func (gui *Gui) createMenu(opts popup.CreateMenuOptions) error {
+	if !opts.HideCancel {
 		// this is mutative but I'm okay with that for now
-		items = append(items, &menuItem{
-			displayStrings: []string{gui.Tr.LcCancel},
-			onPress: func() error {
+		opts.Items = append(opts.Items, &popup.MenuItem{
+			DisplayStrings: []string{gui.Tr.LcCancel},
+			OnPress: func() error {
 				return nil
 			},
 		})
 	}
 
-	gui.State.MenuItems = items
+	gui.State.MenuItems = opts.Items
 
-	stringArrays := make([][]string, len(items))
-	for i, item := range items {
-		if item.opensMenu && item.displayStrings != nil {
+	stringArrays := make([][]string, len(opts.Items))
+	for i, item := range opts.Items {
+		if item.OpensMenu && item.DisplayStrings != nil {
 			return errors.New("Message for the developer of this app: you've set opensMenu with displaystrings on the menu panel. Bad developer!. Apologies, user")
 		}
 
-		if item.displayStrings == nil {
-			styledStr := item.displayString
-			if item.opensMenu {
+		if item.DisplayStrings == nil {
+			styledStr := item.DisplayString
+			if item.OpensMenu {
 				styledStr = opensMenuStyle(styledStr)
 			}
 			stringArrays[i] = []string{styledStr}
 		} else {
-			stringArrays[i] = item.displayStrings
+			stringArrays[i] = item.DisplayStrings
 		}
 	}
 
@@ -80,7 +58,7 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(false, list)
 	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
-	menuView.Title = title
+	menuView.Title = opts.Title
 	menuView.FgColor = theme.GocuiDefaultTextColor
 	menuView.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
 		return nil
@@ -97,7 +75,7 @@ func (gui *Gui) onMenuPress() error {
 		return err
 	}
 
-	if err := gui.State.MenuItems[selectedLine].onPress(); err != nil {
+	if err := gui.State.MenuItems[selectedLine].OnPress(); err != nil {
 		return err
 	}
 

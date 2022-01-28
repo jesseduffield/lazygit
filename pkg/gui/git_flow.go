@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -13,16 +14,16 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 	}
 
 	if !gui.Git.Flow.GitFlowEnabled() {
-		return gui.createErrorPanel("You need to install git-flow and enable it in this repo to use git-flow features")
+		return gui.PopupHandler.ErrorMsg("You need to install git-flow and enable it in this repo to use git-flow features")
 	}
 
 	startHandler := func(branchType string) func() error {
 		return func() error {
 			title := utils.ResolvePlaceholderString(gui.Tr.NewGitFlowBranchPrompt, map[string]string{"branchType": branchType})
 
-			return gui.prompt(promptOpts{
-				title: title,
-				handleConfirm: func(name string) error {
+			return gui.PopupHandler.Prompt(popup.PromptOpts{
+				Title: title,
+				HandleConfirm: func(name string) error {
 					gui.logAction(gui.Tr.Actions.GitFlowStart)
 					return gui.runSubprocessWithSuspenseAndRefresh(
 						gui.Git.Flow.StartCmdObj(branchType, name),
@@ -32,39 +33,40 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 		}
 	}
 
-	menuItems := []*menuItem{
-		{
-			// not localising here because it's one to one with the actual git flow commands
-			displayString: fmt.Sprintf("finish branch '%s'", branch.Name),
-			onPress: func() error {
-				return gui.gitFlowFinishBranch(branch.Name)
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{
+		Title: "git flow",
+		Items: []*popup.MenuItem{
+			{
+				// not localising here because it's one to one with the actual git flow commands
+				DisplayString: fmt.Sprintf("finish branch '%s'", branch.Name),
+				OnPress: func() error {
+					return gui.gitFlowFinishBranch(branch.Name)
+				},
+			},
+			{
+				DisplayString: "start feature",
+				OnPress:       startHandler("feature"),
+			},
+			{
+				DisplayString: "start hotfix",
+				OnPress:       startHandler("hotfix"),
+			},
+			{
+				DisplayString: "start bugfix",
+				OnPress:       startHandler("bugfix"),
+			},
+			{
+				DisplayString: "start release",
+				OnPress:       startHandler("release"),
 			},
 		},
-		{
-			displayString: "start feature",
-			onPress:       startHandler("feature"),
-		},
-		{
-			displayString: "start hotfix",
-			onPress:       startHandler("hotfix"),
-		},
-		{
-			displayString: "start bugfix",
-			onPress:       startHandler("bugfix"),
-		},
-		{
-			displayString: "start release",
-			onPress:       startHandler("release"),
-		},
-	}
-
-	return gui.createMenu("git flow", menuItems, createMenuOptions{})
+	})
 }
 
 func (gui *Gui) gitFlowFinishBranch(branchName string) error {
 	cmdObj, err := gui.Git.Flow.FinishCmdObj(branchName)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.logAction(gui.Tr.Actions.GitFlowFinish)

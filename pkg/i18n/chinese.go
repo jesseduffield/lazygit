@@ -504,7 +504,6 @@ func chineseTranslationSet() TranslationSet {
 			InitialiseSubmodule:               "初始化子模块",
 			BulkInitialiseSubmodules:          "批量初始化子模块",
 			BulkUpdateSubmodules:              "批量更新子模块",
-			BulkStashAndResetSubmodules:       "批量存储和重置子模块",
 			BulkDeinitialiseSubmodules:        "批量取消初始化子模块",
 			UpdateSubmodule:                   "更新子模块",
 			DeleteTag:                         "删除标签",

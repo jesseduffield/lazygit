@@ -84,7 +84,7 @@ func (gui *Gui) getBranchNameSuggestionsFunc() func(string) []*types.Suggestion 
 // Notably, unlike other suggestion functions we're not showing all the options
 // if nothing has been typed because there'll be too much to display efficiently
 func (gui *Gui) getFilePathSuggestionsFunc() func(string) []*types.Suggestion {
-	_ = gui.WithWaitingStatus(gui.Tr.LcLoadingFileSuggestions, func() error {
+	_ = gui.PopupHandler.WithWaitingStatus(gui.Tr.LcLoadingFileSuggestions, func() error {
 		trie := patricia.NewTrie()
 		// load every non-gitignored file in the repo
 		ignore, err := gitignore.FromGit()

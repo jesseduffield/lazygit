@@ -28,7 +28,7 @@ func isShowingDiff(gui *Gui) bool {
 func (gui *Gui) IncreaseContextInDiffView() error {
 	if isShowingDiff(gui) {
 		if err := gui.CheckCanChangeContext(); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 
 		gui.UserConfig.Git.DiffContextSize = gui.UserConfig.Git.DiffContextSize + 1
@@ -43,7 +43,7 @@ func (gui *Gui) DecreaseContextInDiffView() error {
 
 	if isShowingDiff(gui) && old_size > 1 {
 		if err := gui.CheckCanChangeContext(); err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 
 		gui.UserConfig.Git.DiffContextSize = old_size - 1

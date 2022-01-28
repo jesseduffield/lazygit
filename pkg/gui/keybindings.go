@@ -9,27 +9,8 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
-
-// Binding - a keybinding mapping a key and modifier to a handler. The keypress
-// is only handled if the given view has focus, or handled globally if the view
-// is ""
-type Binding struct {
-	ViewName    string
-	Contexts    []string
-	Handler     func() error
-	Key         interface{} // FIXME: find out how to get `gocui.Key | rune`
-	Modifier    gocui.Modifier
-	Description string
-	Alternative string
-	Tag         string // e.g. 'navigation'. Used for grouping things in the cheatsheet
-	OpensMenu   bool
-}
-
-// GetDisplayStrings returns the display string of a file
-func (b *Binding) GetDisplayStrings(isFocused bool) []string {
-	return []string{GetKeyDisplay(b.Key), b.Description}
-}
 
 var keyMapReversed = map[gocui.Key]string{
 	gocui.KeyF1:         "f1",
@@ -203,10 +184,10 @@ func (gui *Gui) getKey(key string) interface{} {
 }
 
 // GetInitialKeybindings is a function.
-func (gui *Gui) GetInitialKeybindings() []*Binding {
+func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 	config := gui.UserConfig.Keybinding
 
-	bindings := []*Binding{
+	bindings := []*types.Binding{
 		{
 			ViewName: "",
 			Key:      gui.getKey(config.Universal.Quit),
@@ -1715,57 +1696,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName:    "files",
-			Contexts:    []string{string(SUBMODULES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Universal.GoInto),
-			Handler:     gui.forSubmodule(gui.handleSubmoduleEnter),
-			Description: gui.Tr.LcEnterSubmodule,
-		},
-		{
-			ViewName:    "files",
-			Contexts:    []string{string(SUBMODULES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Universal.Remove),
-			Handler:     gui.forSubmodule(gui.removeSubmodule),
-			Description: gui.Tr.LcRemoveSubmodule,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "files",
-			Contexts:    []string{string(SUBMODULES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Submodules.Update),
-			Handler:     gui.forSubmodule(gui.handleUpdateSubmodule),
-			Description: gui.Tr.LcSubmoduleUpdate,
-		},
-		{
-			ViewName:    "files",
-			Contexts:    []string{string(SUBMODULES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Universal.New),
-			Handler:     gui.handleAddSubmodule,
-			Description: gui.Tr.LcAddSubmodule,
-		},
-		{
-			ViewName:    "files",
-			Contexts:    []string{string(SUBMODULES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Universal.Edit),
-			Handler:     gui.forSubmodule(gui.handleEditSubmoduleUrl),
-			Description: gui.Tr.LcEditSubmoduleUrl,
-		},
-		{
-			ViewName:    "files",
-			Contexts:    []string{string(SUBMODULES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Submodules.Init),
-			Handler:     gui.forSubmodule(gui.handleSubmoduleInit),
-			Description: gui.Tr.LcInitSubmodule,
-		},
-		{
-			ViewName:    "files",
-			Contexts:    []string{string(SUBMODULES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Submodules.BulkMenu),
-			Handler:     gui.handleBulkSubmoduleActionsMenu,
-			Description: gui.Tr.LcViewBulkSubmoduleOptions,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "files",
 			Contexts:    []string{string(FILES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.ToggleWhitespaceInDiffView),
 			Handler:     gui.toggleWhitespaceInDiffView,
@@ -1841,8 +1771,28 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 	}
 
+	type ContextKeybindings struct {
+		contextKey ContextKey
+		viewName   string
+		bindings   []*types.Binding
+	}
+
+	for _, contextKeybindings := range []ContextKeybindings{
+		{
+			contextKey: SUBMODULES_CONTEXT_KEY,
+			viewName:   "files",
+			bindings:   gui.Controllers.Submodules.Keybindings(gui.getKey, config),
+		},
+	} {
+		for _, binding := range contextKeybindings.bindings {
+			binding.Contexts = []string{string(contextKeybindings.contextKey)}
+			binding.ViewName = contextKeybindings.viewName
+			bindings = append(bindings, binding)
+		}
+	}
+
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {
-		bindings = append(bindings, []*Binding{
+		bindings = append(bindings, []*types.Binding{
 			{ViewName: viewName, Key: gui.getKey(config.Universal.PrevBlock), Modifier: gocui.ModNone, Handler: gui.previousSideWindow},
 			{ViewName: viewName, Key: gui.getKey(config.Universal.NextBlock), Modifier: gocui.ModNone, Handler: gui.nextSideWindow},
 			{ViewName: viewName, Key: gui.getKey(config.Universal.PrevBlockAlt), Modifier: gocui.ModNone, Handler: gui.previousSideWindow},
@@ -1859,7 +1809,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
 	} else {
 		for i, window := range windows {
-			bindings = append(bindings, &Binding{
+			bindings = append(bindings, &types.Binding{
 				ViewName: "",
 				Key:      gui.getKey(config.Universal.JumpToBlock[i]),
 				Modifier: gocui.ModNone,
@@ -1868,7 +1818,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 	}
 
 	for viewName := range gui.State.Contexts.initialViewTabContextMap() {
-		bindings = append(bindings, []*Binding{
+		bindings = append(bindings, []*types.Binding{
 			{
 				ViewName:    viewName,
 				Key:         gui.getKey(config.Universal.NextTab),

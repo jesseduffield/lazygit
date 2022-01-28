@@ -540,7 +540,6 @@ type Actions struct {
 	InitialiseSubmodule               string
 	BulkInitialiseSubmodules          string
 	BulkUpdateSubmodules              string
-	BulkStashAndResetSubmodules       string
 	BulkDeinitialiseSubmodules        string
 	UpdateSubmodule                   string
 	CreateLightweightTag              string
@@ -651,7 +650,7 @@ func EnglishTranslationSet() TranslationSet {
 		NoBranchesThisRepo:                  "No branches for this repo",
 		CommitMessageConfirm:                "{{.keyBindClose}}: close, {{.keyBindNewLine}}: new line, {{.keyBindConfirm}}: confirm",
 		CommitWithoutMessageErr:             "You cannot commit without a commit message",
-		CloseConfirm:                        "{{.keyBindClose}}: close, {{.keyBindConfirm}}: confirm",
+		CloseConfirm:                        "{{.keyBindClose}}: close/cancel, {{.keyBindConfirm}}: confirm",
 		LcClose:                             "close",
 		LcQuit:                              "quit",
 		LcSquashDown:                        "squash down",
@@ -1097,7 +1096,6 @@ func EnglishTranslationSet() TranslationSet {
 			InitialiseSubmodule:               "Initialise submodule",
 			BulkInitialiseSubmodules:          "Bulk initialise submodules",
 			BulkUpdateSubmodules:              "Bulk update submodules",
-			BulkStashAndResetSubmodules:       "Bulk stash and reset submodules",
 			BulkDeinitialiseSubmodules:        "Bulk deinitialise submodules",
 			UpdateSubmodule:                   "Update submodule",
 			DeleteTag:                         "Delete tag",

@@ -234,9 +234,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// if the commit files view is the view to be displayed for its window, we'll display it
 	gui.Views.CommitFiles.Visible = gui.getViewNameForWindow(gui.State.Contexts.CommitFiles.GetWindowName()) == "commitFiles"
 
-	if gui.State.OldInformation != informationStr {
+	if gui.PrevLayout.Information != informationStr {
 		gui.setViewContent(gui.Views.Information, informationStr)
-		gui.State.OldInformation = informationStr
+		gui.PrevLayout.Information = informationStr
 	}
 
 	if !gui.ViewsSetup {
@@ -277,9 +277,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	gui.Views.Main.SetOnSelectItem(gui.onSelectItemWrapper(gui.handlelineByLineNavigateTo))
 
 	mainViewWidth, mainViewHeight := gui.Views.Main.Size()
-	if mainViewWidth != gui.State.PrevMainWidth || mainViewHeight != gui.State.PrevMainHeight {
-		gui.State.PrevMainWidth = mainViewWidth
-		gui.State.PrevMainHeight = mainViewHeight
+	if mainViewWidth != gui.PrevLayout.MainWidth || mainViewHeight != gui.PrevLayout.MainHeight {
+		gui.PrevLayout.MainWidth = mainViewWidth
+		gui.PrevLayout.MainHeight = mainViewHeight
 		if err := gui.onResize(); err != nil {
 			return err
 		}

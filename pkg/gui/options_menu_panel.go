@@ -4,13 +4,15 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) getBindings(v *gocui.View) []*Binding {
+func (gui *Gui) getBindings(v *gocui.View) []*types.Binding {
 	var (
-		bindingsGlobal, bindingsPanel []*Binding
+		bindingsGlobal, bindingsPanel []*types.Binding
 	)
 
 	bindings := append(gui.GetCustomCommandKeybindings(), gui.GetInitialKeybindings()...)
@@ -30,11 +32,11 @@ func (gui *Gui) getBindings(v *gocui.View) []*Binding {
 
 	// append dummy element to have a separator between
 	// panel and global keybindings
-	bindingsPanel = append(bindingsPanel, &Binding{})
+	bindingsPanel = append(bindingsPanel, &types.Binding{})
 	return append(bindingsPanel, bindingsGlobal...)
 }
 
-func (gui *Gui) displayDescription(binding *Binding) string {
+func (gui *Gui) displayDescription(binding *types.Binding) string {
 	if binding.OpensMenu {
 		return opensMenuStyle(binding.Description)
 	}
@@ -54,13 +56,13 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 
 	bindings := gui.getBindings(view)
 
-	menuItems := make([]*menuItem, len(bindings))
+	menuItems := make([]*popup.MenuItem, len(bindings))
 
 	for i, binding := range bindings {
 		binding := binding // note to self, never close over loop variables
-		menuItems[i] = &menuItem{
-			displayStrings: []string{GetKeyDisplay(binding.Key), gui.displayDescription(binding)},
-			onPress: func() error {
+		menuItems[i] = &popup.MenuItem{
+			DisplayStrings: []string{GetKeyDisplay(binding.Key), gui.displayDescription(binding)},
+			OnPress: func() error {
 				if binding.Key == nil {
 					return nil
 				}
@@ -72,5 +74,9 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 		}
 	}
 
-	return gui.createMenu(strings.Title(gui.Tr.LcMenu), menuItems, createMenuOptions{})
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{
+		Title:      strings.Title(gui.Tr.LcMenu),
+		Items:      menuItems,
+		HideCancel: true,
+	})
 }

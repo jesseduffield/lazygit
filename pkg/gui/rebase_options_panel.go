@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type RebaseOption string
@@ -22,13 +24,13 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 		options = append(options, REBASE_OPTION_SKIP)
 	}
 
-	menuItems := make([]*menuItem, len(options))
+	menuItems := make([]*popup.MenuItem, len(options))
 	for i, option := range options {
 		// note to self. Never, EVER, close over loop variables in a function
 		option := option
-		menuItems[i] = &menuItem{
-			displayString: option,
-			onPress: func() error {
+		menuItems[i] = &popup.MenuItem{
+			DisplayString: option,
+			OnPress: func() error {
 				return gui.genericMergeCommand(option)
 			},
 		}
@@ -41,14 +43,14 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 		title = gui.Tr.RebaseOptionsTitle
 	}
 
-	return gui.createMenu(title, menuItems, createMenuOptions{showCancel: true})
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{Title: title, Items: menuItems})
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {
 	status := gui.Git.Status.WorkingTreeState()
 
 	if status != enums.REBASE_MODE_MERGING && status != enums.REBASE_MODE_REBASING {
-		return gui.createErrorPanel(gui.Tr.NotMergingOrRebasing)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.NotMergingOrRebasing)
 	}
 
 	gui.logAction(fmt.Sprintf("Merge/Rebase: %s", command))
@@ -97,7 +99,7 @@ func isMergeConflictErr(errStr string) bool {
 }
 
 func (gui *Gui) handleGenericMergeCommandResult(result error) error {
-	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+	if err := gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
 		return err
 	}
 	if result == nil {
@@ -110,14 +112,14 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 		// assume in this case that we're already done
 		return nil
 	} else if isMergeConflictErr(result.Error()) {
-		return gui.ask(askOpts{
-			title:               gui.Tr.FoundConflictsTitle,
-			prompt:              gui.Tr.FoundConflicts,
-			handlersManageFocus: true,
-			handleConfirm: func() error {
+		return gui.PopupHandler.Ask(popup.AskOpts{
+			Title:               gui.Tr.FoundConflictsTitle,
+			Prompt:              gui.Tr.FoundConflicts,
+			HandlersManageFocus: true,
+			HandleConfirm: func() error {
 				return gui.pushContext(gui.State.Contexts.Files)
 			},
-			handleClose: func() error {
+			HandleClose: func() error {
 				if err := gui.returnFromContext(); err != nil {
 					return err
 				}
@@ -126,17 +128,17 @@ func (gui *Gui) handleGenericMergeCommandResult(result error) error {
 			},
 		})
 	} else {
-		return gui.createErrorPanel(result.Error())
+		return gui.PopupHandler.ErrorMsg(result.Error())
 	}
 }
 
 func (gui *Gui) abortMergeOrRebaseWithConfirm() error {
 	// prompt user to confirm that they want to abort, then do it
 	mode := gui.workingTreeStateNoun()
-	return gui.ask(askOpts{
-		title:  fmt.Sprintf(gui.Tr.AbortTitle, mode),
-		prompt: fmt.Sprintf(gui.Tr.AbortPrompt, mode),
-		handleConfirm: func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  fmt.Sprintf(gui.Tr.AbortTitle, mode),
+		Prompt: fmt.Sprintf(gui.Tr.AbortPrompt, mode),
+		HandleConfirm: func() error {
 			return gui.genericMergeCommand(REBASE_OPTION_ABORT)
 		},
 	})

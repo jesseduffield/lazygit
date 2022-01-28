@@ -3,34 +3,36 @@ package gui
 import (
 	"io"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 func (gui *Gui) handleCreateExtrasMenuPanel() error {
-	menuItems := []*menuItem{
-		{
-			displayString: gui.Tr.ToggleShowCommandLog,
-			onPress: func() error {
-				currentContext := gui.currentStaticContext()
-				if gui.ShowExtrasWindow && currentContext.GetKey() == COMMAND_LOG_CONTEXT_KEY {
-					if err := gui.returnFromContext(); err != nil {
-						return err
+	return gui.PopupHandler.Menu(popup.CreateMenuOptions{
+		Title: gui.Tr.CommandLog,
+		Items: []*popup.MenuItem{
+			{
+				DisplayString: gui.Tr.ToggleShowCommandLog,
+				OnPress: func() error {
+					currentContext := gui.currentStaticContext()
+					if gui.ShowExtrasWindow && currentContext.GetKey() == COMMAND_LOG_CONTEXT_KEY {
+						if err := gui.returnFromContext(); err != nil {
+							return err
+						}
 					}
-				}
-				show := !gui.ShowExtrasWindow
-				gui.ShowExtrasWindow = show
-				gui.Config.GetAppState().HideCommandLog = !show
-				_ = gui.Config.SaveAppState()
-				return nil
+					show := !gui.ShowExtrasWindow
+					gui.ShowExtrasWindow = show
+					gui.Config.GetAppState().HideCommandLog = !show
+					_ = gui.Config.SaveAppState()
+					return nil
+				},
+			},
+			{
+				DisplayString: gui.Tr.FocusCommandLog,
+				OnPress:       gui.handleFocusCommandLog,
 			},
 		},
-		{
-			displayString: gui.Tr.FocusCommandLog,
-			onPress:       gui.handleFocusCommandLog,
-		},
-	}
-
-	return gui.createMenu(gui.Tr.CommandLog, menuItems, createMenuOptions{showCancel: true})
+	})
 }
 
 func (gui *Gui) handleFocusCommandLog() error {

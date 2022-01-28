@@ -4,6 +4,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) getSelectedCommitFileNode() *filetree.CommitFileNode {
@@ -65,10 +67,10 @@ func (gui *Gui) handleCheckoutCommitFile() error {
 
 	gui.logAction(gui.Tr.Actions.CheckoutFile)
 	if err := gui.Git.WorkingTree.CheckoutFile(gui.State.CommitFileTreeViewModel.GetParent(), node.GetPath()); err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (gui *Gui) handleDiscardOldFileChange() error {
@@ -78,11 +80,11 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 
 	fileName := gui.getSelectedCommitFileName()
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.DiscardFileChangesTitle,
-		prompt: gui.Tr.DiscardFileChangesPrompt,
-		handleConfirm: func() error {
-			return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.DiscardFileChangesTitle,
+		Prompt: gui.Tr.DiscardFileChangesPrompt,
+		HandleConfirm: func() error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
 				gui.logAction(gui.Tr.Actions.DiscardOldFileChange)
 				if err := gui.Git.Rebase.DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
 					if err := gui.handleGenericMergeCommandResult(err); err != nil {
@@ -90,7 +92,7 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 					}
 				}
 
-				return gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI})
+				return gui.refreshSidePanels(types.RefreshOptions{Mode: types.BLOCK_UI})
 			})
 		},
 	})
@@ -109,7 +111,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 
 	files, err := gui.Git.Loaders.CommitFiles.GetFilesInDiff(from, to, reverse)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 	gui.State.CommitFileTreeViewModel.SetParent(to)
 	gui.State.CommitFileTreeViewModel.SetFiles(files)
@@ -133,7 +135,7 @@ func (gui *Gui) handleEditCommitFile() error {
 	}
 
 	if node.File == nil {
-		return gui.createErrorPanel(gui.Tr.ErrCannotEditDirectory)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.ErrCannotEditDirectory)
 	}
 
 	return gui.editFile(node.GetPath())
@@ -167,7 +169,7 @@ func (gui *Gui) handleToggleFileForPatch() error {
 		})
 
 		if err != nil {
-			return gui.surfaceError(err)
+			return gui.PopupHandler.Error(err)
 		}
 
 		if gui.Git.Patch.PatchManager.IsEmpty() {
@@ -178,10 +180,10 @@ func (gui *Gui) handleToggleFileForPatch() error {
 	}
 
 	if gui.Git.Patch.PatchManager.Active() && gui.Git.Patch.PatchManager.To != gui.State.CommitFileTreeViewModel.GetParent() {
-		return gui.ask(askOpts{
-			title:  gui.Tr.DiscardPatch,
-			prompt: gui.Tr.DiscardPatchConfirm,
-			handleConfirm: func() error {
+		return gui.PopupHandler.Ask(popup.AskOpts{
+			Title:  gui.Tr.DiscardPatch,
+			Prompt: gui.Tr.DiscardPatchConfirm,
+			HandleConfirm: func() error {
 				gui.Git.Patch.PatchManager.Reset()
 				return toggleTheFile()
 			},
@@ -226,10 +228,10 @@ func (gui *Gui) enterCommitFile(opts OnFocusOpts) error {
 	}
 
 	if gui.Git.Patch.PatchManager.Active() && gui.Git.Patch.PatchManager.To != gui.State.CommitFileTreeViewModel.GetParent() {
-		return gui.ask(askOpts{
-			title:  gui.Tr.DiscardPatch,
-			prompt: gui.Tr.DiscardPatchConfirm,
-			handleConfirm: func() error {
+		return gui.PopupHandler.Ask(popup.AskOpts{
+			Title:  gui.Tr.DiscardPatch,
+			Prompt: gui.Tr.DiscardPatchConfirm,
+			HandleConfirm: func() error {
 				gui.Git.Patch.PatchManager.Reset()
 				return enterTheFile()
 			},

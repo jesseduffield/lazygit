@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 )
 
 // when a user runs lazygit with the LAZYGIT_NEW_DIR_FILE env variable defined
@@ -28,12 +29,12 @@ func (gui *Gui) recordDirectory(dirName string) error {
 }
 
 func (gui *Gui) handleQuitWithoutChangingDirectory() error {
-	gui.State.RetainOriginalDir = true
+	gui.RetainOriginalDir = true
 	return gui.quit()
 }
 
 func (gui *Gui) handleQuit() error {
-	gui.State.RetainOriginalDir = false
+	gui.RetainOriginalDir = false
 	return gui.quit()
 }
 
@@ -53,12 +54,8 @@ func (gui *Gui) handleTopLevelReturn() error {
 	}
 
 	repoPathStack := gui.RepoPathStack
-	if len(repoPathStack) > 0 {
-		n := len(repoPathStack) - 1
-
-		path := repoPathStack[n]
-
-		gui.RepoPathStack = repoPathStack[:n]
+	if !repoPathStack.IsEmpty() {
+		path := repoPathStack.Pop()
 
 		return gui.dispatchSwitchToRepo(path, true)
 	}
@@ -76,10 +73,10 @@ func (gui *Gui) quit() error {
 	}
 
 	if gui.UserConfig.ConfirmOnQuit {
-		return gui.ask(askOpts{
-			title:  "",
-			prompt: gui.Tr.ConfirmQuit,
-			handleConfirm: func() error {
+		return gui.PopupHandler.Ask(popup.AskOpts{
+			Title:  "",
+			Prompt: gui.Tr.ConfirmQuit,
+			HandleConfirm: func() error {
 				return gocui.ErrQuit
 			},
 		})

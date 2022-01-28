@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -49,8 +50,10 @@ func cursorInSubstring(cx int, prefix string, substring string) bool {
 }
 
 func (gui *Gui) handleCheckForUpdate() error {
-	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
-	return gui.createLoaderPanel(gui.Tr.CheckingForUpdates)
+	return gui.PopupHandler.WithWaitingStatus(gui.Tr.CheckingForUpdates, func() error {
+		gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
+		return nil
+	})
 }
 
 func (gui *Gui) handleStatusClick() error {
@@ -136,17 +139,21 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 	case 1:
 		return action(confPaths[0])
 	default:
-		menuItems := make([]*menuItem, len(confPaths))
+		menuItems := make([]*popup.MenuItem, len(confPaths))
 		for i, file := range confPaths {
 			i := i
-			menuItems[i] = &menuItem{
-				displayString: file,
-				onPress: func() error {
+			menuItems[i] = &popup.MenuItem{
+				DisplayString: file,
+				OnPress: func() error {
 					return action(confPaths[i])
 				},
 			}
 		}
-		return gui.createMenu(gui.Tr.SelectConfigFile, menuItems, createMenuOptions{})
+		return gui.PopupHandler.Menu(popup.CreateMenuOptions{
+			Title:      gui.Tr.SelectConfigFile,
+			Items:      menuItems,
+			HideCancel: true,
+		})
 	}
 }
 

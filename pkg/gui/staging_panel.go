@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx int) error {
@@ -112,10 +114,10 @@ func (gui *Gui) handleResetSelection() error {
 		}
 
 		if !gui.UserConfig.Gui.SkipUnstageLineWarning {
-			return gui.ask(askOpts{
-				title:  gui.Tr.UnstageLinesTitle,
-				prompt: gui.Tr.UnstageLinesPrompt,
-				handleConfirm: func() error {
+			return gui.PopupHandler.Ask(popup.AskOpts{
+				Title:  gui.Tr.UnstageLinesTitle,
+				Prompt: gui.Tr.UnstageLinesPrompt,
+				HandleConfirm: func() error {
 					return gui.withLBLActiveCheck(func(state *LblPanelState) error {
 						return gui.applySelection(true, state)
 					})
@@ -149,14 +151,14 @@ func (gui *Gui) applySelection(reverse bool, state *LblPanelState) error {
 	gui.logAction(gui.Tr.Actions.ApplyPatch)
 	err := gui.Git.WorkingTree.ApplyPatch(patch, applyFlags...)
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	if state.SelectingRange() {
 		state.SetLineSelectMode()
 	}
 
-	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
+	if err := gui.refreshSidePanels(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}}); err != nil {
 		return err
 	}
 	if err := gui.refreshStagingPanel(false, -1); err != nil {

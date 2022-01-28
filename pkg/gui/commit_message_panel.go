@@ -12,7 +12,7 @@ func (gui *Gui) handleCommitConfirm() error {
 	message := strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
 	gui.State.failedCommitMessage = message
 	if message == "" {
-		return gui.createErrorPanel(gui.Tr.CommitWithoutMessageErr)
+		return gui.PopupHandler.ErrorMsg(gui.Tr.CommitWithoutMessageErr)
 	}
 
 	cmdObj := gui.Git.Commit.CommitCmdObj(message)

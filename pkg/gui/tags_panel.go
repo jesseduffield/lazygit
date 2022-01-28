@@ -2,6 +2,8 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -41,7 +43,7 @@ func (gui *Gui) tagsRenderToMain() error {
 func (gui *Gui) refreshTags() error {
 	tags, err := gui.Git.Loaders.Tags.GetTags()
 	if err != nil {
-		return gui.surfaceError(err)
+		return gui.PopupHandler.Error(err)
 	}
 
 	gui.State.Tags = tags
@@ -78,15 +80,15 @@ func (gui *Gui) handleDeleteTag(tag *models.Tag) error {
 		},
 	)
 
-	return gui.ask(askOpts{
-		title:  gui.Tr.DeleteTagTitle,
-		prompt: prompt,
-		handleConfirm: func() error {
+	return gui.PopupHandler.Ask(popup.AskOpts{
+		Title:  gui.Tr.DeleteTagTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
 			gui.logAction(gui.Tr.Actions.DeleteTag)
 			if err := gui.Git.Tag.Delete(tag.Name); err != nil {
-				return gui.surfaceError(err)
+				return gui.PopupHandler.Error(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{COMMITS, TAGS}})
+			return gui.refreshSidePanels(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 		},
 	})
 }
@@ -99,15 +101,17 @@ func (gui *Gui) handlePushTag(tag *models.Tag) error {
 		},
 	)
 
-	return gui.prompt(promptOpts{
-		title:               title,
-		initialContent:      "origin",
-		findSuggestionsFunc: gui.getRemoteSuggestionsFunc(),
-		handleConfirm: func(response string) error {
-			return gui.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
+	return gui.PopupHandler.Prompt(popup.PromptOpts{
+		Title:               title,
+		InitialContent:      "origin",
+		FindSuggestionsFunc: gui.getRemoteSuggestionsFunc(),
+		HandleConfirm: func(response string) error {
+			return gui.PopupHandler.WithWaitingStatus(gui.Tr.PushingTagStatus, func() error {
 				gui.logAction(gui.Tr.Actions.PushTag)
 				err := gui.Git.Tag.Push(response, tag.Name)
-				gui.handleCredentialsPopup(err)
+				if err != nil {
+					_ = gui.PopupHandler.Error(err)
+				}
 
 				return nil
 			})

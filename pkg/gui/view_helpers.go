@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
 )
@@ -15,34 +16,18 @@ func (gui *Gui) getCyclableWindows() []string {
 	return []string{"status", "files", "branches", "commits", "stash"}
 }
 
-// models/views that we can refresh
-type RefreshableView int
-
-const (
-	COMMITS RefreshableView = iota
-	BRANCHES
-	FILES
-	STASH
-	REFLOG
-	TAGS
-	REMOTES
-	STATUS
-	SUBMODULES
-	// not actually a view. Will refactor this later
-	BISECT_INFO
-)
-
-func getScopeNames(scopes []RefreshableView) []string {
-	scopeNameMap := map[RefreshableView]string{
-		COMMITS:    "commits",
-		BRANCHES:   "branches",
-		FILES:      "files",
-		SUBMODULES: "submodules",
-		STASH:      "stash",
-		REFLOG:     "reflog",
-		TAGS:       "tags",
-		REMOTES:    "remotes",
-		STATUS:     "status",
+func getScopeNames(scopes []types.RefreshableView) []string {
+	scopeNameMap := map[types.RefreshableView]string{
+		types.COMMITS:     "commits",
+		types.BRANCHES:    "branches",
+		types.FILES:       "files",
+		types.SUBMODULES:  "submodules",
+		types.STASH:       "stash",
+		types.REFLOG:      "reflog",
+		types.TAGS:        "tags",
+		types.REMOTES:     "remotes",
+		types.STATUS:      "status",
+		types.BISECT_INFO: "bisect",
 	}
 
 	scopeNames := make([]string, len(scopes))
@@ -53,69 +38,55 @@ func getScopeNames(scopes []RefreshableView) []string {
 	return scopeNames
 }
 
-func getModeName(mode RefreshMode) string {
+func getModeName(mode types.RefreshMode) string {
 	switch mode {
-	case SYNC:
+	case types.SYNC:
 		return "sync"
-	case ASYNC:
+	case types.ASYNC:
 		return "async"
-	case BLOCK_UI:
+	case types.BLOCK_UI:
 		return "block-ui"
 	default:
 		return "unknown mode"
 	}
 }
 
-type RefreshMode int
-
-const (
-	SYNC     RefreshMode = iota // wait until everything is done before returning
-	ASYNC                       // return immediately, allowing each independent thing to update itself
-	BLOCK_UI                    // wrap code in an update call to ensure UI updates all at once and keybindings aren't executed till complete
-)
-
-type refreshOptions struct {
-	then  func()
-	scope []RefreshableView // e.g. []int{COMMITS, BRANCHES}. Leave empty to refresh everything
-	mode  RefreshMode       // one of SYNC (default), ASYNC, and BLOCK_UI
-}
-
-func arrToMap(arr []RefreshableView) map[RefreshableView]bool {
-	output := map[RefreshableView]bool{}
+func arrToMap(arr []types.RefreshableView) map[types.RefreshableView]bool {
+	output := map[types.RefreshableView]bool{}
 	for _, el := range arr {
 		output[el] = true
 	}
 	return output
 }
 
-func (gui *Gui) refreshSidePanels(options refreshOptions) error {
-	if options.scope == nil {
+func (gui *Gui) refreshSidePanels(options types.RefreshOptions) error {
+	if options.Scope == nil {
 		gui.Log.Infof(
 			"refreshing all scopes in %s mode",
-			getModeName(options.mode),
+			getModeName(options.Mode),
 		)
 	} else {
 		gui.Log.Infof(
 			"refreshing the following scopes in %s mode: %s",
-			getModeName(options.mode),
-			strings.Join(getScopeNames(options.scope), ","),
+			getModeName(options.Mode),
+			strings.Join(getScopeNames(options.Scope), ","),
 		)
 	}
 
 	wg := sync.WaitGroup{}
 
 	f := func() {
-		var scopeMap map[RefreshableView]bool
-		if len(options.scope) == 0 {
-			scopeMap = arrToMap([]RefreshableView{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES, STATUS, BISECT_INFO})
+		var scopeMap map[types.RefreshableView]bool
+		if len(options.Scope) == 0 {
+			scopeMap = arrToMap([]types.RefreshableView{types.COMMITS, types.BRANCHES, types.FILES, types.STASH, types.REFLOG, types.TAGS, types.REMOTES, types.STATUS, types.BISECT_INFO})
 		} else {
-			scopeMap = arrToMap(options.scope)
+			scopeMap = arrToMap(options.Scope)
 		}
 
-		if scopeMap[COMMITS] || scopeMap[BRANCHES] || scopeMap[REFLOG] || scopeMap[BISECT_INFO] {
+		if scopeMap[types.COMMITS] || scopeMap[types.BRANCHES] || scopeMap[types.REFLOG] || scopeMap[types.BISECT_INFO] {
 			wg.Add(1)
 			func() {
-				if options.mode == ASYNC {
+				if options.Mode == types.ASYNC {
 					go utils.Safe(func() { gui.refreshCommits() })
 				} else {
 					gui.refreshCommits()
@@ -124,10 +95,10 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			}()
 		}
 
-		if scopeMap[FILES] || scopeMap[SUBMODULES] {
+		if scopeMap[types.FILES] || scopeMap[types.SUBMODULES] {
 			wg.Add(1)
 			func() {
-				if options.mode == ASYNC {
+				if options.Mode == types.ASYNC {
 					go utils.Safe(func() { _ = gui.refreshFilesAndSubmodules() })
 				} else {
 					_ = gui.refreshFilesAndSubmodules()
@@ -136,10 +107,10 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			}()
 		}
 
-		if scopeMap[STASH] {
+		if scopeMap[types.STASH] {
 			wg.Add(1)
 			func() {
-				if options.mode == ASYNC {
+				if options.Mode == types.ASYNC {
 					go utils.Safe(func() { _ = gui.refreshStashEntries() })
 				} else {
 					_ = gui.refreshStashEntries()
@@ -148,10 +119,10 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			}()
 		}
 
-		if scopeMap[TAGS] {
+		if scopeMap[types.TAGS] {
 			wg.Add(1)
 			func() {
-				if options.mode == ASYNC {
+				if options.Mode == types.ASYNC {
 					go utils.Safe(func() { _ = gui.refreshTags() })
 				} else {
 					_ = gui.refreshTags()
@@ -160,10 +131,10 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 			}()
 		}
 
-		if scopeMap[REMOTES] {
+		if scopeMap[types.REMOTES] {
 			wg.Add(1)
 			func() {
-				if options.mode == ASYNC {
+				if options.Mode == types.ASYNC {
 					go utils.Safe(func() { _ = gui.refreshRemotes() })
 				} else {
 					_ = gui.refreshRemotes()
@@ -176,12 +147,12 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 
 		gui.refreshStatus()
 
-		if options.then != nil {
-			options.then()
+		if options.Then != nil {
+			options.Then()
 		}
 	}
 
-	if options.mode == BLOCK_UI {
+	if options.Mode == types.BLOCK_UI {
 		gui.OnUIThread(func() error {
 			f()
 			return nil
