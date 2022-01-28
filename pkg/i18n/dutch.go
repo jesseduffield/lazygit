@@ -355,7 +355,6 @@ func dutchTranslationSet() TranslationSet {
 		LcCreateNewBranchFromCommit:         "creëer nieuwe branch van commit",
 		LcCopySubmoduleNameToClipboard:      "kopieer submodule naam naar klembord",
 		LcEnterSubmodule:                    "enter submodule",
-		LcViewResetAndRemoveOptions:         "bekijk reset en verwijder submodule opties",
 		LcAddSubmodule:                      "voeg nieuwe submodule toe",
 		LcInitSubmodule:                     "initialiseer submodule",
 		LcViewBulkSubmoduleOptions:          "bekijk bulk submodule opties",
