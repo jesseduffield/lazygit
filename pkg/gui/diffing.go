@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -35,12 +36,12 @@ func (gui *Gui) currentDiffTerminals() []string {
 	switch gui.currentContext().GetKey() {
 	case "":
 		return nil
-	case FILES_CONTEXT_KEY, SUBMODULES_CONTEXT_KEY:
+	case context.FILES_CONTEXT_KEY, context.SUBMODULES_CONTEXT_KEY:
 		// TODO: should we just return nil here?
 		return []string{""}
-	case COMMIT_FILES_CONTEXT_KEY:
+	case context.COMMIT_FILES_CONTEXT_KEY:
 		return []string{gui.State.Panels.CommitFiles.refName}
-	case LOCAL_BRANCHES_CONTEXT_KEY:
+	case context.LOCAL_BRANCHES_CONTEXT_KEY:
 		// for our local branches we want to include both the branch and its upstream
 		branch := gui.getSelectedBranch()
 		if branch != nil {
@@ -74,7 +75,7 @@ func (gui *Gui) currentDiffTerminal() string {
 
 func (gui *Gui) currentlySelectedFilename() string {
 	switch gui.currentContext().GetKey() {
-	case FILES_CONTEXT_KEY, COMMIT_FILES_CONTEXT_KEY:
+	case context.FILES_CONTEXT_KEY, context.COMMIT_FILES_CONTEXT_KEY:
 		return gui.getSideContextSelectedItemId()
 	default:
 		return ""

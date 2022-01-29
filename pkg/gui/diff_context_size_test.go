@@ -6,13 +6,13 @@ package gui
 // +++ b/pkg/gui/diff_context_size.go
 // @@ -9,12 +9,12 @@ func getRefreshFunction(gui *Gui) func()error {
 //                 }
-//         } else if key == MAIN_STAGING_CONTEXT_KEY {
+//         } else if key == context.MAIN_STAGING_CONTEXT_KEY {
 //                 return func() error {
 // -                       selectedLine := gui.Views.Secondary.SelectedLineIdx()
 // +                       selectedLine := gui.State.Panels.LineByLine.GetSelectedLineIdx()
 //                         return gui.handleRefreshStagingPanel(false, selectedLine)
 //                 }
-//         } else if key == MAIN_PATCH_BUILDING_CONTEXT_KEY {
+//         } else if key == context.MAIN_PATCH_BUILDING_CONTEXT_KEY {
 // `
 
 // func setupGuiForTest(gui *Gui) {

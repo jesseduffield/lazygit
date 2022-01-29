@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gui/boxlayout"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -139,7 +140,7 @@ func (gui *Gui) getExtrasWindowSize(screenHeight int) int {
 	}
 
 	var baseSize int
-	if gui.currentStaticContext().GetKey() == COMMAND_LOG_CONTEXT_KEY {
+	if gui.currentStaticContext().GetKey() == context.COMMAND_LOG_CONTEXT_KEY {
 		baseSize = 1000 // my way of saying 'fill the available space'
 	} else if screenHeight < 40 {
 		baseSize = 1

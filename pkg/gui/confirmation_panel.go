@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -138,7 +138,7 @@ func (gui *Gui) prepareConfirmationPanel(
 	return nil
 }
 
-func (gui *Gui) createPopupPanel(opts popup.CreatePopupPanelOpts) error {
+func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 	// remove any previous keybindings
 	gui.clearConfirmationViewKeyBindings()
 
@@ -174,7 +174,7 @@ func (gui *Gui) createPopupPanel(opts popup.CreatePopupPanelOpts) error {
 	return gui.c.PushContext(gui.State.Contexts.Confirmation)
 }
 
-func (gui *Gui) setKeyBindings(opts popup.CreatePopupPanelOpts) error {
+func (gui *Gui) setKeyBindings(opts types.CreatePopupPanelOpts) error {
 	actions := utils.ResolvePlaceholderString(
 		gui.c.Tr.CloseConfirm,
 		map[string]string{
@@ -201,25 +201,25 @@ func (gui *Gui) setKeyBindings(opts popup.CreatePopupPanelOpts) error {
 	bindings := []*types.Binding{
 		{
 			ViewName: "confirmation",
-			Contexts: []string{string(CONFIRMATION_CONTEXT_KEY)},
+			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.Confirm),
 			Handler:  onConfirm,
 		},
 		{
 			ViewName: "confirmation",
-			Contexts: []string{string(CONFIRMATION_CONTEXT_KEY)},
+			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.ConfirmAlt1),
 			Handler:  onConfirm,
 		},
 		{
 			ViewName: "confirmation",
-			Contexts: []string{string(CONFIRMATION_CONTEXT_KEY)},
+			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.Return),
 			Handler:  gui.wrappedConfirmationFunction(opts.HandlersManageFocus, opts.HandleClose),
 		},
 		{
 			ViewName: "confirmation",
-			Contexts: []string{string(CONFIRMATION_CONTEXT_KEY)},
+			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.TogglePanel),
 			Handler: func() error {
 				if len(gui.State.Suggestions) > 0 {
@@ -230,25 +230,25 @@ func (gui *Gui) setKeyBindings(opts popup.CreatePopupPanelOpts) error {
 		},
 		{
 			ViewName: "suggestions",
-			Contexts: []string{string(CONFIRMATION_CONTEXT_KEY)},
+			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.Confirm),
 			Handler:  onSuggestionConfirm,
 		},
 		{
 			ViewName: "suggestions",
-			Contexts: []string{string(CONFIRMATION_CONTEXT_KEY)},
+			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.ConfirmAlt1),
 			Handler:  onSuggestionConfirm,
 		},
 		{
 			ViewName: "suggestions",
-			Contexts: []string{string(CONFIRMATION_CONTEXT_KEY)},
+			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.Return),
 			Handler:  gui.wrappedConfirmationFunction(opts.HandlersManageFocus, opts.HandleClose),
 		},
 		{
 			ViewName: "suggestions",
-			Contexts: []string{string(CONFIRMATION_CONTEXT_KEY)},
+			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.TogglePanel),
 			Handler:  func() error { return gui.replaceContext(gui.State.Contexts.Confirmation) },
 		},

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -82,7 +83,7 @@ func (gui *Gui) validateNormalWorkingTreeState() (bool, error) {
 }
 
 func (gui *Gui) returnFocusFromLineByLinePanelIfNecessary() error {
-	if gui.State.MainContext == MAIN_PATCH_BUILDING_CONTEXT_KEY {
+	if gui.State.MainContext == context.MAIN_PATCH_BUILDING_CONTEXT_KEY {
 		return gui.handleEscapePatchBuildingPanel()
 	}
 	return nil
@@ -188,7 +189,7 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 
 func (gui *Gui) handleResetPatch() error {
 	gui.git.Patch.PatchManager.Reset()
-	if gui.currentContextKeyIgnoringPopups() == MAIN_PATCH_BUILDING_CONTEXT_KEY {
+	if gui.currentContextKeyIgnoringPopups() == context.MAIN_PATCH_BUILDING_CONTEXT_KEY {
 		if err := gui.c.PushContext(gui.State.Contexts.CommitFiles); err != nil {
 			return err
 		}

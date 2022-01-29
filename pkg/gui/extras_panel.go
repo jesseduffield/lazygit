@@ -3,6 +3,7 @@ package gui
 import (
 	"io"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -15,7 +16,7 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 				DisplayString: gui.c.Tr.ToggleShowCommandLog,
 				OnPress: func() error {
 					currentContext := gui.currentStaticContext()
-					if gui.ShowExtrasWindow && currentContext.GetKey() == COMMAND_LOG_CONTEXT_KEY {
+					if gui.ShowExtrasWindow && currentContext.GetKey() == context.COMMAND_LOG_CONTEXT_KEY {
 						if err := gui.returnFromContext(); err != nil {
 							return err
 						}

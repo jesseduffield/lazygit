@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -91,8 +92,8 @@ func (gui *Gui) refreshCommits() {
 
 	go utils.Safe(func() {
 		_ = gui.refreshCommitsWithLimit()
-		context, ok := gui.State.Contexts.CommitFiles.GetParentContext()
-		if ok && context.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
+		ctx, ok := gui.State.Contexts.CommitFiles.GetParentContext()
+		if ok && ctx.GetKey() == context.BRANCH_COMMITS_CONTEXT_KEY {
 			// This makes sense when we've e.g. just amended a commit, meaning we get a new commit SHA at the same position.
 			// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
 			// showing the contents of a different commit than the one we initially entered.

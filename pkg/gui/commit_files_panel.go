@@ -3,6 +3,7 @@ package gui
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -100,7 +101,7 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 
 func (gui *Gui) refreshCommitFilesView() error {
 	currentSideContext := gui.currentSideContext()
-	if currentSideContext.GetKey() == COMMIT_FILES_CONTEXT_KEY || currentSideContext.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
+	if currentSideContext.GetKey() == context.COMMIT_FILES_CONTEXT_KEY || currentSideContext.GetKey() == context.BRANCH_COMMITS_CONTEXT_KEY {
 		if err := gui.handleRefreshPatchBuildingPanel(-1); err != nil {
 			return err
 		}
