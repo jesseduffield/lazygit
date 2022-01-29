@@ -17,14 +17,3 @@ func (self *Gui) tagsRenderToMain() error {
 		},
 	})
 }
-
-func (self *Gui) refreshTags() error {
-	tags, err := self.git.Loaders.Tags.GetTags()
-	if err != nil {
-		return self.c.Error(err)
-	}
-
-	self.State.Tags = tags
-
-	return self.postRefreshUpdate(self.State.Contexts.Tags)
-}

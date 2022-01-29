@@ -47,36 +47,6 @@ func (gui *Gui) branchesRenderToMain() error {
 	})
 }
 
-// gui.refreshStatus is called at the end of this because that's when we can
-// be sure there is a state.Branches array to pick the current branch from
-func (gui *Gui) refreshBranches() {
-	reflogCommits := gui.State.FilteredReflogCommits
-	if gui.State.Modes.Filtering.Active() {
-		// in filter mode we filter our reflog commits to just those containing the path
-		// however we need all the reflog entries to populate the recencies of our branches
-		// which allows us to order them correctly. So if we're filtering we'll just
-		// manually load all the reflog commits here
-		var err error
-		reflogCommits, _, err = gui.git.Loaders.ReflogCommits.GetReflogCommits(nil, "")
-		if err != nil {
-			gui.c.Log.Error(err)
-		}
-	}
-
-	branches, err := gui.git.Loaders.Branches.Load(reflogCommits)
-	if err != nil {
-		_ = gui.c.Error(err)
-	}
-
-	gui.State.Branches = branches
-
-	if err := gui.c.PostRefreshUpdate(gui.State.Contexts.Branches); err != nil {
-		gui.c.Log.Error(err)
-	}
-
-	gui.refreshStatus()
-}
-
 // specific functions
 
 func (gui *Gui) handleBranchPress() error {

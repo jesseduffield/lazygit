@@ -8,7 +8,6 @@ import (
 	"math"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -282,26 +281,6 @@ func (gui *Gui) setConflictsAndRenderWithLock(path string, hasFocus bool) (bool,
 	defer gui.State.Panels.Merging.Unlock()
 
 	return gui.setConflictsAndRender(path, hasFocus)
-}
-
-func (gui *Gui) refreshMergeState() error {
-	gui.State.Panels.Merging.Lock()
-	defer gui.State.Panels.Merging.Unlock()
-
-	if gui.currentContext().GetKey() != context.MAIN_MERGING_CONTEXT_KEY {
-		return nil
-	}
-
-	hasConflicts, err := gui.setConflictsAndRender(gui.State.Panels.Merging.GetPath(), true)
-	if err != nil {
-		return gui.c.Error(err)
-	}
-
-	if !hasConflicts {
-		return gui.escapeMerge()
-	}
-
-	return nil
 }
 
 func (gui *Gui) switchToMerge(path string) error {

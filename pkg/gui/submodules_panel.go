@@ -47,17 +47,6 @@ func (gui *Gui) submodulesRenderToMain() error {
 	})
 }
 
-func (gui *Gui) refreshStateSubmoduleConfigs() error {
-	configs, err := gui.git.Submodule.GetConfigs()
-	if err != nil {
-		return err
-	}
-
-	gui.State.Submodules = configs
-
-	return nil
-}
-
 func (gui *Gui) enterSubmodule(submodule *models.SubmoduleConfig) error {
 	wd, err := os.Getwd()
 	if err != nil {

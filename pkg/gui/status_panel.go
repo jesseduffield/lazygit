@@ -13,34 +13,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// never call this on its own, it should only be called from within refreshCommits()
-func (gui *Gui) refreshStatus() {
-	gui.Mutexes.RefreshingStatusMutex.Lock()
-	defer gui.Mutexes.RefreshingStatusMutex.Unlock()
-
-	currentBranch := gui.getCheckedOutBranch()
-	if currentBranch == nil {
-		// need to wait for branches to refresh
-		return
-	}
-	status := ""
-
-	if currentBranch.IsRealBranch() {
-		status += presentation.ColoredBranchStatus(currentBranch) + " "
-	}
-
-	workingTreeState := gui.git.Status.WorkingTreeState()
-	if workingTreeState != enums.REBASE_MODE_NONE {
-		status += style.FgYellow.Sprintf("(%s) ", formatWorkingTreeState(workingTreeState))
-	}
-
-	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
-	repoName := utils.GetCurrentRepoName()
-	status += fmt.Sprintf("%s → %s ", repoName, name)
-
-	gui.setViewContent(gui.Views.Status, status)
-}
-
 func runeCount(str string) int {
 	return len([]rune(str))
 }

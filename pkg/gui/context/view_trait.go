@@ -36,7 +36,7 @@ func (self *ViewTrait) SetFooter(value string) {
 }
 
 func (self *ViewTrait) SetOriginX(value int) {
-	self.getView().SetOriginX(value)
+	_ = self.getView().SetOriginX(value)
 }
 
 // tells us the bounds of line indexes shown in the view currently
