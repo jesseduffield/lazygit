@@ -28,8 +28,8 @@ type LocalCommitsController struct {
 	getContext func() types.IListContext
 	os         *oscommands.OSCommand
 	git        *commands.GitCommand
-	tagActions *TagActions
-	refHelper  IRefHelper
+	tagsHelper *TagsHelper
+	refsHelper IRefsHelper
 
 	getSelectedLocalCommit     func() *models.Commit
 	getCommits                 func() []*models.Commit
@@ -52,8 +52,8 @@ func NewLocalCommitsController(
 	getContext func() types.IListContext,
 	os *oscommands.OSCommand,
 	git *commands.GitCommand,
-	tagActions *TagActions,
-	refHelper IRefHelper,
+	tagsHelper *TagsHelper,
+	refsHelper IRefsHelper,
 	getSelectedLocalCommit func() *models.Commit,
 	getCommits func() []*models.Commit,
 	getSelectedLocalCommitIdx func() int,
@@ -72,8 +72,8 @@ func NewLocalCommitsController(
 		getContext:                 getContext,
 		os:                         os,
 		git:                        git,
-		tagActions:                 tagActions,
-		refHelper:                  refHelper,
+		tagsHelper:                 tagsHelper,
+		refsHelper:                 refsHelper,
 		getSelectedLocalCommit:     getSelectedLocalCommit,
 		getCommits:                 getCommits,
 		getSelectedLocalCommitIdx:  getSelectedLocalCommitIdx,
@@ -606,7 +606,7 @@ func (self *LocalCommitsController) handleSquashAllAboveFixupCommits(commit *mod
 }
 
 func (self *LocalCommitsController) handleTagCommit(commit *models.Commit) error {
-	return self.tagActions.CreateTagMenu(commit.Sha, func() {})
+	return self.tagsHelper.CreateTagMenu(commit.Sha, func() {})
 }
 
 func (self *LocalCommitsController) handleCheckoutCommit(commit *models.Commit) error {
@@ -615,13 +615,13 @@ func (self *LocalCommitsController) handleCheckoutCommit(commit *models.Commit) 
 		Prompt: self.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
-			return self.refHelper.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
+			return self.refsHelper.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
 		},
 	})
 }
 
 func (self *LocalCommitsController) handleCreateCommitResetMenu(commit *models.Commit) error {
-	return self.refHelper.CreateGitResetMenu(commit.Sha)
+	return self.refsHelper.CreateGitResetMenu(commit.Sha)
 }
 
 func (self *LocalCommitsController) handleOpenSearch(string) error {

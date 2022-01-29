@@ -11,28 +11,28 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type RefHelper struct {
+type RefsHelper struct {
 	c   *types.ControllerCommon
 	git *commands.GitCommand
 
 	getState func() *GuiRepoState
 }
 
-func NewRefHelper(
+func NewRefsHelper(
 	c *types.ControllerCommon,
 	git *commands.GitCommand,
 	getState func() *GuiRepoState,
-) *RefHelper {
-	return &RefHelper{
+) *RefsHelper {
+	return &RefsHelper{
 		c:        c,
 		git:      git,
 		getState: getState,
 	}
 }
 
-var _ controllers.IRefHelper = &RefHelper{}
+var _ controllers.IRefsHelper = &RefsHelper{}
 
-func (self *RefHelper) CheckoutRef(ref string, options types.CheckoutRefOptions) error {
+func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions) error {
 	waitingStatus := options.WaitingStatus
 	if waitingStatus == "" {
 		waitingStatus = self.c.Tr.CheckingOutStatus
@@ -91,7 +91,7 @@ func (self *RefHelper) CheckoutRef(ref string, options types.CheckoutRefOptions)
 	})
 }
 
-func (self *RefHelper) ResetToRef(ref string, strength string, envVars []string) error {
+func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string) error {
 	if err := self.git.Commit.ResetToCommit(ref, strength, envVars); err != nil {
 		return self.c.Error(err)
 	}
@@ -112,7 +112,7 @@ func (self *RefHelper) ResetToRef(ref string, strength string, envVars []string)
 	return nil
 }
 
-func (self *RefHelper) CreateGitResetMenu(ref string) error {
+func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 	strengths := []string{"soft", "mixed", "hard"}
 	menuItems := make([]*types.MenuItem, len(strengths))
 	for i, strength := range strengths {

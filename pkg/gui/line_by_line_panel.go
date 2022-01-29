@@ -285,5 +285,5 @@ func (gui *Gui) handleLineByLineEdit() error {
 	}
 
 	lineNumber := gui.State.Panels.LineByLine.CurrentLineNumber()
-	return gui.fileHelper.EditFileAtLine(file.Name, lineNumber)
+	return gui.filesHelper.EditFileAtLine(file.Name, lineNumber)
 }
