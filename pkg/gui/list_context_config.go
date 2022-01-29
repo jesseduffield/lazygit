@@ -33,7 +33,7 @@ func (gui *Gui) filesListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "files",
 			WindowName: "files",
-			Key:        FILES_CONTEXT_KEY,
+			Key:        context.FILES_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
 		GetItemsLength:  func() int { return gui.State.FileTreeViewModel.GetItemsLength() },
@@ -62,7 +62,7 @@ func (gui *Gui) branchesListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "branches",
 			WindowName: "branches",
-			Key:        LOCAL_BRANCHES_CONTEXT_KEY,
+			Key:        context.LOCAL_BRANCHES_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
 		GetItemsLength:  func() int { return len(gui.State.Branches) },
@@ -84,7 +84,7 @@ func (gui *Gui) remotesListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "branches",
 			WindowName: "branches",
-			Key:        REMOTES_CONTEXT_KEY,
+			Key:        context.REMOTES_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
 		GetItemsLength:  func() int { return len(gui.State.Remotes) },
@@ -106,7 +106,7 @@ func (gui *Gui) remoteBranchesListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "branches",
 			WindowName: "branches",
-			Key:        REMOTE_BRANCHES_CONTEXT_KEY,
+			Key:        context.REMOTE_BRANCHES_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
 		GetItemsLength:  func() int { return len(gui.State.RemoteBranches) },
@@ -153,7 +153,7 @@ func (gui *Gui) branchCommitsListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "commits",
 			WindowName: "commits",
-			Key:        BRANCH_COMMITS_CONTEXT_KEY,
+			Key:        context.BRANCH_COMMITS_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
 		GetItemsLength:  func() int { return len(gui.State.Commits) },
@@ -163,7 +163,7 @@ func (gui *Gui) branchCommitsListContext() types.IListContext {
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			selectedCommitSha := ""
-			if gui.currentContext().GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
+			if gui.currentContext().GetKey() == context.BRANCH_COMMITS_CONTEXT_KEY {
 				selectedCommit := gui.getSelectedLocalCommit()
 				if selectedCommit != nil {
 					selectedCommitSha = selectedCommit.Sha
@@ -196,7 +196,7 @@ func (gui *Gui) subCommitsListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "branches",
 			WindowName: "branches",
-			Key:        SUB_COMMITS_CONTEXT_KEY,
+			Key:        context.SUB_COMMITS_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
 		GetItemsLength:  func() int { return len(gui.State.SubCommits) },
@@ -205,7 +205,7 @@ func (gui *Gui) subCommitsListContext() types.IListContext {
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			selectedCommitSha := ""
-			if gui.currentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
+			if gui.currentContext().GetKey() == context.SUB_COMMITS_CONTEXT_KEY {
 				selectedCommit := gui.getSelectedSubCommit()
 				if selectedCommit != nil {
 					selectedCommitSha = selectedCommit.Sha
@@ -257,7 +257,7 @@ func (gui *Gui) reflogCommitsListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "commits",
 			WindowName: "commits",
-			Key:        REFLOG_COMMITS_CONTEXT_KEY,
+			Key:        context.REFLOG_COMMITS_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
 		GetItemsLength:  func() int { return len(gui.State.FilteredReflogCommits) },
@@ -285,7 +285,7 @@ func (gui *Gui) stashListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "stash",
 			WindowName: "stash",
-			Key:        STASH_CONTEXT_KEY,
+			Key:        context.STASH_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
 		GetItemsLength:  func() int { return len(gui.State.StashEntries) },
@@ -307,7 +307,7 @@ func (gui *Gui) commitFilesListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "commitFiles",
 			WindowName: "commits",
-			Key:        COMMIT_FILES_CONTEXT_KEY,
+			Key:        context.COMMIT_FILES_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
 		GetItemsLength:  func() int { return gui.State.CommitFileTreeViewModel.GetItemsLength() },
@@ -340,7 +340,7 @@ func (gui *Gui) submodulesListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "files",
 			WindowName: "files",
-			Key:        SUBMODULES_CONTEXT_KEY,
+			Key:        context.SUBMODULES_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
 		GetItemsLength:  func() int { return len(gui.State.Submodules) },
@@ -362,7 +362,7 @@ func (gui *Gui) suggestionsListContext() types.IListContext {
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "suggestions",
 			WindowName: "suggestions",
-			Key:        SUGGESTIONS_CONTEXT_KEY,
+			Key:        context.SUGGESTIONS_CONTEXT_KEY,
 			Kind:       types.PERSISTENT_POPUP,
 		}),
 		GetItemsLength:  func() int { return len(gui.State.Suggestions) },

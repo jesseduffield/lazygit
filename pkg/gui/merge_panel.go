@@ -8,6 +8,7 @@ import (
 	"math"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -287,7 +288,7 @@ func (gui *Gui) refreshMergeState() error {
 	gui.State.Panels.Merging.Lock()
 	defer gui.State.Panels.Merging.Unlock()
 
-	if gui.currentContext().GetKey() != MAIN_MERGING_CONTEXT_KEY {
+	if gui.currentContext().GetKey() != context.MAIN_MERGING_CONTEXT_KEY {
 		return nil
 	}
 

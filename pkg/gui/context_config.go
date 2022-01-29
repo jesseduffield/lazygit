@@ -5,58 +5,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-const (
-	STATUS_CONTEXT_KEY              types.ContextKey = "status"
-	FILES_CONTEXT_KEY               types.ContextKey = "files"
-	LOCAL_BRANCHES_CONTEXT_KEY      types.ContextKey = "localBranches"
-	REMOTES_CONTEXT_KEY             types.ContextKey = "remotes"
-	REMOTE_BRANCHES_CONTEXT_KEY     types.ContextKey = "remoteBranches"
-	TAGS_CONTEXT_KEY                types.ContextKey = "tags"
-	BRANCH_COMMITS_CONTEXT_KEY      types.ContextKey = "commits"
-	REFLOG_COMMITS_CONTEXT_KEY      types.ContextKey = "reflogCommits"
-	SUB_COMMITS_CONTEXT_KEY         types.ContextKey = "subCommits"
-	COMMIT_FILES_CONTEXT_KEY        types.ContextKey = "commitFiles"
-	STASH_CONTEXT_KEY               types.ContextKey = "stash"
-	MAIN_NORMAL_CONTEXT_KEY         types.ContextKey = "normal"
-	MAIN_MERGING_CONTEXT_KEY        types.ContextKey = "merging"
-	MAIN_PATCH_BUILDING_CONTEXT_KEY types.ContextKey = "patchBuilding"
-	MAIN_STAGING_CONTEXT_KEY        types.ContextKey = "staging"
-	MENU_CONTEXT_KEY                types.ContextKey = "menu"
-	CREDENTIALS_CONTEXT_KEY         types.ContextKey = "credentials"
-	CONFIRMATION_CONTEXT_KEY        types.ContextKey = "confirmation"
-	SEARCH_CONTEXT_KEY              types.ContextKey = "search"
-	COMMIT_MESSAGE_CONTEXT_KEY      types.ContextKey = "commitMessage"
-	SUBMODULES_CONTEXT_KEY          types.ContextKey = "submodules"
-	SUGGESTIONS_CONTEXT_KEY         types.ContextKey = "suggestions"
-	COMMAND_LOG_CONTEXT_KEY         types.ContextKey = "cmdLog"
-)
-
-var AllContextKeys = []types.ContextKey{
-	STATUS_CONTEXT_KEY,
-	FILES_CONTEXT_KEY,
-	LOCAL_BRANCHES_CONTEXT_KEY,
-	REMOTES_CONTEXT_KEY,
-	REMOTE_BRANCHES_CONTEXT_KEY,
-	TAGS_CONTEXT_KEY,
-	BRANCH_COMMITS_CONTEXT_KEY,
-	REFLOG_COMMITS_CONTEXT_KEY,
-	SUB_COMMITS_CONTEXT_KEY,
-	COMMIT_FILES_CONTEXT_KEY,
-	STASH_CONTEXT_KEY,
-	MAIN_NORMAL_CONTEXT_KEY,
-	MAIN_MERGING_CONTEXT_KEY,
-	MAIN_PATCH_BUILDING_CONTEXT_KEY,
-	MAIN_STAGING_CONTEXT_KEY,
-	MENU_CONTEXT_KEY,
-	CREDENTIALS_CONTEXT_KEY,
-	CONFIRMATION_CONTEXT_KEY,
-	SEARCH_CONTEXT_KEY,
-	COMMIT_MESSAGE_CONTEXT_KEY,
-	SUBMODULES_CONTEXT_KEY,
-	SUGGESTIONS_CONTEXT_KEY,
-	COMMAND_LOG_CONTEXT_KEY,
-}
-
 func (gui *Gui) allContexts() []types.Context {
 	return []types.Context{
 		gui.State.Contexts.Status,
@@ -90,7 +38,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.SIDE_CONTEXT,
 				ViewName:   "status",
-				Key:        STATUS_CONTEXT_KEY,
+				Key:        context.STATUS_CONTEXT_KEY,
 				WindowName: "status",
 			}),
 			NewSimpleContextOpts{
@@ -115,7 +63,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 				Kind:       types.MAIN_CONTEXT,
 				ViewName:   "main",
 				WindowName: "main",
-				Key:        MAIN_NORMAL_CONTEXT_KEY,
+				Key:        context.MAIN_NORMAL_CONTEXT_KEY,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: func(opts ...types.OnFocusOpts) error {
@@ -128,7 +76,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 				Kind:       types.MAIN_CONTEXT,
 				ViewName:   "main",
 				WindowName: "main",
-				Key:        MAIN_STAGING_CONTEXT_KEY,
+				Key:        context.MAIN_STAGING_CONTEXT_KEY,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: func(opts ...types.OnFocusOpts) error {
@@ -151,7 +99,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 				Kind:       types.MAIN_CONTEXT,
 				ViewName:   "main",
 				WindowName: "main",
-				Key:        MAIN_PATCH_BUILDING_CONTEXT_KEY,
+				Key:        context.MAIN_PATCH_BUILDING_CONTEXT_KEY,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: func(opts ...types.OnFocusOpts) error {
@@ -169,7 +117,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 				Kind:            types.MAIN_CONTEXT,
 				ViewName:        "main",
 				WindowName:      "main",
-				Key:             MAIN_MERGING_CONTEXT_KEY,
+				Key:             context.MAIN_MERGING_CONTEXT_KEY,
 				OnGetOptionsMap: gui.getMergingOptions,
 			}),
 			NewSimpleContextOpts{
@@ -181,7 +129,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 				Kind:       types.PERSISTENT_POPUP,
 				ViewName:   "credentials",
 				WindowName: "credentials",
-				Key:        CREDENTIALS_CONTEXT_KEY,
+				Key:        context.CREDENTIALS_CONTEXT_KEY,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: OnFocusWrapper(gui.handleAskFocused),
@@ -192,7 +140,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 				Kind:       types.TEMPORARY_POPUP,
 				ViewName:   "confirmation",
 				WindowName: "confirmation",
-				Key:        CONFIRMATION_CONTEXT_KEY,
+				Key:        context.CONFIRMATION_CONTEXT_KEY,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: OnFocusWrapper(gui.handleAskFocused),
@@ -203,7 +151,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 				Kind:       types.PERSISTENT_POPUP,
 				ViewName:   "commitMessage",
 				WindowName: "commitMessage",
-				Key:        COMMIT_MESSAGE_CONTEXT_KEY,
+				Key:        context.COMMIT_MESSAGE_CONTEXT_KEY,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: OnFocusWrapper(gui.handleCommitMessageFocused),
@@ -214,7 +162,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 				Kind:       types.PERSISTENT_POPUP,
 				ViewName:   "search",
 				WindowName: "search",
-				Key:        SEARCH_CONTEXT_KEY,
+				Key:        context.SEARCH_CONTEXT_KEY,
 			}),
 			NewSimpleContextOpts{},
 		),
@@ -223,7 +171,7 @@ func (gui *Gui) contextTree() context.ContextTree {
 				Kind:            types.EXTRAS_CONTEXT,
 				ViewName:        "extras",
 				WindowName:      "extras",
-				Key:             COMMAND_LOG_CONTEXT_KEY,
+				Key:             context.COMMAND_LOG_CONTEXT_KEY,
 				OnGetOptionsMap: gui.getMergingOptions,
 			}),
 			NewSimpleContextOpts{

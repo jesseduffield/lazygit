@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -130,7 +131,7 @@ func (gui *Gui) deactivateContext(c types.Context) error {
 	}
 
 	// if we are the kind of context that is sent to back upon deactivation, we should do that
-	if view != nil && (c.GetKind() == types.TEMPORARY_POPUP || c.GetKind() == types.PERSISTENT_POPUP || c.GetKey() == COMMIT_FILES_CONTEXT_KEY) {
+	if view != nil && (c.GetKind() == types.TEMPORARY_POPUP || c.GetKind() == types.PERSISTENT_POPUP || c.GetKey() == context.COMMIT_FILES_CONTEXT_KEY) {
 		view.Visible = false
 	}
 
@@ -181,7 +182,7 @@ func (gui *Gui) activateContext(c types.Context, opts ...types.OnFocusOpts) erro
 	if viewName == "main" {
 		gui.changeMainViewsContext(c.GetKey())
 	} else {
-		gui.changeMainViewsContext(MAIN_NORMAL_CONTEXT_KEY)
+		gui.changeMainViewsContext(context.MAIN_NORMAL_CONTEXT_KEY)
 	}
 
 	gui.setViewTabForContext(c)
@@ -382,7 +383,7 @@ func (gui *Gui) changeMainViewsContext(contextKey types.ContextKey) {
 	}
 
 	switch contextKey {
-	case MAIN_NORMAL_CONTEXT_KEY, MAIN_PATCH_BUILDING_CONTEXT_KEY, MAIN_STAGING_CONTEXT_KEY, MAIN_MERGING_CONTEXT_KEY:
+	case context.MAIN_NORMAL_CONTEXT_KEY, context.MAIN_PATCH_BUILDING_CONTEXT_KEY, context.MAIN_STAGING_CONTEXT_KEY, context.MAIN_MERGING_CONTEXT_KEY:
 		gui.Views.Main.Context = string(contextKey)
 		gui.Views.Secondary.Context = string(contextKey)
 	default:

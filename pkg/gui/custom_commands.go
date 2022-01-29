@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -314,11 +315,11 @@ func (gui *Gui) GetCustomCommandKeybindings() []*types.Binding {
 		case "":
 			log.Fatalf("Error parsing custom command keybindings: context not provided (use context: 'global' for the global context). Key: %s, Command: %s", customCommand.Key, customCommand.Command)
 		default:
-			context, ok := gui.contextForContextKey(types.ContextKey(customCommand.Context))
+			ctx, ok := gui.contextForContextKey(types.ContextKey(customCommand.Context))
 			// stupid golang making me build an array of strings for this.
-			allContextKeyStrings := make([]string, len(AllContextKeys))
-			for i := range AllContextKeys {
-				allContextKeyStrings[i] = string(AllContextKeys[i])
+			allContextKeyStrings := make([]string, len(context.AllContextKeys))
+			for i := range context.AllContextKeys {
+				allContextKeyStrings[i] = string(context.AllContextKeys[i])
 			}
 			if !ok {
 				log.Fatalf("Error when setting custom command keybindings: unknown context: %s. Key: %s, Command: %s.\nPermitted contexts: %s", customCommand.Context, customCommand.Key, customCommand.Command, strings.Join(allContextKeyStrings, ", "))
@@ -326,7 +327,7 @@ func (gui *Gui) GetCustomCommandKeybindings() []*types.Binding {
 			// here we assume that a given context will always belong to the same view.
 			// Currently this is a safe bet but it's by no means guaranteed in the long term
 			// and we might need to make some changes in the future to support it.
-			viewName = context.GetViewName()
+			viewName = ctx.GetViewName()
 			contexts = []string{customCommand.Context}
 		}
 

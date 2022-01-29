@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -409,9 +410,9 @@ func (gui *Gui) handleRenameBranch() error {
 }
 
 func (gui *Gui) handleNewBranchOffCurrentItem() error {
-	context := gui.currentSideListContext()
+	ctx := gui.currentSideListContext()
 
-	item, ok := context.GetSelectedItem()
+	item, ok := ctx.GetSelectedItem()
 	if !ok {
 		return nil
 	}
@@ -424,7 +425,7 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 	)
 
 	prefilledName := ""
-	if context.GetKey() == REMOTE_BRANCHES_CONTEXT_KEY {
+	if ctx.GetKey() == context.REMOTE_BRANCHES_CONTEXT_KEY {
 		// will set to the remote's branch name without the remote name
 		prefilledName = strings.SplitAfterN(item.ID(), "/", 2)[1]
 	}
@@ -440,11 +441,11 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 
 			// if we're currently in the branch commits context then the selected commit
 			// is about to go to the top of the list
-			if context.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
-				context.GetPanelState().SetSelectedLineIdx(0)
+			if ctx.GetKey() == context.BRANCH_COMMITS_CONTEXT_KEY {
+				ctx.GetPanelState().SetSelectedLineIdx(0)
 			}
 
-			if context.GetKey() != gui.State.Contexts.Branches.GetKey() {
+			if ctx.GetKey() != gui.State.Contexts.Branches.GetKey() {
 				if err := gui.c.PushContext(gui.State.Contexts.Branches); err != nil {
 					return err
 				}

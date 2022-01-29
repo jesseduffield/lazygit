@@ -5,6 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -113,14 +114,14 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 			gui.c.Log.Error(err)
 		}
 
-		if types.ContextKey(gui.Views.Files.Context) == FILES_CONTEXT_KEY {
+		if types.ContextKey(gui.Views.Files.Context) == context.FILES_CONTEXT_KEY {
 			// doing this a little custom (as opposed to using gui.c.PostRefreshUpdate) because we handle selecting the file explicitly below
 			if err := gui.State.Contexts.Files.HandleRender(); err != nil {
 				return err
 			}
 		}
 
-		if gui.currentContext().GetKey() == FILES_CONTEXT_KEY {
+		if gui.currentContext().GetKey() == context.FILES_CONTEXT_KEY {
 			currentSelectedPath := gui.getSelectedPath()
 			alreadySelected := prevSelectedPath != "" && currentSelectedPath == prevSelectedPath
 			if !alreadySelected {

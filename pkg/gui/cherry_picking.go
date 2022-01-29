@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -62,21 +63,21 @@ func (gui *Gui) cherryPickedCommitShaMap() map[string]bool {
 }
 
 func (gui *Gui) commitsListForContext() []*models.Commit {
-	context := gui.currentSideListContext()
-	if context == nil {
+	ctx := gui.currentSideListContext()
+	if ctx == nil {
 		return nil
 	}
 
 	// using a switch statement, but we should use polymorphism
-	switch context.GetKey() {
-	case BRANCH_COMMITS_CONTEXT_KEY:
+	switch ctx.GetKey() {
+	case context.BRANCH_COMMITS_CONTEXT_KEY:
 		return gui.State.Commits
-	case REFLOG_COMMITS_CONTEXT_KEY:
+	case context.REFLOG_COMMITS_CONTEXT_KEY:
 		return gui.State.FilteredReflogCommits
-	case SUB_COMMITS_CONTEXT_KEY:
+	case context.SUB_COMMITS_CONTEXT_KEY:
 		return gui.State.SubCommits
 	default:
-		gui.c.Log.Errorf("no commit list for context %s", context.GetKey())
+		gui.c.Log.Errorf("no commit list for context %s", ctx.GetKey())
 		return nil
 	}
 }
