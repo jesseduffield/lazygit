@@ -49,7 +49,7 @@ func (gui *Gui) handleCheckoutSubCommit() error {
 		Prompt: gui.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {
 			gui.c.LogAction(gui.c.Tr.Actions.CheckoutCommit)
-			return gui.refsHelper.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
+			return gui.helpers.refs.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
 		},
 	})
 	if err != nil {
@@ -64,7 +64,7 @@ func (gui *Gui) handleCheckoutSubCommit() error {
 func (gui *Gui) handleCreateSubCommitResetMenu() error {
 	commit := gui.getSelectedSubCommit()
 
-	return gui.refsHelper.CreateGitResetMenu(commit.Sha)
+	return gui.helpers.refs.CreateGitResetMenu(commit.Sha)
 }
 
 func (gui *Gui) handleViewSubCommitFiles() error {

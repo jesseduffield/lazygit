@@ -12,9 +12,10 @@ import (
 )
 
 type BisectController struct {
-	c          *types.ControllerCommon
-	getContext func() types.IListContext
-	git        *commands.GitCommand
+	c            *types.ControllerCommon
+	getContext   func() types.IListContext
+	git          *commands.GitCommand
+	bisectHelper *BisectHelper
 
 	getSelectedLocalCommit func() *models.Commit
 	getCommits             func() []*models.Commit
@@ -26,14 +27,16 @@ func NewBisectController(
 	c *types.ControllerCommon,
 	getContext func() types.IListContext,
 	git *commands.GitCommand,
+	bisectHelper *BisectHelper,
 
 	getSelectedLocalCommit func() *models.Commit,
 	getCommits func() []*models.Commit,
 ) *BisectController {
 	return &BisectController{
-		c:          c,
-		getContext: getContext,
-		git:        git,
+		c:            c,
+		getContext:   getContext,
+		git:          git,
+		bisectHelper: bisectHelper,
 
 		getSelectedLocalCommit: getSelectedLocalCommit,
 		getCommits:             getCommits,
@@ -116,7 +119,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 		{
 			DisplayString: self.c.Tr.Bisect.ResetOption,
 			OnPress: func() error {
-				return self.Reset()
+				return self.bisectHelper.Reset()
 			},
 		},
 	}
@@ -143,7 +146,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 						return self.c.Error(err)
 					}
 
-					return self.postBisectCommandRefresh()
+					return self.bisectHelper.PostBisectCommandRefresh()
 				},
 			},
 			{
@@ -158,24 +161,9 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 						return self.c.Error(err)
 					}
 
-					return self.postBisectCommandRefresh()
+					return self.bisectHelper.PostBisectCommandRefresh()
 				},
 			},
-		},
-	})
-}
-
-func (self *BisectController) Reset() error {
-	return self.c.Ask(types.AskOpts{
-		Title:  self.c.Tr.Bisect.ResetTitle,
-		Prompt: self.c.Tr.Bisect.ResetPrompt,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.ResetBisect)
-			if err := self.git.Bisect.Reset(); err != nil {
-				return self.c.Error(err)
-			}
-
-			return self.postBisectCommandRefresh()
 		},
 	})
 }
@@ -200,7 +188,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateShas []string) 
 				return self.c.Error(err)
 			}
 
-			return self.postBisectCommandRefresh()
+			return self.bisectHelper.PostBisectCommandRefresh()
 		},
 	})
 }
@@ -222,10 +210,6 @@ func (self *BisectController) afterMark(selectCurrent bool, waitToReselect bool)
 	return nil
 }
 
-func (self *BisectController) postBisectCommandRefresh() error {
-	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{}})
-}
-
 func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToReselect bool) error {
 	selectFn := func() {
 		if selectCurrent {
@@ -238,7 +222,7 @@ func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToR
 	} else {
 		selectFn()
 
-		return self.postBisectCommandRefresh()
+		return self.bisectHelper.PostBisectCommandRefresh()
 	}
 }
 

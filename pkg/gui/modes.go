@@ -82,7 +82,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 			description: func() string {
 				return gui.withResetButton("bisecting", style.FgGreen)
 			},
-			reset: gui.Controllers.Bisect.Reset,
+			reset: gui.helpers.bisect.Reset,
 		},
 	}
 }

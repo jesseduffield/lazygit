@@ -141,7 +141,7 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 		})
 	}
 
-	if gui.workingTreeHelper.IsWorkingTreeDirty() {
+	if gui.helpers.workingTree.IsWorkingTreeDirty() {
 		return gui.c.Ask(types.AskOpts{
 			Title:  gui.c.Tr.MustStashTitle,
 			Prompt: gui.c.Tr.MustStashWarning,
