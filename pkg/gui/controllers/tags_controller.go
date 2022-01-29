@@ -14,6 +14,7 @@ type TagsController struct {
 	getContext  func() *context.TagsContext
 	git         *commands.GitCommand
 	getContexts func() context.ContextTree
+	tagActions  *TagActions
 
 	refHelper         IRefHelper
 	suggestionsHelper ISuggestionsHelper
@@ -28,6 +29,7 @@ func NewTagsController(
 	getContext func() *context.TagsContext,
 	git *commands.GitCommand,
 	getContexts func() context.ContextTree,
+	tagActions *TagActions,
 	refHelper IRefHelper,
 	suggestionsHelper ISuggestionsHelper,
 
@@ -38,6 +40,7 @@ func NewTagsController(
 		getContext:        getContext,
 		git:               git,
 		getContexts:       getContexts,
+		tagActions:        tagActions,
 		refHelper:         refHelper,
 		suggestionsHelper: suggestionsHelper,
 
@@ -146,67 +149,9 @@ func (self *TagsController) createResetMenu(tag *models.Tag) error {
 	return self.refHelper.CreateGitResetMenu(tag.Name)
 }
 
-func (self *TagsController) CreateTagMenu(commitSha string) error {
-	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.TagMenuTitle,
-		Items: []*types.MenuItem{
-			{
-				DisplayString: self.c.Tr.LcLightweightTag,
-				OnPress: func() error {
-					return self.handleCreateLightweightTag(commitSha)
-				},
-			},
-			{
-				DisplayString: self.c.Tr.LcAnnotatedTag,
-				OnPress: func() error {
-					return self.handleCreateAnnotatedTag(commitSha)
-				},
-			},
-		},
-	})
-}
-
-func (self *TagsController) afterTagCreate() error {
-	self.getContext().GetPanelState().SetSelectedLineIdx(0)
-	return self.c.Refresh(types.RefreshOptions{
-		Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS},
-	})
-}
-
-func (self *TagsController) handleCreateAnnotatedTag(commitSha string) error {
-	return self.c.Prompt(types.PromptOpts{
-		Title: self.c.Tr.TagNameTitle,
-		HandleConfirm: func(tagName string) error {
-			return self.c.Prompt(types.PromptOpts{
-				Title: self.c.Tr.TagMessageTitle,
-				HandleConfirm: func(msg string) error {
-					self.c.LogAction(self.c.Tr.Actions.CreateAnnotatedTag)
-					if err := self.git.Tag.CreateAnnotated(tagName, commitSha, msg); err != nil {
-						return self.c.Error(err)
-					}
-					return self.afterTagCreate()
-				},
-			})
-		},
-	})
-}
-
-func (self *TagsController) handleCreateLightweightTag(commitSha string) error {
-	return self.c.Prompt(types.PromptOpts{
-		Title: self.c.Tr.TagNameTitle,
-		HandleConfirm: func(tagName string) error {
-			self.c.LogAction(self.c.Tr.Actions.CreateLightweightTag)
-			if err := self.git.Tag.CreateLightweight(tagName, commitSha); err != nil {
-				return self.c.Error(err)
-			}
-			return self.afterTagCreate()
-		},
-	})
-}
-
 func (self *TagsController) create() error {
 	// leaving commit SHA blank so that we're just creating the tag for the current commit
-	return self.CreateTagMenu("")
+	return self.tagActions.CreateTagMenu("", func() { self.getContext().GetPanelState().SetSelectedLineIdx(0) })
 }
 
 func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func() error {
