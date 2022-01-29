@@ -23,27 +23,15 @@ type refreshMainOpts struct {
 	secondary *viewUpdateOpts
 }
 
-// constants for updateTask's kind field
-type TaskKind int
-
-const (
-	RENDER_STRING TaskKind = iota
-	RENDER_STRING_WITHOUT_SCROLL
-	RUN_COMMAND
-	RUN_PTY
-)
-
 type updateTask interface {
-	GetKind() TaskKind
+	IsUpdateTask()
 }
 
 type renderStringTask struct {
 	str string
 }
 
-func (t *renderStringTask) GetKind() TaskKind {
-	return RENDER_STRING
-}
+func (t *renderStringTask) IsUpdateTask() {}
 
 func NewRenderStringTask(str string) *renderStringTask {
 	return &renderStringTask{str: str}
@@ -53,9 +41,7 @@ type renderStringWithoutScrollTask struct {
 	str string
 }
 
-func (t *renderStringWithoutScrollTask) GetKind() TaskKind {
-	return RENDER_STRING_WITHOUT_SCROLL
-}
+func (t *renderStringWithoutScrollTask) IsUpdateTask() {}
 
 func NewRenderStringWithoutScrollTask(str string) *renderStringWithoutScrollTask {
 	return &renderStringWithoutScrollTask{str: str}
@@ -66,9 +52,7 @@ type runCommandTask struct {
 	prefix string
 }
 
-func (t *runCommandTask) GetKind() TaskKind {
-	return RUN_COMMAND
-}
+func (t *runCommandTask) IsUpdateTask() {}
 
 func NewRunCommandTask(cmd *exec.Cmd) *runCommandTask {
 	return &runCommandTask{cmd: cmd}
@@ -83,9 +67,7 @@ type runPtyTask struct {
 	prefix string
 }
 
-func (t *runPtyTask) GetKind() TaskKind {
-	return RUN_PTY
-}
+func (t *runPtyTask) IsUpdateTask() {}
 
 func NewRunPtyTask(cmd *exec.Cmd) *runPtyTask {
 	return &runPtyTask{cmd: cmd}
@@ -97,22 +79,18 @@ func NewRunPtyTask(cmd *exec.Cmd) *runPtyTask {
 // }
 
 func (gui *Gui) runTaskForView(view *gocui.View, task updateTask) error {
-	switch task.GetKind() {
-	case RENDER_STRING:
-		specificTask := task.(*renderStringTask)
-		return gui.newStringTask(view, specificTask.str)
+	switch v := task.(type) {
+	case *renderStringTask:
+		return gui.newStringTask(view, v.str)
 
-	case RENDER_STRING_WITHOUT_SCROLL:
-		specificTask := task.(*renderStringWithoutScrollTask)
-		return gui.newStringTaskWithoutScroll(view, specificTask.str)
+	case *renderStringWithoutScrollTask:
+		return gui.newStringTaskWithoutScroll(view, v.str)
 
-	case RUN_COMMAND:
-		specificTask := task.(*runCommandTask)
-		return gui.newCmdTask(view, specificTask.cmd, specificTask.prefix)
+	case *runCommandTask:
+		return gui.newCmdTask(view, v.cmd, v.prefix)
 
-	case RUN_PTY:
-		specificTask := task.(*runPtyTask)
-		return gui.newPtyTask(view, specificTask.cmd, specificTask.prefix)
+	case *runPtyTask:
+		return gui.newPtyTask(view, v.cmd, v.prefix)
 	}
 
 	return nil
