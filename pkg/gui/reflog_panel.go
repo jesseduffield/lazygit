@@ -37,52 +37,6 @@ func (gui *Gui) reflogCommitsRenderToMain() error {
 	})
 }
 
-// the reflogs panel is the only panel where we cache data, in that we only
-// load entries that have been created since we last ran the call. This means
-// we need to be more careful with how we use this, and to ensure we're emptying
-// the reflogs array when changing contexts.
-// This method also manages two things: ReflogCommits and FilteredReflogCommits.
-// FilteredReflogCommits are rendered in the reflogs panel, and ReflogCommits
-// are used by the branches panel to obtain recency values for sorting.
-func (gui *Gui) refreshReflogCommits() error {
-	// pulling state into its own variable incase it gets swapped out for another state
-	// and we get an out of bounds exception
-	state := gui.State
-	var lastReflogCommit *models.Commit
-	if len(state.ReflogCommits) > 0 {
-		lastReflogCommit = state.ReflogCommits[0]
-	}
-
-	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
-		commits, onlyObtainedNewReflogCommits, err := gui.git.Loaders.ReflogCommits.
-			GetReflogCommits(lastReflogCommit, filterPath)
-		if err != nil {
-			return gui.c.Error(err)
-		}
-
-		if onlyObtainedNewReflogCommits {
-			*stateCommits = append(commits, *stateCommits...)
-		} else {
-			*stateCommits = commits
-		}
-		return nil
-	}
-
-	if err := refresh(&state.ReflogCommits, ""); err != nil {
-		return err
-	}
-
-	if gui.State.Modes.Filtering.Active() {
-		if err := refresh(&state.FilteredReflogCommits, state.Modes.Filtering.GetPath()); err != nil {
-			return err
-		}
-	} else {
-		state.FilteredReflogCommits = state.ReflogCommits
-	}
-
-	return gui.c.PostRefreshUpdate(gui.State.Contexts.ReflogCommits)
-}
-
 func (gui *Gui) CheckoutReflogCommit() error {
 	commit := gui.getSelectedReflogCommit()
 	if commit == nil {
