@@ -17,7 +17,6 @@ type (
 	CheckoutRefFn                func(refName string, opts types.CheckoutRefOptions) error
 	CreateGitResetMenuFn         func(refName string) error
 	SwitchToCommitFilesContextFn func(SwitchToCommitFilesContextOpts) error
-	CreateTagMenuFn              func(commitSha string) error
 	GetHostingServiceMgrFn       func() *hosting_service.HostingServiceMgr
 	PullFilesFn                  func() error
 	CheckMergeOrRebase           func(error) error
@@ -29,6 +28,7 @@ type LocalCommitsController struct {
 	getContext func() types.IListContext
 	os         *oscommands.OSCommand
 	git        *commands.GitCommand
+	tagActions *TagActions
 	refHelper  IRefHelper
 
 	getSelectedLocalCommit     func() *models.Commit
@@ -36,7 +36,6 @@ type LocalCommitsController struct {
 	getSelectedLocalCommitIdx  func() int
 	checkMergeOrRebase         CheckMergeOrRebase
 	pullFiles                  PullFilesFn
-	createTagMenu              CreateTagMenuFn
 	getHostingServiceMgr       GetHostingServiceMgrFn
 	switchToCommitFilesContext SwitchToCommitFilesContextFn
 	openSearch                 OpenSearchFn
@@ -53,13 +52,13 @@ func NewLocalCommitsController(
 	getContext func() types.IListContext,
 	os *oscommands.OSCommand,
 	git *commands.GitCommand,
+	tagActions *TagActions,
 	refHelper IRefHelper,
 	getSelectedLocalCommit func() *models.Commit,
 	getCommits func() []*models.Commit,
 	getSelectedLocalCommitIdx func() int,
 	checkMergeOrRebase CheckMergeOrRebase,
 	pullFiles PullFilesFn,
-	createTagMenu CreateTagMenuFn,
 	getHostingServiceMgr GetHostingServiceMgrFn,
 	switchToCommitFilesContext SwitchToCommitFilesContextFn,
 	openSearch OpenSearchFn,
@@ -73,13 +72,13 @@ func NewLocalCommitsController(
 		getContext:                 getContext,
 		os:                         os,
 		git:                        git,
+		tagActions:                 tagActions,
 		refHelper:                  refHelper,
 		getSelectedLocalCommit:     getSelectedLocalCommit,
 		getCommits:                 getCommits,
 		getSelectedLocalCommitIdx:  getSelectedLocalCommitIdx,
 		checkMergeOrRebase:         checkMergeOrRebase,
 		pullFiles:                  pullFiles,
-		createTagMenu:              createTagMenu,
 		getHostingServiceMgr:       getHostingServiceMgr,
 		switchToCommitFilesContext: switchToCommitFilesContext,
 		openSearch:                 openSearch,
@@ -607,7 +606,7 @@ func (self *LocalCommitsController) handleSquashAllAboveFixupCommits(commit *mod
 }
 
 func (self *LocalCommitsController) handleTagCommit(commit *models.Commit) error {
-	return self.createTagMenu(commit.Sha)
+	return self.tagActions.CreateTagMenu(commit.Sha, func() {})
 }
 
 func (self *LocalCommitsController) handleCheckoutCommit(commit *models.Commit) error {
