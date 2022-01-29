@@ -3,7 +3,6 @@ package gui
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -66,7 +65,7 @@ func (gui *Gui) handleStashApply() error {
 		return apply()
 	}
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  gui.c.Tr.StashApply,
 		Prompt: gui.c.Tr.SureApplyStashEntry,
 		HandleConfirm: func() error {
@@ -97,7 +96,7 @@ func (gui *Gui) handleStashPop() error {
 		return pop()
 	}
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  gui.c.Tr.StashPop,
 		Prompt: gui.c.Tr.SurePopStashEntry,
 		HandleConfirm: func() error {
@@ -112,7 +111,7 @@ func (gui *Gui) handleStashDrop() error {
 		return nil
 	}
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  gui.c.Tr.StashDrop,
 		Prompt: gui.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {

@@ -1492,7 +1492,7 @@ func (gui *Gui) keybindings() error {
 	bindings = append(bindings, gui.GetInitialKeybindings()...)
 
 	for _, binding := range bindings {
-		if err := gui.g.SetKeybinding(binding.ViewName, binding.Contexts, binding.Key, binding.Modifier, gui.wrappedHandler(binding.Handler)); err != nil {
+		if err := gui.SetKeybinding(binding); err != nil {
 			return err
 		}
 	}
@@ -1507,4 +1507,30 @@ func (gui *Gui) keybindings() error {
 	}
 
 	return nil
+}
+
+func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		return f()
+	}
+}
+
+func (gui *Gui) SetKeybinding(binding *types.Binding) error {
+	handler := binding.Handler
+	if isMouseKey(binding.Key) {
+		handler = func() error {
+			// we ignore click events on views that aren't popup panels, when a popup panel is focused
+			if gui.popupPanelFocused() && gui.currentViewName() != binding.ViewName {
+				return nil
+			}
+
+			return binding.Handler()
+		}
+	}
+
+	return gui.g.SetKeybinding(binding.ViewName, binding.Contexts, binding.Key, binding.Modifier, gui.wrappedHandler(handler))
+}
+
+func isMouseKey(key interface{}) bool {
+	return key == gocui.MouseLeft || key == gocui.MouseRight || key == gocui.MouseMiddle || key == gocui.MouseRelease || key == gocui.MouseWheelUp || key == gocui.MouseWheelDown || key == gocui.MouseWheelLeft || key == gocui.MouseWheelRight
 }

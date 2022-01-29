@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -145,7 +144,7 @@ func (gui *Gui) handleForceCheckout() error {
 	message := gui.c.Tr.SureForceCheckout
 	title := gui.c.Tr.ForceCheckoutBranch
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  title,
 		Prompt: message,
 		HandleConfirm: func() error {
@@ -159,14 +158,14 @@ func (gui *Gui) handleForceCheckout() error {
 }
 
 func (gui *Gui) handleCheckoutByName() error {
-	return gui.c.Prompt(popup.PromptOpts{
+	return gui.c.Prompt(types.PromptOpts{
 		Title:               gui.c.Tr.BranchName + ":",
 		FindSuggestionsFunc: gui.suggestionsHelper.GetRefsSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
 			gui.c.LogAction("Checkout branch")
 			return gui.refHelper.CheckoutRef(response, types.CheckoutRefOptions{
 				OnRefNotFound: func(ref string) error {
-					return gui.c.Ask(popup.AskOpts{
+					return gui.c.Ask(types.AskOpts{
 						Title:  gui.c.Tr.BranchNotFoundTitle,
 						Prompt: fmt.Sprintf("%s %s%s", gui.c.Tr.BranchNotFoundPrompt, ref, "?"),
 						HandleConfirm: func() error {
@@ -232,7 +231,7 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) err
 		},
 	)
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  title,
 		Prompt: message,
 		HandleConfirm: func() error {
@@ -265,7 +264,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		},
 	)
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  gui.c.Tr.MergingTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
@@ -299,7 +298,7 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 		},
 	)
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  gui.c.Tr.RebasingTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
@@ -368,7 +367,7 @@ func (gui *Gui) handleRenameBranch() error {
 	}
 
 	promptForNewName := func() error {
-		return gui.c.Prompt(popup.PromptOpts{
+		return gui.c.Prompt(types.PromptOpts{
 			Title:          gui.c.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
 			InitialContent: branch.Name,
 			HandleConfirm: func(newBranchName string) error {
@@ -402,7 +401,7 @@ func (gui *Gui) handleRenameBranch() error {
 		return promptForNewName()
 	}
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:         gui.c.Tr.LcRenameBranch,
 		Prompt:        gui.c.Tr.RenameBranchWarning,
 		HandleConfirm: promptForNewName,
@@ -430,7 +429,7 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 		prefilledName = strings.SplitAfterN(item.ID(), "/", 2)[1]
 	}
 
-	return gui.c.Prompt(popup.PromptOpts{
+	return gui.c.Prompt(types.PromptOpts{
 		Title:          message,
 		InitialContent: prefilledName,
 		HandleConfirm: func(response string) error {

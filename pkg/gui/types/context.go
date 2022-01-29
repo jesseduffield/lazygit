@@ -12,21 +12,31 @@ const (
 	EXTRAS_CONTEXT
 )
 
-type Context interface {
-	HandleFocus(opts ...OnFocusOpts) error
-	HandleFocusLost() error
-	HandleRender() error
-	HandleRenderToMain() error
+type ParentContexter interface {
+	SetParentContext(Context)
+	// we return a bool here to tell us whether or not the returned value just wraps a nil
+	GetParentContext() (Context, bool)
+}
+
+type IBaseContext interface {
+	ParentContexter
+
 	GetKind() ContextKind
 	GetViewName() string
 	GetWindowName() string
 	SetWindowName(string)
 	GetKey() ContextKey
-	SetParentContext(Context)
 
-	// we return a bool here to tell us whether or not the returned value just wraps a nil
-	GetParentContext() (Context, bool)
 	GetOptionsMap() map[string]string
+}
+
+type Context interface {
+	IBaseContext
+
+	HandleFocus(opts ...OnFocusOpts) error
+	HandleFocusLost() error
+	HandleRender() error
+	HandleRenderToMain() error
 }
 
 type OnFocusOpts struct {

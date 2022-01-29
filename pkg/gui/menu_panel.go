@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -24,10 +24,10 @@ func (gui *Gui) handleMenuClose() error {
 }
 
 // note: items option is mutated by this function
-func (gui *Gui) createMenu(opts popup.CreateMenuOptions) error {
+func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	if !opts.HideCancel {
 		// this is mutative but I'm okay with that for now
-		opts.Items = append(opts.Items, &popup.MenuItem{
+		opts.Items = append(opts.Items, &types.MenuItem{
 			DisplayStrings: []string{gui.c.Tr.LcCancel},
 			OnPress: func() error {
 				return nil
@@ -69,7 +69,7 @@ func (gui *Gui) createMenu(opts popup.CreateMenuOptions) error {
 	return gui.c.PushContext(gui.State.Contexts.Menu)
 }
 
-func (gui *Gui) getSelectedMenuItem() *popup.MenuItem {
+func (gui *Gui) getSelectedMenuItem() *types.MenuItem {
 	if len(gui.State.MenuItems) == 0 {
 		return nil
 	}

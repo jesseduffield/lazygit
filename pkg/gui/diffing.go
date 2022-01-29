@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -107,10 +106,10 @@ func (gui *Gui) diffStr() string {
 func (gui *Gui) handleCreateDiffingMenuPanel() error {
 	names := gui.currentDiffTerminals()
 
-	menuItems := []*popup.MenuItem{}
+	menuItems := []*types.MenuItem{}
 	for _, name := range names {
 		name := name
-		menuItems = append(menuItems, []*popup.MenuItem{
+		menuItems = append(menuItems, []*types.MenuItem{
 			{
 				DisplayString: fmt.Sprintf("%s %s", gui.c.Tr.LcDiff, name),
 				OnPress: func() error {
@@ -122,11 +121,11 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 		}...)
 	}
 
-	menuItems = append(menuItems, []*popup.MenuItem{
+	menuItems = append(menuItems, []*types.MenuItem{
 		{
 			DisplayString: gui.c.Tr.LcEnterRefToDiff,
 			OnPress: func() error {
-				return gui.c.Prompt(popup.PromptOpts{
+				return gui.c.Prompt(types.PromptOpts{
 					Title:               gui.c.Tr.LcEnteRefName,
 					FindSuggestionsFunc: gui.suggestionsHelper.GetRefsSuggestionsFunc(),
 					HandleConfirm: func(response string) error {
@@ -139,7 +138,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 	}...)
 
 	if gui.State.Modes.Diffing.Active() {
-		menuItems = append(menuItems, []*popup.MenuItem{
+		menuItems = append(menuItems, []*types.MenuItem{
 			{
 				DisplayString: gui.c.Tr.LcSwapDiff,
 				OnPress: func() error {
@@ -157,5 +156,5 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 		}...)
 	}
 
-	return gui.c.Menu(popup.CreateMenuOptions{Title: gui.c.Tr.DiffingMenuTitle, Items: menuItems})
+	return gui.c.Menu(types.CreateMenuOptions{Title: gui.c.Tr.DiffingMenuTitle, Items: menuItems})
 }

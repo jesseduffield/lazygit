@@ -5,35 +5,32 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type TagsController struct {
-	c           *ControllerCommon
-	getContext  func() types.IListContext
+	c           *types.ControllerCommon
+	getContext  func() *context.TagsContext
 	git         *commands.GitCommand
 	getContexts func() context.ContextTree
 
 	refHelper         IRefHelper
 	suggestionsHelper ISuggestionsHelper
 
-	getSelectedTag            func() *models.Tag
 	switchToSubCommitsContext func(string) error
 }
 
 var _ types.IController = &TagsController{}
 
 func NewTagsController(
-	c *ControllerCommon,
-	getContext func() types.IListContext,
+	c *types.ControllerCommon,
+	getContext func() *context.TagsContext,
 	git *commands.GitCommand,
 	getContexts func() context.ContextTree,
 	refHelper IRefHelper,
 	suggestionsHelper ISuggestionsHelper,
 
-	getSelectedTag func() *models.Tag,
 	switchToSubCommitsContext func(string) error,
 ) *TagsController {
 	return &TagsController{
@@ -44,7 +41,6 @@ func NewTagsController(
 		refHelper:         refHelper,
 		suggestionsHelper: suggestionsHelper,
 
-		getSelectedTag:            getSelectedTag,
 		switchToSubCommitsContext: switchToSubCommitsContext,
 	}
 }
@@ -107,7 +103,7 @@ func (self *TagsController) delete(tag *models.Tag) error {
 		},
 	)
 
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.DeleteTagTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
@@ -128,7 +124,7 @@ func (self *TagsController) push(tag *models.Tag) error {
 		},
 	)
 
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title:               title,
 		InitialContent:      "origin",
 		FindSuggestionsFunc: self.suggestionsHelper.GetRemoteSuggestionsFunc(),
@@ -151,9 +147,9 @@ func (self *TagsController) createResetMenu(tag *models.Tag) error {
 }
 
 func (self *TagsController) CreateTagMenu(commitSha string) error {
-	return self.c.Menu(popup.CreateMenuOptions{
+	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.TagMenuTitle,
-		Items: []*popup.MenuItem{
+		Items: []*types.MenuItem{
 			{
 				DisplayString: self.c.Tr.LcLightweightTag,
 				OnPress: func() error {
@@ -178,10 +174,10 @@ func (self *TagsController) afterTagCreate() error {
 }
 
 func (self *TagsController) handleCreateAnnotatedTag(commitSha string) error {
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.TagNameTitle,
 		HandleConfirm: func(tagName string) error {
-			return self.c.Prompt(popup.PromptOpts{
+			return self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.TagMessageTitle,
 				HandleConfirm: func(msg string) error {
 					self.c.LogAction(self.c.Tr.Actions.CreateAnnotatedTag)
@@ -196,7 +192,7 @@ func (self *TagsController) handleCreateAnnotatedTag(commitSha string) error {
 }
 
 func (self *TagsController) handleCreateLightweightTag(commitSha string) error {
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.TagNameTitle,
 		HandleConfirm: func(tagName string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateLightweightTag)
@@ -215,7 +211,7 @@ func (self *TagsController) create() error {
 
 func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func() error {
 	return func() error {
-		tag := self.getSelectedTag()
+		tag := self.getContext().GetSelectedTag()
 		if tag == nil {
 			return nil
 		}

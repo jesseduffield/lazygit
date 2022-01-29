@@ -3,7 +3,6 @@ package gui
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -90,7 +89,7 @@ func (gui *Gui) CheckoutReflogCommit() error {
 		return nil
 	}
 
-	err := gui.c.Ask(popup.AskOpts{
+	err := gui.c.Ask(types.AskOpts{
 		Title:  gui.c.Tr.LcCheckoutCommit,
 		Prompt: gui.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {

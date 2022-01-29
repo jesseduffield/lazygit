@@ -7,20 +7,19 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type RefHelper struct {
-	c   *controllers.ControllerCommon
+	c   *types.ControllerCommon
 	git *commands.GitCommand
 
 	getState func() *GuiRepoState
 }
 
 func NewRefHelper(
-	c *controllers.ControllerCommon,
+	c *types.ControllerCommon,
 	git *commands.GitCommand,
 	getState func() *GuiRepoState,
 ) *RefHelper {
@@ -58,7 +57,7 @@ func (self *RefHelper) CheckoutRef(ref string, options types.CheckoutRefOptions)
 
 			if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 				// offer to autostash changes
-				return self.c.Ask(popup.AskOpts{
+				return self.c.Ask(types.AskOpts{
 
 					Title:  self.c.Tr.AutoStashTitle,
 					Prompt: self.c.Tr.AutoStashPrompt,
@@ -115,10 +114,10 @@ func (self *RefHelper) ResetToRef(ref string, strength string, envVars []string)
 
 func (self *RefHelper) CreateGitResetMenu(ref string) error {
 	strengths := []string{"soft", "mixed", "hard"}
-	menuItems := make([]*popup.MenuItem, len(strengths))
+	menuItems := make([]*types.MenuItem, len(strengths))
 	for i, strength := range strengths {
 		strength := strength
-		menuItems[i] = &popup.MenuItem{
+		menuItems[i] = &types.MenuItem{
 			DisplayStrings: []string{
 				fmt.Sprintf("%s reset", strength),
 				style.FgRed.Sprintf("reset --%s %s", strength, ref),
@@ -130,7 +129,7 @@ func (self *RefHelper) CreateGitResetMenu(ref string) error {
 		}
 	}
 
-	return self.c.Menu(popup.CreateMenuOptions{
+	return self.c.Menu(types.CreateMenuOptions{
 		Title: fmt.Sprintf("%s %s", self.c.Tr.LcResetTo, ref),
 		Items: menuItems,
 	})

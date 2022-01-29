@@ -10,7 +10,7 @@ type ContextTree struct {
 	Branches       types.IListContext
 	Remotes        types.IListContext
 	RemoteBranches types.IListContext
-	Tags           types.IListContext
+	Tags           *TagsContext
 	BranchCommits  types.IListContext
 	CommitFiles    types.IListContext
 	ReflogCommits  types.IListContext

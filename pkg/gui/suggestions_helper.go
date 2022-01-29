@@ -23,7 +23,7 @@ import (
 // exists for fetching a particular model.
 
 type SuggestionsHelper struct {
-	c *controllers.ControllerCommon
+	c *types.ControllerCommon
 
 	getState             func() *GuiRepoState
 	refreshSuggestionsFn func()
@@ -32,7 +32,7 @@ type SuggestionsHelper struct {
 var _ controllers.ISuggestionsHelper = &SuggestionsHelper{}
 
 func NewSuggestionsHelper(
-	c *controllers.ControllerCommon,
+	c *types.ControllerCommon,
 	getState func() *GuiRepoState,
 	refreshSuggestionsFn func(),
 ) *SuggestionsHelper {

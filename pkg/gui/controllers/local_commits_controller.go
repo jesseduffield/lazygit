@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -26,7 +25,7 @@ type (
 )
 
 type LocalCommitsController struct {
-	c          *ControllerCommon
+	c          *types.ControllerCommon
 	getContext func() types.IListContext
 	os         *oscommands.OSCommand
 	git        *commands.GitCommand
@@ -50,7 +49,7 @@ type LocalCommitsController struct {
 var _ types.IController = &LocalCommitsController{}
 
 func NewLocalCommitsController(
-	c *ControllerCommon,
+	c *types.ControllerCommon,
 	getContext func() types.IListContext,
 	os *oscommands.OSCommand,
 	git *commands.GitCommand,
@@ -241,7 +240,7 @@ func (self *LocalCommitsController) squashDown() error {
 		return nil
 	}
 
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.Squash,
 		Prompt: self.c.Tr.SureSquashThisCommit,
 		HandleConfirm: func() error {
@@ -266,7 +265,7 @@ func (self *LocalCommitsController) fixup() error {
 		return nil
 	}
 
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.Fixup,
 		Prompt: self.c.Tr.SureFixupThisCommit,
 		HandleConfirm: func() error {
@@ -293,7 +292,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	}
 
 	// TODO: use the commit message panel here
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title:          self.c.Tr.LcRewordCommit,
 		InitialContent: message,
 		HandleConfirm: func(response string) error {
@@ -339,7 +338,7 @@ func (self *LocalCommitsController) drop() error {
 		return nil
 	}
 
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.DeleteCommitTitle,
 		Prompt: self.c.Tr.DeleteCommitPrompt,
 		HandleConfirm: func() error {
@@ -488,7 +487,7 @@ func (self *LocalCommitsController) handleCommitMoveUp() error {
 }
 
 func (self *LocalCommitsController) handleCommitAmendTo() error {
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
 		HandleConfirm: func() error {
@@ -505,7 +504,7 @@ func (self *LocalCommitsController) handleCommitRevert(commit *models.Commit) er
 	if commit.IsMerge() {
 		return self.createRevertMergeCommitMenu(commit)
 	} else {
-		return self.c.Ask(popup.AskOpts{
+		return self.c.Ask(types.AskOpts{
 			Title: self.c.Tr.Actions.RevertCommit,
 			Prompt: utils.ResolvePlaceholderString(
 				self.c.Tr.ConfirmRevertCommit,
@@ -524,7 +523,7 @@ func (self *LocalCommitsController) handleCommitRevert(commit *models.Commit) er
 }
 
 func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.Commit) error {
-	menuItems := make([]*popup.MenuItem, len(commit.Parents))
+	menuItems := make([]*types.MenuItem, len(commit.Parents))
 	for i, parentSha := range commit.Parents {
 		i := i
 		message, err := self.git.Commit.GetCommitMessageFirstLine(parentSha)
@@ -532,7 +531,7 @@ func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.C
 			return self.c.Error(err)
 		}
 
-		menuItems[i] = &popup.MenuItem{
+		menuItems[i] = &types.MenuItem{
 			DisplayString: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
 			OnPress: func() error {
 				parentNumber := i + 1
@@ -545,7 +544,7 @@ func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.C
 		}
 	}
 
-	return self.c.Menu(popup.CreateMenuOptions{Title: self.c.Tr.SelectParentCommitForMerge, Items: menuItems})
+	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.SelectParentCommitForMerge, Items: menuItems})
 }
 
 func (self *LocalCommitsController) afterRevertCommit() error {
@@ -572,7 +571,7 @@ func (self *LocalCommitsController) handleCreateFixupCommit(commit *models.Commi
 		},
 	)
 
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.CreateFixupCommit,
 		Prompt: prompt,
 		HandleConfirm: func() error {
@@ -594,7 +593,7 @@ func (self *LocalCommitsController) handleSquashAllAboveFixupCommits(commit *mod
 		},
 	)
 
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.SquashAboveCommits,
 		Prompt: prompt,
 		HandleConfirm: func() error {
@@ -612,7 +611,7 @@ func (self *LocalCommitsController) handleTagCommit(commit *models.Commit) error
 }
 
 func (self *LocalCommitsController) handleCheckoutCommit(commit *models.Commit) error {
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.LcCheckoutCommit,
 		Prompt: self.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {
@@ -669,9 +668,9 @@ func (self *LocalCommitsController) handleCopySelectedCommitMessageToClipboard(c
 }
 
 func (self *LocalCommitsController) handleOpenLogMenu() error {
-	return self.c.Menu(popup.CreateMenuOptions{
+	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.LogMenuTitle,
-		Items: []*popup.MenuItem{
+		Items: []*types.MenuItem{
 			{
 				DisplayString: self.c.Tr.ToggleShowGitGraphAll,
 				OnPress: func() error {
@@ -696,9 +695,9 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 							return nil
 						}
 					}
-					return self.c.Menu(popup.CreateMenuOptions{
+					return self.c.Menu(types.CreateMenuOptions{
 						Title: self.c.Tr.LogMenuTitle,
-						Items: []*popup.MenuItem{
+						Items: []*types.MenuItem{
 							{
 								DisplayString: "always",
 								OnPress:       onPress("always"),
@@ -728,9 +727,9 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						}
 					}
 
-					return self.c.Menu(popup.CreateMenuOptions{
+					return self.c.Menu(types.CreateMenuOptions{
 						Title: self.c.Tr.LogMenuTitle,
-						Items: []*popup.MenuItem{
+						Items: []*types.MenuItem{
 							{
 								DisplayString: "topological (topo-order)",
 								OnPress:       onPress("topo-order"),

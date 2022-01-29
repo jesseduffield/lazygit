@@ -5,7 +5,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -81,7 +80,7 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 
 	fileName := gui.getSelectedCommitFileName()
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  gui.c.Tr.DiscardFileChangesTitle,
 		Prompt: gui.c.Tr.DiscardFileChangesPrompt,
 		HandleConfirm: func() error {
@@ -181,7 +180,7 @@ func (gui *Gui) handleToggleFileForPatch() error {
 	}
 
 	if gui.git.Patch.PatchManager.Active() && gui.git.Patch.PatchManager.To != gui.State.CommitFileTreeViewModel.GetParent() {
-		return gui.c.Ask(popup.AskOpts{
+		return gui.c.Ask(types.AskOpts{
 			Title:  gui.c.Tr.DiscardPatch,
 			Prompt: gui.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {
@@ -229,7 +228,7 @@ func (gui *Gui) enterCommitFile(opts types.OnFocusOpts) error {
 	}
 
 	if gui.git.Patch.PatchManager.Active() && gui.git.Patch.PatchManager.To != gui.State.CommitFileTreeViewModel.GetParent() {
-		return gui.c.Ask(popup.AskOpts{
+		return gui.c.Ask(types.AskOpts{
 			Title:  gui.c.Tr.DiscardPatch,
 			Prompt: gui.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {

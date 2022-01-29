@@ -6,13 +6,12 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type RemotesController struct {
-	c          *ControllerCommon
+	c          *types.ControllerCommon
 	getContext func() types.IListContext
 	git        *commands.GitCommand
 
@@ -24,7 +23,7 @@ type RemotesController struct {
 var _ types.IController = &RemotesController{}
 
 func NewRemotesController(
-	c *ControllerCommon,
+	c *types.ControllerCommon,
 	getContext func() types.IListContext,
 	git *commands.GitCommand,
 	getContexts func() context.ContextTree,
@@ -90,10 +89,10 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 }
 
 func (self *RemotesController) add() error {
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.LcNewRemoteName,
 		HandleConfirm: func(remoteName string) error {
-			return self.c.Prompt(popup.PromptOpts{
+			return self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.LcNewRemoteUrl,
 				HandleConfirm: func(remoteUrl string) error {
 					self.c.LogAction(self.c.Tr.Actions.AddRemote)
@@ -108,7 +107,7 @@ func (self *RemotesController) add() error {
 }
 
 func (self *RemotesController) remove(remote *models.Remote) error {
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.LcRemoveRemote,
 		Prompt: self.c.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		HandleConfirm: func() error {
@@ -130,7 +129,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 		},
 	)
 
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title:          editNameMessage,
 		InitialContent: remote.Name,
 		HandleConfirm: func(updatedRemoteName string) error {
@@ -154,7 +153,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 				url = urls[0]
 			}
 
-			return self.c.Prompt(popup.PromptOpts{
+			return self.c.Prompt(types.PromptOpts{
 				Title:          editUrlMessage,
 				InitialContent: url,
 				HandleConfirm: func(updatedRemoteUrl string) error {

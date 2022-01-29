@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -11,9 +10,9 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 		return nil
 	}
 
-	var menuItems []*popup.MenuItem
+	var menuItems []*types.MenuItem
 	if node.File == nil {
-		menuItems = []*popup.MenuItem{
+		menuItems = []*types.MenuItem{
 			{
 				DisplayString: gui.c.Tr.LcDiscardAllChanges,
 				OnPress: func() error {
@@ -27,7 +26,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 		}
 
 		if node.GetHasStagedChanges() && node.GetHasUnstagedChanges() {
-			menuItems = append(menuItems, &popup.MenuItem{
+			menuItems = append(menuItems, &types.MenuItem{
 				DisplayString: gui.c.Tr.LcDiscardUnstagedChanges,
 				OnPress: func() error {
 					gui.c.LogAction(gui.c.Tr.Actions.DiscardUnstagedChangesInDirectory)
@@ -46,7 +45,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 		if file.IsSubmodule(submodules) {
 			submodule := file.SubmoduleConfig(submodules)
 
-			menuItems = []*popup.MenuItem{
+			menuItems = []*types.MenuItem{
 				{
 					DisplayString: gui.c.Tr.LcSubmoduleStashAndReset,
 					OnPress: func() error {
@@ -55,7 +54,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				},
 			}
 		} else {
-			menuItems = []*popup.MenuItem{
+			menuItems = []*types.MenuItem{
 				{
 					DisplayString: gui.c.Tr.LcDiscardAllChanges,
 					OnPress: func() error {
@@ -69,7 +68,7 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 			}
 
 			if file.HasStagedChanges && file.HasUnstagedChanges {
-				menuItems = append(menuItems, &popup.MenuItem{
+				menuItems = append(menuItems, &types.MenuItem{
 					DisplayString: gui.c.Tr.LcDiscardUnstagedChanges,
 					OnPress: func() error {
 						gui.c.LogAction(gui.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
@@ -84,5 +83,5 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 		}
 	}
 
-	return gui.c.Menu(popup.CreateMenuOptions{Title: node.GetPath(), Items: menuItems})
+	return gui.c.Menu(types.CreateMenuOptions{Title: node.GetPath(), Items: menuItems})
 }

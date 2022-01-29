@@ -86,12 +86,17 @@ func (gui *Gui) allContexts() []types.Context {
 
 func (gui *Gui) contextTree() context.ContextTree {
 	return context.ContextTree{
-		Status: &BasicContext{
-			OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
-			Kind:           types.SIDE_CONTEXT,
-			ViewName:       "status",
-			Key:            STATUS_CONTEXT_KEY,
-		},
+		Status: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.SIDE_CONTEXT,
+				ViewName:   "status",
+				Key:        STATUS_CONTEXT_KEY,
+				WindowName: "status",
+			}),
+			NewSimpleContextOpts{
+				OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
+			},
+		),
 		Files:          gui.filesListContext(),
 		Submodules:     gui.submodulesListContext(),
 		Menu:           gui.menuListContext(),
@@ -104,86 +109,130 @@ func (gui *Gui) contextTree() context.ContextTree {
 		Branches:       gui.branchesListContext(),
 		Tags:           gui.tagsListContext(),
 		Stash:          gui.stashListContext(),
-		Normal: &BasicContext{
-			OnFocus: func(opts ...types.OnFocusOpts) error {
-				return nil // TODO: should we do something here? We should allow for scrolling the panel
+		Suggestions:    gui.suggestionsListContext(),
+		Normal: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.MAIN_CONTEXT,
+				ViewName:   "main",
+				WindowName: "main",
+				Key:        MAIN_NORMAL_CONTEXT_KEY,
+			}),
+			NewSimpleContextOpts{
+				OnFocus: func(opts ...types.OnFocusOpts) error {
+					return nil // TODO: should we do something here? We should allow for scrolling the panel
+				},
 			},
-			Kind:     types.MAIN_CONTEXT,
-			ViewName: "main",
-			Key:      MAIN_NORMAL_CONTEXT_KEY,
-		},
-		Staging: &BasicContext{
-			OnFocus: func(opts ...types.OnFocusOpts) error {
-				forceSecondaryFocused := false
-				selectedLineIdx := -1
-				if len(opts) > 0 && opts[0].ClickedViewName != "" {
-					if opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary" {
+		),
+		Staging: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.MAIN_CONTEXT,
+				ViewName:   "main",
+				WindowName: "main",
+				Key:        MAIN_STAGING_CONTEXT_KEY,
+			}),
+			NewSimpleContextOpts{
+				OnFocus: func(opts ...types.OnFocusOpts) error {
+					forceSecondaryFocused := false
+					selectedLineIdx := -1
+					if len(opts) > 0 && opts[0].ClickedViewName != "" {
+						if opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary" {
+							selectedLineIdx = opts[0].ClickedViewLineIdx
+						}
+						if opts[0].ClickedViewName == "secondary" {
+							forceSecondaryFocused = true
+						}
+					}
+					return gui.onStagingFocus(forceSecondaryFocused, selectedLineIdx)
+				},
+			},
+		),
+		PatchBuilding: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.MAIN_CONTEXT,
+				ViewName:   "main",
+				WindowName: "main",
+				Key:        MAIN_PATCH_BUILDING_CONTEXT_KEY,
+			}),
+			NewSimpleContextOpts{
+				OnFocus: func(opts ...types.OnFocusOpts) error {
+					selectedLineIdx := -1
+					if len(opts) > 0 && (opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary") {
 						selectedLineIdx = opts[0].ClickedViewLineIdx
 					}
-					if opts[0].ClickedViewName == "secondary" {
-						forceSecondaryFocused = true
-					}
-				}
-				return gui.onStagingFocus(forceSecondaryFocused, selectedLineIdx)
-			},
-			Kind:     types.MAIN_CONTEXT,
-			ViewName: "main",
-			Key:      MAIN_STAGING_CONTEXT_KEY,
-		},
-		PatchBuilding: &BasicContext{
-			OnFocus: func(opts ...types.OnFocusOpts) error {
-				selectedLineIdx := -1
-				if len(opts) > 0 && (opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary") {
-					selectedLineIdx = opts[0].ClickedViewLineIdx
-				}
 
-				return gui.onPatchBuildingFocus(selectedLineIdx)
+					return gui.onPatchBuildingFocus(selectedLineIdx)
+				},
 			},
-			Kind:     types.MAIN_CONTEXT,
-			ViewName: "main",
-			Key:      MAIN_PATCH_BUILDING_CONTEXT_KEY,
-		},
-		Merging: &BasicContext{
-			OnFocus:         OnFocusWrapper(func() error { return gui.renderConflictsWithLock(true) }),
-			Kind:            types.MAIN_CONTEXT,
-			ViewName:        "main",
-			Key:             MAIN_MERGING_CONTEXT_KEY,
-			OnGetOptionsMap: gui.getMergingOptions,
-		},
-		Credentials: &BasicContext{
-			OnFocus:  OnFocusWrapper(gui.handleAskFocused),
-			Kind:     types.PERSISTENT_POPUP,
-			ViewName: "credentials",
-			Key:      CREDENTIALS_CONTEXT_KEY,
-		},
-		Confirmation: &BasicContext{
-			OnFocus:  OnFocusWrapper(gui.handleAskFocused),
-			Kind:     types.TEMPORARY_POPUP,
-			ViewName: "confirmation",
-			Key:      CONFIRMATION_CONTEXT_KEY,
-		},
-		Suggestions: gui.suggestionsListContext(),
-		CommitMessage: &BasicContext{
-			OnFocus:  OnFocusWrapper(gui.handleCommitMessageFocused),
-			Kind:     types.PERSISTENT_POPUP,
-			ViewName: "commitMessage",
-			Key:      COMMIT_MESSAGE_CONTEXT_KEY,
-		},
-		Search: &BasicContext{
-			Kind:     types.PERSISTENT_POPUP,
-			ViewName: "search",
-			Key:      SEARCH_CONTEXT_KEY,
-		},
-		CommandLog: &BasicContext{
-			Kind:            types.EXTRAS_CONTEXT,
-			ViewName:        "extras",
-			Key:             COMMAND_LOG_CONTEXT_KEY,
-			OnGetOptionsMap: gui.getMergingOptions,
-			OnFocusLost: func() error {
-				gui.Views.Extras.Autoscroll = true
-				return nil
+		),
+		Merging: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:            types.MAIN_CONTEXT,
+				ViewName:        "main",
+				WindowName:      "main",
+				Key:             MAIN_MERGING_CONTEXT_KEY,
+				OnGetOptionsMap: gui.getMergingOptions,
+			}),
+			NewSimpleContextOpts{
+				OnFocus: OnFocusWrapper(func() error { return gui.renderConflictsWithLock(true) }),
 			},
-		},
+		),
+		Credentials: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.PERSISTENT_POPUP,
+				ViewName:   "credentials",
+				WindowName: "credentials",
+				Key:        CREDENTIALS_CONTEXT_KEY,
+			}),
+			NewSimpleContextOpts{
+				OnFocus: OnFocusWrapper(gui.handleAskFocused),
+			},
+		),
+		Confirmation: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.TEMPORARY_POPUP,
+				ViewName:   "confirmation",
+				WindowName: "confirmation",
+				Key:        CONFIRMATION_CONTEXT_KEY,
+			}),
+			NewSimpleContextOpts{
+				OnFocus: OnFocusWrapper(gui.handleAskFocused),
+			},
+		),
+		CommitMessage: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.PERSISTENT_POPUP,
+				ViewName:   "commitMessage",
+				WindowName: "commitMessage",
+				Key:        COMMIT_MESSAGE_CONTEXT_KEY,
+			}),
+			NewSimpleContextOpts{
+				OnFocus: OnFocusWrapper(gui.handleCommitMessageFocused),
+			},
+		),
+		Search: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.PERSISTENT_POPUP,
+				ViewName:   "search",
+				WindowName: "search",
+				Key:        SEARCH_CONTEXT_KEY,
+			}),
+			NewSimpleContextOpts{},
+		),
+		CommandLog: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:            types.EXTRAS_CONTEXT,
+				ViewName:        "extras",
+				WindowName:      "extras",
+				Key:             COMMAND_LOG_CONTEXT_KEY,
+				OnGetOptionsMap: gui.getMergingOptions,
+			}),
+			NewSimpleContextOpts{
+				OnFocusLost: func() error {
+					gui.Views.Extras.Autoscroll = true
+					return nil
+				},
+			},
+		),
 	}
 }
 

@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -114,7 +113,7 @@ func (gui *Gui) handleResetSelection() error {
 		}
 
 		if !gui.c.UserConfig.Gui.SkipUnstageLineWarning {
-			return gui.c.Ask(popup.AskOpts{
+			return gui.c.Ask(types.AskOpts{
 				Title:  gui.c.Tr.UnstageLinesTitle,
 				Prompt: gui.c.Tr.UnstageLinesPrompt,
 				HandleConfirm: func() error {

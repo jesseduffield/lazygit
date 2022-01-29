@@ -2,7 +2,6 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -135,7 +134,7 @@ func (gui *Gui) handleCopyCommitRange() error {
 
 // HandlePasteCommits begins a cherry-pick rebase with the commits the user has copied
 func (gui *Gui) HandlePasteCommits() error {
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  gui.c.Tr.CherryPick,
 		Prompt: gui.c.Tr.SureCherryPick,
 		HandleConfirm: func() error {

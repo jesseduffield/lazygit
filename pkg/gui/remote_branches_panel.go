@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -54,7 +53,7 @@ func (gui *Gui) handleDeleteRemoteBranch() error {
 	}
 	message := fmt.Sprintf("%s '%s'?", gui.c.Tr.DeleteRemoteBranchMessage, remoteBranch.FullName())
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  gui.c.Tr.DeleteRemoteBranch,
 		Prompt: message,
 		HandleConfirm: func() error {
@@ -88,7 +87,7 @@ func (gui *Gui) handleSetBranchUpstream() error {
 		},
 	)
 
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  gui.c.Tr.SetUpstreamTitle,
 		Prompt: message,
 		HandleConfirm: func() error {
