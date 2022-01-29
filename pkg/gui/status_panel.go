@@ -30,10 +30,6 @@ func (gui *Gui) handleCheckForUpdate() error {
 
 func (gui *Gui) handleStatusClick() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
 	currentBranch := gui.getCheckedOutBranch()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
@@ -79,10 +75,6 @@ func formatWorkingTreeState(rebaseMode enums.RebaseMode) string {
 
 func (gui *Gui) statusRenderToMain() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
 	dashboardString := strings.Join(
 		[]string{
 			lazygitTitle(),
