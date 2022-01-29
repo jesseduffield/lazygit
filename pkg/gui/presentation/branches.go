@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
+
+var branchPrefixColors = make(map[string]style.TextStyle)
 
 func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string) [][]string {
 	lines := make([][]string, len(branches))
@@ -58,6 +61,10 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 func GetBranchTextStyle(name string) style.TextStyle {
 	branchType := strings.Split(name, "/")[0]
 
+	if value, ok := branchPrefixColors[branchType]; ok {
+		return value
+	}
+
 	switch branchType {
 	case "feature":
 		return style.FgGreen
@@ -83,4 +90,11 @@ func ColoredBranchStatus(branch *models.Branch) string {
 
 func BranchStatus(branch *models.Branch) string {
 	return fmt.Sprintf("↑%s↓%s", branch.Pushables, branch.Pullables)
+}
+
+func SetCustomBranchColors(customBranchColors map[string]string) {
+	for branchPrefix, colorSequence := range customBranchColors {
+		style := style.New().SetFg(style.NewRGBColor(color.HEX(colorSequence, false)))
+		branchPrefixColors[branchPrefix] = style
+	}
 }
