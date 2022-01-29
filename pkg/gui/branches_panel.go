@@ -58,7 +58,7 @@ func (gui *Gui) handleBranchPress() error {
 	}
 	branch := gui.getSelectedBranch()
 	gui.c.LogAction(gui.c.Tr.Actions.CheckoutBranch)
-	return gui.refsHelper.CheckoutRef(branch.Name, types.CheckoutRefOptions{})
+	return gui.helpers.refs.CheckoutRef(branch.Name, types.CheckoutRefOptions{})
 }
 
 func (gui *Gui) handleCreatePullRequestPress() error {
@@ -131,10 +131,10 @@ func (gui *Gui) handleForceCheckout() error {
 func (gui *Gui) handleCheckoutByName() error {
 	return gui.c.Prompt(types.PromptOpts{
 		Title:               gui.c.Tr.BranchName + ":",
-		FindSuggestionsFunc: gui.suggestionsHelper.GetRefsSuggestionsFunc(),
+		FindSuggestionsFunc: gui.helpers.suggestions.GetRefsSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
 			gui.c.LogAction("Checkout branch")
-			return gui.refsHelper.CheckoutRef(response, types.CheckoutRefOptions{
+			return gui.helpers.refs.CheckoutRef(response, types.CheckoutRefOptions{
 				OnRefNotFound: func(ref string) error {
 					return gui.c.Ask(types.AskOpts{
 						Title:  gui.c.Tr.BranchNotFoundTitle,
@@ -328,7 +328,7 @@ func (gui *Gui) handleCreateResetToBranchMenu() error {
 		return nil
 	}
 
-	return gui.refsHelper.CreateGitResetMenu(branch.Name)
+	return gui.helpers.refs.CreateGitResetMenu(branch.Name)
 }
 
 func (gui *Gui) handleRenameBranch() error {

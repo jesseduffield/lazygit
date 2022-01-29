@@ -130,11 +130,11 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 }
 
 func (gui *Gui) handleOpenConfig() error {
-	return gui.askForConfigFile(gui.filesHelper.OpenFile)
+	return gui.askForConfigFile(gui.helpers.files.OpenFile)
 }
 
 func (gui *Gui) handleEditConfig() error {
-	return gui.askForConfigFile(gui.filesHelper.EditFile)
+	return gui.askForConfigFile(gui.helpers.files.EditFile)
 }
 
 func lazygitTitle() string {
