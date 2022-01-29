@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -307,16 +306,12 @@ func (gui *Gui) handleFastForward() error {
 	)
 
 	return gui.c.WithLoaderPanel(message, func() error {
-		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
-			_ = gui.Controllers.Sync.PullAux(controllers.PullFilesOptions{Action: action, FastForwardOnly: true})
-		} else {
-			gui.c.LogAction(action)
-			err := gui.git.Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
-			if err != nil {
-				_ = gui.c.Error(err)
-			}
-			_ = gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+		gui.c.LogAction(action)
+		err := gui.git.Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
+		if err != nil {
+			_ = gui.c.Error(err)
 		}
+		_ = gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 
 		return nil
 	})
