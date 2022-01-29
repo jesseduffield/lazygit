@@ -169,7 +169,7 @@ conda install -c conda-forge lazygit
 ### Go
 
 ```sh
-go get github.com/jesseduffield/lazygit
+go install github.com/jesseduffield/lazygit@latest
 ```
 
 Please note:
