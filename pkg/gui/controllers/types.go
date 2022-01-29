@@ -5,7 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type IRefHelper interface {
+type IRefsHelper interface {
 	CheckoutRef(ref string, options types.CheckoutRefOptions) error
 	CreateGitResetMenu(ref string) error
 	ResetToRef(ref string, strength string, envVars []string) error

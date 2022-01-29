@@ -14,9 +14,9 @@ type TagsController struct {
 	getContext  func() *context.TagsContext
 	git         *commands.GitCommand
 	getContexts func() context.ContextTree
-	tagActions  *TagActions
+	tagsHelper  *TagsHelper
 
-	refHelper         IRefHelper
+	refsHelper        IRefsHelper
 	suggestionsHelper ISuggestionsHelper
 
 	switchToSubCommitsContext func(string) error
@@ -29,8 +29,8 @@ func NewTagsController(
 	getContext func() *context.TagsContext,
 	git *commands.GitCommand,
 	getContexts func() context.ContextTree,
-	tagActions *TagActions,
-	refHelper IRefHelper,
+	tagsHelper *TagsHelper,
+	refsHelper IRefsHelper,
 	suggestionsHelper ISuggestionsHelper,
 
 	switchToSubCommitsContext func(string) error,
@@ -40,8 +40,8 @@ func NewTagsController(
 		getContext:        getContext,
 		git:               git,
 		getContexts:       getContexts,
-		tagActions:        tagActions,
-		refHelper:         refHelper,
+		tagsHelper:        tagsHelper,
+		refsHelper:        refsHelper,
 		suggestionsHelper: suggestionsHelper,
 
 		switchToSubCommitsContext: switchToSubCommitsContext,
@@ -88,7 +88,7 @@ func (self *TagsController) Keybindings(getKey func(key string) interface{}, con
 
 func (self *TagsController) checkout(tag *models.Tag) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutTag)
-	if err := self.refHelper.CheckoutRef(tag.Name, types.CheckoutRefOptions{}); err != nil {
+	if err := self.refsHelper.CheckoutRef(tag.Name, types.CheckoutRefOptions{}); err != nil {
 		return err
 	}
 	return self.c.PushContext(self.getContexts().Branches)
@@ -146,12 +146,12 @@ func (self *TagsController) push(tag *models.Tag) error {
 }
 
 func (self *TagsController) createResetMenu(tag *models.Tag) error {
-	return self.refHelper.CreateGitResetMenu(tag.Name)
+	return self.refsHelper.CreateGitResetMenu(tag.Name)
 }
 
 func (self *TagsController) create() error {
 	// leaving commit SHA blank so that we're just creating the tag for the current commit
-	return self.tagActions.CreateTagMenu("", func() { self.getContext().GetPanelState().SetSelectedLineIdx(0) })
+	return self.tagsHelper.CreateTagMenu("", func() { self.getContext().GetPanelState().SetSelectedLineIdx(0) })
 }
 
 func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func() error {

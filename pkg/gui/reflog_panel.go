@@ -48,7 +48,7 @@ func (gui *Gui) CheckoutReflogCommit() error {
 		Prompt: gui.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {
 			gui.c.LogAction(gui.c.Tr.Actions.CheckoutReflogCommit)
-			return gui.refHelper.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
+			return gui.refsHelper.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
 		},
 	})
 	if err != nil {
@@ -63,7 +63,7 @@ func (gui *Gui) CheckoutReflogCommit() error {
 func (gui *Gui) handleCreateReflogResetMenu() error {
 	commit := gui.getSelectedReflogCommit()
 
-	return gui.refHelper.CreateGitResetMenu(commit.Sha)
+	return gui.refsHelper.CreateGitResetMenu(commit.Sha)
 }
 
 func (gui *Gui) handleViewReflogCommitFiles() error {

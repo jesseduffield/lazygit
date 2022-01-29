@@ -23,7 +23,7 @@ type UndoController struct {
 	c   *types.ControllerCommon
 	git *commands.GitCommand
 
-	refHelper         IRefHelper
+	refsHelper        IRefsHelper
 	workingTreeHelper IWorkingTreeHelper
 
 	getFilteredReflogCommits func() []*models.Commit
@@ -34,7 +34,7 @@ var _ types.IController = &UndoController{}
 func NewUndoController(
 	c *types.ControllerCommon,
 	git *commands.GitCommand,
-	refHelper IRefHelper,
+	refsHelper IRefsHelper,
 	workingTreeHelper IWorkingTreeHelper,
 
 	getFilteredReflogCommits func() []*models.Commit,
@@ -42,7 +42,7 @@ func NewUndoController(
 	return &UndoController{
 		c:                 c,
 		git:               git,
-		refHelper:         refHelper,
+		refsHelper:        refsHelper,
 		workingTreeHelper: workingTreeHelper,
 
 		getFilteredReflogCommits: getFilteredReflogCommits,
@@ -111,7 +111,7 @@ func (self *UndoController) reflogUndo() error {
 			})
 		case CHECKOUT:
 			self.c.LogAction(self.c.Tr.Actions.Undo)
-			return true, self.refHelper.CheckoutRef(action.from, types.CheckoutRefOptions{
+			return true, self.refsHelper.CheckoutRef(action.from, types.CheckoutRefOptions{
 				EnvVars:       undoEnvVars,
 				WaitingStatus: undoingStatus,
 			})
@@ -149,7 +149,7 @@ func (self *UndoController) reflogRedo() error {
 			})
 		case CHECKOUT:
 			self.c.LogAction(self.c.Tr.Actions.Redo)
-			return true, self.refHelper.CheckoutRef(action.to, types.CheckoutRefOptions{
+			return true, self.refsHelper.CheckoutRef(action.to, types.CheckoutRefOptions{
 				EnvVars:       redoEnvVars,
 				WaitingStatus: redoingStatus,
 			})
@@ -224,7 +224,7 @@ type hardResetOptions struct {
 // only to be used in the undo flow for now (does an autostash)
 func (self *UndoController) hardResetWithAutoStash(commitSha string, options hardResetOptions) error {
 	reset := func() error {
-		if err := self.refHelper.ResetToRef(commitSha, "hard", options.EnvVars); err != nil {
+		if err := self.refsHelper.ResetToRef(commitSha, "hard", options.EnvVars); err != nil {
 			return self.c.Error(err)
 		}
 		return nil

@@ -7,31 +7,31 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type FileHelper struct {
+type FilesHelper struct {
 	c   *types.ControllerCommon
 	git *commands.GitCommand
 	os  *oscommands.OSCommand
 }
 
-func NewFileHelper(
+func NewFilesHelper(
 	c *types.ControllerCommon,
 	git *commands.GitCommand,
 	os *oscommands.OSCommand,
-) *FileHelper {
-	return &FileHelper{
+) *FilesHelper {
+	return &FilesHelper{
 		c:   c,
 		git: git,
 		os:  os,
 	}
 }
 
-var _ controllers.IFileHelper = &FileHelper{}
+var _ controllers.IFileHelper = &FilesHelper{}
 
-func (self *FileHelper) EditFile(filename string) error {
+func (self *FilesHelper) EditFile(filename string) error {
 	return self.EditFileAtLine(filename, 1)
 }
 
-func (self *FileHelper) EditFileAtLine(filename string, lineNumber int) error {
+func (self *FilesHelper) EditFileAtLine(filename string, lineNumber int) error {
 	cmdStr, err := self.git.File.GetEditCmdStr(filename, lineNumber)
 	if err != nil {
 		return self.c.Error(err)
@@ -43,7 +43,7 @@ func (self *FileHelper) EditFileAtLine(filename string, lineNumber int) error {
 	)
 }
 
-func (self *FileHelper) OpenFile(filename string) error {
+func (self *FilesHelper) OpenFile(filename string) error {
 	self.c.LogAction(self.c.Tr.Actions.OpenFile)
 	if err := self.os.OpenFile(filename); err != nil {
 		return self.c.Error(err)

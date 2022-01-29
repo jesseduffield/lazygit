@@ -39,8 +39,8 @@ type FilesController struct {
 	getSelectedPath        func() string
 	switchToMergeFn        func(path string) error
 	suggestionsHelper      ISuggestionsHelper
-	refHelper              IRefHelper
-	fileHelper             IFileHelper
+	refsHelper             IRefsHelper
+	filesHelper            IFileHelper
 	workingTreeHelper      IWorkingTreeHelper
 }
 
@@ -63,8 +63,8 @@ func NewFilesController(
 	getSelectedPath func() string,
 	switchToMergeFn func(path string) error,
 	suggestionsHelper ISuggestionsHelper,
-	refHelper IRefHelper,
-	fileHelper IFileHelper,
+	refsHelper IRefsHelper,
+	filesHelper IFileHelper,
 	workingTreeHelper IWorkingTreeHelper,
 ) *FilesController {
 	return &FilesController{
@@ -84,8 +84,8 @@ func NewFilesController(
 		getSelectedPath:        getSelectedPath,
 		switchToMergeFn:        switchToMergeFn,
 		suggestionsHelper:      suggestionsHelper,
-		refHelper:              refHelper,
-		fileHelper:             fileHelper,
+		refsHelper:             refsHelper,
+		filesHelper:            filesHelper,
 		workingTreeHelper:      workingTreeHelper,
 	}
 }
@@ -554,7 +554,7 @@ func (self *FilesController) edit(node *filetree.FileNode) error {
 		return self.c.ErrorMsg(self.c.Tr.ErrCannotEditDirectory)
 	}
 
-	return self.fileHelper.EditFile(node.GetPath())
+	return self.filesHelper.EditFile(node.GetPath())
 }
 
 func (self *FilesController) Open() error {
@@ -563,7 +563,7 @@ func (self *FilesController) Open() error {
 		return nil
 	}
 
-	return self.fileHelper.OpenFile(node.GetPath())
+	return self.filesHelper.OpenFile(node.GetPath())
 }
 
 func (self *FilesController) switchToMerge() error {
@@ -627,7 +627,7 @@ func (self *FilesController) stash() error {
 }
 
 func (self *FilesController) createResetMenu() error {
-	return self.refHelper.CreateGitResetMenu("@{upstream}")
+	return self.refsHelper.CreateGitResetMenu("@{upstream}")
 }
 
 func (self *FilesController) handleToggleDirCollapsed() error {
