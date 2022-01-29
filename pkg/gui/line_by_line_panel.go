@@ -106,10 +106,6 @@ func (gui *Gui) refreshAndFocusLblPanel(state *LblPanelState) error {
 
 func (gui *Gui) handleLBLMouseDown() error {
 	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
-		if gui.popupPanelFocused() {
-			return nil
-		}
-
 		state.SelectNewLineForRange(gui.Views.Main.SelectedLineIdx())
 
 		return gui.refreshAndFocusLblPanel(state)
@@ -118,10 +114,6 @@ func (gui *Gui) handleLBLMouseDown() error {
 
 func (gui *Gui) handleMouseDrag() error {
 	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
-		if gui.popupPanelFocused() {
-			return nil
-		}
-
 		state.SelectLine(gui.Views.Main.SelectedLineIdx())
 
 		return gui.refreshAndFocusLblPanel(state)

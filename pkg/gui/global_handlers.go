@@ -181,10 +181,6 @@ func (gui *Gui) handleRefresh() error {
 }
 
 func (gui *Gui) handleMouseDownMain() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
 	switch gui.currentSideContext() {
 	case gui.State.Contexts.Files:
 		// set filename, set primary/secondary selected, set line number, then switch context
@@ -199,10 +195,6 @@ func (gui *Gui) handleMouseDownMain() error {
 }
 
 func (gui *Gui) handleMouseDownSecondary() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
 	switch gui.g.CurrentView() {
 	case gui.Views.Files:
 		return gui.Controllers.Files.EnterFile(types.OnFocusOpts{ClickedViewName: "secondary", ClickedViewLineIdx: gui.Views.Secondary.SelectedLineIdx()})
