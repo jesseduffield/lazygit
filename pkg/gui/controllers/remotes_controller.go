@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"sync"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -21,7 +19,6 @@ type RemotesController struct {
 	getSelectedRemote func() *models.Remote
 	setRemoteBranches func([]*models.RemoteBranch)
 	getContexts       func() context.ContextTree
-	fetchMutex        *sync.Mutex
 }
 
 var _ types.IController = &RemotesController{}
@@ -33,7 +30,6 @@ func NewRemotesController(
 	getContexts func() context.ContextTree,
 	getSelectedRemote func() *models.Remote,
 	setRemoteBranches func([]*models.RemoteBranch),
-	fetchMutex *sync.Mutex,
 ) *RemotesController {
 	return &RemotesController{
 		c:                 c,
@@ -42,7 +38,6 @@ func NewRemotesController(
 		getContext:        getContext,
 		getSelectedRemote: getSelectedRemote,
 		setRemoteBranches: setRemoteBranches,
-		fetchMutex:        fetchMutex,
 	}
 }
 
@@ -176,9 +171,6 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 
 func (self *RemotesController) fetch(remote *models.Remote) error {
 	return self.c.WithWaitingStatus(self.c.Tr.FetchingRemoteStatus, func() error {
-		self.fetchMutex.Lock()
-		defer self.fetchMutex.Unlock()
-
 		err := self.git.Sync.FetchRemote(remote.Name)
 		if err != nil {
 			_ = self.c.Error(err)

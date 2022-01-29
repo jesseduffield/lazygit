@@ -75,7 +75,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 		gui.Common,
 		gui.OSCommand,
 		git_config.NewStdCachedGitConfig(gui.Log),
-		gui.Mutexes.FetchMutex,
+		gui.Mutexes.SyncMutex,
 	)
 	if err != nil {
 		return err
@@ -84,8 +84,8 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 
 	// these two mutexes are used by our background goroutines (triggered via `gui.goEvery`. We don't want to
 	// switch to a repo while one of these goroutines is in the process of updating something
-	gui.Mutexes.FetchMutex.Lock()
-	defer gui.Mutexes.FetchMutex.Unlock()
+	gui.Mutexes.SyncMutex.Lock()
+	defer gui.Mutexes.SyncMutex.Unlock()
 
 	gui.Mutexes.RefreshingFilesMutex.Lock()
 	defer gui.Mutexes.RefreshingFilesMutex.Unlock()
