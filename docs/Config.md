@@ -400,6 +400,16 @@ gui:
     '*': '#0000ff'
 ```
 
+## Custom Branch Color
+
+You can customize the color of branches based on the branch prefix:
+
+```yaml
+gui:
+  branchColors:
+    'docs': '#11aaff' # use a light blue for branches beginning with 'docs/'
+```
+
 ## Example Coloring
 
 ![border example](../../assets/colored-border-example.png)
