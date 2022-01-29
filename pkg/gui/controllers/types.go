@@ -2,30 +2,8 @@ package controllers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
-
-type IGuiCommon interface {
-	popup.IPopupHandler
-
-	LogAction(action string)
-	LogCommand(cmdStr string, isCommandLine bool)
-	// we call this when we want to refetch some models and render the result. Internally calls PostRefreshUpdate
-	Refresh(types.RefreshOptions) error
-	// we call this when we've changed something in the view model but not the actual model,
-	// e.g. expanding or collapsing a folder in a file view. Calling 'Refresh' in this
-	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'
-	PostRefreshUpdate(types.Context) error
-	RunSubprocessAndRefresh(oscommands.ICmdObj) error
-	PushContext(context types.Context, opts ...types.OnFocusOpts) error
-	PopContext() error
-
-	GetAppState() *config.AppState
-	SaveAppState() error
-}
 
 type IRefHelper interface {
 	CheckoutRef(ref string, options types.CheckoutRefOptions) error

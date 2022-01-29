@@ -9,13 +9,12 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type SubmodulesController struct {
-	c       *ControllerCommon
+	c       *types.ControllerCommon
 	context types.IListContext
 	git     *commands.GitCommand
 
@@ -26,7 +25,7 @@ type SubmodulesController struct {
 var _ types.IController = &SubmodulesController{}
 
 func NewSubmodulesController(
-	c *ControllerCommon,
+	c *types.ControllerCommon,
 	context types.IListContext,
 	git *commands.GitCommand,
 	enterSubmodule func(submodule *models.SubmoduleConfig) error,
@@ -93,17 +92,17 @@ func (self *SubmodulesController) enter(submodule *models.SubmoduleConfig) error
 }
 
 func (self *SubmodulesController) add() error {
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.LcNewSubmoduleUrl,
 		HandleConfirm: func(submoduleUrl string) error {
 			nameSuggestion := filepath.Base(strings.TrimSuffix(submoduleUrl, filepath.Ext(submoduleUrl)))
 
-			return self.c.Prompt(popup.PromptOpts{
+			return self.c.Prompt(types.PromptOpts{
 				Title:          self.c.Tr.LcNewSubmoduleName,
 				InitialContent: nameSuggestion,
 				HandleConfirm: func(submoduleName string) error {
 
-					return self.c.Prompt(popup.PromptOpts{
+					return self.c.Prompt(types.PromptOpts{
 						Title:          self.c.Tr.LcNewSubmodulePath,
 						InitialContent: submoduleName,
 						HandleConfirm: func(submodulePath string) error {
@@ -125,7 +124,7 @@ func (self *SubmodulesController) add() error {
 }
 
 func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) error {
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title:          fmt.Sprintf(self.c.Tr.LcUpdateSubmoduleUrl, submodule.Name),
 		InitialContent: submodule.Url,
 		HandleConfirm: func(newUrl string) error {
@@ -155,9 +154,9 @@ func (self *SubmodulesController) init(submodule *models.SubmoduleConfig) error 
 }
 
 func (self *SubmodulesController) openBulkActionsMenu() error {
-	return self.c.Menu(popup.CreateMenuOptions{
+	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.LcBulkSubmoduleOptions,
-		Items: []*popup.MenuItem{
+		Items: []*types.MenuItem{
 			{
 				DisplayStrings: []string{self.c.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(self.git.Submodule.BulkInitCmdObj().ToString())},
 				OnPress: func() error {
@@ -215,7 +214,7 @@ func (self *SubmodulesController) update(submodule *models.SubmoduleConfig) erro
 }
 
 func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) error {
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.RemoveSubmodule,
 		Prompt: fmt.Sprintf(self.c.Tr.RemoveSubmodulePrompt, submodule.Name),
 		HandleConfirm: func() error {

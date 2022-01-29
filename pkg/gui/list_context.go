@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -25,7 +26,7 @@ type ListContext struct {
 
 	Gui *Gui
 
-	*BasicContext
+	*context.BaseContext
 }
 
 var _ types.IListContext = &ListContext{}
@@ -46,7 +47,7 @@ func (self *ListContext) FocusLine() {
 	if self.RenderSelection {
 		_, originY := view.Origin()
 		displayStrings := self.GetDisplayStrings(originY, view.InnerHeight()+1)
-		self.Gui.renderDisplayStringsAtPos(view, originY, displayStrings)
+		self.Gui.renderDisplayStringsInViewPort(view, displayStrings)
 	}
 	view.Footer = formatListFooter(self.GetPanelState().GetSelectedLineIdx(), self.GetItemsLength())
 }
@@ -101,15 +102,7 @@ func (self *ListContext) HandleFocusLost() error {
 }
 
 func (self *ListContext) HandleFocus(opts ...types.OnFocusOpts) error {
-	if self.Gui.popupPanelFocused() {
-		return nil
-	}
-
 	self.FocusLine()
-
-	if self.Gui.State.Modes.Diffing.Active() {
-		return self.Gui.renderDiff()
-	}
 
 	if self.OnFocus != nil {
 		if err := self.OnFocus(opts...); err != nil {

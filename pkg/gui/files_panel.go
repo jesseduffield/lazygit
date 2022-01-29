@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -252,7 +251,7 @@ func (gui *Gui) refreshStateFiles() error {
 func (gui *Gui) promptToContinueRebase() error {
 	gui.takeOverMergeConflictScrolling()
 
-	return gui.PopupHandler.Ask(popup.AskOpts{
+	return gui.PopupHandler.Ask(types.AskOpts{
 		Title:  "continue",
 		Prompt: gui.Tr.ConflictsResolved,
 		HandleConfirm: func() error {

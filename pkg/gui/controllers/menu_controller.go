@@ -3,23 +3,22 @@ package controllers
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type MenuController struct {
-	c          *ControllerCommon
+	c          *types.ControllerCommon
 	getContext func() types.IListContext
 
-	getSelectedMenuItem func() *popup.MenuItem
+	getSelectedMenuItem func() *types.MenuItem
 }
 
 var _ types.IController = &MenuController{}
 
 func NewMenuController(
-	c *ControllerCommon,
+	c *types.ControllerCommon,
 	getContext func() types.IListContext,
-	getSelectedMenuItem func() *popup.MenuItem,
+	getSelectedMenuItem func() *types.MenuItem,
 ) *MenuController {
 	return &MenuController{
 		c:                   c,

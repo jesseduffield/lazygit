@@ -11,83 +11,27 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type IPopupHandler interface {
-	ErrorMsg(message string) error
-	Error(err error) error
-	Ask(opts AskOpts) error
-	Prompt(opts PromptOpts) error
-	WithLoaderPanel(message string, f func() error) error
-	WithWaitingStatus(message string, f func() error) error
-	Menu(opts CreateMenuOptions) error
-	Toast(message string)
-	GetPromptInput() string
-}
-
-type CreateMenuOptions struct {
-	Title      string
-	Items      []*MenuItem
-	HideCancel bool
-}
-
-type CreatePopupPanelOpts struct {
-	HasLoader           bool
-	Editable            bool
-	Title               string
-	Prompt              string
-	HandleConfirm       func() error
-	HandleConfirmPrompt func(string) error
-	HandleClose         func() error
-
-	// when HandlersManageFocus is true, do not return from the confirmation context automatically. It's expected that the handlers will manage focus, whether that means switching to another context, or manually returning the context.
-	HandlersManageFocus bool
-
-	FindSuggestionsFunc func(string) []*types.Suggestion
-}
-
-type AskOpts struct {
-	Title               string
-	Prompt              string
-	HandleConfirm       func() error
-	HandleClose         func() error
-	HandlersManageFocus bool
-}
-
-type PromptOpts struct {
-	Title               string
-	InitialContent      string
-	FindSuggestionsFunc func(string) []*types.Suggestion
-	HandleConfirm       func(string) error
-}
-
-type MenuItem struct {
-	DisplayString  string
-	DisplayStrings []string
-	OnPress        func() error
-	// only applies when displayString is used
-	OpensMenu bool
-}
-
 type RealPopupHandler struct {
 	*common.Common
 	index int
 	sync.Mutex
-	createPopupPanelFn  func(CreatePopupPanelOpts) error
+	createPopupPanelFn  func(types.CreatePopupPanelOpts) error
 	onErrorFn           func() error
 	closePopupFn        func() error
-	createMenuFn        func(CreateMenuOptions) error
+	createMenuFn        func(types.CreateMenuOptions) error
 	withWaitingStatusFn func(message string, f func() error) error
 	toastFn             func(message string)
 	getPromptInputFn    func() string
 }
 
-var _ IPopupHandler = &RealPopupHandler{}
+var _ types.IPopupHandler = &RealPopupHandler{}
 
 func NewPopupHandler(
 	common *common.Common,
-	createPopupPanelFn func(CreatePopupPanelOpts) error,
+	createPopupPanelFn func(types.CreatePopupPanelOpts) error,
 	onErrorFn func() error,
 	closePopupFn func() error,
-	createMenuFn func(CreateMenuOptions) error,
+	createMenuFn func(types.CreateMenuOptions) error,
 	withWaitingStatusFn func(message string, f func() error) error,
 	toastFn func(message string),
 	getPromptInputFn func() string,
@@ -105,7 +49,7 @@ func NewPopupHandler(
 	}
 }
 
-func (self *RealPopupHandler) Menu(opts CreateMenuOptions) error {
+func (self *RealPopupHandler) Menu(opts types.CreateMenuOptions) error {
 	return self.createMenuFn(opts)
 }
 
@@ -135,18 +79,18 @@ func (self *RealPopupHandler) ErrorMsg(message string) error {
 		return err
 	}
 
-	return self.Ask(AskOpts{
+	return self.Ask(types.AskOpts{
 		Title:  self.Tr.Error,
 		Prompt: coloredMessage,
 	})
 }
 
-func (self *RealPopupHandler) Ask(opts AskOpts) error {
+func (self *RealPopupHandler) Ask(opts types.AskOpts) error {
 	self.Lock()
 	self.index++
 	self.Unlock()
 
-	return self.createPopupPanelFn(CreatePopupPanelOpts{
+	return self.createPopupPanelFn(types.CreatePopupPanelOpts{
 		Title:               opts.Title,
 		Prompt:              opts.Prompt,
 		HandleConfirm:       opts.HandleConfirm,
@@ -155,12 +99,12 @@ func (self *RealPopupHandler) Ask(opts AskOpts) error {
 	})
 }
 
-func (self *RealPopupHandler) Prompt(opts PromptOpts) error {
+func (self *RealPopupHandler) Prompt(opts types.PromptOpts) error {
 	self.Lock()
 	self.index++
 	self.Unlock()
 
-	return self.createPopupPanelFn(CreatePopupPanelOpts{
+	return self.createPopupPanelFn(types.CreatePopupPanelOpts{
 		Title:               opts.Title,
 		Prompt:              opts.InitialContent,
 		Editable:            true,
@@ -176,7 +120,7 @@ func (self *RealPopupHandler) WithLoaderPanel(message string, f func() error) er
 	index = self.index
 	self.Unlock()
 
-	err := self.createPopupPanelFn(CreatePopupPanelOpts{
+	err := self.createPopupPanelFn(types.CreatePopupPanelOpts{
 		Prompt:    message,
 		HasLoader: true,
 	})
@@ -208,11 +152,11 @@ func (self *RealPopupHandler) GetPromptInput() string {
 
 type TestPopupHandler struct {
 	OnErrorMsg func(message string) error
-	OnAsk      func(opts AskOpts) error
-	OnPrompt   func(opts PromptOpts) error
+	OnAsk      func(opts types.AskOpts) error
+	OnPrompt   func(opts types.PromptOpts) error
 }
 
-var _ IPopupHandler = &TestPopupHandler{}
+var _ types.IPopupHandler = &TestPopupHandler{}
 
 func (self *TestPopupHandler) Error(err error) error {
 	return self.ErrorMsg(err.Error())
@@ -222,11 +166,11 @@ func (self *TestPopupHandler) ErrorMsg(message string) error {
 	return self.OnErrorMsg(message)
 }
 
-func (self *TestPopupHandler) Ask(opts AskOpts) error {
+func (self *TestPopupHandler) Ask(opts types.AskOpts) error {
 	return self.OnAsk(opts)
 }
 
-func (self *TestPopupHandler) Prompt(opts PromptOpts) error {
+func (self *TestPopupHandler) Prompt(opts types.PromptOpts) error {
 	return self.OnPrompt(opts)
 }
 
@@ -238,7 +182,7 @@ func (self *TestPopupHandler) WithWaitingStatus(message string, f func() error) 
 	return f()
 }
 
-func (self *TestPopupHandler) Menu(opts CreateMenuOptions) error {
+func (self *TestPopupHandler) Menu(opts types.CreateMenuOptions) error {
 	panic("not yet implemented")
 }
 

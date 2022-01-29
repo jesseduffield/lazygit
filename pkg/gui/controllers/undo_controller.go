@@ -5,7 +5,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -21,7 +20,7 @@ import (
 // two user actions, meaning we end up undoing reflog entry C. Redoing works in a similar way.
 
 type UndoController struct {
-	c   *ControllerCommon
+	c   *types.ControllerCommon
 	git *commands.GitCommand
 
 	refHelper         IRefHelper
@@ -33,7 +32,7 @@ type UndoController struct {
 var _ types.IController = &UndoController{}
 
 func NewUndoController(
-	c *ControllerCommon,
+	c *types.ControllerCommon,
 	git *commands.GitCommand,
 	refHelper IRefHelper,
 	workingTreeHelper IWorkingTreeHelper,
@@ -235,7 +234,7 @@ func (self *UndoController) hardResetWithAutoStash(commitSha string, options har
 	dirtyWorkingTree := self.workingTreeHelper.IsWorkingTreeDirty()
 	if dirtyWorkingTree {
 		// offer to autostash changes
-		return self.c.Ask(popup.AskOpts{
+		return self.c.Ask(types.AskOpts{
 			Title:  self.c.Tr.AutoStashTitle,
 			Prompt: self.c.Tr.AutoStashPrompt,
 			HandleConfirm: func() error {

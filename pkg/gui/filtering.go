@@ -1,13 +1,12 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) validateNotInFilterMode() bool {
 	if gui.State.Modes.Filtering.Active() {
-		_ = gui.c.Ask(popup.AskOpts{
+		_ = gui.c.Ask(types.AskOpts{
 			Title:         gui.c.Tr.MustExitFilterModeTitle,
 			Prompt:        gui.c.Tr.MustExitFilterModePrompt,
 			HandleConfirm: gui.exitFilterMode,

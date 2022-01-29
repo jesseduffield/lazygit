@@ -4,16 +4,17 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type FileHelper struct {
-	c   *controllers.ControllerCommon
+	c   *types.ControllerCommon
 	git *commands.GitCommand
 	os  *oscommands.OSCommand
 }
 
 func NewFileHelper(
-	c *controllers.ControllerCommon,
+	c *types.ControllerCommon,
 	git *commands.GitCommand,
 	os *oscommands.OSCommand,
 ) *FileHelper {

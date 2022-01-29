@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) showUpdatePrompt(newVersion string) error {
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  "New version available!",
 		Prompt: fmt.Sprintf("Download version %s? (enter/esc)", newVersion),
 		HandleConfirm: func() error {
@@ -65,7 +65,7 @@ func (gui *Gui) onUpdateFinish(statusId int, err error) error {
 }
 
 func (gui *Gui) createUpdateQuitConfirmation() error {
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  "Currently Updating",
 		Prompt: "An update is in progress. Are you sure you want to quit?",
 		HandleConfirm: func() error {

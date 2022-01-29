@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // when a user runs lazygit with the LAZYGIT_NEW_DIR_FILE env variable defined
@@ -73,7 +73,7 @@ func (gui *Gui) quit() error {
 	}
 
 	if gui.c.UserConfig.ConfirmOnQuit {
-		return gui.c.Ask(popup.AskOpts{
+		return gui.c.Ask(types.AskOpts{
 			Title:  "",
 			Prompt: gui.c.Tr.ConfirmQuit,
 			HandleConfirm: func() error {

@@ -12,7 +12,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -22,7 +21,7 @@ type FilesController struct {
 	// case I would actually prefer a _zero_ letter variable name in the form of
 	// struct embedding, but Go does not allow hiding public fields in an embedded struct
 	// to the client
-	c          *ControllerCommon
+	c          *types.ControllerCommon
 	getContext func() types.IListContext
 	git        *commands.GitCommand
 	os         *oscommands.OSCommand
@@ -48,7 +47,7 @@ type FilesController struct {
 var _ types.IController = &FilesController{}
 
 func NewFilesController(
-	c *ControllerCommon,
+	c *types.ControllerCommon,
 	getContext func() types.IListContext,
 	git *commands.GitCommand,
 	os *oscommands.OSCommand,
@@ -344,7 +343,7 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 	}
 
 	if node.GetIsTracked() {
-		return self.c.Ask(popup.AskOpts{
+		return self.c.Ask(types.AskOpts{
 			Title:  self.c.Tr.IgnoreTracked,
 			Prompt: self.c.Tr.IgnoreTrackedPrompt,
 			HandleConfirm: func() error {
@@ -461,7 +460,7 @@ func (self *FilesController) HandleCommitPress() error {
 }
 
 func (self *FilesController) promptToStageAllAndRetry(retry func() error) error {
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.NoFilesStagedTitle,
 		Prompt: self.c.Tr.NoFilesStagedPrompt,
 		HandleConfirm: func() error {
@@ -491,7 +490,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 		return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
 	}
 
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  strings.Title(self.c.Tr.AmendLastCommit),
 		Prompt: self.c.Tr.SureToAmend,
 		HandleConfirm: func() error {
@@ -520,9 +519,9 @@ func (self *FilesController) HandleCommitEditorPress() error {
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
-	return self.c.Menu(popup.CreateMenuOptions{
+	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.FilteringMenuTitle,
-		Items: []*popup.MenuItem{
+		Items: []*types.MenuItem{
 			{
 				DisplayString: self.c.Tr.FilterStagedFiles,
 				OnPress: func() error {
@@ -577,7 +576,7 @@ func (self *FilesController) switchToMerge() error {
 }
 
 func (self *FilesController) handleCustomCommand() error {
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.CustomCommand,
 		FindSuggestionsFunc: self.suggestionsHelper.GetCustomCommandsHistorySuggestionsFunc(),
 		HandleConfirm: func(command string) error {
@@ -602,9 +601,9 @@ func (self *FilesController) handleCustomCommand() error {
 }
 
 func (self *FilesController) createStashMenu() error {
-	return self.c.Menu(popup.CreateMenuOptions{
+	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.LcStashOptions,
-		Items: []*popup.MenuItem{
+		Items: []*types.MenuItem{
 			{
 				DisplayString: self.c.Tr.LcStashAllChanges,
 				OnPress: func() error {
@@ -665,7 +664,7 @@ func (self *FilesController) toggleTreeView() error {
 }
 
 func (self *FilesController) OpenMergeTool() error {
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.MergeToolTitle,
 		Prompt: self.c.Tr.MergeToolPrompt,
 		HandleConfirm: func() error {
@@ -704,7 +703,7 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 		return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
 	}
 
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.StashChanges,
 		HandleConfirm: func(stashComment string) error {
 			if err := stashFunc(stashComment); err != nil {

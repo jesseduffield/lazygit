@@ -3,14 +3,14 @@ package gui
 import (
 	"io"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) handleCreateExtrasMenuPanel() error {
-	return gui.c.Menu(popup.CreateMenuOptions{
+	return gui.c.Menu(types.CreateMenuOptions{
 		Title: gui.c.Tr.CommandLog,
-		Items: []*popup.MenuItem{
+		Items: []*types.MenuItem{
 			{
 				DisplayString: gui.c.Tr.ToggleShowCommandLog,
 				OnPress: func() error {

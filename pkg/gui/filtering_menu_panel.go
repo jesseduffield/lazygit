@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) handleCreateFilteringMenuPanel() error {
@@ -22,10 +22,10 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 		}
 	}
 
-	menuItems := []*popup.MenuItem{}
+	menuItems := []*types.MenuItem{}
 
 	if fileName != "" {
-		menuItems = append(menuItems, &popup.MenuItem{
+		menuItems = append(menuItems, &types.MenuItem{
 			DisplayString: fmt.Sprintf("%s '%s'", gui.c.Tr.LcFilterBy, fileName),
 			OnPress: func() error {
 				return gui.setFiltering(fileName)
@@ -33,10 +33,10 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 		})
 	}
 
-	menuItems = append(menuItems, &popup.MenuItem{
+	menuItems = append(menuItems, &types.MenuItem{
 		DisplayString: gui.c.Tr.LcFilterPathOption,
 		OnPress: func() error {
-			return gui.c.Prompt(popup.PromptOpts{
+			return gui.c.Prompt(types.PromptOpts{
 				FindSuggestionsFunc: gui.suggestionsHelper.GetFilePathSuggestionsFunc(),
 				Title:               gui.c.Tr.EnterFileName,
 				HandleConfirm: func(response string) error {
@@ -47,11 +47,11 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 	})
 
 	if gui.State.Modes.Filtering.Active() {
-		menuItems = append(menuItems, &popup.MenuItem{
+		menuItems = append(menuItems, &types.MenuItem{
 			DisplayString: gui.c.Tr.LcExitFilterMode,
 			OnPress:       gui.clearFiltering,
 		})
 	}
 
-	return gui.c.Menu(popup.CreateMenuOptions{Title: gui.c.Tr.FilteringMenuTitle, Items: menuItems})
+	return gui.c.Menu(types.CreateMenuOptions{Title: gui.c.Tr.FilteringMenuTitle, Items: menuItems})
 }

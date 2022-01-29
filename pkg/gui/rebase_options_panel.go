@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -24,11 +23,11 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 		options = append(options, REBASE_OPTION_SKIP)
 	}
 
-	menuItems := make([]*popup.MenuItem, len(options))
+	menuItems := make([]*types.MenuItem, len(options))
 	for i, option := range options {
 		// note to self. Never, EVER, close over loop variables in a function
 		option := option
-		menuItems[i] = &popup.MenuItem{
+		menuItems[i] = &types.MenuItem{
 			DisplayString: option,
 			OnPress: func() error {
 				return gui.genericMergeCommand(option)
@@ -43,7 +42,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 		title = gui.c.Tr.RebaseOptionsTitle
 	}
 
-	return gui.c.Menu(popup.CreateMenuOptions{Title: title, Items: menuItems})
+	return gui.c.Menu(types.CreateMenuOptions{Title: title, Items: menuItems})
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {
@@ -112,7 +111,7 @@ func (gui *Gui) checkMergeOrRebase(result error) error {
 		// assume in this case that we're already done
 		return nil
 	} else if isMergeConflictErr(result.Error()) {
-		return gui.c.Ask(popup.AskOpts{
+		return gui.c.Ask(types.AskOpts{
 			Title:               gui.c.Tr.FoundConflictsTitle,
 			Prompt:              gui.c.Tr.FoundConflicts,
 			HandlersManageFocus: true,
@@ -135,7 +134,7 @@ func (gui *Gui) checkMergeOrRebase(result error) error {
 func (gui *Gui) abortMergeOrRebaseWithConfirm() error {
 	// prompt user to confirm that they want to abort, then do it
 	mode := gui.workingTreeStateNoun()
-	return gui.c.Ask(popup.AskOpts{
+	return gui.c.Ask(types.AskOpts{
 		Title:  fmt.Sprintf(gui.c.Tr.AbortTitle, mode),
 		Prompt: fmt.Sprintf(gui.c.Tr.AbortPrompt, mode),
 		HandleConfirm: func() error {

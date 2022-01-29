@@ -1,71 +1,48 @@
 package gui
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type BasicContext struct {
+type SimpleContext struct {
 	OnFocus     func(opts ...types.OnFocusOpts) error
 	OnFocusLost func() error
 	OnRender    func() error
 	// this is for pushing some content to the main view
-	OnRenderToMain  func(opts ...types.OnFocusOpts) error
-	Kind            types.ContextKind
-	Key             types.ContextKey
-	ViewName        string
-	WindowName      string
-	OnGetOptionsMap func() map[string]string
+	OnRenderToMain func(opts ...types.OnFocusOpts) error
 
-	ParentContext types.Context
-	// we can't know on the calling end whether a Context is actually a nil value without reflection, so we're storing this flag here to tell us. There has got to be a better way around this
-	hasParent bool
+	*context.BaseContext
 }
 
-var _ types.Context = &BasicContext{}
+type NewSimpleContextOpts struct {
+	OnFocus     func(opts ...types.OnFocusOpts) error
+	OnFocusLost func() error
+	OnRender    func() error
+	// this is for pushing some content to the main view
+	OnRenderToMain func(opts ...types.OnFocusOpts) error
+}
 
-func (self *BasicContext) GetOptionsMap() map[string]string {
-	if self.OnGetOptionsMap != nil {
-		return self.OnGetOptionsMap()
+func NewSimpleContext(baseContext *context.BaseContext, opts NewSimpleContextOpts) *SimpleContext {
+	return &SimpleContext{
+		OnFocus:        opts.OnFocus,
+		OnFocusLost:    opts.OnFocusLost,
+		OnRender:       opts.OnRender,
+		OnRenderToMain: opts.OnRenderToMain,
+		BaseContext:    baseContext,
 	}
-	return nil
 }
 
-func (self *BasicContext) SetParentContext(context types.Context) {
-	self.ParentContext = context
-	self.hasParent = true
-}
+var _ types.Context = &SimpleContext{}
 
-func (self *BasicContext) GetParentContext() (types.Context, bool) {
-	return self.ParentContext, self.hasParent
-}
-
-func (self *BasicContext) SetWindowName(windowName string) {
-	self.WindowName = windowName
-}
-
-func (self *BasicContext) GetWindowName() string {
-	windowName := self.WindowName
-
-	if windowName != "" {
-		return windowName
-	}
-
-	// TODO: actually set this for everything so we don't default to the view name
-	return self.ViewName
-}
-
-func (self *BasicContext) HandleRender() error {
+func (self *SimpleContext) HandleRender() error {
 	if self.OnRender != nil {
 		return self.OnRender()
 	}
 	return nil
 }
 
-func (self *BasicContext) GetViewName() string {
-	return self.ViewName
-}
-
-func (self *BasicContext) HandleFocus(opts ...types.OnFocusOpts) error {
+func (self *SimpleContext) HandleFocus(opts ...types.OnFocusOpts) error {
 	if self.OnFocus != nil {
 		if err := self.OnFocus(opts...); err != nil {
 			return err
@@ -81,25 +58,17 @@ func (self *BasicContext) HandleFocus(opts ...types.OnFocusOpts) error {
 	return nil
 }
 
-func (self *BasicContext) HandleFocusLost() error {
+func (self *SimpleContext) HandleFocusLost() error {
 	if self.OnFocusLost != nil {
 		return self.OnFocusLost()
 	}
 	return nil
 }
 
-func (self *BasicContext) HandleRenderToMain() error {
+func (self *SimpleContext) HandleRenderToMain() error {
 	if self.OnRenderToMain != nil {
 		return self.OnRenderToMain()
 	}
 
 	return nil
-}
-
-func (self *BasicContext) GetKind() types.ContextKind {
-	return self.Kind
-}
-
-func (self *BasicContext) GetKey() types.ContextKey {
-	return self.Key
 }

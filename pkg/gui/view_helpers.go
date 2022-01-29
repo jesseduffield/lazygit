@@ -254,8 +254,9 @@ func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {
 	v.SetContent(list)
 }
 
-func (gui *Gui) renderDisplayStringsAtPos(v *gocui.View, y int, displayStrings [][]string) {
+func (gui *Gui) renderDisplayStringsInViewPort(v *gocui.View, displayStrings [][]string) {
 	list := utils.RenderDisplayStrings(displayStrings)
+	_, y := v.Origin()
 	v.OverwriteLines(y, list)
 }
 

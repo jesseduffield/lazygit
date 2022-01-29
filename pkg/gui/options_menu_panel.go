@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -56,11 +55,11 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 
 	bindings := gui.getBindings(view)
 
-	menuItems := make([]*popup.MenuItem, len(bindings))
+	menuItems := make([]*types.MenuItem, len(bindings))
 
 	for i, binding := range bindings {
 		binding := binding // note to self, never close over loop variables
-		menuItems[i] = &popup.MenuItem{
+		menuItems[i] = &types.MenuItem{
 			DisplayStrings: []string{GetKeyDisplay(binding.Key), gui.displayDescription(binding)},
 			OnPress: func() error {
 				if binding.Key == nil {
@@ -74,7 +73,7 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 		}
 	}
 
-	return gui.c.Menu(popup.CreateMenuOptions{
+	return gui.c.Menu(types.CreateMenuOptions{
 		Title:      strings.Title(gui.c.Tr.LcMenu),
 		Items:      menuItems,
 		HideCancel: true,

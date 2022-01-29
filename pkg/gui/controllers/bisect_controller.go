@@ -8,12 +8,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type BisectController struct {
-	c          *ControllerCommon
+	c          *types.ControllerCommon
 	getContext func() types.IListContext
 	git        *commands.GitCommand
 
@@ -24,7 +23,7 @@ type BisectController struct {
 var _ types.IController = &BisectController{}
 
 func NewBisectController(
-	c *ControllerCommon,
+	c *types.ControllerCommon,
 	getContext func() types.IListContext,
 	git *commands.GitCommand,
 
@@ -80,7 +79,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// ref, because we'll be reloading our commits in that case.
 	waitToReselect := selectCurrentAfter && !self.git.Bisect.ReachableFromStart(info)
 
-	menuItems := []*popup.MenuItem{
+	menuItems := []*types.MenuItem{
 		{
 			DisplayString: fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortSha(), info.NewTerm()),
 			OnPress: func() error {
@@ -122,16 +121,16 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 		},
 	}
 
-	return self.c.Menu(popup.CreateMenuOptions{
+	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Bisect.BisectMenuTitle,
 		Items: menuItems,
 	})
 }
 
 func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo, commit *models.Commit) error {
-	return self.c.Menu(popup.CreateMenuOptions{
+	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Bisect.BisectMenuTitle,
-		Items: []*popup.MenuItem{
+		Items: []*types.MenuItem{
 			{
 				DisplayString: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.NewTerm()),
 				OnPress: func() error {
@@ -167,7 +166,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 }
 
 func (self *BisectController) Reset() error {
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.Bisect.ResetTitle,
 		Prompt: self.c.Tr.Bisect.ResetPrompt,
 		HandleConfirm: func() error {
@@ -192,7 +191,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateShas []string) 
 		return self.c.Error(err)
 	}
 
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.Bisect.CompleteTitle,
 		Prompt: fmt.Sprintf(prompt, strings.TrimSpace(formattedCommits)),
 		HandleConfirm: func() error {

@@ -12,7 +12,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -49,7 +48,7 @@ func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (s
 		SelectedLocalBranch:    gui.getSelectedBranch(),
 		SelectedRemoteBranch:   gui.getSelectedRemoteBranch(),
 		SelectedRemote:         gui.getSelectedRemote(),
-		SelectedTag:            gui.getSelectedTag(),
+		SelectedTag:            gui.State.Contexts.Tags.GetSelectedTag(),
 		SelectedStashEntry:     gui.getSelectedStashEntry(),
 		SelectedCommitFile:     gui.getSelectedCommitFile(),
 		SelectedCommitFilePath: gui.getSelectedCommitFilePath(),
@@ -72,7 +71,7 @@ func (gui *Gui) inputPrompt(prompt config.CustomCommandPrompt, promptResponses [
 		return gui.c.Error(err)
 	}
 
-	return gui.c.Prompt(popup.PromptOpts{
+	return gui.c.Prompt(types.PromptOpts{
 		Title:          title,
 		InitialContent: initialValue,
 		HandleConfirm: func(str string) error {
@@ -84,7 +83,7 @@ func (gui *Gui) inputPrompt(prompt config.CustomCommandPrompt, promptResponses [
 
 func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []string, responseIdx int, wrappedF func() error) error {
 	// need to make a menu here some how
-	menuItems := make([]*popup.MenuItem, len(prompt.Options))
+	menuItems := make([]*types.MenuItem, len(prompt.Options))
 	for i, option := range prompt.Options {
 		option := option
 
@@ -108,7 +107,7 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 			return gui.c.Error(err)
 		}
 
-		menuItems[i] = &popup.MenuItem{
+		menuItems[i] = &types.MenuItem{
 			DisplayStrings: []string{name, style.FgYellow.Sprint(description)},
 			OnPress: func() error {
 				promptResponses[responseIdx] = value
@@ -122,7 +121,7 @@ func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []
 		return gui.c.Error(err)
 	}
 
-	return gui.c.Menu(popup.CreateMenuOptions{Title: title, Items: menuItems})
+	return gui.c.Menu(types.CreateMenuOptions{Title: title, Items: menuItems})
 }
 
 func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, labelFormat string) ([]commandMenuEntry, error) {
@@ -216,10 +215,10 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 		return gui.c.Error(err)
 	}
 
-	menuItems := make([]*popup.MenuItem, len(candidates))
+	menuItems := make([]*types.MenuItem, len(candidates))
 	for i := range candidates {
 		i := i
-		menuItems[i] = &popup.MenuItem{
+		menuItems[i] = &types.MenuItem{
 			DisplayStrings: []string{candidates[i].label},
 			OnPress: func() error {
 				promptResponses[responseIdx] = candidates[i].value
@@ -233,7 +232,7 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 		return gui.c.Error(err)
 	}
 
-	return gui.c.Menu(popup.CreateMenuOptions{Title: title, Items: menuItems})
+	return gui.c.Menu(types.CreateMenuOptions{Title: title, Items: menuItems})
 }
 
 func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand) func() error {

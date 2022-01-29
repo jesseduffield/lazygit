@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -17,7 +16,7 @@ type SyncController struct {
 	// case I would actually prefer a _zero_ letter variable name in the form of
 	// struct embedding, but Go does not allow hiding public fields in an embedded struct
 	// to the client
-	c   *ControllerCommon
+	c   *types.ControllerCommon
 	git *commands.GitCommand
 
 	getCheckedOutBranch func() *models.Branch
@@ -29,7 +28,7 @@ type SyncController struct {
 var _ types.IController = &SyncController{}
 
 func NewSyncController(
-	c *ControllerCommon,
+	c *types.ControllerCommon,
 	git *commands.GitCommand,
 	getCheckedOutBranch func() *models.Branch,
 	suggestionsHelper ISuggestionsHelper,
@@ -160,7 +159,7 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 func (self *SyncController) promptForUpstream(currentBranch *models.Branch, onConfirm func(string) error) error {
 	suggestedRemote := self.getSuggestedRemote()
 
-	return self.c.Prompt(popup.PromptOpts{
+	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.EnterUpstream,
 		InitialContent:      suggestedRemote + " " + currentBranch.Name,
 		FindSuggestionsFunc: self.suggestionsHelper.GetRemoteBranchesSuggestionsFunc(" "),
@@ -219,7 +218,7 @@ func (self *SyncController) pushAux(opts pushOpts) error {
 					_ = self.c.ErrorMsg(self.c.Tr.UpdatesRejectedAndForcePushDisabled)
 					return nil
 				}
-				_ = self.c.Ask(popup.AskOpts{
+				_ = self.c.Ask(types.AskOpts{
 					Title:  self.c.Tr.ForcePush,
 					Prompt: self.c.Tr.ForcePushPrompt,
 					HandleConfirm: func() error {
@@ -243,7 +242,7 @@ func (self *SyncController) requestToForcePush(opts pushOpts) error {
 		return self.c.ErrorMsg(self.c.Tr.ForcePushDisabled)
 	}
 
-	return self.c.Ask(popup.AskOpts{
+	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.ForcePush,
 		Prompt: self.c.Tr.ForcePushPrompt,
 		HandleConfirm: func() error {

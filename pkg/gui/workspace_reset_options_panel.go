@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -16,7 +15,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, gui.c.Tr.LcAndResetSubmodules)
 	}
 
-	menuItems := []*popup.MenuItem{
+	menuItems := []*types.MenuItem{
 		{
 			DisplayStrings: []string{
 				gui.c.Tr.LcDiscardAllChangesToAllFiles,
@@ -103,5 +102,5 @@ func (gui *Gui) handleCreateResetMenu() error {
 		},
 	}
 
-	return gui.c.Menu(popup.CreateMenuOptions{Title: "", Items: menuItems})
+	return gui.c.Menu(types.CreateMenuOptions{Title: "", Items: menuItems})
 }

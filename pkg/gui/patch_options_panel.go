@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -13,7 +12,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 		return gui.c.ErrorMsg(gui.c.Tr.NoPatchError)
 	}
 
-	menuItems := []*popup.MenuItem{
+	menuItems := []*types.MenuItem{
 		{
 			DisplayString: "reset patch",
 			OnPress:       gui.handleResetPatch,
@@ -29,7 +28,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 	}
 
 	if gui.git.Patch.PatchManager.CanRebase && gui.git.Status.WorkingTreeState() == enums.REBASE_MODE_NONE {
-		menuItems = append(menuItems, []*popup.MenuItem{
+		menuItems = append(menuItems, []*types.MenuItem{
 			{
 				DisplayString: fmt.Sprintf("remove patch from original commit (%s)", gui.git.Patch.PatchManager.To),
 				OnPress:       gui.handleDeletePatchFromCommit,
@@ -51,7 +50,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 				menuItems = append(
 					menuItems[:1],
 					append(
-						[]*popup.MenuItem{
+						[]*types.MenuItem{
 							{
 								DisplayString: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
 								OnPress:       gui.handleMovePatchToSelectedCommit,
@@ -63,7 +62,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 		}
 	}
 
-	return gui.c.Menu(popup.CreateMenuOptions{Title: gui.c.Tr.PatchOptionsTitle, Items: menuItems})
+	return gui.c.Menu(types.CreateMenuOptions{Title: gui.c.Tr.PatchOptionsTitle, Items: menuItems})
 }
 
 func (gui *Gui) getPatchCommitIndex() int {
@@ -142,7 +141,7 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 	}
 
 	if gui.workingTreeHelper.IsWorkingTreeDirty() {
-		return gui.c.Ask(popup.AskOpts{
+		return gui.c.Ask(types.AskOpts{
 			Title:  gui.c.Tr.MustStashTitle,
 			Prompt: gui.c.Tr.MustStashWarning,
 			HandleConfirm: func() error {

@@ -3,7 +3,7 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/popup"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -21,7 +21,7 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 		return func() error {
 			title := utils.ResolvePlaceholderString(gui.c.Tr.NewGitFlowBranchPrompt, map[string]string{"branchType": branchType})
 
-			return gui.c.Prompt(popup.PromptOpts{
+			return gui.c.Prompt(types.PromptOpts{
 				Title: title,
 				HandleConfirm: func(name string) error {
 					gui.c.LogAction(gui.c.Tr.Actions.GitFlowStart)
@@ -33,9 +33,9 @@ func (gui *Gui) handleCreateGitFlowMenu() error {
 		}
 	}
 
-	return gui.c.Menu(popup.CreateMenuOptions{
+	return gui.c.Menu(types.CreateMenuOptions{
 		Title: "git flow",
-		Items: []*popup.MenuItem{
+		Items: []*types.MenuItem{
 			{
 				// not localising here because it's one to one with the actual git flow commands
 				DisplayString: fmt.Sprintf("finish branch '%s'", branch.Name),
