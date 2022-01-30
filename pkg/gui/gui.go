@@ -270,10 +270,6 @@ type MergingPanelState struct {
 	UserVerticalScrolling bool
 }
 
-type filePanelState struct {
-	listPanelState
-}
-
 // TODO: consider splitting this out into the window and the branches view
 type branchPanelState struct {
 	listPanelState

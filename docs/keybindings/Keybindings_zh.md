@@ -172,7 +172,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 文件 面板 (文件)
 
 <pre>
-  <kbd>d</kbd>: 查看'放弃更改‘选项
   <kbd>D</kbd>: 查看重置选项
   <kbd>f</kbd>: 抓取
   <kbd>ctrl+o</kbd>: 将文件名复制到剪贴板
@@ -186,6 +185,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>e</kbd>: 编辑文件
   <kbd>o</kbd>: 打开文件
   <kbd>i</kbd>: 添加到 .gitignore
+  <kbd>d</kbd>: 查看'放弃更改‘选项
   <kbd>r</kbd>: 刷新文件
   <kbd>s</kbd>: 将所有更改加入贮藏
   <kbd>S</kbd>: 查看隐藏选项
