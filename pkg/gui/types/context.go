@@ -62,21 +62,19 @@ type IController interface {
 type IListContext interface {
 	HasKeybindings
 	GetSelectedItem() (ListItem, bool)
-	GetSelectedItemId() string
 
 	HandlePrevLine() error
 	HandleNextLine() error
 	HandleScrollLeft() error
 	HandleScrollRight() error
+	HandlePrevPage() error
 	HandleNextPage() error
 	HandleGotoTop() error
 	HandleGotoBottom() error
-	HandlePrevPage() error
 	HandleClick(onClick func() error) error
 
 	OnSearchSelect(selectedLineIdx int) error
 	FocusLine()
-	HandleRenderToMain() error
 
 	GetPanelState() IListPanelState
 

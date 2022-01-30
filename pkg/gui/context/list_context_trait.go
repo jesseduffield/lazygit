@@ -9,14 +9,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type Thing interface {
-	// the boolean here tells us whether the item is nil. This is needed because you can't work it out on the calling end once the pointer is wrapped in an interface (unless you want to use reflection)
-	GetSelectedItem() (types.ListItem, bool)
-}
-
 type ListContextTrait struct {
 	base      types.IBaseContext
-	thing     Thing
 	listTrait *ListTrait
 	viewTrait *ViewTrait
 
@@ -53,16 +47,6 @@ func (self *ListContextTrait) FocusLine() {
 
 func formatListFooter(selectedLineIdx int, length int) string {
 	return fmt.Sprintf("%d of %d", selectedLineIdx+1, length)
-}
-
-func (self *ListContextTrait) GetSelectedItemId() string {
-	item, ok := self.thing.GetSelectedItem()
-
-	if !ok {
-		return ""
-	}
-
-	return item.ID()
 }
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view

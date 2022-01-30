@@ -445,3 +445,12 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 func sanitizedBranchName(input string) string {
 	return strings.Replace(input, " ", "-", -1)
 }
+
+func (gui *Gui) handleEnterBranch() error {
+	branch := gui.getSelectedBranch()
+	if branch == nil {
+		return nil
+	}
+
+	return gui.switchToSubCommitsContext(branch.RefName())
+}

@@ -7,7 +7,7 @@ import (
 )
 
 type TagsContext struct {
-	*TagsContextAux
+	*TagsList
 	*BaseContext
 	*ListContextTrait
 }
@@ -35,12 +35,11 @@ func NewTagsContext(
 	self := &TagsContext{}
 	takeFocus := func() error { return c.PushContext(self) }
 
-	aux := NewTagsContextAux(getModel)
+	list := NewTagsList(getModel)
 	viewTrait := NewViewTrait(getView)
 	listContextTrait := &ListContextTrait{
 		base:      baseContext,
-		thing:     aux,
-		listTrait: aux.list,
+		listTrait: list.ListTrait,
 		viewTrait: viewTrait,
 
 		GetDisplayStrings: getDisplayStrings,
@@ -57,39 +56,39 @@ func NewTagsContext(
 
 	self.BaseContext = baseContext
 	self.ListContextTrait = listContextTrait
-	self.TagsContextAux = aux
+	self.TagsList = list
 
 	return self
 }
 
-type TagsContextAux struct {
-	list     *ListTrait
+type TagsList struct {
+	*ListTrait
 	getModel func() []*models.Tag
 }
 
-func (self *TagsContextAux) GetItemsLength() int {
+func (self *TagsList) GetItemsLength() int {
 	return len(self.getModel())
 }
 
-func (self *TagsContextAux) GetSelectedTag() *models.Tag {
+func (self *TagsList) GetSelectedTag() *models.Tag {
 	if self.GetItemsLength() == 0 {
 		return nil
 	}
 
-	return self.getModel()[self.list.GetSelectedLineIdx()]
+	return self.getModel()[self.GetSelectedLineIdx()]
 }
 
-func (self *TagsContextAux) GetSelectedItem() (types.ListItem, bool) {
+func (self *TagsList) GetSelectedItem() (types.ListItem, bool) {
 	tag := self.GetSelectedTag()
 	return tag, tag != nil
 }
 
-func NewTagsContextAux(getModel func() []*models.Tag) *TagsContextAux {
-	self := &TagsContextAux{
+func NewTagsList(getModel func() []*models.Tag) *TagsList {
+	self := &TagsList{
 		getModel: getModel,
 	}
 
-	self.list = &ListTrait{
+	self.ListTrait = &ListTrait{
 		selectedIdx: 0,
 		HasLength:   self,
 	}

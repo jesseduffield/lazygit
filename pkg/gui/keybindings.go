@@ -488,7 +488,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			ViewName:    "branches",
 			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.GoInto),
-			Handler:     gui.handleSwitchToSubCommits,
+			Handler:     gui.handleEnterBranch,
 			Description: gui.c.Tr.LcViewCommits,
 		},
 		{
@@ -510,7 +510,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			ViewName:    "branches",
 			Contexts:    []string{string(context.REMOTE_BRANCHES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.GoInto),
-			Handler:     gui.handleSwitchToSubCommits,
+			Handler:     gui.handleEnterRemoteBranch,
 			Description: gui.c.Tr.LcViewCommits,
 		},
 		{
