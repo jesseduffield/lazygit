@@ -434,6 +434,7 @@ func (self *LocalCommitsController) handleCommitMoveDown() error {
 		if err := self.git.Rebase.MoveTodoDown(index); err != nil {
 			return self.c.Error(err)
 		}
+		// TODO: use MoveSelectedLine
 		_ = self.getContext().HandleNextLine()
 		return self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
@@ -444,6 +445,7 @@ func (self *LocalCommitsController) handleCommitMoveDown() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 		err := self.git.Rebase.MoveCommitDown(self.getCommits(), index)
 		if err == nil {
+			// TODO: use MoveSelectedLine
 			_ = self.getContext().HandleNextLine()
 		}
 		return self.checkMergeOrRebase(err)

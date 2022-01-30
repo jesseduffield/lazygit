@@ -40,7 +40,7 @@ func (gui *Gui) currentDiffTerminals() []string {
 		// TODO: should we just return nil here?
 		return []string{""}
 	case context.COMMIT_FILES_CONTEXT_KEY:
-		return []string{gui.State.Panels.CommitFiles.refName}
+		return []string{gui.State.Contexts.CommitFiles.GetRefName()}
 	case context.LOCAL_BRANCHES_CONTEXT_KEY:
 		// for our local branches we want to include both the branch and its upstream
 		branch := gui.getSelectedBranch()

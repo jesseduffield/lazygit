@@ -2,7 +2,6 @@ package filetree
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/sirupsen/logrus"
@@ -18,25 +17,28 @@ const (
 	DisplayConflicted
 )
 
-type IFileTree interface {
+type ITree interface {
 	InTreeMode() bool
 	ExpandToPath(path string)
-	FilterFiles(test func(*models.File) bool) []*models.File
-	SetFilter(filter FileTreeDisplayFilter)
 	ToggleShowTree()
-
-	GetItemAtIndex(index int) *FileNode
-	GetFile(path string) *models.File
 	GetIndexForPath(path string) (int, bool)
-	GetAllItems() []*FileNode
 	GetItemsLength() int
-	GetAllFiles() []*models.File
-
 	SetTree()
 	IsCollapsed(path string) bool
 	ToggleCollapsed(path string)
 	Tree() INode
 	CollapsedPaths() CollapsedPaths
+}
+
+type IFileTree interface {
+	ITree
+
+	FilterFiles(test func(*models.File) bool) []*models.File
+	SetFilter(filter FileTreeDisplayFilter)
+	GetItemAtIndex(index int) *FileNode
+	GetFile(path string) *models.File
+	GetAllItems() []*FileNode
+	GetAllFiles() []*models.File
 	GetFilter() FileTreeDisplayFilter
 }
 
@@ -47,8 +49,6 @@ type FileTree struct {
 	log            *logrus.Entry
 	filter         FileTreeDisplayFilter
 	collapsedPaths CollapsedPaths
-
-	sync.RWMutex
 }
 
 func NewFileTree(getFiles func() []*models.File, log *logrus.Entry, showTree bool) *FileTree {
@@ -58,7 +58,6 @@ func NewFileTree(getFiles func() []*models.File, log *logrus.Entry, showTree boo
 		showTree:       showTree,
 		filter:         DisplayAll,
 		collapsedPaths: CollapsedPaths{},
-		RWMutex:        sync.RWMutex{},
 	}
 }
 

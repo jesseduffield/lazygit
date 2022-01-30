@@ -64,7 +64,7 @@ type ContextTree struct {
 	RemoteBranches types.IListContext
 	Tags           *TagsContext
 	BranchCommits  types.IListContext
-	CommitFiles    types.IListContext
+	CommitFiles    *CommitFilesContext
 	ReflogCommits  types.IListContext
 	SubCommits     types.IListContext
 	Stash          types.IListContext
