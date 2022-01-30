@@ -56,7 +56,7 @@ var AllContextKeys = []types.ContextKey{
 
 type ContextTree struct {
 	Status         types.Context
-	Files          types.IListContext
+	Files          *WorkingTreeContext
 	Submodules     types.IListContext
 	Menu           types.IListContext
 	Branches       types.IListContext

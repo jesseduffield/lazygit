@@ -69,7 +69,7 @@ M  file1
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.name, func(t *testing.T) {
-			viewModel := filetree.NewFileTreeViewModel(s.files, utils.NewDummyLog(), true)
+			viewModel := filetree.NewFileTreeViewModel(func() []*models.File { return s.files }, utils.NewDummyLog(), true)
 			for _, path := range s.collapsedPaths {
 				viewModel.ToggleCollapsed(path)
 			}

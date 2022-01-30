@@ -22,13 +22,13 @@ type FilesController struct {
 	// struct embedding, but Go does not allow hiding public fields in an embedded struct
 	// to the client
 	c          *types.ControllerCommon
-	getContext func() types.IListContext
+	getContext func() *context.WorkingTreeContext
+	getFiles   func() []*models.File
 	git        *commands.GitCommand
 	os         *oscommands.OSCommand
 
 	getSelectedFileNode    func() *filetree.FileNode
 	getContexts            func() context.ContextTree
-	getViewModel           func() *filetree.FileTreeViewModel
 	enterSubmodule         func(submodule *models.SubmoduleConfig) error
 	getSubmodules          func() []*models.SubmoduleConfig
 	setCommitMessage       func(message string)
@@ -48,12 +48,12 @@ var _ types.IController = &FilesController{}
 
 func NewFilesController(
 	c *types.ControllerCommon,
-	getContext func() types.IListContext,
+	getContext func() *context.WorkingTreeContext,
+	getFiles func() []*models.File,
 	git *commands.GitCommand,
 	os *oscommands.OSCommand,
 	getSelectedFileNode func() *filetree.FileNode,
 	allContexts func() context.ContextTree,
-	getViewModel func() *filetree.FileTreeViewModel,
 	enterSubmodule func(submodule *models.SubmoduleConfig) error,
 	getSubmodules func() []*models.SubmoduleConfig,
 	setCommitMessage func(message string),
@@ -70,11 +70,11 @@ func NewFilesController(
 	return &FilesController{
 		c:                      c,
 		getContext:             getContext,
+		getFiles:               getFiles,
 		git:                    git,
 		os:                     os,
 		getSelectedFileNode:    getSelectedFileNode,
 		getContexts:            allContexts,
-		getViewModel:           getViewModel,
 		enterSubmodule:         enterSubmodule,
 		getSubmodules:          getSubmodules,
 		setCommitMessage:       setCommitMessage,
@@ -185,6 +185,7 @@ func (self *FilesController) Keybindings(getKey func(key string) interface{}, co
 			Description: self.c.Tr.LcViewResetToUpstreamOptions,
 			OpensMenu:   true,
 		},
+		// here
 		{
 			Key:         getKey(config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
@@ -303,7 +304,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 }
 
 func (self *FilesController) allFilesStaged() bool {
-	for _, file := range self.getViewModel().GetAllFiles() {
+	for _, file := range self.getFiles() {
 		if file.HasUnstagedChanges {
 			return false
 		}
@@ -433,7 +434,7 @@ func (self *FilesController) HandleCommitPress() error {
 		return self.c.Error(err)
 	}
 
-	if self.getViewModel().GetItemsLength() == 0 {
+	if len(self.getFiles()) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
@@ -484,7 +485,7 @@ func (self *FilesController) promptToStageAllAndRetry(retry func() error) error 
 }
 
 func (self *FilesController) handleAmendCommitPress() error {
-	if self.getViewModel().GetItemsLength() == 0 {
+	if len(self.getFiles()) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
@@ -510,7 +511,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 // HandleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (self *FilesController) HandleCommitEditorPress() error {
-	if self.getViewModel().GetItemsLength() == 0 {
+	if len(self.getFiles()) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
@@ -551,7 +552,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 }
 
 func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
-	self.getViewModel().SetFilter(filter)
+	self.getContext().FileTreeViewModel.SetFilter(filter)
 	return self.c.PostRefreshUpdate(self.getContext())
 }
 
@@ -642,7 +643,7 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 		return nil
 	}
 
-	self.getViewModel().ToggleCollapsed(node.GetPath())
+	self.getContext().FileTreeViewModel.ToggleCollapsed(node.GetPath())
 
 	if err := self.c.PostRefreshUpdate(self.getContexts().Files); err != nil {
 		self.c.Log.Error(err)
@@ -655,12 +656,12 @@ func (self *FilesController) toggleTreeView() error {
 	// get path of currently selected file
 	path := self.getSelectedPath()
 
-	self.getViewModel().ToggleShowTree()
+	self.getContext().FileTreeViewModel.ToggleShowTree()
 
 	// find that same node in the new format and move the cursor to it
 	if path != "" {
-		self.getViewModel().ExpandToPath(path)
-		index, found := self.getViewModel().GetIndexForPath(path)
+		self.getContext().FileTreeViewModel.ExpandToPath(path)
+		index, found := self.getContext().FileTreeViewModel.GetIndexForPath(path)
 		if found {
 			self.getContext().GetPanelState().SetSelectedLineIdx(index)
 		}

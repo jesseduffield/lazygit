@@ -175,8 +175,8 @@ type PrevLayout struct {
 type GuiRepoState struct {
 	// the file panels (files and commit files) can render as a tree, so we have
 	// managers for them which handle rendering a flat list of files in tree form
-	FileTreeViewModel       *filetree.FileTreeViewModel
 	CommitFileTreeViewModel *filetree.CommitFileTreeViewModel
+	Files                   []*models.File
 	Submodules              []*models.SubmoduleConfig
 	Branches                []*models.Branch
 	Commits                 []*models.Commit
@@ -433,14 +433,13 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	contexts := gui.contextTree()
 
 	screenMode := SCREEN_NORMAL
-	initialContext := contexts.Files
+	var initialContext types.IListContext = contexts.Files
 	if filterPath != "" {
 		screenMode = SCREEN_HALF
 		initialContext = contexts.BranchCommits
 	}
 
 	gui.State = &GuiRepoState{
-		FileTreeViewModel:       filetree.NewFileTreeViewModel(make([]*models.File, 0), gui.Log, showTree),
 		CommitFileTreeViewModel: filetree.NewCommitFileTreeViewModel(make([]*models.CommitFile, 0), gui.Log, showTree),
 		Commits:                 make([]*models.Commit, 0),
 		FilteredReflogCommits:   make([]*models.Commit, 0),
@@ -586,7 +585,7 @@ func (gui *Gui) setControllers() {
 		bisect:      controllers.NewBisectHelper(controllerCommon, gui.git),
 		suggestions: NewSuggestionsHelper(controllerCommon, getState, gui.refreshSuggestions),
 		files:       NewFilesHelper(controllerCommon, gui.git, osCommand),
-		workingTree: NewWorkingTreeHelper(func() *filetree.FileTreeViewModel { return gui.State.FileTreeViewModel }),
+		workingTree: NewWorkingTreeHelper(func() []*models.File { return gui.State.Files }),
 		tags:        controllers.NewTagsHelper(controllerCommon, gui.git),
 	}
 
@@ -609,12 +608,12 @@ func (gui *Gui) setControllers() {
 		),
 		Files: controllers.NewFilesController(
 			controllerCommon,
-			func() types.IListContext { return gui.State.Contexts.Files },
+			func() *context.WorkingTreeContext { return gui.State.Contexts.Files },
+			func() []*models.File { return gui.State.Files },
 			gui.git,
 			osCommand,
 			gui.getSelectedFileNode,
 			getContexts,
-			func() *filetree.FileTreeViewModel { return gui.State.FileTreeViewModel },
 			gui.enterSubmodule,
 			func() []*models.SubmoduleConfig { return gui.State.Submodules },
 			gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage }),
