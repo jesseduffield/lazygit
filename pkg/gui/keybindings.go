@@ -357,14 +357,6 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		{
 			ViewName:    "files",
 			Contexts:    []string{string(context.FILES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Universal.Remove),
-			Handler:     gui.handleCreateDiscardMenu,
-			Description: gui.c.Tr.LcViewDiscardOptions,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "files",
-			Contexts:    []string{string(context.FILES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Files.ViewResetOptions),
 			Handler:     gui.handleCreateResetMenu,
 			Description: gui.c.Tr.LcViewResetOptions,
