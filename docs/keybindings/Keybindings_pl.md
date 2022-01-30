@@ -172,7 +172,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Pliki Panel (Pliki)
 
 <pre>
-  <kbd>d</kbd>: pokaż opcje porzucania zmian
   <kbd>D</kbd>: wyświetl opcje resetu
   <kbd>f</kbd>: pobierz
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
@@ -186,6 +185,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>e</kbd>: edytuj plik
   <kbd>o</kbd>: otwórz plik
   <kbd>i</kbd>: dodaj do .gitignore
+  <kbd>d</kbd>: pokaż opcje porzucania zmian
   <kbd>r</kbd>: odśwież pliki
   <kbd>s</kbd>: przechowaj zmiany
   <kbd>S</kbd>: wyświetl opcje schowka

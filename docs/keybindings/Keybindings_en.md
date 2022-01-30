@@ -172,7 +172,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Files Panel (Files)
 
 <pre>
-  <kbd>d</kbd>: view 'discard changes' options
   <kbd>D</kbd>: view reset options
   <kbd>f</kbd>: fetch
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
@@ -186,6 +185,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
   <kbd>i</kbd>: add to .gitignore
+  <kbd>d</kbd>: view 'discard changes' options
   <kbd>r</kbd>: refresh files
   <kbd>s</kbd>: stash changes
   <kbd>S</kbd>: view stash options

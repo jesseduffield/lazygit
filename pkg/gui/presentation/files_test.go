@@ -127,7 +127,7 @@ M file1
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.name, func(t *testing.T) {
-			viewModel := filetree.NewCommitFileTreeViewModel(s.files, utils.NewDummyLog(), true)
+			viewModel := filetree.NewCommitFileTreeViewModel(func() []*models.CommitFile { return s.files }, utils.NewDummyLog(), true)
 			for _, path := range s.collapsedPaths {
 				viewModel.ToggleCollapsed(path)
 			}

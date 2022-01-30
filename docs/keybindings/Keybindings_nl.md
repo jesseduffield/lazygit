@@ -180,6 +180,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>e</kbd>: verander bestand
   <kbd>o</kbd>: open bestand
   <kbd>i</kbd>: voeg toe aan .gitignore
+  <kbd>d</kbd>: bekijk 'veranderingen ongedaan maken' opties
   <kbd>r</kbd>: refresh bestanden
   <kbd>s</kbd>: stash-bestanden
   <kbd>S</kbd>: bekijk stash opties
