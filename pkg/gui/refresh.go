@@ -332,7 +332,7 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 				gui.takeOverMergeConflictScrolling()
 			}
 
-			gui.Views.Files.FocusPoint(0, gui.State.Panels.Files.SelectedLineIdx)
+			gui.Views.Files.FocusPoint(0, gui.State.Contexts.Files.GetSelectedLineIdx())
 			return gui.filesRenderToMain()
 		}
 
@@ -365,15 +365,7 @@ func (gui *Gui) refreshMergeState() error {
 func (gui *Gui) refreshStateFiles() error {
 	state := gui.State
 
-	// keep track of where the cursor is currently and the current file names
-	// when we refresh, go looking for a matching name
-	// move the cursor to there.
-
-	selectedNode := gui.getSelectedFileNode()
-
-	fileTreeViewModel := state.Contexts.Files.WorkingTreeViewModal
-	prevNodes := fileTreeViewModel.GetAllItems()
-	prevSelectedLineIdx := gui.State.Panels.Files.SelectedLineIdx
+	fileTreeViewModel := state.Contexts.Files.FileTreeViewModel
 
 	// If git thinks any of our files have inline merge conflicts, but they actually don't,
 	// we stage them.
@@ -419,13 +411,7 @@ func (gui *Gui) refreshStateFiles() error {
 		gui.OnUIThread(func() error { return gui.promptToContinueRebase() })
 	}
 
-	// for when you stage the old file of a rename and the new file is in a collapsed dir
 	fileTreeViewModel.RWMutex.Lock()
-	for _, file := range files {
-		if selectedNode != nil && selectedNode.Path != "" && file.PreviousName == selectedNode.Path {
-			fileTreeViewModel.ExpandToPath(file.Name)
-		}
-	}
 
 	// only taking over the filter if it hasn't already been set by the user.
 	// Though this does make it impossible for the user to actually say they want to display all if
@@ -448,53 +434,7 @@ func (gui *Gui) refreshStateFiles() error {
 		return err
 	}
 
-	if selectedNode != nil {
-		newIdx := gui.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], fileTreeViewModel.GetAllItems())
-		if newIdx != -1 && newIdx != prevSelectedLineIdx {
-			state.Panels.Files.SelectedLineIdx = newIdx
-		}
-	}
-
-	gui.refreshSelectedLine(state.Panels.Files, fileTreeViewModel.GetItemsLength())
 	return nil
-}
-
-// Let's try to find our file again and move the cursor to that.
-// If we can't find our file, it was probably just removed by the user. In that
-// case, we go looking for where the next file has been moved to. Given that the
-// user could have removed a whole directory, we continue iterating through the old
-// nodes until we find one that exists in the new set of nodes, then move the cursor
-// to that.
-// prevNodes starts from our previously selected node because we don't need to consider anything above that
-func (gui *Gui) findNewSelectedIdx(prevNodes []*filetree.FileNode, currNodes []*filetree.FileNode) int {
-	getPaths := func(node *filetree.FileNode) []string {
-		if node == nil {
-			return nil
-		}
-		if node.File != nil && node.File.IsRename() {
-			return node.File.Names()
-		} else {
-			return []string{node.Path}
-		}
-	}
-
-	for _, prevNode := range prevNodes {
-		selectedPaths := getPaths(prevNode)
-
-		for idx, node := range currNodes {
-			paths := getPaths(node)
-
-			// If you started off with a rename selected, and now it's broken in two, we want you to jump to the new file, not the old file.
-			// This is because the new should be in the same position as the rename was meaning less cursor jumping
-			foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.Path == prevNode.File.PreviousName
-			foundNode := utils.StringArraysOverlap(paths, selectedPaths) && !foundOldFileInRename
-			if foundNode {
-				return idx
-			}
-		}
-	}
-
-	return -1
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only

@@ -39,14 +39,14 @@ func (s *State) setConflictIndex(index int) {
 	if len(s.conflicts) == 0 {
 		s.conflictIndex = 0
 	} else {
-		s.conflictIndex = clamp(index, 0, len(s.conflicts)-1)
+		s.conflictIndex = utils.Clamp(index, 0, len(s.conflicts)-1)
 	}
 	s.setSelectionIndex(s.selectionIndex)
 }
 
 func (s *State) setSelectionIndex(index int) {
 	if selections := s.availableSelections(); len(selections) != 0 {
-		s.selectionIndex = clamp(index, 0, len(selections)-1)
+		s.selectionIndex = utils.Clamp(index, 0, len(selections)-1)
 	}
 }
 
@@ -182,13 +182,4 @@ func (s *State) ContentAfterConflictResolve(selection Selection) (bool, string, 
 	}
 
 	return true, content, nil
-}
-
-func clamp(x int, min int, max int) int {
-	if x < min {
-		return min
-	} else if x > max {
-		return max
-	}
-	return x
 }

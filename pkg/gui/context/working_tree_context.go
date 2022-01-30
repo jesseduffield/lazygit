@@ -5,11 +5,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/sirupsen/logrus"
 )
 
 type WorkingTreeContext struct {
-	*WorkingTreeViewModal
+	*filetree.FileTreeViewModel
 	*BaseContext
 	*ListContextTrait
 }
@@ -37,11 +36,11 @@ func NewWorkingTreeContext(
 	self := &WorkingTreeContext{}
 	takeFocus := func() error { return c.PushContext(self) }
 
-	list := NewWorkingTreeViewModal(getModel, c.Log, c.UserConfig.Gui.ShowFileTree)
+	viewModel := filetree.NewFileTreeViewModel(getModel, c.Log, c.UserConfig.Gui.ShowFileTree)
 	viewTrait := NewViewTrait(getView)
 	listContextTrait := &ListContextTrait{
 		base:      baseContext,
-		listTrait: list.ListTrait,
+		list:      viewModel,
 		viewTrait: viewTrait,
 
 		GetDisplayStrings: getDisplayStrings,
@@ -58,44 +57,12 @@ func NewWorkingTreeContext(
 
 	self.BaseContext = baseContext
 	self.ListContextTrait = listContextTrait
-	self.WorkingTreeViewModal = list
+	self.FileTreeViewModel = viewModel
 
 	return self
 }
 
-type WorkingTreeViewModal struct {
-	*ListTrait
-	*filetree.FileTreeViewModel
-	getModel func() []*models.File
-}
-
-func (self *WorkingTreeViewModal) GetItemsLength() int {
-	return self.FileTreeViewModel.GetItemsLength()
-}
-
-func (self *WorkingTreeViewModal) GetSelectedFileNode() *filetree.FileNode {
-	if self.GetItemsLength() == 0 {
-		return nil
-	}
-
-	return self.FileTreeViewModel.GetItemAtIndex(self.selectedIdx)
-}
-
-func (self *WorkingTreeViewModal) GetSelectedItem() (types.ListItem, bool) {
-	item := self.GetSelectedFileNode()
+func (self *WorkingTreeContext) GetSelectedItem() (types.ListItem, bool) {
+	item := self.FileTreeViewModel.GetSelectedFileNode()
 	return item, item != nil
-}
-
-func NewWorkingTreeViewModal(getModel func() []*models.File, log *logrus.Entry, showTree bool) *WorkingTreeViewModal {
-	self := &WorkingTreeViewModal{
-		getModel:          getModel,
-		FileTreeViewModel: filetree.NewFileTreeViewModel(getModel, log, showTree),
-	}
-
-	self.ListTrait = &ListTrait{
-		selectedIdx: 0,
-		HasLength:   self,
-	}
-
-	return self
 }

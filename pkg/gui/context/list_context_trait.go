@@ -11,7 +11,7 @@ import (
 
 type ListContextTrait struct {
 	base      types.IBaseContext
-	listTrait *ListTrait
+	list      types.IList
 	viewTrait *ViewTrait
 
 	takeFocus func() error
@@ -30,19 +30,19 @@ type ListContextTrait struct {
 }
 
 func (self *ListContextTrait) GetPanelState() types.IListPanelState {
-	return self.listTrait
+	return self.list
 }
 
 func (self *ListContextTrait) FocusLine() {
 	// we need a way of knowing whether we've rendered to the view yet.
-	self.viewTrait.FocusPoint(self.listTrait.GetSelectedLineIdx())
+	self.viewTrait.FocusPoint(self.list.GetSelectedLineIdx())
 	if self.RenderSelection {
 		min, max := self.viewTrait.ViewPortYBounds()
 		displayStrings := self.GetDisplayStrings(min, max)
 		content := utils.RenderDisplayStrings(displayStrings)
 		self.viewTrait.SetViewPortContent(content)
 	}
-	self.viewTrait.SetFooter(formatListFooter(self.listTrait.GetSelectedLineIdx(), self.listTrait.GetItemsLength()))
+	self.viewTrait.SetFooter(formatListFooter(self.list.GetSelectedLineIdx(), self.list.GetItemsLength()))
 }
 
 func formatListFooter(selectedLineIdx int, length int) string {
@@ -52,8 +52,8 @@ func formatListFooter(selectedLineIdx int, length int) string {
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
 func (self *ListContextTrait) HandleRender() error {
 	if self.GetDisplayStrings != nil {
-		self.listTrait.RefreshSelectedIdx()
-		content := utils.RenderDisplayStrings(self.GetDisplayStrings(0, self.listTrait.GetItemsLength()))
+		self.list.RefreshSelectedIdx()
+		content := utils.RenderDisplayStrings(self.GetDisplayStrings(0, self.list.GetItemsLength()))
 		self.viewTrait.SetContent(content)
 		self.c.Render()
 	}
@@ -112,10 +112,12 @@ func (self *ListContextTrait) scroll(scrollFunc func()) error {
 }
 
 func (self *ListContextTrait) handleLineChange(change int) error {
-	before := self.listTrait.GetSelectedLineIdx()
-	self.listTrait.MoveSelectedLine(change)
-	after := self.listTrait.GetSelectedLineIdx()
+	before := self.list.GetSelectedLineIdx()
+	self.list.MoveSelectedLine(change)
+	after := self.list.GetSelectedLineIdx()
 
+	// doing this check so that if we're holding the up key at the start of the list
+	// we're not constantly re-rendering the main view.
 	if before != after {
 		return self.HandleFocus()
 	}
@@ -132,15 +134,15 @@ func (self *ListContextTrait) HandleNextPage() error {
 }
 
 func (self *ListContextTrait) HandleGotoTop() error {
-	return self.handleLineChange(-self.listTrait.GetItemsLength())
+	return self.handleLineChange(-self.list.GetItemsLength())
 }
 
 func (self *ListContextTrait) HandleGotoBottom() error {
-	return self.handleLineChange(self.listTrait.GetItemsLength())
+	return self.handleLineChange(self.list.GetItemsLength())
 }
 
 func (self *ListContextTrait) HandleClick(onClick func() error) error {
-	prevSelectedLineIdx := self.listTrait.GetSelectedLineIdx()
+	prevSelectedLineIdx := self.list.GetSelectedLineIdx()
 	// because we're handling a click, we need to determine the new line idx based
 	// on the view itself.
 	newSelectedLineIdx := self.viewTrait.SelectedLineIdx()
@@ -150,17 +152,16 @@ func (self *ListContextTrait) HandleClick(onClick func() error) error {
 
 	// we need to focus the view
 	if !alreadyFocused {
-
 		if err := self.takeFocus(); err != nil {
 			return err
 		}
 	}
 
-	if newSelectedLineIdx > self.listTrait.GetItemsLength()-1 {
+	if newSelectedLineIdx > self.list.GetItemsLength()-1 {
 		return nil
 	}
 
-	self.listTrait.SetSelectedLineIdx(newSelectedLineIdx)
+	self.list.SetSelectedLineIdx(newSelectedLineIdx)
 
 	if prevSelectedLineIdx == newSelectedLineIdx && alreadyFocused && onClick != nil {
 		return onClick()
@@ -169,7 +170,7 @@ func (self *ListContextTrait) HandleClick(onClick func() error) error {
 }
 
 func (self *ListContextTrait) OnSearchSelect(selectedLineIdx int) error {
-	self.listTrait.SetSelectedLineIdx(selectedLineIdx)
+	self.list.SetSelectedLineIdx(selectedLineIdx)
 	return self.HandleFocus()
 }
 

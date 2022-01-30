@@ -21,7 +21,7 @@ const NESTED = "│  "
 const NOTHING = "   "
 
 func RenderFileTree(
-	fileMgr *filetree.FileTreeViewModel,
+	fileMgr filetree.IFileTree,
 	diffName string,
 	submoduleConfigs []*models.SubmoduleConfig,
 ) []string {

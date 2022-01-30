@@ -136,19 +136,19 @@ func TestCompress(t *testing.T) {
 func TestGetFile(t *testing.T) {
 	scenarios := []struct {
 		name      string
-		viewModel *FileTreeViewModel
+		viewModel *FileTree
 		path      string
 		expected  *models.File
 	}{
 		{
 			name:      "valid case",
-			viewModel: NewFileTreeViewModel(func() []*models.File { return []*models.File{{Name: "blah/one"}, {Name: "blah/two"}} }, nil, false),
+			viewModel: NewFileTree(func() []*models.File { return []*models.File{{Name: "blah/one"}, {Name: "blah/two"}} }, nil, false),
 			path:      "blah/two",
 			expected:  &models.File{Name: "blah/two"},
 		},
 		{
 			name:      "not found",
-			viewModel: NewFileTreeViewModel(func() []*models.File { return []*models.File{{Name: "blah/one"}, {Name: "blah/two"}} }, nil, false),
+			viewModel: NewFileTree(func() []*models.File { return []*models.File{{Name: "blah/one"}, {Name: "blah/two"}} }, nil, false),
 			path:      "blah/three",
 			expected:  nil,
 		},
