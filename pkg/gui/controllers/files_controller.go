@@ -142,6 +142,12 @@ func (self *FilesController) Keybindings(getKey func(key string) interface{}, co
 			Description: self.c.Tr.LcIgnoreFile,
 		},
 		{
+			Key:         getKey(config.Universal.Remove),
+			Handler:     self.checkSelectedFileNode(self.remove),
+			Description: self.c.Tr.LcViewDiscardOptions,
+			OpensMenu:   true,
+		},
+		{
 			Key:         getKey(config.Files.RefreshFiles),
 			Handler:     self.refresh,
 			Description: self.c.Tr.LcRefreshFiles,
