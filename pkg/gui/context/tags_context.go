@@ -62,6 +62,15 @@ func NewTagsContext(
 	return self
 }
 
+func (self *TagsContext) GetSelectedItemId() string {
+	item := self.GetSelectedTag()
+	if item == nil {
+		return ""
+	}
+
+	return item.ID()
+}
+
 type TagsViewModel struct {
 	*traits.ListCursor
 	getModel func() []*models.Tag
@@ -77,11 +86,6 @@ func (self *TagsViewModel) GetSelectedTag() *models.Tag {
 	}
 
 	return self.getModel()[self.GetSelectedLineIdx()]
-}
-
-func (self *TagsViewModel) GetSelectedItem() (types.ListItem, bool) {
-	item := self.GetSelectedTag()
-	return item, item != nil
 }
 
 func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {

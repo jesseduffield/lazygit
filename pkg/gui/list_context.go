@@ -16,9 +16,8 @@ type ListContext struct {
 	OnRenderToMain    func(...types.OnFocusOpts) error
 	OnFocusLost       func() error
 
-	// the boolean here tells us whether the item is nil. This is needed because you can't work it out on the calling end once the pointer is wrapped in an interface (unless you want to use reflection)
-	SelectedItem    func() (types.ListItem, bool)
-	OnGetPanelState func() types.IListPanelState
+	OnGetSelectedItemId func() string
+	OnGetPanelState     func() types.IListPanelState
 	// if this is true, we'll call GetDisplayStrings for just the visible part of the
 	// view and re-render that. This is useful when you need to render different
 	// content based on the selection (e.g. for showing the selected commit)
@@ -56,8 +55,8 @@ func formatListFooter(selectedLineIdx int, length int) string {
 	return fmt.Sprintf("%d of %d", selectedLineIdx+1, length)
 }
 
-func (self *ListContext) GetSelectedItem() (types.ListItem, bool) {
-	return self.SelectedItem()
+func (self *ListContext) GetSelectedItemId() string {
+	return self.OnGetSelectedItemId()
 }
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view

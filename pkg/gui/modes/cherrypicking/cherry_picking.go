@@ -11,8 +11,8 @@ type CherryPicking struct {
 	ContextKey string
 }
 
-func New() CherryPicking {
-	return CherryPicking{
+func New() *CherryPicking {
+	return &CherryPicking{
 		CherryPickedCommits: make([]*models.Commit, 0),
 		ContextKey:          "",
 	}

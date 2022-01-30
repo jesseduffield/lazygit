@@ -9,6 +9,7 @@ type IRefsHelper interface {
 	CheckoutRef(ref string, options types.CheckoutRefOptions) error
 	CreateGitResetMenu(ref string) error
 	ResetToRef(ref string, strength string, envVars []string) error
+	NewBranch(from string, fromDescription string, suggestedBranchname string) error
 }
 
 type ISuggestionsHelper interface {

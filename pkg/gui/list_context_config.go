@@ -63,9 +63,12 @@ func (gui *Gui) branchesListContext() types.IListContext {
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref)
 		},
-		SelectedItem: func() (types.ListItem, bool) {
+		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedBranch()
-			return item, item != nil
+			if item == nil {
+				return ""
+			}
+			return item.ID()
 		},
 	}
 }
@@ -85,9 +88,12 @@ func (gui *Gui) remotesListContext() types.IListContext {
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetRemoteListDisplayStrings(gui.State.Remotes, gui.State.Modes.Diffing.Ref)
 		},
-		SelectedItem: func() (types.ListItem, bool) {
+		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedRemote()
-			return item, item != nil
+			if item == nil {
+				return ""
+			}
+			return item.ID()
 		},
 	}
 }
@@ -107,9 +113,12 @@ func (gui *Gui) remoteBranchesListContext() types.IListContext {
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Modes.Diffing.Ref)
 		},
-		SelectedItem: func() (types.ListItem, bool) {
+		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedRemoteBranch()
-			return item, item != nil
+			if item == nil {
+				return ""
+			}
+			return item.ID()
 		},
 	}
 }
@@ -163,7 +172,7 @@ func (gui *Gui) branchCommitsListContext() types.IListContext {
 			return presentation.GetCommitListDisplayStrings(
 				gui.State.Commits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.cherryPickedCommitShaMap(),
+				gui.helpers.cherryPick.CherryPickedCommitShaMap(),
 				gui.State.Modes.Diffing.Ref,
 				parseEmoji,
 				selectedCommitSha,
@@ -173,9 +182,12 @@ func (gui *Gui) branchCommitsListContext() types.IListContext {
 				gui.State.BisectInfo,
 			)
 		},
-		SelectedItem: func() (types.ListItem, bool) {
+		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedLocalCommit()
-			return item, item != nil
+			if item == nil {
+				return ""
+			}
+			return item.ID()
 		},
 		RenderSelection: true,
 	}
@@ -205,7 +217,7 @@ func (gui *Gui) subCommitsListContext() types.IListContext {
 			return presentation.GetCommitListDisplayStrings(
 				gui.State.SubCommits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.cherryPickedCommitShaMap(),
+				gui.helpers.cherryPick.CherryPickedCommitShaMap(),
 				gui.State.Modes.Diffing.Ref,
 				parseEmoji,
 				selectedCommitSha,
@@ -215,9 +227,12 @@ func (gui *Gui) subCommitsListContext() types.IListContext {
 				git_commands.NewNullBisectInfo(),
 			)
 		},
-		SelectedItem: func() (types.ListItem, bool) {
+		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedSubCommit()
-			return item, item != nil
+			if item == nil {
+				return ""
+			}
+			return item.ID()
 		},
 		RenderSelection: true,
 	}
@@ -259,14 +274,17 @@ func (gui *Gui) reflogCommitsListContext() types.IListContext {
 			return presentation.GetReflogCommitListDisplayStrings(
 				gui.State.FilteredReflogCommits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.cherryPickedCommitShaMap(),
+				gui.helpers.cherryPick.CherryPickedCommitShaMap(),
 				gui.State.Modes.Diffing.Ref,
 				parseEmoji,
 			)
 		},
-		SelectedItem: func() (types.ListItem, bool) {
+		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedReflogCommit()
-			return item, item != nil
+			if item == nil {
+				return ""
+			}
+			return item.ID()
 		},
 	}
 }
@@ -286,9 +304,12 @@ func (gui *Gui) stashListContext() types.IListContext {
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Modes.Diffing.Ref)
 		},
-		SelectedItem: func() (types.ListItem, bool) {
+		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedStashEntry()
-			return item, item != nil
+			if item == nil {
+				return ""
+			}
+			return item.ID()
 		},
 	}
 }
@@ -332,9 +353,12 @@ func (gui *Gui) submodulesListContext() types.IListContext {
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetSubmoduleListDisplayStrings(gui.State.Submodules)
 		},
-		SelectedItem: func() (types.ListItem, bool) {
+		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedSubmodule()
-			return item, item != nil
+			if item == nil {
+				return ""
+			}
+			return item.ID()
 		},
 	}
 }

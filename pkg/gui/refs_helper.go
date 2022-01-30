@@ -6,14 +6,17 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type RefsHelper struct {
-	c   *types.ControllerCommon
-	git *commands.GitCommand
+	c           *types.ControllerCommon
+	git         *commands.GitCommand
+	getContexts func() context.ContextTree
 
 	getState func() *GuiRepoState
 }
@@ -21,12 +24,14 @@ type RefsHelper struct {
 func NewRefsHelper(
 	c *types.ControllerCommon,
 	git *commands.GitCommand,
+	getContexts func() context.ContextTree,
 	getState func() *GuiRepoState,
 ) *RefsHelper {
 	return &RefsHelper{
-		c:        c,
-		git:      git,
-		getState: getState,
+		c:           c,
+		git:         git,
+		getContexts: getContexts,
+		getState:    getState,
 	}
 }
 
@@ -132,5 +137,36 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: fmt.Sprintf("%s %s", self.c.Tr.LcResetTo, ref),
 		Items: menuItems,
+	})
+}
+
+func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggestedBranchName string) error {
+	message := utils.ResolvePlaceholderString(
+		self.c.Tr.NewBranchNameBranchOff,
+		map[string]string{
+			"branchName": fromFormattedName,
+		},
+	)
+
+	return self.c.Prompt(types.PromptOpts{
+		Title:          message,
+		InitialContent: suggestedBranchName,
+		HandleConfirm: func(response string) error {
+			self.c.LogAction(self.c.Tr.Actions.CreateBranch)
+			if err := self.git.Branch.New(sanitizedBranchName(response), from); err != nil {
+				return err
+			}
+
+			if self.c.CurrentContext() != self.getContexts().Branches {
+				if err := self.c.PushContext(self.getContexts().Branches); err != nil {
+					return err
+				}
+			}
+
+			self.getContexts().BranchCommits.GetPanelState().SetSelectedLineIdx(0)
+			self.getContexts().Branches.GetPanelState().SetSelectedLineIdx(0)
+
+			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		},
 	})
 }

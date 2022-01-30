@@ -464,13 +464,7 @@ func (gui *Gui) getSideContextSelectedItemId() string {
 		return ""
 	}
 
-	item, ok := currentSideContext.GetSelectedItem()
-
-	if ok {
-		return item.ID()
-	}
-
-	return ""
+	return currentSideContext.GetSelectedItemId()
 }
 
 // currently unused

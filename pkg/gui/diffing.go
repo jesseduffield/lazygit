@@ -53,15 +53,11 @@ func (gui *Gui) currentDiffTerminals() []string {
 		}
 		return nil
 	default:
-		context := gui.currentSideListContext()
-		if context == nil {
+		itemId := gui.getSideContextSelectedItemId()
+		if itemId == "" {
 			return nil
 		}
-		item, ok := context.GetSelectedItem()
-		if !ok {
-			return nil
-		}
-		return []string{item.ID()}
+		return []string{itemId}
 	}
 }
 

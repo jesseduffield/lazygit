@@ -79,3 +79,22 @@ func (gui *Gui) handleViewReflogCommitFiles() error {
 		WindowName: "commits",
 	})
 }
+
+func (gui *Gui) handleCopyReflogCommit() error {
+	commit := gui.getSelectedReflogCommit()
+	if commit == nil {
+		return nil
+	}
+
+	return gui.helpers.cherryPick.Copy(commit, gui.State.FilteredReflogCommits, gui.State.Contexts.ReflogCommits)
+}
+
+func (gui *Gui) handleCopyReflogCommitRange() error {
+	// just doing this to ensure something is selected
+	commit := gui.getSelectedReflogCommit()
+	if commit == nil {
+		return nil
+	}
+
+	return gui.helpers.cherryPick.CopyRange(gui.State.Contexts.ReflogCommits.GetPanelState().GetSelectedLineIdx(), gui.State.FilteredReflogCommits, gui.State.Contexts.ReflogCommits)
+}
