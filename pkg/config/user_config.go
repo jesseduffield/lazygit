@@ -340,7 +340,7 @@ func GetDefaultConfig() *UserConfig {
 				SelectedLineBgColor:       []string{"default"},
 				SelectedRangeBgColor:      []string{"blue"},
 				CherryPickedCommitBgColor: []string{"blue"},
-				CherryPickedCommitFgColor: []string{"cyan"},
+				CherryPickedCommitFgColor: []string{"magenta"},
 			},
 			CommitLength:             CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning: false,

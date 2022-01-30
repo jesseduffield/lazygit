@@ -39,7 +39,7 @@ gui:
     cherryPickedCommitBgColor:
       - blue
     cherryPickedCommitFgColor:
-      - cyan
+      - magenta
   commitLength:
     show: true
   mouseEvents: true

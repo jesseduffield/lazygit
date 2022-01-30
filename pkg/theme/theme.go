@@ -36,6 +36,8 @@ var (
 	// CherryPickedCommitColor is the text style when cherry picking a commit
 	CherryPickedCommitTextStyle = style.New()
 
+	UnstagedChangesColor = style.New()
+
 	OptionsFgColor = style.New()
 
 	DiffTerminalColor = style.FgMagenta
@@ -55,6 +57,9 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 	GocuiSelectedLineBgColor = GetGocuiStyle(themeConfig.SelectedLineBgColor)
 	OptionsColor = GetGocuiStyle(themeConfig.OptionsTextColor)
 	OptionsFgColor = GetTextStyle(themeConfig.OptionsTextColor, false)
+
+	UnstagedChangesColor = GetTextStyle(themeConfig.CherryPickedCommitFgColor, false)
+
 
 	isLightTheme := themeConfig.LightTheme
 	if isLightTheme {

@@ -129,7 +129,7 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 	} else if file == nil && hasStagedChanges && hasUnstagedChanges {
 		restColor = partiallyModifiedColor
 	} else if hasUnstagedChanges {
-		restColor = style.FgRed
+		restColor = theme.UnstagedChangesColor
 	}
 
 	output := ""
@@ -138,13 +138,13 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 		firstChar := file.ShortStatus[0:1]
 		firstCharCl := style.FgGreen
 		if firstChar == "?" {
-			firstCharCl = style.FgRed
+			firstCharCl = theme.UnstagedChangesColor
 		} else if firstChar == " " {
 			firstCharCl = restColor
 		}
 
 		secondChar := file.ShortStatus[1:2]
-		secondCharCl := style.FgRed
+		secondCharCl := theme.UnstagedChangesColor
 		if secondChar == " " {
 			secondCharCl = restColor
 		}
