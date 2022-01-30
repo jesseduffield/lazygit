@@ -102,12 +102,3 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 
 	return gui.c.PushContext(gui.State.Contexts.SubCommits)
 }
-
-func (gui *Gui) handleSwitchToSubCommits() error {
-	currentContext := gui.currentSideListContext()
-	if currentContext == nil {
-		return nil
-	}
-
-	return gui.switchToSubCommitsContext(currentContext.GetSelectedItemId())
-}

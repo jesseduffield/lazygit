@@ -60,16 +60,6 @@ func (self *ListContext) GetSelectedItem() (types.ListItem, bool) {
 	return self.SelectedItem()
 }
 
-func (self *ListContext) GetSelectedItemId() string {
-	item, ok := self.GetSelectedItem()
-
-	if !ok {
-		return ""
-	}
-
-	return item.ID()
-}
-
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
 func (self *ListContext) HandleRender() error {
 	view, err := self.Gui.g.View(self.ViewName)
