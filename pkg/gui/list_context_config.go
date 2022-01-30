@@ -293,25 +293,16 @@ func (gui *Gui) stashListContext() types.IListContext {
 	}
 }
 
-func (gui *Gui) commitFilesListContext() types.IListContext {
-	return &ListContext{
-		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
-			ViewName:   "commitFiles",
-			WindowName: "commits",
-			Key:        context.COMMIT_FILES_CONTEXT_KEY,
-			Kind:       types.SIDE_CONTEXT,
-		}),
-		GetItemsLength:  func() int { return gui.State.CommitFileTreeViewModel.GetItemsLength() },
-		OnGetPanelState: func() types.IListPanelState { return gui.State.Panels.CommitFiles },
-		OnFocus:         OnFocusWrapper(gui.onCommitFileFocus),
-		OnRenderToMain:  OnFocusWrapper(gui.withDiffModeCheck(gui.commitFilesRenderToMain)),
-		Gui:             gui,
-		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			if gui.State.CommitFileTreeViewModel.GetItemsLength() == 0 {
+func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
+	return context.NewCommitFilesContext(
+		func() []*models.CommitFile { return gui.State.CommitFiles },
+		func() *gocui.View { return gui.Views.CommitFiles },
+		func(startIdx int, length int) [][]string {
+			if gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.GetItemsLength() == 0 {
 				return [][]string{{style.FgRed.Sprint("(none)")}}
 			}
 
-			lines := presentation.RenderCommitFileTree(gui.State.CommitFileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.git.Patch.PatchManager)
+			lines := presentation.RenderCommitFileTree(gui.State.Contexts.CommitFiles.CommitFileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.git.Patch.PatchManager)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}
@@ -319,11 +310,11 @@ func (gui *Gui) commitFilesListContext() types.IListContext {
 
 			return mappedLines
 		},
-		SelectedItem: func() (types.ListItem, bool) {
-			item := gui.getSelectedCommitFileNode()
-			return item, item != nil
-		},
-	}
+		OnFocusWrapper(gui.onCommitFileFocus),
+		OnFocusWrapper(gui.withDiffModeCheck(gui.commitFilesRenderToMain)),
+		nil,
+		gui.c,
+	)
 }
 
 func (gui *Gui) submodulesListContext() types.IListContext {

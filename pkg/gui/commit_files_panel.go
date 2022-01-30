@@ -10,12 +10,7 @@ import (
 )
 
 func (gui *Gui) getSelectedCommitFileNode() *filetree.CommitFileNode {
-	selectedLine := gui.State.Panels.CommitFiles.SelectedLineIdx
-	if selectedLine == -1 || selectedLine > gui.State.CommitFileTreeViewModel.GetItemsLength()-1 {
-		return nil
-	}
-
-	return gui.State.CommitFileTreeViewModel.GetItemAtIndex(selectedLine)
+	return gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 }
 
 func (gui *Gui) getSelectedCommitFile() *models.CommitFile {
@@ -45,7 +40,7 @@ func (gui *Gui) commitFilesRenderToMain() error {
 		return nil
 	}
 
-	to := gui.State.CommitFileTreeViewModel.GetParent()
+	to := gui.State.Contexts.CommitFiles.GetRefName()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
 	cmdObj := gui.git.WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
@@ -67,7 +62,7 @@ func (gui *Gui) handleCheckoutCommitFile() error {
 	}
 
 	gui.c.LogAction(gui.c.Tr.Actions.CheckoutFile)
-	if err := gui.git.WorkingTree.CheckoutFile(gui.State.CommitFileTreeViewModel.GetParent(), node.GetPath()); err != nil {
+	if err := gui.git.WorkingTree.CheckoutFile(gui.State.Contexts.CommitFiles.GetRefName(), node.GetPath()); err != nil {
 		return gui.c.Error(err)
 	}
 
@@ -107,15 +102,15 @@ func (gui *Gui) refreshCommitFilesView() error {
 		}
 	}
 
-	to := gui.State.Panels.CommitFiles.refName
+	to := gui.State.Contexts.CommitFiles.GetRefName()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
 	files, err := gui.git.Loaders.CommitFiles.GetFilesInDiff(from, to, reverse)
 	if err != nil {
 		return gui.c.Error(err)
 	}
-	gui.State.CommitFileTreeViewModel.SetParent(to)
-	gui.State.CommitFileTreeViewModel.SetFiles(files)
+	gui.State.CommitFiles = files
+	gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.SetTree()
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.CommitFiles)
 }
@@ -158,7 +153,7 @@ func (gui *Gui) handleToggleFileForPatch() error {
 		// if there is any file that hasn't been fully added we'll fully add everything,
 		// otherwise we'll remove everything
 		adding := node.AnyFile(func(file *models.CommitFile) bool {
-			return gui.git.Patch.PatchManager.GetFileStatus(file.Name, gui.State.CommitFileTreeViewModel.GetParent()) != patch.WHOLE
+			return gui.git.Patch.PatchManager.GetFileStatus(file.Name, gui.State.Contexts.CommitFiles.GetRefName()) != patch.WHOLE
 		})
 
 		err := node.ForEachFile(func(file *models.CommitFile) error {
@@ -180,7 +175,7 @@ func (gui *Gui) handleToggleFileForPatch() error {
 		return gui.c.PostRefreshUpdate(gui.State.Contexts.CommitFiles)
 	}
 
-	if gui.git.Patch.PatchManager.Active() && gui.git.Patch.PatchManager.To != gui.State.CommitFileTreeViewModel.GetParent() {
+	if gui.git.Patch.PatchManager.Active() && gui.git.Patch.PatchManager.To != gui.State.Contexts.CommitFiles.GetRefName() {
 		return gui.c.Ask(types.AskOpts{
 			Title:  gui.c.Tr.DiscardPatch,
 			Prompt: gui.c.Tr.DiscardPatchConfirm,
@@ -195,9 +190,11 @@ func (gui *Gui) handleToggleFileForPatch() error {
 }
 
 func (gui *Gui) startPatchManager() error {
-	canRebase := gui.State.Panels.CommitFiles.canRebase
+	commitFilesContext := gui.State.Contexts.CommitFiles
 
-	to := gui.State.Panels.CommitFiles.refName
+	canRebase := commitFilesContext.GetCanRebase()
+	to := commitFilesContext.GetRefName()
+
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
 	gui.git.Patch.PatchManager.Start(from, to, reverse, canRebase)
@@ -228,7 +225,7 @@ func (gui *Gui) enterCommitFile(opts types.OnFocusOpts) error {
 		return gui.c.PushContext(gui.State.Contexts.PatchBuilding, opts)
 	}
 
-	if gui.git.Patch.PatchManager.Active() && gui.git.Patch.PatchManager.To != gui.State.CommitFileTreeViewModel.GetParent() {
+	if gui.git.Patch.PatchManager.Active() && gui.git.Patch.PatchManager.To != gui.State.Contexts.CommitFiles.GetRefName() {
 		return gui.c.Ask(types.AskOpts{
 			Title:  gui.c.Tr.DiscardPatch,
 			Prompt: gui.c.Tr.DiscardPatchConfirm,
@@ -248,7 +245,7 @@ func (gui *Gui) handleToggleCommitFileDirCollapsed() error {
 		return nil
 	}
 
-	gui.State.CommitFileTreeViewModel.ToggleCollapsed(node.GetPath())
+	gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.ToggleCollapsed(node.GetPath())
 
 	if err := gui.c.PostRefreshUpdate(gui.State.Contexts.CommitFiles); err != nil {
 		gui.c.Log.Error(err)
@@ -262,9 +259,9 @@ func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesC
 	// no longer considers the commitFiles view as its main view.
 	gui.resetWindowForView(gui.Views.CommitFiles)
 
-	gui.State.Panels.CommitFiles.SelectedLineIdx = 0
-	gui.State.Panels.CommitFiles.refName = opts.RefName
-	gui.State.Panels.CommitFiles.canRebase = opts.CanRebase
+	gui.State.Contexts.CommitFiles.SetSelectedLineIdx(0)
+	gui.State.Contexts.CommitFiles.SetRefName(opts.RefName)
+	gui.State.Contexts.CommitFiles.SetCanRebase(opts.CanRebase)
 	gui.State.Contexts.CommitFiles.SetParentContext(opts.Context)
 	gui.State.Contexts.CommitFiles.SetWindowName(opts.WindowName)
 
@@ -277,18 +274,7 @@ func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesC
 
 // NOTE: this is very similar to handleToggleFileTreeView, could be DRY'd with generics
 func (gui *Gui) handleToggleCommitFileTreeView() error {
-	path := gui.getSelectedCommitFilePath()
-
-	gui.State.CommitFileTreeViewModel.ToggleShowTree()
-
-	// find that same node in the new format and move the cursor to it
-	if path != "" {
-		gui.State.CommitFileTreeViewModel.ExpandToPath(path)
-		index, found := gui.State.CommitFileTreeViewModel.GetIndexForPath(path)
-		if found {
-			gui.State.Contexts.CommitFiles.GetPanelState().SetSelectedLineIdx(index)
-		}
-	}
+	gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.ToggleShowTree()
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.CommitFiles)
 }

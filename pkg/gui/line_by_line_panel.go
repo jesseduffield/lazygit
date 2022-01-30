@@ -121,9 +121,12 @@ func (gui *Gui) handleMouseDrag() error {
 }
 
 func (gui *Gui) getSelectedCommitFileName() string {
-	idx := gui.State.Panels.CommitFiles.SelectedLineIdx
+	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
+	if node == nil {
+		return ""
+	}
 
-	return gui.State.CommitFileTreeViewModel.GetItemAtIndex(idx).GetPath()
+	return node.Path
 }
 
 func (gui *Gui) refreshMainViewForLineByLine(state *LblPanelState) error {

@@ -20,7 +20,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
-	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
@@ -173,18 +172,16 @@ type PrevLayout struct {
 }
 
 type GuiRepoState struct {
-	// the file panels (files and commit files) can render as a tree, so we have
-	// managers for them which handle rendering a flat list of files in tree form
-	CommitFileTreeViewModel *filetree.CommitFileTreeViewModel
-	Files                   []*models.File
-	Submodules              []*models.SubmoduleConfig
-	Branches                []*models.Branch
-	Commits                 []*models.Commit
-	StashEntries            []*models.StashEntry
-	SubCommits              []*models.Commit
-	Remotes                 []*models.Remote
-	RemoteBranches          []*models.RemoteBranch
-	Tags                    []*models.Tag
+	CommitFiles    []*models.CommitFile
+	Files          []*models.File
+	Submodules     []*models.SubmoduleConfig
+	Branches       []*models.Branch
+	Commits        []*models.Commit
+	StashEntries   []*models.StashEntry
+	SubCommits     []*models.Commit
+	Remotes        []*models.Remote
+	RemoteBranches []*models.RemoteBranch
+	Tags           []*models.Tag
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
 	FilteredReflogCommits []*models.Commit
@@ -316,15 +313,6 @@ type menuPanelState struct {
 	OnPress func() error
 }
 
-type commitFilesPanelState struct {
-	listPanelState
-
-	// this is the SHA of the commit or the stash index of the stash.
-	// Not sure if ref is actually the right word here
-	refName   string
-	canRebase bool
-}
-
 type submodulePanelState struct {
 	listPanelState
 }
@@ -333,6 +321,8 @@ type suggestionsPanelState struct {
 	listPanelState
 }
 
+// as we move things to the new context approach we're going to eventually
+// remove this struct altogether and store this state on the contexts.
 type panelStates struct {
 	Branches       *branchPanelState
 	Remotes        *remotePanelState
@@ -344,7 +334,6 @@ type panelStates struct {
 	Menu           *menuPanelState
 	LineByLine     *LblPanelState
 	Merging        *MergingPanelState
-	CommitFiles    *commitFilesPanelState
 	Submodules     *submodulePanelState
 	Suggestions    *suggestionsPanelState
 }
@@ -427,8 +416,6 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		}
 	}
 
-	showTree := gui.UserConfig.Gui.ShowFileTree
-
 	contexts := gui.contextTree()
 
 	screenMode := SCREEN_NORMAL
@@ -439,12 +426,12 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	}
 
 	gui.State = &GuiRepoState{
-		CommitFileTreeViewModel: filetree.NewCommitFileTreeViewModel(make([]*models.CommitFile, 0), gui.Log, showTree),
-		Commits:                 make([]*models.Commit, 0),
-		FilteredReflogCommits:   make([]*models.Commit, 0),
-		ReflogCommits:           make([]*models.Commit, 0),
-		StashEntries:            make([]*models.StashEntry, 0),
-		BisectInfo:              git_commands.NewNullBisectInfo(),
+		Files:                 make([]*models.File, 0),
+		Commits:               make([]*models.Commit, 0),
+		FilteredReflogCommits: make([]*models.Commit, 0),
+		ReflogCommits:         make([]*models.Commit, 0),
+		StashEntries:          make([]*models.StashEntry, 0),
+		BisectInfo:            git_commands.NewNullBisectInfo(),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Submodules:     &submodulePanelState{listPanelState{SelectedLineIdx: -1}},
@@ -454,7 +441,6 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			Commits:        &commitPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, LimitCommits: true},
 			ReflogCommits:  &reflogCommitPanelState{listPanelState{SelectedLineIdx: 0}},
 			SubCommits:     &subCommitPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, refName: ""},
-			CommitFiles:    &commitFilesPanelState{listPanelState: listPanelState{SelectedLineIdx: -1}, refName: ""},
 			Stash:          &stashPanelState{listPanelState{SelectedLineIdx: -1}},
 			Menu:           &menuPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}, OnPress: nil},
 			Suggestions:    &suggestionsPanelState{listPanelState: listPanelState{SelectedLineIdx: 0}},

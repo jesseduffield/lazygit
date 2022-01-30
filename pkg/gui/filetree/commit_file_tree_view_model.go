@@ -1,101 +1,93 @@
 package filetree
 
 import (
+	"sync"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/sirupsen/logrus"
 )
 
+type ICommitFileTreeViewModel interface {
+	ICommitFileTree
+	types.IListCursor
+
+	GetRefName() string
+	SetRefName(string)
+	GetCanRebase() bool
+	SetCanRebase(bool)
+}
+
 type CommitFileTreeViewModel struct {
-	files          []*models.CommitFile
-	tree           *CommitFileNode
-	showTree       bool
-	log            *logrus.Entry
-	collapsedPaths CollapsedPaths
-	// parent is the identifier of the parent object e.g. a commit SHA if this commit file is for a commit, or a stash entry ref like 'stash@{1}'
-	parent string
+	sync.RWMutex
+	ICommitFileTree
+	types.IListCursor
+
+	// this is e.g. the commit SHA of the commit for which we're viewing the files
+	refName string
+
+	// we set this to true when you're viewing the files within the checked-out branch's commits.
+	// If you're viewing the files of some random other branch we can't do any rebase stuff.
+	canRebase bool
 }
 
-func (self *CommitFileTreeViewModel) GetParent() string {
-	return self.parent
-}
+var _ ICommitFileTreeViewModel = &CommitFileTreeViewModel{}
 
-func (self *CommitFileTreeViewModel) SetParent(parent string) {
-	self.parent = parent
-}
-
-func NewCommitFileTreeViewModel(files []*models.CommitFile, log *logrus.Entry, showTree bool) *CommitFileTreeViewModel {
-	viewModel := &CommitFileTreeViewModel{
-		log:            log,
-		showTree:       showTree,
-		collapsedPaths: CollapsedPaths{},
+func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, log *logrus.Entry, showTree bool) *CommitFileTreeViewModel {
+	fileTree := NewCommitFileTree(getFiles, log, showTree)
+	listCursor := traits.NewListCursor(fileTree)
+	return &CommitFileTreeViewModel{
+		ICommitFileTree: fileTree,
+		IListCursor:     listCursor,
+		refName:         "",
+		canRebase:       false,
 	}
-
-	viewModel.SetFiles(files)
-
-	return viewModel
 }
 
-func (self *CommitFileTreeViewModel) ExpandToPath(path string) {
-	self.collapsedPaths.ExpandToPath(path)
+func (self *CommitFileTreeViewModel) GetRefName() string {
+	return self.refName
 }
 
-func (self *CommitFileTreeViewModel) ToggleShowTree() {
-	self.showTree = !self.showTree
-	self.SetTree()
+func (self *CommitFileTreeViewModel) SetRefName(refName string) {
+	self.refName = refName
 }
 
-func (self *CommitFileTreeViewModel) GetItemAtIndex(index int) *CommitFileNode {
-	// need to traverse the three depth first until we get to the index.
-	return self.tree.GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
+func (self *CommitFileTreeViewModel) GetCanRebase() bool {
+	return self.canRebase
 }
 
-func (self *CommitFileTreeViewModel) GetIndexForPath(path string) (int, bool) {
-	index, found := self.tree.GetIndexForPath(path, self.collapsedPaths)
-	return index - 1, found
+func (self *CommitFileTreeViewModel) SetCanRebase(canRebase bool) {
+	self.canRebase = canRebase
 }
 
-func (self *CommitFileTreeViewModel) GetAllItems() []*CommitFileNode {
-	if self.tree == nil {
+func (self *CommitFileTreeViewModel) GetSelectedFileNode() *CommitFileNode {
+	if self.GetItemsLength() == 0 {
 		return nil
 	}
 
-	return self.tree.Flatten(self.collapsedPaths)[1:] // ignoring root
+	return self.GetItemAtIndex(self.GetSelectedLineIdx())
 }
 
-func (self *CommitFileTreeViewModel) GetItemsLength() int {
-	return self.tree.Size(self.collapsedPaths) - 1 // ignoring root
-}
+// duplicated from file_tree_view_model.go. Generics will help here
+func (self *CommitFileTreeViewModel) ToggleShowTree() {
+	selectedNode := self.GetSelectedFileNode()
 
-func (self *CommitFileTreeViewModel) GetAllFiles() []*models.CommitFile {
-	return self.files
-}
+	self.ICommitFileTree.ToggleShowTree()
 
-func (self *CommitFileTreeViewModel) SetFiles(files []*models.CommitFile) {
-	self.files = files
-
-	self.SetTree()
-}
-
-func (self *CommitFileTreeViewModel) SetTree() {
-	if self.showTree {
-		self.tree = BuildTreeFromCommitFiles(self.files)
-	} else {
-		self.tree = BuildFlatTreeFromCommitFiles(self.files)
+	if selectedNode == nil {
+		return
 	}
-}
+	path := selectedNode.Path
 
-func (self *CommitFileTreeViewModel) IsCollapsed(path string) bool {
-	return self.collapsedPaths.IsCollapsed(path)
-}
+	if self.InTreeMode() {
+		self.ExpandToPath(path)
+	} else if len(selectedNode.Children) > 0 {
+		path = selectedNode.GetLeaves()[0].Path
+	}
 
-func (self *CommitFileTreeViewModel) ToggleCollapsed(path string) {
-	self.collapsedPaths.ToggleCollapsed(path)
-}
-
-func (self *CommitFileTreeViewModel) Tree() INode {
-	return self.tree
-}
-
-func (self *CommitFileTreeViewModel) CollapsedPaths() CollapsedPaths {
-	return self.collapsedPaths
+	index, found := self.GetIndexForPath(path)
+	if found {
+		self.SetSelectedLineIdx(index)
+	}
 }

@@ -21,22 +21,22 @@ const NESTED = "│  "
 const NOTHING = "   "
 
 func RenderFileTree(
-	fileMgr filetree.IFileTree,
+	tree filetree.IFileTree,
 	diffName string,
 	submoduleConfigs []*models.SubmoduleConfig,
 ) []string {
-	return renderAux(fileMgr.Tree(), fileMgr.CollapsedPaths(), "", -1, func(n filetree.INode, depth int) string {
+	return renderAux(tree.Tree(), tree.CollapsedPaths(), "", -1, func(n filetree.INode, depth int) string {
 		castN := n.(*filetree.FileNode)
 		return getFileLine(castN.GetHasUnstagedChanges(), castN.GetHasStagedChanges(), castN.NameAtDepth(depth), diffName, submoduleConfigs, castN.File)
 	})
 }
 
 func RenderCommitFileTree(
-	commitFileMgr *filetree.CommitFileTreeViewModel,
+	tree *filetree.CommitFileTreeViewModel,
 	diffName string,
 	patchManager *patch.PatchManager,
 ) []string {
-	return renderAux(commitFileMgr.Tree(), commitFileMgr.CollapsedPaths(), "", -1, func(n filetree.INode, depth int) string {
+	return renderAux(tree.Tree(), tree.CollapsedPaths(), "", -1, func(n filetree.INode, depth int) string {
 		castN := n.(*filetree.CommitFileNode)
 
 		// This is a little convoluted because we're dealing with either a leaf or a non-leaf.
@@ -45,11 +45,11 @@ func RenderCommitFileTree(
 		// based on the leaves of that subtree
 		var status patch.PatchStatus
 		if castN.EveryFile(func(file *models.CommitFile) bool {
-			return patchManager.GetFileStatus(file.Name, commitFileMgr.GetParent()) == patch.WHOLE
+			return patchManager.GetFileStatus(file.Name, tree.GetRefName()) == patch.WHOLE
 		}) {
 			status = patch.WHOLE
 		} else if castN.EveryFile(func(file *models.CommitFile) bool {
-			return patchManager.GetFileStatus(file.Name, commitFileMgr.GetParent()) == patch.UNSELECTED
+			return patchManager.GetFileStatus(file.Name, tree.GetRefName()) == patch.UNSELECTED
 		}) {
 			status = patch.UNSELECTED
 		} else {
