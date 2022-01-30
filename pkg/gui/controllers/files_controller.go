@@ -653,19 +653,7 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 }
 
 func (self *FilesController) toggleTreeView() error {
-	// get path of currently selected file
-	path := self.getSelectedPath()
-
 	self.getContext().FileTreeViewModel.ToggleShowTree()
-
-	// find that same node in the new format and move the cursor to it
-	if path != "" {
-		self.getContext().FileTreeViewModel.ExpandToPath(path)
-		index, found := self.getContext().FileTreeViewModel.GetIndexForPath(path)
-		if found {
-			self.getContext().GetPanelState().SetSelectedLineIdx(index)
-		}
-	}
 
 	return self.c.PostRefreshUpdate(self.getContext())
 }

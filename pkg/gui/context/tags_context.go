@@ -3,6 +3,7 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -39,7 +40,7 @@ func NewTagsContext(
 	viewTrait := NewViewTrait(getView)
 	listContextTrait := &ListContextTrait{
 		base:      baseContext,
-		listTrait: list.ListTrait,
+		list:      list,
 		viewTrait: viewTrait,
 
 		GetDisplayStrings: getDisplayStrings,
@@ -62,7 +63,7 @@ func NewTagsContext(
 }
 
 type TagsViewModel struct {
-	*ListTrait
+	*traits.ListCursor
 	getModel func() []*models.Tag
 }
 
@@ -88,19 +89,7 @@ func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
 		getModel: getModel,
 	}
 
-	self.ListTrait = &ListTrait{
-		selectedIdx: 0,
-		HasLength:   self,
-	}
+	self.ListCursor = traits.NewListCursor(self)
 
 	return self
-}
-
-func clamp(x int, min int, max int) int {
-	if x < min {
-		return min
-	} else if x > max {
-		return max
-	}
-	return x
 }

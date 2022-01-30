@@ -334,7 +334,6 @@ type suggestionsPanelState struct {
 }
 
 type panelStates struct {
-	Files          *filePanelState
 	Branches       *branchPanelState
 	Remotes        *remotePanelState
 	RemoteBranches *remoteBranchesState
@@ -448,7 +447,6 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		BisectInfo:              git_commands.NewNullBisectInfo(),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
-			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},
 			Submodules:     &submodulePanelState{listPanelState{SelectedLineIdx: -1}},
 			Branches:       &branchPanelState{listPanelState{SelectedLineIdx: 0}},
 			Remotes:        &remotePanelState{listPanelState{SelectedLineIdx: 0}},

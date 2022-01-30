@@ -81,6 +81,18 @@ type IListContext interface {
 	Context
 }
 
+type IList interface {
+	IListCursor
+	GetItemsLength() int
+}
+
+type IListCursor interface {
+	GetSelectedLineIdx() int
+	SetSelectedLineIdx(value int)
+	MoveSelectedLine(delta int)
+	RefreshSelectedIdx()
+}
+
 type IListPanelState interface {
 	SetSelectedLineIdx(int)
 	GetSelectedLineIdx() int
