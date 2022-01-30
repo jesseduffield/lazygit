@@ -102,3 +102,31 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 
 	return gui.c.PushContext(gui.State.Contexts.SubCommits)
 }
+
+func (gui *Gui) handleNewBranchOffSubCommit() error {
+	commit := gui.getSelectedSubCommit()
+	if commit == nil {
+		return nil
+	}
+
+	return gui.helpers.refs.NewBranch(commit.RefName(), commit.Description(), "")
+}
+
+func (gui *Gui) handleCopySubCommit() error {
+	commit := gui.getSelectedSubCommit()
+	if commit == nil {
+		return nil
+	}
+
+	return gui.helpers.cherryPick.Copy(commit, gui.State.SubCommits, gui.State.Contexts.SubCommits)
+}
+
+func (gui *Gui) handleCopySubCommitRange() error {
+	// just doing this to ensure something is selected
+	commit := gui.getSelectedSubCommit()
+	if commit == nil {
+		return nil
+	}
+
+	return gui.helpers.cherryPick.CopyRange(gui.State.Contexts.SubCommits.GetPanelState().GetSelectedLineIdx(), gui.State.SubCommits, gui.State.Contexts.SubCommits)
+}

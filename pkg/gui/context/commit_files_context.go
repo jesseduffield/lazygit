@@ -62,7 +62,11 @@ func NewCommitFilesContext(
 	return self
 }
 
-func (self *CommitFilesContext) GetSelectedItem() (types.ListItem, bool) {
-	item := self.CommitFileTreeViewModel.GetSelectedFileNode()
-	return item, item != nil
+func (self *CommitFilesContext) GetSelectedItemId() string {
+	item := self.GetSelectedFileNode()
+	if item == nil {
+		return ""
+	}
+
+	return item.ID()
 }

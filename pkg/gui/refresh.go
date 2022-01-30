@@ -408,7 +408,7 @@ func (gui *Gui) refreshStateFiles() error {
 	}
 
 	if gui.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE && conflictFileCount == 0 && prevConflictFileCount > 0 {
-		gui.OnUIThread(func() error { return gui.promptToContinueRebase() })
+		gui.OnUIThread(func() error { return gui.helpers.rebase.PromptToContinueRebase() })
 	}
 
 	fileTreeViewModel.RWMutex.Lock()

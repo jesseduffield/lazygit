@@ -22,7 +22,7 @@ type SyncController struct {
 	getCheckedOutBranch func() *models.Branch
 	suggestionsHelper   ISuggestionsHelper
 	getSuggestedRemote  func() string
-	checkMergeOrRebase  func(error) error
+	CheckMergeOrRebase  func(error) error
 }
 
 var _ types.IController = &SyncController{}
@@ -33,7 +33,7 @@ func NewSyncController(
 	getCheckedOutBranch func() *models.Branch,
 	suggestionsHelper ISuggestionsHelper,
 	getSuggestedRemote func() string,
-	checkMergeOrRebase func(error) error,
+	CheckMergeOrRebase func(error) error,
 ) *SyncController {
 	return &SyncController{
 		c:   c,
@@ -42,7 +42,7 @@ func NewSyncController(
 		getCheckedOutBranch: getCheckedOutBranch,
 		suggestionsHelper:   suggestionsHelper,
 		getSuggestedRemote:  getSuggestedRemote,
-		checkMergeOrRebase:  checkMergeOrRebase,
+		CheckMergeOrRebase:  CheckMergeOrRebase,
 	}
 }
 
@@ -191,7 +191,7 @@ func (self *SyncController) pullWithLock(opts PullFilesOptions) error {
 		},
 	)
 
-	return self.checkMergeOrRebase(err)
+	return self.CheckMergeOrRebase(err)
 }
 
 type pushOpts struct {

@@ -61,8 +61,8 @@ type IController interface {
 
 type IListContext interface {
 	HasKeybindings
-	GetSelectedItem() (ListItem, bool)
 
+	GetSelectedItemId() string
 	HandlePrevLine() error
 	HandleNextLine() error
 	HandleScrollLeft() error

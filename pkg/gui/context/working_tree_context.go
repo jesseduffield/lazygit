@@ -62,7 +62,11 @@ func NewWorkingTreeContext(
 	return self
 }
 
-func (self *WorkingTreeContext) GetSelectedItem() (types.ListItem, bool) {
-	item := self.FileTreeViewModel.GetSelectedFileNode()
-	return item, item != nil
+func (self *WorkingTreeContext) GetSelectedItemId() string {
+	item := self.GetSelectedFileNode()
+	if item == nil {
+		return ""
+	}
+
+	return item.ID()
 }

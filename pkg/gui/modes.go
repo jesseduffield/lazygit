@@ -61,7 +61,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 					style.FgCyan,
 				)
 			},
-			reset: gui.exitCherryPickingMode,
+			reset: gui.helpers.cherryPick.Reset,
 		},
 		{
 			isActive: func() bool {
@@ -73,7 +73,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 					formatWorkingTreeState(workingTreeState), style.FgYellow,
 				)
 			},
-			reset: gui.abortMergeOrRebaseWithConfirm,
+			reset: gui.helpers.rebase.AbortMergeOrRebaseWithConfirm,
 		},
 		{
 			isActive: func() bool {

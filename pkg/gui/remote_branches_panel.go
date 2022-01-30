@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -117,4 +118,16 @@ func (gui *Gui) handleEnterRemoteBranch() error {
 	}
 
 	return gui.switchToSubCommitsContext(selectedBranch.RefName())
+}
+
+func (gui *Gui) handleNewBranchOffRemoteBranch() error {
+	selectedBranch := gui.getSelectedRemoteBranch()
+	if selectedBranch == nil {
+		return nil
+	}
+
+	// will set to the remote's branch name without the remote name
+	nameSuggestion := strings.SplitAfterN(selectedBranch.RefName(), "/", 2)[1]
+
+	return gui.helpers.refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), nameSuggestion)
 }

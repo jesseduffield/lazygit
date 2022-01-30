@@ -74,6 +74,8 @@ type Helpers struct {
 	files       *FilesHelper
 	workingTree *WorkingTreeHelper
 	tags        *controllers.TagsHelper
+	rebase      *controllers.RebaseHelper
+	cherryPick  *controllers.CherryPickHelper
 }
 
 type Repo string
@@ -373,7 +375,7 @@ const (
 
 type Modes struct {
 	Filtering     filtering.Filtering
-	CherryPicking cherrypicking.CherryPicking
+	CherryPicking *cherrypicking.CherryPicking
 	Diffing       diffing.Diffing
 }
 
@@ -556,10 +558,12 @@ func (gui *Gui) setControllers() {
 	getState := func() *GuiRepoState { return gui.State }
 	getContexts := func() context.ContextTree { return gui.State.Contexts }
 	// TODO: have a getGit function too
+	rebaseHelper := controllers.NewRebaseHelper(controllerCommon, getContexts, gui.git, gui.takeOverMergeConflictScrolling)
 	gui.helpers = &Helpers{
 		refs: NewRefsHelper(
 			controllerCommon,
 			gui.git,
+			getContexts,
 			getState,
 		),
 		bisect:      controllers.NewBisectHelper(controllerCommon, gui.git),
@@ -567,6 +571,14 @@ func (gui *Gui) setControllers() {
 		files:       NewFilesHelper(controllerCommon, gui.git, osCommand),
 		workingTree: NewWorkingTreeHelper(func() []*models.File { return gui.State.Files }),
 		tags:        controllers.NewTagsHelper(controllerCommon, gui.git),
+		rebase:      rebaseHelper,
+		cherryPick: controllers.NewCherryPickHelper(
+			controllerCommon,
+			gui.git,
+			getContexts,
+			func() *cherrypicking.CherryPicking { return gui.State.Modes.CherryPicking },
+			rebaseHelper,
+		),
 	}
 
 	syncController := controllers.NewSyncController(
@@ -575,7 +587,7 @@ func (gui *Gui) setControllers() {
 		gui.getCheckedOutBranch,
 		gui.helpers.suggestions,
 		gui.getSuggestedRemote,
-		gui.checkMergeOrRebase,
+		gui.helpers.rebase.CheckMergeOrRebase,
 	)
 
 	gui.Controllers = Controllers{
@@ -624,10 +636,12 @@ func (gui *Gui) setControllers() {
 			gui.git,
 			gui.helpers.tags,
 			gui.helpers.refs,
+			gui.helpers.cherryPick,
+			gui.helpers.rebase,
 			gui.getSelectedLocalCommit,
 			func() []*models.Commit { return gui.State.Commits },
 			func() int { return gui.State.Panels.Commits.SelectedLineIdx },
-			gui.checkMergeOrRebase,
+			gui.helpers.rebase.CheckMergeOrRebase,
 			syncController.HandlePull,
 			gui.getHostingServiceMgr,
 			gui.SwitchToCommitFilesContext,

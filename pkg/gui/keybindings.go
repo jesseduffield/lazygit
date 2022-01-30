@@ -276,7 +276,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		{
 			ViewName:    "",
 			Key:         gui.getKey(config.Universal.CreateRebaseOptionsMenu),
-			Handler:     gui.handleCreateRebaseOptionsMenu,
+			Handler:     gui.helpers.rebase.CreateRebaseOptionsMenu,
 			Description: gui.c.Tr.ViewMergeRebaseOptions,
 			OpensMenu:   true,
 		},
@@ -423,7 +423,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			ViewName:    "branches",
 			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.New),
-			Handler:     gui.handleNewBranchOffCurrentItem,
+			Handler:     gui.handleNewBranchOffBranch,
 			Description: gui.c.Tr.LcNewBranch,
 		},
 		{
@@ -516,13 +516,6 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		{
 			ViewName:    "commits",
 			Contexts:    []string{string(context.BRANCH_COMMITS_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Commits.CherryPickCopy),
-			Handler:     gui.handleCopyCommit,
-			Description: gui.c.Tr.LcCherryPickCopy,
-		},
-		{
-			ViewName:    "commits",
-			Contexts:    []string{string(context.BRANCH_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.CopyToClipboard),
 			Handler:     gui.handleCopySelectedSideContextItemToClipboard,
 			Description: gui.c.Tr.LcCopyCommitShaToClipboard,
@@ -530,30 +523,8 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		{
 			ViewName:    "commits",
 			Contexts:    []string{string(context.BRANCH_COMMITS_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Commits.CherryPickCopyRange),
-			Handler:     gui.handleCopyCommitRange,
-			Description: gui.c.Tr.LcCherryPickCopyRange,
-		},
-		{
-			ViewName:    "commits",
-			Contexts:    []string{string(context.BRANCH_COMMITS_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Commits.PasteCommits),
-			Handler:     guards.OutsideFilterMode(gui.HandlePasteCommits),
-			Description: gui.c.Tr.LcPasteCommits,
-		},
-		{
-			ViewName:    "commits",
-			Contexts:    []string{string(context.BRANCH_COMMITS_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Universal.New),
-			Modifier:    gocui.ModNone,
-			Handler:     gui.handleNewBranchOffCurrentItem,
-			Description: gui.c.Tr.LcCreateNewBranchFromCommit,
-		},
-		{
-			ViewName:    "commits",
-			Contexts:    []string{string(context.BRANCH_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.ResetCherryPick),
-			Handler:     gui.exitCherryPickingMode,
+			Handler:     gui.helpers.cherryPick.Reset,
 			Description: gui.c.Tr.LcResetCherryPick,
 		},
 		{
@@ -582,21 +553,21 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			ViewName:    "commits",
 			Contexts:    []string{string(context.REFLOG_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.CherryPickCopy),
-			Handler:     guards.OutsideFilterMode(gui.handleCopyCommit),
+			Handler:     guards.OutsideFilterMode(gui.handleCopyReflogCommit),
 			Description: gui.c.Tr.LcCherryPickCopy,
 		},
 		{
 			ViewName:    "commits",
 			Contexts:    []string{string(context.REFLOG_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.CherryPickCopyRange),
-			Handler:     guards.OutsideFilterMode(gui.handleCopyCommitRange),
+			Handler:     guards.OutsideFilterMode(gui.handleCopyReflogCommitRange),
 			Description: gui.c.Tr.LcCherryPickCopyRange,
 		},
 		{
 			ViewName:    "commits",
 			Contexts:    []string{string(context.REFLOG_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.ResetCherryPick),
-			Handler:     gui.exitCherryPickingMode,
+			Handler:     gui.helpers.cherryPick.Reset,
 			Description: gui.c.Tr.LcResetCherryPick,
 		},
 		{
@@ -632,28 +603,28 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			ViewName:    "branches",
 			Contexts:    []string{string(context.SUB_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.New),
-			Handler:     gui.handleNewBranchOffCurrentItem,
+			Handler:     gui.handleNewBranchOffSubCommit,
 			Description: gui.c.Tr.LcNewBranch,
 		},
 		{
 			ViewName:    "branches",
 			Contexts:    []string{string(context.SUB_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.CherryPickCopy),
-			Handler:     gui.handleCopyCommit,
+			Handler:     gui.handleCopySubCommit,
 			Description: gui.c.Tr.LcCherryPickCopy,
 		},
 		{
 			ViewName:    "branches",
 			Contexts:    []string{string(context.SUB_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.CherryPickCopyRange),
-			Handler:     gui.handleCopyCommitRange,
+			Handler:     gui.handleCopySubCommitRange,
 			Description: gui.c.Tr.LcCherryPickCopyRange,
 		},
 		{
 			ViewName:    "branches",
 			Contexts:    []string{string(context.SUB_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.ResetCherryPick),
-			Handler:     gui.exitCherryPickingMode,
+			Handler:     gui.helpers.cherryPick.Reset,
 			Description: gui.c.Tr.LcResetCherryPick,
 		},
 		{
@@ -690,7 +661,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		{
 			ViewName:    "stash",
 			Key:         gui.getKey(config.Universal.New),
-			Handler:     gui.handleNewBranchOffCurrentItem,
+			Handler:     gui.handleNewBranchOffStashEntry,
 			Description: gui.c.Tr.LcNewBranch,
 		},
 		{
@@ -1220,14 +1191,14 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			Contexts: []string{string(context.REMOTE_BRANCHES_CONTEXT_KEY)},
 			Key:      gui.getKey(config.Universal.Select),
 			// gonna use the exact same handler as the 'n' keybinding because everybody wants this to happen when they checkout a remote branch
-			Handler:     gui.handleNewBranchOffCurrentItem,
+			Handler:     gui.handleNewBranchOffRemoteBranch,
 			Description: gui.c.Tr.LcCheckout,
 		},
 		{
 			ViewName:    "branches",
 			Contexts:    []string{string(context.REMOTE_BRANCHES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.New),
-			Handler:     gui.handleNewBranchOffCurrentItem,
+			Handler:     gui.handleNewBranchOffRemoteBranch,
 			Description: gui.c.Tr.LcNewBranch,
 		},
 		{

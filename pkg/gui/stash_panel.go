@@ -136,3 +136,12 @@ func (gui *Gui) handleViewStashFiles() error {
 		WindowName: "stash",
 	})
 }
+
+func (gui *Gui) handleNewBranchOffStashEntry() error {
+	stashEntry := gui.getSelectedStashEntry()
+	if stashEntry == nil {
+		return nil
+	}
+
+	return gui.helpers.refs.NewBranch(stashEntry.RefName(), stashEntry.Description(), "")
+}

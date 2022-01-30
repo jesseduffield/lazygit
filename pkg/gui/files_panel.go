@@ -4,7 +4,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // list panel functions
@@ -75,19 +74,6 @@ func (gui *Gui) filesRenderToMain() error {
 	}
 
 	return gui.refreshMainViews(refreshOpts)
-}
-
-// promptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
-func (gui *Gui) promptToContinueRebase() error {
-	gui.takeOverMergeConflictScrolling()
-
-	return gui.PopupHandler.Ask(types.AskOpts{
-		Title:  "continue",
-		Prompt: gui.Tr.ConflictsResolved,
-		HandleConfirm: func() error {
-			return gui.genericMergeCommand(REBASE_OPTION_CONTINUE)
-		},
-	})
 }
 
 func (gui *Gui) onFocusFile() error {

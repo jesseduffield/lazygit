@@ -7,7 +7,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -240,7 +239,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		HandleConfirm: func() error {
 			gui.c.LogAction(gui.c.Tr.Actions.Merge)
 			err := gui.git.Branch.Merge(branchName, git_commands.MergeOpts{})
-			return gui.checkMergeOrRebase(err)
+			return gui.helpers.rebase.CheckMergeOrRebase(err)
 		},
 	})
 }
@@ -274,7 +273,7 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 		HandleConfirm: func() error {
 			gui.c.LogAction(gui.c.Tr.Actions.RebaseBranch)
 			err := gui.git.Rebase.RebaseBranch(selectedBranchName)
-			return gui.checkMergeOrRebase(err)
+			return gui.helpers.rebase.CheckMergeOrRebase(err)
 		},
 	})
 }
@@ -391,55 +390,6 @@ func (gui *Gui) handleRenameBranch() error {
 	})
 }
 
-func (gui *Gui) handleNewBranchOffCurrentItem() error {
-	ctx := gui.currentSideListContext()
-
-	item, ok := ctx.GetSelectedItem()
-	if !ok {
-		return nil
-	}
-
-	message := utils.ResolvePlaceholderString(
-		gui.c.Tr.NewBranchNameBranchOff,
-		map[string]string{
-			"branchName": item.Description(),
-		},
-	)
-
-	prefilledName := ""
-	if ctx.GetKey() == context.REMOTE_BRANCHES_CONTEXT_KEY {
-		// will set to the remote's branch name without the remote name
-		prefilledName = strings.SplitAfterN(item.ID(), "/", 2)[1]
-	}
-
-	return gui.c.Prompt(types.PromptOpts{
-		Title:          message,
-		InitialContent: prefilledName,
-		HandleConfirm: func(response string) error {
-			gui.c.LogAction(gui.c.Tr.Actions.CreateBranch)
-			if err := gui.git.Branch.New(sanitizedBranchName(response), item.ID()); err != nil {
-				return err
-			}
-
-			// if we're currently in the branch commits context then the selected commit
-			// is about to go to the top of the list
-			if ctx.GetKey() == context.BRANCH_COMMITS_CONTEXT_KEY {
-				ctx.GetPanelState().SetSelectedLineIdx(0)
-			}
-
-			if ctx.GetKey() != gui.State.Contexts.Branches.GetKey() {
-				if err := gui.c.PushContext(gui.State.Contexts.Branches); err != nil {
-					return err
-				}
-			}
-
-			gui.State.Panels.Branches.SelectedLineIdx = 0
-
-			return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-		},
-	})
-}
-
 // sanitizedBranchName will remove all spaces in favor of a dash "-" to meet
 // git's branch naming requirement.
 func sanitizedBranchName(input string) string {
@@ -453,4 +403,13 @@ func (gui *Gui) handleEnterBranch() error {
 	}
 
 	return gui.switchToSubCommitsContext(branch.RefName())
+}
+
+func (gui *Gui) handleNewBranchOffBranch() error {
+	selectedBranch := gui.getSelectedBranch()
+	if selectedBranch == nil {
+		return nil
+	}
+
+	return gui.helpers.refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), "")
 }
