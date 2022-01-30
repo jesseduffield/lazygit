@@ -306,12 +306,29 @@ func (gui *Gui) handleFastForward() error {
 	)
 
 	return gui.c.WithLoaderPanel(message, func() error {
-		gui.c.LogAction(action)
-		err := gui.git.Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
-		if err != nil {
-			_ = gui.c.Error(err)
+		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
+			gui.c.LogAction(action)
+
+			err := gui.git.Sync.Pull(
+				git_commands.PullOptions{
+					RemoteName:      branch.UpstreamRemote,
+					BranchName:      branch.Name,
+					FastForwardOnly: true,
+				},
+			)
+			if err != nil {
+				_ = gui.c.Error(err)
+			}
+
+			return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		} else {
+			gui.c.LogAction(action)
+			err := gui.git.Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
+			if err != nil {
+				_ = gui.c.Error(err)
+			}
+			_ = gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 		}
-		_ = gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 
 		return nil
 	})
