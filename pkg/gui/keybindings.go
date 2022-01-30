@@ -1496,5 +1496,18 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 }
 
 func isMouseKey(key interface{}) bool {
-	return key == gocui.MouseLeft || key == gocui.MouseRight || key == gocui.MouseMiddle || key == gocui.MouseRelease || key == gocui.MouseWheelUp || key == gocui.MouseWheelDown || key == gocui.MouseWheelLeft || key == gocui.MouseWheelRight
+	switch key {
+	case
+		gocui.MouseLeft,
+		gocui.MouseRight,
+		gocui.MouseMiddle,
+		gocui.MouseRelease,
+		gocui.MouseWheelUp,
+		gocui.MouseWheelDown,
+		gocui.MouseWheelLeft,
+		gocui.MouseWheelRight:
+		return true
+	default:
+		return false
+	}
 }
