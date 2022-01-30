@@ -142,13 +142,13 @@ func TestGetFile(t *testing.T) {
 	}{
 		{
 			name:      "valid case",
-			viewModel: NewFileTreeViewModel([]*models.File{{Name: "blah/one"}, {Name: "blah/two"}}, nil, false),
+			viewModel: NewFileTreeViewModel(func() []*models.File { return []*models.File{{Name: "blah/one"}, {Name: "blah/two"}} }, nil, false),
 			path:      "blah/two",
 			expected:  &models.File{Name: "blah/two"},
 		},
 		{
 			name:      "not found",
-			viewModel: NewFileTreeViewModel([]*models.File{{Name: "blah/one"}, {Name: "blah/two"}}, nil, false),
+			viewModel: NewFileTreeViewModel(func() []*models.File { return []*models.File{{Name: "blah/one"}, {Name: "blah/two"}} }, nil, false),
 			path:      "blah/three",
 			expected:  nil,
 		},

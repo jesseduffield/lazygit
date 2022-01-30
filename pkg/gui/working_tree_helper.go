@@ -2,21 +2,20 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 )
 
 type WorkingTreeHelper struct {
-	getFileTreeViewModel func() *filetree.FileTreeViewModel
+	getFiles func() []*models.File
 }
 
-func NewWorkingTreeHelper(getFileTreeViewModel func() *filetree.FileTreeViewModel) *WorkingTreeHelper {
+func NewWorkingTreeHelper(getFiles func() []*models.File) *WorkingTreeHelper {
 	return &WorkingTreeHelper{
-		getFileTreeViewModel: getFileTreeViewModel,
+		getFiles: getFiles,
 	}
 }
 
 func (self *WorkingTreeHelper) AnyStagedFiles() bool {
-	files := self.getFileTreeViewModel().GetAllFiles()
+	files := self.getFiles()
 	for _, file := range files {
 		if file.HasStagedChanges {
 			return true
@@ -26,7 +25,7 @@ func (self *WorkingTreeHelper) AnyStagedFiles() bool {
 }
 
 func (self *WorkingTreeHelper) AnyTrackedFiles() bool {
-	files := self.getFileTreeViewModel().GetAllFiles()
+	files := self.getFiles()
 	for _, file := range files {
 		if file.Tracked {
 			return true
@@ -40,7 +39,7 @@ func (self *WorkingTreeHelper) IsWorkingTreeDirty() bool {
 }
 
 func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfig) *models.File {
-	for _, file := range self.getFileTreeViewModel().GetAllFiles() {
+	for _, file := range self.getFiles() {
 		if file.IsSubmodule([]*models.SubmoduleConfig{submodule}) {
 			return file
 		}

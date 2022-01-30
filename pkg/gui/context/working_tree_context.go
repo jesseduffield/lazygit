@@ -3,19 +3,21 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/sirupsen/logrus"
 )
 
-type TagsContext struct {
-	*TagsViewModel
+type WorkingTreeContext struct {
+	*WorkingTreeViewModal
 	*BaseContext
 	*ListContextTrait
 }
 
-var _ types.IListContext = (*TagsContext)(nil)
+var _ types.IListContext = (*WorkingTreeContext)(nil)
 
-func NewTagsContext(
-	getModel func() []*models.Tag,
+func NewWorkingTreeContext(
+	getModel func() []*models.File,
 	getView func() *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
@@ -24,18 +26,18 @@ func NewTagsContext(
 	onFocusLost func() error,
 
 	c *types.ControllerCommon,
-) *TagsContext {
+) *WorkingTreeContext {
 	baseContext := NewBaseContext(NewBaseContextOpts{
-		ViewName:   "branches",
-		WindowName: "branches",
-		Key:        TAGS_CONTEXT_KEY,
+		ViewName:   "files",
+		WindowName: "files",
+		Key:        FILES_CONTEXT_KEY,
 		Kind:       types.SIDE_CONTEXT,
 	})
 
-	self := &TagsContext{}
+	self := &WorkingTreeContext{}
 	takeFocus := func() error { return c.PushContext(self) }
 
-	list := NewTagsViewModel(getModel)
+	list := NewWorkingTreeViewModal(getModel, c.Log, c.UserConfig.Gui.ShowFileTree)
 	viewTrait := NewViewTrait(getView)
 	listContextTrait := &ListContextTrait{
 		base:      baseContext,
@@ -56,36 +58,38 @@ func NewTagsContext(
 
 	self.BaseContext = baseContext
 	self.ListContextTrait = listContextTrait
-	self.TagsViewModel = list
+	self.WorkingTreeViewModal = list
 
 	return self
 }
 
-type TagsViewModel struct {
+type WorkingTreeViewModal struct {
 	*ListTrait
-	getModel func() []*models.Tag
+	*filetree.FileTreeViewModel
+	getModel func() []*models.File
 }
 
-func (self *TagsViewModel) GetItemsLength() int {
-	return len(self.getModel())
+func (self *WorkingTreeViewModal) GetItemsLength() int {
+	return self.FileTreeViewModel.GetItemsLength()
 }
 
-func (self *TagsViewModel) GetSelectedTag() *models.Tag {
+func (self *WorkingTreeViewModal) GetSelectedFileNode() *filetree.FileNode {
 	if self.GetItemsLength() == 0 {
 		return nil
 	}
 
-	return self.getModel()[self.GetSelectedLineIdx()]
+	return self.FileTreeViewModel.GetItemAtIndex(self.selectedIdx)
 }
 
-func (self *TagsViewModel) GetSelectedItem() (types.ListItem, bool) {
-	item := self.GetSelectedTag()
+func (self *WorkingTreeViewModal) GetSelectedItem() (types.ListItem, bool) {
+	item := self.GetSelectedFileNode()
 	return item, item != nil
 }
 
-func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
-	self := &TagsViewModel{
-		getModel: getModel,
+func NewWorkingTreeViewModal(getModel func() []*models.File, log *logrus.Entry, showTree bool) *WorkingTreeViewModal {
+	self := &WorkingTreeViewModal{
+		getModel:          getModel,
+		FileTreeViewModel: filetree.NewFileTreeViewModel(getModel, log, showTree),
 	}
 
 	self.ListTrait = &ListTrait{
@@ -94,13 +98,4 @@ func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
 	}
 
 	return self
-}
-
-func clamp(x int, min int, max int) int {
-	if x < min {
-		return min
-	} else if x > max {
-		return max
-	}
-	return x
 }

@@ -28,21 +28,12 @@ func (gui *Gui) menuListContext() types.IListContext {
 	}
 }
 
-func (gui *Gui) filesListContext() types.IListContext {
-	return &ListContext{
-		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
-			ViewName:   "files",
-			WindowName: "files",
-			Key:        context.FILES_CONTEXT_KEY,
-			Kind:       types.SIDE_CONTEXT,
-		}),
-		GetItemsLength:  func() int { return gui.State.FileTreeViewModel.GetItemsLength() },
-		OnGetPanelState: func() types.IListPanelState { return gui.State.Panels.Files },
-		OnFocus:         OnFocusWrapper(gui.onFocusFile),
-		OnRenderToMain:  OnFocusWrapper(gui.withDiffModeCheck(gui.filesRenderToMain)),
-		Gui:             gui,
-		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			lines := presentation.RenderFileTree(gui.State.FileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.State.Submodules)
+func (gui *Gui) filesListContext() *context.WorkingTreeContext {
+	return context.NewWorkingTreeContext(
+		func() []*models.File { return gui.State.Files },
+		func() *gocui.View { return gui.Views.Files },
+		func(startIdx int, length int) [][]string {
+			lines := presentation.RenderFileTree(gui.State.Contexts.Files.FileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.State.Submodules)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}
@@ -50,11 +41,11 @@ func (gui *Gui) filesListContext() types.IListContext {
 
 			return mappedLines
 		},
-		SelectedItem: func() (types.ListItem, bool) {
-			item := gui.getSelectedFileNode()
-			return item, item != nil
-		},
-	}
+		OnFocusWrapper(gui.onFocusFile),
+		OnFocusWrapper(gui.withDiffModeCheck(gui.filesRenderToMain)),
+		nil,
+		gui.c,
+	)
 }
 
 func (gui *Gui) branchesListContext() types.IListContext {

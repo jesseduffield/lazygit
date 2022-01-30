@@ -19,7 +19,7 @@ const (
 )
 
 type FileTreeViewModel struct {
-	files          []*models.File
+	getFiles       func() []*models.File
 	tree           *FileNode
 	showTree       bool
 	log            *logrus.Entry
@@ -28,16 +28,15 @@ type FileTreeViewModel struct {
 	sync.RWMutex
 }
 
-func NewFileTreeViewModel(files []*models.File, log *logrus.Entry, showTree bool) *FileTreeViewModel {
+func NewFileTreeViewModel(getFiles func() []*models.File, log *logrus.Entry, showTree bool) *FileTreeViewModel {
 	viewModel := &FileTreeViewModel{
+		getFiles:       getFiles,
 		log:            log,
 		showTree:       showTree,
 		filter:         DisplayAll,
 		collapsedPaths: CollapsedPaths{},
 		RWMutex:        sync.RWMutex{},
 	}
-
-	viewModel.SetFiles(files)
 
 	return viewModel
 }
@@ -51,11 +50,9 @@ func (self *FileTreeViewModel) ExpandToPath(path string) {
 }
 
 func (self *FileTreeViewModel) GetFilesForDisplay() []*models.File {
-	files := self.files
-
 	switch self.filter {
 	case DisplayAll:
-		return files
+		return self.getFiles()
 	case DisplayStaged:
 		return self.FilterFiles(func(file *models.File) bool { return file.HasStagedChanges })
 	case DisplayUnstaged:
@@ -69,7 +66,7 @@ func (self *FileTreeViewModel) GetFilesForDisplay() []*models.File {
 
 func (self *FileTreeViewModel) FilterFiles(test func(*models.File) bool) []*models.File {
 	result := make([]*models.File, 0)
-	for _, file := range self.files {
+	for _, file := range self.getFiles() {
 		if test(file) {
 			result = append(result, file)
 		}
@@ -93,7 +90,7 @@ func (self *FileTreeViewModel) GetItemAtIndex(index int) *FileNode {
 }
 
 func (self *FileTreeViewModel) GetFile(path string) *models.File {
-	for _, file := range self.files {
+	for _, file := range self.getFiles() {
 		if file.Name == path {
 			return file
 		}
@@ -120,13 +117,7 @@ func (self *FileTreeViewModel) GetItemsLength() int {
 }
 
 func (self *FileTreeViewModel) GetAllFiles() []*models.File {
-	return self.files
-}
-
-func (self *FileTreeViewModel) SetFiles(files []*models.File) {
-	self.files = files
-
-	self.SetTree()
+	return self.getFiles()
 }
 
 func (self *FileTreeViewModel) SetTree() {
