@@ -23,18 +23,16 @@ Merge branch 'develop' into other_branch
 # Changes to be committed:
 #	new file:   cherrypicking1
 #	new file:   cherrypicking2
-#	new file:   cherrypicking3
 #	new file:   cherrypicking4
 #	new file:   cherrypicking5
+#	new file:   cherrypicking6
 #	new file:   cherrypicking7
 #	new file:   cherrypicking8
 #	new file:   cherrypicking9
 #	modified:   directory/file
-#	modified:   directory/file2
-#	modified:   file1
+#	modified:   file3
 #	modified:   file4
-#	modified:   file5
 #
 # Untracked files:
-#	cherrypicking6
+#	cherrypicking3
 #
