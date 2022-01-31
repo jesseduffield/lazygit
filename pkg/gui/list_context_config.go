@@ -30,10 +30,10 @@ func (gui *Gui) menuListContext() types.IListContext {
 
 func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 	return context.NewWorkingTreeContext(
-		func() []*models.File { return gui.State.Files },
+		func() []*models.File { return gui.State.Model.Files },
 		func() *gocui.View { return gui.Views.Files },
 		func(startIdx int, length int) [][]string {
-			lines := presentation.RenderFileTree(gui.State.Contexts.Files.FileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.State.Submodules)
+			lines := presentation.RenderFileTree(gui.State.Contexts.Files.FileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.State.Model.Submodules)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}
@@ -56,12 +56,12 @@ func (gui *Gui) branchesListContext() types.IListContext {
 			Key:        context.LOCAL_BRANCHES_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
-		GetItemsLength:  func() int { return len(gui.State.Branches) },
+		GetItemsLength:  func() int { return len(gui.State.Model.Branches) },
 		OnGetPanelState: func() types.IListPanelState { return gui.State.Panels.Branches },
 		OnRenderToMain:  OnFocusWrapper(gui.withDiffModeCheck(gui.branchesRenderToMain)),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			return presentation.GetBranchListDisplayStrings(gui.State.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref)
+			return presentation.GetBranchListDisplayStrings(gui.State.Model.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref)
 		},
 		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedBranch()
@@ -81,12 +81,12 @@ func (gui *Gui) remotesListContext() types.IListContext {
 			Key:        context.REMOTES_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
-		GetItemsLength:  func() int { return len(gui.State.Remotes) },
+		GetItemsLength:  func() int { return len(gui.State.Model.Remotes) },
 		OnGetPanelState: func() types.IListPanelState { return gui.State.Panels.Remotes },
 		OnRenderToMain:  OnFocusWrapper(gui.withDiffModeCheck(gui.remotesRenderToMain)),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			return presentation.GetRemoteListDisplayStrings(gui.State.Remotes, gui.State.Modes.Diffing.Ref)
+			return presentation.GetRemoteListDisplayStrings(gui.State.Model.Remotes, gui.State.Modes.Diffing.Ref)
 		},
 		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedRemote()
@@ -106,12 +106,12 @@ func (gui *Gui) remoteBranchesListContext() types.IListContext {
 			Key:        context.REMOTE_BRANCHES_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
-		GetItemsLength:  func() int { return len(gui.State.RemoteBranches) },
+		GetItemsLength:  func() int { return len(gui.State.Model.RemoteBranches) },
 		OnGetPanelState: func() types.IListPanelState { return gui.State.Panels.RemoteBranches },
 		OnRenderToMain:  OnFocusWrapper(gui.withDiffModeCheck(gui.remoteBranchesRenderToMain)),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			return presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Modes.Diffing.Ref)
+			return presentation.GetRemoteBranchListDisplayStrings(gui.State.Model.RemoteBranches, gui.State.Modes.Diffing.Ref)
 		},
 		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedRemoteBranch()
@@ -135,10 +135,10 @@ func (gui *Gui) withDiffModeCheck(f func() error) func() error {
 
 func (gui *Gui) tagsListContext() *context.TagsContext {
 	return context.NewTagsContext(
-		func() []*models.Tag { return gui.State.Tags },
+		func() []*models.Tag { return gui.State.Model.Tags },
 		func() *gocui.View { return gui.Views.Branches },
 		func(startIdx int, length int) [][]string {
-			return presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Modes.Diffing.Ref)
+			return presentation.GetTagListDisplayStrings(gui.State.Model.Tags, gui.State.Modes.Diffing.Ref)
 		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.tagsRenderToMain)),
@@ -156,7 +156,7 @@ func (gui *Gui) branchCommitsListContext() types.IListContext {
 			Key:        context.BRANCH_COMMITS_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
-		GetItemsLength:  func() int { return len(gui.State.Commits) },
+		GetItemsLength:  func() int { return len(gui.State.Model.Commits) },
 		OnGetPanelState: func() types.IListPanelState { return gui.State.Panels.Commits },
 		OnFocus:         OnFocusWrapper(gui.onCommitFocus),
 		OnRenderToMain:  OnFocusWrapper(gui.withDiffModeCheck(gui.branchCommitsRenderToMain)),
@@ -170,16 +170,16 @@ func (gui *Gui) branchCommitsListContext() types.IListContext {
 				}
 			}
 			return presentation.GetCommitListDisplayStrings(
-				gui.State.Commits,
+				gui.State.Model.Commits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.helpers.cherryPick.CherryPickedCommitShaMap(),
+				gui.helpers.CherryPick.CherryPickedCommitShaMap(),
 				gui.State.Modes.Diffing.Ref,
 				parseEmoji,
 				selectedCommitSha,
 				startIdx,
 				length,
 				gui.shouldShowGraph(),
-				gui.State.BisectInfo,
+				gui.State.Model.BisectInfo,
 			)
 		},
 		OnGetSelectedItemId: func() string {
@@ -202,7 +202,7 @@ func (gui *Gui) subCommitsListContext() types.IListContext {
 			Key:        context.SUB_COMMITS_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
-		GetItemsLength:  func() int { return len(gui.State.SubCommits) },
+		GetItemsLength:  func() int { return len(gui.State.Model.SubCommits) },
 		OnGetPanelState: func() types.IListPanelState { return gui.State.Panels.SubCommits },
 		OnRenderToMain:  OnFocusWrapper(gui.withDiffModeCheck(gui.subCommitsRenderToMain)),
 		Gui:             gui,
@@ -215,9 +215,9 @@ func (gui *Gui) subCommitsListContext() types.IListContext {
 				}
 			}
 			return presentation.GetCommitListDisplayStrings(
-				gui.State.SubCommits,
+				gui.State.Model.SubCommits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.helpers.cherryPick.CherryPickedCommitShaMap(),
+				gui.helpers.CherryPick.CherryPickedCommitShaMap(),
 				gui.State.Modes.Diffing.Ref,
 				parseEmoji,
 				selectedCommitSha,
@@ -266,15 +266,15 @@ func (gui *Gui) reflogCommitsListContext() types.IListContext {
 			Key:        context.REFLOG_COMMITS_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
-		GetItemsLength:  func() int { return len(gui.State.FilteredReflogCommits) },
+		GetItemsLength:  func() int { return len(gui.State.Model.FilteredReflogCommits) },
 		OnGetPanelState: func() types.IListPanelState { return gui.State.Panels.ReflogCommits },
 		OnRenderToMain:  OnFocusWrapper(gui.withDiffModeCheck(gui.reflogCommitsRenderToMain)),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetReflogCommitListDisplayStrings(
-				gui.State.FilteredReflogCommits,
+				gui.State.Model.FilteredReflogCommits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.helpers.cherryPick.CherryPickedCommitShaMap(),
+				gui.helpers.CherryPick.CherryPickedCommitShaMap(),
 				gui.State.Modes.Diffing.Ref,
 				parseEmoji,
 			)
@@ -297,12 +297,12 @@ func (gui *Gui) stashListContext() types.IListContext {
 			Key:        context.STASH_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
-		GetItemsLength:  func() int { return len(gui.State.StashEntries) },
+		GetItemsLength:  func() int { return len(gui.State.Model.StashEntries) },
 		OnGetPanelState: func() types.IListPanelState { return gui.State.Panels.Stash },
 		OnRenderToMain:  OnFocusWrapper(gui.withDiffModeCheck(gui.stashRenderToMain)),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			return presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Modes.Diffing.Ref)
+			return presentation.GetStashEntryListDisplayStrings(gui.State.Model.StashEntries, gui.State.Modes.Diffing.Ref)
 		},
 		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedStashEntry()
@@ -316,7 +316,7 @@ func (gui *Gui) stashListContext() types.IListContext {
 
 func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 	return context.NewCommitFilesContext(
-		func() []*models.CommitFile { return gui.State.CommitFiles },
+		func() []*models.CommitFile { return gui.State.Model.CommitFiles },
 		func() *gocui.View { return gui.Views.CommitFiles },
 		func(startIdx int, length int) [][]string {
 			if gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.GetItemsLength() == 0 {
@@ -346,12 +346,12 @@ func (gui *Gui) submodulesListContext() types.IListContext {
 			Key:        context.SUBMODULES_CONTEXT_KEY,
 			Kind:       types.SIDE_CONTEXT,
 		}),
-		GetItemsLength:  func() int { return len(gui.State.Submodules) },
+		GetItemsLength:  func() int { return len(gui.State.Model.Submodules) },
 		OnGetPanelState: func() types.IListPanelState { return gui.State.Panels.Submodules },
 		OnRenderToMain:  OnFocusWrapper(gui.withDiffModeCheck(gui.submodulesRenderToMain)),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			return presentation.GetSubmoduleListDisplayStrings(gui.State.Submodules)
+			return presentation.GetSubmoduleListDisplayStrings(gui.State.Model.Submodules)
 		},
 		OnGetSelectedItemId: func() string {
 			item := gui.getSelectedSubmodule()

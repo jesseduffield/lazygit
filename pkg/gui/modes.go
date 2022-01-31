@@ -61,7 +61,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 					style.FgCyan,
 				)
 			},
-			reset: gui.helpers.cherryPick.Reset,
+			reset: gui.helpers.CherryPick.Reset,
 		},
 		{
 			isActive: func() bool {
@@ -73,16 +73,16 @@ func (gui *Gui) modeStatuses() []modeStatus {
 					formatWorkingTreeState(workingTreeState), style.FgYellow,
 				)
 			},
-			reset: gui.helpers.rebase.AbortMergeOrRebaseWithConfirm,
+			reset: gui.helpers.Rebase.AbortMergeOrRebaseWithConfirm,
 		},
 		{
 			isActive: func() bool {
-				return gui.State.BisectInfo.Started()
+				return gui.State.Model.BisectInfo.Started()
 			},
 			description: func() string {
 				return gui.withResetButton("bisecting", style.FgGreen)
 			},
-			reset: gui.helpers.bisect.Reset,
+			reset: gui.helpers.Bisect.Reset,
 		},
 	}
 }

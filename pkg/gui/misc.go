@@ -5,7 +5,7 @@ import "github.com/jesseduffield/lazygit/pkg/commands/models"
 // this file is to put things where it's not obvious where they belong while this refactor takes place
 
 func (gui *Gui) getSuggestedRemote() string {
-	remotes := gui.State.Remotes
+	remotes := gui.State.Model.Remotes
 
 	return getSuggestedRemote(remotes)
 }

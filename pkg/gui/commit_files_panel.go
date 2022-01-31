@@ -82,8 +82,8 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 		HandleConfirm: func() error {
 			return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 				gui.c.LogAction(gui.c.Tr.Actions.DiscardOldFileChange)
-				if err := gui.git.Rebase.DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
-					if err := gui.helpers.rebase.CheckMergeOrRebase(err); err != nil {
+				if err := gui.git.Rebase.DiscardOldFileChanges(gui.State.Model.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
+					if err := gui.helpers.Rebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
 				}
@@ -109,7 +109,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 	if err != nil {
 		return gui.c.Error(err)
 	}
-	gui.State.CommitFiles = files
+	gui.State.Model.CommitFiles = files
 	gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.SetTree()
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.CommitFiles)
@@ -121,7 +121,7 @@ func (gui *Gui) handleOpenOldCommitFile() error {
 		return nil
 	}
 
-	return gui.helpers.files.OpenFile(node.GetPath())
+	return gui.helpers.Files.OpenFile(node.GetPath())
 }
 
 func (gui *Gui) handleEditCommitFile() error {
@@ -134,7 +134,7 @@ func (gui *Gui) handleEditCommitFile() error {
 		return gui.c.ErrorMsg(gui.c.Tr.ErrCannotEditDirectory)
 	}
 
-	return gui.helpers.files.EditFile(node.GetPath())
+	return gui.helpers.Files.EditFile(node.GetPath())
 }
 
 func (gui *Gui) handleToggleFileForPatch() error {

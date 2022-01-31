@@ -276,7 +276,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		{
 			ViewName:    "",
 			Key:         gui.getKey(config.Universal.CreateRebaseOptionsMenu),
-			Handler:     gui.helpers.rebase.CreateRebaseOptionsMenu,
+			Handler:     gui.helpers.Rebase.CreateRebaseOptionsMenu,
 			Description: gui.c.Tr.ViewMergeRebaseOptions,
 			OpensMenu:   true,
 		},
@@ -524,7 +524,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			ViewName:    "commits",
 			Contexts:    []string{string(context.BRANCH_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.ResetCherryPick),
-			Handler:     gui.helpers.cherryPick.Reset,
+			Handler:     gui.helpers.CherryPick.Reset,
 			Description: gui.c.Tr.LcResetCherryPick,
 		},
 		{
@@ -567,7 +567,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			ViewName:    "commits",
 			Contexts:    []string{string(context.REFLOG_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.ResetCherryPick),
-			Handler:     gui.helpers.cherryPick.Reset,
+			Handler:     gui.helpers.CherryPick.Reset,
 			Description: gui.c.Tr.LcResetCherryPick,
 		},
 		{
@@ -624,7 +624,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			ViewName:    "branches",
 			Contexts:    []string{string(context.SUB_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.ResetCherryPick),
-			Handler:     gui.helpers.cherryPick.Reset,
+			Handler:     gui.helpers.CherryPick.Reset,
 			Description: gui.c.Tr.LcResetCherryPick,
 		},
 		{
@@ -1450,7 +1450,9 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 	return bindings
 }
 
-func (gui *Gui) keybindings() error {
+func (gui *Gui) resetKeybindings() error {
+	gui.g.DeleteAllKeybindings()
+
 	bindings := gui.GetCustomCommandKeybindings()
 
 	bindings = append(bindings, gui.GetInitialKeybindings()...)

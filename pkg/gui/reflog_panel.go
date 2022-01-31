@@ -10,7 +10,7 @@ import (
 
 func (gui *Gui) getSelectedReflogCommit() *models.Commit {
 	selectedLine := gui.State.Panels.ReflogCommits.SelectedLineIdx
-	reflogComits := gui.State.FilteredReflogCommits
+	reflogComits := gui.State.Model.FilteredReflogCommits
 	if selectedLine == -1 || len(reflogComits) == 0 {
 		return nil
 	}
@@ -48,7 +48,7 @@ func (gui *Gui) CheckoutReflogCommit() error {
 		Prompt: gui.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {
 			gui.c.LogAction(gui.c.Tr.Actions.CheckoutReflogCommit)
-			return gui.helpers.refs.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
+			return gui.helpers.Refs.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
 		},
 	})
 	if err != nil {
@@ -63,7 +63,7 @@ func (gui *Gui) CheckoutReflogCommit() error {
 func (gui *Gui) handleCreateReflogResetMenu() error {
 	commit := gui.getSelectedReflogCommit()
 
-	return gui.helpers.refs.CreateGitResetMenu(commit.Sha)
+	return gui.helpers.Refs.CreateGitResetMenu(commit.Sha)
 }
 
 func (gui *Gui) handleViewReflogCommitFiles() error {
@@ -86,7 +86,7 @@ func (gui *Gui) handleCopyReflogCommit() error {
 		return nil
 	}
 
-	return gui.helpers.cherryPick.Copy(commit, gui.State.FilteredReflogCommits, gui.State.Contexts.ReflogCommits)
+	return gui.helpers.CherryPick.Copy(commit, gui.State.Model.FilteredReflogCommits, gui.State.Contexts.ReflogCommits)
 }
 
 func (gui *Gui) handleCopyReflogCommitRange() error {
@@ -96,5 +96,5 @@ func (gui *Gui) handleCopyReflogCommitRange() error {
 		return nil
 	}
 
-	return gui.helpers.cherryPick.CopyRange(gui.State.Contexts.ReflogCommits.GetPanelState().GetSelectedLineIdx(), gui.State.FilteredReflogCommits, gui.State.Contexts.ReflogCommits)
+	return gui.helpers.CherryPick.CopyRange(gui.State.Contexts.ReflogCommits.GetPanelState().GetSelectedLineIdx(), gui.State.Model.FilteredReflogCommits, gui.State.Contexts.ReflogCommits)
 }

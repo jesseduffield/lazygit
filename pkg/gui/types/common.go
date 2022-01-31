@@ -1,9 +1,12 @@
 package types
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
 type ControllerCommon struct {
@@ -89,4 +92,30 @@ type MenuItem struct {
 	OnPress        func() error
 	// only applies when displayString is used
 	OpensMenu bool
+}
+
+type Model struct {
+	CommitFiles  []*models.CommitFile
+	Files        []*models.File
+	Submodules   []*models.SubmoduleConfig
+	Branches     []*models.Branch
+	Commits      []*models.Commit
+	StashEntries []*models.StashEntry
+	SubCommits   []*models.Commit
+	Remotes      []*models.Remote
+
+	// FilteredReflogCommits are the ones that appear in the reflog panel.
+	// when in filtering mode we only include the ones that match the given path
+	FilteredReflogCommits []*models.Commit
+	// ReflogCommits are the ones used by the branches panel to obtain recency values
+	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
+	// one and the same
+	ReflogCommits []*models.Commit
+
+	BisectInfo     *git_commands.BisectInfo
+	RemoteBranches []*models.RemoteBranch
+	Tags           []*models.Tag
+
+	// for displaying suggestions while typing in a file name
+	FilesTrie *patricia.Trie
 }

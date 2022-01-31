@@ -1,10 +1,9 @@
-package gui
+package controllers
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -22,30 +21,39 @@ import (
 // finding suggestions in this file, so that it's easy to see if a function already
 // exists for fetching a particular model.
 
+type ISuggestionsHelper interface {
+	GetRemoteSuggestionsFunc() func(string) []*types.Suggestion
+	GetBranchNameSuggestionsFunc() func(string) []*types.Suggestion
+	GetFilePathSuggestionsFunc() func(string) []*types.Suggestion
+	GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion
+	GetRefsSuggestionsFunc() func(string) []*types.Suggestion
+	GetCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion
+}
+
 type SuggestionsHelper struct {
 	c *types.ControllerCommon
 
-	getState             func() *GuiRepoState
+	model                *types.Model
 	refreshSuggestionsFn func()
 }
 
-var _ controllers.ISuggestionsHelper = &SuggestionsHelper{}
+var _ ISuggestionsHelper = &SuggestionsHelper{}
 
 func NewSuggestionsHelper(
 	c *types.ControllerCommon,
-	getState func() *GuiRepoState,
+	model *types.Model,
 	refreshSuggestionsFn func(),
 ) *SuggestionsHelper {
 	return &SuggestionsHelper{
 		c:                    c,
-		getState:             getState,
+		model:                model,
 		refreshSuggestionsFn: refreshSuggestionsFn,
 	}
 }
 
 func (self *SuggestionsHelper) getRemoteNames() []string {
-	result := make([]string, len(self.getState().Remotes))
-	for i, remote := range self.getState().Remotes {
+	result := make([]string, len(self.model.Remotes))
+	for i, remote := range self.model.Remotes {
 		result[i] = remote.Name
 	}
 	return result
@@ -69,8 +77,8 @@ func (self *SuggestionsHelper) GetRemoteSuggestionsFunc() func(string) []*types.
 }
 
 func (self *SuggestionsHelper) getBranchNames() []string {
-	result := make([]string, len(self.getState().Branches))
-	for i, branch := range self.getState().Branches {
+	result := make([]string, len(self.model.Branches))
+	for i, branch := range self.model.Branches {
 		result[i] = branch.Name
 	}
 	return result
@@ -100,8 +108,8 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 }
 
 // here we asynchronously fetch the latest set of paths in the repo and store in
-// self.State.FilesTrie. On the main thread we'll be doing a fuzzy search via
-// self.State.FilesTrie. So if we've looked for a file previously, we'll start with
+// self.model.FilesTrie. On the main thread we'll be doing a fuzzy search via
+// self.model.FilesTrie. So if we've looked for a file previously, we'll start with
 // the old trie and eventually it'll be swapped out for the new one.
 // Notably, unlike other suggestion functions we're not showing all the options
 // if nothing has been typed because there'll be too much to display efficiently
@@ -122,8 +130,9 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 				trie.Insert(patricia.Prefix(path), path)
 				return nil
 			})
+
 		// cache the trie for future use
-		self.getState().FilesTrie = trie
+		self.model.FilesTrie = trie
 
 		self.refreshSuggestionsFn()
 
@@ -132,7 +141,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 
 	return func(input string) []*types.Suggestion {
 		matchingNames := []string{}
-		_ = self.getState().FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
+		_ = self.model.FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
 			matchingNames = append(matchingNames, item.(string))
 			return nil
 		})
@@ -154,7 +163,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 
 func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
 	result := []string{}
-	for _, remote := range self.getState().Remotes {
+	for _, remote := range self.model.Remotes {
 		for _, branch := range remote.Branches {
 			result = append(result, fmt.Sprintf("%s%s%s", remote.Name, separator, branch.Name))
 		}
@@ -167,8 +176,8 @@ func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string
 }
 
 func (self *SuggestionsHelper) getTagNames() []string {
-	result := make([]string, len(self.getState().Tags))
-	for i, tag := range self.getState().Tags {
+	result := make([]string, len(self.model.Tags))
+	for i, tag := range self.model.Tags {
 		result[i] = tag.Name
 	}
 	return result

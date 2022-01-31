@@ -20,7 +20,6 @@ type (
 	GetHostingServiceMgrFn       func() *hosting_service.HostingServiceMgr
 	PullFilesFn                  func() error
 	CheckMergeOrRebase           func(error) error
-	OpenSearchFn                 func(viewName string) error
 )
 
 type LocalCommitsController struct {
@@ -40,7 +39,6 @@ type LocalCommitsController struct {
 	pullFiles                  PullFilesFn
 	getHostingServiceMgr       GetHostingServiceMgrFn
 	switchToCommitFilesContext SwitchToCommitFilesContextFn
-	openSearch                 OpenSearchFn
 	getLimitCommits            func() bool
 	setLimitCommits            func(bool)
 	getShowWholeGitGraph       func() bool
@@ -65,7 +63,6 @@ func NewLocalCommitsController(
 	pullFiles PullFilesFn,
 	getHostingServiceMgr GetHostingServiceMgrFn,
 	switchToCommitFilesContext SwitchToCommitFilesContextFn,
-	openSearch OpenSearchFn,
 	getLimitCommits func() bool,
 	setLimitCommits func(bool),
 	getShowWholeGitGraph func() bool,
@@ -87,7 +84,6 @@ func NewLocalCommitsController(
 		pullFiles:                  pullFiles,
 		getHostingServiceMgr:       getHostingServiceMgr,
 		switchToCommitFilesContext: switchToCommitFilesContext,
-		openSearch:                 openSearch,
 		getLimitCommits:            getLimitCommits,
 		setLimitCommits:            setLimitCommits,
 		getShowWholeGitGraph:       getShowWholeGitGraph,
@@ -191,7 +187,7 @@ func (self *LocalCommitsController) Keybindings(
 		// more commits on demand
 		{
 			Key:         getKey(config.Universal.StartSearch),
-			Handler:     func() error { return self.handleOpenSearch("commits") },
+			Handler:     self.openSearch,
 			Description: self.c.Tr.LcStartSearch,
 			Tag:         "navigation",
 		},
@@ -653,7 +649,7 @@ func (self *LocalCommitsController) handleCreateCommitResetMenu(commit *models.C
 	return self.refsHelper.CreateGitResetMenu(commit.Sha)
 }
 
-func (self *LocalCommitsController) handleOpenSearch(string) error {
+func (self *LocalCommitsController) openSearch() error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if self.getLimitCommits() {
 		self.setLimitCommits(false)
@@ -662,7 +658,9 @@ func (self *LocalCommitsController) handleOpenSearch(string) error {
 		}
 	}
 
-	return self.openSearch("commits")
+	self.c.OpenSearch()
+
+	return nil
 }
 
 func (self *LocalCommitsController) gotoBottom() error {

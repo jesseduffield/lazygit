@@ -289,7 +289,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// here is a good place log some stuff
 	// if you run `lazygit --logs`
 	// this will let you see these branches as prettified json
-	// gui.c.Log.Info(utils.AsJson(gui.State.Branches[0:4]))
+	// gui.c.Log.Info(utils.AsJson(gui.State.Model.Branches[0:4]))
 	return gui.resizeCurrentPopupPanel()
 }
 
@@ -368,10 +368,6 @@ func (gui *Gui) onInitialViewsCreation() error {
 		view.Tabs = tabs
 	}
 	gui.g.Mutexes.ViewsMutex.Unlock()
-
-	if err := gui.keybindings(); err != nil {
-		return err
-	}
 
 	if !gui.c.UserConfig.DisableStartupPopups {
 		popupTasks := []func(chan struct{}) error{}

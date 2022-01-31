@@ -11,7 +11,7 @@ func (gui *Gui) handleCreateResetMenu() error {
 	red := style.FgRed
 
 	nukeStr := "reset --hard HEAD && git clean -fd"
-	if len(gui.State.Submodules) > 0 {
+	if len(gui.State.Model.Submodules) > 0 {
 		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, gui.c.Tr.LcAndResetSubmodules)
 	}
 

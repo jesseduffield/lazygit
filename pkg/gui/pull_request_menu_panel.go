@@ -28,7 +28,7 @@ func (gui *Gui) createPullRequestMenu(selectedBranch *models.Branch, checkedOutB
 				OnPress: func() error {
 					return gui.c.Prompt(types.PromptOpts{
 						Title:               branch.Name + " →",
-						FindSuggestionsFunc: gui.helpers.suggestions.GetBranchNameSuggestionsFunc(),
+						FindSuggestionsFunc: gui.helpers.Suggestions.GetBranchNameSuggestionsFunc(),
 						HandleConfirm: func(targetBranchName string) error {
 							return gui.createPullRequest(branch.Name, targetBranchName)
 						}},

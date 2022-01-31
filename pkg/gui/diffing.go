@@ -124,7 +124,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 			OnPress: func() error {
 				return gui.c.Prompt(types.PromptOpts{
 					Title:               gui.c.Tr.LcEnteRefName,
-					FindSuggestionsFunc: gui.helpers.suggestions.GetRefsSuggestionsFunc(),
+					FindSuggestionsFunc: gui.helpers.Suggestions.GetRefsSuggestionsFunc(),
 					HandleConfirm: func(response string) error {
 						gui.State.Modes.Diffing.Ref = strings.TrimSpace(response)
 						return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
