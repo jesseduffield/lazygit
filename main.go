@@ -132,10 +132,10 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	app, err := app.NewApp(appConfig, filterPath)
+	app, err := app.NewApp(appConfig)
 
 	if err == nil {
-		err = app.Run()
+		err = app.Run(filterPath)
 	}
 
 	if err != nil {

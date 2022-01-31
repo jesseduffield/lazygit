@@ -11,7 +11,7 @@ import (
 
 func (gui *Gui) getSelectedSubCommit() *models.Commit {
 	selectedLine := gui.State.Panels.SubCommits.SelectedLineIdx
-	commits := gui.State.SubCommits
+	commits := gui.State.Model.SubCommits
 	if selectedLine == -1 || len(commits) == 0 {
 		return nil
 	}
@@ -49,7 +49,7 @@ func (gui *Gui) handleCheckoutSubCommit() error {
 		Prompt: gui.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {
 			gui.c.LogAction(gui.c.Tr.Actions.CheckoutCommit)
-			return gui.helpers.refs.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
+			return gui.helpers.Refs.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
 		},
 	})
 	if err != nil {
@@ -64,7 +64,7 @@ func (gui *Gui) handleCheckoutSubCommit() error {
 func (gui *Gui) handleCreateSubCommitResetMenu() error {
 	commit := gui.getSelectedSubCommit()
 
-	return gui.helpers.refs.CreateGitResetMenu(commit.Sha)
+	return gui.helpers.Refs.CreateGitResetMenu(commit.Sha)
 }
 
 func (gui *Gui) handleViewSubCommitFiles() error {
@@ -95,7 +95,7 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 		return err
 	}
 
-	gui.State.SubCommits = commits
+	gui.State.Model.SubCommits = commits
 	gui.State.Panels.SubCommits.refName = refName
 	gui.State.Contexts.SubCommits.GetPanelState().SetSelectedLineIdx(0)
 	gui.State.Contexts.SubCommits.SetParentContext(gui.currentSideListContext())
@@ -109,7 +109,7 @@ func (gui *Gui) handleNewBranchOffSubCommit() error {
 		return nil
 	}
 
-	return gui.helpers.refs.NewBranch(commit.RefName(), commit.Description(), "")
+	return gui.helpers.Refs.NewBranch(commit.RefName(), commit.Description(), "")
 }
 
 func (gui *Gui) handleCopySubCommit() error {
@@ -118,7 +118,7 @@ func (gui *Gui) handleCopySubCommit() error {
 		return nil
 	}
 
-	return gui.helpers.cherryPick.Copy(commit, gui.State.SubCommits, gui.State.Contexts.SubCommits)
+	return gui.helpers.CherryPick.Copy(commit, gui.State.Model.SubCommits, gui.State.Contexts.SubCommits)
 }
 
 func (gui *Gui) handleCopySubCommitRange() error {
@@ -128,5 +128,5 @@ func (gui *Gui) handleCopySubCommitRange() error {
 		return nil
 	}
 
-	return gui.helpers.cherryPick.CopyRange(gui.State.Contexts.SubCommits.GetPanelState().GetSelectedLineIdx(), gui.State.SubCommits, gui.State.Contexts.SubCommits)
+	return gui.helpers.CherryPick.CopyRange(gui.State.Contexts.SubCommits.GetPanelState().GetSelectedLineIdx(), gui.State.Model.SubCommits, gui.State.Contexts.SubCommits)
 }

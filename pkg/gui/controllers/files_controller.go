@@ -40,7 +40,7 @@ type FilesController struct {
 	switchToMergeFn        func(path string) error
 	suggestionsHelper      ISuggestionsHelper
 	refsHelper             IRefsHelper
-	filesHelper            IFileHelper
+	filesHelper            IFilesHelper
 	workingTreeHelper      IWorkingTreeHelper
 }
 
@@ -64,7 +64,7 @@ func NewFilesController(
 	switchToMergeFn func(path string) error,
 	suggestionsHelper ISuggestionsHelper,
 	refsHelper IRefsHelper,
-	filesHelper IFileHelper,
+	filesHelper IFilesHelper,
 	workingTreeHelper IWorkingTreeHelper,
 ) *FilesController {
 	return &FilesController{

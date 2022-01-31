@@ -48,7 +48,7 @@ func (gui *Gui) handleStatusClick() error {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", formatWorkingTreeState(workingTreeState))
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
-			return gui.helpers.rebase.CreateRebaseOptionsMenu()
+			return gui.helpers.Rebase.CreateRebaseOptionsMenu()
 		}
 		if cursorInSubstring(cx, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
 			return gui.handleCreateRecentReposMenu()
@@ -122,11 +122,11 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 }
 
 func (gui *Gui) handleOpenConfig() error {
-	return gui.askForConfigFile(gui.helpers.files.OpenFile)
+	return gui.askForConfigFile(gui.helpers.Files.OpenFile)
 }
 
 func (gui *Gui) handleEditConfig() error {
-	return gui.askForConfigFile(gui.helpers.files.EditFile)
+	return gui.askForConfigFile(gui.helpers.Files.EditFile)
 }
 
 func lazygitTitle() string {

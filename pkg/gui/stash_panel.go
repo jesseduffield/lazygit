@@ -14,7 +14,7 @@ func (gui *Gui) getSelectedStashEntry() *models.StashEntry {
 		return nil
 	}
 
-	return gui.State.StashEntries[selectedLine]
+	return gui.State.Model.StashEntries[selectedLine]
 }
 
 func (gui *Gui) stashRenderToMain() error {
@@ -143,5 +143,5 @@ func (gui *Gui) handleNewBranchOffStashEntry() error {
 		return nil
 	}
 
-	return gui.helpers.refs.NewBranch(stashEntry.RefName(), stashEntry.Description(), "")
+	return gui.helpers.Refs.NewBranch(stashEntry.RefName(), stashEntry.Description(), "")
 }

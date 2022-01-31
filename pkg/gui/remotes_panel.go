@@ -12,11 +12,11 @@ import (
 
 func (gui *Gui) getSelectedRemote() *models.Remote {
 	selectedLine := gui.State.Panels.Remotes.SelectedLineIdx
-	if selectedLine == -1 || len(gui.State.Remotes) == 0 {
+	if selectedLine == -1 || len(gui.State.Model.Remotes) == 0 {
 		return nil
 	}
 
-	return gui.State.Remotes[selectedLine]
+	return gui.State.Model.Remotes[selectedLine]
 }
 
 func (gui *Gui) remotesRenderToMain() error {

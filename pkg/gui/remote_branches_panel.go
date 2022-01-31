@@ -13,11 +13,11 @@ import (
 
 func (gui *Gui) getSelectedRemoteBranch() *models.RemoteBranch {
 	selectedLine := gui.State.Panels.RemoteBranches.SelectedLineIdx
-	if selectedLine == -1 || len(gui.State.RemoteBranches) == 0 {
+	if selectedLine == -1 || len(gui.State.Model.RemoteBranches) == 0 {
 		return nil
 	}
 
-	return gui.State.RemoteBranches[selectedLine]
+	return gui.State.Model.RemoteBranches[selectedLine]
 }
 
 func (gui *Gui) remoteBranchesRenderToMain() error {
@@ -108,7 +108,7 @@ func (gui *Gui) handleCreateResetToRemoteBranchMenu() error {
 		return nil
 	}
 
-	return gui.helpers.refs.CreateGitResetMenu(selectedBranch.FullName())
+	return gui.helpers.Refs.CreateGitResetMenu(selectedBranch.FullName())
 }
 
 func (gui *Gui) handleEnterRemoteBranch() error {
@@ -129,5 +129,5 @@ func (gui *Gui) handleNewBranchOffRemoteBranch() error {
 	// will set to the remote's branch name without the remote name
 	nameSuggestion := strings.SplitAfterN(selectedBranch.RefName(), "/", 2)[1]
 
-	return gui.helpers.refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), nameSuggestion)
+	return gui.helpers.Refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), nameSuggestion)
 }

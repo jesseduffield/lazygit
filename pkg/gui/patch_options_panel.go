@@ -67,7 +67,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 }
 
 func (gui *Gui) getPatchCommitIndex() int {
-	for index, commit := range gui.State.Commits {
+	for index, commit := range gui.State.Model.Commits {
 		if commit.Sha == gui.git.Patch.PatchManager.To {
 			return index
 		}
@@ -101,8 +101,8 @@ func (gui *Gui) handleDeletePatchFromCommit() error {
 	return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.c.LogAction(gui.c.Tr.Actions.RemovePatchFromCommit)
-		err := gui.git.Patch.DeletePatchesFromCommit(gui.State.Commits, commitIndex)
-		return gui.helpers.rebase.CheckMergeOrRebase(err)
+		err := gui.git.Patch.DeletePatchesFromCommit(gui.State.Model.Commits, commitIndex)
+		return gui.helpers.Rebase.CheckMergeOrRebase(err)
 	})
 }
 
@@ -118,8 +118,8 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 	return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.c.LogAction(gui.c.Tr.Actions.MovePatchToSelectedCommit)
-		err := gui.git.Patch.MovePatchToSelectedCommit(gui.State.Commits, commitIndex, gui.State.Panels.Commits.SelectedLineIdx)
-		return gui.helpers.rebase.CheckMergeOrRebase(err)
+		err := gui.git.Patch.MovePatchToSelectedCommit(gui.State.Model.Commits, commitIndex, gui.State.Panels.Commits.SelectedLineIdx)
+		return gui.helpers.Rebase.CheckMergeOrRebase(err)
 	})
 }
 
@@ -136,12 +136,12 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 		return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 			commitIndex := gui.getPatchCommitIndex()
 			gui.c.LogAction(gui.c.Tr.Actions.MovePatchIntoIndex)
-			err := gui.git.Patch.MovePatchIntoIndex(gui.State.Commits, commitIndex, stash)
-			return gui.helpers.rebase.CheckMergeOrRebase(err)
+			err := gui.git.Patch.MovePatchIntoIndex(gui.State.Model.Commits, commitIndex, stash)
+			return gui.helpers.Rebase.CheckMergeOrRebase(err)
 		})
 	}
 
-	if gui.helpers.workingTree.IsWorkingTreeDirty() {
+	if gui.helpers.WorkingTree.IsWorkingTreeDirty() {
 		return gui.c.Ask(types.AskOpts{
 			Title:  gui.c.Tr.MustStashTitle,
 			Prompt: gui.c.Tr.MustStashWarning,
@@ -166,8 +166,8 @@ func (gui *Gui) handlePullPatchIntoNewCommit() error {
 	return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.c.LogAction(gui.c.Tr.Actions.MovePatchIntoNewCommit)
-		err := gui.git.Patch.PullPatchIntoNewCommit(gui.State.Commits, commitIndex)
-		return gui.helpers.rebase.CheckMergeOrRebase(err)
+		err := gui.git.Patch.PullPatchIntoNewCommit(gui.State.Model.Commits, commitIndex)
+		return gui.helpers.Rebase.CheckMergeOrRebase(err)
 	})
 }
 

@@ -68,14 +68,14 @@ func NewContextManager(initialContext types.Context) ContextManager {
 }
 
 type Helpers struct {
-	refs        *RefsHelper
-	bisect      *controllers.BisectHelper
-	suggestions *SuggestionsHelper
-	files       *FilesHelper
-	workingTree *WorkingTreeHelper
-	tags        *controllers.TagsHelper
-	rebase      *controllers.RebaseHelper
-	cherryPick  *controllers.CherryPickHelper
+	Refs        *controllers.RefsHelper
+	Bisect      *controllers.BisectHelper
+	Suggestions *controllers.SuggestionsHelper
+	Files       *controllers.FilesHelper
+	WorkingTree *controllers.WorkingTreeHelper
+	Tags        *controllers.TagsHelper
+	Rebase      *controllers.RebaseHelper
+	CherryPick  *controllers.CherryPickHelper
 }
 
 type Repo string
@@ -174,40 +174,23 @@ type PrevLayout struct {
 }
 
 type GuiRepoState struct {
-	CommitFiles    []*models.CommitFile
-	Files          []*models.File
-	Submodules     []*models.SubmoduleConfig
-	Branches       []*models.Branch
-	Commits        []*models.Commit
-	StashEntries   []*models.StashEntry
-	SubCommits     []*models.Commit
-	Remotes        []*models.Remote
-	RemoteBranches []*models.RemoteBranch
-	Tags           []*models.Tag
-	// FilteredReflogCommits are the ones that appear in the reflog panel.
-	// when in filtering mode we only include the ones that match the given path
-	FilteredReflogCommits []*models.Commit
-	// ReflogCommits are the ones used by the branches panel to obtain recency values
-	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
-	// one and the same
-	ReflogCommits []*models.Commit
+	Model *types.Model
+	Modes Modes
 
 	// Suggestions will sometimes appear when typing into a prompt
-	Suggestions    []*types.Suggestion
-	MenuItems      []*types.MenuItem
-	BisectInfo     *git_commands.BisectInfo
+	Suggestions []*types.Suggestion
+	MenuItems   []*types.MenuItem
+
 	Updating       bool
 	Panels         *panelStates
 	SplitMainPanel bool
-	MainContext    types.ContextKey // used to keep the main and secondary views' contexts in sync
 
 	IsRefreshingFiles bool
 	Searching         searchingState
 	Ptmx              *os.File
 	StartupStage      StartupStage // Allows us to not load everything at once
 
-	Modes Modes
-
+	MainContext       types.ContextKey // used to keep the main and secondary views' contexts in sync
 	ContextManager    ContextManager
 	Contexts          context.ContextTree
 	ViewContextMap    map[string]types.Context
@@ -222,9 +205,6 @@ type GuiRepoState struct {
 	// do this whenever we switch back and forth between repos to get the views
 	// back in sync with the repo state
 	ViewsSetup bool
-
-	// for displaying suggestions while typing in a file name
-	FilesTrie *patricia.Trie
 
 	// this is the message of the last failed commit attempt
 	failedCommitMessage string
@@ -390,6 +370,29 @@ type guiMutexes struct {
 	SubprocessMutex       *sync.Mutex
 }
 
+func (gui *Gui) onNewRepo(filterPath string, reuseState bool) error {
+	var err error
+	gui.git, err = commands.NewGitCommand(
+		gui.Common,
+		gui.OSCommand,
+		git_config.NewStdCachedGitConfig(gui.Log),
+		gui.Mutexes.SyncMutex,
+	)
+	if err != nil {
+		return err
+	}
+
+	gui.resetState(filterPath, reuseState)
+
+	gui.resetControllers()
+
+	if err := gui.resetKeybindings(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // reuseState determines if we pull the repo state from our repo state map or
 // just re-initialize it. For now we're only re-using state when we're going
 // in and out of submodules, for the sake of having the cursor back on the submodule
@@ -407,7 +410,6 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			if state := gui.RepoStateMap[Repo(currentDir)]; state != nil {
 				gui.State = state
 				gui.State.ViewsSetup = false
-				return
 			}
 		} else {
 			gui.c.Log.Error(err)
@@ -424,12 +426,17 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	}
 
 	gui.State = &GuiRepoState{
-		Files:                 make([]*models.File, 0),
-		Commits:               make([]*models.Commit, 0),
-		FilteredReflogCommits: make([]*models.Commit, 0),
-		ReflogCommits:         make([]*models.Commit, 0),
-		StashEntries:          make([]*models.StashEntry, 0),
-		BisectInfo:            git_commands.NewNullBisectInfo(),
+		Model: &types.Model{
+			CommitFiles:           nil,
+			Files:                 make([]*models.File, 0),
+			Commits:               make([]*models.Commit, 0),
+			StashEntries:          make([]*models.StashEntry, 0),
+			FilteredReflogCommits: make([]*models.Commit, 0),
+			ReflogCommits:         make([]*models.Commit, 0),
+			BisectInfo:            git_commands.NewNullBisectInfo(),
+			FilesTrie:             patricia.NewTrie(),
+		},
+
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Submodules:     &submodulePanelState{listPanelState{SelectedLineIdx: -1}},
@@ -459,7 +466,6 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		// TODO: put contexts in the context manager
 		ContextManager: NewContextManager(initialContext),
 		Contexts:       contexts,
-		FilesTrie:      patricia.NewTrie(),
 	}
 
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
@@ -472,7 +478,6 @@ func NewGui(
 	config config.AppConfigurer,
 	gitConfig git_config.IGitConfig,
 	updater *updates.Updater,
-	filterPath string,
 	showRecentRepos bool,
 	initialDir string,
 ) (*Gui, error) {
@@ -513,16 +518,6 @@ func NewGui(
 	osCommand := oscommands.NewOSCommand(cmn, oscommands.GetPlatform(), guiIO)
 
 	gui.OSCommand = osCommand
-	var err error
-	gui.git, err = commands.NewGitCommand(
-		cmn,
-		osCommand,
-		gitConfig,
-		gui.Mutexes.SyncMutex,
-	)
-	if err != nil {
-		return nil, err
-	}
 
 	gui.watchFilesForChanges()
 
@@ -544,35 +539,32 @@ func NewGui(
 	// TODO: reset these controllers upon changing repos due to state changing
 	gui.c = controllerCommon
 
-	gui.resetState(filterPath, false)
-	gui.setControllers()
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
 	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
 
 	return gui, nil
 }
 
-func (gui *Gui) setControllers() {
+func (gui *Gui) resetControllers() {
 	controllerCommon := gui.c
 	osCommand := gui.OSCommand
-	getState := func() *GuiRepoState { return gui.State }
 	getContexts := func() context.ContextTree { return gui.State.Contexts }
-	// TODO: have a getGit function too
 	rebaseHelper := controllers.NewRebaseHelper(controllerCommon, getContexts, gui.git, gui.takeOverMergeConflictScrolling)
+	model := gui.State.Model
 	gui.helpers = &Helpers{
-		refs: NewRefsHelper(
+		Refs: controllers.NewRefsHelper(
 			controllerCommon,
 			gui.git,
 			getContexts,
-			getState,
+			func() { gui.State.Panels.Commits.LimitCommits = true },
 		),
-		bisect:      controllers.NewBisectHelper(controllerCommon, gui.git),
-		suggestions: NewSuggestionsHelper(controllerCommon, getState, gui.refreshSuggestions),
-		files:       NewFilesHelper(controllerCommon, gui.git, osCommand),
-		workingTree: NewWorkingTreeHelper(func() []*models.File { return gui.State.Files }),
-		tags:        controllers.NewTagsHelper(controllerCommon, gui.git),
-		rebase:      rebaseHelper,
-		cherryPick: controllers.NewCherryPickHelper(
+		Bisect:      controllers.NewBisectHelper(controllerCommon, gui.git),
+		Suggestions: controllers.NewSuggestionsHelper(controllerCommon, model, gui.refreshSuggestions),
+		Files:       controllers.NewFilesHelper(controllerCommon, gui.git, osCommand),
+		WorkingTree: controllers.NewWorkingTreeHelper(model),
+		Tags:        controllers.NewTagsHelper(controllerCommon, gui.git),
+		Rebase:      rebaseHelper,
+		CherryPick: controllers.NewCherryPickHelper(
 			controllerCommon,
 			gui.git,
 			getContexts,
@@ -585,9 +577,9 @@ func (gui *Gui) setControllers() {
 		controllerCommon,
 		gui.git,
 		gui.getCheckedOutBranch,
-		gui.helpers.suggestions,
+		gui.helpers.Suggestions,
 		gui.getSuggestedRemote,
-		gui.helpers.rebase.CheckMergeOrRebase,
+		gui.helpers.Rebase.CheckMergeOrRebase,
 	)
 
 	gui.Controllers = Controllers{
@@ -601,32 +593,32 @@ func (gui *Gui) setControllers() {
 		Files: controllers.NewFilesController(
 			controllerCommon,
 			func() *context.WorkingTreeContext { return gui.State.Contexts.Files },
-			func() []*models.File { return gui.State.Files },
+			func() []*models.File { return gui.State.Model.Files },
 			gui.git,
 			osCommand,
 			gui.getSelectedFileNode,
 			getContexts,
 			gui.enterSubmodule,
-			func() []*models.SubmoduleConfig { return gui.State.Submodules },
+			func() []*models.SubmoduleConfig { return gui.State.Model.Submodules },
 			gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage }),
 			gui.withGpgHandling,
 			func() string { return gui.State.failedCommitMessage },
-			func() []*models.Commit { return gui.State.Commits },
+			func() []*models.Commit { return gui.State.Model.Commits },
 			gui.getSelectedPath,
 			gui.switchToMerge,
-			gui.helpers.suggestions,
-			gui.helpers.refs,
-			gui.helpers.files,
-			gui.helpers.workingTree,
+			gui.helpers.Suggestions,
+			gui.helpers.Refs,
+			gui.helpers.Files,
+			gui.helpers.WorkingTree,
 		),
 		Tags: controllers.NewTagsController(
 			controllerCommon,
 			func() *context.TagsContext { return gui.State.Contexts.Tags },
 			gui.git,
 			getContexts,
-			gui.helpers.tags,
-			gui.helpers.refs,
-			gui.helpers.suggestions,
+			gui.helpers.Tags,
+			gui.helpers.Refs,
+			gui.helpers.Suggestions,
 			gui.switchToSubCommitsContext,
 		),
 		LocalCommits: controllers.NewLocalCommitsController(
@@ -634,18 +626,17 @@ func (gui *Gui) setControllers() {
 			func() types.IListContext { return gui.State.Contexts.BranchCommits },
 			osCommand,
 			gui.git,
-			gui.helpers.tags,
-			gui.helpers.refs,
-			gui.helpers.cherryPick,
-			gui.helpers.rebase,
+			gui.helpers.Tags,
+			gui.helpers.Refs,
+			gui.helpers.CherryPick,
+			gui.helpers.Rebase,
 			gui.getSelectedLocalCommit,
-			func() []*models.Commit { return gui.State.Commits },
+			func() []*models.Commit { return gui.State.Model.Commits },
 			func() int { return gui.State.Panels.Commits.SelectedLineIdx },
-			gui.helpers.rebase.CheckMergeOrRebase,
+			gui.helpers.Rebase.CheckMergeOrRebase,
 			syncController.HandlePull,
 			gui.getHostingServiceMgr,
 			gui.SwitchToCommitFilesContext,
-			gui.handleOpenSearch,
 			func() bool { return gui.State.Panels.Commits.LimitCommits },
 			func(value bool) { gui.State.Panels.Commits.LimitCommits = value },
 			func() bool { return gui.ShowWholeGitGraph },
@@ -657,7 +648,7 @@ func (gui *Gui) setControllers() {
 			gui.git,
 			getContexts,
 			gui.getSelectedRemote,
-			func(branches []*models.RemoteBranch) { gui.State.RemoteBranches = branches },
+			func(branches []*models.RemoteBranch) { gui.State.Model.RemoteBranches = branches },
 		),
 		Menu: controllers.NewMenuController(
 			controllerCommon,
@@ -668,16 +659,16 @@ func (gui *Gui) setControllers() {
 			controllerCommon,
 			func() types.IListContext { return gui.State.Contexts.BranchCommits },
 			gui.git,
-			gui.helpers.bisect,
+			gui.helpers.Bisect,
 			gui.getSelectedLocalCommit,
-			func() []*models.Commit { return gui.State.Commits },
+			func() []*models.Commit { return gui.State.Model.Commits },
 		),
 		Undo: controllers.NewUndoController(
 			controllerCommon,
 			gui.git,
-			gui.helpers.refs,
-			gui.helpers.workingTree,
-			func() []*models.Commit { return gui.State.FilteredReflogCommits },
+			gui.helpers.Refs,
+			gui.helpers.WorkingTree,
+			func() []*models.Commit { return gui.State.Model.FilteredReflogCommits },
 		),
 		Sync: syncController,
 	}
@@ -689,8 +680,7 @@ var RuneReplacements = map[rune]string{
 	graph.CommitSymbol: "o",
 }
 
-// Run setup the gui with keybindings and start the mainloop
-func (gui *Gui) Run() error {
+func (gui *Gui) initGocui() (*gocui.Gui, error) {
 	recordEvents := recordingEvents()
 	playMode := gocui.NORMAL
 	if recordEvents {
@@ -701,19 +691,30 @@ func (gui *Gui) Run() error {
 
 	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode, headless(), RuneReplacements)
 	if err != nil {
+		return nil, err
+	}
+
+	return g, nil
+}
+
+// Run: setup the gui with keybindings and start the mainloop
+func (gui *Gui) Run(filterPath string) error {
+	g, err := gui.initGocui()
+	if err != nil {
 		return err
 	}
 
-	gui.g = g // TODO: always use gui.g rather than passing g around everywhere
-	defer g.Close()
+	gui.g = g
+	defer gui.g.Close()
 
 	if replaying() {
-		g.RecordingConfig = gocui.RecordingConfig{
+		gui.g.RecordingConfig = gocui.RecordingConfig{
 			Speed:  getRecordingSpeed(),
 			Leeway: 100,
 		}
 
-		g.Recording, err = gui.loadRecording()
+		var err error
+		gui.g.Recording, err = gui.loadRecording()
 		if err != nil {
 			return err
 		}
@@ -724,22 +725,29 @@ func (gui *Gui) Run() error {
 		})
 	}
 
-	g.OnSearchEscape = gui.onSearchEscape
+	gui.g.OnSearchEscape = gui.onSearchEscape
 	if err := gui.Config.ReloadUserConfig(); err != nil {
 		return nil
 	}
 	userConfig := gui.UserConfig
-	g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
-	g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
-	g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
+	gui.g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
+	gui.g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
+	gui.g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
 
-	g.ShowListFooter = userConfig.Gui.ShowListFooter
+	gui.g.ShowListFooter = userConfig.Gui.ShowListFooter
 
 	if userConfig.Gui.MouseEvents {
-		g.Mouse = true
+		gui.g.Mouse = true
 	}
 
 	if err := gui.setColorScheme(); err != nil {
+		return err
+	}
+
+	gui.g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
+
+	// onNewRepo must be called after g.SetManager because SetManager deletes keybindings
+	if err := gui.onNewRepo(filterPath, false); err != nil {
 		return err
 	}
 
@@ -750,19 +758,15 @@ func (gui *Gui) Run() error {
 
 	gui.goEvery(time.Second*time.Duration(userConfig.Refresher.RefreshInterval), gui.stopChan, gui.refreshFilesAndSubmodules)
 
-	g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
-
 	gui.c.Log.Info("starting main loop")
 
-	err = g.MainLoop()
-	return err
+	return gui.g.MainLoop()
 }
 
-// RunAndHandleError
-func (gui *Gui) RunAndHandleError() error {
+func (gui *Gui) RunAndHandleError(filterPath string) error {
 	gui.stopChan = make(chan struct{})
 	return utils.SafeWithError(func() error {
-		if err := gui.Run(); err != nil {
+		if err := gui.Run(filterPath); err != nil {
 			for _, manager := range gui.viewBufferManagerMap {
 				manager.Close()
 			}

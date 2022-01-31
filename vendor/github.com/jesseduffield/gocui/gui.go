@@ -469,7 +469,13 @@ func (g *Gui) DeleteKeybinding(viewname string, key interface{}, mod Modifier) e
 }
 
 // DeleteKeybindings deletes all keybindings of view.
-func (g *Gui) DeleteKeybindings(viewname string) {
+func (g *Gui) DeleteAllKeybindings() {
+	g.keybindings = []*keybinding{}
+	g.tabClickBindings = []*tabClickBinding{}
+}
+
+// DeleteKeybindings deletes all keybindings of view.
+func (g *Gui) DeleteViewKeybindings(viewname string) {
 	var s []*keybinding
 	for _, kb := range g.keybindings {
 		if kb.viewName != viewname {

@@ -1,4 +1,4 @@
-package gui
+package controllers
 
 import (
 	"fmt"
@@ -7,35 +7,40 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type RefsHelper struct {
-	c           *types.ControllerCommon
-	git         *commands.GitCommand
-	getContexts func() context.ContextTree
+type IRefsHelper interface {
+	CheckoutRef(ref string, options types.CheckoutRefOptions) error
+	CreateGitResetMenu(ref string) error
+	ResetToRef(ref string, strength string, envVars []string) error
+	NewBranch(from string, fromDescription string, suggestedBranchname string) error
+}
 
-	getState func() *GuiRepoState
+type RefsHelper struct {
+	c            *types.ControllerCommon
+	git          *commands.GitCommand
+	getContexts  func() context.ContextTree
+	limitCommits func()
 }
 
 func NewRefsHelper(
 	c *types.ControllerCommon,
 	git *commands.GitCommand,
 	getContexts func() context.ContextTree,
-	getState func() *GuiRepoState,
+	limitCommits func(),
 ) *RefsHelper {
 	return &RefsHelper{
-		c:           c,
-		git:         git,
-		getContexts: getContexts,
-		getState:    getState,
+		c:            c,
+		git:          git,
+		getContexts:  getContexts,
+		limitCommits: limitCommits,
 	}
 }
 
-var _ controllers.IRefsHelper = &RefsHelper{}
+var _ IRefsHelper = &RefsHelper{}
 
 func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions) error {
 	waitingStatus := options.WaitingStatus
@@ -46,10 +51,11 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
-		self.getState().Panels.Branches.SelectedLineIdx = 0
-		self.getState().Panels.Commits.SelectedLineIdx = 0
+		self.getContexts().Branches.GetPanelState().SetSelectedLineIdx(0)
+		self.getContexts().BranchCommits.GetPanelState().SetSelectedLineIdx(0)
+		self.getContexts().ReflogCommits.GetPanelState().SetSelectedLineIdx(0)
 		// loading a heap of commits is slow so we limit them whenever doing a reset
-		self.getState().Panels.Commits.LimitCommits = true
+		self.limitCommits()
 	}
 
 	return self.c.WithWaitingStatus(waitingStatus, func() error {
@@ -101,12 +107,12 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 		return self.c.Error(err)
 	}
 
-	self.getState().Panels.Commits.SelectedLineIdx = 0
-	self.getState().Panels.ReflogCommits.SelectedLineIdx = 0
+	self.getContexts().BranchCommits.GetPanelState().SetSelectedLineIdx(0)
+	self.getContexts().ReflogCommits.GetPanelState().SetSelectedLineIdx(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
-	self.getState().Panels.Commits.LimitCommits = true
+	self.limitCommits()
 
-	if err := self.c.PushContext(self.getState().Contexts.BranchCommits); err != nil {
+	if err := self.c.PushContext(self.getContexts().BranchCommits); err != nil {
 		return err
 	}
 
@@ -169,4 +175,10 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		},
 	})
+}
+
+// sanitizedBranchName will remove all spaces in favor of a dash "-" to meet
+// git's branch naming requirement.
+func sanitizedBranchName(input string) string {
+	return strings.Replace(input, " ", "-", -1)
 }

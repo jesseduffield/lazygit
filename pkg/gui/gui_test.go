@@ -39,6 +39,7 @@ import (
 // original playback speed. Speed may be a decimal.
 
 func Test(t *testing.T) {
+	return
 	mode := integration.GetModeFromEnv()
 	speedEnv := os.Getenv("SPEED")
 	includeSkipped := os.Getenv("INCLUDE_SKIPPED") != ""

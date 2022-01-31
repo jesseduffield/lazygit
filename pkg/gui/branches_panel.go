@@ -14,7 +14,7 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedBranch() *models.Branch {
-	if len(gui.State.Branches) == 0 {
+	if len(gui.State.Model.Branches) == 0 {
 		return nil
 	}
 
@@ -23,7 +23,7 @@ func (gui *Gui) getSelectedBranch() *models.Branch {
 		return nil
 	}
 
-	return gui.State.Branches[selectedLine]
+	return gui.State.Model.Branches[selectedLine]
 }
 
 func (gui *Gui) branchesRenderToMain() error {
@@ -56,7 +56,7 @@ func (gui *Gui) handleBranchPress() error {
 	}
 	branch := gui.getSelectedBranch()
 	gui.c.LogAction(gui.c.Tr.Actions.CheckoutBranch)
-	return gui.helpers.refs.CheckoutRef(branch.Name, types.CheckoutRefOptions{})
+	return gui.helpers.Refs.CheckoutRef(branch.Name, types.CheckoutRefOptions{})
 }
 
 func (gui *Gui) handleCreatePullRequestPress() error {
@@ -129,10 +129,10 @@ func (gui *Gui) handleForceCheckout() error {
 func (gui *Gui) handleCheckoutByName() error {
 	return gui.c.Prompt(types.PromptOpts{
 		Title:               gui.c.Tr.BranchName + ":",
-		FindSuggestionsFunc: gui.helpers.suggestions.GetRefsSuggestionsFunc(),
+		FindSuggestionsFunc: gui.helpers.Suggestions.GetRefsSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
 			gui.c.LogAction("Checkout branch")
-			return gui.helpers.refs.CheckoutRef(response, types.CheckoutRefOptions{
+			return gui.helpers.Refs.CheckoutRef(response, types.CheckoutRefOptions{
 				OnRefNotFound: func(ref string) error {
 					return gui.c.Ask(types.AskOpts{
 						Title:  gui.c.Tr.BranchNotFoundTitle,
@@ -148,11 +148,11 @@ func (gui *Gui) handleCheckoutByName() error {
 }
 
 func (gui *Gui) getCheckedOutBranch() *models.Branch {
-	if len(gui.State.Branches) == 0 {
+	if len(gui.State.Model.Branches) == 0 {
 		return nil
 	}
 
-	return gui.State.Branches[0]
+	return gui.State.Model.Branches[0]
 }
 
 func (gui *Gui) createNewBranchWithName(newBranchName string) error {
@@ -239,7 +239,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		HandleConfirm: func() error {
 			gui.c.LogAction(gui.c.Tr.Actions.Merge)
 			err := gui.git.Branch.Merge(branchName, git_commands.MergeOpts{})
-			return gui.helpers.rebase.CheckMergeOrRebase(err)
+			return gui.helpers.Rebase.CheckMergeOrRebase(err)
 		},
 	})
 }
@@ -273,7 +273,7 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 		HandleConfirm: func() error {
 			gui.c.LogAction(gui.c.Tr.Actions.RebaseBranch)
 			err := gui.git.Rebase.RebaseBranch(selectedBranchName)
-			return gui.helpers.rebase.CheckMergeOrRebase(err)
+			return gui.helpers.Rebase.CheckMergeOrRebase(err)
 		},
 	})
 }
@@ -339,7 +339,7 @@ func (gui *Gui) handleCreateResetToBranchMenu() error {
 		return nil
 	}
 
-	return gui.helpers.refs.CreateGitResetMenu(branch.Name)
+	return gui.helpers.Refs.CreateGitResetMenu(branch.Name)
 }
 
 func (gui *Gui) handleRenameBranch() error {
@@ -362,7 +362,7 @@ func (gui *Gui) handleRenameBranch() error {
 				gui.refreshBranches()
 
 				// now that we've got our stuff again we need to find that branch and reselect it.
-				for i, newBranch := range gui.State.Branches {
+				for i, newBranch := range gui.State.Model.Branches {
 					if newBranch.Name == newBranchName {
 						gui.State.Panels.Branches.SetSelectedLineIdx(i)
 						if err := gui.State.Contexts.Branches.HandleRender(); err != nil {
@@ -390,12 +390,6 @@ func (gui *Gui) handleRenameBranch() error {
 	})
 }
 
-// sanitizedBranchName will remove all spaces in favor of a dash "-" to meet
-// git's branch naming requirement.
-func sanitizedBranchName(input string) string {
-	return strings.Replace(input, " ", "-", -1)
-}
-
 func (gui *Gui) handleEnterBranch() error {
 	branch := gui.getSelectedBranch()
 	if branch == nil {
@@ -411,5 +405,5 @@ func (gui *Gui) handleNewBranchOffBranch() error {
 		return nil
 	}
 
-	return gui.helpers.refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), "")
+	return gui.helpers.Refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), "")
 }

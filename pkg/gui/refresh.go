@@ -221,7 +221,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	if err != nil {
 		return err
 	}
-	gui.State.Commits = commits
+	gui.State.Model.Commits = commits
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.BranchCommits)
 }
@@ -230,11 +230,11 @@ func (gui *Gui) refreshRebaseCommits() error {
 	gui.Mutexes.BranchCommitsMutex.Lock()
 	defer gui.Mutexes.BranchCommitsMutex.Unlock()
 
-	updatedCommits, err := gui.git.Loaders.Commits.MergeRebasingCommits(gui.State.Commits)
+	updatedCommits, err := gui.git.Loaders.Commits.MergeRebasingCommits(gui.State.Model.Commits)
 	if err != nil {
 		return err
 	}
-	gui.State.Commits = updatedCommits
+	gui.State.Model.Commits = updatedCommits
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.BranchCommits)
 }
@@ -245,7 +245,7 @@ func (self *Gui) refreshTags() error {
 		return self.c.Error(err)
 	}
 
-	self.State.Tags = tags
+	self.State.Model.Tags = tags
 
 	return self.postRefreshUpdate(self.State.Contexts.Tags)
 }
@@ -256,15 +256,15 @@ func (gui *Gui) refreshStateSubmoduleConfigs() error {
 		return err
 	}
 
-	gui.State.Submodules = configs
+	gui.State.Model.Submodules = configs
 
 	return nil
 }
 
 // gui.refreshStatus is called at the end of this because that's when we can
-// be sure there is a state.Branches array to pick the current branch from
+// be sure there is a State.Model.Branches array to pick the current branch from
 func (gui *Gui) refreshBranches() {
-	reflogCommits := gui.State.FilteredReflogCommits
+	reflogCommits := gui.State.Model.FilteredReflogCommits
 	if gui.State.Modes.Filtering.Active() {
 		// in filter mode we filter our reflog commits to just those containing the path
 		// however we need all the reflog entries to populate the recencies of our branches
@@ -282,7 +282,7 @@ func (gui *Gui) refreshBranches() {
 		_ = gui.c.Error(err)
 	}
 
-	gui.State.Branches = branches
+	gui.State.Model.Branches = branches
 
 	if err := gui.c.PostRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.c.Log.Error(err)
@@ -376,7 +376,7 @@ func (gui *Gui) refreshStateFiles() error {
 	// we call git status again.
 	pathsToStage := []string{}
 	prevConflictFileCount := 0
-	for _, file := range gui.State.Files {
+	for _, file := range gui.State.Model.Files {
 		if file.HasMergeConflicts {
 			prevConflictFileCount++
 		}
@@ -408,7 +408,7 @@ func (gui *Gui) refreshStateFiles() error {
 	}
 
 	if gui.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE && conflictFileCount == 0 && prevConflictFileCount > 0 {
-		gui.OnUIThread(func() error { return gui.helpers.rebase.PromptToContinueRebase() })
+		gui.OnUIThread(func() error { return gui.helpers.Rebase.PromptToContinueRebase() })
 	}
 
 	fileTreeViewModel.RWMutex.Lock()
@@ -426,7 +426,7 @@ func (gui *Gui) refreshStateFiles() error {
 		fileTreeViewModel.SetFilter(filetree.DisplayAll)
 	}
 
-	state.Files = files
+	state.Model.Files = files
 	fileTreeViewModel.SetTree()
 	fileTreeViewModel.RWMutex.Unlock()
 
@@ -449,8 +449,8 @@ func (gui *Gui) refreshReflogCommits() error {
 	// and we get an out of bounds exception
 	state := gui.State
 	var lastReflogCommit *models.Commit
-	if len(state.ReflogCommits) > 0 {
-		lastReflogCommit = state.ReflogCommits[0]
+	if len(state.Model.ReflogCommits) > 0 {
+		lastReflogCommit = state.Model.ReflogCommits[0]
 	}
 
 	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
@@ -468,16 +468,16 @@ func (gui *Gui) refreshReflogCommits() error {
 		return nil
 	}
 
-	if err := refresh(&state.ReflogCommits, ""); err != nil {
+	if err := refresh(&state.Model.ReflogCommits, ""); err != nil {
 		return err
 	}
 
 	if gui.State.Modes.Filtering.Active() {
-		if err := refresh(&state.FilteredReflogCommits, state.Modes.Filtering.GetPath()); err != nil {
+		if err := refresh(&state.Model.FilteredReflogCommits, state.Modes.Filtering.GetPath()); err != nil {
 			return err
 		}
 	} else {
-		state.FilteredReflogCommits = state.ReflogCommits
+		state.Model.FilteredReflogCommits = state.Model.ReflogCommits
 	}
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.ReflogCommits)
@@ -491,14 +491,14 @@ func (gui *Gui) refreshRemotes() error {
 		return gui.c.Error(err)
 	}
 
-	gui.State.Remotes = remotes
+	gui.State.Model.Remotes = remotes
 
 	// we need to ensure our selected remote branches aren't now outdated
-	if prevSelectedRemote != nil && gui.State.RemoteBranches != nil {
+	if prevSelectedRemote != nil && gui.State.Model.RemoteBranches != nil {
 		// find remote now
 		for _, remote := range remotes {
 			if remote.Name == prevSelectedRemote.Name {
-				gui.State.RemoteBranches = remote.Branches
+				gui.State.Model.RemoteBranches = remote.Branches
 			}
 		}
 	}
@@ -507,7 +507,7 @@ func (gui *Gui) refreshRemotes() error {
 }
 
 func (gui *Gui) refreshStashEntries() error {
-	gui.State.StashEntries = gui.git.Loaders.Stash.
+	gui.State.Model.StashEntries = gui.git.Loaders.Stash.
 		GetStashEntries(gui.State.Modes.Filtering.GetPath())
 
 	return gui.postRefreshUpdate(gui.State.Contexts.Stash)

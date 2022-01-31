@@ -10,11 +10,11 @@ import (
 
 func (gui *Gui) getSelectedSubmodule() *models.SubmoduleConfig {
 	selectedLine := gui.State.Panels.Submodules.SelectedLineIdx
-	if selectedLine == -1 || len(gui.State.Submodules) == 0 {
+	if selectedLine == -1 || len(gui.State.Model.Submodules) == 0 {
 		return nil
 	}
 
-	return gui.State.Submodules[selectedLine]
+	return gui.State.Model.Submodules[selectedLine]
 }
 
 func (gui *Gui) submodulesRenderToMain() error {
@@ -30,7 +30,7 @@ func (gui *Gui) submodulesRenderToMain() error {
 			style.FgCyan.Sprint(submodule.Url),
 		)
 
-		file := gui.helpers.workingTree.FileForSubmodule(submodule)
+		file := gui.helpers.WorkingTree.FileForSubmodule(submodule)
 		if file == nil {
 			task = NewRenderStringTask(prefix)
 		} else {

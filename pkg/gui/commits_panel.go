@@ -12,11 +12,11 @@ const COMMIT_THRESHOLD = 200
 
 func (gui *Gui) getSelectedLocalCommit() *models.Commit {
 	selectedLine := gui.State.Panels.Commits.SelectedLineIdx
-	if selectedLine == -1 || selectedLine > len(gui.State.Commits)-1 {
+	if selectedLine == -1 || selectedLine > len(gui.State.Model.Commits)-1 {
 		return nil
 	}
 
-	return gui.State.Commits[selectedLine]
+	return gui.State.Model.Commits[selectedLine]
 }
 
 func (gui *Gui) onCommitFocus() error {
@@ -56,7 +56,7 @@ func (gui *Gui) branchCommitsRenderToMain() error {
 
 func (gui *Gui) refForLog() string {
 	bisectInfo := gui.git.Bisect.GetInfo()
-	gui.State.BisectInfo = bisectInfo
+	gui.State.Model.BisectInfo = bisectInfo
 
 	if !bisectInfo.Started() {
 		return "HEAD"
