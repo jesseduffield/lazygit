@@ -13,6 +13,7 @@ import (
 func TestOSCommandOpenFileDarwin(t *testing.T) {
 	type scenario struct {
 		filename string
+		linenumber int
 		runner   *FakeCmdObjRunner
 		test     func(error)
 	}
@@ -20,6 +21,7 @@ func TestOSCommandOpenFileDarwin(t *testing.T) {
 	scenarios := []scenario{
 		{
 			filename: "test",
+			linenumber: 1,
 			runner: NewFakeRunner(t).
 				ExpectArgs([]string{"bash", "-c", `open "test"`}, "", errors.New("error")),
 			test: func(err error) {
@@ -28,6 +30,7 @@ func TestOSCommandOpenFileDarwin(t *testing.T) {
 		},
 		{
 			filename: "test",
+			linenumber: 1,
 			runner: NewFakeRunner(t).
 				ExpectArgs([]string{"bash", "-c", `open "test"`}, "", nil),
 			test: func(err error) {
@@ -36,6 +39,7 @@ func TestOSCommandOpenFileDarwin(t *testing.T) {
 		},
 		{
 			filename: "filename with spaces",
+			linenumber: 1,
 			runner: NewFakeRunner(t).
 				ExpectArgs([]string{"bash", "-c", `open "filename with spaces"`}, "", nil),
 			test: func(err error) {
@@ -49,7 +53,7 @@ func TestOSCommandOpenFileDarwin(t *testing.T) {
 		oSCmd.Platform.OS = "darwin"
 		oSCmd.UserConfig.OS.OpenCommand = "open {{filename}}"
 
-		s.test(oSCmd.OpenFile(s.filename))
+		s.test(oSCmd.OpenFile(s.filename, s.linenumber))
 	}
 }
 
@@ -57,6 +61,7 @@ func TestOSCommandOpenFileDarwin(t *testing.T) {
 func TestOSCommandOpenFileLinux(t *testing.T) {
 	type scenario struct {
 		filename string
+		linenumber int
 		runner   *FakeCmdObjRunner
 		test     func(error)
 	}
@@ -64,6 +69,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 	scenarios := []scenario{
 		{
 			filename: "test",
+			linenumber: 1,
 			runner: NewFakeRunner(t).
 				ExpectArgs([]string{"bash", "-c", `xdg-open "test" > /dev/null`}, "", errors.New("error")),
 			test: func(err error) {
@@ -72,6 +78,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		},
 		{
 			filename: "test",
+			linenumber: 1,
 			runner: NewFakeRunner(t).
 				ExpectArgs([]string{"bash", "-c", `xdg-open "test" > /dev/null`}, "", nil),
 			test: func(err error) {
@@ -80,6 +87,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		},
 		{
 			filename: "filename with spaces",
+			linenumber: 1,
 			runner: NewFakeRunner(t).
 				ExpectArgs([]string{"bash", "-c", `xdg-open "filename with spaces" > /dev/null`}, "", nil),
 			test: func(err error) {
@@ -88,6 +96,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		},
 		{
 			filename: "let's_test_with_single_quote",
+			linenumber: 1,
 			runner: NewFakeRunner(t).
 				ExpectArgs([]string{"bash", "-c", `xdg-open "let's_test_with_single_quote" > /dev/null`}, "", nil),
 			test: func(err error) {
@@ -96,6 +105,7 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		},
 		{
 			filename: "$USER.txt",
+			linenumber: 1,
 			runner: NewFakeRunner(t).
 				ExpectArgs([]string{"bash", "-c", `xdg-open "\$USER.txt" > /dev/null`}, "", nil),
 			test: func(err error) {
@@ -109,6 +119,6 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		oSCmd.Platform.OS = "linux"
 		oSCmd.UserConfig.OS.OpenCommand = `xdg-open {{filename}} > /dev/null`
 
-		s.test(oSCmd.OpenFile(s.filename))
+		s.test(oSCmd.OpenFile(s.filename, s.linenumber))
 	}
 }

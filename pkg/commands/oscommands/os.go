@@ -71,17 +71,18 @@ func FileType(path string) string {
 	return "file"
 }
 
-func (c *OSCommand) OpenFile(filename string) error {
+func (c *OSCommand) OpenFile(filename string, lineNumber int) error {
 	return c.OpenFileAtLine(filename, 1)
 }
 
 func (c *OSCommand) OpenFileAtLine(filename string, lineNumber int) error {
-	commandTemplate := c.UserConfig.OS.OpenCommand
+	editor := c.UserConfig.OS.OpenCommand
 	templateValues := map[string]string{
+		"editor":   editor,
 		"filename": c.Quote(filename),
 		"line":     fmt.Sprintf("%d", lineNumber),
 	}
-	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
+	command := utils.ResolvePlaceholderString(editor, templateValues)
 	return c.Cmd.NewShell(command).Run()
 }
 
