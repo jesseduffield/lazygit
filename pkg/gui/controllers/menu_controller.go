@@ -7,8 +7,8 @@ import (
 )
 
 type MenuController struct {
-	c          *types.ControllerCommon
-	getContext func() types.IListContext
+	c       *types.ControllerCommon
+	context types.IListContext
 
 	getSelectedMenuItem func() *types.MenuItem
 }
@@ -17,12 +17,12 @@ var _ types.IController = &MenuController{}
 
 func NewMenuController(
 	c *types.ControllerCommon,
-	getContext func() types.IListContext,
+	context types.IListContext,
 	getSelectedMenuItem func() *types.MenuItem,
 ) *MenuController {
 	return &MenuController{
 		c:                   c,
-		getContext:          getContext,
+		context:             context,
 		getSelectedMenuItem: getSelectedMenuItem,
 	}
 }
@@ -43,11 +43,11 @@ func (self *MenuController) Keybindings(getKey func(key string) interface{}, con
 		},
 		{
 			Key:     gocui.MouseLeft,
-			Handler: func() error { return self.getContext().HandleClick(self.press) },
+			Handler: func() error { return self.context.HandleClick(self.press) },
 		},
 	}
 
-	return append(bindings, self.getContext().Keybindings(getKey, config, guards)...)
+	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
 }
 
 func (self *MenuController) press() error {
@@ -65,5 +65,5 @@ func (self *MenuController) press() error {
 }
 
 func (self *MenuController) Context() types.Context {
-	return self.getContext()
+	return self.context
 }

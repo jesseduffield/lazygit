@@ -12,20 +12,20 @@ import (
 
 type RebaseHelper struct {
 	c                              *types.ControllerCommon
-	getContexts                    func() context.ContextTree
+	contexts                       *context.ContextTree
 	git                            *commands.GitCommand
 	takeOverMergeConflictScrolling func()
 }
 
 func NewRebaseHelper(
 	c *types.ControllerCommon,
-	getContexts func() context.ContextTree,
+	contexts *context.ContextTree,
 	git *commands.GitCommand,
 	takeOverMergeConflictScrolling func(),
 ) *RebaseHelper {
 	return &RebaseHelper{
 		c:                              c,
-		getContexts:                    getContexts,
+		contexts:                       contexts,
 		git:                            git,
 		takeOverMergeConflictScrolling: takeOverMergeConflictScrolling,
 	}
@@ -139,7 +139,7 @@ func (self *RebaseHelper) CheckMergeOrRebase(result error) error {
 			Prompt:              self.c.Tr.FoundConflicts,
 			HandlersManageFocus: true,
 			HandleConfirm: func() error {
-				return self.c.PushContext(self.getContexts().Files)
+				return self.c.PushContext(self.contexts.Files)
 			},
 			HandleClose: func() error {
 				if err := self.c.PopContext(); err != nil {

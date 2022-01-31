@@ -21,21 +21,20 @@ type FilesController struct {
 	// case I would actually prefer a _zero_ letter variable name in the form of
 	// struct embedding, but Go does not allow hiding public fields in an embedded struct
 	// to the client
-	c          *types.ControllerCommon
-	getContext func() *context.WorkingTreeContext
-	getFiles   func() []*models.File
-	git        *commands.GitCommand
-	os         *oscommands.OSCommand
+	c       *types.ControllerCommon
+	context *context.WorkingTreeContext
+	model   *types.Model
+	git     *commands.GitCommand
+	os      *oscommands.OSCommand
 
 	getSelectedFileNode    func() *filetree.FileNode
-	getContexts            func() context.ContextTree
+	contexts               *context.ContextTree
 	enterSubmodule         func(submodule *models.SubmoduleConfig) error
 	getSubmodules          func() []*models.SubmoduleConfig
 	setCommitMessage       func(message string)
 	getCheckedOutBranch    func() *models.Branch
 	withGpgHandling        func(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error
 	getFailedCommitMessage func() string
-	getCommits             func() []*models.Commit
 	getSelectedPath        func() string
 	switchToMergeFn        func(path string) error
 	suggestionsHelper      ISuggestionsHelper
@@ -48,18 +47,17 @@ var _ types.IController = &FilesController{}
 
 func NewFilesController(
 	c *types.ControllerCommon,
-	getContext func() *context.WorkingTreeContext,
-	getFiles func() []*models.File,
+	context *context.WorkingTreeContext,
+	model *types.Model,
 	git *commands.GitCommand,
 	os *oscommands.OSCommand,
 	getSelectedFileNode func() *filetree.FileNode,
-	allContexts func() context.ContextTree,
+	allContexts *context.ContextTree,
 	enterSubmodule func(submodule *models.SubmoduleConfig) error,
 	getSubmodules func() []*models.SubmoduleConfig,
 	setCommitMessage func(message string),
 	withGpgHandling func(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error,
 	getFailedCommitMessage func() string,
-	getCommits func() []*models.Commit,
 	getSelectedPath func() string,
 	switchToMergeFn func(path string) error,
 	suggestionsHelper ISuggestionsHelper,
@@ -69,18 +67,17 @@ func NewFilesController(
 ) *FilesController {
 	return &FilesController{
 		c:                      c,
-		getContext:             getContext,
-		getFiles:               getFiles,
+		context:                context,
+		model:                  model,
 		git:                    git,
 		os:                     os,
 		getSelectedFileNode:    getSelectedFileNode,
-		getContexts:            allContexts,
+		contexts:               allContexts,
 		enterSubmodule:         enterSubmodule,
 		getSubmodules:          getSubmodules,
 		setCommitMessage:       setCommitMessage,
 		withGpgHandling:        withGpgHandling,
 		getFailedCommitMessage: getFailedCommitMessage,
-		getCommits:             getCommits,
 		getSelectedPath:        getSelectedPath,
 		switchToMergeFn:        switchToMergeFn,
 		suggestionsHelper:      suggestionsHelper,
@@ -99,7 +96,7 @@ func (self *FilesController) Keybindings(getKey func(key string) interface{}, co
 		},
 		{
 			Key:     gocui.MouseLeft,
-			Handler: func() error { return self.getContext().HandleClick(self.checkSelectedFileNode(self.press)) },
+			Handler: func() error { return self.context.HandleClick(self.checkSelectedFileNode(self.press)) },
 		},
 		{
 			Key:         getKey("<c-b>"), // TODO: softcode
@@ -198,7 +195,7 @@ func (self *FilesController) Keybindings(getKey func(key string) interface{}, co
 		},
 	}
 
-	return append(bindings, self.getContext().Keybindings(getKey, config, guards)...)
+	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
 }
 
 func (self *FilesController) press(node *filetree.FileNode) error {
@@ -206,7 +203,7 @@ func (self *FilesController) press(node *filetree.FileNode) error {
 		file := node.File
 
 		if file.HasInlineMergeConflicts {
-			return self.c.PushContext(self.getContexts().Merging)
+			return self.c.PushContext(self.contexts.Merging)
 		}
 
 		if file.HasUnstagedChanges {
@@ -245,7 +242,7 @@ func (self *FilesController) press(node *filetree.FileNode) error {
 		return err
 	}
 
-	return self.getContext().HandleFocus()
+	return self.context.HandleFocus()
 }
 
 func (self *FilesController) checkSelectedFileNode(callback func(*filetree.FileNode) error) func() error {
@@ -260,7 +257,7 @@ func (self *FilesController) checkSelectedFileNode(callback func(*filetree.FileN
 }
 
 func (self *FilesController) Context() types.Context {
-	return self.getContext()
+	return self.context
 }
 
 func (self *FilesController) getSelectedFile() *models.File {
@@ -300,11 +297,11 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.c.ErrorMsg(self.c.Tr.FileStagingRequirements)
 	}
 
-	return self.c.PushContext(self.getContexts().Staging, opts)
+	return self.c.PushContext(self.contexts.Staging, opts)
 }
 
 func (self *FilesController) allFilesStaged() bool {
-	for _, file := range self.getFiles() {
+	for _, file := range self.model.Files {
 		if file.HasUnstagedChanges {
 			return false
 		}
@@ -329,7 +326,7 @@ func (self *FilesController) stageAll() error {
 		return err
 	}
 
-	return self.getContexts().Files.HandleFocus()
+	return self.contexts.Files.HandleFocus()
 }
 
 func (self *FilesController) ignore(node *filetree.FileNode) error {
@@ -434,7 +431,7 @@ func (self *FilesController) HandleCommitPress() error {
 		return self.c.Error(err)
 	}
 
-	if len(self.getFiles()) == 0 {
+	if len(self.model.Files) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
@@ -459,7 +456,7 @@ func (self *FilesController) HandleCommitPress() error {
 		}
 	}
 
-	if err := self.c.PushContext(self.getContexts().CommitMessage); err != nil {
+	if err := self.c.PushContext(self.contexts.CommitMessage); err != nil {
 		return err
 	}
 
@@ -485,7 +482,7 @@ func (self *FilesController) promptToStageAllAndRetry(retry func() error) error 
 }
 
 func (self *FilesController) handleAmendCommitPress() error {
-	if len(self.getFiles()) == 0 {
+	if len(self.model.Files) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
@@ -493,7 +490,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 		return self.promptToStageAllAndRetry(self.handleAmendCommitPress)
 	}
 
-	if len(self.getCommits()) == 0 {
+	if len(self.model.Commits) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
 	}
 
@@ -511,7 +508,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 // HandleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (self *FilesController) HandleCommitEditorPress() error {
-	if len(self.getFiles()) == 0 {
+	if len(self.model.Files) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
@@ -552,8 +549,8 @@ func (self *FilesController) handleStatusFilterPressed() error {
 }
 
 func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
-	self.getContext().FileTreeViewModel.SetFilter(filter)
-	return self.c.PostRefreshUpdate(self.getContext())
+	self.context.FileTreeViewModel.SetFilter(filter)
+	return self.c.PostRefreshUpdate(self.context)
 }
 
 func (self *FilesController) edit(node *filetree.FileNode) error {
@@ -643,9 +640,9 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 		return nil
 	}
 
-	self.getContext().FileTreeViewModel.ToggleCollapsed(node.GetPath())
+	self.context.FileTreeViewModel.ToggleCollapsed(node.GetPath())
 
-	if err := self.c.PostRefreshUpdate(self.getContexts().Files); err != nil {
+	if err := self.c.PostRefreshUpdate(self.contexts.Files); err != nil {
 		self.c.Log.Error(err)
 	}
 
@@ -653,9 +650,9 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 }
 
 func (self *FilesController) toggleTreeView() error {
-	self.getContext().FileTreeViewModel.ToggleShowTree()
+	self.context.FileTreeViewModel.ToggleShowTree()
 
-	return self.c.PostRefreshUpdate(self.getContext())
+	return self.c.PostRefreshUpdate(self.context)
 }
 
 func (self *FilesController) OpenMergeTool() error {

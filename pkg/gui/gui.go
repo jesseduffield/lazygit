@@ -192,7 +192,7 @@ type GuiRepoState struct {
 
 	MainContext       types.ContextKey // used to keep the main and secondary views' contexts in sync
 	ContextManager    ContextManager
-	Contexts          context.ContextTree
+	Contexts          *context.ContextTree
 	ViewContextMap    map[string]types.Context
 	ViewTabContextMap map[string][]context.TabContext
 
@@ -548,14 +548,13 @@ func NewGui(
 func (gui *Gui) resetControllers() {
 	controllerCommon := gui.c
 	osCommand := gui.OSCommand
-	getContexts := func() context.ContextTree { return gui.State.Contexts }
-	rebaseHelper := controllers.NewRebaseHelper(controllerCommon, getContexts, gui.git, gui.takeOverMergeConflictScrolling)
+	rebaseHelper := controllers.NewRebaseHelper(controllerCommon, gui.State.Contexts, gui.git, gui.takeOverMergeConflictScrolling)
 	model := gui.State.Model
 	gui.helpers = &Helpers{
 		Refs: controllers.NewRefsHelper(
 			controllerCommon,
 			gui.git,
-			getContexts,
+			gui.State.Contexts,
 			func() { gui.State.Panels.Commits.LimitCommits = true },
 		),
 		Bisect:      controllers.NewBisectHelper(controllerCommon, gui.git),
@@ -567,7 +566,7 @@ func (gui *Gui) resetControllers() {
 		CherryPick: controllers.NewCherryPickHelper(
 			controllerCommon,
 			gui.git,
-			getContexts,
+			gui.State.Contexts,
 			func() *cherrypicking.CherryPicking { return gui.State.Modes.CherryPicking },
 			rebaseHelper,
 		),
@@ -592,18 +591,17 @@ func (gui *Gui) resetControllers() {
 		),
 		Files: controllers.NewFilesController(
 			controllerCommon,
-			func() *context.WorkingTreeContext { return gui.State.Contexts.Files },
-			func() []*models.File { return gui.State.Model.Files },
+			gui.State.Contexts.Files,
+			model,
 			gui.git,
 			osCommand,
 			gui.getSelectedFileNode,
-			getContexts,
+			gui.State.Contexts,
 			gui.enterSubmodule,
 			func() []*models.SubmoduleConfig { return gui.State.Model.Submodules },
 			gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage }),
 			gui.withGpgHandling,
 			func() string { return gui.State.failedCommitMessage },
-			func() []*models.Commit { return gui.State.Model.Commits },
 			gui.getSelectedPath,
 			gui.switchToMerge,
 			gui.helpers.Suggestions,
@@ -613,9 +611,9 @@ func (gui *Gui) resetControllers() {
 		),
 		Tags: controllers.NewTagsController(
 			controllerCommon,
-			func() *context.TagsContext { return gui.State.Contexts.Tags },
+			gui.State.Contexts.Tags,
 			gui.git,
-			getContexts,
+			gui.State.Contexts,
 			gui.helpers.Tags,
 			gui.helpers.Refs,
 			gui.helpers.Suggestions,
@@ -623,7 +621,7 @@ func (gui *Gui) resetControllers() {
 		),
 		LocalCommits: controllers.NewLocalCommitsController(
 			controllerCommon,
-			func() types.IListContext { return gui.State.Contexts.BranchCommits },
+			gui.State.Contexts.BranchCommits,
 			osCommand,
 			gui.git,
 			gui.helpers.Tags,
@@ -631,7 +629,7 @@ func (gui *Gui) resetControllers() {
 			gui.helpers.CherryPick,
 			gui.helpers.Rebase,
 			gui.getSelectedLocalCommit,
-			func() []*models.Commit { return gui.State.Model.Commits },
+			model,
 			func() int { return gui.State.Panels.Commits.SelectedLineIdx },
 			gui.helpers.Rebase.CheckMergeOrRebase,
 			syncController.HandlePull,
@@ -644,20 +642,20 @@ func (gui *Gui) resetControllers() {
 		),
 		Remotes: controllers.NewRemotesController(
 			controllerCommon,
-			func() types.IListContext { return gui.State.Contexts.Remotes },
+			gui.State.Contexts.Remotes,
 			gui.git,
-			getContexts,
+			gui.State.Contexts,
 			gui.getSelectedRemote,
 			func(branches []*models.RemoteBranch) { gui.State.Model.RemoteBranches = branches },
 		),
 		Menu: controllers.NewMenuController(
 			controllerCommon,
-			func() types.IListContext { return gui.State.Contexts.Menu },
+			gui.State.Contexts.Menu,
 			gui.getSelectedMenuItem,
 		),
 		Bisect: controllers.NewBisectController(
 			controllerCommon,
-			func() types.IListContext { return gui.State.Contexts.BranchCommits },
+			gui.State.Contexts.BranchCommits,
 			gui.git,
 			gui.helpers.Bisect,
 			gui.getSelectedLocalCommit,

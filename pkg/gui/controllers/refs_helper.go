@@ -22,20 +22,20 @@ type IRefsHelper interface {
 type RefsHelper struct {
 	c            *types.ControllerCommon
 	git          *commands.GitCommand
-	getContexts  func() context.ContextTree
+	contexts     *context.ContextTree
 	limitCommits func()
 }
 
 func NewRefsHelper(
 	c *types.ControllerCommon,
 	git *commands.GitCommand,
-	getContexts func() context.ContextTree,
+	contexts *context.ContextTree,
 	limitCommits func(),
 ) *RefsHelper {
 	return &RefsHelper{
 		c:            c,
 		git:          git,
-		getContexts:  getContexts,
+		contexts:     contexts,
 		limitCommits: limitCommits,
 	}
 }
@@ -51,9 +51,9 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
-		self.getContexts().Branches.GetPanelState().SetSelectedLineIdx(0)
-		self.getContexts().BranchCommits.GetPanelState().SetSelectedLineIdx(0)
-		self.getContexts().ReflogCommits.GetPanelState().SetSelectedLineIdx(0)
+		self.contexts.Branches.GetPanelState().SetSelectedLineIdx(0)
+		self.contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
+		self.contexts.ReflogCommits.GetPanelState().SetSelectedLineIdx(0)
 		// loading a heap of commits is slow so we limit them whenever doing a reset
 		self.limitCommits()
 	}
@@ -107,12 +107,12 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 		return self.c.Error(err)
 	}
 
-	self.getContexts().BranchCommits.GetPanelState().SetSelectedLineIdx(0)
-	self.getContexts().ReflogCommits.GetPanelState().SetSelectedLineIdx(0)
+	self.contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
+	self.contexts.ReflogCommits.GetPanelState().SetSelectedLineIdx(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	self.limitCommits()
 
-	if err := self.c.PushContext(self.getContexts().BranchCommits); err != nil {
+	if err := self.c.PushContext(self.contexts.BranchCommits); err != nil {
 		return err
 	}
 
@@ -163,14 +163,14 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 				return err
 			}
 
-			if self.c.CurrentContext() != self.getContexts().Branches {
-				if err := self.c.PushContext(self.getContexts().Branches); err != nil {
+			if self.c.CurrentContext() != self.contexts.Branches {
+				if err := self.c.PushContext(self.contexts.Branches); err != nil {
 					return err
 				}
 			}
 
-			self.getContexts().BranchCommits.GetPanelState().SetSelectedLineIdx(0)
-			self.getContexts().Branches.GetPanelState().SetSelectedLineIdx(0)
+			self.contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
+			self.contexts.Branches.GetPanelState().SetSelectedLineIdx(0)
 
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		},

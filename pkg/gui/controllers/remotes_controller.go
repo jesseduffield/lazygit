@@ -11,30 +11,30 @@ import (
 )
 
 type RemotesController struct {
-	c          *types.ControllerCommon
-	getContext func() types.IListContext
-	git        *commands.GitCommand
+	c       *types.ControllerCommon
+	context types.IListContext
+	git     *commands.GitCommand
 
 	getSelectedRemote func() *models.Remote
 	setRemoteBranches func([]*models.RemoteBranch)
-	getContexts       func() context.ContextTree
+	contexts          *context.ContextTree
 }
 
 var _ types.IController = &RemotesController{}
 
 func NewRemotesController(
 	c *types.ControllerCommon,
-	getContext func() types.IListContext,
+	context types.IListContext,
 	git *commands.GitCommand,
-	getContexts func() context.ContextTree,
+	contexts *context.ContextTree,
 	getSelectedRemote func() *models.Remote,
 	setRemoteBranches func([]*models.RemoteBranch),
 ) *RemotesController {
 	return &RemotesController{
 		c:                 c,
 		git:               git,
-		getContexts:       getContexts,
-		getContext:        getContext,
+		contexts:          contexts,
+		context:           context,
 		getSelectedRemote: getSelectedRemote,
 		setRemoteBranches: setRemoteBranches,
 	}
@@ -48,7 +48,7 @@ func (self *RemotesController) Keybindings(getKey func(key string) interface{}, 
 		},
 		{
 			Key:     gocui.MouseLeft,
-			Handler: func() error { return self.getContext().HandleClick(self.checkSelected(self.enter)) },
+			Handler: func() error { return self.context.HandleClick(self.checkSelected(self.enter)) },
 		},
 		{
 			Key:         getKey(config.Branches.FetchRemote),
@@ -72,7 +72,7 @@ func (self *RemotesController) Keybindings(getKey func(key string) interface{}, 
 		},
 	}
 
-	return append(bindings, self.getContext().Keybindings(getKey, config, guards)...)
+	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
 }
 
 func (self *RemotesController) enter(remote *models.Remote) error {
@@ -83,9 +83,9 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	if len(remote.Branches) == 0 {
 		newSelectedLine = -1
 	}
-	self.getContexts().RemoteBranches.GetPanelState().SetSelectedLineIdx(newSelectedLine)
+	self.contexts.RemoteBranches.GetPanelState().SetSelectedLineIdx(newSelectedLine)
 
-	return self.c.PushContext(self.getContexts().RemoteBranches)
+	return self.c.PushContext(self.contexts.RemoteBranches)
 }
 
 func (self *RemotesController) add() error {
@@ -191,5 +191,5 @@ func (self *RemotesController) checkSelected(callback func(*models.Remote) error
 }
 
 func (self *RemotesController) Context() types.Context {
-	return self.getContext()
+	return self.context
 }
