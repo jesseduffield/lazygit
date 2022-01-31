@@ -10,11 +10,11 @@ import (
 )
 
 type TagsController struct {
-	c           *types.ControllerCommon
-	getContext  func() *context.TagsContext
-	git         *commands.GitCommand
-	getContexts func() context.ContextTree
-	tagsHelper  *TagsHelper
+	c          *types.ControllerCommon
+	context    *context.TagsContext
+	git        *commands.GitCommand
+	contexts   *context.ContextTree
+	tagsHelper *TagsHelper
 
 	refsHelper        IRefsHelper
 	suggestionsHelper ISuggestionsHelper
@@ -26,9 +26,9 @@ var _ types.IController = &TagsController{}
 
 func NewTagsController(
 	c *types.ControllerCommon,
-	getContext func() *context.TagsContext,
+	context *context.TagsContext,
 	git *commands.GitCommand,
-	getContexts func() context.ContextTree,
+	contexts *context.ContextTree,
 	tagsHelper *TagsHelper,
 	refsHelper IRefsHelper,
 	suggestionsHelper ISuggestionsHelper,
@@ -37,9 +37,9 @@ func NewTagsController(
 ) *TagsController {
 	return &TagsController{
 		c:                 c,
-		getContext:        getContext,
+		context:           context,
 		git:               git,
-		getContexts:       getContexts,
+		contexts:          contexts,
 		tagsHelper:        tagsHelper,
 		refsHelper:        refsHelper,
 		suggestionsHelper: suggestionsHelper,
@@ -83,7 +83,7 @@ func (self *TagsController) Keybindings(getKey func(key string) interface{}, con
 		},
 	}
 
-	return append(bindings, self.getContext().Keybindings(getKey, config, guards)...)
+	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
 }
 
 func (self *TagsController) checkout(tag *models.Tag) error {
@@ -91,7 +91,7 @@ func (self *TagsController) checkout(tag *models.Tag) error {
 	if err := self.refsHelper.CheckoutRef(tag.Name, types.CheckoutRefOptions{}); err != nil {
 		return err
 	}
-	return self.c.PushContext(self.getContexts().Branches)
+	return self.c.PushContext(self.contexts.Branches)
 }
 
 func (self *TagsController) enter(tag *models.Tag) error {
@@ -151,12 +151,12 @@ func (self *TagsController) createResetMenu(tag *models.Tag) error {
 
 func (self *TagsController) create() error {
 	// leaving commit SHA blank so that we're just creating the tag for the current commit
-	return self.tagsHelper.CreateTagMenu("", func() { self.getContext().GetPanelState().SetSelectedLineIdx(0) })
+	return self.tagsHelper.CreateTagMenu("", func() { self.context.GetPanelState().SetSelectedLineIdx(0) })
 }
 
 func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func() error {
 	return func() error {
-		tag := self.getContext().GetSelectedTag()
+		tag := self.context.GetSelectedTag()
 		if tag == nil {
 			return nil
 		}
@@ -166,5 +166,5 @@ func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func(
 }
 
 func (self *TagsController) Context() types.Context {
-	return self.getContext()
+	return self.context
 }

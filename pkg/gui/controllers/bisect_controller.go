@@ -13,7 +13,7 @@ import (
 
 type BisectController struct {
 	c            *types.ControllerCommon
-	getContext   func() types.IListContext
+	context      types.IListContext
 	git          *commands.GitCommand
 	bisectHelper *BisectHelper
 
@@ -25,7 +25,7 @@ var _ types.IController = &BisectController{}
 
 func NewBisectController(
 	c *types.ControllerCommon,
-	getContext func() types.IListContext,
+	context types.IListContext,
 	git *commands.GitCommand,
 	bisectHelper *BisectHelper,
 
@@ -34,7 +34,7 @@ func NewBisectController(
 ) *BisectController {
 	return &BisectController{
 		c:            c,
-		getContext:   getContext,
+		context:      context,
 		git:          git,
 		bisectHelper: bisectHelper,
 
@@ -232,8 +232,8 @@ func (self *BisectController) selectCurrentBisectCommit() {
 		// find index of commit with that sha, move cursor to that.
 		for i, commit := range self.getCommits() {
 			if commit.Sha == info.GetCurrentSha() {
-				self.getContext().GetPanelState().SetSelectedLineIdx(i)
-				_ = self.getContext().HandleFocus()
+				self.context.GetPanelState().SetSelectedLineIdx(i)
+				_ = self.context.HandleFocus()
 				break
 			}
 		}
@@ -252,5 +252,5 @@ func (self *BisectController) checkSelected(callback func(*models.Commit) error)
 }
 
 func (self *BisectController) Context() types.Context {
-	return self.getContext()
+	return self.context
 }

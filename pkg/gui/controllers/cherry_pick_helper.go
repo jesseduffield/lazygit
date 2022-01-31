@@ -13,8 +13,8 @@ type CherryPickHelper struct {
 
 	git *commands.GitCommand
 
-	getContexts func() context.ContextTree
-	getData     func() *cherrypicking.CherryPicking
+	contexts *context.ContextTree
+	getData  func() *cherrypicking.CherryPicking
 
 	rebaseHelper *RebaseHelper
 }
@@ -25,14 +25,14 @@ type CherryPickHelper struct {
 func NewCherryPickHelper(
 	c *types.ControllerCommon,
 	git *commands.GitCommand,
-	getContexts func() context.ContextTree,
+	contexts *context.ContextTree,
 	getData func() *cherrypicking.CherryPicking,
 	rebaseHelper *RebaseHelper,
 ) *CherryPickHelper {
 	return &CherryPickHelper{
 		c:            c,
 		git:          git,
-		getContexts:  getContexts,
+		contexts:     contexts,
 		getData:      getData,
 		rebaseHelper: rebaseHelper,
 	}
@@ -143,9 +143,9 @@ func (self *CherryPickHelper) resetIfNecessary(context types.Context) error {
 
 func (self *CherryPickHelper) rerender() error {
 	for _, context := range []types.Context{
-		self.getContexts().BranchCommits,
-		self.getContexts().ReflogCommits,
-		self.getContexts().SubCommits,
+		self.contexts.BranchCommits,
+		self.contexts.ReflogCommits,
+		self.contexts.SubCommits,
 	} {
 		if err := self.c.PostRefreshUpdate(context); err != nil {
 			return err

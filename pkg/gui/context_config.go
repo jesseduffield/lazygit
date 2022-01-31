@@ -32,8 +32,8 @@ func (gui *Gui) allContexts() []types.Context {
 	}
 }
 
-func (gui *Gui) contextTree() context.ContextTree {
-	return context.ContextTree{
+func (gui *Gui) contextTree() *context.ContextTree {
+	return &context.ContextTree{
 		Status: NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.SIDE_CONTEXT,
