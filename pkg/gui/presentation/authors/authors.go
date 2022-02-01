@@ -114,8 +114,5 @@ func getFirstRune(str string) rune {
 }
 
 func SetCustomAuthors(customAuthorColors map[string]string) {
-	for authorName, colorSequence := range customAuthorColors {
-		style := style.New().SetFg(style.NewRGBColor(color.HEX(colorSequence, false)))
-		authorStyleCache[authorName] = style
-	}
+	authorStyleCache = utils.SetCustomColors(customAuthorColors)
 }
