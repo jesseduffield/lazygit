@@ -24,8 +24,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -493,7 +493,7 @@ func NewGui(
 	gui.PopupHandler = &RealPopupHandler{gui: gui}
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
-	presentation.SetCustomBranchColors(gui.UserConfig.Gui.BranchColors)
+	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
 
 	return gui, nil
 }

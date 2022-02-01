@@ -3,6 +3,9 @@ package utils
 import (
 	"regexp"
 	"sync"
+
+	"github.com/gookit/color"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 var decoloriseCache = make(map[string]string)
@@ -47,4 +50,13 @@ func IsValidHexValue(v string) bool {
 	}
 
 	return true
+}
+
+func SetCustomColors(customColors map[string]string) map[string]style.TextStyle {
+	colors := make(map[string]style.TextStyle)
+	for key, colorSequence := range customColors {
+		style := style.New().SetFg(style.NewRGBColor(color.HEX(colorSequence, false)))
+		colors[key] = style
+	}
+	return colors
 }
