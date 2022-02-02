@@ -13,19 +13,19 @@ package i18n
 // reset    重置
 
 const chineseIntroPopupMessage = `
-感谢您使用 lazygit！与您分享三件事：
+感谢使用 lazygit！下面几点你可能会感兴趣：
 
- 1) 如果您想了解 lazygit 的功能，请观看此视频：
+ 1) 观看此视频，快速了解 lazygit 的功能：
       https://youtu.be/CPLdltN7wgE
 
- 2) 请务必阅读最新的发行说明, 网址为：
+ 2) 记得阅读最新的发行说明：
       https://github.com/jesseduffield/lazygit/releases
 
- 3) 如果您使用 git，这将使您成为一名程序员！在您的帮助下，我们可以使
-    lazygit 更好，因此请考虑成为一名贡献者：
+ 3) 使用 git 说明你是一位程序员！你可以和我们一起让
+    lazygit 变得更好。考虑贡献一些代码：
       https://github.com/jesseduffield/lazygit
-    您也可以赞助我，并通过单击右下角的捐赠按钮，告诉我要做什么改进。
-    只是给仓库加个星星也很棒！
+    也可以赞助并告诉我哪里需要改进，点右下角的捐赠按钮就好了。
+    就算给仓库点个星星也很棒！
 `
 
 func chineseTranslationSet() TranslationSet {
