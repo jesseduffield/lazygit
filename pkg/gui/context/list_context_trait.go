@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -182,32 +181,28 @@ func (self *ListContextTrait) HandleRenderToMain() error {
 	return nil
 }
 
-func (self *ListContextTrait) Keybindings(
-	getKey func(key string) interface{},
-	config config.KeybindingConfig,
-	guards types.KeybindingGuards,
-) []*types.Binding {
+func (self *ListContextTrait) keybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
-		{Tag: "navigation", Key: getKey(config.Universal.PrevItemAlt), Modifier: gocui.ModNone, Handler: self.HandlePrevLine},
-		{Tag: "navigation", Key: getKey(config.Universal.PrevItem), Modifier: gocui.ModNone, Handler: self.HandlePrevLine},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevItemAlt), Modifier: gocui.ModNone, Handler: self.HandlePrevLine},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevItem), Modifier: gocui.ModNone, Handler: self.HandlePrevLine},
 		{Tag: "navigation", Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: self.HandlePrevLine},
-		{Tag: "navigation", Key: getKey(config.Universal.NextItemAlt), Modifier: gocui.ModNone, Handler: self.HandleNextLine},
-		{Tag: "navigation", Key: getKey(config.Universal.NextItem), Modifier: gocui.ModNone, Handler: self.HandleNextLine},
-		{Tag: "navigation", Key: getKey(config.Universal.PrevPage), Modifier: gocui.ModNone, Handler: self.HandlePrevPage, Description: self.c.Tr.LcPrevPage},
-		{Tag: "navigation", Key: getKey(config.Universal.NextPage), Modifier: gocui.ModNone, Handler: self.HandleNextPage, Description: self.c.Tr.LcNextPage},
-		{Tag: "navigation", Key: getKey(config.Universal.GotoTop), Modifier: gocui.ModNone, Handler: self.HandleGotoTop, Description: self.c.Tr.LcGotoTop},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextItemAlt), Modifier: gocui.ModNone, Handler: self.HandleNextLine},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextItem), Modifier: gocui.ModNone, Handler: self.HandleNextLine},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevPage), Modifier: gocui.ModNone, Handler: self.HandlePrevPage, Description: self.c.Tr.LcPrevPage},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextPage), Modifier: gocui.ModNone, Handler: self.HandleNextPage, Description: self.c.Tr.LcNextPage},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoTop), Modifier: gocui.ModNone, Handler: self.HandleGotoTop, Description: self.c.Tr.LcGotoTop},
 		{Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: func() error { return self.HandleClick(nil) }},
 		{Tag: "navigation", Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: self.HandleNextLine},
-		{Tag: "navigation", Key: getKey(config.Universal.ScrollLeft), Modifier: gocui.ModNone, Handler: self.HandleScrollLeft},
-		{Tag: "navigation", Key: getKey(config.Universal.ScrollRight), Modifier: gocui.ModNone, Handler: self.HandleScrollRight},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollLeft), Modifier: gocui.ModNone, Handler: self.HandleScrollLeft},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollRight), Modifier: gocui.ModNone, Handler: self.HandleScrollRight},
 		{
-			Key:         getKey(config.Universal.StartSearch),
+			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
 			Handler:     func() error { self.c.OpenSearch(); return nil },
 			Description: self.c.Tr.LcStartSearch,
 			Tag:         "navigation",
 		},
 		{
-			Key:         getKey(config.Universal.GotoBottom),
+			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
 			Description: self.c.Tr.LcGotoBottom,
 			Handler:     self.HandleGotoBottom,
 			Tag:         "navigation",

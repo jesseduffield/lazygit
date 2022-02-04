@@ -1355,16 +1355,16 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		},
 	}
 
+	keybindingsOpts := types.KeybindingsOpts{
+		GetKey: gui.getKey,
+		Config: config,
+		Guards: guards,
+	}
+
+	// global bindings
 	for _, controller := range []types.IController{
-		gui.Controllers.LocalCommits,
-		gui.Controllers.Submodules,
-		gui.Controllers.Files,
-		gui.Controllers.Remotes,
-		gui.Controllers.Menu,
-		gui.Controllers.Bisect,
-		gui.Controllers.Undo,
 		gui.Controllers.Sync,
-		gui.Controllers.Tags,
+		gui.Controllers.Undo,
 	} {
 		context := controller.Context()
 		viewName := ""
@@ -1375,27 +1375,17 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			contextKeys = []string{string(context.GetKey())}
 		}
 
-		for _, binding := range controller.Keybindings(gui.getKey, config, guards) {
+		for _, binding := range controller.GetKeybindings(keybindingsOpts) {
 			binding.Contexts = contextKeys
 			binding.ViewName = viewName
 			bindings = append(bindings, binding)
 		}
 	}
 
-	// while migrating we'll continue providing keybindings from the list contexts themselves.
-	// for each controller we add above we need to remove the corresponding list context from here.
-	for _, listContext := range []types.IListContext{
-		gui.State.Contexts.Branches,
-		gui.State.Contexts.RemoteBranches,
-		gui.State.Contexts.ReflogCommits,
-		gui.State.Contexts.SubCommits,
-		gui.State.Contexts.Stash,
-		gui.State.Contexts.CommitFiles,
-		gui.State.Contexts.Suggestions,
-	} {
-		viewName := listContext.GetViewName()
-		contextKey := listContext.GetKey()
-		for _, binding := range listContext.Keybindings(gui.getKey, config, guards) {
+	for _, context := range gui.allContexts() {
+		viewName := context.GetViewName()
+		contextKey := context.GetKey()
+		for _, binding := range context.GetKeybindings(keybindingsOpts) {
 			binding.Contexts = []string{string(contextKey)}
 			binding.ViewName = viewName
 			bindings = append(bindings, binding)

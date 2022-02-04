@@ -581,14 +581,16 @@ func (gui *Gui) resetControllers() {
 		gui.helpers.Rebase.CheckMergeOrRebase,
 	)
 
+	submodulesController := controllers.NewSubmodulesController(
+		controllerCommon,
+		gui.State.Contexts.Submodules,
+		gui.git,
+		gui.enterSubmodule,
+		gui.getSelectedSubmodule,
+	)
+
 	gui.Controllers = Controllers{
-		Submodules: controllers.NewSubmodulesController(
-			controllerCommon,
-			gui.State.Contexts.Submodules,
-			gui.git,
-			gui.enterSubmodule,
-			gui.getSelectedSubmodule,
-		),
+		Submodules: submodulesController,
 		Files: controllers.NewFilesController(
 			controllerCommon,
 			gui.State.Contexts.Files,
@@ -670,6 +672,17 @@ func (gui *Gui) resetControllers() {
 		),
 		Sync: syncController,
 	}
+
+	gui.State.Contexts.Submodules.AddKeybindingsFn(gui.Controllers.Submodules.GetKeybindings)
+	gui.State.Contexts.Files.AddKeybindingsFn(gui.Controllers.Files.GetKeybindings)
+	gui.State.Contexts.Tags.AddKeybindingsFn(gui.Controllers.Tags.GetKeybindings)
+	// TODO: commit to one name here: local commits or branch commits
+	gui.State.Contexts.BranchCommits.AddKeybindingsFn(gui.Controllers.LocalCommits.GetKeybindings)
+	gui.State.Contexts.BranchCommits.AddKeybindingsFn(gui.Controllers.Bisect.GetKeybindings)
+	gui.State.Contexts.Remotes.AddKeybindingsFn(gui.Controllers.Remotes.GetKeybindings)
+	gui.State.Contexts.Menu.AddKeybindingsFn(gui.Controllers.Menu.GetKeybindings)
+	gui.State.Contexts.Menu.AddKeybindingsFn(gui.Controllers.Menu.GetKeybindings)
+	// TODO: handle global contexts
 }
 
 var RuneReplacements = map[rune]string{

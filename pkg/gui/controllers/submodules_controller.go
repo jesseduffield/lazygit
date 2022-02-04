@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -40,40 +39,40 @@ func NewSubmodulesController(
 	}
 }
 
-func (self *SubmodulesController) Keybindings(getKey func(key string) interface{}, config config.KeybindingConfig, guards types.KeybindingGuards) []*types.Binding {
-	bindings := []*types.Binding{
+func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	return []*types.Binding{
 		{
-			Key:         getKey(config.Universal.GoInto),
+			Key:         opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:     self.checkSelected(self.enter),
 			Description: self.c.Tr.LcEnterSubmodule,
 		},
 		{
-			Key:         getKey(config.Universal.Remove),
+			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelected(self.remove),
 			Description: self.c.Tr.LcRemoveSubmodule,
 		},
 		{
-			Key:         getKey(config.Submodules.Update),
+			Key:         opts.GetKey(opts.Config.Submodules.Update),
 			Handler:     self.checkSelected(self.update),
 			Description: self.c.Tr.LcSubmoduleUpdate,
 		},
 		{
-			Key:         getKey(config.Universal.New),
+			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.add,
 			Description: self.c.Tr.LcAddSubmodule,
 		},
 		{
-			Key:         getKey(config.Universal.Edit),
+			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.checkSelected(self.editURL),
 			Description: self.c.Tr.LcEditSubmoduleUrl,
 		},
 		{
-			Key:         getKey(config.Submodules.Init),
+			Key:         opts.GetKey(opts.Config.Submodules.Init),
 			Handler:     self.checkSelected(self.init),
 			Description: self.c.Tr.LcInitSubmodule,
 		},
 		{
-			Key:         getKey(config.Submodules.BulkMenu),
+			Key:         opts.GetKey(opts.Config.Submodules.BulkMenu),
 			Handler:     self.openBulkActionsMenu,
 			Description: self.c.Tr.LcViewBulkSubmoduleOptions,
 			OpensMenu:   true,
@@ -83,8 +82,6 @@ func (self *SubmodulesController) Keybindings(getKey func(key string) interface{
 			Handler: func() error { return self.context.HandleClick(self.checkSelected(self.enter)) },
 		},
 	}
-
-	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
 }
 
 func (self *SubmodulesController) enter(submodule *models.SubmoduleConfig) error {

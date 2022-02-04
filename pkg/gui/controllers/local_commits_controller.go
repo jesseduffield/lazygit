@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -91,108 +90,104 @@ func NewLocalCommitsController(
 	}
 }
 
-func (self *LocalCommitsController) Keybindings(
-	getKey func(key string) interface{},
-	config config.KeybindingConfig,
-	guards types.KeybindingGuards,
-) []*types.Binding {
+func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	outsideFilterModeBindings := []*types.Binding{
 		{
-			Key:         getKey(config.Commits.SquashDown),
+			Key:         opts.GetKey(opts.Config.Commits.SquashDown),
 			Handler:     self.squashDown,
 			Description: self.c.Tr.LcSquashDown,
 		},
 		{
-			Key:         getKey(config.Commits.MarkCommitAsFixup),
+			Key:         opts.GetKey(opts.Config.Commits.MarkCommitAsFixup),
 			Handler:     self.fixup,
 			Description: self.c.Tr.LcFixupCommit,
 		},
 		{
-			Key:         getKey(config.Commits.RenameCommit),
+			Key:         opts.GetKey(opts.Config.Commits.RenameCommit),
 			Handler:     self.checkSelected(self.reword),
 			Description: self.c.Tr.LcRewordCommit,
 		},
 		{
-			Key:         getKey(config.Commits.RenameCommitWithEditor),
+			Key:         opts.GetKey(opts.Config.Commits.RenameCommitWithEditor),
 			Handler:     self.rewordEditor,
 			Description: self.c.Tr.LcRenameCommitEditor,
 		},
 		{
-			Key:         getKey(config.Universal.Remove),
+			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.drop,
 			Description: self.c.Tr.LcDeleteCommit,
 		},
 		{
-			Key:         getKey(config.Universal.Edit),
+			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.edit,
 			Description: self.c.Tr.LcEditCommit,
 		},
 		{
-			Key:         getKey(config.Commits.PickCommit),
+			Key:         opts.GetKey(opts.Config.Commits.PickCommit),
 			Handler:     self.pick,
 			Description: self.c.Tr.LcPickCommit,
 		},
 		{
-			Key:         getKey(config.Commits.CreateFixupCommit),
+			Key:         opts.GetKey(opts.Config.Commits.CreateFixupCommit),
 			Handler:     self.checkSelected(self.handleCreateFixupCommit),
 			Description: self.c.Tr.LcCreateFixupCommit,
 		},
 		{
-			Key:         getKey(config.Commits.SquashAboveCommits),
+			Key:         opts.GetKey(opts.Config.Commits.SquashAboveCommits),
 			Handler:     self.checkSelected(self.handleSquashAllAboveFixupCommits),
 			Description: self.c.Tr.LcSquashAboveCommits,
 		},
 		{
-			Key:         getKey(config.Commits.MoveDownCommit),
+			Key:         opts.GetKey(opts.Config.Commits.MoveDownCommit),
 			Handler:     self.handleCommitMoveDown,
 			Description: self.c.Tr.LcMoveDownCommit,
 		},
 		{
-			Key:         getKey(config.Commits.MoveUpCommit),
+			Key:         opts.GetKey(opts.Config.Commits.MoveUpCommit),
 			Handler:     self.handleCommitMoveUp,
 			Description: self.c.Tr.LcMoveUpCommit,
 		},
 		{
-			Key:         getKey(config.Commits.AmendToCommit),
+			Key:         opts.GetKey(opts.Config.Commits.AmendToCommit),
 			Handler:     self.handleCommitAmendTo,
 			Description: self.c.Tr.LcAmendToCommit,
 		},
 		{
-			Key:         getKey(config.Commits.RevertCommit),
+			Key:         opts.GetKey(opts.Config.Commits.RevertCommit),
 			Handler:     self.checkSelected(self.handleCommitRevert),
 			Description: self.c.Tr.LcRevertCommit,
 		},
 		{
-			Key:         getKey(config.Universal.New),
+			Key:         opts.GetKey(opts.Config.Universal.New),
 			Modifier:    gocui.ModNone,
 			Handler:     self.checkSelected(self.newBranch),
 			Description: self.c.Tr.LcCreateNewBranchFromCommit,
 		},
 		{
-			Key:         getKey(config.Commits.CherryPickCopy),
+			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopy),
 			Handler:     self.checkSelected(self.copy),
 			Description: self.c.Tr.LcCherryPickCopy,
 		},
 		{
-			Key:         getKey(config.Commits.CherryPickCopyRange),
+			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopyRange),
 			Handler:     self.checkSelected(self.copyRange),
 			Description: self.c.Tr.LcCherryPickCopyRange,
 		},
 		{
-			Key:         getKey(config.Commits.PasteCommits),
-			Handler:     guards.OutsideFilterMode(self.paste),
+			Key:         opts.GetKey(opts.Config.Commits.PasteCommits),
+			Handler:     opts.Guards.OutsideFilterMode(self.paste),
 			Description: self.c.Tr.LcPasteCommits,
 		},
 		// overriding these navigation keybindings because we might need to load
 		// more commits on demand
 		{
-			Key:         getKey(config.Universal.StartSearch),
+			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
 			Handler:     self.openSearch,
 			Description: self.c.Tr.LcStartSearch,
 			Tag:         "navigation",
 		},
 		{
-			Key:         getKey(config.Universal.GotoBottom),
+			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
 			Handler:     self.gotoBottom,
 			Description: self.c.Tr.LcGotoBottom,
 			Tag:         "navigation",
@@ -204,49 +199,49 @@ func (self *LocalCommitsController) Keybindings(
 	}
 
 	for _, binding := range outsideFilterModeBindings {
-		binding.Handler = guards.OutsideFilterMode(binding.Handler)
+		binding.Handler = opts.Guards.OutsideFilterMode(binding.Handler)
 	}
 
 	bindings := append(outsideFilterModeBindings, []*types.Binding{
 		{
-			Key:         getKey(config.Commits.OpenLogMenu),
+			Key:         opts.GetKey(opts.Config.Commits.OpenLogMenu),
 			Handler:     self.handleOpenLogMenu,
 			Description: self.c.Tr.LcOpenLogMenu,
 			OpensMenu:   true,
 		},
 		{
-			Key:         getKey(config.Commits.ViewResetOptions),
+			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.checkSelected(self.handleCreateCommitResetMenu),
 			Description: self.c.Tr.LcResetToThisCommit,
 		},
 		{
-			Key:         getKey(config.Universal.GoInto),
+			Key:         opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:     self.checkSelected(self.enter),
 			Description: self.c.Tr.LcViewCommitFiles,
 		},
 		{
-			Key:         getKey(config.Commits.CheckoutCommit),
+			Key:         opts.GetKey(opts.Config.Commits.CheckoutCommit),
 			Handler:     self.checkSelected(self.handleCheckoutCommit),
 			Description: self.c.Tr.LcCheckoutCommit,
 		},
 		{
-			Key:         getKey(config.Commits.TagCommit),
+			Key:         opts.GetKey(opts.Config.Commits.TagCommit),
 			Handler:     self.checkSelected(self.handleTagCommit),
 			Description: self.c.Tr.LcTagCommit,
 		},
 		{
-			Key:         getKey(config.Commits.CopyCommitMessageToClipboard),
+			Key:         opts.GetKey(opts.Config.Commits.CopyCommitMessageToClipboard),
 			Handler:     self.checkSelected(self.handleCopySelectedCommitMessageToClipboard),
 			Description: self.c.Tr.LcCopyCommitMessageToClipboard,
 		},
 		{
-			Key:         getKey(config.Commits.OpenInBrowser),
+			Key:         opts.GetKey(opts.Config.Commits.OpenInBrowser),
 			Handler:     self.checkSelected(self.handleOpenCommitInBrowser),
 			Description: self.c.Tr.LcOpenCommitInBrowser,
 		},
 	}...)
 
-	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
+	return bindings
 }
 
 func (self *LocalCommitsController) squashDown() error {
