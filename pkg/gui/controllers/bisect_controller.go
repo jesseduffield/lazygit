@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -43,11 +42,11 @@ func NewBisectController(
 	}
 }
 
-func (self *BisectController) Keybindings(getKey func(key string) interface{}, config config.KeybindingConfig, guards types.KeybindingGuards) []*types.Binding {
+func (self *BisectController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         getKey(config.Commits.ViewBisectOptions),
-			Handler:     guards.OutsideFilterMode(self.checkSelected(self.openMenu)),
+			Key:         opts.GetKey(opts.Config.Commits.ViewBisectOptions),
+			Handler:     opts.Guards.OutsideFilterMode(self.checkSelected(self.openMenu)),
 			Description: self.c.Tr.LcViewBisectOptions,
 			OpensMenu:   true,
 		},

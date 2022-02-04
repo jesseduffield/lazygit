@@ -55,6 +55,8 @@ func NewWorkingTreeContext(
 		c: c,
 	}
 
+	baseContext.AddKeybindingsFn(listContextTrait.keybindings)
+
 	self.BaseContext = baseContext
 	self.ListContextTrait = listContextTrait
 	self.FileTreeViewModel = viewModel

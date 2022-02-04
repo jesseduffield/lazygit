@@ -4,7 +4,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -40,10 +39,10 @@ func NewRemotesController(
 	}
 }
 
-func (self *RemotesController) Keybindings(getKey func(key string) interface{}, config config.KeybindingConfig, guards types.KeybindingGuards) []*types.Binding {
+func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:     getKey(config.Universal.GoInto),
+			Key:     opts.GetKey(opts.Config.Universal.GoInto),
 			Handler: self.checkSelected(self.enter),
 		},
 		{
@@ -51,28 +50,28 @@ func (self *RemotesController) Keybindings(getKey func(key string) interface{}, 
 			Handler: func() error { return self.context.HandleClick(self.checkSelected(self.enter)) },
 		},
 		{
-			Key:         getKey(config.Branches.FetchRemote),
+			Key:         opts.GetKey(opts.Config.Branches.FetchRemote),
 			Handler:     self.checkSelected(self.fetch),
 			Description: self.c.Tr.LcFetchRemote,
 		},
 		{
-			Key:         getKey(config.Universal.New),
+			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.add,
 			Description: self.c.Tr.LcAddNewRemote,
 		},
 		{
-			Key:         getKey(config.Universal.Remove),
+			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelected(self.remove),
 			Description: self.c.Tr.LcRemoveRemote,
 		},
 		{
-			Key:         getKey(config.Universal.Edit),
+			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.checkSelected(self.edit),
 			Description: self.c.Tr.LcEditRemote,
 		},
 	}
 
-	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
+	return bindings
 }
 
 func (self *RemotesController) enter(remote *models.Remote) error {

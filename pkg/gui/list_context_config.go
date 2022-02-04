@@ -13,7 +13,7 @@ import (
 )
 
 func (gui *Gui) menuListContext() types.IListContext {
-	return &ListContext{
+	return (&ListContext{
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:        "menu",
 			Key:             "menu",
@@ -25,7 +25,7 @@ func (gui *Gui) menuListContext() types.IListContext {
 		Gui:             gui,
 
 		// no GetDisplayStrings field because we do a custom render on menu creation
-	}
+	}).attachKeybindings()
 }
 
 func (gui *Gui) filesListContext() *context.WorkingTreeContext {
@@ -49,7 +49,7 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 }
 
 func (gui *Gui) branchesListContext() types.IListContext {
-	return &ListContext{
+	return (&ListContext{
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "branches",
 			WindowName: "branches",
@@ -70,11 +70,11 @@ func (gui *Gui) branchesListContext() types.IListContext {
 			}
 			return item.ID()
 		},
-	}
+	}).attachKeybindings()
 }
 
 func (gui *Gui) remotesListContext() types.IListContext {
-	return &ListContext{
+	return (&ListContext{
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "branches",
 			WindowName: "branches",
@@ -95,11 +95,11 @@ func (gui *Gui) remotesListContext() types.IListContext {
 			}
 			return item.ID()
 		},
-	}
+	}).attachKeybindings()
 }
 
 func (gui *Gui) remoteBranchesListContext() types.IListContext {
-	return &ListContext{
+	return (&ListContext{
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "branches",
 			WindowName: "branches",
@@ -120,7 +120,7 @@ func (gui *Gui) remoteBranchesListContext() types.IListContext {
 			}
 			return item.ID()
 		},
-	}
+	}).attachKeybindings()
 }
 
 func (gui *Gui) withDiffModeCheck(f func() error) func() error {
@@ -149,7 +149,7 @@ func (gui *Gui) tagsListContext() *context.TagsContext {
 
 func (gui *Gui) branchCommitsListContext() types.IListContext {
 	parseEmoji := gui.c.UserConfig.Git.ParseEmoji
-	return &ListContext{
+	return (&ListContext{
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "commits",
 			WindowName: "commits",
@@ -190,12 +190,12 @@ func (gui *Gui) branchCommitsListContext() types.IListContext {
 			return item.ID()
 		},
 		RenderSelection: true,
-	}
+	}).attachKeybindings()
 }
 
 func (gui *Gui) subCommitsListContext() types.IListContext {
 	parseEmoji := gui.c.UserConfig.Git.ParseEmoji
-	return &ListContext{
+	return (&ListContext{
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "branches",
 			WindowName: "branches",
@@ -235,7 +235,7 @@ func (gui *Gui) subCommitsListContext() types.IListContext {
 			return item.ID()
 		},
 		RenderSelection: true,
-	}
+	}).attachKeybindings()
 }
 
 func (gui *Gui) shouldShowGraph() bool {
@@ -259,7 +259,7 @@ func (gui *Gui) shouldShowGraph() bool {
 
 func (gui *Gui) reflogCommitsListContext() types.IListContext {
 	parseEmoji := gui.c.UserConfig.Git.ParseEmoji
-	return &ListContext{
+	return (&ListContext{
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "commits",
 			WindowName: "commits",
@@ -286,11 +286,11 @@ func (gui *Gui) reflogCommitsListContext() types.IListContext {
 			}
 			return item.ID()
 		},
-	}
+	}).attachKeybindings()
 }
 
 func (gui *Gui) stashListContext() types.IListContext {
-	return &ListContext{
+	return (&ListContext{
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "stash",
 			WindowName: "stash",
@@ -311,7 +311,7 @@ func (gui *Gui) stashListContext() types.IListContext {
 			}
 			return item.ID()
 		},
-	}
+	}).attachKeybindings()
 }
 
 func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
@@ -339,7 +339,7 @@ func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 }
 
 func (gui *Gui) submodulesListContext() types.IListContext {
-	return &ListContext{
+	return (&ListContext{
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "files",
 			WindowName: "files",
@@ -360,11 +360,11 @@ func (gui *Gui) submodulesListContext() types.IListContext {
 			}
 			return item.ID()
 		},
-	}
+	}).attachKeybindings()
 }
 
 func (gui *Gui) suggestionsListContext() types.IListContext {
-	return &ListContext{
+	return (&ListContext{
 		BaseContext: context.NewBaseContext(context.NewBaseContextOpts{
 			ViewName:   "suggestions",
 			WindowName: "suggestions",
@@ -377,7 +377,7 @@ func (gui *Gui) suggestionsListContext() types.IListContext {
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetSuggestionListDisplayStrings(gui.State.Suggestions)
 		},
-	}
+	}).attachKeybindings()
 }
 
 func (gui *Gui) getListContexts() []types.IListContext {

@@ -55,6 +55,8 @@ func NewCommitFilesContext(
 		c: c,
 	}
 
+	baseContext.AddKeybindingsFn(listContextTrait.keybindings)
+
 	self.BaseContext = baseContext
 	self.ListContextTrait = listContextTrait
 	self.CommitFileTreeViewModel = viewModel

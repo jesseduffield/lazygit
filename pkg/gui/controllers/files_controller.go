@@ -87,10 +87,10 @@ func NewFilesController(
 	}
 }
 
-func (self *FilesController) Keybindings(getKey func(key string) interface{}, config config.KeybindingConfig, guards types.KeybindingGuards) []*types.Binding {
-	bindings := []*types.Binding{
+func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	return []*types.Binding{
 		{
-			Key:         getKey(config.Universal.Select),
+			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.checkSelectedFileNode(self.press),
 			Description: self.c.Tr.LcToggleStaged,
 		},
@@ -99,103 +99,101 @@ func (self *FilesController) Keybindings(getKey func(key string) interface{}, co
 			Handler: func() error { return self.context.HandleClick(self.checkSelectedFileNode(self.press)) },
 		},
 		{
-			Key:         getKey("<c-b>"), // TODO: softcode
+			Key:         opts.GetKey("<c-b>"), // TODO: softcode
 			Handler:     self.handleStatusFilterPressed,
 			Description: self.c.Tr.LcFileFilter,
 		},
 		{
-			Key:         getKey(config.Files.CommitChanges),
+			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
 			Handler:     self.HandleCommitPress,
 			Description: self.c.Tr.CommitChanges,
 		},
 		{
-			Key:         getKey(config.Files.CommitChangesWithoutHook),
+			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
 			Handler:     self.HandleWIPCommitPress,
 			Description: self.c.Tr.LcCommitChangesWithoutHook,
 		},
 		{
-			Key:         getKey(config.Files.AmendLastCommit),
+			Key:         opts.GetKey(opts.Config.Files.AmendLastCommit),
 			Handler:     self.handleAmendCommitPress,
 			Description: self.c.Tr.AmendLastCommit,
 		},
 		{
-			Key:         getKey(config.Files.CommitChangesWithEditor),
+			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
 			Handler:     self.HandleCommitEditorPress,
 			Description: self.c.Tr.CommitChangesWithEditor,
 		},
 		{
-			Key:         getKey(config.Universal.Edit),
+			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.checkSelectedFileNode(self.edit),
 			Description: self.c.Tr.LcEditFile,
 		},
 		{
-			Key:         getKey(config.Universal.OpenFile),
+			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.Open,
 			Description: self.c.Tr.LcOpenFile,
 		},
 		{
-			Key:         getKey(config.Files.IgnoreFile),
+			Key:         opts.GetKey(opts.Config.Files.IgnoreFile),
 			Handler:     self.checkSelectedFileNode(self.ignore),
 			Description: self.c.Tr.LcIgnoreFile,
 		},
 		{
-			Key:         getKey(config.Universal.Remove),
+			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelectedFileNode(self.remove),
 			Description: self.c.Tr.LcViewDiscardOptions,
 			OpensMenu:   true,
 		},
 		{
-			Key:         getKey(config.Files.RefreshFiles),
+			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
 			Handler:     self.refresh,
 			Description: self.c.Tr.LcRefreshFiles,
 		},
 		{
-			Key:         getKey(config.Files.StashAllChanges),
+			Key:         opts.GetKey(opts.Config.Files.StashAllChanges),
 			Handler:     self.stash,
 			Description: self.c.Tr.LcStashAllChanges,
 		},
 		{
-			Key:         getKey(config.Files.ViewStashOptions),
+			Key:         opts.GetKey(opts.Config.Files.ViewStashOptions),
 			Handler:     self.createStashMenu,
 			Description: self.c.Tr.LcViewStashOptions,
 			OpensMenu:   true,
 		},
 		{
-			Key:         getKey(config.Files.ToggleStagedAll),
+			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
 			Handler:     self.stageAll,
 			Description: self.c.Tr.LcToggleStagedAll,
 		},
 		{
-			Key:         getKey(config.Universal.GoInto),
+			Key:         opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:     self.enter,
 			Description: self.c.Tr.FileEnter,
 		},
 		{
 			ViewName:    "",
-			Key:         getKey(config.Universal.ExecuteCustomCommand),
+			Key:         opts.GetKey(opts.Config.Universal.ExecuteCustomCommand),
 			Handler:     self.handleCustomCommand,
 			Description: self.c.Tr.LcExecuteCustomCommand,
 		},
 		{
-			Key:         getKey(config.Commits.ViewResetOptions),
+			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.createResetMenu,
 			Description: self.c.Tr.LcViewResetToUpstreamOptions,
 			OpensMenu:   true,
 		},
 		// here
 		{
-			Key:         getKey(config.Files.ToggleTreeView),
+			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
 			Description: self.c.Tr.LcToggleTreeView,
 		},
 		{
-			Key:         getKey(config.Files.OpenMergeTool),
+			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
 			Handler:     self.OpenMergeTool,
 			Description: self.c.Tr.LcOpenMergeTool,
 		},
 	}
-
-	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
 }
 
 func (self *FilesController) press(node *filetree.FileNode) error {

@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -48,42 +47,42 @@ func NewTagsController(
 	}
 }
 
-func (self *TagsController) Keybindings(getKey func(key string) interface{}, config config.KeybindingConfig, guards types.KeybindingGuards) []*types.Binding {
+func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         getKey(config.Universal.Select),
+			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.withSelectedTag(self.checkout),
 			Description: self.c.Tr.LcCheckout,
 		},
 		{
-			Key:         getKey(config.Universal.Remove),
+			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.withSelectedTag(self.delete),
 			Description: self.c.Tr.LcDeleteTag,
 		},
 		{
-			Key:         getKey(config.Branches.PushTag),
+			Key:         opts.GetKey(opts.Config.Branches.PushTag),
 			Handler:     self.withSelectedTag(self.push),
 			Description: self.c.Tr.LcPushTag,
 		},
 		{
-			Key:         getKey(config.Universal.New),
+			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.create,
 			Description: self.c.Tr.LcCreateTag,
 		},
 		{
-			Key:         getKey(config.Commits.ViewResetOptions),
+			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.withSelectedTag(self.createResetMenu),
 			Description: self.c.Tr.LcViewResetOptions,
 			OpensMenu:   true,
 		},
 		{
-			Key:         getKey(config.Universal.GoInto),
+			Key:         opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:     self.withSelectedTag(self.enter),
 			Description: self.c.Tr.LcViewCommits,
 		},
 	}
 
-	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
+	return bindings
 }
 
 func (self *TagsController) checkout(tag *models.Tag) error {

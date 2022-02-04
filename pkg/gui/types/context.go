@@ -28,6 +28,9 @@ type IBaseContext interface {
 	GetKey() ContextKey
 
 	GetOptionsMap() map[string]string
+
+	GetKeybindings(opts KeybindingsOpts) []*Binding
+	AddKeybindingsFn(KeybindingsFn)
 }
 
 type Context interface {
@@ -46,12 +49,16 @@ type OnFocusOpts struct {
 
 type ContextKey string
 
+type KeybindingsOpts struct {
+	GetKey func(key string) interface{}
+	Config config.KeybindingConfig
+	Guards KeybindingGuards
+}
+
+type KeybindingsFn func(opts KeybindingsOpts) []*Binding
+
 type HasKeybindings interface {
-	Keybindings(
-		getKey func(key string) interface{},
-		config config.KeybindingConfig,
-		guards KeybindingGuards,
-	) []*Binding
+	GetKeybindings(opts KeybindingsOpts) []*Binding
 }
 
 type IController interface {

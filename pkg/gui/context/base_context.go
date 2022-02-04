@@ -1,6 +1,8 @@
 package context
 
-import "github.com/jesseduffield/lazygit/pkg/gui/types"
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
 
 type BaseContext struct {
 	kind            types.ContextKind
@@ -9,8 +11,13 @@ type BaseContext struct {
 	windowName      string
 	onGetOptionsMap func() map[string]string
 
+	keybindingsFns []types.KeybindingsFn
+	keybindings    []*types.Binding
+
 	*ParentContextMgr
 }
+
+var _ types.IBaseContext = &BaseContext{}
 
 type NewBaseContextOpts struct {
 	Kind       types.ContextKind
@@ -57,4 +64,19 @@ func (self *BaseContext) GetKind() types.ContextKind {
 
 func (self *BaseContext) GetKey() types.ContextKey {
 	return self.key
+}
+
+func (self *BaseContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	bindings := []*types.Binding{}
+	for i := range self.keybindingsFns {
+		// the first binding in the bindings array takes precedence but we want the
+		// last keybindingsFn to take precedence to we add them in reverse
+		bindings = append(bindings, self.keybindingsFns[len(self.keybindingsFns)-1-i](opts)...)
+	}
+
+	return bindings
+}
+
+func (self *BaseContext) AddKeybindingsFn(fn types.KeybindingsFn) {
+	self.keybindingsFns = append(self.keybindingsFns, fn)
 }

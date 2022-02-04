@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -46,16 +45,16 @@ func NewSyncController(
 	}
 }
 
-func (self *SyncController) Keybindings(getKey func(key string) interface{}, config config.KeybindingConfig, guards types.KeybindingGuards) []*types.Binding {
+func (self *SyncController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         getKey(config.Universal.PushFiles),
-			Handler:     guards.NoPopupPanel(self.HandlePush),
+			Key:         opts.GetKey(opts.Config.Universal.PushFiles),
+			Handler:     opts.Guards.NoPopupPanel(self.HandlePush),
 			Description: self.c.Tr.LcPush,
 		},
 		{
-			Key:         getKey(config.Universal.PullFiles),
-			Handler:     guards.NoPopupPanel(self.HandlePull),
+			Key:         opts.GetKey(opts.Config.Universal.PullFiles),
+			Handler:     opts.Guards.NoPopupPanel(self.HandlePull),
 			Description: self.c.Tr.LcPull,
 		},
 	}

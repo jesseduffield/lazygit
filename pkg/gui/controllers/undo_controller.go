@@ -4,7 +4,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -64,19 +63,15 @@ type reflogAction struct {
 	to   string
 }
 
-func (self *UndoController) Keybindings(
-	getKey func(key string) interface{},
-	config config.KeybindingConfig,
-	guards types.KeybindingGuards,
-) []*types.Binding {
+func (self *UndoController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         getKey(config.Universal.Undo),
+			Key:         opts.GetKey(opts.Config.Universal.Undo),
 			Handler:     self.reflogUndo,
 			Description: self.c.Tr.LcUndoReflog,
 		},
 		{
-			Key:         getKey(config.Universal.Redo),
+			Key:         opts.GetKey(opts.Config.Universal.Redo),
 			Handler:     self.reflogRedo,
 			Description: self.c.Tr.LcRedoReflog,
 		},

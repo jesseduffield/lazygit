@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -27,18 +26,18 @@ func NewMenuController(
 	}
 }
 
-func (self *MenuController) Keybindings(getKey func(key string) interface{}, config config.KeybindingConfig, guards types.KeybindingGuards) []*types.Binding {
+func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:     getKey(config.Universal.Select),
+			Key:     opts.GetKey(opts.Config.Universal.Select),
 			Handler: self.press,
 		},
 		{
-			Key:     getKey(config.Universal.Confirm),
+			Key:     opts.GetKey(opts.Config.Universal.Confirm),
 			Handler: self.press,
 		},
 		{
-			Key:     getKey(config.Universal.ConfirmAlt1),
+			Key:     opts.GetKey(opts.Config.Universal.ConfirmAlt1),
 			Handler: self.press,
 		},
 		{
@@ -47,7 +46,7 @@ func (self *MenuController) Keybindings(getKey func(key string) interface{}, con
 		},
 	}
 
-	return append(bindings, self.context.Keybindings(getKey, config, guards)...)
+	return bindings
 }
 
 func (self *MenuController) press() error {
