@@ -193,7 +193,7 @@ type GuiRepoState struct {
 	MainContext       types.ContextKey // used to keep the main and secondary views' contexts in sync
 	ContextManager    ContextManager
 	Contexts          *context.ContextTree
-	ViewContextMap    map[string]types.Context
+	ViewContextMap    *context.ViewContextMap
 	ViewTabContextMap map[string][]context.TabContext
 
 	// WindowViewNameMap is a mapping of windows to the current view of that window.
@@ -417,13 +417,23 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		}
 	}
 
-	contexts := gui.contextTree()
+	contextTree := gui.contextTree()
 
 	screenMode := SCREEN_NORMAL
-	var initialContext types.IListContext = contexts.Files
+	var initialContext types.IListContext = contextTree.Files
 	if filterPath != "" {
 		screenMode = SCREEN_HALF
-		initialContext = contexts.BranchCommits
+		initialContext = contextTree.BranchCommits
+	}
+
+	viewContextMap := context.NewViewContextMap()
+	for viewName, context := range initialViewContextMapping(contextTree) {
+		viewContextMap.Set(viewName, context)
+		view, err := gui.g.View(viewName)
+		if err != nil {
+			panic(err)
+		}
+		view.Context = string(context.GetKey())
 	}
 
 	gui.State = &GuiRepoState{
@@ -461,15 +471,33 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			CherryPicking: cherrypicking.New(),
 			Diffing:       diffing.New(),
 		},
-		ViewContextMap:    contexts.InitialViewContextMap(),
-		ViewTabContextMap: contexts.InitialViewTabContextMap(),
+		ViewContextMap:    viewContextMap,
+		ViewTabContextMap: contextTree.InitialViewTabContextMap(),
 		ScreenMode:        screenMode,
 		// TODO: put contexts in the context manager
 		ContextManager: NewContextManager(initialContext),
-		Contexts:       contexts,
+		Contexts:       contextTree,
 	}
 
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
+}
+
+func initialViewContextMapping(contextTree *context.ContextTree) map[string]types.Context {
+	return map[string]types.Context{
+		"status":        contextTree.Status,
+		"files":         contextTree.Files,
+		"branches":      contextTree.Branches,
+		"commits":       contextTree.BranchCommits,
+		"commitFiles":   contextTree.CommitFiles,
+		"stash":         contextTree.Stash,
+		"menu":          contextTree.Menu,
+		"confirmation":  contextTree.Confirmation,
+		"credentials":   contextTree.Credentials,
+		"commitMessage": contextTree.CommitMessage,
+		"main":          contextTree.Normal,
+		"secondary":     contextTree.Normal,
+		"extras":        contextTree.CommandLog,
+	}
 }
 
 // for now the split view will always be on
@@ -760,6 +788,10 @@ func (gui *Gui) Run(filterPath string) error {
 
 	gui.g.SetManager(gocui.ManagerFunc(gui.layout), gocui.ManagerFunc(gui.getFocusLayout()))
 
+	if err := gui.createAllViews(); err != nil {
+		return err
+	}
+
 	// onNewRepo must be called after g.SetManager because SetManager deletes keybindings
 	if err := gui.onNewRepo(filterPath, false); err != nil {
 		return err
@@ -775,6 +807,120 @@ func (gui *Gui) Run(filterPath string) error {
 	gui.c.Log.Info("starting main loop")
 
 	return gui.g.MainLoop()
+}
+
+func (gui *Gui) createAllViews() error {
+	viewNameMappings := []struct {
+		viewPtr **gocui.View
+		name    string
+	}{
+		{viewPtr: &gui.Views.Status, name: "status"},
+		{viewPtr: &gui.Views.Files, name: "files"},
+		{viewPtr: &gui.Views.Branches, name: "branches"},
+		{viewPtr: &gui.Views.Commits, name: "commits"},
+		{viewPtr: &gui.Views.Stash, name: "stash"},
+		{viewPtr: &gui.Views.CommitFiles, name: "commitFiles"},
+		{viewPtr: &gui.Views.Main, name: "main"},
+		{viewPtr: &gui.Views.Secondary, name: "secondary"},
+		{viewPtr: &gui.Views.Options, name: "options"},
+		{viewPtr: &gui.Views.AppStatus, name: "appStatus"},
+		{viewPtr: &gui.Views.Information, name: "information"},
+		{viewPtr: &gui.Views.Search, name: "search"},
+		{viewPtr: &gui.Views.SearchPrefix, name: "searchPrefix"},
+		{viewPtr: &gui.Views.CommitMessage, name: "commitMessage"},
+		{viewPtr: &gui.Views.Credentials, name: "credentials"},
+		{viewPtr: &gui.Views.Menu, name: "menu"},
+		{viewPtr: &gui.Views.Suggestions, name: "suggestions"},
+		{viewPtr: &gui.Views.Confirmation, name: "confirmation"},
+		{viewPtr: &gui.Views.Limit, name: "limit"},
+		{viewPtr: &gui.Views.Extras, name: "extras"},
+	}
+
+	var err error
+	for _, mapping := range viewNameMappings {
+		*mapping.viewPtr, err = gui.prepareView(mapping.name)
+		if err != nil && err.Error() != UNKNOWN_VIEW_ERROR_MSG {
+			return err
+		}
+	}
+
+	gui.Views.Options.Frame = false
+	gui.Views.Options.FgColor = theme.OptionsColor
+
+	gui.Views.SearchPrefix.BgColor = gocui.ColorDefault
+	gui.Views.SearchPrefix.FgColor = gocui.ColorGreen
+	gui.Views.SearchPrefix.Frame = false
+	gui.setViewContent(gui.Views.SearchPrefix, SEARCH_PREFIX)
+
+	gui.Views.Stash.Title = gui.c.Tr.StashTitle
+	gui.Views.Stash.FgColor = theme.GocuiDefaultTextColor
+
+	gui.Views.Commits.Title = gui.c.Tr.CommitsTitle
+	gui.Views.Commits.FgColor = theme.GocuiDefaultTextColor
+
+	gui.Views.CommitFiles.Title = gui.c.Tr.CommitFiles
+	gui.Views.CommitFiles.FgColor = theme.GocuiDefaultTextColor
+
+	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
+	gui.Views.Branches.FgColor = theme.GocuiDefaultTextColor
+
+	gui.Views.Files.Highlight = true
+	gui.Views.Files.Title = gui.c.Tr.FilesTitle
+	gui.Views.Files.FgColor = theme.GocuiDefaultTextColor
+
+	gui.Views.Secondary.Title = gui.c.Tr.DiffTitle
+	gui.Views.Secondary.Wrap = true
+	gui.Views.Secondary.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Secondary.IgnoreCarriageReturns = true
+
+	gui.Views.Main.Title = gui.c.Tr.DiffTitle
+	gui.Views.Main.Wrap = true
+	gui.Views.Main.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Main.IgnoreCarriageReturns = true
+
+	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
+	gui.Views.Limit.Wrap = true
+
+	gui.Views.Status.Title = gui.c.Tr.StatusTitle
+	gui.Views.Status.FgColor = theme.GocuiDefaultTextColor
+
+	gui.Views.Search.BgColor = gocui.ColorDefault
+	gui.Views.Search.FgColor = gocui.ColorGreen
+	gui.Views.Search.Frame = false
+	gui.Views.Search.Editable = true
+
+	gui.Views.AppStatus.BgColor = gocui.ColorDefault
+	gui.Views.AppStatus.FgColor = gocui.ColorCyan
+	gui.Views.AppStatus.Frame = false
+	gui.Views.AppStatus.Visible = false
+
+	gui.Views.CommitMessage.Visible = false
+	gui.Views.CommitMessage.Title = gui.c.Tr.CommitMessage
+	gui.Views.CommitMessage.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.CommitMessage.Editable = true
+	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
+
+	gui.Views.Confirmation.Visible = false
+
+	gui.Views.Credentials.Visible = false
+	gui.Views.Credentials.Title = gui.c.Tr.CredentialsUsername
+	gui.Views.Credentials.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Credentials.Editable = true
+
+	gui.Views.Suggestions.Visible = false
+
+	gui.Views.Menu.Visible = false
+
+	gui.Views.Information.BgColor = gocui.ColorDefault
+	gui.Views.Information.FgColor = gocui.ColorGreen
+	gui.Views.Information.Frame = false
+
+	gui.Views.Extras.Title = gui.c.Tr.CommandLog
+	gui.Views.Extras.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Extras.Autoscroll = true
+	gui.Views.Extras.Wrap = true
+
+	return nil
 }
 
 func (gui *Gui) RunAndHandleError(filterPath string) error {

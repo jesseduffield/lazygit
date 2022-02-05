@@ -30,7 +30,7 @@ const (
 )
 
 var AllContextKeys = []types.ContextKey{
-	GLOBAL_CONTEXT_KEY,
+	GLOBAL_CONTEXT_KEY, // not focusable
 	STATUS_CONTEXT_KEY,
 	FILES_CONTEXT_KEY,
 	LOCAL_BRANCHES_CONTEXT_KEY,
@@ -42,10 +42,10 @@ var AllContextKeys = []types.ContextKey{
 	SUB_COMMITS_CONTEXT_KEY,
 	COMMIT_FILES_CONTEXT_KEY,
 	STASH_CONTEXT_KEY,
-	MAIN_NORMAL_CONTEXT_KEY,
+	MAIN_NORMAL_CONTEXT_KEY, // not focusable
 	MAIN_MERGING_CONTEXT_KEY,
 	MAIN_PATCH_BUILDING_CONTEXT_KEY,
-	MAIN_STAGING_CONTEXT_KEY,
+	MAIN_STAGING_CONTEXT_KEY, // not focusable for secondary view
 	MENU_CONTEXT_KEY,
 	CREDENTIALS_CONTEXT_KEY,
 	CONFIRMATION_CONTEXT_KEY,
@@ -83,22 +83,48 @@ type ContextTree struct {
 	CommandLog     types.Context
 }
 
-func (tree ContextTree) InitialViewContextMap() map[string]types.Context {
-	return map[string]types.Context{
-		"status":        tree.Status,
-		"files":         tree.Files,
-		"branches":      tree.Branches,
-		"commits":       tree.BranchCommits,
-		"commitFiles":   tree.CommitFiles,
-		"stash":         tree.Stash,
-		"menu":          tree.Menu,
-		"confirmation":  tree.Confirmation,
-		"credentials":   tree.Credentials,
-		"commitMessage": tree.CommitMessage,
-		"main":          tree.Normal,
-		"secondary":     tree.Normal,
-		"extras":        tree.CommandLog,
+func (self *ContextTree) Flatten() []types.Context {
+	return []types.Context{
+		self.Global,
+		self.Status,
+		self.Files,
+		self.Submodules,
+		self.Branches,
+		self.Remotes,
+		self.RemoteBranches,
+		self.Tags,
+		self.BranchCommits,
+		self.CommitFiles,
+		self.ReflogCommits,
+		self.Stash,
+		self.Menu,
+		self.Confirmation,
+		self.Credentials,
+		self.CommitMessage,
+		self.Normal,
+		self.Staging,
+		self.Merging,
+		self.PatchBuilding,
+		self.SubCommits,
+		self.Suggestions,
+		self.CommandLog,
 	}
+}
+
+type ViewContextMap struct {
+	content map[string]types.Context
+}
+
+func NewViewContextMap() *ViewContextMap {
+	return &ViewContextMap{content: map[string]types.Context{}}
+}
+
+func (self *ViewContextMap) Get(viewName string) types.Context {
+	return self.content[viewName]
+}
+
+func (self *ViewContextMap) Set(viewName string, context types.Context) {
+	self.content[viewName] = context
 }
 
 type TabContext struct {

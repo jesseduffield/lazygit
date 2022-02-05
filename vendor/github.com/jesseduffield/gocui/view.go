@@ -149,6 +149,8 @@ type View struct {
 	// ParentView is the view which catches events bubbled up from the given view if there's no matching handler
 	ParentView *View
 
+	Context string // this is for assigning keybindings to a view only in certain contexts
+
 	searcher *searcher
 
 	// KeybindOnEdit should be set to true when you want to execute keybindings even when the view is editable

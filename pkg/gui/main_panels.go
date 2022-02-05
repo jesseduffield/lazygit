@@ -4,6 +4,7 @@ import (
 	"os/exec"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type viewUpdateOpts struct {
@@ -16,6 +17,8 @@ type viewUpdateOpts struct {
 	highlight bool
 
 	task updateTask
+
+	context types.Context
 }
 
 type refreshMainOpts struct {
@@ -100,6 +103,11 @@ func (gui *Gui) refreshMainView(opts *viewUpdateOpts, view *gocui.View) error {
 	view.Title = opts.title
 	view.Wrap = !opts.noWrap
 	view.Highlight = opts.highlight
+	context := opts.context
+	if context == nil {
+		context = gui.State.Contexts.Normal
+	}
+	gui.ViewContextMapSet(view.Name(), context)
 
 	if err := gui.runTaskForView(view, opts.task); err != nil {
 		gui.c.Log.Error(err)

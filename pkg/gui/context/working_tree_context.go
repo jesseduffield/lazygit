@@ -31,6 +31,7 @@ func NewWorkingTreeContext(
 		WindowName: "files",
 		Key:        FILES_CONTEXT_KEY,
 		Kind:       types.SIDE_CONTEXT,
+		Focusable:  true,
 	})
 
 	self := &WorkingTreeContext{}

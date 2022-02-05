@@ -1348,7 +1348,7 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 	}
 
 	mouseKeybindings := []*gocui.ViewMouseBinding{}
-	for _, c := range gui.allContexts() {
+	for _, c := range gui.State.Contexts.Flatten() {
 		viewName := c.GetViewName()
 		contextKey := c.GetKey()
 		for _, binding := range c.GetKeybindings(keybindingsOpts) {

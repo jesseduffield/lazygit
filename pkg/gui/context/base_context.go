@@ -15,6 +15,8 @@ type BaseContext struct {
 	keybindingsFns      []types.KeybindingsFn
 	mouseKeybindingsFns []types.MouseKeybindingsFn
 
+	focusable bool
+
 	*ParentContextMgr
 }
 
@@ -25,6 +27,7 @@ type NewBaseContextOpts struct {
 	Key        types.ContextKey
 	ViewName   string
 	WindowName string
+	Focusable  bool
 
 	OnGetOptionsMap func() map[string]string
 }
@@ -36,6 +39,7 @@ func NewBaseContext(opts NewBaseContextOpts) *BaseContext {
 		ViewName:         opts.ViewName,
 		windowName:       opts.WindowName,
 		onGetOptionsMap:  opts.OnGetOptionsMap,
+		focusable:        opts.Focusable,
 		ParentContextMgr: &ParentContextMgr{},
 	}
 }
@@ -95,4 +99,8 @@ func (self *BaseContext) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocu
 	}
 
 	return bindings
+}
+
+func (self *BaseContext) IsFocusable() bool {
+	return self.focusable
 }

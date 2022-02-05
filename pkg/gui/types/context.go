@@ -31,6 +31,7 @@ type IBaseContext interface {
 	GetWindowName() string
 	SetWindowName(string)
 	GetKey() ContextKey
+	IsFocusable() bool
 
 	GetOptionsMap() map[string]string
 
