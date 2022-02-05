@@ -124,7 +124,7 @@ func formatBinding(binding *types.Binding) string {
 func getBindingSections(mApp *app.App) []*bindingSection {
 	bindingSections := []*bindingSection{}
 
-	bindings := mApp.Gui.GetInitialKeybindings()
+	bindings, _ := mApp.Gui.GetInitialKeybindings()
 
 	type contextAndViewType struct {
 		subtitle string

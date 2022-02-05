@@ -10,6 +10,8 @@ import (
 )
 
 type RemotesController struct {
+	baseController
+
 	c       *types.ControllerCommon
 	context types.IListContext
 	git     *commands.GitCommand
@@ -30,6 +32,7 @@ func NewRemotesController(
 	setRemoteBranches func([]*models.RemoteBranch),
 ) *RemotesController {
 	return &RemotesController{
+		baseController:    baseController{},
 		c:                 c,
 		git:               git,
 		contexts:          contexts,

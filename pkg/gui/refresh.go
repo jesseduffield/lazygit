@@ -318,7 +318,7 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 			gui.c.Log.Error(err)
 		}
 
-		if types.ContextKey(gui.Views.Files.Context) == context.FILES_CONTEXT_KEY {
+		if gui.isContextVisible(gui.State.Contexts.Files) {
 			// doing this a little custom (as opposed to using gui.c.PostRefreshUpdate) because we handle selecting the file explicitly below
 			if err := gui.State.Contexts.Files.HandleRender(); err != nil {
 				return err
@@ -503,7 +503,15 @@ func (gui *Gui) refreshRemotes() error {
 		}
 	}
 
-	return gui.c.PostRefreshUpdate(gui.mustContextForContextKey(types.ContextKey(gui.Views.Branches.Context)))
+	if err := gui.c.PostRefreshUpdate(gui.State.Contexts.Remotes); err != nil {
+		return err
+	}
+
+	if err := gui.c.PostRefreshUpdate(gui.State.Contexts.RemoteBranches); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (gui *Gui) refreshStashEntries() error {

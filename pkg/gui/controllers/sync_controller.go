@@ -11,10 +11,8 @@ import (
 )
 
 type SyncController struct {
-	// I've said publicly that I'm against single-letter variable names but in this
-	// case I would actually prefer a _zero_ letter variable name in the form of
-	// struct embedding, but Go does not allow hiding public fields in an embedded struct
-	// to the client
+	baseController
+
 	c   *types.ControllerCommon
 	git *commands.GitCommand
 
@@ -35,8 +33,9 @@ func NewSyncController(
 	CheckMergeOrRebase func(error) error,
 ) *SyncController {
 	return &SyncController{
-		c:   c,
-		git: git,
+		baseController: baseController{},
+		c:              c,
+		git:            git,
 
 		getCheckedOutBranch: getCheckedOutBranch,
 		suggestionsHelper:   suggestionsHelper,

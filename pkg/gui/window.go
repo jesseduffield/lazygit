@@ -1,6 +1,8 @@
 package gui
 
-import "github.com/jesseduffield/gocui"
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
 
 // A window refers to a place on the screen which can hold one or more views.
 // A view is a box that renders content, and within a window only one view will
@@ -17,28 +19,21 @@ func (gui *Gui) getViewNameForWindow(window string) string {
 	return viewName
 }
 
-func (gui *Gui) getWindowForView(view *gocui.View) string {
-	if view == gui.Views.CommitFiles {
-		return gui.State.Contexts.CommitFiles.GetWindowName()
-	}
-
-	return view.Name()
-}
-
-func (gui *Gui) setViewAsActiveForWindow(view *gocui.View) {
+// for now all we actually care about is the context's view so we're storing that
+func (gui *Gui) setWindowContext(c types.Context) {
 	if gui.State.WindowViewNameMap == nil {
 		gui.State.WindowViewNameMap = map[string]string{}
 	}
 
-	gui.State.WindowViewNameMap[gui.getWindowForView(view)] = view.Name()
+	gui.State.WindowViewNameMap[c.GetWindowName()] = c.GetViewName()
 }
 
 func (gui *Gui) currentWindow() string {
-	return gui.getWindowForView(gui.g.CurrentView())
+	return gui.currentContext().GetWindowName()
 }
 
-func (gui *Gui) resetWindowForView(view *gocui.View) {
-	window := gui.getWindowForView(view)
+func (gui *Gui) resetWindowContext(c types.Context) {
 	// we assume here that the window contains as its default view a view with the same name as the window
-	gui.State.WindowViewNameMap[window] = window
+	windowName := c.GetWindowName()
+	gui.State.WindowViewNameMap[windowName] = windowName
 }

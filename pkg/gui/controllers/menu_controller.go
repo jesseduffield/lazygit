@@ -6,6 +6,8 @@ import (
 )
 
 type MenuController struct {
+	baseController
+
 	c       *types.ControllerCommon
 	context types.IListContext
 
@@ -20,6 +22,8 @@ func NewMenuController(
 	getSelectedMenuItem func() *types.MenuItem,
 ) *MenuController {
 	return &MenuController{
+		baseController: baseController{},
+
 		c:                   c,
 		context:             context,
 		getSelectedMenuItem: getSelectedMenuItem,

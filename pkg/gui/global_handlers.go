@@ -182,22 +182,8 @@ func (gui *Gui) handleRefresh() error {
 
 func (gui *Gui) handleMouseDownMain() error {
 	switch gui.currentSideContext() {
-	case gui.State.Contexts.Files:
-		// set filename, set primary/secondary selected, set line number, then switch context
-		// I'll need to know it was changed though.
-		// Could I pass something along to the context change?
-		return gui.Controllers.Files.EnterFile(types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
 	case gui.State.Contexts.CommitFiles:
 		return gui.enterCommitFile(types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
-	}
-
-	return nil
-}
-
-func (gui *Gui) handleMouseDownSecondary() error {
-	switch gui.g.CurrentView() {
-	case gui.Views.Files:
-		return gui.Controllers.Files.EnterFile(types.OnFocusOpts{ClickedViewName: "secondary", ClickedViewLineIdx: gui.Views.Secondary.SelectedLineIdx()})
 	}
 
 	return nil

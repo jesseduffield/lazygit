@@ -1,6 +1,9 @@
 package types
 
-import "github.com/jesseduffield/lazygit/pkg/config"
+import (
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/config"
+)
 
 type ContextKind int
 
@@ -10,6 +13,8 @@ const (
 	TEMPORARY_POPUP
 	PERSISTENT_POPUP
 	EXTRAS_CONTEXT
+	// only used by the one global context
+	GLOBAL_CONTEXT
 )
 
 type ParentContexter interface {
@@ -31,6 +36,8 @@ type IBaseContext interface {
 
 	GetKeybindings(opts KeybindingsOpts) []*Binding
 	AddKeybindingsFn(KeybindingsFn)
+	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
+	AddMouseKeybindingsFn(MouseKeybindingsFn)
 }
 
 type Context interface {
@@ -56,9 +63,11 @@ type KeybindingsOpts struct {
 }
 
 type KeybindingsFn func(opts KeybindingsOpts) []*Binding
+type MouseKeybindingsFn func(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 
 type HasKeybindings interface {
 	GetKeybindings(opts KeybindingsOpts) []*Binding
+	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 }
 
 type IController interface {

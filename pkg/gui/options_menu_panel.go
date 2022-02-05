@@ -3,28 +3,25 @@ package gui
 import (
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) getBindings(v *gocui.View) []*types.Binding {
+func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 	var (
 		bindingsGlobal, bindingsPanel []*types.Binding
 	)
 
-	bindings := append(gui.GetCustomCommandKeybindings(), gui.GetInitialKeybindings()...)
+	bindings, _ := gui.GetInitialKeybindings()
+	bindings = append(gui.GetCustomCommandKeybindings(), bindings...)
 
 	for _, binding := range bindings {
 		if GetKeyDisplay(binding.Key) != "" && binding.Description != "" {
-			switch binding.ViewName {
-			case "":
+			if len(binding.Contexts) == 0 {
 				bindingsGlobal = append(bindingsGlobal, binding)
-			case v.Name():
-				if len(binding.Contexts) == 0 || utils.IncludesString(binding.Contexts, v.Context) {
-					bindingsPanel = append(bindingsPanel, binding)
-				}
+			} else if utils.IncludesString(binding.Contexts, string(context.GetKey())) {
+				bindingsPanel = append(bindingsPanel, binding)
 			}
 		}
 	}
@@ -48,12 +45,8 @@ func opensMenuStyle(str string) string {
 }
 
 func (gui *Gui) handleCreateOptionsMenu() error {
-	view := gui.g.CurrentView()
-	if view == nil {
-		return nil
-	}
-
-	bindings := gui.getBindings(view)
+	context := gui.currentContext()
+	bindings := gui.getBindings(context)
 
 	menuItems := make([]*types.MenuItem, len(bindings))
 
