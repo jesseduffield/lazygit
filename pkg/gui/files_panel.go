@@ -55,9 +55,15 @@ func (gui *Gui) filesRenderToMain() error {
 
 	cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges(), gui.IgnoreWhitespaceInDiffView)
 
+	mainContext := gui.State.Contexts.Normal
+	if node.File != nil {
+		mainContext = gui.State.Contexts.Staging
+	}
+
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
-		title: gui.c.Tr.UnstagedChanges,
-		task:  NewRunPtyTask(cmdObj.GetCmd()),
+		title:   gui.c.Tr.UnstagedChanges,
+		task:    NewRunPtyTask(cmdObj.GetCmd()),
+		context: mainContext,
 	}}
 
 	if node.GetHasUnstagedChanges() {
@@ -65,8 +71,9 @@ func (gui *Gui) filesRenderToMain() error {
 			cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, true, gui.IgnoreWhitespaceInDiffView)
 
 			refreshOpts.secondary = &viewUpdateOpts{
-				title: gui.c.Tr.StagedChanges,
-				task:  NewRunPtyTask(cmdObj.GetCmd()),
+				title:   gui.c.Tr.StagedChanges,
+				task:    NewRunPtyTask(cmdObj.GetCmd()),
+				context: mainContext,
 			}
 		}
 	} else {

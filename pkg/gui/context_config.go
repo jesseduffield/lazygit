@@ -5,7 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-func (gui *Gui) allContexts() []types.Context {
+func (gui *Gui) allContexts2() []types.Context {
 	return []types.Context{
 		gui.State.Contexts.Global,
 		gui.State.Contexts.Status,
@@ -41,6 +41,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				ViewName:   "",
 				WindowName: "",
 				Key:        context.GLOBAL_CONTEXT_KEY,
+				Focusable:  false,
 			}),
 			NewSimpleContextOpts{
 				OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
@@ -52,6 +53,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				ViewName:   "status",
 				WindowName: "status",
 				Key:        context.STATUS_CONTEXT_KEY,
+				Focusable:  true,
 			}),
 			NewSimpleContextOpts{
 				OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
@@ -76,6 +78,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				ViewName:   "main",
 				WindowName: "main",
 				Key:        context.MAIN_NORMAL_CONTEXT_KEY,
+				Focusable:  false,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: func(opts ...types.OnFocusOpts) error {
@@ -89,6 +92,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				ViewName:   "main",
 				WindowName: "main",
 				Key:        context.MAIN_STAGING_CONTEXT_KEY,
+				Focusable:  true,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: func(opts ...types.OnFocusOpts) error {
@@ -112,6 +116,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				ViewName:   "main",
 				WindowName: "main",
 				Key:        context.MAIN_PATCH_BUILDING_CONTEXT_KEY,
+				Focusable:  true,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: func(opts ...types.OnFocusOpts) error {
@@ -131,6 +136,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				WindowName:      "main",
 				Key:             context.MAIN_MERGING_CONTEXT_KEY,
 				OnGetOptionsMap: gui.getMergingOptions,
+				Focusable:       true,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: OnFocusWrapper(func() error { return gui.renderConflictsWithLock(true) }),
@@ -142,6 +148,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				ViewName:   "credentials",
 				WindowName: "credentials",
 				Key:        context.CREDENTIALS_CONTEXT_KEY,
+				Focusable:  true,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: OnFocusWrapper(gui.handleAskFocused),
@@ -153,6 +160,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				ViewName:   "confirmation",
 				WindowName: "confirmation",
 				Key:        context.CONFIRMATION_CONTEXT_KEY,
+				Focusable:  true,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: OnFocusWrapper(gui.handleAskFocused),
@@ -164,6 +172,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				ViewName:   "commitMessage",
 				WindowName: "commitMessage",
 				Key:        context.COMMIT_MESSAGE_CONTEXT_KEY,
+				Focusable:  true,
 			}),
 			NewSimpleContextOpts{
 				OnFocus: OnFocusWrapper(gui.handleCommitMessageFocused),
@@ -175,6 +184,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				ViewName:   "search",
 				WindowName: "search",
 				Key:        context.SEARCH_CONTEXT_KEY,
+				Focusable:  true,
 			}),
 			NewSimpleContextOpts{},
 		),
@@ -185,6 +195,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				WindowName:      "extras",
 				Key:             context.COMMAND_LOG_CONTEXT_KEY,
 				OnGetOptionsMap: gui.getMergingOptions,
+				Focusable:       true,
 			}),
 			NewSimpleContextOpts{
 				OnFocusLost: func() error {

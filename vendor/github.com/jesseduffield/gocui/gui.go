@@ -1441,7 +1441,7 @@ func (g *Gui) matchView(v *View, kb *keybinding) bool {
 		return true
 	}
 	for _, context := range kb.contexts {
-		if context == g.currentContext {
+		if context == v.Context {
 			return true
 		}
 	}

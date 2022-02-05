@@ -31,6 +31,7 @@ func NewCommitFilesContext(
 		WindowName: "commits",
 		Key:        COMMIT_FILES_CONTEXT_KEY,
 		Kind:       types.SIDE_CONTEXT,
+		Focusable:  true,
 	})
 
 	self := &CommitFilesContext{}

@@ -46,10 +46,16 @@ func (gui *Gui) commitFilesRenderToMain() error {
 	cmdObj := gui.git.WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
 	task := NewRunPtyTask(cmdObj.GetCmd())
 
+	mainContext := gui.State.Contexts.Normal
+	if node.File != nil {
+		mainContext = gui.State.Contexts.PatchBuilding
+	}
+
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
-			title: "Patch",
-			task:  task,
+			title:   "Patch",
+			task:    task,
+			context: mainContext,
 		},
 		secondary: gui.secondaryPatchPanelUpdateOpts(),
 	})

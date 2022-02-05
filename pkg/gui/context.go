@@ -11,7 +11,7 @@ import (
 
 func (gui *Gui) popupViewNames() []string {
 	result := []string{}
-	for _, context := range gui.allContexts() {
+	for _, context := range gui.State.Contexts.Flatten() {
 		if context.GetKind() == types.PERSISTENT_POPUP || context.GetKind() == types.TEMPORARY_POPUP {
 			result = append(result, context.GetViewName())
 		}
@@ -44,6 +44,10 @@ func (gui *Gui) replaceContext(c types.Context) error {
 	gui.State.ContextManager.Lock()
 	defer gui.State.ContextManager.Unlock()
 
+	if !c.IsFocusable() {
+		return nil
+	}
+
 	if len(gui.State.ContextManager.ContextStack) == 0 {
 		gui.State.ContextManager.ContextStack = []types.Context{c}
 	} else {
@@ -60,8 +64,9 @@ func (gui *Gui) pushContext(c types.Context, opts ...types.OnFocusOpts) error {
 		return errors.New("cannot pass multiple opts to pushContext")
 	}
 
-	if c.GetKey() == context.GLOBAL_CONTEXT_KEY {
-		return errors.New("Cannot push global context")
+	if !c.IsFocusable() {
+		panic(c.GetKey())
+		return nil
 	}
 
 	gui.State.ContextManager.Lock()
@@ -97,7 +102,7 @@ func (gui *Gui) pushContext(c types.Context, opts ...types.OnFocusOpts) error {
 // want to switch to: you only know the view that you want to switch to. It will
 // look up the context currently active for that view and switch to that context
 func (gui *Gui) pushContextWithView(viewName string) error {
-	return gui.c.PushContext(gui.State.ViewContextMap[viewName])
+	return gui.c.PushContext(gui.State.ViewContextMap.Get(viewName))
 }
 
 func (gui *Gui) returnFromContext() error {
@@ -152,7 +157,7 @@ func (gui *Gui) deactivateContext(c types.Context) error {
 // if the context's view is set to another context we do nothing.
 // if the context's view is the current view we trigger a focus; re-selecting the current item.
 func (gui *Gui) postRefreshUpdate(c types.Context) error {
-	if gui.State.ViewContextMap[c.GetViewName()].GetKey() != c.GetKey() {
+	if gui.State.ViewContextMap.Get(c.GetViewName()).GetKey() != c.GetKey() {
 		return nil
 	}
 
@@ -175,7 +180,7 @@ func (gui *Gui) activateContext(c types.Context, opts ...types.OnFocusOpts) erro
 	if err != nil {
 		return err
 	}
-	originalViewContextKey := gui.State.ViewContextMap[viewName].GetKey()
+	originalViewContextKey := gui.State.ViewContextMap.Get(viewName).GetKey()
 
 	gui.setWindowContext(c)
 	gui.setViewTabForContext(c)
@@ -200,7 +205,7 @@ func (gui *Gui) activateContext(c types.Context, opts ...types.OnFocusOpts) erro
 		}
 	}
 
-	gui.State.ViewContextMap[viewName] = c
+	gui.ViewContextMapSet(viewName, c)
 
 	gui.g.Cursor = v.Editable
 
@@ -215,10 +220,17 @@ func (gui *Gui) activateContext(c types.Context, opts ...types.OnFocusOpts) erro
 		return err
 	}
 
-	// TODO: consider removing this and instead depending on the .Context field of views
-	gui.State.ViewContextMap[c.GetViewName()] = c
-
 	return nil
+}
+
+// also setting context on view for now. We'll need to pick one of these two approaches to stick with.
+func (gui *Gui) ViewContextMapSet(viewName string, c types.Context) {
+	gui.State.ViewContextMap.Set(viewName, c)
+	view, err := gui.g.View(viewName)
+	if err != nil {
+		panic(err)
+	}
+	view.Context = string(c.GetKey())
 }
 
 // // currently unused
@@ -369,8 +381,8 @@ func (gui *Gui) changeMainViewsContext(c types.Context) {
 
 	switch c.GetKey() {
 	case context.MAIN_NORMAL_CONTEXT_KEY, context.MAIN_PATCH_BUILDING_CONTEXT_KEY, context.MAIN_STAGING_CONTEXT_KEY, context.MAIN_MERGING_CONTEXT_KEY:
-		gui.State.ViewContextMap[gui.Views.Main.Name()] = c
-		gui.State.ViewContextMap[gui.Views.Secondary.Name()] = c
+		gui.ViewContextMapSet(gui.Views.Main.Name(), c)
+		gui.ViewContextMapSet(gui.Views.Secondary.Name(), c)
 	default:
 		panic(fmt.Sprintf("unknown context for main: %s", c.GetKey()))
 	}
@@ -416,18 +428,8 @@ func (gui *Gui) setViewTabForContext(c types.Context) {
 	}
 }
 
-func (gui *Gui) mustContextForContextKey(contextKey types.ContextKey) types.Context {
-	context, ok := gui.contextForContextKey(contextKey)
-
-	if !ok {
-		panic(fmt.Sprintf("context not found for key %s", contextKey))
-	}
-
-	return context
-}
-
 func (gui *Gui) contextForContextKey(contextKey types.ContextKey) (types.Context, bool) {
-	for _, context := range gui.allContexts() {
+	for _, context := range gui.State.Contexts.Flatten() {
 		if context.GetKey() == contextKey {
 			return context, true
 		}
@@ -437,13 +439,7 @@ func (gui *Gui) contextForContextKey(contextKey types.ContextKey) (types.Context
 }
 
 func (gui *Gui) rerenderView(view *gocui.View) error {
-	context, ok := gui.State.ViewContextMap[view.Name()]
-
-	if !ok {
-		panic("no context set against view " + view.Name())
-	}
-
-	return context.HandleRender()
+	return gui.State.ViewContextMap.Get(view.Name()).HandleRender()
 }
 
 func (gui *Gui) getSideContextSelectedItemId() string {
@@ -456,7 +452,7 @@ func (gui *Gui) getSideContextSelectedItemId() string {
 }
 
 func (gui *Gui) isContextVisible(c types.Context) bool {
-	return gui.State.WindowViewNameMap[c.GetWindowName()] == c.GetViewName() && gui.State.ViewContextMap[c.GetViewName()].GetKey() == c.GetKey()
+	return gui.State.WindowViewNameMap[c.GetWindowName()] == c.GetViewName() && gui.State.ViewContextMap.Get(c.GetViewName()).GetKey() == c.GetKey()
 }
 
 // currently unused
