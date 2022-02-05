@@ -118,7 +118,7 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 	return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.c.LogAction(gui.c.Tr.Actions.MovePatchToSelectedCommit)
-		err := gui.git.Patch.MovePatchToSelectedCommit(gui.State.Model.Commits, commitIndex, gui.State.Panels.Commits.SelectedLineIdx)
+		err := gui.git.Patch.MovePatchToSelectedCommit(gui.State.Model.Commits, commitIndex, gui.State.Contexts.BranchCommits.GetSelectedLineIdx())
 		return gui.helpers.Rebase.CheckMergeOrRebase(err)
 	})
 }

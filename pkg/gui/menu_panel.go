@@ -6,7 +6,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) getMenuOptions() map[string]string {
@@ -35,44 +34,24 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		})
 	}
 
-	gui.State.MenuItems = opts.Items
-
-	stringArrays := make([][]string, len(opts.Items))
-	for i, item := range opts.Items {
+	for _, item := range opts.Items {
 		if item.OpensMenu && item.DisplayStrings != nil {
 			return errors.New("Message for the developer of this app: you've set opensMenu with displaystrings on the menu panel. Bad developer!. Apologies, user")
 		}
-
-		if item.DisplayStrings == nil {
-			styledStr := item.DisplayString
-			if item.OpensMenu {
-				styledStr = opensMenuStyle(styledStr)
-			}
-			stringArrays[i] = []string{styledStr}
-		} else {
-			stringArrays[i] = item.DisplayStrings
-		}
 	}
 
-	list := utils.RenderDisplayStrings(stringArrays)
-
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(false, list)
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsForContentHeight(len(opts.Items))
 	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
 	menuView.Title = opts.Title
 	menuView.FgColor = theme.GocuiDefaultTextColor
 	menuView.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
 		return nil
 	}))
-	menuView.SetContent(list)
-	gui.State.Panels.Menu.SelectedLineIdx = 0
 
+	gui.State.Contexts.Menu.SetMenuItems(opts.Items)
+	gui.State.Contexts.Menu.GetPanelState().SetSelectedLineIdx(0)
+	_ = gui.c.PostRefreshUpdate(gui.State.Contexts.Menu)
+
+	// TODO: ensure that if we're opened a menu from within a menu that it renders correctly
 	return gui.c.PushContext(gui.State.Contexts.Menu)
-}
-
-func (gui *Gui) getSelectedMenuItem() *types.MenuItem {
-	if len(gui.State.MenuItems) == 0 {
-		return nil
-	}
-
-	return gui.State.MenuItems[gui.State.Panels.Menu.SelectedLineIdx]
 }

@@ -43,7 +43,7 @@ func (gui *Gui) currentDiffTerminals() []string {
 		return []string{gui.State.Contexts.CommitFiles.GetRefName()}
 	case context.LOCAL_BRANCHES_CONTEXT_KEY:
 		// for our local branches we want to include both the branch and its upstream
-		branch := gui.getSelectedBranch()
+		branch := gui.State.Contexts.Branches.GetSelected()
 		if branch != nil {
 			names := []string{branch.ID()}
 			if branch.IsTrackingRemote() {

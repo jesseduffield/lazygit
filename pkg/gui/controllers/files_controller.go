@@ -94,10 +94,10 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Handler:     self.checkSelectedFileNode(self.press),
 			Description: self.c.Tr.LcToggleStaged,
 		},
-		{
-			Key:     gocui.MouseLeft,
-			Handler: func() error { return self.context.HandleClick(self.checkSelectedFileNode(self.press)) },
-		},
+		// {
+		// 	Key:     gocui.MouseLeft,
+		// 	Handler: func() error { return self.context.HandleClick(self.checkSelectedFileNode(self.press)) },
+		// },
 		{
 			Key:         opts.GetKey("<c-b>"), // TODO: softcode
 			Handler:     self.handleStatusFilterPressed,

@@ -24,6 +24,7 @@ type ParentContexter interface {
 }
 
 type IBaseContext interface {
+	HasKeybindings
 	ParentContexter
 
 	GetKind() ContextKind
@@ -35,9 +36,7 @@ type IBaseContext interface {
 
 	GetOptionsMap() map[string]string
 
-	GetKeybindings(opts KeybindingsOpts) []*Binding
 	AddKeybindingsFn(KeybindingsFn)
-	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 	AddMouseKeybindingsFn(MouseKeybindingsFn)
 }
 
@@ -48,6 +47,33 @@ type Context interface {
 	HandleFocusLost() error
 	HandleRender() error
 	HandleRenderToMain() error
+}
+
+type IListContext interface {
+	Context
+
+	GetSelectedItemId() string
+
+	GetList() IList
+
+	OnSearchSelect(selectedLineIdx int) error
+	FocusLine()
+
+	GetPanelState() IListPanelState
+	GetViewTrait() IViewTrait
+}
+
+type IViewTrait interface {
+	FocusPoint(yIdx int)
+	SetViewPortContent(content string)
+	SetContent(content string)
+	SetFooter(value string)
+	SetOriginX(value int)
+	ViewPortYBounds() (int, int)
+	ScrollLeft()
+	ScrollRight()
+	PageDelta() int
+	SelectedLineIdx() int
 }
 
 type OnFocusOpts struct {
@@ -74,28 +100,6 @@ type HasKeybindings interface {
 type IController interface {
 	HasKeybindings
 	Context() Context
-}
-
-type IListContext interface {
-	HasKeybindings
-
-	GetSelectedItemId() string
-	HandlePrevLine() error
-	HandleNextLine() error
-	HandleScrollLeft() error
-	HandleScrollRight() error
-	HandlePrevPage() error
-	HandleNextPage() error
-	HandleGotoTop() error
-	HandleGotoBottom() error
-	HandleClick(onClick func() error) error
-
-	OnSearchSelect(selectedLineIdx int) error
-	FocusLine()
-
-	GetPanelState() IListPanelState
-
-	Context
 }
 
 type IList interface {

@@ -77,7 +77,29 @@ func (gui *Gui) getMessageHeight(wrap bool, message string, width int) int {
 }
 
 func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, int, int, int) {
+	panelWidth := gui.getConfirmationPanelWidth()
+	panelHeight := gui.getMessageHeight(wrap, prompt, panelWidth)
+	return gui.getConfirmationPanelDimensionsAux(panelWidth, panelHeight)
+}
+
+func (gui *Gui) getConfirmationPanelDimensionsForContentHeight(contentHeight int) (int, int, int, int) {
+	panelWidth := gui.getConfirmationPanelWidth()
+	return gui.getConfirmationPanelDimensionsAux(panelWidth, contentHeight)
+}
+
+func (gui *Gui) getConfirmationPanelDimensionsAux(panelWidth int, panelHeight int) (int, int, int, int) {
 	width, height := gui.g.Size()
+	if panelHeight > height*3/4 {
+		panelHeight = height * 3 / 4
+	}
+	return width/2 - panelWidth/2,
+		height/2 - panelHeight/2 - panelHeight%2 - 1,
+		width/2 + panelWidth/2,
+		height/2 + panelHeight/2
+}
+
+func (gui *Gui) getConfirmationPanelWidth() int {
+	width, _ := gui.g.Size()
 	// we want a minimum width up to a point, then we do it based on ratio.
 	panelWidth := 4 * width / 7
 	minWidth := 80
@@ -88,14 +110,8 @@ func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, i
 			panelWidth = minWidth
 		}
 	}
-	panelHeight := gui.getMessageHeight(wrap, prompt, panelWidth)
-	if panelHeight > height*3/4 {
-		panelHeight = height * 3 / 4
-	}
-	return width/2 - panelWidth/2,
-		height/2 - panelHeight/2 - panelHeight%2 - 1,
-		width/2 + panelWidth/2,
-		height/2 + panelHeight/2
+
+	return panelWidth
 }
 
 func (gui *Gui) prepareConfirmationPanel(

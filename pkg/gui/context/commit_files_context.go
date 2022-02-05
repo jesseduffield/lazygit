@@ -9,7 +9,6 @@ import (
 
 type CommitFilesContext struct {
 	*filetree.CommitFileTreeViewModel
-	*BaseContext
 	*ListContextTrait
 }
 
@@ -17,7 +16,7 @@ var _ types.IListContext = (*CommitFilesContext)(nil)
 
 func NewCommitFilesContext(
 	getModel func() []*models.CommitFile,
-	getView func() *gocui.View,
+	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
@@ -26,43 +25,30 @@ func NewCommitFilesContext(
 
 	c *types.ControllerCommon,
 ) *CommitFilesContext {
-	baseContext := NewBaseContext(NewBaseContextOpts{
-		ViewName:   "commitFiles",
-		WindowName: "commits",
-		Key:        COMMIT_FILES_CONTEXT_KEY,
-		Kind:       types.SIDE_CONTEXT,
-		Focusable:  true,
-	})
-
-	self := &CommitFilesContext{}
-	takeFocus := func() error { return c.PushContext(self) }
-
 	viewModel := filetree.NewCommitFileTreeViewModel(getModel, c.Log, c.UserConfig.Gui.ShowFileTree)
-	viewTrait := NewViewTrait(getView)
-	listContextTrait := &ListContextTrait{
-		base:      baseContext,
-		list:      viewModel,
-		viewTrait: viewTrait,
 
-		GetDisplayStrings: getDisplayStrings,
-		OnFocus:           onFocus,
-		OnRenderToMain:    onRenderToMain,
-		OnFocusLost:       onFocusLost,
-		takeFocus:         takeFocus,
-
-		// TODO: handle this in a trait
-		RenderSelection: false,
-
-		c: c,
+	return &CommitFilesContext{
+		CommitFileTreeViewModel: viewModel,
+		ListContextTrait: &ListContextTrait{
+			Context: NewSimpleContext(
+				NewBaseContext(NewBaseContextOpts{
+					ViewName:   "commitFiles",
+					WindowName: "commits",
+					Key:        COMMIT_FILES_CONTEXT_KEY,
+					Kind:       types.SIDE_CONTEXT,
+					Focusable:  true,
+				}),
+				ContextCallbackOpts{
+					OnFocus:        onFocus,
+					OnFocusLost:    onFocusLost,
+					OnRenderToMain: onRenderToMain,
+				}),
+			list:              viewModel,
+			viewTrait:         NewViewTrait(view),
+			getDisplayStrings: getDisplayStrings,
+			c:                 c,
+		},
 	}
-
-	baseContext.AddKeybindingsFn(listContextTrait.keybindings)
-
-	self.BaseContext = baseContext
-	self.ListContextTrait = listContextTrait
-	self.CommitFileTreeViewModel = viewModel
-
-	return self
 }
 
 func (self *CommitFilesContext) GetSelectedItemId() string {

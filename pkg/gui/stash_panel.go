@@ -9,12 +9,7 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedStashEntry() *models.StashEntry {
-	selectedLine := gui.State.Panels.Stash.SelectedLineIdx
-	if selectedLine == -1 {
-		return nil
-	}
-
-	return gui.State.Model.StashEntries[selectedLine]
+	return gui.State.Contexts.Stash.GetSelected()
 }
 
 func (gui *Gui) stashRenderToMain() error {

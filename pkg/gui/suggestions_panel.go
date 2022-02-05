@@ -15,17 +15,12 @@ func (gui *Gui) getSelectedSuggestionValue() string {
 }
 
 func (gui *Gui) getSelectedSuggestion() *types.Suggestion {
-	selectedLine := gui.State.Panels.Suggestions.SelectedLineIdx
-	if selectedLine == -1 {
-		return nil
-	}
-
-	return gui.State.Suggestions[selectedLine]
+	return gui.State.Contexts.Suggestions.GetSelected()
 }
 
 func (gui *Gui) setSuggestions(suggestions []*types.Suggestion) {
 	gui.State.Suggestions = suggestions
-	gui.State.Panels.Suggestions.SelectedLineIdx = 0
+	gui.State.Contexts.Suggestions.SetSelectedLineIdx(0)
 	_ = gui.resetOrigin(gui.Views.Suggestions)
 	_ = gui.State.Contexts.Suggestions.HandleRender()
 }

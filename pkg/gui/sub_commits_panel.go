@@ -2,25 +2,14 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // list panel functions
 
-func (gui *Gui) getSelectedSubCommit() *models.Commit {
-	selectedLine := gui.State.Panels.SubCommits.SelectedLineIdx
-	commits := gui.State.Model.SubCommits
-	if selectedLine == -1 || len(commits) == 0 {
-		return nil
-	}
-
-	return commits[selectedLine]
-}
-
 func (gui *Gui) subCommitsRenderToMain() error {
-	commit := gui.getSelectedSubCommit()
+	commit := gui.State.Contexts.SubCommits.GetSelected()
 	var task updateTask
 	if commit == nil {
 		task = NewRenderStringTask("No commits")
@@ -39,7 +28,7 @@ func (gui *Gui) subCommitsRenderToMain() error {
 }
 
 func (gui *Gui) handleCheckoutSubCommit() error {
-	commit := gui.getSelectedSubCommit()
+	commit := gui.State.Contexts.SubCommits.GetSelected()
 	if commit == nil {
 		return nil
 	}
@@ -62,13 +51,13 @@ func (gui *Gui) handleCheckoutSubCommit() error {
 }
 
 func (gui *Gui) handleCreateSubCommitResetMenu() error {
-	commit := gui.getSelectedSubCommit()
+	commit := gui.State.Contexts.SubCommits.GetSelected()
 
 	return gui.helpers.Refs.CreateGitResetMenu(commit.Sha)
 }
 
 func (gui *Gui) handleViewSubCommitFiles() error {
-	commit := gui.getSelectedSubCommit()
+	commit := gui.State.Contexts.SubCommits.GetSelected()
 	if commit == nil {
 		return nil
 	}
@@ -85,7 +74,7 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	// need to populate my sub commits
 	commits, err := gui.git.Loaders.Commits.GetCommits(
 		loaders.GetCommitsOptions{
-			Limit:                gui.State.Panels.Commits.LimitCommits,
+			Limit:                gui.State.LimitCommits,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: false,
 			RefName:              refName,
@@ -96,7 +85,6 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	}
 
 	gui.State.Model.SubCommits = commits
-	gui.State.Panels.SubCommits.refName = refName
 	gui.State.Contexts.SubCommits.GetPanelState().SetSelectedLineIdx(0)
 	gui.State.Contexts.SubCommits.SetParentContext(gui.currentSideListContext())
 
@@ -104,7 +92,7 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 }
 
 func (gui *Gui) handleNewBranchOffSubCommit() error {
-	commit := gui.getSelectedSubCommit()
+	commit := gui.State.Contexts.SubCommits.GetSelected()
 	if commit == nil {
 		return nil
 	}
@@ -113,7 +101,7 @@ func (gui *Gui) handleNewBranchOffSubCommit() error {
 }
 
 func (gui *Gui) handleCopySubCommit() error {
-	commit := gui.getSelectedSubCommit()
+	commit := gui.State.Contexts.SubCommits.GetSelected()
 	if commit == nil {
 		return nil
 	}
@@ -123,7 +111,7 @@ func (gui *Gui) handleCopySubCommit() error {
 
 func (gui *Gui) handleCopySubCommitRange() error {
 	// just doing this to ensure something is selected
-	commit := gui.getSelectedSubCommit()
+	commit := gui.State.Contexts.SubCommits.GetSelected()
 	if commit == nil {
 		return nil
 	}

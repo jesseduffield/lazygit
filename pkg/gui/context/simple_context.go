@@ -1,7 +1,6 @@
-package gui
+package context
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -12,10 +11,10 @@ type SimpleContext struct {
 	// this is for pushing some content to the main view
 	OnRenderToMain func(opts ...types.OnFocusOpts) error
 
-	*context.BaseContext
+	*BaseContext
 }
 
-type NewSimpleContextOpts struct {
+type ContextCallbackOpts struct {
 	OnFocus     func(opts ...types.OnFocusOpts) error
 	OnFocusLost func() error
 	OnRender    func() error
@@ -23,7 +22,7 @@ type NewSimpleContextOpts struct {
 	OnRenderToMain func(opts ...types.OnFocusOpts) error
 }
 
-func NewSimpleContext(baseContext *context.BaseContext, opts NewSimpleContextOpts) *SimpleContext {
+func NewSimpleContext(baseContext *BaseContext, opts ContextCallbackOpts) *SimpleContext {
 	return &SimpleContext{
 		OnFocus:        opts.OnFocus,
 		OnFocusLost:    opts.OnFocusLost,
@@ -34,13 +33,6 @@ func NewSimpleContext(baseContext *context.BaseContext, opts NewSimpleContextOpt
 }
 
 var _ types.Context = &SimpleContext{}
-
-func (self *SimpleContext) HandleRender() error {
-	if self.OnRender != nil {
-		return self.OnRender()
-	}
-	return nil
-}
 
 func (self *SimpleContext) HandleFocus(opts ...types.OnFocusOpts) error {
 	if self.OnFocus != nil {
@@ -61,6 +53,13 @@ func (self *SimpleContext) HandleFocus(opts ...types.OnFocusOpts) error {
 func (self *SimpleContext) HandleFocusLost() error {
 	if self.OnFocusLost != nil {
 		return self.OnFocusLost()
+	}
+	return nil
+}
+
+func (self *SimpleContext) HandleRender() error {
+	if self.OnRender != nil {
+		return self.OnRender()
 	}
 	return nil
 }

@@ -13,22 +13,9 @@ import (
 
 // list panel functions
 
-func (gui *Gui) getSelectedBranch() *models.Branch {
-	if len(gui.State.Model.Branches) == 0 {
-		return nil
-	}
-
-	selectedLine := gui.State.Panels.Branches.SelectedLineIdx
-	if selectedLine == -1 {
-		return nil
-	}
-
-	return gui.State.Model.Branches[selectedLine]
-}
-
 func (gui *Gui) branchesRenderToMain() error {
 	var task updateTask
-	branch := gui.getSelectedBranch()
+	branch := gui.State.Contexts.Branches.GetSelected()
 	if branch == nil {
 		task = NewRenderStringTask(gui.c.Tr.NoBranchesThisRepo)
 	} else {
@@ -48,24 +35,26 @@ func (gui *Gui) branchesRenderToMain() error {
 // specific functions
 
 func (gui *Gui) handleBranchPress() error {
-	if gui.State.Panels.Branches.SelectedLineIdx == -1 {
+	branch := gui.State.Contexts.Branches.GetSelected()
+	if branch == nil {
 		return nil
 	}
-	if gui.State.Panels.Branches.SelectedLineIdx == 0 {
+
+	if branch == gui.getCheckedOutBranch() {
 		return gui.c.ErrorMsg(gui.c.Tr.AlreadyCheckedOutBranch)
 	}
-	branch := gui.getSelectedBranch()
+
 	gui.c.LogAction(gui.c.Tr.Actions.CheckoutBranch)
 	return gui.helpers.Refs.CheckoutRef(branch.Name, types.CheckoutRefOptions{})
 }
 
 func (gui *Gui) handleCreatePullRequestPress() error {
-	branch := gui.getSelectedBranch()
+	branch := gui.State.Contexts.Branches.GetSelected()
 	return gui.createPullRequest(branch.Name, "")
 }
 
 func (gui *Gui) handleCreatePullRequestMenu() error {
-	selectedBranch := gui.getSelectedBranch()
+	selectedBranch := gui.State.Contexts.Branches.GetSelected()
 	if selectedBranch == nil {
 		return nil
 	}
@@ -77,7 +66,7 @@ func (gui *Gui) handleCreatePullRequestMenu() error {
 func (gui *Gui) handleCopyPullRequestURLPress() error {
 	hostingServiceMgr := gui.getHostingServiceMgr()
 
-	branch := gui.getSelectedBranch()
+	branch := gui.State.Contexts.Branches.GetSelected()
 
 	branchExistsOnRemote := gui.git.Remote.CheckRemoteBranchExists(branch.Name)
 
@@ -109,7 +98,7 @@ func (gui *Gui) handleGitFetch() error {
 }
 
 func (gui *Gui) handleForceCheckout() error {
-	branch := gui.getSelectedBranch()
+	branch := gui.State.Contexts.Branches.GetSelected()
 	message := gui.c.Tr.SureForceCheckout
 	title := gui.c.Tr.ForceCheckoutBranch
 
@@ -156,7 +145,7 @@ func (gui *Gui) getCheckedOutBranch() *models.Branch {
 }
 
 func (gui *Gui) createNewBranchWithName(newBranchName string) error {
-	branch := gui.getSelectedBranch()
+	branch := gui.State.Contexts.Branches.GetSelected()
 	if branch == nil {
 		return nil
 	}
@@ -165,7 +154,7 @@ func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 		return gui.c.Error(err)
 	}
 
-	gui.State.Panels.Branches.SelectedLineIdx = 0
+	gui.State.Contexts.Branches.SetSelectedLineIdx(0)
 	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
@@ -174,7 +163,7 @@ func (gui *Gui) handleDeleteBranch() error {
 }
 
 func (gui *Gui) deleteBranch(force bool) error {
-	selectedBranch := gui.getSelectedBranch()
+	selectedBranch := gui.State.Contexts.Branches.GetSelected()
 	if selectedBranch == nil {
 		return nil
 	}
@@ -245,12 +234,12 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 }
 
 func (gui *Gui) handleMerge() error {
-	selectedBranchName := gui.getSelectedBranch().Name
+	selectedBranchName := gui.State.Contexts.Branches.GetSelected().Name
 	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)
 }
 
 func (gui *Gui) handleRebaseOntoLocalBranch() error {
-	selectedBranchName := gui.getSelectedBranch().Name
+	selectedBranchName := gui.State.Contexts.Branches.GetSelected().Name
 	return gui.handleRebaseOntoBranch(selectedBranchName)
 }
 
@@ -279,7 +268,7 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 }
 
 func (gui *Gui) handleFastForward() error {
-	branch := gui.getSelectedBranch()
+	branch := gui.State.Contexts.Branches.GetSelected()
 	if branch == nil || !branch.IsRealBranch() {
 		return nil
 	}
@@ -305,7 +294,7 @@ func (gui *Gui) handleFastForward() error {
 	)
 
 	return gui.c.WithLoaderPanel(message, func() error {
-		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
+		if branch == gui.getCheckedOutBranch() {
 			gui.c.LogAction(action)
 
 			err := gui.git.Sync.Pull(
@@ -334,7 +323,7 @@ func (gui *Gui) handleFastForward() error {
 }
 
 func (gui *Gui) handleCreateResetToBranchMenu() error {
-	branch := gui.getSelectedBranch()
+	branch := gui.State.Contexts.Branches.GetSelected()
 	if branch == nil {
 		return nil
 	}
@@ -343,7 +332,7 @@ func (gui *Gui) handleCreateResetToBranchMenu() error {
 }
 
 func (gui *Gui) handleRenameBranch() error {
-	branch := gui.getSelectedBranch()
+	branch := gui.State.Contexts.Branches.GetSelected()
 	if branch == nil || !branch.IsRealBranch() {
 		return nil
 	}
@@ -364,7 +353,7 @@ func (gui *Gui) handleRenameBranch() error {
 				// now that we've got our stuff again we need to find that branch and reselect it.
 				for i, newBranch := range gui.State.Model.Branches {
 					if newBranch.Name == newBranchName {
-						gui.State.Panels.Branches.SetSelectedLineIdx(i)
+						gui.State.Contexts.Branches.SetSelectedLineIdx(i)
 						if err := gui.State.Contexts.Branches.HandleRender(); err != nil {
 							return err
 						}
@@ -391,7 +380,7 @@ func (gui *Gui) handleRenameBranch() error {
 }
 
 func (gui *Gui) handleEnterBranch() error {
-	branch := gui.getSelectedBranch()
+	branch := gui.State.Contexts.Branches.GetSelected()
 	if branch == nil {
 		return nil
 	}
@@ -400,7 +389,7 @@ func (gui *Gui) handleEnterBranch() error {
 }
 
 func (gui *Gui) handleNewBranchOffBranch() error {
-	selectedBranch := gui.getSelectedBranch()
+	selectedBranch := gui.State.Contexts.Branches.GetSelected()
 	if selectedBranch == nil {
 		return nil
 	}

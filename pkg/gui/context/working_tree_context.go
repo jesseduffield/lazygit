@@ -9,7 +9,6 @@ import (
 
 type WorkingTreeContext struct {
 	*filetree.FileTreeViewModel
-	*BaseContext
 	*ListContextTrait
 }
 
@@ -17,7 +16,7 @@ var _ types.IListContext = (*WorkingTreeContext)(nil)
 
 func NewWorkingTreeContext(
 	getModel func() []*models.File,
-	getView func() *gocui.View,
+	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
@@ -26,43 +25,28 @@ func NewWorkingTreeContext(
 
 	c *types.ControllerCommon,
 ) *WorkingTreeContext {
-	baseContext := NewBaseContext(NewBaseContextOpts{
-		ViewName:   "files",
-		WindowName: "files",
-		Key:        FILES_CONTEXT_KEY,
-		Kind:       types.SIDE_CONTEXT,
-		Focusable:  true,
-	})
-
-	self := &WorkingTreeContext{}
-	takeFocus := func() error { return c.PushContext(self) }
-
 	viewModel := filetree.NewFileTreeViewModel(getModel, c.Log, c.UserConfig.Gui.ShowFileTree)
-	viewTrait := NewViewTrait(getView)
-	listContextTrait := &ListContextTrait{
-		base:      baseContext,
-		list:      viewModel,
-		viewTrait: viewTrait,
 
-		GetDisplayStrings: getDisplayStrings,
-		OnFocus:           onFocus,
-		OnRenderToMain:    onRenderToMain,
-		OnFocusLost:       onFocusLost,
-		takeFocus:         takeFocus,
-
-		// TODO: handle this in a trait
-		RenderSelection: false,
-
-		c: c,
+	return &WorkingTreeContext{
+		FileTreeViewModel: viewModel,
+		ListContextTrait: &ListContextTrait{
+			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
+				ViewName:   "files",
+				WindowName: "files",
+				Key:        FILES_CONTEXT_KEY,
+				Kind:       types.SIDE_CONTEXT,
+				Focusable:  true,
+			}), ContextCallbackOpts{
+				OnFocus:        onFocus,
+				OnFocusLost:    onFocusLost,
+				OnRenderToMain: onRenderToMain,
+			}),
+			list:              viewModel,
+			viewTrait:         NewViewTrait(view),
+			getDisplayStrings: getDisplayStrings,
+			c:                 c,
+		},
 	}
-
-	baseContext.AddKeybindingsFn(listContextTrait.keybindings)
-
-	self.BaseContext = baseContext
-	self.ListContextTrait = listContextTrait
-	self.FileTreeViewModel = viewModel
-
-	return self
 }
 
 func (self *WorkingTreeContext) GetSelectedItemId() string {

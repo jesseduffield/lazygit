@@ -65,7 +65,6 @@ func (gui *Gui) pushContext(c types.Context, opts ...types.OnFocusOpts) error {
 	}
 
 	if !c.IsFocusable() {
-		panic(c.GetKey())
 		return nil
 	}
 

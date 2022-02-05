@@ -2,70 +2,62 @@ package context
 
 import (
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 const HORIZONTAL_SCROLL_FACTOR = 3
 
 type ViewTrait struct {
-	getView func() *gocui.View
+	view *gocui.View
 }
 
-func NewViewTrait(getView func() *gocui.View) *ViewTrait {
-	return &ViewTrait{getView: getView}
+var _ types.IViewTrait = &ViewTrait{}
+
+func NewViewTrait(view *gocui.View) *ViewTrait {
+	return &ViewTrait{view: view}
 }
 
 func (self *ViewTrait) FocusPoint(yIdx int) {
-	view := self.getView()
-	view.FocusPoint(view.OriginX(), yIdx)
+	self.view.FocusPoint(self.view.OriginX(), yIdx)
 }
 
 func (self *ViewTrait) SetViewPortContent(content string) {
-	view := self.getView()
-
-	_, y := view.Origin()
-	view.OverwriteLines(y, content)
+	_, y := self.view.Origin()
+	self.view.OverwriteLines(y, content)
 }
 
 func (self *ViewTrait) SetContent(content string) {
-	self.getView().SetContent(content)
+	self.view.SetContent(content)
 }
 
 func (self *ViewTrait) SetFooter(value string) {
-	self.getView().Footer = value
+	self.view.Footer = value
 }
 
 func (self *ViewTrait) SetOriginX(value int) {
-	_ = self.getView().SetOriginX(value)
+	_ = self.view.SetOriginX(value)
 }
 
 // tells us the bounds of line indexes shown in the view currently
 func (self *ViewTrait) ViewPortYBounds() (int, int) {
-	view := self.getView()
-
-	_, min := view.Origin()
-	max := view.InnerHeight() + 1
+	_, min := self.view.Origin()
+	max := self.view.InnerHeight() + 1
 	return min, max
 }
 
 func (self *ViewTrait) ScrollLeft() {
-	view := self.getView()
-
-	newOriginX := utils.Max(view.OriginX()-view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR, 0)
-	_ = view.SetOriginX(newOriginX)
+	newOriginX := utils.Max(self.view.OriginX()-self.view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR, 0)
+	_ = self.view.SetOriginX(newOriginX)
 }
 
 func (self *ViewTrait) ScrollRight() {
-	view := self.getView()
-
-	_ = view.SetOriginX(view.OriginX() + view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR)
+	_ = self.view.SetOriginX(self.view.OriginX() + self.view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR)
 }
 
 // this returns the amount we'll scroll if we want to scroll by a page.
 func (self *ViewTrait) PageDelta() int {
-	view := self.getView()
-
-	_, height := view.Size()
+	_, height := self.view.Size()
 
 	delta := height - 1
 	if delta == 0 {
@@ -76,5 +68,5 @@ func (self *ViewTrait) PageDelta() int {
 }
 
 func (self *ViewTrait) SelectedLineIdx() int {
-	return self.getView().SelectedLineIdx()
+	return self.view.SelectedLineIdx()
 }

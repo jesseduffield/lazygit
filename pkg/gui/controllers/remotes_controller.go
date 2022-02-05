@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -13,10 +12,9 @@ type RemotesController struct {
 	baseController
 
 	c       *types.ControllerCommon
-	context types.IListContext
+	context *context.RemotesContext
 	git     *commands.GitCommand
 
-	getSelectedRemote func() *models.Remote
 	setRemoteBranches func([]*models.RemoteBranch)
 	contexts          *context.ContextTree
 }
@@ -25,10 +23,9 @@ var _ types.IController = &RemotesController{}
 
 func NewRemotesController(
 	c *types.ControllerCommon,
-	context types.IListContext,
+	context *context.RemotesContext,
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
-	getSelectedRemote func() *models.Remote,
 	setRemoteBranches func([]*models.RemoteBranch),
 ) *RemotesController {
 	return &RemotesController{
@@ -37,7 +34,6 @@ func NewRemotesController(
 		git:               git,
 		contexts:          contexts,
 		context:           context,
-		getSelectedRemote: getSelectedRemote,
 		setRemoteBranches: setRemoteBranches,
 	}
 }
@@ -48,10 +44,10 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Key:     opts.GetKey(opts.Config.Universal.GoInto),
 			Handler: self.checkSelected(self.enter),
 		},
-		{
-			Key:     gocui.MouseLeft,
-			Handler: func() error { return self.context.HandleClick(self.checkSelected(self.enter)) },
-		},
+		// {
+		// 	Key:     gocui.MouseLeft,
+		// 	Handler: func() error { return self.context.HandleClick(self.checkSelected(self.enter)) },
+		// },
 		{
 			Key:         opts.GetKey(opts.Config.Branches.FetchRemote),
 			Handler:     self.checkSelected(self.fetch),
@@ -183,7 +179,7 @@ func (self *RemotesController) fetch(remote *models.Remote) error {
 
 func (self *RemotesController) checkSelected(callback func(*models.Remote) error) func() error {
 	return func() error {
-		file := self.getSelectedRemote()
+		file := self.context.GetSelected()
 		if file == nil {
 			return nil
 		}

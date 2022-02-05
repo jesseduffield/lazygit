@@ -211,7 +211,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 
 	commits, err := gui.git.Loaders.Commits.GetCommits(
 		loaders.GetCommitsOptions{
-			Limit:                gui.State.Panels.Commits.LimitCommits,
+			Limit:                gui.State.LimitCommits,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
 			RefName:              gui.refForLog(),
@@ -484,7 +484,7 @@ func (gui *Gui) refreshReflogCommits() error {
 }
 
 func (gui *Gui) refreshRemotes() error {
-	prevSelectedRemote := gui.getSelectedRemote()
+	prevSelectedRemote := gui.State.Contexts.Remotes.GetSelected()
 
 	remotes, err := gui.git.Loaders.Remotes.GetRemotes()
 	if err != nil {
