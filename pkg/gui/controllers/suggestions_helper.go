@@ -27,7 +27,6 @@ type ISuggestionsHelper interface {
 	GetFilePathSuggestionsFunc() func(string) []*types.Suggestion
 	GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion
 	GetRefsSuggestionsFunc() func(string) []*types.Suggestion
-	GetCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion
 }
 
 type SuggestionsHelper struct {
@@ -73,7 +72,7 @@ func matchesToSuggestions(matches []string) []*types.Suggestion {
 func (self *SuggestionsHelper) GetRemoteSuggestionsFunc() func(string) []*types.Suggestion {
 	remoteNames := self.getRemoteNames()
 
-	return fuzzySearchFunc(remoteNames)
+	return FuzzySearchFunc(remoteNames)
 }
 
 func (self *SuggestionsHelper) getBranchNames() []string {
@@ -172,7 +171,7 @@ func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
 }
 
 func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion {
-	return fuzzySearchFunc(self.getRemoteBranchNames(separator))
+	return FuzzySearchFunc(self.getRemoteBranchNames(separator))
 }
 
 func (self *SuggestionsHelper) getTagNames() []string {
@@ -191,17 +190,10 @@ func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Su
 
 	refNames := append(append(append(remoteBranchNames, localBranchNames...), tagNames...), additionalRefNames...)
 
-	return fuzzySearchFunc(refNames)
+	return FuzzySearchFunc(refNames)
 }
 
-func (self *SuggestionsHelper) GetCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {
-	// reversing so that we display the latest command first
-	history := utils.Reverse(self.c.GetAppState().CustomCommandsHistory)
-
-	return fuzzySearchFunc(history)
-}
-
-func fuzzySearchFunc(options []string) func(string) []*types.Suggestion {
+func FuzzySearchFunc(options []string) func(string) []*types.Suggestion {
 	return func(input string) []*types.Suggestion {
 		var matches []string
 		if input == "" {

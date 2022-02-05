@@ -1365,6 +1365,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 	for _, controller := range []types.IController{
 		gui.Controllers.Sync,
 		gui.Controllers.Undo,
+		gui.Controllers.Global,
 	} {
 		context := controller.Context()
 		viewName := ""
