@@ -171,12 +171,6 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.FileEnter,
 		},
 		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.ExecuteCustomCommand),
-			Handler:     self.handleCustomCommand,
-			Description: self.c.Tr.LcExecuteCustomCommand,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.createResetMenu,
 			Description: self.c.Tr.LcViewResetToUpstreamOptions,
@@ -575,31 +569,6 @@ func (self *FilesController) switchToMerge() error {
 	}
 
 	return self.switchToMergeFn(file.Name)
-}
-
-func (self *FilesController) handleCustomCommand() error {
-	return self.c.Prompt(types.PromptOpts{
-		Title:               self.c.Tr.CustomCommand,
-		FindSuggestionsFunc: self.suggestionsHelper.GetCustomCommandsHistorySuggestionsFunc(),
-		HandleConfirm: func(command string) error {
-			self.c.GetAppState().CustomCommandsHistory = utils.Limit(
-				utils.Uniq(
-					append(self.c.GetAppState().CustomCommandsHistory, command),
-				),
-				1000,
-			)
-
-			err := self.c.SaveAppState()
-			if err != nil {
-				self.c.Log.Error(err)
-			}
-
-			self.c.LogAction(self.c.Tr.Actions.CustomCommand)
-			return self.c.RunSubprocessAndRefresh(
-				self.os.Cmd.NewShell(command),
-			)
-		},
-	})
 }
 
 func (self *FilesController) createStashMenu() error {
