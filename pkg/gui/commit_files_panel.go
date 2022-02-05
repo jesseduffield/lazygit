@@ -257,7 +257,7 @@ func (gui *Gui) handleToggleCommitFileDirCollapsed() error {
 func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesContextOpts) error {
 	// sometimes the commitFiles view is already shown in another window, so we need to ensure that window
 	// no longer considers the commitFiles view as its main view.
-	gui.resetWindowForView(gui.Views.CommitFiles)
+	gui.resetWindowContext(gui.State.Contexts.CommitFiles)
 
 	gui.State.Contexts.CommitFiles.SetSelectedLineIdx(0)
 	gui.State.Contexts.CommitFiles.SetRefName(opts.RefName)

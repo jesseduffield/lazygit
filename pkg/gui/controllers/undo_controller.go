@@ -19,6 +19,8 @@ import (
 // two user actions, meaning we end up undoing reflog entry C. Redoing works in a similar way.
 
 type UndoController struct {
+	baseController
+
 	c   *types.ControllerCommon
 	git *commands.GitCommand
 
@@ -39,6 +41,7 @@ func NewUndoController(
 	getFilteredReflogCommits func() []*models.Commit,
 ) *UndoController {
 	return &UndoController{
+		baseController:    baseController{},
 		c:                 c,
 		git:               git,
 		refsHelper:        refsHelper,

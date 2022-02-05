@@ -3,6 +3,7 @@ package context
 import "github.com/jesseduffield/lazygit/pkg/gui/types"
 
 const (
+	GLOBAL_CONTEXT_KEY              types.ContextKey = "global"
 	STATUS_CONTEXT_KEY              types.ContextKey = "status"
 	FILES_CONTEXT_KEY               types.ContextKey = "files"
 	LOCAL_BRANCHES_CONTEXT_KEY      types.ContextKey = "localBranches"
@@ -29,6 +30,7 @@ const (
 )
 
 var AllContextKeys = []types.ContextKey{
+	GLOBAL_CONTEXT_KEY,
 	STATUS_CONTEXT_KEY,
 	FILES_CONTEXT_KEY,
 	LOCAL_BRANCHES_CONTEXT_KEY,
@@ -55,6 +57,7 @@ var AllContextKeys = []types.ContextKey{
 }
 
 type ContextTree struct {
+	Global         types.Context
 	Status         types.Context
 	Files          *WorkingTreeContext
 	Submodules     types.IListContext

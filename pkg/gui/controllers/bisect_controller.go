@@ -11,6 +11,8 @@ import (
 )
 
 type BisectController struct {
+	baseController
+
 	c            *types.ControllerCommon
 	context      types.IListContext
 	git          *commands.GitCommand
@@ -32,10 +34,11 @@ func NewBisectController(
 	getCommits func() []*models.Commit,
 ) *BisectController {
 	return &BisectController{
-		c:            c,
-		context:      context,
-		git:          git,
-		bisectHelper: bisectHelper,
+		baseController: baseController{},
+		c:              c,
+		context:        context,
+		git:            git,
+		bisectHelper:   bisectHelper,
 
 		getSelectedLocalCommit: getSelectedLocalCommit,
 		getCommits:             getCommits,

@@ -194,8 +194,7 @@ func (gui *Gui) noPopupPanel(f func() error) func() error {
 	}
 }
 
-// GetInitialKeybindings is a function.
-func (gui *Gui) GetInitialKeybindings() []*types.Binding {
+func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBinding) {
 	config := gui.c.UserConfig.Keybinding
 
 	guards := types.KeybindingGuards{
@@ -303,12 +302,6 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		{
 			ViewName: "",
 			Key:      gui.getKey(config.Universal.OptionMenuAlt1),
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleCreateOptionsMenu,
-		},
-		{
-			ViewName: "",
-			Key:      gocui.MouseMiddle,
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleCreateOptionsMenu,
 		},
@@ -787,13 +780,6 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 			Key:      gocui.MouseWheelDown,
 			Modifier: gocui.ModNone,
 			Handler:  gui.scrollDownSecondary,
-		},
-		{
-			ViewName: "secondary",
-			Contexts: []string{string(context.MAIN_NORMAL_CONTEXT_KEY)},
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleMouseDownSecondary,
 		},
 		{
 			ViewName:    "main",
@@ -1361,35 +1347,24 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		Guards: guards,
 	}
 
-	// global bindings
-	for _, controller := range []types.IController{
-		gui.Controllers.Sync,
-		gui.Controllers.Undo,
-		gui.Controllers.Global,
-	} {
-		context := controller.Context()
-		viewName := ""
-		var contextKeys []string
-		// nil context means global keybinding
-		if context != nil {
-			viewName = context.GetViewName()
-			contextKeys = []string{string(context.GetKey())}
-		}
-
-		for _, binding := range controller.GetKeybindings(keybindingsOpts) {
-			binding.Contexts = contextKeys
+	mouseKeybindings := []*gocui.ViewMouseBinding{}
+	for _, c := range gui.allContexts() {
+		viewName := c.GetViewName()
+		contextKey := c.GetKey()
+		for _, binding := range c.GetKeybindings(keybindingsOpts) {
+			// TODO: move all mouse keybindings into the mouse keybindings approach below
+			if !gocui.IsMouseKey(binding.Key) && contextKey != context.GLOBAL_CONTEXT_KEY {
+				binding.Contexts = []string{string(contextKey)}
+			}
 			binding.ViewName = viewName
 			bindings = append(bindings, binding)
 		}
-	}
 
-	for _, context := range gui.allContexts() {
-		viewName := context.GetViewName()
-		contextKey := context.GetKey()
-		for _, binding := range context.GetKeybindings(keybindingsOpts) {
-			binding.Contexts = []string{string(contextKey)}
-			binding.ViewName = viewName
-			bindings = append(bindings, binding)
+		for _, binding := range c.GetMouseKeybindings(keybindingsOpts) {
+			if contextKey != context.GLOBAL_CONTEXT_KEY {
+				binding.FromContext = string(contextKey)
+			}
+			mouseKeybindings = append(mouseKeybindings, binding)
 		}
 	}
 
@@ -1438,7 +1413,7 @@ func (gui *Gui) GetInitialKeybindings() []*types.Binding {
 		}...)
 	}
 
-	return bindings
+	return bindings, mouseKeybindings
 }
 
 func (gui *Gui) resetKeybindings() error {
@@ -1446,10 +1421,19 @@ func (gui *Gui) resetKeybindings() error {
 
 	bindings := gui.GetCustomCommandKeybindings()
 
-	bindings = append(bindings, gui.GetInitialKeybindings()...)
+	bindings, mouseBindings := gui.GetInitialKeybindings()
+
+	// prepending because we want to give our custom keybindings precedence over default keybindings
+	bindings = append(gui.GetCustomCommandKeybindings(), bindings...)
 
 	for _, binding := range bindings {
 		if err := gui.SetKeybinding(binding); err != nil {
+			return err
+		}
+	}
+
+	for _, binding := range mouseBindings {
+		if err := gui.SetMouseKeybinding(binding); err != nil {
 			return err
 		}
 	}
@@ -1474,7 +1458,8 @@ func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View)
 
 func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 	handler := binding.Handler
-	if isMouseKey(binding.Key) {
+	// TODO: move all mouse-ey stuff into new mouse approach
+	if gocui.IsMouseKey(binding.Key) {
 		handler = func() error {
 			// we ignore click events on views that aren't popup panels, when a popup panel is focused
 			if gui.popupPanelFocused() && gui.currentViewName() != binding.ViewName {
@@ -1488,19 +1473,18 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 	return gui.g.SetKeybinding(binding.ViewName, binding.Contexts, binding.Key, binding.Modifier, gui.wrappedHandler(handler))
 }
 
-func isMouseKey(key interface{}) bool {
-	switch key {
-	case
-		gocui.MouseLeft,
-		gocui.MouseRight,
-		gocui.MouseMiddle,
-		gocui.MouseRelease,
-		gocui.MouseWheelUp,
-		gocui.MouseWheelDown,
-		gocui.MouseWheelLeft,
-		gocui.MouseWheelRight:
-		return true
-	default:
-		return false
+// warning: mutates the binding
+func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
+	baseHandler := binding.Handler
+	newHandler := func(opts gocui.ViewMouseBindingOpts) error {
+		// we ignore click events on views that aren't popup panels, when a popup panel is focused
+		if gui.popupPanelFocused() && gui.currentViewName() != binding.ViewName {
+			return nil
+		}
+
+		return baseHandler(opts)
 	}
+	binding.Handler = newHandler
+
+	return gui.g.SetViewClickBinding(binding)
 }

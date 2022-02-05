@@ -2,7 +2,6 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -262,8 +261,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			continue
 		}
 
-		// ignore contexts whose view is owned by another context right now
-		if types.ContextKey(view.Context) != listContext.GetKey() {
+		if !gui.isContextVisible(listContext) {
 			continue
 		}
 
@@ -300,8 +298,6 @@ func (gui *Gui) prepareView(viewName string) (*gocui.View, error) {
 }
 
 func (gui *Gui) onInitialViewsCreationForRepo() error {
-	gui.setInitialViewContexts()
-
 	// hide any popup views. This only applies when we've just switched repos
 	for _, viewName := range gui.popupViewNames() {
 		view, err := gui.g.View(viewName)

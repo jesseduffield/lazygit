@@ -9,6 +9,8 @@ import (
 )
 
 type TagsController struct {
+	baseController
+
 	c          *types.ControllerCommon
 	context    *context.TagsContext
 	git        *commands.GitCommand
@@ -35,6 +37,7 @@ func NewTagsController(
 	switchToSubCommitsContext func(string) error,
 ) *TagsController {
 	return &TagsController{
+		baseController:    baseController{},
 		c:                 c,
 		context:           context,
 		git:               git,

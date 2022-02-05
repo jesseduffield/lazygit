@@ -7,6 +7,8 @@ import (
 )
 
 type GlobalController struct {
+	baseController
+
 	c  *types.ControllerCommon
 	os *oscommands.OSCommand
 }
@@ -16,8 +18,9 @@ func NewGlobalController(
 	os *oscommands.OSCommand,
 ) *GlobalController {
 	return &GlobalController{
-		c:  c,
-		os: os,
+		baseController: baseController{},
+		c:              c,
+		os:             os,
 	}
 }
 

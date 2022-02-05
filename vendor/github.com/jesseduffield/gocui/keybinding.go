@@ -124,30 +124,6 @@ func (kb *keybinding) matchKeypress(key Key, ch rune, mod Modifier) bool {
 	return kb.key == key && kb.ch == ch && kb.mod == mod
 }
 
-// matchView returns if the keybinding matches the current view (and the view's context)
-func (kb *keybinding) matchView(v *View) bool {
-	// if the user is typing in a field, ignore char keys
-	if v == nil {
-		return false
-	}
-	if v.Editable == true && kb.ch != 0 {
-		return false
-	}
-	if kb.viewName != v.name {
-		return false
-	}
-	// if the keybinding doesn't specify contexts, it applies for all contexts
-	if len(kb.contexts) == 0 {
-		return true
-	}
-	for _, context := range kb.contexts {
-		if context == v.Context {
-			return true
-		}
-	}
-	return false
-}
-
 // translations for strings to keys
 var translate = map[string]Key{
 	"F1":             KeyF1,

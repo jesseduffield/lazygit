@@ -69,6 +69,30 @@ type tabClickBinding struct {
 	handler  tabClickHandler
 }
 
+type ViewMouseBinding struct {
+	// the view that is clicked
+	ViewName string
+
+	// the context we are in when the click occurs. Not necessarily the context
+	// of the view we're clicking. If this is blank then it is a global binding.
+	FromContext string
+
+	Handler func(ViewMouseBindingOpts) error
+
+	// must be a mouse key
+	Key Key
+}
+
+type ViewMouseBindingOpts struct {
+	// cursor x/y
+	Cx int
+	Cy int
+
+	// origin x/y
+	Ox int
+	Oy int
+}
+
 type GuiMutexes struct {
 	// tickingMutex ensures we don't have two loops ticking. The point of 'ticking'
 	// is to refresh the gui rapidly so that loader characters can be animated.
@@ -110,17 +134,18 @@ type Gui struct {
 	PlayMode       PlayMode
 	StartTime      time.Time
 
-	tabClickBindings []*tabClickBinding
-	gEvents          chan GocuiEvent
-	userEvents       chan userEvent
-	views            []*View
-	currentView      *View
-	managers         []Manager
-	keybindings      []*keybinding
-	maxX, maxY       int
-	outputMode       OutputMode
-	stop             chan struct{}
-	blacklist        []Key
+	tabClickBindings  []*tabClickBinding
+	viewMouseBindings []*ViewMouseBinding
+	gEvents           chan GocuiEvent
+	userEvents        chan userEvent
+	views             []*View
+	currentView       *View
+	managers          []Manager
+	keybindings       []*keybinding
+	maxX, maxY        int
+	outputMode        OutputMode
+	stop              chan struct{}
+	blacklist         []Key
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
@@ -162,6 +187,8 @@ type Gui struct {
 	screen         tcell.Screen
 	suspendedMutex sync.Mutex
 	suspended      bool
+
+	currentContext string
 }
 
 // NewGui returns a new Gui object with a given output mode.
@@ -235,6 +262,10 @@ func (g *Gui) Close() {
 // Size returns the terminal's size.
 func (g *Gui) Size() (x, y int) {
 	return g.maxX, g.maxY
+}
+
+func (g *Gui) SetCurrentContext(context string) {
+	g.currentContext = context
 }
 
 // SetRune writes a rune at the given point, relative to the top-left
@@ -472,6 +503,7 @@ func (g *Gui) DeleteKeybinding(viewname string, key interface{}, mod Modifier) e
 func (g *Gui) DeleteAllKeybindings() {
 	g.keybindings = []*keybinding{}
 	g.tabClickBindings = []*tabClickBinding{}
+	g.viewMouseBindings = []*ViewMouseBinding{}
 }
 
 // DeleteKeybindings deletes all keybindings of view.
@@ -491,6 +523,12 @@ func (g *Gui) SetTabClickBinding(viewName string, handler tabClickHandler) error
 		viewName: viewName,
 		handler:  handler,
 	})
+
+	return nil
+}
+
+func (g *Gui) SetViewClickBinding(binding *ViewMouseBinding) error {
+	g.viewMouseBindings = append(g.viewMouseBindings, binding)
 
 	return nil
 }
@@ -1098,12 +1136,57 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			return err
 		}
 
+		if ev.Mod == ModNone && IsMouseKey(ev.Key) {
+			opts := ViewMouseBindingOpts{Cx: newCx, Cy: newCy, Ox: v.ox, Oy: v.oy}
+			matched, err := g.execMouseKeybindings(v.Name(), ev, opts)
+			if err != nil {
+				return err
+			}
+			if matched {
+				return nil
+			}
+		}
+
 		if _, err := g.execKeybindings(v, ev); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (g *Gui) execMouseKeybindings(viewName string, ev *GocuiEvent, opts ViewMouseBindingOpts) (bool, error) {
+	// first pass looks for ones that match both the view and the current context
+	for _, binding := range g.viewMouseBindings {
+		if binding.ViewName == viewName && binding.FromContext == g.currentContext && ev.Key == binding.Key {
+			return true, binding.Handler(opts)
+		}
+	}
+
+	for _, binding := range g.viewMouseBindings {
+		if binding.ViewName == viewName && ev.Key == binding.Key {
+			return true, binding.Handler(opts)
+		}
+	}
+
+	return false, nil
+}
+
+func IsMouseKey(key interface{}) bool {
+	switch key {
+	case
+		MouseLeft,
+		MouseRight,
+		MouseMiddle,
+		MouseRelease,
+		MouseWheelUp,
+		MouseWheelDown,
+		MouseWheelLeft,
+		MouseWheelRight:
+		return true
+	default:
+		return false
+	}
 }
 
 // execKeybindings executes the keybinding handlers that match the passed view
@@ -1136,10 +1219,10 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error)
 		if !kb.matchKeypress(Key(ev.Key), ev.Ch, Modifier(ev.Mod)) {
 			continue
 		}
-		if kb.matchView(v) {
+		if g.matchView(v, kb) {
 			return g.execKeybinding(v, kb)
 		}
-		if v != nil && kb.matchView(v.ParentView) {
+		if v != nil && g.matchView(v.ParentView, kb) {
 			matchingParentViewKb = kb
 		}
 		if globalKb == nil && kb.viewName == "" && ((v != nil && !v.Editable) || (kb.ch == 0 && kb.key != KeyCtrlU && kb.key != KeyCtrlA && kb.key != KeyCtrlE)) {
@@ -1339,4 +1422,28 @@ func (g *Gui) Resume() error {
 	g.suspended = false
 
 	return g.screen.Resume()
+}
+
+// matchView returns if the keybinding matches the current view (and the view's context)
+func (g *Gui) matchView(v *View, kb *keybinding) bool {
+	// if the user is typing in a field, ignore char keys
+	if v == nil {
+		return false
+	}
+	if v.Editable == true && kb.ch != 0 {
+		return false
+	}
+	if kb.viewName != v.name {
+		return false
+	}
+	// if the keybinding doesn't specify contexts, it applies for all contexts
+	if len(kb.contexts) == 0 {
+		return true
+	}
+	for _, context := range kb.contexts {
+		if context == g.currentContext {
+			return true
+		}
+	}
+	return false
 }

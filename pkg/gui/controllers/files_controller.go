@@ -190,6 +190,21 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 	}
 }
 
+func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName: "main",
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClickMain,
+		},
+		{
+			ViewName: "secondary",
+			Key:      gocui.MouseLeft,
+			Handler:  self.onClickSecondary,
+		},
+	}
+}
+
 func (self *FilesController) press(node *filetree.FileNode) error {
 	if node.IsLeaf() {
 		file := node.File
@@ -671,4 +686,14 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
 		},
 	})
+}
+
+func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
+	clickedViewLineIdx := opts.Cy + opts.Oy
+	return self.EnterFile(types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: clickedViewLineIdx})
+}
+
+func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
+	clickedViewLineIdx := opts.Cy + opts.Oy
+	return self.EnterFile(types.OnFocusOpts{ClickedViewName: "secondary", ClickedViewLineIdx: clickedViewLineIdx})
 }

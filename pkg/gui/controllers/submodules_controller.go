@@ -13,6 +13,8 @@ import (
 )
 
 type SubmodulesController struct {
+	baseController
+
 	c       *types.ControllerCommon
 	context types.IListContext
 	git     *commands.GitCommand
@@ -31,6 +33,7 @@ func NewSubmodulesController(
 	getSelectedSubmodule func() *models.SubmoduleConfig,
 ) *SubmodulesController {
 	return &SubmodulesController{
+		baseController:       baseController{},
 		c:                    c,
 		context:              context,
 		git:                  git,

@@ -1,6 +1,7 @@
 package context
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -11,8 +12,8 @@ type BaseContext struct {
 	windowName      string
 	onGetOptionsMap func() map[string]string
 
-	keybindingsFns []types.KeybindingsFn
-	keybindings    []*types.Binding
+	keybindingsFns      []types.KeybindingsFn
+	mouseKeybindingsFns []types.MouseKeybindingsFn
 
 	*ParentContextMgr
 }
@@ -79,4 +80,19 @@ func (self *BaseContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Bin
 
 func (self *BaseContext) AddKeybindingsFn(fn types.KeybindingsFn) {
 	self.keybindingsFns = append(self.keybindingsFns, fn)
+}
+
+func (self *BaseContext) AddMouseKeybindingsFn(fn types.MouseKeybindingsFn) {
+	self.mouseKeybindingsFns = append(self.mouseKeybindingsFns, fn)
+}
+
+func (self *BaseContext) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	bindings := []*gocui.ViewMouseBinding{}
+	for i := range self.mouseKeybindingsFns {
+		// the first binding in the bindings array takes precedence but we want the
+		// last keybindingsFn to take precedence to we add them in reverse
+		bindings = append(bindings, self.mouseKeybindingsFns[len(self.mouseKeybindingsFns)-1-i](opts)...)
+	}
+
+	return bindings
 }

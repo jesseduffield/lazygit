@@ -22,6 +22,7 @@ type (
 )
 
 type LocalCommitsController struct {
+	baseController
 	c                *types.ControllerCommon
 	context          types.IListContext
 	os               *oscommands.OSCommand
@@ -68,6 +69,7 @@ func NewLocalCommitsController(
 	setShowWholeGitGraph func(bool),
 ) *LocalCommitsController {
 	return &LocalCommitsController{
+		baseController:             baseController{},
 		c:                          c,
 		context:                    context,
 		os:                         os,

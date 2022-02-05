@@ -590,6 +590,15 @@ func (gui *Gui) resetControllers() {
 		gui.getSelectedSubmodule,
 	)
 
+	bisectController := controllers.NewBisectController(
+		controllerCommon,
+		gui.State.Contexts.BranchCommits,
+		gui.git,
+		gui.helpers.Bisect,
+		gui.getSelectedLocalCommit,
+		func() []*models.Commit { return gui.State.Model.Commits },
+	)
+
 	gui.Controllers = Controllers{
 		Submodules: submodulesController,
 		Global: controllers.NewGlobalController(
@@ -660,14 +669,6 @@ func (gui *Gui) resetControllers() {
 			gui.State.Contexts.Menu,
 			gui.getSelectedMenuItem,
 		),
-		Bisect: controllers.NewBisectController(
-			controllerCommon,
-			gui.State.Contexts.BranchCommits,
-			gui.git,
-			gui.helpers.Bisect,
-			gui.getSelectedLocalCommit,
-			func() []*models.Commit { return gui.State.Model.Commits },
-		),
 		Undo: controllers.NewUndoController(
 			controllerCommon,
 			gui.git,
@@ -678,17 +679,13 @@ func (gui *Gui) resetControllers() {
 		Sync: syncController,
 	}
 
-	gui.State.Contexts.Submodules.AddKeybindingsFn(gui.Controllers.Submodules.GetKeybindings)
-	gui.Controllers.Files.Attach(gui.State.Contexts.Files)
-	gui.State.Contexts.Files.AddKeybindingsFn(gui.Controllers.Files.GetKeybindings)
-	gui.State.Contexts.Tags.AddKeybindingsFn(gui.Controllers.Tags.GetKeybindings)
-	// TODO: commit to one name here: local commits or branch commits
-	gui.State.Contexts.BranchCommits.AddKeybindingsFn(gui.Controllers.LocalCommits.GetKeybindings)
-	gui.State.Contexts.BranchCommits.AddKeybindingsFn(gui.Controllers.Bisect.GetKeybindings)
-	gui.State.Contexts.Remotes.AddKeybindingsFn(gui.Controllers.Remotes.GetKeybindings)
-	gui.State.Contexts.Menu.AddKeybindingsFn(gui.Controllers.Menu.GetKeybindings)
-	gui.State.Contexts.Menu.AddKeybindingsFn(gui.Controllers.Menu.GetKeybindings)
-	// TODO: handle global contexts
+	controllers.AttachControllers(gui.State.Contexts.Files, gui.Controllers.Files)
+	controllers.AttachControllers(gui.State.Contexts.Tags, gui.Controllers.Tags)
+	controllers.AttachControllers(gui.State.Contexts.Submodules, gui.Controllers.Submodules)
+	controllers.AttachControllers(gui.State.Contexts.BranchCommits, gui.Controllers.LocalCommits, bisectController)
+	controllers.AttachControllers(gui.State.Contexts.Remotes, gui.Controllers.Remotes)
+	controllers.AttachControllers(gui.State.Contexts.Menu, gui.Controllers.Menu)
+	controllers.AttachControllers(gui.State.Contexts.Global, gui.Controllers.Sync, gui.Controllers.Undo, gui.Controllers.Global)
 }
 
 var RuneReplacements = map[rune]string{

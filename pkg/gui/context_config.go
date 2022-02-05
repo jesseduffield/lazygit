@@ -7,6 +7,7 @@ import (
 
 func (gui *Gui) allContexts() []types.Context {
 	return []types.Context{
+		gui.State.Contexts.Global,
 		gui.State.Contexts.Status,
 		gui.State.Contexts.Files,
 		gui.State.Contexts.Submodules,
@@ -34,12 +35,23 @@ func (gui *Gui) allContexts() []types.Context {
 
 func (gui *Gui) contextTree() *context.ContextTree {
 	return &context.ContextTree{
+		Global: NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.GLOBAL_CONTEXT,
+				ViewName:   "",
+				WindowName: "",
+				Key:        context.GLOBAL_CONTEXT_KEY,
+			}),
+			NewSimpleContextOpts{
+				OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
+			},
+		),
 		Status: NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.SIDE_CONTEXT,
 				ViewName:   "status",
-				Key:        context.STATUS_CONTEXT_KEY,
 				WindowName: "status",
+				Key:        context.STATUS_CONTEXT_KEY,
 			}),
 			NewSimpleContextOpts{
 				OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
