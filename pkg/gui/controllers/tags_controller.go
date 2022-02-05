@@ -158,7 +158,7 @@ func (self *TagsController) create() error {
 
 func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func() error {
 	return func() error {
-		tag := self.context.GetSelectedTag()
+		tag := self.context.GetSelected()
 		if tag == nil {
 			return nil
 		}

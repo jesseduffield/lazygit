@@ -7,15 +7,15 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type TagsContext struct {
-	*TagsViewModel
+type ReflogCommitsContext struct {
+	*ReflogCommitsViewModel
 	*ListContextTrait
 }
 
-var _ types.IListContext = (*TagsContext)(nil)
+var _ types.IListContext = (*ReflogCommitsContext)(nil)
 
-func NewTagsContext(
-	getModel func() []*models.Tag,
+func NewReflogCommitsContext(
+	getModel func() []*models.Commit,
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
@@ -24,16 +24,16 @@ func NewTagsContext(
 	onFocusLost func() error,
 
 	c *types.ControllerCommon,
-) *TagsContext {
-	viewModel := NewTagsViewModel(getModel)
+) *ReflogCommitsContext {
+	viewModel := NewReflogCommitsViewModel(getModel)
 
-	return &TagsContext{
-		TagsViewModel: viewModel,
+	return &ReflogCommitsContext{
+		ReflogCommitsViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				ViewName:   "branches",
-				WindowName: "branches",
-				Key:        TAGS_CONTEXT_KEY,
+				ViewName:   "commits",
+				WindowName: "commits",
+				Key:        REFLOG_COMMITS_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
 			}), ContextCallbackOpts{
@@ -49,7 +49,7 @@ func NewTagsContext(
 	}
 }
 
-func (self *TagsContext) GetSelectedItemId() string {
+func (self *ReflogCommitsContext) GetSelectedItemId() string {
 	item := self.GetSelected()
 	if item == nil {
 		return ""
@@ -58,13 +58,13 @@ func (self *TagsContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
-type TagsViewModel struct {
+type ReflogCommitsViewModel struct {
 	*traits.ListCursor
-	getModel func() []*models.Tag
+	getModel func() []*models.Commit
 }
 
-func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
-	self := &TagsViewModel{
+func NewReflogCommitsViewModel(getModel func() []*models.Commit) *ReflogCommitsViewModel {
+	self := &ReflogCommitsViewModel{
 		getModel: getModel,
 	}
 
@@ -73,11 +73,11 @@ func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
 	return self
 }
 
-func (self *TagsViewModel) GetItemsLength() int {
+func (self *ReflogCommitsViewModel) GetItemsLength() int {
 	return len(self.getModel())
 }
 
-func (self *TagsViewModel) GetSelected() *models.Tag {
+func (self *ReflogCommitsViewModel) GetSelected() *models.Commit {
 	if self.GetItemsLength() == 0 {
 		return nil
 	}

@@ -35,7 +35,7 @@ func (gui *Gui) allContexts2() []types.Context {
 
 func (gui *Gui) contextTree() *context.ContextTree {
 	return &context.ContextTree{
-		Global: NewSimpleContext(
+		Global: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.GLOBAL_CONTEXT,
 				ViewName:   "",
@@ -43,11 +43,11 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.GLOBAL_CONTEXT_KEY,
 				Focusable:  false,
 			}),
-			NewSimpleContextOpts{
+			context.ContextCallbackOpts{
 				OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
 			},
 		),
-		Status: NewSimpleContext(
+		Status: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.SIDE_CONTEXT,
 				ViewName:   "status",
@@ -55,7 +55,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.STATUS_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			NewSimpleContextOpts{
+			context.ContextCallbackOpts{
 				OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
 			},
 		),
@@ -72,7 +72,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 		Tags:           gui.tagsListContext(),
 		Stash:          gui.stashListContext(),
 		Suggestions:    gui.suggestionsListContext(),
-		Normal: NewSimpleContext(
+		Normal: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.MAIN_CONTEXT,
 				ViewName:   "main",
@@ -80,13 +80,13 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.MAIN_NORMAL_CONTEXT_KEY,
 				Focusable:  false,
 			}),
-			NewSimpleContextOpts{
+			context.ContextCallbackOpts{
 				OnFocus: func(opts ...types.OnFocusOpts) error {
 					return nil // TODO: should we do something here? We should allow for scrolling the panel
 				},
 			},
 		),
-		Staging: NewSimpleContext(
+		Staging: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.MAIN_CONTEXT,
 				ViewName:   "main",
@@ -94,7 +94,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.MAIN_STAGING_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			NewSimpleContextOpts{
+			context.ContextCallbackOpts{
 				OnFocus: func(opts ...types.OnFocusOpts) error {
 					forceSecondaryFocused := false
 					selectedLineIdx := -1
@@ -110,7 +110,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				},
 			},
 		),
-		PatchBuilding: NewSimpleContext(
+		PatchBuilding: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.MAIN_CONTEXT,
 				ViewName:   "main",
@@ -118,7 +118,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.MAIN_PATCH_BUILDING_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			NewSimpleContextOpts{
+			context.ContextCallbackOpts{
 				OnFocus: func(opts ...types.OnFocusOpts) error {
 					selectedLineIdx := -1
 					if len(opts) > 0 && (opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary") {
@@ -129,7 +129,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				},
 			},
 		),
-		Merging: NewSimpleContext(
+		Merging: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:            types.MAIN_CONTEXT,
 				ViewName:        "main",
@@ -138,11 +138,11 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				OnGetOptionsMap: gui.getMergingOptions,
 				Focusable:       true,
 			}),
-			NewSimpleContextOpts{
+			context.ContextCallbackOpts{
 				OnFocus: OnFocusWrapper(func() error { return gui.renderConflictsWithLock(true) }),
 			},
 		),
-		Credentials: NewSimpleContext(
+		Credentials: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.PERSISTENT_POPUP,
 				ViewName:   "credentials",
@@ -150,11 +150,11 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.CREDENTIALS_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			NewSimpleContextOpts{
+			context.ContextCallbackOpts{
 				OnFocus: OnFocusWrapper(gui.handleAskFocused),
 			},
 		),
-		Confirmation: NewSimpleContext(
+		Confirmation: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.TEMPORARY_POPUP,
 				ViewName:   "confirmation",
@@ -162,11 +162,11 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.CONFIRMATION_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			NewSimpleContextOpts{
+			context.ContextCallbackOpts{
 				OnFocus: OnFocusWrapper(gui.handleAskFocused),
 			},
 		),
-		CommitMessage: NewSimpleContext(
+		CommitMessage: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.PERSISTENT_POPUP,
 				ViewName:   "commitMessage",
@@ -174,11 +174,11 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.COMMIT_MESSAGE_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			NewSimpleContextOpts{
+			context.ContextCallbackOpts{
 				OnFocus: OnFocusWrapper(gui.handleCommitMessageFocused),
 			},
 		),
-		Search: NewSimpleContext(
+		Search: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.PERSISTENT_POPUP,
 				ViewName:   "search",
@@ -186,9 +186,9 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.SEARCH_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			NewSimpleContextOpts{},
+			context.ContextCallbackOpts{},
 		),
-		CommandLog: NewSimpleContext(
+		CommandLog: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:            types.EXTRAS_CONTEXT,
 				ViewName:        "extras",
@@ -197,7 +197,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				OnGetOptionsMap: gui.getMergingOptions,
 				Focusable:       true,
 			}),
-			NewSimpleContextOpts{
+			context.ContextCallbackOpts{
 				OnFocusLost: func() error {
 					gui.Views.Extras.Autoscroll = true
 					return nil

@@ -7,15 +7,15 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type TagsContext struct {
-	*TagsViewModel
+type BranchesContext struct {
+	*BranchesViewModel
 	*ListContextTrait
 }
 
-var _ types.IListContext = (*TagsContext)(nil)
+var _ types.IListContext = (*BranchesContext)(nil)
 
-func NewTagsContext(
-	getModel func() []*models.Tag,
+func NewBranchesContext(
+	getModel func() []*models.Branch,
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
@@ -24,16 +24,16 @@ func NewTagsContext(
 	onFocusLost func() error,
 
 	c *types.ControllerCommon,
-) *TagsContext {
-	viewModel := NewTagsViewModel(getModel)
+) *BranchesContext {
+	viewModel := NewBranchesViewModel(getModel)
 
-	return &TagsContext{
-		TagsViewModel: viewModel,
+	return &BranchesContext{
+		BranchesViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "branches",
 				WindowName: "branches",
-				Key:        TAGS_CONTEXT_KEY,
+				Key:        LOCAL_BRANCHES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
 			}), ContextCallbackOpts{
@@ -49,7 +49,7 @@ func NewTagsContext(
 	}
 }
 
-func (self *TagsContext) GetSelectedItemId() string {
+func (self *BranchesContext) GetSelectedItemId() string {
 	item := self.GetSelected()
 	if item == nil {
 		return ""
@@ -58,13 +58,13 @@ func (self *TagsContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
-type TagsViewModel struct {
+type BranchesViewModel struct {
 	*traits.ListCursor
-	getModel func() []*models.Tag
+	getModel func() []*models.Branch
 }
 
-func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
-	self := &TagsViewModel{
+func NewBranchesViewModel(getModel func() []*models.Branch) *BranchesViewModel {
+	self := &BranchesViewModel{
 		getModel: getModel,
 	}
 
@@ -73,11 +73,11 @@ func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
 	return self
 }
 
-func (self *TagsViewModel) GetItemsLength() int {
+func (self *BranchesViewModel) GetItemsLength() int {
 	return len(self.getModel())
 }
 
-func (self *TagsViewModel) GetSelected() *models.Tag {
+func (self *BranchesViewModel) GetSelected() *models.Branch {
 	if self.GetItemsLength() == 0 {
 		return nil
 	}

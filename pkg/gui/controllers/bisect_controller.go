@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -14,23 +15,21 @@ type BisectController struct {
 	baseController
 
 	c            *types.ControllerCommon
-	context      types.IListContext
+	context      *context.LocalCommitsContext
 	git          *commands.GitCommand
 	bisectHelper *BisectHelper
 
-	getSelectedLocalCommit func() *models.Commit
-	getCommits             func() []*models.Commit
+	getCommits func() []*models.Commit
 }
 
 var _ types.IController = &BisectController{}
 
 func NewBisectController(
 	c *types.ControllerCommon,
-	context types.IListContext,
+	context *context.LocalCommitsContext,
 	git *commands.GitCommand,
 	bisectHelper *BisectHelper,
 
-	getSelectedLocalCommit func() *models.Commit,
 	getCommits func() []*models.Commit,
 ) *BisectController {
 	return &BisectController{
@@ -40,8 +39,7 @@ func NewBisectController(
 		git:            git,
 		bisectHelper:   bisectHelper,
 
-		getSelectedLocalCommit: getSelectedLocalCommit,
-		getCommits:             getCommits,
+		getCommits: getCommits,
 	}
 }
 
@@ -234,7 +232,7 @@ func (self *BisectController) selectCurrentBisectCommit() {
 		// find index of commit with that sha, move cursor to that.
 		for i, commit := range self.getCommits() {
 			if commit.Sha == info.GetCurrentSha() {
-				self.context.GetPanelState().SetSelectedLineIdx(i)
+				self.context.SetSelectedLineIdx(i)
 				_ = self.context.HandleFocus()
 				break
 			}
@@ -244,7 +242,7 @@ func (self *BisectController) selectCurrentBisectCommit() {
 
 func (self *BisectController) checkSelected(callback func(*models.Commit) error) func() error {
 	return func() error {
-		commit := self.getSelectedLocalCommit()
+		commit := self.context.GetSelected()
 		if commit == nil {
 			return nil
 		}

@@ -1,6 +1,10 @@
 package context
 
-import "github.com/jesseduffield/lazygit/pkg/gui/types"
+import (
+	"sync"
+
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
 
 const (
 	GLOBAL_CONTEXT_KEY              types.ContextKey = "global"
@@ -60,18 +64,18 @@ type ContextTree struct {
 	Global         types.Context
 	Status         types.Context
 	Files          *WorkingTreeContext
-	Submodules     types.IListContext
-	Menu           types.IListContext
-	Branches       types.IListContext
-	Remotes        types.IListContext
-	RemoteBranches types.IListContext
+	Menu           *MenuContext
+	Branches       *BranchesContext
 	Tags           *TagsContext
-	BranchCommits  types.IListContext
+	BranchCommits  *LocalCommitsContext
 	CommitFiles    *CommitFilesContext
-	ReflogCommits  types.IListContext
-	SubCommits     types.IListContext
-	Stash          types.IListContext
-	Suggestions    types.IListContext
+	Remotes        *RemotesContext
+	Submodules     *SubmodulesContext
+	RemoteBranches *RemoteBranchesContext
+	ReflogCommits  *ReflogCommitsContext
+	SubCommits     *SubCommitsContext
+	Stash          *StashContext
+	Suggestions    *SuggestionsContext
 	Normal         types.Context
 	Staging        types.Context
 	PatchBuilding  types.Context
@@ -113,6 +117,7 @@ func (self *ContextTree) Flatten() []types.Context {
 
 type ViewContextMap struct {
 	content map[string]types.Context
+	sync.RWMutex
 }
 
 func NewViewContextMap() *ViewContextMap {
@@ -120,10 +125,15 @@ func NewViewContextMap() *ViewContextMap {
 }
 
 func (self *ViewContextMap) Get(viewName string) types.Context {
+	self.RLock()
+	defer self.RUnlock()
+
 	return self.content[viewName]
 }
 
 func (self *ViewContextMap) Set(viewName string, context types.Context) {
+	self.Lock()
+	defer self.Unlock()
 	self.content[viewName] = context
 }
 

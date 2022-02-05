@@ -16,7 +16,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 			fileName = node.GetPath()
 		}
 	case gui.State.Contexts.CommitFiles:
-		node := gui.getSelectedCommitFileNode()
+		node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 		if node != nil {
 			fileName = node.GetPath()
 		}

@@ -2,7 +2,7 @@ package gui
 
 func (self *Gui) tagsRenderToMain() error {
 	var task updateTask
-	tag := self.State.Contexts.Tags.GetSelectedTag()
+	tag := self.State.Contexts.Tags.GetSelected()
 	if tag == nil {
 		task = NewRenderStringTask("No tags")
 	} else {

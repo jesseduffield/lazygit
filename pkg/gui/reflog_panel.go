@@ -9,17 +9,11 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedReflogCommit() *models.Commit {
-	selectedLine := gui.State.Panels.ReflogCommits.SelectedLineIdx
-	reflogComits := gui.State.Model.FilteredReflogCommits
-	if selectedLine == -1 || len(reflogComits) == 0 {
-		return nil
-	}
-
-	return reflogComits[selectedLine]
+	return gui.State.Contexts.ReflogCommits.GetSelected()
 }
 
 func (gui *Gui) reflogCommitsRenderToMain() error {
-	commit := gui.getSelectedReflogCommit()
+	commit := gui.State.Contexts.ReflogCommits.GetSelected()
 	var task updateTask
 	if commit == nil {
 		task = NewRenderStringTask("No reflog history")
@@ -38,7 +32,7 @@ func (gui *Gui) reflogCommitsRenderToMain() error {
 }
 
 func (gui *Gui) CheckoutReflogCommit() error {
-	commit := gui.getSelectedReflogCommit()
+	commit := gui.State.Contexts.ReflogCommits.GetSelected()
 	if commit == nil {
 		return nil
 	}
@@ -55,19 +49,17 @@ func (gui *Gui) CheckoutReflogCommit() error {
 		return err
 	}
 
-	gui.State.Panels.ReflogCommits.SelectedLineIdx = 0
-
 	return nil
 }
 
 func (gui *Gui) handleCreateReflogResetMenu() error {
-	commit := gui.getSelectedReflogCommit()
+	commit := gui.State.Contexts.ReflogCommits.GetSelected()
 
 	return gui.helpers.Refs.CreateGitResetMenu(commit.Sha)
 }
 
 func (gui *Gui) handleViewReflogCommitFiles() error {
-	commit := gui.getSelectedReflogCommit()
+	commit := gui.State.Contexts.ReflogCommits.GetSelected()
 	if commit == nil {
 		return nil
 	}
@@ -81,7 +73,7 @@ func (gui *Gui) handleViewReflogCommitFiles() error {
 }
 
 func (gui *Gui) handleCopyReflogCommit() error {
-	commit := gui.getSelectedReflogCommit()
+	commit := gui.State.Contexts.ReflogCommits.GetSelected()
 	if commit == nil {
 		return nil
 	}
@@ -91,7 +83,7 @@ func (gui *Gui) handleCopyReflogCommit() error {
 
 func (gui *Gui) handleCopyReflogCommitRange() error {
 	// just doing this to ensure something is selected
-	commit := gui.getSelectedReflogCommit()
+	commit := gui.State.Contexts.ReflogCommits.GetSelected()
 	if commit == nil {
 		return nil
 	}

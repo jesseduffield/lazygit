@@ -7,15 +7,15 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type TagsContext struct {
-	*TagsViewModel
+type SubmodulesContext struct {
+	*SubmodulesViewModel
 	*ListContextTrait
 }
 
-var _ types.IListContext = (*TagsContext)(nil)
+var _ types.IListContext = (*SubmodulesContext)(nil)
 
-func NewTagsContext(
-	getModel func() []*models.Tag,
+func NewSubmodulesContext(
+	getModel func() []*models.SubmoduleConfig,
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
@@ -24,16 +24,16 @@ func NewTagsContext(
 	onFocusLost func() error,
 
 	c *types.ControllerCommon,
-) *TagsContext {
-	viewModel := NewTagsViewModel(getModel)
+) *SubmodulesContext {
+	viewModel := NewSubmodulesViewModel(getModel)
 
-	return &TagsContext{
-		TagsViewModel: viewModel,
+	return &SubmodulesContext{
+		SubmodulesViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				ViewName:   "branches",
-				WindowName: "branches",
-				Key:        TAGS_CONTEXT_KEY,
+				ViewName:   "files",
+				WindowName: "files",
+				Key:        SUBMODULES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
 			}), ContextCallbackOpts{
@@ -49,7 +49,7 @@ func NewTagsContext(
 	}
 }
 
-func (self *TagsContext) GetSelectedItemId() string {
+func (self *SubmodulesContext) GetSelectedItemId() string {
 	item := self.GetSelected()
 	if item == nil {
 		return ""
@@ -58,13 +58,13 @@ func (self *TagsContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
-type TagsViewModel struct {
+type SubmodulesViewModel struct {
 	*traits.ListCursor
-	getModel func() []*models.Tag
+	getModel func() []*models.SubmoduleConfig
 }
 
-func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
-	self := &TagsViewModel{
+func NewSubmodulesViewModel(getModel func() []*models.SubmoduleConfig) *SubmodulesViewModel {
+	self := &SubmodulesViewModel{
 		getModel: getModel,
 	}
 
@@ -73,11 +73,11 @@ func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
 	return self
 }
 
-func (self *TagsViewModel) GetItemsLength() int {
+func (self *SubmodulesViewModel) GetItemsLength() int {
 	return len(self.getModel())
 }
 
-func (self *TagsViewModel) GetSelected() *models.Tag {
+func (self *SubmodulesViewModel) GetSelected() *models.SubmoduleConfig {
 	if self.GetItemsLength() == 0 {
 		return nil
 	}

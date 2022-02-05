@@ -3,6 +3,7 @@ package gui
 import (
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -34,14 +35,10 @@ func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 
 func (gui *Gui) displayDescription(binding *types.Binding) string {
 	if binding.OpensMenu {
-		return opensMenuStyle(binding.Description)
+		return presentation.OpensMenuStyle(binding.Description)
 	}
 
 	return style.FgCyan.Sprint(binding.Description)
-}
-
-func opensMenuStyle(str string) string {
-	return style.FgMagenta.Sprintf("%s...", str)
 }
 
 func (gui *Gui) handleCreateOptionsMenu() error {

@@ -8,18 +8,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
-func (gui *Gui) getSelectedSubmodule() *models.SubmoduleConfig {
-	selectedLine := gui.State.Panels.Submodules.SelectedLineIdx
-	if selectedLine == -1 || len(gui.State.Model.Submodules) == 0 {
-		return nil
-	}
-
-	return gui.State.Model.Submodules[selectedLine]
-}
-
 func (gui *Gui) submodulesRenderToMain() error {
 	var task updateTask
-	submodule := gui.getSelectedSubmodule()
+	submodule := gui.State.Contexts.Submodules.GetSelected()
 	if submodule == nil {
 		task = NewRenderStringTask("No submodules")
 	} else {

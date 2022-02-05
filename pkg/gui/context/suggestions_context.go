@@ -2,20 +2,19 @@ package context
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type TagsContext struct {
-	*TagsViewModel
+type SuggestionsContext struct {
+	*SuggestionsViewModel
 	*ListContextTrait
 }
 
-var _ types.IListContext = (*TagsContext)(nil)
+var _ types.IListContext = (*SuggestionsContext)(nil)
 
-func NewTagsContext(
-	getModel func() []*models.Tag,
+func NewSuggestionsContext(
+	getModel func() []*types.Suggestion,
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
@@ -24,17 +23,17 @@ func NewTagsContext(
 	onFocusLost func() error,
 
 	c *types.ControllerCommon,
-) *TagsContext {
-	viewModel := NewTagsViewModel(getModel)
+) *SuggestionsContext {
+	viewModel := NewSuggestionsViewModel(getModel)
 
-	return &TagsContext{
-		TagsViewModel: viewModel,
+	return &SuggestionsContext{
+		SuggestionsViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				ViewName:   "branches",
-				WindowName: "branches",
-				Key:        TAGS_CONTEXT_KEY,
-				Kind:       types.SIDE_CONTEXT,
+				ViewName:   "suggestions",
+				WindowName: "suggestions",
+				Key:        SUGGESTIONS_CONTEXT_KEY,
+				Kind:       types.PERSISTENT_POPUP,
 				Focusable:  true,
 			}), ContextCallbackOpts{
 				OnFocus:        onFocus,
@@ -49,22 +48,22 @@ func NewTagsContext(
 	}
 }
 
-func (self *TagsContext) GetSelectedItemId() string {
+func (self *SuggestionsContext) GetSelectedItemId() string {
 	item := self.GetSelected()
 	if item == nil {
 		return ""
 	}
 
-	return item.ID()
+	return item.Value
 }
 
-type TagsViewModel struct {
+type SuggestionsViewModel struct {
 	*traits.ListCursor
-	getModel func() []*models.Tag
+	getModel func() []*types.Suggestion
 }
 
-func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
-	self := &TagsViewModel{
+func NewSuggestionsViewModel(getModel func() []*types.Suggestion) *SuggestionsViewModel {
+	self := &SuggestionsViewModel{
 		getModel: getModel,
 	}
 
@@ -73,11 +72,11 @@ func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
 	return self
 }
 
-func (self *TagsViewModel) GetItemsLength() int {
+func (self *SuggestionsViewModel) GetItemsLength() int {
 	return len(self.getModel())
 }
 
-func (self *TagsViewModel) GetSelected() *models.Tag {
+func (self *SuggestionsViewModel) GetSelected() *types.Suggestion {
 	if self.GetItemsLength() == 0 {
 		return nil
 	}

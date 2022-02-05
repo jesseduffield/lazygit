@@ -5,16 +5,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
-	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-func (gui *Gui) getSelectedCommitFileNode() *filetree.CommitFileNode {
-	return gui.State.Contexts.CommitFiles.GetSelectedFileNode()
-}
-
 func (gui *Gui) getSelectedCommitFile() *models.CommitFile {
-	node := gui.getSelectedCommitFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 	if node == nil {
 		return nil
 	}
@@ -22,20 +17,21 @@ func (gui *Gui) getSelectedCommitFile() *models.CommitFile {
 }
 
 func (gui *Gui) getSelectedCommitFilePath() string {
-	node := gui.getSelectedCommitFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 	if node == nil {
 		return ""
 	}
 	return node.GetPath()
 }
 
+// TODO: do we need this?
 func (gui *Gui) onCommitFileFocus() error {
 	gui.escapeLineByLinePanel()
 	return nil
 }
 
 func (gui *Gui) commitFilesRenderToMain() error {
-	node := gui.getSelectedCommitFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 	if node == nil {
 		return nil
 	}
@@ -62,7 +58,7 @@ func (gui *Gui) commitFilesRenderToMain() error {
 }
 
 func (gui *Gui) handleCheckoutCommitFile() error {
-	node := gui.getSelectedCommitFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 	if node == nil {
 		return nil
 	}
@@ -88,7 +84,7 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 		HandleConfirm: func() error {
 			return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 				gui.c.LogAction(gui.c.Tr.Actions.DiscardOldFileChange)
-				if err := gui.git.Rebase.DiscardOldFileChanges(gui.State.Model.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
+				if err := gui.git.Rebase.DiscardOldFileChanges(gui.State.Model.Commits, gui.State.Contexts.BranchCommits.GetSelectedLineIdx(), fileName); err != nil {
 					if err := gui.helpers.Rebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
@@ -122,7 +118,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 }
 
 func (gui *Gui) handleOpenOldCommitFile() error {
-	node := gui.getSelectedCommitFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 	if node == nil {
 		return nil
 	}
@@ -131,7 +127,7 @@ func (gui *Gui) handleOpenOldCommitFile() error {
 }
 
 func (gui *Gui) handleEditCommitFile() error {
-	node := gui.getSelectedCommitFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 	if node == nil {
 		return nil
 	}
@@ -144,7 +140,7 @@ func (gui *Gui) handleEditCommitFile() error {
 }
 
 func (gui *Gui) handleToggleFileForPatch() error {
-	node := gui.getSelectedCommitFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 	if node == nil {
 		return nil
 	}
@@ -212,7 +208,7 @@ func (gui *Gui) handleEnterCommitFile() error {
 }
 
 func (gui *Gui) enterCommitFile(opts types.OnFocusOpts) error {
-	node := gui.getSelectedCommitFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 	if node == nil {
 		return nil
 	}
@@ -246,7 +242,7 @@ func (gui *Gui) enterCommitFile(opts types.OnFocusOpts) error {
 }
 
 func (gui *Gui) handleToggleCommitFileDirCollapsed() error {
-	node := gui.getSelectedCommitFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
 	if node == nil {
 		return nil
 	}
