@@ -61,7 +61,7 @@ var keyMapReversed = map[gocui.KeyMod]string{
 	{Key: gocui.KeyBackspace, Modifier: gocui.ModNone}:  "backspace",  // ctrl+h
 	{Key: gocui.KeySpace, Modifier: gocui.ModCtrl}:      "ctrl+space", // ctrl+~, ctrl+2
 	{Key: gocui.KeyCtrlSlash, Modifier: gocui.ModCtrl}:  "ctrl+/",     // ctrl+_
-	{Key: gocui.KeySpace, Modifier: gocui.ModCtrl}:      "space",
+	{Key: gocui.KeySpace, Modifier: gocui.ModNone}:      "space",
 	{Key: gocui.KeyCtrlA, Modifier: gocui.ModCtrl}:      "ctrl+a",
 	{Key: gocui.KeyCtrlB, Modifier: gocui.ModCtrl}:      "ctrl+b",
 	{Key: gocui.KeyCtrlC, Modifier: gocui.ModCtrl}:      "ctrl+c",
@@ -204,10 +204,10 @@ func (gui *Gui) getKey(key string) gocui.KeyMod {
 			return binding
 		}
 	} else if runeCount == 1 {
-		return gocui.KeyMod{[]rune(key)[0], gocui.ModNone}
+		return gocui.KeyMod{Key: []rune(key)[0], Modifier: gocui.ModNone}
 	}
 	log.Fatal("Key empty for keybinding: " + strings.ToLower(key))
-	return gocui.KeyMod{nil, gocui.ModNone}
+	return gocui.KeyMod{Key: nil, Modifier: gocui.ModNone}
 }
 
 // GetInitialKeybindings is a function.
@@ -322,7 +322,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "",
-			KeyMod:   gocui.KeyMod{gocui.MouseMiddle, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseMiddle, Modifier: gocui.ModNone},
 			Handler:  gui.handleCreateOptionsMenu,
 		},
 		{
@@ -1078,7 +1078,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "information",
-			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseLeft, Modifier: gocui.ModNone},
 			Handler:  gui.handleInfoClick,
 		},
 		{
@@ -1159,24 +1159,24 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "secondary",
-			KeyMod:   gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseWheelUp, Modifier: gocui.ModNone},
 			Handler:  gui.scrollUpSecondary,
 		},
 		{
 			ViewName: "secondary",
-			KeyMod:   gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseWheelDown, Modifier: gocui.ModNone},
 			Handler:  gui.scrollDownSecondary,
 		},
 		{
 			ViewName: "secondary",
 			Contexts: []string{string(MAIN_NORMAL_CONTEXT_KEY)},
-			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseLeft, Modifier: gocui.ModNone},
 			Handler:  gui.handleMouseDownSecondary,
 		},
 		{
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_NORMAL_CONTEXT_KEY)},
-			KeyMod:      gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone},
+			KeyMod:      gocui.KeyMod{Key: gocui.MouseWheelDown, Modifier: gocui.ModNone},
 			Handler:     gui.scrollDownMain,
 			Description: gui.Tr.ScrollDown,
 			Alternative: "fn+up",
@@ -1184,7 +1184,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_NORMAL_CONTEXT_KEY)},
-			KeyMod:      gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone},
+			KeyMod:      gocui.KeyMod{Key: gocui.MouseWheelUp, Modifier: gocui.ModNone},
 			Handler:     gui.scrollUpMain,
 			Description: gui.Tr.ScrollUp,
 			Alternative: "fn+down",
@@ -1192,13 +1192,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_NORMAL_CONTEXT_KEY)},
-			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseLeft, Modifier: gocui.ModNone},
 			Handler:  gui.handleMouseDownMain,
 		},
 		{
 			ViewName: "secondary",
 			Contexts: []string{string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseLeft, Modifier: gocui.ModNone},
 			Handler:  gui.handleTogglePanelClick,
 		},
 		{
@@ -1272,13 +1272,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseWheelUp, Modifier: gocui.ModNone},
 			Handler:  gui.scrollUpMain,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseWheelDown, Modifier: gocui.ModNone},
 			Handler:  gui.scrollDownMain,
 		},
 		{
@@ -1400,25 +1400,25 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseLeft, Modifier: gocui.ModNone},
 			Handler:  gui.handleLBLMouseDown,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseLeft, Modifier: gocui.ModNone},
 			Handler:  gui.handleMouseDrag,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseWheelUp, Modifier: gocui.ModNone},
 			Handler:  gui.scrollUpMain,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseWheelDown, Modifier: gocui.ModNone},
 			Handler:  gui.scrollDownMain,
 		},
 		{
@@ -1615,7 +1615,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "status",
-			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseLeft, Modifier: gocui.ModNone},
 			Handler:  gui.handleStatusClick,
 		},
 		{
@@ -1742,12 +1742,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "extras",
-			KeyMod:   gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseWheelUp, Modifier: gocui.ModNone},
 			Handler:  gui.scrollUpExtra,
 		},
 		{
 			ViewName: "extras",
-			KeyMod:   gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseWheelDown, Modifier: gocui.ModNone},
 			Handler:  gui.scrollDownExtra,
 		},
 		{
@@ -1788,7 +1788,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
-			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{Key: gocui.MouseLeft, Modifier: gocui.ModNone},
 			Handler:  gui.handleFocusCommandLog,
 		},
 	}

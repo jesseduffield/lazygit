@@ -128,7 +128,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, gocui.KeyEnter, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: gocui.KeyEnter, Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -156,7 +156,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, 't', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: 't', Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -170,7 +170,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, 'o', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: 'o', Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
