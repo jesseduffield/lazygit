@@ -10,6 +10,7 @@ type IFilesHelper interface {
 	EditFile(filename string) error
 	EditFileAtLine(filename string, lineNumber int) error
 	OpenFile(filename string) error
+	OpenFileAtLine(filename string, lineNumber int) error
 }
 
 type FilesHelper struct {
@@ -49,8 +50,12 @@ func (self *FilesHelper) EditFileAtLine(filename string, lineNumber int) error {
 }
 
 func (self *FilesHelper) OpenFile(filename string) error {
+	return self.OpenFileAtLine(filename, 1)
+}
+
+func (self *FilesHelper) OpenFileAtLine(filename string, lineNumber int) error {
 	self.c.LogAction(self.c.Tr.Actions.OpenFile)
-	if err := self.os.OpenFile(filename); err != nil {
+	if err := self.os.OpenFileAtLine(filename, lineNumber); err != nil {
 		return self.c.Error(err)
 	}
 	return nil

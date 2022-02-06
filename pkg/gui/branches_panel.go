@@ -79,7 +79,7 @@ func (gui *Gui) handleCopyPullRequestURLPress() error {
 		return gui.c.Error(err)
 	}
 	gui.c.LogAction(gui.c.Tr.Actions.CopyPullRequestURL)
-	if err := gui.OSCommand.CopyToClipboard(url); err != nil {
+	if err := gui.os.CopyToClipboard(url); err != nil {
 		return gui.c.Error(err)
 	}
 

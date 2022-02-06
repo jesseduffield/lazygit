@@ -88,7 +88,7 @@ func (gui *Gui) copySelectedToClipboard() error {
 		selected := state.PlainRenderSelected()
 
 		gui.c.LogAction(gui.c.Tr.Actions.CopySelectedTextToClipboard)
-		if err := gui.OSCommand.CopyToClipboard(selected); err != nil {
+		if err := gui.os.CopyToClipboard(selected); err != nil {
 			return gui.c.Error(err)
 		}
 
@@ -210,7 +210,7 @@ func (gui *Gui) handleOpenFileAtLine() error {
 
 		// need to look at current index, then work out what my hunk's header information is, and see how far my line is away from the hunk header
 		lineNumber := state.CurrentLineNumber()
-		if err := gui.editFileAtLine(filename, lineNumber); err != nil {
+		if err := gui.os.OpenFileAtLine(filename, lineNumber); err != nil {
 			return err
 		}
 

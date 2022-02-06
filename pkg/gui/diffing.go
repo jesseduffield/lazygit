@@ -15,7 +15,7 @@ func (gui *Gui) exitDiffMode() error {
 }
 
 func (gui *Gui) renderDiff() error {
-	cmdObj := gui.OSCommand.Cmd.New(
+	cmdObj := gui.os.Cmd.New(
 		fmt.Sprintf("git diff --submodule --no-ext-diff --color %s", gui.diffStr()),
 	)
 	task := NewRunPtyTask(cmdObj.GetCmd())

@@ -72,9 +72,14 @@ func FileType(path string) string {
 }
 
 func (c *OSCommand) OpenFile(filename string) error {
+	return c.OpenFileAtLine(filename, 1)
+}
+
+func (c *OSCommand) OpenFileAtLine(filename string, lineNumber int) error {
 	commandTemplate := c.UserConfig.OS.OpenCommand
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
+		"line":     fmt.Sprintf("%d", lineNumber),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
 	return c.Cmd.NewShell(command).Run()

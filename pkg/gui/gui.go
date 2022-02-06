@@ -83,9 +83,9 @@ type Repo string
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
 	*common.Common
-	g         *gocui.Gui
-	git       *commands.GitCommand
-	OSCommand *oscommands.OSCommand
+	g   *gocui.Gui
+	git *commands.GitCommand
+	os  *oscommands.OSCommand
 
 	// this is the state of the GUI for the current repo
 	State *GuiRepoState
@@ -318,7 +318,7 @@ func (gui *Gui) onNewRepo(filterPath string, reuseState bool) error {
 	var err error
 	gui.git, err = commands.NewGitCommand(
 		gui.Common,
-		gui.OSCommand,
+		gui.os,
 		git_config.NewStdCachedGitConfig(gui.Log),
 		gui.Mutexes.SyncMutex,
 	)
@@ -479,7 +479,7 @@ func NewGui(
 
 	osCommand := oscommands.NewOSCommand(cmn, oscommands.GetPlatform(), guiIO)
 
-	gui.OSCommand = osCommand
+	gui.os = osCommand
 
 	gui.watchFilesForChanges()
 
@@ -509,7 +509,7 @@ func NewGui(
 
 func (gui *Gui) resetControllers() {
 	controllerCommon := gui.c
-	osCommand := gui.OSCommand
+	osCommand := gui.os
 	rebaseHelper := controllers.NewRebaseHelper(controllerCommon, gui.State.Contexts, gui.git, gui.takeOverMergeConflictScrolling)
 	model := gui.State.Model
 	gui.helpers = &Helpers{
@@ -977,7 +977,7 @@ func (gui *Gui) loadNewRepo() error {
 		return err
 	}
 
-	if err := gui.OSCommand.UpdateWindowTitle(); err != nil {
+	if err := gui.os.UpdateWindowTitle(); err != nil {
 		return err
 	}
 

@@ -44,9 +44,9 @@ func (gui *Gui) handleInfoClick() error {
 
 	// if we're not in an active mode we show the donate button
 	if cx <= len(gui.c.Tr.Donate) {
-		return gui.OSCommand.OpenLink(constants.Links.Donate)
+		return gui.os.OpenLink(constants.Links.Donate)
 	} else if cx <= len(gui.c.Tr.Donate)+1+len(gui.c.Tr.AskQuestion) {
-		return gui.OSCommand.OpenLink(constants.Links.Discussions)
+		return gui.os.OpenLink(constants.Links.Discussions)
 	}
 	return nil
 }
