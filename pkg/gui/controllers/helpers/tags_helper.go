@@ -1,4 +1,4 @@
-package controllers
+package helpers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -10,11 +10,11 @@ import (
 // and the commits context.
 
 type TagsHelper struct {
-	c   *types.ControllerCommon
+	c   *types.HelperCommon
 	git *commands.GitCommand
 }
 
-func NewTagsHelper(c *types.ControllerCommon, git *commands.GitCommand) *TagsHelper {
+func NewTagsHelper(c *types.HelperCommon, git *commands.GitCommand) *TagsHelper {
 	return &TagsHelper{
 		c:   c,
 		git: git,

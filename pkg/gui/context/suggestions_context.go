@@ -22,7 +22,7 @@ func NewSuggestionsContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 ) *SuggestionsContext {
 	viewModel := NewSuggestionsViewModel(getModel)
 

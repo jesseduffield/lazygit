@@ -215,7 +215,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
 			RefName:              gui.refForLog(),
-			All:                  gui.ShowWholeGitGraph,
+			All:                  gui.State.Contexts.BranchCommits.GetShowWholeGitGraph(),
 		},
 	)
 	if err != nil {
@@ -408,7 +408,7 @@ func (gui *Gui) refreshStateFiles() error {
 	}
 
 	if gui.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE && conflictFileCount == 0 && prevConflictFileCount > 0 {
-		gui.OnUIThread(func() error { return gui.helpers.Rebase.PromptToContinueRebase() })
+		gui.OnUIThread(func() error { return gui.helpers.MergeAndRebase.PromptToContinueRebase() })
 	}
 
 	fileTreeViewModel.RWMutex.Lock()
@@ -526,7 +526,7 @@ func (gui *Gui) refreshStatus() {
 	gui.Mutexes.RefreshingStatusMutex.Lock()
 	defer gui.Mutexes.RefreshingStatusMutex.Unlock()
 
-	currentBranch := gui.getCheckedOutBranch()
+	currentBranch := gui.helpers.Refs.GetCheckedOutRef()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
 		return

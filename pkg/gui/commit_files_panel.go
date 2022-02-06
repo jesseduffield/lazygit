@@ -85,7 +85,7 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 			return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 				gui.c.LogAction(gui.c.Tr.Actions.DiscardOldFileChange)
 				if err := gui.git.Rebase.DiscardOldFileChanges(gui.State.Model.Commits, gui.State.Contexts.BranchCommits.GetSelectedLineIdx(), fileName); err != nil {
-					if err := gui.helpers.Rebase.CheckMergeOrRebase(err); err != nil {
+					if err := gui.helpers.MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
 				}
@@ -265,7 +265,7 @@ func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesC
 	gui.State.Contexts.CommitFiles.SetRefName(opts.RefName)
 	gui.State.Contexts.CommitFiles.SetCanRebase(opts.CanRebase)
 	gui.State.Contexts.CommitFiles.SetParentContext(opts.Context)
-	gui.State.Contexts.CommitFiles.SetWindowName(opts.WindowName)
+	gui.State.Contexts.CommitFiles.SetWindowName(opts.Context.GetWindowName())
 
 	if err := gui.refreshCommitFilesView(); err != nil {
 		return err

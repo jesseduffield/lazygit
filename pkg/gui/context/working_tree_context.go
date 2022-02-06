@@ -23,7 +23,7 @@ func NewWorkingTreeContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 ) *WorkingTreeContext {
 	viewModel := filetree.NewFileTreeViewModel(getModel, c.Log, c.UserConfig.Gui.ShowFileTree)
 

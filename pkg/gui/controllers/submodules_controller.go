@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -14,10 +13,7 @@ import (
 
 type SubmodulesController struct {
 	baseController
-
-	c       *types.ControllerCommon
-	context *context.SubmodulesContext
-	git     *commands.GitCommand
+	*controllerCommon
 
 	enterSubmodule func(submodule *models.SubmoduleConfig) error
 }
@@ -25,17 +21,13 @@ type SubmodulesController struct {
 var _ types.IController = &SubmodulesController{}
 
 func NewSubmodulesController(
-	c *types.ControllerCommon,
-	context *context.SubmodulesContext,
-	git *commands.GitCommand,
+	controllerCommon *controllerCommon,
 	enterSubmodule func(submodule *models.SubmoduleConfig) error,
 ) *SubmodulesController {
 	return &SubmodulesController{
-		baseController: baseController{},
-		c:              c,
-		context:        context,
-		git:            git,
-		enterSubmodule: enterSubmodule,
+		baseController:   baseController{},
+		controllerCommon: controllerCommon,
+		enterSubmodule:   enterSubmodule,
 	}
 }
 
@@ -79,7 +71,7 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 		},
 		// {
 		// 	Key:     gocui.MouseLeft,
-		// 	Handler: func() error { return self.context.HandleClick(self.checkSelected(self.enter)) },
+		// 	Handler: func() error { return self.context().HandleClick(self.checkSelected(self.enter)) },
 		// },
 	}
 }
@@ -227,7 +219,7 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 
 func (self *SubmodulesController) checkSelected(callback func(*models.SubmoduleConfig) error) func() error {
 	return func() error {
-		submodule := self.context.GetSelected()
+		submodule := self.context().GetSelected()
 		if submodule == nil {
 			return nil
 		}
@@ -237,5 +229,9 @@ func (self *SubmodulesController) checkSelected(callback func(*models.SubmoduleC
 }
 
 func (self *SubmodulesController) Context() types.Context {
-	return self.context
+	return self.context()
+}
+
+func (self *SubmodulesController) context() *context.SubmodulesContext {
+	return self.contexts.Submodules
 }

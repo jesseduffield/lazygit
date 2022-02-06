@@ -1,4 +1,4 @@
-package controllers
+package helpers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -9,25 +9,25 @@ import (
 )
 
 type CherryPickHelper struct {
-	c *types.ControllerCommon
+	c *types.HelperCommon
 
 	git *commands.GitCommand
 
 	contexts *context.ContextTree
 	getData  func() *cherrypicking.CherryPicking
 
-	rebaseHelper *RebaseHelper
+	rebaseHelper *MergeAndRebaseHelper
 }
 
 // I'm using the analogy of copy+paste in the terminology here because it's intuitively what's going on,
 // even if in truth we're running git cherry-pick
 
 func NewCherryPickHelper(
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 	getData func() *cherrypicking.CherryPicking,
-	rebaseHelper *RebaseHelper,
+	rebaseHelper *MergeAndRebaseHelper,
 ) *CherryPickHelper {
 	return &CherryPickHelper{
 		c:            c,

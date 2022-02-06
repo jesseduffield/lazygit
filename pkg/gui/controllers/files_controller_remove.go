@@ -39,7 +39,7 @@ func (self *FilesController) remove(node *filetree.FileNode) error {
 	} else {
 		file := node.File
 
-		submodules := self.getSubmodules()
+		submodules := self.model.Submodules
 		if file.IsSubmodule(submodules) {
 			submodule := file.SubmoduleConfig(submodules)
 

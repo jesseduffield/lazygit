@@ -54,7 +54,7 @@ func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (s
 		SelectedCommitFile:     gui.getSelectedCommitFile(),
 		SelectedCommitFilePath: gui.getSelectedCommitFilePath(),
 		SelectedSubCommit:      gui.State.Contexts.SubCommits.GetSelected(),
-		CheckedOutBranch:       gui.getCheckedOutBranch(),
+		CheckedOutBranch:       gui.helpers.Refs.GetCheckedOutRef(),
 		PromptResponses:        promptResponses,
 	}
 

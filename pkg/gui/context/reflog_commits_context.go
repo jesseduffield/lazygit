@@ -23,7 +23,7 @@ func NewReflogCommitsContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 ) *ReflogCommitsContext {
 	viewModel := NewReflogCommitsViewModel(getModel)
 

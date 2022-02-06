@@ -1,19 +1,14 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type SubCommitsSwitchControllerFactory struct {
-	c                 *types.ControllerCommon
-	subCommitsContext *context.SubCommitsContext
-	git               *commands.GitCommand
-	modes             *types.Modes
-	setSubCommits     func([]*models.Commit)
+	controllerCommon *controllerCommon
+	setSubCommits    func([]*models.Commit)
 }
 
 var _ types.IController = &SubCommitsSwitchController{}
@@ -25,40 +20,28 @@ type ContextWithRefName interface {
 
 type SubCommitsSwitchController struct {
 	baseController
+	*controllerCommon
+	context ContextWithRefName
 
-	c                 *types.ControllerCommon
-	context           ContextWithRefName
-	subCommitsContext *context.SubCommitsContext
-	git               *commands.GitCommand
-	modes             *types.Modes
-	setSubCommits     func([]*models.Commit)
+	setSubCommits func([]*models.Commit)
 }
 
 func NewSubCommitsSwitchControllerFactory(
-	c *types.ControllerCommon,
-	subCommitsContext *context.SubCommitsContext,
-	git *commands.GitCommand,
-	modes *types.Modes,
+	common *controllerCommon,
 	setSubCommits func([]*models.Commit),
 ) *SubCommitsSwitchControllerFactory {
 	return &SubCommitsSwitchControllerFactory{
-		c:                 c,
-		subCommitsContext: subCommitsContext,
-		git:               git,
-		modes:             modes,
-		setSubCommits:     setSubCommits,
+		controllerCommon: common,
+		setSubCommits:    setSubCommits,
 	}
 }
 
 func (self *SubCommitsSwitchControllerFactory) Create(context ContextWithRefName) *SubCommitsSwitchController {
 	return &SubCommitsSwitchController{
-		baseController:    baseController{},
-		c:                 self.c,
-		context:           context,
-		subCommitsContext: self.subCommitsContext,
-		git:               self.git,
-		modes:             self.modes,
-		setSubCommits:     self.setSubCommits,
+		baseController:   baseController{},
+		controllerCommon: self.controllerCommon,
+		context:          context,
+		setSubCommits:    self.setSubCommits,
 	}
 }
 
@@ -94,10 +77,10 @@ func (self *SubCommitsSwitchController) viewCommits() error {
 	}
 
 	self.setSubCommits(commits)
-	self.subCommitsContext.SetSelectedLineIdx(0)
-	self.subCommitsContext.SetParentContext(self.context)
+	self.contexts.SubCommits.SetSelectedLineIdx(0)
+	self.contexts.SubCommits.SetParentContext(self.context)
 
-	return self.c.PushContext(self.subCommitsContext)
+	return self.c.PushContext(self.contexts.SubCommits)
 }
 
 func (self *SubCommitsSwitchController) Context() types.Context {

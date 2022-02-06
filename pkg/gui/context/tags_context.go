@@ -23,7 +23,7 @@ func NewTagsContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 ) *TagsContext {
 	viewModel := NewTagsViewModel(getModel)
 

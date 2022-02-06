@@ -9,7 +9,7 @@ import (
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
-type ControllerCommon struct {
+type HelperCommon struct {
 	*common.Common
 	IGuiCommon
 }

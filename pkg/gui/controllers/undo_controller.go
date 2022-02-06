@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -20,34 +18,17 @@ import (
 
 type UndoController struct {
 	baseController
-
-	c   *types.ControllerCommon
-	git *commands.GitCommand
-
-	refsHelper        IRefsHelper
-	workingTreeHelper IWorkingTreeHelper
-
-	getFilteredReflogCommits func() []*models.Commit
+	*controllerCommon
 }
 
 var _ types.IController = &UndoController{}
 
 func NewUndoController(
-	c *types.ControllerCommon,
-	git *commands.GitCommand,
-	refsHelper IRefsHelper,
-	workingTreeHelper IWorkingTreeHelper,
-
-	getFilteredReflogCommits func() []*models.Commit,
+	common *controllerCommon,
 ) *UndoController {
 	return &UndoController{
-		baseController:    baseController{},
-		c:                 c,
-		git:               git,
-		refsHelper:        refsHelper,
-		workingTreeHelper: workingTreeHelper,
-
-		getFilteredReflogCommits: getFilteredReflogCommits,
+		baseController:   baseController{},
+		controllerCommon: common,
 	}
 }
 
@@ -109,7 +90,7 @@ func (self *UndoController) reflogUndo() error {
 			})
 		case CHECKOUT:
 			self.c.LogAction(self.c.Tr.Actions.Undo)
-			return true, self.refsHelper.CheckoutRef(action.from, types.CheckoutRefOptions{
+			return true, self.helpers.Refs.CheckoutRef(action.from, types.CheckoutRefOptions{
 				EnvVars:       undoEnvVars,
 				WaitingStatus: undoingStatus,
 			})
@@ -147,7 +128,7 @@ func (self *UndoController) reflogRedo() error {
 			})
 		case CHECKOUT:
 			self.c.LogAction(self.c.Tr.Actions.Redo)
-			return true, self.refsHelper.CheckoutRef(action.to, types.CheckoutRefOptions{
+			return true, self.helpers.Refs.CheckoutRef(action.to, types.CheckoutRefOptions{
 				EnvVars:       redoEnvVars,
 				WaitingStatus: redoingStatus,
 			})
@@ -168,7 +149,7 @@ func (self *UndoController) reflogRedo() error {
 // Though we might support this later, hence the use of the CURRENT_REBASE action kind.
 func (self *UndoController) parseReflogForActions(onUserAction func(counter int, action reflogAction) (bool, error)) error {
 	counter := 0
-	reflogCommits := self.getFilteredReflogCommits()
+	reflogCommits := self.model.FilteredReflogCommits
 	rebaseFinishCommitSha := ""
 	var action *reflogAction
 	for reflogCommitIdx, reflogCommit := range reflogCommits {
@@ -222,14 +203,14 @@ type hardResetOptions struct {
 // only to be used in the undo flow for now (does an autostash)
 func (self *UndoController) hardResetWithAutoStash(commitSha string, options hardResetOptions) error {
 	reset := func() error {
-		if err := self.refsHelper.ResetToRef(commitSha, "hard", options.EnvVars); err != nil {
+		if err := self.helpers.Refs.ResetToRef(commitSha, "hard", options.EnvVars); err != nil {
 			return self.c.Error(err)
 		}
 		return nil
 	}
 
 	// if we have any modified tracked files we need to ask the user if they want us to stash for them
-	dirtyWorkingTree := self.workingTreeHelper.IsWorkingTreeDirty()
+	dirtyWorkingTree := self.helpers.WorkingTree.IsWorkingTreeDirty()
 	if dirtyWorkingTree {
 		// offer to autostash changes
 		return self.c.Ask(types.AskOpts{

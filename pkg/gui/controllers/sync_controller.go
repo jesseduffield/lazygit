@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -12,35 +11,22 @@ import (
 
 type SyncController struct {
 	baseController
+	*controllerCommon
 
-	c   *types.ControllerCommon
-	git *commands.GitCommand
-
-	getCheckedOutBranch func() *models.Branch
-	suggestionsHelper   ISuggestionsHelper
-	getSuggestedRemote  func() string
-	CheckMergeOrRebase  func(error) error
+	getSuggestedRemote func() string
 }
 
 var _ types.IController = &SyncController{}
 
 func NewSyncController(
-	c *types.ControllerCommon,
-	git *commands.GitCommand,
-	getCheckedOutBranch func() *models.Branch,
-	suggestionsHelper ISuggestionsHelper,
+	common *controllerCommon,
 	getSuggestedRemote func() string,
-	CheckMergeOrRebase func(error) error,
 ) *SyncController {
 	return &SyncController{
-		baseController: baseController{},
-		c:              c,
-		git:            git,
+		baseController:   baseController{},
+		controllerCommon: common,
 
-		getCheckedOutBranch: getCheckedOutBranch,
-		suggestionsHelper:   suggestionsHelper,
-		getSuggestedRemote:  getSuggestedRemote,
-		CheckMergeOrRebase:  CheckMergeOrRebase,
+		getSuggestedRemote: getSuggestedRemote,
 	}
 }
 
@@ -75,7 +61,7 @@ func (self *SyncController) HandlePull() error {
 
 func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func() error {
 	return func() error {
-		currentBranch := self.getCheckedOutBranch()
+		currentBranch := self.helpers.Refs.GetCheckedOutRef()
 		if currentBranch == nil {
 			// need to wait for branches to refresh
 			return nil
@@ -160,7 +146,7 @@ func (self *SyncController) promptForUpstream(currentBranch *models.Branch, onCo
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.EnterUpstream,
 		InitialContent:      suggestedRemote + " " + currentBranch.Name,
-		FindSuggestionsFunc: self.suggestionsHelper.GetRemoteBranchesSuggestionsFunc(" "),
+		FindSuggestionsFunc: self.helpers.Suggestions.GetRemoteBranchesSuggestionsFunc(" "),
 		HandleConfirm:       onConfirm,
 	})
 }
@@ -189,7 +175,7 @@ func (self *SyncController) pullWithLock(opts PullFilesOptions) error {
 		},
 	)
 
-	return self.CheckMergeOrRebase(err)
+	return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 }
 
 type pushOpts struct {

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -10,43 +9,17 @@ import (
 
 type TagsController struct {
 	baseController
-
-	c          *types.ControllerCommon
-	context    *context.TagsContext
-	git        *commands.GitCommand
-	contexts   *context.ContextTree
-	tagsHelper *TagsHelper
-
-	refsHelper        IRefsHelper
-	suggestionsHelper ISuggestionsHelper
-
-	switchToSubCommitsContext func(string) error
+	*controllerCommon
 }
 
 var _ types.IController = &TagsController{}
 
 func NewTagsController(
-	c *types.ControllerCommon,
-	context *context.TagsContext,
-	git *commands.GitCommand,
-	contexts *context.ContextTree,
-	tagsHelper *TagsHelper,
-	refsHelper IRefsHelper,
-	suggestionsHelper ISuggestionsHelper,
-
-	switchToSubCommitsContext func(string) error,
+	common *controllerCommon,
 ) *TagsController {
 	return &TagsController{
-		baseController:    baseController{},
-		c:                 c,
-		context:           context,
-		git:               git,
-		contexts:          contexts,
-		tagsHelper:        tagsHelper,
-		refsHelper:        refsHelper,
-		suggestionsHelper: suggestionsHelper,
-
-		switchToSubCommitsContext: switchToSubCommitsContext,
+		baseController:   baseController{},
+		controllerCommon: common,
 	}
 }
 
@@ -85,7 +58,7 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 
 func (self *TagsController) checkout(tag *models.Tag) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutTag)
-	if err := self.refsHelper.CheckoutRef(tag.Name, types.CheckoutRefOptions{}); err != nil {
+	if err := self.helpers.Refs.CheckoutRef(tag.Name, types.CheckoutRefOptions{}); err != nil {
 		return err
 	}
 	return self.c.PushContext(self.contexts.Branches)
@@ -123,7 +96,7 @@ func (self *TagsController) push(tag *models.Tag) error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               title,
 		InitialContent:      "origin",
-		FindSuggestionsFunc: self.suggestionsHelper.GetRemoteSuggestionsFunc(),
+		FindSuggestionsFunc: self.helpers.Suggestions.GetRemoteSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.PushingTagStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.PushTag)
@@ -139,17 +112,17 @@ func (self *TagsController) push(tag *models.Tag) error {
 }
 
 func (self *TagsController) createResetMenu(tag *models.Tag) error {
-	return self.refsHelper.CreateGitResetMenu(tag.Name)
+	return self.helpers.Refs.CreateGitResetMenu(tag.Name)
 }
 
 func (self *TagsController) create() error {
 	// leaving commit SHA blank so that we're just creating the tag for the current commit
-	return self.tagsHelper.CreateTagMenu("", func() { self.context.SetSelectedLineIdx(0) })
+	return self.helpers.Tags.CreateTagMenu("", func() { self.context().SetSelectedLineIdx(0) })
 }
 
 func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func() error {
 	return func() error {
-		tag := self.context.GetSelected()
+		tag := self.context().GetSelected()
 		if tag == nil {
 			return nil
 		}
@@ -159,5 +132,9 @@ func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func(
 }
 
 func (self *TagsController) Context() types.Context {
-	return self.context
+	return self.context()
+}
+
+func (self *TagsController) context() *context.TagsContext {
+	return self.contexts.Tags
 }

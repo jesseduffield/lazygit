@@ -1,4 +1,4 @@
-package controllers
+package helpers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -6,12 +6,12 @@ import (
 )
 
 type BisectHelper struct {
-	c   *types.ControllerCommon
+	c   *types.HelperCommon
 	git *commands.GitCommand
 }
 
 func NewBisectHelper(
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 	git *commands.GitCommand,
 ) *BisectHelper {
 	return &BisectHelper{

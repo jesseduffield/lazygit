@@ -30,7 +30,7 @@ func (gui *Gui) handleCheckForUpdate() error {
 
 func (gui *Gui) handleStatusClick() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
-	currentBranch := gui.getCheckedOutBranch()
+	currentBranch := gui.helpers.Refs.GetCheckedOutRef()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
 		return nil
@@ -48,7 +48,7 @@ func (gui *Gui) handleStatusClick() error {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", formatWorkingTreeState(workingTreeState))
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
-			return gui.helpers.Rebase.CreateRebaseOptionsMenu()
+			return gui.helpers.MergeAndRebase.CreateRebaseOptionsMenu()
 		}
 		if cursorInSubstring(cx, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
 			return gui.handleCreateRecentReposMenu()
@@ -74,7 +74,6 @@ func formatWorkingTreeState(rebaseMode enums.RebaseMode) string {
 }
 
 func (gui *Gui) statusRenderToMain() error {
-	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
 	dashboardString := strings.Join(
 		[]string{
 			lazygitTitle(),
@@ -114,9 +113,8 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 			}
 		}
 		return gui.c.Menu(types.CreateMenuOptions{
-			Title:      gui.c.Tr.SelectConfigFile,
-			Items:      menuItems,
-			HideCancel: true,
+			Title: gui.c.Tr.SelectConfigFile,
+			Items: menuItems,
 		})
 	}
 }

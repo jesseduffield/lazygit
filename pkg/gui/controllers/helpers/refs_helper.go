@@ -1,4 +1,4 @@
-package controllers
+package helpers
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -14,26 +15,30 @@ import (
 
 type IRefsHelper interface {
 	CheckoutRef(ref string, options types.CheckoutRefOptions) error
+	GetCheckedOutRef() *models.Branch
 	CreateGitResetMenu(ref string) error
 	ResetToRef(ref string, strength string, envVars []string) error
 	NewBranch(from string, fromDescription string, suggestedBranchname string) error
 }
 
 type RefsHelper struct {
-	c        *types.ControllerCommon
+	c        *types.HelperCommon
 	git      *commands.GitCommand
 	contexts *context.ContextTree
+	model    *types.Model
 }
 
 func NewRefsHelper(
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
+	model *types.Model,
 ) *RefsHelper {
 	return &RefsHelper{
 		c:        c,
 		git:      git,
 		contexts: contexts,
+		model:    model,
 	}
 }
 
@@ -97,6 +102,14 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 
 		return self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI})
 	})
+}
+
+func (self *RefsHelper) GetCheckedOutRef() *models.Branch {
+	if len(self.model.Branches) == 0 {
+		return nil
+	}
+
+	return self.model.Branches[0]
 }
 
 func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string) error {

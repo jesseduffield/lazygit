@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -13,33 +12,17 @@ import (
 
 type BisectController struct {
 	baseController
-
-	c            *types.ControllerCommon
-	context      *context.LocalCommitsContext
-	git          *commands.GitCommand
-	bisectHelper *BisectHelper
-
-	getCommits func() []*models.Commit
+	*controllerCommon
 }
 
 var _ types.IController = &BisectController{}
 
 func NewBisectController(
-	c *types.ControllerCommon,
-	context *context.LocalCommitsContext,
-	git *commands.GitCommand,
-	bisectHelper *BisectHelper,
-
-	getCommits func() []*models.Commit,
+	common *controllerCommon,
 ) *BisectController {
 	return &BisectController{
-		baseController: baseController{},
-		c:              c,
-		context:        context,
-		git:            git,
-		bisectHelper:   bisectHelper,
-
-		getCommits: getCommits,
+		baseController:   baseController{},
+		controllerCommon: common,
 	}
 }
 
@@ -119,7 +102,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 		{
 			DisplayString: self.c.Tr.Bisect.ResetOption,
 			OnPress: func() error {
-				return self.bisectHelper.Reset()
+				return self.helpers.Bisect.Reset()
 			},
 		},
 	}
@@ -146,7 +129,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 						return self.c.Error(err)
 					}
 
-					return self.bisectHelper.PostBisectCommandRefresh()
+					return self.helpers.Bisect.PostBisectCommandRefresh()
 				},
 			},
 			{
@@ -161,7 +144,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 						return self.c.Error(err)
 					}
 
-					return self.bisectHelper.PostBisectCommandRefresh()
+					return self.helpers.Bisect.PostBisectCommandRefresh()
 				},
 			},
 		},
@@ -188,7 +171,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateShas []string) 
 				return self.c.Error(err)
 			}
 
-			return self.bisectHelper.PostBisectCommandRefresh()
+			return self.helpers.Bisect.PostBisectCommandRefresh()
 		},
 	})
 }
@@ -222,7 +205,7 @@ func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToR
 	} else {
 		selectFn()
 
-		return self.bisectHelper.PostBisectCommandRefresh()
+		return self.helpers.Bisect.PostBisectCommandRefresh()
 	}
 }
 
@@ -230,10 +213,10 @@ func (self *BisectController) selectCurrentBisectCommit() {
 	info := self.git.Bisect.GetInfo()
 	if info.GetCurrentSha() != "" {
 		// find index of commit with that sha, move cursor to that.
-		for i, commit := range self.getCommits() {
+		for i, commit := range self.model.Commits {
 			if commit.Sha == info.GetCurrentSha() {
-				self.context.SetSelectedLineIdx(i)
-				_ = self.context.HandleFocus()
+				self.context().SetSelectedLineIdx(i)
+				_ = self.context().HandleFocus()
 				break
 			}
 		}
@@ -242,7 +225,7 @@ func (self *BisectController) selectCurrentBisectCommit() {
 
 func (self *BisectController) checkSelected(callback func(*models.Commit) error) func() error {
 	return func() error {
-		commit := self.context.GetSelected()
+		commit := self.context().GetSelected()
 		if commit == nil {
 			return nil
 		}
@@ -252,5 +235,9 @@ func (self *BisectController) checkSelected(callback func(*models.Commit) error)
 }
 
 func (self *BisectController) Context() types.Context {
-	return self.context
+	return self.context()
+}
+
+func (self *BisectController) context() *context.LocalCommitsContext {
+	return self.contexts.BranchCommits
 }
