@@ -45,7 +45,7 @@ func (gui *Gui) handleCheckoutSubCommit() error {
 		return err
 	}
 
-	gui.State.Contexts.SubCommits.GetPanelState().SetSelectedLineIdx(0)
+	gui.State.Contexts.SubCommits.SetSelectedLineIdx(0)
 
 	return nil
 }
@@ -74,7 +74,7 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	// need to populate my sub commits
 	commits, err := gui.git.Loaders.Commits.GetCommits(
 		loaders.GetCommitsOptions{
-			Limit:                gui.State.LimitCommits,
+			Limit:                true,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: false,
 			RefName:              refName,
@@ -85,7 +85,7 @@ func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	}
 
 	gui.State.Model.SubCommits = commits
-	gui.State.Contexts.SubCommits.GetPanelState().SetSelectedLineIdx(0)
+	gui.State.Contexts.SubCommits.SetSelectedLineIdx(0)
 	gui.State.Contexts.SubCommits.SetParentContext(gui.currentSideListContext())
 
 	return gui.c.PushContext(gui.State.Contexts.SubCommits)
@@ -116,5 +116,5 @@ func (gui *Gui) handleCopySubCommitRange() error {
 		return nil
 	}
 
-	return gui.helpers.CherryPick.CopyRange(gui.State.Contexts.SubCommits.GetPanelState().GetSelectedLineIdx(), gui.State.Model.SubCommits, gui.State.Contexts.SubCommits)
+	return gui.helpers.CherryPick.CopyRange(gui.State.Contexts.SubCommits.GetSelectedLineIdx(), gui.State.Model.SubCommits, gui.State.Contexts.SubCommits)
 }

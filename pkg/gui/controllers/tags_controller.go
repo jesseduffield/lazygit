@@ -78,11 +78,6 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Description: self.c.Tr.LcViewResetOptions,
 			OpensMenu:   true,
 		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.withSelectedTag(self.enter),
-			Description: self.c.Tr.LcViewCommits,
-		},
 	}
 
 	return bindings
@@ -94,10 +89,6 @@ func (self *TagsController) checkout(tag *models.Tag) error {
 		return err
 	}
 	return self.c.PushContext(self.contexts.Branches)
-}
-
-func (self *TagsController) enter(tag *models.Tag) error {
-	return self.switchToSubCommitsContext(tag.Name)
 }
 
 func (self *TagsController) delete(tag *models.Tag) error {
@@ -153,7 +144,7 @@ func (self *TagsController) createResetMenu(tag *models.Tag) error {
 
 func (self *TagsController) create() error {
 	// leaving commit SHA blank so that we're just creating the tag for the current commit
-	return self.tagsHelper.CreateTagMenu("", func() { self.context.GetPanelState().SetSelectedLineIdx(0) })
+	return self.tagsHelper.CreateTagMenu("", func() { self.context.SetSelectedLineIdx(0) })
 }
 
 func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func() error {

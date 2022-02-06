@@ -61,12 +61,14 @@ func (self *LocalCommitsContext) GetSelectedItemId() string {
 
 type LocalCommitsViewModel struct {
 	*traits.ListCursor
-	getModel func() []*models.Commit
+	limitCommits bool
+	getModel     func() []*models.Commit
 }
 
 func NewLocalCommitsViewModel(getModel func() []*models.Commit) *LocalCommitsViewModel {
 	self := &LocalCommitsViewModel{
-		getModel: getModel,
+		getModel:     getModel,
+		limitCommits: true,
 	}
 
 	self.ListCursor = traits.NewListCursor(self)
@@ -84,4 +86,12 @@ func (self *LocalCommitsViewModel) GetSelected() *models.Commit {
 	}
 
 	return self.getModel()[self.GetSelectedLineIdx()]
+}
+
+func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
+	self.limitCommits = value
+}
+
+func (self *LocalCommitsViewModel) GetLimitCommits() bool {
+	return self.limitCommits
 }

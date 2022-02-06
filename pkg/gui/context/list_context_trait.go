@@ -20,11 +20,6 @@ func (self *ListContextTrait) GetList() types.IList {
 	return self.list
 }
 
-// TODO: remove
-func (self *ListContextTrait) GetPanelState() types.IListPanelState {
-	return self.list
-}
-
 func (self *ListContextTrait) GetViewTrait() types.IViewTrait {
 	return self.viewTrait
 }

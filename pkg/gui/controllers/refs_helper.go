@@ -20,23 +20,20 @@ type IRefsHelper interface {
 }
 
 type RefsHelper struct {
-	c            *types.ControllerCommon
-	git          *commands.GitCommand
-	contexts     *context.ContextTree
-	limitCommits func()
+	c        *types.ControllerCommon
+	git      *commands.GitCommand
+	contexts *context.ContextTree
 }
 
 func NewRefsHelper(
 	c *types.ControllerCommon,
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
-	limitCommits func(),
 ) *RefsHelper {
 	return &RefsHelper{
-		c:            c,
-		git:          git,
-		contexts:     contexts,
-		limitCommits: limitCommits,
+		c:        c,
+		git:      git,
+		contexts: contexts,
 	}
 }
 
@@ -51,11 +48,11 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
-		self.contexts.Branches.GetPanelState().SetSelectedLineIdx(0)
-		self.contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
-		self.contexts.ReflogCommits.GetPanelState().SetSelectedLineIdx(0)
+		self.contexts.Branches.SetSelectedLineIdx(0)
+		self.contexts.ReflogCommits.SetSelectedLineIdx(0)
+		self.contexts.BranchCommits.SetSelectedLineIdx(0)
 		// loading a heap of commits is slow so we limit them whenever doing a reset
-		self.limitCommits()
+		self.contexts.BranchCommits.SetLimitCommits(true)
 	}
 
 	return self.c.WithWaitingStatus(waitingStatus, func() error {
@@ -107,10 +104,10 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 		return self.c.Error(err)
 	}
 
-	self.contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
-	self.contexts.ReflogCommits.GetPanelState().SetSelectedLineIdx(0)
+	self.contexts.BranchCommits.SetSelectedLineIdx(0)
+	self.contexts.ReflogCommits.SetSelectedLineIdx(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
-	self.limitCommits()
+	self.contexts.BranchCommits.SetLimitCommits(true)
 
 	if err := self.c.PushContext(self.contexts.BranchCommits); err != nil {
 		return err
@@ -169,8 +166,8 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 				}
 			}
 
-			self.contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
-			self.contexts.Branches.GetPanelState().SetSelectedLineIdx(0)
+			self.contexts.BranchCommits.SetSelectedLineIdx(0)
+			self.contexts.Branches.SetSelectedLineIdx(0)
 
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		},
