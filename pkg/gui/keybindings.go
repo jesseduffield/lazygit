@@ -479,13 +479,6 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 		},
 		{
 			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Universal.GoInto),
-			Handler:     gui.handleEnterBranch,
-			Description: gui.c.Tr.LcViewCommits,
-		},
-		{
-			ViewName:    "branches",
 			Contexts:    []string{string(context.REMOTE_BRANCHES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.Return),
 			Handler:     gui.handleRemoteBranchesEscape,
@@ -498,13 +491,6 @@ func (gui *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBin
 			Handler:     gui.handleCreateResetToRemoteBranchMenu,
 			Description: gui.c.Tr.LcViewResetOptions,
 			OpensMenu:   true,
-		},
-		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.REMOTE_BRANCHES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Universal.GoInto),
-			Handler:     gui.handleEnterRemoteBranch,
-			Description: gui.c.Tr.LcViewCommits,
 		},
 		{
 			ViewName:    "commits",

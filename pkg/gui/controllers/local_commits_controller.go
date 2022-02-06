@@ -38,8 +38,6 @@ type LocalCommitsController struct {
 	pullFiles                  PullFilesFn
 	getHostingServiceMgr       GetHostingServiceMgrFn
 	switchToCommitFilesContext SwitchToCommitFilesContextFn
-	getLimitCommits            func() bool
-	setLimitCommits            func(bool)
 	getShowWholeGitGraph       func() bool
 	setShowWholeGitGraph       func(bool)
 }
@@ -60,8 +58,6 @@ func NewLocalCommitsController(
 	pullFiles PullFilesFn,
 	getHostingServiceMgr GetHostingServiceMgrFn,
 	switchToCommitFilesContext SwitchToCommitFilesContextFn,
-	getLimitCommits func() bool,
-	setLimitCommits func(bool),
 	getShowWholeGitGraph func() bool,
 	setShowWholeGitGraph func(bool),
 ) *LocalCommitsController {
@@ -80,8 +76,6 @@ func NewLocalCommitsController(
 		pullFiles:                  pullFiles,
 		getHostingServiceMgr:       getHostingServiceMgr,
 		switchToCommitFilesContext: switchToCommitFilesContext,
-		getLimitCommits:            getLimitCommits,
-		setLimitCommits:            setLimitCommits,
 		getShowWholeGitGraph:       getShowWholeGitGraph,
 		setShowWholeGitGraph:       setShowWholeGitGraph,
 	}
@@ -466,7 +460,7 @@ func (self *LocalCommitsController) handleCommitMoveDown() error {
 }
 
 func (self *LocalCommitsController) handleCommitMoveUp() error {
-	index := self.context.GetPanelState().GetSelectedLineIdx()
+	index := self.context.GetSelectedLineIdx()
 	if index == 0 {
 		return nil
 	}
@@ -641,8 +635,8 @@ func (self *LocalCommitsController) handleCreateCommitResetMenu(commit *models.C
 
 func (self *LocalCommitsController) openSearch() error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
-	if self.getLimitCommits() {
-		self.setLimitCommits(false)
+	if self.context.GetLimitCommits() {
+		self.context.SetLimitCommits(false)
 		if err := self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS}}); err != nil {
 			return err
 		}
@@ -655,8 +649,8 @@ func (self *LocalCommitsController) openSearch() error {
 
 func (self *LocalCommitsController) gotoBottom() error {
 	// we usually lazyload these commits but now that we're jumping to the bottom we need to load them now
-	if self.getLimitCommits() {
-		self.setLimitCommits(false)
+	if self.context.GetLimitCommits() {
+		self.context.SetLimitCommits(false)
 		if err := self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}}); err != nil {
 			return err
 		}
@@ -693,7 +687,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 					self.setShowWholeGitGraph(!self.getShowWholeGitGraph())
 
 					if self.getShowWholeGitGraph() {
-						self.setLimitCommits(false)
+						self.context.SetLimitCommits(false)
 					}
 
 					return self.c.WithWaitingStatus(self.c.Tr.LcLoadingCommits, func() error {

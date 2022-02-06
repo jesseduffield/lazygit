@@ -15,8 +15,9 @@ func (gui *Gui) getSelectedLocalCommit() *models.Commit {
 }
 
 func (gui *Gui) onCommitFocus() error {
-	if gui.State.Contexts.BranchCommits.GetSelectedLineIdx() > COMMIT_THRESHOLD && gui.State.LimitCommits {
-		gui.State.LimitCommits = false
+	context := gui.State.Contexts.BranchCommits
+	if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
+		context.SetLimitCommits(false)
 		go utils.Safe(func() {
 			if err := gui.refreshCommitsWithLimit(); err != nil {
 				_ = gui.c.Error(err)

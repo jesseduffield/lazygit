@@ -175,7 +175,7 @@ type PrevLayout struct {
 
 type GuiRepoState struct {
 	Model *types.Model
-	Modes Modes
+	Modes *types.Modes
 
 	// Suggestions will sometimes appear when typing into a prompt
 	Suggestions []*types.Suggestion
@@ -297,12 +297,6 @@ const (
 	COMPLETE
 )
 
-type Modes struct {
-	Filtering     filtering.Filtering
-	CherryPicking *cherrypicking.CherryPicking
-	Diffing       diffing.Diffing
-}
-
 // if you add a new mutex here be sure to instantiate it. We're using pointers to
 // mutexes so that we can pass the mutexes to controllers.
 type guiMutexes struct {
@@ -397,9 +391,8 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 				UserVerticalScrolling: false,
 			},
 		},
-		LimitCommits: true,
-		Ptmx:         nil,
-		Modes: Modes{
+		Ptmx: nil,
+		Modes: &types.Modes{
 			Filtering:     filtering.New(filterPath),
 			CherryPicking: cherrypicking.New(),
 			Diffing:       diffing.New(),
@@ -517,7 +510,6 @@ func (gui *Gui) resetControllers() {
 			controllerCommon,
 			gui.git,
 			gui.State.Contexts,
-			func() { gui.State.LimitCommits = true },
 		),
 		Bisect:      controllers.NewBisectHelper(controllerCommon, gui.git),
 		Suggestions: controllers.NewSuggestionsHelper(controllerCommon, model, gui.refreshSuggestions),
@@ -608,8 +600,6 @@ func (gui *Gui) resetControllers() {
 			syncController.HandlePull,
 			gui.getHostingServiceMgr,
 			gui.SwitchToCommitFilesContext,
-			func() bool { return gui.State.LimitCommits },
-			func(value bool) { gui.State.LimitCommits = value },
 			func() bool { return gui.ShowWholeGitGraph },
 			func(value bool) { gui.ShowWholeGitGraph = value },
 		),
@@ -632,6 +622,22 @@ func (gui *Gui) resetControllers() {
 			func() []*models.Commit { return gui.State.Model.FilteredReflogCommits },
 		),
 		Sync: syncController,
+	}
+
+	switchToSubCommitsControllerFactory := controllers.NewSubCommitsSwitchControllerFactory(
+		controllerCommon,
+		gui.State.Contexts.SubCommits,
+		gui.git,
+		gui.State.Modes,
+		func(commits []*models.Commit) { gui.State.Model.SubCommits = commits },
+	)
+
+	for _, context := range []controllers.ContextWithRefName{
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Tags,
+	} {
+		controllers.AttachControllers(context, switchToSubCommitsControllerFactory.Create(context))
 	}
 
 	controllers.AttachControllers(gui.State.Contexts.Files, gui.Controllers.Files)

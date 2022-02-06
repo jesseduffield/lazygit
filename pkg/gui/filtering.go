@@ -51,6 +51,6 @@ func (gui *Gui) setFiltering(path string) error {
 	}
 
 	return gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() {
-		gui.State.Contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
+		gui.State.Contexts.BranchCommits.SetSelectedLineIdx(0)
 	}})
 }

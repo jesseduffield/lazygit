@@ -84,3 +84,12 @@ func (self *TagsViewModel) GetSelected() *models.Tag {
 
 	return self.getModel()[self.GetSelectedLineIdx()]
 }
+
+func (self *TagsViewModel) GetSelectedRefName() string {
+	item := self.GetSelected()
+	if item == nil {
+		return ""
+	}
+
+	return item.RefName()
+}

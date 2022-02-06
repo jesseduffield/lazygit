@@ -81,7 +81,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	if len(remote.Branches) == 0 {
 		newSelectedLine = -1
 	}
-	self.contexts.RemoteBranches.GetPanelState().SetSelectedLineIdx(newSelectedLine)
+	self.contexts.RemoteBranches.SetSelectedLineIdx(newSelectedLine)
 
 	return self.c.PushContext(self.contexts.RemoteBranches)
 }

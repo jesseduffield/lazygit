@@ -88,5 +88,5 @@ func (gui *Gui) handleCopyReflogCommitRange() error {
 		return nil
 	}
 
-	return gui.helpers.CherryPick.CopyRange(gui.State.Contexts.ReflogCommits.GetPanelState().GetSelectedLineIdx(), gui.State.Model.FilteredReflogCommits, gui.State.Contexts.ReflogCommits)
+	return gui.helpers.CherryPick.CopyRange(gui.State.Contexts.ReflogCommits.GetSelectedLineIdx(), gui.State.Model.FilteredReflogCommits, gui.State.Contexts.ReflogCommits)
 }

@@ -84,3 +84,12 @@ func (self *BranchesViewModel) GetSelected() *models.Branch {
 
 	return self.getModel()[self.GetSelectedLineIdx()]
 }
+
+func (self *BranchesViewModel) GetSelectedRefName() string {
+	item := self.GetSelected()
+	if item == nil {
+		return ""
+	}
+
+	return item.RefName()
+}

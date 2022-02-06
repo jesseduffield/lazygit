@@ -59,7 +59,6 @@ type IListContext interface {
 	OnSearchSelect(selectedLineIdx int) error
 	FocusLine()
 
-	GetPanelState() IListPanelState
 	GetViewTrait() IViewTrait
 }
 
