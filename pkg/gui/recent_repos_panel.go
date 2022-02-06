@@ -62,7 +62,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 		return err
 	}
 
-	if err := commands.VerifyInGitRepo(gui.OSCommand); err != nil {
+	if err := commands.VerifyInGitRepo(gui.os); err != nil {
 		if err := os.Chdir(originalPath); err != nil {
 			return err
 		}

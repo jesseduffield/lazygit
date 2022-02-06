@@ -219,7 +219,7 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	}
 
 	gui.c.LogAction(gui.c.Tr.Actions.CopyToClipboard)
-	if err := gui.OSCommand.CopyToClipboard(itemId); err != nil {
+	if err := gui.os.CopyToClipboard(itemId); err != nil {
 		return gui.c.Error(err)
 	}
 

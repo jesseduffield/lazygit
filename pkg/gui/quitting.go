@@ -25,7 +25,7 @@ func (gui *Gui) recordDirectory(dirName string) error {
 	if newDirFilePath == "" {
 		return nil
 	}
-	return gui.OSCommand.CreateFileWithContent(newDirFilePath, dirName)
+	return gui.os.CreateFileWithContent(newDirFilePath, dirName)
 }
 
 func (gui *Gui) handleQuitWithoutChangingDirectory() error {
