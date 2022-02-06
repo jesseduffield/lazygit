@@ -110,13 +110,12 @@ func newKeybinding(viewname string, contexts []string, key Key, ch rune, mod Mod
 	return kb
 }
 
-func eventMatchesKey(ev *GocuiEvent, key interface{}) bool {
-	// assuming ModNone for now
-	if Modifier(ev.Mod) != ModNone {
+func eventMatchesKey(ev *GocuiEvent, key KeyMod) bool {
+	if Modifier(ev.Mod) != key.Modifier {
 		return false
 	}
 
-	k, ch, err := getKey(key)
+	k, ch, err := getKey(key.Key)
 	if err != nil {
 		return false
 	}

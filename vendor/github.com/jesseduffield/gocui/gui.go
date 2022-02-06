@@ -156,9 +156,9 @@ type Gui struct {
 
 	OnSearchEscape func() error
 	// these keys must either be of type Key of rune
-	SearchEscapeKey    interface{}
-	NextSearchMatchKey interface{}
-	PrevSearchMatchKey interface{}
+	SearchEscapeKey    KeyMod
+	NextSearchMatchKey KeyMod
+	PrevSearchMatchKey KeyMod
 
 	screen         tcell.Screen
 	suspendedMutex sync.Mutex
@@ -215,9 +215,9 @@ func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless b
 	g.SupportOverlaps = supportOverlaps
 
 	// default keys for when searching strings in a view
-	g.SearchEscapeKey = KeyEsc
-	g.NextSearchMatchKey = 'n'
-	g.PrevSearchMatchKey = 'N'
+	g.SearchEscapeKey = KeyMod{Key: KeyEsc, Modifier: ModNone}
+	g.NextSearchMatchKey = KeyMod{Key: 'n', Modifier: ModNone}
+	g.PrevSearchMatchKey = KeyMod{Key: 'N', Modifier: ModNone}
 
 	g.PlayMode = playMode
 
@@ -1108,7 +1108,7 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error)
 	var matchingParentViewKb *keybinding
 
 	// if we're searching, and we've hit n/N/Esc, we ignore the default keybinding
-	if v != nil && v.IsSearching() && Modifier(ev.Mod) == ModNone {
+	if v != nil && v.IsSearching() {
 		if eventMatchesKey(ev, g.NextSearchMatchKey) {
 			return true, v.gotoNextMatch()
 		} else if eventMatchesKey(ev, g.PrevSearchMatchKey) {

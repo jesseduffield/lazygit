@@ -544,9 +544,9 @@ func (gui *Gui) Run() error {
 		return nil
 	}
 	userConfig := gui.UserConfig
-	g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return).Key
-	g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch).Key
-	g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch).Key
+	g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
+	g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
+	g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
 
 	g.ShowListFooter = userConfig.Gui.ShowListFooter
 
