@@ -1,4 +1,4 @@
-package controllers
+package helpers
 
 import (
 	"fmt"
@@ -30,7 +30,7 @@ type ISuggestionsHelper interface {
 }
 
 type SuggestionsHelper struct {
-	c *types.ControllerCommon
+	c *types.HelperCommon
 
 	model                *types.Model
 	refreshSuggestionsFn func()
@@ -39,7 +39,7 @@ type SuggestionsHelper struct {
 var _ ISuggestionsHelper = &SuggestionsHelper{}
 
 func NewSuggestionsHelper(
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 	model *types.Model,
 	refreshSuggestionsFn func(),
 ) *SuggestionsHelper {

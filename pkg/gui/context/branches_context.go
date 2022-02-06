@@ -23,7 +23,7 @@ func NewBranchesContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 ) *BranchesContext {
 	viewModel := NewBranchesViewModel(getModel)
 

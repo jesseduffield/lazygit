@@ -23,7 +23,7 @@ func NewStashContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 ) *StashContext {
 	viewModel := NewStashViewModel(getModel)
 

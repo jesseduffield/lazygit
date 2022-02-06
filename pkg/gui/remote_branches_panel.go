@@ -34,7 +34,7 @@ func (gui *Gui) handleRemoteBranchesEscape() error {
 
 func (gui *Gui) handleMergeRemoteBranch() error {
 	selectedBranchName := gui.State.Contexts.RemoteBranches.GetSelected().FullName()
-	return gui.mergeBranchIntoCheckedOutBranch(selectedBranchName)
+	return gui.helpers.MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName)
 }
 
 func (gui *Gui) handleDeleteRemoteBranch() error {
@@ -63,12 +63,12 @@ func (gui *Gui) handleDeleteRemoteBranch() error {
 
 func (gui *Gui) handleRebaseOntoRemoteBranch() error {
 	selectedBranchName := gui.State.Contexts.RemoteBranches.GetSelected().FullName()
-	return gui.handleRebaseOntoBranch(selectedBranchName)
+	return gui.helpers.MergeAndRebase.RebaseOntoRef(selectedBranchName)
 }
 
 func (gui *Gui) handleSetBranchUpstream() error {
 	selectedBranch := gui.State.Contexts.RemoteBranches.GetSelected()
-	checkedOutBranch := gui.getCheckedOutBranch()
+	checkedOutBranch := gui.helpers.Refs.GetCheckedOutRef()
 
 	message := utils.ResolvePlaceholderString(
 		gui.c.Tr.SetUpstreamMessage,
@@ -99,15 +99,6 @@ func (gui *Gui) handleCreateResetToRemoteBranchMenu() error {
 	}
 
 	return gui.helpers.Refs.CreateGitResetMenu(selectedBranch.FullName())
-}
-
-func (gui *Gui) handleEnterRemoteBranch() error {
-	selectedBranch := gui.State.Contexts.RemoteBranches.GetSelected()
-	if selectedBranch == nil {
-		return nil
-	}
-
-	return gui.switchToSubCommitsContext(selectedBranch.RefName())
 }
 
 func (gui *Gui) handleNewBranchOffRemoteBranch() error {

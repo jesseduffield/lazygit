@@ -189,19 +189,6 @@ func (gui *Gui) handleMouseDownMain() error {
 	return nil
 }
 
-func (gui *Gui) fetch() (err error) {
-	gui.c.LogAction("Fetch")
-	err = gui.git.Sync.Fetch(git_commands.FetchOptions{})
-
-	if err != nil && strings.Contains(err.Error(), "exit status 128") {
-		_ = gui.c.ErrorMsg(gui.c.Tr.PassUnameWrong)
-	}
-
-	_ = gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
-
-	return err
-}
-
 func (gui *Gui) backgroundFetch() (err error) {
 	err = gui.git.Sync.Fetch(git_commands.FetchOptions{Background: true})
 

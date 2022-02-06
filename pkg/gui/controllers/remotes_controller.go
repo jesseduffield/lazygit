@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -10,30 +9,22 @@ import (
 
 type RemotesController struct {
 	baseController
-
-	c       *types.ControllerCommon
+	*controllerCommon
 	context *context.RemotesContext
-	git     *commands.GitCommand
 
 	setRemoteBranches func([]*models.RemoteBranch)
-	contexts          *context.ContextTree
 }
 
 var _ types.IController = &RemotesController{}
 
 func NewRemotesController(
-	c *types.ControllerCommon,
-	context *context.RemotesContext,
-	git *commands.GitCommand,
-	contexts *context.ContextTree,
+	common *controllerCommon,
 	setRemoteBranches func([]*models.RemoteBranch),
 ) *RemotesController {
 	return &RemotesController{
 		baseController:    baseController{},
-		c:                 c,
-		git:               git,
-		contexts:          contexts,
-		context:           context,
+		controllerCommon:  common,
+		context:           common.contexts.Remotes,
 		setRemoteBranches: setRemoteBranches,
 	}
 }

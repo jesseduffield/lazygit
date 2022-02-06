@@ -23,7 +23,7 @@ func NewRemoteBranchesContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 ) *RemoteBranchesContext {
 	viewModel := NewRemoteBranchesViewModel(getModel)
 

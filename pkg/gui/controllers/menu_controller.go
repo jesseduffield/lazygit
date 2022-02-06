@@ -7,22 +7,17 @@ import (
 
 type MenuController struct {
 	baseController
-
-	c       *types.ControllerCommon
-	context *context.MenuContext
+	*controllerCommon
 }
 
 var _ types.IController = &MenuController{}
 
 func NewMenuController(
-	c *types.ControllerCommon,
-	context *context.MenuContext,
+	common *controllerCommon,
 ) *MenuController {
 	return &MenuController{
-		baseController: baseController{},
-
-		c:       c,
-		context: context,
+		baseController:   baseController{},
+		controllerCommon: common,
 	}
 }
 
@@ -50,7 +45,7 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 }
 
 func (self *MenuController) press() error {
-	selectedItem := self.context.GetSelected()
+	selectedItem := self.context().GetSelected()
 
 	if err := self.c.PopContext(); err != nil {
 		return err
@@ -64,5 +59,9 @@ func (self *MenuController) press() error {
 }
 
 func (self *MenuController) Context() types.Context {
-	return self.context
+	return self.context()
+}
+
+func (self *MenuController) context() *context.MenuContext {
+	return self.contexts.Menu
 }

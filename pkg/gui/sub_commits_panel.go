@@ -63,10 +63,9 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 	}
 
 	return gui.SwitchToCommitFilesContext(controllers.SwitchToCommitFilesContextOpts{
-		RefName:    commit.Sha,
-		CanRebase:  false,
-		Context:    gui.State.Contexts.SubCommits,
-		WindowName: "branches",
+		RefName:   commit.Sha,
+		CanRebase: false,
+		Context:   gui.State.Contexts.SubCommits,
 	})
 }
 

@@ -65,10 +65,9 @@ func (gui *Gui) handleViewReflogCommitFiles() error {
 	}
 
 	return gui.SwitchToCommitFilesContext(controllers.SwitchToCommitFilesContextOpts{
-		RefName:    commit.Sha,
-		CanRebase:  false,
-		Context:    gui.State.Contexts.ReflogCommits,
-		WindowName: "commits",
+		RefName:   commit.Sha,
+		CanRebase: false,
+		Context:   gui.State.Contexts.ReflogCommits,
 	})
 }
 

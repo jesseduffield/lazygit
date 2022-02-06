@@ -23,7 +23,7 @@ func NewSubCommitsContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 ) *SubCommitsContext {
 	viewModel := NewSubCommitsViewModel(getModel)
 

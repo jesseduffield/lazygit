@@ -1,33 +1,38 @@
-package controllers
+package helpers
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type RebaseHelper struct {
-	c                              *types.ControllerCommon
+type MergeAndRebaseHelper struct {
+	c                              *types.HelperCommon
 	contexts                       *context.ContextTree
 	git                            *commands.GitCommand
 	takeOverMergeConflictScrolling func()
+	refsHelper                     *RefsHelper
 }
 
-func NewRebaseHelper(
-	c *types.ControllerCommon,
+func NewMergeAndRebaseHelper(
+	c *types.HelperCommon,
 	contexts *context.ContextTree,
 	git *commands.GitCommand,
 	takeOverMergeConflictScrolling func(),
-) *RebaseHelper {
-	return &RebaseHelper{
+	refsHelper *RefsHelper,
+) *MergeAndRebaseHelper {
+	return &MergeAndRebaseHelper{
 		c:                              c,
 		contexts:                       contexts,
 		git:                            git,
 		takeOverMergeConflictScrolling: takeOverMergeConflictScrolling,
+		refsHelper:                     refsHelper,
 	}
 }
 
@@ -39,7 +44,7 @@ const (
 	REBASE_OPTION_SKIP     string = "skip"
 )
 
-func (self *RebaseHelper) CreateRebaseOptionsMenu() error {
+func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 	options := []string{REBASE_OPTION_CONTINUE, REBASE_OPTION_ABORT}
 
 	if self.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
@@ -68,7 +73,7 @@ func (self *RebaseHelper) CreateRebaseOptionsMenu() error {
 	return self.c.Menu(types.CreateMenuOptions{Title: title, Items: menuItems})
 }
 
-func (self *RebaseHelper) genericMergeCommand(command string) error {
+func (self *MergeAndRebaseHelper) genericMergeCommand(command string) error {
 	status := self.git.Status.WorkingTreeState()
 
 	if status != enums.REBASE_MODE_MERGING && status != enums.REBASE_MODE_REBASING {
@@ -120,7 +125,7 @@ func isMergeConflictErr(errStr string) bool {
 	return false
 }
 
-func (self *RebaseHelper) CheckMergeOrRebase(result error) error {
+func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
 	if err := self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
 		return err
 	}
@@ -154,7 +159,7 @@ func (self *RebaseHelper) CheckMergeOrRebase(result error) error {
 	}
 }
 
-func (self *RebaseHelper) AbortMergeOrRebaseWithConfirm() error {
+func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 	// prompt user to confirm that they want to abort, then do it
 	mode := self.workingTreeStateNoun()
 	return self.c.Ask(types.AskOpts{
@@ -166,7 +171,7 @@ func (self *RebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 	})
 }
 
-func (self *RebaseHelper) workingTreeStateNoun() string {
+func (self *MergeAndRebaseHelper) workingTreeStateNoun() string {
 	workingTreeState := self.git.Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_NONE:
@@ -179,7 +184,7 @@ func (self *RebaseHelper) workingTreeStateNoun() string {
 }
 
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
-func (self *RebaseHelper) PromptToContinueRebase() error {
+func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 	self.takeOverMergeConflictScrolling()
 
 	return self.c.Ask(types.AskOpts{
@@ -187,6 +192,57 @@ func (self *RebaseHelper) PromptToContinueRebase() error {
 		Prompt: self.c.Tr.ConflictsResolved,
 		HandleConfirm: func() error {
 			return self.genericMergeCommand(REBASE_OPTION_CONTINUE)
+		},
+	})
+}
+
+func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
+	checkedOutBranch := self.refsHelper.GetCheckedOutRef().Name
+	if ref == checkedOutBranch {
+		return self.c.ErrorMsg(self.c.Tr.CantRebaseOntoSelf)
+	}
+	prompt := utils.ResolvePlaceholderString(
+		self.c.Tr.ConfirmRebase,
+		map[string]string{
+			"checkedOutBranch": checkedOutBranch,
+			"selectedBranch":   ref,
+		},
+	)
+
+	return self.c.Ask(types.AskOpts{
+		Title:  self.c.Tr.RebasingTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
+			err := self.git.Rebase.RebaseBranch(ref)
+			return self.CheckMergeOrRebase(err)
+		},
+	})
+}
+
+func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) error {
+	if self.git.Branch.IsHeadDetached() {
+		return self.c.ErrorMsg("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
+	}
+	checkedOutBranchName := self.refsHelper.GetCheckedOutRef().Name
+	if checkedOutBranchName == refName {
+		return self.c.ErrorMsg(self.c.Tr.CantMergeBranchIntoItself)
+	}
+	prompt := utils.ResolvePlaceholderString(
+		self.c.Tr.ConfirmMerge,
+		map[string]string{
+			"checkedOutBranch": checkedOutBranchName,
+			"selectedBranch":   refName,
+		},
+	)
+
+	return self.c.Ask(types.AskOpts{
+		Title:  self.c.Tr.MergingTitle,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			self.c.LogAction(self.c.Tr.Actions.Merge)
+			err := self.git.Branch.Merge(refName, git_commands.MergeOpts{})
+			return self.CheckMergeOrRebase(err)
 		},
 	})
 }

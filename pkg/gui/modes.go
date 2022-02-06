@@ -73,7 +73,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 					formatWorkingTreeState(workingTreeState), style.FgYellow,
 				)
 			},
-			reset: gui.helpers.Rebase.AbortMergeOrRebaseWithConfirm,
+			reset: gui.helpers.MergeAndRebase.AbortMergeOrRebaseWithConfirm,
 		},
 		{
 			isActive: func() bool {

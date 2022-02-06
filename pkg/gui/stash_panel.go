@@ -37,8 +37,6 @@ func (gui *Gui) handleStashApply() error {
 		return nil
 	}
 
-	skipStashWarning := gui.c.UserConfig.Gui.SkipStashWarning
-
 	apply := func() error {
 		gui.c.LogAction(gui.c.Tr.Actions.Stash)
 		err := gui.git.Stash.Apply(stashEntry.Index)
@@ -49,7 +47,7 @@ func (gui *Gui) handleStashApply() error {
 		return nil
 	}
 
-	if skipStashWarning {
+	if gui.c.UserConfig.Gui.SkipStashWarning {
 		return apply()
 	}
 
@@ -68,8 +66,6 @@ func (gui *Gui) handleStashPop() error {
 		return nil
 	}
 
-	skipStashWarning := gui.c.UserConfig.Gui.SkipStashWarning
-
 	pop := func() error {
 		gui.c.LogAction(gui.c.Tr.Actions.Stash)
 		err := gui.git.Stash.Pop(stashEntry.Index)
@@ -80,7 +76,7 @@ func (gui *Gui) handleStashPop() error {
 		return nil
 	}
 
-	if skipStashWarning {
+	if gui.c.UserConfig.Gui.SkipStashWarning {
 		return pop()
 	}
 
@@ -125,10 +121,9 @@ func (gui *Gui) handleViewStashFiles() error {
 	}
 
 	return gui.SwitchToCommitFilesContext(controllers.SwitchToCommitFilesContextOpts{
-		RefName:    stashEntry.RefName(),
-		CanRebase:  false,
-		Context:    gui.State.Contexts.Stash,
-		WindowName: "stash",
+		RefName:   stashEntry.RefName(),
+		CanRebase: false,
+		Context:   gui.State.Contexts.Stash,
 	})
 }
 

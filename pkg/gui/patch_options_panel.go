@@ -102,7 +102,7 @@ func (gui *Gui) handleDeletePatchFromCommit() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.c.LogAction(gui.c.Tr.Actions.RemovePatchFromCommit)
 		err := gui.git.Patch.DeletePatchesFromCommit(gui.State.Model.Commits, commitIndex)
-		return gui.helpers.Rebase.CheckMergeOrRebase(err)
+		return gui.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
 
@@ -119,7 +119,7 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.c.LogAction(gui.c.Tr.Actions.MovePatchToSelectedCommit)
 		err := gui.git.Patch.MovePatchToSelectedCommit(gui.State.Model.Commits, commitIndex, gui.State.Contexts.BranchCommits.GetSelectedLineIdx())
-		return gui.helpers.Rebase.CheckMergeOrRebase(err)
+		return gui.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
 
@@ -137,7 +137,7 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 			commitIndex := gui.getPatchCommitIndex()
 			gui.c.LogAction(gui.c.Tr.Actions.MovePatchIntoIndex)
 			err := gui.git.Patch.MovePatchIntoIndex(gui.State.Model.Commits, commitIndex, stash)
-			return gui.helpers.Rebase.CheckMergeOrRebase(err)
+			return gui.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 		})
 	}
 
@@ -167,7 +167,7 @@ func (gui *Gui) handlePullPatchIntoNewCommit() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.c.LogAction(gui.c.Tr.Actions.MovePatchIntoNewCommit)
 		err := gui.git.Patch.PullPatchIntoNewCommit(gui.State.Model.Commits, commitIndex)
-		return gui.helpers.Rebase.CheckMergeOrRebase(err)
+		return gui.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
 

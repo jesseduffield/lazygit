@@ -23,7 +23,7 @@ func NewSubmodulesContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 ) *SubmodulesContext {
 	viewModel := NewSubmodulesViewModel(getModel)
 

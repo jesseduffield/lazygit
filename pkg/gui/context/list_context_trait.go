@@ -10,7 +10,7 @@ import (
 type ListContextTrait struct {
 	types.Context
 
-	c                 *types.ControllerCommon
+	c                 *types.HelperCommon
 	list              types.IList
 	viewTrait         *ViewTrait
 	getDisplayStrings func(startIdx int, length int) [][]string

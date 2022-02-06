@@ -20,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
@@ -65,17 +66,6 @@ func NewContextManager(initialContext types.Context) ContextManager {
 		ContextStack: []types.Context{initialContext},
 		RWMutex:      sync.RWMutex{},
 	}
-}
-
-type Helpers struct {
-	Refs        *controllers.RefsHelper
-	Bisect      *controllers.BisectHelper
-	Suggestions *controllers.SuggestionsHelper
-	Files       *controllers.FilesHelper
-	WorkingTree *controllers.WorkingTreeHelper
-	Tags        *controllers.TagsHelper
-	Rebase      *controllers.RebaseHelper
-	CherryPick  *controllers.CherryPickHelper
 }
 
 type Repo string
@@ -144,9 +134,6 @@ type Gui struct {
 	// flag as to whether or not the diff view should ignore whitespace
 	IgnoreWhitespaceInDiffView bool
 
-	// if this is true, we'll load our commits using `git log --all`
-	ShowWholeGitGraph bool
-
 	// we use this to decide whether we'll return to the original directory that
 	// lazygit was opened in, or if we'll retain the one we're currently in.
 	RetainOriginalDir bool
@@ -161,8 +148,8 @@ type Gui struct {
 	// process
 	InitialDir string
 
-	c       *types.ControllerCommon
-	helpers *Helpers
+	c       *types.HelperCommon
+	helpers *helpers.Helpers
 }
 
 // we keep track of some stuff from one render to the next to see if certain
@@ -488,11 +475,11 @@ func NewGui(
 	)
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
-	controllerCommon := &types.ControllerCommon{IGuiCommon: guiCommon, Common: cmn}
+	helperCommon := &types.HelperCommon{IGuiCommon: guiCommon, Common: cmn}
 
 	// storing this stuff on the gui for now to ease refactoring
 	// TODO: reset these controllers upon changing repos due to state changing
-	gui.c = controllerCommon
+	gui.c = helperCommon
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
 	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
@@ -503,21 +490,23 @@ func NewGui(
 func (gui *Gui) resetControllers() {
 	controllerCommon := gui.c
 	osCommand := gui.os
-	rebaseHelper := controllers.NewRebaseHelper(controllerCommon, gui.State.Contexts, gui.git, gui.takeOverMergeConflictScrolling)
 	model := gui.State.Model
-	gui.helpers = &Helpers{
-		Refs: controllers.NewRefsHelper(
-			controllerCommon,
-			gui.git,
-			gui.State.Contexts,
-		),
-		Bisect:      controllers.NewBisectHelper(controllerCommon, gui.git),
-		Suggestions: controllers.NewSuggestionsHelper(controllerCommon, model, gui.refreshSuggestions),
-		Files:       controllers.NewFilesHelper(controllerCommon, gui.git, osCommand),
-		WorkingTree: controllers.NewWorkingTreeHelper(model),
-		Tags:        controllers.NewTagsHelper(controllerCommon, gui.git),
-		Rebase:      rebaseHelper,
-		CherryPick: controllers.NewCherryPickHelper(
+	refsHelper := helpers.NewRefsHelper(
+		controllerCommon,
+		gui.git,
+		gui.State.Contexts,
+		model,
+	)
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(controllerCommon, gui.State.Contexts, gui.git, gui.takeOverMergeConflictScrolling, refsHelper)
+	gui.helpers = &helpers.Helpers{
+		Refs:           refsHelper,
+		Bisect:         helpers.NewBisectHelper(controllerCommon, gui.git),
+		Suggestions:    helpers.NewSuggestionsHelper(controllerCommon, model, gui.refreshSuggestions),
+		Files:          helpers.NewFilesHelper(controllerCommon, gui.git, osCommand),
+		WorkingTree:    helpers.NewWorkingTreeHelper(model),
+		Tags:           helpers.NewTagsHelper(controllerCommon, gui.git),
+		MergeAndRebase: rebaseHelper,
+		CherryPick: helpers.NewCherryPickHelper(
 			controllerCommon,
 			gui.git,
 			gui.State.Contexts,
@@ -526,109 +515,58 @@ func (gui *Gui) resetControllers() {
 		),
 	}
 
-	syncController := controllers.NewSyncController(
+	common := controllers.NewControllerCommon(
 		controllerCommon,
+		osCommand,
 		gui.git,
-		gui.getCheckedOutBranch,
-		gui.helpers.Suggestions,
+		gui.helpers,
+		model,
+		gui.State.Contexts,
+		gui.State.Modes,
+	)
+
+	syncController := controllers.NewSyncController(
+		common,
 		gui.getSuggestedRemote,
-		gui.helpers.Rebase.CheckMergeOrRebase,
 	)
 
 	submodulesController := controllers.NewSubmodulesController(
-		controllerCommon,
-		gui.State.Contexts.Submodules,
-		gui.git,
+		common,
 		gui.enterSubmodule,
 	)
 
-	bisectController := controllers.NewBisectController(
-		controllerCommon,
-		gui.State.Contexts.BranchCommits,
-		gui.git,
-		gui.helpers.Bisect,
-		func() []*models.Commit { return gui.State.Model.Commits },
-	)
+	bisectController := controllers.NewBisectController(common)
 
 	gui.Controllers = Controllers{
 		Submodules: submodulesController,
-		Global: controllers.NewGlobalController(
-			controllerCommon,
-			osCommand,
-		),
+		Global:     controllers.NewGlobalController(common),
 		Files: controllers.NewFilesController(
-			controllerCommon,
-			gui.State.Contexts.Files,
-			model,
-			gui.git,
-			osCommand,
-			gui.getSelectedFileNode,
-			gui.State.Contexts,
+			common,
 			gui.enterSubmodule,
-			func() []*models.SubmoduleConfig { return gui.State.Model.Submodules },
 			gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage }),
 			gui.withGpgHandling,
 			func() string { return gui.State.failedCommitMessage },
-			gui.getSelectedPath,
 			gui.switchToMerge,
-			gui.helpers.Suggestions,
-			gui.helpers.Refs,
-			gui.helpers.Files,
-			gui.helpers.WorkingTree,
 		),
-		Tags: controllers.NewTagsController(
-			controllerCommon,
-			gui.State.Contexts.Tags,
-			gui.git,
-			gui.State.Contexts,
-			gui.helpers.Tags,
-			gui.helpers.Refs,
-			gui.helpers.Suggestions,
-			gui.switchToSubCommitsContext,
-		),
+		Tags: controllers.NewTagsController(common),
 		LocalCommits: controllers.NewLocalCommitsController(
-			controllerCommon,
-			gui.State.Contexts.BranchCommits,
-			osCommand,
-			gui.git,
-			gui.helpers.Tags,
-			gui.helpers.Refs,
-			gui.helpers.CherryPick,
-			gui.helpers.Rebase,
-			model,
-			gui.helpers.Rebase.CheckMergeOrRebase,
+			common,
 			syncController.HandlePull,
-			gui.getHostingServiceMgr,
 			gui.SwitchToCommitFilesContext,
-			func() bool { return gui.ShowWholeGitGraph },
-			func(value bool) { gui.ShowWholeGitGraph = value },
 		),
 		Remotes: controllers.NewRemotesController(
-			controllerCommon,
-			gui.State.Contexts.Remotes,
-			gui.git,
-			gui.State.Contexts,
+			common,
 			func(branches []*models.RemoteBranch) { gui.State.Model.RemoteBranches = branches },
 		),
-		Menu: controllers.NewMenuController(
-			controllerCommon,
-			gui.State.Contexts.Menu,
-		),
-		Undo: controllers.NewUndoController(
-			controllerCommon,
-			gui.git,
-			gui.helpers.Refs,
-			gui.helpers.WorkingTree,
-			func() []*models.Commit { return gui.State.Model.FilteredReflogCommits },
-		),
+		Menu: controllers.NewMenuController(common),
+		Undo: controllers.NewUndoController(common),
 		Sync: syncController,
 	}
 
+	branchesController := controllers.NewBranchesController(common)
+
 	switchToSubCommitsControllerFactory := controllers.NewSubCommitsSwitchControllerFactory(
-		controllerCommon,
-		gui.State.Contexts.SubCommits,
-		gui.git,
-		gui.State.Modes,
+		common,
 		func(commits []*models.Commit) { gui.State.Model.SubCommits = commits },
 	)
 
@@ -640,6 +578,7 @@ func (gui *Gui) resetControllers() {
 		controllers.AttachControllers(context, switchToSubCommitsControllerFactory.Create(context))
 	}
 
+	controllers.AttachControllers(gui.State.Contexts.Branches, branchesController)
 	controllers.AttachControllers(gui.State.Contexts.Files, gui.Controllers.Files)
 	controllers.AttachControllers(gui.State.Contexts.Tags, gui.Controllers.Tags)
 	controllers.AttachControllers(gui.State.Contexts.Submodules, gui.Controllers.Submodules)

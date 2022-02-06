@@ -23,7 +23,7 @@ func NewLocalCommitsContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 ) *LocalCommitsContext {
 	viewModel := NewLocalCommitsViewModel(getModel)
 
@@ -61,8 +61,14 @@ func (self *LocalCommitsContext) GetSelectedItemId() string {
 
 type LocalCommitsViewModel struct {
 	*traits.ListCursor
+	getModel func() []*models.Commit
+
+	// If this is true we limit the amount of commits we load, for the sake of keeping things fast.
+	// If the user attempts to scroll past the end of the list, we will load more commits.
 	limitCommits bool
-	getModel     func() []*models.Commit
+
+	// If this is true we'll use git log --all when fetching the commits.
+	showWholeGitGraph bool
 }
 
 func NewLocalCommitsViewModel(getModel func() []*models.Commit) *LocalCommitsViewModel {
@@ -94,4 +100,12 @@ func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
 
 func (self *LocalCommitsViewModel) GetLimitCommits() bool {
 	return self.limitCommits
+}
+
+func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {
+	self.showWholeGitGraph = value
+}
+
+func (self *LocalCommitsViewModel) GetShowWholeGitGraph() bool {
+	return self.showWholeGitGraph
 }

@@ -1,4 +1,4 @@
-package controllers
+package helpers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"

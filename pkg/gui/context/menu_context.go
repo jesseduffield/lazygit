@@ -21,7 +21,7 @@ func NewMenuContext(
 	onRenderToMain func(...types.OnFocusOpts) error,
 	onFocusLost func() error,
 
-	c *types.ControllerCommon,
+	c *types.HelperCommon,
 	getOptionsMap func() map[string]string,
 ) *MenuContext {
 	viewModel := NewMenuViewModel()

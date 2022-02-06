@@ -1,26 +1,22 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type GlobalController struct {
 	baseController
-
-	c  *types.ControllerCommon
-	os *oscommands.OSCommand
+	*controllerCommon
 }
 
 func NewGlobalController(
-	c *types.ControllerCommon,
-	os *oscommands.OSCommand,
+	common *controllerCommon,
 ) *GlobalController {
 	return &GlobalController{
-		baseController: baseController{},
-		c:              c,
-		os:             os,
+		baseController:   baseController{},
+		controllerCommon: common,
 	}
 }
 
@@ -63,7 +59,7 @@ func (self *GlobalController) GetCustomCommandsHistorySuggestionsFunc() func(str
 	// reversing so that we display the latest command first
 	history := utils.Reverse(self.c.GetAppState().CustomCommandsHistory)
 
-	return FuzzySearchFunc(history)
+	return helpers.FuzzySearchFunc(history)
 }
 
 func (self *GlobalController) Context() types.Context {
