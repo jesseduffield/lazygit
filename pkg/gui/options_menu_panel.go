@@ -61,9 +61,6 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 		menuItems[i] = &menuItem{
 			displayStrings: []string{GetKeyDisplay(binding.KeyMod), gui.displayDescription(binding)},
 			onPress: func() error {
-				if binding.KeyMod.Key == nil {
-					return nil
-				}
 				if err := gui.handleMenuClose(); err != nil {
 					return err
 				}

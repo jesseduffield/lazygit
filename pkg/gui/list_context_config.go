@@ -402,14 +402,14 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 		bindings = append(bindings, []*Binding{
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.PrevItemAlt), Handler: listContext.handlePrevLine},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.PrevItem), Handler: listContext.handlePrevLine},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: KeyMod{gocui.MouseWheelUp, gocui.ModNone}, Handler: listContext.handlePrevLine},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone}, Handler: listContext.handlePrevLine},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.NextItemAlt), Handler: listContext.handleNextLine},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.NextItem), Handler: listContext.handleNextLine},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.PrevPage), Handler: listContext.handlePrevPage, Description: gui.Tr.LcPrevPage},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.NextPage), Handler: listContext.handleNextPage, Description: gui.Tr.LcNextPage},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.GotoTop), Handler: listContext.handleGotoTop, Description: gui.Tr.LcGotoTop},
-			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: KeyMod{gocui.MouseWheelDown, gocui.ModNone}, Handler: listContext.handleNextLine},
-			{ViewName: listContext.GetViewName(), Contexts: []string{string(listContext.GetKey())}, KeyMod: KeyMod{gocui.MouseLeft, gocui.ModNone}, Handler: listContext.handleClick},
+			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone}, Handler: listContext.handleNextLine},
+			{ViewName: listContext.GetViewName(), Contexts: []string{string(listContext.GetKey())}, KeyMod: gocui.KeyMod{gocui.MouseLeft, gocui.ModNone}, Handler: listContext.handleClick},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.ScrollLeft), Handler: listContext.handleScrollLeft},
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, KeyMod: gui.getKey(keybindingConfig.Universal.ScrollRight), Handler: listContext.handleScrollRight},
 		}...)

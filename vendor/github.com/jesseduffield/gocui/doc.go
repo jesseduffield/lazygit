@@ -54,7 +54,7 @@ Views can also be created using relative coordinates:
 
 Configure keybindings:
 
-	if err := g.SetKeybinding("viewname", gocui.KeyEnter, gocui.ModNone, fcn); err != nil {
+	if err := g.SetKeybinding("viewname", gocui.KeyMod{Key: gocui.KeyEnter, Modifier: gocui.ModNone}, fcn); err != nil {
 		// handle error
 	}
 
@@ -64,7 +64,7 @@ gocui implements full mouse support that can be enabled with:
 
 Mouse events are handled like any other keybinding:
 
-	if err := g.SetKeybinding("viewname", gocui.MouseLeft, gocui.ModNone, fcn); err != nil {
+	if err := g.SetKeybinding("viewname", gocui.KeyMod{Key: gocui.MouseLeft, Modifier: gocui.ModNone}, fcn); err != nil {
 		// handle error
 	}
 

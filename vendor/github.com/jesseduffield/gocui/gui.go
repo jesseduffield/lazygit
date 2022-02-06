@@ -432,14 +432,14 @@ func (g *Gui) CurrentView() *View {
 // (empty string) then the keybinding will apply to all views. key must
 // be a rune or a Key.
 //
-// When mouse keys are used (MouseLeft, MouseRight, ...), modifier might not work correctly.
+// When mouse keys are used (MouseLeft, MouseRight, ...), Modifier (in key KeyMod) might not work correctly.
 // It behaves differently on different platforms. Somewhere it doesn't register Alt key press,
 // on others it might report Ctrl as Alt. It's not consistent and therefore it's not recommended
 // to use with mouse keys.
-func (g *Gui) SetKeybinding(viewname string, contexts []string, key interface{}, mod Modifier, handler func(*Gui, *View) error) error {
+func (g *Gui) SetKeybinding(viewname string, contexts []string, key KeyMod, handler func(*Gui, *View) error) error {
 	var kb *keybinding
 
-	k, ch, err := getKey(key)
+	k, ch, err := getKey(key.Key)
 	if err != nil {
 		return err
 	}
@@ -448,7 +448,7 @@ func (g *Gui) SetKeybinding(viewname string, contexts []string, key interface{},
 		return ErrBlacklisted
 	}
 
-	kb = newKeybinding(viewname, contexts, k, ch, mod, handler)
+	kb = newKeybinding(viewname, contexts, k, ch, key.Modifier, handler)
 	g.keybindings = append(g.keybindings, kb)
 	return nil
 }
@@ -596,9 +596,7 @@ func (g *Gui) MainLoop() error {
 			case <-g.stop:
 				return
 			default:
-				ev := g.pollEvent()
-				//log.Println(ev.Mod)
-				g.gEvents <- ev
+				g.gEvents <- g.pollEvent()
 			}
 		}
 	}()

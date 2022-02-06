@@ -274,15 +274,9 @@ func (g *Gui) pollEvent() GocuiEvent {
 			}
 		}
 		mod := tev.Modifiers()
-		// remove control modifier and setup special handling of ctrl+spacebar, etc.
-		if mod == tcell.ModCtrl && k == 32 {
-			mod = 0
-			ch = rune(0)
-			k = tcell.KeyCtrlSpace
-		} else if mod == tcell.ModShift {
-			// remove Ctrl or Shift if specified
+		if mod == tcell.ModShift {
+			// remove Shift if specified
 			// - shift - will be translated to the final code of rune
-			// - ctrl  - is translated in the key
 			mod = 0
 		}
 

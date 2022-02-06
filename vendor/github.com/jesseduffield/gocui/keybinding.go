@@ -17,6 +17,11 @@ type Key tcell.Key
 // in combination with Keys or Runes when a new keybinding is defined.
 type Modifier tcell.ModMask
 
+type KeyMod struct {
+	Key      interface{} // FIXME: find out how to get `gocui.Key | rune`
+	Modifier Modifier
+}
+
 // Keybidings are used to link a given key-press event with a handler.
 type keybinding struct {
 	viewName string
@@ -323,7 +328,10 @@ const (
 	ModNone   Modifier = Modifier(0)
 	ModAlt             = Modifier(tcell.ModAlt)
 	ModCtrl            = Modifier(tcell.ModCtrl)
-	ModMotion          = Modifier(3) // just picking an arbitrary number here that doesn't clash with tcell.ModAlt
+	ModMotion          = Modifier(4) // just picking an arbitrary number here that doesn't clash with tcell.ModAlt
 	// ModCtrl doesn't work with keyboard keys. Use CtrlKey in Key and ModNone. This is was for mouse clicks only (tcell.v1)
 	// ModCtrl = Modifier(tcell.ModCtrl)
+	// BaPe 2022-02-05: The above is only true for some (regular) keys ie: 'a', 'space' etc... but for left-arrow and
+	// other special keys ModCtrl is sent. Check tcell's documentation which ctrl+key combinations are send as one rune
+	// and which combinations are sent as key + modifier. For runes use CtrlKey and ModNone for the rest user Key and ModCtrl.
 )

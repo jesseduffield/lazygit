@@ -78,7 +78,7 @@ func main() {
 
 	g.SetManagerFunc(app.layout)
 
-	if err := g.SetKeybinding("list", nil, gocui.KeyArrowUp, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: gocui.KeyArrowUp, Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		if app.itemIdx > 0 {
 			app.itemIdx--
 		}
@@ -92,15 +92,15 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: gocui.KeyCtrlC, Modifier: gocui.ModNone}, quit); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, 'q', gocui.ModNone, quit); err != nil {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: 'q', Modifier: gocui.ModNone}, quit); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, 'r', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: 'r', Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -114,7 +114,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, 's', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: 's', Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -142,7 +142,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, 'u', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: 'u', Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -186,7 +186,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, 'n', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: 'n', Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -209,7 +209,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, 'm', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: 'm', Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -231,7 +231,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, 'd', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: 'd', Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -251,7 +251,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("editor", nil, gocui.KeyEnter, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("editor", nil, gocui.KeyMod{Key: gocui.KeyEnter, Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
@@ -283,7 +283,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("editor", nil, gocui.KeyEsc, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("editor", nil, gocui.KeyMod{Key: gocui.KeyEsc, Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		app.editing = false
 		if _, err := g.SetCurrentView("list"); err != nil {
 			return err
@@ -396,7 +396,7 @@ func (app *App) layout(g *gocui.Gui) error {
 	descriptionView.Clear()
 	fmt.Fprintf(descriptionView, "Speed: %f. %s", currentTest.Speed, currentTest.Description)
 
-	if err := g.SetKeybinding("list", nil, gocui.KeyArrowDown, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, gocui.KeyMod{Key: gocui.KeyArrowDown, Modifier: gocui.ModNone}, func(*gocui.Gui, *gocui.View) error {
 		if app.itemIdx < len(app.tests)-1 {
 			app.itemIdx++
 		}

@@ -11,11 +11,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/constants"
 )
 
-type KeyMod struct {
-	Key      interface{} // FIXME: find out how to get `gocui.Key | rune`
-	Modifier gocui.Modifier
-}
-
 // Binding - a keybinding mapping a key and modifier to a handler. The keypress
 // is only handled if the given view has focus, or handled globally if the view
 // is ""
@@ -23,7 +18,7 @@ type Binding struct {
 	ViewName    string
 	Contexts    []string
 	Handler     func() error
-	KeyMod      KeyMod
+	KeyMod      gocui.KeyMod
 	Description string
 	Alternative string
 	Tag         string // e.g. 'navigation'. Used for grouping things in the cheatsheet
@@ -35,138 +30,145 @@ func (b *Binding) GetDisplayStrings(isFocused bool) []string {
 	return []string{GetKeyDisplay(b.KeyMod), b.Description}
 }
 
-var keyMapReversed = map[KeyMod]string{
-	{gocui.KeyF1, gocui.ModNone}:         "f1",
-	{gocui.KeyF2, gocui.ModNone}:         "f2",
-	{gocui.KeyF3, gocui.ModNone}:         "f3",
-	{gocui.KeyF4, gocui.ModNone}:         "f4",
-	{gocui.KeyF5, gocui.ModNone}:         "f5",
-	{gocui.KeyF6, gocui.ModNone}:         "f6",
-	{gocui.KeyF7, gocui.ModNone}:         "f7",
-	{gocui.KeyF8, gocui.ModNone}:         "f8",
-	{gocui.KeyF9, gocui.ModNone}:         "f9",
-	{gocui.KeyF10, gocui.ModNone}:        "f10",
-	{gocui.KeyF11, gocui.ModNone}:        "f11",
-	{gocui.KeyF12, gocui.ModNone}:        "f12",
-	{gocui.KeyInsert, gocui.ModNone}:     "insert",
-	{gocui.KeyDelete, gocui.ModNone}:     "delete",
-	{gocui.KeyHome, gocui.ModNone}:       "home",
-	{gocui.KeyEnd, gocui.ModNone}:        "end",
-	{gocui.KeyPgup, gocui.ModNone}:       "pgup",
-	{gocui.KeyPgdn, gocui.ModNone}:       "pgdown",
-	{gocui.KeyArrowUp, gocui.ModNone}:    "▲",
-	{gocui.KeyArrowDown, gocui.ModNone}:  "▼",
-	{gocui.KeyArrowLeft, gocui.ModNone}:  "◄",
-	{gocui.KeyArrowRight, gocui.ModNone}: "►",
-	{gocui.KeyTab, gocui.ModNone}:        "tab", // ctrl+i
-	{gocui.KeyBacktab, gocui.ModNone}:    "shift+tab",
-	{gocui.KeyEnter, gocui.ModNone}:      "enter", // ctrl+m
-	{gocui.KeyAltEnter, gocui.ModAlt}:    "alt+enter",
-	{gocui.KeyEsc, gocui.ModNone}:        "esc",        // ctrl+[, ctrl+3
-	{gocui.KeyBackspace, gocui.ModNone}:  "backspace",  // ctrl+h
-	{gocui.KeySpace, gocui.ModCtrl}:      "ctrl+space", // ctrl+~, ctrl+2
-	{gocui.KeyCtrlSlash, gocui.ModNone}:  "ctrl+/",     // ctrl+_
-	{gocui.KeySpace, gocui.ModNone}:      "space",
-	{gocui.KeyCtrlA, gocui.ModCtrl}:      "ctrl+a",
-	{gocui.KeyCtrlB, gocui.ModCtrl}:      "ctrl+b",
-	{gocui.KeyCtrlC, gocui.ModCtrl}:      "ctrl+c",
-	{gocui.KeyCtrlD, gocui.ModCtrl}:      "ctrl+d",
-	{gocui.KeyCtrlE, gocui.ModCtrl}:      "ctrl+e",
-	{gocui.KeyCtrlF, gocui.ModCtrl}:      "ctrl+f",
-	{gocui.KeyCtrlG, gocui.ModCtrl}:      "ctrl+g",
-	{gocui.KeyCtrlJ, gocui.ModCtrl}:      "ctrl+j",
-	{gocui.KeyCtrlK, gocui.ModCtrl}:      "ctrl+k",
-	{gocui.KeyCtrlL, gocui.ModCtrl}:      "ctrl+l",
-	{gocui.KeyCtrlN, gocui.ModCtrl}:      "ctrl+n",
-	{gocui.KeyCtrlO, gocui.ModCtrl}:      "ctrl+o",
-	{gocui.KeyCtrlP, gocui.ModCtrl}:      "ctrl+p",
-	{gocui.KeyCtrlQ, gocui.ModCtrl}:      "ctrl+q",
-	{gocui.KeyCtrlR, gocui.ModCtrl}:      "ctrl+r",
-	{gocui.KeyCtrlS, gocui.ModCtrl}:      "ctrl+s",
-	{gocui.KeyCtrlT, gocui.ModCtrl}:      "ctrl+t",
-	{gocui.KeyCtrlU, gocui.ModCtrl}:      "ctrl+u",
-	{gocui.KeyCtrlV, gocui.ModCtrl}:      "ctrl+v",
-	{gocui.KeyCtrlW, gocui.ModCtrl}:      "ctrl+w",
-	{gocui.KeyCtrlX, gocui.ModCtrl}:      "ctrl+x",
-	{gocui.KeyCtrlY, gocui.ModCtrl}:      "ctrl+y",
-	{gocui.KeyCtrlZ, gocui.ModCtrl}:      "ctrl+z",
-	{gocui.KeyCtrl4, gocui.ModCtrl}:      "ctrl+4", // ctrl+\
-	{gocui.KeyCtrl5, gocui.ModCtrl}:      "ctrl+5", // ctrl+]
-	{gocui.KeyCtrl6, gocui.ModCtrl}:      "ctrl+6",
-	{gocui.KeyCtrl8, gocui.ModCtrl}:      "ctrl+8",
+var keyMapReversed = map[gocui.KeyMod]string{
+	{Key: gocui.KeyF1, Modifier: gocui.ModNone}:         "f1",
+	{Key: gocui.KeyF2, Modifier: gocui.ModNone}:         "f2",
+	{Key: gocui.KeyF3, Modifier: gocui.ModNone}:         "f3",
+	{Key: gocui.KeyF4, Modifier: gocui.ModNone}:         "f4",
+	{Key: gocui.KeyF5, Modifier: gocui.ModNone}:         "f5",
+	{Key: gocui.KeyF6, Modifier: gocui.ModNone}:         "f6",
+	{Key: gocui.KeyF7, Modifier: gocui.ModNone}:         "f7",
+	{Key: gocui.KeyF8, Modifier: gocui.ModNone}:         "f8",
+	{Key: gocui.KeyF9, Modifier: gocui.ModNone}:         "f9",
+	{Key: gocui.KeyF10, Modifier: gocui.ModNone}:        "f10",
+	{Key: gocui.KeyF11, Modifier: gocui.ModNone}:        "f11",
+	{Key: gocui.KeyF12, Modifier: gocui.ModNone}:        "f12",
+	{Key: gocui.KeyInsert, Modifier: gocui.ModNone}:     "insert",
+	{Key: gocui.KeyDelete, Modifier: gocui.ModNone}:     "delete",
+	{Key: gocui.KeyHome, Modifier: gocui.ModNone}:       "home",
+	{Key: gocui.KeyEnd, Modifier: gocui.ModNone}:        "end",
+	{Key: gocui.KeyPgup, Modifier: gocui.ModNone}:       "pgup",
+	{Key: gocui.KeyPgdn, Modifier: gocui.ModNone}:       "pgdown",
+	{Key: gocui.KeyArrowUp, Modifier: gocui.ModNone}:    "▲",
+	{Key: gocui.KeyArrowDown, Modifier: gocui.ModNone}:  "▼",
+	{Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone}:  "◄",
+	{Key: gocui.KeyArrowRight, Modifier: gocui.ModNone}: "►",
+	{Key: gocui.KeyTab, Modifier: gocui.ModNone}:        "tab", // ctrl+i
+	{Key: gocui.KeyBacktab, Modifier: gocui.ModNone}:    "shift+tab",
+	{Key: gocui.KeyEnter, Modifier: gocui.ModNone}:      "enter", // ctrl+m
+	{Key: gocui.KeyAltEnter, Modifier: gocui.ModAlt}:    "alt+enter",
+	{Key: gocui.KeyEsc, Modifier: gocui.ModNone}:        "esc",        // ctrl+[, ctrl+3
+	{Key: gocui.KeyBackspace, Modifier: gocui.ModNone}:  "backspace",  // ctrl+h
+	{Key: gocui.KeySpace, Modifier: gocui.ModCtrl}:      "ctrl+space", // ctrl+~, ctrl+2
+	{Key: gocui.KeyCtrlSlash, Modifier: gocui.ModCtrl}:  "ctrl+/",     // ctrl+_
+	{Key: gocui.KeySpace, Modifier: gocui.ModCtrl}:      "space",
+	{Key: gocui.KeyCtrlA, Modifier: gocui.ModCtrl}:      "ctrl+a",
+	{Key: gocui.KeyCtrlB, Modifier: gocui.ModCtrl}:      "ctrl+b",
+	{Key: gocui.KeyCtrlC, Modifier: gocui.ModCtrl}:      "ctrl+c",
+	{Key: gocui.KeyCtrlD, Modifier: gocui.ModCtrl}:      "ctrl+d",
+	{Key: gocui.KeyCtrlE, Modifier: gocui.ModCtrl}:      "ctrl+e",
+	{Key: gocui.KeyCtrlF, Modifier: gocui.ModCtrl}:      "ctrl+f",
+	{Key: gocui.KeyCtrlG, Modifier: gocui.ModCtrl}:      "ctrl+g",
+	{Key: gocui.KeyCtrlJ, Modifier: gocui.ModCtrl}:      "ctrl+j",
+	{Key: gocui.KeyCtrlK, Modifier: gocui.ModCtrl}:      "ctrl+k",
+	{Key: gocui.KeyCtrlL, Modifier: gocui.ModCtrl}:      "ctrl+l",
+	{Key: gocui.KeyCtrlN, Modifier: gocui.ModCtrl}:      "ctrl+n",
+	{Key: gocui.KeyCtrlO, Modifier: gocui.ModCtrl}:      "ctrl+o",
+	{Key: gocui.KeyCtrlP, Modifier: gocui.ModCtrl}:      "ctrl+p",
+	{Key: gocui.KeyCtrlQ, Modifier: gocui.ModCtrl}:      "ctrl+q",
+	{Key: gocui.KeyCtrlR, Modifier: gocui.ModCtrl}:      "ctrl+r",
+	{Key: gocui.KeyCtrlS, Modifier: gocui.ModCtrl}:      "ctrl+s",
+	{Key: gocui.KeyCtrlT, Modifier: gocui.ModCtrl}:      "ctrl+t",
+	{Key: gocui.KeyCtrlU, Modifier: gocui.ModCtrl}:      "ctrl+u",
+	{Key: gocui.KeyCtrlV, Modifier: gocui.ModCtrl}:      "ctrl+v",
+	{Key: gocui.KeyCtrlW, Modifier: gocui.ModCtrl}:      "ctrl+w",
+	{Key: gocui.KeyCtrlX, Modifier: gocui.ModCtrl}:      "ctrl+x",
+	{Key: gocui.KeyCtrlY, Modifier: gocui.ModCtrl}:      "ctrl+y",
+	{Key: gocui.KeyCtrlZ, Modifier: gocui.ModCtrl}:      "ctrl+z",
+	{Key: gocui.KeyCtrl4, Modifier: gocui.ModCtrl}:      "ctrl+4", // ctrl+\
+	{Key: gocui.KeyCtrl5, Modifier: gocui.ModCtrl}:      "ctrl+5", // ctrl+]
+	{Key: gocui.KeyCtrl6, Modifier: gocui.ModCtrl}:      "ctrl+6",
+	{Key: gocui.KeyCtrl8, Modifier: gocui.ModCtrl}:      "ctrl+8",
+	{Key: gocui.KeyArrowRight, Modifier: gocui.ModCtrl}: "ctrl+►",
+	{Key: gocui.KeyArrowLeft, Modifier: gocui.ModCtrl}:  "ctrl+◄",
+	{Key: gocui.KeyArrowUp, Modifier: gocui.ModCtrl}:    "ctrl+▲",
+	{Key: gocui.KeyArrowDown, Modifier: gocui.ModCtrl}:  "ctrl+▼",
 }
 
-var keymap = map[string]KeyMod{
-	"<c-a>":       {gocui.KeyCtrlA, gocui.ModCtrl},
-	"<c-b>":       {gocui.KeyCtrlB, gocui.ModCtrl},
-	"<c-c>":       {gocui.KeyCtrlC, gocui.ModCtrl},
-	"<c-d>":       {gocui.KeyCtrlD, gocui.ModCtrl},
-	"<c-e>":       {gocui.KeyCtrlE, gocui.ModCtrl},
-	"<c-f>":       {gocui.KeyCtrlF, gocui.ModCtrl},
-	"<c-g>":       {gocui.KeyCtrlG, gocui.ModCtrl},
-	"<c-h>":       {gocui.KeyCtrlH, gocui.ModCtrl},
-	"<c-i>":       {gocui.KeyCtrlI, gocui.ModCtrl},
-	"<c-j>":       {gocui.KeyCtrlJ, gocui.ModCtrl},
-	"<c-k>":       {gocui.KeyCtrlK, gocui.ModCtrl},
-	"<c-l>":       {gocui.KeyCtrlL, gocui.ModCtrl},
-	"<c-m>":       {gocui.KeyCtrlM, gocui.ModCtrl},
-	"<c-n>":       {gocui.KeyCtrlN, gocui.ModCtrl},
-	"<c-o>":       {gocui.KeyCtrlO, gocui.ModCtrl},
-	"<c-p>":       {gocui.KeyCtrlP, gocui.ModCtrl},
-	"<c-q>":       {gocui.KeyCtrlQ, gocui.ModCtrl},
-	"<c-r>":       {gocui.KeyCtrlR, gocui.ModCtrl},
-	"<c-s>":       {gocui.KeyCtrlS, gocui.ModCtrl},
-	"<c-t>":       {gocui.KeyCtrlT, gocui.ModCtrl},
-	"<c-u>":       {gocui.KeyCtrlU, gocui.ModCtrl},
-	"<c-v>":       {gocui.KeyCtrlV, gocui.ModCtrl},
-	"<c-w>":       {gocui.KeyCtrlW, gocui.ModCtrl},
-	"<c-x>":       {gocui.KeyCtrlX, gocui.ModCtrl},
-	"<c-y>":       {gocui.KeyCtrlY, gocui.ModCtrl},
-	"<c-z>":       {gocui.KeyCtrlZ, gocui.ModCtrl},
-	"<c-~>":       {gocui.KeyCtrlTilde, gocui.ModCtrl},
-	"<c-2>":       {gocui.KeyCtrl2, gocui.ModCtrl},
-	"<c-3>":       {gocui.KeyCtrl3, gocui.ModCtrl},
-	"<c-4>":       {gocui.KeyCtrl4, gocui.ModCtrl},
-	"<c-5>":       {gocui.KeyCtrl5, gocui.ModCtrl},
-	"<c-6>":       {gocui.KeyCtrl6, gocui.ModCtrl},
-	"<c-7>":       {gocui.KeyCtrl7, gocui.ModCtrl},
-	"<c-8>":       {gocui.KeyCtrl8, gocui.ModCtrl},
-	"<c-space>":   {gocui.KeyCtrlSpace, gocui.ModCtrl},
-	"<c-\\>":      {gocui.KeyCtrlBackslash, gocui.ModCtrl},
-	"<c-[>":       {gocui.KeyCtrlLsqBracket, gocui.ModCtrl},
-	"<c-]>":       {gocui.KeyCtrlRsqBracket, gocui.ModCtrl},
-	"<c-/>":       {gocui.KeyCtrlSlash, gocui.ModCtrl},
-	"<c-_>":       {gocui.KeyCtrlUnderscore, gocui.ModCtrl},
-	"<backspace>": {gocui.KeyBackspace, gocui.ModNone},
-	"<tab>":       {gocui.KeyTab, gocui.ModNone},
-	"<backtab>":   {gocui.KeyBacktab, gocui.ModNone},
-	"<enter>":     {gocui.KeyEnter, gocui.ModNone},
-	"<a-enter>":   {gocui.KeyEnter, gocui.ModAlt},
-	"<esc>":       {gocui.KeyEsc, gocui.ModNone},
-	"<space>":     {gocui.KeySpace, gocui.ModNone},
-	"<f1>":        {gocui.KeyF1, gocui.ModNone},
-	"<f2>":        {gocui.KeyF2, gocui.ModNone},
-	"<f3>":        {gocui.KeyF3, gocui.ModNone},
-	"<f4>":        {gocui.KeyF4, gocui.ModNone},
-	"<f5>":        {gocui.KeyF5, gocui.ModNone},
-	"<f6>":        {gocui.KeyF6, gocui.ModNone},
-	"<f7>":        {gocui.KeyF7, gocui.ModNone},
-	"<f8>":        {gocui.KeyF8, gocui.ModNone},
-	"<f9>":        {gocui.KeyF9, gocui.ModNone},
-	"<f10>":       {gocui.KeyF10, gocui.ModNone},
-	"<f11>":       {gocui.KeyF11, gocui.ModNone},
-	"<f12>":       {gocui.KeyF12, gocui.ModNone},
-	"<insert>":    {gocui.KeyInsert, gocui.ModNone},
-	"<delete>":    {gocui.KeyDelete, gocui.ModNone},
-	"<home>":      {gocui.KeyHome, gocui.ModNone},
-	"<end>":       {gocui.KeyEnd, gocui.ModNone},
-	"<pgup>":      {gocui.KeyPgup, gocui.ModNone},
-	"<pgdown>":    {gocui.KeyPgdn, gocui.ModNone},
-	"<up>":        {gocui.KeyArrowUp, gocui.ModNone},
-	"<down>":      {gocui.KeyArrowDown, gocui.ModNone},
-	"<left>":      {gocui.KeyArrowLeft, gocui.ModNone},
-	"<right>":     {gocui.KeyArrowRight, gocui.ModNone},
-	"<c-right>":   {gocui.KeyArrowRight, gocui.ModCtrl},
+var keymap = map[string]gocui.KeyMod{
+	"<c-a>":       {Key: gocui.KeyCtrlA, Modifier: gocui.ModCtrl},
+	"<c-b>":       {Key: gocui.KeyCtrlB, Modifier: gocui.ModCtrl},
+	"<c-c>":       {Key: gocui.KeyCtrlC, Modifier: gocui.ModCtrl},
+	"<c-d>":       {Key: gocui.KeyCtrlD, Modifier: gocui.ModCtrl},
+	"<c-e>":       {Key: gocui.KeyCtrlE, Modifier: gocui.ModCtrl},
+	"<c-f>":       {Key: gocui.KeyCtrlF, Modifier: gocui.ModCtrl},
+	"<c-g>":       {Key: gocui.KeyCtrlG, Modifier: gocui.ModCtrl},
+	"<c-h>":       {Key: gocui.KeyCtrlH, Modifier: gocui.ModCtrl},
+	"<c-i>":       {Key: gocui.KeyCtrlI, Modifier: gocui.ModCtrl},
+	"<c-j>":       {Key: gocui.KeyCtrlJ, Modifier: gocui.ModCtrl},
+	"<c-k>":       {Key: gocui.KeyCtrlK, Modifier: gocui.ModCtrl},
+	"<c-l>":       {Key: gocui.KeyCtrlL, Modifier: gocui.ModCtrl},
+	"<c-m>":       {Key: gocui.KeyCtrlM, Modifier: gocui.ModCtrl},
+	"<c-n>":       {Key: gocui.KeyCtrlN, Modifier: gocui.ModCtrl},
+	"<c-o>":       {Key: gocui.KeyCtrlO, Modifier: gocui.ModCtrl},
+	"<c-p>":       {Key: gocui.KeyCtrlP, Modifier: gocui.ModCtrl},
+	"<c-q>":       {Key: gocui.KeyCtrlQ, Modifier: gocui.ModCtrl},
+	"<c-r>":       {Key: gocui.KeyCtrlR, Modifier: gocui.ModCtrl},
+	"<c-s>":       {Key: gocui.KeyCtrlS, Modifier: gocui.ModCtrl},
+	"<c-t>":       {Key: gocui.KeyCtrlT, Modifier: gocui.ModCtrl},
+	"<c-u>":       {Key: gocui.KeyCtrlU, Modifier: gocui.ModCtrl},
+	"<c-v>":       {Key: gocui.KeyCtrlV, Modifier: gocui.ModCtrl},
+	"<c-w>":       {Key: gocui.KeyCtrlW, Modifier: gocui.ModCtrl},
+	"<c-x>":       {Key: gocui.KeyCtrlX, Modifier: gocui.ModCtrl},
+	"<c-y>":       {Key: gocui.KeyCtrlY, Modifier: gocui.ModCtrl},
+	"<c-z>":       {Key: gocui.KeyCtrlZ, Modifier: gocui.ModCtrl},
+	"<c-~>":       {Key: gocui.KeyCtrlTilde, Modifier: gocui.ModCtrl},
+	"<c-2>":       {Key: gocui.KeyCtrl2, Modifier: gocui.ModCtrl},
+	"<c-3>":       {Key: gocui.KeyCtrl3, Modifier: gocui.ModCtrl},
+	"<c-4>":       {Key: gocui.KeyCtrl4, Modifier: gocui.ModCtrl},
+	"<c-5>":       {Key: gocui.KeyCtrl5, Modifier: gocui.ModCtrl},
+	"<c-6>":       {Key: gocui.KeyCtrl6, Modifier: gocui.ModCtrl},
+	"<c-7>":       {Key: gocui.KeyCtrl7, Modifier: gocui.ModCtrl},
+	"<c-8>":       {Key: gocui.KeyCtrl8, Modifier: gocui.ModCtrl},
+	"<c-space>":   {Key: gocui.KeyCtrlSpace, Modifier: gocui.ModCtrl},
+	"<c-\\>":      {Key: gocui.KeyCtrlBackslash, Modifier: gocui.ModCtrl},
+	"<c-[>":       {Key: gocui.KeyCtrlLsqBracket, Modifier: gocui.ModCtrl},
+	"<c-]>":       {Key: gocui.KeyCtrlRsqBracket, Modifier: gocui.ModCtrl},
+	"<c-/>":       {Key: gocui.KeyCtrlSlash, Modifier: gocui.ModCtrl},
+	"<c-_>":       {Key: gocui.KeyCtrlUnderscore, Modifier: gocui.ModCtrl},
+	"<backspace>": {Key: gocui.KeyBackspace, Modifier: gocui.ModNone},
+	"<tab>":       {Key: gocui.KeyTab, Modifier: gocui.ModNone},
+	"<backtab>":   {Key: gocui.KeyBacktab, Modifier: gocui.ModNone},
+	"<enter>":     {Key: gocui.KeyEnter, Modifier: gocui.ModNone},
+	"<a-enter>":   {Key: gocui.KeyEnter, Modifier: gocui.ModAlt},
+	"<esc>":       {Key: gocui.KeyEsc, Modifier: gocui.ModNone},
+	"<space>":     {Key: gocui.KeySpace, Modifier: gocui.ModNone},
+	"<f1>":        {Key: gocui.KeyF1, Modifier: gocui.ModNone},
+	"<f2>":        {Key: gocui.KeyF2, Modifier: gocui.ModNone},
+	"<f3>":        {Key: gocui.KeyF3, Modifier: gocui.ModNone},
+	"<f4>":        {Key: gocui.KeyF4, Modifier: gocui.ModNone},
+	"<f5>":        {Key: gocui.KeyF5, Modifier: gocui.ModNone},
+	"<f6>":        {Key: gocui.KeyF6, Modifier: gocui.ModNone},
+	"<f7>":        {Key: gocui.KeyF7, Modifier: gocui.ModNone},
+	"<f8>":        {Key: gocui.KeyF8, Modifier: gocui.ModNone},
+	"<f9>":        {Key: gocui.KeyF9, Modifier: gocui.ModNone},
+	"<f10>":       {Key: gocui.KeyF10, Modifier: gocui.ModNone},
+	"<f11>":       {Key: gocui.KeyF11, Modifier: gocui.ModNone},
+	"<f12>":       {Key: gocui.KeyF12, Modifier: gocui.ModNone},
+	"<insert>":    {Key: gocui.KeyInsert, Modifier: gocui.ModNone},
+	"<delete>":    {Key: gocui.KeyDelete, Modifier: gocui.ModNone},
+	"<home>":      {Key: gocui.KeyHome, Modifier: gocui.ModNone},
+	"<end>":       {Key: gocui.KeyEnd, Modifier: gocui.ModNone},
+	"<pgup>":      {Key: gocui.KeyPgup, Modifier: gocui.ModNone},
+	"<pgdown>":    {Key: gocui.KeyPgdn, Modifier: gocui.ModNone},
+	"<up>":        {Key: gocui.KeyArrowUp, Modifier: gocui.ModNone},
+	"<down>":      {Key: gocui.KeyArrowDown, Modifier: gocui.ModNone},
+	"<left>":      {Key: gocui.KeyArrowLeft, Modifier: gocui.ModNone},
+	"<right>":     {Key: gocui.KeyArrowRight, Modifier: gocui.ModNone},
+	"<c-right>":   {Key: gocui.KeyArrowRight, Modifier: gocui.ModCtrl},
+	"<c-left>":    {Key: gocui.KeyArrowLeft, Modifier: gocui.ModCtrl},
+	"<c-up>":      {Key: gocui.KeyArrowUp, Modifier: gocui.ModCtrl},
+	"<c-down>":    {Key: gocui.KeyArrowDown, Modifier: gocui.ModCtrl},
 }
 
 func (gui *Gui) getKeyDisplay(name string) string {
@@ -174,7 +176,7 @@ func (gui *Gui) getKeyDisplay(name string) string {
 	return GetKeyDisplay(key)
 }
 
-func GetKeyDisplay(keyMod KeyMod) string {
+func GetKeyDisplay(keyMod gocui.KeyMod) string {
 	keyInt := 0
 
 	value, ok := keyMapReversed[keyMod]
@@ -182,7 +184,6 @@ func GetKeyDisplay(keyMod KeyMod) string {
 		return value
 	}
 
-	// TODO: modifier
 	switch key := keyMod.Key.(type) {
 	case rune:
 		keyInt = int(key)
@@ -193,8 +194,7 @@ func GetKeyDisplay(keyMod KeyMod) string {
 	return fmt.Sprintf("%c", keyInt)
 }
 
-func (gui *Gui) getKey(key string) KeyMod {
-	mod := gui.getModifier(key)
+func (gui *Gui) getKey(key string) gocui.KeyMod {
 	runeCount := utf8.RuneCountInString(key)
 	if runeCount > 1 {
 		binding, found := keymap[strings.ToLower(key)]
@@ -204,20 +204,10 @@ func (gui *Gui) getKey(key string) KeyMod {
 			return binding
 		}
 	} else if runeCount == 1 {
-		return KeyMod{[]rune(key)[0], mod}
+		return gocui.KeyMod{[]rune(key)[0], gocui.ModNone}
 	}
 	log.Fatal("Key empty for keybinding: " + strings.ToLower(key))
-	return KeyMod{nil, gocui.ModNone}
-}
-
-func (gui *Gui) getModifier(key string) gocui.Modifier {
-	runeCount := utf8.RuneCountInString(key)
-	if runeCount > 1 {
-		if []rune(key)[1] == 'c' {
-			return gocui.ModCtrl
-		}
-	}
-	return gocui.ModNone
+	return gocui.KeyMod{nil, gocui.ModNone}
 }
 
 // GetInitialKeybindings is a function.
@@ -332,7 +322,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "",
-			KeyMod:   KeyMod{gocui.MouseMiddle, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseMiddle, gocui.ModNone},
 			Handler:  gui.handleCreateOptionsMenu,
 		},
 		{
@@ -918,7 +908,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "commits",
 			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Commits.ViewBisectOptions),
+			KeyMod:      gui.getKey(config.Commits.ViewBisectOptions),
 			Handler:     gui.handleOpenBisectMenu,
 			Description: gui.Tr.LcViewBisectOptions,
 			OpensMenu:   true,
@@ -1088,7 +1078,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "information",
-			KeyMod:   KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
 			Handler:  gui.handleInfoClick,
 		},
 		{
@@ -1169,24 +1159,24 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "secondary",
-			KeyMod:   KeyMod{gocui.MouseWheelUp, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone},
 			Handler:  gui.scrollUpSecondary,
 		},
 		{
 			ViewName: "secondary",
-			KeyMod:   KeyMod{gocui.MouseWheelDown, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone},
 			Handler:  gui.scrollDownSecondary,
 		},
 		{
 			ViewName: "secondary",
 			Contexts: []string{string(MAIN_NORMAL_CONTEXT_KEY)},
-			KeyMod:   KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
 			Handler:  gui.handleMouseDownSecondary,
 		},
 		{
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_NORMAL_CONTEXT_KEY)},
-			KeyMod:      KeyMod{gocui.MouseWheelDown, gocui.ModNone},
+			KeyMod:      gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone},
 			Handler:     gui.scrollDownMain,
 			Description: gui.Tr.ScrollDown,
 			Alternative: "fn+up",
@@ -1194,7 +1184,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_NORMAL_CONTEXT_KEY)},
-			KeyMod:      KeyMod{gocui.MouseWheelUp, gocui.ModNone},
+			KeyMod:      gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone},
 			Handler:     gui.scrollUpMain,
 			Description: gui.Tr.ScrollUp,
 			Alternative: "fn+down",
@@ -1202,13 +1192,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_NORMAL_CONTEXT_KEY)},
-			KeyMod:   KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
 			Handler:  gui.handleMouseDownMain,
 		},
 		{
 			ViewName: "secondary",
 			Contexts: []string{string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
 			Handler:  gui.handleTogglePanelClick,
 		},
 		{
@@ -1282,13 +1272,13 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   KeyMod{gocui.MouseWheelUp, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone},
 			Handler:  gui.scrollUpMain,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   KeyMod{gocui.MouseWheelDown, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone},
 			Handler:  gui.scrollDownMain,
 		},
 		{
@@ -1410,25 +1400,25 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
 			Handler:  gui.handleLBLMouseDown,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
 			Handler:  gui.handleMouseDrag,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   KeyMod{gocui.MouseWheelUp, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone},
 			Handler:  gui.scrollUpMain,
 		},
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_PATCH_BUILDING_CONTEXT_KEY), string(MAIN_STAGING_CONTEXT_KEY)},
-			KeyMod:   KeyMod{gocui.MouseWheelDown, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone},
 			Handler:  gui.scrollDownMain,
 		},
 		{
@@ -1525,8 +1515,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
-			Key:      gui.getKey(config.Universal.PrevBlockAlt),
-			Modifier: gocui.ModNone,
+			KeyMod:   gui.getKey(config.Universal.PrevBlockAlt),
 			Handler:  gui.handleSelectPrevConflict,
 		},
 		{
@@ -1550,7 +1539,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_MERGING_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Universal.Undo),
+			KeyMod:      gui.getKey(config.Universal.Undo),
 			Handler:     gui.handleMergeConflictUndo,
 			Description: gui.Tr.LcUndo,
 		},
@@ -1626,7 +1615,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "status",
-			KeyMod:   KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
 			Handler:  gui.handleStatusClick,
 		},
 		{
@@ -1691,7 +1680,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName:    "files",
 			Contexts:    []string{string(SUBMODULES_CONTEXT_KEY)},
-			Key:         gui.getKey(config.Universal.Remove),
+			KeyMod:      gui.getKey(config.Universal.Remove),
 			Handler:     gui.forSubmodule(gui.removeSubmodule),
 			Description: gui.Tr.LcRemoveSubmodule,
 			OpensMenu:   true,
@@ -1753,12 +1742,12 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		},
 		{
 			ViewName: "extras",
-			KeyMod:   KeyMod{gocui.MouseWheelUp, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseWheelUp, gocui.ModNone},
 			Handler:  gui.scrollUpExtra,
 		},
 		{
 			ViewName: "extras",
-			KeyMod:   KeyMod{gocui.MouseWheelDown, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseWheelDown, gocui.ModNone},
 			Handler:  gui.scrollDownExtra,
 		},
 		{
@@ -1799,7 +1788,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "extras",
 			Tag:      "navigation",
-			KeyMod:   KeyMod{gocui.MouseLeft, gocui.ModNone},
+			KeyMod:   gocui.KeyMod{gocui.MouseLeft, gocui.ModNone},
 			Handler:  gui.handleFocusCommandLog,
 		},
 	}
@@ -1859,7 +1848,7 @@ func (gui *Gui) keybindings() error {
 	bindings = append(bindings, gui.GetInitialKeybindings()...)
 
 	for _, binding := range bindings {
-		if err := gui.g.SetKeybinding(binding.ViewName, binding.Contexts, binding.KeyMod.Key, binding.KeyMod.Modifier, gui.wrappedHandler(binding.Handler)); err != nil {
+		if err := gui.g.SetKeybinding(binding.ViewName, binding.Contexts, binding.KeyMod, gui.wrappedHandler(binding.Handler)); err != nil {
 			return err
 		}
 	}

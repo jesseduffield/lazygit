@@ -234,7 +234,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 
 	type confirmationKeybinding struct {
 		viewName string
-		keyMod   KeyMod
+		keyMod   gocui.KeyMod
 		handler  func() error
 	}
 
@@ -294,7 +294,7 @@ func (gui *Gui) setKeyBindings(opts createPopupPanelOpts) error {
 	}
 
 	for _, binding := range confirmationKeybindings {
-		if err := gui.g.SetKeybinding(binding.viewName, nil, binding.keyMod.Key, binding.keyMod.Modifier, gui.wrappedHandler(binding.handler)); err != nil {
+		if err := gui.g.SetKeybinding(binding.viewName, nil, binding.keyMod, gui.wrappedHandler(binding.handler)); err != nil {
 			return err
 		}
 	}
