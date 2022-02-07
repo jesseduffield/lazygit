@@ -122,3 +122,32 @@ func TestOSCommandOpenFileLinux(t *testing.T) {
 		s.test(oSCmd.OpenFile(s.filename, s.linenumber))
 	}
 }
+
+func TestOSCommandOpenFileWithFilenameAndLine(t *testing.T) {
+	type scenario struct {
+		filename   string
+		linenumber int
+		runner     *FakeCmdObjRunner
+		test       func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			filename:   "test",
+			linenumber: 1,
+			runner: NewFakeRunner(t).
+				ExpectArgs([]string{"bash", "-c", `open "test":1`}, "", nil),
+			test: func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		oSCmd := NewDummyOSCommandWithRunner(s.runner)
+		oSCmd.Platform.OS = "darwin"
+		oSCmd.UserConfig.OS.OpenCommand = `open {{filename}}:{{line}}`
+
+		s.test(oSCmd.OpenFile(s.filename, s.linenumber))
+	}
+}
