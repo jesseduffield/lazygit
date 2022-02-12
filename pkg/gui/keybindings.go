@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -192,6 +193,16 @@ func (gui *Gui) noPopupPanel(f func() error) func() error {
 
 		return f()
 	}
+}
+
+// only to be called from the cheatsheet generate script. This mutates the Gui struct.
+func (self *Gui) GetCheatsheetKeybindings() []*types.Binding {
+	self.helpers = helpers.NewStubHelpers()
+	self.State = &GuiRepoState{}
+	self.State.Contexts = self.contextTree()
+	self.resetControllers()
+	bindings, _ := self.GetInitialKeybindings()
+	return bindings
 }
 
 // renaming receiver to 'self' to aid refactoring. Will probably end up moving all Gui handlers to this pattern eventually.
@@ -1305,8 +1316,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 
 func (gui *Gui) resetKeybindings() error {
 	gui.g.DeleteAllKeybindings()
-
-	bindings := gui.GetCustomCommandKeybindings()
 
 	bindings, mouseBindings := gui.GetInitialKeybindings()
 

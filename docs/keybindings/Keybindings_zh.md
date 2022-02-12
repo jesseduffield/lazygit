@@ -20,6 +20,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>@</kbd>: 打开命令日志菜单
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
+  <kbd>:</kbd>: 执行自定义命令
   <kbd>z</kbd>: （通过 reflog）撤销「实验功能」
   <kbd>ctrl+z</kbd>: （通过 reflog）重做「实验功能」
   <kbd>P</kbd>: 推送
@@ -41,6 +42,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 分支 面板 (分支标签)
 
 <pre>
+  <kbd>i</kbd>: 显示 git-flow 选项
+  <kbd>ctrl+o</kbd>: 将分支名称复制到剪贴板
   <kbd>space</kbd>: 检出
   <kbd>o</kbd>: 创建抓取请求
   <kbd>O</kbd>: 创建抓取请求选项
@@ -51,11 +54,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>d</kbd>: 删除分支
   <kbd>r</kbd>: 将已检出的分支变基到该分支
   <kbd>M</kbd>: 合并到当前检出的分支
-  <kbd>i</kbd>: 显示 git-flow 选项
   <kbd>f</kbd>: 从上游快进此分支
   <kbd>g</kbd>: 查看重置选项
   <kbd>R</kbd>: 重命名分支
-  <kbd>ctrl+o</kbd>: 将分支名称复制到剪贴板
   <kbd>enter</kbd>: 查看提交
 </pre>
 
@@ -64,13 +65,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>esc</kbd>: 返回远程仓库列表
   <kbd>g</kbd>: 查看重置选项
-  <kbd>enter</kbd>: 查看提交
   <kbd>space</kbd>: 检出
   <kbd>n</kbd>: 新分支
   <kbd>M</kbd>: 合并到当前检出的分支
   <kbd>d</kbd>: 删除分支
   <kbd>r</kbd>: 将已检出的分支变基到该分支
   <kbd>u</kbd>: 设置为检出分支的上游
+  <kbd>enter</kbd>: 查看提交
 </pre>
 
 ## 分支 面板 (远程页面)
@@ -122,12 +123,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 提交 面板 (提交)
 
 <pre>
-  <kbd>c</kbd>: 复制提交（拣选）
   <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
-  <kbd>C</kbd>: 复制提交范围（拣选）
-  <kbd>v</kbd>: 粘贴提交（拣选）
-  <kbd>n</kbd>: 从提交创建新分支
   <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
+  <kbd>b</kbd>: view bisect options
   <kbd>s</kbd>: 向下压缩
   <kbd>f</kbd>: 修正提交（fixup）
   <kbd>r</kbd>: 改写提交
@@ -141,6 +139,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: 上移提交
   <kbd>A</kbd>: 用已暂存的更改来修补提交
   <kbd>t</kbd>: 还原提交
+  <kbd>n</kbd>: 从提交创建新分支
+  <kbd>c</kbd>: 复制提交（拣选）
+  <kbd>C</kbd>: 复制提交范围（拣选）
+  <kbd>v</kbd>: 粘贴提交（拣选）
   <kbd>ctrl+l</kbd>: open log menu
   <kbd>g</kbd>: 重置为此提交
   <kbd>enter</kbd>: 查看提交的文件
@@ -148,7 +150,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>T</kbd>: 标签提交
   <kbd>ctrl+y</kbd>: 将提交消息复制到剪贴板
   <kbd>o</kbd>: open commit in browser
-  <kbd>b</kbd>: view bisect options
 </pre>
 
 ## 提交 面板 (Reflog)
@@ -173,7 +174,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>D</kbd>: 查看重置选项
-  <kbd>f</kbd>: 抓取
   <kbd>ctrl+o</kbd>: 将文件名复制到剪贴板
   <kbd>ctrl+w</kbd>: 切换是否在差异视图中显示空白更改
   <kbd>space</kbd>: 切换暂存状态
@@ -191,10 +191,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: 查看隐藏选项
   <kbd>a</kbd>: 切换所有文件的暂存状态
   <kbd>enter</kbd>: 暂存单个 块/行 用于文件, 或 折叠/展开 目录
-  <kbd>:</kbd>: 执行自定义命令
   <kbd>g</kbd>: 查看上游重置选项
   <kbd>`</kbd>: 切换文件树视图
   <kbd>M</kbd>: 打开合并工具
+  <kbd>f</kbd>: 抓取
 </pre>
 
 ## 文件 面板 (子模块)

@@ -20,6 +20,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>@</kbd>: open command log menu
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
+  <kbd>:</kbd>: execute custom command
   <kbd>z</kbd>: undo (via reflog) (experimental)
   <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
   <kbd>P</kbd>: push
@@ -41,6 +42,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Branches Panel (Branches Tab)
 
 <pre>
+  <kbd>i</kbd>: show git-flow options
+  <kbd>ctrl+o</kbd>: copy branch name to clipboard
   <kbd>space</kbd>: checkout
   <kbd>o</kbd>: create pull request
   <kbd>O</kbd>: create pull request options
@@ -51,11 +54,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>d</kbd>: delete branch
   <kbd>r</kbd>: rebase checked-out branch onto this branch
   <kbd>M</kbd>: merge into currently checked out branch
-  <kbd>i</kbd>: show git-flow options
   <kbd>f</kbd>: fast-forward this branch from its upstream
   <kbd>g</kbd>: view reset options
   <kbd>R</kbd>: rename branch
-  <kbd>ctrl+o</kbd>: copy branch name to clipboard
   <kbd>enter</kbd>: view commits
 </pre>
 
@@ -64,13 +65,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>esc</kbd>: Return to remotes list
   <kbd>g</kbd>: view reset options
-  <kbd>enter</kbd>: view commits
   <kbd>space</kbd>: checkout
   <kbd>n</kbd>: new branch
   <kbd>M</kbd>: merge into currently checked out branch
   <kbd>d</kbd>: delete branch
   <kbd>r</kbd>: rebase checked-out branch onto this branch
   <kbd>u</kbd>: set as upstream of checked-out branch
+  <kbd>enter</kbd>: view commits
 </pre>
 
 ## Branches Panel (Remotes Tab)
@@ -122,12 +123,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Commits Panel (Commits)
 
 <pre>
-  <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
-  <kbd>C</kbd>: copy commit range (cherry-pick)
-  <kbd>v</kbd>: paste commits (cherry-pick)
-  <kbd>n</kbd>: create new branch off of commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>b</kbd>: view bisect options
   <kbd>s</kbd>: squash down
   <kbd>f</kbd>: fixup commit
   <kbd>r</kbd>: reword commit
@@ -141,6 +139,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: move commit up one
   <kbd>A</kbd>: amend commit with staged changes
   <kbd>t</kbd>: revert commit
+  <kbd>n</kbd>: create new branch off of commit
+  <kbd>c</kbd>: copy commit (cherry-pick)
+  <kbd>C</kbd>: copy commit range (cherry-pick)
+  <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>ctrl+l</kbd>: open log menu
   <kbd>g</kbd>: reset to this commit
   <kbd>enter</kbd>: view commit's files
@@ -148,7 +150,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+y</kbd>: copy commit message to clipboard
   <kbd>o</kbd>: open commit in browser
-  <kbd>b</kbd>: view bisect options
 </pre>
 
 ## Commits Panel (Reflog Tab)
@@ -173,7 +174,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>D</kbd>: view reset options
-  <kbd>f</kbd>: fetch
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>space</kbd>: toggle staged
@@ -191,10 +191,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: view stash options
   <kbd>a</kbd>: stage/unstage all
   <kbd>enter</kbd>: stage individual hunks/lines for file, or collapse/expand for directory
-  <kbd>:</kbd>: execute custom command
   <kbd>g</kbd>: view upstream reset options
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>f</kbd>: fetch
 </pre>
 
 ## Files Panel (Submodules)
