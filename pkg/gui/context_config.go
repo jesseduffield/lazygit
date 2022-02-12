@@ -5,34 +5,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-func (gui *Gui) allContexts2() []types.Context {
-	return []types.Context{
-		gui.State.Contexts.Global,
-		gui.State.Contexts.Status,
-		gui.State.Contexts.Files,
-		gui.State.Contexts.Submodules,
-		gui.State.Contexts.Branches,
-		gui.State.Contexts.Remotes,
-		gui.State.Contexts.RemoteBranches,
-		gui.State.Contexts.Tags,
-		gui.State.Contexts.BranchCommits,
-		gui.State.Contexts.CommitFiles,
-		gui.State.Contexts.ReflogCommits,
-		gui.State.Contexts.Stash,
-		gui.State.Contexts.Menu,
-		gui.State.Contexts.Confirmation,
-		gui.State.Contexts.Credentials,
-		gui.State.Contexts.CommitMessage,
-		gui.State.Contexts.Normal,
-		gui.State.Contexts.Staging,
-		gui.State.Contexts.Merging,
-		gui.State.Contexts.PatchBuilding,
-		gui.State.Contexts.SubCommits,
-		gui.State.Contexts.Suggestions,
-		gui.State.Contexts.CommandLog,
-	}
-}
-
 func (gui *Gui) contextTree() *context.ContextTree {
 	return &context.ContextTree{
 		Global: context.NewSimpleContext(

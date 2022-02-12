@@ -3,6 +3,8 @@ package gui
 import (
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -220,6 +222,19 @@ func (gui *Gui) activateContext(c types.Context, opts ...types.OnFocusOpts) erro
 	}
 
 	return nil
+}
+
+func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
+	optionsArray := make([]string, 0)
+	for key, description := range optionsMap {
+		optionsArray = append(optionsArray, key+": "+description)
+	}
+	sort.Strings(optionsArray)
+	return strings.Join(optionsArray, ", ")
+}
+
+func (gui *Gui) renderOptionsMap(optionsMap map[string]string) {
+	_ = gui.renderString(gui.Views.Options, gui.optionsMapToString(optionsMap))
 }
 
 // also setting context on view for now. We'll need to pick one of these two approaches to stick with.

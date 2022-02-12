@@ -2,18 +2,11 @@ package gui
 
 import (
 	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
 )
-
-func (gui *Gui) getCyclableWindows() []string {
-	return []string{"status", "files", "branches", "commits", "stash"}
-}
 
 func (gui *Gui) resetOrigin(v *gocui.View) error {
 	_ = v.SetCursor(0, 0)
@@ -39,19 +32,6 @@ func (gui *Gui) renderString(view *gocui.View, s string) error {
 	}
 	gui.setViewContent(view, s)
 	return nil
-}
-
-func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
-	optionsArray := make([]string, 0)
-	for key, description := range optionsMap {
-		optionsArray = append(optionsArray, key+": "+description)
-	}
-	sort.Strings(optionsArray)
-	return strings.Join(optionsArray, ", ")
-}
-
-func (gui *Gui) renderOptionsMap(optionsMap map[string]string) {
-	_ = gui.renderString(gui.Views.Options, gui.optionsMapToString(optionsMap))
 }
 
 func (gui *Gui) currentViewName() string {
@@ -83,46 +63,6 @@ func (gui *Gui) resizePopupPanel(v *gocui.View, content string) error {
 	}
 	_, err := gui.g.SetView(v.Name(), x0, y0, x1, y1, 0)
 	return err
-}
-
-func (gui *Gui) changeSelectedLine(panelState types.IListPanelState, total int, change int) {
-	// TODO: find out why we're doing this
-	line := panelState.GetSelectedLineIdx()
-
-	if line == -1 {
-		return
-	}
-	var newLine int
-	if line+change < 0 {
-		newLine = 0
-	} else if line+change >= total {
-		newLine = total - 1
-	} else {
-		newLine = line + change
-	}
-
-	panelState.SetSelectedLineIdx(newLine)
-}
-
-func (gui *Gui) refreshSelectedLine(panelState types.IListPanelState, total int) {
-	line := panelState.GetSelectedLineIdx()
-
-	if line == -1 && total > 0 {
-		panelState.SetSelectedLineIdx(0)
-	} else if total-1 < line {
-		panelState.SetSelectedLineIdx(total - 1)
-	}
-}
-
-func (gui *Gui) renderDisplayStrings(v *gocui.View, displayStrings [][]string) {
-	list := utils.RenderDisplayStrings(displayStrings)
-	v.SetContent(list)
-}
-
-func (gui *Gui) renderDisplayStringsInViewPort(v *gocui.View, displayStrings [][]string) {
-	list := utils.RenderDisplayStrings(displayStrings)
-	_, y := v.Origin()
-	v.OverwriteLines(y, list)
 }
 
 func (gui *Gui) globalOptionsMap() map[string]string {
