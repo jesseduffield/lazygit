@@ -313,6 +313,10 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 	}
 }
 
+func (gui *Gui) getCyclableWindows() []string {
+	return []string{"status", "files", "branches", "commits", "stash"}
+}
+
 func (gui *Gui) currentSideWindowName() string {
 	// there is always one and only one cyclable context in the context stack. We'll look from top to bottom
 	gui.State.ContextManager.RLock()

@@ -212,18 +212,6 @@ type Controllers struct {
 	Global       *controllers.GlobalController
 }
 
-type listPanelState struct {
-	SelectedLineIdx int
-}
-
-func (h *listPanelState) SetSelectedLineIdx(value int) {
-	h.SelectedLineIdx = value
-}
-
-func (h *listPanelState) GetSelectedLineIdx() int {
-	return h.SelectedLineIdx
-}
-
 // for now the staging panel state, unlike the other panel states, is going to be
 // non-mutative, so that we don't accidentally end up
 // with mismatches of data. We might change this in the future

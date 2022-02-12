@@ -1,16 +1,11 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // list panel functions
-
-func (gui *Gui) getSelectedReflogCommit() *models.Commit {
-	return gui.State.Contexts.ReflogCommits.GetSelected()
-}
 
 func (gui *Gui) reflogCommitsRenderToMain() error {
 	commit := gui.State.Contexts.ReflogCommits.GetSelected()
