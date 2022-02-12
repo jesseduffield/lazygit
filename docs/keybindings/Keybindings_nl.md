@@ -21,6 +21,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>@</kbd>: open command log menu
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
+  <kbd>:</kbd>: voor aangepaste commando uit
   <kbd>z</kbd>: ongedaan maken (via reflog) (experimenteel)
   <kbd>ctrl+z</kbd>: redo (via reflog) (experimenteel)
   <kbd>P</kbd>: push
@@ -42,6 +43,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Branches Paneel (Branches Tabblad)
 
 <pre>
+  <kbd>i</kbd>: laat git-flow opties zien
+  <kbd>ctrl+o</kbd>: kopieer branch name naar klembord
   <kbd>space</kbd>: uitchecken
   <kbd>o</kbd>: maak een pull-request
   <kbd>O</kbd>: bekijk opties voor pull-aanvraag
@@ -52,11 +55,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>d</kbd>: verwijder branch
   <kbd>r</kbd>: rebase branch
   <kbd>M</kbd>: merge in met huidige checked out branch
-  <kbd>i</kbd>: laat git-flow opties zien
   <kbd>f</kbd>: fast-forward deze branch vanaf zijn upstream
   <kbd>g</kbd>: bekijk reset opties
   <kbd>R</kbd>: hernoem branch
-  <kbd>ctrl+o</kbd>: kopieer branch name naar klembord
   <kbd>enter</kbd>: bekijk commits
 </pre>
 
@@ -65,13 +66,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>esc</kbd>: ga terug naar remotes lijst
   <kbd>g</kbd>: bekijk reset opties
-  <kbd>enter</kbd>: bekijk commits
   <kbd>space</kbd>: uitchecken
   <kbd>n</kbd>: nieuwe branch
   <kbd>M</kbd>: merge in met huidige checked out branch
   <kbd>d</kbd>: verwijder branch
   <kbd>r</kbd>: rebase branch
   <kbd>u</kbd>: stel in als upstream van uitgecheckte branch
+  <kbd>enter</kbd>: bekijk commits
 </pre>
 
 ## Branches Paneel (Remotes Tabblad)
@@ -123,12 +124,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Commits Paneel (Commits)
 
 <pre>
-  <kbd>c</kbd>: kopieer commit (cherry-pick)
   <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
-  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
-  <kbd>v</kbd>: plak commits (cherry-pick)
-  <kbd>n</kbd>: creëer nieuwe branch van commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
+  <kbd>b</kbd>: view bisect options
   <kbd>s</kbd>: squash beneden
   <kbd>f</kbd>: Fixup commit
   <kbd>r</kbd>: hernoem commit
@@ -142,6 +140,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: verplaats commit 1 naar boven
   <kbd>A</kbd>: wijzig commit met staged veranderingen
   <kbd>t</kbd>: commit ongedaan maken
+  <kbd>n</kbd>: creëer nieuwe branch van commit
+  <kbd>c</kbd>: kopieer commit (cherry-pick)
+  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
+  <kbd>v</kbd>: plak commits (cherry-pick)
   <kbd>ctrl+l</kbd>: open log menu
   <kbd>g</kbd>: reset naar deze commit
   <kbd>enter</kbd>: bekijk gecommite bestanden
@@ -149,7 +151,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+y</kbd>: kopieer commit bericht naar klembord
   <kbd>o</kbd>: open commit in browser
-  <kbd>b</kbd>: view bisect options
 </pre>
 
 ## Commits Paneel (Reflog Tabblad)
@@ -186,10 +187,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: bekijk stash opties
   <kbd>a</kbd>: toggle staged alle
   <kbd>enter</kbd>: stage individuele hunks/lijnen
-  <kbd>:</kbd>: voor aangepaste commando uit
   <kbd>g</kbd>: bekijk upstream reset opties
   <kbd>`</kbd>: toggle bestandsboom weergave
   <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>f</kbd>: fetch
 </pre>
 
 ## Bestanden Paneel (Submodules)

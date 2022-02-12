@@ -20,6 +20,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>@</kbd>: open command log menu
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
+  <kbd>:</kbd>: wykonaj własną komendę
   <kbd>z</kbd>: undo (via reflog) (experimental)
   <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
   <kbd>P</kbd>: push
@@ -41,6 +42,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Gałęzie Panel (Branches Tab)
 
 <pre>
+  <kbd>i</kbd>: show git-flow options
+  <kbd>ctrl+o</kbd>: copy branch name to clipboard
   <kbd>space</kbd>: przełącz
   <kbd>o</kbd>: utwórz żądanie pobrania
   <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
@@ -51,11 +54,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>d</kbd>: usuń gałąź
   <kbd>r</kbd>: zmiana bazy gałęzi
   <kbd>M</kbd>: scal do obecnej gałęzi
-  <kbd>i</kbd>: show git-flow options
   <kbd>f</kbd>: fast-forward this branch from its upstream
   <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>R</kbd>: rename branch
-  <kbd>ctrl+o</kbd>: copy branch name to clipboard
   <kbd>enter</kbd>: view commits
 </pre>
 
@@ -64,13 +65,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>esc</kbd>: wróć do listy repozytoriów zdalnych
   <kbd>g</kbd>: wyświetl opcje resetu
-  <kbd>enter</kbd>: view commits
   <kbd>space</kbd>: przełącz
   <kbd>n</kbd>: nowa gałąź
   <kbd>M</kbd>: scal do obecnej gałęzi
   <kbd>d</kbd>: usuń gałąź
   <kbd>r</kbd>: zmiana bazy gałęzi
   <kbd>u</kbd>: set as upstream of checked-out branch
+  <kbd>enter</kbd>: view commits
 </pre>
 
 ## Gałęzie Panel (Remotes Tab)
@@ -122,12 +123,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Commity Panel (Commity)
 
 <pre>
-  <kbd>c</kbd>: kopiuj commit (przebieranie)
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
-  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
-  <kbd>v</kbd>: wklej commity (przebieranie)
-  <kbd>n</kbd>: create new branch off of commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>b</kbd>: view bisect options
   <kbd>s</kbd>: ściśnij
   <kbd>f</kbd>: napraw commit
   <kbd>r</kbd>: zmień nazwę commita
@@ -141,6 +139,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: przenieś commit 1 w górę
   <kbd>A</kbd>: popraw commit zmianami z poczekalni
   <kbd>t</kbd>: odwróć commit
+  <kbd>n</kbd>: create new branch off of commit
+  <kbd>c</kbd>: kopiuj commit (przebieranie)
+  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
+  <kbd>v</kbd>: wklej commity (przebieranie)
   <kbd>ctrl+l</kbd>: open log menu
   <kbd>g</kbd>: zresetuj do tego commita
   <kbd>enter</kbd>: przeglądaj pliki commita
@@ -148,7 +150,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+y</kbd>: copy commit message to clipboard
   <kbd>o</kbd>: open commit in browser
-  <kbd>b</kbd>: view bisect options
 </pre>
 
 ## Commity Panel (Reflog Tab)
@@ -173,7 +174,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>D</kbd>: wyświetl opcje resetu
-  <kbd>f</kbd>: pobierz
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>space</kbd>: przełącz stan poczekalni
@@ -191,10 +191,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: wyświetl opcje schowka
   <kbd>a</kbd>: przełącz stan poczekalni wszystkich
   <kbd>enter</kbd>: zatwierdź pojedyncze linie
-  <kbd>:</kbd>: wykonaj własną komendę
   <kbd>g</kbd>: view upstream reset options
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>f</kbd>: pobierz
 </pre>
 
 ## Pliki Panel (Submodules)
