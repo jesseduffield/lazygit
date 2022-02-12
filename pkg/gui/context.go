@@ -181,7 +181,12 @@ func (gui *Gui) activateContext(c types.Context, opts ...types.OnFocusOpts) erro
 	if err != nil {
 		return err
 	}
-	originalViewContextKey := gui.State.ViewContextMap.Get(viewName).GetKey()
+
+	originalViewContext := gui.State.ViewContextMap.Get(viewName)
+	var originalViewContextKey types.ContextKey = ""
+	if originalViewContext != nil {
+		originalViewContextKey = originalViewContext.GetKey()
+	}
 
 	gui.setWindowContext(c)
 	gui.setViewTabForContext(c)
