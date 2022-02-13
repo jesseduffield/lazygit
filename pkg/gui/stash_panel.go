@@ -2,7 +2,6 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -112,19 +111,6 @@ func (gui *Gui) handleStashDrop() error {
 
 func (gui *Gui) postStashRefresh() error {
 	return gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH, types.FILES}})
-}
-
-func (gui *Gui) handleViewStashFiles() error {
-	stashEntry := gui.getSelectedStashEntry()
-	if stashEntry == nil {
-		return nil
-	}
-
-	return gui.SwitchToCommitFilesContext(controllers.SwitchToCommitFilesContextOpts{
-		RefName:   stashEntry.RefName(),
-		CanRebase: false,
-		Context:   gui.State.Contexts.Stash,
-	})
 }
 
 func (gui *Gui) handleNewBranchOffStashEntry() error {

@@ -58,6 +58,20 @@ func (self *StashContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
+func (self *StashContext) CanRebase() bool {
+	return false
+}
+
+func (self *StashContext) GetSelectedRefName() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.RefName()
+}
+
 type StashViewModel struct {
 	*traits.ListCursor
 	getModel func() []*models.StashEntry

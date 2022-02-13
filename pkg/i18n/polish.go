@@ -175,7 +175,7 @@ func polishTranslationSet() TranslationSet {
 		AmendingStatus:                      "poprawianie",
 		CherryPickingStatus:                 "przebieranie",
 		CommitFiles:                         "Pliki commita",
-		LcViewCommitFiles:                   "przeglądaj pliki commita",
+		LcViewItemFiles:                     "przeglądaj pliki commita",
 		CommitFilesTitle:                    "Pliki commita",
 		LcCheckoutCommitFile:                "plik wybierania",
 		LcDiscardOldFileChange:              "porzuć zmiany commita dla tego pliku",
