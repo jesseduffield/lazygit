@@ -323,6 +323,8 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			if state := gui.RepoStateMap[Repo(currentDir)]; state != nil {
 				gui.State = state
 				gui.State.ViewsSetup = false
+				gui.syncViewContexts()
+				return
 			}
 		} else {
 			gui.c.Log.Error(err)
@@ -341,11 +343,6 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	viewContextMap := context.NewViewContextMap()
 	for viewName, context := range initialViewContextMapping(contextTree) {
 		viewContextMap.Set(viewName, context)
-		view, err := gui.g.View(viewName)
-		if err != nil {
-			panic(err)
-		}
-		view.Context = string(context.GetKey())
 	}
 
 	gui.State = &GuiRepoState{
@@ -380,7 +377,19 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		Contexts:       contextTree,
 	}
 
+	gui.syncViewContexts()
+
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
+}
+
+func (gui *Gui) syncViewContexts() {
+	for viewName, context := range gui.State.ViewContextMap.Entries() {
+		view, err := gui.g.View(viewName)
+		if err != nil {
+			panic(err)
+		}
+		view.Context = string(context.GetKey())
+	}
 }
 
 func initialViewContextMapping(contextTree *context.ContextTree) map[string]types.Context {

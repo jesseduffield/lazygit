@@ -137,6 +137,12 @@ func (self *ViewContextMap) Set(viewName string, context types.Context) {
 	self.content[viewName] = context
 }
 
+func (self *ViewContextMap) Entries() map[string]types.Context {
+	self.Lock()
+	defer self.Unlock()
+	return self.content
+}
+
 type TabContext struct {
 	Tab      string
 	Contexts []types.Context
