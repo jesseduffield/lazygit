@@ -578,6 +578,19 @@ func (gui *Gui) resetControllers() {
 		controllers.AttachControllers(context, switchToSubCommitsControllerFactory.Create(context))
 	}
 
+	commonCommitControllerFactory := controllers.NewCommonCommitControllerFactory(
+		common,
+		gui.SwitchToCommitFilesContext,
+	)
+
+	for _, context := range []controllers.CommitContext{
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.SubCommits,
+	} {
+		controllers.AttachControllers(context, commonCommitControllerFactory.Create(context))
+	}
+
 	controllers.AttachControllers(gui.State.Contexts.Branches, branchesController)
 	controllers.AttachControllers(gui.State.Contexts.Files, gui.Controllers.Files)
 	controllers.AttachControllers(gui.State.Contexts.Tags, gui.Controllers.Tags)

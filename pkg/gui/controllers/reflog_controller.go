@@ -29,11 +29,6 @@ func NewReflogController(
 func (self *ReflogController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.LcViewCommitFiles,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.checkSelected(self.checkout),
 			Description: self.c.Tr.LcCheckoutCommit,
@@ -101,14 +96,6 @@ func (self *ReflogController) checkout(commit *models.Commit) error {
 
 func (self *ReflogController) openResetMenu(commit *models.Commit) error {
 	return self.helpers.Refs.CreateGitResetMenu(commit.Sha)
-}
-
-func (self *ReflogController) enter(commit *models.Commit) error {
-	return self.switchToCommitFilesContext(SwitchToCommitFilesContextOpts{
-		RefName:   commit.Sha,
-		CanRebase: false,
-		Context:   self.context(),
-	})
 }
 
 func (self *ReflogController) copy(commit *models.Commit) error {

@@ -82,6 +82,10 @@ func NewLocalCommitsViewModel(getModel func() []*models.Commit) *LocalCommitsVie
 	return self
 }
 
+func (self *LocalCommitsContext) CanRebase() bool {
+	return true
+}
+
 func (self *LocalCommitsViewModel) GetItemsLength() int {
 	return len(self.getModel())
 }
