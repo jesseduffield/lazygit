@@ -58,6 +58,10 @@ func (self *ReflogCommitsContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
+func (self *ReflogCommitsContext) CanRebase() bool {
+	return false
+}
+
 type ReflogCommitsViewModel struct {
 	*traits.ListCursor
 	getModel func() []*models.Commit

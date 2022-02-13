@@ -59,6 +59,10 @@ func (self *SubCommitsContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
+func (self *SubCommitsContext) CanRebase() bool {
+	return false
+}
+
 type SubCommitsViewModel struct {
 	*traits.ListCursor
 	getModel func() []*models.Commit

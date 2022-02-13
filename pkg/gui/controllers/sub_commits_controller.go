@@ -29,11 +29,6 @@ func NewSubCommitsController(
 func (self *SubCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.LcViewCommitFiles,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.checkSelected(self.checkout),
 			Description: self.c.Tr.LcCheckoutCommit,
@@ -108,14 +103,6 @@ func (self *SubCommitsController) checkout(commit *models.Commit) error {
 
 func (self *SubCommitsController) openResetMenu(commit *models.Commit) error {
 	return self.helpers.Refs.CreateGitResetMenu(commit.Sha)
-}
-
-func (self *SubCommitsController) enter(commit *models.Commit) error {
-	return self.switchToCommitFilesContext(SwitchToCommitFilesContextOpts{
-		RefName:   commit.Sha,
-		CanRebase: false,
-		Context:   self.context(),
-	})
 }
 
 func (self *SubCommitsController) newBranch(commit *models.Commit) error {

@@ -163,11 +163,6 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.LcResetToThisCommit,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.LcViewCommitFiles,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Commits.CheckoutCommit),
 			Handler:     self.checkSelected(self.handleCheckoutCommit),
 			Description: self.c.Tr.LcCheckoutCommit,
@@ -513,14 +508,6 @@ func (self *LocalCommitsController) afterRevertCommit() error {
 	self.context().MoveSelectedLine(1)
 	return self.c.Refresh(types.RefreshOptions{
 		Mode: types.BLOCK_UI, Scope: []types.RefreshableView{types.COMMITS, types.BRANCHES},
-	})
-}
-
-func (self *LocalCommitsController) enter(commit *models.Commit) error {
-	return self.switchToCommitFilesContext(SwitchToCommitFilesContextOpts{
-		RefName:   commit.Sha,
-		CanRebase: true,
-		Context:   self.context(),
 	})
 }
 
