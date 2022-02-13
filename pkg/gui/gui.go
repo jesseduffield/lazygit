@@ -580,17 +580,18 @@ func (gui *Gui) resetControllers() {
 		controllers.AttachControllers(context, switchToSubCommitsControllerFactory.Create(context))
 	}
 
-	commonCommitControllerFactory := controllers.NewCommonCommitControllerFactory(
+	commitishControllerFactory := controllers.NewCommitishControllerFactory(
 		common,
 		gui.SwitchToCommitFilesContext,
 	)
 
-	for _, context := range []controllers.CommitContext{
+	for _, context := range []controllers.Commitish{
 		gui.State.Contexts.LocalCommits,
 		gui.State.Contexts.ReflogCommits,
 		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.Stash,
 	} {
-		controllers.AttachControllers(context, commonCommitControllerFactory.Create(context))
+		controllers.AttachControllers(context, commitishControllerFactory.Create(context))
 	}
 
 	controllers.AttachControllers(gui.State.Contexts.Branches, branchesController, gitFlowController)

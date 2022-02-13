@@ -432,12 +432,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName:    "stash",
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.handleViewStashFiles,
-			Description: self.c.Tr.LcViewStashFiles,
-		},
-		{
-			ViewName:    "stash",
 			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.handleStashApply,
 			Description: self.c.Tr.LcApply,

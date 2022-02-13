@@ -63,6 +63,16 @@ func (self *SubCommitsContext) CanRebase() bool {
 	return false
 }
 
+func (self *SubCommitsContext) GetSelectedRefName() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.RefName()
+}
+
 type SubCommitsViewModel struct {
 	*traits.ListCursor
 	getModel func() []*models.Commit

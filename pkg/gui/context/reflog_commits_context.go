@@ -62,6 +62,16 @@ func (self *ReflogCommitsContext) CanRebase() bool {
 	return false
 }
 
+func (self *ReflogCommitsContext) GetSelectedRefName() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.RefName()
+}
+
 type ReflogCommitsViewModel struct {
 	*traits.ListCursor
 	getModel func() []*models.Commit

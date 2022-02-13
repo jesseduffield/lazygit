@@ -86,6 +86,16 @@ func (self *LocalCommitsContext) CanRebase() bool {
 	return true
 }
 
+func (self *LocalCommitsContext) GetSelectedRefName() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.RefName()
+}
+
 func (self *LocalCommitsViewModel) GetItemsLength() int {
 	return len(self.getModel())
 }

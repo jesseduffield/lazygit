@@ -231,7 +231,7 @@ type TranslationSet struct {
 	CheckingOutStatus                   string
 	CommittingStatus                    string
 	CommitFiles                         string
-	LcViewCommitFiles                   string
+	LcViewItemFiles                     string
 	CommitFilesTitle                    string
 	LcCheckoutCommitFile                string
 	LcDiscardOldFileChange              string
@@ -375,7 +375,6 @@ type TranslationSet struct {
 	UnstageLinesTitle                   string
 	UnstageLinesPrompt                  string
 	LcCreateNewBranchFromCommit         string
-	LcViewStashFiles                    string
 	LcBuildingPatch                     string
 	LcViewCommits                       string
 	MinGitVersionError                  string
@@ -804,7 +803,7 @@ func EnglishTranslationSet() TranslationSet {
 		CheckingOutStatus:                   "checking out",
 		CommittingStatus:                    "committing",
 		CommitFiles:                         "Commit files",
-		LcViewCommitFiles:                   "view commit's files",
+		LcViewItemFiles:                     "view selected item's files",
 		CommitFilesTitle:                    "Commit Files",
 		LcCheckoutCommitFile:                "checkout file",
 		LcDiscardOldFileChange:              "discard this commit's changes to this file",
@@ -949,7 +948,6 @@ func EnglishTranslationSet() TranslationSet {
 		UnstageLinesTitle:                   "Unstage lines",
 		UnstageLinesPrompt:                  "Are you sure you want to delete the selected lines (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true",
 		LcCreateNewBranchFromCommit:         "create new branch off of commit",
-		LcViewStashFiles:                    "view stash entry's files",
 		LcBuildingPatch:                     "building patch",
 		LcViewCommits:                       "view commits",
 		MinGitVersionError:                  "Git version must be at least 2.0 (i.e. from 2014 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
