@@ -256,6 +256,13 @@ func (gui *Gui) handleToggleCommitFileDirCollapsed() error {
 	return nil
 }
 
+// NOTE: this is very similar to handleToggleFileTreeView, could be DRY'd with generics
+func (gui *Gui) handleToggleCommitFileTreeView() error {
+	gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.ToggleShowTree()
+
+	return gui.c.PostRefreshUpdate(gui.State.Contexts.CommitFiles)
+}
+
 func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesContextOpts) error {
 	// sometimes the commitFiles view is already shown in another window, so we need to ensure that window
 	// no longer considers the commitFiles view as its main view.
@@ -272,11 +279,4 @@ func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesC
 	}
 
 	return gui.c.PushContext(gui.State.Contexts.CommitFiles)
-}
-
-// NOTE: this is very similar to handleToggleFileTreeView, could be DRY'd with generics
-func (gui *Gui) handleToggleCommitFileTreeView() error {
-	gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.ToggleShowTree()
-
-	return gui.c.PostRefreshUpdate(gui.State.Contexts.CommitFiles)
 }
