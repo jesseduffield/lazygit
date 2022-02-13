@@ -186,7 +186,7 @@ func (gui *Gui) refreshCommits() {
 	go utils.Safe(func() {
 		_ = gui.refreshCommitsWithLimit()
 		ctx, ok := gui.State.Contexts.CommitFiles.GetParentContext()
-		if ok && ctx.GetKey() == context.BRANCH_COMMITS_CONTEXT_KEY {
+		if ok && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
 			// This makes sense when we've e.g. just amended a commit, meaning we get a new commit SHA at the same position.
 			// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
 			// showing the contents of a different commit than the one we initially entered.
@@ -206,16 +206,16 @@ func (gui *Gui) refreshCommits() {
 }
 
 func (gui *Gui) refreshCommitsWithLimit() error {
-	gui.Mutexes.BranchCommitsMutex.Lock()
-	defer gui.Mutexes.BranchCommitsMutex.Unlock()
+	gui.Mutexes.LocalCommitsMutex.Lock()
+	defer gui.Mutexes.LocalCommitsMutex.Unlock()
 
 	commits, err := gui.git.Loaders.Commits.GetCommits(
 		loaders.GetCommitsOptions{
-			Limit:                gui.State.Contexts.BranchCommits.GetLimitCommits(),
+			Limit:                gui.State.Contexts.LocalCommits.GetLimitCommits(),
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
 			RefName:              gui.refForLog(),
-			All:                  gui.State.Contexts.BranchCommits.GetShowWholeGitGraph(),
+			All:                  gui.State.Contexts.LocalCommits.GetShowWholeGitGraph(),
 		},
 	)
 	if err != nil {
@@ -223,12 +223,12 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	}
 	gui.State.Model.Commits = commits
 
-	return gui.c.PostRefreshUpdate(gui.State.Contexts.BranchCommits)
+	return gui.c.PostRefreshUpdate(gui.State.Contexts.LocalCommits)
 }
 
 func (gui *Gui) refreshRebaseCommits() error {
-	gui.Mutexes.BranchCommitsMutex.Lock()
-	defer gui.Mutexes.BranchCommitsMutex.Unlock()
+	gui.Mutexes.LocalCommitsMutex.Lock()
+	defer gui.Mutexes.LocalCommitsMutex.Unlock()
 
 	updatedCommits, err := gui.git.Loaders.Commits.MergeRebasingCommits(gui.State.Model.Commits)
 	if err != nil {
@@ -236,7 +236,7 @@ func (gui *Gui) refreshRebaseCommits() error {
 	}
 	gui.State.Model.Commits = updatedCommits
 
-	return gui.c.PostRefreshUpdate(gui.State.Contexts.BranchCommits)
+	return gui.c.PostRefreshUpdate(gui.State.Contexts.LocalCommits)
 }
 
 func (self *Gui) refreshTags() error {

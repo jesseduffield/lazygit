@@ -336,7 +336,7 @@ func (gui *Gui) currentStaticContext() types.Context {
 
 func (gui *Gui) defaultSideContext() types.Context {
 	if gui.State.Modes.Filtering.Active() {
-		return gui.State.Contexts.BranchCommits
+		return gui.State.Contexts.LocalCommits
 	} else {
 		return gui.State.Contexts.Files
 	}

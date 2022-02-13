@@ -44,7 +44,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 			},
 		}...)
 
-		if gui.currentContext().GetKey() == gui.State.Contexts.BranchCommits.GetKey() {
+		if gui.currentContext().GetKey() == gui.State.Contexts.LocalCommits.GetKey() {
 			selectedCommit := gui.getSelectedLocalCommit()
 			if selectedCommit != nil && gui.git.Patch.PatchManager.To != selectedCommit.Sha {
 				// adding this option to index 1
@@ -118,7 +118,7 @@ func (gui *Gui) handleMovePatchToSelectedCommit() error {
 	return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.c.LogAction(gui.c.Tr.Actions.MovePatchToSelectedCommit)
-		err := gui.git.Patch.MovePatchToSelectedCommit(gui.State.Model.Commits, commitIndex, gui.State.Contexts.BranchCommits.GetSelectedLineIdx())
+		err := gui.git.Patch.MovePatchToSelectedCommit(gui.State.Model.Commits, commitIndex, gui.State.Contexts.LocalCommits.GetSelectedLineIdx())
 		return gui.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }

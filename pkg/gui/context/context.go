@@ -14,7 +14,7 @@ const (
 	REMOTES_CONTEXT_KEY             types.ContextKey = "remotes"
 	REMOTE_BRANCHES_CONTEXT_KEY     types.ContextKey = "remoteBranches"
 	TAGS_CONTEXT_KEY                types.ContextKey = "tags"
-	BRANCH_COMMITS_CONTEXT_KEY      types.ContextKey = "commits"
+	LOCAL_COMMITS_CONTEXT_KEY       types.ContextKey = "commits"
 	REFLOG_COMMITS_CONTEXT_KEY      types.ContextKey = "reflogCommits"
 	SUB_COMMITS_CONTEXT_KEY         types.ContextKey = "subCommits"
 	COMMIT_FILES_CONTEXT_KEY        types.ContextKey = "commitFiles"
@@ -41,7 +41,7 @@ var AllContextKeys = []types.ContextKey{
 	REMOTES_CONTEXT_KEY,
 	REMOTE_BRANCHES_CONTEXT_KEY,
 	TAGS_CONTEXT_KEY,
-	BRANCH_COMMITS_CONTEXT_KEY,
+	LOCAL_COMMITS_CONTEXT_KEY,
 	REFLOG_COMMITS_CONTEXT_KEY,
 	SUB_COMMITS_CONTEXT_KEY,
 	COMMIT_FILES_CONTEXT_KEY,
@@ -67,7 +67,7 @@ type ContextTree struct {
 	Menu           *MenuContext
 	Branches       *BranchesContext
 	Tags           *TagsContext
-	BranchCommits  *LocalCommitsContext
+	LocalCommits   *LocalCommitsContext
 	CommitFiles    *CommitFilesContext
 	Remotes        *RemotesContext
 	Submodules     *SubmodulesContext
@@ -97,7 +97,7 @@ func (self *ContextTree) Flatten() []types.Context {
 		self.Remotes,
 		self.RemoteBranches,
 		self.Tags,
-		self.BranchCommits,
+		self.LocalCommits,
 		self.CommitFiles,
 		self.ReflogCommits,
 		self.Stash,
@@ -170,7 +170,7 @@ func (tree ContextTree) InitialViewTabContextMap() map[string][]TabContext {
 		"commits": {
 			{
 				Tab:      "Commits",
-				Contexts: []types.Context{tree.BranchCommits},
+				Contexts: []types.Context{tree.LocalCommits},
 			},
 			{
 				Tab: "Reflog",
