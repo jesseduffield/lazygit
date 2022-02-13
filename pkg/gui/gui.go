@@ -535,6 +535,7 @@ func (gui *Gui) resetControllers() {
 	bisectController := controllers.NewBisectController(common)
 
 	reflogController := controllers.NewReflogController(common, gui.SwitchToCommitFilesContext)
+	subCommitsController := controllers.NewSubCommitsController(common, gui.SwitchToCommitFilesContext)
 
 	gui.Controllers = Controllers{
 		Submodules: submodulesController,
@@ -583,6 +584,7 @@ func (gui *Gui) resetControllers() {
 	controllers.AttachControllers(gui.State.Contexts.Submodules, gui.Controllers.Submodules)
 	controllers.AttachControllers(gui.State.Contexts.LocalCommits, gui.Controllers.LocalCommits, bisectController)
 	controllers.AttachControllers(gui.State.Contexts.ReflogCommits, reflogController)
+	controllers.AttachControllers(gui.State.Contexts.SubCommits, subCommitsController)
 	controllers.AttachControllers(gui.State.Contexts.Remotes, gui.Controllers.Remotes)
 	controllers.AttachControllers(gui.State.Contexts.Menu, gui.Controllers.Menu)
 	controllers.AttachControllers(gui.State.Contexts.Global, gui.Controllers.Sync, gui.Controllers.Undo, gui.Controllers.Global)
