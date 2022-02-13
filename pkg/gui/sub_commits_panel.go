@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -67,27 +66,6 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 		CanRebase: false,
 		Context:   gui.State.Contexts.SubCommits,
 	})
-}
-
-func (gui *Gui) switchToSubCommitsContext(refName string) error {
-	// need to populate my sub commits
-	commits, err := gui.git.Loaders.Commits.GetCommits(
-		loaders.GetCommitsOptions{
-			Limit:                true,
-			FilterPath:           gui.State.Modes.Filtering.GetPath(),
-			IncludeRebaseCommits: false,
-			RefName:              refName,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	gui.State.Model.SubCommits = commits
-	gui.State.Contexts.SubCommits.SetSelectedLineIdx(0)
-	gui.State.Contexts.SubCommits.SetParentContext(gui.currentSideListContext())
-
-	return gui.c.PushContext(gui.State.Contexts.SubCommits)
 }
 
 func (gui *Gui) handleNewBranchOffSubCommit() error {
