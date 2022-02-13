@@ -43,12 +43,11 @@ func (gui *Gui) currentContextKeyIgnoringPopups() types.ContextKey {
 // use replaceContext when you don't want to return to the original context upon
 // hitting escape: you want to go that context's parent instead.
 func (gui *Gui) replaceContext(c types.Context) error {
-	gui.State.ContextManager.Lock()
-	defer gui.State.ContextManager.Unlock()
-
 	if !c.IsFocusable() {
 		return nil
 	}
+
+	gui.State.ContextManager.Lock()
 
 	if len(gui.State.ContextManager.ContextStack) == 0 {
 		gui.State.ContextManager.ContextStack = []types.Context{c}
@@ -56,6 +55,8 @@ func (gui *Gui) replaceContext(c types.Context) error {
 		// replace the last item with the given item
 		gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack[0:len(gui.State.ContextManager.ContextStack)-1], c)
 	}
+
+	defer gui.State.ContextManager.Unlock()
 
 	return gui.activateContext(c)
 }
