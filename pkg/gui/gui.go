@@ -566,6 +566,7 @@ func (gui *Gui) resetControllers() {
 	branchesController := controllers.NewBranchesController(common)
 	gitFlowController := controllers.NewGitFlowController(common)
 	filesRemoveController := controllers.NewFilesRemoveController(common)
+	stashController := controllers.NewStashController(common)
 
 	switchToSubCommitsControllerFactory := controllers.NewSubCommitsSwitchControllerFactory(
 		common,
@@ -602,6 +603,7 @@ func (gui *Gui) resetControllers() {
 	controllers.AttachControllers(gui.State.Contexts.ReflogCommits, reflogController)
 	controllers.AttachControllers(gui.State.Contexts.SubCommits, subCommitsController)
 	controllers.AttachControllers(gui.State.Contexts.Remotes, gui.Controllers.Remotes)
+	controllers.AttachControllers(gui.State.Contexts.Stash, stashController)
 	controllers.AttachControllers(gui.State.Contexts.Menu, gui.Controllers.Menu)
 	controllers.AttachControllers(gui.State.Contexts.Global, gui.Controllers.Sync, gui.Controllers.Undo, gui.Controllers.Global)
 
