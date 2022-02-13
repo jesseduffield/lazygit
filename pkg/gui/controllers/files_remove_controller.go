@@ -1,13 +1,44 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // splitting this action out into its own file because it's self-contained
 
-func (self *FilesController) remove(node *filetree.FileNode) error {
+type FilesRemoveController struct {
+	baseController
+	*controllerCommon
+}
+
+var _ types.IController = &FilesRemoveController{}
+
+func NewFilesRemoveController(
+	common *controllerCommon,
+) *FilesRemoveController {
+	return &FilesRemoveController{
+		baseController:   baseController{},
+		controllerCommon: common,
+	}
+}
+
+func (self *FilesRemoveController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	bindings := []*types.Binding{
+		{
+			Key:         opts.GetKey(opts.Config.Universal.Remove),
+			Handler:     self.checkSelectedFileNode(self.remove),
+			Description: self.c.Tr.LcViewDiscardOptions,
+			OpensMenu:   true,
+		},
+	}
+
+	return bindings
+}
+
+func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 	var menuItems []*types.MenuItem
 	if node.File == nil {
 		menuItems = []*types.MenuItem{
@@ -82,4 +113,45 @@ func (self *FilesController) remove(node *filetree.FileNode) error {
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{Title: node.GetPath(), Items: menuItems})
+}
+
+func (self *FilesRemoveController) ResetSubmodule(submodule *models.SubmoduleConfig) error {
+	return self.c.WithWaitingStatus(self.c.Tr.LcResettingSubmoduleStatus, func() error {
+		self.c.LogAction(self.c.Tr.Actions.ResetSubmodule)
+
+		file := self.helpers.WorkingTree.FileForSubmodule(submodule)
+		if file != nil {
+			if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
+				return self.c.Error(err)
+			}
+		}
+
+		if err := self.git.Submodule.Stash(submodule); err != nil {
+			return self.c.Error(err)
+		}
+		if err := self.git.Submodule.Reset(submodule); err != nil {
+			return self.c.Error(err)
+		}
+
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.SUBMODULES}})
+	})
+}
+
+func (self *FilesRemoveController) checkSelectedFileNode(callback func(*filetree.FileNode) error) func() error {
+	return func() error {
+		node := self.context().GetSelectedFileNode()
+		if node == nil {
+			return nil
+		}
+
+		return callback(node)
+	}
+}
+
+func (self *FilesRemoveController) Context() types.Context {
+	return self.context()
+}
+
+func (self *FilesRemoveController) context() *context.WorkingTreeContext {
+	return self.contexts.Files
 }

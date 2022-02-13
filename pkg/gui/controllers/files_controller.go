@@ -99,12 +99,6 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.LcIgnoreFile,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelectedFileNode(self.remove),
-			Description: self.c.Tr.LcViewDiscardOptions,
-			OpensMenu:   true,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
 			Handler:     self.refresh,
 			Description: self.c.Tr.LcRefreshFiles,
@@ -616,28 +610,6 @@ func (self *FilesController) OpenMergeTool() error {
 				self.git.WorkingTree.OpenMergeToolCmdObj(),
 			)
 		},
-	})
-}
-
-func (self *FilesController) ResetSubmodule(submodule *models.SubmoduleConfig) error {
-	return self.c.WithWaitingStatus(self.c.Tr.LcResettingSubmoduleStatus, func() error {
-		self.c.LogAction(self.c.Tr.Actions.ResetSubmodule)
-
-		file := self.helpers.WorkingTree.FileForSubmodule(submodule)
-		if file != nil {
-			if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
-				return self.c.Error(err)
-			}
-		}
-
-		if err := self.git.Submodule.Stash(submodule); err != nil {
-			return self.c.Error(err)
-		}
-		if err := self.git.Submodule.Reset(submodule); err != nil {
-			return self.c.Error(err)
-		}
-
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.SUBMODULES}})
 	})
 }
 
