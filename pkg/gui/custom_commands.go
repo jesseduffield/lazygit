@@ -40,7 +40,7 @@ type commandMenuEntry struct {
 	value string
 }
 
-func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (string, error) {
+func (gui *Gui) getResolveTemplateFn(promptResponses []string) func(string) (string, error) {
 	objects := CustomCommandObjects{
 		SelectedFile:           gui.getSelectedFile(),
 		SelectedPath:           gui.getSelectedPath(),
@@ -58,71 +58,101 @@ func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (s
 		PromptResponses:        promptResponses,
 	}
 
-	return utils.ResolveTemplate(templateStr, objects)
+	return func(templateStr string) (string, error) { return utils.ResolveTemplate(templateStr, objects) }
 }
 
-func (gui *Gui) inputPrompt(prompt config.CustomCommandPrompt, promptResponses []string, responseIdx int, wrappedF func() error) error {
-	title, err := gui.resolveTemplate(prompt.Title, promptResponses)
+func resolveCustomCommandPrompt(prompt *config.CustomCommandPrompt, resolveTemplate func(string) (string, error)) (*config.CustomCommandPrompt, error) {
+	var err error
+	result := &config.CustomCommandPrompt{}
+
+	result.Title, err = resolveTemplate(prompt.Title)
 	if err != nil {
-		return gui.c.Error(err)
+		return nil, err
 	}
 
-	initialValue, err := gui.resolveTemplate(prompt.InitialValue, promptResponses)
+	result.InitialValue, err = resolveTemplate(prompt.InitialValue)
 	if err != nil {
-		return gui.c.Error(err)
+		return nil, err
 	}
 
+	result.Command, err = resolveTemplate(prompt.Command)
+	if err != nil {
+		return nil, err
+	}
+
+	result.Filter, err = resolveTemplate(prompt.Filter)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(prompt.Options) > 0 {
+		newOptions := make([]config.CustomCommandMenuOption, len(prompt.Options))
+		for _, option := range prompt.Options {
+			option := option
+			newOption, err := resolveMenuOption(&option, resolveTemplate)
+			if err != nil {
+				return nil, err
+			}
+			newOptions = append(newOptions, *newOption)
+		}
+		prompt.Options = newOptions
+	}
+
+	return result, nil
+}
+
+func resolveMenuOption(option *config.CustomCommandMenuOption, resolveTemplate func(string) (string, error)) (*config.CustomCommandMenuOption, error) {
+	nameTemplate := option.Name
+	if nameTemplate == "" {
+		// this allows you to only pass values rather than bother with names/descriptions
+		nameTemplate = option.Value
+	}
+
+	name, err := resolveTemplate(nameTemplate)
+	if err != nil {
+		return nil, err
+	}
+
+	description, err := resolveTemplate(option.Description)
+	if err != nil {
+		return nil, err
+	}
+
+	value, err := resolveTemplate(option.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	return &config.CustomCommandMenuOption{
+		Name:        name,
+		Description: description,
+		Value:       value,
+	}, nil
+}
+
+func (gui *Gui) inputPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
 	return gui.c.Prompt(types.PromptOpts{
-		Title:          title,
-		InitialContent: initialValue,
+		Title:          prompt.Title,
+		InitialContent: prompt.InitialValue,
 		HandleConfirm: func(str string) error {
-			promptResponses[responseIdx] = str
-			return wrappedF()
+			return wrappedF(str)
 		},
 	})
 }
 
-func (gui *Gui) menuPrompt(prompt config.CustomCommandPrompt, promptResponses []string, responseIdx int, wrappedF func() error) error {
-	// need to make a menu here some how
+func (gui *Gui) menuPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
 	menuItems := make([]*types.MenuItem, len(prompt.Options))
 	for i, option := range prompt.Options {
 		option := option
-
-		nameTemplate := option.Name
-		if nameTemplate == "" {
-			// this allows you to only pass values rather than bother with names/descriptions
-			nameTemplate = option.Value
-		}
-		name, err := gui.resolveTemplate(nameTemplate, promptResponses)
-		if err != nil {
-			return gui.c.Error(err)
-		}
-
-		description, err := gui.resolveTemplate(option.Description, promptResponses)
-		if err != nil {
-			return gui.c.Error(err)
-		}
-
-		value, err := gui.resolveTemplate(option.Value, promptResponses)
-		if err != nil {
-			return gui.c.Error(err)
-		}
-
 		menuItems[i] = &types.MenuItem{
-			DisplayStrings: []string{name, style.FgYellow.Sprint(description)},
+			DisplayStrings: []string{option.Name, style.FgYellow.Sprint(option.Description)},
 			OnPress: func() error {
-				promptResponses[responseIdx] = value
-				return wrappedF()
+				return wrappedF(option.Value)
 			},
 		}
 	}
 
-	title, err := gui.resolveTemplate(prompt.Title, promptResponses)
-	if err != nil {
-		return gui.c.Error(err)
-	}
-
-	return gui.c.Menu(types.CreateMenuOptions{Title: title, Items: menuItems})
+	return gui.c.Menu(types.CreateMenuOptions{Title: prompt.Title, Items: menuItems})
 }
 
 func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, labelFormat string) ([]commandMenuEntry, error) {
@@ -191,27 +221,15 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, label
 	return candidates, err
 }
 
-func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptResponses []string, responseIdx int, wrappedF func() error) error {
-	// Collect cmd to run from config
-	cmdStr, err := gui.resolveTemplate(prompt.Command, promptResponses)
-	if err != nil {
-		return gui.c.Error(err)
-	}
-
-	// Collect Filter regexp
-	filter, err := gui.resolveTemplate(prompt.Filter, promptResponses)
-	if err != nil {
-		return gui.c.Error(err)
-	}
-
+func (gui *Gui) menuPromptFromCommand(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
 	// Run and save output
-	message, err := gui.git.Custom.RunWithOutput(cmdStr)
+	message, err := gui.git.Custom.RunWithOutput(prompt.Command)
 	if err != nil {
 		return gui.c.Error(err)
 	}
 
 	// Need to make a menu out of what the cmd has displayed
-	candidates, err := gui.GenerateMenuCandidates(message, filter, prompt.ValueFormat, prompt.LabelFormat)
+	candidates, err := gui.GenerateMenuCandidates(message, prompt.Filter, prompt.ValueFormat, prompt.LabelFormat)
 	if err != nil {
 		return gui.c.Error(err)
 	}
@@ -222,18 +240,12 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 		menuItems[i] = &types.MenuItem{
 			DisplayStrings: []string{candidates[i].label},
 			OnPress: func() error {
-				promptResponses[responseIdx] = candidates[i].value
-				return wrappedF()
+				return wrappedF(candidates[i].value)
 			},
 		}
 	}
 
-	title, err := gui.resolveTemplate(prompt.Title, promptResponses)
-	if err != nil {
-		return gui.c.Error(err)
-	}
-
-	return gui.c.Menu(types.CreateMenuOptions{Title: title, Items: menuItems})
+	return gui.c.Menu(types.CreateMenuOptions{Title: prompt.Title, Items: menuItems})
 }
 
 func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand) func() error {
@@ -241,7 +253,8 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 		promptResponses := make([]string, len(customCommand.Prompts))
 
 		f := func() error {
-			cmdStr, err := gui.resolveTemplate(customCommand.Command, promptResponses)
+			resolveTemplate := gui.getResolveTemplateFn(promptResponses)
+			cmdStr, err := resolveTemplate(customCommand.Command)
 			if err != nil {
 				return gui.c.Error(err)
 			}
@@ -254,6 +267,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 			if loadingText == "" {
 				loadingText = gui.c.Tr.LcRunningCustomCommandStatus
 			}
+
 			return gui.c.WithWaitingStatus(loadingText, func() error {
 				gui.c.LogAction(gui.c.Tr.Actions.CustomCommand)
 				cmdObj := gui.os.Cmd.NewShell(cmdStr)
@@ -276,26 +290,33 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 			// going backwards so the outermost prompt is the first one
 			prompt := customCommand.Prompts[idx]
 
-			// need to do this because f's value will change with each iteration
-			wrappedF := f
+			wrappedF := func(response string) error {
+				promptResponses[idx] = response
+				return f()
+			}
+
+			resolveTemplate := gui.getResolveTemplateFn(promptResponses)
+			resolvedPrompt, err := resolveCustomCommandPrompt(&prompt, resolveTemplate)
+			if err != nil {
+				return gui.c.Error(err)
+			}
 
 			switch prompt.Type {
 			case "input":
 				f = func() error {
-					return gui.inputPrompt(prompt, promptResponses, idx, wrappedF)
+					return gui.inputPrompt(resolvedPrompt, wrappedF)
 				}
 			case "menu":
 				f = func() error {
-					return gui.menuPrompt(prompt, promptResponses, idx, wrappedF)
+					return gui.menuPrompt(resolvedPrompt, wrappedF)
 				}
 			case "menuFromCommand":
 				f = func() error {
-					return gui.menuPromptFromCommand(prompt, promptResponses, idx, wrappedF)
+					return gui.menuPromptFromCommand(resolvedPrompt, wrappedF)
 				}
 			default:
 				return gui.c.ErrorMsg("custom command prompt must have a type of 'input', 'menu' or 'menuFromCommand'")
 			}
-
 		}
 
 		return f()
