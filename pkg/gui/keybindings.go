@@ -431,30 +431,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.LcCopyCommitShaToClipboard,
 		},
 		{
-			ViewName:    "stash",
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.handleStashApply,
-			Description: self.c.Tr.LcApply,
-		},
-		{
-			ViewName:    "stash",
-			Key:         opts.GetKey(opts.Config.Stash.PopStash),
-			Handler:     self.handleStashPop,
-			Description: self.c.Tr.LcPop,
-		},
-		{
-			ViewName:    "stash",
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.handleStashDrop,
-			Description: self.c.Tr.LcDrop,
-		},
-		{
-			ViewName:    "stash",
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.handleNewBranchOffStashEntry,
-			Description: self.c.Tr.LcNewBranch,
-		},
-		{
 			ViewName: "commitMessage",
 			Key:      opts.GetKey(opts.Config.Universal.SubmitEditorText),
 			Modifier: gocui.ModNone,
