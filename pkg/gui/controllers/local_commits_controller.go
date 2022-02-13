@@ -42,12 +42,12 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 	outsideFilterModeBindings := []*types.Binding{
 		{
 			Key:         opts.GetKey(opts.Config.Commits.SquashDown),
-			Handler:     self.squashDown,
+			Handler:     self.checkSelected(self.squashDown),
 			Description: self.c.Tr.LcSquashDown,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.MarkCommitAsFixup),
-			Handler:     self.fixup,
+			Handler:     self.checkSelected(self.fixup),
 			Description: self.c.Tr.LcFixupCommit,
 		},
 		{
@@ -57,22 +57,22 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.RenameCommitWithEditor),
-			Handler:     self.rewordEditor,
+			Handler:     self.checkSelected(self.rewordEditor),
 			Description: self.c.Tr.LcRenameCommitEditor,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.drop,
+			Handler:     self.checkSelected(self.drop),
 			Description: self.c.Tr.LcDeleteCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.edit,
+			Handler:     self.checkSelected(self.edit),
 			Description: self.c.Tr.LcEditCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.PickCommit),
-			Handler:     self.pick,
+			Handler:     self.checkSelected(self.pick),
 			Description: self.c.Tr.LcPickCommit,
 		},
 		{
@@ -87,17 +87,17 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.MoveDownCommit),
-			Handler:     self.handleCommitMoveDown,
+			Handler:     self.checkSelected(self.handleCommitMoveDown),
 			Description: self.c.Tr.LcMoveDownCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.MoveUpCommit),
-			Handler:     self.handleCommitMoveUp,
+			Handler:     self.checkSelected(self.handleCommitMoveUp),
 			Description: self.c.Tr.LcMoveUpCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.AmendToCommit),
-			Handler:     self.handleCommitAmendTo,
+			Handler:     self.checkSelected(self.handleCommitAmendTo),
 			Description: self.c.Tr.LcAmendToCommit,
 		},
 		{
@@ -192,12 +192,12 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 	return bindings
 }
 
-func (self *LocalCommitsController) squashDown() error {
+func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 	if len(self.model.Commits) <= 1 {
 		return self.c.ErrorMsg(self.c.Tr.YouNoCommitsToSquash)
 	}
 
-	applied, err := self.handleMidRebaseCommand("squash")
+	applied, err := self.handleMidRebaseCommand("squash", commit)
 	if err != nil {
 		return err
 	}
@@ -217,12 +217,12 @@ func (self *LocalCommitsController) squashDown() error {
 	})
 }
 
-func (self *LocalCommitsController) fixup() error {
+func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 	if len(self.model.Commits) <= 1 {
 		return self.c.ErrorMsg(self.c.Tr.YouNoCommitsToSquash)
 	}
 
-	applied, err := self.handleMidRebaseCommand("fixup")
+	applied, err := self.handleMidRebaseCommand("fixup", commit)
 	if err != nil {
 		return err
 	}
@@ -243,7 +243,7 @@ func (self *LocalCommitsController) fixup() error {
 }
 
 func (self *LocalCommitsController) reword(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand("reword")
+	applied, err := self.handleMidRebaseCommand("reword", commit)
 	if err != nil {
 		return err
 	}
@@ -271,8 +271,8 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	})
 }
 
-func (self *LocalCommitsController) rewordEditor() error {
-	applied, err := self.handleMidRebaseCommand("reword")
+func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
+	applied, err := self.handleMidRebaseCommand("reword", commit)
 	if err != nil {
 		return err
 	}
@@ -294,8 +294,8 @@ func (self *LocalCommitsController) rewordEditor() error {
 	return nil
 }
 
-func (self *LocalCommitsController) drop() error {
-	applied, err := self.handleMidRebaseCommand("drop")
+func (self *LocalCommitsController) drop(commit *models.Commit) error {
+	applied, err := self.handleMidRebaseCommand("drop", commit)
 	if err != nil {
 		return err
 	}
@@ -315,8 +315,8 @@ func (self *LocalCommitsController) drop() error {
 	})
 }
 
-func (self *LocalCommitsController) edit() error {
-	applied, err := self.handleMidRebaseCommand("edit")
+func (self *LocalCommitsController) edit(commit *models.Commit) error {
+	applied, err := self.handleMidRebaseCommand("edit", commit)
 	if err != nil {
 		return err
 	}
@@ -330,8 +330,8 @@ func (self *LocalCommitsController) edit() error {
 	})
 }
 
-func (self *LocalCommitsController) pick() error {
-	applied, err := self.handleMidRebaseCommand("pick")
+func (self *LocalCommitsController) pick(commit *models.Commit) error {
+	applied, err := self.handleMidRebaseCommand("pick", commit)
 	if err != nil {
 		return err
 	}
@@ -352,9 +352,8 @@ func (self *LocalCommitsController) interactiveRebase(action string) error {
 // handleMidRebaseCommand sees if the selected commit is in fact a rebasing
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
-func (self *LocalCommitsController) handleMidRebaseCommand(action string) (bool, error) {
-	selectedCommit := self.context().GetSelected()
-	if selectedCommit.Status != "rebasing" {
+func (self *LocalCommitsController) handleMidRebaseCommand(action string, commit *models.Commit) (bool, error) {
+	if commit.Status != "rebasing" {
 		return false, nil
 	}
 
@@ -368,7 +367,7 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action string) (bool,
 
 	self.c.LogAction("Update rebase TODO")
 	self.c.LogCommand(
-		fmt.Sprintf("Updating rebase action of commit %s to '%s'", selectedCommit.ShortSha(), action),
+		fmt.Sprintf("Updating rebase action of commit %s to '%s'", commit.ShortSha(), action),
 		false,
 	)
 
@@ -383,11 +382,10 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action string) (bool,
 	})
 }
 
-func (self *LocalCommitsController) handleCommitMoveDown() error {
+func (self *LocalCommitsController) handleCommitMoveDown(commit *models.Commit) error {
 	index := self.context().GetSelectedLineIdx()
 	commits := self.model.Commits
-	selectedCommit := self.model.Commits[index]
-	if selectedCommit.Status == "rebasing" {
+	if commit.Status == "rebasing" {
 		if commits[index+1].Status != "rebasing" {
 			return nil
 		}
@@ -395,7 +393,7 @@ func (self *LocalCommitsController) handleCommitMoveDown() error {
 		// logging directly here because MoveTodoDown doesn't have enough information
 		// to provide a useful log
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
-		self.c.LogCommand(fmt.Sprintf("Moving commit %s down", selectedCommit.ShortSha()), false)
+		self.c.LogCommand(fmt.Sprintf("Moving commit %s down", commit.ShortSha()), false)
 
 		if err := self.git.Rebase.MoveTodoDown(index); err != nil {
 			return self.c.Error(err)
@@ -416,19 +414,18 @@ func (self *LocalCommitsController) handleCommitMoveDown() error {
 	})
 }
 
-func (self *LocalCommitsController) handleCommitMoveUp() error {
+func (self *LocalCommitsController) handleCommitMoveUp(commit *models.Commit) error {
 	index := self.context().GetSelectedLineIdx()
 	if index == 0 {
 		return nil
 	}
 
-	selectedCommit := self.model.Commits[index]
-	if selectedCommit.Status == "rebasing" {
+	if commit.Status == "rebasing" {
 		// logging directly here because MoveTodoDown doesn't have enough information
 		// to provide a useful log
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
 		self.c.LogCommand(
-			fmt.Sprintf("Moving commit %s up", selectedCommit.ShortSha()),
+			fmt.Sprintf("Moving commit %s up", commit.ShortSha()),
 			false,
 		)
 
@@ -451,14 +448,14 @@ func (self *LocalCommitsController) handleCommitMoveUp() error {
 	})
 }
 
-func (self *LocalCommitsController) handleCommitAmendTo() error {
+func (self *LocalCommitsController) handleCommitAmendTo(commit *models.Commit) error {
 	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-				err := self.git.Rebase.AmendTo(self.context().GetSelected().Sha)
+				err := self.git.Rebase.AmendTo(commit.Sha)
 				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 			})
 		},

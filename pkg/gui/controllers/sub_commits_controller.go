@@ -6,27 +6,27 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type ReflogController struct {
+type SubCommitsController struct {
 	baseController
 	*controllerCommon
 
 	switchToCommitFilesContext SwitchToCommitFilesContextFn
 }
 
-var _ types.IController = &ReflogController{}
+var _ types.IController = &SubCommitsController{}
 
-func NewReflogController(
+func NewSubCommitsController(
 	common *controllerCommon,
 	switchToCommitFilesContext SwitchToCommitFilesContextFn,
-) *ReflogController {
-	return &ReflogController{
+) *SubCommitsController {
+	return &SubCommitsController{
 		baseController:             baseController{},
 		controllerCommon:           common,
 		switchToCommitFilesContext: switchToCommitFilesContext,
 	}
 }
 
-func (self *ReflogController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+func (self *SubCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
 			Key:         opts.GetKey(opts.Config.Universal.GoInto),
@@ -45,13 +45,18 @@ func (self *ReflogController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			OpensMenu:   true,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Universal.New),
+			Handler:     self.checkSelected(self.newBranch),
+			Description: self.c.Tr.LcNewBranch,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopy),
-			Handler:     opts.Guards.OutsideFilterMode(self.checkSelected(self.copy)),
+			Handler:     self.checkSelected(self.copy),
 			Description: self.c.Tr.LcCherryPickCopy,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopyRange),
-			Handler:     opts.Guards.OutsideFilterMode(self.checkSelected(self.copyRange)),
+			Handler:     self.checkSelected(self.copyRange),
 			Description: self.c.Tr.LcCherryPickCopyRange,
 		},
 		{
@@ -64,7 +69,7 @@ func (self *ReflogController) GetKeybindings(opts types.KeybindingsOpts) []*type
 	return bindings
 }
 
-func (self *ReflogController) checkSelected(callback func(*models.Commit) error) func() error {
+func (self *SubCommitsController) checkSelected(callback func(*models.Commit) error) func() error {
 	return func() error {
 		commit := self.context().GetSelected()
 		if commit == nil {
@@ -75,20 +80,20 @@ func (self *ReflogController) checkSelected(callback func(*models.Commit) error)
 	}
 }
 
-func (self *ReflogController) Context() types.Context {
+func (self *SubCommitsController) Context() types.Context {
 	return self.context()
 }
 
-func (self *ReflogController) context() *context.ReflogCommitsContext {
+func (self *SubCommitsController) context() *context.ReflogCommitsContext {
 	return self.contexts.ReflogCommits
 }
 
-func (self *ReflogController) checkout(commit *models.Commit) error {
+func (self *SubCommitsController) checkout(commit *models.Commit) error {
 	err := self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.LcCheckoutCommit,
 		Prompt: self.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.CheckoutReflogCommit)
+			self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
 			return self.helpers.Refs.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
 		},
 	})
@@ -96,14 +101,16 @@ func (self *ReflogController) checkout(commit *models.Commit) error {
 		return err
 	}
 
+	self.context().SetSelectedLineIdx(0)
+
 	return nil
 }
 
-func (self *ReflogController) openResetMenu(commit *models.Commit) error {
+func (self *SubCommitsController) openResetMenu(commit *models.Commit) error {
 	return self.helpers.Refs.CreateGitResetMenu(commit.Sha)
 }
 
-func (self *ReflogController) enter(commit *models.Commit) error {
+func (self *SubCommitsController) enter(commit *models.Commit) error {
 	return self.switchToCommitFilesContext(SwitchToCommitFilesContextOpts{
 		RefName:   commit.Sha,
 		CanRebase: false,
@@ -111,10 +118,14 @@ func (self *ReflogController) enter(commit *models.Commit) error {
 	})
 }
 
-func (self *ReflogController) copy(commit *models.Commit) error {
-	return self.helpers.CherryPick.Copy(commit, self.model.FilteredReflogCommits, self.context())
+func (self *SubCommitsController) newBranch(commit *models.Commit) error {
+	return self.helpers.Refs.NewBranch(commit.RefName(), commit.Description(), "")
 }
 
-func (self *ReflogController) copyRange(commit *models.Commit) error {
-	return self.helpers.CherryPick.CopyRange(self.context().GetSelectedLineIdx(), self.model.FilteredReflogCommits, self.context())
+func (self *SubCommitsController) copy(commit *models.Commit) error {
+	return self.helpers.CherryPick.Copy(commit, self.model.SubCommits, self.context())
+}
+
+func (self *SubCommitsController) copyRange(commit *models.Commit) error {
+	return self.helpers.CherryPick.CopyRange(self.context().GetSelectedLineIdx(), self.model.SubCommits, self.context())
 }
