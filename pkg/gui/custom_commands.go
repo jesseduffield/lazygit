@@ -44,7 +44,7 @@ func (gui *Gui) resolveTemplate(templateStr string, promptResponses []string) (s
 	objects := CustomCommandObjects{
 		SelectedFile:           gui.getSelectedFile(),
 		SelectedPath:           gui.getSelectedPath(),
-		SelectedLocalCommit:    gui.State.Contexts.BranchCommits.GetSelected(),
+		SelectedLocalCommit:    gui.State.Contexts.LocalCommits.GetSelected(),
 		SelectedReflogCommit:   gui.State.Contexts.ReflogCommits.GetSelected(),
 		SelectedLocalBranch:    gui.State.Contexts.Branches.GetSelected(),
 		SelectedRemoteBranch:   gui.State.Contexts.RemoteBranches.GetSelected(),

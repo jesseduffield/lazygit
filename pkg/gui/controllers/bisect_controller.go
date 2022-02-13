@@ -239,5 +239,5 @@ func (self *BisectController) Context() types.Context {
 }
 
 func (self *BisectController) context() *context.LocalCommitsContext {
-	return self.contexts.BranchCommits
+	return self.contexts.LocalCommits
 }

@@ -114,8 +114,8 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 		gui.Views.Commits,
 		func(startIdx int, length int) [][]string {
 			selectedCommitSha := ""
-			if gui.currentContext().GetKey() == context.BRANCH_COMMITS_CONTEXT_KEY {
-				selectedCommit := gui.State.Contexts.BranchCommits.GetSelected()
+			if gui.currentContext().GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
+				selectedCommit := gui.State.Contexts.LocalCommits.GetSelected()
 				if selectedCommit != nil {
 					selectedCommitSha = selectedCommit.Sha
 				}
@@ -266,7 +266,7 @@ func (gui *Gui) submodulesListContext() *context.SubmodulesContext {
 func (gui *Gui) suggestionsListContext() *context.SuggestionsContext {
 	return context.NewSuggestionsContext(
 		func() []*types.Suggestion { return gui.State.Suggestions },
-		gui.Views.Files,
+		gui.Views.Suggestions,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetSuggestionListDisplayStrings(gui.State.Suggestions)
 		},
@@ -285,7 +285,7 @@ func (gui *Gui) getListContexts() []types.IListContext {
 		gui.State.Contexts.Remotes,
 		gui.State.Contexts.RemoteBranches,
 		gui.State.Contexts.Tags,
-		gui.State.Contexts.BranchCommits,
+		gui.State.Contexts.LocalCommits,
 		gui.State.Contexts.ReflogCommits,
 		gui.State.Contexts.SubCommits,
 		gui.State.Contexts.Stash,

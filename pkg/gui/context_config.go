@@ -36,7 +36,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 		Menu:           gui.menuListContext(),
 		Remotes:        gui.remotesListContext(),
 		RemoteBranches: gui.remoteBranchesListContext(),
-		BranchCommits:  gui.branchCommitsListContext(),
+		LocalCommits:   gui.branchCommitsListContext(),
 		CommitFiles:    gui.commitFilesListContext(),
 		ReflogCommits:  gui.reflogCommitsListContext(),
 		SubCommits:     gui.subCommitsListContext(),

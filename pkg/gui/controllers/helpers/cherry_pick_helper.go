@@ -143,7 +143,7 @@ func (self *CherryPickHelper) resetIfNecessary(context types.Context) error {
 
 func (self *CherryPickHelper) rerender() error {
 	for _, context := range []types.Context{
-		self.contexts.BranchCommits,
+		self.contexts.LocalCommits,
 		self.contexts.ReflogCommits,
 		self.contexts.SubCommits,
 	} {

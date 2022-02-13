@@ -84,7 +84,7 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 		HandleConfirm: func() error {
 			return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 				gui.c.LogAction(gui.c.Tr.Actions.DiscardOldFileChange)
-				if err := gui.git.Rebase.DiscardOldFileChanges(gui.State.Model.Commits, gui.State.Contexts.BranchCommits.GetSelectedLineIdx(), fileName); err != nil {
+				if err := gui.git.Rebase.DiscardOldFileChanges(gui.State.Model.Commits, gui.State.Contexts.LocalCommits.GetSelectedLineIdx(), fileName); err != nil {
 					if err := gui.helpers.MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
@@ -98,7 +98,7 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 
 func (gui *Gui) refreshCommitFilesView() error {
 	currentSideContext := gui.currentSideContext()
-	if currentSideContext.GetKey() == context.COMMIT_FILES_CONTEXT_KEY || currentSideContext.GetKey() == context.BRANCH_COMMITS_CONTEXT_KEY {
+	if currentSideContext.GetKey() == context.COMMIT_FILES_CONTEXT_KEY || currentSideContext.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
 		if err := gui.handleRefreshPatchBuildingPanel(-1); err != nil {
 			return err
 		}

@@ -55,9 +55,9 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	onSuccess := func() {
 		self.contexts.Branches.SetSelectedLineIdx(0)
 		self.contexts.ReflogCommits.SetSelectedLineIdx(0)
-		self.contexts.BranchCommits.SetSelectedLineIdx(0)
+		self.contexts.LocalCommits.SetSelectedLineIdx(0)
 		// loading a heap of commits is slow so we limit them whenever doing a reset
-		self.contexts.BranchCommits.SetLimitCommits(true)
+		self.contexts.LocalCommits.SetLimitCommits(true)
 	}
 
 	return self.c.WithWaitingStatus(waitingStatus, func() error {
@@ -117,12 +117,12 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 		return self.c.Error(err)
 	}
 
-	self.contexts.BranchCommits.SetSelectedLineIdx(0)
+	self.contexts.LocalCommits.SetSelectedLineIdx(0)
 	self.contexts.ReflogCommits.SetSelectedLineIdx(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
-	self.contexts.BranchCommits.SetLimitCommits(true)
+	self.contexts.LocalCommits.SetLimitCommits(true)
 
-	if err := self.c.PushContext(self.contexts.BranchCommits); err != nil {
+	if err := self.c.PushContext(self.contexts.LocalCommits); err != nil {
 		return err
 	}
 
@@ -179,7 +179,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 				}
 			}
 
-			self.contexts.BranchCommits.SetSelectedLineIdx(0)
+			self.contexts.LocalCommits.SetSelectedLineIdx(0)
 			self.contexts.Branches.SetSelectedLineIdx(0)
 
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})

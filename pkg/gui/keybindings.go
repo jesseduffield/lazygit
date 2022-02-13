@@ -412,14 +412,14 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName:    "commits",
-			Contexts:    []string{string(context.BRANCH_COMMITS_CONTEXT_KEY)},
+			Contexts:    []string{string(context.LOCAL_COMMITS_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.handleCopySelectedSideContextItemToClipboard,
 			Description: self.c.Tr.LcCopyCommitShaToClipboard,
 		},
 		{
 			ViewName:    "commits",
-			Contexts:    []string{string(context.BRANCH_COMMITS_CONTEXT_KEY)},
+			Contexts:    []string{string(context.LOCAL_COMMITS_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Commits.ResetCherryPick),
 			Handler:     self.helpers.CherryPick.Reset,
 			Description: self.c.Tr.LcResetCherryPick,

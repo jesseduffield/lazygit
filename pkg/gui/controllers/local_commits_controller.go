@@ -746,7 +746,7 @@ func (self *LocalCommitsController) Context() types.Context {
 }
 
 func (self *LocalCommitsController) context() *context.LocalCommitsContext {
-	return self.contexts.BranchCommits
+	return self.contexts.LocalCommits
 }
 
 func (self *LocalCommitsController) newBranch(commit *models.Commit) error {

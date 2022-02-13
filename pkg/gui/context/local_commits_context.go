@@ -34,7 +34,7 @@ func NewLocalCommitsContext(
 				Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 					ViewName:   "commits",
 					WindowName: "commits",
-					Key:        BRANCH_COMMITS_CONTEXT_KEY,
+					Key:        LOCAL_COMMITS_CONTEXT_KEY,
 					Kind:       types.SIDE_CONTEXT,
 					Focusable:  true,
 				}), ContextCallbackOpts{

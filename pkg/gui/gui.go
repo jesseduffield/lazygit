@@ -278,7 +278,7 @@ type guiMutexes struct {
 	RefreshingFilesMutex  *sync.Mutex
 	RefreshingStatusMutex *sync.Mutex
 	SyncMutex             *sync.Mutex
-	BranchCommitsMutex    *sync.Mutex
+	LocalCommitsMutex     *sync.Mutex
 	LineByLinePanelMutex  *sync.Mutex
 	SubprocessMutex       *sync.Mutex
 }
@@ -337,7 +337,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	var initialContext types.IListContext = contextTree.Files
 	if filterPath != "" {
 		screenMode = SCREEN_HALF
-		initialContext = contextTree.BranchCommits
+		initialContext = contextTree.LocalCommits
 	}
 
 	viewContextMap := context.NewViewContextMap()
@@ -397,7 +397,7 @@ func initialViewContextMapping(contextTree *context.ContextTree) map[string]type
 		"status":        contextTree.Status,
 		"files":         contextTree.Files,
 		"branches":      contextTree.Branches,
-		"commits":       contextTree.BranchCommits,
+		"commits":       contextTree.LocalCommits,
 		"commitFiles":   contextTree.CommitFiles,
 		"stash":         contextTree.Stash,
 		"menu":          contextTree.Menu,
@@ -440,7 +440,7 @@ func NewGui(
 			RefreshingFilesMutex:  &sync.Mutex{},
 			RefreshingStatusMutex: &sync.Mutex{},
 			SyncMutex:             &sync.Mutex{},
-			BranchCommitsMutex:    &sync.Mutex{},
+			LocalCommitsMutex:     &sync.Mutex{},
 			LineByLinePanelMutex:  &sync.Mutex{},
 			SubprocessMutex:       &sync.Mutex{},
 		},
@@ -579,7 +579,7 @@ func (gui *Gui) resetControllers() {
 	controllers.AttachControllers(gui.State.Contexts.Files, gui.Controllers.Files)
 	controllers.AttachControllers(gui.State.Contexts.Tags, gui.Controllers.Tags)
 	controllers.AttachControllers(gui.State.Contexts.Submodules, gui.Controllers.Submodules)
-	controllers.AttachControllers(gui.State.Contexts.BranchCommits, gui.Controllers.LocalCommits, bisectController)
+	controllers.AttachControllers(gui.State.Contexts.LocalCommits, gui.Controllers.LocalCommits, bisectController)
 	controllers.AttachControllers(gui.State.Contexts.Remotes, gui.Controllers.Remotes)
 	controllers.AttachControllers(gui.State.Contexts.Menu, gui.Controllers.Menu)
 	controllers.AttachControllers(gui.State.Contexts.Global, gui.Controllers.Sync, gui.Controllers.Undo, gui.Controllers.Global)

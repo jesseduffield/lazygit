@@ -46,11 +46,11 @@ func (gui *Gui) setFiltering(path string) error {
 		gui.State.ScreenMode = SCREEN_HALF
 	}
 
-	if err := gui.c.PushContext(gui.State.Contexts.BranchCommits); err != nil {
+	if err := gui.c.PushContext(gui.State.Contexts.LocalCommits); err != nil {
 		return err
 	}
 
 	return gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() {
-		gui.State.Contexts.BranchCommits.SetSelectedLineIdx(0)
+		gui.State.Contexts.LocalCommits.SetSelectedLineIdx(0)
 	}})
 }
