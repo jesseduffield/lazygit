@@ -383,14 +383,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:    "branches",
 			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
-			Key:         opts.GetKey(opts.Config.Branches.ViewGitFlowOptions),
-			Handler:     self.handleCreateGitFlowMenu,
-			Description: self.c.Tr.LcGitFlowOptions,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.handleCopySelectedSideContextItemToClipboard,
 			Description: self.c.Tr.LcCopyBranchNameToClipboard,
