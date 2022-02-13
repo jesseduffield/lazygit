@@ -43,7 +43,7 @@ func (self *ListContextTrait) HandleFocus(opts ...types.OnFocusOpts) error {
 func (self *ListContextTrait) HandleFocusLost() error {
 	self.viewTrait.SetOriginX(0)
 
-	return self.Context.HandleFocus()
+	return self.Context.HandleFocusLost()
 }
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
