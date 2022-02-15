@@ -47,7 +47,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: nil,
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `nano "test"`, cmdStr)
+				assert.Equal(t, `nano +1 "test"`, cmdStr)
 			},
 		},
 		{
@@ -61,7 +61,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: map[string]string{"core.editor": "nano"},
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `nano "test"`, cmdStr)
+				assert.Equal(t, `nano +1 "test"`, cmdStr)
 			},
 		},
 		{
@@ -79,6 +79,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: nil,
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
+				assert.Equal(t, `nano +1 "test"`, cmdStr)
 			},
 		},
 		{
@@ -96,7 +97,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: nil,
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `emacs "test"`, cmdStr)
+				assert.Equal(t, `emacs +1 "test"`, cmdStr)
 			},
 		},
 		{
@@ -111,7 +112,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: nil,
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `vi "test"`, cmdStr)
+				assert.Equal(t, `vi +1 "test"`, cmdStr)
 			},
 		},
 		{
@@ -126,7 +127,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: nil,
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `vi "file/with space"`, cmdStr)
+				assert.Equal(t, `vi +1 "file/with space"`, cmdStr)
 			},
 		},
 		{
