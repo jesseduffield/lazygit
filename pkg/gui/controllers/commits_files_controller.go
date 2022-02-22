@@ -29,37 +29,37 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 	bindings := []*types.Binding{
 		{
 			Key:         opts.GetKey(opts.Config.CommitFiles.CheckoutCommitFile),
-			Handler:     self.checkSelected(self.handleCheckoutCommitFile),
+			Handler:     self.checkSelected(self.checkout),
 			Description: self.c.Tr.LcCheckoutCommitFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelected(self.handleDiscardOldFileChange),
+			Handler:     self.checkSelected(self.discard),
 			Description: self.c.Tr.LcDiscardOldFileChange,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
-			Handler:     self.checkSelected(self.handleOpenOldCommitFile),
+			Handler:     self.checkSelected(self.open),
 			Description: self.c.Tr.LcOpenFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.checkSelected(self.handleEditCommitFile),
+			Handler:     self.checkSelected(self.edit),
 			Description: self.c.Tr.LcEditFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.checkSelected(self.handleToggleFileForPatch),
+			Handler:     self.checkSelected(self.toggleForPatch),
 			Description: self.c.Tr.LcToggleAddToPatch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.checkSelected(self.handleEnterCommitFile),
+			Handler:     self.checkSelected(self.enter),
 			Description: self.c.Tr.LcEnterFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
-			Handler:     self.handleToggleCommitFileTreeView,
+			Handler:     self.toggleTreeView,
 			Description: self.c.Tr.LcToggleTreeView,
 		},
 	}
@@ -105,7 +105,7 @@ func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) 
 	return self.enterCommitFile(node, types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: clickedViewLineIdx})
 }
 
-func (self *CommitFilesController) handleCheckoutCommitFile(node *filetree.CommitFileNode) error {
+func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutFile)
 	if err := self.git.WorkingTree.CheckoutFile(self.context().GetRefName(), node.GetPath()); err != nil {
 		return self.c.Error(err)
@@ -114,7 +114,7 @@ func (self *CommitFilesController) handleCheckoutCommitFile(node *filetree.Commi
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (self *CommitFilesController) handleDiscardOldFileChange(node *filetree.CommitFileNode) error {
+func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error {
 	if ok, err := self.helpers.PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
 		return err
 	}
@@ -137,11 +137,11 @@ func (self *CommitFilesController) handleDiscardOldFileChange(node *filetree.Com
 	})
 }
 
-func (self *CommitFilesController) handleOpenOldCommitFile(node *filetree.CommitFileNode) error {
+func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
 	return self.helpers.Files.OpenFile(node.GetPath())
 }
 
-func (self *CommitFilesController) handleEditCommitFile(node *filetree.CommitFileNode) error {
+func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
 	if node.File == nil {
 		return self.c.ErrorMsg(self.c.Tr.ErrCannotEditDirectory)
 	}
@@ -149,7 +149,7 @@ func (self *CommitFilesController) handleEditCommitFile(node *filetree.CommitFil
 	return self.helpers.Files.EditFile(node.GetPath())
 }
 
-func (self *CommitFilesController) handleToggleFileForPatch(node *filetree.CommitFileNode) error {
+func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode) error {
 	toggleTheFile := func() error {
 		if !self.git.Patch.PatchManager.Active() {
 			if err := self.startPatchManager(); err != nil {
@@ -208,7 +208,7 @@ func (self *CommitFilesController) startPatchManager() error {
 	return nil
 }
 
-func (self *CommitFilesController) handleEnterCommitFile(node *filetree.CommitFileNode) error {
+func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
 	return self.enterCommitFile(node, types.OnFocusOpts{ClickedViewName: "", ClickedViewLineIdx: -1})
 }
 
@@ -252,7 +252,7 @@ func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *file
 }
 
 // NOTE: this is very similar to handleToggleFileTreeView, could be DRY'd with generics
-func (self *CommitFilesController) handleToggleCommitFileTreeView() error {
+func (self *CommitFilesController) toggleTreeView() error {
 	self.context().CommitFileTreeViewModel.ToggleShowTree()
 
 	return self.c.PostRefreshUpdate(self.context())
