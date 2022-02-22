@@ -18,7 +18,7 @@ func (gui *Gui) handleCommitConfirm() error {
 	cmdObj := gui.git.Commit.CommitCmdObj(message)
 	gui.c.LogAction(gui.c.Tr.Actions.Commit)
 
-	_ = gui.returnFromContext()
+	_ = gui.c.PopContext()
 	return gui.withGpgHandling(cmdObj, gui.c.Tr.CommittingStatus, func() error {
 		gui.Views.CommitMessage.ClearTextArea()
 		gui.State.failedCommitMessage = ""
@@ -27,7 +27,7 @@ func (gui *Gui) handleCommitConfirm() error {
 }
 
 func (gui *Gui) handleCommitClose() error {
-	return gui.returnFromContext()
+	return gui.c.PopContext()
 }
 
 func (gui *Gui) handleCommitMessageFocused() error {

@@ -26,7 +26,7 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 
 func (gui *Gui) handleSearch() error {
 	gui.State.Searching.searchString = gui.Views.Search.TextArea.GetContent()
-	if err := gui.returnFromContext(); err != nil {
+	if err := gui.c.PopContext(); err != nil {
 		return err
 	}
 
@@ -93,7 +93,7 @@ func (gui *Gui) handleSearchEscape() error {
 		return err
 	}
 
-	if err := gui.returnFromContext(); err != nil {
+	if err := gui.c.PopContext(); err != nil {
 		return err
 	}
 
