@@ -35,11 +35,11 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 	bindings := []*types.Binding{
 		{
 			Key:     opts.GetKey(opts.Config.Universal.SubmitEditorText),
-			Handler: self.handleCommitConfirm,
+			Handler: self.confirm,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.Return),
-			Handler: self.handleCommitClose,
+			Handler: self.close,
 		},
 	}
 
@@ -56,7 +56,7 @@ func (self *CommitMessageController) context() types.Context {
 	return self.contexts.CommitMessage
 }
 
-func (self *CommitMessageController) handleCommitConfirm() error {
+func (self *CommitMessageController) confirm() error {
 	message := self.getCommitMessage()
 	self.onCommitAttempt(message)
 
@@ -74,6 +74,6 @@ func (self *CommitMessageController) handleCommitConfirm() error {
 	})
 }
 
-func (self *CommitMessageController) handleCommitClose() error {
+func (self *CommitMessageController) close() error {
 	return self.c.PopContext()
 }
