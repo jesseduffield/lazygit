@@ -10,6 +10,7 @@ type Helpers struct {
 	MergeAndRebase *MergeAndRebaseHelper
 	CherryPick     *CherryPickHelper
 	Host           *HostHelper
+	PatchBuilding  *PatchBuildingHelper
 }
 
 func NewStubHelpers() *Helpers {
@@ -23,5 +24,6 @@ func NewStubHelpers() *Helpers {
 		MergeAndRebase: &MergeAndRebaseHelper{},
 		CherryPick:     &CherryPickHelper{},
 		Host:           &HostHelper{},
+		PatchBuilding:  &PatchBuildingHelper{},
 	}
 }

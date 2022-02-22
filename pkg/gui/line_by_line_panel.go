@@ -120,15 +120,6 @@ func (gui *Gui) handleMouseDrag() error {
 	})
 }
 
-func (gui *Gui) getSelectedCommitFileName() string {
-	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
-	if node == nil {
-		return ""
-	}
-
-	return node.Path
-}
-
 func (gui *Gui) refreshMainViewForLineByLine(state *LblPanelState) error {
 	var includedLineIndices []int
 	// I'd prefer not to have knowledge of contexts using this file but I'm not sure

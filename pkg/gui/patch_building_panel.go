@@ -4,19 +4,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// getFromAndReverseArgsForDiff tells us the from and reverse args to be used in a diff command. If we're not in diff mode we'll end up with the equivalent of a `git show` i.e `git diff blah^..blah`.
-func (gui *Gui) getFromAndReverseArgsForDiff(to string) (string, bool) {
-	from := to + "^"
-	reverse := false
-
-	if gui.State.Modes.Diffing.Active() {
-		reverse = gui.State.Modes.Diffing.Reverse
-		from = gui.State.Modes.Diffing.Ref
-	}
-
-	return from, reverse
-}
-
 func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	if !gui.git.Patch.PatchManager.Active() {
 		return gui.handleEscapePatchBuildingPanel()
@@ -32,7 +19,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	}
 
 	to := gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.GetRefName()
-	from, reverse := gui.getFromAndReverseArgsForDiff(to)
+	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(to)
 	diff, err := gui.git.WorkingTree.ShowFileDiff(from, to, reverse, node.GetPath(), true)
 	if err != nil {
 		return err

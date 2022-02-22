@@ -9,20 +9,16 @@ import (
 type SubCommitsController struct {
 	baseController
 	*controllerCommon
-
-	switchToCommitFilesContext SwitchToCommitFilesContextFn
 }
 
 var _ types.IController = &SubCommitsController{}
 
 func NewSubCommitsController(
 	common *controllerCommon,
-	switchToCommitFilesContext SwitchToCommitFilesContextFn,
 ) *SubCommitsController {
 	return &SubCommitsController{
-		baseController:             baseController{},
-		controllerCommon:           common,
-		switchToCommitFilesContext: switchToCommitFilesContext,
+		baseController:   baseController{},
+		controllerCommon: common,
 	}
 }
 

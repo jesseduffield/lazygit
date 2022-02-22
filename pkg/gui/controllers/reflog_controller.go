@@ -9,20 +9,16 @@ import (
 type ReflogController struct {
 	baseController
 	*controllerCommon
-
-	switchToCommitFilesContext SwitchToCommitFilesContextFn
 }
 
 var _ types.IController = &ReflogController{}
 
 func NewReflogController(
 	common *controllerCommon,
-	switchToCommitFilesContext SwitchToCommitFilesContextFn,
 ) *ReflogController {
 	return &ReflogController{
-		baseController:             baseController{},
-		controllerCommon:           common,
-		switchToCommitFilesContext: switchToCommitFilesContext,
+		baseController:   baseController{},
+		controllerCommon: common,
 	}
 }
 

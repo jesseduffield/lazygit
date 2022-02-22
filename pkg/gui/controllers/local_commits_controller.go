@@ -11,16 +11,14 @@ import (
 )
 
 type (
-	SwitchToCommitFilesContextFn func(SwitchToCommitFilesContextOpts) error
-	PullFilesFn                  func() error
+	PullFilesFn func() error
 )
 
 type LocalCommitsController struct {
 	baseController
 	*controllerCommon
 
-	pullFiles                  PullFilesFn
-	switchToCommitFilesContext SwitchToCommitFilesContextFn
+	pullFiles PullFilesFn
 }
 
 var _ types.IController = &LocalCommitsController{}
@@ -28,13 +26,11 @@ var _ types.IController = &LocalCommitsController{}
 func NewLocalCommitsController(
 	common *controllerCommon,
 	pullFiles PullFilesFn,
-	switchToCommitFilesContext SwitchToCommitFilesContextFn,
 ) *LocalCommitsController {
 	return &LocalCommitsController{
-		baseController:             baseController{},
-		controllerCommon:           common,
-		pullFiles:                  pullFiles,
-		switchToCommitFilesContext: switchToCommitFilesContext,
+		baseController:   baseController{},
+		controllerCommon: common,
+		pullFiles:        pullFiles,
 	}
 }
 

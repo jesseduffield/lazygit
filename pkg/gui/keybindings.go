@@ -473,48 +473,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.LcCopyCommitFileNameToClipboard,
 		},
 		{
-			ViewName:    "commitFiles",
-			Key:         opts.GetKey(opts.Config.CommitFiles.CheckoutCommitFile),
-			Handler:     self.handleCheckoutCommitFile,
-			Description: self.c.Tr.LcCheckoutCommitFile,
-		},
-		{
-			ViewName:    "commitFiles",
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.handleDiscardOldFileChange,
-			Description: self.c.Tr.LcDiscardOldFileChange,
-		},
-		{
-			ViewName:    "commitFiles",
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
-			Handler:     self.handleOpenOldCommitFile,
-			Description: self.c.Tr.LcOpenFile,
-		},
-		{
-			ViewName:    "commitFiles",
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.handleEditCommitFile,
-			Description: self.c.Tr.LcEditFile,
-		},
-		{
-			ViewName:    "commitFiles",
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.handleToggleFileForPatch,
-			Description: self.c.Tr.LcToggleAddToPatch,
-		},
-		{
-			ViewName:    "commitFiles",
-			Key:         opts.GetKey(opts.Config.Universal.GoInto),
-			Handler:     self.handleEnterCommitFile,
-			Description: self.c.Tr.LcEnterFile,
-		},
-		{
-			ViewName:    "commitFiles",
-			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
-			Handler:     self.handleToggleCommitFileTreeView,
-			Description: self.c.Tr.LcToggleTreeView,
-		},
-		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.FilteringMenu),
 			Handler:     self.handleCreateFilteringMenuPanel,
@@ -569,13 +527,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:     self.scrollUpMain,
 			Description: self.c.Tr.ScrollUp,
 			Alternative: "fn+down",
-		},
-		{
-			ViewName: "main",
-			Contexts: []string{string(context.MAIN_NORMAL_CONTEXT_KEY)},
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  self.handleMouseDownMain,
 		},
 		{
 			ViewName: "secondary",
