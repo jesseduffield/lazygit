@@ -50,7 +50,7 @@ func (gui *Gui) closeConfirmationPrompt(handlersManageFocus bool) error {
 	}
 
 	if !handlersManageFocus {
-		if err := gui.returnFromContext(); err != nil {
+		if err := gui.c.PopContext(); err != nil {
 			return err
 		}
 	}

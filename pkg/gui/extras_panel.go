@@ -17,7 +17,7 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 				OnPress: func() error {
 					currentContext := gui.currentStaticContext()
 					if gui.ShowExtrasWindow && currentContext.GetKey() == context.COMMAND_LOG_CONTEXT_KEY {
-						if err := gui.returnFromContext(); err != nil {
+						if err := gui.c.PopContext(); err != nil {
 							return err
 						}
 					}

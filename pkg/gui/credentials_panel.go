@@ -44,7 +44,7 @@ func (gui *Gui) handleSubmitCredential() error {
 	message := strings.TrimSpace(credentialsView.TextArea.GetContent())
 	gui.credentials <- message
 	credentialsView.ClearTextArea()
-	if err := gui.returnFromContext(); err != nil {
+	if err := gui.c.PopContext(); err != nil {
 		return err
 	}
 
@@ -54,7 +54,7 @@ func (gui *Gui) handleSubmitCredential() error {
 func (gui *Gui) handleCloseCredentialsView() error {
 	gui.Views.Credentials.ClearTextArea()
 	gui.credentials <- ""
-	return gui.returnFromContext()
+	return gui.c.PopContext()
 }
 
 func (gui *Gui) handleAskFocused() error {
