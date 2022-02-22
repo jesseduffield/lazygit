@@ -431,18 +431,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.LcCopyCommitShaToClipboard,
 		},
 		{
-			ViewName: "commitMessage",
-			Key:      opts.GetKey(opts.Config.Universal.SubmitEditorText),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleCommitConfirm,
-		},
-		{
-			ViewName: "commitMessage",
-			Key:      opts.GetKey(opts.Config.Universal.Return),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleCommitClose,
-		},
-		{
 			ViewName: "credentials",
 			Key:      opts.GetKey(opts.Config.Universal.Confirm),
 			Modifier: gocui.ModNone,

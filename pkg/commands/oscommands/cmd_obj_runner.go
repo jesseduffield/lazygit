@@ -207,6 +207,9 @@ func (self *cmdObjRunner) runAndStreamAux(
 	cmdObj ICmdObj,
 	onRun func(*cmdHandler, io.Writer),
 ) error {
+	// if we're streaming this we don't want any fancy terminal stuff
+	cmdObj.AddEnvVars("TERM=dumb")
+
 	cmdWriter := self.guiIO.newCmdWriterFn()
 
 	if cmdObj.ShouldLog() {

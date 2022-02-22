@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -20,11 +19,10 @@ type FilesController struct {
 	baseController
 	*controllerCommon
 
-	enterSubmodule         func(submodule *models.SubmoduleConfig) error
-	setCommitMessage       func(message string)
-	withGpgHandling        func(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error
-	getFailedCommitMessage func() string
-	switchToMergeFn        func(path string) error
+	enterSubmodule        func(submodule *models.SubmoduleConfig) error
+	setCommitMessage      func(message string)
+	getSavedCommitMessage func() string
+	switchToMergeFn       func(path string) error
 }
 
 var _ types.IController = &FilesController{}
@@ -33,17 +31,15 @@ func NewFilesController(
 	common *controllerCommon,
 	enterSubmodule func(submodule *models.SubmoduleConfig) error,
 	setCommitMessage func(message string),
-	withGpgHandling func(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error,
-	getFailedCommitMessage func() string,
+	getSavedCommitMessage func() string,
 	switchToMergeFn func(path string) error,
 ) *FilesController {
 	return &FilesController{
-		controllerCommon:       common,
-		enterSubmodule:         enterSubmodule,
-		setCommitMessage:       setCommitMessage,
-		withGpgHandling:        withGpgHandling,
-		getFailedCommitMessage: getFailedCommitMessage,
-		switchToMergeFn:        switchToMergeFn,
+		controllerCommon:      common,
+		enterSubmodule:        enterSubmodule,
+		setCommitMessage:      setCommitMessage,
+		getSavedCommitMessage: getSavedCommitMessage,
+		switchToMergeFn:       switchToMergeFn,
 	}
 }
 
@@ -409,9 +405,9 @@ func (self *FilesController) HandleCommitPress() error {
 		return self.promptToStageAllAndRetry(self.HandleCommitPress)
 	}
 
-	failedCommitMessage := self.getFailedCommitMessage()
-	if len(failedCommitMessage) > 0 {
-		self.setCommitMessage(failedCommitMessage)
+	savedCommitMessage := self.getSavedCommitMessage()
+	if len(savedCommitMessage) > 0 {
+		self.setCommitMessage(savedCommitMessage)
 	} else {
 		commitPrefixConfig := self.commitPrefixConfigForRepo()
 		if commitPrefixConfig != nil {
@@ -470,7 +466,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 		HandleConfirm: func() error {
 			cmdObj := self.git.Commit.AmendHeadCmdObj()
 			self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-			return self.withGpgHandling(cmdObj, self.c.Tr.AmendingStatus, nil)
+			return self.helpers.GPG.WithGpgHandling(cmdObj, self.c.Tr.AmendingStatus, nil)
 		},
 	})
 }

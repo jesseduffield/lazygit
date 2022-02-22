@@ -34,6 +34,10 @@ func (self *guiCommon) RunSubprocessAndRefresh(cmdObj oscommands.ICmdObj) error 
 	return self.gui.runSubprocessWithSuspenseAndRefresh(cmdObj)
 }
 
+func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
+	return self.gui.runSubprocessWithSuspense(cmdObj)
+}
+
 func (self *guiCommon) PushContext(context types.Context, opts ...types.OnFocusOpts) error {
 	return self.gui.pushContext(context, opts...)
 }
