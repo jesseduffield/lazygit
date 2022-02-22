@@ -180,15 +180,6 @@ func (gui *Gui) handleRefresh() error {
 	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (gui *Gui) handleMouseDownMain() error {
-	switch gui.currentSideContext() {
-	case gui.State.Contexts.CommitFiles:
-		return gui.enterCommitFile(types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
-	}
-
-	return nil
-}
-
 func (gui *Gui) backgroundFetch() (err error) {
 	err = gui.git.Sync.Fetch(git_commands.FetchOptions{Background: true})
 

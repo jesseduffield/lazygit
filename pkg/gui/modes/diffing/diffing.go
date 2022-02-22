@@ -10,6 +10,20 @@ func New() Diffing {
 	return Diffing{}
 }
 
-func (m *Diffing) Active() bool {
-	return m.Ref != ""
+func (self *Diffing) Active() bool {
+	return self.Ref != ""
+}
+
+// GetFromAndReverseArgsForDiff tells us the from and reverse args to be used in a diff command.
+// If we're not in diff mode we'll end up with the equivalent of a `git show` i.e `git diff blah^..blah`.
+func (self *Diffing) GetFromAndReverseArgsForDiff(to string) (string, bool) {
+	from := to + "^"
+	reverse := false
+
+	if self.Active() {
+		reverse = self.Reverse
+		from = self.Ref
+	}
+
+	return from, reverse
 }
