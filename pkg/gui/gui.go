@@ -193,8 +193,9 @@ type GuiRepoState struct {
 	// back in sync with the repo state
 	ViewsSetup bool
 
-	// this is the message of the last failed commit attempt
-	failedCommitMessage string
+	// we store a commit message in this field if we've escaped the commit message
+	// panel without committing or if our commit failed
+	savedCommitMessage string
 
 	ScreenMode WindowMaximisation
 }
@@ -503,6 +504,7 @@ func (gui *Gui) resetControllers() {
 		Files:          helpers.NewFilesHelper(controllerCommon, gui.git, osCommand),
 		WorkingTree:    helpers.NewWorkingTreeHelper(model),
 		Tags:           helpers.NewTagsHelper(controllerCommon, gui.git),
+		GPG:            helpers.NewGpgHelper(controllerCommon, gui.os, gui.git),
 		MergeAndRebase: rebaseHelper,
 		CherryPick: helpers.NewCherryPickHelper(
 			controllerCommon,
@@ -538,15 +540,39 @@ func (gui *Gui) resetControllers() {
 	reflogController := controllers.NewReflogController(common)
 	subCommitsController := controllers.NewSubCommitsController(common)
 
+	getSavedCommitMessage := func() string {
+		return gui.State.savedCommitMessage
+	}
+
+	getCommitMessage := func() string {
+		return strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
+	}
+
+	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
+
+	onCommitAttempt := func(message string) {
+		gui.Views.CommitMessage.ClearTextArea()
+	}
+
+	onCommitSuccess := func() {
+		gui.State.savedCommitMessage = ""
+	}
+
+	commitMessageController := controllers.NewCommitMessageController(
+		common,
+		getCommitMessage,
+		onCommitAttempt,
+		onCommitSuccess,
+	)
+
 	gui.Controllers = Controllers{
 		Submodules: submodulesController,
 		Global:     controllers.NewGlobalController(common),
 		Files: controllers.NewFilesController(
 			common,
 			gui.enterSubmodule,
-			gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage }),
-			gui.withGpgHandling,
-			func() string { return gui.State.failedCommitMessage },
+			setCommitMessage,
+			getSavedCommitMessage,
 			gui.switchToMerge,
 		),
 		Tags:         controllers.NewTagsController(common),
@@ -604,6 +630,7 @@ func (gui *Gui) resetControllers() {
 	controllers.AttachControllers(gui.State.Contexts.Remotes, gui.Controllers.Remotes)
 	controllers.AttachControllers(gui.State.Contexts.Stash, stashController)
 	controllers.AttachControllers(gui.State.Contexts.Menu, gui.Controllers.Menu)
+	controllers.AttachControllers(gui.State.Contexts.CommitMessage, commitMessageController)
 	controllers.AttachControllers(gui.State.Contexts.Global, gui.Controllers.Sync, gui.Controllers.Undo, gui.Controllers.Global)
 
 	listControllerFactory := controllers.NewListControllerFactory(gui.c)

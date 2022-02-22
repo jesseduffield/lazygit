@@ -8,28 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) handleCommitConfirm() error {
-	message := strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
-	gui.State.failedCommitMessage = message
-	if message == "" {
-		return gui.c.ErrorMsg(gui.c.Tr.CommitWithoutMessageErr)
-	}
-
-	cmdObj := gui.git.Commit.CommitCmdObj(message)
-	gui.c.LogAction(gui.c.Tr.Actions.Commit)
-
-	_ = gui.c.PopContext()
-	return gui.withGpgHandling(cmdObj, gui.c.Tr.CommittingStatus, func() error {
-		gui.Views.CommitMessage.ClearTextArea()
-		gui.State.failedCommitMessage = ""
-		return nil
-	})
-}
-
-func (gui *Gui) handleCommitClose() error {
-	return gui.c.PopContext()
-}
-
 func (gui *Gui) handleCommitMessageFocused() error {
 	message := utils.ResolvePlaceholderString(
 		gui.c.Tr.CommitMessageConfirm,
@@ -45,15 +23,14 @@ func (gui *Gui) handleCommitMessageFocused() error {
 	return gui.renderString(gui.Views.Options, message)
 }
 
-func (gui *Gui) getBufferLength(view *gocui.View) string {
-	return " " + strconv.Itoa(strings.Count(view.TextArea.GetContent(), "")-1) + " "
-}
-
-// RenderCommitLength is a function.
 func (gui *Gui) RenderCommitLength() {
 	if !gui.c.UserConfig.Gui.CommitLength.Show {
 		return
 	}
 
-	gui.Views.CommitMessage.Subtitle = gui.getBufferLength(gui.Views.CommitMessage)
+	gui.Views.CommitMessage.Subtitle = getBufferLength(gui.Views.CommitMessage)
+}
+
+func getBufferLength(view *gocui.View) string {
+	return " " + strconv.Itoa(strings.Count(view.TextArea.GetContent(), "")-1) + " "
 }

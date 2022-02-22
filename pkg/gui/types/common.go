@@ -27,7 +27,11 @@ type IGuiCommon interface {
 	PostRefreshUpdate(Context) error
 	// this just re-renders the screen
 	Render()
+
+	// returns true if command completed successfully
+	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)
 	RunSubprocessAndRefresh(oscommands.ICmdObj) error
+
 	PushContext(context Context, opts ...OnFocusOpts) error
 	PopContext() error
 	CurrentContext() Context

@@ -11,6 +11,7 @@ type Helpers struct {
 	CherryPick     *CherryPickHelper
 	Host           *HostHelper
 	PatchBuilding  *PatchBuildingHelper
+	GPG            *GpgHelper
 }
 
 func NewStubHelpers() *Helpers {
@@ -25,5 +26,6 @@ func NewStubHelpers() *Helpers {
 		CherryPick:     &CherryPickHelper{},
 		Host:           &HostHelper{},
 		PatchBuilding:  &PatchBuildingHelper{},
+		GPG:            &GpgHelper{},
 	}
 }
