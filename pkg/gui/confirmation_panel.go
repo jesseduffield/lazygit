@@ -44,6 +44,10 @@ func (gui *Gui) wrappedPromptConfirmationFunction(handlersManageFocus bool, func
 }
 
 func (gui *Gui) closeConfirmationPrompt(handlersManageFocus bool) error {
+	gui.Mutexes.PopupMutex.Lock()
+	gui.State.CurrentPopupOpts = nil
+	gui.Mutexes.PopupMutex.Unlock()
+
 	// we've already closed it so we can just return
 	if !gui.Views.Confirmation.Visible {
 		return nil
@@ -164,13 +168,14 @@ func runeForMask(mask bool) rune {
 }
 
 func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
-	// if a popup panel already appears we must ignore this current one. This is
-	// not great but it prevents lost state. The proper solution is to have a stack of
-	// popups. We could have a queue of types.CreatePopupPanelOpts so that if you
-	// close a popup and there's another one in the queue we show that.
-	// One important popup we don't want to interrupt is the credentials popup
-	// or a process might get stuck waiting on user input.
-	if gui.currentContext().GetKey() == context.CONFIRMATION_CONTEXT_KEY {
+	gui.Mutexes.PopupMutex.Lock()
+	defer gui.Mutexes.PopupMutex.Unlock()
+
+	// we don't allow interruptions of non-loader popups in case we get stuck somehow
+	// e.g. a credentials popup never gets its required user input so a process hangs
+	// forever.
+	// The proper solution is to have a queue of popup options
+	if gui.State.CurrentPopupOpts != nil && !gui.State.CurrentPopupOpts.HasLoader {
 		gui.Log.Error("ignoring create popup panel because a popup panel is already open")
 		return nil
 	}
@@ -207,6 +212,8 @@ func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 	if err := gui.setKeyBindings(opts); err != nil {
 		return err
 	}
+
+	gui.State.CurrentPopupOpts = &opts
 
 	return gui.c.PushContext(gui.State.Contexts.Confirmation)
 }
