@@ -24,7 +24,6 @@ const (
 	MAIN_PATCH_BUILDING_CONTEXT_KEY types.ContextKey = "patchBuilding"
 	MAIN_STAGING_CONTEXT_KEY        types.ContextKey = "staging"
 	MENU_CONTEXT_KEY                types.ContextKey = "menu"
-	CREDENTIALS_CONTEXT_KEY         types.ContextKey = "credentials"
 	CONFIRMATION_CONTEXT_KEY        types.ContextKey = "confirmation"
 	SEARCH_CONTEXT_KEY              types.ContextKey = "search"
 	COMMIT_MESSAGE_CONTEXT_KEY      types.ContextKey = "commitMessage"
@@ -51,7 +50,6 @@ var AllContextKeys = []types.ContextKey{
 	MAIN_PATCH_BUILDING_CONTEXT_KEY,
 	MAIN_STAGING_CONTEXT_KEY, // not focusable for secondary view
 	MENU_CONTEXT_KEY,
-	CREDENTIALS_CONTEXT_KEY,
 	CONFIRMATION_CONTEXT_KEY,
 	SEARCH_CONTEXT_KEY,
 	COMMIT_MESSAGE_CONTEXT_KEY,
@@ -80,7 +78,6 @@ type ContextTree struct {
 	Staging        types.Context
 	PatchBuilding  types.Context
 	Merging        types.Context
-	Credentials    types.Context
 	Confirmation   types.Context
 	CommitMessage  types.Context
 	Search         types.Context
@@ -103,7 +100,6 @@ func (self *ContextTree) Flatten() []types.Context {
 		self.Stash,
 		self.Menu,
 		self.Confirmation,
-		self.Credentials,
 		self.CommitMessage,
 		self.Normal,
 		self.Staging,

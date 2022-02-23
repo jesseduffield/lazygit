@@ -177,7 +177,6 @@ type TranslationSet struct {
 	TagsTitle                           string
 	MenuTitle                           string
 	RemotesTitle                        string
-	CredentialsTitle                    string
 	RemoteBranchesTitle                 string
 	PatchBuildingTitle                  string
 	InformationTitle                    string
@@ -748,7 +747,6 @@ func EnglishTranslationSet() TranslationSet {
 		TagsTitle:                           "Tags Tab",
 		MenuTitle:                           "Menu",
 		RemotesTitle:                        "Remotes Tab",
-		CredentialsTitle:                    "Credentials",
 		RemoteBranchesTitle:                 "Remote Branches (in Remotes tab)",
 		PatchBuildingTitle:                  "Patch Building",
 		InformationTitle:                    "Information",

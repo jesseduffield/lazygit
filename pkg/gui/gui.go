@@ -86,7 +86,6 @@ type Gui struct {
 	Config               config.AppConfigurer
 	Updater              *updates.Updater
 	statusManager        *statusManager
-	credentials          credentials
 	waitForIntro         sync.WaitGroup
 	fileWatcher          *fileWatcher
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager
@@ -247,7 +246,6 @@ type Views struct {
 	Options       *gocui.View
 	Confirmation  *gocui.View
 	Menu          *gocui.View
-	Credentials   *gocui.View
 	CommitMessage *gocui.View
 	CommitFiles   *gocui.View
 	Information   *gocui.View
@@ -403,7 +401,6 @@ func initialViewContextMapping(contextTree *context.ContextTree) map[string]type
 		"stash":         contextTree.Stash,
 		"menu":          contextTree.Menu,
 		"confirmation":  contextTree.Confirmation,
-		"credentials":   contextTree.Credentials,
 		"commitMessage": contextTree.CommitMessage,
 		"main":          contextTree.Normal,
 		"secondary":     contextTree.Normal,
@@ -448,17 +445,6 @@ func NewGui(
 		InitialDir: initialDir,
 	}
 
-	guiIO := oscommands.NewGuiIO(
-		cmn.Log,
-		gui.LogCommand,
-		gui.getCmdWriter,
-		gui.promptUserForCredential,
-	)
-
-	osCommand := oscommands.NewOSCommand(cmn, oscommands.GetPlatform(), guiIO)
-
-	gui.os = osCommand
-
 	gui.watchFilesForChanges()
 
 	gui.PopupHandler = popup.NewPopupHandler(
@@ -474,6 +460,19 @@ func NewGui(
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
 	helperCommon := &types.HelperCommon{IGuiCommon: guiCommon, Common: cmn}
+
+	credentialsHelper := helpers.NewCredentialsHelper(helperCommon)
+
+	guiIO := oscommands.NewGuiIO(
+		cmn.Log,
+		gui.LogCommand,
+		gui.getCmdWriter,
+		credentialsHelper.PromptUserForCredential,
+	)
+
+	osCommand := oscommands.NewOSCommand(cmn, oscommands.GetPlatform(), guiIO)
+
+	gui.os = osCommand
 
 	// storing this stuff on the gui for now to ease refactoring
 	// TODO: reset these controllers upon changing repos due to state changing
@@ -751,7 +750,6 @@ func (gui *Gui) createAllViews() error {
 		{viewPtr: &gui.Views.Search, name: "search"},
 		{viewPtr: &gui.Views.SearchPrefix, name: "searchPrefix"},
 		{viewPtr: &gui.Views.CommitMessage, name: "commitMessage"},
-		{viewPtr: &gui.Views.Credentials, name: "credentials"},
 		{viewPtr: &gui.Views.Menu, name: "menu"},
 		{viewPtr: &gui.Views.Suggestions, name: "suggestions"},
 		{viewPtr: &gui.Views.Confirmation, name: "confirmation"},
@@ -824,11 +822,6 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
 
 	gui.Views.Confirmation.Visible = false
-
-	gui.Views.Credentials.Visible = false
-	gui.Views.Credentials.Title = gui.c.Tr.CredentialsUsername
-	gui.Views.Credentials.FgColor = theme.GocuiDefaultTextColor
-	gui.Views.Credentials.Editable = true
 
 	gui.Views.Suggestions.Visible = false
 

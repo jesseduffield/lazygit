@@ -40,6 +40,11 @@ type IGuiCommon interface {
 
 	GetAppState() *config.AppState
 	SaveAppState() error
+
+	// Runs the given function on the UI thread (this is for things like showing a popup asking a user for input).
+	// Only necessary to call if you're not already on the UI thread i.e. you're inside a goroutine.
+	// All controller handlers are executed on the UI thread.
+	OnUIThread(f func() error)
 }
 
 type IPopupHandler interface {
@@ -73,6 +78,7 @@ type CreatePopupPanelOpts struct {
 	HandlersManageFocus bool
 
 	FindSuggestionsFunc func(string) []*Suggestion
+	Mask                bool
 }
 
 type AskOpts struct {
@@ -88,6 +94,9 @@ type PromptOpts struct {
 	InitialContent      string
 	FindSuggestionsFunc func(string) []*Suggestion
 	HandleConfirm       func(string) error
+	// CAPTURE THIS
+	HandleClose func() error
+	Mask        bool
 }
 
 type MenuItem struct {

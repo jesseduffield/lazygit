@@ -224,7 +224,6 @@ func (gui *Gui) onInitialViewsCreation() error {
 		gui.Views.Menu,
 		gui.Views.Suggestions,
 		gui.Views.Confirmation,
-		gui.Views.Credentials,
 
 		// this guy will cover everything else when it appears
 		gui.Views.Limit,

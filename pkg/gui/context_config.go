@@ -114,18 +114,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				OnFocus: OnFocusWrapper(func() error { return gui.renderConflictsWithLock(true) }),
 			},
 		),
-		Credentials: context.NewSimpleContext(
-			context.NewBaseContext(context.NewBaseContextOpts{
-				Kind:       types.PERSISTENT_POPUP,
-				ViewName:   "credentials",
-				WindowName: "credentials",
-				Key:        context.CREDENTIALS_CONTEXT_KEY,
-				Focusable:  true,
-			}),
-			context.ContextCallbackOpts{
-				OnFocus: OnFocusWrapper(gui.handleAskFocused),
-			},
-		),
 		Confirmation: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.TEMPORARY_POPUP,

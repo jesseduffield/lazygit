@@ -120,6 +120,7 @@ func (gui *Gui) prepareConfirmationPanel(
 	hasLoader bool,
 	findSuggestionsFunc func(string) []*types.Suggestion,
 	editable bool,
+	mask bool,
 ) error {
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(true, prompt)
 	// calling SetView on an existing view returns the same view, so I'm not bothering
@@ -136,6 +137,7 @@ func (gui *Gui) prepareConfirmationPanel(
 	// for now we do not support wrapping in our editor
 	gui.Views.Confirmation.Wrap = !editable
 	gui.Views.Confirmation.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Confirmation.Mask = runeForMask(mask)
 
 	gui.findSuggestions = findSuggestionsFunc
 	if findSuggestionsFunc != nil {
@@ -154,7 +156,25 @@ func (gui *Gui) prepareConfirmationPanel(
 	return nil
 }
 
+func runeForMask(mask bool) rune {
+	if mask {
+		return '*'
+	}
+	return 0
+}
+
 func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
+	// if a popup panel already appears we must ignore this current one. This is
+	// not great but it prevents lost state. The proper solution is to have a stack of
+	// popups. We could have a queue of types.CreatePopupPanelOpts so that if you
+	// close a popup and there's another one in the queue we show that.
+	// One important popup we don't want to interrupt is the credentials popup
+	// or a process might get stuck waiting on user input.
+	if gui.currentContext().GetKey() == context.CONFIRMATION_CONTEXT_KEY {
+		gui.Log.Error("ignoring create popup panel because a popup panel is already open")
+		return nil
+	}
+
 	// remove any previous keybindings
 	gui.clearConfirmationViewKeyBindings()
 
@@ -164,6 +184,7 @@ func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 		opts.HasLoader,
 		opts.FindSuggestionsFunc,
 		opts.Editable,
+		opts.Mask,
 	)
 	if err != nil {
 		return err

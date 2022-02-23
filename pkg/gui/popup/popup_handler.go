@@ -109,7 +109,9 @@ func (self *RealPopupHandler) Prompt(opts types.PromptOpts) error {
 		Prompt:              opts.InitialContent,
 		Editable:            true,
 		HandleConfirmPrompt: opts.HandleConfirm,
+		HandleClose:         opts.HandleClose,
 		FindSuggestionsFunc: opts.FindSuggestionsFunc,
+		Mask:                opts.Mask,
 	})
 }
 
