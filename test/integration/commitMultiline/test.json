@@ -1,0 +1,4 @@
+{
+  "description": "stage a file and commit the change with a multiline commit message",
+  "speed": 15
+}
