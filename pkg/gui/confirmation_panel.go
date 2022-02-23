@@ -295,3 +295,17 @@ func (gui *Gui) refreshSuggestions() {
 		return func() { gui.setSuggestions(suggestions) }
 	})
 }
+
+func (gui *Gui) handleAskFocused() error {
+	keybindingConfig := gui.c.UserConfig.Keybinding
+
+	message := utils.ResolvePlaceholderString(
+		gui.c.Tr.CloseConfirm,
+		map[string]string{
+			"keyBindClose":   gui.getKeyDisplay(keybindingConfig.Universal.Return),
+			"keyBindConfirm": gui.getKeyDisplay(keybindingConfig.Universal.Confirm),
+		},
+	)
+
+	return gui.renderString(gui.Views.Options, message)
+}

@@ -5,7 +5,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type credentials chan string
@@ -55,18 +54,4 @@ func (gui *Gui) handleCloseCredentialsView() error {
 	gui.Views.Credentials.ClearTextArea()
 	gui.credentials <- ""
 	return gui.c.PopContext()
-}
-
-func (gui *Gui) handleAskFocused() error {
-	keybindingConfig := gui.c.UserConfig.Keybinding
-
-	message := utils.ResolvePlaceholderString(
-		gui.c.Tr.CloseConfirm,
-		map[string]string{
-			"keyBindClose":   gui.getKeyDisplay(keybindingConfig.Universal.Return),
-			"keyBindConfirm": gui.getKeyDisplay(keybindingConfig.Universal.Confirm),
-		},
-	)
-
-	return gui.renderString(gui.Views.Options, message)
 }
