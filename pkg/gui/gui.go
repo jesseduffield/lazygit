@@ -197,6 +197,8 @@ type GuiRepoState struct {
 	savedCommitMessage string
 
 	ScreenMode WindowMaximisation
+
+	CurrentPopupOpts *types.CreatePopupPanelOpts
 }
 
 type Controllers struct {
@@ -280,6 +282,7 @@ type guiMutexes struct {
 	LocalCommitsMutex     *sync.Mutex
 	LineByLinePanelMutex  *sync.Mutex
 	SubprocessMutex       *sync.Mutex
+	PopupMutex            *sync.Mutex
 }
 
 func (gui *Gui) onNewRepo(filterPath string, reuseState bool) error {
@@ -322,6 +325,13 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			if state := gui.RepoStateMap[Repo(currentDir)]; state != nil {
 				gui.State = state
 				gui.State.ViewsSetup = false
+
+				// setting this to nil so we don't get stuck based on a popup that was
+				// previously opened
+				gui.Mutexes.PopupMutex.Lock()
+				gui.State.CurrentPopupOpts = nil
+				gui.Mutexes.PopupMutex.Unlock()
+
 				gui.syncViewContexts()
 				return
 			}
@@ -441,6 +451,7 @@ func NewGui(
 			LocalCommitsMutex:     &sync.Mutex{},
 			LineByLinePanelMutex:  &sync.Mutex{},
 			SubprocessMutex:       &sync.Mutex{},
+			PopupMutex:            &sync.Mutex{},
 		},
 		InitialDir: initialDir,
 	}
