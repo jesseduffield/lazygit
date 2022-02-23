@@ -87,7 +87,6 @@ func localisedTitle(mApp *app.App, str string) string {
 		"commitMessage":  tr.CommitMessageTitle,
 		"commits":        tr.CommitsTitle,
 		"confirmation":   tr.ConfirmationTitle,
-		"credentials":    tr.CredentialsTitle,
 		"information":    tr.InformationTitle,
 		"main":           tr.MainTitle,
 		"patchBuilding":  tr.PatchBuildingTitle,

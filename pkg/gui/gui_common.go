@@ -65,3 +65,7 @@ func (self *guiCommon) Render() {
 func (self *guiCommon) OpenSearch() {
 	_ = self.gui.handleOpenSearch(self.gui.currentViewName())
 }
+
+func (self *guiCommon) OnUIThread(f func() error) {
+	self.gui.OnUIThread(f)
+}

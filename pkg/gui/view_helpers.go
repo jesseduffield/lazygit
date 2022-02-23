@@ -80,7 +80,7 @@ func (gui *Gui) globalOptionsMap() map[string]string {
 }
 
 func (gui *Gui) isPopupPanel(viewName string) bool {
-	return viewName == "commitMessage" || viewName == "credentials" || viewName == "confirmation" || viewName == "menu"
+	return viewName == "commitMessage" || viewName == "confirmation" || viewName == "menu"
 }
 
 func (gui *Gui) popupPanelFocused() bool {

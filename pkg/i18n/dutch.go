@@ -161,7 +161,6 @@ func dutchTranslationSet() TranslationSet {
 		TagsTitle:                           "Tags Tabblad",
 		MenuTitle:                           "Menu",
 		RemotesTitle:                        "Remotes Tabblad",
-		CredentialsTitle:                    "Credentials",
 		RemoteBranchesTitle:                 "Remote Branches (in Remotes tabblad)",
 		PatchBuildingTitle:                  "Patch Bouwen",
 		InformationTitle:                    "Informatie",
