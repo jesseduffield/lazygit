@@ -43,6 +43,24 @@ func (self *FileTreeViewModel) GetSelectedFileNode() *FileNode {
 	return self.GetItemAtIndex(self.GetSelectedLineIdx())
 }
 
+func (self *FileTreeViewModel) GetSelectedFile() *models.File {
+	node := self.GetSelectedFileNode()
+	if node == nil {
+		return nil
+	}
+
+	return node.File
+}
+
+func (self *FileTreeViewModel) GetSelectedPath() string {
+	node := self.GetSelectedFileNode()
+	if node == nil {
+		return ""
+	}
+
+	return node.GetPath()
+}
+
 func (self *FileTreeViewModel) SetTree() {
 	newFiles := self.GetAllFiles()
 	selectedNode := self.GetSelectedFileNode()

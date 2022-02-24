@@ -1116,7 +1116,11 @@ func (gui *Gui) resetKeybindings() error {
 	bindings, mouseBindings := gui.GetInitialKeybindings()
 
 	// prepending because we want to give our custom keybindings precedence over default keybindings
-	bindings = append(gui.GetCustomCommandKeybindings(), bindings...)
+	customBindings, err := gui.CustomCommandsClient.GetCustomCommandKeybindings()
+	if err != nil {
+		log.Fatal(err)
+	}
+	bindings = append(customBindings, bindings...)
 
 	for _, binding := range bindings {
 		if err := gui.SetKeybinding(binding); err != nil {

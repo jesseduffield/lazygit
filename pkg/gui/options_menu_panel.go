@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"log"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -15,7 +16,11 @@ func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 	)
 
 	bindings, _ := gui.GetInitialKeybindings()
-	bindings = append(gui.GetCustomCommandKeybindings(), bindings...)
+	customBindings, err := gui.CustomCommandsClient.GetCustomCommandKeybindings()
+	if err != nil {
+		log.Fatal(err)
+	}
+	bindings = append(customBindings, bindings...)
 
 	for _, binding := range bindings {
 		if GetKeyDisplay(binding.Key) != "" && binding.Description != "" {

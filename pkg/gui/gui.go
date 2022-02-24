@@ -30,6 +30,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
+	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
@@ -79,6 +80,8 @@ type Gui struct {
 
 	// this is the state of the GUI for the current repo
 	State *GuiRepoState
+
+	CustomCommandsClient *custom_commands.Client
 
 	// this is a mapping of repos to gui states, so that we can restore the original
 	// gui state when returning from a subrepo
@@ -496,28 +499,29 @@ func NewGui(
 }
 
 func (gui *Gui) resetControllers() {
-	controllerCommon := gui.c
+	helperCommon := gui.c
 	osCommand := gui.os
 	model := gui.State.Model
 	refsHelper := helpers.NewRefsHelper(
-		controllerCommon,
+		helperCommon,
 		gui.git,
 		gui.State.Contexts,
 		model,
 	)
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(controllerCommon, gui.State.Contexts, gui.git, gui.takeOverMergeConflictScrolling, refsHelper)
+
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, gui.takeOverMergeConflictScrolling, refsHelper)
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
-		PatchBuilding:  helpers.NewPatchBuildingHelper(controllerCommon, gui.git),
-		Bisect:         helpers.NewBisectHelper(controllerCommon, gui.git),
-		Suggestions:    helpers.NewSuggestionsHelper(controllerCommon, model, gui.refreshSuggestions),
-		Files:          helpers.NewFilesHelper(controllerCommon, gui.git, osCommand),
+		PatchBuilding:  helpers.NewPatchBuildingHelper(helperCommon, gui.git),
+		Bisect:         helpers.NewBisectHelper(helperCommon, gui.git),
+		Suggestions:    helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions),
+		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
 		WorkingTree:    helpers.NewWorkingTreeHelper(model),
-		Tags:           helpers.NewTagsHelper(controllerCommon, gui.git),
-		GPG:            helpers.NewGpgHelper(controllerCommon, gui.os, gui.git),
+		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
+		GPG:            helpers.NewGpgHelper(helperCommon, gui.os, gui.git),
 		MergeAndRebase: rebaseHelper,
 		CherryPick: helpers.NewCherryPickHelper(
-			controllerCommon,
+			helperCommon,
 			gui.git,
 			gui.State.Contexts,
 			func() *cherrypicking.CherryPicking { return gui.State.Modes.CherryPicking },
@@ -525,8 +529,17 @@ func (gui *Gui) resetControllers() {
 		),
 	}
 
+	gui.CustomCommandsClient = custom_commands.NewClient(
+		helperCommon,
+		gui.os,
+		gui.git,
+		gui.State.Contexts,
+		gui.helpers,
+		gui.getKey,
+	)
+
 	common := controllers.NewControllerCommon(
-		controllerCommon,
+		helperCommon,
 		osCommand,
 		gui.git,
 		gui.helpers,
