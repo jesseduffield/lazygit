@@ -69,6 +69,24 @@ func (self *CommitFileTreeViewModel) GetSelectedFileNode() *CommitFileNode {
 	return self.GetItemAtIndex(self.GetSelectedLineIdx())
 }
 
+func (self *CommitFileTreeViewModel) GetSelectedFile() *models.CommitFile {
+	node := self.GetSelectedFileNode()
+	if node == nil {
+		return nil
+	}
+
+	return node.File
+}
+
+func (self *CommitFileTreeViewModel) GetSelectedPath() string {
+	node := self.GetSelectedFileNode()
+	if node == nil {
+		return ""
+	}
+
+	return node.GetPath()
+}
+
 // duplicated from file_tree_view_model.go. Generics will help here
 func (self *CommitFileTreeViewModel) ToggleShowTree() {
 	selectedNode := self.GetSelectedFileNode()
