@@ -45,7 +45,7 @@ func (gui *Gui) createOrOpenPullRequestMenu(selectedBranch *models.Branch, check
 
 	if hasPr {
 		menuItems = append(menuItems, &menuItem{
-			displayString: gui.GitCommand.Tr.MustSpecifyOriginError + strconv.Itoa(pr.Number),
+			displayString: gui.Git.Gh.Tr.MustSpecifyOriginError + strconv.Itoa(pr.Number),
 			onPress: func() error {
 				return gui.OSCommand.OpenLink(pr.Url)
 			},

@@ -1,7 +1,5 @@
 package models
 
-import "strings"
-
 // Branch : A git branch
 // duplicating this for now
 type Branch struct {
@@ -56,16 +54,4 @@ func (b *Branch) HasCommitsToPull() bool {
 // for when we're in a detached head state
 func (b *Branch) IsRealBranch() bool {
 	return b.Pushables != "" && b.Pullables != ""
-}
-func (b *Branch) RemoteName() string {
-	return strings.SplitN(b.UpstreamName, "/", 2)[0]
-}
-
-func (b *Branch) BranchName() string {
-	remoteAndBranch := strings.SplitN(b.UpstreamName, "/", 2)
-	if len(remoteAndBranch) != 2 {
-		return ""
-	}
-
-	return strings.SplitN(b.UpstreamName, "/", 2)[1]
 }

@@ -71,7 +71,7 @@ type GitConfig struct {
 	OverrideGpg         bool                          `yaml:"overrideGpg"`
 	DisableForcePushing bool                          `yaml:"disableForcePushing"`
 	CommitPrefixes      map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
-	// this shoudl really be under 'gui', not 'git'
+	// this should really be under 'gui', not 'git'
 	ParseEmoji      bool      `yaml:"parseEmoji"`
 	Log             LogConfig `yaml:"log"`
 	EnableGhCommand bool      `yaml:"enableGhCommand"`
@@ -376,6 +376,7 @@ func GetDefaultConfig() *UserConfig {
 			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
 			ParseEmoji:          false,
 			DiffContextSize:     3,
+			EnableGhCommand:     false,
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval: 10,

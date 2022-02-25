@@ -75,7 +75,7 @@ func (gui *Gui) refreshBranches() {
 }
 
 func (gui *Gui) refreshGithubPullRequests() {
-	_, err := gui.GitCommand.RunCommandWithOutput("git config --local --get-regexp .gh-resolved$")
+	err := gui.Git.Gh.BaseRepo()
 	if err == nil {
 		_ = gui.setGithubPullRequests()
 		return
@@ -89,8 +89,7 @@ func (gui *Gui) refreshGithubPullRequests() {
 		findSuggestionsFunc: gui.getRemoteRepoSuggestionsFunc(),
 		handleConfirm: func(repository string) error {
 			return gui.WithWaitingStatus(gui.Tr.LcSelectingRemote, func() error {
-				// ex git config --local --add "remote.origin.gh-resolved" "jesseduffield/lazygit"
-				_, err := gui.GitCommand.RunCommandWithOutput(fmt.Sprintf("git config --local --add \"remote.origin.gh-resolved\" \"%s\"", repository))
+				_, err := gui.Git.Gh.SetBaseRepo(repository)
 				if err != nil {
 					return err
 				}
@@ -107,7 +106,8 @@ func (gui *Gui) refreshGithubPullRequests() {
 }
 
 func (gui *Gui) setGithubPullRequests() error {
-	prs, err := gui.GitCommand.GithubMostRecentPRs()
+	prs, err := gui.Git.Gh.GithubMostRecentPRs()
+
 	if err != nil {
 		return gui.surfaceError(err)
 	}

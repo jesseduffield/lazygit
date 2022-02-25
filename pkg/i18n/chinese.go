@@ -441,9 +441,6 @@ func chineseTranslationSet() TranslationSet {
 		LcSelectBranch:                      "选择分支",
 		CreatingPullRequestAtUrl:            "在 URL 创建抓取请求: %s",
 		OpenPr:                              "公开公关 #",
-
-		Spans: Spans{
-		ConfirmRevertCommit:                 "您确定要撤消 {{.selectedCommit}} 吗？",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "检出提交",

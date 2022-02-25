@@ -150,7 +150,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 }
 
 func (app *App) validateGhVersion() error {
-	output, err := app.OSCommand.RunCommandWithOutput("gh --version")
+	output, err := app.OSCommand.Cmd.New("gh --version").RunWithOutput()
 	// if we get an error anywhere here we'll show the same status
 	minVersionError := errors.New(app.Tr.MinGhVersionError)
 	if err != nil {

@@ -69,7 +69,7 @@ func (gui *Gui) branchesListContext() IListContext {
 		OnRenderToMain:  OnFocusWrapper(gui.branchesRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			prs, err := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubState.RecentPRs, gui.State.Branches, gui.State.Remotes)
+			prs, err := git_commands.GenerateGithubPullRequestMap(gui.State.GithubState.RecentPRs, gui.State.Branches, gui.State.Remotes)
 			if err != nil {
 				panic(err)
 			}

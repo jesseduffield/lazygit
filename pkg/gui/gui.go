@@ -313,6 +313,7 @@ type guiState struct {
 	Tags           []*models.Tag
 	MenuItems      []*menuItem
 	BisectInfo     *git_commands.BisectInfo
+	GithubState    *GithubState
 
 	Updating          bool
 	Panels            *panelStates
@@ -789,20 +790,20 @@ func (gui *Gui) setColorScheme() error {
 	return nil
 }
 
-// func (gui *Gui) GetPr(branch *models.Branch) (*models.GithubPullRequest, bool, error) {
-// 	prs, err := gui.GitCommand.GenerateGithubPullRequestMap(
-// 		gui.State.GithubState.RecentPRs,
-// 		[]*models.Branch{branch},
-// 		gui.State.Remotes,
-// 	)
-// 	if err != nil {
-// 		return nil, false, err
-// 	}
+func (gui *Gui) GetPr(branch *models.Branch) (*models.GithubPullRequest, bool, error) {
+	prs, err := git_commands.GenerateGithubPullRequestMap(
+		gui.State.GithubState.RecentPRs,
+		[]*models.Branch{branch},
+		gui.State.Remotes,
+	)
+	if err != nil {
+		return nil, false, err
+	}
 
-// 	pr, hasPr := prs[branch]
+	pr, hasPr := prs[branch]
 
-// 	return pr, hasPr, nil
-// }
+	return pr, hasPr, nil
+}
 
 func (gui *Gui) OnUIThread(f func() error) {
 	gui.g.Update(func(*gocui.Gui) error {

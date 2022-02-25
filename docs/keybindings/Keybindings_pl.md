@@ -43,8 +43,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>space</kbd>: przełącz
-  <kbd>o</kbd>: utwórz żądanie pobrania
-  <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
+  <kbd>o</kbd>: maak of laat een pull-request zien
+  <kbd>O</kbd>: utwórz opcje żądania
   <kbd>ctrl+y</kbd>: skopiuj adres URL żądania pobrania do schowka
   <kbd>c</kbd>: przełącz używając nazwy
   <kbd>F</kbd>: wymuś przełączenie

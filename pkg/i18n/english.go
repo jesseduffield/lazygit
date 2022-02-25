@@ -440,8 +440,6 @@ type TranslationSet struct {
 	DecreaseContextInDiffView           string
 	CreatePullRequestOptions            string
 	LcCreatePullRequestOptions          string
-	LcDefaultBranch                     string
-	LcSelectBranch                      string
 	CreatePullRequest                   string
 	SelectConfigFile                    string
 	NoConfigFileFoundErr                string

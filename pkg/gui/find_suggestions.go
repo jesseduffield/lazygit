@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -60,7 +60,7 @@ func (gui *Gui) getRemoteRepoNames() []string {
 		if len(remote.Urls) == 0 {
 			continue
 		}
-		info := commands.GetRepoInfoFromURL(remote.Urls[0])
+		info := git_commands.GetRepoInfoFromURL(remote.Urls[0])
 		result = append(result, fmt.Sprintf("%s/%s", info.Owner, info.Repository))
 	}
 
