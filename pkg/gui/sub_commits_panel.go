@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
@@ -17,17 +17,15 @@ func (gui *Gui) getSelectedSubCommit() *models.Commit {
 	return commits[selectedLine]
 }
 
-func (gui *Gui) handleSubCommitSelect() error {
+func (gui *Gui) subCommitsRenderToMain() error {
 	commit := gui.getSelectedSubCommit()
 	var task updateTask
 	if commit == nil {
 		task = NewRenderStringTask("No commits")
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
-		)
+		cmdObj := gui.Git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
 
-		task = NewRunPtyTask(cmd)
+		task = NewRunPtyTask(cmdObj.GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -48,7 +46,8 @@ func (gui *Gui) handleCheckoutSubCommit() error {
 		title:  gui.Tr.LcCheckoutCommit,
 		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {
-			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutCommit})
+			gui.logAction(gui.Tr.Actions.CheckoutCommit)
+			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
 		},
 	})
 	if err != nil {
@@ -77,10 +76,8 @@ func (gui *Gui) handleViewSubCommitFiles() error {
 
 func (gui *Gui) switchToSubCommitsContext(refName string) error {
 	// need to populate my sub commits
-	builder := commands.NewCommitListBuilder(gui.Log, gui.GitCommand, gui.OSCommand, gui.Tr)
-
-	commits, err := builder.GetCommits(
-		commands.GetCommitsOptions{
+	commits, err := gui.Git.Loaders.Commits.GetCommits(
+		loaders.GetCommitsOptions{
 			Limit:                gui.State.Panels.Commits.LimitCommits,
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: false,

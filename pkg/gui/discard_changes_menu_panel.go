@@ -12,7 +12,8 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 			{
 				displayString: gui.Tr.LcDiscardAllChanges,
 				onPress: func() error {
-					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardAllChangesInDirectory).DiscardAllDirChanges(node); err != nil {
+					gui.logAction(gui.Tr.Actions.DiscardAllChangesInDirectory)
+					if err := gui.Git.WorkingTree.DiscardAllDirChanges(node); err != nil {
 						return gui.surfaceError(err)
 					}
 					return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -24,7 +25,8 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 			menuItems = append(menuItems, &menuItem{
 				displayString: gui.Tr.LcDiscardUnstagedChanges,
 				onPress: func() error {
-					if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardUnstagedChangesInDirectory).DiscardUnstagedDirChanges(node); err != nil {
+					gui.logAction(gui.Tr.Actions.DiscardUnstagedChangesInDirectory)
+					if err := gui.Git.WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
 						return gui.surfaceError(err)
 					}
 
@@ -52,7 +54,8 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				{
 					displayString: gui.Tr.LcDiscardAllChanges,
 					onPress: func() error {
-						if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardAllChangesInFile).DiscardAllFileChanges(file); err != nil {
+						gui.logAction(gui.Tr.Actions.DiscardAllChangesInFile)
+						if err := gui.Git.WorkingTree.DiscardAllFileChanges(file); err != nil {
 							return gui.surfaceError(err)
 						}
 						return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
@@ -64,7 +67,8 @@ func (gui *Gui) handleCreateDiscardMenu() error {
 				menuItems = append(menuItems, &menuItem{
 					displayString: gui.Tr.LcDiscardUnstagedChanges,
 					onPress: func() error {
-						if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardAllUnstagedChangesInFile).DiscardUnstagedFileChanges(file); err != nil {
+						gui.logAction(gui.Tr.Actions.DiscardAllUnstagedChangesInFile)
+						if err := gui.Git.WorkingTree.DiscardUnstagedFileChanges(file); err != nil {
 							return gui.surfaceError(err)
 						}
 

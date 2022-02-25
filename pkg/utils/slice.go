@@ -2,8 +2,12 @@ package utils
 
 // IncludesString if the list contains the string
 func IncludesString(list []string, a string) bool {
+	return IncludesStringFunc(list, func(b string) bool { return b == a })
+}
+
+func IncludesStringFunc(list []string, fn func(string) bool) bool {
 	for _, b := range list {
-		if b == a {
+		if fn(b) {
 			return true
 		}
 	}

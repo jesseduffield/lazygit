@@ -3,12 +3,11 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
-func (gui *Gui) resetToRef(ref string, strength string, span string, options oscommands.RunCommandOptions) error {
-	if err := gui.GitCommand.WithSpan(span).ResetToCommit(ref, strength, options); err != nil {
+func (gui *Gui) resetToRef(ref string, strength string, envVars []string) error {
+	if err := gui.Git.Commit.ResetToCommit(ref, strength, envVars); err != nil {
 		return gui.surfaceError(err)
 	}
 
@@ -39,7 +38,8 @@ func (gui *Gui) createResetMenu(ref string) error {
 				style.FgRed.Sprintf("reset --%s %s", strength, ref),
 			},
 			onPress: func() error {
-				return gui.resetToRef(ref, strength, "Reset", oscommands.RunCommandOptions{})
+				gui.logAction("Reset")
+				return gui.resetToRef(ref, strength, []string{})
 			},
 		}
 	}

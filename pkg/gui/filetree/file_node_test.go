@@ -132,3 +132,32 @@ func TestCompress(t *testing.T) {
 		})
 	}
 }
+
+func TestGetFile(t *testing.T) {
+	scenarios := []struct {
+		name      string
+		viewModel *FileTreeViewModel
+		path      string
+		expected  *models.File
+	}{
+		{
+			name:      "valid case",
+			viewModel: NewFileTreeViewModel([]*models.File{{Name: "blah/one"}, {Name: "blah/two"}}, nil, false),
+			path:      "blah/two",
+			expected:  &models.File{Name: "blah/two"},
+		},
+		{
+			name:      "not found",
+			viewModel: NewFileTreeViewModel([]*models.File{{Name: "blah/one"}, {Name: "blah/two"}}, nil, false),
+			path:      "blah/three",
+			expected:  nil,
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.name, func(t *testing.T) {
+			assert.EqualValues(t, s.expected, s.viewModel.GetFile(s.path))
+		})
+	}
+}

@@ -16,17 +16,15 @@ func (gui *Gui) getSelectedReflogCommit() *models.Commit {
 	return reflogComits[selectedLine]
 }
 
-func (gui *Gui) handleReflogCommitSelect() error {
+func (gui *Gui) reflogCommitsRenderToMain() error {
 	commit := gui.getSelectedReflogCommit()
 	var task updateTask
 	if commit == nil {
 		task = NewRenderStringTask("No reflog history")
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowCmdStr(commit.Sha, gui.State.Modes.Filtering.GetPath()),
-		)
+		cmdObj := gui.Git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
 
-		task = NewRunPtyTask(cmd)
+		task = NewRunPtyTask(cmdObj.GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -54,7 +52,8 @@ func (gui *Gui) refreshReflogCommits() error {
 	}
 
 	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
-		commits, onlyObtainedNewReflogCommits, err := gui.GitCommand.GetReflogCommits(lastReflogCommit, filterPath)
+		commits, onlyObtainedNewReflogCommits, err := gui.Git.Loaders.ReflogCommits.
+			GetReflogCommits(lastReflogCommit, filterPath)
 		if err != nil {
 			return gui.surfaceError(err)
 		}
@@ -92,7 +91,8 @@ func (gui *Gui) handleCheckoutReflogCommit() error {
 		title:  gui.Tr.LcCheckoutCommit,
 		prompt: gui.Tr.SureCheckoutThisCommit,
 		handleConfirm: func() error {
-			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutReflogCommit})
+			gui.logAction(gui.Tr.Actions.CheckoutReflogCommit)
+			return gui.handleCheckoutRef(commit.Sha, handleCheckoutRefOptions{})
 		},
 	})
 	if err != nil {

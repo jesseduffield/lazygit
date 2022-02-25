@@ -106,7 +106,21 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true RECORD_EVENTS=true go run test/runner/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=record go run test/runner/main.go %s", currentTest.Name))
+		app.runSubprocess(cmd)
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("list", nil, 's', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=sandbox go run test/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -128,13 +142,27 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", nil, 's', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", nil, 'u', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true UPDATE_SNAPSHOTS=true go run test/runner/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=updateSnapshot go run test/runner/main.go %s", currentTest.Name))
+		app.runSubprocess(cmd)
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("list", nil, 't', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true SPEED=1 go run test/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -268,13 +296,11 @@ func main() {
 
 	err = g.MainLoop()
 	g.Close()
-	if err != nil {
-		switch err {
-		case gocui.ErrQuit:
-			return
-		default:
-			log.Panicln(err)
-		}
+	switch err {
+	case gocui.ErrQuit:
+		return
+	default:
+		log.Panicln(err)
 	}
 }
 
@@ -349,7 +375,7 @@ func (app *App) layout(g *gocui.Gui) error {
 		keybindingsView.Title = "Keybindings"
 		keybindingsView.Wrap = true
 		keybindingsView.FgColor = gocui.ColorDefault
-		fmt.Fprintln(keybindingsView, "up/down: navigate, enter: run test, s: run test and update snapshots, r: record test, o: open test config, n: duplicate test, m: rename test, d: delete test")
+		fmt.Fprintln(keybindingsView, "up/down: navigate, enter: run test, u: run test and update snapshots, r: record test, s: sandbox, o: open test config, n: duplicate test, m: rename test, d: delete test, t: run test at original speed")
 	}
 
 	editorView, err := g.SetViewBeneath("editor", "keybindings", editorViewHeight)

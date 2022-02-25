@@ -33,45 +33,68 @@ git commit -am "myfile1"
 
 ## Running tests
 
-To run all tests
+### From a TUI
+
+You can run/record/sandbox tests via a TUI with the following command:
+
 ```
-go test pkg/gui/gui_test.go
+go run test/lazyintegration/main.go
+```
+
+This TUI makes much of the following documentation redundant, but feel free to read through anyway!
+
+### From command line
+
+To run all tests - assuming you're at the project root:
+
+```
+go test ./pkg/gui/
 ```
 
 To run them in parallel
+
 ```
-PARALLEL=true go test pkg/gui/gui_test.go
+PARALLEL=true go test ./pkg/gui
 ```
 
 To run a single test
+
 ```
-go test pkg/gui/gui_test.go -run /<test name>
+go test ./pkg/gui -run /<test name>
+# For example, to run the `tags` test:
+go test ./pkg/gui -run /tags
 ```
 
 To run a test at a certain speed
+
 ```
-SPEED=2 go test pkg/gui/gui_test.go -run /<test name>
+SPEED=2 go test ./pkg/gui -run /<test name>
 ```
 
 To update a snapshot
+
 ```
-UPDATE_SNAPSHOTS=true go test pkg/gui/gui_test.go -run /<test name>
+MODE=updateSnapshot go test ./pkg/gui -run /<test name>
 ```
 
 ## Creating a new test
 
 To create a new test:
-1) Copy and paste an existing test directory and rename the new directory to whatever you want the test name to be. Update the test.json file's description to describe your test.
-2) Update the `setup.sh` any way you like
-3) If you want to have a config folder for just that test, create a `config` directory to contain a `config.yml` and optionally a `state.yml` file. Otherwise, the `test/default_test_config` directory will be used.
-4) From the lazygit root directory, run:
+
+1. Copy and paste an existing test directory and rename the new directory to whatever you want the test name to be. Update the test.json file's description to describe your test.
+2. Update the `setup.sh` any way you like
+3. If you want to have a config folder for just that test, create a `config` directory to contain a `config.yml` and optionally a `state.yml` file. Otherwise, the `test/default_test_config` directory will be used.
+4. From the lazygit root directory, run:
+
 ```
-RECORD_EVENTS=true go test pkg/gui/gui_test.go -run /<test name>
+MODE=record go test ./pkg/gui -run /<test name>
 ```
-5) Feel free to re-attempt recording as many times as you like. In the absence of a proper testing framework, the more deliberate your keypresses, the better!
-6) Once satisfied with the recording, stage all the newly created files: `test.json`, `setup.sh`, `recording.json` and the `expected` directory that contains a copy of the repo you created.
+
+5. Feel free to re-attempt recording as many times as you like. In the absence of a proper testing framework, the more deliberate your keypresses, the better!
+6. Once satisfied with the recording, stage all the newly created files: `test.json`, `setup.sh`, `recording.json` and the `expected` directory that contains a copy of the repo you created.
 
 The resulting directory will look like:
+
 ```
 actual/ (the resulting repo after running the test, ignored by git)
 expected/ (the 'snapshot' repo)
@@ -82,6 +105,14 @@ recording.json
 ```
 
 Feel free to create a hierarchy of directories in the `test/integration` directory to group tests by feature.
+
+## Sandboxing
+
+The integration tests serve a secondary purpose of providing a setup for easy sandboxing. If you want to run a test in sandbox mode (meaning the session won't be recorded and we won't create/update snapshots), go:
+
+```
+MODE=sandbox go test ./pkg/gui -run /<test name>
+```
 
 ## Feedback
 

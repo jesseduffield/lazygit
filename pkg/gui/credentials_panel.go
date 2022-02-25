@@ -3,25 +3,25 @@ package gui
 import (
 	"strings"
 
-	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type credentials chan string
 
 // promptUserForCredential wait for a username, password or passphrase input from the credentials popup
-func (gui *Gui) promptUserForCredential(passOrUname string) string {
+func (gui *Gui) promptUserForCredential(passOrUname oscommands.CredentialType) string {
 	gui.credentials = make(chan string)
-	gui.g.Update(func(g *gocui.Gui) error {
+	gui.OnUIThread(func() error {
 		credentialsView := gui.Views.Credentials
 		switch passOrUname {
-		case "username":
+		case oscommands.Username:
 			credentialsView.Title = gui.Tr.CredentialsUsername
 			credentialsView.Mask = 0
-		case "password":
+		case oscommands.Password:
 			credentialsView.Title = gui.Tr.CredentialsPassword
 			credentialsView.Mask = '*'
-		default:
+		case oscommands.Passphrase:
 			credentialsView.Title = gui.Tr.CredentialsPassphrase
 			credentialsView.Mask = '*'
 		}
@@ -57,7 +57,7 @@ func (gui *Gui) handleCloseCredentialsView() error {
 }
 
 func (gui *Gui) handleCredentialsViewFocused() error {
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 
 	message := utils.ResolvePlaceholderString(
 		gui.Tr.CloseConfirm,
@@ -67,8 +67,7 @@ func (gui *Gui) handleCredentialsViewFocused() error {
 		},
 	)
 
-	gui.renderString(gui.Views.Options, message)
-	return nil
+	return gui.renderString(gui.Views.Options, message)
 }
 
 // handleCredentialsPopup handles the views after executing a command that might ask for credentials

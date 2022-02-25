@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
@@ -16,10 +17,16 @@ const (
 	EXTRAS_CONTEXT
 )
 
+type OnFocusOpts struct {
+	ClickedViewName    string
+	ClickedViewLineIdx int
+}
+
 type Context interface {
-	HandleFocus() error
+	HandleFocus(opts ...OnFocusOpts) error
 	HandleFocusLost() error
 	HandleRender() error
+	HandleRenderToMain() error
 	GetKind() ContextKind
 	GetViewName() string
 	GetWindowName() string
@@ -64,32 +71,25 @@ func (gui *Gui) currentContextKeyIgnoringPopups() ContextKey {
 // use replaceContext when you don't want to return to the original context upon
 // hitting escape: you want to go that context's parent instead.
 func (gui *Gui) replaceContext(c Context) error {
-	gui.g.Update(func(*gocui.Gui) error {
-		gui.State.ContextManager.Lock()
-		defer gui.State.ContextManager.Unlock()
+	gui.State.ContextManager.Lock()
+	defer gui.State.ContextManager.Unlock()
 
-		if len(gui.State.ContextManager.ContextStack) == 0 {
-			gui.State.ContextManager.ContextStack = []Context{c}
-		} else {
-			// replace the last item with the given item
-			gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack[0:len(gui.State.ContextManager.ContextStack)-1], c)
-		}
+	if len(gui.State.ContextManager.ContextStack) == 0 {
+		gui.State.ContextManager.ContextStack = []Context{c}
+	} else {
+		// replace the last item with the given item
+		gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack[0:len(gui.State.ContextManager.ContextStack)-1], c)
+	}
 
-		return gui.activateContext(c)
-	})
-
-	return nil
+	return gui.activateContext(c)
 }
 
-func (gui *Gui) pushContext(c Context) error {
-	gui.g.Update(func(*gocui.Gui) error {
-		return gui.pushContextDirect(c)
-	})
+func (gui *Gui) pushContext(c Context, opts ...OnFocusOpts) error {
+	// using triple dot but you should only ever pass one of these opt structs
+	if len(opts) > 1 {
+		return errors.New("cannot pass multiple opts to pushContext")
+	}
 
-	return nil
-}
-
-func (gui *Gui) pushContextDirect(c Context) error {
 	gui.State.ContextManager.Lock()
 
 	// push onto stack
@@ -114,7 +114,7 @@ func (gui *Gui) pushContextDirect(c Context) error {
 
 	gui.State.ContextManager.Unlock()
 
-	return gui.activateContext(c)
+	return gui.activateContext(c, opts...)
 }
 
 // asynchronous code idea: functions return an error via a channel, when done
@@ -127,14 +127,6 @@ func (gui *Gui) pushContextWithView(viewName string) error {
 }
 
 func (gui *Gui) returnFromContext() error {
-	gui.g.Update(func(*gocui.Gui) error {
-		return gui.returnFromContextSync()
-	})
-
-	return nil
-}
-
-func (gui *Gui) returnFromContextSync() error {
 	gui.State.ContextManager.Lock()
 
 	if len(gui.State.ContextManager.ContextStack) == 1 {
@@ -169,7 +161,7 @@ func (gui *Gui) deactivateContext(c Context) error {
 	}
 
 	// if we are the kind of context that is sent to back upon deactivation, we should do that
-	if view != nil && c.GetKind() == TEMPORARY_POPUP || c.GetKind() == PERSISTENT_POPUP || c.GetKey() == COMMIT_FILES_CONTEXT_KEY {
+	if view != nil && (c.GetKind() == TEMPORARY_POPUP || c.GetKind() == PERSISTENT_POPUP || c.GetKey() == COMMIT_FILES_CONTEXT_KEY) {
 		view.Visible = false
 	}
 
@@ -206,7 +198,7 @@ func (gui *Gui) postRefreshUpdate(c Context) error {
 	return nil
 }
 
-func (gui *Gui) activateContext(c Context) error {
+func (gui *Gui) activateContext(c Context, opts ...OnFocusOpts) error {
 	viewName := c.GetViewName()
 	v, err := gui.g.View(viewName)
 	if err != nil {
@@ -249,7 +241,7 @@ func (gui *Gui) activateContext(c Context) error {
 	}
 	gui.renderOptionsMap(optionsMap)
 
-	if err := c.HandleFocus(); err != nil {
+	if err := c.HandleFocus(opts...); err != nil {
 		return err
 	}
 

@@ -10,8 +10,6 @@ import (
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -106,6 +104,7 @@ func TestNavigateToRepoRootDirectory(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(navigateToRepoRootDirectory(s.stat, s.chdir))
 		})
@@ -161,6 +160,7 @@ func TestSetupRepository(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(setupRepository(s.openGitRepository, s.errorStr))
 		})
@@ -208,10 +208,10 @@ func TestNewGitCommand(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.setup()
-			newAppConfig := config.NewDummyAppConfig()
-			s.test(NewGitCommand(utils.NewDummyLog(), oscommands.NewDummyOSCommand(), i18n.NewTranslationSet(utils.NewDummyLog(), newAppConfig.GetUserConfig().Gui.Language), newAppConfig, git_config.NewFakeGitConfig(nil)))
+			s.test(NewGitCommand(utils.NewDummyCommon(), oscommands.NewDummyOSCommand(), git_config.NewFakeGitConfig(nil)))
 		})
 	}
 }
@@ -285,6 +285,7 @@ func TestFindDotGitDir(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(findDotGitDir(s.stat, s.readFile))
 		})

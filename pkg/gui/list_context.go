@@ -9,7 +9,8 @@ import (
 type ListContext struct {
 	GetItemsLength      func() int
 	GetDisplayStrings   func(startIdx int, length int) [][]string
-	OnFocus             func() error
+	OnFocus             func(...OnFocusOpts) error
+	OnRenderToMain      func(...OnFocusOpts) error
 	OnFocusLost         func() error
 	OnClickSelectedItem func() error
 
@@ -29,7 +30,6 @@ type ListContext struct {
 type IListContext interface {
 	GetSelectedItem() (ListItem, bool)
 	GetSelectedItemId() string
-	OnRender() error
 	handlePrevLine() error
 	handleNextLine() error
 	handleScrollLeft() error
@@ -42,6 +42,7 @@ type IListContext interface {
 	handleClick() error
 	onSearchSelect(selectedLineIdx int) error
 	FocusLine()
+	HandleRenderToMain() error
 
 	GetPanelState() IListPanelState
 
@@ -76,7 +77,7 @@ func (self *ListContext) FocusLine() {
 	view.FocusPoint(view.OriginX(), self.GetPanelState().GetSelectedLineIdx())
 	if self.RenderSelection {
 		_, originY := view.Origin()
-		displayStrings := self.GetDisplayStrings(originY, view.InnerHeight())
+		displayStrings := self.GetDisplayStrings(originY, view.InnerHeight()+1)
 		self.Gui.renderDisplayStringsAtPos(view, originY, displayStrings)
 	}
 	view.Footer = formatListFooter(self.GetPanelState().GetSelectedLineIdx(), self.GetItemsLength())
@@ -101,7 +102,7 @@ func (self *ListContext) GetSelectedItemId() string {
 }
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
-func (self *ListContext) OnRender() error {
+func (self *ListContext) HandleRender() error {
 	view, err := self.Gui.g.View(self.ViewName)
 	if err != nil {
 		return nil
@@ -131,7 +132,7 @@ func (self *ListContext) HandleFocusLost() error {
 	return nil
 }
 
-func (self *ListContext) HandleFocus() error {
+func (self *ListContext) HandleFocus(opts ...OnFocusOpts) error {
 	if self.Gui.popupPanelFocused() {
 		return nil
 	}
@@ -143,14 +144,18 @@ func (self *ListContext) HandleFocus() error {
 	}
 
 	if self.OnFocus != nil {
-		return self.OnFocus()
+		if err := self.OnFocus(opts...); err != nil {
+			return err
+		}
+	}
+
+	if self.OnRenderToMain != nil {
+		if err := self.OnRenderToMain(opts...); err != nil {
+			return err
+		}
 	}
 
 	return nil
-}
-
-func (self *ListContext) HandleRender() error {
-	return self.OnRender()
 }
 
 func (self *ListContext) handlePrevLine() error {
@@ -267,4 +272,12 @@ func (self *ListContext) handleClick() error {
 func (self *ListContext) onSearchSelect(selectedLineIdx int) error {
 	self.GetPanelState().SetSelectedLineIdx(selectedLineIdx)
 	return self.HandleFocus()
+}
+
+func (self *ListContext) HandleRenderToMain() error {
+	if self.OnRenderToMain != nil {
+		return self.OnRenderToMain()
+	}
+
+	return nil
 }

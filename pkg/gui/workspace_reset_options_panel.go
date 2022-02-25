@@ -21,7 +21,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint(nukeStr),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.NukeWorkingTree).ResetAndClean(); err != nil {
+				gui.logAction(gui.Tr.Actions.NukeWorkingTree)
+				if err := gui.Git.WorkingTree.ResetAndClean(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -34,7 +35,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git checkout -- ."),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardUnstagedFileChanges).DiscardAnyUnstagedFileChanges(); err != nil {
+				gui.logAction(gui.Tr.Actions.DiscardUnstagedFileChanges)
+				if err := gui.Git.WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -47,7 +49,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git clean -fd"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RemoveUntrackedFiles).RemoveUntrackedFiles(); err != nil {
+				gui.logAction(gui.Tr.Actions.RemoveUntrackedFiles)
+				if err := gui.Git.WorkingTree.RemoveUntrackedFiles(); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -60,7 +63,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --soft HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.SoftReset).ResetSoft("HEAD"); err != nil {
+				gui.logAction(gui.Tr.Actions.SoftReset)
+				if err := gui.Git.WorkingTree.ResetSoft("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -73,7 +77,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --mixed HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.MixedReset).ResetMixed("HEAD"); err != nil {
+				gui.logAction(gui.Tr.Actions.MixedReset)
+				if err := gui.Git.WorkingTree.ResetMixed("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -86,7 +91,8 @@ func (gui *Gui) handleCreateResetMenu() error {
 				red.Sprint("git reset --hard HEAD"),
 			},
 			onPress: func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.HardReset).ResetHard("HEAD"); err != nil {
+				gui.logAction(gui.Tr.Actions.HardReset)
+				if err := gui.Git.WorkingTree.ResetHard("HEAD"); err != nil {
 					return gui.surfaceError(err)
 				}
 

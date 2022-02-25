@@ -71,8 +71,12 @@ func main() {
 			log.Fatal("--path option is incompatible with the --work-tree and --git-dir options")
 		}
 
-		workTree = repoPath
-		gitDir = filepath.Join(repoPath, ".git")
+		absRepoPath, err := filepath.Abs(repoPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		workTree = absRepoPath
+		gitDir = filepath.Join(absRepoPath, ".git")
 	}
 
 	if customConfig != "" {

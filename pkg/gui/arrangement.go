@@ -44,7 +44,7 @@ func (gui *Gui) getMidSectionWeights() (int, int) {
 	currentWindow := gui.currentWindow()
 
 	// we originally specified this as a ratio i.e. .20 would correspond to a weight of 1 against 4
-	sidePanelWidthRatio := gui.Config.GetUserConfig().Gui.SidePanelWidth
+	sidePanelWidthRatio := gui.UserConfig.Gui.SidePanelWidth
 	// we could make this better by creating ratios like 2:3 rather than always 1:something
 	mainSectionWeight := int(1/sidePanelWidthRatio) - 1
 	sideSectionWeight := 1
@@ -115,7 +115,7 @@ func (gui *Gui) splitMainPanelSideBySide() bool {
 		return false
 	}
 
-	mainPanelSplitMode := gui.Config.GetUserConfig().Gui.MainPanelSplitMode
+	mainPanelSplitMode := gui.UserConfig.Gui.MainPanelSplitMode
 	width, height := gui.g.Size()
 
 	switch mainPanelSplitMode {
@@ -143,7 +143,7 @@ func (gui *Gui) getExtrasWindowSize(screenHeight int) int {
 	} else if screenHeight < 40 {
 		baseSize = 1
 	} else {
-		baseSize = gui.Config.GetUserConfig().Gui.CommandLogSize
+		baseSize = gui.UserConfig.Gui.CommandLogSize
 	}
 
 	frameSize := 2
@@ -259,7 +259,7 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 			fullHeightBox("stash"),
 		}
 	} else if height >= 28 {
-		accordionMode := gui.Config.GetUserConfig().Gui.ExpandFocusedSidePanel
+		accordionMode := gui.UserConfig.Gui.ExpandFocusedSidePanel
 		accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
 			if accordionMode && defaultBox.Window == currentWindow {
 				return &boxlayout.Box{

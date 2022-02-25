@@ -2,19 +2,17 @@ package presentation
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func GetBranchListDisplayStrings(
-	branches []*models.Branch,
-	prs map[*models.Branch]*models.GithubPullRequest,
-	fullDescription bool,
-	diffName string) [][]string {
+var branchPrefixColorCache = make(map[string]style.TextStyle)
+
+func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string) [][]string {
 	lines := make([][]string, len(branches))
 
 	for i := range branches {
@@ -55,7 +53,13 @@ func getBranchDisplayStrings(
 	res = append(res, coloredPrNumber(pr, hasPr), coloredName)
 
 	if fullDescription {
-		res = append(res, style.FgYellow.Sprint(b.UpstreamName))
+		return append(
+			res,
+			fmt.Sprintf("%s %s",
+				style.FgYellow.Sprint(b.UpstreamRemote),
+				style.FgYellow.Sprint(b.UpstreamBranch),
+			),
+		)
 	}
 	return res
 }
@@ -63,6 +67,10 @@ func getBranchDisplayStrings(
 // GetBranchTextStyle branch color
 func GetBranchTextStyle(name string) style.TextStyle {
 	branchType := strings.Split(name, "/")[0]
+
+	if value, ok := branchPrefixColorCache[branchType]; ok {
+		return value
+	}
 
 	switch branchType {
 	case "feature":
@@ -91,17 +99,6 @@ func BranchStatus(branch *models.Branch) string {
 	return fmt.Sprintf("↑%s↓%s", branch.Pushables, branch.Pullables)
 }
 
-func coloredPrNumber(pr *models.GithubPullRequest, hasPr bool) string {
-	if hasPr {
-		colour := style.FgMagenta // = state MERGED
-		switch pr.State {
-		case "OPEN":
-			colour = style.FgGreen
-		case "CLOSED":
-			colour = style.FgRed
-		}
-		return colour.Sprint("#" + strconv.Itoa(pr.Number))
-	}
-
-	return ("")
+func SetCustomBranches(customBranchColors map[string]string) {
+	branchPrefixColorCache = utils.SetCustomColors(customBranchColors)
 }

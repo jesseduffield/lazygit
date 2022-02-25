@@ -144,7 +144,7 @@ func (gui *Gui) GenerateMenuCandidates(commandOutput, filter, valueFormat, label
 	}
 
 	candidates := []commandMenuEntry{}
-	for _, str := range strings.Split(string(commandOutput), "\n") {
+	for _, str := range strings.Split(commandOutput, "\n") {
 		if str == "" {
 			continue
 		}
@@ -203,7 +203,7 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 	}
 
 	// Run and save output
-	message, err := gui.GitCommand.RunCommandWithOutput(cmdStr)
+	message, err := gui.Git.Custom.RunWithOutput(cmdStr)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
@@ -216,6 +216,7 @@ func (gui *Gui) menuPromptFromCommand(prompt config.CustomCommandPrompt, promptR
 
 	menuItems := make([]*menuItem, len(candidates))
 	for i := range candidates {
+		i := i
 		menuItems[i] = &menuItem{
 			displayStrings: []string{candidates[i].label},
 			onPress: func() error {
@@ -244,7 +245,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 			}
 
 			if customCommand.Subprocess {
-				return gui.runSubprocessWithSuspenseAndRefresh(gui.OSCommand.PrepareShellSubProcess(cmdStr))
+				return gui.runSubprocessWithSuspenseAndRefresh(gui.OSCommand.Cmd.NewShell(cmdStr))
 			}
 
 			loadingText := customCommand.LoadingText
@@ -252,7 +253,13 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 				loadingText = gui.Tr.LcRunningCustomCommandStatus
 			}
 			return gui.WithWaitingStatus(loadingText, func() error {
-				if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CustomCommand).RunShellCommand(cmdStr); err != nil {
+				gui.logAction(gui.Tr.Actions.CustomCommand)
+				cmdObj := gui.OSCommand.Cmd.NewShell(cmdStr)
+				if customCommand.Stream {
+					cmdObj.StreamOutput()
+				}
+				err := cmdObj.Run()
+				if err != nil {
 					return gui.surfaceError(err)
 				}
 				return gui.refreshSidePanels(refreshOptions{})
@@ -295,7 +302,7 @@ func (gui *Gui) handleCustomCommandKeybinding(customCommand config.CustomCommand
 
 func (gui *Gui) GetCustomCommandKeybindings() []*Binding {
 	bindings := []*Binding{}
-	customCommands := gui.Config.GetUserConfig().CustomCommands
+	customCommands := gui.UserConfig.CustomCommands
 
 	for _, customCommand := range customCommands {
 		var viewName string

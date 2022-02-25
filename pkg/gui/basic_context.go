@@ -1,9 +1,11 @@
 package gui
 
 type BasicContext struct {
-	OnFocus         func() error
-	OnFocusLost     func() error
-	OnRender        func() error
+	OnFocus     func(opts ...OnFocusOpts) error
+	OnFocusLost func() error
+	OnRender    func() error
+	// this is for pushing some content to the main view
+	OnRenderToMain  func(opts ...OnFocusOpts) error
 	Kind            ContextKind
 	Key             ContextKey
 	ViewName        string
@@ -15,63 +17,83 @@ type BasicContext struct {
 	hasParent bool
 }
 
-func (c *BasicContext) GetOptionsMap() map[string]string {
-	if c.OnGetOptionsMap != nil {
-		return c.OnGetOptionsMap()
+func (self *BasicContext) GetOptionsMap() map[string]string {
+	if self.OnGetOptionsMap != nil {
+		return self.OnGetOptionsMap()
 	}
 	return nil
 }
 
-func (c *BasicContext) SetParentContext(context Context) {
-	c.ParentContext = context
-	c.hasParent = true
+func (self *BasicContext) SetParentContext(context Context) {
+	self.ParentContext = context
+	self.hasParent = true
 }
 
-func (c *BasicContext) GetParentContext() (Context, bool) {
-	return c.ParentContext, c.hasParent
+func (self *BasicContext) GetParentContext() (Context, bool) {
+	return self.ParentContext, self.hasParent
 }
 
-func (c *BasicContext) SetWindowName(windowName string) {
-	c.WindowName = windowName
+func (self *BasicContext) SetWindowName(windowName string) {
+	self.WindowName = windowName
 }
 
-func (c *BasicContext) GetWindowName() string {
-	windowName := c.WindowName
+func (self *BasicContext) GetWindowName() string {
+	windowName := self.WindowName
 
 	if windowName != "" {
 		return windowName
 	}
 
 	// TODO: actually set this for everything so we don't default to the view name
-	return c.ViewName
+	return self.ViewName
 }
 
-func (c *BasicContext) HandleRender() error {
-	if c.OnRender != nil {
-		return c.OnRender()
+func (self *BasicContext) HandleRender() error {
+	if self.OnRender != nil {
+		return self.OnRender()
 	}
 	return nil
 }
 
-func (c *BasicContext) GetViewName() string {
-	return c.ViewName
+func (self *BasicContext) GetViewName() string {
+	return self.ViewName
 }
 
-func (c *BasicContext) HandleFocus() error {
-	return c.OnFocus()
+func (self *BasicContext) HandleFocus(opts ...OnFocusOpts) error {
+	if self.OnFocus != nil {
+		if err := self.OnFocus(opts...); err != nil {
+			return err
+		}
+	}
+
+	if self.OnRenderToMain != nil {
+		if err := self.OnRenderToMain(opts...); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (c *BasicContext) HandleFocusLost() error {
-	if c.OnFocusLost != nil {
-		return c.OnFocusLost()
+func (self *BasicContext) HandleFocusLost() error {
+	if self.OnFocusLost != nil {
+		return self.OnFocusLost()
 	}
 	return nil
 }
 
-func (c *BasicContext) GetKind() ContextKind {
-	return c.Kind
+func (self *BasicContext) HandleRenderToMain() error {
+	if self.OnRenderToMain != nil {
+		return self.OnRenderToMain()
+	}
+
+	return nil
 }
 
-func (c *BasicContext) GetKey() ContextKey {
-	return c.Key
+func (self *BasicContext) GetKind() ContextKind {
+	return self.Kind
+}
+
+func (self *BasicContext) GetKey() ContextKey {
+	return self.Key
 }

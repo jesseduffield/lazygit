@@ -18,16 +18,14 @@ func (gui *Gui) getSelectedRemoteBranch() *models.RemoteBranch {
 	return gui.State.RemoteBranches[selectedLine]
 }
 
-func (gui *Gui) handleRemoteBranchSelect() error {
+func (gui *Gui) remoteBranchesRenderToMain() error {
 	var task updateTask
 	remoteBranch := gui.getSelectedRemoteBranch()
 	if remoteBranch == nil {
 		task = NewRenderStringTask("No branches for this remote")
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.GetBranchGraphCmdStr(remoteBranch.FullName()),
-		)
-		task = NewRunCommandTask(cmd)
+		cmdObj := gui.Git.Branch.GetGraphCmdObj(remoteBranch.FullName())
+		task = NewRunCommandTask(cmdObj.GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -59,7 +57,8 @@ func (gui *Gui) handleDeleteRemoteBranch() error {
 		prompt: message,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.DeletingStatus, func() error {
-				err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteRemoteBranch).DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name, gui.promptUserForCredential)
+				gui.logAction(gui.Tr.Actions.DeleteRemoteBranch)
+				err := gui.Git.Remote.DeleteRemoteBranch(remoteBranch.RemoteName, remoteBranch.Name)
 				gui.handleCredentialsPopup(err)
 
 				return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, REMOTES}})
@@ -89,7 +88,8 @@ func (gui *Gui) handleSetBranchUpstream() error {
 		title:  gui.Tr.SetUpstreamTitle,
 		prompt: message,
 		handleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.SetBranchUpstream).SetBranchUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
+			gui.logAction(gui.Tr.Actions.SetBranchUpstream)
+			if err := gui.Git.Branch.SetUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
 				return gui.surfaceError(err)
 			}
 

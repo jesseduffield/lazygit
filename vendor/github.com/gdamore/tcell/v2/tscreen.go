@@ -46,19 +46,36 @@ func NewTerminfoScreen() (Screen, error) {
 	return NewTerminfoScreenFromTty(nil)
 }
 
-// NewTerminfoScreenFromTty returns a Screen using a custom Tty implementation.
-// If the passed in tty is nil, then a reasonable default (typically /dev/tty)
-// is presumed, at least on UNIX hosts. (Windows hosts will typically fail this
-// call altogether.)
-func NewTerminfoScreenFromTty(tty Tty) (Screen, error) {
-	ti, e := terminfo.LookupTerminfo(os.Getenv("TERM"))
+// LookupTerminfo attempts to find a definition for the named $TERM falling
+// back to attempting to parse the output from infocmp.
+func LookupTerminfo(name string) (ti *terminfo.Terminfo, e error) {
+	ti, e = terminfo.LookupTerminfo(name)
 	if e != nil {
-		ti, e = loadDynamicTerminfo(os.Getenv("TERM"))
+		ti, e = loadDynamicTerminfo(name)
 		if e != nil {
 			return nil, e
 		}
 		terminfo.AddTerminfo(ti)
 	}
+
+	return
+}
+
+// NewTerminfoScreenFromTtyTerminfo returns a Screen using a custom Tty
+// implementation  and custom terminfo specification.
+// If the passed in tty is nil, then a reasonable default (typically /dev/tty)
+// is presumed, at least on UNIX hosts. (Windows hosts will typically fail this
+// call altogether.)
+// If passed terminfo is nil, then TERM environment variable is queried for
+// terminal specification.
+func NewTerminfoScreenFromTtyTerminfo(tty Tty, ti *terminfo.Terminfo) (s Screen, e error) {
+	if ti == nil {
+		ti, e = LookupTerminfo(os.Getenv("TERM"))
+		if e != nil {
+			return
+		}
+	}
+
 	t := &tScreen{ti: ti, tty: tty}
 
 	t.keyexist = make(map[Key]bool)
@@ -75,6 +92,14 @@ func NewTerminfoScreenFromTty(tty Tty) (Screen, error) {
 	}
 
 	return t, nil
+}
+
+// NewTerminfoScreenFromTty returns a Screen using a custom Tty implementation.
+// If the passed in tty is nil, then a reasonable default (typically /dev/tty)
+// is presumed, at least on UNIX hosts. (Windows hosts will typically fail this
+// call altogether.)
+func NewTerminfoScreenFromTty(tty Tty) (Screen, error) {
+	return NewTerminfoScreenFromTtyTerminfo(tty, nil)
 }
 
 // tKeyCode represents a combination of a key code and modifiers.
@@ -844,7 +869,7 @@ func (t *tScreen) EnableMouse(flags ...MouseFlags) {
 		flagsPresent = true
 	}
 	if !flagsPresent {
-		f = MouseMotionEvents
+		f = MouseMotionEvents | MouseDragEvents | MouseButtonEvents
 	}
 
 	t.Lock()
@@ -860,14 +885,19 @@ func (t *tScreen) enableMouse(f MouseFlags) {
 	if len(t.mouse) != 0 {
 		// start by disabling all tracking.
 		t.TPuts("\x1b[?1000l\x1b[?1002l\x1b[?1003l\x1b[?1006l")
-		if f&MouseMotionEvents != 0 {
-			t.TPuts("\x1b[?1003h\x1b[?1006h")
-		} else if f&MouseDragEvents != 0 {
-			t.TPuts("\x1b[?1002h\x1b[?1006h")
-		} else if f&MouseButtonEvents != 0 {
-			t.TPuts("\x1b[?1000h\x1b[?1006h")
+		if f&MouseButtonEvents != 0 {
+			t.TPuts("\x1b[?1000h")
 		}
+		if f&MouseDragEvents != 0 {
+			t.TPuts("\x1b[?1002h")
+		}
+		if f&MouseMotionEvents != 0 {
+			t.TPuts("\x1b[?1003h")
+		}
+
+		t.TPuts("\x1b[?1006h")
 	}
+
 }
 
 func (t *tScreen) DisableMouse() {
@@ -1547,7 +1577,12 @@ func (t *tScreen) inputLoop(stopQ chan struct{}) {
 		switch e {
 		case nil:
 		default:
-			_ = t.PostEvent(NewEventError(e))
+			t.Lock()
+			running := t.running
+			t.Unlock()
+			if running {
+				_ = t.PostEvent(NewEventError(e))
+			}
 			return
 		}
 		if n > 0 {

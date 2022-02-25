@@ -1,6 +1,7 @@
 package mergeconflicts
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -57,5 +58,44 @@ func TestDetermineLineType(t *testing.T) {
 
 	for _, s := range scenarios {
 		assert.EqualValues(t, s.expected, determineLineType(s.line))
+	}
+}
+
+func TestFindConflictsAux(t *testing.T) {
+	type scenario struct {
+		content  string
+		expected bool
+	}
+
+	scenarios := []scenario{
+		{
+			content:  "",
+			expected: false,
+		},
+		{
+			content:  "blah",
+			expected: false,
+		},
+		{
+			content:  ">>>>>>> ",
+			expected: true,
+		},
+		{
+			content:  "<<<<<<< ",
+			expected: true,
+		},
+		{
+			content:  " <<<<<<< ",
+			expected: false,
+		},
+		{
+			content:  "a\nb\nc\n<<<<<<< ",
+			expected: true,
+		},
+	}
+
+	for _, s := range scenarios {
+		reader := strings.NewReader(s.content)
+		assert.EqualValues(t, s.expected, fileHasConflictMarkersAux(reader))
 	}
 }

@@ -33,7 +33,8 @@ github.com/fatih/color
 github.com/fsnotify/fsnotify
 # github.com/gdamore/encoding v1.0.0
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.4.0
+# github.com/gdamore/tcell/v2 v2.4.1-0.20210926162909-66f061b1fc9b
+## explicit
 github.com/gdamore/tcell/v2
 github.com/gdamore/tcell/v2/terminfo
 github.com/gdamore/tcell/v2/terminfo/a/aixterm
@@ -161,7 +162,7 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/filesystem
 github.com/jesseduffield/go-git/v5/utils/merkletrie/index
 github.com/jesseduffield/go-git/v5/utils/merkletrie/internal/frame
 github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
-# github.com/jesseduffield/gocui v0.3.1-0.20211102104458-40df0be5a474
+# github.com/jesseduffield/gocui v0.3.1-0.20220108045521-1945d7b9ed8b
 ## explicit
 github.com/jesseduffield/gocui
 # github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
@@ -206,12 +207,16 @@ github.com/mitchellh/go-homedir
 # github.com/onsi/gomega v1.7.1
 ## explicit
 # github.com/pmezard/go-difflib v1.0.0
+## explicit
 github.com/pmezard/go-difflib/difflib
 # github.com/rivo/uniseg v0.2.0
 github.com/rivo/uniseg
 # github.com/sahilm/fuzzy v0.1.0
 ## explicit
 github.com/sahilm/fuzzy
+# github.com/sanity-io/litter v1.5.2
+## explicit
+github.com/sanity-io/litter
 # github.com/sergi/go-diff v1.1.0
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/sirupsen/logrus v1.4.2
@@ -253,7 +258,7 @@ golang.org/x/crypto/ssh/knownhosts
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20211102061401-a2f17f7b995c
+# golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader

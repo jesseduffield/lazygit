@@ -13,19 +13,19 @@ package i18n
 // reset    重置
 
 const chineseIntroPopupMessage = `
-感谢您使用 lazygit！与您分享三件事：
+感谢使用 lazygit！下面几点你可能会感兴趣：
 
- 1) 如果您想了解 lazygit 的功能，请观看此视频：
+ 1) 观看此视频，快速了解 lazygit 的功能：
       https://youtu.be/CPLdltN7wgE
 
- 2) 请务必阅读最新的发行说明, 网址为：
+ 2) 记得阅读最新的发行说明：
       https://github.com/jesseduffield/lazygit/releases
 
- 3) 如果您使用 git，这将使您成为一名程序员！在您的帮助下，我们可以使
-    lazygit 更好，因此请考虑成为一名贡献者：
+ 3) 使用 git 说明你是一位程序员！你可以和我们一起让
+    lazygit 变得更好。考虑贡献一些代码：
       https://github.com/jesseduffield/lazygit
-    您也可以赞助我，并通过单击右下角的捐赠按钮，告诉我要做什么改进。
-    只是给仓库加个星星也很棒！
+    也可以赞助并告诉我哪里需要改进，点右下角的捐赠按钮就好了。
+    就算给仓库点个星星也很棒！
 `
 
 func chineseTranslationSet() TranslationSet {
@@ -73,7 +73,6 @@ func chineseTranslationSet() TranslationSet {
 		PullWait:                            "拉取中……",
 		PushWait:                            "推送中……",
 		FetchWait:                           "正在抓取……",
-		FileNoMergeCons:                     "该文件没有合并冲突",
 		LcSoftReset:                         "软重置",
 		AlreadyCheckedOutBranch:             "您已经检出了这个分支",
 		SureForceCheckout:                   "您确定要强制检出吗？您将丢失所有本地更改",
@@ -109,8 +108,7 @@ func chineseTranslationSet() TranslationSet {
 		Squash:                              "压缩",
 		LcPickCommit:                        "选择提交（变基过程中）",
 		LcRevertCommit:                      "还原提交",
-		OnlyRenameTopCommit:                 "只能从 lazygit 内部重写最高的提交。请使用 shift-R",
-		LcRenameCommit:                      "改写提交",
+		LcRewordCommit:                      "改写提交",
 		LcDeleteCommit:                      "删除提交",
 		LcMoveDownCommit:                    "下移提交",
 		LcMoveUpCommit:                      "上移提交",
@@ -135,7 +133,6 @@ func chineseTranslationSet() TranslationSet {
 		SurePopStashEntry:                   "您确定要应用并删除此贮藏条目吗？",
 		StashApply:                          "应用贮藏",
 		SureApplyStashEntry:                 "您确定要应用此贮藏条目？",
-		NoStashTo:                           "没有贮藏条目可以 {{.method}}",
 		NoTrackedStagedFilesStash:           "没有可以贮藏的已跟踪/暂存文件",
 		StashChanges:                        "贮藏更改",
 		MergeAborted:                        "合并中止",
@@ -263,7 +260,7 @@ func chineseTranslationSet() TranslationSet {
 		LcViewDiscardOptions:                "查看'放弃更改‘选项",
 		LcCancel:                            "取消",
 		LcDiscardAllChanges:                 "放弃所有更改",
-		LcDiscardUnstagedChanges:            "放弃未进行的变更",
+		LcDiscardUnstagedChanges:            "放弃未暂存的变更",
 		LcDiscardAllChangesToAllFiles:       "清空工作区",
 		LcDiscardAnyUnstagedChanges:         "丢弃未暂存的变更",
 		LcDiscardUntrackedFiles:             "丢弃未跟踪的文件",
@@ -408,7 +405,6 @@ func chineseTranslationSet() TranslationSet {
 		LcEditSubmoduleUrl:                  "更新子模块 URL",
 		LcInitializingSubmoduleStatus:       "正在初始化子模块",
 		LcInitSubmodule:                     "初始化子模块",
-		LcViewResetAndRemoveOptions:         "查看重置和删除子模块选项",
 		LcSubmoduleUpdate:                   "更新子模块",
 		LcUpdatingSubmoduleStatus:           "正在更新子模块",
 		LcBulkInitSubmodules:                "批量初始化子模块",
@@ -447,6 +443,8 @@ func chineseTranslationSet() TranslationSet {
 		OpenPr:                              "公开公关 #",
 
 		Spans: Spans{
+		ConfirmRevertCommit:                 "您确定要撤消 {{.selectedCommit}} 吗？",
+		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "检出提交",
 			CheckoutReflogCommit:              "检出reflog提交",

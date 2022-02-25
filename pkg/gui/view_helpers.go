@@ -28,6 +28,8 @@ const (
 	REMOTES
 	STATUS
 	SUBMODULES
+	// not actually a view. Will refactor this later
+	BISECT_INFO
 )
 
 func getScopeNames(scopes []RefreshableView) []string {
@@ -105,18 +107,18 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 	f := func() {
 		var scopeMap map[RefreshableView]bool
 		if len(options.scope) == 0 {
-			scopeMap = arrToMap([]RefreshableView{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES, STATUS})
+			scopeMap = arrToMap([]RefreshableView{COMMITS, BRANCHES, FILES, STASH, REFLOG, TAGS, REMOTES, STATUS, BISECT_INFO})
 		} else {
 			scopeMap = arrToMap(options.scope)
 		}
 
-		if scopeMap[COMMITS] || scopeMap[BRANCHES] || scopeMap[REFLOG] {
+		if scopeMap[COMMITS] || scopeMap[BRANCHES] || scopeMap[REFLOG] || scopeMap[BISECT_INFO] {
 			wg.Add(1)
 			func() {
 				if options.mode == ASYNC {
-					go utils.Safe(func() { _ = gui.refreshCommits() })
+					go utils.Safe(func() { gui.refreshCommits() })
 				} else {
-					_ = gui.refreshCommits()
+					gui.refreshCommits()
 				}
 				wg.Done()
 			}()
@@ -180,7 +182,7 @@ func (gui *Gui) refreshSidePanels(options refreshOptions) error {
 	}
 
 	if options.mode == BLOCK_UI {
-		gui.g.Update(func(g *gocui.Gui) error {
+		gui.OnUIThread(func() error {
 			f()
 			return nil
 		})
@@ -201,32 +203,19 @@ func (gui *Gui) cleanString(s string) string {
 	return utils.NormalizeLinefeeds(output)
 }
 
-func (gui *Gui) setViewContentSync(v *gocui.View, s string) {
+func (gui *Gui) setViewContent(v *gocui.View, s string) {
 	v.SetContent(gui.cleanString(s))
 }
 
-func (gui *Gui) setViewContent(v *gocui.View, s string) {
-	gui.g.Update(func(*gocui.Gui) error {
-		gui.setViewContentSync(v, s)
-		return nil
-	})
-}
-
 // renderString resets the origin of a view and sets its content
-func (gui *Gui) renderString(view *gocui.View, s string) {
-	gui.g.Update(func(*gocui.Gui) error {
-		return gui.renderStringSync(view, s)
-	})
-}
-
-func (gui *Gui) renderStringSync(view *gocui.View, s string) error {
+func (gui *Gui) renderString(view *gocui.View, s string) error {
 	if err := view.SetOrigin(0, 0); err != nil {
 		return err
 	}
 	if err := view.SetCursor(0, 0); err != nil {
 		return err
 	}
-	gui.setViewContentSync(view, s)
+	gui.setViewContent(view, s)
 	return nil
 }
 
@@ -240,7 +229,7 @@ func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
 }
 
 func (gui *Gui) renderOptionsMap(optionsMap map[string]string) {
-	gui.renderString(gui.Views.Options, gui.optionsMapToString(optionsMap))
+	_ = gui.renderString(gui.Views.Options, gui.optionsMapToString(optionsMap))
 }
 
 func (gui *Gui) currentViewName() string {
@@ -314,7 +303,7 @@ func (gui *Gui) renderDisplayStringsAtPos(v *gocui.View, y int, displayStrings [
 }
 
 func (gui *Gui) globalOptionsMap() map[string]string {
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 
 	return map[string]string{
 		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollUpMain), gui.getKeyDisplay(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.Tr.LcScroll,
@@ -391,5 +380,5 @@ func getTabbedView(gui *Gui) *gocui.View {
 }
 
 func (gui *Gui) render() {
-	gui.g.Update(func(g *gocui.Gui) error { return nil })
+	gui.OnUIThread(func() error { return nil })
 }

@@ -8,11 +8,11 @@ import (
 
 func (gui *Gui) getSelectedCommitFileNode() *filetree.CommitFileNode {
 	selectedLine := gui.State.Panels.CommitFiles.SelectedLineIdx
-	if selectedLine == -1 || selectedLine > gui.State.CommitFileManager.GetItemsLength()-1 {
+	if selectedLine == -1 || selectedLine > gui.State.CommitFileTreeViewModel.GetItemsLength()-1 {
 		return nil
 	}
 
-	return gui.State.CommitFileManager.GetItemAtIndex(selectedLine)
+	return gui.State.CommitFileTreeViewModel.GetItemAtIndex(selectedLine)
 }
 
 func (gui *Gui) getSelectedCommitFile() *models.CommitFile {
@@ -31,21 +31,22 @@ func (gui *Gui) getSelectedCommitFilePath() string {
 	return node.GetPath()
 }
 
-func (gui *Gui) handleCommitFileSelect() error {
+func (gui *Gui) onCommitFileFocus() error {
 	gui.escapeLineByLinePanel()
+	return nil
+}
 
+func (gui *Gui) commitFilesRenderToMain() error {
 	node := gui.getSelectedCommitFileNode()
 	if node == nil {
 		return nil
 	}
 
-	to := gui.State.CommitFileManager.GetParent()
+	to := gui.State.CommitFileTreeViewModel.GetParent()
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.GitCommand.ShowFileDiffCmdStr(from, to, reverse, node.GetPath(), false),
-	)
-	task := NewRunPtyTask(cmd)
+	cmdObj := gui.Git.WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
+	task := NewRunPtyTask(cmdObj.GetCmd())
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
@@ -62,7 +63,8 @@ func (gui *Gui) handleCheckoutCommitFile() error {
 		return nil
 	}
 
-	if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CheckoutFile).CheckoutFile(gui.State.CommitFileManager.GetParent(), node.GetPath()); err != nil {
+	gui.logAction(gui.Tr.Actions.CheckoutFile)
+	if err := gui.Git.WorkingTree.CheckoutFile(gui.State.CommitFileTreeViewModel.GetParent(), node.GetPath()); err != nil {
 		return gui.surfaceError(err)
 	}
 
@@ -81,7 +83,8 @@ func (gui *Gui) handleDiscardOldFileChange() error {
 		prompt: gui.Tr.DiscardFileChangesPrompt,
 		handleConfirm: func() error {
 			return gui.WithWaitingStatus(gui.Tr.RebasingStatus, func() error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DiscardOldFileChange).DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
+				gui.logAction(gui.Tr.Actions.DiscardOldFileChange)
+				if err := gui.Git.Rebase.DiscardOldFileChanges(gui.State.Commits, gui.State.Panels.Commits.SelectedLineIdx, fileName); err != nil {
 					if err := gui.handleGenericMergeCommandResult(err); err != nil {
 						return err
 					}
@@ -104,11 +107,12 @@ func (gui *Gui) refreshCommitFilesView() error {
 	to := gui.State.Panels.CommitFiles.refName
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
-	files, err := gui.GitCommand.GetFilesInDiff(from, to, reverse)
+	files, err := gui.Git.Loaders.CommitFiles.GetFilesInDiff(from, to, reverse)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
-	gui.State.CommitFileManager.SetFiles(files, to)
+	gui.State.CommitFileTreeViewModel.SetParent(to)
+	gui.State.CommitFileTreeViewModel.SetFiles(files)
 
 	return gui.postRefreshUpdate(gui.State.Contexts.CommitFiles)
 }
@@ -142,7 +146,7 @@ func (gui *Gui) handleToggleFileForPatch() error {
 	}
 
 	toggleTheFile := func() error {
-		if !gui.GitCommand.PatchManager.Active() {
+		if !gui.Git.Patch.PatchManager.Active() {
 			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
@@ -151,14 +155,14 @@ func (gui *Gui) handleToggleFileForPatch() error {
 		// if there is any file that hasn't been fully added we'll fully add everything,
 		// otherwise we'll remove everything
 		adding := node.AnyFile(func(file *models.CommitFile) bool {
-			return gui.GitCommand.PatchManager.GetFileStatus(file.Name, gui.State.CommitFileManager.GetParent()) != patch.WHOLE
+			return gui.Git.Patch.PatchManager.GetFileStatus(file.Name, gui.State.CommitFileTreeViewModel.GetParent()) != patch.WHOLE
 		})
 
 		err := node.ForEachFile(func(file *models.CommitFile) error {
 			if adding {
-				return gui.GitCommand.PatchManager.AddFileWhole(file.Name)
+				return gui.Git.Patch.PatchManager.AddFileWhole(file.Name)
 			} else {
-				return gui.GitCommand.PatchManager.RemoveFile(file.Name)
+				return gui.Git.Patch.PatchManager.RemoveFile(file.Name)
 			}
 		})
 
@@ -166,19 +170,19 @@ func (gui *Gui) handleToggleFileForPatch() error {
 			return gui.surfaceError(err)
 		}
 
-		if gui.GitCommand.PatchManager.IsEmpty() {
-			gui.GitCommand.PatchManager.Reset()
+		if gui.Git.Patch.PatchManager.IsEmpty() {
+			gui.Git.Patch.PatchManager.Reset()
 		}
 
 		return gui.postRefreshUpdate(gui.State.Contexts.CommitFiles)
 	}
 
-	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != gui.State.CommitFileManager.GetParent() {
+	if gui.Git.Patch.PatchManager.Active() && gui.Git.Patch.PatchManager.To != gui.State.CommitFileTreeViewModel.GetParent() {
 		return gui.ask(askOpts{
 			title:  gui.Tr.DiscardPatch,
 			prompt: gui.Tr.DiscardPatchConfirm,
 			handleConfirm: func() error {
-				gui.GitCommand.PatchManager.Reset()
+				gui.Git.Patch.PatchManager.Reset()
 				return toggleTheFile()
 			},
 		})
@@ -193,15 +197,15 @@ func (gui *Gui) startPatchManager() error {
 	to := gui.State.Panels.CommitFiles.refName
 	from, reverse := gui.getFromAndReverseArgsForDiff(to)
 
-	gui.GitCommand.PatchManager.Start(from, to, reverse, canRebase)
+	gui.Git.Patch.PatchManager.Start(from, to, reverse, canRebase)
 	return nil
 }
 
 func (gui *Gui) handleEnterCommitFile() error {
-	return gui.enterCommitFile(-1)
+	return gui.enterCommitFile(OnFocusOpts{ClickedViewName: "", ClickedViewLineIdx: -1})
 }
 
-func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
+func (gui *Gui) enterCommitFile(opts OnFocusOpts) error {
 	node := gui.getSelectedCommitFileNode()
 	if node == nil {
 		return nil
@@ -211,35 +215,28 @@ func (gui *Gui) enterCommitFile(selectedLineIdx int) error {
 		return gui.handleToggleCommitFileDirCollapsed()
 	}
 
-	enterTheFile := func(selectedLineIdx int) error {
-		if !gui.GitCommand.PatchManager.Active() {
+	enterTheFile := func() error {
+		if !gui.Git.Patch.PatchManager.Active() {
 			if err := gui.startPatchManager(); err != nil {
 				return err
 			}
 		}
 
-		if err := gui.pushContext(gui.State.Contexts.PatchBuilding); err != nil {
-			return err
-		}
-		return gui.handleRefreshPatchBuildingPanel(selectedLineIdx)
+		return gui.pushContext(gui.State.Contexts.PatchBuilding, opts)
 	}
 
-	if gui.GitCommand.PatchManager.Active() && gui.GitCommand.PatchManager.To != gui.State.CommitFileManager.GetParent() {
+	if gui.Git.Patch.PatchManager.Active() && gui.Git.Patch.PatchManager.To != gui.State.CommitFileTreeViewModel.GetParent() {
 		return gui.ask(askOpts{
-			title:               gui.Tr.DiscardPatch,
-			prompt:              gui.Tr.DiscardPatchConfirm,
-			handlersManageFocus: true,
+			title:  gui.Tr.DiscardPatch,
+			prompt: gui.Tr.DiscardPatchConfirm,
 			handleConfirm: func() error {
-				gui.GitCommand.PatchManager.Reset()
-				return enterTheFile(selectedLineIdx)
-			},
-			handleClose: func() error {
-				return gui.pushContext(gui.State.Contexts.CommitFiles)
+				gui.Git.Patch.PatchManager.Reset()
+				return enterTheFile()
 			},
 		})
 	}
 
-	return enterTheFile(selectedLineIdx)
+	return enterTheFile()
 }
 
 func (gui *Gui) handleToggleCommitFileDirCollapsed() error {
@@ -248,7 +245,7 @@ func (gui *Gui) handleToggleCommitFileDirCollapsed() error {
 		return nil
 	}
 
-	gui.State.CommitFileManager.ToggleCollapsed(node.GetPath())
+	gui.State.CommitFileTreeViewModel.ToggleCollapsed(node.GetPath())
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.CommitFiles); err != nil {
 		gui.Log.Error(err)
@@ -279,12 +276,12 @@ func (gui *Gui) switchToCommitFilesContext(refName string, canRebase bool, conte
 func (gui *Gui) handleToggleCommitFileTreeView() error {
 	path := gui.getSelectedCommitFilePath()
 
-	gui.State.CommitFileManager.ToggleShowTree()
+	gui.State.CommitFileTreeViewModel.ToggleShowTree()
 
 	// find that same node in the new format and move the cursor to it
 	if path != "" {
-		gui.State.CommitFileManager.ExpandToPath(path)
-		index, found := gui.State.CommitFileManager.GetIndexForPath(path)
+		gui.State.CommitFileTreeViewModel.ExpandToPath(path)
+		index, found := gui.State.CommitFileTreeViewModel.GetIndexForPath(path)
 		if found {
 			gui.State.Contexts.CommitFiles.GetPanelState().SetSelectedLineIdx(index)
 		}

@@ -7,7 +7,7 @@ import (
 )
 
 func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch rune, mod gocui.Modifier, allowMultiline bool) bool {
-	newlineKey, ok := gui.getKey(gui.Config.GetUserConfig().Keybinding.Universal.AppendNewline).(gocui.Key)
+	newlineKey, ok := gui.getKey(gui.UserConfig.Keybinding.Universal.AppendNewline).(gocui.Key)
 	if !ok {
 		newlineKey = gocui.KeyAltEnter
 	}

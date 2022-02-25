@@ -25,6 +25,7 @@ type RefresherConfig struct {
 
 type GuiConfig struct {
 	AuthorColors             map[string]string  `yaml:"authorColors"`
+	BranchColors             map[string]string  `yaml:"branchColors"`
 	ScrollHeight             int                `yaml:"scrollHeight"`
 	ScrollPastBottom         bool               `yaml:"scrollPastBottom"`
 	MouseEvents              bool               `yaml:"mouseEvents"`
@@ -61,6 +62,7 @@ type CommitLengthConfig struct {
 
 type GitConfig struct {
 	Paging              PagingConfig                  `yaml:"paging"`
+	Commit              CommitConfig                  `yaml:"commit"`
 	Merging             MergingConfig                 `yaml:"merging"`
 	SkipHookPrefix      string                        `yaml:"skipHookPrefix"`
 	AutoFetch           bool                          `yaml:"autoFetch"`
@@ -73,12 +75,17 @@ type GitConfig struct {
 	ParseEmoji      bool      `yaml:"parseEmoji"`
 	Log             LogConfig `yaml:"log"`
 	EnableGhCommand bool      `yaml:"enableGhCommand"`
+	DiffContextSize int       `yaml:"diffContextSize"`
 }
 
 type PagingConfig struct {
 	ColorArg  string `yaml:"colorArg"`
 	Pager     string `yaml:"pager"`
 	UseConfig bool   `yaml:"useConfig"`
+}
+
+type CommitConfig struct {
+	SignOff bool `yaml:"signOff"`
 }
 
 type MergingConfig struct {
@@ -177,6 +184,8 @@ type KeybindingUniversalConfig struct {
 	AppendNewline                string   `yaml:"appendNewline"`
 	ExtrasMenu                   string   `yaml:"extrasMenu"`
 	ToggleWhitespaceInDiffView   string   `yaml:"toggleWhitespaceInDiffView"`
+	IncreaseContextInDiffView    string   `yaml:"increaseContextInDiffView"`
+	DecreaseContextInDiffView    string   `yaml:"decreaseContextInDiffView"`
 }
 
 type KeybindingStatusConfig struct {
@@ -239,6 +248,8 @@ type KeybindingCommitsConfig struct {
 	ResetCherryPick              string `yaml:"resetCherryPick"`
 	CopyCommitMessageToClipboard string `yaml:"copyCommitMessageToClipboard"`
 	OpenLogMenu                  string `yaml:"openLogMenu"`
+	OpenInBrowser                string `yaml:"openInBrowser"`
+	ViewBisectOptions            string `yaml:"viewBisectOptions"`
 }
 
 type KeybindingStashConfig struct {
@@ -285,6 +296,7 @@ type CustomCommand struct {
 	Prompts     []CustomCommandPrompt `yaml:"prompts"`
 	LoadingText string                `yaml:"loadingText"`
 	Description string                `yaml:"description"`
+	Stream      bool                  `yaml:"stream"`
 }
 
 type CustomCommandPrompt struct {
@@ -317,7 +329,7 @@ func GetDefaultConfig() *UserConfig {
 			ScrollPastBottom:       true,
 			MouseEvents:            true,
 			SkipUnstageLineWarning: false,
-			SkipStashWarning:       true,
+			SkipStashWarning:       false,
 			SidePanelWidth:         0.3333,
 			ExpandFocusedSidePanel: false,
 			MainPanelSplitMode:     "flexible",
@@ -345,6 +357,9 @@ func GetDefaultConfig() *UserConfig {
 				ColorArg:  "always",
 				Pager:     "",
 				UseConfig: false},
+			Commit: CommitConfig{
+				SignOff: false,
+			},
 			Merging: MergingConfig{
 				ManualCommit: false,
 				Args:         "",
@@ -360,7 +375,7 @@ func GetDefaultConfig() *UserConfig {
 			DisableForcePushing: false,
 			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
 			ParseEmoji:          false,
-			EnableGhCommand:     false,
+			DiffContextSize:     3,
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval: 10,
@@ -438,6 +453,8 @@ func GetDefaultConfig() *UserConfig {
 				AppendNewline:                "<a-enter>",
 				ExtrasMenu:                   "@",
 				ToggleWhitespaceInDiffView:   "<c-w>",
+				IncreaseContextInDiffView:    "}",
+				DecreaseContextInDiffView:    "{",
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:      "u",
@@ -496,6 +513,8 @@ func GetDefaultConfig() *UserConfig {
 				ResetCherryPick:              "<c-R>",
 				CopyCommitMessageToClipboard: "<c-y>",
 				OpenLogMenu:                  "<c-l>",
+				OpenInBrowser:                "o",
+				ViewBisectOptions:            "b",
 			},
 			Stash: KeybindingStashConfig{
 				PopStash: "g",

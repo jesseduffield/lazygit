@@ -36,7 +36,7 @@ func (gui *Gui) onBackgroundUpdateCheckFinish(newVersion string, err error) erro
 	if newVersion == "" {
 		return nil
 	}
-	if gui.Config.GetUserConfig().Update.Method == "background" {
+	if gui.UserConfig.Update.Method == "background" {
 		gui.startUpdating(newVersion)
 		return nil
 	}
@@ -52,10 +52,14 @@ func (gui *Gui) startUpdating(newVersion string) {
 func (gui *Gui) onUpdateFinish(statusId int, err error) error {
 	gui.State.Updating = false
 	gui.statusManager.removeStatus(statusId)
-	gui.renderString(gui.Views.AppStatus, "")
-	if err != nil {
-		return gui.createErrorPanel("Update failed: " + err.Error())
-	}
+	gui.OnUIThread(func() error {
+		_ = gui.renderString(gui.Views.AppStatus, "")
+		if err != nil {
+			return gui.createErrorPanel("Update failed: " + err.Error())
+		}
+		return nil
+	})
+
 	return nil
 }
 

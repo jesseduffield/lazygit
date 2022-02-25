@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
@@ -18,7 +19,6 @@ func (gui *Gui) menuListContext() IListContext {
 		},
 		GetItemsLength:      func() int { return gui.Views.Menu.LinesHeight() },
 		OnGetPanelState:     func() IListPanelState { return gui.State.Panels.Menu },
-		OnFocus:             gui.handleMenuSelect,
 		OnClickSelectedItem: gui.onMenuPress,
 		Gui:                 gui,
 
@@ -34,13 +34,14 @@ func (gui *Gui) filesListContext() IListContext {
 			Key:        FILES_CONTEXT_KEY,
 			Kind:       SIDE_CONTEXT,
 		},
-		GetItemsLength:      func() int { return gui.State.FileManager.GetItemsLength() },
+		GetItemsLength:      func() int { return gui.State.FileTreeViewModel.GetItemsLength() },
 		OnGetPanelState:     func() IListPanelState { return gui.State.Panels.Files },
-		OnFocus:             gui.focusAndSelectFile,
+		OnFocus:             OnFocusWrapper(gui.onFocusFile),
+		OnRenderToMain:      OnFocusWrapper(gui.filesRenderToMain),
 		OnClickSelectedItem: gui.handleFilePress,
 		Gui:                 gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			lines := gui.State.FileManager.Render(gui.State.Modes.Diffing.Ref, gui.State.Submodules)
+			lines := presentation.RenderFileTree(gui.State.FileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.State.Submodules)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}
@@ -65,7 +66,7 @@ func (gui *Gui) branchesListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.Branches) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.Branches },
-		OnFocus:         gui.handleBranchSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.branchesRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			prs, err := gui.GitCommand.GenerateGithubPullRequestMap(gui.State.GithubState.RecentPRs, gui.State.Branches, gui.State.Remotes)
@@ -92,7 +93,7 @@ func (gui *Gui) remotesListContext() IListContext {
 		},
 		GetItemsLength:      func() int { return len(gui.State.Remotes) },
 		OnGetPanelState:     func() IListPanelState { return gui.State.Panels.Remotes },
-		OnFocus:             gui.handleRemoteSelect,
+		OnRenderToMain:      OnFocusWrapper(gui.remotesRenderToMain),
 		OnClickSelectedItem: gui.handleRemoteEnter,
 		Gui:                 gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
@@ -115,7 +116,7 @@ func (gui *Gui) remoteBranchesListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.RemoteBranches) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.RemoteBranches },
-		OnFocus:         gui.handleRemoteBranchSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.remoteBranchesRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetRemoteBranchListDisplayStrings(gui.State.RemoteBranches, gui.State.Modes.Diffing.Ref)
@@ -137,7 +138,7 @@ func (gui *Gui) tagsListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.Tags) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.Tags },
-		OnFocus:         gui.handleTagSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.tagsRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetTagListDisplayStrings(gui.State.Tags, gui.State.Modes.Diffing.Ref)
@@ -150,7 +151,7 @@ func (gui *Gui) tagsListContext() IListContext {
 }
 
 func (gui *Gui) branchCommitsListContext() IListContext {
-	parseEmoji := gui.Config.GetUserConfig().Git.ParseEmoji
+	parseEmoji := gui.UserConfig.Git.ParseEmoji
 	return &ListContext{
 		BasicContext: &BasicContext{
 			ViewName:   "commits",
@@ -160,7 +161,8 @@ func (gui *Gui) branchCommitsListContext() IListContext {
 		},
 		GetItemsLength:      func() int { return len(gui.State.Commits) },
 		OnGetPanelState:     func() IListPanelState { return gui.State.Panels.Commits },
-		OnFocus:             gui.handleCommitSelect,
+		OnFocus:             OnFocusWrapper(gui.onCommitFocus),
+		OnRenderToMain:      OnFocusWrapper(gui.branchCommitsRenderToMain),
 		OnClickSelectedItem: gui.handleViewCommitFiles,
 		Gui:                 gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
@@ -181,6 +183,7 @@ func (gui *Gui) branchCommitsListContext() IListContext {
 				startIdx,
 				length,
 				gui.shouldShowGraph(),
+				gui.State.BisectInfo,
 			)
 		},
 		SelectedItem: func() (ListItem, bool) {
@@ -191,8 +194,54 @@ func (gui *Gui) branchCommitsListContext() IListContext {
 	}
 }
 
+func (gui *Gui) subCommitsListContext() IListContext {
+	parseEmoji := gui.UserConfig.Git.ParseEmoji
+	return &ListContext{
+		BasicContext: &BasicContext{
+			ViewName:   "branches",
+			WindowName: "branches",
+			Key:        SUB_COMMITS_CONTEXT_KEY,
+			Kind:       SIDE_CONTEXT,
+		},
+		GetItemsLength:  func() int { return len(gui.State.SubCommits) },
+		OnGetPanelState: func() IListPanelState { return gui.State.Panels.SubCommits },
+		OnRenderToMain:  OnFocusWrapper(gui.subCommitsRenderToMain),
+		Gui:             gui,
+		GetDisplayStrings: func(startIdx int, length int) [][]string {
+			selectedCommitSha := ""
+			if gui.currentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
+				selectedCommit := gui.getSelectedSubCommit()
+				if selectedCommit != nil {
+					selectedCommitSha = selectedCommit.Sha
+				}
+			}
+			return presentation.GetCommitListDisplayStrings(
+				gui.State.SubCommits,
+				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.cherryPickedCommitShaMap(),
+				gui.State.Modes.Diffing.Ref,
+				parseEmoji,
+				selectedCommitSha,
+				startIdx,
+				length,
+				gui.shouldShowGraph(),
+				git_commands.NewNullBisectInfo(),
+			)
+		},
+		SelectedItem: func() (ListItem, bool) {
+			item := gui.getSelectedSubCommit()
+			return item, item != nil
+		},
+		RenderSelection: true,
+	}
+}
+
 func (gui *Gui) shouldShowGraph() bool {
-	value := gui.Config.GetUserConfig().Git.Log.ShowGraph
+	if gui.State.Modes.Filtering.Active() {
+		return false
+	}
+
+	value := gui.UserConfig.Git.Log.ShowGraph
 	switch value {
 	case "always":
 		return true
@@ -207,7 +256,7 @@ func (gui *Gui) shouldShowGraph() bool {
 }
 
 func (gui *Gui) reflogCommitsListContext() IListContext {
-	parseEmoji := gui.Config.GetUserConfig().Git.ParseEmoji
+	parseEmoji := gui.UserConfig.Git.ParseEmoji
 	return &ListContext{
 		BasicContext: &BasicContext{
 			ViewName:   "commits",
@@ -217,7 +266,7 @@ func (gui *Gui) reflogCommitsListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.FilteredReflogCommits) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.ReflogCommits },
-		OnFocus:         gui.handleReflogCommitSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.reflogCommitsRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetReflogCommitListDisplayStrings(
@@ -235,47 +284,6 @@ func (gui *Gui) reflogCommitsListContext() IListContext {
 	}
 }
 
-func (gui *Gui) subCommitsListContext() IListContext {
-	parseEmoji := gui.Config.GetUserConfig().Git.ParseEmoji
-	return &ListContext{
-		BasicContext: &BasicContext{
-			ViewName:   "branches",
-			WindowName: "branches",
-			Key:        SUB_COMMITS_CONTEXT_KEY,
-			Kind:       SIDE_CONTEXT,
-		},
-		GetItemsLength:  func() int { return len(gui.State.SubCommits) },
-		OnGetPanelState: func() IListPanelState { return gui.State.Panels.SubCommits },
-		OnFocus:         gui.handleSubCommitSelect,
-		Gui:             gui,
-		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			selectedCommitSha := ""
-			if gui.currentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
-				selectedCommit := gui.getSelectedSubCommit()
-				if selectedCommit != nil {
-					selectedCommitSha = selectedCommit.Sha
-				}
-			}
-			return presentation.GetCommitListDisplayStrings(
-				gui.State.SubCommits,
-				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.cherryPickedCommitShaMap(),
-				gui.State.Modes.Diffing.Ref,
-				parseEmoji,
-				selectedCommitSha,
-				0,
-				len(gui.State.SubCommits),
-				gui.shouldShowGraph(),
-			)
-		},
-		SelectedItem: func() (ListItem, bool) {
-			item := gui.getSelectedSubCommit()
-			return item, item != nil
-		},
-		RenderSelection: true,
-	}
-}
-
 func (gui *Gui) stashListContext() IListContext {
 	return &ListContext{
 		BasicContext: &BasicContext{
@@ -286,7 +294,7 @@ func (gui *Gui) stashListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.StashEntries) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.Stash },
-		OnFocus:         gui.handleStashEntrySelect,
+		OnRenderToMain:  OnFocusWrapper(gui.stashRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetStashEntryListDisplayStrings(gui.State.StashEntries, gui.State.Modes.Diffing.Ref)
@@ -306,16 +314,17 @@ func (gui *Gui) commitFilesListContext() IListContext {
 			Key:        COMMIT_FILES_CONTEXT_KEY,
 			Kind:       SIDE_CONTEXT,
 		},
-		GetItemsLength:  func() int { return gui.State.CommitFileManager.GetItemsLength() },
+		GetItemsLength:  func() int { return gui.State.CommitFileTreeViewModel.GetItemsLength() },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.CommitFiles },
-		OnFocus:         gui.handleCommitFileSelect,
+		OnFocus:         OnFocusWrapper(gui.onCommitFileFocus),
+		OnRenderToMain:  OnFocusWrapper(gui.commitFilesRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
-			if gui.State.CommitFileManager.GetItemsLength() == 0 {
+			if gui.State.CommitFileTreeViewModel.GetItemsLength() == 0 {
 				return [][]string{{style.FgRed.Sprint("(none)")}}
 			}
 
-			lines := gui.State.CommitFileManager.Render(gui.State.Modes.Diffing.Ref, gui.GitCommand.PatchManager)
+			lines := presentation.RenderCommitFileTree(gui.State.CommitFileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.Git.Patch.PatchManager)
 			mappedLines := make([][]string, len(lines))
 			for i, line := range lines {
 				mappedLines[i] = []string{line}
@@ -340,7 +349,7 @@ func (gui *Gui) submodulesListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.Submodules) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.Submodules },
-		OnFocus:         gui.handleSubmoduleSelect,
+		OnRenderToMain:  OnFocusWrapper(gui.submodulesRenderToMain),
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetSubmoduleListDisplayStrings(gui.State.Submodules)
@@ -362,7 +371,6 @@ func (gui *Gui) suggestionsListContext() IListContext {
 		},
 		GetItemsLength:  func() int { return len(gui.State.Suggestions) },
 		OnGetPanelState: func() IListPanelState { return gui.State.Panels.Suggestions },
-		OnFocus:         func() error { return nil },
 		Gui:             gui,
 		GetDisplayStrings: func(startIdx int, length int) [][]string {
 			return presentation.GetSuggestionListDisplayStrings(gui.State.Suggestions)
@@ -391,7 +399,7 @@ func (gui *Gui) getListContexts() []IListContext {
 func (gui *Gui) getListContextKeyBindings() []*Binding {
 	bindings := make([]*Binding, 0)
 
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 
 	for _, listContext := range gui.getListContexts() {
 		listContext := listContext
@@ -411,10 +419,11 @@ func (gui *Gui) getListContextKeyBindings() []*Binding {
 			{ViewName: listContext.GetViewName(), Tag: "navigation", Contexts: []string{string(listContext.GetKey())}, Key: gui.getKey(keybindingConfig.Universal.ScrollRight), Modifier: gocui.ModNone, Handler: listContext.handleScrollRight},
 		}...)
 
-		// the commits panel needs to lazyload things so it has a couple of its own handlers
 		openSearchHandler := gui.handleOpenSearch
 		gotoBottomHandler := listContext.handleGotoBottom
-		if listContext.GetViewName() == "commits" {
+
+		// the branch commits context needs to lazyload things so it has a couple of its own handlers
+		if listContext.GetKey() == BRANCH_COMMITS_CONTEXT_KEY {
 			openSearchHandler = gui.handleOpenSearchForCommitsPanel
 			gotoBottomHandler = gui.handleGotoBottomForCommitsPanel
 		}

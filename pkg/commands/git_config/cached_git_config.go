@@ -1,31 +1,36 @@
 package git_config
 
 import (
+	"os/exec"
 	"strings"
 
 	"github.com/sirupsen/logrus"
 )
 
 type IGitConfig interface {
+	// this is for when you want to pass 'mykey' (it calls `git config --get --null mykey` under the hood)
 	Get(string) string
+	// this is for when you want to pass '--local --get-regexp mykey'
+	GetGeneral(string) string
+	// this is for when you want to pass 'mykey' and check if the result is truthy
 	GetBool(string) bool
 }
 
 type CachedGitConfig struct {
-	cache  map[string]string
-	getKey func(string) (string, error)
-	log    *logrus.Entry
+	cache           map[string]string
+	runGitConfigCmd func(*exec.Cmd) (string, error)
+	log             *logrus.Entry
 }
 
 func NewStdCachedGitConfig(log *logrus.Entry) *CachedGitConfig {
-	return NewCachedGitConfig(getGitConfigValue, log)
+	return NewCachedGitConfig(runGitConfigCmd, log)
 }
 
-func NewCachedGitConfig(getKey func(string) (string, error), log *logrus.Entry) *CachedGitConfig {
+func NewCachedGitConfig(runGitConfigCmd func(*exec.Cmd) (string, error), log *logrus.Entry) *CachedGitConfig {
 	return &CachedGitConfig{
-		cache:  make(map[string]string),
-		getKey: getKey,
-		log:    log,
+		cache:           make(map[string]string),
+		runGitConfigCmd: runGitConfigCmd,
+		log:             log,
 	}
 }
 
@@ -40,8 +45,30 @@ func (self *CachedGitConfig) Get(key string) string {
 	return value
 }
 
+func (self *CachedGitConfig) GetGeneral(args string) string {
+	if value, ok := self.cache[args]; ok {
+		self.log.Debugf("using cache for args " + args)
+		return value
+	}
+
+	value := self.getGeneralAux(args)
+	self.cache[args] = value
+	return value
+}
+
+func (self *CachedGitConfig) getGeneralAux(args string) string {
+	cmd := getGitConfigGeneralCmd(args)
+	value, err := self.runGitConfigCmd(cmd)
+	if err != nil {
+		self.log.Debugf("Error getting git config value for args: " + args + ". Error: " + err.Error())
+		return ""
+	}
+	return strings.TrimSpace(value)
+}
+
 func (self *CachedGitConfig) getAux(key string) string {
-	value, err := self.getKey(key)
+	cmd := getGitConfigCmd(key)
+	value, err := self.runGitConfigCmd(cmd)
 	if err != nil {
 		self.log.Debugf("Error getting git config value for key: " + key + ". Error: " + err.Error())
 		return ""

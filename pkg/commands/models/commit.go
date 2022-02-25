@@ -1,6 +1,10 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/jesseduffield/lazygit/pkg/utils"
+)
 
 // Commit : A git commit
 type Commit struct {
@@ -18,10 +22,7 @@ type Commit struct {
 }
 
 func (c *Commit) ShortSha() string {
-	if len(c.Sha) < 8 {
-		return c.Sha
-	}
-	return c.Sha[:8]
+	return utils.ShortSha(c.Sha)
 }
 
 func (c *Commit) RefName() string {
@@ -38,4 +39,10 @@ func (c *Commit) Description() string {
 
 func (c *Commit) IsMerge() bool {
 	return len(c.Parents) > 1
+}
+
+// returns true if this commit is not actually in the git log but instead
+// is from a TODO file for an interactive rebase.
+func (c *Commit) IsTODO() bool {
+	return c.Action != ""
 }

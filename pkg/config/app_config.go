@@ -31,21 +31,21 @@ type AppConfig struct {
 // from AppConfig and still be used by lazygit.
 type AppConfigurer interface {
 	GetDebug() bool
+
+	// build info
 	GetVersion() string
 	GetCommit() string
 	GetBuildDate() string
 	GetName() string
 	GetBuildSource() string
+
 	GetUserConfig() *UserConfig
 	GetUserConfigPaths() []string
 	GetUserConfigDir() string
-	GetTempDir() string
+	ReloadUserConfig() error
+
 	GetAppState() *AppState
 	SaveAppState() error
-	SetIsNewRepo(bool)
-	GetIsNewRepo() bool
-	ReloadUserConfig() error
-	ShowCommandLogOnStartup() bool
 }
 
 // NewAppConfig makes a new app config
@@ -167,37 +167,22 @@ func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error)
 	return base, nil
 }
 
-// GetIsNewRepo returns known repo boolean
-func (c *AppConfig) GetIsNewRepo() bool {
-	return c.IsNewRepo
-}
-
-// SetIsNewRepo set if the current repo is known
-func (c *AppConfig) SetIsNewRepo(toSet bool) {
-	c.IsNewRepo = toSet
-}
-
-// GetDebug returns debug flag
 func (c *AppConfig) GetDebug() bool {
 	return c.Debug
 }
 
-// GetVersion returns debug flag
 func (c *AppConfig) GetVersion() string {
 	return c.Version
 }
 
-// GetCommit returns debug flag
 func (c *AppConfig) GetCommit() string {
 	return c.Commit
 }
 
-// GetBuildDate returns debug flag
 func (c *AppConfig) GetBuildDate() string {
 	return c.BuildDate
 }
 
-// GetName returns debug flag
 func (c *AppConfig) GetName() string {
 	return c.Name
 }
@@ -224,10 +209,6 @@ func (c *AppConfig) GetUserConfigPaths() []string {
 
 func (c *AppConfig) GetUserConfigDir() string {
 	return c.UserConfigDir
-}
-
-func (c *AppConfig) GetTempDir() string {
-	return c.TempDir
 }
 
 func (c *AppConfig) ReloadUserConfig() error {
@@ -275,17 +256,6 @@ func (c *AppConfig) SaveAppState() error {
 	}
 
 	return err
-}
-
-// originally we could only hide the command log permanently via the config
-// but now we do it via state. So we need to still support the config for the
-// sake of backwards compatibility
-func (c *AppConfig) ShowCommandLogOnStartup() bool {
-	if !c.UserConfig.Gui.ShowCommandLog {
-		return false
-	}
-
-	return !c.AppState.HideCommandLog
 }
 
 // loadAppState loads recorded AppState from file

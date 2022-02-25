@@ -56,6 +56,7 @@ func TestGuiGenerateMenuCandidates(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(NewDummyGui().GenerateMenuCandidates(s.cmdOut, s.filter, s.valueFormat, s.labelFormat))
 		})

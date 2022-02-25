@@ -7,12 +7,16 @@ import "strings"
 type Branch struct {
 	Name string
 	// the displayname is something like '(HEAD detached at 123asdf)', whereas in that case the name would be '123asdf'
-	DisplayName  string
-	Recency      string
-	Pushables    string
-	Pullables    string
-	UpstreamName string
-	Head         bool
+	DisplayName string
+	Recency     string
+	Pushables   string
+	Pullables   string
+	Head        bool
+	// if we have a named remote locally this will be the name of that remote e.g.
+	// 'origin' or 'tiwood'. If we don't have the remote locally it'll look like
+	// 'git@github.com:tiwood/lazygit.git'
+	UpstreamRemote string
+	UpstreamBranch string
 }
 
 func (b *Branch) RefName() string {
@@ -27,22 +31,26 @@ func (b *Branch) Description() string {
 	return b.RefName()
 }
 
-// this method does not consider the case where the git config states that a branch is tracking the config.
-// The Pullables value here is based on whether or not we saw an upstream when doing `git branch`
 func (b *Branch) IsTrackingRemote() bool {
-	return b.IsRealBranch() && b.Pullables != "?"
+	return b.UpstreamRemote != ""
+}
+
+// we know that the remote branch is not stored locally based on our pushable/pullable
+// count being question marks.
+func (b *Branch) RemoteBranchStoredLocally() bool {
+	return b.IsTrackingRemote() && b.Pushables != "?" && b.Pullables != "?"
 }
 
 func (b *Branch) MatchesUpstream() bool {
-	return b.IsRealBranch() && b.Pushables == "0" && b.Pullables == "0"
+	return b.RemoteBranchStoredLocally() && b.Pushables == "0" && b.Pullables == "0"
 }
 
 func (b *Branch) HasCommitsToPush() bool {
-	return b.IsRealBranch() && b.Pushables != "0"
+	return b.RemoteBranchStoredLocally() && b.Pushables != "0"
 }
 
 func (b *Branch) HasCommitsToPull() bool {
-	return b.IsRealBranch() && b.Pullables != "0"
+	return b.RemoteBranchStoredLocally() && b.Pullables != "0"
 }
 
 // for when we're in a detached head state

@@ -58,7 +58,6 @@ type TranslationSet struct {
 	PullWait                            string
 	PushWait                            string
 	FetchWait                           string
-	FileNoMergeCons                     string
 	LcSoftReset                         string
 	AlreadyCheckedOutBranch             string
 	SureForceCheckout                   string
@@ -93,8 +92,7 @@ type TranslationSet struct {
 	Squash                              string
 	LcPickCommit                        string
 	LcRevertCommit                      string
-	OnlyRenameTopCommit                 string
-	LcRenameCommit                      string
+	LcRewordCommit                      string
 	LcDeleteCommit                      string
 	LcMoveDownCommit                    string
 	LcMoveUpCommit                      string
@@ -120,7 +118,6 @@ type TranslationSet struct {
 	SurePopStashEntry                   string
 	StashApply                          string
 	SureApplyStashEntry                 string
-	NoStashTo                           string
 	NoTrackedStagedFilesStash           string
 	StashChanges                        string
 	MergeAborted                        string
@@ -191,6 +188,7 @@ type TranslationSet struct {
 	ConfirmRebase                       string
 	ConfirmMerge                        string
 	FwdNoUpstream                       string
+	FwdNoLocalUpstream                  string
 	FwdCommitsToPush                    string
 	ErrorOccurred                       string
 	NoRoom                              string
@@ -284,6 +282,7 @@ type TranslationSet struct {
 	LcEnterFile                         string
 	ExitLineByLineMode                  string
 	EnterUpstream                       string
+	InvalidUpstream                     string
 	ReturnToRemotesList                 string
 	LcAddNewRemote                      string
 	LcNewRemoteName                     string
@@ -299,7 +298,11 @@ type TranslationSet struct {
 	SetUpstreamMessage                  string
 	LcEditRemote                        string
 	LcTagCommit                         string
+	TagMenuTitle                        string
 	TagNameTitle                        string
+	TagMessageTitle                     string
+	LcLightweightTag                    string
+	LcAnnotatedTag                      string
 	LcDeleteTag                         string
 	DeleteTagTitle                      string
 	DeleteTagPrompt                     string
@@ -396,7 +399,6 @@ type TranslationSet struct {
 	LcEditSubmoduleUrl                  string
 	LcInitializingSubmoduleStatus       string
 	LcInitSubmodule                     string
-	LcViewResetAndRemoveOptions         string
 	LcSubmoduleUpdate                   string
 	LcUpdatingSubmoduleStatus           string
 	LcBulkInitSubmodules                string
@@ -434,6 +436,13 @@ type TranslationSet struct {
 	LcSelectBranch                      string
 	CreateOrShowPullRequest             string
 	CreatingPullRequestAtUrl            string
+	IncreaseContextInDiffView           string
+	DecreaseContextInDiffView           string
+	CreatePullRequestOptions            string
+	LcCreatePullRequestOptions          string
+	LcDefaultBranch                     string
+	LcSelectBranch                      string
+	CreatePullRequest                   string
 	SelectConfigFile                    string
 	NoConfigFileFoundErr                string
 	LcLoadingFileSuggestions            string
@@ -451,10 +460,30 @@ type TranslationSet struct {
 	ToggleShowGitGraphAll               string
 	ShowGitGraph                        string
 	SortCommits                         string
-	Spans                               Spans
+	CantChangeContextSizeError          string
+	LcOpenCommitInBrowser               string
+	LcViewBisectOptions                 string
+	ConfirmRevertCommit                 string
+	Actions                             Actions
+	Bisect                              Bisect
 }
 
-type Spans struct {
+type Bisect struct {
+	MarkStart                   string
+	MarkSkipCurrent             string
+	MarkSkipSelected            string
+	ResetTitle                  string
+	ResetPrompt                 string
+	ResetOption                 string
+	BisectMenuTitle             string
+	Mark                        string
+	Skip                        string
+	CompleteTitle               string
+	CompletePrompt              string
+	CompletePromptIndeterminate string
+}
+
+type Actions struct {
 	CheckoutCommit                    string
 	CheckoutReflogCommit              string
 	CheckoutTag                       string
@@ -487,6 +516,7 @@ type Spans struct {
 	DiscardAllChangesInFile           string
 	DiscardAllUnstagedChangesInFile   string
 	StageFile                         string
+	StageResolvedFiles                string
 	UnstageFile                       string
 	UnstageAllFiles                   string
 	StageAllFiles                     string
@@ -524,6 +554,7 @@ type Spans struct {
 	BulkDeinitialiseSubmodules        string
 	UpdateSubmodule                   string
 	CreateLightweightTag              string
+	CreateAnnotatedTag                string
 	DeleteTag                         string
 	PushTag                           string
 	NukeWorkingTree                   string
@@ -534,6 +565,14 @@ type Spans struct {
 	HardReset                         string
 	Undo                              string
 	Redo                              string
+	CopyPullRequestURL                string
+	OpenMergeTool                     string
+	OpenCommitInBrowser               string
+	OpenPullRequest                   string
+	StartBisect                       string
+	ResetBisect                       string
+	BisectSkip                        string
+	BisectMark                        string
 }
 
 const englishIntroPopupMessage = `
@@ -553,7 +592,8 @@ Thanks for using lazygit! Seriously you rock. Three things to share with you:
     Or even just star the repo to share the love!
 `
 
-func englishTranslationSet() TranslationSet {
+// exporting this so we can use it in tests
+func EnglishTranslationSet() TranslationSet {
 	return TranslationSet{
 		NotEnoughSpace:                      "Not enough space to render panels",
 		DiffTitle:                           "Diff",
@@ -601,17 +641,16 @@ func englishTranslationSet() TranslationSet {
 		PullWait:                            "Pulling...",
 		PushWait:                            "Pushing...",
 		FetchWait:                           "Fetching...",
-		FileNoMergeCons:                     "This file has no inline merge conflicts",
 		LcSoftReset:                         "soft reset",
 		AlreadyCheckedOutBranch:             "You have already checked out this branch",
 		SureForceCheckout:                   "Are you sure you want force checkout? You will lose all local changes",
 		ForceCheckoutBranch:                 "Force Checkout Branch",
 		BranchName:                          "Branch name",
-		NewBranchNameBranchOff:              "New Branch Name (Branch is off of {{.branchName}})",
+		NewBranchNameBranchOff:              "New Branch Name (Branch is off of '{{.branchName}}')",
 		CantDeleteCheckOutBranch:            "You cannot delete the checked out branch!",
 		DeleteBranch:                        "Delete Branch",
-		DeleteBranchMessage:                 "Are you sure you want to delete the branch {{.selectedBranchName}}?",
-		ForceDeleteBranchMessage:            "{{.selectedBranchName}} is not fully merged. Are you sure you want to delete it?",
+		DeleteBranchMessage:                 "Are you sure you want to delete the branch '{{.selectedBranchName}}'?",
+		ForceDeleteBranchMessage:            "'{{.selectedBranchName}}' is not fully merged. Are you sure you want to delete it?",
 		LcRebaseBranch:                      "rebase checked-out branch onto this branch",
 		CantRebaseOntoSelf:                  "You cannot rebase a branch onto itself",
 		CantMergeBranchIntoItself:           "You cannot merge a branch into itself",
@@ -637,14 +676,13 @@ func englishTranslationSet() TranslationSet {
 		Squash:                              "Squash",
 		LcPickCommit:                        "pick commit (when mid-rebase)",
 		LcRevertCommit:                      "revert commit",
-		OnlyRenameTopCommit:                 "Can only reword topmost commit from within lazygit. Use shift+R instead",
-		LcRenameCommit:                      "reword commit",
+		LcRewordCommit:                      "reword commit",
 		LcDeleteCommit:                      "delete commit",
 		LcMoveDownCommit:                    "move commit down one",
 		LcMoveUpCommit:                      "move commit up one",
 		LcEditCommit:                        "edit commit",
 		LcAmendToCommit:                     "amend commit with staged changes",
-		LcRenameCommitEditor:                "rename commit with editor",
+		LcRenameCommitEditor:                "reword commit with editor",
 		Error:                               "Error",
 		LcSelectHunk:                        "select hunk",
 		LcNavigateConflicts:                 "navigate conflicts",
@@ -663,7 +701,6 @@ func englishTranslationSet() TranslationSet {
 		SurePopStashEntry:                   "Are you sure you want to pop this stash entry?",
 		StashApply:                          "Stash apply",
 		SureApplyStashEntry:                 "Are you sure you want to apply this stash entry?",
-		NoStashTo:                           "No stash to {{.method}}",
 		NoTrackedStagedFilesStash:           "You have no tracked/staged files to stash",
 		StashChanges:                        "Stash changes",
 		MergeAborted:                        "Merge aborted",
@@ -732,9 +769,10 @@ func englishTranslationSet() TranslationSet {
 		GlobalTitle:                         "Global Keybindings",
 		ConflictsResolved:                   "all merge conflicts resolved. Continue?",
 		RebasingTitle:                       "Rebasing",
-		ConfirmRebase:                       "Are you sure you want to rebase {{.checkedOutBranch}} onto {{.selectedBranch}}?",
-		ConfirmMerge:                        "Are you sure you want to merge {{.selectedBranch}} into {{.checkedOutBranch}}?",
+		ConfirmRebase:                       "Are you sure you want to rebase '{{.checkedOutBranch}}' onto '{{.selectedBranch}}'?",
+		ConfirmMerge:                        "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
+		FwdNoLocalUpstream:                  "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                    "Cannot fast-forward a branch with commits to push",
 		ErrorOccurred:                       "An error occurred! Please create an issue at",
 		NoRoom:                              "Not enough room",
@@ -828,6 +866,7 @@ func englishTranslationSet() TranslationSet {
 		LcEnterFile:                         "enter file to add selected lines to the patch (or toggle directory collapsed)",
 		ExitLineByLineMode:                  `exit line-by-line mode`,
 		EnterUpstream:                       `Enter upstream as '<remote> <branchname>'`,
+		InvalidUpstream:                     "Invalid upstream. Must be in the format '<remote> <branchname>'",
 		ReturnToRemotesList:                 `Return to remotes list`,
 		LcAddNewRemote:                      `add new remote`,
 		LcNewRemoteName:                     `New remote name:`,
@@ -843,7 +882,11 @@ func englishTranslationSet() TranslationSet {
 		SetUpstreamMessage:                  "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
 		LcEditRemote:                        "edit remote",
 		LcTagCommit:                         "tag commit",
+		TagMenuTitle:                        "Create tag",
 		TagNameTitle:                        "Tag name:",
+		TagMessageTitle:                     "Tag message: ",
+		LcAnnotatedTag:                      "annotated tag",
+		LcLightweightTag:                    "lightweight tag",
 		LcDeleteTag:                         "delete tag",
 		DeleteTagTitle:                      "Delete tag",
 		DeleteTagPrompt:                     "Are you sure you want to delete tag '{{.tagName}}'?",
@@ -941,7 +984,6 @@ func englishTranslationSet() TranslationSet {
 		LcEditSubmoduleUrl:                  "update submodule URL",
 		LcInitializingSubmoduleStatus:       "initializing submodule",
 		LcInitSubmodule:                     "initialize submodule",
-		LcViewResetAndRemoveOptions:         "view reset and remove submodule options",
 		LcSubmoduleUpdate:                   "update submodule",
 		LcUpdatingSubmoduleStatus:           "updating submodule",
 		LcBulkInitSubmodules:                "bulk init submodules",
@@ -977,9 +1019,13 @@ func englishTranslationSet() TranslationSet {
 		CreateOrShowPullRequest:             "create / open pull request",
 		CreateOrOpenPullRequestOptions:      "create / open pull request options",
 		LcCreateOrOpenPullRequestOptions:    "create / open pull request options",
+		IncreaseContextInDiffView:           "Increase the size of the context shown around changes in the diff view",
+		DecreaseContextInDiffView:           "Decrease the size of the context shown around changes in the diff view",
+		CreatePullRequest:                   "Create pull request",
+		CreatePullRequestOptions:            "Create pull request options",
+		LcCreatePullRequestOptions:          "create pull request options",
 		LcDefaultBranch:                     "default branch",
 		LcSelectBranch:                      "select branch",
-		CreatingPullRequestAtUrl:            "Creating pull request at URL: %s",
 		SelectConfigFile:                    "Select config file",
 		NoConfigFileFoundErr:                "No config file found",
 		LcLoadingFileSuggestions:            "loading file suggestions",
@@ -995,7 +1041,11 @@ func englishTranslationSet() TranslationSet {
 		ToggleShowGitGraphAll:               "toggle show whole git graph (pass the `--all` flag to `git log`)",
 		ShowGitGraph:                        "show git graph",
 		SortCommits:                         "commit sort order",
-		Spans: Spans{
+		CantChangeContextSizeError:          "Cannot change context while in patch building mode because we were too lazy to support it when releasing the feature. If you really want it, please let us know!",
+		LcOpenCommitInBrowser:               "open commit in browser",
+		LcViewBisectOptions:                 "view bisect options",
+		ConfirmRevertCommit:                 "Are you sure you want to revert {{.selectedCommit}}?",
+		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
 			CheckoutReflogCommit:              "Checkout reflog commit",
@@ -1020,6 +1070,7 @@ func englishTranslationSet() TranslationSet {
 			CreateFixupCommit:                 "Create fixup commit",
 			SquashAllAboveFixupCommits:        "Squash all above fixup commits",
 			CreateLightweightTag:              "Create lightweight tag",
+			CreateAnnotatedTag:                "Create annotated tag",
 			CopyCommitMessageToClipboard:      "Copy commit message to clipboard",
 			MoveCommitUp:                      "Move commit up",
 			MoveCommitDown:                    "Move commit down",
@@ -1029,6 +1080,7 @@ func englishTranslationSet() TranslationSet {
 			DiscardAllChangesInFile:           "Discard all changes in file",
 			DiscardAllUnstagedChangesInFile:   "Discard all unstaged changes in file",
 			StageFile:                         "Stage file",
+			StageResolvedFiles:                "Stage files whose merge conflicts were resolved",
 			UnstageFile:                       "Unstage file",
 			UnstageAllFiles:                   "Unstage all files",
 			StageAllFiles:                     "Stage all files",
@@ -1076,6 +1128,26 @@ func englishTranslationSet() TranslationSet {
 			FastForwardBranch:                 "Fast forward branch",
 			Undo:                              "Undo",
 			Redo:                              "Redo",
+			CopyPullRequestURL:                "Copy pull request URL",
+			OpenMergeTool:                     "Open merge tool",
+			OpenCommitInBrowser:               "Open commit in browser",
+			OpenPullRequest:                   "Open pull request in browser",
+			StartBisect:                       "Start bisect",
+			ResetBisect:                       "Reset bisect",
+			BisectSkip:                        "Bisect skip",
+			BisectMark:                        "Bisect mark",
+		},
+		Bisect: Bisect{
+			Mark:                        "mark %s as %s",
+			MarkStart:                   "mark %s as %s (start bisect)",
+			Skip:                        "skip %s",
+			ResetTitle:                  "Reset 'git bisect'",
+			ResetPrompt:                 "Are you sure you want to reset 'git bisect'?",
+			ResetOption:                 "reset bisect",
+			BisectMenuTitle:             "Bisect",
+			CompleteTitle:               "Bisect complete",
+			CompletePrompt:              "Bisect complete! The following commit introduced the change:\n\n%s\n\nDo you want to reset 'git bisect' now?",
+			CompletePromptIndeterminate: "Bisect complete! Some commits were skipped, so any of the following commits may have introduced the change:\n\n%s\n\nDo you want to reset 'git bisect' now?",
 		},
 	}
 }

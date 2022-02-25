@@ -48,7 +48,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.SearchPrefix.BgColor = gocui.ColorDefault
 	gui.Views.SearchPrefix.FgColor = gocui.ColorGreen
 	gui.Views.SearchPrefix.Frame = false
-	gui.setViewContentSync(gui.Views.SearchPrefix, SEARCH_PREFIX)
+	gui.setViewContent(gui.Views.SearchPrefix, SEARCH_PREFIX)
 
 	gui.Views.Stash.Title = gui.Tr.StashTitle
 	gui.Views.Stash.FgColor = theme.GocuiDefaultTextColor
@@ -123,8 +123,6 @@ func (gui *Gui) createAllViews() error {
 	if _, err := gui.g.SetCurrentView(gui.defaultSideContext().GetViewName()); err != nil {
 		return err
 	}
-
-	gui.GitCommand.GetCmdWriter = gui.getCmdWriter
 
 	return nil
 }
@@ -237,7 +235,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	gui.Views.CommitFiles.Visible = gui.getViewNameForWindow(gui.State.Contexts.CommitFiles.GetWindowName()) == "commitFiles"
 
 	if gui.State.OldInformation != informationStr {
-		gui.setViewContentSync(gui.Views.Information, informationStr)
+		gui.setViewContent(gui.Views.Information, informationStr)
 		gui.State.OldInformation = informationStr
 	}
 
@@ -374,7 +372,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 		return err
 	}
 
-	if !gui.Config.GetUserConfig().DisableStartupPopups {
+	if !gui.UserConfig.DisableStartupPopups {
 		popupTasks := []func(chan struct{}) error{}
 		storedPopupVersion := gui.Config.GetAppState().StartupPopupVersion
 		if storedPopupVersion < StartupPopupVersion {

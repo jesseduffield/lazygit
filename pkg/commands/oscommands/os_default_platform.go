@@ -7,7 +7,7 @@ import (
 	"runtime"
 )
 
-func getPlatform() *Platform {
+func GetPlatform() *Platform {
 	return &Platform{
 		OS:              runtime.GOOS,
 		Shell:           "bash",

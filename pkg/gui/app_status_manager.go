@@ -4,7 +4,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -96,11 +95,13 @@ func (gui *Gui) renderAppStatus() {
 		defer ticker.Stop()
 		for range ticker.C {
 			appStatus := gui.statusManager.getStatusString()
+			gui.OnUIThread(func() error {
+				return gui.renderString(gui.Views.AppStatus, appStatus)
+			})
+
 			if appStatus == "" {
-				gui.renderString(gui.Views.AppStatus, "")
 				return
 			}
-			gui.renderString(gui.Views.AppStatus, appStatus)
 		}
 	})
 }
@@ -117,7 +118,7 @@ func (gui *Gui) WithWaitingStatus(message string, f func() error) error {
 		gui.renderAppStatus()
 
 		if err := f(); err != nil {
-			gui.g.Update(func(g *gocui.Gui) error {
+			gui.OnUIThread(func() error {
 				return gui.surfaceError(err)
 			})
 		}

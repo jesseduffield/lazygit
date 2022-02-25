@@ -204,7 +204,7 @@ func (gui *Gui) getKey(key string) interface{} {
 
 // GetInitialKeybindings is a function.
 func (gui *Gui) GetInitialKeybindings() []*Binding {
-	config := gui.Config.GetUserConfig().Keybinding
+	config := gui.UserConfig.Keybinding
 
 	bindings := []*Binding{
 		{
@@ -743,14 +743,14 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "commits",
 			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.RenameCommit),
-			Handler:     gui.handleRenameCommit,
-			Description: gui.Tr.LcRenameCommit,
+			Handler:     gui.handleRewordCommit,
+			Description: gui.Tr.LcRewordCommit,
 		},
 		{
 			ViewName:    "commits",
 			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Commits.RenameCommitWithEditor),
-			Handler:     gui.handleRenameCommitEditor,
+			Handler:     gui.handleRewordCommitEditor,
 			Description: gui.Tr.LcRenameCommitEditor,
 		},
 		{
@@ -900,6 +900,21 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey(config.Commits.CopyCommitMessageToClipboard),
 			Handler:     gui.handleCopySelectedCommitMessageToClipboard,
 			Description: gui.Tr.LcCopyCommitMessageToClipboard,
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Commits.OpenInBrowser),
+			Handler:     gui.handleOpenCommitInBrowser,
+			Description: gui.Tr.LcOpenCommitInBrowser,
+		},
+		{
+			ViewName:    "commits",
+			Contexts:    []string{string(BRANCH_COMMITS_CONTEXT_KEY)},
+			Key:         gui.getKey(config.Commits.ViewBisectOptions),
+			Handler:     gui.handleOpenBisectMenu,
+			Description: gui.Tr.LcViewBisectOptions,
+			OpensMenu:   true,
 		},
 		{
 			ViewName:    "commits",
@@ -1528,20 +1543,6 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 		{
 			ViewName: "main",
 			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
-			Key:      gocui.MouseWheelUp,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectPrevConflictHunk,
-		},
-		{
-			ViewName: "main",
-			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
-			Key:      gocui.MouseWheelDown,
-			Modifier: gocui.ModNone,
-			Handler:  gui.handleSelectNextConflictHunk,
-		},
-		{
-			ViewName: "main",
-			Contexts: []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:      gui.getKey(config.Universal.PrevBlockAlt),
 			Modifier: gocui.ModNone,
 			Handler:  gui.handleSelectPrevConflict,
@@ -1571,7 +1572,7 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "main",
 			Contexts:    []string{string(MAIN_MERGING_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.Undo),
-			Handler:     gui.handlePopFileSnapshot,
+			Handler:     gui.handleMergeConflictUndo,
 			Description: gui.Tr.LcUndo,
 		},
 		{
@@ -1723,8 +1724,8 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			ViewName:    "files",
 			Contexts:    []string{string(SUBMODULES_CONTEXT_KEY)},
 			Key:         gui.getKey(config.Universal.Remove),
-			Handler:     gui.forSubmodule(gui.handleResetRemoveSubmodule),
-			Description: gui.Tr.LcViewResetAndRemoveOptions,
+			Handler:     gui.forSubmodule(gui.removeSubmodule),
+			Description: gui.Tr.LcRemoveSubmodule,
 			OpensMenu:   true,
 		},
 		{
@@ -1769,6 +1770,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Key:         gui.getKey(config.Universal.ToggleWhitespaceInDiffView),
 			Handler:     gui.toggleWhitespaceInDiffView,
 			Description: gui.Tr.ToggleWhitespaceInDiffView,
+		},
+		{
+			ViewName:    "",
+			Key:         gui.getKey(config.Universal.IncreaseContextInDiffView),
+			Handler:     gui.IncreaseContextInDiffView,
+			Description: gui.Tr.IncreaseContextInDiffView,
+		},
+		{
+			ViewName:    "",
+			Key:         gui.getKey(config.Universal.DecreaseContextInDiffView),
+			Handler:     gui.DecreaseContextInDiffView,
+			Description: gui.Tr.DecreaseContextInDiffView,
 		},
 		{
 			ViewName: "extras",

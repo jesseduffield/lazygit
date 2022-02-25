@@ -7,10 +7,7 @@ import (
 	"io/ioutil"
 	"math"
 
-	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 )
 
@@ -18,7 +15,7 @@ func (gui *Gui) handleSelectPrevConflictHunk() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
 		gui.State.Panels.Merging.SelectPrevConflictHunk()
-		return gui.refreshMergePanel()
+		return gui.renderConflictsWithFocus()
 	})
 }
 
@@ -26,7 +23,7 @@ func (gui *Gui) handleSelectNextConflictHunk() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
 		gui.State.Panels.Merging.SelectNextConflictHunk()
-		return gui.refreshMergePanel()
+		return gui.renderConflictsWithFocus()
 	})
 }
 
@@ -34,7 +31,7 @@ func (gui *Gui) handleSelectNextConflict() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
 		gui.State.Panels.Merging.SelectNextConflict()
-		return gui.refreshMergePanel()
+		return gui.renderConflictsWithFocus()
 	})
 }
 
@@ -42,41 +39,29 @@ func (gui *Gui) handleSelectPrevConflict() error {
 	return gui.withMergeConflictLock(func() error {
 		gui.takeOverMergeConflictScrolling()
 		gui.State.Panels.Merging.SelectPrevConflict()
-		return gui.refreshMergePanel()
+		return gui.renderConflictsWithFocus()
 	})
 }
 
-func (gui *Gui) pushFileSnapshot() error {
-	content, err := gui.catSelectedFile()
-	if err != nil {
-		return err
-	}
-	gui.State.Panels.Merging.PushFileSnapshot(content)
-	return nil
-}
+func (gui *Gui) handleMergeConflictUndo() error {
+	state := gui.State.Panels.Merging
 
-func (gui *Gui) handlePopFileSnapshot() error {
-	prevContent, ok := gui.State.Panels.Merging.PopFileSnapshot()
+	ok := state.Undo()
 	if !ok {
 		return nil
 	}
 
-	gitFile := gui.getSelectedFile()
-	if gitFile == nil {
-		return nil
-	}
-	gui.OnRunCommand(oscommands.NewCmdLogEntry("Undoing last conflict resolution", "Undo merge conflict resolution", false))
-	if err := ioutil.WriteFile(gitFile.Name, []byte(prevContent), 0644); err != nil {
+	gui.logAction("Restoring file to previous state")
+	gui.logCommand("Undoing last conflict resolution", false)
+	if err := ioutil.WriteFile(state.GetPath(), []byte(state.GetContent()), 0644); err != nil {
 		return err
 	}
 
-	return gui.refreshMergePanel()
+	return gui.renderConflictsWithFocus()
 }
 
 func (gui *Gui) handlePickHunk() error {
 	return gui.withMergeConflictLock(func() error {
-		gui.takeOverMergeConflictScrolling()
-
 		ok, err := gui.resolveConflict(gui.State.Panels.Merging.Selection())
 		if err != nil {
 			return err
@@ -86,19 +71,16 @@ func (gui *Gui) handlePickHunk() error {
 			return nil
 		}
 
-		if gui.State.Panels.Merging.IsFinalConflict() {
-			if err := gui.handleCompleteMerge(); err != nil {
-				return err
-			}
+		if gui.State.Panels.Merging.AllConflictsResolved() {
+			return gui.onLastConflictResolved()
 		}
-		return gui.refreshMergePanel()
+
+		return gui.renderConflictsWithFocus()
 	})
 }
 
 func (gui *Gui) handlePickAllHunks() error {
 	return gui.withMergeConflictLock(func() error {
-		gui.takeOverMergeConflictScrolling()
-
 		ok, err := gui.resolveConflict(mergeconflicts.ALL)
 		if err != nil {
 			return err
@@ -108,27 +90,26 @@ func (gui *Gui) handlePickAllHunks() error {
 			return nil
 		}
 
-		return gui.refreshMergePanel()
+		if gui.State.Panels.Merging.AllConflictsResolved() {
+			return gui.onLastConflictResolved()
+		}
+
+		return gui.renderConflictsWithFocus()
 	})
 }
 
 func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error) {
-	gitFile := gui.getSelectedFile()
-	if gitFile == nil {
-		return false, nil
-	}
+	gui.takeOverMergeConflictScrolling()
 
-	ok, output, err := gui.State.Panels.Merging.ContentAfterConflictResolve(gitFile.Name, selection)
+	state := gui.State.Panels.Merging
+
+	ok, content, err := state.ContentAfterConflictResolve(selection)
 	if err != nil {
 		return false, err
 	}
 
 	if !ok {
 		return false, nil
-	}
-
-	if err := gui.pushFileSnapshot(); err != nil {
-		return false, gui.surfaceError(err)
 	}
 
 	var logStr string
@@ -142,37 +123,31 @@ func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error
 	case mergeconflicts.ALL:
 		logStr = "Picking all hunks"
 	}
-	gui.OnRunCommand(oscommands.NewCmdLogEntry(logStr, "Resolve merge conflict", false))
-	return true, ioutil.WriteFile(gitFile.Name, []byte(output), 0644)
+	gui.logAction("Resolve merge conflict")
+	gui.logCommand(logStr, false)
+	state.PushContent(content)
+	return true, ioutil.WriteFile(state.GetPath(), []byte(content), 0644)
 }
 
-func (gui *Gui) refreshMergePanelWithLock() error {
-	return gui.withMergeConflictLock(gui.refreshMergePanel)
-}
+// precondition: we actually have conflicts to render
+func (gui *Gui) renderConflicts(hasFocus bool) error {
+	state := gui.State.Panels.Merging.State
+	content := mergeconflicts.ColoredConflictFile(state, hasFocus)
 
-func (gui *Gui) refreshMergePanel() error {
-	panelState := gui.State.Panels.Merging
-	cat, err := gui.catSelectedFile()
-	if err != nil {
-		return gui.refreshMainViews(refreshMainOpts{
-			main: &viewUpdateOpts{
-				title: "",
-				task:  NewRenderStringTask(err.Error()),
-			},
+	if !gui.State.Panels.Merging.UserVerticalScrolling {
+		// TODO: find a way to not have to do this OnUIThread thing. Why doesn't it work
+		// without it given that we're calling the 'no scroll' variant below?
+		gui.OnUIThread(func() error {
+			gui.State.Panels.Merging.Lock()
+			defer gui.State.Panels.Merging.Unlock()
+
+			if !state.Active() {
+				return nil
+			}
+
+			gui.centerYPos(gui.Views.Main, state.GetConflictMiddle())
+			return nil
 		})
-	}
-
-	panelState.SetConflictsFromCat(cat)
-
-	if panelState.NoConflicts() {
-		return gui.handleCompleteMerge()
-	}
-
-	hasFocus := gui.currentViewName() == "main"
-	content := mergeconflicts.ColoredConflictFile(cat, panelState.State, hasFocus)
-
-	if err := gui.scrollToConflict(); err != nil {
-		return err
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -184,50 +159,25 @@ func (gui *Gui) refreshMergePanel() error {
 	})
 }
 
-func (gui *Gui) catSelectedFile() (string, error) {
-	item := gui.getSelectedFile()
-	if item == nil {
-		return "", errors.New(gui.Tr.NoFilesDisplay)
-	}
-
-	if item.Type != "file" {
-		return "", errors.New(gui.Tr.NotAFile)
-	}
-
-	cat, err := gui.GitCommand.CatFile(item.Name)
-	if err != nil {
-		gui.Log.Error(err)
-		return "", err
-	}
-	return cat, nil
+func (gui *Gui) renderConflictsWithFocus() error {
+	return gui.renderConflicts(true)
 }
 
-func (gui *Gui) scrollToConflict() error {
-	if gui.State.Panels.Merging.UserVerticalScrolling {
-		return nil
-	}
-
-	panelState := gui.State.Panels.Merging
-	if panelState.NoConflicts() {
-		return nil
-	}
-
-	gui.centerYPos(gui.Views.Main, panelState.GetConflictMiddle())
-
-	return nil
+func (gui *Gui) renderConflictsWithLock(hasFocus bool) error {
+	return gui.withMergeConflictLock(func() error {
+		return gui.renderConflicts(hasFocus)
+	})
 }
 
 func (gui *Gui) centerYPos(view *gocui.View, y int) {
 	ox, _ := view.Origin()
 	_, height := view.Size()
 	newOriginY := int(math.Max(0, float64(y-(height/2))))
-	gui.g.Update(func(g *gocui.Gui) error {
-		return view.SetOrigin(ox, newOriginY)
-	})
+	_ = view.SetOrigin(ox, newOriginY)
 }
 
 func (gui *Gui) getMergingOptions() map[string]string {
-	keybindingConfig := gui.Config.GetUserConfig().Keybinding
+	keybindingConfig := gui.UserConfig.Keybinding
 
 	return map[string]string{
 		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)):   gui.Tr.LcSelectHunk,
@@ -239,72 +189,66 @@ func (gui *Gui) getMergingOptions() map[string]string {
 }
 
 func (gui *Gui) handleEscapeMerge() error {
-	gui.takeOverMergeConflictScrolling()
-
-	gui.State.Panels.Merging.Reset()
 	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
 		return err
 	}
-	// it's possible this method won't be called from the merging view so we need to
-	// ensure we only 'return' focus if we already have it
-	if gui.g.CurrentView() == gui.Views.Main {
-		return gui.pushContext(gui.State.Contexts.Files)
+
+	return gui.escapeMerge()
+}
+
+func (gui *Gui) onLastConflictResolved() error {
+	// as part of refreshing files, we handle the situation where a file has had
+	// its merge conflicts resolved.
+	return gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{FILES}})
+}
+
+func (gui *Gui) resetMergeState() {
+	gui.takeOverMergeConflictScrolling()
+	gui.State.Panels.Merging.Reset()
+}
+
+func (gui *Gui) setMergeState(path string) (bool, error) {
+	content, err := gui.Git.File.Cat(path)
+	if err != nil {
+		return false, err
 	}
+
+	gui.State.Panels.Merging.SetContent(content, path)
+
+	return !gui.State.Panels.Merging.NoConflicts(), nil
+}
+
+func (gui *Gui) setMergeStateWithLock(path string) (bool, error) {
+	gui.State.Panels.Merging.Lock()
+	defer gui.State.Panels.Merging.Unlock()
+
+	return gui.setMergeState(path)
+}
+
+func (gui *Gui) resetMergeStateWithLock() {
+	gui.State.Panels.Merging.Lock()
+	defer gui.State.Panels.Merging.Unlock()
+
+	gui.resetMergeState()
+}
+
+func (gui *Gui) escapeMerge() error {
+	gui.resetMergeState()
+
+	// doing this in separate UI thread so that we're not still holding the lock by the time refresh the file
+	gui.OnUIThread(func() error {
+		return gui.pushContext(gui.State.Contexts.Files)
+	})
 	return nil
 }
 
-func (gui *Gui) handleCompleteMerge() error {
-	if err := gui.stageSelectedFile(); err != nil {
-		return err
-	}
-	if err := gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{FILES}}); err != nil {
-		return err
-	}
-	// if we got conflicts after unstashing, we don't want to call any git
-	// commands to continue rebasing/merging here
-	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_NORMAL {
-		return gui.handleEscapeMerge()
-	}
-	// if there are no more files with merge conflicts, we should ask whether the user wants to continue
-	if !gui.anyFilesWithMergeConflicts() {
-		return gui.promptToContinueRebase()
-	}
-	return gui.handleEscapeMerge()
-}
-
-// promptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
-func (gui *Gui) promptToContinueRebase() error {
-	gui.takeOverMergeConflictScrolling()
-
-	return gui.ask(askOpts{
-		title:               "continue",
-		prompt:              gui.Tr.ConflictsResolved,
-		handlersManageFocus: true,
-		handleConfirm: func() error {
-			if err := gui.pushContext(gui.State.Contexts.Files); err != nil {
-				return err
-			}
-
-			return gui.genericMergeCommand(REBASE_OPTION_CONTINUE)
-		},
-		handleClose: func() error {
-			return gui.pushContext(gui.State.Contexts.Files)
-		},
-	})
-}
-
-func (gui *Gui) canScrollMergePanel() bool {
+func (gui *Gui) renderingConflicts() bool {
 	currentView := gui.g.CurrentView()
 	if currentView != gui.Views.Main && currentView != gui.Views.Files {
 		return false
 	}
 
-	file := gui.getSelectedFile()
-	if file == nil {
-		return false
-	}
-
-	return file.HasInlineMergeConflicts
+	return gui.State.Panels.Merging.Active()
 }
 
 func (gui *Gui) withMergeConflictLock(f func() error) error {
@@ -316,4 +260,45 @@ func (gui *Gui) withMergeConflictLock(f func() error) error {
 
 func (gui *Gui) takeOverMergeConflictScrolling() {
 	gui.State.Panels.Merging.UserVerticalScrolling = false
+}
+
+func (gui *Gui) setConflictsAndRender(path string, hasFocus bool) (bool, error) {
+	hasConflicts, err := gui.setMergeState(path)
+	if err != nil {
+		return false, err
+	}
+
+	// if we don't have conflicts we'll fall through and show the diff
+	if hasConflicts {
+		return true, gui.renderConflicts(hasFocus)
+	}
+
+	return false, nil
+}
+
+func (gui *Gui) setConflictsAndRenderWithLock(path string, hasFocus bool) (bool, error) {
+	gui.State.Panels.Merging.Lock()
+	defer gui.State.Panels.Merging.Unlock()
+
+	return gui.setConflictsAndRender(path, hasFocus)
+}
+
+func (gui *Gui) refreshMergeState() error {
+	gui.State.Panels.Merging.Lock()
+	defer gui.State.Panels.Merging.Unlock()
+
+	if gui.currentContext().GetKey() != MAIN_MERGING_CONTEXT_KEY {
+		return nil
+	}
+
+	hasConflicts, err := gui.setConflictsAndRender(gui.State.Panels.Merging.GetPath(), true)
+	if err != nil {
+		return gui.surfaceError(err)
+	}
+
+	if !hasConflicts {
+		return gui.escapeMerge()
+	}
+
+	return nil
 }

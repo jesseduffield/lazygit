@@ -36,6 +36,7 @@ func TestIsGitVersionValid(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.versionStr, func(t *testing.T) {
 			result := isGitVersionValid(s.versionStr)
 			assert.Equal(t, result, s.expectedResult)

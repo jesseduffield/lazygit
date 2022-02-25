@@ -1,0 +1,4 @@
+{
+  "description": "Discarding a single file from an old commit (does rebase in background to remove the file but retain the other one)",
+  "speed": 5
+}

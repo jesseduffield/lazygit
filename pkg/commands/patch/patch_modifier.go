@@ -22,7 +22,7 @@ func GetHeaderFromDiff(diff string) string {
 func GetHunksFromDiff(diff string) []*PatchHunk {
 	hunks := []*PatchHunk{}
 	firstLineIdx := -1
-	var hunkLines []string
+	var hunkLines []string //nolint:prealloc
 	pastDiffHeader := false
 
 	for lineIdx, line := range strings.SplitAfter(diff, "\n") {

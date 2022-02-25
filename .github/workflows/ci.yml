@@ -63,3 +63,43 @@ jobs:
       - name: Build darwin binary
         run: |
           GOOS=darwin go build
+  check-cheatsheet:
+    runs-on: ubuntu-latest
+    env:
+      GOFLAGS: -mod=vendor
+      GOARCH: amd64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16.x
+      - name: Cache build
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/go-build
+          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-build
+          restore-keys: |
+            ${{runner.os}}-go-
+      - name: Check Cheatsheet
+        run: |
+          go run scripts/cheatsheet/main.go check
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: latest
+      - name: Format code
+        run: |
+          if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
+           find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;
+           exit 1
+          fi
+      - name: errors
+        run: golangci-lint run
+        if: ${{ failure() }}

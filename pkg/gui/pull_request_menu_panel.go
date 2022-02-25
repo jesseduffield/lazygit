@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 func (gui *Gui) createOrOpenPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
@@ -71,12 +70,25 @@ func (gui *Gui) createOrOpenPullRequestMenu(selectedBranch *models.Branch, check
 }
 
 func (gui *Gui) createPullRequest(from string, to string) error {
-	pullRequest := commands.NewPullRequest(gui.GitCommand)
-	url, err := pullRequest.Create(from, to)
+	hostingServiceMgr := gui.getHostingServiceMgr()
+	url, err := hostingServiceMgr.GetPullRequestURL(from, to)
 	if err != nil {
 		return gui.surfaceError(err)
 	}
-	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf(gui.Tr.CreatingPullRequestAtUrl, url), gui.Tr.CreateOrShowPullRequest, false))
+
+	// gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf(gui.Tr.CreatingPullRequestAtUrl, url), gui.Tr.CreateOrShowPullRequest, false))
+
+	gui.logAction(gui.Tr.Actions.OpenPullRequest)
+
+	if err := gui.OSCommand.OpenLink(url); err != nil {
+		return gui.surfaceError(err)
+	}
 
 	return nil
+}
+
+func (gui *Gui) getHostingServiceMgr() *hosting_service.HostingServiceMgr {
+	remoteUrl := gui.Git.Config.GetRemoteURL()
+	configServices := gui.UserConfig.Services
+	return hosting_service.NewHostingServiceMgr(gui.Log, gui.Tr, remoteUrl, configServices)
 }

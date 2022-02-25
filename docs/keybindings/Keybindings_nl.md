@@ -1,3 +1,5 @@
+_This file is auto-generated. To update, make the changes in the pkg/i18n directory and then run `go run scripts/cheatsheet/main.go generate` from the project root._
+
 # Lazygit Sneltoetsen
 
 ## Globale Sneltoetsen
@@ -21,6 +23,8 @@
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
+  <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
+  <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
 </pre>
 
 ## Lijstpaneel Navigatie
@@ -119,6 +123,7 @@
 ## Commits Paneel (Commits)
 
 <pre>
+  <kbd>ctrl+l</kbd>: open log menu
   <kbd>s</kbd>: squash beneden
   <kbd>r</kbd>: hernoem commit
   <kbd>R</kbd>: hernoem commit met editor
@@ -143,6 +148,8 @@
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
   <kbd>ctrl+y</kbd>: kopieer commit bericht naar klembord
+  <kbd>o</kbd>: open commit in browser
+  <kbd>b</kbd>: view bisect options
 </pre>
 
 ## Commits Paneel (Reflog Tabblad)
@@ -161,6 +168,12 @@
 
 <pre>
   <kbd>@</kbd>: open command log menu
+</pre>
+
+## Bestanden Paneel
+
+<pre>
+  <kbd>ctrl+b</kbd>: Commit dossiers filteren
 </pre>
 
 ## Bestanden Paneel (Bestanden)
@@ -194,7 +207,7 @@
 <pre>
   <kbd>ctrl+o</kbd>: kopieer submodule naam naar klembord
   <kbd>enter</kbd>: enter submodule
-  <kbd>d</kbd>: bekijk reset en verwijder submodule opties
+  <kbd>d</kbd>: remove submodule
   <kbd>u</kbd>: update submodule
   <kbd>n</kbd>: voeg nieuwe submodule toe
   <kbd>e</kbd>: update submodule URL
@@ -205,6 +218,8 @@
 ## Hoofd Paneel (Mergen)
 
 <pre>
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>space</kbd>: kies hunk
@@ -232,10 +247,13 @@
   <kbd>▼</kbd>: selecteer de volgende lijn
   <kbd>◄</kbd>: selecteer de vorige hunk
   <kbd>►</kbd>: selecteer de volgende hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
   <kbd>space</kbd>: voeg toe/verwijder lijn(en) in patch
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
 </pre>
 
 ## Hoofd Paneel (Staging)
@@ -250,11 +268,14 @@
   <kbd>▼</kbd>: selecteer de volgende lijn
   <kbd>◄</kbd>: selecteer de vorige hunk
   <kbd>►</kbd>: selecteer de volgende hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
   <kbd>e</kbd>: verander bestand
   <kbd>o</kbd>: open bestand
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
   <kbd>c</kbd>: Commit veranderingen
   <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
   <kbd>C</kbd>: commit veranderingen met de git editor

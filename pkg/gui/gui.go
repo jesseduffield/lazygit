@@ -7,14 +7,16 @@ import (
 	"os"
 	"sync"
 
-	"os/exec"
 	"strings"
 	"time"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
@@ -22,16 +24,15 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
@@ -68,10 +69,10 @@ type Repo string
 
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
-	g          *gocui.Gui
-	Log        *logrus.Entry
-	GitCommand *commands.GitCommand
-	OSCommand  *oscommands.OSCommand
+	*common.Common
+	g         *gocui.Gui
+	Git       *commands.GitCommand
+	OSCommand *oscommands.OSCommand
 
 	// this is the state of the GUI for the current repo
 	State *guiState
@@ -80,7 +81,6 @@ type Gui struct {
 	// gui state when returning from a subrepo
 	RepoStateMap         map[Repo]*guiState
 	Config               config.AppConfigurer
-	Tr                   *i18n.TranslationSet
 	Updater              *updates.Updater
 	statusManager        *statusManager
 	credentials          credentials
@@ -114,13 +114,16 @@ type Gui struct {
 	PauseBackgroundThreads bool
 
 	// Log of the commands that get run, to be displayed to the user.
-	CmdLog       []string
-	OnRunCommand func(entry oscommands.CmdLogEntry)
+	CmdLog []string
 
 	// the extras window contains things like the command log
 	ShowExtrasWindow bool
 
 	suggestionsAsyncHandler *tasks.AsyncHandler
+
+	PopupHandler PopupHandler
+
+	IsNewRepo bool
 }
 
 type listPanelState struct {
@@ -288,13 +291,13 @@ type guiMutexes struct {
 type guiState struct {
 	// the file panels (files and commit files) can render as a tree, so we have
 	// managers for them which handle rendering a flat list of files in tree form
-	FileManager       *filetree.FileManager
-	CommitFileManager *filetree.CommitFileManager
-	Submodules        []*models.SubmoduleConfig
-	Branches          []*models.Branch
-	GithubState       *GithubState
-	Commits           []*models.Commit
-	StashEntries      []*models.StashEntry
+	FileTreeViewModel       *filetree.FileTreeViewModel
+	CommitFileTreeViewModel *filetree.CommitFileTreeViewModel
+
+	Submodules   []*models.SubmoduleConfig
+	Branches     []*models.Branch
+	Commits      []*models.Commit
+	StashEntries []*models.StashEntry
 	// Suggestions will sometimes appear when typing into a prompt
 	Suggestions []*types.Suggestion
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
@@ -303,12 +306,14 @@ type guiState struct {
 	// ReflogCommits are the ones used by the branches panel to obtain recency values
 	// if we're not in filtering mode, CommitFiles and FilteredReflogCommits will be
 	// one and the same
-	ReflogCommits     []*models.Commit
-	SubCommits        []*models.Commit
-	Remotes           []*models.Remote
-	RemoteBranches    []*models.RemoteBranch
-	Tags              []*models.Tag
-	MenuItems         []*menuItem
+	ReflogCommits  []*models.Commit
+	SubCommits     []*models.Commit
+	Remotes        []*models.Remote
+	RemoteBranches []*models.RemoteBranch
+	Tags           []*models.Tag
+	MenuItems      []*menuItem
+	BisectInfo     *git_commands.BisectInfo
+
 	Updating          bool
 	Panels            *panelStates
 	SplitMainPanel    bool
@@ -347,6 +352,9 @@ type guiState struct {
 
 	// for displaying suggestions while typing in a file name
 	FilesTrie *patricia.Trie
+
+	// this is the message of the last failed commit attempt
+	failedCommitMessage string
 }
 
 type GithubState struct {
@@ -377,7 +385,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		}
 	}
 
-	showTree := gui.Config.GetUserConfig().Gui.ShowFileTree
+	showTree := gui.UserConfig.Gui.ShowFileTree
 
 	contexts := gui.contextTree()
 
@@ -389,12 +397,13 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	}
 
 	gui.State = &guiState{
-		FileManager:           filetree.NewFileManager(make([]*models.File, 0), gui.Log, showTree),
-		CommitFileManager:     filetree.NewCommitFileManager(make([]*models.CommitFile, 0), gui.Log, showTree),
-		Commits:               make([]*models.Commit, 0),
-		FilteredReflogCommits: make([]*models.Commit, 0),
-		ReflogCommits:         make([]*models.Commit, 0),
-		StashEntries:          make([]*models.StashEntry, 0),
+		FileTreeViewModel:       filetree.NewFileTreeViewModel(make([]*models.File, 0), gui.Log, showTree),
+		CommitFileTreeViewModel: filetree.NewCommitFileTreeViewModel(make([]*models.CommitFile, 0), gui.Log, showTree),
+		Commits:                 make([]*models.Commit, 0),
+		FilteredReflogCommits:   make([]*models.Commit, 0),
+		ReflogCommits:           make([]*models.Commit, 0),
+		StashEntries:            make([]*models.StashEntry, 0),
+		BisectInfo:              gui.Git.Bisect.GetInfo(),
 		Panels: &panelStates{
 			// TODO: work out why some of these are -1 and some are 0. Last time I checked there was a good reason but I'm less certain now
 			Files:          &filePanelState{listPanelState{SelectedLineIdx: -1}},
@@ -436,13 +445,17 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 
 // for now the split view will always be on
 // NewGui builds a new gui handler
-func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscommands.OSCommand, tr *i18n.TranslationSet, config config.AppConfigurer, updater *updates.Updater, filterPath string, showRecentRepos bool) (*Gui, error) {
+func NewGui(
+	cmn *common.Common,
+	config config.AppConfigurer,
+	gitConfig git_config.IGitConfig,
+	updater *updates.Updater,
+	filterPath string,
+	showRecentRepos bool,
+) (*Gui, error) {
 	gui := &Gui{
-		Log:                     log,
-		GitCommand:              gitCommand,
-		OSCommand:               oSCommand,
+		Common:                  cmn,
 		Config:                  config,
-		Tr:                      tr,
 		Updater:                 updater,
 		statusManager:           &statusManager{},
 		viewBufferManagerMap:    map[string]*tasks.ViewBufferManager{},
@@ -450,19 +463,42 @@ func NewGui(log *logrus.Entry, gitCommand *commands.GitCommand, oSCommand *oscom
 		RepoPathStack:           []string{},
 		RepoStateMap:            map[Repo]*guiState{},
 		CmdLog:                  []string{},
-		ShowExtrasWindow:        config.ShowCommandLogOnStartup(),
 		suggestionsAsyncHandler: tasks.NewAsyncHandler(),
+
+		// originally we could only hide the command log permanently via the config
+		// but now we do it via state. So we need to still support the config for the
+		// sake of backwards compatibility. We're making use of short circuiting here
+		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
+	}
+
+	guiIO := oscommands.NewGuiIO(
+		cmn.Log,
+		gui.logCommand,
+		gui.getCmdWriter,
+		gui.promptUserForCredential,
+	)
+
+	osCommand := oscommands.NewOSCommand(cmn, oscommands.GetPlatform(), guiIO)
+
+	gui.OSCommand = osCommand
+	var err error
+	gui.Git, err = commands.NewGitCommand(
+		cmn,
+		osCommand,
+		gitConfig,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	gui.resetState(filterPath, false)
 
 	gui.watchFilesForChanges()
 
-	onRunCommand := gui.GetOnRunCommand()
-	oSCommand.SetOnRunCommand(onRunCommand)
-	gui.OnRunCommand = onRunCommand
+	gui.PopupHandler = &RealPopupHandler{gui: gui}
 
-	authors.SetCustomAuthors(gui.Config.GetUserConfig().Gui.AuthorColors)
+	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
+	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
 
 	return gui, nil
 }
@@ -512,7 +548,7 @@ func (gui *Gui) Run() error {
 	if err := gui.Config.ReloadUserConfig(); err != nil {
 		return nil
 	}
-	userConfig := gui.Config.GetUserConfig()
+	userConfig := gui.UserConfig
 	g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
 	g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
 	g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
@@ -528,7 +564,7 @@ func (gui *Gui) Run() error {
 	}
 
 	gui.waitForIntro.Add(1)
-	if gui.Config.GetUserConfig().Git.AutoFetch {
+	if gui.UserConfig.Git.AutoFetch {
 		go utils.Safe(gui.startBackgroundFetch)
 	}
 
@@ -581,7 +617,7 @@ func (gui *Gui) RunAndHandleError() error {
 }
 
 // returns whether command exited without error or not
-func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *exec.Cmd) error {
+func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess oscommands.ICmdObj) error {
 	_, err := gui.runSubprocessWithSuspense(subprocess)
 	if err != nil {
 		return err
@@ -595,7 +631,7 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess *exec.Cmd) error 
 }
 
 // returns whether command exited without error or not
-func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
+func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, error) {
 	gui.Mutexes.SubprocessMutex.Lock()
 	defer gui.Mutexes.SubprocessMutex.Unlock()
 
@@ -621,30 +657,33 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess *exec.Cmd) (bool, error) {
 
 	gui.PauseBackgroundThreads = false
 
-	return cmdErr == nil, gui.surfaceError(cmdErr)
+	if cmdErr != nil {
+		return false, gui.surfaceError(cmdErr)
+	}
+
+	return true, nil
 }
 
-func (gui *Gui) runSubprocess(subprocess *exec.Cmd) error {
+func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unparam
+	gui.logCommand(cmdObj.ToString(), true)
+
+	subprocess := cmdObj.GetCmd()
 	subprocess.Stdout = os.Stdout
 	subprocess.Stderr = os.Stdout
 	subprocess.Stdin = os.Stdin
 
 	fmt.Fprintf(os.Stdout, "\n%s\n\n", style.FgBlue.Sprint("+ "+strings.Join(subprocess.Args, " ")))
 
-	if err := subprocess.Run(); err != nil {
-		// not handling the error explicitly because usually we're going to see it
-		// in the output anyway
-		gui.Log.Error(err)
-	}
+	err := subprocess.Run()
 
 	subprocess.Stdout = ioutil.Discard
 	subprocess.Stderr = ioutil.Discard
 	subprocess.Stdin = nil
 
-	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
+	fmt.Fprintf(os.Stdout, "\n%s\n", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
 	fmt.Scanln() // wait for enter press
 
-	return nil
+	return err
 }
 
 func (gui *Gui) loadNewRepo() error {
@@ -653,6 +692,10 @@ func (gui *Gui) loadNewRepo() error {
 	}
 
 	if err := gui.refreshSidePanels(refreshOptions{mode: ASYNC}); err != nil {
+		return err
+	}
+
+	if err := gui.OSCommand.UpdateWindowTitle(); err != nil {
 		return err
 	}
 
@@ -713,12 +756,12 @@ func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function fun
 
 func (gui *Gui) startBackgroundFetch() {
 	gui.waitForIntro.Wait()
-	isNew := gui.Config.GetIsNewRepo()
-	userConfig := gui.Config.GetUserConfig()
+	isNew := gui.IsNewRepo
+	userConfig := gui.UserConfig
 	if !isNew {
 		time.After(time.Duration(userConfig.Refresher.FetchInterval) * time.Second)
 	}
-	err := gui.fetch(false, "")
+	err := gui.backgroundFetch()
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
 		_ = gui.ask(askOpts{
 			title:  gui.Tr.NoAutomaticGitFetchTitle,
@@ -726,7 +769,7 @@ func (gui *Gui) startBackgroundFetch() {
 		})
 	} else {
 		gui.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), gui.stopChan, func() error {
-			err := gui.fetch(false, "")
+			err := gui.backgroundFetch()
 			gui.render()
 			return err
 		})
@@ -735,7 +778,7 @@ func (gui *Gui) startBackgroundFetch() {
 
 // setColorScheme sets the color scheme for the app based on the user config
 func (gui *Gui) setColorScheme() error {
-	userConfig := gui.Config.GetUserConfig()
+	userConfig := gui.UserConfig
 	theme.UpdateTheme(userConfig.Gui.Theme)
 
 	gui.g.FgColor = theme.InactiveBorderColor
@@ -746,17 +789,23 @@ func (gui *Gui) setColorScheme() error {
 	return nil
 }
 
-func (gui *Gui) GetPr(branch *models.Branch) (*models.GithubPullRequest, bool, error) {
-	prs, err := gui.GitCommand.GenerateGithubPullRequestMap(
-		gui.State.GithubState.RecentPRs,
-		[]*models.Branch{branch},
-		gui.State.Remotes,
-	)
-	if err != nil {
-		return nil, false, err
-	}
+// func (gui *Gui) GetPr(branch *models.Branch) (*models.GithubPullRequest, bool, error) {
+// 	prs, err := gui.GitCommand.GenerateGithubPullRequestMap(
+// 		gui.State.GithubState.RecentPRs,
+// 		[]*models.Branch{branch},
+// 		gui.State.Remotes,
+// 	)
+// 	if err != nil {
+// 		return nil, false, err
+// 	}
 
-	pr, hasPr := prs[branch]
+// 	pr, hasPr := prs[branch]
 
-	return pr, hasPr, nil
+// 	return pr, hasPr, nil
+// }
+
+func (gui *Gui) OnUIThread(f func() error) {
+	gui.g.Update(func(*gocui.Gui) error {
+		return f()
+	})
 }

@@ -39,8 +39,7 @@ import (
 // original playback speed. Speed may be a decimal.
 
 func Test(t *testing.T) {
-	record := false
-	updateSnapshots := os.Getenv("UPDATE_SNAPSHOTS") != ""
+	mode := integration.GetModeFromEnv()
 	speedEnv := os.Getenv("SPEED")
 	includeSkipped := os.Getenv("INCLUDE_SKIPPED") != ""
 
@@ -53,8 +52,7 @@ func Test(t *testing.T) {
 				assert.NoError(t, err)
 			})
 		},
-		updateSnapshots,
-		record,
+		mode,
 		speedEnv,
 		func(t *testing.T, expected string, actual string, prefix string) {
 			assert.Equal(t, expected, actual, fmt.Sprintf("Unexpected %s. Expected:\n%s\nActual:\n%s\n", prefix, expected, actual))

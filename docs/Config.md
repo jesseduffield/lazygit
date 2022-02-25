@@ -44,18 +44,18 @@ gui:
     show: true
   mouseEvents: true
   skipUnstageLineWarning: false
-  skipStashWarning: true
-  showFileTree: false # for rendering changes files in a tree format
+  skipStashWarning: false
+  showFileTree: true # for rendering changes files in a tree format
   showListFooter: true # for seeing the '5 of 20' message in list panels
   showRandomTip: true
   showCommandLog: true
   commandLogSize: 8
-  authorColors: # in case you're not happy with the randomly assigned colour
-    'John Smith': '#ff0000'
 git:
   paging:
     colorArg: always
     useConfig: false
+  commit:
+    signOff: false
   merging:
     # only applicable to unix users
     manualCommit: false
@@ -77,6 +77,7 @@ git:
   disableForcePushing: false
   parseEmoji: false
   enableGhCommand: false
+  diffContextSize: 3 # how many lines of context are shown around a change in diffs
 os:
   editCommand: '' # see 'Configuring File Editing' section
   editCommandTemplate: '{{editor}} {{filename}}'
@@ -154,6 +155,8 @@ keybinding:
     appendNewline: '<a-enter>'
     extrasMenu: '@'
     toggleWhitespaceInDiffView: '<c-w>'
+    increaseContextInDiffView: '}'
+    decreaseContextInDiffView: '{'
   status:
     checkForUpdate: 'u'
     recentRepos: '<enter>'
@@ -203,6 +206,7 @@ keybinding:
     resetCherryPick: '<c-R>'
     copyCommitMessageToClipboard: '<c-y>'
     openLogMenu: '<c-l>'
+    viewBisectOptions: 'b'
   stash:
     popStash: 'g'
   commitFiles:
@@ -373,6 +377,39 @@ gui:
 Alternatively you may have bold fonts disabled in your terminal, in which case enabling bold fonts should solve the problem.
 
 If you're still having trouble please raise an issue.
+
+## Custom Author Color
+
+Lazygit will assign a random color for every commit author in the commits pane by default.
+
+You can customize the color in case you're not happy with the randomly assigned one:
+
+```yaml
+gui:
+  authorColors:
+    'John Smith': '#ff0000' # use red for John Smith
+```
+
+You can use wildcard to set a unified color in case your are lazy to customize the color for every author or you just want a single color for all/other authors:
+
+```yaml
+gui:
+  authorColors:
+    # use red for John Smith
+    'John Smith': '#ff0000'
+    # use blue for other authors
+    '*': '#0000ff'
+```
+
+## Custom Branch Color
+
+You can customize the color of branches based on the branch prefix:
+
+```yaml
+gui:
+  branchColors:
+    'docs': '#11aaff' # use a light blue for branches beginning with 'docs/'
+```
 
 ## Example Coloring
 

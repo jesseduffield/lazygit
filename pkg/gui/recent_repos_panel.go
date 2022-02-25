@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/env"
@@ -38,10 +37,8 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 }
 
 func (gui *Gui) handleShowAllBranchLogs() error {
-	cmd := gui.OSCommand.ExecutableFromString(
-		gui.Config.GetUserConfig().Git.AllBranchesLogCmd,
-	)
-	task := NewRunPtyTask(cmd)
+	cmdObj := gui.Git.Branch.AllBranchesLogCmdObj()
+	task := NewRunPtyTask(cmdObj.GetCmd())
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
@@ -73,25 +70,21 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 		return err
 	}
 
-	newGitCommand, err := commands.NewGitCommand(gui.Log, gui.OSCommand, gui.Tr, gui.Config, git_config.NewStdCachedGitConfig(gui.Log))
+	newGitCommand, err := commands.NewGitCommand(gui.Common, gui.OSCommand, git_config.NewStdCachedGitConfig(gui.Log))
 	if err != nil {
 		return err
 	}
-	gui.GitCommand = newGitCommand
+	gui.Git = newGitCommand
 
-	gui.g.Update(func(*gocui.Gui) error {
-		// these two mutexes are used by our background goroutines (triggered via `gui.goEvery`. We don't want to
-		// switch to a repo while one of these goroutines is in the process of updating something
-		gui.Mutexes.FetchMutex.Lock()
-		defer gui.Mutexes.FetchMutex.Unlock()
+	// these two mutexes are used by our background goroutines (triggered via `gui.goEvery`. We don't want to
+	// switch to a repo while one of these goroutines is in the process of updating something
+	gui.Mutexes.FetchMutex.Lock()
+	defer gui.Mutexes.FetchMutex.Unlock()
 
-		gui.Mutexes.RefreshingFilesMutex.Lock()
-		defer gui.Mutexes.RefreshingFilesMutex.Unlock()
+	gui.Mutexes.RefreshingFilesMutex.Lock()
+	defer gui.Mutexes.RefreshingFilesMutex.Unlock()
 
-		gui.resetState("", reuse)
-
-		return nil
-	})
+	gui.resetState("", reuse)
 
 	return nil
 }
@@ -99,7 +92,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
 // so that we can open the same repo via the 'recent repos' menu
 func (gui *Gui) updateRecentRepoList() error {
-	if gui.GitCommand.IsBareRepo() {
+	if gui.Git.Status.IsBareRepo() {
 		// we could totally do this but it would require storing both the git-dir and the
 		// worktree in our recent repos list, which is a change that would need to be
 		// backwards compatible
@@ -113,7 +106,7 @@ func (gui *Gui) updateRecentRepoList() error {
 		return err
 	}
 	known, recentRepos := newRecentReposList(recentRepos, currentRepo)
-	gui.Config.SetIsNewRepo(known)
+	gui.IsNewRepo = known
 	gui.Config.GetAppState().RecentRepos = recentRepos
 	return gui.Config.SaveAppState()
 }

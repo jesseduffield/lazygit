@@ -8,8 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestOSCommandRunCommandWithOutput is a function.
-func TestOSCommandRunCommandWithOutput(t *testing.T) {
+func TestOSCommandRunWithOutput(t *testing.T) {
 	type scenario struct {
 		command string
 		test    func(string, error)
@@ -32,12 +31,12 @@ func TestOSCommandRunCommandWithOutput(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewDummyOSCommand().RunCommandWithOutput(s.command))
+		c := NewDummyOSCommand()
+		s.test(c.Cmd.New(s.command).RunWithOutput())
 	}
 }
 
-// TestOSCommandRunCommand is a function.
-func TestOSCommandRunCommand(t *testing.T) {
+func TestOSCommandRun(t *testing.T) {
 	type scenario struct {
 		command string
 		test    func(error)
@@ -53,11 +52,11 @@ func TestOSCommandRunCommand(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		s.test(NewDummyOSCommand().RunCommand(s.command))
+		c := NewDummyOSCommand()
+		s.test(c.Cmd.New(s.command).Run())
 	}
 }
 
-// TestOSCommandQuote is a function.
 func TestOSCommandQuote(t *testing.T) {
 	osCommand := NewDummyOSCommand()
 
@@ -109,7 +108,6 @@ func TestOSCommandQuoteWindows(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 }
 
-// TestOSCommandFileType is a function.
 func TestOSCommandFileType(t *testing.T) {
 	type scenario struct {
 		path  string
@@ -162,7 +160,7 @@ func TestOSCommandFileType(t *testing.T) {
 
 	for _, s := range scenarios {
 		s.setup()
-		s.test(NewDummyOSCommand().FileType(s.path))
+		s.test(FileType(s.path))
 		_ = os.RemoveAll(s.path)
 	}
 }
@@ -192,6 +190,7 @@ func TestOSCommandCreateTempFile(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			s.test(NewDummyOSCommand().CreateTempFile(s.filename, s.content))
 		})

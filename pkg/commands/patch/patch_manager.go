@@ -34,7 +34,7 @@ type PatchManager struct {
 	// To is the commit sha if we're dealing with files of a commit, or a stash ref for a stash
 	To      string
 	From    string
-	Reverse bool
+	reverse bool
 
 	// CanRebase tells us whether we're allowed to modify our commits. CanRebase should be true for commits of the currently checked out branch and false for everything else
 	// TODO: move this out into a proper mode struct in the gui package: it doesn't really belong here
@@ -43,18 +43,18 @@ type PatchManager struct {
 	// fileInfoMap starts empty but you add files to it as you go along
 	fileInfoMap map[string]*fileInfo
 	Log         *logrus.Entry
-	ApplyPatch  applyPatchFunc
+	applyPatch  applyPatchFunc
 
-	// LoadFileDiff loads the diff of a file, for a given to (typically a commit SHA)
-	LoadFileDiff loadFileDiffFunc
+	// loadFileDiff loads the diff of a file, for a given to (typically a commit SHA)
+	loadFileDiff loadFileDiffFunc
 }
 
 // NewPatchManager returns a new PatchManager
 func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc, loadFileDiff loadFileDiffFunc) *PatchManager {
 	return &PatchManager{
 		Log:          log,
-		ApplyPatch:   applyPatch,
-		LoadFileDiff: loadFileDiff,
+		applyPatch:   applyPatch,
+		loadFileDiff: loadFileDiff,
 	}
 }
 
@@ -62,7 +62,7 @@ func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc, loadFileDiff 
 func (p *PatchManager) Start(from, to string, reverse bool, canRebase bool) {
 	p.To = to
 	p.From = from
-	p.Reverse = reverse
+	p.reverse = reverse
 	p.CanRebase = canRebase
 	p.fileInfoMap = map[string]*fileInfo{}
 }
@@ -118,7 +118,7 @@ func (p *PatchManager) getFileInfo(filename string) (*fileInfo, error) {
 		return info, nil
 	}
 
-	diff, err := p.LoadFileDiff(p.From, p.To, p.Reverse, filename, true)
+	diff, err := p.loadFileDiff(p.From, p.To, p.reverse, filename, true)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 			if patch == "" {
 				continue
 			}
-			if err = p.ApplyPatch(patch, applyFlags...); err != nil {
+			if err = p.applyPatch(patch, applyFlags...); err != nil {
 				continue
 			}
 			break
@@ -301,5 +301,5 @@ func (p *PatchManager) IsEmpty() bool {
 
 // if any of these things change we'll need to reset and start a new patch
 func (p *PatchManager) NewPatchRequired(from string, to string, reverse bool) bool {
-	return from != p.From || to != p.To || reverse != p.Reverse
+	return from != p.From || to != p.To || reverse != p.reverse
 }

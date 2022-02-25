@@ -6,46 +6,58 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
-func (gui *Gui) GetOnRunCommand() func(entry oscommands.CmdLogEntry) {
-	// closing over this so that nobody else can modify it
-	currentSpan := ""
-
-	return func(entry oscommands.CmdLogEntry) {
-		if gui.Views.Extras == nil {
-			return
-		}
-
-		gui.Views.Extras.Autoscroll = true
-
-		if entry.GetSpan() != currentSpan {
-			fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(entry.GetSpan()))
-			currentSpan = entry.GetSpan()
-		}
-
-		textStyle := theme.DefaultTextColor
-		if !entry.GetCommandLine() {
-			textStyle = style.FgMagenta
-		}
-		gui.CmdLog = append(gui.CmdLog, entry.GetCmdStr())
-		indentedCmdStr := "  " + strings.Replace(entry.GetCmdStr(), "\n", "\n  ", -1)
-		fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
+// our UI command log looks like this:
+// Stage File
+//   git add -- 'filename'
+// Unstage File
+//   git reset HEAD 'filename'
+//
+// The 'Stage File' and 'Unstage File' lines are actions i.e they group up a set
+// of command logs (typically there's only one command under an action but there may be more).
+// So we call logAction to log the 'Stage File' part and then we call logCommand to log the command itself.
+// We pass logCommand to our OSCommand struct so that it can handle logging commands
+// for us.
+func (gui *Gui) logAction(action string) {
+	if gui.Views.Extras == nil {
+		return
 	}
+
+	gui.Views.Extras.Autoscroll = true
+
+	fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(action))
+}
+
+func (gui *Gui) logCommand(cmdStr string, commandLine bool) {
+	if gui.Views.Extras == nil {
+		return
+	}
+
+	gui.Views.Extras.Autoscroll = true
+
+	textStyle := theme.DefaultTextColor
+	if !commandLine {
+		// if we're not dealing with a direct command that could be run on the command line,
+		// we style it differently to communicate that
+		textStyle = style.FgMagenta
+	}
+	gui.CmdLog = append(gui.CmdLog, cmdStr)
+	indentedCmdStr := "  " + strings.Replace(cmdStr, "\n", "\n  ", -1)
+	fmt.Fprint(gui.Views.Extras, "\n"+textStyle.Sprint(indentedCmdStr))
 }
 
 func (gui *Gui) printCommandLogHeader() {
 	introStr := fmt.Sprintf(
 		gui.Tr.CommandLogHeader,
-		gui.getKeyDisplay(gui.Config.GetUserConfig().Keybinding.Universal.ExtrasMenu),
+		gui.getKeyDisplay(gui.UserConfig.Keybinding.Universal.ExtrasMenu),
 	)
 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(introStr))
 
-	if gui.Config.GetUserConfig().Gui.ShowRandomTip {
+	if gui.UserConfig.Gui.ShowRandomTip {
 		fmt.Fprintf(
 			gui.Views.Extras,
 			"%s: %s",
@@ -56,7 +68,7 @@ func (gui *Gui) printCommandLogHeader() {
 }
 
 func (gui *Gui) getRandomTip() string {
-	config := gui.Config.GetUserConfig().Keybinding
+	config := gui.UserConfig.Keybinding
 
 	formattedKey := func(key string) string {
 		return gui.getKeyDisplay(key)

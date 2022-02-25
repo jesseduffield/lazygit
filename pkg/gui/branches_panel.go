@@ -1,12 +1,12 @@
 package gui
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -25,17 +25,15 @@ func (gui *Gui) getSelectedBranch() *models.Branch {
 	return gui.State.Branches[selectedLine]
 }
 
-func (gui *Gui) handleBranchSelect() error {
+func (gui *Gui) branchesRenderToMain() error {
 	var task updateTask
 	branch := gui.getSelectedBranch()
 	if branch == nil {
 		task = NewRenderStringTask(gui.Tr.NoBranchesThisRepo)
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.GetBranchGraphCmdStr(branch.Name),
-		)
+		cmdObj := gui.Git.Branch.GetGraphCmdObj(branch.Name)
 
-		task = NewRunPtyTask(cmd)
+		task = NewRunPtyTask(cmdObj.GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -56,17 +54,18 @@ func (gui *Gui) refreshBranches() {
 		// which allows us to order them correctly. So if we're filtering we'll just
 		// manually load all the reflog commits here
 		var err error
-		reflogCommits, _, err = gui.GitCommand.GetReflogCommits(nil, "")
+		reflogCommits, _, err = gui.Git.Loaders.ReflogCommits.GetReflogCommits(nil, "")
 		if err != nil {
 			gui.Log.Error(err)
 		}
 	}
 
-	builder, err := commands.NewBranchListBuilder(gui.Log, gui.GitCommand, reflogCommits)
+	branches, err := gui.Git.Loaders.Branches.Load(reflogCommits)
 	if err != nil {
 		_ = gui.surfaceError(err)
 	}
-	gui.State.Branches = builder.Build()
+
+	gui.State.Branches = branches
 
 	if err := gui.postRefreshUpdate(gui.State.Contexts.Branches); err != nil {
 		gui.Log.Error(err)
@@ -126,7 +125,8 @@ func (gui *Gui) handleBranchPress() error {
 		return gui.createErrorPanel(gui.Tr.AlreadyCheckedOutBranch)
 	}
 	branch := gui.getSelectedBranch()
-	return gui.handleCheckoutRef(branch.Name, handleCheckoutRefOptions{span: gui.Tr.Spans.CheckoutBranch})
+	gui.logAction(gui.Tr.Actions.CheckoutBranch)
+	return gui.handleCheckoutRef(branch.Name, handleCheckoutRefOptions{})
 }
 
 func (gui *Gui) handleCreateOrShowPullRequestPress() error {
@@ -153,14 +153,24 @@ func (gui *Gui) handleCreateOrOpenPullRequestMenu() error {
 }
 
 func (gui *Gui) handleCopyPullRequestURLPress() error {
-	pullRequest := commands.NewPullRequest(gui.GitCommand)
+	hostingServiceMgr := gui.getHostingServiceMgr()
 
 	branch := gui.getSelectedBranch()
-	url, err := pullRequest.CopyURL(branch.Name, "")
+
+	branchExistsOnRemote := gui.Git.Remote.CheckRemoteBranchExists(branch.Name)
+
+	if !branchExistsOnRemote {
+		return gui.surfaceError(errors.New(gui.Tr.NoBranchOnRemote))
+	}
+
+	url, err := hostingServiceMgr.GetPullRequestURL(branch.Name, "")
 	if err != nil {
 		return gui.surfaceError(err)
 	}
-	gui.OnRunCommand(oscommands.NewCmdLogEntry(fmt.Sprintf("Copying to clipboard: '%s'", url), "Copy URL", false))
+	gui.logAction(gui.Tr.Actions.CopyPullRequestURL)
+	if err := gui.OSCommand.CopyToClipboard(url); err != nil {
+		return gui.surfaceError(err)
+	}
 
 	gui.raiseToast(gui.Tr.PullRequestURLCopiedToClipboard)
 
@@ -171,8 +181,9 @@ func (gui *Gui) handleGitFetch() error {
 	if err := gui.createLoaderPanel(gui.Tr.FetchWait); err != nil {
 		return err
 	}
+
 	go utils.Safe(func() {
-		err := gui.fetch(true, "Fetch")
+		err := gui.fetch()
 		gui.handleCredentialsPopup(err)
 		_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC})
 	})
@@ -188,7 +199,8 @@ func (gui *Gui) handleForceCheckout() error {
 		title:  title,
 		prompt: message,
 		handleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.ForceCheckoutBranch).Checkout(branch.Name, commands.CheckoutOptions{Force: true}); err != nil {
+			gui.logAction(gui.Tr.Actions.ForceCheckoutBranch)
+			if err := gui.Git.Branch.Checkout(branch.Name, git_commands.CheckoutOptions{Force: true}); err != nil {
 				_ = gui.surfaceError(err)
 			}
 			return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
@@ -200,7 +212,6 @@ type handleCheckoutRefOptions struct {
 	WaitingStatus string
 	EnvVars       []string
 	onRefNotFound func(ref string) error
-	span          string
 }
 
 func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) error {
@@ -209,7 +220,7 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 		waitingStatus = gui.Tr.CheckingOutStatus
 	}
 
-	cmdOptions := commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
+	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
 		gui.State.Panels.Branches.SelectedLineIdx = 0
@@ -218,10 +229,8 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 		gui.State.Panels.Commits.LimitCommits = true
 	}
 
-	gitCommand := gui.GitCommand.WithSpan(options.span)
-
 	return gui.WithWaitingStatus(waitingStatus, func() error {
-		if err := gitCommand.Checkout(ref, cmdOptions); err != nil {
+		if err := gui.Git.Branch.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
 			if options.onRefNotFound != nil && strings.Contains(err.Error(), "did not match any file(s) known to git") {
@@ -235,15 +244,15 @@ func (gui *Gui) handleCheckoutRef(ref string, options handleCheckoutRefOptions) 
 					title:  gui.Tr.AutoStashTitle,
 					prompt: gui.Tr.AutoStashPrompt,
 					handleConfirm: func() error {
-						if err := gitCommand.StashSave(gui.Tr.StashPrefix + ref); err != nil {
+						if err := gui.Git.Stash.Save(gui.Tr.StashPrefix + ref); err != nil {
 							return gui.surfaceError(err)
 						}
-						if err := gitCommand.Checkout(ref, cmdOptions); err != nil {
+						if err := gui.Git.Branch.Checkout(ref, cmdOptions); err != nil {
 							return gui.surfaceError(err)
 						}
 
 						onSuccess()
-						if err := gitCommand.StashDo(0, "pop"); err != nil {
+						if err := gui.Git.Stash.Pop(0); err != nil {
 							if err := gui.refreshSidePanels(refreshOptions{mode: BLOCK_UI}); err != nil {
 								return err
 							}
@@ -269,10 +278,9 @@ func (gui *Gui) handleCheckoutByName() error {
 		title:               gui.Tr.BranchName + ":",
 		findSuggestionsFunc: gui.getRefsSuggestionsFunc(),
 		handleConfirm: func(response string) error {
+			gui.logAction("Checkout branch")
 			return gui.handleCheckoutRef(response, handleCheckoutRefOptions{
-				span: "Checkout branch",
 				onRefNotFound: func(ref string) error {
-
 					return gui.ask(askOpts{
 						title:  gui.Tr.BranchNotFoundTitle,
 						prompt: fmt.Sprintf("%s %s%s", gui.Tr.BranchNotFoundPrompt, ref, "?"),
@@ -300,7 +308,7 @@ func (gui *Gui) createNewBranchWithName(newBranchName string) error {
 		return nil
 	}
 
-	if err := gui.GitCommand.NewBranch(newBranchName, branch.Name); err != nil {
+	if err := gui.Git.Branch.New(newBranchName, branch.Name); err != nil {
 		return gui.surfaceError(err)
 	}
 
@@ -343,7 +351,8 @@ func (gui *Gui) deleteNamedBranch(selectedBranch *models.Branch, force bool) err
 		title:  title,
 		prompt: message,
 		handleConfirm: func() error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.DeleteBranch).DeleteBranch(selectedBranch.Name, force); err != nil {
+			gui.logAction(gui.Tr.Actions.DeleteBranch)
+			if err := gui.Git.Branch.Delete(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
 				if !force && strings.Contains(errMessage, "git branch -D ") {
 					return gui.deleteNamedBranch(selectedBranch, true)
@@ -360,7 +369,7 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		return err
 	}
 
-	if gui.GitCommand.IsHeadDetached() {
+	if gui.Git.Branch.IsHeadDetached() {
 		return gui.createErrorPanel("Cannot merge branch in detached head state. You might have checked out a commit directly or a remote branch, in which case you should checkout the local branch you want to be on")
 	}
 	checkedOutBranchName := gui.getCheckedOutBranch().Name
@@ -379,7 +388,8 @@ func (gui *Gui) mergeBranchIntoCheckedOutBranch(branchName string) error {
 		title:  gui.Tr.MergingTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
-			err := gui.GitCommand.WithSpan(gui.Tr.Spans.Merge).Merge(branchName, commands.MergeOpts{})
+			gui.logAction(gui.Tr.Actions.Merge)
+			err := gui.Git.Branch.Merge(branchName, git_commands.MergeOpts{})
 			return gui.handleGenericMergeCommandResult(err)
 		},
 	})
@@ -420,7 +430,8 @@ func (gui *Gui) handleRebaseOntoBranch(selectedBranchName string) error {
 		title:  gui.Tr.RebasingTitle,
 		prompt: prompt,
 		handleConfirm: func() error {
-			err := gui.GitCommand.WithSpan(gui.Tr.Spans.RebaseBranch).RebaseBranch(selectedBranchName)
+			gui.logAction(gui.Tr.Actions.RebaseBranch)
+			err := gui.Git.Rebase.RebaseBranch(selectedBranchName)
 			return gui.handleGenericMergeCommandResult(err)
 		},
 	})
@@ -435,25 +446,19 @@ func (gui *Gui) handleFastForward() error {
 	if !branch.IsTrackingRemote() {
 		return gui.createErrorPanel(gui.Tr.FwdNoUpstream)
 	}
+	if !branch.RemoteBranchStoredLocally() {
+		return gui.createErrorPanel(gui.Tr.FwdNoLocalUpstream)
+	}
 	if branch.HasCommitsToPush() {
 		return gui.createErrorPanel(gui.Tr.FwdCommitsToPush)
 	}
 
-	upstream, err := gui.GitCommand.GetUpstreamForBranch(branch.Name)
-	if err != nil {
-		return gui.surfaceError(err)
-	}
-
-	span := gui.Tr.Spans.FastForwardBranch
-
-	split := strings.Split(upstream, "/")
-	remoteName := split[0]
-	remoteBranchName := strings.Join(split[1:], "/")
+	action := gui.Tr.Actions.FastForwardBranch
 
 	message := utils.ResolvePlaceholderString(
 		gui.Tr.Fetching,
 		map[string]string{
-			"from": fmt.Sprintf("%s/%s", remoteName, remoteBranchName),
+			"from": fmt.Sprintf("%s/%s", branch.UpstreamRemote, branch.UpstreamBranch),
 			"to":   branch.Name,
 		},
 	)
@@ -461,9 +466,10 @@ func (gui *Gui) handleFastForward() error {
 		_ = gui.createLoaderPanel(message)
 
 		if gui.State.Panels.Branches.SelectedLineIdx == 0 {
-			_ = gui.pullWithLock(PullFilesOptions{span: span, FastForwardOnly: true})
+			_ = gui.pullWithLock(PullFilesOptions{action: action, FastForwardOnly: true})
 		} else {
-			err := gui.GitCommand.WithSpan(span).FastForward(branch.Name, remoteName, remoteBranchName, gui.promptUserForCredential)
+			gui.logAction(action)
+			err := gui.Git.Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
 			gui.handleCredentialsPopup(err)
 			_ = gui.refreshSidePanels(refreshOptions{mode: ASYNC, scope: []RefreshableView{BRANCHES}})
 		}
@@ -491,7 +497,8 @@ func (gui *Gui) handleRenameBranch() error {
 			title:          gui.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
 			initialContent: branch.Name,
 			handleConfirm: func(newBranchName string) error {
-				if err := gui.GitCommand.WithSpan(gui.Tr.Spans.RenameBranch).RenameBranch(branch.Name, newBranchName); err != nil {
+				gui.logAction(gui.Tr.Actions.RenameBranch)
+				if err := gui.Git.Branch.Rename(branch.Name, newBranchName); err != nil {
 					return gui.surfaceError(err)
 				}
 
@@ -559,7 +566,8 @@ func (gui *Gui) handleNewBranchOffCurrentItem() error {
 		title:          message,
 		initialContent: prefilledName,
 		handleConfirm: func(response string) error {
-			if err := gui.GitCommand.WithSpan(gui.Tr.Spans.CreateBranch).NewBranch(sanitizedBranchName(response), item.ID()); err != nil {
+			gui.logAction(gui.Tr.Actions.CreateBranch)
+			if err := gui.Git.Branch.New(sanitizedBranchName(response), item.ID()); err != nil {
 				return err
 			}
 

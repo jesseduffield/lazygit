@@ -3,15 +3,16 @@ first commit on master
 # Please enter the commit message for your changes. Lines starting
 # with '#' will be ignored, and an empty message aborts the commit.
 #
-# interactive rebase in progress; onto e23041d
+# interactive rebase in progress; onto e957aaf
 # Last command done (1 command done):
-#    pick 5bc64a0 first commit on master
+#    pick 69f11ae first commit on master
 # Next commands to do (3 remaining commands):
-#    drop 8c464cc second commit on master
-#    drop 9ec3d8f third commit on master
-# You are currently rebasing branch 'master' on 'e23041d'.
+#    drop 8d3bd1c second commit on master
+#    drop 3e1706c third commit on master
+# You are currently rebasing branch 'master' on 'e957aaf'.
 #
 # Changes to be committed:
+#	modified:   directory/file
 #	modified:   directory/file2
 #	modified:   file1
 #

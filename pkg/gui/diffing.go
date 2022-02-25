@@ -13,10 +13,10 @@ func (gui *Gui) exitDiffMode() error {
 }
 
 func (gui *Gui) renderDiff() error {
-	cmd := gui.OSCommand.ExecutableFromString(
+	cmdObj := gui.OSCommand.Cmd.New(
 		fmt.Sprintf("git diff --submodule --no-ext-diff --color %s", gui.diffStr()),
 	)
-	task := NewRunPtyTask(cmd)
+	task := NewRunPtyTask(cmdObj.GetCmd())
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
@@ -44,8 +44,8 @@ func (gui *Gui) currentDiffTerminals() []string {
 		branch := gui.getSelectedBranch()
 		if branch != nil {
 			names := []string{branch.ID()}
-			if branch.UpstreamName != "" {
-				names = append(names, branch.UpstreamName)
+			if branch.IsTrackingRemote() {
+				names = append(names, branch.ID()+"@{u}")
 			}
 			return names
 		}

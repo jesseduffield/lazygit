@@ -1,3 +1,5 @@
+_This file is auto-generated. To update, make the changes in the pkg/i18n directory and then run `go run scripts/cheatsheet/main.go generate` from the project root._
+
 # Lazygit Keybindings
 
 ## Globalne
@@ -6,7 +8,7 @@
   <kbd>ctrl+r</kbd>: switch to a recent repo (<c-r>)
   <kbd>pgup</kbd>: scroll up main panel (fn+up)
   <kbd>pgdown</kbd>: scroll down main panel (fn+down)
-  <kbd>m</kbd>: view merge/rebase options
+  <kbd>m</kbd>: widok scalenia/opcje zmiany bazy
   <kbd>ctrl+p</kbd>: view custom patch options
   <kbd>P</kbd>: push
   <kbd>p</kbd>: pull
@@ -16,11 +18,13 @@
   <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
-  <kbd>:</kbd>: execute custom command
+  <kbd>:</kbd>: wykonaj własną komendę
   <kbd>ctrl+s</kbd>: view filter-by-path options
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
+  <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
+  <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
 </pre>
 
 ## List Panel Navigation
@@ -39,18 +43,18 @@
 
 <pre>
   <kbd>space</kbd>: przełącz
-  <kbd>o</kbd>: utwórz żądanie wyciągnięcia
+  <kbd>o</kbd>: utwórz żądanie pobrania
   <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
-  <kbd>ctrl+y</kbd>: skopiuj adres URL żądania ściągnięcia do schowka
+  <kbd>ctrl+y</kbd>: skopiuj adres URL żądania pobrania do schowka
   <kbd>c</kbd>: przełącz używając nazwy
   <kbd>F</kbd>: wymuś przełączenie
   <kbd>n</kbd>: nowa gałąź
   <kbd>d</kbd>: usuń gałąź
-  <kbd>r</kbd>: rebase branch
+  <kbd>r</kbd>: zmiana bazy gałęzi
   <kbd>M</kbd>: scal do obecnej gałęzi
   <kbd>i</kbd>: show git-flow options
   <kbd>f</kbd>: fast-forward this branch from its upstream
-  <kbd>g</kbd>: view reset options
+  <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>R</kbd>: rename branch
   <kbd>ctrl+o</kbd>: copy branch name to clipboard
   <kbd>enter</kbd>: view commits
@@ -59,14 +63,14 @@
 ## Gałęzie Panel (Remote Branches (in Remotes tab))
 
 <pre>
-  <kbd>esc</kbd>: return to remotes list
-  <kbd>g</kbd>: view reset options
+  <kbd>esc</kbd>: wróć do listy repozytoriów zdalnych
+  <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>enter</kbd>: view commits
   <kbd>space</kbd>: przełącz
   <kbd>n</kbd>: nowa gałąź
   <kbd>M</kbd>: scal do obecnej gałęzi
   <kbd>d</kbd>: usuń gałąź
-  <kbd>r</kbd>: rebase branch
+  <kbd>r</kbd>: zmiana bazy gałęzi
   <kbd>u</kbd>: set as upstream of checked-out branch
 </pre>
 
@@ -82,12 +86,12 @@
 ## Gałęzie Panel (Sub-commits)
 
 <pre>
-  <kbd>enter</kbd>: view commit's files
+  <kbd>enter</kbd>: przeglądaj pliki commita
   <kbd>space</kbd>: checkout commit
-  <kbd>g</kbd>: view reset options
+  <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>n</kbd>: nowa gałąź
-  <kbd>c</kbd>: copy commit (cherry-pick)
-  <kbd>C</kbd>: copy commit range (cherry-pick)
+  <kbd>c</kbd>: kopiuj commit (przebieranie)
+  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
 </pre>
@@ -99,16 +103,16 @@
   <kbd>d</kbd>: delete tag
   <kbd>P</kbd>: push tag
   <kbd>n</kbd>: create tag
-  <kbd>g</kbd>: view reset options
+  <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>enter</kbd>: view commits
 </pre>
 
-## Commit files Panel
+## Pliki commita Panel
 
 <pre>
   <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
-  <kbd>c</kbd>: checkout file
-  <kbd>d</kbd>: discard this commit's changes to this file
+  <kbd>c</kbd>: plik wybierania
+  <kbd>d</kbd>: porzuć zmiany commita dla tego pliku
   <kbd>o</kbd>: otwórz plik
   <kbd>e</kbd>: edytuj plik
   <kbd>space</kbd>: toggle file included in patch
@@ -119,40 +123,43 @@
 ## Commity Panel (Commity)
 
 <pre>
-  <kbd>s</kbd>: ściśnij w dół
-  <kbd>r</kbd>: przemianuj commit
-  <kbd>R</kbd>: przemianuj commit w edytorze
+  <kbd>ctrl+l</kbd>: open log menu
+  <kbd>s</kbd>: ściśnij
+  <kbd>r</kbd>: zmień nazwę commita
+  <kbd>R</kbd>: zmień nazwę commita w edytorze
   <kbd>g</kbd>: zresetuj do tego commita
   <kbd>f</kbd>: napraw commit
-  <kbd>F</kbd>: create fixup commit for this commit
-  <kbd>S</kbd>: squash all 'fixup!' commits above selected commits (autosquash)
-  <kbd>d</kbd>: delete commit
-  <kbd>ctrl+j</kbd>: move commit down one
-  <kbd>ctrl+k</kbd>: move commit up one
-  <kbd>e</kbd>: edit commit
-  <kbd>A</kbd>: amend commit with staged changes
-  <kbd>p</kbd>: pick commit (when mid-rebase)
-  <kbd>t</kbd>: revert commit
-  <kbd>c</kbd>: copy commit (cherry-pick)
+  <kbd>F</kbd>: utwórz commit naprawczy dla tego commita
+  <kbd>S</kbd>: spłaszcz wszystkie commity naprawcze powyżej zaznaczonych commitów (autosquash)
+  <kbd>d</kbd>: usuń commit
+  <kbd>ctrl+j</kbd>: przenieś commit 1 w dół
+  <kbd>ctrl+k</kbd>: przenieś commit 1 w górę
+  <kbd>e</kbd>: edytuj commit
+  <kbd>A</kbd>: popraw commit zmianami z poczekalni
+  <kbd>p</kbd>: wybierz commit (podczas zmiany bazy)
+  <kbd>t</kbd>: odwróć commit
+  <kbd>c</kbd>: kopiuj commit (przebieranie)
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
-  <kbd>C</kbd>: copy commit range (cherry-pick)
-  <kbd>v</kbd>: paste commits (cherry-pick)
-  <kbd>enter</kbd>: view commit's files
+  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
+  <kbd>v</kbd>: wklej commity (przebieranie)
+  <kbd>enter</kbd>: przeglądaj pliki commita
   <kbd>space</kbd>: checkout commit
   <kbd>n</kbd>: create new branch off of commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>ctrl+y</kbd>: copy commit message to clipboard
+  <kbd>o</kbd>: open commit in browser
+  <kbd>b</kbd>: view bisect options
 </pre>
 
 ## Commity Panel (Reflog Tab)
 
 <pre>
-  <kbd>enter</kbd>: view commit's files
+  <kbd>enter</kbd>: przeglądaj pliki commita
   <kbd>space</kbd>: checkout commit
-  <kbd>g</kbd>: view reset options
-  <kbd>c</kbd>: copy commit (cherry-pick)
-  <kbd>C</kbd>: copy commit range (cherry-pick)
+  <kbd>g</kbd>: wyświetl opcje resetu
+  <kbd>c</kbd>: kopiuj commit (przebieranie)
+  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
 </pre>
@@ -163,25 +170,31 @@
   <kbd>@</kbd>: open command log menu
 </pre>
 
+## Pliki Panel
+
+<pre>
+  <kbd>ctrl+b</kbd>: Filtrowanie commitów
+</pre>
+
 ## Pliki Panel (Pliki)
 
 <pre>
-  <kbd>c</kbd>: commituj zmiany
-  <kbd>w</kbd>: commit changes without pre-commit hook
-  <kbd>A</kbd>: zmień ostatnie zatwierdzenie
-  <kbd>C</kbd>: commituj zmiany używając edytora z gita
-  <kbd>space</kbd>: przełącz zatwierdzenie
-  <kbd>d</kbd>: view 'discard changes' options
+  <kbd>c</kbd>: Zatwierdź zmiany
+  <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
+  <kbd>A</kbd>: Zmień ostatni commit
+  <kbd>C</kbd>: Zatwierdź zmiany używając edytora
+  <kbd>space</kbd>: przełącz stan poczekalni
+  <kbd>d</kbd>: pokaż opcje porzucania zmian
   <kbd>e</kbd>: edytuj plik
   <kbd>o</kbd>: otwórz plik
   <kbd>i</kbd>: dodaj do .gitignore
   <kbd>r</kbd>: odśwież pliki
-  <kbd>s</kbd>: przechowaj pliki
-  <kbd>S</kbd>: view stash options
-  <kbd>a</kbd>: przełącz wszystkie zatwierdzenia
-  <kbd>D</kbd>: view reset options
+  <kbd>s</kbd>: przechowaj zmiany
+  <kbd>S</kbd>: wyświetl opcje schowka
+  <kbd>a</kbd>: przełącz stan poczekalni wszystkich
+  <kbd>D</kbd>: wyświetl opcje resetu
   <kbd>enter</kbd>: zatwierdź pojedyncze linie
-  <kbd>f</kbd>: fetch
+  <kbd>f</kbd>: pobierz
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>g</kbd>: view upstream reset options
   <kbd>`</kbd>: toggle file tree view
@@ -194,7 +207,7 @@
 <pre>
   <kbd>ctrl+o</kbd>: copy submodule name to clipboard
   <kbd>enter</kbd>: enter submodule
-  <kbd>d</kbd>: view reset and remove submodule options
+  <kbd>d</kbd>: remove submodule
   <kbd>u</kbd>: update submodule
   <kbd>n</kbd>: add new submodule
   <kbd>e</kbd>: update submodule URL
@@ -202,43 +215,48 @@
   <kbd>b</kbd>: view bulk submodule options
 </pre>
 
-## Main Panel (Merging)
+## Główne Panel (Scalanie)
 
 <pre>
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
   <kbd>esc</kbd>: wróć do panelu plików
   <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>space</kbd>: pick hunk
-  <kbd>b</kbd>: pick all hunks
-  <kbd>◄</kbd>: select previous conflict
-  <kbd>►</kbd>: select next conflict
-  <kbd>▲</kbd>: select previous hunk
-  <kbd>▼</kbd>: select next hunk
+  <kbd>space</kbd>: wybierz kawałek
+  <kbd>b</kbd>: wybierz wszystkie kawałki
+  <kbd>◄</kbd>: poprzedni konflikt
+  <kbd>►</kbd>: następny konflikt
+  <kbd>▲</kbd>: wybierz poprzedni kawałek
+  <kbd>▼</kbd>: wybierz następny kawałek
   <kbd>z</kbd>: cofnij
 </pre>
 
-## Main Panel (Normal)
+## Główne Panel (Zwykłe)
 
 <pre>
-  <kbd>Ő</kbd>: scroll down (fn+up)
-  <kbd>ő</kbd>: scroll up (fn+down)
+  <kbd>Ő</kbd>: przewiń w dół (fn+up)
+  <kbd>ő</kbd>: przewiń w górę (fn+down)
 </pre>
 
-## Main Panel (Patch Building)
+## Główne Panel (Patch Building)
 
 <pre>
-  <kbd>esc</kbd>: exit line-by-line mode
+  <kbd>esc</kbd>: wyście z trybu "linia po linii"
   <kbd>o</kbd>: otwórz plik
-  <kbd>▲</kbd>: select previous line
-  <kbd>▼</kbd>: select next line
-  <kbd>◄</kbd>: select previous hunk
-  <kbd>►</kbd>: select next hunk
+  <kbd>▲</kbd>: poprzednia linia
+  <kbd>▼</kbd>: następna linia
+  <kbd>◄</kbd>: poprzedni kawałek
+  <kbd>►</kbd>: następny kawałek
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
   <kbd>space</kbd>: add/remove line(s) to patch
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
 </pre>
 
-## Main Panel (Zatwierdzanie)
+## Główne Panel (Poczekalnia)
 
 <pre>
   <kbd>esc</kbd>: wróć do panelu plików
@@ -246,18 +264,21 @@
   <kbd>d</kbd>: delete change (git reset)
   <kbd>tab</kbd>: switch to other panel
   <kbd>o</kbd>: otwórz plik
-  <kbd>▲</kbd>: select previous line
-  <kbd>▼</kbd>: select next line
-  <kbd>◄</kbd>: select previous hunk
-  <kbd>►</kbd>: select next hunk
+  <kbd>▲</kbd>: poprzednia linia
+  <kbd>▼</kbd>: następna linia
+  <kbd>◄</kbd>: poprzedni kawałek
+  <kbd>►</kbd>: następny kawałek
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
   <kbd>e</kbd>: edytuj plik
   <kbd>o</kbd>: otwórz plik
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
-  <kbd>c</kbd>: commituj zmiany
-  <kbd>w</kbd>: commit changes without pre-commit hook
-  <kbd>C</kbd>: commituj zmiany używając edytora z gita
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
+  <kbd>c</kbd>: Zatwierdź zmiany
+  <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
+  <kbd>C</kbd>: Zatwierdź zmiany używając edytora
 </pre>
 
 ## Menu Panel
@@ -279,9 +300,9 @@
 ## Status Panel
 
 <pre>
-  <kbd>e</kbd>: edytuj plik konfiguracyjny
-  <kbd>o</kbd>: otwórz plik konfiguracyjny
+  <kbd>e</kbd>: edytuj konfigurację
+  <kbd>o</kbd>: otwórz konfigurację
   <kbd>u</kbd>: sprawdź aktualizacje
   <kbd>enter</kbd>: switch to a recent repo
-  <kbd>a</kbd>: pokazywać wszystkie logi branżowe
+  <kbd>a</kbd>: pokaż wszystkie logi gałęzi
 </pre>

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
 )
@@ -90,9 +89,8 @@ func (gui *Gui) copySelectedToClipboard() error {
 	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		selected := state.PlainRenderSelected()
 
-		if err := gui.OSCommand.WithSpan(
-			gui.Tr.Spans.CopySelectedTextToClipboard,
-		).CopyToClipboard(selected); err != nil {
+		gui.logAction(gui.Tr.Actions.CopySelectedTextToClipboard)
+		if err := gui.OSCommand.CopyToClipboard(selected); err != nil {
 			return gui.surfaceError(err)
 		}
 
@@ -135,7 +133,7 @@ func (gui *Gui) handleMouseDrag() error {
 func (gui *Gui) getSelectedCommitFileName() string {
 	idx := gui.State.Panels.CommitFiles.SelectedLineIdx
 
-	return gui.State.CommitFileManager.GetItemAtIndex(idx).GetPath()
+	return gui.State.CommitFileTreeViewModel.GetItemAtIndex(idx).GetPath()
 }
 
 func (gui *Gui) refreshMainViewForLineByLine(state *LblPanelState) error {
@@ -145,7 +143,7 @@ func (gui *Gui) refreshMainViewForLineByLine(state *LblPanelState) error {
 	if gui.currentContext().GetKey() == gui.State.Contexts.PatchBuilding.GetKey() {
 		filename := gui.getSelectedCommitFileName()
 		var err error
-		includedLineIndices, err = gui.GitCommand.PatchManager.GetFileIncLineIndices(filename)
+		includedLineIndices, err = gui.Git.Patch.PatchManager.GetFileIncLineIndices(filename)
 		if err != nil {
 			return err
 		}
@@ -173,15 +171,11 @@ func (gui *Gui) focusSelection(state *LblPanelState) error {
 
 	newOrigin := state.CalculateOrigin(origin, bufferHeight)
 
-	gui.g.Update(func(*gocui.Gui) error {
-		if err := stagingView.SetOriginY(newOrigin); err != nil {
-			return err
-		}
+	if err := stagingView.SetOriginY(newOrigin); err != nil {
+		return err
+	}
 
-		return stagingView.SetCursor(0, selectedLineIdx-newOrigin)
-	})
-
-	return nil
+	return stagingView.SetCursor(0, selectedLineIdx-newOrigin)
 }
 
 func (gui *Gui) handleToggleSelectRange() error {

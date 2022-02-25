@@ -12,17 +12,23 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
+func (gui *Gui) desiredPtySize() *pty.Winsize {
+	width, height := gui.Views.Main.Size()
+
+	return &pty.Winsize{Cols: uint16(width), Rows: uint16(height)}
+}
+
 func (gui *Gui) onResize() error {
 	if gui.State.Ptmx == nil {
 		return nil
 	}
-	width, height := gui.Views.Main.Size()
 
-	if err := pty.Setsize(gui.State.Ptmx, &pty.Winsize{Cols: uint16(width), Rows: uint16(height)}); err != nil {
+	// TODO: handle resizing properly: we need to actually clear the main view
+	// and re-read the output from our pty. Or we could just re-run the original
+	// command from scratch
+	if err := pty.Setsize(gui.State.Ptmx, gui.desiredPtySize()); err != nil {
 		return err
 	}
-
-	// TODO: handle resizing properly
 
 	return nil
 }
@@ -35,7 +41,7 @@ func (gui *Gui) onResize() error {
 // command.
 func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	width, _ := gui.Views.Main.Size()
-	pager := gui.GitCommand.GetPager(width)
+	pager := gui.Git.Config.GetPager(width)
 
 	if pager == "" {
 		// if we're not using a custom pager we don't need to use a pty
@@ -52,7 +58,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	manager := gui.getManager(view)
 
 	start := func() (*exec.Cmd, io.Reader) {
-		ptmx, err := pty.Start(cmd)
+		ptmx, err := pty.StartWithSize(cmd, gui.desiredPtySize())
 		if err != nil {
 			gui.Log.Error(err)
 		}
@@ -65,10 +71,6 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	onClose := func() {
 		gui.State.Ptmx.Close()
 		gui.State.Ptmx = nil
-	}
-
-	if err := gui.onResize(); err != nil {
-		return err
 	}
 
 	if err := manager.NewTask(manager.NewCmdTask(start, prefix, height+oy+10, onClose), cmdStr); err != nil {

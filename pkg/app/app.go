@@ -17,6 +17,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
@@ -27,14 +28,11 @@ import (
 
 // App struct
 type App struct {
-	closers []io.Closer
-
+	*common.Common
+	closers       []io.Closer
 	Config        config.AppConfigurer
-	Log           *logrus.Entry
 	OSCommand     *oscommands.OSCommand
-	GitCommand    *commands.GitCommand
 	Gui           *gui.Gui
-	Tr            *i18n.TranslationSet
 	Updater       *updates.Updater // may only need this on the Gui
 	ClientContext string
 }
@@ -44,7 +42,7 @@ type errorMapping struct {
 	newError      string
 }
 
-func newProductionLogger(config config.AppConfigurer) *logrus.Logger {
+func newProductionLogger() *logrus.Logger {
 	log := logrus.New()
 	log.Out = ioutil.Discard
 	log.SetLevel(logrus.ErrorLevel)
@@ -60,7 +58,7 @@ func getLogLevel() logrus.Level {
 	return level
 }
 
-func newDevelopmentLogger(configurer config.AppConfigurer) *logrus.Logger {
+func newDevelopmentLogger() *logrus.Logger {
 	logger := logrus.New()
 	logger.SetLevel(getLogLevel())
 	logPath, err := config.LogPath()
@@ -69,7 +67,7 @@ func newDevelopmentLogger(configurer config.AppConfigurer) *logrus.Logger {
 	}
 	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		panic("unable to log to file") // TODO: don't panic (also, remove this call to the `panic` function)
+		log.Fatalf("Unable to log to log file: %v", err)
 	}
 	logger.SetOutput(file)
 	return logger
@@ -78,9 +76,9 @@ func newDevelopmentLogger(configurer config.AppConfigurer) *logrus.Logger {
 func newLogger(config config.AppConfigurer) *logrus.Entry {
 	var log *logrus.Logger
 	if config.GetDebug() || os.Getenv("DEBUG") == "TRUE" {
-		log = newDevelopmentLogger(config)
+		log = newDevelopmentLogger()
 	} else {
-		log = newProductionLogger(config)
+		log = newProductionLogger()
 	}
 
 	// highly recommended: tail -f development.log | humanlog
@@ -97,16 +95,24 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 
 // NewApp bootstrap a new application
 func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
+	userConfig := config.GetUserConfig()
 
 	app := &App{
 		closers: []io.Closer{},
 		Config:  config,
 	}
 	var err error
-	app.Log = newLogger(config)
-	app.Tr, err = i18n.NewTranslationSetFromConfig(app.Log, config.GetUserConfig().Gui.Language)
+	log := newLogger(config)
+	tr, err := i18n.NewTranslationSetFromConfig(log, userConfig.Gui.Language)
 	if err != nil {
 		return app, err
+	}
+
+	app.Common = &common.Common{
+		Log:        log,
+		Tr:         tr,
+		UserConfig: userConfig,
+		Debug:      config.GetDebug(),
 	}
 
 	// if we are being called in 'demon' mode, we can just return here
@@ -115,9 +121,9 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, nil
 	}
 
-	app.OSCommand = oscommands.NewOSCommand(app.Log, config)
+	app.OSCommand = oscommands.NewOSCommand(app.Common, oscommands.GetPlatform(), oscommands.NewNullGuiIO(log))
 
-	app.Updater, err = updates.NewUpdater(app.Log, config, app.OSCommand, app.Tr)
+	app.Updater, err = updates.NewUpdater(app.Common, config, app.OSCommand)
 	if err != nil {
 		return app, err
 	}
@@ -127,18 +133,9 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, err
 	}
 
-	app.GitCommand, err = commands.NewGitCommand(
-		app.Log,
-		app.OSCommand,
-		app.Tr,
-		app.Config,
-		git_config.NewStdCachedGitConfig(app.Log),
-	)
-	if err != nil {
-		return app, err
-	}
+	gitConfig := git_config.NewStdCachedGitConfig(app.Log)
 
-	app.Gui, err = gui.NewGui(app.Log, app.GitCommand, app.OSCommand, app.Tr, config, app.Updater, filterPath, showRecentRepos)
+	app.Gui, err = gui.NewGui(app.Common, config, gitConfig, app.Updater, filterPath, showRecentRepos)
 	if err != nil {
 		return app, err
 	}
@@ -168,7 +165,7 @@ func (app *App) validateGhVersion() error {
 }
 
 func (app *App) validateGitVersion() error {
-	output, err := app.OSCommand.RunCommandWithOutput("git --version")
+	output, err := app.OSCommand.Cmd.New("git --version").RunWithOutput()
 	// if we get an error anywhere here we'll show the same status
 	minVersionError := errors.New(app.Tr.MinGitVersionError)
 	if err != nil {
@@ -232,7 +229,7 @@ func (app *App) setupRepo() (bool, error) {
 	}
 
 	if env.GetGitDirEnv() != "" {
-		// we've been given the git dir directly. We'll verify this dir when initializing our GitCommand object
+		// we've been given the git dir directly. We'll verify this dir when initializing our Git object
 		return false, nil
 	}
 
@@ -248,7 +245,7 @@ func (app *App) setupRepo() (bool, error) {
 		}
 
 		shouldInitRepo := true
-		notARepository := app.Config.GetUserConfig().NotARepository
+		notARepository := app.UserConfig.NotARepository
 		if notARepository == "prompt" {
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)
@@ -276,7 +273,7 @@ func (app *App) setupRepo() (bool, error) {
 
 			os.Exit(1)
 		}
-		if err := app.OSCommand.RunCommand("git init"); err != nil {
+		if err := app.OSCommand.Cmd.New("git init").Run(); err != nil {
 			return false, err
 		}
 	}

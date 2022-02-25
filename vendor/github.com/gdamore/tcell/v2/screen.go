@@ -76,7 +76,7 @@ type Screen interface {
 
 	// Size returns the screen size as width, height.  This changes in
 	// response to a call to Clear or Flush.
-	Size() (int, int)
+	Size() (width, height int)
 
 	// ChannelEvents is an infinite loop that waits for an event and
 	// channels it into the user provided channel ch.  Closing the

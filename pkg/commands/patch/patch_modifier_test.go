@@ -511,6 +511,7 @@ func TestModifyPatchForRange(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			result := ModifiedPatchForRange(nil, s.filename, s.diffText, s.firstLineIndex, s.lastLineIndex, s.reverse, false)
 			if !assert.Equal(t, s.expected, result) {
@@ -538,6 +539,7 @@ func TestLineNumberOfLine(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
+		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			result := s.hunk.LineNumberOfLine(s.idx)
 			if !assert.Equal(t, s.expected, result) {

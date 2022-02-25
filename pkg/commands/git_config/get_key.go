@@ -35,10 +35,8 @@ import (
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-func getGitConfigValue(key string) (string, error) {
-	gitArgs := []string{"config", "--get", "--null", key}
+func runGitConfigCmd(cmd *exec.Cmd) (string, error) {
 	var stdout bytes.Buffer
-	cmd := secureexec.Command("git", gitArgs...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = ioutil.Discard
 
@@ -46,11 +44,21 @@ func getGitConfigValue(key string) (string, error) {
 	if exitError, ok := err.(*exec.ExitError); ok {
 		if waitStatus, ok := exitError.Sys().(syscall.WaitStatus); ok {
 			if waitStatus.ExitStatus() == 1 {
-				return "", fmt.Errorf("the key `%s` is not found", key)
+				return "", fmt.Errorf("the key is not found for %s", cmd.Args)
 			}
 		}
 		return "", err
 	}
 
 	return strings.TrimRight(stdout.String(), "\000"), nil
+}
+
+func getGitConfigCmd(key string) *exec.Cmd {
+	gitArgs := []string{"config", "--get", "--null", key}
+	return secureexec.Command("git", gitArgs...)
+}
+
+func getGitConfigGeneralCmd(args string) *exec.Cmd {
+	gitArgs := append([]string{"config"}, strings.Split(args, " ")...)
+	return secureexec.Command("git", gitArgs...)
 }

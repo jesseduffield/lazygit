@@ -2,7 +2,6 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
@@ -16,16 +15,13 @@ func (gui *Gui) getSelectedStashEntry() *models.StashEntry {
 	return gui.State.StashEntries[selectedLine]
 }
 
-func (gui *Gui) handleStashEntrySelect() error {
+func (gui *Gui) stashRenderToMain() error {
 	var task updateTask
 	stashEntry := gui.getSelectedStashEntry()
 	if stashEntry == nil {
 		task = NewRenderStringTask(gui.Tr.NoStashEntries)
 	} else {
-		cmd := gui.OSCommand.ExecutableFromString(
-			gui.GitCommand.ShowStashEntryCmdStr(stashEntry.Index),
-		)
-		task = NewRunPtyTask(cmd)
+		task = NewRunPtyTask(gui.Git.Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -37,18 +33,30 @@ func (gui *Gui) handleStashEntrySelect() error {
 }
 
 func (gui *Gui) refreshStashEntries() error {
-	gui.State.StashEntries = gui.GitCommand.GetStashEntries(gui.State.Modes.Filtering.GetPath())
+	gui.State.StashEntries = gui.Git.Loaders.Stash.
+		GetStashEntries(gui.State.Modes.Filtering.GetPath())
 
-	return gui.State.Contexts.Stash.HandleRender()
+	return gui.postRefreshUpdate(gui.State.Contexts.Stash)
 }
 
 // specific functions
 
 func (gui *Gui) handleStashApply() error {
-	skipStashWarning := gui.Config.GetUserConfig().Gui.SkipStashWarning
+	stashEntry := gui.getSelectedStashEntry()
+	if stashEntry == nil {
+		return nil
+	}
+
+	skipStashWarning := gui.UserConfig.Gui.SkipStashWarning
 
 	apply := func() error {
-		return gui.stashDo("apply")
+		gui.logAction(gui.Tr.Actions.Stash)
+		err := gui.Git.Stash.Apply(stashEntry.Index)
+		_ = gui.postStashRefresh()
+		if err != nil {
+			return gui.surfaceError(err)
+		}
+		return nil
 	}
 
 	if skipStashWarning {
@@ -65,10 +73,21 @@ func (gui *Gui) handleStashApply() error {
 }
 
 func (gui *Gui) handleStashPop() error {
-	skipStashWarning := gui.Config.GetUserConfig().Gui.SkipStashWarning
+	stashEntry := gui.getSelectedStashEntry()
+	if stashEntry == nil {
+		return nil
+	}
+
+	skipStashWarning := gui.UserConfig.Gui.SkipStashWarning
 
 	pop := func() error {
-		return gui.stashDo("pop")
+		gui.logAction(gui.Tr.Actions.Stash)
+		err := gui.Git.Stash.Pop(stashEntry.Index)
+		_ = gui.postStashRefresh()
+		if err != nil {
+			return gui.surfaceError(err)
+		}
+		return nil
 	}
 
 	if skipStashWarning {
@@ -85,30 +104,27 @@ func (gui *Gui) handleStashPop() error {
 }
 
 func (gui *Gui) handleStashDrop() error {
+	stashEntry := gui.getSelectedStashEntry()
+	if stashEntry == nil {
+		return nil
+	}
+
 	return gui.ask(askOpts{
 		title:  gui.Tr.StashDrop,
 		prompt: gui.Tr.SureDropStashEntry,
 		handleConfirm: func() error {
-			return gui.stashDo("drop")
+			gui.logAction(gui.Tr.Actions.Stash)
+			err := gui.Git.Stash.Drop(stashEntry.Index)
+			_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH}})
+			if err != nil {
+				return gui.surfaceError(err)
+			}
+			return nil
 		},
 	})
 }
 
-func (gui *Gui) stashDo(method string) error {
-	stashEntry := gui.getSelectedStashEntry()
-	if stashEntry == nil {
-		errorMessage := utils.ResolvePlaceholderString(
-			gui.Tr.NoStashTo,
-			map[string]string{
-				"method": method,
-			},
-		)
-
-		return gui.createErrorPanel(errorMessage)
-	}
-	if err := gui.GitCommand.WithSpan(gui.Tr.Spans.Stash).StashDo(stashEntry.Index, method); err != nil {
-		return gui.surfaceError(err)
-	}
+func (gui *Gui) postStashRefresh() error {
 	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})
 }
 
@@ -120,10 +136,12 @@ func (gui *Gui) handleStashSave(stashFunc func(message string) error) error {
 	return gui.prompt(promptOpts{
 		title: gui.Tr.StashChanges,
 		handleConfirm: func(stashComment string) error {
-			if err := stashFunc(stashComment); err != nil {
+			err := stashFunc(stashComment)
+			_ = gui.postStashRefresh()
+			if err != nil {
 				return gui.surfaceError(err)
 			}
-			return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{STASH, FILES}})
+			return nil
 		},
 	})
 }

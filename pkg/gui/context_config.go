@@ -110,10 +110,10 @@ func (gui *Gui) allContexts() []Context {
 func (gui *Gui) contextTree() ContextTree {
 	return ContextTree{
 		Status: &BasicContext{
-			OnFocus:  gui.handleStatusSelect,
-			Kind:     SIDE_CONTEXT,
-			ViewName: "status",
-			Key:      STATUS_CONTEXT_KEY,
+			OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
+			Kind:           SIDE_CONTEXT,
+			ViewName:       "status",
+			Key:            STATUS_CONTEXT_KEY,
 		},
 		Files:          gui.filesListContext(),
 		Submodules:     gui.submodulesListContext(),
@@ -128,7 +128,7 @@ func (gui *Gui) contextTree() ContextTree {
 		Tags:           gui.tagsListContext(),
 		Stash:          gui.stashListContext(),
 		Normal: &BasicContext{
-			OnFocus: func() error {
+			OnFocus: func(opts ...OnFocusOpts) error {
 				return nil // TODO: should we do something here? We should allow for scrolling the panel
 			},
 			Kind:     MAIN_CONTEXT,
@@ -136,59 +136,67 @@ func (gui *Gui) contextTree() ContextTree {
 			Key:      MAIN_NORMAL_CONTEXT_KEY,
 		},
 		Staging: &BasicContext{
-			OnFocus: func() error {
-				return nil
-				// TODO: centralise the code here
-				// return gui.refreshStagingPanel(false, -1)
+			OnFocus: func(opts ...OnFocusOpts) error {
+				forceSecondaryFocused := false
+				selectedLineIdx := -1
+				if len(opts) > 0 && opts[0].ClickedViewName != "" {
+					if opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary" {
+						selectedLineIdx = opts[0].ClickedViewLineIdx
+					}
+					if opts[0].ClickedViewName == "secondary" {
+						forceSecondaryFocused = true
+					}
+				}
+				return gui.onStagingFocus(forceSecondaryFocused, selectedLineIdx)
 			},
 			Kind:     MAIN_CONTEXT,
 			ViewName: "main",
 			Key:      MAIN_STAGING_CONTEXT_KEY,
 		},
 		PatchBuilding: &BasicContext{
-			OnFocus: func() error {
-				return nil
-				// TODO: centralise the code here
-				// return gui.refreshPatchBuildingPanel(-1)
+			OnFocus: func(opts ...OnFocusOpts) error {
+				selectedLineIdx := -1
+				if len(opts) > 0 && (opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary") {
+					selectedLineIdx = opts[0].ClickedViewLineIdx
+				}
+
+				return gui.onPatchBuildingFocus(selectedLineIdx)
 			},
 			Kind:     MAIN_CONTEXT,
 			ViewName: "main",
 			Key:      MAIN_PATCH_BUILDING_CONTEXT_KEY,
 		},
 		Merging: &BasicContext{
-			OnFocus:         gui.refreshMergePanelWithLock,
+			OnFocus:         OnFocusWrapper(func() error { return gui.renderConflictsWithLock(true) }),
 			Kind:            MAIN_CONTEXT,
 			ViewName:        "main",
 			Key:             MAIN_MERGING_CONTEXT_KEY,
 			OnGetOptionsMap: gui.getMergingOptions,
 		},
 		Credentials: &BasicContext{
-			OnFocus:  gui.handleCredentialsViewFocused,
+			OnFocus:  OnFocusWrapper(gui.handleCredentialsViewFocused),
 			Kind:     PERSISTENT_POPUP,
 			ViewName: "credentials",
 			Key:      CREDENTIALS_CONTEXT_KEY,
 		},
 		Confirmation: &BasicContext{
-			OnFocus:  func() error { return nil },
 			Kind:     TEMPORARY_POPUP,
 			ViewName: "confirmation",
 			Key:      CONFIRMATION_CONTEXT_KEY,
 		},
 		Suggestions: gui.suggestionsListContext(),
 		CommitMessage: &BasicContext{
-			OnFocus:  gui.handleCommitMessageFocused,
+			OnFocus:  OnFocusWrapper(gui.handleCommitMessageFocused),
 			Kind:     PERSISTENT_POPUP,
 			ViewName: "commitMessage",
 			Key:      COMMIT_MESSAGE_CONTEXT_KEY,
 		},
 		Search: &BasicContext{
-			OnFocus:  func() error { return nil },
 			Kind:     PERSISTENT_POPUP,
 			ViewName: "search",
 			Key:      SEARCH_CONTEXT_KEY,
 		},
 		CommandLog: &BasicContext{
-			OnFocus:         func() error { return nil },
 			Kind:            EXTRAS_CONTEXT,
 			ViewName:        "extras",
 			Key:             COMMAND_LOG_CONTEXT_KEY,
@@ -198,6 +206,14 @@ func (gui *Gui) contextTree() ContextTree {
 				return nil
 			},
 		},
+	}
+}
+
+// using this wrapper for when an onFocus function doesn't care about any potential
+// props that could be passed
+func OnFocusWrapper(f func() error) func(opts ...OnFocusOpts) error {
+	return func(opts ...OnFocusOpts) error {
+		return f()
 	}
 }
 

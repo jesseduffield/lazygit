@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 )
 
 type RebaseOption string
@@ -18,7 +18,7 @@ const (
 func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	options := []string{REBASE_OPTION_CONTINUE, REBASE_OPTION_ABORT}
 
-	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_REBASING {
+	if gui.Git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 		options = append(options, REBASE_OPTION_SKIP)
 	}
 
@@ -35,7 +35,7 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 	}
 
 	var title string
-	if gui.GitCommand.WorkingTreeState() == commands.REBASE_MODE_MERGING {
+	if gui.Git.Status.WorkingTreeState() == enums.REBASE_MODE_MERGING {
 		title = gui.Tr.MergeOptionsTitle
 	} else {
 		title = gui.Tr.RebaseOptionsTitle
@@ -45,26 +45,34 @@ func (gui *Gui) handleCreateRebaseOptionsMenu() error {
 }
 
 func (gui *Gui) genericMergeCommand(command string) error {
-	status := gui.GitCommand.WorkingTreeState()
+	status := gui.Git.Status.WorkingTreeState()
 
-	if status != commands.REBASE_MODE_MERGING && status != commands.REBASE_MODE_REBASING {
+	if status != enums.REBASE_MODE_MERGING && status != enums.REBASE_MODE_REBASING {
 		return gui.createErrorPanel(gui.Tr.NotMergingOrRebasing)
 	}
 
-	gitCommand := gui.GitCommand.WithSpan(fmt.Sprintf("Merge/Rebase: %s", command))
+	gui.logAction(fmt.Sprintf("Merge/Rebase: %s", command))
 
-	commandType := strings.Replace(status, "ing", "e", 1)
+	commandType := ""
+	switch status {
+	case enums.REBASE_MODE_MERGING:
+		commandType = "merge"
+	case enums.REBASE_MODE_REBASING:
+		commandType = "rebase"
+	default:
+		// shouldn't be possible to land here
+	}
+
 	// we should end up with a command like 'git merge --continue'
 
 	// it's impossible for a rebase to require a commit so we'll use a subprocess only if it's a merge
-	if status == commands.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && gui.Config.GetUserConfig().Git.Merging.ManualCommit {
-		sub := gitCommand.OSCommand.PrepareSubProcess("git", commandType, fmt.Sprintf("--%s", command))
-		if sub != nil {
-			return gui.runSubprocessWithSuspenseAndRefresh(sub)
-		}
-		return nil
+	if status == enums.REBASE_MODE_MERGING && command != REBASE_OPTION_ABORT && gui.UserConfig.Git.Merging.ManualCommit {
+		// TODO: see if we should be calling more of the code from gui.Git.Rebase.GenericMergeOrRebaseAction
+		return gui.runSubprocessWithSuspenseAndRefresh(
+			gui.Git.Rebase.GenericMergeOrRebaseActionCmdObj(commandType, command),
+		)
 	}
-	result := gitCommand.GenericMergeOrRebaseAction(commandType, command)
+	result := gui.Git.Rebase.GenericMergeOrRebaseAction(commandType, command)
 	if err := gui.handleGenericMergeCommandResult(result); err != nil {
 		return err
 	}
@@ -135,11 +143,11 @@ func (gui *Gui) abortMergeOrRebaseWithConfirm() error {
 }
 
 func (gui *Gui) workingTreeStateNoun() string {
-	workingTreeState := gui.GitCommand.WorkingTreeState()
+	workingTreeState := gui.Git.Status.WorkingTreeState()
 	switch workingTreeState {
-	case commands.REBASE_MODE_NORMAL:
+	case enums.REBASE_MODE_NONE:
 		return ""
-	case commands.REBASE_MODE_MERGING:
+	case enums.REBASE_MODE_MERGING:
 		return "merge"
 	default:
 		return "rebase"

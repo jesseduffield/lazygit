@@ -34,8 +34,8 @@ func (gui *Gui) refreshStagingPanel(forceSecondaryFocused bool, selectedLineIdx 
 	}
 
 	// note for custom diffs, we'll need to send a flag here saying not to use the custom diff
-	diff := gui.GitCommand.WorktreeFileDiff(file, true, secondaryFocused, false)
-	secondaryDiff := gui.GitCommand.WorktreeFileDiff(file, true, !secondaryFocused, false)
+	diff := gui.Git.WorkingTree.WorktreeFileDiff(file, true, secondaryFocused, false)
+	secondaryDiff := gui.Git.WorkingTree.WorktreeFileDiff(file, true, !secondaryFocused, false)
 
 	// if we have e.g. a deleted file with nothing else to the diff will have only
 	// 4-5 lines in which case we'll swap panels
@@ -74,6 +74,17 @@ func (gui *Gui) handleRefreshStagingPanel(forceSecondaryFocused bool, selectedLi
 	return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx)
 }
 
+func (gui *Gui) onStagingFocus(forceSecondaryFocused bool, selectedLineIdx int) error {
+	gui.Mutexes.LineByLinePanelMutex.Lock()
+	defer gui.Mutexes.LineByLinePanelMutex.Unlock()
+
+	if gui.State.Panels.LineByLine == nil || selectedLineIdx != -1 {
+		return gui.refreshStagingPanel(forceSecondaryFocused, selectedLineIdx)
+	}
+
+	return nil
+}
+
 func (gui *Gui) handleTogglePanel() error {
 	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
 		state.SecondaryFocused = !state.SecondaryFocused
@@ -100,22 +111,14 @@ func (gui *Gui) handleResetSelection() error {
 			return gui.applySelection(true, state)
 		}
 
-		if !gui.Config.GetUserConfig().Gui.SkipUnstageLineWarning {
+		if !gui.UserConfig.Gui.SkipUnstageLineWarning {
 			return gui.ask(askOpts{
-				title:               gui.Tr.UnstageLinesTitle,
-				prompt:              gui.Tr.UnstageLinesPrompt,
-				handlersManageFocus: true,
+				title:  gui.Tr.UnstageLinesTitle,
+				prompt: gui.Tr.UnstageLinesPrompt,
 				handleConfirm: func() error {
 					return gui.withLBLActiveCheck(func(state *LblPanelState) error {
-						if err := gui.pushContext(gui.State.Contexts.Staging); err != nil {
-							return err
-						}
-
 						return gui.applySelection(true, state)
 					})
-				},
-				handleClose: func() error {
-					return gui.pushContext(gui.State.Contexts.Staging)
 				},
 			})
 		} else {
@@ -143,7 +146,8 @@ func (gui *Gui) applySelection(reverse bool, state *LblPanelState) error {
 	if !reverse || state.SecondaryFocused {
 		applyFlags = append(applyFlags, "cached")
 	}
-	err := gui.GitCommand.WithSpan(gui.Tr.Spans.ApplyPatch).ApplyPatch(patch, applyFlags...)
+	gui.logAction(gui.Tr.Actions.ApplyPatch)
+	err := gui.Git.WorkingTree.ApplyPatch(patch, applyFlags...)
 	if err != nil {
 		return gui.surfaceError(err)
 	}

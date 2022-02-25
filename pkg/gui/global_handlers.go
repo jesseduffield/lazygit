@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -64,7 +64,7 @@ func (gui *Gui) prevScreenMode() error {
 
 func (gui *Gui) scrollUpView(view *gocui.View) error {
 	ox, oy := view.Origin()
-	newOy := int(math.Max(0, float64(oy-gui.Config.GetUserConfig().Gui.ScrollHeight)))
+	newOy := int(math.Max(0, float64(oy-gui.UserConfig.Gui.ScrollHeight)))
 	return view.SetOrigin(ox, newOy)
 }
 
@@ -86,12 +86,12 @@ func (gui *Gui) scrollDownView(view *gocui.View) error {
 func (gui *Gui) linesToScrollDown(view *gocui.View) int {
 	_, oy := view.Origin()
 	y := oy
-	canScrollPastBottom := gui.Config.GetUserConfig().Gui.ScrollPastBottom
+	canScrollPastBottom := gui.UserConfig.Gui.ScrollPastBottom
 	if !canScrollPastBottom {
 		_, sy := view.Size()
 		y += sy
 	}
-	scrollHeight := gui.Config.GetUserConfig().Gui.ScrollHeight
+	scrollHeight := gui.UserConfig.Gui.ScrollHeight
 	scrollableLines := view.ViewLinesHeight() - y
 	if scrollableLines < 0 {
 		return 0
@@ -115,7 +115,7 @@ func (gui *Gui) linesToScrollDown(view *gocui.View) int {
 }
 
 func (gui *Gui) scrollUpMain() error {
-	if gui.canScrollMergePanel() {
+	if gui.renderingConflicts() {
 		gui.State.Panels.Merging.UserVerticalScrolling = true
 	}
 
@@ -123,7 +123,7 @@ func (gui *Gui) scrollUpMain() error {
 }
 
 func (gui *Gui) scrollDownMain() error {
-	if gui.canScrollMergePanel() {
+	if gui.renderingConflicts() {
 		gui.State.Panels.Merging.UserVerticalScrolling = true
 	}
 
@@ -189,9 +189,9 @@ func (gui *Gui) handleMouseDownMain() error {
 		// set filename, set primary/secondary selected, set line number, then switch context
 		// I'll need to know it was changed though.
 		// Could I pass something along to the context change?
-		return gui.enterFile(false, gui.Views.Main.SelectedLineIdx())
+		return gui.enterFile(OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
 	case gui.State.Contexts.CommitFiles:
-		return gui.enterCommitFile(gui.Views.Main.SelectedLineIdx())
+		return gui.enterCommitFile(OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
 	}
 
 	return nil
@@ -204,26 +204,33 @@ func (gui *Gui) handleMouseDownSecondary() error {
 
 	switch gui.g.CurrentView() {
 	case gui.Views.Files:
-		return gui.enterFile(true, gui.Views.Secondary.SelectedLineIdx())
+		return gui.enterFile(OnFocusOpts{ClickedViewName: "secondary", ClickedViewLineIdx: gui.Views.Secondary.SelectedLineIdx()})
 	}
 
 	return nil
 }
 
-func (gui *Gui) fetch(canPromptForCredentials bool, span string) (err error) {
+func (gui *Gui) fetch() (err error) {
 	gui.Mutexes.FetchMutex.Lock()
 	defer gui.Mutexes.FetchMutex.Unlock()
 
-	fetchOpts := commands.FetchOptions{}
-	if canPromptForCredentials {
-		fetchOpts.PromptUserForCredential = gui.promptUserForCredential
-	}
+	gui.logAction("Fetch")
+	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{})
 
-	err = gui.GitCommand.WithSpan(span).Fetch(fetchOpts)
-
-	if canPromptForCredentials && err != nil && strings.Contains(err.Error(), "exit status 128") {
+	if err != nil && strings.Contains(err.Error(), "exit status 128") {
 		_ = gui.createErrorPanel(gui.Tr.PassUnameWrong)
 	}
+
+	_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
+
+	return err
+}
+
+func (gui *Gui) backgroundFetch() (err error) {
+	gui.Mutexes.FetchMutex.Lock()
+	defer gui.Mutexes.FetchMutex.Unlock()
+
+	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{Background: true})
 
 	_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
 
@@ -238,7 +245,8 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 		return nil
 	}
 
-	if err := gui.OSCommand.WithSpan(gui.Tr.Spans.CopyToClipboard).CopyToClipboard(itemId); err != nil {
+	gui.logAction(gui.Tr.Actions.CopyToClipboard)
+	if err := gui.OSCommand.CopyToClipboard(itemId); err != nil {
 		return gui.surfaceError(err)
 	}
 

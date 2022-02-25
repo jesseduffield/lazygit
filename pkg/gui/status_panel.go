@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -28,8 +28,9 @@ func (gui *Gui) refreshStatus() {
 		status += presentation.ColoredBranchStatus(currentBranch) + " "
 	}
 
-	if gui.GitCommand.WorkingTreeState() != commands.REBASE_MODE_NORMAL {
-		status += style.FgYellow.Sprintf("(%s) ", gui.GitCommand.WorkingTreeState())
+	workingTreeState := gui.Git.Status.WorkingTreeState()
+	if workingTreeState != enums.REBASE_MODE_NONE {
+		status += style.FgYellow.Sprintf("(%s) ", formatWorkingTreeState(workingTreeState))
 	}
 
 	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
@@ -71,9 +72,10 @@ func (gui *Gui) handleStatusClick() error {
 	cx, _ := gui.Views.Status.Cursor()
 	upstreamStatus := presentation.BranchStatus(currentBranch)
 	repoName := utils.GetCurrentRepoName()
-	switch gui.GitCommand.WorkingTreeState() {
-	case commands.REBASE_MODE_REBASING, commands.REBASE_MODE_MERGING:
-		workingTreeStatus := fmt.Sprintf("(%s)", gui.GitCommand.WorkingTreeState())
+	workingTreeState := gui.Git.Status.WorkingTreeState()
+	switch workingTreeState {
+	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
+		workingTreeStatus := fmt.Sprintf("(%s)", formatWorkingTreeState(workingTreeState))
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
 			return gui.handleCreateRebaseOptionsMenu()
 		}
@@ -86,10 +88,21 @@ func (gui *Gui) handleStatusClick() error {
 		}
 	}
 
-	return gui.handleStatusSelect()
+	return nil
 }
 
-func (gui *Gui) handleStatusSelect() error {
+func formatWorkingTreeState(rebaseMode enums.RebaseMode) string {
+	switch rebaseMode {
+	case enums.REBASE_MODE_REBASING:
+		return "rebasing"
+	case enums.REBASE_MODE_MERGING:
+		return "merging"
+	default:
+		return "none"
+	}
+}
+
+func (gui *Gui) statusRenderToMain() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
 	if gui.popupPanelFocused() {
 		return nil
@@ -98,13 +111,13 @@ func (gui *Gui) handleStatusSelect() error {
 	dashboardString := strings.Join(
 		[]string{
 			lazygitTitle(),
-			"Copyright (c) 2018 Jesse Duffield",
+			"Copyright 2022 Jesse Duffield",
 			fmt.Sprintf("Keybindings: %s", constants.Links.Docs.Keybindings),
 			fmt.Sprintf("Config Options: %s", constants.Links.Docs.Config),
 			fmt.Sprintf("Tutorial: %s", constants.Links.Docs.Tutorial),
 			fmt.Sprintf("Raise an Issue: %s", constants.Links.Issues),
 			fmt.Sprintf("Release Notes: %s", constants.Links.Releases),
-			style.FgMagenta.Sprintf("Become a sponsor (github is matching all donations for 12 months): %s", constants.Links.Donate), // caffeine ain't free
+			style.FgMagenta.Sprintf("Become a sponsor: %s", constants.Links.Donate), // caffeine ain't free
 		}, "\n\n")
 
 	return gui.refreshMainViews(refreshMainOpts{
@@ -155,16 +168,4 @@ func lazygitTitle() string {
   |_|\__,_/___|\__, |\__, |_|\__|
                 __/ | __/ |
                |___/ |___/       `
-}
-
-func (gui *Gui) workingTreeState() string {
-	rebaseMode, _ := gui.GitCommand.RebaseMode()
-	if rebaseMode != "" {
-		return commands.REBASE_MODE_REBASING
-	}
-	merging, _ := gui.GitCommand.IsInMergeState()
-	if merging {
-		return commands.REBASE_MODE_MERGING
-	}
-	return commands.REBASE_MODE_NORMAL
 }

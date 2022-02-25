@@ -1,0 +1,4 @@
+{
+  "description": "Opening lazygit when bisect has been started from another branch. There's an issue where we don't reselect the current branch if we mark the current branch as bad so this test side-steps that problem",
+  "speed": 20
+}
