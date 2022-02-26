@@ -368,14 +368,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:    "files",
 			Contexts:    []string{string(context.FILES_CONTEXT_KEY)},
-			Key:         opts.GetKey(opts.Config.Files.ViewResetOptions),
-			Handler:     self.handleCreateResetMenu,
-			Description: self.c.Tr.LcViewResetOptions,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "files",
-			Contexts:    []string{string(context.FILES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.handleCopySelectedSideContextItemToClipboard,
 			Description: self.c.Tr.LcCopyFileNameToClipboard,
