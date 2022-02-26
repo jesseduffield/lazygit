@@ -33,7 +33,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "no reflog entries",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git log -g --abbrev=20 --format="%h %ct %gs"`, "", nil),
+				Expect(`git log -g --abbrev=40 --format="%h %ct %gs"`, "", nil),
 
 			lastReflogCommit:        nil,
 			expectedCommits:         []*models.Commit{},
@@ -43,7 +43,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "some reflog entries",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git log -g --abbrev=20 --format="%h %ct %gs"`, reflogOutput, nil),
+				Expect(`git log -g --abbrev=40 --format="%h %ct %gs"`, reflogOutput, nil),
 
 			lastReflogCommit: nil,
 			expectedCommits: []*models.Commit{
@@ -84,7 +84,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "some reflog entries where last commit is given",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git log -g --abbrev=20 --format="%h %ct %gs"`, reflogOutput, nil),
+				Expect(`git log -g --abbrev=40 --format="%h %ct %gs"`, reflogOutput, nil),
 
 			lastReflogCommit: &models.Commit{
 				Sha:           "c3c4b66b64c97ffeecde",
@@ -106,7 +106,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "when passing filterPath",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git log -g --abbrev=20 --format="%h %ct %gs" --follow -- "path"`, reflogOutput, nil),
+				Expect(`git log -g --abbrev=40 --format="%h %ct %gs" --follow -- "path"`, reflogOutput, nil),
 
 			lastReflogCommit: &models.Commit{
 				Sha:           "c3c4b66b64c97ffeecde",
@@ -129,7 +129,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "when command returns error",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git log -g --abbrev=20 --format="%h %ct %gs"`, "", errors.New("haha")),
+				Expect(`git log -g --abbrev=40 --format="%h %ct %gs"`, "", errors.New("haha")),
 
 			lastReflogCommit:        nil,
 			filterPath:              "",

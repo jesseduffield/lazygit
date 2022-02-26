@@ -435,7 +435,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 			allFlag,
 			prettyFormat,
 			limitFlag,
-			20,
+			40,
 			filterFlag,
 		),
 	).DontLog()
