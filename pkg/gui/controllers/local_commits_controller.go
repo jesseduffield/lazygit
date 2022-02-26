@@ -73,32 +73,32 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CreateFixupCommit),
-			Handler:     self.checkSelected(self.handleCreateFixupCommit),
+			Handler:     self.checkSelected(self.createFixupCommit),
 			Description: self.c.Tr.LcCreateFixupCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.SquashAboveCommits),
-			Handler:     self.checkSelected(self.handleSquashAllAboveFixupCommits),
+			Handler:     self.checkSelected(self.squashAllAboveFixupCommits),
 			Description: self.c.Tr.LcSquashAboveCommits,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.MoveDownCommit),
-			Handler:     self.checkSelected(self.handleCommitMoveDown),
+			Handler:     self.checkSelected(self.moveDown),
 			Description: self.c.Tr.LcMoveDownCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.MoveUpCommit),
-			Handler:     self.checkSelected(self.handleCommitMoveUp),
+			Handler:     self.checkSelected(self.moveUp),
 			Description: self.c.Tr.LcMoveUpCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.AmendToCommit),
-			Handler:     self.checkSelected(self.handleCommitAmendTo),
+			Handler:     self.checkSelected(self.amendTo),
 			Description: self.c.Tr.LcAmendToCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.RevertCommit),
-			Handler:     self.checkSelected(self.handleCommitRevert),
+			Handler:     self.checkSelected(self.revert),
 			Description: self.c.Tr.LcRevertCommit,
 		},
 		{
@@ -155,27 +155,27 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
-			Handler:     self.checkSelected(self.handleCreateCommitResetMenu),
+			Handler:     self.checkSelected(self.createResetMenu),
 			Description: self.c.Tr.LcResetToThisCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CheckoutCommit),
-			Handler:     self.checkSelected(self.handleCheckoutCommit),
+			Handler:     self.checkSelected(self.checkout),
 			Description: self.c.Tr.LcCheckoutCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.TagCommit),
-			Handler:     self.checkSelected(self.handleTagCommit),
+			Handler:     self.checkSelected(self.createTag),
 			Description: self.c.Tr.LcTagCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CopyCommitMessageToClipboard),
-			Handler:     self.checkSelected(self.handleCopySelectedCommitMessageToClipboard),
+			Handler:     self.checkSelected(self.copyCommitMessageToClipboard),
 			Description: self.c.Tr.LcCopyCommitMessageToClipboard,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.OpenInBrowser),
-			Handler:     self.checkSelected(self.handleOpenCommitInBrowser),
+			Handler:     self.checkSelected(self.openInBrowser),
 			Description: self.c.Tr.LcOpenCommitInBrowser,
 		},
 	}...)
@@ -208,7 +208,7 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 	})
 }
 
-func (self *LocalCommitsController) fixup(commit *models.Commit) error {
+func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) error {
 	if len(self.model.Commits) <= 1 {
 		return self.c.ErrorMsg(self.c.Tr.YouNoCommitsToSquash)
 	}
@@ -373,7 +373,7 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action string, commit
 	})
 }
 
-func (self *LocalCommitsController) handleCommitMoveDown(commit *models.Commit) error {
+func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 	index := self.context().GetSelectedLineIdx()
 	commits := self.model.Commits
 	if commit.Status == "rebasing" {
@@ -405,7 +405,7 @@ func (self *LocalCommitsController) handleCommitMoveDown(commit *models.Commit) 
 	})
 }
 
-func (self *LocalCommitsController) handleCommitMoveUp(commit *models.Commit) error {
+func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 	index := self.context().GetSelectedLineIdx()
 	if index == 0 {
 		return nil
@@ -439,7 +439,7 @@ func (self *LocalCommitsController) handleCommitMoveUp(commit *models.Commit) er
 	})
 }
 
-func (self *LocalCommitsController) handleCommitAmendTo(commit *models.Commit) error {
+func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
@@ -453,7 +453,7 @@ func (self *LocalCommitsController) handleCommitAmendTo(commit *models.Commit) e
 	})
 }
 
-func (self *LocalCommitsController) handleCommitRevert(commit *models.Commit) error {
+func (self *LocalCommitsController) revert(commit *models.Commit) error {
 	if commit.IsMerge() {
 		return self.createRevertMergeCommitMenu(commit)
 	} else {
@@ -507,7 +507,7 @@ func (self *LocalCommitsController) afterRevertCommit() error {
 	})
 }
 
-func (self *LocalCommitsController) handleCreateFixupCommit(commit *models.Commit) error {
+func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 	prompt := utils.ResolvePlaceholderString(
 		self.c.Tr.SureCreateFixupCommit,
 		map[string]string{
@@ -529,7 +529,7 @@ func (self *LocalCommitsController) handleCreateFixupCommit(commit *models.Commi
 	})
 }
 
-func (self *LocalCommitsController) handleSquashAllAboveFixupCommits(commit *models.Commit) error {
+func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Commit) error {
 	prompt := utils.ResolvePlaceholderString(
 		self.c.Tr.SureSquashAboveCommits,
 		map[string]string{
@@ -550,11 +550,11 @@ func (self *LocalCommitsController) handleSquashAllAboveFixupCommits(commit *mod
 	})
 }
 
-func (self *LocalCommitsController) handleTagCommit(commit *models.Commit) error {
+func (self *LocalCommitsController) createTag(commit *models.Commit) error {
 	return self.helpers.Tags.CreateTagMenu(commit.Sha, func() {})
 }
 
-func (self *LocalCommitsController) handleCheckoutCommit(commit *models.Commit) error {
+func (self *LocalCommitsController) checkout(commit *models.Commit) error {
 	return self.c.Ask(types.AskOpts{
 		Title:  self.c.Tr.LcCheckoutCommit,
 		Prompt: self.c.Tr.SureCheckoutThisCommit,
@@ -565,7 +565,7 @@ func (self *LocalCommitsController) handleCheckoutCommit(commit *models.Commit) 
 	})
 }
 
-func (self *LocalCommitsController) handleCreateCommitResetMenu(commit *models.Commit) error {
+func (self *LocalCommitsController) createResetMenu(commit *models.Commit) error {
 	return self.helpers.Refs.CreateGitResetMenu(commit.Sha)
 }
 
@@ -597,7 +597,7 @@ func (self *LocalCommitsController) gotoBottom() error {
 	return nil
 }
 
-func (self *LocalCommitsController) handleCopySelectedCommitMessageToClipboard(commit *models.Commit) error {
+func (self *LocalCommitsController) copyCommitMessageToClipboard(commit *models.Commit) error {
 	message, err := self.git.Commit.GetCommitMessage(commit.Sha)
 	if err != nil {
 		return self.c.Error(err)
@@ -696,7 +696,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 	})
 }
 
-func (self *LocalCommitsController) handleOpenCommitInBrowser(commit *models.Commit) error {
+func (self *LocalCommitsController) openInBrowser(commit *models.Commit) error {
 	url, err := self.helpers.Host.GetCommitURL(commit.Sha)
 	if err != nil {
 		return self.c.Error(err)
