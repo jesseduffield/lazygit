@@ -589,6 +589,8 @@ func (gui *Gui) resetControllers() {
 		onCommitSuccess,
 	)
 
+	remoteBranchesController := controllers.NewRemoteBranchesController(common)
+
 	gui.Controllers = Controllers{
 		Submodules: submodulesController,
 		Global:     controllers.NewGlobalController(common),
@@ -655,6 +657,7 @@ func (gui *Gui) resetControllers() {
 	controllers.AttachControllers(gui.State.Contexts.Stash, stashController)
 	controllers.AttachControllers(gui.State.Contexts.Menu, gui.Controllers.Menu)
 	controllers.AttachControllers(gui.State.Contexts.CommitMessage, commitMessageController)
+	controllers.AttachControllers(gui.State.Contexts.RemoteBranches, remoteBranchesController)
 	controllers.AttachControllers(gui.State.Contexts.Global, gui.Controllers.Sync, gui.Controllers.Undo, gui.Controllers.Global)
 
 	listControllerFactory := controllers.NewListControllerFactory(gui.c)
