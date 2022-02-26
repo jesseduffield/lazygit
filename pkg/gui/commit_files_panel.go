@@ -1,26 +1,9 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 )
-
-func (gui *Gui) getSelectedCommitFile() *models.CommitFile {
-	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
-	if node == nil {
-		return nil
-	}
-	return node.File
-}
-
-func (gui *Gui) getSelectedCommitFilePath() string {
-	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
-	if node == nil {
-		return ""
-	}
-	return node.GetPath()
-}
 
 // TODO: do we need this?
 func (gui *Gui) onCommitFileFocus() error {
