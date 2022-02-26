@@ -75,8 +75,8 @@ func (self *SubCommitsController) Context() types.Context {
 	return self.context()
 }
 
-func (self *SubCommitsController) context() *context.ReflogCommitsContext {
-	return self.contexts.ReflogCommits
+func (self *SubCommitsController) context() *context.SubCommitsContext {
+	return self.contexts.SubCommits
 }
 
 func (self *SubCommitsController) checkout(commit *models.Commit) error {
