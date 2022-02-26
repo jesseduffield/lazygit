@@ -63,14 +63,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 分支 面板 (远程分支（在远程页面中）)
 
 <pre>
-  <kbd>esc</kbd>: 返回远程仓库列表
-  <kbd>g</kbd>: 查看重置选项
   <kbd>space</kbd>: 检出
   <kbd>n</kbd>: 新分支
   <kbd>M</kbd>: 合并到当前检出的分支
-  <kbd>d</kbd>: 删除分支
   <kbd>r</kbd>: 将已检出的分支变基到该分支
+  <kbd>d</kbd>: 删除分支
   <kbd>u</kbd>: 设置为检出分支的上游
+  <kbd>esc</kbd>: 返回远程仓库列表
+  <kbd>g</kbd>: 查看重置选项
   <kbd>enter</kbd>: 查看提交
 </pre>
 
@@ -178,7 +178,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 文件 面板 (文件)
 
 <pre>
-  <kbd>D</kbd>: 查看重置选项
   <kbd>ctrl+o</kbd>: 将文件名复制到剪贴板
   <kbd>ctrl+w</kbd>: 切换是否在差异视图中显示空白更改
   <kbd>d</kbd>: 查看'放弃更改‘选项
@@ -197,6 +196,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>a</kbd>: 切换所有文件的暂存状态
   <kbd>enter</kbd>: 暂存单个 块/行 用于文件, 或 折叠/展开 目录
   <kbd>g</kbd>: 查看上游重置选项
+  <kbd>D</kbd>: 查看重置选项
   <kbd>`</kbd>: 切换文件树视图
   <kbd>M</kbd>: 打开合并工具
   <kbd>f</kbd>: 抓取

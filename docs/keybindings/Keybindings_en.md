@@ -63,14 +63,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Branches Panel (Remote Branches (in Remotes tab))
 
 <pre>
-  <kbd>esc</kbd>: Return to remotes list
-  <kbd>g</kbd>: view reset options
   <kbd>space</kbd>: checkout
   <kbd>n</kbd>: new branch
   <kbd>M</kbd>: merge into currently checked out branch
-  <kbd>d</kbd>: delete branch
   <kbd>r</kbd>: rebase checked-out branch onto this branch
+  <kbd>d</kbd>: delete branch
   <kbd>u</kbd>: set as upstream of checked-out branch
+  <kbd>esc</kbd>: Return to remotes list
+  <kbd>g</kbd>: view reset options
   <kbd>enter</kbd>: view commits
 </pre>
 
@@ -178,7 +178,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Files Panel (Files)
 
 <pre>
-  <kbd>D</kbd>: view reset options
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>d</kbd>: view 'discard changes' options
@@ -197,6 +196,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>a</kbd>: stage/unstage all
   <kbd>enter</kbd>: stage individual hunks/lines for file, or collapse/expand for directory
   <kbd>g</kbd>: view upstream reset options
+  <kbd>D</kbd>: view reset options
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>f</kbd>: fetch

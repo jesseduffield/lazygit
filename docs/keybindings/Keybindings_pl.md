@@ -63,14 +63,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Gałęzie Panel (Remote Branches (in Remotes tab))
 
 <pre>
-  <kbd>esc</kbd>: wróć do listy repozytoriów zdalnych
-  <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>space</kbd>: przełącz
   <kbd>n</kbd>: nowa gałąź
   <kbd>M</kbd>: scal do obecnej gałęzi
-  <kbd>d</kbd>: usuń gałąź
   <kbd>r</kbd>: zmiana bazy gałęzi
+  <kbd>d</kbd>: usuń gałąź
   <kbd>u</kbd>: set as upstream of checked-out branch
+  <kbd>esc</kbd>: wróć do listy repozytoriów zdalnych
+  <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>enter</kbd>: view commits
 </pre>
 
@@ -178,7 +178,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Pliki Panel (Pliki)
 
 <pre>
-  <kbd>D</kbd>: wyświetl opcje resetu
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>d</kbd>: pokaż opcje porzucania zmian
@@ -197,6 +196,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>a</kbd>: przełącz stan poczekalni wszystkich
   <kbd>enter</kbd>: zatwierdź pojedyncze linie
   <kbd>g</kbd>: view upstream reset options
+  <kbd>D</kbd>: wyświetl opcje resetu
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>f</kbd>: pobierz
