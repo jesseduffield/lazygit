@@ -31,96 +31,70 @@ func NewBranchesController(
 func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.handleBranchPress,
+			Handler:     self.checkSelected(self.press),
 			Description: self.c.Tr.LcCheckout,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Branches.CreatePullRequest),
-			Handler:     self.handleCreatePullRequestPress,
+			Handler:     self.checkSelected(self.handleCreatePullRequest),
 			Description: self.c.Tr.LcCreatePullRequest,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Branches.ViewPullRequestOptions),
 			Handler:     self.checkSelected(self.handleCreatePullRequestMenu),
 			Description: self.c.Tr.LcCreatePullRequestOptions,
 			OpensMenu:   true,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Branches.CopyPullRequestURL),
-			Handler:     self.handleCopyPullRequestURLPress,
+			Handler:     self.copyPullRequestURL,
 			Description: self.c.Tr.LcCopyPullRequestURL,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Branches.CheckoutBranchByName),
-			Handler:     self.handleCheckoutByName,
+			Handler:     self.checkoutByName,
 			Description: self.c.Tr.LcCheckoutByName,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Branches.ForceCheckoutBranch),
-			Handler:     self.handleForceCheckout,
+			Handler:     self.forceCheckout,
 			Description: self.c.Tr.LcForceCheckout,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.checkSelected(self.handleNewBranchOffBranch),
+			Handler:     self.checkSelected(self.newBranch),
 			Description: self.c.Tr.LcNewBranch,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelectedAndReal(self.handleDeleteBranch),
+			Handler:     self.checkSelectedAndReal(self.delete),
 			Description: self.c.Tr.LcDeleteBranch,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Branches.RebaseBranch),
-			Handler:     opts.Guards.OutsideFilterMode(self.handleRebaseOntoLocalBranch),
+			Handler:     opts.Guards.OutsideFilterMode(self.rebase),
 			Description: self.c.Tr.LcRebaseBranch,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
-			Handler:     opts.Guards.OutsideFilterMode(self.handleMerge),
+			Handler:     opts.Guards.OutsideFilterMode(self.merge),
 			Description: self.c.Tr.LcMergeIntoCurrentBranch,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Branches.FastForward),
-			Handler:     self.checkSelectedAndReal(self.handleFastForward),
+			Handler:     self.checkSelectedAndReal(self.fastForward),
 			Description: self.c.Tr.FastForward,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
-			Handler:     self.checkSelected(self.handleCreateResetToBranchMenu),
+			Handler:     self.checkSelected(self.createResetMenu),
 			Description: self.c.Tr.LcViewResetOptions,
 			OpensMenu:   true,
 		},
 		{
-			ViewName:    "branches",
-			Contexts:    []string{string(context.LOCAL_BRANCHES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Branches.RenameBranch),
-			Handler:     self.checkSelectedAndReal(self.handleRenameBranch),
+			Handler:     self.checkSelectedAndReal(self.rename),
 			Description: self.c.Tr.LcRenameBranch,
 		},
 	}
@@ -134,23 +108,17 @@ func (self *BranchesController) context() *context.BranchesContext {
 	return self.contexts.Branches
 }
 
-func (self *BranchesController) handleBranchPress() error {
-	branch := self.context().GetSelected()
-	if branch == nil {
-		return nil
-	}
-
-	if branch == self.helpers.Refs.GetCheckedOutRef() {
+func (self *BranchesController) press(selectedBranch *models.Branch) error {
+	if selectedBranch == self.helpers.Refs.GetCheckedOutRef() {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyCheckedOutBranch)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-	return self.helpers.Refs.CheckoutRef(branch.Name, types.CheckoutRefOptions{})
+	return self.helpers.Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
 }
 
-func (self *BranchesController) handleCreatePullRequestPress() error {
-	branch := self.context().GetSelected()
-	return self.createPullRequest(branch.Name, "")
+func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {
+	return self.createPullRequest(selectedBranch.Name, "")
 }
 
 func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *models.Branch) error {
@@ -159,7 +127,7 @@ func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *mode
 	return self.createPullRequestMenu(selectedBranch, checkedOutBranch)
 }
 
-func (self *BranchesController) handleCopyPullRequestURLPress() error {
+func (self *BranchesController) copyPullRequestURL() error {
 	branch := self.context().GetSelected()
 
 	branchExistsOnRemote := self.git.Remote.CheckRemoteBranchExists(branch.Name)
@@ -182,7 +150,7 @@ func (self *BranchesController) handleCopyPullRequestURLPress() error {
 	return nil
 }
 
-func (self *BranchesController) handleForceCheckout() error {
+func (self *BranchesController) forceCheckout() error {
 	branch := self.context().GetSelected()
 	message := self.c.Tr.SureForceCheckout
 	title := self.c.Tr.ForceCheckoutBranch
@@ -200,7 +168,7 @@ func (self *BranchesController) handleForceCheckout() error {
 	})
 }
 
-func (self *BranchesController) handleCheckoutByName() error {
+func (self *BranchesController) checkoutByName() error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.BranchName + ":",
 		FindSuggestionsFunc: self.helpers.Suggestions.GetRefsSuggestionsFunc(),
@@ -235,19 +203,15 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (self *BranchesController) handleDeleteBranch(branch *models.Branch) error {
-	return self.deleteBranch(branch, false)
-}
-
-func (self *BranchesController) deleteBranch(branch *models.Branch, force bool) error {
+func (self *BranchesController) delete(branch *models.Branch) error {
 	checkedOutBranch := self.helpers.Refs.GetCheckedOutRef()
 	if checkedOutBranch.Name == branch.Name {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCheckOutBranch)
 	}
-	return self.deleteNamedBranch(branch, force)
+	return self.deleteWithForce(branch, false)
 }
 
-func (self *BranchesController) deleteNamedBranch(selectedBranch *models.Branch, force bool) error {
+func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, force bool) error {
 	title := self.c.Tr.DeleteBranch
 	var templateStr string
 	if force {
@@ -270,7 +234,7 @@ func (self *BranchesController) deleteNamedBranch(selectedBranch *models.Branch,
 			if err := self.git.Branch.Delete(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
 				if !force && strings.Contains(errMessage, "git branch -D ") {
-					return self.deleteNamedBranch(selectedBranch, true)
+					return self.deleteWithForce(selectedBranch, true)
 				}
 				return self.c.ErrorMsg(errMessage)
 			}
@@ -279,17 +243,17 @@ func (self *BranchesController) deleteNamedBranch(selectedBranch *models.Branch,
 	})
 }
 
-func (self *BranchesController) handleMerge() error {
+func (self *BranchesController) merge() error {
 	selectedBranchName := self.context().GetSelected().Name
 	return self.helpers.MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName)
 }
 
-func (self *BranchesController) handleRebaseOntoLocalBranch() error {
+func (self *BranchesController) rebase() error {
 	selectedBranchName := self.context().GetSelected().Name
 	return self.helpers.MergeAndRebase.RebaseOntoRef(selectedBranchName)
 }
 
-func (self *BranchesController) handleFastForward(branch *models.Branch) error {
+func (self *BranchesController) fastForward(branch *models.Branch) error {
 	if !branch.IsTrackingRemote() {
 		return self.c.ErrorMsg(self.c.Tr.FwdNoUpstream)
 	}
@@ -339,11 +303,11 @@ func (self *BranchesController) handleFastForward(branch *models.Branch) error {
 	})
 }
 
-func (self *BranchesController) handleCreateResetToBranchMenu(selectedBranch *models.Branch) error {
+func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {
 	return self.helpers.Refs.CreateGitResetMenu(selectedBranch.Name)
 }
 
-func (self *BranchesController) handleRenameBranch(branch *models.Branch) error {
+func (self *BranchesController) rename(branch *models.Branch) error {
 	promptForNewName := func() error {
 		return self.c.Prompt(types.PromptOpts{
 			Title:          self.c.Tr.NewBranchNamePrompt + " " + branch.Name + ":",
@@ -386,7 +350,7 @@ func (self *BranchesController) handleRenameBranch(branch *models.Branch) error 
 	})
 }
 
-func (self *BranchesController) handleNewBranchOffBranch(selectedBranch *models.Branch) error {
+func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
 	return self.helpers.Refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), "")
 }
 
