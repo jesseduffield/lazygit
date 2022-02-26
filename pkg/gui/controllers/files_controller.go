@@ -122,11 +122,16 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
-			Handler:     self.createResetMenu,
+			Handler:     self.createResetToUpstreamMenu,
 			Description: self.c.Tr.LcViewResetToUpstreamOptions,
 			OpensMenu:   true,
 		},
-		// here
+		{
+			Key:         opts.GetKey(opts.Config.Files.ViewResetOptions),
+			Handler:     self.createResetMenu,
+			Description: self.c.Tr.LcViewResetOptions,
+			OpensMenu:   true,
+		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
@@ -571,7 +576,7 @@ func (self *FilesController) stash() error {
 	return self.handleStashSave(self.git.Stash.Save)
 }
 
-func (self *FilesController) createResetMenu() error {
+func (self *FilesController) createResetToUpstreamMenu() error {
 	return self.helpers.Refs.CreateGitResetMenu("@{upstream}")
 }
 
