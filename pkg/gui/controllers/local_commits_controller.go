@@ -208,7 +208,7 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 	})
 }
 
-func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) error {
+func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 	if len(self.model.Commits) <= 1 {
 		return self.c.ErrorMsg(self.c.Tr.YouNoCommitsToSquash)
 	}
@@ -507,7 +507,7 @@ func (self *LocalCommitsController) afterRevertCommit() error {
 	})
 }
 
-func (self *LocalCommitsController) fixup(commit *models.Commit) error {
+func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) error {
 	prompt := utils.ResolvePlaceholderString(
 		self.c.Tr.SureCreateFixupCommit,
 		map[string]string{
