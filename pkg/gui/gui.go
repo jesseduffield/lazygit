@@ -574,6 +574,7 @@ func (gui *Gui) resetControllers() {
 	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 
 	onCommitAttempt := func(message string) {
+		gui.State.savedCommitMessage = message
 		gui.Views.CommitMessage.ClearTextArea()
 	}
 
