@@ -42,8 +42,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Gałęzie Panel (Branches Tab)
 
 <pre>
-  <kbd>i</kbd>: show git-flow options
   <kbd>ctrl+o</kbd>: copy branch name to clipboard
+  <kbd>i</kbd>: show git-flow options
   <kbd>space</kbd>: przełącz
   <kbd>o</kbd>: utwórz żądanie pobrania
   <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
@@ -86,14 +86,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Gałęzie Panel (Sub-commits)
 
 <pre>
-  <kbd>enter</kbd>: przeglądaj pliki commita
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>space</kbd>: checkout commit
   <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>n</kbd>: nowa gałąź
   <kbd>c</kbd>: kopiuj commit (przebieranie)
   <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
+  <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>
 
 ## Gałęzie Panel (Tags Tab)
@@ -111,6 +111,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
+</pre>
+
+## Pliki commita Panel (Pliki commita)
+
+<pre>
   <kbd>c</kbd>: plik wybierania
   <kbd>d</kbd>: porzuć zmiany commita dla tego pliku
   <kbd>o</kbd>: otwórz plik
@@ -145,23 +150,23 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: wklej commity (przebieranie)
   <kbd>ctrl+l</kbd>: open log menu
   <kbd>g</kbd>: zresetuj do tego commita
-  <kbd>enter</kbd>: przeglądaj pliki commita
   <kbd>space</kbd>: checkout commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+y</kbd>: copy commit message to clipboard
   <kbd>o</kbd>: open commit in browser
+  <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>
 
 ## Commity Panel (Reflog Tab)
 
 <pre>
-  <kbd>enter</kbd>: przeglądaj pliki commita
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>space</kbd>: checkout commit
   <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>c</kbd>: kopiuj commit (przebieranie)
   <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
+  <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>
 
 ## Extras Panel
@@ -176,6 +181,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>D</kbd>: wyświetl opcje resetu
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
+  <kbd>d</kbd>: pokaż opcje porzucania zmian
   <kbd>space</kbd>: przełącz stan poczekalni
   <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
   <kbd>c</kbd>: Zatwierdź zmiany
@@ -185,7 +191,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>e</kbd>: edytuj plik
   <kbd>o</kbd>: otwórz plik
   <kbd>i</kbd>: dodaj do .gitignore
-  <kbd>d</kbd>: pokaż opcje porzucania zmian
   <kbd>r</kbd>: odśwież pliki
   <kbd>s</kbd>: przechowaj zmiany
   <kbd>S</kbd>: wyświetl opcje schowka
@@ -282,14 +287,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>esc</kbd>: close menu
 </pre>
 
-## Schowek Panel
+## Schowek Panel (Schowek)
 
 <pre>
-  <kbd>enter</kbd>: view stash entry's files
   <kbd>space</kbd>: zastosuj
   <kbd>g</kbd>: wyciągnij
   <kbd>d</kbd>: porzuć
   <kbd>n</kbd>: nowa gałąź
+  <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>
 
 ## Status Panel

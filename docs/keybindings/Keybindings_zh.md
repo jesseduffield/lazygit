@@ -42,8 +42,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 分支 面板 (分支标签)
 
 <pre>
-  <kbd>i</kbd>: 显示 git-flow 选项
   <kbd>ctrl+o</kbd>: 将分支名称复制到剪贴板
+  <kbd>i</kbd>: 显示 git-flow 选项
   <kbd>space</kbd>: 检出
   <kbd>o</kbd>: 创建抓取请求
   <kbd>O</kbd>: 创建抓取请求选项
@@ -86,14 +86,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 分支 面板 (子提交)
 
 <pre>
-  <kbd>enter</kbd>: 查看提交的文件
+  <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
   <kbd>space</kbd>: 检出提交
   <kbd>g</kbd>: 查看重置选项
   <kbd>n</kbd>: 新分支
   <kbd>c</kbd>: 复制提交（拣选）
   <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
-  <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
+  <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
 ## 分支 面板 (标签页面)
@@ -111,6 +111,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+o</kbd>: 将提交的文件名复制到剪贴板
+</pre>
+
+## 提交文件 面板 (提交文件)
+
+<pre>
   <kbd>c</kbd>: 检出文件
   <kbd>d</kbd>: 放弃对此文件的提交更改
   <kbd>o</kbd>: 打开文件
@@ -145,23 +150,23 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: 粘贴提交（拣选）
   <kbd>ctrl+l</kbd>: open log menu
   <kbd>g</kbd>: 重置为此提交
-  <kbd>enter</kbd>: 查看提交的文件
   <kbd>space</kbd>: 检出提交
   <kbd>T</kbd>: 标签提交
   <kbd>ctrl+y</kbd>: 将提交消息复制到剪贴板
   <kbd>o</kbd>: open commit in browser
+  <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
 ## 提交 面板 (Reflog)
 
 <pre>
-  <kbd>enter</kbd>: 查看提交的文件
+  <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
   <kbd>space</kbd>: 检出提交
   <kbd>g</kbd>: 查看重置选项
   <kbd>c</kbd>: 复制提交（拣选）
   <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
-  <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
+  <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
 ## Extras 面板
@@ -176,6 +181,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>D</kbd>: 查看重置选项
   <kbd>ctrl+o</kbd>: 将文件名复制到剪贴板
   <kbd>ctrl+w</kbd>: 切换是否在差异视图中显示空白更改
+  <kbd>d</kbd>: 查看'放弃更改‘选项
   <kbd>space</kbd>: 切换暂存状态
   <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
   <kbd>c</kbd>: 提交更改
@@ -185,7 +191,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>e</kbd>: 编辑文件
   <kbd>o</kbd>: 打开文件
   <kbd>i</kbd>: 添加到 .gitignore
-  <kbd>d</kbd>: 查看'放弃更改‘选项
   <kbd>r</kbd>: 刷新文件
   <kbd>s</kbd>: 将所有更改加入贮藏
   <kbd>S</kbd>: 查看隐藏选项
@@ -282,14 +287,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>esc</kbd>: 关闭菜单
 </pre>
 
-## 贮藏 面板
+## 贮藏 面板 (贮藏)
 
 <pre>
-  <kbd>enter</kbd>: 查看贮藏条目中的文件
   <kbd>space</kbd>: 应用
   <kbd>g</kbd>: 应用并删除
   <kbd>d</kbd>: 删除
   <kbd>n</kbd>: 新分支
+  <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
 ## 状态 面板
