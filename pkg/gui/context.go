@@ -448,16 +448,6 @@ func (gui *Gui) setViewTabForContext(c types.Context) {
 	}
 }
 
-func (gui *Gui) contextForContextKey(contextKey types.ContextKey) (types.Context, bool) {
-	for _, context := range gui.State.Contexts.Flatten() {
-		if context.GetKey() == contextKey {
-			return context, true
-		}
-	}
-
-	return nil, false
-}
-
 func (gui *Gui) rerenderView(view *gocui.View) error {
 	return gui.State.ViewContextMap.Get(view.Name()).HandleRender()
 }
