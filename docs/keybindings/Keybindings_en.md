@@ -42,8 +42,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Branches Panel (Branches Tab)
 
 <pre>
-  <kbd>i</kbd>: show git-flow options
   <kbd>ctrl+o</kbd>: copy branch name to clipboard
+  <kbd>i</kbd>: show git-flow options
   <kbd>space</kbd>: checkout
   <kbd>o</kbd>: create pull request
   <kbd>O</kbd>: create pull request options
@@ -86,14 +86,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Branches Panel (Sub-commits)
 
 <pre>
-  <kbd>enter</kbd>: view commit's files
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>space</kbd>: checkout commit
   <kbd>g</kbd>: view reset options
   <kbd>n</kbd>: new branch
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
+  <kbd>enter</kbd>: view selected item's files
 </pre>
 
 ## Branches Panel (Tags Tab)
@@ -111,6 +111,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
+</pre>
+
+## Commit Files Panel (Commit Files)
+
+<pre>
   <kbd>c</kbd>: checkout file
   <kbd>d</kbd>: discard this commit's changes to this file
   <kbd>o</kbd>: open file
@@ -145,23 +150,23 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>ctrl+l</kbd>: open log menu
   <kbd>g</kbd>: reset to this commit
-  <kbd>enter</kbd>: view commit's files
   <kbd>space</kbd>: checkout commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+y</kbd>: copy commit message to clipboard
   <kbd>o</kbd>: open commit in browser
+  <kbd>enter</kbd>: view selected item's files
 </pre>
 
 ## Commits Panel (Reflog Tab)
 
 <pre>
-  <kbd>enter</kbd>: view commit's files
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>space</kbd>: checkout commit
   <kbd>g</kbd>: view reset options
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
+  <kbd>enter</kbd>: view selected item's files
 </pre>
 
 ## Extras Panel
@@ -176,6 +181,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>D</kbd>: view reset options
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
   <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
+  <kbd>d</kbd>: view 'discard changes' options
   <kbd>space</kbd>: toggle staged
   <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
   <kbd>c</kbd>: commit changes
@@ -185,7 +191,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
   <kbd>i</kbd>: add to .gitignore
-  <kbd>d</kbd>: view 'discard changes' options
   <kbd>r</kbd>: refresh files
   <kbd>s</kbd>: stash changes
   <kbd>S</kbd>: view stash options
@@ -282,14 +287,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>esc</kbd>: close menu
 </pre>
 
-## Stash Panel
+## Stash Panel (Stash)
 
 <pre>
-  <kbd>enter</kbd>: view stash entry's files
   <kbd>space</kbd>: apply
   <kbd>g</kbd>: pop
   <kbd>d</kbd>: drop
   <kbd>n</kbd>: new branch
+  <kbd>enter</kbd>: view selected item's files
 </pre>
 
 ## Status Panel
