@@ -12,7 +12,7 @@ import (
 
 func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 	var (
-		bindingsGlobal, bindingsPanel []*types.Binding
+		bindingsGlobal, bindingsPanel, bindingsNavigation []*types.Binding
 	)
 
 	bindings, _ := gui.GetInitialKeybindings()
@@ -24,18 +24,40 @@ func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 
 	for _, binding := range bindings {
 		if GetKeyDisplay(binding.Key) != "" && binding.Description != "" {
-			if len(binding.Contexts) == 0 {
+			if len(binding.Contexts) == 0 && binding.ViewName == "" {
 				bindingsGlobal = append(bindingsGlobal, binding)
+			} else if binding.Tag == "navigation" {
+				bindingsNavigation = append(bindingsNavigation, binding)
 			} else if utils.IncludesString(binding.Contexts, string(context.GetKey())) {
 				bindingsPanel = append(bindingsPanel, binding)
 			}
 		}
 	}
 
-	// append dummy element to have a separator between
-	// panel and global keybindings
-	bindingsPanel = append(bindingsPanel, &types.Binding{})
-	return append(bindingsPanel, bindingsGlobal...)
+	resultBindings := []*types.Binding{}
+	resultBindings = append(resultBindings, uniqueBindings(bindingsPanel)...)
+	// adding a separator between the panel-specific bindings and the other bindings
+	resultBindings = append(resultBindings, &types.Binding{})
+	resultBindings = append(resultBindings, uniqueBindings(bindingsGlobal)...)
+	resultBindings = append(resultBindings, uniqueBindings(bindingsNavigation)...)
+
+	return resultBindings
+}
+
+// We shouldn't really need to do this. We should define alternative keys for the same
+// handler in the keybinding struct.
+func uniqueBindings(bindings []*types.Binding) []*types.Binding {
+	keys := make(map[string]bool)
+	result := make([]*types.Binding, 0)
+
+	for _, binding := range bindings {
+		if _, ok := keys[binding.Description]; !ok {
+			keys[binding.Description] = true
+			result = append(result, binding)
+		}
+	}
+
+	return result
 }
 
 func (gui *Gui) displayDescription(binding *types.Binding) string {

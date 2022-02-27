@@ -5,7 +5,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 全局键绑定
 
 <pre>
-  <kbd>ctrl+r</kbd>: 切换到最近的仓库 (<c-r>)
+  <kbd>ctrl+r</kbd>: 切换到最近的仓库
   <kbd>pgup</kbd>: 向上滚动主面板 (fn+up)
   <kbd>pgdown</kbd>: 向下滚动主面板 (fn+down)
   <kbd>m</kbd>: 查看 合并/变基 选项
@@ -35,6 +35,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd><</kbd>: 滚动到顶部
   <kbd>></kbd>: 滚动到底部
   <kbd>/</kbd>: 开始搜索
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
   <kbd>]</kbd>: 下一个标签
   <kbd>[</kbd>: 上一个标签
 </pre>
@@ -45,12 +47,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+o</kbd>: 将分支名称复制到剪贴板
   <kbd>i</kbd>: 显示 git-flow 选项
   <kbd>space</kbd>: 检出
+  <kbd>n</kbd>: 新分支
   <kbd>o</kbd>: 创建抓取请求
   <kbd>O</kbd>: 创建抓取请求选项
   <kbd>ctrl+y</kbd>: 将抓取请求 URL 复制到剪贴板
   <kbd>c</kbd>: 按名称检出
   <kbd>F</kbd>: 强制检出
-  <kbd>n</kbd>: 新分支
   <kbd>d</kbd>: 删除分支
   <kbd>r</kbd>: 将已检出的分支变基到该分支
   <kbd>M</kbd>: 合并到当前检出的分支
@@ -218,8 +220,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 主要 面板 (合并中)
 
 <pre>
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
   <kbd>esc</kbd>: 返回文件面板
   <kbd>M</kbd>: 打开合并工具
   <kbd>space</kbd>: 选中区块
@@ -234,8 +234,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 主要 面板 (正常)
 
 <pre>
-  <kbd>Ő</kbd>: 向下滚动 (fn+up)
-  <kbd>ő</kbd>: 向上滚动 (fn+down)
+  <kbd>mouse wheel down</kbd>: 向下滚动 (fn+up)
+  <kbd>mouse wheel up</kbd>: 向上滚动 (fn+down)
 </pre>
 
 ## 主要 面板 (构建补丁中)
@@ -252,8 +252,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: 切换拖动选择
   <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
 </pre>
 
 ## 主要 面板 (正在暂存)
@@ -274,8 +272,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: 切换拖动选择
   <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
   <kbd>c</kbd>: 提交更改
   <kbd>w</kbd>: 提交更改而无需预先提交钩子
   <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
@@ -297,7 +293,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
-## 状态 面板
+## 状态 面板 (状态)
 
 <pre>
   <kbd>e</kbd>: 编辑配置文件
