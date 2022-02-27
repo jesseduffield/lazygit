@@ -58,6 +58,10 @@ func (self *CommitishController) GetKeybindings(opts types.KeybindingsOpts) []*t
 	return bindings
 }
 
+func (self *CommitishController) GetOnClick() func() error {
+	return self.checkSelected(self.enter)
+}
+
 func (self *CommitishController) checkSelected(callback func(string) error) func() error {
 	return func() error {
 		refName := self.context.GetSelectedRefName()

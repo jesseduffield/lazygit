@@ -24,6 +24,11 @@ type ItimerSpec struct {
 	Value    Timespec
 }
 
+type Itimerval struct {
+	Interval Timeval
+	Value    Timeval
+}
+
 const (
 	TIME_OK    = 0x0
 	TIME_INS   = 0x1
@@ -4065,3 +4070,91 @@ const (
 	NL_POLICY_TYPE_ATTR_MASK            = 0xc
 	NL_POLICY_TYPE_ATTR_MAX             = 0xc
 )
+
+type CANBitTiming struct {
+	Bitrate      uint32
+	Sample_point uint32
+	Tq           uint32
+	Prop_seg     uint32
+	Phase_seg1   uint32
+	Phase_seg2   uint32
+	Sjw          uint32
+	Brp          uint32
+}
+
+type CANBitTimingConst struct {
+	Name      [16]uint8
+	Tseg1_min uint32
+	Tseg1_max uint32
+	Tseg2_min uint32
+	Tseg2_max uint32
+	Sjw_max   uint32
+	Brp_min   uint32
+	Brp_max   uint32
+	Brp_inc   uint32
+}
+
+type CANClock struct {
+	Freq uint32
+}
+
+type CANBusErrorCounters struct {
+	Txerr uint16
+	Rxerr uint16
+}
+
+type CANCtrlMode struct {
+	Mask  uint32
+	Flags uint32
+}
+
+type CANDeviceStats struct {
+	Bus_error        uint32
+	Error_warning    uint32
+	Error_passive    uint32
+	Bus_off          uint32
+	Arbitration_lost uint32
+	Restarts         uint32
+}
+
+const (
+	CAN_STATE_ERROR_ACTIVE  = 0x0
+	CAN_STATE_ERROR_WARNING = 0x1
+	CAN_STATE_ERROR_PASSIVE = 0x2
+	CAN_STATE_BUS_OFF       = 0x3
+	CAN_STATE_STOPPED       = 0x4
+	CAN_STATE_SLEEPING      = 0x5
+	CAN_STATE_MAX           = 0x6
+)
+
+const (
+	IFLA_CAN_UNSPEC               = 0x0
+	IFLA_CAN_BITTIMING            = 0x1
+	IFLA_CAN_BITTIMING_CONST      = 0x2
+	IFLA_CAN_CLOCK                = 0x3
+	IFLA_CAN_STATE                = 0x4
+	IFLA_CAN_CTRLMODE             = 0x5
+	IFLA_CAN_RESTART_MS           = 0x6
+	IFLA_CAN_RESTART              = 0x7
+	IFLA_CAN_BERR_COUNTER         = 0x8
+	IFLA_CAN_DATA_BITTIMING       = 0x9
+	IFLA_CAN_DATA_BITTIMING_CONST = 0xa
+	IFLA_CAN_TERMINATION          = 0xb
+	IFLA_CAN_TERMINATION_CONST    = 0xc
+	IFLA_CAN_BITRATE_CONST        = 0xd
+	IFLA_CAN_DATA_BITRATE_CONST   = 0xe
+	IFLA_CAN_BITRATE_MAX          = 0xf
+)
+
+type KCMAttach struct {
+	Fd     int32
+	Bpf_fd int32
+}
+
+type KCMUnattach struct {
+	Fd int32
+}
+
+type KCMClone struct {
+	Fd int32
+}

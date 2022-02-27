@@ -57,6 +57,10 @@ func (self *SubCommitsSwitchController) GetKeybindings(opts types.KeybindingsOpt
 	return bindings
 }
 
+func (self *SubCommitsSwitchController) GetOnClick() func() error {
+	return self.viewCommits
+}
+
 func (self *SubCommitsSwitchController) viewCommits() error {
 	refName := self.context.GetSelectedRefName()
 	if refName == "" {

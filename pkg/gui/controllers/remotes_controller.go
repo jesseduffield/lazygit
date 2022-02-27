@@ -35,10 +35,6 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Key:     opts.GetKey(opts.Config.Universal.GoInto),
 			Handler: self.checkSelected(self.enter),
 		},
-		// {
-		// 	Key:     gocui.MouseLeft,
-		// 	Handler: func() error { return self.context.HandleClick(self.checkSelected(self.enter)) },
-		// },
 		{
 			Key:         opts.GetKey(opts.Config.Branches.FetchRemote),
 			Handler:     self.checkSelected(self.fetch),
@@ -62,6 +58,10 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 	}
 
 	return bindings
+}
+
+func (self *RemotesController) GetOnClick() func() error {
+	return self.checkSelected(self.enter)
 }
 
 func (self *RemotesController) enter(remote *models.Remote) error {

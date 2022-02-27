@@ -988,12 +988,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			bindings = append(bindings, binding)
 		}
 
-		for _, binding := range c.GetMouseKeybindings(opts) {
-			if contextKey != context.GLOBAL_CONTEXT_KEY {
-				binding.FromContext = string(contextKey)
-			}
-			mouseKeybindings = append(mouseKeybindings, binding)
-		}
+		mouseKeybindings = append(mouseKeybindings, c.GetMouseKeybindings(opts)...)
 	}
 
 	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {

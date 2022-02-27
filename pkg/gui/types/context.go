@@ -38,6 +38,11 @@ type IBaseContext interface {
 
 	AddKeybindingsFn(KeybindingsFn)
 	AddMouseKeybindingsFn(MouseKeybindingsFn)
+
+	// This is a bit of a hack at the moment: we currently only set an onclick function so that
+	// our list controller can come along and wrap it in a list-specific click handler.
+	// We'll need to think of a better way to do this.
+	AddOnClickFn(func() error)
 }
 
 type Context interface {
@@ -94,6 +99,7 @@ type MouseKeybindingsFn func(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 type HasKeybindings interface {
 	GetKeybindings(opts KeybindingsOpts) []*Binding
 	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
+	GetOnClick() func() error
 }
 
 type IController interface {

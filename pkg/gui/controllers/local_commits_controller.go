@@ -136,10 +136,6 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.LcGotoBottom,
 			Tag:         "navigation",
 		},
-		// {
-		// 	Key:     gocui.MouseLeft,
-		// 	Handler: func() error { return self.context().HandleClick(self.checkSelected(self.enter)) },
-		// },
 	}
 
 	for _, binding := range outsideFilterModeBindings {
