@@ -5,7 +5,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Global Keybindings
 
 <pre>
-  <kbd>ctrl+r</kbd>: switch to a recent repo (<c-r>)
+  <kbd>ctrl+r</kbd>: switch to a recent repo
   <kbd>pgup</kbd>: scroll up main panel (fn+up)
   <kbd>pgdown</kbd>: scroll down main panel (fn+down)
   <kbd>m</kbd>: view merge/rebase options
@@ -35,6 +35,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd><</kbd>: scroll to top
   <kbd>></kbd>: scroll to bottom
   <kbd>/</kbd>: start search
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
   <kbd>]</kbd>: next tab
   <kbd>[</kbd>: previous tab
 </pre>
@@ -45,12 +47,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+o</kbd>: copy branch name to clipboard
   <kbd>i</kbd>: show git-flow options
   <kbd>space</kbd>: checkout
+  <kbd>n</kbd>: new branch
   <kbd>o</kbd>: create pull request
   <kbd>O</kbd>: create pull request options
   <kbd>ctrl+y</kbd>: copy pull request URL to clipboard
   <kbd>c</kbd>: checkout by name
   <kbd>F</kbd>: force checkout
-  <kbd>n</kbd>: new branch
   <kbd>d</kbd>: delete branch
   <kbd>r</kbd>: rebase checked-out branch onto this branch
   <kbd>M</kbd>: merge into currently checked out branch
@@ -218,8 +220,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Main Panel (Merging)
 
 <pre>
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
   <kbd>esc</kbd>: return to files panel
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>space</kbd>: pick hunk
@@ -234,8 +234,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Main Panel (Normal)
 
 <pre>
-  <kbd>Ő</kbd>: scroll down (fn+up)
-  <kbd>ő</kbd>: scroll up (fn+down)
+  <kbd>mouse wheel down</kbd>: scroll down (fn+up)
+  <kbd>mouse wheel up</kbd>: scroll up (fn+down)
 </pre>
 
 ## Main Panel (Patch Building)
@@ -252,8 +252,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
 </pre>
 
 ## Main Panel (Staging)
@@ -274,8 +272,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
   <kbd>c</kbd>: commit changes
   <kbd>w</kbd>: commit changes without pre-commit hook
   <kbd>C</kbd>: commit changes using git editor
@@ -297,7 +293,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: view selected item's files
 </pre>
 
-## Status Panel
+## Status Panel (Status)
 
 <pre>
   <kbd>e</kbd>: edit config file

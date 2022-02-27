@@ -5,7 +5,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Globalne
 
 <pre>
-  <kbd>ctrl+r</kbd>: switch to a recent repo (<c-r>)
+  <kbd>ctrl+r</kbd>: switch to a recent repo
   <kbd>pgup</kbd>: scroll up main panel (fn+up)
   <kbd>pgdown</kbd>: scroll down main panel (fn+down)
   <kbd>m</kbd>: widok scalenia/opcje zmiany bazy
@@ -35,6 +35,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd><</kbd>: scroll to top
   <kbd>></kbd>: scroll to bottom
   <kbd>/</kbd>: start search
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
   <kbd>]</kbd>: next tab
   <kbd>[</kbd>: previous tab
 </pre>
@@ -45,12 +47,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+o</kbd>: copy branch name to clipboard
   <kbd>i</kbd>: show git-flow options
   <kbd>space</kbd>: przełącz
+  <kbd>n</kbd>: nowa gałąź
   <kbd>o</kbd>: utwórz żądanie pobrania
   <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
   <kbd>ctrl+y</kbd>: skopiuj adres URL żądania pobrania do schowka
   <kbd>c</kbd>: przełącz używając nazwy
   <kbd>F</kbd>: wymuś przełączenie
-  <kbd>n</kbd>: nowa gałąź
   <kbd>d</kbd>: usuń gałąź
   <kbd>r</kbd>: zmiana bazy gałęzi
   <kbd>M</kbd>: scal do obecnej gałęzi
@@ -218,8 +220,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Główne Panel (Scalanie)
 
 <pre>
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
   <kbd>esc</kbd>: wróć do panelu plików
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>space</kbd>: wybierz kawałek
@@ -234,8 +234,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Główne Panel (Zwykłe)
 
 <pre>
-  <kbd>Ő</kbd>: przewiń w dół (fn+up)
-  <kbd>ő</kbd>: przewiń w górę (fn+down)
+  <kbd>mouse wheel down</kbd>: przewiń w dół (fn+up)
+  <kbd>mouse wheel up</kbd>: przewiń w górę (fn+down)
 </pre>
 
 ## Główne Panel (Patch Building)
@@ -252,8 +252,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
 </pre>
 
 ## Główne Panel (Poczekalnia)
@@ -274,8 +272,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
   <kbd>c</kbd>: Zatwierdź zmiany
   <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
   <kbd>C</kbd>: Zatwierdź zmiany używając edytora
@@ -297,7 +293,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>
 
-## Status Panel
+## Status Panel (Status)
 
 <pre>
   <kbd>e</kbd>: edytuj konfigurację
