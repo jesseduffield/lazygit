@@ -51,7 +51,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.LcToggleStaged,
 		},
 		{
-			Key:         opts.GetKey("<c-b>"), // TODO: softcode
+			Key:         opts.GetKey(opts.Config.Files.OpenStatusFilter),
 			Handler:     self.handleStatusFilterPressed,
 			Description: self.c.Tr.LcFileFilter,
 		},
