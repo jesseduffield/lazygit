@@ -36,6 +36,11 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description: self.c.Tr.LcCheckout,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Universal.New),
+			Handler:     self.checkSelected(self.newBranch),
+			Description: self.c.Tr.LcNewBranch,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Branches.CreatePullRequest),
 			Handler:     self.checkSelected(self.handleCreatePullRequest),
 			Description: self.c.Tr.LcCreatePullRequest,
@@ -60,11 +65,6 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Key:         opts.GetKey(opts.Config.Branches.ForceCheckoutBranch),
 			Handler:     self.forceCheckout,
 			Description: self.c.Tr.LcForceCheckout,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.checkSelected(self.newBranch),
-			Description: self.c.Tr.LcNewBranch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
