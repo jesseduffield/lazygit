@@ -70,9 +70,10 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 func (self *CommitFilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName: "main",
-			Key:      gocui.MouseLeft,
-			Handler:  self.onClickMain,
+			ViewName:    "main",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickMain,
+			FromContext: string(self.context().GetKey()),
 		},
 	}
 }
@@ -97,12 +98,11 @@ func (self *CommitFilesController) context() *context.CommitFilesContext {
 }
 
 func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	clickedViewLineIdx := opts.Cy + opts.Oy
 	node := self.context().GetSelectedFileNode()
 	if node == nil {
 		return nil
 	}
-	return self.enterCommitFile(node, types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: clickedViewLineIdx})
+	return self.enterCommitFile(node, types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error {

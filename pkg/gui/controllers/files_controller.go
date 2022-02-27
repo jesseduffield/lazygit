@@ -50,10 +50,6 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Handler:     self.checkSelectedFileNode(self.press),
 			Description: self.c.Tr.LcToggleStaged,
 		},
-		// {
-		// 	Key:     gocui.MouseLeft,
-		// 	Handler: func() error { return self.context().HandleClick(self.checkSelectedFileNode(self.press)) },
-		// },
 		{
 			Key:         opts.GetKey("<c-b>"), // TODO: softcode
 			Handler:     self.handleStatusFilterPressed,
@@ -153,16 +149,22 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName: "main",
-			Key:      gocui.MouseLeft,
-			Handler:  self.onClickMain,
+			ViewName:    "main",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickMain,
+			FromContext: string(self.context().GetKey()),
 		},
 		{
-			ViewName: "secondary",
-			Key:      gocui.MouseLeft,
-			Handler:  self.onClickSecondary,
+			ViewName:    "secondary",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickSecondary,
+			FromContext: string(self.context().GetKey()),
 		},
 	}
+}
+
+func (self *FilesController) GetOnClick() func() error {
+	return self.checkSelectedFileNode(self.press)
 }
 
 func (self *FilesController) press(node *filetree.FileNode) error {
@@ -631,13 +633,11 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 }
 
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	clickedViewLineIdx := opts.Cy + opts.Oy
-	return self.EnterFile(types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: clickedViewLineIdx})
+	return self.EnterFile(types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
-	clickedViewLineIdx := opts.Cy + opts.Oy
-	return self.EnterFile(types.OnFocusOpts{ClickedViewName: "secondary", ClickedViewLineIdx: clickedViewLineIdx})
+	return self.EnterFile(types.OnFocusOpts{ClickedViewName: "secondary", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *FilesController) fetch() error {

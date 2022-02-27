@@ -69,11 +69,11 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			Description: self.c.Tr.LcViewBulkSubmoduleOptions,
 			OpensMenu:   true,
 		},
-		// {
-		// 	Key:     gocui.MouseLeft,
-		// 	Handler: func() error { return self.context().HandleClick(self.checkSelected(self.enter)) },
-		// },
 	}
+}
+
+func (self *SubmodulesController) GetOnClick() func() error {
+	return self.checkSelected(self.enter)
 }
 
 func (self *SubmodulesController) enter(submodule *models.SubmoduleConfig) error {

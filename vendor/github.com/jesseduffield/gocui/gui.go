@@ -69,6 +69,11 @@ type tabClickBinding struct {
 	handler  tabClickHandler
 }
 
+// TODO: would be good to define inbound and outbound click handlers e.g.
+// clicking on a file is an inbound thing where we don't care what context you're
+// in when it happens, whereas clicking on the main view from the files view is an
+// outbound click with a specific handler. But this requires more thinking about
+// where handlers should live.
 type ViewMouseBinding struct {
 	// the view that is clicked
 	ViewName string
@@ -77,6 +82,10 @@ type ViewMouseBinding struct {
 	// of the view we're clicking. If this is blank then it is a global binding.
 	FromContext string
 
+	// the context assigned to the clicked view. If blank, then we don't care
+	// what context is assigned
+	ToContext string
+
 	Handler func(ViewMouseBindingOpts) error
 
 	// must be a mouse key
@@ -84,13 +93,8 @@ type ViewMouseBinding struct {
 }
 
 type ViewMouseBindingOpts struct {
-	// cursor x/y
-	Cx int
-	Cy int
-
-	// origin x/y
-	Ox int
-	Oy int
+	X int // i.e. origin x + cursor x
+	Y int // i.e. origin y + cursor y
 }
 
 type GuiMutexes struct {
@@ -1137,8 +1141,8 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		}
 
 		if ev.Mod == ModNone && IsMouseKey(ev.Key) {
-			opts := ViewMouseBindingOpts{Cx: newCx, Cy: newCy, Ox: v.ox, Oy: v.oy}
-			matched, err := g.execMouseKeybindings(v.Name(), ev, opts)
+			opts := ViewMouseBindingOpts{X: newCx + v.ox, Y: newCy + v.oy}
+			matched, err := g.execMouseKeybindings(v, ev, opts)
 			if err != nil {
 				return err
 			}
@@ -1155,16 +1159,20 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 	return nil
 }
 
-func (g *Gui) execMouseKeybindings(viewName string, ev *GocuiEvent, opts ViewMouseBindingOpts) (bool, error) {
-	// first pass looks for ones that match both the view and the current context
+func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts) (bool, error) {
+	isMatch := func(binding *ViewMouseBinding) bool {
+		return binding.ViewName == view.Name() && ev.Key == binding.Key && (binding.ToContext == "" || binding.ToContext == view.Context)
+	}
+
+	// first pass looks for ones that match both the view and the from context
 	for _, binding := range g.viewMouseBindings {
-		if binding.ViewName == viewName && binding.FromContext == g.currentContext && ev.Key == binding.Key {
+		if isMatch(binding) && binding.FromContext != "" && binding.FromContext == g.currentContext {
 			return true, binding.Handler(opts)
 		}
 	}
 
 	for _, binding := range g.viewMouseBindings {
-		if binding.ViewName == viewName && ev.Key == binding.Key {
+		if isMatch(binding) && binding.FromContext == "" {
 			return true, binding.Handler(opts)
 		}
 	}

@@ -173,6 +173,7 @@ func (gui *Gui) resetControllers() {
 	controllers.AttachControllers(gui.State.Contexts.RemoteBranches, remoteBranchesController)
 	controllers.AttachControllers(gui.State.Contexts.Global, gui.Controllers.Sync, gui.Controllers.Undo, gui.Controllers.Global)
 
+	// this must come last so that we've got our click handlers defined against the context
 	listControllerFactory := controllers.NewListControllerFactory(gui.c)
 	for _, context := range gui.getListContexts() {
 		controllers.AttachControllers(context, listControllerFactory.Create(context))

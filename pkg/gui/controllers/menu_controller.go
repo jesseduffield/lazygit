@@ -35,13 +35,13 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Key:     opts.GetKey(opts.Config.Universal.ConfirmAlt1),
 			Handler: self.press,
 		},
-		// {
-		// 	Key:     gocui.MouseLeft,
-		// 	Handler: func() error { return self.context.HandleClick(self.press) },
-		// },
 	}
 
 	return bindings
+}
+
+func (self *MenuController) GetOnClick() func() error {
+	return self.press
 }
 
 func (self *MenuController) press() error {

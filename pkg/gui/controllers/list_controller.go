@@ -61,6 +61,10 @@ func (self *ListController) handleLineChange(change int) error {
 	self.context.GetList().MoveSelectedLine(change)
 	after := self.context.GetList().GetSelectedLineIdx()
 
+	if err := self.pushContextIfNotFocused(); err != nil {
+		return err
+	}
+
 	// doing this check so that if we're holding the up key at the start of the list
 	// we're not constantly re-rendering the main view.
 	if before != after {
@@ -86,20 +90,13 @@ func (self *ListController) HandleGotoBottom() error {
 	return self.handleLineChange(self.context.GetList().GetItemsLength())
 }
 
-func (self *ListController) HandleClick(onClick func() error) error {
+func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 	prevSelectedLineIdx := self.context.GetList().GetSelectedLineIdx()
-	// because we're handling a click, we need to determine the new line idx based
-	// on the view itself.
-	newSelectedLineIdx := self.context.GetViewTrait().SelectedLineIdx()
+	newSelectedLineIdx := opts.Y
+	alreadyFocused := self.isFocused()
 
-	currentContextKey := self.c.CurrentContext().GetKey()
-	alreadyFocused := currentContextKey == self.context.GetKey()
-
-	// we need to focus the view
-	if !alreadyFocused {
-		if err := self.c.PushContext(self.context); err != nil {
-			return err
-		}
+	if err := self.pushContextIfNotFocused(); err != nil {
+		return err
 	}
 
 	if newSelectedLineIdx > self.context.GetList().GetItemsLength()-1 {
@@ -108,26 +105,37 @@ func (self *ListController) HandleClick(onClick func() error) error {
 
 	self.context.GetList().SetSelectedLineIdx(newSelectedLineIdx)
 
-	if prevSelectedLineIdx == newSelectedLineIdx && alreadyFocused && onClick != nil {
-		return onClick()
+	if prevSelectedLineIdx == newSelectedLineIdx && alreadyFocused && self.context.GetOnClick() != nil {
+		return self.context.GetOnClick()()
 	}
 	return self.context.HandleFocus()
 }
 
+func (self *ListController) pushContextIfNotFocused() error {
+	if !self.isFocused() {
+		if err := self.c.PushContext(self.context); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (self *ListController) isFocused() bool {
+	return self.c.CurrentContext().GetKey() == self.context.GetKey()
+}
+
 func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	return []*types.Binding{
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevItemAlt), Modifier: gocui.ModNone, Handler: self.HandlePrevLine},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevItem), Modifier: gocui.ModNone, Handler: self.HandlePrevLine},
-		{Tag: "navigation", Key: gocui.MouseWheelUp, Modifier: gocui.ModNone, Handler: self.HandlePrevLine},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextItemAlt), Modifier: gocui.ModNone, Handler: self.HandleNextLine},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextItem), Modifier: gocui.ModNone, Handler: self.HandleNextLine},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevPage), Modifier: gocui.ModNone, Handler: self.HandlePrevPage, Description: self.c.Tr.LcPrevPage},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextPage), Modifier: gocui.ModNone, Handler: self.HandleNextPage, Description: self.c.Tr.LcNextPage},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoTop), Modifier: gocui.ModNone, Handler: self.HandleGotoTop, Description: self.c.Tr.LcGotoTop},
-		{Key: gocui.MouseLeft, Modifier: gocui.ModNone, Handler: func() error { return self.HandleClick(nil) }},
-		{Tag: "navigation", Key: gocui.MouseWheelDown, Modifier: gocui.ModNone, Handler: self.HandleNextLine},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollLeft), Modifier: gocui.ModNone, Handler: self.HandleScrollLeft},
-		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollRight), Modifier: gocui.ModNone, Handler: self.HandleScrollRight},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevItemAlt), Handler: self.HandlePrevLine},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevItem), Handler: self.HandlePrevLine},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextItemAlt), Handler: self.HandleNextLine},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextItem), Handler: self.HandleNextLine},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.PrevPage), Handler: self.HandlePrevPage, Description: self.c.Tr.LcPrevPage},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.NextPage), Handler: self.HandleNextPage, Description: self.c.Tr.LcNextPage},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoTop), Handler: self.HandleGotoTop, Description: self.c.Tr.LcGotoTop},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollLeft), Handler: self.HandleScrollLeft},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollRight), Handler: self.HandleScrollRight},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
 			Handler:     func() error { self.c.OpenSearch(); return nil },
@@ -139,6 +147,29 @@ func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Description: self.c.Tr.LcGotoBottom,
 			Handler:     self.HandleGotoBottom,
 			Tag:         "navigation",
+		},
+	}
+}
+
+func (self *ListController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
+	return []*gocui.ViewMouseBinding{
+		{
+			ViewName:  self.context.GetViewName(),
+			ToContext: string(self.context.GetKey()),
+			Key:       gocui.MouseWheelUp,
+			Handler:   func(gocui.ViewMouseBindingOpts) error { return self.HandlePrevLine() },
+		},
+		{
+			ViewName:  self.context.GetViewName(),
+			ToContext: string(self.context.GetKey()),
+			Key:       gocui.MouseLeft,
+			Handler:   func(opts gocui.ViewMouseBindingOpts) error { return self.HandleClick(opts) },
+		},
+		{
+			ViewName:  self.context.GetViewName(),
+			ToContext: string(self.context.GetKey()),
+			Key:       gocui.MouseWheelDown,
+			Handler:   func(gocui.ViewMouseBindingOpts) error { return self.HandleNextLine() },
 		},
 	}
 }
