@@ -1,6 +1,7 @@
 #!/bin/sh
 
-set -e
+# expecting an error so we're not setting this
+# set -e
 
 cd $1
 
