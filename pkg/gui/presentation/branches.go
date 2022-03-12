@@ -81,7 +81,7 @@ func ColoredBranchStatus(branch *models.Branch) string {
 	colour := style.FgYellow
 	if branch.MatchesUpstream() {
 		colour = style.FgGreen
-	} else if !branch.IsTrackingRemote() {
+	} else if !branch.IsTrackingRemote() || branch.Pullables == "d" {
 		colour = style.FgRed
 	}
 

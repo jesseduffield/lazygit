@@ -106,6 +106,53 @@ outer:
 	return branches, nil
 }
 
+// Obtain branch information from parsed line output of getRawBranches()
+// split contains the '|' separated tokens in the line of output
+func obtainBranch(split []string) *models.Branch {
+	name := strings.TrimPrefix(split[1], "heads/")
+	branch := &models.Branch{
+		Name:      name,
+		Pullables: "?",
+		Pushables: "?",
+		Head:      split[0] == "*",
+	}
+
+	upstreamName := split[2]
+	if upstreamName == "" {
+		// if we're here then it means we do not have a local version of the remote.
+		// The branch might still be tracking a remote though, we just don't know
+		// how many commits ahead/behind it is
+		return branch
+	}
+
+	track := split[3]
+	re := regexp.MustCompile(`ahead (\d+)`)
+	match := re.FindStringSubmatch(track)
+	if len(match) > 1 {
+		branch.Pushables = match[1]
+	} else {
+		branch.Pushables = "0"
+	}
+
+	re = regexp.MustCompile(`behind (\d+)`)
+	match = re.FindStringSubmatch(track)
+	if len(match) > 1 {
+		branch.Pullables = match[1]
+	} else {
+		branch.Pullables = "0"
+	}
+
+	// If the upstream (tracked) branch is deleted e.g. when a PR is merged
+	// the line will contain "[gone]" at the end
+	// In such a situation there is no longer a concept of pushables
+	if track == "[gone]" {
+		branch.Pullables = "d"
+		branch.Pushables = "?"
+	}
+
+	return branch
+}
+
 func (self *BranchLoader) obtainBranches() []*models.Branch {
 	output, err := self.getRawBranches()
 	if err != nil {
@@ -128,40 +175,7 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 			continue
 		}
 
-		name := strings.TrimPrefix(split[1], "heads/")
-		branch := &models.Branch{
-			Name:      name,
-			Pullables: "?",
-			Pushables: "?",
-			Head:      split[0] == "*",
-		}
-
-		upstreamName := split[2]
-		if upstreamName == "" {
-			// if we're here then it means we do not have a local version of the remote.
-			// The branch might still be tracking a remote though, we just don't know
-			// how many commits ahead/behind it is
-			branches = append(branches, branch)
-			continue
-		}
-
-		track := split[3]
-		re := regexp.MustCompile(`ahead (\d+)`)
-		match := re.FindStringSubmatch(track)
-		if len(match) > 1 {
-			branch.Pushables = match[1]
-		} else {
-			branch.Pushables = "0"
-		}
-
-		re = regexp.MustCompile(`behind (\d+)`)
-		match = re.FindStringSubmatch(track)
-		if len(match) > 1 {
-			branch.Pullables = match[1]
-		} else {
-			branch.Pullables = "0"
-		}
-
+		branch := obtainBranch(split)
 		branches = append(branches, branch)
 	}
 
