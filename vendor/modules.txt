@@ -33,7 +33,7 @@ github.com/fatih/color
 github.com/fsnotify/fsnotify
 # github.com/gdamore/encoding v1.0.0
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.4.1-0.20210926162909-66f061b1fc9b
+# github.com/gdamore/tcell/v2 v2.4.1-0.20220313203054-2a1a1b586447
 ## explicit
 github.com/gdamore/tcell/v2
 github.com/gdamore/tcell/v2/terminfo
@@ -102,7 +102,6 @@ github.com/gobwas/glob/util/runes
 github.com/gobwas/glob/util/strings
 # github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
 ## explicit
-github.com/golang-collections/collections/stack
 # github.com/golang/protobuf v1.3.2
 ## explicit
 # github.com/google/go-cmp v0.5.6

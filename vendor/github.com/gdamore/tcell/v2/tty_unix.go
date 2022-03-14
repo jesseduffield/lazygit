@@ -72,7 +72,6 @@ func (tty *devTty) Start() error {
 	if tty.f, err = os.OpenFile(tty.dev, os.O_RDWR, 0); err != nil {
 		return err
 	}
-	tty.fd = int(tty.f.Fd())
 
 	if !term.IsTerminal(tty.fd) {
 		return errors.New("device is not a terminal")

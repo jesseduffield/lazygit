@@ -281,6 +281,8 @@ func (s *simscreen) hideCursor() {
 	s.cursorvis = false
 }
 
+func (s *simscreen) SetCursorStyle(CursorStyle) {}
+
 func (s *simscreen) Show() {
 	s.Lock()
 	s.resize()

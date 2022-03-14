@@ -9,6 +9,7 @@ func init() {
 	// foot terminal emulator
 	terminfo.AddTerminfo(&terminfo.Terminfo{
 		Name:         "foot",
+		Aliases:      []string{"foot-extra"},
 		Columns:      80,
 		Lines:        24,
 		Colors:       256,

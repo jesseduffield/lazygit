@@ -148,6 +148,8 @@ type tScreen struct {
 	finiOnce     sync.Once
 	enablePaste  string
 	disablePaste string
+	cursorStyles map[CursorStyle]string
+	cursorStyle  CursorStyle
 	saved        *term.State
 	stopQ        chan struct{}
 	running      bool
@@ -332,6 +334,34 @@ func (t *tScreen) prepareBracketedPaste() {
 	}
 }
 
+func (t *tScreen) prepareCursorStyles() {
+	// Another workaround for lack of reporting in terminfo.
+	// We assume if the terminal has a mouse entry, that it
+	// offers bracketed paste.  But we allow specific overrides
+	// via our terminal database.
+	if t.ti.CursorDefault != "" {
+		t.cursorStyles = map[CursorStyle]string{
+			CursorStyleDefault:           t.ti.CursorDefault,
+			CursorStyleBlinkingBlock:     t.ti.CursorBlinkingBlock,
+			CursorStyleSteadyBlock:       t.ti.CursorSteadyBlock,
+			CursorStyleBlinkingUnderline: t.ti.CursorBlinkingUnderline,
+			CursorStyleSteadyUnderline:   t.ti.CursorSteadyUnderline,
+			CursorStyleBlinkingBar:       t.ti.CursorBlinkingBar,
+			CursorStyleSteadyBar:         t.ti.CursorSteadyBar,
+		}
+	} else if t.ti.Mouse != "" {
+		t.cursorStyles = map[CursorStyle]string{
+			CursorStyleDefault:           "\x1b[0 q",
+			CursorStyleBlinkingBlock:     "\x1b[1 q",
+			CursorStyleSteadyBlock:       "\x1b[2 q",
+			CursorStyleBlinkingUnderline: "\x1b[3 q",
+			CursorStyleSteadyUnderline:   "\x1b[4 q",
+			CursorStyleBlinkingBar:       "\x1b[5 q",
+			CursorStyleSteadyBar:         "\x1b[6 q",
+		}
+	}
+}
+
 func (t *tScreen) prepareKey(key Key, val string) {
 	t.prepareKeyMod(key, ModNone, val)
 }
@@ -471,6 +501,7 @@ func (t *tScreen) prepareKeys() {
 	t.prepareKey(keyPasteEnd, ti.PasteEnd)
 	t.prepareXtermModifiers()
 	t.prepareBracketedPaste()
+	t.prepareCursorStyles()
 
 outer:
 	// Add key mappings for control keys.
@@ -517,6 +548,18 @@ func (t *tScreen) SetStyle(style Style) {
 
 func (t *tScreen) Clear() {
 	t.Fill(' ', t.style)
+	t.Lock()
+	t.clear = true
+	w, h := t.cells.Size()
+	// because we are going to clear (see t.clear) in the next cycle,
+	// let's also unmark the dirty bit so that we don't waste cycles
+	// drawing things that are already dealt with via the clear escape sequence.
+	for row := 0; row < h; row++ {
+		for col := 0; col < w; col++ {
+			t.cells.SetDirty(col, row, false)
+		}
+	}
+	t.Unlock()
 }
 
 func (t *tScreen) Fill(r rune, style Style) {
@@ -754,6 +797,12 @@ func (t *tScreen) ShowCursor(x, y int) {
 	t.Unlock()
 }
 
+func (t *tScreen) SetCursorStyle(cs CursorStyle) {
+	t.Lock()
+	t.cursorStyle = cs
+	t.Unlock()
+}
+
 func (t *tScreen) HideCursor() {
 	t.ShowCursor(-1, -1)
 }
@@ -768,6 +817,11 @@ func (t *tScreen) showCursor() {
 	}
 	t.TPuts(t.ti.TGoto(x, y))
 	t.TPuts(t.ti.ShowCursor)
+	if t.cursorStyles != nil {
+		if esc, ok := t.cursorStyles[t.cursorStyle]; ok {
+			t.TPuts(esc)
+		}
+	}
 	t.cx = x
 	t.cy = y
 }
@@ -894,8 +948,9 @@ func (t *tScreen) enableMouse(f MouseFlags) {
 		if f&MouseMotionEvents != 0 {
 			t.TPuts("\x1b[?1003h")
 		}
-
-		t.TPuts("\x1b[?1006h")
+		if f&(MouseButtonEvents|MouseDragEvents|MouseMotionEvents) != 0 {
+			t.TPuts("\x1b[?1006h")
+		}
 	}
 
 }
@@ -1737,6 +1792,9 @@ func (t *tScreen) disengage() {
 	ti := t.ti
 	t.cells.Resize(0, 0)
 	t.TPuts(ti.ShowCursor)
+	if t.cursorStyles != nil && t.cursorStyle != CursorStyleDefault {
+		t.TPuts(t.cursorStyles[t.cursorStyle])
+	}
 	t.TPuts(ti.ResetFgBg)
 	t.TPuts(ti.AttrOff)
 	t.TPuts(ti.Clear)

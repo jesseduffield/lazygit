@@ -46,11 +46,12 @@ type cScreen struct {
 	w int
 	h int
 
-	oscreen consoleInfo
-	ocursor cursorInfo
-	oimode  uint32
-	oomode  uint32
-	cells   CellBuffer
+	oscreen     consoleInfo
+	ocursor     cursorInfo
+	cursorStyle CursorStyle
+	oimode      uint32
+	oomode      uint32
+	cells       CellBuffer
 
 	finiOnce sync.Once
 
@@ -138,19 +139,36 @@ const (
 
 const (
 	// VT100/XTerm escapes understood by the console
-	vtShowCursor = "\x1b[?25h"
-	vtHideCursor = "\x1b[?25l"
-	vtCursorPos  = "\x1b[%d;%dH" // Note that it is Y then X
-	vtSgr0       = "\x1b[0m"
-	vtBold       = "\x1b[1m"
-	vtUnderline  = "\x1b[4m"
-	vtBlink      = "\x1b[5m" // Not sure this is processed
-	vtReverse    = "\x1b[7m"
-	vtSetFg      = "\x1b[38;5;%dm"
-	vtSetBg      = "\x1b[48;5;%dm"
-	vtSetFgRGB   = "\x1b[38;2;%d;%d;%dm" // RGB
-	vtSetBgRGB   = "\x1b[48;2;%d;%d;%dm" // RGB
+	vtShowCursor              = "\x1b[?25h"
+	vtHideCursor              = "\x1b[?25l"
+	vtCursorPos               = "\x1b[%d;%dH" // Note that it is Y then X
+	vtSgr0                    = "\x1b[0m"
+	vtBold                    = "\x1b[1m"
+	vtUnderline               = "\x1b[4m"
+	vtBlink                   = "\x1b[5m" // Not sure this is processed
+	vtReverse                 = "\x1b[7m"
+	vtSetFg                   = "\x1b[38;5;%dm"
+	vtSetBg                   = "\x1b[48;5;%dm"
+	vtSetFgRGB                = "\x1b[38;2;%d;%d;%dm" // RGB
+	vtSetBgRGB                = "\x1b[48;2;%d;%d;%dm" // RGB
+	vtCursorDefault           = "\x1b[0 q"
+	vtCursorBlinkingBlock     = "\x1b[1 q"
+	vtCursorSteadyBlock       = "\x1b[2 q"
+	vtCursorBlinkingUnderline = "\x1b[3 q"
+	vtCursorSteadyUnderline   = "\x1b[4 q"
+	vtCursorBlinkingBar       = "\x1b[5 q"
+	vtCursorSteadyBar         = "\x1b[6 q"
 )
+
+var vtCursorStyles = map[CursorStyle]string{
+	CursorStyleDefault:           vtCursorDefault,
+	CursorStyleBlinkingBlock:     vtCursorBlinkingBlock,
+	CursorStyleSteadyBlock:       vtCursorSteadyBlock,
+	CursorStyleBlinkingUnderline: vtCursorBlinkingUnderline,
+	CursorStyleSteadyUnderline:   vtCursorSteadyUnderline,
+	CursorStyleBlinkingBar:       vtCursorBlinkingBar,
+	CursorStyleSteadyBar:         vtCursorSteadyBar,
+}
 
 // NewConsoleScreen returns a Screen for the Windows console associated
 // with the current process.  The Screen makes use of the Windows Console
@@ -280,6 +298,9 @@ func (s *cScreen) disengage() {
 
 	s.wg.Wait()
 
+	if s.vten {
+		s.emitVtString(vtCursorStyles[CursorStyleDefault])
+	}
 	s.setInMode(s.oimode)
 	s.setOutMode(s.oomode)
 	s.setBufferSize(int(s.oscreen.size.x), int(s.oscreen.size.y))
@@ -406,6 +427,7 @@ func (s *cScreen) emitVtString(vs string) {
 func (s *cScreen) showCursor() {
 	if s.vten {
 		s.emitVtString(vtShowCursor)
+		s.emitVtString(vtCursorStyles[s.cursorStyle])
 	} else {
 		s.setCursorInfo(&cursorInfo{size: 100, visible: 1})
 	}
@@ -426,6 +448,17 @@ func (s *cScreen) ShowCursor(x, y int) {
 		s.cury = y
 	}
 	s.doCursor()
+	s.Unlock()
+}
+
+func (s *cScreen) SetCursorStyle(cs CursorStyle) {
+	s.Lock()
+	if !s.fini {
+		if _, ok := vtCursorStyles[cs]; ok {
+			s.cursorStyle = cs
+			s.doCursor()
+		}
+	}
 	s.Unlock()
 }
 
