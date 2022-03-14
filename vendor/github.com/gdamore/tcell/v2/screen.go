@@ -71,8 +71,13 @@ type Screen interface {
 	ShowCursor(x int, y int)
 
 	// HideCursor is used to hide the cursor.  Its an alias for
-	// ShowCursor(-1, -1).
+	// ShowCursor(-1, -1).sim
 	HideCursor()
+
+	// SetCursorStyle is used to set the cursor style.  If the style
+	// is not supported (or cursor styles are not supported at all),
+	// then this will have no effect.
+	SetCursorStyle(CursorStyle)
 
 	// Size returns the screen size as width, height.  This changes in
 	// response to a call to Clear or Flush.
@@ -257,4 +262,18 @@ const (
 	MouseButtonEvents = MouseFlags(1) // Click events only
 	MouseDragEvents   = MouseFlags(2) // Click-drag events (includes button events)
 	MouseMotionEvents = MouseFlags(4) // All mouse events (includes click and drag events)
+)
+
+// CursorStyle represents a given cursor style, which can include the shape and
+// whether the cursor blinks or is solid.  Support for changing these is not universal.
+type CursorStyle int
+
+const (
+	CursorStyleDefault = CursorStyle(iota) // The default
+	CursorStyleBlinkingBlock
+	CursorStyleSteadyBlock
+	CursorStyleBlinkingUnderline
+	CursorStyleSteadyUnderline
+	CursorStyleBlinkingBar
+	CursorStyleSteadyBar
 )

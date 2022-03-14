@@ -167,59 +167,66 @@ type Terminfo struct {
 	// Terminal support for these are going to vary amongst XTerm
 	// emulations, so don't depend too much on them in your application.
 
-	StrikeThrough   string // smxx
-	SetFgBg         string // setfgbg
-	SetFgBgRGB      string // setfgbgrgb
-	SetFgRGB        string // setfrgb
-	SetBgRGB        string // setbrgb
-	KeyShfUp        string // shift-up
-	KeyShfDown      string // shift-down
-	KeyShfPgUp      string // shift-kpp
-	KeyShfPgDn      string // shift-knp
-	KeyCtrlUp       string // ctrl-up
-	KeyCtrlDown     string // ctrl-left
-	KeyCtrlRight    string // ctrl-right
-	KeyCtrlLeft     string // ctrl-left
-	KeyMetaUp       string // meta-up
-	KeyMetaDown     string // meta-left
-	KeyMetaRight    string // meta-right
-	KeyMetaLeft     string // meta-left
-	KeyAltUp        string // alt-up
-	KeyAltDown      string // alt-left
-	KeyAltRight     string // alt-right
-	KeyAltLeft      string // alt-left
-	KeyCtrlHome     string
-	KeyCtrlEnd      string
-	KeyMetaHome     string
-	KeyMetaEnd      string
-	KeyAltHome      string
-	KeyAltEnd       string
-	KeyAltShfUp     string
-	KeyAltShfDown   string
-	KeyAltShfLeft   string
-	KeyAltShfRight  string
-	KeyMetaShfUp    string
-	KeyMetaShfDown  string
-	KeyMetaShfLeft  string
-	KeyMetaShfRight string
-	KeyCtrlShfUp    string
-	KeyCtrlShfDown  string
-	KeyCtrlShfLeft  string
-	KeyCtrlShfRight string
-	KeyCtrlShfHome  string
-	KeyCtrlShfEnd   string
-	KeyAltShfHome   string
-	KeyAltShfEnd    string
-	KeyMetaShfHome  string
-	KeyMetaShfEnd   string
-	EnablePaste     string // bracketed paste mode
-	DisablePaste    string
-	PasteStart      string
-	PasteEnd        string
-	Modifiers       int
-	InsertChar      string // string to insert a character (ich1)
-	AutoMargin      bool   // true if writing to last cell in line advances
-	TrueColor       bool   // true if the terminal supports direct color
+	StrikeThrough           string // smxx
+	SetFgBg                 string // setfgbg
+	SetFgBgRGB              string // setfgbgrgb
+	SetFgRGB                string // setfrgb
+	SetBgRGB                string // setbrgb
+	KeyShfUp                string // shift-up
+	KeyShfDown              string // shift-down
+	KeyShfPgUp              string // shift-kpp
+	KeyShfPgDn              string // shift-knp
+	KeyCtrlUp               string // ctrl-up
+	KeyCtrlDown             string // ctrl-left
+	KeyCtrlRight            string // ctrl-right
+	KeyCtrlLeft             string // ctrl-left
+	KeyMetaUp               string // meta-up
+	KeyMetaDown             string // meta-left
+	KeyMetaRight            string // meta-right
+	KeyMetaLeft             string // meta-left
+	KeyAltUp                string // alt-up
+	KeyAltDown              string // alt-left
+	KeyAltRight             string // alt-right
+	KeyAltLeft              string // alt-left
+	KeyCtrlHome             string
+	KeyCtrlEnd              string
+	KeyMetaHome             string
+	KeyMetaEnd              string
+	KeyAltHome              string
+	KeyAltEnd               string
+	KeyAltShfUp             string
+	KeyAltShfDown           string
+	KeyAltShfLeft           string
+	KeyAltShfRight          string
+	KeyMetaShfUp            string
+	KeyMetaShfDown          string
+	KeyMetaShfLeft          string
+	KeyMetaShfRight         string
+	KeyCtrlShfUp            string
+	KeyCtrlShfDown          string
+	KeyCtrlShfLeft          string
+	KeyCtrlShfRight         string
+	KeyCtrlShfHome          string
+	KeyCtrlShfEnd           string
+	KeyAltShfHome           string
+	KeyAltShfEnd            string
+	KeyMetaShfHome          string
+	KeyMetaShfEnd           string
+	EnablePaste             string // bracketed paste mode
+	DisablePaste            string
+	PasteStart              string
+	PasteEnd                string
+	Modifiers               int
+	InsertChar              string // string to insert a character (ich1)
+	AutoMargin              bool   // true if writing to last cell in line advances
+	TrueColor               bool   // true if the terminal supports direct color
+	CursorDefault           string
+	CursorBlinkingBlock     string
+	CursorSteadyBlock       string
+	CursorBlinkingUnderline string
+	CursorSteadyUnderline   string
+	CursorBlinkingBar       string
+	CursorSteadyBar         string
 }
 
 const (
