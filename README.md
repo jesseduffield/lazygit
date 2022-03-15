@@ -175,8 +175,8 @@ go install github.com/jesseduffield/lazygit@latest
 Please note:
 If you get an error claiming that lazygit cannot be found or is not defined, you
 may need to add `~/go/bin` to your \$PATH (MacOS/Linux), or `%HOME%\go\bin`
-(Windows). Not to be mistaked for `C:\Go\bin` (which is for Go's own binaries,
-not apps like Lazygit).
+(Windows). Not to be mistaken for `C:\Go\bin` (which is for Go's own binaries,
+not apps like lazygit).
 
 ### Chocolatey (Windows)
 
@@ -232,7 +232,7 @@ lg()
 }
 ```
 
-Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch directories to whatever you were in inside lazyigt. To override this behaviour you can exit using `shift+Q` rather than just `q`.
+Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch directories to whatever you were in inside lazygit. To override this behaviour you can exit using `shift+Q` rather than just `q`.
 
 ### Undo/Redo
 
