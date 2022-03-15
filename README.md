@@ -2,10 +2,7 @@
   <img src="https://i.imgur.com/oYB7Cj8.png">
 </p>
 
-![CI](https://github.com/jesseduffield/lazygit/workflows/Continuous%20Integration/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GoDoc](https://godoc.org/github.com/jesseduffield/lazygit?status.svg)](http://godoc.org/github.com/jesseduffield/lazygit) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)]() [![TODOs](https://badgen.net/https/api.tickgit.com/badgen/github.com/jesseduffield/lazygit)](https://www.tickgit.com/browse?repo=github.com/jesseduffield/lazygit)
-
-
-
+![CI](https://github.com/jesseduffield/lazygit/workflows/Continuous%20Integration/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GoDoc](https://godoc.org/github.com/jesseduffield/lazygit?status.svg)](http://godoc.org/github.com/jesseduffield/lazygit) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](<>) [![TODOs](https://badgen.net/https/api.tickgit.com/badgen/github.com/jesseduffield/lazygit)](https://www.tickgit.com/browse?repo=github.com/jesseduffield/lazygit)
 
 A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
 
@@ -157,7 +154,6 @@ sudo emerge dev-vcs/lazygit
 pkg install lazygit
 ```
 
-
 ### Conda
 
 Released versions are available for different platforms, see <https://anaconda.org/conda-forge/lazygit>
@@ -174,7 +170,7 @@ go install github.com/jesseduffield/lazygit@latest
 
 Please note:
 If you get an error claiming that lazygit cannot be found or is not defined, you
-may need to add `~/go/bin` to your \$PATH (MacOS/Linux), or `%HOME%\go\bin`
+may need to add `~/go/bin` to your $PATH (MacOS/Linux), or `%HOME%\go\bin`
 (Windows). Not to be mistaken for `C:\Go\bin` (which is for Go's own binaries,
 not apps like lazygit).
 
@@ -258,7 +254,6 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 - [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
 - [Twitch Stream](https://www.twitch.tv/jesseduffield)
 
-
 ## Cool features
 
 - Adding files easily
@@ -284,6 +279,7 @@ For contributor discussion about things not better discussed here in the repo, j
 [![Slack](../assets/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/zt-5bo2clzo-hB8ZTVN5dWUCqj5QFiQVLA)
 
 ### Debugging Locally
+
 Run `lazygit --debug` in one terminal tab and `lazygit --logs` in another to view the program and its log output side by side
 
 ## Donate
@@ -293,6 +289,7 @@ If you would like to support the development of lazygit, consider [sponsoring me
 ## FAQ
 
 ### I'm struggling to see the selected line
+
 see [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#struggling-to-see-selected-line)
 
 ## Social
