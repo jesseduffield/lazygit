@@ -124,6 +124,8 @@ type Gui struct {
 	PopupHandler PopupHandler
 
 	IsNewRepo bool
+
+	InitialRepoDir string
 }
 
 type listPanelState struct {
@@ -447,6 +449,7 @@ func NewGui(
 	updater *updates.Updater,
 	filterPath string,
 	showRecentRepos bool,
+	initialRepoDir string,
 ) (*Gui, error) {
 	gui := &Gui{
 		Common:                  cmn,
@@ -464,6 +467,8 @@ func NewGui(
 		// but now we do it via state. So we need to still support the config for the
 		// sake of backwards compatibility. We're making use of short circuiting here
 		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
+
+		InitialRepoDir: initialRepoDir,
 	}
 
 	guiIO := oscommands.NewGuiIO(
@@ -590,7 +595,11 @@ func (gui *Gui) RunAndHandleError() error {
 
 			switch err {
 			case gocui.ErrQuit:
-				if !gui.State.RetainOriginalDir {
+				if gui.State.RetainOriginalDir {
+					if err := gui.recordDirectory(gui.InitialRepoDir); err != nil {
+						return err
+					}
+				} else {
 					if err := gui.recordCurrentDirectory(); err != nil {
 						return err
 					}

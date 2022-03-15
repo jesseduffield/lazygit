@@ -128,6 +128,11 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 		return app, err
 	}
 
+	dirName, err := os.Getwd()
+	if err != nil {
+		return app, err
+	}
+
 	showRecentRepos, err := app.setupRepo()
 	if err != nil {
 		return app, err
@@ -135,7 +140,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 
 	gitConfig := git_config.NewStdCachedGitConfig(app.Log)
 
-	app.Gui, err = gui.NewGui(app.Common, config, gitConfig, app.Updater, filterPath, showRecentRepos)
+	app.Gui, err = gui.NewGui(app.Common, config, gitConfig, app.Updater, filterPath, showRecentRepos, dirName)
 	if err != nil {
 		return app, err
 	}
