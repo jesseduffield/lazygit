@@ -84,6 +84,10 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 	gui.Mutexes.RefreshingFilesMutex.Lock()
 	defer gui.Mutexes.RefreshingFilesMutex.Unlock()
 
+	if err := gui.recordCurrentDirectory(); err != nil {
+		return err
+	}
+
 	gui.resetState("", reuse)
 
 	return nil
