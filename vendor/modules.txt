@@ -74,7 +74,7 @@ github.com/gdamore/tcell/v2/terminfo/x/xfce
 github.com/gdamore/tcell/v2/terminfo/x/xterm
 github.com/gdamore/tcell/v2/terminfo/x/xterm_kitty
 github.com/gdamore/tcell/v2/terminfo/x/xterm_termite
-# github.com/go-errors/errors v1.4.2
+# github.com/go-errors/errors v1.4.1
 ## explicit
 github.com/go-errors/errors
 # github.com/go-git/gcfg v1.5.0
