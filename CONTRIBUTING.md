@@ -64,7 +64,7 @@ If you find that the existing logs are too noisy, you can set the log level with
 
 If you keep having to do some setup steps to reproduce an issue, read the Testing section below to see how to create an integration test by recording a lazygit session. It's pretty easy!
 
-If you want to trigger a debug session from VSCode, you can use the following snippet. Note that the 'console' key is not, at the time of writing, in a stable release.
+If you want to trigger a debug session from VSCode, you can use the following snippet. Note that the `console` key is, at the time of writing, still an experimental feature.
 
 ```jsonc
 // .vscode/launch.json
@@ -77,6 +77,9 @@ If you want to trigger a debug session from VSCode, you can use the following sn
       "request": "launch",
       "mode": "auto",
       "program": "main.go",
+      "args": [
+        "--debug"
+      ],
       "console": "externalTerminal" // <-- you need this to actually see the lazygit UI in a window while debugging
     }
   ]
