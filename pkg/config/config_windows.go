@@ -1,10 +1,12 @@
 package config
 
+const DefaultEditCommandTemplate = `{{editor}} {{filename}}`
+
 // GetPlatformDefaultConfig gets the defaults for the platform
 func GetPlatformDefaultConfig() OSConfig {
 	return OSConfig{
 		EditCommand:         ``,
-		EditCommandTemplate: `{{editor}} {{filename}}`,
+		EditCommandTemplate: DefaultEditCommandTemplate,
 		OpenCommand:         `start "" {{filename}}`,
 		OpenLinkCommand:     `start "" {{link}}`,
 	}

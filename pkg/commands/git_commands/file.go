@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -58,7 +59,7 @@ func (self *FileCommands) GetEditCmdStr(filename string, lineNumber int) (string
 	}
 
 	editCmdTemplate := self.UserConfig.OS.EditCommandTemplate
-	if editCmdTemplate == "{{editor}} {{filename}}" {
+	if editCmdTemplate == config.DefaultEditCommandTemplate {
 		switch editor {
 		case "emacs", "nano", "vi", "vim":
 			editCmdTemplate = "{{editor}} +{{line}} {{filename}}"
