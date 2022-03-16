@@ -121,7 +121,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@ssh.dev.azure.com:v3/myorg/myproject/myrepo",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature/new", url)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
 			},
 		},
 		{
@@ -131,7 +131,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "git@ssh.dev.azure.com:v3/myorg/myproject/myrepo",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature/new&targetRef=dev", url)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew&targetRef=dev", url)
 			},
 		},
 		{
@@ -140,7 +140,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "https://myorg@dev.azure.com/myorg/myproject/_git/myrepo",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature/new", url)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew", url)
 			},
 		},
 		{
@@ -150,7 +150,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			remoteUrl: "https://myorg@dev.azure.com/myorg/myproject/_git/myrepo",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature/new&targetRef=dev", url)
+				assert.Equal(t, "https://dev.azure.com/myorg/myproject/_git/myrepo/pullrequestcreate?sourceRef=feature%2Fnew&targetRef=dev", url)
 			},
 		},
 		{
