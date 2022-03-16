@@ -66,7 +66,7 @@ func (self *FileCommands) GetEditCmdStr(filename string, lineNumber int) (string
 		case "subl":
 			editCmdTemplate = "{{editor}} {{filename}}:{{line}}"
 		case "code":
-			editCmdTemplate = "{{editor}} --goto {{filename}}:{{line}}"
+			editCmdTemplate = "{{editor}} -r --goto {{filename}}:{{line}}"
 		}
 	}
 	return utils.ResolvePlaceholderString(editCmdTemplate, templateValues), nil
