@@ -35,13 +35,11 @@ func GetDir() string {
 }
 
 func generateAtDir(cheatsheetDir string) {
-	os.Setenv("LANG", "en")
-
 	translationSetsByLang := i18n.GetTranslationSets()
 	mConfig := config.NewDummyAppConfig()
 
 	for lang := range translationSetsByLang {
-		os.Setenv("LC_ALL", lang)
+		mConfig.GetUserConfig().Gui.Language = lang
 		mApp, _ := app.NewApp(mConfig, "")
 		path := cheatsheetDir + "/Keybindings_" + lang + ".md"
 		file, err := os.Create(path)

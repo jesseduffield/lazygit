@@ -18,7 +18,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+z</kbd>: redo (via reflog) (experimenteel)
   <kbd>+</kbd>: volgende scherm modus (normaal/half/groot)
   <kbd>_</kbd>: vorige scherm modus
-  <kbd>:</kbd>: voor aangepaste commando uit
+  <kbd>:</kbd>: voer aangepaste commando uit
   <kbd>ctrl+s</kbd>: bekijk scoping opties
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
@@ -63,7 +63,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Branches Paneel (Remote Branches (in Remotes tabblad))
 
 <pre>
-  <kbd>esc</kbd>: Ga terug naar remotes lijst
+  <kbd>esc</kbd>: ga terug naar remotes lijst
   <kbd>g</kbd>: bekijk reset opties
   <kbd>enter</kbd>: bekijk commits
   <kbd>space</kbd>: uitchecken
@@ -179,7 +179,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Bestanden Paneel (Bestanden)
 
 <pre>
-  <kbd>c</kbd>: Commit veranderingen
+  <kbd>c</kbd>: commit veranderingen
   <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
   <kbd>A</kbd>: wijzig laatste commit
   <kbd>C</kbd>: commit veranderingen met de git editor
@@ -276,7 +276,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>a</kbd>: toggle selecteer hunk
   <kbd>H</kbd>: scroll left
   <kbd>L</kbd>: scroll right
-  <kbd>c</kbd>: Commit veranderingen
+  <kbd>c</kbd>: commit veranderingen
   <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
   <kbd>C</kbd>: commit veranderingen met de git editor
 </pre>
