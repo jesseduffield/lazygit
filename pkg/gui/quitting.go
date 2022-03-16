@@ -20,10 +20,11 @@ func (gui *Gui) recordCurrentDirectory() error {
 }
 
 func (gui *Gui) recordDirectory(dirName string) error {
-	if os.Getenv("LAZYGIT_NEW_DIR_FILE") == "" {
+	newDirFilePath := os.Getenv("LAZYGIT_NEW_DIR_FILE")
+	if newDirFilePath == "" {
 		return nil
 	}
-	return gui.OSCommand.CreateFileWithContent(os.Getenv("LAZYGIT_NEW_DIR_FILE"), dirName)
+	return gui.OSCommand.CreateFileWithContent(newDirFilePath, dirName)
 }
 
 func (gui *Gui) handleQuitWithoutChangingDirectory() error {
