@@ -292,11 +292,10 @@ If you would like to support the development of lazygit, consider [sponsoring me
 
 see [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#struggling-to-see-selected-line)
 
-## Social
+## Shameless Plug
 
 If you want to see what I (Jesse) am up to in terms of development, follow me on
-[twitter](https://twitter.com/DuffieldJesse) or watch me program on
-[twitch](https://www.twitch.tv/jesseduffield).
+[twitter](https://twitter.com/DuffieldJesse) or check out my [blog](https://jesseduffield.com/)
 
 ## Alternatives
 
