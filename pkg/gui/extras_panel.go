@@ -42,13 +42,13 @@ func (gui *Gui) handleFocusCommandLog() error {
 func (gui *Gui) scrollUpExtra() error {
 	gui.Views.Extras.Autoscroll = false
 
-	return gui.scrollUpView(gui.Views.Extras)
+	return gui.scrollUpView(gui.Views.Extras, gui.UserConfig.Gui.ScrollHeight)
 }
 
 func (gui *Gui) scrollDownExtra() error {
 	gui.Views.Extras.Autoscroll = false
 
-	if err := gui.scrollDownView(gui.Views.Extras); err != nil {
+	if err := gui.scrollDownView(gui.Views.Extras, gui.UserConfig.Gui.ScrollHeight); err != nil {
 		return err
 	}
 

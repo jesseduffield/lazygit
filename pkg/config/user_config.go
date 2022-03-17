@@ -187,6 +187,8 @@ type KeybindingUniversalConfig struct {
 	ToggleWhitespaceInDiffView   string   `yaml:"toggleWhitespaceInDiffView"`
 	IncreaseContextInDiffView    string   `yaml:"increaseContextInDiffView"`
 	DecreaseContextInDiffView    string   `yaml:"decreaseContextInDiffView"`
+	WithModPageUp                string   `yaml:"withModPageUp"`
+	WithModPageDown              string   `yaml:"withModPageDown"`
 }
 
 type KeybindingStatusConfig struct {
@@ -457,6 +459,8 @@ func GetDefaultConfig() *UserConfig {
 				ToggleWhitespaceInDiffView:   "<c-w>",
 				IncreaseContextInDiffView:    "}",
 				DecreaseContextInDiffView:    "{",
+				WithModPageUp:                "f",
+				WithModPageDown:              "b",
 			},
 			Status: KeybindingStatusConfig{
 				CheckForUpdate:      "u",

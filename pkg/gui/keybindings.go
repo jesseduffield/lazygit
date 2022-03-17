@@ -358,6 +358,18 @@ func (gui *Gui) GetInitialKeybindings() []*Binding {
 			Description: gui.Tr.LcPrevScreenMode,
 		},
 		{
+			ViewName: "",
+			Key:      gui.getKey(config.Universal.WithModPageUp),
+			Modifier: gocui.ModAlt,
+			Handler:  gui.pageUpMain,
+		},
+		{
+			ViewName: "",
+			Key:      gui.getKey(config.Universal.WithModPageDown),
+			Modifier: gocui.ModAlt,
+			Handler:  gui.pageDownMain,
+		},
+		{
 			ViewName:    "status",
 			Key:         gui.getKey(config.Universal.OpenFile),
 			Handler:     gui.handleOpenConfig,
