@@ -14,14 +14,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>x</kbd>: open menu
   <kbd>+</kbd>: volgende scherm modus (normaal/half/groot)
   <kbd>_</kbd>: vorige scherm modus
-  <kbd>:</kbd>: voer aangepaste commando uit
   <kbd>ctrl+s</kbd>: bekijk scoping opties
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
-  <kbd>:</kbd>: voor aangepaste commando uit
+  <kbd>:</kbd>: voer aangepaste commando uit
   <kbd>z</kbd>: ongedaan maken (via reflog) (experimenteel)
   <kbd>ctrl+z</kbd>: redo (via reflog) (experimenteel)
   <kbd>P</kbd>: push
@@ -66,15 +65,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Branches Paneel (Remote Branches (in Remotes tabblad))
 
 <pre>
-  <kbd>esc</kbd>: ga terug naar remotes lijst
-  <kbd>g</kbd>: bekijk reset opties
   <kbd>space</kbd>: uitchecken
   <kbd>n</kbd>: nieuwe branch
   <kbd>M</kbd>: merge in met huidige checked out branch
   <kbd>r</kbd>: rebase branch
   <kbd>d</kbd>: verwijder branch
   <kbd>u</kbd>: stel in als upstream van uitgecheckte branch
-  <kbd>esc</kbd>: Ga terug naar remotes lijst
+  <kbd>esc</kbd>: ga terug naar remotes lijst
   <kbd>g</kbd>: bekijk reset opties
   <kbd>enter</kbd>: bekijk commits
 </pre>
@@ -183,6 +180,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Bestanden Paneel (Bestanden)
 
 <pre>
+  <kbd>ctrl+o</kbd>: kopieer de bestandsnaam naar het klembord
+  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
+  <kbd>d</kbd>: bekijk 'veranderingen ongedaan maken' opties
+  <kbd>space</kbd>: toggle staged
+  <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
   <kbd>c</kbd>: commit veranderingen
   <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
   <kbd>A</kbd>: wijzig laatste commit
@@ -270,8 +272,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
   <kbd>c</kbd>: commit veranderingen
   <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
   <kbd>C</kbd>: commit veranderingen met de git editor
