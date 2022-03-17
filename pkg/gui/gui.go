@@ -675,8 +675,10 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unpara
 	subprocess.Stderr = ioutil.Discard
 	subprocess.Stdin = nil
 
-	fmt.Fprintf(os.Stdout, "\n%s\n", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
-	fmt.Scanln() // wait for enter press
+	if gui.Config.GetUserConfig().PromptToReturnFromSubprocess {
+		fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
+		fmt.Scanln() // wait for enter press
+	}
 
 	return err
 }

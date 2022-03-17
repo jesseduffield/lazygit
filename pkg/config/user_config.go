@@ -11,11 +11,12 @@ type UserConfig struct {
 	QuitOnTopLevelReturn bool             `yaml:"quitOnTopLevelReturn"`
 	Keybinding           KeybindingConfig `yaml:"keybinding"`
 	// OS determines what defaults are set for opening files and links
-	OS                   OSConfig          `yaml:"os,omitempty"`
-	DisableStartupPopups bool              `yaml:"disableStartupPopups"`
-	CustomCommands       []CustomCommand   `yaml:"customCommands"`
-	Services             map[string]string `yaml:"services"`
-	NotARepository       string            `yaml:"notARepository"`
+	OS                           OSConfig          `yaml:"os,omitempty"`
+	DisableStartupPopups         bool              `yaml:"disableStartupPopups"`
+	CustomCommands               []CustomCommand   `yaml:"customCommands"`
+	Services                     map[string]string `yaml:"services"`
+	NotARepository               string            `yaml:"notARepository"`
+	PromptToReturnFromSubprocess bool              `yaml:"promptToReturnFromSubprocess"`
 }
 
 type RefresherConfig struct {
@@ -535,10 +536,11 @@ func GetDefaultConfig() *UserConfig {
 				BulkMenu: "b",
 			},
 		},
-		OS:                   GetPlatformDefaultConfig(),
-		DisableStartupPopups: false,
-		CustomCommands:       []CustomCommand(nil),
-		Services:             map[string]string(nil),
-		NotARepository:       "prompt",
+		OS:                           GetPlatformDefaultConfig(),
+		DisableStartupPopups:         false,
+		CustomCommands:               []CustomCommand(nil),
+		Services:                     map[string]string(nil),
+		NotARepository:               "prompt",
+		PromptToReturnFromSubprocess: true,
 	}
 }
