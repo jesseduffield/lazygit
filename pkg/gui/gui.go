@@ -125,7 +125,13 @@ type Gui struct {
 
 	IsNewRepo bool
 
-	InitialRepoDir string
+	// this is the initial dir we are in upon opening lazygit. We hold onto this
+	// in case we want to restore it before quitting for users who have set up
+	// the feature for changing directory upon quit.
+	// The reason we don't just wait until quit time to handle changing directories
+	// is because some users want to keep track of the current lazygit directory in an outside
+	// process
+	InitialDir string
 }
 
 type listPanelState struct {
@@ -449,7 +455,7 @@ func NewGui(
 	updater *updates.Updater,
 	filterPath string,
 	showRecentRepos bool,
-	initialRepoDir string,
+	initialDir string,
 ) (*Gui, error) {
 	gui := &Gui{
 		Common:                  cmn,
@@ -468,7 +474,7 @@ func NewGui(
 		// sake of backwards compatibility. We're making use of short circuiting here
 		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
 
-		InitialRepoDir: initialRepoDir,
+		InitialDir: initialDir,
 	}
 
 	guiIO := oscommands.NewGuiIO(
@@ -596,7 +602,7 @@ func (gui *Gui) RunAndHandleError() error {
 			switch err {
 			case gocui.ErrQuit:
 				if gui.State.RetainOriginalDir {
-					if err := gui.recordDirectory(gui.InitialRepoDir); err != nil {
+					if err := gui.recordDirectory(gui.InitialDir); err != nil {
 						return err
 					}
 				} else {
