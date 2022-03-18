@@ -329,7 +329,6 @@ func (u *Updater) verifyResourceFound(rawUrl string) bool {
 	}
 	defer resp.Body.Close()
 	u.Log.Info("Received status code ", resp.StatusCode)
-	// 403 means the resource is there (not going to bother adding extra request headers)
-	// 404 means its not
-	return resp.StatusCode == 403
+	// OK (200) indicates that the resource is present.
+	return resp.StatusCode == http.StatusOK
 }
