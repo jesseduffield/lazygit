@@ -30,7 +30,7 @@ type ViewBufferManager struct {
 	waitingMutex sync.Mutex
 	taskIDMutex  sync.Mutex
 	Log          *logrus.Entry
-	newTaskId    int
+	newTaskID    int
 	readLines    chan int
 	taskKey      string
 	onNewKey     func()
@@ -70,14 +70,14 @@ func NewViewBufferManager(
 	}
 }
 
-func (m *ViewBufferManager) ReadLines(n int) {
+func (self *ViewBufferManager) ReadLines(n int) {
 	go utils.Safe(func() {
-		m.readLines <- n
+		self.readLines <- n
 	})
 }
 
 // note: onDone may be called twice
-func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead int, onDone func()) func(chan struct{}) error {
+func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead int, onDone func()) func(chan struct{}) error {
 	return func(stop chan struct{}) error {
 		var once sync.Once
 		var onDoneWrapper func()
@@ -85,8 +85,8 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 			onDoneWrapper = func() { once.Do(onDone) }
 		}
 
-		if m.throttle {
-			m.Log.Info("throttling task")
+		if self.throttle {
+			self.Log.Info("throttling task")
 			time.Sleep(THROTTLE_TIME)
 		}
 
@@ -106,10 +106,10 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 			// are running slow at the moment. This is admittedly a crude estimate, but
 			// the point is that we only want to throttle when things are running slow
 			// and the user is flicking through a bunch of items.
-			m.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
+			self.throttle = time.Since(startTime) < THROTTLE_TIME && timeToStart > COMMAND_START_THRESHOLD
 			if err := oscommands.Kill(cmd); err != nil {
 				if !strings.Contains(err.Error(), "process already finished") {
-					m.Log.Errorf("error when running cmd task: %v", err)
+					self.Log.Errorf("error when running cmd task: %v", err)
 				}
 			}
 
@@ -122,7 +122,7 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 		loadingMutex := sync.Mutex{}
 
 		// not sure if it's the right move to redefine this or not
-		m.readLines = make(chan int, 1024)
+		self.readLines = make(chan int, 1024)
 
 		done := make(chan struct{})
 
@@ -140,9 +140,9 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 			case <-ticker.C:
 				loadingMutex.Lock()
 				if !loaded {
-					m.beforeStart()
-					_, _ = m.writer.Write([]byte("loading..."))
-					m.refreshView()
+					self.beforeStart()
+					_, _ = self.writer.Write([]byte("loading..."))
+					self.refreshView()
 				}
 				loadingMutex.Unlock()
 			}
@@ -154,7 +154,7 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 				select {
 				case <-stop:
 					break outer
-				case linesToRead := <-m.readLines:
+				case linesToRead := <-self.readLines:
 					for i := 0; i < linesToRead; i++ {
 						select {
 						case <-stop:
@@ -165,9 +165,9 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 						ok := scanner.Scan()
 						loadingMutex.Lock()
 						if !loaded {
-							m.beforeStart()
+							self.beforeStart()
 							if prefix != "" {
-								_, _ = m.writer.Write([]byte(prefix))
+								_, _ = self.writer.Write([]byte(prefix))
 							}
 							loaded = true
 						}
@@ -176,21 +176,21 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 						if !ok {
 							// if we're here then there's nothing left to scan from the source
 							// so we're at the EOF and can flush the stale content
-							m.onEndOfInput()
+							self.onEndOfInput()
 							break outer
 						}
-						_, _ = m.writer.Write(append(scanner.Bytes(), '\n'))
+						_, _ = self.writer.Write(append(scanner.Bytes(), '\n'))
 					}
-					m.refreshView()
+					self.refreshView()
 				}
 			}
 
-			m.refreshView()
+			self.refreshView()
 
 			if err := cmd.Wait(); err != nil {
 				// it's fine if we've killed this program ourselves
 				if !strings.Contains(err.Error(), "signal: killed") {
-					m.Log.Error(err)
+					self.Log.Error(err)
 				}
 			}
 
@@ -202,7 +202,7 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 			close(done)
 		})
 
-		m.readLines <- linesToRead
+		self.readLines <- linesToRead
 
 		<-done
 
@@ -211,15 +211,15 @@ func (m *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), pref
 }
 
 // Close closes the task manager, killing whatever task may currently be running
-func (t *ViewBufferManager) Close() {
-	if t.stopCurrentTask == nil {
+func (self *ViewBufferManager) Close() {
+	if self.stopCurrentTask == nil {
 		return
 	}
 
 	c := make(chan struct{})
 
 	go utils.Safe(func() {
-		t.stopCurrentTask()
+		self.stopCurrentTask()
 		c <- struct{}{}
 	})
 
@@ -235,28 +235,28 @@ func (t *ViewBufferManager) Close() {
 // 1) command based, where the manager can be asked to read more lines,  but the command can be killed
 // 2) string based, where the manager can also be asked to read more lines
 
-func (m *ViewBufferManager) NewTask(f func(stop chan struct{}) error, key string) error {
+func (self *ViewBufferManager) NewTask(f func(stop chan struct{}) error, key string) error {
 	go utils.Safe(func() {
-		m.taskIDMutex.Lock()
-		m.newTaskId++
-		taskID := m.newTaskId
+		self.taskIDMutex.Lock()
+		self.newTaskID++
+		taskID := self.newTaskID
 
-		if m.GetTaskKey() != key && m.onNewKey != nil {
-			m.onNewKey()
+		if self.GetTaskKey() != key && self.onNewKey != nil {
+			self.onNewKey()
 		}
-		m.taskKey = key
+		self.taskKey = key
 
-		m.taskIDMutex.Unlock()
+		self.taskIDMutex.Unlock()
 
-		m.waitingMutex.Lock()
-		defer m.waitingMutex.Unlock()
+		self.waitingMutex.Lock()
+		defer self.waitingMutex.Unlock()
 
-		if taskID < m.newTaskId {
+		if taskID < self.newTaskID {
 			return
 		}
 
-		if m.stopCurrentTask != nil {
-			m.stopCurrentTask()
+		if self.stopCurrentTask != nil {
+			self.stopCurrentTask()
 		}
 
 		stop := make(chan struct{})
@@ -268,11 +268,11 @@ func (m *ViewBufferManager) NewTask(f func(stop chan struct{}) error, key string
 			<-notifyStopped
 		}
 
-		m.stopCurrentTask = func() { once.Do(onStop) }
+		self.stopCurrentTask = func() { once.Do(onStop) }
 
 		go utils.Safe(func() {
 			if err := f(stop); err != nil {
-				m.Log.Error(err) // might need an onError callback
+				self.Log.Error(err) // might need an onError callback
 			}
 
 			close(notifyStopped)

@@ -9,6 +9,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
+
+	"golang.org/x/exp/slices"
 )
 
 // This package is for handling logic specific to a git hosting service like github, gitlab, bitbucket, etc.
@@ -94,8 +96,7 @@ func (self *HostingServiceMgr) getCandidateServiceDomains() []ServiceDomain {
 		serviceDefinitionByProvider[serviceDefinition.provider] = serviceDefinition
 	}
 
-	var serviceDomains = make([]ServiceDomain, len(defaultServiceDomains))
-	copy(serviceDomains, defaultServiceDomains)
+	serviceDomains := slices.Clone(defaultServiceDomains)
 
 	if len(self.configServiceDomains) > 0 {
 		for gitDomain, typeAndDomain := range self.configServiceDomains {

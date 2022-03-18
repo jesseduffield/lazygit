@@ -12,8 +12,10 @@ type CommitFileNode struct {
 	CompressionLevel int    // equal to the number of forward slashes you'll see in the path when it's rendered in tree mode
 }
 
-var _ INode = &CommitFileNode{}
-var _ types.ListItem = &CommitFileNode{}
+var (
+	_ INode          = &CommitFileNode{}
+	_ types.ListItem = &CommitFileNode{}
+)
 
 func (s *CommitFileNode) ID() string {
 	return s.GetPath()

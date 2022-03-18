@@ -65,7 +65,7 @@ func newDevelopmentLogger() *logrus.Logger {
 	if err != nil {
 		log.Fatal(err)
 	}
-	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
 	if err != nil {
 		log.Fatalf("Unable to log to log file: %v", err)
 	}
@@ -269,10 +269,9 @@ func (app *App) Rebase() error {
 	app.Log.Info("args: ", os.Args)
 
 	if strings.HasSuffix(os.Args[1], "git-rebase-todo") {
-		if err := ioutil.WriteFile(os.Args[1], []byte(os.Getenv("LAZYGIT_REBASE_TODO")), 0644); err != nil {
+		if err := ioutil.WriteFile(os.Args[1], []byte(os.Getenv("LAZYGIT_REBASE_TODO")), 0o644); err != nil {
 			return err
 		}
-
 	} else if strings.HasSuffix(os.Args[1], filepath.Join(gitDir(), "COMMIT_EDITMSG")) { // TODO: test
 		// if we are rebasing and squashing, we'll see a COMMIT_EDITMSG
 		// but in this case we don't need to edit it, so we'll just return

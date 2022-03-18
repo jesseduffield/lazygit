@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-
 	"unicode/utf8"
 
 	"github.com/jesseduffield/gocui"
@@ -1021,7 +1020,8 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 				ViewName: "",
 				Key:      opts.GetKey(opts.Config.Universal.JumpToBlock[i]),
 				Modifier: gocui.ModNone,
-				Handler:  self.goToSideWindow(window)})
+				Handler:  self.goToSideWindow(window),
+			})
 		}
 	}
 

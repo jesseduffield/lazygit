@@ -19,8 +19,10 @@ type pipeSetCacheKey struct {
 	commitCount int
 }
 
-var pipeSetCache = make(map[pipeSetCacheKey][][]*graph.Pipe)
-var mutex sync.Mutex
+var (
+	pipeSetCache = make(map[pipeSetCacheKey][][]*graph.Pipe)
+	mutex        sync.Mutex
+)
 
 type bisectBounds struct {
 	newIndex int
@@ -226,6 +228,8 @@ func getBisectStatusText(bisectStatus BisectStatus, bisectInfo *git_commands.Bis
 		return style.Sprintf("<-- skipped")
 	case BisectStatusCandidate:
 		return style.Sprintf("?")
+	case BisectStatusNone:
+		return ""
 	}
 
 	return ""

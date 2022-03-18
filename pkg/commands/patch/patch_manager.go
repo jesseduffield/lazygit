@@ -26,8 +26,10 @@ type fileInfo struct {
 	diff                string
 }
 
-type applyPatchFunc func(patch string, flags ...string) error
-type loadFileDiffFunc func(from string, to string, reverse bool, filename string, plain bool) (string, error)
+type (
+	applyPatchFunc   func(patch string, flags ...string) error
+	loadFileDiffFunc func(from string, to string, reverse bool, filename string, plain bool) (string, error)
+)
 
 // PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
 type PatchManager struct {

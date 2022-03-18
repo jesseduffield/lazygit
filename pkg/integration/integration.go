@@ -95,6 +95,7 @@ func RunTests(
 		}
 
 		fnWrapper(test, func(t *testing.T) error {
+			t.Helper()
 			speeds := getTestSpeeds(test.Speed, mode, speedEnv)
 			testPath := filepath.Join(testDir, test.Name)
 			actualRepoDir := filepath.Join(testPath, "actual")
@@ -218,7 +219,7 @@ func prepareIntegrationTestDir(actualDir string) {
 	dir, err := ioutil.ReadDir(actualDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = os.Mkdir(actualDir, 0777)
+			err = os.Mkdir(actualDir, 0o777)
 			if err != nil {
 				panic(err)
 			}
@@ -332,7 +333,7 @@ func findOrCreateDir(path string) {
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = os.MkdirAll(path, 0777)
+			err = os.MkdirAll(path, 0o777)
 			if err != nil {
 				panic(err)
 			}

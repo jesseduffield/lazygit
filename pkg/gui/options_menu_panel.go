@@ -11,9 +11,7 @@ import (
 )
 
 func (gui *Gui) getBindings(context types.Context) []*types.Binding {
-	var (
-		bindingsGlobal, bindingsPanel, bindingsNavigation []*types.Binding
-	)
+	var bindingsGlobal, bindingsPanel, bindingsNavigation []*types.Binding
 
 	bindings, _ := gui.GetInitialKeybindings()
 	customBindings, err := gui.CustomCommandsClient.GetCustomCommandKeybindings()

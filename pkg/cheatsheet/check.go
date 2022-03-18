@@ -19,7 +19,7 @@ func Check() {
 	if err != nil {
 		log.Fatalf("Error occured while checking if cheatsheets are up to date: %v", err)
 	}
-	err = os.Mkdir(tmpDir, 0700)
+	err = os.Mkdir(tmpDir, 0o700)
 	if err != nil {
 		log.Fatalf("Error occured while checking if cheatsheets are up to date: %v", err)
 	}
@@ -70,7 +70,6 @@ func obtainContent(dir string) string {
 
 		return nil
 	})
-
 	if err != nil {
 		log.Fatalf("Error occured while checking if cheatsheets are up to date: %v", err)
 	}

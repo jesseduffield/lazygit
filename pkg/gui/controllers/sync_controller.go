@@ -194,7 +194,6 @@ func (self *SyncController) pushAux(opts pushOpts) error {
 			UpstreamBranch: opts.upstreamBranch,
 			SetUpstream:    opts.setUpstream,
 		})
-
 		if err != nil {
 			if !opts.force && strings.Contains(err.Error(), "Updates were rejected") {
 				forcePushDisabled := self.c.UserConfig.Git.DisableForcePushing

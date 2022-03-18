@@ -57,10 +57,12 @@ func findConflicts(content string) []*mergeConflict {
 	return conflicts
 }
 
-var CONFLICT_START = "<<<<<<< "
-var CONFLICT_END = ">>>>>>> "
-var CONFLICT_START_BYTES = []byte(CONFLICT_START)
-var CONFLICT_END_BYTES = []byte(CONFLICT_END)
+var (
+	CONFLICT_START       = "<<<<<<< "
+	CONFLICT_END         = ">>>>>>> "
+	CONFLICT_START_BYTES = []byte(CONFLICT_START)
+	CONFLICT_END_BYTES   = []byte(CONFLICT_END)
+)
 
 func determineLineType(line string) LineType {
 	// TODO: find out whether we ever actually get this prefix

@@ -141,7 +141,7 @@ func TestOSCommandFileType(t *testing.T) {
 		{
 			"testDirectory",
 			func() {
-				if err := os.Mkdir("testDirectory", 0644); err != nil {
+				if err := os.Mkdir("testDirectory", 0o644); err != nil {
 					panic(err)
 				}
 			},

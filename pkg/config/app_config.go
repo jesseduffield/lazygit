@@ -123,7 +123,7 @@ func configDirForVendor(vendor string) string {
 
 func findOrCreateConfigDir() (string, error) {
 	folder := ConfigDir()
-	return folder, os.MkdirAll(folder, 0755)
+	return folder, os.MkdirAll(folder, 0o755)
 }
 
 func loadUserConfigWithDefaults(configFiles []string) (*UserConfig, error) {
@@ -249,7 +249,7 @@ func (c *AppConfig) SaveAppState() error {
 		return err
 	}
 
-	err = ioutil.WriteFile(filepath, marshalledAppState, 0644)
+	err = ioutil.WriteFile(filepath, marshalledAppState, 0o644)
 	if err != nil && os.IsPermission(err) {
 		// apparently when people have read-only permissions they prefer us to fail silently
 		return nil

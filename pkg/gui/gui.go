@@ -5,9 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"sync"
-
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jesseduffield/gocui"

@@ -8,8 +8,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
-var decoloriseCache = make(map[string]string)
-var decoloriseMutex sync.RWMutex
+var (
+	decoloriseCache = make(map[string]string)
+	decoloriseMutex sync.RWMutex
+)
 
 // Decolorise strips a string of color
 func Decolorise(str string) string {

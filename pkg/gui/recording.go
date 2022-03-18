@@ -70,5 +70,5 @@ func (gui *Gui) saveRecording(recording *gocui.Recording) error {
 
 	path := recordEventsTo()
 
-	return ioutil.WriteFile(path, jsonEvents, 0600)
+	return ioutil.WriteFile(path, jsonEvents, 0o600)
 }

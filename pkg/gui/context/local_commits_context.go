@@ -45,7 +45,8 @@ func NewLocalCommitsContext(
 				viewTrait:         NewViewTrait(view),
 				getDisplayStrings: getDisplayStrings,
 				c:                 c,
-			}},
+			},
+		},
 	}
 }
 

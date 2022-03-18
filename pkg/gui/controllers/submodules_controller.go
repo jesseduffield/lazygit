@@ -90,7 +90,6 @@ func (self *SubmodulesController) add() error {
 				Title:          self.c.Tr.LcNewSubmoduleName,
 				InitialContent: nameSuggestion,
 				HandleConfirm: func(submoduleName string) error {
-
 					return self.c.Prompt(types.PromptOpts{
 						Title:          self.c.Tr.LcNewSubmodulePath,
 						InitialContent: submoduleName,

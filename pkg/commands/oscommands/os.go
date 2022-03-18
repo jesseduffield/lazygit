@@ -103,7 +103,7 @@ func (c *OSCommand) Quote(message string) string {
 // AppendLineToFile adds a new line in file
 func (c *OSCommand) AppendLineToFile(filename, line string) error {
 	c.LogCommand(fmt.Sprintf("Appending '%s' to file '%s'", line, filename), false)
-	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o600)
 	if err != nil {
 		return utils.WrapError(err)
 	}
@@ -145,7 +145,7 @@ func (c *OSCommand) CreateFileWithContent(path string, content string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := ioutil.WriteFile(path, []byte(content), 0o644); err != nil {
 		c.Log.Error(err)
 		return utils.WrapError(err)
 	}

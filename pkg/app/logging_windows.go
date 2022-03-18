@@ -5,11 +5,12 @@ package app
 
 import (
 	"bufio"
-	"github.com/aybabtme/humanlog"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/aybabtme/humanlog"
 )
 
 func TailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {

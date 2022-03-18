@@ -1,0 +1,24 @@
+linters:
+  disable:
+    - structcheck # gives false positives
+  enable:
+    - gofumpt
+    - thelper
+    - goimports
+    - tparallel
+    - wastedassign
+    - exportloopref
+    - unparam
+    - prealloc
+    - unconvert
+    - exhaustive
+    - makezero
+    # - goconst # TODO: enable and fix issues
+  fast: false
+
+linters-settings:
+  exhaustive:
+    default-signifies-exhaustive: true
+
+run:
+  go: 1.18

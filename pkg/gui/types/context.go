@@ -93,8 +93,10 @@ type KeybindingsOpts struct {
 	Guards KeybindingGuards
 }
 
-type KeybindingsFn func(opts KeybindingsOpts) []*Binding
-type MouseKeybindingsFn func(opts KeybindingsOpts) []*gocui.ViewMouseBinding
+type (
+	KeybindingsFn      func(opts KeybindingsOpts) []*Binding
+	MouseKeybindingsFn func(opts KeybindingsOpts) []*gocui.ViewMouseBinding
+)
 
 type HasKeybindings interface {
 	GetKeybindings(opts KeybindingsOpts) []*Binding

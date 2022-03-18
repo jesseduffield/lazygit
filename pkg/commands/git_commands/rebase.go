@@ -185,7 +185,7 @@ func (self *RebaseCommands) EditRebaseTodo(index int, action string) error {
 	content[contentIndex] = action + " " + strings.Join(splitLine[1:], " ")
 	result := strings.Join(content, "\n")
 
-	return ioutil.WriteFile(fileName, []byte(result), 0644)
+	return ioutil.WriteFile(fileName, []byte(result), 0o644)
 }
 
 func (self *RebaseCommands) getTodoCommitCount(content []string) int {
@@ -215,7 +215,7 @@ func (self *RebaseCommands) MoveTodoDown(index int) error {
 	rearrangedContent = append(rearrangedContent, content[contentIndex+1:]...)
 	result := strings.Join(rearrangedContent, "\n")
 
-	return ioutil.WriteFile(fileName, []byte(result), 0644)
+	return ioutil.WriteFile(fileName, []byte(result), 0o644)
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one

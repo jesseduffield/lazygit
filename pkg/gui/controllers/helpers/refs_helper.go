@@ -71,7 +71,6 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 			if strings.Contains(err.Error(), "Please commit your changes or stash them before you switch branch") {
 				// offer to autostash changes
 				return self.c.Ask(types.AskOpts{
-
 					Title:  self.c.Tr.AutoStashTitle,
 					Prompt: self.c.Tr.AutoStashPrompt,
 					HandleConfirm: func() error {

@@ -8,8 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var hunkHeaderRegexp = regexp.MustCompile(`(?m)^@@ -(\d+)[^\+]+\+(\d+)[^@]+@@(.*)$`)
-var patchHeaderRegexp = regexp.MustCompile(`(?ms)(^diff.*?)^@@`)
+var (
+	hunkHeaderRegexp  = regexp.MustCompile(`(?m)^@@ -(\d+)[^\+]+\+(\d+)[^@]+@@(.*)$`)
+	patchHeaderRegexp = regexp.MustCompile(`(?ms)(^diff.*?)^@@`)
+)
 
 func GetHeaderFromDiff(diff string) string {
 	match := patchHeaderRegexp.FindStringSubmatch(diff)

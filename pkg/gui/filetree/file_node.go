@@ -12,8 +12,10 @@ type FileNode struct {
 	CompressionLevel int    // equal to the number of forward slashes you'll see in the path when it's rendered in tree mode
 }
 
-var _ INode = &FileNode{}
-var _ types.ListItem = &FileNode{}
+var (
+	_ INode          = &FileNode{}
+	_ types.ListItem = &FileNode{}
+)
 
 func (s *FileNode) ID() string {
 	return s.GetPath()

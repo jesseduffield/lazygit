@@ -185,7 +185,8 @@ func (self *BranchesController) checkoutByName() error {
 					})
 				},
 			})
-		}},
+		},
+	},
 	)
 }
 
@@ -377,8 +378,8 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 						FindSuggestionsFunc: self.helpers.Suggestions.GetBranchNameSuggestionsFunc(),
 						HandleConfirm: func(targetBranchName string) error {
 							return self.createPullRequest(branch.Name, targetBranchName)
-						}},
-					)
+						},
+					})
 				},
 			},
 		}
