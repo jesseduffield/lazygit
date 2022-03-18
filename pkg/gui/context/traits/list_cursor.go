@@ -6,7 +6,7 @@ import (
 )
 
 type HasLength interface {
-	GetItemsLength() int
+	Len() int
 }
 
 type ListCursor struct {
@@ -25,7 +25,7 @@ func (self *ListCursor) GetSelectedLineIdx() int {
 }
 
 func (self *ListCursor) SetSelectedLineIdx(value int) {
-	self.selectedIdx = utils.Clamp(value, 0, self.list.GetItemsLength()-1)
+	self.selectedIdx = utils.Clamp(value, 0, self.list.Len()-1)
 }
 
 // moves the cursor up or down by the given amount
@@ -38,6 +38,6 @@ func (self *ListCursor) RefreshSelectedIdx() {
 	self.SetSelectedLineIdx(self.selectedIdx)
 }
 
-func (self *ListCursor) GetItemsLength() int {
-	return self.list.GetItemsLength()
+func (self *ListCursor) Len() int {
+	return self.list.Len()
 }

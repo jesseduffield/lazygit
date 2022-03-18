@@ -3,12 +3,11 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type TagsContext struct {
-	*TagsViewModel
+	*BasicViewModel[*models.Tag]
 	*ListContextTrait
 }
 
@@ -25,10 +24,10 @@ func NewTagsContext(
 
 	c *types.HelperCommon,
 ) *TagsContext {
-	viewModel := NewTagsViewModel(getModel)
+	viewModel := NewBasicViewModel(getModel)
 
 	return &TagsContext{
-		TagsViewModel: viewModel,
+		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "branches",
@@ -58,34 +57,7 @@ func (self *TagsContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
-type TagsViewModel struct {
-	*traits.ListCursor
-	getModel func() []*models.Tag
-}
-
-func NewTagsViewModel(getModel func() []*models.Tag) *TagsViewModel {
-	self := &TagsViewModel{
-		getModel: getModel,
-	}
-
-	self.ListCursor = traits.NewListCursor(self)
-
-	return self
-}
-
-func (self *TagsViewModel) GetItemsLength() int {
-	return len(self.getModel())
-}
-
-func (self *TagsViewModel) GetSelected() *models.Tag {
-	if self.GetItemsLength() == 0 {
-		return nil
-	}
-
-	return self.getModel()[self.GetSelectedLineIdx()]
-}
-
-func (self *TagsViewModel) GetSelectedRefName() string {
+func (self *TagsContext) GetSelectedRefName() string {
 	item := self.GetSelected()
 	if item == nil {
 		return ""

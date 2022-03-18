@@ -83,11 +83,11 @@ func (self *ListController) HandleNextPage() error {
 }
 
 func (self *ListController) HandleGotoTop() error {
-	return self.handleLineChange(-self.context.GetList().GetItemsLength())
+	return self.handleLineChange(-self.context.GetList().Len())
 }
 
 func (self *ListController) HandleGotoBottom() error {
-	return self.handleLineChange(self.context.GetList().GetItemsLength())
+	return self.handleLineChange(self.context.GetList().Len())
 }
 
 func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
@@ -99,7 +99,7 @@ func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 		return err
 	}
 
-	if newSelectedLineIdx > self.context.GetList().GetItemsLength()-1 {
+	if newSelectedLineIdx > self.context.GetList().Len()-1 {
 		return nil
 	}
 

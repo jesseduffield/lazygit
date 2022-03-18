@@ -61,16 +61,16 @@ func (self *CommitFileTreeViewModel) SetCanRebase(canRebase bool) {
 	self.canRebase = canRebase
 }
 
-func (self *CommitFileTreeViewModel) GetSelectedFileNode() *CommitFileNode {
-	if self.GetItemsLength() == 0 {
+func (self *CommitFileTreeViewModel) GetSelected() *CommitFileNode {
+	if self.Len() == 0 {
 		return nil
 	}
 
-	return self.GetItemAtIndex(self.GetSelectedLineIdx())
+	return self.Get(self.GetSelectedLineIdx())
 }
 
 func (self *CommitFileTreeViewModel) GetSelectedFile() *models.CommitFile {
-	node := self.GetSelectedFileNode()
+	node := self.GetSelected()
 	if node == nil {
 		return nil
 	}
@@ -79,7 +79,7 @@ func (self *CommitFileTreeViewModel) GetSelectedFile() *models.CommitFile {
 }
 
 func (self *CommitFileTreeViewModel) GetSelectedPath() string {
-	node := self.GetSelectedFileNode()
+	node := self.GetSelected()
 	if node == nil {
 		return ""
 	}
@@ -89,7 +89,7 @@ func (self *CommitFileTreeViewModel) GetSelectedPath() string {
 
 // duplicated from file_tree_view_model.go. Generics will help here
 func (self *CommitFileTreeViewModel) ToggleShowTree() {
-	selectedNode := self.GetSelectedFileNode()
+	selectedNode := self.GetSelected()
 
 	self.ICommitFileTree.ToggleShowTree()
 

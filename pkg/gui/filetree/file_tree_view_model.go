@@ -35,16 +35,16 @@ func NewFileTreeViewModel(getFiles func() []*models.File, log *logrus.Entry, sho
 	}
 }
 
-func (self *FileTreeViewModel) GetSelectedFileNode() *FileNode {
-	if self.GetItemsLength() == 0 {
+func (self *FileTreeViewModel) GetSelected() *FileNode {
+	if self.Len() == 0 {
 		return nil
 	}
 
-	return self.GetItemAtIndex(self.GetSelectedLineIdx())
+	return self.Get(self.GetSelectedLineIdx())
 }
 
 func (self *FileTreeViewModel) GetSelectedFile() *models.File {
-	node := self.GetSelectedFileNode()
+	node := self.GetSelected()
 	if node == nil {
 		return nil
 	}
@@ -53,7 +53,7 @@ func (self *FileTreeViewModel) GetSelectedFile() *models.File {
 }
 
 func (self *FileTreeViewModel) GetSelectedPath() string {
-	node := self.GetSelectedFileNode()
+	node := self.GetSelected()
 	if node == nil {
 		return ""
 	}
@@ -63,7 +63,7 @@ func (self *FileTreeViewModel) GetSelectedPath() string {
 
 func (self *FileTreeViewModel) SetTree() {
 	newFiles := self.GetAllFiles()
-	selectedNode := self.GetSelectedFileNode()
+	selectedNode := self.GetSelected()
 
 	// for when you stage the old file of a rename and the new file is in a collapsed dir
 	for _, file := range newFiles {
@@ -135,7 +135,7 @@ func (self *FileTreeViewModel) SetFilter(filter FileTreeDisplayFilter) {
 // If we're going from tree to flat and we have a file selected we want to select that.
 // If instead we've selected a directory we need to select the first file in that directory.
 func (self *FileTreeViewModel) ToggleShowTree() {
-	selectedNode := self.GetSelectedFileNode()
+	selectedNode := self.GetSelected()
 
 	self.IFileTree.ToggleShowTree()
 

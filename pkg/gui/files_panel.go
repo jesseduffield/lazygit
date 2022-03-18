@@ -9,7 +9,7 @@ import (
 // list panel functions
 
 func (gui *Gui) getSelectedFileNode() *filetree.FileNode {
-	return gui.State.Contexts.Files.GetSelectedFileNode()
+	return gui.State.Contexts.Files.GetSelected()
 }
 
 func (gui *Gui) getSelectedFile() *models.File {
