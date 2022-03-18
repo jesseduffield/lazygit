@@ -5,7 +5,7 @@ import (
 )
 
 func TestDecolorise(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		input  string
 		output string
 	}{

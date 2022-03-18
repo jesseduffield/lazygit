@@ -8,9 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	_ logrus.FieldLogger = &FakeFieldLogger{}
-)
+var _ logrus.FieldLogger = &FakeFieldLogger{}
 
 // for now we're just tracking calls to the Error and Errorf methods
 type FakeFieldLogger struct {
@@ -37,5 +35,6 @@ func (self *FakeFieldLogger) Errorf(format string, args ...interface{}) {
 }
 
 func (self *FakeFieldLogger) AssertErrors(t *testing.T, expectedErrors []string) {
+	t.Helper()
 	assert.EqualValues(t, expectedErrors, self.loggedErrors)
 }

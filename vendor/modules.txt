@@ -262,6 +262,10 @@ golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/knownhosts
+# golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8
+## explicit; go 1.18
+golang.org/x/exp/constraints
+golang.org/x/exp/slices
 # golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c
 ## explicit; go 1.11
 golang.org/x/net/context
@@ -288,6 +292,6 @@ gopkg.in/ozeidan/fuzzy-patricia.v3/patricia
 # gopkg.in/warnings.v0 v0.1.2
 ## explicit
 gopkg.in/warnings.v0
-# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
+# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3

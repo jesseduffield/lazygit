@@ -223,7 +223,6 @@ func setupRepository(openGitRepository func(string) (*gogit.Repository, error), 
 	}
 
 	repository, err := openGitRepository(path)
-
 	if err != nil {
 		if strings.Contains(err.Error(), `unquoted '\' must be followed by new line`) {
 			return nil, errors.New(gitConfigParseErrorStr)

@@ -88,7 +88,6 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 
 		return nil
 	})
-
 	if err != nil {
 		return err
 	}

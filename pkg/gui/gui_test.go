@@ -55,6 +55,7 @@ func Test(t *testing.T) {
 		mode,
 		speedEnv,
 		func(t *testing.T, expected string, actual string, prefix string) {
+			t.Helper()
 			assert.Equal(t, expected, actual, fmt.Sprintf("Unexpected %s. Expected:\n%s\nActual:\n%s\n", prefix, expected, actual))
 		},
 		includeSkipped,

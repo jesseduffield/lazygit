@@ -12,13 +12,17 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-const EXPANDED_ARROW = "▼"
-const COLLAPSED_ARROW = "►"
+const (
+	EXPANDED_ARROW  = "▼"
+	COLLAPSED_ARROW = "►"
+)
 
-const INNER_ITEM = "├─ "
-const LAST_ITEM = "└─ "
-const NESTED = "│  "
-const NOTHING = "   "
+const (
+	INNER_ITEM = "├─ "
+	LAST_ITEM  = "└─ "
+	NESTED     = "│  "
+	NOTHING    = "   "
+)
 
 func RenderFileTree(
 	tree filetree.IFileTree,

@@ -23,8 +23,10 @@ lazygit.exe
 # Exceptions
 !.gitignore
 !.goreleaser.yml
+!.golangci.yml
 !.circleci/
 !.github/
+
 # these are for our integration tests
 !.git_keep
 !.gitmodules_keep

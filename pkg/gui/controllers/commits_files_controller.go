@@ -170,7 +170,6 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 				return self.git.Patch.PatchManager.RemoveFile(file.Name)
 			}
 		})
-
 		if err != nil {
 			return self.c.Error(err)
 		}

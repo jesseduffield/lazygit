@@ -358,7 +358,8 @@ func GetDefaultConfig() *UserConfig {
 			Paging: PagingConfig{
 				ColorArg:  "always",
 				Pager:     "",
-				UseConfig: false},
+				UseConfig: false,
+			},
 			Commit: CommitConfig{
 				SignOff: false,
 			},

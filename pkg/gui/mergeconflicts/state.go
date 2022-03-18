@@ -176,7 +176,6 @@ func (s *State) ContentAfterConflictResolve(selection Selection) (bool, string, 
 			content += line
 		}
 	})
-
 	if err != nil {
 		return false, "", err
 	}

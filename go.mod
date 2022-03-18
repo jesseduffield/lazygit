@@ -30,6 +30,7 @@ require (
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stretchr/testify v1.7.0
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
+	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8
 	gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
 )
 
@@ -63,5 +64,5 @@ require (
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )

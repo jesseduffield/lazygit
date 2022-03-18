@@ -54,7 +54,7 @@ func (gui *Gui) handleMergeConflictUndo() error {
 
 	gui.c.LogAction("Restoring file to previous state")
 	gui.LogCommand("Undoing last conflict resolution", false)
-	if err := ioutil.WriteFile(state.GetPath(), []byte(state.GetContent()), 0644); err != nil {
+	if err := ioutil.WriteFile(state.GetPath(), []byte(state.GetContent()), 0o644); err != nil {
 		return err
 	}
 
@@ -127,7 +127,7 @@ func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error
 	gui.c.LogAction("Resolve merge conflict")
 	gui.LogCommand(logStr, false)
 	state.PushContent(content)
-	return true, ioutil.WriteFile(state.GetPath(), []byte(content), 0644)
+	return true, ioutil.WriteFile(state.GetPath(), []byte(content), 0o644)
 }
 
 // precondition: we actually have conflicts to render

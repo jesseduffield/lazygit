@@ -38,7 +38,7 @@ func main() {
 		},
 		mode,
 		speedEnv,
-		func(_t *testing.T, expected string, actual string, prefix string) {
+		func(_t *testing.T, expected string, actual string, prefix string) { //nolint:thelper
 			assert.Equal(MockTestingT{}, expected, actual, fmt.Sprintf("Unexpected %s. Expected:\n%s\nActual:\n%s\n", prefix, expected, actual))
 		},
 		includeSkipped,

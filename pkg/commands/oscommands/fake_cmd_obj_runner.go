@@ -21,7 +21,7 @@ type FakeCmdObjRunner struct {
 
 var _ ICmdObjRunner = &FakeCmdObjRunner{}
 
-func NewFakeRunner(t *testing.T) *FakeCmdObjRunner {
+func NewFakeRunner(t *testing.T) *FakeCmdObjRunner { //nolint:thelper
 	return &FakeCmdObjRunner{t: t}
 }
 

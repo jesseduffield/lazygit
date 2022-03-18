@@ -174,7 +174,7 @@ outer:
 		bindings       []*types.Binding
 	}
 
-	groupedBindings := make([]groupedBindingsType, len(contextAndViewBindingMap))
+	groupedBindings := make([]groupedBindingsType, 0, len(contextAndViewBindingMap))
 
 	for contextAndView, contextBindings := range contextAndViewBindingMap {
 		groupedBindings = append(groupedBindings, groupedBindingsType{contextAndView: contextAndView, bindings: contextBindings})

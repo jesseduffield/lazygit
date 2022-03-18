@@ -45,7 +45,8 @@ func NewSubCommitsContext(
 				viewTrait:         NewViewTrait(view),
 				getDisplayStrings: getDisplayStrings,
 				c:                 c,
-			}},
+			},
+		},
 	}
 }
 
