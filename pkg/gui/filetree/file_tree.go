@@ -22,7 +22,7 @@ type ITree interface {
 	ExpandToPath(path string)
 	ToggleShowTree()
 	GetIndexForPath(path string) (int, bool)
-	GetItemsLength() int
+	Len() int
 	SetTree()
 	IsCollapsed(path string) bool
 	ToggleCollapsed(path string)
@@ -35,7 +35,7 @@ type IFileTree interface {
 
 	FilterFiles(test func(*models.File) bool) []*models.File
 	SetFilter(filter FileTreeDisplayFilter)
-	GetItemAtIndex(index int) *FileNode
+	Get(index int) *FileNode
 	GetFile(path string) *models.File
 	GetAllItems() []*FileNode
 	GetAllFiles() []*models.File
@@ -104,7 +104,7 @@ func (self *FileTree) ToggleShowTree() {
 	self.SetTree()
 }
 
-func (self *FileTree) GetItemAtIndex(index int) *FileNode {
+func (self *FileTree) Get(index int) *FileNode {
 	// need to traverse the three depth first until we get to the index.
 	return self.tree.GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
 }
@@ -135,7 +135,7 @@ func (self *FileTree) GetAllItems() []*FileNode {
 	return self.tree.Flatten(self.collapsedPaths)[1:] // ignoring root
 }
 
-func (self *FileTree) GetItemsLength() int {
+func (self *FileTree) Len() int {
 	return self.tree.Size(self.collapsedPaths) - 1 // ignoring root
 }
 

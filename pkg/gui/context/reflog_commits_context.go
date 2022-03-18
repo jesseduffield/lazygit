@@ -3,12 +3,11 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type ReflogCommitsContext struct {
-	*ReflogCommitsViewModel
+	*BasicViewModel[*models.Commit]
 	*ListContextTrait
 }
 
@@ -25,10 +24,10 @@ func NewReflogCommitsContext(
 
 	c *types.HelperCommon,
 ) *ReflogCommitsContext {
-	viewModel := NewReflogCommitsViewModel(getModel)
+	viewModel := NewBasicViewModel(getModel)
 
 	return &ReflogCommitsContext{
-		ReflogCommitsViewModel: viewModel,
+		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "commits",
@@ -70,31 +69,4 @@ func (self *ReflogCommitsContext) GetSelectedRefName() string {
 	}
 
 	return item.RefName()
-}
-
-type ReflogCommitsViewModel struct {
-	*traits.ListCursor
-	getModel func() []*models.Commit
-}
-
-func NewReflogCommitsViewModel(getModel func() []*models.Commit) *ReflogCommitsViewModel {
-	self := &ReflogCommitsViewModel{
-		getModel: getModel,
-	}
-
-	self.ListCursor = traits.NewListCursor(self)
-
-	return self
-}
-
-func (self *ReflogCommitsViewModel) GetItemsLength() int {
-	return len(self.getModel())
-}
-
-func (self *ReflogCommitsViewModel) GetSelected() *models.Commit {
-	if self.GetItemsLength() == 0 {
-		return nil
-	}
-
-	return self.getModel()[self.GetSelectedLineIdx()]
 }

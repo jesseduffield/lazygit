@@ -27,7 +27,7 @@ func (self *ListContextTrait) GetViewTrait() types.IViewTrait {
 func (self *ListContextTrait) FocusLine() {
 	// we need a way of knowing whether we've rendered to the view yet.
 	self.viewTrait.FocusPoint(self.list.GetSelectedLineIdx())
-	self.viewTrait.SetFooter(formatListFooter(self.list.GetSelectedLineIdx(), self.list.GetItemsLength()))
+	self.viewTrait.SetFooter(formatListFooter(self.list.GetSelectedLineIdx(), self.list.Len()))
 }
 
 func formatListFooter(selectedLineIdx int, length int) string {
@@ -49,7 +49,7 @@ func (self *ListContextTrait) HandleFocusLost() error {
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
 func (self *ListContextTrait) HandleRender() error {
 	self.list.RefreshSelectedIdx()
-	content := utils.RenderDisplayStrings(self.getDisplayStrings(0, self.list.GetItemsLength()))
+	content := utils.RenderDisplayStrings(self.getDisplayStrings(0, self.list.Len()))
 	self.viewTrait.SetContent(content)
 	self.c.Render()
 

@@ -3,12 +3,11 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type SubCommitsContext struct {
-	*SubCommitsViewModel
+	*BasicViewModel[*models.Commit]
 	*ViewportListContextTrait
 }
 
@@ -25,10 +24,10 @@ func NewSubCommitsContext(
 
 	c *types.HelperCommon,
 ) *SubCommitsContext {
-	viewModel := NewSubCommitsViewModel(getModel)
+	viewModel := NewBasicViewModel(getModel)
 
 	return &SubCommitsContext{
-		SubCommitsViewModel: viewModel,
+		BasicViewModel: viewModel,
 		ViewportListContextTrait: &ViewportListContextTrait{
 			ListContextTrait: &ListContextTrait{
 				Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
@@ -71,31 +70,4 @@ func (self *SubCommitsContext) GetSelectedRefName() string {
 	}
 
 	return item.RefName()
-}
-
-type SubCommitsViewModel struct {
-	*traits.ListCursor
-	getModel func() []*models.Commit
-}
-
-func NewSubCommitsViewModel(getModel func() []*models.Commit) *SubCommitsViewModel {
-	self := &SubCommitsViewModel{
-		getModel: getModel,
-	}
-
-	self.ListCursor = traits.NewListCursor(self)
-
-	return self
-}
-
-func (self *SubCommitsViewModel) GetItemsLength() int {
-	return len(self.getModel())
-}
-
-func (self *SubCommitsViewModel) GetSelected() *models.Commit {
-	if self.GetItemsLength() == 0 {
-		return nil
-	}
-
-	return self.getModel()[self.GetSelectedLineIdx()]
 }

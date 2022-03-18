@@ -3,7 +3,6 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -60,8 +59,7 @@ func (self *LocalCommitsContext) GetSelectedItemId() string {
 }
 
 type LocalCommitsViewModel struct {
-	*traits.ListCursor
-	getModel func() []*models.Commit
+	*BasicViewModel[*models.Commit]
 
 	// If this is true we limit the amount of commits we load, for the sake of keeping things fast.
 	// If the user attempts to scroll past the end of the list, we will load more commits.
@@ -73,11 +71,9 @@ type LocalCommitsViewModel struct {
 
 func NewLocalCommitsViewModel(getModel func() []*models.Commit) *LocalCommitsViewModel {
 	self := &LocalCommitsViewModel{
-		getModel:     getModel,
-		limitCommits: true,
+		BasicViewModel: NewBasicViewModel(getModel),
+		limitCommits:   true,
 	}
-
-	self.ListCursor = traits.NewListCursor(self)
 
 	return self
 }
@@ -94,18 +90,6 @@ func (self *LocalCommitsContext) GetSelectedRefName() string {
 	}
 
 	return item.RefName()
-}
-
-func (self *LocalCommitsViewModel) GetItemsLength() int {
-	return len(self.getModel())
-}
-
-func (self *LocalCommitsViewModel) GetSelected() *models.Commit {
-	if self.GetItemsLength() == 0 {
-		return nil
-	}
-
-	return self.getModel()[self.GetSelectedLineIdx()]
 }
 
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {

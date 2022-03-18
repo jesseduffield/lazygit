@@ -52,7 +52,7 @@ func NewCommitFilesContext(
 }
 
 func (self *CommitFilesContext) GetSelectedItemId() string {
-	item := self.GetSelectedFileNode()
+	item := self.GetSelected()
 	if item == nil {
 		return ""
 	}

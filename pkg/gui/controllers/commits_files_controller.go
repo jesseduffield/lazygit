@@ -80,7 +80,7 @@ func (self *CommitFilesController) GetMouseKeybindings(opts types.KeybindingsOpt
 
 func (self *CommitFilesController) checkSelected(callback func(*filetree.CommitFileNode) error) func() error {
 	return func() error {
-		selected := self.context().GetSelectedFileNode()
+		selected := self.context().GetSelected()
 		if selected == nil {
 			return nil
 		}
@@ -98,7 +98,7 @@ func (self *CommitFilesController) context() *context.CommitFilesContext {
 }
 
 func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	node := self.context().GetSelectedFileNode()
+	node := self.context().GetSelected()
 	if node == nil {
 		return nil
 	}

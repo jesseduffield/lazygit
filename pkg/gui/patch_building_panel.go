@@ -13,7 +13,7 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	gui.Views.Secondary.Title = "Custom Patch"
 
 	// get diff from commit file that's currently selected
-	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelected()
 	if node == nil {
 		return nil
 	}
@@ -74,7 +74,7 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 		}
 
 		// add range of lines to those set for the file
-		node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
+		node := gui.State.Contexts.CommitFiles.GetSelected()
 		if node == nil {
 			return nil
 		}

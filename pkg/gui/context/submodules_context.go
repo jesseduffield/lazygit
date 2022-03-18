@@ -3,12 +3,11 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type SubmodulesContext struct {
-	*SubmodulesViewModel
+	*BasicViewModel[*models.SubmoduleConfig]
 	*ListContextTrait
 }
 
@@ -25,10 +24,10 @@ func NewSubmodulesContext(
 
 	c *types.HelperCommon,
 ) *SubmodulesContext {
-	viewModel := NewSubmodulesViewModel(getModel)
+	viewModel := NewBasicViewModel(getModel)
 
 	return &SubmodulesContext{
-		SubmodulesViewModel: viewModel,
+		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "files",
@@ -56,31 +55,4 @@ func (self *SubmodulesContext) GetSelectedItemId() string {
 	}
 
 	return item.ID()
-}
-
-type SubmodulesViewModel struct {
-	*traits.ListCursor
-	getModel func() []*models.SubmoduleConfig
-}
-
-func NewSubmodulesViewModel(getModel func() []*models.SubmoduleConfig) *SubmodulesViewModel {
-	self := &SubmodulesViewModel{
-		getModel: getModel,
-	}
-
-	self.ListCursor = traits.NewListCursor(self)
-
-	return self
-}
-
-func (self *SubmodulesViewModel) GetItemsLength() int {
-	return len(self.getModel())
-}
-
-func (self *SubmodulesViewModel) GetSelected() *models.SubmoduleConfig {
-	if self.GetItemsLength() == 0 {
-		return nil
-	}
-
-	return self.getModel()[self.GetSelectedLineIdx()]
 }

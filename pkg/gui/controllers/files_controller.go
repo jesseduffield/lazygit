@@ -216,7 +216,7 @@ func (self *FilesController) press(node *filetree.FileNode) error {
 
 func (self *FilesController) checkSelectedFileNode(callback func(*filetree.FileNode) error) func() error {
 	return func() error {
-		node := self.context().GetSelectedFileNode()
+		node := self.context().GetSelected()
 		if node == nil {
 			return nil
 		}
@@ -234,7 +234,7 @@ func (self *FilesController) context() *context.WorkingTreeContext {
 }
 
 func (self *FilesController) getSelectedFile() *models.File {
-	node := self.context().GetSelectedFileNode()
+	node := self.context().GetSelected()
 	if node == nil {
 		return nil
 	}
@@ -246,7 +246,7 @@ func (self *FilesController) enter() error {
 }
 
 func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
-	node := self.context().GetSelectedFileNode()
+	node := self.context().GetSelected()
 	if node == nil {
 		return nil
 	}
@@ -535,7 +535,7 @@ func (self *FilesController) edit(node *filetree.FileNode) error {
 }
 
 func (self *FilesController) Open() error {
-	node := self.context().GetSelectedFileNode()
+	node := self.context().GetSelected()
 	if node == nil {
 		return nil
 	}
@@ -583,7 +583,7 @@ func (self *FilesController) createResetToUpstreamMenu() error {
 }
 
 func (self *FilesController) handleToggleDirCollapsed() error {
-	node := self.context().GetSelectedFileNode()
+	node := self.context().GetSelected()
 	if node == nil {
 		return nil
 	}

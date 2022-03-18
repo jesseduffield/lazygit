@@ -2,12 +2,11 @@ package context
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type SuggestionsContext struct {
-	*SuggestionsViewModel
+	*BasicViewModel[*types.Suggestion]
 	*ListContextTrait
 }
 
@@ -24,10 +23,10 @@ func NewSuggestionsContext(
 
 	c *types.HelperCommon,
 ) *SuggestionsContext {
-	viewModel := NewSuggestionsViewModel(getModel)
+	viewModel := NewBasicViewModel(getModel)
 
 	return &SuggestionsContext{
-		SuggestionsViewModel: viewModel,
+		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "suggestions",
@@ -55,31 +54,4 @@ func (self *SuggestionsContext) GetSelectedItemId() string {
 	}
 
 	return item.Value
-}
-
-type SuggestionsViewModel struct {
-	*traits.ListCursor
-	getModel func() []*types.Suggestion
-}
-
-func NewSuggestionsViewModel(getModel func() []*types.Suggestion) *SuggestionsViewModel {
-	self := &SuggestionsViewModel{
-		getModel: getModel,
-	}
-
-	self.ListCursor = traits.NewListCursor(self)
-
-	return self
-}
-
-func (self *SuggestionsViewModel) GetItemsLength() int {
-	return len(self.getModel())
-}
-
-func (self *SuggestionsViewModel) GetSelected() *types.Suggestion {
-	if self.GetItemsLength() == 0 {
-		return nil
-	}
-
-	return self.getModel()[self.GetSelectedLineIdx()]
 }

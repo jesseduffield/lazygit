@@ -109,7 +109,7 @@ type IController interface {
 
 type IList interface {
 	IListCursor
-	GetItemsLength() int
+	Len() int
 }
 
 type IListCursor interface {

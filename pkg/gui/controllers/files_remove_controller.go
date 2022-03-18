@@ -139,7 +139,7 @@ func (self *FilesRemoveController) ResetSubmodule(submodule *models.SubmoduleCon
 
 func (self *FilesRemoveController) checkSelectedFileNode(callback func(*filetree.FileNode) error) func() error {
 	return func() error {
-		node := self.context().GetSelectedFileNode()
+		node := self.context().GetSelected()
 		if node == nil {
 			return nil
 		}

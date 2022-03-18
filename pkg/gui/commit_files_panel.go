@@ -12,7 +12,7 @@ func (gui *Gui) onCommitFileFocus() error {
 }
 
 func (gui *Gui) commitFilesRenderToMain() error {
-	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelected()
 	if node == nil {
 		return nil
 	}
@@ -78,7 +78,7 @@ func (gui *Gui) refreshCommitFilesView() error {
 }
 
 func (gui *Gui) getSelectedCommitFileName() string {
-	node := gui.State.Contexts.CommitFiles.GetSelectedFileNode()
+	node := gui.State.Contexts.CommitFiles.GetSelected()
 	if node == nil {
 		return ""
 	}

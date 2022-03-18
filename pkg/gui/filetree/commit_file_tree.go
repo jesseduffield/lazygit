@@ -8,7 +8,7 @@ import (
 type ICommitFileTree interface {
 	ITree
 
-	GetItemAtIndex(index int) *CommitFileNode
+	Get(index int) *CommitFileNode
 	GetFile(path string) *models.CommitFile
 	GetAllItems() []*CommitFileNode
 	GetAllFiles() []*models.CommitFile
@@ -42,7 +42,7 @@ func (self *CommitFileTree) ToggleShowTree() {
 	self.SetTree()
 }
 
-func (self *CommitFileTree) GetItemAtIndex(index int) *CommitFileNode {
+func (self *CommitFileTree) Get(index int) *CommitFileNode {
 	// need to traverse the three depth first until we get to the index.
 	return self.tree.GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
 }
@@ -60,7 +60,7 @@ func (self *CommitFileTree) GetAllItems() []*CommitFileNode {
 	return self.tree.Flatten(self.collapsedPaths)[1:] // ignoring root
 }
 
-func (self *CommitFileTree) GetItemsLength() int {
+func (self *CommitFileTree) Len() int {
 	return self.tree.Size(self.collapsedPaths) - 1 // ignoring root
 }
 

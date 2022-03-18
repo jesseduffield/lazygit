@@ -230,7 +230,7 @@ func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 		func() []*models.CommitFile { return gui.State.Model.CommitFiles },
 		gui.Views.CommitFiles,
 		func(startIdx int, length int) [][]string {
-			if gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.GetItemsLength() == 0 {
+			if gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.Len() == 0 {
 				return [][]string{{style.FgRed.Sprint("(none)")}}
 			}
 

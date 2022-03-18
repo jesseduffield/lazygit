@@ -50,7 +50,7 @@ func NewWorkingTreeContext(
 }
 
 func (self *WorkingTreeContext) GetSelectedItemId() string {
-	item := self.GetSelectedFileNode()
+	item := self.GetSelected()
 	if item == nil {
 		return ""
 	}

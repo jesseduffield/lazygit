@@ -3,12 +3,11 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type BranchesContext struct {
-	*BranchesViewModel
+	*BasicViewModel[*models.Branch]
 	*ListContextTrait
 }
 
@@ -25,10 +24,10 @@ func NewBranchesContext(
 
 	c *types.HelperCommon,
 ) *BranchesContext {
-	viewModel := NewBranchesViewModel(getModel)
+	viewModel := NewBasicViewModel(getModel)
 
 	return &BranchesContext{
-		BranchesViewModel: viewModel,
+		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "branches",
@@ -58,34 +57,7 @@ func (self *BranchesContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
-type BranchesViewModel struct {
-	*traits.ListCursor
-	getModel func() []*models.Branch
-}
-
-func NewBranchesViewModel(getModel func() []*models.Branch) *BranchesViewModel {
-	self := &BranchesViewModel{
-		getModel: getModel,
-	}
-
-	self.ListCursor = traits.NewListCursor(self)
-
-	return self
-}
-
-func (self *BranchesViewModel) GetItemsLength() int {
-	return len(self.getModel())
-}
-
-func (self *BranchesViewModel) GetSelected() *models.Branch {
-	if self.GetItemsLength() == 0 {
-		return nil
-	}
-
-	return self.getModel()[self.GetSelectedLineIdx()]
-}
-
-func (self *BranchesViewModel) GetSelectedRefName() string {
+func (self *BranchesContext) GetSelectedRefName() string {
 	item := self.GetSelected()
 	if item == nil {
 		return ""

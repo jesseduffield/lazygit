@@ -588,7 +588,7 @@ func (self *LocalCommitsController) gotoBottom() error {
 		}
 	}
 
-	self.context().SetSelectedLineIdx(self.context().GetItemsLength() - 1)
+	self.context().SetSelectedLineIdx(self.context().Len() - 1)
 
 	return nil
 }

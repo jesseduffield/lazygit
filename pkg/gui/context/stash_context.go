@@ -3,12 +3,11 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type StashContext struct {
-	*StashViewModel
+	*BasicViewModel[*models.StashEntry]
 	*ListContextTrait
 }
 
@@ -25,10 +24,10 @@ func NewStashContext(
 
 	c *types.HelperCommon,
 ) *StashContext {
-	viewModel := NewStashViewModel(getModel)
+	viewModel := NewBasicViewModel(getModel)
 
 	return &StashContext{
-		StashViewModel: viewModel,
+		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "stash",
@@ -70,31 +69,4 @@ func (self *StashContext) GetSelectedRefName() string {
 	}
 
 	return item.RefName()
-}
-
-type StashViewModel struct {
-	*traits.ListCursor
-	getModel func() []*models.StashEntry
-}
-
-func NewStashViewModel(getModel func() []*models.StashEntry) *StashViewModel {
-	self := &StashViewModel{
-		getModel: getModel,
-	}
-
-	self.ListCursor = traits.NewListCursor(self)
-
-	return self
-}
-
-func (self *StashViewModel) GetItemsLength() int {
-	return len(self.getModel())
-}
-
-func (self *StashViewModel) GetSelected() *models.StashEntry {
-	if self.GetItemsLength() == 0 {
-		return nil
-	}
-
-	return self.getModel()[self.GetSelectedLineIdx()]
 }

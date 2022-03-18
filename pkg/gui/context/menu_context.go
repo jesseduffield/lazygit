@@ -2,7 +2,6 @@ package context
 
 import (
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -59,8 +58,8 @@ func (self *MenuContext) GetSelectedItemId() string {
 }
 
 type MenuViewModel struct {
-	*traits.ListCursor
 	menuItems []*types.MenuItem
+	*BasicViewModel[*types.MenuItem]
 }
 
 func NewMenuViewModel() *MenuViewModel {
@@ -68,21 +67,9 @@ func NewMenuViewModel() *MenuViewModel {
 		menuItems: nil,
 	}
 
-	self.ListCursor = traits.NewListCursor(self)
+	self.BasicViewModel = NewBasicViewModel(func() []*types.MenuItem { return self.menuItems })
 
 	return self
-}
-
-func (self *MenuViewModel) GetItemsLength() int {
-	return len(self.menuItems)
-}
-
-func (self *MenuViewModel) GetSelected() *types.MenuItem {
-	if self.GetItemsLength() == 0 {
-		return nil
-	}
-
-	return self.menuItems[self.GetSelectedLineIdx()]
 }
 
 func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem) {
