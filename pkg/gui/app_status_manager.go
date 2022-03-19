@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -23,13 +24,9 @@ func (m *statusManager) removeStatus(id int) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	newStatuses := []appStatus{}
-	for _, status := range m.statuses {
-		if status.id != id {
-			newStatuses = append(newStatuses, status)
-		}
-	}
-	m.statuses = newStatuses
+	m.statuses = slices.Filter(m.statuses, func(status appStatus) bool {
+		return status.id != id
+	})
 }
 
 func (m *statusManager) addWaitingStatus(message string) int {

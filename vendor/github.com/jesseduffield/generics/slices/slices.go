@@ -38,6 +38,16 @@ func Map[T any, V any](slice []T, f func(T) V) []V {
 }
 
 // Produces a new slice, leaves the input slice untouched.
+func MapWithIndex[T any, V any](slice []T, f func(T, int) V) []V {
+	result := make([]V, 0, len(slice))
+	for i, value := range slice {
+		result = append(result, f(value, i))
+	}
+
+	return result
+}
+
+// Produces a new slice, leaves the input slice untouched.
 func FlatMap[T any, V any](slice []T, f func(T) []V) []V {
 	// impossible to know how long this slice will be in the end but the length
 	// of the original slice is the lower bound
@@ -71,6 +81,18 @@ func Filter[T any](slice []T, test func(T) bool) []T {
 			result = append(result, element)
 		}
 	}
+	return result
+}
+
+// Produces a new slice, leaves the input slice untouched.
+func FilterWithIndex[T any](slice []T, f func(T, int) bool) []T {
+	result := make([]T, 0, len(slice))
+	for i, value := range slice {
+		if f(value, i) {
+			result = append(result, value)
+		}
+	}
+
 	return result
 }
 

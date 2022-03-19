@@ -10,7 +10,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/samber/lo"
 )
 
 type RemoteLoader struct {
@@ -43,12 +42,12 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 	}
 
 	// first step is to get our remotes from go-git
-	remotes := lo.Map(goGitRemotes, func(goGitRemote *gogit.Remote, _ int) *models.Remote {
+	remotes := slices.Map(goGitRemotes, func(goGitRemote *gogit.Remote) *models.Remote {
 		remoteName := goGitRemote.Config().Name
 
 		re := regexp.MustCompile(fmt.Sprintf(`(?m)^\s*%s\/([\S]+)`, remoteName))
 		matches := re.FindAllStringSubmatch(remoteBranchesStr, -1)
-		branches := lo.Map(matches, func(match []string, _ int) *models.RemoteBranch {
+		branches := slices.Map(matches, func(match []string) *models.RemoteBranch {
 			return &models.RemoteBranch{
 				Name:       match[1],
 				RemoteName: remoteName,

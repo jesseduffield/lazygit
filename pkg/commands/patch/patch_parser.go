@@ -191,7 +191,7 @@ func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int, incLineIndic
 		return ""
 	}
 
-	renderedLines := lo.Map(p.PatchLines, func(patchLine *PatchLine, index int) string {
+	renderedLines := slices.MapWithIndex(p.PatchLines, func(patchLine *PatchLine, index int) string {
 		selected := index >= firstLineIndex && index <= lastLineIndex
 		included := lo.Contains(incLineIndices, index)
 		return patchLine.render(selected, included)

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -65,11 +66,9 @@ outer:
 
 func (self *StashLoader) getUnfilteredStashEntries() []*models.StashEntry {
 	rawString, _ := self.cmd.New("git stash list --pretty='%gs'").DontLog().RunWithOutput()
-	stashEntries := []*models.StashEntry{}
-	for i, line := range utils.SplitLines(rawString) {
-		stashEntries = append(stashEntries, self.stashEntryFromLine(line, i))
-	}
-	return stashEntries
+	return slices.MapWithIndex(utils.SplitLines(rawString), func(line string, index int) *models.StashEntry {
+		return self.stashEntryFromLine(line, index)
+	})
 }
 
 func (c *StashLoader) stashEntryFromLine(line string, index int) *models.StashEntry {

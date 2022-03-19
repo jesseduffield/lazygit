@@ -200,10 +200,7 @@ func getLeaves(node INode) []INode {
 		return []INode{node}
 	}
 
-	output := []INode{}
-	for _, child := range node.GetChildren() {
-		output = append(output, getLeaves(child)...)
-	}
-
-	return output
+	return slices.FlatMap(node.GetChildren(), func(child INode) []INode {
+		return getLeaves(child)
+	})
 }
