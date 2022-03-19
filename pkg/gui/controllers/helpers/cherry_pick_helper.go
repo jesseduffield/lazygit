@@ -118,14 +118,13 @@ func (self *CherryPickHelper) add(selectedCommit *models.Commit, commitsList []*
 	commitSet := self.CherryPickedCommitShaSet()
 	commitSet.Add(selectedCommit.Sha)
 
-	newCommits := slices.FilterThenMap(commitsList,
-		func(commit *models.Commit) bool { return commitSet.Includes(commit.Sha) },
-		func(commit *models.Commit) *models.Commit {
-			return &models.Commit{Name: commit.Name, Sha: commit.Sha}
-		},
-	)
+	cherryPickedCommits := slices.Filter(commitsList, func(commit *models.Commit) bool {
+		return commitSet.Includes(commit.Sha)
+	})
 
-	self.getData().CherryPickedCommits = newCommits
+	self.getData().CherryPickedCommits = slices.Map(cherryPickedCommits, func(commit *models.Commit) *models.Commit {
+		return &models.Commit{Name: commit.Name, Sha: commit.Sha}
+	})
 }
 
 // you can only copy from one context at a time, because the order and position of commits matter
