@@ -14,7 +14,7 @@ require (
 	github.com/gookit/color v1.4.2
 	github.com/imdario/mergo v0.3.11
 	github.com/integrii/flaggy v1.4.0
-	github.com/jesseduffield/generics v0.0.0-20220319083513-5f145a9c0677
+	github.com/jesseduffield/generics v0.0.0-20220319230408-6eaa96457df2
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
 	github.com/jesseduffield/gocui v0.3.1-0.20220227022729-69f0c798eec8
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e

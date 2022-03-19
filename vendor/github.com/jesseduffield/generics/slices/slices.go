@@ -47,6 +47,32 @@ func MapWithIndex[T any, V any](slice []T, f func(T, int) V) []V {
 	return result
 }
 
+func TryMap[T any, V any](slice []T, f func(T) (V, error)) ([]V, error) {
+	result := make([]V, 0, len(slice))
+	for _, value := range slice {
+		output, err := f(value)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, output)
+	}
+
+	return result, nil
+}
+
+func TryMapWithIndex[T any, V any](slice []T, f func(T, int) (V, error)) ([]V, error) {
+	result := make([]V, 0, len(slice))
+	for i, value := range slice {
+		output, err := f(value, i)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, output)
+	}
+
+	return result, nil
+}
+
 // Produces a new slice, leaves the input slice untouched.
 func FlatMap[T any, V any](slice []T, f func(T) []V) []V {
 	// impossible to know how long this slice will be in the end but the length
@@ -54,6 +80,17 @@ func FlatMap[T any, V any](slice []T, f func(T) []V) []V {
 	result := make([]V, 0, len(slice))
 	for _, value := range slice {
 		result = append(result, f(value)...)
+	}
+
+	return result
+}
+
+func FlatMapWithIndex[T any, V any](slice []T, f func(T, int) []V) []V {
+	// impossible to know how long this slice will be in the end but the length
+	// of the original slice is the lower bound
+	result := make([]V, 0, len(slice))
+	for i, value := range slice {
+		result = append(result, f(value, i)...)
 	}
 
 	return result
@@ -96,6 +133,34 @@ func FilterWithIndex[T any](slice []T, f func(T, int) bool) []T {
 	return result
 }
 
+func TryFilter[T any](slice []T, test func(T) (bool, error)) ([]T, error) {
+	result := make([]T, 0)
+	for _, element := range slice {
+		ok, err := test(element)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			result = append(result, element)
+		}
+	}
+	return result, nil
+}
+
+func TryFilterWithIndex[T any](slice []T, test func(T, int) (bool, error)) ([]T, error) {
+	result := make([]T, 0)
+	for i, element := range slice {
+		ok, err := test(element, i)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			result = append(result, element)
+		}
+	}
+	return result, nil
+}
+
 // Mutates original slice. Intended usage is to reassign the slice result to the input slice.
 func FilterInPlace[T any](slice []T, test func(T) bool) []T {
 	newLength := 0
@@ -125,10 +190,10 @@ func ReverseInPlace[T any](slice []T) {
 }
 
 // Produces a new slice, leaves the input slice untouched.
-func FilterMap[T any, E any](slice []T, test func(T) (bool, E)) []E {
+func FilterMap[T any, E any](slice []T, test func(T) (E, bool)) []E {
 	result := make([]E, 0, len(slice))
 	for _, element := range slice {
-		ok, mapped := test(element)
+		mapped, ok := test(element)
 		if ok {
 			result = append(result, mapped)
 		}
@@ -137,15 +202,46 @@ func FilterMap[T any, E any](slice []T, test func(T) (bool, E)) []E {
 	return result
 }
 
-// Produces a new slice, leaves the input slice untouched.
-func FilterThenMap[T any, E any](slice []T, test func(T) bool, mapFn func(T) E) []E {
+func FilterMapWithIndex[T any, E any](slice []T, test func(T, int) (E, bool)) []E {
 	result := make([]E, 0, len(slice))
-	for _, element := range slice {
-		if test(element) {
-			result = append(result, mapFn(element))
+	for i, element := range slice {
+		mapped, ok := test(element, i)
+		if ok {
+			result = append(result, mapped)
 		}
 	}
+
 	return result
+}
+
+func TryFilterMap[T any, E any](slice []T, test func(T) (E, bool, error)) ([]E, error) {
+	result := make([]E, 0, len(slice))
+	for _, element := range slice {
+		mapped, ok, err := test(element)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			result = append(result, mapped)
+		}
+	}
+
+	return result, nil
+}
+
+func TryFilterMapWithIndex[T any, E any](slice []T, test func(T, int) (E, bool, error)) ([]E, error) {
+	result := make([]E, 0, len(slice))
+	for i, element := range slice {
+		mapped, ok, err := test(element, i)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			result = append(result, mapped)
+		}
+	}
+
+	return result, nil
 }
 
 // Prepends items to the beginning of a slice.
@@ -239,6 +335,45 @@ func MinBy[T any, V constraints.Ordered](slice []T, f func(T) V) V {
 		}
 	}
 	return min
+}
+
+func Find[T any](slice []T, f func(T) bool) (T, bool) {
+	for _, element := range slice {
+		if f(element) {
+			return element, true
+		}
+	}
+	return zero[T](), false
+}
+
+func ForEach[T any](slice []T, f func(T)) {
+	for _, element := range slice {
+		f(element)
+	}
+}
+
+func ForEachWithIndex[T any](slice []T, f func(T, int)) {
+	for i, element := range slice {
+		f(element, i)
+	}
+}
+
+func TryForEach[T any](slice []T, f func(T) error) error {
+	for _, element := range slice {
+		if err := f(element); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func TryForEachWithIndex[T any](slice []T, f func(T, int) error) error {
+	for i, element := range slice {
+		if err := f(element, i); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func zero[T any]() T {
