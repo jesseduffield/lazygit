@@ -4,9 +4,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
@@ -184,16 +184,21 @@ func parsePatch(patch string) ([]int, []int, []*PatchLine) {
 
 // Render returns the coloured string of the diff with any selected lines highlighted
 func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int, incLineIndices []int) string {
-	renderedLines := make([]string, len(p.PatchLines))
-	for index, patchLine := range p.PatchLines {
-		selected := index >= firstLineIndex && index <= lastLineIndex
-		included := lo.Contains(incLineIndices, index)
-		renderedLines[index] = patchLine.render(selected, included)
-	}
-	result := strings.Join(renderedLines, "\n")
-	if strings.TrimSpace(utils.Decolorise(result)) == "" {
+	contentToDisplay := slices.Some(p.PatchLines, func(line *PatchLine) bool {
+		return line.Content != ""
+	})
+	if !contentToDisplay {
 		return ""
 	}
+
+	renderedLines := lo.Map(p.PatchLines, func(patchLine *PatchLine, index int) string {
+		selected := index >= firstLineIndex && index <= lastLineIndex
+		included := lo.Contains(incLineIndices, index)
+		return patchLine.render(selected, included)
+	})
+
+	result := strings.Join(renderedLines, "\n")
+
 	return result
 }
 
@@ -202,10 +207,9 @@ func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int, incLineIndic
 func (p *PatchParser) PlainRenderLines(firstLineIndex, lastLineIndex int) string {
 	linesToCopy := p.PatchLines[firstLineIndex : lastLineIndex+1]
 
-	renderedLines := make([]string, len(linesToCopy))
-	for index, line := range linesToCopy {
-		renderedLines[index] = line.Content
-	}
+	renderedLines := slices.Map(linesToCopy, func(line *PatchLine) string {
+		return line.Content
+	})
 
 	return strings.Join(renderedLines, "\n")
 }

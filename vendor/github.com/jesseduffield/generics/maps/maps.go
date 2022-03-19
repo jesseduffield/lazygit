@@ -33,3 +33,21 @@ func TransformKeys[Key comparable, Value any, NewKey comparable](m map[Key]Value
 	}
 	return output
 }
+
+func MapToSlice[Key comparable, Value any, Mapped any](m map[Key]Value, f func(Key, Value) Mapped) []Mapped {
+	output := make([]Mapped, 0, len(m))
+	for key, value := range m {
+		output = append(output, f(key, value))
+	}
+	return output
+}
+
+func Filter[Key comparable, Value any](m map[Key]Value, f func(Key, Value) bool) map[Key]Value {
+	output := map[Key]Value{}
+	for key, value := range m {
+		if f(key, value) {
+			output[key] = value
+		}
+	}
+	return output
+}

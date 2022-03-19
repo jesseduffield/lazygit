@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/jesseduffield/generics/maps"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -231,10 +232,9 @@ func (gui *Gui) activateContext(c types.Context, opts ...types.OnFocusOpts) erro
 }
 
 func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
-	optionsArray := make([]string, 0)
-	for key, description := range optionsMap {
-		optionsArray = append(optionsArray, key+": "+description)
-	}
+	optionsArray := maps.MapToSlice(optionsMap, func(key string, description string) string {
+		return key + ": " + description
+	})
 	sort.Strings(optionsArray)
 	return strings.Join(optionsArray, ", ")
 }

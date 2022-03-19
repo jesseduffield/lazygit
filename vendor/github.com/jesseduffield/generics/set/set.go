@@ -19,13 +19,9 @@ func NewFromSlice[T comparable](slice []T) *Set[T] {
 	return &Set[T]{hashMap: hashMap}
 }
 
-func (s *Set[T]) Add(value T) {
-	s.hashMap[value] = true
-}
-
-func (s *Set[T]) AddSlice(slice []T) {
-	for _, value := range slice {
-		s.Add(value)
+func (s *Set[T]) Add(values ...T) {
+	for _, value := range values {
+		s.hashMap[value] = true
 	}
 }
 

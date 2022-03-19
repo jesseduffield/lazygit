@@ -66,13 +66,13 @@ outer:
 			if strings.EqualFold(reflogBranch.Name, branch.Name) {
 				branch.Recency = reflogBranch.Recency
 				branchesWithRecency = append(branchesWithRecency, branch)
-				branches = append(branches[0:j], branches[j+1:]...)
+				branches = slices.Remove(branches, j)
 				continue outer
 			}
 		}
 	}
 
-	branches = append(branchesWithRecency, branches...)
+	branches = slices.Prepend(branches, branchesWithRecency...)
 
 	foundHead := false
 	for i, branch := range branches {
@@ -159,7 +159,7 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 	trimmedOutput := strings.TrimSpace(output)
 	outputLines := strings.Split(trimmedOutput, "\n")
 
-	branches := slices.FilterMap(outputLines, func(line string) (*models.Branch, bool) {
+	return slices.FilterMap(outputLines, func(line string) (*models.Branch, bool) {
 		if line == "" {
 			return nil, false
 		}
@@ -174,8 +174,6 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 
 		return obtainBranch(split), true
 	})
-
-	return branches
 }
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
@@ -184,17 +182,21 @@ func (self *BranchLoader) obtainReflogBranches(reflogCommits []*models.Commit) [
 	foundBranches := set.New[string]()
 	re := regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
 	reflogBranches := make([]*models.Branch, 0, len(reflogCommits))
+
 	for _, commit := range reflogCommits {
-		if match := re.FindStringSubmatch(commit.Name); len(match) == 3 {
-			recency := utils.UnixToTimeAgo(commit.UnixTimestamp)
-			for _, branchName := range match[1:] {
-				if !foundBranches.Includes(branchName) {
-					foundBranches.Add(branchName)
-					reflogBranches = append(reflogBranches, &models.Branch{
-						Recency: recency,
-						Name:    branchName,
-					})
-				}
+		match := re.FindStringSubmatch(commit.Name)
+		if len(match) != 3 {
+			continue
+		}
+
+		recency := utils.UnixToTimeAgo(commit.UnixTimestamp)
+		for _, branchName := range match[1:] {
+			if !foundBranches.Includes(branchName) {
+				foundBranches.Add(branchName)
+				reflogBranches = append(reflogBranches, &models.Branch{
+					Recency: recency,
+					Name:    branchName,
+				})
 			}
 		}
 	}

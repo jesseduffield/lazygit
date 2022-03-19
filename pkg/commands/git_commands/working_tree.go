@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -46,10 +47,9 @@ func (self *WorkingTreeCommands) StageFile(path string) error {
 }
 
 func (self *WorkingTreeCommands) StageFiles(paths []string) error {
-	quotedPaths := make([]string, len(paths))
-	for i, path := range paths {
-		quotedPaths[i] = self.cmd.Quote(path)
-	}
+	quotedPaths := slices.Map(paths, func(path string) string {
+		return self.cmd.Quote(path)
+	})
 	return self.cmd.New(fmt.Sprintf("git add -- %s", strings.Join(quotedPaths, " "))).Run()
 }
 

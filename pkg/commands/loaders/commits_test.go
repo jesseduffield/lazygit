@@ -11,24 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func NewDummyCommitLoader() *CommitLoader {
-	cmn := utils.NewDummyCommon()
-
-	return &CommitLoader{
-		Common:               cmn,
-		cmd:                  nil,
-		getCurrentBranchName: func() (string, string, error) { return "master", "master", nil },
-		getRebaseMode:        func() (enums.RebaseMode, error) { return enums.REBASE_MODE_NONE, nil },
-		dotGitDir:            ".git",
-		readFile: func(filename string) ([]byte, error) {
-			return []byte(""), nil
-		},
-		walkFiles: func(root string, fn filepath.WalkFunc) error {
-			return nil
-		},
-	}
-}
-
 const commitsOutput = `0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield| (HEAD -> better-tests)|b21997d6b4cbdf84b149|better typing for rebase mode
 b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164|1640824515|Jesse Duffield| (origin/better-tests)|e94e8fc5b6fab4cb755f|fix logging
 e94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c|1640823749|Jesse Duffield||d8084cd558925eb7c9c3|refactor
