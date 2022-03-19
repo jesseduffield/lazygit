@@ -19,7 +19,7 @@ type CommitFileTree struct {
 	tree           *CommitFileNode
 	showTree       bool
 	log            *logrus.Entry
-	collapsedPaths CollapsedPaths
+	collapsedPaths *CollapsedPaths
 }
 
 var _ ICommitFileTree = &CommitFileTree{}
@@ -29,7 +29,7 @@ func NewCommitFileTree(getFiles func() []*models.CommitFile, log *logrus.Entry, 
 		getFiles:       getFiles,
 		log:            log,
 		showTree:       showTree,
-		collapsedPaths: CollapsedPaths{},
+		collapsedPaths: NewCollapsedPaths(),
 	}
 }
 
@@ -88,7 +88,7 @@ func (self *CommitFileTree) Tree() INode {
 	return self.tree
 }
 
-func (self *CommitFileTree) CollapsedPaths() CollapsedPaths {
+func (self *CommitFileTree) CollapsedPaths() *CollapsedPaths {
 	return self.collapsedPaths
 }
 

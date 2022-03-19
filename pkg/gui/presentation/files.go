@@ -66,7 +66,7 @@ func RenderCommitFileTree(
 
 func renderAux(
 	s filetree.INode,
-	collapsedPaths filetree.CollapsedPaths,
+	collapsedPaths *filetree.CollapsedPaths,
 	prefix string,
 	depth int,
 	renderLine func(filetree.INode, int) string,

@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -181,15 +182,15 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
 // int form against the branch to recalculate the time ago
 func (self *BranchLoader) obtainReflogBranches(reflogCommits []*models.Commit) []*models.Branch {
-	foundBranchesMap := map[string]bool{}
+	foundBranches := set.New[string]()
 	re := regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
 	reflogBranches := make([]*models.Branch, 0, len(reflogCommits))
 	for _, commit := range reflogCommits {
 		if match := re.FindStringSubmatch(commit.Name); len(match) == 3 {
 			recency := utils.UnixToTimeAgo(commit.UnixTimestamp)
 			for _, branchName := range match[1:] {
-				if !foundBranchesMap[branchName] {
-					foundBranchesMap[branchName] = true
+				if !foundBranches.Includes(branchName) {
+					foundBranches.Add(branchName)
 					reflogBranches = append(reflogBranches, &models.Branch{
 						Recency: recency,
 						Name:    branchName,

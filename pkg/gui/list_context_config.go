@@ -123,7 +123,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 			return presentation.GetCommitListDisplayStrings(
 				gui.State.Model.Commits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.helpers.CherryPick.CherryPickedCommitShaMap(),
+				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Git.ParseEmoji,
 				selectedCommitSha,
@@ -155,7 +155,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 			return presentation.GetCommitListDisplayStrings(
 				gui.State.Model.SubCommits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.helpers.CherryPick.CherryPickedCommitShaMap(),
+				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Git.ParseEmoji,
 				selectedCommitSha,
@@ -199,7 +199,7 @@ func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 			return presentation.GetReflogCommitListDisplayStrings(
 				gui.State.Model.FilteredReflogCommits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
-				gui.helpers.CherryPick.CherryPickedCommitShaMap(),
+				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Git.ParseEmoji,
 			)

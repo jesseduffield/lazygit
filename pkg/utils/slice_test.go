@@ -6,42 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestIncludesString is a function.
-func TestIncludesString(t *testing.T) {
-	type scenario struct {
-		list     []string
-		element  string
-		expected bool
-	}
-
-	scenarios := []scenario{
-		{
-			[]string{"a", "b"},
-			"a",
-			true,
-		},
-		{
-			[]string{"a", "b"},
-			"c",
-			false,
-		},
-		{
-			[]string{"a", "b"},
-			"",
-			false,
-		},
-		{
-			[]string{""},
-			"",
-			true,
-		},
-	}
-
-	for _, s := range scenarios {
-		assert.EqualValues(t, s.expected, IncludesString(s.list, s.element))
-	}
-}
-
 func TestNextIndex(t *testing.T) {
 	type scenario struct {
 		testName string
@@ -169,26 +133,6 @@ func TestEscapeSpecialChars(t *testing.T) {
 	}
 }
 
-func TestUniq(t *testing.T) {
-	for _, test := range []struct {
-		values []string
-		want   []string
-	}{
-		{
-			values: []string{"a", "b", "c"},
-			want:   []string{"a", "b", "c"},
-		},
-		{
-			values: []string{"a", "b", "a", "b", "c"},
-			want:   []string{"a", "b", "c"},
-		},
-	} {
-		if got := Uniq(test.values); !assert.EqualValues(t, got, test.want) {
-			t.Errorf("Uniq(%v) = %v; want %v", test.values, got, test.want)
-		}
-	}
-}
-
 func TestLimit(t *testing.T) {
 	for _, test := range []struct {
 		values []string
@@ -228,26 +172,6 @@ func TestLimit(t *testing.T) {
 	} {
 		if got := Limit(test.values, test.limit); !assert.EqualValues(t, got, test.want) {
 			t.Errorf("Limit(%v, %d) = %v; want %v", test.values, test.limit, got, test.want)
-		}
-	}
-}
-
-func TestReverse(t *testing.T) {
-	for _, test := range []struct {
-		values []string
-		want   []string
-	}{
-		{
-			values: []string{"a", "b", "c"},
-			want:   []string{"c", "b", "a"},
-		},
-		{
-			values: []string{},
-			want:   []string{},
-		},
-	} {
-		if got := Reverse(test.values); !assert.EqualValues(t, got, test.want) {
-			t.Errorf("Reverse(%v) = %v; want %v", test.values, got, test.want)
 		}
 	}
 }

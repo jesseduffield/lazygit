@@ -27,7 +27,7 @@ type ITree interface {
 	IsCollapsed(path string) bool
 	ToggleCollapsed(path string)
 	Tree() INode
-	CollapsedPaths() CollapsedPaths
+	CollapsedPaths() *CollapsedPaths
 }
 
 type IFileTree interface {
@@ -48,7 +48,7 @@ type FileTree struct {
 	showTree       bool
 	log            *logrus.Entry
 	filter         FileTreeDisplayFilter
-	collapsedPaths CollapsedPaths
+	collapsedPaths *CollapsedPaths
 }
 
 func NewFileTree(getFiles func() []*models.File, log *logrus.Entry, showTree bool) *FileTree {
@@ -57,7 +57,7 @@ func NewFileTree(getFiles func() []*models.File, log *logrus.Entry, showTree boo
 		log:            log,
 		showTree:       showTree,
 		filter:         DisplayAll,
-		collapsedPaths: CollapsedPaths{},
+		collapsedPaths: NewCollapsedPaths(),
 	}
 }
 
@@ -164,7 +164,7 @@ func (self *FileTree) Tree() INode {
 	return self.tree
 }
 
-func (self *FileTree) CollapsedPaths() CollapsedPaths {
+func (self *FileTree) CollapsedPaths() *CollapsedPaths {
 	return self.collapsedPaths
 }
 

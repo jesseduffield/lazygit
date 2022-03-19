@@ -7,7 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 func (gui *Gui) getBindings(context types.Context) []*types.Binding {
@@ -26,7 +26,7 @@ func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 				bindingsGlobal = append(bindingsGlobal, binding)
 			} else if binding.Tag == "navigation" {
 				bindingsNavigation = append(bindingsNavigation, binding)
-			} else if utils.IncludesString(binding.Contexts, string(context.GetKey())) {
+			} else if lo.Contains(binding.Contexts, string(context.GetKey())) {
 				bindingsPanel = append(bindingsPanel, binding)
 			}
 		}
@@ -45,17 +45,9 @@ func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 // We shouldn't really need to do this. We should define alternative keys for the same
 // handler in the keybinding struct.
 func uniqueBindings(bindings []*types.Binding) []*types.Binding {
-	keys := make(map[string]bool)
-	result := make([]*types.Binding, 0)
-
-	for _, binding := range bindings {
-		if _, ok := keys[binding.Description]; !ok {
-			keys[binding.Description] = true
-			result = append(result, binding)
-		}
-	}
-
-	return result
+	return lo.UniqBy(bindings, func(binding *types.Binding) string {
+		return binding.Description
+	})
 }
 
 func (gui *Gui) displayDescription(binding *types.Binding) string {

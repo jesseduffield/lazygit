@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -8,7 +9,7 @@ import (
 	"github.com/kyokomi/emoji/v2"
 )
 
-func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string, parseEmoji bool) [][]string {
+func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaSet *set.Set[string], diffName string, parseEmoji bool) [][]string {
 	lines := make([][]string, len(commits))
 
 	var displayFunc func(*models.Commit, bool, bool, bool) []string
@@ -20,7 +21,7 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 
 	for i := range commits {
 		diffed := commits[i].Sha == diffName
-		cherryPicked := cherryPickedCommitShaMap[commits[i].Sha]
+		cherryPicked := cherryPickedCommitShaSet.Includes(commits[i].Sha)
 		lines[i] = displayFunc(commits[i], cherryPicked, diffed, parseEmoji)
 	}
 

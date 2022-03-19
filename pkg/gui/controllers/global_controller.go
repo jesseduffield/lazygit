@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/generics/list"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type GlobalController struct {
@@ -36,9 +38,7 @@ func (self *GlobalController) customCommand() error {
 		FindSuggestionsFunc: self.GetCustomCommandsHistorySuggestionsFunc(),
 		HandleConfirm: func(command string) error {
 			self.c.GetAppState().CustomCommandsHistory = utils.Limit(
-				utils.Uniq(
-					append(self.c.GetAppState().CustomCommandsHistory, command),
-				),
+				lo.Uniq(append(self.c.GetAppState().CustomCommandsHistory, command)),
 				1000,
 			)
 
@@ -57,7 +57,7 @@ func (self *GlobalController) customCommand() error {
 
 func (self *GlobalController) GetCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {
 	// reversing so that we display the latest command first
-	history := utils.Reverse(self.c.GetAppState().CustomCommandsHistory)
+	history := list.Reverse(self.c.GetAppState().CustomCommandsHistory)
 
 	return helpers.FuzzySearchFunc(history)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -186,7 +187,7 @@ func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int, incLineIndic
 	renderedLines := make([]string, len(p.PatchLines))
 	for index, patchLine := range p.PatchLines {
 		selected := index >= firstLineIndex && index <= lastLineIndex
-		included := utils.IncludesInt(incLineIndices, index)
+		included := lo.Contains(incLineIndices, index)
 		renderedLines[index] = patchLine.render(selected, included)
 	}
 	result := strings.Join(renderedLines, "\n")

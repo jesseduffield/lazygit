@@ -1,8 +1,6 @@
 package gui
 
-import (
-	"github.com/jesseduffield/lazygit/pkg/utils"
-)
+import "github.com/samber/lo"
 
 func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 	if !gui.git.Patch.PatchManager.Active() {
@@ -68,7 +66,7 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 		if err != nil {
 			return err
 		}
-		currentLineIsStaged := utils.IncludesInt(includedLineIndices, state.GetSelectedLineIdx())
+		currentLineIsStaged := lo.Contains(includedLineIndices, state.GetSelectedLineIdx())
 		if currentLineIsStaged {
 			toggleFunc = gui.git.Patch.PatchManager.RemoveFileLineRange
 		}

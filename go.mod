@@ -14,6 +14,7 @@ require (
 	github.com/gookit/color v1.4.2
 	github.com/imdario/mergo v0.3.11
 	github.com/integrii/flaggy v1.4.0
+	github.com/jesseduffield/generics v0.0.0-20220318214805-3397e5e19e9f
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
 	github.com/jesseduffield/gocui v0.3.1-0.20220227022729-69f0c798eec8
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
@@ -25,6 +26,7 @@ require (
 	github.com/mgutz/str v1.2.0
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/sahilm/fuzzy v0.1.0
+	github.com/samber/lo v1.10.1
 	github.com/sanity-io/litter v1.5.2
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad

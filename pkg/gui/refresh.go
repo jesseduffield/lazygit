@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -52,14 +53,6 @@ func getModeName(mode types.RefreshMode) string {
 	}
 }
 
-func arrToMap(arr []types.RefreshableView) map[types.RefreshableView]bool {
-	output := map[types.RefreshableView]bool{}
-	for _, el := range arr {
-		output[el] = true
-	}
-	return output
-}
-
 func (gui *Gui) Refresh(options types.RefreshOptions) error {
 	if options.Scope == nil {
 		gui.c.Log.Infof(
@@ -77,9 +70,9 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 	wg := sync.WaitGroup{}
 
 	f := func() {
-		var scopeMap map[types.RefreshableView]bool
+		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
-			scopeMap = arrToMap([]types.RefreshableView{
+			scopeSet = set.NewFromSlice([]types.RefreshableView{
 				types.COMMITS,
 				types.BRANCHES,
 				types.FILES,
@@ -91,7 +84,7 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 				types.BISECT_INFO,
 			})
 		} else {
-			scopeMap = arrToMap(options.Scope)
+			scopeSet = set.NewFromSlice(options.Scope)
 		}
 
 		refresh := func(f func()) {
@@ -106,27 +99,27 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 			}()
 		}
 
-		if scopeMap[types.COMMITS] || scopeMap[types.BRANCHES] || scopeMap[types.REFLOG] || scopeMap[types.BISECT_INFO] {
+		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) || scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
 			refresh(gui.refreshCommits)
-		} else if scopeMap[types.REBASE_COMMITS] {
+		} else if scopeSet.Includes(types.REBASE_COMMITS) {
 			// the above block handles rebase commits so we only need to call this one
 			// if we've asked specifically for rebase commits and not those other things
 			refresh(func() { _ = gui.refreshRebaseCommits() })
 		}
 
-		if scopeMap[types.FILES] || scopeMap[types.SUBMODULES] {
+		if scopeSet.Includes(types.FILES) || scopeSet.Includes(types.SUBMODULES) {
 			refresh(func() { _ = gui.refreshFilesAndSubmodules() })
 		}
 
-		if scopeMap[types.STASH] {
+		if scopeSet.Includes(types.STASH) {
 			refresh(func() { _ = gui.refreshStashEntries() })
 		}
 
-		if scopeMap[types.TAGS] {
+		if scopeSet.Includes(types.TAGS) {
 			refresh(func() { _ = gui.refreshTags() })
 		}
 
-		if scopeMap[types.REMOTES] {
+		if scopeSet.Includes(types.REMOTES) {
 			refresh(func() { _ = gui.refreshRemotes() })
 		}
 
