@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sort"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui"
@@ -180,9 +180,9 @@ outer:
 		groupedBindings = append(groupedBindings, groupedBindingsType{contextAndView: contextAndView, bindings: contextBindings})
 	}
 
-	sort.Slice(groupedBindings, func(i, j int) bool {
-		first := groupedBindings[i].contextAndView
-		second := groupedBindings[j].contextAndView
+	slices.SortFunc(groupedBindings, func(a, b groupedBindingsType) bool {
+		first := a.contextAndView
+		second := b.contextAndView
 		if first.title == "" {
 			return true
 		}

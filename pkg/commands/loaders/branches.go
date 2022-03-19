@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -78,8 +79,7 @@ outer:
 		if branch.Head {
 			foundHead = true
 			branch.Recency = "  *"
-			branches = append(branches[0:i], branches[i+1:]...)
-			branches = append([]*models.Branch{branch}, branches...)
+			branches = slices.Move(branches, i, 0)
 			break
 		}
 	}
@@ -88,7 +88,7 @@ outer:
 		if err != nil {
 			return nil, err
 		}
-		branches = append([]*models.Branch{{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"}}, branches...)
+		branches = slices.Prepend(branches, &models.Branch{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"})
 	}
 
 	configBranches, err := self.config.Branches()
@@ -158,10 +158,10 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 
 	trimmedOutput := strings.TrimSpace(output)
 	outputLines := strings.Split(trimmedOutput, "\n")
-	branches := make([]*models.Branch, 0, len(outputLines))
-	for _, line := range outputLines {
+
+	branches := slices.FilterMap(outputLines, func(line string) (*models.Branch, bool) {
 		if line == "" {
-			continue
+			return nil, false
 		}
 
 		split := strings.Split(line, SEPARATION_CHAR)
@@ -169,12 +169,11 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 			// Ignore line if it isn't separated into 4 parts
 			// This is probably a warning message, for more info see:
 			// https://github.com/jesseduffield/lazygit/issues/1385#issuecomment-885580439
-			continue
+			return nil, false
 		}
 
-		branch := obtainBranch(split)
-		branches = append(branches, branch)
-	}
+		return obtainBranch(split), true
+	})
 
 	return branches
 }

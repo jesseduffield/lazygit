@@ -1,6 +1,6 @@
 package set
 
-import "github.com/jesseduffield/generics/hashmap"
+import "github.com/jesseduffield/generics/maps"
 
 type Set[T comparable] struct {
 	hashMap map[T]bool
@@ -45,5 +45,5 @@ func (s *Set[T]) Includes(value T) bool {
 
 // output slice is not necessarily in the same order that items were added
 func (s *Set[T]) ToSlice() []T {
-	return hashmap.Keys(s.hashMap)
+	return maps.Keys(s.hashMap)
 }

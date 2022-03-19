@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -118,12 +119,12 @@ func (self *CherryPickHelper) add(selectedCommit *models.Commit, commitsList []*
 	commitSet := self.CherryPickedCommitShaSet()
 	commitSet.Add(selectedCommit.Sha)
 
-	commitsInSet := lo.Filter(commitsList, func(commit *models.Commit, _ int) bool {
-		return commitSet.Includes(commit.Sha)
-	})
-	newCommits := lo.Map(commitsInSet, func(commit *models.Commit, _ int) *models.Commit {
-		return &models.Commit{Name: commit.Name, Sha: commit.Sha}
-	})
+	newCommits := slices.FilterThenMap(commitsList,
+		func(commit *models.Commit) bool { return commitSet.Includes(commit.Sha) },
+		func(commit *models.Commit) *models.Commit {
+			return &models.Commit{Name: commit.Name, Sha: commit.Sha}
+		},
+	)
 
 	self.getData().CherryPickedCommits = newCommits
 }
