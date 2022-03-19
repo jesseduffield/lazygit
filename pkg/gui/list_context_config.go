@@ -3,6 +3,7 @@ package gui
 import (
 	"log"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -28,12 +29,9 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 		gui.Views.Files,
 		func(startIdx int, length int) [][]string {
 			lines := presentation.RenderFileTree(gui.State.Contexts.Files.FileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.State.Model.Submodules)
-			mappedLines := make([][]string, len(lines))
-			for i, line := range lines {
-				mappedLines[i] = []string{line}
-			}
-
-			return mappedLines
+			return slices.Map(lines, func(line string) []string {
+				return []string{line}
+			})
 		},
 		OnFocusWrapper(gui.onFocusFile),
 		OnFocusWrapper(gui.withDiffModeCheck(gui.filesRenderToMain)),
@@ -235,12 +233,9 @@ func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 			}
 
 			lines := presentation.RenderCommitFileTree(gui.State.Contexts.CommitFiles.CommitFileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.git.Patch.PatchManager)
-			mappedLines := make([][]string, len(lines))
-			for i, line := range lines {
-				mappedLines[i] = []string{line}
-			}
-
-			return mappedLines
+			return slices.Map(lines, func(line string) []string {
+				return []string{line}
+			})
 		},
 		OnFocusWrapper(gui.onCommitFileFocus),
 		OnFocusWrapper(gui.withDiffModeCheck(gui.commitFilesRenderToMain)),

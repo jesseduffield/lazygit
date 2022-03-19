@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -51,22 +53,18 @@ func NewSuggestionsHelper(
 }
 
 func (self *SuggestionsHelper) getRemoteNames() []string {
-	result := make([]string, len(self.model.Remotes))
-	for i, remote := range self.model.Remotes {
-		result[i] = remote.Name
-	}
-	return result
+	return slices.Map(self.model.Remotes, func(remote *models.Remote) string {
+		return remote.Name
+	})
 }
 
 func matchesToSuggestions(matches []string) []*types.Suggestion {
-	suggestions := make([]*types.Suggestion, len(matches))
-	for i, match := range matches {
-		suggestions[i] = &types.Suggestion{
+	return slices.Map(matches, func(match string) *types.Suggestion {
+		return &types.Suggestion{
 			Value: match,
 			Label: match,
 		}
-	}
-	return suggestions
+	})
 }
 
 func (self *SuggestionsHelper) GetRemoteSuggestionsFunc() func(string) []*types.Suggestion {
@@ -76,11 +74,9 @@ func (self *SuggestionsHelper) GetRemoteSuggestionsFunc() func(string) []*types.
 }
 
 func (self *SuggestionsHelper) getBranchNames() []string {
-	result := make([]string, len(self.model.Branches))
-	for i, branch := range self.model.Branches {
-		result[i] = branch.Name
-	}
-	return result
+	return slices.Map(self.model.Branches, func(branch *models.Branch) string {
+		return branch.Name
+	})
 }
 
 func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*types.Suggestion {
@@ -94,15 +90,12 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 			matchingBranchNames = utils.FuzzySearch(input, branchNames)
 		}
 
-		suggestions := make([]*types.Suggestion, len(matchingBranchNames))
-		for i, branchName := range matchingBranchNames {
-			suggestions[i] = &types.Suggestion{
+		return slices.Map(matchingBranchNames, func(branchName string) *types.Suggestion {
+			return &types.Suggestion{
 				Value: branchName,
 				Label: presentation.GetBranchTextStyle(branchName).Sprint(branchName),
 			}
-		}
-
-		return suggestions
+		})
 	}
 }
 
@@ -148,26 +141,16 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 		// doing another fuzzy search for good measure
 		matchingNames = utils.FuzzySearch(input, matchingNames)
 
-		suggestions := make([]*types.Suggestion, len(matchingNames))
-		for i, name := range matchingNames {
-			suggestions[i] = &types.Suggestion{
-				Value: name,
-				Label: name,
-			}
-		}
-
-		return suggestions
+		return matchesToSuggestions(matchingNames)
 	}
 }
 
 func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
-	result := []string{}
-	for _, remote := range self.model.Remotes {
-		for _, branch := range remote.Branches {
-			result = append(result, fmt.Sprintf("%s%s%s", remote.Name, separator, branch.Name))
-		}
-	}
-	return result
+	return slices.FlatMap(self.model.Remotes, func(remote *models.Remote) []string {
+		return slices.Map(remote.Branches, func(branch *models.RemoteBranch) string {
+			return fmt.Sprintf("%s%s%s", remote.Name, separator, branch.Name)
+		})
+	})
 }
 
 func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion {
@@ -175,11 +158,9 @@ func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string
 }
 
 func (self *SuggestionsHelper) getTagNames() []string {
-	result := make([]string, len(self.model.Tags))
-	for i, tag := range self.model.Tags {
-		result[i] = tag.Name
-	}
-	return result
+	return slices.Map(self.model.Tags, func(tag *models.Tag) string {
+		return tag.Name
+	})
 }
 
 func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Suggestion {

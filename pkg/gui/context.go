@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/maps"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -413,16 +414,9 @@ func (gui *Gui) changeMainViewsContext(c types.Context) {
 func (gui *Gui) viewTabNames(viewName string) []string {
 	tabContexts := gui.State.ViewTabContextMap[viewName]
 
-	if len(tabContexts) == 0 {
-		return nil
-	}
-
-	result := make([]string, len(tabContexts))
-	for i, tabContext := range tabContexts {
-		result[i] = tabContext.Tab
-	}
-
-	return result
+	return slices.Map(tabContexts, func(tabContext context.TabContext) string {
+		return tabContext.Tab
+	})
 }
 
 func (gui *Gui) setViewTabForContext(c types.Context) {

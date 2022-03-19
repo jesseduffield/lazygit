@@ -1,20 +1,17 @@
 package presentation
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 func GetRemoteListDisplayStrings(remotes []*models.Remote, diffName string) [][]string {
-	lines := make([][]string, len(remotes))
-
-	for i := range remotes {
-		diffed := remotes[i].Name == diffName
-		lines[i] = getRemoteDisplayStrings(remotes[i], diffed)
-	}
-
-	return lines
+	return slices.Map(remotes, func(remote *models.Remote) []string {
+		diffed := remote.Name == diffName
+		return getRemoteDisplayStrings(remote, diffed)
+	})
 }
 
 // getRemoteDisplayStrings returns the display string of branch

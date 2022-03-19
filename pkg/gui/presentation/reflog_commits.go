@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -10,8 +11,6 @@ import (
 )
 
 func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaSet *set.Set[string], diffName string, parseEmoji bool) [][]string {
-	lines := make([][]string, len(commits))
-
 	var displayFunc func(*models.Commit, bool, bool, bool) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForReflogCommit
@@ -19,13 +18,11 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 		displayFunc = getDisplayStringsForReflogCommit
 	}
 
-	for i := range commits {
-		diffed := commits[i].Sha == diffName
-		cherryPicked := cherryPickedCommitShaSet.Includes(commits[i].Sha)
-		lines[i] = displayFunc(commits[i], cherryPicked, diffed, parseEmoji)
-	}
-
-	return lines
+	return slices.Map(commits, func(commit *models.Commit) []string {
+		diffed := commit.Sha == diffName
+		cherryPicked := cherryPickedCommitShaSet.Includes(commit.Sha)
+		return displayFunc(commit, cherryPicked, diffed, parseEmoji)
+	})
 }
 
 func reflogShaColor(cherryPicked, diffed bool) style.TextStyle {

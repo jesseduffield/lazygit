@@ -1,6 +1,7 @@
 package slices
 
 import (
+	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 )
 
@@ -28,11 +29,31 @@ func Every[T any](slice []T, test func(T) bool) bool {
 
 // Produces a new slice, leaves the input slice untouched.
 func Map[T any, V any](slice []T, f func(T) V) []V {
-	result := make([]V, len(slice))
-	for i, value := range slice {
-		result[i] = f(value)
+	result := make([]V, 0, len(slice))
+	for _, value := range slice {
+		result = append(result, f(value))
 	}
 
+	return result
+}
+
+// Produces a new slice, leaves the input slice untouched.
+func FlatMap[T any, V any](slice []T, f func(T) []V) []V {
+	// impossible to know how long this slice will be in the end but the length
+	// of the original slice is the lower bound
+	result := make([]V, 0, len(slice))
+	for _, value := range slice {
+		result = append(result, f(value)...)
+	}
+
+	return result
+}
+
+func Flatten[T any](slice [][]T) []T {
+	result := make([]T, 0, len(slice))
+	for _, subSlice := range slice {
+		result = append(result, subSlice...)
+	}
 	return result
 }
 
@@ -151,4 +172,54 @@ func Shift[T any](slice []T) (T, []T) {
 	value := slice[0]
 	slice = slice[1:]
 	return value, slice
+}
+
+func Partition[T any](slice []T, test func(T) bool) ([]T, []T) {
+	left := make([]T, 0, len(slice))
+	right := make([]T, 0, len(slice))
+
+	for _, value := range slice {
+		if test(value) {
+			left = append(left, value)
+		} else {
+			right = append(right, value)
+		}
+	}
+
+	return left, right
+}
+
+func MaxBy[T any, V constraints.Ordered](slice []T, f func(T) V) V {
+	if len(slice) == 0 {
+		return zero[V]()
+	}
+
+	max := f(slice[0])
+	for _, element := range slice[1:] {
+		value := f(element)
+		if value > max {
+			max = value
+		}
+	}
+	return max
+}
+
+func MinBy[T any, V constraints.Ordered](slice []T, f func(T) V) V {
+	if len(slice) == 0 {
+		return zero[V]()
+	}
+
+	min := f(slice[0])
+	for _, element := range slice[1:] {
+		value := f(element)
+		if value < min {
+			min = value
+		}
+	}
+	return min
+}
+
+func zero[T any]() T {
+	var value T
+	return value
 }

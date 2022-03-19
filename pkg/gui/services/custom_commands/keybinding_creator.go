@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -77,11 +78,9 @@ func (self *KeybindingCreator) contextForContextKey(contextKey types.ContextKey)
 }
 
 func formatUnknownContextError(customCommand config.CustomCommand) error {
-	// stupid golang making me build an array of strings for this.
-	allContextKeyStrings := make([]string, len(context.AllContextKeys))
-	for i := range context.AllContextKeys {
-		allContextKeyStrings[i] = string(context.AllContextKeys[i])
-	}
+	allContextKeyStrings := slices.Map(context.AllContextKeys, func(key types.ContextKey) string {
+		return string(key)
+	})
 
 	return fmt.Errorf("Error when setting custom command keybindings: unknown context: %s. Key: %s, Command: %s.\nPermitted contexts: %s", customCommand.Context, customCommand.Key, customCommand.Command, strings.Join(allContextKeyStrings, ", "))
 }

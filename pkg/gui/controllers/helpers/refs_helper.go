@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -134,10 +135,8 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 
 func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 	strengths := []string{"soft", "mixed", "hard"}
-	menuItems := make([]*types.MenuItem, len(strengths))
-	for i, strength := range strengths {
-		strength := strength
-		menuItems[i] = &types.MenuItem{
+	menuItems := slices.Map(strengths, func(strength string) *types.MenuItem {
+		return &types.MenuItem{
 			DisplayStrings: []string{
 				fmt.Sprintf("%s reset", strength),
 				style.FgRed.Sprintf("reset --%s %s", strength, ref),
@@ -147,7 +146,7 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 				return self.ResetToRef(ref, strength, []string{})
 			},
 		}
-	}
+	})
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: fmt.Sprintf("%s %s", self.c.Tr.LcResetTo, ref),
