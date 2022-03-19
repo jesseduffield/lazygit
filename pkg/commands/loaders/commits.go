@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -200,10 +201,9 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 		return nil, nil
 	}
 
-	commitShas := make([]string, len(commits))
-	for i, commit := range commits {
-		commitShas[i] = commit.Sha
-	}
+	commitShas := slices.Map(commits, func(commit *models.Commit) string {
+		return commit.Sha
+	})
 
 	// note that we're not filtering these as we do non-rebasing commits just because
 	// I suspect that will cause some damage

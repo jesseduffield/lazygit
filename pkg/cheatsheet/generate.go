@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/jesseduffield/generics/maps"
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -174,11 +175,12 @@ outer:
 		bindings       []*types.Binding
 	}
 
-	groupedBindings := make([]groupedBindingsType, 0, len(contextAndViewBindingMap))
-
-	for contextAndView, contextBindings := range contextAndViewBindingMap {
-		groupedBindings = append(groupedBindings, groupedBindingsType{contextAndView: contextAndView, bindings: contextBindings})
-	}
+	groupedBindings := maps.MapToSlice(
+		contextAndViewBindingMap,
+		func(contextAndView contextAndViewType, contextBindings []*types.Binding) groupedBindingsType {
+			return groupedBindingsType{contextAndView: contextAndView, bindings: contextBindings}
+		},
+	)
 
 	slices.SortFunc(groupedBindings, func(a, b groupedBindingsType) bool {
 		first := a.contextAndView

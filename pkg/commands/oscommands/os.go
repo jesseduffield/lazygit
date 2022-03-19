@@ -12,6 +12,7 @@ import (
 	"github.com/go-errors/errors"
 
 	"github.com/atotto/clipboard"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -173,15 +174,11 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
 func (c *OSCommand) PipeCommands(commandStrings ...string) error {
-	cmds := make([]*exec.Cmd, len(commandStrings))
-	logCmdStr := ""
-	for i, str := range commandStrings {
-		if i > 0 {
-			logCmdStr += " | "
-		}
-		logCmdStr += str
-		cmds[i] = c.Cmd.New(str).GetCmd()
-	}
+	cmds := slices.Map(commandStrings, func(cmdString string) *exec.Cmd {
+		return c.Cmd.New(cmdString).GetCmd()
+	})
+
+	logCmdStr := strings.Join(commandStrings, " | ")
 	c.LogCommand(logCmdStr, true)
 
 	for i := 0; i < len(cmds)-1; i++ {

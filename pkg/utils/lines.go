@@ -17,15 +17,6 @@ func SplitLines(multilineString string) []string {
 	return lines
 }
 
-// TrimTrailingNewline - Trims the trailing newline
-// TODO: replace with `chomp` after refactor
-func TrimTrailingNewline(str string) string {
-	if strings.HasSuffix(str, "\n") {
-		return str[:len(str)-1]
-	}
-	return str
-}
-
 // NormalizeLinefeeds - Removes all Windows and Mac style line feeds
 func NormalizeLinefeeds(str string) string {
 	str = strings.Replace(str, "\r\n", "\n", -1)

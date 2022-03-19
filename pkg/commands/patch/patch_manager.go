@@ -4,6 +4,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/jesseduffield/generics/maps"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
@@ -72,8 +74,9 @@ func (p *PatchManager) Start(from, to string, reverse bool, canRebase bool) {
 func (p *PatchManager) addFileWhole(info *fileInfo) {
 	info.mode = WHOLE
 	lineCount := len(strings.Split(info.diff, "\n"))
-	info.includedLineIndices = make([]int, lineCount)
 	// add every line index
+	// TODO: add tests and then use lo.Range to simplify
+	info.includedLineIndices = make([]int, lineCount)
 	for i := 0; i < lineCount; i++ {
 		info.includedLineIndices[i] = i
 	}
@@ -192,21 +195,15 @@ func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse b
 
 func (p *PatchManager) renderEachFilePatch(plain bool) []string {
 	// sort files by name then iterate through and render each patch
-	filenames := make([]string, len(p.fileInfoMap))
-	index := 0
-	for filename := range p.fileInfoMap {
-		filenames[index] = filename
-		index++
-	}
+	filenames := maps.Keys(p.fileInfoMap)
 
 	sort.Strings(filenames)
-	output := []string{}
-	for _, filename := range filenames {
-		patch := p.RenderPatchForFile(filename, plain, false, true)
-		if patch != "" {
-			output = append(output, patch)
-		}
-	}
+	patches := slices.Map(filenames, func(filename string) string {
+		return p.RenderPatchForFile(filename, plain, false, true)
+	})
+	output := slices.Filter(patches, func(patch string) bool {
+		return patch != ""
+	})
 
 	return output
 }
