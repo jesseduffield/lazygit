@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/aybabtme/humanlog"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -284,13 +285,9 @@ func (app *App) Rebase() error {
 
 // Close closes any resources
 func (app *App) Close() error {
-	for _, closer := range app.closers {
-		err := closer.Close()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return slices.TryForEach(app.closers, func(closer io.Closer) error {
+		return closer.Close()
+	})
 }
 
 // KnownError takes an error and tells us whether it's an error that we know about where we can print a nicely formatted version of it rather than panicking with a stack trace
@@ -299,10 +296,10 @@ func (app *App) KnownError(err error) (string, bool) {
 
 	knownErrorMessages := []string{app.Tr.MinGitVersionError}
 
-	for _, message := range knownErrorMessages {
-		if errorMessage == message {
-			return message, true
-		}
+	if message, ok := slices.Find(knownErrorMessages, func(knownErrorMessage string) bool {
+		return knownErrorMessage == errorMessage
+	}); ok {
+		return message, true
 	}
 
 	mappings := []errorMapping{
@@ -312,11 +309,12 @@ func (app *App) KnownError(err error) (string, bool) {
 		},
 	}
 
-	for _, mapping := range mappings {
-		if strings.Contains(errorMessage, mapping.originalError) {
-			return mapping.newError, true
-		}
+	if mapping, ok := slices.Find(mappings, func(mapping errorMapping) bool {
+		return strings.Contains(errorMessage, mapping.originalError)
+	}); ok {
+		return mapping.newError, true
 	}
+
 	return "", false
 }
 

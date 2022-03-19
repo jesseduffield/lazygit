@@ -141,12 +141,11 @@ outer:
 			if existing == nil {
 				contextAndViewBindingMap[key] = []*types.Binding{binding}
 			} else {
-				for _, navBinding := range contextAndViewBindingMap[key] {
-					if navBinding.Description == binding.Description {
-						continue outer
-					}
+				if !slices.Some(contextAndViewBindingMap[key], func(navBinding *types.Binding) bool {
+					return navBinding.Description == binding.Description
+				}) {
+					contextAndViewBindingMap[key] = append(contextAndViewBindingMap[key], binding)
 				}
-				contextAndViewBindingMap[key] = append(contextAndViewBindingMap[key], binding)
 			}
 
 			continue outer

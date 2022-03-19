@@ -3,15 +3,14 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 func (gui *Gui) informationStr() string {
-	for _, mode := range gui.modeStatuses() {
-		if mode.isActive() {
-			return mode.description()
-		}
+	if activeMode, ok := gui.getActiveMode(); ok {
+		return activeMode.description()
 	}
 
 	if gui.g.Mouse {
@@ -21,6 +20,12 @@ func (gui *Gui) informationStr() string {
 	} else {
 		return gui.Config.GetVersion()
 	}
+}
+
+func (gui *Gui) getActiveMode() (modeStatus, bool) {
+	return slices.Find(gui.modeStatuses(), func(mode modeStatus) bool {
+		return mode.isActive()
+	})
 }
 
 func (gui *Gui) handleInfoClick() error {
@@ -33,13 +38,11 @@ func (gui *Gui) handleInfoClick() error {
 	cx, _ := view.Cursor()
 	width, _ := view.Size()
 
-	for _, mode := range gui.modeStatuses() {
-		if mode.isActive() {
-			if width-cx > len(gui.c.Tr.ResetInParentheses) {
-				return nil
-			}
-			return mode.reset()
+	if activeMode, ok := gui.getActiveMode(); ok {
+		if width-cx > len(gui.c.Tr.ResetInParentheses) {
+			return nil
 		}
+		return activeMode.reset()
 	}
 
 	// if we're not in an active mode we show the donate button
