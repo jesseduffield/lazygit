@@ -10,7 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 
-	"golang.org/x/exp/slices"
+	"github.com/jesseduffield/generics/slices"
 )
 
 // This package is for handling logic specific to a git hosting service like github, gitlab, bitbucket, etc.

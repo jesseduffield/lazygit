@@ -1,8 +1,6 @@
 package filetree
 
-import (
-	"sort"
-)
+import "github.com/jesseduffield/generics/slices"
 
 type INode interface {
 	IsNil() bool
@@ -27,19 +25,17 @@ func sortChildren(node INode) {
 		return
 	}
 
-	children := node.GetChildren()
-	sortedChildren := make([]INode, len(children))
-	copy(sortedChildren, children)
+	sortedChildren := slices.Clone(node.GetChildren())
 
-	sort.Slice(sortedChildren, func(i, j int) bool {
-		if !sortedChildren[i].IsLeaf() && sortedChildren[j].IsLeaf() {
+	slices.SortFunc(sortedChildren, func(a, b INode) bool {
+		if !a.IsLeaf() && b.IsLeaf() {
 			return true
 		}
-		if sortedChildren[i].IsLeaf() && !sortedChildren[j].IsLeaf() {
+		if a.IsLeaf() && !b.IsLeaf() {
 			return false
 		}
 
-		return sortedChildren[i].GetPath() < sortedChildren[j].GetPath()
+		return a.GetPath() < b.GetPath()
 	})
 
 	// TODO: think about making this in-place

@@ -1,4 +1,4 @@
-package hashmap
+package maps
 
 func Keys[Key comparable, Value any](m map[Key]Value) []Key {
 	keys := make([]Key, 0, len(m))

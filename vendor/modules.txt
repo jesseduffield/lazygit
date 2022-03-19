@@ -120,11 +120,11 @@ github.com/integrii/flaggy
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 ## explicit
 github.com/jbenet/go-context/io
-# github.com/jesseduffield/generics v0.0.0-20220318214805-3397e5e19e9f
+# github.com/jesseduffield/generics v0.0.0-20220319042131-63614a800d5f
 ## explicit; go 1.18
-github.com/jesseduffield/generics/hashmap
-github.com/jesseduffield/generics/list
+github.com/jesseduffield/generics/maps
 github.com/jesseduffield/generics/set
+github.com/jesseduffield/generics/slices
 # github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
 ## explicit; go 1.13
 github.com/jesseduffield/go-git/v5

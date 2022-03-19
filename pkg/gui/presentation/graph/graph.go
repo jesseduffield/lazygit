@@ -2,10 +2,10 @@ package graph
 
 import (
 	"runtime"
-	"sort"
 	"strings"
 	"sync"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -265,11 +265,11 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	}
 
 	// not efficient but doing it for now: sorting my pipes by toPos, then by kind
-	sort.Slice(newPipes, func(i, j int) bool {
-		if newPipes[i].toPos == newPipes[j].toPos {
-			return newPipes[i].kind < newPipes[j].kind
+	slices.SortFunc(newPipes, func(a, b *Pipe) bool {
+		if a.toPos == b.toPos {
+			return a.kind < b.kind
 		}
-		return newPipes[i].toPos < newPipes[j].toPos
+		return a.toPos < b.toPos
 	})
 
 	return newPipes

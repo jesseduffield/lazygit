@@ -14,7 +14,7 @@ require (
 	github.com/gookit/color v1.4.2
 	github.com/imdario/mergo v0.3.11
 	github.com/integrii/flaggy v1.4.0
-	github.com/jesseduffield/generics v0.0.0-20220318214805-3397e5e19e9f
+	github.com/jesseduffield/generics v0.0.0-20220319042131-63614a800d5f
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
 	github.com/jesseduffield/gocui v0.3.1-0.20220227022729-69f0c798eec8
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
@@ -32,7 +32,6 @@ require (
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stretchr/testify v1.7.0
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
-	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8
 	gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
 )
 
@@ -61,6 +60,7 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0 // indirect
+	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8 // indirect
 	golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c // indirect
 	golang.org/x/sys v0.0.0-20220224120231-95c6836cb0e7 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect

@@ -3,13 +3,14 @@ package loaders
 import (
 	"fmt"
 	"regexp"
-	"sort"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/samber/lo"
 )
 
 type RemoteLoader struct {
@@ -42,37 +43,35 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 	}
 
 	// first step is to get our remotes from go-git
-	remotes := make([]*models.Remote, len(goGitRemotes))
-	for i, goGitRemote := range goGitRemotes {
+	remotes := lo.Map(goGitRemotes, func(goGitRemote *gogit.Remote, _ int) *models.Remote {
 		remoteName := goGitRemote.Config().Name
 
 		re := regexp.MustCompile(fmt.Sprintf(`(?m)^\s*%s\/([\S]+)`, remoteName))
 		matches := re.FindAllStringSubmatch(remoteBranchesStr, -1)
-		branches := make([]*models.RemoteBranch, len(matches))
-		for j, match := range matches {
-			branches[j] = &models.RemoteBranch{
+		branches := lo.Map(matches, func(match []string, _ int) *models.RemoteBranch {
+			return &models.RemoteBranch{
 				Name:       match[1],
 				RemoteName: remoteName,
 			}
-		}
+		})
 
-		remotes[i] = &models.Remote{
+		return &models.Remote{
 			Name:     goGitRemote.Config().Name,
 			Urls:     goGitRemote.Config().URLs,
 			Branches: branches,
 		}
-	}
+	})
 
 	// now lets sort our remotes by name alphabetically
-	sort.Slice(remotes, func(i, j int) bool {
+	slices.SortFunc(remotes, func(a, b *models.Remote) bool {
 		// we want origin at the top because we'll be most likely to want it
-		if remotes[i].Name == "origin" {
+		if a.Name == "origin" {
 			return true
 		}
-		if remotes[j].Name == "origin" {
+		if b.Name == "origin" {
 			return false
 		}
-		return strings.ToLower(remotes[i].Name) < strings.ToLower(remotes[j].Name)
+		return strings.ToLower(a.Name) < strings.ToLower(b.Name)
 	})
 
 	return remotes, nil
