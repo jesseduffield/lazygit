@@ -233,11 +233,11 @@ func (gui *Gui) activateContext(c types.Context, opts ...types.OnFocusOpts) erro
 }
 
 func (gui *Gui) optionsMapToString(optionsMap map[string]string) string {
-	optionsArray := maps.MapToSlice(optionsMap, func(key string, description string) string {
+	options := maps.MapToSlice(optionsMap, func(key string, description string) string {
 		return key + ": " + description
 	})
-	sort.Strings(optionsArray)
-	return strings.Join(optionsArray, ", ")
+	sort.Strings(options)
+	return strings.Join(options, ", ")
 }
 
 func (gui *Gui) renderOptionsMap(optionsMap map[string]string) {
