@@ -7,7 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type FileLoaderConfig interface {
@@ -57,10 +57,10 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 		change := status.Change
 		stagedChange := change[0:1]
 		unstagedChange := change[1:2]
-		untracked := utils.IncludesString([]string{"??", "A ", "AM"}, change)
-		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
-		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
-		hasMergeConflicts := hasInlineMergeConflicts || utils.IncludesString([]string{"DD", "AU", "UA", "UD", "DU"}, change)
+		untracked := lo.Contains([]string{"??", "A ", "AM"}, change)
+		hasNoStagedChanges := lo.Contains([]string{" ", "U", "?"}, stagedChange)
+		hasInlineMergeConflicts := lo.Contains([]string{"UU", "AA"}, change)
+		hasMergeConflicts := hasInlineMergeConflicts || lo.Contains([]string{"DD", "AU", "UA", "UD", "DU"}, change)
 
 		file := &models.File{
 			Name:                    status.Name,

@@ -1,11 +1,13 @@
 package helpers
 
 import (
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type CherryPickHelper struct {
@@ -63,13 +65,13 @@ func (self *CherryPickHelper) CopyRange(selectedIndex int, commitsList []*models
 		return err
 	}
 
-	commitShaMap := self.CherryPickedCommitShaMap()
+	commitSet := self.CherryPickedCommitShaSet()
 
 	// find the last commit that is copied that's above our position
 	// if there are none, startIndex = 0
 	startIndex := 0
 	for index, commit := range commitsList[0:selectedIndex] {
-		if commitShaMap[commit.Sha] {
+		if commitSet.Includes(commit.Sha) {
 			startIndex = index
 		}
 	}
@@ -105,25 +107,23 @@ func (self *CherryPickHelper) Reset() error {
 	return self.rerender()
 }
 
-func (self *CherryPickHelper) CherryPickedCommitShaMap() map[string]bool {
-	commitShaMap := map[string]bool{}
-	for _, commit := range self.getData().CherryPickedCommits {
-		commitShaMap[commit.Sha] = true
-	}
-	return commitShaMap
+func (self *CherryPickHelper) CherryPickedCommitShaSet() *set.Set[string] {
+	shas := lo.Map(self.getData().CherryPickedCommits, func(commit *models.Commit, _ int) string {
+		return commit.Sha
+	})
+	return set.NewFromSlice(shas)
 }
 
 func (self *CherryPickHelper) add(selectedCommit *models.Commit, commitsList []*models.Commit) {
-	commitShaMap := self.CherryPickedCommitShaMap()
-	commitShaMap[selectedCommit.Sha] = true
+	commitSet := self.CherryPickedCommitShaSet()
+	commitSet.Add(selectedCommit.Sha)
 
-	newCommits := []*models.Commit{}
-	for _, commit := range commitsList {
-		if commitShaMap[commit.Sha] {
-			// duplicating just the things we need to put in the rebase TODO list
-			newCommits = append(newCommits, &models.Commit{Name: commit.Name, Sha: commit.Sha})
-		}
-	}
+	commitsInSet := lo.Filter(commitsList, func(commit *models.Commit, _ int) bool {
+		return commitSet.Includes(commit.Sha)
+	})
+	newCommits := lo.Map(commitsInSet, func(commit *models.Commit, _ int) *models.Commit {
+		return &models.Commit{Name: commit.Name, Sha: commit.Sha}
+	})
 
 	self.getData().CherryPickedCommits = newCommits
 }

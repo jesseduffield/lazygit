@@ -4,6 +4,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
@@ -32,7 +33,7 @@ type bisectBounds struct {
 func GetCommitListDisplayStrings(
 	commits []*models.Commit,
 	fullDescription bool,
-	cherryPickedCommitShaMap map[string]bool,
+	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
 	parseEmoji bool,
 	selectedCommitSha string,
@@ -94,7 +95,7 @@ func GetCommitListDisplayStrings(
 		bisectStatus = getBisectStatus(unfilteredIdx, commit.Sha, bisectInfo, bisectBounds)
 		lines = append(lines, displayCommit(
 			commit,
-			cherryPickedCommitShaMap,
+			cherryPickedCommitShaSet,
 			diffName,
 			parseEmoji,
 			getGraphLine(unfilteredIdx),
@@ -237,7 +238,7 @@ func getBisectStatusText(bisectStatus BisectStatus, bisectInfo *git_commands.Bis
 
 func displayCommit(
 	commit *models.Commit,
-	cherryPickedCommitShaMap map[string]bool,
+	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
 	parseEmoji bool,
 	graphLine string,
@@ -245,7 +246,7 @@ func displayCommit(
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
 ) []string {
-	shaColor := getShaColor(commit, diffName, cherryPickedCommitShaMap, bisectStatus, bisectInfo)
+	shaColor := getShaColor(commit, diffName, cherryPickedCommitShaSet, bisectStatus, bisectInfo)
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
 
 	actionString := ""
@@ -313,7 +314,7 @@ func getBisectStatusColor(status BisectStatus) style.TextStyle {
 func getShaColor(
 	commit *models.Commit,
 	diffName string,
-	cherryPickedCommitShaMap map[string]bool,
+	cherryPickedCommitShaSet *set.Set[string],
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
 ) style.TextStyle {
@@ -338,7 +339,7 @@ func getShaColor(
 
 	if diffed {
 		shaColor = theme.DiffTerminalColor
-	} else if cherryPickedCommitShaMap[commit.Sha] {
+	} else if cherryPickedCommitShaSet.Includes(commit.Sha) {
 		shaColor = theme.CherryPickedCommitTextStyle
 	}
 

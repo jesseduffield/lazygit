@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/gookit/color"
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -25,7 +26,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		testName                 string
 		commits                  []*models.Commit
 		fullDescription          bool
-		cherryPickedCommitShaMap map[string]bool
+		cherryPickedCommitShaSet *set.Set[string]
 		diffName                 string
 		parseEmoji               bool
 		selectedCommitSha        string
@@ -209,7 +210,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				result := GetCommitListDisplayStrings(
 					s.commits,
 					s.fullDescription,
-					s.cherryPickedCommitShaMap,
+					s.cherryPickedCommitShaSet,
 					s.diffName,
 					s.parseEmoji,
 					s.selectedCommitSha,

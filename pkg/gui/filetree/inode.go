@@ -90,11 +90,11 @@ func every(node INode, test func(INode) bool) bool {
 	return true
 }
 
-func flatten(node INode, collapsedPaths map[string]bool) []INode {
+func flatten(node INode, collapsedPaths *CollapsedPaths) []INode {
 	result := []INode{}
 	result = append(result, node)
 
-	if !collapsedPaths[node.GetPath()] {
+	if !collapsedPaths.IsCollapsed(node.GetPath()) {
 		for _, child := range node.GetChildren() {
 			result = append(result, flatten(child, collapsedPaths)...)
 		}
@@ -103,20 +103,20 @@ func flatten(node INode, collapsedPaths map[string]bool) []INode {
 	return result
 }
 
-func getNodeAtIndex(node INode, index int, collapsedPaths map[string]bool) INode {
+func getNodeAtIndex(node INode, index int, collapsedPaths *CollapsedPaths) INode {
 	foundNode, _ := getNodeAtIndexAux(node, index, collapsedPaths)
 
 	return foundNode
 }
 
-func getNodeAtIndexAux(node INode, index int, collapsedPaths map[string]bool) (INode, int) {
+func getNodeAtIndexAux(node INode, index int, collapsedPaths *CollapsedPaths) (INode, int) {
 	offset := 1
 
 	if index == 0 {
 		return node, offset
 	}
 
-	if !collapsedPaths[node.GetPath()] {
+	if !collapsedPaths.IsCollapsed(node.GetPath()) {
 		for _, child := range node.GetChildren() {
 			foundNode, offsetChange := getNodeAtIndexAux(child, index-offset, collapsedPaths)
 			offset += offsetChange
@@ -129,14 +129,14 @@ func getNodeAtIndexAux(node INode, index int, collapsedPaths map[string]bool) (I
 	return nil, offset
 }
 
-func getIndexForPath(node INode, path string, collapsedPaths map[string]bool) (int, bool) {
+func getIndexForPath(node INode, path string, collapsedPaths *CollapsedPaths) (int, bool) {
 	offset := 0
 
 	if node.GetPath() == path {
 		return offset, true
 	}
 
-	if !collapsedPaths[node.GetPath()] {
+	if !collapsedPaths.IsCollapsed(node.GetPath()) {
 		for _, child := range node.GetChildren() {
 			offsetChange, found := getIndexForPath(child, path, collapsedPaths)
 			offset += offsetChange + 1
@@ -149,10 +149,10 @@ func getIndexForPath(node INode, path string, collapsedPaths map[string]bool) (i
 	return offset, false
 }
 
-func size(node INode, collapsedPaths map[string]bool) int {
+func size(node INode, collapsedPaths *CollapsedPaths) int {
 	output := 1
 
-	if !collapsedPaths[node.GetPath()] {
+	if !collapsedPaths.IsCollapsed(node.GetPath()) {
 		for _, child := range node.GetChildren() {
 			output += size(child, collapsedPaths)
 		}

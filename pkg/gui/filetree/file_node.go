@@ -87,7 +87,7 @@ func (s *FileNode) Any(test func(node *FileNode) bool) bool {
 	})
 }
 
-func (n *FileNode) Flatten(collapsedPaths map[string]bool) []*FileNode {
+func (n *FileNode) Flatten(collapsedPaths *CollapsedPaths) []*FileNode {
 	results := flatten(n, collapsedPaths)
 	nodes := make([]*FileNode, len(results))
 	for i, result := range results {
@@ -97,7 +97,7 @@ func (n *FileNode) Flatten(collapsedPaths map[string]bool) []*FileNode {
 	return nodes
 }
 
-func (node *FileNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *FileNode {
+func (node *FileNode) GetNodeAtIndex(index int, collapsedPaths *CollapsedPaths) *FileNode {
 	if node == nil {
 		return nil
 	}
@@ -111,11 +111,11 @@ func (node *FileNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) 
 	return result.(*FileNode)
 }
 
-func (node *FileNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {
+func (node *FileNode) GetIndexForPath(path string, collapsedPaths *CollapsedPaths) (int, bool) {
 	return getIndexForPath(node, path, collapsedPaths)
 }
 
-func (node *FileNode) Size(collapsedPaths map[string]bool) int {
+func (node *FileNode) Size(collapsedPaths *CollapsedPaths) int {
 	if node == nil {
 		return 0
 	}

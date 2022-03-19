@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -140,7 +140,7 @@ func (p *PatchManager) AddFileLineRange(filename string, firstLineIdx, lastLineI
 		return err
 	}
 	info.mode = PART
-	info.includedLineIndices = utils.UnionInt(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
+	info.includedLineIndices = lo.Union(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
 
 	return nil
 }
@@ -151,7 +151,7 @@ func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLi
 		return err
 	}
 	info.mode = PART
-	info.includedLineIndices = utils.DifferenceInt(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
+	info.includedLineIndices, _ = lo.Difference(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
 	if len(info.includedLineIndices) == 0 {
 		p.removeFile(info)
 	}

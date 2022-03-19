@@ -100,7 +100,7 @@ func (s *CommitFileNode) EveryFile(test func(file *models.CommitFile) bool) bool
 	})
 }
 
-func (n *CommitFileNode) Flatten(collapsedPaths map[string]bool) []*CommitFileNode {
+func (n *CommitFileNode) Flatten(collapsedPaths *CollapsedPaths) []*CommitFileNode {
 	results := flatten(n, collapsedPaths)
 	nodes := make([]*CommitFileNode, len(results))
 	for i, result := range results {
@@ -110,7 +110,7 @@ func (n *CommitFileNode) Flatten(collapsedPaths map[string]bool) []*CommitFileNo
 	return nodes
 }
 
-func (node *CommitFileNode) GetNodeAtIndex(index int, collapsedPaths map[string]bool) *CommitFileNode {
+func (node *CommitFileNode) GetNodeAtIndex(index int, collapsedPaths *CollapsedPaths) *CommitFileNode {
 	if node == nil {
 		return nil
 	}
@@ -124,11 +124,11 @@ func (node *CommitFileNode) GetNodeAtIndex(index int, collapsedPaths map[string]
 	return result.(*CommitFileNode)
 }
 
-func (node *CommitFileNode) GetIndexForPath(path string, collapsedPaths map[string]bool) (int, bool) {
+func (node *CommitFileNode) GetIndexForPath(path string, collapsedPaths *CollapsedPaths) (int, bool) {
 	return getIndexForPath(node, path, collapsedPaths)
 }
 
-func (node *CommitFileNode) Size(collapsedPaths map[string]bool) int {
+func (node *CommitFileNode) Size(collapsedPaths *CollapsedPaths) int {
 	if node == nil {
 		return 0
 	}

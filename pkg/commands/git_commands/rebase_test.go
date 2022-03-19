@@ -8,7 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -64,7 +64,7 @@ func TestRebaseSkipEditorCommand(t *testing.T) {
 			"^LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY$",
 		} {
 			regexStr := regexStr
-			foundMatch := utils.IncludesStringFunc(envVars, func(envVar string) bool {
+			foundMatch := lo.ContainsBy(envVars, func(envVar string) bool {
 				return regexp.MustCompile(regexStr).MatchString(envVar)
 			})
 			if !foundMatch {
