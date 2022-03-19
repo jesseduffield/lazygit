@@ -14,14 +14,13 @@ import (
 )
 
 func (gui *Gui) popupViewNames() []string {
-	return slices.FilterThenMap(gui.State.Contexts.Flatten(),
-		func(c types.Context) bool {
-			return c.GetKind() == types.PERSISTENT_POPUP || c.GetKind() == types.TEMPORARY_POPUP
-		},
-		func(c types.Context) string {
-			return c.GetViewName()
-		},
-	)
+	popups := slices.Filter(gui.State.Contexts.Flatten(), func(c types.Context) bool {
+		return c.GetKind() == types.PERSISTENT_POPUP || c.GetKind() == types.TEMPORARY_POPUP
+	})
+
+	return slices.Map(popups, func(c types.Context) string {
+		return c.GetViewName()
+	})
 }
 
 func (gui *Gui) currentContextKeyIgnoringPopups() types.ContextKey {
