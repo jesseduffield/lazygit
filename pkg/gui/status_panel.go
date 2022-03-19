@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -102,16 +103,15 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 	case 1:
 		return action(confPaths[0])
 	default:
-		menuItems := make([]*types.MenuItem, len(confPaths))
-		for i, file := range confPaths {
-			i := i
-			menuItems[i] = &types.MenuItem{
-				DisplayString: file,
+		menuItems := slices.Map(confPaths, func(path string) *types.MenuItem {
+			return &types.MenuItem{
+				DisplayString: path,
 				OnPress: func() error {
-					return action(confPaths[i])
+					return action(path)
 				},
 			}
-		}
+		})
+
 		return gui.c.Menu(types.CreateMenuOptions{
 			Title: gui.c.Tr.SelectConfigFile,
 			Items: menuItems,

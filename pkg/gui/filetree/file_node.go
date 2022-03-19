@@ -1,6 +1,7 @@
 package filetree
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -42,19 +43,15 @@ func (s *FileNode) GetPath() string {
 }
 
 func (s *FileNode) GetChildren() []INode {
-	result := make([]INode, len(s.Children))
-	for i, child := range s.Children {
-		result[i] = child
-	}
-
-	return result
+	return slices.Map(s.Children, func(child *FileNode) INode {
+		return child
+	})
 }
 
 func (s *FileNode) SetChildren(children []INode) {
-	castChildren := make([]*FileNode, len(children))
-	for i, child := range children {
-		castChildren[i] = child.(*FileNode)
-	}
+	castChildren := slices.Map(children, func(child INode) *FileNode {
+		return child.(*FileNode)
+	})
 
 	s.Children = castChildren
 }
@@ -89,12 +86,9 @@ func (s *FileNode) Any(test func(node *FileNode) bool) bool {
 
 func (n *FileNode) Flatten(collapsedPaths *CollapsedPaths) []*FileNode {
 	results := flatten(n, collapsedPaths)
-	nodes := make([]*FileNode, len(results))
-	for i, result := range results {
-		nodes[i] = result.(*FileNode)
-	}
-
-	return nodes
+	return slices.Map(results, func(result INode) *FileNode {
+		return result.(*FileNode)
+	})
 }
 
 func (node *FileNode) GetNodeAtIndex(index int, collapsedPaths *CollapsedPaths) *FileNode {
@@ -146,12 +140,10 @@ func (node *FileNode) GetFilePathsMatching(test func(*models.File) bool) []strin
 
 func (s *FileNode) GetLeaves() []*FileNode {
 	leaves := getLeaves(s)
-	castLeaves := make([]*FileNode, len(leaves))
-	for i := range leaves {
-		castLeaves[i] = leaves[i].(*FileNode)
-	}
 
-	return castLeaves
+	return slices.Map(leaves, func(leaf INode) *FileNode {
+		return leaf.(*FileNode)
+	})
 }
 
 // extra methods

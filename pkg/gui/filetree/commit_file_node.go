@@ -1,6 +1,7 @@
 package filetree
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -40,19 +41,15 @@ func (s *CommitFileNode) GetPath() string {
 }
 
 func (s *CommitFileNode) GetChildren() []INode {
-	result := make([]INode, len(s.Children))
-	for i, child := range s.Children {
-		result[i] = child
-	}
-
-	return result
+	return slices.Map(s.Children, func(child *CommitFileNode) INode {
+		return child
+	})
 }
 
 func (s *CommitFileNode) SetChildren(children []INode) {
-	castChildren := make([]*CommitFileNode, len(children))
-	for i, child := range children {
-		castChildren[i] = child.(*CommitFileNode)
-	}
+	castChildren := slices.Map(children, func(child INode) *CommitFileNode {
+		return child.(*CommitFileNode)
+	})
 
 	s.Children = castChildren
 }
@@ -102,12 +99,10 @@ func (s *CommitFileNode) EveryFile(test func(file *models.CommitFile) bool) bool
 
 func (n *CommitFileNode) Flatten(collapsedPaths *CollapsedPaths) []*CommitFileNode {
 	results := flatten(n, collapsedPaths)
-	nodes := make([]*CommitFileNode, len(results))
-	for i, result := range results {
-		nodes[i] = result.(*CommitFileNode)
-	}
 
-	return nodes
+	return slices.Map(results, func(result INode) *CommitFileNode {
+		return result.(*CommitFileNode)
+	})
 }
 
 func (node *CommitFileNode) GetNodeAtIndex(index int, collapsedPaths *CollapsedPaths) *CommitFileNode {
@@ -149,12 +144,10 @@ func (s *CommitFileNode) Compress() {
 
 func (s *CommitFileNode) GetLeaves() []*CommitFileNode {
 	leaves := getLeaves(s)
-	castLeaves := make([]*CommitFileNode, len(leaves))
-	for i := range leaves {
-		castLeaves[i] = leaves[i].(*CommitFileNode)
-	}
 
-	return castLeaves
+	return slices.Map(leaves, func(leaf INode) *CommitFileNode {
+		return leaf.(*CommitFileNode)
+	})
 }
 
 // extra methods

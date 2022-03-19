@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -51,17 +52,14 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 		options = append(options, REBASE_OPTION_SKIP)
 	}
 
-	menuItems := make([]*types.MenuItem, len(options))
-	for i, option := range options {
-		// note to self. Never, EVER, close over loop variables in a function
-		option := option
-		menuItems[i] = &types.MenuItem{
+	menuItems := slices.Map(options, func(option string) *types.MenuItem {
+		return &types.MenuItem{
 			DisplayString: option,
 			OnPress: func() error {
 				return self.genericMergeCommand(option)
 			},
 		}
-	}
+	})
 
 	var title string
 	if self.git.Status.WorkingTreeState() == enums.REBASE_MODE_MERGING {

@@ -3,6 +3,7 @@ package gui
 import (
 	"testing"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -24,11 +25,7 @@ func TestGetSuggestedRemote(t *testing.T) {
 }
 
 func mkRemoteList(names ...string) []*models.Remote {
-	result := make([]*models.Remote, 0, len(names))
-
-	for _, name := range names {
-		result = append(result, &models.Remote{Name: name})
-	}
-
-	return result
+	return slices.Map(names, func(name string) *models.Remote {
+		return &models.Remote{Name: name}
+	})
 }

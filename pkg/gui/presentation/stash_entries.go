@@ -1,19 +1,16 @@
 package presentation
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 func GetStashEntryListDisplayStrings(stashEntries []*models.StashEntry, diffName string) [][]string {
-	lines := make([][]string, len(stashEntries))
-
-	for i := range stashEntries {
-		diffed := stashEntries[i].RefName() == diffName
-		lines[i] = getStashEntryDisplayStrings(stashEntries[i], diffed)
-	}
-
-	return lines
+	return slices.Map(stashEntries, func(stashEntry *models.StashEntry) []string {
+		diffed := stashEntry.RefName() == diffName
+		return getStashEntryDisplayStrings(stashEntry, diffed)
+	})
 }
 
 // getStashEntryDisplayStrings returns the display string of branch

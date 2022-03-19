@@ -3,6 +3,7 @@ package filetree
 import (
 	"fmt"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/sirupsen/logrus"
 )
@@ -85,13 +86,7 @@ func (self *FileTree) getFilesForDisplay() []*models.File {
 }
 
 func (self *FileTree) FilterFiles(test func(*models.File) bool) []*models.File {
-	result := make([]*models.File, 0)
-	for _, file := range self.getFiles() {
-		if test(file) {
-			result = append(result, file)
-		}
-	}
-	return result
+	return slices.Filter(self.getFiles(), test)
 }
 
 func (self *FileTree) SetFilter(filter FileTreeDisplayFilter) {

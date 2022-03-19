@@ -1,19 +1,16 @@
 package presentation
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 func GetTagListDisplayStrings(tags []*models.Tag, diffName string) [][]string {
-	lines := make([][]string, len(tags))
-
-	for i := range tags {
-		diffed := tags[i].Name == diffName
-		lines[i] = getTagDisplayStrings(tags[i], diffed)
-	}
-
-	return lines
+	return slices.Map(tags, func(tag *models.Tag) []string {
+		diffed := tag.Name == diffName
+		return getTagDisplayStrings(tag, diffed)
+	})
 }
 
 // getTagDisplayStrings returns the display string of branch

@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -62,11 +63,8 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 	context := gui.currentContext()
 	bindings := gui.getBindings(context)
 
-	menuItems := make([]*types.MenuItem, len(bindings))
-
-	for i, binding := range bindings {
-		binding := binding // note to self, never close over loop variables
-		menuItems[i] = &types.MenuItem{
+	menuItems := slices.Map(bindings, func(binding *types.Binding) *types.MenuItem {
+		return &types.MenuItem{
 			DisplayStrings: []string{GetKeyDisplay(binding.Key), gui.displayDescription(binding)},
 			OnPress: func() error {
 				if binding.Key == nil {
@@ -78,7 +76,7 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 				return binding.Handler()
 			},
 		}
-	}
+	})
 
 	return gui.c.Menu(types.CreateMenuOptions{
 		Title:      strings.Title(gui.c.Tr.LcMenu),

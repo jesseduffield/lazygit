@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -32,12 +33,9 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.BISECT_INFO: "bisect",
 	}
 
-	scopeNames := make([]string, len(scopes))
-	for i, scope := range scopes {
-		scopeNames[i] = scopeNameMap[scope]
-	}
-
-	return scopeNames
+	return slices.Map(scopes, func(scope types.RefreshableView) string {
+		return scopeNameMap[scope]
+	})
 }
 
 func getModeName(mode types.RefreshMode) string {

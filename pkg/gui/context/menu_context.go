@@ -1,6 +1,7 @@
 package context
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -77,19 +78,16 @@ func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem) {
 }
 
 // TODO: move into presentation package
-func (self *MenuViewModel) GetDisplayStrings(startIdx int, length int) [][]string {
-	stringArrays := make([][]string, len(self.menuItems))
-	for i, item := range self.menuItems {
-		if item.DisplayStrings == nil {
-			styledStr := item.DisplayString
-			if item.OpensMenu {
-				styledStr = presentation.OpensMenuStyle(styledStr)
-			}
-			stringArrays[i] = []string{styledStr}
-		} else {
-			stringArrays[i] = item.DisplayStrings
+func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]string {
+	return slices.Map(self.menuItems, func(item *types.MenuItem) []string {
+		if item.DisplayStrings != nil {
+			return item.DisplayStrings
 		}
-	}
 
-	return stringArrays
+		styledStr := item.DisplayString
+		if item.OpensMenu {
+			styledStr = presentation.OpensMenuStyle(styledStr)
+		}
+		return []string{styledStr}
+	})
 }

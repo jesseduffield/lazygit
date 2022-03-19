@@ -4,22 +4,19 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) handleCreateRecentReposMenu() error {
 	recentRepoPaths := gui.c.GetAppState().RecentRepos
-	reposCount := utils.Min(len(recentRepoPaths), 20)
 
 	// we won't show the current repo hence the -1
-	menuItems := make([]*types.MenuItem, reposCount-1)
-	for i, path := range recentRepoPaths[1:reposCount] {
-		path := path // cos we're closing over the loop variable
-		menuItems[i] = &types.MenuItem{
+	menuItems := slices.Map(recentRepoPaths[1:], func(path string) *types.MenuItem {
+		return &types.MenuItem{
 			DisplayStrings: []string{
 				filepath.Base(path),
 				style.FgMagenta.Sprint(path),
@@ -31,7 +28,7 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 				return gui.dispatchSwitchToRepo(path, false)
 			},
 		}
-	}
+	})
 
 	return gui.c.Menu(types.CreateMenuOptions{Title: gui.c.Tr.RecentRepos, Items: menuItems})
 }

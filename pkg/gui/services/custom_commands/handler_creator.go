@@ -1,6 +1,7 @@
 package custom_commands
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -99,16 +100,14 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 }
 
 func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
-	menuItems := make([]*types.MenuItem, len(prompt.Options))
-	for i, option := range prompt.Options {
-		option := option
-		menuItems[i] = &types.MenuItem{
+	menuItems := slices.Map(prompt.Options, func(option config.CustomCommandMenuOption) *types.MenuItem {
+		return &types.MenuItem{
 			DisplayStrings: []string{option.Name, style.FgYellow.Sprint(option.Description)},
 			OnPress: func() error {
 				return wrappedF(option.Value)
 			},
 		}
-	}
+	})
 
 	return self.c.Menu(types.CreateMenuOptions{Title: prompt.Title, Items: menuItems})
 }
@@ -126,16 +125,14 @@ func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPr
 		return self.c.Error(err)
 	}
 
-	menuItems := make([]*types.MenuItem, len(candidates))
-	for i := range candidates {
-		i := i
-		menuItems[i] = &types.MenuItem{
-			DisplayStrings: []string{candidates[i].label},
+	menuItems := slices.Map(candidates, func(candidate *commandMenuEntry) *types.MenuItem {
+		return &types.MenuItem{
+			DisplayStrings: []string{candidate.label},
 			OnPress: func() error {
-				return wrappedF(candidates[i].value)
+				return wrappedF(candidate.value)
 			},
 		}
-	}
+	})
 
 	return self.c.Menu(types.CreateMenuOptions{Title: prompt.Title, Items: menuItems})
 }
