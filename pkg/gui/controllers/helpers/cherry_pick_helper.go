@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/samber/lo"
 )
 
 type CherryPickHelper struct {
@@ -109,7 +108,7 @@ func (self *CherryPickHelper) Reset() error {
 }
 
 func (self *CherryPickHelper) CherryPickedCommitShaSet() *set.Set[string] {
-	shas := lo.Map(self.getData().CherryPickedCommits, func(commit *models.Commit, _ int) string {
+	shas := slices.Map(self.getData().CherryPickedCommits, func(commit *models.Commit) string {
 		return commit.Sha
 	})
 	return set.NewFromSlice(shas)

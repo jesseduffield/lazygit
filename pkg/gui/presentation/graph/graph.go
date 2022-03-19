@@ -67,13 +67,10 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style
 
 	pipes := []*Pipe{{fromPos: 0, toPos: 0, fromSha: "START", toSha: commits[0].Sha, kind: STARTS, style: style.FgDefault}}
 
-	pipeSets := [][]*Pipe{}
-	for _, commit := range commits {
+	return slices.Map(commits, func(commit *models.Commit) []*Pipe {
 		pipes = getNextPipes(pipes, commit, getStyle)
-		pipeSets = append(pipeSets, pipes)
-	}
-
-	return pipeSets
+		return pipes
+	})
 }
 
 func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitSha string) []string {
@@ -115,9 +112,9 @@ func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitSha s
 }
 
 func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *models.Commit) style.TextStyle) []*Pipe {
-	maxPos := lo.Max(
-		slices.Map(prevPipes, func(pipe *Pipe) int { return pipe.toPos }),
-	)
+	maxPos := slices.MaxBy(prevPipes, func(pipe *Pipe) int {
+		return pipe.toPos
+	})
 
 	// a pipe that terminated in the previous line has no bearing on the current line
 	// so we'll filter those out

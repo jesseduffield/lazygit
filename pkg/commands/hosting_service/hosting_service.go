@@ -111,10 +111,10 @@ func (self *HostingServiceMgr) getCandidateServiceDomains() []ServiceDomain {
 
 			serviceDefinition, ok := serviceDefinitionByProvider[provider]
 			if !ok {
-				providerNames := []string{}
-				for _, serviceDefinition := range serviceDefinitions {
-					providerNames = append(providerNames, serviceDefinition.provider)
-				}
+				providerNames := slices.Map(serviceDefinitions, func(serviceDefinition ServiceDefinition) string {
+					return serviceDefinition.provider
+				})
+
 				self.log.Errorf("Unknown git service type: '%s'. Expected one of %s", provider, strings.Join(providerNames, ", "))
 				continue
 			}

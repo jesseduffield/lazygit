@@ -307,6 +307,7 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 
 	commits := []*models.Commit{}
 	lines := strings.Split(string(bytesContent), "\n")
+
 	for _, line := range lines {
 		if line == "" || line == "noop" {
 			return commits, nil
@@ -315,12 +316,12 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 			continue
 		}
 		splitLine := strings.Split(line, " ")
-		commits = append([]*models.Commit{{
+		commits = slices.Prepend(commits, &models.Commit{
 			Sha:    splitLine[1],
 			Name:   strings.Join(splitLine[2:], " "),
 			Status: "rebasing",
 			Action: splitLine[0],
-		}}, commits...)
+		})
 	}
 
 	return commits, nil
