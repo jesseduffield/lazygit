@@ -1,6 +1,10 @@
 package git_commands
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/jesseduffield/generics/maps"
+	"github.com/jesseduffield/generics/slices"
+	"github.com/sirupsen/logrus"
+)
 
 // although the typical terms in a git bisect are 'bad' and 'good', they're more
 // generally known as 'new' and 'old'. Semi-recently git allowed the user to define
@@ -93,11 +97,5 @@ func (self *BisectInfo) Bisecting() bool {
 		return false
 	}
 
-	for _, status := range self.statusMap {
-		if status == BisectStatusOld {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(maps.Values(self.statusMap), BisectStatusOld)
 }
