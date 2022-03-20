@@ -41,6 +41,56 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>[</kbd>: previous tab
 </pre>
 
+## Commity Panel (Commity)
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
+  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>b</kbd>: view bisect options
+  <kbd>s</kbd>: ściśnij
+  <kbd>f</kbd>: napraw commit
+  <kbd>r</kbd>: zmień nazwę commita
+  <kbd>R</kbd>: zmień nazwę commita w edytorze
+  <kbd>d</kbd>: usuń commit
+  <kbd>e</kbd>: edytuj commit
+  <kbd>p</kbd>: wybierz commit (podczas zmiany bazy)
+  <kbd>F</kbd>: utwórz commit naprawczy dla tego commita
+  <kbd>S</kbd>: spłaszcz wszystkie commity naprawcze powyżej zaznaczonych commitów (autosquash)
+  <kbd>ctrl+j</kbd>: przenieś commit 1 w dół
+  <kbd>ctrl+k</kbd>: przenieś commit 1 w górę
+  <kbd>A</kbd>: popraw commit zmianami z poczekalni
+  <kbd>t</kbd>: odwróć commit
+  <kbd>n</kbd>: create new branch off of commit
+  <kbd>c</kbd>: kopiuj commit (przebieranie)
+  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
+  <kbd>v</kbd>: wklej commity (przebieranie)
+  <kbd>ctrl+l</kbd>: open log menu
+  <kbd>g</kbd>: zresetuj do tego commita
+  <kbd>space</kbd>: checkout commit
+  <kbd>T</kbd>: tag commit
+  <kbd>ctrl+y</kbd>: copy commit message to clipboard
+  <kbd>o</kbd>: open commit in browser
+  <kbd>enter</kbd>: przeglądaj pliki commita
+</pre>
+
+## Commity Panel (Reflog Tab)
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
+  <kbd>space</kbd>: checkout commit
+  <kbd>g</kbd>: wyświetl opcje resetu
+  <kbd>c</kbd>: kopiuj commit (przebieranie)
+  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
+  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>enter</kbd>: przeglądaj pliki commita
+</pre>
+
+## Extras Panel
+
+<pre>
+  <kbd>@</kbd>: open command log menu
+</pre>
+
 ## Gałęzie Panel (Branches Tab)
 
 <pre>
@@ -109,73 +159,69 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: view commits
 </pre>
 
-## Pliki commita Panel
+## Główne Panel (Patch Building)
 
 <pre>
-  <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
-</pre>
-
-## Pliki commita Panel (Pliki commita)
-
-<pre>
-  <kbd>c</kbd>: plik wybierania
-  <kbd>d</kbd>: porzuć zmiany commita dla tego pliku
+  <kbd>esc</kbd>: wyście z trybu "linia po linii"
   <kbd>o</kbd>: otwórz plik
+  <kbd>▲</kbd>: poprzednia linia
+  <kbd>▼</kbd>: następna linia
+  <kbd>◄</kbd>: poprzedni kawałek
+  <kbd>►</kbd>: następny kawałek
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>space</kbd>: add/remove line(s) to patch
+  <kbd>v</kbd>: toggle drag select
+  <kbd>V</kbd>: toggle drag select
+  <kbd>a</kbd>: toggle select hunk
+</pre>
+
+## Główne Panel (Poczekalnia)
+
+<pre>
+  <kbd>esc</kbd>: wróć do panelu plików
+  <kbd>space</kbd>: toggle line staged / unstaged
+  <kbd>d</kbd>: delete change (git reset)
+  <kbd>tab</kbd>: switch to other panel
+  <kbd>o</kbd>: otwórz plik
+  <kbd>▲</kbd>: poprzednia linia
+  <kbd>▼</kbd>: następna linia
+  <kbd>◄</kbd>: poprzedni kawałek
+  <kbd>►</kbd>: następny kawałek
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
   <kbd>e</kbd>: edytuj plik
-  <kbd>space</kbd>: toggle file included in patch
-  <kbd>a</kbd>: toggle all files included in patch
-  <kbd>enter</kbd>: enter file to add selected lines to the patch (or toggle directory collapsed)
-  <kbd>`</kbd>: toggle file tree view
+  <kbd>v</kbd>: toggle drag select
+  <kbd>V</kbd>: toggle drag select
+  <kbd>a</kbd>: toggle select hunk
+  <kbd>c</kbd>: Zatwierdź zmiany
+  <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
+  <kbd>C</kbd>: Zatwierdź zmiany używając edytora
 </pre>
 
-## Commity Panel (Commity)
+## Główne Panel (Scalanie)
 
 <pre>
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
-  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>b</kbd>: view bisect options
-  <kbd>s</kbd>: ściśnij
-  <kbd>f</kbd>: napraw commit
-  <kbd>r</kbd>: zmień nazwę commita
-  <kbd>R</kbd>: zmień nazwę commita w edytorze
-  <kbd>d</kbd>: usuń commit
-  <kbd>e</kbd>: edytuj commit
-  <kbd>p</kbd>: wybierz commit (podczas zmiany bazy)
-  <kbd>F</kbd>: utwórz commit naprawczy dla tego commita
-  <kbd>S</kbd>: spłaszcz wszystkie commity naprawcze powyżej zaznaczonych commitów (autosquash)
-  <kbd>ctrl+j</kbd>: przenieś commit 1 w dół
-  <kbd>ctrl+k</kbd>: przenieś commit 1 w górę
-  <kbd>A</kbd>: popraw commit zmianami z poczekalni
-  <kbd>t</kbd>: odwróć commit
-  <kbd>n</kbd>: create new branch off of commit
-  <kbd>c</kbd>: kopiuj commit (przebieranie)
-  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
-  <kbd>v</kbd>: wklej commity (przebieranie)
-  <kbd>ctrl+l</kbd>: open log menu
-  <kbd>g</kbd>: zresetuj do tego commita
-  <kbd>space</kbd>: checkout commit
-  <kbd>T</kbd>: tag commit
-  <kbd>ctrl+y</kbd>: copy commit message to clipboard
-  <kbd>o</kbd>: open commit in browser
-  <kbd>enter</kbd>: przeglądaj pliki commita
+  <kbd>esc</kbd>: wróć do panelu plików
+  <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>space</kbd>: wybierz kawałek
+  <kbd>b</kbd>: wybierz wszystkie kawałki
+  <kbd>◄</kbd>: poprzedni konflikt
+  <kbd>►</kbd>: następny konflikt
+  <kbd>▲</kbd>: wybierz poprzedni kawałek
+  <kbd>▼</kbd>: wybierz następny kawałek
+  <kbd>z</kbd>: cofnij
 </pre>
 
-## Commity Panel (Reflog Tab)
+## Główne Panel (Zwykłe)
 
 <pre>
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
-  <kbd>space</kbd>: checkout commit
-  <kbd>g</kbd>: wyświetl opcje resetu
-  <kbd>c</kbd>: kopiuj commit (przebieranie)
-  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
-  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>enter</kbd>: przeglądaj pliki commita
+  <kbd>mouse wheel down</kbd>: przewiń w dół (fn+up)
+  <kbd>mouse wheel up</kbd>: przewiń w górę (fn+down)
 </pre>
 
-## Extras Panel
+## Menu Panel
 
 <pre>
-  <kbd>@</kbd>: open command log menu
+  <kbd>esc</kbd>: close menu
 </pre>
 
 ## Pliki Panel (Pliki)
@@ -218,70 +264,23 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>b</kbd>: view bulk submodule options
 </pre>
 
-## Główne Panel (Scalanie)
+## Pliki commita Panel
 
 <pre>
-  <kbd>esc</kbd>: wróć do panelu plików
-  <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>space</kbd>: wybierz kawałek
-  <kbd>b</kbd>: wybierz wszystkie kawałki
-  <kbd>◄</kbd>: poprzedni konflikt
-  <kbd>►</kbd>: następny konflikt
-  <kbd>▲</kbd>: wybierz poprzedni kawałek
-  <kbd>▼</kbd>: wybierz następny kawałek
-  <kbd>z</kbd>: cofnij
+  <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
 </pre>
 
-## Główne Panel (Zwykłe)
+## Pliki commita Panel (Pliki commita)
 
 <pre>
-  <kbd>mouse wheel down</kbd>: przewiń w dół (fn+up)
-  <kbd>mouse wheel up</kbd>: przewiń w górę (fn+down)
-</pre>
-
-## Główne Panel (Patch Building)
-
-<pre>
-  <kbd>esc</kbd>: wyście z trybu "linia po linii"
+  <kbd>c</kbd>: plik wybierania
+  <kbd>d</kbd>: porzuć zmiany commita dla tego pliku
   <kbd>o</kbd>: otwórz plik
-  <kbd>▲</kbd>: poprzednia linia
-  <kbd>▼</kbd>: następna linia
-  <kbd>◄</kbd>: poprzedni kawałek
-  <kbd>►</kbd>: następny kawałek
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>space</kbd>: add/remove line(s) to patch
-  <kbd>v</kbd>: toggle drag select
-  <kbd>V</kbd>: toggle drag select
-  <kbd>a</kbd>: toggle select hunk
-</pre>
-
-## Główne Panel (Poczekalnia)
-
-<pre>
-  <kbd>esc</kbd>: wróć do panelu plików
-  <kbd>space</kbd>: toggle line staged / unstaged
-  <kbd>d</kbd>: delete change (git reset)
-  <kbd>tab</kbd>: switch to other panel
-  <kbd>o</kbd>: otwórz plik
-  <kbd>▲</kbd>: poprzednia linia
-  <kbd>▼</kbd>: następna linia
-  <kbd>◄</kbd>: poprzedni kawałek
-  <kbd>►</kbd>: następny kawałek
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
   <kbd>e</kbd>: edytuj plik
-  <kbd>o</kbd>: otwórz plik
-  <kbd>v</kbd>: toggle drag select
-  <kbd>V</kbd>: toggle drag select
-  <kbd>a</kbd>: toggle select hunk
-  <kbd>c</kbd>: Zatwierdź zmiany
-  <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
-  <kbd>C</kbd>: Zatwierdź zmiany używając edytora
-</pre>
-
-## Menu Panel
-
-<pre>
-  <kbd>esc</kbd>: close menu
+  <kbd>space</kbd>: toggle file included in patch
+  <kbd>a</kbd>: toggle all files included in patch
+  <kbd>enter</kbd>: enter file to add selected lines to the patch (or toggle directory collapsed)
+  <kbd>`</kbd>: toggle file tree view
 </pre>
 
 ## Schowek Panel (Schowek)

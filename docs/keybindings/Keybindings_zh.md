@@ -41,6 +41,71 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>[</kbd>: 上一个标签
 </pre>
 
+## Extras 面板
+
+<pre>
+  <kbd>@</kbd>: 打开命令日志菜单
+</pre>
+
+## 主要 面板 (合并中)
+
+<pre>
+  <kbd>esc</kbd>: 返回文件面板
+  <kbd>M</kbd>: 打开合并工具
+  <kbd>space</kbd>: 选中区块
+  <kbd>b</kbd>: 选中所有区块
+  <kbd>◄</kbd>: 选择上一个冲突
+  <kbd>►</kbd>: 选择下一个冲突
+  <kbd>▲</kbd>: 选择顶部块
+  <kbd>▼</kbd>: 选择底部块
+  <kbd>z</kbd>: 撤销
+</pre>
+
+## 主要 面板 (构建补丁中)
+
+<pre>
+  <kbd>esc</kbd>: 退出逐行模式
+  <kbd>o</kbd>: 打开文件
+  <kbd>▲</kbd>: 选择上一行
+  <kbd>▼</kbd>: 选择下一行
+  <kbd>◄</kbd>: 选择上一个区块
+  <kbd>►</kbd>: 选择下一个区块
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>space</kbd>: 添加/移除 行到补丁
+  <kbd>v</kbd>: 切换拖动选择
+  <kbd>V</kbd>: 切换拖动选择
+  <kbd>a</kbd>: 切换选择区块
+</pre>
+
+## 主要 面板 (正在暂存)
+
+<pre>
+  <kbd>esc</kbd>: 返回文件面板
+  <kbd>space</kbd>: 切换行暂存状态
+  <kbd>d</kbd>: 取消变更 (git reset)
+  <kbd>tab</kbd>: 切换到其他面板
+  <kbd>o</kbd>: 打开文件
+  <kbd>▲</kbd>: 选择上一行
+  <kbd>▼</kbd>: 选择下一行
+  <kbd>◄</kbd>: 选择上一个区块
+  <kbd>►</kbd>: 选择下一个区块
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>e</kbd>: 编辑文件
+  <kbd>v</kbd>: 切换拖动选择
+  <kbd>V</kbd>: 切换拖动选择
+  <kbd>a</kbd>: 切换选择区块
+  <kbd>c</kbd>: 提交更改
+  <kbd>w</kbd>: 提交更改而无需预先提交钩子
+  <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
+</pre>
+
+## 主要 面板 (正常)
+
+<pre>
+  <kbd>mouse wheel down</kbd>: 向下滚动 (fn+up)
+  <kbd>mouse wheel up</kbd>: 向上滚动 (fn+down)
+</pre>
+
 ## 分支 面板 (分支标签)
 
 <pre>
@@ -60,29 +125,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>g</kbd>: 查看重置选项
   <kbd>R</kbd>: 重命名分支
   <kbd>enter</kbd>: 查看提交
-</pre>
-
-## 分支 面板 (远程分支（在远程页面中）)
-
-<pre>
-  <kbd>space</kbd>: 检出
-  <kbd>n</kbd>: 新分支
-  <kbd>M</kbd>: 合并到当前检出的分支
-  <kbd>r</kbd>: 将已检出的分支变基到该分支
-  <kbd>d</kbd>: 删除分支
-  <kbd>u</kbd>: 设置为检出分支的上游
-  <kbd>esc</kbd>: 返回远程仓库列表
-  <kbd>g</kbd>: 查看重置选项
-  <kbd>enter</kbd>: 查看提交
-</pre>
-
-## 分支 面板 (远程页面)
-
-<pre>
-  <kbd>f</kbd>: 抓取远程仓库
-  <kbd>n</kbd>: 添加新的远程仓库
-  <kbd>d</kbd>: 删除远程
-  <kbd>e</kbd>: 编辑远程仓库
 </pre>
 
 ## 分支 面板 (子提交)
@@ -109,23 +151,39 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: 查看提交
 </pre>
 
-## 提交文件 面板
+## 分支 面板 (远程分支（在远程页面中）)
 
 <pre>
-  <kbd>ctrl+o</kbd>: 将提交的文件名复制到剪贴板
+  <kbd>space</kbd>: 检出
+  <kbd>n</kbd>: 新分支
+  <kbd>M</kbd>: 合并到当前检出的分支
+  <kbd>r</kbd>: 将已检出的分支变基到该分支
+  <kbd>d</kbd>: 删除分支
+  <kbd>u</kbd>: 设置为检出分支的上游
+  <kbd>esc</kbd>: 返回远程仓库列表
+  <kbd>g</kbd>: 查看重置选项
+  <kbd>enter</kbd>: 查看提交
 </pre>
 
-## 提交文件 面板 (提交文件)
+## 分支 面板 (远程页面)
 
 <pre>
-  <kbd>c</kbd>: 检出文件
-  <kbd>d</kbd>: 放弃对此文件的提交更改
-  <kbd>o</kbd>: 打开文件
-  <kbd>e</kbd>: 编辑文件
-  <kbd>space</kbd>: 补丁中包含的切换文件
-  <kbd>a</kbd>: toggle all files included in patch
-  <kbd>enter</kbd>: 输入文件以将所选行添加到补丁中（或切换目录折叠）
-  <kbd>`</kbd>: 切换文件树视图
+  <kbd>f</kbd>: 抓取远程仓库
+  <kbd>n</kbd>: 添加新的远程仓库
+  <kbd>d</kbd>: 删除远程
+  <kbd>e</kbd>: 编辑远程仓库
+</pre>
+
+## 提交 面板 (Reflog)
+
+<pre>
+  <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
+  <kbd>space</kbd>: 检出提交
+  <kbd>g</kbd>: 查看重置选项
+  <kbd>c</kbd>: 复制提交（拣选）
+  <kbd>C</kbd>: 复制提交范围（拣选）
+  <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
+  <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
 ## 提交 面板 (提交)
@@ -160,22 +218,36 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
-## 提交 面板 (Reflog)
+## 提交文件 面板
 
 <pre>
-  <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
-  <kbd>space</kbd>: 检出提交
-  <kbd>g</kbd>: 查看重置选项
-  <kbd>c</kbd>: 复制提交（拣选）
-  <kbd>C</kbd>: 复制提交范围（拣选）
-  <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
-  <kbd>enter</kbd>: 查看提交的文件
+  <kbd>ctrl+o</kbd>: 将提交的文件名复制到剪贴板
 </pre>
 
-## Extras 面板
+## 提交文件 面板 (提交文件)
 
 <pre>
-  <kbd>@</kbd>: 打开命令日志菜单
+  <kbd>c</kbd>: 检出文件
+  <kbd>d</kbd>: 放弃对此文件的提交更改
+  <kbd>o</kbd>: 打开文件
+  <kbd>e</kbd>: 编辑文件
+  <kbd>space</kbd>: 补丁中包含的切换文件
+  <kbd>a</kbd>: toggle all files included in patch
+  <kbd>enter</kbd>: 输入文件以将所选行添加到补丁中（或切换目录折叠）
+  <kbd>`</kbd>: 切换文件树视图
+</pre>
+
+## 文件 面板 (子模块)
+
+<pre>
+  <kbd>ctrl+o</kbd>: 将子模块名称复制到剪贴板
+  <kbd>enter</kbd>: 输入子模块
+  <kbd>d</kbd>: 删除子模块
+  <kbd>u</kbd>: 更新子模块
+  <kbd>n</kbd>: 添加新的子模块
+  <kbd>e</kbd>: 更新子模块 URL
+  <kbd>i</kbd>: 初始化子模块
+  <kbd>b</kbd>: 查看批量子模块选项
 </pre>
 
 ## 文件 面板 (文件)
@@ -205,77 +277,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>f</kbd>: 抓取
 </pre>
 
-## 文件 面板 (子模块)
+## 状态 面板 (状态)
 
 <pre>
-  <kbd>ctrl+o</kbd>: 将子模块名称复制到剪贴板
-  <kbd>enter</kbd>: 输入子模块
-  <kbd>d</kbd>: 删除子模块
-  <kbd>u</kbd>: 更新子模块
-  <kbd>n</kbd>: 添加新的子模块
-  <kbd>e</kbd>: 更新子模块 URL
-  <kbd>i</kbd>: 初始化子模块
-  <kbd>b</kbd>: 查看批量子模块选项
-</pre>
-
-## 主要 面板 (合并中)
-
-<pre>
-  <kbd>esc</kbd>: 返回文件面板
-  <kbd>M</kbd>: 打开合并工具
-  <kbd>space</kbd>: 选中区块
-  <kbd>b</kbd>: 选中所有区块
-  <kbd>◄</kbd>: 选择上一个冲突
-  <kbd>►</kbd>: 选择下一个冲突
-  <kbd>▲</kbd>: 选择顶部块
-  <kbd>▼</kbd>: 选择底部块
-  <kbd>z</kbd>: 撤销
-</pre>
-
-## 主要 面板 (正常)
-
-<pre>
-  <kbd>mouse wheel down</kbd>: 向下滚动 (fn+up)
-  <kbd>mouse wheel up</kbd>: 向上滚动 (fn+down)
-</pre>
-
-## 主要 面板 (构建补丁中)
-
-<pre>
-  <kbd>esc</kbd>: 退出逐行模式
-  <kbd>o</kbd>: 打开文件
-  <kbd>▲</kbd>: 选择上一行
-  <kbd>▼</kbd>: 选择下一行
-  <kbd>◄</kbd>: 选择上一个区块
-  <kbd>►</kbd>: 选择下一个区块
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>space</kbd>: 添加/移除 行到补丁
-  <kbd>v</kbd>: 切换拖动选择
-  <kbd>V</kbd>: 切换拖动选择
-  <kbd>a</kbd>: 切换选择区块
-</pre>
-
-## 主要 面板 (正在暂存)
-
-<pre>
-  <kbd>esc</kbd>: 返回文件面板
-  <kbd>space</kbd>: 切换行暂存状态
-  <kbd>d</kbd>: 取消变更 (git reset)
-  <kbd>tab</kbd>: 切换到其他面板
-  <kbd>o</kbd>: 打开文件
-  <kbd>▲</kbd>: 选择上一行
-  <kbd>▼</kbd>: 选择下一行
-  <kbd>◄</kbd>: 选择上一个区块
-  <kbd>►</kbd>: 选择下一个区块
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>e</kbd>: 编辑文件
-  <kbd>o</kbd>: 打开文件
-  <kbd>v</kbd>: 切换拖动选择
-  <kbd>V</kbd>: 切换拖动选择
-  <kbd>a</kbd>: 切换选择区块
-  <kbd>c</kbd>: 提交更改
-  <kbd>w</kbd>: 提交更改而无需预先提交钩子
-  <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
+  <kbd>e</kbd>: 编辑配置文件
+  <kbd>o</kbd>: 打开配置文件
+  <kbd>u</kbd>: 检查更新
+  <kbd>enter</kbd>: 切换到最近的仓库
+  <kbd>a</kbd>: 显示所有分支的日志
 </pre>
 
 ## 菜单 面板
@@ -292,14 +301,4 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>d</kbd>: 删除
   <kbd>n</kbd>: 新分支
   <kbd>enter</kbd>: 查看提交的文件
-</pre>
-
-## 状态 面板 (状态)
-
-<pre>
-  <kbd>e</kbd>: 编辑配置文件
-  <kbd>o</kbd>: 打开配置文件
-  <kbd>u</kbd>: 检查更新
-  <kbd>enter</kbd>: 切换到最近的仓库
-  <kbd>a</kbd>: 显示所有分支的日志
 </pre>
