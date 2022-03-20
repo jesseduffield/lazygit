@@ -76,3 +76,19 @@ func LimitStr(value string, limit int) string {
 	}
 	return value
 }
+
+// Similar to a regular GroupBy, except that each item can be grouped under multiple keys,
+// so the callback returns a slice of keys instead of just one key.
+func MuiltiGroupBy[T any, K comparable](slice []T, f func(T) []K) map[K][]T {
+	result := map[K][]T{}
+	for _, item := range slice {
+		for _, key := range f(item) {
+			if _, ok := result[key]; !ok {
+				result[key] = []T{item}
+			} else {
+				result[key] = append(result[key], item)
+			}
+		}
+	}
+	return result
+}

@@ -41,6 +41,46 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>[</kbd>: vorige tabblad
 </pre>
 
+## Bestanden Paneel (Bestanden)
+
+<pre>
+  <kbd>ctrl+o</kbd>: kopieer de bestandsnaam naar het klembord
+  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
+  <kbd>d</kbd>: bekijk 'veranderingen ongedaan maken' opties
+  <kbd>space</kbd>: toggle staged
+  <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
+  <kbd>c</kbd>: commit veranderingen
+  <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
+  <kbd>A</kbd>: wijzig laatste commit
+  <kbd>C</kbd>: commit veranderingen met de git editor
+  <kbd>e</kbd>: verander bestand
+  <kbd>o</kbd>: open bestand
+  <kbd>i</kbd>: voeg toe aan .gitignore
+  <kbd>r</kbd>: refresh bestanden
+  <kbd>s</kbd>: stash-bestanden
+  <kbd>S</kbd>: bekijk stash opties
+  <kbd>a</kbd>: toggle staged alle
+  <kbd>enter</kbd>: stage individuele hunks/lijnen
+  <kbd>g</kbd>: bekijk upstream reset opties
+  <kbd>D</kbd>: bekijk reset opties
+  <kbd>`</kbd>: toggle bestandsboom weergave
+  <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>f</kbd>: fetch
+</pre>
+
+## Bestanden Paneel (Submodules)
+
+<pre>
+  <kbd>ctrl+o</kbd>: kopieer submodule naam naar klembord
+  <kbd>enter</kbd>: enter submodule
+  <kbd>d</kbd>: remove submodule
+  <kbd>u</kbd>: update submodule
+  <kbd>n</kbd>: voeg nieuwe submodule toe
+  <kbd>e</kbd>: update submodule URL
+  <kbd>i</kbd>: initialiseer submodule
+  <kbd>b</kbd>: bekijk bulk submodule opties
+</pre>
+
 ## Branches Paneel (Branches Tabblad)
 
 <pre>
@@ -178,46 +218,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>@</kbd>: open command log menu
 </pre>
 
-## Bestanden Paneel (Bestanden)
-
-<pre>
-  <kbd>ctrl+o</kbd>: kopieer de bestandsnaam naar het klembord
-  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
-  <kbd>d</kbd>: bekijk 'veranderingen ongedaan maken' opties
-  <kbd>space</kbd>: toggle staged
-  <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
-  <kbd>c</kbd>: commit veranderingen
-  <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
-  <kbd>A</kbd>: wijzig laatste commit
-  <kbd>C</kbd>: commit veranderingen met de git editor
-  <kbd>e</kbd>: verander bestand
-  <kbd>o</kbd>: open bestand
-  <kbd>i</kbd>: voeg toe aan .gitignore
-  <kbd>r</kbd>: refresh bestanden
-  <kbd>s</kbd>: stash-bestanden
-  <kbd>S</kbd>: bekijk stash opties
-  <kbd>a</kbd>: toggle staged alle
-  <kbd>enter</kbd>: stage individuele hunks/lijnen
-  <kbd>g</kbd>: bekijk upstream reset opties
-  <kbd>D</kbd>: bekijk reset opties
-  <kbd>`</kbd>: toggle bestandsboom weergave
-  <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>f</kbd>: fetch
-</pre>
-
-## Bestanden Paneel (Submodules)
-
-<pre>
-  <kbd>ctrl+o</kbd>: kopieer submodule naam naar klembord
-  <kbd>enter</kbd>: enter submodule
-  <kbd>d</kbd>: remove submodule
-  <kbd>u</kbd>: update submodule
-  <kbd>n</kbd>: voeg nieuwe submodule toe
-  <kbd>e</kbd>: update submodule URL
-  <kbd>i</kbd>: initialiseer submodule
-  <kbd>b</kbd>: bekijk bulk submodule opties
-</pre>
-
 ## Hoofd Paneel (Mergen)
 
 <pre>
@@ -269,7 +269,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>►</kbd>: selecteer de volgende hunk
   <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
   <kbd>e</kbd>: verander bestand
-  <kbd>o</kbd>: open bestand
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
