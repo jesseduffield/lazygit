@@ -296,10 +296,8 @@ func (app *App) KnownError(err error) (string, bool) {
 
 	knownErrorMessages := []string{app.Tr.MinGitVersionError}
 
-	if message, ok := slices.Find(knownErrorMessages, func(knownErrorMessage string) bool {
-		return knownErrorMessage == errorMessage
-	}); ok {
-		return message, true
+	if slices.Contains(knownErrorMessages, errorMessage) {
+		return errorMessage, true
 	}
 
 	mappings := []errorMapping{
