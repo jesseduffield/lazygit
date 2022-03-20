@@ -105,16 +105,16 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	}
 
 	baseIndex := sourceCommitIdx + 1
-	todo := ""
-	for i, commit := range commits[0:baseIndex] {
-		a := "pick"
-		if i == sourceCommitIdx || i == destinationCommitIdx {
-			a = "edit"
-		}
-		todo = a + " " + commit.Sha + " " + commit.Name + "\n" + todo
-	}
 
-	err := self.rebase.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todo, true).Run()
+	todoLines := self.rebase.BuildTodoLines(commits[0:baseIndex], func(commit *models.Commit, i int) string {
+		if i == sourceCommitIdx || i == destinationCommitIdx {
+			return "edit"
+		} else {
+			return "pick"
+		}
+	})
+
+	err := self.rebase.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todoLines, true).Run()
 	if err != nil {
 		return err
 	}
