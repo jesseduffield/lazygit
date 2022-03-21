@@ -70,7 +70,7 @@ func (self *CommitCommands) GetHeadCommitMessage() (string, error) {
 func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 	cmdStr := "git rev-list --format=%B --max-count=1 " + commitSha
 	messageWithHeader, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
-	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "\n")
+	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "")
 	return strings.TrimSpace(message), err
 }
 
