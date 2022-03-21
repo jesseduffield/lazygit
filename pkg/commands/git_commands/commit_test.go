@@ -161,3 +161,49 @@ func TestCommitShowCmdObj(t *testing.T) {
 		})
 	}
 }
+
+func TestGetCommitMsg(t *testing.T) {
+	type scenario struct {
+		testName       string
+		input          string
+		expectedOutput string
+	}
+	scenarios := []scenario{
+		{
+			"empty",
+			` commit deadbeef`,
+			``,
+		},
+		{
+			"no line breaks (single line)",
+			`commit deadbeef
+use generics to DRY up context code`,
+			`use generics to DRY up context code`,
+		},
+		{
+			"with line breaks",
+			`commit deadbeef
+Merge pull request #1750 from mark2185/fix-issue-template
+
+'git-rev parse' should be 'git rev-parse'`,
+			`Merge pull request #1750 from mark2185/fix-issue-template
+
+'git-rev parse' should be 'git rev-parse'`,
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			instance := buildCommitCommands(commonDeps{
+				runner: oscommands.NewFakeRunner(t).Expect("git rev-list --format=%B --max-count=1 deadbeef", s.input, nil),
+			})
+
+			output, err := instance.GetCommitMessage("deadbeef")
+
+			assert.NoError(t, err)
+
+			assert.Equal(t, s.expectedOutput, output)
+		})
+	}
+}
