@@ -50,6 +50,21 @@ var _ MyInterface = &MyStruct{}
 
 This makes the intent clearer and means that if we fail to satisfy the interface we'll get an error in the file that needs fixing.
 
+### Code Formatting
+
+To check code formatting [gofumpt](https://pkg.go.dev/mvdan.cc/gofumpt#section-readme) (which is a bit stricter than [gofmt](https://pkg.go.dev/cmd/gofmt)) is used.
+VSCode will format the code correctly if you tell the Go extension to use `gofumpt` via your [`settings.json`](https://code.visualstudio.com/docs/getstarted/settings#_settingsjson)
+by setting [`formatting.gofumpt`](https://github.com/golang/tools/blob/master/gopls/doc/settings.md#gofumpt-bool) to `true`:
+
+```jsonc
+// .vscode/settings.json
+{
+    "gopls": {
+        "formatting.gofumpt": true
+    }
+}
+```
+
 ## Internationalisation
 
 Boy that's a hard word to spell. Anyway, lazygit is translated into several languages within the pkg/i18n package. If you need to render text to the user, you should add a new field to the TranslationSet struct in `pkg/i18n/english.go` and add the actual content within the `EnglishTranslationSet()` method in the same file. Although it is appreciated if you translate the text into other languages, it's not expected of you (google translate will likely do a bad job anyway!).
