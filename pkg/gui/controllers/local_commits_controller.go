@@ -267,18 +267,24 @@ func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
 		return nil
 	}
 
-	self.c.LogAction(self.c.Tr.Actions.RewordCommit)
-	subProcess, err := self.git.Rebase.RewordCommitInEditor(
-		self.model.Commits, self.context().GetSelectedLineIdx(),
-	)
-	if err != nil {
-		return self.c.Error(err)
-	}
-	if subProcess != nil {
-		return self.c.RunSubprocessAndRefresh(subProcess)
-	}
+	return self.c.Ask(types.AskOpts{
+		Title:  self.c.Tr.RewordInEditorTitle,
+		Prompt: self.c.Tr.RewordInEditorPrompt,
+		HandleConfirm: func() error {
+			self.c.LogAction(self.c.Tr.Actions.RewordCommit)
+			subProcess, err := self.git.Rebase.RewordCommitInEditor(
+				self.model.Commits, self.context().GetSelectedLineIdx(),
+			)
+			if err != nil {
+				return self.c.Error(err)
+			}
+			if subProcess != nil {
+				return self.c.RunSubprocessAndRefresh(subProcess)
+			}
 
-	return nil
+			return nil
+		},
+	})
 }
 
 func (self *LocalCommitsController) drop(commit *models.Commit) error {
