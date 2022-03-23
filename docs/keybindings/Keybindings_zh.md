@@ -123,6 +123,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>o</kbd>: 打开文件
   <kbd>e</kbd>: 编辑文件
   <kbd>space</kbd>: 补丁中包含的切换文件
+  <kbd>a</kbd>: toggle all files included in patch
   <kbd>enter</kbd>: 输入文件以将所选行添加到补丁中（或切换目录折叠）
   <kbd>`</kbd>: 切换文件树视图
 </pre>

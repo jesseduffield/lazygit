@@ -123,6 +123,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>o</kbd>: open bestand
   <kbd>e</kbd>: verander bestand
   <kbd>space</kbd>: toggle bestand inbegrepen in patch
+  <kbd>a</kbd>: toggle all files included in patch
   <kbd>enter</kbd>: enter bestand om geselecteerde regels toe te voegen aan de patch
   <kbd>`</kbd>: toggle bestandsboom weergave
 </pre>

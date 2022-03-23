@@ -275,6 +275,8 @@ type TranslationSet struct {
 	DiscardPatchConfirm                 string
 	CantPatchWhileRebasingError         string
 	LcToggleAddToPatch                  string
+	LcToggleAllInPatch                  string
+	LcUpdatingPatch                     string
 	ViewPatchOptions                    string
 	PatchOptionsTitle                   string
 	NoPatchError                        string
@@ -846,6 +848,8 @@ func EnglishTranslationSet() TranslationSet {
 		DiscardPatchConfirm:                 "You can only build a patch from one commit/stash-entry at a time. Discard current patch?",
 		CantPatchWhileRebasingError:         "You cannot build a patch or run patch commands while in a merging or rebasing state",
 		LcToggleAddToPatch:                  "toggle file included in patch",
+		LcToggleAllInPatch:                  "toggle all files included in patch",
+		LcUpdatingPatch:                     "updating patch",
 		ViewPatchOptions:                    "view custom patch options",
 		PatchOptionsTitle:                   "Patch Options",
 		NoPatchError:                        "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",

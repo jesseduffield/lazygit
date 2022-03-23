@@ -123,6 +123,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>o</kbd>: otwórz plik
   <kbd>e</kbd>: edytuj plik
   <kbd>space</kbd>: toggle file included in patch
+  <kbd>a</kbd>: toggle all files included in patch
   <kbd>enter</kbd>: enter file to add selected lines to the patch (or toggle directory collapsed)
   <kbd>`</kbd>: toggle file tree view
 </pre>

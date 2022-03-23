@@ -53,6 +53,11 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Description: self.c.Tr.LcToggleAddToPatch,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
+			Handler:     self.checkSelected(self.toggleAllForPatch),
+			Description: self.c.Tr.LcToggleAllInPatch,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:     self.checkSelected(self.enter),
 			Description: self.c.Tr.LcEnterFile,
@@ -150,35 +155,37 @@ func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
 }
 
 func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode) error {
-	toggleTheFile := func() error {
-		if !self.git.Patch.PatchManager.Active() {
-			if err := self.startPatchManager(); err != nil {
-				return err
+	toggle := func() error {
+		return self.c.WithWaitingStatus(self.c.Tr.LcUpdatingPatch, func() error {
+			if !self.git.Patch.PatchManager.Active() {
+				if err := self.startPatchManager(); err != nil {
+					return err
+				}
 			}
-		}
 
-		// if there is any file that hasn't been fully added we'll fully add everything,
-		// otherwise we'll remove everything
-		adding := node.AnyFile(func(file *models.CommitFile) bool {
-			return self.git.Patch.PatchManager.GetFileStatus(file.Name, self.context().GetRefName()) != patch.WHOLE
-		})
+			// if there is any file that hasn't been fully added we'll fully add everything,
+			// otherwise we'll remove everything
+			adding := node.AnyFile(func(file *models.CommitFile) bool {
+				return self.git.Patch.PatchManager.GetFileStatus(file.Name, self.context().GetRefName()) != patch.WHOLE
+			})
 
-		err := node.ForEachFile(func(file *models.CommitFile) error {
-			if adding {
-				return self.git.Patch.PatchManager.AddFileWhole(file.Name)
-			} else {
-				return self.git.Patch.PatchManager.RemoveFile(file.Name)
+			err := node.ForEachFile(func(file *models.CommitFile) error {
+				if adding {
+					return self.git.Patch.PatchManager.AddFileWhole(file.Name)
+				} else {
+					return self.git.Patch.PatchManager.RemoveFile(file.Name)
+				}
+			})
+			if err != nil {
+				return self.c.Error(err)
 			}
+
+			if self.git.Patch.PatchManager.IsEmpty() {
+				self.git.Patch.PatchManager.Reset()
+			}
+
+			return self.c.PostRefreshUpdate(self.context())
 		})
-		if err != nil {
-			return self.c.Error(err)
-		}
-
-		if self.git.Patch.PatchManager.IsEmpty() {
-			self.git.Patch.PatchManager.Reset()
-		}
-
-		return self.c.PostRefreshUpdate(self.context())
 	}
 
 	if self.git.Patch.PatchManager.Active() && self.git.Patch.PatchManager.To != self.context().GetRefName() {
@@ -187,12 +194,18 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 			Prompt: self.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {
 				self.git.Patch.PatchManager.Reset()
-				return toggleTheFile()
+				return toggle()
 			},
 		})
 	}
 
-	return toggleTheFile()
+	return toggle()
+}
+
+func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode) error {
+	// not a fan of type assertions but this will be fixed very soon thanks to generics
+	root := self.context().CommitFileTreeViewModel.Tree().(*filetree.CommitFileNode)
+	return self.toggleForPatch(root)
 }
 
 func (self *CommitFilesController) startPatchManager() error {
