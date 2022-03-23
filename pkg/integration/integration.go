@@ -94,8 +94,7 @@ func RunTests(
 			continue
 		}
 
-		fnWrapper(test, func(t *testing.T) error {
-			t.Helper()
+		fnWrapper(test, func(t *testing.T) error { //nolint: thelper
 			speeds := getTestSpeeds(test.Speed, mode, speedEnv)
 			testPath := filepath.Join(testDir, test.Name)
 			actualRepoDir := filepath.Join(testPath, "actual")
