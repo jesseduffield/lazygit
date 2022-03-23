@@ -1,4 +1,5 @@
 {
   "description": "Basic git bisect usage",
-  "speed": 5
+  "speed": 5,
+  "skip": true
 }
