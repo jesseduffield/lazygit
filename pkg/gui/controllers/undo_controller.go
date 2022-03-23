@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -83,17 +85,30 @@ func (self *UndoController) reflogUndo() error {
 
 		switch action.kind {
 		case COMMIT, REBASE:
-			self.c.LogAction(self.c.Tr.Actions.Undo)
-			return true, self.hardResetWithAutoStash(action.from, hardResetOptions{
-				EnvVars:       undoEnvVars,
-				WaitingStatus: undoingStatus,
+			return true, self.c.Ask(types.AskOpts{
+				Title:  self.c.Tr.Actions.Undo,
+				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.from),
+				HandleConfirm: func() error {
+					self.c.LogAction(self.c.Tr.Actions.Undo)
+					return self.hardResetWithAutoStash(action.from, hardResetOptions{
+						EnvVars:       undoEnvVars,
+						WaitingStatus: undoingStatus,
+					})
+				},
 			})
 		case CHECKOUT:
-			self.c.LogAction(self.c.Tr.Actions.Undo)
-			return true, self.helpers.Refs.CheckoutRef(action.from, types.CheckoutRefOptions{
-				EnvVars:       undoEnvVars,
-				WaitingStatus: undoingStatus,
+			return true, self.c.Ask(types.AskOpts{
+				Title:  self.c.Tr.Actions.Undo,
+				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.from),
+				HandleConfirm: func() error {
+					self.c.LogAction(self.c.Tr.Actions.Undo)
+					return self.helpers.Refs.CheckoutRef(action.from, types.CheckoutRefOptions{
+						EnvVars:       undoEnvVars,
+						WaitingStatus: undoingStatus,
+					})
+				},
 			})
+
 		case CURRENT_REBASE:
 			// do nothing
 		}
@@ -121,16 +136,29 @@ func (self *UndoController) reflogRedo() error {
 
 		switch action.kind {
 		case COMMIT, REBASE:
-			self.c.LogAction(self.c.Tr.Actions.Redo)
-			return true, self.hardResetWithAutoStash(action.to, hardResetOptions{
-				EnvVars:       redoEnvVars,
-				WaitingStatus: redoingStatus,
+			return true, self.c.Ask(types.AskOpts{
+				Title:  self.c.Tr.Actions.Redo,
+				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.to),
+				HandleConfirm: func() error {
+					self.c.LogAction(self.c.Tr.Actions.Redo)
+					return self.hardResetWithAutoStash(action.to, hardResetOptions{
+						EnvVars:       redoEnvVars,
+						WaitingStatus: redoingStatus,
+					})
+				},
 			})
+
 		case CHECKOUT:
-			self.c.LogAction(self.c.Tr.Actions.Redo)
-			return true, self.helpers.Refs.CheckoutRef(action.to, types.CheckoutRefOptions{
-				EnvVars:       redoEnvVars,
-				WaitingStatus: redoingStatus,
+			return true, self.c.Ask(types.AskOpts{
+				Title:  self.c.Tr.Actions.Redo,
+				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.to),
+				HandleConfirm: func() error {
+					self.c.LogAction(self.c.Tr.Actions.Redo)
+					return self.helpers.Refs.CheckoutRef(action.to, types.CheckoutRefOptions{
+						EnvVars:       redoEnvVars,
+						WaitingStatus: redoingStatus,
+					})
+				},
 			})
 		case CURRENT_REBASE:
 			// do nothing
