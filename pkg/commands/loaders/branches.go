@@ -107,6 +107,32 @@ outer:
 	return branches, nil
 }
 
+func (self *BranchLoader) obtainBranches() []*models.Branch {
+	output, err := self.getRawBranches()
+	if err != nil {
+		panic(err)
+	}
+
+	trimmedOutput := strings.TrimSpace(output)
+	outputLines := strings.Split(trimmedOutput, "\n")
+
+	return slices.FilterMap(outputLines, func(line string) (*models.Branch, bool) {
+		if line == "" {
+			return nil, false
+		}
+
+		split := strings.Split(line, SEPARATION_CHAR)
+		if len(split) != 4 {
+			// Ignore line if it isn't separated into 4 parts
+			// This is probably a warning message, for more info see:
+			// https://github.com/jesseduffield/lazygit/issues/1385#issuecomment-885580439
+			return nil, false
+		}
+
+		return obtainBranch(split), true
+	})
+}
+
 // Obtain branch information from parsed line output of getRawBranches()
 // split contains the '|' separated tokens in the line of output
 func obtainBranch(split []string) *models.Branch {
@@ -148,32 +174,6 @@ func obtainBranch(split []string) *models.Branch {
 	}
 
 	return branch
-}
-
-func (self *BranchLoader) obtainBranches() []*models.Branch {
-	output, err := self.getRawBranches()
-	if err != nil {
-		panic(err)
-	}
-
-	trimmedOutput := strings.TrimSpace(output)
-	outputLines := strings.Split(trimmedOutput, "\n")
-
-	return slices.FilterMap(outputLines, func(line string) (*models.Branch, bool) {
-		if line == "" {
-			return nil, false
-		}
-
-		split := strings.Split(line, SEPARATION_CHAR)
-		if len(split) != 4 {
-			// Ignore line if it isn't separated into 4 parts
-			// This is probably a warning message, for more info see:
-			// https://github.com/jesseduffield/lazygit/issues/1385#issuecomment-885580439
-			return nil, false
-		}
-
-		return obtainBranch(split), true
-	})
 }
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
