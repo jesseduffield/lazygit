@@ -47,7 +47,7 @@ func (gui *Gui) branchesListContext() *context.BranchesContext {
 		func() []*models.Branch { return gui.State.Model.Branches },
 		gui.Views.Branches,
 		func(startIdx int, length int) [][]string {
-			return presentation.GetBranchListDisplayStrings(gui.State.Model.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref)
+			return presentation.GetBranchListDisplayStrings(gui.State.Model.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref, gui.Tr)
 		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.branchesRenderToMain)),

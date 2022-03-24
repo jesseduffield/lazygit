@@ -534,7 +534,7 @@ func (gui *Gui) refreshStatus() {
 	status := ""
 
 	if currentBranch.IsRealBranch() {
-		status += presentation.ColoredBranchStatus(currentBranch) + " "
+		status += presentation.ColoredBranchStatus(currentBranch, gui.Tr) + " "
 	}
 
 	workingTreeState := gui.git.Status.WorkingTreeState()

@@ -41,7 +41,7 @@ func (gui *Gui) handleStatusClick() error {
 	}
 
 	cx, _ := gui.Views.Status.Cursor()
-	upstreamStatus := presentation.BranchStatus(currentBranch)
+	upstreamStatus := presentation.BranchStatus(currentBranch, gui.Tr)
 	repoName := utils.GetCurrentRepoName()
 	workingTreeState := gui.git.Status.WorkingTreeState()
 	switch workingTreeState {

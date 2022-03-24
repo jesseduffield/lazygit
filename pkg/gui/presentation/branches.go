@@ -6,25 +6,26 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 var branchPrefixColorCache = make(map[string]style.TextStyle)
 
-func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string) [][]string {
+func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string, tr *i18n.TranslationSet) [][]string {
 	lines := make([][]string, len(branches))
 
 	for i := range branches {
 		diffed := branches[i].Name == diffName
-		lines[i] = getBranchDisplayStrings(branches[i], fullDescription, diffed)
+		lines[i] = getBranchDisplayStrings(branches[i], fullDescription, diffed, tr)
 	}
 
 	return lines
 }
 
 // getBranchDisplayStrings returns the display string of branch
-func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool) []string {
+func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool, tr *i18n.TranslationSet) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
 		displayName = b.DisplayName
@@ -36,7 +37,7 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 	}
 	coloredName := nameTextStyle.Sprint(displayName)
 	if b.IsTrackingRemote() {
-		coloredName = fmt.Sprintf("%s %s", coloredName, ColoredBranchStatus(b))
+		coloredName = fmt.Sprintf("%s %s", coloredName, ColoredBranchStatus(b, tr))
 	}
 
 	recencyColor := style.FgCyan
@@ -77,18 +78,21 @@ func GetBranchTextStyle(name string) style.TextStyle {
 	}
 }
 
-func ColoredBranchStatus(branch *models.Branch) string {
+func ColoredBranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
 	colour := style.FgYellow
-	if branch.MatchesUpstream() {
-		colour = style.FgGreen
-	} else if !branch.IsTrackingRemote() {
+	if !branch.IsTrackingRemote() || branch.UpstreamGone {
 		colour = style.FgRed
+	} else if branch.MatchesUpstream() {
+		colour = style.FgGreen
 	}
 
-	return colour.Sprint(BranchStatus(branch))
+	return colour.Sprint(BranchStatus(branch, tr))
 }
 
-func BranchStatus(branch *models.Branch) string {
+func BranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
+	if branch.UpstreamGone {
+		return tr.UpstreamGone
+	}
 	return fmt.Sprintf("↑%s↓%s", branch.Pushables, branch.Pullables)
 }
 

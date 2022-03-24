@@ -458,6 +458,7 @@ type TranslationSet struct {
 	RewordInEditorPrompt                string
 	CheckoutPrompt                      string
 	HardResetAutostashPrompt            string
+	UpstreamGone                        string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -1035,6 +1036,7 @@ func EnglishTranslationSet() TranslationSet {
 		RewordInEditorPrompt:                "Are you sure you want to reword this commit in your editor?",
 		HardResetAutostashPrompt:            "Are you sure you want to hard reset to '%s'? An auto-stash will be performed if necessary.",
 		CheckoutPrompt:                      "Are you sure you want to checkout '%s'?",
+		UpstreamGone:                        "↑gone",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
