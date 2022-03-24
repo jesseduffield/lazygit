@@ -129,9 +129,16 @@ type TranslationSet struct {
 	UpdatesRejectedAndForcePushDisabled string
 	LcCheckForUpdate                    string
 	CheckingForUpdates                  string
+	UpdateAvailableTitle                string
+	UpdateAvailable                     string
+	UpdateInProgressWaitingStatus       string
+	FailedToRetrieveLatestVersionErr    string
 	OnLatestVersionErr                  string
 	MajorVersionErr                     string
 	CouldNotFindBinaryErr               string
+	UpdateFailedErr                     string
+	ConfirmQuitDuringUpdateTitle        string
+	ConfirmQuitDuringUpdate             string
 	MergeToolTitle                      string
 	MergeToolPrompt                     string
 	IntroPopupMessage                   string
@@ -719,9 +726,16 @@ func EnglishTranslationSet() TranslationSet {
 		UpdatesRejectedAndForcePushDisabled: "Updates were rejected and you have disabled force pushing",
 		LcCheckForUpdate:                    "check for update",
 		CheckingForUpdates:                  "Checking for updates...",
+		UpdateAvailableTitle:                "Update available!",
+		UpdateAvailable:                     "Download and install version {{.newVersion}}?",
+		UpdateInProgressWaitingStatus:       "updating",
+		FailedToRetrieveLatestVersionErr:    "Failed to retrieve version information",
 		OnLatestVersionErr:                  "You already have the latest version",
 		MajorVersionErr:                     "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
 		CouldNotFindBinaryErr:               "Could not find any binary at {{.url}}",
+		UpdateFailedErr:                     "Update failed: {{.errMessage}}",
+		ConfirmQuitDuringUpdateTitle:        "Currently Updating",
+		ConfirmQuitDuringUpdate:             "An update is in progress. Are you sure you want to quit?",
 		MergeToolTitle:                      "Merge tool",
 		MergeToolPrompt:                     "Are you sure you want to open `git mergetool`?",
 		IntroPopupMessage:                   englishIntroPopupMessage,
