@@ -1,10 +1,13 @@
 package context
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type CommitFilesContext struct {
@@ -37,6 +40,7 @@ func NewCommitFilesContext(
 					Key:        COMMIT_FILES_CONTEXT_KEY,
 					Kind:       types.SIDE_CONTEXT,
 					Focusable:  true,
+					Transient:  true,
 				}),
 				ContextCallbackOpts{
 					OnFocus:        onFocus,
@@ -58,4 +62,8 @@ func (self *CommitFilesContext) GetSelectedItemId() string {
 	}
 
 	return item.ID()
+}
+
+func (self *CommitFilesContext) Title() string {
+	return fmt.Sprintf(self.c.Tr.CommitFilesDynamicTitle, utils.TruncateWithEllipsis(self.GetRefName(), 50))
 }

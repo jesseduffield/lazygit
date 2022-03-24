@@ -185,6 +185,18 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
+## 提交 面板 (Reflog)
+
+<pre>
+  <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
+  <kbd>space</kbd>: 检出提交
+  <kbd>g</kbd>: 查看重置选项
+  <kbd>c</kbd>: 复制提交（拣选）
+  <kbd>C</kbd>: 复制提交范围（拣选）
+  <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
+  <kbd>enter</kbd>: 查看提交
+</pre>
+
 ## 提交 面板 (提交)
 
 <pre>
@@ -217,15 +229,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
-## 提交文件 面板
-
-<pre>
-  <kbd>ctrl+o</kbd>: 将提交的文件名复制到剪贴板
-</pre>
-
 ## 提交文件 面板 (提交文件)
 
 <pre>
+  <kbd>ctrl+o</kbd>: 将提交的文件名复制到剪贴板
   <kbd>c</kbd>: 检出文件
   <kbd>d</kbd>: 放弃对此文件的提交更改
   <kbd>o</kbd>: 打开文件

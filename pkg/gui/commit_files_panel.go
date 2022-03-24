@@ -39,24 +39,20 @@ func (gui *Gui) commitFilesRenderToMain() error {
 }
 
 func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesContextOpts) error {
-	// sometimes the commitFiles view is already shown in another window, so we need to ensure that window
-	// no longer considers the commitFiles view as its main view.
-	gui.resetWindowContext(gui.State.Contexts.CommitFiles)
-
 	gui.State.Contexts.CommitFiles.SetSelectedLineIdx(0)
 	gui.State.Contexts.CommitFiles.SetRefName(opts.RefName)
 	gui.State.Contexts.CommitFiles.SetCanRebase(opts.CanRebase)
 	gui.State.Contexts.CommitFiles.SetParentContext(opts.Context)
 	gui.State.Contexts.CommitFiles.SetWindowName(opts.Context.GetWindowName())
 
-	if err := gui.refreshCommitFilesView(); err != nil {
+	if err := gui.refreshCommitFilesContext(); err != nil {
 		return err
 	}
 
 	return gui.c.PushContext(gui.State.Contexts.CommitFiles)
 }
 
-func (gui *Gui) refreshCommitFilesView() error {
+func (gui *Gui) refreshCommitFilesContext() error {
 	currentSideContext := gui.currentSideContext()
 	if currentSideContext.GetKey() == context.COMMIT_FILES_CONTEXT_KEY || currentSideContext.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
 		if err := gui.handleRefreshPatchBuildingPanel(-1); err != nil {

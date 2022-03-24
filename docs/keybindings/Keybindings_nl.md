@@ -151,15 +151,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: bekijk commits
 </pre>
 
-## Commit bestanden Paneel
-
-<pre>
-  <kbd>ctrl+o</kbd>: kopieer de vastgelegde bestandsnaam naar het klembord
-</pre>
-
 ## Commit bestanden Paneel (Commit bestanden)
 
 <pre>
+  <kbd>ctrl+o</kbd>: kopieer de vastgelegde bestandsnaam naar het klembord
   <kbd>c</kbd>: bestand uitchecken
   <kbd>d</kbd>: uitsluit deze commit zijn veranderingen aan dit bestand
   <kbd>o</kbd>: open bestand
@@ -214,7 +209,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>c</kbd>: kopieer commit (cherry-pick)
   <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
-  <kbd>enter</kbd>: bekijk gecommite bestanden
+  <kbd>enter</kbd>: bekijk commits
 </pre>
 
 ## Extras Paneel
@@ -306,4 +301,17 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>u</kbd>: check voor updates
   <kbd>enter</kbd>: wissel naar een recente repo
   <kbd>a</kbd>: alle logs van de branch laten zien
+</pre>
+
+## Sub-commits Paneel (Sub-commits)
+
+<pre>
+  <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
+  <kbd>space</kbd>: checkout commit
+  <kbd>g</kbd>: bekijk reset opties
+  <kbd>n</kbd>: nieuwe branch
+  <kbd>c</kbd>: kopieer commit (cherry-pick)
+  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
+  <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
+  <kbd>enter</kbd>: bekijk gecommite bestanden
 </pre>

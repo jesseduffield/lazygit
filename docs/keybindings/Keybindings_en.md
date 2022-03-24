@@ -111,15 +111,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: view commits
 </pre>
 
-## Commit Files Panel
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
-</pre>
-
 ## Commit Files Panel (Commit Files)
 
 <pre>
+  <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
   <kbd>c</kbd>: checkout file
   <kbd>d</kbd>: discard this commit's changes to this file
   <kbd>o</kbd>: open file
@@ -174,7 +169,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>enter</kbd>: view selected item's files
+  <kbd>enter</kbd>: view commits
 </pre>
 
 ## Extras Panel
@@ -306,4 +301,17 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>u</kbd>: check for update
   <kbd>enter</kbd>: switch to a recent repo
   <kbd>a</kbd>: show all branch logs
+</pre>
+
+## Sub-commits Panel (Sub-commits)
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
+  <kbd>space</kbd>: checkout commit
+  <kbd>g</kbd>: view reset options
+  <kbd>n</kbd>: new branch
+  <kbd>c</kbd>: copy commit (cherry-pick)
+  <kbd>C</kbd>: copy commit range (cherry-pick)
+  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>enter</kbd>: view selected item's files
 </pre>

@@ -141,7 +141,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 	return context.NewSubCommitsContext(
 		func() []*models.Commit { return gui.State.Model.SubCommits },
-		gui.Views.Branches,
+		gui.Views.SubCommits,
 		func(startIdx int, length int) [][]string {
 			selectedCommitSha := ""
 			if gui.currentContext().GetKey() == context.SUB_COMMITS_CONTEXT_KEY {

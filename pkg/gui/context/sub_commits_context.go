@@ -1,13 +1,16 @@
 package context
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type SubCommitsContext struct {
-	*BasicViewModel[*models.Commit]
+	*SubCommitsViewModel
 	*ViewportListContextTrait
 }
 
@@ -24,18 +27,22 @@ func NewSubCommitsContext(
 
 	c *types.HelperCommon,
 ) *SubCommitsContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := &SubCommitsViewModel{
+		BasicViewModel: NewBasicViewModel(getModel),
+		refName:        "",
+	}
 
 	return &SubCommitsContext{
-		BasicViewModel: viewModel,
+		SubCommitsViewModel: viewModel,
 		ViewportListContextTrait: &ViewportListContextTrait{
 			ListContextTrait: &ListContextTrait{
 				Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-					ViewName:   "branches",
+					ViewName:   "subCommits",
 					WindowName: "branches",
 					Key:        SUB_COMMITS_CONTEXT_KEY,
 					Kind:       types.SIDE_CONTEXT,
 					Focusable:  true,
+					Transient:  true,
 				}), ContextCallbackOpts{
 					OnFocus:        onFocus,
 					OnFocusLost:    onFocusLost,
@@ -48,6 +55,16 @@ func NewSubCommitsContext(
 			},
 		},
 	}
+}
+
+type SubCommitsViewModel struct {
+	// name of the ref that the sub-commits are shown for
+	refName string
+	*BasicViewModel[*models.Commit]
+}
+
+func (self *SubCommitsViewModel) SetRefName(refName string) {
+	self.refName = refName
 }
 
 func (self *SubCommitsContext) GetSelectedItemId() string {
@@ -63,6 +80,8 @@ func (self *SubCommitsContext) CanRebase() bool {
 	return false
 }
 
+// not to be confused with the refName in the view model. This is the ref name of
+// the selected commit
 func (self *SubCommitsContext) GetSelectedRefName() string {
 	item := self.GetSelected()
 
@@ -75,4 +94,8 @@ func (self *SubCommitsContext) GetSelectedRefName() string {
 
 func (self *SubCommitsContext) GetCommits() []*models.Commit {
 	return self.getModel()
+}
+
+func (self *SubCommitsContext) Title() string {
+	return fmt.Sprintf(self.c.Tr.SubCommitsDynamicTitle, utils.TruncateWithEllipsis(self.refName, 50))
 }

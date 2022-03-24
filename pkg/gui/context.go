@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 func (gui *Gui) popupViewNames() []string {
@@ -99,8 +100,6 @@ func (gui *Gui) pushContext(c types.Context, opts ...types.OnFocusOpts) error {
 	return gui.activateContext(c, opts...)
 }
 
-// asynchronous code idea: functions return an error via a channel, when done
-
 // pushContextWithView is to be used when you don't know which context you
 // want to switch to: you only know the view that you want to switch to. It will
 // look up the context currently active for that view and switch to that context
@@ -136,6 +135,10 @@ func (gui *Gui) returnFromContext() error {
 }
 
 func (gui *Gui) deactivateContext(c types.Context) error {
+	if c.IsTransient() {
+		gui.resetWindowContext(c)
+	}
+
 	view, _ := gui.g.View(c.GetViewName())
 
 	if view != nil && view.IsSearching() {
@@ -145,7 +148,11 @@ func (gui *Gui) deactivateContext(c types.Context) error {
 	}
 
 	// if we are the kind of context that is sent to back upon deactivation, we should do that
-	if view != nil && (c.GetKind() == types.TEMPORARY_POPUP || c.GetKind() == types.PERSISTENT_POPUP || c.GetKey() == context.COMMIT_FILES_CONTEXT_KEY) {
+	if view != nil &&
+		(c.GetKind() == types.TEMPORARY_POPUP ||
+			c.GetKind() == types.PERSISTENT_POPUP ||
+			c.GetKey() == context.COMMIT_FILES_CONTEXT_KEY ||
+			c.GetKey() == context.SUB_COMMITS_CONTEXT_KEY) {
 		view.Visible = false
 	}
 
@@ -202,6 +209,11 @@ func (gui *Gui) activateContext(c types.Context, opts ...types.OnFocusOpts) erro
 	gui.g.SetCurrentContext(string(c.GetKey()))
 	if _, err := gui.g.SetCurrentView(viewName); err != nil {
 		return err
+	}
+
+	desiredTitle := c.Title()
+	if desiredTitle != "" {
+		v.Title = desiredTitle
 	}
 
 	v.Visible = true
@@ -380,10 +392,17 @@ func (gui *Gui) onViewFocusLost(oldView *gocui.View, newView *gocui.View) error 
 
 	_ = oldView.SetOriginX(0)
 
-	if oldView == gui.Views.CommitFiles && newView != gui.Views.Main && newView != gui.Views.Secondary && newView != gui.Views.Search {
-		gui.resetWindowContext(gui.State.Contexts.CommitFiles)
-		if err := gui.deactivateContext(gui.State.Contexts.CommitFiles); err != nil {
-			return err
+	if !lo.Contains([]*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Search}, newView) {
+		transientContexts := slices.Filter(gui.State.Contexts.Flatten(), func(context types.Context) bool {
+			return context.IsTransient()
+		})
+
+		for _, context := range transientContexts {
+			if oldView.Name() == context.GetViewName() {
+				if err := gui.deactivateContext(context); err != nil {
+					return err
+				}
+			}
 		}
 	}
 

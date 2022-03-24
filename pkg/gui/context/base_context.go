@@ -17,6 +17,7 @@ type BaseContext struct {
 	onClickFn           func() error
 
 	focusable bool
+	transient bool
 
 	*ParentContextMgr
 }
@@ -29,6 +30,7 @@ type NewBaseContextOpts struct {
 	ViewName   string
 	WindowName string
 	Focusable  bool
+	Transient  bool
 
 	OnGetOptionsMap func() map[string]string
 }
@@ -41,6 +43,7 @@ func NewBaseContext(opts NewBaseContextOpts) *BaseContext {
 		windowName:       opts.WindowName,
 		onGetOptionsMap:  opts.OnGetOptionsMap,
 		focusable:        opts.Focusable,
+		transient:        opts.Transient,
 		ParentContextMgr: &ParentContextMgr{},
 	}
 }
@@ -114,4 +117,12 @@ func (self *BaseContext) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocu
 
 func (self *BaseContext) IsFocusable() bool {
 	return self.focusable
+}
+
+func (self *BaseContext) IsTransient() bool {
+	return self.transient
+}
+
+func (self *BaseContext) Title() string {
+	return ""
 }
