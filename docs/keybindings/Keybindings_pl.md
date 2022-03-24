@@ -68,7 +68,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>g</kbd>: zresetuj do tego commita
   <kbd>space</kbd>: checkout commit
   <kbd>T</kbd>: tag commit
-  <kbd>ctrl+y</kbd>: copy commit message to clipboard
+  <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser
   <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>

@@ -195,7 +195,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>g</kbd>: reset naar deze commit
   <kbd>space</kbd>: checkout commit
   <kbd>T</kbd>: tag commit
-  <kbd>ctrl+y</kbd>: kopieer commit bericht naar klembord
+  <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser
   <kbd>enter</kbd>: bekijk gecommite bestanden
 </pre>

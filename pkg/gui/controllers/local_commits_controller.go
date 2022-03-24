@@ -165,9 +165,10 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.LcTagCommit,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.CopyCommitMessageToClipboard),
-			Handler:     self.checkSelected(self.copyCommitMessageToClipboard),
-			Description: self.c.Tr.LcCopyCommitMessageToClipboard,
+			Key:         opts.GetKey(opts.Config.Commits.CopyCommitAttributeToClipboard),
+			Handler:     self.checkSelected(self.copyCommitAttribute),
+			Description: self.c.Tr.LcCopyCommitAttributeToClipboard,
+			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.OpenInBrowser),
@@ -599,6 +600,78 @@ func (self *LocalCommitsController) gotoBottom() error {
 	return nil
 }
 
+func (self *LocalCommitsController) copyCommitAttribute(commit *models.Commit) error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Actions.CopyCommitAttributeToClipboard,
+		Items: []*types.MenuItem{
+			{
+				DisplayString: self.c.Tr.LcCommitSha,
+				OnPress: func() error {
+					return self.copyCommitSHAToClipboard(commit)
+				},
+			},
+			{
+				DisplayString: self.c.Tr.LcCommitURL,
+				OnPress: func() error {
+					return self.copyCommitURLToClipboard(commit)
+				},
+			},
+			{
+				DisplayString: self.c.Tr.LcCommitDiff,
+				OnPress: func() error {
+					return self.copyCommitDiffToClipboard(commit)
+				},
+			},
+			{
+				DisplayString: self.c.Tr.LcCommitMessage,
+				OnPress: func() error {
+					return self.copyCommitMessageToClipboard(commit)
+				},
+			},
+		},
+	})
+}
+
+func (self *LocalCommitsController) copyCommitSHAToClipboard(commit *models.Commit) error {
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitSHAToClipboard)
+	if err := self.os.CopyToClipboard(commit.Sha); err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Toast(self.c.Tr.CommitSHACopiedToClipboard)
+	return nil
+}
+
+func (self *LocalCommitsController) copyCommitURLToClipboard(commit *models.Commit) error {
+	url, err := self.helpers.Host.GetCommitURL(commit.Sha)
+	if err != nil {
+		return err
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitURLToClipboard)
+	if err := self.os.CopyToClipboard(url); err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Toast(self.c.Tr.CommitURLCopiedToClipboard)
+	return nil
+}
+
+func (self *LocalCommitsController) copyCommitDiffToClipboard(commit *models.Commit) error {
+	diff, err := self.git.Commit.GetCommitDiff(commit.Sha)
+	if err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitDiffToClipboard)
+	if err := self.os.CopyToClipboard(diff); err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Toast(self.c.Tr.CommitDiffCopiedToClipboard)
+	return nil
+}
+
 func (self *LocalCommitsController) copyCommitMessageToClipboard(commit *models.Commit) error {
 	message, err := self.git.Commit.GetCommitMessage(commit.Sha)
 	if err != nil {
@@ -611,7 +684,6 @@ func (self *LocalCommitsController) copyCommitMessageToClipboard(commit *models.
 	}
 
 	self.c.Toast(self.c.Tr.CommitMessageCopiedToClipboard)
-
 	return nil
 }
 
