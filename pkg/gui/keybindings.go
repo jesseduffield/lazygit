@@ -406,7 +406,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.LcCopyCommitShaToClipboard,
 		},
 		{
-			ViewName:    "branches",
+			ViewName:    "subCommits",
 			Contexts:    []string{string(context.SUB_COMMITS_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.handleCopySelectedSideContextItemToClipboard,
@@ -426,6 +426,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName:    "commitFiles",
+			Contexts:    []string{string(context.COMMIT_FILES_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.handleCopySelectedSideContextItemToClipboard,
 			Description: self.c.Tr.LcCopyCommitFileNameToClipboard,
@@ -998,7 +999,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		mouseKeybindings = append(mouseKeybindings, c.GetMouseKeybindings(opts)...)
 	}
 
-	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "stash", "menu"} {
+	for _, viewName := range []string{"status", "branches", "files", "commits", "commitFiles", "subCommits", "stash", "menu"} {
 		bindings = append(bindings, []*types.Binding{
 			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.PrevBlock), Modifier: gocui.ModNone, Handler: self.previousSideWindow},
 			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.NextBlock), Modifier: gocui.ModNone, Handler: self.nextSideWindow},

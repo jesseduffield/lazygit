@@ -35,5 +35,7 @@ func (gui *Gui) currentWindow() string {
 func (gui *Gui) resetWindowContext(c types.Context) {
 	// we assume here that the window contains as its default view a view with the same name as the window
 	windowName := c.GetWindowName()
-	gui.State.WindowViewNameMap[windowName] = windowName
+	if gui.State.WindowViewNameMap[windowName] == c.GetViewName() {
+		gui.State.WindowViewNameMap[windowName] = windowName
+	}
 }

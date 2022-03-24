@@ -194,5 +194,5 @@ func (gui *Gui) handleResetPatch() error {
 			return err
 		}
 	}
-	return gui.refreshCommitFilesView()
+	return gui.refreshCommitFilesContext()
 }

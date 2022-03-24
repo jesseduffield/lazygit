@@ -33,6 +33,13 @@ type IBaseContext interface {
 	SetWindowName(string)
 	GetKey() ContextKey
 	IsFocusable() bool
+	// if a context is transient, then when it loses focus, its corresponding view
+	// returns control of the window to the default view for that window
+	IsTransient() bool
+
+	// returns the desired title for the view upon activation. If there is no desired title (returns empty string), then
+	// no title will be set
+	Title() string
 
 	GetOptionsMap() map[string]string
 

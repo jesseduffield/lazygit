@@ -135,6 +135,7 @@ func (gui *Gui) resetControllers() {
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
 		gui.State.Contexts.Tags,
+		gui.State.Contexts.ReflogCommits,
 	} {
 		controllers.AttachControllers(context, controllers.NewSwitchToSubCommitsController(
 			common, setSubCommits, context,
@@ -143,7 +144,6 @@ func (gui *Gui) resetControllers() {
 
 	for _, context := range []controllers.CanSwitchToDiffFiles{
 		gui.State.Contexts.LocalCommits,
-		gui.State.Contexts.ReflogCommits,
 		gui.State.Contexts.SubCommits,
 		gui.State.Contexts.Stash,
 	} {

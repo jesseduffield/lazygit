@@ -85,7 +85,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>c</kbd>: kopiuj commit (przebieranie)
   <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>enter</kbd>: przeglądaj pliki commita
+  <kbd>enter</kbd>: view commits
 </pre>
 
 ## Extras Panel
@@ -269,15 +269,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>b</kbd>: view bulk submodule options
 </pre>
 
-## Pliki commita Panel
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
-</pre>
-
 ## Pliki commita Panel (Pliki commita)
 
 <pre>
+  <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
   <kbd>c</kbd>: plik wybierania
   <kbd>d</kbd>: porzuć zmiany commita dla tego pliku
   <kbd>o</kbd>: otwórz plik
@@ -306,4 +301,17 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>u</kbd>: sprawdź aktualizacje
   <kbd>enter</kbd>: switch to a recent repo
   <kbd>a</kbd>: pokaż wszystkie logi gałęzi
+</pre>
+
+## Sub-commits Panel (Sub-commits)
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
+  <kbd>space</kbd>: checkout commit
+  <kbd>g</kbd>: wyświetl opcje resetu
+  <kbd>n</kbd>: nowa gałąź
+  <kbd>c</kbd>: kopiuj commit (przebieranie)
+  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
+  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>

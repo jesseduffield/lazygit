@@ -252,6 +252,7 @@ type Views struct {
 	Menu          *gocui.View
 	CommitMessage *gocui.View
 	CommitFiles   *gocui.View
+	SubCommits    *gocui.View
 	Information   *gocui.View
 	AppStatus     *gocui.View
 	Search        *gocui.View
@@ -410,6 +411,7 @@ func initialViewContextMapping(contextTree *context.ContextTree) map[string]type
 		"branches":      contextTree.Branches,
 		"commits":       contextTree.LocalCommits,
 		"commitFiles":   contextTree.CommitFiles,
+		"subCommits":    contextTree.SubCommits,
 		"stash":         contextTree.Stash,
 		"menu":          contextTree.Menu,
 		"confirmation":  contextTree.Confirmation,
@@ -601,6 +603,7 @@ func (gui *Gui) createAllViews() error {
 		{viewPtr: &gui.Views.Commits, name: "commits"},
 		{viewPtr: &gui.Views.Stash, name: "stash"},
 		{viewPtr: &gui.Views.CommitFiles, name: "commitFiles"},
+		{viewPtr: &gui.Views.SubCommits, name: "subCommits"},
 		{viewPtr: &gui.Views.Main, name: "main"},
 		{viewPtr: &gui.Views.Secondary, name: "secondary"},
 		{viewPtr: &gui.Views.Options, name: "options"},
@@ -640,6 +643,8 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.CommitFiles.Title = gui.c.Tr.CommitFiles
 	gui.Views.CommitFiles.FgColor = theme.GocuiDefaultTextColor
+
+	gui.Views.SubCommits.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
 	gui.Views.Branches.FgColor = theme.GocuiDefaultTextColor

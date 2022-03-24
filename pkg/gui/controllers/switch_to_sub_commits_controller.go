@@ -70,8 +70,16 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 	}
 
 	self.setSubCommits(commits)
+
 	self.contexts.SubCommits.SetSelectedLineIdx(0)
 	self.contexts.SubCommits.SetParentContext(self.context)
+	self.contexts.SubCommits.SetWindowName(self.context.GetWindowName())
+	self.contexts.SubCommits.SetRefName(refName)
+
+	err = self.c.PostRefreshUpdate(self.contexts.SubCommits)
+	if err != nil {
+		return err
+	}
 
 	return self.c.PushContext(self.contexts.SubCommits)
 }

@@ -230,6 +230,8 @@ type TranslationSet struct {
 	CheckingOutStatus                   string
 	CommittingStatus                    string
 	CommitFiles                         string
+	SubCommitsDynamicTitle              string
+	CommitFilesDynamicTitle             string
 	LcViewItemFiles                     string
 	CommitFilesTitle                    string
 	LcCheckoutCommitFile                string
@@ -819,6 +821,8 @@ func EnglishTranslationSet() TranslationSet {
 		CheckingOutStatus:                   "checking out",
 		CommittingStatus:                    "committing",
 		CommitFiles:                         "Commit files",
+		SubCommitsDynamicTitle:              "Commits for %s",
+		CommitFilesDynamicTitle:             "Diff files for %s",
 		LcViewItemFiles:                     "view selected item's files",
 		CommitFilesTitle:                    "Commit Files",
 		LcCheckoutCommitFile:                "checkout file",

@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -96,6 +97,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		{viewName: "files", windowName: "files", frame: true},
 		{viewName: "branches", windowName: "branches", frame: true},
 		{viewName: "commitFiles", windowName: gui.State.Contexts.CommitFiles.GetWindowName(), frame: true},
+		{viewName: "subCommits", windowName: gui.State.Contexts.SubCommits.GetWindowName(), frame: true},
 		{viewName: "commits", windowName: "commits", frame: true},
 		{viewName: "stash", windowName: "stash", frame: true},
 		{viewName: "options", windowName: "options", frame: false},
@@ -113,8 +115,13 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	// if the commit files view is the view to be displayed for its window, we'll display it
-	gui.Views.CommitFiles.Visible = gui.getViewNameForWindow(gui.State.Contexts.CommitFiles.GetWindowName()) == "commitFiles"
+	for _, context := range []types.Context{gui.State.Contexts.SubCommits, gui.State.Contexts.CommitFiles} {
+		view, err := gui.g.View(context.GetViewName())
+		if err != nil && err.Error() != UNKNOWN_VIEW_ERROR_MSG {
+			return err
+		}
+		view.Visible = gui.getViewNameForWindow(context.GetWindowName()) == context.GetViewName()
+	}
 
 	if gui.PrevLayout.Information != informationStr {
 		gui.setViewContent(gui.Views.Information, informationStr)
@@ -206,6 +213,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 		gui.Views.Branches,
 		gui.Views.Commits,
 		gui.Views.Stash,
+		gui.Views.SubCommits,
 		gui.Views.CommitFiles,
 		gui.Views.Main,
 		gui.Views.Secondary,
