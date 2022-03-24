@@ -68,7 +68,7 @@ func (gui *Gui) onUpdateFinish(statusId int, err error) error {
 			)
 			return gui.c.ErrorMsg(errMessage)
 		}
-		return nil
+		return gui.c.Alert(gui.Tr.UpdateCompletedTitle, gui.Tr.UpdateCompleted)
 	})
 
 	return nil
