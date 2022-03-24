@@ -74,6 +74,12 @@ func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 	return strings.TrimSpace(message), err
 }
 
+func (self *CommitCommands) GetCommitDiff(commitSha string) (string, error) {
+	cmdStr := "git show --no-color " + commitSha
+	diff, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	return diff, err
+}
+
 func (self *CommitCommands) GetCommitMessageFirstLine(sha string) (string, error) {
 	return self.GetCommitMessagesFirstLine([]string{sha})
 }

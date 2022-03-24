@@ -155,7 +155,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>g</kbd>: reset to this commit
   <kbd>space</kbd>: checkout commit
   <kbd>T</kbd>: tag commit
-  <kbd>ctrl+y</kbd>: copy commit message to clipboard
+  <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser
   <kbd>enter</kbd>: view selected item's files
 </pre>

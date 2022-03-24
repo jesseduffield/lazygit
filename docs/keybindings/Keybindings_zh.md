@@ -207,8 +207,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>g</kbd>: 重置为此提交
   <kbd>space</kbd>: 检出提交
   <kbd>T</kbd>: 标签提交
-  <kbd>ctrl+y</kbd>: 将提交消息复制到剪贴板
-  <kbd>o</kbd>: 在浏览器中打开提交
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
   <kbd>enter</kbd>: 查看提交的文件
 </pre>
 

@@ -362,8 +362,13 @@ type TranslationSet struct {
 	LcOpenDiffingMenu                   string
 	LcOpenExtrasMenu                    string
 	LcShowingGitDiff                    string
+	LcCommitDiff                        string
 	LcCopyCommitShaToClipboard          string
+	LcCommitSha                         string
+	LcCommitURL                         string
 	LcCopyCommitMessageToClipboard      string
+	LcCommitMessage                     string
+	LcCopyCommitAttributeToClipboard    string
 	LcCopyBranchNameToClipboard         string
 	LcCopyFileNameToClipboard           string
 	LcCopyCommitFileNameToClipboard     string
@@ -415,6 +420,9 @@ type TranslationSet struct {
 	ExtrasTitle                         string
 	PushingTagStatus                    string
 	PullRequestURLCopiedToClipboard     string
+	CommitDiffCopiedToClipboard         string
+	CommitSHACopiedToClipboard          string
+	CommitURLCopiedToClipboard          string
 	CommitMessageCopiedToClipboard      string
 	LcCopiedToClipboard                 string
 	ErrCannotEditDirectory              string
@@ -505,6 +513,10 @@ type Actions struct {
 	MoveCommitUp                      string
 	MoveCommitDown                    string
 	CopyCommitMessageToClipboard      string
+	CopyCommitDiffToClipboard         string
+	CopyCommitSHAToClipboard          string
+	CopyCommitURLToClipboard          string
+	CopyCommitAttributeToClipboard    string
 	CustomCommand                     string
 	DiscardAllChangesInDirectory      string
 	DiscardUnstagedChangesInDirectory string
@@ -941,8 +953,13 @@ func EnglishTranslationSet() TranslationSet {
 		// the actual view is the extras view which I intend to give more tabs in future but for now we'll only mention the command log part
 		LcOpenExtrasMenu:                    "open command log menu",
 		LcShowingGitDiff:                    "showing output for:",
+		LcCommitDiff:                        "commit diff",
 		LcCopyCommitShaToClipboard:          "copy commit SHA to clipboard",
+		LcCommitSha:                         "commit SHA",
+		LcCommitURL:                         "commit URL",
 		LcCopyCommitMessageToClipboard:      "copy commit message to clipboard",
+		LcCommitMessage:                     "commit message",
+		LcCopyCommitAttributeToClipboard:    "copy commit attribute",
 		LcCopyBranchNameToClipboard:         "copy branch name to clipboard",
 		LcCopyFileNameToClipboard:           "copy the file name to the clipboard",
 		LcCopyCommitFileNameToClipboard:     "copy the committed file name to the clipboard",
@@ -993,6 +1010,9 @@ func EnglishTranslationSet() TranslationSet {
 		ExtrasTitle:                         "Extras",
 		PushingTagStatus:                    "pushing tag",
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
+		CommitDiffCopiedToClipboard:         "Commit diff copied to clipboard",
+		CommitSHACopiedToClipboard:          "Commit SHA copied to clipboard",
+		CommitURLCopiedToClipboard:          "Commit URL copied to clipboard",
 		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
 		LcCopiedToClipboard:                 "copied to clipboard",
 		ErrCannotEditDirectory:              "Cannot edit directory: you can only edit individual files",
@@ -1064,6 +1084,10 @@ func EnglishTranslationSet() TranslationSet {
 			CreateLightweightTag:              "Create lightweight tag",
 			CreateAnnotatedTag:                "Create annotated tag",
 			CopyCommitMessageToClipboard:      "Copy commit message to clipboard",
+			CopyCommitDiffToClipboard:         "Copy commit diff to clipboard",
+			CopyCommitSHAToClipboard:          "Copy commit SHA to clipboard",
+			CopyCommitURLToClipboard:          "Copy commit URL to clipboard",
+			CopyCommitAttributeToClipboard:    "Copy to clipboard",
 			MoveCommitUp:                      "Move commit up",
 			MoveCommitDown:                    "Move commit down",
 			CustomCommand:                     "Custom command",
