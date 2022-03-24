@@ -85,6 +85,10 @@ func (self *RealPopupHandler) ErrorMsg(message string) error {
 	})
 }
 
+func (self *RealPopupHandler) Alert(title string, message string) error {
+	return self.Ask(types.AskOpts{Title: title, Prompt: message})
+}
+
 func (self *RealPopupHandler) Ask(opts types.AskOpts) error {
 	self.Lock()
 	self.index++
@@ -147,7 +151,7 @@ func (self *RealPopupHandler) WithLoaderPanel(message string, f func() error) er
 }
 
 // returns the content that has currently been typed into the prompt. Useful for
-// asyncronously updating the suggestions list under the prompt.
+// asynchronously updating the suggestions list under the prompt.
 func (self *RealPopupHandler) GetPromptInput() string {
 	return self.getPromptInputFn()
 }
@@ -166,6 +170,10 @@ func (self *TestPopupHandler) Error(err error) error {
 
 func (self *TestPopupHandler) ErrorMsg(message string) error {
 	return self.OnErrorMsg(message)
+}
+
+func (self *TestPopupHandler) Alert(title string, message string) error {
+	panic("not yet implemented")
 }
 
 func (self *TestPopupHandler) Ask(opts types.AskOpts) error {

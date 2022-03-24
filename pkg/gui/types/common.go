@@ -50,6 +50,10 @@ type IGuiCommon interface {
 type IPopupHandler interface {
 	ErrorMsg(message string) error
 	Error(err error) error
+	// Shows a notification popup with the given title and message to the user.
+	//
+	// This is a convenience wrapper around Ask(), thus the popup can be closed using both 'Enter' and 'ESC'.
+	Alert(title string, message string) error
 	Ask(opts AskOpts) error
 	Prompt(opts PromptOpts) error
 	WithLoaderPanel(message string, f func() error) error
