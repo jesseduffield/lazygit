@@ -474,7 +474,6 @@ func chineseTranslationSet() TranslationSet {
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "检出提交",
-			CheckoutReflogCommit:              "检出 reflog 提交",
 			CheckoutTag:                       "检出标签",
 			CheckoutBranch:                    "检出分支",
 			ForceCheckoutBranch:               "强制检出分支",

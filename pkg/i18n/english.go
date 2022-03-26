@@ -488,7 +488,6 @@ type Bisect struct {
 
 type Actions struct {
 	CheckoutCommit                    string
-	CheckoutReflogCommit              string
 	CheckoutTag                       string
 	CheckoutBranch                    string
 	ForceCheckoutBranch               string
@@ -1060,7 +1059,6 @@ func EnglishTranslationSet() TranslationSet {
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
-			CheckoutReflogCommit:              "Checkout reflog commit",
 			CheckoutTag:                       "Checkout tag",
 			CheckoutBranch:                    "Checkout branch",
 			ForceCheckoutBranch:               "Force checkout branch",

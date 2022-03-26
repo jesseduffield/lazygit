@@ -90,8 +90,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>space</kbd>: checkout commit
-  <kbd>g</kbd>: view reset options
-  <kbd>n</kbd>: new branch
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: create new branch off of commit
+  <kbd>g</kbd>: reset to this commit
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
@@ -147,16 +149,16 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: move commit up one
   <kbd>A</kbd>: amend commit with staged changes
   <kbd>t</kbd>: revert commit
-  <kbd>n</kbd>: create new branch off of commit
-  <kbd>c</kbd>: copy commit (cherry-pick)
-  <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>ctrl+l</kbd>: open log menu
-  <kbd>g</kbd>: reset to this commit
-  <kbd>space</kbd>: checkout commit
   <kbd>T</kbd>: tag commit
+  <kbd>space</kbd>: checkout commit
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: create new branch off of commit
+  <kbd>g</kbd>: reset to this commit
+  <kbd>c</kbd>: copy commit (cherry-pick)
+  <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>enter</kbd>: view selected item's files
 </pre>
 
@@ -165,7 +167,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>space</kbd>: checkout commit
-  <kbd>g</kbd>: view reset options
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: create new branch off of commit
+  <kbd>g</kbd>: reset to this commit
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection

@@ -130,8 +130,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
   <kbd>space</kbd>: checkout commit
-  <kbd>g</kbd>: bekijk reset opties
-  <kbd>n</kbd>: nieuwe branch
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: creëer nieuwe branch van commit
+  <kbd>g</kbd>: reset naar deze commit
   <kbd>c</kbd>: kopieer commit (cherry-pick)
   <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
@@ -187,16 +189,16 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: verplaats commit 1 naar boven
   <kbd>A</kbd>: wijzig commit met staged veranderingen
   <kbd>t</kbd>: commit ongedaan maken
-  <kbd>n</kbd>: creëer nieuwe branch van commit
-  <kbd>c</kbd>: kopieer commit (cherry-pick)
-  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
   <kbd>v</kbd>: plak commits (cherry-pick)
   <kbd>ctrl+l</kbd>: open log menu
-  <kbd>g</kbd>: reset naar deze commit
-  <kbd>space</kbd>: checkout commit
   <kbd>T</kbd>: tag commit
+  <kbd>space</kbd>: checkout commit
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: creëer nieuwe branch van commit
+  <kbd>g</kbd>: reset naar deze commit
+  <kbd>c</kbd>: kopieer commit (cherry-pick)
+  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
   <kbd>enter</kbd>: bekijk gecommite bestanden
 </pre>
 
@@ -205,7 +207,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
   <kbd>space</kbd>: checkout commit
-  <kbd>g</kbd>: bekijk reset opties
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: creëer nieuwe branch van commit
+  <kbd>g</kbd>: reset naar deze commit
   <kbd>c</kbd>: kopieer commit (cherry-pick)
   <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie

@@ -70,3 +70,7 @@ func (self *ReflogCommitsContext) GetSelectedRefName() string {
 
 	return item.RefName()
 }
+
+func (self *ReflogCommitsContext) GetCommits() []*models.Commit {
+	return self.getModel()
+}
