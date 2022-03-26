@@ -587,7 +587,16 @@ func (gui *Gui) Run(filterPath string) error {
 		go utils.Safe(gui.startBackgroundFetch)
 	}
 
-	gui.goEvery(time.Second*time.Duration(userConfig.Refresher.RefreshInterval), gui.stopChan, gui.refreshFilesAndSubmodules)
+	if userConfig.Git.AutoRefresh {
+		refreshInterval := userConfig.Refresher.RefreshInterval
+		if refreshInterval > 0 {
+			gui.goEvery(time.Second*time.Duration(refreshInterval), gui.stopChan, gui.refreshFilesAndSubmodules)
+		} else {
+			gui.c.Log.Errorf(
+				"Value of config option 'refresher.refreshInterval' (%d) is invalid, disabling auto-refresh",
+				refreshInterval)
+		}
+	}
 
 	gui.c.Log.Info("starting main loop")
 

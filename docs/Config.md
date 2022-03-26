@@ -73,6 +73,7 @@ git:
     showGraph: 'when-maximised'
   skipHookPrefix: WIP
   autoFetch: true
+  autoRefresh: true
   branchLogCmd: 'git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --'
   allBranchesLogCmd: 'git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium'
   overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
@@ -84,7 +85,7 @@ os:
   editCommandTemplate: '{{editor}} {{filename}}'
   openCommand: ''
 refresher:
-  refreshInterval: 10 # file/submodule refresh interval in seconds
+  refreshInterval: 10 # File/submodule refresh interval in seconds. Auto-refresh can be disabled via option 'git.autoRefresh'.
   fetchInterval: 60 # re-fetch interval in seconds
 update:
   method: prompt # can be: prompt | background | never
