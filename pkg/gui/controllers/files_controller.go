@@ -135,7 +135,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
-			Handler:     self.OpenMergeTool,
+			Handler:     self.helpers.WorkingTree.OpenMergeTool,
 			Description: self.c.Tr.LcOpenMergeTool,
 		},
 		{
@@ -601,19 +601,6 @@ func (self *FilesController) toggleTreeView() error {
 	self.context().FileTreeViewModel.ToggleShowTree()
 
 	return self.c.PostRefreshUpdate(self.context())
-}
-
-func (self *FilesController) OpenMergeTool() error {
-	return self.c.Ask(types.AskOpts{
-		Title:  self.c.Tr.MergeToolTitle,
-		Prompt: self.c.Tr.MergeToolPrompt,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.OpenMergeTool)
-			return self.c.RunSubprocessAndRefresh(
-				self.git.WorkingTree.OpenMergeToolCmdObj(),
-			)
-		},
-	})
 }
 
 func (self *FilesController) handleStashSave(stashFunc func(message string) error) error {

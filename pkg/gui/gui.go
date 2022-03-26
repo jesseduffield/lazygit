@@ -18,7 +18,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
@@ -129,9 +128,6 @@ type Gui struct {
 
 	IsNewRepo bool
 
-	// controllers define keybindings for a given context
-	Controllers Controllers
-
 	// flag as to whether or not the diff view should ignore whitespace
 	IgnoreWhitespaceInDiffView bool
 
@@ -201,19 +197,6 @@ type GuiRepoState struct {
 	ScreenMode WindowMaximisation
 
 	CurrentPopupOpts *types.CreatePopupPanelOpts
-}
-
-type Controllers struct {
-	Submodules   *controllers.SubmodulesController
-	Tags         *controllers.TagsController
-	LocalCommits *controllers.LocalCommitsController
-	Files        *controllers.FilesController
-	Remotes      *controllers.RemotesController
-	Menu         *controllers.MenuController
-	Bisect       *controllers.BisectController
-	Undo         *controllers.UndoController
-	Sync         *controllers.SyncController
-	Global       *controllers.GlobalController
 }
 
 // for now the staging panel state, unlike the other panel states, is going to be

@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -13,11 +14,16 @@ type IWorkingTreeHelper interface {
 }
 
 type WorkingTreeHelper struct {
+	c   *types.HelperCommon
+	git *commands.GitCommand
+
 	model *types.Model
 }
 
-func NewWorkingTreeHelper(model *types.Model) *WorkingTreeHelper {
+func NewWorkingTreeHelper(c *types.HelperCommon, git *commands.GitCommand, model *types.Model) *WorkingTreeHelper {
 	return &WorkingTreeHelper{
+		c:     c,
+		git:   git,
 		model: model,
 	}
 }
@@ -52,4 +58,17 @@ func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfi
 	}
 
 	return nil
+}
+
+func (self *WorkingTreeHelper) OpenMergeTool() error {
+	return self.c.Ask(types.AskOpts{
+		Title:  self.c.Tr.MergeToolTitle,
+		Prompt: self.c.Tr.MergeToolPrompt,
+		HandleConfirm: func() error {
+			self.c.LogAction(self.c.Tr.Actions.OpenMergeTool)
+			return self.c.RunSubprocessAndRefresh(
+				self.git.WorkingTree.OpenMergeToolCmdObj(),
+			)
+		},
+	})
 }

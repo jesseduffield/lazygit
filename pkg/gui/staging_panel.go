@@ -165,3 +165,12 @@ func (gui *Gui) applySelection(reverse bool, state *LblPanelState) error {
 	}
 	return nil
 }
+
+func (gui *Gui) HandleOpenFile() error {
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
+	}
+
+	return gui.helpers.Files.OpenFile(file.GetPath())
+}

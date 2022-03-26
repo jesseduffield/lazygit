@@ -30,7 +30,7 @@ func (gui *Gui) resetControllers() {
 		Bisect:         helpers.NewBisectHelper(helperCommon, gui.git),
 		Suggestions:    helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions),
 		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
-		WorkingTree:    helpers.NewWorkingTreeHelper(model),
+		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, model),
 		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
 		GPG:            helpers.NewGpgHelper(helperCommon, gui.os, gui.git),
 		MergeAndRebase: rebaseHelper,
@@ -102,27 +102,22 @@ func (gui *Gui) resetControllers() {
 
 	remoteBranchesController := controllers.NewRemoteBranchesController(common)
 
-	gui.Controllers = Controllers{
-		Submodules: submodulesController,
-		Global:     controllers.NewGlobalController(common),
-		Files: controllers.NewFilesController(
-			common,
-			gui.enterSubmodule,
-			setCommitMessage,
-			getSavedCommitMessage,
-			gui.switchToMerge,
-		),
-		Tags:         controllers.NewTagsController(common),
-		LocalCommits: controllers.NewLocalCommitsController(common, syncController.HandlePull),
-		Remotes: controllers.NewRemotesController(
-			common,
-			func(branches []*models.RemoteBranch) { gui.State.Model.RemoteBranches = branches },
-		),
-		Menu: controllers.NewMenuController(common),
-		Undo: controllers.NewUndoController(common),
-		Sync: syncController,
-	}
-
+	menuController := controllers.NewMenuController(common)
+	localCommitsController := controllers.NewLocalCommitsController(common, syncController.HandlePull)
+	tagsController := controllers.NewTagsController(common)
+	filesController := controllers.NewFilesController(
+		common,
+		gui.enterSubmodule,
+		setCommitMessage,
+		getSavedCommitMessage,
+		gui.switchToMerge,
+	)
+	remotesController := controllers.NewRemotesController(
+		common,
+		func(branches []*models.RemoteBranch) { gui.State.Model.RemoteBranches = branches },
+	)
+	undoController := controllers.NewUndoController(common)
+	globalController := controllers.NewGlobalController(common)
 	branchesController := controllers.NewBranchesController(common)
 	gitFlowController := controllers.NewGitFlowController(common)
 	filesRemoveController := controllers.NewFilesRemoveController(common)
@@ -160,18 +155,19 @@ func (gui *Gui) resetControllers() {
 		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
 	}
 
+	controllers.AttachControllers(gui.State.Contexts.Files, filesController, filesRemoveController)
+	controllers.AttachControllers(gui.State.Contexts.Tags, tagsController)
+	controllers.AttachControllers(gui.State.Contexts.Submodules, submodulesController)
+	controllers.AttachControllers(gui.State.Contexts.LocalCommits, localCommitsController, bisectController)
 	controllers.AttachControllers(gui.State.Contexts.Branches, branchesController, gitFlowController)
-	controllers.AttachControllers(gui.State.Contexts.Files, gui.Controllers.Files, filesRemoveController)
-	controllers.AttachControllers(gui.State.Contexts.Tags, gui.Controllers.Tags)
-	controllers.AttachControllers(gui.State.Contexts.Submodules, gui.Controllers.Submodules)
-	controllers.AttachControllers(gui.State.Contexts.LocalCommits, gui.Controllers.LocalCommits, bisectController)
+	controllers.AttachControllers(gui.State.Contexts.LocalCommits, localCommitsController, bisectController)
 	controllers.AttachControllers(gui.State.Contexts.CommitFiles, commitFilesController)
-	controllers.AttachControllers(gui.State.Contexts.Remotes, gui.Controllers.Remotes)
+	controllers.AttachControllers(gui.State.Contexts.Remotes, remotesController)
 	controllers.AttachControllers(gui.State.Contexts.Stash, stashController)
-	controllers.AttachControllers(gui.State.Contexts.Menu, gui.Controllers.Menu)
+	controllers.AttachControllers(gui.State.Contexts.Menu, menuController)
 	controllers.AttachControllers(gui.State.Contexts.CommitMessage, commitMessageController)
 	controllers.AttachControllers(gui.State.Contexts.RemoteBranches, remoteBranchesController)
-	controllers.AttachControllers(gui.State.Contexts.Global, gui.Controllers.Sync, gui.Controllers.Undo, gui.Controllers.Global)
+	controllers.AttachControllers(gui.State.Contexts.Global, syncController, undoController, globalController)
 
 	// this must come last so that we've got our click handlers defined against the context
 	listControllerFactory := controllers.NewListControllerFactory(gui.c)

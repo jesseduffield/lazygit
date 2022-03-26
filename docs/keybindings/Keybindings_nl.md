@@ -227,9 +227,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
-  <kbd>c</kbd>: commit veranderingen
-  <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
-  <kbd>C</kbd>: commit veranderingen met de git editor
 </pre>
 
 ## Stash
