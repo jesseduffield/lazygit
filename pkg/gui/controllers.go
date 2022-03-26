@@ -129,41 +129,35 @@ func (gui *Gui) resetControllers() {
 	stashController := controllers.NewStashController(common)
 	commitFilesController := controllers.NewCommitFilesController(common)
 
-	switchToSubCommitsControllerFactory := controllers.NewSubCommitsSwitchControllerFactory(
-		common,
-		func(commits []*models.Commit) { gui.State.Model.SubCommits = commits },
-	)
+	setSubCommits := func(commits []*models.Commit) { gui.State.Model.SubCommits = commits }
 
 	for _, context := range []controllers.ContextWithRefName{
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
 		gui.State.Contexts.Tags,
 	} {
-		controllers.AttachControllers(context, switchToSubCommitsControllerFactory.Create(context))
+		controllers.AttachControllers(context, controllers.NewSwitchToSubCommitsController(
+			common, setSubCommits, context,
+		))
 	}
 
-	commitishControllerFactory := controllers.NewCommitishControllerFactory(
-		common,
-		gui.SwitchToCommitFilesContext,
-	)
-
-	for _, context := range []controllers.Commitish{
+	for _, context := range []controllers.CanSwitchToDiffFiles{
 		gui.State.Contexts.LocalCommits,
 		gui.State.Contexts.ReflogCommits,
 		gui.State.Contexts.SubCommits,
 		gui.State.Contexts.Stash,
 	} {
-		controllers.AttachControllers(context, commitishControllerFactory.Create(context))
+		controllers.AttachControllers(context, controllers.NewSwitchToDiffFilesController(
+			common, gui.SwitchToCommitFilesContext, context,
+		))
 	}
-
-	basicCommitsControllerFactory := controllers.NewBasicCommitsControllerFactory(common)
 
 	for _, context := range []controllers.ContainsCommits{
 		gui.State.Contexts.LocalCommits,
 		gui.State.Contexts.ReflogCommits,
 		gui.State.Contexts.SubCommits,
 	} {
-		controllers.AttachControllers(context, basicCommitsControllerFactory.Create(context))
+		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
 	}
 
 	controllers.AttachControllers(gui.State.Contexts.Branches, branchesController, gitFlowController)
