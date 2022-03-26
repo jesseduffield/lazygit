@@ -178,6 +178,11 @@ func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
 
 	unitTimestampInt, _ := strconv.Atoi(unixTimestamp)
 
+	parents := []string{}
+	if len(parentHashes) > 0 {
+		parents = strings.Split(parentHashes, " ")
+	}
+
 	return &models.Commit{
 		Sha:           sha,
 		Name:          message,
@@ -185,7 +190,7 @@ func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
 		ExtraInfo:     extraInfo,
 		UnixTimestamp: int64(unitTimestampInt),
 		Author:        author,
-		Parents:       strings.Split(parentHashes, " "),
+		Parents:       parents,
 	}
 }
 

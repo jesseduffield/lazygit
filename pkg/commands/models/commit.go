@@ -6,6 +6,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// Special commit hash for empty tree object
+const EmptyTreeCommitHash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+
 // Commit : A git commit
 type Commit struct {
 	Sha           string
@@ -27,6 +30,17 @@ func (c *Commit) ShortSha() string {
 
 func (c *Commit) RefName() string {
 	return c.Sha
+}
+
+func (c *Commit) ParentRefName() string {
+	if c.IsFirstCommit() {
+		return EmptyTreeCommitHash
+	}
+	return c.RefName() + "^"
+}
+
+func (c *Commit) IsFirstCommit() bool {
+	return len(c.Parents) == 0
 }
 
 func (c *Commit) ID() string {
