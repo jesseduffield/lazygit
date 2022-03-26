@@ -88,7 +88,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser
   <kbd>n</kbd>: create new branch off of commit
-  <kbd>g</kbd>: zresetuj do tego commita
+  <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>c</kbd>: kopiuj commit (przebieranie)
   <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
   <kbd>enter</kbd>: przeglądaj pliki commita
@@ -178,6 +178,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>space</kbd>: checkout commit
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: create new branch off of commit
   <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>c</kbd>: kopiuj commit (przebieranie)
   <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
@@ -247,8 +250,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>space</kbd>: checkout commit
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: create new branch off of commit
   <kbd>g</kbd>: wyświetl opcje resetu
-  <kbd>n</kbd>: nowa gałąź
   <kbd>c</kbd>: kopiuj commit (przebieranie)
   <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection

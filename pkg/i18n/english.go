@@ -82,7 +82,6 @@ type TranslationSet struct {
 	LcClose                             string
 	LcQuit                              string
 	LcSquashDown                        string
-	LcResetToThisCommit                 string
 	LcFixupCommit                       string
 	OnlySquashTopmostCommit             string
 	YouNoCommitsToSquash                string
@@ -673,7 +672,6 @@ func EnglishTranslationSet() TranslationSet {
 		LcClose:                             "close",
 		LcQuit:                              "quit",
 		LcSquashDown:                        "squash down",
-		LcResetToThisCommit:                 "reset to this commit",
 		LcFixupCommit:                       "fixup commit",
 		NoCommitsThisBranch:                 "No commits for this branch",
 		OnlySquashTopmostCommit:             "Can only squash topmost commit",

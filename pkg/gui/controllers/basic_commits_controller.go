@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -51,14 +50,14 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
-			Modifier:    gocui.ModNone,
 			Handler:     self.checkSelected(self.newBranch),
 			Description: self.c.Tr.LcCreateNewBranchFromCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.checkSelected(self.createResetMenu),
-			Description: self.c.Tr.LcResetToThisCommit,
+			Description: self.c.Tr.LcViewResetOptions,
+			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopy),

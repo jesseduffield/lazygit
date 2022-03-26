@@ -46,6 +46,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
   <kbd>space</kbd>: 检出提交
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: 在浏览器中打开提交
+  <kbd>n</kbd>: 从提交创建新分支
   <kbd>g</kbd>: 查看重置选项
   <kbd>c</kbd>: 复制提交（拣选）
   <kbd>C</kbd>: 复制提交范围（拣选）
@@ -82,7 +85,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
-  <kbd>g</kbd>: 重置为此提交
+  <kbd>g</kbd>: 查看重置选项
   <kbd>c</kbd>: 复制提交（拣选）
   <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
@@ -128,7 +131,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
-  <kbd>g</kbd>: 重置为此提交
+  <kbd>g</kbd>: 查看重置选项
   <kbd>c</kbd>: 复制提交（拣选）
   <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>enter</kbd>: 查看提交的文件

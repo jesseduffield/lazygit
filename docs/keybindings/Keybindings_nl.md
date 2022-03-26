@@ -129,7 +129,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser
   <kbd>n</kbd>: creëer nieuwe branch van commit
-  <kbd>g</kbd>: reset naar deze commit
+  <kbd>g</kbd>: bekijk reset opties
   <kbd>c</kbd>: kopieer commit (cherry-pick)
   <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
   <kbd>enter</kbd>: bekijk gecommite bestanden
@@ -177,6 +177,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
   <kbd>space</kbd>: checkout commit
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: creëer nieuwe branch van commit
   <kbd>g</kbd>: bekijk reset opties
   <kbd>c</kbd>: kopieer commit (cherry-pick)
   <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
@@ -254,8 +257,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
   <kbd>space</kbd>: checkout commit
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: creëer nieuwe branch van commit
   <kbd>g</kbd>: bekijk reset opties
-  <kbd>n</kbd>: nieuwe branch
   <kbd>c</kbd>: kopieer commit (cherry-pick)
   <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
