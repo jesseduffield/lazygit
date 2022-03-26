@@ -101,7 +101,6 @@ func chineseTranslationSet() TranslationSet {
 		LcClose:                             "关闭",
 		LcQuit:                              "退出",
 		LcSquashDown:                        "向下压缩",
-		LcResetToThisCommit:                 "重置为此提交",
 		LcFixupCommit:                       "修正提交（fixup）",
 		NoCommitsThisBranch:                 "该分支没有提交",
 		OnlySquashTopmostCommit:             "只能压缩最顶层的提交",

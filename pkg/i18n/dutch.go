@@ -67,7 +67,6 @@ func dutchTranslationSet() TranslationSet {
 		LcClose:                             "sluiten",
 		LcQuit:                              "quit",
 		LcSquashDown:                        "squash beneden",
-		LcResetToThisCommit:                 "reset naar deze commit",
 		LcFixupCommit:                       "Fixup commit",
 		OnlySquashTopmostCommit:             "Kan alleen bovenste commit squashen",
 		YouNoCommitsToSquash:                "Je hebt geen commits om mee te squashen",

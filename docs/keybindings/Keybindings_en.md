@@ -102,7 +102,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser
   <kbd>n</kbd>: create new branch off of commit
-  <kbd>g</kbd>: reset to this commit
+  <kbd>g</kbd>: view reset options
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>enter</kbd>: view selected item's files
@@ -199,6 +199,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>space</kbd>: checkout commit
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: create new branch off of commit
   <kbd>g</kbd>: view reset options
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>C</kbd>: copy commit range (cherry-pick)
@@ -254,8 +257,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
   <kbd>space</kbd>: checkout commit
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: open commit in browser
+  <kbd>n</kbd>: create new branch off of commit
   <kbd>g</kbd>: view reset options
-  <kbd>n</kbd>: new branch
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection

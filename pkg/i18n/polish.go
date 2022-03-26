@@ -60,7 +60,6 @@ func polishTranslationSet() TranslationSet {
 		CloseConfirm:                        "{{.keyBindClose}}: zamknij, {{.keyBindConfirm}}: potwierdź",
 		LcClose:                             "zamknij",
 		LcSquashDown:                        "ściśnij",
-		LcResetToThisCommit:                 "zresetuj do tego commita",
 		LcFixupCommit:                       "napraw commit",
 		NoCommitsThisBranch:                 "Brak commitów dla tej gałęzi",
 		OnlySquashTopmostCommit:             "Można tylko spłaszczyć najwyższy commit",
