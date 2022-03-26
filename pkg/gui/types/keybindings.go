@@ -2,6 +2,8 @@ package types
 
 import "github.com/jesseduffield/gocui"
 
+type Key interface{} // FIXME: find out how to get `gocui.Key | rune`
+
 // Binding - a keybinding mapping a key and modifier to a handler. The keypress
 // is only handled if the given view has focus, or handled globally if the view
 // is ""
@@ -9,7 +11,7 @@ type Binding struct {
 	ViewName    string
 	Contexts    []string
 	Handler     func() error
-	Key         interface{} // FIXME: find out how to get `gocui.Key | rune`
+	Key         Key
 	Modifier    gocui.Modifier
 	Description string
 	Alternative string

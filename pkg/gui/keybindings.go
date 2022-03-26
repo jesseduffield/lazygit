@@ -76,7 +76,7 @@ var keyMapReversed = map[gocui.Key]string{
 	gocui.MouseWheelDown: "mouse wheel down",
 }
 
-var keymap = map[string]interface{}{
+var keymap = map[string]types.Key{
 	"<c-a>":       gocui.KeyCtrlA,
 	"<c-b>":       gocui.KeyCtrlB,
 	"<c-c>":       gocui.KeyCtrlC,
@@ -153,7 +153,7 @@ func (gui *Gui) getKeyDisplay(name string) string {
 	return GetKeyDisplay(key)
 }
 
-func GetKeyDisplay(key interface{}) string {
+func GetKeyDisplay(key types.Key) string {
 	keyInt := 0
 
 	switch key := key.(type) {
@@ -170,7 +170,7 @@ func GetKeyDisplay(key interface{}) string {
 	return fmt.Sprintf("%c", keyInt)
 }
 
-func (gui *Gui) getKey(key string) interface{} {
+func (gui *Gui) getKey(key string) types.Key {
 	runeCount := utf8.RuneCountInString(key)
 	if runeCount > 1 {
 		binding := keymap[strings.ToLower(key)]
