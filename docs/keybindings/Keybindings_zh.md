@@ -18,8 +18,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>W</kbd>: 打开 diff 菜单
   <kbd>ctrl+e</kbd>: 打开 diff 菜单
   <kbd>@</kbd>: 打开命令日志菜单
-  <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
-  <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
+  <kbd>}</kbd>: 扩大差异视图中显示的上下文范围
+  <kbd>{</kbd>: 缩小差异视图中显示的上下文范围
   <kbd>:</kbd>: 执行自定义命令
   <kbd>z</kbd>: （通过 reflog）撤销「实验功能」
   <kbd>ctrl+z</kbd>: （通过 reflog）重做「实验功能」
@@ -35,30 +35,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd><</kbd>: 滚动到顶部
   <kbd>></kbd>: 滚动到底部
   <kbd>/</kbd>: 开始搜索
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
+  <kbd>H</kbd>: 向左滚动
+  <kbd>L</kbd>: 向右滚动
   <kbd>]</kbd>: 下一个标签
   <kbd>[</kbd>: 上一个标签
-</pre>
-
-## Extras 面板
-
-<pre>
-  <kbd>@</kbd>: 打开命令日志菜单
-</pre>
-
-## 主要 面板 (合并中)
-
-<pre>
-  <kbd>esc</kbd>: 返回文件面板
-  <kbd>M</kbd>: 打开合并工具
-  <kbd>space</kbd>: 选中区块
-  <kbd>b</kbd>: 选中所有区块
-  <kbd>◄</kbd>: 选择上一个冲突
-  <kbd>►</kbd>: 选择下一个冲突
-  <kbd>▲</kbd>: 选择顶部块
-  <kbd>▼</kbd>: 选择底部块
-  <kbd>z</kbd>: 撤销
 </pre>
 
 ## 主要 面板 (构建补丁中)
@@ -70,11 +50,25 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>▼</kbd>: 选择下一行
   <kbd>◄</kbd>: 选择上一个区块
   <kbd>►</kbd>: 选择下一个区块
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>ctrl+o</kbd>: 将选中文本复制到剪贴板
   <kbd>space</kbd>: 添加/移除 行到补丁
   <kbd>v</kbd>: 切换拖动选择
   <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
+</pre>
+
+## 主要 面板 (正在合并)
+
+<pre>
+  <kbd>esc</kbd>: 返回文件面板
+  <kbd>M</kbd>: 打开外部合并工具 (git mergetool)
+  <kbd>space</kbd>: 选中区块
+  <kbd>b</kbd>: 选中所有区块
+  <kbd>◄</kbd>: 选择上一个冲突
+  <kbd>►</kbd>: 选择下一个冲突
+  <kbd>▲</kbd>: 选择顶部块
+  <kbd>▼</kbd>: 选择底部块
+  <kbd>z</kbd>: 撤销
 </pre>
 
 ## 主要 面板 (正在暂存)
@@ -89,7 +83,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>▼</kbd>: 选择下一行
   <kbd>◄</kbd>: 选择上一个区块
   <kbd>►</kbd>: 选择下一个区块
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>ctrl+o</kbd>: 将选中文本复制到剪贴板
   <kbd>e</kbd>: 编辑文件
   <kbd>v</kbd>: 切换拖动选择
   <kbd>V</kbd>: 切换拖动选择
@@ -106,7 +100,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>mouse wheel up</kbd>: 向上滚动 (fn+down)
 </pre>
 
-## 分支 面板 (分支标签)
+## 分支 面板 (分支页面)
 
 <pre>
   <kbd>ctrl+o</kbd>: 将分支名称复制到剪贴板
@@ -174,7 +168,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>e</kbd>: 编辑远程仓库
 </pre>
 
-## 提交 面板 (Reflog)
+## 提交 面板 (Reflog 页面)
 
 <pre>
   <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
@@ -191,7 +185,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
   <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
-  <kbd>b</kbd>: view bisect options
+  <kbd>b</kbd>: 查看二分查找选项
   <kbd>s</kbd>: 向下压缩
   <kbd>f</kbd>: 修正提交（fixup）
   <kbd>r</kbd>: 改写提交
@@ -209,12 +203,12 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>c</kbd>: 复制提交（拣选）
   <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>v</kbd>: 粘贴提交（拣选）
-  <kbd>ctrl+l</kbd>: open log menu
+  <kbd>ctrl+l</kbd>: 打开日志菜单
   <kbd>g</kbd>: 重置为此提交
   <kbd>space</kbd>: 检出提交
   <kbd>T</kbd>: 标签提交
   <kbd>ctrl+y</kbd>: 将提交消息复制到剪贴板
-  <kbd>o</kbd>: open commit in browser
+  <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
@@ -254,8 +248,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+o</kbd>: 将文件名复制到剪贴板
-  <kbd>ctrl+w</kbd>: 切换是否在差异视图中显示空白更改
-  <kbd>d</kbd>: 查看'放弃更改‘选项
+  <kbd>ctrl+w</kbd>: 切换是否在差异视图中显示空白字符差异
+  <kbd>d</kbd>: 查看'放弃更改'选项
   <kbd>space</kbd>: 切换暂存状态
   <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
   <kbd>c</kbd>: 提交更改
@@ -267,13 +261,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>i</kbd>: 添加到 .gitignore
   <kbd>r</kbd>: 刷新文件
   <kbd>s</kbd>: 将所有更改加入贮藏
-  <kbd>S</kbd>: 查看隐藏选项
+  <kbd>S</kbd>: 查看贮藏选项
   <kbd>a</kbd>: 切换所有文件的暂存状态
   <kbd>enter</kbd>: 暂存单个 块/行 用于文件, 或 折叠/展开 目录
   <kbd>g</kbd>: 查看上游重置选项
   <kbd>D</kbd>: 查看重置选项
   <kbd>`</kbd>: 切换文件树视图
-  <kbd>M</kbd>: 打开合并工具
+  <kbd>M</kbd>: 打开外部合并工具 (git mergetool)
   <kbd>f</kbd>: 抓取
 </pre>
 
@@ -301,4 +295,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>d</kbd>: 删除
   <kbd>n</kbd>: 新分支
   <kbd>enter</kbd>: 查看提交的文件
+</pre>
+
+## 附加 面板
+
+<pre>
+  <kbd>@</kbd>: 打开命令日志菜单
 </pre>
