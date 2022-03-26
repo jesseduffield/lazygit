@@ -74,9 +74,6 @@ func (gui *Gui) resetControllers() {
 
 	bisectController := controllers.NewBisectController(common)
 
-	reflogController := controllers.NewReflogController(common)
-	subCommitsController := controllers.NewSubCommitsController(common)
-
 	getSavedCommitMessage := func() string {
 		return gui.State.savedCommitMessage
 	}
@@ -159,13 +156,21 @@ func (gui *Gui) resetControllers() {
 		controllers.AttachControllers(context, commitishControllerFactory.Create(context))
 	}
 
+	basicCommitsControllerFactory := controllers.NewBasicCommitsControllerFactory(common)
+
+	for _, context := range []controllers.ContainsCommits{
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.SubCommits,
+	} {
+		controllers.AttachControllers(context, basicCommitsControllerFactory.Create(context))
+	}
+
 	controllers.AttachControllers(gui.State.Contexts.Branches, branchesController, gitFlowController)
 	controllers.AttachControllers(gui.State.Contexts.Files, gui.Controllers.Files, filesRemoveController)
 	controllers.AttachControllers(gui.State.Contexts.Tags, gui.Controllers.Tags)
 	controllers.AttachControllers(gui.State.Contexts.Submodules, gui.Controllers.Submodules)
 	controllers.AttachControllers(gui.State.Contexts.LocalCommits, gui.Controllers.LocalCommits, bisectController)
-	controllers.AttachControllers(gui.State.Contexts.ReflogCommits, reflogController)
-	controllers.AttachControllers(gui.State.Contexts.SubCommits, subCommitsController)
 	controllers.AttachControllers(gui.State.Contexts.CommitFiles, commitFilesController)
 	controllers.AttachControllers(gui.State.Contexts.Remotes, gui.Controllers.Remotes)
 	controllers.AttachControllers(gui.State.Contexts.Stash, stashController)

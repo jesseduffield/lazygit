@@ -126,8 +126,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
   <kbd>space</kbd>: 检出提交
-  <kbd>g</kbd>: 查看重置选项
-  <kbd>n</kbd>: 新分支
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: 在浏览器中打开提交
+  <kbd>n</kbd>: 从提交创建新分支
+  <kbd>g</kbd>: 重置为此提交
   <kbd>c</kbd>: 复制提交（拣选）
   <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
@@ -173,7 +175,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>ctrl+o</kbd>: 将提交的 SHA 复制到剪贴板
   <kbd>space</kbd>: 检出提交
-  <kbd>g</kbd>: 查看重置选项
+  <kbd>y</kbd>: copy commit attribute
+  <kbd>o</kbd>: 在浏览器中打开提交
+  <kbd>n</kbd>: 从提交创建新分支
+  <kbd>g</kbd>: 重置为此提交
   <kbd>c</kbd>: 复制提交（拣选）
   <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>ctrl+r</kbd>: 重置已拣选（复制）的提交
@@ -199,16 +204,16 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: 上移提交
   <kbd>A</kbd>: 用已暂存的更改来修补提交
   <kbd>t</kbd>: 还原提交
-  <kbd>n</kbd>: 从提交创建新分支
-  <kbd>c</kbd>: 复制提交（拣选）
-  <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>v</kbd>: 粘贴提交（拣选）
   <kbd>ctrl+l</kbd>: 打开日志菜单
-  <kbd>g</kbd>: 重置为此提交
-  <kbd>space</kbd>: 检出提交
   <kbd>T</kbd>: 标签提交
+  <kbd>space</kbd>: 检出提交
   <kbd>y</kbd>: copy commit attribute
-  <kbd>o</kbd>: open commit in browser
+  <kbd>o</kbd>: 在浏览器中打开提交
+  <kbd>n</kbd>: 从提交创建新分支
+  <kbd>g</kbd>: 重置为此提交
+  <kbd>c</kbd>: 复制提交（拣选）
+  <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>enter</kbd>: 查看提交的文件
 </pre>
 

@@ -108,3 +108,7 @@ func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {
 func (self *LocalCommitsViewModel) GetShowWholeGitGraph() bool {
 	return self.showWholeGitGraph
 }
+
+func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
+	return self.getModel()
+}

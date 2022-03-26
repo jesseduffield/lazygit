@@ -72,3 +72,7 @@ func (self *SubCommitsContext) GetSelectedRefName() string {
 
 	return item.RefName()
 }
+
+func (self *SubCommitsContext) GetCommits() []*models.Commit {
+	return self.getModel()
+}

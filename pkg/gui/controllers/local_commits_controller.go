@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -102,22 +101,6 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.LcRevertCommit,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.New),
-			Modifier:    gocui.ModNone,
-			Handler:     self.checkSelected(self.newBranch),
-			Description: self.c.Tr.LcCreateNewBranchFromCommit,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopy),
-			Handler:     self.checkSelected(self.copy),
-			Description: self.c.Tr.LcCherryPickCopy,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopyRange),
-			Handler:     self.checkSelected(self.copyRange),
-			Description: self.c.Tr.LcCherryPickCopyRange,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Commits.PasteCommits),
 			Handler:     opts.Guards.OutsideFilterMode(self.paste),
 			Description: self.c.Tr.LcPasteCommits,
@@ -150,30 +133,9 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
-			Handler:     self.checkSelected(self.createResetMenu),
-			Description: self.c.Tr.LcResetToThisCommit,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Commits.CheckoutCommit),
-			Handler:     self.checkSelected(self.checkout),
-			Description: self.c.Tr.LcCheckoutCommit,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Commits.TagCommit),
 			Handler:     self.checkSelected(self.createTag),
 			Description: self.c.Tr.LcTagCommit,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Commits.CopyCommitAttributeToClipboard),
-			Handler:     self.checkSelected(self.copyCommitAttribute),
-			Description: self.c.Tr.LcCopyCommitAttributeToClipboard,
-			OpensMenu:   true,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Commits.OpenInBrowser),
-			Handler:     self.checkSelected(self.openInBrowser),
-			Description: self.c.Tr.LcOpenCommitInBrowser,
 		},
 	}...)
 
@@ -557,21 +519,6 @@ func (self *LocalCommitsController) createTag(commit *models.Commit) error {
 	return self.helpers.Tags.CreateTagMenu(commit.Sha, func() {})
 }
 
-func (self *LocalCommitsController) checkout(commit *models.Commit) error {
-	return self.c.Ask(types.AskOpts{
-		Title:  self.c.Tr.LcCheckoutCommit,
-		Prompt: self.c.Tr.SureCheckoutThisCommit,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
-			return self.helpers.Refs.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
-		},
-	})
-}
-
-func (self *LocalCommitsController) createResetMenu(commit *models.Commit) error {
-	return self.helpers.Refs.CreateGitResetMenu(commit.Sha)
-}
-
 func (self *LocalCommitsController) openSearch() error {
 	// we usually lazyload these commits but now that we're searching we need to load them now
 	if self.context().GetLimitCommits() {
@@ -597,93 +544,6 @@ func (self *LocalCommitsController) gotoBottom() error {
 
 	self.context().SetSelectedLineIdx(self.context().Len() - 1)
 
-	return nil
-}
-
-func (self *LocalCommitsController) copyCommitAttribute(commit *models.Commit) error {
-	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.Actions.CopyCommitAttributeToClipboard,
-		Items: []*types.MenuItem{
-			{
-				DisplayString: self.c.Tr.LcCommitSha,
-				OnPress: func() error {
-					return self.copyCommitSHAToClipboard(commit)
-				},
-			},
-			{
-				DisplayString: self.c.Tr.LcCommitURL,
-				OnPress: func() error {
-					return self.copyCommitURLToClipboard(commit)
-				},
-			},
-			{
-				DisplayString: self.c.Tr.LcCommitDiff,
-				OnPress: func() error {
-					return self.copyCommitDiffToClipboard(commit)
-				},
-			},
-			{
-				DisplayString: self.c.Tr.LcCommitMessage,
-				OnPress: func() error {
-					return self.copyCommitMessageToClipboard(commit)
-				},
-			},
-		},
-	})
-}
-
-func (self *LocalCommitsController) copyCommitSHAToClipboard(commit *models.Commit) error {
-	self.c.LogAction(self.c.Tr.Actions.CopyCommitSHAToClipboard)
-	if err := self.os.CopyToClipboard(commit.Sha); err != nil {
-		return self.c.Error(err)
-	}
-
-	self.c.Toast(self.c.Tr.CommitSHACopiedToClipboard)
-	return nil
-}
-
-func (self *LocalCommitsController) copyCommitURLToClipboard(commit *models.Commit) error {
-	url, err := self.helpers.Host.GetCommitURL(commit.Sha)
-	if err != nil {
-		return err
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.CopyCommitURLToClipboard)
-	if err := self.os.CopyToClipboard(url); err != nil {
-		return self.c.Error(err)
-	}
-
-	self.c.Toast(self.c.Tr.CommitURLCopiedToClipboard)
-	return nil
-}
-
-func (self *LocalCommitsController) copyCommitDiffToClipboard(commit *models.Commit) error {
-	diff, err := self.git.Commit.GetCommitDiff(commit.Sha)
-	if err != nil {
-		return self.c.Error(err)
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.CopyCommitDiffToClipboard)
-	if err := self.os.CopyToClipboard(diff); err != nil {
-		return self.c.Error(err)
-	}
-
-	self.c.Toast(self.c.Tr.CommitDiffCopiedToClipboard)
-	return nil
-}
-
-func (self *LocalCommitsController) copyCommitMessageToClipboard(commit *models.Commit) error {
-	message, err := self.git.Commit.GetCommitMessage(commit.Sha)
-	if err != nil {
-		return self.c.Error(err)
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.CopyCommitMessageToClipboard)
-	if err := self.os.CopyToClipboard(message); err != nil {
-		return self.c.Error(err)
-	}
-
-	self.c.Toast(self.c.Tr.CommitMessageCopiedToClipboard)
 	return nil
 }
 
@@ -770,20 +630,6 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 	})
 }
 
-func (self *LocalCommitsController) openInBrowser(commit *models.Commit) error {
-	url, err := self.helpers.Host.GetCommitURL(commit.Sha)
-	if err != nil {
-		return self.c.Error(err)
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.OpenCommitInBrowser)
-	if err := self.os.OpenLink(url); err != nil {
-		return self.c.Error(err)
-	}
-
-	return nil
-}
-
 func (self *LocalCommitsController) checkSelected(callback func(*models.Commit) error) func() error {
 	return func() error {
 		commit := self.context().GetSelected()
@@ -801,18 +647,6 @@ func (self *LocalCommitsController) Context() types.Context {
 
 func (self *LocalCommitsController) context() *context.LocalCommitsContext {
 	return self.contexts.LocalCommits
-}
-
-func (self *LocalCommitsController) newBranch(commit *models.Commit) error {
-	return self.helpers.Refs.NewBranch(commit.RefName(), commit.Description(), "")
-}
-
-func (self *LocalCommitsController) copy(commit *models.Commit) error {
-	return self.helpers.CherryPick.Copy(commit, self.model.Commits, self.context())
-}
-
-func (self *LocalCommitsController) copyRange(*models.Commit) error {
-	return self.helpers.CherryPick.CopyRange(self.context().GetSelectedLineIdx(), self.model.Commits, self.context())
 }
 
 func (self *LocalCommitsController) paste() error {
