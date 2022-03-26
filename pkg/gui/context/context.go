@@ -140,44 +140,44 @@ func (self *ViewContextMap) Entries() map[string]types.Context {
 }
 
 type TabContext struct {
-	Tab      string
-	Contexts []types.Context
+	Tab     string
+	Context types.Context
 }
 
 func (tree ContextTree) InitialViewTabContextMap() map[string][]TabContext {
 	return map[string][]TabContext{
 		"branches": {
 			{
-				Tab:      "Local Branches",
-				Contexts: []types.Context{tree.Branches},
+				Tab:     "Local Branches",
+				Context: tree.Branches,
 			},
 			{
-				Tab:      "Remotes",
-				Contexts: []types.Context{tree.Remotes},
+				Tab:     "Remotes",
+				Context: tree.Remotes,
 			},
 			{
-				Tab:      "Tags",
-				Contexts: []types.Context{tree.Tags},
+				Tab:     "Tags",
+				Context: tree.Tags,
 			},
 		},
 		"commits": {
 			{
-				Tab:      "Commits",
-				Contexts: []types.Context{tree.LocalCommits},
+				Tab:     "Commits",
+				Context: tree.LocalCommits,
 			},
 			{
-				Tab:      "Reflog",
-				Contexts: []types.Context{tree.ReflogCommits},
+				Tab:     "Reflog",
+				Context: tree.ReflogCommits,
 			},
 		},
 		"files": {
 			{
-				Tab:      "Files",
-				Contexts: []types.Context{tree.Files},
+				Tab:     "Files",
+				Context: tree.Files,
 			},
 			{
-				Tab:      "Submodules",
-				Contexts: []types.Context{tree.Submodules},
+				Tab:     "Submodules",
+				Context: tree.Submodules,
 			},
 		},
 	}

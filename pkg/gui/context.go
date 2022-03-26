@@ -430,17 +430,15 @@ func (gui *Gui) setViewTabForContext(c types.Context) {
 	}
 
 	for tabIndex, tabContext := range tabContexts {
-		for _, context := range tabContext.Contexts {
-			if context.GetKey() == c.GetKey() {
-				// get the view, set the tab
-				v, err := gui.g.View(c.GetViewName())
-				if err != nil {
-					gui.c.Log.Error(err)
-					return
-				}
-				v.TabIndex = tabIndex
+		if tabContext.Context.GetKey() == c.GetKey() {
+			// get the view, set the tab
+			v, err := gui.g.View(c.GetViewName())
+			if err != nil {
+				gui.c.Log.Error(err)
 				return
 			}
+			v.TabIndex = tabIndex
+			return
 		}
 	}
 }

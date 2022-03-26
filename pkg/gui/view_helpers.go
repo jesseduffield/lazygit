@@ -94,7 +94,7 @@ func (gui *Gui) secondaryViewFocused() bool {
 }
 
 func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
-	context := gui.State.ViewTabContextMap[viewName][tabIndex].Contexts[0]
+	context := gui.State.ViewTabContextMap[viewName][tabIndex].Context
 
 	return gui.c.PushContext(context)
 }
