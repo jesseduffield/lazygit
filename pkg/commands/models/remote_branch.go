@@ -14,6 +14,10 @@ func (r *RemoteBranch) RefName() string {
 	return r.FullName()
 }
 
+func (r *RemoteBranch) ParentRefName() string {
+	return r.RefName() + "^"
+}
+
 func (r *RemoteBranch) ID() string {
 	return r.RefName()
 }

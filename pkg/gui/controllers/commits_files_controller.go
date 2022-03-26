@@ -112,7 +112,7 @@ func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) 
 
 func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutFile)
-	if err := self.git.WorkingTree.CheckoutFile(self.context().GetRefName(), node.GetPath()); err != nil {
+	if err := self.git.WorkingTree.CheckoutFile(self.context().GetRef().RefName(), node.GetPath()); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -166,7 +166,7 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 			// if there is any file that hasn't been fully added we'll fully add everything,
 			// otherwise we'll remove everything
 			adding := node.AnyFile(func(file *models.CommitFile) bool {
-				return self.git.Patch.PatchManager.GetFileStatus(file.Name, self.context().GetRefName()) != patch.WHOLE
+				return self.git.Patch.PatchManager.GetFileStatus(file.Name, self.context().GetRef().RefName()) != patch.WHOLE
 			})
 
 			err := node.ForEachFile(func(file *models.CommitFile) error {
@@ -188,7 +188,7 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 		})
 	}
 
-	if self.git.Patch.PatchManager.Active() && self.git.Patch.PatchManager.To != self.context().GetRefName() {
+	if self.git.Patch.PatchManager.Active() && self.git.Patch.PatchManager.To != self.context().GetRef().RefName() {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
@@ -212,9 +212,9 @@ func (self *CommitFilesController) startPatchManager() error {
 	commitFilesContext := self.context()
 
 	canRebase := commitFilesContext.GetCanRebase()
-	to := commitFilesContext.GetRefName()
-
-	from, reverse := self.modes.Diffing.GetFromAndReverseArgsForDiff(to)
+	ref := commitFilesContext.GetRef()
+	to := ref.RefName()
+	from, reverse := self.modes.Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
 
 	self.git.Patch.PatchManager.Start(from, to, reverse, canRebase)
 	return nil
@@ -239,7 +239,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 		return self.c.PushContext(self.contexts.PatchBuilding, opts)
 	}
 
-	if self.git.Patch.PatchManager.Active() && self.git.Patch.PatchManager.To != self.context().GetRefName() {
+	if self.git.Patch.PatchManager.Active() && self.git.Patch.PatchManager.To != self.context().GetRef().RefName() {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,

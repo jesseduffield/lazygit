@@ -16,8 +16,9 @@ func (gui *Gui) refreshPatchBuildingPanel(selectedLineIdx int) error {
 		return nil
 	}
 
-	to := gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.GetRefName()
-	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(to)
+	ref := gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.GetRef()
+	to := ref.RefName()
+	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
 	diff, err := gui.git.WorkingTree.ShowFileDiff(from, to, reverse, node.GetPath(), true)
 	if err != nil {
 		return err

@@ -61,26 +61,10 @@ func (self *ReflogCommitsContext) CanRebase() bool {
 	return false
 }
 
-func (self *ReflogCommitsContext) GetSelectedRefName() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.RefName()
+func (self *ReflogCommitsContext) GetSelectedRef() types.Ref {
+	return self.GetSelected()
 }
 
 func (self *ReflogCommitsContext) GetCommits() []*models.Commit {
 	return self.getModel()
-}
-
-func (self *ReflogCommitsContext) GetSelectedDescription() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.Description()
 }

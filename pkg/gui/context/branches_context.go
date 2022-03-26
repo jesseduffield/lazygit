@@ -57,21 +57,6 @@ func (self *BranchesContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
-func (self *BranchesContext) GetSelectedRefName() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.RefName()
-}
-
-func (self *BranchesContext) GetSelectedDescription() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.Description()
+func (self *BranchesContext) GetSelectedRef() types.Ref {
+	return self.GetSelected()
 }

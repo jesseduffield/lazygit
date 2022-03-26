@@ -57,21 +57,6 @@ func (self *TagsContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
-func (self *TagsContext) GetSelectedRefName() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.RefName()
-}
-
-func (self *TagsContext) GetSelectedDescription() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.Description()
+func (self *TagsContext) GetSelectedRef() types.Ref {
+	return self.GetSelected()
 }

@@ -60,21 +60,6 @@ func (self *RemoteBranchesContext) GetSelectedItemId() string {
 	return item.ID()
 }
 
-func (self *RemoteBranchesContext) GetSelectedRefName() string {
-	item := self.GetSelected()
-	if item == nil {
-		return ""
-	}
-
-	return item.RefName()
-}
-
-func (self *RemoteBranchesContext) GetSelectedDescription() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.Description()
+func (self *RemoteBranchesContext) GetSelectedRef() types.Ref {
+	return self.GetSelected()
 }

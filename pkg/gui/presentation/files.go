@@ -49,11 +49,11 @@ func RenderCommitFileTree(
 		// based on the leaves of that subtree
 		var status patch.PatchStatus
 		if castN.EveryFile(func(file *models.CommitFile) bool {
-			return patchManager.GetFileStatus(file.Name, tree.GetRefName()) == patch.WHOLE
+			return patchManager.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.WHOLE
 		}) {
 			status = patch.WHOLE
 		} else if castN.EveryFile(func(file *models.CommitFile) bool {
-			return patchManager.GetFileStatus(file.Name, tree.GetRefName()) == patch.UNSELECTED
+			return patchManager.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.UNSELECTED
 		}) {
 			status = patch.UNSELECTED
 		} else {

@@ -13,8 +13,8 @@ type ICommitFileTreeViewModel interface {
 	ICommitFileTree
 	types.IListCursor
 
-	GetRefName() string
-	SetRefName(string)
+	GetRef() types.Ref
+	SetRef(types.Ref)
 	GetCanRebase() bool
 	SetCanRebase(bool)
 }
@@ -24,8 +24,8 @@ type CommitFileTreeViewModel struct {
 	ICommitFileTree
 	types.IListCursor
 
-	// this is e.g. the commit SHA of the commit for which we're viewing the files
-	refName string
+	// this is e.g. the commit for which we're viewing the files
+	ref types.Ref
 
 	// we set this to true when you're viewing the files within the checked-out branch's commits.
 	// If you're viewing the files of some random other branch we can't do any rebase stuff.
@@ -40,17 +40,17 @@ func NewCommitFileTreeViewModel(getFiles func() []*models.CommitFile, log *logru
 	return &CommitFileTreeViewModel{
 		ICommitFileTree: fileTree,
 		IListCursor:     listCursor,
-		refName:         "",
+		ref:             nil,
 		canRebase:       false,
 	}
 }
 
-func (self *CommitFileTreeViewModel) GetRefName() string {
-	return self.refName
+func (self *CommitFileTreeViewModel) GetRef() types.Ref {
+	return self.ref
 }
 
-func (self *CommitFileTreeViewModel) SetRefName(refName string) {
-	self.refName = refName
+func (self *CommitFileTreeViewModel) SetRef(ref types.Ref) {
+	self.ref = ref
 }
 
 func (self *CommitFileTreeViewModel) GetCanRebase() bool {
