@@ -6,19 +6,14 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-type SubCommitsSwitchControllerFactory struct {
-	controllerCommon *controllerCommon
-	setSubCommits    func([]*models.Commit)
-}
-
-var _ types.IController = &SubCommitsSwitchController{}
+var _ types.IController = &SwitchToSubCommitsController{}
 
 type ContextWithRefName interface {
 	types.Context
 	GetSelectedRefName() string
 }
 
-type SubCommitsSwitchController struct {
+type SwitchToSubCommitsController struct {
 	baseController
 	*controllerCommon
 	context ContextWithRefName
@@ -26,26 +21,20 @@ type SubCommitsSwitchController struct {
 	setSubCommits func([]*models.Commit)
 }
 
-func NewSubCommitsSwitchControllerFactory(
-	common *controllerCommon,
+func NewSwitchToSubCommitsController(
+	controllerCommon *controllerCommon,
 	setSubCommits func([]*models.Commit),
-) *SubCommitsSwitchControllerFactory {
-	return &SubCommitsSwitchControllerFactory{
-		controllerCommon: common,
+	context ContextWithRefName,
+) *SwitchToSubCommitsController {
+	return &SwitchToSubCommitsController{
+		baseController:   baseController{},
+		controllerCommon: controllerCommon,
+		context:          context,
 		setSubCommits:    setSubCommits,
 	}
 }
 
-func (self *SubCommitsSwitchControllerFactory) Create(context ContextWithRefName) *SubCommitsSwitchController {
-	return &SubCommitsSwitchController{
-		baseController:   baseController{},
-		controllerCommon: self.controllerCommon,
-		context:          context,
-		setSubCommits:    self.setSubCommits,
-	}
-}
-
-func (self *SubCommitsSwitchController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+func (self *SwitchToSubCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
 			Handler:     self.viewCommits,
@@ -57,11 +46,11 @@ func (self *SubCommitsSwitchController) GetKeybindings(opts types.KeybindingsOpt
 	return bindings
 }
 
-func (self *SubCommitsSwitchController) GetOnClick() func() error {
+func (self *SwitchToSubCommitsController) GetOnClick() func() error {
 	return self.viewCommits
 }
 
-func (self *SubCommitsSwitchController) viewCommits() error {
+func (self *SwitchToSubCommitsController) viewCommits() error {
 	refName := self.context.GetSelectedRefName()
 	if refName == "" {
 		return nil
@@ -87,6 +76,6 @@ func (self *SubCommitsSwitchController) viewCommits() error {
 	return self.c.PushContext(self.contexts.SubCommits)
 }
 
-func (self *SubCommitsSwitchController) Context() types.Context {
+func (self *SwitchToSubCommitsController) Context() types.Context {
 	return self.context
 }

@@ -8,10 +8,6 @@ import (
 
 // This controller is for all contexts that contain a list of commits.
 
-type BasicCommitsControllerFactory struct {
-	controllerCommon *controllerCommon
-}
-
 var _ types.IController = &BasicCommitsController{}
 
 type ContainsCommits interface {
@@ -27,18 +23,10 @@ type BasicCommitsController struct {
 	context ContainsCommits
 }
 
-func NewBasicCommitsControllerFactory(
-	common *controllerCommon,
-) *BasicCommitsControllerFactory {
-	return &BasicCommitsControllerFactory{
-		controllerCommon: common,
-	}
-}
-
-func (self *BasicCommitsControllerFactory) Create(context ContainsCommits) *BasicCommitsController {
+func NewBasicCommitsController(controllerCommon *controllerCommon, context ContainsCommits) *BasicCommitsController {
 	return &BasicCommitsController{
 		baseController:   baseController{},
-		controllerCommon: self.controllerCommon,
+		controllerCommon: controllerCommon,
 		context:          context,
 	}
 }
