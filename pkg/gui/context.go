@@ -11,7 +11,6 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/samber/lo"
 )
 
 func (gui *Gui) popupViewNames() []string {
@@ -135,10 +134,6 @@ func (gui *Gui) returnFromContext() error {
 }
 
 func (gui *Gui) deactivateContext(c types.Context) error {
-	if c.IsTransient() {
-		gui.resetWindowContext(c)
-	}
-
 	view, _ := gui.g.View(c.GetViewName())
 
 	if view != nil && view.IsSearching() {
@@ -150,8 +145,7 @@ func (gui *Gui) deactivateContext(c types.Context) error {
 	// if we are the kind of context that is sent to back upon deactivation, we should do that
 	if view != nil &&
 		(c.GetKind() == types.TEMPORARY_POPUP ||
-			c.GetKind() == types.PERSISTENT_POPUP ||
-			c.IsTransient()) {
+			c.GetKind() == types.PERSISTENT_POPUP) {
 		view.Visible = false
 	}
 
@@ -391,16 +385,6 @@ func (gui *Gui) onViewFocusLost(oldView *gocui.View, newView *gocui.View) error 
 
 	_ = oldView.SetOriginX(0)
 
-	if !lo.Contains([]*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Search}, newView) {
-		for _, context := range gui.TransientContexts() {
-			if oldView.Name() == context.GetViewName() {
-				if err := gui.deactivateContext(context); err != nil {
-					return err
-				}
-			}
-		}
-	}
-
 	return nil
 }
 
@@ -475,7 +459,8 @@ func (gui *Gui) getSideContextSelectedItemId() string {
 }
 
 func (gui *Gui) isContextVisible(c types.Context) bool {
-	return gui.State.WindowViewNameMap[c.GetWindowName()] == c.GetViewName() && gui.State.ViewContextMap.Get(c.GetViewName()).GetKey() == c.GetKey()
+	return gui.State.WindowViewNameMap[c.GetWindowName()] == c.GetViewName() &&
+		gui.State.ViewContextMap.Get(c.GetViewName()).GetKey() == c.GetKey()
 }
 
 // currently unused

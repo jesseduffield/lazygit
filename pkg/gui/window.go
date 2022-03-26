@@ -25,6 +25,10 @@ func (gui *Gui) setWindowContext(c types.Context) {
 		gui.State.WindowViewNameMap = map[string]string{}
 	}
 
+	if c.IsTransient() {
+		gui.resetWindowContext(c)
+	}
+
 	gui.State.WindowViewNameMap[c.GetWindowName()] = c.GetViewName()
 }
 
@@ -32,10 +36,12 @@ func (gui *Gui) currentWindow() string {
 	return gui.currentContext().GetWindowName()
 }
 
+// assumes the context's windowName has been set to the new window if necessary
 func (gui *Gui) resetWindowContext(c types.Context) {
-	// we assume here that the window contains as its default view a view with the same name as the window
-	windowName := c.GetWindowName()
-	if gui.State.WindowViewNameMap[windowName] == c.GetViewName() {
-		gui.State.WindowViewNameMap[windowName] = windowName
+	for windowName, viewName := range gui.State.WindowViewNameMap {
+		if viewName == c.GetViewName() && windowName != c.GetWindowName() {
+			// we assume here that the window contains as its default view a view with the same name as the window
+			gui.State.WindowViewNameMap[windowName] = windowName
+		}
 	}
 }
