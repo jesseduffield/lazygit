@@ -86,7 +86,7 @@ os:
   openCommand: ''
 refresher:
   refreshInterval: 10 # File/submodule refresh interval in seconds. Auto-refresh can be disabled via option 'git.autoRefresh'.
-  fetchInterval: 60 # re-fetch interval in seconds
+  fetchInterval: 60 # Re-fetch interval in seconds. Auto-fetch can be disabled via option 'git.autoFetch'.
 update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often an update is checked for

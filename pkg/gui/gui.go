@@ -583,8 +583,16 @@ func (gui *Gui) Run(filterPath string) error {
 	}
 
 	gui.waitForIntro.Add(1)
-	if gui.c.UserConfig.Git.AutoFetch {
-		go utils.Safe(gui.startBackgroundFetch)
+
+	if userConfig.Git.AutoFetch {
+		fetchInterval := userConfig.Refresher.FetchInterval
+		if fetchInterval > 0 {
+			go utils.Safe(gui.startBackgroundFetch)
+		} else {
+			gui.c.Log.Errorf(
+				"Value of config option 'refresher.fetchInterval' (%d) is invalid, disabling auto-fetch",
+				fetchInterval)
+		}
 	}
 
 	if userConfig.Git.AutoRefresh {
