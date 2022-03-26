@@ -2,6 +2,7 @@ package loaders
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -11,12 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const reflogOutput = `c3c4b66b64c97ffeecde 1643150483 checkout: moving from A to B
-c3c4b66b64c97ffeecde 1643150483 checkout: moving from B to A
-c3c4b66b64c97ffeecde 1643150483 checkout: moving from A to B
-c3c4b66b64c97ffeecde 1643150483 checkout: moving from master to A
-f4ddf2f0d4be4ccc7efa 1643149435 checkout: moving from A to master
-`
+var reflogOutput = strings.Replace(`c3c4b66b64c97ffeecde|1643150483|checkout: moving from A to B
+c3c4b66b64c97ffeecde|1643150483|checkout: moving from B to A
+c3c4b66b64c97ffeecde|1643150483|checkout: moving from A to B
+c3c4b66b64c97ffeecde|1643150483|checkout: moving from master to A
+f4ddf2f0d4be4ccc7efa|1643149435|checkout: moving from A to master
+`, "|", "\x00", -1)
 
 func TestGetReflogCommits(t *testing.T) {
 	type scenario struct {
@@ -33,7 +34,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "no reflog entries",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git log -g --abbrev=40 --format="%h %ct %gs"`, "", nil),
+				Expect(`git log -g --abbrev=40 --format="%h%x00%ct%x00%gs"`, "", nil),
 
 			lastReflogCommit:        nil,
 			expectedCommits:         []*models.Commit{},
@@ -43,7 +44,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "some reflog entries",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git log -g --abbrev=40 --format="%h %ct %gs"`, reflogOutput, nil),
+				Expect(`git log -g --abbrev=40 --format="%h%x00%ct%x00%gs"`, reflogOutput, nil),
 
 			lastReflogCommit: nil,
 			expectedCommits: []*models.Commit{
@@ -84,7 +85,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "some reflog entries where last commit is given",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git log -g --abbrev=40 --format="%h %ct %gs"`, reflogOutput, nil),
+				Expect(`git log -g --abbrev=40 --format="%h%x00%ct%x00%gs"`, reflogOutput, nil),
 
 			lastReflogCommit: &models.Commit{
 				Sha:           "c3c4b66b64c97ffeecde",
@@ -106,7 +107,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "when passing filterPath",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git log -g --abbrev=40 --format="%h %ct %gs" --follow -- "path"`, reflogOutput, nil),
+				Expect(`git log -g --abbrev=40 --format="%h%x00%ct%x00%gs" --follow -- "path"`, reflogOutput, nil),
 
 			lastReflogCommit: &models.Commit{
 				Sha:           "c3c4b66b64c97ffeecde",
@@ -129,7 +130,7 @@ func TestGetReflogCommits(t *testing.T) {
 		{
 			testName: "when command returns error",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git log -g --abbrev=40 --format="%h %ct %gs"`, "", errors.New("haha")),
+				Expect(`git log -g --abbrev=40 --format="%h%x00%ct%x00%gs"`, "", errors.New("haha")),
 
 			lastReflogCommit:        nil,
 			filterPath:              "",
