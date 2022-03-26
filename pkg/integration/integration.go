@@ -89,12 +89,12 @@ func RunTests(
 	for _, test := range tests {
 		test := test
 
-		if test.Skip && !includeSkipped {
-			logf("skipping test: %s", test.Name)
-			continue
-		}
-
 		fnWrapper(test, func(t *testing.T) error { //nolint: thelper
+			if test.Skip && !includeSkipped {
+				logf("skipping test: %s", test.Name)
+				return nil
+			}
+
 			speeds := getTestSpeeds(test.Speed, mode, speedEnv)
 			testPath := filepath.Join(testDir, test.Name)
 			actualRepoDir := filepath.Join(testPath, "actual")
@@ -357,6 +357,7 @@ func generateSnapshot(dir string) (string, error) {
 	snapshot := ""
 
 	cmdStrs := []string{
+		`remote show -n origin`,          // remote branches
 		`status`,                         // file tree
 		`log --pretty=%B -p -1`,          // log
 		`tag -n`,                         // tags
