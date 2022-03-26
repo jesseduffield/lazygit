@@ -347,7 +347,6 @@ func chineseTranslationSet() TranslationSet {
 		NewBranchNamePrompt:                 "输入分支的新名称",
 		RenameBranchWarning:                 "该分支正在跟踪远程仓库。此操作将仅会重命名本地分支名称，而不会重命名远程分支的名称。确定继续？",
 		LcOpenMenu:                          "打开菜单",
-		LcCloseMenu:                         "关闭菜单",
 		LcResetCherryPick:                   "重置已拣选（复制）的提交",
 		LcNextTab:                           "下一个标签",
 		LcPrevTab:                           "上一个标签",

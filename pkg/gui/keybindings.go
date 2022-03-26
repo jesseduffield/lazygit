@@ -413,12 +413,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.LcCopyCommitShaToClipboard,
 		},
 		{
-			ViewName:    "menu",
-			Key:         opts.GetKey(opts.Config.Universal.Return),
-			Handler:     self.handleMenuClose,
-			Description: self.c.Tr.LcCloseMenu,
-		},
-		{
 			ViewName: "information",
 			Key:      gocui.MouseLeft,
 			Modifier: gocui.ModNone,
