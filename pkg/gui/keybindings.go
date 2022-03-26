@@ -619,7 +619,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			ViewName:    "main",
 			Contexts:    []string{string(context.MAIN_STAGING_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
-			Handler:     self.Controllers.Files.Open,
+			Handler:     self.HandleOpenFile,
 			Description: self.c.Tr.LcOpenFile,
 		},
 		{
@@ -741,27 +741,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName:    "main",
-			Contexts:    []string{string(context.MAIN_STAGING_CONTEXT_KEY)},
-			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
-			Handler:     self.Controllers.Files.HandleCommitPress,
-			Description: self.c.Tr.CommitChanges,
-		},
-		{
-			ViewName:    "main",
-			Contexts:    []string{string(context.MAIN_STAGING_CONTEXT_KEY)},
-			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
-			Handler:     self.Controllers.Files.HandleWIPCommitPress,
-			Description: self.c.Tr.LcCommitChangesWithoutHook,
-		},
-		{
-			ViewName:    "main",
-			Contexts:    []string{string(context.MAIN_STAGING_CONTEXT_KEY)},
-			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
-			Handler:     self.Controllers.Files.HandleCommitEditorPress,
-			Description: self.c.Tr.CommitChangesWithEditor,
-		},
-		{
-			ViewName:    "main",
 			Contexts:    []string{string(context.MAIN_MERGING_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.Return),
 			Handler:     self.handleEscapeMerge,
@@ -771,7 +750,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			ViewName:    "main",
 			Contexts:    []string{string(context.MAIN_MERGING_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
-			Handler:     self.Controllers.Files.OpenMergeTool,
+			Handler:     self.helpers.WorkingTree.OpenMergeTool,
 			Description: self.c.Tr.LcOpenMergeTool,
 		},
 		{

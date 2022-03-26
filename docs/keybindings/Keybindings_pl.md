@@ -168,9 +168,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
-  <kbd>c</kbd>: Zatwierdź zmiany
-  <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
-  <kbd>C</kbd>: Zatwierdź zmiany używając edytora
 </pre>
 
 ## Reflog

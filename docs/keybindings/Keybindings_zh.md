@@ -236,9 +236,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: 切换拖动选择
   <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
-  <kbd>c</kbd>: 提交更改
-  <kbd>w</kbd>: 提交更改而无需预先提交钩子
-  <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
 </pre>
 
 ## 正常
