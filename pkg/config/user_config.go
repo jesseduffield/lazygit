@@ -68,6 +68,7 @@ type GitConfig struct {
 	Merging             MergingConfig                 `yaml:"merging"`
 	SkipHookPrefix      string                        `yaml:"skipHookPrefix"`
 	AutoFetch           bool                          `yaml:"autoFetch"`
+	AutoRefresh         bool                          `yaml:"autoRefresh"`
 	BranchLogCmd        string                        `yaml:"branchLogCmd"`
 	AllBranchesLogCmd   string                        `yaml:"allBranchesLogCmd"`
 	OverrideGpg         bool                          `yaml:"overrideGpg"`
@@ -373,6 +374,7 @@ func GetDefaultConfig() *UserConfig {
 			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,
+			AutoRefresh:         true,
 			BranchLogCmd:        "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmd:   "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing: false,
