@@ -8,7 +8,7 @@ import (
 
 var _ types.IController = &SwitchToSubCommitsController{}
 
-type ContextWithRefName interface {
+type CanSwitchToSubCommits interface {
 	types.Context
 	GetSelectedRefName() string
 }
@@ -16,7 +16,7 @@ type ContextWithRefName interface {
 type SwitchToSubCommitsController struct {
 	baseController
 	*controllerCommon
-	context ContextWithRefName
+	context CanSwitchToSubCommits
 
 	setSubCommits func([]*models.Commit)
 }
@@ -24,7 +24,7 @@ type SwitchToSubCommitsController struct {
 func NewSwitchToSubCommitsController(
 	controllerCommon *controllerCommon,
 	setSubCommits func([]*models.Commit),
-	context ContextWithRefName,
+	context CanSwitchToSubCommits,
 ) *SwitchToSubCommitsController {
 	return &SwitchToSubCommitsController{
 		baseController:   baseController{},
