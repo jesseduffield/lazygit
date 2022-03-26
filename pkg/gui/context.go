@@ -151,8 +151,7 @@ func (gui *Gui) deactivateContext(c types.Context) error {
 	if view != nil &&
 		(c.GetKind() == types.TEMPORARY_POPUP ||
 			c.GetKind() == types.PERSISTENT_POPUP ||
-			c.GetKey() == context.COMMIT_FILES_CONTEXT_KEY ||
-			c.GetKey() == context.SUB_COMMITS_CONTEXT_KEY) {
+			c.IsTransient()) {
 		view.Visible = false
 	}
 
@@ -393,11 +392,7 @@ func (gui *Gui) onViewFocusLost(oldView *gocui.View, newView *gocui.View) error 
 	_ = oldView.SetOriginX(0)
 
 	if !lo.Contains([]*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Search}, newView) {
-		transientContexts := slices.Filter(gui.State.Contexts.Flatten(), func(context types.Context) bool {
-			return context.IsTransient()
-		})
-
-		for _, context := range transientContexts {
+		for _, context := range gui.TransientContexts() {
 			if oldView.Name() == context.GetViewName() {
 				if err := gui.deactivateContext(context); err != nil {
 					return err
@@ -407,6 +402,12 @@ func (gui *Gui) onViewFocusLost(oldView *gocui.View, newView *gocui.View) error 
 	}
 
 	return nil
+}
+
+func (gui *Gui) TransientContexts() []types.Context {
+	return slices.Filter(gui.State.Contexts.Flatten(), func(context types.Context) bool {
+		return context.IsTransient()
+	})
 }
 
 // changeContext is a helper function for when we want to change a 'main' context

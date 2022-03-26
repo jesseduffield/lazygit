@@ -152,11 +152,8 @@ func (tree ContextTree) InitialViewTabContextMap() map[string][]TabContext {
 				Contexts: []types.Context{tree.Branches},
 			},
 			{
-				Tab: "Remotes",
-				Contexts: []types.Context{
-					tree.Remotes,
-					tree.RemoteBranches,
-				},
+				Tab:      "Remotes",
+				Contexts: []types.Context{tree.Remotes},
 			},
 			{
 				Tab:      "Tags",
@@ -169,10 +166,8 @@ func (tree ContextTree) InitialViewTabContextMap() map[string][]TabContext {
 				Contexts: []types.Context{tree.LocalCommits},
 			},
 			{
-				Tab: "Reflog",
-				Contexts: []types.Context{
-					tree.ReflogCommits,
-				},
+				Tab:      "Reflog",
+				Contexts: []types.Context{tree.ReflogCommits},
 			},
 		},
 		"files": {
@@ -181,10 +176,8 @@ func (tree ContextTree) InitialViewTabContextMap() map[string][]TabContext {
 				Contexts: []types.Context{tree.Files},
 			},
 			{
-				Tab: "Submodules",
-				Contexts: []types.Context{
-					tree.Submodules,
-				},
+				Tab:      "Submodules",
+				Contexts: []types.Context{tree.Submodules},
 			},
 		},
 	}

@@ -9,6 +9,7 @@ import (
 type RemoteBranchesContext struct {
 	*BasicViewModel[*models.RemoteBranch]
 	*ListContextTrait
+	*DynamicTitleBuilder
 }
 
 var _ types.IListContext = (*RemoteBranchesContext)(nil)
@@ -27,14 +28,16 @@ func NewRemoteBranchesContext(
 	viewModel := NewBasicViewModel(getModel)
 
 	return &RemoteBranchesContext{
-		BasicViewModel: viewModel,
+		BasicViewModel:      viewModel,
+		DynamicTitleBuilder: NewDynamicTitleBuilder(c.Tr.RemoteBranchesDynamicTitle),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				ViewName:   "branches",
+				ViewName:   "remoteBranches",
 				WindowName: "branches",
 				Key:        REMOTE_BRANCHES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
+				Transient:  true,
 			}), ContextCallbackOpts{
 				OnFocus:        onFocus,
 				OnFocusLost:    onFocusLost,
@@ -64,4 +67,14 @@ func (self *RemoteBranchesContext) GetSelectedRefName() string {
 	}
 
 	return item.RefName()
+}
+
+func (self *RemoteBranchesContext) GetSelectedDescription() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.Description()
 }

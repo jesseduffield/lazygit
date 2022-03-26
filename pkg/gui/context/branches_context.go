@@ -65,3 +65,13 @@ func (self *BranchesContext) GetSelectedRefName() string {
 
 	return item.RefName()
 }
+
+func (self *BranchesContext) GetSelectedDescription() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.Description()
+}

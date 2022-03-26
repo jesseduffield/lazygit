@@ -12,6 +12,7 @@ import (
 type SubCommitsContext struct {
 	*SubCommitsViewModel
 	*ViewportListContextTrait
+	*DynamicTitleBuilder
 }
 
 var _ types.IListContext = (*SubCommitsContext)(nil)
@@ -34,6 +35,7 @@ func NewSubCommitsContext(
 
 	return &SubCommitsContext{
 		SubCommitsViewModel: viewModel,
+		DynamicTitleBuilder: NewDynamicTitleBuilder(c.Tr.SubCommitsDynamicTitle),
 		ViewportListContextTrait: &ViewportListContextTrait{
 			ListContextTrait: &ListContextTrait{
 				Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
@@ -98,4 +100,14 @@ func (self *SubCommitsContext) GetCommits() []*models.Commit {
 
 func (self *SubCommitsContext) Title() string {
 	return fmt.Sprintf(self.c.Tr.SubCommitsDynamicTitle, utils.TruncateWithEllipsis(self.refName, 50))
+}
+
+func (self *SubCommitsContext) GetSelectedDescription() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.Description()
 }

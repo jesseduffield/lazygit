@@ -41,6 +41,7 @@ func (gui *Gui) commitFilesRenderToMain() error {
 func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesContextOpts) error {
 	gui.State.Contexts.CommitFiles.SetSelectedLineIdx(0)
 	gui.State.Contexts.CommitFiles.SetRefName(opts.RefName)
+	gui.State.Contexts.CommitFiles.SetTitleRef(opts.RefDescription)
 	gui.State.Contexts.CommitFiles.SetCanRebase(opts.CanRebase)
 	gui.State.Contexts.CommitFiles.SetParentContext(opts.Context)
 	gui.State.Contexts.CommitFiles.SetWindowName(opts.Context.GetWindowName())
@@ -54,7 +55,8 @@ func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesC
 
 func (gui *Gui) refreshCommitFilesContext() error {
 	currentSideContext := gui.currentSideContext()
-	if currentSideContext.GetKey() == context.COMMIT_FILES_CONTEXT_KEY || currentSideContext.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
+	if currentSideContext.GetKey() == context.COMMIT_FILES_CONTEXT_KEY ||
+		currentSideContext.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
 		if err := gui.handleRefreshPatchBuildingPanel(-1); err != nil {
 			return err
 		}

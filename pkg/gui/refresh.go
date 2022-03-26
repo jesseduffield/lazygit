@@ -187,6 +187,7 @@ func (gui *Gui) refreshCommits() {
 			commit := gui.getSelectedLocalCommit()
 			if commit != nil {
 				gui.State.Contexts.CommitFiles.SetRefName(commit.RefName())
+				gui.State.Contexts.CommitFiles.SetTitleRef(commit.RefName())
 				_ = gui.refreshCommitFilesContext()
 			}
 		}
@@ -490,6 +491,7 @@ func (gui *Gui) refreshRemotes() error {
 		for _, remote := range remotes {
 			if remote.Name == prevSelectedRemote.Name {
 				gui.State.Model.RemoteBranches = remote.Branches
+				break
 			}
 		}
 	}

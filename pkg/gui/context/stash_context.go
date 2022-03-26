@@ -70,3 +70,13 @@ func (self *StashContext) GetSelectedRefName() string {
 
 	return item.RefName()
 }
+
+func (self *StashContext) GetSelectedDescription() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.Description()
+}

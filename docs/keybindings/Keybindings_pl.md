@@ -41,7 +41,28 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>[</kbd>: previous tab
 </pre>
 
-## Commity Panel (Commity)
+## Branches
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy branch name to clipboard
+  <kbd>i</kbd>: show git-flow options
+  <kbd>space</kbd>: przełącz
+  <kbd>n</kbd>: nowa gałąź
+  <kbd>o</kbd>: utwórz żądanie pobrania
+  <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
+  <kbd>ctrl+y</kbd>: skopiuj adres URL żądania pobrania do schowka
+  <kbd>c</kbd>: przełącz używając nazwy
+  <kbd>F</kbd>: wymuś przełączenie
+  <kbd>d</kbd>: usuń gałąź
+  <kbd>r</kbd>: zmiana bazy gałęzi
+  <kbd>M</kbd>: scal do obecnej gałęzi
+  <kbd>f</kbd>: fast-forward this branch from its upstream
+  <kbd>g</kbd>: wyświetl opcje resetu
+  <kbd>R</kbd>: rename branch
+  <kbd>enter</kbd>: view commits
+</pre>
+
+## Commity
 
 <pre>
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
@@ -73,98 +94,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>
 
-## Commity Panel (Reflog Tab)
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
-  <kbd>space</kbd>: checkout commit
-  <kbd>y</kbd>: copy commit attribute
-  <kbd>o</kbd>: open commit in browser
-  <kbd>n</kbd>: create new branch off of commit
-  <kbd>g</kbd>: zresetuj do tego commita
-  <kbd>c</kbd>: kopiuj commit (przebieranie)
-  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
-  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>enter</kbd>: view commits
-</pre>
-
-## Extras Panel
-
-<pre>
-  <kbd>@</kbd>: open command log menu
-</pre>
-
-## Gałęzie Panel (Branches Tab)
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy branch name to clipboard
-  <kbd>i</kbd>: show git-flow options
-  <kbd>space</kbd>: przełącz
-  <kbd>n</kbd>: nowa gałąź
-  <kbd>o</kbd>: utwórz żądanie pobrania
-  <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
-  <kbd>ctrl+y</kbd>: skopiuj adres URL żądania pobrania do schowka
-  <kbd>c</kbd>: przełącz używając nazwy
-  <kbd>F</kbd>: wymuś przełączenie
-  <kbd>d</kbd>: usuń gałąź
-  <kbd>r</kbd>: zmiana bazy gałęzi
-  <kbd>M</kbd>: scal do obecnej gałęzi
-  <kbd>f</kbd>: fast-forward this branch from its upstream
-  <kbd>g</kbd>: wyświetl opcje resetu
-  <kbd>R</kbd>: rename branch
-  <kbd>enter</kbd>: view commits
-</pre>
-
-## Gałęzie Panel (Remote Branches (in Remotes tab))
-
-<pre>
-  <kbd>space</kbd>: przełącz
-  <kbd>n</kbd>: nowa gałąź
-  <kbd>M</kbd>: scal do obecnej gałęzi
-  <kbd>r</kbd>: zmiana bazy gałęzi
-  <kbd>d</kbd>: usuń gałąź
-  <kbd>u</kbd>: set as upstream of checked-out branch
-  <kbd>esc</kbd>: wróć do listy repozytoriów zdalnych
-  <kbd>g</kbd>: wyświetl opcje resetu
-  <kbd>enter</kbd>: view commits
-</pre>
-
-## Gałęzie Panel (Remotes Tab)
-
-<pre>
-  <kbd>f</kbd>: fetch remote
-  <kbd>n</kbd>: add new remote
-  <kbd>d</kbd>: remove remote
-  <kbd>e</kbd>: edit remote
-</pre>
-
-## Gałęzie Panel (Sub-commits)
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
-  <kbd>space</kbd>: checkout commit
-  <kbd>y</kbd>: copy commit attribute
-  <kbd>o</kbd>: open commit in browser
-  <kbd>n</kbd>: create new branch off of commit
-  <kbd>g</kbd>: zresetuj do tego commita
-  <kbd>c</kbd>: kopiuj commit (przebieranie)
-  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
-  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>enter</kbd>: przeglądaj pliki commita
-</pre>
-
-## Gałęzie Panel (Tags Tab)
-
-<pre>
-  <kbd>space</kbd>: przełącz
-  <kbd>d</kbd>: delete tag
-  <kbd>P</kbd>: push tag
-  <kbd>n</kbd>: create tag
-  <kbd>g</kbd>: wyświetl opcje resetu
-  <kbd>enter</kbd>: view commits
-</pre>
-
-## Główne Panel (Patch Building)
+## Main Panel (Patch Building)
 
 <pre>
   <kbd>esc</kbd>: wyście z trybu "linia po linii"
@@ -180,56 +110,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>a</kbd>: toggle select hunk
 </pre>
 
-## Główne Panel (Poczekalnia)
-
-<pre>
-  <kbd>esc</kbd>: wróć do panelu plików
-  <kbd>space</kbd>: toggle line staged / unstaged
-  <kbd>d</kbd>: delete change (git reset)
-  <kbd>tab</kbd>: switch to other panel
-  <kbd>o</kbd>: otwórz plik
-  <kbd>▲</kbd>: poprzednia linia
-  <kbd>▼</kbd>: następna linia
-  <kbd>◄</kbd>: poprzedni kawałek
-  <kbd>►</kbd>: następny kawałek
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>e</kbd>: edytuj plik
-  <kbd>v</kbd>: toggle drag select
-  <kbd>V</kbd>: toggle drag select
-  <kbd>a</kbd>: toggle select hunk
-  <kbd>c</kbd>: Zatwierdź zmiany
-  <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
-  <kbd>C</kbd>: Zatwierdź zmiany używając edytora
-</pre>
-
-## Główne Panel (Scalanie)
-
-<pre>
-  <kbd>esc</kbd>: wróć do panelu plików
-  <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>space</kbd>: wybierz kawałek
-  <kbd>b</kbd>: wybierz wszystkie kawałki
-  <kbd>◄</kbd>: poprzedni konflikt
-  <kbd>►</kbd>: następny konflikt
-  <kbd>▲</kbd>: wybierz poprzedni kawałek
-  <kbd>▼</kbd>: wybierz następny kawałek
-  <kbd>z</kbd>: cofnij
-</pre>
-
-## Główne Panel (Zwykłe)
-
-<pre>
-  <kbd>mouse wheel down</kbd>: przewiń w dół (fn+up)
-  <kbd>mouse wheel up</kbd>: przewiń w górę (fn+down)
-</pre>
-
-## Menu Panel
-
-<pre>
-  <kbd>esc</kbd>: close menu
-</pre>
-
-## Pliki Panel (Pliki)
+## Pliki
 
 <pre>
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
@@ -256,20 +137,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>f</kbd>: pobierz
 </pre>
 
-## Pliki Panel (Submodules)
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy submodule name to clipboard
-  <kbd>enter</kbd>: enter submodule
-  <kbd>d</kbd>: remove submodule
-  <kbd>u</kbd>: update submodule
-  <kbd>n</kbd>: add new submodule
-  <kbd>e</kbd>: update submodule URL
-  <kbd>i</kbd>: initialize submodule
-  <kbd>b</kbd>: view bulk submodule options
-</pre>
-
-## Pliki commita Panel (Pliki commita)
+## Pliki commita
 
 <pre>
   <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
@@ -283,7 +151,78 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: toggle file tree view
 </pre>
 
-## Schowek Panel (Schowek)
+## Poczekalnia
+
+<pre>
+  <kbd>esc</kbd>: wróć do panelu plików
+  <kbd>space</kbd>: toggle line staged / unstaged
+  <kbd>d</kbd>: delete change (git reset)
+  <kbd>tab</kbd>: switch to other panel
+  <kbd>o</kbd>: otwórz plik
+  <kbd>▲</kbd>: poprzednia linia
+  <kbd>▼</kbd>: następna linia
+  <kbd>◄</kbd>: poprzedni kawałek
+  <kbd>►</kbd>: następny kawałek
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>e</kbd>: edytuj plik
+  <kbd>v</kbd>: toggle drag select
+  <kbd>V</kbd>: toggle drag select
+  <kbd>a</kbd>: toggle select hunk
+  <kbd>c</kbd>: Zatwierdź zmiany
+  <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
+  <kbd>C</kbd>: Zatwierdź zmiany używając edytora
+</pre>
+
+## Reflog
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
+  <kbd>space</kbd>: checkout commit
+  <kbd>g</kbd>: wyświetl opcje resetu
+  <kbd>c</kbd>: kopiuj commit (przebieranie)
+  <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
+  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>enter</kbd>: view commits
+</pre>
+
+## Remote Branches
+
+<pre>
+  <kbd>space</kbd>: przełącz
+  <kbd>n</kbd>: nowa gałąź
+  <kbd>M</kbd>: scal do obecnej gałęzi
+  <kbd>r</kbd>: zmiana bazy gałęzi
+  <kbd>d</kbd>: usuń gałąź
+  <kbd>u</kbd>: set as upstream of checked-out branch
+  <kbd>esc</kbd>: wróć do listy repozytoriów zdalnych
+  <kbd>g</kbd>: wyświetl opcje resetu
+  <kbd>enter</kbd>: view commits
+</pre>
+
+## Remotes
+
+<pre>
+  <kbd>f</kbd>: fetch remote
+  <kbd>n</kbd>: add new remote
+  <kbd>d</kbd>: remove remote
+  <kbd>e</kbd>: edit remote
+</pre>
+
+## Scalanie
+
+<pre>
+  <kbd>esc</kbd>: wróć do panelu plików
+  <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>space</kbd>: wybierz kawałek
+  <kbd>b</kbd>: wybierz wszystkie kawałki
+  <kbd>◄</kbd>: poprzedni konflikt
+  <kbd>►</kbd>: następny konflikt
+  <kbd>▲</kbd>: wybierz poprzedni kawałek
+  <kbd>▼</kbd>: wybierz następny kawałek
+  <kbd>z</kbd>: cofnij
+</pre>
+
+## Schowek
 
 <pre>
   <kbd>space</kbd>: zastosuj
@@ -293,7 +232,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>
 
-## Status Panel (Status)
+## Status
 
 <pre>
   <kbd>e</kbd>: edytuj konfigurację
@@ -303,7 +242,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>a</kbd>: pokaż wszystkie logi gałęzi
 </pre>
 
-## Sub-commits Panel (Sub-commits)
+## Sub-commits
 
 <pre>
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
@@ -314,4 +253,35 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>enter</kbd>: przeglądaj pliki commita
+</pre>
+
+## Submodules
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy submodule name to clipboard
+  <kbd>enter</kbd>: enter submodule
+  <kbd>d</kbd>: remove submodule
+  <kbd>u</kbd>: update submodule
+  <kbd>n</kbd>: add new submodule
+  <kbd>e</kbd>: update submodule URL
+  <kbd>i</kbd>: initialize submodule
+  <kbd>b</kbd>: view bulk submodule options
+</pre>
+
+## Tags
+
+<pre>
+  <kbd>space</kbd>: przełącz
+  <kbd>d</kbd>: delete tag
+  <kbd>P</kbd>: push tag
+  <kbd>n</kbd>: create tag
+  <kbd>g</kbd>: wyświetl opcje resetu
+  <kbd>enter</kbd>: view commits
+</pre>
+
+## Zwykłe
+
+<pre>
+  <kbd>mouse wheel down</kbd>: przewiń w dół (fn+up)
+  <kbd>mouse wheel up</kbd>: przewiń w górę (fn+down)
 </pre>

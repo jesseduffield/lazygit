@@ -74,3 +74,13 @@ func (self *ReflogCommitsContext) GetSelectedRefName() string {
 func (self *ReflogCommitsContext) GetCommits() []*models.Commit {
 	return self.getModel()
 }
+
+func (self *ReflogCommitsContext) GetSelectedDescription() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.Description()
+}

@@ -196,7 +196,7 @@ func chineseTranslationSet() TranslationSet {
 		TagsTitle:                           "标签页面",
 		MenuTitle:                           "菜单",
 		RemotesTitle:                        "远程页面",
-		RemoteBranchesTitle:                 "远程分支（在远程页面中）",
+		RemoteBranchesTitle:                 "远程分支",
 		PatchBuildingTitle:                  "构建补丁中",
 		InformationTitle:                    "信息",
 		SecondaryTitle:                      "次要",

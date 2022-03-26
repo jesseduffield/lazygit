@@ -26,38 +26,18 @@ func TestGetBindingSections(t *testing.T) {
 			bindings: []*types.Binding{
 				{
 					ViewName:    "files",
+					Contexts:    []string{"files"},
 					Description: "stage file",
 				},
 			},
 			expected: []*bindingSection{
 				{
-					title: "Files Panel",
+					title: "Files",
 					bindings: []*types.Binding{
 						{
 							ViewName:    "files",
+							Contexts:    []string{"files"},
 							Description: "stage file",
-						},
-					},
-				},
-			},
-		},
-		{
-			testName: "one binding with context",
-			bindings: []*types.Binding{
-				{
-					ViewName:    "files",
-					Description: "stage file",
-					Contexts:    []string{"submodules"},
-				},
-			},
-			expected: []*bindingSection{
-				{
-					title: "Files Panel (Submodules)",
-					bindings: []*types.Binding{
-						{
-							ViewName:    "files",
-							Description: "stage file",
-							Contexts:    []string{"submodules"},
 						},
 					},
 				},
@@ -101,23 +81,10 @@ func TestGetBindingSections(t *testing.T) {
 					Description: "drop submodule",
 					Contexts:    []string{"submodules"},
 				},
-				{
-					ViewName:    "commits",
-					Description: "revert commit",
-				},
 			},
 			expected: []*bindingSection{
 				{
-					title: "Commits Panel",
-					bindings: []*types.Binding{
-						{
-							ViewName:    "commits",
-							Description: "revert commit",
-						},
-					},
-				},
-				{
-					title: "Files Panel (Files)",
+					title: "Files",
 					bindings: []*types.Binding{
 						{
 							ViewName:    "files",
@@ -132,7 +99,7 @@ func TestGetBindingSections(t *testing.T) {
 					},
 				},
 				{
-					title: "Files Panel (Submodules)",
+					title: "Submodules",
 					bindings: []*types.Binding{
 						{
 							ViewName:    "files",
@@ -148,19 +115,23 @@ func TestGetBindingSections(t *testing.T) {
 			bindings: []*types.Binding{
 				{
 					ViewName:    "files",
+					Contexts:    []string{"files"},
 					Description: "stage file",
 				},
 				{
 					ViewName:    "files",
+					Contexts:    []string{"files"},
 					Description: "unstage file",
 				},
 				{
 					ViewName:    "files",
+					Contexts:    []string{"files"},
 					Description: "scroll",
 					Tag:         "navigation",
 				},
 				{
 					ViewName:    "commits",
+					Contexts:    []string{"commits"},
 					Description: "revert commit",
 				},
 			},
@@ -170,29 +141,33 @@ func TestGetBindingSections(t *testing.T) {
 					bindings: []*types.Binding{
 						{
 							ViewName:    "files",
+							Contexts:    []string{"files"},
 							Description: "scroll",
 							Tag:         "navigation",
 						},
 					},
 				},
 				{
-					title: "Commits Panel",
+					title: "Commits",
 					bindings: []*types.Binding{
 						{
 							ViewName:    "commits",
+							Contexts:    []string{"commits"},
 							Description: "revert commit",
 						},
 					},
 				},
 				{
-					title: "Files Panel",
+					title: "Files",
 					bindings: []*types.Binding{
 						{
 							ViewName:    "files",
+							Contexts:    []string{"files"},
 							Description: "stage file",
 						},
 						{
 							ViewName:    "files",
+							Contexts:    []string{"files"},
 							Description: "unstage file",
 						},
 					},
@@ -204,28 +179,34 @@ func TestGetBindingSections(t *testing.T) {
 			bindings: []*types.Binding{
 				{
 					ViewName:    "files",
+					Contexts:    []string{"files"},
 					Description: "stage file",
 				},
 				{
 					ViewName:    "files",
+					Contexts:    []string{"files"},
 					Description: "unstage file",
 				},
 				{
 					ViewName:    "files",
+					Contexts:    []string{"files"},
 					Description: "scroll",
 					Tag:         "navigation",
 				},
 				{
 					ViewName:    "commits",
+					Contexts:    []string{"commits"},
 					Description: "revert commit",
 				},
 				{
 					ViewName:    "commits",
+					Contexts:    []string{"commits"},
 					Description: "scroll",
 					Tag:         "navigation",
 				},
 				{
 					ViewName:    "commits",
+					Contexts:    []string{"commits"},
 					Description: "page up",
 					Tag:         "navigation",
 				},
@@ -236,34 +217,39 @@ func TestGetBindingSections(t *testing.T) {
 					bindings: []*types.Binding{
 						{
 							ViewName:    "files",
+							Contexts:    []string{"files"},
 							Description: "scroll",
 							Tag:         "navigation",
 						},
 						{
 							ViewName:    "commits",
+							Contexts:    []string{"commits"},
 							Description: "page up",
 							Tag:         "navigation",
 						},
 					},
 				},
 				{
-					title: "Commits Panel",
+					title: "Commits",
 					bindings: []*types.Binding{
 						{
 							ViewName:    "commits",
+							Contexts:    []string{"commits"},
 							Description: "revert commit",
 						},
 					},
 				},
 				{
-					title: "Files Panel",
+					title: "Files",
 					bindings: []*types.Binding{
 						{
 							ViewName:    "files",
+							Contexts:    []string{"files"},
 							Description: "stage file",
 						},
 						{
 							ViewName:    "files",
+							Contexts:    []string{"files"},
 							Description: "unstage file",
 						},
 					},
