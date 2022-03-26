@@ -1,18 +1,16 @@
 package context
 
 import (
-	"fmt"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type CommitFilesContext struct {
 	*filetree.CommitFileTreeViewModel
 	*ListContextTrait
+	*DynamicTitleBuilder
 }
 
 var _ types.IListContext = (*CommitFilesContext)(nil)
@@ -32,6 +30,7 @@ func NewCommitFilesContext(
 
 	return &CommitFilesContext{
 		CommitFileTreeViewModel: viewModel,
+		DynamicTitleBuilder:     NewDynamicTitleBuilder(c.Tr.CommitFilesDynamicTitle),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(
 				NewBaseContext(NewBaseContextOpts{
@@ -62,8 +61,4 @@ func (self *CommitFilesContext) GetSelectedItemId() string {
 	}
 
 	return item.ID()
-}
-
-func (self *CommitFilesContext) Title() string {
-	return fmt.Sprintf(self.c.Tr.CommitFilesDynamicTitle, utils.TruncateWithEllipsis(self.GetRefName(), 50))
 }

@@ -131,16 +131,19 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 		return getHeaders(binding, tr)
 	})
 
-	bindingGroups := maps.MapToSlice(bindingsByHeader, func(header header, hBindings []*types.Binding) headerWithBindings {
-		uniqBindings := lo.UniqBy(hBindings, func(binding *types.Binding) string {
-			return binding.Description + gui.GetKeyDisplay(binding.Key)
-		})
+	bindingGroups := maps.MapToSlice(
+		bindingsByHeader,
+		func(header header, hBindings []*types.Binding) headerWithBindings {
+			uniqBindings := lo.UniqBy(hBindings, func(binding *types.Binding) string {
+				return binding.Description + gui.GetKeyDisplay(binding.Key)
+			})
 
-		return headerWithBindings{
-			header:   header,
-			bindings: uniqBindings,
-		}
-	})
+			return headerWithBindings{
+				header:   header,
+				bindings: uniqBindings,
+			}
+		},
+	)
 
 	slices.SortFunc(bindingGroups, func(a, b headerWithBindings) bool {
 		if a.header.priority != b.header.priority {
@@ -169,18 +172,11 @@ func getHeaders(binding *types.Binding, tr *i18n.TranslationSet) []header {
 	}
 
 	if len(binding.Contexts) == 0 {
-		translatedView := localisedTitle(tr, binding.ViewName)
-		title := fmt.Sprintf("%s %s", translatedView, tr.Panel)
-
-		return []header{{priority: 1, title: title}}
+		return []header{}
 	}
 
 	return slices.Map(binding.Contexts, func(context string) header {
-		translatedView := localisedTitle(tr, binding.ViewName)
-		translatedContextName := localisedTitle(tr, context)
-		title := fmt.Sprintf("%s %s (%s)", translatedView, tr.Panel, translatedContextName)
-
-		return header{priority: 1, title: title}
+		return header{priority: 1, title: localisedTitle(tr, context)}
 	})
 }
 
@@ -205,7 +201,12 @@ func formatTitle(title string) string {
 
 func formatBinding(binding *types.Binding) string {
 	if binding.Alternative != "" {
-		return fmt.Sprintf("  <kbd>%s</kbd>: %s (%s)\n", gui.GetKeyDisplay(binding.Key), binding.Description, binding.Alternative)
+		return fmt.Sprintf(
+			"  <kbd>%s</kbd>: %s (%s)\n",
+			gui.GetKeyDisplay(binding.Key),
+			binding.Description,
+			binding.Alternative,
+		)
 	}
 	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", gui.GetKeyDisplay(binding.Key), binding.Description)
 }

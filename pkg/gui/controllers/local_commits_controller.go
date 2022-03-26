@@ -497,9 +497,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Commit) error {
 	prompt := utils.ResolvePlaceholderString(
 		self.c.Tr.SureSquashAboveCommits,
-		map[string]string{
-			"commit": commit.Sha,
-		},
+		map[string]string{"commit": commit.Sha},
 	)
 
 	return self.c.Ask(types.AskOpts{
@@ -561,7 +559,9 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 					}
 
 					return self.c.WithWaitingStatus(self.c.Tr.LcLoadingCommits, func() error {
-						return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}})
+						return self.c.Refresh(
+							types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}},
+						)
 					})
 				},
 			},
@@ -602,7 +602,12 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						return func() error {
 							self.c.UserConfig.Git.Log.Order = value
 							return self.c.WithWaitingStatus(self.c.Tr.LcLoadingCommits, func() error {
-								return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}})
+								return self.c.Refresh(
+									types.RefreshOptions{
+										Mode:  types.SYNC,
+										Scope: []types.RefreshableView{types.COMMITS},
+									},
+								)
 							})
 						}
 					}

@@ -65,3 +65,13 @@ func (self *TagsContext) GetSelectedRefName() string {
 
 	return item.RefName()
 }
+
+func (self *TagsContext) GetSelectedDescription() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.Description()
+}

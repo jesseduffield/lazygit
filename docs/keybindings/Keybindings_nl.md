@@ -41,7 +41,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>[</kbd>: vorige tabblad
 </pre>
 
-## Bestanden Paneel (Bestanden)
+## Bestanden
 
 <pre>
   <kbd>ctrl+o</kbd>: kopieer de bestandsnaam naar het klembord
@@ -68,20 +68,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>f</kbd>: fetch
 </pre>
 
-## Bestanden Paneel (Submodules)
-
-<pre>
-  <kbd>ctrl+o</kbd>: kopieer submodule naam naar klembord
-  <kbd>enter</kbd>: enter submodule
-  <kbd>d</kbd>: remove submodule
-  <kbd>u</kbd>: update submodule
-  <kbd>n</kbd>: voeg nieuwe submodule toe
-  <kbd>e</kbd>: update submodule URL
-  <kbd>i</kbd>: initialiseer submodule
-  <kbd>b</kbd>: bekijk bulk submodule opties
-</pre>
-
-## Branches Paneel (Branches Tabblad)
+## Branches
 
 <pre>
   <kbd>ctrl+o</kbd>: kopieer branch name naar klembord
@@ -102,56 +89,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: bekijk commits
 </pre>
 
-## Branches Paneel (Remote Branches (in Remotes tabblad))
-
-<pre>
-  <kbd>space</kbd>: uitchecken
-  <kbd>n</kbd>: nieuwe branch
-  <kbd>M</kbd>: merge in met huidige checked out branch
-  <kbd>r</kbd>: rebase branch
-  <kbd>d</kbd>: verwijder branch
-  <kbd>u</kbd>: stel in als upstream van uitgecheckte branch
-  <kbd>esc</kbd>: ga terug naar remotes lijst
-  <kbd>g</kbd>: bekijk reset opties
-  <kbd>enter</kbd>: bekijk commits
-</pre>
-
-## Branches Paneel (Remotes Tabblad)
-
-<pre>
-  <kbd>f</kbd>: fetch remote
-  <kbd>n</kbd>: voeg een nieuwe remote toe
-  <kbd>d</kbd>: verwijder remote
-  <kbd>e</kbd>: wijzig remote
-</pre>
-
-## Branches Paneel (Sub-commits)
-
-<pre>
-  <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
-  <kbd>space</kbd>: checkout commit
-  <kbd>y</kbd>: copy commit attribute
-  <kbd>o</kbd>: open commit in browser
-  <kbd>n</kbd>: creëer nieuwe branch van commit
-  <kbd>g</kbd>: reset naar deze commit
-  <kbd>c</kbd>: kopieer commit (cherry-pick)
-  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
-  <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
-  <kbd>enter</kbd>: bekijk gecommite bestanden
-</pre>
-
-## Branches Paneel (Tags Tabblad)
-
-<pre>
-  <kbd>space</kbd>: uitchecken
-  <kbd>d</kbd>: verwijder tag
-  <kbd>P</kbd>: push tag
-  <kbd>n</kbd>: creëer tag
-  <kbd>g</kbd>: bekijk reset opties
-  <kbd>enter</kbd>: bekijk commits
-</pre>
-
-## Commit bestanden Paneel (Commit bestanden)
+## Commit bestanden
 
 <pre>
   <kbd>ctrl+o</kbd>: kopieer de vastgelegde bestandsnaam naar het klembord
@@ -165,7 +103,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: toggle bestandsboom weergave
 </pre>
 
-## Commits Paneel (Commits)
+## Commits
 
 <pre>
   <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
@@ -197,28 +135,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: bekijk gecommite bestanden
 </pre>
 
-## Commits Paneel (Reflog Tabblad)
-
-<pre>
-  <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
-  <kbd>space</kbd>: checkout commit
-  <kbd>y</kbd>: copy commit attribute
-  <kbd>o</kbd>: open commit in browser
-  <kbd>n</kbd>: creëer nieuwe branch van commit
-  <kbd>g</kbd>: reset naar deze commit
-  <kbd>c</kbd>: kopieer commit (cherry-pick)
-  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
-  <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
-  <kbd>enter</kbd>: bekijk commits
-</pre>
-
-## Extras Paneel
-
-<pre>
-  <kbd>@</kbd>: open command log menu
-</pre>
-
-## Hoofd Paneel (Mergen)
+## Mergen
 
 <pre>
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
@@ -232,14 +149,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>z</kbd>: ongedaan maken
 </pre>
 
-## Hoofd Paneel (Normaal)
+## Normaal
 
 <pre>
   <kbd>mouse wheel down</kbd>: scroll omlaag (fn+up)
   <kbd>mouse wheel up</kbd>: scroll omhoog (fn+down)
 </pre>
 
-## Hoofd Paneel (Patch Bouwen)
+## Patch Bouwen
 
 <pre>
   <kbd>esc</kbd>: sluit lijn-bij-lijn modus
@@ -255,7 +172,42 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>a</kbd>: toggle selecteer hunk
 </pre>
 
-## Hoofd Paneel (Staging)
+## Reflog
+
+<pre>
+  <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
+  <kbd>space</kbd>: checkout commit
+  <kbd>g</kbd>: bekijk reset opties
+  <kbd>c</kbd>: kopieer commit (cherry-pick)
+  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
+  <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
+  <kbd>enter</kbd>: bekijk commits
+</pre>
+
+## Remote Branches
+
+<pre>
+  <kbd>space</kbd>: uitchecken
+  <kbd>n</kbd>: nieuwe branch
+  <kbd>M</kbd>: merge in met huidige checked out branch
+  <kbd>r</kbd>: rebase branch
+  <kbd>d</kbd>: verwijder branch
+  <kbd>u</kbd>: stel in als upstream van uitgecheckte branch
+  <kbd>esc</kbd>: ga terug naar remotes lijst
+  <kbd>g</kbd>: bekijk reset opties
+  <kbd>enter</kbd>: bekijk commits
+</pre>
+
+## Remotes
+
+<pre>
+  <kbd>f</kbd>: fetch remote
+  <kbd>n</kbd>: voeg een nieuwe remote toe
+  <kbd>d</kbd>: verwijder remote
+  <kbd>e</kbd>: wijzig remote
+</pre>
+
+## Staging
 
 <pre>
   <kbd>esc</kbd>: ga terug naar het bestanden paneel
@@ -277,13 +229,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: commit veranderingen met de git editor
 </pre>
 
-## Menu Paneel
-
-<pre>
-  <kbd>esc</kbd>: sluit menu
-</pre>
-
-## Stash Paneel (Stash)
+## Stash
 
 <pre>
   <kbd>space</kbd>: toepassen
@@ -293,7 +239,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: bekijk gecommite bestanden
 </pre>
 
-## Status Paneel (Status)
+## Status
 
 <pre>
   <kbd>e</kbd>: verander config bestand
@@ -303,7 +249,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>a</kbd>: alle logs van de branch laten zien
 </pre>
 
-## Sub-commits Paneel (Sub-commits)
+## Sub-commits
 
 <pre>
   <kbd>ctrl+o</kbd>: kopieer commit SHA naar klembord
@@ -314,4 +260,28 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (gekopieerde) commits selectie
   <kbd>enter</kbd>: bekijk gecommite bestanden
+</pre>
+
+## Submodules
+
+<pre>
+  <kbd>ctrl+o</kbd>: kopieer submodule naam naar klembord
+  <kbd>enter</kbd>: enter submodule
+  <kbd>d</kbd>: remove submodule
+  <kbd>u</kbd>: update submodule
+  <kbd>n</kbd>: voeg nieuwe submodule toe
+  <kbd>e</kbd>: update submodule URL
+  <kbd>i</kbd>: initialiseer submodule
+  <kbd>b</kbd>: bekijk bulk submodule opties
+</pre>
+
+## Tags
+
+<pre>
+  <kbd>space</kbd>: uitchecken
+  <kbd>d</kbd>: verwijder tag
+  <kbd>P</kbd>: push tag
+  <kbd>n</kbd>: creëer tag
+  <kbd>g</kbd>: bekijk reset opties
+  <kbd>enter</kbd>: bekijk commits
 </pre>

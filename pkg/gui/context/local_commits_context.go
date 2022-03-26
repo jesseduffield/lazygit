@@ -93,6 +93,16 @@ func (self *LocalCommitsContext) GetSelectedRefName() string {
 	return item.RefName()
 }
 
+func (self *LocalCommitsViewModel) GetSelectedDescription() string {
+	item := self.GetSelected()
+
+	if item == nil {
+		return ""
+	}
+
+	return item.Description()
+}
+
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {
 	self.limitCommits = value
 }

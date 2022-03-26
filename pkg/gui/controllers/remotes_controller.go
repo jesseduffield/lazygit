@@ -73,6 +73,11 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 		newSelectedLine = -1
 	}
 	self.contexts.RemoteBranches.SetSelectedLineIdx(newSelectedLine)
+	self.contexts.RemoteBranches.SetTitleRef(remote.Name)
+
+	if err := self.c.PostRefreshUpdate(self.contexts.RemoteBranches); err != nil {
+		return err
+	}
 
 	return self.c.PushContext(self.contexts.RemoteBranches)
 }

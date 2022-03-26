@@ -41,7 +41,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>[</kbd>: previous tab
 </pre>
 
-## Branches Panel (Branches Tab)
+## Branches
 
 <pre>
   <kbd>ctrl+o</kbd>: copy branch name to clipboard
@@ -62,56 +62,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: view commits
 </pre>
 
-## Branches Panel (Remote Branches (in Remotes tab))
-
-<pre>
-  <kbd>space</kbd>: checkout
-  <kbd>n</kbd>: new branch
-  <kbd>M</kbd>: merge into currently checked out branch
-  <kbd>r</kbd>: rebase checked-out branch onto this branch
-  <kbd>d</kbd>: delete branch
-  <kbd>u</kbd>: set as upstream of checked-out branch
-  <kbd>esc</kbd>: Return to remotes list
-  <kbd>g</kbd>: view reset options
-  <kbd>enter</kbd>: view commits
-</pre>
-
-## Branches Panel (Remotes Tab)
-
-<pre>
-  <kbd>f</kbd>: fetch remote
-  <kbd>n</kbd>: add new remote
-  <kbd>d</kbd>: remove remote
-  <kbd>e</kbd>: edit remote
-</pre>
-
-## Branches Panel (Sub-commits)
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
-  <kbd>space</kbd>: checkout commit
-  <kbd>y</kbd>: copy commit attribute
-  <kbd>o</kbd>: open commit in browser
-  <kbd>n</kbd>: create new branch off of commit
-  <kbd>g</kbd>: reset to this commit
-  <kbd>c</kbd>: copy commit (cherry-pick)
-  <kbd>C</kbd>: copy commit range (cherry-pick)
-  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>enter</kbd>: view selected item's files
-</pre>
-
-## Branches Panel (Tags Tab)
-
-<pre>
-  <kbd>space</kbd>: checkout
-  <kbd>d</kbd>: delete tag
-  <kbd>P</kbd>: push tag
-  <kbd>n</kbd>: create tag
-  <kbd>g</kbd>: view reset options
-  <kbd>enter</kbd>: view commits
-</pre>
-
-## Commit Files Panel (Commit Files)
+## Commit Files
 
 <pre>
   <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard
@@ -125,7 +76,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: toggle file tree view
 </pre>
 
-## Commits Panel (Commits)
+## Commits
 
 <pre>
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
@@ -157,28 +108,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: view selected item's files
 </pre>
 
-## Commits Panel (Reflog Tab)
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
-  <kbd>space</kbd>: checkout commit
-  <kbd>y</kbd>: copy commit attribute
-  <kbd>o</kbd>: open commit in browser
-  <kbd>n</kbd>: create new branch off of commit
-  <kbd>g</kbd>: reset to this commit
-  <kbd>c</kbd>: copy commit (cherry-pick)
-  <kbd>C</kbd>: copy commit range (cherry-pick)
-  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>enter</kbd>: view commits
-</pre>
-
-## Extras Panel
-
-<pre>
-  <kbd>@</kbd>: open command log menu
-</pre>
-
-## Files Panel (Files)
+## Files
 
 <pre>
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
@@ -203,19 +133,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>f</kbd>: fetch
-</pre>
-
-## Files Panel (Submodules)
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy submodule name to clipboard
-  <kbd>enter</kbd>: enter submodule
-  <kbd>d</kbd>: remove submodule
-  <kbd>u</kbd>: update submodule
-  <kbd>n</kbd>: add new submodule
-  <kbd>e</kbd>: update submodule URL
-  <kbd>i</kbd>: initialize submodule
-  <kbd>b</kbd>: view bulk submodule options
 </pre>
 
 ## Main Panel (Merging)
@@ -277,13 +194,42 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: commit changes using git editor
 </pre>
 
-## Menu Panel
+## Reflog
 
 <pre>
-  <kbd>esc</kbd>: close menu
+  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
+  <kbd>space</kbd>: checkout commit
+  <kbd>g</kbd>: view reset options
+  <kbd>c</kbd>: copy commit (cherry-pick)
+  <kbd>C</kbd>: copy commit range (cherry-pick)
+  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
+  <kbd>enter</kbd>: view commits
 </pre>
 
-## Stash Panel (Stash)
+## Remote Branches
+
+<pre>
+  <kbd>space</kbd>: checkout
+  <kbd>n</kbd>: new branch
+  <kbd>M</kbd>: merge into currently checked out branch
+  <kbd>r</kbd>: rebase checked-out branch onto this branch
+  <kbd>d</kbd>: delete branch
+  <kbd>u</kbd>: set as upstream of checked-out branch
+  <kbd>esc</kbd>: Return to remotes list
+  <kbd>g</kbd>: view reset options
+  <kbd>enter</kbd>: view commits
+</pre>
+
+## Remotes
+
+<pre>
+  <kbd>f</kbd>: fetch remote
+  <kbd>n</kbd>: add new remote
+  <kbd>d</kbd>: remove remote
+  <kbd>e</kbd>: edit remote
+</pre>
+
+## Stash
 
 <pre>
   <kbd>space</kbd>: apply
@@ -293,7 +239,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: view selected item's files
 </pre>
 
-## Status Panel (Status)
+## Status
 
 <pre>
   <kbd>e</kbd>: edit config file
@@ -303,7 +249,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>a</kbd>: show all branch logs
 </pre>
 
-## Sub-commits Panel (Sub-commits)
+## Sub-commits
 
 <pre>
   <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
@@ -314,4 +260,28 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>enter</kbd>: view selected item's files
+</pre>
+
+## Submodules
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy submodule name to clipboard
+  <kbd>enter</kbd>: enter submodule
+  <kbd>d</kbd>: remove submodule
+  <kbd>u</kbd>: update submodule
+  <kbd>n</kbd>: add new submodule
+  <kbd>e</kbd>: update submodule URL
+  <kbd>i</kbd>: initialize submodule
+  <kbd>b</kbd>: view bulk submodule options
+</pre>
+
+## Tags
+
+<pre>
+  <kbd>space</kbd>: checkout
+  <kbd>d</kbd>: delete tag
+  <kbd>P</kbd>: push tag
+  <kbd>n</kbd>: create tag
+  <kbd>g</kbd>: view reset options
+  <kbd>enter</kbd>: view commits
 </pre>

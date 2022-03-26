@@ -240,26 +240,27 @@ type panelStates struct {
 }
 
 type Views struct {
-	Status        *gocui.View
-	Files         *gocui.View
-	Branches      *gocui.View
-	Commits       *gocui.View
-	Stash         *gocui.View
-	Main          *gocui.View
-	Secondary     *gocui.View
-	Options       *gocui.View
-	Confirmation  *gocui.View
-	Menu          *gocui.View
-	CommitMessage *gocui.View
-	CommitFiles   *gocui.View
-	SubCommits    *gocui.View
-	Information   *gocui.View
-	AppStatus     *gocui.View
-	Search        *gocui.View
-	SearchPrefix  *gocui.View
-	Limit         *gocui.View
-	Suggestions   *gocui.View
-	Extras        *gocui.View
+	Status         *gocui.View
+	Files          *gocui.View
+	Branches       *gocui.View
+	RemoteBranches *gocui.View
+	Commits        *gocui.View
+	Stash          *gocui.View
+	Main           *gocui.View
+	Secondary      *gocui.View
+	Options        *gocui.View
+	Confirmation   *gocui.View
+	Menu           *gocui.View
+	CommitMessage  *gocui.View
+	CommitFiles    *gocui.View
+	SubCommits     *gocui.View
+	Information    *gocui.View
+	AppStatus      *gocui.View
+	Search         *gocui.View
+	SearchPrefix   *gocui.View
+	Limit          *gocui.View
+	Suggestions    *gocui.View
+	Extras         *gocui.View
 }
 
 type searchingState struct {
@@ -406,19 +407,20 @@ func (gui *Gui) syncViewContexts() {
 
 func initialViewContextMapping(contextTree *context.ContextTree) map[string]types.Context {
 	return map[string]types.Context{
-		"status":        contextTree.Status,
-		"files":         contextTree.Files,
-		"branches":      contextTree.Branches,
-		"commits":       contextTree.LocalCommits,
-		"commitFiles":   contextTree.CommitFiles,
-		"subCommits":    contextTree.SubCommits,
-		"stash":         contextTree.Stash,
-		"menu":          contextTree.Menu,
-		"confirmation":  contextTree.Confirmation,
-		"commitMessage": contextTree.CommitMessage,
-		"main":          contextTree.Normal,
-		"secondary":     contextTree.Normal,
-		"extras":        contextTree.CommandLog,
+		"status":         contextTree.Status,
+		"files":          contextTree.Files,
+		"branches":       contextTree.Branches,
+		"remoteBranches": contextTree.RemoteBranches,
+		"commits":        contextTree.LocalCommits,
+		"commitFiles":    contextTree.CommitFiles,
+		"subCommits":     contextTree.SubCommits,
+		"stash":          contextTree.Stash,
+		"menu":           contextTree.Menu,
+		"confirmation":   contextTree.Confirmation,
+		"commitMessage":  contextTree.CommitMessage,
+		"main":           contextTree.Normal,
+		"secondary":      contextTree.Normal,
+		"extras":         contextTree.CommandLog,
 	}
 }
 
@@ -600,6 +602,7 @@ func (gui *Gui) createAllViews() error {
 		{viewPtr: &gui.Views.Status, name: "status"},
 		{viewPtr: &gui.Views.Files, name: "files"},
 		{viewPtr: &gui.Views.Branches, name: "branches"},
+		{viewPtr: &gui.Views.RemoteBranches, name: "remoteBranches"},
 		{viewPtr: &gui.Views.Commits, name: "commits"},
 		{viewPtr: &gui.Views.Stash, name: "stash"},
 		{viewPtr: &gui.Views.CommitFiles, name: "commitFiles"},
@@ -648,6 +651,8 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
 	gui.Views.Branches.FgColor = theme.GocuiDefaultTextColor
+
+	gui.Views.RemoteBranches.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Files.Highlight = true
 	gui.Views.Files.Title = gui.c.Tr.FilesTitle

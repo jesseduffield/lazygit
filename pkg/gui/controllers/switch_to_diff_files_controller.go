@@ -12,6 +12,7 @@ type CanSwitchToDiffFiles interface {
 	types.Context
 	CanRebase() bool
 	GetSelectedRefName() string
+	GetSelectedDescription() string
 }
 
 type SwitchToDiffFilesController struct {
@@ -63,9 +64,10 @@ func (self *SwitchToDiffFilesController) checkSelected(callback func(string) err
 
 func (self *SwitchToDiffFilesController) enter(refName string) error {
 	return self.viewFiles(SwitchToCommitFilesContextOpts{
-		RefName:   refName,
-		CanRebase: self.context.CanRebase(),
-		Context:   self.context,
+		RefName:        refName,
+		RefDescription: self.context.GetSelectedDescription(),
+		CanRebase:      self.context.CanRebase(),
+		Context:        self.context,
 	})
 }
 
