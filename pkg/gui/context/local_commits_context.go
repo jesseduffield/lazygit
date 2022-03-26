@@ -83,24 +83,8 @@ func (self *LocalCommitsContext) CanRebase() bool {
 	return true
 }
 
-func (self *LocalCommitsContext) GetSelectedRefName() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.RefName()
-}
-
-func (self *LocalCommitsViewModel) GetSelectedDescription() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.Description()
+func (self *LocalCommitsContext) GetSelectedRef() types.Ref {
+	return self.GetSelected()
 }
 
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {

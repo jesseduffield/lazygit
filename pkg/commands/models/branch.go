@@ -22,6 +22,10 @@ func (b *Branch) RefName() string {
 	return b.Name
 }
 
+func (b *Branch) ParentRefName() string {
+	return b.RefName() + "^"
+}
+
 func (b *Branch) ID() string {
 	return b.RefName()
 }

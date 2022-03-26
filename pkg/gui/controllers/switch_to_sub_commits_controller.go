@@ -10,8 +10,7 @@ var _ types.IController = &SwitchToSubCommitsController{}
 
 type CanSwitchToSubCommits interface {
 	types.Context
-	GetSelectedRefName() string
-	GetSelectedDescription() string
+	GetSelectedRef() types.Ref
 }
 
 type SwitchToSubCommitsController struct {
@@ -52,8 +51,8 @@ func (self *SwitchToSubCommitsController) GetOnClick() func() error {
 }
 
 func (self *SwitchToSubCommitsController) viewCommits() error {
-	refName := self.context.GetSelectedRefName()
-	if refName == "" {
+	ref := self.context.GetSelectedRef()
+	if ref == nil {
 		return nil
 	}
 
@@ -63,7 +62,7 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 			Limit:                true,
 			FilterPath:           self.modes.Filtering.GetPath(),
 			IncludeRebaseCommits: false,
-			RefName:              refName,
+			RefName:              ref.RefName(),
 		},
 	)
 	if err != nil {
@@ -75,8 +74,8 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 	self.contexts.SubCommits.SetSelectedLineIdx(0)
 	self.contexts.SubCommits.SetParentContext(self.context)
 	self.contexts.SubCommits.SetWindowName(self.context.GetWindowName())
-	self.contexts.SubCommits.SetTitleRef(self.context.GetSelectedDescription())
-	self.contexts.SubCommits.SetRefName(refName)
+	self.contexts.SubCommits.SetTitleRef(ref.Description())
+	self.contexts.SubCommits.SetRefName(ref.RefName())
 
 	err = self.c.PostRefreshUpdate(self.contexts.SubCommits)
 	if err != nil {

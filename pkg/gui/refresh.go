@@ -186,7 +186,7 @@ func (gui *Gui) refreshCommits() {
 			// For now the awkwardness remains.
 			commit := gui.getSelectedLocalCommit()
 			if commit != nil {
-				gui.State.Contexts.CommitFiles.SetRefName(commit.RefName())
+				gui.State.Contexts.CommitFiles.SetRef(commit)
 				gui.State.Contexts.CommitFiles.SetTitleRef(commit.RefName())
 				_ = gui.refreshCommitFilesContext()
 			}

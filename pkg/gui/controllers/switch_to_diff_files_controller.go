@@ -11,8 +11,7 @@ var _ types.IController = &SwitchToDiffFilesController{}
 type CanSwitchToDiffFiles interface {
 	types.Context
 	CanRebase() bool
-	GetSelectedRefName() string
-	GetSelectedDescription() string
+	GetSelectedRef() types.Ref
 }
 
 type SwitchToDiffFilesController struct {
@@ -51,23 +50,22 @@ func (self *SwitchToDiffFilesController) GetOnClick() func() error {
 	return self.checkSelected(self.enter)
 }
 
-func (self *SwitchToDiffFilesController) checkSelected(callback func(string) error) func() error {
+func (self *SwitchToDiffFilesController) checkSelected(callback func(types.Ref) error) func() error {
 	return func() error {
-		refName := self.context.GetSelectedRefName()
-		if refName == "" {
+		ref := self.context.GetSelectedRef()
+		if ref == nil {
 			return nil
 		}
 
-		return callback(refName)
+		return callback(ref)
 	}
 }
 
-func (self *SwitchToDiffFilesController) enter(refName string) error {
+func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
 	return self.viewFiles(SwitchToCommitFilesContextOpts{
-		RefName:        refName,
-		RefDescription: self.context.GetSelectedDescription(),
-		CanRebase:      self.context.CanRebase(),
-		Context:        self.context,
+		Ref:       ref,
+		CanRebase: self.context.CanRebase(),
+		Context:   self.context,
 	})
 }
 

@@ -16,8 +16,9 @@ func (gui *Gui) commitFilesRenderToMain() error {
 		return nil
 	}
 
-	to := gui.State.Contexts.CommitFiles.GetRefName()
-	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(to)
+	ref := gui.State.Contexts.CommitFiles.GetRef()
+	to := ref.RefName()
+	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
 
 	cmdObj := gui.git.WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
 	task := NewRunPtyTask(cmdObj.GetCmd())
@@ -39,8 +40,7 @@ func (gui *Gui) commitFilesRenderToMain() error {
 
 func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesContextOpts) error {
 	gui.State.Contexts.CommitFiles.SetSelectedLineIdx(0)
-	gui.State.Contexts.CommitFiles.SetRefName(opts.RefName)
-	gui.State.Contexts.CommitFiles.SetTitleRef(opts.RefDescription)
+	gui.State.Contexts.CommitFiles.SetRef(opts.Ref)
 	gui.State.Contexts.CommitFiles.SetCanRebase(opts.CanRebase)
 	gui.State.Contexts.CommitFiles.SetParentContext(opts.Context)
 	gui.State.Contexts.CommitFiles.SetWindowName(opts.Context.GetWindowName())
@@ -53,8 +53,9 @@ func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesC
 }
 
 func (gui *Gui) refreshCommitFilesContext() error {
-	to := gui.State.Contexts.CommitFiles.GetRefName()
-	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(to)
+	ref := gui.State.Contexts.CommitFiles.GetRef()
+	to := ref.RefName()
+	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
 
 	files, err := gui.git.Loaders.CommitFiles.GetFilesInDiff(from, to, reverse)
 	if err != nil {

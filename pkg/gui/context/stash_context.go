@@ -61,22 +61,6 @@ func (self *StashContext) CanRebase() bool {
 	return false
 }
 
-func (self *StashContext) GetSelectedRefName() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.RefName()
-}
-
-func (self *StashContext) GetSelectedDescription() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.Description()
+func (self *StashContext) GetSelectedRef() types.Ref {
+	return self.GetSelected()
 }

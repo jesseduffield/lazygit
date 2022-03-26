@@ -44,7 +44,7 @@ func (gui *Gui) currentDiffTerminals() []string {
 		// TODO: should we just return nil here?
 		return []string{""}
 	case *context.CommitFilesContext:
-		return []string{v.GetRefName()}
+		return []string{v.GetRef().RefName()}
 	case *context.BranchesContext:
 		// for our local branches we want to include both the branch and its upstream
 		branch := gui.State.Contexts.Branches.GetSelected()

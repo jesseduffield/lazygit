@@ -82,16 +82,8 @@ func (self *SubCommitsContext) CanRebase() bool {
 	return false
 }
 
-// not to be confused with the refName in the view model. This is the ref name of
-// the selected commit
-func (self *SubCommitsContext) GetSelectedRefName() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.RefName()
+func (self *SubCommitsContext) GetSelectedRef() types.Ref {
+	return self.GetSelected()
 }
 
 func (self *SubCommitsContext) GetCommits() []*models.Commit {
@@ -100,14 +92,4 @@ func (self *SubCommitsContext) GetCommits() []*models.Commit {
 
 func (self *SubCommitsContext) Title() string {
 	return fmt.Sprintf(self.c.Tr.SubCommitsDynamicTitle, utils.TruncateWithEllipsis(self.refName, 50))
-}
-
-func (self *SubCommitsContext) GetSelectedDescription() string {
-	item := self.GetSelected()
-
-	if item == nil {
-		return ""
-	}
-
-	return item.Description()
 }
