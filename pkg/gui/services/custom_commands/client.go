@@ -23,7 +23,7 @@ func NewClient(
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 	helpers *helpers.Helpers,
-	getKey func(string) interface{},
+	getKey func(string) types.Key,
 ) *Client {
 	sessionStateLoader := NewSessionStateLoader(contexts, helpers)
 	handlerCreator := NewHandlerCreator(c, os, git, sessionStateLoader)

@@ -14,10 +14,10 @@ import (
 // KeybindingCreator takes a custom command along with its handler and returns a corresponding keybinding
 type KeybindingCreator struct {
 	contexts *context.ContextTree
-	getKey   func(string) interface{}
+	getKey   func(string) types.Key
 }
 
-func NewKeybindingCreator(contexts *context.ContextTree, getKey func(string) interface{}) *KeybindingCreator {
+func NewKeybindingCreator(contexts *context.ContextTree, getKey func(string) types.Key) *KeybindingCreator {
 	return &KeybindingCreator{
 		contexts: contexts,
 		getKey:   getKey,

@@ -97,7 +97,7 @@ type OnFocusOpts struct {
 type ContextKey string
 
 type KeybindingsOpts struct {
-	GetKey func(key string) interface{}
+	GetKey func(key string) Key
 	Config config.KeybindingConfig
 	Guards KeybindingGuards
 }
