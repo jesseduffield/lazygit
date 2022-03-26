@@ -33,8 +33,10 @@ type IBaseContext interface {
 	SetWindowName(string)
 	GetKey() ContextKey
 	IsFocusable() bool
-	// if a context is transient, then when it loses focus, its corresponding view
-	// returns control of the window to the default view for that window
+	// if a context is transient, then it only appears via some keybinding on another
+	// context. Until we add support for having multiple of the same context, no two
+	// of the same transient context can appear at once meaning one might be 'stolen'
+	// from another window.
 	IsTransient() bool
 
 	// returns the desired title for the view upon activation. If there is no desired title (returns empty string), then
