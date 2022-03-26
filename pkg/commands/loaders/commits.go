@@ -23,8 +23,6 @@ import (
 // be processed as part of a rebase (these won't appear in git log but we
 // grab them from the rebase-related files in the .git directory to show them
 
-const SEPARATION_CHAR = "|"
-
 // CommitLoader returns a list of Commit objects for the current repo
 type CommitLoader struct {
 	*common.Common
@@ -159,15 +157,15 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
 func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
-	split := strings.Split(line, SEPARATION_CHAR)
+	split := strings.SplitN(line, "\x00", 6)
 
 	sha := split[0]
 	unixTimestamp := split[1]
 	author := split[2]
 	extraInfo := strings.TrimSpace(split[3])
 	parentHashes := split[4]
+	message := split[5]
 
-	message := strings.Join(split[5:], SEPARATION_CHAR)
 	tags := []string{}
 
 	if extraInfo != "" {
@@ -444,12 +442,14 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 var prettyFormat = fmt.Sprintf(
 	"--pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\"",
-	SEPARATION_CHAR,
-	SEPARATION_CHAR,
-	SEPARATION_CHAR,
-	SEPARATION_CHAR,
-	SEPARATION_CHAR,
+	NULL_CODE,
+	NULL_CODE,
+	NULL_CODE,
+	NULL_CODE,
+	NULL_CODE,
 )
+
+const NULL_CODE = "%x00"
 
 func canExtractCommit(line string) bool {
 	return line != "" && strings.Split(line, " ")[0] != "gpg:"

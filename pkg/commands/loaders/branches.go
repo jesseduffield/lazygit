@@ -121,7 +121,7 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 			return nil, false
 		}
 
-		split := strings.Split(line, SEPARATION_CHAR)
+		split := strings.Split(line, "\x00")
 		if len(split) != 4 {
 			// Ignore line if it isn't separated into 4 parts
 			// This is probably a warning message, for more info see:
