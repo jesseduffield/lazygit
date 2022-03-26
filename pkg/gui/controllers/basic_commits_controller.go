@@ -220,5 +220,5 @@ func (self *BasicCommitsController) copy(commit *models.Commit) error {
 }
 
 func (self *BasicCommitsController) copyRange(*models.Commit) error {
-	return self.helpers.CherryPick.CopyRange(self.context.GetSelectedLineIdx(), self.model.Commits, self.context)
+	return self.helpers.CherryPick.CopyRange(self.context.GetSelectedLineIdx(), self.context.GetCommits(), self.context)
 }
