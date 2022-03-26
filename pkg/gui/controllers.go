@@ -131,7 +131,7 @@ func (gui *Gui) resetControllers() {
 
 	setSubCommits := func(commits []*models.Commit) { gui.State.Model.SubCommits = commits }
 
-	for _, context := range []controllers.ContextWithRefName{
+	for _, context := range []controllers.CanSwitchToSubCommits{
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
 		gui.State.Contexts.Tags,
