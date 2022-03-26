@@ -18,10 +18,6 @@ func (gui *Gui) getMenuOptions() map[string]string {
 	}
 }
 
-func (gui *Gui) handleMenuClose() error {
-	return gui.c.PopContext()
-}
-
 // note: items option is mutated by this function
 func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	if !opts.HideCancel {

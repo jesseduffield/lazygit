@@ -70,7 +70,8 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 				if binding.Key == nil {
 					return nil
 				}
-				if err := gui.handleMenuClose(); err != nil {
+
+				if err := gui.c.PopContext(); err != nil {
 					return err
 				}
 				return binding.Handler()

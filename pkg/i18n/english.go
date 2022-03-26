@@ -332,7 +332,6 @@ type TranslationSet struct {
 	NewGitFlowBranchPrompt              string
 	RenameBranchWarning                 string
 	LcOpenMenu                          string
-	LcCloseMenu                         string
 	LcResetCherryPick                   string
 	LcNextTab                           string
 	LcPrevTab                           string
@@ -923,7 +922,6 @@ func EnglishTranslationSet() TranslationSet {
 		NewBranchNamePrompt:                 "Enter new branch name for branch",
 		RenameBranchWarning:                 "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
 		LcOpenMenu:                          "open menu",
-		LcCloseMenu:                         "close menu",
 		LcResetCherryPick:                   "reset cherry-picked (copied) commits selection",
 		LcNextTab:                           "next tab",
 		LcPrevTab:                           "previous tab",

@@ -302,7 +302,6 @@ func dutchTranslationSet() TranslationSet {
 		NewBranchNamePrompt:                 "Noem een nieuwe branch naam",
 		RenameBranchWarning:                 "Deze branch volgt een remote. Deze actie zal alleen de locale branch name wijzigen niet de naam van de remote branch. Verder gaan?",
 		LcOpenMenu:                          "open menu",
-		LcCloseMenu:                         "sluit menu",
 		LcResetCherryPick:                   "reset cherry-picked (gekopieerde) commits selectie",
 		LcNextTab:                           "volgende tabblad",
 		LcPrevTab:                           "vorige tabblad",

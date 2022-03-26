@@ -35,6 +35,10 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Key:     opts.GetKey(opts.Config.Universal.ConfirmAlt1),
 			Handler: self.press,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.Return),
+			Handler: self.close,
+		},
 	}
 
 	return bindings
@@ -56,6 +60,10 @@ func (self *MenuController) press() error {
 	}
 
 	return nil
+}
+
+func (self *MenuController) close() error {
+	return self.c.PopContext()
 }
 
 func (self *MenuController) Context() types.Context {
