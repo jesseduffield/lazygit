@@ -1,0 +1,8 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+	ignorecase = true
+	precomposeunicode = true
+[remote "origin"]
+	url = /Users/jesseduffieldduffield/go/src/github.com/jesseduffield/lazygit/test/integration/submoduleRemove/actual/./repo

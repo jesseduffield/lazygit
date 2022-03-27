@@ -25,9 +25,9 @@ git add .
 git commit -am "myfile4"
 
 cd ..
-git clone --bare ./actual actual_remote
+git clone --bare ./repo origin
 
-cd actual
+cd repo
 
 git reset --hard HEAD~2
 
@@ -47,7 +47,7 @@ echo test > myfile7
 git add .
 git commit -am "7"
 
-git remote add origin ../actual_remote
+git remote add origin ../origin
 git fetch origin
 git branch --set-upstream-to=origin/master master
 

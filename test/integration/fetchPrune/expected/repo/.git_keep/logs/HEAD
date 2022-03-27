@@ -1,0 +1,3 @@
+0000000000000000000000000000000000000000 75f37fc5ae7e9967e9833b66beb2c9ee2f9f6c27 CI <CI@example.com> 1648352761 +1100	commit (initial): myfile1
+75f37fc5ae7e9967e9833b66beb2c9ee2f9f6c27 75f37fc5ae7e9967e9833b66beb2c9ee2f9f6c27 CI <CI@example.com> 1648352761 +1100	checkout: moving from master to other_branch
+75f37fc5ae7e9967e9833b66beb2c9ee2f9f6c27 75f37fc5ae7e9967e9833b66beb2c9ee2f9f6c27 CI <CI@example.com> 1648352761 +1100	checkout: moving from other_branch to master

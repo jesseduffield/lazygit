@@ -20,15 +20,15 @@ git checkout -b other_branch
 git checkout master
 
 cd ..
-git clone --bare ./actual actual_remote
+git clone --bare ./repo origin
 
-cd actual
+cd repo
 
-git remote add origin ../actual_remote
+git remote add origin ../origin
 git fetch origin
 git branch --set-upstream-to=origin/master master
 git branch --set-upstream-to=origin/other_branch other_branch
 
 # unbenownst to our test repo we're removing the branch on the remote, so upon
 # fetching with prune: true we expect git to realise the remote branch is gone
-git -C ../actual_remote branch -d other_branch
+git -C ../origin branch -d other_branch

@@ -1,0 +1,2 @@
+0000000000000000000000000000000000000000 42530e986dbb65877ed8d61ca0c816e425e5c62e Jesse Duffield <jessedduffield@gmail.com> 1534792759 +0100	clone: from /Users/jesseduffieldduffield/go/src/github.com/jesseduffield/lazygit/test/integration/submoduleReset/actual/other_repo
+42530e986dbb65877ed8d61ca0c816e425e5c62e a50a5125768001a3ea263ffb7cafbc421a508153 Jesse Duffield <jessedduffield@gmail.com> 1648348154 +1100	rebase -i (finish): refs/heads/master onto a50a5125768001a3ea263ffb7cafbc421a508153

@@ -20,5 +20,5 @@ git add .
 git commit -am "myfile2"
 
 cd ..
-git clone --bare ./actual other_repo
-cd actual
+git clone --bare ./repo other_repo
+cd repo

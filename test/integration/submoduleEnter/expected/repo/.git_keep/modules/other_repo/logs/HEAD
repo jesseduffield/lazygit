@@ -1,0 +1,5 @@
+0000000000000000000000000000000000000000 fc4712e93d74ad4fb68e2fd219ac253ae03e19a4 Jesse Duffield <jessedduffield@gmail.com> 1534792759 +0100	clone: from /Users/jesseduffieldduffield/go/src/github.com/jesseduffield/lazygit/test/integration/submoduleEnter/actual/other_repo
+fc4712e93d74ad4fb68e2fd219ac253ae03e19a4 42530e986dbb65877ed8d61ca0c816e425e5c62e Jesse Duffield <jessedduffield@gmail.com> 1648348031 +1100	rebase -i (start): checkout 42530e986dbb65877ed8d61ca0c816e425e5c62e
+42530e986dbb65877ed8d61ca0c816e425e5c62e 42530e986dbb65877ed8d61ca0c816e425e5c62e Jesse Duffield <jessedduffield@gmail.com> 1648348031 +1100	rebase -i (finish): returning to refs/heads/master
+42530e986dbb65877ed8d61ca0c816e425e5c62e a50a5125768001a3ea263ffb7cafbc421a508153 Jesse Duffield <jessedduffield@gmail.com> 1648348032 +1100	rebase -i (start): checkout a50a5125768001a3ea263ffb7cafbc421a508153
+a50a5125768001a3ea263ffb7cafbc421a508153 a50a5125768001a3ea263ffb7cafbc421a508153 Jesse Duffield <jessedduffield@gmail.com> 1648348032 +1100	rebase -i (finish): returning to refs/heads/master

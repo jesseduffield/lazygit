@@ -1,4 +1,0 @@
-{
-  "description": "Force push to multiple branches because the user hasn't configured git to do otherwise",
-  "speed": 10
-}

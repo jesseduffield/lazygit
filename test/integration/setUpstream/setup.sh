@@ -25,8 +25,8 @@ git add .
 git commit -am "myfile4"
 
 cd ..
-git clone --bare ./actual actual_remote
+git clone --bare ./repo origin
 
-cd actual
+cd repo
 
 git reset --hard HEAD~2

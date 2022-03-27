@@ -19,9 +19,9 @@ git add .
 git commit -am "myfile2"
 
 cd ..
-git clone --bare ./actual actual_remote
+git clone --bare ./repo origin
 
-cd actual
+cd repo
 
 echo test3 > myfile3
 git add .
@@ -30,10 +30,10 @@ echo test4 > myfile4
 git add .
 git commit -am "myfile4"
 
-git remote add origin ../actual_remote
+git remote add origin ../origin
 git fetch origin
 git branch --set-upstream-to=origin/master master
 
 # actually getting a password prompt is tricky: it requires SSH'ing into localhost under a newly created, restricted, user. This is not easy to do in a cross-platform way, nor is it easy to do in a docker container. If you can think of a way to do it, please let me know!
-cp ../../../hooks/pre-push .git/hooks/pre-push
+cp ../../../../hooks/pre-push .git/hooks/pre-push
 chmod +x .git/hooks/pre-push
