@@ -22,6 +22,7 @@ type TranslationSet struct {
 	MainTitle                           string
 	StagingTitle                        string
 	MergingTitle                        string
+	MergeConfirmTitle                   string
 	NormalTitle                         string
 	CommitMessage                       string
 	CredentialsUsername                 string
@@ -610,6 +611,7 @@ func EnglishTranslationSet() TranslationSet {
 		UnstagedChanges:                     `Unstaged Changes`,
 		StagedChanges:                       `Staged Changes`,
 		MainTitle:                           "Main",
+		MergeConfirmTitle:                   "Merge",
 		StagingTitle:                        "Main Panel (Staging)",
 		MergingTitle:                        "Main Panel (Merging)",
 		NormalTitle:                         "Main Panel (Normal)",

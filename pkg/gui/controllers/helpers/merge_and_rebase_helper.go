@@ -246,7 +246,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 	)
 
 	return self.c.Ask(types.AskOpts{
-		Title:  self.c.Tr.MergingTitle,
+		Title:  self.c.Tr.MergeConfirmTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.Merge)
