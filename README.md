@@ -290,7 +290,13 @@ If you would like to support the development of lazygit, consider [sponsoring me
 
 ### I'm struggling to see the selected line
 
-see [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#struggling-to-see-selected-line)
+See [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#struggling-to-see-selected-line)
+
+### What do the commit colors represent?
+
+* Green: the commit is included in the master branch
+* Yellow: the commit is not included in the master branch
+* Red: the commit has not been pushed to the upstream branch
 
 ## Shameless Plug
 
