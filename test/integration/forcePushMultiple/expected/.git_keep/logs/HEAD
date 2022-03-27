@@ -1,0 +1,10 @@
+0000000000000000000000000000000000000000 16d8875e19987b16f1991a41fd3f4536d16f7cb4 CI <CI@example.com> 1648340487 +1100	commit (initial): myfile1
+16d8875e19987b16f1991a41fd3f4536d16f7cb4 42d408cffcc087da21115f9ebc29e9765a2beb83 CI <CI@example.com> 1648340487 +1100	commit: myfile2
+42d408cffcc087da21115f9ebc29e9765a2beb83 42d408cffcc087da21115f9ebc29e9765a2beb83 CI <CI@example.com> 1648340487 +1100	checkout: moving from master to other_branch
+42d408cffcc087da21115f9ebc29e9765a2beb83 42d408cffcc087da21115f9ebc29e9765a2beb83 CI <CI@example.com> 1648340487 +1100	checkout: moving from other_branch to master
+42d408cffcc087da21115f9ebc29e9765a2beb83 b82ed4a67bef9ef50807adf409f103ef7b0832ab CI <CI@example.com> 1648340487 +1100	commit: myfile3
+b82ed4a67bef9ef50807adf409f103ef7b0832ab 42d408cffcc087da21115f9ebc29e9765a2beb83 CI <CI@example.com> 1648340487 +1100	reset: moving to HEAD^
+42d408cffcc087da21115f9ebc29e9765a2beb83 42d408cffcc087da21115f9ebc29e9765a2beb83 CI <CI@example.com> 1648340487 +1100	checkout: moving from master to other_branch
+42d408cffcc087da21115f9ebc29e9765a2beb83 d3708eeec2b9d69acbe87862330e844e85f77de1 CI <CI@example.com> 1648340487 +1100	commit: myfile4
+d3708eeec2b9d69acbe87862330e844e85f77de1 42d408cffcc087da21115f9ebc29e9765a2beb83 CI <CI@example.com> 1648340487 +1100	reset: moving to HEAD^
+42d408cffcc087da21115f9ebc29e9765a2beb83 42d408cffcc087da21115f9ebc29e9765a2beb83 CI <CI@example.com> 1648340487 +1100	checkout: moving from other_branch to master
