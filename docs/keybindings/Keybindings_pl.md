@@ -79,11 +79,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: spłaszcz wszystkie commity naprawcze powyżej zaznaczonych commitów (autosquash)
   <kbd>ctrl+j</kbd>: przenieś commit 1 w dół
   <kbd>ctrl+k</kbd>: przenieś commit 1 w górę
+  <kbd>v</kbd>: wklej commity (przebieranie)
   <kbd>A</kbd>: popraw commit zmianami z poczekalni
   <kbd>t</kbd>: odwróć commit
-  <kbd>v</kbd>: wklej commity (przebieranie)
-  <kbd>ctrl+l</kbd>: open log menu
   <kbd>T</kbd>: tag commit
+  <kbd>ctrl+l</kbd>: open log menu
   <kbd>space</kbd>: checkout commit
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser

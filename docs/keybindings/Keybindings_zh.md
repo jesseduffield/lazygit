@@ -122,11 +122,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: 压缩在所选提交之上的所有“fixup!”提交（自动压缩）
   <kbd>ctrl+j</kbd>: 下移提交
   <kbd>ctrl+k</kbd>: 上移提交
+  <kbd>v</kbd>: 粘贴提交（拣选）
   <kbd>A</kbd>: 用已暂存的更改来修补提交
   <kbd>t</kbd>: 还原提交
-  <kbd>v</kbd>: 粘贴提交（拣选）
-  <kbd>ctrl+l</kbd>: 打开日志菜单
   <kbd>T</kbd>: 标签提交
+  <kbd>ctrl+l</kbd>: 打开日志菜单
   <kbd>space</kbd>: 检出提交
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: 在浏览器中打开提交

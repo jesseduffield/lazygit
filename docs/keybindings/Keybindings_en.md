@@ -93,11 +93,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: squash all 'fixup!' commits above selected commit (autosquash)
   <kbd>ctrl+j</kbd>: move commit down one
   <kbd>ctrl+k</kbd>: move commit up one
+  <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>A</kbd>: amend commit with staged changes
   <kbd>t</kbd>: revert commit
-  <kbd>v</kbd>: paste commits (cherry-pick)
-  <kbd>ctrl+l</kbd>: open log menu
   <kbd>T</kbd>: tag commit
+  <kbd>ctrl+l</kbd>: open log menu
   <kbd>space</kbd>: checkout commit
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser

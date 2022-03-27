@@ -120,11 +120,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: squash bovenstaande commits
   <kbd>ctrl+j</kbd>: verplaats commit 1 naar beneden
   <kbd>ctrl+k</kbd>: verplaats commit 1 naar boven
+  <kbd>v</kbd>: plak commits (cherry-pick)
   <kbd>A</kbd>: wijzig commit met staged veranderingen
   <kbd>t</kbd>: commit ongedaan maken
-  <kbd>v</kbd>: plak commits (cherry-pick)
-  <kbd>ctrl+l</kbd>: open log menu
   <kbd>T</kbd>: tag commit
+  <kbd>ctrl+l</kbd>: open log menu
   <kbd>space</kbd>: checkout commit
   <kbd>y</kbd>: copy commit attribute
   <kbd>o</kbd>: open commit in browser
