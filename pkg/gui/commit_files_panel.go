@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 )
 
@@ -54,14 +53,6 @@ func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesC
 }
 
 func (gui *Gui) refreshCommitFilesContext() error {
-	currentSideContext := gui.currentSideContext()
-	if currentSideContext.GetKey() == context.COMMIT_FILES_CONTEXT_KEY ||
-		currentSideContext.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
-		if err := gui.handleRefreshPatchBuildingPanel(-1); err != nil {
-			return err
-		}
-	}
-
 	to := gui.State.Contexts.CommitFiles.GetRefName()
 	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(to)
 
