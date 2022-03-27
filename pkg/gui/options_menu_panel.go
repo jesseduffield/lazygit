@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -57,7 +56,7 @@ func (gui *Gui) displayDescription(binding *types.Binding) string {
 		return presentation.OpensMenuStyle(binding.Description)
 	}
 
-	return style.FgCyan.Sprint(binding.Description)
+	return binding.Description
 }
 
 func (gui *Gui) handleCreateOptionsMenu() error {

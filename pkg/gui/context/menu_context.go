@@ -88,7 +88,7 @@ func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]str
 	return slices.Map(self.menuItems, func(item *types.MenuItem) []string {
 		displayStrings := getItemDisplayStrings(item)
 		if showKeys {
-			displayStrings = slices.Prepend(displayStrings, style.FgYellow.Sprint(keybindings.GetKeyDisplay(item.Key)))
+			displayStrings = slices.Prepend(displayStrings, style.FgCyan.Sprint(keybindings.GetKeyDisplay(item.Key)))
 		}
 		return displayStrings
 	})
