@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -158,4 +159,36 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 	}
 
 	return gui.c.Menu(types.CreateMenuOptions{Title: gui.c.Tr.DiffingMenuTitle, Items: menuItems})
+}
+
+func (gui *Gui) handleLaunchDiffTool() error {
+	gui.c.LogAction("Launch DiffTool")
+
+	cmdStr := "git difftool --submodule "
+
+	file := gui.currentlySelectedFilename()
+	if file == "" || oscommands.FileType(file) == "directory" {
+		cmdStr += "-d "
+	} else {
+		cmdStr += "-y "
+	}
+
+	if gui.State.Modes.Diffing.Active() {
+		cmdStr += gui.diffStr()
+	} else {
+		diffTerm := gui.currentDiffTerminal()
+		if diffTerm != "" {
+			cmdStr += fmt.Sprintf(" %s^ %s", diffTerm, diffTerm)
+		}
+	}
+
+	if file != "" {
+		cmdStr += " -- " + file
+	}
+
+	gui.c.LogCommand(cmdStr, true)
+
+	osCmd := gui.os.Cmd.New(cmdStr)
+
+	return osCmd.GetCmd().Start()
 }

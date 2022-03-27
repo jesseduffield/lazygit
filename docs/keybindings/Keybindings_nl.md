@@ -17,6 +17,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+s</kbd>: bekijk scoping opties
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
+  <kbd>ctrl+t</kbd>: Launch git difftool
   <kbd>@</kbd>: open command log menu
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view

@@ -189,6 +189,7 @@ type KeybindingUniversalConfig struct {
 	FilteringMenu                string   `yaml:"filteringMenu"`
 	DiffingMenu                  string   `yaml:"diffingMenu"`
 	DiffingMenuAlt               string   `yaml:"diffingMenu-alt"`
+	DiffTool                     string   `yaml:"difftool"`
 	CopyToClipboard              string   `yaml:"copyToClipboard"`
 	OpenRecentRepos              string   `yaml:"openRecentRepos"`
 	SubmitEditorText             string   `yaml:"submitEditorText"`
@@ -473,6 +474,7 @@ func GetDefaultConfig() *UserConfig {
 				FilteringMenu:                "<c-s>",
 				DiffingMenu:                  "W",
 				DiffingMenuAlt:               "<c-e>",
+				DiffTool:                     "<c-t>",
 				CopyToClipboard:              "<c-o>",
 				SubmitEditorText:             "<enter>",
 				AppendNewline:                "<a-enter>",

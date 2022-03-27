@@ -296,6 +296,12 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName:    "",
+			Key:         opts.GetKey(opts.Config.Universal.DiffTool),
+			Handler:     self.handleLaunchDiffTool,
+			Description: self.c.Tr.LcLaunchDiffTool,
+		},
+		{
+			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.ExtrasMenu),
 			Handler:     self.handleCreateExtrasMenuPanel,
 			Description: self.c.Tr.LcOpenExtrasMenu,

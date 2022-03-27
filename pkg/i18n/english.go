@@ -390,6 +390,7 @@ type TranslationSet struct {
 	DiffingMenuTitle                    string
 	LcSwapDiff                          string
 	LcOpenDiffingMenu                   string
+	LcLaunchDiffTool                    string
 	LcOpenExtrasMenu                    string
 	LcShowingGitDiff                    string
 	LcCommitDiff                        string
@@ -1027,6 +1028,7 @@ func EnglishTranslationSet() TranslationSet {
 		DiffingMenuTitle:                    "Diffing",
 		LcSwapDiff:                          "reverse diff direction",
 		LcOpenDiffingMenu:                   "open diff menu",
+		LcLaunchDiffTool:                    "Launch git difftool",
 		// the actual view is the extras view which I intend to give more tabs in future but for now we'll only mention the command log part
 		LcOpenExtrasMenu:                    "open command log menu",
 		LcShowingGitDiff:                    "showing output for:",

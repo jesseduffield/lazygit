@@ -17,6 +17,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+s</kbd>: 查看按路径过滤选项
   <kbd>W</kbd>: 打开 diff 菜单
   <kbd>ctrl+e</kbd>: 打开 diff 菜单
+  <kbd>ctrl+t</kbd>: Launch git difftool
   <kbd>@</kbd>: 打开命令日志菜单
   <kbd>}</kbd>: 扩大差异视图中显示的上下文范围
   <kbd>{</kbd>: 缩小差异视图中显示的上下文范围
