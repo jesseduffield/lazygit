@@ -201,5 +201,10 @@ func (gui *Gui) handleResetPatch() error {
 			return err
 		}
 	}
+
+	if err := gui.handleEscapePatchBuildingPanel(); err != nil {
+		return err
+	}
+
 	return gui.refreshCommitFilesContext()
 }

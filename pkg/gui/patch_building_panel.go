@@ -90,6 +90,10 @@ func (gui *Gui) handleToggleSelectionForPatch() error {
 		return err
 	}
 
+	if err := gui.handleRefreshPatchBuildingPanel(-1); err != nil {
+		return err
+	}
+
 	if err := gui.refreshCommitFilesContext(); err != nil {
 		return err
 	}
