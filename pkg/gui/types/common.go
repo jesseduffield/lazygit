@@ -105,6 +105,10 @@ type MenuItem struct {
 	OnPress        func() error
 	// only applies when displayString is used
 	OpensMenu bool
+
+	// if Key is defined it allows the user to press the key to invoke the menu
+	// item, as opposed to having to navigate to it
+	Key Key
 }
 
 type Model struct {

@@ -3,6 +3,7 @@ package context
 import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -79,15 +80,59 @@ func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem) {
 
 // TODO: move into presentation package
 func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]string {
-	return slices.Map(self.menuItems, func(item *types.MenuItem) []string {
-		if item.DisplayStrings != nil {
-			return item.DisplayStrings
-		}
-
-		styledStr := item.DisplayString
-		if item.OpensMenu {
-			styledStr = presentation.OpensMenuStyle(styledStr)
-		}
-		return []string{styledStr}
+	showKeys := slices.Some(self.menuItems, func(item *types.MenuItem) bool {
+		return item.Key != nil
 	})
+
+	return slices.Map(self.menuItems, func(item *types.MenuItem) []string {
+		displayStrings := getItemDisplayStrings(item)
+		if showKeys {
+			displayStrings = slices.Prepend(displayStrings, keybindings.GetKeyDisplay(item.Key))
+		}
+		return displayStrings
+	})
+}
+
+func getItemDisplayStrings(item *types.MenuItem) []string {
+	if item.DisplayStrings != nil {
+		return item.DisplayStrings
+	}
+
+	styledStr := item.DisplayString
+	if item.OpensMenu {
+		styledStr = presentation.OpensMenuStyle(styledStr)
+	}
+	return []string{styledStr}
+}
+
+func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	basicBindings := self.ListContextTrait.GetKeybindings(opts)
+	menuItemsWithKeys := slices.Filter(self.menuItems, func(item *types.MenuItem) bool {
+		return item.Key != nil
+	})
+
+	menuItemBindings := slices.Map(menuItemsWithKeys, func(item *types.MenuItem) *types.Binding {
+		return &types.Binding{
+			Key:     item.Key,
+			Handler: func() error { return self.OnMenuPress(item) },
+		}
+	})
+
+	// appending because that means the menu item bindings have lower precedence.
+	// So if a basic binding is to escape from the menu, we want that to still be
+	// what happens when you press escape. This matters when we're showing the menu
+	// for all keybindings of say the files context.
+	return append(basicBindings, menuItemBindings...)
+}
+
+func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
+	if err := self.c.PopContext(); err != nil {
+		return err
+	}
+
+	if err := selectedItem.OnPress(); err != nil {
+		return err
+	}
+
+	return nil
 }

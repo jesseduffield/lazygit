@@ -49,17 +49,7 @@ func (self *MenuController) GetOnClick() func() error {
 }
 
 func (self *MenuController) press() error {
-	selectedItem := self.context().GetSelected()
-
-	if err := self.c.PopContext(); err != nil {
-		return err
-	}
-
-	if err := selectedItem.OnPress(); err != nil {
-		return err
-	}
-
-	return nil
+	return self.context().OnMenuPress(self.context().GetSelected())
 }
 
 func (self *MenuController) close() error {

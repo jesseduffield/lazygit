@@ -46,6 +46,12 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 
 	gui.State.Contexts.Menu.SetMenuItems(opts.Items)
 	gui.State.Contexts.Menu.SetSelectedLineIdx(0)
+
+	// resetting keybindings so that the menu-specific keybindings are registered
+	if err := gui.resetKeybindings(); err != nil {
+		return err
+	}
+
 	_ = gui.c.PostRefreshUpdate(gui.State.Contexts.Menu)
 
 	// TODO: ensure that if we're opened a menu from within a menu that it renders correctly
