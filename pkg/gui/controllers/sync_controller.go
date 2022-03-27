@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -74,13 +75,8 @@ func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func(
 func (self *SyncController) push(currentBranch *models.Branch) error {
 	// if we have pullables we'll ask if the user wants to force push
 	if currentBranch.IsTrackingRemote() {
-		opts := pushOpts{
-			force:          false,
-			upstreamRemote: currentBranch.UpstreamRemote,
-			upstreamBranch: currentBranch.UpstreamBranch,
-		}
+		opts := pushOpts{}
 		if currentBranch.HasCommitsToPull() {
-			opts.force = true
 			return self.requestToForcePush(opts)
 		} else {
 			return self.pushAux(opts)
@@ -90,21 +86,15 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 			return self.pushAux(pushOpts{setUpstream: true})
 		} else {
 			return self.promptForUpstream(currentBranch, func(upstream string) error {
-				var upstreamBranch, upstreamRemote string
-				split := strings.Split(upstream, " ")
-				if len(split) == 2 {
-					upstreamRemote = split[0]
-					upstreamBranch = split[1]
-				} else {
-					upstreamRemote = upstream
-					upstreamBranch = ""
+				upstreamRemote, upstreamBranch, err := self.parseUpstream(upstream)
+				if err != nil {
+					return self.c.Error(err)
 				}
 
 				return self.pushAux(pushOpts{
-					force:          false,
+					setUpstream:    true,
 					upstreamRemote: upstreamRemote,
 					upstreamBranch: upstreamBranch,
-					setUpstream:    true,
 				})
 			})
 		}
@@ -117,27 +107,46 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
 		return self.promptForUpstream(currentBranch, func(upstream string) error {
-			var upstreamBranch, upstreamRemote string
-			split := strings.Split(upstream, " ")
-			if len(split) != 2 {
-				return self.c.ErrorMsg(self.c.Tr.InvalidUpstream)
+			if err := self.setCurrentBranchUpstream(upstream); err != nil {
+				return self.c.Error(err)
 			}
 
-			upstreamRemote = split[0]
-			upstreamBranch = split[1]
-
-			if err := self.git.Branch.SetCurrentBranchUpstream(upstreamRemote, upstreamBranch); err != nil {
-				errorMessage := err.Error()
-				if strings.Contains(errorMessage, "does not exist") {
-					errorMessage = fmt.Sprintf("upstream branch %s not found.\nIf you expect it to exist, you should fetch (with 'f').\nOtherwise, you should push (with 'shift+P')", upstream)
-				}
-				return self.c.ErrorMsg(errorMessage)
-			}
-			return self.PullAux(PullFilesOptions{UpstreamRemote: upstreamRemote, UpstreamBranch: upstreamBranch, Action: action})
+			return self.PullAux(PullFilesOptions{Action: action})
 		})
 	}
 
-	return self.PullAux(PullFilesOptions{UpstreamRemote: currentBranch.UpstreamRemote, UpstreamBranch: currentBranch.UpstreamBranch, Action: action})
+	return self.PullAux(PullFilesOptions{Action: action})
+}
+
+func (self *SyncController) setCurrentBranchUpstream(upstream string) error {
+	upstreamRemote, upstreamBranch, err := self.parseUpstream(upstream)
+	if err != nil {
+		return err
+	}
+
+	if err := self.git.Branch.SetCurrentBranchUpstream(upstreamRemote, upstreamBranch); err != nil {
+		if strings.Contains(err.Error(), "does not exist") {
+			return fmt.Errorf(
+				"upstream branch %s/%s not found.\nIf you expect it to exist, you should fetch (with 'f').\nOtherwise, you should push (with 'shift+P')",
+				upstreamRemote, upstreamBranch,
+			)
+		}
+		return err
+	}
+	return nil
+}
+
+func (self *SyncController) parseUpstream(upstream string) (string, string, error) {
+	var upstreamBranch, upstreamRemote string
+	split := strings.Split(upstream, " ")
+	if len(split) != 2 {
+		return "", "", errors.New(self.c.Tr.InvalidUpstream)
+	}
+
+	upstreamRemote = split[0]
+	upstreamBranch = split[1]
+
+	return upstreamRemote, upstreamBranch, nil
 }
 
 func (self *SyncController) promptForUpstream(currentBranch *models.Branch, onConfirm func(string) error) error {
@@ -229,6 +238,7 @@ func (self *SyncController) requestToForcePush(opts pushOpts) error {
 		Title:  self.c.Tr.ForcePush,
 		Prompt: self.c.Tr.ForcePushPrompt,
 		HandleConfirm: func() error {
+			opts.force = true
 			return self.pushAux(opts)
 		},
 	})
