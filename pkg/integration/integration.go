@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
@@ -97,11 +98,9 @@ func RunTests(
 
 			speeds := getTestSpeeds(test.Speed, mode, speedEnv)
 			testPath := filepath.Join(testDir, test.Name)
-			actualRepoDir := filepath.Join(testPath, "actual")
-			expectedRepoDir := filepath.Join(testPath, "expected")
-			actualRemoteDir := filepath.Join(testPath, "actual_remote")
-			expectedRemoteDir := filepath.Join(testPath, "expected_remote")
-			otherRepoDir := filepath.Join(testPath, "other_repo")
+			actualDir := filepath.Join(testPath, "actual")
+			expectedDir := filepath.Join(testPath, "expected")
+			actualRepoDir := filepath.Join(actualDir, "repo")
 			logf("path: %s", testPath)
 
 			for i, speed := range speeds {
@@ -110,9 +109,8 @@ func RunTests(
 				}
 
 				findOrCreateDir(testPath)
-				prepareIntegrationTestDir(actualRepoDir)
-				removeDir(otherRepoDir)
-				removeDir(actualRemoteDir)
+				prepareIntegrationTestDir(actualDir)
+				findOrCreateDir(actualRepoDir)
 				err := createFixture(testPath, actualRepoDir)
 				if err != nil {
 					return err
@@ -130,71 +128,65 @@ func RunTests(
 					return err
 				}
 
-				// submodule tests currently make use of a repo called 'other_repo' but we don't want that
-				// to stick around. Long-term we should have an 'actual' folder which itself contains
-				// repos, and there we can put the 'repo' repo which is the main one, alongside
-				// any others that we use as part of the test (including remotes). Then we'll do snapshots for
-				// each of them.
-				removeDir(otherRepoDir)
-
 				if mode == UPDATE_SNAPSHOT || mode == RECORD {
 					// create/update snapshot
-					err = oscommands.CopyDir(actualRepoDir, expectedRepoDir)
+					err = oscommands.CopyDir(actualDir, expectedDir)
 					if err != nil {
 						return err
 					}
 
-					if err := renameGitDirs(expectedRepoDir); err != nil {
+					if err := renameGitDirs(expectedDir); err != nil {
 						return err
-					}
-
-					// see if we have a remote dir and if so, copy it over. Otherwise, delete the expected dir because we have no remote folder.
-					if folderExists(actualRemoteDir) {
-						err = oscommands.CopyDir(actualRemoteDir, expectedRemoteDir)
-						if err != nil {
-							return err
-						}
-					} else {
-						removeDir(expectedRemoteDir)
 					}
 
 					logf("%s", "updated snapshot")
 				} else {
-					// compare result to snapshot
-					actualRepo, expectedRepo, err := generateSnapshots(actualRepoDir, expectedRepoDir)
+					if err := validateSameRepos(expectedDir, actualDir); err != nil {
+						return err
+					}
+
+					// iterate through each repo in the expected dir and comparet to the corresponding repo in the actual dir
+					expectedFiles, err := ioutil.ReadDir(expectedDir)
 					if err != nil {
 						return err
 					}
 
-					actualRemote := "remote folder does not exist"
-					expectedRemote := "remote folder does not exist"
-					if folderExists(expectedRemoteDir) {
-						actualRemote, expectedRemote, err = generateSnapshotsForRemote(actualRemoteDir, expectedRemoteDir)
+					success := true
+					for _, f := range expectedFiles {
+						if !f.IsDir() {
+							return errors.New("unexpected file (as opposed to directory) in integration test 'expected' directory")
+						}
+
+						// get corresponding file name from actual dir
+						actualRepoPath := filepath.Join(actualDir, f.Name())
+						expectedRepoPath := filepath.Join(expectedDir, f.Name())
+
+						actualRepo, expectedRepo, err := generateSnapshots(actualRepoPath, expectedRepoPath)
 						if err != nil {
 							return err
 						}
-					} else if folderExists(actualRemoteDir) {
-						actualRemote = "remote folder exists"
+
+						if expectedRepo != actualRepo {
+							success = false
+							// if the snapshot doesn't match and we haven't tried all playback speeds different we'll retry at a slower speed
+							if i < len(speeds)-1 {
+								break
+							}
+
+							// get the log file and print it
+							bytes, err := ioutil.ReadFile(filepath.Join(configDir, "development.log"))
+							if err != nil {
+								return err
+							}
+							logf("%s", string(bytes))
+
+							onFail(t, expectedRepo, actualRepo, f.Name())
+						}
 					}
 
-					if expectedRepo == actualRepo && expectedRemote == actualRemote {
+					if success {
 						logf("%s: success at speed %f\n", test.Name, speed)
 						break
-					}
-
-					// if the snapshot doesn't match and we haven't tried all playback speeds different we'll retry at a slower speed
-					if i == len(speeds)-1 {
-						// get the log file and print that
-						bytes, err := ioutil.ReadFile(filepath.Join(configDir, "development.log"))
-						if err != nil {
-							return err
-						}
-						logf("%s", string(bytes))
-						if expectedRepo != actualRepo {
-							onFail(t, expectedRepo, actualRepo, "repo")
-						} else {
-							onFail(t, expectedRemote, actualRemote, "remote")
-						}
 					}
 				}
 			}
@@ -206,11 +198,31 @@ func RunTests(
 	return nil
 }
 
-func removeDir(dir string) {
-	err := os.RemoveAll(dir)
+// validates that the actual and expected dirs have the same repo names (doesn't actually check the contents of the repos)
+func validateSameRepos(expectedDir string, actualDir string) error {
+	// iterate through each repo in the expected dir and comparet to the corresponding repo in the actual dir
+	expectedFiles, err := ioutil.ReadDir(expectedDir)
 	if err != nil {
-		panic(err)
+		return err
 	}
+
+	var actualFiles []os.FileInfo
+	actualFiles, err = ioutil.ReadDir(actualDir)
+	if err != nil {
+		return err
+	}
+
+	expectedFileNames := slices.Map(expectedFiles, getFileName)
+	actualFileNames := slices.Map(actualFiles, getFileName)
+	if !slices.Equal(expectedFileNames, actualFileNames) {
+		return fmt.Errorf("expected and actual repo dirs do not match: expected: %s, actual: %s", expectedFileNames, actualFileNames)
+	}
+
+	return nil
+}
+
+func getFileName(f os.FileInfo) string {
+	return f.Name()
 }
 
 func prepareIntegrationTestDir(actualDir string) {
@@ -357,7 +369,9 @@ func generateSnapshot(dir string) (string, error) {
 	snapshot := ""
 
 	cmdStrs := []string{
-		`remote show -n origin`,          // remote branches
+		`remote show -n origin`, // remote branches
+		// TOOD: find a way to bring this back without breaking tests
+		// `ls-remote origin`,
 		`status`,                         // file tree
 		`log --pretty=%B -p -1`,          // log
 		`tag -n`,                         // tags
@@ -493,26 +507,12 @@ func restoreGitDirs(dir string) error {
 	return nil
 }
 
-func generateSnapshotsForRemote(actualDir string, expectedDir string) (string, string, error) {
-	actual, err := generateSnapshot(actualDir)
-	if err != nil {
-		return "", "", err
-	}
-
-	expected, err := generateSnapshot(expectedDir)
-	if err != nil {
-		return "", "", err
-	}
-
-	return actual, expected, nil
-}
-
 func getLazygitCommand(testPath string, rootDir string, mode Mode, speed float64, extraCmdArgs string) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	replayPath := filepath.Join(testPath, "recording.json")
 	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")
-	actualDir := filepath.Join(testPath, "actual")
+	actualRepoDir := filepath.Join(testPath, "actual", "repo")
 
 	exists, err := osCommand.FileExists(filepath.Join(testPath, "config"))
 	if err != nil {
@@ -534,7 +534,7 @@ func getLazygitCommand(testPath string, rootDir string, mode Mode, speed float64
 		return nil, err
 	}
 
-	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s %s", tempLazygitPath(), configDir, actualDir, extraCmdArgs)
+	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s %s", tempLazygitPath(), configDir, actualRepoDir, extraCmdArgs)
 
 	cmdObj := osCommand.Cmd.New(cmdStr)
 	cmdObj.AddEnvVars(fmt.Sprintf("SPEED=%f", speed))
@@ -547,9 +547,4 @@ func getLazygitCommand(testPath string, rootDir string, mode Mode, speed float64
 	}
 
 	return cmdObj.GetCmd(), nil
-}
-
-func folderExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
 }

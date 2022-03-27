@@ -1,7 +1,0 @@
-0000000000000000000000000000000000000000 f0e8e7922de77a5ab20b924640c8b8435bae0b0b CI <CI@example.com> 1634896911 +1100	commit (initial): myfile1
-f0e8e7922de77a5ab20b924640c8b8435bae0b0b ddf4b7fe8f45d07a181c2b57cc3434c982d3f4aa CI <CI@example.com> 1634896911 +1100	commit: myfile2
-ddf4b7fe8f45d07a181c2b57cc3434c982d3f4aa 80f8aed01cdb61f9e94c6a53c39f400dfbcf05c9 CI <CI@example.com> 1634896911 +1100	commit: myfile3
-80f8aed01cdb61f9e94c6a53c39f400dfbcf05c9 38699899bb94dfae74e3e55cf5bd6d92e6f3292a CI <CI@example.com> 1634896911 +1100	commit: myfile4
-38699899bb94dfae74e3e55cf5bd6d92e6f3292a ddf4b7fe8f45d07a181c2b57cc3434c982d3f4aa CI <CI@example.com> 1634896911 +1100	reset: moving to head^^
-ddf4b7fe8f45d07a181c2b57cc3434c982d3f4aa 7dba68a0030313e27b8dd5da2076952629485f2d CI <CI@example.com> 1634896911 +1100	commit: myfile4 conflict
-7dba68a0030313e27b8dd5da2076952629485f2d 720c7e2dd34822d33cb24a0a3f0f4bdabf433500 CI <CI@example.com> 1634896916 +1100	commit (merge): Merge branch 'master' of ../actual_remote

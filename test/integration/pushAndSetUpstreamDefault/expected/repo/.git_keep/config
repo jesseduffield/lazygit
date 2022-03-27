@@ -1,0 +1,18 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+[user]
+	email = CI@example.com
+	name = CI
+[remote "origin"]
+	url = ../origin
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[push]
+	default = current
+[branch "test"]
+	remote = origin
+	merge = refs/heads/test

@@ -1,0 +1,14 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+	worktree = ../../../other_repo
+[remote "origin"]
+	url = /Users/jesseduffieldduffield/go/src/github.com/jesseduffield/lazygit/test/integration/submoduleEnter/actual/other_repo
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
