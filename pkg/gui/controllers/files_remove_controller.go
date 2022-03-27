@@ -51,6 +51,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 					}
 					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 				},
+				Key: 'd',
 			},
 		}
 
@@ -65,6 +66,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 
 					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 				},
+				Key: 'u',
 			})
 		}
 	} else {
@@ -93,6 +95,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 						}
 						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 					},
+					Key: 'd',
 				},
 			}
 
@@ -107,6 +110,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 
 						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 					},
+					Key: 'u',
 				})
 			}
 		}

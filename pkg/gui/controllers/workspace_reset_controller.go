@@ -31,6 +31,7 @@ func (self *FilesController) createResetMenu() error {
 
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
+			Key: 'D',
 		},
 		{
 			DisplayStrings: []string{
@@ -45,6 +46,7 @@ func (self *FilesController) createResetMenu() error {
 
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
+			Key: 'u',
 		},
 		{
 			DisplayStrings: []string{
@@ -59,6 +61,7 @@ func (self *FilesController) createResetMenu() error {
 
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
+			Key: 'c',
 		},
 		{
 			DisplayStrings: []string{
@@ -73,6 +76,7 @@ func (self *FilesController) createResetMenu() error {
 
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
+			Key: 's',
 		},
 		{
 			DisplayStrings: []string{
@@ -87,6 +91,7 @@ func (self *FilesController) createResetMenu() error {
 
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
+			Key: 'm',
 		},
 		{
 			DisplayStrings: []string{
@@ -101,6 +106,7 @@ func (self *FilesController) createResetMenu() error {
 
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
+			Key: 'h',
 		},
 	}
 

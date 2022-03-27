@@ -134,17 +134,27 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 }
 
 func (self *RefsHelper) CreateGitResetMenu(ref string) error {
-	strengths := []string{"soft", "mixed", "hard"}
-	menuItems := slices.Map(strengths, func(strength string) *types.MenuItem {
+	type strengthWithKey struct {
+		strength string
+		key      types.Key
+	}
+	strengths := []strengthWithKey{
+		{strength: "soft", key: 's'},
+		{strength: "mixed", key: 'm'},
+		{strength: "hard", key: 'h'},
+	}
+
+	menuItems := slices.Map(strengths, func(row strengthWithKey) *types.MenuItem {
 		return &types.MenuItem{
 			DisplayStrings: []string{
-				fmt.Sprintf("%s reset", strength),
-				style.FgRed.Sprintf("reset --%s %s", strength, ref),
+				fmt.Sprintf("%s reset", row.strength),
+				style.FgRed.Sprintf("reset --%s %s", row.strength, ref),
 			},
 			OnPress: func() error {
 				self.c.LogAction("Reset")
-				return self.ResetToRef(ref, strength, []string{})
+				return self.ResetToRef(ref, row.strength, []string{})
 			},
+			Key: row.key,
 		}
 	})
 

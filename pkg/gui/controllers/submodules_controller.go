@@ -158,6 +158,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 					})
 				},
+				Key: 'i',
 			},
 			{
 				DisplayStrings: []string{self.c.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(self.git.Submodule.BulkUpdateCmdObj().ToString())},
@@ -171,6 +172,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 					})
 				},
+				Key: 'u',
 			},
 			{
 				DisplayStrings: []string{self.c.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(self.git.Submodule.BulkDeinitCmdObj().ToString())},
@@ -184,6 +186,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 						return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES}})
 					})
 				},
+				Key: 'd',
 			},
 		},
 	})
