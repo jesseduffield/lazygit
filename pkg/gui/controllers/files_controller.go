@@ -562,6 +562,7 @@ func (self *FilesController) createStashMenu() error {
 					self.c.LogAction(self.c.Tr.Actions.StashAllChanges)
 					return self.handleStashSave(self.git.Stash.Save)
 				},
+				Key: 's',
 			},
 			{
 				DisplayString: self.c.Tr.LcStashStagedChanges,
@@ -569,6 +570,7 @@ func (self *FilesController) createStashMenu() error {
 					self.c.LogAction(self.c.Tr.Actions.StashStagedChanges)
 					return self.handleStashSave(self.git.Stash.SaveStagedChanges)
 				},
+				Key: 'S',
 			},
 		},
 	})

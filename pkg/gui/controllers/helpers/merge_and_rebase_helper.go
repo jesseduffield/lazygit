@@ -46,18 +46,29 @@ const (
 )
 
 func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
-	options := []string{REBASE_OPTION_CONTINUE, REBASE_OPTION_ABORT}
-
-	if self.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-		options = append(options, REBASE_OPTION_SKIP)
+	type optionAndKey struct {
+		option string
+		key    types.Key
 	}
 
-	menuItems := slices.Map(options, func(option string) *types.MenuItem {
+	options := []optionAndKey{
+		{option: REBASE_OPTION_CONTINUE, key: 'c'},
+		{option: REBASE_OPTION_ABORT, key: 'a'},
+	}
+
+	if self.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+		options = append(options, optionAndKey{
+			option: REBASE_OPTION_SKIP, key: 's',
+		})
+	}
+
+	menuItems := slices.Map(options, func(row optionAndKey) *types.MenuItem {
 		return &types.MenuItem{
-			DisplayString: option,
+			DisplayString: row.option,
 			OnPress: func() error {
-				return self.genericMergeCommand(option)
+				return self.genericMergeCommand(row.option)
 			},
+			Key: row.key,
 		}
 	})
 

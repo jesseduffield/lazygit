@@ -72,18 +72,22 @@ func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) er
 			{
 				DisplayString: "start feature",
 				OnPress:       startHandler("feature"),
+				Key:           'f',
 			},
 			{
 				DisplayString: "start hotfix",
 				OnPress:       startHandler("hotfix"),
+				Key:           'h',
 			},
 			{
 				DisplayString: "start bugfix",
 				OnPress:       startHandler("bugfix"),
+				Key:           'b',
 			},
 			{
 				DisplayString: "start release",
 				OnPress:       startHandler("release"),
+				Key:           'r',
 			},
 		},
 	})

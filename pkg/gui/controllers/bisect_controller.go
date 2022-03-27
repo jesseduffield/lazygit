@@ -76,6 +76,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
+			Key: 'b',
 		},
 		{
 			DisplayString: fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortSha(), info.OldTerm()),
@@ -87,6 +88,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
+			Key: 'g',
 		},
 		{
 			DisplayString: fmt.Sprintf(self.c.Tr.Bisect.Skip, commit.ShortSha()),
@@ -98,12 +100,14 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
+			Key: 's',
 		},
 		{
 			DisplayString: self.c.Tr.Bisect.ResetOption,
 			OnPress: func() error {
 				return self.helpers.Bisect.Reset()
 			},
+			Key: 'r',
 		},
 	}
 
@@ -131,6 +135,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 
 					return self.helpers.Bisect.PostBisectCommandRefresh()
 				},
+				Key: 'b',
 			},
 			{
 				DisplayString: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.OldTerm()),
@@ -146,6 +151,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 
 					return self.helpers.Bisect.PostBisectCommandRefresh()
 				},
+				Key: 'g',
 			},
 		},
 	})

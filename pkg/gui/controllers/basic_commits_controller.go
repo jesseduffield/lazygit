@@ -103,24 +103,28 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 				OnPress: func() error {
 					return self.copyCommitSHAToClipboard(commit)
 				},
+				Key: 's',
 			},
 			{
 				DisplayString: self.c.Tr.LcCommitURL,
 				OnPress: func() error {
 					return self.copyCommitURLToClipboard(commit)
 				},
+				Key: 'u',
 			},
 			{
 				DisplayString: self.c.Tr.LcCommitDiff,
 				OnPress: func() error {
 					return self.copyCommitDiffToClipboard(commit)
 				},
+				Key: 'd',
 			},
 			{
 				DisplayString: self.c.Tr.LcCommitMessage,
 				OnPress: func() error {
 					return self.copyCommitMessageToClipboard(commit)
 				},
+				Key: 'm',
 			},
 		},
 	})
