@@ -559,16 +559,14 @@ func (self *FilesController) createStashMenu() error {
 			{
 				DisplayString: self.c.Tr.LcStashAllChanges,
 				OnPress: func() error {
-					self.c.LogAction(self.c.Tr.Actions.StashAllChanges)
-					return self.handleStashSave(self.git.Stash.Save)
+					return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges)
 				},
 				Key: 's',
 			},
 			{
 				DisplayString: self.c.Tr.LcStashStagedChanges,
 				OnPress: func() error {
-					self.c.LogAction(self.c.Tr.Actions.StashStagedChanges)
-					return self.handleStashSave(self.git.Stash.SaveStagedChanges)
+					return self.handleStashSave(self.git.Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
 				},
 				Key: 'S',
 			},
@@ -577,7 +575,7 @@ func (self *FilesController) createStashMenu() error {
 }
 
 func (self *FilesController) stash() error {
-	return self.handleStashSave(self.git.Stash.Save)
+	return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges)
 }
 
 func (self *FilesController) createResetToUpstreamMenu() error {
@@ -605,7 +603,7 @@ func (self *FilesController) toggleTreeView() error {
 	return self.c.PostRefreshUpdate(self.context())
 }
 
-func (self *FilesController) handleStashSave(stashFunc func(message string) error) error {
+func (self *FilesController) handleStashSave(stashFunc func(message string) error, action string) error {
 	if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
 		return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
 	}
@@ -613,6 +611,8 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 	return self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.StashChanges,
 		HandleConfirm: func(stashComment string) error {
+			self.c.LogAction(action)
+
 			if err := stashFunc(stashComment); err != nil {
 				return self.c.Error(err)
 			}
