@@ -226,6 +226,9 @@ func (self *cmdObjRunner) runAndStreamAux(
 		return err
 	}
 
+	var stdout bytes.Buffer
+	handler.stdoutPipe = io.TeeReader(handler.stdoutPipe, &stdout)
+
 	defer func() {
 		if closeErr := handler.close(); closeErr != nil {
 			self.log.Error(closeErr)
@@ -237,10 +240,14 @@ func (self *cmdObjRunner) runAndStreamAux(
 	err = cmd.Wait()
 	if err != nil {
 		errStr := stderr.String()
-		if cmdObj.ShouldIgnoreEmptyError() && errStr == "" {
+		if errStr != "" {
+			return errors.New(errStr)
+		}
+
+		if cmdObj.ShouldIgnoreEmptyError() {
 			return nil
 		}
-		return errors.New(stderr.String())
+		return errors.New(stdout.String())
 	}
 
 	return nil
