@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -22,7 +23,7 @@ func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 	bindings = append(customBindings, bindings...)
 
 	for _, binding := range bindings {
-		if GetKeyDisplay(binding.Key) != "" && binding.Description != "" {
+		if keybindings.GetKeyDisplay(binding.Key) != "" && binding.Description != "" {
 			if len(binding.Contexts) == 0 && binding.ViewName == "" {
 				bindingsGlobal = append(bindingsGlobal, binding)
 			} else if binding.Tag == "navigation" {
@@ -65,17 +66,15 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 
 	menuItems := slices.Map(bindings, func(binding *types.Binding) *types.MenuItem {
 		return &types.MenuItem{
-			DisplayStrings: []string{GetKeyDisplay(binding.Key), gui.displayDescription(binding)},
+			DisplayString: gui.displayDescription(binding),
 			OnPress: func() error {
 				if binding.Key == nil {
 					return nil
 				}
 
-				if err := gui.c.PopContext(); err != nil {
-					return err
-				}
 				return binding.Handler()
 			},
+			Key: binding.Key,
 		}
 	})
 

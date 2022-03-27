@@ -17,7 +17,7 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/integration"
@@ -135,7 +135,7 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 		bindingsByHeader,
 		func(header header, hBindings []*types.Binding) headerWithBindings {
 			uniqBindings := lo.UniqBy(hBindings, func(binding *types.Binding) string {
-				return binding.Description + gui.GetKeyDisplay(binding.Key)
+				return binding.Description + keybindings.GetKeyDisplay(binding.Key)
 			})
 
 			return headerWithBindings{
@@ -203,10 +203,10 @@ func formatBinding(binding *types.Binding) string {
 	if binding.Alternative != "" {
 		return fmt.Sprintf(
 			"  <kbd>%s</kbd>: %s (%s)\n",
-			gui.GetKeyDisplay(binding.Key),
+			keybindings.GetKeyDisplay(binding.Key),
 			binding.Description,
 			binding.Alternative,
 		)
 	}
-	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", gui.GetKeyDisplay(binding.Key), binding.Description)
+	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", keybindings.GetKeyDisplay(binding.Key), binding.Description)
 }
