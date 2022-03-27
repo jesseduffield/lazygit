@@ -5,6 +5,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -87,7 +88,7 @@ func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]str
 	return slices.Map(self.menuItems, func(item *types.MenuItem) []string {
 		displayStrings := getItemDisplayStrings(item)
 		if showKeys {
-			displayStrings = slices.Prepend(displayStrings, keybindings.GetKeyDisplay(item.Key))
+			displayStrings = slices.Prepend(displayStrings, style.FgYellow.Sprint(keybindings.GetKeyDisplay(item.Key)))
 		}
 		return displayStrings
 	})
