@@ -972,7 +972,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		mouseKeybindings = append(mouseKeybindings, c.GetMouseKeybindings(opts)...)
 	}
 
-	for _, viewName := range []string{"status", "branches", "remoteBranches", "files", "commits", "commitFiles", "subCommits", "stash", "menu"} {
+	for _, viewName := range []string{"status", "branches", "remoteBranches", "files", "commits", "commitFiles", "subCommits", "stash"} {
 		bindings = append(bindings, []*types.Binding{
 			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.PrevBlock), Modifier: gocui.ModNone, Handler: self.previousSideWindow},
 			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.NextBlock), Modifier: gocui.ModNone, Handler: self.nextSideWindow},
