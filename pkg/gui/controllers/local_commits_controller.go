@@ -91,16 +91,6 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.LcMoveUpCommit,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.AmendToCommit),
-			Handler:     self.checkSelected(self.amendTo),
-			Description: self.c.Tr.LcAmendToCommit,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Commits.RevertCommit),
-			Handler:     self.checkSelected(self.revert),
-			Description: self.c.Tr.LcRevertCommit,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Commits.PasteCommits),
 			Handler:     opts.Guards.OutsideFilterMode(self.paste),
 			Description: self.c.Tr.LcPasteCommits,
@@ -127,15 +117,25 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 
 	bindings := append(outsideFilterModeBindings, []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Commits.OpenLogMenu),
-			Handler:     self.handleOpenLogMenu,
-			Description: self.c.Tr.LcOpenLogMenu,
-			OpensMenu:   true,
+			Key:         opts.GetKey(opts.Config.Commits.AmendToCommit),
+			Handler:     self.checkSelected(self.amendTo),
+			Description: self.c.Tr.LcAmendToCommit,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Commits.RevertCommit),
+			Handler:     self.checkSelected(self.revert),
+			Description: self.c.Tr.LcRevertCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.TagCommit),
 			Handler:     self.checkSelected(self.createTag),
 			Description: self.c.Tr.LcTagCommit,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Commits.OpenLogMenu),
+			Handler:     self.handleOpenLogMenu,
+			Description: self.c.Tr.LcOpenLogMenu,
+			OpensMenu:   true,
 		},
 	}...)
 
