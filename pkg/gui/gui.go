@@ -898,10 +898,7 @@ func (gui *Gui) startBackgroundFetch() {
 	}
 	err := gui.backgroundFetch()
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = gui.c.Confirm(types.ConfirmOpts{
-			Title:  gui.c.Tr.NoAutomaticGitFetchTitle,
-			Prompt: gui.c.Tr.NoAutomaticGitFetchBody,
-		})
+		_ = gui.c.Alert(gui.c.Tr.NoAutomaticGitFetchTitle, gui.c.Tr.NoAutomaticGitFetchBody)
 	} else {
 		gui.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), gui.stopChan, func() error {
 			err := gui.backgroundFetch()
