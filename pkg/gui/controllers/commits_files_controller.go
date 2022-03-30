@@ -124,7 +124,7 @@ func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error 
 		return err
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardFileChangesTitle,
 		Prompt: self.c.Tr.DiscardFileChangesPrompt,
 		HandleConfirm: func() error {
@@ -189,7 +189,7 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 	}
 
 	if self.git.Patch.PatchManager.Active() && self.git.Patch.PatchManager.To != self.context().GetRefName() {
-		return self.c.Ask(types.AskOpts{
+		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {
@@ -240,7 +240,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 	}
 
 	if self.git.Patch.PatchManager.Active() && self.git.Patch.PatchManager.To != self.context().GetRefName() {
-		return self.c.Ask(types.AskOpts{
+		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {

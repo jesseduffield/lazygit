@@ -168,7 +168,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateShas []string) 
 		return self.c.Error(err)
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Bisect.CompleteTitle,
 		Prompt: fmt.Sprintf(prompt, strings.TrimSpace(formattedCommits)),
 		HandleConfirm: func() error {

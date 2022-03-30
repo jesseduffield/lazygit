@@ -148,7 +148,7 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
 		// assume in this case that we're already done
 		return nil
 	} else if isMergeConflictErr(result.Error()) {
-		return self.c.Ask(types.AskOpts{
+		return self.c.Confirm(types.ConfirmOpts{
 			Title:               self.c.Tr.FoundConflictsTitle,
 			Prompt:              self.c.Tr.FoundConflicts,
 			HandlersManageFocus: true,
@@ -171,7 +171,7 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
 func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {
 	// prompt user to confirm that they want to abort, then do it
 	mode := self.workingTreeStateNoun()
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  fmt.Sprintf(self.c.Tr.AbortTitle, mode),
 		Prompt: fmt.Sprintf(self.c.Tr.AbortPrompt, mode),
 		HandleConfirm: func() error {
@@ -196,7 +196,7 @@ func (self *MergeAndRebaseHelper) workingTreeStateNoun() string {
 func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 	self.takeOverMergeConflictScrolling()
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  "continue",
 		Prompt: self.c.Tr.ConflictsResolved,
 		HandleConfirm: func() error {
@@ -218,7 +218,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 		},
 	)
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.RebasingTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
@@ -245,7 +245,7 @@ func (self *MergeAndRebaseHelper) MergeRefIntoCheckedOutBranch(refName string) e
 		},
 	)
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.MergeConfirmTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {

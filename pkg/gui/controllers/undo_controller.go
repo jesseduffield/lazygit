@@ -85,7 +85,7 @@ func (self *UndoController) reflogUndo() error {
 
 		switch action.kind {
 		case COMMIT, REBASE:
-			return true, self.c.Ask(types.AskOpts{
+			return true, self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Undo,
 				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.from),
 				HandleConfirm: func() error {
@@ -97,7 +97,7 @@ func (self *UndoController) reflogUndo() error {
 				},
 			})
 		case CHECKOUT:
-			return true, self.c.Ask(types.AskOpts{
+			return true, self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Undo,
 				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.from),
 				HandleConfirm: func() error {
@@ -136,7 +136,7 @@ func (self *UndoController) reflogRedo() error {
 
 		switch action.kind {
 		case COMMIT, REBASE:
-			return true, self.c.Ask(types.AskOpts{
+			return true, self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Redo,
 				Prompt: fmt.Sprintf(self.c.Tr.HardResetAutostashPrompt, action.to),
 				HandleConfirm: func() error {
@@ -149,7 +149,7 @@ func (self *UndoController) reflogRedo() error {
 			})
 
 		case CHECKOUT:
-			return true, self.c.Ask(types.AskOpts{
+			return true, self.c.Confirm(types.ConfirmOpts{
 				Title:  self.c.Tr.Actions.Redo,
 				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.to),
 				HandleConfirm: func() error {
@@ -241,7 +241,7 @@ func (self *UndoController) hardResetWithAutoStash(commitSha string, options har
 	dirtyWorkingTree := self.helpers.WorkingTree.IsWorkingTreeDirty()
 	if dirtyWorkingTree {
 		// offer to autostash changes
-		return self.c.Ask(types.AskOpts{
+		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.AutoStashTitle,
 			Prompt: self.c.Tr.AutoStashPrompt,
 			HandleConfirm: func() error {

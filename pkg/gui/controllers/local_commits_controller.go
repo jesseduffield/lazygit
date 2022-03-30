@@ -155,7 +155,7 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 		return nil
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Squash,
 		Prompt: self.c.Tr.SureSquashThisCommit,
 		HandleConfirm: func() error {
@@ -180,7 +180,7 @@ func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 		return nil
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Fixup,
 		Prompt: self.c.Tr.SureFixupThisCommit,
 		HandleConfirm: func() error {
@@ -230,7 +230,7 @@ func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
 		return nil
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.RewordInEditorTitle,
 		Prompt: self.c.Tr.RewordInEditorPrompt,
 		HandleConfirm: func() error {
@@ -259,7 +259,7 @@ func (self *LocalCommitsController) drop(commit *models.Commit) error {
 		return nil
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DeleteCommitTitle,
 		Prompt: self.c.Tr.DeleteCommitPrompt,
 		HandleConfirm: func() error {
@@ -405,7 +405,7 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
 		HandleConfirm: func() error {
@@ -422,7 +422,7 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 	if commit.IsMerge() {
 		return self.createRevertMergeCommitMenu(commit)
 	} else {
-		return self.c.Ask(types.AskOpts{
+		return self.c.Confirm(types.ConfirmOpts{
 			Title: self.c.Tr.Actions.RevertCommit,
 			Prompt: utils.ResolvePlaceholderString(
 				self.c.Tr.ConfirmRevertCommit,
@@ -480,7 +480,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 		},
 	)
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.CreateFixupCommit,
 		Prompt: prompt,
 		HandleConfirm: func() error {
@@ -500,7 +500,7 @@ func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Co
 		map[string]string{"commit": commit.Sha},
 	)
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.SquashAboveCommits,
 		Prompt: prompt,
 		HandleConfirm: func() error {

@@ -48,13 +48,18 @@ type IGuiCommon interface {
 }
 
 type IPopupHandler interface {
+	// Shows a popup with a (localized) "Error" caption and the given error message (in red).
+	//
+	// This is a convenience wrapper around Alert().
 	ErrorMsg(message string) error
 	Error(err error) error
 	// Shows a notification popup with the given title and message to the user.
 	//
-	// This is a convenience wrapper around Ask(), thus the popup can be closed using both 'Enter' and 'ESC'.
+	// This is a convenience wrapper around Confirm(), thus the popup can be closed using both 'Enter' and 'ESC'.
 	Alert(title string, message string) error
-	Ask(opts AskOpts) error
+	// Shows a popup asking the user for confirmation.
+	Confirm(opts ConfirmOpts) error
+	// Shows a popup prompting the user for input.
 	Prompt(opts PromptOpts) error
 	WithLoaderPanel(message string, f func() error) error
 	WithWaitingStatus(message string, f func() error) error
@@ -85,7 +90,7 @@ type CreatePopupPanelOpts struct {
 	Mask                bool
 }
 
-type AskOpts struct {
+type ConfirmOpts struct {
 	Title               string
 	Prompt              string
 	HandleConfirm       func() error

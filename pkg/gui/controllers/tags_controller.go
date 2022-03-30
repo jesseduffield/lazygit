@@ -72,7 +72,7 @@ func (self *TagsController) delete(tag *models.Tag) error {
 		},
 	)
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DeleteTagTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {

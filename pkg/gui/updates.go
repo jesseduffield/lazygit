@@ -13,7 +13,7 @@ func (gui *Gui) showUpdatePrompt(newVersion string) error {
 		},
 	)
 
-	return gui.c.Ask(types.AskOpts{
+	return gui.c.Confirm(types.ConfirmOpts{
 		Title:  gui.Tr.UpdateAvailableTitle,
 		Prompt: message,
 		HandleConfirm: func() error {
@@ -75,7 +75,7 @@ func (gui *Gui) onUpdateFinish(statusId int, err error) error {
 }
 
 func (gui *Gui) createUpdateQuitConfirmation() error {
-	return gui.c.Ask(types.AskOpts{
+	return gui.c.Confirm(types.ConfirmOpts{
 		Title:  gui.Tr.ConfirmQuitDuringUpdateTitle,
 		Prompt: gui.Tr.ConfirmQuitDuringUpdate,
 		HandleConfirm: func() error {

@@ -210,7 +210,7 @@ func (self *SyncController) pushAux(opts pushOpts) error {
 					_ = self.c.ErrorMsg(self.c.Tr.UpdatesRejectedAndForcePushDisabled)
 					return nil
 				}
-				_ = self.c.Ask(types.AskOpts{
+				_ = self.c.Confirm(types.ConfirmOpts{
 					Title:  self.c.Tr.ForcePush,
 					Prompt: self.c.Tr.ForcePushPrompt,
 					HandleConfirm: func() error {
@@ -234,7 +234,7 @@ func (self *SyncController) requestToForcePush(opts pushOpts) error {
 		return self.c.ErrorMsg(self.c.Tr.ForcePushDisabled)
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.ForcePush,
 		Prompt: self.c.Tr.ForcePushPrompt,
 		HandleConfirm: func() error {
