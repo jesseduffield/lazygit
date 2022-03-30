@@ -99,7 +99,7 @@ func (self *RemoteBranchesController) escape() error {
 func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch) error {
 	message := fmt.Sprintf("%s '%s'?", self.c.Tr.DeleteRemoteBranchMessage, selectedBranch.FullName())
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DeleteRemoteBranch,
 		Prompt: message,
 		HandleConfirm: func() error {
@@ -139,7 +139,7 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 		},
 	)
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.SetUpstreamTitle,
 		Prompt: message,
 		HandleConfirm: func() error {

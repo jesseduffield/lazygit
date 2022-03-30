@@ -61,7 +61,7 @@ func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfi
 }
 
 func (self *WorkingTreeHelper) OpenMergeTool() error {
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.MergeToolTitle,
 		Prompt: self.c.Tr.MergeToolPrompt,
 		HandleConfirm: func() error {

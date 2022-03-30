@@ -208,7 +208,7 @@ func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error
 }
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.LcCheckoutCommit,
 		Prompt: self.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {

@@ -113,7 +113,7 @@ func (gui *Gui) handleResetSelection() error {
 		}
 
 		if !gui.c.UserConfig.Gui.SkipUnstageLineWarning {
-			return gui.c.Ask(types.AskOpts{
+			return gui.c.Confirm(types.ConfirmOpts{
 				Title:  gui.c.Tr.UnstageLinesTitle,
 				Prompt: gui.c.Tr.UnstageLinesPrompt,
 				HandleConfirm: func() error {

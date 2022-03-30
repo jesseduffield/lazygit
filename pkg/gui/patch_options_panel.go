@@ -149,7 +149,7 @@ func (gui *Gui) handleMovePatchIntoWorkingTree() error {
 	}
 
 	if gui.helpers.WorkingTree.IsWorkingTreeDirty() {
-		return gui.c.Ask(types.AskOpts{
+		return gui.c.Confirm(types.ConfirmOpts{
 			Title:  gui.c.Tr.MustStashTitle,
 			Prompt: gui.c.Tr.MustStashWarning,
 			HandleConfirm: func() error {

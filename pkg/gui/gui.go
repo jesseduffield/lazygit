@@ -863,7 +863,7 @@ func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 		return gui.c.SaveAppState()
 	}
 
-	return gui.c.Ask(types.AskOpts{
+	return gui.c.Confirm(types.ConfirmOpts{
 		Title:         "",
 		Prompt:        gui.c.Tr.IntroPopupMessage,
 		HandleConfirm: onConfirm,
@@ -898,7 +898,7 @@ func (gui *Gui) startBackgroundFetch() {
 	}
 	err := gui.backgroundFetch()
 	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = gui.c.Ask(types.AskOpts{
+		_ = gui.c.Confirm(types.ConfirmOpts{
 			Title:  gui.c.Tr.NoAutomaticGitFetchTitle,
 			Prompt: gui.c.Tr.NoAutomaticGitFetchBody,
 		})

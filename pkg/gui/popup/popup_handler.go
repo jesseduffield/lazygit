@@ -79,17 +79,14 @@ func (self *RealPopupHandler) ErrorMsg(message string) error {
 		return err
 	}
 
-	return self.Ask(types.AskOpts{
-		Title:  self.Tr.Error,
-		Prompt: coloredMessage,
-	})
+	return self.Alert(self.Tr.Error, coloredMessage)
 }
 
 func (self *RealPopupHandler) Alert(title string, message string) error {
-	return self.Ask(types.AskOpts{Title: title, Prompt: message})
+	return self.Confirm(types.ConfirmOpts{Title: title, Prompt: message})
 }
 
-func (self *RealPopupHandler) Ask(opts types.AskOpts) error {
+func (self *RealPopupHandler) Confirm(opts types.ConfirmOpts) error {
 	self.Lock()
 	self.index++
 	self.Unlock()
@@ -158,7 +155,7 @@ func (self *RealPopupHandler) GetPromptInput() string {
 
 type TestPopupHandler struct {
 	OnErrorMsg func(message string) error
-	OnAsk      func(opts types.AskOpts) error
+	OnConfirm  func(opts types.ConfirmOpts) error
 	OnPrompt   func(opts types.PromptOpts) error
 }
 
@@ -176,8 +173,8 @@ func (self *TestPopupHandler) Alert(title string, message string) error {
 	panic("not yet implemented")
 }
 
-func (self *TestPopupHandler) Ask(opts types.AskOpts) error {
-	return self.OnAsk(opts)
+func (self *TestPopupHandler) Confirm(opts types.ConfirmOpts) error {
+	return self.Confirm(opts)
 }
 
 func (self *TestPopupHandler) Prompt(opts types.PromptOpts) error {

@@ -320,7 +320,7 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 	}
 
 	if node.GetIsTracked() {
-		return self.c.Ask(types.AskOpts{
+		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.IgnoreTracked,
 			Prompt: self.c.Tr.IgnoreTrackedPrompt,
 			HandleConfirm: func() error {
@@ -437,7 +437,7 @@ func (self *FilesController) HandleCommitPress() error {
 }
 
 func (self *FilesController) promptToStageAllAndRetry(retry func() error) error {
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.NoFilesStagedTitle,
 		Prompt: self.c.Tr.NoFilesStagedPrompt,
 		HandleConfirm: func() error {
@@ -467,7 +467,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 		return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  strings.Title(self.c.Tr.AmendLastCommit),
 		Prompt: self.c.Tr.SureToAmend,
 		HandleConfirm: func() error {

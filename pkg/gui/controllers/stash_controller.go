@@ -83,7 +83,7 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 		return apply()
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashApply,
 		Prompt: self.c.Tr.SureApplyStashEntry,
 		HandleConfirm: func() error {
@@ -107,7 +107,7 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 		return pop()
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashPop,
 		Prompt: self.c.Tr.SurePopStashEntry,
 		HandleConfirm: func() error {
@@ -117,7 +117,7 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 }
 
 func (self *StashController) handleStashDrop(stashEntry *models.StashEntry) error {
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashDrop,
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {

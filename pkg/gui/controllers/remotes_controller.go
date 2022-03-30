@@ -101,7 +101,7 @@ func (self *RemotesController) add() error {
 }
 
 func (self *RemotesController) remove(remote *models.Remote) error {
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.LcRemoveRemote,
 		Prompt: self.c.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		HandleConfirm: func() error {

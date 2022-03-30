@@ -21,7 +21,7 @@ func NewBisectHelper(
 }
 
 func (self *BisectHelper) Reset() error {
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.Bisect.ResetTitle,
 		Prompt: self.c.Tr.Bisect.ResetPrompt,
 		HandleConfirm: func() error {

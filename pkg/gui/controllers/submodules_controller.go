@@ -205,7 +205,7 @@ func (self *SubmodulesController) update(submodule *models.SubmoduleConfig) erro
 }
 
 func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) error {
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.RemoveSubmodule,
 		Prompt: fmt.Sprintf(self.c.Tr.RemoveSubmodulePrompt, submodule.Name),
 		HandleConfirm: func() error {

@@ -155,7 +155,7 @@ func (self *BranchesController) forceCheckout() error {
 	message := self.c.Tr.SureForceCheckout
 	title := self.c.Tr.ForceCheckoutBranch
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  title,
 		Prompt: message,
 		HandleConfirm: func() error {
@@ -176,7 +176,7 @@ func (self *BranchesController) checkoutByName() error {
 			self.c.LogAction("Checkout branch")
 			return self.helpers.Refs.CheckoutRef(response, types.CheckoutRefOptions{
 				OnRefNotFound: func(ref string) error {
-					return self.c.Ask(types.AskOpts{
+					return self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.BranchNotFoundTitle,
 						Prompt: fmt.Sprintf("%s %s%s", self.c.Tr.BranchNotFoundPrompt, ref, "?"),
 						HandleConfirm: func() error {
@@ -227,7 +227,7 @@ func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, f
 		},
 	)
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:  title,
 		Prompt: message,
 		HandleConfirm: func() error {
@@ -344,7 +344,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 		return promptForNewName()
 	}
 
-	return self.c.Ask(types.AskOpts{
+	return self.c.Confirm(types.ConfirmOpts{
 		Title:         self.c.Tr.LcRenameBranch,
 		Prompt:        self.c.Tr.RenameBranchWarning,
 		HandleConfirm: promptForNewName,
