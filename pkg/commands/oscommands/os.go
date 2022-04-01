@@ -14,6 +14,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -27,6 +28,8 @@ type OSCommand struct {
 	removeFileFn func(string) error
 
 	Cmd *CmdObjBuilder
+
+	tempDir string
 }
 
 // Platform stores the os state
@@ -39,13 +42,14 @@ type Platform struct {
 }
 
 // NewOSCommand os command runner
-func NewOSCommand(common *common.Common, platform *Platform, guiIO *guiIO) *OSCommand {
+func NewOSCommand(common *common.Common, config config.AppConfigurer, platform *Platform, guiIO *guiIO) *OSCommand {
 	c := &OSCommand{
 		Common:       common,
 		Platform:     platform,
 		getenvFn:     os.Getenv,
 		removeFileFn: os.RemoveAll,
 		guiIO:        guiIO,
+		tempDir:      config.GetTempDir(),
 	}
 
 	runner := &cmdObjRunner{log: common.Log, guiIO: guiIO}
@@ -236,8 +240,8 @@ func (c *OSCommand) Getenv(key string) string {
 	return c.getenvFn(key)
 }
 
-func GetTempDir() string {
-	return filepath.Join(os.TempDir(), "lazygit")
+func (c *OSCommand) GetTempDir() string {
+	return c.tempDir
 }
 
 // GetLazygitPath returns the path of the currently executed file

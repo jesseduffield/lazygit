@@ -251,7 +251,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 }
 
 func (self *WorkingTreeCommands) ApplyPatch(patch string, flags ...string) error {
-	filepath := filepath.Join(oscommands.GetTempDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
+	filepath := filepath.Join(self.os.GetTempDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
 	self.Log.Infof("saving temporary patch to %s", filepath)
 	if err := self.os.CreateFileWithContent(filepath, patch); err != nil {
 		return err

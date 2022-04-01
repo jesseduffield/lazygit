@@ -127,7 +127,13 @@ func main() {
 		}
 	}
 
-	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag)
+	tempDir, err := os.MkdirTemp("", "lazygit-*")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer os.RemoveAll(tempDir)
+
+	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag, tempDir)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
