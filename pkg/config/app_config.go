@@ -43,13 +43,14 @@ type AppConfigurer interface {
 	GetUserConfigPaths() []string
 	GetUserConfigDir() string
 	ReloadUserConfig() error
+	GetTempDir() string
 
 	GetAppState() *AppState
 	SaveAppState() error
 }
 
 // NewAppConfig makes a new app config
-func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool) (*AppConfig, error) {
+func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool, tempDir string) (*AppConfig, error) {
 	configDir, err := findOrCreateConfigDir()
 	if err != nil && !os.IsPermission(err) {
 		return nil, err
@@ -73,8 +74,6 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	if os.Getenv("DEBUG") == "TRUE" {
 		debuggingFlag = true
 	}
-
-	tempDir := filepath.Join(os.TempDir(), "lazygit")
 
 	appState, err := loadAppState()
 	if err != nil {
@@ -219,6 +218,10 @@ func (c *AppConfig) ReloadUserConfig() error {
 
 	c.UserConfig = userConfig
 	return nil
+}
+
+func (c *AppConfig) GetTempDir() string {
+	return c.TempDir
 }
 
 func configFilePath(filename string) (string, error) {

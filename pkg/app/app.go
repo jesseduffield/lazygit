@@ -122,7 +122,7 @@ func NewApp(config config.AppConfigurer) (*App, error) {
 		return app, nil
 	}
 
-	app.OSCommand = oscommands.NewOSCommand(app.Common, oscommands.GetPlatform(), oscommands.NewNullGuiIO(log))
+	app.OSCommand = oscommands.NewOSCommand(app.Common, config, oscommands.GetPlatform(), oscommands.NewNullGuiIO(log))
 
 	app.Updater, err = updates.NewUpdater(app.Common, config, app.OSCommand)
 	if err != nil {

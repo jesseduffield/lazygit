@@ -470,7 +470,7 @@ func NewGui(
 		credentialsHelper.PromptUserForCredential,
 	)
 
-	osCommand := oscommands.NewOSCommand(cmn, oscommands.GetPlatform(), guiIO)
+	osCommand := oscommands.NewOSCommand(cmn, config, oscommands.GetPlatform(), guiIO)
 
 	gui.os = osCommand
 
