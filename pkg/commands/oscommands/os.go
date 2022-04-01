@@ -117,27 +117,6 @@ func (c *OSCommand) AppendLineToFile(filename, line string) error {
 	return nil
 }
 
-// CreateTempFile writes a string to a new temp file and returns the file's name
-func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
-	tmpfile, err := ioutil.TempFile("", filename)
-	if err != nil {
-		c.Log.Error(err)
-		return "", utils.WrapError(err)
-	}
-	c.LogCommand(fmt.Sprintf("Creating temp file '%s'", tmpfile.Name()), false)
-
-	if _, err := tmpfile.WriteString(content); err != nil {
-		c.Log.Error(err)
-		return "", utils.WrapError(err)
-	}
-	if err := tmpfile.Close(); err != nil {
-		c.Log.Error(err)
-		return "", utils.WrapError(err)
-	}
-
-	return tmpfile.Name(), nil
-}
-
 // CreateFileWithContent creates a file with the given content
 func (c *OSCommand) CreateFileWithContent(path string, content string) error {
 	c.LogCommand(fmt.Sprintf("Creating file '%s'", path), false)
