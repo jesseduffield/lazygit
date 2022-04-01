@@ -41,6 +41,7 @@ func (gui *Gui) commitFilesRenderToMain() error {
 func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesContextOpts) error {
 	gui.State.Contexts.CommitFiles.SetSelectedLineIdx(0)
 	gui.State.Contexts.CommitFiles.SetRef(opts.Ref)
+	gui.State.Contexts.CommitFiles.SetTitleRef(opts.Ref.Description())
 	gui.State.Contexts.CommitFiles.SetCanRebase(opts.CanRebase)
 	gui.State.Contexts.CommitFiles.SetParentContext(opts.Context)
 	gui.State.Contexts.CommitFiles.SetWindowName(opts.Context.GetWindowName())
