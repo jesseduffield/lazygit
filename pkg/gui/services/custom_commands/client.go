@@ -9,7 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-// Client is the entry point to this package. It reutrns a list of keybindings based on the config's user-defined custom commands.
+// Client is the entry point to this package. It returns a list of keybindings based on the config's user-defined custom commands.
 // See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md for more info.
 type Client struct {
 	customCommands    []config.CustomCommand

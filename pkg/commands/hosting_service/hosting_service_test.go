@@ -125,7 +125,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
-			testName:  "Opens a link to new pull request on Azure DevOps (SSH) with specifc target",
+			testName:  "Opens a link to new pull request on Azure DevOps (SSH) with specific target",
 			from:      "feature/new",
 			to:        "dev",
 			remoteUrl: "git@ssh.dev.azure.com:v3/myorg/myproject/myrepo",
@@ -144,7 +144,7 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
-			testName:  "Opens a link to new pull request on Azure DevOps (HTTP) with specifc target",
+			testName:  "Opens a link to new pull request on Azure DevOps (HTTP) with specific target",
 			from:      "feature/new",
 			to:        "dev",
 			remoteUrl: "https://myorg@dev.azure.com/myorg/myproject/_git/myrepo",
