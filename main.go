@@ -62,7 +62,7 @@ func main() {
 	flaggy.String(&gitDir, "g", "git-dir", "equivalent of the --git-dir git argument")
 
 	customConfig := ""
-	flaggy.String(&customConfig, "ucf", "use-config-file", "Comma seperated list to custom config file(s)")
+	flaggy.String(&customConfig, "ucf", "use-config-file", "Comma separated list to custom config file(s)")
 
 	flaggy.Parse()
 

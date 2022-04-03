@@ -77,7 +77,7 @@ func TestNavigateToRepoRootDirectory(t *testing.T) {
 			},
 		},
 		{
-			"An error occurred when getting path informations",
+			"An error occurred when getting path information",
 			func(string) (os.FileInfo, error) {
 				return nil, fmt.Errorf("An error occurred")
 			},

@@ -57,7 +57,7 @@ func (self *ReflogCommitLoader) GetReflogCommits(lastReflogCommit *models.Commit
 		}
 
 		// note that the unix timestamp here is the timestamp of the COMMIT, not the reflog entry itself,
-		// so two consequetive reflog entries may have both the same SHA and therefore same timestamp.
+		// so two consecutive reflog entries may have both the same SHA and therefore same timestamp.
 		// We use the reflog message to disambiguate, and fingers crossed that we never see the same of those
 		// twice in a row. Reason being that it would mean we'd be erroneously exiting early.
 		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp && commit.Name == lastReflogCommit.Name {

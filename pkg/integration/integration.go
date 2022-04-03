@@ -370,7 +370,7 @@ func generateSnapshot(dir string) (string, error) {
 
 	cmdStrs := []string{
 		`remote show -n origin`, // remote branches
-		// TOOD: find a way to bring this back without breaking tests
+		// TODO: find a way to bring this back without breaking tests
 		// `ls-remote origin`,
 		`status`,                         // file tree
 		`log --pretty=%B -p -1`,          // log

@@ -6,7 +6,7 @@ git config user.email "test@example.com"
 git config user.name "Lazygit Tester"
 
 
-# Add some ansi, unicode, zero width joiner caracters
+# Add some ansi, unicode, zero width joiner characters
 cat <<EOT >> charstest.txt
 ANSI      Œ	(U+0152	&OElig;	Latin capital ligature OE	Latin Extended-A)
           ¥	(0xA5	U+00A5	&yen;	yes sign)

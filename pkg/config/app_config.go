@@ -235,7 +235,7 @@ func configFilePath(filename string) (string, error) {
 
 var ConfigFilename = "config.yml"
 
-// ConfigFilename returns the filename of the deafult config file
+// ConfigFilename returns the filename of the default config file
 func (c *AppConfig) ConfigFilename() string {
 	return filepath.Join(c.UserConfigDir, ConfigFilename)
 }

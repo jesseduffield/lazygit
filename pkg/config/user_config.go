@@ -74,7 +74,7 @@ type GitConfig struct {
 	OverrideGpg         bool                          `yaml:"overrideGpg"`
 	DisableForcePushing bool                          `yaml:"disableForcePushing"`
 	CommitPrefixes      map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
-	// this shoudl really be under 'gui', not 'git'
+	// this should really be under 'gui', not 'git'
 	ParseEmoji      bool      `yaml:"parseEmoji"`
 	Log             LogConfig `yaml:"log"`
 	DiffContextSize int       `yaml:"diffContextSize"`
