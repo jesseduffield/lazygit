@@ -299,3 +299,23 @@ func (gui *Gui) switchToMerge(path string) error {
 
 	return gui.c.PushContext(gui.State.Contexts.Merging)
 }
+
+func (gui *Gui) handleMergeConflictEditFileAtLine() error {
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
+	}
+
+	lineNumber := gui.State.Panels.Merging.GetSelectedLine()
+	return gui.helpers.Files.EditFileAtLine(file.GetPath(), lineNumber)
+}
+
+func (gui *Gui) handleMergeConflictOpenFileAtLine() error {
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
+	}
+
+	lineNumber := gui.State.Panels.Merging.GetSelectedLine()
+	return gui.helpers.Files.OpenFileAtLine(file.GetPath(), lineNumber)
+}

@@ -674,6 +674,20 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:    "main",
 			Contexts:    []string{string(context.MAIN_MERGING_CONTEXT_KEY)},
+			Key:         opts.GetKey(opts.Config.Universal.Edit),
+			Handler:     self.handleMergeConflictEditFileAtLine,
+			Description: self.c.Tr.LcEditFile,
+		},
+		{
+			ViewName:    "main",
+			Contexts:    []string{string(context.MAIN_MERGING_CONTEXT_KEY)},
+			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
+			Handler:     self.handleMergeConflictOpenFileAtLine,
+			Description: self.c.Tr.LcOpenFile,
+		},
+		{
+			ViewName:    "main",
+			Contexts:    []string{string(context.MAIN_MERGING_CONTEXT_KEY)},
 			Key:         opts.GetKey(opts.Config.Universal.Undo),
 			Handler:     self.handleMergeConflictUndo,
 			Description: self.c.Tr.LcUndo,

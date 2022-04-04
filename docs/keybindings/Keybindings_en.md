@@ -146,6 +146,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>►</kbd>: select next conflict
   <kbd>▲</kbd>: select previous hunk
   <kbd>▼</kbd>: select next hunk
+  <kbd>e</kbd>: edit file
+  <kbd>o</kbd>: open file
   <kbd>z</kbd>: undo
 </pre>
 

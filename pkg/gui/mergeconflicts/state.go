@@ -182,3 +182,13 @@ func (s *State) ContentAfterConflictResolve(selection Selection) (bool, string, 
 
 	return true, content, nil
 }
+
+func (s *State) GetSelectedLine() int {
+	conflict := s.currentConflict()
+	if conflict == nil {
+		return 1
+	}
+	selection := s.Selection()
+	startIndex, _ := selection.bounds(conflict)
+	return startIndex + 1
+}
