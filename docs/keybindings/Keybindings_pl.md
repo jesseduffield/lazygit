@@ -219,6 +219,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>►</kbd>: następny konflikt
   <kbd>▲</kbd>: wybierz poprzedni kawałek
   <kbd>▼</kbd>: wybierz następny kawałek
+  <kbd>e</kbd>: edytuj plik
+  <kbd>o</kbd>: otwórz plik
   <kbd>z</kbd>: cofnij
 </pre>
 

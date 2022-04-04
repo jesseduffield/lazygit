@@ -146,6 +146,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>►</kbd>: selecteer volgende conflict
   <kbd>▲</kbd>: selecteer bovenste hunk
   <kbd>▼</kbd>: selecteer onderste hunk
+  <kbd>e</kbd>: verander bestand
+  <kbd>o</kbd>: open bestand
   <kbd>z</kbd>: ongedaan maken
 </pre>
 

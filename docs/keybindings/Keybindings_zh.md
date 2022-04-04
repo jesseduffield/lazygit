@@ -216,6 +216,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>►</kbd>: 选择下一个冲突
   <kbd>▲</kbd>: 选择顶部块
   <kbd>▼</kbd>: 选择底部块
+  <kbd>e</kbd>: 编辑文件
+  <kbd>o</kbd>: 打开文件
   <kbd>z</kbd>: 撤销
 </pre>
 
