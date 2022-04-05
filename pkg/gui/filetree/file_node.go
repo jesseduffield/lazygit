@@ -42,6 +42,13 @@ func (s *FileNode) GetPath() string {
 	return s.Path
 }
 
+func (s *FileNode) GetPreviousPath() string {
+	if s.File != nil {
+		return s.File.GetPreviousPath()
+	}
+	return ""
+}
+
 func (s *FileNode) GetChildren() []INode {
 	return slices.Map(s.Children, func(child *FileNode) INode {
 		return child

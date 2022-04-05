@@ -230,6 +230,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	trackedArg := "--"
 	colorArg := self.UserConfig.Git.Paging.ColorArg
 	quotedPath := self.cmd.Quote(node.GetPath())
+	quotedPrevPath := ""
 	ignoreWhitespaceArg := ""
 	contextSize := self.UserConfig.Git.DiffContextSize
 	if cached {
@@ -244,8 +245,11 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	if ignoreWhitespace {
 		ignoreWhitespaceArg = " --ignore-all-space"
 	}
+	if prevPath := node.GetPreviousPath(); prevPath != "" {
+		quotedPrevPath = " " + self.cmd.Quote(prevPath)
+	}
 
-	cmdStr := fmt.Sprintf("git diff --submodule --no-ext-diff --unified=%d --color=%s%s%s %s %s", contextSize, colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath)
+	cmdStr := fmt.Sprintf("git diff --submodule --no-ext-diff --unified=%d --color=%s%s%s %s %s%s", contextSize, colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath, quotedPrevPath)
 
 	return self.cmd.New(cmdStr).DontLog()
 }
