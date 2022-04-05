@@ -27,6 +27,7 @@ type IFile interface {
 	GetHasStagedChanges() bool
 	GetIsTracked() bool
 	GetPath() string
+	GetPreviousPath() string
 }
 
 func (f *File) IsRename() bool {
@@ -84,4 +85,8 @@ func (f *File) GetIsTracked() bool {
 func (f *File) GetPath() string {
 	// TODO: remove concept of name; just use path
 	return f.Name
+}
+
+func (f *File) GetPreviousPath() string {
+	return f.PreviousName
 }
