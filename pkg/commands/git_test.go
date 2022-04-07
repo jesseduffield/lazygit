@@ -116,18 +116,20 @@ func TestNavigateToRepoRootDirectory(t *testing.T) {
 func TestSetupRepository(t *testing.T) {
 	type scenario struct {
 		testName          string
-		openGitRepository func(string) (*gogit.Repository, error)
+		openGitRepository func(string, *gogit.PlainOpenOptions) (*gogit.Repository, error)
 		errorStr          string
+		options           gogit.PlainOpenOptions
 		test              func(*gogit.Repository, error)
 	}
 
 	scenarios := []scenario{
 		{
 			"A gitconfig parsing error occurred",
-			func(string) (*gogit.Repository, error) {
+			func(string, *gogit.PlainOpenOptions) (*gogit.Repository, error) {
 				return nil, fmt.Errorf(`unquoted '\' must be followed by new line`)
 			},
 			"error translated",
+			gogit.PlainOpenOptions{},
 			func(r *gogit.Repository, err error) {
 				assert.Error(t, err)
 				assert.EqualError(t, err, "error translated")
@@ -135,10 +137,11 @@ func TestSetupRepository(t *testing.T) {
 		},
 		{
 			"A gogit error occurred",
-			func(string) (*gogit.Repository, error) {
+			func(string, *gogit.PlainOpenOptions) (*gogit.Repository, error) {
 				return nil, fmt.Errorf("Error from inside gogit")
 			},
 			"",
+			gogit.PlainOpenOptions{},
 			func(r *gogit.Repository, err error) {
 				assert.Error(t, err)
 				assert.EqualError(t, err, "Error from inside gogit")
@@ -146,13 +149,14 @@ func TestSetupRepository(t *testing.T) {
 		},
 		{
 			"Setup done properly",
-			func(string) (*gogit.Repository, error) {
+			func(string, *gogit.PlainOpenOptions) (*gogit.Repository, error) {
 				assert.NoError(t, os.RemoveAll("/tmp/lazygit-test"))
 				r, err := gogit.PlainInit("/tmp/lazygit-test", false)
 				assert.NoError(t, err)
 				return r, nil
 			},
 			"",
+			gogit.PlainOpenOptions{},
 			func(r *gogit.Repository, err error) {
 				assert.NoError(t, err)
 				assert.NotNil(t, r)
@@ -163,7 +167,7 @@ func TestSetupRepository(t *testing.T) {
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
-			s.test(setupRepository(s.openGitRepository, s.errorStr))
+			s.test(setupRepository(s.openGitRepository, s.options, s.errorStr))
 		})
 	}
 }

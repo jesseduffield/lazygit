@@ -63,7 +63,7 @@ func NewGitCommand(
 		return nil, err
 	}
 
-	repo, err := setupRepository(gogit.PlainOpen, cmn.Tr.GitconfigParseErr)
+	repo, err := setupRepository(gogit.PlainOpenWithOptions, gogit.PlainOpenOptions{DetectDotGit: false, EnableDotGitCommonDir: true}, cmn.Tr.GitconfigParseErr)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func resolvePath(path string) (string, error) {
 	return filepath.EvalSymlinks(path)
 }
 
-func setupRepository(openGitRepository func(string) (*gogit.Repository, error), gitConfigParseErrorStr string) (*gogit.Repository, error) {
+func setupRepository(openGitRepository func(string, *gogit.PlainOpenOptions) (*gogit.Repository, error), options gogit.PlainOpenOptions, gitConfigParseErrorStr string) (*gogit.Repository, error) {
 	unresolvedPath := env.GetGitDirEnv()
 	if unresolvedPath == "" {
 		var err error
@@ -222,7 +222,7 @@ func setupRepository(openGitRepository func(string) (*gogit.Repository, error), 
 		return nil, err
 	}
 
-	repository, err := openGitRepository(path)
+	repository, err := openGitRepository(path, &options)
 	if err != nil {
 		if strings.Contains(err.Error(), `unquoted '\' must be followed by new line`) {
 			return nil, errors.New(gitConfigParseErrorStr)
@@ -254,7 +254,7 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 	}
 	fileContent := string(fileBytes)
 	if !strings.HasPrefix(fileContent, "gitdir: ") {
-		return "", errors.New(".git is a file which suggests we are in a submodule but the file's contents do not contain a gitdir pointing to the actual .git directory")
+		return "", errors.New(".git is a file which suggests we are in a submodule or a worktree but the file's contents do not contain a gitdir pointing to the actual .git directory")
 	}
 	return strings.TrimSpace(strings.TrimPrefix(fileContent, "gitdir: ")), nil
 }
