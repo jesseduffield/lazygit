@@ -680,7 +680,11 @@ func (v *View) parseInput(ch rune) (bool, []cell) {
 		if _, ok := v.ei.instruction.(eraseInLineFromCursor); ok {
 			// fill rest of line
 			v.ei.instructionRead()
-			repeatCount = v.InnerWidth() - v.wx
+			cx := 0
+			for _, cell := range v.lines[v.wy] {
+				cx += runewidth.RuneWidth(cell.chr)
+			}
+			repeatCount = v.InnerWidth() - cx
 			ch = ' '
 			moveCursor = false
 		} else if isEscape {

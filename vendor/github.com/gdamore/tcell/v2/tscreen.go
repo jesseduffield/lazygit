@@ -1,4 +1,4 @@
-// Copyright 2021 The TCell Authors
+// Copyright 2022 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -877,9 +877,11 @@ func (t *tScreen) hideCursor() {
 }
 
 func (t *tScreen) draw() {
-	// clobber cursor position, because we're gonna change it all
+	// clobber cursor position, because we're going to change it all
 	t.cx = -1
 	t.cy = -1
+	// make no style assumptions
+	t.curstyle = styleInvalid
 
 	t.buf.Reset()
 	t.buffering = true
@@ -1063,7 +1065,7 @@ func (t *tScreen) HasPendingEvent() bool {
 // the terminals Alternate Character Set to represent other glyphs.
 // For example, the upper left corner of the box drawing set can be
 // displayed by printing "l" while in the alternate character set.
-// Its not quite that simple, since the "l" is the terminfo name,
+// It's not quite that simple, since the "l" is the terminfo name,
 // and it may be necessary to use a different character based on
 // the terminal implementation (or the terminal may lack support for
 // this altogether).  See buildAcsMap below for detail.
@@ -1584,7 +1586,7 @@ func (t *tScreen) mainLoop(stopQ chan struct{}) {
 		case <-t.keytimer.C:
 			// If the timer fired, and the current time
 			// is after the expiration of the escape sequence,
-			// then we assume the escape sequence reached it's
+			// then we assume the escape sequence reached its
 			// conclusion, and process the chunk independently.
 			// This lets us detect conflicts such as a lone ESC.
 			if buf.Len() > 0 {
@@ -1725,7 +1727,7 @@ func (t *tScreen) Resume() error {
 }
 
 // engage is used to place the terminal in raw mode and establish screen size, etc.
-// Thing of this is as tcell "engaging" the clutch, as it's going to be driving the
+// Think of this is as tcell "engaging" the clutch, as it's going to be driving the
 // terminal interface.
 func (t *tScreen) engage() error {
 	t.Lock()
