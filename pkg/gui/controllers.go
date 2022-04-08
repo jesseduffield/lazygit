@@ -23,12 +23,13 @@ func (gui *Gui) resetControllers() {
 	)
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, gui.takeOverMergeConflictScrolling, refsHelper)
+	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
 		Host:           helpers.NewHostHelper(helperCommon, gui.git),
 		PatchBuilding:  helpers.NewPatchBuildingHelper(helperCommon, gui.git),
 		Bisect:         helpers.NewBisectHelper(helperCommon, gui.git),
-		Suggestions:    helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions),
+		Suggestions:    suggestionsHelper,
 		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
 		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, model),
 		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
@@ -41,6 +42,7 @@ func (gui *Gui) resetControllers() {
 			func() *cherrypicking.CherryPicking { return gui.State.Modes.CherryPicking },
 			rebaseHelper,
 		),
+		Upstream: helpers.NewUpstreamHelper(helperCommon, model, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(
@@ -64,7 +66,6 @@ func (gui *Gui) resetControllers() {
 
 	syncController := controllers.NewSyncController(
 		common,
-		gui.getSuggestedRemote,
 	)
 
 	submodulesController := controllers.NewSubmodulesController(

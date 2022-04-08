@@ -59,6 +59,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>f</kbd>: fast-forward this branch from its upstream
   <kbd>g</kbd>: view reset options
   <kbd>R</kbd>: rename branch
+  <kbd>u</kbd>: set/unset upstream
   <kbd>enter</kbd>: view commits
 </pre>
 

@@ -271,6 +271,7 @@ func dutchTranslationSet() TranslationSet {
 		DeleteRemoteBranch:                  "Verwijder Remote Branch",
 		DeleteRemoteBranchMessage:           "Weet je zeker dat je deze remote branch wilt verwijderen",
 		LcSetUpstream:                       "stel in als upstream van uitgecheckte branch",
+		LcSetAsUpstream:                     "stel in als upstream van uitgecheckte branch",
 		SetUpstreamTitle:                    "Stel in als upstream branch",
 		SetUpstreamMessage:                  "Weet je zeker dat je de upstream branch van '{{.checkedOut}}' naar '{{.selected}}' wilt zetten",
 		LcEditRemote:                        "wijzig remote",

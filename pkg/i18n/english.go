@@ -306,7 +306,9 @@ type TranslationSet struct {
 	LcRemoveRemotePrompt                string
 	DeleteRemoteBranch                  string
 	DeleteRemoteBranchMessage           string
+	LcSetAsUpstream                     string
 	LcSetUpstream                       string
+	LcUnsetUpstream                     string
 	SetUpstreamTitle                    string
 	SetUpstreamMessage                  string
 	LcEditRemote                        string
@@ -339,6 +341,7 @@ type TranslationSet struct {
 	Panel                               string
 	Keybindings                         string
 	LcRenameBranch                      string
+	LcSetUnsetUpstream                  string
 	NewGitFlowBranchPrompt              string
 	RenameBranchWarning                 string
 	LcOpenMenu                          string
@@ -506,6 +509,7 @@ type Actions struct {
 	Merge                             string
 	RebaseBranch                      string
 	RenameBranch                      string
+	SetUnsetUpstream                  string
 	CreateBranch                      string
 	FastForwardBranch                 string
 	CherryPick                        string
@@ -906,7 +910,9 @@ func EnglishTranslationSet() TranslationSet {
 		LcRemoveRemotePrompt:                "Are you sure you want to remove remote",
 		DeleteRemoteBranch:                  "Delete Remote Branch",
 		DeleteRemoteBranchMessage:           "Are you sure you want to delete remote branch",
-		LcSetUpstream:                       "set as upstream of checked-out branch",
+		LcSetAsUpstream:                     "set as upstream of checked-out branch",
+		LcSetUpstream:                       "set upstream of selected branch",
+		LcUnsetUpstream:                     "unset upstream of selected branch",
 		SetUpstreamTitle:                    "Set upstream branch",
 		SetUpstreamMessage:                  "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
 		LcEditRemote:                        "edit remote",
@@ -939,6 +945,7 @@ func EnglishTranslationSet() TranslationSet {
 		Panel:                               "Panel",
 		Keybindings:                         "Keybindings",
 		LcRenameBranch:                      "rename branch",
+		LcSetUnsetUpstream:                  "set/unset upstream",
 		NewBranchNamePrompt:                 "Enter new branch name for branch",
 		RenameBranchWarning:                 "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
 		LcOpenMenu:                          "open menu",
@@ -1088,6 +1095,7 @@ func EnglishTranslationSet() TranslationSet {
 			Merge:                             "Merge",
 			RebaseBranch:                      "Rebase branch",
 			RenameBranch:                      "Rename branch",
+			SetUnsetUpstream:                  "Set/unset upstream",
 			CreateBranch:                      "Create branch",
 			CherryPick:                        "(Cherry-pick) Paste commits",
 			CheckoutFile:                      "Checkout file",

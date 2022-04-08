@@ -97,7 +97,48 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Handler:     self.checkSelectedAndReal(self.rename),
 			Description: self.c.Tr.LcRenameBranch,
 		},
+		{
+			Key:         opts.GetKey(opts.Config.Branches.SetUpstream),
+			Handler:     self.checkSelected(self.setUpstream),
+			Description: self.c.Tr.LcSetUnsetUpstream,
+			OpensMenu:   true,
+		},
 	}
+}
+
+func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Actions.SetUnsetUpstream,
+		Items: []*types.MenuItem{
+			{
+				DisplayStrings: []string{self.c.Tr.LcUnsetUpstream},
+				OnPress: func() error {
+					if err := self.git.Branch.UnsetUpstream(selectedBranch.Name); err != nil {
+						return self.c.Error(err)
+					}
+					return nil
+				},
+				Key: 'u',
+			},
+			{
+				DisplayStrings: []string{self.c.Tr.LcSetUpstream},
+				OnPress: func() error {
+					return self.helpers.Upstream.PromptForUpstream(selectedBranch, func(upstream string) error {
+						upstreamRemote, upstreamBranch, err := self.helpers.Upstream.ParseUpstream(upstream)
+						if err != nil {
+							return self.c.Error(err)
+						}
+
+						if err := self.git.Branch.SetUpstream(upstreamRemote, upstreamBranch, selectedBranch.Name); err != nil {
+							return self.c.Error(err)
+						}
+						return nil
+					})
+				},
+				Key: 's',
+			},
+		},
+	})
 }
 
 func (self *BranchesController) Context() types.Context {

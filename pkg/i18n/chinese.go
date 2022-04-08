@@ -312,6 +312,7 @@ func chineseTranslationSet() TranslationSet {
 		DeleteRemoteBranch:                  "删除远程分支",
 		DeleteRemoteBranchMessage:           "您确定要删除远程分支吗？",
 		LcSetUpstream:                       "设置为检出分支的上游",
+		LcSetAsUpstream:                     "设置为检出分支的上游",
 		SetUpstreamTitle:                    "设置上游分支",
 		SetUpstreamMessage:                  "您确定要将 {{.checkedOut}} 的上游分支设置为 {{.selected}} 吗？",
 		LcEditRemote:                        "编辑远程仓库",

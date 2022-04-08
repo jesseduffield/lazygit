@@ -12,6 +12,7 @@ type Helpers struct {
 	Host           *HostHelper
 	PatchBuilding  *PatchBuildingHelper
 	GPG            *GpgHelper
+	Upstream       *UpstreamHelper
 }
 
 func NewStubHelpers() *Helpers {
@@ -27,5 +28,6 @@ func NewStubHelpers() *Helpers {
 		Host:           &HostHelper{},
 		PatchBuilding:  &PatchBuildingHelper{},
 		GPG:            &GpgHelper{},
+		Upstream:       &UpstreamHelper{},
 	}
 }

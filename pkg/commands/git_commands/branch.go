@@ -109,6 +109,10 @@ func (self *BranchCommands) SetUpstream(remoteName string, remoteBranchName stri
 	return self.cmd.New(fmt.Sprintf("git branch --set-upstream-to=%s/%s %s", self.cmd.Quote(remoteName), self.cmd.Quote(remoteBranchName), self.cmd.Quote(branchName))).Run()
 }
 
+func (self *BranchCommands) UnsetUpstream(branchName string) error {
+	return self.cmd.New(fmt.Sprintf("git branch --unset-upstream %s", self.cmd.Quote(branchName))).Run()
+}
+
 func (self *BranchCommands) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
 	return self.GetCommitDifferences("HEAD", "HEAD@{u}")
 }
