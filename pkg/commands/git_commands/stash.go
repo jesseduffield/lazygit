@@ -49,6 +49,10 @@ func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
 	return self.cmd.New(cmdStr).DontLog()
 }
 
+func (self *StashCommands) StashAndKeepIndex(message string) error {
+	return self.cmd.New(fmt.Sprintf("git stash save %s --keep-index", self.cmd.Quote(message))).Run()
+}
+
 // SaveStagedChanges stashes only the currently staged changes. This takes a few steps
 // shoutouts to Joe on https://stackoverflow.com/questions/14759748/stashing-only-staged-changes-in-git-is-it-possible
 func (self *StashCommands) SaveStagedChanges(message string) error {

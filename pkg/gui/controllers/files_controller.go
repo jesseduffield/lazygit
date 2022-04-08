@@ -561,14 +561,21 @@ func (self *FilesController) createStashMenu() error {
 				OnPress: func() error {
 					return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges)
 				},
-				Key: 's',
+				Key: 'a',
 			},
 			{
-				DisplayString: self.c.Tr.LcStashStagedChanges,
+				DisplayString: self.c.Tr.LcStashAllChangesKeepIndex,
 				OnPress: func() error {
-					return self.handleStashSave(self.git.Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
+					return self.handleStagedStashSave()
 				},
-				Key: 'S',
+				Key: 'i',
+			},
+			{
+				DisplayString: self.c.Tr.LcStashUnstagedChanges,
+				OnPress: func() error {
+					return self.handleStashSave(self.git.Stash.StashAndKeepIndex, self.c.Tr.Actions.StashUnstagedChanges)
+				},
+				Key: 'u',
 			},
 		},
 	})
@@ -601,6 +608,14 @@ func (self *FilesController) toggleTreeView() error {
 	self.context().FileTreeViewModel.ToggleShowTree()
 
 	return self.c.PostRefreshUpdate(self.context())
+}
+
+func (self *FilesController) handleStagedStashSave() error {
+	if !self.helpers.WorkingTree.AnyStagedFiles() {
+		return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
+	}
+
+	return self.handleStashSave(self.git.Stash.StashAndKeepIndex, self.c.Tr.Actions.StashStagedChanges)
 }
 
 func (self *FilesController) handleStashSave(stashFunc func(message string) error, action string) error {

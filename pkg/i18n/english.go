@@ -276,7 +276,8 @@ type TranslationSet struct {
 	PressEnterToReturn                  string
 	LcViewStashOptions                  string
 	LcStashAllChanges                   string
-	LcStashStagedChanges                string
+	LcStashAllChangesKeepIndex          string
+	LcStashUnstagedChanges              string
 	LcStashOptions                      string
 	NotARepository                      string
 	LcJump                              string
@@ -545,6 +546,7 @@ type Actions struct {
 	OpenFile                          string
 	StashAllChanges                   string
 	StashStagedChanges                string
+	StashUnstagedChanges              string
 	GitFlowFinish                     string
 	GitFlowStart                      string
 	CopyToClipboard                   string
@@ -875,8 +877,9 @@ func EnglishTranslationSet() TranslationSet {
 		LcResetTo:                           `reset to`,
 		PressEnterToReturn:                  "Press enter to return to lazygit",
 		LcViewStashOptions:                  "view stash options",
-		LcStashAllChanges:                   "stash changes",
-		LcStashStagedChanges:                "stash staged changes",
+		LcStashAllChanges:                   "stash all changes",
+		LcStashAllChangesKeepIndex:          "stash all changes and keep index",
+		LcStashUnstagedChanges:              "stash unstaged changes",
 		LcStashOptions:                      "Stash options",
 		NotARepository:                      "Error: must be run inside a git repository",
 		LcJump:                              "jump to panel",
@@ -1128,6 +1131,7 @@ func EnglishTranslationSet() TranslationSet {
 			OpenFile:                          "Open file",
 			StashAllChanges:                   "Stash all changes",
 			StashStagedChanges:                "Stash staged changes",
+			StashUnstagedChanges:              "Stash unstaged changes",
 			GitFlowFinish:                     "Git flow finish",
 			GitFlowStart:                      "Git Flow start",
 			CopyToClipboard:                   "Copy to clipboard",

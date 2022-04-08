@@ -124,7 +124,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>o</kbd>: open file
   <kbd>i</kbd>: add to .gitignore
   <kbd>r</kbd>: refresh files
-  <kbd>s</kbd>: stash changes
+  <kbd>s</kbd>: stash all changes
   <kbd>S</kbd>: view stash options
   <kbd>a</kbd>: stage/unstage all
   <kbd>enter</kbd>: stage individual hunks/lines for file, or collapse/expand for directory
