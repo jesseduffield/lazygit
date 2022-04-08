@@ -10,13 +10,13 @@ require (
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/creack/pty v1.1.11
 	github.com/fsnotify/fsnotify v1.4.7
-	github.com/go-errors/errors v1.4.1
+	github.com/go-errors/errors v1.4.2
 	github.com/gookit/color v1.4.2
 	github.com/imdario/mergo v0.3.11
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/generics v0.0.0-20220320043834-727e535cbe68
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
-	github.com/jesseduffield/gocui v0.3.1-0.20220227022729-69f0c798eec8
+	github.com/jesseduffield/gocui v0.3.1-0.20220407213758-0c947ca079ed
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 	github.com/jesseduffield/yaml v2.1.0+incompatible
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
@@ -40,7 +40,7 @@ require (
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/gdamore/encoding v1.0.0 // indirect
-	github.com/gdamore/tcell/v2 v2.4.1-0.20220313203054-2a1a1b586447 // indirect
+	github.com/gdamore/tcell/v2 v2.5.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.0.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.0 // indirect
@@ -62,7 +62,7 @@ require (
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0 // indirect
 	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8 // indirect
 	golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c // indirect
-	golang.org/x/sys v0.0.0-20220224120231-95c6836cb0e7 // indirect
+	golang.org/x/sys v0.0.0-20220406163625-3f8b81556e12 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect

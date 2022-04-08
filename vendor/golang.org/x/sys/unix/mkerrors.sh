@@ -603,6 +603,7 @@ ccflags="$@"
 		$2 ~ /^ITIMER_/ ||
 		$2 !~ "WMESGLEN" &&
 		$2 ~ /^W[A-Z0-9]+$/ ||
+		$2 ~ /^P_/ ||
 		$2 ~/^PPPIOC/ ||
 		$2 ~ /^FAN_|FANOTIFY_/ ||
 		$2 == "HID_MAX_DESCRIPTOR_SIZE" ||
