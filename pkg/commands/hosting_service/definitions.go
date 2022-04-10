@@ -49,11 +49,24 @@ var azdoServiceDef = ServiceDefinition{
 	repoURLTemplate: "https://{{.webDomain}}/{{.org}}/{{.project}}/_git/{{.repo}}",
 }
 
+var bitbucketServerServiceDef = ServiceDefinition{
+	provider:                        "bitbucketServer",
+	pullRequestURLIntoDefaultBranch: "/pull-requests?create&sourceBranch={{.From}}",
+	pullRequestURLIntoTargetBranch:  "/pull-requests?create&targetBranch={{.To}}&sourceBranch={{.From}}",
+	commitURL:                       "/commits/{{.CommitSha}}",
+	regexStrings: []string{
+		`^ssh://git@.*/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
+		`^https://.*/scm/(?P<project>.*)/(?P<repo>.*?)(?:\.git)?$`,
+	},
+	repoURLTemplate: "https://{{.webDomain}}/projects/{{.project}}/repos/{{.repo}}",
+}
+
 var serviceDefinitions = []ServiceDefinition{
 	githubServiceDef,
 	bitbucketServiceDef,
 	gitLabServiceDef,
 	azdoServiceDef,
+	bitbucketServerServiceDef,
 }
 
 var defaultServiceDomains = []ServiceDomain{
