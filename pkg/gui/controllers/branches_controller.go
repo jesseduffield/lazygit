@@ -116,6 +116,15 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 					if err := self.git.Branch.UnsetUpstream(selectedBranch.Name); err != nil {
 						return self.c.Error(err)
 					}
+					if err := self.c.Refresh(types.RefreshOptions{
+						Mode: types.SYNC,
+						Scope: []types.RefreshableView{
+							types.BRANCHES,
+							types.COMMITS,
+						},
+					}); err != nil {
+						return self.c.Error(err)
+					}
 					return nil
 				},
 				Key: 'u',
@@ -130,6 +139,15 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 						}
 
 						if err := self.git.Branch.SetUpstream(upstreamRemote, upstreamBranch, selectedBranch.Name); err != nil {
+							return self.c.Error(err)
+						}
+						if err := self.c.Refresh(types.RefreshOptions{
+							Mode: types.SYNC,
+							Scope: []types.RefreshableView{
+								types.BRANCHES,
+								types.COMMITS,
+							},
+						}); err != nil {
 							return self.c.Error(err)
 						}
 						return nil
