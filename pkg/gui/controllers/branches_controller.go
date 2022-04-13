@@ -123,7 +123,7 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 			{
 				DisplayStrings: []string{self.c.Tr.LcSetUpstream},
 				OnPress: func() error {
-					return self.helpers.Upstream.PromptForUpstream(selectedBranch, func(upstream string) error {
+					return self.helpers.Upstream.PromptForUpstreamWithoutInitialContent(selectedBranch, func(upstream string) error {
 						upstreamRemote, upstreamBranch, err := self.helpers.Upstream.ParseUpstream(upstream)
 						if err != nil {
 							return self.c.Error(err)

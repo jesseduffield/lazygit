@@ -17,7 +17,8 @@ type UpstreamHelper struct {
 
 type IUpstreamHelper interface {
 	ParseUpstream(string) (string, string, error)
-	PromptForUpstream(*models.Branch, func(string) error) error
+	PromptForUpstreamWithInitialContent(*models.Branch, func(string) error) error
+	PromptForUpstreamWithoutInitialContent(*models.Branch, func(string) error) error
 	GetSuggestedRemote() string
 }
 
@@ -48,15 +49,24 @@ func (self *UpstreamHelper) ParseUpstream(upstream string) (string, string, erro
 	return upstreamRemote, upstreamBranch, nil
 }
 
-func (self *UpstreamHelper) PromptForUpstream(currentBranch *models.Branch, onConfirm func(string) error) error {
-	suggestedRemote := self.GetSuggestedRemote()
-
+func (self *UpstreamHelper) promptForUpstream(currentBranch *models.Branch, initialContent string, onConfirm func(string) error) error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.EnterUpstream,
-		InitialContent:      suggestedRemote + " " + currentBranch.Name,
+		InitialContent:      initialContent,
 		FindSuggestionsFunc: self.getRemoteBranchesSuggestionsFunc(" "),
 		HandleConfirm:       onConfirm,
 	})
+}
+
+func (self *UpstreamHelper) PromptForUpstreamWithInitialContent(currentBranch *models.Branch, onConfirm func(string) error) error {
+	suggestedRemote := self.GetSuggestedRemote()
+	initialContent := suggestedRemote + " " + currentBranch.Name
+
+	return self.promptForUpstream(currentBranch, initialContent, onConfirm)
+}
+
+func (self *UpstreamHelper) PromptForUpstreamWithoutInitialContent(currentBranch *models.Branch, onConfirm func(string) error) error {
+	return self.promptForUpstream(currentBranch, "", onConfirm)
 }
 
 func (self *UpstreamHelper) GetSuggestedRemote() string {

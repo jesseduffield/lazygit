@@ -79,7 +79,7 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 		if self.git.Config.GetPushToCurrent() {
 			return self.pushAux(pushOpts{setUpstream: true})
 		} else {
-			return self.helpers.Upstream.PromptForUpstream(currentBranch, func(upstream string) error {
+			return self.helpers.Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
 				upstreamRemote, upstreamBranch, err := self.helpers.Upstream.ParseUpstream(upstream)
 				if err != nil {
 					return self.c.Error(err)
@@ -100,7 +100,7 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
-		return self.helpers.Upstream.PromptForUpstream(currentBranch, func(upstream string) error {
+		return self.helpers.Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
 			if err := self.setCurrentBranchUpstream(upstream); err != nil {
 				return self.c.Error(err)
 			}
