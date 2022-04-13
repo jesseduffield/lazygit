@@ -6,8 +6,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+r</kbd>: 切换到最近的仓库
-  <kbd>pgup</kbd>: 向上滚动主面板 (fn+up)
-  <kbd>pgdown</kbd>: 向下滚动主面板 (fn+down)
+  <kbd>pgup</kbd>: 向上滚动主面板 (fn+up/shift+k)
+  <kbd>pgdown</kbd>: 向下滚动主面板 (fn+down/shift+j)
   <kbd>m</kbd>: 查看 合并/变基 选项
   <kbd>ctrl+p</kbd>: 查看自定义补丁选项
   <kbd>R</kbd>: 刷新

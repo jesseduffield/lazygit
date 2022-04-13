@@ -6,8 +6,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+r</kbd>: wissel naar een recente repo
-  <kbd>pgup</kbd>: scroll naar beneden vanaf hoofdpaneel (fn+up)
-  <kbd>pgdown</kbd>: scroll naar beneden vanaf hoofdpaneel (fn+down)
+  <kbd>pgup</kbd>: scroll naar beneden vanaf hoofdpaneel (fn+up/shift+k)
+  <kbd>pgdown</kbd>: scroll naar beneden vanaf hoofdpaneel (fn+down/shift+j)
   <kbd>m</kbd>: bekijk merge/rebase opties
   <kbd>ctrl+p</kbd>: bekijk aangepaste patch opties
   <kbd>R</kbd>: verversen
