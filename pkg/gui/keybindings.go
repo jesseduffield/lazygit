@@ -104,14 +104,14 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.ScrollUpMain),
 			Handler:     self.scrollUpMain,
-			Alternative: "fn+up",
+			Alternative: "fn+up/shift+k",
 			Description: self.c.Tr.LcScrollUpMainPanel,
 		},
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.ScrollDownMain),
 			Handler:     self.scrollDownMain,
-			Alternative: "fn+down",
+			Alternative: "fn+down/shift+j",
 			Description: self.c.Tr.LcScrollDownMainPanel,
 		},
 		{
