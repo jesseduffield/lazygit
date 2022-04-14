@@ -119,6 +119,7 @@ type TranslationSet struct {
 	StashApply                          string
 	SureApplyStashEntry                 string
 	NoTrackedStagedFilesStash           string
+	NoFilesToStash                      string
 	StashChanges                        string
 	MergeAborted                        string
 	OpenConfig                          string
@@ -276,6 +277,7 @@ type TranslationSet struct {
 	PressEnterToReturn                  string
 	LcViewStashOptions                  string
 	LcStashAllChanges                   string
+	LcStashStagedChanges                string
 	LcStashAllChangesKeepIndex          string
 	LcStashUnstagedChanges              string
 	LcStashOptions                      string
@@ -545,6 +547,7 @@ type Actions struct {
 	Pull                              string
 	OpenFile                          string
 	StashAllChanges                   string
+	StashAllChangesKeepIndex          string
 	StashStagedChanges                string
 	StashUnstagedChanges              string
 	GitFlowFinish                     string
@@ -720,6 +723,7 @@ func EnglishTranslationSet() TranslationSet {
 		StashApply:                          "Stash apply",
 		SureApplyStashEntry:                 "Are you sure you want to apply this stash entry?",
 		NoTrackedStagedFilesStash:           "You have no tracked/staged files to stash",
+		NoFilesToStash:                      "You have no files to stash",
 		StashChanges:                        "Stash changes",
 		MergeAborted:                        "Merge aborted",
 		OpenConfig:                          "open config file",
@@ -878,6 +882,7 @@ func EnglishTranslationSet() TranslationSet {
 		PressEnterToReturn:                  "Press enter to return to lazygit",
 		LcViewStashOptions:                  "view stash options",
 		LcStashAllChanges:                   "stash all changes",
+		LcStashStagedChanges:                "stash staged changes",
 		LcStashAllChangesKeepIndex:          "stash all changes and keep index",
 		LcStashUnstagedChanges:              "stash unstaged changes",
 		LcStashOptions:                      "Stash options",
@@ -1130,6 +1135,7 @@ func EnglishTranslationSet() TranslationSet {
 			Pull:                              "Pull",
 			OpenFile:                          "Open file",
 			StashAllChanges:                   "Stash all changes",
+			StashAllChangesKeepIndex:          "Stash all changes and keep index",
 			StashStagedChanges:                "Stash staged changes",
 			StashUnstagedChanges:              "Stash unstaged changes",
 			GitFlowFinish:                     "Git flow finish",

@@ -559,21 +559,37 @@ func (self *FilesController) createStashMenu() error {
 			{
 				DisplayString: self.c.Tr.LcStashAllChanges,
 				OnPress: func() error {
-					return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges)
+					return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges, self.c.Tr.NoFilesToStash)
 				},
 				Key: 'a',
 			},
 			{
 				DisplayString: self.c.Tr.LcStashAllChangesKeepIndex,
 				OnPress: func() error {
-					return self.handleStagedStashSave()
+					// if there are no staged files it behaves the same as Stash.Save
+					return self.handleStashSave(self.git.Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex, self.c.Tr.NoFilesToStash)
 				},
 				Key: 'i',
 			},
 			{
+				DisplayString: self.c.Tr.LcStashStagedChanges,
+				OnPress: func() error {
+					// there must be something in staging otherwise the current implementation mucks the stash up
+					if !self.helpers.WorkingTree.AnyStagedFiles() {
+						return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
+					}
+					return self.handleStashSave(self.git.Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges, self.c.Tr.NoTrackedStagedFilesStash)
+				},
+				Key: 's',
+			},
+			{
 				DisplayString: self.c.Tr.LcStashUnstagedChanges,
 				OnPress: func() error {
-					return self.handleStashSave(self.git.Stash.StashAndKeepIndex, self.c.Tr.Actions.StashUnstagedChanges)
+					if self.helpers.WorkingTree.AnyStagedFiles() {
+						return self.handleStashSave(self.git.Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges, self.c.Tr.NoFilesToStash)
+					}
+					// ordinary stash
+					return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashUnstagedChanges, self.c.Tr.NoFilesToStash)
 				},
 				Key: 'u',
 			},
@@ -582,7 +598,7 @@ func (self *FilesController) createStashMenu() error {
 }
 
 func (self *FilesController) stash() error {
-	return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges)
+	return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges, self.c.Tr.NoTrackedStagedFilesStash)
 }
 
 func (self *FilesController) createResetToUpstreamMenu() error {
@@ -610,17 +626,9 @@ func (self *FilesController) toggleTreeView() error {
 	return self.c.PostRefreshUpdate(self.context())
 }
 
-func (self *FilesController) handleStagedStashSave() error {
-	if !self.helpers.WorkingTree.AnyStagedFiles() {
-		return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
-	}
-
-	return self.handleStashSave(self.git.Stash.StashAndKeepIndex, self.c.Tr.Actions.StashStagedChanges)
-}
-
-func (self *FilesController) handleStashSave(stashFunc func(message string) error, action string) error {
+func (self *FilesController) handleStashSave(stashFunc func(message string) error, action string, errorMsg string) error {
 	if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
-		return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
+		return self.c.ErrorMsg(errorMsg)
 	}
 
 	return self.c.Prompt(types.PromptOpts{
