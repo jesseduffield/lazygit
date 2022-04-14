@@ -125,7 +125,7 @@ func (c *FileLoader) GitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 
 		if strings.HasPrefix(status.Change, "R") {
 			// if a line starts with 'R' then the next line is the original file.
-			status.PreviousName = strings.TrimSpace(splitLines[i+1])
+			status.PreviousName = splitLines[i+1]
 			status.StatusString = fmt.Sprintf("%s %s -> %s", status.Change, status.PreviousName, status.Name)
 			i++
 		}
