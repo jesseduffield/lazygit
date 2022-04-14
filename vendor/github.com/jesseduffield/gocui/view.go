@@ -25,11 +25,9 @@ const (
 	RIGHT  = 8 // view is overlapping at right edge
 )
 
-var (
-	// ErrInvalidPoint is returned when client passed invalid coordinates of a cell.
-	// Most likely client has passed negative coordinates of a cell.
-	ErrInvalidPoint = errors.New("invalid point")
-)
+// ErrInvalidPoint is returned when client passed invalid coordinates of a cell.
+// Most likely client has passed negative coordinates of a cell.
+var ErrInvalidPoint = errors.New("invalid point")
 
 // A View is a window. It maintains its own internal buffer and cursor
 // position.
@@ -125,8 +123,7 @@ type View struct {
 
 	Tabs     []string
 	TabIndex int
-	// HighlightTabWithoutFocus allows you to show which tab is selected without the view being focused
-	HighlightSelectedTabWithoutFocus bool
+
 	// TitleColor allow to configure the color of title and subtitle for the view.
 	TitleColor Attribute
 
@@ -838,7 +835,7 @@ func (v *View) updateSearchPositions() {
 		v.searcher.searchPositions = []cellPos{}
 		for y, line := range v.lines {
 		lineLoop:
-			for x, _ := range line {
+			for x := range line {
 				if normalizeRune(line[x].chr) == rune(normalizedSearchStr[0]) {
 					for offset := 1; offset < len(normalizedSearchStr); offset++ {
 						if len(line)-1 < x+offset {
@@ -924,17 +921,27 @@ func (v *View) draw() error {
 	}
 
 	y := 0
+	emptyCell := cell{chr: ' ', fgColor: ColorDefault, bgColor: ColorDefault}
 	for _, vline := range v.viewLines[start:] {
 		if y >= maxY {
 			break
 		}
 		x := 0
-		for j, c := range vline.line {
+		j := 0
+		var c cell
+		for {
 			if j < v.ox {
+				j++
 				continue
 			}
 			if x >= maxX {
 				break
+			}
+
+			if j > len(vline.line)-1 {
+				c = emptyCell
+			} else {
+				c = vline.line[j]
 			}
 
 			fgColor := c.fgColor
@@ -960,6 +967,7 @@ func (v *View) draw() error {
 			// Not sure why the previous code was here but it caused problems
 			// when typing wide characters in an editor
 			x += runewidth.RuneWidth(c.chr)
+			j++
 		}
 		y++
 	}
