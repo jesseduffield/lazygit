@@ -96,15 +96,13 @@ MODE=record go test ./pkg/gui -run /<test name>
 The resulting directory will look like:
 
 ```
-actual/ (the resulting repo after running the test, ignored by git)
-expected/ (the 'snapshot' repo)
+actual/ (the resulting repo(s) after running the test, ignored by git)
+expected/ (the 'snapshot' repo(s))
 config/ (need not be present)
 test.json
 setup.sh
 recording.json
 ```
-
-Feel free to create a hierarchy of directories in the `test/integration` directory to group tests by feature.
 
 ## Sandboxing
 
