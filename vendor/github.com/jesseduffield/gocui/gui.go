@@ -631,7 +631,6 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
-
 	g.StartTime = time.Now()
 	if g.PlayMode == REPLAYING {
 		go g.replayRecording()
@@ -916,9 +915,6 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 			if v != g.currentView {
 				currentFgColor -= AttrBold
 			}
-			if v.HighlightSelectedTabWithoutFocus || v == g.CurrentView() {
-				currentBgColor = v.SelBgColor
-			}
 		}
 		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
 			return err
@@ -982,7 +978,6 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 
 // flush updates the gui, re-drawing frames and buffers.
 func (g *Gui) flush() error {
-
 	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
 	// g.clear(g.FgColor, g.BgColor)
 

@@ -873,6 +873,13 @@ const (
 	FD_CLOEXEC                                  = 0x1
 	FD_SETSIZE                                  = 0x400
 	FF0                                         = 0x0
+	FIB_RULE_DEV_DETACHED                       = 0x8
+	FIB_RULE_FIND_SADDR                         = 0x10000
+	FIB_RULE_IIF_DETACHED                       = 0x8
+	FIB_RULE_INVERT                             = 0x2
+	FIB_RULE_OIF_DETACHED                       = 0x10
+	FIB_RULE_PERMANENT                          = 0x1
+	FIB_RULE_UNRESOLVED                         = 0x4
 	FIDEDUPERANGE                               = 0xc0189436
 	FSCRYPT_KEY_DESCRIPTOR_SIZE                 = 0x8
 	FSCRYPT_KEY_DESC_PREFIX                     = "fscrypt:"

@@ -26,20 +26,20 @@ gui:
   theme:
     lightTheme: false # For terminals with a light background
     activeBorderColor:
-      - white
+      - green
       - bold
     inactiveBorderColor:
-      - green
+      - white
     optionsTextColor:
       - blue
     selectedLineBgColor:
-      - default
+      - blue # set to `default` to have no background colour
     selectedRangeBgColor:
       - blue
     cherryPickedCommitBgColor:
-      - blue
-    cherryPickedCommitFgColor:
       - cyan
+    cherryPickedCommitFgColor:
+      - blue
     unstagedChangesColor:
       - red
   commitLength:
@@ -348,38 +348,6 @@ gui:
     selectedLineBgColor:
       - default
 ```
-
-## Struggling to see selected line
-
-If you struggle to see the selected line I recommend using the reverse attribute on selected lines like so:
-
-```yaml
-gui:
-  theme:
-    selectedLineBgColor:
-      - reverse
-    selectedRangeBgColor:
-      - reverse
-```
-
-The following has also worked for a couple of people:
-
-```yaml
-gui:
-  theme:
-    activeBorderColor:
-      - white
-      - bold
-    inactiveBorderColor:
-      - white
-    selectedLineBgColor:
-      - reverse
-      - blue
-```
-
-Alternatively you may have bold fonts disabled in your terminal, in which case enabling bold fonts should solve the problem.
-
-If you're still having trouble please raise an issue.
 
 ## Custom Author Color
 
