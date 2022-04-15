@@ -53,7 +53,7 @@ func (self *StashCommands) StashAndKeepIndex(message string) error {
 }
 
 func (self *StashCommands) StashUnstagedChanges(message string) error {
-	if err := self.cmd.New("git commit -m \"WIP\"").Run(); err != nil {
+	if err := self.cmd.New("git commit --no-verify -m \"[lazygit] stashing unstaged changes\"").Run(); err != nil {
 		return err
 	}
 	if err := self.Save(message); err != nil {
