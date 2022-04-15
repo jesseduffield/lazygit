@@ -922,6 +922,7 @@ func (v *View) draw() error {
 
 	y := 0
 	emptyCell := cell{chr: ' ', fgColor: ColorDefault, bgColor: ColorDefault}
+	var prevFgColor Attribute
 	for _, vline := range v.viewLines[start:] {
 		if y >= maxY {
 			break
@@ -940,8 +941,13 @@ func (v *View) draw() error {
 
 			if j > len(vline.line)-1 {
 				c = emptyCell
+				c.fgColor = prevFgColor
 			} else {
 				c = vline.line[j]
+				// capturing previous foreground colour so that if we're using the reverse
+				// attribute we honour the final character's colour and don't awkwardly switch
+				// to a new background colour for the remainder of the line
+				prevFgColor = c.fgColor
 			}
 
 			fgColor := c.fgColor

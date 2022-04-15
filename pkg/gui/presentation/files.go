@@ -1,7 +1,6 @@
 package presentation
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -17,11 +16,12 @@ const (
 	COLLAPSED_ARROW = "►"
 )
 
+// keeping these here as individual constants in case later on people want the old tree shape
 const (
-	INNER_ITEM = "├─ "
-	LAST_ITEM  = "└─ "
-	NESTED     = "│  "
-	NOTHING    = "   "
+	INNER_ITEM = "  "
+	LAST_ITEM  = "  "
+	NESTED     = "  "
+	NOTHING    = "  "
 )
 
 func RenderFileTree(
@@ -77,24 +77,20 @@ func renderAux(
 
 	isRoot := depth == -1
 
-	renderLineWithPrefix := func() string {
-		return prefix + renderLine(s, depth)
-	}
-
 	if s.IsLeaf() {
 		if isRoot {
 			return []string{}
 		}
-		return []string{renderLineWithPrefix()}
+		return []string{prefix + renderLine(s, depth)}
 	}
 
 	if collapsedPaths.IsCollapsed(s.GetPath()) {
-		return []string{fmt.Sprintf("%s %s", renderLineWithPrefix(), COLLAPSED_ARROW)}
+		return []string{prefix + COLLAPSED_ARROW + " " + renderLine(s, depth)}
 	}
 
 	arr := []string{}
 	if !isRoot {
-		arr = append(arr, fmt.Sprintf("%s %s", renderLineWithPrefix(), EXPANDED_ARROW))
+		arr = append(arr, prefix+EXPANDED_ARROW+" "+renderLine(s, depth))
 	}
 
 	newPrefix := prefix

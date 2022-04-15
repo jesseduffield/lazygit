@@ -16,7 +16,7 @@ require (
 	github.com/integrii/flaggy v1.4.0
 	github.com/jesseduffield/generics v0.0.0-20220320043834-727e535cbe68
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
-	github.com/jesseduffield/gocui v0.3.1-0.20220415000211-a826601ada29
+	github.com/jesseduffield/gocui v0.3.1-0.20220415005542-2eb424ce3d0a
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 	github.com/jesseduffield/yaml v2.1.0+incompatible
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0

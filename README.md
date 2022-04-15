@@ -4,9 +4,9 @@
 
 ![CI](https://github.com/jesseduffield/lazygit/workflows/Continuous%20Integration/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GoDoc](https://godoc.org/github.com/jesseduffield/lazygit?status.svg)](https://godoc.org/github.com/jesseduffield/lazygit) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases) [![TODOs](https://badgen.net/https/api.tickgit.com/badgen/github.com/jesseduffield/lazygit)](https://www.tickgit.com/browse?repo=github.com/jesseduffield/lazygit)
 
-A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
+A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui 'gocui') library.
 
-Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? *Are you kidding me?* To stage part of a file you need to use a command line program to step through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, you have to edit an arcane patch file _by hand_? *Are you KIDDING me?!* Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? *YOU HAVE GOT TO BE KIDDING ME!*
+Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? _Are you kidding me?_ To stage part of a file you need to use a command line program to step through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, you have to edit an arcane patch file _by hand_? _Are you KIDDING me?!_ Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? _YOU HAVE GOT TO BE KIDDING ME!_
 
 If you're a mere mortal like me and you're tired of hearing how powerful git is when in your daily life it's a powerful pain in your ass, lazygit might be for you.
 
@@ -288,15 +288,11 @@ If you would like to support the development of lazygit, consider [sponsoring me
 
 ## FAQ
 
-### I'm struggling to see the selected line
-
-See [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#struggling-to-see-selected-line)
-
 ### What do the commit colors represent?
 
-* Green: the commit is included in the master branch
-* Yellow: the commit is not included in the master branch
-* Red: the commit has not been pushed to the upstream branch
+- Green: the commit is included in the master branch
+- Yellow: the commit is not included in the master branch
+- Red: the commit has not been pushed to the upstream branch
 
 ## Shameless Plug
 
