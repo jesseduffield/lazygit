@@ -310,11 +310,8 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 			gui.c.Log.Error(err)
 		}
 
-		if gui.isContextVisible(gui.State.Contexts.Files) {
-			// doing this a little custom (as opposed to using gui.c.PostRefreshUpdate) because we handle selecting the file explicitly below
-			if err := gui.State.Contexts.Files.HandleRender(); err != nil {
-				return err
-			}
+		if err := gui.c.PostRefreshUpdate(gui.State.Contexts.Files); err != nil {
+			gui.c.Log.Error(err)
 		}
 
 		if gui.currentContext().GetKey() == context.FILES_CONTEXT_KEY {
@@ -323,9 +320,6 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 			if !alreadySelected {
 				gui.takeOverMergeConflictScrolling()
 			}
-
-			gui.Views.Files.FocusPoint(0, gui.State.Contexts.Files.GetSelectedLineIdx())
-			return gui.filesRenderToMain()
 		}
 
 		return nil

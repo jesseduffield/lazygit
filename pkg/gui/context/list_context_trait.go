@@ -37,6 +37,8 @@ func formatListFooter(selectedLineIdx int, length int) string {
 func (self *ListContextTrait) HandleFocus(opts ...types.OnFocusOpts) error {
 	self.FocusLine()
 
+	self.viewTrait.SetHighlight(self.list.Len() > 0)
+
 	return self.Context.HandleFocus(opts...)
 }
 
