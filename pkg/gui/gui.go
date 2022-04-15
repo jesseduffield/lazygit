@@ -654,7 +654,6 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.RemoteBranches.FgColor = theme.GocuiDefaultTextColor
 
-	gui.Views.Files.Highlight = true
 	gui.Views.Files.Title = gui.c.Tr.FilesTitle
 	gui.Views.Files.FgColor = theme.GocuiDefaultTextColor
 

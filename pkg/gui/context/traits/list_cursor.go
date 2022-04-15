@@ -25,7 +25,12 @@ func (self *ListCursor) GetSelectedLineIdx() int {
 }
 
 func (self *ListCursor) SetSelectedLineIdx(value int) {
-	self.selectedIdx = utils.Clamp(value, 0, self.list.Len()-1)
+	clampedValue := -1
+	if self.list.Len() > 0 {
+		clampedValue = utils.Clamp(value, 0, self.list.Len()-1)
+	}
+
+	self.selectedIdx = clampedValue
 }
 
 // moves the cursor up or down by the given amount
