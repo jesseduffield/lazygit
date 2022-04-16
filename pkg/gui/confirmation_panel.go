@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -204,7 +205,7 @@ func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 		textArea.TypeString(opts.Prompt)
 		confirmationView.RenderTextArea()
 	} else {
-		if err := gui.renderString(confirmationView, opts.Prompt); err != nil {
+		if err := gui.renderString(confirmationView, style.AttrBold.Sprint(opts.Prompt)); err != nil {
 			return err
 		}
 	}

@@ -74,7 +74,8 @@ func (self *RealPopupHandler) ErrorMsg(message string) error {
 	self.index++
 	self.Unlock()
 
-	coloredMessage := style.FgRed.Sprint(strings.TrimSpace(message))
+	// Need to set bold here explicitly; otherwise it gets cancelled by the red colouring.
+	coloredMessage := style.FgRed.SetBold().Sprint(strings.TrimSpace(message))
 	if err := self.onErrorFn(); err != nil {
 		return err
 	}
