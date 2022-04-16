@@ -98,21 +98,15 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			},
 			func() {
 				// Need to check if the content of the view is well past the origin.
-				// It would be better to use .ViewLinesHeight here (given it considers
-				// wrapping) but when this function is called they haven't been written to yet.
-				linesHeight := view.LinesHeight()
-				_, height := view.Size()
+				linesHeight := view.ViewLinesHeight()
 				_, originY := view.Origin()
 				if linesHeight < originY {
-					newOriginY := linesHeight - height
-					if newOriginY < 0 {
-						newOriginY = 0
-					}
+					newOriginY := linesHeight
+
 					err := view.SetOrigin(0, newOriginY)
 					if err != nil {
 						panic(err)
 					}
-
 				}
 
 				view.FlushStaleCells()

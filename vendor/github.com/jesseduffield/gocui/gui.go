@@ -743,6 +743,8 @@ func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 			}
 		}
 	}
+
+	showScrollbar, realScrollbarStart, realScrollbarEnd := calcRealScrollbarStartEnd(v)
 	for y := v.y0 + 1; y < v.y1 && y < g.maxY; y++ {
 		if y < 0 {
 			continue
@@ -753,12 +755,52 @@ func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 			}
 		}
 		if v.x1 > -1 && v.x1 < g.maxX {
-			if err := g.SetRune(v.x1, y, runeV, fgColor, bgColor); err != nil {
+			runeToPrint := calcScrollbarRune(showScrollbar, realScrollbarStart, realScrollbarEnd, v.y0+1, v.y1-1, y, runeV)
+
+			if err := g.SetRune(v.x1, y, runeToPrint, fgColor, bgColor); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+func calcScrollbarRune(showScrollbar bool, scrollbarStart int, scrollbarEnd int, rangeStart int, rangeEnd int, position int, runeV rune) rune {
+	if !showScrollbar {
+		return runeV
+	} else if position == rangeStart {
+		return '▲'
+	} else if position == rangeEnd {
+		return '▼'
+	} else if position > scrollbarStart && position < scrollbarEnd {
+		return '█'
+	} else if position > rangeStart && position < rangeEnd {
+		// keeping this as a separate branch in case we later want to render something different here.
+		return runeV
+	} else {
+		return runeV
+	}
+}
+
+func calcRealScrollbarStartEnd(v *View) (bool, int, int) {
+	height := v.InnerHeight() + 1
+	fullHeight := v.ViewLinesHeight() - v.scrollMargin()
+
+	if v.CanScrollPastBottom {
+		fullHeight += height
+	}
+
+	if height < 2 || height >= fullHeight {
+		return false, 0, 0
+	}
+
+	originY := v.OriginY()
+	scrollbarStart, scrollbarHeight := calcScrollbar(fullHeight, height, originY, height-1)
+	top := v.y0 + 1
+	realScrollbarStart := top + scrollbarStart
+	realScrollbarEnd := realScrollbarStart + scrollbarHeight
+
+	return true, realScrollbarStart, realScrollbarEnd
 }
 
 func cornerRune(index byte) rune {
@@ -1014,6 +1056,40 @@ func (g *Gui) draw(v *View) error {
 	if !v.Visible || v.y1 < v.y0 {
 		return nil
 	}
+
+	if g.Cursor {
+		if curview := g.currentView; curview != nil {
+			vMaxX, vMaxY := curview.Size()
+			if curview.cx < 0 {
+				curview.cx = 0
+			} else if curview.cx >= vMaxX {
+				curview.cx = vMaxX - 1
+			}
+			if curview.cy < 0 {
+				curview.cy = 0
+			} else if curview.cy >= vMaxY {
+				curview.cy = vMaxY - 1
+			}
+
+			gMaxX, gMaxY := g.Size()
+			cx, cy := curview.x0+curview.cx+1, curview.y0+curview.cy+1
+			// This test probably doesn't need to be here.
+			// tcell is hiding cursor by setting coordinates outside of screen.
+			// Keeping it here for now, as I'm not 100% sure :)
+			if cx >= 0 && cx < gMaxX && cy >= 0 && cy < gMaxY {
+				Screen.ShowCursor(cx, cy)
+			} else {
+				Screen.HideCursor()
+			}
+		}
+	} else {
+		Screen.HideCursor()
+	}
+
+	if err := v.draw(); err != nil {
+		return err
+	}
+
 	if v.Frame {
 		var fgColor, bgColor, frameColor Attribute
 		if g.Highlight && v == g.currentView {
@@ -1057,38 +1133,6 @@ func (g *Gui) draw(v *View) error {
 		}
 	}
 
-	if g.Cursor {
-		if curview := g.currentView; curview != nil {
-			vMaxX, vMaxY := curview.Size()
-			if curview.cx < 0 {
-				curview.cx = 0
-			} else if curview.cx >= vMaxX {
-				curview.cx = vMaxX - 1
-			}
-			if curview.cy < 0 {
-				curview.cy = 0
-			} else if curview.cy >= vMaxY {
-				curview.cy = vMaxY - 1
-			}
-
-			gMaxX, gMaxY := g.Size()
-			cx, cy := curview.x0+curview.cx+1, curview.y0+curview.cy+1
-			// This test probably doesn't need to be here.
-			// tcell is hiding cursor by setting coordinates outside of screen.
-			// Keeping it here for now, as I'm not 100% sure :)
-			if cx >= 0 && cx < gMaxX && cy >= 0 && cy < gMaxY {
-				Screen.ShowCursor(cx, cy)
-			} else {
-				Screen.HideCursor()
-			}
-		}
-	} else {
-		Screen.HideCursor()
-	}
-
-	if err := v.draw(); err != nil {
-		return err
-	}
 	return nil
 }
 

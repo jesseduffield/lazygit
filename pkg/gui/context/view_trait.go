@@ -3,7 +3,6 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 const HORIZONTAL_SCROLL_FACTOR = 3
@@ -43,20 +42,31 @@ func (self *ViewTrait) SetOriginX(value int) {
 	_ = self.view.SetOriginX(value)
 }
 
-// tells us the bounds of line indexes shown in the view currently
+// tells us the start of line indexes shown in the view currently as well as the capacity of lines shown in the viewport.
 func (self *ViewTrait) ViewPortYBounds() (int, int) {
-	_, min := self.view.Origin()
-	max := self.view.InnerHeight() + 1
-	return min, max
+	_, start := self.view.Origin()
+	length := self.view.InnerHeight() + 1
+	return start, length
 }
 
 func (self *ViewTrait) ScrollLeft() {
-	newOriginX := utils.Max(self.view.OriginX()-self.view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR, 0)
-	_ = self.view.SetOriginX(newOriginX)
+	self.view.ScrollLeft(self.horizontalScrollAmount())
 }
 
 func (self *ViewTrait) ScrollRight() {
-	_ = self.view.SetOriginX(self.view.OriginX() + self.view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR)
+	self.view.ScrollRight(self.horizontalScrollAmount())
+}
+
+func (self *ViewTrait) horizontalScrollAmount() int {
+	return self.view.InnerWidth() / HORIZONTAL_SCROLL_FACTOR
+}
+
+func (self *ViewTrait) ScrollUp() {
+	self.view.ScrollUp(1)
+}
+
+func (self *ViewTrait) ScrollDown() {
+	self.view.ScrollDown(1)
 }
 
 // this returns the amount we'll scroll if we want to scroll by a page.

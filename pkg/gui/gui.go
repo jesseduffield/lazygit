@@ -661,11 +661,13 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Secondary.Wrap = true
 	gui.Views.Secondary.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Secondary.IgnoreCarriageReturns = true
+	gui.Views.Secondary.CanScrollPastBottom = gui.c.UserConfig.Gui.ScrollPastBottom
 
 	gui.Views.Main.Title = gui.c.Tr.DiffTitle
 	gui.Views.Main.Wrap = true
 	gui.Views.Main.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Main.IgnoreCarriageReturns = true
+	gui.Views.Main.CanScrollPastBottom = gui.c.UserConfig.Gui.ScrollPastBottom
 
 	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
 	gui.Views.Limit.Wrap = true
