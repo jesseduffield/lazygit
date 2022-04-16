@@ -15,8 +15,8 @@ type ViewportListContextTrait struct {
 func (self *ViewportListContextTrait) FocusLine() {
 	self.ListContextTrait.FocusLine()
 
-	min, max := self.GetViewTrait().ViewPortYBounds()
-	displayStrings := self.ListContextTrait.getDisplayStrings(min, max)
+	startIdx, length := self.GetViewTrait().ViewPortYBounds()
+	displayStrings := self.ListContextTrait.getDisplayStrings(startIdx, length)
 	content := utils.RenderDisplayStrings(displayStrings)
 	self.GetViewTrait().SetViewPortContent(content)
 }

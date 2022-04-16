@@ -2,7 +2,6 @@ package gui
 
 import (
 	"fmt"
-	"math"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -63,55 +62,16 @@ func (gui *Gui) prevScreenMode() error {
 	return gui.rerenderViewsWithScreenModeDependentContent()
 }
 
-func (gui *Gui) scrollUpView(view *gocui.View) error {
-	ox, oy := view.Origin()
-	newOy := int(math.Max(0, float64(oy-gui.c.UserConfig.Gui.ScrollHeight)))
-	return view.SetOrigin(ox, newOy)
+func (gui *Gui) scrollUpView(view *gocui.View) {
+	view.ScrollUp(gui.c.UserConfig.Gui.ScrollHeight)
 }
 
-func (gui *Gui) scrollDownView(view *gocui.View) error {
-	ox, oy := view.Origin()
-	scrollHeight := gui.linesToScrollDown(view)
-	if scrollHeight > 0 {
-		if err := view.SetOrigin(ox, oy+scrollHeight); err != nil {
-			return err
-		}
-	}
+func (gui *Gui) scrollDownView(view *gocui.View) {
+	scrollHeight := gui.c.UserConfig.Gui.ScrollHeight
+	view.ScrollDown(scrollHeight)
 
 	if manager, ok := gui.viewBufferManagerMap[view.Name()]; ok {
 		manager.ReadLines(scrollHeight)
-	}
-	return nil
-}
-
-func (gui *Gui) linesToScrollDown(view *gocui.View) int {
-	_, oy := view.Origin()
-	y := oy
-	canScrollPastBottom := gui.c.UserConfig.Gui.ScrollPastBottom
-	if !canScrollPastBottom {
-		_, sy := view.Size()
-		y += sy
-	}
-	scrollHeight := gui.c.UserConfig.Gui.ScrollHeight
-	scrollableLines := view.ViewLinesHeight() - y
-	if scrollableLines < 0 {
-		return 0
-	}
-
-	// margin is about how many lines must still appear if you scroll
-	// all the way down. In practice every file ends in a newline so it will really
-	// just show a single line
-	margin := 1
-	if canScrollPastBottom {
-		margin = 2
-	}
-	if scrollableLines-margin < scrollHeight {
-		scrollHeight = scrollableLines - margin
-	}
-	if oy+scrollHeight < 0 {
-		return 0
-	} else {
-		return scrollHeight
 	}
 }
 
@@ -120,7 +80,9 @@ func (gui *Gui) scrollUpMain() error {
 		gui.State.Panels.Merging.UserVerticalScrolling = true
 	}
 
-	return gui.scrollUpView(gui.Views.Main)
+	gui.scrollUpView(gui.Views.Main)
+
+	return nil
 }
 
 func (gui *Gui) scrollDownMain() error {
@@ -128,7 +90,9 @@ func (gui *Gui) scrollDownMain() error {
 		gui.State.Panels.Merging.UserVerticalScrolling = true
 	}
 
-	return gui.scrollDownView(gui.Views.Main)
+	gui.scrollDownView(gui.Views.Main)
+
+	return nil
 }
 
 func (gui *Gui) scrollLeftMain() error {
@@ -153,11 +117,15 @@ func (gui *Gui) scrollRight(view *gocui.View) {
 }
 
 func (gui *Gui) scrollUpSecondary() error {
-	return gui.scrollUpView(gui.Views.Secondary)
+	gui.scrollUpView(gui.Views.Secondary)
+
+	return nil
 }
 
 func (gui *Gui) scrollDownSecondary() error {
-	return gui.scrollDownView(gui.Views.Secondary)
+	gui.scrollDownView(gui.Views.Secondary)
+
+	return nil
 }
 
 func (gui *Gui) scrollUpConfirmationPanel() error {
@@ -165,7 +133,9 @@ func (gui *Gui) scrollUpConfirmationPanel() error {
 		return nil
 	}
 
-	return gui.scrollUpView(gui.Views.Confirmation)
+	gui.scrollUpView(gui.Views.Confirmation)
+
+	return nil
 }
 
 func (gui *Gui) scrollDownConfirmationPanel() error {
@@ -173,7 +143,9 @@ func (gui *Gui) scrollDownConfirmationPanel() error {
 		return nil
 	}
 
-	return gui.scrollDownView(gui.Views.Confirmation)
+	gui.scrollDownView(gui.Views.Confirmation)
+
+	return nil
 }
 
 func (gui *Gui) handleRefresh() error {

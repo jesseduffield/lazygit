@@ -43,14 +43,42 @@ func (self *ListController) HandleNextLine() error {
 }
 
 func (self *ListController) HandleScrollLeft() error {
-	return self.scroll(self.context.GetViewTrait().ScrollLeft)
+	return self.scrollHorizontal(self.context.GetViewTrait().ScrollLeft)
 }
 
 func (self *ListController) HandleScrollRight() error {
-	return self.scroll(self.context.GetViewTrait().ScrollRight)
+	return self.scrollHorizontal(self.context.GetViewTrait().ScrollRight)
 }
 
-func (self *ListController) scroll(scrollFunc func()) error {
+func (self *ListController) HandleScrollUp() error {
+	self.context.GetViewTrait().ScrollUp()
+
+	// we only need to do a line change if our line has been pushed out of the viewport, because
+	// at the moment much logic depends on the selected line always being visible
+	if !self.isSelectedLineInViewPort() {
+		return self.handleLineChange(-1)
+	}
+
+	return nil
+}
+
+func (self *ListController) HandleScrollDown() error {
+	self.context.GetViewTrait().ScrollDown()
+
+	if !self.isSelectedLineInViewPort() {
+		return self.handleLineChange(1)
+	}
+
+	return nil
+}
+
+func (self *ListController) isSelectedLineInViewPort() bool {
+	selectedLineIdx := self.context.GetList().GetSelectedLineIdx()
+	startIdx, length := self.context.GetViewTrait().ViewPortYBounds()
+	return selectedLineIdx >= startIdx && selectedLineIdx < startIdx+length
+}
+
+func (self *ListController) scrollHorizontal(scrollFunc func()) error {
 	scrollFunc()
 
 	return self.context.HandleFocus()
@@ -157,7 +185,7 @@ func (self *ListController) GetMouseKeybindings(opts types.KeybindingsOpts) []*g
 			ViewName:  self.context.GetViewName(),
 			ToContext: string(self.context.GetKey()),
 			Key:       gocui.MouseWheelUp,
-			Handler:   func(gocui.ViewMouseBindingOpts) error { return self.HandlePrevLine() },
+			Handler:   func(gocui.ViewMouseBindingOpts) error { return self.HandleScrollUp() },
 		},
 		{
 			ViewName:  self.context.GetViewName(),
@@ -169,7 +197,7 @@ func (self *ListController) GetMouseKeybindings(opts types.KeybindingsOpts) []*g
 			ViewName:  self.context.GetViewName(),
 			ToContext: string(self.context.GetKey()),
 			Key:       gocui.MouseWheelDown,
-			Handler:   func(gocui.ViewMouseBindingOpts) error { return self.HandleNextLine() },
+			Handler:   func(gocui.ViewMouseBindingOpts) error { return self.HandleScrollDown() },
 		},
 	}
 }
