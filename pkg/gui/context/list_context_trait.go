@@ -27,6 +27,10 @@ func (self *ListContextTrait) GetViewTrait() types.IViewTrait {
 func (self *ListContextTrait) FocusLine() {
 	// we need a way of knowing whether we've rendered to the view yet.
 	self.viewTrait.FocusPoint(self.list.GetSelectedLineIdx())
+	self.setFooter()
+}
+
+func (self *ListContextTrait) setFooter() {
 	self.viewTrait.SetFooter(formatListFooter(self.list.GetSelectedLineIdx(), self.list.Len()))
 }
 
@@ -54,6 +58,7 @@ func (self *ListContextTrait) HandleRender() error {
 	content := utils.RenderDisplayStrings(self.getDisplayStrings(0, self.list.Len()))
 	self.viewTrait.SetContent(content)
 	self.c.Render()
+	self.setFooter()
 
 	return nil
 }
