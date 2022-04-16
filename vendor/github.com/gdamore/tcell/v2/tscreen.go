@@ -858,6 +858,7 @@ func (t *tScreen) Show() {
 }
 
 func (t *tScreen) clearScreen() {
+	t.TPuts(t.ti.AttrOff)
 	fg, bg, _ := t.style.Decompose()
 	t.sendFgBg(fg, bg)
 	t.TPuts(t.ti.Clear)

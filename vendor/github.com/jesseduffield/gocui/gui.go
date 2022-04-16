@@ -1053,7 +1053,7 @@ func (g *Gui) draw(v *View) error {
 		return nil
 	}
 
-	if !v.Visible || v.y1 < v.y0 {
+	if !v.Visible || v.y1 < v.y0 || v.x1 < v.x0 {
 		return nil
 	}
 
