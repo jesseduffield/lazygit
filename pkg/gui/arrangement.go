@@ -170,6 +170,12 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 
 	extrasWindowSize := gui.getExtrasWindowSize(height)
 
+	showInfoSection := gui.c.UserConfig.Gui.ShowBottomLine || (gui.State.Searching.isSearching || gui.isAnyModeActive())
+	infoSectionSize := 0
+	if showInfoSection {
+		infoSectionSize = 1
+	}
+
 	root := &boxlayout.Box{
 		Direction: boxlayout.ROW,
 		Children: []*boxlayout.Box{
@@ -201,7 +207,7 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 			},
 			{
 				Direction: boxlayout.COLUMN,
-				Size:      1,
+				Size:      infoSectionSize,
 				Children:  gui.infoSectionChildren(informationStr, appStatus),
 			},
 		},

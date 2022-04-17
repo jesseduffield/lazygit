@@ -28,6 +28,12 @@ func (gui *Gui) getActiveMode() (modeStatus, bool) {
 	})
 }
 
+func (gui *Gui) isAnyModeActive() bool {
+	return slices.Some(gui.modeStatuses(), func(mode modeStatus) bool {
+		return mode.isActive()
+	})
+}
+
 func (gui *Gui) handleInfoClick() error {
 	if !gui.g.Mouse {
 		return nil
