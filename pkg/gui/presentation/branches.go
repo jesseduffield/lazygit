@@ -32,10 +32,10 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 	if diffed {
 		nameTextStyle = theme.DiffTerminalColor
 	}
+
 	coloredName := nameTextStyle.Sprint(displayName)
-	if b.IsTrackingRemote() {
-		coloredName = fmt.Sprintf("%s %s", coloredName, ColoredBranchStatus(b, tr))
-	}
+	branchStatus := utils.WithPadding(ColoredBranchStatus(b, tr), 2)
+	coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)
 
 	recencyColor := style.FgCyan
 	if b.Recency == "  *" {
@@ -77,20 +77,42 @@ func GetBranchTextStyle(name string) style.TextStyle {
 
 func ColoredBranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
 	colour := style.FgYellow
-	if !branch.IsTrackingRemote() || branch.UpstreamGone {
+	if branch.UpstreamGone {
 		colour = style.FgRed
 	} else if branch.MatchesUpstream() {
 		colour = style.FgGreen
+	} else if branch.RemoteBranchNotStoredLocally() {
+		colour = style.FgMagenta
 	}
 
 	return colour.Sprint(BranchStatus(branch, tr))
 }
 
 func BranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
+	if !branch.IsTrackingRemote() {
+		return ""
+	}
+
 	if branch.UpstreamGone {
 		return tr.UpstreamGone
 	}
-	return fmt.Sprintf("↑%s↓%s", branch.Pushables, branch.Pullables)
+
+	if branch.MatchesUpstream() {
+		return "✓"
+	}
+	if branch.RemoteBranchNotStoredLocally() {
+		return "?"
+	}
+
+	result := ""
+	if branch.HasCommitsToPush() {
+		result = fmt.Sprintf("↑%s", branch.Pushables)
+	}
+	if branch.HasCommitsToPull() {
+		result = fmt.Sprintf("%s↓%s", result, branch.Pullables)
+	}
+
+	return result
 }
 
 func SetCustomBranches(customBranchColors map[string]string) {
