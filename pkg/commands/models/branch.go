@@ -44,6 +44,10 @@ func (b *Branch) RemoteBranchStoredLocally() bool {
 	return b.IsTrackingRemote() && b.Pushables != "?" && b.Pullables != "?"
 }
 
+func (b *Branch) RemoteBranchNotStoredLocally() bool {
+	return b.IsTrackingRemote() && b.Pushables == "?" && b.Pullables == "?"
+}
+
 func (b *Branch) MatchesUpstream() bool {
 	return b.RemoteBranchStoredLocally() && b.Pushables == "0" && b.Pullables == "0"
 }
