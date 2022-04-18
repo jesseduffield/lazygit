@@ -350,6 +350,30 @@ gui:
       - default
 ```
 
+## Highlighting the selected line
+
+If you don't like the default behaviour of highlighting the selected line with a blue background, you can use the `selectedLineBgColor` and `selectedRangeBgColor` keys to customise the behaviour. If you just want to embolden the selected line (this was the original default), you can do the following:
+
+```yaml
+gui:
+  theme:
+    selectedLineBgColor:
+      - default
+    selectedRangeBgColor:
+      - default
+```
+
+You can also use the reverse attribute like so:
+
+```yaml
+gui:
+  theme:
+    selectedLineBgColor:
+      - reverse
+    selectedRangeBgColor:
+      - reverse
+```
+
 ## Custom Author Color
 
 Lazygit will assign a random color for every commit author in the commits pane by default.
