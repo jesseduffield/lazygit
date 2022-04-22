@@ -47,7 +47,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: nil,
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `nano +1 "test"`, cmdStr)
+				assert.Equal(t, `nano "test"`, cmdStr)
 			},
 		},
 		{
@@ -61,7 +61,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: map[string]string{"core.editor": "nano"},
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `nano +1 "test"`, cmdStr)
+				assert.Equal(t, `nano "test"`, cmdStr)
 			},
 		},
 		{
@@ -79,7 +79,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: nil,
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `nano +1 "test"`, cmdStr)
+				assert.Equal(t, `nano "test"`, cmdStr)
 			},
 		},
 		{
@@ -97,7 +97,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: nil,
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `emacs +1 "test"`, cmdStr)
+				assert.Equal(t, `emacs "test"`, cmdStr)
 			},
 		},
 		{
@@ -112,7 +112,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: nil,
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `vi +1 "test"`, cmdStr)
+				assert.Equal(t, `vi "test"`, cmdStr)
 			},
 		},
 		{
@@ -127,7 +127,7 @@ func TestEditFileCmdStr(t *testing.T) {
 			gitConfigMockResponses: nil,
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, `vi +1 "file/with space"`, cmdStr)
+				assert.Equal(t, `vi "file/with space"`, cmdStr)
 			},
 		},
 		{
@@ -142,6 +142,20 @@ func TestEditFileCmdStr(t *testing.T) {
 			test: func(cmdStr string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, `vim +1 "open file/at line"`, cmdStr)
+			},
+		},
+		{
+			filename:                  "default edit command template",
+			configEditCommand:         "vim",
+			configEditCommandTemplate: "",
+			runner:                    oscommands.NewFakeRunner(t),
+			getenv: func(env string) string {
+				return ""
+			},
+			gitConfigMockResponses: nil,
+			test: func(cmdStr string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, `vim +1 -- "default edit command template"`, cmdStr)
 			},
 		},
 	}

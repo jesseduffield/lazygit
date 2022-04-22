@@ -83,7 +83,7 @@ git:
   diffContextSize: 3 # how many lines of context are shown around a change in diffs
 os:
   editCommand: '' # see 'Configuring File Editing' section
-  editCommandTemplate: '{{editor}} {{filename}}'
+  editCommandTemplate: ''
   openCommand: ''
 refresher:
   refreshInterval: 10 # File/submodule refresh interval in seconds. Auto-refresh can be disabled via option 'git.autoRefresh'.
@@ -273,7 +273,7 @@ You can specify a line number you are currently at when in the line-by-line mode
 ```yaml
 os:
   editCommand: 'vim'
-  editCommandTemplate: '{{editor}} +{{line}} {{filename}}'
+  editCommandTemplate: '{{editor}} +{{line}} -- {{filename}}'
 ```
 
 or
@@ -281,7 +281,7 @@ or
 ```yaml
 os:
   editCommand: 'code'
-  editCommandTemplate: '{{editor}} --goto {{filename}}:{{line}}'
+  editCommandTemplate: '{{editor}} --goto -- {{filename}}:{{line}}'
 ```
 
 `{{editor}}` in `editCommandTemplate` is replaced with the value of `editCommand`.
