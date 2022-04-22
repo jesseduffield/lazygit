@@ -686,6 +686,8 @@ type TranslationSet struct {
 	CreatePullRequestOptions                 string
 	DefaultBranch                            string
 	SelectBranch                             string
+	SelectTargetRemote                       string
+	NoValidRemoteName                        string
 	CreatePullRequest                        string
 	SelectConfigFile                         string
 	NoConfigFileFoundErr                     string
@@ -1676,6 +1678,8 @@ func EnglishTranslationSet() *TranslationSet {
 		CreatePullRequestOptions:                 "View create pull request options",
 		DefaultBranch:                            "Default branch",
 		SelectBranch:                             "Select branch",
+		SelectTargetRemote:                       "Select target remote",
+		NoValidRemoteName:                        "A remote named '%s' does not exist",
 		SelectConfigFile:                         "Select config file",
 		NoConfigFileFoundErr:                     "No config file found",
 		LoadingFileSuggestions:                   "Loading file suggestions",
