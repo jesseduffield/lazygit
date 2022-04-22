@@ -23,6 +23,11 @@ func (self *CommitCommands) RewordLastCommit(message string) error {
 	return self.cmd.New("git commit --allow-empty --amend --only -m " + self.cmd.Quote(message)).Run()
 }
 
+// Reset the author of the topmost commit.
+func (self *CommitCommands) ResetAuthor() error {
+	return self.cmd.New("git commit --allow-empty --no-edit --amend --reset-author").Run()
+}
+
 // ResetToCommit reset to commit
 func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars []string) error {
 	return self.cmd.New(fmt.Sprintf("git reset --%s %s", strength, sha)).
