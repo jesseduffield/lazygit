@@ -52,6 +52,7 @@ gui:
   showRandomTip: true
   showBottomLine: true # for hiding the bottom information line (unless it has important information to tell you)
   showCommandLog: true
+  showIcons: false
   commandLogSize: 8
 git:
   paging:

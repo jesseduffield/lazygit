@@ -479,6 +479,7 @@ func NewGui(
 	gui.c = helperCommon
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
+	presentation.SetShowFileIcon(gui.UserConfig.Gui.ShowIcons)
 	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
 
 	return gui, nil

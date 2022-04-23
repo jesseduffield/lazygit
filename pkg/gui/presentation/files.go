@@ -6,10 +6,13 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
+
+var showFileIcon = false
 
 const (
 	EXPANDED_ARROW  = "▼"
@@ -154,9 +157,16 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 		output += restColor.Sprint(" ")
 	}
 
+	isSubmodule := file != nil && file.IsSubmodule(submoduleConfigs)
+	isDirectory := file == nil
+
+	if showFileIcon {
+		output += restColor.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isDirectory))
+	}
+
 	output += restColor.Sprint(utils.EscapeSpecialChars(name))
 
-	if file != nil && file.IsSubmodule(submoduleConfigs) {
+	if isSubmodule {
 		output += theme.DefaultTextColor.Sprint(" (submodule)")
 	}
 
@@ -178,12 +188,23 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 		}
 	}
 
+	output := ""
+
 	name = utils.EscapeSpecialChars(name)
-	if commitFile == nil {
-		return colour.Sprint(name)
+	if commitFile != nil {
+		output += getColorForChangeStatus(commitFile.ChangeStatus).Sprint(commitFile.ChangeStatus) + " "
 	}
 
-	return getColorForChangeStatus(commitFile.ChangeStatus).Sprint(commitFile.ChangeStatus) + " " + colour.Sprint(name)
+	// isSubmodule := commitFile != nil && commitFile.IsSubmodule(submoduleConfigs)
+	isSubmodule := false // TODO: submodule
+	isDirectory := commitFile == nil
+
+	if showFileIcon {
+		output += colour.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isDirectory))
+	}
+
+	output += colour.Sprint(name)
+	return output
 }
 
 func getColorForChangeStatus(changeStatus string) style.TextStyle {
@@ -201,4 +222,8 @@ func getColorForChangeStatus(changeStatus string) style.TextStyle {
 	default:
 		return theme.DefaultTextColor
 	}
+}
+
+func SetShowFileIcon(show bool) {
+	showFileIcon = show
 }
