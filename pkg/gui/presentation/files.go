@@ -12,8 +12,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-var showFileIcon = false
-
 const (
 	EXPANDED_ARROW  = "▼"
 	COLLAPSED_ARROW = "►"
@@ -160,7 +158,7 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 	isSubmodule := file != nil && file.IsSubmodule(submoduleConfigs)
 	isDirectory := file == nil
 
-	if showFileIcon {
+	if icons.IsIconEnabled() {
 		output += restColor.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isDirectory))
 	}
 
@@ -199,7 +197,7 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 	isSubmodule := false // TODO: submodule
 	isDirectory := commitFile == nil
 
-	if showFileIcon {
+	if icons.IsIconEnabled() {
 		output += colour.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isDirectory))
 	}
 
@@ -222,8 +220,4 @@ func getColorForChangeStatus(changeStatus string) style.TextStyle {
 	default:
 		return theme.DefaultTextColor
 	}
-}
-
-func SetShowFileIcon(show bool) {
-	showFileIcon = show
 }

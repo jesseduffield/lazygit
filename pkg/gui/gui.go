@@ -28,6 +28,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -479,7 +480,7 @@ func NewGui(
 	gui.c = helperCommon
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
-	presentation.SetShowFileIcon(gui.UserConfig.Gui.ShowIcons)
+	icons.SetIconEnabled(gui.UserConfig.Gui.ShowIcons)
 	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
 
 	return gui, nil
