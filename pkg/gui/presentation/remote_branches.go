@@ -3,6 +3,7 @@ package presentation
 import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -20,5 +21,10 @@ func getRemoteBranchDisplayStrings(b *models.RemoteBranch, diffed bool) []string
 		textStyle = theme.DiffTerminalColor
 	}
 
-	return []string{textStyle.Sprint(b.Name)}
+	res := make([]string, 0, 2)
+	if icons.IsIconEnabled() {
+		res = append(res, textStyle.Sprint(icons.IconForRemoteBranch(b)))
+	}
+	res = append(res, textStyle.Sprint(b.Name))
+	return res
 }
