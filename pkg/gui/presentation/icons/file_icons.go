@@ -28,6 +28,7 @@ var nameIconMap = map[string]string{
 	".vscode":            "\ue70c", // 
 	".zshrc":             "\uf489", // 
 	"Cargo.lock":         "\ue7a8", // 
+	"Cargo.toml":         "\ue7a8", // 
 	"bin":                "\ue5fc", // 
 	"config":             "\ue5fc", // 
 	"docker-compose.yml": "\uf308", // 
