@@ -193,8 +193,7 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 		output += getColorForChangeStatus(commitFile.ChangeStatus).Sprint(commitFile.ChangeStatus) + " "
 	}
 
-	// isSubmodule := commitFile != nil && commitFile.IsSubmodule(submoduleConfigs)
-	isSubmodule := false // TODO: submodule
+	isSubmodule := false
 	isDirectory := commitFile == nil
 
 	if icons.IsIconEnabled() {
