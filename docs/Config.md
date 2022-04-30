@@ -412,6 +412,15 @@ gui:
 
 ![border example](../../assets/colored-border-example.png)
 
+## Display Nerd Fonts Icons
+
+If you are using [Nerd Fonts](https://www.nerdfonts.com), you can display icons.
+
+```yaml
+gui:
+  showIcons: true
+```
+
 ## Keybindings
 
 For all possible keybinding options, check [Custom_Keybindings.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md)
