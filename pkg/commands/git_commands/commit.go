@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
@@ -78,6 +79,27 @@ func (self *CommitCommands) GetCommitDiff(commitSha string) (string, error) {
 	cmdStr := "git show --no-color " + commitSha
 	diff, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
 	return diff, err
+}
+
+type Author struct {
+	Name  string
+	Email string
+}
+
+func (self *CommitCommands) GetCommitAuthor(commitSha string) (Author, error) {
+	cmdStr := "git show --no-patch --pretty=format:'%an|%ae' " + commitSha
+	output, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	if err != nil {
+		return Author{}, err
+	}
+
+	split := strings.Split(strings.TrimSpace(output), "|")
+	if len(split) < 2 {
+		return Author{}, errors.New("unexpected git output")
+	}
+
+	author := Author{Name: split[0], Email: split[1]}
+	return author, err
 }
 
 func (self *CommitCommands) GetCommitMessageFirstLine(sha string) (string, error) {
