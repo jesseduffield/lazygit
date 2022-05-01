@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -275,7 +276,10 @@ func displayCommit(
 		authorFunc = authors.LongAuthor
 	}
 
-	cols := make([]string, 0, 5)
+	cols := make([]string, 0, 7)
+	if icons.IsIconEnabled() {
+		cols = append(cols, shaColor.Sprint(icons.IconForCommit(commit)))
+	}
 	cols = append(cols, shaColor.Sprint(commit.ShortSha()))
 	cols = append(cols, bisectString)
 	if fullDescription {

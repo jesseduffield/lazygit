@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -42,9 +43,14 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 		recencyColor = style.FgGreen
 	}
 
-	res := []string{recencyColor.Sprint(b.Recency), coloredName}
+	res := make([]string, 0, 4)
+	res = append(res, recencyColor.Sprint(b.Recency))
+	if icons.IsIconEnabled() {
+		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
+	}
+	res = append(res, coloredName)
 	if fullDescription {
-		return append(
+		res = append(
 			res,
 			fmt.Sprintf("%s %s",
 				style.FgYellow.Sprint(b.UpstreamRemote),

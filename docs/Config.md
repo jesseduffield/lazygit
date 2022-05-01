@@ -52,6 +52,7 @@ gui:
   showRandomTip: true
   showBottomLine: true # for hiding the bottom information line (unless it has important information to tell you)
   showCommandLog: true
+  showIcons: false
   commandLogSize: 8
 git:
   paging:
@@ -410,6 +411,15 @@ gui:
 ## Example Coloring
 
 ![border example](../../assets/colored-border-example.png)
+
+## Display Nerd Fonts Icons
+
+If you are using [Nerd Fonts](https://www.nerdfonts.com), you can display icons.
+
+```yaml
+gui:
+  showIcons: true
+```
 
 ## Keybindings
 

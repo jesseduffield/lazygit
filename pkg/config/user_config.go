@@ -44,6 +44,7 @@ type GuiConfig struct {
 	ShowRandomTip            bool               `yaml:"showRandomTip"`
 	ShowCommandLog           bool               `yaml:"showCommandLog"`
 	ShowBottomLine           bool               `yaml:"showBottomLine"`
+	ShowIcons                bool               `yaml:"showIcons"`
 	CommandLogSize           int                `yaml:"commandLogSize"`
 }
 
@@ -355,6 +356,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowBottomLine:           true,
 			ShowFileTree:             true,
 			ShowRandomTip:            true,
+			ShowIcons:                false,
 			CommandLogSize:           8,
 		},
 		Git: GitConfig{
