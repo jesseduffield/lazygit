@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -126,6 +128,13 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 				},
 				Key: 'm',
 			},
+			{
+				DisplayString: self.c.Tr.LcCommitAuthor,
+				OnPress: func() error {
+					return self.copyAuthorToClipboard(commit)
+				},
+				Key: 'a',
+			},
 		},
 	})
 }
@@ -167,6 +176,23 @@ func (self *BasicCommitsController) copyCommitDiffToClipboard(commit *models.Com
 	}
 
 	self.c.Toast(self.c.Tr.CommitDiffCopiedToClipboard)
+	return nil
+}
+
+func (self *BasicCommitsController) copyAuthorToClipboard(commit *models.Commit) error {
+	author, err := self.git.Commit.GetCommitAuthor(commit.Sha)
+	if err != nil {
+		return self.c.Error(err)
+	}
+
+	formattedAuthor := fmt.Sprintf("%s <%s>", author.Name, author.Email)
+
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitAuthorToClipboard)
+	if err := self.os.CopyToClipboard(formattedAuthor); err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Toast(self.c.Tr.CommitAuthorCopiedToClipboard)
 	return nil
 }
 
