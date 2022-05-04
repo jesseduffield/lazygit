@@ -89,14 +89,12 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	}
 
 	err = self.getLogCmd(opts).RunAndProcessLines(func(line string) (bool, error) {
-		if canExtractCommit(line) {
-			commit := self.extractCommitFromLine(line)
-			if commit.Sha == firstPushedCommit {
-				passedFirstPushedCommit = true
-			}
-			commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
-			commits = append(commits, commit)
+		commit := self.extractCommitFromLine(line)
+		if commit.Sha == firstPushedCommit {
+			passedFirstPushedCommit = true
 		}
+		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
+		commits = append(commits, commit)
 		return false, nil
 	})
 	if err != nil {
@@ -435,7 +433,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 	return self.cmd.New(
 		fmt.Sprintf(
-			"git log %s %s %s --oneline %s%s --abbrev=%d%s",
+			"git -c log.showSignature=false log %s %s %s --oneline %s%s --abbrev=%d%s",
 			self.cmd.Quote(opts.RefName),
 			orderFlag,
 			allFlag,
