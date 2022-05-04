@@ -544,6 +544,13 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.ToggleSelectHunk,
 		},
 		{
+			ViewName:    "main",
+			Contexts:    []string{string(context.MAIN_PATCH_BUILDING_CONTEXT_KEY), string(context.MAIN_STAGING_CONTEXT_KEY)},
+			Key:         opts.GetKey(opts.Config.Main.EditSelectHunk),
+			Handler:     self.handleEditHunk,
+			Description: self.c.Tr.EditHunk,
+		},
+		{
 			ViewName: "main",
 			Contexts: []string{string(context.MAIN_PATCH_BUILDING_CONTEXT_KEY), string(context.MAIN_STAGING_CONTEXT_KEY)},
 			Key:      gocui.MouseLeft,

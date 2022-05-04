@@ -173,6 +173,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
+  <kbd>E</kbd>: edit hunk
 </pre>
 
 ## Reflog
@@ -230,6 +231,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
+  <kbd>E</kbd>: edit hunk
 </pre>
 
 ## Stash
