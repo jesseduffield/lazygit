@@ -22,7 +22,7 @@ gui:
   sidePanelWidth: 0.3333 # number from 0 to 1
   expandFocusedSidePanel: false
   mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
-  language: 'auto' # one of 'auto' | 'en' | 'zh' | 'pl' | 'nl'
+  language: 'auto' # one of 'auto' | 'en' | 'zh' | 'pl' | 'nl' | 'ja'
   theme:
     lightTheme: false # For terminals with a light background
     activeBorderColor:

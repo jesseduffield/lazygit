@@ -50,6 +50,7 @@ func GetTranslationSets() map[string]TranslationSet {
 		"nl": dutchTranslationSet(),
 		"en": EnglishTranslationSet(),
 		"zh": chineseTranslationSet(),
+		"ja": japaneseTranslationSet(),
 	}
 }
 

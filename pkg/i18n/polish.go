@@ -82,7 +82,6 @@ func polishTranslationSet() TranslationSet {
 		SureDropStashEntry:                  "Jesteś pewny, że chcesz porzucić tę pozycję w schowku?",
 		NoTrackedStagedFilesStash:           "Nie masz śledzonych/zatwierdzonych plików do przechowania",
 		StashChanges:                        "Przechowaj zmiany",
-		MergeAborted:                        "Scalanie anulowane",
 		OpenConfig:                          "otwórz konfigurację",
 		EditConfig:                          "edytuj konfigurację",
 		ForcePush:                           "Wymuś wysłanie",

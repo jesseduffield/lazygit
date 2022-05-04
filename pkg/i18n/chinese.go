@@ -138,7 +138,6 @@ func chineseTranslationSet() TranslationSet {
 		SureApplyStashEntry:                 "您确定要应用此贮藏条目？",
 		NoTrackedStagedFilesStash:           "没有可以贮藏的已跟踪/暂存文件",
 		StashChanges:                        "贮藏更改",
-		MergeAborted:                        "合并中止",
 		OpenConfig:                          "打开配置文件",
 		EditConfig:                          "编辑配置文件",
 		ForcePush:                           "强制推送",
