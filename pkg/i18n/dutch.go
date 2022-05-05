@@ -105,7 +105,6 @@ func dutchTranslationSet() TranslationSet {
 		NoTrackedStagedFilesStash:           "Je hebt geen tracked/staged bestanden om te laten stashen",
 		StashChanges:                        "Stash veranderingen",
 		NoChangedFiles:                      "Geen veranderde bestanden",
-		MergeAborted:                        "Merge afgebroken",
 		OpenConfig:                          "open config bestand",
 		EditConfig:                          "verander config bestand",
 		ForcePush:                           "Forceer push",

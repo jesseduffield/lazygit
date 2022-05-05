@@ -120,7 +120,6 @@ type TranslationSet struct {
 	SureApplyStashEntry                 string
 	NoTrackedStagedFilesStash           string
 	StashChanges                        string
-	MergeAborted                        string
 	OpenConfig                          string
 	EditConfig                          string
 	ForcePush                           string
@@ -722,7 +721,6 @@ func EnglishTranslationSet() TranslationSet {
 		SureApplyStashEntry:                 "Are you sure you want to apply this stash entry?",
 		NoTrackedStagedFilesStash:           "You have no tracked/staged files to stash",
 		StashChanges:                        "Stash changes",
-		MergeAborted:                        "Merge aborted",
 		OpenConfig:                          "open config file",
 		EditConfig:                          "edit config file",
 		ForcePush:                           "Force push",
