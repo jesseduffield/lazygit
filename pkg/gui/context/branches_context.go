@@ -58,5 +58,9 @@ func (self *BranchesContext) GetSelectedItemId() string {
 }
 
 func (self *BranchesContext) GetSelectedRef() types.Ref {
-	return self.GetSelected()
+	branch := self.GetSelected()
+	if branch == nil {
+		return nil
+	}
+	return branch
 }

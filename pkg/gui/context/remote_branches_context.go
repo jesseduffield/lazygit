@@ -61,5 +61,9 @@ func (self *RemoteBranchesContext) GetSelectedItemId() string {
 }
 
 func (self *RemoteBranchesContext) GetSelectedRef() types.Ref {
-	return self.GetSelected()
+	remoteBranch := self.GetSelected()
+	if remoteBranch == nil {
+		return nil
+	}
+	return remoteBranch
 }

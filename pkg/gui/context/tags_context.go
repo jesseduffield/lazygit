@@ -58,5 +58,9 @@ func (self *TagsContext) GetSelectedItemId() string {
 }
 
 func (self *TagsContext) GetSelectedRef() types.Ref {
-	return self.GetSelected()
+	tag := self.GetSelected()
+	if tag == nil {
+		return nil
+	}
+	return tag
 }
