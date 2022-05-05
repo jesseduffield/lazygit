@@ -384,7 +384,8 @@ You can customize the color in case you're not happy with the randomly assigned 
 ```yaml
 gui:
   authorColors:
-    'John Smith': '#ff0000' # use red for John Smith
+    'John Smith': 'red' # use red for John Smith
+    'Alan Smithee': '#00ff00' # use green for Alan Smithee
 ```
 
 You can use wildcard to set a unified color in case your are lazy to customize the color for every author or you just want a single color for all/other authors:
@@ -393,7 +394,7 @@ You can use wildcard to set a unified color in case your are lazy to customize t
 gui:
   authorColors:
     # use red for John Smith
-    'John Smith': '#ff0000'
+    'John Smith': 'red'
     # use blue for other authors
     '*': '#0000ff'
 ```

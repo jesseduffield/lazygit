@@ -6,6 +6,7 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/samber/lo"
 )
 
 var (
@@ -55,10 +56,10 @@ func IsValidHexValue(v string) bool {
 }
 
 func SetCustomColors(customColors map[string]string) map[string]style.TextStyle {
-	colors := make(map[string]style.TextStyle)
-	for key, colorSequence := range customColors {
-		style := style.New().SetFg(style.NewRGBColor(color.HEX(colorSequence, false)))
-		colors[key] = style
-	}
-	return colors
+	return lo.MapValues(customColors, func(c string, key string) style.TextStyle {
+		if s, ok := style.ColorMap[c]; ok {
+			return s.Foreground
+		}
+		return style.New().SetFg(style.NewRGBColor(color.HEX(c, false)))
+	})
 }
