@@ -83,7 +83,11 @@ func (self *SubCommitsContext) CanRebase() bool {
 }
 
 func (self *SubCommitsContext) GetSelectedRef() types.Ref {
-	return self.GetSelected()
+	commit := self.GetSelected()
+	if commit == nil {
+		return nil
+	}
+	return commit
 }
 
 func (self *SubCommitsContext) GetCommits() []*models.Commit {

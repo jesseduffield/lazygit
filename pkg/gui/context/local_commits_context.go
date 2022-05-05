@@ -84,7 +84,11 @@ func (self *LocalCommitsContext) CanRebase() bool {
 }
 
 func (self *LocalCommitsContext) GetSelectedRef() types.Ref {
-	return self.GetSelected()
+	commit := self.GetSelected()
+	if commit == nil {
+		return nil
+	}
+	return commit
 }
 
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {

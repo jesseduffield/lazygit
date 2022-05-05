@@ -62,5 +62,9 @@ func (self *StashContext) CanRebase() bool {
 }
 
 func (self *StashContext) GetSelectedRef() types.Ref {
-	return self.GetSelected()
+	stash := self.GetSelected()
+	if stash == nil {
+		return nil
+	}
+	return stash
 }
