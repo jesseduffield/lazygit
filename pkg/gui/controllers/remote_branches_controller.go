@@ -57,7 +57,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 		{
 			Key:         opts.GetKey(opts.Config.Branches.SetUpstream),
 			Handler:     self.checkSelected(self.setAsUpstream),
-			Description: self.c.Tr.LcSetUpstream,
+			Description: self.c.Tr.LcSetAsUpstream,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Return),

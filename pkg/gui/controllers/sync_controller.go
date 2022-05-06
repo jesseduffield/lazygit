@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -13,21 +12,16 @@ import (
 type SyncController struct {
 	baseController
 	*controllerCommon
-
-	getSuggestedRemote func() string
 }
 
 var _ types.IController = &SyncController{}
 
 func NewSyncController(
 	common *controllerCommon,
-	getSuggestedRemote func() string,
 ) *SyncController {
 	return &SyncController{
 		baseController:   baseController{},
 		controllerCommon: common,
-
-		getSuggestedRemote: getSuggestedRemote,
 	}
 }
 
@@ -85,8 +79,8 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 		if self.git.Config.GetPushToCurrent() {
 			return self.pushAux(pushOpts{setUpstream: true})
 		} else {
-			return self.promptForUpstream(currentBranch, func(upstream string) error {
-				upstreamRemote, upstreamBranch, err := self.parseUpstream(upstream)
+			return self.helpers.Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
+				upstreamRemote, upstreamBranch, err := self.helpers.Upstream.ParseUpstream(upstream)
 				if err != nil {
 					return self.c.Error(err)
 				}
@@ -106,7 +100,7 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
-		return self.promptForUpstream(currentBranch, func(upstream string) error {
+		return self.helpers.Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
 			if err := self.setCurrentBranchUpstream(upstream); err != nil {
 				return self.c.Error(err)
 			}
@@ -119,7 +113,7 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 }
 
 func (self *SyncController) setCurrentBranchUpstream(upstream string) error {
-	upstreamRemote, upstreamBranch, err := self.parseUpstream(upstream)
+	upstreamRemote, upstreamBranch, err := self.helpers.Upstream.ParseUpstream(upstream)
 	if err != nil {
 		return err
 	}
@@ -134,30 +128,6 @@ func (self *SyncController) setCurrentBranchUpstream(upstream string) error {
 		return err
 	}
 	return nil
-}
-
-func (self *SyncController) parseUpstream(upstream string) (string, string, error) {
-	var upstreamBranch, upstreamRemote string
-	split := strings.Split(upstream, " ")
-	if len(split) != 2 {
-		return "", "", errors.New(self.c.Tr.InvalidUpstream)
-	}
-
-	upstreamRemote = split[0]
-	upstreamBranch = split[1]
-
-	return upstreamRemote, upstreamBranch, nil
-}
-
-func (self *SyncController) promptForUpstream(currentBranch *models.Branch, onConfirm func(string) error) error {
-	suggestedRemote := self.getSuggestedRemote()
-
-	return self.c.Prompt(types.PromptOpts{
-		Title:               self.c.Tr.EnterUpstream,
-		InitialContent:      suggestedRemote + " " + currentBranch.Name,
-		FindSuggestionsFunc: self.helpers.Suggestions.GetRemoteBranchesSuggestionsFunc(" "),
-		HandleConfirm:       onConfirm,
-	})
 }
 
 type PullFilesOptions struct {

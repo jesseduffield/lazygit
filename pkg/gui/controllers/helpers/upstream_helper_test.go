@@ -1,4 +1,4 @@
-package gui
+package helpers
 
 import (
 	"testing"
