@@ -38,7 +38,6 @@ func (self *StashCommands) Apply(index int) error {
 }
 
 // Save save stash
-// TODO: before calling this, check if there is anything to save
 func (self *StashCommands) Save(message string) error {
 	return self.cmd.New("git stash save " + self.cmd.Quote(message)).Run()
 }
@@ -47,6 +46,23 @@ func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
 	cmdStr := fmt.Sprintf("git stash show -p --stat --color=%s --unified=%d stash@{%d}", self.UserConfig.Git.Paging.ColorArg, self.UserConfig.Git.DiffContextSize, index)
 
 	return self.cmd.New(cmdStr).DontLog()
+}
+
+func (self *StashCommands) StashAndKeepIndex(message string) error {
+	return self.cmd.New(fmt.Sprintf("git stash save %s --keep-index", self.cmd.Quote(message))).Run()
+}
+
+func (self *StashCommands) StashUnstagedChanges(message string) error {
+	if err := self.cmd.New("git commit --no-verify -m \"[lazygit] stashing unstaged changes\"").Run(); err != nil {
+		return err
+	}
+	if err := self.Save(message); err != nil {
+		return err
+	}
+	if err := self.cmd.New("git reset --soft HEAD^").Run(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // SaveStagedChanges stashes only the currently staged changes. This takes a few steps

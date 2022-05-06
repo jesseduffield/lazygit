@@ -207,7 +207,7 @@ func polishTranslationSet() TranslationSet {
 		PressEnterToReturn:                  "Wciśnij enter żeby wrócić do lazygit",
 		LcViewStashOptions:                  "wyświetl opcje schowka",
 		LcStashAllChanges:                   "przechowaj zmiany",
-		LcStashStagedChanges:                "przechowaj zmiany z poczekalni",
+		LcStashAllChangesKeepIndex:          "przechowaj zmiany z poczekalni",
 		LcStashOptions:                      "Opcje schowka",
 		NotARepository:                      "Błąd: nie jesteś w repozytorium",
 		LcJump:                              "przeskocz do panelu",

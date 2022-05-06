@@ -245,7 +245,7 @@ func dutchTranslationSet() TranslationSet {
 		PressEnterToReturn:                  "Press om terug te gaan naar lazygit",
 		LcViewStashOptions:                  "bekijk stash opties",
 		LcStashAllChanges:                   "stash-bestanden",
-		LcStashStagedChanges:                "stash staged wijzigingen",
+		LcStashAllChangesKeepIndex:          "stash staged wijzigingen",
 		LcStashOptions:                      "Stash opties",
 		NotARepository:                      "Fout: moet in een git repository uitgevoerd worden",
 		LcJump:                              "ga naar paneel",

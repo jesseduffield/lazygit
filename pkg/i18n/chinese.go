@@ -282,7 +282,7 @@ func chineseTranslationSet() TranslationSet {
 		PressEnterToReturn:                  "按下 Enter 键返回 lazygit",
 		LcViewStashOptions:                  "查看贮藏选项",
 		LcStashAllChanges:                   "将所有更改加入贮藏",
-		LcStashStagedChanges:                "将已暂存的更改加入贮藏",
+		LcStashAllChangesKeepIndex:          "将已暂存的更改加入贮藏",
 		LcStashOptions:                      "贮藏选项",
 		NotARepository:                      "错误：必须在 git 仓库中运行",
 		LcJump:                              "跳到面板",

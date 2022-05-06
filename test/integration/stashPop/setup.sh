@@ -24,3 +24,5 @@ git commit -am file2
 echo "hello there" > file1
 echo "hello there" > file2
 echo "hello there" > file3
+
+git stash save "stash to drop"
