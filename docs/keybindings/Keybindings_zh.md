@@ -193,7 +193,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: 切换拖动选择
   <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
-  <kbd>E</kbd>: edit hunk
 </pre>
 
 ## 标签页面

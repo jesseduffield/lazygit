@@ -191,6 +191,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>f</kbd>: fast-forward this branch from its upstream
   <kbd>g</kbd>: view reset options
   <kbd>R</kbd>: ブランチ名を変更
+  <kbd>u</kbd>: set/unset upstream
   <kbd>enter</kbd>: コミットを閲覧
   <kbd>f</kbd>: リモートをfetch
   <kbd>n</kbd>: リモートを新規追加
@@ -254,6 +255,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>v</kbd>: 範囲選択を切り替え
   <kbd>V</kbd>: 範囲選択を切り替え
   <kbd>a</kbd>: hunk選択を切り替え
+  <kbd>E</kbd>: edit hunk
 </pre>
 
 ## リモートブランチ
