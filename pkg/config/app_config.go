@@ -50,7 +50,15 @@ type AppConfigurer interface {
 }
 
 // NewAppConfig makes a new app config
-func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool, tempDir string) (*AppConfig, error) {
+func NewAppConfig(
+	name string,
+	version,
+	commit,
+	date string,
+	buildSource string,
+	debuggingFlag bool,
+	tempDir string,
+) (*AppConfig, error) {
 	configDir, err := findOrCreateConfigDir()
 	if err != nil && !os.IsPermission(err) {
 		return nil, err
@@ -81,7 +89,7 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 	}
 
 	appConfig := &AppConfig{
-		Name:            "lazygit",
+		Name:            name,
 		Version:         version,
 		Commit:          commit,
 		BuildDate:       date,
