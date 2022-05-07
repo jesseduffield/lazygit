@@ -18,7 +18,6 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Binary releases](#binary-releases)
   - [Homebrew](#homebrew)
   - [MacPorts](#macports)
-  - [Ubuntu](#ubuntu)
   - [Void Linux](#void-linux)
   - [Scoop (Windows)](#scoop-windows)
   - [Arch Linux](#arch-linux)
@@ -76,18 +75,6 @@ Tap:
 
 ```
 sudo port install lazygit
-```
-
-### Ubuntu
-
-**Deprecated**: will no longer receive updates.
-
-Packages for Ubuntu are available via [Launchpad PPA](https://launchpad.net/~lazygit-team).
-
-```sh
-sudo add-apt-repository ppa:lazygit-team/release
-sudo apt-get update
-sudo apt-get install lazygit
 ```
 
 ### Void Linux
