@@ -1,31 +1,61 @@
-//go:build !windows
-// +build !windows
-
 package app
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 
-	"github.com/aybabtme/humanlog"
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/sirupsen/logrus"
 )
 
-func TailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {
-	cmd := secureexec.Command("tail", "-f", logFilePath)
-
-	stdout, _ := cmd.StdoutPipe()
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
+func newLogger(config config.AppConfigurer) *logrus.Entry {
+	var log *logrus.Logger
+	if config.GetDebug() || os.Getenv("DEBUG") == "TRUE" {
+		log = newDevelopmentLogger()
+	} else {
+		log = newProductionLogger()
 	}
 
-	if err := humanlog.Scanner(stdout, os.Stdout, opts); err != nil {
+	// highly recommended: tail -f development.log | humanlog
+	// https://github.com/aybabtme/humanlog
+	log.Formatter = &logrus.JSONFormatter{}
+
+	return log.WithFields(logrus.Fields{
+		"debug":     config.GetDebug(),
+		"version":   config.GetVersion(),
+		"commit":    config.GetCommit(),
+		"buildDate": config.GetBuildDate(),
+	})
+}
+
+func newProductionLogger() *logrus.Logger {
+	log := logrus.New()
+	log.Out = ioutil.Discard
+	log.SetLevel(logrus.ErrorLevel)
+	return log
+}
+
+func newDevelopmentLogger() *logrus.Logger {
+	logger := logrus.New()
+	logger.SetLevel(getLogLevel())
+	logPath, err := config.LogPath()
+	if err != nil {
 		log.Fatal(err)
 	}
-
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
+	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
+	if err != nil {
+		log.Fatalf("Unable to log to log file: %v", err)
 	}
+	logger.SetOutput(file)
+	return logger
+}
 
-	os.Exit(0)
+func getLogLevel() logrus.Level {
+	strLevel := os.Getenv("LOG_LEVEL")
+	level, err := logrus.ParseLevel(strLevel)
+	if err != nil {
+		return logrus.DebugLevel
+	}
+	return level
 }

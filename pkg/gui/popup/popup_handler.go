@@ -11,7 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type RealPopupHandler struct {
+type PopupHandler struct {
 	*common.Common
 	index int
 	sync.Mutex
@@ -24,7 +24,7 @@ type RealPopupHandler struct {
 	getPromptInputFn    func() string
 }
 
-var _ types.IPopupHandler = &RealPopupHandler{}
+var _ types.IPopupHandler = &PopupHandler{}
 
 func NewPopupHandler(
 	common *common.Common,
@@ -35,8 +35,8 @@ func NewPopupHandler(
 	withWaitingStatusFn func(message string, f func() error) error,
 	toastFn func(message string),
 	getPromptInputFn func() string,
-) *RealPopupHandler {
-	return &RealPopupHandler{
+) *PopupHandler {
+	return &PopupHandler{
 		Common:              common,
 		index:               0,
 		createPopupPanelFn:  createPopupPanelFn,
@@ -49,19 +49,19 @@ func NewPopupHandler(
 	}
 }
 
-func (self *RealPopupHandler) Menu(opts types.CreateMenuOptions) error {
+func (self *PopupHandler) Menu(opts types.CreateMenuOptions) error {
 	return self.createMenuFn(opts)
 }
 
-func (self *RealPopupHandler) Toast(message string) {
+func (self *PopupHandler) Toast(message string) {
 	self.toastFn(message)
 }
 
-func (self *RealPopupHandler) WithWaitingStatus(message string, f func() error) error {
+func (self *PopupHandler) WithWaitingStatus(message string, f func() error) error {
 	return self.withWaitingStatusFn(message, f)
 }
 
-func (self *RealPopupHandler) Error(err error) error {
+func (self *PopupHandler) Error(err error) error {
 	if err == gocui.ErrQuit {
 		return err
 	}
@@ -69,7 +69,7 @@ func (self *RealPopupHandler) Error(err error) error {
 	return self.ErrorMsg(err.Error())
 }
 
-func (self *RealPopupHandler) ErrorMsg(message string) error {
+func (self *PopupHandler) ErrorMsg(message string) error {
 	self.Lock()
 	self.index++
 	self.Unlock()
@@ -83,11 +83,11 @@ func (self *RealPopupHandler) ErrorMsg(message string) error {
 	return self.Alert(self.Tr.Error, coloredMessage)
 }
 
-func (self *RealPopupHandler) Alert(title string, message string) error {
+func (self *PopupHandler) Alert(title string, message string) error {
 	return self.Confirm(types.ConfirmOpts{Title: title, Prompt: message})
 }
 
-func (self *RealPopupHandler) Confirm(opts types.ConfirmOpts) error {
+func (self *PopupHandler) Confirm(opts types.ConfirmOpts) error {
 	self.Lock()
 	self.index++
 	self.Unlock()
@@ -101,7 +101,7 @@ func (self *RealPopupHandler) Confirm(opts types.ConfirmOpts) error {
 	})
 }
 
-func (self *RealPopupHandler) Prompt(opts types.PromptOpts) error {
+func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
 	self.Lock()
 	self.index++
 	self.Unlock()
@@ -117,7 +117,7 @@ func (self *RealPopupHandler) Prompt(opts types.PromptOpts) error {
 	})
 }
 
-func (self *RealPopupHandler) WithLoaderPanel(message string, f func() error) error {
+func (self *PopupHandler) WithLoaderPanel(message string, f func() error) error {
 	index := 0
 	self.Lock()
 	self.index++
@@ -150,54 +150,6 @@ func (self *RealPopupHandler) WithLoaderPanel(message string, f func() error) er
 
 // returns the content that has currently been typed into the prompt. Useful for
 // asynchronously updating the suggestions list under the prompt.
-func (self *RealPopupHandler) GetPromptInput() string {
+func (self *PopupHandler) GetPromptInput() string {
 	return self.getPromptInputFn()
-}
-
-type TestPopupHandler struct {
-	OnErrorMsg func(message string) error
-	OnConfirm  func(opts types.ConfirmOpts) error
-	OnPrompt   func(opts types.PromptOpts) error
-}
-
-var _ types.IPopupHandler = &TestPopupHandler{}
-
-func (self *TestPopupHandler) Error(err error) error {
-	return self.ErrorMsg(err.Error())
-}
-
-func (self *TestPopupHandler) ErrorMsg(message string) error {
-	return self.OnErrorMsg(message)
-}
-
-func (self *TestPopupHandler) Alert(title string, message string) error {
-	panic("not yet implemented")
-}
-
-func (self *TestPopupHandler) Confirm(opts types.ConfirmOpts) error {
-	return self.Confirm(opts)
-}
-
-func (self *TestPopupHandler) Prompt(opts types.PromptOpts) error {
-	return self.OnPrompt(opts)
-}
-
-func (self *TestPopupHandler) WithLoaderPanel(message string, f func() error) error {
-	return f()
-}
-
-func (self *TestPopupHandler) WithWaitingStatus(message string, f func() error) error {
-	return f()
-}
-
-func (self *TestPopupHandler) Menu(opts types.CreateMenuOptions) error {
-	panic("not yet implemented")
-}
-
-func (self *TestPopupHandler) Toast(message string) {
-	panic("not yet implemented")
-}
-
-func (self *TestPopupHandler) GetPromptInput() string {
-	panic("not yet implemented")
 }

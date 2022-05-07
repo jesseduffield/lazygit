@@ -7,6 +7,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// In this file we use the boxlayout package, along with knowledge about the app's state,
+// to arrange the windows (i.e. panels) on the screen.
+
 const INFO_SECTION_PADDING = " "
 
 func (gui *Gui) mainSectionChildren() []*boxlayout.Box {

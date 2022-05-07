@@ -12,6 +12,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// This file is for the rendering of confirmation panels along with setting and handling associated
+// keybindings.
+
 func (gui *Gui) wrappedConfirmationFunction(handlersManageFocus bool, function func() error) func() error {
 	return func() error {
 		if err := gui.closeConfirmationPrompt(handlersManageFocus); err != nil {

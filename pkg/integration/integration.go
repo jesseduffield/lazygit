@@ -18,6 +18,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
+// This package is for running our integration test suite. See docs/Integration_Tests.md for more info
+
 type Test struct {
 	Name         string  `json:"name"`
 	Speed        float64 `json:"speed"`
