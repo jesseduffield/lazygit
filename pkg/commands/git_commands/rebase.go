@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
@@ -109,8 +110,8 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseSha string, todo
 	}
 
 	cmdObj.AddEnvVars(
-		"LAZYGIT_CLIENT_COMMAND=INTERACTIVE_REBASE",
-		"LAZYGIT_REBASE_TODO="+todo,
+		daemon.DaemonKindEnvKey+"="+string(daemon.InteractiveRebase),
+		daemon.RebaseTODOEnvKey+"="+todo,
 		"DEBUG="+debug,
 		"LANG=en_US.UTF-8",   // Force using EN as language
 		"LC_ALL=en_US.UTF-8", // Force using EN as language
@@ -297,7 +298,7 @@ func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) erro
 	lazyGitPath := oscommands.GetLazygitPath()
 	return cmdObj.
 		AddEnvVars(
-			"LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY",
+			daemon.DaemonKindEnvKey+"="+string(daemon.ExitImmediately),
 			"GIT_EDITOR="+lazyGitPath,
 			"EDITOR="+lazyGitPath,
 			"VISUAL="+lazyGitPath,

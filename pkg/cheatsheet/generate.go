@@ -55,7 +55,11 @@ func generateAtDir(cheatsheetDir string) {
 
 	for lang := range translationSetsByLang {
 		mConfig.GetUserConfig().Gui.Language = lang
-		mApp, _ := app.NewApp(mConfig)
+		common, err := app.NewCommon(mConfig)
+		if err != nil {
+			log.Fatal(err)
+		}
+		mApp, _ := app.NewApp(mConfig, common)
 		path := cheatsheetDir + "/Keybindings_" + lang + ".md"
 		file, err := os.Create(path)
 		if err != nil {

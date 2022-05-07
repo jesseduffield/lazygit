@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -61,7 +62,7 @@ func TestRebaseSkipEditorCommand(t *testing.T) {
 			`^VISUAL=.*$`,
 			`^EDITOR=.*$`,
 			`^GIT_EDITOR=.*$`,
-			"^LAZYGIT_CLIENT_COMMAND=EXIT_IMMEDIATELY$",
+			"^" + daemon.DaemonKindEnvKey + "=" + string(daemon.ExitImmediately) + "$",
 		} {
 			regexStr := regexStr
 			foundMatch := lo.ContainsBy(envVars, func(envVar string) bool {

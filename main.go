@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/go-errors/errors"
 	"github.com/integrii/flaggy"
 	"github.com/jesseduffield/lazygit/pkg/app"
+	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/logs"
 	yaml "github.com/jesseduffield/yaml"
 )
 
@@ -117,7 +117,7 @@ func main() {
 	}
 
 	if logFlag {
-		app.TailLogs()
+		logs.TailLogs()
 		os.Exit(0)
 	}
 
@@ -138,20 +138,15 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	app, err := app.NewApp(appConfig)
-
-	if err == nil {
-		err = app.Run(filterPath)
-	}
-
+	common, err := app.NewCommon(appConfig)
 	if err != nil {
-		if errorMessage, known := app.KnownError(err); known {
-			log.Fatal(errorMessage)
-		}
-		newErr := errors.Wrap(err, 0)
-		stackTrace := newErr.ErrorStack()
-		app.Log.Error(stackTrace)
-
-		log.Fatal(fmt.Sprintf("%s: %s\n\n%s", app.Tr.ErrorOccurred, constants.Links.Issues, stackTrace))
+		log.Fatal(err)
 	}
+
+	if daemon.InDaemonMode() {
+		daemon.Handle(common)
+		return
+	}
+
+	app.Run(appConfig, common, filterPath)
 }
