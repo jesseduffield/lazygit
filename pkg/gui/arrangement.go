@@ -5,6 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mattn/go-runewidth"
 )
 
 // In this file we use the boxlayout package, along with knowledge about the app's state,
@@ -78,7 +79,7 @@ func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*
 		return []*boxlayout.Box{
 			{
 				Window: "searchPrefix",
-				Size:   len(SEARCH_PREFIX),
+				Size:   runewidth.StringWidth(SEARCH_PREFIX),
 			},
 			{
 				Window: "search",
@@ -93,7 +94,7 @@ func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*
 		result = append(result,
 			&boxlayout.Box{
 				Window: "appStatus",
-				Size:   len(appStatus) + len(INFO_SECTION_PADDING),
+				Size:   runewidth.StringWidth(appStatus) + runewidth.StringWidth(INFO_SECTION_PADDING),
 			},
 		)
 	}
@@ -107,7 +108,7 @@ func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*
 			{
 				Window: "information",
 				// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
-				Size: len(INFO_SECTION_PADDING) + len(utils.Decolorise(informationStr)),
+				Size: runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(utils.Decolorise(informationStr)),
 			},
 		}...,
 	)
