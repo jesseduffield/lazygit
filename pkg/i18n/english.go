@@ -167,6 +167,7 @@ type TranslationSet struct {
 	ToggleDragSelect                    string
 	ToggleSelectHunk                    string
 	ToggleSelectionForPatch             string
+	EditHunk                            string
 	TogglePanel                         string
 	ReturnToFilesPanel                  string
 	FastForward                         string
@@ -777,6 +778,7 @@ func EnglishTranslationSet() TranslationSet {
 		ToggleDragSelect:                    `toggle drag select`,
 		ToggleSelectHunk:                    `toggle select hunk`,
 		ToggleSelectionForPatch:             `add/remove line(s) to patch`,
+		EditHunk:                            `edit hunk`,
 		TogglePanel:                         `switch to other panel`,
 		ReturnToFilesPanel:                  `return to files panel`,
 		FastForward:                         `fast-forward this branch from its upstream`,

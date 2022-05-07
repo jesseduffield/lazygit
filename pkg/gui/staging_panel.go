@@ -174,3 +174,54 @@ func (gui *Gui) HandleOpenFile() error {
 
 	return gui.helpers.Files.OpenFile(file.GetPath())
 }
+
+func (gui *Gui) handleEditHunk() error {
+	return gui.withLBLActiveCheck(func(state *LblPanelState) error {
+		return gui.editHunk(state.SecondaryFocused, state)
+	})
+}
+
+func (gui *Gui) editHunk(reverse bool, state *LblPanelState) error {
+	file := gui.getSelectedFile()
+	if file == nil {
+		return nil
+	}
+
+	hunk := state.CurrentHunk()
+	patchText := patch.ModifiedPatchForRange(gui.Log, file.Name, state.GetDiff(), hunk.FirstLineIdx, hunk.LastLineIdx(), reverse, false)
+	patchFilepath, err := gui.git.WorkingTree.SaveTemporaryPatch(patchText)
+	if err != nil {
+		return err
+	}
+
+	lineOffset := 3
+	lineIdxInHunk := state.GetSelectedLineIdx() - hunk.FirstLineIdx
+	if err := gui.helpers.Files.EditFileAtLine(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
+		return err
+	}
+
+	editedPatchText, err := gui.git.File.Cat(patchFilepath)
+	if err != nil {
+		return err
+	}
+
+	applyFlags := []string{}
+	if !reverse || state.SecondaryFocused {
+		applyFlags = append(applyFlags, "cached")
+	}
+	gui.c.LogAction(gui.c.Tr.Actions.ApplyPatch)
+
+	lineCount := strings.Count(editedPatchText, "\n") + 1
+	newPatchText := patch.ModifiedPatchForRange(gui.Log, file.Name, editedPatchText, 0, lineCount, false, false)
+	if err := gui.git.WorkingTree.ApplyPatch(newPatchText, applyFlags...); err != nil {
+		return gui.c.Error(err)
+	}
+
+	if err := gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}}); err != nil {
+		return err
+	}
+	if err := gui.refreshStagingPanel(false, -1); err != nil {
+		return err
+	}
+	return nil
+}
