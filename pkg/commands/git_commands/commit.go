@@ -87,13 +87,13 @@ type Author struct {
 }
 
 func (self *CommitCommands) GetCommitAuthor(commitSha string) (Author, error) {
-	cmdStr := "git show --no-patch --pretty=format:'%an|%ae' " + commitSha
+	cmdStr := "git show --no-patch --pretty=format:'%an%x00%ae' " + commitSha
 	output, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
 	if err != nil {
 		return Author{}, err
 	}
 
-	split := strings.Split(strings.TrimSpace(output), "|")
+	split := strings.SplitN(strings.TrimSpace(output), "\x00", 2)
 	if len(split) < 2 {
 		return Author{}, errors.New("unexpected git output")
 	}
