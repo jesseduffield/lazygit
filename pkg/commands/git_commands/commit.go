@@ -25,7 +25,7 @@ func (self *CommitCommands) RewordLastCommit(message string) error {
 
 // ResetAuthor resets the author of the topmost commit
 func (self *CommitCommands) ResetAuthor() error {
-	return self.cmd.New("git commit --allow-empty --no-edit --amend --reset-author").Run()
+	return self.cmd.New("git commit --allow-empty --only --no-edit --amend --reset-author").Run()
 }
 
 // ResetToCommit reset to commit
