@@ -96,6 +96,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: move commit up one
   <kbd>v</kbd>: paste commits (cherry-pick)
   <kbd>A</kbd>: amend commit with staged changes
+  <kbd>a</kbd>: reset commit author
   <kbd>t</kbd>: revert commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+l</kbd>: open log menu

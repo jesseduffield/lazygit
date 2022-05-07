@@ -125,6 +125,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: 上移提交
   <kbd>v</kbd>: 粘贴提交（拣选）
   <kbd>A</kbd>: 用已暂存的更改来修补提交
+  <kbd>a</kbd>: reset commit author
   <kbd>t</kbd>: 还原提交
   <kbd>T</kbd>: 标签提交
   <kbd>ctrl+l</kbd>: 打开日志菜单

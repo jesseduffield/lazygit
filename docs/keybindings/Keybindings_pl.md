@@ -82,6 +82,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: przenieś commit 1 w górę
   <kbd>v</kbd>: wklej commity (przebieranie)
   <kbd>A</kbd>: popraw commit zmianami z poczekalni
+  <kbd>a</kbd>: reset commit author
   <kbd>t</kbd>: odwróć commit
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+l</kbd>: open log menu

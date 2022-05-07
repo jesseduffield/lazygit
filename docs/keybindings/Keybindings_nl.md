@@ -123,6 +123,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: verplaats commit 1 naar boven
   <kbd>v</kbd>: plak commits (cherry-pick)
   <kbd>A</kbd>: wijzig commit met staged veranderingen
+  <kbd>a</kbd>: reset commit author
   <kbd>t</kbd>: commit ongedaan maken
   <kbd>T</kbd>: tag commit
   <kbd>ctrl+l</kbd>: open log menu
