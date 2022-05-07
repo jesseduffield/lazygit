@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mattn/go-runewidth"
 )
 
 // This file is for the rendering of confirmation panels along with setting and handling associated
@@ -76,7 +77,7 @@ func (gui *Gui) getMessageHeight(wrap bool, message string, width int) int {
 	// if we need to wrap, calculate height to fit content within view's width
 	if wrap {
 		for _, line := range lines {
-			lineCount += len(line)/width + 1
+			lineCount += runewidth.StringWidth(line)/width + 1
 		}
 	} else {
 		lineCount = len(lines)
