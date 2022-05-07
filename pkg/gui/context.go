@@ -13,6 +13,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
+// This file is for the management of contexts. There is a context stack such that
+// for example you might start off in the commits context and then open a menu, putting
+// you in the menu context. When contexts are activated/deactivated certain things need
+// to happen like showing/hiding views and rendering content.
+
 func (gui *Gui) popupViewNames() []string {
 	popups := slices.Filter(gui.State.Contexts.Flatten(), func(c types.Context) bool {
 		return c.GetKind() == types.PERSISTENT_POPUP || c.GetKind() == types.TEMPORARY_POPUP

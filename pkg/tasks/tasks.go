@@ -14,6 +14,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// This file revolves around running commands that will be output to the main panel
+// in the gui. If we're flicking through the commits panel, we want to invoke a
+// `git show` command for each commit, but we don't want to read the entire output
+// at once (because that would slow things down); we just want to fill the panel
+// and then read more as the user scrolls down. We also want to ensure that we're only
+// ever running one `git show` command at time, and that we only have one command
+// writing its output to the main panel at a time.
+
 const THROTTLE_TIME = time.Millisecond * 30
 
 // we use this to check if the system is under stress right now. Hopefully this makes sense on other machines
@@ -26,7 +34,6 @@ type ViewBufferManager struct {
 	// this is what we write the output of the task to. It's typically a view
 	writer io.Writer
 
-	// this is for when we wait to get
 	waitingMutex sync.Mutex
 	taskIDMutex  sync.Mutex
 	Log          *logrus.Entry

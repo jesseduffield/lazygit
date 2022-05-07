@@ -8,16 +8,18 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type appStatus struct {
-	message    string
-	statusType string
-	id         int
-}
-
+// statusManager's job is to handle rendering of loading states and toast notifications
+// that you see at the bottom left of the screen.
 type statusManager struct {
 	statuses []appStatus
 	nextId   int
 	mutex    sync.Mutex
+}
+
+type appStatus struct {
+	message    string
+	statusType string
+	id         int
 }
 
 func (m *statusManager) removeStatus(id int) {

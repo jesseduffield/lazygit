@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// see https://github.com/jesseduffield/lazygit/blob/master/docs/Integration_Tests.md
+// see docs/Integration_Tests.md
 // This file can be invoked directly, but you might find it easier to go through
 // test/lazyintegration/main.go, which provides a convenient gui wrapper to integration tests.
 //

@@ -5,6 +5,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// State represents the current state of the line-by-line context i.e. when
+// you're staging a file line-by-line or you're building a patch from an existing commit
+// this struct holds the info about the diff you're interacting with and what's currently selected.
 type State struct {
 	selectedLineIdx   int
 	rangeStartLineIdx int

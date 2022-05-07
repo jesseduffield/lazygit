@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// State represents the selection state of the merge conflict context.
 type State struct {
 	sync.Mutex
 
