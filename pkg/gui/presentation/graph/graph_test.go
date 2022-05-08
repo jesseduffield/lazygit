@@ -528,7 +528,7 @@ func TestGetNextPipes(t *testing.T) {
 func BenchmarkRenderCommitGraph(b *testing.B) {
 	commits := generateCommits(50)
 	getStyle := func(commit *models.Commit) style.TextStyle {
-		return authors.AuthorStyle(commit.Author)
+		return authors.AuthorStyle(commit.AuthorName)
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -538,7 +538,7 @@ func BenchmarkRenderCommitGraph(b *testing.B) {
 
 func generateCommits(count int) []*models.Commit {
 	rand.Seed(1234)
-	pool := []*models.Commit{{Sha: "a", Author: "A"}}
+	pool := []*models.Commit{{Sha: "a", AuthorName: "A"}}
 	commits := make([]*models.Commit, 0, count)
 	authorPool := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
 	for len(commits) < count {
@@ -555,8 +555,8 @@ func generateCommits(count int) []*models.Commit {
 				newParent = pool[j]
 			} else {
 				newParent = &models.Commit{
-					Sha:    fmt.Sprintf("%s%d", currentCommit.Sha, j),
-					Author: authorPool[rand.Intn(len(authorPool))],
+					Sha:        fmt.Sprintf("%s%d", currentCommit.Sha, j),
+					AuthorName: authorPool[rand.Intn(len(authorPool))],
 				}
 				pool = append(pool, newParent)
 			}

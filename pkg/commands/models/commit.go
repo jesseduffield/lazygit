@@ -17,7 +17,8 @@ type Commit struct {
 	Action        string // one of "", "pick", "edit", "squash", "reword", "drop", "fixup"
 	Tags          []string
 	ExtraInfo     string // something like 'HEAD -> master, tag: v0.15.2'
-	Author        string // something like 'Jesse Duffield <jessedduffield@gmail.com>'
+	AuthorName    string // something like 'Jesse Duffield'
+	AuthorEmail   string // something like 'jessedduffield@gmail.com'
 	UnixTimestamp int64
 
 	// SHAs of parent commits (will be multiple if it's a merge commit)

@@ -156,7 +156,7 @@ func loadPipesets(commits []*models.Commit) [][]*graph.Pipe {
 		// pipe sets are unique to a commit head. and a commit count. Sometimes we haven't loaded everything for that.
 		// so let's just cache it based on that.
 		getStyle := func(commit *models.Commit) style.TextStyle {
-			return authors.AuthorStyle(commit.Author)
+			return authors.AuthorStyle(commit.AuthorName)
 		}
 		pipeSets = graph.GetPipeSets(commits, getStyle)
 		pipeSetCache[cacheKey] = pipeSets
@@ -288,7 +288,7 @@ func displayCommit(
 	cols = append(
 		cols,
 		actionString,
-		authorFunc(commit.Author),
+		authorFunc(commit.AuthorName),
 		graphLine+tagString+theme.DefaultTextColor.Sprint(name),
 	)
 
