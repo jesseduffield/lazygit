@@ -67,7 +67,7 @@ func (gui *Gui) filesRenderToMain() error {
 	}}
 
 	if node.GetHasUnstagedChanges() {
-		if node.GetHasStagedChanges() {
+		if node.GetHasStagedChanges() || gui.c.UserConfig.Gui.SplitDiff == "always" {
 			cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, true, gui.IgnoreWhitespaceInDiffView)
 
 			refreshOpts.secondary = &viewUpdateOpts{
@@ -77,7 +77,19 @@ func (gui *Gui) filesRenderToMain() error {
 			}
 		}
 	} else {
-		refreshOpts.main.title = gui.c.Tr.StagedChanges
+		if gui.c.UserConfig.Gui.SplitDiff == "auto" {
+			refreshOpts.main.title = gui.c.Tr.StagedChanges
+		} else {
+			cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, false, gui.IgnoreWhitespaceInDiffView)
+			refreshOpts.main.task = NewRunPtyTask(cmdObj.GetCmd())
+
+			cmdObj = gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, true, gui.IgnoreWhitespaceInDiffView)
+			refreshOpts.secondary = &viewUpdateOpts{
+				title:   gui.c.Tr.StagedChanges,
+				task:    NewRunPtyTask(cmdObj.GetCmd()),
+				context: mainContext,
+			}
+		}
 	}
 
 	return gui.refreshMainViews(refreshOpts)

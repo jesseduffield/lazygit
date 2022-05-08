@@ -46,6 +46,7 @@ type GuiConfig struct {
 	ShowBottomLine           bool               `yaml:"showBottomLine"`
 	ShowIcons                bool               `yaml:"showIcons"`
 	CommandLogSize           int                `yaml:"commandLogSize"`
+	SplitDiff                string             `yaml:"splitDiff"`
 }
 
 type ThemeConfig struct {
@@ -360,6 +361,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowRandomTip:            true,
 			ShowIcons:                false,
 			CommandLogSize:           8,
+			SplitDiff:                "auto",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

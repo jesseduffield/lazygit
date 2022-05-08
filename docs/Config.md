@@ -54,6 +54,7 @@ gui:
   showCommandLog: true
   showIcons: false
   commandLogSize: 8
+  splitDiff: 'auto' # one of 'auto' | 'always'
 git:
   paging:
     colorArg: always
