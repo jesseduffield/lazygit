@@ -717,7 +717,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcEditCommit:                        "edit commit",
 		LcAmendToCommit:                     "amend commit with staged changes",
 		LcResetCommitAuthor:                 "reset commit author",
-		SureResetCommitAuthor:               "Are you sure you want to reset the author of this commit?",
+		SureResetCommitAuthor:               "The author field of this commit will be updated to match the configured user. This also renews the author timestamp. Continue?",
 		LcRenameCommitEditor:                "reword commit with editor",
 		Error:                               "Error",
 		LcSelectHunk:                        "select hunk",
