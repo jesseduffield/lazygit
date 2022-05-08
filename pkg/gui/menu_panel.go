@@ -36,16 +36,18 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		}
 	}
 
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsForContentHeight(len(opts.Items))
-	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
-	menuView.Title = opts.Title
-	menuView.FgColor = theme.GocuiDefaultTextColor
-	menuView.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
+	gui.State.Contexts.Menu.SetMenuItems(opts.Items)
+	gui.State.Contexts.Menu.SetSelectedLineIdx(0)
+
+	gui.Views.Menu.Title = opts.Title
+	gui.Views.Menu.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Menu.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
 		return nil
 	}))
 
-	gui.State.Contexts.Menu.SetMenuItems(opts.Items)
-	gui.State.Contexts.Menu.SetSelectedLineIdx(0)
+	gui.Views.Tooltip.Wrap = true
+	gui.Views.Tooltip.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Tooltip.Visible = true
 
 	// resetting keybindings so that the menu-specific keybindings are registered
 	if err := gui.resetKeybindings(); err != nil {

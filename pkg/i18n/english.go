@@ -108,6 +108,8 @@ type TranslationSet struct {
 	LcUndo                              string
 	LcUndoReflog                        string
 	LcRedoReflog                        string
+	UndoTooltip                         string
+	RedoTooltip                         string
 	LcPop                               string
 	LcDrop                              string
 	LcApply                             string
@@ -486,6 +488,7 @@ type TranslationSet struct {
 	CheckoutPrompt                      string
 	HardResetAutostashPrompt            string
 	UpstreamGone                        string
+	NukeDescription                     string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -719,6 +722,8 @@ func EnglishTranslationSet() TranslationSet {
 		LcUndo:                              "undo",
 		LcUndoReflog:                        "undo (via reflog) (experimental)",
 		LcRedoReflog:                        "redo (via reflog) (experimental)",
+		UndoTooltip:                         "The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration.",
+		RedoTooltip:                         "The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration.",
 		LcPop:                               "pop",
 		LcDrop:                              "drop",
 		LcApply:                             "apply",
@@ -1098,6 +1103,7 @@ func EnglishTranslationSet() TranslationSet {
 		HardResetAutostashPrompt:            "Are you sure you want to hard reset to '%s'? An auto-stash will be performed if necessary.",
 		CheckoutPrompt:                      "Are you sure you want to checkout '%s'?",
 		UpstreamGone:                        "(upstream gone)",
+		NukeDescription:                     "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

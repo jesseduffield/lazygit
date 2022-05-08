@@ -20,15 +20,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	g.Highlight = true
 	width, height := g.Size()
 
-	minimumHeight := 9
-	minimumWidth := 10
-	var err error
-	_, err = g.SetView("limit", 0, 0, width-1, height-1, 0)
-	if err != nil && err.Error() != UNKNOWN_VIEW_ERROR_MSG {
-		return err
-	}
-	gui.Views.Limit.Visible = height < minimumHeight || width < minimumWidth
-
 	informationStr := gui.informationStr()
 	appStatus := gui.statusManager.getStatusString()
 
@@ -77,6 +68,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			dimensionsObj.Y1+frameOffset,
 			0,
 		)
+		view.Frame = frame
 
 		if view != nil {
 			view.Visible = true
@@ -85,35 +77,18 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		return view, err
 	}
 
-	args := []struct {
-		viewName   string
-		windowName string
-		frame      bool
-	}{
-		{viewName: "main", windowName: "main", frame: true},
-		{viewName: "secondary", windowName: "secondary", frame: true},
-		{viewName: "status", windowName: "status", frame: true},
-		{viewName: "files", windowName: "files", frame: true},
-		{viewName: "branches", windowName: "branches", frame: true},
-		{viewName: "remoteBranches", windowName: "branches", frame: true},
-		{viewName: "commitFiles", windowName: gui.State.Contexts.CommitFiles.GetWindowName(), frame: true},
-		{viewName: "subCommits", windowName: gui.State.Contexts.SubCommits.GetWindowName(), frame: true},
-		{viewName: "commits", windowName: "commits", frame: true},
-		{viewName: "stash", windowName: "stash", frame: true},
-		{viewName: "options", windowName: "options", frame: false},
-		{viewName: "searchPrefix", windowName: "searchPrefix", frame: false},
-		{viewName: "search", windowName: "search", frame: false},
-		{viewName: "appStatus", windowName: "appStatus", frame: false},
-		{viewName: "information", windowName: "information", frame: false},
-		{viewName: "extras", windowName: "extras", frame: true},
-	}
-
-	for _, arg := range args {
-		_, err = setViewFromDimensions(arg.viewName, arg.windowName, arg.frame)
+	for _, arg := range gui.controlledViews() {
+		_, err := setViewFromDimensions(arg.viewName, arg.windowName, arg.frame)
 		if err != nil && err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
 	}
+
+	minimumHeight := 9
+	minimumWidth := 10
+	gui.Views.Limit.Visible = height < minimumHeight || width < minimumWidth
+
+	gui.Views.Tooltip.Visible = gui.Views.Menu.Visible && gui.Views.Tooltip.Buffer() != ""
 
 	for _, context := range gui.TransientContexts() {
 		view, err := gui.g.View(context.GetViewName())
@@ -205,40 +180,7 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 
 func (gui *Gui) onInitialViewsCreation() error {
 	// now we order the views (in order of bottom first)
-	layerOneViews := []*gocui.View{
-		// first layer. Ordering within this layer does not matter because there are
-		// no overlapping views
-		gui.Views.Status,
-		gui.Views.Files,
-		gui.Views.Branches,
-		gui.Views.RemoteBranches,
-		gui.Views.Commits,
-		gui.Views.Stash,
-		gui.Views.SubCommits,
-		gui.Views.CommitFiles,
-		gui.Views.Main,
-		gui.Views.Secondary,
-		gui.Views.Extras,
-
-		// bottom line
-		gui.Views.Options,
-		gui.Views.AppStatus,
-		gui.Views.Information,
-		gui.Views.Search,
-		gui.Views.SearchPrefix, // this view takes up one character. Its only purpose is to show the slash when searching
-
-		// popups. Ordering within this layer does not matter because there should
-		// only be one popup shown at a time
-		gui.Views.CommitMessage,
-		gui.Views.Menu,
-		gui.Views.Suggestions,
-		gui.Views.Confirmation,
-
-		// this guy will cover everything else when it appears
-		gui.Views.Limit,
-	}
-
-	for _, view := range layerOneViews {
+	for _, view := range gui.orderedViews() {
 		if _, err := gui.g.SetViewOnTop(view.Name()); err != nil {
 			return err
 		}

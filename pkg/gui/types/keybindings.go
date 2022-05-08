@@ -17,6 +17,9 @@ type Binding struct {
 	Alternative string
 	Tag         string // e.g. 'navigation'. Used for grouping things in the cheatsheet
 	OpensMenu   bool
+
+	// to be displayed if the keybinding is highlighted from within a menu
+	Tooltip string
 }
 
 // A guard is a decorator which checks something before executing a handler

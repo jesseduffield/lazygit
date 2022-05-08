@@ -19,14 +19,17 @@ var _ types.IListContext = (*MenuContext)(nil)
 func NewMenuContext(
 	view *gocui.View,
 
-	onFocus func(...types.OnFocusOpts) error,
-	onRenderToMain func(...types.OnFocusOpts) error,
-	onFocusLost func() error,
-
 	c *types.HelperCommon,
 	getOptionsMap func() map[string]string,
+	renderToDescriptionView func(string),
 ) *MenuContext {
 	viewModel := NewMenuViewModel()
+
+	onFocus := func(...types.OnFocusOpts) error {
+		selectedMenuItem := viewModel.GetSelected()
+		renderToDescriptionView(selectedMenuItem.Tooltip)
+		return nil
+	}
 
 	return &MenuContext{
 		MenuViewModel: viewModel,
@@ -38,9 +41,7 @@ func NewMenuContext(
 				OnGetOptionsMap: getOptionsMap,
 				Focusable:       true,
 			}), ContextCallbackOpts{
-				OnFocus:        onFocus,
-				OnFocusLost:    onFocusLost,
-				OnRenderToMain: onRenderToMain,
+				OnFocus: onFocus,
 			}),
 			getDisplayStrings: viewModel.GetDisplayStrings,
 			list:              viewModel,

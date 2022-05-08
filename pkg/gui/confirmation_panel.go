@@ -91,8 +91,7 @@ func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, i
 	return gui.getConfirmationPanelDimensionsAux(panelWidth, panelHeight)
 }
 
-func (gui *Gui) getConfirmationPanelDimensionsForContentHeight(contentHeight int) (int, int, int, int) {
-	panelWidth := gui.getConfirmationPanelWidth()
+func (gui *Gui) getConfirmationPanelDimensionsForContentHeight(panelWidth, contentHeight int) (int, int, int, int) {
 	return gui.getConfirmationPanelDimensionsAux(panelWidth, contentHeight)
 }
 
@@ -131,13 +130,6 @@ func (gui *Gui) prepareConfirmationPanel(
 	editable bool,
 	mask bool,
 ) error {
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(true, prompt)
-	// calling SetView on an existing view returns the same view, so I'm not bothering
-	// to reassign to gui.Views.Confirmation
-	_, err := gui.g.SetView("confirmation", x0, y0, x1, y1, 0)
-	if err != nil {
-		return err
-	}
 	gui.Views.Confirmation.HasLoader = hasLoader
 	if hasLoader {
 		gui.g.StartTicking()
@@ -150,11 +142,7 @@ func (gui *Gui) prepareConfirmationPanel(
 
 	gui.findSuggestions = findSuggestionsFunc
 	if findSuggestionsFunc != nil {
-		suggestionsViewHeight := 11
-		suggestionsView, err := gui.g.SetView("suggestions", x0, y1+1, x1, y1+suggestionsViewHeight, 0)
-		if err != nil {
-			return err
-		}
+		suggestionsView := gui.Views.Suggestions
 		suggestionsView.Wrap = false
 		suggestionsView.FgColor = theme.GocuiDefaultTextColor
 		gui.setSuggestions(findSuggestionsFunc(""))
