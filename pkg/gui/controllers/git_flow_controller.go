@@ -64,30 +64,30 @@ func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) er
 		Items: []*types.MenuItem{
 			{
 				// not localising here because it's one to one with the actual git flow commands
-				DisplayString: fmt.Sprintf("finish branch '%s'", branch.Name),
+				Label: fmt.Sprintf("finish branch '%s'", branch.Name),
 				OnPress: func() error {
 					return self.gitFlowFinishBranch(branch.Name)
 				},
 			},
 			{
-				DisplayString: "start feature",
-				OnPress:       startHandler("feature"),
-				Key:           'f',
+				Label:   "start feature",
+				OnPress: startHandler("feature"),
+				Key:     'f',
 			},
 			{
-				DisplayString: "start hotfix",
-				OnPress:       startHandler("hotfix"),
-				Key:           'h',
+				Label:   "start hotfix",
+				OnPress: startHandler("hotfix"),
+				Key:     'h',
 			},
 			{
-				DisplayString: "start bugfix",
-				OnPress:       startHandler("bugfix"),
-				Key:           'b',
+				Label:   "start bugfix",
+				OnPress: startHandler("bugfix"),
+				Key:     'b',
 			},
 			{
-				DisplayString: "start release",
-				OnPress:       startHandler("release"),
-				Key:           'r',
+				Label:   "start release",
+				OnPress: startHandler("release"),
+				Key:     'r',
 			},
 		},
 	})

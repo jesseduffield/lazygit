@@ -15,38 +15,38 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 
 	menuItems := []*types.MenuItem{
 		{
-			DisplayString: "reset patch",
-			OnPress:       gui.handleResetPatch,
-			Key:           'c',
+			Label:   "reset patch",
+			OnPress: gui.handleResetPatch,
+			Key:     'c',
 		},
 		{
-			DisplayString: "apply patch",
-			OnPress:       func() error { return gui.handleApplyPatch(false) },
-			Key:           'a',
+			Label:   "apply patch",
+			OnPress: func() error { return gui.handleApplyPatch(false) },
+			Key:     'a',
 		},
 		{
-			DisplayString: "apply patch in reverse",
-			OnPress:       func() error { return gui.handleApplyPatch(true) },
-			Key:           'r',
+			Label:   "apply patch in reverse",
+			OnPress: func() error { return gui.handleApplyPatch(true) },
+			Key:     'r',
 		},
 	}
 
 	if gui.git.Patch.PatchManager.CanRebase && gui.git.Status.WorkingTreeState() == enums.REBASE_MODE_NONE {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				DisplayString: fmt.Sprintf("remove patch from original commit (%s)", gui.git.Patch.PatchManager.To),
-				OnPress:       gui.handleDeletePatchFromCommit,
-				Key:           'd',
+				Label:   fmt.Sprintf("remove patch from original commit (%s)", gui.git.Patch.PatchManager.To),
+				OnPress: gui.handleDeletePatchFromCommit,
+				Key:     'd',
 			},
 			{
-				DisplayString: "move patch out into index",
-				OnPress:       gui.handleMovePatchIntoWorkingTree,
-				Key:           'i',
+				Label:   "move patch out into index",
+				OnPress: gui.handleMovePatchIntoWorkingTree,
+				Key:     'i',
 			},
 			{
-				DisplayString: "move patch into new commit",
-				OnPress:       gui.handlePullPatchIntoNewCommit,
-				Key:           'n',
+				Label:   "move patch into new commit",
+				OnPress: gui.handlePullPatchIntoNewCommit,
+				Key:     'n',
 			},
 		}...)
 
@@ -59,9 +59,9 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 					append(
 						[]*types.MenuItem{
 							{
-								DisplayString: fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
-								OnPress:       gui.handleMovePatchToSelectedCommit,
-								Key:           'm',
+								Label:   fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
+								OnPress: gui.handleMovePatchToSelectedCommit,
+								Key:     'm',
 							},
 						}, menuItems[1:]...,
 					)...,

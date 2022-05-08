@@ -470,7 +470,7 @@ func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.C
 		}
 
 		menuItems[i] = &types.MenuItem{
-			DisplayString: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
+			Label: fmt.Sprintf("%s: %s", utils.SafeTruncate(parentSha, 8), message),
 			OnPress: func() error {
 				parentNumber := i + 1
 				self.c.LogAction(self.c.Tr.Actions.RevertCommit)
@@ -570,7 +570,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 		Title: self.c.Tr.LogMenuTitle,
 		Items: []*types.MenuItem{
 			{
-				DisplayString: self.c.Tr.ToggleShowGitGraphAll,
+				Label: self.c.Tr.ToggleShowGitGraphAll,
 				OnPress: func() error {
 					self.context().SetShowWholeGitGraph(!self.context().GetShowWholeGitGraph())
 
@@ -586,8 +586,8 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 				},
 			},
 			{
-				DisplayString: self.c.Tr.ShowGitGraph,
-				OpensMenu:     true,
+				Label:     self.c.Tr.ShowGitGraph,
+				OpensMenu: true,
 				OnPress: func() error {
 					onPress := func(value string) func() error {
 						return func() error {
@@ -599,24 +599,24 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						Title: self.c.Tr.LogMenuTitle,
 						Items: []*types.MenuItem{
 							{
-								DisplayString: "always",
-								OnPress:       onPress("always"),
+								Label:   "always",
+								OnPress: onPress("always"),
 							},
 							{
-								DisplayString: "never",
-								OnPress:       onPress("never"),
+								Label:   "never",
+								OnPress: onPress("never"),
 							},
 							{
-								DisplayString: "when maximised",
-								OnPress:       onPress("when-maximised"),
+								Label:   "when maximised",
+								OnPress: onPress("when-maximised"),
 							},
 						},
 					})
 				},
 			},
 			{
-				DisplayString: self.c.Tr.SortCommits,
-				OpensMenu:     true,
+				Label:     self.c.Tr.SortCommits,
+				OpensMenu: true,
 				OnPress: func() error {
 					onPress := func(value string) func() error {
 						return func() error {
@@ -636,16 +636,16 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						Title: self.c.Tr.LogMenuTitle,
 						Items: []*types.MenuItem{
 							{
-								DisplayString: "topological (topo-order)",
-								OnPress:       onPress("topo-order"),
+								Label:   "topological (topo-order)",
+								OnPress: onPress("topo-order"),
 							},
 							{
-								DisplayString: "date-order",
-								OnPress:       onPress("date-order"),
+								Label:   "date-order",
+								OnPress: onPress("date-order"),
 							},
 							{
-								DisplayString: "author-date-order",
-								OnPress:       onPress("author-date-order"),
+								Label:   "author-date-order",
+								OnPress: onPress("author-date-order"),
 							},
 						},
 					})

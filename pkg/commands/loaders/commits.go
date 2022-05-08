@@ -157,14 +157,15 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
 func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
-	split := strings.SplitN(line, "\x00", 6)
+	split := strings.SplitN(line, "\x00", 7)
 
 	sha := split[0]
 	unixTimestamp := split[1]
-	author := split[2]
-	extraInfo := strings.TrimSpace(split[3])
-	parentHashes := split[4]
-	message := split[5]
+	authorName := split[2]
+	authorEmail := split[3]
+	extraInfo := strings.TrimSpace(split[4])
+	parentHashes := split[5]
+	message := split[6]
 
 	tags := []string{}
 
@@ -189,7 +190,8 @@ func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
 		Tags:          tags,
 		ExtraInfo:     extraInfo,
 		UnixTimestamp: int64(unitTimestampInt),
-		Author:        author,
+		AuthorName:    authorName,
+		AuthorEmail:   authorEmail,
 		Parents:       parents,
 	}
 }
@@ -446,7 +448,8 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 }
 
 var prettyFormat = fmt.Sprintf(
-	"--pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\"",
+	"--pretty=format:\"%%H%s%%at%s%%aN%s%%ae%s%%d%s%%p%s%%s\"",
+	NULL_CODE,
 	NULL_CODE,
 	NULL_CODE,
 	NULL_CODE,

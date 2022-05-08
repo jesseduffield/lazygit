@@ -146,7 +146,7 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 
 	menuItems := slices.Map(strengths, func(row strengthWithKey) *types.MenuItem {
 		return &types.MenuItem{
-			DisplayStrings: []string{
+			LabelColumns: []string{
 				fmt.Sprintf("%s reset", row.strength),
 				style.FgRed.Sprintf("reset --%s %s", row.strength, ref),
 			},

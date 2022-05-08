@@ -102,7 +102,7 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
 	menuItems := slices.Map(prompt.Options, func(option config.CustomCommandMenuOption) *types.MenuItem {
 		return &types.MenuItem{
-			DisplayStrings: []string{option.Name, style.FgYellow.Sprint(option.Description)},
+			LabelColumns: []string{option.Name, style.FgYellow.Sprint(option.Description)},
 			OnPress: func() error {
 				return wrappedF(option.Value)
 			},
@@ -127,7 +127,7 @@ func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPr
 
 	menuItems := slices.Map(candidates, func(candidate *commandMenuEntry) *types.MenuItem {
 		return &types.MenuItem{
-			DisplayStrings: []string{candidate.label},
+			LabelColumns: []string{candidate.label},
 			OnPress: func() error {
 				return wrappedF(candidate.value)
 			},

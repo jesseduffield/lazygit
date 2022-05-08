@@ -13,7 +13,7 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 		Title: gui.c.Tr.CommandLog,
 		Items: []*types.MenuItem{
 			{
-				DisplayString: gui.c.Tr.ToggleShowCommandLog,
+				Label: gui.c.Tr.ToggleShowCommandLog,
 				OnPress: func() error {
 					currentContext := gui.currentStaticContext()
 					if gui.ShowExtrasWindow && currentContext.GetKey() == context.COMMAND_LOG_CONTEXT_KEY {
@@ -29,8 +29,8 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 				},
 			},
 			{
-				DisplayString: gui.c.Tr.FocusCommandLog,
-				OnPress:       gui.handleFocusCommandLog,
+				Label:   gui.c.Tr.FocusCommandLog,
+				OnPress: gui.handleFocusCommandLog,
 			},
 		},
 	})

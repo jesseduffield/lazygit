@@ -58,7 +58,7 @@ func (self *MenuContext) GetSelectedItemId() string {
 		return ""
 	}
 
-	return item.DisplayString
+	return item.Label
 }
 
 type MenuViewModel struct {
@@ -96,11 +96,11 @@ func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]str
 }
 
 func getItemDisplayStrings(item *types.MenuItem) []string {
-	if item.DisplayStrings != nil {
-		return item.DisplayStrings
+	if item.LabelColumns != nil {
+		return item.LabelColumns
 	}
 
-	styledStr := item.DisplayString
+	styledStr := item.Label
 	if item.OpensMenu {
 		styledStr = presentation.OpensMenuStyle(styledStr)
 	}

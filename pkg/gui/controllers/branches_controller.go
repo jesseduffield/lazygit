@@ -111,7 +111,7 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 		Title: self.c.Tr.Actions.SetUnsetUpstream,
 		Items: []*types.MenuItem{
 			{
-				DisplayStrings: []string{self.c.Tr.LcUnsetUpstream},
+				LabelColumns: []string{self.c.Tr.LcUnsetUpstream},
 				OnPress: func() error {
 					if err := self.git.Branch.UnsetUpstream(selectedBranch.Name); err != nil {
 						return self.c.Error(err)
@@ -130,7 +130,7 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 				Key: 'u',
 			},
 			{
-				DisplayStrings: []string{self.c.Tr.LcSetUpstream},
+				LabelColumns: []string{self.c.Tr.LcSetUpstream},
 				OnPress: func() error {
 					return self.helpers.Upstream.PromptForUpstreamWithoutInitialContent(selectedBranch, func(upstream string) error {
 						upstreamRemote, upstreamBranch, err := self.helpers.Upstream.ParseUpstream(upstream)
@@ -417,20 +417,20 @@ func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
 func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
 	menuItems := make([]*types.MenuItem, 0, 4)
 
-	fromToDisplayStrings := func(from string, to string) []string {
+	fromToLabelColumns := func(from string, to string) []string {
 		return []string{fmt.Sprintf("%s → %s", from, to)}
 	}
 
 	menuItemsForBranch := func(branch *models.Branch) []*types.MenuItem {
 		return []*types.MenuItem{
 			{
-				DisplayStrings: fromToDisplayStrings(branch.Name, self.c.Tr.LcDefaultBranch),
+				LabelColumns: fromToLabelColumns(branch.Name, self.c.Tr.LcDefaultBranch),
 				OnPress: func() error {
 					return self.createPullRequest(branch.Name, "")
 				},
 			},
 			{
-				DisplayStrings: fromToDisplayStrings(branch.Name, self.c.Tr.LcSelectBranch),
+				LabelColumns: fromToLabelColumns(branch.Name, self.c.Tr.LcSelectBranch),
 				OnPress: func() error {
 					return self.c.Prompt(types.PromptOpts{
 						Title:               branch.Name + " →",
@@ -447,7 +447,7 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 	if selectedBranch != checkedOutBranch {
 		menuItems = append(menuItems,
 			&types.MenuItem{
-				DisplayStrings: fromToDisplayStrings(checkedOutBranch.Name, selectedBranch.Name),
+				LabelColumns: fromToLabelColumns(checkedOutBranch.Name, selectedBranch.Name),
 				OnPress: func() error {
 					return self.createPullRequest(checkedOutBranch.Name, selectedBranch.Name)
 				},

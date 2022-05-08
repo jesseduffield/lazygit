@@ -23,7 +23,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	if !opts.HideCancel {
 		// this is mutative but I'm okay with that for now
 		opts.Items = append(opts.Items, &types.MenuItem{
-			DisplayStrings: []string{gui.c.Tr.LcCancel},
+			LabelColumns: []string{gui.c.Tr.LcCancel},
 			OnPress: func() error {
 				return nil
 			},
@@ -31,7 +31,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	}
 
 	for _, item := range opts.Items {
-		if item.OpensMenu && item.DisplayStrings != nil {
+		if item.OpensMenu && item.LabelColumns != nil {
 			return errors.New("Message for the developer of this app: you've set opensMenu with displaystrings on the menu panel. Bad developer!. Apologies, user")
 		}
 	}

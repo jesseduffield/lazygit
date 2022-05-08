@@ -19,7 +19,7 @@ func (self *FilesController) createResetMenu() error {
 
 	menuItems := []*types.MenuItem{
 		{
-			DisplayStrings: []string{
+			LabelColumns: []string{
 				self.c.Tr.LcDiscardAllChangesToAllFiles,
 				red.Sprint(nukeStr),
 			},
@@ -35,7 +35,7 @@ func (self *FilesController) createResetMenu() error {
 			Tooltip: self.c.Tr.NukeDescription,
 		},
 		{
-			DisplayStrings: []string{
+			LabelColumns: []string{
 				self.c.Tr.LcDiscardAnyUnstagedChanges,
 				red.Sprint("git checkout -- ."),
 			},
@@ -50,7 +50,7 @@ func (self *FilesController) createResetMenu() error {
 			Key: 'u',
 		},
 		{
-			DisplayStrings: []string{
+			LabelColumns: []string{
 				self.c.Tr.LcDiscardUntrackedFiles,
 				red.Sprint("git clean -fd"),
 			},
@@ -65,7 +65,7 @@ func (self *FilesController) createResetMenu() error {
 			Key: 'c',
 		},
 		{
-			DisplayStrings: []string{
+			LabelColumns: []string{
 				self.c.Tr.LcSoftReset,
 				red.Sprint("git reset --soft HEAD"),
 			},
@@ -80,7 +80,7 @@ func (self *FilesController) createResetMenu() error {
 			Key: 's',
 		},
 		{
-			DisplayStrings: []string{
+			LabelColumns: []string{
 				"mixed reset",
 				red.Sprint("git reset --mixed HEAD"),
 			},
@@ -95,7 +95,7 @@ func (self *FilesController) createResetMenu() error {
 			Key: 'm',
 		},
 		{
-			DisplayStrings: []string{
+			LabelColumns: []string{
 				self.c.Tr.LcHardReset,
 				red.Sprint("git reset --hard HEAD"),
 			},

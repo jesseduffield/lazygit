@@ -43,7 +43,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 	if node.File == nil {
 		menuItems = []*types.MenuItem{
 			{
-				DisplayString: self.c.Tr.LcDiscardAllChanges,
+				Label: self.c.Tr.LcDiscardAllChanges,
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInDirectory)
 					if err := self.git.WorkingTree.DiscardAllDirChanges(node); err != nil {
@@ -57,7 +57,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 
 		if node.GetHasStagedChanges() && node.GetHasUnstagedChanges() {
 			menuItems = append(menuItems, &types.MenuItem{
-				DisplayString: self.c.Tr.LcDiscardUnstagedChanges,
+				Label: self.c.Tr.LcDiscardUnstagedChanges,
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.DiscardUnstagedChangesInDirectory)
 					if err := self.git.WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
@@ -78,7 +78,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 
 			menuItems = []*types.MenuItem{
 				{
-					DisplayString: self.c.Tr.LcSubmoduleStashAndReset,
+					Label: self.c.Tr.LcSubmoduleStashAndReset,
 					OnPress: func() error {
 						return self.ResetSubmodule(submodule)
 					},
@@ -87,7 +87,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 		} else {
 			menuItems = []*types.MenuItem{
 				{
-					DisplayString: self.c.Tr.LcDiscardAllChanges,
+					Label: self.c.Tr.LcDiscardAllChanges,
 					OnPress: func() error {
 						self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
 						if err := self.git.WorkingTree.DiscardAllFileChanges(file); err != nil {
@@ -101,7 +101,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 
 			if file.HasStagedChanges && file.HasUnstagedChanges {
 				menuItems = append(menuItems, &types.MenuItem{
-					DisplayString: self.c.Tr.LcDiscardUnstagedChanges,
+					Label: self.c.Tr.LcDiscardUnstagedChanges,
 					OnPress: func() error {
 						self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
 						if err := self.git.WorkingTree.DiscardUnstagedFileChanges(file); err != nil {

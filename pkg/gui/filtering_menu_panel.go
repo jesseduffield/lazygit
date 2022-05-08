@@ -26,7 +26,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 
 	if fileName != "" {
 		menuItems = append(menuItems, &types.MenuItem{
-			DisplayString: fmt.Sprintf("%s '%s'", gui.c.Tr.LcFilterBy, fileName),
+			Label: fmt.Sprintf("%s '%s'", gui.c.Tr.LcFilterBy, fileName),
 			OnPress: func() error {
 				return gui.setFiltering(fileName)
 			},
@@ -34,7 +34,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 	}
 
 	menuItems = append(menuItems, &types.MenuItem{
-		DisplayString: gui.c.Tr.LcFilterPathOption,
+		Label: gui.c.Tr.LcFilterPathOption,
 		OnPress: func() error {
 			return gui.c.Prompt(types.PromptOpts{
 				FindSuggestionsFunc: gui.helpers.Suggestions.GetFilePathSuggestionsFunc(),
@@ -48,8 +48,8 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 
 	if gui.State.Modes.Filtering.Active() {
 		menuItems = append(menuItems, &types.MenuItem{
-			DisplayString: gui.c.Tr.LcExitFilterMode,
-			OnPress:       gui.clearFiltering,
+			Label:   gui.c.Tr.LcExitFilterMode,
+			OnPress: gui.clearFiltering,
 		})
 	}
 

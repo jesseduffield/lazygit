@@ -67,7 +67,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 	menuItems := []*types.MenuItem{
 		{
-			DisplayString: fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortSha(), info.NewTerm()),
+			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortSha(), info.NewTerm()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
 				if err := self.git.Bisect.Mark(commit.Sha, info.NewTerm()); err != nil {
@@ -79,7 +79,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Key: 'b',
 		},
 		{
-			DisplayString: fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortSha(), info.OldTerm()),
+			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortSha(), info.OldTerm()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
 				if err := self.git.Bisect.Mark(commit.Sha, info.OldTerm()); err != nil {
@@ -91,7 +91,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Key: 'g',
 		},
 		{
-			DisplayString: fmt.Sprintf(self.c.Tr.Bisect.Skip, commit.ShortSha()),
+			Label: fmt.Sprintf(self.c.Tr.Bisect.Skip, commit.ShortSha()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
 				if err := self.git.Bisect.Skip(commit.Sha); err != nil {
@@ -103,7 +103,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Key: 's',
 		},
 		{
-			DisplayString: self.c.Tr.Bisect.ResetOption,
+			Label: self.c.Tr.Bisect.ResetOption,
 			OnPress: func() error {
 				return self.helpers.Bisect.Reset()
 			},
@@ -122,7 +122,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 		Title: self.c.Tr.Bisect.BisectMenuTitle,
 		Items: []*types.MenuItem{
 			{
-				DisplayString: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.NewTerm()),
+				Label: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.NewTerm()),
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.StartBisect)
 					if err := self.git.Bisect.Start(); err != nil {
@@ -138,7 +138,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 				Key: 'b',
 			},
 			{
-				DisplayString: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.OldTerm()),
+				Label: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.OldTerm()),
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.StartBisect)
 					if err := self.git.Bisect.Start(); err != nil {
