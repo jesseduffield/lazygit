@@ -13,6 +13,84 @@ import (
 
 const INFO_SECTION_PADDING = " "
 
+func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
+	width, height := gui.g.Size()
+
+	sideSectionWeight, mainSectionWeight := gui.getMidSectionWeights()
+
+	sidePanelsDirection := boxlayout.COLUMN
+	portraitMode := width <= 84 && height > 45
+	if portraitMode {
+		sidePanelsDirection = boxlayout.ROW
+	}
+
+	mainPanelsDirection := boxlayout.ROW
+	if gui.splitMainPanelSideBySide() {
+		mainPanelsDirection = boxlayout.COLUMN
+	}
+
+	extrasWindowSize := gui.getExtrasWindowSize(height)
+
+	showInfoSection := gui.c.UserConfig.Gui.ShowBottomLine || (gui.State.Searching.isSearching || gui.isAnyModeActive())
+	infoSectionSize := 0
+	if showInfoSection {
+		infoSectionSize = 1
+	}
+
+	root := &boxlayout.Box{
+		Direction: boxlayout.ROW,
+		Children: []*boxlayout.Box{
+			{
+				Direction: sidePanelsDirection,
+				Weight:    1,
+				Children: []*boxlayout.Box{
+					{
+						Direction:           boxlayout.ROW,
+						Weight:              sideSectionWeight,
+						ConditionalChildren: gui.sidePanelChildren,
+					},
+					{
+						Direction: boxlayout.ROW,
+						Weight:    mainSectionWeight,
+						Children: []*boxlayout.Box{
+							{
+								Direction: mainPanelsDirection,
+								Children:  gui.mainSectionChildren(),
+								Weight:    1,
+							},
+							{
+								Window: "extras",
+								Size:   extrasWindowSize,
+							},
+						},
+					},
+				},
+			},
+			{
+				Direction: boxlayout.COLUMN,
+				Size:      infoSectionSize,
+				Children:  gui.infoSectionChildren(informationStr, appStatus),
+			},
+		},
+	}
+
+	layerOneWindows := boxlayout.ArrangeWindows(root, 0, 0, width, height)
+	limitWindows := boxlayout.ArrangeWindows(&boxlayout.Box{Window: "limit"}, 0, 0, width, height)
+
+	return MergeMaps(layerOneWindows, limitWindows)
+}
+
+func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
+	result := map[K]V{}
+	for _, currMap := range maps {
+		for key, value := range currMap {
+			result[key] = value
+		}
+	}
+
+	return result
+}
+
 func (gui *Gui) mainSectionChildren() []*boxlayout.Box {
 	currentWindow := gui.currentWindow()
 
@@ -154,70 +232,6 @@ func (gui *Gui) getExtrasWindowSize(screenHeight int) int {
 
 	frameSize := 2
 	return baseSize + frameSize
-}
-
-func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
-	width, height := gui.g.Size()
-
-	sideSectionWeight, mainSectionWeight := gui.getMidSectionWeights()
-
-	sidePanelsDirection := boxlayout.COLUMN
-	portraitMode := width <= 84 && height > 45
-	if portraitMode {
-		sidePanelsDirection = boxlayout.ROW
-	}
-
-	mainPanelsDirection := boxlayout.ROW
-	if gui.splitMainPanelSideBySide() {
-		mainPanelsDirection = boxlayout.COLUMN
-	}
-
-	extrasWindowSize := gui.getExtrasWindowSize(height)
-
-	showInfoSection := gui.c.UserConfig.Gui.ShowBottomLine || (gui.State.Searching.isSearching || gui.isAnyModeActive())
-	infoSectionSize := 0
-	if showInfoSection {
-		infoSectionSize = 1
-	}
-
-	root := &boxlayout.Box{
-		Direction: boxlayout.ROW,
-		Children: []*boxlayout.Box{
-			{
-				Direction: sidePanelsDirection,
-				Weight:    1,
-				Children: []*boxlayout.Box{
-					{
-						Direction:           boxlayout.ROW,
-						Weight:              sideSectionWeight,
-						ConditionalChildren: gui.sidePanelChildren,
-					},
-					{
-						Direction: boxlayout.ROW,
-						Weight:    mainSectionWeight,
-						Children: []*boxlayout.Box{
-							{
-								Direction: mainPanelsDirection,
-								Children:  gui.mainSectionChildren(),
-								Weight:    1,
-							},
-							{
-								Window: "extras",
-								Size:   extrasWindowSize,
-							},
-						},
-					},
-				},
-			},
-			{
-				Direction: boxlayout.COLUMN,
-				Size:      infoSectionSize,
-				Children:  gui.infoSectionChildren(informationStr, appStatus),
-			},
-		},
-	}
-
-	return boxlayout.ArrangeWindows(root, 0, 0, width, height)
 }
 
 // The stash window by default only contains one line so that it's not hogging
