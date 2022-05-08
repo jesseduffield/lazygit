@@ -50,6 +50,8 @@ func (gui *Gui) resizeCurrentPopupPanel() error {
 
 	if v == gui.Views.Menu {
 		gui.resizeMenu()
+	} else if v == gui.Views.Confirmation || v == gui.Views.Suggestions {
+		gui.resizeConfirmationPanel()
 	} else if gui.isPopupPanel(v.Name()) {
 		return gui.resizePopupPanel(v, v.Buffer())
 	}
@@ -58,15 +60,38 @@ func (gui *Gui) resizeCurrentPopupPanel() error {
 }
 
 func (gui *Gui) resizePopupPanel(v *gocui.View, content string) error {
-	// If the confirmation panel is already displayed, just resize the width,
-	// otherwise continue
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(v.Wrap, content)
-	vx0, vy0, vx1, vy1 := v.Dimensions()
-	if vx0 == x0 && vy0 == y0 && vx1 == x1 && vy1 == y1 {
-		return nil
-	}
 	_, err := gui.g.SetView(v.Name(), x0, y0, x1, y1, 0)
 	return err
+}
+
+func (gui *Gui) resizeMenu() {
+	itemCount := gui.State.Contexts.Menu.GetList().Len()
+	offset := 3
+	panelWidth := gui.getConfirmationPanelWidth()
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsForContentHeight(panelWidth, itemCount+offset)
+	menuBottom := y1 - offset
+	_, _ = gui.g.SetView(gui.Views.Menu.Name(), x0, y0, x1, menuBottom, 0)
+
+	tooltipTop := menuBottom + 1
+	tooltipHeight := gui.getMessageHeight(true, gui.State.Contexts.Menu.GetSelected().Tooltip, panelWidth) + 2 // plus 2 for the frame
+	_, _ = gui.g.SetView(gui.Views.Tooltip.Name(), x0, tooltipTop, x1, tooltipTop+tooltipHeight-1, 0)
+}
+
+func (gui *Gui) resizeConfirmationPanel() {
+	suggestionsViewHeight := 0
+	if gui.Views.Suggestions.Visible {
+		suggestionsViewHeight = 11
+	}
+	panelWidth := gui.getConfirmationPanelWidth()
+	prompt := gui.Views.Confirmation.Buffer()
+	panelHeight := gui.getMessageHeight(true, prompt, panelWidth) + suggestionsViewHeight
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsAux(panelWidth, panelHeight)
+	confirmationViewBottom := y1 - suggestionsViewHeight
+	_, _ = gui.g.SetView(gui.Views.Confirmation.Name(), x0, y0, x1, confirmationViewBottom, 0)
+
+	suggestionsViewTop := confirmationViewBottom + 1
+	_, _ = gui.g.SetView(gui.Views.Suggestions.Name(), x0, suggestionsViewTop, x1, suggestionsViewTop+suggestionsViewHeight, 0)
 }
 
 func (gui *Gui) globalOptionsMap() map[string]string {

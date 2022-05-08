@@ -59,16 +59,3 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	// TODO: ensure that if we're opened a menu from within a menu that it renders correctly
 	return gui.c.PushContext(gui.State.Contexts.Menu)
 }
-
-func (gui *Gui) resizeMenu() {
-	itemCount := gui.State.Contexts.Menu.GetList().Len()
-	offset := 3
-	panelWidth := gui.getConfirmationPanelWidth()
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsForContentHeight(panelWidth, itemCount+offset)
-	menuBottom := y1 - offset
-	_, _ = gui.g.SetView("menu", x0, y0, x1, menuBottom, 0)
-
-	tooltipTop := menuBottom + 1
-	tooltipHeight := gui.getMessageHeight(true, gui.State.Contexts.Menu.GetSelected().Tooltip, panelWidth) + 2 // plus 2 for the frame
-	_, _ = gui.g.SetView("tooltip", x0, tooltipTop, x1, tooltipTop+tooltipHeight-1, 0)
-}
