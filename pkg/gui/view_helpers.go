@@ -47,9 +47,13 @@ func (gui *Gui) resizeCurrentPopupPanel() error {
 	if v == nil {
 		return nil
 	}
-	if gui.isPopupPanel(v.Name()) {
+
+	if v == gui.Views.Menu {
+		gui.resizeMenu()
+	} else if gui.isPopupPanel(v.Name()) {
 		return gui.resizePopupPanel(v, v.Buffer())
 	}
+
 	return nil
 }
 

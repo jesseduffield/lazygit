@@ -15,11 +15,11 @@ import (
 func (gui *Gui) menuListContext() *context.MenuContext {
 	return context.NewMenuContext(
 		gui.Views.Menu,
-		nil,
-		nil,
-		nil,
 		gui.c,
 		gui.getMenuOptions,
+		func(content string) {
+			gui.Views.Tooltip.SetContent(content)
+		},
 	)
 }
 

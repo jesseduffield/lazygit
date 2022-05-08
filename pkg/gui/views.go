@@ -3,6 +3,8 @@ package gui
 import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -27,7 +29,7 @@ type Views struct {
 	SearchPrefix   *gocui.View
 	Limit          *gocui.View
 	Suggestions    *gocui.View
-	Description    *gocui.View
+	Tooltip        *gocui.View
 	Extras         *gocui.View
 }
 
@@ -71,7 +73,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.Menu, name: "menu"},
 		{viewPtr: &gui.Views.Suggestions, name: "suggestions"},
 		{viewPtr: &gui.Views.Confirmation, name: "confirmation"},
-		{viewPtr: &gui.Views.Description, name: "description"},
+		{viewPtr: &gui.Views.Tooltip, name: "tooltip"},
 
 		// this guy will cover everything else when it appears
 		{viewPtr: &gui.Views.Limit, name: "limit"},
@@ -105,7 +107,6 @@ func (gui *Gui) controlledViews() []controlledView {
 		{viewName: "appStatus", windowName: "appStatus", frame: false},
 		{viewName: "information", windowName: "information", frame: false},
 		{viewName: "extras", windowName: "extras", frame: true},
-		{viewName: "description", windowName: "description", frame: true},
 		{viewName: "limit", windowName: "limit", frame: true},
 	}
 }
@@ -180,9 +181,11 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Suggestions.Visible = false
 
-	gui.Views.Description.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Tooltip.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Menu.Visible = false
+
+	gui.Views.Tooltip.Visible = false
 
 	gui.Views.Information.BgColor = gocui.ColorDefault
 	gui.Views.Information.FgColor = gocui.ColorGreen
@@ -193,4 +196,23 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Extras.Wrap = true
 
 	return nil
+}
+
+func initialViewContextMapping(contextTree *context.ContextTree) map[string]types.Context {
+	return map[string]types.Context{
+		"status":         contextTree.Status,
+		"files":          contextTree.Files,
+		"branches":       contextTree.Branches,
+		"remoteBranches": contextTree.RemoteBranches,
+		"commits":        contextTree.LocalCommits,
+		"commitFiles":    contextTree.CommitFiles,
+		"subCommits":     contextTree.SubCommits,
+		"stash":          contextTree.Stash,
+		"menu":           contextTree.Menu,
+		"confirmation":   contextTree.Confirmation,
+		"commitMessage":  contextTree.CommitMessage,
+		"main":           contextTree.Normal,
+		"secondary":      contextTree.Normal,
+		"extras":         contextTree.CommandLog,
+	}
 }

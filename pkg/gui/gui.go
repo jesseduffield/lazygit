@@ -365,25 +365,6 @@ func (gui *Gui) syncViewContexts() {
 	}
 }
 
-func initialViewContextMapping(contextTree *context.ContextTree) map[string]types.Context {
-	return map[string]types.Context{
-		"status":         contextTree.Status,
-		"files":          contextTree.Files,
-		"branches":       contextTree.Branches,
-		"remoteBranches": contextTree.RemoteBranches,
-		"commits":        contextTree.LocalCommits,
-		"commitFiles":    contextTree.CommitFiles,
-		"subCommits":     contextTree.SubCommits,
-		"stash":          contextTree.Stash,
-		"menu":           contextTree.Menu,
-		"confirmation":   contextTree.Confirmation,
-		"commitMessage":  contextTree.CommitMessage,
-		"main":           contextTree.Normal,
-		"secondary":      contextTree.Normal,
-		"extras":         contextTree.CommandLog,
-	}
-}
-
 // for now the split view will always be on
 // NewGui builds a new gui handler
 func NewGui(

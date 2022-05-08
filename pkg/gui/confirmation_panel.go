@@ -91,8 +91,7 @@ func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, i
 	return gui.getConfirmationPanelDimensionsAux(panelWidth, panelHeight)
 }
 
-func (gui *Gui) getConfirmationPanelDimensionsForContentHeight(contentHeight int) (int, int, int, int) {
-	panelWidth := gui.getConfirmationPanelWidth()
+func (gui *Gui) getConfirmationPanelDimensionsForContentHeight(panelWidth, contentHeight int) (int, int, int, int) {
 	return gui.getConfirmationPanelDimensionsAux(panelWidth, contentHeight)
 }
 

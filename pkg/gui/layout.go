@@ -88,6 +88,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	minimumWidth := 10
 	gui.Views.Limit.Visible = height < minimumHeight || width < minimumWidth
 
+	gui.Views.Tooltip.Visible = gui.Views.Menu.Visible && gui.Views.Tooltip.Buffer() != ""
+
 	for _, context := range gui.TransientContexts() {
 		view, err := gui.g.View(context.GetViewName())
 		if err != nil && err.Error() != UNKNOWN_VIEW_ERROR_MSG {

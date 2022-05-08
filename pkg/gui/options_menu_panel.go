@@ -73,7 +73,8 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 
 				return binding.Handler()
 			},
-			Key: binding.Key,
+			Key:     binding.Key,
+			Tooltip: binding.Tooltip,
 		}
 	})
 

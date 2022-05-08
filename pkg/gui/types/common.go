@@ -118,6 +118,9 @@ type MenuItem struct {
 	// if Key is defined it allows the user to press the key to invoke the menu
 	// item, as opposed to having to navigate to it
 	Key Key
+
+	// the tooltip will be displayed upon highlighting the menu item
+	Tooltip string
 }
 
 type Model struct {

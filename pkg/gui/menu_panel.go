@@ -36,16 +36,18 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		}
 	}
 
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsForContentHeight(len(opts.Items))
-	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
-	menuView.Title = opts.Title
-	menuView.FgColor = theme.GocuiDefaultTextColor
-	menuView.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
+	gui.State.Contexts.Menu.SetMenuItems(opts.Items)
+	gui.State.Contexts.Menu.SetSelectedLineIdx(0)
+
+	gui.Views.Menu.Title = opts.Title
+	gui.Views.Menu.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Menu.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
 		return nil
 	}))
 
-	gui.State.Contexts.Menu.SetMenuItems(opts.Items)
-	gui.State.Contexts.Menu.SetSelectedLineIdx(0)
+	gui.Views.Tooltip.Wrap = true
+	gui.Views.Tooltip.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Tooltip.Visible = true
 
 	// resetting keybindings so that the menu-specific keybindings are registered
 	if err := gui.resetKeybindings(); err != nil {
@@ -56,4 +58,17 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 
 	// TODO: ensure that if we're opened a menu from within a menu that it renders correctly
 	return gui.c.PushContext(gui.State.Contexts.Menu)
+}
+
+func (gui *Gui) resizeMenu() {
+	itemCount := gui.State.Contexts.Menu.GetList().Len()
+	offset := 3
+	panelWidth := gui.getConfirmationPanelWidth()
+	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsForContentHeight(panelWidth, itemCount+offset)
+	menuBottom := y1 - offset
+	_, _ = gui.g.SetView("menu", x0, y0, x1, menuBottom, 0)
+
+	tooltipTop := menuBottom + 1
+	tooltipHeight := gui.getMessageHeight(true, gui.State.Contexts.Menu.GetSelected().Tooltip, panelWidth) + 2 // plus 2 for the frame
+	_, _ = gui.g.SetView("tooltip", x0, tooltipTop, x1, tooltipTop+tooltipHeight-1, 0)
 }
