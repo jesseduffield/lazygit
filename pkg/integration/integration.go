@@ -375,7 +375,7 @@ func generateSnapshot(dir string) (string, error) {
 		// TODO: find a way to bring this back without breaking tests
 		// `ls-remote origin`,
 		`status`,                         // file tree
-		`log --pretty=%B -p -1`,          // log
+		`log --pretty=%B|%an|%ae -p -1`,  // log
 		`tag -n`,                         // tags
 		`stash list`,                     // stash
 		`submodule foreach 'git status'`, // submodule status

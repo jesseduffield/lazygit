@@ -98,6 +98,8 @@ type TranslationSet struct {
 	LcMoveUpCommit                      string
 	LcEditCommit                        string
 	LcAmendToCommit                     string
+	LcResetCommitAuthor                 string
+	SureResetCommitAuthor               string
 	LcRenameCommitEditor                string
 	NoCommitsThisBranch                 string
 	Error                               string
@@ -529,6 +531,7 @@ type Actions struct {
 	DropCommit                        string
 	EditCommit                        string
 	AmendCommit                       string
+	ResetCommitAuthor                 string
 	RevertCommit                      string
 	CreateFixupCommit                 string
 	SquashAllAboveFixupCommits        string
@@ -713,6 +716,8 @@ func EnglishTranslationSet() TranslationSet {
 		LcMoveUpCommit:                      "move commit up one",
 		LcEditCommit:                        "edit commit",
 		LcAmendToCommit:                     "amend commit with staged changes",
+		LcResetCommitAuthor:                 "reset commit author",
+		SureResetCommitAuthor:               "The author field of this commit will be updated to match the configured user. This also renews the author timestamp. Continue?",
 		LcRenameCommitEditor:                "reword commit with editor",
 		Error:                               "Error",
 		LcSelectHunk:                        "select hunk",
@@ -1125,6 +1130,7 @@ func EnglishTranslationSet() TranslationSet {
 			DropCommit:                        "Drop commit",
 			EditCommit:                        "Edit commit",
 			AmendCommit:                       "Amend commit",
+			ResetCommitAuthor:                 "Reset commit author",
 			RevertCommit:                      "Revert commit",
 			CreateFixupCommit:                 "Create fixup commit",
 			SquashAllAboveFixupCommits:        "Squash all above fixup commits",

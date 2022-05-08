@@ -122,6 +122,11 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.LcAmendToCommit,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Commits.ResetCommitAuthor),
+			Handler:     self.checkSelected(self.resetAuthor),
+			Description: self.c.Tr.LcResetCommitAuthor,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Commits.RevertCommit),
 			Handler:     self.checkSelected(self.revert),
 			Description: self.c.Tr.LcRevertCommit,
@@ -414,6 +419,21 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 				err := self.git.Rebase.AmendTo(commit.Sha)
 				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 			})
+		},
+	})
+}
+
+func (self *LocalCommitsController) resetAuthor(commit *models.Commit) error {
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.LcResetCommitAuthor,
+		Prompt: self.c.Tr.SureResetCommitAuthor,
+		HandleConfirm: func() error {
+			self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
+			if err := self.git.Rebase.ResetCommitAuthor(self.model.Commits, self.context().GetSelectedLineIdx()); err != nil {
+				return self.c.Error(err)
+			}
+
+			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		},
 	})
 }

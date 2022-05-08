@@ -242,6 +242,7 @@ type KeybindingCommitsConfig struct {
 	MoveDownCommit                 string `yaml:"moveDownCommit"`
 	MoveUpCommit                   string `yaml:"moveUpCommit"`
 	AmendToCommit                  string `yaml:"amendToCommit"`
+	ResetCommitAuthor              string `yaml:"resetCommitAuthor"`
 	PickCommit                     string `yaml:"pickCommit"`
 	RevertCommit                   string `yaml:"revertCommit"`
 	CherryPickCopy                 string `yaml:"cherryPickCopy"`
@@ -513,6 +514,7 @@ func GetDefaultConfig() *UserConfig {
 				MoveDownCommit:                 "<c-j>",
 				MoveUpCommit:                   "<c-k>",
 				AmendToCommit:                  "A",
+				ResetCommitAuthor:              "a",
 				PickCommit:                     "p",
 				RevertCommit:                   "t",
 				CherryPickCopy:                 "c",
