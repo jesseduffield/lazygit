@@ -101,35 +101,35 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 		Title: self.c.Tr.Actions.CopyCommitAttributeToClipboard,
 		Items: []*types.MenuItem{
 			{
-				DisplayString: self.c.Tr.LcCommitSha,
+				Label: self.c.Tr.LcCommitSha,
 				OnPress: func() error {
 					return self.copyCommitSHAToClipboard(commit)
 				},
 				Key: 's',
 			},
 			{
-				DisplayString: self.c.Tr.LcCommitURL,
+				Label: self.c.Tr.LcCommitURL,
 				OnPress: func() error {
 					return self.copyCommitURLToClipboard(commit)
 				},
 				Key: 'u',
 			},
 			{
-				DisplayString: self.c.Tr.LcCommitDiff,
+				Label: self.c.Tr.LcCommitDiff,
 				OnPress: func() error {
 					return self.copyCommitDiffToClipboard(commit)
 				},
 				Key: 'd',
 			},
 			{
-				DisplayString: self.c.Tr.LcCommitMessage,
+				Label: self.c.Tr.LcCommitMessage,
 				OnPress: func() error {
 					return self.copyCommitMessageToClipboard(commit)
 				},
 				Key: 'm',
 			},
 			{
-				DisplayString: self.c.Tr.LcCommitAuthor,
+				Label: self.c.Tr.LcCommitAuthor,
 				OnPress: func() error {
 					return self.copyAuthorToClipboard(commit)
 				},

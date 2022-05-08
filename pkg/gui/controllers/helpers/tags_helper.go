@@ -26,13 +26,13 @@ func (self *TagsHelper) CreateTagMenu(commitSha string, onCreate func()) error {
 		Title: self.c.Tr.TagMenuTitle,
 		Items: []*types.MenuItem{
 			{
-				DisplayString: self.c.Tr.LcLightweightTag,
+				Label: self.c.Tr.LcLightweightTag,
 				OnPress: func() error {
 					return self.handleCreateLightweightTag(commitSha, onCreate)
 				},
 			},
 			{
-				DisplayString: self.c.Tr.LcAnnotatedTag,
+				Label: self.c.Tr.LcAnnotatedTag,
 				OnPress: func() error {
 					return self.handleCreateAnnotatedTag(commitSha, onCreate)
 				},

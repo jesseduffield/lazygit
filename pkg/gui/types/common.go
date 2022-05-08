@@ -109,17 +109,21 @@ type PromptOpts struct {
 }
 
 type MenuItem struct {
-	DisplayString  string
-	DisplayStrings []string
-	OnPress        func() error
-	// only applies when displayString is used
+	Label string
+
+	// alternative to Label. Allows specifying columns which will be auto-aligned
+	LabelColumns []string
+
+	OnPress func() error
+
+	// Only applies when Label is used
 	OpensMenu bool
 
-	// if Key is defined it allows the user to press the key to invoke the menu
+	// If Key is defined it allows the user to press the key to invoke the menu
 	// item, as opposed to having to navigate to it
 	Key Key
 
-	// the tooltip will be displayed upon highlighting the menu item
+	// The tooltip will be displayed upon highlighting the menu item
 	Tooltip string
 }
 

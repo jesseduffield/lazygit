@@ -105,7 +105,7 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 	default:
 		menuItems := slices.Map(confPaths, func(path string) *types.MenuItem {
 			return &types.MenuItem{
-				DisplayString: path,
+				Label: path,
 				OnPress: func() error {
 					return action(path)
 				},

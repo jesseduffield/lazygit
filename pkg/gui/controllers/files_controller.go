@@ -500,19 +500,19 @@ func (self *FilesController) handleStatusFilterPressed() error {
 		Title: self.c.Tr.FilteringMenuTitle,
 		Items: []*types.MenuItem{
 			{
-				DisplayString: self.c.Tr.FilterStagedFiles,
+				Label: self.c.Tr.FilterStagedFiles,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayStaged)
 				},
 			},
 			{
-				DisplayString: self.c.Tr.FilterUnstagedFiles,
+				Label: self.c.Tr.FilterUnstagedFiles,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayUnstaged)
 				},
 			},
 			{
-				DisplayString: self.c.Tr.ResetCommitFilterState,
+				Label: self.c.Tr.ResetCommitFilterState,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
 				},
@@ -557,14 +557,14 @@ func (self *FilesController) createStashMenu() error {
 		Title: self.c.Tr.LcStashOptions,
 		Items: []*types.MenuItem{
 			{
-				DisplayString: self.c.Tr.LcStashAllChanges,
+				Label: self.c.Tr.LcStashAllChanges,
 				OnPress: func() error {
 					return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges, self.c.Tr.NoFilesToStash)
 				},
 				Key: 'a',
 			},
 			{
-				DisplayString: self.c.Tr.LcStashAllChangesKeepIndex,
+				Label: self.c.Tr.LcStashAllChangesKeepIndex,
 				OnPress: func() error {
 					// if there are no staged files it behaves the same as Stash.Save
 					return self.handleStashSave(self.git.Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex, self.c.Tr.NoFilesToStash)
@@ -572,7 +572,7 @@ func (self *FilesController) createStashMenu() error {
 				Key: 'i',
 			},
 			{
-				DisplayString: self.c.Tr.LcStashStagedChanges,
+				Label: self.c.Tr.LcStashStagedChanges,
 				OnPress: func() error {
 					// there must be something in staging otherwise the current implementation mucks the stash up
 					if !self.helpers.WorkingTree.AnyStagedFiles() {
@@ -583,7 +583,7 @@ func (self *FilesController) createStashMenu() error {
 				Key: 's',
 			},
 			{
-				DisplayString: self.c.Tr.LcStashUnstagedChanges,
+				Label: self.c.Tr.LcStashUnstagedChanges,
 				OnPress: func() error {
 					if self.helpers.WorkingTree.AnyStagedFiles() {
 						return self.handleStashSave(self.git.Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges, self.c.Tr.NoFilesToStash)

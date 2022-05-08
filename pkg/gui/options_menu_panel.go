@@ -65,7 +65,7 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 
 	menuItems := slices.Map(bindings, func(binding *types.Binding) *types.MenuItem {
 		return &types.MenuItem{
-			DisplayString: gui.displayDescription(binding),
+			Label: gui.displayDescription(binding),
 			OnPress: func() error {
 				if binding.Key == nil {
 					return nil

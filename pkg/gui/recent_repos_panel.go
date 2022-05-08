@@ -17,7 +17,7 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 	// we won't show the current repo hence the -1
 	menuItems := slices.Map(recentRepoPaths[1:], func(path string) *types.MenuItem {
 		return &types.MenuItem{
-			DisplayStrings: []string{
+			LabelColumns: []string{
 				filepath.Base(path),
 				style.FgMagenta.Sprint(path),
 			},

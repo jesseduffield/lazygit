@@ -112,7 +112,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 		name := name
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				DisplayString: fmt.Sprintf("%s %s", gui.c.Tr.LcDiff, name),
+				Label: fmt.Sprintf("%s %s", gui.c.Tr.LcDiff, name),
 				OnPress: func() error {
 					gui.State.Modes.Diffing.Ref = name
 					// can scope this down based on current view but too lazy right now
@@ -124,7 +124,7 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 
 	menuItems = append(menuItems, []*types.MenuItem{
 		{
-			DisplayString: gui.c.Tr.LcEnterRefToDiff,
+			Label: gui.c.Tr.LcEnterRefToDiff,
 			OnPress: func() error {
 				return gui.c.Prompt(types.PromptOpts{
 					Title:               gui.c.Tr.LcEnteRefName,
@@ -141,14 +141,14 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 	if gui.State.Modes.Diffing.Active() {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				DisplayString: gui.c.Tr.LcSwapDiff,
+				Label: gui.c.Tr.LcSwapDiff,
 				OnPress: func() error {
 					gui.State.Modes.Diffing.Reverse = !gui.State.Modes.Diffing.Reverse
 					return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 				},
 			},
 			{
-				DisplayString: gui.c.Tr.LcExitDiffMode,
+				Label: gui.c.Tr.LcExitDiffMode,
 				OnPress: func() error {
 					gui.State.Modes.Diffing = diffing.New()
 					return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})

@@ -146,7 +146,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 		Title: self.c.Tr.LcBulkSubmoduleOptions,
 		Items: []*types.MenuItem{
 			{
-				DisplayStrings: []string{self.c.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(self.git.Submodule.BulkInitCmdObj().ToString())},
+				LabelColumns: []string{self.c.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(self.git.Submodule.BulkInitCmdObj().ToString())},
 				OnPress: func() error {
 					return self.c.WithWaitingStatus(self.c.Tr.LcRunningCommand, func() error {
 						self.c.LogAction(self.c.Tr.Actions.BulkInitialiseSubmodules)
@@ -161,7 +161,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 				Key: 'i',
 			},
 			{
-				DisplayStrings: []string{self.c.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(self.git.Submodule.BulkUpdateCmdObj().ToString())},
+				LabelColumns: []string{self.c.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(self.git.Submodule.BulkUpdateCmdObj().ToString())},
 				OnPress: func() error {
 					return self.c.WithWaitingStatus(self.c.Tr.LcRunningCommand, func() error {
 						self.c.LogAction(self.c.Tr.Actions.BulkUpdateSubmodules)
@@ -175,7 +175,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 				Key: 'u',
 			},
 			{
-				DisplayStrings: []string{self.c.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(self.git.Submodule.BulkDeinitCmdObj().ToString())},
+				LabelColumns: []string{self.c.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(self.git.Submodule.BulkDeinitCmdObj().ToString())},
 				OnPress: func() error {
 					return self.c.WithWaitingStatus(self.c.Tr.LcRunningCommand, func() error {
 						self.c.LogAction(self.c.Tr.Actions.BulkDeinitialiseSubmodules)

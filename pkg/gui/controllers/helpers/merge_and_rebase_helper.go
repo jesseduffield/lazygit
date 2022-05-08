@@ -64,7 +64,7 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 
 	menuItems := slices.Map(options, func(row optionAndKey) *types.MenuItem {
 		return &types.MenuItem{
-			DisplayString: row.option,
+			Label: row.option,
 			OnPress: func() error {
 				return self.genericMergeCommand(row.option)
 			},
