@@ -47,7 +47,7 @@ func Check() {
 		if err != nil {
 			log.Fatalf("Error occurred while checking if cheatsheets are up to date: %v", err)
 		}
-		fmt.Printf("\nCheatsheets are out of date. Please run `%s` at the project root and commit the changes\n", CommandToRun())
+		fmt.Printf("\nCheatsheets are out of date. Please run `%s` at the project root and commit the changes. If you run the script and no keybindings files are updated as a result, try rebasing onto master and trying again.\n", CommandToRun())
 		os.Exit(1)
 	}
 

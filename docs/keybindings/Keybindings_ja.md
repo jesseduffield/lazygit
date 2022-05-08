@@ -85,6 +85,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+k</kbd>: コミットを1つ上に移動
   <kbd>v</kbd>: コミットを貼り付け (cherry-pick)
   <kbd>A</kbd>: ステージされた変更でamendコミット
+  <kbd>a</kbd>: reset commit author
   <kbd>t</kbd>: コミットをrevert
   <kbd>T</kbd>: タグを作成
   <kbd>ctrl+l</kbd>: ログメニューを開く
