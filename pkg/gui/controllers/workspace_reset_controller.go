@@ -12,7 +12,7 @@ import (
 func (self *FilesController) createResetMenu() error {
 	red := style.FgRed
 
-	nukeStr := "reset --hard HEAD && git clean -fd"
+	nukeStr := "git reset --hard HEAD && git clean -fd"
 	if len(self.model.Submodules) > 0 {
 		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, self.c.Tr.LcAndResetSubmodules)
 	}
@@ -63,6 +63,28 @@ func (self *FilesController) createResetMenu() error {
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
 			Key: 'c',
+		},
+		{
+			LabelColumns: []string{
+				self.c.Tr.LcDiscardStagedChanges,
+				red.Sprint("stash staged and drop stash"),
+			},
+			Tooltip: "This will create a new stash entry containing only staged files and then drop it.",
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.RemoveStagedFiles)
+				if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
+					return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
+				}
+				if err := self.git.Stash.SaveStagedChanges("[lazygit] tmp stash"); err != nil {
+					return self.c.Error(err)
+				}
+				if err := self.git.Stash.DropNewest(); err != nil {
+					return self.c.Error(err)
+				}
+
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+			},
+			Key: 'S',
 		},
 		{
 			LabelColumns: []string{

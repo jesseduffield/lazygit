@@ -265,6 +265,7 @@ type TranslationSet struct {
 	LcDiscardAllChangesToAllFiles       string
 	LcDiscardAnyUnstagedChanges         string
 	LcDiscardUntrackedFiles             string
+	LcDiscardStagedChanges              string
 	LcHardReset                         string
 	LcViewResetOptions                  string
 	LcCreateFixupCommit                 string
@@ -594,6 +595,7 @@ type Actions struct {
 	NukeWorkingTree                   string
 	DiscardUnstagedFileChanges        string
 	RemoveUntrackedFiles              string
+	RemoveStagedFiles                 string
 	SoftReset                         string
 	MixedReset                        string
 	HardReset                         string
@@ -883,6 +885,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcDiscardAllChangesToAllFiles:       "nuke working tree",
 		LcDiscardAnyUnstagedChanges:         "discard unstaged changes",
 		LcDiscardUntrackedFiles:             "discard untracked files",
+		LcDiscardStagedChanges:              "discard staged changes",
 		LcHardReset:                         "hard reset",
 		LcViewResetOptions:                  `view reset options`,
 		LcCreateFixupCommit:                 `create fixup commit for this commit`,
@@ -1193,6 +1196,7 @@ func EnglishTranslationSet() TranslationSet {
 			NukeWorkingTree:                   "Nuke working tree",
 			DiscardUnstagedFileChanges:        "Discard unstaged file changes",
 			RemoveUntrackedFiles:              "Remove untracked files",
+			RemoveStagedFiles:                 "Remove staged files",
 			SoftReset:                         "Soft reset",
 			MixedReset:                        "Mixed reset",
 			HardReset:                         "Hard reset",
