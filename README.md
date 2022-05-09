@@ -265,6 +265,8 @@ For contributor discussion about things not better discussed here in the repo, j
 
 [![Slack](../assets/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/zt-5bo2clzo-hB8ZTVN5dWUCqj5QFiQVLA)
 
+Check out this [video](https://www.youtube.com/watch?v=kNavnhzZHtk) walking through the creation of a small feature in lazygit if you want an idea of where to get started.
+
 ### Debugging Locally
 
 Run `lazygit --debug` in one terminal tab and `lazygit --logs` in another to view the program and its log output side by side
