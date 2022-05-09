@@ -104,7 +104,7 @@ func BranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
 	}
 	if branch.MatchesUpstream() {
 		if icons.IsIconEnabled() {
-			return ""
+			return "\uf0c2 \uf42e" //  
 		} else {
 			return "✓"
 		}
@@ -117,14 +117,14 @@ func BranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
 	result := ""
 	if branch.HasCommitsToPush() {
 		if icons.IsIconEnabled() {
-			result = fmt.Sprintf(" %s", branch.Pushables)
+			result = fmt.Sprintf("\uf0ee %s", branch.Pushables) // 
 		} else {
 			result = fmt.Sprintf("↑%s", branch.Pushables)
 		}
 	}
 	if branch.HasCommitsToPull() {
 		if icons.IsIconEnabled() {
-			result = fmt.Sprintf("%s %s", result, branch.Pullables)
+			result = fmt.Sprintf("%s\uf0ed %s", result, branch.Pullables) // 
 		} else {
 			result = fmt.Sprintf("%s↓%s", result, branch.Pullables)
 		}
