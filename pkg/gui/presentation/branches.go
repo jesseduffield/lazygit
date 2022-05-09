@@ -102,20 +102,32 @@ func BranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
 	if branch.UpstreamGone {
 		return tr.UpstreamGone
 	}
-
 	if branch.MatchesUpstream() {
-		return "✓"
+		if icons.IsIconEnabled() {
+			return ""
+		} else {
+			return "✓"
+		}
 	}
+
 	if branch.RemoteBranchNotStoredLocally() {
 		return "?"
 	}
 
 	result := ""
 	if branch.HasCommitsToPush() {
-		result = fmt.Sprintf("↑%s", branch.Pushables)
+		if icons.IsIconEnabled() {
+			result = fmt.Sprintf(" %s", branch.Pushables)
+		} else {
+			result = fmt.Sprintf("↑%s", branch.Pushables)
+		}
 	}
 	if branch.HasCommitsToPull() {
-		result = fmt.Sprintf("%s↓%s", result, branch.Pullables)
+		if icons.IsIconEnabled() {
+			result = fmt.Sprintf("%s %s", result, branch.Pullables)
+		} else {
+			result = fmt.Sprintf("%s↓%s", result, branch.Pullables)
+		}
 	}
 
 	return result
