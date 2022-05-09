@@ -150,6 +150,17 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 			secondCharCl = restColor
 		}
 
+
+		if icons.IsIconEnabled() {
+			if firstChar == "?" && secondChar == "?" {
+				firstChar = "  "
+				secondChar = getIconForChangeStatus(secondChar)
+			} else {
+				firstChar = getIconForChangeStatus(firstChar)
+				secondChar = getIconForChangeStatus(secondChar)
+			}
+		}
+
 		output = firstCharCl.Sprint(firstChar)
 		output += secondCharCl.Sprint(secondChar)
 		output += restColor.Sprint(" ")
@@ -218,5 +229,24 @@ func getColorForChangeStatus(changeStatus string) style.TextStyle {
 		return style.FgMagenta
 	default:
 		return theme.DefaultTextColor
+	}
+}
+
+func getIconForChangeStatus(changeStatus string) string {
+	switch changeStatus {
+	case "?":
+		return " "
+	case "A":
+		return " "
+	case "M", "R":
+		return " "
+	case "D":
+		return ""
+	case "C":
+		return " "
+	case "T":
+		return " "
+	default:
+		return "  "
 	}
 }
