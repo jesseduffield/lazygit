@@ -13,7 +13,7 @@ const (
 	COMMIT_ICON         = "\ufc16" // ﰖ
 	MERGE_COMMIT_ICON   = "\ufb2c" // שּׁ
 	DEFAULT_REMOTE_ICON = "\uf7a1" // 
-	STAGED_FILE_ICON    = "\uf833" // 
+	STAGED_FILE_ICON    = "\uf833 " // 
 )
 
 type remoteIcon struct {
@@ -63,10 +63,10 @@ func IconForRemote(remote *models.Remote) string {
 
 
 func IconForChangeStatus(changeStatus string) string {
-	nfOctDiffAdded    := "\uf457" // 
-	nfOctDiffModified := "\uf459" // 
-	nfOctDiffRemoved  := "\uf458" // 
-	nfOctDiffRenamed  := "\uf45a" // 
+	nfOctDiffAdded    := "\uf457 " // 
+	nfOctDiffModified := "\uf459 " // 
+	nfOctDiffRemoved  := "\uf458 " // 
+	nfOctDiffRenamed  := "\uf45a " // 
 
 	switch changeStatus {
 	case "?", "A":
