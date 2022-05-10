@@ -343,7 +343,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			Diffing:       diffing.New(),
 		},
 		ViewContextMap:    viewContextMap,
-		ViewTabContextMap: contextTree.InitialViewTabContextMap(),
+		ViewTabContextMap: contextTree.InitialViewTabContextMap(gui.c.Tr),
 		ScreenMode:        screenMode,
 		// TODO: put contexts in the context manager
 		ContextManager: NewContextManager(initialContext),

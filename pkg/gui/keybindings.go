@@ -868,7 +868,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		}
 	}
 
-	for viewName := range self.State.Contexts.InitialViewTabContextMap() {
+	for viewName := range self.State.Contexts.InitialViewTabContextMap(self.c.Tr) {
 		bindings = append(bindings, []*types.Binding{
 			{
 				ViewName:    viewName,
@@ -914,7 +914,7 @@ func (gui *Gui) resetKeybindings() error {
 		}
 	}
 
-	for viewName := range gui.State.Contexts.InitialViewTabContextMap() {
+	for viewName := range gui.State.Contexts.InitialViewTabContextMap(gui.c.Tr) {
 		viewName := viewName
 		tabClickCallback := func(tabIndex int) error { return gui.onViewTabClick(viewName, tabIndex) }
 
