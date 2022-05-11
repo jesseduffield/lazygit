@@ -18,6 +18,16 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 
 ![Gif](../assets/staging.gif)
 
+## Sponsors
+
+<p align="center">
+ Maintainence of this project is made possible by all the <a href="https://github.com/jesseduffield/lazygit/graphs/contributors">contributors</a> and <a href="https://github.com/sponsors/jesseduffield">sponsors</a>. If you'd like to sponsor this project and have your avatar or company logo appear below <a href="https://github.com/sponsors/jesseduffield">click here</a>. 💙
+</p>
+
+<p align="center">
+<!-- sponsors --><!-- sponsors -->
+</p>
+
 ## Table of contents
 
 - [Installation](#installation)

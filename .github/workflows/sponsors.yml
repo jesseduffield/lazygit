@@ -1,0 +1,27 @@
+# see https://github.com/JamesIves/github-sponsors-readme-action
+name: Generate Sponsors README
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+
+      - name: Generate Sponsors 💖
+        uses: JamesIves/github-sponsors-readme-action@v1.0.8
+        with:
+          token: ${{ secrets.SPONSORS_TOKEN }}
+          file: 'README.md'
+
+      - name: Commit and push if changed
+        run: |-
+          git diff
+          git config --global user.email "actions@users.noreply.github.com"
+          git config --global user.name "README-bot"
+          git add README.md
+          git commit -m "Updated README.md" || exit 0
+          git push
