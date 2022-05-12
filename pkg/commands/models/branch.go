@@ -18,6 +18,10 @@ type Branch struct {
 	UpstreamBranch string
 }
 
+func (b *Branch) FullRefName() string {
+	return "refs/heads/" + b.Name
+}
+
 func (b *Branch) RefName() string {
 	return b.Name
 }

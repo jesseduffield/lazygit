@@ -6,7 +6,7 @@ func (self *Gui) tagsRenderToMain() error {
 	if tag == nil {
 		task = NewRenderStringTask("No tags")
 	} else {
-		cmdObj := self.git.Branch.GetGraphCmdObj(tag.Name)
+		cmdObj := self.git.Branch.GetGraphCmdObj(tag.FullRefName())
 		task = NewRunCommandTask(cmdObj.GetCmd())
 	}
 
