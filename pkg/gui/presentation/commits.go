@@ -36,6 +36,7 @@ func GetCommitListDisplayStrings(
 	fullDescription bool,
 	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
+	timeFormat string,
 	parseEmoji bool,
 	selectedCommitSha string,
 	startIdx int,
@@ -98,6 +99,7 @@ func GetCommitListDisplayStrings(
 			commit,
 			cherryPickedCommitShaSet,
 			diffName,
+			timeFormat,
 			parseEmoji,
 			getGraphLine(unfilteredIdx),
 			fullDescription,
@@ -241,6 +243,7 @@ func displayCommit(
 	commit *models.Commit,
 	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
+	timeFormat string,
 	parseEmoji bool,
 	graphLine string,
 	fullDescription bool,
@@ -283,7 +286,7 @@ func displayCommit(
 	cols = append(cols, shaColor.Sprint(commit.ShortSha()))
 	cols = append(cols, bisectString)
 	if fullDescription {
-		cols = append(cols, style.FgBlue.Sprint(utils.UnixToDate(commit.UnixTimestamp)))
+		cols = append(cols, style.FgBlue.Sprint(utils.UnixToDate(commit.UnixTimestamp, timeFormat)))
 	}
 	cols = append(
 		cols,

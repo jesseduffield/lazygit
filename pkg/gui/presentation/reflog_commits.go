@@ -10,8 +10,8 @@ import (
 	"github.com/kyokomi/emoji/v2"
 )
 
-func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaSet *set.Set[string], diffName string, parseEmoji bool) [][]string {
-	var displayFunc func(*models.Commit, bool, bool, bool) []string
+func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaSet *set.Set[string], diffName string, timeFormat string, parseEmoji bool) [][]string {
+	var displayFunc func(*models.Commit, string, bool, bool, bool) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForReflogCommit
 	} else {
@@ -21,7 +21,7 @@ func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription
 	return slices.Map(commits, func(commit *models.Commit) []string {
 		diffed := commit.Sha == diffName
 		cherryPicked := cherryPickedCommitShaSet.Includes(commit.Sha)
-		return displayFunc(commit, cherryPicked, diffed, parseEmoji)
+		return displayFunc(commit, timeFormat, cherryPicked, diffed, parseEmoji)
 	})
 }
 
@@ -38,7 +38,7 @@ func reflogShaColor(cherryPicked, diffed bool) style.TextStyle {
 	return shaColor
 }
 
-func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, cherryPicked, diffed, parseEmoji bool) []string {
+func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, timeFormat string, cherryPicked, diffed, parseEmoji bool) []string {
 	name := c.Name
 	if parseEmoji {
 		name = emoji.Sprint(name)
@@ -46,12 +46,12 @@ func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, cherryPic
 
 	return []string{
 		reflogShaColor(cherryPicked, diffed).Sprint(c.ShortSha()),
-		style.FgMagenta.Sprint(utils.UnixToDate(c.UnixTimestamp)),
+		style.FgMagenta.Sprint(utils.UnixToDate(c.UnixTimestamp, timeFormat)),
 		theme.DefaultTextColor.Sprint(name),
 	}
 }
 
-func getDisplayStringsForReflogCommit(c *models.Commit, cherryPicked, diffed, parseEmoji bool) []string {
+func getDisplayStringsForReflogCommit(c *models.Commit, timeFormat string, cherryPicked, diffed, parseEmoji bool) []string {
 	name := c.Name
 	if parseEmoji {
 		name = emoji.Sprint(name)

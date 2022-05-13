@@ -20,6 +20,6 @@ func UnixToTimeAgo(timestamp int64) string {
 	return fmt.Sprintf("%dy", int(delta))
 }
 
-func UnixToDate(timestamp int64) string {
-	return time.Unix(timestamp, 0).Format(time.RFC822)
+func UnixToDate(timestamp int64, timeFormat string) string {
+	return time.Unix(timestamp, 0).Format(timeFormat)
 }
