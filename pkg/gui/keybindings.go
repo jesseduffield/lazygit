@@ -715,7 +715,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			ViewName: "search",
 			Key:      opts.GetKey(opts.Config.Universal.Return),
 			Modifier: gocui.ModNone,
-			Handler:  self.handleSearchEscape,
+			Handler:  self.handleSearchPromptEscape,
 		},
 		{
 			ViewName: "confirmation",

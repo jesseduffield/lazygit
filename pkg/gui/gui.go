@@ -21,9 +21,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
+	"github.com/jesseduffield/lazygit/pkg/gui/modes"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
+	"github.com/jesseduffield/lazygit/pkg/gui/modes/searching"
 	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
@@ -160,7 +162,7 @@ type PrevLayout struct {
 
 type GuiRepoState struct {
 	Model *types.Model
-	Modes *types.Modes
+	Modes *modes.Modes
 
 	// Suggestions will sometimes appear when typing into a prompt
 	Suggestions []*types.Suggestion
@@ -171,7 +173,6 @@ type GuiRepoState struct {
 	LimitCommits   bool
 
 	IsRefreshingFiles bool
-	Searching         searchingState
 	Ptmx              *os.File
 	StartupStage      StartupStage // Allows us to not load everything at once
 
@@ -221,12 +222,6 @@ type MergingPanelState struct {
 type panelStates struct {
 	LineByLine *LblPanelState
 	Merging    *MergingPanelState
-}
-
-type searchingState struct {
-	view         *gocui.View
-	isSearching  bool
-	searchString string
 }
 
 // startup stages so we don't need to load everything at once
@@ -337,6 +332,7 @@ func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 			Filtering:     filtering.New(startArgs.FilterPath),
 			CherryPicking: cherrypicking.New(),
 			Diffing:       diffing.New(),
+			Searching:     searching.New(gui.Log),
 		},
 		ViewContextMap:    viewContextMap,
 		ViewTabContextMap: gui.initialViewTabContextMap(contextTree),
@@ -560,7 +556,7 @@ func (gui *Gui) Run(startArgs types.StartArgs) error {
 		})
 	}
 
-	gui.g.OnSearchEscape = gui.onSearchEscape
+	gui.g.OnSearchEscape = func() error { gui.onSearchEscape(); return nil }
 	if err := gui.Config.ReloadUserConfig(); err != nil {
 		return nil
 	}

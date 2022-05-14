@@ -5,6 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/modes"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -15,7 +16,7 @@ type controllerCommon struct {
 	helpers  *helpers.Helpers
 	model    *types.Model
 	contexts *context.ContextTree
-	modes    *types.Modes
+	modes    *modes.Modes
 }
 
 func NewControllerCommon(
@@ -25,7 +26,7 @@ func NewControllerCommon(
 	helpers *helpers.Helpers,
 	model *types.Model,
 	contexts *context.ContextTree,
-	modes *types.Modes,
+	modes *modes.Modes,
 ) *controllerCommon {
 	return &controllerCommon{
 		c:        c,

@@ -13,8 +13,25 @@ type modeStatus struct {
 	reset       func() error
 }
 
+// this returns the modes in order of highest to lowest precedence. I.e. if
+// if you press escape when any mode is active, the highest precedent mode will
+// be deactivated.
 func (gui *Gui) modeStatuses() []modeStatus {
 	return []modeStatus{
+		{
+			isActive: gui.State.Modes.Searching.Active,
+			description: func() string {
+				return gui.withResetButton(
+					fmt.Sprintf(
+						// TODO: i18n
+						"searching '%s'",
+						gui.State.Modes.Searching.GetSearchString(),
+					),
+					style.FgGreen,
+				)
+			},
+			reset: gui.exitSearch,
+		},
 		{
 			isActive: gui.State.Modes.Diffing.Active,
 			description: func() string {

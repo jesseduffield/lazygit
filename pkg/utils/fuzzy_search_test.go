@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestFuzzySearch is a function.
 func TestFuzzySearch(t *testing.T) {
 	type scenario struct {
 		needle   string
@@ -49,5 +48,54 @@ func TestFuzzySearch(t *testing.T) {
 
 	for _, s := range scenarios {
 		assert.EqualValues(t, s.expected, FuzzySearch(s.needle, s.haystack))
+	}
+}
+
+type node struct {
+	value string
+}
+
+func TestFuzzySearchItems(t *testing.T) {
+	type scenario struct {
+		needle   string
+		haystack []node
+		expected []node
+	}
+
+	scenarios := []scenario{
+		{
+			needle:   "",
+			haystack: []node{{"test"}},
+			expected: []node{},
+		},
+		{
+			needle:   "test",
+			haystack: []node{{"test"}},
+			expected: []node{{"test"}},
+		},
+		{
+			needle:   "o",
+			haystack: []node{{"a"}, {"o"}, {"e"}},
+			expected: []node{{"o"}},
+		},
+		{
+			needle:   "mybranch",
+			haystack: []node{{"my_branch"}, {"mybranch"}, {"branch"}, {"this is my branch"}},
+			expected: []node{{"mybranch"}, {"my_branch"}, {"this is my branch"}},
+		},
+		{
+			needle:   "test",
+			haystack: []node{{"not a good match"}, {"this 'test' is a good match"}, {"test"}},
+			expected: []node{{"test"}, {"this 'test' is a good match"}},
+		},
+		{
+			needle:   "test",
+			haystack: []node{{"Test"}},
+			expected: []node{{"Test"}},
+		},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, FuzzySearchItems(s.needle, s.haystack, func(n node) string { return n.value }))
 	}
 }

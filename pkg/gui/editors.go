@@ -52,24 +52,6 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 	return true
 }
 
-// we've just copy+pasted the editor from gocui to here so that we can also re-
-// render the commit message length on each keypress
-func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
-	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, true)
-
-	// This function is called again on refresh as part of the general resize popup call,
-	// but we need to call it here so that when we go to render the text area it's not
-	// considered out of bounds to add a newline, meaning we can avoid unnecessary scrolling.
-	err := gui.resizePopupPanel(v, v.TextArea.GetContent())
-	if err != nil {
-		gui.c.Log.Error(err)
-	}
-	v.RenderTextArea()
-	gui.RenderCommitLength()
-
-	return matched
-}
-
 func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
 

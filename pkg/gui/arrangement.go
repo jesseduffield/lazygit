@@ -31,7 +31,7 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 
 	extrasWindowSize := gui.getExtrasWindowSize(height)
 
-	showInfoSection := gui.c.UserConfig.Gui.ShowBottomLine || (gui.State.Searching.isSearching || gui.isAnyModeActive())
+	showInfoSection := gui.c.UserConfig.Gui.ShowBottomLine || gui.isAnyModeActive()
 	infoSectionSize := 0
 	if showInfoSection {
 		infoSectionSize = 1
@@ -153,7 +153,7 @@ func (gui *Gui) getMidSectionWeights() (int, int) {
 }
 
 func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*boxlayout.Box {
-	if gui.State.Searching.isSearching {
+	if gui.State.Modes.Searching.InPrompt() {
 		return []*boxlayout.Box{
 			{
 				Window: "searchPrefix",

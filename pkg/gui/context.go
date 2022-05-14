@@ -142,9 +142,7 @@ func (gui *Gui) deactivateContext(c types.Context) error {
 	view, _ := gui.g.View(c.GetViewName())
 
 	if view != nil && view.IsSearching() {
-		if err := gui.onSearchEscape(); err != nil {
-			return err
-		}
+		gui.onSearchEscape()
 	}
 
 	// if we are the kind of context that is sent to back upon deactivation, we should do that
@@ -454,23 +452,14 @@ func (gui *Gui) isContextVisible(c types.Context) bool {
 		gui.State.ViewContextMap.Get(c.GetViewName()).GetKey() == c.GetKey()
 }
 
-// currently unused
-// func (gui *Gui) getCurrentSideView() *gocui.View {
-// 	currentSideContext := gui.currentSideContext()
-// 	if currentSideContext == nil {
-// 		return nil
-// 	}
+func (gui *Gui) parentContext() (types.Context, bool) {
+	gui.State.ContextManager.RLock()
+	defer gui.State.ContextManager.RUnlock()
 
-// 	view, _ := gui.g.View(currentSideContext.GetViewName())
+	stack := gui.State.ContextManager.ContextStack
+	if len(stack) < 2 {
+		return nil, false
+	}
 
-// 	return view
-// }
-
-// currently unused
-// func (gui *Gui) renderContextStack() string {
-// 	result := ""
-// 	for _, context := range gui.State.ContextManager.ContextStack {
-// 		result += context.GetViewName() + "\n"
-// 	}
-// 	return result
-// }
+	return stack[len(stack)-2], true
+}

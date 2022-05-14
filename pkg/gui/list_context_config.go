@@ -10,6 +10,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 func (gui *Gui) menuListContext() *context.MenuContext {
@@ -41,11 +43,23 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 }
 
 func (gui *Gui) branchesListContext() *context.BranchesContext {
+	getFilteredBranches := func() []*models.Branch {
+		list := gui.State.Model.Branches
+
+		if gui.State.Modes.Searching.SearchingInContext(context.LOCAL_BRANCHES_CONTEXT_KEY) {
+			return utils.FuzzySearchItems(gui.State.Modes.Searching.GetSearchString(), list, func(branch *models.Branch) string {
+				return branch.Name
+			})
+		} else {
+			return list
+		}
+	}
+
 	return context.NewBranchesContext(
-		func() []*models.Branch { return gui.State.Model.Branches },
+		getFilteredBranches,
 		gui.Views.Branches,
 		func(startIdx int, length int) [][]string {
-			return presentation.GetBranchListDisplayStrings(gui.State.Model.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref, gui.Tr)
+			return presentation.GetBranchListDisplayStrings(getFilteredBranches(), gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref, gui.Tr)
 		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.branchesRenderToMain)),
@@ -107,8 +121,20 @@ func (gui *Gui) tagsListContext() *context.TagsContext {
 }
 
 func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
+	getFilteredCommits := func() []*models.Commit {
+		list := gui.State.Model.Commits
+
+		if gui.State.Modes.Searching.SearchingInContext(context.LOCAL_COMMITS_CONTEXT_KEY) {
+			return utils.FuzzySearchItems(gui.State.Modes.Searching.GetSearchString(), list, func(commit *models.Commit) string {
+				return commit.Name
+			})
+		} else {
+			return list
+		}
+	}
+
 	return context.NewLocalCommitsContext(
-		func() []*models.Commit { return gui.State.Model.Commits },
+		getFilteredCommits,
 		gui.Views.Commits,
 		func(startIdx int, length int) [][]string {
 			selectedCommitSha := ""
@@ -119,7 +145,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 				}
 			}
 			return presentation.GetCommitListDisplayStrings(
-				gui.State.Model.Commits,
+				getFilteredCommits(),
 				gui.State.ScreenMode != SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
@@ -174,6 +200,14 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 
 func (gui *Gui) shouldShowGraph() bool {
 	if gui.State.Modes.Filtering.Active() {
+		return false
+	}
+
+	contextKeysWithGraph := []types.ContextKey{context.LOCAL_COMMITS_CONTEXT_KEY, context.SUB_COMMITS_CONTEXT_KEY}
+
+	if lo.ContainsBy(contextKeysWithGraph, func(key types.ContextKey) bool {
+		return gui.State.Modes.Searching.SearchingInContext(key)
+	}) {
 		return false
 	}
 

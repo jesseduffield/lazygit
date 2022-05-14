@@ -166,6 +166,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Search.BgColor = gocui.ColorDefault
 	gui.Views.Search.FgColor = gocui.ColorGreen
 	gui.Views.Search.Editable = true
+	gui.Views.Search.Editor = gocui.EditorFunc(gui.searchEditor)
 
 	gui.Views.AppStatus.BgColor = gocui.ColorDefault
 	gui.Views.AppStatus.FgColor = gocui.ColorCyan
