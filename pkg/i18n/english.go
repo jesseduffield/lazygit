@@ -265,6 +265,7 @@ type TranslationSet struct {
 	LcDiscardAllChangesToAllFiles       string
 	LcDiscardAnyUnstagedChanges         string
 	LcDiscardUntrackedFiles             string
+	LcDiscardStagedChanges              string
 	LcHardReset                         string
 	LcViewResetOptions                  string
 	LcCreateFixupCommit                 string
@@ -491,6 +492,7 @@ type TranslationSet struct {
 	HardResetAutostashPrompt            string
 	UpstreamGone                        string
 	NukeDescription                     string
+	DiscardStagedChangesDescription     string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -594,6 +596,7 @@ type Actions struct {
 	NukeWorkingTree                   string
 	DiscardUnstagedFileChanges        string
 	RemoveUntrackedFiles              string
+	RemoveStagedFiles                 string
 	SoftReset                         string
 	MixedReset                        string
 	HardReset                         string
@@ -883,6 +886,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcDiscardAllChangesToAllFiles:       "nuke working tree",
 		LcDiscardAnyUnstagedChanges:         "discard unstaged changes",
 		LcDiscardUntrackedFiles:             "discard untracked files",
+		LcDiscardStagedChanges:              "discard staged changes",
 		LcHardReset:                         "hard reset",
 		LcViewResetOptions:                  `view reset options`,
 		LcCreateFixupCommit:                 `create fixup commit for this commit`,
@@ -1109,6 +1113,7 @@ func EnglishTranslationSet() TranslationSet {
 		CheckoutPrompt:                      "Are you sure you want to checkout '%s'?",
 		UpstreamGone:                        "(upstream gone)",
 		NukeDescription:                     "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
+		DiscardStagedChangesDescription:     "This will create a new stash entry containing only staged files and then drop it, so that the working tree is left with only unstaged changes",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
@@ -1193,6 +1198,7 @@ func EnglishTranslationSet() TranslationSet {
 			NukeWorkingTree:                   "Nuke working tree",
 			DiscardUnstagedFileChanges:        "Discard unstaged file changes",
 			RemoveUntrackedFiles:              "Remove untracked files",
+			RemoveStagedFiles:                 "Remove staged files",
 			SoftReset:                         "Soft reset",
 			MixedReset:                        "Mixed reset",
 			HardReset:                         "Hard reset",
