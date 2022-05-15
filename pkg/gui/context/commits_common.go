@@ -58,3 +58,7 @@ func getCommitDisplayStrings(
 		guiContextState.BisectInfo(),
 	)
 }
+
+func commitToString(commit *models.Commit) string {
+	return commit.Name
+}

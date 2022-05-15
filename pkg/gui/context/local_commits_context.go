@@ -127,7 +127,3 @@ func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 func cherryPickedCommitShaSet(state GuiContextState) *set.Set[string] {
 	return models.ToShaSet(state.Modes().CherryPicking.CherryPickedCommits)
 }
-
-func commitToString(commit *models.Commit) string {
-	return commit.Name
-}

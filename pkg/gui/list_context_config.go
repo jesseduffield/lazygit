@@ -124,17 +124,8 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 	return context.NewReflogCommitsContext(
 		func() []*models.Commit { return gui.State.Model.FilteredReflogCommits },
+		newGuiContextStateFetcher(gui, context.REFLOG_COMMITS_CONTEXT_KEY),
 		gui.Views.Commits,
-		func(startIdx int, length int) [][]string {
-			return presentation.GetReflogCommitListDisplayStrings(
-				gui.State.Model.FilteredReflogCommits,
-				gui.State.ScreenMode != types.SCREEN_NORMAL,
-				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
-				gui.State.Modes.Diffing.Ref,
-				gui.c.UserConfig.Gui.TimeFormat,
-				gui.c.UserConfig.Git.ParseEmoji,
-			)
-		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.reflogCommitsRenderToMain)),
 		nil,

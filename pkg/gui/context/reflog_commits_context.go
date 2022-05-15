@@ -3,20 +3,21 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type ReflogCommitsContext struct {
-	*BasicViewModel[*models.Commit]
+	*FilteredListViewModel[*models.Commit]
 	*ListContextTrait
 }
 
 var _ types.IListContext = (*ReflogCommitsContext)(nil)
 
 func NewReflogCommitsContext(
-	getModel func() []*models.Commit,
+	getItems func() []*models.Commit,
+	guiContextState GuiContextState,
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -24,10 +25,20 @@ func NewReflogCommitsContext(
 
 	c *types.HelperCommon,
 ) *ReflogCommitsContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewFilteredListViewModel(getItems, guiContextState.Needle, commitToString)
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetReflogCommitListDisplayStrings(
+			viewModel.getModel(),
+			guiContextState.ScreenMode() != types.SCREEN_NORMAL,
+			cherryPickedCommitShaSet(guiContextState),
+			guiContextState.Modes().Diffing.Ref,
+			c.UserConfig.Git.ParseEmoji,
+		)
+	}
 
 	return &ReflogCommitsContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "commits",
