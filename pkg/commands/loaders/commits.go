@@ -89,14 +89,12 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	}
 
 	err = self.getLogCmd(opts).RunAndProcessLines(func(line string) (bool, error) {
-		if canExtractCommit(line) {
-			commit := self.extractCommitFromLine(line)
-			if commit.Sha == firstPushedCommit {
-				passedFirstPushedCommit = true
-			}
-			commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
-			commits = append(commits, commit)
+		commit := self.extractCommitFromLine(line)
+		if commit.Sha == firstPushedCommit {
+			passedFirstPushedCommit = true
 		}
+		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
+		commits = append(commits, commit)
 		return false, nil
 	})
 	if err != nil {
@@ -214,7 +212,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	// I suspect that will cause some damage
 	cmdObj := self.cmd.New(
 		fmt.Sprintf(
-			"git show %s --no-patch --oneline %s --abbrev=%d",
+			"git -c log.showSignature=false show %s --no-patch --oneline %s --abbrev=%d",
 			strings.Join(commitShas, " "),
 			prettyFormat,
 			20,
@@ -224,14 +222,12 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	hydratedCommits := make([]*models.Commit, 0, len(commits))
 	i := 0
 	err = cmdObj.RunAndProcessLines(func(line string) (bool, error) {
-		if canExtractCommit(line) {
-			commit := self.extractCommitFromLine(line)
-			matchingCommit := commits[i]
-			commit.Action = matchingCommit.Action
-			commit.Status = matchingCommit.Status
-			hydratedCommits = append(hydratedCommits, commit)
-			i++
-		}
+		commit := self.extractCommitFromLine(line)
+		matchingCommit := commits[i]
+		commit.Action = matchingCommit.Action
+		commit.Status = matchingCommit.Status
+		hydratedCommits = append(hydratedCommits, commit)
+		i++
 		return false, nil
 	})
 	if err != nil {
@@ -435,7 +431,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 	return self.cmd.New(
 		fmt.Sprintf(
-			"git log %s %s %s --oneline %s%s --abbrev=%d%s",
+			"git -c log.showSignature=false log %s %s %s --oneline %s%s --abbrev=%d%s",
 			self.cmd.Quote(opts.RefName),
 			orderFlag,
 			allFlag,
@@ -458,7 +454,3 @@ var prettyFormat = fmt.Sprintf(
 )
 
 const NULL_CODE = "%x00"
-
-func canExtractCommit(line string) bool {
-	return line != "" && strings.Split(line, " ")[0] != "gpg:"
-}
