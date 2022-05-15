@@ -53,31 +53,32 @@ func (gui *Gui) filesRenderToMain() error {
 
 	gui.resetMergeStateWithLock()
 
-	cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges(), gui.IgnoreWhitespaceInDiffView)
-
 	mainContext := gui.State.Contexts.Normal
 	if node.File != nil {
 		mainContext = gui.State.Contexts.Staging
 	}
 
+	split := gui.c.UserConfig.Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
+	mainShowsStaged := !split && node.GetHasStagedChanges()
+
+	cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, gui.IgnoreWhitespaceInDiffView)
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
 		title:   gui.c.Tr.UnstagedChanges,
 		task:    NewRunPtyTask(cmdObj.GetCmd()),
 		context: mainContext,
 	}}
-
-	if node.GetHasUnstagedChanges() {
-		if node.GetHasStagedChanges() {
-			cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, true, gui.IgnoreWhitespaceInDiffView)
-
-			refreshOpts.secondary = &viewUpdateOpts{
-				title:   gui.c.Tr.StagedChanges,
-				task:    NewRunPtyTask(cmdObj.GetCmd()),
-				context: mainContext,
-			}
-		}
-	} else {
+	if mainShowsStaged {
 		refreshOpts.main.title = gui.c.Tr.StagedChanges
+	}
+
+	if split {
+		cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, true, gui.IgnoreWhitespaceInDiffView)
+
+		refreshOpts.secondary = &viewUpdateOpts{
+			title:   gui.c.Tr.StagedChanges,
+			task:    NewRunPtyTask(cmdObj.GetCmd()),
+			context: mainContext,
+		}
 	}
 
 	return gui.refreshMainViews(refreshOpts)
