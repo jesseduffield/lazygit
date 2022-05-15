@@ -1,11 +1,8 @@
 package gui
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -24,15 +21,22 @@ func (gui *Gui) menuListContext() *context.MenuContext {
 func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 	return context.NewWorkingTreeContext(
 		func() []*models.File { return gui.State.Model.Files },
+		newGuiContextStateFetcher(gui, context.FILES_CONTEXT_KEY),
 		gui.Views.Files,
-		func(startIdx int, length int) [][]string {
-			lines := presentation.RenderFileTree(gui.State.Contexts.Files.FileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.State.Model.Submodules)
-			return slices.Map(lines, func(line string) []string {
-				return []string{line}
-			})
-		},
 		OnFocusWrapper(gui.onFocusFile),
 		OnFocusWrapper(gui.withDiffModeCheck(gui.filesRenderToMain)),
+		nil,
+		gui.c,
+	)
+}
+
+func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
+	return context.NewCommitFilesContext(
+		func() []*models.CommitFile { return gui.State.Model.CommitFiles },
+		newGuiContextStateFetcher(gui, context.COMMIT_FILES_CONTEXT_KEY),
+		gui.Views.CommitFiles,
+		OnFocusWrapper(gui.onCommitFileFocus),
+		OnFocusWrapper(gui.withDiffModeCheck(gui.commitFilesRenderToMain)),
 		nil,
 		gui.c,
 	)
@@ -140,27 +144,6 @@ func (gui *Gui) stashListContext() *context.StashContext {
 		gui.Views.Stash,
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.stashRenderToMain)),
-		nil,
-		gui.c,
-	)
-}
-
-func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
-	return context.NewCommitFilesContext(
-		func() []*models.CommitFile { return gui.State.Model.CommitFiles },
-		gui.Views.CommitFiles,
-		func(startIdx int, length int) [][]string {
-			if gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.Len() == 0 {
-				return [][]string{{style.FgRed.Sprint("(none)")}}
-			}
-
-			lines := presentation.RenderCommitFileTree(gui.State.Contexts.CommitFiles.CommitFileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.git.Patch.PatchManager)
-			return slices.Map(lines, func(line string) []string {
-				return []string{line}
-			})
-		},
-		OnFocusWrapper(gui.onCommitFileFocus),
-		OnFocusWrapper(gui.withDiffModeCheck(gui.commitFilesRenderToMain)),
 		nil,
 		gui.c,
 	)

@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -11,6 +11,8 @@ import (
 type GuiContextState interface {
 	Modes() *modes.Modes
 
+	Model() *types.Model
+
 	// this is the search string when we're in filtering mode.
 	Needle() string
 
@@ -18,5 +20,5 @@ type GuiContextState interface {
 
 	IsFocused() bool
 
-	BisectInfo() *git_commands.BisectInfo
+	PatchManager() *patch.PatchManager
 }

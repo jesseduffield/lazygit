@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -45,6 +45,10 @@ func (self *guiContextStateFetcher) IsFocused() bool {
 	return self.gui.currentContext().GetKey() == self.contextKey
 }
 
-func (self *guiContextStateFetcher) BisectInfo() *git_commands.BisectInfo {
-	return self.gui.State.Model.BisectInfo
+func (self *guiContextStateFetcher) Model() *types.Model {
+	return self.gui.State.Model
+}
+
+func (self *guiContextStateFetcher) PatchManager() *patch.PatchManager {
+	return self.gui.git.Patch.PatchManager
 }

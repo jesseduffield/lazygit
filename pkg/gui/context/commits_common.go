@@ -55,7 +55,7 @@ func getCommitDisplayStrings(
 		startIdx,
 		length,
 		shouldShowGraph(guiContextState, userConfig),
-		guiContextState.BisectInfo(),
+		guiContextState.Model().BisectInfo,
 	)
 }
 

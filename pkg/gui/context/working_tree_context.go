@@ -1,9 +1,11 @@
 package context
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -16,8 +18,8 @@ var _ types.IListContext = (*WorkingTreeContext)(nil)
 
 func NewWorkingTreeContext(
 	getModel func() []*models.File,
+	guiContextState GuiContextState,
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -26,6 +28,13 @@ func NewWorkingTreeContext(
 	c *types.HelperCommon,
 ) *WorkingTreeContext {
 	viewModel := filetree.NewFileTreeViewModel(getModel, c.Log, c.UserConfig.Gui.ShowFileTree)
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		lines := presentation.RenderFileTree(viewModel, guiContextState.Modes().Diffing.Ref, guiContextState.Model().Submodules)
+		return slices.Map(lines, func(line string) []string {
+			return []string{line}
+		})
+	}
 
 	return &WorkingTreeContext{
 		FileTreeViewModel: viewModel,
