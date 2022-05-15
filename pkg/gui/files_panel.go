@@ -53,42 +53,31 @@ func (gui *Gui) filesRenderToMain() error {
 
 	gui.resetMergeStateWithLock()
 
-	cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, !node.GetHasUnstagedChanges() && node.GetHasStagedChanges(), gui.IgnoreWhitespaceInDiffView)
-
 	mainContext := gui.State.Contexts.Normal
 	if node.File != nil {
 		mainContext = gui.State.Contexts.Staging
 	}
 
+	split := gui.c.UserConfig.Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
+	mainShowsStaged := !split && node.GetHasStagedChanges()
+
+	cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, gui.IgnoreWhitespaceInDiffView)
 	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
 		title:   gui.c.Tr.UnstagedChanges,
 		task:    NewRunPtyTask(cmdObj.GetCmd()),
 		context: mainContext,
 	}}
+	if mainShowsStaged {
+		refreshOpts.main.title = gui.c.Tr.StagedChanges
+	}
 
-	if node.GetHasUnstagedChanges() {
-		if node.GetHasStagedChanges() || gui.c.UserConfig.Gui.SplitDiff == "always" {
-			cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, true, gui.IgnoreWhitespaceInDiffView)
+	if split {
+		cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, true, gui.IgnoreWhitespaceInDiffView)
 
-			refreshOpts.secondary = &viewUpdateOpts{
-				title:   gui.c.Tr.StagedChanges,
-				task:    NewRunPtyTask(cmdObj.GetCmd()),
-				context: mainContext,
-			}
-		}
-	} else {
-		if gui.c.UserConfig.Gui.SplitDiff == "auto" {
-			refreshOpts.main.title = gui.c.Tr.StagedChanges
-		} else {
-			cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, false, gui.IgnoreWhitespaceInDiffView)
-			refreshOpts.main.task = NewRunPtyTask(cmdObj.GetCmd())
-
-			cmdObj = gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, true, gui.IgnoreWhitespaceInDiffView)
-			refreshOpts.secondary = &viewUpdateOpts{
-				title:   gui.c.Tr.StagedChanges,
-				task:    NewRunPtyTask(cmdObj.GetCmd()),
-				context: mainContext,
-			}
+		refreshOpts.secondary = &viewUpdateOpts{
+			title:   gui.c.Tr.StagedChanges,
+			task:    NewRunPtyTask(cmdObj.GetCmd()),
+			context: mainContext,
 		}
 	}
 
