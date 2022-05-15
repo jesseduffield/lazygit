@@ -69,7 +69,7 @@ func (self *FilesController) createResetMenu() error {
 				self.c.Tr.LcDiscardStagedChanges,
 				red.Sprint("stash staged and drop stash"),
 			},
-			Tooltip: "This will create a new stash entry containing only staged files and then drop it.",
+			Tooltip: self.c.Tr.DiscardStagedChangesDescription,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RemoveStagedFiles)
 				if !self.helpers.WorkingTree.IsWorkingTreeDirty() {

@@ -492,6 +492,7 @@ type TranslationSet struct {
 	HardResetAutostashPrompt            string
 	UpstreamGone                        string
 	NukeDescription                     string
+	DiscardStagedChangesDescription     string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -1112,6 +1113,7 @@ func EnglishTranslationSet() TranslationSet {
 		CheckoutPrompt:                      "Are you sure you want to checkout '%s'?",
 		UpstreamGone:                        "(upstream gone)",
 		NukeDescription:                     "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
+		DiscardStagedChangesDescription:     "This will create a new stash entry containing only staged files and then drop it, so that the working tree is left with only unstaged changes",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
