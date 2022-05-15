@@ -3,20 +3,21 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type StashContext struct {
-	*BasicViewModel[*models.StashEntry]
+	*FilteredListViewModel[*models.StashEntry]
 	*ListContextTrait
 }
 
 var _ types.IListContext = (*StashContext)(nil)
 
 func NewStashContext(
-	getModel func() []*models.StashEntry,
+	getItems func() []*models.StashEntry,
+	guiContextState GuiContextState,
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -24,10 +25,16 @@ func NewStashContext(
 
 	c *types.HelperCommon,
 ) *StashContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewFilteredListViewModel(getItems, guiContextState.Needle, func(item *models.StashEntry) string {
+		return item.Name
+	})
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetStashEntryListDisplayStrings(viewModel.getModel(), guiContextState.Modes().Diffing.Ref)
+	}
 
 	return &StashContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "stash",

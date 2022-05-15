@@ -136,10 +136,8 @@ func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 func (gui *Gui) stashListContext() *context.StashContext {
 	return context.NewStashContext(
 		func() []*models.StashEntry { return gui.State.Model.StashEntries },
+		newGuiContextStateFetcher(gui, context.STASH_CONTEXT_KEY),
 		gui.Views.Stash,
-		func(startIdx int, length int) [][]string {
-			return presentation.GetStashEntryListDisplayStrings(gui.State.Model.StashEntries, gui.State.Modes.Diffing.Ref)
-		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.stashRenderToMain)),
 		nil,
