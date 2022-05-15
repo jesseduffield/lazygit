@@ -119,7 +119,7 @@ func (self *FileTree) GetIndexForPath(path string) (int, bool) {
 // be hidden files that aren't included here. Files off the screen however will
 // be included
 func (self *FileTree) GetAllItems() []*FileNode {
-	if self.Tree() == nil {
+	if self.tree() == nil {
 		return nil
 	}
 

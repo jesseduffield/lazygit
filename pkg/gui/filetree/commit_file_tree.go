@@ -16,7 +16,6 @@ type ICommitFileTree interface {
 
 type CommitFileTree struct {
 	getFiles       func() []*models.CommitFile
-	tree           *CommitFileNode
 	showTree       bool
 	log            *logrus.Entry
 	collapsedPaths *CollapsedPaths
@@ -43,24 +42,24 @@ func (self *CommitFileTree) ToggleShowTree() {
 
 func (self *CommitFileTree) Get(index int) *CommitFileNode {
 	// need to traverse the three depth first until we get to the index.
-	return self.tree.GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
+	return self.tree().GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
 }
 
 func (self *CommitFileTree) GetIndexForPath(path string) (int, bool) {
-	index, found := self.tree.GetIndexForPath(path, self.collapsedPaths)
+	index, found := self.tree().GetIndexForPath(path, self.collapsedPaths)
 	return index - 1, found
 }
 
 func (self *CommitFileTree) GetAllItems() []*CommitFileNode {
-	if self.tree == nil {
+	if self.tree() == nil {
 		return nil
 	}
 
-	return self.tree.Flatten(self.collapsedPaths)[1:] // ignoring root
+	return self.tree().Flatten(self.collapsedPaths)[1:] // ignoring root
 }
 
 func (self *CommitFileTree) Len() int {
-	return self.tree.Size(self.collapsedPaths) - 1 // ignoring root
+	return self.tree().Size(self.collapsedPaths) - 1 // ignoring root
 }
 
 func (self *CommitFileTree) GetAllFiles() []*models.CommitFile {
@@ -76,6 +75,10 @@ func (self *CommitFileTree) ToggleCollapsed(path string) {
 }
 
 func (self *CommitFileTree) Tree() INode {
+	return self.tree()
+}
+
+func (self *CommitFileTree) tree() *CommitFileNode {
 	if self.showTree {
 		return BuildTreeFromCommitFiles(self.getFiles())
 	} else {
