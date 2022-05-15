@@ -2,20 +2,21 @@ package context
 
 import (
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type SuggestionsContext struct {
-	*BasicViewModel[*types.Suggestion]
+	*FilteredListViewModel[*types.Suggestion]
 	*ListContextTrait
 }
 
 var _ types.IListContext = (*SuggestionsContext)(nil)
 
 func NewSuggestionsContext(
-	getModel func() []*types.Suggestion,
+	getItems func() []*types.Suggestion,
+	guiContextState GuiContextState,
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -23,10 +24,16 @@ func NewSuggestionsContext(
 
 	c *types.HelperCommon,
 ) *SuggestionsContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewFilteredListViewModel(getItems, guiContextState.Needle, func(item *types.Suggestion) string {
+		return item.Label
+	})
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetSuggestionListDisplayStrings(viewModel.getModel())
+	}
 
 	return &SuggestionsContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "suggestions",

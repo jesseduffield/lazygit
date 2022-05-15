@@ -18,6 +18,10 @@ import (
 
 func (gui *Gui) wrappedConfirmationFunction(handlersManageFocus bool, function func() error) func() error {
 	return func() error {
+		if gui.State.Modes.Searching.SearchingInContext(context.SUGGESTIONS_CONTEXT_KEY) {
+			return gui.exitSearch()
+		}
+
 		if err := gui.closeConfirmationPrompt(handlersManageFocus); err != nil {
 			return err
 		}
