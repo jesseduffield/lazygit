@@ -41,18 +41,6 @@ import (
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
-// screen sizing determines how much space your selected window takes up (window
-// as in panel, not your terminal's window). Sometimes you want a bit more space
-// to see the contents of a panel, and this keeps track of how much maximisation
-// you've set
-type WindowMaximisation int
-
-const (
-	SCREEN_NORMAL WindowMaximisation = iota
-	SCREEN_HALF
-	SCREEN_FULL
-)
-
 const StartupPopupVersion = 5
 
 // OverlappingEdges determines if panel edges overlap
@@ -196,7 +184,7 @@ type GuiRepoState struct {
 	// panel without committing or if our commit failed
 	savedCommitMessage string
 
-	ScreenMode WindowMaximisation
+	ScreenMode types.WindowMaximisation
 
 	CurrentPopupOpts *types.CreatePopupPanelOpts
 }

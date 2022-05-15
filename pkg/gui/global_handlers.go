@@ -25,7 +25,7 @@ func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
 }
 
 // TODO: GENERICS
-func nextIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
+func nextIntInCycle(sl []types.WindowMaximisation, current types.WindowMaximisation) types.WindowMaximisation {
 	for i, val := range sl {
 		if val == current {
 			if i == len(sl)-1 {
@@ -38,7 +38,7 @@ func nextIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowM
 }
 
 // TODO: GENERICS
-func prevIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
+func prevIntInCycle(sl []types.WindowMaximisation, current types.WindowMaximisation) types.WindowMaximisation {
 	for i, val := range sl {
 		if val == current {
 			if i > 0 {
@@ -51,13 +51,13 @@ func prevIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowM
 }
 
 func (gui *Gui) nextScreenMode() error {
-	gui.State.ScreenMode = nextIntInCycle([]WindowMaximisation{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
+	gui.State.ScreenMode = nextIntInCycle([]types.WindowMaximisation{types.SCREEN_NORMAL, types.SCREEN_HALF, types.SCREEN_FULL}, gui.State.ScreenMode)
 
 	return gui.rerenderViewsWithScreenModeDependentContent()
 }
 
 func (gui *Gui) prevScreenMode() error {
-	gui.State.ScreenMode = prevIntInCycle([]WindowMaximisation{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
+	gui.State.ScreenMode = prevIntInCycle([]types.WindowMaximisation{types.SCREEN_NORMAL, types.SCREEN_HALF, types.SCREEN_FULL}, gui.State.ScreenMode)
 
 	return gui.rerenderViewsWithScreenModeDependentContent()
 }

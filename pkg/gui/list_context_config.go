@@ -43,24 +43,9 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 }
 
 func (gui *Gui) branchesListContext() *context.BranchesContext {
-	getFilteredBranches := func() []*models.Branch {
-		list := gui.State.Model.Branches
-
-		if gui.State.Modes.Searching.SearchingInContext(context.LOCAL_BRANCHES_CONTEXT_KEY) {
-			return utils.FuzzySearchItems(gui.State.Modes.Searching.GetSearchString(), list, func(branch *models.Branch) string {
-				return branch.Name
-			})
-		} else {
-			return list
-		}
-	}
-
 	return context.NewBranchesContext(
-		getFilteredBranches,
+		newGuiContextStateFetcher(gui, context.LOCAL_BRANCHES_CONTEXT_KEY, func() []*models.Branch { return gui.State.Model.Branches }),
 		gui.Views.Branches,
-		func(startIdx int, length int) [][]string {
-			return presentation.GetBranchListDisplayStrings(getFilteredBranches(), gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref, gui.Tr)
-		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.branchesRenderToMain)),
 		nil,
@@ -146,7 +131,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 			}
 			return presentation.GetCommitListDisplayStrings(
 				getFilteredCommits(),
-				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.State.ScreenMode != types.SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Gui.TimeFormat,
@@ -179,7 +164,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 			}
 			return presentation.GetCommitListDisplayStrings(
 				gui.State.Model.SubCommits,
-				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.State.ScreenMode != types.SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Gui.TimeFormat,
@@ -218,7 +203,7 @@ func (gui *Gui) shouldShowGraph() bool {
 	case "never":
 		return false
 	case "when-maximised":
-		return gui.State.ScreenMode != SCREEN_NORMAL
+		return gui.State.ScreenMode != types.SCREEN_NORMAL
 	}
 
 	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
@@ -232,7 +217,7 @@ func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 		func(startIdx int, length int) [][]string {
 			return presentation.GetReflogCommitListDisplayStrings(
 				gui.State.Model.FilteredReflogCommits,
-				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.State.ScreenMode != types.SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Gui.TimeFormat,

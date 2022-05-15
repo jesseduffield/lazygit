@@ -3,20 +3,20 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type BranchesContext struct {
-	*BasicViewModel[*models.Branch]
+	*FilteredListViewModel[*models.Branch]
 	*ListContextTrait
 }
 
 var _ types.IListContext = (*BranchesContext)(nil)
 
 func NewBranchesContext(
-	getModel func() []*models.Branch,
+	guiContextState GuiContextState[*models.Branch],
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -24,10 +24,16 @@ func NewBranchesContext(
 
 	c *types.HelperCommon,
 ) *BranchesContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewFilteredListViewModel(guiContextState.Items, guiContextState.Needle, func(branch *models.Branch) string {
+		return branch.Name
+	})
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetBranchListDisplayStrings(viewModel.getModel(), guiContextState.ScreenMode() != types.SCREEN_NORMAL, guiContextState.Modes().Diffing.Ref, c.Tr)
+	}
 
 	return &BranchesContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "branches",

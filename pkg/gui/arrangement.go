@@ -96,7 +96,7 @@ func (gui *Gui) mainSectionChildren() []*boxlayout.Box {
 
 	// if we're not in split mode we can just show the one main panel. Likewise if
 	// the main panel is focused and we're in full-screen mode
-	if !gui.isMainPanelSplit() || (gui.State.ScreenMode == SCREEN_FULL && currentWindow == "main") {
+	if !gui.isMainPanelSplit() || (gui.State.ScreenMode == types.SCREEN_FULL && currentWindow == "main") {
 		return []*boxlayout.Box{
 			{
 				Window: "main",
@@ -138,13 +138,13 @@ func (gui *Gui) getMidSectionWeights() (int, int) {
 	}
 
 	if currentWindow == "main" {
-		if gui.State.ScreenMode == SCREEN_HALF || gui.State.ScreenMode == SCREEN_FULL {
+		if gui.State.ScreenMode == types.SCREEN_HALF || gui.State.ScreenMode == types.SCREEN_FULL {
 			sideSectionWeight = 0
 		}
 	} else {
-		if gui.State.ScreenMode == SCREEN_HALF {
+		if gui.State.ScreenMode == types.SCREEN_HALF {
 			mainSectionWeight = 1
-		} else if gui.State.ScreenMode == SCREEN_FULL {
+		} else if gui.State.ScreenMode == types.SCREEN_FULL {
 			mainSectionWeight = 0
 		}
 	}
@@ -262,7 +262,7 @@ func (gui *Gui) getDefaultStashWindowBox() *boxlayout.Box {
 func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 	currentWindow := gui.currentSideWindowName()
 
-	if gui.State.ScreenMode == SCREEN_FULL || gui.State.ScreenMode == SCREEN_HALF {
+	if gui.State.ScreenMode == types.SCREEN_FULL || gui.State.ScreenMode == types.SCREEN_HALF {
 		fullHeightBox := func(window string) *boxlayout.Box {
 			if window == currentWindow {
 				return &boxlayout.Box{
