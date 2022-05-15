@@ -17,7 +17,7 @@ type WorkingTreeContext struct {
 var _ types.IListContext = (*WorkingTreeContext)(nil)
 
 func NewWorkingTreeContext(
-	getModel func() []*models.File,
+	getItems func() []*models.File,
 	guiContextState GuiContextState,
 	view *gocui.View,
 
@@ -27,7 +27,13 @@ func NewWorkingTreeContext(
 
 	c *types.HelperCommon,
 ) *WorkingTreeContext {
-	viewModel := filetree.NewFileTreeViewModel(getModel, c.Log, c.UserConfig.Gui.ShowFileTree)
+	viewModel := filetree.NewFileTreeViewModel(
+		getFilteredModelFn(getItems, guiContextState.Needle, func(item *models.File) string {
+			return item.GetPath()
+		}),
+		c.Log,
+		c.UserConfig.Gui.ShowFileTree,
+	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
 		lines := presentation.RenderFileTree(viewModel, guiContextState.Modes().Diffing.Ref, guiContextState.Model().Submodules)

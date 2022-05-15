@@ -63,7 +63,6 @@ func (gui *Gui) refreshCommitFilesContext() error {
 		return gui.c.Error(err)
 	}
 	gui.State.Model.CommitFiles = files
-	gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.SetTree()
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.CommitFiles)
 }

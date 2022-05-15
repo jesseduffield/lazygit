@@ -75,8 +75,6 @@ func (self *FileTreeViewModel) SetTree() {
 	prevNodes := self.GetAllItems()
 	prevSelectedLineIdx := self.GetSelectedLineIdx()
 
-	self.IFileTree.SetTree()
-
 	if selectedNode != nil {
 		newNodes := self.GetAllItems()
 		newIdx := self.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], newNodes)

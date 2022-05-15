@@ -19,7 +19,7 @@ type CommitFilesContext struct {
 var _ types.IListContext = (*CommitFilesContext)(nil)
 
 func NewCommitFilesContext(
-	getModel func() []*models.CommitFile,
+	getItems func() []*models.CommitFile,
 	guiContextState GuiContextState,
 	view *gocui.View,
 
@@ -29,7 +29,13 @@ func NewCommitFilesContext(
 
 	c *types.HelperCommon,
 ) *CommitFilesContext {
-	viewModel := filetree.NewCommitFileTreeViewModel(getModel, c.Log, c.UserConfig.Gui.ShowFileTree)
+	viewModel := filetree.NewCommitFileTreeViewModel(
+		getFilteredModelFn(getItems, guiContextState.Needle, func(item *models.CommitFile) string {
+			return item.GetPath()
+		}),
+		c.Log,
+		c.UserConfig.Gui.ShowFileTree,
+	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
 		if viewModel.Len() == 0 {

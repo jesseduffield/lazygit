@@ -39,7 +39,6 @@ func (self *CommitFileTree) ExpandToPath(path string) {
 
 func (self *CommitFileTree) ToggleShowTree() {
 	self.showTree = !self.showTree
-	self.SetTree()
 }
 
 func (self *CommitFileTree) Get(index int) *CommitFileNode {
@@ -68,14 +67,6 @@ func (self *CommitFileTree) GetAllFiles() []*models.CommitFile {
 	return self.getFiles()
 }
 
-func (self *CommitFileTree) SetTree() {
-	if self.showTree {
-		self.tree = BuildTreeFromCommitFiles(self.getFiles())
-	} else {
-		self.tree = BuildFlatTreeFromCommitFiles(self.getFiles())
-	}
-}
-
 func (self *CommitFileTree) IsCollapsed(path string) bool {
 	return self.collapsedPaths.IsCollapsed(path)
 }
@@ -85,7 +76,11 @@ func (self *CommitFileTree) ToggleCollapsed(path string) {
 }
 
 func (self *CommitFileTree) Tree() INode {
-	return self.tree
+	if self.showTree {
+		return BuildTreeFromCommitFiles(self.getFiles())
+	} else {
+		return BuildFlatTreeFromCommitFiles(self.getFiles())
+	}
 }
 
 func (self *CommitFileTree) CollapsedPaths() *CollapsedPaths {

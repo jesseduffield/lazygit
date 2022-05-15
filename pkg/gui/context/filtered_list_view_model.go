@@ -11,7 +11,17 @@ func NewFilteredListViewModel[T any](
 	getNeedle func() string,
 	toString func(T) string,
 ) *FilteredListViewModel[T] {
-	getFilteredModel := func() []T {
+	return &FilteredListViewModel[T]{
+		BasicViewModel: NewBasicViewModel(getFilteredModelFn(getItems, getNeedle, toString)),
+	}
+}
+
+func getFilteredModelFn[T any](
+	getItems func() []T,
+	getNeedle func() string,
+	toString func(T) string,
+) func() []T {
+	return func() []T {
 		needle := getNeedle()
 		items := getItems()
 		if needle == "" {
@@ -19,9 +29,5 @@ func NewFilteredListViewModel[T any](
 		}
 
 		return utils.FuzzySearchItems(needle, items, toString)
-	}
-
-	return &FilteredListViewModel[T]{
-		BasicViewModel: NewBasicViewModel(getFilteredModel),
 	}
 }

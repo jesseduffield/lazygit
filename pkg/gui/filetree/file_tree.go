@@ -24,7 +24,6 @@ type ITree interface {
 	ToggleShowTree()
 	GetIndexForPath(path string) (int, bool)
 	Len() int
-	SetTree()
 	IsCollapsed(path string) bool
 	ToggleCollapsed(path string)
 	Tree() INode
@@ -45,7 +44,6 @@ type IFileTree interface {
 
 type FileTree struct {
 	getFiles       func() []*models.File
-	tree           *FileNode
 	showTree       bool
 	log            *logrus.Entry
 	filter         FileTreeDisplayFilter
@@ -91,17 +89,15 @@ func (self *FileTree) FilterFiles(test func(*models.File) bool) []*models.File {
 
 func (self *FileTree) SetFilter(filter FileTreeDisplayFilter) {
 	self.filter = filter
-	self.SetTree()
 }
 
 func (self *FileTree) ToggleShowTree() {
 	self.showTree = !self.showTree
-	self.SetTree()
 }
 
 func (self *FileTree) Get(index int) *FileNode {
 	// need to traverse the three depth first until we get to the index.
-	return self.tree.GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
+	return self.tree().GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
 }
 
 func (self *FileTree) GetFile(path string) *models.File {
@@ -115,7 +111,7 @@ func (self *FileTree) GetFile(path string) *models.File {
 }
 
 func (self *FileTree) GetIndexForPath(path string) (int, bool) {
-	index, found := self.tree.GetIndexForPath(path, self.collapsedPaths)
+	index, found := self.tree().GetIndexForPath(path, self.collapsedPaths)
 	return index - 1, found
 }
 
@@ -123,28 +119,19 @@ func (self *FileTree) GetIndexForPath(path string) (int, bool) {
 // be hidden files that aren't included here. Files off the screen however will
 // be included
 func (self *FileTree) GetAllItems() []*FileNode {
-	if self.tree == nil {
+	if self.Tree() == nil {
 		return nil
 	}
 
-	return self.tree.Flatten(self.collapsedPaths)[1:] // ignoring root
+	return self.tree().Flatten(self.collapsedPaths)[1:] // ignoring root
 }
 
 func (self *FileTree) Len() int {
-	return self.tree.Size(self.collapsedPaths) - 1 // ignoring root
+	return self.tree().Size(self.collapsedPaths) - 1 // ignoring root
 }
 
 func (self *FileTree) GetAllFiles() []*models.File {
 	return self.getFiles()
-}
-
-func (self *FileTree) SetTree() {
-	filesForDisplay := self.getFilesForDisplay()
-	if self.showTree {
-		self.tree = BuildTreeFromFiles(filesForDisplay)
-	} else {
-		self.tree = BuildFlatTreeFromFiles(filesForDisplay)
-	}
 }
 
 func (self *FileTree) IsCollapsed(path string) bool {
@@ -156,7 +143,16 @@ func (self *FileTree) ToggleCollapsed(path string) {
 }
 
 func (self *FileTree) Tree() INode {
-	return self.tree
+	return self.tree()
+}
+
+func (self *FileTree) tree() *FileNode {
+	filesForDisplay := self.getFilesForDisplay()
+	if self.showTree {
+		return BuildTreeFromFiles(filesForDisplay)
+	} else {
+		return BuildFlatTreeFromFiles(filesForDisplay)
+	}
 }
 
 func (self *FileTree) CollapsedPaths() *CollapsedPaths {
