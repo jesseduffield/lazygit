@@ -3,20 +3,21 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type SubmodulesContext struct {
-	*BasicViewModel[*models.SubmoduleConfig]
+	*FilteredListViewModel[*models.SubmoduleConfig]
 	*ListContextTrait
 }
 
 var _ types.IListContext = (*SubmodulesContext)(nil)
 
 func NewSubmodulesContext(
-	getModel func() []*models.SubmoduleConfig,
+	getItems func() []*models.SubmoduleConfig,
+	guiContextState GuiContextState,
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -24,10 +25,16 @@ func NewSubmodulesContext(
 
 	c *types.HelperCommon,
 ) *SubmodulesContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewFilteredListViewModel(getItems, guiContextState.Needle, func(item *models.SubmoduleConfig) string {
+		return item.Name
+	})
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetSubmoduleListDisplayStrings(viewModel.getModel())
+	}
 
 	return &SubmodulesContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "files",

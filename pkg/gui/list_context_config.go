@@ -169,10 +169,8 @@ func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 func (gui *Gui) submodulesListContext() *context.SubmodulesContext {
 	return context.NewSubmodulesContext(
 		func() []*models.SubmoduleConfig { return gui.State.Model.Submodules },
+		newGuiContextStateFetcher(gui, context.SUBMODULES_CONTEXT_KEY),
 		gui.Views.Files,
-		func(startIdx int, length int) [][]string {
-			return presentation.GetSubmoduleListDisplayStrings(gui.State.Model.Submodules)
-		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.submodulesRenderToMain)),
 		nil,
