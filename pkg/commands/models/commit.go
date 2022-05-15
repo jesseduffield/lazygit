@@ -29,6 +29,10 @@ func (c *Commit) ShortSha() string {
 	return utils.ShortSha(c.Sha)
 }
 
+func (c *Commit) FullRefName() string {
+	return c.Sha
+}
+
 func (c *Commit) RefName() string {
 	return c.Sha
 }

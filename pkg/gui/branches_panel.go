@@ -6,7 +6,7 @@ func (gui *Gui) branchesRenderToMain() error {
 	if branch == nil {
 		task = NewRenderStringTask(gui.c.Tr.NoBranchesThisRepo)
 	} else {
-		cmdObj := gui.git.Branch.GetGraphCmdObj(branch.Name)
+		cmdObj := gui.git.Branch.GetGraphCmdObj(branch.FullRefName())
 
 		task = NewRunPtyTask(cmdObj.GetCmd())
 	}
