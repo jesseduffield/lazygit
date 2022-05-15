@@ -1,16 +1,12 @@
 package gui
 
 import (
-	"log"
-
 	"github.com/jesseduffield/generics/slices"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/samber/lo"
 )
 
 func (gui *Gui) menuListContext() *context.MenuContext {
@@ -116,61 +112,13 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 	return context.NewSubCommitsContext(
 		func() []*models.Commit { return gui.State.Model.SubCommits },
+		newGuiContextStateFetcher(gui, context.SUB_COMMITS_CONTEXT_KEY),
 		gui.Views.SubCommits,
-		func(startIdx int, length int) [][]string {
-			selectedCommitSha := ""
-			if gui.currentContext().GetKey() == context.SUB_COMMITS_CONTEXT_KEY {
-				selectedCommit := gui.State.Contexts.SubCommits.GetSelected()
-				if selectedCommit != nil {
-					selectedCommitSha = selectedCommit.Sha
-				}
-			}
-			return presentation.GetCommitListDisplayStrings(
-				gui.State.Model.SubCommits,
-				gui.State.ScreenMode != types.SCREEN_NORMAL,
-				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
-				gui.State.Modes.Diffing.Ref,
-				gui.c.UserConfig.Gui.TimeFormat,
-				gui.c.UserConfig.Git.ParseEmoji,
-				selectedCommitSha,
-				startIdx,
-				length,
-				gui.shouldShowGraph(),
-				git_commands.NewNullBisectInfo(),
-			)
-		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.subCommitsRenderToMain)),
 		nil,
 		gui.c,
 	)
-}
-
-func (gui *Gui) shouldShowGraph() bool {
-	if gui.State.Modes.Filtering.Active() {
-		return false
-	}
-
-	contextKeysWithGraph := []types.ContextKey{context.LOCAL_COMMITS_CONTEXT_KEY, context.SUB_COMMITS_CONTEXT_KEY}
-
-	if lo.ContainsBy(contextKeysWithGraph, func(key types.ContextKey) bool {
-		return gui.State.Modes.Searching.SearchingInContext(key)
-	}) {
-		return false
-	}
-
-	value := gui.c.UserConfig.Git.Log.ShowGraph
-	switch value {
-	case "always":
-		return true
-	case "never":
-		return false
-	case "when-maximised":
-		return gui.State.ScreenMode != types.SCREEN_NORMAL
-	}
-
-	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
-	return false
 }
 
 func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {

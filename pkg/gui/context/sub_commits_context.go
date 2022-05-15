@@ -18,9 +18,9 @@ type SubCommitsContext struct {
 var _ types.IListContext = (*SubCommitsContext)(nil)
 
 func NewSubCommitsContext(
-	getModel func() []*models.Commit,
+	getItems func() []*models.Commit,
+	guiContextState GuiContextState,
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -29,8 +29,21 @@ func NewSubCommitsContext(
 	c *types.HelperCommon,
 ) *SubCommitsContext {
 	viewModel := &SubCommitsViewModel{
-		BasicViewModel: NewBasicViewModel(getModel),
-		refName:        "",
+		FilteredListViewModel: NewFilteredListViewModel(getItems, guiContextState.Needle, func(item *models.Commit) string {
+			return item.Name
+		}),
+		refName: "",
+	}
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return getCommitDisplayStrings(
+			viewModel.GetSelected(),
+			viewModel.getModel(),
+			guiContextState,
+			c.UserConfig,
+			startIdx,
+			length,
+		)
 	}
 
 	return &SubCommitsContext{
@@ -62,7 +75,7 @@ func NewSubCommitsContext(
 type SubCommitsViewModel struct {
 	// name of the ref that the sub-commits are shown for
 	refName string
-	*BasicViewModel[*models.Commit]
+	*FilteredListViewModel[*models.Commit]
 }
 
 func (self *SubCommitsViewModel) SetRefName(refName string) {
