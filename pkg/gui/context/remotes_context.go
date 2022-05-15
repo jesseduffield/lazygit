@@ -3,20 +3,21 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type RemotesContext struct {
-	*BasicViewModel[*models.Remote]
+	*FilteredListViewModel[*models.Remote]
 	*ListContextTrait
 }
 
 var _ types.IListContext = (*RemotesContext)(nil)
 
 func NewRemotesContext(
-	getModel func() []*models.Remote,
+	getItems func() []*models.Remote,
+	guiContextState GuiContextState,
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -24,10 +25,16 @@ func NewRemotesContext(
 
 	c *types.HelperCommon,
 ) *RemotesContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewFilteredListViewModel(getItems, guiContextState.Needle, func(item *models.Remote) string {
+		return item.Name
+	})
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetRemoteListDisplayStrings(viewModel.getModel(), guiContextState.Modes().Diffing.Ref)
+	}
 
 	return &RemotesContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "branches",

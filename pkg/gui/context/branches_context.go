@@ -25,8 +25,8 @@ func NewBranchesContext(
 
 	c *types.HelperCommon,
 ) *BranchesContext {
-	viewModel := NewFilteredListViewModel(getItems, guiContextState.Needle, func(branch *models.Branch) string {
-		return branch.Name
+	viewModel := NewFilteredListViewModel(getItems, guiContextState.Needle, func(item *models.Branch) string {
+		return item.Name
 	})
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {

@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -42,4 +43,8 @@ func (self *guiContextStateFetcher) ScreenMode() types.WindowMaximisation {
 
 func (self *guiContextStateFetcher) IsFocused() bool {
 	return self.gui.currentContext().GetKey() == self.contextKey
+}
+
+func (self *guiContextStateFetcher) BisectInfo() *git_commands.BisectInfo {
+	return self.gui.State.Model.BisectInfo
 }

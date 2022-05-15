@@ -1,8 +1,10 @@
 package context
 
 import (
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -15,8 +17,8 @@ var _ types.IListContext = (*LocalCommitsContext)(nil)
 
 func NewLocalCommitsContext(
 	getModel func() []*models.Commit,
+	guiContextState GuiContextState,
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -24,7 +26,30 @@ func NewLocalCommitsContext(
 
 	c *types.HelperCommon,
 ) *LocalCommitsContext {
-	viewModel := NewLocalCommitsViewModel(getModel, c)
+	viewModel := NewLocalCommitsViewModel(getModel, c, guiContextState.Needle)
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		selectedCommitSha := ""
+		if guiContextState.IsFocused() {
+			selectedCommit := viewModel.GetSelected()
+			if selectedCommit != nil {
+				selectedCommitSha = selectedCommit.Sha
+			}
+		}
+		return presentation.GetCommitListDisplayStrings(
+			viewModel.getModel(),
+			guiContextState.ScreenMode() != types.SCREEN_NORMAL,
+			cherryPickedCommitShaSet(guiContextState),
+			guiContextState.Modes().Diffing.Ref,
+			c.UserConfig.Gui.TimeFormat,
+			c.UserConfig.Git.ParseEmoji,
+			selectedCommitSha,
+			startIdx,
+			length,
+			shouldShowGraph(guiContextState, c.UserConfig),
+			guiContextState.BisectInfo(),
+		)
+	}
 
 	return &LocalCommitsContext{
 		LocalCommitsViewModel: viewModel,
@@ -60,7 +85,7 @@ func (self *LocalCommitsContext) GetSelectedItemId() string {
 }
 
 type LocalCommitsViewModel struct {
-	*BasicViewModel[*models.Commit]
+	*FilteredListViewModel[*models.Commit]
 
 	// If this is true we limit the amount of commits we load, for the sake of keeping things fast.
 	// If the user attempts to scroll past the end of the list, we will load more commits.
@@ -70,11 +95,16 @@ type LocalCommitsViewModel struct {
 	showWholeGitGraph bool
 }
 
-func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *types.HelperCommon) *LocalCommitsViewModel {
+func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *types.HelperCommon, getNeedle func() string) *LocalCommitsViewModel {
+	toString := func(commit *models.Commit) string {
+		// TODO: include more stuff
+		return commit.Name
+	}
+
 	self := &LocalCommitsViewModel{
-		BasicViewModel:    NewBasicViewModel(getModel),
-		limitCommits:      true,
-		showWholeGitGraph: c.UserConfig.Git.Log.ShowWholeGraph,
+		FilteredListViewModel: NewFilteredListViewModel(getModel, getNeedle, toString),
+		limitCommits:          true,
+		showWholeGitGraph:     c.UserConfig.Git.Log.ShowWholeGraph,
 	}
 
 	return self
@@ -110,4 +140,8 @@ func (self *LocalCommitsViewModel) GetShowWholeGitGraph() bool {
 
 func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 	return self.getModel()
+}
+
+func cherryPickedCommitShaSet(state GuiContextState) *set.Set[string] {
+	return models.ToShaSet(state.Modes().CherryPicking.CherryPickedCommits)
 }

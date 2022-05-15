@@ -3,20 +3,21 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type TagsContext struct {
-	*BasicViewModel[*models.Tag]
+	*FilteredListViewModel[*models.Tag]
 	*ListContextTrait
 }
 
 var _ types.IListContext = (*TagsContext)(nil)
 
 func NewTagsContext(
-	getModel func() []*models.Tag,
+	getItems func() []*models.Tag,
+	guiContextState GuiContextState,
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -24,10 +25,16 @@ func NewTagsContext(
 
 	c *types.HelperCommon,
 ) *TagsContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewFilteredListViewModel(getItems, guiContextState.Needle, func(item *models.Tag) string {
+		return item.Name
+	})
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetTagListDisplayStrings(viewModel.getModel(), guiContextState.Modes().Diffing.Ref)
+	}
 
 	return &TagsContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "branches",

@@ -3,11 +3,12 @@ package context
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type RemoteBranchesContext struct {
-	*BasicViewModel[*models.RemoteBranch]
+	*FilteredListViewModel[*models.RemoteBranch]
 	*ListContextTrait
 	*DynamicTitleBuilder
 }
@@ -15,9 +16,9 @@ type RemoteBranchesContext struct {
 var _ types.IListContext = (*RemoteBranchesContext)(nil)
 
 func NewRemoteBranchesContext(
-	getModel func() []*models.RemoteBranch,
+	getItems func() []*models.RemoteBranch,
+	guiContextState GuiContextState,
 	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	onFocus func(...types.OnFocusOpts) error,
 	onRenderToMain func(...types.OnFocusOpts) error,
@@ -25,11 +26,17 @@ func NewRemoteBranchesContext(
 
 	c *types.HelperCommon,
 ) *RemoteBranchesContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewFilteredListViewModel(getItems, guiContextState.Needle, func(item *models.RemoteBranch) string {
+		return item.FullName()
+	})
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetRemoteBranchListDisplayStrings(viewModel.getModel(), guiContextState.Modes().Diffing.Ref)
+	}
 
 	return &RemoteBranchesContext{
-		BasicViewModel:      viewModel,
-		DynamicTitleBuilder: NewDynamicTitleBuilder(c.Tr.RemoteBranchesDynamicTitle),
+		FilteredListViewModel: viewModel,
+		DynamicTitleBuilder:   NewDynamicTitleBuilder(c.Tr.RemoteBranchesDynamicTitle),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:   "remoteBranches",

@@ -108,10 +108,7 @@ func (self *CherryPickHelper) Reset() error {
 }
 
 func (self *CherryPickHelper) CherryPickedCommitShaSet() *set.Set[string] {
-	shas := slices.Map(self.getData().CherryPickedCommits, func(commit *models.Commit) string {
-		return commit.Sha
-	})
-	return set.NewFromSlice(shas)
+	return models.ToShaSet(self.getData().CherryPickedCommits)
 }
 
 func (self *CherryPickHelper) add(selectedCommit *models.Commit, commitsList []*models.Commit) {

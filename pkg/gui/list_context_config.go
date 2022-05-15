@@ -10,7 +10,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -58,10 +57,8 @@ func (gui *Gui) branchesListContext() *context.BranchesContext {
 func (gui *Gui) remotesListContext() *context.RemotesContext {
 	return context.NewRemotesContext(
 		func() []*models.Remote { return gui.State.Model.Remotes },
+		newGuiContextStateFetcher(gui, context.REMOTES_CONTEXT_KEY),
 		gui.Views.Branches,
-		func(startIdx int, length int) [][]string {
-			return presentation.GetRemoteListDisplayStrings(gui.State.Model.Remotes, gui.State.Modes.Diffing.Ref)
-		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.remotesRenderToMain)),
 		nil,
@@ -72,10 +69,8 @@ func (gui *Gui) remotesListContext() *context.RemotesContext {
 func (gui *Gui) remoteBranchesListContext() *context.RemoteBranchesContext {
 	return context.NewRemoteBranchesContext(
 		func() []*models.RemoteBranch { return gui.State.Model.RemoteBranches },
+		newGuiContextStateFetcher(gui, context.REMOTE_BRANCHES_CONTEXT_KEY),
 		gui.Views.RemoteBranches,
-		func(startIdx int, length int) [][]string {
-			return presentation.GetRemoteBranchListDisplayStrings(gui.State.Model.RemoteBranches, gui.State.Modes.Diffing.Ref)
-		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.remoteBranchesRenderToMain)),
 		nil,
@@ -96,10 +91,8 @@ func (gui *Gui) withDiffModeCheck(f func() error) func() error {
 func (gui *Gui) tagsListContext() *context.TagsContext {
 	return context.NewTagsContext(
 		func() []*models.Tag { return gui.State.Model.Tags },
+		newGuiContextStateFetcher(gui, context.TAGS_CONTEXT_KEY),
 		gui.Views.Branches,
-		func(startIdx int, length int) [][]string {
-			return presentation.GetTagListDisplayStrings(gui.State.Model.Tags, gui.State.Modes.Diffing.Ref)
-		},
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.tagsRenderToMain)),
 		nil,
@@ -108,43 +101,11 @@ func (gui *Gui) tagsListContext() *context.TagsContext {
 }
 
 func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
-	getFilteredCommits := func() []*models.Commit {
-		list := gui.State.Model.Commits
-
-		if gui.State.Modes.Searching.SearchingInContext(context.LOCAL_COMMITS_CONTEXT_KEY) {
-			return utils.FuzzySearchItems(gui.State.Modes.Searching.GetSearchString(), list, func(commit *models.Commit) string {
-				return commit.Name
-			})
-		} else {
-			return list
-		}
-	}
-
 	return context.NewLocalCommitsContext(
-		getFilteredCommits,
+		// TODO: standardise naming for branch commits vs local commits
+		func() []*models.Commit { return gui.State.Model.Commits },
+		newGuiContextStateFetcher(gui, context.LOCAL_COMMITS_CONTEXT_KEY),
 		gui.Views.Commits,
-		func(startIdx int, length int) [][]string {
-			selectedCommitSha := ""
-			if gui.currentContext().GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
-				selectedCommit := gui.State.Contexts.LocalCommits.GetSelected()
-				if selectedCommit != nil {
-					selectedCommitSha = selectedCommit.Sha
-				}
-			}
-			return presentation.GetCommitListDisplayStrings(
-				getFilteredCommits(),
-				gui.State.ScreenMode != types.SCREEN_NORMAL,
-				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
-				gui.State.Modes.Diffing.Ref,
-				gui.c.UserConfig.Gui.TimeFormat,
-				gui.c.UserConfig.Git.ParseEmoji,
-				selectedCommitSha,
-				startIdx,
-				length,
-				gui.shouldShowGraph(),
-				gui.State.Model.BisectInfo,
-			)
-		},
 		OnFocusWrapper(gui.onCommitFocus),
 		OnFocusWrapper(gui.withDiffModeCheck(gui.branchCommitsRenderToMain)),
 		nil,

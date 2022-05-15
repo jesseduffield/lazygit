@@ -3,6 +3,8 @@ package models
 import (
 	"fmt"
 
+	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -64,4 +66,11 @@ func (c *Commit) IsMerge() bool {
 // is from a TODO file for an interactive rebase.
 func (c *Commit) IsTODO() bool {
 	return c.Action != ""
+}
+
+func ToShaSet(commits []*Commit) *set.Set[string] {
+	shas := slices.Map(commits, func(commit *Commit) string {
+		return commit.Sha
+	})
+	return set.NewFromSlice(shas)
 }

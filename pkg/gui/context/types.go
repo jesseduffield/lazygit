@@ -1,6 +1,7 @@
 package context
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -16,4 +17,6 @@ type GuiContextState interface {
 	ScreenMode() types.WindowMaximisation
 
 	IsFocused() bool
+
+	BisectInfo() *git_commands.BisectInfo
 }
