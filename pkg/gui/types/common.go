@@ -36,7 +36,8 @@ type IGuiCommon interface {
 	PopContext() error
 	CurrentContext() Context
 	// enters search mode for the current view
-	OpenSearch()
+	OpenSearch() error
+	ExitSearch() error
 
 	GetAppState() *config.AppState
 	SaveAppState() error

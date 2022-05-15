@@ -579,9 +579,7 @@ func (self *LocalCommitsController) openSearch() error {
 		}
 	}
 
-	self.c.OpenSearch()
-
-	return nil
+	return self.c.OpenSearch()
 }
 
 func (self *LocalCommitsController) gotoBottom() error {

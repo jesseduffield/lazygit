@@ -1,6 +1,8 @@
 package context
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
@@ -9,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
+// TODO: don't resize after filtering
 type MenuContext struct {
 	*MenuViewModel
 	*ListContextTrait
@@ -17,13 +20,14 @@ type MenuContext struct {
 var _ types.IListContext = (*MenuContext)(nil)
 
 func NewMenuContext(
+	guiContextState GuiContextState,
 	view *gocui.View,
 
 	c *types.HelperCommon,
 	getOptionsMap func() map[string]string,
 	renderToDescriptionView func(string),
 ) *MenuContext {
-	viewModel := NewMenuViewModel()
+	viewModel := NewMenuViewModel(guiContextState)
 
 	onFocus := func(...types.OnFocusOpts) error {
 		selectedMenuItem := viewModel.GetSelected()
@@ -62,16 +66,30 @@ func (self *MenuContext) GetSelectedItemId() string {
 }
 
 type MenuViewModel struct {
+	// note: when we are talking about our filtered items we should use self.getModel()
 	menuItems []*types.MenuItem
-	*BasicViewModel[*types.MenuItem]
+	*FilteredListViewModel[*types.MenuItem]
+
+	guiContextState GuiContextState
 }
 
-func NewMenuViewModel() *MenuViewModel {
+func NewMenuViewModel(guiContextState GuiContextState) *MenuViewModel {
 	self := &MenuViewModel{
-		menuItems: nil,
+		menuItems:       nil,
+		guiContextState: guiContextState,
 	}
 
-	self.BasicViewModel = NewBasicViewModel(func() []*types.MenuItem { return self.menuItems })
+	self.FilteredListViewModel = NewFilteredListViewModel(
+		func() []*types.MenuItem { return self.menuItems },
+		self.guiContextState.Needle,
+		func(item *types.MenuItem) string {
+			if item.Label != "" {
+				return item.Label
+			} else {
+				return strings.Join(item.LabelColumns, " ")
+			}
+		},
+	)
 
 	return self
 }
@@ -82,11 +100,11 @@ func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem) {
 
 // TODO: move into presentation package
 func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]string {
-	showKeys := slices.Some(self.menuItems, func(item *types.MenuItem) bool {
+	showKeys := slices.Some(self.getModel(), func(item *types.MenuItem) bool {
 		return item.Key != nil
 	})
 
-	return slices.Map(self.menuItems, func(item *types.MenuItem) []string {
+	return slices.Map(self.getModel(), func(item *types.MenuItem) []string {
 		displayStrings := getItemDisplayStrings(item)
 		if showKeys {
 			displayStrings = slices.Prepend(displayStrings, style.FgCyan.Sprint(keybindings.GetKeyDisplay(item.Key)))

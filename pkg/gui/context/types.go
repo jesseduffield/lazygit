@@ -7,9 +7,8 @@ import (
 
 // GuiContextState is for obtaining info about the gui's state as well as
 // state related to the given context
-type GuiContextState[T any] interface {
+type GuiContextState interface {
 	Modes() *modes.Modes
-	Items() []T
 
 	// this is the search string when we're in filtering mode.
 	Needle() string

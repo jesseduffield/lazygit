@@ -166,7 +166,7 @@ func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollRight), Handler: self.HandleScrollRight},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
-			Handler:     func() error { self.c.OpenSearch(); return nil },
+			Handler:     self.c.OpenSearch,
 			Description: self.c.Tr.LcStartSearch,
 			Tag:         "navigation",
 		},

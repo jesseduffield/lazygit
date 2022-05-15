@@ -93,6 +93,10 @@ func (self *RemoteBranchesController) checkSelected(callback func(*models.Remote
 }
 
 func (self *RemoteBranchesController) escape() error {
+	if self.modes.Searching.Active() {
+		return self.c.ExitSearch()
+	}
+
 	return self.c.PushContext(self.contexts.Remotes)
 }
 

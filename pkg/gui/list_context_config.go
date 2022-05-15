@@ -16,6 +16,7 @@ import (
 
 func (gui *Gui) menuListContext() *context.MenuContext {
 	return context.NewMenuContext(
+		newGuiContextStateFetcher(gui, context.MENU_CONTEXT_KEY),
 		gui.Views.Menu,
 		gui.c,
 		gui.getMenuOptions,
@@ -44,7 +45,8 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 
 func (gui *Gui) branchesListContext() *context.BranchesContext {
 	return context.NewBranchesContext(
-		newGuiContextStateFetcher(gui, context.LOCAL_BRANCHES_CONTEXT_KEY, func() []*models.Branch { return gui.State.Model.Branches }),
+		func() []*models.Branch { return gui.State.Model.Branches },
+		newGuiContextStateFetcher(gui, context.LOCAL_BRANCHES_CONTEXT_KEY),
 		gui.Views.Branches,
 		nil,
 		OnFocusWrapper(gui.withDiffModeCheck(gui.branchesRenderToMain)),

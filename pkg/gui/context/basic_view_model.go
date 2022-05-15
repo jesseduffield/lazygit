@@ -4,6 +4,7 @@ import "github.com/jesseduffield/lazygit/pkg/gui/context/traits"
 
 type BasicViewModel[T any] struct {
 	*traits.ListCursor
+	// TODO: rethink name
 	getModel func() []T
 }
 

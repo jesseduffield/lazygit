@@ -7,35 +7,28 @@ import (
 )
 
 // TODO: better name
-type guiContextStateFetcher[T any] struct {
+type guiContextStateFetcher struct {
 	gui        *Gui
 	contextKey types.ContextKey
-	getItems   func() []T
 }
 
-var _ context.GuiContextState[any] = &guiContextStateFetcher[any]{}
+var _ context.GuiContextState = &guiContextStateFetcher{}
 
-func newGuiContextStateFetcher[T any](
+func newGuiContextStateFetcher(
 	gui *Gui,
 	contextKey types.ContextKey,
-	getItems func() []T,
-) *guiContextStateFetcher[T] {
-	return &guiContextStateFetcher[T]{
+) *guiContextStateFetcher {
+	return &guiContextStateFetcher{
 		gui:        gui,
 		contextKey: contextKey,
-		getItems:   getItems,
 	}
 }
 
-func (self *guiContextStateFetcher[T]) Modes() *modes.Modes {
+func (self *guiContextStateFetcher) Modes() *modes.Modes {
 	return self.gui.State.Modes
 }
 
-func (self *guiContextStateFetcher[T]) Items() []T {
-	return self.getItems()
-}
-
-func (self *guiContextStateFetcher[T]) Needle() string {
+func (self *guiContextStateFetcher) Needle() string {
 	if self.Modes().Searching.SearchingInContext(self.contextKey) {
 		return self.Modes().Searching.GetSearchString()
 	}
@@ -43,10 +36,10 @@ func (self *guiContextStateFetcher[T]) Needle() string {
 	return ""
 }
 
-func (self *guiContextStateFetcher[T]) ScreenMode() types.WindowMaximisation {
+func (self *guiContextStateFetcher) ScreenMode() types.WindowMaximisation {
 	return self.gui.State.ScreenMode
 }
 
-func (self *guiContextStateFetcher[T]) IsFocused() bool {
+func (self *guiContextStateFetcher) IsFocused() bool {
 	return self.gui.currentContext().GetKey() == self.contextKey
 }

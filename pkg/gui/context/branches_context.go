@@ -15,7 +15,8 @@ type BranchesContext struct {
 var _ types.IListContext = (*BranchesContext)(nil)
 
 func NewBranchesContext(
-	guiContextState GuiContextState[*models.Branch],
+	getItems func() []*models.Branch,
+	guiContextState GuiContextState,
 	view *gocui.View,
 
 	onFocus func(...types.OnFocusOpts) error,
@@ -24,7 +25,7 @@ func NewBranchesContext(
 
 	c *types.HelperCommon,
 ) *BranchesContext {
-	viewModel := NewFilteredListViewModel(guiContextState.Items, guiContextState.Needle, func(branch *models.Branch) string {
+	viewModel := NewFilteredListViewModel(getItems, guiContextState.Needle, func(branch *models.Branch) string {
 		return branch.Name
 	})
 

@@ -53,6 +53,10 @@ func (self *MenuController) press() error {
 }
 
 func (self *MenuController) close() error {
+	if self.modes.Searching.Active() {
+		return self.c.ExitSearch()
+	}
+
 	return self.c.PopContext()
 }
 
