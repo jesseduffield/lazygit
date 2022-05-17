@@ -26,6 +26,7 @@ lazygit.exe
 !.golangci.yml
 !.circleci/
 !.github/
+!.vscode/
 
 # these are for our integration tests
 !.git_keep
