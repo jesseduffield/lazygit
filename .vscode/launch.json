@@ -8,8 +8,8 @@
       "mode": "auto",
       "program": "main.go",
       "args": ["--debug"],
-      // "console": "integratedTerminal" // <-- you need this to actually see the lazygit UI in a window while debugging
-      "console": "externalTerminal" // <-- you need this to actually see the lazygit UI in a window while debugging
+      "console": "integratedTerminal" // <-- you need this to actually see the lazygit UI in a window while debugging
+      // "console": "externalTerminal" // <-- you need this to actually see the lazygit UI in a window while debugging
     }
   ]
 }
