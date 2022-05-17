@@ -38,3 +38,6 @@ test/integration/*/used_config/
 # these sample hooks waste too much space
 test/integration/*/expected/**/hooks/
 test/integration/*/expected_remote/**/hooks/
+
+oryxBuildBinary
+__debug_bin
