@@ -22,6 +22,10 @@ func (self *BasicViewModel[T]) Len() int {
 	return len(self.getModel())
 }
 
+func (self *BasicViewModel[T]) FilteredLen() int {
+	return self.Len()
+}
+
 func (self *BasicViewModel[T]) GetSelected() T {
 	if self.Len() == 0 || self.GetSelectedLineIdx() < 0 {
 		return Zero[T]()

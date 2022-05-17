@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -126,6 +128,14 @@ type MenuItem struct {
 
 	// The tooltip will be displayed upon highlighting the menu item
 	Tooltip string
+}
+
+func (self *MenuItem) ID() string {
+	if self.Label != "" {
+		return self.Label
+	} else {
+		return strings.Join(self.LabelColumns, " ")
+	}
 }
 
 type Model struct {

@@ -66,7 +66,7 @@ func (gui *Gui) resizePopupPanel(v *gocui.View, content string) error {
 }
 
 func (gui *Gui) resizeMenu() {
-	itemCount := gui.State.Contexts.Menu.GetList().Len()
+	itemCount := gui.State.Contexts.Menu.Len()
 	offset := 3
 	panelWidth := gui.getConfirmationPanelWidth()
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsForContentHeight(panelWidth, itemCount+offset)
