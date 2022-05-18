@@ -123,6 +123,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 				gui.State.ScreenMode != SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
+				gui.c.UserConfig.Gui.TimeFormat,
 				gui.c.UserConfig.Git.ParseEmoji,
 				selectedCommitSha,
 				startIdx,
@@ -155,6 +156,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 				gui.State.ScreenMode != SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
+				gui.c.UserConfig.Gui.TimeFormat,
 				gui.c.UserConfig.Git.ParseEmoji,
 				selectedCommitSha,
 				startIdx,
@@ -199,6 +201,7 @@ func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 				gui.State.ScreenMode != SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
+				gui.c.UserConfig.Gui.TimeFormat,
 				gui.c.UserConfig.Git.ParseEmoji,
 			)
 		},

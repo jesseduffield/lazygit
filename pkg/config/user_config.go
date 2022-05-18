@@ -1,5 +1,9 @@
 package config
 
+import (
+	"time"
+)
+
 type UserConfig struct {
 	Gui                  GuiConfig        `yaml:"gui"`
 	Git                  GitConfig        `yaml:"git"`
@@ -36,6 +40,7 @@ type GuiConfig struct {
 	ExpandFocusedSidePanel   bool               `yaml:"expandFocusedSidePanel"`
 	MainPanelSplitMode       string             `yaml:"mainPanelSplitMode"`
 	Language                 string             `yaml:"language"`
+	TimeFormat               string             `yaml:"timeFormat"`
 	Theme                    ThemeConfig        `yaml:"theme"`
 	CommitLength             CommitLengthConfig `yaml:"commitLength"`
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
@@ -341,6 +346,7 @@ func GetDefaultConfig() *UserConfig {
 			ExpandFocusedSidePanel: false,
 			MainPanelSplitMode:     "flexible",
 			Language:               "auto",
+			TimeFormat:             time.RFC822,
 			Theme: ThemeConfig{
 				LightTheme:                false,
 				ActiveBorderColor:         []string{"green", "bold"},

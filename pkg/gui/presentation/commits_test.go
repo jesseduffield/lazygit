@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -28,6 +29,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		fullDescription          bool
 		cherryPickedCommitShaSet *set.Set[string]
 		diffName                 string
+		timeFormat               string
 		parseEmoji               bool
 		selectedCommitSha        string
 		startIdx                 int
@@ -203,7 +205,27 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			sha2 pick  commit2
 				`),
 		},
+		{
+			testName: "custom time format",
+			commits: []*models.Commit{
+				{Name: "commit1", Sha: "sha1", UnixTimestamp: 1652443200, AuthorName: "Jesse Duffield"},
+				{Name: "commit2", Sha: "sha2", UnixTimestamp: 1652529600, AuthorName: "Jesse Duffield"},
+			},
+			fullDescription:          true,
+			timeFormat:               "2006-01-02 15:04:05",
+			startIdx:                 0,
+			length:                   2,
+			showGraph:                false,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
+			expected: formatExpected(`
+		sha1 2022-05-13 12:00:00 Jesse Duffield    commit1
+		sha2 2022-05-14 12:00:00 Jesse Duffield    commit2
+						`),
+		},
 	}
+
+	os.Setenv("TZ", "UTC")
 
 	focusing := false
 	for _, scenario := range scenarios {
@@ -221,6 +243,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.fullDescription,
 					s.cherryPickedCommitShaSet,
 					s.diffName,
+					s.timeFormat,
 					s.parseEmoji,
 					s.selectedCommitSha,
 					s.startIdx,
