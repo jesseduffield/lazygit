@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -218,11 +219,13 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
 			expected: formatExpected(`
-		sha1 2022-05-13 21:00:00 Jesse Duffield    commit1
-		sha2 2022-05-14 21:00:00 Jesse Duffield    commit2
+		sha1 2022-05-13 12:00:00 Jesse Duffield    commit1
+		sha2 2022-05-14 12:00:00 Jesse Duffield    commit2
 						`),
 		},
 	}
+
+	os.Setenv("TZ", "UTC")
 
 	focusing := false
 	for _, scenario := range scenarios {
