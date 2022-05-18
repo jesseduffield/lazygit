@@ -13,7 +13,7 @@ func (gui *Gui) branchesRenderToMain() error {
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
-			title: "Log",
+			title: gui.c.Tr.LogTitle,
 			task:  task,
 		},
 	})

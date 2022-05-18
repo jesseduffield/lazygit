@@ -343,7 +343,7 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 			Diffing:       diffing.New(),
 		},
 		ViewContextMap:    viewContextMap,
-		ViewTabContextMap: contextTree.InitialViewTabContextMap(),
+		ViewTabContextMap: gui.initialViewTabContextMap(contextTree),
 		ScreenMode:        screenMode,
 		// TODO: put contexts in the context manager
 		ContextManager: NewContextManager(initialContext),
@@ -464,6 +464,45 @@ func (gui *Gui) initGocui() (*gocui.Gui, error) {
 	}
 
 	return g, nil
+}
+
+func (gui *Gui) initialViewTabContextMap(contextTree *context.ContextTree) map[string][]context.TabContext {
+	return map[string][]context.TabContext{
+		"branches": {
+			{
+				Tab:     gui.c.Tr.LocalBranchesTitle,
+				Context: contextTree.Branches,
+			},
+			{
+				Tab:     gui.c.Tr.RemotesTitle,
+				Context: contextTree.Remotes,
+			},
+			{
+				Tab:     gui.c.Tr.TagsTitle,
+				Context: contextTree.Tags,
+			},
+		},
+		"commits": {
+			{
+				Tab:     gui.c.Tr.CommitsTitle,
+				Context: contextTree.LocalCommits,
+			},
+			{
+				Tab:     gui.c.Tr.ReflogCommitsTitle,
+				Context: contextTree.ReflogCommits,
+			},
+		},
+		"files": {
+			{
+				Tab:     gui.c.Tr.FilesTitle,
+				Context: contextTree.Files,
+			},
+			{
+				Tab:     gui.c.Tr.SubmodulesTitle,
+				Context: contextTree.Submodules,
+			},
+		},
+	}
 }
 
 // Run: setup the gui with keybindings and start the mainloop

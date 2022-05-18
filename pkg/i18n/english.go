@@ -24,6 +24,7 @@ type TranslationSet struct {
 	MergingTitle                        string
 	MergeConfirmTitle                   string
 	NormalTitle                         string
+	LogTitle                            string
 	CommitMessage                       string
 	CredentialsUsername                 string
 	CredentialsPassword                 string
@@ -647,6 +648,7 @@ func EnglishTranslationSet() TranslationSet {
 		StagingTitle:                        "Main Panel (Staging)",
 		MergingTitle:                        "Main Panel (Merging)",
 		NormalTitle:                         "Main Panel (Normal)",
+		LogTitle:                            "Log",
 		CommitMessage:                       "Commit message",
 		CredentialsUsername:                 "Username",
 		CredentialsPassword:                 "Password",
@@ -809,7 +811,7 @@ func EnglishTranslationSet() TranslationSet {
 		MergeOptionsTitle:                   "Merge Options",
 		RebaseOptionsTitle:                  "Rebase Options",
 		CommitMessageTitle:                  "Commit Message",
-		LocalBranchesTitle:                  "Branches",
+		LocalBranchesTitle:                  "Local Branches",
 		SearchTitle:                         "Search",
 		TagsTitle:                           "Tags",
 		MenuTitle:                           "Menu",
