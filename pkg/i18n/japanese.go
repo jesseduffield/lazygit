@@ -40,6 +40,7 @@ func japaneseTranslationSet() TranslationSet {
 		PassUnameWrong:          "パスワード, パスフレーズまたはユーザ名が間違っています。",
 		CommitChanges:           "変更をコミット",
 		AmendLastCommit:         "最新のコミットにamend",
+		AmendLastCommitTitle:    "最新のコミットにamend",
 		SureToAmend:             "最新のコミットに変更をamendします。よろしいですか? コミットメッセージはコミットパネルから変更できます。",
 		NoCommitToAmend:         "amend可能なコミットが存在しません。",
 		CommitChangesWithEditor: "gitエディタを使用して変更をコミット",

@@ -468,7 +468,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 	}
 
 	return self.c.Confirm(types.ConfirmOpts{
-		Title:  strings.Title(self.c.Tr.AmendLastCommit),
+		Title:  self.c.Tr.AmendLastCommitTitle,
 		Prompt: self.c.Tr.SureToAmend,
 		HandleConfirm: func() error {
 			cmdObj := self.git.Commit.AmendHeadCmdObj()

@@ -68,9 +68,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			dimensionsObj.Y1+frameOffset,
 			0,
 		)
-		view.Frame = frame
-
 		if view != nil {
+			view.Frame = frame
 			view.Visible = true
 		}
 

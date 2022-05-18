@@ -31,6 +31,7 @@ type TranslationSet struct {
 	PassUnameWrong                      string
 	CommitChanges                       string
 	AmendLastCommit                     string
+	AmendLastCommitTitle                string
 	SureToAmend                         string
 	NoCommitToAmend                     string
 	CommitChangesWithEditor             string
@@ -652,6 +653,7 @@ func EnglishTranslationSet() TranslationSet {
 		PassUnameWrong:                      "Password, passphrase and/or username wrong",
 		CommitChanges:                       "commit changes",
 		AmendLastCommit:                     "amend last commit",
+		AmendLastCommitTitle:                "Amend Last Commit",
 		SureToAmend:                         "Are you sure you want to amend last commit? Afterwards, you can change commit message from the commits panel.",
 		NoCommitToAmend:                     "There's no commit to amend.",
 		CommitChangesWithEditor:             "commit changes using git editor",

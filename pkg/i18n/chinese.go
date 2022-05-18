@@ -54,6 +54,7 @@ func chineseTranslationSet() TranslationSet {
 		PassUnameWrong:                      "密码 和/或 用户名错误",
 		CommitChanges:                       "提交更改",
 		AmendLastCommit:                     "修补最后一次提交",
+		AmendLastCommitTitle:                "修补最后一次提交",
 		SureToAmend:                         "您确定要修补上一次提交吗？之后您可以从提交面板更改提交消息。",
 		NoCommitToAmend:                     "没有需要提交的修补。",
 		CommitChangesWithEditor:             "提交更改（使用编辑器编辑提交信息）",
