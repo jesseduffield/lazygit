@@ -20,6 +20,7 @@ func dutchTranslationSet() TranslationSet {
 		PassUnameWrong:                      "Wachtwoord en/of gebruikersnaam verkeerd",
 		CommitChanges:                       "commit veranderingen",
 		AmendLastCommit:                     "wijzig laatste commit",
+		AmendLastCommitTitle:                "Wijzig Laatste Commit",
 		SureToAmend:                         "Weet je zeker dat je de laatste commit wilt wijzigen? U kunt het commit-bericht wijzigen vanuit het commits-paneel.",
 		NoCommitToAmend:                     "Er is geen commits om te wijzigen.",
 		CommitChangesWithEditor:             "commit veranderingen met de git editor",

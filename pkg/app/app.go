@@ -52,7 +52,7 @@ func Run(config config.AppConfigurer, common *common.Common, filterPath string) 
 		stackTrace := newErr.ErrorStack()
 		app.Log.Error(stackTrace)
 
-		log.Fatal(fmt.Sprintf("%s: %s\n\n%s", common.Tr.ErrorOccurred, constants.Links.Issues, stackTrace))
+		log.Fatalf("%s: %s\n\n%s", common.Tr.ErrorOccurred, constants.Links.Issues, stackTrace)
 	}
 }
 

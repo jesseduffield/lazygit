@@ -23,7 +23,7 @@ func (self *FakePopupHandler) Alert(title string, message string) error {
 }
 
 func (self *FakePopupHandler) Confirm(opts types.ConfirmOpts) error {
-	return self.Confirm(opts)
+	return self.OnConfirm(opts)
 }
 
 func (self *FakePopupHandler) Prompt(opts types.PromptOpts) error {
