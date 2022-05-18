@@ -190,9 +190,9 @@ func (app *App) setupRepo() (bool, error) {
 						return true, nil
 					}
 				}
-				return false, err
 			}
 
+			fmt.Println(app.Tr.NoRecentRepositories)
 			os.Exit(1)
 		}
 		if err := app.OSCommand.Cmd.New("git init").Run(); err != nil {

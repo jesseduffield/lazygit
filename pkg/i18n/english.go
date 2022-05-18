@@ -256,6 +256,7 @@ type TranslationSet struct {
 	DiscardFileChangesPrompt            string
 	DisabledForGPG                      string
 	CreateRepo                          string
+	NoRecentRepositories                string
 	AutoStashTitle                      string
 	AutoStashPrompt                     string
 	StashPrefix                         string
@@ -878,6 +879,7 @@ func EnglishTranslationSet() TranslationSet {
 		DiscardFileChangesPrompt:            "Are you sure you want to discard this commit's changes to this file? If this file was created in this commit, it will be deleted",
 		DisabledForGPG:                      "Feature not available for users using GPG",
 		CreateRepo:                          "Not in a git repository. Create a new git repository? (y/n): ",
+		NoRecentRepositories:                "Must open lazygit in a git repository. No valid recent repositories. Exiting.",
 		AutoStashTitle:                      "Autostash?",
 		AutoStashPrompt:                     "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
 		StashPrefix:                         "Auto-stashing changes for ",
