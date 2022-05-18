@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/i18n"
 )
 
 const (
@@ -143,43 +142,4 @@ func (self *ViewContextMap) Entries() map[string]types.Context {
 type TabContext struct {
 	Tab     string
 	Context types.Context
-}
-
-func (tree ContextTree) InitialViewTabContextMap(tr *i18n.TranslationSet) map[string][]TabContext {
-	return map[string][]TabContext{
-		"branches": {
-			{
-				Tab:     tr.LocalBranchesTitle,
-				Context: tree.Branches,
-			},
-			{
-				Tab:     tr.RemotesTitle,
-				Context: tree.Remotes,
-			},
-			{
-				Tab:     tr.TagsTitle,
-				Context: tree.Tags,
-			},
-		},
-		"commits": {
-			{
-				Tab:     tr.CommitsTitle,
-				Context: tree.LocalCommits,
-			},
-			{
-				Tab:     tr.ReflogCommitsTitle,
-				Context: tree.ReflogCommits,
-			},
-		},
-		"files": {
-			{
-				Tab:     tr.FilesTitle,
-				Context: tree.Files,
-			},
-			{
-				Tab:     tr.SubmodulesTitle,
-				Context: tree.Submodules,
-			},
-		},
-	}
 }
