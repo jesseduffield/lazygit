@@ -172,7 +172,7 @@ func (app *App) setupRepo() (bool, error) {
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)
 			response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-			if strings.Trim(response, " \n") != "y" {
+			if strings.Trim(response, " \r\n") != "y" {
 				shouldInitRepo = false
 			}
 		} else if notARepository == "skip" {
