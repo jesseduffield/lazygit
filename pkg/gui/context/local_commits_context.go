@@ -24,7 +24,7 @@ func NewLocalCommitsContext(
 
 	c *types.HelperCommon,
 ) *LocalCommitsContext {
-	viewModel := NewLocalCommitsViewModel(getModel)
+	viewModel := NewLocalCommitsViewModel(getModel, c)
 
 	return &LocalCommitsContext{
 		LocalCommitsViewModel: viewModel,
@@ -70,10 +70,11 @@ type LocalCommitsViewModel struct {
 	showWholeGitGraph bool
 }
 
-func NewLocalCommitsViewModel(getModel func() []*models.Commit) *LocalCommitsViewModel {
+func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *types.HelperCommon) *LocalCommitsViewModel {
 	self := &LocalCommitsViewModel{
 		BasicViewModel: NewBasicViewModel(getModel),
 		limitCommits:   true,
+		showWholeGitGraph: c.UserConfig.Git.Log.ShowWholeGraph,
 	}
 
 	return self
