@@ -72,8 +72,8 @@ type LocalCommitsViewModel struct {
 
 func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *types.HelperCommon) *LocalCommitsViewModel {
 	self := &LocalCommitsViewModel{
-		BasicViewModel: NewBasicViewModel(getModel),
-		limitCommits:   true,
+		BasicViewModel:    NewBasicViewModel(getModel),
+		limitCommits:      true,
 		showWholeGitGraph: c.UserConfig.Git.Log.ShowWholeGraph,
 	}
 
