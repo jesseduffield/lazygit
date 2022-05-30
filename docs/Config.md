@@ -75,7 +75,7 @@ git:
     # one of always, never, when-maximised
     # this determines whether the git graph is rendered in the commits panel
     showGraph: 'when-maximised'
-    # displays the whole git graph by default in the commits panel
+    # displays the whole git graph by default in the commits panel (equivalent to passing the `--all` argument to `git log`)
     showWholeGraph: false
   skipHookPrefix: WIP
   autoFetch: true
