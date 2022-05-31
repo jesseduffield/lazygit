@@ -168,7 +168,7 @@ func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error)
 		}
 
 		if err := yaml.Unmarshal(content, base); err != nil {
-			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.", path)
+			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
 		}
 	}
 
