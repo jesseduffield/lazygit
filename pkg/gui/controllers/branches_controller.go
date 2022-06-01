@@ -341,7 +341,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 			err := self.git.Sync.Pull(
 				git_commands.PullOptions{
 					RemoteName:      branch.UpstreamRemote,
-					BranchName:      branch.Name,
+					BranchName:      branch.UpstreamBranch,
 					FastForwardOnly: true,
 				},
 			)
