@@ -102,20 +102,9 @@ The permitted prompt fields are:
 | options           | (only applicable to 'menu' prompts) the options to display in the menu           | no         |
 | command           | (only applicable to 'menuFromCommand' prompts) the command to run to generate    | yes        |
 |                   | menu options                                                                     |            |
-| filter            | (only applicable to 'menuFromCommand' prompts) the regexp to run specifying      | yes        |
-|                   | groups which are going to be kept from the command's output                      |            |
-| valueFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
-|                   | the filter to construct a menu item's value (What gets appended to prompt        |            |
-|                   | responses when the item is selected). You can use named groups,                  |            |
-|                   | or `{{ .group_GROUPID }}`.                                                       |            |
-|                   | PS: named groups keep first match only                                           |            |
-| labelFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | no         |
-|                   | the filter to construct the item's label (What's shown on screen). You can use   |            |
-|                   | named groups, or `{{ .group_GROUPID }}`. You can also color each match with      |            |
-|                   | `{{ .group_GROUPID | colorname }}` (Color names from                             |            |
-|                   | [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md))     |            |
-|                   | If `labelFormat` is not specified, `valueFormat` is shown instead.               |            |
-|                   | PS: named groups keep first match only                                           |            |
+| filter            | (only applicable to 'menuFromCommand' prompts) the regexp to run specifying groups which are going to be kept from the command's output      | yes        |
+| valueFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from the filter to construct a menu item's value (What gets appended to prompt responses when the item is selected). You can use named groups, or `{{ .group_GROUPID }}`. PS: named groups keep first match only | yes        |
+| labelFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from the filter to construct the item's label (What's shown on screen). You can use named groups, or `{{ .group_GROUPID }}`. You can also color each match with `{{ .group_GROUPID \| colorname }}` (Color names from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md)). If `labelFormat` is not specified, `valueFormat` is shown instead. PS: named groups keep first match only | no         |
 
 The permitted option fields are:
 | _field_ | _description_ | _required_ |
