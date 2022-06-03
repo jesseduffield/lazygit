@@ -833,7 +833,7 @@ func (self *FilesController) toggleTreeView() error {
 }
 
 func (self *FilesController) handleStashSave(stashFunc func(message string) error, action string, errorMsg string) error {
-	if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
+	if action != self.c.Tr.Actions.StashIncludeUntrackedChanges && !self.helpers.WorkingTree.IsWorkingTreeDirty() {
 		return self.c.ErrorMsg(errorMsg)
 	}
 
