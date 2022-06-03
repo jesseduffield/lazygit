@@ -109,3 +109,11 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 
 	return nil
 }
+
+func (self *StashCommands) StashUntrackedChanges(message string) error {
+	if err := self.cmd.New("git stash -u").Run(); err != nil {
+		return err
+	}
+	return nil
+}
+

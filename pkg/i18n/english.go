@@ -293,6 +293,7 @@ type TranslationSet struct {
 	LcStashStagedChanges                string
 	LcStashAllChangesKeepIndex          string
 	LcStashUnstagedChanges              string
+	LcStashIncludeUntrackedChanges      string
 	LcStashOptions                      string
 	NotARepository                      string
 	LcJump                              string
@@ -584,6 +585,7 @@ type Actions struct {
 	StashAllChangesKeepIndex          string
 	StashStagedChanges                string
 	StashUnstagedChanges              string
+	StashIncludeUntrackedChanges      string
 	GitFlowFinish                     string
 	GitFlowStart                      string
 	CopyToClipboard                   string
@@ -933,6 +935,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcStashStagedChanges:                "stash staged changes",
 		LcStashAllChangesKeepIndex:          "stash all changes and keep index",
 		LcStashUnstagedChanges:              "stash unstaged changes",
+		LcStashIncludeUntrackedChanges:      "stash all changes including untracked files",
 		LcStashOptions:                      "Stash options",
 		NotARepository:                      "Error: must be run inside a git repository",
 		LcJump:                              "jump to panel",
@@ -1207,6 +1210,7 @@ func EnglishTranslationSet() TranslationSet {
 			StashAllChangesKeepIndex:          "Stash all changes and keep index",
 			StashStagedChanges:                "Stash staged changes",
 			StashUnstagedChanges:              "Stash unstaged changes",
+			StashIncludeUntrackedChanges:      "Stash all changes including untracked files",
 			GitFlowFinish:                     "Git flow finish",
 			GitFlowStart:                      "Git Flow start",
 			CopyToClipboard:                   "Copy to clipboard",
