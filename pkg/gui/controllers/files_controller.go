@@ -771,6 +771,13 @@ func (self *FilesController) createStashMenu() error {
 				Key: 'i',
 			},
 			{
+				Label: self.c.Tr.LcStashIncludeUntrackedChanges,
+				OnPress: func() error {
+					return self.handleStashSave(self.git.Stash.StashUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges, self.c.Tr.NoFilesToStash)
+				},
+				Key: 'U',
+			},
+			{
 				Label: self.c.Tr.LcStashStagedChanges,
 				OnPress: func() error {
 					// there must be something in staging otherwise the current implementation mucks the stash up
@@ -791,13 +798,6 @@ func (self *FilesController) createStashMenu() error {
 					return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashUnstagedChanges, self.c.Tr.NoFilesToStash)
 				},
 				Key: 'u',
-			},
-			{
-				Label: self.c.Tr.LcStashIncludeUntrackedChanges,
-				OnPress: func() error {
-					return self.handleStashSave(self.git.Stash.StashUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges, self.c.Tr.NoFilesToStash)
-				},
-				Key: 'U',
 			},
 		},
 	})
