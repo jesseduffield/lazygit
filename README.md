@@ -10,7 +10,7 @@
 [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases/latest)
 [![homebrew](https://img.shields.io/homebrew/v/lazygit)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/lazygit.rb)
 
-A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui 'gocui') library.
+A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
 
 ![Gif](../assets/staging.gif)
 
@@ -39,7 +39,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Void Linux](#void-linux)
   - [Scoop (Windows)](#scoop-windows)
   - [Arch Linux](#arch-linux)
-  - [Fedora and CentOS 7](#fedora-and-centos-7)
+  - [Fedora and RHEL](#fedora-and-rhel)
   - [Solus Linux](#solus-linux)
   - [Funtoo Linux](#funtoo-linux)
   - [FreeBSD](#freebsd)
@@ -130,9 +130,9 @@ and the git version which builds from the most recent commit.
 Instruction of how to install AUR content can be found here:
 <https://wiki.archlinux.org/index.php/Arch_User_Repository>
 
-### Fedora and CentOS 7
+### Fedora and RHEL
 
-Packages for Fedora and CentOS 7 are available via [Copr](https://copr.fedorainfracloud.org/coprs/atim/lazygit/) (Cool Other Package Repo).
+Packages for Fedora/RHEL and CentOS Stream are available via [Copr](https://copr.fedorainfracloud.org/coprs/atim/lazygit/) (Cool Other Package Repo).
 
 ```sh
 sudo dnf copr enable atim/lazygit -y
