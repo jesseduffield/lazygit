@@ -53,7 +53,7 @@ func koreanTranslationSet() TranslationSet {
 		LcToggleTreeView:                    "파일 트리뷰로 전환",
 		LcOpenMergeTool:                     "git mergetool를 열기",
 		LcRefresh:                           "새로고침",
-		LcPush:                              "푸쉬",
+		LcPush:                              "푸시",
 		LcPull:                              "업데이트",
 		LcScroll:                            "스크롤",
 		MergeConflictsTitle:                 "병합 충돌 내용",

@@ -23,7 +23,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>:</kbd>: execute custom command
   <kbd>z</kbd>: 되돌리기 (reflog) (실험적)
   <kbd>ctrl+z</kbd>: 다시 실행 (reflog) (실험적)
-  <kbd>P</kbd>: 푸쉬
+  <kbd>P</kbd>: 푸시
   <kbd>p</kbd>: 업데이트
 </pre>
 
