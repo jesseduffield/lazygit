@@ -63,9 +63,21 @@ func (self *RebaseCommands) RewordCommitInEditor(commits []*models.Commit, index
 }
 
 func (self *RebaseCommands) ResetCommitAuthor(commits []*models.Commit, index int) error {
+	return self.GenericAmend(commits, index, func() error {
+		return self.commit.ResetAuthor()
+	})
+}
+
+func (self *RebaseCommands) SetCommitAuthor(commits []*models.Commit, index int, value string) error {
+	return self.GenericAmend(commits, index, func() error {
+		return self.commit.SetAuthor(value)
+	})
+}
+
+func (self *RebaseCommands) GenericAmend(commits []*models.Commit, index int, f func() error) error {
 	if index == 0 {
 		// we've selected the top commit so no rebase is required
-		return self.commit.ResetAuthor()
+		return f()
 	}
 
 	err := self.BeginInteractiveRebaseForCommit(commits, index)
@@ -73,8 +85,8 @@ func (self *RebaseCommands) ResetCommitAuthor(commits []*models.Commit, index in
 		return err
 	}
 
-	// now the selected commit should be our head so we'll amend it with the new author
-	err = self.commit.ResetAuthor()
+	// now the selected commit should be our head so we'll amend it
+	err = f()
 	if err != nil {
 		return err
 	}
