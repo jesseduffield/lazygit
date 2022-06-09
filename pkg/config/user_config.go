@@ -104,8 +104,9 @@ type MergingConfig struct {
 }
 
 type LogConfig struct {
-	Order     string `yaml:"order"`     // one of date-order, author-date-order, topo-order
-	ShowGraph string `yaml:"showGraph"` // one of always, never, when-maximised
+	Order          string `yaml:"order"`     // one of date-order, author-date-order, topo-order
+	ShowGraph      string `yaml:"showGraph"` // one of always, never, when-maximised
+	ShowWholeGraph bool   `yaml:"showWholeGraph"`
 }
 
 type CommitPrefixConfig struct {
@@ -383,8 +384,9 @@ func GetDefaultConfig() *UserConfig {
 				Args:         "",
 			},
 			Log: LogConfig{
-				Order:     "topo-order",
-				ShowGraph: "when-maximised",
+				Order:          "topo-order",
+				ShowGraph:      "when-maximised",
+				ShowWholeGraph: false,
 			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,
