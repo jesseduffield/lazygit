@@ -145,6 +145,11 @@ func isGitVersionValid(versionStr string) bool {
 	return true
 }
 
+func isDirectoryAGitRepository(dir string) (bool, error) {
+	info, err := os.Stat(filepath.Join(dir, ".git"))
+	return info != nil && info.IsDir(), err
+}
+
 func (app *App) setupRepo() (bool, error) {
 	if err := app.validateGitVersion(); err != nil {
 		return false, err
@@ -161,9 +166,8 @@ func (app *App) setupRepo() (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		info, _ := os.Stat(filepath.Join(cwd, ".git"))
-		if info != nil && info.IsDir() {
-			return false, err // Current directory appears to be a git repository.
+		if isRepo, err := isDirectoryAGitRepository(cwd); isRepo {
+			return false, err
 		}
 
 		shouldInitRepo := true
@@ -181,12 +185,9 @@ func (app *App) setupRepo() (bool, error) {
 
 		if !shouldInitRepo {
 			// check if we have a recent repo we can open
-			recentRepos := app.Config.GetAppState().RecentRepos
-			if len(recentRepos) > 0 {
-				var err error
-				// try opening each repo in turn, in case any have been deleted
-				for _, repoDir := range recentRepos {
-					if err = os.Chdir(repoDir); err == nil {
+			for _, repoDir := range app.Config.GetAppState().RecentRepos {
+				if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
+					if err := os.Chdir(repoDir); err == nil {
 						return true, nil
 					}
 				}
