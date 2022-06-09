@@ -79,7 +79,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 	gui.Mutexes.RefreshingFilesMutex.Lock()
 	defer gui.Mutexes.RefreshingFilesMutex.Unlock()
 
-	return gui.onNewRepo("", reuse)
+	return gui.onNewRepo(types.StartArgs{}, reuse)
 }
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
