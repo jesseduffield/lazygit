@@ -19,9 +19,7 @@ jobs:
           - windows-latest
         include:
           - os: ubuntu-latest
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
+            cache_path: ~/.cache/go-build
           - os: windows-latest
             cache_path: ~\AppData\Local\go-build
     name: ci - ${{matrix.os}}
