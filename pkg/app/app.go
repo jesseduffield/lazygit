@@ -22,6 +22,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 )
@@ -37,11 +38,11 @@ type App struct {
 	Updater   *updates.Updater // may only need this on the Gui
 }
 
-func Run(config config.AppConfigurer, common *common.Common, filterPath string) {
+func Run(config config.AppConfigurer, common *common.Common, startArgs types.StartArgs) {
 	app, err := NewApp(config, common)
 
 	if err == nil {
-		err = app.Run(filterPath)
+		err = app.Run(startArgs)
 	}
 
 	if err != nil {
@@ -204,8 +205,8 @@ func (app *App) setupRepo() (bool, error) {
 	return false, nil
 }
 
-func (app *App) Run(filterPath string) error {
-	err := app.Gui.RunAndHandleError(filterPath)
+func (app *App) Run(startArgs types.StartArgs) error {
+	err := app.Gui.RunAndHandleError(startArgs)
 	return err
 }
 
