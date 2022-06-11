@@ -30,7 +30,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 					style.FgGreen,
 				)
 			},
-			reset: gui.exitSearch,
+			reset: gui.onSearchEscape,
 		},
 		{
 			isActive: gui.State.Modes.Diffing.Active,

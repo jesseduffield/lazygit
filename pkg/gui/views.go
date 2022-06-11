@@ -25,8 +25,9 @@ type Views struct {
 	SubCommits     *gocui.View
 	Information    *gocui.View
 	AppStatus      *gocui.View
-	Search         *gocui.View
+	SearchPrompt   *gocui.View
 	SearchPrefix   *gocui.View
+	SearchStatus   *gocui.View
 	Limit          *gocui.View
 	Suggestions    *gocui.View
 	Tooltip        *gocui.View
@@ -64,9 +65,11 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.Options, name: "options"},
 		{viewPtr: &gui.Views.AppStatus, name: "appStatus"},
 		{viewPtr: &gui.Views.Information, name: "information"},
-		{viewPtr: &gui.Views.Search, name: "search"},
+		{viewPtr: &gui.Views.SearchPrompt, name: "search"},
 		// this view takes up one character. Its only purpose is to show the slash when searching
 		{viewPtr: &gui.Views.SearchPrefix, name: "searchPrefix"},
+		// this tells us the status of the search while we're in the view that we're searching within.
+		{viewPtr: &gui.Views.SearchStatus, name: "searchStatus"},
 
 		// popups.
 		{viewPtr: &gui.Views.CommitMessage, name: "commitMessage"},
@@ -104,6 +107,7 @@ func (gui *Gui) controlledViews() []controlledView {
 		{viewName: "options", windowName: "options", frame: false},
 		{viewName: "searchPrefix", windowName: "searchPrefix", frame: false},
 		{viewName: "search", windowName: "search", frame: false},
+		{viewName: "searchStatus", windowName: "searchStatus", frame: false},
 		{viewName: "appStatus", windowName: "appStatus", frame: false},
 		{viewName: "information", windowName: "information", frame: false},
 		{viewName: "extras", windowName: "extras", frame: true},
@@ -163,10 +167,11 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Status.Title = gui.c.Tr.StatusTitle
 	gui.Views.Status.FgColor = theme.GocuiDefaultTextColor
 
-	gui.Views.Search.BgColor = gocui.ColorDefault
-	gui.Views.Search.FgColor = gocui.ColorGreen
-	gui.Views.Search.Editable = true
-	gui.Views.Search.Editor = gocui.EditorFunc(gui.searchEditor)
+	gui.Views.SearchPrompt.BgColor = gocui.ColorDefault
+	gui.Views.SearchPrompt.FgColor = gocui.ColorGreen
+	gui.Views.SearchPrompt.Editable = true
+	gui.Views.SearchPrompt.Editor = gocui.EditorFunc(gui.searchEditor)
+	gui.Views.SearchStatus.FgColor = gocui.ColorGreen
 
 	gui.Views.AppStatus.BgColor = gocui.ColorDefault
 	gui.Views.AppStatus.FgColor = gocui.ColorCyan

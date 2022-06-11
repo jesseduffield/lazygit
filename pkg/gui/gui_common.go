@@ -67,7 +67,7 @@ func (self *guiCommon) OpenSearch() error {
 }
 
 func (self *guiCommon) ExitSearch() error {
-	return self.gui.exitSearch()
+	return self.gui.onSearchEscape()
 }
 
 func (self *guiCommon) OnUIThread(f func() error) {

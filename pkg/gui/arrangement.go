@@ -166,6 +166,22 @@ func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*
 		}
 	}
 
+	informationWindow := &boxlayout.Box{
+		Window: "information",
+		// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
+		Size: runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(utils.Decolorise(informationStr)),
+	}
+
+	if gui.State.Modes.Searching.InView() {
+		return []*boxlayout.Box{
+			{
+				Window: "searchStatus",
+				Weight: 1,
+			},
+			informationWindow,
+		}
+	}
+
 	result := []*boxlayout.Box{}
 
 	if len(appStatus) > 0 {
@@ -183,11 +199,7 @@ func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*
 				Window: "options",
 				Weight: 1,
 			},
-			{
-				Window: "information",
-				// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
-				Size: runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(utils.Decolorise(informationStr)),
-			},
+			informationWindow,
 		}...,
 	)
 

@@ -15,7 +15,7 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 
 	gui.State.Modes.Searching.OnSearchPrompt(view, gui.c.CurrentContext().GetKey())
 
-	gui.Views.Search.ClearTextArea()
+	gui.Views.SearchPrompt.ClearTextArea()
 
 	if err := gui.c.PushContext(gui.State.Contexts.Search); err != nil {
 		return err
@@ -24,11 +24,26 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 	return nil
 }
 
-func (gui *Gui) handleSearch() error {
-	needle := gui.Views.Search.TextArea.GetContent()
-	if err := gui.State.Modes.Searching.OnSearch(needle); err != nil {
-		return err
+func (gui *Gui) searchEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
+	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
+
+	v.RenderTextArea()
+
+	if err := gui.State.Modes.Searching.OnSearch(gui.Views.SearchPrompt.TextArea.GetContent()); err != nil {
+		gui.Log.Error(err)
 	}
+
+	if parentContext, ok := gui.parentContext(); ok {
+		if err := gui.c.PostRefreshUpdate(parentContext); err != nil {
+			gui.Log.Error(err)
+		}
+	}
+
+	return matched
+}
+
+func (gui *Gui) handleCommitSearch() error {
+	gui.State.Modes.Searching.CommitSearch()
 
 	if err := gui.c.PopContext(); err != nil {
 		return err
@@ -43,18 +58,18 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 	return func(y int, index int, total int) error {
 		if total == 0 {
 			return gui.renderString(
-				gui.Views.Search,
+				gui.Views.SearchStatus,
 				fmt.Sprintf(
-					"no matches for '%s' %s",
+					"no exact matches for '%s' %s",
 					gui.State.Modes.Searching.GetSearchString(),
 					theme.OptionsFgColor.Sprintf("%s: exit search mode", gui.getKeyDisplay(keybindingConfig.Universal.Return)),
 				),
 			)
 		}
 		_ = gui.renderString(
-			gui.Views.Search,
+			gui.Views.SearchStatus,
 			fmt.Sprintf(
-				"matches for '%s' (%d of %d) %s",
+				"exact matches for '%s' (%d of %d) %s",
 				gui.State.Modes.Searching.GetSearchString(),
 				index+1,
 				total,
@@ -73,38 +88,18 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 	}
 }
 
-func (gui *Gui) onSearchEscape() {
-	gui.State.Modes.Searching.Escape()
-}
-
+// for when you want to escape search mode from within the search prompt
 func (gui *Gui) handleSearchPromptEscape() error {
 	if err := gui.c.PopContext(); err != nil {
 		return err
 	}
 
-	return gui.exitSearch()
+	return gui.onSearchEscape()
 }
 
-func (gui *Gui) exitSearch() error {
-	gui.onSearchEscape()
+// for when you want to escape search mode from within the original value
+func (gui *Gui) onSearchEscape() error {
+	gui.State.Modes.Searching.Escape()
 
 	return gui.c.PostRefreshUpdate(gui.currentContext())
-}
-
-func (gui *Gui) searchEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
-	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
-
-	v.RenderTextArea()
-
-	if err := gui.State.Modes.Searching.OnSearch(gui.Views.Search.TextArea.GetContent()); err != nil {
-		gui.Log.Error(err)
-	}
-
-	if parentContext, ok := gui.parentContext(); ok {
-		if err := gui.c.PostRefreshUpdate(parentContext); err != nil {
-			gui.Log.Error(err)
-		}
-	}
-
-	return matched
 }

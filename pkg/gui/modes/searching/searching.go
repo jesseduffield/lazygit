@@ -34,10 +34,6 @@ func (self *Searching) SearchingInContext(contextKey types.ContextKey) bool {
 	return self.contextKey != "" && self.contextKey == contextKey
 }
 
-func (self *Searching) NewSearchingState() bool {
-	return self.mode == inView
-}
-
 func (self *Searching) Escape() {
 	self.mode = inactive
 	self.contextKey = ""
@@ -51,7 +47,6 @@ func (self *Searching) Escape() {
 
 func (self *Searching) OnSearch(needle string) error {
 	self.needle = needle
-	self.mode = inView
 
 	view := self.view
 	if view == nil {
@@ -63,6 +58,12 @@ func (self *Searching) OnSearch(needle string) error {
 	}
 
 	return nil
+}
+
+// to be called when we're ready to 'commit' to our search string and return to
+// the original view to peruse the results
+func (self *Searching) CommitSearch() {
+	self.mode = inView
 }
 
 func (self *Searching) OnSearchPrompt(view *gocui.View, contextKey types.ContextKey) {
@@ -81,4 +82,8 @@ func (self *Searching) InPrompt() bool {
 
 func (self *Searching) Active() bool {
 	return self.mode == inView || self.InPrompt()
+}
+
+func (self *Searching) InView() bool {
+	return self.mode == inView
 }

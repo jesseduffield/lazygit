@@ -709,7 +709,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			ViewName: "search",
 			Key:      opts.GetKey(opts.Config.Universal.Confirm),
 			Modifier: gocui.ModNone,
-			Handler:  self.handleSearch,
+			Handler:  self.handleCommitSearch,
 		},
 		{
 			ViewName: "search",

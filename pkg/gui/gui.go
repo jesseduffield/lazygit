@@ -544,7 +544,7 @@ func (gui *Gui) Run(startArgs types.StartArgs) error {
 		})
 	}
 
-	gui.g.OnSearchEscape = func() error { gui.onSearchEscape(); return nil }
+	gui.g.OnSearchEscape = gui.onSearchEscape
 	if err := gui.Config.ReloadUserConfig(); err != nil {
 		return nil
 	}
