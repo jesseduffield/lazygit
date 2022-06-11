@@ -26,7 +26,9 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 
 func (gui *Gui) handleSearch() error {
 	needle := gui.Views.Search.TextArea.GetContent()
-	gui.State.Modes.Searching.OnSearch(needle)
+	if err := gui.State.Modes.Searching.OnSearch(needle); err != nil {
+		return err
+	}
 
 	if err := gui.c.PopContext(); err != nil {
 		return err
@@ -94,7 +96,9 @@ func (gui *Gui) searchEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mo
 
 	v.RenderTextArea()
 
-	gui.State.Modes.Searching.SetSearchString(gui.Views.Search.TextArea.GetContent())
+	if err := gui.State.Modes.Searching.OnSearch(gui.Views.Search.TextArea.GetContent()); err != nil {
+		gui.Log.Error(err)
+	}
 
 	if parentContext, ok := gui.parentContext(); ok {
 		if err := gui.c.PostRefreshUpdate(parentContext); err != nil {

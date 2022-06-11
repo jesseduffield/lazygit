@@ -15,11 +15,11 @@ const (
 )
 
 type Searching struct {
-	view         *gocui.View
-	mode         searchMode
-	searchString string
-	contextKey   types.ContextKey
-	log          *logrus.Entry
+	view       *gocui.View
+	mode       searchMode
+	needle     string
+	contextKey types.ContextKey
+	log        *logrus.Entry
 }
 
 func New(log *logrus.Entry) *Searching {
@@ -27,7 +27,7 @@ func New(log *logrus.Entry) *Searching {
 }
 
 func (self *Searching) SearchingInContext(contextKey types.ContextKey) bool {
-	if self.mode == inactive || self.searchString == "" {
+	if self.mode == inactive || self.needle == "" {
 		return false
 	}
 
@@ -41,7 +41,7 @@ func (self *Searching) NewSearchingState() bool {
 func (self *Searching) Escape() {
 	self.mode = inactive
 	self.contextKey = ""
-	self.searchString = ""
+	self.needle = ""
 
 	if self.view != nil {
 		self.view.ClearSearch()
@@ -49,9 +49,20 @@ func (self *Searching) Escape() {
 	}
 }
 
-func (self *Searching) OnSearch(needle string) {
-	self.searchString = needle
+func (self *Searching) OnSearch(needle string) error {
+	self.needle = needle
 	self.mode = inView
+
+	view := self.view
+	if view == nil {
+		return nil
+	}
+
+	if err := view.Search(self.needle); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (self *Searching) OnSearchPrompt(view *gocui.View, contextKey types.ContextKey) {
@@ -61,11 +72,7 @@ func (self *Searching) OnSearchPrompt(view *gocui.View, contextKey types.Context
 }
 
 func (self *Searching) GetSearchString() string {
-	return self.searchString
-}
-
-func (self *Searching) SetSearchString(value string) {
-	self.searchString = value
+	return self.needle
 }
 
 func (self *Searching) InPrompt() bool {
