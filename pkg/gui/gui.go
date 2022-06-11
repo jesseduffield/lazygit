@@ -316,7 +316,7 @@ func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 			},
 		},
 		Ptmx: nil,
-		Modes: &types.Modes{
+		Modes: &modes.Modes{
 			Filtering:     filtering.New(startArgs.FilterPath),
 			CherryPicking: cherrypicking.New(),
 			Diffing:       diffing.New(),
@@ -335,11 +335,11 @@ func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
 }
 
-func initialScreenMode(startArgs types.StartArgs) WindowMaximisation {
+func initialScreenMode(startArgs types.StartArgs) types.WindowMaximisation {
 	if startArgs.FilterPath != "" || startArgs.GitArg != types.GitArgNone {
-		return SCREEN_HALF
+		return types.SCREEN_HALF
 	} else {
-		return SCREEN_NORMAL
+		return types.SCREEN_NORMAL
 	}
 }
 

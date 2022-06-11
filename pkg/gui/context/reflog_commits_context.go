@@ -33,6 +33,7 @@ func NewReflogCommitsContext(
 			guiContextState.ScreenMode() != types.SCREEN_NORMAL,
 			cherryPickedCommitShaSet(guiContextState),
 			guiContextState.Modes().Diffing.Ref,
+			c.UserConfig.Gui.TimeFormat,
 			c.UserConfig.Git.ParseEmoji,
 		)
 	}
