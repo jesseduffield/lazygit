@@ -30,13 +30,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## List Panel Navigation
 
 <pre>
-  <kbd>.</kbd>: 다음 페이지
-  <kbd>,</kbd>: 이전 페이지
-  <kbd><</kbd>: 맨 위로 스크롤 
-  <kbd>></kbd>: 맨 아래로 스크롤 
-  <kbd>/</kbd>: 검색 시작
   <kbd>H</kbd>: 우 스크롤
   <kbd>L</kbd>: 좌 스크롤
+  <kbd>,</kbd>: 이전 페이지
+  <kbd>.</kbd>: 다음 페이지
+  <kbd><</kbd>: 맨 위로 스크롤 
+  <kbd>/</kbd>: 검색 시작
+  <kbd>></kbd>: 맨 아래로 스크롤 
   <kbd>]</kbd>: 이전 탭
   <kbd>[</kbd>: 다음 탭
 </pre>
@@ -107,36 +107,33 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 메인 패널 (Patch Building)
 
 <pre>
-  <kbd>esc</kbd>: line-by-line 모드 종료
-  <kbd>o</kbd>: 파일 닫기
-  <kbd>▲</kbd>: 이전 줄 선택
-  <kbd>▼</kbd>: 다음 줄 선택
   <kbd>◄</kbd>: 이전 hunk를 선택
   <kbd>►</kbd>: 다음 hunk를 선택
-  <kbd>ctrl+o</kbd>: 선택한 텍스트를 클립보드에 복사
-  <kbd>space</kbd>: line(s)을 패치에 추가/삭제
   <kbd>v</kbd>: 드래그 선택 전환
   <kbd>V</kbd>: 드래그 선택 전환
   <kbd>a</kbd>: toggle select hunk
+  <kbd>ctrl+o</kbd>: 선택한 텍스트를 클립보드에 복사
+  <kbd>o</kbd>: 파일 닫기
+  <kbd>e</kbd>: 파일 편집
+  <kbd>space</kbd>: line(s)을 패치에 추가/삭제
+  <kbd>esc</kbd>: exit custom patch builder
 </pre>
 
 ## 메인 패널 (Staging)
 
 <pre>
-  <kbd>esc</kbd>: 파일 목록으로 돌아가기
-  <kbd>space</kbd>: 선택한 행을 staged / unstaged
-  <kbd>d</kbd>: 변경을 삭제 (git reset)
-  <kbd>tab</kbd>: 패널 전환
-  <kbd>o</kbd>: 파일 닫기
-  <kbd>▲</kbd>: 이전 줄 선택
-  <kbd>▼</kbd>: 다음 줄 선택
   <kbd>◄</kbd>: 이전 hunk를 선택
   <kbd>►</kbd>: 다음 hunk를 선택
-  <kbd>ctrl+o</kbd>: 선택한 텍스트를 클립보드에 복사
-  <kbd>e</kbd>: 파일 편집
   <kbd>v</kbd>: 드래그 선택 전환
   <kbd>V</kbd>: 드래그 선택 전환
   <kbd>a</kbd>: toggle select hunk
+  <kbd>ctrl+o</kbd>: 선택한 텍스트를 클립보드에 복사
+  <kbd>o</kbd>: 파일 닫기
+  <kbd>e</kbd>: 파일 편집
+  <kbd>esc</kbd>: 파일 목록으로 돌아가기
+  <kbd>tab</kbd>: 패널 전환
+  <kbd>space</kbd>: 선택한 행을 staged / unstaged
+  <kbd>d</kbd>: 변경을 삭제 (git reset)
   <kbd>E</kbd>: edit hunk
 </pre>
 

@@ -1,4 +1,4 @@
-// Copyright 2021 The TCell Authors
+// Copyright 2022 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -43,7 +43,7 @@ type Screen interface {
 	// be displayed if Show() or Sync() is called.  The width is the width
 	// in screen cells; most often this will be 1, but some East Asian
 	// characters require two cells.
-	GetContent(x, y int) (mainc rune, combc []rune, style Style, width int)
+	GetContent(x, y int) (primary rune, combining []rune, style Style, width int)
 
 	// SetContent sets the contents of the given cell location.  If
 	// the coordinates are out of range, then the operation is ignored.
@@ -52,13 +52,13 @@ type Screen interface {
 	// that follows is a possible list of combining characters to append,
 	// and will usually be nil (no combining characters.)
 	//
-	// The results are not displayd until Show() or Sync() is called.
+	// The results are not displayed until Show() or Sync() is called.
 	//
 	// Note that wide (East Asian full width) runes occupy two cells,
 	// and attempts to place character at next cell to the right will have
 	// undefined effects.  Wide runes that are printed in the
 	// last column will be replaced with a single width space on output.
-	SetContent(x int, y int, mainc rune, combc []rune, style Style)
+	SetContent(x int, y int, primary rune, combining []rune, style Style)
 
 	// SetStyle sets the default style to use when clearing the screen
 	// or when StyleDefault is specified.  If it is also StyleDefault,
@@ -70,7 +70,7 @@ type Screen interface {
 	// dimensions of the screen, the cursor will be hidden.
 	ShowCursor(x int, y int)
 
-	// HideCursor is used to hide the cursor.  Its an alias for
+	// HideCursor is used to hide the cursor.  It's an alias for
 	// ShowCursor(-1, -1).sim
 	HideCursor()
 
@@ -139,7 +139,7 @@ type Screen interface {
 	DisablePaste()
 
 	// HasMouse returns true if the terminal (apparently) supports a
-	// mouse.  Note that the a return value of true doesn't guarantee that
+	// mouse.  Note that the return value of true doesn't guarantee that
 	// a mouse/pointing device is present; a false return definitely
 	// indicates no mouse support is available.
 	HasMouse() bool
@@ -161,8 +161,8 @@ type Screen interface {
 	// internal model.  This may be both expensive and visually jarring,
 	// so it should only be used when believed to actually be necessary.
 	//
-	// Typically this is called as a result of a user-requested redraw
-	// (e.g. to clear up on screen corruption caused by some other program),
+	// Typically, this is called as a result of a user-requested redraw
+	// (e.g. to clear up on-screen corruption caused by some other program),
 	// or during a resize event.
 	Sync()
 
@@ -178,13 +178,13 @@ type Screen interface {
 	// o as a fallback for ø.  This should be done cautiously for
 	// characters that might be displayed ordinarily in language
 	// specific text -- characters that could change the meaning of
-	// of written text would be dangerous.  The intention here is to
+	// written text would be dangerous.  The intention here is to
 	// facilitate fallback characters in pseudo-graphical applications.
 	//
 	// If the terminal has fallbacks already in place via an alternate
 	// character set, those are used in preference.  Also, standard
-	// fallbacks for graphical characters in the ACSC terminfo string
-	// are registered implicitly.
+	// fallbacks for graphical characters in the alternate character set
+	// terminfo string are registered implicitly.
 	//
 	// The display string should be the same width as original rune.
 	// This makes it possible to register two character replacements
@@ -203,7 +203,7 @@ type Screen interface {
 	UnregisterRuneFallback(r rune)
 
 	// CanDisplay returns true if the given rune can be displayed on
-	// this screen.  Note that this is a best guess effort -- whether
+	// this screen.  Note that this is a best-guess effort -- whether
 	// your fonts support the character or not may be questionable.
 	// Mostly this is for folks who work outside of Unicode.
 	//
@@ -213,7 +213,7 @@ type Screen interface {
 	// one that is visually indistinguishable from the one requested.
 	CanDisplay(r rune, checkFallbacks bool) bool
 
-	// Resize does nothing, since its generally not possible to
+	// Resize does nothing, since it's generally not possible to
 	// ask a screen to resize, but it allows the Screen to implement
 	// the View interface.
 	Resize(int, int, int, int)
@@ -239,6 +239,15 @@ type Screen interface {
 	// Beep attempts to sound an OS-dependent audible alert and returns an error
 	// when unsuccessful.
 	Beep() error
+
+	// SetSize attempts to resize the window.  It also invalidates the cells and
+	// calls the resize function.  Note that if the window size is changed, it will
+	// not be restored upon application exit.
+	//
+	// Many terminals cannot support this.  Perversely, the "modern" Windows Terminal
+	// does not support application-initiated resizing, whereas the legacy terminal does.
+	// Also, some emulators can support this but may have it disabled by default.
+	SetSize(int, int)
 }
 
 // NewScreen returns a default Screen suitable for the user's terminal
@@ -255,7 +264,7 @@ func NewScreen() (Screen, error) {
 }
 
 // MouseFlags are options to modify the handling of mouse events.
-// Actual events can be or'd together.
+// Actual events can be ORed together.
 type MouseFlags int
 
 const (
@@ -265,7 +274,7 @@ const (
 )
 
 // CursorStyle represents a given cursor style, which can include the shape and
-// whether the cursor blinks or is solid.  Support for changing these is not universal.
+// whether the cursor blinks or is solid.  Support for changing this is not universal.
 type CursorStyle int
 
 const (

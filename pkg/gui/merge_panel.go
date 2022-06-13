@@ -146,17 +146,15 @@ func (gui *Gui) renderConflicts(hasFocus bool) error {
 				return nil
 			}
 
-			gui.centerYPos(gui.Views.Main, state.GetConflictMiddle())
+			gui.centerYPos(gui.Views.Merging, state.GetConflictMiddle())
 			return nil
 		})
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
+		pair: gui.mergingMainContextPair(),
 		main: &viewUpdateOpts{
-			title:   gui.c.Tr.MergeConflictsTitle,
-			task:    NewRenderStringWithoutScrollTask(content),
-			context: gui.State.Contexts.Merging,
-			noWrap:  true,
+			task: NewRenderStringWithoutScrollTask(content),
 		},
 	})
 }
@@ -239,14 +237,14 @@ func (gui *Gui) escapeMerge() error {
 
 	// doing this in separate UI thread so that we're not still holding the lock by the time refresh the file
 	gui.OnUIThread(func() error {
-		return gui.pushContext(gui.State.Contexts.Files)
+		return gui.c.PushContext(gui.State.Contexts.Files)
 	})
 	return nil
 }
 
 func (gui *Gui) renderingConflicts() bool {
 	currentView := gui.g.CurrentView()
-	if currentView != gui.Views.Main && currentView != gui.Views.Files {
+	if currentView != gui.Views.Merging && currentView != gui.Views.Files {
 		return false
 	}
 

@@ -19,7 +19,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/lbl"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
@@ -175,11 +174,8 @@ type GuiRepoState struct {
 	Ptmx              *os.File
 	StartupStage      StartupStage // Allows us to not load everything at once
 
-	MainContext       types.ContextKey // used to keep the main and secondary views' contexts in sync
-	ContextManager    ContextManager
-	Contexts          *context.ContextTree
-	ViewContextMap    *context.ViewContextMap
-	ViewTabContextMap map[string][]context.TabContext
+	ContextManager ContextManager
+	Contexts       *context.ContextTree
 
 	// WindowViewNameMap is a mapping of windows to the current view of that window.
 	// Some views move between windows for example the commitFiles view and when cycling through
@@ -200,14 +196,6 @@ type GuiRepoState struct {
 	CurrentPopupOpts *types.CreatePopupPanelOpts
 }
 
-// for now the staging panel state, unlike the other panel states, is going to be
-// non-mutative, so that we don't accidentally end up
-// with mismatches of data. We might change this in the future
-type LblPanelState struct {
-	*lbl.State
-	SecondaryFocused bool // this is for if we show the left or right panel
-}
-
 type MergingPanelState struct {
 	*mergeconflicts.State
 
@@ -219,8 +207,7 @@ type MergingPanelState struct {
 // as we move things to the new context approach we're going to eventually
 // remove this struct altogether and store this state on the contexts.
 type panelStates struct {
-	LineByLine *LblPanelState
-	Merging    *MergingPanelState
+	Merging *MergingPanelState
 }
 
 type searchingState struct {
@@ -284,7 +271,6 @@ func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 				gui.State.CurrentPopupOpts = nil
 				gui.Mutexes.PopupMutex.Unlock()
 
-				gui.syncViewContexts()
 				return
 			}
 		} else {
@@ -297,10 +283,7 @@ func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 	initialContext := initialContext(contextTree, startArgs)
 	initialScreenMode := initialScreenMode(startArgs)
 
-	viewContextMap := context.NewViewContextMap()
-	for viewName, context := range initialViewContextMapping(contextTree) {
-		viewContextMap.Set(viewName, context)
-	}
+	initialWindowViewNameMap := gui.initialWindowViewNameMap(contextTree)
 
 	gui.State = &GuiRepoState{
 		Model: &types.Model{
@@ -326,15 +309,12 @@ func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 			CherryPicking: cherrypicking.New(),
 			Diffing:       diffing.New(),
 		},
-		ViewContextMap:    viewContextMap,
-		ViewTabContextMap: gui.initialViewTabContextMap(contextTree),
-		ScreenMode:        initialScreenMode,
+		ScreenMode: initialScreenMode,
 		// TODO: put contexts in the context manager
-		ContextManager: NewContextManager(initialContext),
-		Contexts:       contextTree,
+		ContextManager:    NewContextManager(initialContext),
+		Contexts:          contextTree,
+		WindowViewNameMap: initialWindowViewNameMap,
 	}
-
-	gui.syncViewContexts()
 
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
 }
@@ -370,16 +350,6 @@ func initialContext(contextTree *context.ContextTree, startArgs types.StartArgs)
 	return initialContext
 }
 
-func (gui *Gui) syncViewContexts() {
-	for viewName, context := range gui.State.ViewContextMap.Entries() {
-		view, err := gui.g.View(viewName)
-		if err != nil {
-			panic(err)
-		}
-		view.Context = string(context.GetKey())
-	}
-}
-
 // for now the split view will always be on
 // NewGui builds a new gui handler
 func NewGui(
@@ -411,9 +381,9 @@ func NewGui(
 			RefreshingStatusMutex: &sync.Mutex{},
 			SyncMutex:             &sync.Mutex{},
 			LocalCommitsMutex:     &sync.Mutex{},
-			LineByLinePanelMutex:  &sync.Mutex{},
 			SubprocessMutex:       &sync.Mutex{},
 			PopupMutex:            &sync.Mutex{},
+			PtyMutex:              &sync.Mutex{},
 		},
 		InitialDir: initialDir,
 	}
@@ -482,40 +452,40 @@ func (gui *Gui) initGocui() (*gocui.Gui, error) {
 	return g, nil
 }
 
-func (gui *Gui) initialViewTabContextMap(contextTree *context.ContextTree) map[string][]context.TabContext {
-	return map[string][]context.TabContext{
+func (gui *Gui) viewTabMap() map[string][]context.TabView {
+	return map[string][]context.TabView{
 		"branches": {
 			{
-				Tab:     gui.c.Tr.LocalBranchesTitle,
-				Context: contextTree.Branches,
+				Tab:      gui.c.Tr.LocalBranchesTitle,
+				ViewName: "localBranches",
 			},
 			{
-				Tab:     gui.c.Tr.RemotesTitle,
-				Context: contextTree.Remotes,
+				Tab:      gui.c.Tr.RemotesTitle,
+				ViewName: "remotes",
 			},
 			{
-				Tab:     gui.c.Tr.TagsTitle,
-				Context: contextTree.Tags,
+				Tab:      gui.c.Tr.TagsTitle,
+				ViewName: "tags",
 			},
 		},
 		"commits": {
 			{
-				Tab:     gui.c.Tr.CommitsTitle,
-				Context: contextTree.LocalCommits,
+				Tab:      gui.c.Tr.CommitsTitle,
+				ViewName: "commits",
 			},
 			{
-				Tab:     gui.c.Tr.ReflogCommitsTitle,
-				Context: contextTree.ReflogCommits,
+				Tab:      gui.c.Tr.ReflogCommitsTitle,
+				ViewName: "reflogCommits",
 			},
 		},
 		"files": {
 			{
-				Tab:     gui.c.Tr.FilesTitle,
-				Context: contextTree.Files,
+				Tab:      gui.c.Tr.FilesTitle,
+				ViewName: "files",
 			},
 			{
-				Tab:     gui.c.Tr.SubmodulesTitle,
-				Context: contextTree.Submodules,
+				Tab:      gui.c.Tr.SubmodulesTitle,
+				ViewName: "submodules",
 			},
 		},
 	}

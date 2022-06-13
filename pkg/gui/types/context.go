@@ -1,8 +1,11 @@
 package types
 
 import (
+	"sync"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 )
 
 type ContextKind int
@@ -25,6 +28,9 @@ const (
 	EXTRAS_CONTEXT
 	// only used by the one global context, purely for the sake of defining keybindings globally
 	GLOBAL_CONTEXT
+	// a display context only renders a view. It has no keybindings associated and
+	// it cannot receive focus.
+	DISPLAY_CONTEXT
 )
 
 type ParentContexter interface {
@@ -39,6 +45,8 @@ type IBaseContext interface {
 
 	GetKind() ContextKind
 	GetViewName() string
+	GetView() *gocui.View
+	GetViewTrait() IViewTrait
 	GetWindowName() string
 	SetWindowName(string)
 	GetKey() ContextKey
@@ -48,6 +56,9 @@ type IBaseContext interface {
 	// of the same transient context can appear at once meaning one might be 'stolen'
 	// from another window.
 	IsTransient() bool
+	// this tells us if the view's bounds are determined by its window or if they're
+	// determined independently.
+	HasControlledBounds() bool
 
 	// returns the desired title for the view upon activation. If there is no desired title (returns empty string), then
 	// no title will be set
@@ -67,8 +78,8 @@ type IBaseContext interface {
 type Context interface {
 	IBaseContext
 
-	HandleFocus(opts ...OnFocusOpts) error
-	HandleFocusLost() error
+	HandleFocus(opts OnFocusOpts) error
+	HandleFocusLost(opts OnFocusLostOpts) error
 	HandleRender() error
 	HandleRenderToMain() error
 }
@@ -82,8 +93,20 @@ type IListContext interface {
 
 	OnSearchSelect(selectedLineIdx int) error
 	FocusLine()
+}
 
-	GetViewTrait() IViewTrait
+type IPatchExplorerContext interface {
+	Context
+
+	GetState() *patch_exploring.State
+	SetState(*patch_exploring.State)
+	GetIncludedLineIndices() []int
+	RenderAndFocus(isFocused bool) error
+	Render(isFocused bool) error
+	Focus() error
+	GetContentToRender(isFocused bool) string
+	NavigateTo(isFocused bool, selectedLineIdx int) error
+	GetMutex() *sync.Mutex
 }
 
 type IViewTrait interface {
@@ -95,15 +118,20 @@ type IViewTrait interface {
 	ViewPortYBounds() (int, int)
 	ScrollLeft()
 	ScrollRight()
-	ScrollUp()
-	ScrollDown()
+	ScrollUp(value int)
+	ScrollDown(value int)
 	PageDelta() int
 	SelectedLineIdx() int
+	SetHighlight(bool)
 }
 
 type OnFocusOpts struct {
-	ClickedViewName    string
+	ClickedWindowName  string
 	ClickedViewLineIdx int
+}
+
+type OnFocusLostOpts struct {
+	NewContextKey ContextKey
 }
 
 type ContextKey string

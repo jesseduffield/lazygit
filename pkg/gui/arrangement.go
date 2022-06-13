@@ -105,20 +105,13 @@ func (gui *Gui) mainSectionChildren() []*boxlayout.Box {
 		}
 	}
 
-	main := "main"
-	secondary := "secondary"
-	if gui.secondaryViewFocused() {
-		// when you think you've focused the secondary view, we've actually just swapped them around in the layout
-		main, secondary = secondary, main
-	}
-
 	return []*boxlayout.Box{
 		{
-			Window: main,
+			Window: "main",
 			Weight: 1,
 		},
 		{
-			Window: secondary,
+			Window: "secondary",
 			Weight: 1,
 		},
 	}

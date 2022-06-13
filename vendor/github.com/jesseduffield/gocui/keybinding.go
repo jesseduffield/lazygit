@@ -20,7 +20,6 @@ type Modifier tcell.ModMask
 // Keybidings are used to link a given key-press event with a handler.
 type keybinding struct {
 	viewName string
-	contexts []string
 	key      Key
 	ch       rune
 	mod      Modifier
@@ -93,10 +92,9 @@ func MustParseAll(input []string) map[interface{}]Modifier {
 }
 
 // newKeybinding returns a new Keybinding object.
-func newKeybinding(viewname string, contexts []string, key Key, ch rune, mod Modifier, handler func(*Gui, *View) error) (kb *keybinding) {
+func newKeybinding(viewname string, key Key, ch rune, mod Modifier, handler func(*Gui, *View) error) (kb *keybinding) {
 	kb = &keybinding{
 		viewName: viewname,
-		contexts: contexts,
 		key:      key,
 		ch:       ch,
 		mod:      mod,

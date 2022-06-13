@@ -30,13 +30,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Lijstpaneel Navigatie
 
 <pre>
-  <kbd>.</kbd>: volgende pagina
-  <kbd>,</kbd>: vorige pagina
-  <kbd><</kbd>: scroll naar boven
-  <kbd>></kbd>: scroll naar beneden
-  <kbd>/</kbd>: start met zoeken
   <kbd>H</kbd>: scroll left
   <kbd>L</kbd>: scroll right
+  <kbd>,</kbd>: vorige pagina
+  <kbd>.</kbd>: volgende pagina
+  <kbd><</kbd>: scroll naar boven
+  <kbd>/</kbd>: start met zoeken
+  <kbd>></kbd>: scroll naar beneden
   <kbd>]</kbd>: volgende tabblad
   <kbd>[</kbd>: vorige tabblad
 </pre>
@@ -163,17 +163,16 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Patch Bouwen
 
 <pre>
-  <kbd>esc</kbd>: sluit lijn-bij-lijn modus
-  <kbd>o</kbd>: open bestand
-  <kbd>▲</kbd>: selecteer de vorige lijn
-  <kbd>▼</kbd>: selecteer de volgende lijn
   <kbd>◄</kbd>: selecteer de vorige hunk
   <kbd>►</kbd>: selecteer de volgende hunk
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>space</kbd>: voeg toe/verwijder lijn(en) in patch
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>o</kbd>: open bestand
+  <kbd>e</kbd>: verander bestand
+  <kbd>space</kbd>: voeg toe/verwijder lijn(en) in patch
+  <kbd>esc</kbd>: sluit lijn-bij-lijn modus
 </pre>
 
 ## Reflog
@@ -217,20 +216,18 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Staging
 
 <pre>
-  <kbd>esc</kbd>: ga terug naar het bestanden paneel
-  <kbd>space</kbd>: toggle lijnen staged / unstaged
-  <kbd>d</kbd>: verwijdert change (git reset)
-  <kbd>tab</kbd>: ga naar een ander paneel
-  <kbd>o</kbd>: open bestand
-  <kbd>▲</kbd>: selecteer de vorige lijn
-  <kbd>▼</kbd>: selecteer de volgende lijn
   <kbd>◄</kbd>: selecteer de vorige hunk
   <kbd>►</kbd>: selecteer de volgende hunk
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>e</kbd>: verander bestand
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>o</kbd>: open bestand
+  <kbd>e</kbd>: verander bestand
+  <kbd>esc</kbd>: ga terug naar het bestanden paneel
+  <kbd>tab</kbd>: ga naar een ander paneel
+  <kbd>space</kbd>: toggle lijnen staged / unstaged
+  <kbd>d</kbd>: verwijdert change (git reset)
   <kbd>E</kbd>: edit hunk
 </pre>
 

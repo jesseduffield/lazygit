@@ -110,6 +110,7 @@ func (gui *Gui) handleShowAllBranchLogs() error {
 	task := NewRunPtyTask(cmdObj.GetCmd())
 
 	return gui.refreshMainViews(refreshMainOpts{
+		pair: gui.normalMainContextPair(),
 		main: &viewUpdateOpts{
 			title: gui.c.Tr.LogTitle,
 			task:  task,

@@ -18,9 +18,9 @@ func NewStashContext(
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
-	onFocus func(...types.OnFocusOpts) error,
-	onRenderToMain func(...types.OnFocusOpts) error,
-	onFocusLost func() error,
+	onFocus func(types.OnFocusOpts) error,
+	onRenderToMain func() error,
+	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *StashContext {
@@ -30,7 +30,7 @@ func NewStashContext(
 		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				ViewName:   "stash",
+				View:       view,
 				WindowName: "stash",
 				Key:        STASH_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
@@ -41,7 +41,6 @@ func NewStashContext(
 				OnRenderToMain: onRenderToMain,
 			}),
 			list:              viewModel,
-			viewTrait:         NewViewTrait(view),
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,
 		},

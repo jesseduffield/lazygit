@@ -21,11 +21,11 @@ func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 
 	for _, binding := range bindings {
 		if keybindings.GetKeyDisplay(binding.Key) != "" && binding.Description != "" {
-			if len(binding.Contexts) == 0 && binding.ViewName == "" {
+			if binding.ViewName == "" {
 				bindingsGlobal = append(bindingsGlobal, binding)
 			} else if binding.Tag == "navigation" {
 				bindingsNavigation = append(bindingsNavigation, binding)
-			} else if lo.Contains(binding.Contexts, string(context.GetKey())) {
+			} else if binding.ViewName == context.GetViewName() {
 				bindingsPanel = append(bindingsPanel, binding)
 			}
 		}

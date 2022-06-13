@@ -197,7 +197,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 			if err := cmd.Wait(); err != nil {
 				// it's fine if we've killed this program ourselves
 				if !strings.Contains(err.Error(), "signal: killed") {
-					self.Log.Error(err)
+					self.Log.Errorf("Unexpected error when running cmd task: %v", err)
 				}
 			}
 

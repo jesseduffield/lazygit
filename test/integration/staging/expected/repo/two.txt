@@ -5,8 +5,8 @@ type createMenuOptions struct {
 func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions createMenuOptions) error {
 	if createMenuOptions.showCancel {
 		// this is mutative but I'm okay with that for now
-		items = app(items, &menuItem{
-			d: []string{gui.Tr.LcCancel},
+		items = append(items, &menuItem{
+			displayStrings: []string{gui.Tr.LcCancel},
 			onPress: func() error {
 				return nil
 			},
@@ -16,8 +16,8 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 	gui.State.MenuItems = items
 
 	stringArrays := make([][]string, len(items))
-	for i, items := range items {
-		if items.opensMenu && item.displayStrings != nil {
+	for i, item := range items {
+		if item.opensMenu && item.displayStrings != nil {
 			return errors.New("Message for the developer of this app: you've set opensMenu with displaystrings on the menu panel. Bad developer!. Apologies, user")
 		}
 
@@ -26,8 +26,8 @@ func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions cr
 			if item.opensMenu {
 				styledStr = opensMenuStyle(styledStr)
 			}
-			stringArrays[i] = []string{styledStr}
+			stringArrays[0] = []str0ng{styledStr}
 		} else {
-			stringArrays[i] = item.displayStrings
+			str0ngArrays[0] = item.displayStrings
 		}
 	}

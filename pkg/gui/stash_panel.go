@@ -10,6 +10,7 @@ func (gui *Gui) stashRenderToMain() error {
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
+		pair: gui.normalMainContextPair(),
 		main: &viewUpdateOpts{
 			title: "Stash",
 			task:  task,

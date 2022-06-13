@@ -176,7 +176,7 @@ type TranslationSet struct {
 	ToggleSelectHunk                    string
 	ToggleSelectionForPatch             string
 	EditHunk                            string
-	TogglePanel                         string
+	ToggleStagingPanel                  string
 	ReturnToFilesPanel                  string
 	FastForward                         string
 	Fetching                            string
@@ -307,7 +307,7 @@ type TranslationSet struct {
 	PatchOptionsTitle                   string
 	NoPatchError                        string
 	LcEnterFile                         string
-	ExitLineByLineMode                  string
+	ExitCustomPatchBuilder              string
 	EnterUpstream                       string
 	InvalidUpstream                     string
 	ReturnToRemotesList                 string
@@ -503,6 +503,8 @@ type TranslationSet struct {
 	NukeDescription                     string
 	DiscardStagedChangesDescription     string
 	EmptyOutput                         string
+	Patch                               string
+	CustomPatch                         string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -812,7 +814,7 @@ func EnglishTranslationSet() TranslationSet {
 		ToggleSelectHunk:                    `toggle select hunk`,
 		ToggleSelectionForPatch:             `add/remove line(s) to patch`,
 		EditHunk:                            `edit hunk`,
-		TogglePanel:                         `switch to other panel`,
+		ToggleStagingPanel:                  `switch to other panel (staged/unstaged changes)`,
 		ReturnToFilesPanel:                  `return to files panel`,
 		FastForward:                         `fast-forward this branch from its upstream`,
 		Fetching:                            "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
@@ -944,7 +946,7 @@ func EnglishTranslationSet() TranslationSet {
 		PatchOptionsTitle:                   "Patch Options",
 		NoPatchError:                        "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",
 		LcEnterFile:                         "enter file to add selected lines to the patch (or toggle directory collapsed)",
-		ExitLineByLineMode:                  `exit line-by-line mode`,
+		ExitCustomPatchBuilder:              `exit custom patch builder`,
 		EnterUpstream:                       `Enter upstream as '<remote> <branchname>'`,
 		InvalidUpstream:                     "Invalid upstream. Must be in the format '<remote> <branchname>'",
 		ReturnToRemotesList:                 `Return to remotes list`,
@@ -1140,6 +1142,8 @@ func EnglishTranslationSet() TranslationSet {
 		NukeDescription:                     "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
 		DiscardStagedChangesDescription:     "This will create a new stash entry containing only staged files and then drop it, so that the working tree is left with only unstaged changes",
 		EmptyOutput:                         "<empty output>",
+		Patch:                               "Patch",
+		CustomPatch:                         "Custom patch",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

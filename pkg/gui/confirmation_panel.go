@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -221,25 +220,21 @@ func (gui *Gui) setKeyBindings(opts types.CreatePopupPanelOpts) error {
 	bindings := []*types.Binding{
 		{
 			ViewName: "confirmation",
-			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.Confirm),
 			Handler:  onConfirm,
 		},
 		{
 			ViewName: "confirmation",
-			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.ConfirmAlt1),
 			Handler:  onConfirm,
 		},
 		{
 			ViewName: "confirmation",
-			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.Return),
 			Handler:  gui.wrappedConfirmationFunction(opts.HandleClose),
 		},
 		{
 			ViewName: "confirmation",
-			Contexts: []string{string(context.CONFIRMATION_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.TogglePanel),
 			Handler: func() error {
 				if len(gui.State.Suggestions) > 0 {
@@ -250,25 +245,21 @@ func (gui *Gui) setKeyBindings(opts types.CreatePopupPanelOpts) error {
 		},
 		{
 			ViewName: "suggestions",
-			Contexts: []string{string(context.SUGGESTIONS_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.Confirm),
 			Handler:  onSuggestionConfirm,
 		},
 		{
 			ViewName: "suggestions",
-			Contexts: []string{string(context.SUGGESTIONS_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.ConfirmAlt1),
 			Handler:  onSuggestionConfirm,
 		},
 		{
 			ViewName: "suggestions",
-			Contexts: []string{string(context.SUGGESTIONS_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.Return),
 			Handler:  gui.wrappedConfirmationFunction(opts.HandleClose),
 		},
 		{
 			ViewName: "suggestions",
-			Contexts: []string{string(context.SUGGESTIONS_CONTEXT_KEY)},
 			Key:      gui.getKey(keybindingConfig.Universal.TogglePanel),
 			Handler:  func() error { return gui.replaceContext(gui.State.Contexts.Confirmation) },
 		},

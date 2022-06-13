@@ -30,13 +30,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## List Panel Navigation
 
 <pre>
-  <kbd>.</kbd>: next page
-  <kbd>,</kbd>: previous page
-  <kbd><</kbd>: scroll to top
-  <kbd>></kbd>: scroll to bottom
-  <kbd>/</kbd>: start search
   <kbd>H</kbd>: scroll left
   <kbd>L</kbd>: scroll right
+  <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
+  <kbd><</kbd>: scroll to top
+  <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
   <kbd>]</kbd>: next tab
   <kbd>[</kbd>: previous tab
 </pre>
@@ -163,36 +163,33 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Main Panel (Patch Building)
 
 <pre>
-  <kbd>esc</kbd>: exit line-by-line mode
-  <kbd>o</kbd>: open file
-  <kbd>▲</kbd>: select previous line
-  <kbd>▼</kbd>: select next line
   <kbd>◄</kbd>: select previous hunk
   <kbd>►</kbd>: select next hunk
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>space</kbd>: add/remove line(s) to patch
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>o</kbd>: open file
+  <kbd>e</kbd>: edit file
+  <kbd>space</kbd>: add/remove line(s) to patch
+  <kbd>esc</kbd>: exit custom patch builder
 </pre>
 
 ## Main Panel (Staging)
 
 <pre>
-  <kbd>esc</kbd>: return to files panel
-  <kbd>space</kbd>: toggle line staged / unstaged
-  <kbd>d</kbd>: delete change (git reset)
-  <kbd>tab</kbd>: switch to other panel
-  <kbd>o</kbd>: open file
-  <kbd>▲</kbd>: select previous line
-  <kbd>▼</kbd>: select next line
   <kbd>◄</kbd>: select previous hunk
   <kbd>►</kbd>: select next hunk
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>e</kbd>: edit file
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>o</kbd>: open file
+  <kbd>e</kbd>: edit file
+  <kbd>esc</kbd>: return to files panel
+  <kbd>tab</kbd>: switch to other panel (staged/unstaged changes)
+  <kbd>space</kbd>: toggle line staged / unstaged
+  <kbd>d</kbd>: delete change (git reset)
   <kbd>E</kbd>: edit hunk
 </pre>
 

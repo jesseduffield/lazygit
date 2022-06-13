@@ -212,7 +212,7 @@ func polishTranslationSet() TranslationSet {
 		LcStashOptions:                      "Opcje schowka",
 		NotARepository:                      "Błąd: nie jesteś w repozytorium",
 		LcJump:                              "przeskocz do panelu",
-		ExitLineByLineMode:                  `wyście z trybu "linia po linii"`,
+		ExitCustomPatchBuilder:              `wyście z trybu "linia po linii"`,
 		EnterUpstream:                       `Podaj gałąź nadrzędną jako '<remote> <branchname>'`,
 		ReturnToRemotesList:                 `wróć do listy repozytoriów zdalnych`,
 		IgnoreTracked:                       "Ignoruj plik śledzony",

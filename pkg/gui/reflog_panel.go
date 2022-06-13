@@ -12,6 +12,7 @@ func (gui *Gui) reflogCommitsRenderToMain() error {
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
+		pair: gui.normalMainContextPair(),
 		main: &viewUpdateOpts{
 			title: "Reflog Entry",
 			task:  task,

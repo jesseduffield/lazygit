@@ -11,7 +11,7 @@ import (
 
 // this takes something like:
 // * (HEAD detached at 264fc6f5)
-//	remotes
+// remotes
 // and returns '264fc6f5' as the second match
 const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 

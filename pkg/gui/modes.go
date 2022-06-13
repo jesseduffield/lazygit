@@ -34,7 +34,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 			description: func() string {
 				return gui.withResetButton(gui.c.Tr.LcBuildingPatch, style.FgYellow.SetBold())
 			},
-			reset: gui.handleResetPatch,
+			reset: gui.helpers.PatchBuilding.Reset,
 		},
 		{
 			isActive: gui.State.Modes.Filtering.Active,

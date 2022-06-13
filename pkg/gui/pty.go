@@ -5,6 +5,7 @@ package gui
 
 import (
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -19,14 +20,20 @@ func (gui *Gui) desiredPtySize() *pty.Winsize {
 }
 
 func (gui *Gui) onResize() error {
+	gui.Mutexes.PtyMutex.Lock()
+	defer gui.Mutexes.PtyMutex.Unlock()
+
 	if gui.State.Ptmx == nil {
 		return nil
 	}
+
+	gui.Log.Warn("resizing")
 
 	// TODO: handle resizing properly: we need to actually clear the main view
 	// and re-read the output from our pty. Or we could just re-run the original
 	// command from scratch
 	if err := pty.Setsize(gui.State.Ptmx, gui.desiredPtySize()); err != nil {
+		panic(err)
 		return err
 	}
 
@@ -57,20 +64,27 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 	manager := gui.getManager(view)
 
+	var ptmx *os.File
 	start := func() (*exec.Cmd, io.Reader) {
-		ptmx, err := pty.StartWithSize(cmd, gui.desiredPtySize())
+		var err error
+		ptmx, err = pty.StartWithSize(cmd, gui.desiredPtySize())
 		if err != nil {
 			gui.c.Log.Error(err)
 		}
 
+		gui.Mutexes.PtyMutex.Lock()
 		gui.State.Ptmx = ptmx
+		gui.Mutexes.PtyMutex.Unlock()
 
 		return cmd, ptmx
 	}
 
 	onClose := func() {
-		gui.State.Ptmx.Close()
+		gui.Mutexes.PtyMutex.Lock()
+		ptmx.Close()
+		ptmx = nil
 		gui.State.Ptmx = nil
+		gui.Mutexes.PtyMutex.Unlock()
 	}
 
 	if err := manager.NewTask(manager.NewCmdTask(start, prefix, height+oy+10, onClose), cmdStr); err != nil {

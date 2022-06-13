@@ -31,6 +31,7 @@ func (gui *Gui) submodulesRenderToMain() error {
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
+		pair: gui.normalMainContextPair(),
 		main: &viewUpdateOpts{
 			title: "Submodule",
 			task:  task,

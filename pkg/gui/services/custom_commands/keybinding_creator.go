@@ -29,7 +29,7 @@ func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler 
 		return nil, formatContextNotProvidedError(customCommand)
 	}
 
-	viewName, contexts, err := self.getViewNameAndContexts(customCommand)
+	viewName, err := self.getViewNameAndContexts(customCommand)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,6 @@ func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler 
 
 	return &types.Binding{
 		ViewName:    viewName,
-		Contexts:    contexts,
 		Key:         self.getKey(customCommand.Key),
 		Modifier:    gocui.ModNone,
 		Handler:     handler,
@@ -49,22 +48,18 @@ func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler 
 	}, nil
 }
 
-func (self *KeybindingCreator) getViewNameAndContexts(customCommand config.CustomCommand) (string, []string, error) {
+func (self *KeybindingCreator) getViewNameAndContexts(customCommand config.CustomCommand) (string, error) {
 	if customCommand.Context == "global" {
-		return "", nil, nil
+		return "", nil
 	}
 
 	ctx, ok := self.contextForContextKey(types.ContextKey(customCommand.Context))
 	if !ok {
-		return "", nil, formatUnknownContextError(customCommand)
+		return "", formatUnknownContextError(customCommand)
 	}
 
-	// here we assume that a given context will always belong to the same view.
-	// Currently this is a safe bet but it's by no means guaranteed in the long term
-	// and we might need to make some changes in the future to support it.
 	viewName := ctx.GetViewName()
-	contexts := []string{customCommand.Context}
-	return viewName, contexts, nil
+	return viewName, nil
 }
 
 func (self *KeybindingCreator) contextForContextKey(contextKey types.ContextKey) (types.Context, bool) {
