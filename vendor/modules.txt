@@ -30,6 +30,9 @@ github.com/emirpasic/gods/utils
 # github.com/fatih/color v1.9.0
 ## explicit; go 1.13
 github.com/fatih/color
+# github.com/fsmiamoto/git-todo-parser v0.0.2
+## explicit; go 1.13
+github.com/fsmiamoto/git-todo-parser/todo
 # github.com/fsnotify/fsnotify v1.4.7
 ## explicit
 github.com/fsnotify/fsnotify

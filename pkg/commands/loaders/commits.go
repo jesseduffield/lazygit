@@ -1,6 +1,7 @@
 package loaders
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -307,21 +309,23 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 	}
 
 	commits := []*models.Commit{}
-	lines := strings.Split(string(bytesContent), "\n")
 
-	for _, line := range lines {
-		if line == "" || line == "noop" {
-			return commits, nil
-		}
-		if strings.HasPrefix(line, "#") {
+	todos, err := todo.Parse(bytes.NewBuffer(bytesContent))
+	if err != nil {
+		self.Log.Error(fmt.Sprintf("error occurred while parsing git-rebase-todo file: %s", err.Error()))
+		return nil, nil
+	}
+
+	for _, t := range todos {
+		if t.Commit == "" {
+			// Command does not have a commit associated, skip
 			continue
 		}
-		splitLine := strings.Split(line, " ")
 		commits = slices.Prepend(commits, &models.Commit{
-			Sha:    splitLine[1],
-			Name:   strings.Join(splitLine[2:], " "),
+			Sha:    t.Commit,
+			Name:   t.Msg,
 			Status: "rebasing",
-			Action: splitLine[0],
+			Action: t.Command.String(),
 		})
 	}
 

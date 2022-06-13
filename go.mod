@@ -9,6 +9,7 @@ require (
 	github.com/cli/safeexec v1.0.0
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/creack/pty v1.1.11
+	github.com/fsmiamoto/git-todo-parser v0.0.2
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-errors/errors v1.4.2
 	github.com/gookit/color v1.4.2
