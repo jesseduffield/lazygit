@@ -110,7 +110,7 @@ func newRecentReposList(recentRepos []string, currentRepo string) (bool, []strin
 	newRepos := []string{currentRepo}
 	for _, repo := range recentRepos {
 		if repo != currentRepo {
-			if _, err := os.Stat(repo); err != nil {
+			if _, err := os.Stat(filepath.Join(repo, ".git")); err != nil {
 				continue
 			}
 			newRepos = append(newRepos, repo)
