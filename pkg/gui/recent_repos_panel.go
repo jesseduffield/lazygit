@@ -1,24 +1,42 @@
 package gui
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-func (gui *Gui) handleCreateRecentReposMenu() error {
-	recentRepoPaths := gui.c.GetAppState().RecentRepos
+func (gui *Gui) getCurrentBranch(path string) string {
+	if branch, err := gui.os.Cmd.New(
+		fmt.Sprintf("git -C %s rev-parse --abbrev-ref HEAD", gui.os.Quote(path)),
+	).DontLog().RunWithOutput(); err == nil {
+		return strings.Trim(branch, "\n")
+	}
+	return ""
+}
 
-	// we won't show the current repo hence the -1
-	menuItems := slices.Map(recentRepoPaths[1:], func(path string) *types.MenuItem {
+func (gui *Gui) handleCreateRecentReposMenu() error {
+	// we skip the first one because we're currently in it
+	recentRepoPaths := gui.c.GetAppState().RecentRepos[1:]
+
+	menuItems := slices.Map(recentRepoPaths, func(path string) *types.MenuItem {
+		branchName, _ := currentBranches.Load(path)
+		if icons.IsIconEnabled() {
+			branchName = icons.BRANCH_ICON + " " + branchName
+		}
+
 		return &types.MenuItem{
 			LabelColumns: []string{
 				filepath.Base(path),
+				style.FgCyan.Sprint(branchName),
 				style.FgMagenta.Sprint(path),
 			},
 			OnPress: func() error {
