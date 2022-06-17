@@ -109,13 +109,32 @@ func (c *OSCommand) Quote(message string) string {
 // AppendLineToFile adds a new line in file
 func (c *OSCommand) AppendLineToFile(filename, line string) error {
 	c.LogCommand(fmt.Sprintf("Appending '%s' to file '%s'", line, filename), false)
-	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o600)
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0o600)
 	if err != nil {
 		return utils.WrapError(err)
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("\n" + line)
+	info, err := os.Stat(filename)
+	if err != nil {
+		return utils.WrapError(err)
+	}
+
+	// read last char
+	buf := make([]byte, 1)
+	if _, err := f.ReadAt(buf, info.Size()-1); err != nil {
+		return utils.WrapError(err)
+	}
+
+	// if the last byte of the file is not a newline, add it
+	if []byte("\n")[0] != buf[0] {
+		_, err = f.WriteString("\n")
+	}
+
+	if err == nil {
+		_, err = f.WriteString(line + "\n")
+	}
+
 	if err != nil {
 		return utils.WrapError(err)
 	}
