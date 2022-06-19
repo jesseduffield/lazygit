@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.imgur.com/oYB7Cj8.png">
+  <img width="536" src="https://user-images.githubusercontent.com/8456633/174470609-e8295bf4-e5f0-4280-9050-857d89d7e1e4.png">
 </p>
 
 ![CI](https://github.com/jesseduffield/lazygit/workflows/Continuous%20Integration/badge.svg)
