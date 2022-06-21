@@ -71,17 +71,18 @@ type CommitLengthConfig struct {
 }
 
 type GitConfig struct {
-	Paging              PagingConfig                  `yaml:"paging"`
-	Commit              CommitConfig                  `yaml:"commit"`
-	Merging             MergingConfig                 `yaml:"merging"`
-	SkipHookPrefix      string                        `yaml:"skipHookPrefix"`
-	AutoFetch           bool                          `yaml:"autoFetch"`
-	AutoRefresh         bool                          `yaml:"autoRefresh"`
-	BranchLogCmd        string                        `yaml:"branchLogCmd"`
-	AllBranchesLogCmd   string                        `yaml:"allBranchesLogCmd"`
-	OverrideGpg         bool                          `yaml:"overrideGpg"`
-	DisableForcePushing bool                          `yaml:"disableForcePushing"`
-	CommitPrefixes      map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
+	Paging                         PagingConfig                  `yaml:"paging"`
+	Commit                         CommitConfig                  `yaml:"commit"`
+	Merging                        MergingConfig                 `yaml:"merging"`
+	SkipHookPrefix                 string                        `yaml:"skipHookPrefix"`
+	AutoFetch                      bool                          `yaml:"autoFetch"`
+	AutoRefresh                    bool                          `yaml:"autoRefresh"`
+	BranchLogCmd                   string                        `yaml:"branchLogCmd"`
+	AllBranchesLogCmd              string                        `yaml:"allBranchesLogCmd"`
+	SortRemoteBranchesByLastCommit bool                          `yaml:"sortRemoteBranchesByLastCommit"`
+	OverrideGpg                    bool                          `yaml:"overrideGpg"`
+	DisableForcePushing            bool                          `yaml:"disableForcePushing"`
+	CommitPrefixes                 map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
 	// this should really be under 'gui', not 'git'
 	ParseEmoji      bool      `yaml:"parseEmoji"`
 	Log             LogConfig `yaml:"log"`

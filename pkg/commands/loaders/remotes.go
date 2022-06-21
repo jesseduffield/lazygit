@@ -31,7 +31,12 @@ func NewRemoteLoader(
 }
 
 func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
-	remoteBranchesStr, err := self.cmd.New("git branch -r").DontLog().RunWithOutput()
+	remoteBranchesCommand := "git branch -r"
+	if self.Common.UserConfig.Git.SortRemoteBranchesByLastCommit {
+		remoteBranchesCommand = "git for-each-ref --sort=-authordate refs/remotes --format=\"%(refname:lstrip=2)\""
+	}
+
+	remoteBranchesStr, err := self.cmd.New(remoteBranchesCommand).DontLog().RunWithOutput()
 	if err != nil {
 		return nil, err
 	}
