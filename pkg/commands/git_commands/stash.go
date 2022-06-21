@@ -111,6 +111,6 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 }
 
 func (self *StashCommands) StashUntrackedChanges(message string) error {
-	return self.cmd.New("git stash --include-untracked").Run();
+	return self.cmd.New(fmt.Sprintf("git stash save %s --include-untracked", self.cmd.Quote(message))).Run()
 }
 
