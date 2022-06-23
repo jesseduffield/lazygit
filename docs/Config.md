@@ -45,6 +45,7 @@ gui:
       - red
   commitLength:
     show: true
+    warningThreshold: 0
   mouseEvents: true
   skipUnstageLineWarning: false
   skipStashWarning: false

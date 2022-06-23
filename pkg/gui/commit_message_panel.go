@@ -1,11 +1,12 @@
 package gui
 
 import (
-	"strconv"
+	"bufio"
 	"strings"
-
+	"fmt"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 func (gui *Gui) handleCommitMessageFocused() error {
@@ -28,9 +29,27 @@ func (gui *Gui) RenderCommitLength() {
 		return
 	}
 
-	gui.Views.CommitMessage.Subtitle = getBufferLength(gui.Views.CommitMessage)
+	commitLength := getBufferLength(gui.Views.CommitMessage)
+	gui.Views.CommitMessage.Subtitle = fmt.Sprintf(" %d ", commitLength)
+	gui.checkCommitLengthWarning(commitLength)
 }
 
-func getBufferLength(view *gocui.View) string {
-	return " " + strconv.Itoa(strings.Count(view.TextArea.GetContent(), "")-1) + " "
+func getBufferLength(view *gocui.View) int {
+	return strings.Count(view.TextArea.GetContent(), "") - 1
+}
+
+func (gui *Gui) checkCommitLengthWarning(commitLength int) {
+	if gui.c.UserConfig.Gui.CommitLength.WarningThreshold == 0 {
+		return
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(gui.Views.CommitMessage.TextArea.GetContent()))
+
+	for scanner.Scan() {
+		if len(scanner.Text()) > gui.c.UserConfig.Gui.CommitLength.WarningThreshold {
+			gui.Views.CommitMessage.FgColor = gocui.ColorRed
+		} else {
+			gui.Views.CommitMessage.FgColor = theme.GocuiDefaultTextColor
+		}
+	}
 }

@@ -67,7 +67,8 @@ type ThemeConfig struct {
 }
 
 type CommitLengthConfig struct {
-	Show bool `yaml:"show"`
+	Show                bool `yaml:"show"`
+	WarningThreshold int  `yaml:"warningThreshold"`
 }
 
 type GitConfig struct {
@@ -362,7 +363,10 @@ func GetDefaultConfig() *UserConfig {
 				CherryPickedCommitFgColor: []string{"blue"},
 				UnstagedChangesColor:      []string{"red"},
 			},
-			CommitLength:             CommitLengthConfig{Show: true},
+			CommitLength: CommitLengthConfig{
+				Show:                true,
+				WarningThreshold: 0,
+			},
 			SkipNoStagedFilesWarning: false,
 			ShowListFooter:           true,
 			ShowCommandLog:           true,
