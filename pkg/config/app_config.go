@@ -140,6 +140,7 @@ func loadUserConfigWithDefaults(configFiles []string) (*UserConfig, error) {
 
 func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error) {
 	for _, path := range configFiles {
+		path = expandHomeDir(path)
 		if _, err := os.Stat(path); err != nil {
 			if !os.IsNotExist(err) {
 				return nil, err
@@ -173,6 +174,14 @@ func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error)
 	}
 
 	return base, nil
+}
+
+func expandHomeDir(path string) string {
+	if strings.HasPrefix(path, "~/") {
+		home, _ := os.UserHomeDir()
+		path = filepath.Join(home, path[2:])
+	}
+	return path
 }
 
 func (c *AppConfig) GetDebug() bool {
