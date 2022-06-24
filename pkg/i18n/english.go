@@ -155,6 +155,7 @@ type TranslationSet struct {
 	LcEditFile                          string
 	LcOpenFile                          string
 	LcIgnoreFile                        string
+	LcExcludeFile                       string
 	LcRefreshFiles                      string
 	LcMergeIntoCurrentBranch            string
 	ConfirmQuit                         string
@@ -780,6 +781,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcEditFile:                          `edit file`,
 		LcOpenFile:                          `open file`,
 		LcIgnoreFile:                        `add to .gitignore`,
+		LcExcludeFile:                       `add to .git/info/exclude`,
 		LcRefreshFiles:                      `refresh files`,
 		LcMergeIntoCurrentBranch:            `merge into currently checked out branch`,
 		ConfirmQuit:                         `Are you sure you want to quit?`,

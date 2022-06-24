@@ -211,6 +211,7 @@ type KeybindingFilesConfig struct {
 	AmendLastCommit          string `yaml:"amendLastCommit"`
 	CommitChangesWithEditor  string `yaml:"commitChangesWithEditor"`
 	IgnoreFile               string `yaml:"ignoreFile"`
+	ExcludeFile              string `yaml:"excludeFile"`
 	RefreshFiles             string `yaml:"refreshFiles"`
 	StashAllChanges          string `yaml:"stashAllChanges"`
 	ViewStashOptions         string `yaml:"viewStashOptions"`
