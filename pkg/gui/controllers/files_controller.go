@@ -86,9 +86,9 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.LcOpenFile,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.IgnoreFile),
-			Handler:     self.checkSelectedFileNode(self.ignore),
-			Description: self.c.Tr.LcIgnoreFile,
+			Key:         opts.GetKey(opts.Config.Files.IgnoreOrExcludeFile),
+			Handler:     self.checkSelectedFileNode(self.ignoreOrExcludeMenu),
+			Description: self.c.Tr.Actions.IgnoreExcludeFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
@@ -302,57 +302,113 @@ func (self *FilesController) stageAll() error {
 	return self.contexts.Files.HandleFocus()
 }
 
-func (self *FilesController) ignore(node *filetree.FileNode) error {
-	if node.GetPath() == ".gitignore" {
-		return self.c.ErrorMsg("Cannot ignore .gitignore")
-	}
-
-	unstageFiles := func() error {
-		return node.ForEachFile(func(file *models.File) error {
-			if file.HasStagedChanges {
-				if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
-					return err
-				}
+func (self *FilesController) unstageFiles(node *filetree.FileNode) error {
+	return node.ForEachFile(func(file *models.File) error {
+		if file.HasStagedChanges {
+			if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
+				return err
 			}
+		}
 
-			return nil
-		})
-	}
+		return nil
+	})
+}
 
-	if node.GetIsTracked() {
-		return self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.IgnoreTracked,
-			Prompt: self.c.Tr.IgnoreTrackedPrompt,
-			HandleConfirm: func() error {
-				self.c.LogAction(self.c.Tr.Actions.IgnoreFile)
-				// not 100% sure if this is necessary but I'll assume it is
-				if err := unstageFiles(); err != nil {
-					return err
-				}
-
-				if err := self.git.WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
-					return err
-				}
-
-				if err := self.git.WorkingTree.Ignore(node.GetPath()); err != nil {
-					return err
-				}
-				return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-			},
-		})
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.IgnoreFile)
-
-	if err := unstageFiles(); err != nil {
+func (self *FilesController) ignoreOrExcludeTracked(node *filetree.FileNode, trAction string, f func(string) error) error {
+	self.c.LogAction(trAction)
+	// not 100% sure if this is necessary but I'll assume it is
+	if err := self.unstageFiles(node); err != nil {
 		return err
 	}
 
-	if err := self.git.WorkingTree.Ignore(node.GetPath()); err != nil {
-		return self.c.Error(err)
+	if err := self.git.WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
+		return err
+	}
+
+	if err := f(node.GetPath()); err != nil {
+		return err
 	}
 
 	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+}
+
+func (self *FilesController) ignoreOrExcludeUntracked(node *filetree.FileNode, trAction string, f func(string) error) error {
+	self.c.LogAction(trAction)
+
+	if err := f(node.GetPath()); err != nil {
+		return err
+	}
+
+	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+}
+
+func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText string, trPrompt string, trAction string, f func(string) error) error {
+	if node.GetIsTracked() {
+		return self.c.Confirm(types.ConfirmOpts{
+			Title:  trText,
+			Prompt: trPrompt,
+			HandleConfirm: func() error {
+				return self.ignoreOrExcludeTracked(node, trAction, f)
+			},
+		})
+	}
+	return self.ignoreOrExcludeUntracked(node, trAction, f)
+}
+
+func (self *FilesController) ignore(node *filetree.FileNode) error {
+	if node.GetPath() == ".gitignore" {
+		return self.c.ErrorMsg(self.c.Tr.Actions.IgnoreFileErr)
+	}
+	err := self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.git.WorkingTree.Ignore)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (self *FilesController) exclude(node *filetree.FileNode) error {
+	if node.GetPath() == ".git/info/exclude" {
+		return self.c.ErrorMsg(self.c.Tr.Actions.ExcludeFileErr)
+	}
+
+	if node.GetPath() == ".gitignore" {
+		return self.c.ErrorMsg(self.c.Tr.Actions.ExcludeGitIgnoreErr)
+	}
+
+	err := self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.git.WorkingTree.Exclude)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Actions.IgnoreExcludeFile,
+		Items: []*types.MenuItem{
+			{
+				LabelColumns: []string{self.c.Tr.LcIgnoreFile},
+				OnPress: func() error {
+					if err := self.ignore(node); err != nil {
+						return self.c.Error(err)
+					}
+					return nil
+				},
+				Key: 'i',
+			},
+			{
+				LabelColumns: []string{self.c.Tr.LcExcludeFile},
+				OnPress: func() error {
+					if err := self.exclude(node); err != nil {
+						return self.c.Error(err)
+					}
+					return nil
+				},
+				Key: 'e',
+			},
+		},
+	})
 }
 
 func (self *FilesController) HandleWIPCommitPress() error {

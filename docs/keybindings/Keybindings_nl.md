@@ -55,7 +55,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: commit veranderingen met de git editor
   <kbd>e</kbd>: verander bestand
   <kbd>o</kbd>: open bestand
-  <kbd>i</kbd>: voeg toe aan .gitignore
+  <kbd>i</kbd>: Ignore or Exclude file
   <kbd>r</kbd>: refresh bestanden
   <kbd>s</kbd>: stash-bestanden
   <kbd>S</kbd>: bekijk stash opties

@@ -155,6 +155,7 @@ type TranslationSet struct {
 	LcEditFile                          string
 	LcOpenFile                          string
 	LcIgnoreFile                        string
+	LcExcludeFile                       string
 	LcRefreshFiles                      string
 	LcMergeIntoCurrentBranch            string
 	ConfirmQuit                         string
@@ -345,7 +346,9 @@ type TranslationSet struct {
 	NotAGitFlowBranch                   string
 	NewBranchNamePrompt                 string
 	IgnoreTracked                       string
+	ExcludeTracked                      string
 	IgnoreTrackedPrompt                 string
+	ExcludeTrackedPrompt                string
 	LcViewResetToUpstreamOptions        string
 	LcNextScreenMode                    string
 	LcPrevScreenMode                    string
@@ -560,7 +563,12 @@ type Actions struct {
 	UnstageFile                       string
 	UnstageAllFiles                   string
 	StageAllFiles                     string
+	IgnoreExcludeFile                 string
 	IgnoreFile                        string
+	IgnoreFileErr                     string
+	ExcludeFile                       string
+	ExcludeFileErr                    string
+	ExcludeGitIgnoreErr               string
 	Commit                            string
 	EditFile                          string
 	Push                              string
@@ -780,6 +788,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcEditFile:                          `edit file`,
 		LcOpenFile:                          `open file`,
 		LcIgnoreFile:                        `add to .gitignore`,
+		LcExcludeFile:                       `add to .git/info/exclude`,
 		LcRefreshFiles:                      `refresh files`,
 		LcMergeIntoCurrentBranch:            `merge into currently checked out branch`,
 		ConfirmQuit:                         `Are you sure you want to quit?`,
@@ -972,6 +981,8 @@ func EnglishTranslationSet() TranslationSet {
 		NewGitFlowBranchPrompt:              "new {{.branchType}} name:",
 		IgnoreTracked:                       "Ignore tracked file",
 		IgnoreTrackedPrompt:                 "Are you sure you want to ignore a tracked file?",
+		ExcludeTracked:                      "Exclude tracked file",
+		ExcludeTrackedPrompt:                "Are you sure you want to exclude a tracked file?",
 		LcViewResetToUpstreamOptions:        "view upstream reset options",
 		LcNextScreenMode:                    "next screen mode (normal/half/fullscreen)",
 		LcPrevScreenMode:                    "prev screen mode",
@@ -1169,7 +1180,12 @@ func EnglishTranslationSet() TranslationSet {
 			UnstageFile:                       "Unstage file",
 			UnstageAllFiles:                   "Unstage all files",
 			StageAllFiles:                     "Stage all files",
-			IgnoreFile:                        "Ignore file",
+			IgnoreExcludeFile:                 "Ignore or Exclude file",
+			IgnoreFile:                        "Ignore or Exclude file",
+			IgnoreFileErr:                     "Cannot ignore .gitignore",
+			ExcludeFile:                       "Exclude file",
+			ExcludeFileErr:                    "Cannot exclude .git/info/exclude",
+			ExcludeGitIgnoreErr:               "Cannot exclude .gitignore",
 			Commit:                            "Commit",
 			EditFile:                          "Edit file",
 			Push:                              "Push",
