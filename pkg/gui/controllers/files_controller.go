@@ -345,6 +345,7 @@ func (self *FilesController) checkTracking(node *filetree.FileNode, trText strin
 			},
 		})
 	}
+	return nil
 }
 
 func (self *FilesController) ignore(node *filetree.FileNode) error {
