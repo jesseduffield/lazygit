@@ -219,12 +219,12 @@ func (self *WorkingTreeCommands) Omit(filename, destination string) error {
 
 // Ignore adds a file to the gitignore for the repo
 func (self *WorkingTreeCommands) Ignore(filename string) error {
-	return self.Omit(".gitignore", filename)
+	return self.Omit(filename, ".gitignore")
 }
 
 // Exclude adds a file to the .git/info/exclude for the repo
 func (self *WorkingTreeCommands) Exclude(filename string) error {
-	return self.Omit(".git/info/exclude", filename)
+	return self.Omit(filename, ".git/info/exclude")
 }
 
 // WorktreeFileDiff returns the diff of a file
