@@ -91,6 +91,11 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.LcIgnoreFile,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Files.ExcludeFile),
+			Handler:     self.checkSelectedFileNode(self.exclude),
+			Description: self.c.Tr.LcIgnoreFile,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
 			Handler:     self.refresh,
 			Description: self.c.Tr.LcRefreshFiles,
@@ -302,104 +307,64 @@ func (self *FilesController) stageAll() error {
 	return self.contexts.Files.HandleFocus()
 }
 
+func (self *FilesController) unstageFiles(node *filetree.FileNode) error {
+
+	return node.ForEachFile(func(file *models.File) error {
+		if file.HasStagedChanges {
+			if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+func (self *FilesController) checkTracking(node *filetree.FileNode, trText string, trPrompt string, trAction string, f func(string) error) error {
+
+	if node.GetIsTracked() {
+		return self.c.Confirm(types.ConfirmOpts{
+			Title:  trText,
+			Prompt: trPrompt,
+			HandleConfirm: func() error {
+				self.c.LogAction(trAction)
+				// not 100% sure if this is necessary but I'll assume it is
+				if err := self.unstageFiles(node); err != nil {
+					return err
+				}
+
+				if err := self.git.WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
+					return err
+				}
+
+				if err := f(node.GetPath()); err != nil {
+					return err
+				}
+
+				return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+			},
+		})
+	}
+}
+
 func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
 		return self.c.ErrorMsg("Cannot ignore .gitignore")
 	}
 
-	unstageFiles := func() error {
-		return node.ForEachFile(func(file *models.File) error {
-			if file.HasStagedChanges {
-				if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
-					return err
-				}
-			}
+	trakckingErr := self.checkTracking(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreFile, self.git.WorkingTree.Ignore)
 
-			return nil
-		})
-	}
-
-	if node.GetIsTracked() {
-		return self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.IgnoreTracked,
-			Prompt: self.c.Tr.IgnoreTrackedPrompt,
-			HandleConfirm: func() error {
-				self.c.LogAction(self.c.Tr.Actions.IgnoreFile)
-				// not 100% sure if this is necessary but I'll assume it is
-				if err := unstageFiles(); err != nil {
-					return err
-				}
-
-				if err := self.git.WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
-					return err
-				}
-
-				if err := self.git.WorkingTree.Ignore(node.GetPath()); err != nil {
-					return err
-				}
-
-				return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-			},
-		})
+	if trakckingErr != nil {
+		return trakckingErr
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.IgnoreFile)
 
-	if err := unstageFiles(); err != nil {
+	if err := self.unstageFiles(node); err != nil {
 		return err
 	}
 
 	if err := self.git.WorkingTree.Ignore(node.GetPath()); err != nil {
-		return self.c.Error(err)
-	}
-
-	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-}
-
-func (self *FilesController) exclude(node *filetree.FileNode) error {
-
-	unstageFiles := func() error {
-		return node.ForEachFile(func(file *models.File) error {
-			if file.HasStagedChanges {
-				if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
-					return err
-				}
-			}
-
-			return nil
-		})
-	}
-
-	if node.GetIsTracked() {
-		return self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.IgnoreTracked,
-			Prompt: self.c.Tr.IgnoreTrackedPrompt,
-			HandleConfirm: func() error {
-				self.c.LogAction(self.c.Tr.Actions.IgnoreFile)
-				// not 100% sure if this is necessary but I'll assume it is
-				if err := unstageFiles(); err != nil {
-					return err
-				}
-
-				if err := self.git.WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
-					return err
-				}
-
-				if err := self.git.WorkingTree.Exclude(node.GetPath()); err != nil {
-					return err
-				}
-				return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-			},
-		})
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.IgnoreFile)
-
-	if err := unstageFiles(); err != nil {
-		return err
-	}
-
-	if err := self.git.WorkingTree.Exclude(node.GetPath()); err != nil {
 		return self.c.Error(err)
 	}
 

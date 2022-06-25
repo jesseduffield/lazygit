@@ -346,7 +346,9 @@ type TranslationSet struct {
 	NotAGitFlowBranch                   string
 	NewBranchNamePrompt                 string
 	IgnoreTracked                       string
+	ExcludeTracked                      string
 	IgnoreTrackedPrompt                 string
+	ExcludeTrackedPrompt                string
 	LcViewResetToUpstreamOptions        string
 	LcNextScreenMode                    string
 	LcPrevScreenMode                    string
@@ -562,6 +564,7 @@ type Actions struct {
 	UnstageAllFiles                   string
 	StageAllFiles                     string
 	IgnoreFile                        string
+	ExcludeFile                       string
 	Commit                            string
 	EditFile                          string
 	Push                              string
@@ -974,6 +977,8 @@ func EnglishTranslationSet() TranslationSet {
 		NewGitFlowBranchPrompt:              "new {{.branchType}} name:",
 		IgnoreTracked:                       "Ignore tracked file",
 		IgnoreTrackedPrompt:                 "Are you sure you want to ignore a tracked file?",
+		ExcludeTracked:                      "Exclude tracked file",
+		ExcludeTrackedPrompt:                "Are you sure you want to exclude a tracked file?",
 		LcViewResetToUpstreamOptions:        "view upstream reset options",
 		LcNextScreenMode:                    "next screen mode (normal/half/fullscreen)",
 		LcPrevScreenMode:                    "prev screen mode",
@@ -1172,6 +1177,7 @@ func EnglishTranslationSet() TranslationSet {
 			UnstageAllFiles:                   "Unstage all files",
 			StageAllFiles:                     "Stage all files",
 			IgnoreFile:                        "Ignore file",
+			ExcludeFile:                       "Exclude file",
 			Commit:                            "Commit",
 			EditFile:                          "Edit file",
 			Push:                              "Push",
