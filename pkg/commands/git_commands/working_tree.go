@@ -218,11 +218,6 @@ func (self *WorkingTreeCommands) Ignore(filename string) error {
 	return self.os.AppendLineToFile(".gitignore", filename)
 }
 
-// Exclude adds a file to the exclude file for the repo
-func (self *WorkingTreeCommands) Exclude(filename string) error {
-	return self.os.AppendLineToFile(".git/info/exclude", filename)
-}
-
 // WorktreeFileDiff returns the diff of a file
 func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool, cached bool, ignoreWhitespace bool) string {
 	// for now we assume an error means the file was deleted
