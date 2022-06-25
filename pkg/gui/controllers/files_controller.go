@@ -371,6 +371,30 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 }
 
+func (self *FilesController) exclude(node *filetree.FileNode) error {
+	if node.GetPath() == ".git/info/exclude" {
+		return self.c.ErrorMsg("Cannot exclude .git/info/exclude")
+	}
+
+	trakckingErr := self.checkTracking(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.git.WorkingTree.Exclude)
+
+	if trakckingErr != nil {
+		return trakckingErr
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.ExcludeFile)
+
+	if err := self.unstageFiles(node); err != nil {
+		return err
+	}
+
+	if err := self.git.WorkingTree.Exclude(node.GetPath()); err != nil {
+		return self.c.Error(err)
+	}
+
+	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+}
+
 func (self *FilesController) HandleWIPCommitPress() error {
 	skipHookPrefix := self.c.UserConfig.Git.SkipHookPrefix
 	if skipHookPrefix == "" {
