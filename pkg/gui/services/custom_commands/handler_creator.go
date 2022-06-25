@@ -80,8 +80,12 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 				f = func() error {
 					return self.menuPromptFromCommand(resolvedPrompt, wrappedF)
 				}
+			case "confirm":
+				f = func() error {
+					return self.confirmPrompt(resolvedPrompt, g)
+				}
 			default:
-				return self.c.ErrorMsg("custom command prompt must have a type of 'input', 'menu' or 'menuFromCommand'")
+				return self.c.ErrorMsg("custom command prompt must have a type of 'input', 'menu', 'menuFromCommand', or 'confirm'")
 			}
 		}
 
@@ -110,6 +114,14 @@ func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrapp
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{Title: prompt.Title, Items: menuItems})
+}
+
+func (self *HandlerCreator) confirmPrompt(prompt *config.CustomCommandPrompt, handleConfirm func() error) error {
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:         prompt.Title,
+		Prompt:        prompt.Body,
+		HandleConfirm: handleConfirm,
+	})
 }
 
 func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {

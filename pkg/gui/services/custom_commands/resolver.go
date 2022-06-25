@@ -34,6 +34,11 @@ func (self *Resolver) resolvePrompt(
 		return nil, err
 	}
 
+	result.Body, err = resolveTemplate(prompt.Body)
+	if err != nil {
+		return nil, err
+	}
+
 	result.Command, err = resolveTemplate(prompt.Command)
 	if err != nil {
 		return nil, err
