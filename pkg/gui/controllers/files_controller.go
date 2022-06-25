@@ -93,7 +93,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Key:         opts.GetKey(opts.Config.Files.ExcludeFile),
 			Handler:     self.checkSelectedFileNode(self.exclude),
-			Description: self.c.Tr.LcIgnoreFile,
+			Description: self.c.Tr.LcExcludeFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
