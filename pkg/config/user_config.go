@@ -489,6 +489,7 @@ func GetDefaultConfig() *UserConfig {
 				AmendLastCommit:          "A",
 				CommitChangesWithEditor:  "C",
 				IgnoreFile:               "i",
+				ExcludeFile:              "I",
 				RefreshFiles:             "r",
 				StashAllChanges:          "s",
 				ViewStashOptions:         "S",
