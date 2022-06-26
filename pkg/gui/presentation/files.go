@@ -12,11 +12,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-const (
-	EXPANDED_ARROW  = "▼"
-	COLLAPSED_ARROW = "►"
-)
-
 // keeping these here as individual constants in case later on people want the old tree shape
 const (
 	INNER_ITEM = "  "
@@ -86,12 +81,12 @@ func renderAux(
 	}
 
 	if collapsedPaths.IsCollapsed(s.GetPath()) {
-		return []string{prefix + COLLAPSED_ARROW + " " + renderLine(s, depth)}
+		return []string{prefix + icons.EXPANDED_DIR_ARROW_ICON + " " + renderLine(s, depth)}
 	}
 
 	arr := []string{}
 	if !isRoot {
-		arr = append(arr, prefix+EXPANDED_ARROW+" "+renderLine(s, depth))
+		arr = append(arr, prefix+icons.EXPANDED_DIR_ARROW_ICON+" "+renderLine(s, depth))
 	}
 
 	newPrefix := prefix

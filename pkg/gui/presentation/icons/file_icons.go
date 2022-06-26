@@ -11,6 +11,11 @@ const (
 	DEFAULT_DIRECTORY_ICON = "\uf114" // 
 )
 
+const (
+	EXPANDED_DIR_ARROW_ICON  = "\ufc96" // ﲖ
+	COLLAPSED_DIR_ARROW_ICON = "\ufc94" // ﲔ
+)
+
 var nameIconMap = map[string]string{
 	".Trash":             "\uf1f8", // 
 	".atom":              "\ue764", // 
