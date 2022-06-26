@@ -353,10 +353,10 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 		return self.c.ErrorMsg("Cannot ignore .gitignore")
 	}
 
-	trakckingErr := self.checkTracking(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreFile, self.git.WorkingTree.Ignore)
+	trackingErr := self.checkTracking(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreFile, self.git.WorkingTree.Ignore)
 
-	if trakckingErr != nil {
-		return trakckingErr
+	if trackingErr != nil {
+		return trackingErr
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.IgnoreFile)
@@ -377,10 +377,10 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 		return self.c.ErrorMsg("Cannot exclude .git/info/exclude")
 	}
 
-	trakckingErr := self.checkTracking(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.git.WorkingTree.Exclude)
+	trackingErr := self.checkTracking(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.git.WorkingTree.Exclude)
 
-	if trakckingErr != nil {
-		return trakckingErr
+	if trackingErr != nil {
+		return trackingErr
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.ExcludeFile)
