@@ -82,7 +82,7 @@ func GetBranchTextStyle(name string) style.TextStyle {
 }
 
 func ColoredBranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
-	colour := style.FgYellow
+	colour := style.FgCyan
 	if branch.UpstreamGone {
 		colour = style.FgRed
 	} else if branch.MatchesUpstream() {

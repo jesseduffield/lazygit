@@ -330,7 +330,7 @@ func getShaColor(
 	shaColor := theme.DefaultTextColor
 	switch commit.Status {
 	case "unpushed":
-		shaColor = style.FgRed
+		shaColor = style.FgCyan
 	case "pushed":
 		shaColor = style.FgYellow
 	case "merged":
