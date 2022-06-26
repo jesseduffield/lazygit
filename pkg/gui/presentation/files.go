@@ -157,9 +157,10 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 				secondChar = icons.IconForChangeStatus(secondChar)
 			} else {
 				if firstChar == " " {
-					firstChar = "  "	
+					firstChar = "  "
 				} else {
-					firstChar = icons.STAGED_FILE_ICON
+					firstChar = icons.IconForChangeStatus(firstChar)
+					firstChar = firstChar + " "
 				}
 				secondChar = icons.IconForChangeStatus(secondChar)
 			}
