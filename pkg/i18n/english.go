@@ -563,6 +563,7 @@ type Actions struct {
 	UnstageFile                       string
 	UnstageAllFiles                   string
 	StageAllFiles                     string
+	IgnoreExcludeFile                 string
 	IgnoreFile                        string
 	ExcludeFile                       string
 	Commit                            string
@@ -1176,7 +1177,8 @@ func EnglishTranslationSet() TranslationSet {
 			UnstageFile:                       "Unstage file",
 			UnstageAllFiles:                   "Unstage all files",
 			StageAllFiles:                     "Stage all files",
-			IgnoreFile:                        "Ignore file",
+			IgnoreExcludeFile:                 "Ignore or Exclude file",
+			IgnoreFile:                        "Ignore or Exclude file",
 			ExcludeFile:                       "Exclude file",
 			Commit:                            "Commit",
 			EditFile:                          "Edit file",

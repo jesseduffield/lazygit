@@ -536,7 +536,7 @@ func koreanTranslationSet() TranslationSet {
 			UnstageFile:                       "Unstage file",
 			UnstageAllFiles:                   "Unstage all files",
 			StageAllFiles:                     "Stage all files",
-			IgnoreFile:                        "Ignore file",
+			IgnoreExcludeFile:                 "Ignore file",
 			Commit:                            "커밋",
 			EditFile:                          "파일 수정",
 			Push:                              "푸시",

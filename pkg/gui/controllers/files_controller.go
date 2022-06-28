@@ -86,14 +86,9 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.LcOpenFile,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.IgnoreFile),
-			Handler:     self.checkSelectedFileNode(self.ignore),
-			Description: self.c.Tr.LcIgnoreFile,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Files.ExcludeFile),
-			Handler:     self.checkSelectedFileNode(self.exclude),
-			Description: self.c.Tr.LcExcludeFile,
+			Key:         opts.GetKey(opts.Config.Files.IgnoreOrExcludeFile),
+			Handler:     self.checkSelectedFileNode(self.ignoreOrExcludeMenu),
+			Description: self.c.Tr.Actions.IgnoreExcludeFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
@@ -353,13 +348,13 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 		return self.c.ErrorMsg("Cannot ignore .gitignore")
 	}
 
-	trackingErr := self.checkTracking(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreFile, self.git.WorkingTree.Ignore)
+	trackingErr := self.checkTracking(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.git.WorkingTree.Ignore)
 
 	if trackingErr != nil {
 		return trackingErr
 	}
 
-	self.c.LogAction(self.c.Tr.Actions.IgnoreFile)
+	self.c.LogAction(self.c.Tr.Actions.IgnoreExcludeFile)
 
 	if err := self.unstageFiles(node); err != nil {
 		return err
@@ -394,6 +389,33 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 	}
 
 	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+}
+
+func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.Actions.IgnoreExcludeFile,
+		Items: []*types.MenuItem{
+			{
+				LabelColumns: []string{self.c.Tr.LcIgnoreFile},
+				OnPress: func() error {
+					if err := self.ignore(node); err != nil {
+						return self.c.Error(err)
+					}
+					return nil
+				},
+				Key: 'i',
+			},
+			{
+				LabelColumns: []string{self.c.Tr.LcExcludeFile},
+				OnPress: func() error {
+					if err := self.exclude(node); err != nil {
+						return self.c.Error(err)
+					}
+					return nil
+				},
+				Key: 'e',
+			}},
+	})
 }
 
 func (self *FilesController) HandleWIPCommitPress() error {
