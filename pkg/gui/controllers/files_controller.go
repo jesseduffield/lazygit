@@ -343,12 +343,9 @@ func (self *FilesController) checkTracking(node *filetree.FileNode, trText strin
 	return nil, false
 }
 
-func (self *FilesController) ignore(node *filetree.FileNode) error {
-	if node.GetPath() == ".gitignore" {
-		return self.c.ErrorMsg("Cannot ignore .gitignore")
-	}
+func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText string, trPrompt string, trAction string, f func(string) error) error {
 
-	trackingErr, earlyExit := self.checkTracking(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.git.WorkingTree.Ignore)
+	trackingErr, earlyExit := self.checkTracking(node, trText, trPrompt, trAction, f)
 
 	if trackingErr != nil {
 		return trackingErr
@@ -358,17 +355,29 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 		return nil
 	}
 
-	self.c.LogAction(self.c.Tr.Actions.IgnoreExcludeFile)
+	self.c.LogAction(trAction)
 
 	if err := self.unstageFiles(node); err != nil {
 		return err
 	}
 
-	if err := self.git.WorkingTree.Ignore(node.GetPath()); err != nil {
+	if err := f(node.GetPath()); err != nil {
 		return self.c.Error(err)
 	}
 
 	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+}
+
+func (self *FilesController) ignore(node *filetree.FileNode) error {
+	if node.GetPath() == ".gitignore" {
+		return self.c.ErrorMsg("Cannot ignore .gitignore")
+	}
+	err := self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.git.WorkingTree.Ignore)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (self *FilesController) exclude(node *filetree.FileNode) error {
@@ -380,27 +389,12 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 		return self.c.ErrorMsg("Cannot exclude .gitignore")
 	}
 
-	trackingErr, earlyExit := self.checkTracking(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.git.WorkingTree.Exclude)
-
-	if trackingErr != nil {
-		return trackingErr
-	}
-
-	if earlyExit {
-		return nil
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.ExcludeFile)
-
-	if err := self.unstageFiles(node); err != nil {
+	err := self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.git.WorkingTree.Exclude)
+	if err != nil {
 		return err
 	}
+	return nil
 
-	if err := self.git.WorkingTree.Exclude(node.GetPath()); err != nil {
-		return self.c.Error(err)
-	}
-
-	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
 }
 
 func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
