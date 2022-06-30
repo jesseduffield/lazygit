@@ -213,18 +213,15 @@ func (self *WorkingTreeCommands) DiscardUnstagedFileChanges(file *models.File) e
 	return self.cmd.New("git checkout -- " + quotedFileName).Run()
 }
 
-func (self *WorkingTreeCommands) Omit(filename, destination string) error {
-	return self.os.AppendLineToFile(destination, filename)
-}
-
 // Ignore adds a file to the gitignore for the repo
 func (self *WorkingTreeCommands) Ignore(filename string) error {
-	return self.Omit(filename, ".gitignore")
+	return self.os.AppendLineToFile(".gitignore", filename)
 }
 
 // Exclude adds a file to the .git/info/exclude for the repo
 func (self *WorkingTreeCommands) Exclude(filename string) error {
-	return self.Omit(filename, ".git/info/exclude")
+	return self.os.AppendLineToFile(".git/info/exclude", filename)
+
 }
 
 // WorktreeFileDiff returns the diff of a file
