@@ -173,12 +173,20 @@ func (app *App) setupRepo() (bool, error) {
 
 		shouldInitRepo := true
 		notARepository := app.UserConfig.NotARepository
+		initialBranch := ""
 		if notARepository == "prompt" {
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)
 			response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 			if strings.Trim(response, " \r\n") != "y" {
 				shouldInitRepo = false
+			} else {
+				// Ask for the initial branch name
+				fmt.Print(app.Tr.InitialBranch)
+				response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+				if trimmedResponse := strings.Trim(response, " \r\n"); len(trimmedResponse) > 0 {
+					initialBranch += "--initial-branch=" + trimmedResponse
+				}
 			}
 		} else if notARepository == "skip" {
 			shouldInitRepo = false
@@ -197,7 +205,7 @@ func (app *App) setupRepo() (bool, error) {
 			fmt.Println(app.Tr.NoRecentRepositories)
 			os.Exit(1)
 		}
-		if err := app.OSCommand.Cmd.New("git init").Run(); err != nil {
+		if err := app.OSCommand.Cmd.New("git init " + initialBranch).Run(); err != nil {
 			return false, err
 		}
 	}
