@@ -316,7 +316,7 @@ type CustomCommandPrompt struct {
 	Type  string `yaml:"type"` // one of 'input', 'menu', or 'confirm'
 	Title string `yaml:"title"`
 
-	// this only apply to prompts
+	// this only apply to input prompts
 	InitialValue string `yaml:"initialValue"`
 
 	// this only applies to confirm prompts
