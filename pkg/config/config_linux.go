@@ -12,13 +12,12 @@ func isWSL() bool {
 
 // GetPlatformDefaultConfig gets the defaults for the platform
 func GetPlatformDefaultConfig() OSConfig {
-
 	if isWSL() {
 		return OSConfig{
 			EditCommand:         ``,
 			EditCommandTemplate: "",
 			OpenCommand:         `powershell.exe start explorer.exe {{filename}} >/dev/null`,
-			OpenLinkCommand:     `powershell.exe start  {{link}} >/dev/null`,
+			OpenLinkCommand:     `powershell.exe start {{link}} >/dev/null`,
 		}
 	}
 
