@@ -303,7 +303,6 @@ func (self *FilesController) stageAll() error {
 }
 
 func (self *FilesController) unstageFiles(node *filetree.FileNode) error {
-
 	return node.ForEachFile(func(file *models.File) error {
 		if file.HasStagedChanges {
 			if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
@@ -331,7 +330,6 @@ func (self *FilesController) ignoreOrExcludeTracked(node *filetree.FileNode, trA
 	}
 
 	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-
 }
 
 func (self *FilesController) ignoreOrExcludeUntracked(node *filetree.FileNode, trAction string, f func(string) error) error {
@@ -342,11 +340,9 @@ func (self *FilesController) ignoreOrExcludeUntracked(node *filetree.FileNode, t
 	}
 
 	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-
 }
 
 func (self *FilesController) ignoreOrExcludeFile(node *filetree.FileNode, trText string, trPrompt string, trAction string, f func(string) error) error {
-
 	if node.GetIsTracked() {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  trText,
@@ -385,7 +381,6 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 		return err
 	}
 	return nil
-
 }
 
 func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
@@ -411,7 +406,8 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 					return nil
 				},
 				Key: 'e',
-			}},
+			},
+		},
 	})
 }
 
