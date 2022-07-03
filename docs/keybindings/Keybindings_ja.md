@@ -161,7 +161,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: gitエディタを使用して変更をコミット
   <kbd>e</kbd>: ファイルを編集
   <kbd>o</kbd>: ファイルを開く
-  <kbd>i</kbd>: .gitignoreに追加
+  <kbd>i</kbd>: ファイルをignore
   <kbd>r</kbd>: ファイルをリフレッシュ
   <kbd>s</kbd>: 変更をstash
   <kbd>S</kbd>: view stash options

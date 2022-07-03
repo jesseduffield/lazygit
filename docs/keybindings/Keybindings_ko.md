@@ -280,7 +280,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: Git 편집기를 사용하여 변경 내용을 커밋합니다.
   <kbd>e</kbd>: 파일 편집
   <kbd>o</kbd>: 파일 닫기
-  <kbd>i</kbd>: .gitignore에 추가
+  <kbd>i</kbd>: Ignore file
   <kbd>r</kbd>: 파일 새로고침
   <kbd>s</kbd>: 변경사항을 Stash
   <kbd>S</kbd>: Stash 옵션 보기
