@@ -773,7 +773,7 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.LcStashIncludeUntrackedChanges,
 				OnPress: func() error {
-					return self.handleStashSave(self.git.Stash.StashUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges, self.c.Tr.NoFilesToStash)
+					return self.handleStashSave(self.git.Stash.StashIncludeUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges, self.c.Tr.NoFilesToStash)
 				},
 				Key: 'U',
 			},
