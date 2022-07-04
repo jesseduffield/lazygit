@@ -221,7 +221,6 @@ func (self *WorkingTreeCommands) Ignore(filename string) error {
 // Exclude adds a file to the .git/info/exclude for the repo
 func (self *WorkingTreeCommands) Exclude(filename string) error {
 	return self.os.AppendLineToFile(".git/info/exclude", filename)
-
 }
 
 // WorktreeFileDiff returns the diff of a file
