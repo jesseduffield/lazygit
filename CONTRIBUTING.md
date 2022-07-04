@@ -6,6 +6,10 @@ When contributing to this repository, please first discuss the change you wish
 to make via issue, email, or any other method with the owners of this repository
 before making a change.
 
+## PR walkthrough
+
+[This video](https://www.youtube.com/watch?v=kNavnhzZHtk) walks through the process of adding a small feature to lazygit. If you have no idea where to start, watching that video is a good first step.
+
 ## All code changes happen through Pull Requests
 
 Pull requests are the best way to propose changes to the codebase. We actively
