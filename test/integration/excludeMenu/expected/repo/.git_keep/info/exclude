@@ -4,5 +4,6 @@
 # exclude patterns (uncomment them if you want to use them):
 # *.[oa]
 # *~
+.DS_Store
 
 myfile1
