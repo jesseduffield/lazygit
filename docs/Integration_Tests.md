@@ -31,6 +31,11 @@ git add .
 git commit -am "myfile1"
 ```
 
+Be sure to:
+
+- ensure that by the end of the test you've got at least one commit in the repo, as we've had issues in the past when that wasn't the case.
+- set the git user email and name as above so that your own user details aren't included in the snapshot.
+
 ## Running tests
 
 ### From a TUI

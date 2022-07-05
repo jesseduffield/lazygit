@@ -126,7 +126,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: Zatwierdź zmiany używając edytora
   <kbd>e</kbd>: edytuj plik
   <kbd>o</kbd>: otwórz plik
-  <kbd>i</kbd>: dodaj do .gitignore
+  <kbd>i</kbd>: Ignore or Exclude file
   <kbd>r</kbd>: odśwież pliki
   <kbd>s</kbd>: przechowaj zmiany
   <kbd>S</kbd>: wyświetl opcje schowka

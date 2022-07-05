@@ -137,7 +137,7 @@ func RunTests(
 						return err
 					}
 
-					if err := renameGitDirs(expectedDir); err != nil {
+					if err := renameSpecialPaths(expectedDir); err != nil {
 						return err
 					}
 
@@ -441,7 +441,7 @@ func generateSnapshots(actualDir string, expectedDir string) (string, string, er
 		return "", "", err
 	}
 
-	if err := restoreGitDirs(expectedDirCopyDir); err != nil {
+	if err := restoreSpecialPaths(expectedDirCopyDir); err != nil {
 		return "", "", err
 	}
 
@@ -458,7 +458,7 @@ func generateSnapshots(actualDir string, expectedDir string) (string, string, er
 	return actual, expected, nil
 }
 
-func getPathsToRename(dir string, needle string) []string {
+func getPathsToRename(dir string, needle string, contains string) []string {
 	pathsToRename := []string{}
 
 	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
@@ -466,7 +466,7 @@ func getPathsToRename(dir string, needle string) []string {
 			return err
 		}
 
-		if f.Name() == needle {
+		if f.Name() == needle && (contains == "" || strings.Contains(path, contains)) {
 			pathsToRename = append(pathsToRename, path)
 		}
 
@@ -479,14 +479,22 @@ func getPathsToRename(dir string, needle string) []string {
 	return pathsToRename
 }
 
-// Git refuses to track .git and .gitmodules folders in subdirectories so we need to rename it
-// to git_keep after running a test, and then change it back again
-var untrackedGitDirs []string = []string{".git", ".gitmodules"}
+var specialPathMappings = []struct{ original, new, contains string }{
+	// git refuses to track .git or .gitmodules in subdirectories so we need to rename them
+	{".git", ".git_keep", ""},
+	{".gitmodules", ".gitmodules_keep", ""},
+	// we also need git to ignore the contents of our test gitignore files so that
+	// we actually commit files that are ignored within the test.
+	{".gitignore", "lg_ignore_file", ""},
+	// this is the .git/info/exclude file. We're being a little more specific here
+	// so that we don't accidentally mess with some other file named 'exclude' in the test.
+	{"exclude", "lg_exclude_file", ".git/info/exclude"},
+}
 
-func renameGitDirs(dir string) error {
-	for _, untrackedGitDir := range untrackedGitDirs {
-		for _, path := range getPathsToRename(dir, untrackedGitDir) {
-			err := os.Rename(path, path+"_keep")
+func renameSpecialPaths(dir string) error {
+	for _, specialPath := range specialPathMappings {
+		for _, path := range getPathsToRename(dir, specialPath.original, specialPath.contains) {
+			err := os.Rename(path, filepath.Join(filepath.Dir(path), specialPath.new))
 			if err != nil {
 				return err
 			}
@@ -496,10 +504,10 @@ func renameGitDirs(dir string) error {
 	return nil
 }
 
-func restoreGitDirs(dir string) error {
-	for _, untrackedGitDir := range untrackedGitDirs {
-		for _, path := range getPathsToRename(dir, untrackedGitDir+"_keep") {
-			err := os.Rename(path, strings.TrimSuffix(path, "_keep"))
+func restoreSpecialPaths(dir string) error {
+	for _, specialPath := range specialPathMappings {
+		for _, path := range getPathsToRename(dir, specialPath.new, specialPath.contains) {
+			err := os.Rename(path, filepath.Join(filepath.Dir(path), specialPath.original))
 			if err != nil {
 				return err
 			}

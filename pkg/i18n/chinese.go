@@ -507,7 +507,7 @@ func chineseTranslationSet() TranslationSet {
 			UnstageFile:                       "取消暂存文件",
 			UnstageAllFiles:                   "取消暂存所有文件",
 			StageAllFiles:                     "暂存所有文件",
-			IgnoreFile:                        "忽略文件",
+			IgnoreExcludeFile:                 "忽略文件",
 			Commit:                            "提交 (Commit)",
 			EditFile:                          "编辑文件",
 			Push:                              "推送 (Push)",

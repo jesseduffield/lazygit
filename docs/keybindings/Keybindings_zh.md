@@ -167,7 +167,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
   <kbd>e</kbd>: 编辑文件
   <kbd>o</kbd>: 打开文件
-  <kbd>i</kbd>: 添加到 .gitignore
+  <kbd>i</kbd>: 忽略文件
   <kbd>r</kbd>: 刷新文件
   <kbd>s</kbd>: 将所有更改加入贮藏
   <kbd>S</kbd>: 查看贮藏选项
