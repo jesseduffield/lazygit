@@ -16,6 +16,7 @@ jobs:
         with:
           token: ${{ secrets.SPONSORS_TOKEN }}
           file: 'README.md'
+        if: ${{ github.repository == 'jesseduffield/lazygit' }}
 
       - name: Commit and push if changed
         run: |-
