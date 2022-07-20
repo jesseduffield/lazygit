@@ -25,6 +25,10 @@ func NewStashCommands(
 	}
 }
 
+func (self *StashCommands) DropNewest() error {
+	return self.cmd.New("git stash drop").Run()
+}
+
 func (self *StashCommands) Drop(index int) error {
 	return self.cmd.New(fmt.Sprintf("git stash drop stash@{%d}", index)).Run()
 }

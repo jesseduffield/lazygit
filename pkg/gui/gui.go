@@ -249,7 +249,7 @@ type guiMutexes struct {
 	PopupMutex            *sync.Mutex
 }
 
-func (gui *Gui) onNewRepo(filterPath string, reuseState bool) error {
+func (gui *Gui) onNewRepo(startArgs types.StartArgs, reuseState bool) error {
 	var err error
 	gui.git, err = commands.NewGitCommand(
 		gui.Common,
@@ -261,7 +261,7 @@ func (gui *Gui) onNewRepo(filterPath string, reuseState bool) error {
 		return err
 	}
 
-	gui.resetState(filterPath, reuseState)
+	gui.resetState(startArgs, reuseState)
 
 	gui.resetControllers()
 
@@ -281,7 +281,7 @@ func (gui *Gui) onNewRepo(filterPath string, reuseState bool) error {
 // it gets a bit confusing to land back in the status panel when visiting a repo
 // you've already switched from. There's no doubt some easy way to make the UX
 // optimal for all cases but I'm too lazy to think about what that is right now
-func (gui *Gui) resetState(filterPath string, reuseState bool) {
+func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 	currentDir, err := os.Getwd()
 
 	if reuseState {
@@ -306,12 +306,8 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 
 	contextTree := gui.contextTree()
 
-	screenMode := SCREEN_NORMAL
-	var initialContext types.IListContext = contextTree.Files
-	if filterPath != "" {
-		screenMode = SCREEN_HALF
-		initialContext = contextTree.LocalCommits
-	}
+	initialContext := initialContext(contextTree, startArgs)
+	initialScreenMode := initialScreenMode(startArgs)
 
 	viewContextMap := context.NewViewContextMap()
 	for viewName, context := range initialViewContextMapping(contextTree) {
@@ -338,13 +334,13 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 		},
 		Ptmx: nil,
 		Modes: &types.Modes{
-			Filtering:     filtering.New(filterPath),
+			Filtering:     filtering.New(startArgs.FilterPath),
 			CherryPicking: cherrypicking.New(),
 			Diffing:       diffing.New(),
 		},
 		ViewContextMap:    viewContextMap,
-		ViewTabContextMap: contextTree.InitialViewTabContextMap(),
-		ScreenMode:        screenMode,
+		ViewTabContextMap: gui.initialViewTabContextMap(contextTree),
+		ScreenMode:        initialScreenMode,
 		// TODO: put contexts in the context manager
 		ContextManager: NewContextManager(initialContext),
 		Contexts:       contextTree,
@@ -353,6 +349,37 @@ func (gui *Gui) resetState(filterPath string, reuseState bool) {
 	gui.syncViewContexts()
 
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
+}
+
+func initialScreenMode(startArgs types.StartArgs) WindowMaximisation {
+	if startArgs.FilterPath != "" || startArgs.GitArg != types.GitArgNone {
+		return SCREEN_HALF
+	} else {
+		return SCREEN_NORMAL
+	}
+}
+
+func initialContext(contextTree *context.ContextTree, startArgs types.StartArgs) types.IListContext {
+	var initialContext types.IListContext = contextTree.Files
+
+	if startArgs.FilterPath != "" {
+		initialContext = contextTree.LocalCommits
+	} else if startArgs.GitArg != types.GitArgNone {
+		switch startArgs.GitArg {
+		case types.GitArgStatus:
+			initialContext = contextTree.Files
+		case types.GitArgBranch:
+			initialContext = contextTree.Branches
+		case types.GitArgLog:
+			initialContext = contextTree.LocalCommits
+		case types.GitArgStash:
+			initialContext = contextTree.Stash
+		default:
+			panic("unhandled git arg")
+		}
+	}
+
+	return initialContext
 }
 
 func (gui *Gui) syncViewContexts() {
@@ -466,8 +493,47 @@ func (gui *Gui) initGocui() (*gocui.Gui, error) {
 	return g, nil
 }
 
+func (gui *Gui) initialViewTabContextMap(contextTree *context.ContextTree) map[string][]context.TabContext {
+	return map[string][]context.TabContext{
+		"branches": {
+			{
+				Tab:     gui.c.Tr.LocalBranchesTitle,
+				Context: contextTree.Branches,
+			},
+			{
+				Tab:     gui.c.Tr.RemotesTitle,
+				Context: contextTree.Remotes,
+			},
+			{
+				Tab:     gui.c.Tr.TagsTitle,
+				Context: contextTree.Tags,
+			},
+		},
+		"commits": {
+			{
+				Tab:     gui.c.Tr.CommitsTitle,
+				Context: contextTree.LocalCommits,
+			},
+			{
+				Tab:     gui.c.Tr.ReflogCommitsTitle,
+				Context: contextTree.ReflogCommits,
+			},
+		},
+		"files": {
+			{
+				Tab:     gui.c.Tr.FilesTitle,
+				Context: contextTree.Files,
+			},
+			{
+				Tab:     gui.c.Tr.SubmodulesTitle,
+				Context: contextTree.Submodules,
+			},
+		},
+	}
+}
+
 // Run: setup the gui with keybindings and start the mainloop
-func (gui *Gui) Run(filterPath string) error {
+func (gui *Gui) Run(startArgs types.StartArgs) error {
 	g, err := gui.initGocui()
 	if err != nil {
 		return err
@@ -520,7 +586,7 @@ func (gui *Gui) Run(filterPath string) error {
 	}
 
 	// onNewRepo must be called after g.SetManager because SetManager deletes keybindings
-	if err := gui.onNewRepo(filterPath, false); err != nil {
+	if err := gui.onNewRepo(startArgs, false); err != nil {
 		return err
 	}
 
@@ -553,10 +619,10 @@ func (gui *Gui) Run(filterPath string) error {
 	return gui.g.MainLoop()
 }
 
-func (gui *Gui) RunAndHandleError(filterPath string) error {
+func (gui *Gui) RunAndHandleError(startArgs types.StartArgs) error {
 	gui.stopChan = make(chan struct{})
 	return utils.SafeWithError(func() error {
-		if err := gui.Run(filterPath); err != nil {
+		if err := gui.Run(startArgs); err != nil {
 			for _, manager := range gui.viewBufferManagerMap {
 				manager.Close()
 			}

@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
 	"testing"
 
 	"github.com/creack/pty"
@@ -39,14 +40,27 @@ import (
 // original playback speed. Speed may be a decimal.
 
 func Test(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration tests in short mode")
+	}
+
 	mode := integration.GetModeFromEnv()
 	speedEnv := os.Getenv("SPEED")
 	includeSkipped := os.Getenv("INCLUDE_SKIPPED") != ""
+
+	parallelTotal := tryConvert(os.Getenv("PARALLEL_TOTAL"), 1)
+	parallelIndex := tryConvert(os.Getenv("PARALLEL_INDEX"), 0)
+	testNumber := 0
 
 	err := integration.RunTests(
 		t.Logf,
 		runCmdHeadless,
 		func(test *integration.Test, f func(*testing.T) error) {
+			defer func() { testNumber += 1 }()
+			if testNumber%parallelTotal != parallelIndex {
+				return
+			}
+
 			t.Run(test.Name, func(t *testing.T) {
 				err := f(t)
 				assert.NoError(t, err)
@@ -79,4 +93,13 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	_, _ = io.Copy(ioutil.Discard, f)
 
 	return f.Close()
+}
+
+func tryConvert(numStr string, defaultVal int) int {
+	num, err := strconv.Atoi(numStr)
+	if err != nil {
+		return defaultVal
+	}
+
+	return num
 }

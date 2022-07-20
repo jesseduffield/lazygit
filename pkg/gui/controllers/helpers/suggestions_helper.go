@@ -10,6 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/jesseduffield/minimal/gitignore"
+	"github.com/samber/lo"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
@@ -172,6 +173,14 @@ func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Su
 	refNames := append(append(append(remoteBranchNames, localBranchNames...), tagNames...), additionalRefNames...)
 
 	return FuzzySearchFunc(refNames)
+}
+
+func (self *SuggestionsHelper) GetAuthorsSuggestionsFunc() func(string) []*types.Suggestion {
+	authors := lo.Uniq(slices.Map(self.model.Commits, func(commit *models.Commit) string {
+		return fmt.Sprintf("%s <%s>", commit.AuthorName, commit.AuthorEmail)
+	}))
+
+	return FuzzySearchFunc(authors)
 }
 
 func FuzzySearchFunc(options []string) func(string) []*types.Suggestion {

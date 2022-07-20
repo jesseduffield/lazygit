@@ -161,7 +161,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: gitエディタを使用して変更をコミット
   <kbd>e</kbd>: ファイルを編集
   <kbd>o</kbd>: ファイルを開く
-  <kbd>i</kbd>: .gitignoreに追加
+  <kbd>i</kbd>: ファイルをignore
   <kbd>r</kbd>: ファイルをリフレッシュ
   <kbd>s</kbd>: 変更をstash
   <kbd>S</kbd>: view stash options
@@ -194,10 +194,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>R</kbd>: ブランチ名を変更
   <kbd>u</kbd>: set/unset upstream
   <kbd>enter</kbd>: コミットを閲覧
-  <kbd>f</kbd>: リモートをfetch
-  <kbd>n</kbd>: リモートを新規追加
-  <kbd>d</kbd>: リモートを削除
-  <kbd>e</kbd>: リモートを編集
 </pre>
 
 ## メインパネル (Merging)
@@ -257,6 +253,15 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>V</kbd>: 範囲選択を切り替え
   <kbd>a</kbd>: hunk選択を切り替え
   <kbd>E</kbd>: edit hunk
+</pre>
+
+## リモート
+
+<pre>
+  <kbd>f</kbd>: リモートをfetch
+  <kbd>n</kbd>: リモートを新規追加
+  <kbd>d</kbd>: リモートを削除
+  <kbd>e</kbd>: リモートを編集
 </pre>
 
 ## リモートブランチ

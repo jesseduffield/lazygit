@@ -41,28 +41,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>[</kbd>: previous tab
 </pre>
 
-## Branches
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy branch name to clipboard
-  <kbd>i</kbd>: show git-flow options
-  <kbd>space</kbd>: checkout
-  <kbd>n</kbd>: new branch
-  <kbd>o</kbd>: create pull request
-  <kbd>O</kbd>: create pull request options
-  <kbd>ctrl+y</kbd>: copy pull request URL to clipboard
-  <kbd>c</kbd>: checkout by name
-  <kbd>F</kbd>: force checkout
-  <kbd>d</kbd>: delete branch
-  <kbd>r</kbd>: rebase checked-out branch onto this branch
-  <kbd>M</kbd>: merge into currently checked out branch
-  <kbd>f</kbd>: fast-forward this branch from its upstream
-  <kbd>g</kbd>: view reset options
-  <kbd>R</kbd>: rename branch
-  <kbd>u</kbd>: set/unset upstream
-  <kbd>enter</kbd>: view commits
-</pre>
-
 ## Commit Files
 
 <pre>
@@ -124,7 +102,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: commit changes using git editor
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
-  <kbd>i</kbd>: add to .gitignore
+  <kbd>i</kbd>: Ignore or Exclude file
   <kbd>r</kbd>: refresh files
   <kbd>s</kbd>: stash all changes
   <kbd>S</kbd>: view stash options
@@ -135,6 +113,28 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)
   <kbd>f</kbd>: fetch
+</pre>
+
+## Local Branches
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy branch name to clipboard
+  <kbd>i</kbd>: show git-flow options
+  <kbd>space</kbd>: checkout
+  <kbd>n</kbd>: new branch
+  <kbd>o</kbd>: create pull request
+  <kbd>O</kbd>: create pull request options
+  <kbd>ctrl+y</kbd>: copy pull request URL to clipboard
+  <kbd>c</kbd>: checkout by name
+  <kbd>F</kbd>: force checkout
+  <kbd>d</kbd>: delete branch
+  <kbd>r</kbd>: rebase checked-out branch onto this branch
+  <kbd>M</kbd>: merge into currently checked out branch
+  <kbd>f</kbd>: fast-forward this branch from its upstream
+  <kbd>g</kbd>: view reset options
+  <kbd>R</kbd>: rename branch
+  <kbd>u</kbd>: set/unset upstream
+  <kbd>enter</kbd>: view commits
 </pre>
 
 ## Main Panel (Merging)

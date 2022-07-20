@@ -22,6 +22,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 )
@@ -37,11 +38,11 @@ type App struct {
 	Updater   *updates.Updater // may only need this on the Gui
 }
 
-func Run(config config.AppConfigurer, common *common.Common, filterPath string) {
+func Run(config config.AppConfigurer, common *common.Common, startArgs types.StartArgs) {
 	app, err := NewApp(config, common)
 
 	if err == nil {
-		err = app.Run(filterPath)
+		err = app.Run(startArgs)
 	}
 
 	if err != nil {
@@ -52,7 +53,7 @@ func Run(config config.AppConfigurer, common *common.Common, filterPath string) 
 		stackTrace := newErr.ErrorStack()
 		app.Log.Error(stackTrace)
 
-		log.Fatal(fmt.Sprintf("%s: %s\n\n%s", common.Tr.ErrorOccurred, constants.Links.Issues, stackTrace))
+		log.Fatalf("%s: %s\n\n%s", common.Tr.ErrorOccurred, constants.Links.Issues, stackTrace)
 	}
 }
 
@@ -145,6 +146,11 @@ func isGitVersionValid(versionStr string) bool {
 	return true
 }
 
+func isDirectoryAGitRepository(dir string) (bool, error) {
+	info, err := os.Stat(filepath.Join(dir, ".git"))
+	return info != nil && info.IsDir(), err
+}
+
 func (app *App) setupRepo() (bool, error) {
 	if err := app.validateGitVersion(); err != nil {
 		return false, err
@@ -161,19 +167,26 @@ func (app *App) setupRepo() (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		info, _ := os.Stat(filepath.Join(cwd, ".git"))
-		if info != nil && info.IsDir() {
-			return false, err // Current directory appears to be a git repository.
+		if isRepo, err := isDirectoryAGitRepository(cwd); isRepo {
+			return false, err
 		}
 
 		shouldInitRepo := true
 		notARepository := app.UserConfig.NotARepository
+		initialBranch := ""
 		if notARepository == "prompt" {
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)
 			response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-			if strings.Trim(response, " \n") != "y" {
+			if strings.Trim(response, " \r\n") != "y" {
 				shouldInitRepo = false
+			} else {
+				// Ask for the initial branch name
+				fmt.Print(app.Tr.InitialBranch)
+				response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+				if trimmedResponse := strings.Trim(response, " \r\n"); len(trimmedResponse) > 0 {
+					initialBranch += "--initial-branch=" + trimmedResponse
+				}
 			}
 		} else if notARepository == "skip" {
 			shouldInitRepo = false
@@ -181,21 +194,18 @@ func (app *App) setupRepo() (bool, error) {
 
 		if !shouldInitRepo {
 			// check if we have a recent repo we can open
-			recentRepos := app.Config.GetAppState().RecentRepos
-			if len(recentRepos) > 0 {
-				var err error
-				// try opening each repo in turn, in case any have been deleted
-				for _, repoDir := range recentRepos {
-					if err = os.Chdir(repoDir); err == nil {
+			for _, repoDir := range app.Config.GetAppState().RecentRepos {
+				if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
+					if err := os.Chdir(repoDir); err == nil {
 						return true, nil
 					}
 				}
-				return false, err
 			}
 
+			fmt.Println(app.Tr.NoRecentRepositories)
 			os.Exit(1)
 		}
-		if err := app.OSCommand.Cmd.New("git init").Run(); err != nil {
+		if err := app.OSCommand.Cmd.New("git init " + initialBranch).Run(); err != nil {
 			return false, err
 		}
 	}
@@ -203,8 +213,8 @@ func (app *App) setupRepo() (bool, error) {
 	return false, nil
 }
 
-func (app *App) Run(filterPath string) error {
-	err := app.Gui.RunAndHandleError(filterPath)
+func (app *App) Run(startArgs types.StartArgs) error {
+	err := app.Gui.RunAndHandleError(startArgs)
 	return err
 }
 

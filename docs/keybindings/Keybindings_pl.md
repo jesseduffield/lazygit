@@ -41,28 +41,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>[</kbd>: previous tab
 </pre>
 
-## Branches
-
-<pre>
-  <kbd>ctrl+o</kbd>: copy branch name to clipboard
-  <kbd>i</kbd>: show git-flow options
-  <kbd>space</kbd>: przełącz
-  <kbd>n</kbd>: nowa gałąź
-  <kbd>o</kbd>: utwórz żądanie pobrania
-  <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
-  <kbd>ctrl+y</kbd>: skopiuj adres URL żądania pobrania do schowka
-  <kbd>c</kbd>: przełącz używając nazwy
-  <kbd>F</kbd>: wymuś przełączenie
-  <kbd>d</kbd>: usuń gałąź
-  <kbd>r</kbd>: zmiana bazy gałęzi
-  <kbd>M</kbd>: scal do obecnej gałęzi
-  <kbd>f</kbd>: fast-forward this branch from its upstream
-  <kbd>g</kbd>: wyświetl opcje resetu
-  <kbd>R</kbd>: rename branch
-  <kbd>u</kbd>: set/unset upstream
-  <kbd>enter</kbd>: view commits
-</pre>
-
 ## Commity
 
 <pre>
@@ -96,6 +74,28 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>
 
+## Local Branches
+
+<pre>
+  <kbd>ctrl+o</kbd>: copy branch name to clipboard
+  <kbd>i</kbd>: show git-flow options
+  <kbd>space</kbd>: przełącz
+  <kbd>n</kbd>: nowa gałąź
+  <kbd>o</kbd>: utwórz żądanie pobrania
+  <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
+  <kbd>ctrl+y</kbd>: skopiuj adres URL żądania pobrania do schowka
+  <kbd>c</kbd>: przełącz używając nazwy
+  <kbd>F</kbd>: wymuś przełączenie
+  <kbd>d</kbd>: usuń gałąź
+  <kbd>r</kbd>: zmiana bazy gałęzi
+  <kbd>M</kbd>: scal do obecnej gałęzi
+  <kbd>f</kbd>: fast-forward this branch from its upstream
+  <kbd>g</kbd>: wyświetl opcje resetu
+  <kbd>R</kbd>: rename branch
+  <kbd>u</kbd>: set/unset upstream
+  <kbd>enter</kbd>: view commits
+</pre>
+
 ## Main Panel (Patch Building)
 
 <pre>
@@ -126,7 +126,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: Zatwierdź zmiany używając edytora
   <kbd>e</kbd>: edytuj plik
   <kbd>o</kbd>: otwórz plik
-  <kbd>i</kbd>: dodaj do .gitignore
+  <kbd>i</kbd>: Ignore or Exclude file
   <kbd>r</kbd>: odśwież pliki
   <kbd>s</kbd>: przechowaj zmiany
   <kbd>S</kbd>: wyświetl opcje schowka

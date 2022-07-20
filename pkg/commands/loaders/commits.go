@@ -1,6 +1,7 @@
 package loaders
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -89,14 +91,12 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	}
 
 	err = self.getLogCmd(opts).RunAndProcessLines(func(line string) (bool, error) {
-		if canExtractCommit(line) {
-			commit := self.extractCommitFromLine(line)
-			if commit.Sha == firstPushedCommit {
-				passedFirstPushedCommit = true
-			}
-			commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
-			commits = append(commits, commit)
+		commit := self.extractCommitFromLine(line)
+		if commit.Sha == firstPushedCommit {
+			passedFirstPushedCommit = true
 		}
+		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
+		commits = append(commits, commit)
 		return false, nil
 	})
 	if err != nil {
@@ -214,7 +214,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	// I suspect that will cause some damage
 	cmdObj := self.cmd.New(
 		fmt.Sprintf(
-			"git show %s --no-patch --oneline %s --abbrev=%d",
+			"git -c log.showSignature=false show %s --no-patch --oneline %s --abbrev=%d",
 			strings.Join(commitShas, " "),
 			prettyFormat,
 			20,
@@ -224,14 +224,12 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	hydratedCommits := make([]*models.Commit, 0, len(commits))
 	i := 0
 	err = cmdObj.RunAndProcessLines(func(line string) (bool, error) {
-		if canExtractCommit(line) {
-			commit := self.extractCommitFromLine(line)
-			matchingCommit := commits[i]
-			commit.Action = matchingCommit.Action
-			commit.Status = matchingCommit.Status
-			hydratedCommits = append(hydratedCommits, commit)
-			i++
-		}
+		commit := self.extractCommitFromLine(line)
+		matchingCommit := commits[i]
+		commit.Action = matchingCommit.Action
+		commit.Status = matchingCommit.Status
+		hydratedCommits = append(hydratedCommits, commit)
+		i++
 		return false, nil
 	})
 	if err != nil {
@@ -311,21 +309,23 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 	}
 
 	commits := []*models.Commit{}
-	lines := strings.Split(string(bytesContent), "\n")
 
-	for _, line := range lines {
-		if line == "" || line == "noop" {
-			return commits, nil
-		}
-		if strings.HasPrefix(line, "#") {
+	todos, err := todo.Parse(bytes.NewBuffer(bytesContent))
+	if err != nil {
+		self.Log.Error(fmt.Sprintf("error occurred while parsing git-rebase-todo file: %s", err.Error()))
+		return nil, nil
+	}
+
+	for _, t := range todos {
+		if t.Commit == "" {
+			// Command does not have a commit associated, skip
 			continue
 		}
-		splitLine := strings.Split(line, " ")
 		commits = slices.Prepend(commits, &models.Commit{
-			Sha:    splitLine[1],
-			Name:   strings.Join(splitLine[2:], " "),
+			Sha:    t.Commit,
+			Name:   t.Msg,
 			Status: "rebasing",
-			Action: splitLine[0],
+			Action: t.Command.String(),
 		})
 	}
 
@@ -435,7 +435,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 	return self.cmd.New(
 		fmt.Sprintf(
-			"git log %s %s %s --oneline %s%s --abbrev=%d%s",
+			"git -c log.showSignature=false log %s %s %s --oneline %s%s --abbrev=%d%s",
 			self.cmd.Quote(opts.RefName),
 			orderFlag,
 			allFlag,
@@ -458,7 +458,3 @@ var prettyFormat = fmt.Sprintf(
 )
 
 const NULL_CODE = "%x00"
-
-func canExtractCommit(line string) bool {
-	return line != "" && strings.Split(line, " ")[0] != "gpg:"
-}

@@ -17,6 +17,7 @@ func polishTranslationSet() TranslationSet {
 		PassUnameWrong:                      "Niewłaściwe hasło, fraza lub nazwa użytkownika",
 		CommitChanges:                       "Zatwierdź zmiany",
 		AmendLastCommit:                     "Zmień ostatni commit",
+		AmendLastCommitTitle:                "Zmień Ostatni Commit",
 		SureToAmend:                         "Czy na pewno chcesz zmienić ostatni commit? Możesz zmienić komunikat commitu z panelu commitów.",
 		NoCommitToAmend:                     "Brak commitów do zmiany.",
 		CommitChangesWithEditor:             "Zatwierdź zmiany używając edytora",

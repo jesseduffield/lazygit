@@ -9,6 +9,7 @@ require (
 	github.com/cli/safeexec v1.0.0
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/creack/pty v1.1.11
+	github.com/fsmiamoto/git-todo-parser v0.0.2
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-errors/errors v1.4.2
 	github.com/gookit/color v1.4.2
@@ -17,6 +18,7 @@ require (
 	github.com/jesseduffield/generics v0.0.0-20220320043834-727e535cbe68
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
 	github.com/jesseduffield/gocui v0.3.1-0.20220417002912-bce22fd599f6
+	github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 	github.com/jesseduffield/yaml v2.1.0+incompatible
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0

@@ -123,7 +123,7 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 			return err
 		}
 		if stop {
-			_ = cmd.Process.Kill()
+			_ = Kill(cmd)
 			break
 		}
 	}

@@ -2,7 +2,6 @@ package gui
 
 import (
 	"log"
-	"strings"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
@@ -79,7 +78,7 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 	})
 
 	return gui.c.Menu(types.CreateMenuOptions{
-		Title:      strings.Title(gui.c.Tr.LcMenu),
+		Title:      gui.c.Tr.MenuTitle,
 		Items:      menuItems,
 		HideCancel: true,
 	})

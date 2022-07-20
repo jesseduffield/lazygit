@@ -1,5 +1,9 @@
 package config
 
+import (
+	"time"
+)
+
 type UserConfig struct {
 	Gui                  GuiConfig        `yaml:"gui"`
 	Git                  GitConfig        `yaml:"git"`
@@ -36,6 +40,7 @@ type GuiConfig struct {
 	ExpandFocusedSidePanel   bool               `yaml:"expandFocusedSidePanel"`
 	MainPanelSplitMode       string             `yaml:"mainPanelSplitMode"`
 	Language                 string             `yaml:"language"`
+	TimeFormat               string             `yaml:"timeFormat"`
 	Theme                    ThemeConfig        `yaml:"theme"`
 	CommitLength             CommitLengthConfig `yaml:"commitLength"`
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
@@ -46,6 +51,7 @@ type GuiConfig struct {
 	ShowBottomLine           bool               `yaml:"showBottomLine"`
 	ShowIcons                bool               `yaml:"showIcons"`
 	CommandLogSize           int                `yaml:"commandLogSize"`
+	SplitDiff                string             `yaml:"splitDiff"`
 }
 
 type ThemeConfig struct {
@@ -98,8 +104,9 @@ type MergingConfig struct {
 }
 
 type LogConfig struct {
-	Order     string `yaml:"order"`     // one of date-order, author-date-order, topo-order
-	ShowGraph string `yaml:"showGraph"` // one of always, never, when-maximised
+	Order          string `yaml:"order"`     // one of date-order, author-date-order, topo-order
+	ShowGraph      string `yaml:"showGraph"` // one of always, never, when-maximised
+	ShowWholeGraph bool   `yaml:"showWholeGraph"`
 }
 
 type CommitPrefixConfig struct {
@@ -203,7 +210,7 @@ type KeybindingFilesConfig struct {
 	CommitChangesWithoutHook string `yaml:"commitChangesWithoutHook"`
 	AmendLastCommit          string `yaml:"amendLastCommit"`
 	CommitChangesWithEditor  string `yaml:"commitChangesWithEditor"`
-	IgnoreFile               string `yaml:"ignoreFile"`
+	IgnoreOrExcludeFile      string `yaml:"IgnoreOrExcludeFile"`
 	RefreshFiles             string `yaml:"refreshFiles"`
 	StashAllChanges          string `yaml:"stashAllChanges"`
 	ViewStashOptions         string `yaml:"viewStashOptions"`
@@ -306,11 +313,14 @@ type CustomCommand struct {
 }
 
 type CustomCommandPrompt struct {
-	Type  string `yaml:"type"` // one of 'input' and 'menu'
+	Type  string `yaml:"type"` // one of 'input', 'menu', or 'confirm'
 	Title string `yaml:"title"`
 
-	// this only apply to prompts
+	// this only apply to input prompts
 	InitialValue string `yaml:"initialValue"`
+
+	// this only applies to confirm prompts
+	Body string `yaml:"body"`
 
 	// this only applies to menus
 	Options []CustomCommandMenuOption
@@ -340,6 +350,7 @@ func GetDefaultConfig() *UserConfig {
 			ExpandFocusedSidePanel: false,
 			MainPanelSplitMode:     "flexible",
 			Language:               "auto",
+			TimeFormat:             time.RFC822,
 			Theme: ThemeConfig{
 				LightTheme:                false,
 				ActiveBorderColor:         []string{"green", "bold"},
@@ -360,6 +371,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowRandomTip:            true,
 			ShowIcons:                false,
 			CommandLogSize:           8,
+			SplitDiff:                "auto",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
@@ -375,8 +387,9 @@ func GetDefaultConfig() *UserConfig {
 				Args:         "",
 			},
 			Log: LogConfig{
-				Order:     "topo-order",
-				ShowGraph: "when-maximised",
+				Order:          "topo-order",
+				ShowGraph:      "when-maximised",
+				ShowWholeGraph: false,
 			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,
@@ -477,7 +490,7 @@ func GetDefaultConfig() *UserConfig {
 				CommitChangesWithoutHook: "w",
 				AmendLastCommit:          "A",
 				CommitChangesWithEditor:  "C",
-				IgnoreFile:               "i",
+				IgnoreOrExcludeFile:      "i",
 				RefreshFiles:             "r",
 				StashAllChanges:          "s",
 				ViewStashOptions:         "S",

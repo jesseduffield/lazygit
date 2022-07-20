@@ -30,6 +30,9 @@ github.com/emirpasic/gods/utils
 # github.com/fatih/color v1.9.0
 ## explicit; go 1.13
 github.com/fatih/color
+# github.com/fsmiamoto/git-todo-parser v0.0.2
+## explicit; go 1.13
+github.com/fsmiamoto/git-todo-parser/todo
 # github.com/fsnotify/fsnotify v1.4.7
 ## explicit
 github.com/fsnotify/fsnotify
@@ -172,6 +175,9 @@ github.com/jesseduffield/go-git/v5/utils/merkletrie/noder
 # github.com/jesseduffield/gocui v0.3.1-0.20220417002912-bce22fd599f6
 ## explicit; go 1.12
 github.com/jesseduffield/gocui
+# github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10
+## explicit; go 1.18
+github.com/jesseduffield/kill
 # github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 ## explicit; go 1.15
 github.com/jesseduffield/minimal/gitignore

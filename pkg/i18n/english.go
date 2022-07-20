@@ -24,6 +24,7 @@ type TranslationSet struct {
 	MergingTitle                        string
 	MergeConfirmTitle                   string
 	NormalTitle                         string
+	LogTitle                            string
 	CommitMessage                       string
 	CredentialsUsername                 string
 	CredentialsPassword                 string
@@ -31,6 +32,7 @@ type TranslationSet struct {
 	PassUnameWrong                      string
 	CommitChanges                       string
 	AmendLastCommit                     string
+	AmendLastCommitTitle                string
 	SureToAmend                         string
 	NoCommitToAmend                     string
 	CommitChangesWithEditor             string
@@ -99,6 +101,7 @@ type TranslationSet struct {
 	LcEditCommit                        string
 	LcAmendToCommit                     string
 	LcResetCommitAuthor                 string
+	SetAuthorPromptTitle                string
 	SureResetCommitAuthor               string
 	LcRenameCommitEditor                string
 	NoCommitsThisBranch                 string
@@ -152,6 +155,7 @@ type TranslationSet struct {
 	LcEditFile                          string
 	LcOpenFile                          string
 	LcIgnoreFile                        string
+	LcExcludeFile                       string
 	LcRefreshFiles                      string
 	LcMergeIntoCurrentBranch            string
 	ConfirmQuit                         string
@@ -255,6 +259,8 @@ type TranslationSet struct {
 	DiscardFileChangesPrompt            string
 	DisabledForGPG                      string
 	CreateRepo                          string
+	InitialBranch                       string
+	NoRecentRepositories                string
 	AutoStashTitle                      string
 	AutoStashPrompt                     string
 	StashPrefix                         string
@@ -265,6 +271,7 @@ type TranslationSet struct {
 	LcDiscardAllChangesToAllFiles       string
 	LcDiscardAnyUnstagedChanges         string
 	LcDiscardUntrackedFiles             string
+	LcDiscardStagedChanges              string
 	LcHardReset                         string
 	LcViewResetOptions                  string
 	LcCreateFixupCommit                 string
@@ -340,7 +347,9 @@ type TranslationSet struct {
 	NotAGitFlowBranch                   string
 	NewBranchNamePrompt                 string
 	IgnoreTracked                       string
+	ExcludeTracked                      string
 	IgnoreTrackedPrompt                 string
+	ExcludeTrackedPrompt                string
 	LcViewResetToUpstreamOptions        string
 	LcNextScreenMode                    string
 	LcPrevScreenMode                    string
@@ -491,6 +500,7 @@ type TranslationSet struct {
 	HardResetAutostashPrompt            string
 	UpstreamGone                        string
 	NukeDescription                     string
+	DiscardStagedChangesDescription     string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -532,6 +542,7 @@ type Actions struct {
 	EditCommit                        string
 	AmendCommit                       string
 	ResetCommitAuthor                 string
+	SetCommitAuthor                   string
 	RevertCommit                      string
 	CreateFixupCommit                 string
 	SquashAllAboveFixupCommits        string
@@ -553,7 +564,12 @@ type Actions struct {
 	UnstageFile                       string
 	UnstageAllFiles                   string
 	StageAllFiles                     string
+	IgnoreExcludeFile                 string
 	IgnoreFile                        string
+	IgnoreFileErr                     string
+	ExcludeFile                       string
+	ExcludeFileErr                    string
+	ExcludeGitIgnoreErr               string
 	Commit                            string
 	EditFile                          string
 	Push                              string
@@ -594,6 +610,7 @@ type Actions struct {
 	NukeWorkingTree                   string
 	DiscardUnstagedFileChanges        string
 	RemoveUntrackedFiles              string
+	RemoveStagedFiles                 string
 	SoftReset                         string
 	MixedReset                        string
 	HardReset                         string
@@ -642,6 +659,7 @@ func EnglishTranslationSet() TranslationSet {
 		StagingTitle:                        "Main Panel (Staging)",
 		MergingTitle:                        "Main Panel (Merging)",
 		NormalTitle:                         "Main Panel (Normal)",
+		LogTitle:                            "Log",
 		CommitMessage:                       "Commit message",
 		CredentialsUsername:                 "Username",
 		CredentialsPassword:                 "Password",
@@ -649,6 +667,7 @@ func EnglishTranslationSet() TranslationSet {
 		PassUnameWrong:                      "Password, passphrase and/or username wrong",
 		CommitChanges:                       "commit changes",
 		AmendLastCommit:                     "amend last commit",
+		AmendLastCommitTitle:                "Amend Last Commit",
 		SureToAmend:                         "Are you sure you want to amend last commit? Afterwards, you can change commit message from the commits panel.",
 		NoCommitToAmend:                     "There's no commit to amend.",
 		CommitChangesWithEditor:             "commit changes using git editor",
@@ -717,6 +736,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcEditCommit:                        "edit commit",
 		LcAmendToCommit:                     "amend commit with staged changes",
 		LcResetCommitAuthor:                 "reset commit author",
+		SetAuthorPromptTitle:                "Set author (must look like 'Name <Email>')",
 		SureResetCommitAuthor:               "The author field of this commit will be updated to match the configured user. This also renews the author timestamp. Continue?",
 		LcRenameCommitEditor:                "reword commit with editor",
 		Error:                               "Error",
@@ -769,6 +789,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcEditFile:                          `edit file`,
 		LcOpenFile:                          `open file`,
 		LcIgnoreFile:                        `add to .gitignore`,
+		LcExcludeFile:                       `add to .git/info/exclude`,
 		LcRefreshFiles:                      `refresh files`,
 		LcMergeIntoCurrentBranch:            `merge into currently checked out branch`,
 		ConfirmQuit:                         `Are you sure you want to quit?`,
@@ -803,7 +824,7 @@ func EnglishTranslationSet() TranslationSet {
 		MergeOptionsTitle:                   "Merge Options",
 		RebaseOptionsTitle:                  "Rebase Options",
 		CommitMessageTitle:                  "Commit Message",
-		LocalBranchesTitle:                  "Branches",
+		LocalBranchesTitle:                  "Local Branches",
 		SearchTitle:                         "Search",
 		TagsTitle:                           "Tags",
 		MenuTitle:                           "Menu",
@@ -873,6 +894,8 @@ func EnglishTranslationSet() TranslationSet {
 		DiscardFileChangesPrompt:            "Are you sure you want to discard this commit's changes to this file? If this file was created in this commit, it will be deleted",
 		DisabledForGPG:                      "Feature not available for users using GPG",
 		CreateRepo:                          "Not in a git repository. Create a new git repository? (y/n): ",
+		InitialBranch:                       "Branch name? (leave empty for git's default): ",
+		NoRecentRepositories:                "Must open lazygit in a git repository. No valid recent repositories. Exiting.",
 		AutoStashTitle:                      "Autostash?",
 		AutoStashPrompt:                     "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
 		StashPrefix:                         "Auto-stashing changes for ",
@@ -883,6 +906,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcDiscardAllChangesToAllFiles:       "nuke working tree",
 		LcDiscardAnyUnstagedChanges:         "discard unstaged changes",
 		LcDiscardUntrackedFiles:             "discard untracked files",
+		LcDiscardStagedChanges:              "discard staged changes",
 		LcHardReset:                         "hard reset",
 		LcViewResetOptions:                  `view reset options`,
 		LcCreateFixupCommit:                 `create fixup commit for this commit`,
@@ -959,6 +983,8 @@ func EnglishTranslationSet() TranslationSet {
 		NewGitFlowBranchPrompt:              "new {{.branchType}} name:",
 		IgnoreTracked:                       "Ignore tracked file",
 		IgnoreTrackedPrompt:                 "Are you sure you want to ignore a tracked file?",
+		ExcludeTracked:                      "Exclude tracked file",
+		ExcludeTrackedPrompt:                "Are you sure you want to exclude a tracked file?",
 		LcViewResetToUpstreamOptions:        "view upstream reset options",
 		LcNextScreenMode:                    "next screen mode (normal/half/fullscreen)",
 		LcPrevScreenMode:                    "prev screen mode",
@@ -1109,6 +1135,7 @@ func EnglishTranslationSet() TranslationSet {
 		CheckoutPrompt:                      "Are you sure you want to checkout '%s'?",
 		UpstreamGone:                        "(upstream gone)",
 		NukeDescription:                     "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
+		DiscardStagedChangesDescription:     "This will create a new stash entry containing only staged files and then drop it, so that the working tree is left with only unstaged changes",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
@@ -1131,6 +1158,7 @@ func EnglishTranslationSet() TranslationSet {
 			EditCommit:                        "Edit commit",
 			AmendCommit:                       "Amend commit",
 			ResetCommitAuthor:                 "Reset commit author",
+			SetCommitAuthor:                   "Set commit author",
 			RevertCommit:                      "Revert commit",
 			CreateFixupCommit:                 "Create fixup commit",
 			SquashAllAboveFixupCommits:        "Squash all above fixup commits",
@@ -1154,7 +1182,12 @@ func EnglishTranslationSet() TranslationSet {
 			UnstageFile:                       "Unstage file",
 			UnstageAllFiles:                   "Unstage all files",
 			StageAllFiles:                     "Stage all files",
-			IgnoreFile:                        "Ignore file",
+			IgnoreExcludeFile:                 "Ignore or Exclude file",
+			IgnoreFile:                        "Ignore or Exclude file",
+			IgnoreFileErr:                     "Cannot ignore .gitignore",
+			ExcludeFile:                       "Exclude file",
+			ExcludeFileErr:                    "Cannot exclude .git/info/exclude",
+			ExcludeGitIgnoreErr:               "Cannot exclude .gitignore",
 			Commit:                            "Commit",
 			EditFile:                          "Edit file",
 			Push:                              "Push",
@@ -1193,6 +1226,7 @@ func EnglishTranslationSet() TranslationSet {
 			NukeWorkingTree:                   "Nuke working tree",
 			DiscardUnstagedFileChanges:        "Discard unstaged file changes",
 			RemoveUntrackedFiles:              "Remove untracked files",
+			RemoveStagedFiles:                 "Remove staged files",
 			SoftReset:                         "Soft reset",
 			MixedReset:                        "Mixed reset",
 			HardReset:                         "Hard reset",

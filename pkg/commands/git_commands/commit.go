@@ -28,6 +28,12 @@ func (self *CommitCommands) ResetAuthor() error {
 	return self.cmd.New("git commit --allow-empty --only --no-edit --amend --reset-author").Run()
 }
 
+// Sets the commit's author to the supplied value. Value is expected to be of the form 'Name <Email>'
+func (self *CommitCommands) SetAuthor(value string) error {
+	commandStr := fmt.Sprintf("git commit --allow-empty --only --no-edit --amend --author=%s", self.cmd.Quote(value))
+	return self.cmd.New(commandStr).Run()
+}
+
 // ResetToCommit reset to commit
 func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars []string) error {
 	return self.cmd.New(fmt.Sprintf("git reset --%s %s", strength, sha)).

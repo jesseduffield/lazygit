@@ -123,7 +123,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ResetCommitAuthor),
-			Handler:     self.checkSelected(self.resetAuthor),
+			Handler:     self.checkSelected(self.amendAttribute),
 			Description: self.c.Tr.LcResetCommitAuthor,
 		},
 		{
@@ -423,17 +423,50 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 	})
 }
 
-func (self *LocalCommitsController) resetAuthor(commit *models.Commit) error {
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.LcResetCommitAuthor,
-		Prompt: self.c.Tr.SureResetCommitAuthor,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
-			if err := self.git.Rebase.ResetCommitAuthor(self.model.Commits, self.context().GetSelectedLineIdx()); err != nil {
-				return self.c.Error(err)
-			}
+func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: "Amend commit attribute",
+		Items: []*types.MenuItem{
+			{
+				Label:   "reset author",
+				OnPress: self.resetAuthor,
+				Key:     'a',
+				Tooltip: "Reset the commit's author to the currently configured user. This will also renew the author timestamp",
+			},
+			{
+				Label:   "set author",
+				OnPress: self.setAuthor,
+				Key:     'A',
+				Tooltip: "Set the author based on a prompt",
+			},
+		},
+	})
+}
 
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+func (self *LocalCommitsController) resetAuthor() error {
+	return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
+		self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
+		if err := self.git.Rebase.ResetCommitAuthor(self.model.Commits, self.context().GetSelectedLineIdx()); err != nil {
+			return self.c.Error(err)
+		}
+
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	})
+}
+
+func (self *LocalCommitsController) setAuthor() error {
+	return self.c.Prompt(types.PromptOpts{
+		Title:               self.c.Tr.SetAuthorPromptTitle,
+		FindSuggestionsFunc: self.helpers.Suggestions.GetAuthorsSuggestionsFunc(),
+		HandleConfirm: func(value string) error {
+			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
+				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
+				if err := self.git.Rebase.SetCommitAuthor(self.model.Commits, self.context().GetSelectedLineIdx(), value); err != nil {
+					return self.c.Error(err)
+				}
+
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			})
 		},
 	})
 }

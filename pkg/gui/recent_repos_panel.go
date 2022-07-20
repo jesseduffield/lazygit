@@ -39,7 +39,7 @@ func (gui *Gui) handleShowAllBranchLogs() error {
 
 	return gui.refreshMainViews(refreshMainOpts{
 		main: &viewUpdateOpts{
-			title: "Log",
+			title: gui.c.Tr.LogTitle,
 			task:  task,
 		},
 	})
@@ -79,7 +79,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 	gui.Mutexes.RefreshingFilesMutex.Lock()
 	defer gui.Mutexes.RefreshingFilesMutex.Unlock()
 
-	return gui.onNewRepo("", reuse)
+	return gui.onNewRepo(types.StartArgs{}, reuse)
 }
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,
@@ -110,6 +110,9 @@ func newRecentReposList(recentRepos []string, currentRepo string) (bool, []strin
 	newRepos := []string{currentRepo}
 	for _, repo := range recentRepos {
 		if repo != currentRepo {
+			if _, err := os.Stat(repo); err != nil {
+				continue
+			}
 			newRepos = append(newRepos, repo)
 		} else {
 			isNew = false

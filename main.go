@@ -7,12 +7,14 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/integrii/flaggy"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/logs"
 	yaml "github.com/jesseduffield/yaml"
 )
@@ -33,9 +35,8 @@ func main() {
 	filterPath := ""
 	flaggy.String(&filterPath, "f", "filter", "Path to filter on in `git log -- <path>`. When in filter mode, the commits, reflog, and stash are filtered based on the given path, and some operations are restricted")
 
-	dump := ""
-	flaggy.AddPositionalValue(&dump, "gitargs", 1, false, "Todo file")
-	flaggy.DefaultParser.PositionalFlags[0].Hidden = true
+	gitArg := ""
+	flaggy.AddPositionalValue(&gitArg, "git-arg", 1, false, "Panel to focus upon opening lazygit. Accepted values (based on git terminology): status, branch, log, stash. Ignored if --filter arg is passed.")
 
 	versionFlag := false
 	flaggy.Bool(&versionFlag, "v", "version", "Print the current version")
@@ -148,5 +149,31 @@ func main() {
 		return
 	}
 
-	app.Run(appConfig, common, filterPath)
+	parsedGitArg := parseGitArg(gitArg)
+
+	app.Run(appConfig, common, types.NewStartArgs(filterPath, parsedGitArg))
+}
+
+func parseGitArg(gitArg string) types.GitArg {
+	typedArg := types.GitArg(gitArg)
+
+	// using switch so that linter catches when a new git arg value is defined but not handled here
+	switch typedArg {
+	case types.GitArgNone, types.GitArgStatus, types.GitArgBranch, types.GitArgLog, types.GitArgStash:
+		return typedArg
+	}
+
+	permittedValues := []string{
+		string(types.GitArgStatus),
+		string(types.GitArgBranch),
+		string(types.GitArgLog),
+		string(types.GitArgStash),
+	}
+
+	log.Fatalf("Invalid git arg value: '%s'. Must be one of the following values: %s. e.g. 'lazygit status'. See 'lazygit --help'.",
+		gitArg,
+		strings.Join(permittedValues, ", "),
+	)
+
+	panic("unreachable")
 }
