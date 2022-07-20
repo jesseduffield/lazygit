@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/gookit/color"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
@@ -37,9 +38,17 @@ func (cell *Cell) render(writer io.StringWriter) {
 	case CONNECTION:
 		adjustedFirst = first
 	case COMMIT:
-		adjustedFirst = string(CommitSymbol)
+		if icons.IsIconEnabled() {
+			adjustedFirst = string(icons.COMMIT_ICON)
+		} else {
+			adjustedFirst = string(CommitSymbol)
+		}
 	case MERGE:
-		adjustedFirst = string(MergeSymbol)
+		if icons.IsIconEnabled() {
+			adjustedFirst = string(icons.MERGE_COMMIT_ICON)
+		} else {
+			adjustedFirst = string(MergeSymbol)
+		}
 	}
 
 	var rightStyle *style.TextStyle
