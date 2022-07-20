@@ -26,9 +26,9 @@ type remoteIcon struct {
 }
 
 var remoteIcons = []remoteIcon{
-	{domain: "github.com", icon: "\ue709"},    // 
+	{domain: "github.com",    icon: "\ue708"}, // 
 	{domain: "bitbucket.org", icon: "\ue703"}, // 
-	{domain: "gitlab.com", icon: "\uf296"},    // 
+	{domain: "gitlab.com",    icon: "\uf296"}, // 
 	{domain: "dev.azure.com", icon: "\ufd03"}, // ﴃ
 }
 
