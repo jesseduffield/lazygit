@@ -116,18 +116,10 @@ func BranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
 
 	result := ""
 	if branch.HasCommitsToPush() {
-		if icons.IsIconEnabled() {
-			result = fmt.Sprintf("\uf0ee %s", branch.Pushables) // 
-		} else {
-			result = fmt.Sprintf("↑%s", branch.Pushables)
-		}
+		result = fmt.Sprintf(icons.IconForPush() + "%s", branch.Pushables)
 	}
 	if branch.HasCommitsToPull() {
-		if icons.IsIconEnabled() {
-			result = fmt.Sprintf("%s\uf0ed %s", result, branch.Pullables) // 
-		} else {
-			result = fmt.Sprintf("%s↓%s", result, branch.Pullables)
-		}
+		result = fmt.Sprintf("%s" + icons.IconForPull() + "%s", result, branch.Pullables)
 	}
 
 	return result

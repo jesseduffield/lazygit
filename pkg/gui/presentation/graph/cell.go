@@ -38,17 +38,9 @@ func (cell *Cell) render(writer io.StringWriter) {
 	case CONNECTION:
 		adjustedFirst = first
 	case COMMIT:
-		if icons.IsIconEnabled() {
-			adjustedFirst = string(icons.COMMIT_ICON)
-		} else {
-			adjustedFirst = string(CommitSymbol)
-		}
+		adjustedFirst = icons.IconForCommitCell()
 	case MERGE:
-		if icons.IsIconEnabled() {
-			adjustedFirst = string(icons.MERGE_COMMIT_ICON)
-		} else {
-			adjustedFirst = string(MergeSymbol)
-		}
+		adjustedFirst = icons.IconForMergeCommitCell()
 	}
 
 	var rightStyle *style.TextStyle
