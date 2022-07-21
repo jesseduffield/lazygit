@@ -34,9 +34,9 @@ func (self *CommitCommands) SetAuthor(value string) error {
 	return self.cmd.New(commandStr).Run()
 }
 
-// ResetToCommit reset to commit
-func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars []string) error {
-	return self.cmd.New(fmt.Sprintf("git reset --%s %s", strength, sha)).
+// ResetToDestination reset to either commit hash, or custom branch (destination)
+func (self *CommitCommands) ResetToDestination(destination string, strength string, envVars []string) error {
+	return self.cmd.New(fmt.Sprintf("git reset --%s %s", strength, destination)).
 		// prevents git from prompting us for input which would freeze the program
 		// TODO: see if this is actually needed here
 		AddEnvVars("GIT_TERMINAL_PROMPT=0").

@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -23,10 +24,11 @@ type IRefsHelper interface {
 }
 
 type RefsHelper struct {
-	c        *types.HelperCommon
-	git      *commands.GitCommand
-	contexts *context.ContextTree
-	model    *types.Model
+	c                *types.HelperCommon
+	git              *commands.GitCommand
+	contexts         *context.ContextTree
+	model            *types.Model
+	suggestionHelper *SuggestionsHelper
 }
 
 func NewRefsHelper(
@@ -34,12 +36,14 @@ func NewRefsHelper(
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 	model *types.Model,
+	suggestionHelper *SuggestionsHelper,
 ) *RefsHelper {
 	return &RefsHelper{
-		c:        c,
-		git:      git,
-		contexts: contexts,
-		model:    model,
+		c:                c,
+		git:              git,
+		contexts:         contexts,
+		model:            model,
+		suggestionHelper: suggestionHelper,
 	}
 }
 
@@ -113,7 +117,7 @@ func (self *RefsHelper) GetCheckedOutRef() *models.Branch {
 }
 
 func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string) error {
-	if err := self.git.Commit.ResetToCommit(ref, strength, envVars); err != nil {
+	if err := self.git.Commit.ResetToDestination(ref, strength, envVars); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -156,6 +160,32 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 			},
 			Key: row.key,
 		}
+	})
+
+	// Adds the custom destination menu item
+	menuItems = append(menuItems, &types.MenuItem{
+		LabelColumns: []string{
+			fmt.Sprintf(self.c.Tr.LcResetToCustomBranch),
+			style.FgRed.Sprintf(""),
+		},
+		OnPress: func() error {
+			return self.c.Prompt(types.PromptOpts{
+				Title: self.c.Tr.LcResetToCustomBranch,
+				HandleConfirm: func(s string) error {
+					// Checks if the supplied branch name is in the list of available branches
+					// Returns an error screen if not valid, re-renders the menu if it is
+					if slices.Some(self.suggestionHelper.getBranchNames(), func(branchName string) bool {
+						return s == branchName
+					}) {
+						return self.CreateGitResetMenu(s)
+					} else {
+						return self.c.Error(errors.New("Branch not found"))
+					}
+				},
+				FindSuggestionsFunc: self.suggestionHelper.GetBranchNameSuggestionsFunc(),
+			})
+		},
+		Key: 'c',
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{
