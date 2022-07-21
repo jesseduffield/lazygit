@@ -61,8 +61,8 @@ func (self *CommitCommands) CommitCmdObj(message string) oscommands.ICmdObj {
 }
 
 // runs git commit without the -m argument meaning it will invoke the user's editor
-func (self *CommitCommands) CommitEditorCmdObj() oscommands.ICmdObj {
-	return self.cmd.New(fmt.Sprintf("git commit%s", self.signoffFlag()))
+func (self *CommitCommands) CommitEditorCmdObj(cpath string) oscommands.ICmdObj {
+	return self.cmd.New(fmt.Sprintf("git commit%s --file=%s", self.signoffFlag(), cpath))
 }
 
 func (self *CommitCommands) signoffFlag() string {

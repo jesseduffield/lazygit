@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"path"
 	"regexp"
 	"strings"
 
@@ -546,9 +547,40 @@ func (self *FilesController) HandleCommitEditorPress() error {
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.Commit)
-	return self.c.RunSubprocessAndRefresh(
-		self.git.Commit.CommitEditorCmdObj(),
-	)
+
+	commit_path := path.Join("/", "tmp", "LG_COMMIT_MSG")
+	present, err := self.os.FileExists(commit_path)
+
+	if err != nil {
+		return err
+	}
+
+	if present {
+		err := self.os.Remove(commit_path)
+		if err != nil {
+			return err
+		}
+	}
+
+	self.helpers.Files.EditFile(commit_path)
+
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  "Confirm commit",
+		Prompt: "Really commit now ?",
+		HandleConfirm: func() error {
+			err := self.c.RunSubprocessAndRefresh(
+				self.git.Commit.CommitEditorCmdObj(commit_path),
+			)
+			if err != nil {
+				return err
+			}
+
+			return self.os.Remove(commit_path)
+		},
+		HandleClose: func() error {
+			return self.os.Remove(commit_path)
+		},
+	})
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
