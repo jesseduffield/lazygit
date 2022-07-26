@@ -125,7 +125,7 @@ func (self *RemoteBranchesController) rebase(selectedBranch *models.RemoteBranch
 }
 
 func (self *RemoteBranchesController) createResetMenu(selectedBranch *models.RemoteBranch) error {
-	return self.helpers.Refs.CreateGitResetMenu(selectedBranch.FullName())
+	return self.helpers.Refs.CreateGitResetMenu(selectedBranch.FullName(), "remote")
 }
 
 func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.RemoteBranch) error {

@@ -230,7 +230,7 @@ func (self *BasicCommitsController) newBranch(commit *models.Commit) error {
 }
 
 func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error {
-	return self.helpers.Refs.CreateGitResetMenu(commit.Sha)
+	return self.helpers.Refs.CreateGitResetMenu(commit.Sha, "commit")
 }
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {

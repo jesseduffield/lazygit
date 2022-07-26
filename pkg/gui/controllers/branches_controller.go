@@ -364,7 +364,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {
-	return self.helpers.Refs.CreateGitResetMenu(selectedBranch.Name)
+	return self.helpers.Refs.CreateGitResetMenu(selectedBranch.Name, "branch")
 }
 
 func (self *BranchesController) rename(branch *models.Branch) error {

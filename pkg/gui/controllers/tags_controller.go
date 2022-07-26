@@ -112,7 +112,7 @@ func (self *TagsController) push(tag *models.Tag) error {
 }
 
 func (self *TagsController) createResetMenu(tag *models.Tag) error {
-	return self.helpers.Refs.CreateGitResetMenu(tag.Name)
+	return self.helpers.Refs.CreateGitResetMenu(tag.Name, "tags")
 }
 
 func (self *TagsController) create() error {
