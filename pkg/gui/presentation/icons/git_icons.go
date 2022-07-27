@@ -22,6 +22,7 @@ const (
 	GIT_TAG_ICON            = "\uf02b" // 
 )
 
+// Symbols are used when icons are disabled
 const (
 	GIT_MERGE_COMMIT_SYMBOL  = "⏣"
 	GIT_COMMIT_SYMBOL = "◯"
@@ -115,7 +116,9 @@ func IconForChangeStatus(changeStatus string) string {
 		return GIT_DIFF_RENAMED_ICON
 	case "D":
 		return GIT_DIFF_REMOVED_ICON
+	case "!":
+		return GIT_DIFF_IGNORED_ICON
 	default:
-		return " "
+		return changeStatus
 	}
 }
