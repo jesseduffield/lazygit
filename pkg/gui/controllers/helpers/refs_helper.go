@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -18,7 +17,7 @@ import (
 type IRefsHelper interface {
 	CheckoutRef(ref string, options types.CheckoutRefOptions) error
 	GetCheckedOutRef() *models.Branch
-	CreateGitResetMenu(ref string, refType string) error
+	CreateGitResetMenu(ref string, opts types.CreateGitResetMenuOpts) error
 	ResetToRef(ref string, strength string, envVars []string) error
 	NewBranch(from string, fromDescription string, suggestedBranchname string) error
 }
@@ -137,7 +136,7 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	return nil
 }
 
-func (self *RefsHelper) CreateGitResetMenu(ref string, refType string) error {
+func (self *RefsHelper) CreateGitResetMenu(ref string, opts types.CreateGitResetMenuOpts) error {
 	type strengthWithKey struct {
 		strength string
 		key      types.Key
@@ -148,16 +147,6 @@ func (self *RefsHelper) CreateGitResetMenu(ref string, refType string) error {
 		{strength: "soft", key: 's', ref: ref},
 		{strength: "mixed", key: 'm', ref: ref},
 		{strength: "hard", key: 'h', ref: ref},
-	}
-
-	// File controller already passes "@{upstream}" as the ref by default,
-	// so this is to avoid duplication
-	if refType != "file" {
-		strengths = append(strengths, []strengthWithKey{
-			{strength: "soft", key: 'S', ref: "@{upstream}"},
-			{strength: "mixed", key: 'M', ref: "@{upstream}"},
-			{strength: "hard", key: 'H', ref: "@{upstream}"},
-		}...)
 	}
 
 	menuItems := slices.Map(strengths, func(row strengthWithKey) *types.MenuItem {
@@ -174,48 +163,43 @@ func (self *RefsHelper) CreateGitResetMenu(ref string, refType string) error {
 		}
 	})
 
-	// Handles suggestions for different ref types
-	var suggestionFunc func(string) []*types.Suggestion
-	var suggestionAgg []string
-
-	switch refType {
-	case "branch":
-		suggestionFunc = self.suggestionHelper.GetBranchNameSuggestionsFunc()
-		suggestionAgg = self.suggestionHelper.getBranchNames()
-	case "commit":
-		suggestionFunc = self.suggestionHelper.GetCommitsSuggestionsFunc()
-		suggestionAgg = self.suggestionHelper.getCommitShas()
-	default:
-		suggestionFunc = self.suggestionHelper.GetBranchNameSuggestionsFunc()
-		suggestionAgg = self.suggestionHelper.getBranchNames()
+	if opts.ShowUpstreamOption {
+		menuItems = append(menuItems, &types.MenuItem{
+			LabelColumns: []string{
+				fmt.Sprintf(self.c.Tr.ResetToUpstreamOption, ref),
+				style.FgRed.Sprintf(""),
+			},
+			OnPress: func() error {
+				return self.CreateGitResetMenu(fmt.Sprintf("%s@{upstream}", ref), types.CreateGitResetMenuOpts{
+					ShowUpstreamOption:  false,
+					ShowCustomRefOption: false,
+				})
+			},
+			Key: 'u',
+		})
 	}
 
-	// Adds the custom destination menu item
-	menuItems = append(menuItems, &types.MenuItem{
-		LabelColumns: []string{
-			fmt.Sprintf(self.c.Tr.LcResetToCustomDestination),
-			style.FgRed.Sprintf(""),
-		},
-		OnPress: func() error {
-			return self.c.Prompt(types.PromptOpts{
-				Title: self.c.Tr.LcResetToCustomDestination,
-				HandleConfirm: func(s string) error {
-					// Checks if the supplied ref name is in the list of available refs
-					// Returns an error screen if not valid, re-renders the menu if it is
-					if slices.Some(suggestionAgg, func(refName string) bool {
-						return s == refName
-					}) {
-						return self.CreateGitResetMenu(s, refType)
-					} else {
-						errorMessage := fmt.Sprintf("%s not found", refType)
-						return self.c.Error(errors.New(errorMessage))
-					}
-				},
-				FindSuggestionsFunc: suggestionFunc,
-			})
-		},
-		Key: 'c',
-	})
+	if opts.ShowCustomRefOption {
+		menuItems = append(menuItems, &types.MenuItem{
+			LabelColumns: []string{
+				fmt.Sprintf(self.c.Tr.ResetToCustomDestination),
+				style.FgRed.Sprintf(""),
+			},
+			OnPress: func() error {
+				return self.c.Prompt(types.PromptOpts{
+					Title: self.c.Tr.ResetToCustomDestination,
+					HandleConfirm: func(s string) error {
+						return self.CreateGitResetMenu(s, types.CreateGitResetMenuOpts{
+							ShowCustomRefOption: false,
+							ShowUpstreamOption:  true,
+						})
+					},
+					FindSuggestionsFunc: self.suggestionHelper.GetRefsSuggestionsFunc(),
+				})
+			},
+			Key: 'c',
+		})
+	}
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: fmt.Sprintf("%s %s", self.c.Tr.LcResetTo, ref),

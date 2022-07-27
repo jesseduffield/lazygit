@@ -183,16 +183,6 @@ func (self *SuggestionsHelper) GetAuthorsSuggestionsFunc() func(string) []*types
 	return FuzzySearchFunc(authors)
 }
 
-func (self *SuggestionsHelper) getCommitShas() []string {
-	return slices.Map(self.model.Commits, func(commit *models.Commit) string {
-		return commit.Sha
-	})
-}
-
-func (self *SuggestionsHelper) GetCommitsSuggestionsFunc() func(string) []*types.Suggestion {
-	return FuzzySearchFunc(self.getCommitShas())
-}
-
 func FuzzySearchFunc(options []string) func(string) []*types.Suggestion {
 	return func(input string) []*types.Suggestion {
 		var matches []string

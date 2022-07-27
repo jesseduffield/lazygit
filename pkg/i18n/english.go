@@ -274,8 +274,9 @@ type TranslationSet struct {
 	LcDiscardStagedChanges              string
 	LcHardReset                         string
 	LcViewResetOptions                  string
-	LcResetToCustomDestinationTitle     string
-	LcResetToCustomDestination          string
+	ResetToCustomDestinationTitle       string
+	ResetToCustomDestination            string
+	ResetToUpstreamOption               string
 	LcCreateFixupCommit                 string
 	LcSquashAboveCommits                string
 	SquashAboveCommits                  string
@@ -911,8 +912,9 @@ func EnglishTranslationSet() TranslationSet {
 		LcDiscardStagedChanges:              "discard staged changes",
 		LcHardReset:                         "hard reset",
 		LcViewResetOptions:                  `view reset options`,
-		LcResetToCustomDestinationTitle:     `Custom reset destination`,
-		LcResetToCustomDestination:          `set custom destination`,
+		ResetToCustomDestinationTitle:       `Custom reset destination`,
+		ResetToCustomDestination:            `set custom destination`,
+		ResetToUpstreamOption:               `reset to %s@{upstream}`,
 		LcCreateFixupCommit:                 `create fixup commit for this commit`,
 		LcSquashAboveCommits:                `squash all 'fixup!' commits above selected commit (autosquash)`,
 		SquashAboveCommits:                  `Squash all 'fixup!' commits above selected commit (autosquash)`,

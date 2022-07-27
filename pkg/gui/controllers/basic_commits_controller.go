@@ -230,7 +230,10 @@ func (self *BasicCommitsController) newBranch(commit *models.Commit) error {
 }
 
 func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error {
-	return self.helpers.Refs.CreateGitResetMenu(commit.Sha, "commit")
+	return self.helpers.Refs.CreateGitResetMenu(commit.Sha, types.CreateGitResetMenuOpts{
+		ShowUpstreamOption:  false,
+		ShowCustomRefOption: true,
+	})
 }
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {

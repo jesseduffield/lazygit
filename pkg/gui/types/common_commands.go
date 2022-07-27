@@ -5,3 +5,8 @@ type CheckoutRefOptions struct {
 	EnvVars       []string
 	OnRefNotFound func(ref string) error
 }
+
+type CreateGitResetMenuOpts struct {
+	ShowUpstreamOption  bool
+	ShowCustomRefOption bool
+}
