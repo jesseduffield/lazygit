@@ -187,9 +187,12 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		if customCommand.Stream {
 			cmdObj.StreamOutput()
 		}
-		err := cmdObj.Run()
+		output, err := cmdObj.RunWithOutput()
 		if err != nil {
 			return self.c.Error(err)
+		}
+		if customCommand.ShowOutput {
+			return self.c.Alert(cmdStr, output)
 		}
 		return self.c.Refresh(types.RefreshOptions{})
 	})
