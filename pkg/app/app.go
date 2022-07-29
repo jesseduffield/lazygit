@@ -151,6 +151,17 @@ func isDirectoryAGitRepository(dir string) (bool, error) {
 	return info != nil && info.IsDir(), err
 }
 
+func isBareRepo(osCommand *oscommands.OSCommand) (bool, error) {
+	res, err := osCommand.Cmd.New("git rev-parse --is-bare-repository").DontLog().RunWithOutput()
+
+	if err != nil {
+		return false, err
+	}
+
+	// The command returns output with a newline, so we need to strip
+	return strconv.ParseBool(strings.TrimSpace(res))
+}
+
 func (app *App) setupRepo() (bool, error) {
 	if err := app.validateGitVersion(); err != nil {
 		return false, err
@@ -167,6 +178,7 @@ func (app *App) setupRepo() (bool, error) {
 		if err != nil {
 			return false, err
 		}
+
 		if isRepo, err := isDirectoryAGitRepository(cwd); isRepo {
 			return false, err
 		}
@@ -207,6 +219,17 @@ func (app *App) setupRepo() (bool, error) {
 		}
 		if err := app.OSCommand.Cmd.New("git init " + initialBranch).Run(); err != nil {
 			return false, err
+		}
+	}
+
+	// Run this afterward so that the previous repo creation steps can run without this interfering
+	if isBare, err := isBareRepo(app.OSCommand); isBare {
+		if err != nil {
+			return false, err
+		}
+
+		if isBare {
+			log.Fatalln("bare repositories are not supported by lazygit, please make this a working repository.")
 		}
 	}
 
