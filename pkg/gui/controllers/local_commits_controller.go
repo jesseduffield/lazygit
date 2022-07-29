@@ -227,11 +227,11 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand("reword", commit)
+	midRebase, err := self.handleMidRebaseCommand("reword", commit)
 	if err != nil {
 		return err
 	}
-	if applied {
+	if midRebase {
 		return nil
 	}
 
@@ -240,6 +240,11 @@ func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
 		Prompt: self.c.Tr.RewordInEditorPrompt,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RewordCommit)
+
+			if self.context().GetSelectedLineIdx() == 0 {
+				return self.c.RunSubprocessAndRefresh(self.os.Cmd.New("git commit --allow-empty --amend --only"))
+			}
+
 			subProcess, err := self.git.Rebase.RewordCommitInEditor(
 				self.model.Commits, self.context().GetSelectedLineIdx(),
 			)
