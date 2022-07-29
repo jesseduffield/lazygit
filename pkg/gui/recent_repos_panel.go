@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -27,10 +28,24 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 	// we skip the first one because we're currently in it
 	recentRepoPaths := gui.c.GetAppState().RecentRepos[1:]
 
+	currentBranches := sync.Map{}
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(recentRepoPaths))
+
+	for _, path := range recentRepoPaths {
+		go func(path string) {
+			defer wg.Done()
+			currentBranches.Store(path, gui.getCurrentBranch(path))
+		}(path)
+	}
+
+	wg.Wait()
+
 	menuItems := slices.Map(recentRepoPaths, func(path string) *types.MenuItem {
 		branchName, _ := currentBranches.Load(path)
 		if icons.IsIconEnabled() {
-			branchName = icons.BRANCH_ICON + " " + branchName
+			branchName = icons.BRANCH_ICON + " " + fmt.Sprintf("%v", branchName)
 		}
 
 		return &types.MenuItem{
