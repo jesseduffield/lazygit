@@ -57,6 +57,11 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description: self.c.Tr.LcCopyPullRequestURL,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Branches.CopyBranchURL),
+			Handler:     self.copyBranchURL,
+			Description: self.c.Tr.LcCopyBranchURL,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Branches.CheckoutBranchByName),
 			Handler:     self.checkoutByName,
 			Description: self.c.Tr.LcCheckoutByName,
@@ -205,6 +210,30 @@ func (self *BranchesController) copyPullRequestURL() error {
 	}
 
 	self.c.Toast(self.c.Tr.PullRequestURLCopiedToClipboard)
+
+	return nil
+}
+
+func (self *BranchesController) copyBranchURL() error {
+	branch := self.context().GetSelected()
+
+	branchExistsOnRemote := self.git.Remote.CheckRemoteBranchExists(branch.Name)
+
+	if !branchExistsOnRemote {
+		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
+	}
+
+	url, err := self.helpers.Host.GetBranchURL(branch.Name)
+	if err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.CopyBranchURL)
+	if err := self.os.CopyToClipboard(url); err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Toast(self.c.Tr.BranchURLCopiedToClipboard)
 
 	return nil
 }

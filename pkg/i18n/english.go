@@ -164,6 +164,7 @@ type TranslationSet struct {
 	UnsupportedGitService               string
 	LcCreatePullRequest                 string
 	LcCopyPullRequestURL                string
+	LcCopyBranchURL                     string
 	NoBranchOnRemote                    string
 	LcFetch                             string
 	NoAutomaticGitFetchTitle            string
@@ -451,6 +452,7 @@ type TranslationSet struct {
 	ExtrasTitle                         string
 	PushingTagStatus                    string
 	PullRequestURLCopiedToClipboard     string
+	BranchURLCopiedToClipboard          string
 	CommitDiffCopiedToClipboard         string
 	CommitSHACopiedToClipboard          string
 	CommitURLCopiedToClipboard          string
@@ -617,6 +619,7 @@ type Actions struct {
 	Undo                              string
 	Redo                              string
 	CopyPullRequestURL                string
+	CopyBranchURL                     string
 	OpenMergeTool                     string
 	OpenCommitInBrowser               string
 	OpenPullRequest                   string
@@ -798,6 +801,7 @@ func EnglishTranslationSet() TranslationSet {
 		UnsupportedGitService:               `Unsupported git service`,
 		LcCreatePullRequest:                 `create pull request`,
 		LcCopyPullRequestURL:                `copy pull request URL to clipboard`,
+		LcCopyBranchURL:                     `copy branch URL to clipboard`,
 		NoBranchOnRemote:                    `This branch doesn't exist on remote. You need to push it to remote first.`,
 		LcFetch:                             `fetch`,
 		NoAutomaticGitFetchTitle:            `No automatic git fetch`,
@@ -1086,6 +1090,7 @@ func EnglishTranslationSet() TranslationSet {
 		ExtrasTitle:                         "Command Log",
 		PushingTagStatus:                    "pushing tag",
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
+		BranchURLCopiedToClipboard:          "Branch URL copied to clipboard",
 		CommitDiffCopiedToClipboard:         "Commit diff copied to clipboard",
 		CommitSHACopiedToClipboard:          "Commit SHA copied to clipboard",
 		CommitURLCopiedToClipboard:          "Commit URL copied to clipboard",
@@ -1234,6 +1239,7 @@ func EnglishTranslationSet() TranslationSet {
 			Undo:                              "Undo",
 			Redo:                              "Redo",
 			CopyPullRequestURL:                "Copy pull request URL",
+			CopyBranchURL:                     "Copy branch URL",
 			OpenMergeTool:                     "Open merge tool",
 			OpenCommitInBrowser:               "Open commit in browser",
 			OpenPullRequest:                   "Open pull request in browser",
