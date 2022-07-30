@@ -142,6 +142,7 @@ SelectedLocalCommit
 SelectedReflogCommit
 SelectedSubCommit
 SelectedFile
+SelectedPath
 SelectedLocalBranch
 SelectedRemoteBranch
 SelectedRemote
