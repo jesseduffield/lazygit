@@ -31,4 +31,4 @@ If applicable, add screenshots to help explain your problem.
 **Additional context**
 Add any other context about the problem here.
 
-**Note:** please try updating to the latest version or manually building the latest `master` to see if the issue still occurs.
+**Note:** please try updating to the latest version or [manually building](https://github.com/jesseduffield/lazygit/#manual) the latest `master` to see if the issue still occurs.
