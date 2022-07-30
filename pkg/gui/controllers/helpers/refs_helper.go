@@ -175,7 +175,8 @@ func (self *RefsHelper) CreateGitResetMenu(ref string, opts types.CreateGitReset
 					ShowCustomRefOption: false,
 				})
 			},
-			Key: 'u',
+			Key:       'u',
+			OpensMenu: true,
 		})
 	}
 

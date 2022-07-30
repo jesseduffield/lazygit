@@ -117,12 +117,6 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.FileEnter,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
-			Handler:     self.createResetToUpstreamMenu,
-			Description: self.c.Tr.LcViewResetToUpstreamOptions,
-			OpensMenu:   true,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Files.ViewResetOptions),
 			Handler:     self.createResetMenu,
 			Description: self.c.Tr.LcViewResetOptions,
@@ -655,13 +649,6 @@ func (self *FilesController) createStashMenu() error {
 
 func (self *FilesController) stash() error {
 	return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges, self.c.Tr.NoTrackedStagedFilesStash)
-}
-
-func (self *FilesController) createResetToUpstreamMenu() error {
-	return self.helpers.Refs.CreateGitResetMenu("HEAD", types.CreateGitResetMenuOpts{
-		ShowCustomRefOption: true,
-		ShowUpstreamOption:  false,
-	})
 }
 
 func (self *FilesController) handleToggleDirCollapsed() error {
