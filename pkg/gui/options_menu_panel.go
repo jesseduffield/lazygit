@@ -5,7 +5,6 @@ import (
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
@@ -50,21 +49,14 @@ func uniqueBindings(bindings []*types.Binding) []*types.Binding {
 	})
 }
 
-func (gui *Gui) displayDescription(binding *types.Binding) string {
-	if binding.OpensMenu {
-		return presentation.OpensMenuStyle(binding.Description)
-	}
-
-	return binding.Description
-}
-
 func (gui *Gui) handleCreateOptionsMenu() error {
 	context := gui.currentContext()
 	bindings := gui.getBindings(context)
 
 	menuItems := slices.Map(bindings, func(binding *types.Binding) *types.MenuItem {
 		return &types.MenuItem{
-			Label: gui.displayDescription(binding),
+			OpensMenu: binding.OpensMenu,
+			Label:     binding.Description,
 			OnPress: func() error {
 				if binding.Key == nil {
 					return nil
