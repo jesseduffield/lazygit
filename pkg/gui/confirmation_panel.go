@@ -123,29 +123,24 @@ func (gui *Gui) getConfirmationPanelWidth() int {
 }
 
 func (gui *Gui) prepareConfirmationPanel(
-	title,
-	prompt string,
-	hasLoader bool,
-	findSuggestionsFunc func(string) []*types.Suggestion,
-	editable bool,
-	mask bool,
+	opts types.ConfirmOpts,
 ) error {
-	gui.Views.Confirmation.HasLoader = hasLoader
-	if hasLoader {
+	gui.Views.Confirmation.HasLoader = opts.HasLoader
+	if opts.HasLoader {
 		gui.g.StartTicking()
 	}
-	gui.Views.Confirmation.Title = title
+	gui.Views.Confirmation.Title = opts.Title
 	// for now we do not support wrapping in our editor
-	gui.Views.Confirmation.Wrap = !editable
+	gui.Views.Confirmation.Wrap = !opts.Editable
 	gui.Views.Confirmation.FgColor = theme.GocuiDefaultTextColor
-	gui.Views.Confirmation.Mask = runeForMask(mask)
+	gui.Views.Confirmation.Mask = runeForMask(opts.Mask)
 
-	gui.findSuggestions = findSuggestionsFunc
-	if findSuggestionsFunc != nil {
+	gui.findSuggestions = opts.FindSuggestionsFunc
+	if opts.FindSuggestionsFunc != nil {
 		suggestionsView := gui.Views.Suggestions
 		suggestionsView.Wrap = false
 		suggestionsView.FgColor = theme.GocuiDefaultTextColor
-		gui.setSuggestions(findSuggestionsFunc(""))
+		gui.setSuggestions(opts.FindSuggestionsFunc(""))
 		suggestionsView.Visible = true
 		suggestionsView.Title = fmt.Sprintf(gui.c.Tr.SuggestionsTitle, gui.c.UserConfig.Keybinding.Universal.TogglePanel)
 	}
@@ -177,13 +172,14 @@ func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 	gui.clearConfirmationViewKeyBindings()
 
 	err := gui.prepareConfirmationPanel(
-		opts.Title,
-		opts.Prompt,
-		opts.HasLoader,
-		opts.FindSuggestionsFunc,
-		opts.Editable,
-		opts.Mask,
-	)
+		types.ConfirmOpts{
+			Title:               opts.Title,
+			Prompt:              opts.Prompt,
+			HasLoader:           opts.HasLoader,
+			FindSuggestionsFunc: opts.FindSuggestionsFunc,
+			Editable:            opts.Editable,
+			Mask:                opts.Mask,
+		})
 	if err != nil {
 		return err
 	}

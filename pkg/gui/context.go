@@ -359,7 +359,7 @@ func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
 		newView := gui.g.CurrentView()
 		// for now we don't consider losing focus to a popup panel as actually losing focus
 		if newView != previousView && !gui.isPopupPanel(newView.Name()) {
-			if err := gui.onViewFocusLost(previousView, newView); err != nil {
+			if err := gui.onViewFocusLost(previousView); err != nil {
 				return err
 			}
 
@@ -369,7 +369,7 @@ func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
 	}
 }
 
-func (gui *Gui) onViewFocusLost(oldView *gocui.View, newView *gocui.View) error {
+func (gui *Gui) onViewFocusLost(oldView *gocui.View) error {
 	if oldView == nil {
 		return nil
 	}

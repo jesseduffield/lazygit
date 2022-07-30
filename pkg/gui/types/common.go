@@ -96,6 +96,10 @@ type ConfirmOpts struct {
 	HandleConfirm       func() error
 	HandleClose         func() error
 	HandlersManageFocus bool
+	HasLoader           bool
+	FindSuggestionsFunc func(string) []*Suggestion
+	Editable            bool
+	Mask                bool
 }
 
 type PromptOpts struct {
