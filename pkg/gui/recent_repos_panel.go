@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,12 +17,14 @@ import (
 )
 
 func (gui *Gui) getCurrentBranch(path string) string {
-	if branch, err := gui.os.Cmd.New(
-		fmt.Sprintf("git -C %s rev-parse --abbrev-ref HEAD", gui.os.Quote(path)),
-	).DontLog().RunWithOutput(); err == nil {
-		return strings.Trim(branch, "\n")
+	if headFile, err := ioutil.ReadFile(fmt.Sprintf("%s/.git/HEAD", path)); err == nil {
+		content := strings.TrimSpace(string(headFile))
+		branch := strings.TrimPrefix(content, "ref: refs/heads/")
+		return branch
 	}
-	return ""
+	// worktrees don't have `.git/HEAD`
+	// and detached HEAD repos have only a hash in `.git/HEAD`
+	return "HEAD"
 }
 
 func (gui *Gui) handleCreateRecentReposMenu() error {
