@@ -49,7 +49,7 @@ func (self *UpstreamHelper) ParseUpstream(upstream string) (string, string, erro
 	return upstreamRemote, upstreamBranch, nil
 }
 
-func (self *UpstreamHelper) promptForUpstream(currentBranch *models.Branch, initialContent string, onConfirm func(string) error) error {
+func (self *UpstreamHelper) promptForUpstream(initialContent string, onConfirm func(string) error) error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.EnterUpstream,
 		InitialContent:      initialContent,
@@ -62,11 +62,11 @@ func (self *UpstreamHelper) PromptForUpstreamWithInitialContent(currentBranch *m
 	suggestedRemote := self.GetSuggestedRemote()
 	initialContent := suggestedRemote + " " + currentBranch.Name
 
-	return self.promptForUpstream(currentBranch, initialContent, onConfirm)
+	return self.promptForUpstream(initialContent, onConfirm)
 }
 
-func (self *UpstreamHelper) PromptForUpstreamWithoutInitialContent(currentBranch *models.Branch, onConfirm func(string) error) error {
-	return self.promptForUpstream(currentBranch, "", onConfirm)
+func (self *UpstreamHelper) PromptForUpstreamWithoutInitialContent(_ *models.Branch, onConfirm func(string) error) error {
+	return self.promptForUpstream("", onConfirm)
 }
 
 func (self *UpstreamHelper) GetSuggestedRemote() string {
