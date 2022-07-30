@@ -17,13 +17,36 @@ import (
 )
 
 func (gui *Gui) getCurrentBranch(path string) string {
-	if headFile, err := ioutil.ReadFile(fmt.Sprintf("%s/.git/HEAD", path)); err == nil {
-		content := strings.TrimSpace(string(headFile))
-		branch := strings.TrimPrefix(content, "ref: refs/heads/")
-		return branch
+	readHeadFile := func(path string) (string, error) {
+		headFile, err := ioutil.ReadFile(fmt.Sprintf("%s%cHEAD", path, os.PathSeparator))
+		if err == nil {
+			content := strings.TrimSpace(string(headFile))
+			branch := strings.TrimPrefix(content, "ref: refs/heads/")
+			return branch, nil
+		}
+		return "", err
 	}
-	// worktrees don't have `.git/HEAD`
-	// and detached HEAD repos have only a hash in `.git/HEAD`
+
+	gitDirPath := fmt.Sprintf("%s%c.git", path, os.PathSeparator)
+
+	if gitDir, err := os.Stat(gitDirPath); err == nil {
+		if gitDir.IsDir() {
+			// ordinary repo
+			if branch, err := readHeadFile(gitDirPath); err == nil {
+				return branch
+			}
+		} else {
+			// worktree
+			if worktreeGitDir, err := ioutil.ReadFile(gitDirPath); err == nil {
+				content := strings.TrimSpace(string(worktreeGitDir))
+				worktreePath := strings.TrimPrefix(content, "gitdir: ")
+				if branch, err := readHeadFile(worktreePath); err == nil {
+					return branch
+				}
+			}
+		}
+	}
+
 	return "HEAD"
 }
 
