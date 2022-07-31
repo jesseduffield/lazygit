@@ -1,22 +1,24 @@
 package filetree
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/sirupsen/logrus"
 )
 
 type ICommitFileTree interface {
-	ITree
+	ITree[models.CommitFile]
 
 	Get(index int) *CommitFileNode
 	GetFile(path string) *models.CommitFile
 	GetAllItems() []*CommitFileNode
 	GetAllFiles() []*models.CommitFile
+	GetRoot() *CommitFileNode
 }
 
 type CommitFileTree struct {
 	getFiles       func() []*models.CommitFile
-	tree           *CommitFileNode
+	tree           *Node[models.CommitFile]
 	showTree       bool
 	log            *logrus.Entry
 	collapsedPaths *CollapsedPaths
@@ -44,7 +46,7 @@ func (self *CommitFileTree) ToggleShowTree() {
 
 func (self *CommitFileTree) Get(index int) *CommitFileNode {
 	// need to traverse the three depth first until we get to the index.
-	return self.tree.GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
+	return NewCommitFileNode(self.tree.GetNodeAtIndex(index+1, self.collapsedPaths)) // ignoring root
 }
 
 func (self *CommitFileTree) GetIndexForPath(path string) (int, bool) {
@@ -57,7 +59,10 @@ func (self *CommitFileTree) GetAllItems() []*CommitFileNode {
 		return nil
 	}
 
-	return self.tree.Flatten(self.collapsedPaths)[1:] // ignoring root
+	// ignoring root
+	return slices.Map(self.tree.Flatten(self.collapsedPaths)[1:], func(node *Node[models.CommitFile]) *CommitFileNode {
+		return NewCommitFileNode(node)
+	})
 }
 
 func (self *CommitFileTree) Len() int {
@@ -84,8 +89,8 @@ func (self *CommitFileTree) ToggleCollapsed(path string) {
 	self.collapsedPaths.ToggleCollapsed(path)
 }
 
-func (self *CommitFileTree) Tree() INode {
-	return self.tree
+func (self *CommitFileTree) GetRoot() *CommitFileNode {
+	return NewCommitFileNode(self.tree)
 }
 
 func (self *CommitFileTree) CollapsedPaths() *CollapsedPaths {

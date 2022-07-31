@@ -247,7 +247,7 @@ func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 	self.mutexes.RefreshingFilesMutex.Lock()
 	defer self.mutexes.RefreshingFilesMutex.Unlock()
 
-	if node.IsLeaf() {
+	if node.IsFile() {
 		file := node.File
 
 		if file.HasInlineMergeConflicts {
