@@ -18,7 +18,7 @@ import (
 
 func (gui *Gui) getCurrentBranch(path string) string {
 	readHeadFile := func(path string) (string, error) {
-		headFile, err := ioutil.ReadFile(fmt.Sprintf("%s%cHEAD", path, os.PathSeparator))
+		headFile, err := ioutil.ReadFile(filepath.Join(path, "HEAD"))
 		if err == nil {
 			content := strings.TrimSpace(string(headFile))
 			branch := strings.TrimPrefix(content, "ref: refs/heads/")
@@ -27,7 +27,7 @@ func (gui *Gui) getCurrentBranch(path string) string {
 		return "", err
 	}
 
-	gitDirPath := fmt.Sprintf("%s%c.git", path, os.PathSeparator)
+	gitDirPath := filepath.Join(path, ".git")
 
 	if gitDir, err := os.Stat(gitDirPath); err == nil {
 		if gitDir.IsDir() {
