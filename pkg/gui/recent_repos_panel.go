@@ -14,6 +14,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) getCurrentBranch(path string) string {
@@ -21,8 +22,16 @@ func (gui *Gui) getCurrentBranch(path string) string {
 		headFile, err := ioutil.ReadFile(filepath.Join(path, "HEAD"))
 		if err == nil {
 			content := strings.TrimSpace(string(headFile))
-			branch := strings.TrimPrefix(content, "ref: refs/heads/")
-			return branch, nil
+			refsPrefix := "ref: refs/heads/"
+			branchDisplay := ""
+			if strings.HasPrefix(content, refsPrefix) {
+				// is a branch
+				branchDisplay = strings.TrimPrefix(content, refsPrefix)
+			} else {
+				// detached HEAD state, displaying short SHA
+				branchDisplay = utils.ShortSha(content)
+			}
+			return branchDisplay, nil
 		}
 		return "", err
 	}
@@ -47,7 +56,7 @@ func (gui *Gui) getCurrentBranch(path string) string {
 		}
 	}
 
-	return "HEAD"
+	return "unknown branch"
 }
 
 func (gui *Gui) handleCreateRecentReposMenu() error {
