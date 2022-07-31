@@ -409,6 +409,7 @@ type TranslationSet struct {
 	NoFilesStagedPrompt                 string
 	BranchNotFoundTitle                 string
 	BranchNotFoundPrompt                string
+	LcBranchUnknown                     string
 	UnstageLinesTitle                   string
 	UnstageLinesPrompt                  string
 	LcCreateNewBranchFromCommit         string
@@ -1046,6 +1047,7 @@ func EnglishTranslationSet() TranslationSet {
 		NoFilesStagedPrompt:                 "You have not staged any files. Commit all files?",
 		BranchNotFoundTitle:                 "Branch not found",
 		BranchNotFoundPrompt:                "Branch not found. Create a new branch named",
+		LcBranchUnknown:                     "branch unknown",
 		UnstageLinesTitle:                   "Unstage lines",
 		UnstageLinesPrompt:                  "Are you sure you want to delete the selected lines (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true",
 		LcCreateNewBranchFromCommit:         "create new branch off of commit",

@@ -1,24 +1,92 @@
 package gui
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func (gui *Gui) handleCreateRecentReposMenu() error {
-	recentRepoPaths := gui.c.GetAppState().RecentRepos
+func (gui *Gui) getCurrentBranch(path string) string {
+	readHeadFile := func(path string) (string, error) {
+		headFile, err := ioutil.ReadFile(filepath.Join(path, "HEAD"))
+		if err == nil {
+			content := strings.TrimSpace(string(headFile))
+			refsPrefix := "ref: refs/heads/"
+			branchDisplay := ""
+			if strings.HasPrefix(content, refsPrefix) {
+				// is a branch
+				branchDisplay = strings.TrimPrefix(content, refsPrefix)
+			} else {
+				// detached HEAD state, displaying short SHA
+				branchDisplay = utils.ShortSha(content)
+			}
+			return branchDisplay, nil
+		}
+		return "", err
+	}
 
-	// we won't show the current repo hence the -1
-	menuItems := slices.Map(recentRepoPaths[1:], func(path string) *types.MenuItem {
+	gitDirPath := filepath.Join(path, ".git")
+
+	if gitDir, err := os.Stat(gitDirPath); err == nil {
+		if gitDir.IsDir() {
+			// ordinary repo
+			if branch, err := readHeadFile(gitDirPath); err == nil {
+				return branch
+			}
+		} else {
+			// worktree
+			if worktreeGitDir, err := ioutil.ReadFile(gitDirPath); err == nil {
+				content := strings.TrimSpace(string(worktreeGitDir))
+				worktreePath := strings.TrimPrefix(content, "gitdir: ")
+				if branch, err := readHeadFile(worktreePath); err == nil {
+					return branch
+				}
+			}
+		}
+	}
+
+	return gui.c.Tr.LcBranchUnknown
+}
+
+func (gui *Gui) handleCreateRecentReposMenu() error {
+	// we skip the first one because we're currently in it
+	recentRepoPaths := gui.c.GetAppState().RecentRepos[1:]
+
+	currentBranches := sync.Map{}
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(recentRepoPaths))
+
+	for _, path := range recentRepoPaths {
+		go func(path string) {
+			defer wg.Done()
+			currentBranches.Store(path, gui.getCurrentBranch(path))
+		}(path)
+	}
+
+	wg.Wait()
+
+	menuItems := slices.Map(recentRepoPaths, func(path string) *types.MenuItem {
+		branchName, _ := currentBranches.Load(path)
+		if icons.IsIconEnabled() {
+			branchName = icons.BRANCH_ICON + " " + fmt.Sprintf("%v", branchName)
+		}
+
 		return &types.MenuItem{
 			LabelColumns: []string{
 				filepath.Base(path),
+				style.FgCyan.Sprint(branchName),
 				style.FgMagenta.Sprint(path),
 			},
 			OnPress: func() error {
@@ -110,7 +178,7 @@ func newRecentReposList(recentRepos []string, currentRepo string) (bool, []strin
 	newRepos := []string{currentRepo}
 	for _, repo := range recentRepos {
 		if repo != currentRepo {
-			if _, err := os.Stat(repo); err != nil {
+			if _, err := os.Stat(filepath.Join(repo, ".git")); err != nil {
 				continue
 			}
 			newRepos = append(newRepos, repo)
