@@ -198,7 +198,8 @@ func (self *RefsHelper) CreateGitResetMenu(ref string, opts types.CreateGitReset
 					FindSuggestionsFunc: self.suggestionHelper.GetRefsSuggestionsFunc(),
 				})
 			},
-			Key: 'c',
+			Key:       'c',
+			OpensMenu: true,
 		})
 	}
 
