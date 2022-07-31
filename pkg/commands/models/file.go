@@ -120,17 +120,17 @@ func SetStatusFields(file *File, shortStatus string) {
 func deriveStatusFields(shortStatus string) StatusFields {
 	stagedChange := shortStatus[0:1]
 	unstagedChange := shortStatus[1:2]
-	untracked := lo.Contains([]string{"??", "A ", "AM"}, shortStatus)
-	hasNoStagedChanges := lo.Contains([]string{" ", "U", "?"}, stagedChange)
+	tracked := !lo.Contains([]string{"??", "A ", "AM"}, shortStatus)
+	hasStagedChanges := !lo.Contains([]string{" ", "U", "?"}, stagedChange)
 	hasInlineMergeConflicts := lo.Contains([]string{"UU", "AA"}, shortStatus)
 	hasMergeConflicts := hasInlineMergeConflicts || lo.Contains([]string{"DD", "AU", "UA", "UD", "DU"}, shortStatus)
 
 	return StatusFields{
-		HasStagedChanges:        !hasNoStagedChanges,
+		HasStagedChanges:        hasStagedChanges,
 		HasUnstagedChanges:      unstagedChange != " ",
-		Tracked:                 !untracked,
+		Tracked:                 tracked,
 		Deleted:                 unstagedChange == "D" || stagedChange == "D",
-		Added:                   unstagedChange == "A" || untracked,
+		Added:                   unstagedChange == "A" || !tracked,
 		HasMergeConflicts:       hasMergeConflicts,
 		HasInlineMergeConflicts: hasInlineMergeConflicts,
 		ShortStatus:             shortStatus,
