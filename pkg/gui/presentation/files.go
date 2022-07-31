@@ -30,9 +30,10 @@ func RenderFileTree(
 	diffName string,
 	submoduleConfigs []*models.SubmoduleConfig,
 ) []string {
-	return renderAux(tree.Tree(), tree.CollapsedPaths(), "", -1, func(n filetree.INode, depth int) string {
-		castN := n.(*filetree.FileNode)
-		return getFileLine(castN.GetHasUnstagedChanges(), castN.GetHasStagedChanges(), castN.NameAtDepth(depth), diffName, submoduleConfigs, castN.File)
+	return renderAux(tree.GetRoot().Raw(), tree.CollapsedPaths(), "", -1, func(node *filetree.Node[models.File], depth int) string {
+		fileNode := filetree.NewFileNode(node)
+
+		return getFileLine(fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), fileNameAtDepth(node, depth), diffName, submoduleConfigs, node.File)
 	})
 }
 
@@ -41,19 +42,17 @@ func RenderCommitFileTree(
 	diffName string,
 	patchManager *patch.PatchManager,
 ) []string {
-	return renderAux(tree.Tree(), tree.CollapsedPaths(), "", -1, func(n filetree.INode, depth int) string {
-		castN := n.(*filetree.CommitFileNode)
-
+	return renderAux(tree.GetRoot().Raw(), tree.CollapsedPaths(), "", -1, func(node *filetree.Node[models.CommitFile], depth int) string {
 		// This is a little convoluted because we're dealing with either a leaf or a non-leaf.
 		// But this code actually applies to both. If it's a leaf, the status will just
 		// be whatever status it is, but if it's a non-leaf it will determine its status
 		// based on the leaves of that subtree
 		var status patch.PatchStatus
-		if castN.EveryFile(func(file *models.CommitFile) bool {
+		if node.EveryFile(func(file *models.CommitFile) bool {
 			return patchManager.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.WHOLE
 		}) {
 			status = patch.WHOLE
-		} else if castN.EveryFile(func(file *models.CommitFile) bool {
+		} else if node.EveryFile(func(file *models.CommitFile) bool {
 			return patchManager.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.UNSELECTED
 		}) {
 			status = patch.UNSELECTED
@@ -61,37 +60,37 @@ func RenderCommitFileTree(
 			status = patch.PART
 		}
 
-		return getCommitFileLine(castN.NameAtDepth(depth), diffName, castN.File, status)
+		return getCommitFileLine(commitFileNameAtDepth(node, depth), diffName, node.File, status)
 	})
 }
 
-func renderAux(
-	s filetree.INode,
+func renderAux[T any](
+	node *filetree.Node[T],
 	collapsedPaths *filetree.CollapsedPaths,
 	prefix string,
 	depth int,
-	renderLine func(filetree.INode, int) string,
+	renderLine func(*filetree.Node[T], int) string,
 ) []string {
-	if s == nil || s.IsNil() {
+	if node == nil {
 		return []string{}
 	}
 
 	isRoot := depth == -1
 
-	if s.IsLeaf() {
+	if node.IsFile() {
 		if isRoot {
 			return []string{}
 		}
-		return []string{prefix + renderLine(s, depth)}
+		return []string{prefix + renderLine(node, depth)}
 	}
 
-	if collapsedPaths.IsCollapsed(s.GetPath()) {
-		return []string{prefix + COLLAPSED_ARROW + " " + renderLine(s, depth)}
+	if collapsedPaths.IsCollapsed(node.GetPath()) {
+		return []string{prefix + COLLAPSED_ARROW + " " + renderLine(node, depth)}
 	}
 
 	arr := []string{}
 	if !isRoot {
-		arr = append(arr, prefix+EXPANDED_ARROW+" "+renderLine(s, depth))
+		arr = append(arr, prefix+EXPANDED_ARROW+" "+renderLine(node, depth))
 	}
 
 	newPrefix := prefix
@@ -101,8 +100,8 @@ func renderAux(
 		newPrefix = strings.TrimSuffix(prefix, INNER_ITEM) + NESTED
 	}
 
-	for i, child := range s.GetChildren() {
-		isLast := i == len(s.GetChildren())-1
+	for i, child := range node.Children {
+		isLast := i == len(node.Children)-1
 
 		var childPrefix string
 		if isRoot {
@@ -113,7 +112,7 @@ func renderAux(
 			childPrefix = newPrefix + INNER_ITEM
 		}
 
-		arr = append(arr, renderAux(child, collapsedPaths, childPrefix, depth+1+s.GetCompressionLevel(), renderLine)...)
+		arr = append(arr, renderAux(child, collapsedPaths, childPrefix, depth+1+node.CompressionLevel, renderLine)...)
 	}
 
 	return arr
@@ -219,4 +218,40 @@ func getColorForChangeStatus(changeStatus string) style.TextStyle {
 	default:
 		return theme.DefaultTextColor
 	}
+}
+
+func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
+	splitName := split(node.Path)
+	name := join(splitName[depth:])
+
+	if node.File != nil && node.File.IsRename() {
+		splitPrevName := split(node.File.PreviousName)
+
+		prevName := node.File.PreviousName
+		// if the file has just been renamed inside the same directory, we can shave off
+		// the prefix for the previous path too. Otherwise we'll keep it unchanged
+		sameParentDir := len(splitName) == len(splitPrevName) && join(splitName[0:depth]) == join(splitPrevName[0:depth])
+		if sameParentDir {
+			prevName = join(splitPrevName[depth:])
+		}
+
+		return prevName + " → " + name
+	}
+
+	return name
+}
+
+func commitFileNameAtDepth(node *filetree.Node[models.CommitFile], depth int) string {
+	splitName := split(node.Path)
+	name := join(splitName[depth:])
+
+	return name
+}
+
+func split(str string) []string {
+	return strings.Split(str, "/")
+}
+
+func join(strs []string) string {
+	return strings.Join(strs, "/")
 }

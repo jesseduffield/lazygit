@@ -11,14 +11,14 @@ func TestBuildTreeFromFiles(t *testing.T) {
 	scenarios := []struct {
 		name     string
 		files    []*models.File
-		expected *FileNode
+		expected *Node[models.File]
 	}{
 		{
 			name:  "no files",
 			files: []*models.File{},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path:     "",
-				Children: []*FileNode{},
+				Children: nil,
 			},
 		},
 		{
@@ -31,12 +31,12 @@ func TestBuildTreeFromFiles(t *testing.T) {
 					Name: "dir1/b",
 				},
 			},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{
 						Path: "dir1",
-						Children: []*FileNode{
+						Children: []*Node[models.File]{
 							{
 								File: &models.File{Name: "dir1/a"},
 								Path: "dir1/a",
@@ -60,12 +60,12 @@ func TestBuildTreeFromFiles(t *testing.T) {
 					Name: "dir2/dir4/b",
 				},
 			},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{
 						Path: "dir1/dir3",
-						Children: []*FileNode{
+						Children: []*Node[models.File]{
 							{
 								File: &models.File{Name: "dir1/dir3/a"},
 								Path: "dir1/dir3/a",
@@ -75,7 +75,7 @@ func TestBuildTreeFromFiles(t *testing.T) {
 					},
 					{
 						Path: "dir2/dir4",
-						Children: []*FileNode{
+						Children: []*Node[models.File]{
 							{
 								File: &models.File{Name: "dir2/dir4/b"},
 								Path: "dir2/dir4/b",
@@ -96,9 +96,9 @@ func TestBuildTreeFromFiles(t *testing.T) {
 					Name: "a",
 				},
 			},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{
 						File: &models.File{Name: "a"},
 						Path: "a",
@@ -124,11 +124,11 @@ func TestBuildTreeFromFiles(t *testing.T) {
 					Name: "a",
 				},
 			},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path: "",
 				// it is a little strange that we're not bubbling up our merge conflict
 				// here but we are technically still in in tree mode and that's the rule
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{
 						File: &models.File{Name: "a"},
 						Path: "a",
@@ -159,14 +159,14 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 	scenarios := []struct {
 		name     string
 		files    []*models.File
-		expected *FileNode
+		expected *Node[models.File]
 	}{
 		{
 			name:  "no files",
 			files: []*models.File{},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path:     "",
-				Children: []*FileNode{},
+				Children: []*Node[models.File]{},
 			},
 		},
 		{
@@ -179,9 +179,9 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 					Name: "dir1/b",
 				},
 			},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{
 						File:             &models.File{Name: "dir1/a"},
 						Path:             "dir1/a",
@@ -205,9 +205,9 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 					Name: "dir2/b",
 				},
 			},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{
 						File:             &models.File{Name: "dir1/a"},
 						Path:             "dir1/a",
@@ -231,9 +231,9 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 					Name: "a",
 				},
 			},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{
 						File: &models.File{Name: "a"},
 						Path: "a",
@@ -273,9 +273,9 @@ func TestBuildFlatTreeFromFiles(t *testing.T) {
 					Tracked: true,
 				},
 			},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{
 						File: &models.File{Name: "c1", HasMergeConflicts: true},
 						Path: "c1",
@@ -318,14 +318,14 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 	scenarios := []struct {
 		name     string
 		files    []*models.CommitFile
-		expected *CommitFileNode
+		expected *Node[models.CommitFile]
 	}{
 		{
 			name:  "no files",
 			files: []*models.CommitFile{},
-			expected: &CommitFileNode{
+			expected: &Node[models.CommitFile]{
 				Path:     "",
-				Children: []*CommitFileNode{},
+				Children: nil,
 			},
 		},
 		{
@@ -338,12 +338,12 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 					Name: "dir1/b",
 				},
 			},
-			expected: &CommitFileNode{
+			expected: &Node[models.CommitFile]{
 				Path: "",
-				Children: []*CommitFileNode{
+				Children: []*Node[models.CommitFile]{
 					{
 						Path: "dir1",
-						Children: []*CommitFileNode{
+						Children: []*Node[models.CommitFile]{
 							{
 								File: &models.CommitFile{Name: "dir1/a"},
 								Path: "dir1/a",
@@ -367,12 +367,12 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 					Name: "dir2/dir4/b",
 				},
 			},
-			expected: &CommitFileNode{
+			expected: &Node[models.CommitFile]{
 				Path: "",
-				Children: []*CommitFileNode{
+				Children: []*Node[models.CommitFile]{
 					{
 						Path: "dir1/dir3",
-						Children: []*CommitFileNode{
+						Children: []*Node[models.CommitFile]{
 							{
 								File: &models.CommitFile{Name: "dir1/dir3/a"},
 								Path: "dir1/dir3/a",
@@ -382,7 +382,7 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 					},
 					{
 						Path: "dir2/dir4",
-						Children: []*CommitFileNode{
+						Children: []*Node[models.CommitFile]{
 							{
 								File: &models.CommitFile{Name: "dir2/dir4/b"},
 								Path: "dir2/dir4/b",
@@ -403,9 +403,9 @@ func TestBuildTreeFromCommitFiles(t *testing.T) {
 					Name: "a",
 				},
 			},
-			expected: &CommitFileNode{
+			expected: &Node[models.CommitFile]{
 				Path: "",
-				Children: []*CommitFileNode{
+				Children: []*Node[models.CommitFile]{
 					{
 						File: &models.CommitFile{Name: "a"},
 						Path: "a",
@@ -432,14 +432,14 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 	scenarios := []struct {
 		name     string
 		files    []*models.CommitFile
-		expected *CommitFileNode
+		expected *Node[models.CommitFile]
 	}{
 		{
 			name:  "no files",
 			files: []*models.CommitFile{},
-			expected: &CommitFileNode{
+			expected: &Node[models.CommitFile]{
 				Path:     "",
-				Children: []*CommitFileNode{},
+				Children: []*Node[models.CommitFile]{},
 			},
 		},
 		{
@@ -452,9 +452,9 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 					Name: "dir1/b",
 				},
 			},
-			expected: &CommitFileNode{
+			expected: &Node[models.CommitFile]{
 				Path: "",
-				Children: []*CommitFileNode{
+				Children: []*Node[models.CommitFile]{
 					{
 						File:             &models.CommitFile{Name: "dir1/a"},
 						Path:             "dir1/a",
@@ -478,9 +478,9 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 					Name: "dir2/b",
 				},
 			},
-			expected: &CommitFileNode{
+			expected: &Node[models.CommitFile]{
 				Path: "",
-				Children: []*CommitFileNode{
+				Children: []*Node[models.CommitFile]{
 					{
 						File:             &models.CommitFile{Name: "dir1/a"},
 						Path:             "dir1/a",
@@ -504,9 +504,9 @@ func TestBuildFlatTreeFromCommitFiles(t *testing.T) {
 					Name: "a",
 				},
 			},
-			expected: &CommitFileNode{
+			expected: &Node[models.CommitFile]{
 				Path: "",
-				Children: []*CommitFileNode{
+				Children: []*Node[models.CommitFile]{
 					{
 						File: &models.CommitFile{Name: "a"},
 						Path: "a",
