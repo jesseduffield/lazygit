@@ -41,6 +41,7 @@ type IFileTree interface {
 	GetAllItems() []*FileNode
 	GetAllFiles() []*models.File
 	GetFilter() FileTreeDisplayFilter
+	GetRoot() *FileNode
 }
 
 type FileTree struct {
@@ -156,6 +157,10 @@ func (self *FileTree) ToggleCollapsed(path string) {
 }
 
 func (self *FileTree) Tree() INode {
+	return self.tree
+}
+
+func (self *FileTree) GetRoot() *FileNode {
 	return self.tree
 }
 

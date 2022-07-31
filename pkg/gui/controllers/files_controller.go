@@ -108,7 +108,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
-			Handler:     self.stageAll,
+			Handler:     self.toggleStagedAll,
 			Description: self.c.Tr.LcToggleStagedAll,
 		},
 		{
@@ -167,7 +167,86 @@ func (self *FilesController) GetOnClick() func() error {
 	return self.checkSelectedFileNode(self.press)
 }
 
-func (self *FilesController) press(node *filetree.FileNode) error {
+// if we are dealing with a status for which there is no key in this map,
+// then we won't optimistically render: we'll just let `git status` tell
+// us what the new status is.
+// There are no doubt more entries that could be added to these two maps.
+var stageStatusMap = map[string]string{
+	"??": "A ",
+	" M": "M ",
+	"MM": "M ",
+	" D": "D ",
+	" A": "A ",
+	"AM": "A ",
+	"MD": "D ",
+}
+
+var unstageStatusMap = map[string]string{
+	"A ": "??",
+	"M ": " M",
+	"D ": " D",
+}
+
+func (self *FilesController) optimisticStage(file *models.File) bool {
+	newShortStatus, ok := stageStatusMap[file.ShortStatus]
+	if !ok {
+		return false
+	}
+
+	models.SetStatusFields(file, newShortStatus)
+	return true
+}
+
+func (self *FilesController) optimisticUnstage(file *models.File) bool {
+	newShortStatus, ok := unstageStatusMap[file.ShortStatus]
+	if !ok {
+		return false
+	}
+
+	models.SetStatusFields(file, newShortStatus)
+	return true
+}
+
+// Running a git add command followed by a git status command can take some time (e.g. 200ms).
+// Given how often users stage/unstage files in Lazygit, we're adding some
+// optimistic rendering to make things feel faster. When we go to stage
+// a file, we'll first update that file's status in-memory, then re-render
+// the files panel. Then we'll immediately do a proper git status call
+// so that if the optimistic rendering got something wrong, it's quickly
+// corrected.
+func (self *FilesController) optimisticChange(node *filetree.FileNode, optimisticChangeFn func(*models.File) bool) error {
+	rerender := false
+	err := node.ForEachFile(func(f *models.File) error {
+		// can't act on the file itself: we need to update the original model file
+		for _, modelFile := range self.model.Files {
+			if modelFile.Name == f.Name {
+				if optimisticChangeFn(modelFile) {
+					rerender = true
+				}
+				break
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	if rerender {
+		if err := self.c.PostRefreshUpdate(self.contexts.Files); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
+	// Obtaining this lock because optimistic rendering requires us to mutate
+	// the files in our model.
+	self.mutexes.RefreshingFilesMutex.Lock()
+	defer self.mutexes.RefreshingFilesMutex.Unlock()
+
 	if node.IsLeaf() {
 		file := node.File
 
@@ -177,11 +256,21 @@ func (self *FilesController) press(node *filetree.FileNode) error {
 
 		if file.HasUnstagedChanges {
 			self.c.LogAction(self.c.Tr.Actions.StageFile)
+
+			if err := self.optimisticChange(node, self.optimisticStage); err != nil {
+				return err
+			}
+
 			if err := self.git.WorkingTree.StageFile(file.Name); err != nil {
 				return self.c.Error(err)
 			}
 		} else {
 			self.c.LogAction(self.c.Tr.Actions.UnstageFile)
+
+			if err := self.optimisticChange(node, self.optimisticUnstage); err != nil {
+				return err
+			}
+
 			if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
 				return self.c.Error(err)
 			}
@@ -195,19 +284,37 @@ func (self *FilesController) press(node *filetree.FileNode) error {
 
 		if node.GetHasUnstagedChanges() {
 			self.c.LogAction(self.c.Tr.Actions.StageFile)
+
+			if err := self.optimisticChange(node, self.optimisticStage); err != nil {
+				return err
+			}
+
 			if err := self.git.WorkingTree.StageFile(node.Path); err != nil {
 				return self.c.Error(err)
 			}
 		} else {
-			// pretty sure it doesn't matter that we're always passing true here
 			self.c.LogAction(self.c.Tr.Actions.UnstageFile)
+
+			if err := self.optimisticChange(node, self.optimisticUnstage); err != nil {
+				return err
+			}
+
+			// pretty sure it doesn't matter that we're always passing true here
 			if err := self.git.WorkingTree.UnStageFile([]string{node.Path}, true); err != nil {
 				return self.c.Error(err)
 			}
 		}
 	}
 
-	if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}}); err != nil {
+	return nil
+}
+
+func (self *FilesController) press(node *filetree.FileNode) error {
+	if err := self.pressWithLock(node); err != nil {
+		return err
+	}
+
+	if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Mode: types.ASYNC}); err != nil {
 		return err
 	}
 
@@ -273,33 +380,53 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 	return self.c.PushContext(self.contexts.Staging, opts)
 }
 
-func (self *FilesController) allFilesStaged() bool {
-	for _, file := range self.model.Files {
-		if file.HasUnstagedChanges {
-			return false
-		}
-	}
-	return true
-}
-
-func (self *FilesController) stageAll() error {
-	var err error
-	if self.allFilesStaged() {
-		self.c.LogAction(self.c.Tr.Actions.UnstageAllFiles)
-		err = self.git.WorkingTree.UnstageAll()
-	} else {
-		self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-		err = self.git.WorkingTree.StageAll()
-	}
-	if err != nil {
-		_ = self.c.Error(err)
-	}
-
-	if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}}); err != nil {
+func (self *FilesController) toggleStagedAll() error {
+	if err := self.toggleStagedAllWithLock(); err != nil {
 		return err
 	}
 
-	return self.contexts.Files.HandleFocus()
+	if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}, Mode: types.ASYNC}); err != nil {
+		return err
+	}
+
+	return self.context().HandleFocus()
+}
+
+func (self *FilesController) toggleStagedAllWithLock() error {
+	self.mutexes.RefreshingFilesMutex.Lock()
+	defer self.mutexes.RefreshingFilesMutex.Unlock()
+
+	root := self.context().FileTreeViewModel.GetRoot()
+
+	// if any files within have inline merge conflicts we can't stage or unstage,
+	// or it'll end up with those >>>>>> lines actually staged
+	if root.GetHasInlineMergeConflicts() {
+		return self.c.ErrorMsg(self.c.Tr.ErrStageDirWithInlineMergeConflicts)
+	}
+
+	if root.GetHasUnstagedChanges() {
+		self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
+
+		if err := self.optimisticChange(root, self.optimisticStage); err != nil {
+			return err
+		}
+
+		if err := self.git.WorkingTree.StageAll(); err != nil {
+			return self.c.Error(err)
+		}
+	} else {
+		self.c.LogAction(self.c.Tr.Actions.UnstageAllFiles)
+
+		if err := self.optimisticChange(root, self.optimisticUnstage); err != nil {
+			return err
+		}
+
+		if err := self.git.WorkingTree.UnstageAll(); err != nil {
+			return self.c.Error(err)
+		}
+	}
+
+	return nil
 }
 
 func (self *FilesController) unstageFiles(node *filetree.FileNode) error {

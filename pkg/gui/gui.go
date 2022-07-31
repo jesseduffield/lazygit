@@ -97,7 +97,7 @@ type Gui struct {
 	// recent repo with the recent repos popup showing
 	showRecentRepos bool
 
-	Mutexes guiMutexes
+	Mutexes types.Mutexes
 
 	// findSuggestions will take a string that the user has typed into a prompt
 	// and return a slice of suggestions which match that string.
@@ -236,18 +236,6 @@ const (
 	INITIAL StartupStage = iota
 	COMPLETE
 )
-
-// if you add a new mutex here be sure to instantiate it. We're using pointers to
-// mutexes so that we can pass the mutexes to controllers.
-type guiMutexes struct {
-	RefreshingFilesMutex  *sync.Mutex
-	RefreshingStatusMutex *sync.Mutex
-	SyncMutex             *sync.Mutex
-	LocalCommitsMutex     *sync.Mutex
-	LineByLinePanelMutex  *sync.Mutex
-	SubprocessMutex       *sync.Mutex
-	PopupMutex            *sync.Mutex
-}
 
 func (gui *Gui) onNewRepo(startArgs types.StartArgs, reuseState bool) error {
 	var err error
@@ -418,7 +406,7 @@ func NewGui(
 		// but now we do it via state. So we need to still support the config for the
 		// sake of backwards compatibility. We're making use of short circuiting here
 		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
-		Mutexes: guiMutexes{
+		Mutexes: types.Mutexes{
 			RefreshingFilesMutex:  &sync.Mutex{},
 			RefreshingStatusMutex: &sync.Mutex{},
 			SyncMutex:             &sync.Mutex{},
