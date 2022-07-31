@@ -1,6 +1,8 @@
 package custom_commands
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -187,9 +189,19 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		if customCommand.Stream {
 			cmdObj.StreamOutput()
 		}
-		err := cmdObj.Run()
+		output, err := cmdObj.RunWithOutput()
 		if err != nil {
 			return self.c.Error(err)
+		}
+
+		if customCommand.ShowOutput {
+			if strings.TrimSpace(output) == "" {
+				output = self.c.Tr.EmptyOutput
+			}
+			if err = self.c.Alert(cmdStr, output); err != nil {
+				return self.c.Error(err)
+			}
+			return self.c.Refresh(types.RefreshOptions{})
 		}
 		return self.c.Refresh(types.RefreshOptions{})
 	})

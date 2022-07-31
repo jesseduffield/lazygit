@@ -310,6 +310,7 @@ type CustomCommand struct {
 	LoadingText string                `yaml:"loadingText"`
 	Description string                `yaml:"description"`
 	Stream      bool                  `yaml:"stream"`
+	ShowOutput  bool                  `yaml:"showOutput"`
 }
 
 type CustomCommandPrompt struct {
