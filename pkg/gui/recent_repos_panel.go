@@ -56,7 +56,7 @@ func (gui *Gui) getCurrentBranch(path string) string {
 		}
 	}
 
-	return "unknown branch"
+	return gui.c.Tr.LcBranchUnknown
 }
 
 func (gui *Gui) handleCreateRecentReposMenu() error {
