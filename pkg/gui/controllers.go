@@ -62,6 +62,7 @@ func (gui *Gui) resetControllers() {
 		model,
 		gui.State.Contexts,
 		gui.State.Modes,
+		&gui.Mutexes,
 	)
 
 	syncController := controllers.NewSyncController(
