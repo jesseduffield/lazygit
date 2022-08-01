@@ -229,7 +229,7 @@ func (app *App) setupRepo() (bool, error) {
 		}
 
 		if isBare {
-			log.Println(app.Tr.BareRepo)
+			fmt.Print(app.Tr.BareRepo)
 			response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 			shouldOpenRecent := strings.Trim(response, " \r\n") == "y"
 
@@ -245,6 +245,8 @@ func (app *App) setupRepo() (bool, error) {
 				fmt.Println(app.Tr.NoRecentRepositories)
 				os.Exit(1)
 			}
+
+			os.Exit(0)
 		}
 	}
 
