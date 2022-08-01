@@ -79,9 +79,10 @@ func (gui *Gui) pushContext(c types.Context, opts ...types.OnFocusOpts) error {
 
 	gui.State.ContextManager.Lock()
 
-	// push onto stack
-	// if we are switching to a side context, remove all other contexts in the stack
-	if c.GetKind() == types.SIDE_CONTEXT {
+	if len(gui.State.ContextManager.ContextStack) == 0 {
+		gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack, c)
+	} else if c.GetKind() == types.SIDE_CONTEXT {
+		// if we are switching to a side context, remove all other contexts in the stack
 		for _, stackContext := range gui.State.ContextManager.ContextStack {
 			if stackContext.GetKey() != c.GetKey() {
 				if err := gui.deactivateContext(stackContext); err != nil {
@@ -91,12 +92,25 @@ func (gui *Gui) pushContext(c types.Context, opts ...types.OnFocusOpts) error {
 			}
 		}
 		gui.State.ContextManager.ContextStack = []types.Context{c}
-	} else if len(gui.State.ContextManager.ContextStack) == 0 || gui.currentContextWithoutLock().GetKey() != c.GetKey() {
-		// Do not append if the one at the end is the same context (e.g. opening a menu from a menu)
-		// In that case we'll just close the menu entirely when the user hits escape.
+	} else {
+		topContext := gui.currentContextWithoutLock()
 
-		// TODO: think about other exceptional cases
-		gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack, c)
+		// if we're pushing the same context on, we do nothing.
+		if topContext.GetKey() != c.GetKey() {
+			// if top one is a temporary popup, we remove it. Ideally you'd be able to
+			// escape back to previous temporary popups, but because we're currently reusing
+			// views for this, you might not be able to get back to where you previously were.
+			if topContext.GetKind() == types.TEMPORARY_POPUP {
+				if err := gui.deactivateContext(topContext); err != nil {
+					gui.State.ContextManager.Unlock()
+					return err
+				}
+
+				_, gui.State.ContextManager.ContextStack = slices.Pop(gui.State.ContextManager.ContextStack)
+			}
+
+			gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack, c)
+		}
 	}
 
 	gui.State.ContextManager.Unlock()
@@ -111,7 +125,7 @@ func (gui *Gui) pushContextWithView(viewName string) error {
 	return gui.c.PushContext(gui.State.ViewContextMap.Get(viewName))
 }
 
-func (gui *Gui) returnFromContext() error {
+func (gui *Gui) popContext() error {
 	gui.State.ContextManager.Lock()
 
 	if len(gui.State.ContextManager.ContextStack) == 1 {
@@ -120,12 +134,10 @@ func (gui *Gui) returnFromContext() error {
 		return nil
 	}
 
-	n := len(gui.State.ContextManager.ContextStack) - 1
+	var currentContext types.Context
+	currentContext, gui.State.ContextManager.ContextStack = slices.Pop(gui.State.ContextManager.ContextStack)
 
-	currentContext := gui.State.ContextManager.ContextStack[n]
-	newContext := gui.State.ContextManager.ContextStack[n-1]
-
-	gui.State.ContextManager.ContextStack = gui.State.ContextManager.ContextStack[:n]
+	newContext := gui.State.ContextManager.ContextStack[len(gui.State.ContextManager.ContextStack)-1]
 
 	gui.g.SetCurrentContext(string(newContext.GetKey()))
 

@@ -43,7 +43,7 @@ func (self *guiCommon) PushContext(context types.Context, opts ...types.OnFocusO
 }
 
 func (self *guiCommon) PopContext() error {
-	return self.gui.returnFromContext()
+	return self.gui.popContext()
 }
 
 func (self *guiCommon) CurrentContext() types.Context {
