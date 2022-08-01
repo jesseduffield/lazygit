@@ -85,9 +85,6 @@ type CreatePopupPanelOpts struct {
 	HandleConfirmPrompt func(string) error
 	HandleClose         func() error
 
-	// when HandlersManageFocus is true, do not return from the confirmation context automatically. It's expected that the handlers will manage focus, whether that means switching to another context, or manually returning the context.
-	HandlersManageFocus bool
-
 	FindSuggestionsFunc func(string) []*Suggestion
 	Mask                bool
 }
@@ -97,7 +94,6 @@ type ConfirmOpts struct {
 	Prompt              string
 	HandleConfirm       func() error
 	HandleClose         func() error
-	HandlersManageFocus bool
 	HasLoader           bool
 	FindSuggestionsFunc func(string) []*Suggestion
 	Editable            bool
