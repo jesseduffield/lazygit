@@ -15,7 +15,6 @@ import (
 type AppConfig struct {
 	Debug            bool   `long:"debug" env:"DEBUG" default:"false"`
 	Version          string `long:"version" env:"VERSION" default:"unversioned"`
-	Commit           string `long:"commit" env:"COMMIT"`
 	BuildDate        string `long:"build-date" env:"BUILD_DATE"`
 	Name             string `long:"name" env:"NAME" default:"lazygit"`
 	BuildSource      string `long:"build-source" env:"BUILD_SOURCE" default:""`
@@ -35,8 +34,6 @@ type AppConfigurer interface {
 
 	// build info
 	GetVersion() string
-	GetCommit() string
-	GetBuildDate() string
 	GetName() string
 	GetBuildSource() string
 
@@ -80,10 +77,6 @@ func NewAppConfig(
 		return nil, err
 	}
 
-	if os.Getenv("DEBUG") == "TRUE" {
-		debuggingFlag = true
-	}
-
 	appState, err := loadAppState()
 	if err != nil {
 		return nil, err
@@ -92,7 +85,6 @@ func NewAppConfig(
 	appConfig := &AppConfig{
 		Name:            name,
 		Version:         version,
-		Commit:          commit,
 		BuildDate:       date,
 		Debug:           debuggingFlag,
 		BuildSource:     buildSource,
@@ -181,14 +173,6 @@ func (c *AppConfig) GetDebug() bool {
 
 func (c *AppConfig) GetVersion() string {
 	return c.Version
-}
-
-func (c *AppConfig) GetCommit() string {
-	return c.Commit
-}
-
-func (c *AppConfig) GetBuildDate() string {
-	return c.BuildDate
 }
 
 func (c *AppConfig) GetName() string {

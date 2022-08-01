@@ -215,7 +215,7 @@ func (self *cmdObjRunner) runAndStreamAux(
 	if cmdObj.ShouldLog() {
 		self.logCmdObj(cmdObj)
 	}
-	self.log.WithField("command", cmdObj.ToString()).Info("RunCommand")
+	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 	cmd := cmdObj.GetCmd()
 
 	var stderr bytes.Buffer
