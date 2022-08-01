@@ -228,26 +228,25 @@ func (app *App) setupRepo() (bool, error) {
 			return false, err
 		}
 
-		if isBare {
-			fmt.Print(app.Tr.BareRepo)
-			response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-			shouldOpenRecent := strings.Trim(response, " \r\n") == "y"
+		fmt.Print(app.Tr.BareRepo)
 
-			if shouldOpenRecent {
-				for _, repoDir := range app.Config.GetAppState().RecentRepos {
-					if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
-						if err := os.Chdir(repoDir); err == nil {
-							return true, nil
-						}
+		response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+		shouldOpenRecent := strings.Trim(response, " \r\n") == "y"
+
+		if shouldOpenRecent {
+			for _, repoDir := range app.Config.GetAppState().RecentRepos {
+				if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
+					if err := os.Chdir(repoDir); err == nil {
+						return true, nil
 					}
 				}
-
-				fmt.Println(app.Tr.NoRecentRepositories)
-				os.Exit(1)
 			}
 
-			os.Exit(0)
+			fmt.Println(app.Tr.NoRecentRepositories)
+			os.Exit(1)
 		}
+
+		os.Exit(0)
 	}
 
 	return false, nil
