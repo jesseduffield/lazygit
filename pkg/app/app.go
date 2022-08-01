@@ -229,7 +229,22 @@ func (app *App) setupRepo() (bool, error) {
 		}
 
 		if isBare {
-			log.Fatalln("bare repositories are not supported by lazygit, please make this a working repository.")
+			log.Println(app.Tr.BareRepo)
+			response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+			shouldOpenRecent := strings.Trim(response, " \r\n") == "y"
+
+			if shouldOpenRecent {
+				for _, repoDir := range app.Config.GetAppState().RecentRepos {
+					if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
+						if err := os.Chdir(repoDir); err == nil {
+							return true, nil
+						}
+					}
+				}
+
+				fmt.Println(app.Tr.NoRecentRepositories)
+				os.Exit(1)
+			}
 		}
 	}
 
