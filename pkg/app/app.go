@@ -162,6 +162,18 @@ func isBareRepo(osCommand *oscommands.OSCommand) (bool, error) {
 	return strconv.ParseBool(strings.TrimSpace(res))
 }
 
+func openRecentRepo(app *App) bool {
+	for _, repoDir := range app.Config.GetAppState().RecentRepos {
+		if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
+			if err := os.Chdir(repoDir); err == nil {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func (app *App) setupRepo() (bool, error) {
 	if err := app.validateGitVersion(); err != nil {
 		return false, err
@@ -205,17 +217,13 @@ func (app *App) setupRepo() (bool, error) {
 		}
 
 		if !shouldInitRepo {
-			// check if we have a recent repo we can open
-			for _, repoDir := range app.Config.GetAppState().RecentRepos {
-				if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
-					if err := os.Chdir(repoDir); err == nil {
-						return true, nil
-					}
-				}
+			// Attempt to open a recent repo, exit if no repo could be opened
+			if didOpenRepo := openRecentRepo(app); !didOpenRepo {
+				fmt.Println(app.Tr.NoRecentRepositories)
+				os.Exit(1)
 			}
 
-			fmt.Println(app.Tr.NoRecentRepositories)
-			os.Exit(1)
+			return true, nil
 		}
 		if err := app.OSCommand.Cmd.New("git init " + initialBranch).Run(); err != nil {
 			return false, err
@@ -234,19 +242,16 @@ func (app *App) setupRepo() (bool, error) {
 		shouldOpenRecent := strings.Trim(response, " \r\n") == "y"
 
 		if shouldOpenRecent {
-			for _, repoDir := range app.Config.GetAppState().RecentRepos {
-				if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
-					if err := os.Chdir(repoDir); err == nil {
-						return true, nil
-					}
-				}
+			if didOpenRepo := openRecentRepo(app); !didOpenRepo {
+				fmt.Println(app.Tr.NoRecentRepositories)
+				os.Exit(1)
 			}
-
-			fmt.Println(app.Tr.NoRecentRepositories)
-			os.Exit(1)
+		
+			// We managed to open a recent repo, continue as usual
+			return true, nil
+		} else {
+			os.Exit(0)
 		}
-
-		os.Exit(0)
 	}
 
 	return false, nil
