@@ -100,7 +100,8 @@ func (gui *Gui) pushContext(c types.Context, opts ...types.OnFocusOpts) error {
 			// if top one is a temporary popup, we remove it. Ideally you'd be able to
 			// escape back to previous temporary popups, but because we're currently reusing
 			// views for this, you might not be able to get back to where you previously were.
-			if topContext.GetKind() == types.TEMPORARY_POPUP {
+			// The exception is when going to the search context e.g. for searching a menu.
+			if topContext.GetKind() == types.TEMPORARY_POPUP && c.GetKey() != context.SEARCH_CONTEXT_KEY {
 				if err := gui.deactivateContext(topContext); err != nil {
 					gui.State.ContextManager.Unlock()
 					return err
