@@ -15,6 +15,7 @@ import (
 type ICmdObjRunner interface {
 	Run(cmdObj ICmdObj) error
 	RunWithOutput(cmdObj ICmdObj) (string, error)
+	RunWithOutputs(cmdObj ICmdObj) (string, string, error)
 	RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error
 }
 
@@ -76,6 +77,31 @@ func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	return self.RunWithOutputAux(cmdObj)
 }
 
+func (self *cmdObjRunner) RunWithOutputs(cmdObj ICmdObj) (string, string, error) {
+	if cmdObj.Mutex() != nil {
+		cmdObj.Mutex().Lock()
+		defer cmdObj.Mutex().Unlock()
+	}
+
+	if cmdObj.GetCredentialStrategy() != NONE {
+		err := self.runWithCredentialHandling(cmdObj)
+		// for now we're not capturing output, just because it would take a little more
+		// effort and there's currently no use case for it. Some commands call RunWithOutputs
+		// but ignore the output, hence why we've got this check here.
+		return "", "", err
+	}
+
+	if cmdObj.ShouldStreamOutput() {
+		err := self.runAndStream(cmdObj)
+		// for now we're not capturing output, just because it would take a little more
+		// effort and there's currently no use case for it. Some commands call RunWithOutputs
+		// but ignore the output, hence why we've got this check here.
+		return "", "", err
+	}
+
+	return self.RunWithOutputsAux(cmdObj)
+}
+
 func (self *cmdObjRunner) RunWithOutputAux(cmdObj ICmdObj) (string, error) {
 	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 
@@ -88,6 +114,28 @@ func (self *cmdObjRunner) RunWithOutputAux(cmdObj ICmdObj) (string, error) {
 		self.log.WithField("command", cmdObj.ToString()).Error(output)
 	}
 	return output, err
+}
+
+func (self *cmdObjRunner) RunWithOutputsAux(cmdObj ICmdObj) (string, string, error) {
+	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
+
+	if cmdObj.ShouldLog() {
+		self.logCmdObj(cmdObj)
+	}
+
+	var outBuffer, errBuffer bytes.Buffer
+	cmd := cmdObj.GetCmd()
+	cmd.Stdout = &outBuffer
+	cmd.Stderr = &errBuffer
+	err := cmd.Run()
+
+	stdout := outBuffer.String()
+	stderr, err := sanitisedCommandOutput(errBuffer.Bytes(), err)
+	if err != nil {
+		self.log.WithField("command", cmdObj.ToString()).Error(stderr)
+	}
+
+	return stdout, stderr, err
 }
 
 func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {

@@ -87,7 +87,7 @@ func (c *FileLoader) GitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 		noRenamesFlag = " --no-renames"
 	}
 
-	statusLines, err := c.cmd.New(fmt.Sprintf("git status %s --porcelain -z%s", opts.UntrackedFilesArg, noRenamesFlag)).DontLog().RunWithOutput()
+	statusLines, _, err := c.cmd.New(fmt.Sprintf("git status %s --porcelain -z%s", opts.UntrackedFilesArg, noRenamesFlag)).DontLog().RunWithOutputs()
 	if err != nil {
 		return []FileStatus{}, err
 	}
