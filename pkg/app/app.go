@@ -239,19 +239,17 @@ func (app *App) setupRepo() (bool, error) {
 		fmt.Print(app.Tr.BareRepo)
 
 		response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-		shouldOpenRecent := strings.Trim(response, " \r\n") == "y"
-
-		if shouldOpenRecent {
-			if didOpenRepo := openRecentRepo(app); !didOpenRepo {
-				fmt.Println(app.Tr.NoRecentRepositories)
-				os.Exit(1)
-			}
 		
-			// We managed to open a recent repo, continue as usual
-			return true, nil
-		} else {
+		if shouldOpenRecent := strings.Trim(response, " \r\n") == "y"; !shouldOpenRecent {
 			os.Exit(0)
 		}
+
+		if didOpenRepo := openRecentRepo(app); didOpenRepo {
+			return true, nil
+		}
+
+		fmt.Println(app.Tr.NoRecentRepositories)
+		os.Exit(1)
 	}
 
 	return false, nil
