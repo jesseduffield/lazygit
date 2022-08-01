@@ -60,8 +60,12 @@ func (gui *Gui) getCurrentBranch(path string) string {
 }
 
 func (gui *Gui) handleCreateRecentReposMenu() error {
-	// we skip the first one because we're currently in it
-	recentRepoPaths := gui.c.GetAppState().RecentRepos[1:]
+	// we'll show an empty panel if there are no recent repos
+	recentRepoPaths := []string{}
+	if len(gui.c.GetAppState().RecentRepos) > 0 {
+		// we skip the first one because we're currently in it
+		recentRepoPaths = gui.c.GetAppState().RecentRepos[1:]
+	}
 
 	currentBranches := sync.Map{}
 
