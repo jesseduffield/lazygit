@@ -17,5 +17,9 @@ func NewCommitFileNode(node *Node[models.CommitFile]) *CommitFileNode {
 
 // returns the underlying node, without any commit-file-specific methods attached
 func (self *CommitFileNode) Raw() *Node[models.CommitFile] {
+	if self == nil {
+		return nil
+	}
+
 	return self.Node
 }
