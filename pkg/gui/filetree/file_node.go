@@ -19,6 +19,10 @@ func NewFileNode(node *Node[models.File]) *FileNode {
 
 // returns the underlying node, without any file-specific methods attached
 func (self *FileNode) Raw() *Node[models.File] {
+	if self == nil {
+		return nil
+	}
+
 	return self.Node
 }
 
