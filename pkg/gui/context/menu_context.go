@@ -36,7 +36,7 @@ func NewMenuContext(
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				ViewName:        "menu",
 				Key:             "menu",
-				Kind:            types.PERSISTENT_POPUP,
+				Kind:            types.TEMPORARY_POPUP,
 				OnGetOptionsMap: getOptionsMap,
 				Focusable:       true,
 			}), ContextCallbackOpts{

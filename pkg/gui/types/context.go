@@ -8,12 +8,22 @@ import (
 type ContextKind int
 
 const (
+	// this is your files, branches, commits, contexts etc. They're all on the left hand side
+	// and you can cycle through them.
 	SIDE_CONTEXT ContextKind = iota
+	// This is either the left or right 'main' contexts that appear to the right of the side contexts
 	MAIN_CONTEXT
-	TEMPORARY_POPUP
+	// A persistent popup is one that has its own identity e.g. the commit message context.
+	// When you open a popup over it, we'll let you return to it upon pressing escape
 	PERSISTENT_POPUP
+	// A temporary popup is one that could be used for various things (e.g. a generic menu or confirmation popup).
+	// Because we re-use these contexts, they're temporary in that you can't return to them after you've switched from them
+	// to some other context, because the context you switched to might actually be the same context but rendering different content.
+	// We should really be able to spawn new contexts for menus/prompts so that we can actually return to old ones.
+	TEMPORARY_POPUP
+	// This contains the command log, underneath the main contexts.
 	EXTRAS_CONTEXT
-	// only used by the one global context
+	// only used by the one global context, purely for the sake of defining keybindings globally
 	GLOBAL_CONTEXT
 )
 

@@ -7,7 +7,7 @@ Integration tests are located in `test/integration`. Each test will run a bash s
 An example of a `test.json` is:
 
 ```
-{ "description": "stage a file and commit the change", "speed": 20 }
+{ "description": "Open a confirmation, then open a menu over that, then close the menu. Verify that the confirmation popup also closes automatically", "speed": 20 }
 ```
 
 The `speed` key refers to the playback speed as a multiple of the original recording speed. So 20 means the test will run 20 times faster than the original recording speed. If a test fails for a given speed, it will drop the speed and re-test, until finally attempting the test at the original speed. If you omit the speed, it will default to 10.
