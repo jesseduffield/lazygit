@@ -1,11 +1,12 @@
 package gui
 
 import (
-	"errors"
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) getMenuOptions() map[string]string {
@@ -30,9 +31,25 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		})
 	}
 
+	maxColumnSize := 1
+
 	for _, item := range opts.Items {
-		if item.OpensMenu && item.LabelColumns != nil {
-			return errors.New("Message for the developer of this app: you've set opensMenu with displaystrings on the menu panel. Bad developer!. Apologies, user")
+		if item.LabelColumns == nil {
+			item.LabelColumns = []string{item.Label}
+		}
+
+		if item.OpensMenu {
+			item.LabelColumns[0] = presentation.OpensMenuStyle(item.LabelColumns[0])
+		}
+
+		maxColumnSize = utils.Max(maxColumnSize, len(item.LabelColumns))
+	}
+
+	for _, item := range opts.Items {
+		if len(item.LabelColumns) < maxColumnSize {
+			// we require that each item has the same number of columns so we're padding out with blank strings
+			// if this item has too few
+			item.LabelColumns = append(item.LabelColumns, make([]string, maxColumnSize-len(item.LabelColumns))...)
 		}
 	}
 

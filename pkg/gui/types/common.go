@@ -1,6 +1,8 @@
 package types
 
 import (
+	"sync"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -96,6 +98,10 @@ type ConfirmOpts struct {
 	HandleConfirm       func() error
 	HandleClose         func() error
 	HandlersManageFocus bool
+	HasLoader           bool
+	FindSuggestionsFunc func(string) []*Suggestion
+	Editable            bool
+	Mask                bool
 }
 
 type PromptOpts struct {
@@ -151,4 +157,16 @@ type Model struct {
 
 	// for displaying suggestions while typing in a file name
 	FilesTrie *patricia.Trie
+}
+
+// if you add a new mutex here be sure to instantiate it. We're using pointers to
+// mutexes so that we can pass the mutexes to controllers.
+type Mutexes struct {
+	RefreshingFilesMutex  *sync.Mutex
+	RefreshingStatusMutex *sync.Mutex
+	SyncMutex             *sync.Mutex
+	LocalCommitsMutex     *sync.Mutex
+	LineByLinePanelMutex  *sync.Mutex
+	SubprocessMutex       *sync.Mutex
+	PopupMutex            *sync.Mutex
 }

@@ -1214,15 +1214,22 @@ func (v *View) GetClickedTabIndex(x int) int {
 		return 0
 	}
 
-	charIndex := 0
+	charX := 1
+	if x <= charX {
+		return -1
+	}
 	for i, tab := range v.Tabs {
-		charIndex += len(tab + " - ")
-		if x < charIndex {
+		charX += runewidth.StringWidth(tab)
+		if x <= charX {
 			return i
+		}
+		charX += runewidth.StringWidth(" - ")
+		if x <= charX {
+			return -1
 		}
 	}
 
-	return 0
+	return -1
 }
 
 func (v *View) SelectedLineIdx() int {

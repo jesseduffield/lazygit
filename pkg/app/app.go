@@ -148,7 +148,7 @@ func isGitVersionValid(versionStr string) bool {
 
 func isDirectoryAGitRepository(dir string) (bool, error) {
 	info, err := os.Stat(filepath.Join(dir, ".git"))
-	return info != nil && info.IsDir(), err
+	return info != nil, err
 }
 
 func isBareRepo(osCommand *oscommands.OSCommand) (bool, error) {

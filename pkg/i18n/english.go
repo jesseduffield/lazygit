@@ -409,6 +409,7 @@ type TranslationSet struct {
 	NoFilesStagedPrompt                 string
 	BranchNotFoundTitle                 string
 	BranchNotFoundPrompt                string
+	LcBranchUnknown                     string
 	UnstageLinesTitle                   string
 	UnstageLinesPrompt                  string
 	LcCreateNewBranchFromCommit         string
@@ -501,6 +502,7 @@ type TranslationSet struct {
 	UpstreamGone                        string
 	NukeDescription                     string
 	DiscardStagedChangesDescription     string
+	EmptyOutput                         string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -1045,6 +1047,7 @@ func EnglishTranslationSet() TranslationSet {
 		NoFilesStagedPrompt:                 "You have not staged any files. Commit all files?",
 		BranchNotFoundTitle:                 "Branch not found",
 		BranchNotFoundPrompt:                "Branch not found. Create a new branch named",
+		LcBranchUnknown:                     "branch unknown",
 		UnstageLinesTitle:                   "Unstage lines",
 		UnstageLinesPrompt:                  "Are you sure you want to delete the selected lines (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true",
 		LcCreateNewBranchFromCommit:         "create new branch off of commit",
@@ -1136,6 +1139,7 @@ func EnglishTranslationSet() TranslationSet {
 		UpstreamGone:                        "(upstream gone)",
 		NukeDescription:                     "If you want to make all the changes in the worktree go away, this is the way to do it. If there are dirty submodule changes this will stash those changes in the submodule(s).",
 		DiscardStagedChangesDescription:     "This will create a new stash entry containing only staged files and then drop it, so that the working tree is left with only unstaged changes",
+		EmptyOutput:                         "<empty output>",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

@@ -1158,9 +1158,11 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			if len(v.Tabs) > 0 {
 				tabIndex := v.GetClickedTabIndex(mx - v.x0)
 
-				for _, binding := range g.tabClickBindings {
-					if binding.viewName == v.Name() {
-						return binding.handler(tabIndex)
+				if tabIndex >= 0 {
+					for _, binding := range g.tabClickBindings {
+						if binding.viewName == v.Name() {
+							return binding.handler(tabIndex)
+						}
 					}
 				}
 			}

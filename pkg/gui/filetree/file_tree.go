@@ -18,7 +18,7 @@ const (
 	DisplayConflicted
 )
 
-type ITree interface {
+type ITree[T any] interface {
 	InTreeMode() bool
 	ExpandToPath(path string)
 	ToggleShowTree()
@@ -27,12 +27,11 @@ type ITree interface {
 	SetTree()
 	IsCollapsed(path string) bool
 	ToggleCollapsed(path string)
-	Tree() INode
 	CollapsedPaths() *CollapsedPaths
 }
 
 type IFileTree interface {
-	ITree
+	ITree[models.File]
 
 	FilterFiles(test func(*models.File) bool) []*models.File
 	SetFilter(filter FileTreeDisplayFilter)
@@ -41,16 +40,19 @@ type IFileTree interface {
 	GetAllItems() []*FileNode
 	GetAllFiles() []*models.File
 	GetFilter() FileTreeDisplayFilter
+	GetRoot() *FileNode
 }
 
 type FileTree struct {
 	getFiles       func() []*models.File
-	tree           *FileNode
+	tree           *Node[models.File]
 	showTree       bool
 	log            *logrus.Entry
 	filter         FileTreeDisplayFilter
 	collapsedPaths *CollapsedPaths
 }
+
+var _ IFileTree = &FileTree{}
 
 func NewFileTree(getFiles func() []*models.File, log *logrus.Entry, showTree bool) *FileTree {
 	return &FileTree{
@@ -101,7 +103,7 @@ func (self *FileTree) ToggleShowTree() {
 
 func (self *FileTree) Get(index int) *FileNode {
 	// need to traverse the three depth first until we get to the index.
-	return self.tree.GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
+	return NewFileNode(self.tree.GetNodeAtIndex(index+1, self.collapsedPaths)) // ignoring root
 }
 
 func (self *FileTree) GetFile(path string) *models.File {
@@ -127,7 +129,10 @@ func (self *FileTree) GetAllItems() []*FileNode {
 		return nil
 	}
 
-	return self.tree.Flatten(self.collapsedPaths)[1:] // ignoring root
+	// ignoring root
+	return slices.Map(self.tree.Flatten(self.collapsedPaths)[1:], func(node *Node[models.File]) *FileNode {
+		return NewFileNode(node)
+	})
 }
 
 func (self *FileTree) Len() int {
@@ -155,8 +160,12 @@ func (self *FileTree) ToggleCollapsed(path string) {
 	self.collapsedPaths.ToggleCollapsed(path)
 }
 
-func (self *FileTree) Tree() INode {
-	return self.tree
+func (self *FileTree) Tree() *FileNode {
+	return NewFileNode(self.tree)
+}
+
+func (self *FileTree) GetRoot() *FileNode {
+	return NewFileNode(self.tree)
 }
 
 func (self *FileTree) CollapsedPaths() *CollapsedPaths {

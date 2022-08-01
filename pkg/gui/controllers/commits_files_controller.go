@@ -165,7 +165,7 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 
 			// if there is any file that hasn't been fully added we'll fully add everything,
 			// otherwise we'll remove everything
-			adding := node.AnyFile(func(file *models.CommitFile) bool {
+			adding := node.SomeFile(func(file *models.CommitFile) bool {
 				return self.git.Patch.PatchManager.GetFileStatus(file.Name, self.context().GetRef().RefName()) != patch.WHOLE
 			})
 
@@ -203,8 +203,7 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 }
 
 func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode) error {
-	// not a fan of type assertions but this will be fixed very soon thanks to generics
-	root := self.context().CommitFileTreeViewModel.Tree().(*filetree.CommitFileNode)
+	root := self.context().CommitFileTreeViewModel.GetRoot()
 	return self.toggleForPatch(root)
 }
 

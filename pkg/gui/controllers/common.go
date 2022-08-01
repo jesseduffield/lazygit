@@ -16,6 +16,7 @@ type controllerCommon struct {
 	model    *types.Model
 	contexts *context.ContextTree
 	modes    *types.Modes
+	mutexes  *types.Mutexes
 }
 
 func NewControllerCommon(
@@ -26,6 +27,7 @@ func NewControllerCommon(
 	model *types.Model,
 	contexts *context.ContextTree,
 	modes *types.Modes,
+	mutexes *types.Mutexes,
 ) *controllerCommon {
 	return &controllerCommon{
 		c:        c,
@@ -35,5 +37,6 @@ func NewControllerCommon(
 		model:    model,
 		contexts: contexts,
 		modes:    modes,
+		mutexes:  mutexes,
 	}
 }
