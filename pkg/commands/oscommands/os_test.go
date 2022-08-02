@@ -1,6 +1,7 @@
 package oscommands
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -132,6 +133,46 @@ func TestOSCommandFileType(t *testing.T) {
 	for _, s := range scenarios {
 		s.setup()
 		s.test(FileType(s.path))
+		_ = os.RemoveAll(s.path)
+	}
+}
+
+func TestOSCommandAppendLineToFile(t *testing.T) {
+	type scenario struct {
+		path  string
+		setup func(string)
+	}
+
+	scenarios := []scenario{
+		{
+			"testFile",
+			func(path string) {
+				if err := ioutil.WriteFile(path, []byte("hello"), 0o600); err != nil {
+					panic(err)
+				}
+			},
+		},
+		{
+			"testFileWithNewline",
+			func(path string) {
+				if err := ioutil.WriteFile(path, []byte("hello\n"), 0o600); err != nil {
+					panic(err)
+				}
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		s.setup(s.path)
+		osCommand := NewDummyOSCommand()
+		if err := osCommand.AppendLineToFile(s.path, "world"); err != nil {
+			panic(err)
+		}
+		f, err := ioutil.ReadFile(s.path)
+		if err != nil {
+			panic(err)
+		}
+		assert.EqualValues(t, "hello\nworld\n", string(f))
 		_ = os.RemoveAll(s.path)
 	}
 }
