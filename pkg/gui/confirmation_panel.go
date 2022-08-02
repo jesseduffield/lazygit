@@ -239,6 +239,11 @@ func (gui *Gui) setKeyBindings(opts types.CreatePopupPanelOpts) error {
 		},
 		{
 			ViewName: "confirmation",
+			Key:      keybindings.GetKey(keybindingConfig.Universal.Cancel),
+			Handler:  gui.wrappedConfirmationFunction(opts.HandleClose),
+		},
+		{
+			ViewName: "confirmation",
 			Key:      keybindings.GetKey(keybindingConfig.Universal.TogglePanel),
 			Handler: func() error {
 				if len(gui.State.Suggestions) > 0 {
@@ -283,6 +288,7 @@ func (gui *Gui) clearConfirmationViewKeyBindings() {
 	_ = gui.g.DeleteKeybinding("confirmation", keybindings.GetKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("confirmation", keybindings.GetKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("confirmation", keybindings.GetKey(keybindingConfig.Universal.Return), gocui.ModNone)
+	_ = gui.g.DeleteKeybinding("confirmation", keybindings.GetKey(keybindingConfig.Universal.Cancel), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("suggestions", keybindings.GetKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("suggestions", keybindings.GetKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("suggestions", keybindings.GetKey(keybindingConfig.Universal.Return), gocui.ModNone)

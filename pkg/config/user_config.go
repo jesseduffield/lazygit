@@ -164,6 +164,7 @@ type KeybindingUniversalConfig struct {
 	GoInto                       string   `yaml:"goInto"`
 	Confirm                      string   `yaml:"confirm"`
 	ConfirmAlt1                  string   `yaml:"confirm-alt1"`
+	Cancel                       string   `yaml:"cancel"`
 	Remove                       string   `yaml:"remove"`
 	New                          string   `yaml:"new"`
 	Edit                         string   `yaml:"edit"`
@@ -451,6 +452,7 @@ func GetDefaultConfig() *UserConfig {
 				GoInto:                       "<enter>",
 				Confirm:                      "<enter>",
 				ConfirmAlt1:                  "y",
+				Cancel:                       "n",
 				Remove:                       "d",
 				New:                          "n",
 				Edit:                         "e",
