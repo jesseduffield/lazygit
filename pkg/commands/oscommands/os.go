@@ -120,17 +120,17 @@ func (c *OSCommand) AppendLineToFile(filename, line string) error {
 		return utils.WrapError(err)
 	}
 
-	buf := make([]byte, 1)
 	if info.Size() > 0 {
 		// read last char
+		buf := make([]byte, 1)
 		if _, err := f.ReadAt(buf, info.Size()-1); err != nil {
 			return utils.WrapError(err)
 		}
-	}
 
-	// if the last byte of the file is not a newline, add it
-	if []byte("\n")[0] != buf[0] {
-		_, err = f.WriteString("\n")
+		// if the last byte of the file is not a newline, add it
+		if []byte("\n")[0] != buf[0] {
+			_, err = f.WriteString("\n")
+		}
 	}
 
 	if err == nil {
