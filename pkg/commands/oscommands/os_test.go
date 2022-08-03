@@ -3,6 +3,7 @@ package oscommands
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -145,7 +146,7 @@ func TestOSCommandAppendLineToFile(t *testing.T) {
 
 	scenarios := []scenario{
 		{
-			"testFile",
+			filepath.Join(os.TempDir(), "testFile"),
 			func(path string) {
 				if err := ioutil.WriteFile(path, []byte("hello"), 0o600); err != nil {
 					panic(err)
@@ -153,7 +154,7 @@ func TestOSCommandAppendLineToFile(t *testing.T) {
 			},
 		},
 		{
-			"testFileWithNewline",
+			filepath.Join(os.TempDir(), "testFileWithNewline"),
 			func(path string) {
 				if err := ioutil.WriteFile(path, []byte("hello\n"), 0o600); err != nil {
 					panic(err)
