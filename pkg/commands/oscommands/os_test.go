@@ -142,6 +142,7 @@ func TestOSCommandAppendLineToFile(t *testing.T) {
 	type scenario struct {
 		path  string
 		setup func(string)
+		test  func(string)
 	}
 
 	scenarios := []scenario{
@@ -152,6 +153,20 @@ func TestOSCommandAppendLineToFile(t *testing.T) {
 					panic(err)
 				}
 			},
+			func(output string) {
+				assert.EqualValues(t, "hello\nworld\n", output)
+			},
+		},
+		{
+			filepath.Join(os.TempDir(), "emptyTestFile"),
+			func(path string) {
+				if err := ioutil.WriteFile(path, []byte(""), 0o600); err != nil {
+					panic(err)
+				}
+			},
+			func(output string) {
+				assert.EqualValues(t, "world\n", output)
+			},
 		},
 		{
 			filepath.Join(os.TempDir(), "testFileWithNewline"),
@@ -159,6 +174,9 @@ func TestOSCommandAppendLineToFile(t *testing.T) {
 				if err := ioutil.WriteFile(path, []byte("hello\n"), 0o600); err != nil {
 					panic(err)
 				}
+			},
+			func(output string) {
+				assert.EqualValues(t, "hello\nworld\n", output)
 			},
 		},
 	}
@@ -173,7 +191,7 @@ func TestOSCommandAppendLineToFile(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		assert.EqualValues(t, "hello\nworld\n", string(f))
+		s.test(string(f))
 		_ = os.RemoveAll(s.path)
 	}
 }
