@@ -124,7 +124,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>n</kbd>: new branch
   <kbd>o</kbd>: create pull request
   <kbd>O</kbd>: create pull request options
-  <kbd>ctrl+y</kbd>: copy pull request URL to clipboard
+  <kbd>ctrl+y</kbd>: copy to clipboard menu
   <kbd>c</kbd>: checkout by name
   <kbd>F</kbd>: force checkout
   <kbd>d</kbd>: delete branch

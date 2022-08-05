@@ -152,6 +152,7 @@ type TranslationSet struct {
 	MergeToolPrompt                     string
 	IntroPopupMessage                   string
 	GitconfigParseErr                   string
+	GitRevParseError                    string
 	LcEditFile                          string
 	LcOpenFile                          string
 	LcIgnoreFile                        string
@@ -163,6 +164,8 @@ type TranslationSet struct {
 	LcAllBranchesLogGraph               string
 	UnsupportedGitService               string
 	LcCreatePullRequest                 string
+	LcCopyToClipboardMenu               string
+	CopyToClipboardMenuTitle            string
 	LcCopyPullRequestURL                string
 	LcCopyBranchURL                     string
 	NoBranchOnRemote                    string
@@ -789,6 +792,7 @@ func EnglishTranslationSet() TranslationSet {
 		MergeToolPrompt:                     "Are you sure you want to open `git mergetool`?",
 		IntroPopupMessage:                   englishIntroPopupMessage,
 		GitconfigParseErr:                   `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
+		GitRevParseError:                    `Error retrieving last commit sha.`,
 		LcEditFile:                          `edit file`,
 		LcOpenFile:                          `open file`,
 		LcIgnoreFile:                        `add to .gitignore`,
@@ -800,6 +804,8 @@ func EnglishTranslationSet() TranslationSet {
 		LcAllBranchesLogGraph:               `show all branch logs`,
 		UnsupportedGitService:               `Unsupported git service`,
 		LcCreatePullRequest:                 `create pull request`,
+		LcCopyToClipboardMenu:               `copy to clipboard menu`,
+		CopyToClipboardMenuTitle:            `Copy to clipboard`,
 		LcCopyPullRequestURL:                `copy pull request URL to clipboard`,
 		LcCopyBranchURL:                     `copy branch URL to clipboard`,
 		NoBranchOnRemote:                    `This branch doesn't exist on remote. You need to push it to remote first.`,

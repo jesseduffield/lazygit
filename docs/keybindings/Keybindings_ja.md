@@ -183,7 +183,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>n</kbd>: 新しいブランチを作成
   <kbd>o</kbd>: Pull Requestを作成
   <kbd>O</kbd>: create pull request options
-  <kbd>ctrl+y</kbd>: Pull RequestのURLをクリップボードにコピー
+  <kbd>ctrl+y</kbd>: copy to clipboard menu
   <kbd>c</kbd>: checkout by name
   <kbd>F</kbd>: force checkout
   <kbd>d</kbd>: ブランチを削除

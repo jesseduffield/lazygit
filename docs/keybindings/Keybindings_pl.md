@@ -83,7 +83,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>n</kbd>: nowa gałąź
   <kbd>o</kbd>: utwórz żądanie pobrania
   <kbd>O</kbd>: utwórz opcje żądania ściągnięcia
-  <kbd>ctrl+y</kbd>: skopiuj adres URL żądania pobrania do schowka
+  <kbd>ctrl+y</kbd>: copy to clipboard menu
   <kbd>c</kbd>: przełącz używając nazwy
   <kbd>F</kbd>: wymuś przełączenie
   <kbd>d</kbd>: usuń gałąź

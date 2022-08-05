@@ -65,7 +65,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>n</kbd>: 新分支
   <kbd>o</kbd>: 创建抓取请求
   <kbd>O</kbd>: 创建抓取请求选项
-  <kbd>ctrl+y</kbd>: 将抓取请求 URL 复制到剪贴板
+  <kbd>ctrl+y</kbd>: copy to clipboard menu
   <kbd>c</kbd>: 按名称检出
   <kbd>F</kbd>: 强制检出
   <kbd>d</kbd>: 删除分支

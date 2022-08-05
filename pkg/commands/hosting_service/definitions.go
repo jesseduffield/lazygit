@@ -25,7 +25,7 @@ var bitbucketServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/pull-requests/new?source={{.From}}&t=1",
 	pullRequestURLIntoTargetBranch:  "/pull-requests/new?source={{.From}}&dest={{.To}}&t=1",
 	commitURL:                       "/commits/{{.CommitSha}}",
-	branchURL:                       "/branch/{{.BranchName}}",
+	branchURL:                       "/src/{{.CommitSha}}/?at={{.BranchName}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
 }

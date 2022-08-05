@@ -37,8 +37,8 @@ func (self *HostHelper) GetCommitURL(commitSha string) (string, error) {
 	return self.getHostingServiceMgr().GetCommitURL(commitSha)
 }
 
-func (self *HostHelper) GetBranchURL(branchName string) (string, error) {
-	return self.getHostingServiceMgr().GetBranchURL(branchName)
+func (self *HostHelper) GetBranchURL(branchName string, commitSha string) (string, error) {
+	return self.getHostingServiceMgr().GetBranchURL(branchName, commitSha)
 }
 
 // getting this on every request rather than storing it in state in case our remoteURL changes

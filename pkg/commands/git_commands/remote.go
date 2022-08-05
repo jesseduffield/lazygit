@@ -44,11 +44,16 @@ func (self *RemoteCommands) DeleteRemoteBranch(remoteName string, branchName str
 }
 
 // CheckRemoteBranchExists Returns remote branch
-func (self *RemoteCommands) CheckRemoteBranchExists(branchName string) bool {
+func (self *RemoteCommands) CheckRemoteBranchExists(branchName string, upstreamRemote string) bool {
+	if upstreamRemote == "" {
+		upstreamRemote = "origin"
+	}
+
 	_, err := self.cmd.
 		New(
-			fmt.Sprintf("git show-ref --verify -- refs/remotes/origin/%s",
+			fmt.Sprintf("git show-ref --verify -- refs/remotes/%s/%s",
 				self.cmd.Quote(branchName),
+				self.cmd.Quote(upstreamRemote),
 			),
 		).
 		DontLog().

@@ -77,7 +77,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>n</kbd>: nieuwe branch
   <kbd>o</kbd>: maak een pull-request
   <kbd>O</kbd>: bekijk opties voor pull-aanvraag
-  <kbd>ctrl+y</kbd>: kopieer de URL van het pull-verzoek naar het klembord
+  <kbd>ctrl+y</kbd>: copy to clipboard menu
   <kbd>c</kbd>: uitchecken bij naam
   <kbd>F</kbd>: forceer checkout
   <kbd>d</kbd>: verwijder branch
