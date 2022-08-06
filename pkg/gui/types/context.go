@@ -1,11 +1,10 @@
 package types
 
 import (
-	"sync"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type ContextKind int
@@ -106,7 +105,7 @@ type IPatchExplorerContext interface {
 	Focus() error
 	GetContentToRender(isFocused bool) string
 	NavigateTo(isFocused bool, selectedLineIdx int) error
-	GetMutex() *sync.Mutex
+	GetMutex() *deadlock.Mutex
 }
 
 type IViewTrait interface {

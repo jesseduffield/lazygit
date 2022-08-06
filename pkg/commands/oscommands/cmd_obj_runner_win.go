@@ -13,7 +13,7 @@ import (
 
 type Buffer struct {
 	b bytes.Buffer
-	m sync.Mutex
+	m deadlock.Mutex
 }
 
 func (b *Buffer) Read(p []byte) (n int, err error) {

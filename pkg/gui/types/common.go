@@ -1,13 +1,12 @@
 package types
 
 import (
-	"sync"
-
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
@@ -160,11 +159,11 @@ type Model struct {
 // if you add a new mutex here be sure to instantiate it. We're using pointers to
 // mutexes so that we can pass the mutexes to controllers.
 type Mutexes struct {
-	RefreshingFilesMutex  *sync.Mutex
-	RefreshingStatusMutex *sync.Mutex
-	SyncMutex             *sync.Mutex
-	LocalCommitsMutex     *sync.Mutex
-	SubprocessMutex       *sync.Mutex
-	PopupMutex            *sync.Mutex
-	PtyMutex              *sync.Mutex
+	RefreshingFilesMutex  *deadlock.Mutex
+	RefreshingStatusMutex *deadlock.Mutex
+	SyncMutex             *deadlock.Mutex
+	LocalCommitsMutex     *deadlock.Mutex
+	SubprocessMutex       *deadlock.Mutex
+	PopupMutex            *deadlock.Mutex
+	PtyMutex              *deadlock.Mutex
 }

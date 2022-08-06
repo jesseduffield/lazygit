@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/go-errors/errors"
+	"github.com/sasha-s/go-deadlock"
 
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -57,7 +57,7 @@ func NewGitCommand(
 	cmn *common.Common,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
-	syncMutex *sync.Mutex,
+	syncMutex *deadlock.Mutex,
 ) (*GitCommand, error) {
 	if err := navigateToRepoRootDirectory(os.Stat, os.Chdir); err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func NewGitCommandAux(
 	gitConfig git_config.IGitConfig,
 	dotGitDir string,
 	repo *gogit.Repository,
-	syncMutex *sync.Mutex,
+	syncMutex *deadlock.Mutex,
 ) *GitCommand {
 	cmd := NewGitCmdObjBuilder(cmn.Log, osCommand.Cmd)
 

@@ -35,6 +35,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
@@ -358,13 +359,13 @@ func NewGui(
 		// sake of backwards compatibility. We're making use of short circuiting here
 		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
 		Mutexes: types.Mutexes{
-			RefreshingFilesMutex:  &sync.Mutex{},
-			RefreshingStatusMutex: &sync.Mutex{},
-			SyncMutex:             &sync.Mutex{},
-			LocalCommitsMutex:     &sync.Mutex{},
-			SubprocessMutex:       &sync.Mutex{},
-			PopupMutex:            &sync.Mutex{},
-			PtyMutex:              &sync.Mutex{},
+			RefreshingFilesMutex:  &deadlock.Mutex{},
+			RefreshingStatusMutex: &deadlock.Mutex{},
+			SyncMutex:             &deadlock.Mutex{},
+			LocalCommitsMutex:     &deadlock.Mutex{},
+			SubprocessMutex:       &deadlock.Mutex{},
+			PopupMutex:            &deadlock.Mutex{},
+			PtyMutex:              &deadlock.Mutex{},
 		},
 		InitialDir: initialDir,
 	}

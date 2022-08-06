@@ -1,11 +1,11 @@
 package gui
 
 import (
-	"sync"
 	"time"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 )
 
 // statusManager's job is to handle rendering of loading states and toast notifications
@@ -13,7 +13,7 @@ import (
 type statusManager struct {
 	statuses []appStatus
 	nextId   int
-	mutex    sync.Mutex
+	mutex    deadlock.Mutex
 }
 
 type appStatus struct {

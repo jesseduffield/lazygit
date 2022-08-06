@@ -2,7 +2,6 @@ package context
 
 import (
 	"math"
-	"sync"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
@@ -14,7 +13,7 @@ type MergeConflictsContext struct {
 	types.Context
 	viewModel *ConflictsViewModel
 	c         *types.HelperCommon
-	mutex     *sync.Mutex
+	mutex     *deadlock.Mutex
 }
 
 type ConflictsViewModel struct {
@@ -40,7 +39,7 @@ func NewMergeConflictsContext(
 
 	return &MergeConflictsContext{
 		viewModel: viewModel,
-		mutex:     &sync.Mutex{},
+		mutex:     &deadlock.Mutex{},
 		Context: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{
 				Kind:            types.MAIN_CONTEXT,
@@ -64,7 +63,7 @@ func (self *MergeConflictsContext) SetState(state *mergeconflicts.State) {
 	self.viewModel.state = state
 }
 
-func (self *MergeConflictsContext) GetMutex() *sync.Mutex {
+func (self *MergeConflictsContext) GetMutex() *deadlock.Mutex {
 	return self.mutex
 }
 

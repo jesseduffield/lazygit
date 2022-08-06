@@ -2,7 +2,6 @@ package popup
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -10,12 +9,13 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type PopupHandler struct {
 	*common.Common
 	index int
-	sync.Mutex
+	deadlock.Mutex
 	createPopupPanelFn  func(types.CreatePopupPanelOpts) error
 	onErrorFn           func() error
 	popContextFn        func() error

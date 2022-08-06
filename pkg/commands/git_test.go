@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -220,7 +220,7 @@ func TestNewGitCommand(t *testing.T) {
 				NewGitCommand(utils.NewDummyCommon(),
 					oscommands.NewDummyOSCommand(),
 					git_config.NewFakeGitConfig(nil),
-					&sync.Mutex{},
+					&deadlock.Mutex{},
 				))
 		})
 	}

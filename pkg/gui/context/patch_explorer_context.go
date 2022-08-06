@@ -1,11 +1,10 @@
 package context
 
 import (
-	"sync"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 type PatchExplorerContext struct {
@@ -15,7 +14,7 @@ type PatchExplorerContext struct {
 	viewTrait              *ViewTrait
 	getIncludedLineIndices func() []int
 	c                      *types.HelperCommon
-	mutex                  *sync.Mutex
+	mutex                  *deadlock.Mutex
 }
 
 var _ types.IPatchExplorerContext = (*PatchExplorerContext)(nil)
@@ -35,7 +34,7 @@ func NewPatchExplorerContext(
 		state:                  nil,
 		viewTrait:              NewViewTrait(view),
 		c:                      c,
-		mutex:                  &sync.Mutex{},
+		mutex:                  &deadlock.Mutex{},
 		getIncludedLineIndices: getIncludedLineIndices,
 		SimpleContext: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 			View:       view,
@@ -124,6 +123,6 @@ func (self *PatchExplorerContext) NavigateTo(isFocused bool, selectedLineIdx int
 	return self.RenderAndFocus(isFocused)
 }
 
-func (self *PatchExplorerContext) GetMutex() *sync.Mutex {
+func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
 	return self.mutex
 }
