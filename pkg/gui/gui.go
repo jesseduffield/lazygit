@@ -19,6 +19,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
@@ -481,6 +482,13 @@ func (gui *Gui) Run(startArgs types.StartArgs) error {
 	gui.g = g
 	defer gui.g.Close()
 
+	// if the deadlock package wants to report a deadlock, we first need to
+	// close the gui so that we can actually read what it prints.
+	deadlock.Opts.LogBuf = utils.NewOnceWriter(os.Stderr, func() {
+		gui.g.Close()
+	})
+	deadlock.Opts.Disable = !gui.Debug
+
 	if replaying() {
 		gui.g.RecordingConfig = gocui.RecordingConfig{
 			Speed:  getRecordingSpeed(),
@@ -504,9 +512,9 @@ func (gui *Gui) Run(startArgs types.StartArgs) error {
 		return nil
 	}
 	userConfig := gui.UserConfig
-	gui.g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
-	gui.g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
-	gui.g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
+	gui.g.SearchEscapeKey = keybindings.GetKey(userConfig.Keybinding.Universal.Return)
+	gui.g.NextSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.NextMatch)
+	gui.g.PrevSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.PrevMatch)
 
 	gui.g.ShowListFooter = userConfig.Gui.ShowListFooter
 
@@ -771,7 +779,7 @@ func (gui *Gui) setColorScheme() error {
 	return nil
 }
 
-func (gui *Gui) OnUIThread(f func() error) {
+func (gui *Gui) onUIThread(f func() error) {
 	gui.g.Update(func(*gocui.Gui) error {
 		return f()
 	})

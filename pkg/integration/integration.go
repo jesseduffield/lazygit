@@ -202,7 +202,7 @@ func RunTests(
 
 // validates that the actual and expected dirs have the same repo names (doesn't actually check the contents of the repos)
 func validateSameRepos(expectedDir string, actualDir string) error {
-	// iterate through each repo in the expected dir and comparet to the corresponding repo in the actual dir
+	// iterate through each repo in the expected dir and compare to the corresponding repo in the actual dir
 	expectedFiles, err := ioutil.ReadDir(expectedDir)
 	if err != nil {
 		return err

@@ -94,7 +94,7 @@ func (gui *Gui) renderAppStatus() {
 		defer ticker.Stop()
 		for range ticker.C {
 			appStatus := gui.statusManager.getStatusString()
-			gui.OnUIThread(func() error {
+			gui.c.OnUIThread(func() error {
 				return gui.renderString(gui.Views.AppStatus, appStatus)
 			})
 
@@ -117,7 +117,7 @@ func (gui *Gui) withWaitingStatus(message string, f func() error) error {
 		gui.renderAppStatus()
 
 		if err := f(); err != nil {
-			gui.OnUIThread(func() error {
+			gui.c.OnUIThread(func() error {
 				return gui.c.Error(err)
 			})
 		}

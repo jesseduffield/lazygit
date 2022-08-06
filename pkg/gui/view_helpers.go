@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
@@ -99,13 +100,13 @@ func (gui *Gui) globalOptionsMap() map[string]string {
 	keybindingConfig := gui.c.UserConfig.Keybinding
 
 	return map[string]string{
-		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollUpMain), gui.getKeyDisplay(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.c.Tr.LcScroll,
-		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock), gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
-		gui.getKeyDisplay(keybindingConfig.Universal.Return):     gui.c.Tr.LcCancel,
-		gui.getKeyDisplay(keybindingConfig.Universal.Quit):       gui.c.Tr.LcQuit,
-		gui.getKeyDisplay(keybindingConfig.Universal.OptionMenu): gui.c.Tr.LcMenu,
-		fmt.Sprintf("%s-%s", gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[0]), gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): gui.c.Tr.LcJump,
-		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollLeft), gui.getKeyDisplay(keybindingConfig.Universal.ScrollRight)):                                                    gui.c.Tr.LcScrollLeftRight,
+		fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollUpMain), keybindings.Label(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.c.Tr.LcScroll,
+		fmt.Sprintf("%s %s %s %s", keybindings.Label(keybindingConfig.Universal.PrevBlock), keybindings.Label(keybindingConfig.Universal.NextBlock), keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
+		keybindings.Label(keybindingConfig.Universal.Return):     gui.c.Tr.LcCancel,
+		keybindings.Label(keybindingConfig.Universal.Quit):       gui.c.Tr.LcQuit,
+		keybindings.Label(keybindingConfig.Universal.OptionMenu): gui.c.Tr.LcMenu,
+		fmt.Sprintf("%s-%s", keybindings.Label(keybindingConfig.Universal.JumpToBlock[0]), keybindings.Label(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): gui.c.Tr.LcJump,
+		fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollLeft), keybindings.Label(keybindingConfig.Universal.ScrollRight)):                                                    gui.c.Tr.LcScrollLeftRight,
 	}
 }
 
@@ -192,5 +193,5 @@ func getTabbedView(gui *Gui) *gocui.View {
 }
 
 func (gui *Gui) render() {
-	gui.OnUIThread(func() error { return nil })
+	gui.c.OnUIThread(func() error { return nil })
 }

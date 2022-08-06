@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
@@ -53,7 +54,7 @@ func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 func (gui *Gui) printCommandLogHeader() {
 	introStr := fmt.Sprintf(
 		gui.c.Tr.CommandLogHeader,
-		gui.getKeyDisplay(gui.c.UserConfig.Keybinding.Universal.ExtrasMenu),
+		keybindings.Label(gui.c.UserConfig.Keybinding.Universal.ExtrasMenu),
 	)
 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(introStr))
 
@@ -71,7 +72,7 @@ func (gui *Gui) getRandomTip() string {
 	config := gui.c.UserConfig.Keybinding
 
 	formattedKey := func(key string) string {
-		return gui.getKeyDisplay(key)
+		return keybindings.Label(key)
 	}
 
 	tips := []string{

@@ -164,16 +164,21 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				OnFocus: OnFocusWrapper(func() error {
 					gui.Views.MergeConflicts.Wrap = false
 
-					return gui.renderConflictsWithLock(true)
+					return gui.refreshMergePanel(true)
 				}),
-				OnFocusLost: func(types.OnFocusLostOpts) error {
+				OnFocusLost: func(opts types.OnFocusLostOpts) error {
+					gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
+					gui.State.Contexts.MergeConflicts.GetState().ResetConflictSelection()
 					gui.Views.MergeConflicts.Wrap = true
 
 					return nil
 				},
 			},
 			gui.c,
-			gui.getMergingOptions,
+			func() map[string]string {
+				// wrapping in a function because contexts are initialized before helpers
+				return gui.helpers.MergeConflicts.GetMergingOptions()
+			},
 		),
 		Confirmation: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
@@ -217,12 +222,11 @@ func (gui *Gui) contextTree() *context.ContextTree {
 		),
 		CommandLog: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
-				Kind:            types.EXTRAS_CONTEXT,
-				View:            gui.Views.Extras,
-				WindowName:      "extras",
-				Key:             context.COMMAND_LOG_CONTEXT_KEY,
-				OnGetOptionsMap: gui.getMergingOptions,
-				Focusable:       true,
+				Kind:       types.EXTRAS_CONTEXT,
+				View:       gui.Views.Extras,
+				WindowName: "extras",
+				Key:        context.COMMAND_LOG_CONTEXT_KEY,
+				Focusable:  true,
 			}),
 			context.ContextCallbackOpts{
 				OnFocusLost: func(opts types.OnFocusLostOpts) error {

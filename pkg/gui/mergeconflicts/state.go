@@ -1,15 +1,11 @@
 package mergeconflicts
 
 import (
-	"sync"
-
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // State represents the selection state of the merge conflict context.
 type State struct {
-	sync.Mutex
-
 	// path of the file with the conflicts
 	path string
 
@@ -28,7 +24,6 @@ type State struct {
 
 func NewState() *State {
 	return &State{
-		Mutex:          sync.Mutex{},
 		conflictIndex:  0,
 		selectionIndex: 0,
 		conflicts:      []*mergeConflict{},
@@ -149,6 +144,12 @@ func (s *State) AllConflictsResolved() bool {
 func (s *State) Reset() {
 	s.contents = []string{}
 	s.path = ""
+}
+
+// we're not resetting selectedIndex here because the user typically would want
+// to pick either all top hunks or all bottom hunks so we retain that selection
+func (s *State) ResetConflictSelection() {
+	s.conflictIndex = 0
 }
 
 func (s *State) Active() bool {

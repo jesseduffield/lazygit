@@ -7,7 +7,8 @@ import (
 	"bytes"
 	"io"
 	"os/exec"
-	"sync"
+
+	"github.com/sasha-s/go-deadlock"
 )
 
 type Buffer struct {

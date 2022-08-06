@@ -67,19 +67,16 @@ func (self *PatchExplorerContext) GetIncludedLineIndices() []int {
 }
 
 func (self *PatchExplorerContext) RenderAndFocus(isFocused bool) error {
-	self.GetView().SetContent(self.GetContentToRender(isFocused))
+	self.setContent(isFocused)
 
-	if err := self.focusSelection(); err != nil {
-		return err
-	}
-
+	self.focusSelection()
 	self.c.Render()
 
 	return nil
 }
 
 func (self *PatchExplorerContext) Render(isFocused bool) error {
-	self.GetView().SetContent(self.GetContentToRender(isFocused))
+	self.setContent(isFocused)
 
 	self.c.Render()
 
@@ -87,16 +84,17 @@ func (self *PatchExplorerContext) Render(isFocused bool) error {
 }
 
 func (self *PatchExplorerContext) Focus() error {
-	if err := self.focusSelection(); err != nil {
-		return err
-	}
-
+	self.focusSelection()
 	self.c.Render()
 
 	return nil
 }
 
-func (self *PatchExplorerContext) focusSelection() error {
+func (self *PatchExplorerContext) setContent(isFocused bool) {
+	self.GetView().SetContent(self.GetContentToRender(isFocused))
+}
+
+func (self *PatchExplorerContext) focusSelection() {
 	view := self.GetView()
 	state := self.GetState()
 	_, viewHeight := view.Size()
@@ -107,11 +105,8 @@ func (self *PatchExplorerContext) focusSelection() error {
 
 	newOrigin := state.CalculateOrigin(origin, bufferHeight)
 
-	if err := view.SetOriginY(newOrigin); err != nil {
-		return err
-	}
-
-	return view.SetCursor(0, selectedLineIdx-newOrigin)
+	_ = view.SetOriginY(newOrigin)
+	_ = view.SetCursor(0, selectedLineIdx-newOrigin)
 }
 
 func (self *PatchExplorerContext) GetContentToRender(isFocused bool) string {

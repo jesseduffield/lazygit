@@ -87,5 +87,5 @@ func (self *guiCommon) OpenSearch() {
 }
 
 func (self *guiCommon) OnUIThread(f func() error) {
-	self.gui.OnUIThread(f)
+	self.gui.onUIThread(f)
 }

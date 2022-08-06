@@ -43,6 +43,18 @@ func NewRenderStringWithoutScrollTask(str string) *renderStringWithoutScrollTask
 	return &renderStringWithoutScrollTask{str: str}
 }
 
+type renderStringWithScrollTask struct {
+	str     string
+	originX int
+	originY int
+}
+
+func (t *renderStringWithScrollTask) IsUpdateTask() {}
+
+func NewRenderStringWithScrollTask(str string, originX int, originY int) *renderStringWithScrollTask {
+	return &renderStringWithScrollTask{str: str, originX: originX, originY: originY}
+}
+
 type runCommandTask struct {
 	cmd    *exec.Cmd
 	prefix string
@@ -69,11 +81,6 @@ func NewRunPtyTask(cmd *exec.Cmd) *runPtyTask {
 	return &runPtyTask{cmd: cmd}
 }
 
-// currently unused
-// func (gui *Gui) createRunPtyTaskWithPrefix(cmd *exec.Cmd, prefix string) *runPtyTask {
-// 	return &runPtyTask{cmd: cmd, prefix: prefix}
-// }
-
 func (gui *Gui) runTaskForView(view *gocui.View, task updateTask) error {
 	switch v := task.(type) {
 	case *renderStringTask:
@@ -81,6 +88,9 @@ func (gui *Gui) runTaskForView(view *gocui.View, task updateTask) error {
 
 	case *renderStringWithoutScrollTask:
 		return gui.newStringTaskWithoutScroll(view, v.str)
+
+	case *renderStringWithScrollTask:
+		return gui.newStringTaskWithScroll(view, v.str, v.originX, v.originY)
 
 	case *runCommandTask:
 		return gui.newCmdTask(view, v.cmd, v.prefix)

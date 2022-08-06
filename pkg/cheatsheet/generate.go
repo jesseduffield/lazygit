@@ -142,7 +142,7 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 		bindingsByHeader,
 		func(header header, hBindings []*types.Binding) headerWithBindings {
 			uniqBindings := lo.UniqBy(hBindings, func(binding *types.Binding) string {
-				return binding.Description + keybindings.GetKeyDisplay(binding.Key)
+				return binding.Description + keybindings.LabelFromKey(binding.Key)
 			})
 
 			return headerWithBindings{
@@ -202,10 +202,10 @@ func formatBinding(binding *types.Binding) string {
 	if binding.Alternative != "" {
 		return fmt.Sprintf(
 			"  <kbd>%s</kbd>: %s (%s)\n",
-			keybindings.GetKeyDisplay(binding.Key),
+			keybindings.LabelFromKey(binding.Key),
 			binding.Description,
 			binding.Alternative,
 		)
 	}
-	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", keybindings.GetKeyDisplay(binding.Key), binding.Description)
+	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", keybindings.LabelFromKey(binding.Key), binding.Description)
 }
