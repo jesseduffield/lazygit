@@ -11,6 +11,7 @@ import (
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 func (gui *Gui) desiredPtySize() *pty.Winsize {
@@ -23,18 +24,13 @@ func (gui *Gui) onResize() error {
 	gui.Mutexes.PtyMutex.Lock()
 	defer gui.Mutexes.PtyMutex.Unlock()
 
-	if gui.State.Ptmx == nil {
-		return nil
-	}
-
-	gui.Log.Warn("resizing")
-
-	// TODO: handle resizing properly: we need to actually clear the main view
-	// and re-read the output from our pty. Or we could just re-run the original
-	// command from scratch
-	if err := pty.Setsize(gui.State.Ptmx, gui.desiredPtySize()); err != nil {
-		panic(err)
-		return err
+	for _, ptmx := range gui.viewPtmxMap {
+		// TODO: handle resizing properly: we need to actually clear the main view
+		// and re-read the output from our pty. Or we could just re-run the original
+		// command from scratch
+		if err := pty.Setsize(ptmx, gui.desiredPtySize()); err != nil {
+			return utils.WrapError(err)
+		}
 	}
 
 	return nil
@@ -73,7 +69,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		}
 
 		gui.Mutexes.PtyMutex.Lock()
-		gui.State.Ptmx = ptmx
+		gui.viewPtmxMap[view.Name()] = ptmx
 		gui.Mutexes.PtyMutex.Unlock()
 
 		return cmd, ptmx
@@ -82,8 +78,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	onClose := func() {
 		gui.Mutexes.PtyMutex.Lock()
 		ptmx.Close()
-		ptmx = nil
-		gui.State.Ptmx = nil
+		delete(gui.viewPtmxMap, view.Name())
 		gui.Mutexes.PtyMutex.Unlock()
 	}
 

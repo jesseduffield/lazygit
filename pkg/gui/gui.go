@@ -90,7 +90,11 @@ type Gui struct {
 	waitForIntro         sync.WaitGroup
 	fileWatcher          *fileWatcher
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager
-	stopChan             chan struct{}
+	// holds a mapping of view names to ptmx's. This is for rendering command outputs
+	// from within a pty. The point of keeping track of them is so that if we re-size
+	// the window, we can tell the pty it needs to resize accordingly.
+	viewPtmxMap map[string]*os.File
+	stopChan    chan struct{}
 
 	// when lazygit is opened outside a git directory we want to open to the most
 	// recent repo with the recent repos popup showing
@@ -171,7 +175,6 @@ type GuiRepoState struct {
 
 	IsRefreshingFiles bool
 	Searching         searchingState
-	Ptmx              *os.File
 	StartupStage      StartupStage // Allows us to not load everything at once
 
 	ContextManager ContextManager
@@ -303,7 +306,6 @@ func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 				UserVerticalScrolling: false,
 			},
 		},
-		Ptmx: nil,
 		Modes: &types.Modes{
 			Filtering:     filtering.New(startArgs.FilterPath),
 			CherryPicking: cherrypicking.New(),
@@ -366,6 +368,7 @@ func NewGui(
 		Updater:                 updater,
 		statusManager:           &statusManager{},
 		viewBufferManagerMap:    map[string]*tasks.ViewBufferManager{},
+		viewPtmxMap:             map[string]*os.File{},
 		showRecentRepos:         showRecentRepos,
 		RepoPathStack:           &utils.StringStack{},
 		RepoStateMap:            map[Repo]*GuiRepoState{},
