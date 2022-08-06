@@ -25,8 +25,6 @@ func (gui *Gui) onCommitFocus() error {
 		})
 	}
 
-	gui.escapeLineByLinePanel()
-
 	return nil
 }
 
@@ -41,12 +39,26 @@ func (gui *Gui) branchCommitsRenderToMain() error {
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
+		pair: gui.normalMainContextPair(),
 		main: &viewUpdateOpts{
 			title: "Patch",
 			task:  task,
 		},
 		secondary: gui.secondaryPatchPanelUpdateOpts(),
 	})
+}
+
+func (gui *Gui) secondaryPatchPanelUpdateOpts() *viewUpdateOpts {
+	if gui.git.Patch.PatchManager.Active() {
+		patch := gui.git.Patch.PatchManager.RenderAggregatedPatchColored(false)
+
+		return &viewUpdateOpts{
+			task:  NewRenderStringWithoutScrollTask(patch),
+			title: gui.Tr.CustomPatch,
+		}
+	}
+
+	return nil
 }
 
 func (gui *Gui) refForLog() string {

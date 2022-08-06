@@ -2,13 +2,8 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
-
-// TODO: do we need this?
-func (gui *Gui) onCommitFileFocus() error {
-	gui.escapeLineByLinePanel()
-	return nil
-}
 
 func (gui *Gui) commitFilesRenderToMain() error {
 	node := gui.State.Contexts.CommitFiles.GetSelected()
@@ -23,16 +18,16 @@ func (gui *Gui) commitFilesRenderToMain() error {
 	cmdObj := gui.git.WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
 	task := NewRunPtyTask(cmdObj.GetCmd())
 
-	mainContext := gui.State.Contexts.Normal
+	pair := gui.normalMainContextPair()
 	if node.File != nil {
-		mainContext = gui.State.Contexts.PatchBuilding
+		pair = gui.patchBuildingMainContextPair()
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
+		pair: pair,
 		main: &viewUpdateOpts{
-			title:   "Patch",
-			task:    task,
-			context: mainContext,
+			title: gui.Tr.Patch,
+			task:  task,
 		},
 		secondary: gui.secondaryPatchPanelUpdateOpts(),
 	})
@@ -46,33 +41,11 @@ func (gui *Gui) SwitchToCommitFilesContext(opts controllers.SwitchToCommitFilesC
 	gui.State.Contexts.CommitFiles.SetParentContext(opts.Context)
 	gui.State.Contexts.CommitFiles.SetWindowName(opts.Context.GetWindowName())
 
-	if err := gui.refreshCommitFilesContext(); err != nil {
+	if err := gui.c.Refresh(types.RefreshOptions{
+		Scope: []types.RefreshableView{types.COMMIT_FILES},
+	}); err != nil {
 		return err
 	}
 
 	return gui.c.PushContext(gui.State.Contexts.CommitFiles)
-}
-
-func (gui *Gui) refreshCommitFilesContext() error {
-	ref := gui.State.Contexts.CommitFiles.GetRef()
-	to := ref.RefName()
-	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
-
-	files, err := gui.git.Loaders.CommitFiles.GetFilesInDiff(from, to, reverse)
-	if err != nil {
-		return gui.c.Error(err)
-	}
-	gui.State.Model.CommitFiles = files
-	gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.SetTree()
-
-	return gui.c.PostRefreshUpdate(gui.State.Contexts.CommitFiles)
-}
-
-func (gui *Gui) getSelectedCommitFileName() string {
-	node := gui.State.Contexts.CommitFiles.GetSelected()
-	if node == nil {
-		return ""
-	}
-
-	return node.Path
 }

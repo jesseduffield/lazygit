@@ -75,6 +75,10 @@ func AsJson(i interface{}) string {
 
 // used to keep a number n between 0 and max, allowing for wraparounds
 func ModuloWithWrap(n, max int) int {
+	if max == 0 {
+		return 0
+	}
+
 	if n >= max {
 		return n % max
 	} else if n < 0 {

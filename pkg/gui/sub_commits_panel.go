@@ -14,6 +14,7 @@ func (gui *Gui) subCommitsRenderToMain() error {
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
+		pair: gui.normalMainContextPair(),
 		main: &viewUpdateOpts{
 			title: "Commit",
 			task:  task,

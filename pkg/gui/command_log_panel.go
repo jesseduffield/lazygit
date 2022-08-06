@@ -12,10 +12,10 @@ import (
 )
 
 // our UI command log looks like this:
-// Stage File
-//   git add -- 'filename'
-// Unstage File
-//   git reset HEAD 'filename'
+// Stage File:
+// git add -- 'filename'
+// Unstage File:
+// git reset HEAD 'filename'
 //
 // The 'Stage File' and 'Unstage File' lines are actions i.e they group up a set
 // of command logs (typically there's only one command under an action but there may be more).

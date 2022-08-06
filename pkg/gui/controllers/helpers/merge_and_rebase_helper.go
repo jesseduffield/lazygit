@@ -149,17 +149,12 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
 		return nil
 	} else if isMergeConflictErr(result.Error()) {
 		return self.c.Confirm(types.ConfirmOpts{
-			Title:               self.c.Tr.FoundConflictsTitle,
-			Prompt:              self.c.Tr.FoundConflicts,
-			HandlersManageFocus: true,
+			Title:  self.c.Tr.FoundConflictsTitle,
+			Prompt: self.c.Tr.FoundConflicts,
 			HandleConfirm: func() error {
 				return self.c.PushContext(self.contexts.Files)
 			},
 			HandleClose: func() error {
-				if err := self.c.PopContext(); err != nil {
-					return err
-				}
-
 				return self.genericMergeCommand(REBASE_OPTION_ABORT)
 			},
 		})

@@ -1,7 +1,9 @@
 package gui
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -41,26 +43,30 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 	}
 
-	setViewFromDimensions := func(viewName string, windowName string, frame bool) (*gocui.View, error) {
+	// we assume that the view has already been created.
+	setViewFromDimensions := func(viewName string, windowName string) (*gocui.View, error) {
 		dimensionsObj, ok := viewDimensions[windowName]
+
+		view, err := g.View(viewName)
+		if err != nil {
+			return nil, err
+		}
 
 		if !ok {
 			// view not specified in dimensions object: so create the view and hide it
 			// making the view take up the whole space in the background in case it needs
 			// to render content as soon as it appears, because lazyloaded content (via a pty task)
 			// cares about the size of the view.
-			view, err := g.SetView(viewName, 0, 0, width, height, 0)
-			if view != nil {
-				view.Visible = false
-			}
+			_, err := g.SetView(viewName, 0, 0, width, height, 0)
+			view.Visible = false
 			return view, err
 		}
 
 		frameOffset := 1
-		if frame {
+		if view.Frame {
 			frameOffset = 0
 		}
-		view, err := g.SetView(
+		_, err = g.SetView(
 			viewName,
 			dimensionsObj.X0-frameOffset,
 			dimensionsObj.Y0-frameOffset,
@@ -68,16 +74,17 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			dimensionsObj.Y1+frameOffset,
 			0,
 		)
-		if view != nil {
-			view.Frame = frame
-			view.Visible = true
-		}
+		view.Visible = true
 
 		return view, err
 	}
 
-	for _, arg := range gui.controlledViews() {
-		_, err := setViewFromDimensions(arg.viewName, arg.windowName, arg.frame)
+	for _, context := range gui.State.Contexts.Flatten() {
+		if !context.HasControlledBounds() {
+			continue
+		}
+
+		_, err := setViewFromDimensions(context.GetViewName(), context.GetWindowName())
 		if err != nil && err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
@@ -124,10 +131,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			continue
 		}
 
-		if !gui.isContextVisible(listContext) {
-			continue
-		}
-
 		listContext.FocusLine()
 
 		view.SelBgColor = theme.GocuiSelectedLineBgColor
@@ -136,7 +139,16 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		view.SetOnSelectItem(gui.onSelectItemWrapper(listContext.OnSearchSelect))
 	}
 
-	gui.Views.Main.SetOnSelectItem(gui.onSelectItemWrapper(gui.handlelineByLineNavigateTo))
+	for _, context := range gui.getPatchExplorerContexts() {
+		context := context
+		context.GetView().SetOnSelectItem(gui.onSelectItemWrapper(
+			func(selectedLineIdx int) error {
+				context.GetMutex().Lock()
+				defer context.GetMutex().Unlock()
+				return context.NavigateTo(gui.c.IsCurrentContext(context), selectedLineIdx)
+			}),
+		)
+	}
 
 	mainViewWidth, mainViewHeight := gui.Views.Main.Size()
 	if mainViewWidth != gui.PrevLayout.MainWidth || mainViewHeight != gui.PrevLayout.MainHeight {
@@ -188,11 +200,19 @@ func (gui *Gui) onInitialViewsCreation() error {
 	gui.g.Mutexes.ViewsMutex.Lock()
 	// add tabs to views
 	for _, view := range gui.g.Views() {
-		tabs := gui.viewTabNames(view.Name())
-		if len(tabs) == 0 {
-			continue
+		// if the view is in our mapping, we'll set the tabs and the tab index
+		for _, values := range gui.viewTabMap() {
+			index := slices.IndexFunc(values, func(tabContext context.TabView) bool {
+				return tabContext.ViewName == view.Name()
+			})
+
+			if index != -1 {
+				view.Tabs = slices.Map(values, func(tabContext context.TabView) string {
+					return tabContext.Tab
+				})
+				view.TabIndex = index
+			}
 		}
-		view.Tabs = tabs
 	}
 	gui.g.Mutexes.ViewsMutex.Unlock()
 

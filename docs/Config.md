@@ -274,7 +274,7 @@ os:
 
 Lazygit will log an error if none of these options are set.
 
-You can specify a line number you are currently at when in the line-by-line mode.
+You can specify the current line number when you're in the patch explorer.
 
 ```yaml
 os:

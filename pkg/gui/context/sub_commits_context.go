@@ -22,9 +22,9 @@ func NewSubCommitsContext(
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
-	onFocus func(...types.OnFocusOpts) error,
-	onRenderToMain func(...types.OnFocusOpts) error,
-	onFocusLost func() error,
+	onFocus func(types.OnFocusOpts) error,
+	onRenderToMain func() error,
+	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *SubCommitsContext {
@@ -39,7 +39,7 @@ func NewSubCommitsContext(
 		ViewportListContextTrait: &ViewportListContextTrait{
 			ListContextTrait: &ListContextTrait{
 				Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-					ViewName:   "subCommits",
+					View:       view,
 					WindowName: "branches",
 					Key:        SUB_COMMITS_CONTEXT_KEY,
 					Kind:       types.SIDE_CONTEXT,
@@ -51,7 +51,6 @@ func NewSubCommitsContext(
 					OnRenderToMain: onRenderToMain,
 				}),
 				list:              viewModel,
-				viewTrait:         NewViewTrait(view),
 				getDisplayStrings: getDisplayStrings,
 				c:                 c,
 			},

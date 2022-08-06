@@ -30,13 +30,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 一覧パネルの操作
 
 <pre>
-  <kbd>.</kbd>: 次のページ
-  <kbd>,</kbd>: 前のページ
-  <kbd><</kbd>: 最上部までスクロール
-  <kbd>></kbd>: 最下部までスクロール
-  <kbd>/</kbd>: 検索を開始
   <kbd>H</kbd>: 左スクロール
   <kbd>L</kbd>: 右スクロール
+  <kbd>,</kbd>: 前のページ
+  <kbd>.</kbd>: 次のページ
+  <kbd><</kbd>: 最上部までスクロール
+  <kbd>/</kbd>: 検索を開始
+  <kbd>></kbd>: 最下部までスクロール
   <kbd>]</kbd>: 次のタブ
   <kbd>[</kbd>: 前のタブ
 </pre>
@@ -222,36 +222,33 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## メインパネル (Patch Building)
 
 <pre>
-  <kbd>esc</kbd>: line-by-lineモードを終了
-  <kbd>o</kbd>: ファイルを開く
-  <kbd>▲</kbd>: 前の行を選択
-  <kbd>▼</kbd>: 次の行を選択
   <kbd>◄</kbd>: 前のhunkを選択
   <kbd>►</kbd>: 次のhunkを選択
-  <kbd>ctrl+o</kbd>: 選択されたテキストをクリップボードにコピー
-  <kbd>space</kbd>: 行をパッチに追加/削除
   <kbd>v</kbd>: 範囲選択を切り替え
   <kbd>V</kbd>: 範囲選択を切り替え
   <kbd>a</kbd>: hunk選択を切り替え
+  <kbd>ctrl+o</kbd>: 選択されたテキストをクリップボードにコピー
+  <kbd>o</kbd>: ファイルを開く
+  <kbd>e</kbd>: ファイルを編集
+  <kbd>space</kbd>: 行をパッチに追加/削除
+  <kbd>esc</kbd>: exit custom patch builder
 </pre>
 
 ## メインパネル (Staging)
 
 <pre>
-  <kbd>esc</kbd>: ファイル一覧に戻る
-  <kbd>space</kbd>: 選択行をステージ/アンステージ
-  <kbd>d</kbd>: 変更を削除 (git reset)
-  <kbd>tab</kbd>: パネルを切り替え
-  <kbd>o</kbd>: ファイルを開く
-  <kbd>▲</kbd>: 前の行を選択
-  <kbd>▼</kbd>: 次の行を選択
   <kbd>◄</kbd>: 前のhunkを選択
   <kbd>►</kbd>: 次のhunkを選択
-  <kbd>ctrl+o</kbd>: 選択されたテキストをクリップボードにコピー
-  <kbd>e</kbd>: ファイルを編集
   <kbd>v</kbd>: 範囲選択を切り替え
   <kbd>V</kbd>: 範囲選択を切り替え
   <kbd>a</kbd>: hunk選択を切り替え
+  <kbd>ctrl+o</kbd>: 選択されたテキストをクリップボードにコピー
+  <kbd>o</kbd>: ファイルを開く
+  <kbd>e</kbd>: ファイルを編集
+  <kbd>esc</kbd>: ファイル一覧に戻る
+  <kbd>tab</kbd>: パネルを切り替え
+  <kbd>space</kbd>: 選択行をステージ/アンステージ
+  <kbd>d</kbd>: 変更を削除 (git reset)
   <kbd>E</kbd>: edit hunk
 </pre>
 

@@ -61,12 +61,12 @@ func (self *ViewTrait) horizontalScrollAmount() int {
 	return self.view.InnerWidth() / HORIZONTAL_SCROLL_FACTOR
 }
 
-func (self *ViewTrait) ScrollUp() {
-	self.view.ScrollUp(1)
+func (self *ViewTrait) ScrollUp(value int) {
+	self.view.ScrollUp(value)
 }
 
-func (self *ViewTrait) ScrollDown() {
-	self.view.ScrollDown(1)
+func (self *ViewTrait) ScrollDown(value int) {
+	self.view.ScrollDown(value)
 }
 
 // this returns the amount we'll scroll if we want to scroll by a page.

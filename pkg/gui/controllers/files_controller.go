@@ -152,13 +152,31 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 			ViewName:    "main",
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickMain,
-			FromContext: string(self.context().GetKey()),
+			FocusedView: self.context().GetViewName(),
+		},
+		{
+			ViewName:    "patchBuilding",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickMain,
+			FocusedView: self.context().GetViewName(),
+		},
+		{
+			ViewName:    "merging",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickMain,
+			FocusedView: self.context().GetViewName(),
 		},
 		{
 			ViewName:    "secondary",
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickSecondary,
-			FromContext: string(self.context().GetKey()),
+			FocusedView: self.context().GetViewName(),
+		},
+		{
+			ViewName:    "patchBuildingSecondary",
+			Key:         gocui.MouseLeft,
+			Handler:     self.onClickSecondary,
+			FocusedView: self.context().GetViewName(),
 		},
 	}
 }
@@ -318,7 +336,7 @@ func (self *FilesController) press(node *filetree.FileNode) error {
 		return err
 	}
 
-	return self.context().HandleFocus()
+	return self.context().HandleFocus(types.OnFocusOpts{})
 }
 
 func (self *FilesController) checkSelectedFileNode(callback func(*filetree.FileNode) error) func() error {
@@ -349,7 +367,7 @@ func (self *FilesController) getSelectedFile() *models.File {
 }
 
 func (self *FilesController) enter() error {
-	return self.EnterFile(types.OnFocusOpts{ClickedViewName: "", ClickedViewLineIdx: -1})
+	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
 }
 
 func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
@@ -389,7 +407,7 @@ func (self *FilesController) toggleStagedAll() error {
 		return err
 	}
 
-	return self.context().HandleFocus()
+	return self.context().HandleFocus(types.OnFocusOpts{})
 }
 
 func (self *FilesController) toggleStagedAllWithLock() error {
@@ -828,11 +846,11 @@ func (self *FilesController) handleStashSave(stashFunc func(message string) erro
 }
 
 func (self *FilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
-	return self.EnterFile(types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: opts.Y})
+	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) error {
-	return self.EnterFile(types.OnFocusOpts{ClickedViewName: "secondary", ClickedViewLineIdx: opts.Y})
+	return self.EnterFile(types.OnFocusOpts{ClickedWindowName: "secondary", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *FilesController) fetch() error {
