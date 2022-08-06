@@ -76,7 +76,7 @@ func (gui *Gui) scrollDownView(view *gocui.View) {
 
 func (gui *Gui) scrollUpMain() error {
 	if gui.renderingConflicts() {
-		gui.State.Panels.Merging.UserVerticalScrolling = true
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(true)
 	}
 
 	var view *gocui.View
@@ -93,7 +93,7 @@ func (gui *Gui) scrollUpMain() error {
 
 func (gui *Gui) scrollDownMain() error {
 	if gui.renderingConflicts() {
-		gui.State.Panels.Merging.UserVerticalScrolling = true
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(true)
 	}
 
 	var view *gocui.View

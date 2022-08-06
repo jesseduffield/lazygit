@@ -106,7 +106,7 @@ func localisedTitle(tr *i18n.TranslationSet, str string) string {
 		"information":    tr.InformationTitle,
 		"main":           tr.NormalTitle,
 		"patchBuilding":  tr.PatchBuildingTitle,
-		"merging":        tr.MergingTitle,
+		"mergeConflicts": tr.MergingTitle,
 		"staging":        tr.StagingTitle,
 		"menu":           tr.MenuTitle,
 		"search":         tr.SearchTitle,

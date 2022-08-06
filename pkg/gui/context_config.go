@@ -10,7 +10,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 		Global: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:                  types.GLOBAL_CONTEXT,
-				View:                  nil,
+				View:                  nil, // TODO: see if this breaks anything
 				WindowName:            "",
 				Key:                   context.GLOBAL_CONTEXT_KEY,
 				Focusable:             false,
@@ -158,27 +158,22 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			}),
 			context.ContextCallbackOpts{},
 		),
-		Merging: context.NewSimpleContext(
-			context.NewBaseContext(context.NewBaseContextOpts{
-				Kind:            types.MAIN_CONTEXT,
-				View:            gui.Views.Merging,
-				WindowName:      "main",
-				Key:             context.MERGING_MAIN_CONTEXT_KEY,
-				OnGetOptionsMap: gui.getMergingOptions,
-				Focusable:       true,
-			}),
+		MergeConflicts: context.NewMergeConflictsContext(
+			gui.Views.MergeConflicts,
 			context.ContextCallbackOpts{
 				OnFocus: OnFocusWrapper(func() error {
-					gui.Views.Merging.Wrap = false
+					gui.Views.MergeConflicts.Wrap = false
 
 					return gui.renderConflictsWithLock(true)
 				}),
 				OnFocusLost: func(types.OnFocusLostOpts) error {
-					gui.Views.Merging.Wrap = true
+					gui.Views.MergeConflicts.Wrap = true
 
 					return nil
 				},
 			},
+			gui.c,
+			gui.getMergingOptions,
 		),
 		Confirmation: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{

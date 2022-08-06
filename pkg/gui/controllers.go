@@ -22,7 +22,7 @@ func (gui *Gui) resetControllers() {
 		model,
 	)
 
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, gui.takeOverMergeConflictScrolling, refsHelper)
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,

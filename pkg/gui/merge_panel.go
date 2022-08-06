@@ -14,38 +14,38 @@ import (
 
 func (gui *Gui) handleSelectPrevConflictHunk() error {
 	return gui.withMergeConflictLock(func() error {
-		gui.takeOverMergeConflictScrolling()
-		gui.State.Panels.Merging.SelectPrevConflictHunk()
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
+		gui.State.Contexts.MergeConflicts.State().SelectPrevConflictHunk()
 		return gui.renderConflictsWithFocus()
 	})
 }
 
 func (gui *Gui) handleSelectNextConflictHunk() error {
 	return gui.withMergeConflictLock(func() error {
-		gui.takeOverMergeConflictScrolling()
-		gui.State.Panels.Merging.SelectNextConflictHunk()
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
+		gui.State.Contexts.MergeConflicts.State().SelectNextConflictHunk()
 		return gui.renderConflictsWithFocus()
 	})
 }
 
 func (gui *Gui) handleSelectNextConflict() error {
 	return gui.withMergeConflictLock(func() error {
-		gui.takeOverMergeConflictScrolling()
-		gui.State.Panels.Merging.SelectNextConflict()
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
+		gui.State.Contexts.MergeConflicts.State().SelectNextConflict()
 		return gui.renderConflictsWithFocus()
 	})
 }
 
 func (gui *Gui) handleSelectPrevConflict() error {
 	return gui.withMergeConflictLock(func() error {
-		gui.takeOverMergeConflictScrolling()
-		gui.State.Panels.Merging.SelectPrevConflict()
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
+		gui.State.Contexts.MergeConflicts.State().SelectPrevConflict()
 		return gui.renderConflictsWithFocus()
 	})
 }
 
 func (gui *Gui) handleMergeConflictUndo() error {
-	state := gui.State.Panels.Merging
+	state := gui.State.Contexts.MergeConflicts.State()
 
 	ok := state.Undo()
 	if !ok {
@@ -63,7 +63,7 @@ func (gui *Gui) handleMergeConflictUndo() error {
 
 func (gui *Gui) handlePickHunk() error {
 	return gui.withMergeConflictLock(func() error {
-		ok, err := gui.resolveConflict(gui.State.Panels.Merging.Selection())
+		ok, err := gui.resolveConflict(gui.State.Contexts.MergeConflicts.State().Selection())
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func (gui *Gui) handlePickHunk() error {
 			return nil
 		}
 
-		if gui.State.Panels.Merging.AllConflictsResolved() {
+		if gui.State.Contexts.MergeConflicts.State().AllConflictsResolved() {
 			return gui.onLastConflictResolved()
 		}
 
@@ -91,7 +91,7 @@ func (gui *Gui) handlePickAllHunks() error {
 			return nil
 		}
 
-		if gui.State.Panels.Merging.AllConflictsResolved() {
+		if gui.State.Contexts.MergeConflicts.State().AllConflictsResolved() {
 			return gui.onLastConflictResolved()
 		}
 
@@ -100,9 +100,9 @@ func (gui *Gui) handlePickAllHunks() error {
 }
 
 func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error) {
-	gui.takeOverMergeConflictScrolling()
+	gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
 
-	state := gui.State.Panels.Merging
+	state := gui.State.Contexts.MergeConflicts.State()
 
 	ok, content, err := state.ContentAfterConflictResolve(selection)
 	if err != nil {
@@ -132,21 +132,21 @@ func (gui *Gui) resolveConflict(selection mergeconflicts.Selection) (bool, error
 
 // precondition: we actually have conflicts to render
 func (gui *Gui) renderConflicts(hasFocus bool) error {
-	state := gui.State.Panels.Merging.State
+	state := gui.State.Contexts.MergeConflicts.State()
 	content := mergeconflicts.ColoredConflictFile(state, hasFocus)
 
-	if !gui.State.Panels.Merging.UserVerticalScrolling {
+	if !gui.State.Contexts.MergeConflicts.IsUserScrolling() {
 		// TODO: find a way to not have to do this OnUIThread thing. Why doesn't it work
 		// without it given that we're calling the 'no scroll' variant below?
-		gui.OnUIThread(func() error {
-			gui.State.Panels.Merging.Lock()
-			defer gui.State.Panels.Merging.Unlock()
+		gui.c.OnUIThread(func() error {
+			gui.State.Contexts.MergeConflicts.State().Lock()
+			defer gui.State.Contexts.MergeConflicts.State().Unlock()
 
 			if !state.Active() {
 				return nil
 			}
 
-			gui.centerYPos(gui.Views.Merging, state.GetConflictMiddle())
+			gui.centerYPos(gui.Views.MergeConflicts, state.GetConflictMiddle())
 			return nil
 		})
 	}
@@ -203,8 +203,8 @@ func (gui *Gui) onLastConflictResolved() error {
 }
 
 func (gui *Gui) resetMergeState() {
-	gui.takeOverMergeConflictScrolling()
-	gui.State.Panels.Merging.Reset()
+	gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
+	gui.State.Contexts.MergeConflicts.State().Reset()
 }
 
 func (gui *Gui) setMergeState(path string) (bool, error) {
@@ -213,21 +213,21 @@ func (gui *Gui) setMergeState(path string) (bool, error) {
 		return false, err
 	}
 
-	gui.State.Panels.Merging.SetContent(content, path)
+	gui.State.Contexts.MergeConflicts.State().SetContent(content, path)
 
-	return !gui.State.Panels.Merging.NoConflicts(), nil
+	return !gui.State.Contexts.MergeConflicts.State().NoConflicts(), nil
 }
 
 func (gui *Gui) setMergeStateWithLock(path string) (bool, error) {
-	gui.State.Panels.Merging.Lock()
-	defer gui.State.Panels.Merging.Unlock()
+	gui.State.Contexts.MergeConflicts.State().Lock()
+	defer gui.State.Contexts.MergeConflicts.State().Unlock()
 
 	return gui.setMergeState(path)
 }
 
 func (gui *Gui) resetMergeStateWithLock() {
-	gui.State.Panels.Merging.Lock()
-	defer gui.State.Panels.Merging.Unlock()
+	gui.State.Contexts.MergeConflicts.State().Lock()
+	defer gui.State.Contexts.MergeConflicts.State().Unlock()
 
 	gui.resetMergeState()
 }
@@ -244,22 +244,18 @@ func (gui *Gui) escapeMerge() error {
 
 func (gui *Gui) renderingConflicts() bool {
 	currentView := gui.g.CurrentView()
-	if currentView != gui.Views.Merging && currentView != gui.Views.Files {
+	if currentView != gui.Views.MergeConflicts && currentView != gui.Views.Files {
 		return false
 	}
 
-	return gui.State.Panels.Merging.Active()
+	return gui.State.Contexts.MergeConflicts.State().Active()
 }
 
 func (gui *Gui) withMergeConflictLock(f func() error) error {
-	gui.State.Panels.Merging.Lock()
-	defer gui.State.Panels.Merging.Unlock()
+	gui.State.Contexts.MergeConflicts.State().Lock()
+	defer gui.State.Contexts.MergeConflicts.State().Unlock()
 
 	return f()
-}
-
-func (gui *Gui) takeOverMergeConflictScrolling() {
-	gui.State.Panels.Merging.UserVerticalScrolling = false
 }
 
 func (gui *Gui) setConflictsAndRender(path string, hasFocus bool) (bool, error) {
@@ -276,16 +272,16 @@ func (gui *Gui) setConflictsAndRender(path string, hasFocus bool) (bool, error) 
 }
 
 func (gui *Gui) setConflictsAndRenderWithLock(path string, hasFocus bool) (bool, error) {
-	gui.State.Panels.Merging.Lock()
-	defer gui.State.Panels.Merging.Unlock()
+	gui.State.Contexts.MergeConflicts.State().Lock()
+	defer gui.State.Contexts.MergeConflicts.State().Unlock()
 
 	return gui.setConflictsAndRender(path, hasFocus)
 }
 
 func (gui *Gui) switchToMerge(path string) error {
-	gui.takeOverMergeConflictScrolling()
+	gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
 
-	if gui.State.Panels.Merging.GetPath() != path {
+	if gui.State.Contexts.MergeConflicts.State().GetPath() != path {
 		hasConflicts, err := gui.setMergeStateWithLock(path)
 		if err != nil {
 			return err
@@ -295,7 +291,7 @@ func (gui *Gui) switchToMerge(path string) error {
 		}
 	}
 
-	return gui.c.PushContext(gui.State.Contexts.Merging)
+	return gui.c.PushContext(gui.State.Contexts.MergeConflicts)
 }
 
 func (gui *Gui) handleMergeConflictEditFileAtLine() error {
@@ -304,7 +300,7 @@ func (gui *Gui) handleMergeConflictEditFileAtLine() error {
 		return nil
 	}
 
-	lineNumber := gui.State.Panels.Merging.GetSelectedLine()
+	lineNumber := gui.State.Contexts.MergeConflicts.State().GetSelectedLine()
 	return gui.helpers.Files.EditFileAtLine(file.GetPath(), lineNumber)
 }
 
@@ -314,6 +310,6 @@ func (gui *Gui) handleMergeConflictOpenFileAtLine() error {
 		return nil
 	}
 
-	lineNumber := gui.State.Panels.Merging.GetSelectedLine()
+	lineNumber := gui.State.Contexts.MergeConflicts.State().GetSelectedLine()
 	return gui.helpers.Files.OpenFileAtLine(file.GetPath(), lineNumber)
 }

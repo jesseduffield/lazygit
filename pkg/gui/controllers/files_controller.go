@@ -161,7 +161,7 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 			FocusedView: self.context().GetViewName(),
 		},
 		{
-			ViewName:    "merging",
+			ViewName:    "mergeConflicts",
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickMain,
 			FocusedView: self.context().GetViewName(),
@@ -269,7 +269,7 @@ func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 		file := node.File
 
 		if file.HasInlineMergeConflicts {
-			return self.c.PushContext(self.contexts.Merging)
+			return self.c.PushContext(self.contexts.MergeConflicts)
 		}
 
 		if file.HasUnstagedChanges {

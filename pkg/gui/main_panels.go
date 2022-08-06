@@ -144,7 +144,7 @@ func (gui *Gui) patchBuildingMainContextPair() MainContextPair {
 
 func (gui *Gui) mergingMainContextPair() MainContextPair {
 	return MainContextPair{
-		main:      gui.State.Contexts.Merging,
+		main:      gui.State.Contexts.MergeConflicts,
 		secondary: nil,
 	}
 }

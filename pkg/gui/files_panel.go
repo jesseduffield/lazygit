@@ -93,7 +93,7 @@ func (gui *Gui) filesRenderToMain() error {
 }
 
 func (gui *Gui) onFocusFile() error {
-	gui.takeOverMergeConflictScrolling()
+	gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
 	return nil
 }
 

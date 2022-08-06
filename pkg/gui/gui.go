@@ -19,7 +19,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
@@ -169,7 +168,6 @@ type GuiRepoState struct {
 	Suggestions []*types.Suggestion
 
 	Updating       bool
-	Panels         *panelStates
 	SplitMainPanel bool
 	LimitCommits   bool
 
@@ -197,20 +195,6 @@ type GuiRepoState struct {
 	ScreenMode WindowMaximisation
 
 	CurrentPopupOpts *types.CreatePopupPanelOpts
-}
-
-type MergingPanelState struct {
-	*mergeconflicts.State
-
-	// UserVerticalScrolling tells us if the user has started scrolling through the file themselves
-	// in which case we won't auto-scroll to a conflict.
-	UserVerticalScrolling bool
-}
-
-// as we move things to the new context approach we're going to eventually
-// remove this struct altogether and store this state on the contexts.
-type panelStates struct {
-	Merging *MergingPanelState
 }
 
 type searchingState struct {
@@ -298,13 +282,6 @@ func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 			ReflogCommits:         make([]*models.Commit, 0),
 			BisectInfo:            git_commands.NewNullBisectInfo(),
 			FilesTrie:             patricia.NewTrie(),
-		},
-
-		Panels: &panelStates{
-			Merging: &MergingPanelState{
-				State:                 mergeconflicts.NewState(),
-				UserVerticalScrolling: false,
-			},
 		},
 		Modes: &types.Modes{
 			Filtering:     filtering.New(startArgs.FilterPath),
@@ -438,7 +415,7 @@ var RuneReplacements = map[rune]string{
 	graph.CommitSymbol: "o",
 }
 
-func (gui *Gui) initGocui() (*gocui.Gui, error) {
+func (gui *Gui) initGocui(headless bool) (*gocui.Gui, error) {
 	recordEvents := recordingEvents()
 	playMode := gocui.NORMAL
 	if recordEvents {
@@ -447,7 +424,7 @@ func (gui *Gui) initGocui() (*gocui.Gui, error) {
 		playMode = gocui.REPLAYING
 	}
 
-	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode, headless(), RuneReplacements)
+	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode, headless, RuneReplacements)
 	if err != nil {
 		return nil, err
 	}
@@ -496,7 +473,7 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 
 // Run: setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run(startArgs types.StartArgs) error {
-	g, err := gui.initGocui()
+	g, err := gui.initGocui(headless())
 	if err != nil {
 		return err
 	}

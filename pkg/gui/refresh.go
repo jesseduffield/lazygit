@@ -350,7 +350,7 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 			currentSelectedPath := gui.getSelectedPath()
 			alreadySelected := prevSelectedPath != "" && currentSelectedPath == prevSelectedPath
 			if !alreadySelected {
-				gui.takeOverMergeConflictScrolling()
+				gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
 			}
 		}
 
@@ -361,14 +361,14 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 }
 
 func (gui *Gui) refreshMergeState() error {
-	gui.State.Panels.Merging.Lock()
-	defer gui.State.Panels.Merging.Unlock()
+	gui.State.Contexts.MergeConflicts.State().Lock()
+	defer gui.State.Contexts.MergeConflicts.State().Unlock()
 
-	if gui.currentContext().GetKey() != context.MERGING_MAIN_CONTEXT_KEY {
+	if gui.currentContext().GetKey() != context.MERGE_CONFLICTS_CONTEXT_KEY {
 		return nil
 	}
 
-	hasConflicts, err := gui.setConflictsAndRender(gui.State.Panels.Merging.GetPath(), true)
+	hasConflicts, err := gui.setConflictsAndRender(gui.State.Contexts.MergeConflicts.State().GetPath(), true)
 	if err != nil {
 		return gui.c.Error(err)
 	}
