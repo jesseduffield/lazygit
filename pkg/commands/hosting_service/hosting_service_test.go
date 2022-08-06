@@ -116,6 +116,15 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on bitbucket with a custom SSH username",
+			from:      "feature/profile-page",
+			remoteUrl: "john@bitbucket.org:johndoe/social_network.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on Azure DevOps (SSH)",
 			from:      "feature/new",
 			remoteUrl: "git@ssh.dev.azure.com:v3/myorg/myproject/myrepo",
