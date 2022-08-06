@@ -1,4 +1,4 @@
-// Copyright 2021 The TCell Authors
+// Copyright 2022 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -227,6 +227,9 @@ type Terminfo struct {
 	CursorSteadyUnderline   string
 	CursorBlinkingBar       string
 	CursorSteadyBar         string
+	EnterUrl                string
+	ExitUrl                 string
+	SetWindowSize           string
 }
 
 const (
@@ -234,91 +237,73 @@ const (
 	ModifiersXTerm = 1
 )
 
-type stackElem struct {
-	s     string
-	i     int
-	isStr bool
-	isInt bool
+type stack []interface{}
+
+func (st stack) Push(v interface{}) stack {
+	return append(st, v)
 }
 
-type stack []stackElem
-
-func (st stack) Push(v string) stack {
-	e := stackElem{
-		s:     v,
-		isStr: true,
-	}
-	return append(st, e)
-}
-
-func (st stack) Pop() (string, stack) {
-	v := ""
+func (st stack) Pop() (interface{}, stack) {
 	if len(st) > 0 {
 		e := st[len(st)-1]
-		st = st[:len(st)-1]
-		if e.isStr {
-			v = e.s
-		} else {
-			v = strconv.Itoa(e.i)
-		}
+		return e, st[:len(st)-1]
 	}
-	return v, st
+	return 0, st
 }
 
+func (st stack) PopString() (string, stack) {
+	if len(st) > 0 {
+		e := st[len(st)-1]
+		var s string
+		switch v := e.(type) {
+		case int:
+			s = strconv.Itoa(v)
+		case bool:
+			s = strconv.FormatBool(v)
+		case string:
+			s = v
+		}
+		return s, st[:len(st)-1]
+	}
+	return "", st
+
+}
 func (st stack) PopInt() (int, stack) {
 	if len(st) > 0 {
 		e := st[len(st)-1]
-		st = st[:len(st)-1]
-		if e.isInt {
-			return e.i, st
-		} else if e.isStr {
-			// If the string that was pushed was the representation
-			// of a number e.g. '123', then return the number. If the
-			// conversion doesn't work, assume the string pushed was
-			// intended to return, as an int, the ascii representation
-			// of the (one and only) character.
-			i, err := strconv.Atoi(e.s)
-			if err == nil {
-				return i, st
-			} else if len(e.s) >= 1 {
-				return int(e.s[0]), st
+		var i int
+		switch v := e.(type) {
+		case int:
+			i = v
+		case bool:
+			if v {
+				i = 1
+			} else {
+				i = 0
 			}
+		case string:
+			i, _ = strconv.Atoi(v)
 		}
+		return i, st[:len(st)-1]
 	}
 	return 0, st
 }
 
 func (st stack) PopBool() (bool, stack) {
+	var b bool
 	if len(st) > 0 {
 		e := st[len(st)-1]
-		st = st[:len(st)-1]
-		if e.isStr {
-			if e.s == "1" {
-				return true, st
-			}
-			return false, st
-		} else if e.i == 1 {
-			return true, st
-		} else {
-			return false, st
+		switch v := e.(type) {
+		case int:
+			b = v != 0
+		case bool:
+			b = v
+		case string:
+			b = v != "" && v != "false"
 		}
+		return b, st[:len(st)-1]
 	}
 	return false, st
-}
-
-func (st stack) PushInt(i int) stack {
-	e := stackElem{
-		i:     i,
-		isInt: true,
-	}
-	return append(st, e)
-}
-
-func (st stack) PushBool(i bool) stack {
-	if i {
-		return st.PushInt(1)
-	}
-	return st.PushInt(0)
 }
 
 // static vars
@@ -372,13 +357,13 @@ var pb = &paramsBuffer{}
 // TParm takes a terminfo parameterized string, such as setaf or cup, and
 // evaluates the string, and returns the result with the parameter
 // applied.
-func (t *Terminfo) TParm(s string, p ...int) string {
+func (t *Terminfo) TParm(s string, p ...interface{}) string {
 	var stk stack
 	var a, b string
 	var ai, bi int
 	var ab bool
 	var dvars [26]string
-	var params [9]int
+	var params [9]interface{}
 
 	pb.Start(s)
 
@@ -413,14 +398,18 @@ func (t *Terminfo) TParm(s string, p ...int) string {
 			pb.PutCh(ch)
 
 		case 'i': // increment both parameters (ANSI cup support)
-			params[0]++
-			params[1]++
+			if i, ok := params[0].(int); ok {
+				params[0] = i + 1
+			}
+			if i, ok := params[1].(int); ok {
+				params[1] = i + 1
+			}
 
 		case 'c', 's':
 			// NB: these, and 'd' below are special cased for
 			// efficiency.  They could be handled by the richer
 			// format support below, less efficiently.
-			a, stk = stk.Pop()
+			a, stk = stk.PopString()
 			pb.PutString(a)
 
 		case 'd':
@@ -431,7 +420,7 @@ func (t *Terminfo) TParm(s string, p ...int) string {
 			// This is pretty suboptimal, but this is rarely used.
 			// None of the mainstream terminals use any of this,
 			// and it would surprise me if this code is ever
-			// executed outside of test cases.
+			// executed outside test cases.
 			f := "%"
 			if ch == ':' {
 				ch, _ = pb.NextCh()
@@ -450,7 +439,7 @@ func (t *Terminfo) TParm(s string, p ...int) string {
 				ai, stk = stk.PopInt()
 				pb.PutString(fmt.Sprintf(f, ai))
 			case 'c', 's':
-				a, stk = stk.Pop()
+				a, stk = stk.PopString()
 				pb.PutString(fmt.Sprintf(f, a))
 			}
 
@@ -458,17 +447,17 @@ func (t *Terminfo) TParm(s string, p ...int) string {
 			ch, _ = pb.NextCh()
 			ai = int(ch - '1')
 			if ai >= 0 && ai < len(params) {
-				stk = stk.PushInt(params[ai])
+				stk = stk.Push(params[ai])
 			} else {
-				stk = stk.PushInt(0)
+				stk = stk.Push(0)
 			}
 
 		case 'P': // pop & store variable
 			ch, _ = pb.NextCh()
 			if ch >= 'A' && ch <= 'Z' {
-				svars[int(ch-'A')], stk = stk.Pop()
+				svars[int(ch-'A')], stk = stk.PopString()
 			} else if ch >= 'a' && ch <= 'z' {
-				dvars[int(ch-'a')], stk = stk.Pop()
+				dvars[int(ch-'a')], stk = stk.PopString()
 			}
 
 		case 'g': // recall & push variable
@@ -481,7 +470,7 @@ func (t *Terminfo) TParm(s string, p ...int) string {
 
 		case '\'': // push(char)
 			ch, _ = pb.NextCh()
-			pb.NextCh() // must be ' but we don't check
+			_, _ = pb.NextCh() // must be ' but we don't check
 			stk = stk.Push(string(ch))
 
 		case '{': // push(int)
@@ -493,82 +482,82 @@ func (t *Terminfo) TParm(s string, p ...int) string {
 				ch, _ = pb.NextCh()
 			}
 			// ch must be '}' but no verification
-			stk = stk.PushInt(ai)
+			stk = stk.Push(ai)
 
 		case 'l': // push(strlen(pop))
-			a, stk = stk.Pop()
-			stk = stk.PushInt(len(a))
+			a, stk = stk.PopString()
+			stk = stk.Push(len(a))
 
 		case '+':
 			bi, stk = stk.PopInt()
 			ai, stk = stk.PopInt()
-			stk = stk.PushInt(ai + bi)
+			stk = stk.Push(ai + bi)
 
 		case '-':
 			bi, stk = stk.PopInt()
 			ai, stk = stk.PopInt()
-			stk = stk.PushInt(ai - bi)
+			stk = stk.Push(ai - bi)
 
 		case '*':
 			bi, stk = stk.PopInt()
 			ai, stk = stk.PopInt()
-			stk = stk.PushInt(ai * bi)
+			stk = stk.Push(ai * bi)
 
 		case '/':
 			bi, stk = stk.PopInt()
 			ai, stk = stk.PopInt()
 			if bi != 0 {
-				stk = stk.PushInt(ai / bi)
+				stk = stk.Push(ai / bi)
 			} else {
-				stk = stk.PushInt(0)
+				stk = stk.Push(0)
 			}
 
 		case 'm': // push(pop mod pop)
 			bi, stk = stk.PopInt()
 			ai, stk = stk.PopInt()
 			if bi != 0 {
-				stk = stk.PushInt(ai % bi)
+				stk = stk.Push(ai % bi)
 			} else {
-				stk = stk.PushInt(0)
+				stk = stk.Push(0)
 			}
 
 		case '&': // AND
 			bi, stk = stk.PopInt()
 			ai, stk = stk.PopInt()
-			stk = stk.PushInt(ai & bi)
+			stk = stk.Push(ai & bi)
 
 		case '|': // OR
 			bi, stk = stk.PopInt()
 			ai, stk = stk.PopInt()
-			stk = stk.PushInt(ai | bi)
+			stk = stk.Push(ai | bi)
 
 		case '^': // XOR
 			bi, stk = stk.PopInt()
 			ai, stk = stk.PopInt()
-			stk = stk.PushInt(ai ^ bi)
+			stk = stk.Push(ai ^ bi)
 
 		case '~': // bit complement
 			ai, stk = stk.PopInt()
-			stk = stk.PushInt(ai ^ -1)
+			stk = stk.Push(ai ^ -1)
 
 		case '!': // logical NOT
 			ai, stk = stk.PopInt()
-			stk = stk.PushBool(ai != 0)
+			stk = stk.Push(ai != 0)
 
 		case '=': // numeric compare or string compare
-			b, stk = stk.Pop()
-			a, stk = stk.Pop()
-			stk = stk.PushBool(a == b)
+			b, stk = stk.PopString()
+			a, stk = stk.PopString()
+			stk = stk.Push(a == b)
 
 		case '>': // greater than, numeric
 			bi, stk = stk.PopInt()
 			ai, stk = stk.PopInt()
-			stk = stk.PushBool(ai > bi)
+			stk = stk.Push(ai > bi)
 
 		case '<': // less than, numeric
 			bi, stk = stk.PopInt()
 			ai, stk = stk.PopInt()
-			stk = stk.PushBool(ai < bi)
+			stk = stk.Push(ai < bi)
 
 		case '?': // start conditional
 
@@ -650,15 +639,15 @@ func (t *Terminfo) TPuts(w io.Writer, s string) {
 		beg := strings.Index(s, "$<")
 		if beg < 0 {
 			// Most strings don't need padding, which is good news!
-			io.WriteString(w, s)
+			_, _ = io.WriteString(w, s)
 			return
 		}
-		io.WriteString(w, s[:beg])
+		_, _ = io.WriteString(w, s[:beg])
 		s = s[beg+2:]
 		end := strings.Index(s, ">")
 		if end < 0 {
 			// unterminated.. just emit bytes unadulterated
-			io.WriteString(w, "$<"+s)
+			_, _ = io.WriteString(w, "$<"+s)
 			return
 		}
 		val := s[:end]
@@ -729,7 +718,6 @@ func (t *Terminfo) TColor(fi, bi int) string {
 var (
 	dblock    sync.Mutex
 	terminfos = make(map[string]*Terminfo)
-	aliases   = make(map[string]string)
 )
 
 // AddTerminfo can be called to register a new Terminfo entry.

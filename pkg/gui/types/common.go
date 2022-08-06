@@ -37,6 +37,8 @@ type IGuiCommon interface {
 	PushContext(context Context, opts ...OnFocusOpts) error
 	PopContext() error
 	CurrentContext() Context
+	CurrentStaticContext() Context
+	IsCurrentContext(Context) bool
 	// enters search mode for the current view
 	OpenSearch()
 
@@ -162,7 +164,7 @@ type Mutexes struct {
 	RefreshingStatusMutex *sync.Mutex
 	SyncMutex             *sync.Mutex
 	LocalCommitsMutex     *sync.Mutex
-	LineByLinePanelMutex  *sync.Mutex
 	SubprocessMutex       *sync.Mutex
 	PopupMutex            *sync.Mutex
+	PtyMutex              *sync.Mutex
 }

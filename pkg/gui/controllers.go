@@ -27,7 +27,7 @@ func (gui *Gui) resetControllers() {
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
 		Host:           helpers.NewHostHelper(helperCommon, gui.git),
-		PatchBuilding:  helpers.NewPatchBuildingHelper(helperCommon, gui.git),
+		PatchBuilding:  helpers.NewPatchBuildingHelper(helperCommon, gui.git, gui.State.Contexts),
 		Bisect:         helpers.NewBisectHelper(helperCommon, gui.git),
 		Suggestions:    suggestionsHelper,
 		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
@@ -120,11 +120,18 @@ func (gui *Gui) resetControllers() {
 	)
 	undoController := controllers.NewUndoController(common)
 	globalController := controllers.NewGlobalController(common)
+	contextLinesController := controllers.NewContextLinesController(common)
+	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common)
+
 	branchesController := controllers.NewBranchesController(common)
 	gitFlowController := controllers.NewGitFlowController(common)
 	filesRemoveController := controllers.NewFilesRemoveController(common)
 	stashController := controllers.NewStashController(common)
 	commitFilesController := controllers.NewCommitFilesController(common)
+	patchExplorerControllerFactory := controllers.NewPatchExplorerControllerFactory(common)
+	stagingController := controllers.NewStagingController(common, gui.State.Contexts.Staging, gui.State.Contexts.StagingSecondary, false)
+	stagingSecondaryController := controllers.NewStagingController(common, gui.State.Contexts.StagingSecondary, gui.State.Contexts.Staging, true)
+	patchBuildingController := controllers.NewPatchBuildingController(common)
 
 	setSubCommits := func(commits []*models.Commit) { gui.State.Model.SubCommits = commits }
 
@@ -157,19 +164,87 @@ func (gui *Gui) resetControllers() {
 		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
 	}
 
-	controllers.AttachControllers(gui.State.Contexts.Files, filesController, filesRemoveController)
-	controllers.AttachControllers(gui.State.Contexts.Tags, tagsController)
-	controllers.AttachControllers(gui.State.Contexts.Submodules, submodulesController)
-	controllers.AttachControllers(gui.State.Contexts.LocalCommits, localCommitsController, bisectController)
-	controllers.AttachControllers(gui.State.Contexts.Branches, branchesController, gitFlowController)
-	controllers.AttachControllers(gui.State.Contexts.LocalCommits, localCommitsController, bisectController)
-	controllers.AttachControllers(gui.State.Contexts.CommitFiles, commitFilesController)
-	controllers.AttachControllers(gui.State.Contexts.Remotes, remotesController)
-	controllers.AttachControllers(gui.State.Contexts.Stash, stashController)
-	controllers.AttachControllers(gui.State.Contexts.Menu, menuController)
-	controllers.AttachControllers(gui.State.Contexts.CommitMessage, commitMessageController)
-	controllers.AttachControllers(gui.State.Contexts.RemoteBranches, remoteBranchesController)
-	controllers.AttachControllers(gui.State.Contexts.Global, syncController, undoController, globalController)
+	// TODO: add scroll controllers for main panels (need to bring some more functionality across for that e.g. reading more from the currently displayed git command)
+	controllers.AttachControllers(gui.State.Contexts.Staging,
+		stagingController,
+		patchExplorerControllerFactory.Create(gui.State.Contexts.Staging),
+		verticalScrollControllerFactory.Create(gui.State.Contexts.Staging),
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.StagingSecondary,
+		stagingSecondaryController,
+		patchExplorerControllerFactory.Create(gui.State.Contexts.StagingSecondary),
+		verticalScrollControllerFactory.Create(gui.State.Contexts.StagingSecondary),
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.CustomPatchBuilder,
+		patchBuildingController,
+		patchExplorerControllerFactory.Create(gui.State.Contexts.CustomPatchBuilder),
+		verticalScrollControllerFactory.Create(gui.State.Contexts.CustomPatchBuilder),
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.CustomPatchBuilderSecondary,
+		verticalScrollControllerFactory.Create(gui.State.Contexts.CustomPatchBuilder),
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Files,
+		filesController,
+		filesRemoveController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Tags,
+		tagsController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Submodules,
+		submodulesController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.LocalCommits,
+		localCommitsController,
+		bisectController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Branches,
+		branchesController,
+		gitFlowController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.LocalCommits,
+		localCommitsController,
+		bisectController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.CommitFiles,
+		commitFilesController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Remotes,
+		remotesController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Stash,
+		stashController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Menu,
+		menuController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.CommitMessage,
+		commitMessageController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.RemoteBranches,
+		remoteBranchesController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Global,
+		syncController,
+		undoController,
+		globalController,
+		contextLinesController,
+	)
 
 	// this must come last so that we've got our click handlers defined against the context
 	listControllerFactory := controllers.NewListControllerFactory(gui.c)

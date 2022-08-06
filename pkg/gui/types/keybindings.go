@@ -9,7 +9,6 @@ type Key interface{} // FIXME: find out how to get `gocui.Key | rune`
 // is ""
 type Binding struct {
 	ViewName    string
-	Contexts    []string
 	Handler     func() error
 	Key         Key
 	Modifier    gocui.Modifier

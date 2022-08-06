@@ -1,7 +1,12 @@
+<a href="https://stand-with-ukraine.pp.ua">
+<img src="https://upload.wikimedia.org/wikipedia/commons/d/d2/Flag_of_Ukraine.png" height="20px" width="100%"/>
+</a>
 
-# ![Tcell](logos/tcell.png)
+<img src="logos/tcell.png" style="float: right"/>
 
 Please see [here](UKRAINE.md) for an important message for the people of Russia.
+
+# Tcell
 
 _Tcell_ is a _Go_ package that provides a cell based view for text terminals, like _XTerm_.
 It was inspired by _termbox_, but includes many additional improvements.

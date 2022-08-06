@@ -9,17 +9,18 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/nodetree"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // list panel functions
 
+func (gui *Gui) getSelectednodeNode() *nodetree.nodeNode {
+	selectedLine := gui.State.Panels.nodes.SelectedLineIdx
 	if selectedLine == -1 {
 		return nil
 	}
 
-	return gui.State.FileManager.GetItemAtIndex(selectedLine)
 	return gui.State.nodeManager.GetItemAtIndex(selectedLine)
 }
 
@@ -40,8 +41,6 @@ func (gui *Gui) getSelectedPath() string {
 	return node.GetPath()
 }
 
-func (gui *Gui) filesRenderToMain() error {
-	node := gui.getSelectedFileNode()
 func (gui *Gui) nodesRenderToMain() error {
 	node := gui.getSelectednodeNode()
 

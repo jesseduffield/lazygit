@@ -15,8 +15,9 @@ const HORIZONTAL_SCROLL_FACTOR = 3
 // these views need to be re-rendered when the screen mode changes. The commits view,
 // for example, will show authorship information in half and full screen mode.
 func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
-	for _, view := range []*gocui.View{gui.Views.Branches, gui.Views.Commits} {
-		if err := gui.rerenderView(view); err != nil {
+	// for now we re-render all list views.
+	for _, context := range gui.getListContexts() {
+		if err := gui.rerenderView(context.GetView()); err != nil {
 			return err
 		}
 	}
@@ -24,7 +25,6 @@ func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
 	return nil
 }
 
-// TODO: GENERICS
 func nextIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
 	for i, val := range sl {
 		if val == current {
@@ -37,7 +37,6 @@ func nextIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowM
 	return sl[0]
 }
 
-// TODO: GENERICS
 func prevIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
 	for i, val := range sl {
 		if val == current {
@@ -80,7 +79,14 @@ func (gui *Gui) scrollUpMain() error {
 		gui.State.Panels.Merging.UserVerticalScrolling = true
 	}
 
-	gui.scrollUpView(gui.Views.Main)
+	var view *gocui.View
+	if gui.c.CurrentContext().GetWindowName() == "secondary" {
+		view = gui.secondaryView()
+	} else {
+		view = gui.mainView()
+	}
+
+	gui.scrollUpView(view)
 
 	return nil
 }
@@ -90,19 +96,38 @@ func (gui *Gui) scrollDownMain() error {
 		gui.State.Panels.Merging.UserVerticalScrolling = true
 	}
 
-	gui.scrollDownView(gui.Views.Main)
+	var view *gocui.View
+	if gui.c.CurrentContext().GetWindowName() == "secondary" {
+		view = gui.secondaryView()
+	} else {
+		view = gui.mainView()
+	}
+
+	gui.scrollDownView(view)
 
 	return nil
 }
 
+func (gui *Gui) mainView() *gocui.View {
+	viewName := gui.getViewNameForWindow("main")
+	view, _ := gui.g.View(viewName)
+	return view
+}
+
+func (gui *Gui) secondaryView() *gocui.View {
+	viewName := gui.getViewNameForWindow("secondary")
+	view, _ := gui.g.View(viewName)
+	return view
+}
+
 func (gui *Gui) scrollLeftMain() error {
-	gui.scrollLeft(gui.Views.Main)
+	gui.scrollLeft(gui.mainView())
 
 	return nil
 }
 
 func (gui *Gui) scrollRightMain() error {
-	gui.scrollRight(gui.Views.Main)
+	gui.scrollRight(gui.mainView())
 
 	return nil
 }
@@ -117,13 +142,15 @@ func (gui *Gui) scrollRight(view *gocui.View) {
 }
 
 func (gui *Gui) scrollUpSecondary() error {
-	gui.scrollUpView(gui.Views.Secondary)
+	gui.scrollUpView(gui.secondaryView())
 
 	return nil
 }
 
 func (gui *Gui) scrollDownSecondary() error {
-	gui.scrollDownView(gui.Views.Secondary)
+	secondaryView := gui.secondaryView()
+
+	gui.scrollDownView(secondaryView)
 
 	return nil
 }

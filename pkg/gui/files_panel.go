@@ -34,8 +34,9 @@ func (gui *Gui) filesRenderToMain() error {
 
 	if node == nil {
 		return gui.refreshMainViews(refreshMainOpts{
+			pair: gui.normalMainContextPair(),
 			main: &viewUpdateOpts{
-				title: "",
+				title: gui.c.Tr.DiffTitle,
 				task:  NewRenderStringTask(gui.c.Tr.NoChangedFiles),
 			},
 		})
@@ -53,31 +54,38 @@ func (gui *Gui) filesRenderToMain() error {
 
 	gui.resetMergeStateWithLock()
 
-	mainContext := gui.State.Contexts.Normal
+	pair := gui.normalMainContextPair()
 	if node.File != nil {
-		mainContext = gui.State.Contexts.Staging
+		pair = gui.stagingMainContextPair()
 	}
 
 	split := gui.c.UserConfig.Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 	mainShowsStaged := !split && node.GetHasStagedChanges()
 
 	cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, gui.IgnoreWhitespaceInDiffView)
-	refreshOpts := refreshMainOpts{main: &viewUpdateOpts{
-		title:   gui.c.Tr.UnstagedChanges,
-		task:    NewRunPtyTask(cmdObj.GetCmd()),
-		context: mainContext,
-	}}
+	title := gui.c.Tr.UnstagedChanges
 	if mainShowsStaged {
-		refreshOpts.main.title = gui.c.Tr.StagedChanges
+		title = gui.c.Tr.StagedChanges
+	}
+	refreshOpts := refreshMainOpts{
+		pair: pair,
+		main: &viewUpdateOpts{
+			task:  NewRunPtyTask(cmdObj.GetCmd()),
+			title: title,
+		},
 	}
 
 	if split {
 		cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, true, gui.IgnoreWhitespaceInDiffView)
 
+		title := gui.c.Tr.StagedChanges
+		if mainShowsStaged {
+			title = gui.c.Tr.UnstagedChanges
+		}
+
 		refreshOpts.secondary = &viewUpdateOpts{
-			title:   gui.c.Tr.StagedChanges,
-			task:    NewRunPtyTask(cmdObj.GetCmd()),
-			context: mainContext,
+			title: title,
+			task:  NewRunPtyTask(cmdObj.GetCmd()),
 		}
 	}
 
@@ -89,6 +97,8 @@ func (gui *Gui) onFocusFile() error {
 	return nil
 }
 
+// test
+
 func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
 	return func(text string) {
 		// using a getView function so that we don't need to worry about when the view is created
@@ -98,3 +108,5 @@ func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
 		view.RenderTextArea()
 	}
 }
+
+// test

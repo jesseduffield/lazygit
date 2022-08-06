@@ -27,7 +27,7 @@ type EventPaste struct {
 	t     time.Time
 }
 
-// When returns the time when this EventMouse was created.
+// When returns the time when this EventPaste was created.
 func (ev *EventPaste) When() time.Time {
 	return ev.t
 }

@@ -3,6 +3,7 @@ package helpers
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -11,17 +12,20 @@ type IPatchBuildingHelper interface {
 }
 
 type PatchBuildingHelper struct {
-	c   *types.HelperCommon
-	git *commands.GitCommand
+	c        *types.HelperCommon
+	git      *commands.GitCommand
+	contexts *context.ContextTree
 }
 
 func NewPatchBuildingHelper(
 	c *types.HelperCommon,
 	git *commands.GitCommand,
+	contexts *context.ContextTree,
 ) *PatchBuildingHelper {
 	return &PatchBuildingHelper{
-		c:   c,
-		git: git,
+		c:        c,
+		git:      git,
+		contexts: contexts,
 	}
 }
 
@@ -30,4 +34,29 @@ func (self *PatchBuildingHelper) ValidateNormalWorkingTreeState() (bool, error) 
 		return false, self.c.ErrorMsg(self.c.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
+}
+
+// takes us from the patch building panel back to the commit files panel
+func (self *PatchBuildingHelper) Escape() error {
+	return self.c.PushContext(self.contexts.CommitFiles)
+}
+
+// kills the custom patch and returns us back to the commit files panel if needed
+func (self *PatchBuildingHelper) Reset() error {
+	self.git.Patch.PatchManager.Reset()
+
+	if self.c.CurrentStaticContext().GetKind() != types.SIDE_CONTEXT {
+		if err := self.Escape(); err != nil {
+			return err
+		}
+	}
+
+	if err := self.c.Refresh(types.RefreshOptions{
+		Scope: []types.RefreshableView{types.COMMIT_FILES},
+	}); err != nil {
+		return err
+	}
+
+	// refreshing the current context so that the secondary panel is hidden if necessary.
+	return self.c.PostRefreshUpdate(self.c.CurrentContext())
 }

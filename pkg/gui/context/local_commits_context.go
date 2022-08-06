@@ -18,9 +18,9 @@ func NewLocalCommitsContext(
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
-	onFocus func(...types.OnFocusOpts) error,
-	onRenderToMain func(...types.OnFocusOpts) error,
-	onFocusLost func() error,
+	onFocus func(types.OnFocusOpts) error,
+	onRenderToMain func() error,
+	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *LocalCommitsContext {
@@ -31,7 +31,7 @@ func NewLocalCommitsContext(
 		ViewportListContextTrait: &ViewportListContextTrait{
 			ListContextTrait: &ListContextTrait{
 				Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-					ViewName:   "commits",
+					View:       view,
 					WindowName: "commits",
 					Key:        LOCAL_COMMITS_CONTEXT_KEY,
 					Kind:       types.SIDE_CONTEXT,
@@ -42,7 +42,6 @@ func NewLocalCommitsContext(
 					OnRenderToMain: onRenderToMain,
 				}),
 				list:              viewModel,
-				viewTrait:         NewViewTrait(view),
 				getDisplayStrings: getDisplayStrings,
 				c:                 c,
 			},

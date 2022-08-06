@@ -19,6 +19,7 @@ func (gui *Gui) remotesRenderToMain() error {
 	}
 
 	return gui.refreshMainViews(refreshMainOpts{
+		pair: gui.normalMainContextPair(),
 		main: &viewUpdateOpts{
 			title: "Remote",
 			task:  task,

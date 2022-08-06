@@ -30,13 +30,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 列表面板导航
 
 <pre>
-  <kbd>.</kbd>: 下一页
-  <kbd>,</kbd>: 上一页
-  <kbd><</kbd>: 滚动到顶部
-  <kbd>></kbd>: 滚动到底部
-  <kbd>/</kbd>: 开始搜索
   <kbd>H</kbd>: 向左滚动
   <kbd>L</kbd>: 向右滚动
+  <kbd>,</kbd>: 上一页
+  <kbd>.</kbd>: 下一页
+  <kbd><</kbd>: 滚动到顶部
+  <kbd>/</kbd>: 开始搜索
+  <kbd>></kbd>: 滚动到底部
   <kbd>]</kbd>: 下一个标签
   <kbd>[</kbd>: 上一个标签
 </pre>
@@ -183,17 +183,16 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 构建补丁中
 
 <pre>
-  <kbd>esc</kbd>: 退出逐行模式
-  <kbd>o</kbd>: 打开文件
-  <kbd>▲</kbd>: 选择上一行
-  <kbd>▼</kbd>: 选择下一行
   <kbd>◄</kbd>: 选择上一个区块
   <kbd>►</kbd>: 选择下一个区块
-  <kbd>ctrl+o</kbd>: 将选中文本复制到剪贴板
-  <kbd>space</kbd>: 添加/移除 行到补丁
   <kbd>v</kbd>: 切换拖动选择
   <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
+  <kbd>ctrl+o</kbd>: 将选中文本复制到剪贴板
+  <kbd>o</kbd>: 打开文件
+  <kbd>e</kbd>: 编辑文件
+  <kbd>space</kbd>: 添加/移除 行到补丁
+  <kbd>esc</kbd>: 退出逐行模式
 </pre>
 
 ## 标签页面
@@ -226,20 +225,18 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 正在暂存
 
 <pre>
-  <kbd>esc</kbd>: 返回文件面板
-  <kbd>space</kbd>: 切换行暂存状态
-  <kbd>d</kbd>: 取消变更 (git reset)
-  <kbd>tab</kbd>: 切换到其他面板
-  <kbd>o</kbd>: 打开文件
-  <kbd>▲</kbd>: 选择上一行
-  <kbd>▼</kbd>: 选择下一行
   <kbd>◄</kbd>: 选择上一个区块
   <kbd>►</kbd>: 选择下一个区块
-  <kbd>ctrl+o</kbd>: 将选中文本复制到剪贴板
-  <kbd>e</kbd>: 编辑文件
   <kbd>v</kbd>: 切换拖动选择
   <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
+  <kbd>ctrl+o</kbd>: 将选中文本复制到剪贴板
+  <kbd>o</kbd>: 打开文件
+  <kbd>e</kbd>: 编辑文件
+  <kbd>esc</kbd>: 返回文件面板
+  <kbd>tab</kbd>: 切换到其他面板
+  <kbd>space</kbd>: 切换行暂存状态
+  <kbd>d</kbd>: 取消变更 (git reset)
   <kbd>E</kbd>: edit hunk
 </pre>
 

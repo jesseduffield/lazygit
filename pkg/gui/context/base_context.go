@@ -8,7 +8,8 @@ import (
 type BaseContext struct {
 	kind            types.ContextKind
 	key             types.ContextKey
-	ViewName        string
+	view            *gocui.View
+	viewTrait       types.IViewTrait
 	windowName      string
 	onGetOptionsMap func() map[string]string
 
@@ -16,8 +17,9 @@ type BaseContext struct {
 	mouseKeybindingsFns []types.MouseKeybindingsFn
 	onClickFn           func() error
 
-	focusable bool
-	transient bool
+	focusable           bool
+	transient           bool
+	hasControlledBounds bool
 
 	*ParentContextMgr
 }
@@ -25,26 +27,33 @@ type BaseContext struct {
 var _ types.IBaseContext = &BaseContext{}
 
 type NewBaseContextOpts struct {
-	Kind       types.ContextKind
-	Key        types.ContextKey
-	ViewName   string
-	WindowName string
-	Focusable  bool
-	Transient  bool
+	Kind                  types.ContextKind
+	Key                   types.ContextKey
+	View                  *gocui.View
+	WindowName            string
+	Focusable             bool
+	Transient             bool
+	HasUncontrolledBounds bool // negating for the sake of making false the default
 
 	OnGetOptionsMap func() map[string]string
 }
 
 func NewBaseContext(opts NewBaseContextOpts) *BaseContext {
+	viewTrait := NewViewTrait(opts.View)
+
+	hasControlledBounds := !opts.HasUncontrolledBounds
+
 	return &BaseContext{
-		kind:             opts.Kind,
-		key:              opts.Key,
-		ViewName:         opts.ViewName,
-		windowName:       opts.WindowName,
-		onGetOptionsMap:  opts.OnGetOptionsMap,
-		focusable:        opts.Focusable,
-		transient:        opts.Transient,
-		ParentContextMgr: &ParentContextMgr{},
+		kind:                opts.Kind,
+		key:                 opts.Key,
+		view:                opts.View,
+		windowName:          opts.WindowName,
+		onGetOptionsMap:     opts.OnGetOptionsMap,
+		focusable:           opts.Focusable,
+		transient:           opts.Transient,
+		hasControlledBounds: hasControlledBounds,
+		ParentContextMgr:    &ParentContextMgr{},
+		viewTrait:           viewTrait,
 	}
 }
 
@@ -64,7 +73,20 @@ func (self *BaseContext) GetWindowName() string {
 }
 
 func (self *BaseContext) GetViewName() string {
-	return self.ViewName
+	// for the sake of the global context which has no view
+	if self.view == nil {
+		return ""
+	}
+
+	return self.view.Name()
+}
+
+func (self *BaseContext) GetView() *gocui.View {
+	return self.view
+}
+
+func (self *BaseContext) GetViewTrait() types.IViewTrait {
+	return self.viewTrait
 }
 
 func (self *BaseContext) GetKind() types.ContextKind {
@@ -121,6 +143,10 @@ func (self *BaseContext) IsFocusable() bool {
 
 func (self *BaseContext) IsTransient() bool {
 	return self.transient
+}
+
+func (self *BaseContext) HasControlledBounds() bool {
+	return self.hasControlledBounds
 }
 
 func (self *BaseContext) Title() string {

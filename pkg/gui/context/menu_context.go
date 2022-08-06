@@ -24,7 +24,7 @@ func NewMenuContext(
 ) *MenuContext {
 	viewModel := NewMenuViewModel()
 
-	onFocus := func(...types.OnFocusOpts) error {
+	onFocus := func(types.OnFocusOpts) error {
 		selectedMenuItem := viewModel.GetSelected()
 		renderToDescriptionView(selectedMenuItem.Tooltip)
 		return nil
@@ -34,17 +34,18 @@ func NewMenuContext(
 		MenuViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				ViewName:        "menu",
-				Key:             "menu",
-				Kind:            types.TEMPORARY_POPUP,
-				OnGetOptionsMap: getOptionsMap,
-				Focusable:       true,
+				View:                  view,
+				WindowName:            "menu",
+				Key:                   "menu",
+				Kind:                  types.TEMPORARY_POPUP,
+				OnGetOptionsMap:       getOptionsMap,
+				Focusable:             true,
+				HasUncontrolledBounds: true,
 			}), ContextCallbackOpts{
 				OnFocus: onFocus,
 			}),
 			getDisplayStrings: viewModel.GetDisplayStrings,
 			list:              viewModel,
-			viewTrait:         NewViewTrait(view),
 			c:                 c,
 		},
 	}

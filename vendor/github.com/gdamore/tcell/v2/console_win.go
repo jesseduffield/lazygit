@@ -1,6 +1,7 @@
+//go:build windows
 // +build windows
 
-// Copyright 2021 The TCell Authors
+// Copyright 2022 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -114,22 +115,23 @@ var (
 // characters (Unicode) are in use.  The documentation refers to them
 // without this suffix, as the resolution is made via preprocessor.
 var (
-	procReadConsoleInput           = k32.NewProc("ReadConsoleInputW")
-	procWaitForMultipleObjects     = k32.NewProc("WaitForMultipleObjects")
-	procCreateEvent                = k32.NewProc("CreateEventW")
-	procSetEvent                   = k32.NewProc("SetEvent")
-	procGetConsoleCursorInfo       = k32.NewProc("GetConsoleCursorInfo")
-	procSetConsoleCursorInfo       = k32.NewProc("SetConsoleCursorInfo")
-	procSetConsoleCursorPosition   = k32.NewProc("SetConsoleCursorPosition")
-	procSetConsoleMode             = k32.NewProc("SetConsoleMode")
-	procGetConsoleMode             = k32.NewProc("GetConsoleMode")
-	procGetConsoleScreenBufferInfo = k32.NewProc("GetConsoleScreenBufferInfo")
-	procFillConsoleOutputAttribute = k32.NewProc("FillConsoleOutputAttribute")
-	procFillConsoleOutputCharacter = k32.NewProc("FillConsoleOutputCharacterW")
-	procSetConsoleWindowInfo       = k32.NewProc("SetConsoleWindowInfo")
-	procSetConsoleScreenBufferSize = k32.NewProc("SetConsoleScreenBufferSize")
-	procSetConsoleTextAttribute    = k32.NewProc("SetConsoleTextAttribute")
-	procMessageBeep                = u32.NewProc("MessageBeep")
+	procReadConsoleInput            = k32.NewProc("ReadConsoleInputW")
+	procWaitForMultipleObjects      = k32.NewProc("WaitForMultipleObjects")
+	procCreateEvent                 = k32.NewProc("CreateEventW")
+	procSetEvent                    = k32.NewProc("SetEvent")
+	procGetConsoleCursorInfo        = k32.NewProc("GetConsoleCursorInfo")
+	procSetConsoleCursorInfo        = k32.NewProc("SetConsoleCursorInfo")
+	procSetConsoleCursorPosition    = k32.NewProc("SetConsoleCursorPosition")
+	procSetConsoleMode              = k32.NewProc("SetConsoleMode")
+	procGetConsoleMode              = k32.NewProc("GetConsoleMode")
+	procGetConsoleScreenBufferInfo  = k32.NewProc("GetConsoleScreenBufferInfo")
+	procFillConsoleOutputAttribute  = k32.NewProc("FillConsoleOutputAttribute")
+	procFillConsoleOutputCharacter  = k32.NewProc("FillConsoleOutputCharacterW")
+	procSetConsoleWindowInfo        = k32.NewProc("SetConsoleWindowInfo")
+	procSetConsoleScreenBufferSize  = k32.NewProc("SetConsoleScreenBufferSize")
+	procSetConsoleTextAttribute     = k32.NewProc("SetConsoleTextAttribute")
+	procGetLargestConsoleWindowSize = k32.NewProc("GetLargestConsoleWindowSize")
+	procMessageBeep                 = u32.NewProc("MessageBeep")
 )
 
 const (
@@ -189,7 +191,7 @@ func (s *cScreen) Init() error {
 	s.in = in
 	out, e := syscall.Open("CONOUT$", syscall.O_RDWR, 0)
 	if e != nil {
-		syscall.Close(s.in)
+		_ = syscall.Close(s.in)
 		return e
 	}
 	s.out = out
@@ -224,15 +226,15 @@ func (s *cScreen) Init() error {
 	s.resize()
 
 	s.fini = false
-	s.setInMode(modeResizeEn | modeExtndFlg)
+	s.setInMode(modeResizeEn | modeExtendFlg)
 
 	// 24-bit color is opt-in for now, because we can't figure out
 	// to make it work consistently.
 	if s.truecolor {
 		s.setOutMode(modeVtOutput | modeNoAutoNL | modeCookedOut)
-		var omode uint32
-		s.getOutMode(&omode)
-		if omode&modeVtOutput == modeVtOutput {
+		var om uint32
+		s.getOutMode(&om)
+		if om&modeVtOutput == modeVtOutput {
 			s.vten = true
 		} else {
 			s.truecolor = false
@@ -268,9 +270,9 @@ func (s *cScreen) DisableMouse() {
 
 func (s *cScreen) enableMouse(on bool) {
 	if on {
-		s.setInMode(modeResizeEn | modeMouseEn | modeExtndFlg)
+		s.setInMode(modeResizeEn | modeMouseEn | modeExtendFlg)
 	} else {
-		s.setInMode(modeResizeEn | modeExtndFlg)
+		s.setInMode(modeResizeEn | modeExtendFlg)
 	}
 }
 
@@ -292,7 +294,7 @@ func (s *cScreen) disengage() {
 	}
 	s.running = false
 	stopQ := s.stopQ
-	procSetEvent.Call(uintptr(s.cancelflag))
+	_, _, _ = procSetEvent.Call(uintptr(s.cancelflag))
 	close(stopQ)
 	s.Unlock()
 
@@ -307,7 +309,7 @@ func (s *cScreen) disengage() {
 	s.clearScreen(StyleDefault, false)
 	s.setCursorPos(0, 0, false)
 	s.setCursorInfo(&s.ocursor)
-	procSetConsoleTextAttribute.Call(
+	_, _, _ = procSetConsoleTextAttribute.Call(
 		uintptr(s.out),
 		uintptr(s.mapStyle(StyleDefault)))
 }
@@ -421,7 +423,7 @@ type rect struct {
 
 func (s *cScreen) emitVtString(vs string) {
 	esc := utf16.Encode([]rune(vs))
-	syscall.WriteConsole(s.out, &esc[0], uint32(len(esc)), nil, nil)
+	_ = syscall.WriteConsole(s.out, &esc[0], uint32(len(esc)), nil, nil)
 }
 
 func (s *cScreen) showCursor() {
@@ -487,8 +489,8 @@ const (
 	keyEvent    uint16 = 1
 	mouseEvent  uint16 = 2
 	resizeEvent uint16 = 4
-	menuEvent   uint16 = 8  // don't use
-	focusEvent  uint16 = 16 // don't use
+	// menuEvent   uint16 = 8  // don't use
+	// focusEvent  uint16 = 16 // don't use
 )
 
 type mouseRecord struct {
@@ -500,10 +502,10 @@ type mouseRecord struct {
 }
 
 const (
-	mouseDoubleClick uint32 = 0x2
-	mouseHWheeled    uint32 = 0x8
-	mouseVWheeled    uint32 = 0x4
-	mouseMoved       uint32 = 0x1
+	mouseHWheeled uint32 = 0x8
+	mouseVWheeled uint32 = 0x4
+	// mouseDoubleClick uint32 = 0x2
+	// mouseMoved       uint32 = 0x1
 )
 
 type resizeRecord struct {
@@ -590,6 +592,8 @@ var vkKeys = map[uint16]Key{
 	vkInsert: KeyInsert,
 	vkDelete: KeyDelete,
 	vkHelp:   KeyHelp,
+	vkEscape: KeyEscape,
+	vkSpace:  ' ',
 	vkF1:     KeyF1,
 	vkF2:     KeyF2,
 	vkF3:     KeyF3,
@@ -806,11 +810,11 @@ func (s *cScreen) scanInput(stopQ chan struct{}) {
 	}
 }
 
-// Windows console can display 8 characters, in either low or high intensity
 func (s *cScreen) Colors() int {
 	if s.vten {
 		return 1 << 24
 	}
+	// Windows console can display 8 colors, in either low or high intensity
 	return 16
 }
 
@@ -868,10 +872,10 @@ func (s *cScreen) mapStyle(style Style) uint16 {
 	// views.
 	if a&AttrReverse != 0 {
 		attr = ba
-		attr |= (fa << 4)
+		attr |= fa << 4
 	} else {
 		attr = fa
-		attr |= (ba << 4)
+		attr |= ba << 4
 	}
 	if a&AttrBold != 0 {
 		attr |= 0x8
@@ -895,19 +899,19 @@ func (s *cScreen) SetCell(x, y int, style Style, ch ...rune) {
 	}
 }
 
-func (s *cScreen) SetContent(x, y int, mainc rune, combc []rune, style Style) {
+func (s *cScreen) SetContent(x, y int, primary rune, combining []rune, style Style) {
 	s.Lock()
 	if !s.fini {
-		s.cells.SetContent(x, y, mainc, combc, style)
+		s.cells.SetContent(x, y, primary, combining, style)
 	}
 	s.Unlock()
 }
 
 func (s *cScreen) GetContent(x, y int) (rune, []rune, Style, int) {
 	s.Lock()
-	mainc, combc, style, width := s.cells.GetContent(x, y)
+	primary, combining, style, width := s.cells.GetContent(x, y)
 	s.Unlock()
-	return mainc, combc, style, width
+	return primary, combining, style, width
 }
 
 func (s *cScreen) sendVtStyle(style Style) {
@@ -931,15 +935,15 @@ func (s *cScreen) sendVtStyle(style Style) {
 	}
 	if fg.IsRGB() {
 		r, g, b := fg.RGB()
-		fmt.Fprintf(esc, vtSetFgRGB, r, g, b)
+		_, _ = fmt.Fprintf(esc, vtSetFgRGB, r, g, b)
 	} else if fg.Valid() {
-		fmt.Fprintf(esc, vtSetFg, fg&0xff)
+		_, _ = fmt.Fprintf(esc, vtSetFg, fg&0xff)
 	}
 	if bg.IsRGB() {
 		r, g, b := bg.RGB()
-		fmt.Fprintf(esc, vtSetBgRGB, r, g, b)
+		_, _ = fmt.Fprintf(esc, vtSetBgRGB, r, g, b)
 	} else if bg.Valid() {
-		fmt.Fprintf(esc, vtSetBg, bg&0xff)
+		_, _ = fmt.Fprintf(esc, vtSetBg, bg&0xff)
 	}
 	s.emitVtString(esc.String())
 }
@@ -954,16 +958,16 @@ func (s *cScreen) writeString(x, y int, style Style, ch []uint16) {
 	if s.vten {
 		s.sendVtStyle(style)
 	} else {
-		procSetConsoleTextAttribute.Call(
+		_, _, _ = procSetConsoleTextAttribute.Call(
 			uintptr(s.out),
 			uintptr(s.mapStyle(style)))
 	}
-	syscall.WriteConsole(s.out, &ch[0], uint32(len(ch)), nil, nil)
+	_ = syscall.WriteConsole(s.out, &ch[0], uint32(len(ch)), nil, nil)
 }
 
 func (s *cScreen) draw() {
 	// allocate a scratch line bit enough for no combining chars.
-	// if you have combining characters, you may pay for extra allocs.
+	// if you have combining characters, you may pay for extra allocations.
 	if s.clear {
 		s.clearScreen(s.style, s.vten)
 		s.clear = false
@@ -1053,19 +1057,19 @@ type consoleInfo struct {
 }
 
 func (s *cScreen) getConsoleInfo(info *consoleInfo) {
-	procGetConsoleScreenBufferInfo.Call(
+	_, _, _ = procGetConsoleScreenBufferInfo.Call(
 		uintptr(s.out),
 		uintptr(unsafe.Pointer(info)))
 }
 
 func (s *cScreen) getCursorInfo(info *cursorInfo) {
-	procGetConsoleCursorInfo.Call(
+	_, _, _ = procGetConsoleCursorInfo.Call(
 		uintptr(s.out),
 		uintptr(unsafe.Pointer(info)))
 }
 
 func (s *cScreen) setCursorInfo(info *cursorInfo) {
-	procSetConsoleCursorInfo.Call(
+	_, _, _ = procSetConsoleCursorInfo.Call(
 		uintptr(s.out),
 		uintptr(unsafe.Pointer(info)))
 
@@ -1076,14 +1080,14 @@ func (s *cScreen) setCursorPos(x, y int, vtEnable bool) {
 		// Note that the string is Y first.  Origin is 1,1.
 		s.emitVtString(fmt.Sprintf(vtCursorPos, y+1, x+1))
 	} else {
-		procSetConsoleCursorPosition.Call(
+		_, _, _ = procSetConsoleCursorPosition.Call(
 			uintptr(s.out),
 			coord{int16(x), int16(y)}.uintptr())
 	}
 }
 
 func (s *cScreen) setBufferSize(x, y int) {
-	procSetConsoleScreenBufferSize.Call(
+	_, _, _ = procSetConsoleScreenBufferSize.Call(
 		uintptr(s.out),
 		coord{int16(x), int16(y)}.uintptr())
 }
@@ -1094,6 +1098,37 @@ func (s *cScreen) Size() (int, int) {
 	s.Unlock()
 
 	return w, h
+}
+
+func (s *cScreen) SetSize(w, h int) {
+	xy, _, _ := procGetLargestConsoleWindowSize.Call(uintptr(s.out))
+
+	// xy is little endian packed
+	y := int(xy >> 16)
+	x := int(xy & 0xffff)
+
+	if x == 0 || y == 0 {
+		return
+	}
+
+	// This is a hacky workaround for Windows Terminal.
+	// Essentially Windows Terminal (Windows 11) does not support application
+	// initiated resizing.  To detect this, we look for an extremely large size
+	// for the maximum width.  If it is > 500, then this is almost certainly
+	// Windows Terminal, and won't support this.  (Note that the legacy console
+	// does support application resizing.)
+	if x >= 500 {
+		return
+	}
+
+	s.setBufferSize(x, y)
+	r := rect{0, 0, int16(w - 1), int16(h - 1)}
+	_, _, _ = procSetConsoleWindowInfo.Call(
+		uintptr(s.out),
+		uintptr(1),
+		uintptr(unsafe.Pointer(&r)))
+
+	s.resize()
 }
 
 func (s *cScreen) resize() {
@@ -1114,11 +1149,11 @@ func (s *cScreen) resize() {
 	s.setBufferSize(w, h)
 
 	r := rect{0, 0, int16(w - 1), int16(h - 1)}
-	procSetConsoleWindowInfo.Call(
+	_, _, _ = procSetConsoleWindowInfo.Call(
 		uintptr(s.out),
 		uintptr(1),
 		uintptr(unsafe.Pointer(&r)))
-	s.PostEvent(NewEventResize(w, h))
+	_ = s.PostEvent(NewEventResize(w, h))
 }
 
 func (s *cScreen) Clear() {
@@ -1151,13 +1186,13 @@ func (s *cScreen) clearScreen(style Style, vtEnable bool) {
 		scratch := uint32(0)
 		count := uint32(x * y)
 
-		procFillConsoleOutputAttribute.Call(
+		_, _, _ = procFillConsoleOutputAttribute.Call(
 			uintptr(s.out),
 			uintptr(attr),
 			uintptr(count),
 			pos.uintptr(),
 			uintptr(unsafe.Pointer(&scratch)))
-		procFillConsoleOutputCharacter.Call(
+		_, _, _ = procFillConsoleOutputCharacter.Call(
 			uintptr(s.out),
 			uintptr(' '),
 			uintptr(count),
@@ -1168,47 +1203,39 @@ func (s *cScreen) clearScreen(style Style, vtEnable bool) {
 
 const (
 	// Input modes
-	modeExtndFlg uint32 = 0x0080
-	modeMouseEn         = 0x0010
-	modeResizeEn        = 0x0008
-	modeCooked          = 0x0001
-	modeVtInput         = 0x0200
+	modeExtendFlg uint32 = 0x0080
+	modeMouseEn          = 0x0010
+	modeResizeEn         = 0x0008
+	// modeCooked          = 0x0001
+	// modeVtInput         = 0x0200
 
 	// Output modes
 	modeCookedOut uint32 = 0x0001
-	modeWrapEOL          = 0x0002
 	modeVtOutput         = 0x0004
 	modeNoAutoNL         = 0x0008
+	// modeWrapEOL          = 0x0002
 )
 
-func (s *cScreen) setInMode(mode uint32) error {
-	rv, _, err := procSetConsoleMode.Call(
+func (s *cScreen) setInMode(mode uint32) {
+	_, _, _ = procSetConsoleMode.Call(
 		uintptr(s.in),
 		uintptr(mode))
-	if rv == 0 {
-		return err
-	}
-	return nil
 }
 
-func (s *cScreen) setOutMode(mode uint32) error {
-	rv, _, err := procSetConsoleMode.Call(
+func (s *cScreen) setOutMode(mode uint32) {
+	_, _, _ = procSetConsoleMode.Call(
 		uintptr(s.out),
 		uintptr(mode))
-	if rv == 0 {
-		return err
-	}
-	return nil
 }
 
 func (s *cScreen) getInMode(v *uint32) {
-	procGetConsoleMode.Call(
+	_, _, _ = procGetConsoleMode.Call(
 		uintptr(s.in),
 		uintptr(unsafe.Pointer(v)))
 }
 
 func (s *cScreen) getOutMode(v *uint32) {
-	procGetConsoleMode.Call(
+	_, _, _ = procGetConsoleMode.Call(
 		uintptr(s.out),
 		uintptr(unsafe.Pointer(v)))
 }
@@ -1221,15 +1248,15 @@ func (s *cScreen) SetStyle(style Style) {
 
 // No fallback rune support, since we have Unicode.  Yay!
 
-func (s *cScreen) RegisterRuneFallback(r rune, subst string) {
+func (s *cScreen) RegisterRuneFallback(_ rune, _ string) {
 }
 
-func (s *cScreen) UnregisterRuneFallback(r rune) {
+func (s *cScreen) UnregisterRuneFallback(_ rune) {
 }
 
-func (s *cScreen) CanDisplay(r rune, checkFallbacks bool) bool {
+func (s *cScreen) CanDisplay(_ rune, _ bool) bool {
 	// We presume we can display anything -- we're Unicode.
-	// (Sadly this not precisely true.  Combinings are especially
+	// (Sadly this not precisely true.  Combining characters are especially
 	// poorly supported under Windows.)
 	return true
 }
