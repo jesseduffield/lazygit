@@ -97,7 +97,7 @@ func (self *RemoteBranchesController) escape() error {
 }
 
 func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch) error {
-	message := fmt.Sprintf("%s '%s'?", self.c.Tr.DeleteRemoteBranchMessage, selectedBranch.FullName())
+	message := fmt.Sprintf(self.c.Tr.DeleteRemoteBranchMessage, selectedBranch.FullName())
 
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DeleteRemoteBranch,
