@@ -2,12 +2,16 @@ package keybindings
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-var KeyMapReversed = map[gocui.Key]string{
+var keyMapReversed = map[gocui.Key]string{
 	gocui.KeyF1:          "f1",
 	gocui.KeyF2:          "f2",
 	gocui.KeyF3:          "f3",
@@ -66,11 +70,11 @@ var KeyMapReversed = map[gocui.Key]string{
 	gocui.KeyCtrl5:       "ctrl+5", // ctrl+]
 	gocui.KeyCtrl6:       "ctrl+6",
 	gocui.KeyCtrl8:       "ctrl+8",
-	gocui.MouseWheelUp:   "mouse wheel up",
-	gocui.MouseWheelDown: "mouse wheel down",
+	gocui.MouseWheelUp:   "mouse wheel ▲",
+	gocui.MouseWheelDown: "mouse wheel ▼",
 }
 
-var Keymap = map[string]types.Key{
+var keyMap = map[string]types.Key{
 	"<c-a>":       gocui.KeyCtrlA,
 	"<c-b>":       gocui.KeyCtrlB,
 	"<c-c>":       gocui.KeyCtrlC,
@@ -142,14 +146,18 @@ var Keymap = map[string]types.Key{
 	"<right>":     gocui.KeyArrowRight,
 }
 
-func GetKeyDisplay(key types.Key) string {
+func Label(name string) string {
+	return LabelFromKey(GetKey(name))
+}
+
+func LabelFromKey(key types.Key) string {
 	keyInt := 0
 
 	switch key := key.(type) {
 	case rune:
 		keyInt = int(key)
 	case gocui.Key:
-		value, ok := KeyMapReversed[key]
+		value, ok := keyMapReversed[key]
 		if ok {
 			return value
 		}
@@ -157,4 +165,20 @@ func GetKeyDisplay(key types.Key) string {
 	}
 
 	return fmt.Sprintf("%c", keyInt)
+}
+
+func GetKey(key string) types.Key {
+	runeCount := utf8.RuneCountInString(key)
+	if runeCount > 1 {
+		binding := keyMap[strings.ToLower(key)]
+		if binding == nil {
+			log.Fatalf("Unrecognized key %s for keybinding. For permitted values see %s", strings.ToLower(key), constants.Links.Docs.CustomKeybindings)
+		} else {
+			return binding
+		}
+	} else if runeCount == 1 {
+		return []rune(key)[0]
+	}
+	log.Fatal("Key empty for keybinding: " + strings.ToLower(key))
+	return nil
 }

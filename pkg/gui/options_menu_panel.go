@@ -20,7 +20,7 @@ func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 	bindings = append(customBindings, bindings...)
 
 	for _, binding := range bindings {
-		if keybindings.GetKeyDisplay(binding.Key) != "" && binding.Description != "" {
+		if keybindings.LabelFromKey(binding.Key) != "" && binding.Description != "" {
 			if binding.ViewName == "" {
 				bindingsGlobal = append(bindingsGlobal, binding)
 			} else if binding.Tag == "navigation" {

@@ -2,36 +2,12 @@ package gui
 
 import (
 	"log"
-	"strings"
-	"unicode/utf8"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
-
-func (gui *Gui) getKeyDisplay(name string) string {
-	key := gui.getKey(name)
-	return keybindings.GetKeyDisplay(key)
-}
-
-func (gui *Gui) getKey(key string) types.Key {
-	runeCount := utf8.RuneCountInString(key)
-	if runeCount > 1 {
-		binding := keybindings.Keymap[strings.ToLower(key)]
-		if binding == nil {
-			log.Fatalf("Unrecognized key %s for keybinding. For permitted values see %s", strings.ToLower(key), constants.Links.Docs.CustomKeybindings)
-		} else {
-			return binding
-		}
-	} else if runeCount == 1 {
-		return []rune(key)[0]
-	}
-	log.Fatal("Key empty for keybinding: " + strings.ToLower(key))
-	return nil
-}
 
 func (gui *Gui) noPopupPanel(f func() error) func() error {
 	return func() error {
@@ -68,7 +44,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 	}
 
 	opts := types.KeybindingsOpts{
-		GetKey: self.getKey,
+		GetKey: keybindings.GetKey,
 		Config: config,
 		Guards: guards,
 	}
@@ -324,110 +300,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Key:      gocui.MouseWheelUp,
 			Modifier: gocui.ModNone,
 			Handler:  self.scrollUpSecondary,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.ScrollLeft),
-			Handler:     self.scrollLeftMain,
-			Description: self.c.Tr.LcScrollLeft,
-			Tag:         "navigation",
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.ScrollRight),
-			Handler:     self.scrollRightMain,
-			Description: self.c.Tr.LcScrollRight,
-			Tag:         "navigation",
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.Return),
-			Handler:     self.handleEscapeMerge,
-			Description: self.c.Tr.ReturnToFilesPanel,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
-			Handler:     self.helpers.WorkingTree.OpenMergeTool,
-			Description: self.c.Tr.LcOpenMergeTool,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.handlePickHunk,
-			Description: self.c.Tr.PickHunk,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Main.PickBothHunks),
-			Handler:     self.handlePickAllHunks,
-			Description: self.c.Tr.PickAllHunks,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.PrevBlock),
-			Handler:     self.handleSelectPrevConflict,
-			Description: self.c.Tr.PrevConflict,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.NextBlock),
-			Handler:     self.handleSelectNextConflict,
-			Description: self.c.Tr.NextConflict,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.PrevItem),
-			Handler:     self.handleSelectPrevConflictHunk,
-			Description: self.c.Tr.SelectPrevHunk,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.NextItem),
-			Handler:     self.handleSelectNextConflictHunk,
-			Description: self.c.Tr.SelectNextHunk,
-		},
-		{
-			ViewName: "merging",
-			Key:      opts.GetKey(opts.Config.Universal.PrevBlockAlt),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleSelectPrevConflict,
-		},
-		{
-			ViewName: "merging",
-			Key:      opts.GetKey(opts.Config.Universal.NextBlockAlt),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleSelectNextConflict,
-		},
-		{
-			ViewName: "merging",
-			Key:      opts.GetKey(opts.Config.Universal.PrevItemAlt),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleSelectPrevConflictHunk,
-		},
-		{
-			ViewName: "merging",
-			Key:      opts.GetKey(opts.Config.Universal.NextItemAlt),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleSelectNextConflictHunk,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.handleMergeConflictEditFileAtLine,
-			Description: self.c.Tr.LcEditFile,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
-			Handler:     self.handleMergeConflictOpenFileAtLine,
-			Description: self.c.Tr.LcOpenFile,
-		},
-		{
-			ViewName:    "merging",
-			Key:         opts.GetKey(opts.Config.Universal.Undo),
-			Handler:     self.handleMergeConflictUndo,
-			Description: self.c.Tr.LcUndo,
 		},
 		{
 			ViewName: "status",

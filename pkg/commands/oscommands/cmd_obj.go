@@ -2,7 +2,8 @@ package oscommands
 
 import (
 	"os/exec"
-	"sync"
+
+	"github.com/sasha-s/go-deadlock"
 )
 
 // A command object is a general way to represent a command to be run on the
@@ -51,8 +52,8 @@ type ICmdObj interface {
 	PromptOnCredentialRequest() ICmdObj
 	FailOnCredentialRequest() ICmdObj
 
-	WithMutex(mutex *sync.Mutex) ICmdObj
-	Mutex() *sync.Mutex
+	WithMutex(mutex *deadlock.Mutex) ICmdObj
+	Mutex() *deadlock.Mutex
 
 	GetCredentialStrategy() CredentialStrategy
 }
@@ -76,7 +77,7 @@ type CmdObj struct {
 	credentialStrategy CredentialStrategy
 
 	// can be set so that we don't run certain commands simultaneously
-	mutex *sync.Mutex
+	mutex *deadlock.Mutex
 }
 
 type CredentialStrategy int
@@ -139,11 +140,11 @@ func (self *CmdObj) IgnoreEmptyError() ICmdObj {
 	return self
 }
 
-func (self *CmdObj) Mutex() *sync.Mutex {
+func (self *CmdObj) Mutex() *deadlock.Mutex {
 	return self.mutex
 }
 
-func (self *CmdObj) WithMutex(mutex *sync.Mutex) ICmdObj {
+func (self *CmdObj) WithMutex(mutex *deadlock.Mutex) ICmdObj {
 	self.mutex = mutex
 
 	return self

@@ -22,7 +22,6 @@ type FilesController struct {
 	enterSubmodule        func(submodule *models.SubmoduleConfig) error
 	setCommitMessage      func(message string)
 	getSavedCommitMessage func() string
-	switchToMergeFn       func(path string) error
 }
 
 var _ types.IController = &FilesController{}
@@ -32,14 +31,12 @@ func NewFilesController(
 	enterSubmodule func(submodule *models.SubmoduleConfig) error,
 	setCommitMessage func(message string),
 	getSavedCommitMessage func() string,
-	switchToMergeFn func(path string) error,
 ) *FilesController {
 	return &FilesController{
 		controllerCommon:      common,
 		enterSubmodule:        enterSubmodule,
 		setCommitMessage:      setCommitMessage,
 		getSavedCommitMessage: getSavedCommitMessage,
-		switchToMergeFn:       switchToMergeFn,
 	}
 }
 
@@ -161,7 +158,7 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 			FocusedView: self.context().GetViewName(),
 		},
 		{
-			ViewName:    "merging",
+			ViewName:    "mergeConflicts",
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickMain,
 			FocusedView: self.context().GetViewName(),
@@ -268,10 +265,6 @@ func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 	if node.IsFile() {
 		file := node.File
 
-		if file.HasInlineMergeConflicts {
-			return self.c.PushContext(self.contexts.Merging)
-		}
-
 		if file.HasUnstagedChanges {
 			self.c.LogAction(self.c.Tr.Actions.StageFile)
 
@@ -328,6 +321,10 @@ func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 }
 
 func (self *FilesController) press(node *filetree.FileNode) error {
+	if node.IsFile() && node.File.HasInlineMergeConflicts {
+		return self.switchToMerge()
+	}
+
 	if err := self.pressWithLock(node); err != nil {
 		return err
 	}
@@ -750,7 +747,7 @@ func (self *FilesController) switchToMerge() error {
 		return nil
 	}
 
-	return self.switchToMergeFn(file.Name)
+	return self.helpers.MergeConflicts.SwitchToMerge(file.Name)
 }
 
 func (self *FilesController) createStashMenu() error {

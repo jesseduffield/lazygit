@@ -4,10 +4,11 @@ import (
 	"unicode"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 )
 
 func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch rune, mod gocui.Modifier, allowMultiline bool) bool {
-	newlineKey, ok := gui.getKey(gui.c.UserConfig.Keybinding.Universal.AppendNewline).(gocui.Key)
+	newlineKey, ok := keybindings.GetKey(gui.c.UserConfig.Keybinding.Universal.AppendNewline).(gocui.Key)
 	if !ok {
 		newlineKey = gocui.KeyAltEnter
 	}

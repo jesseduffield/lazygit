@@ -16,6 +16,7 @@ const (
 	SUBMODULES
 	STAGING
 	PATCH_BUILDING
+	MERGE_CONFLICTS
 	COMMIT_FILES
 	// not actually a view. Will refactor this later
 	BISECT_INFO

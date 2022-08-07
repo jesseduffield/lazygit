@@ -19,7 +19,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
@@ -35,6 +35,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
@@ -169,7 +170,6 @@ type GuiRepoState struct {
 	Suggestions []*types.Suggestion
 
 	Updating       bool
-	Panels         *panelStates
 	SplitMainPanel bool
 	LimitCommits   bool
 
@@ -197,20 +197,6 @@ type GuiRepoState struct {
 	ScreenMode WindowMaximisation
 
 	CurrentPopupOpts *types.CreatePopupPanelOpts
-}
-
-type MergingPanelState struct {
-	*mergeconflicts.State
-
-	// UserVerticalScrolling tells us if the user has started scrolling through the file themselves
-	// in which case we won't auto-scroll to a conflict.
-	UserVerticalScrolling bool
-}
-
-// as we move things to the new context approach we're going to eventually
-// remove this struct altogether and store this state on the contexts.
-type panelStates struct {
-	Merging *MergingPanelState
 }
 
 type searchingState struct {
@@ -299,13 +285,6 @@ func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 			BisectInfo:            git_commands.NewNullBisectInfo(),
 			FilesTrie:             patricia.NewTrie(),
 		},
-
-		Panels: &panelStates{
-			Merging: &MergingPanelState{
-				State:                 mergeconflicts.NewState(),
-				UserVerticalScrolling: false,
-			},
-		},
 		Modes: &types.Modes{
 			Filtering:     filtering.New(startArgs.FilterPath),
 			CherryPicking: cherrypicking.New(),
@@ -380,13 +359,13 @@ func NewGui(
 		// sake of backwards compatibility. We're making use of short circuiting here
 		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
 		Mutexes: types.Mutexes{
-			RefreshingFilesMutex:  &sync.Mutex{},
-			RefreshingStatusMutex: &sync.Mutex{},
-			SyncMutex:             &sync.Mutex{},
-			LocalCommitsMutex:     &sync.Mutex{},
-			SubprocessMutex:       &sync.Mutex{},
-			PopupMutex:            &sync.Mutex{},
-			PtyMutex:              &sync.Mutex{},
+			RefreshingFilesMutex:  &deadlock.Mutex{},
+			RefreshingStatusMutex: &deadlock.Mutex{},
+			SyncMutex:             &deadlock.Mutex{},
+			LocalCommitsMutex:     &deadlock.Mutex{},
+			SubprocessMutex:       &deadlock.Mutex{},
+			PopupMutex:            &deadlock.Mutex{},
+			PtyMutex:              &deadlock.Mutex{},
 		},
 		InitialDir: initialDir,
 	}
@@ -438,7 +417,7 @@ var RuneReplacements = map[rune]string{
 	graph.CommitSymbol: "o",
 }
 
-func (gui *Gui) initGocui() (*gocui.Gui, error) {
+func (gui *Gui) initGocui(headless bool) (*gocui.Gui, error) {
 	recordEvents := recordingEvents()
 	playMode := gocui.NORMAL
 	if recordEvents {
@@ -447,7 +426,7 @@ func (gui *Gui) initGocui() (*gocui.Gui, error) {
 		playMode = gocui.REPLAYING
 	}
 
-	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode, headless(), RuneReplacements)
+	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode, headless, RuneReplacements)
 	if err != nil {
 		return nil, err
 	}
@@ -496,13 +475,20 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 
 // Run: setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run(startArgs types.StartArgs) error {
-	g, err := gui.initGocui()
+	g, err := gui.initGocui(headless())
 	if err != nil {
 		return err
 	}
 
 	gui.g = g
 	defer gui.g.Close()
+
+	// if the deadlock package wants to report a deadlock, we first need to
+	// close the gui so that we can actually read what it prints.
+	deadlock.Opts.LogBuf = utils.NewOnceWriter(os.Stderr, func() {
+		gui.g.Close()
+	})
+	deadlock.Opts.Disable = !gui.Debug
 
 	if replaying() {
 		gui.g.RecordingConfig = gocui.RecordingConfig{
@@ -527,9 +513,9 @@ func (gui *Gui) Run(startArgs types.StartArgs) error {
 		return nil
 	}
 	userConfig := gui.UserConfig
-	gui.g.SearchEscapeKey = gui.getKey(userConfig.Keybinding.Universal.Return)
-	gui.g.NextSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.NextMatch)
-	gui.g.PrevSearchMatchKey = gui.getKey(userConfig.Keybinding.Universal.PrevMatch)
+	gui.g.SearchEscapeKey = keybindings.GetKey(userConfig.Keybinding.Universal.Return)
+	gui.g.NextSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.NextMatch)
+	gui.g.PrevSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.PrevMatch)
 
 	gui.g.ShowListFooter = userConfig.Gui.ShowListFooter
 
@@ -794,7 +780,7 @@ func (gui *Gui) setColorScheme() error {
 	return nil
 }
 
-func (gui *Gui) OnUIThread(f func() error) {
+func (gui *Gui) onUIThread(f func() error) {
 	gui.g.Update(func(*gocui.Gui) error {
 		return f()
 	})

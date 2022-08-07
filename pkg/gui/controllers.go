@@ -22,7 +22,7 @@ func (gui *Gui) resetControllers() {
 		model,
 	)
 
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, gui.takeOverMergeConflictScrolling, refsHelper)
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
@@ -35,6 +35,7 @@ func (gui *Gui) resetControllers() {
 		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
 		GPG:            helpers.NewGpgHelper(helperCommon, gui.os, gui.git),
 		MergeAndRebase: rebaseHelper,
+		MergeConflicts: helpers.NewMergeConflictsHelper(helperCommon, gui.State.Contexts, gui.git),
 		CherryPick: helpers.NewCherryPickHelper(
 			helperCommon,
 			gui.git,
@@ -51,7 +52,6 @@ func (gui *Gui) resetControllers() {
 		gui.git,
 		gui.State.Contexts,
 		gui.helpers,
-		gui.getKey,
 	)
 
 	common := controllers.NewControllerCommon(
@@ -112,8 +112,8 @@ func (gui *Gui) resetControllers() {
 		gui.enterSubmodule,
 		setCommitMessage,
 		getSavedCommitMessage,
-		gui.switchToMerge,
 	)
+	mergeConflictsController := controllers.NewMergeConflictsController(common)
 	remotesController := controllers.NewRemotesController(
 		common,
 		func(branches []*models.RemoteBranch) { gui.State.Model.RemoteBranches = branches },
@@ -185,6 +185,10 @@ func (gui *Gui) resetControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.CustomPatchBuilderSecondary,
 		verticalScrollControllerFactory.Create(gui.State.Contexts.CustomPatchBuilder),
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.MergeConflicts,
+		mergeConflictsController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Files,

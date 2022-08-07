@@ -6,8 +6,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 )
 
-// list panel functions
-
 func (gui *Gui) getSelectedFileNode() *filetree.FileNode {
 	return gui.State.Contexts.Files.GetSelected()
 }
@@ -18,15 +16,6 @@ func (gui *Gui) getSelectedFile() *models.File {
 		return nil
 	}
 	return node.File
-}
-
-func (gui *Gui) getSelectedPath() string {
-	node := gui.getSelectedFileNode()
-	if node == nil {
-		return ""
-	}
-
-	return node.GetPath()
 }
 
 func (gui *Gui) filesRenderToMain() error {
@@ -43,16 +32,17 @@ func (gui *Gui) filesRenderToMain() error {
 	}
 
 	if node.File != nil && node.File.HasInlineMergeConflicts {
-		ok, err := gui.setConflictsAndRenderWithLock(node.GetPath(), false)
+		hasConflicts, err := gui.helpers.MergeConflicts.SetMergeState(node.GetPath())
 		if err != nil {
 			return err
 		}
-		if ok {
-			return nil
+
+		if hasConflicts {
+			return gui.refreshMergePanel(false)
 		}
 	}
 
-	gui.resetMergeStateWithLock()
+	gui.helpers.MergeConflicts.ResetMergeState()
 
 	pair := gui.normalMainContextPair()
 	if node.File != nil {
@@ -92,13 +82,6 @@ func (gui *Gui) filesRenderToMain() error {
 	return gui.refreshMainViews(refreshOpts)
 }
 
-func (gui *Gui) onFocusFile() error {
-	gui.takeOverMergeConflictScrolling()
-	return nil
-}
-
-// test
-
 func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
 	return func(text string) {
 		// using a getView function so that we don't need to worry about when the view is created
@@ -108,5 +91,3 @@ func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
 		view.RenderTextArea()
 	}
 }
-
-// test

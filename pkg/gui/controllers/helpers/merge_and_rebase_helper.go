@@ -14,26 +14,23 @@ import (
 )
 
 type MergeAndRebaseHelper struct {
-	c                              *types.HelperCommon
-	contexts                       *context.ContextTree
-	git                            *commands.GitCommand
-	takeOverMergeConflictScrolling func()
-	refsHelper                     *RefsHelper
+	c          *types.HelperCommon
+	contexts   *context.ContextTree
+	git        *commands.GitCommand
+	refsHelper *RefsHelper
 }
 
 func NewMergeAndRebaseHelper(
 	c *types.HelperCommon,
 	contexts *context.ContextTree,
 	git *commands.GitCommand,
-	takeOverMergeConflictScrolling func(),
 	refsHelper *RefsHelper,
 ) *MergeAndRebaseHelper {
 	return &MergeAndRebaseHelper{
-		c:                              c,
-		contexts:                       contexts,
-		git:                            git,
-		takeOverMergeConflictScrolling: takeOverMergeConflictScrolling,
-		refsHelper:                     refsHelper,
+		c:          c,
+		contexts:   contexts,
+		git:        git,
+		refsHelper: refsHelper,
 	}
 }
 
@@ -189,8 +186,6 @@ func (self *MergeAndRebaseHelper) workingTreeStateNoun() string {
 
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
 func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
-	self.takeOverMergeConflictScrolling()
-
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  "continue",
 		Prompt: self.c.Tr.ConflictsResolved,

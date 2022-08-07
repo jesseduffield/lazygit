@@ -75,15 +75,19 @@ func (gui *Gui) scrollDownView(view *gocui.View) {
 }
 
 func (gui *Gui) scrollUpMain() error {
-	if gui.renderingConflicts() {
-		gui.State.Panels.Merging.UserVerticalScrolling = true
-	}
-
 	var view *gocui.View
 	if gui.c.CurrentContext().GetWindowName() == "secondary" {
 		view = gui.secondaryView()
 	} else {
 		view = gui.mainView()
+	}
+
+	if view.Name() == "mergeConflicts" {
+		// although we have this same logic in the controller, this method can be invoked
+		// via the global scroll up/down keybindings, as opposed to just the mouse wheel keybinding.
+		// It would be nice to have a concept of a global keybinding that runs on the top context in a
+		// window but that might be overkill for this one use case.
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(true)
 	}
 
 	gui.scrollUpView(view)
@@ -92,15 +96,15 @@ func (gui *Gui) scrollUpMain() error {
 }
 
 func (gui *Gui) scrollDownMain() error {
-	if gui.renderingConflicts() {
-		gui.State.Panels.Merging.UserVerticalScrolling = true
-	}
-
 	var view *gocui.View
 	if gui.c.CurrentContext().GetWindowName() == "secondary" {
 		view = gui.secondaryView()
 	} else {
 		view = gui.mainView()
+	}
+
+	if view.Name() == "mergeConflicts" {
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(true)
 	}
 
 	gui.scrollDownView(view)
@@ -118,27 +122,6 @@ func (gui *Gui) secondaryView() *gocui.View {
 	viewName := gui.getViewNameForWindow("secondary")
 	view, _ := gui.g.View(viewName)
 	return view
-}
-
-func (gui *Gui) scrollLeftMain() error {
-	gui.scrollLeft(gui.mainView())
-
-	return nil
-}
-
-func (gui *Gui) scrollRightMain() error {
-	gui.scrollRight(gui.mainView())
-
-	return nil
-}
-
-func (gui *Gui) scrollLeft(view *gocui.View) {
-	newOriginX := utils.Max(view.OriginX()-view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR, 0)
-	_ = view.SetOriginX(newOriginX)
-}
-
-func (gui *Gui) scrollRight(view *gocui.View) {
-	_ = view.SetOriginX(view.OriginX() + view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR)
 }
 
 func (gui *Gui) scrollUpSecondary() error {

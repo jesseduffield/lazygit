@@ -1,11 +1,10 @@
 package context
 
 import (
-	"sync"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 type PatchExplorerContext struct {
@@ -15,7 +14,7 @@ type PatchExplorerContext struct {
 	viewTrait              *ViewTrait
 	getIncludedLineIndices func() []int
 	c                      *types.HelperCommon
-	mutex                  *sync.Mutex
+	mutex                  *deadlock.Mutex
 }
 
 var _ types.IPatchExplorerContext = (*PatchExplorerContext)(nil)
@@ -35,7 +34,7 @@ func NewPatchExplorerContext(
 		state:                  nil,
 		viewTrait:              NewViewTrait(view),
 		c:                      c,
-		mutex:                  &sync.Mutex{},
+		mutex:                  &deadlock.Mutex{},
 		getIncludedLineIndices: getIncludedLineIndices,
 		SimpleContext: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 			View:       view,
@@ -67,19 +66,16 @@ func (self *PatchExplorerContext) GetIncludedLineIndices() []int {
 }
 
 func (self *PatchExplorerContext) RenderAndFocus(isFocused bool) error {
-	self.GetView().SetContent(self.GetContentToRender(isFocused))
+	self.setContent(isFocused)
 
-	if err := self.focusSelection(); err != nil {
-		return err
-	}
-
+	self.focusSelection()
 	self.c.Render()
 
 	return nil
 }
 
 func (self *PatchExplorerContext) Render(isFocused bool) error {
-	self.GetView().SetContent(self.GetContentToRender(isFocused))
+	self.setContent(isFocused)
 
 	self.c.Render()
 
@@ -87,16 +83,17 @@ func (self *PatchExplorerContext) Render(isFocused bool) error {
 }
 
 func (self *PatchExplorerContext) Focus() error {
-	if err := self.focusSelection(); err != nil {
-		return err
-	}
-
+	self.focusSelection()
 	self.c.Render()
 
 	return nil
 }
 
-func (self *PatchExplorerContext) focusSelection() error {
+func (self *PatchExplorerContext) setContent(isFocused bool) {
+	self.GetView().SetContent(self.GetContentToRender(isFocused))
+}
+
+func (self *PatchExplorerContext) focusSelection() {
 	view := self.GetView()
 	state := self.GetState()
 	_, viewHeight := view.Size()
@@ -107,11 +104,8 @@ func (self *PatchExplorerContext) focusSelection() error {
 
 	newOrigin := state.CalculateOrigin(origin, bufferHeight)
 
-	if err := view.SetOriginY(newOrigin); err != nil {
-		return err
-	}
-
-	return view.SetCursor(0, selectedLineIdx-newOrigin)
+	_ = view.SetOriginY(newOrigin)
+	_ = view.SetCursor(0, selectedLineIdx-newOrigin)
 }
 
 func (self *PatchExplorerContext) GetContentToRender(isFocused bool) string {
@@ -129,6 +123,6 @@ func (self *PatchExplorerContext) NavigateTo(isFocused bool, selectedLineIdx int
 	return self.RenderAndFocus(isFocused)
 }
 
-func (self *PatchExplorerContext) GetMutex() *sync.Mutex {
+func (self *PatchExplorerContext) GetMutex() *deadlock.Mutex {
 	return self.mutex
 }

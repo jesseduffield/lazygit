@@ -23,7 +23,7 @@ const (
 	STAGING_SECONDARY_CONTEXT_KEY        types.ContextKey = "stagingSecondary"
 	PATCH_BUILDING_MAIN_CONTEXT_KEY      types.ContextKey = "patchBuilding"
 	PATCH_BUILDING_SECONDARY_CONTEXT_KEY types.ContextKey = "patchBuildingSecondary"
-	MERGING_MAIN_CONTEXT_KEY             types.ContextKey = "merging"
+	MERGE_CONFLICTS_CONTEXT_KEY          types.ContextKey = "mergeConflicts"
 
 	// these shouldn't really be needed for anything but I'm giving them unique keys nonetheless
 	OPTIONS_CONTEXT_KEY       types.ContextKey = "options"
@@ -60,7 +60,7 @@ var AllContextKeys = []types.ContextKey{
 	STAGING_SECONDARY_CONTEXT_KEY,
 	PATCH_BUILDING_MAIN_CONTEXT_KEY,
 	PATCH_BUILDING_SECONDARY_CONTEXT_KEY,
-	MERGING_MAIN_CONTEXT_KEY,
+	MERGE_CONFLICTS_CONTEXT_KEY,
 
 	MENU_CONTEXT_KEY,
 	CONFIRMATION_CONTEXT_KEY,
@@ -93,7 +93,7 @@ type ContextTree struct {
 	StagingSecondary            *PatchExplorerContext
 	CustomPatchBuilder          *PatchExplorerContext
 	CustomPatchBuilderSecondary types.Context
-	Merging                     types.Context
+	MergeConflicts              *MergeConflictsContext
 	Confirmation                types.Context
 	CommitMessage               types.Context
 	CommandLog                  types.Context
@@ -127,7 +127,7 @@ func (self *ContextTree) Flatten() []types.Context {
 		self.Confirmation,
 		self.CommitMessage,
 
-		self.Merging,
+		self.MergeConflicts,
 		self.StagingSecondary,
 		self.Staging,
 		self.CustomPatchBuilderSecondary,

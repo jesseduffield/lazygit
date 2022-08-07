@@ -64,6 +64,22 @@ func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 	return nil
 }
 
+func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX int, originY int) error {
+	manager := gui.getManager(view)
+
+	f := func(stop chan struct{}) error {
+		gui.setViewContent(view, str)
+		_ = view.SetOrigin(originX, originY)
+		return nil
+	}
+
+	if err := manager.NewTask(f, ""); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) error {
 	manager := gui.getManager(view)
 

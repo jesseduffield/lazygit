@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -12,9 +13,9 @@ func (gui *Gui) handleCommitMessageFocused() error {
 	message := utils.ResolvePlaceholderString(
 		gui.c.Tr.CommitMessageConfirm,
 		map[string]string{
-			"keyBindClose":   gui.getKeyDisplay(gui.c.UserConfig.Keybinding.Universal.Return),
-			"keyBindConfirm": gui.getKeyDisplay(gui.c.UserConfig.Keybinding.Universal.Confirm),
-			"keyBindNewLine": gui.getKeyDisplay(gui.c.UserConfig.Keybinding.Universal.AppendNewline),
+			"keyBindClose":   keybindings.Label(gui.c.UserConfig.Keybinding.Universal.Return),
+			"keyBindConfirm": keybindings.Label(gui.c.UserConfig.Keybinding.Universal.Confirm),
+			"keyBindNewLine": keybindings.Label(gui.c.UserConfig.Keybinding.Universal.AppendNewline),
 		},
 	)
 

@@ -1,11 +1,10 @@
 package git_commands
 
 import (
-	"sync"
-
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type GitCommon struct {
@@ -16,7 +15,7 @@ type GitCommon struct {
 	repo      *gogit.Repository
 	config    *ConfigCommands
 	// mutex for doing things like push/pull/fetch
-	syncMutex *sync.Mutex
+	syncMutex *deadlock.Mutex
 }
 
 func NewGitCommon(
@@ -26,7 +25,7 @@ func NewGitCommon(
 	dotGitDir string,
 	repo *gogit.Repository,
 	config *ConfigCommands,
-	syncMutex *sync.Mutex,
+	syncMutex *deadlock.Mutex,
 ) *GitCommon {
 	return &GitCommon{
 		Common:    cmn,

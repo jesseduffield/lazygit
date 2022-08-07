@@ -33,7 +33,7 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 				return []string{line}
 			})
 		},
-		OnFocusWrapper(gui.onFocusFile),
+		nil,
 		gui.withDiffModeCheck(gui.filesRenderToMain),
 		nil,
 		gui.c,
