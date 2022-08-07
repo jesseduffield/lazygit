@@ -29,11 +29,12 @@ func NewSuggestionsContext(
 		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       view,
-				WindowName: "suggestions",
-				Key:        SUGGESTIONS_CONTEXT_KEY,
-				Kind:       types.PERSISTENT_POPUP,
-				Focusable:  true,
+				View:                  view,
+				WindowName:            "suggestions",
+				Key:                   SUGGESTIONS_CONTEXT_KEY,
+				Kind:                  types.PERSISTENT_POPUP,
+				Focusable:             true,
+				HasUncontrolledBounds: true,
 			}), ContextCallbackOpts{
 				OnFocus:        onFocus,
 				OnFocusLost:    onFocusLost,
