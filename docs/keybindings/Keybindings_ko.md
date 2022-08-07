@@ -146,7 +146,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>n</kbd>: 새 브랜치 생성
   <kbd>o</kbd>: 풀 리퀘스트 생성
   <kbd>O</kbd>: 풀 리퀘스트 생성 옵션
-  <kbd>ctrl+y</kbd>: 풀 리퀘스트 URL을 클립보드에 복사
+  <kbd>ctrl+y</kbd>: copy to clipboard menu
   <kbd>c</kbd>: 이름으로 체크아웃
   <kbd>F</kbd>: 강제 체크아웃
   <kbd>d</kbd>: 브랜치 삭제

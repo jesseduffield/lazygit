@@ -152,6 +152,7 @@ type TranslationSet struct {
 	MergeToolPrompt                     string
 	IntroPopupMessage                   string
 	GitconfigParseErr                   string
+	GitRevParseError                    string
 	LcEditFile                          string
 	LcOpenFile                          string
 	LcIgnoreFile                        string
@@ -163,7 +164,10 @@ type TranslationSet struct {
 	LcAllBranchesLogGraph               string
 	UnsupportedGitService               string
 	LcCreatePullRequest                 string
+	LcCopyToClipboardMenu               string
+	CopyToClipboardMenuTitle            string
 	LcCopyPullRequestURL                string
+	LcCopyBranchURL                     string
 	NoBranchOnRemote                    string
 	LcFetch                             string
 	NoAutomaticGitFetchTitle            string
@@ -452,6 +456,7 @@ type TranslationSet struct {
 	ExtrasTitle                         string
 	PushingTagStatus                    string
 	PullRequestURLCopiedToClipboard     string
+	BranchURLCopiedToClipboard          string
 	CommitDiffCopiedToClipboard         string
 	CommitSHACopiedToClipboard          string
 	CommitURLCopiedToClipboard          string
@@ -621,6 +626,7 @@ type Actions struct {
 	Undo                              string
 	Redo                              string
 	CopyPullRequestURL                string
+	CopyBranchURL                     string
 	OpenMergeTool                     string
 	OpenCommitInBrowser               string
 	OpenPullRequest                   string
@@ -790,6 +796,7 @@ func EnglishTranslationSet() TranslationSet {
 		MergeToolPrompt:                     "Are you sure you want to open `git mergetool`?",
 		IntroPopupMessage:                   englishIntroPopupMessage,
 		GitconfigParseErr:                   `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
+		GitRevParseError:                    `Error retrieving last commit sha.`,
 		LcEditFile:                          `edit file`,
 		LcOpenFile:                          `open file`,
 		LcIgnoreFile:                        `add to .gitignore`,
@@ -801,7 +808,10 @@ func EnglishTranslationSet() TranslationSet {
 		LcAllBranchesLogGraph:               `show all branch logs`,
 		UnsupportedGitService:               `Unsupported git service`,
 		LcCreatePullRequest:                 `create pull request`,
+		LcCopyToClipboardMenu:               `copy to clipboard menu`,
+		CopyToClipboardMenuTitle:            `Copy to clipboard`,
 		LcCopyPullRequestURL:                `copy pull request URL to clipboard`,
+		LcCopyBranchURL:                     `copy branch URL to clipboard`,
 		NoBranchOnRemote:                    `This branch doesn't exist on remote. You need to push it to remote first.`,
 		LcFetch:                             `fetch`,
 		NoAutomaticGitFetchTitle:            `No automatic git fetch`,
@@ -1091,6 +1101,7 @@ func EnglishTranslationSet() TranslationSet {
 		ExtrasTitle:                         "Command Log",
 		PushingTagStatus:                    "pushing tag",
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
+		BranchURLCopiedToClipboard:          "Branch URL copied to clipboard",
 		CommitDiffCopiedToClipboard:         "Commit diff copied to clipboard",
 		CommitSHACopiedToClipboard:          "Commit SHA copied to clipboard",
 		CommitURLCopiedToClipboard:          "Commit URL copied to clipboard",
@@ -1242,6 +1253,7 @@ func EnglishTranslationSet() TranslationSet {
 			Undo:                              "Undo",
 			Redo:                              "Redo",
 			CopyPullRequestURL:                "Copy pull request URL",
+			CopyBranchURL:                     "Copy branch URL",
 			OpenMergeTool:                     "Open merge tool",
 			OpenCommitInBrowser:               "Open commit in browser",
 			OpenPullRequest:                   "Open pull request in browser",

@@ -52,9 +52,10 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Branches.CopyPullRequestURL),
-			Handler:     self.copyPullRequestURL,
-			Description: self.c.Tr.LcCopyPullRequestURL,
+			Key:         opts.GetKey(opts.Config.Branches.CopyToClipboardMenu),
+			Handler:     self.createCopyToClipboardMenu,
+			Description: self.c.Tr.LcCopyToClipboardMenu,
+			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.CheckoutBranchByName),
@@ -186,10 +187,53 @@ func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *mode
 	return self.createPullRequestMenu(selectedBranch, checkedOutBranch)
 }
 
+func (self *BranchesController) createCopyToClipboardMenu() error {
+	menuItems := []*types.MenuItem{
+		{
+			LabelColumns: []string{
+				self.c.Tr.LcCopyBranchNameToClipboard,
+			},
+			OnPress: self.copyBranchName,
+			Key:     'n',
+		},
+		{
+			LabelColumns: []string{
+				self.c.Tr.LcCopyPullRequestURL,
+			},
+			OnPress: self.copyPullRequestURL,
+			Key:     'p',
+		},
+		{
+			LabelColumns: []string{
+				self.c.Tr.LcCopyBranchURL,
+			},
+			OnPress: self.copyBranchURL,
+			Key:     'b',
+		},
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: fmt.Sprintf(self.c.Tr.CopyToClipboardMenuTitle),
+		Items: menuItems,
+	})
+}
+
+func (self *BranchesController) copyBranchName() error {
+	branch := self.context().GetSelected()
+
+	self.c.LogAction(self.c.Tr.LcCopyBranchNameToClipboard)
+
+	if err := self.os.CopyToClipboard(branch.Name); err != nil {
+		return self.c.Error(err)
+	}
+
+	return nil
+}
+
 func (self *BranchesController) copyPullRequestURL() error {
 	branch := self.context().GetSelected()
 
-	branchExistsOnRemote := self.git.Remote.CheckRemoteBranchExists(branch.Name)
+	branchExistsOnRemote := self.git.Remote.CheckRemoteBranchExists(branch.Name, branch.UpstreamRemote)
 
 	if !branchExistsOnRemote {
 		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
@@ -205,6 +249,36 @@ func (self *BranchesController) copyPullRequestURL() error {
 	}
 
 	self.c.Toast(self.c.Tr.PullRequestURLCopiedToClipboard)
+
+	return nil
+}
+
+func (self *BranchesController) copyBranchURL() error {
+	branch := self.context().GetSelected()
+
+	branchExistsOnRemote := self.git.Remote.CheckRemoteBranchExists(branch.Name, branch.UpstreamRemote)
+
+	if !branchExistsOnRemote {
+		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
+	}
+
+	// Get most recent commitSha to produce the proper bitbucket url
+	commitSha, err := self.git.Custom.RunWithOutput("git rev-parse --short HEAD")
+	if err != nil {
+		return self.c.Error(errors.New(self.c.Tr.GitRevParseError))
+	}
+
+	url, err := self.helpers.Host.GetBranchURL(branch.Name, commitSha)
+	if err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.CopyBranchURL)
+	if err := self.os.CopyToClipboard(url); err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Toast(self.c.Tr.BranchURLCopiedToClipboard)
 
 	return nil
 }
