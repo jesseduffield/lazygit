@@ -618,15 +618,15 @@ func (gui *Gui) refreshStagingPanel(focusOpts types.OnFocusOpts) error {
 		return gui.c.PushContext(mainContext, focusOpts)
 	}
 
-	return gui.refreshMainViews(refreshMainOpts{
-		pair: gui.stagingMainContextPair(),
-		main: &viewUpdateOpts{
-			task:  NewRenderStringWithoutScrollTask(mainContent),
-			title: gui.Tr.UnstagedChanges,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Staging,
+		Main: &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(mainContent),
+			Title: gui.Tr.UnstagedChanges,
 		},
-		secondary: &viewUpdateOpts{
-			task:  NewRenderStringWithoutScrollTask(secondaryContent),
-			title: gui.Tr.StagedChanges,
+		Secondary: &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(secondaryContent),
+			Title: gui.Tr.StagedChanges,
 		},
 	})
 }
@@ -680,15 +680,15 @@ func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 
 	mainContent := context.GetContentToRender(true)
 
-	return gui.refreshMainViews(refreshMainOpts{
-		pair: gui.patchBuildingMainContextPair(),
-		main: &viewUpdateOpts{
-			task:  NewRenderStringWithoutScrollTask(mainContent),
-			title: gui.Tr.Patch,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().PatchBuilding,
+		Main: &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(mainContent),
+			Title: gui.Tr.Patch,
 		},
-		secondary: &viewUpdateOpts{
-			task:  NewRenderStringWithoutScrollTask(secondaryDiff),
-			title: gui.Tr.CustomPatch,
+		Secondary: &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(secondaryDiff),
+			Title: gui.Tr.CustomPatch,
 		},
 	})
 }
@@ -696,18 +696,18 @@ func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 func (gui *Gui) refreshMergePanel(isFocused bool) error {
 	content := gui.State.Contexts.MergeConflicts.GetContentToRender(isFocused)
 
-	var task updateTask
+	var task types.UpdateTask
 	if gui.State.Contexts.MergeConflicts.IsUserScrolling() {
-		task = NewRenderStringWithoutScrollTask(content)
+		task = types.NewRenderStringWithoutScrollTask(content)
 	} else {
 		originY := gui.State.Contexts.MergeConflicts.GetOriginY()
-		task = NewRenderStringWithScrollTask(content, 0, originY)
+		task = types.NewRenderStringWithScrollTask(content, 0, originY)
 	}
 
-	return gui.refreshMainViews(refreshMainOpts{
-		pair: gui.mergingMainContextPair(),
-		main: &viewUpdateOpts{
-			task: task,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().MergeConflicts,
+		Main: &types.ViewUpdateOpts{
+			Task: task,
 		},
 	})
 }
