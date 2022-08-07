@@ -33,7 +33,7 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 				return []string{line}
 			})
 		},
-		OnFocusWrapper(gui.onFocusFile),
+		nil,
 		gui.withDiffModeCheck(gui.filesRenderToMain),
 		nil,
 		gui.c,
@@ -270,7 +270,10 @@ func (gui *Gui) suggestionsListContext() *context.SuggestionsContext {
 		},
 		nil,
 		nil,
-		nil,
+		func(types.OnFocusLostOpts) error {
+			gui.deactivateConfirmationPrompt()
+			return nil
+		},
 		gui.c,
 	)
 }

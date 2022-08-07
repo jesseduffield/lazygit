@@ -24,7 +24,7 @@ type Views struct {
 	StagingSecondary       *gocui.View
 	PatchBuilding          *gocui.View
 	PatchBuildingSecondary *gocui.View
-	Merging                *gocui.View
+	MergeConflicts         *gocui.View
 
 	Options       *gocui.View
 	Confirmation  *gocui.View
@@ -74,7 +74,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.StagingSecondary, name: "stagingSecondary"},
 		{viewPtr: &gui.Views.PatchBuilding, name: "patchBuilding"},
 		{viewPtr: &gui.Views.PatchBuildingSecondary, name: "patchBuildingSecondary"},
-		{viewPtr: &gui.Views.Merging, name: "merging"},
+		{viewPtr: &gui.Views.MergeConflicts, name: "mergeConflicts"},
 		{viewPtr: &gui.Views.Secondary, name: "secondary"},
 		{viewPtr: &gui.Views.Main, name: "main"},
 
@@ -151,7 +151,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Files.Title = gui.c.Tr.FilesTitle
 	gui.Views.Files.FgColor = theme.GocuiDefaultTextColor
 
-	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.Merging} {
+	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
 		view.Title = gui.c.Tr.DiffTitle
 		view.Wrap = true
 		view.FgColor = theme.GocuiDefaultTextColor
@@ -175,9 +175,9 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.PatchBuildingSecondary.Highlight = true
 	gui.Views.PatchBuildingSecondary.Wrap = true
 
-	gui.Views.Merging.Title = gui.c.Tr.MergeConflictsTitle
-	gui.Views.Merging.Highlight = true
-	gui.Views.Merging.Wrap = true
+	gui.Views.MergeConflicts.Title = gui.c.Tr.MergeConflictsTitle
+	gui.Views.MergeConflicts.Highlight = true
+	gui.Views.MergeConflicts.Wrap = false
 
 	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
 	gui.Views.Limit.Wrap = true

@@ -8,6 +8,7 @@ type Helpers struct {
 	WorkingTree    *WorkingTreeHelper
 	Tags           *TagsHelper
 	MergeAndRebase *MergeAndRebaseHelper
+	MergeConflicts *MergeConflictsHelper
 	CherryPick     *CherryPickHelper
 	Host           *HostHelper
 	PatchBuilding  *PatchBuildingHelper
@@ -24,6 +25,7 @@ func NewStubHelpers() *Helpers {
 		WorkingTree:    &WorkingTreeHelper{},
 		Tags:           &TagsHelper{},
 		MergeAndRebase: &MergeAndRebaseHelper{},
+		MergeConflicts: &MergeConflictsHelper{},
 		CherryPick:     &CherryPickHelper{},
 		Host:           &HostHelper{},
 		PatchBuilding:  &PatchBuildingHelper{},

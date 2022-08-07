@@ -10,7 +10,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 		Global: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:                  types.GLOBAL_CONTEXT,
-				View:                  nil,
+				View:                  nil, // TODO: see if this breaks anything
 				WindowName:            "",
 				Key:                   context.GLOBAL_CONTEXT_KEY,
 				Focusable:             false,
@@ -158,26 +158,26 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			}),
 			context.ContextCallbackOpts{},
 		),
-		Merging: context.NewSimpleContext(
-			context.NewBaseContext(context.NewBaseContextOpts{
-				Kind:            types.MAIN_CONTEXT,
-				View:            gui.Views.Merging,
-				WindowName:      "main",
-				Key:             context.MERGING_MAIN_CONTEXT_KEY,
-				OnGetOptionsMap: gui.getMergingOptions,
-				Focusable:       true,
-			}),
+		MergeConflicts: context.NewMergeConflictsContext(
+			gui.Views.MergeConflicts,
 			context.ContextCallbackOpts{
 				OnFocus: OnFocusWrapper(func() error {
-					gui.Views.Merging.Wrap = false
+					gui.Views.MergeConflicts.Wrap = false
 
-					return gui.renderConflictsWithLock(true)
+					return gui.refreshMergePanel(true)
 				}),
-				OnFocusLost: func(types.OnFocusLostOpts) error {
-					gui.Views.Merging.Wrap = true
+				OnFocusLost: func(opts types.OnFocusLostOpts) error {
+					gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
+					gui.State.Contexts.MergeConflicts.GetState().ResetConflictSelection()
+					gui.Views.MergeConflicts.Wrap = true
 
 					return nil
 				},
+			},
+			gui.c,
+			func() map[string]string {
+				// wrapping in a function because contexts are initialized before helpers
+				return gui.helpers.MergeConflicts.GetMergingOptions()
 			},
 		),
 		Confirmation: context.NewSimpleContext(
@@ -222,12 +222,11 @@ func (gui *Gui) contextTree() *context.ContextTree {
 		),
 		CommandLog: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
-				Kind:            types.EXTRAS_CONTEXT,
-				View:            gui.Views.Extras,
-				WindowName:      "extras",
-				Key:             context.COMMAND_LOG_CONTEXT_KEY,
-				OnGetOptionsMap: gui.getMergingOptions,
-				Focusable:       true,
+				Kind:       types.EXTRAS_CONTEXT,
+				View:       gui.Views.Extras,
+				WindowName: "extras",
+				Key:        context.COMMAND_LOG_CONTEXT_KEY,
+				Focusable:  true,
 			}),
 			context.ContextCallbackOpts{
 				OnFocusLost: func(opts types.OnFocusLostOpts) error {

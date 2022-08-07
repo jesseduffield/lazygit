@@ -4,9 +4,8 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
-
-// list panel functions
 
 func (gui *Gui) getSelectedFileNode() *filetree.FileNode {
 	return gui.State.Contexts.Files.GetSelected()
@@ -20,43 +19,35 @@ func (gui *Gui) getSelectedFile() *models.File {
 	return node.File
 }
 
-func (gui *Gui) getSelectedPath() string {
-	node := gui.getSelectedFileNode()
-	if node == nil {
-		return ""
-	}
-
-	return node.GetPath()
-}
-
 func (gui *Gui) filesRenderToMain() error {
 	node := gui.getSelectedFileNode()
 
 	if node == nil {
-		return gui.refreshMainViews(refreshMainOpts{
-			pair: gui.normalMainContextPair(),
-			main: &viewUpdateOpts{
-				title: gui.c.Tr.DiffTitle,
-				task:  NewRenderStringTask(gui.c.Tr.NoChangedFiles),
+		return gui.c.RenderToMainViews(types.RefreshMainOpts{
+			Pair: gui.c.MainViewPairs().Normal,
+			Main: &types.ViewUpdateOpts{
+				Title: gui.c.Tr.DiffTitle,
+				Task:  types.NewRenderStringTask(gui.c.Tr.NoChangedFiles),
 			},
 		})
 	}
 
 	if node.File != nil && node.File.HasInlineMergeConflicts {
-		ok, err := gui.setConflictsAndRenderWithLock(node.GetPath(), false)
+		hasConflicts, err := gui.helpers.MergeConflicts.SetMergeState(node.GetPath())
 		if err != nil {
 			return err
 		}
-		if ok {
-			return nil
+
+		if hasConflicts {
+			return gui.refreshMergePanel(false)
 		}
 	}
 
-	gui.resetMergeStateWithLock()
+	gui.helpers.MergeConflicts.ResetMergeState()
 
-	pair := gui.normalMainContextPair()
+	pair := gui.c.MainViewPairs().Normal
 	if node.File != nil {
-		pair = gui.stagingMainContextPair()
+		pair = gui.c.MainViewPairs().Staging
 	}
 
 	split := gui.c.UserConfig.Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
@@ -67,11 +58,11 @@ func (gui *Gui) filesRenderToMain() error {
 	if mainShowsStaged {
 		title = gui.c.Tr.StagedChanges
 	}
-	refreshOpts := refreshMainOpts{
-		pair: pair,
-		main: &viewUpdateOpts{
-			task:  NewRunPtyTask(cmdObj.GetCmd()),
-			title: title,
+	refreshOpts := types.RefreshMainOpts{
+		Pair: pair,
+		Main: &types.ViewUpdateOpts{
+			Task:  types.NewRunPtyTask(cmdObj.GetCmd()),
+			Title: title,
 		},
 	}
 
@@ -83,21 +74,14 @@ func (gui *Gui) filesRenderToMain() error {
 			title = gui.c.Tr.UnstagedChanges
 		}
 
-		refreshOpts.secondary = &viewUpdateOpts{
-			title: title,
-			task:  NewRunPtyTask(cmdObj.GetCmd()),
+		refreshOpts.Secondary = &types.ViewUpdateOpts{
+			Title: title,
+			Task:  types.NewRunPtyTask(cmdObj.GetCmd()),
 		}
 	}
 
-	return gui.refreshMainViews(refreshOpts)
+	return gui.c.RenderToMainViews(refreshOpts)
 }
-
-func (gui *Gui) onFocusFile() error {
-	gui.takeOverMergeConflictScrolling()
-	return nil
-}
-
-// test
 
 func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
 	return func(text string) {
@@ -108,5 +92,3 @@ func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
 		view.RenderTextArea()
 	}
 }
-
-// test

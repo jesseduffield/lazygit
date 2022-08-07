@@ -1,9 +1,8 @@
 package tasks
 
 import (
-	"sync"
-
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 )
 
 // the purpose of an AsyncHandler is to ensure that if we have multiple long-running
@@ -17,13 +16,13 @@ import (
 type AsyncHandler struct {
 	currentId int
 	lastId    int
-	mutex     sync.Mutex
+	mutex     deadlock.Mutex
 	onReject  func()
 }
 
 func NewAsyncHandler() *AsyncHandler {
 	return &AsyncHandler{
-		mutex: sync.Mutex{},
+		mutex: deadlock.Mutex{},
 	}
 }
 

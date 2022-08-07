@@ -22,17 +22,18 @@ import (
 
 func getScopeNames(scopes []types.RefreshableView) []string {
 	scopeNameMap := map[types.RefreshableView]string{
-		types.COMMITS:     "commits",
-		types.BRANCHES:    "branches",
-		types.FILES:       "files",
-		types.SUBMODULES:  "submodules",
-		types.STASH:       "stash",
-		types.REFLOG:      "reflog",
-		types.TAGS:        "tags",
-		types.REMOTES:     "remotes",
-		types.STATUS:      "status",
-		types.BISECT_INFO: "bisect",
-		types.STAGING:     "staging",
+		types.COMMITS:         "commits",
+		types.BRANCHES:        "branches",
+		types.FILES:           "files",
+		types.SUBMODULES:      "submodules",
+		types.STASH:           "stash",
+		types.REFLOG:          "reflog",
+		types.TAGS:            "tags",
+		types.REMOTES:         "remotes",
+		types.STATUS:          "status",
+		types.BISECT_INFO:     "bisect",
+		types.STAGING:         "staging",
+		types.MERGE_CONFLICTS: "mergeConflicts",
 	}
 
 	return slices.Map(scopes, func(scope types.RefreshableView) string {
@@ -138,6 +139,10 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 			refresh(func() { _ = gui.refreshPatchBuildingPanel(types.OnFocusOpts{}) })
 		}
 
+		if scopeSet.Includes(types.MERGE_CONFLICTS) || scopeSet.Includes(types.FILES) {
+			refresh(func() { _ = gui.refreshMergeState() })
+		}
+
 		wg.Wait()
 
 		gui.refreshStatus()
@@ -148,7 +153,7 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 	}
 
 	if options.Mode == types.BLOCK_UI {
-		gui.OnUIThread(func() error {
+		gui.c.OnUIThread(func() error {
 			f()
 			return nil
 		})
@@ -323,13 +328,7 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 		gui.Mutexes.RefreshingFilesMutex.Unlock()
 	}()
 
-	prevSelectedPath := gui.getSelectedPath()
-
 	if err := gui.refreshStateSubmoduleConfigs(); err != nil {
-		return err
-	}
-
-	if err := gui.refreshMergeState(); err != nil {
 		return err
 	}
 
@@ -337,21 +336,13 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 		return err
 	}
 
-	gui.OnUIThread(func() error {
+	gui.c.OnUIThread(func() error {
 		if err := gui.c.PostRefreshUpdate(gui.State.Contexts.Submodules); err != nil {
 			gui.c.Log.Error(err)
 		}
 
 		if err := gui.c.PostRefreshUpdate(gui.State.Contexts.Files); err != nil {
 			gui.c.Log.Error(err)
-		}
-
-		if gui.currentContext().GetKey() == context.FILES_CONTEXT_KEY {
-			currentSelectedPath := gui.getSelectedPath()
-			alreadySelected := prevSelectedPath != "" && currentSelectedPath == prevSelectedPath
-			if !alreadySelected {
-				gui.takeOverMergeConflictScrolling()
-			}
 		}
 
 		return nil
@@ -361,20 +352,20 @@ func (gui *Gui) refreshFilesAndSubmodules() error {
 }
 
 func (gui *Gui) refreshMergeState() error {
-	gui.State.Panels.Merging.Lock()
-	defer gui.State.Panels.Merging.Unlock()
+	gui.State.Contexts.MergeConflicts.GetMutex().Lock()
+	defer gui.State.Contexts.MergeConflicts.GetMutex().Unlock()
 
-	if gui.currentContext().GetKey() != context.MERGING_MAIN_CONTEXT_KEY {
+	if gui.currentContext().GetKey() != context.MERGE_CONFLICTS_CONTEXT_KEY {
 		return nil
 	}
 
-	hasConflicts, err := gui.setConflictsAndRender(gui.State.Panels.Merging.GetPath(), true)
+	hasConflicts, err := gui.helpers.MergeConflicts.SetConflictsAndRender(gui.State.Contexts.MergeConflicts.GetState().GetPath(), true)
 	if err != nil {
 		return gui.c.Error(err)
 	}
 
 	if !hasConflicts {
-		return gui.escapeMerge()
+		return gui.helpers.MergeConflicts.EscapeMerge()
 	}
 
 	return nil
@@ -426,7 +417,7 @@ func (gui *Gui) refreshStateFiles() error {
 	}
 
 	if gui.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE && conflictFileCount == 0 && prevConflictFileCount > 0 {
-		gui.OnUIThread(func() error { return gui.helpers.MergeAndRebase.PromptToContinueRebase() })
+		gui.c.OnUIThread(func() error { return gui.helpers.MergeAndRebase.PromptToContinueRebase() })
 	}
 
 	fileTreeViewModel.RWMutex.Lock()
@@ -627,15 +618,15 @@ func (gui *Gui) refreshStagingPanel(focusOpts types.OnFocusOpts) error {
 		return gui.c.PushContext(mainContext, focusOpts)
 	}
 
-	return gui.refreshMainViews(refreshMainOpts{
-		pair: gui.stagingMainContextPair(),
-		main: &viewUpdateOpts{
-			task:  NewRenderStringWithoutScrollTask(mainContent),
-			title: gui.Tr.UnstagedChanges,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Staging,
+		Main: &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(mainContent),
+			Title: gui.Tr.UnstagedChanges,
 		},
-		secondary: &viewUpdateOpts{
-			task:  NewRenderStringWithoutScrollTask(secondaryContent),
-			title: gui.Tr.StagedChanges,
+		Secondary: &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(secondaryContent),
+			Title: gui.Tr.StagedChanges,
 		},
 	})
 }
@@ -689,15 +680,34 @@ func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 
 	mainContent := context.GetContentToRender(true)
 
-	return gui.refreshMainViews(refreshMainOpts{
-		pair: gui.patchBuildingMainContextPair(),
-		main: &viewUpdateOpts{
-			task:  NewRenderStringWithoutScrollTask(mainContent),
-			title: gui.Tr.Patch,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().PatchBuilding,
+		Main: &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(mainContent),
+			Title: gui.Tr.Patch,
 		},
-		secondary: &viewUpdateOpts{
-			task:  NewRenderStringWithoutScrollTask(secondaryDiff),
-			title: gui.Tr.CustomPatch,
+		Secondary: &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(secondaryDiff),
+			Title: gui.Tr.CustomPatch,
+		},
+	})
+}
+
+func (gui *Gui) refreshMergePanel(isFocused bool) error {
+	content := gui.State.Contexts.MergeConflicts.GetContentToRender(isFocused)
+
+	var task types.UpdateTask
+	if gui.State.Contexts.MergeConflicts.IsUserScrolling() {
+		task = types.NewRenderStringWithoutScrollTask(content)
+	} else {
+		originY := gui.State.Contexts.MergeConflicts.GetOriginY()
+		task = types.NewRenderStringWithScrollTask(content, 0, originY)
+	}
+
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().MergeConflicts,
+		Main: &types.ViewUpdateOpts{
+			Task: task,
 		},
 	})
 }

@@ -30,13 +30,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## List Panel Navigation
 
 <pre>
-  <kbd>H</kbd>: 우 스크롤
-  <kbd>L</kbd>: 좌 스크롤
   <kbd>,</kbd>: 이전 페이지
   <kbd>.</kbd>: 다음 페이지
   <kbd><</kbd>: 맨 위로 스크롤 
   <kbd>/</kbd>: 검색 시작
   <kbd>></kbd>: 맨 아래로 스크롤 
+  <kbd>H</kbd>: 우 스크롤
+  <kbd>L</kbd>: 좌 스크롤
   <kbd>]</kbd>: 이전 탭
   <kbd>[</kbd>: 다음 탭
 </pre>
@@ -84,24 +84,24 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 메인 패널 (Merging)
 
 <pre>
-  <kbd>esc</kbd>: 파일 목록으로 돌아가기
-  <kbd>M</kbd>: git mergetool를 열기
-  <kbd>space</kbd>: pick hunk
-  <kbd>b</kbd>: pick all hunks
+  <kbd>e</kbd>: 파일 편집
+  <kbd>o</kbd>: 파일 닫기
   <kbd>◄</kbd>: 이전 충돌을 선택
   <kbd>►</kbd>: 다음 충돌을 선택
   <kbd>▲</kbd>: 이전 hunk를 선택
   <kbd>▼</kbd>: 다음 hunk를 선택
-  <kbd>e</kbd>: 파일 편집
-  <kbd>o</kbd>: 파일 닫기
   <kbd>z</kbd>: 되돌리기
+  <kbd>M</kbd>: git mergetool를 열기
+  <kbd>space</kbd>: pick hunk
+  <kbd>b</kbd>: pick all hunks
+  <kbd>esc</kbd>: 파일 목록으로 돌아가기
 </pre>
 
 ## 메인 패널 (Normal)
 
 <pre>
-  <kbd>mouse wheel down</kbd>: 아래로 스크롤 (fn+up)
-  <kbd>mouse wheel up</kbd>: 위로 스크롤 (fn+down)
+  <kbd>mouse wheel ▼</kbd>: 아래로 스크롤 (fn+up)
+  <kbd>mouse wheel ▲</kbd>: 위로 스크롤 (fn+down)
 </pre>
 
 ## 메인 패널 (Patch Building)

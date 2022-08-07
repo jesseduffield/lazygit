@@ -30,6 +30,7 @@ require (
 	github.com/sahilm/fuzzy v0.1.0
 	github.com/samber/lo v1.10.1
 	github.com/sanity-io/litter v1.5.2
+	github.com/sasha-s/go-deadlock v0.3.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stretchr/testify v1.7.0
@@ -58,6 +59,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
+	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
 	github.com/rivo/uniseg v0.3.4 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/xanzy/ssh-agent v0.2.1 // indirect

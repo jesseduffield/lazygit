@@ -8,19 +8,18 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // KeybindingCreator takes a custom command along with its handler and returns a corresponding keybinding
 type KeybindingCreator struct {
 	contexts *context.ContextTree
-	getKey   func(string) types.Key
 }
 
-func NewKeybindingCreator(contexts *context.ContextTree, getKey func(string) types.Key) *KeybindingCreator {
+func NewKeybindingCreator(contexts *context.ContextTree) *KeybindingCreator {
 	return &KeybindingCreator{
 		contexts: contexts,
-		getKey:   getKey,
 	}
 }
 
@@ -41,7 +40,7 @@ func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler 
 
 	return &types.Binding{
 		ViewName:    viewName,
-		Key:         self.getKey(customCommand.Key),
+		Key:         keybindings.GetKey(customCommand.Key),
 		Modifier:    gocui.ModNone,
 		Handler:     handler,
 		Description: description,

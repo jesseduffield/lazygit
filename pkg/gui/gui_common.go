@@ -87,5 +87,18 @@ func (self *guiCommon) OpenSearch() {
 }
 
 func (self *guiCommon) OnUIThread(f func() error) {
-	self.gui.OnUIThread(f)
+	self.gui.onUIThread(f)
+}
+
+func (self *guiCommon) RenderToMainViews(opts types.RefreshMainOpts) error {
+	return self.gui.refreshMainViews(opts)
+}
+
+func (self *guiCommon) MainViewPairs() types.MainViewPairs {
+	return types.MainViewPairs{
+		Normal:         self.gui.normalMainContextPair(),
+		Staging:        self.gui.stagingMainContextPair(),
+		PatchBuilding:  self.gui.patchBuildingMainContextPair(),
+		MergeConflicts: self.gui.mergingMainContextPair(),
+	}
 }
