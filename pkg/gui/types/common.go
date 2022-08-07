@@ -28,6 +28,12 @@ type IGuiCommon interface {
 	PostRefreshUpdate(Context) error
 	// this just re-renders the screen
 	Render()
+	// allows rendering to main views (i.e. the ones to the right of the side panel)
+	// in such a way that avoids concurrency issues when there are slow commands
+	// to display the output of
+	RenderToMainViews(opts RefreshMainOpts) error
+	// used purely for the sake of RenderToMainViews to provide the pair of main views we want to render to
+	MainViewPairs() MainViewPairs
 
 	// returns true if command completed successfully
 	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)

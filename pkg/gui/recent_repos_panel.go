@@ -107,13 +107,13 @@ func (gui *Gui) handleCreateRecentReposMenu() error {
 
 func (gui *Gui) handleShowAllBranchLogs() error {
 	cmdObj := gui.git.Branch.AllBranchesLogCmdObj()
-	task := NewRunPtyTask(cmdObj.GetCmd())
+	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
-	return gui.refreshMainViews(refreshMainOpts{
-		pair: gui.normalMainContextPair(),
-		main: &viewUpdateOpts{
-			title: gui.c.Tr.LogTitle,
-			task:  task,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: gui.c.Tr.LogTitle,
+			Task:  task,
 		},
 	})
 }
