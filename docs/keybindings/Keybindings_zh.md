@@ -30,13 +30,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 列表面板导航
 
 <pre>
-  <kbd>H</kbd>: 向左滚动
-  <kbd>L</kbd>: 向右滚动
   <kbd>,</kbd>: 上一页
   <kbd>.</kbd>: 下一页
   <kbd><</kbd>: 滚动到顶部
   <kbd>/</kbd>: 开始搜索
   <kbd>></kbd>: 滚动到底部
+  <kbd>H</kbd>: 向左滚动
+  <kbd>L</kbd>: 向右滚动
   <kbd>]</kbd>: 下一个标签
   <kbd>[</kbd>: 上一个标签
 </pre>
@@ -209,17 +209,17 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 正在合并
 
 <pre>
-  <kbd>esc</kbd>: 返回文件面板
-  <kbd>M</kbd>: 打开外部合并工具 (git mergetool)
-  <kbd>space</kbd>: 选中区块
-  <kbd>b</kbd>: 选中所有区块
+  <kbd>e</kbd>: 编辑文件
+  <kbd>o</kbd>: 打开文件
   <kbd>◄</kbd>: 选择上一个冲突
   <kbd>►</kbd>: 选择下一个冲突
   <kbd>▲</kbd>: 选择顶部块
   <kbd>▼</kbd>: 选择底部块
-  <kbd>e</kbd>: 编辑文件
-  <kbd>o</kbd>: 打开文件
   <kbd>z</kbd>: 撤销
+  <kbd>M</kbd>: 打开外部合并工具 (git mergetool)
+  <kbd>space</kbd>: 选中区块
+  <kbd>b</kbd>: 选中所有区块
+  <kbd>esc</kbd>: 返回文件面板
 </pre>
 
 ## 正在暂存
@@ -243,8 +243,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 正常
 
 <pre>
-  <kbd>mouse wheel down</kbd>: 向下滚动 (fn+up)
-  <kbd>mouse wheel up</kbd>: 向上滚动 (fn+down)
+  <kbd>mouse wheel ▼</kbd>: 向下滚动 (fn+up)
+  <kbd>mouse wheel ▲</kbd>: 向上滚动 (fn+down)
 </pre>
 
 ## 状态

@@ -30,13 +30,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## List Panel Navigation
 
 <pre>
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
   <kbd>,</kbd>: previous page
   <kbd>.</kbd>: next page
   <kbd><</kbd>: scroll to top
   <kbd>/</kbd>: start search
   <kbd>></kbd>: scroll to bottom
+  <kbd>H</kbd>: scroll left
+  <kbd>L</kbd>: scroll right
   <kbd>]</kbd>: next tab
   <kbd>[</kbd>: previous tab
 </pre>
@@ -211,17 +211,17 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Scalanie
 
 <pre>
-  <kbd>esc</kbd>: wróć do panelu plików
-  <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>space</kbd>: wybierz kawałek
-  <kbd>b</kbd>: wybierz wszystkie kawałki
+  <kbd>e</kbd>: edytuj plik
+  <kbd>o</kbd>: otwórz plik
   <kbd>◄</kbd>: poprzedni konflikt
   <kbd>►</kbd>: następny konflikt
   <kbd>▲</kbd>: wybierz poprzedni kawałek
   <kbd>▼</kbd>: wybierz następny kawałek
-  <kbd>e</kbd>: edytuj plik
-  <kbd>o</kbd>: otwórz plik
   <kbd>z</kbd>: cofnij
+  <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>space</kbd>: wybierz kawałek
+  <kbd>b</kbd>: wybierz wszystkie kawałki
+  <kbd>esc</kbd>: wróć do panelu plików
 </pre>
 
 ## Schowek
@@ -286,6 +286,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Zwykłe
 
 <pre>
-  <kbd>mouse wheel down</kbd>: przewiń w dół (fn+up)
-  <kbd>mouse wheel up</kbd>: przewiń w górę (fn+down)
+  <kbd>mouse wheel ▼</kbd>: przewiń w dół (fn+up)
+  <kbd>mouse wheel ▲</kbd>: przewiń w górę (fn+down)
 </pre>

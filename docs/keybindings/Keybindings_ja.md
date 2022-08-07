@@ -30,13 +30,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 一覧パネルの操作
 
 <pre>
-  <kbd>H</kbd>: 左スクロール
-  <kbd>L</kbd>: 右スクロール
   <kbd>,</kbd>: 前のページ
   <kbd>.</kbd>: 次のページ
   <kbd><</kbd>: 最上部までスクロール
   <kbd>/</kbd>: 検索を開始
   <kbd>></kbd>: 最下部までスクロール
+  <kbd>H</kbd>: 左スクロール
+  <kbd>L</kbd>: 右スクロール
   <kbd>]</kbd>: 次のタブ
   <kbd>[</kbd>: 前のタブ
 </pre>
@@ -199,24 +199,24 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## メインパネル (Merging)
 
 <pre>
-  <kbd>esc</kbd>: ファイル一覧に戻る
-  <kbd>M</kbd>: git mergetoolを開く
-  <kbd>space</kbd>: pick hunk
-  <kbd>b</kbd>: pick all hunks
+  <kbd>e</kbd>: ファイルを編集
+  <kbd>o</kbd>: ファイルを開く
   <kbd>◄</kbd>: 前のコンフリクトを選択
   <kbd>►</kbd>: 次のコンフリクトを選択
   <kbd>▲</kbd>: 前のhunkを選択
   <kbd>▼</kbd>: 次のhunkを選択
-  <kbd>e</kbd>: ファイルを編集
-  <kbd>o</kbd>: ファイルを開く
   <kbd>z</kbd>: アンドゥ
+  <kbd>M</kbd>: git mergetoolを開く
+  <kbd>space</kbd>: pick hunk
+  <kbd>b</kbd>: pick all hunks
+  <kbd>esc</kbd>: ファイル一覧に戻る
 </pre>
 
 ## メインパネル (Normal)
 
 <pre>
-  <kbd>mouse wheel down</kbd>: 下にスクロール (fn+up)
-  <kbd>mouse wheel up</kbd>: 上にスクロール (fn+down)
+  <kbd>mouse wheel ▼</kbd>: 下にスクロール (fn+up)
+  <kbd>mouse wheel ▲</kbd>: 上にスクロール (fn+down)
 </pre>
 
 ## メインパネル (Patch Building)
