@@ -24,8 +24,11 @@ var bitbucketServiceDef = ServiceDefinition{
 	pullRequestURLIntoDefaultBranch: "/pull-requests/new?source={{.From}}&t=1",
 	pullRequestURLIntoTargetBranch:  "/pull-requests/new?source={{.From}}&dest={{.To}}&t=1",
 	commitURL:                       "/commits/{{.CommitSha}}",
-	regexStrings:                    defaultUrlRegexStrings,
-	repoURLTemplate:                 defaultRepoURLTemplate,
+	regexStrings: []string{
+		`^(?:https?|ssh)://.*/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+		`^.*@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+	},
+	repoURLTemplate: defaultRepoURLTemplate,
 }
 
 var gitLabServiceDef = ServiceDefinition{
