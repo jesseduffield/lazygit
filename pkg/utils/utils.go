@@ -128,3 +128,10 @@ func StackTrace() string {
 	n := runtime.Stack(buf, false)
 	return fmt.Sprintf("%s\n", buf[:n])
 }
+
+// returns the path of the file that calls the function.
+// 'skip' is the number of stack frames to skip.
+func FilePath(skip int) string {
+	_, path, _, _ := runtime.Caller(skip)
+	return path
+}

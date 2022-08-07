@@ -16,6 +16,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/jesseduffield/lazygit/pkg/logs"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	yaml "github.com/jesseduffield/yaml"
@@ -148,6 +149,10 @@ func main() {
 	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag, tempDir)
 	if err != nil {
 		log.Fatal(err.Error())
+	}
+
+	if test, ok := integration.CurrentIntegrationTest(); ok {
+		test.SetupConfig(appConfig)
 	}
 
 	common, err := app.NewCommon(appConfig)

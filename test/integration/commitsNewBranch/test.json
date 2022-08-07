@@ -1,1 +1,0 @@
-{ "description": "Reverting a commit. Note here that our snapshot test fails if the commit SHA is included in the message hence the renaming of the revert commit after creating it", "speed": 20 }
