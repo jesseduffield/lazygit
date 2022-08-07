@@ -270,7 +270,10 @@ func (gui *Gui) suggestionsListContext() *context.SuggestionsContext {
 		},
 		nil,
 		nil,
-		nil,
+		func(types.OnFocusLostOpts) error {
+			gui.deactivateConfirmationPrompt()
+			return nil
+		},
 		gui.c,
 	)
 }
