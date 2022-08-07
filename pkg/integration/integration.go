@@ -441,16 +441,18 @@ func generateSnapshots(actualDir string, expectedDir string) (string, string, er
 		return "", "", err
 	}
 
+	defer func() {
+		err := os.RemoveAll(expectedDirCopyDir)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
 	if err := restoreSpecialPaths(expectedDirCopyDir); err != nil {
 		return "", "", err
 	}
 
 	expected, err := generateSnapshot(expectedDirCopyDir)
-	if err != nil {
-		return "", "", err
-	}
-
-	err = os.RemoveAll(expectedDirCopyDir)
 	if err != nil {
 		return "", "", err
 	}
