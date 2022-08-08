@@ -40,6 +40,10 @@ func (s *ShellImpl) NewBranch(name string) types.Shell {
 	return s.RunCommand("git checkout -b " + name)
 }
 
+func (s *ShellImpl) GitAdd(path string) types.Shell {
+	return s.RunCommand(fmt.Sprintf("git add \"%s\"", path))
+}
+
 func (s *ShellImpl) GitAddAll() types.Shell {
 	return s.RunCommand("git add -A")
 }
@@ -50,4 +54,22 @@ func (s *ShellImpl) Commit(message string) types.Shell {
 
 func (s *ShellImpl) EmptyCommit(message string) types.Shell {
 	return s.RunCommand(fmt.Sprintf("git commit --allow-empty -m \"%s\"", message))
+}
+
+func (s *ShellImpl) CreateFileAndAdd(fileName string, fileContents string) types.Shell {
+	return s.
+		CreateFile(fileName, fileContents).
+		GitAdd(fileName)
+}
+
+func (s *ShellImpl) CreateNCommits(n int) types.Shell {
+	for i := 1; i <= n; i++ {
+		s.CreateFileAndAdd(
+			fmt.Sprintf("file%02d.txt", i),
+			fmt.Sprintf("file%02d content", i),
+		).
+			Commit(fmt.Sprintf("commit %02d", i))
+	}
+
+	return s
 }

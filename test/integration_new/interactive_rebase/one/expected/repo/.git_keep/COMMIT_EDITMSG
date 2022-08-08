@@ -1,0 +1,30 @@
+# This is a combination of 3 commits.
+# This is the 1st commit message:
+
+commit 02
+
+# The commit message #2 will be skipped:
+
+# commit 03
+
+# This is the commit message #3:
+
+commit 05
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date:      Mon Aug 8 21:32:34 2022 +1000
+#
+# interactive rebase in progress; onto a1a6f7b
+# Last commands done (4 commands done):
+#    drop 84b1ae9 commit 04
+#    squash aa2585a commit 05
+# No commands remaining.
+# You are currently rebasing branch 'master' on 'a1a6f7b'.
+#
+# Changes to be committed:
+#	new file:   file02.txt
+#	new file:   file03.txt
+#	new file:   file05.txt
+#

@@ -23,7 +23,7 @@ var NewBranch = types.NewTest(types.NewTestArgs{
 		assert.CurrentViewName("commits")
 		input.NextItem()
 
-		input.PushKeys(keys.Universal.New)
+		input.PressKeys(keys.Universal.New)
 
 		assert.CurrentViewName("confirmation")
 

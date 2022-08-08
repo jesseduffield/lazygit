@@ -23,12 +23,12 @@ var Suggestions = types.NewTest(types.NewTestArgs{
 	Run: func(shell types.Shell, input types.Input, assert types.Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()
 
-		input.PushKeys(keys.Branches.CheckoutBranchByName)
+		input.PressKeys(keys.Branches.CheckoutBranchByName)
 		assert.CurrentViewName("confirmation")
 
 		input.Type("branch-to")
 
-		input.PushKeys(keys.Universal.TogglePanel)
+		input.PressKeys(keys.Universal.TogglePanel)
 		assert.CurrentViewName("suggestions")
 
 		// we expect the first suggestion to be the branch we want because it most

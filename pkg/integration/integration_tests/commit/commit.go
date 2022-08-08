@@ -20,7 +20,7 @@ var Commit = types.NewTest(types.NewTestArgs{
 		input.Select()
 		input.NextItem()
 		input.Select()
-		input.PushKeys(keys.Files.CommitChanges)
+		input.PressKeys(keys.Files.CommitChanges)
 
 		commitMessage := "my commit message"
 		input.Type(commitMessage)

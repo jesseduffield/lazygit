@@ -2,6 +2,7 @@ package integration
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/integration/types"
@@ -29,6 +30,21 @@ func CurrentIntegrationTest() (types.Test, bool) {
 
 func PlayingIntegrationTest() bool {
 	return IntegrationTestName() != ""
+}
+
+// this is the delay in milliseconds between keypresses
+// defaults to zero
+func KeyPressDelay() int {
+	delayStr := os.Getenv("KEY_PRESS_DELAY")
+	if delayStr == "" {
+		return 0
+	}
+
+	delay, err := strconv.Atoi(delayStr)
+	if err != nil {
+		panic(err)
+	}
+	return delay
 }
 
 // OLD integration test format stuff

@@ -2,8 +2,10 @@ package gui
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	guiTypes "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
@@ -67,8 +69,23 @@ func (self *AssertImpl) CurrentBranchName(expectedViewName string) {
 	})
 }
 
+func (self *AssertImpl) InListContext() {
+	self.assertWithRetries(func() (bool, string) {
+		currentContext := self.gui.currentContext()
+		_, ok := currentContext.(guiTypes.IListContext)
+		return ok, fmt.Sprintf("Expected current context to be a list context, but got %s", currentContext.GetKey())
+	})
+}
+
+func (self *AssertImpl) SelectedLineContains(text string) {
+	self.assertWithRetries(func() (bool, string) {
+		line := self.gui.currentContext().GetView().SelectedLine()
+		return strings.Contains(line, text), fmt.Sprintf("Expected selected line to contain '%s', but got '%s'", text, line)
+	})
+}
+
 func (self *AssertImpl) assertWithRetries(test func() (bool, string)) {
-	waitTimes := []int{0, 100, 200, 400, 800, 1600}
+	waitTimes := []int{0, 1, 5, 10, 200, 500, 1000}
 
 	var message string
 	for _, waitTime := range waitTimes {
@@ -81,6 +98,10 @@ func (self *AssertImpl) assertWithRetries(test func() (bool, string)) {
 		}
 	}
 
+	self.Fail(message)
+}
+
+func (self *AssertImpl) Fail(message string) {
 	self.gui.g.Close()
 	// need to give the gui time to close
 	time.Sleep(time.Millisecond * 100)

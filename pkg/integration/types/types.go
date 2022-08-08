@@ -31,9 +31,16 @@ type Shell interface {
 	RunCommand(command string) Shell
 	CreateFile(name string, content string) Shell
 	NewBranch(branchName string) Shell
+	GitAdd(path string) Shell
 	GitAddAll() Shell
 	Commit(message string) Shell
 	EmptyCommit(message string) Shell
+	// convenience method for creating a file and adding it
+	CreateFileAndAdd(fileName string, fileContents string) Shell
+	// creates commits 01, 02, 03, ..., n with a new file in each
+	// The reason for padding with zeroes is so that it's easier to do string
+	// matches on the commit messages when there are many of them
+	CreateNCommits(n int) Shell
 }
 
 // through this interface our test interacts with the lazygit gui
@@ -41,7 +48,7 @@ type Shell interface {
 type Input interface {
 	// key is something like 'w' or '<space>'. It's best not to pass a direct value,
 	// but instead to go through the default user config to get a more meaningful key name
-	PushKeys(keys ...string)
+	PressKeys(keys ...string)
 	// for typing into a popup prompt
 	Type(content string)
 	// for when you want to allow lazygit to process something before continuing
@@ -62,6 +69,15 @@ type Input interface {
 	NextItem()
 	// i.e. pressing up arrow
 	PreviousItem()
+	// this will look for a list item in the current panel and if it finds it, it will
+	// enter the keypresses required to navigate to it.
+	// The test will fail if:
+	//  - the user is not in a list item
+	//  - no list item is found containing the given text
+	//  - multiple list items are found containing the given text in the initial page of items
+	NavigateToListItemContainingText(text string)
+	ContinueRebase()
+	ContinueMerge()
 }
 
 // through this interface we assert on the state of the lazygit gui
@@ -71,6 +87,10 @@ type Assert interface {
 	HeadCommitMessage(string)
 	CurrentViewName(expectedViewName string)
 	CurrentBranchName(expectedBranchName string)
+	InListContext()
+	SelectedLineContains(text string)
+	// for when you just want to fail the test yourself
+	Fail(errorMessage string)
 }
 
 type TestImpl struct {

@@ -21,10 +21,15 @@ func (gui *Gui) handleTestMode() {
 		go func() {
 			time.Sleep(time.Millisecond * 100)
 
+			shell := &integration.ShellImpl{}
+			assert := &AssertImpl{gui: gui}
+			keys := gui.Config.GetUserConfig().Keybinding
+			input := NewInputImpl(gui, keys, assert, integration.KeyPressDelay())
+
 			test.Run(
-				&integration.ShellImpl{},
-				&InputImpl{g: gui.g, keys: gui.Config.GetUserConfig().Keybinding},
-				&AssertImpl{gui: gui},
+				shell,
+				input,
+				assert,
 				gui.c.UserConfig.Keybinding,
 			)
 
