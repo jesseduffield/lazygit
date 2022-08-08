@@ -25,8 +25,13 @@ If applicable, add screenshots to help explain your problem.
 
 **Version info:**
 _Run `lazygit --version` and paste the result here_
+_Run `git --version` and paste the result here_
 
 **Additional context**
 Add any other context about the problem here.
 
 **Note:** please try updating to the latest version or [manually building](https://github.com/jesseduffield/lazygit/#manual) the latest `master` to see if the issue still occurs.
+
+<!--
+If you want to try and debug this issue yourself, you can run `lazygit --debug` in one terminal panel and `lazygit --logs` in another to view the logs.
+-->
