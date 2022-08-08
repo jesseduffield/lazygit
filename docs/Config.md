@@ -101,7 +101,7 @@ confirmOnQuit: false
 # determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
 quitOnTopLevelReturn: false
 disableStartupPopups: false
-notARepository: 'prompt' # one of: 'prompt' | 'create' | 'skip'
+notARepository: 'prompt' # one of: 'prompt' | 'create' | 'skip' | 'quit'
 promptToReturnFromSubprocess: true # display confirmation when subprocess terminates
 keybinding:
   universal:
@@ -530,4 +530,9 @@ notARepository: 'create'
 ```yaml
 # to skip without creating a new repo
 notARepository: 'skip'
+```
+
+```yaml
+# to exit immediately if run outside of the Git repository
+notARepository: 'quit'
 ```
