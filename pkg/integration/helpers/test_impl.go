@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
+	guiTypes "github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -73,9 +74,7 @@ func (self *TestImpl) SetupRepo(shell types.Shell) {
 }
 
 // I want access to all contexts, the model, the ability to press a key, the ability to log,
-func (self *TestImpl) Run(
-	gui types.GuiAdapter,
-) {
+func (self *TestImpl) Run(gui guiTypes.GuiAdapter) {
 	shell := &ShellImpl{}
 	assert := &AssertImpl{gui: gui}
 	keys := gui.Keys()

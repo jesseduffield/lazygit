@@ -1,7 +1,6 @@
 package types
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -21,7 +20,7 @@ type Test interface {
 	// so that they appear when lazygit runs
 	SetupConfig(config *config.AppConfig)
 	// this is called upon lazygit starting
-	Run(GuiAdapter)
+	Run(types.GuiAdapter)
 	// e.g. '-debug'
 	ExtraCmdArgs() string
 	// for tests that are flakey and when we don't have time to fix them
@@ -97,19 +96,4 @@ type Assert interface {
 	SelectedLineContains(text string)
 	// for when you just want to fail the test yourself
 	Fail(errorMessage string)
-}
-
-type GuiAdapter interface {
-	PressKey(string)
-	Keys() config.KeybindingConfig
-	CurrentContext() types.Context
-	Model() *types.Model
-	Fail(message string)
-	// These two log methods are for the sake of debugging while testing. There's no need to actually
-	// commit any logging.
-	// logs to the normal place that you log to i.e. viewable with `lazygit --logs`
-	Log(message string)
-	// logs in the actual UI (in the commands panel)
-	LogUI(message string)
-	CheckedOutRef() *models.Branch
 }

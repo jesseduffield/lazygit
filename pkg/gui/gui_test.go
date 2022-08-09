@@ -36,20 +36,19 @@ func Test(t *testing.T) {
 	err := integration.RunTestsNew(
 		t.Logf,
 		runCmdHeadless,
-		func(test types.Test, f func(*testing.T) error) {
+		func(test types.Test, f func() error) {
 			defer func() { testNumber += 1 }()
 			if testNumber%parallelTotal != parallelIndex {
 				return
 			}
 
 			t.Run(test.Name(), func(t *testing.T) {
-				err := f(t)
+				err := f()
 				assert.NoError(t, err)
 			})
 		},
 		mode,
-		func(t *testing.T, expected string, actual string, prefix string) {
-			t.Helper()
+		func(expected string, actual string, prefix string) {
 			assert.Equal(t, expected, actual, fmt.Sprintf("Unexpected %s. Expected:\n%s\nActual:\n%s\n", prefix, expected, actual))
 		},
 		includeSkipped,

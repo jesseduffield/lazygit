@@ -7,8 +7,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"testing"
+	"runtime/debug"
 
+	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 	"github.com/jesseduffield/lazygit/pkg/integration/integration_tests"
@@ -20,9 +21,9 @@ import (
 func RunTestsNew(
 	logf func(format string, formatArgs ...interface{}),
 	runCmd func(cmd *exec.Cmd) error,
-	fnWrapper func(test types.Test, f func(*testing.T) error),
+	fnWrapper func(test types.Test, f func() error),
 	mode Mode,
-	onFail func(t *testing.T, expected string, actual string, prefix string),
+	onFail func(expected string, actual string, prefix string),
 	includeSkipped bool,
 ) error {
 	rootDir := GetRootDirectory()
@@ -42,7 +43,7 @@ func RunTestsNew(
 	for _, test := range integration_tests.Tests {
 		test := test
 
-		fnWrapper(test, func(t *testing.T) error { //nolint: thelper
+		fnWrapper(test, func() error { //nolint: thelper
 			if test.Skip() && !includeSkipped {
 				logf("skipping test: %s", test.Name())
 				return nil
@@ -65,12 +66,7 @@ func RunTestsNew(
 
 			configDir := filepath.Join(testPath, "used_config")
 
-			cmd, err := getLazygitCommandNew(test, testPath, rootDir)
-			if err != nil {
-				return err
-			}
-
-			err = runCmd(cmd)
+			err = runLazygit(test, testPath, rootDir)
 			if err != nil {
 				return err
 			}
@@ -120,7 +116,7 @@ func RunTestsNew(
 						}
 						logf("%s", string(bytes))
 
-						onFail(t, expectedRepo, actualRepo, f.Name())
+						onFail(expectedRepo, actualRepo, f.Name())
 					}
 				}
 			}
@@ -154,9 +150,7 @@ func createFixtureNew(test types.Test, actualDir string, rootDir string) error {
 	return nil
 }
 
-func getLazygitCommandNew(test types.Test, testPath string, rootDir string) (*exec.Cmd, error) {
-	osCommand := oscommands.NewDummyOSCommand()
-
+func runLazygit(test types.Test, testPath string, rootDir string) error {
 	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")
 	actualRepoDir := filepath.Join(testPath, "actual", "repo")
 
@@ -164,18 +158,38 @@ func getLazygitCommandNew(test types.Test, testPath string, rootDir string) (*ex
 
 	err := os.RemoveAll(configDir)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = oscommands.CopyDir(templateConfigDir, configDir)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s %s", tempLazygitPath(), configDir, actualRepoDir, test.ExtraCmdArgs())
+	// TODO: support test.ExtraCmdArgs in some form.
+	cliArgs := &app.CliArgs{
+		Debug:        true,
+		UseConfigDir: configDir,
+		RepoPath:     actualRepoDir,
+	}
 
-	cmdObj := osCommand.Cmd.New(cmdStr)
+	buildInfo := &app.BuildInfo{
+		Commit:      "1234abc",
+		Date:        "2020-01-01",
+		Version:     "1.0.0",
+		BuildSource: "unknown",
+	}
 
-	cmdObj.AddEnvVars(fmt.Sprintf("LAZYGIT_TEST_NAME=%s", test.Name()))
+	return convertPanicToError(func() { app.Start(cliArgs, buildInfo, test) })
+}
 
-	return cmdObj.GetCmd(), nil
+func convertPanicToError(f func()) (err error) { //nolint: nakedret
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("Lazygit panicked. Stacktrace:: \n" + string(debug.Stack()))
+		}
+	}()
+
+	f()
+
+	return nil
 }

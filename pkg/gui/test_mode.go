@@ -1,12 +1,15 @@
 package gui
 
 import (
-	"fmt"
+	"encoding/json"
+	"io/ioutil"
 	"log"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/integration"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -14,14 +17,8 @@ type IntegrationTest interface {
 	Run(guiAdapter *GuiAdapterImpl)
 }
 
-func (gui *Gui) handleTestMode() {
-	if integration.PlayingIntegrationTest() {
-		test, ok := integration.CurrentIntegrationTest()
-
-		if !ok {
-			panic(fmt.Sprintf("test %s not found", integration.IntegrationTestName()))
-		}
-
+func (gui *Gui) handleTestMode(test types.Test) {
+	if test != nil {
 		go func() {
 			time.Sleep(time.Millisecond * 100)
 
@@ -42,14 +39,14 @@ func (gui *Gui) handleTestMode() {
 		})
 	}
 
-	if integration.Replaying() {
+	if Replaying() {
 		gui.g.RecordingConfig = gocui.RecordingConfig{
-			Speed:  integration.GetRecordingSpeed(),
+			Speed:  GetRecordingSpeed(),
 			Leeway: 100,
 		}
 
 		var err error
-		gui.g.Recording, err = integration.LoadRecording()
+		gui.g.Recording, err = LoadRecording()
 		if err != nil {
 			panic(err)
 		}
@@ -59,4 +56,69 @@ func (gui *Gui) handleTestMode() {
 			log.Fatal("40 seconds is up, lazygit recording took too long to complete")
 		})
 	}
+}
+
+func Headless() bool {
+	return os.Getenv("HEADLESS") != ""
+}
+
+// OLD integration test format stuff
+
+func Replaying() bool {
+	return os.Getenv("REPLAY_EVENTS_FROM") != ""
+}
+
+func RecordingEvents() bool {
+	return recordEventsTo() != ""
+}
+
+func recordEventsTo() string {
+	return os.Getenv("RECORD_EVENTS_TO")
+}
+
+func GetRecordingSpeed() float64 {
+	// humans are slow so this speeds things up.
+	speed := 1.0
+	envReplaySpeed := os.Getenv("SPEED")
+	if envReplaySpeed != "" {
+		var err error
+		speed, err = strconv.ParseFloat(envReplaySpeed, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return speed
+}
+
+func LoadRecording() (*gocui.Recording, error) {
+	path := os.Getenv("REPLAY_EVENTS_FROM")
+
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	recording := &gocui.Recording{}
+
+	err = json.Unmarshal(data, &recording)
+	if err != nil {
+		return nil, err
+	}
+
+	return recording, nil
+}
+
+func SaveRecording(recording *gocui.Recording) error {
+	if !RecordingEvents() {
+		return nil
+	}
+
+	jsonEvents, err := json.Marshal(recording)
+	if err != nil {
+		return err
+	}
+
+	path := recordEventsTo()
+
+	return ioutil.WriteFile(path, jsonEvents, 0o600)
 }

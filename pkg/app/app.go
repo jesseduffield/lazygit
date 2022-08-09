@@ -24,7 +24,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 )
 
@@ -43,7 +42,6 @@ func Run(
 	config config.AppConfigurer,
 	common *common.Common,
 	startArgs types.StartArgs,
-	test integrationTypes.Test,
 ) {
 	app, err := NewApp(config, common)
 

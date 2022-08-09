@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
 // this gives our integration test a way of interacting with the gui for sending keypresses
@@ -18,7 +17,7 @@ type GuiAdapterImpl struct {
 	gui *Gui
 }
 
-var _ integrationTypes.GuiAdapter = &GuiAdapterImpl{}
+var _ types.GuiAdapter = &GuiAdapterImpl{}
 
 func (self *GuiAdapterImpl) PressKey(keyStr string) {
 	key := keybindings.GetKey(keyStr)

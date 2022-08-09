@@ -13,7 +13,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/integration"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/logs"
 	"gopkg.in/yaml.v3"
@@ -119,7 +118,7 @@ func Start(cliArgs *CliArgs, buildInfo *BuildInfo, test integrationTypes.Test) {
 		log.Fatal(err.Error())
 	}
 
-	if test, ok := integration.CurrentIntegrationTest(); ok {
+	if test != nil {
 		test.SetupConfig(appConfig)
 	}
 
@@ -135,7 +134,7 @@ func Start(cliArgs *CliArgs, buildInfo *BuildInfo, test integrationTypes.Test) {
 
 	parsedGitArg := parseGitArg(cliArgs.GitArg)
 
-	Run(appConfig, common, types.NewStartArgs(cliArgs.FilterPath, parsedGitArg), test)
+	Run(appConfig, common, types.NewStartArgs(cliArgs.FilterPath, parsedGitArg, test))
 }
 
 func parseGitArg(gitArg string) types.GitArg {

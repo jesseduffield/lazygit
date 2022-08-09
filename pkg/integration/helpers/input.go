@@ -11,13 +11,13 @@ import (
 )
 
 type InputImpl struct {
-	gui          integrationTypes.GuiAdapter
+	gui          types.GuiAdapter
 	keys         config.KeybindingConfig
 	assert       integrationTypes.Assert
 	pushKeyDelay int
 }
 
-func NewInputImpl(gui integrationTypes.GuiAdapter, keys config.KeybindingConfig, assert integrationTypes.Assert, pushKeyDelay int) *InputImpl {
+func NewInputImpl(gui types.GuiAdapter, keys config.KeybindingConfig, assert integrationTypes.Assert, pushKeyDelay int) *InputImpl {
 	return &InputImpl{
 		gui:          gui,
 		keys:         keys,

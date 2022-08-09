@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/jesseduffield/lazygit/pkg/integration/integration_tests"
@@ -43,16 +42,16 @@ func main() {
 	err := integration.RunTestsNew(
 		log.Printf,
 		runCmdInTerminal,
-		func(test types.Test, f func(*testing.T) error) {
+		func(test types.Test, f func() error) {
 			if selectedTestName != "" && test.Name() != selectedTestName {
 				return
 			}
-			if err := f(nil); err != nil {
+			if err := f(); err != nil {
 				log.Print(err.Error())
 			}
 		},
 		mode,
-		func(_t *testing.T, expected string, actual string, prefix string) { //nolint:thelper
+		func(expected string, actual string, prefix string) { //nolint:thelper
 			assert.Equal(MockTestingT{}, expected, actual, fmt.Sprintf("Unexpected %s. Expected:\n%s\nActual:\n%s\n", prefix, expected, actual))
 		},
 		includeSkipped,

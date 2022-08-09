@@ -31,7 +31,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -418,14 +417,14 @@ var RuneReplacements = map[rune]string{
 	graph.CommitSymbol: "o",
 }
 
-func (gui *Gui) initGocui(headless bool) (*gocui.Gui, error) {
-	recordEvents := integration.RecordingEvents()
+func (gui *Gui) initGocui(headless bool, test types.Test) (*gocui.Gui, error) {
+	recordEvents := RecordingEvents()
 	playMode := gocui.NORMAL
 	if recordEvents {
 		playMode = gocui.RECORDING
-	} else if integration.Replaying() {
+	} else if Replaying() {
 		playMode = gocui.REPLAYING
-	} else if integration.IntegrationTestName() != "" {
+	} else if test != nil {
 		playMode = gocui.REPLAYING_NEW
 	}
 
@@ -478,7 +477,7 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 
 // Run: setup the gui with keybindings and start the mainloop
 func (gui *Gui) Run(startArgs types.StartArgs) error {
-	g, err := gui.initGocui(integration.Headless())
+	g, err := gui.initGocui(Headless(), startArgs.Test)
 	if err != nil {
 		return err
 	}
@@ -493,7 +492,7 @@ func (gui *Gui) Run(startArgs types.StartArgs) error {
 	})
 	deadlock.Opts.Disable = !gui.Debug
 
-	gui.handleTestMode()
+	gui.handleTestMode(startArgs.Test)
 
 	gui.g.OnSearchEscape = gui.onSearchEscape
 	if err := gui.Config.ReloadUserConfig(); err != nil {
@@ -580,7 +579,7 @@ func (gui *Gui) RunAndHandleError(startArgs types.StartArgs) error {
 					}
 				}
 
-				if err := integration.SaveRecording(gui.g.Recording); err != nil {
+				if err := SaveRecording(gui.g.Recording); err != nil {
 					return err
 				}
 
@@ -614,7 +613,7 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 	gui.Mutexes.SubprocessMutex.Lock()
 	defer gui.Mutexes.SubprocessMutex.Unlock()
 
-	if integration.Replaying() {
+	if Replaying() {
 		// we do not yet support running subprocesses within integration tests. So if
 		// we're replaying an integration test and we're inside this method, something
 		// has gone wrong, so we should fail

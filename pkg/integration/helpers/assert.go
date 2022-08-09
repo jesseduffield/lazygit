@@ -10,7 +10,7 @@ import (
 )
 
 type AssertImpl struct {
-	gui integrationTypes.GuiAdapter
+	gui types.GuiAdapter
 }
 
 var _ integrationTypes.Assert = &AssertImpl{}

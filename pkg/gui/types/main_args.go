@@ -6,6 +6,8 @@ type StartArgs struct {
 	FilterPath string
 	// GitArg determines what context we open in
 	GitArg GitArg
+	// integration test (only relevant when invoking lazygit in the context of an integration test)
+	Test Test
 }
 
 type GitArg string
@@ -18,9 +20,10 @@ const (
 	GitArgStash  GitArg = "stash"
 )
 
-func NewStartArgs(filterPath string, gitArg GitArg) StartArgs {
+func NewStartArgs(filterPath string, gitArg GitArg, test Test) StartArgs {
 	return StartArgs{
 		FilterPath: filterPath,
 		GitArg:     gitArg,
+		Test:       test,
 	}
 }
