@@ -1,11 +1,16 @@
 package types
 
 import (
-	"strings"
-
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
+
+// TODO: refactor this so that we don't have code spread around so much. We want
+// our TestImpl struct to take the dependencies it needs from the gui and then
+// create the input, assert, shell structs itself. That way, we can potentially
+// ditch these interfaces so that we don't need to keep updating them every time
+// we add a method to the concrete struct.
 
 type Test interface {
 	Name() string
@@ -16,7 +21,7 @@ type Test interface {
 	// so that they appear when lazygit runs
 	SetupConfig(config *config.AppConfig)
 	// this is called upon lazygit starting
-	Run(Shell, Input, Assert, config.KeybindingConfig)
+	Run(GuiAdapter)
 	// e.g. '-debug'
 	ExtraCmdArgs() string
 	// for tests that are flakey and when we don't have time to fix them
@@ -81,6 +86,7 @@ type Input interface {
 }
 
 // through this interface we assert on the state of the lazygit gui
+// implementation is at pkg/gui/assert.go
 type Assert interface {
 	WorkingTreeFileCount(int)
 	CommitCount(int)
@@ -93,80 +99,17 @@ type Assert interface {
 	Fail(errorMessage string)
 }
 
-type TestImpl struct {
-	name         string
-	description  string
-	extraCmdArgs string
-	skip         bool
-	setupRepo    func(shell Shell)
-	setupConfig  func(config *config.AppConfig)
-	run          func(
-		shell Shell,
-		input Input,
-		assert Assert,
-		keys config.KeybindingConfig,
-	)
-}
-
-type NewTestArgs struct {
-	Description  string
-	SetupRepo    func(shell Shell)
-	SetupConfig  func(config *config.AppConfig)
-	Run          func(shell Shell, input Input, assert Assert, keys config.KeybindingConfig)
-	ExtraCmdArgs string
-	Skip         bool
-}
-
-func NewTest(args NewTestArgs) *TestImpl {
-	return &TestImpl{
-		name:         testNameFromFilePath(),
-		description:  args.Description,
-		extraCmdArgs: args.ExtraCmdArgs,
-		skip:         args.Skip,
-		setupRepo:    args.SetupRepo,
-		setupConfig:  args.SetupConfig,
-		run:          args.Run,
-	}
-}
-
-var _ Test = (*TestImpl)(nil)
-
-func (self *TestImpl) Name() string {
-	return self.name
-}
-
-func (self *TestImpl) Description() string {
-	return self.description
-}
-
-func (self *TestImpl) ExtraCmdArgs() string {
-	return self.extraCmdArgs
-}
-
-func (self *TestImpl) Skip() bool {
-	return self.skip
-}
-
-func (self *TestImpl) SetupConfig(config *config.AppConfig) {
-	self.setupConfig(config)
-}
-
-func (self *TestImpl) SetupRepo(shell Shell) {
-	self.setupRepo(shell)
-}
-
-func (self *TestImpl) Run(
-	shell Shell,
-	input Input,
-	assert Assert,
-	keys config.KeybindingConfig,
-) {
-	self.run(shell, input, assert, keys)
-}
-
-func testNameFromFilePath() string {
-	path := utils.FilePath(3)
-	name := strings.Split(path, "integration/integration_tests/")[1]
-
-	return name[:len(name)-len(".go")]
+type GuiAdapter interface {
+	PressKey(string)
+	Keys() config.KeybindingConfig
+	CurrentContext() types.Context
+	Model() *types.Model
+	Fail(message string)
+	// These two log methods are for the sake of debugging while testing. There's no need to actually
+	// commit any logging.
+	// logs to the normal place that you log to i.e. viewable with `lazygit --logs`
+	Log(message string)
+	// logs in the actual UI (in the commands panel)
+	LogUI(message string)
+	CheckedOutRef() *models.Branch
 }

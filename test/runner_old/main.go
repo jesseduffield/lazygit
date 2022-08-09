@@ -8,9 +8,10 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/integration"
-	"github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/stretchr/testify/assert"
 )
+
+// Deprecated: This file is part of the old way of doing things. See test/runner_new/main.go for the new way
 
 // see docs/Integration_Tests.md
 // This file can be invoked directly, but you might find it easier to go through
@@ -22,28 +23,15 @@ import (
 
 func main() {
 	mode := integration.GetModeFromEnv()
+	speedEnv := os.Getenv("SPEED")
 	includeSkipped := os.Getenv("INCLUDE_SKIPPED") == "true"
 	selectedTestName := os.Args[1]
 
-	// check if our given test name actually exists
-	if selectedTestName != "" {
-		found := false
-		for _, test := range integration.Tests {
-			if test.Name() == selectedTestName {
-				found = true
-				break
-			}
-		}
-		if !found {
-			log.Fatalf("test %s not found. Perhaps you forgot to add it to `pkg/integration/integration_tests/tests.go`?", selectedTestName)
-		}
-	}
-
-	err := integration.RunTestsNew(
+	err := integration.RunTests(
 		log.Printf,
 		runCmdInTerminal,
-		func(test types.Test, f func(*testing.T) error) {
-			if selectedTestName != "" && test.Name() != selectedTestName {
+		func(test *integration.Test, f func(*testing.T) error) {
+			if selectedTestName != "" && test.Name != selectedTestName {
 				return
 			}
 			if err := f(nil); err != nil {
@@ -51,6 +39,7 @@ func main() {
 			}
 		},
 		mode,
+		speedEnv,
 		func(_t *testing.T, expected string, actual string, prefix string) { //nolint:thelper
 			assert.Equal(MockTestingT{}, expected, actual, fmt.Sprintf("Unexpected %s. Expected:\n%s\nActual:\n%s\n", prefix, expected, actual))
 		},

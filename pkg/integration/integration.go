@@ -10,14 +10,12 @@ import (
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 	"github.com/jesseduffield/lazygit/pkg/integration/integration_tests"
 	"github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
 // this is the integration runner for the new and improved integration interface
-
-// re-exporting this so that clients only need to import one package
-var Tests = integration_tests.Tests
 
 func RunTestsNew(
 	logf func(format string, formatArgs ...interface{}),
@@ -41,7 +39,7 @@ func RunTestsNew(
 		return err
 	}
 
-	for _, test := range Tests {
+	for _, test := range integration_tests.Tests {
 		test := test
 
 		fnWrapper(test, func(t *testing.T) error { //nolint: thelper
@@ -141,7 +139,7 @@ func createFixtureNew(test types.Test, actualDir string, rootDir string) error {
 		panic(err)
 	}
 
-	shell := &ShellImpl{}
+	shell := &helpers.ShellImpl{}
 	shell.RunCommand("git init")
 	shell.RunCommand(`git config user.email "CI@example.com"`)
 	shell.RunCommand(`git config user.name "CI"`)

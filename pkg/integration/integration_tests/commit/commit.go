@@ -2,10 +2,11 @@ package commit
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 	"github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
-var Commit = types.NewTest(types.NewTestArgs{
+var Commit = helpers.NewTest(helpers.NewTestArgs{
 	Description:  "Staging a couple files and committing",
 	ExtraCmdArgs: "",
 	Skip:         false,

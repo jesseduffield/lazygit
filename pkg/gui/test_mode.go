@@ -10,6 +10,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+type IntegrationTest interface {
+	Run(guiAdapter *GuiAdapterImpl)
+}
+
 func (gui *Gui) handleTestMode() {
 	if integration.PlayingIntegrationTest() {
 		test, ok := integration.CurrentIntegrationTest()
@@ -21,17 +25,7 @@ func (gui *Gui) handleTestMode() {
 		go func() {
 			time.Sleep(time.Millisecond * 100)
 
-			shell := &integration.ShellImpl{}
-			assert := &AssertImpl{gui: gui}
-			keys := gui.Config.GetUserConfig().Keybinding
-			input := NewInputImpl(gui, keys, assert, integration.KeyPressDelay())
-
-			test.Run(
-				shell,
-				input,
-				assert,
-				gui.c.UserConfig.Keybinding,
-			)
+			test.Run(&GuiAdapterImpl{gui: gui})
 
 			gui.g.Update(func(*gocui.Gui) error {
 				return gocui.ErrQuit

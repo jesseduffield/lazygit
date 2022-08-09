@@ -2,10 +2,11 @@ package interactive_rebase
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 	"github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
-var One = types.NewTest(types.NewTestArgs{
+var One = helpers.NewTest(helpers.NewTestArgs{
 	Description:  "Begins an interactive rebase, then fixups, drops, and squashes some commits",
 	ExtraCmdArgs: "",
 	Skip:         false,

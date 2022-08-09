@@ -2,10 +2,11 @@ package commit
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 	"github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
-var NewBranch = types.NewTest(types.NewTestArgs{
+var NewBranch = helpers.NewTest(helpers.NewTestArgs{
 	Description:  "Creating a new branch from a commit",
 	ExtraCmdArgs: "",
 	Skip:         false,

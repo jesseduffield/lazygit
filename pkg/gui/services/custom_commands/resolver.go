@@ -1,6 +1,10 @@
 package custom_commands
 
 import (
+	"bytes"
+	"fmt"
+	"text/template"
+
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 )
@@ -100,4 +104,31 @@ func (self *Resolver) resolveMenuOption(option *config.CustomCommandMenuOption, 
 		Description: description,
 		Value:       value,
 	}, nil
+}
+
+func main() {
+	fmt.Println(ResolveTemplate("old approach: {{index .PromptResponses 0}}, new approach: {{ .Form.a }}", CustomCommandObject{
+		PromptResponses: []string{"a"},
+		Form:            map[string]string{"a": "B"},
+	}))
+}
+
+type CustomCommandObject struct {
+	// deprecated. Use Responses instead
+	PromptResponses []string
+	Form            map[string]string
+}
+
+func ResolveTemplate(templateStr string, object interface{}) (string, error) {
+	tmpl, err := template.New("template").Parse(templateStr)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, object); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

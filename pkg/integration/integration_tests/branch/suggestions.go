@@ -2,10 +2,11 @@ package branch
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 	"github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
-var Suggestions = types.NewTest(types.NewTestArgs{
+var Suggestions = helpers.NewTest(helpers.NewTestArgs{
 	Description:  "Checking out a branch with name suggestions",
 	ExtraCmdArgs: "",
 	Skip:         false,
