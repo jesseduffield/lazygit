@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
@@ -31,6 +32,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -213,7 +215,7 @@ const (
 	COMPLETE
 )
 
-func (gui *Gui) onNewRepo(startArgs types.StartArgs, reuseState bool) error {
+func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool) error {
 	var err error
 	gui.git, err = commands.NewGitCommand(
 		gui.Common,
@@ -245,7 +247,7 @@ func (gui *Gui) onNewRepo(startArgs types.StartArgs, reuseState bool) error {
 // it gets a bit confusing to land back in the status panel when visiting a repo
 // you've already switched from. There's no doubt some easy way to make the UX
 // optimal for all cases but I'm too lazy to think about what that is right now
-func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
+func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 	currentDir, err := os.Getwd()
 
 	if reuseState {
@@ -300,28 +302,28 @@ func (gui *Gui) resetState(startArgs types.StartArgs, reuseState bool) {
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
 }
 
-func initialScreenMode(startArgs types.StartArgs) WindowMaximisation {
-	if startArgs.FilterPath != "" || startArgs.GitArg != types.GitArgNone {
+func initialScreenMode(startArgs appTypes.StartArgs) WindowMaximisation {
+	if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
 		return SCREEN_HALF
 	} else {
 		return SCREEN_NORMAL
 	}
 }
 
-func initialContext(contextTree *context.ContextTree, startArgs types.StartArgs) types.IListContext {
+func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs) types.IListContext {
 	var initialContext types.IListContext = contextTree.Files
 
 	if startArgs.FilterPath != "" {
 		initialContext = contextTree.LocalCommits
-	} else if startArgs.GitArg != types.GitArgNone {
+	} else if startArgs.GitArg != appTypes.GitArgNone {
 		switch startArgs.GitArg {
-		case types.GitArgStatus:
+		case appTypes.GitArgStatus:
 			initialContext = contextTree.Files
-		case types.GitArgBranch:
+		case appTypes.GitArgBranch:
 			initialContext = contextTree.Branches
-		case types.GitArgLog:
+		case appTypes.GitArgLog:
 			initialContext = contextTree.LocalCommits
-		case types.GitArgStash:
+		case appTypes.GitArgStash:
 			initialContext = contextTree.Stash
 		default:
 			panic("unhandled git arg")
@@ -417,7 +419,7 @@ var RuneReplacements = map[rune]string{
 	graph.CommitSymbol: "o",
 }
 
-func (gui *Gui) initGocui(headless bool, test types.Test) (*gocui.Gui, error) {
+func (gui *Gui) initGocui(headless bool, test integrationTypes.IntegrationTest) (*gocui.Gui, error) {
 	recordEvents := RecordingEvents()
 	playMode := gocui.NORMAL
 	if recordEvents {
@@ -476,8 +478,8 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 }
 
 // Run: setup the gui with keybindings and start the mainloop
-func (gui *Gui) Run(startArgs types.StartArgs) error {
-	g, err := gui.initGocui(Headless(), startArgs.Test)
+func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
+	g, err := gui.initGocui(Headless(), startArgs.IntegrationTest)
 	if err != nil {
 		return err
 	}
@@ -492,7 +494,7 @@ func (gui *Gui) Run(startArgs types.StartArgs) error {
 	})
 	deadlock.Opts.Disable = !gui.Debug
 
-	gui.handleTestMode(startArgs.Test)
+	gui.handleTestMode(startArgs.IntegrationTest)
 
 	gui.g.OnSearchEscape = gui.onSearchEscape
 	if err := gui.Config.ReloadUserConfig(); err != nil {
@@ -553,7 +555,7 @@ func (gui *Gui) Run(startArgs types.StartArgs) error {
 	return gui.g.MainLoop()
 }
 
-func (gui *Gui) RunAndHandleError(startArgs types.StartArgs) error {
+func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 	gui.stopChan = make(chan struct{})
 	return utils.SafeWithError(func() error {
 		if err := gui.Run(startArgs); err != nil {

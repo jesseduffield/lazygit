@@ -10,15 +10,15 @@ import (
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
-type InputImpl struct {
-	gui          types.GuiAdapter
+type Impl struct {
+	gui          integrationTypes.GuiAdapter
 	keys         config.KeybindingConfig
-	assert       integrationTypes.Assert
+	assert       *Assert
 	pushKeyDelay int
 }
 
-func NewInputImpl(gui types.GuiAdapter, keys config.KeybindingConfig, assert integrationTypes.Assert, pushKeyDelay int) *InputImpl {
-	return &InputImpl{
+func NewInput(gui integrationTypes.GuiAdapter, keys config.KeybindingConfig, assert *Assert, pushKeyDelay int) *Impl {
+	return &Impl{
 		gui:          gui,
 		keys:         keys,
 		assert:       assert,
@@ -26,93 +26,106 @@ func NewInputImpl(gui types.GuiAdapter, keys config.KeybindingConfig, assert int
 	}
 }
 
-var _ integrationTypes.Input = &InputImpl{}
-
-func (self *InputImpl) PressKeys(keyStrs ...string) {
+// key is something like 'w' or '<space>'. It's best not to pass a direct value,
+// but instead to go through the default user config to get a more meaningful key name
+func (self *Impl) PressKeys(keyStrs ...string) {
 	for _, keyStr := range keyStrs {
 		self.pressKey(keyStr)
 	}
 }
 
-func (self *InputImpl) pressKey(keyStr string) {
+func (self *Impl) pressKey(keyStr string) {
 	self.Wait(self.pushKeyDelay)
 
 	self.gui.PressKey(keyStr)
 }
 
-func (self *InputImpl) SwitchToStatusWindow() {
+func (self *Impl) SwitchToStatusWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[0])
 }
 
-func (self *InputImpl) SwitchToFilesWindow() {
+func (self *Impl) SwitchToFilesWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[1])
 }
 
-func (self *InputImpl) SwitchToBranchesWindow() {
+func (self *Impl) SwitchToBranchesWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[2])
 }
 
-func (self *InputImpl) SwitchToCommitsWindow() {
+func (self *Impl) SwitchToCommitsWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[3])
 }
 
-func (self *InputImpl) SwitchToStashWindow() {
+func (self *Impl) SwitchToStashWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[4])
 }
 
-func (self *InputImpl) Type(content string) {
+func (self *Impl) Type(content string) {
 	for _, char := range content {
 		self.pressKey(string(char))
 	}
 }
 
-func (self *InputImpl) Confirm() {
+// i.e. pressing enter
+func (self *Impl) Confirm() {
 	self.pressKey(self.keys.Universal.Confirm)
 }
 
-func (self *InputImpl) Cancel() {
+// i.e. pressing escape
+func (self *Impl) Cancel() {
 	self.pressKey(self.keys.Universal.Return)
 }
 
-func (self *InputImpl) Select() {
+// i.e. pressing space
+func (self *Impl) Select() {
 	self.pressKey(self.keys.Universal.Select)
 }
 
-func (self *InputImpl) NextItem() {
+// i.e. pressing down arrow
+func (self *Impl) NextItem() {
 	self.pressKey(self.keys.Universal.NextItem)
 }
 
-func (self *InputImpl) PreviousItem() {
+// i.e. pressing up arrow
+func (self *Impl) PreviousItem() {
 	self.pressKey(self.keys.Universal.PrevItem)
 }
 
-func (self *InputImpl) ContinueMerge() {
+func (self *Impl) ContinueMerge() {
 	self.PressKeys(self.keys.Universal.CreateRebaseOptionsMenu)
 	self.assert.SelectedLineContains("continue")
 	self.Confirm()
 }
 
-func (self *InputImpl) ContinueRebase() {
+func (self *Impl) ContinueRebase() {
 	self.ContinueMerge()
 }
 
-func (self *InputImpl) Wait(milliseconds int) {
+// for when you want to allow lazygit to process something before continuing
+func (self *Impl) Wait(milliseconds int) {
 	time.Sleep(time.Duration(milliseconds) * time.Millisecond)
 }
 
-func (self *InputImpl) LogUI(message string) {
+func (self *Impl) LogUI(message string) {
 	self.gui.LogUI(message)
 }
 
-func (self *InputImpl) Log(message string) {
+func (self *Impl) Log(message string) {
 	self.gui.LogUI(message)
 }
 
+// this will look for a list item in the current panel and if it finds it, it will
+// enter the keypresses required to navigate to it.
+// The test will fail if:
+//  - the user is not in a list item
+//  - no list item is found containing the given text
+//  - multiple list items are found containing the given text in the initial page of items
+//
 // NOTE: this currently assumes that ViewBufferLines returns all the lines that can be accessed.
 // If this changes in future, we'll need to update this code to first attempt to find the item
 // in the current page and failing that, jump to the top of the view and iterate through all of it,
 // looking for the item.
-func (self *InputImpl) NavigateToListItemContainingText(text string) {
+func (self *Impl) NavigateToListItemContainingText(text string) {
 	self.assert.InListContext()
 
 	currentContext := self.gui.CurrentContext().(types.IListContext)

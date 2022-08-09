@@ -6,6 +6,8 @@ import (
 
 	"github.com/integrii/flaggy"
 	"github.com/jesseduffield/lazygit/pkg/app"
+	"github.com/jesseduffield/lazygit/pkg/integration"
+	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -24,8 +26,9 @@ var (
 func main() {
 	cliArgs := parseCliArgsAndEnvVars()
 	buildInfo := getBuildInfo()
+	integrationTest := getIntegrationTest()
 
-	app.Start(cliArgs, buildInfo, nil)
+	app.Start(cliArgs, buildInfo, integrationTest)
 }
 
 func parseCliArgsAndEnvVars() *app.CliArgs {
@@ -128,4 +131,21 @@ func getBuildInfo() *app.BuildInfo {
 	}
 
 	return buildInfo
+}
+
+func getIntegrationTest() integrationTypes.IntegrationTest {
+	integrationTestName := os.Getenv("LAZYGIT_TEST_NAME")
+	if integrationTestName == "" {
+		return nil
+	}
+
+	// unsetting so that if we run lazygit in as a 'daemon' we don't think we're trying to run a test again
+	os.Unsetenv("LAZYGIT_TEST_NAME")
+	for _, candidateTest := range integration.Tests {
+		if candidateTest.Name() == integrationTestName {
+			return candidateTest
+		}
+	}
+
+	panic("Could not find integration test with name: " + integrationTestName)
 }

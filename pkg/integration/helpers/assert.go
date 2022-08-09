@@ -9,13 +9,17 @@ import (
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
-type AssertImpl struct {
-	gui types.GuiAdapter
+// through this struct we assert on the state of the lazygit gui
+
+type Assert struct {
+	gui integrationTypes.GuiAdapter
 }
 
-var _ integrationTypes.Assert = &AssertImpl{}
+func NewAssert(gui integrationTypes.GuiAdapter) *Assert {
+	return &Assert{gui: gui}
+}
 
-func (self *AssertImpl) WorkingTreeFileCount(expectedCount int) {
+func (self *Assert) WorkingTreeFileCount(expectedCount int) {
 	self.assertWithRetries(func() (bool, string) {
 		actualCount := len(self.gui.Model().Files)
 
@@ -26,7 +30,7 @@ func (self *AssertImpl) WorkingTreeFileCount(expectedCount int) {
 	})
 }
 
-func (self *AssertImpl) CommitCount(expectedCount int) {
+func (self *Assert) CommitCount(expectedCount int) {
 	self.assertWithRetries(func() (bool, string) {
 		actualCount := len(self.gui.Model().Commits)
 
@@ -37,7 +41,7 @@ func (self *AssertImpl) CommitCount(expectedCount int) {
 	})
 }
 
-func (self *AssertImpl) HeadCommitMessage(expectedMessage string) {
+func (self *Assert) HeadCommitMessage(expectedMessage string) {
 	self.assertWithRetries(func() (bool, string) {
 		if len(self.gui.Model().Commits) == 0 {
 			return false, "Expected at least one commit to be present"
@@ -55,21 +59,21 @@ func (self *AssertImpl) HeadCommitMessage(expectedMessage string) {
 	})
 }
 
-func (self *AssertImpl) CurrentViewName(expectedViewName string) {
+func (self *Assert) CurrentViewName(expectedViewName string) {
 	self.assertWithRetries(func() (bool, string) {
 		actual := self.gui.CurrentContext().GetView().Name()
 		return actual == expectedViewName, fmt.Sprintf("Expected current view name to be '%s', but got '%s'", expectedViewName, actual)
 	})
 }
 
-func (self *AssertImpl) CurrentBranchName(expectedViewName string) {
+func (self *Assert) CurrentBranchName(expectedViewName string) {
 	self.assertWithRetries(func() (bool, string) {
 		actual := self.gui.CheckedOutRef().Name
 		return actual == expectedViewName, fmt.Sprintf("Expected current branch name to be '%s', but got '%s'", expectedViewName, actual)
 	})
 }
 
-func (self *AssertImpl) InListContext() {
+func (self *Assert) InListContext() {
 	self.assertWithRetries(func() (bool, string) {
 		currentContext := self.gui.CurrentContext()
 		_, ok := currentContext.(types.IListContext)
@@ -77,14 +81,14 @@ func (self *AssertImpl) InListContext() {
 	})
 }
 
-func (self *AssertImpl) SelectedLineContains(text string) {
+func (self *Assert) SelectedLineContains(text string) {
 	self.assertWithRetries(func() (bool, string) {
 		line := self.gui.CurrentContext().GetView().SelectedLine()
 		return strings.Contains(line, text), fmt.Sprintf("Expected selected line to contain '%s', but got '%s'", text, line)
 	})
 }
 
-func (self *AssertImpl) assertWithRetries(test func() (bool, string)) {
+func (self *Assert) assertWithRetries(test func() (bool, string)) {
 	waitTimes := []int{0, 1, 5, 10, 200, 500, 1000}
 
 	var message string
@@ -101,6 +105,7 @@ func (self *AssertImpl) assertWithRetries(test func() (bool, string)) {
 	self.Fail(message)
 }
 
-func (self *AssertImpl) Fail(message string) {
+// for when you just want to fail the test yourself
+func (self *Assert) Fail(message string) {
 	self.gui.Fail(message)
 }

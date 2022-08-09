@@ -9,20 +9,20 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type IntegrationTest interface {
-	Run(guiAdapter *GuiAdapterImpl)
+	Run(guiAdapter *GuiAdapter)
 }
 
-func (gui *Gui) handleTestMode(test types.Test) {
+func (gui *Gui) handleTestMode(test integrationTypes.IntegrationTest) {
 	if test != nil {
 		go func() {
 			time.Sleep(time.Millisecond * 100)
 
-			test.Run(&GuiAdapterImpl{gui: gui})
+			test.Run(&GuiAdapter{gui: gui})
 
 			gui.g.Update(func(*gocui.Gui) error {
 				return gocui.ErrQuit

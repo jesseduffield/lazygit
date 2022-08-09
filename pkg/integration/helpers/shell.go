@@ -5,16 +5,20 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/mgutz/str"
 )
 
-type ShellImpl struct{}
+// this is for running shell commands, mostly for the sake of setting up the repo
+// but you can also run the commands from within lazygit to emulate things happening
+// in the background.
+type Shell struct{}
 
-var _ types.Shell = &ShellImpl{}
+func NewShell() *Shell {
+	return &Shell{}
+}
 
-func (s *ShellImpl) RunCommand(cmdStr string) types.Shell {
+func (s *Shell) RunCommand(cmdStr string) *Shell {
 	args := str.ToArgv(cmdStr)
 	cmd := secureexec.Command(args[0], args[1:]...)
 	cmd.Env = os.Environ()
@@ -27,7 +31,7 @@ func (s *ShellImpl) RunCommand(cmdStr string) types.Shell {
 	return s
 }
 
-func (s *ShellImpl) CreateFile(path string, content string) types.Shell {
+func (s *Shell) CreateFile(path string, content string) *Shell {
 	err := ioutil.WriteFile(path, []byte(content), 0o644)
 	if err != nil {
 		panic(fmt.Sprintf("error creating file: %s\n%s", path, err))
@@ -36,33 +40,37 @@ func (s *ShellImpl) CreateFile(path string, content string) types.Shell {
 	return s
 }
 
-func (s *ShellImpl) NewBranch(name string) types.Shell {
+func (s *Shell) NewBranch(name string) *Shell {
 	return s.RunCommand("git checkout -b " + name)
 }
 
-func (s *ShellImpl) GitAdd(path string) types.Shell {
+func (s *Shell) GitAdd(path string) *Shell {
 	return s.RunCommand(fmt.Sprintf("git add \"%s\"", path))
 }
 
-func (s *ShellImpl) GitAddAll() types.Shell {
+func (s *Shell) GitAddAll() *Shell {
 	return s.RunCommand("git add -A")
 }
 
-func (s *ShellImpl) Commit(message string) types.Shell {
+func (s *Shell) Commit(message string) *Shell {
 	return s.RunCommand(fmt.Sprintf("git commit -m \"%s\"", message))
 }
 
-func (s *ShellImpl) EmptyCommit(message string) types.Shell {
+func (s *Shell) EmptyCommit(message string) *Shell {
 	return s.RunCommand(fmt.Sprintf("git commit --allow-empty -m \"%s\"", message))
 }
 
-func (s *ShellImpl) CreateFileAndAdd(fileName string, fileContents string) types.Shell {
+// convenience method for creating a file and adding it
+func (s *Shell) CreateFileAndAdd(fileName string, fileContents string) *Shell {
 	return s.
 		CreateFile(fileName, fileContents).
 		GitAdd(fileName)
 }
 
-func (s *ShellImpl) CreateNCommits(n int) types.Shell {
+// creates commits 01, 02, 03, ..., n with a new file in each
+// The reason for padding with zeroes is so that it's easier to do string
+// matches on the commit messages when there are many of them
+func (s *Shell) CreateNCommits(n int) *Shell {
 	for i := 1; i <= n; i++ {
 		s.CreateFileAndAdd(
 			fmt.Sprintf("file%02d.txt", i),
