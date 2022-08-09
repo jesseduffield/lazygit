@@ -36,6 +36,7 @@ var tests = []*components.IntegrationTest{
 	bisect.FromOtherBranch,
 	cherry_pick.CherryPick,
 	cherry_pick.CherryPickConflicts,
+	custom_commands.FormPrompts,
 }
 
 func GetTests() []*components.IntegrationTest {
