@@ -286,7 +286,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: Stash 옵션 보기
   <kbd>a</kbd>: 모든 변경을 Staged/unstaged으로 전환
   <kbd>enter</kbd>: stage individual hunks/lines for file, or collapse/expand for directory
-  <kbd>g</kbd>: view upstream reset options
   <kbd>D</kbd>: view reset options
   <kbd>`</kbd>: 파일 트리뷰로 전환
   <kbd>M</kbd>: git mergetool를 열기

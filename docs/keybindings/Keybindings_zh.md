@@ -173,7 +173,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: 查看贮藏选项
   <kbd>a</kbd>: 切换所有文件的暂存状态
   <kbd>enter</kbd>: 暂存单个 块/行 用于文件, 或 折叠/展开 目录
-  <kbd>g</kbd>: 查看上游重置选项
   <kbd>D</kbd>: 查看重置选项
   <kbd>`</kbd>: 切换文件树视图
   <kbd>M</kbd>: 打开外部合并工具 (git mergetool)
