@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -13,9 +14,9 @@ func (gui *Gui) getMenuOptions() map[string]string {
 	keybindingConfig := gui.c.UserConfig.Keybinding
 
 	return map[string]string{
-		gui.getKeyDisplay(keybindingConfig.Universal.Return): gui.c.Tr.LcClose,
-		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
-		gui.getKeyDisplay(keybindingConfig.Universal.Select): gui.c.Tr.LcExecute,
+		keybindings.Label(keybindingConfig.Universal.Return): gui.c.Tr.LcClose,
+		fmt.Sprintf("%s %s", keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
+		keybindings.Label(keybindingConfig.Universal.Select): gui.c.Tr.LcExecute,
 	}
 }
 

@@ -1,39 +1,48 @@
 package context
 
 import (
-	"sync"
-
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 const (
-	GLOBAL_CONTEXT_KEY              types.ContextKey = "global"
-	STATUS_CONTEXT_KEY              types.ContextKey = "status"
-	FILES_CONTEXT_KEY               types.ContextKey = "files"
-	LOCAL_BRANCHES_CONTEXT_KEY      types.ContextKey = "localBranches"
-	REMOTES_CONTEXT_KEY             types.ContextKey = "remotes"
-	REMOTE_BRANCHES_CONTEXT_KEY     types.ContextKey = "remoteBranches"
-	TAGS_CONTEXT_KEY                types.ContextKey = "tags"
-	LOCAL_COMMITS_CONTEXT_KEY       types.ContextKey = "commits"
-	REFLOG_COMMITS_CONTEXT_KEY      types.ContextKey = "reflogCommits"
-	SUB_COMMITS_CONTEXT_KEY         types.ContextKey = "subCommits"
-	COMMIT_FILES_CONTEXT_KEY        types.ContextKey = "commitFiles"
-	STASH_CONTEXT_KEY               types.ContextKey = "stash"
-	MAIN_NORMAL_CONTEXT_KEY         types.ContextKey = "normal"
-	MAIN_MERGING_CONTEXT_KEY        types.ContextKey = "merging"
-	MAIN_PATCH_BUILDING_CONTEXT_KEY types.ContextKey = "patchBuilding"
-	MAIN_STAGING_CONTEXT_KEY        types.ContextKey = "staging"
-	MENU_CONTEXT_KEY                types.ContextKey = "menu"
-	CONFIRMATION_CONTEXT_KEY        types.ContextKey = "confirmation"
-	SEARCH_CONTEXT_KEY              types.ContextKey = "search"
-	COMMIT_MESSAGE_CONTEXT_KEY      types.ContextKey = "commitMessage"
-	SUBMODULES_CONTEXT_KEY          types.ContextKey = "submodules"
-	SUGGESTIONS_CONTEXT_KEY         types.ContextKey = "suggestions"
-	COMMAND_LOG_CONTEXT_KEY         types.ContextKey = "cmdLog"
+	GLOBAL_CONTEXT_KEY                   types.ContextKey = "global"
+	STATUS_CONTEXT_KEY                   types.ContextKey = "status"
+	FILES_CONTEXT_KEY                    types.ContextKey = "files"
+	LOCAL_BRANCHES_CONTEXT_KEY           types.ContextKey = "localBranches"
+	REMOTES_CONTEXT_KEY                  types.ContextKey = "remotes"
+	REMOTE_BRANCHES_CONTEXT_KEY          types.ContextKey = "remoteBranches"
+	TAGS_CONTEXT_KEY                     types.ContextKey = "tags"
+	LOCAL_COMMITS_CONTEXT_KEY            types.ContextKey = "commits"
+	REFLOG_COMMITS_CONTEXT_KEY           types.ContextKey = "reflogCommits"
+	SUB_COMMITS_CONTEXT_KEY              types.ContextKey = "subCommits"
+	COMMIT_FILES_CONTEXT_KEY             types.ContextKey = "commitFiles"
+	STASH_CONTEXT_KEY                    types.ContextKey = "stash"
+	NORMAL_MAIN_CONTEXT_KEY              types.ContextKey = "normal"
+	NORMAL_SECONDARY_CONTEXT_KEY         types.ContextKey = "normalSecondary"
+	STAGING_MAIN_CONTEXT_KEY             types.ContextKey = "staging"
+	STAGING_SECONDARY_CONTEXT_KEY        types.ContextKey = "stagingSecondary"
+	PATCH_BUILDING_MAIN_CONTEXT_KEY      types.ContextKey = "patchBuilding"
+	PATCH_BUILDING_SECONDARY_CONTEXT_KEY types.ContextKey = "patchBuildingSecondary"
+	MERGE_CONFLICTS_CONTEXT_KEY          types.ContextKey = "mergeConflicts"
+
+	// these shouldn't really be needed for anything but I'm giving them unique keys nonetheless
+	OPTIONS_CONTEXT_KEY       types.ContextKey = "options"
+	APP_STATUS_CONTEXT_KEY    types.ContextKey = "appStatus"
+	SEARCH_PREFIX_CONTEXT_KEY types.ContextKey = "searchPrefix"
+	INFORMATION_CONTEXT_KEY   types.ContextKey = "information"
+	LIMIT_CONTEXT_KEY         types.ContextKey = "limit"
+
+	MENU_CONTEXT_KEY           types.ContextKey = "menu"
+	CONFIRMATION_CONTEXT_KEY   types.ContextKey = "confirmation"
+	SEARCH_CONTEXT_KEY         types.ContextKey = "search"
+	COMMIT_MESSAGE_CONTEXT_KEY types.ContextKey = "commitMessage"
+	SUBMODULES_CONTEXT_KEY     types.ContextKey = "submodules"
+	SUGGESTIONS_CONTEXT_KEY    types.ContextKey = "suggestions"
+	COMMAND_LOG_CONTEXT_KEY    types.ContextKey = "cmdLog"
 )
 
 var AllContextKeys = []types.ContextKey{
-	GLOBAL_CONTEXT_KEY, // not focusable
+	GLOBAL_CONTEXT_KEY,
 	STATUS_CONTEXT_KEY,
 	FILES_CONTEXT_KEY,
 	LOCAL_BRANCHES_CONTEXT_KEY,
@@ -45,10 +54,14 @@ var AllContextKeys = []types.ContextKey{
 	SUB_COMMITS_CONTEXT_KEY,
 	COMMIT_FILES_CONTEXT_KEY,
 	STASH_CONTEXT_KEY,
-	MAIN_NORMAL_CONTEXT_KEY, // not focusable
-	MAIN_MERGING_CONTEXT_KEY,
-	MAIN_PATCH_BUILDING_CONTEXT_KEY,
-	MAIN_STAGING_CONTEXT_KEY, // not focusable for secondary view
+	NORMAL_MAIN_CONTEXT_KEY,
+	NORMAL_SECONDARY_CONTEXT_KEY,
+	STAGING_MAIN_CONTEXT_KEY,
+	STAGING_SECONDARY_CONTEXT_KEY,
+	PATCH_BUILDING_MAIN_CONTEXT_KEY,
+	PATCH_BUILDING_SECONDARY_CONTEXT_KEY,
+	MERGE_CONFLICTS_CONTEXT_KEY,
+
 	MENU_CONTEXT_KEY,
 	CONFIRMATION_CONTEXT_KEY,
 	SEARCH_CONTEXT_KEY,
@@ -59,87 +72,81 @@ var AllContextKeys = []types.ContextKey{
 }
 
 type ContextTree struct {
-	Global         types.Context
-	Status         types.Context
-	Files          *WorkingTreeContext
-	Menu           *MenuContext
-	Branches       *BranchesContext
-	Tags           *TagsContext
-	LocalCommits   *LocalCommitsContext
-	CommitFiles    *CommitFilesContext
-	Remotes        *RemotesContext
-	Submodules     *SubmodulesContext
-	RemoteBranches *RemoteBranchesContext
-	ReflogCommits  *ReflogCommitsContext
-	SubCommits     *SubCommitsContext
-	Stash          *StashContext
-	Suggestions    *SuggestionsContext
-	Normal         types.Context
-	Staging        types.Context
-	PatchBuilding  types.Context
-	Merging        types.Context
-	Confirmation   types.Context
-	CommitMessage  types.Context
-	Search         types.Context
-	CommandLog     types.Context
+	Global                      types.Context
+	Status                      types.Context
+	Files                       *WorkingTreeContext
+	Menu                        *MenuContext
+	Branches                    *BranchesContext
+	Tags                        *TagsContext
+	LocalCommits                *LocalCommitsContext
+	CommitFiles                 *CommitFilesContext
+	Remotes                     *RemotesContext
+	Submodules                  *SubmodulesContext
+	RemoteBranches              *RemoteBranchesContext
+	ReflogCommits               *ReflogCommitsContext
+	SubCommits                  *SubCommitsContext
+	Stash                       *StashContext
+	Suggestions                 *SuggestionsContext
+	Normal                      types.Context
+	NormalSecondary             types.Context
+	Staging                     *PatchExplorerContext
+	StagingSecondary            *PatchExplorerContext
+	CustomPatchBuilder          *PatchExplorerContext
+	CustomPatchBuilderSecondary types.Context
+	MergeConflicts              *MergeConflictsContext
+	Confirmation                types.Context
+	CommitMessage               types.Context
+	CommandLog                  types.Context
+
+	// display contexts
+	AppStatus    types.Context
+	Options      types.Context
+	SearchPrefix types.Context
+	Search       types.Context
+	Information  types.Context
+	Limit        types.Context
 }
 
+// the order of this decides which context is initially at the top of its window
 func (self *ContextTree) Flatten() []types.Context {
 	return []types.Context{
 		self.Global,
 		self.Status,
-		self.Files,
 		self.Submodules,
-		self.Branches,
+		self.Files,
+		self.SubCommits,
 		self.Remotes,
 		self.RemoteBranches,
 		self.Tags,
-		self.LocalCommits,
+		self.Branches,
 		self.CommitFiles,
 		self.ReflogCommits,
+		self.LocalCommits,
 		self.Stash,
 		self.Menu,
 		self.Confirmation,
 		self.CommitMessage,
-		self.Normal,
+
+		self.MergeConflicts,
+		self.StagingSecondary,
 		self.Staging,
-		self.Merging,
-		self.PatchBuilding,
-		self.SubCommits,
+		self.CustomPatchBuilderSecondary,
+		self.CustomPatchBuilder,
+		self.NormalSecondary,
+		self.Normal,
+
 		self.Suggestions,
 		self.CommandLog,
+		self.AppStatus,
+		self.Options,
+		self.SearchPrefix,
+		self.Search,
+		self.Information,
+		self.Limit,
 	}
 }
 
-type ViewContextMap struct {
-	content map[string]types.Context
-	sync.RWMutex
-}
-
-func NewViewContextMap() *ViewContextMap {
-	return &ViewContextMap{content: map[string]types.Context{}}
-}
-
-func (self *ViewContextMap) Get(viewName string) types.Context {
-	self.RLock()
-	defer self.RUnlock()
-
-	return self.content[viewName]
-}
-
-func (self *ViewContextMap) Set(viewName string, context types.Context) {
-	self.Lock()
-	defer self.Unlock()
-	self.content[viewName] = context
-}
-
-func (self *ViewContextMap) Entries() map[string]types.Context {
-	self.Lock()
-	defer self.Unlock()
-	return self.content
-}
-
-type TabContext struct {
-	Tab     string
-	Context types.Context
+type TabView struct {
+	Tab      string
+	ViewName string
 }

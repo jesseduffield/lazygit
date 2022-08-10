@@ -77,6 +77,7 @@ For a given custom command, here are the allowed fields:
 | loadingText | text to display while waiting for command to finish | no |
 | description | text to display in the keybindings menu that appears when you press 'x' | no |
 | stream | whether you want to stream the command's output to the Command Log panel | no |
+| showOutput | whether you want to show the command's output in a gui prompt | no |
 
 ### Contexts
 
@@ -135,7 +136,7 @@ If an option has no name the value will be displayed to the user in place of the
 
 ### Placeholder values
 
-Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/go/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:
+Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/golang/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:
 
 ```
 SelectedLocalCommit
@@ -160,7 +161,7 @@ If your custom keybinding collides with an inbuilt keybinding that is defined fo
 
 ### Debugging
 
-If you want to verify that your command actually does what you expect, you can wrap it in an 'echo' call and set `subprocess: true` so that it doesn't actually execute the command but you can see how the placeholders were resolved. Alternatively you can run lazygit in debug mode with `lazygit --debug` and in another terminal window run `lazygit --logs` to see which commands are actually run
+If you want to verify that your command actually does what you expect, you can wrap it in an 'echo' call and set `showOutput: true` so that it doesn't actually execute the command but you can see how the placeholders were resolved. Alternatively you can run lazygit in debug mode with `lazygit --debug` and in another terminal window run `lazygit --logs` to see which commands are actually run
 
 ### More Examples
 

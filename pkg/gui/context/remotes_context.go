@@ -18,9 +18,9 @@ func NewRemotesContext(
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
-	onFocus func(...types.OnFocusOpts) error,
-	onRenderToMain func(...types.OnFocusOpts) error,
-	onFocusLost func() error,
+	onFocus func(types.OnFocusOpts) error,
+	onRenderToMain func() error,
+	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *RemotesContext {
@@ -30,7 +30,7 @@ func NewRemotesContext(
 		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				ViewName:   "branches",
+				View:       view,
 				WindowName: "branches",
 				Key:        REMOTES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
@@ -41,7 +41,6 @@ func NewRemotesContext(
 				OnRenderToMain: onRenderToMain,
 			}),
 			list:              viewModel,
-			viewTrait:         NewViewTrait(view),
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,
 		},

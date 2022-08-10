@@ -23,11 +23,10 @@ func NewClient(
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 	helpers *helpers.Helpers,
-	getKey func(string) types.Key,
 ) *Client {
 	sessionStateLoader := NewSessionStateLoader(contexts, helpers)
 	handlerCreator := NewHandlerCreator(c, os, git, sessionStateLoader)
-	keybindingCreator := NewKeybindingCreator(contexts, getKey)
+	keybindingCreator := NewKeybindingCreator(contexts)
 	customCommands := c.UserConfig.CustomCommands
 
 	return &Client{

@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
 )
@@ -98,13 +100,13 @@ func (gui *Gui) globalOptionsMap() map[string]string {
 	keybindingConfig := gui.c.UserConfig.Keybinding
 
 	return map[string]string{
-		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollUpMain), gui.getKeyDisplay(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.c.Tr.LcScroll,
-		fmt.Sprintf("%s %s %s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevBlock), gui.getKeyDisplay(keybindingConfig.Universal.NextBlock), gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
-		gui.getKeyDisplay(keybindingConfig.Universal.Return):     gui.c.Tr.LcCancel,
-		gui.getKeyDisplay(keybindingConfig.Universal.Quit):       gui.c.Tr.LcQuit,
-		gui.getKeyDisplay(keybindingConfig.Universal.OptionMenu): gui.c.Tr.LcMenu,
-		fmt.Sprintf("%s-%s", gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[0]), gui.getKeyDisplay(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): gui.c.Tr.LcJump,
-		fmt.Sprintf("%s/%s", gui.getKeyDisplay(keybindingConfig.Universal.ScrollLeft), gui.getKeyDisplay(keybindingConfig.Universal.ScrollRight)):                                                    gui.c.Tr.LcScrollLeftRight,
+		fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollUpMain), keybindings.Label(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.c.Tr.LcScroll,
+		fmt.Sprintf("%s %s %s %s", keybindings.Label(keybindingConfig.Universal.PrevBlock), keybindings.Label(keybindingConfig.Universal.NextBlock), keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
+		keybindings.Label(keybindingConfig.Universal.Return):     gui.c.Tr.LcCancel,
+		keybindings.Label(keybindingConfig.Universal.Quit):       gui.c.Tr.LcQuit,
+		keybindings.Label(keybindingConfig.Universal.OptionMenu): gui.c.Tr.LcMenu,
+		fmt.Sprintf("%s-%s", keybindings.Label(keybindingConfig.Universal.JumpToBlock[0]), keybindings.Label(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): gui.c.Tr.LcJump,
+		fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollLeft), keybindings.Label(keybindingConfig.Universal.ScrollRight)):                                                    gui.c.Tr.LcScrollLeftRight,
 	}
 }
 
@@ -116,52 +118,71 @@ func (gui *Gui) popupPanelFocused() bool {
 	return gui.isPopupPanel(gui.currentViewName())
 }
 
-// secondaryViewFocused tells us whether it appears that the secondary view is focused. The view is actually never focused for real: we just swap the main and secondary views and then you're still focused on the main view so that we can give you access to all its keybindings for free. I will probably regret this design decision soon enough.
-func (gui *Gui) secondaryViewFocused() bool {
-	state := gui.State.Panels.LineByLine
-	return state != nil && state.SecondaryFocused
-}
+func (gui *Gui) onViewTabClick(windowName string, tabIndex int) error {
+	tabs := gui.viewTabMap()[windowName]
+	if len(tabs) == 0 {
+		return nil
+	}
 
-func (gui *Gui) onViewTabClick(viewName string, tabIndex int) error {
-	context := gui.State.ViewTabContextMap[viewName][tabIndex].Context
+	viewName := tabs[tabIndex].ViewName
+
+	context, ok := gui.contextForView(viewName)
+	if !ok {
+		return nil
+	}
 
 	return gui.c.PushContext(context)
 }
 
+func (gui *Gui) contextForView(viewName string) (types.Context, bool) {
+	view, err := gui.g.View(viewName)
+	if err != nil {
+		return nil, false
+	}
+
+	for _, context := range gui.State.Contexts.Flatten() {
+		if context.GetViewName() == view.Name() {
+			return context, true
+		}
+	}
+
+	return nil, false
+}
+
 func (gui *Gui) handleNextTab() error {
-	v := getTabbedView(gui)
-	if v == nil {
+	view := getTabbedView(gui)
+	if view == nil {
 		return nil
 	}
 
-	return gui.onViewTabClick(
-		v.Name(),
-		utils.ModuloWithWrap(v.TabIndex+1, len(v.Tabs)),
-	)
+	for _, context := range gui.State.Contexts.Flatten() {
+		if context.GetViewName() == view.Name() {
+			return gui.onViewTabClick(
+				context.GetWindowName(),
+				utils.ModuloWithWrap(view.TabIndex+1, len(view.Tabs)),
+			)
+		}
+	}
+
+	return nil
 }
 
 func (gui *Gui) handlePrevTab() error {
-	v := getTabbedView(gui)
-	if v == nil {
+	view := getTabbedView(gui)
+	if view == nil {
 		return nil
 	}
 
-	return gui.onViewTabClick(
-		v.Name(),
-		utils.ModuloWithWrap(v.TabIndex-1, len(v.Tabs)),
-	)
-}
-
-// this is the distance we will move the cursor when paging up or down in a view
-func (gui *Gui) pageDelta(view *gocui.View) int {
-	_, height := view.Size()
-
-	delta := height - 1
-	if delta == 0 {
-		return 1
+	for _, context := range gui.State.Contexts.Flatten() {
+		if context.GetViewName() == view.Name() {
+			return gui.onViewTabClick(
+				context.GetWindowName(),
+				utils.ModuloWithWrap(view.TabIndex-1, len(view.Tabs)),
+			)
+		}
 	}
 
-	return delta
+	return nil
 }
 
 func getTabbedView(gui *Gui) *gocui.View {
@@ -172,5 +193,5 @@ func getTabbedView(gui *Gui) *gocui.View {
 }
 
 func (gui *Gui) render() {
-	gui.OnUIThread(func() error { return nil })
+	gui.c.OnUIThread(func() error { return nil })
 }

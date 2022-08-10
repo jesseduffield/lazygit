@@ -6,13 +6,14 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) submodulesRenderToMain() error {
-	var task updateTask
+	var task types.UpdateTask
 	submodule := gui.State.Contexts.Submodules.GetSelected()
 	if submodule == nil {
-		task = NewRenderStringTask("No submodules")
+		task = types.NewRenderStringTask("No submodules")
 	} else {
 		prefix := fmt.Sprintf(
 			"Name: %s\nPath: %s\nUrl:  %s\n\n",
@@ -23,17 +24,18 @@ func (gui *Gui) submodulesRenderToMain() error {
 
 		file := gui.helpers.WorkingTree.FileForSubmodule(submodule)
 		if file == nil {
-			task = NewRenderStringTask(prefix)
+			task = types.NewRenderStringTask(prefix)
 		} else {
 			cmdObj := gui.git.WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, gui.IgnoreWhitespaceInDiffView)
-			task = NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix)
+			task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix)
 		}
 	}
 
-	return gui.refreshMainViews(refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "Submodule",
-			task:  task,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: "Submodule",
+			Task:  task,
 		},
 	})
 }

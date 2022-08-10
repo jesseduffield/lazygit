@@ -21,7 +21,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/integration"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -105,10 +104,9 @@ func localisedTitle(tr *i18n.TranslationSet, str string) string {
 		"commits":        tr.CommitsTitle,
 		"confirmation":   tr.ConfirmationTitle,
 		"information":    tr.InformationTitle,
-		"main":           tr.MainTitle,
+		"main":           tr.NormalTitle,
 		"patchBuilding":  tr.PatchBuildingTitle,
-		"merging":        tr.MergingTitle,
-		"normal":         tr.NormalTitle,
+		"mergeConflicts": tr.MergingTitle,
 		"staging":        tr.StagingTitle,
 		"menu":           tr.MenuTitle,
 		"search":         tr.SearchTitle,
@@ -127,19 +125,24 @@ func localisedTitle(tr *i18n.TranslationSet, str string) string {
 }
 
 func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*bindingSection {
+	excludedViews := []string{"stagingSecondary", "patchBuildingSecondary"}
 	bindingsToDisplay := slices.Filter(bindings, func(binding *types.Binding) bool {
-		return binding.Description != "" || binding.Alternative != ""
+		if lo.Contains(excludedViews, binding.ViewName) {
+			return false
+		}
+
+		return (binding.Description != "" || binding.Alternative != "")
 	})
 
-	bindingsByHeader := utils.MuiltiGroupBy(bindingsToDisplay, func(binding *types.Binding) []header {
-		return getHeaders(binding, tr)
+	bindingsByHeader := lo.GroupBy(bindingsToDisplay, func(binding *types.Binding) header {
+		return getHeader(binding, tr)
 	})
 
 	bindingGroups := maps.MapToSlice(
 		bindingsByHeader,
 		func(header header, hBindings []*types.Binding) headerWithBindings {
 			uniqBindings := lo.UniqBy(hBindings, func(binding *types.Binding) string {
-				return binding.Description + keybindings.GetKeyDisplay(binding.Key)
+				return binding.Description + keybindings.LabelFromKey(binding.Key)
 			})
 
 			return headerWithBindings{
@@ -164,24 +167,16 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 	})
 }
 
-// a binding may belong to multiple headers if it is applicable to multiple contexts,
-// for example the copy-to-clipboard binding.
-func getHeaders(binding *types.Binding, tr *i18n.TranslationSet) []header {
+func getHeader(binding *types.Binding, tr *i18n.TranslationSet) header {
 	if binding.Tag == "navigation" {
-		return []header{{priority: 2, title: localisedTitle(tr, "navigation")}}
+		return header{priority: 2, title: localisedTitle(tr, "navigation")}
 	}
 
 	if binding.ViewName == "" {
-		return []header{{priority: 3, title: localisedTitle(tr, "global")}}
+		return header{priority: 3, title: localisedTitle(tr, "global")}
 	}
 
-	if len(binding.Contexts) == 0 {
-		return []header{}
-	}
-
-	return slices.Map(binding.Contexts, func(context string) header {
-		return header{priority: 1, title: localisedTitle(tr, context)}
-	})
+	return header{priority: 1, title: localisedTitle(tr, binding.ViewName)}
 }
 
 func formatSections(tr *i18n.TranslationSet, bindingSections []*bindingSection) string {
@@ -207,10 +202,10 @@ func formatBinding(binding *types.Binding) string {
 	if binding.Alternative != "" {
 		return fmt.Sprintf(
 			"  <kbd>%s</kbd>: %s (%s)\n",
-			keybindings.GetKeyDisplay(binding.Key),
+			keybindings.LabelFromKey(binding.Key),
 			binding.Description,
 			binding.Alternative,
 		)
 	}
-	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", keybindings.GetKeyDisplay(binding.Key), binding.Description)
+	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", keybindings.LabelFromKey(binding.Key), binding.Description)
 }

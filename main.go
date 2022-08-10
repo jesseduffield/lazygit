@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"strings"
 
 	"github.com/integrii/flaggy"
@@ -16,17 +17,23 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/logs"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	yaml "github.com/jesseduffield/yaml"
+	"github.com/samber/lo"
 )
+
+const DEFAULT_VERSION = "unversioned"
 
 var (
 	commit      string
-	version     = "unversioned"
+	version     = DEFAULT_VERSION
 	date        string
 	buildSource = "unknown"
 )
 
 func main() {
+	updateBuildInfo()
+
 	flaggy.DefaultParser.ShowVersionWithVersionFlag = false
 
 	repoPath := ""
@@ -66,6 +73,10 @@ func main() {
 	flaggy.String(&customConfig, "ucf", "use-config-file", "Comma separated list to custom config file(s)")
 
 	flaggy.Parse()
+
+	if os.Getenv("DEBUG") == "TRUE" {
+		debuggingFlag = true
+	}
 
 	if repoPath != "" {
 		if workTree != "" || gitDir != "" {
@@ -176,4 +187,36 @@ func parseGitArg(gitArg string) types.GitArg {
 	)
 
 	panic("unreachable")
+}
+
+func updateBuildInfo() {
+	// if the version has already been set by build flags then we'll honour that.
+	// chances are it's something like v0.31.0 which is more informative than a
+	// commit hash.
+	if version != DEFAULT_VERSION {
+		return
+	}
+
+	buildInfo, ok := debug.ReadBuildInfo()
+	if !ok {
+		return
+	}
+
+	revision, ok := lo.Find(buildInfo.Settings, func(setting debug.BuildSetting) bool {
+		return setting.Key == "vcs.revision"
+	})
+	if ok {
+		commit = revision.Value
+		// if lazygit was built from source we'll show the version as the
+		// abbreviated commit hash
+		version = utils.ShortSha(revision.Value)
+	}
+
+	// if version hasn't been set we assume that neither has the date
+	time, ok := lo.Find(buildInfo.Settings, func(setting debug.BuildSetting) bool {
+		return setting.Key == "vcs.time"
+	})
+	if ok {
+		date = time.Value
+	}
 }

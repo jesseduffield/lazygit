@@ -1,0 +1,4 @@
+{
+  "description": "Discard all changes in a file via staging panel and expect to end up in the staging panel for the next file.",
+  "speed": 20
+}

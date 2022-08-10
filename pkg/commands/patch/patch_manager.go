@@ -190,7 +190,7 @@ func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse b
 	parser := NewPatchParser(p.Log, patch)
 
 	// not passing included lines because we don't want to see them in the secondary panel
-	return parser.Render(-1, -1, nil)
+	return parser.Render(false, -1, -1, nil)
 }
 
 func (p *PatchManager) renderEachFilePatch(plain bool) []string {

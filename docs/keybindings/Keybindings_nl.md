@@ -30,11 +30,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Lijstpaneel Navigatie
 
 <pre>
-  <kbd>.</kbd>: volgende pagina
   <kbd>,</kbd>: vorige pagina
+  <kbd>.</kbd>: volgende pagina
   <kbd><</kbd>: scroll naar boven
-  <kbd>></kbd>: scroll naar beneden
   <kbd>/</kbd>: start met zoeken
+  <kbd>></kbd>: scroll naar beneden
   <kbd>H</kbd>: scroll left
   <kbd>L</kbd>: scroll right
   <kbd>]</kbd>: volgende tabblad
@@ -139,40 +139,39 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Mergen
 
 <pre>
-  <kbd>esc</kbd>: ga terug naar het bestanden paneel
-  <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>space</kbd>: kies hunk
-  <kbd>b</kbd>: kies bijde hunks
+  <kbd>e</kbd>: verander bestand
+  <kbd>o</kbd>: open bestand
   <kbd>◄</kbd>: selecteer voorgaand conflict
   <kbd>►</kbd>: selecteer volgende conflict
   <kbd>▲</kbd>: selecteer bovenste hunk
   <kbd>▼</kbd>: selecteer onderste hunk
-  <kbd>e</kbd>: verander bestand
-  <kbd>o</kbd>: open bestand
   <kbd>z</kbd>: ongedaan maken
+  <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>space</kbd>: kies hunk
+  <kbd>b</kbd>: kies bijde hunks
+  <kbd>esc</kbd>: ga terug naar het bestanden paneel
 </pre>
 
 ## Normaal
 
 <pre>
-  <kbd>mouse wheel down</kbd>: scroll omlaag (fn+up)
-  <kbd>mouse wheel up</kbd>: scroll omhoog (fn+down)
+  <kbd>mouse wheel ▼</kbd>: scroll omlaag (fn+up)
+  <kbd>mouse wheel ▲</kbd>: scroll omhoog (fn+down)
 </pre>
 
 ## Patch Bouwen
 
 <pre>
-  <kbd>esc</kbd>: sluit lijn-bij-lijn modus
-  <kbd>o</kbd>: open bestand
-  <kbd>▲</kbd>: selecteer de vorige lijn
-  <kbd>▼</kbd>: selecteer de volgende lijn
   <kbd>◄</kbd>: selecteer de vorige hunk
   <kbd>►</kbd>: selecteer de volgende hunk
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>space</kbd>: voeg toe/verwijder lijn(en) in patch
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>o</kbd>: open bestand
+  <kbd>e</kbd>: verander bestand
+  <kbd>space</kbd>: voeg toe/verwijder lijn(en) in patch
+  <kbd>esc</kbd>: sluit lijn-bij-lijn modus
 </pre>
 
 ## Reflog
@@ -216,20 +215,18 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Staging
 
 <pre>
-  <kbd>esc</kbd>: ga terug naar het bestanden paneel
-  <kbd>space</kbd>: toggle lijnen staged / unstaged
-  <kbd>d</kbd>: verwijdert change (git reset)
-  <kbd>tab</kbd>: ga naar een ander paneel
-  <kbd>o</kbd>: open bestand
-  <kbd>▲</kbd>: selecteer de vorige lijn
-  <kbd>▼</kbd>: selecteer de volgende lijn
   <kbd>◄</kbd>: selecteer de vorige hunk
   <kbd>►</kbd>: selecteer de volgende hunk
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>e</kbd>: verander bestand
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>o</kbd>: open bestand
+  <kbd>e</kbd>: verander bestand
+  <kbd>esc</kbd>: ga terug naar het bestanden paneel
+  <kbd>tab</kbd>: ga naar een ander paneel
+  <kbd>space</kbd>: toggle lijnen staged / unstaged
+  <kbd>d</kbd>: verwijdert change (git reset)
   <kbd>E</kbd>: edit hunk
 </pre>
 

@@ -33,8 +33,8 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 				return []string{line}
 			})
 		},
-		OnFocusWrapper(gui.onFocusFile),
-		OnFocusWrapper(gui.withDiffModeCheck(gui.filesRenderToMain)),
+		nil,
+		gui.withDiffModeCheck(gui.filesRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -48,7 +48,7 @@ func (gui *Gui) branchesListContext() *context.BranchesContext {
 			return presentation.GetBranchListDisplayStrings(gui.State.Model.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref, gui.Tr)
 		},
 		nil,
-		OnFocusWrapper(gui.withDiffModeCheck(gui.branchesRenderToMain)),
+		gui.withDiffModeCheck(gui.branchesRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -57,12 +57,12 @@ func (gui *Gui) branchesListContext() *context.BranchesContext {
 func (gui *Gui) remotesListContext() *context.RemotesContext {
 	return context.NewRemotesContext(
 		func() []*models.Remote { return gui.State.Model.Remotes },
-		gui.Views.Branches,
+		gui.Views.Remotes,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetRemoteListDisplayStrings(gui.State.Model.Remotes, gui.State.Modes.Diffing.Ref)
 		},
 		nil,
-		OnFocusWrapper(gui.withDiffModeCheck(gui.remotesRenderToMain)),
+		gui.withDiffModeCheck(gui.remotesRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -76,7 +76,7 @@ func (gui *Gui) remoteBranchesListContext() *context.RemoteBranchesContext {
 			return presentation.GetRemoteBranchListDisplayStrings(gui.State.Model.RemoteBranches, gui.State.Modes.Diffing.Ref)
 		},
 		nil,
-		OnFocusWrapper(gui.withDiffModeCheck(gui.remoteBranchesRenderToMain)),
+		gui.withDiffModeCheck(gui.remoteBranchesRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -95,12 +95,12 @@ func (gui *Gui) withDiffModeCheck(f func() error) func() error {
 func (gui *Gui) tagsListContext() *context.TagsContext {
 	return context.NewTagsContext(
 		func() []*models.Tag { return gui.State.Model.Tags },
-		gui.Views.Branches,
+		gui.Views.Tags,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetTagListDisplayStrings(gui.State.Model.Tags, gui.State.Modes.Diffing.Ref)
 		},
 		nil,
-		OnFocusWrapper(gui.withDiffModeCheck(gui.tagsRenderToMain)),
+		gui.withDiffModeCheck(gui.tagsRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -133,7 +133,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 			)
 		},
 		OnFocusWrapper(gui.onCommitFocus),
-		OnFocusWrapper(gui.withDiffModeCheck(gui.branchCommitsRenderToMain)),
+		gui.withDiffModeCheck(gui.branchCommitsRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -166,7 +166,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 			)
 		},
 		nil,
-		OnFocusWrapper(gui.withDiffModeCheck(gui.subCommitsRenderToMain)),
+		gui.withDiffModeCheck(gui.subCommitsRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -194,7 +194,7 @@ func (gui *Gui) shouldShowGraph() bool {
 func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 	return context.NewReflogCommitsContext(
 		func() []*models.Commit { return gui.State.Model.FilteredReflogCommits },
-		gui.Views.Commits,
+		gui.Views.ReflogCommits,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetReflogCommitListDisplayStrings(
 				gui.State.Model.FilteredReflogCommits,
@@ -206,7 +206,7 @@ func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 			)
 		},
 		nil,
-		OnFocusWrapper(gui.withDiffModeCheck(gui.reflogCommitsRenderToMain)),
+		gui.withDiffModeCheck(gui.reflogCommitsRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -220,7 +220,7 @@ func (gui *Gui) stashListContext() *context.StashContext {
 			return presentation.GetStashEntryListDisplayStrings(gui.State.Model.StashEntries, gui.State.Modes.Diffing.Ref)
 		},
 		nil,
-		OnFocusWrapper(gui.withDiffModeCheck(gui.stashRenderToMain)),
+		gui.withDiffModeCheck(gui.stashRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -240,8 +240,8 @@ func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 				return []string{line}
 			})
 		},
-		OnFocusWrapper(gui.onCommitFileFocus),
-		OnFocusWrapper(gui.withDiffModeCheck(gui.commitFilesRenderToMain)),
+		nil,
+		gui.withDiffModeCheck(gui.commitFilesRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -250,12 +250,12 @@ func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 func (gui *Gui) submodulesListContext() *context.SubmodulesContext {
 	return context.NewSubmodulesContext(
 		func() []*models.SubmoduleConfig { return gui.State.Model.Submodules },
-		gui.Views.Files,
+		gui.Views.Submodules,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetSubmoduleListDisplayStrings(gui.State.Model.Submodules)
 		},
 		nil,
-		OnFocusWrapper(gui.withDiffModeCheck(gui.submodulesRenderToMain)),
+		gui.withDiffModeCheck(gui.submodulesRenderToMain),
 		nil,
 		gui.c,
 	)
@@ -270,7 +270,10 @@ func (gui *Gui) suggestionsListContext() *context.SuggestionsContext {
 		},
 		nil,
 		nil,
-		nil,
+		func(types.OnFocusLostOpts) error {
+			gui.deactivateConfirmationPrompt()
+			return nil
+		},
 		gui.c,
 	)
 }

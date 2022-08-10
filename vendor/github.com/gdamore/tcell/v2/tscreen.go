@@ -148,6 +148,9 @@ type tScreen struct {
 	finiOnce     sync.Once
 	enablePaste  string
 	disablePaste string
+	enterUrl     string
+	exitUrl      string
+	setWinSize   string
 	cursorStyles map[CursorStyle]string
 	cursorStyle  CursorStyle
 	saved        *term.State
@@ -334,6 +337,26 @@ func (t *tScreen) prepareBracketedPaste() {
 	}
 }
 
+func (t *tScreen) prepareExtendedOSC() {
+	// More stuff for limits in terminfo.  This time we are applying
+	// the most common OSC (operating system commands).  Generally
+	// terminals that don't understand these will ignore them.
+	// Again, we condition this based on mouse capabilities.
+	if t.ti.EnterUrl != "" {
+		t.enterUrl = t.ti.EnterUrl
+		t.exitUrl = t.ti.ExitUrl
+	} else if t.ti.Mouse != "" {
+		t.enterUrl = "\x1b]8;;%p1%s\x1b\\"
+		t.exitUrl = "\x1b]8;;\x1b\\"
+	}
+
+	if t.ti.SetWindowSize != "" {
+		t.setWinSize = t.ti.SetWindowSize
+	} else if t.ti.Mouse != "" {
+		t.setWinSize = "\x1b[8;%p1%p2%d;%dt"
+	}
+}
+
 func (t *tScreen) prepareCursorStyles() {
 	// Another workaround for lack of reporting in terminfo.
 	// We assume if the terminal has a mouse entry, that it
@@ -502,6 +525,7 @@ func (t *tScreen) prepareKeys() {
 	t.prepareXtermModifiers()
 	t.prepareBracketedPaste()
 	t.prepareCursorStyles()
+	t.prepareExtendedOSC()
 
 outer:
 	// Add key mappings for control keys.
@@ -623,11 +647,27 @@ func (t *tScreen) encodeRune(r rune, buf []byte) []byte {
 	return buf
 }
 
-func (t *tScreen) sendFgBg(fg Color, bg Color) {
+func (t *tScreen) sendFgBg(fg Color, bg Color, attr AttrMask) AttrMask {
 	ti := t.ti
 	if ti.Colors == 0 {
-		return
+		// foreground vs background, we calculate luminance
+		// and possibly do a reverse video
+		if !fg.Valid() {
+			return attr
+		}
+		v, ok := t.colors[fg]
+		if !ok {
+			v = FindColor(fg, []Color{ColorBlack, ColorWhite})
+			t.colors[fg] = v
+		}
+		switch v {
+		case ColorWhite:
+			return attr
+		case ColorBlack:
+			return attr ^ AttrReverse
+		}
 	}
+
 	if fg == ColorReset || bg == ColorReset {
 		t.TPuts(ti.ResetFgBg)
 	}
@@ -638,7 +678,7 @@ func (t *tScreen) sendFgBg(fg Color, bg Color) {
 			t.TPuts(ti.TParm(ti.SetFgBgRGB,
 				int(r1), int(g1), int(b1),
 				int(r2), int(g2), int(b2)))
-			return
+			return attr
 		}
 
 		if fg.IsRGB() && ti.SetFgRGB != "" {
@@ -685,6 +725,7 @@ func (t *tScreen) sendFgBg(fg Color, bg Color) {
 			t.TPuts(ti.TParm(ti.SetBg, int(bg&0xff)))
 		}
 	}
+	return attr
 }
 
 func (t *tScreen) drawCell(x, y int) int {
@@ -727,7 +768,7 @@ func (t *tScreen) drawCell(x, y int) int {
 
 		t.TPuts(ti.AttrOff)
 
-		t.sendFgBg(fg, bg)
+		attrs = t.sendFgBg(fg, bg, attrs)
 		if attrs&AttrBold != 0 {
 			t.TPuts(ti.Bold)
 		}
@@ -749,8 +790,19 @@ func (t *tScreen) drawCell(x, y int) int {
 		if attrs&AttrStrikeThrough != 0 {
 			t.TPuts(ti.StrikeThrough)
 		}
+
+		// URL string can be long, so don't send it unless we really need to
+		if t.enterUrl != "" && t.curstyle != style {
+			if style.url != "" {
+				t.TPuts(ti.TParm(t.enterUrl, style.url))
+			} else {
+				t.TPuts(t.exitUrl)
+			}
+		}
+
 		t.curstyle = style
 	}
+
 	// now emit runes - taking care to not overrun width with a
 	// wide character, and to ensure that we emit exactly one regular
 	// character followed up by any residual combing characters
@@ -859,8 +911,9 @@ func (t *tScreen) Show() {
 
 func (t *tScreen) clearScreen() {
 	t.TPuts(t.ti.AttrOff)
+	t.TPuts(t.exitUrl)
 	fg, bg, _ := t.style.Decompose()
-	t.sendFgBg(fg, bg)
+	_ = t.sendFgBg(fg, bg, AttrNone)
 	t.TPuts(t.ti.Clear)
 	t.clear = false
 }
@@ -1714,6 +1767,14 @@ func (t *tScreen) HasKey(k Key) bool {
 		return true
 	}
 	return t.keyexist[k]
+}
+
+func (t *tScreen) SetSize(w, h int) {
+	if t.setWinSize != "" {
+		t.TPuts(t.ti.TParm(t.setWinSize, w, h))
+	}
+	t.cells.Invalidate()
+	t.resize()
 }
 
 func (t *tScreen) Resize(int, int, int, int) {}

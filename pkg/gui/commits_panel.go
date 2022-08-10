@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -25,28 +26,40 @@ func (gui *Gui) onCommitFocus() error {
 		})
 	}
 
-	gui.escapeLineByLinePanel()
-
 	return nil
 }
 
 func (gui *Gui) branchCommitsRenderToMain() error {
-	var task updateTask
+	var task types.UpdateTask
 	commit := gui.State.Contexts.LocalCommits.GetSelected()
 	if commit == nil {
-		task = NewRenderStringTask(gui.c.Tr.NoCommitsThisBranch)
+		task = types.NewRenderStringTask(gui.c.Tr.NoCommitsThisBranch)
 	} else {
 		cmdObj := gui.git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
-		task = NewRunPtyTask(cmdObj.GetCmd())
+		task = types.NewRunPtyTask(cmdObj.GetCmd())
 	}
 
-	return gui.refreshMainViews(refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "Patch",
-			task:  task,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: "Patch",
+			Task:  task,
 		},
-		secondary: gui.secondaryPatchPanelUpdateOpts(),
+		Secondary: gui.secondaryPatchPanelUpdateOpts(),
 	})
+}
+
+func (gui *Gui) secondaryPatchPanelUpdateOpts() *types.ViewUpdateOpts {
+	if gui.git.Patch.PatchManager.Active() {
+		patch := gui.git.Patch.PatchManager.RenderAggregatedPatchColored(false)
+
+		return &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(patch),
+			Title: gui.Tr.CustomPatch,
+		}
+	}
+
+	return nil
 }
 
 func (gui *Gui) refForLog() string {

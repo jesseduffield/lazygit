@@ -19,9 +19,9 @@ func NewRemoteBranchesContext(
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
-	onFocus func(...types.OnFocusOpts) error,
-	onRenderToMain func(...types.OnFocusOpts) error,
-	onFocusLost func() error,
+	onFocus func(types.OnFocusOpts) error,
+	onRenderToMain func() error,
+	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *RemoteBranchesContext {
@@ -32,7 +32,7 @@ func NewRemoteBranchesContext(
 		DynamicTitleBuilder: NewDynamicTitleBuilder(c.Tr.RemoteBranchesDynamicTitle),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				ViewName:   "remoteBranches",
+				View:       view,
 				WindowName: "branches",
 				Key:        REMOTE_BRANCHES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
@@ -44,7 +44,6 @@ func NewRemoteBranchesContext(
 				OnRenderToMain: onRenderToMain,
 			}),
 			list:              viewModel,
-			viewTrait:         NewViewTrait(view),
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,
 		},

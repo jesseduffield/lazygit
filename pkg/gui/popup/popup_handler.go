@@ -2,22 +2,24 @@ package popup
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type PopupHandler struct {
 	*common.Common
 	index int
-	sync.Mutex
+	deadlock.Mutex
 	createPopupPanelFn  func(types.CreatePopupPanelOpts) error
 	onErrorFn           func() error
-	closePopupFn        func() error
+	popContextFn        func() error
+	currentContextFn    func() types.Context
 	createMenuFn        func(types.CreateMenuOptions) error
 	withWaitingStatusFn func(message string, f func() error) error
 	toastFn             func(message string)
@@ -30,7 +32,8 @@ func NewPopupHandler(
 	common *common.Common,
 	createPopupPanelFn func(types.CreatePopupPanelOpts) error,
 	onErrorFn func() error,
-	closePopupFn func() error,
+	popContextFn func() error,
+	currentContextFn func() types.Context,
 	createMenuFn func(types.CreateMenuOptions) error,
 	withWaitingStatusFn func(message string, f func() error) error,
 	toastFn func(message string),
@@ -41,7 +44,8 @@ func NewPopupHandler(
 		index:               0,
 		createPopupPanelFn:  createPopupPanelFn,
 		onErrorFn:           onErrorFn,
-		closePopupFn:        closePopupFn,
+		popContextFn:        popContextFn,
+		currentContextFn:    currentContextFn,
 		createMenuFn:        createMenuFn,
 		withWaitingStatusFn: withWaitingStatusFn,
 		toastFn:             toastFn,
@@ -93,11 +97,10 @@ func (self *PopupHandler) Confirm(opts types.ConfirmOpts) error {
 	self.Unlock()
 
 	return self.createPopupPanelFn(types.CreatePopupPanelOpts{
-		Title:               opts.Title,
-		Prompt:              opts.Prompt,
-		HandleConfirm:       opts.HandleConfirm,
-		HandleClose:         opts.HandleClose,
-		HandlersManageFocus: opts.HandlersManageFocus,
+		Title:         opts.Title,
+		Prompt:        opts.Prompt,
+		HandleConfirm: opts.HandleConfirm,
+		HandleClose:   opts.HandleClose,
 	})
 }
 
@@ -139,8 +142,8 @@ func (self *PopupHandler) WithLoaderPanel(message string, f func() error) error 
 		}
 
 		self.Lock()
-		if index == self.index {
-			_ = self.closePopupFn()
+		if index == self.index && self.currentContextFn().GetKey() == context.CONFIRMATION_CONTEXT_KEY {
+			_ = self.popContextFn()
 		}
 		self.Unlock()
 	})

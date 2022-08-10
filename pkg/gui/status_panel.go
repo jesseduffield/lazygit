@@ -87,10 +87,11 @@ func (gui *Gui) statusRenderToMain() error {
 			style.FgMagenta.Sprintf("Become a sponsor: %s", constants.Links.Donate), // caffeine ain't free
 		}, "\n\n")
 
-	return gui.refreshMainViews(refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "",
-			task:  NewRenderStringTask(dashboardString),
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: gui.c.Tr.StatusTitle,
+			Task:  types.NewRenderStringTask(dashboardString),
 		},
 	})
 }

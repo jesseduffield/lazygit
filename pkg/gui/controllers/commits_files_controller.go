@@ -75,10 +75,10 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 func (self *CommitFilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{
 		{
-			ViewName:    "main",
+			ViewName:    "patchBuilding",
 			Key:         gocui.MouseLeft,
 			Handler:     self.onClickMain,
-			FromContext: string(self.context().GetKey()),
+			FocusedView: self.context().GetViewName(),
 		},
 	}
 }
@@ -107,7 +107,7 @@ func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) 
 	if node == nil {
 		return nil
 	}
-	return self.enterCommitFile(node, types.OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: opts.Y})
+	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "main", ClickedViewLineIdx: opts.Y})
 }
 
 func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error {
@@ -165,7 +165,7 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 
 			// if there is any file that hasn't been fully added we'll fully add everything,
 			// otherwise we'll remove everything
-			adding := node.AnyFile(func(file *models.CommitFile) bool {
+			adding := node.SomeFile(func(file *models.CommitFile) bool {
 				return self.git.Patch.PatchManager.GetFileStatus(file.Name, self.context().GetRef().RefName()) != patch.WHOLE
 			})
 
@@ -203,8 +203,7 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 }
 
 func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode) error {
-	// not a fan of type assertions but this will be fixed very soon thanks to generics
-	root := self.context().CommitFileTreeViewModel.Tree().(*filetree.CommitFileNode)
+	root := self.context().CommitFileTreeViewModel.GetRoot()
 	return self.toggleForPatch(root)
 }
 
@@ -221,7 +220,7 @@ func (self *CommitFilesController) startPatchManager() error {
 }
 
 func (self *CommitFilesController) enter(node *filetree.CommitFileNode) error {
-	return self.enterCommitFile(node, types.OnFocusOpts{ClickedViewName: "", ClickedViewLineIdx: -1})
+	return self.enterCommitFile(node, types.OnFocusOpts{ClickedWindowName: "", ClickedViewLineIdx: -1})
 }
 
 func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode, opts types.OnFocusOpts) error {
@@ -236,7 +235,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 			}
 		}
 
-		return self.c.PushContext(self.contexts.PatchBuilding, opts)
+		return self.c.PushContext(self.contexts.CustomPatchBuilder, opts)
 	}
 
 	if self.git.Patch.PatchManager.Active() && self.git.Patch.PatchManager.To != self.context().GetRef().RefName() {

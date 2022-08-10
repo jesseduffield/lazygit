@@ -1,19 +1,22 @@
 package gui
 
-func (self *Gui) tagsRenderToMain() error {
-	var task updateTask
-	tag := self.State.Contexts.Tags.GetSelected()
+import "github.com/jesseduffield/lazygit/pkg/gui/types"
+
+func (gui *Gui) tagsRenderToMain() error {
+	var task types.UpdateTask
+	tag := gui.State.Contexts.Tags.GetSelected()
 	if tag == nil {
-		task = NewRenderStringTask("No tags")
+		task = types.NewRenderStringTask("No tags")
 	} else {
-		cmdObj := self.git.Branch.GetGraphCmdObj(tag.FullRefName())
-		task = NewRunCommandTask(cmdObj.GetCmd())
+		cmdObj := gui.git.Branch.GetGraphCmdObj(tag.FullRefName())
+		task = types.NewRunCommandTask(cmdObj.GetCmd())
 	}
 
-	return self.refreshMainViews(refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "Tag",
-			task:  task,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: "Tag",
+			Task:  task,
 		},
 	})
 }

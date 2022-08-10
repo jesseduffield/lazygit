@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -52,7 +53,7 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 				fmt.Sprintf(
 					"no matches for '%s' %s",
 					gui.State.Searching.searchString,
-					theme.OptionsFgColor.Sprintf("%s: exit search mode", gui.getKeyDisplay(keybindingConfig.Universal.Return)),
+					theme.OptionsFgColor.Sprintf("%s: exit search mode", keybindings.Label(keybindingConfig.Universal.Return)),
 				),
 			)
 		}
@@ -65,9 +66,9 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 				total,
 				theme.OptionsFgColor.Sprintf(
 					"%s: next match, %s: previous match, %s: exit search mode",
-					gui.getKeyDisplay(keybindingConfig.Universal.NextMatch),
-					gui.getKeyDisplay(keybindingConfig.Universal.PrevMatch),
-					gui.getKeyDisplay(keybindingConfig.Universal.Return),
+					keybindings.Label(keybindingConfig.Universal.NextMatch),
+					keybindings.Label(keybindingConfig.Universal.PrevMatch),
+					keybindings.Label(keybindingConfig.Universal.Return),
 				),
 			),
 		)

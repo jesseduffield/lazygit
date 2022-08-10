@@ -1,18 +1,21 @@
 package gui
 
+import "github.com/jesseduffield/lazygit/pkg/gui/types"
+
 func (gui *Gui) stashRenderToMain() error {
-	var task updateTask
+	var task types.UpdateTask
 	stashEntry := gui.State.Contexts.Stash.GetSelected()
 	if stashEntry == nil {
-		task = NewRenderStringTask(gui.c.Tr.NoStashEntries)
+		task = types.NewRenderStringTask(gui.c.Tr.NoStashEntries)
 	} else {
-		task = NewRunPtyTask(gui.git.Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
+		task = types.NewRunPtyTask(gui.git.Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
 	}
 
-	return gui.refreshMainViews(refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "Stash",
-			task:  task,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: "Stash",
+			Task:  task,
 		},
 	})
 }

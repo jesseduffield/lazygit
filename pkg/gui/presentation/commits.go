@@ -2,7 +2,6 @@ package presentation
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -14,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/kyokomi/emoji/v2"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type pipeSetCacheKey struct {
@@ -23,7 +23,7 @@ type pipeSetCacheKey struct {
 
 var (
 	pipeSetCache = make(map[pipeSetCacheKey][][]*graph.Pipe)
-	mutex        sync.Mutex
+	mutex        deadlock.Mutex
 )
 
 type bisectBounds struct {

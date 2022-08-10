@@ -1,11 +1,11 @@
 package gui
 
 import (
-	"sync"
 	"time"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 )
 
 // statusManager's job is to handle rendering of loading states and toast notifications
@@ -13,7 +13,7 @@ import (
 type statusManager struct {
 	statuses []appStatus
 	nextId   int
-	mutex    sync.Mutex
+	mutex    deadlock.Mutex
 }
 
 type appStatus struct {
@@ -94,7 +94,7 @@ func (gui *Gui) renderAppStatus() {
 		defer ticker.Stop()
 		for range ticker.C {
 			appStatus := gui.statusManager.getStatusString()
-			gui.OnUIThread(func() error {
+			gui.c.OnUIThread(func() error {
 				return gui.renderString(gui.Views.AppStatus, appStatus)
 			})
 
@@ -117,7 +117,7 @@ func (gui *Gui) withWaitingStatus(message string, f func() error) error {
 		gui.renderAppStatus()
 
 		if err := f(); err != nil {
-			gui.OnUIThread(func() error {
+			gui.c.OnUIThread(func() error {
 				return gui.c.Error(err)
 			})
 		}

@@ -1,19 +1,22 @@
 package gui
 
+import "github.com/jesseduffield/lazygit/pkg/gui/types"
+
 func (gui *Gui) remoteBranchesRenderToMain() error {
-	var task updateTask
+	var task types.UpdateTask
 	remoteBranch := gui.State.Contexts.RemoteBranches.GetSelected()
 	if remoteBranch == nil {
-		task = NewRenderStringTask("No branches for this remote")
+		task = types.NewRenderStringTask("No branches for this remote")
 	} else {
 		cmdObj := gui.git.Branch.GetGraphCmdObj(remoteBranch.FullRefName())
-		task = NewRunCommandTask(cmdObj.GetCmd())
+		task = types.NewRunCommandTask(cmdObj.GetCmd())
 	}
 
-	return gui.refreshMainViews(refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "Remote Branch",
-			task:  task,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: "Remote Branch",
+			Task:  task,
 		},
 	})
 }

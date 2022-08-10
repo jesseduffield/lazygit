@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
@@ -27,6 +28,12 @@ type IGuiCommon interface {
 	PostRefreshUpdate(Context) error
 	// this just re-renders the screen
 	Render()
+	// allows rendering to main views (i.e. the ones to the right of the side panel)
+	// in such a way that avoids concurrency issues when there are slow commands
+	// to display the output of
+	RenderToMainViews(opts RefreshMainOpts) error
+	// used purely for the sake of RenderToMainViews to provide the pair of main views we want to render to
+	MainViewPairs() MainViewPairs
 
 	// returns true if command completed successfully
 	RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error)
@@ -35,6 +42,8 @@ type IGuiCommon interface {
 	PushContext(context Context, opts ...OnFocusOpts) error
 	PopContext() error
 	CurrentContext() Context
+	CurrentStaticContext() Context
+	IsCurrentContext(Context) bool
 	// enters search mode for the current view
 	OpenSearch()
 
@@ -83,9 +92,6 @@ type CreatePopupPanelOpts struct {
 	HandleConfirmPrompt func(string) error
 	HandleClose         func() error
 
-	// when HandlersManageFocus is true, do not return from the confirmation context automatically. It's expected that the handlers will manage focus, whether that means switching to another context, or manually returning the context.
-	HandlersManageFocus bool
-
 	FindSuggestionsFunc func(string) []*Suggestion
 	Mask                bool
 }
@@ -95,7 +101,6 @@ type ConfirmOpts struct {
 	Prompt              string
 	HandleConfirm       func() error
 	HandleClose         func() error
-	HandlersManageFocus bool
 	HasLoader           bool
 	FindSuggestionsFunc func(string) []*Suggestion
 	Editable            bool
@@ -155,4 +160,16 @@ type Model struct {
 
 	// for displaying suggestions while typing in a file name
 	FilesTrie *patricia.Trie
+}
+
+// if you add a new mutex here be sure to instantiate it. We're using pointers to
+// mutexes so that we can pass the mutexes to controllers.
+type Mutexes struct {
+	RefreshingFilesMutex  *deadlock.Mutex
+	RefreshingStatusMutex *deadlock.Mutex
+	SyncMutex             *deadlock.Mutex
+	LocalCommitsMutex     *deadlock.Mutex
+	SubprocessMutex       *deadlock.Mutex
+	PopupMutex            *deadlock.Mutex
+	PtyMutex              *deadlock.Mutex
 }

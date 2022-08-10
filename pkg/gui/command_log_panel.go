@@ -7,15 +7,16 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 // our UI command log looks like this:
-// Stage File
-//   git add -- 'filename'
-// Unstage File
-//   git reset HEAD 'filename'
+// Stage File:
+// git add -- 'filename'
+// Unstage File:
+// git reset HEAD 'filename'
 //
 // The 'Stage File' and 'Unstage File' lines are actions i.e they group up a set
 // of command logs (typically there's only one command under an action but there may be more).
@@ -53,7 +54,7 @@ func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 func (gui *Gui) printCommandLogHeader() {
 	introStr := fmt.Sprintf(
 		gui.c.Tr.CommandLogHeader,
-		gui.getKeyDisplay(gui.c.UserConfig.Keybinding.Universal.ExtrasMenu),
+		keybindings.Label(gui.c.UserConfig.Keybinding.Universal.ExtrasMenu),
 	)
 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(introStr))
 
@@ -71,7 +72,7 @@ func (gui *Gui) getRandomTip() string {
 	config := gui.c.UserConfig.Keybinding
 
 	formattedKey := func(key string) string {
-		return gui.getKeyDisplay(key)
+		return keybindings.Label(key)
 	}
 
 	tips := []string{

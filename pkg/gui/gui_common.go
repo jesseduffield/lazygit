@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"errors"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -39,15 +41,33 @@ func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
 }
 
 func (self *guiCommon) PushContext(context types.Context, opts ...types.OnFocusOpts) error {
-	return self.gui.pushContext(context, opts...)
+	singleOpts := types.OnFocusOpts{}
+	if len(opts) > 0 {
+		// using triple dot but you should only ever pass one of these opt structs
+		if len(opts) > 1 {
+			return errors.New("cannot pass multiple opts to pushContext")
+		}
+
+		singleOpts = opts[0]
+	}
+
+	return self.gui.pushContext(context, singleOpts)
 }
 
 func (self *guiCommon) PopContext() error {
-	return self.gui.returnFromContext()
+	return self.gui.popContext()
 }
 
 func (self *guiCommon) CurrentContext() types.Context {
 	return self.gui.currentContext()
+}
+
+func (self *guiCommon) CurrentStaticContext() types.Context {
+	return self.gui.currentStaticContext()
+}
+
+func (self *guiCommon) IsCurrentContext(c types.Context) bool {
+	return self.CurrentContext().GetKey() == c.GetKey()
 }
 
 func (self *guiCommon) GetAppState() *config.AppState {
@@ -67,5 +87,18 @@ func (self *guiCommon) OpenSearch() {
 }
 
 func (self *guiCommon) OnUIThread(f func() error) {
-	self.gui.OnUIThread(f)
+	self.gui.onUIThread(f)
+}
+
+func (self *guiCommon) RenderToMainViews(opts types.RefreshMainOpts) error {
+	return self.gui.refreshMainViews(opts)
+}
+
+func (self *guiCommon) MainViewPairs() types.MainViewPairs {
+	return types.MainViewPairs{
+		Normal:         self.gui.normalMainContextPair(),
+		Staging:        self.gui.stagingMainContextPair(),
+		PatchBuilding:  self.gui.patchBuildingMainContextPair(),
+		MergeConflicts: self.gui.mergingMainContextPair(),
+	}
 }

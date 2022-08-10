@@ -222,7 +222,7 @@ func (self *BisectController) selectCurrentBisectCommit() {
 		for i, commit := range self.model.Commits {
 			if commit.Sha == info.GetCurrentSha() {
 				self.context().SetSelectedLineIdx(i)
-				_ = self.context().HandleFocus()
+				_ = self.context().HandleFocus(types.OnFocusOpts{})
 				break
 			}
 		}

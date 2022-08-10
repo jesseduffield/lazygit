@@ -58,7 +58,7 @@ func (gui *Gui) startUpdating(newVersion string) {
 func (gui *Gui) onUpdateFinish(statusId int, err error) error {
 	gui.State.Updating = false
 	gui.statusManager.removeStatus(statusId)
-	gui.OnUIThread(func() error {
+	gui.c.OnUIThread(func() error {
 		_ = gui.renderString(gui.Views.AppStatus, "")
 		if err != nil {
 			errMessage := utils.ResolvePlaceholderString(

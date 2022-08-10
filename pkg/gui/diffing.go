@@ -18,12 +18,13 @@ func (gui *Gui) renderDiff() error {
 	cmdObj := gui.os.Cmd.New(
 		fmt.Sprintf("git diff --submodule --no-ext-diff --color %s", gui.diffStr()),
 	)
-	task := NewRunPtyTask(cmdObj.GetCmd())
+	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
-	return gui.refreshMainViews(refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "Diff",
-			task:  task,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: "Diff",
+			Task:  task,
 		},
 	})
 }

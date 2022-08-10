@@ -20,9 +20,9 @@ func NewCommitFilesContext(
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
-	onFocus func(...types.OnFocusOpts) error,
-	onRenderToMain func(...types.OnFocusOpts) error,
-	onFocusLost func() error,
+	onFocus func(types.OnFocusOpts) error,
+	onRenderToMain func() error,
+	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *CommitFilesContext {
@@ -34,7 +34,7 @@ func NewCommitFilesContext(
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(
 				NewBaseContext(NewBaseContextOpts{
-					ViewName:   "commitFiles",
+					View:       view,
 					WindowName: "commits",
 					Key:        COMMIT_FILES_CONTEXT_KEY,
 					Kind:       types.SIDE_CONTEXT,
@@ -47,7 +47,6 @@ func NewCommitFilesContext(
 					OnRenderToMain: onRenderToMain,
 				}),
 			list:              viewModel,
-			viewTrait:         NewViewTrait(view),
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,
 		},

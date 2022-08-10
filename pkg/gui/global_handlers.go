@@ -15,8 +15,9 @@ const HORIZONTAL_SCROLL_FACTOR = 3
 // these views need to be re-rendered when the screen mode changes. The commits view,
 // for example, will show authorship information in half and full screen mode.
 func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
-	for _, view := range []*gocui.View{gui.Views.Branches, gui.Views.Commits} {
-		if err := gui.rerenderView(view); err != nil {
+	// for now we re-render all list views.
+	for _, context := range gui.getListContexts() {
+		if err := gui.rerenderView(context.GetView()); err != nil {
 			return err
 		}
 	}
@@ -24,7 +25,6 @@ func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
 	return nil
 }
 
-// TODO: GENERICS
 func nextIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
 	for i, val := range sl {
 		if val == current {
@@ -37,7 +37,6 @@ func nextIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowM
 	return sl[0]
 }
 
-// TODO: GENERICS
 func prevIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
 	for i, val := range sl {
 		if val == current {
@@ -76,54 +75,65 @@ func (gui *Gui) scrollDownView(view *gocui.View) {
 }
 
 func (gui *Gui) scrollUpMain() error {
-	if gui.renderingConflicts() {
-		gui.State.Panels.Merging.UserVerticalScrolling = true
+	var view *gocui.View
+	if gui.c.CurrentContext().GetWindowName() == "secondary" {
+		view = gui.secondaryView()
+	} else {
+		view = gui.mainView()
 	}
 
-	gui.scrollUpView(gui.Views.Main)
+	if view.Name() == "mergeConflicts" {
+		// although we have this same logic in the controller, this method can be invoked
+		// via the global scroll up/down keybindings, as opposed to just the mouse wheel keybinding.
+		// It would be nice to have a concept of a global keybinding that runs on the top context in a
+		// window but that might be overkill for this one use case.
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(true)
+	}
+
+	gui.scrollUpView(view)
 
 	return nil
 }
 
 func (gui *Gui) scrollDownMain() error {
-	if gui.renderingConflicts() {
-		gui.State.Panels.Merging.UserVerticalScrolling = true
+	var view *gocui.View
+	if gui.c.CurrentContext().GetWindowName() == "secondary" {
+		view = gui.secondaryView()
+	} else {
+		view = gui.mainView()
 	}
 
-	gui.scrollDownView(gui.Views.Main)
+	if view.Name() == "mergeConflicts" {
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(true)
+	}
+
+	gui.scrollDownView(view)
 
 	return nil
 }
 
-func (gui *Gui) scrollLeftMain() error {
-	gui.scrollLeft(gui.Views.Main)
-
-	return nil
+func (gui *Gui) mainView() *gocui.View {
+	viewName := gui.getViewNameForWindow("main")
+	view, _ := gui.g.View(viewName)
+	return view
 }
 
-func (gui *Gui) scrollRightMain() error {
-	gui.scrollRight(gui.Views.Main)
-
-	return nil
-}
-
-func (gui *Gui) scrollLeft(view *gocui.View) {
-	newOriginX := utils.Max(view.OriginX()-view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR, 0)
-	_ = view.SetOriginX(newOriginX)
-}
-
-func (gui *Gui) scrollRight(view *gocui.View) {
-	_ = view.SetOriginX(view.OriginX() + view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR)
+func (gui *Gui) secondaryView() *gocui.View {
+	viewName := gui.getViewNameForWindow("secondary")
+	view, _ := gui.g.View(viewName)
+	return view
 }
 
 func (gui *Gui) scrollUpSecondary() error {
-	gui.scrollUpView(gui.Views.Secondary)
+	gui.scrollUpView(gui.secondaryView())
 
 	return nil
 }
 
 func (gui *Gui) scrollDownSecondary() error {
-	gui.scrollDownView(gui.Views.Secondary)
+	secondaryView := gui.secondaryView()
+
+	gui.scrollDownView(secondaryView)
 
 	return nil
 }

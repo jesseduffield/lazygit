@@ -30,11 +30,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## List Panel Navigation
 
 <pre>
-  <kbd>.</kbd>: next page
   <kbd>,</kbd>: previous page
+  <kbd>.</kbd>: next page
   <kbd><</kbd>: scroll to top
-  <kbd>></kbd>: scroll to bottom
   <kbd>/</kbd>: start search
+  <kbd>></kbd>: scroll to bottom
   <kbd>H</kbd>: scroll left
   <kbd>L</kbd>: scroll right
   <kbd>]</kbd>: next tab
@@ -99,17 +99,16 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Main Panel (Patch Building)
 
 <pre>
-  <kbd>esc</kbd>: wyście z trybu "linia po linii"
-  <kbd>o</kbd>: otwórz plik
-  <kbd>▲</kbd>: poprzednia linia
-  <kbd>▼</kbd>: następna linia
   <kbd>◄</kbd>: poprzedni kawałek
   <kbd>►</kbd>: następny kawałek
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>space</kbd>: add/remove line(s) to patch
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>o</kbd>: otwórz plik
+  <kbd>e</kbd>: edytuj plik
+  <kbd>space</kbd>: add/remove line(s) to patch
+  <kbd>esc</kbd>: wyście z trybu "linia po linii"
 </pre>
 
 ## Pliki
@@ -155,20 +154,18 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Poczekalnia
 
 <pre>
-  <kbd>esc</kbd>: wróć do panelu plików
-  <kbd>space</kbd>: toggle line staged / unstaged
-  <kbd>d</kbd>: delete change (git reset)
-  <kbd>tab</kbd>: switch to other panel
-  <kbd>o</kbd>: otwórz plik
-  <kbd>▲</kbd>: poprzednia linia
-  <kbd>▼</kbd>: następna linia
   <kbd>◄</kbd>: poprzedni kawałek
   <kbd>►</kbd>: następny kawałek
-  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
-  <kbd>e</kbd>: edytuj plik
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
+  <kbd>ctrl+o</kbd>: copy the selected text to the clipboard
+  <kbd>o</kbd>: otwórz plik
+  <kbd>e</kbd>: edytuj plik
+  <kbd>esc</kbd>: wróć do panelu plików
+  <kbd>tab</kbd>: switch to other panel (staged/unstaged changes)
+  <kbd>space</kbd>: toggle line staged / unstaged
+  <kbd>d</kbd>: delete change (git reset)
   <kbd>E</kbd>: edit hunk
 </pre>
 
@@ -213,17 +210,17 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Scalanie
 
 <pre>
-  <kbd>esc</kbd>: wróć do panelu plików
-  <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>space</kbd>: wybierz kawałek
-  <kbd>b</kbd>: wybierz wszystkie kawałki
+  <kbd>e</kbd>: edytuj plik
+  <kbd>o</kbd>: otwórz plik
   <kbd>◄</kbd>: poprzedni konflikt
   <kbd>►</kbd>: następny konflikt
   <kbd>▲</kbd>: wybierz poprzedni kawałek
   <kbd>▼</kbd>: wybierz następny kawałek
-  <kbd>e</kbd>: edytuj plik
-  <kbd>o</kbd>: otwórz plik
   <kbd>z</kbd>: cofnij
+  <kbd>M</kbd>: open external merge tool (git mergetool)
+  <kbd>space</kbd>: wybierz kawałek
+  <kbd>b</kbd>: wybierz wszystkie kawałki
+  <kbd>esc</kbd>: wróć do panelu plików
 </pre>
 
 ## Schowek
@@ -288,6 +285,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Zwykłe
 
 <pre>
-  <kbd>mouse wheel down</kbd>: przewiń w dół (fn+up)
-  <kbd>mouse wheel up</kbd>: przewiń w górę (fn+down)
+  <kbd>mouse wheel ▼</kbd>: przewiń w dół (fn+up)
+  <kbd>mouse wheel ▲</kbd>: przewiń w górę (fn+down)
 </pre>

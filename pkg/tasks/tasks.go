@@ -11,6 +11,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,8 +35,8 @@ type ViewBufferManager struct {
 	// this is what we write the output of the task to. It's typically a view
 	writer io.Writer
 
-	waitingMutex sync.Mutex
-	taskIDMutex  sync.Mutex
+	waitingMutex deadlock.Mutex
+	taskIDMutex  deadlock.Mutex
 	Log          *logrus.Entry
 	newTaskID    int
 	readLines    chan int
@@ -126,7 +127,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 			}
 		})
 
-		loadingMutex := sync.Mutex{}
+		loadingMutex := deadlock.Mutex{}
 
 		// not sure if it's the right move to redefine this or not
 		self.readLines = make(chan int, 1024)
@@ -197,7 +198,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 			if err := cmd.Wait(); err != nil {
 				// it's fine if we've killed this program ourselves
 				if !strings.Contains(err.Error(), "signal: killed") {
-					self.Log.Error(err)
+					self.Log.Errorf("Unexpected error when running cmd task: %v", err)
 				}
 			}
 

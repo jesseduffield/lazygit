@@ -17,9 +17,9 @@ func NewSuggestionsContext(
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
-	onFocus func(...types.OnFocusOpts) error,
-	onRenderToMain func(...types.OnFocusOpts) error,
-	onFocusLost func() error,
+	onFocus func(types.OnFocusOpts) error,
+	onRenderToMain func() error,
+	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *SuggestionsContext {
@@ -29,18 +29,18 @@ func NewSuggestionsContext(
 		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				ViewName:   "suggestions",
-				WindowName: "suggestions",
-				Key:        SUGGESTIONS_CONTEXT_KEY,
-				Kind:       types.PERSISTENT_POPUP,
-				Focusable:  true,
+				View:                  view,
+				WindowName:            "suggestions",
+				Key:                   SUGGESTIONS_CONTEXT_KEY,
+				Kind:                  types.PERSISTENT_POPUP,
+				Focusable:             true,
+				HasUncontrolledBounds: true,
 			}), ContextCallbackOpts{
 				OnFocus:        onFocus,
 				OnFocusLost:    onFocusLost,
 				OnRenderToMain: onRenderToMain,
 			}),
 			list:              viewModel,
-			viewTrait:         NewViewTrait(view),
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,
 		},

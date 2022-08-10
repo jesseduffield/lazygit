@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/samber/lo"
 )
 
 type FileLoaderConfig interface {
@@ -54,28 +53,15 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 			self.Log.Warningf("warning when calling git status: %s", status.StatusString)
 			continue
 		}
-		change := status.Change
-		stagedChange := change[0:1]
-		unstagedChange := change[1:2]
-		untracked := lo.Contains([]string{"??", "A ", "AM"}, change)
-		hasNoStagedChanges := lo.Contains([]string{" ", "U", "?"}, stagedChange)
-		hasInlineMergeConflicts := lo.Contains([]string{"UU", "AA"}, change)
-		hasMergeConflicts := hasInlineMergeConflicts || lo.Contains([]string{"DD", "AU", "UA", "UD", "DU"}, change)
 
 		file := &models.File{
-			Name:                    status.Name,
-			PreviousName:            status.PreviousName,
-			DisplayString:           status.StatusString,
-			HasStagedChanges:        !hasNoStagedChanges,
-			HasUnstagedChanges:      unstagedChange != " ",
-			Tracked:                 !untracked,
-			Deleted:                 unstagedChange == "D" || stagedChange == "D",
-			Added:                   unstagedChange == "A" || untracked,
-			HasMergeConflicts:       hasMergeConflicts,
-			HasInlineMergeConflicts: hasInlineMergeConflicts,
-			Type:                    self.getFileType(status.Name),
-			ShortStatus:             change,
+			Name:          status.Name,
+			PreviousName:  status.PreviousName,
+			DisplayString: status.StatusString,
+			Type:          self.getFileType(status.Name),
 		}
+
+		models.SetStatusFields(file, status.Change)
 		files = append(files, file)
 	}
 

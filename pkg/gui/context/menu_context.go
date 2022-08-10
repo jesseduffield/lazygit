@@ -24,7 +24,7 @@ func NewMenuContext(
 ) *MenuContext {
 	viewModel := NewMenuViewModel()
 
-	onFocus := func(...types.OnFocusOpts) error {
+	onFocus := func(types.OnFocusOpts) error {
 		selectedMenuItem := viewModel.GetSelected()
 		renderToDescriptionView(selectedMenuItem.Tooltip)
 		return nil
@@ -34,17 +34,18 @@ func NewMenuContext(
 		MenuViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				ViewName:        "menu",
-				Key:             "menu",
-				Kind:            types.PERSISTENT_POPUP,
-				OnGetOptionsMap: getOptionsMap,
-				Focusable:       true,
+				View:                  view,
+				WindowName:            "menu",
+				Key:                   "menu",
+				Kind:                  types.TEMPORARY_POPUP,
+				OnGetOptionsMap:       getOptionsMap,
+				Focusable:             true,
+				HasUncontrolledBounds: true,
 			}), ContextCallbackOpts{
 				OnFocus: onFocus,
 			}),
 			getDisplayStrings: viewModel.GetDisplayStrings,
 			list:              viewModel,
-			viewTrait:         NewViewTrait(view),
 			c:                 c,
 		},
 	}
@@ -88,7 +89,7 @@ func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]str
 	return slices.Map(self.menuItems, func(item *types.MenuItem) []string {
 		displayStrings := item.LabelColumns
 		if showKeys {
-			displayStrings = slices.Prepend(displayStrings, style.FgCyan.Sprint(keybindings.GetKeyDisplay(item.Key)))
+			displayStrings = slices.Prepend(displayStrings, style.FgCyan.Sprint(keybindings.LabelFromKey(item.Key)))
 		}
 		return displayStrings
 	})
