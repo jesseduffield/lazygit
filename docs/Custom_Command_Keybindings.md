@@ -136,7 +136,7 @@ If an option has no name the value will be displayed to the user in place of the
 
 ### Placeholder values
 
-Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/go/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:
+Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/golang/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:
 
 ```
 SelectedLocalCommit
