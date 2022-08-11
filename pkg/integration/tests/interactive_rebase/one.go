@@ -14,7 +14,7 @@ var One = helpers.NewTest(helpers.NewTestArgs{
 		shell.
 			CreateNCommits(5) // these will appears at commit 05, 04, 04, down to 01
 	},
-	Run: func(shell *helpers.Shell, input *helpers.Impl, assert *helpers.Assert, keys config.KeybindingConfig) {
+	Run: func(shell *helpers.Shell, input *helpers.Input, assert *helpers.Assert, keys config.KeybindingConfig) {
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 

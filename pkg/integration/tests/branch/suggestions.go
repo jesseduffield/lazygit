@@ -20,7 +20,7 @@ var Suggestions = helpers.NewTest(helpers.NewTestArgs{
 			NewBranch("other-new-branch-2").
 			NewBranch("other-new-branch-3")
 	},
-	Run: func(shell *helpers.Shell, input *helpers.Impl, assert *helpers.Assert, keys config.KeybindingConfig) {
+	Run: func(shell *helpers.Shell, input *helpers.Input, assert *helpers.Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()
 
 		input.PressKeys(keys.Branches.CheckoutBranchByName)

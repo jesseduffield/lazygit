@@ -14,7 +14,7 @@ var Commit = helpers.NewTest(helpers.NewTestArgs{
 		shell.CreateFile("myfile", "myfile content")
 		shell.CreateFile("myfile2", "myfile2 content")
 	},
-	Run: func(shell *helpers.Shell, input *helpers.Impl, assert *helpers.Assert, keys config.KeybindingConfig) {
+	Run: func(shell *helpers.Shell, input *helpers.Input, assert *helpers.Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(0)
 
 		input.Select()

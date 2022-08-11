@@ -10,15 +10,15 @@ import (
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
-type Impl struct {
+type Input struct {
 	gui          integrationTypes.GuiAdapter
 	keys         config.KeybindingConfig
 	assert       *Assert
 	pushKeyDelay int
 }
 
-func NewInput(gui integrationTypes.GuiAdapter, keys config.KeybindingConfig, assert *Assert, pushKeyDelay int) *Impl {
-	return &Impl{
+func NewInput(gui integrationTypes.GuiAdapter, keys config.KeybindingConfig, assert *Assert, pushKeyDelay int) *Input {
+	return &Input{
 		gui:          gui,
 		keys:         keys,
 		assert:       assert,
@@ -28,89 +28,89 @@ func NewInput(gui integrationTypes.GuiAdapter, keys config.KeybindingConfig, ass
 
 // key is something like 'w' or '<space>'. It's best not to pass a direct value,
 // but instead to go through the default user config to get a more meaningful key name
-func (self *Impl) PressKeys(keyStrs ...string) {
+func (self *Input) PressKeys(keyStrs ...string) {
 	for _, keyStr := range keyStrs {
 		self.pressKey(keyStr)
 	}
 }
 
-func (self *Impl) pressKey(keyStr string) {
+func (self *Input) pressKey(keyStr string) {
 	self.Wait(self.pushKeyDelay)
 
 	self.gui.PressKey(keyStr)
 }
 
-func (self *Impl) SwitchToStatusWindow() {
+func (self *Input) SwitchToStatusWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[0])
 }
 
-func (self *Impl) SwitchToFilesWindow() {
+func (self *Input) SwitchToFilesWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[1])
 }
 
-func (self *Impl) SwitchToBranchesWindow() {
+func (self *Input) SwitchToBranchesWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[2])
 }
 
-func (self *Impl) SwitchToCommitsWindow() {
+func (self *Input) SwitchToCommitsWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[3])
 }
 
-func (self *Impl) SwitchToStashWindow() {
+func (self *Input) SwitchToStashWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[4])
 }
 
-func (self *Impl) Type(content string) {
+func (self *Input) Type(content string) {
 	for _, char := range content {
 		self.pressKey(string(char))
 	}
 }
 
 // i.e. pressing enter
-func (self *Impl) Confirm() {
+func (self *Input) Confirm() {
 	self.pressKey(self.keys.Universal.Confirm)
 }
 
 // i.e. pressing escape
-func (self *Impl) Cancel() {
+func (self *Input) Cancel() {
 	self.pressKey(self.keys.Universal.Return)
 }
 
 // i.e. pressing space
-func (self *Impl) Select() {
+func (self *Input) Select() {
 	self.pressKey(self.keys.Universal.Select)
 }
 
 // i.e. pressing down arrow
-func (self *Impl) NextItem() {
+func (self *Input) NextItem() {
 	self.pressKey(self.keys.Universal.NextItem)
 }
 
 // i.e. pressing up arrow
-func (self *Impl) PreviousItem() {
+func (self *Input) PreviousItem() {
 	self.pressKey(self.keys.Universal.PrevItem)
 }
 
-func (self *Impl) ContinueMerge() {
+func (self *Input) ContinueMerge() {
 	self.PressKeys(self.keys.Universal.CreateRebaseOptionsMenu)
 	self.assert.SelectedLineContains("continue")
 	self.Confirm()
 }
 
-func (self *Impl) ContinueRebase() {
+func (self *Input) ContinueRebase() {
 	self.ContinueMerge()
 }
 
 // for when you want to allow lazygit to process something before continuing
-func (self *Impl) Wait(milliseconds int) {
+func (self *Input) Wait(milliseconds int) {
 	time.Sleep(time.Duration(milliseconds) * time.Millisecond)
 }
 
-func (self *Impl) LogUI(message string) {
+func (self *Input) LogUI(message string) {
 	self.gui.LogUI(message)
 }
 
-func (self *Impl) Log(message string) {
+func (self *Input) Log(message string) {
 	self.gui.LogUI(message)
 }
 
@@ -125,7 +125,7 @@ func (self *Impl) Log(message string) {
 // If this changes in future, we'll need to update this code to first attempt to find the item
 // in the current page and failing that, jump to the top of the view and iterate through all of it,
 // looking for the item.
-func (self *Impl) NavigateToListItemContainingText(text string) {
+func (self *Input) NavigateToListItemContainingText(text string) {
 	self.assert.InListContext()
 
 	currentContext := self.gui.CurrentContext().(types.IListContext)

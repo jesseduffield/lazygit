@@ -108,7 +108,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=record go run test/runner/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=record go run pkg/integration/deprecated/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -122,7 +122,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=sandbox go run test/runner/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=sandbox go run pkg/integration/deprecated/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -136,7 +136,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true go run test/runner/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true go run pkg/integration/deprecated/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -150,7 +150,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=updateSnapshot go run test/runner/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=updateSnapshot go run pkg/integration/deprecated/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -164,7 +164,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true SPEED=1 go run test/runner/main.go %s", currentTest.Name))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true SPEED=1 go run pkg/integration/deprecated/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil

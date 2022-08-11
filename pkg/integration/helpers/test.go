@@ -21,7 +21,7 @@ type Test struct {
 	setupConfig  func(config *config.AppConfig)
 	run          func(
 		shell *Shell,
-		input *Impl,
+		input *Input,
 		assert *Assert,
 		keys config.KeybindingConfig,
 	)
@@ -30,12 +30,18 @@ type Test struct {
 var _ integrationTypes.IntegrationTest = &Test{}
 
 type NewTestArgs struct {
-	Description  string
-	SetupRepo    func(shell *Shell)
-	SetupConfig  func(config *config.AppConfig)
-	Run          func(shell *Shell, input *Impl, assert *Assert, keys config.KeybindingConfig)
+	// Briefly describes what happens in the test and what it's testing for
+	Description string
+	// prepares a repo for testing
+	SetupRepo func(shell *Shell)
+	// takes a config and mutates. The mutated context will end up being passed to the gui
+	SetupConfig func(config *config.AppConfig)
+	// runs the test
+	Run func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig)
+	// additional args passed to lazygit
 	ExtraCmdArgs string
-	Skip         bool
+	// for when a test is flakey
+	Skip bool
 }
 
 func NewTest(args NewTestArgs) *Test {

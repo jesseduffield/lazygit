@@ -16,7 +16,7 @@ var NewBranch = helpers.NewTest(helpers.NewTestArgs{
 			EmptyCommit("commit 2").
 			EmptyCommit("commit 3")
 	},
-	Run: func(shell *helpers.Shell, input *helpers.Impl, assert *helpers.Assert, keys config.KeybindingConfig) {
+	Run: func(shell *helpers.Shell, input *helpers.Input, assert *helpers.Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(3)
 
 		input.SwitchToCommitsWindow()
