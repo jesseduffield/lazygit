@@ -117,9 +117,9 @@ func (self *Input) Log(message string) {
 // this will look for a list item in the current panel and if it finds it, it will
 // enter the keypresses required to navigate to it.
 // The test will fail if:
-//  - the user is not in a list item
-//  - no list item is found containing the given text
-//  - multiple list items are found containing the given text in the initial page of items
+// - the user is not in a list item
+// - no list item is found containing the given text
+// - multiple list items are found containing the given text in the initial page of items
 //
 // NOTE: this currently assumes that ViewBufferLines returns all the lines that can be accessed.
 // If this changes in future, we'll need to update this code to first attempt to find the item

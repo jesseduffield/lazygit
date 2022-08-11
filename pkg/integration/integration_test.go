@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/creack/pty"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/stretchr/testify/assert"
 )
 

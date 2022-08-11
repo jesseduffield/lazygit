@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/integration"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
 // see pkg/integration/README.md

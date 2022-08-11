@@ -2,7 +2,6 @@ package custom_commands
 
 import (
 	"bytes"
-	"fmt"
 	"text/template"
 
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -104,13 +103,6 @@ func (self *Resolver) resolveMenuOption(option *config.CustomCommandMenuOption, 
 		Description: description,
 		Value:       value,
 	}, nil
-}
-
-func main() {
-	fmt.Println(ResolveTemplate("old approach: {{index .PromptResponses 0}}, new approach: {{ .Form.a }}", CustomCommandObject{
-		PromptResponses: []string{"a"},
-		Form:            map[string]string{"a": "B"},
-	}))
 }
 
 type CustomCommandObject struct {

@@ -101,7 +101,7 @@ func RunTests(
 
 			switch mode {
 			case UPDATE_SNAPSHOT:
-				if err := updateSnapshot(logf, actualDir, expectedDir); err != nil {
+				if err := updateSnapshot(actualDir, expectedDir); err != nil {
 					return err
 				}
 				logf("Test passed: %s", test.Name())
@@ -112,7 +112,7 @@ func RunTests(
 				logf("Test passed: %s", test.Name())
 			case ASK_TO_UPDATE_SNAPSHOT:
 				if _, err := os.Stat(expectedDir); os.IsNotExist(err) {
-					if err := updateSnapshot(logf, actualDir, expectedDir); err != nil {
+					if err := updateSnapshot(actualDir, expectedDir); err != nil {
 						return err
 					}
 					logf("No existing snapshot found for  %s. Created snapshot.", test.Name())
@@ -125,7 +125,7 @@ func RunTests(
 
 					// prompt user whether to update the snapshot (Y/N)
 					if promptUserToUpdateSnapshot() {
-						if err := updateSnapshot(logf, actualDir, expectedDir); err != nil {
+						if err := updateSnapshot(actualDir, expectedDir); err != nil {
 							return err
 						}
 						logf("Snapshot updated: %s", test.Name())
@@ -153,7 +153,7 @@ func promptUserToUpdateSnapshot() bool {
 	return input == "y"
 }
 
-func updateSnapshot(logf logf, actualDir string, expectedDir string) error {
+func updateSnapshot(actualDir string, expectedDir string) error {
 	// create/update snapshot
 	err := oscommands.CopyDir(actualDir, expectedDir)
 	if err != nil {

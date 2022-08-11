@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/integration"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
@@ -29,23 +30,6 @@ func (app *App) getCurrentTest() *components.IntegrationTest {
 		return app.tests[app.itemIdx]
 	}
 	return nil
-}
-
-func (app *App) refreshTests() {
-	app.loadTests()
-	app.g.Update(func(*gocui.Gui) error {
-		listView, err := app.g.View("list")
-		if err != nil {
-			return err
-		}
-
-		listView.Clear()
-		for _, test := range app.tests {
-			fmt.Fprintln(listView, test.Name())
-		}
-
-		return nil
-	})
 }
 
 func (app *App) loadTests() {
