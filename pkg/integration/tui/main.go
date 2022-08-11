@@ -15,7 +15,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
-// this program lets you manage integration tests in a TUI. See docs/Integration_Tests.md for more info.
+// this program lets you manage integration tests in a TUI. See pkg/integration/README.md for more info.
 
 type App struct {
 	tests     []*helpers.Test

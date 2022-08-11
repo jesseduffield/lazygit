@@ -10,13 +10,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 )
 
-// see docs/Integration_Tests.md
-// This file can be invoked directly, but you might find it easier to go through
-// test/lazyintegration/main.go, which provides a convenient gui wrapper to integration tests.
-//
-// If invoked directly, you can specify a test by passing it as the first argument.
-// You can also specify that you want to record a test by passing MODE=record
-// as an env var.
+// see pkg/integration/README.md
+
+// If invoked directly, you can specify tests to run by passing them as positional arguments.
 
 func main() {
 	mode := integration.GetModeFromEnv()

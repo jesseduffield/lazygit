@@ -16,7 +16,7 @@ import (
 
 // Deprecated. See lazy_integration for the new approach.
 
-// this program lets you manage integration tests in a TUI. See docs/Integration_Tests.md for more info.
+// this program lets you manage integration tests in a TUI. See https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md for more info.
 
 type App struct {
 	tests   []*deprecated.Test

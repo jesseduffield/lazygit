@@ -13,7 +13,7 @@ import (
 
 // Deprecated: This file is part of the old way of doing things. See pkg/integration/runner/main.go for the new way
 
-// see docs/Integration_Tests.md
+// see https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md
 // This file can be invoked directly, but you might find it easier to go through
 // test/lazyintegration/main.go, which provides a convenient gui wrapper to integration tests.
 //

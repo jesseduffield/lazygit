@@ -18,9 +18,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
-// This package is for running our integration test suite. See docs/Integration_Tests.md for more info.
+// Deprecated: This file is part of the old way of doing things. See pkg/integration/integration.go for the new way
 
-// Deprecated: This file is part of the old way of doing things. See integration.go for the new way
+// This package is for running our integration test suite. See https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.mdfor more info.
 
 type Test struct {
 	Name         string  `json:"name"`

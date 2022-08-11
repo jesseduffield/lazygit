@@ -1,8 +1,6 @@
 # Integration Tests
 
-There's a lot happening in this package so it's worth a proper explanation.
-
-This package is for integration testing: that is, actually running a real lazygit session and having a robot pretend to be a human user and then making assertions that everything works as expected.
+The pkg/integration pacakge is for integration testing: that is, actually running a real lazygit session and having a robot pretend to be a human user and then making assertions that everything works as expected.
 
 ## Writing tests
 
@@ -43,19 +41,19 @@ There are three ways to invoke a test:
 2. go run pkg/integration/tui/main.go
 3. go test pkg/integration/integration_test.go
 
-The first, the test runner, is for directly running a test from the command line.
+The first, the test runner, is for directly running a test from the command line. If you pass no arguments, it runs all tests.
 The second, the TUI, is for running tests from a terminal UI where it's easier to find a test and run it without having to copy it's name and paste it into the terminal. This is the easiest approach by far.
 The third, the go-test command, intended only for use in CI, to be run along with the other `go test` tests. This runs the tests in headless mode so there's no visual output.
 
-The name of a test is based on its path, so the name of the test at `pkg/integration/tests/commit/new_branch.go` is commit/new_branch.
+The name of a test is based on its path, so the name of the test at `pkg/integration/tests/commit/new_branch.go` is commit/new_branch. So to run it with our test runner you would run `go run pkg/integration/runner/main.go commit/new_branch`.
 
-You can pass the KEY_PRESS_DELAY env var to the first command in order to set a delay in milliseconds between keypresses, which helps for watching a test at a realistic speed to understand what it's doing.
+You can pass the KEY_PRESS_DELAY env var to the test runner in order to set a delay in milliseconds between keypresses, which helps for watching a test at a realistic speed to understand what it's doing. Or in the tui you can press 't' to run the test with a pre-set delay.
 
-## Snapshots
+### Snapshots
 
-At the moment (this is subject to change) each test has a snapshot repo created after running for the first time. These snapshots live in `test/integration_new`. Whenever you run a test, the resultant repo will be compared against the snapshot repo and if they're different, you'll be asked whether you want to update the snapshot. If you want to update a snapshot without being prompted you can pass MODE=updateSnapshot to the test runner or the go test command. This is useful when you've made a change to
+At the moment (this is subject to change) each test has a snapshot repo created after running for the first time. These snapshots live in `test/integration_new`, in folders named 'expected' (alongside the 'actual' folders which contain the resulting repo from the last test run). Whenever you run a test, the resultant repo will be compared against the snapshot repo and if they're different, you'll be asked whether you want to update the snapshot. If you want to update a snapshot without being prompted you can pass MODE=updateSnapshot to the test runner or the go test command. This is useful when you've made a change to
 
-## Sandbox mode
+### Sandbox mode
 
 Say you want to do a manual test of how lazygit handles merge-conflicts, but you can't be bothered actually finding a way to create merge conflicts in a repo. To make your life easier, you can simply run a merge-conflicts test in sandbox mode, meaning the setup step is run for you, and then instead of the test driving the lazygit session, you're allowed to drive it yourself.
 
@@ -72,3 +70,5 @@ We should never write any new tests under the old method, and if a given test br
 ```
 go run pkg/integration/deprecated/tui/main.go
 ```
+
+The tests in the old format live in test/integration. In the old format, test definitions are co-located with the snapshots. The setup step is done in a `setup.sh` shell script and the `recording.json` file contains the recorded keypresses to be replayed during the test.
