@@ -18,14 +18,14 @@ import (
 // this program lets you manage integration tests in a TUI. See pkg/integration/README.md for more info.
 
 type App struct {
-	tests     []*helpers.Test
+	tests     []*helpers.IntegrationTest
 	itemIdx   int
 	testDir   string
 	filtering bool
 	g         *gocui.Gui
 }
 
-func (app *App) getCurrentTest() *helpers.Test {
+func (app *App) getCurrentTest() *helpers.IntegrationTest {
 	if len(app.tests) > 0 {
 		return app.tests[app.itemIdx]
 	}

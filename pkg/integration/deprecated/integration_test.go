@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Deprecated: this is the old way of running tests. See pkg/gui/gui_test.go for the new way.
+// Deprecated.
 
 // This file is quite similar to integration/main.go. The main difference is that this file is
 // run via `go test` whereas the other is run via `test/lazyintegration/main.go` which provides
@@ -40,7 +40,7 @@ import (
 // trying at the original playback speed (speed 1). A speed of 2 represents twice the
 // original playback speed. Speed may be a decimal.
 
-func TestOld(t *testing.T) {
+func Test(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
@@ -56,7 +56,7 @@ func TestOld(t *testing.T) {
 	err := RunTests(
 		t.Logf,
 		runCmdHeadless,
-		func(test *Test, f func(*testing.T) error) {
+		func(test *IntegrationTest, f func(*testing.T) error) {
 			defer func() { testNumber += 1 }()
 			if testNumber%parallelTotal != parallelIndex {
 				return

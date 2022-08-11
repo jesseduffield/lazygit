@@ -22,7 +22,7 @@ import (
 
 // This package is for running our integration test suite. See https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.mdfor more info.
 
-type Test struct {
+type IntegrationTest struct {
 	Name         string  `json:"name"`
 	Speed        float64 `json:"speed"`
 	Description  string  `json:"description"`
@@ -66,7 +66,7 @@ func GetModeFromEnv() Mode {
 func RunTests(
 	logf func(format string, formatArgs ...interface{}),
 	runCmd func(cmd *exec.Cmd) error,
-	fnWrapper func(test *Test, f func(*testing.T) error),
+	fnWrapper func(test *IntegrationTest, f func(*testing.T) error),
 	mode Mode,
 	speedEnv string,
 	onFail func(t *testing.T, expected string, actual string, prefix string),
@@ -315,13 +315,13 @@ func getTestSpeeds(testStartSpeed float64, mode Mode, speedStr string) []float64
 	return speeds
 }
 
-func LoadTests(testDir string) ([]*Test, error) {
+func LoadTests(testDir string) ([]*IntegrationTest, error) {
 	paths, err := filepath.Glob(filepath.Join(testDir, "/*/test.json"))
 	if err != nil {
 		return nil, err
 	}
 
-	tests := make([]*Test, len(paths))
+	tests := make([]*IntegrationTest, len(paths))
 
 	for i, path := range paths {
 		data, err := ioutil.ReadFile(path)
@@ -329,7 +329,7 @@ func LoadTests(testDir string) ([]*Test, error) {
 			return nil, err
 		}
 
-		test := &Test{}
+		test := &IntegrationTest{}
 
 		err = json.Unmarshal(data, test)
 		if err != nil {

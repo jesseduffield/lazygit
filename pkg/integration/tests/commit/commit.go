@@ -5,7 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 )
 
-var Commit = helpers.NewTest(helpers.NewTestArgs{
+var Commit = helpers.NewIntegrationTest(helpers.NewIntegrationTestArgs{
 	Description:  "Staging a couple files and committing",
 	ExtraCmdArgs: "",
 	Skip:         false,

@@ -12,7 +12,7 @@ import (
 
 // Test describes an integration tests that will be run against the lazygit gui.
 
-type Test struct {
+type IntegrationTest struct {
 	name         string
 	description  string
 	extraCmdArgs string
@@ -27,9 +27,9 @@ type Test struct {
 	)
 }
 
-var _ integrationTypes.IntegrationTest = &Test{}
+var _ integrationTypes.IntegrationTest = &IntegrationTest{}
 
-type NewTestArgs struct {
+type NewIntegrationTestArgs struct {
 	// Briefly describes what happens in the test and what it's testing for
 	Description string
 	// prepares a repo for testing
@@ -44,8 +44,8 @@ type NewTestArgs struct {
 	Skip bool
 }
 
-func NewTest(args NewTestArgs) *Test {
-	return &Test{
+func NewIntegrationTest(args NewIntegrationTestArgs) *IntegrationTest {
+	return &IntegrationTest{
 		name:         testNameFromFilePath(),
 		description:  args.Description,
 		extraCmdArgs: args.ExtraCmdArgs,
@@ -56,32 +56,32 @@ func NewTest(args NewTestArgs) *Test {
 	}
 }
 
-func (self *Test) Name() string {
+func (self *IntegrationTest) Name() string {
 	return self.name
 }
 
-func (self *Test) Description() string {
+func (self *IntegrationTest) Description() string {
 	return self.description
 }
 
-func (self *Test) ExtraCmdArgs() string {
+func (self *IntegrationTest) ExtraCmdArgs() string {
 	return self.extraCmdArgs
 }
 
-func (self *Test) Skip() bool {
+func (self *IntegrationTest) Skip() bool {
 	return self.skip
 }
 
-func (self *Test) SetupConfig(config *config.AppConfig) {
+func (self *IntegrationTest) SetupConfig(config *config.AppConfig) {
 	self.setupConfig(config)
 }
 
-func (self *Test) SetupRepo(shell *Shell) {
+func (self *IntegrationTest) SetupRepo(shell *Shell) {
 	self.setupRepo(shell)
 }
 
 // I want access to all contexts, the model, the ability to press a key, the ability to log,
-func (self *Test) Run(gui integrationTypes.GuiAdapter) {
+func (self *IntegrationTest) Run(gui integrationTypes.GuiAdapter) {
 	shell := NewShell()
 	assert := NewAssert(gui)
 	keys := gui.Keys()

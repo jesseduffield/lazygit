@@ -30,7 +30,7 @@ func main() {
 	err := deprecated.RunTests(
 		log.Printf,
 		runCmdInTerminal,
-		func(test *deprecated.Test, f func(*testing.T) error) {
+		func(test *deprecated.IntegrationTest, f func(*testing.T) error) {
 			if selectedTestName != "" && test.Name != selectedTestName {
 				return
 			}

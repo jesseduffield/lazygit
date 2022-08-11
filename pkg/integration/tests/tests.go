@@ -10,7 +10,7 @@ import (
 // Here is where we lists the actual tests that will run. When you create a new test,
 // be sure to add it to this list.
 
-var Tests = []*helpers.Test{
+var Tests = []*helpers.IntegrationTest{
 	commit.Commit,
 	commit.NewBranch,
 	branch.Suggestions,

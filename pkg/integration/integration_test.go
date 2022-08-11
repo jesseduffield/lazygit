@@ -34,7 +34,7 @@ func TestIntegration(t *testing.T) {
 	err := RunTests(
 		t.Logf,
 		runCmdHeadless,
-		func(test *helpers.Test, f func() error) {
+		func(test *helpers.IntegrationTest, f func() error) {
 			defer func() { testNumber += 1 }()
 			if testNumber%parallelTotal != parallelIndex {
 				return

@@ -5,7 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 )
 
-var One = helpers.NewTest(helpers.NewTestArgs{
+var One = helpers.NewIntegrationTest(helpers.NewIntegrationTestArgs{
 	Description:  "Begins an interactive rebase, then fixups, drops, and squashes some commits",
 	ExtraCmdArgs: "",
 	Skip:         false,

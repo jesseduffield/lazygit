@@ -5,7 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 )
 
-var NewBranch = helpers.NewTest(helpers.NewTestArgs{
+var NewBranch = helpers.NewIntegrationTest(helpers.NewIntegrationTestArgs{
 	Description:  "Creating a new branch from a commit",
 	ExtraCmdArgs: "",
 	Skip:         false,

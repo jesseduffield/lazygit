@@ -5,7 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 )
 
-var Suggestions = helpers.NewTest(helpers.NewTestArgs{
+var Suggestions = helpers.NewIntegrationTest(helpers.NewIntegrationTestArgs{
 	Description:  "Checking out a branch with name suggestions",
 	ExtraCmdArgs: "",
 	Skip:         false,

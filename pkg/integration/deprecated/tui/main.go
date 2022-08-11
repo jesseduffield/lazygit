@@ -19,14 +19,14 @@ import (
 // this program lets you manage integration tests in a TUI. See https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md for more info.
 
 type App struct {
-	tests   []*deprecated.Test
+	tests   []*deprecated.IntegrationTest
 	itemIdx int
 	testDir string
 	editing bool
 	g       *gocui.Gui
 }
 
-func (app *App) getCurrentTest() *deprecated.Test {
+func (app *App) getCurrentTest() *deprecated.IntegrationTest {
 	if len(app.tests) > 0 {
 		return app.tests[app.itemIdx]
 	}
