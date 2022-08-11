@@ -15,7 +15,6 @@ import (
 	"testing"
 
 	"github.com/creack/pty"
-	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,7 +33,7 @@ func TestIntegration(t *testing.T) {
 	err := RunTests(
 		t.Logf,
 		runCmdHeadless,
-		func(test *helpers.IntegrationTest, f func() error) {
+		func(test *components.IntegrationTest, f func() error) {
 			defer func() { testNumber += 1 }()
 			if testNumber%parallelTotal != parallelIndex {
 				return

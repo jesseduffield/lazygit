@@ -11,21 +11,20 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/integration"
-	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
 // this program lets you manage integration tests in a TUI. See pkg/integration/README.md for more info.
 
 type App struct {
-	tests     []*helpers.IntegrationTest
+	tests     []*components.IntegrationTest
 	itemIdx   int
 	testDir   string
 	filtering bool
 	g         *gocui.Gui
 }
 
-func (app *App) getCurrentTest() *helpers.IntegrationTest {
+func (app *App) getCurrentTest() *components.IntegrationTest {
 	if len(app.tests) > 0 {
 		return app.tests[app.itemIdx]
 	}

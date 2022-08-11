@@ -7,7 +7,6 @@ import (
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/integration"
-	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
 )
 
 // see pkg/integration/README.md
@@ -17,7 +16,7 @@ import (
 func main() {
 	mode := integration.GetModeFromEnv()
 	includeSkipped := os.Getenv("INCLUDE_SKIPPED") == "true"
-	var testsToRun []*helpers.IntegrationTest
+	var testsToRun []*components.IntegrationTest
 
 	if len(os.Args) > 1 {
 	outer:
@@ -35,14 +34,14 @@ func main() {
 		testsToRun = integration.Tests
 	}
 
-	testNames := slices.Map(testsToRun, func(test *helpers.IntegrationTest) string {
+	testNames := slices.Map(testsToRun, func(test *components.IntegrationTest) string {
 		return test.Name()
 	})
 
 	err := integration.RunTests(
 		log.Printf,
 		runCmdInTerminal,
-		func(test *helpers.IntegrationTest, f func() error) {
+		func(test *components.IntegrationTest, f func() error) {
 			if !slices.Contains(testNames, test.Name()) {
 				return
 			}

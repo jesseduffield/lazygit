@@ -12,7 +12,7 @@ import (
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -45,7 +45,7 @@ type (
 func RunTests(
 	logf logf,
 	runCmd func(cmd *exec.Cmd) error,
-	fnWrapper func(test *helpers.IntegrationTest, f func() error),
+	fnWrapper func(test *components.IntegrationTest, f func() error),
 	mode Mode,
 	includeSkipped bool,
 ) error {
@@ -229,12 +229,12 @@ func compareSnapshots(logf logf, configDir string, actualDir string, expectedDir
 	return nil
 }
 
-func createFixture(test *helpers.IntegrationTest, actualDir string, rootDir string) error {
+func createFixture(test *components.IntegrationTest, actualDir string, rootDir string) error {
 	if err := os.Chdir(actualDir); err != nil {
 		panic(err)
 	}
 
-	shell := helpers.NewShell()
+	shell := components.NewShell()
 	shell.RunCommand("git init")
 	shell.RunCommand(`git config user.email "CI@example.com"`)
 	shell.RunCommand(`git config user.name "CI"`)
@@ -249,7 +249,7 @@ func createFixture(test *helpers.IntegrationTest, actualDir string, rootDir stri
 	return nil
 }
 
-func getLazygitCommand(test *helpers.IntegrationTest, testPath string, rootDir string) (*exec.Cmd, error) {
+func getLazygitCommand(test *components.IntegrationTest, testPath string, rootDir string) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")

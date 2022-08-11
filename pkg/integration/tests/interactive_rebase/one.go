@@ -2,19 +2,19 @@ package interactive_rebase
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/integration/helpers"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var One = helpers.NewIntegrationTest(helpers.NewIntegrationTestArgs{
+var One = components.NewIntegrationTest(components.NewIntegrationTestArgs{
 	Description:  "Begins an interactive rebase, then fixups, drops, and squashes some commits",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
-	SetupRepo: func(shell *helpers.Shell) {
+	SetupRepo: func(shell *components.Shell) {
 		shell.
 			CreateNCommits(5) // these will appears at commit 05, 04, 04, down to 01
 	},
-	Run: func(shell *helpers.Shell, input *helpers.Input, assert *helpers.Assert, keys config.KeybindingConfig) {
+	Run: func(shell *components.Shell, input *components.Input, assert *components.Assert, keys config.KeybindingConfig) {
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
