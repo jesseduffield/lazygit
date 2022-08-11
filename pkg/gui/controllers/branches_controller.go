@@ -232,18 +232,7 @@ func (self *BranchesController) checkoutByName() error {
 		Title:               self.c.Tr.BranchName + ":",
 		FindSuggestionsFunc: self.helpers.Suggestions.GetRefsSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
-			self.c.LogAction("Checkout branch")
-			return self.helpers.Refs.CheckoutRef(response, types.CheckoutRefOptions{
-				OnRefNotFound: func(ref string) error {
-					return self.c.Confirm(types.ConfirmOpts{
-						Title:  self.c.Tr.BranchNotFoundTitle,
-						Prompt: fmt.Sprintf("%s %s%s", self.c.Tr.BranchNotFoundPrompt, ref, "?"),
-						HandleConfirm: func() error {
-							return self.createNewBranchWithName(ref)
-						},
-					})
-				},
-			})
+			return self.helpers.Refs.NewBranch(response, response, "")
 		},
 	},
 	)
