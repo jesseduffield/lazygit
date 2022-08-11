@@ -22,6 +22,7 @@ var Suggestions = components.NewIntegrationTest(components.NewIntegrationTestArg
 	},
 	Run: func(shell *components.Shell, input *components.Input, assert *components.Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()
+		assert.CurrentViewName("localBranches")
 
 		input.PressKeys(keys.Branches.CheckoutBranchByName)
 		assert.CurrentViewName("confirmation")
