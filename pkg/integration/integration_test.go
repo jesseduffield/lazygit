@@ -31,7 +31,7 @@ func TestIntegration(t *testing.T) {
 	parallelIndex := tryConvert(os.Getenv("PARALLEL_INDEX"), 0)
 	testNumber := 0
 
-	err := RunTestsNew(
+	err := RunTests(
 		t.Logf,
 		runCmdHeadless,
 		func(test *helpers.Test, f func() error) {

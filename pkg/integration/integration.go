@@ -42,7 +42,7 @@ type (
 	logf func(format string, formatArgs ...interface{})
 )
 
-func RunTestsNew(
+func RunTests(
 	logf logf,
 	runCmd func(cmd *exec.Cmd) error,
 	fnWrapper func(test *helpers.Test, f func() error),
@@ -82,14 +82,14 @@ func RunTestsNew(
 			findOrCreateDir(testPath)
 			prepareIntegrationTestDir(actualDir)
 			findOrCreateDir(actualRepoDir)
-			err := createFixtureNew(test, actualRepoDir, rootDir)
+			err := createFixture(test, actualRepoDir, rootDir)
 			if err != nil {
 				return err
 			}
 
 			configDir := filepath.Join(testPath, "used_config")
 
-			cmd, err := getLazygitCommandNew(test, testPath, rootDir)
+			cmd, err := getLazygitCommand(test, testPath, rootDir)
 			if err != nil {
 				return err
 			}
@@ -229,7 +229,7 @@ func compareSnapshots(logf logf, configDir string, actualDir string, expectedDir
 	return nil
 }
 
-func createFixtureNew(test *helpers.Test, actualDir string, rootDir string) error {
+func createFixture(test *helpers.Test, actualDir string, rootDir string) error {
 	if err := os.Chdir(actualDir); err != nil {
 		panic(err)
 	}
@@ -249,7 +249,7 @@ func createFixtureNew(test *helpers.Test, actualDir string, rootDir string) erro
 	return nil
 }
 
-func getLazygitCommandNew(test *helpers.Test, testPath string, rootDir string) (*exec.Cmd, error) {
+func getLazygitCommand(test *helpers.Test, testPath string, rootDir string) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")

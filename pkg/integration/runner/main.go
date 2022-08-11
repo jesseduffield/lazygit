@@ -39,7 +39,7 @@ func main() {
 		return test.Name()
 	})
 
-	err := integration.RunTestsNew(
+	err := integration.RunTests(
 		log.Printf,
 		runCmdInTerminal,
 		func(test *helpers.Test, f func() error) {
