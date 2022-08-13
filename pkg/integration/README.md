@@ -39,7 +39,7 @@ There are three ways to invoke a test:
 
 1. go run pkg/integration/cmd/runner/main.go [<testname>...]
 2. go run pkg/integration/cmd/tui/main.go
-3. go test pkg/integration/integration_test.go
+3. go test pkg/integration/go_test.go
 
 The first, the test runner, is for directly running a test from the command line. If you pass no arguments, it runs all tests.
 The second, the TUI, is for running tests from a terminal UI where it's easier to find a test and run it without having to copy it's name and paste it into the terminal. This is the easiest approach by far.

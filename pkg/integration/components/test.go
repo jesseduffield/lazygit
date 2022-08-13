@@ -12,6 +12,10 @@ import (
 
 // Test describes an integration tests that will be run against the lazygit gui.
 
+// our unit tests will use this description to avoid a panic caused by attempting
+// to get the test's name via it's file's path.
+const unitTestDescription = "test test"
+
 type IntegrationTest struct {
 	name         string
 	description  string
@@ -45,8 +49,15 @@ type NewIntegrationTestArgs struct {
 }
 
 func NewIntegrationTest(args NewIntegrationTestArgs) *IntegrationTest {
+	name := ""
+	if args.Description != unitTestDescription {
+		// this panics if we're in a unit test for our integration tests,
+		// so we're using "test test" as a sentinel value
+		name = testNameFromFilePath()
+	}
+
 	return &IntegrationTest{
-		name:         testNameFromFilePath(),
+		name:         name,
 		description:  args.Description,
 		extraCmdArgs: args.ExtraCmdArgs,
 		skip:         args.Skip,

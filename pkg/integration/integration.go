@@ -58,7 +58,7 @@ func RunTests(
 	testDir := filepath.Join(rootDir, "test", "integration_new")
 
 	osCommand := oscommands.NewDummyOSCommand()
-	err = osCommand.Cmd.New("go build pkg/integration/cmd/intector.go -o " + tempLazygitPath()).Run()
+	err = osCommand.Cmd.New(fmt.Sprintf("go build -o %s pkg/integration/cmd/injector.go", tempLazygitPath())).Run()
 	if err != nil {
 		return err
 	}
