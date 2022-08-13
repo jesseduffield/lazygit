@@ -14,13 +14,13 @@ import (
 
 // this gives our integration test a way of interacting with the gui for sending keypresses
 // and reading state.
-type GuiAdapter struct {
+type GuiDriver struct {
 	gui *Gui
 }
 
-var _ integrationTypes.GuiAdapter = &GuiAdapter{}
+var _ integrationTypes.GuiDriver = &GuiDriver{}
 
-func (self *GuiAdapter) PressKey(keyStr string) {
+func (self *GuiDriver) PressKey(keyStr string) {
 	key := keybindings.GetKey(keyStr)
 
 	var r rune
@@ -39,19 +39,19 @@ func (self *GuiAdapter) PressKey(keyStr string) {
 	)
 }
 
-func (self *GuiAdapter) Keys() config.KeybindingConfig {
+func (self *GuiDriver) Keys() config.KeybindingConfig {
 	return self.gui.Config.GetUserConfig().Keybinding
 }
 
-func (self *GuiAdapter) CurrentContext() types.Context {
+func (self *GuiDriver) CurrentContext() types.Context {
 	return self.gui.c.CurrentContext()
 }
 
-func (self *GuiAdapter) Model() *types.Model {
+func (self *GuiDriver) Model() *types.Model {
 	return self.gui.State.Model
 }
 
-func (self *GuiAdapter) Fail(message string) {
+func (self *GuiDriver) Fail(message string) {
 	self.gui.g.Close()
 	// need to give the gui time to close
 	time.Sleep(time.Millisecond * 100)
@@ -59,15 +59,15 @@ func (self *GuiAdapter) Fail(message string) {
 }
 
 // logs to the normal place that you log to i.e. viewable with `lazygit --logs`
-func (self *GuiAdapter) Log(message string) {
+func (self *GuiDriver) Log(message string) {
 	self.gui.c.Log.Warn(message)
 }
 
 // logs in the actual UI (in the commands panel)
-func (self *GuiAdapter) LogUI(message string) {
+func (self *GuiDriver) LogUI(message string) {
 	self.gui.c.LogAction(message)
 }
 
-func (self *GuiAdapter) CheckedOutRef() *models.Branch {
+func (self *GuiDriver) CheckedOutRef() *models.Branch {
 	return self.gui.helpers.Refs.GetCheckedOutRef()
 }

@@ -12,10 +12,10 @@ import (
 // through this struct we assert on the state of the lazygit gui
 
 type Assert struct {
-	gui integrationTypes.GuiAdapter
+	gui integrationTypes.GuiDriver
 }
 
-func NewAssert(gui integrationTypes.GuiAdapter) *Assert {
+func NewAssert(gui integrationTypes.GuiDriver) *Assert {
 	return &Assert{gui: gui}
 }
 

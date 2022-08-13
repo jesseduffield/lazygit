@@ -10,12 +10,12 @@ import (
 // to provide to a test in order for the test to run.
 
 type IntegrationTest interface {
-	Run(GuiAdapter)
+	Run(GuiDriver)
 	SetupConfig(config *config.AppConfig)
 }
 
 // this is the interface through which our integration tests interact with the lazygit gui
-type GuiAdapter interface {
+type GuiDriver interface {
 	PressKey(string)
 	Keys() config.KeybindingConfig
 	CurrentContext() types.Context

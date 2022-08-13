@@ -10,37 +10,60 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/integration"
-	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/deprecated"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
-// this program lets you manage integration tests in a TUI. See pkg/integration/README.md for more info.
+// Deprecated. See lazy_integration for the new approach.
+
+// this program lets you manage integration tests in a TUI. See https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md for more info.
 
 type App struct {
-	tests     []*components.IntegrationTest
-	itemIdx   int
-	testDir   string
-	filtering bool
-	g         *gocui.Gui
+	tests   []*deprecated.IntegrationTest
+	itemIdx int
+	testDir string
+	editing bool
+	g       *gocui.Gui
 }
 
-func (app *App) getCurrentTest() *components.IntegrationTest {
+func (app *App) getCurrentTest() *deprecated.IntegrationTest {
 	if len(app.tests) > 0 {
 		return app.tests[app.itemIdx]
 	}
 	return nil
 }
 
+func (app *App) refreshTests() {
+	app.loadTests()
+	app.g.Update(func(*gocui.Gui) error {
+		listView, err := app.g.View("list")
+		if err != nil {
+			return err
+		}
+
+		listView.Clear()
+		for _, test := range app.tests {
+			fmt.Fprintln(listView, test.Name)
+		}
+
+		return nil
+	})
+}
+
 func (app *App) loadTests() {
-	app.tests = integration.Tests
+	tests, err := deprecated.LoadTests(app.testDir)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	app.tests = tests
 	if app.itemIdx > len(app.tests)-1 {
 		app.itemIdx = len(app.tests) - 1
 	}
 }
 
 func main() {
-	rootDir := integration.GetRootDirectory()
+	rootDir := deprecated.GetRootDirectory()
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	app := &App{testDir: testDir}
@@ -79,13 +102,27 @@ func main() {
 		log.Panicln(err)
 	}
 
+	if err := g.SetKeybinding("list", 'r', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=record go run pkg/integration/deprecated/cmd/runner/main.go %s", currentTest.Name))
+		app.runSubprocess(cmd)
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
 	if err := g.SetKeybinding("list", 's', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=sandbox go run pkg/integration/runner/main.go %s", currentTest.Name()))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=sandbox go run pkg/integration/deprecated/cmd/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -99,7 +136,21 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true go run pkg/integration/runner/main.go %s", currentTest.Name()))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true go run pkg/integration/deprecated/cmd/runner/main.go %s", currentTest.Name))
+		app.runSubprocess(cmd)
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("list", 'u', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=updateSnapshot go run pkg/integration/deprecated/cmd/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -113,7 +164,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true KEY_PRESS_DELAY=200 go run pkg/integration/runner/main.go %s", currentTest.Name()))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true SPEED=1 go run pkg/integration/deprecated/cmd/runner/main.go %s", currentTest.Name))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -127,7 +178,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code -r pkg/integration/tests/%s", currentTest.Name()))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code -r %s/%s/test.json", app.testDir, currentTest.Name))
 		if err := cmd.Run(); err != nil {
 			return err
 		}
@@ -137,24 +188,36 @@ func main() {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", 'O', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+	if err := g.SetKeybinding("list", 'n', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
 		currentTest := app.getCurrentTest()
 		if currentTest == nil {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code test/integration_new/%s", currentTest.Name()))
+		// need to duplicate that folder and then re-fetch our tests.
+		dir := app.testDir + "/" + app.getCurrentTest().Name
+		newDir := dir + "_Copy"
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("cp -r %s %s", dir, newDir))
 		if err := cmd.Run(); err != nil {
 			return err
 		}
 
+		app.loadTests()
+
+		app.refreshTests()
 		return nil
 	}); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("list", '/', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-		app.filtering = true
+	if err := g.SetKeybinding("list", 'm', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		app.editing = true
 		if _, err := g.SetCurrentView("editor"); err != nil {
 			return err
 		}
@@ -163,15 +226,67 @@ func main() {
 			return err
 		}
 		editorView.Clear()
+		fmt.Fprint(editorView, currentTest.Name)
 
 		return nil
 	}); err != nil {
 		log.Panicln(err)
 	}
 
-	// not using the editor yet, but will use it to help filter the list
+	if err := g.SetKeybinding("list", 'd', gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		dir := app.testDir + "/" + app.getCurrentTest().Name
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("rm -rf %s", dir))
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+
+		app.refreshTests()
+
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("editor", gocui.KeyEnter, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
+		currentTest := app.getCurrentTest()
+		if currentTest == nil {
+			return nil
+		}
+
+		app.editing = false
+		if _, err := g.SetCurrentView("list"); err != nil {
+			return err
+		}
+
+		editorView, err := g.View("editor")
+		if err != nil {
+			return err
+		}
+
+		dir := app.testDir + "/" + app.getCurrentTest().Name
+		newDir := app.testDir + "/" + editorView.Buffer()
+
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("mv %s %s", dir, newDir))
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+
+		editorView.Clear()
+
+		app.refreshTests()
+		return nil
+	}); err != nil {
+		log.Panicln(err)
+	}
+
 	if err := g.SetKeybinding("editor", gocui.KeyEsc, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
-		app.filtering = false
+		app.editing = false
 		if _, err := g.SetCurrentView("list"); err != nil {
 			return err
 		}
@@ -219,13 +334,13 @@ func (app *App) layout(g *gocui.Gui) error {
 	descriptionViewHeight := 7
 	keybindingsViewHeight := 3
 	editorViewHeight := 3
-	if !app.filtering {
+	if !app.editing {
 		editorViewHeight = 0
 	} else {
 		descriptionViewHeight = 0
 		keybindingsViewHeight = 0
 	}
-	g.Cursor = app.filtering
+	g.Cursor = app.editing
 	g.FgColor = gocui.ColorGreen
 	listView, err := g.SetView("list", 0, 0, maxX-1, maxY-descriptionViewHeight-keybindingsViewHeight-editorViewHeight-1, 0)
 	if err != nil {
@@ -235,7 +350,7 @@ func (app *App) layout(g *gocui.Gui) error {
 		listView.Highlight = true
 		listView.Clear()
 		for _, test := range app.tests {
-			fmt.Fprintln(listView, test.Name())
+			fmt.Fprintln(listView, test.Name)
 		}
 		listView.Title = "Tests"
 		listView.FgColor = gocui.ColorDefault
@@ -262,7 +377,7 @@ func (app *App) layout(g *gocui.Gui) error {
 		keybindingsView.Title = "Keybindings"
 		keybindingsView.Wrap = true
 		keybindingsView.FgColor = gocui.ColorDefault
-		fmt.Fprintln(keybindingsView, "up/down: navigate, enter: run test, t: run test slow, s: sandbox, o: open test file, shift+o: open test snapshot directory, forward-slash: filter")
+		fmt.Fprintln(keybindingsView, "up/down: navigate, enter: run test, u: run test and update snapshots, r: record test, s: sandbox, o: open test config, n: duplicate test, m: rename test, d: delete test, t: run test at original speed")
 	}
 
 	editorView, err := g.SetViewBeneath("editor", "keybindings", editorViewHeight)
@@ -270,7 +385,7 @@ func (app *App) layout(g *gocui.Gui) error {
 		if err.Error() != "unknown view" {
 			return err
 		}
-		editorView.Title = "Filter"
+		editorView.Title = "Enter Name"
 		editorView.FgColor = gocui.ColorDefault
 		editorView.Editable = true
 	}
@@ -281,7 +396,7 @@ func (app *App) layout(g *gocui.Gui) error {
 	}
 
 	descriptionView.Clear()
-	fmt.Fprint(descriptionView, currentTest.Description())
+	fmt.Fprintf(descriptionView, "Speed: %f. %s", currentTest.Speed, currentTest.Description)
 
 	if err := g.SetKeybinding("list", gocui.KeyArrowDown, gocui.ModNone, func(*gocui.Gui, *gocui.View) error {
 		if app.itemIdx < len(app.tests)-1 {

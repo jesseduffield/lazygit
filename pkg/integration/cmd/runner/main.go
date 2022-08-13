@@ -12,7 +12,13 @@ import (
 
 // see pkg/integration/README.md
 
-// If invoked directly, you can specify tests to run by passing them as positional arguments.
+// The purpose of this program is to run integration tests. It does this by
+// building our injector program (in the sibling injector directory) and then for
+// each test we're running, invoke the injector program with the test's name as
+// an environment variable. Then the injector finds the test and passes it to
+// the lazygit startup code.
+
+// If invoked directly, you can specify tests to run by passing their names as positional arguments
 
 func main() {
 	mode := integration.GetModeFromEnv()

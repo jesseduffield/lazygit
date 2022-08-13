@@ -14,7 +14,7 @@ import (
 )
 
 type IntegrationTest interface {
-	Run(guiAdapter *GuiAdapter)
+	Run(guiAdapter *GuiDriver)
 }
 
 func (gui *Gui) handleTestMode(test integrationTypes.IntegrationTest) {
@@ -22,7 +22,7 @@ func (gui *Gui) handleTestMode(test integrationTypes.IntegrationTest) {
 		go func() {
 			time.Sleep(time.Millisecond * 100)
 
-			test.Run(&GuiAdapter{gui: gui})
+			test.Run(&GuiDriver{gui: gui})
 
 			gui.g.Update(func(*gocui.Gui) error {
 				return gocui.ErrQuit

@@ -20,7 +20,7 @@ import (
 
 // Deprecated: This file is part of the old way of doing things. See pkg/integration/integration.go for the new way
 
-// This package is for running our integration test suite. See https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.mdfor more info.
+// This package is for running our integration test suite. See https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md for more info.
 
 type IntegrationTest struct {
 	Name         string  `json:"name"`
