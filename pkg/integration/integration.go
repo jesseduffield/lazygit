@@ -38,6 +38,8 @@ const (
 	SANDBOX
 )
 
+const LAZYGIT_TEST_NAME_ENV_VAR = "LAZYGIT_TEST_NAME"
+
 type (
 	logf func(format string, formatArgs ...interface{})
 )
@@ -58,7 +60,7 @@ func RunTests(
 	testDir := filepath.Join(rootDir, "test", "integration_new")
 
 	osCommand := oscommands.NewDummyOSCommand()
-	err = osCommand.Cmd.New(fmt.Sprintf("go build -o %s pkg/integration/cmd/injector.go", tempLazygitPath())).Run()
+	err = osCommand.Cmd.New(fmt.Sprintf("go build -o %s pkg/integration/cmd/injector/main.go", tempLazygitPath())).Run()
 	if err != nil {
 		return err
 	}
@@ -270,7 +272,7 @@ func getLazygitCommand(test *components.IntegrationTest, testPath string, rootDi
 
 	cmdObj := osCommand.Cmd.New(cmdStr)
 
-	cmdObj.AddEnvVars(fmt.Sprintf("LAZYGIT_TEST_NAME=%s", test.Name()))
+	cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", LAZYGIT_TEST_NAME_ENV_VAR, test.Name()))
 
 	return cmdObj.GetCmd(), nil
 }

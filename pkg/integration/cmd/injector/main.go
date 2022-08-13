@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/jesseduffield/lazygit/pkg/app"
+	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/integration"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
@@ -30,13 +32,20 @@ func main() {
 }
 
 func getIntegrationTest() integrationTypes.IntegrationTest {
-	integrationTestName := os.Getenv("LAZYGIT_TEST_NAME")
-	if integrationTestName == "" {
-		panic("expected LAZYGIT_TEST_NAME environment variable to be set, given that we're running an integration test")
+	if daemon.InDaemonMode() {
+		// if we've invoked lazygit as a daemon from within lazygit,
+		// we don't want to pass a test to the rest of the code.
+		return nil
 	}
 
-	// unsetting so that if we run lazygit in as a 'daemon' we don't think we're trying to run a test again
-	os.Unsetenv("LAZYGIT_TEST_NAME")
+	integrationTestName := os.Getenv(integration.LAZYGIT_TEST_NAME_ENV_VAR)
+	if integrationTestName == "" {
+		panic(fmt.Sprintf(
+			"expected %s environment variable to be set, given that we're running an integration test",
+			integration.LAZYGIT_TEST_NAME_ENV_VAR,
+		))
+	}
+
 	for _, candidateTest := range integration.Tests {
 		if candidateTest.Name() == integrationTestName {
 			return candidateTest
