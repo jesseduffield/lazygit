@@ -232,11 +232,11 @@ func (g *Gui) timeSinceStart() int64 {
 // pollEvent get tcell.Event and transform it into gocuiEvent
 func (g *Gui) pollEvent() GocuiEvent {
 	var tev tcell.Event
-	if g.PlayMode == REPLAYING {
+	if g.PlayMode == REPLAYING || g.PlayMode == REPLAYING_NEW {
 		select {
-		case ev := <-g.ReplayedEvents.keys:
+		case ev := <-g.ReplayedEvents.Keys:
 			tev = (ev).toTcellEvent()
-		case ev := <-g.ReplayedEvents.resizes:
+		case ev := <-g.ReplayedEvents.Resizes:
 			tev = (ev).toTcellEvent()
 		}
 	} else {

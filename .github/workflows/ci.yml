@@ -46,14 +46,14 @@ jobs:
         # we're passing -short so that we skip the integration tests, which will be run in parallel below
         run: |
           go test ./... -short
-  integration-tests:
+  integration-tests-old:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         parallelism: [5]
         index: [0,1,2,3,4]
-    name: "Integration Tests (${{ matrix.index }}/${{ matrix.parallelism }})"
+    name: "Integration Tests (Old pattern) (${{ matrix.index }}/${{ matrix.parallelism }})"
     env:
       GOFLAGS: -mod=vendor
     steps:
@@ -74,7 +74,31 @@ jobs:
             ${{runner.os}}-go-
       - name: Test code
         run: |
-          PARALLEL_TOTAL=${{ matrix.parallelism }} PARALLEL_INDEX=${{ matrix.index }} go test pkg/gui/gui_test.go
+          PARALLEL_TOTAL=${{ matrix.parallelism }} PARALLEL_INDEX=${{ matrix.index }} go test pkg/integration/deprecated/*.go
+  integration-tests:
+    runs-on: ubuntu-latest
+    name: "Integration Tests"
+    env:
+      GOFLAGS: -mod=vendor
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.18.x
+      - name: Cache build
+        uses: actions/cache@v1
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
+          restore-keys: |
+            ${{runner.os}}-go-
+      - name: Test code
+        run: |
+          go test pkg/integration/*.go
   build:
     runs-on: ubuntu-latest
     env:

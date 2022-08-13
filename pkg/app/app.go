@@ -14,6 +14,7 @@ import (
 	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/generics/slices"
+	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -22,7 +23,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 )
@@ -38,7 +38,11 @@ type App struct {
 	Updater   *updates.Updater // may only need this on the Gui
 }
 
-func Run(config config.AppConfigurer, common *common.Common, startArgs types.StartArgs) {
+func Run(
+	config config.AppConfigurer,
+	common *common.Common,
+	startArgs appTypes.StartArgs,
+) {
 	app, err := NewApp(config, common)
 
 	if err == nil {
@@ -213,7 +217,7 @@ func (app *App) setupRepo() (bool, error) {
 	return false, nil
 }
 
-func (app *App) Run(startArgs types.StartArgs) error {
+func (app *App) Run(startArgs appTypes.StartArgs) error {
 	err := app.Gui.RunAndHandleError(startArgs)
 	return err
 }

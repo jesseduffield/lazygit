@@ -27,8 +27,6 @@ type AppConfig struct {
 	IsNewRepo        bool
 }
 
-// AppConfigurer interface allows individual app config structs to inherit Fields
-// from AppConfig and still be used by lazygit.
 type AppConfigurer interface {
 	GetDebug() bool
 

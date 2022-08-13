@@ -465,6 +465,14 @@ func (v *View) Cursor() (x, y int) {
 	return v.cx, v.cy
 }
 
+func (v *View) CursorX() int {
+	return v.cx
+}
+
+func (v *View) CursorY() int {
+	return v.cy
+}
+
 // SetOrigin sets the origin position of the view's internal buffer,
 // so the buffer starts to be printed from this point, which means that
 // it is linked with the origin point of view. It can be used to
@@ -1233,6 +1241,13 @@ func (v *View) GetClickedTabIndex(x int) int {
 func (v *View) SelectedLineIdx() int {
 	_, seletedLineIdx := v.SelectedPoint()
 	return seletedLineIdx
+}
+
+// expected to only be used in tests
+func (v *View) SelectedLine() string {
+	line := v.lines[v.SelectedLineIdx()]
+	str := lineType(line).String()
+	return strings.Replace(str, "\x00", " ", -1)
 }
 
 func (v *View) SelectedPoint() (int, int) {
