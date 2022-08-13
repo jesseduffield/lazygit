@@ -17,21 +17,6 @@ type fakeGuiDriver struct {
 
 var _ integrationTypes.GuiDriver = &fakeGuiDriver{}
 
-type GuiDriver interface {
-	PressKey(string)
-	Keys() config.KeybindingConfig
-	CurrentContext() types.Context
-	Model() *types.Model
-	Fail(message string)
-	// These two log methods are for the sake of debugging while testing. There's no need to actually
-	// commit any logging.
-	// logs to the normal place that you log to i.e. viewable with `lazygit --logs`
-	Log(message string)
-	// logs in the actual UI (in the commands panel)
-	LogUI(message string)
-	CheckedOutRef() *models.Branch
-}
-
 func (self *fakeGuiDriver) PressKey(key string) {
 	self.pressedKeys = append(self.pressedKeys, key)
 }
