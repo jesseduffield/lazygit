@@ -44,10 +44,11 @@ func runAndPrintError(test *components.IntegrationTest, f func() error) {
 }
 
 func getTestsToRun(testNames []string) []*components.IntegrationTest {
+	allIntegrationTests := tests.GetTests()
 	var testsToRun []*components.IntegrationTest
 
 	if len(testNames) == 0 {
-		return tests.Tests
+		return allIntegrationTests
 	}
 
 	testNames = slices.Map(testNames, func(name string) string {
@@ -61,7 +62,7 @@ func getTestsToRun(testNames []string) []*components.IntegrationTest {
 outer:
 	for _, testName := range testNames {
 		// check if our given test name actually exists
-		for _, test := range tests.Tests {
+		for _, test := range allIntegrationTests {
 			if test.Name() == testName {
 				testsToRun = append(testsToRun, test)
 				continue outer

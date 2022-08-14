@@ -52,7 +52,8 @@ func getIntegrationTest() integrationTypes.IntegrationTest {
 		))
 	}
 
-	for _, candidateTest := range tests.Tests {
+	allTests := tests.GetTests()
+	for _, candidateTest := range allTests {
 		if candidateTest.Name() == integrationTestName {
 			return candidateTest
 		}

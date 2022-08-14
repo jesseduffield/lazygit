@@ -21,12 +21,12 @@ func NewAssert(gui integrationTypes.GuiDriver) *Assert {
 }
 
 // for making assertions on string values
-type matcher[T any] struct {
-	testFn func(T) (bool, string)
+type matcher struct {
+	testFn func(string) (bool, string)
 	prefix string
 }
 
-func (self *matcher[T]) test(value T) (bool, string) {
+func (self *matcher) test(value string) (bool, string) {
 	ok, message := self.testFn(value)
 	if ok {
 		return true, ""
@@ -39,20 +39,20 @@ func (self *matcher[T]) test(value T) (bool, string) {
 	return false, message
 }
 
-func (self *matcher[T]) context(prefix string) *matcher[T] {
+func (self *matcher) context(prefix string) *matcher {
 	self.prefix = prefix
 
 	return self
 }
 
-func Contains(target string) *matcher[string] {
-	return &matcher[string]{testFn: func(value string) (bool, string) {
+func Contains(target string) *matcher {
+	return &matcher{testFn: func(value string) (bool, string) {
 		return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to contain '%s'", value, target)
 	}}
 }
 
-func Equals[T constraints.Ordered](target T) *matcher[T] {
-	return &matcher[T]{testFn: func(value T) (bool, string) {
+func Equals[T constraints.Ordered](target string) *matcher {
+	return &matcher{testFn: func(value string) (bool, string) {
 		return target == value, fmt.Sprintf("Expected '%T' to equal '%T'", value, target)
 	}}
 }
@@ -79,7 +79,7 @@ func (self *Assert) CommitCount(expectedCount int) {
 	})
 }
 
-func (self *Assert) MatchHeadCommitMessage(matcher *matcher[string]) {
+func (self *Assert) MatchHeadCommitMessage(matcher *matcher) {
 	self.assertWithRetries(func() (bool, string) {
 		return len(self.gui.Model().Commits) == 0, "Expected at least one commit to be present"
 	})
@@ -113,7 +113,7 @@ func (self *Assert) InListContext() {
 	})
 }
 
-func (self *Assert) MatchSelectedLine(matcher *matcher[string]) {
+func (self *Assert) MatchSelectedLine(matcher *matcher) {
 	self.matchString(matcher, "Unexpected selected line.",
 		func() string {
 			return self.gui.CurrentContext().GetView().SelectedLine()
@@ -149,7 +149,7 @@ func (self *Assert) InMenu() {
 	})
 }
 
-func (self *Assert) MatchCurrentViewTitle(matcher *matcher[string]) {
+func (self *Assert) MatchCurrentViewTitle(matcher *matcher) {
 	self.matchString(matcher, "Unexpected current view title.",
 		func() string {
 			return self.gui.CurrentContext().GetView().Title
@@ -157,7 +157,7 @@ func (self *Assert) MatchCurrentViewTitle(matcher *matcher[string]) {
 	)
 }
 
-func (self *Assert) MatchMainViewContent(matcher *matcher[string]) {
+func (self *Assert) MatchMainViewContent(matcher *matcher) {
 	self.matchString(matcher, "Unexpected main view content.",
 		func() string {
 			return self.gui.MainView().Buffer()
@@ -165,7 +165,7 @@ func (self *Assert) MatchMainViewContent(matcher *matcher[string]) {
 	)
 }
 
-func (self *Assert) MatchSecondaryViewContent(matcher *matcher[string]) {
+func (self *Assert) MatchSecondaryViewContent(matcher *matcher) {
 	self.matchString(matcher, "Unexpected secondary view title.",
 		func() string {
 			return self.gui.SecondaryView().Buffer()
@@ -173,7 +173,7 @@ func (self *Assert) MatchSecondaryViewContent(matcher *matcher[string]) {
 	)
 }
 
-func (self *Assert) matchString(matcher *matcher[string], context string, getValue func() string) {
+func (self *Assert) matchString(matcher *matcher, context string, getValue func() string) {
 	self.assertWithRetries(func() (bool, string) {
 		value := getValue()
 		return matcher.context(context).test(value)
