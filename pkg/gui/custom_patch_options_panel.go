@@ -177,13 +177,20 @@ func (gui *Gui) handlePullPatchIntoNewCommit() error {
 		return err
 	}
 
-	return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
-		commitIndex := gui.getPatchCommitIndex()
-		gui.c.LogAction(gui.c.Tr.Actions.MovePatchIntoNewCommit)
-		head_message, _ := gui.git.Commit.GetCommitMessage(gui.State.Model.Commits[commitIndex].FullRefName())
-		new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-		err := gui.git.Patch.PullPatchIntoNewCommit(gui.State.Model.Commits, commitIndex, new_message)
-		return gui.helpers.MergeAndRebase.CheckMergeOrRebase(err)
+	commitIndex := gui.getPatchCommitIndex()
+	head_message, _ := gui.git.Commit.GetCommitMessage(gui.State.Model.Commits[commitIndex].FullRefName())
+
+	// TODO: use the commit message panel here
+	return gui.c.Prompt(types.PromptOpts{
+		Title:          gui.c.Tr.LcRewordCommit,
+		InitialContent: fmt.Sprintf("Split from \"%s\"", head_message),
+		HandleConfirm: func(response string) error {
+			return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
+				gui.c.LogAction(gui.c.Tr.Actions.MovePatchIntoNewCommit)
+				err := gui.git.Patch.PullPatchIntoNewCommit(gui.State.Model.Commits, commitIndex, response)
+				return gui.helpers.MergeAndRebase.CheckMergeOrRebase(err)
+			})
+		},
 	})
 }
 
