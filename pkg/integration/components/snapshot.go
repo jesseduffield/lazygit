@@ -1,181 +1,131 @@
-package integration
+package components
 
 import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/integration/components"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/stretchr/testify/assert"
 )
 
-// this is the integration runner for the new and improved integration interface
-
-var Tests = tests.Tests
-
-type Mode int
-
-const (
-	// Default: if a snapshot test fails, the we'll be asked whether we want to update it
-	ASK_TO_UPDATE_SNAPSHOT = iota
-	// fails the test if the snapshots don't match
-	CHECK_SNAPSHOT
-	// runs the test and updates the snapshot
-	UPDATE_SNAPSHOT
-	// This just makes use of the setup step of the test to get you into
-	// a lazygit session. Then you'll be able to do whatever you want. Useful
-	// when you want to test certain things without needing to manually set
-	// up the situation yourself.
-	// fails the test if the snapshots don't match
-	SANDBOX
-)
-
-const LAZYGIT_TEST_NAME_ENV_VAR = "LAZYGIT_TEST_NAME"
+// This creates and compares integration test snapshots.
 
 type (
 	logf func(format string, formatArgs ...interface{})
 )
 
-func RunTests(
+func HandleSnapshots(paths Paths, logf logf, test *IntegrationTest, mode Mode) error {
+	return NewSnapshotter(paths, logf, test, mode).
+		handleSnapshots()
+}
+
+type Snapshotter struct {
+	paths Paths
+	logf  logf
+	test  *IntegrationTest
+	mode  Mode
+}
+
+func NewSnapshotter(
+	paths Paths,
 	logf logf,
-	runCmd func(cmd *exec.Cmd) error,
-	fnWrapper func(test *components.IntegrationTest, f func() error),
+	test *IntegrationTest,
 	mode Mode,
-	includeSkipped bool,
-) error {
-	rootDir := GetRootDirectory()
-	err := os.Chdir(rootDir)
+) *Snapshotter {
+	return &Snapshotter{
+		paths: paths,
+		logf:  logf,
+		test:  test,
+		mode:  mode,
+	}
+}
+
+func (self *Snapshotter) handleSnapshots() error {
+	switch self.mode {
+	case UPDATE_SNAPSHOT:
+		return self.handleUpdate()
+	case CHECK_SNAPSHOT:
+		return self.handleCheck()
+	case ASK_TO_UPDATE_SNAPSHOT:
+		return self.handleAskToUpdate()
+	case SANDBOX:
+		self.logf("Sandbox session exited")
+	}
+	return nil
+}
+
+func (self *Snapshotter) handleUpdate() error {
+	if err := self.updateSnapshot(); err != nil {
+		return err
+	}
+	self.logf("Test passed: %s", self.test.Name())
+	return nil
+}
+
+func (self *Snapshotter) handleCheck() error {
+	self.logf("Comparing snapshots")
+	if err := self.compareSnapshots(); err != nil {
+		return err
+	}
+	self.logf("Test passed: %s", self.test.Name())
+	return nil
+}
+
+func (self *Snapshotter) handleAskToUpdate() error {
+	if _, err := os.Stat(self.paths.Expected()); os.IsNotExist(err) {
+		if err := self.updateSnapshot(); err != nil {
+			return err
+		}
+		self.logf("No existing snapshot found for  %s. Created snapshot.", self.test.Name())
+
+		return nil
+	}
+
+	self.logf("Comparing snapshots...")
+	if err := self.compareSnapshots(); err != nil {
+		self.logf("%s", err)
+
+		// prompt user whether to update the snapshot (Y/N)
+		if promptUserToUpdateSnapshot() {
+			if err := self.updateSnapshot(); err != nil {
+				return err
+			}
+			self.logf("Snapshot updated: %s", self.test.Name())
+		} else {
+			return err
+		}
+	}
+
+	self.logf("Test passed: %s", self.test.Name())
+	return nil
+}
+
+func (self *Snapshotter) updateSnapshot() error {
+	// create/update snapshot
+	err := oscommands.CopyDir(self.paths.Actual(), self.paths.Expected())
 	if err != nil {
 		return err
 	}
 
-	testDir := filepath.Join(rootDir, "test", "integration_new")
-
-	osCommand := oscommands.NewDummyOSCommand()
-	err = osCommand.Cmd.New(fmt.Sprintf("go build -o %s pkg/integration/cmd/injector/main.go", tempLazygitPath())).Run()
-	if err != nil {
+	if err := renameSpecialPaths(self.paths.Expected()); err != nil {
 		return err
-	}
-
-	for _, test := range Tests {
-		test := test
-
-		fnWrapper(test, func() error { //nolint: thelper
-			if test.Skip() && !includeSkipped {
-				logf("skipping test: %s", test.Name())
-				return nil
-			}
-
-			testPath := filepath.Join(testDir, test.Name())
-
-			actualDir := filepath.Join(testPath, "actual")
-			expectedDir := filepath.Join(testPath, "expected")
-			actualRepoDir := filepath.Join(actualDir, "repo")
-			logf("path: %s", testPath)
-
-			findOrCreateDir(testPath)
-			prepareIntegrationTestDir(actualDir)
-			findOrCreateDir(actualRepoDir)
-			err := createFixture(test, actualRepoDir, rootDir)
-			if err != nil {
-				return err
-			}
-
-			configDir := filepath.Join(testPath, "used_config")
-
-			cmd, err := getLazygitCommand(test, testPath, rootDir)
-			if err != nil {
-				return err
-			}
-
-			err = runCmd(cmd)
-			if err != nil {
-				return err
-			}
-
-			switch mode {
-			case UPDATE_SNAPSHOT:
-				if err := updateSnapshot(actualDir, expectedDir); err != nil {
-					return err
-				}
-				logf("Test passed: %s", test.Name())
-			case CHECK_SNAPSHOT:
-				if err := compareSnapshots(logf, configDir, actualDir, expectedDir, test.Name()); err != nil {
-					return err
-				}
-				logf("Test passed: %s", test.Name())
-			case ASK_TO_UPDATE_SNAPSHOT:
-				if _, err := os.Stat(expectedDir); os.IsNotExist(err) {
-					if err := updateSnapshot(actualDir, expectedDir); err != nil {
-						return err
-					}
-					logf("No existing snapshot found for  %s. Created snapshot.", test.Name())
-
-					return nil
-				}
-
-				if err := compareSnapshots(logf, configDir, actualDir, expectedDir, test.Name()); err != nil {
-					logf("%s", err)
-
-					// prompt user whether to update the snapshot (Y/N)
-					if promptUserToUpdateSnapshot() {
-						if err := updateSnapshot(actualDir, expectedDir); err != nil {
-							return err
-						}
-						logf("Snapshot updated: %s", test.Name())
-					} else {
-						return err
-					}
-				}
-
-				logf("Test passed: %s", test.Name())
-			case SANDBOX:
-				logf("Session exited")
-			}
-
-			return nil
-		})
 	}
 
 	return nil
 }
 
-func promptUserToUpdateSnapshot() bool {
-	fmt.Println("Test failed. Update snapshot? (y/n)")
-	var input string
-	fmt.Scanln(&input)
-	return input == "y"
-}
-
-func updateSnapshot(actualDir string, expectedDir string) error {
-	// create/update snapshot
-	err := oscommands.CopyDir(actualDir, expectedDir)
-	if err != nil {
-		return err
-	}
-
-	if err := renameSpecialPaths(expectedDir); err != nil {
-		return err
-	}
-
-	return err
-}
-
-func compareSnapshots(logf logf, configDir string, actualDir string, expectedDir string, testName string) error {
+func (self *Snapshotter) compareSnapshots() error {
 	// there are a couple of reasons we're not generating the snapshot in expectedDir directly:
 	// Firstly we don't want to have to revert our .git file back to .git_keep.
 	// Secondly, the act of calling git commands like 'git status' actually changes the index
 	// for some reason, and we don't want to leave your lazygit working tree dirty as a result.
-	expectedDirCopy := filepath.Join(os.TempDir(), "expected_dir_test", testName)
-	err := oscommands.CopyDir(expectedDir, expectedDirCopy)
+	expectedDirCopy := filepath.Join(os.TempDir(), "expected_dir_test", self.test.Name())
+	err := oscommands.CopyDir(self.paths.Expected(), expectedDirCopy)
 	if err != nil {
 		return err
 	}
@@ -191,7 +141,7 @@ func compareSnapshots(logf logf, configDir string, actualDir string, expectedDir
 		return err
 	}
 
-	err = validateSameRepos(expectedDirCopy, actualDir)
+	err = validateSameRepos(expectedDirCopy, self.paths.Actual())
 	if err != nil {
 		return err
 	}
@@ -208,7 +158,7 @@ func compareSnapshots(logf logf, configDir string, actualDir string, expectedDir
 		}
 
 		// get corresponding file name from actual dir
-		actualRepoPath := filepath.Join(actualDir, f.Name())
+		actualRepoPath := filepath.Join(self.paths.Actual(), f.Name())
 		expectedRepoPath := filepath.Join(expectedDirCopy, f.Name())
 
 		actualRepo, expectedRepo, err := generateSnapshots(actualRepoPath, expectedRepoPath)
@@ -218,11 +168,11 @@ func compareSnapshots(logf logf, configDir string, actualDir string, expectedDir
 
 		if expectedRepo != actualRepo {
 			// get the log file and print it
-			bytes, err := ioutil.ReadFile(filepath.Join(configDir, "development.log"))
+			bytes, err := ioutil.ReadFile(filepath.Join(self.paths.Config(), "development.log"))
 			if err != nil {
 				return err
 			}
-			logf("%s", string(bytes))
+			self.logf("%s", string(bytes))
 
 			return errors.New(getDiff(f.Name(), actualRepo, expectedRepo))
 		}
@@ -231,95 +181,11 @@ func compareSnapshots(logf logf, configDir string, actualDir string, expectedDir
 	return nil
 }
 
-func createFixture(test *components.IntegrationTest, actualDir string, rootDir string) error {
-	if err := os.Chdir(actualDir); err != nil {
-		panic(err)
-	}
-
-	shell := components.NewShell()
-	shell.RunCommand("git init")
-	shell.RunCommand(`git config user.email "CI@example.com"`)
-	shell.RunCommand(`git config user.name "CI"`)
-
-	test.SetupRepo(shell)
-
-	// changing directory back to rootDir after the setup is done
-	if err := os.Chdir(rootDir); err != nil {
-		panic(err)
-	}
-
-	return nil
-}
-
-func getLazygitCommand(test *components.IntegrationTest, testPath string, rootDir string) (*exec.Cmd, error) {
-	osCommand := oscommands.NewDummyOSCommand()
-
-	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")
-	actualRepoDir := filepath.Join(testPath, "actual", "repo")
-
-	configDir := filepath.Join(testPath, "used_config")
-
-	err := os.RemoveAll(configDir)
-	if err != nil {
-		return nil, err
-	}
-	err = oscommands.CopyDir(templateConfigDir, configDir)
-	if err != nil {
-		return nil, err
-	}
-
-	cmdStr := fmt.Sprintf("%s -debug --use-config-dir=%s --path=%s %s", tempLazygitPath(), configDir, actualRepoDir, test.ExtraCmdArgs())
-
-	cmdObj := osCommand.Cmd.New(cmdStr)
-
-	cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", LAZYGIT_TEST_NAME_ENV_VAR, test.Name()))
-
-	return cmdObj.GetCmd(), nil
-}
-
-func GetModeFromEnv() Mode {
-	switch os.Getenv("MODE") {
-	case "", "ask":
-		return ASK_TO_UPDATE_SNAPSHOT
-	case "check":
-		return CHECK_SNAPSHOT
-	case "updateSnapshot":
-		return UPDATE_SNAPSHOT
-	case "sandbox":
-		return SANDBOX
-	default:
-		log.Fatalf("unknown test mode: %s, must be one of [test, record, updateSnapshot, sandbox]", os.Getenv("MODE"))
-		panic("unreachable")
-	}
-}
-
-func GetRootDirectory() string {
-	path, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	for {
-		_, err := os.Stat(filepath.Join(path, ".git"))
-
-		if err == nil {
-			return path
-		}
-
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
-
-		path = filepath.Dir(path)
-
-		if path == "/" {
-			log.Fatal("must run in lazygit folder or child folder")
-		}
-	}
-}
-
-func tempLazygitPath() string {
-	return filepath.Join("/tmp", "lazygit", "test_lazygit")
+func promptUserToUpdateSnapshot() bool {
+	fmt.Println("Test failed. Update snapshot? (y/n)")
+	var input string
+	fmt.Scanln(&input)
+	return input == "y"
 }
 
 func generateSnapshots(actualDir string, expectedDir string) (string, string, error) {
@@ -489,38 +355,6 @@ func validateSameRepos(expectedDir string, actualDir string) error {
 
 func getFileName(f os.FileInfo) string {
 	return f.Name()
-}
-
-func findOrCreateDir(path string) {
-	_, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.MkdirAll(path, 0o777)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			panic(err)
-		}
-	}
-}
-
-func prepareIntegrationTestDir(actualDir string) {
-	// remove contents of integration test directory
-	dir, err := ioutil.ReadDir(actualDir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.Mkdir(actualDir, 0o777)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			panic(err)
-		}
-	}
-	for _, d := range dir {
-		os.RemoveAll(filepath.Join(actualDir, d.Name()))
-	}
 }
 
 func getDiff(prefix string, expected string, actual string) string {

@@ -6,17 +6,18 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
-	"github.com/jesseduffield/lazygit/pkg/integration"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
 // The purpose of this program is to run lazygit with an integration test passed in.
-// We could have done the check on LAZYGIT_TEST_NAME in the root main.go but
+// We could have done the check on TEST_NAME in the root main.go but
 // that would mean lazygit would be depending on integration test code which
 // would bloat the binary.
 
 // You should not invoke this program directly. Instead you should go through
-// pkg/integration/cmd/runner/main.go or pkg/integration/cmd/tui/main.go
+// go run cmd/integration_test/main.go
 
 func main() {
 	dummyBuildInfo := &app.BuildInfo{
@@ -38,15 +39,20 @@ func getIntegrationTest() integrationTypes.IntegrationTest {
 		return nil
 	}
 
-	integrationTestName := os.Getenv(integration.LAZYGIT_TEST_NAME_ENV_VAR)
+	if os.Getenv(components.SANDBOX_ENV_VAR) == "true" {
+		// when in sandbox mode we don't want the test controlling the gui
+		return nil
+	}
+
+	integrationTestName := os.Getenv(components.TEST_NAME_ENV_VAR)
 	if integrationTestName == "" {
 		panic(fmt.Sprintf(
 			"expected %s environment variable to be set, given that we're running an integration test",
-			integration.LAZYGIT_TEST_NAME_ENV_VAR,
+			components.TEST_NAME_ENV_VAR,
 		))
 	}
 
-	for _, candidateTest := range integration.Tests {
+	for _, candidateTest := range tests.Tests {
 		if candidateTest.Name() == integrationTestName {
 			return candidateTest
 		}
