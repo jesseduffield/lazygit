@@ -175,43 +175,52 @@ func (app *App) setupRepo() (bool, error) {
 			return false, err
 		}
 
-		shouldInitRepo := true
-		notARepository := app.UserConfig.NotARepository
-		initialBranch := ""
-		if notARepository == "prompt" {
+		var shouldInitRepo bool
+		initialBranchArg := ""
+		switch app.UserConfig.NotARepository {
+		case "prompt":
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)
 			response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-			if strings.Trim(response, " \r\n") != "y" {
-				shouldInitRepo = false
-			} else {
+			shouldInitRepo = (strings.Trim(response, " \r\n") == "y")
+			if shouldInitRepo {
 				// Ask for the initial branch name
 				fmt.Print(app.Tr.InitialBranch)
 				response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 				if trimmedResponse := strings.Trim(response, " \r\n"); len(trimmedResponse) > 0 {
-					initialBranch += "--initial-branch=" + trimmedResponse
+					initialBranchArg += "--initial-branch=" + app.OSCommand.Quote(trimmedResponse)
 				}
 			}
-		} else if notARepository == "skip" {
+		case "create":
+			shouldInitRepo = true
+		case "skip":
 			shouldInitRepo = false
-		}
-
-		if !shouldInitRepo {
-			// check if we have a recent repo we can open
-			for _, repoDir := range app.Config.GetAppState().RecentRepos {
-				if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
-					if err := os.Chdir(repoDir); err == nil {
-						return true, nil
-					}
-				}
-			}
-
-			fmt.Println(app.Tr.NoRecentRepositories)
+		case "quit":
+			fmt.Fprintln(os.Stderr, app.Tr.NotARepository)
+			os.Exit(1)
+		default:
+			fmt.Fprintln(os.Stderr, app.Tr.IncorrectNotARepository)
 			os.Exit(1)
 		}
-		if err := app.OSCommand.Cmd.New("git init " + initialBranch).Run(); err != nil {
-			return false, err
+
+		if shouldInitRepo {
+			if err := app.OSCommand.Cmd.New("git init " + initialBranchArg).Run(); err != nil {
+				return false, err
+			}
+			return false, nil
 		}
+
+		// check if we have a recent repo we can open
+		for _, repoDir := range app.Config.GetAppState().RecentRepos {
+			if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
+				if err := os.Chdir(repoDir); err == nil {
+					return true, nil
+				}
+			}
+		}
+
+		fmt.Fprintln(os.Stderr, app.Tr.NoRecentRepositories)
+		os.Exit(1)
 	}
 
 	return false, nil

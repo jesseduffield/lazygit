@@ -261,6 +261,7 @@ type TranslationSet struct {
 	CreateRepo                          string
 	InitialBranch                       string
 	NoRecentRepositories                string
+	IncorrectNotARepository             string
 	AutoStashTitle                      string
 	AutoStashPrompt                     string
 	StashPrefix                         string
@@ -899,6 +900,7 @@ func EnglishTranslationSet() TranslationSet {
 		CreateRepo:                          "Not in a git repository. Create a new git repository? (y/n): ",
 		InitialBranch:                       "Branch name? (leave empty for git's default): ",
 		NoRecentRepositories:                "Must open lazygit in a git repository. No valid recent repositories. Exiting.",
+		IncorrectNotARepository:             "The value of 'notARepository' is incorrect. It should be one of 'prompt', 'create', 'skip', or 'quit'.",
 		AutoStashTitle:                      "Autostash?",
 		AutoStashPrompt:                     "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
 		StashPrefix:                         "Auto-stashing changes for ",
