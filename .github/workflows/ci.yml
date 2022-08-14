@@ -129,6 +129,12 @@ jobs:
       - name: Build darwin binary
         run: |
           GOOS=darwin go build
+      - name: Build integration test binary
+        run: |
+          GOOS=linux go build cmd/integration_test/main.go
+      - name: Build integration test injector
+        run: |
+          GOOS=linux go build pkg/integration/clients/injector/main.go
   check-cheatsheet:
     runs-on: ubuntu-latest
     env:
