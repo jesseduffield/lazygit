@@ -77,7 +77,7 @@ func (self *Input) Cancel() {
 }
 
 // i.e. pressing space
-func (self *Input) Select() {
+func (self *Input) PrimaryAction() {
 	self.pressKey(self.keys.Universal.Select)
 }
 

@@ -19,6 +19,8 @@ import (
 
 // This program lets you run integration tests from a TUI. See pkg/integration/README.md for more info.
 
+var SLOW_KEY_PRESS_DELAY = 300
+
 func RunTUI() {
 	rootDir := utils.GetLazygitRootDirectory()
 	testDir := filepath.Join(rootDir, "test", "integration")
@@ -106,7 +108,7 @@ func RunTUI() {
 			return nil
 		}
 
-		suspendAndRunTest(currentTest, components.ASK_TO_UPDATE_SNAPSHOT, 200)
+		suspendAndRunTest(currentTest, components.ASK_TO_UPDATE_SNAPSHOT, SLOW_KEY_PRESS_DELAY)
 
 		return nil
 	}); err != nil {

@@ -7,7 +7,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
-	"golang.org/x/exp/constraints"
 )
 
 // through this struct we assert on the state of the lazygit gui
@@ -51,7 +50,7 @@ func Contains(target string) *matcher {
 	}}
 }
 
-func Equals[T constraints.Ordered](target string) *matcher {
+func Equals(target string) *matcher {
 	return &matcher{testFn: func(value string) (bool, string) {
 		return target == value, fmt.Sprintf("Expected '%T' to equal '%T'", value, target)
 	}}
@@ -81,7 +80,7 @@ func (self *Assert) CommitCount(expectedCount int) {
 
 func (self *Assert) MatchHeadCommitMessage(matcher *matcher) {
 	self.assertWithRetries(func() (bool, string) {
-		return len(self.gui.Model().Commits) == 0, "Expected at least one commit to be present"
+		return len(self.gui.Model().Commits) > 0, "Expected at least one commit to be present"
 	})
 
 	self.matchString(matcher, "Unexpected commit message.",

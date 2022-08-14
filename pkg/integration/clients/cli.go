@@ -23,14 +23,19 @@ import (
 
 // If invoked directly, you can specify tests to run by passing their names as positional arguments
 
-func RunCLI(testNames []string) {
+func RunCLI(testNames []string, slow bool) {
+	keyPressDelay := tryConvert(os.Getenv("KEY_PRESS_DELAY"), 0)
+	if slow {
+		keyPressDelay = SLOW_KEY_PRESS_DELAY
+	}
+
 	err := components.RunTests(
 		getTestsToRun(testNames),
 		log.Printf,
 		runCmdInTerminal,
 		runAndPrintError,
 		getModeFromEnv(),
-		tryConvert(os.Getenv("KEY_PRESS_DELAY"), 0),
+		keyPressDelay,
 	)
 	if err != nil {
 		log.Print(err.Error())
@@ -39,7 +44,7 @@ func RunCLI(testNames []string) {
 
 func runAndPrintError(test *components.IntegrationTest, f func() error) {
 	if err := f(); err != nil {
-		log.Print(err.Error())
+		log.Fatalf(err.Error())
 	}
 }
 

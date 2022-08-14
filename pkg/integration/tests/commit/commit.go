@@ -17,9 +17,9 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(0)
 
-		input.Select()
+		input.PrimaryAction()
 		input.NextItem()
-		input.Select()
+		input.PrimaryAction()
 		input.PressKeys(keys.Files.CommitChanges)
 
 		commitMessage := "my commit message"
