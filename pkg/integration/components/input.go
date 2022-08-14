@@ -77,7 +77,7 @@ func (self *Input) Cancel() {
 }
 
 // i.e. pressing space
-func (self *Input) Select() {
+func (self *Input) PrimaryAction() {
 	self.pressKey(self.keys.Universal.Select)
 }
 
@@ -93,7 +93,7 @@ func (self *Input) PreviousItem() {
 
 func (self *Input) ContinueMerge() {
 	self.PressKeys(self.keys.Universal.CreateRebaseOptionsMenu)
-	self.assert.SelectedLineContains("continue")
+	self.assert.MatchSelectedLine(Contains("continue"))
 	self.Confirm()
 }
 

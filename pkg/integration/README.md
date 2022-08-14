@@ -37,7 +37,7 @@ If you find yourself doing something frequently in a test, consider making it a 
 
 There are three ways to invoke a test:
 
-1. go run cmd/integration_test/main.go cli [<testname>...]
+1. go run cmd/integration_test/main.go cli [--slow] [<testname or testpath>...]
 2. go run cmd/integration_test/main.go tui
 3. go test pkg/integration/clients/go_test.go
 
@@ -47,7 +47,7 @@ The third, the go-test command, intended only for use in CI, to be run along wit
 
 The name of a test is based on its path, so the name of the test at `pkg/integration/tests/commit/new_branch.go` is commit/new_branch. So to run it with our test runner you would run `go run cmd/integration_test/main.go cli commit/new_branch`.
 
-You can pass the KEY_PRESS_DELAY env var to the test runner in order to set a delay in milliseconds between keypresses, which helps for watching a test at a realistic speed to understand what it's doing. Or in the tui you can press 't' to run the test with a pre-set delay.
+You can pass the KEY_PRESS_DELAY env var to the test runner in order to set a delay in milliseconds between keypresses, which helps for watching a test at a realistic speed to understand what it's doing. Or you can pass the '--slow' flag which sets a pre-set 'slow' key delay. In the tui you can press 't' to run the test in slow mode.
 
 ### Snapshots
 
