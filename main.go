@@ -17,6 +17,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/logs"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	yaml "github.com/jesseduffield/yaml"
 	"github.com/samber/lo"
@@ -108,7 +109,8 @@ func main() {
 	}
 
 	if versionFlag {
-		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s\n", commit, date, buildSource, version, runtime.GOOS, runtime.GOARCH)
+		gitVersion := getGitVersionInfo()
+		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s, git version=%s\n", commit, date, buildSource, version, runtime.GOOS, runtime.GOARCH, gitVersion)
 		os.Exit(0)
 	}
 
@@ -219,4 +221,11 @@ func updateBuildInfo() {
 	if ok {
 		date = time.Value
 	}
+}
+
+func getGitVersionInfo() string {
+	cmd := secureexec.Command("git", "--version")
+	stdout, _ := cmd.Output()
+	gitVersion := strings.Trim(strings.TrimPrefix(string(stdout), "git version "), " \r\n")
+	return gitVersion
 }
