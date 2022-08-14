@@ -20,7 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/jesseduffield/lazygit/pkg/integration"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -45,7 +45,7 @@ func CommandToRun() string {
 }
 
 func GetDir() string {
-	return integration.GetProjectRootDirectory() + "/docs/keybindings"
+	return utils.GetLazygitRootDirectory() + "/docs/keybindings"
 }
 
 func generateAtDir(cheatsheetDir string) {

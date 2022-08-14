@@ -1,7 +1,7 @@
 //go:build !windows
 // +build !windows
 
-package integration
+package clients
 
 // this is the new way of running tests. See pkg/integration/integration_tests/commit.go
 // for an example
@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strconv"
 	"testing"
 
 	"github.com/creack/pty"
@@ -45,6 +44,7 @@ func TestIntegration(t *testing.T) {
 			})
 		},
 		components.CHECK_SNAPSHOT,
+		0,
 	)
 
 	assert.NoError(t, err)
@@ -65,13 +65,4 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	_, _ = io.Copy(ioutil.Discard, f)
 
 	return f.Close()
-}
-
-func tryConvert(numStr string, defaultVal int) int {
-	num, err := strconv.Atoi(numStr)
-	if err != nil {
-		return defaultVal
-	}
-
-	return num
 }

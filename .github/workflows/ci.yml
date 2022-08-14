@@ -98,7 +98,7 @@ jobs:
             ${{runner.os}}-go-
       - name: Test code
         run: |
-          go test pkg/integration/*.go
+          go test pkg/integration/clients/*.go
   build:
     runs-on: ubuntu-latest
     env:

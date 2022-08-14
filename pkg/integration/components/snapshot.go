@@ -54,7 +54,7 @@ func (self *Snapshotter) handleSnapshots() error {
 	case ASK_TO_UPDATE_SNAPSHOT:
 		return self.handleAskToUpdate()
 	case SANDBOX:
-		self.logf("Session exited")
+		self.logf("Sandbox session exited")
 	}
 	return nil
 }
@@ -68,6 +68,7 @@ func (self *Snapshotter) handleUpdate() error {
 }
 
 func (self *Snapshotter) handleCheck() error {
+	self.logf("Comparing snapshots")
 	if err := self.compareSnapshots(); err != nil {
 		return err
 	}
@@ -85,6 +86,7 @@ func (self *Snapshotter) handleAskToUpdate() error {
 		return nil
 	}
 
+	self.logf("Comparing snapshots...")
 	if err := self.compareSnapshots(); err != nil {
 		self.logf("%s", err)
 

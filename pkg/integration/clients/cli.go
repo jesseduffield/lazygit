@@ -1,9 +1,10 @@
-package main
+package clients
 
 import (
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
@@ -19,32 +20,35 @@ import (
 
 // If invoked directly, you can specify tests to run by passing their names as positional arguments
 
-func main() {
+func RunCLI(testNames []string) {
 	err := components.RunTests(
-		getTestsToRun(),
+		getTestsToRun(testNames),
 		log.Printf,
 		runCmdInTerminal,
-		func(test *components.IntegrationTest, f func() error) {
-			if err := f(); err != nil {
-				log.Print(err.Error())
-			}
-		},
+		runAndPrintError,
 		getModeFromEnv(),
+		tryConvert(os.Getenv("KEY_PRESS_DELAY"), 0),
 	)
 	if err != nil {
 		log.Print(err.Error())
 	}
 }
 
-func getTestsToRun() []*components.IntegrationTest {
+func runAndPrintError(test *components.IntegrationTest, f func() error) {
+	if err := f(); err != nil {
+		log.Print(err.Error())
+	}
+}
+
+func getTestsToRun(testNames []string) []*components.IntegrationTest {
 	var testsToRun []*components.IntegrationTest
 
-	if len(os.Args) < 2 {
+	if len(testNames) == 0 {
 		return tests.Tests
 	}
 
 outer:
-	for _, testName := range os.Args[1:] {
+	for _, testName := range testNames {
 		// check if our given test name actually exists
 		for _, test := range tests.Tests {
 			if test.Name() == testName {
@@ -72,12 +76,21 @@ func getModeFromEnv() components.Mode {
 		return components.ASK_TO_UPDATE_SNAPSHOT
 	case "check":
 		return components.CHECK_SNAPSHOT
-	case "updateSnapshot":
+	case "update":
 		return components.UPDATE_SNAPSHOT
 	case "sandbox":
 		return components.SANDBOX
 	default:
-		log.Fatalf("unknown test mode: %s, must be one of [test, record, updateSnapshot, sandbox]", os.Getenv("MODE"))
+		log.Fatalf("unknown test mode: %s, must be one of [ask, check, update, sandbox]", os.Getenv("MODE"))
 		panic("unreachable")
 	}
+}
+
+func tryConvert(numStr string, defaultVal int) int {
+	num, err := strconv.Atoi(numStr)
+	if err != nil {
+		return defaultVal
+	}
+
+	return num
 }

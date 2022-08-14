@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Deprecated: This file is part of the old way of doing things. See pkg/integration/cmd/runner/main.go for the new way
+// Deprecated: This file is part of the old way of doing things.
 
 // see https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md
 // This file can be invoked directly, but you might find it easier to go through

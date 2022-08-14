@@ -3,17 +3,20 @@ package components
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // this is the integration runner for the new and improved integration interface
 
-const LAZYGIT_TEST_NAME_ENV_VAR = "LAZYGIT_TEST_NAME"
+const (
+	TEST_NAME_ENV_VAR = "TEST_NAME"
+	SANDBOX_ENV_VAR   = "SANDBOX"
+)
 
 type Mode int
 
@@ -38,8 +41,9 @@ func RunTests(
 	runCmd func(cmd *exec.Cmd) error,
 	testWrapper func(test *IntegrationTest, f func() error),
 	mode Mode,
+	keyPressDelay int,
 ) error {
-	projectRootDir := GetProjectRootDirectory()
+	projectRootDir := utils.GetLazygitRootDirectory()
 	err := os.Chdir(projectRootDir)
 	if err != nil {
 		return err
@@ -59,7 +63,7 @@ func RunTests(
 		)
 
 		testWrapper(test, func() error { //nolint: thelper
-			return runTest(test, paths, projectRootDir, logf, runCmd, mode)
+			return runTest(test, paths, projectRootDir, logf, runCmd, mode, keyPressDelay)
 		})
 	}
 
@@ -73,6 +77,7 @@ func runTest(
 	logf func(format string, formatArgs ...interface{}),
 	runCmd func(cmd *exec.Cmd) error,
 	mode Mode,
+	keyPressDelay int,
 ) error {
 	if test.Skip() {
 		logf("Skipping test %s", test.Name())
@@ -85,7 +90,7 @@ func runTest(
 		return err
 	}
 
-	cmd, err := getLazygitCommand(test, paths, projectRootDir)
+	cmd, err := getLazygitCommand(test, paths, projectRootDir, mode, keyPressDelay)
 	if err != nil {
 		return err
 	}
@@ -116,7 +121,7 @@ func prepareTestDir(
 func buildLazygit() error {
 	osCommand := oscommands.NewDummyOSCommand()
 	return osCommand.Cmd.New(fmt.Sprintf(
-		"go build -o %s pkg/integration/cmd/injector/main.go", tempLazygitPath(),
+		"go build -o %s pkg/integration/clients/injector/main.go", tempLazygitPath(),
 	)).Run()
 }
 
@@ -144,7 +149,7 @@ func createFixture(test *IntegrationTest, paths Paths) error {
 	return nil
 }
 
-func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string) (*exec.Cmd, error) {
+func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, mode Mode, keyPressDelay int) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")
@@ -162,34 +167,16 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string) (*exe
 
 	cmdObj := osCommand.Cmd.New(cmdStr)
 
-	cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", LAZYGIT_TEST_NAME_ENV_VAR, test.Name()))
+	cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", TEST_NAME_ENV_VAR, test.Name()))
+	if mode == SANDBOX {
+		cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", "SANDBOX", "true"))
+	}
+
+	if keyPressDelay > 0 {
+		cmdObj.AddEnvVars(fmt.Sprintf("KEY_PRESS_DELAY=%d", keyPressDelay))
+	}
 
 	return cmdObj.GetCmd(), nil
-}
-
-func GetProjectRootDirectory() string {
-	path, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	for {
-		_, err := os.Stat(filepath.Join(path, ".git"))
-
-		if err == nil {
-			return path
-		}
-
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
-
-		path = filepath.Dir(path)
-
-		if path == "/" {
-			log.Fatal("must run in lazygit folder or child folder")
-		}
-	}
 }
 
 func tempLazygitPath() string {
