@@ -6,7 +6,8 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
-	"github.com/jesseduffield/lazygit/pkg/integration"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
@@ -38,15 +39,15 @@ func getIntegrationTest() integrationTypes.IntegrationTest {
 		return nil
 	}
 
-	integrationTestName := os.Getenv(integration.LAZYGIT_TEST_NAME_ENV_VAR)
+	integrationTestName := os.Getenv(components.LAZYGIT_TEST_NAME_ENV_VAR)
 	if integrationTestName == "" {
 		panic(fmt.Sprintf(
 			"expected %s environment variable to be set, given that we're running an integration test",
-			integration.LAZYGIT_TEST_NAME_ENV_VAR,
+			components.LAZYGIT_TEST_NAME_ENV_VAR,
 		))
 	}
 
-	for _, candidateTest := range integration.Tests {
+	for _, candidateTest := range tests.Tests {
 		if candidateTest.Name() == integrationTestName {
 			return candidateTest
 		}

@@ -45,7 +45,7 @@ func CommandToRun() string {
 }
 
 func GetDir() string {
-	return integration.GetRootDirectory() + "/docs/keybindings"
+	return integration.GetProjectRootDirectory() + "/docs/keybindings"
 }
 
 func generateAtDir(cheatsheetDir string) {

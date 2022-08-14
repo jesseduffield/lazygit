@@ -16,6 +16,7 @@ import (
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,14 +25,12 @@ func TestIntegration(t *testing.T) {
 		t.Skip("Skipping integration tests in short mode")
 	}
 
-	mode := GetModeFromEnv()
-	includeSkipped := os.Getenv("INCLUDE_SKIPPED") != ""
-
 	parallelTotal := tryConvert(os.Getenv("PARALLEL_TOTAL"), 1)
 	parallelIndex := tryConvert(os.Getenv("PARALLEL_INDEX"), 0)
 	testNumber := 0
 
-	err := RunTests(
+	err := components.RunTests(
+		tests.Tests,
 		t.Logf,
 		runCmdHeadless,
 		func(test *components.IntegrationTest, f func() error) {
@@ -45,8 +44,7 @@ func TestIntegration(t *testing.T) {
 				assert.NoError(t, err)
 			})
 		},
-		mode,
-		includeSkipped,
+		components.CHECK_SNAPSHOT,
 	)
 
 	assert.NoError(t, err)

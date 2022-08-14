@@ -5,9 +5,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/jesseduffield/generics/slices"
-	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 )
 
 // see pkg/integration/README.md
@@ -21,47 +20,42 @@ import (
 // If invoked directly, you can specify tests to run by passing their names as positional arguments
 
 func main() {
-	mode := integration.GetModeFromEnv()
-	includeSkipped := os.Getenv("INCLUDE_SKIPPED") == "true"
-	var testsToRun []*components.IntegrationTest
-
-	if len(os.Args) > 1 {
-	outer:
-		for _, testName := range os.Args[1:] {
-			// check if our given test name actually exists
-			for _, test := range integration.Tests {
-				if test.Name() == testName {
-					testsToRun = append(testsToRun, test)
-					continue outer
-				}
-			}
-			log.Fatalf("test %s not found. Perhaps you forgot to add it to `pkg/integration/integration_tests/tests.go`?", testName)
-		}
-	} else {
-		testsToRun = integration.Tests
-	}
-
-	testNames := slices.Map(testsToRun, func(test *components.IntegrationTest) string {
-		return test.Name()
-	})
-
-	err := integration.RunTests(
+	err := components.RunTests(
+		getTestsToRun(),
 		log.Printf,
 		runCmdInTerminal,
 		func(test *components.IntegrationTest, f func() error) {
-			if !slices.Contains(testNames, test.Name()) {
-				return
-			}
 			if err := f(); err != nil {
 				log.Print(err.Error())
 			}
 		},
-		mode,
-		includeSkipped,
+		getModeFromEnv(),
 	)
 	if err != nil {
 		log.Print(err.Error())
 	}
+}
+
+func getTestsToRun() []*components.IntegrationTest {
+	var testsToRun []*components.IntegrationTest
+
+	if len(os.Args) < 2 {
+		return tests.Tests
+	}
+
+outer:
+	for _, testName := range os.Args[1:] {
+		// check if our given test name actually exists
+		for _, test := range tests.Tests {
+			if test.Name() == testName {
+				testsToRun = append(testsToRun, test)
+				continue outer
+			}
+		}
+		log.Fatalf("test %s not found. Perhaps you forgot to add it to `pkg/integration/integration_tests/tests.go`?", testName)
+	}
+
+	return testsToRun
 }
 
 func runCmdInTerminal(cmd *exec.Cmd) error {
@@ -70,4 +64,20 @@ func runCmdInTerminal(cmd *exec.Cmd) error {
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
+}
+
+func getModeFromEnv() components.Mode {
+	switch os.Getenv("MODE") {
+	case "", "ask":
+		return components.ASK_TO_UPDATE_SNAPSHOT
+	case "check":
+		return components.CHECK_SNAPSHOT
+	case "updateSnapshot":
+		return components.UPDATE_SNAPSHOT
+	case "sandbox":
+		return components.SANDBOX
+	default:
+		log.Fatalf("unknown test mode: %s, must be one of [test, record, updateSnapshot, sandbox]", os.Getenv("MODE"))
+		panic("unreachable")
+	}
 }

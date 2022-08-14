@@ -10,8 +10,8 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/integration"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
@@ -33,14 +33,14 @@ func (app *App) getCurrentTest() *components.IntegrationTest {
 }
 
 func (app *App) loadTests() {
-	app.tests = integration.Tests
+	app.tests = tests.Tests
 	if app.itemIdx > len(app.tests)-1 {
 		app.itemIdx = len(app.tests) - 1
 	}
 }
 
 func main() {
-	rootDir := integration.GetRootDirectory()
+	rootDir := components.GetProjectRootDirectory()
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	app := &App{testDir: testDir}
@@ -85,7 +85,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true MODE=sandbox go run pkg/integration/cmd/runner/main.go %s", currentTest.Name()))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("MODE=sandbox go run pkg/integration/cmd/runner/main.go %s", currentTest.Name()))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -99,7 +99,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true go run pkg/integration/cmd/runner/main.go %s", currentTest.Name()))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("go run pkg/integration/cmd/runner/main.go %s", currentTest.Name()))
 		app.runSubprocess(cmd)
 
 		return nil
@@ -113,7 +113,7 @@ func main() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("INCLUDE_SKIPPED=true KEY_PRESS_DELAY=200 go run pkg/integration/cmd/runner/main.go %s", currentTest.Name()))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("KEY_PRESS_DELAY=200 go run pkg/integration/cmd/runner/main.go %s", currentTest.Name()))
 		app.runSubprocess(cmd)
 
 		return nil

@@ -51,7 +51,7 @@ You can pass the KEY_PRESS_DELAY env var to the test runner in order to set a de
 
 ### Snapshots
 
-At the moment (this is subject to change) each test has a snapshot repo created after running for the first time. These snapshots live in `test/integration_new`, in folders named 'expected' (alongside the 'actual' folders which contain the resulting repo from the last test run). Whenever you run a test, the resultant repo will be compared against the snapshot repo and if they're different, you'll be asked whether you want to update the snapshot. If you want to update a snapshot without being prompted you can pass MODE=updateSnapshot to the test runner or the go test command. This is useful when you've made a change to
+At the moment (this is subject to change) each test has a snapshot repo created after running for the first time. These snapshots live in `test/integration_new`, in folders named 'expected' (alongside the 'actual' folders which contain the resulting repo from the last test run). Whenever you run a test, the resultant repo will be compared against the snapshot repo and if they're different, you'll be asked whether you want to update the snapshot. If you want to update a snapshot without being prompted you can pass MODE=updateSnapshot to the test runner.
 
 ### Sandbox mode
 
