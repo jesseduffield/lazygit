@@ -37,7 +37,7 @@ If you find yourself doing something frequently in a test, consider making it a 
 
 There are three ways to invoke a test:
 
-1. go run cmd/integration_test/main.go cli [--slow] [<testname or testpath>...]
+1. go run cmd/integration_test/main.go cli [--slow] [testname or testpath...]
 2. go run cmd/integration_test/main.go tui
 3. go test pkg/integration/clients/go_test.go
 
