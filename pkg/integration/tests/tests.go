@@ -26,6 +26,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.One,
 	custom_commands.Basic,
 	custom_commands.MultiplePrompts,
+	custom_commands.MenuFromCommand,
 }
 
 func GetTests() []*components.IntegrationTest {

@@ -52,7 +52,7 @@ func Contains(target string) *matcher {
 
 func Equals(target string) *matcher {
 	return &matcher{testFn: func(value string) (bool, string) {
-		return target == value, fmt.Sprintf("Expected '%T' to equal '%T'", value, target)
+		return target == value, fmt.Sprintf("Expected '%s' to equal '%s'", value, target)
 	}}
 }
 
@@ -123,14 +123,14 @@ func (self *Assert) MatchSelectedLine(matcher *matcher) {
 func (self *Assert) InPrompt() {
 	self.assertWithRetries(func() (bool, string) {
 		currentView := self.gui.CurrentContext().GetView()
-		return currentView.Name() == "confirmation" && currentView.Editable, fmt.Sprintf("Expected prompt popup to be focused")
+		return currentView.Name() == "confirmation" && currentView.Editable, "Expected prompt popup to be focused"
 	})
 }
 
 func (self *Assert) InConfirm() {
 	self.assertWithRetries(func() (bool, string) {
 		currentView := self.gui.CurrentContext().GetView()
-		return currentView.Name() == "confirmation" && !currentView.Editable, fmt.Sprintf("Expected confirmation popup to be focused")
+		return currentView.Name() == "confirmation" && !currentView.Editable, "Expected confirmation popup to be focused"
 	})
 }
 
@@ -138,13 +138,13 @@ func (self *Assert) InAlert() {
 	// basically the same thing as a confirmation popup with the current implementation
 	self.assertWithRetries(func() (bool, string) {
 		currentView := self.gui.CurrentContext().GetView()
-		return currentView.Name() == "confirmation" && !currentView.Editable, fmt.Sprintf("Expected alert popup to be focused")
+		return currentView.Name() == "confirmation" && !currentView.Editable, "Expected alert popup to be focused"
 	})
 }
 
 func (self *Assert) InMenu() {
 	self.assertWithRetries(func() (bool, string) {
-		return self.gui.CurrentContext().GetView().Name() == "menu", fmt.Sprintf("Expected popup menu to be focused")
+		return self.gui.CurrentContext().GetView().Name() == "menu", "Expected popup menu to be focused"
 	})
 }
 
