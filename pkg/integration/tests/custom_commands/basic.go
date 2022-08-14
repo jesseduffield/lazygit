@@ -9,7 +9,9 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using a custom command to create a new file",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	SetupRepo:    func(shell *Shell) {},
+	SetupRepo: func(shell *Shell) {
+		shell.EmptyCommit("blah")
+	},
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.UserConfig.CustomCommands = []config.CustomCommand{
 			{

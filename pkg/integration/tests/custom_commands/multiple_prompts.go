@@ -9,7 +9,9 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using a custom command with multiple prompts",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	SetupRepo:    func(shell *Shell) {},
+	SetupRepo: func(shell *Shell) {
+		shell.EmptyCommit("blah")
+	},
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.UserConfig.CustomCommands = []config.CustomCommand{
 			{
