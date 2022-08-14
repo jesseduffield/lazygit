@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/branch"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 )
 
@@ -15,4 +16,5 @@ var Tests = []*components.IntegrationTest{
 	commit.NewBranch,
 	branch.Suggestions,
 	interactive_rebase.One,
+	custom_commands.Basic,
 }

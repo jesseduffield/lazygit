@@ -4,8 +4,11 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
+	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 )
@@ -46,6 +49,14 @@ func getTestsToRun(testNames []string) []*components.IntegrationTest {
 	if len(testNames) == 0 {
 		return tests.Tests
 	}
+
+	testNames = slices.Map(testNames, func(name string) string {
+		// allowing full test paths to be passed for convenience
+		return strings.TrimSuffix(
+			regexp.MustCompile(`.*pkg/integration/tests/`).ReplaceAllString(name, ""),
+			".go",
+		)
+	})
 
 outer:
 	for _, testName := range testNames {

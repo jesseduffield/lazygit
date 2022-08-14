@@ -314,7 +314,9 @@ type CustomCommand struct {
 }
 
 type CustomCommandPrompt struct {
-	Type  string `yaml:"type"` // one of 'input', 'menu', or 'confirm'
+	// one of 'input', 'menu', 'confirm', or 'menuFromCommand'
+	Type string `yaml:"type"`
+
 	Title string `yaml:"title"`
 
 	// this only apply to input prompts
