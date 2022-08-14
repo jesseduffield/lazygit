@@ -102,7 +102,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: commit changes using git editor
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
-  <kbd>i</kbd>: Ignore or Exclude file
+  <kbd>i</kbd>: ignore or exclude file
   <kbd>r</kbd>: refresh files
   <kbd>s</kbd>: stash all changes
   <kbd>S</kbd>: view stash options

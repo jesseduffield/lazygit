@@ -533,7 +533,7 @@ func japaneseTranslationSet() TranslationSet {
 			UnstageFile:                       "ファイルをアンステージ",
 			UnstageAllFiles:                   "すべてのファイルをアンステージ",
 			StageAllFiles:                     "すべてのファイルをステージ",
-			IgnoreExcludeFile:                 "ファイルをignore",
+			LcIgnoreExcludeFile:               "ファイルをignore",
 			Commit:                            "コミット",
 			EditFile:                          "ファイルを編集",
 			Push:                              "Push",

@@ -568,8 +568,7 @@ type Actions struct {
 	UnstageFile                       string
 	UnstageAllFiles                   string
 	StageAllFiles                     string
-	IgnoreExcludeFile                 string
-	IgnoreFile                        string
+	LcIgnoreExcludeFile               string
 	IgnoreFileErr                     string
 	ExcludeFile                       string
 	ExcludeFileErr                    string
@@ -1190,8 +1189,7 @@ func EnglishTranslationSet() TranslationSet {
 			UnstageFile:                       "Unstage file",
 			UnstageAllFiles:                   "Unstage all files",
 			StageAllFiles:                     "Stage all files",
-			IgnoreExcludeFile:                 "Ignore or Exclude file",
-			IgnoreFile:                        "Ignore or Exclude file",
+			LcIgnoreExcludeFile:               "ignore or exclude file",
 			IgnoreFileErr:                     "Cannot ignore .gitignore",
 			ExcludeFile:                       "Exclude file",
 			ExcludeFileErr:                    "Cannot exclude .git/info/exclude",
