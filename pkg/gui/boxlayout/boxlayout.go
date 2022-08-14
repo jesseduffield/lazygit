@@ -1,6 +1,10 @@
 package boxlayout
 
-import "math"
+import (
+	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
+)
 
 type Dimensions struct {
 	X0 int
@@ -69,45 +73,12 @@ func ArrangeWindows(root *Box, x0, y0, width, height int) map[string]Dimensions 
 		availableSize = height
 	}
 
-	// work out size taken up by children
-	reservedSize := 0
-	totalWeight := 0
-	for _, child := range children {
-		// assuming either size or weight are non-zero
-		reservedSize += child.Size
-		totalWeight += child.Weight
-	}
-
-	remainingSize := availableSize - reservedSize
-	if remainingSize < 0 {
-		remainingSize = 0
-	}
-
-	unitSize := 0
-	extraSize := 0
-	if totalWeight > 0 {
-		unitSize = remainingSize / totalWeight
-		extraSize = remainingSize % totalWeight
-	}
+	sizes := calcSizes(children, availableSize)
 
 	result := map[string]Dimensions{}
 	offset := 0
-	for _, child := range children {
-		var boxSize int
-		if child.isStatic() {
-			boxSize = child.Size
-			// assuming that only one static child can have a size greater than the
-			// available space. In that case we just crop the size to what's available
-			if boxSize > availableSize {
-				boxSize = availableSize
-			}
-		} else {
-			// TODO: consider more evenly distributing the remainder
-			boxSize = unitSize * child.Weight
-			boxExtraSize := int(math.Min(float64(extraSize), float64(child.Weight)))
-			boxSize += boxExtraSize
-			extraSize -= boxExtraSize
-		}
+	for i, child := range children {
+		boxSize := sizes[i]
 
 		var resultForChild map[string]Dimensions
 		if direction == COLUMN {
@@ -121,6 +92,95 @@ func ArrangeWindows(root *Box, x0, y0, width, height int) map[string]Dimensions 
 	}
 
 	return result
+}
+
+func calcSizes(boxes []*Box, availableSpace int) []int {
+	normalizedWeights := normalizeWeights(slices.Map(boxes, func(box *Box) int { return box.Weight }))
+
+	totalWeight := 0
+	reservedSpace := 0
+	for i, box := range boxes {
+		if box.isStatic() {
+			reservedSpace += box.Size
+		} else {
+			totalWeight += normalizedWeights[i]
+		}
+	}
+
+	dynamicSpace := utils.Max(0, availableSpace-reservedSpace)
+
+	unitSize := 0
+	extraSpace := 0
+	if totalWeight > 0 {
+		unitSize = dynamicSpace / totalWeight
+		extraSpace = dynamicSpace % totalWeight
+	}
+
+	result := make([]int, len(boxes))
+	for i, box := range boxes {
+		if box.isStatic() {
+			// assuming that only one static child can have a size greater than the
+			// available space. In that case we just crop the size to what's available
+			result[i] = utils.Min(availableSpace, box.Size)
+		} else {
+			result[i] = unitSize * normalizedWeights[i]
+		}
+	}
+
+	// distribute the remainder across dynamic boxes.
+	for extraSpace > 0 {
+		for i, weight := range normalizedWeights {
+			if weight > 0 {
+				result[i]++
+				extraSpace--
+				normalizedWeights[i]--
+
+				if extraSpace == 0 {
+					break
+				}
+			}
+		}
+	}
+
+	return result
+}
+
+// removes common multiple from weights e.g. if we get 2, 4, 4 we return 1, 2, 2.
+func normalizeWeights(weights []int) []int {
+	if len(weights) == 0 {
+		return []int{}
+	}
+
+	// to spare us some computation we'll exit early if any of our weights is 1
+	if slices.Some(weights, func(weight int) bool { return weight == 1 }) {
+		return weights
+	}
+
+	// map weights to factorSlices and find the lowest common factor
+	positiveWeights := slices.Filter(weights, func(weight int) bool { return weight > 0 })
+	factorSlices := slices.Map(positiveWeights, func(weight int) []int { return calcFactors(weight) })
+	commonFactors := factorSlices[0]
+	for _, factors := range factorSlices {
+		commonFactors = lo.Intersect(commonFactors, factors)
+	}
+
+	if len(commonFactors) == 0 {
+		return weights
+	}
+
+	newWeights := slices.Map(weights, func(weight int) int { return weight / commonFactors[0] })
+
+	return normalizeWeights(newWeights)
+}
+
+func calcFactors(n int) []int {
+	factors := []int{}
+	for i := 2; i <= n; i++ {
+		if n%i == 0 {
+			factors = append(factors, i)
+		}
+	}
+	return factors
 }
 
 func (b *Box) isStatic() bool {

@@ -1,0 +1,11 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[user]
+	email = CI@example.com
+	name = CI
+[remote "origin"]
+	url = ../origin
+	fetch = +refs/heads/*:refs/remotes/origin/*

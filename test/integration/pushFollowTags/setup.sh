@@ -19,15 +19,15 @@ git add .
 git commit -am "myfile2"
 
 cd ..
-git clone --bare ./actual actual_remote
+git clone --bare ./repo origin
 
-cd actual
+cd repo
 
 echo test3 > myfile3
 git add .
 git commit -am "myfile3"
 
-git remote add origin ../actual_remote
+git remote add origin ../origin
 git fetch origin
 git branch --set-upstream-to=origin/master master
 git config push.followTags true

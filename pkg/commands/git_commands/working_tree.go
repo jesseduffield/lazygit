@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -46,10 +47,9 @@ func (self *WorkingTreeCommands) StageFile(path string) error {
 }
 
 func (self *WorkingTreeCommands) StageFiles(paths []string) error {
-	quotedPaths := make([]string, len(paths))
-	for i, path := range paths {
-		quotedPaths[i] = self.cmd.Quote(path)
-	}
+	quotedPaths := slices.Map(paths, func(path string) string {
+		return self.cmd.Quote(path)
+	})
 	return self.cmd.New(fmt.Sprintf("git add -- %s", strings.Join(quotedPaths, " "))).Run()
 }
 
@@ -218,6 +218,11 @@ func (self *WorkingTreeCommands) Ignore(filename string) error {
 	return self.os.AppendLineToFile(".gitignore", filename)
 }
 
+// Exclude adds a file to the .git/info/exclude for the repo
+func (self *WorkingTreeCommands) Exclude(filename string) error {
+	return self.os.AppendLineToFile(".git/info/exclude", filename)
+}
+
 // WorktreeFileDiff returns the diff of a file
 func (self *WorkingTreeCommands) WorktreeFileDiff(file *models.File, plain bool, cached bool, ignoreWhitespace bool) string {
 	// for now we assume an error means the file was deleted
@@ -230,6 +235,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	trackedArg := "--"
 	colorArg := self.UserConfig.Git.Paging.ColorArg
 	quotedPath := self.cmd.Quote(node.GetPath())
+	quotedPrevPath := ""
 	ignoreWhitespaceArg := ""
 	contextSize := self.UserConfig.Git.DiffContextSize
 	if cached {
@@ -244,25 +250,40 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	if ignoreWhitespace {
 		ignoreWhitespaceArg = " --ignore-all-space"
 	}
+	if prevPath := node.GetPreviousPath(); prevPath != "" {
+		quotedPrevPath = " " + self.cmd.Quote(prevPath)
+	}
 
-	cmdStr := fmt.Sprintf("git diff --submodule --no-ext-diff --unified=%d --color=%s%s%s %s %s", contextSize, colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath)
+	cmdStr := fmt.Sprintf("git diff --submodule --no-ext-diff --unified=%d --color=%s%s%s %s %s%s", contextSize, colorArg, ignoreWhitespaceArg, cachedArg, trackedArg, quotedPath, quotedPrevPath)
 
 	return self.cmd.New(cmdStr).DontLog()
 }
 
 func (self *WorkingTreeCommands) ApplyPatch(patch string, flags ...string) error {
-	filepath := filepath.Join(oscommands.GetTempDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
-	self.Log.Infof("saving temporary patch to %s", filepath)
-	if err := self.os.CreateFileWithContent(filepath, patch); err != nil {
+	filepath, err := self.SaveTemporaryPatch(patch)
+	if err != nil {
 		return err
 	}
 
+	return self.ApplyPatchFile(filepath, flags...)
+}
+
+func (self *WorkingTreeCommands) ApplyPatchFile(filepath string, flags ...string) error {
 	flagStr := ""
 	for _, flag := range flags {
 		flagStr += " --" + flag
 	}
 
 	return self.cmd.New(fmt.Sprintf("git apply%s %s", flagStr, self.cmd.Quote(filepath))).Run()
+}
+
+func (self *WorkingTreeCommands) SaveTemporaryPatch(patch string) (string, error) {
+	filepath := filepath.Join(self.os.GetTempDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
+	self.Log.Infof("saving temporary patch to %s", filepath)
+	if err := self.os.CreateFileWithContent(filepath, patch); err != nil {
+		return "", err
+	}
+	return filepath, nil
 }
 
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc

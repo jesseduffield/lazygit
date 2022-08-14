@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type PatchHunk struct {
@@ -54,7 +55,7 @@ func (hunk *PatchHunk) updatedLines(lineIndices []int, reverse bool) []string {
 		if line == "" {
 			break
 		}
-		isLineSelected := utils.IncludesInt(lineIndices, lineIdx)
+		isLineSelected := lo.Contains(lineIndices, lineIdx)
 
 		firstChar, content := line[:1], line[1:]
 		transformedFirstChar := transformedFirstChar(firstChar, reverse, isLineSelected)

@@ -1,5 +1,9 @@
 package config
 
+import (
+	"time"
+)
+
 type UserConfig struct {
 	Gui                  GuiConfig        `yaml:"gui"`
 	Git                  GitConfig        `yaml:"git"`
@@ -11,11 +15,12 @@ type UserConfig struct {
 	QuitOnTopLevelReturn bool             `yaml:"quitOnTopLevelReturn"`
 	Keybinding           KeybindingConfig `yaml:"keybinding"`
 	// OS determines what defaults are set for opening files and links
-	OS                   OSConfig          `yaml:"os,omitempty"`
-	DisableStartupPopups bool              `yaml:"disableStartupPopups"`
-	CustomCommands       []CustomCommand   `yaml:"customCommands"`
-	Services             map[string]string `yaml:"services"`
-	NotARepository       string            `yaml:"notARepository"`
+	OS                           OSConfig          `yaml:"os,omitempty"`
+	DisableStartupPopups         bool              `yaml:"disableStartupPopups"`
+	CustomCommands               []CustomCommand   `yaml:"customCommands"`
+	Services                     map[string]string `yaml:"services"`
+	NotARepository               string            `yaml:"notARepository"`
+	PromptToReturnFromSubprocess bool              `yaml:"promptToReturnFromSubprocess"`
 }
 
 type RefresherConfig struct {
@@ -35,6 +40,7 @@ type GuiConfig struct {
 	ExpandFocusedSidePanel   bool               `yaml:"expandFocusedSidePanel"`
 	MainPanelSplitMode       string             `yaml:"mainPanelSplitMode"`
 	Language                 string             `yaml:"language"`
+	TimeFormat               string             `yaml:"timeFormat"`
 	Theme                    ThemeConfig        `yaml:"theme"`
 	CommitLength             CommitLengthConfig `yaml:"commitLength"`
 	SkipNoStagedFilesWarning bool               `yaml:"skipNoStagedFilesWarning"`
@@ -42,7 +48,10 @@ type GuiConfig struct {
 	ShowFileTree             bool               `yaml:"showFileTree"`
 	ShowRandomTip            bool               `yaml:"showRandomTip"`
 	ShowCommandLog           bool               `yaml:"showCommandLog"`
+	ShowBottomLine           bool               `yaml:"showBottomLine"`
+	ShowIcons                bool               `yaml:"showIcons"`
 	CommandLogSize           int                `yaml:"commandLogSize"`
+	SplitDiff                string             `yaml:"splitDiff"`
 }
 
 type ThemeConfig struct {
@@ -54,6 +63,7 @@ type ThemeConfig struct {
 	SelectedRangeBgColor      []string `yaml:"selectedRangeBgColor"`
 	CherryPickedCommitBgColor []string `yaml:"cherryPickedCommitBgColor"`
 	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor"`
+	UnstagedChangesColor      []string `yaml:"unstagedChangesColor"`
 }
 
 type CommitLengthConfig struct {
@@ -66,6 +76,7 @@ type GitConfig struct {
 	Merging             MergingConfig                 `yaml:"merging"`
 	SkipHookPrefix      string                        `yaml:"skipHookPrefix"`
 	AutoFetch           bool                          `yaml:"autoFetch"`
+	AutoRefresh         bool                          `yaml:"autoRefresh"`
 	BranchLogCmd        string                        `yaml:"branchLogCmd"`
 	AllBranchesLogCmd   string                        `yaml:"allBranchesLogCmd"`
 	OverrideGpg         bool                          `yaml:"overrideGpg"`
@@ -94,8 +105,9 @@ type MergingConfig struct {
 }
 
 type LogConfig struct {
-	Order     string `yaml:"order"`     // one of date-order, author-date-order, topo-order
-	ShowGraph string `yaml:"showGraph"` // one of always, never, when-maximised
+	Order          string `yaml:"order"`     // one of date-order, author-date-order, topo-order
+	ShowGraph      string `yaml:"showGraph"` // one of always, never, when-maximised
+	ShowWholeGraph bool   `yaml:"showWholeGraph"`
 }
 
 type CommitPrefixConfig struct {
@@ -199,7 +211,7 @@ type KeybindingFilesConfig struct {
 	CommitChangesWithoutHook string `yaml:"commitChangesWithoutHook"`
 	AmendLastCommit          string `yaml:"amendLastCommit"`
 	CommitChangesWithEditor  string `yaml:"commitChangesWithEditor"`
-	IgnoreFile               string `yaml:"ignoreFile"`
+	IgnoreOrExcludeFile      string `yaml:"IgnoreOrExcludeFile"`
 	RefreshFiles             string `yaml:"refreshFiles"`
 	StashAllChanges          string `yaml:"stashAllChanges"`
 	ViewStashOptions         string `yaml:"viewStashOptions"`
@@ -228,28 +240,29 @@ type KeybindingBranchesConfig struct {
 }
 
 type KeybindingCommitsConfig struct {
-	SquashDown                   string `yaml:"squashDown"`
-	RenameCommit                 string `yaml:"renameCommit"`
-	RenameCommitWithEditor       string `yaml:"renameCommitWithEditor"`
-	ViewResetOptions             string `yaml:"viewResetOptions"`
-	MarkCommitAsFixup            string `yaml:"markCommitAsFixup"`
-	CreateFixupCommit            string `yaml:"createFixupCommit"`
-	SquashAboveCommits           string `yaml:"squashAboveCommits"`
-	MoveDownCommit               string `yaml:"moveDownCommit"`
-	MoveUpCommit                 string `yaml:"moveUpCommit"`
-	AmendToCommit                string `yaml:"amendToCommit"`
-	PickCommit                   string `yaml:"pickCommit"`
-	RevertCommit                 string `yaml:"revertCommit"`
-	CherryPickCopy               string `yaml:"cherryPickCopy"`
-	CherryPickCopyRange          string `yaml:"cherryPickCopyRange"`
-	PasteCommits                 string `yaml:"pasteCommits"`
-	TagCommit                    string `yaml:"tagCommit"`
-	CheckoutCommit               string `yaml:"checkoutCommit"`
-	ResetCherryPick              string `yaml:"resetCherryPick"`
-	CopyCommitMessageToClipboard string `yaml:"copyCommitMessageToClipboard"`
-	OpenLogMenu                  string `yaml:"openLogMenu"`
-	OpenInBrowser                string `yaml:"openInBrowser"`
-	ViewBisectOptions            string `yaml:"viewBisectOptions"`
+	SquashDown                     string `yaml:"squashDown"`
+	RenameCommit                   string `yaml:"renameCommit"`
+	RenameCommitWithEditor         string `yaml:"renameCommitWithEditor"`
+	ViewResetOptions               string `yaml:"viewResetOptions"`
+	MarkCommitAsFixup              string `yaml:"markCommitAsFixup"`
+	CreateFixupCommit              string `yaml:"createFixupCommit"`
+	SquashAboveCommits             string `yaml:"squashAboveCommits"`
+	MoveDownCommit                 string `yaml:"moveDownCommit"`
+	MoveUpCommit                   string `yaml:"moveUpCommit"`
+	AmendToCommit                  string `yaml:"amendToCommit"`
+	ResetCommitAuthor              string `yaml:"resetCommitAuthor"`
+	PickCommit                     string `yaml:"pickCommit"`
+	RevertCommit                   string `yaml:"revertCommit"`
+	CherryPickCopy                 string `yaml:"cherryPickCopy"`
+	CherryPickCopyRange            string `yaml:"cherryPickCopyRange"`
+	PasteCommits                   string `yaml:"pasteCommits"`
+	TagCommit                      string `yaml:"tagCommit"`
+	CheckoutCommit                 string `yaml:"checkoutCommit"`
+	ResetCherryPick                string `yaml:"resetCherryPick"`
+	CopyCommitAttributeToClipboard string `yaml:"copyCommitAttributeToClipboard"`
+	OpenLogMenu                    string `yaml:"openLogMenu"`
+	OpenInBrowser                  string `yaml:"openInBrowser"`
+	ViewBisectOptions              string `yaml:"viewBisectOptions"`
 }
 
 type KeybindingStashConfig struct {
@@ -265,6 +278,7 @@ type KeybindingMainConfig struct {
 	ToggleDragSelectAlt string `yaml:"toggleDragSelect-alt"`
 	ToggleSelectHunk    string `yaml:"toggleSelectHunk"`
 	PickBothHunks       string `yaml:"pickBothHunks"`
+	EditSelectHunk      string `yaml:"editSelectHunk"`
 }
 
 type KeybindingSubmodulesConfig struct {
@@ -297,14 +311,18 @@ type CustomCommand struct {
 	LoadingText string                `yaml:"loadingText"`
 	Description string                `yaml:"description"`
 	Stream      bool                  `yaml:"stream"`
+	ShowOutput  bool                  `yaml:"showOutput"`
 }
 
 type CustomCommandPrompt struct {
-	Type  string `yaml:"type"` // one of 'input' and 'menu'
+	Type  string `yaml:"type"` // one of 'input', 'menu', or 'confirm'
 	Title string `yaml:"title"`
 
-	// this only apply to prompts
+	// this only apply to input prompts
 	InitialValue string `yaml:"initialValue"`
+
+	// this only applies to confirm prompts
+	Body string `yaml:"body"`
 
 	// this only applies to menus
 	Options []CustomCommandMenuOption
@@ -334,29 +352,35 @@ func GetDefaultConfig() *UserConfig {
 			ExpandFocusedSidePanel: false,
 			MainPanelSplitMode:     "flexible",
 			Language:               "auto",
+			TimeFormat:             time.RFC822,
 			Theme: ThemeConfig{
 				LightTheme:                false,
 				ActiveBorderColor:         []string{"green", "bold"},
 				InactiveBorderColor:       []string{"white"},
 				OptionsTextColor:          []string{"blue"},
-				SelectedLineBgColor:       []string{"default"},
+				SelectedLineBgColor:       []string{"blue"},
 				SelectedRangeBgColor:      []string{"blue"},
-				CherryPickedCommitBgColor: []string{"blue"},
-				CherryPickedCommitFgColor: []string{"cyan"},
+				CherryPickedCommitBgColor: []string{"cyan"},
+				CherryPickedCommitFgColor: []string{"blue"},
+				UnstagedChangesColor:      []string{"red"},
 			},
 			CommitLength:             CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning: false,
 			ShowListFooter:           true,
 			ShowCommandLog:           true,
+			ShowBottomLine:           true,
 			ShowFileTree:             true,
 			ShowRandomTip:            true,
+			ShowIcons:                false,
 			CommandLogSize:           8,
+			SplitDiff:                "auto",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
 				ColorArg:  "always",
 				Pager:     "",
-				UseConfig: false},
+				UseConfig: false,
+			},
 			Commit: CommitConfig{
 				SignOff: false,
 			},
@@ -365,11 +389,13 @@ func GetDefaultConfig() *UserConfig {
 				Args:         "",
 			},
 			Log: LogConfig{
-				Order:     "topo-order",
-				ShowGraph: "when-maximised",
+				Order:          "topo-order",
+				ShowGraph:      "when-maximised",
+				ShowWholeGraph: false,
 			},
 			SkipHookPrefix:      "WIP",
 			AutoFetch:           true,
+			AutoRefresh:         true,
 			BranchLogCmd:        "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmd:   "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing: false,
@@ -467,7 +493,7 @@ func GetDefaultConfig() *UserConfig {
 				CommitChangesWithoutHook: "w",
 				AmendLastCommit:          "A",
 				CommitChangesWithEditor:  "C",
-				IgnoreFile:               "i",
+				IgnoreOrExcludeFile:      "i",
 				RefreshFiles:             "r",
 				StashAllChanges:          "s",
 				ViewStashOptions:         "S",
@@ -494,28 +520,29 @@ func GetDefaultConfig() *UserConfig {
 				FetchRemote:             "f",
 			},
 			Commits: KeybindingCommitsConfig{
-				SquashDown:                   "s",
-				RenameCommit:                 "r",
-				RenameCommitWithEditor:       "R",
-				ViewResetOptions:             "g",
-				MarkCommitAsFixup:            "f",
-				CreateFixupCommit:            "F",
-				SquashAboveCommits:           "S",
-				MoveDownCommit:               "<c-j>",
-				MoveUpCommit:                 "<c-k>",
-				AmendToCommit:                "A",
-				PickCommit:                   "p",
-				RevertCommit:                 "t",
-				CherryPickCopy:               "c",
-				CherryPickCopyRange:          "C",
-				PasteCommits:                 "v",
-				TagCommit:                    "T",
-				CheckoutCommit:               "<space>",
-				ResetCherryPick:              "<c-R>",
-				CopyCommitMessageToClipboard: "<c-y>",
-				OpenLogMenu:                  "<c-l>",
-				OpenInBrowser:                "o",
-				ViewBisectOptions:            "b",
+				SquashDown:                     "s",
+				RenameCommit:                   "r",
+				RenameCommitWithEditor:         "R",
+				ViewResetOptions:               "g",
+				MarkCommitAsFixup:              "f",
+				CreateFixupCommit:              "F",
+				SquashAboveCommits:             "S",
+				MoveDownCommit:                 "<c-j>",
+				MoveUpCommit:                   "<c-k>",
+				AmendToCommit:                  "A",
+				ResetCommitAuthor:              "a",
+				PickCommit:                     "p",
+				RevertCommit:                   "t",
+				CherryPickCopy:                 "c",
+				CherryPickCopyRange:            "C",
+				PasteCommits:                   "v",
+				TagCommit:                      "T",
+				CheckoutCommit:                 "<space>",
+				ResetCherryPick:                "<c-R>",
+				CopyCommitAttributeToClipboard: "y",
+				OpenLogMenu:                    "<c-l>",
+				OpenInBrowser:                  "o",
+				ViewBisectOptions:              "b",
 			},
 			Stash: KeybindingStashConfig{
 				PopStash: "g",
@@ -528,6 +555,7 @@ func GetDefaultConfig() *UserConfig {
 				ToggleDragSelectAlt: "V",
 				ToggleSelectHunk:    "a",
 				PickBothHunks:       "b",
+				EditSelectHunk:      "E",
 			},
 			Submodules: KeybindingSubmodulesConfig{
 				Init:     "i",
@@ -535,10 +563,11 @@ func GetDefaultConfig() *UserConfig {
 				BulkMenu: "b",
 			},
 		},
-		OS:                   GetPlatformDefaultConfig(),
-		DisableStartupPopups: false,
-		CustomCommands:       []CustomCommand(nil),
-		Services:             map[string]string(nil),
-		NotARepository:       "prompt",
+		OS:                           GetPlatformDefaultConfig(),
+		DisableStartupPopups:         false,
+		CustomCommands:               []CustomCommand(nil),
+		Services:                     map[string]string(nil),
+		NotARepository:               "prompt",
+		PromptToReturnFromSubprocess: true,
 	}
 }

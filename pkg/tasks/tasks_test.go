@@ -69,7 +69,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 	expectedContent := ""
 	actualContent := writer.String()
 	if actualContent != expectedContent {
-		t.Errorf("expected writer to receive the following content: \n%s\n. But instead it recevied: %s", expectedContent, actualContent)
+		t.Errorf("expected writer to receive the following content: \n%s\n. But instead it received: %s", expectedContent, actualContent)
 	}
 }
 
@@ -131,6 +131,6 @@ func TestNewCmdTask(t *testing.T) {
 	expectedContent := "prefix\ntest\n"
 	actualContent := writer.String()
 	if actualContent != expectedContent {
-		t.Errorf("expected writer to receive the following content: \n%s\n. But instead it recevied: %s", expectedContent, actualContent)
+		t.Errorf("expected writer to receive the following content: \n%s\n. But instead it received: %s", expectedContent, actualContent)
 	}
 }

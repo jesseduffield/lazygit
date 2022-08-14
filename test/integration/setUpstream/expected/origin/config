@@ -1,0 +1,6 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+[remote "origin"]
+	url = /home/mark/Downloads/gits/lazygit/test/integration/setUpstream/actual/./repo

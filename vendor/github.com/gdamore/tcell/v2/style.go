@@ -1,4 +1,4 @@
-// Copyright 2020 The TCell Authors
+// Copyright 2022 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -26,6 +26,7 @@ type Style struct {
 	fg    Color
 	bg    Color
 	attrs AttrMask
+	url   string
 }
 
 // StyleDefault represents a default style, based upon the context.
@@ -42,6 +43,7 @@ func (s Style) Foreground(c Color) Style {
 		fg:    c,
 		bg:    s.bg,
 		attrs: s.attrs,
+		url:   s.url,
 	}
 }
 
@@ -52,11 +54,12 @@ func (s Style) Background(c Color) Style {
 		fg:    s.fg,
 		bg:    c,
 		attrs: s.attrs,
+		url:   s.url,
 	}
 }
 
 // Decompose breaks a style up, returning the foreground, background,
-// and other attributes.
+// and other attributes.  The URL if set is not included.
 func (s Style) Decompose() (fg Color, bg Color, attr AttrMask) {
 	return s.fg, s.bg, s.attrs
 }
@@ -67,12 +70,14 @@ func (s Style) setAttrs(attrs AttrMask, on bool) Style {
 			fg:    s.fg,
 			bg:    s.bg,
 			attrs: s.attrs | attrs,
+			url:   s.url,
 		}
 	}
 	return Style{
 		fg:    s.fg,
 		bg:    s.bg,
 		attrs: s.attrs &^ attrs,
+		url:   s.url,
 	}
 }
 
@@ -133,5 +138,18 @@ func (s Style) Attributes(attrs AttrMask) Style {
 		fg:    s.fg,
 		bg:    s.bg,
 		attrs: attrs,
+		url:   s.url,
+	}
+}
+
+// Url returns a style with the Url set.  If the provided Url is not empty,
+// and the terminal supports it, text will typically be marked up as a clickable
+// link to that Url.  If the Url is empty, then this mode is turned off.
+func (s Style) Url(url string) Style {
+	return Style{
+		fg:    s.fg,
+		bg:    s.bg,
+		attrs: s.attrs,
+		url:   url,
 	}
 }

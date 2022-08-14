@@ -53,12 +53,12 @@ func TestRenderFileTree(t *testing.T) {
 			},
 			expected: toStringSlice(
 				`
-dir1 ►
-dir2 ▼
-├─ dir2 ▼
-│  ├─  M file3
-│  └─ M  file4
-└─ M  file5
+► dir1
+▼ dir2
+  ▼ dir2
+     M file3
+    M  file4
+  M  file5
 M  file1
 `,
 			),
@@ -69,7 +69,8 @@ M  file1
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.name, func(t *testing.T) {
-			viewModel := filetree.NewFileTreeViewModel(s.files, utils.NewDummyLog(), true)
+			viewModel := filetree.NewFileTree(func() []*models.File { return s.files }, utils.NewDummyLog(), true)
+			viewModel.SetTree()
 			for _, path := range s.collapsedPaths {
 				viewModel.ToggleCollapsed(path)
 			}
@@ -111,12 +112,12 @@ func TestRenderCommitFileTree(t *testing.T) {
 			},
 			expected: toStringSlice(
 				`
-dir1 ►
-dir2 ▼
-├─ dir2 ▼
-│  ├─ D file3
-│  └─ M file4
-└─ M file5
+► dir1
+▼ dir2
+  ▼ dir2
+    D file3
+    M file4
+  M file5
 M file1
 `,
 			),
@@ -127,7 +128,9 @@ M file1
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.name, func(t *testing.T) {
-			viewModel := filetree.NewCommitFileTreeViewModel(s.files, utils.NewDummyLog(), true)
+			viewModel := filetree.NewCommitFileTreeViewModel(func() []*models.CommitFile { return s.files }, utils.NewDummyLog(), true)
+			viewModel.SetRef(&models.Commit{})
+			viewModel.SetTree()
 			for _, path := range s.collapsedPaths {
 				viewModel.ToggleCollapsed(path)
 			}

@@ -7,12 +7,13 @@ import (
 	"bytes"
 	"io"
 	"os/exec"
-	"sync"
+
+	"github.com/sasha-s/go-deadlock"
 )
 
 type Buffer struct {
 	b bytes.Buffer
-	m sync.Mutex
+	m deadlock.Mutex
 }
 
 func (b *Buffer) Read(p []byte) (n int, err error) {
@@ -20,6 +21,7 @@ func (b *Buffer) Read(p []byte) (n int, err error) {
 	defer b.m.Unlock()
 	return b.b.Read(p)
 }
+
 func (b *Buffer) Write(p []byte) (n int, err error) {
 	b.m.Lock()
 	defer b.m.Unlock()

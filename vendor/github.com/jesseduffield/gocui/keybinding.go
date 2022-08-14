@@ -20,7 +20,6 @@ type Modifier tcell.ModMask
 // Keybidings are used to link a given key-press event with a handler.
 type keybinding struct {
 	viewName string
-	contexts []string
 	key      Key
 	ch       rune
 	mod      Modifier
@@ -93,10 +92,9 @@ func MustParseAll(input []string) map[interface{}]Modifier {
 }
 
 // newKeybinding returns a new Keybinding object.
-func newKeybinding(viewname string, contexts []string, key Key, ch rune, mod Modifier, handler func(*Gui, *View) error) (kb *keybinding) {
+func newKeybinding(viewname string, key Key, ch rune, mod Modifier, handler func(*Gui, *View) error) (kb *keybinding) {
 	kb = &keybinding{
 		viewName: viewname,
-		contexts: contexts,
 		key:      key,
 		ch:       ch,
 		mod:      mod,
@@ -122,30 +120,6 @@ func eventMatchesKey(ev *GocuiEvent, key interface{}) bool {
 // matchKeypress returns if the keybinding matches the keypress.
 func (kb *keybinding) matchKeypress(key Key, ch rune, mod Modifier) bool {
 	return kb.key == key && kb.ch == ch && kb.mod == mod
-}
-
-// matchView returns if the keybinding matches the current view (and the view's context)
-func (kb *keybinding) matchView(v *View) bool {
-	// if the user is typing in a field, ignore char keys
-	if v == nil {
-		return false
-	}
-	if v.Editable == true && kb.ch != 0 {
-		return false
-	}
-	if kb.viewName != v.name {
-		return false
-	}
-	// if the keybinding doesn't specify contexts, it applies for all contexts
-	if len(kb.contexts) == 0 {
-		return true
-	}
-	for _, context := range kb.contexts {
-		if context == v.Context {
-			return true
-		}
-	}
-	return false
 }
 
 // translations for strings to keys

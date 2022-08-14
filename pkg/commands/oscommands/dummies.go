@@ -2,12 +2,13 @@ package oscommands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // NewDummyOSCommand creates a new dummy OSCommand for testing
 func NewDummyOSCommand() *OSCommand {
-	osCmd := NewOSCommand(utils.NewDummyCommon(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
+	osCmd := NewOSCommand(utils.NewDummyCommon(), config.NewDummyAppConfig(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
 
 	return osCmd
 }
@@ -56,7 +57,7 @@ var dummyPlatform = &Platform{
 }
 
 func NewDummyOSCommandWithRunner(runner *FakeCmdObjRunner) *OSCommand {
-	osCommand := NewOSCommand(utils.NewDummyCommon(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
+	osCommand := NewOSCommand(utils.NewDummyCommon(), config.NewDummyAppConfig(), dummyPlatform, NewNullGuiIO(utils.NewDummyLog()))
 	osCommand.Cmd = NewDummyCmdObjBuilder(runner)
 
 	return osCommand

@@ -2,13 +2,15 @@ package graph
 
 import (
 	"runtime"
-	"sort"
 	"strings"
 	"sync"
 
+	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type PipeKind uint8
@@ -65,19 +67,15 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style
 
 	pipes := []*Pipe{{fromPos: 0, toPos: 0, fromSha: "START", toSha: commits[0].Sha, kind: STARTS, style: style.FgDefault}}
 
-	pipeSets := [][]*Pipe{}
-	for _, commit := range commits {
+	return slices.Map(commits, func(commit *models.Commit) []*Pipe {
 		pipes = getNextPipes(pipes, commit, getStyle)
-		pipeSets = append(pipeSets, pipes)
-	}
-
-	return pipeSets
+		return pipes
+	})
 }
 
 func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitSha string) []string {
 	maxProcs := runtime.GOMAXPROCS(0)
 
-	lines := make([]string, 0, len(pipeSets))
 	// splitting up the rendering of the graph into multiple goroutines allows us to render the graph in parallel
 	chunks := make([][]string, maxProcs)
 	perProc := len(pipeSets) / maxProcs
@@ -110,24 +108,19 @@ func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitSha s
 
 	wg.Wait()
 
-	for _, chunk := range chunks {
-		lines = append(lines, chunk...)
-	}
-
-	return lines
+	return slices.Flatten(chunks)
 }
 
 func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *models.Commit) style.TextStyle) []*Pipe {
-	currentPipes := make([]*Pipe, 0, len(prevPipes))
-	maxPos := 0
-	for _, pipe := range prevPipes {
-		// a pipe that terminated in the previous line has no bearing on the current line
-		// so we'll filter those out
-		if pipe.kind != TERMINATES {
-			currentPipes = append(currentPipes, pipe)
-		}
-		maxPos = utils.Max(maxPos, pipe.toPos)
-	}
+	maxPos := slices.MaxBy(prevPipes, func(pipe *Pipe) int {
+		return pipe.toPos
+	})
+
+	// a pipe that terminated in the previous line has no bearing on the current line
+	// so we'll filter those out
+	currentPipes := slices.Filter(prevPipes, func(pipe *Pipe) bool {
+		return pipe.kind != TERMINATES
+	})
 
 	newPipes := make([]*Pipe, 0, len(currentPipes)+len(commit.Parents))
 	// start by assuming that we've got a brand new commit not related to any preceding commit.
@@ -142,9 +135,9 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	}
 
 	// a taken spot is one where a current pipe is ending on
-	takenSpots := make(map[int]bool)
+	takenSpots := set.New[int]()
 	// a traversed spot is one where a current pipe is starting on, ending on, or passing through
-	traversedSpots := make(map[int]bool)
+	traversedSpots := set.New[int]()
 
 	if len(commit.Parents) > 0 {
 		newPipes = append(newPipes, &Pipe{
@@ -157,17 +150,17 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 		})
 	}
 
-	traversedSpotsForContinuingPipes := make(map[int]bool)
+	traversedSpotsForContinuingPipes := set.New[int]()
 	for _, pipe := range currentPipes {
 		if !equalHashes(pipe.toSha, commit.Sha) {
-			traversedSpotsForContinuingPipes[pipe.toPos] = true
+			traversedSpotsForContinuingPipes.Add(pipe.toPos)
 		}
 	}
 
 	getNextAvailablePosForContinuingPipe := func() int {
 		i := 0
 		for {
-			if !traversedSpots[i] {
+			if !traversedSpots.Includes(i) {
 				return i
 			}
 			i++
@@ -179,7 +172,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 		for {
 			// a newly created pipe is not allowed to end on a spot that's already taken,
 			// nor on a spot that's been traversed by a continuing pipe.
-			if !takenSpots[i] && !traversedSpotsForContinuingPipes[i] {
+			if !takenSpots.Includes(i) && !traversedSpotsForContinuingPipes.Includes(i) {
 				return i
 			}
 			i++
@@ -192,9 +185,9 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 			left, right = right, left
 		}
 		for i := left; i <= right; i++ {
-			traversedSpots[i] = true
+			traversedSpots.Add(i)
 		}
-		takenSpots[to] = true
+		takenSpots.Add(to)
 	}
 
 	for _, pipe := range currentPipes {
@@ -237,7 +230,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 				style:   getStyle(commit),
 			})
 
-			takenSpots[availablePos] = true
+			takenSpots.Add(availablePos)
 		}
 	}
 
@@ -246,7 +239,7 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 			// continuing on, potentially moving left to fill in a blank spot
 			last := pipe.toPos
 			for i := pipe.toPos; i > pos; i-- {
-				if takenSpots[i] || traversedSpots[i] {
+				if takenSpots.Includes(i) || traversedSpots.Includes(i) {
 					break
 				} else {
 					last = i
@@ -265,11 +258,11 @@ func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *mod
 	}
 
 	// not efficient but doing it for now: sorting my pipes by toPos, then by kind
-	sort.Slice(newPipes, func(i, j int) bool {
-		if newPipes[i].toPos == newPipes[j].toPos {
-			return newPipes[i].kind < newPipes[j].kind
+	slices.SortFunc(newPipes, func(a, b *Pipe) bool {
+		if a.toPos == b.toPos {
+			return a.kind < b.kind
 		}
-		return newPipes[i].toPos < newPipes[j].toPos
+		return a.toPos < b.toPos
 	})
 
 	return newPipes
@@ -297,10 +290,9 @@ func renderPipeSet(
 	}
 	isMerge := startCount > 1
 
-	cells := make([]*Cell, maxPos+1)
-	for i := range cells {
-		cells[i] = &Cell{cellType: CONNECTION, style: style.FgDefault}
-	}
+	cells := slices.Map(lo.Range(maxPos+1), func(i int) *Cell {
+		return &Cell{cellType: CONNECTION, style: style.FgDefault}
+	})
 
 	renderPipe := func(pipe *Pipe, style style.TextStyle, overrideRightStyle bool) {
 		left := pipe.left()
@@ -336,17 +328,9 @@ func renderPipeSet(
 
 	// so we have our commit pos again, now it's time to build the cells.
 	// we'll handle the one that's sourced from our selected commit last so that it can override the other cells.
-	selectedPipes := []*Pipe{}
-	// pre-allocating this one because most of the time we'll only have non-selected pipes
-	nonSelectedPipes := make([]*Pipe, 0, len(pipes))
-
-	for _, pipe := range pipes {
-		if highlight && equalHashes(pipe.fromSha, selectedCommitSha) {
-			selectedPipes = append(selectedPipes, pipe)
-		} else {
-			nonSelectedPipes = append(nonSelectedPipes, pipe)
-		}
-	}
+	selectedPipes, nonSelectedPipes := slices.Partition(pipes, func(pipe *Pipe) bool {
+		return highlight && equalHashes(pipe.fromSha, selectedCommitSha)
+	})
 
 	for _, pipe := range nonSelectedPipes {
 		if pipe.kind == STARTS {

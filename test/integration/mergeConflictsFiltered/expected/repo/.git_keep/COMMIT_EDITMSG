@@ -1,0 +1,38 @@
+Merge branch 'develop' into other_branch
+
+# Conflicts:
+#	directory/file
+#	directory/file2
+#	file1
+#	file3
+#	file4
+#	file5
+#
+# It looks like you may be committing a merge.
+# If this is not correct, please remove the file
+#	/Users/jesseduffieldduffield/go/src/github.com/jesseduffield/lazygit/test/integration/mergeConflictsFiltered/actual/.git/MERGE_HEAD
+# and try again.
+
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch other_branch
+# All conflicts fixed but you are still merging.
+#
+# Changes to be committed:
+#	new file:   cherrypicking1
+#	new file:   cherrypicking2
+#	new file:   cherrypicking4
+#	new file:   cherrypicking5
+#	new file:   cherrypicking6
+#	new file:   cherrypicking7
+#	new file:   cherrypicking8
+#	new file:   cherrypicking9
+#	modified:   directory/file
+#	modified:   file3
+#	modified:   file4
+#
+# Untracked files:
+#	cherrypicking3
+#

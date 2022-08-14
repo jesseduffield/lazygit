@@ -1,5 +1,8 @@
 name: Continuous Integration
 
+env:
+  GO_VERSION: 1.18
+
 on:
   push:
     branches:
@@ -7,13 +10,18 @@ on:
   pull_request:
 
 jobs:
-  ci:
+  unit-tests:
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-latest
           - windows-latest
+        include:
+          - os: ubuntu-latest
+            cache_path: ~/.cache/go-build
+          - os: windows-latest
+            cache_path: ~\AppData\Local\go-build
     name: ci - ${{matrix.os}}
     runs-on: ${{matrix.os}}
     env:
@@ -24,17 +32,73 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.16.x
+          go-version: 1.18.x
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{matrix.cache_path}}
+            ~/go/pkg/mod
+          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
+          restore-keys: |
+            ${{runner.os}}-go-
+      - name: Test code
+        # we're passing -short so that we skip the integration tests, which will be run in parallel below
+        run: |
+          go test ./... -short
+  integration-tests-old:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        parallelism: [5]
+        index: [0,1,2,3,4]
+    name: "Integration Tests (Old pattern) (${{ matrix.index }}/${{ matrix.parallelism }})"
+    env:
+      GOFLAGS: -mod=vendor
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.18.x
       - name: Cache build
         uses: actions/cache@v1
         with:
-          path: ~/.cache/go-build
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
           key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
           restore-keys: |
             ${{runner.os}}-go-
       - name: Test code
         run: |
-          bash ./test.sh
+          PARALLEL_TOTAL=${{ matrix.parallelism }} PARALLEL_INDEX=${{ matrix.index }} go test pkg/integration/deprecated/*.go
+  integration-tests:
+    runs-on: ubuntu-latest
+    name: "Integration Tests"
+    env:
+      GOFLAGS: -mod=vendor
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.18.x
+      - name: Cache build
+        uses: actions/cache@v1
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
+          restore-keys: |
+            ${{runner.os}}-go-
+      - name: Test code
+        run: |
+          go test pkg/integration/clients/*.go
   build:
     runs-on: ubuntu-latest
     env:
@@ -46,11 +110,13 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.16.x
+          go-version: 1.18.x
       - name: Cache build
         uses: actions/cache@v1
         with:
-          path: ~/.cache/go-build
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
           key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-build
           restore-keys: |
             ${{runner.os}}-go-
@@ -63,6 +129,12 @@ jobs:
       - name: Build darwin binary
         run: |
           GOOS=darwin go build
+      - name: Build integration test binary
+        run: |
+          GOOS=linux go build cmd/integration_test/main.go
+      - name: Build integration test injector
+        run: |
+          GOOS=linux go build pkg/integration/clients/injector/main.go
   check-cheatsheet:
     runs-on: ubuntu-latest
     env:
@@ -74,11 +146,13 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v1
         with:
-          go-version: 1.16.x
+          go-version: 1.18.x
       - name: Cache build
         uses: actions/cache@v1
         with:
-          path: ~/.cache/go-build
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
           key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-build
           restore-keys: |
             ${{runner.os}}-go-
@@ -87,11 +161,26 @@ jobs:
           go run scripts/cheatsheet/main.go check
   lint:
     runs-on: ubuntu-latest
+    env:
+      GOFLAGS: -mod=vendor
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.18.x
+      - name: Cache build
+        uses: actions/cache@v1
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
+          restore-keys: |
+            ${{runner.os}}-go-
       - name: Lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3.1.0
         with:
           version: latest
       - name: Format code

@@ -23,16 +23,29 @@ lazygit.exe
 # Exceptions
 !.gitignore
 !.goreleaser.yml
+!.golangci.yml
 !.circleci/
 !.github/
+!.vscode/
+
 # these are for our integration tests
 !.git_keep
 !.gitmodules_keep
 
 test/git_server/data
+
+# we'll scrap these lines once we've fully moved over to the new integration test approach
 test/integration/*/actual/
-test/integration/*/actual_remote/
 test/integration/*/used_config/
 # these sample hooks waste too much space
 test/integration/*/expected/**/hooks/
 test/integration/*/expected_remote/**/hooks/
+
+test/integration_new/**/actual/
+test/integration_new/**/used_config/
+# these sample hooks waste too much space
+test/integration_new/**/expected/**/hooks/
+test/integration_new/**/expected_remote/**/hooks/
+
+oryxBuildBinary
+__debug_bin

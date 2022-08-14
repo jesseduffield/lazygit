@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Lazygit",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "main.go",
+      "args": ["--debug", "--use-config-file=.vscode/debugger_config.yml"],
+      "console": "integratedTerminal",
+      "presentation": {
+        "hidden": true
+      }
+    },
+    {
+      "name": "Tail Lazygit logs",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "main.go",
+      "args": ["--logs", "--use-config-file=.vscode/debugger_config.yml"],
+      "console": "integratedTerminal",
+      "presentation": {
+        "hidden": true
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Run with logs",
+      "configurations": ["Tail Lazygit logs", "Debug Lazygit"],
+      "stopAll": true
+    }
+  ]
+}

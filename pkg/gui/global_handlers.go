@@ -2,11 +2,11 @@ package gui
 
 import (
 	"fmt"
-	"math"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -15,8 +15,9 @@ const HORIZONTAL_SCROLL_FACTOR = 3
 // these views need to be re-rendered when the screen mode changes. The commits view,
 // for example, will show authorship information in half and full screen mode.
 func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
-	for _, view := range []*gocui.View{gui.Views.Branches, gui.Views.Commits} {
-		if err := gui.rerenderView(view); err != nil {
+	// for now we re-render all list views.
+	for _, context := range gui.getListContexts() {
+		if err := gui.rerenderView(context.GetView()); err != nil {
 			return err
 		}
 	}
@@ -24,7 +25,6 @@ func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
 	return nil
 }
 
-// TODO: GENERICS
 func nextIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
 	for i, val := range sl {
 		if val == current {
@@ -37,7 +37,6 @@ func nextIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowM
 	return sl[0]
 }
 
-// TODO: GENERICS
 func prevIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
 	for i, val := range sl {
 		if val == current {
@@ -62,101 +61,81 @@ func (gui *Gui) prevScreenMode() error {
 	return gui.rerenderViewsWithScreenModeDependentContent()
 }
 
-func (gui *Gui) scrollUpView(view *gocui.View) error {
-	ox, oy := view.Origin()
-	newOy := int(math.Max(0, float64(oy-gui.UserConfig.Gui.ScrollHeight)))
-	return view.SetOrigin(ox, newOy)
+func (gui *Gui) scrollUpView(view *gocui.View) {
+	view.ScrollUp(gui.c.UserConfig.Gui.ScrollHeight)
 }
 
-func (gui *Gui) scrollDownView(view *gocui.View) error {
-	ox, oy := view.Origin()
-	scrollHeight := gui.linesToScrollDown(view)
-	if scrollHeight > 0 {
-		if err := view.SetOrigin(ox, oy+scrollHeight); err != nil {
-			return err
-		}
-	}
+func (gui *Gui) scrollDownView(view *gocui.View) {
+	scrollHeight := gui.c.UserConfig.Gui.ScrollHeight
+	view.ScrollDown(scrollHeight)
 
 	if manager, ok := gui.viewBufferManagerMap[view.Name()]; ok {
 		manager.ReadLines(scrollHeight)
 	}
-	return nil
-}
-
-func (gui *Gui) linesToScrollDown(view *gocui.View) int {
-	_, oy := view.Origin()
-	y := oy
-	canScrollPastBottom := gui.UserConfig.Gui.ScrollPastBottom
-	if !canScrollPastBottom {
-		_, sy := view.Size()
-		y += sy
-	}
-	scrollHeight := gui.UserConfig.Gui.ScrollHeight
-	scrollableLines := view.ViewLinesHeight() - y
-	if scrollableLines < 0 {
-		return 0
-	}
-
-	// margin is about how many lines must still appear if you scroll
-	// all the way down. In practice every file ends in a newline so it will really
-	// just show a single line
-	margin := 1
-	if canScrollPastBottom {
-		margin = 2
-	}
-	if scrollableLines-margin < scrollHeight {
-		scrollHeight = scrollableLines - margin
-	}
-	if oy+scrollHeight < 0 {
-		return 0
-	} else {
-		return scrollHeight
-	}
 }
 
 func (gui *Gui) scrollUpMain() error {
-	if gui.renderingConflicts() {
-		gui.State.Panels.Merging.UserVerticalScrolling = true
+	var view *gocui.View
+	if gui.c.CurrentContext().GetWindowName() == "secondary" {
+		view = gui.secondaryView()
+	} else {
+		view = gui.mainView()
 	}
 
-	return gui.scrollUpView(gui.Views.Main)
+	if view.Name() == "mergeConflicts" {
+		// although we have this same logic in the controller, this method can be invoked
+		// via the global scroll up/down keybindings, as opposed to just the mouse wheel keybinding.
+		// It would be nice to have a concept of a global keybinding that runs on the top context in a
+		// window but that might be overkill for this one use case.
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(true)
+	}
+
+	gui.scrollUpView(view)
+
+	return nil
 }
 
 func (gui *Gui) scrollDownMain() error {
-	if gui.renderingConflicts() {
-		gui.State.Panels.Merging.UserVerticalScrolling = true
+	var view *gocui.View
+	if gui.c.CurrentContext().GetWindowName() == "secondary" {
+		view = gui.secondaryView()
+	} else {
+		view = gui.mainView()
 	}
 
-	return gui.scrollDownView(gui.Views.Main)
-}
+	if view.Name() == "mergeConflicts" {
+		gui.State.Contexts.MergeConflicts.SetUserScrolling(true)
+	}
 
-func (gui *Gui) scrollLeftMain() error {
-	gui.scrollLeft(gui.Views.Main)
-
-	return nil
-}
-
-func (gui *Gui) scrollRightMain() error {
-	gui.scrollRight(gui.Views.Main)
+	gui.scrollDownView(view)
 
 	return nil
 }
 
-func (gui *Gui) scrollLeft(view *gocui.View) {
-	newOriginX := utils.Max(view.OriginX()-view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR, 0)
-	_ = view.SetOriginX(newOriginX)
+func (gui *Gui) mainView() *gocui.View {
+	viewName := gui.getViewNameForWindow("main")
+	view, _ := gui.g.View(viewName)
+	return view
 }
 
-func (gui *Gui) scrollRight(view *gocui.View) {
-	_ = view.SetOriginX(view.OriginX() + view.InnerWidth()/HORIZONTAL_SCROLL_FACTOR)
+func (gui *Gui) secondaryView() *gocui.View {
+	viewName := gui.getViewNameForWindow("secondary")
+	view, _ := gui.g.View(viewName)
+	return view
 }
 
 func (gui *Gui) scrollUpSecondary() error {
-	return gui.scrollUpView(gui.Views.Secondary)
+	gui.scrollUpView(gui.secondaryView())
+
+	return nil
 }
 
 func (gui *Gui) scrollDownSecondary() error {
-	return gui.scrollDownView(gui.Views.Secondary)
+	secondaryView := gui.secondaryView()
+
+	gui.scrollDownView(secondaryView)
+
+	return nil
 }
 
 func (gui *Gui) scrollUpConfirmationPanel() error {
@@ -164,7 +143,9 @@ func (gui *Gui) scrollUpConfirmationPanel() error {
 		return nil
 	}
 
-	return gui.scrollUpView(gui.Views.Confirmation)
+	gui.scrollUpView(gui.Views.Confirmation)
+
+	return nil
 }
 
 func (gui *Gui) scrollDownConfirmationPanel() error {
@@ -172,67 +153,19 @@ func (gui *Gui) scrollDownConfirmationPanel() error {
 		return nil
 	}
 
-	return gui.scrollDownView(gui.Views.Confirmation)
+	gui.scrollDownView(gui.Views.Confirmation)
+
+	return nil
 }
 
 func (gui *Gui) handleRefresh() error {
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
-}
-
-func (gui *Gui) handleMouseDownMain() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	switch gui.currentSideContext() {
-	case gui.State.Contexts.Files:
-		// set filename, set primary/secondary selected, set line number, then switch context
-		// I'll need to know it was changed though.
-		// Could I pass something along to the context change?
-		return gui.enterFile(OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
-	case gui.State.Contexts.CommitFiles:
-		return gui.enterCommitFile(OnFocusOpts{ClickedViewName: "main", ClickedViewLineIdx: gui.Views.Main.SelectedLineIdx()})
-	}
-
-	return nil
-}
-
-func (gui *Gui) handleMouseDownSecondary() error {
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	switch gui.g.CurrentView() {
-	case gui.Views.Files:
-		return gui.enterFile(OnFocusOpts{ClickedViewName: "secondary", ClickedViewLineIdx: gui.Views.Secondary.SelectedLineIdx()})
-	}
-
-	return nil
-}
-
-func (gui *Gui) fetch() (err error) {
-	gui.Mutexes.FetchMutex.Lock()
-	defer gui.Mutexes.FetchMutex.Unlock()
-
-	gui.logAction("Fetch")
-	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{})
-
-	if err != nil && strings.Contains(err.Error(), "exit status 128") {
-		_ = gui.createErrorPanel(gui.Tr.PassUnameWrong)
-	}
-
-	_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
-
-	return err
+	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (gui *Gui) backgroundFetch() (err error) {
-	gui.Mutexes.FetchMutex.Lock()
-	defer gui.Mutexes.FetchMutex.Unlock()
+	err = gui.git.Sync.Fetch(git_commands.FetchOptions{Background: true})
 
-	err = gui.Git.Sync.Fetch(git_commands.FetchOptions{Background: true})
-
-	_ = gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{BRANCHES, COMMITS, REMOTES, TAGS}, mode: ASYNC})
+	_ = gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
 
 	return err
 }
@@ -245,14 +178,14 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 		return nil
 	}
 
-	gui.logAction(gui.Tr.Actions.CopyToClipboard)
-	if err := gui.OSCommand.CopyToClipboard(itemId); err != nil {
-		return gui.surfaceError(err)
+	gui.c.LogAction(gui.c.Tr.Actions.CopyToClipboard)
+	if err := gui.os.CopyToClipboard(itemId); err != nil {
+		return gui.c.Error(err)
 	}
 
 	truncatedItemId := utils.TruncateWithEllipsis(strings.Replace(itemId, "\n", " ", -1), 50)
 
-	gui.raiseToast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.Tr.LcCopiedToClipboard))
+	gui.c.Toast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.c.Tr.LcCopiedToClipboard))
 
 	return nil
 }

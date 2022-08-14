@@ -5,11 +5,12 @@ package models
 type Branch struct {
 	Name string
 	// the displayname is something like '(HEAD detached at 123asdf)', whereas in that case the name would be '123asdf'
-	DisplayName string
-	Recency     string
-	Pushables   string
-	Pullables   string
-	Head        bool
+	DisplayName  string
+	Recency      string
+	Pushables    string
+	Pullables    string
+	UpstreamGone bool
+	Head         bool
 	// if we have a named remote locally this will be the name of that remote e.g.
 	// 'origin' or 'tiwood'. If we don't have the remote locally it'll look like
 	// 'git@github.com:tiwood/lazygit.git'
@@ -17,8 +18,16 @@ type Branch struct {
 	UpstreamBranch string
 }
 
+func (b *Branch) FullRefName() string {
+	return "refs/heads/" + b.Name
+}
+
 func (b *Branch) RefName() string {
 	return b.Name
+}
+
+func (b *Branch) ParentRefName() string {
+	return b.RefName() + "^"
 }
 
 func (b *Branch) ID() string {
@@ -37,6 +46,10 @@ func (b *Branch) IsTrackingRemote() bool {
 // count being question marks.
 func (b *Branch) RemoteBranchStoredLocally() bool {
 	return b.IsTrackingRemote() && b.Pushables != "?" && b.Pullables != "?"
+}
+
+func (b *Branch) RemoteBranchNotStoredLocally() bool {
+	return b.IsTrackingRemote() && b.Pushables == "?" && b.Pullables == "?"
 }
 
 func (b *Branch) MatchesUpstream() bool {

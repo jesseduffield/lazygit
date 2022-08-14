@@ -1,76 +1,77 @@
 package gui
 
 import (
-	"strings"
+	"log"
 
-	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
-func (gui *Gui) getBindings(v *gocui.View) []*Binding {
-	var (
-		bindingsGlobal, bindingsPanel []*Binding
-	)
+func (gui *Gui) getBindings(context types.Context) []*types.Binding {
+	var bindingsGlobal, bindingsPanel, bindingsNavigation []*types.Binding
 
-	bindings := append(gui.GetCustomCommandKeybindings(), gui.GetInitialKeybindings()...)
+	bindings, _ := gui.GetInitialKeybindings()
+	customBindings, err := gui.CustomCommandsClient.GetCustomCommandKeybindings()
+	if err != nil {
+		log.Fatal(err)
+	}
+	bindings = append(customBindings, bindings...)
 
 	for _, binding := range bindings {
-		if GetKeyDisplay(binding.Key) != "" && binding.Description != "" {
-			switch binding.ViewName {
-			case "":
+		if keybindings.LabelFromKey(binding.Key) != "" && binding.Description != "" {
+			if binding.ViewName == "" {
 				bindingsGlobal = append(bindingsGlobal, binding)
-			case v.Name():
-				if len(binding.Contexts) == 0 || utils.IncludesString(binding.Contexts, v.Context) {
-					bindingsPanel = append(bindingsPanel, binding)
-				}
+			} else if binding.Tag == "navigation" {
+				bindingsNavigation = append(bindingsNavigation, binding)
+			} else if binding.ViewName == context.GetViewName() {
+				bindingsPanel = append(bindingsPanel, binding)
 			}
 		}
 	}
 
-	// append dummy element to have a separator between
-	// panel and global keybindings
-	bindingsPanel = append(bindingsPanel, &Binding{})
-	return append(bindingsPanel, bindingsGlobal...)
+	resultBindings := []*types.Binding{}
+	resultBindings = append(resultBindings, uniqueBindings(bindingsPanel)...)
+	// adding a separator between the panel-specific bindings and the other bindings
+	resultBindings = append(resultBindings, &types.Binding{})
+	resultBindings = append(resultBindings, uniqueBindings(bindingsGlobal)...)
+	resultBindings = append(resultBindings, uniqueBindings(bindingsNavigation)...)
+
+	return resultBindings
 }
 
-func (gui *Gui) displayDescription(binding *Binding) string {
-	if binding.OpensMenu {
-		return opensMenuStyle(binding.Description)
-	}
-
-	return style.FgCyan.Sprint(binding.Description)
-}
-
-func opensMenuStyle(str string) string {
-	return style.FgMagenta.Sprintf("%s...", str)
+// We shouldn't really need to do this. We should define alternative keys for the same
+// handler in the keybinding struct.
+func uniqueBindings(bindings []*types.Binding) []*types.Binding {
+	return lo.UniqBy(bindings, func(binding *types.Binding) string {
+		return binding.Description
+	})
 }
 
 func (gui *Gui) handleCreateOptionsMenu() error {
-	view := gui.g.CurrentView()
-	if view == nil {
-		return nil
-	}
+	context := gui.currentContext()
+	bindings := gui.getBindings(context)
 
-	bindings := gui.getBindings(view)
-
-	menuItems := make([]*menuItem, len(bindings))
-
-	for i, binding := range bindings {
-		binding := binding // note to self, never close over loop variables
-		menuItems[i] = &menuItem{
-			displayStrings: []string{GetKeyDisplay(binding.Key), gui.displayDescription(binding)},
-			onPress: func() error {
+	menuItems := slices.Map(bindings, func(binding *types.Binding) *types.MenuItem {
+		return &types.MenuItem{
+			OpensMenu: binding.OpensMenu,
+			Label:     binding.Description,
+			OnPress: func() error {
 				if binding.Key == nil {
 					return nil
 				}
-				if err := gui.handleMenuClose(); err != nil {
-					return err
-				}
+
 				return binding.Handler()
 			},
+			Key:     binding.Key,
+			Tooltip: binding.Tooltip,
 		}
-	}
+	})
 
-	return gui.createMenu(strings.Title(gui.Tr.LcMenu), menuItems, createMenuOptions{})
+	return gui.c.Menu(types.CreateMenuOptions{
+		Title:      gui.c.Tr.MenuTitle,
+		Items:      menuItems,
+		HideCancel: true,
+	})
 }

@@ -11,7 +11,7 @@ import (
 
 func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
 	cmdStr := strings.Join(cmd.Args, " ")
-	gui.Log.WithField(
+	gui.c.Log.WithField(
 		"command",
 		cmdStr,
 	).Debug("RunCommand")
@@ -24,19 +24,19 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 	start := func() (*exec.Cmd, io.Reader) {
 		r, err := cmd.StdoutPipe()
 		if err != nil {
-			gui.Log.Warn(err)
+			gui.c.Log.Error(err)
 		}
 		cmd.Stderr = cmd.Stdout
 
 		if err := cmd.Start(); err != nil {
-			gui.Log.Warn(err)
+			gui.c.Log.Error(err)
 		}
 
 		return cmd, r
 	}
 
 	if err := manager.NewTask(manager.NewCmdTask(start, prefix, height+oy+10, nil), cmdStr); err != nil {
-		gui.Log.Warn(err)
+		gui.c.Log.Error(err)
 	}
 
 	return nil
@@ -57,6 +57,22 @@ func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 
 	// Using empty key so that on subsequent calls we won't reset the view's origin.
 	// Note this means that we will be scrolling back to the top if we're switching from a different key
+	if err := manager.NewTask(f, ""); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX int, originY int) error {
+	manager := gui.getManager(view)
+
+	f := func(stop chan struct{}) error {
+		gui.setViewContent(view, str)
+		_ = view.SetOrigin(originX, originY)
+		return nil
+	}
+
 	if err := manager.NewTask(f, ""); err != nil {
 		return err
 	}
@@ -98,21 +114,15 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			},
 			func() {
 				// Need to check if the content of the view is well past the origin.
-				// It would be better to use .ViewLinesHeight here (given it considers
-				// wrapping) but when this function is called they haven't been written to yet.
-				linesHeight := view.LinesHeight()
-				_, height := view.Size()
+				linesHeight := view.ViewLinesHeight()
 				_, originY := view.Origin()
 				if linesHeight < originY {
-					newOriginY := linesHeight - height
-					if newOriginY < 0 {
-						newOriginY = 0
-					}
+					newOriginY := linesHeight
+
 					err := view.SetOrigin(0, newOriginY)
 					if err != nil {
 						panic(err)
 					}
-
 				}
 
 				view.FlushStaleCells()

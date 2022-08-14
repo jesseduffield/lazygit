@@ -10,8 +10,8 @@ import (
 func TestCompress(t *testing.T) {
 	scenarios := []struct {
 		name     string
-		root     *FileNode
-		expected *FileNode
+		root     *Node[models.File]
+		expected *Node[models.File]
 	}{
 		{
 			name:     "nil node",
@@ -20,27 +20,27 @@ func TestCompress(t *testing.T) {
 		},
 		{
 			name: "leaf node",
-			root: &FileNode{
+			root: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{File: &models.File{Name: "test", ShortStatus: " M", HasStagedChanges: true}, Path: "test"},
 				},
 			},
 		},
 		{
 			name: "big example",
-			root: &FileNode{
+			root: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{
 						Path: "dir1",
-						Children: []*FileNode{
+						Children: []*Node[models.File]{
 							{
 								File: &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir1/file2",
@@ -49,7 +49,7 @@ func TestCompress(t *testing.T) {
 					},
 					{
 						Path: "dir2",
-						Children: []*FileNode{
+						Children: []*Node[models.File]{
 							{
 								File: &models.File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
 								Path: "dir2/file3",
@@ -62,10 +62,10 @@ func TestCompress(t *testing.T) {
 					},
 					{
 						Path: "dir3",
-						Children: []*FileNode{
+						Children: []*Node[models.File]{
 							{
 								Path: "dir3/dir3-1",
-								Children: []*FileNode{
+								Children: []*Node[models.File]{
 									{
 										File: &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
 										Path: "dir3/dir3-1/file5",
@@ -80,12 +80,12 @@ func TestCompress(t *testing.T) {
 					},
 				},
 			},
-			expected: &FileNode{
+			expected: &Node[models.File]{
 				Path: "",
-				Children: []*FileNode{
+				Children: []*Node[models.File]{
 					{
 						Path: "dir1",
-						Children: []*FileNode{
+						Children: []*Node[models.File]{
 							{
 								File: &models.File{Name: "file2", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir1/file2",
@@ -94,7 +94,7 @@ func TestCompress(t *testing.T) {
 					},
 					{
 						Path: "dir2",
-						Children: []*FileNode{
+						Children: []*Node[models.File]{
 							{
 								File: &models.File{Name: "file3", ShortStatus: " M", HasStagedChanges: true},
 								Path: "dir2/file3",
@@ -108,7 +108,7 @@ func TestCompress(t *testing.T) {
 					{
 						Path:             "dir3/dir3-1",
 						CompressionLevel: 1,
-						Children: []*FileNode{
+						Children: []*Node[models.File]{
 							{
 								File: &models.File{Name: "file5", ShortStatus: "M ", HasUnstagedChanges: true},
 								Path: "dir3/dir3-1/file5",
@@ -136,19 +136,19 @@ func TestCompress(t *testing.T) {
 func TestGetFile(t *testing.T) {
 	scenarios := []struct {
 		name      string
-		viewModel *FileTreeViewModel
+		viewModel *FileTree
 		path      string
 		expected  *models.File
 	}{
 		{
 			name:      "valid case",
-			viewModel: NewFileTreeViewModel([]*models.File{{Name: "blah/one"}, {Name: "blah/two"}}, nil, false),
+			viewModel: NewFileTree(func() []*models.File { return []*models.File{{Name: "blah/one"}, {Name: "blah/two"}} }, nil, false),
 			path:      "blah/two",
 			expected:  &models.File{Name: "blah/two"},
 		},
 		{
 			name:      "not found",
-			viewModel: NewFileTreeViewModel([]*models.File{{Name: "blah/one"}, {Name: "blah/two"}}, nil, false),
+			viewModel: NewFileTree(func() []*models.File { return []*models.File{{Name: "blah/one"}, {Name: "blah/two"}} }, nil, false),
 			path:      "blah/three",
 			expected:  nil,
 		},

@@ -135,7 +135,7 @@ func TestMerge(t *testing.T) {
 			"\x1b[38;2;255;0;255;48;2;255;255;0;1;4mfoo\x1b[0m",
 		},
 		{
-			"mix color-16 with rgb colors",
+			"mix color-16 (background) with rgb (foreground)",
 			[]TextStyle{New().SetFg(rgbYellow), BgRed},
 			TextStyle{
 				fg: &rgbYellow,
@@ -146,6 +146,19 @@ func TestMerge(t *testing.T) {
 				).SetOpts(color.Opts{}),
 			},
 			"\x1b[38;2;255;255;0;48;2;197;30;20mfoo\x1b[0m",
+		},
+		{
+			"mix color-16 (foreground) with rgb (background)",
+			[]TextStyle{FgRed, New().SetBg(rgbYellow)},
+			TextStyle{
+				fg: &Color{basic: &fgRed},
+				bg: &rgbYellow,
+				Style: color.NewRGBStyle(
+					fgRed.RGB(),
+					rgbYellowLib,
+				).SetOpts(color.Opts{}),
+			},
+			"\x1b[38;2;197;30;20;48;2;255;255;0mfoo\x1b[0m",
 		},
 	}
 

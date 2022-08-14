@@ -4,24 +4,27 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 func (gui *Gui) exitDiffMode() error {
 	gui.State.Modes.Diffing = diffing.New()
-	return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (gui *Gui) renderDiff() error {
-	cmdObj := gui.OSCommand.Cmd.New(
+	cmdObj := gui.os.Cmd.New(
 		fmt.Sprintf("git diff --submodule --no-ext-diff --color %s", gui.diffStr()),
 	)
-	task := NewRunPtyTask(cmdObj.GetCmd())
+	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
-	return gui.refreshMainViews(refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "Diff",
-			task:  task,
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: "Diff",
+			Task:  task,
 		},
 	})
 }
@@ -31,17 +34,21 @@ func (gui *Gui) renderDiff() error {
 // which becomes an option when you bring up the diff menu, but when you're just
 // flicking through branches it will be using the local branch name.
 func (gui *Gui) currentDiffTerminals() []string {
-	switch gui.currentContext().GetKey() {
-	case "":
+	c := gui.currentSideContext()
+
+	if c.GetKey() == "" {
 		return nil
-	case FILES_CONTEXT_KEY, SUBMODULES_CONTEXT_KEY:
+	}
+
+	switch v := c.(type) {
+	case *context.WorkingTreeContext, *context.SubmodulesContext:
 		// TODO: should we just return nil here?
 		return []string{""}
-	case COMMIT_FILES_CONTEXT_KEY:
-		return []string{gui.State.Panels.CommitFiles.refName}
-	case LOCAL_BRANCHES_CONTEXT_KEY:
+	case *context.CommitFilesContext:
+		return []string{v.GetRef().RefName()}
+	case *context.BranchesContext:
 		// for our local branches we want to include both the branch and its upstream
-		branch := gui.getSelectedBranch()
+		branch := gui.State.Contexts.Branches.GetSelected()
 		if branch != nil {
 			names := []string{branch.ID()}
 			if branch.IsTrackingRemote() {
@@ -50,17 +57,13 @@ func (gui *Gui) currentDiffTerminals() []string {
 			return names
 		}
 		return nil
-	default:
-		context := gui.currentSideListContext()
-		if context == nil {
-			return nil
-		}
-		item, ok := context.GetSelectedItem()
-		if !ok {
-			return nil
-		}
-		return []string{item.ID()}
+	case types.IListContext:
+		itemId := v.GetSelectedItemId()
+
+		return []string{itemId}
 	}
+
+	return nil
 }
 
 func (gui *Gui) currentDiffTerminal() string {
@@ -73,7 +76,7 @@ func (gui *Gui) currentDiffTerminal() string {
 
 func (gui *Gui) currentlySelectedFilename() string {
 	switch gui.currentContext().GetKey() {
-	case FILES_CONTEXT_KEY, COMMIT_FILES_CONTEXT_KEY:
+	case context.FILES_CONTEXT_KEY, context.COMMIT_FILES_CONTEXT_KEY:
 		return gui.getSideContextSelectedItemId()
 	default:
 		return ""
@@ -105,31 +108,31 @@ func (gui *Gui) diffStr() string {
 func (gui *Gui) handleCreateDiffingMenuPanel() error {
 	names := gui.currentDiffTerminals()
 
-	menuItems := []*menuItem{}
+	menuItems := []*types.MenuItem{}
 	for _, name := range names {
 		name := name
-		menuItems = append(menuItems, []*menuItem{
+		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				displayString: fmt.Sprintf("%s %s", gui.Tr.LcDiff, name),
-				onPress: func() error {
+				Label: fmt.Sprintf("%s %s", gui.c.Tr.LcDiff, name),
+				OnPress: func() error {
 					gui.State.Modes.Diffing.Ref = name
 					// can scope this down based on current view but too lazy right now
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 				},
 			},
 		}...)
 	}
 
-	menuItems = append(menuItems, []*menuItem{
+	menuItems = append(menuItems, []*types.MenuItem{
 		{
-			displayString: gui.Tr.LcEnterRefToDiff,
-			onPress: func() error {
-				return gui.prompt(promptOpts{
-					title:               gui.Tr.LcEnteRefName,
-					findSuggestionsFunc: gui.getRefsSuggestionsFunc(),
-					handleConfirm: func(response string) error {
+			Label: gui.c.Tr.LcEnterRefToDiff,
+			OnPress: func() error {
+				return gui.c.Prompt(types.PromptOpts{
+					Title:               gui.c.Tr.LcEnteRefName,
+					FindSuggestionsFunc: gui.helpers.Suggestions.GetRefsSuggestionsFunc(),
+					HandleConfirm: func(response string) error {
 						gui.State.Modes.Diffing.Ref = strings.TrimSpace(response)
-						return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+						return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 					},
 				})
 			},
@@ -137,23 +140,23 @@ func (gui *Gui) handleCreateDiffingMenuPanel() error {
 	}...)
 
 	if gui.State.Modes.Diffing.Active() {
-		menuItems = append(menuItems, []*menuItem{
+		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				displayString: gui.Tr.LcSwapDiff,
-				onPress: func() error {
+				Label: gui.c.Tr.LcSwapDiff,
+				OnPress: func() error {
 					gui.State.Modes.Diffing.Reverse = !gui.State.Modes.Diffing.Reverse
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 				},
 			},
 			{
-				displayString: gui.Tr.LcExitDiffMode,
-				onPress: func() error {
+				Label: gui.c.Tr.LcExitDiffMode,
+				OnPress: func() error {
 					gui.State.Modes.Diffing = diffing.New()
-					return gui.refreshSidePanels(refreshOptions{mode: ASYNC})
+					return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 				},
 			},
 		}...)
 	}
 
-	return gui.createMenu(gui.Tr.DiffingMenuTitle, menuItems, createMenuOptions{showCancel: true})
+	return gui.c.Menu(types.CreateMenuOptions{Title: gui.c.Tr.DiffingMenuTitle, Items: menuItems})
 }

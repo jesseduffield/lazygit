@@ -1,29 +1,5 @@
 package utils
 
-// IncludesString if the list contains the string
-func IncludesString(list []string, a string) bool {
-	return IncludesStringFunc(list, func(b string) bool { return b == a })
-}
-
-func IncludesStringFunc(list []string, fn func(string) bool) bool {
-	for _, b := range list {
-		if fn(b) {
-			return true
-		}
-	}
-	return false
-}
-
-// IncludesInt if the list contains the Int
-func IncludesInt(list []int, a int) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
 // NextIndex returns the index of the element that comes after the given number
 func NextIndex(numbers []int, currentNumber int) int {
 	for index, number := range numbers {
@@ -43,44 +19,6 @@ func PrevIndex(numbers []int, currentNumber int) int {
 		}
 	}
 	return 0
-}
-
-// UnionInt returns the union of two int arrays
-func UnionInt(a, b []int) []int {
-	m := make(map[int]bool)
-
-	for _, item := range a {
-		m[item] = true
-	}
-
-	for _, item := range b {
-		if _, ok := m[item]; !ok {
-			// this does not mutate the original a slice
-			// though it does mutate the backing array I believe
-			// but that doesn't matter because if you later want to append to the
-			// original a it must see that the backing array has been changed
-			// and create a new one
-			a = append(a, item)
-		}
-	}
-	return a
-}
-
-// DifferenceInt returns the difference of two int arrays
-func DifferenceInt(a, b []int) []int {
-	result := []int{}
-	m := make(map[int]bool)
-
-	for _, item := range b {
-		m[item] = true
-	}
-
-	for _, item := range a {
-		if _, ok := m[item]; !ok {
-			result = append(result, item)
-		}
-	}
-	return result
 }
 
 // NextIntInCycle returns the next int in a slice, returning to the first index if we've reached the end
@@ -121,32 +59,11 @@ func StringArraysOverlap(strArrA []string, strArrB []string) bool {
 	return false
 }
 
-func Uniq(values []string) []string {
-	added := make(map[string]bool)
-	result := make([]string, 0, len(values))
-	for _, value := range values {
-		if added[value] {
-			continue
-		}
-		added[value] = true
-		result = append(result, value)
-	}
-	return result
-}
-
 func Limit(values []string, limit int) []string {
 	if len(values) > limit {
 		return values[:limit]
 	}
 	return values
-}
-
-func Reverse(values []string) []string {
-	result := make([]string, len(values))
-	for i, val := range values {
-		result[len(values)-i-1] = val
-	}
-	return result
 }
 
 func LimitStr(value string, limit int) string {
@@ -158,4 +75,20 @@ func LimitStr(value string, limit int) string {
 		n++
 	}
 	return value
+}
+
+// Similar to a regular GroupBy, except that each item can be grouped under multiple keys,
+// so the callback returns a slice of keys instead of just one key.
+func MuiltiGroupBy[T any, K comparable](slice []T, f func(T) []K) map[K][]T {
+	result := map[K][]T{}
+	for _, item := range slice {
+		for _, key := range f(item) {
+			if _, ok := result[key]; !ok {
+				result[key] = []T{item}
+			} else {
+				result[key] = append(result[key], item)
+			}
+		}
+	}
+	return result
 }

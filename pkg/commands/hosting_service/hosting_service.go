@@ -1,7 +1,6 @@
 package hosting_service
 
 import (
-	"fmt"
 	"net/url"
 	"regexp"
 	"strings"
@@ -10,6 +9,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
+
+	"github.com/jesseduffield/generics/slices"
 )
 
 // This package is for handling logic specific to a git hosting service like github, gitlab, bitbucket, etc.
@@ -66,13 +67,13 @@ func (self *HostingServiceMgr) getService() (*Service, error) {
 		return nil, err
 	}
 
-	root, err := serviceDomain.getRootFromRemoteURL(self.remoteURL)
+	repoURL, err := serviceDomain.serviceDefinition.getRepoURLFromRemoteURL(self.remoteURL, serviceDomain.webDomain)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Service{
-		root:              root,
+		repoURL:           repoURL,
 		ServiceDefinition: serviceDomain.serviceDefinition,
 	}, nil
 }
@@ -95,8 +96,7 @@ func (self *HostingServiceMgr) getCandidateServiceDomains() []ServiceDomain {
 		serviceDefinitionByProvider[serviceDefinition.provider] = serviceDefinition
 	}
 
-	var serviceDomains = make([]ServiceDomain, len(defaultServiceDomains))
-	copy(serviceDomains, defaultServiceDomains)
+	serviceDomains := slices.Clone(defaultServiceDomains)
 
 	if len(self.configServiceDomains) > 0 {
 		for gitDomain, typeAndDomain := range self.configServiceDomains {
@@ -111,10 +111,10 @@ func (self *HostingServiceMgr) getCandidateServiceDomains() []ServiceDomain {
 
 			serviceDefinition, ok := serviceDefinitionByProvider[provider]
 			if !ok {
-				providerNames := []string{}
-				for _, serviceDefinition := range serviceDefinitions {
-					providerNames = append(providerNames, serviceDefinition.provider)
-				}
+				providerNames := slices.Map(serviceDefinitions, func(serviceDefinition ServiceDefinition) string {
+					return serviceDefinition.provider
+				})
+
 				self.log.Errorf("Unknown git service type: '%s'. Expected one of %s", provider, strings.Join(providerNames, ", "))
 				continue
 			}
@@ -139,47 +139,32 @@ type ServiceDomain struct {
 	serviceDefinition ServiceDefinition
 }
 
-func (self ServiceDomain) getRootFromRemoteURL(repoURL string) (string, error) {
-	// we may want to make this more specific to the service in future e.g. if
-	// some new service comes along which has a different root url structure.
-	repoInfo, err := self.serviceDefinition.getRepoInfoFromURL(repoURL)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("https://%s/%s/%s", self.webDomain, repoInfo.Owner, repoInfo.Repository), nil
-}
-
-// RepoInformation holds some basic information about the repo
-type RepoInformation struct {
-	Owner      string
-	Repository string
-}
-
 type ServiceDefinition struct {
 	provider                        string
 	pullRequestURLIntoDefaultBranch string
 	pullRequestURLIntoTargetBranch  string
 	commitURL                       string
 	regexStrings                    []string
+
+	// can expect 'webdomain' to be passed in. Otherwise, you get to pick what we match in the regex
+	repoURLTemplate string
 }
 
-func (self ServiceDefinition) getRepoInfoFromURL(url string) (*RepoInformation, error) {
+func (self ServiceDefinition) getRepoURLFromRemoteURL(url string, webDomain string) (string, error) {
 	for _, regexStr := range self.regexStrings {
 		re := regexp.MustCompile(regexStr)
-		matches := utils.FindNamedMatches(re, url)
-		if matches != nil {
-			return &RepoInformation{
-				Owner:      matches["owner"],
-				Repository: matches["repo"],
-			}, nil
+		input := utils.FindNamedMatches(re, url)
+		if input != nil {
+			input["webDomain"] = webDomain
+			return utils.ResolvePlaceholderString(self.repoURLTemplate, input), nil
 		}
 	}
 
-	return nil, errors.New("Failed to parse repo information from url")
+	return "", errors.New("Failed to parse repo information from url")
 }
 
 type Service struct {
-	root string
+	repoURL string
 	ServiceDefinition
 }
 
@@ -196,5 +181,5 @@ func (self *Service) getCommitURL(commitSha string) string {
 }
 
 func (self *Service) resolveUrl(templateString string, args map[string]string) string {
-	return self.root + utils.ResolvePlaceholderString(templateString, args)
+	return self.repoURL + utils.ResolvePlaceholderString(templateString, args)
 }

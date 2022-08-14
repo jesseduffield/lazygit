@@ -19,11 +19,6 @@ type escapeInterpreter struct {
 	instruction            instruction
 }
 
-const (
-	NONE = 1 << iota
-	ERASE_IN_LINE
-)
-
 type (
 	escapeState int
 	fontEffect  int

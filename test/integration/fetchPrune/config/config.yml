@@ -1,0 +1,10 @@
+disableStartupPopups: true
+git:
+  autoFetch: false
+gui:
+  theme:
+    activeBorderColor:
+    - green
+    - bold
+    SelectedRangeBgcolor:
+    - reverse

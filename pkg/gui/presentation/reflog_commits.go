@@ -1,6 +1,8 @@
 package presentation
 
 import (
+	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -8,59 +10,68 @@ import (
 	"github.com/kyokomi/emoji/v2"
 )
 
-func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaMap map[string]bool, diffName string, parseEmoji bool) [][]string {
-	lines := make([][]string, len(commits))
-
-	var displayFunc func(*models.Commit, map[string]bool, bool, bool) []string
+func GetReflogCommitListDisplayStrings(commits []*models.Commit, fullDescription bool, cherryPickedCommitShaSet *set.Set[string], diffName string, timeFormat string, parseEmoji bool) [][]string {
+	var displayFunc func(*models.Commit, reflogCommitDisplayAttributes) []string
 	if fullDescription {
 		displayFunc = getFullDescriptionDisplayStringsForReflogCommit
 	} else {
 		displayFunc = getDisplayStringsForReflogCommit
 	}
 
-	for i := range commits {
-		diffed := commits[i].Sha == diffName
-		lines[i] = displayFunc(commits[i], cherryPickedCommitShaMap, diffed, parseEmoji)
-	}
-
-	return lines
+	return slices.Map(commits, func(commit *models.Commit) []string {
+		diffed := commit.Sha == diffName
+		cherryPicked := cherryPickedCommitShaSet.Includes(commit.Sha)
+		return displayFunc(commit,
+			reflogCommitDisplayAttributes{
+				cherryPicked: cherryPicked,
+				diffed:       diffed,
+				parseEmoji:   parseEmoji,
+				timeFormat:   timeFormat,
+			})
+	})
 }
 
-func coloredReflogSha(c *models.Commit, cherryPickedCommitShaMap map[string]bool) string {
+func reflogShaColor(cherryPicked, diffed bool) style.TextStyle {
+	if diffed {
+		return theme.DiffTerminalColor
+	}
+
 	shaColor := style.FgBlue
-	if cherryPickedCommitShaMap[c.Sha] {
+	if cherryPicked {
 		shaColor = theme.CherryPickedCommitTextStyle
 	}
 
-	return shaColor.Sprint(c.ShortSha())
+	return shaColor
 }
 
-func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed, parseEmoji bool) []string {
-	colorAttr := theme.DefaultTextColor
-	if diffed {
-		colorAttr = theme.DiffTerminalColor
-	}
+type reflogCommitDisplayAttributes struct {
+	cherryPicked bool
+	diffed       bool
+	parseEmoji   bool
+	timeFormat   string
+}
 
+func getFullDescriptionDisplayStringsForReflogCommit(c *models.Commit, attrs reflogCommitDisplayAttributes) []string {
 	name := c.Name
-	if parseEmoji {
+	if attrs.parseEmoji {
 		name = emoji.Sprint(name)
 	}
 
 	return []string{
-		coloredReflogSha(c, cherryPickedCommitShaMap),
-		style.FgMagenta.Sprint(utils.UnixToDate(c.UnixTimestamp)),
-		colorAttr.Sprint(name),
+		reflogShaColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortSha()),
+		style.FgMagenta.Sprint(utils.UnixToDate(c.UnixTimestamp, attrs.timeFormat)),
+		theme.DefaultTextColor.Sprint(name),
 	}
 }
 
-func getDisplayStringsForReflogCommit(c *models.Commit, cherryPickedCommitShaMap map[string]bool, diffed, parseEmoji bool) []string {
+func getDisplayStringsForReflogCommit(c *models.Commit, attrs reflogCommitDisplayAttributes) []string {
 	name := c.Name
-	if parseEmoji {
+	if attrs.parseEmoji {
 		name = emoji.Sprint(name)
 	}
 
 	return []string{
-		coloredReflogSha(c, cherryPickedCommitShaMap),
+		reflogShaColor(attrs.cherryPicked, attrs.diffed).Sprint(c.ShortSha()),
 		theme.DefaultTextColor.Sprint(name),
 	}
 }

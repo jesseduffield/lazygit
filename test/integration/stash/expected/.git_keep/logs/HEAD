@@ -1,6 +1,0 @@
-0000000000000000000000000000000000000000 a7dde526f2e93ffa08897fbfca2c98ce40a8fa5b CI <CI@example.com> 1643011553 +1100	commit (initial): file0
-a7dde526f2e93ffa08897fbfca2c98ce40a8fa5b 4cc838ea1466afc5be1d3bc3e7a937641ec84d7d CI <CI@example.com> 1643011553 +1100	commit: file1
-4cc838ea1466afc5be1d3bc3e7a937641ec84d7d f348ff60bdbb3695f2f519db6bc115b1b8d50886 CI <CI@example.com> 1643011553 +1100	commit: file2
-f348ff60bdbb3695f2f519db6bc115b1b8d50886 f348ff60bdbb3695f2f519db6bc115b1b8d50886 CI <CI@example.com> 1643011556 +1100	reset: moving to HEAD
-f348ff60bdbb3695f2f519db6bc115b1b8d50886 f348ff60bdbb3695f2f519db6bc115b1b8d50886 CI <CI@example.com> 1643011556 +1100	reset: moving to HEAD
-f348ff60bdbb3695f2f519db6bc115b1b8d50886 f348ff60bdbb3695f2f519db6bc115b1b8d50886 CI <CI@example.com> 1643011558 +1100	reset: moving to HEAD

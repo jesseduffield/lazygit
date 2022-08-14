@@ -49,6 +49,13 @@ customCommands:
         filter: '.*{{index .PromptResponses 0}}/(?P<branch>.*)'
         valueFormat: '{{ .branch }}'
         labelFormat: '{{ .branch | green }}'
+  - key: '<f1>'
+    command: 'git reset --soft {{.CheckedOutBranch.UpstreamRemote}}'
+    context: 'files'
+    prompts:
+      - type: 'confirm'
+        title: "Confirm:"
+        body: "Are you sure you want to reset HEAD to {{.CheckedOutBranch.UpstreamRemote}}?"
 ```
 
 Looking at the command assigned to the 'n' key, here's what the result looks like:
@@ -70,6 +77,7 @@ For a given custom command, here are the allowed fields:
 | loadingText | text to display while waiting for command to finish | no |
 | description | text to display in the keybindings menu that appears when you press 'x' | no |
 | stream | whether you want to stream the command's output to the Command Log panel | no |
+| showOutput | whether you want to show the command's output in a gui prompt | no |
 
 ### Contexts
 
@@ -94,28 +102,18 @@ The permitted contexts are:
 
 The permitted prompt fields are:
 
-| _field_           | _description_                                                                    | _required_ |
-| ------------      | -------------------------------------------------------------------------------- | ---------- |
-| type              | one of 'input' or 'menu'                                                         | yes        |
-| title             | the title to display in the popup panel                                          | no         |
-| initialValue      | (only applicable to 'input' prompts) the initial value to appear in the text box | no         |
-| options           | (only applicable to 'menu' prompts) the options to display in the menu           | no         |
-| command           | (only applicable to 'menuFromCommand' prompts) the command to run to generate    | yes        |
-|                   | menu options                                                                     |            |
-| filter            | (only applicable to 'menuFromCommand' prompts) the regexp to run specifying      | yes        |
-|                   | groups which are going to be kept from the command's output                      |            |
-| valueFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | yes        |
-|                   | the filter to construct a menu item's value (What gets appended to prompt        |            |
-|                   | responses when the item is selected). You can use named groups,                  |            |
-|                   | or `{{ .group_GROUPID }}`.                                                       |            |
-|                   | PS: named groups keep first match only                                           |            |
-| labelFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from | no         |
-|                   | the filter to construct the item's label (What's shown on screen). You can use   |            |
-|                   | named groups, or `{{ .group_GROUPID }}`. You can also color each match with      |            |
-|                   | `{{ .group_GROUPID | colorname }}` (Color names from                             |            |
-|                   | [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md))     |            |
-|                   | If `labelFormat` is not specified, `valueFormat` is shown instead.               |            |
-|                   | PS: named groups keep first match only                                           |            |
+| _field_           | _description_                                                                                  | _required_ |
+| ------------      | -----------------------------------------------------------------------------------------------| ---------- |
+| type              | one of 'input', 'menu', or 'confirm'                                                           | yes        |
+| title             | the title to display in the popup panel                                                        | no         |
+| initialValue      | (only applicable to 'input' prompts) the initial value to appear in the text box               | no         |
+| body              | (only applicable to 'confirm' prompts) the immutable body text to appear in the text box       | no         |
+| options           | (only applicable to 'menu' prompts) the options to display in the menu                         | no         |
+| command           | (only applicable to 'menuFromCommand' prompts) the command to run to generate                  | yes        |
+|                   | menu options                                                                                   |            |
+| filter            | (only applicable to 'menuFromCommand' prompts) the regexp to run specifying groups which are going to be kept from the command's output      | yes        |
+| valueFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from the filter to construct a menu item's value (What gets appended to prompt responses when the item is selected). You can use named groups, or `{{ .group_GROUPID }}`. PS: named groups keep first match only | yes        |
+| labelFormat       | (only applicable to 'menuFromCommand' prompts) how to format matched groups from the filter to construct the item's label (What's shown on screen). You can use named groups, or `{{ .group_GROUPID }}`. You can also color each match with `{{ .group_GROUPID \| colorname }}` (Color names from [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md)). If `labelFormat` is not specified, `valueFormat` is shown instead. PS: named groups keep first match only | no         |
 
 The permitted option fields are:
 | _field_ | _description_ | _required_ |
@@ -138,13 +136,14 @@ If an option has no name the value will be displayed to the user in place of the
 
 ### Placeholder values
 
-Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/go/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:
+Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/golang/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:
 
 ```
 SelectedLocalCommit
 SelectedReflogCommit
 SelectedSubCommit
 SelectedFile
+SelectedPath
 SelectedLocalBranch
 SelectedRemoteBranch
 SelectedRemote
@@ -154,7 +153,7 @@ SelectedCommitFile
 CheckedOutBranch
 ```
 
-To see what fields are available on e.g. the `SelectedFile`, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/commands/models/file.go) (all the modelling lives in the same directory). Note that the custom commands feature does not guarantee backwards compatibility (until we hit lazygit version 1.0 of course) which means a field you're accessing on an object may no longer be available from one release to the next. Typically however, all you'll need is `{{.SelectedFile.Name}}`, `{{.SelectedLocalCommit.Sha}}` and `{{.SelectedBranch.Name}}`. In the future we will likely introduce a tighter interface that exposes a limited set of fields for each model.
+To see what fields are available on e.g. the `SelectedFile`, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/commands/models/file.go) (all the modelling lives in the same directory). Note that the custom commands feature does not guarantee backwards compatibility (until we hit lazygit version 1.0 of course) which means a field you're accessing on an object may no longer be available from one release to the next. Typically however, all you'll need is `{{.SelectedFile.Name}}`, `{{.SelectedLocalCommit.Sha}}` and `{{.SelectedLocalBranch.Name}}`. In the future we will likely introduce a tighter interface that exposes a limited set of fields for each model.
 
 ### Keybinding collisions
 
@@ -162,7 +161,7 @@ If your custom keybinding collides with an inbuilt keybinding that is defined fo
 
 ### Debugging
 
-If you want to verify that your command actually does what you expect, you can wrap it in an 'echo' call and set `subprocess: true` so that it doesn't actually execute the command but you can see how the placeholders were resolved. Alternatively you can run lazygit in debug mode with `lazygit --debug` and in another terminal window run `lazygit --logs` to see which commands are actually run
+If you want to verify that your command actually does what you expect, you can wrap it in an 'echo' call and set `showOutput: true` so that it doesn't actually execute the command but you can see how the placeholders were resolved. Alternatively you can run lazygit in debug mode with `lazygit --debug` and in another terminal window run `lazygit --logs` to see which commands are actually run
 
 ### More Examples
 

@@ -14,6 +14,8 @@ echo -n "Username for 'github': "
 read username
 
 echo -n "Password for 'github': "
+# this will print the password to the log view but real git won't do that.
+# We could use read -s but that's not POSIX compliant.
 read password
 
 if [ "$username" = "username" -a "$password" = "password" ]; then

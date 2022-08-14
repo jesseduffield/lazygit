@@ -12,7 +12,10 @@ import (
 	"github.com/go-errors/errors"
 
 	"github.com/atotto/clipboard"
+	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/kill"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -26,6 +29,8 @@ type OSCommand struct {
 	removeFileFn func(string) error
 
 	Cmd *CmdObjBuilder
+
+	tempDir string
 }
 
 // Platform stores the os state
@@ -38,13 +43,14 @@ type Platform struct {
 }
 
 // NewOSCommand os command runner
-func NewOSCommand(common *common.Common, platform *Platform, guiIO *guiIO) *OSCommand {
+func NewOSCommand(common *common.Common, config config.AppConfigurer, platform *Platform, guiIO *guiIO) *OSCommand {
 	c := &OSCommand{
 		Common:       common,
 		Platform:     platform,
 		getenvFn:     os.Getenv,
 		removeFileFn: os.RemoveAll,
 		guiIO:        guiIO,
+		tempDir:      config.GetTempDir(),
 	}
 
 	runner := &cmdObjRunner{log: common.Log, guiIO: guiIO}
@@ -72,9 +78,14 @@ func FileType(path string) string {
 }
 
 func (c *OSCommand) OpenFile(filename string) error {
+	return c.OpenFileAtLine(filename, 1)
+}
+
+func (c *OSCommand) OpenFileAtLine(filename string, lineNumber int) error {
 	commandTemplate := c.UserConfig.OS.OpenCommand
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
+		"line":     fmt.Sprintf("%d", lineNumber),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
 	return c.Cmd.NewShell(command).Run()
@@ -98,38 +109,38 @@ func (c *OSCommand) Quote(message string) string {
 // AppendLineToFile adds a new line in file
 func (c *OSCommand) AppendLineToFile(filename, line string) error {
 	c.LogCommand(fmt.Sprintf("Appending '%s' to file '%s'", line, filename), false)
-	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0o600)
 	if err != nil {
 		return utils.WrapError(err)
 	}
 	defer f.Close()
 
-	_, err = f.WriteString("\n" + line)
+	info, err := os.Stat(filename)
+	if err != nil {
+		return utils.WrapError(err)
+	}
+
+	if info.Size() > 0 {
+		// read last char
+		buf := make([]byte, 1)
+		if _, err := f.ReadAt(buf, info.Size()-1); err != nil {
+			return utils.WrapError(err)
+		}
+
+		// if the last byte of the file is not a newline, add it
+		if []byte("\n")[0] != buf[0] {
+			_, err = f.WriteString("\n")
+		}
+	}
+
+	if err == nil {
+		_, err = f.WriteString(line + "\n")
+	}
+
 	if err != nil {
 		return utils.WrapError(err)
 	}
 	return nil
-}
-
-// CreateTempFile writes a string to a new temp file and returns the file's name
-func (c *OSCommand) CreateTempFile(filename, content string) (string, error) {
-	tmpfile, err := ioutil.TempFile("", filename)
-	if err != nil {
-		c.Log.Error(err)
-		return "", utils.WrapError(err)
-	}
-	c.LogCommand(fmt.Sprintf("Creating temp file '%s'", tmpfile.Name()), false)
-
-	if _, err := tmpfile.WriteString(content); err != nil {
-		c.Log.Error(err)
-		return "", utils.WrapError(err)
-	}
-	if err := tmpfile.Close(); err != nil {
-		c.Log.Error(err)
-		return "", utils.WrapError(err)
-	}
-
-	return tmpfile.Name(), nil
 }
 
 // CreateFileWithContent creates a file with the given content
@@ -140,7 +151,7 @@ func (c *OSCommand) CreateFileWithContent(path string, content string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := ioutil.WriteFile(path, []byte(content), 0o644); err != nil {
 		c.Log.Error(err)
 		return utils.WrapError(err)
 	}
@@ -168,15 +179,11 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
 func (c *OSCommand) PipeCommands(commandStrings ...string) error {
-	cmds := make([]*exec.Cmd, len(commandStrings))
-	logCmdStr := ""
-	for i, str := range commandStrings {
-		if i > 0 {
-			logCmdStr += " | "
-		}
-		logCmdStr += str
-		cmds[i] = c.Cmd.New(str).GetCmd()
-	}
+	cmds := slices.Map(commandStrings, func(cmdString string) *exec.Cmd {
+		return c.Cmd.New(cmdString).GetCmd()
+	})
+
+	logCmdStr := strings.Join(commandStrings, " | ")
 	c.LogCommand(logCmdStr, true)
 
 	for i := 0; i < len(cmds)-1; i++ {
@@ -230,12 +237,14 @@ func (c *OSCommand) PipeCommands(commandStrings ...string) error {
 	return nil
 }
 
+// Kill kills a process. If the process has Setpgid == true, then we have anticipated that it might spawn its own child processes, so we've given it a process group ID (PGID) equal to its process id (PID) and given its child processes will inherit the PGID, we can kill that group, rather than killing the process itself.
 func Kill(cmd *exec.Cmd) error {
-	if cmd.Process == nil {
-		// somebody got to it before we were able to, poor bastard
-		return nil
-	}
-	return cmd.Process.Kill()
+	return kill.Kill(cmd)
+}
+
+// PrepareForChildren sets Setpgid to true on the cmd, so that when we run it as a subprocess, we can kill its group rather than the process itself. This is because some commands, like `docker-compose logs` spawn multiple children processes, and killing the parent process isn't sufficient for killing those child processes. We set the group id here, and then in subprocess.go we check if the group id is set and if so, we kill the whole group rather than just the one process.
+func PrepareForChildren(cmd *exec.Cmd) {
+	kill.PrepareForChildren(cmd)
 }
 
 func (c *OSCommand) CopyToClipboard(str string) error {
@@ -255,8 +264,8 @@ func (c *OSCommand) Getenv(key string) string {
 	return c.getenvFn(key)
 }
 
-func GetTempDir() string {
-	return filepath.Join(os.TempDir(), "lazygit")
+func (c *OSCommand) GetTempDir() string {
+	return c.tempDir
 }
 
 // GetLazygitPath returns the path of the currently executed file

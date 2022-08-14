@@ -1,0 +1,13 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+[user]
+	email = CI@example.com
+	name = CI
+[submodule "other_repo"]
+	url = /Users/jesseduffieldduffield/go/src/github.com/jesseduffield/lazygit/test/integration/submoduleEnter/actual/other_repo
+	active = true

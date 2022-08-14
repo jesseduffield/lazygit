@@ -1,6 +1,7 @@
 package loaders
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -21,8 +24,6 @@ import (
 // unpushed/pushed/merged into the base branch or not, or if they're yet to
 // be processed as part of a rebase (these won't appear in git log but we
 // grab them from the rebase-related files in the .git directory to show them
-
-const SEPARATION_CHAR = "|"
 
 // CommitLoader returns a list of Commit objects for the current repo
 type CommitLoader struct {
@@ -90,14 +91,12 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	}
 
 	err = self.getLogCmd(opts).RunAndProcessLines(func(line string) (bool, error) {
-		if canExtractCommit(line) {
-			commit := self.extractCommitFromLine(line)
-			if commit.Sha == firstPushedCommit {
-				passedFirstPushedCommit = true
-			}
-			commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
-			commits = append(commits, commit)
+		commit := self.extractCommitFromLine(line)
+		if commit.Sha == firstPushedCommit {
+			passedFirstPushedCommit = true
 		}
+		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
+		commits = append(commits, commit)
 		return false, nil
 	})
 	if err != nil {
@@ -158,15 +157,16 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
 func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
-	split := strings.Split(line, SEPARATION_CHAR)
+	split := strings.SplitN(line, "\x00", 7)
 
 	sha := split[0]
 	unixTimestamp := split[1]
-	author := split[2]
-	extraInfo := strings.TrimSpace(split[3])
-	parentHashes := split[4]
+	authorName := split[2]
+	authorEmail := split[3]
+	extraInfo := strings.TrimSpace(split[4])
+	parentHashes := split[5]
+	message := split[6]
 
-	message := strings.Join(split[5:], SEPARATION_CHAR)
 	tags := []string{}
 
 	if extraInfo != "" {
@@ -179,14 +179,20 @@ func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
 
 	unitTimestampInt, _ := strconv.Atoi(unixTimestamp)
 
+	parents := []string{}
+	if len(parentHashes) > 0 {
+		parents = strings.Split(parentHashes, " ")
+	}
+
 	return &models.Commit{
 		Sha:           sha,
 		Name:          message,
 		Tags:          tags,
 		ExtraInfo:     extraInfo,
 		UnixTimestamp: int64(unitTimestampInt),
-		Author:        author,
-		Parents:       strings.Split(parentHashes, " "),
+		AuthorName:    authorName,
+		AuthorEmail:   authorEmail,
+		Parents:       parents,
 	}
 }
 
@@ -200,16 +206,15 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 		return nil, nil
 	}
 
-	commitShas := make([]string, len(commits))
-	for i, commit := range commits {
-		commitShas[i] = commit.Sha
-	}
+	commitShas := slices.Map(commits, func(commit *models.Commit) string {
+		return commit.Sha
+	})
 
 	// note that we're not filtering these as we do non-rebasing commits just because
 	// I suspect that will cause some damage
 	cmdObj := self.cmd.New(
 		fmt.Sprintf(
-			"git show %s --no-patch --oneline %s --abbrev=%d",
+			"git -c log.showSignature=false show %s --no-patch --oneline %s --abbrev=%d",
 			strings.Join(commitShas, " "),
 			prettyFormat,
 			20,
@@ -219,14 +224,12 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	hydratedCommits := make([]*models.Commit, 0, len(commits))
 	i := 0
 	err = cmdObj.RunAndProcessLines(func(line string) (bool, error) {
-		if canExtractCommit(line) {
-			commit := self.extractCommitFromLine(line)
-			matchingCommit := commits[i]
-			commit.Action = matchingCommit.Action
-			commit.Status = matchingCommit.Status
-			hydratedCommits = append(hydratedCommits, commit)
-			i++
-		}
+		commit := self.extractCommitFromLine(line)
+		matchingCommit := commits[i]
+		commit.Action = matchingCommit.Action
+		commit.Status = matchingCommit.Status
+		hydratedCommits = append(hydratedCommits, commit)
+		i++
 		return false, nil
 	})
 	if err != nil {
@@ -306,21 +309,24 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 	}
 
 	commits := []*models.Commit{}
-	lines := strings.Split(string(bytesContent), "\n")
-	for _, line := range lines {
-		if line == "" || line == "noop" {
-			return commits, nil
-		}
-		if strings.HasPrefix(line, "#") {
+
+	todos, err := todo.Parse(bytes.NewBuffer(bytesContent))
+	if err != nil {
+		self.Log.Error(fmt.Sprintf("error occurred while parsing git-rebase-todo file: %s", err.Error()))
+		return nil, nil
+	}
+
+	for _, t := range todos {
+		if t.Commit == "" {
+			// Command does not have a commit associated, skip
 			continue
 		}
-		splitLine := strings.Split(line, " ")
-		commits = append([]*models.Commit{{
-			Sha:    splitLine[1],
-			Name:   strings.Join(splitLine[2:], " "),
+		commits = slices.Prepend(commits, &models.Commit{
+			Sha:    t.Commit,
+			Name:   t.Msg,
 			Status: "rebasing",
-			Action: splitLine[0],
-		}}, commits...)
+			Action: t.Command.String(),
+		})
 	}
 
 	return commits, nil
@@ -429,27 +435,26 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 	return self.cmd.New(
 		fmt.Sprintf(
-			"git log %s %s %s --oneline %s%s --abbrev=%d%s",
+			"git -c log.showSignature=false log %s %s %s --oneline %s%s --abbrev=%d%s",
 			self.cmd.Quote(opts.RefName),
 			orderFlag,
 			allFlag,
 			prettyFormat,
 			limitFlag,
-			20,
+			40,
 			filterFlag,
 		),
 	).DontLog()
 }
 
 var prettyFormat = fmt.Sprintf(
-	"--pretty=format:\"%%H%s%%at%s%%aN%s%%d%s%%p%s%%s\"",
-	SEPARATION_CHAR,
-	SEPARATION_CHAR,
-	SEPARATION_CHAR,
-	SEPARATION_CHAR,
-	SEPARATION_CHAR,
+	"--pretty=format:\"%%H%s%%at%s%%aN%s%%ae%s%%d%s%%p%s%%s\"",
+	NULL_CODE,
+	NULL_CODE,
+	NULL_CODE,
+	NULL_CODE,
+	NULL_CODE,
+	NULL_CODE,
 )
 
-func canExtractCommit(line string) bool {
-	return line != "" && strings.Split(line, " ")[0] != "gpg:"
-}
+const NULL_CODE = "%x00"

@@ -5,40 +5,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
-
-// never call this on its own, it should only be called from within refreshCommits()
-func (gui *Gui) refreshStatus() {
-	gui.Mutexes.RefreshingStatusMutex.Lock()
-	defer gui.Mutexes.RefreshingStatusMutex.Unlock()
-
-	currentBranch := gui.currentBranch()
-	if currentBranch == nil {
-		// need to wait for branches to refresh
-		return
-	}
-	status := ""
-
-	if currentBranch.IsRealBranch() {
-		status += presentation.ColoredBranchStatus(currentBranch) + " "
-	}
-
-	workingTreeState := gui.Git.Status.WorkingTreeState()
-	if workingTreeState != enums.REBASE_MODE_NONE {
-		status += style.FgYellow.Sprintf("(%s) ", formatWorkingTreeState(workingTreeState))
-	}
-
-	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
-	repoName := utils.GetCurrentRepoName()
-	status += fmt.Sprintf("%s → %s ", repoName, name)
-
-	gui.setViewContent(gui.Views.Status, status)
-}
 
 func runeCount(str string) int {
 	return len([]rune(str))
@@ -49,35 +23,33 @@ func cursorInSubstring(cx int, prefix string, substring string) bool {
 }
 
 func (gui *Gui) handleCheckForUpdate() error {
-	gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
-	return gui.createLoaderPanel(gui.Tr.CheckingForUpdates)
+	return gui.c.WithWaitingStatus(gui.c.Tr.CheckingForUpdates, func() error {
+		gui.Updater.CheckForNewUpdate(gui.onUserUpdateCheckFinish, true)
+		return nil
+	})
 }
 
 func (gui *Gui) handleStatusClick() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
-	currentBranch := gui.currentBranch()
+	currentBranch := gui.helpers.Refs.GetCheckedOutRef()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
 		return nil
 	}
 
-	if err := gui.pushContext(gui.State.Contexts.Status); err != nil {
+	if err := gui.c.PushContext(gui.State.Contexts.Status); err != nil {
 		return err
 	}
 
 	cx, _ := gui.Views.Status.Cursor()
-	upstreamStatus := presentation.BranchStatus(currentBranch)
+	upstreamStatus := presentation.BranchStatus(currentBranch, gui.Tr)
 	repoName := utils.GetCurrentRepoName()
-	workingTreeState := gui.Git.Status.WorkingTreeState()
+	workingTreeState := gui.git.Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", formatWorkingTreeState(workingTreeState))
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
-			return gui.handleCreateRebaseOptionsMenu()
+			return gui.helpers.MergeAndRebase.CreateRebaseOptionsMenu()
 		}
 		if cursorInSubstring(cx, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
 			return gui.handleCreateRecentReposMenu()
@@ -103,11 +75,6 @@ func formatWorkingTreeState(rebaseMode enums.RebaseMode) string {
 }
 
 func (gui *Gui) statusRenderToMain() error {
-	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
-	if gui.popupPanelFocused() {
-		return nil
-	}
-
 	dashboardString := strings.Join(
 		[]string{
 			lazygitTitle(),
@@ -120,10 +87,11 @@ func (gui *Gui) statusRenderToMain() error {
 			style.FgMagenta.Sprintf("Become a sponsor: %s", constants.Links.Donate), // caffeine ain't free
 		}, "\n\n")
 
-	return gui.refreshMainViews(refreshMainOpts{
-		main: &viewUpdateOpts{
-			title: "",
-			task:  NewRenderStringTask(dashboardString),
+	return gui.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: gui.c.MainViewPairs().Normal,
+		Main: &types.ViewUpdateOpts{
+			Title: gui.c.Tr.StatusTitle,
+			Task:  types.NewRenderStringTask(dashboardString),
 		},
 	})
 }
@@ -132,30 +100,32 @@ func (gui *Gui) askForConfigFile(action func(file string) error) error {
 	confPaths := gui.Config.GetUserConfigPaths()
 	switch len(confPaths) {
 	case 0:
-		return errors.New(gui.Tr.NoConfigFileFoundErr)
+		return errors.New(gui.c.Tr.NoConfigFileFoundErr)
 	case 1:
 		return action(confPaths[0])
 	default:
-		menuItems := make([]*menuItem, len(confPaths))
-		for i, file := range confPaths {
-			i := i
-			menuItems[i] = &menuItem{
-				displayString: file,
-				onPress: func() error {
-					return action(confPaths[i])
+		menuItems := slices.Map(confPaths, func(path string) *types.MenuItem {
+			return &types.MenuItem{
+				Label: path,
+				OnPress: func() error {
+					return action(path)
 				},
 			}
-		}
-		return gui.createMenu(gui.Tr.SelectConfigFile, menuItems, createMenuOptions{})
+		})
+
+		return gui.c.Menu(types.CreateMenuOptions{
+			Title: gui.c.Tr.SelectConfigFile,
+			Items: menuItems,
+		})
 	}
 }
 
 func (gui *Gui) handleOpenConfig() error {
-	return gui.askForConfigFile(gui.openFile)
+	return gui.askForConfigFile(gui.helpers.Files.OpenFile)
 }
 
 func (gui *Gui) handleEditConfig() error {
-	return gui.askForConfigFile(gui.editFile)
+	return gui.askForConfigFile(gui.helpers.Files.EditFile)
 }
 
 func lazygitTitle() string {

@@ -4,7 +4,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/generics/maps"
+	"github.com/jesseduffield/generics/slices"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,8 +28,10 @@ type fileInfo struct {
 	diff                string
 }
 
-type applyPatchFunc func(patch string, flags ...string) error
-type loadFileDiffFunc func(from string, to string, reverse bool, filename string, plain bool) (string, error)
+type (
+	applyPatchFunc   func(patch string, flags ...string) error
+	loadFileDiffFunc func(from string, to string, reverse bool, filename string, plain bool) (string, error)
+)
 
 // PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
 type PatchManager struct {
@@ -70,8 +74,9 @@ func (p *PatchManager) Start(from, to string, reverse bool, canRebase bool) {
 func (p *PatchManager) addFileWhole(info *fileInfo) {
 	info.mode = WHOLE
 	lineCount := len(strings.Split(info.diff, "\n"))
-	info.includedLineIndices = make([]int, lineCount)
 	// add every line index
+	// TODO: add tests and then use lo.Range to simplify
+	info.includedLineIndices = make([]int, lineCount)
 	for i := 0; i < lineCount; i++ {
 		info.includedLineIndices[i] = i
 	}
@@ -138,7 +143,7 @@ func (p *PatchManager) AddFileLineRange(filename string, firstLineIdx, lastLineI
 		return err
 	}
 	info.mode = PART
-	info.includedLineIndices = utils.UnionInt(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
+	info.includedLineIndices = lo.Union(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
 
 	return nil
 }
@@ -149,7 +154,7 @@ func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLi
 		return err
 	}
 	info.mode = PART
-	info.includedLineIndices = utils.DifferenceInt(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
+	info.includedLineIndices, _ = lo.Difference(info.includedLineIndices, getIndicesForRange(firstLineIdx, lastLineIdx))
 	if len(info.includedLineIndices) == 0 {
 		p.removeFile(info)
 	}
@@ -185,26 +190,20 @@ func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse b
 	parser := NewPatchParser(p.Log, patch)
 
 	// not passing included lines because we don't want to see them in the secondary panel
-	return parser.Render(-1, -1, nil)
+	return parser.Render(false, -1, -1, nil)
 }
 
 func (p *PatchManager) renderEachFilePatch(plain bool) []string {
 	// sort files by name then iterate through and render each patch
-	filenames := make([]string, len(p.fileInfoMap))
-	index := 0
-	for filename := range p.fileInfoMap {
-		filenames[index] = filename
-		index++
-	}
+	filenames := maps.Keys(p.fileInfoMap)
 
 	sort.Strings(filenames)
-	output := []string{}
-	for _, filename := range filenames {
-		patch := p.RenderPatchForFile(filename, plain, false, true)
-		if patch != "" {
-			output = append(output, patch)
-		}
-	}
+	patches := slices.Map(filenames, func(filename string) string {
+		return p.RenderPatchForFile(filename, plain, false, true)
+	})
+	output := slices.Filter(patches, func(patch string) bool {
+		return patch != ""
+	})
 
 	return output
 }

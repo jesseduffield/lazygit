@@ -7,22 +7,23 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 // our UI command log looks like this:
-// Stage File
-//   git add -- 'filename'
-// Unstage File
-//   git reset HEAD 'filename'
+// Stage File:
+// git add -- 'filename'
+// Unstage File:
+// git reset HEAD 'filename'
 //
 // The 'Stage File' and 'Unstage File' lines are actions i.e they group up a set
 // of command logs (typically there's only one command under an action but there may be more).
 // So we call logAction to log the 'Stage File' part and then we call logCommand to log the command itself.
 // We pass logCommand to our OSCommand struct so that it can handle logging commands
 // for us.
-func (gui *Gui) logAction(action string) {
+func (gui *Gui) LogAction(action string) {
 	if gui.Views.Extras == nil {
 		return
 	}
@@ -32,7 +33,7 @@ func (gui *Gui) logAction(action string) {
 	fmt.Fprint(gui.Views.Extras, "\n"+style.FgYellow.Sprint(action))
 }
 
-func (gui *Gui) logCommand(cmdStr string, commandLine bool) {
+func (gui *Gui) LogCommand(cmdStr string, commandLine bool) {
 	if gui.Views.Extras == nil {
 		return
 	}
@@ -52,26 +53,26 @@ func (gui *Gui) logCommand(cmdStr string, commandLine bool) {
 
 func (gui *Gui) printCommandLogHeader() {
 	introStr := fmt.Sprintf(
-		gui.Tr.CommandLogHeader,
-		gui.getKeyDisplay(gui.UserConfig.Keybinding.Universal.ExtrasMenu),
+		gui.c.Tr.CommandLogHeader,
+		keybindings.Label(gui.c.UserConfig.Keybinding.Universal.ExtrasMenu),
 	)
 	fmt.Fprintln(gui.Views.Extras, style.FgCyan.Sprint(introStr))
 
-	if gui.UserConfig.Gui.ShowRandomTip {
+	if gui.c.UserConfig.Gui.ShowRandomTip {
 		fmt.Fprintf(
 			gui.Views.Extras,
 			"%s: %s",
-			style.FgYellow.Sprint(gui.Tr.RandomTip),
+			style.FgYellow.Sprint(gui.c.Tr.RandomTip),
 			style.FgGreen.Sprint(gui.getRandomTip()),
 		)
 	}
 }
 
 func (gui *Gui) getRandomTip() string {
-	config := gui.UserConfig.Keybinding
+	config := gui.c.UserConfig.Keybinding
 
 	formattedKey := func(key string) string {
-		return gui.getKeyDisplay(key)
+		return keybindings.Label(key)
 	}
 
 	tips := []string{

@@ -1,282 +1,260 @@
 package gui
 
-type ContextKey string
-
-const (
-	STATUS_CONTEXT_KEY              ContextKey = "status"
-	FILES_CONTEXT_KEY               ContextKey = "files"
-	LOCAL_BRANCHES_CONTEXT_KEY      ContextKey = "localBranches"
-	REMOTES_CONTEXT_KEY             ContextKey = "remotes"
-	REMOTE_BRANCHES_CONTEXT_KEY     ContextKey = "remoteBranches"
-	TAGS_CONTEXT_KEY                ContextKey = "tags"
-	BRANCH_COMMITS_CONTEXT_KEY      ContextKey = "commits"
-	REFLOG_COMMITS_CONTEXT_KEY      ContextKey = "reflogCommits"
-	SUB_COMMITS_CONTEXT_KEY         ContextKey = "subCommits"
-	COMMIT_FILES_CONTEXT_KEY        ContextKey = "commitFiles"
-	STASH_CONTEXT_KEY               ContextKey = "stash"
-	MAIN_NORMAL_CONTEXT_KEY         ContextKey = "normal"
-	MAIN_MERGING_CONTEXT_KEY        ContextKey = "merging"
-	MAIN_PATCH_BUILDING_CONTEXT_KEY ContextKey = "patchBuilding"
-	MAIN_STAGING_CONTEXT_KEY        ContextKey = "staging"
-	MENU_CONTEXT_KEY                ContextKey = "menu"
-	CREDENTIALS_CONTEXT_KEY         ContextKey = "credentials"
-	CONFIRMATION_CONTEXT_KEY        ContextKey = "confirmation"
-	SEARCH_CONTEXT_KEY              ContextKey = "search"
-	COMMIT_MESSAGE_CONTEXT_KEY      ContextKey = "commitMessage"
-	SUBMODULES_CONTEXT_KEY          ContextKey = "submodules"
-	SUGGESTIONS_CONTEXT_KEY         ContextKey = "suggestions"
-	COMMAND_LOG_CONTEXT_KEY         ContextKey = "cmdLog"
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-var allContextKeys = []ContextKey{
-	STATUS_CONTEXT_KEY,
-	FILES_CONTEXT_KEY,
-	LOCAL_BRANCHES_CONTEXT_KEY,
-	REMOTES_CONTEXT_KEY,
-	REMOTE_BRANCHES_CONTEXT_KEY,
-	TAGS_CONTEXT_KEY,
-	BRANCH_COMMITS_CONTEXT_KEY,
-	REFLOG_COMMITS_CONTEXT_KEY,
-	SUB_COMMITS_CONTEXT_KEY,
-	COMMIT_FILES_CONTEXT_KEY,
-	STASH_CONTEXT_KEY,
-	MAIN_NORMAL_CONTEXT_KEY,
-	MAIN_MERGING_CONTEXT_KEY,
-	MAIN_PATCH_BUILDING_CONTEXT_KEY,
-	MAIN_STAGING_CONTEXT_KEY,
-	MENU_CONTEXT_KEY,
-	CREDENTIALS_CONTEXT_KEY,
-	CONFIRMATION_CONTEXT_KEY,
-	SEARCH_CONTEXT_KEY,
-	COMMIT_MESSAGE_CONTEXT_KEY,
-	SUBMODULES_CONTEXT_KEY,
-	SUGGESTIONS_CONTEXT_KEY,
-	COMMAND_LOG_CONTEXT_KEY,
-}
-
-type ContextTree struct {
-	Status         Context
-	Files          IListContext
-	Submodules     IListContext
-	Menu           IListContext
-	Branches       IListContext
-	Remotes        IListContext
-	RemoteBranches IListContext
-	Tags           IListContext
-	BranchCommits  IListContext
-	CommitFiles    IListContext
-	ReflogCommits  IListContext
-	SubCommits     IListContext
-	Stash          IListContext
-	Suggestions    IListContext
-	Normal         Context
-	Staging        Context
-	PatchBuilding  Context
-	Merging        Context
-	Credentials    Context
-	Confirmation   Context
-	CommitMessage  Context
-	Search         Context
-	CommandLog     Context
-}
-
-func (gui *Gui) allContexts() []Context {
-	return []Context{
-		gui.State.Contexts.Status,
-		gui.State.Contexts.Files,
-		gui.State.Contexts.Submodules,
-		gui.State.Contexts.Branches,
-		gui.State.Contexts.Remotes,
-		gui.State.Contexts.RemoteBranches,
-		gui.State.Contexts.Tags,
-		gui.State.Contexts.BranchCommits,
-		gui.State.Contexts.CommitFiles,
-		gui.State.Contexts.ReflogCommits,
-		gui.State.Contexts.Stash,
-		gui.State.Contexts.Menu,
-		gui.State.Contexts.Confirmation,
-		gui.State.Contexts.Credentials,
-		gui.State.Contexts.CommitMessage,
-		gui.State.Contexts.Normal,
-		gui.State.Contexts.Staging,
-		gui.State.Contexts.Merging,
-		gui.State.Contexts.PatchBuilding,
-		gui.State.Contexts.SubCommits,
-		gui.State.Contexts.Suggestions,
-		gui.State.Contexts.CommandLog,
-	}
-}
-
-func (gui *Gui) contextTree() ContextTree {
-	return ContextTree{
-		Status: &BasicContext{
-			OnRenderToMain: OnFocusWrapper(gui.statusRenderToMain),
-			Kind:           SIDE_CONTEXT,
-			ViewName:       "status",
-			Key:            STATUS_CONTEXT_KEY,
-		},
+func (gui *Gui) contextTree() *context.ContextTree {
+	return &context.ContextTree{
+		Global: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:                  types.GLOBAL_CONTEXT,
+				View:                  nil, // TODO: see if this breaks anything
+				WindowName:            "",
+				Key:                   context.GLOBAL_CONTEXT_KEY,
+				Focusable:             false,
+				HasUncontrolledBounds: true, // setting to true because the global context doesn't even have a view
+			}),
+			context.ContextCallbackOpts{
+				OnRenderToMain: gui.statusRenderToMain,
+			},
+		),
+		Status: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.SIDE_CONTEXT,
+				View:       gui.Views.Status,
+				WindowName: "status",
+				Key:        context.STATUS_CONTEXT_KEY,
+				Focusable:  true,
+			}),
+			context.ContextCallbackOpts{
+				OnRenderToMain: gui.statusRenderToMain,
+			},
+		),
 		Files:          gui.filesListContext(),
 		Submodules:     gui.submodulesListContext(),
 		Menu:           gui.menuListContext(),
 		Remotes:        gui.remotesListContext(),
 		RemoteBranches: gui.remoteBranchesListContext(),
-		BranchCommits:  gui.branchCommitsListContext(),
+		LocalCommits:   gui.branchCommitsListContext(),
 		CommitFiles:    gui.commitFilesListContext(),
 		ReflogCommits:  gui.reflogCommitsListContext(),
 		SubCommits:     gui.subCommitsListContext(),
 		Branches:       gui.branchesListContext(),
 		Tags:           gui.tagsListContext(),
 		Stash:          gui.stashListContext(),
-		Normal: &BasicContext{
-			OnFocus: func(opts ...OnFocusOpts) error {
-				return nil // TODO: should we do something here? We should allow for scrolling the panel
+		Suggestions:    gui.suggestionsListContext(),
+		Normal: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.MAIN_CONTEXT,
+				View:       gui.Views.Main,
+				WindowName: "main",
+				Key:        context.NORMAL_MAIN_CONTEXT_KEY,
+				Focusable:  false,
+			}),
+			context.ContextCallbackOpts{
+				OnFocus: func(opts types.OnFocusOpts) error {
+					return nil // TODO: should we do something here? We should allow for scrolling the panel
+				},
 			},
-			Kind:     MAIN_CONTEXT,
-			ViewName: "main",
-			Key:      MAIN_NORMAL_CONTEXT_KEY,
-		},
-		Staging: &BasicContext{
-			OnFocus: func(opts ...OnFocusOpts) error {
-				forceSecondaryFocused := false
-				selectedLineIdx := -1
-				if len(opts) > 0 && opts[0].ClickedViewName != "" {
-					if opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary" {
-						selectedLineIdx = opts[0].ClickedViewLineIdx
-					}
-					if opts[0].ClickedViewName == "secondary" {
-						forceSecondaryFocused = true
-					}
-				}
-				return gui.onStagingFocus(forceSecondaryFocused, selectedLineIdx)
-			},
-			Kind:     MAIN_CONTEXT,
-			ViewName: "main",
-			Key:      MAIN_STAGING_CONTEXT_KEY,
-		},
-		PatchBuilding: &BasicContext{
-			OnFocus: func(opts ...OnFocusOpts) error {
-				selectedLineIdx := -1
-				if len(opts) > 0 && (opts[0].ClickedViewName == "main" || opts[0].ClickedViewName == "secondary") {
-					selectedLineIdx = opts[0].ClickedViewLineIdx
-				}
+		),
+		NormalSecondary: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.MAIN_CONTEXT,
+				View:       gui.Views.Secondary,
+				WindowName: "secondary",
+				Key:        context.NORMAL_SECONDARY_CONTEXT_KEY,
+				Focusable:  false,
+			}),
+			context.ContextCallbackOpts{},
+		),
+		Staging: context.NewPatchExplorerContext(
+			gui.Views.Staging,
+			"main",
+			context.STAGING_MAIN_CONTEXT_KEY,
+			func(opts types.OnFocusOpts) error {
+				gui.Views.Staging.Wrap = false
+				gui.Views.StagingSecondary.Wrap = false
 
-				return gui.onPatchBuildingFocus(selectedLineIdx)
+				return gui.refreshStagingPanel(opts)
 			},
-			Kind:     MAIN_CONTEXT,
-			ViewName: "main",
-			Key:      MAIN_PATCH_BUILDING_CONTEXT_KEY,
-		},
-		Merging: &BasicContext{
-			OnFocus:         OnFocusWrapper(func() error { return gui.renderConflictsWithLock(true) }),
-			Kind:            MAIN_CONTEXT,
-			ViewName:        "main",
-			Key:             MAIN_MERGING_CONTEXT_KEY,
-			OnGetOptionsMap: gui.getMergingOptions,
-		},
-		Credentials: &BasicContext{
-			OnFocus:  OnFocusWrapper(gui.handleCredentialsViewFocused),
-			Kind:     PERSISTENT_POPUP,
-			ViewName: "credentials",
-			Key:      CREDENTIALS_CONTEXT_KEY,
-		},
-		Confirmation: &BasicContext{
-			Kind:     TEMPORARY_POPUP,
-			ViewName: "confirmation",
-			Key:      CONFIRMATION_CONTEXT_KEY,
-		},
-		Suggestions: gui.suggestionsListContext(),
-		CommitMessage: &BasicContext{
-			OnFocus:  OnFocusWrapper(gui.handleCommitMessageFocused),
-			Kind:     PERSISTENT_POPUP,
-			ViewName: "commitMessage",
-			Key:      COMMIT_MESSAGE_CONTEXT_KEY,
-		},
-		Search: &BasicContext{
-			Kind:     PERSISTENT_POPUP,
-			ViewName: "search",
-			Key:      SEARCH_CONTEXT_KEY,
-		},
-		CommandLog: &BasicContext{
-			Kind:            EXTRAS_CONTEXT,
-			ViewName:        "extras",
-			Key:             COMMAND_LOG_CONTEXT_KEY,
-			OnGetOptionsMap: gui.getMergingOptions,
-			OnFocusLost: func() error {
-				gui.Views.Extras.Autoscroll = true
+			func(opts types.OnFocusLostOpts) error {
+				gui.State.Contexts.Staging.SetState(nil)
+
+				if opts.NewContextKey != context.STAGING_SECONDARY_CONTEXT_KEY {
+					gui.Views.Staging.Wrap = true
+					gui.Views.StagingSecondary.Wrap = true
+					_ = gui.State.Contexts.Staging.Render(false)
+					_ = gui.State.Contexts.StagingSecondary.Render(false)
+				}
 				return nil
 			},
-		},
+			func() []int { return nil },
+			gui.c,
+		),
+		StagingSecondary: context.NewPatchExplorerContext(
+			gui.Views.StagingSecondary,
+			"secondary",
+			context.STAGING_SECONDARY_CONTEXT_KEY,
+			func(opts types.OnFocusOpts) error {
+				gui.Views.Staging.Wrap = false
+				gui.Views.StagingSecondary.Wrap = false
+
+				return gui.refreshStagingPanel(opts)
+			},
+			func(opts types.OnFocusLostOpts) error {
+				gui.State.Contexts.StagingSecondary.SetState(nil)
+
+				if opts.NewContextKey != context.STAGING_MAIN_CONTEXT_KEY {
+					gui.Views.Staging.Wrap = true
+					gui.Views.StagingSecondary.Wrap = true
+					_ = gui.State.Contexts.Staging.Render(false)
+					_ = gui.State.Contexts.StagingSecondary.Render(false)
+				}
+				return nil
+			},
+			func() []int { return nil },
+			gui.c,
+		),
+		CustomPatchBuilder: context.NewPatchExplorerContext(
+			gui.Views.PatchBuilding,
+			"main",
+			context.PATCH_BUILDING_MAIN_CONTEXT_KEY,
+			func(opts types.OnFocusOpts) error {
+				// no need to change wrap on the secondary view because it can't be interacted with
+				gui.Views.PatchBuilding.Wrap = false
+
+				return gui.refreshPatchBuildingPanel(opts)
+			},
+			func(opts types.OnFocusLostOpts) error {
+				gui.Views.PatchBuilding.Wrap = true
+
+				if gui.git.Patch.PatchManager.IsEmpty() {
+					gui.git.Patch.PatchManager.Reset()
+				}
+
+				return nil
+			},
+			func() []int {
+				filename := gui.State.Contexts.CommitFiles.GetSelectedPath()
+				includedLineIndices, err := gui.git.Patch.PatchManager.GetFileIncLineIndices(filename)
+				if err != nil {
+					gui.Log.Error(err)
+					return nil
+				}
+
+				return includedLineIndices
+			},
+			gui.c,
+		),
+		CustomPatchBuilderSecondary: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.MAIN_CONTEXT,
+				View:       gui.Views.PatchBuildingSecondary,
+				WindowName: "secondary",
+				Key:        context.PATCH_BUILDING_SECONDARY_CONTEXT_KEY,
+				Focusable:  false,
+			}),
+			context.ContextCallbackOpts{},
+		),
+		MergeConflicts: context.NewMergeConflictsContext(
+			gui.Views.MergeConflicts,
+			context.ContextCallbackOpts{
+				OnFocus: OnFocusWrapper(func() error {
+					gui.Views.MergeConflicts.Wrap = false
+
+					return gui.refreshMergePanel(true)
+				}),
+				OnFocusLost: func(opts types.OnFocusLostOpts) error {
+					gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
+					gui.State.Contexts.MergeConflicts.GetState().ResetConflictSelection()
+					gui.Views.MergeConflicts.Wrap = true
+
+					return nil
+				},
+			},
+			gui.c,
+			func() map[string]string {
+				// wrapping in a function because contexts are initialized before helpers
+				return gui.helpers.MergeConflicts.GetMergingOptions()
+			},
+		),
+		Confirmation: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:                  types.TEMPORARY_POPUP,
+				View:                  gui.Views.Confirmation,
+				WindowName:            "confirmation",
+				Key:                   context.CONFIRMATION_CONTEXT_KEY,
+				Focusable:             true,
+				HasUncontrolledBounds: true,
+			}),
+			context.ContextCallbackOpts{
+				OnFocus: OnFocusWrapper(gui.handleAskFocused),
+				OnFocusLost: func(types.OnFocusLostOpts) error {
+					gui.deactivateConfirmationPrompt()
+					return nil
+				},
+			},
+		),
+		CommitMessage: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:                  types.PERSISTENT_POPUP,
+				View:                  gui.Views.CommitMessage,
+				WindowName:            "commitMessage",
+				Key:                   context.COMMIT_MESSAGE_CONTEXT_KEY,
+				Focusable:             true,
+				HasUncontrolledBounds: true,
+			}),
+			context.ContextCallbackOpts{
+				OnFocus: OnFocusWrapper(gui.handleCommitMessageFocused),
+			},
+		),
+		Search: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.PERSISTENT_POPUP,
+				View:       gui.Views.Search,
+				WindowName: "search",
+				Key:        context.SEARCH_CONTEXT_KEY,
+				Focusable:  true,
+			}),
+			context.ContextCallbackOpts{},
+		),
+		CommandLog: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.EXTRAS_CONTEXT,
+				View:       gui.Views.Extras,
+				WindowName: "extras",
+				Key:        context.COMMAND_LOG_CONTEXT_KEY,
+				Focusable:  true,
+			}),
+			context.ContextCallbackOpts{
+				OnFocusLost: func(opts types.OnFocusLostOpts) error {
+					gui.Views.Extras.Autoscroll = true
+					return nil
+				},
+			},
+		),
+		Options:      context.NewDisplayContext(context.OPTIONS_CONTEXT_KEY, gui.Views.Options, "options"),
+		AppStatus:    context.NewDisplayContext(context.APP_STATUS_CONTEXT_KEY, gui.Views.AppStatus, "appStatus"),
+		SearchPrefix: context.NewDisplayContext(context.SEARCH_PREFIX_CONTEXT_KEY, gui.Views.SearchPrefix, "searchPrefix"),
+		Information:  context.NewDisplayContext(context.INFORMATION_CONTEXT_KEY, gui.Views.Information, "information"),
+		Limit:        context.NewDisplayContext(context.LIMIT_CONTEXT_KEY, gui.Views.Limit, "limit"),
 	}
 }
 
 // using this wrapper for when an onFocus function doesn't care about any potential
 // props that could be passed
-func OnFocusWrapper(f func() error) func(opts ...OnFocusOpts) error {
-	return func(opts ...OnFocusOpts) error {
+func OnFocusWrapper(f func() error) func(opts types.OnFocusOpts) error {
+	return func(opts types.OnFocusOpts) error {
 		return f()
 	}
 }
 
-func (tree ContextTree) initialViewContextMap() map[string]Context {
-	return map[string]Context{
-		"status":        tree.Status,
-		"files":         tree.Files,
-		"branches":      tree.Branches,
-		"commits":       tree.BranchCommits,
-		"commitFiles":   tree.CommitFiles,
-		"stash":         tree.Stash,
-		"menu":          tree.Menu,
-		"confirmation":  tree.Confirmation,
-		"credentials":   tree.Credentials,
-		"commitMessage": tree.CommitMessage,
-		"main":          tree.Normal,
-		"secondary":     tree.Normal,
-		"extras":        tree.CommandLog,
-	}
-}
-
-func (tree ContextTree) initialViewTabContextMap() map[string][]tabContext {
-	return map[string][]tabContext{
-		"branches": {
-			{
-				tab:      "Local Branches",
-				contexts: []Context{tree.Branches},
-			},
-			{
-				tab: "Remotes",
-				contexts: []Context{
-					tree.Remotes,
-					tree.RemoteBranches,
-				},
-			},
-			{
-				tab:      "Tags",
-				contexts: []Context{tree.Tags},
-			},
-		},
-		"commits": {
-			{
-				tab:      "Commits",
-				contexts: []Context{tree.BranchCommits},
-			},
-			{
-				tab: "Reflog",
-				contexts: []Context{
-					tree.ReflogCommits,
-				},
-			},
-		},
-		"files": {
-			{
-				tab:      "Files",
-				contexts: []Context{tree.Files},
-			},
-			{
-				tab: "Submodules",
-				contexts: []Context{
-					tree.Submodules,
-				},
-			},
-		},
+func (gui *Gui) getPatchExplorerContexts() []types.IPatchExplorerContext {
+	return []types.IPatchExplorerContext{
+		gui.State.Contexts.Staging,
+		gui.State.Contexts.StagingSecondary,
+		gui.State.Contexts.CustomPatchBuilder,
 	}
 }

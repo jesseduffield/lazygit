@@ -25,11 +25,9 @@ const (
 	RIGHT  = 8 // view is overlapping at right edge
 )
 
-var (
-	// ErrInvalidPoint is returned when client passed invalid coordinates of a cell.
-	// Most likely client has passed negative coordinates of a cell.
-	ErrInvalidPoint = errors.New("invalid point")
-)
+// ErrInvalidPoint is returned when client passed invalid coordinates of a cell.
+// Most likely client has passed negative coordinates of a cell.
+var ErrInvalidPoint = errors.New("invalid point")
 
 // A View is a window. It maintains its own internal buffer and cursor
 // position.
@@ -125,8 +123,7 @@ type View struct {
 
 	Tabs     []string
 	TabIndex int
-	// HighlightTabWithoutFocus allows you to show which tab is selected without the view being focused
-	HighlightSelectedTabWithoutFocus bool
+
 	// TitleColor allow to configure the color of title and subtitle for the view.
 	TitleColor Attribute
 
@@ -149,8 +146,6 @@ type View struct {
 	// ParentView is the view which catches events bubbled up from the given view if there's no matching handler
 	ParentView *View
 
-	Context string // this is for assigning keybindings to a view only in certain contexts
-
 	searcher *searcher
 
 	// KeybindOnEdit should be set to true when you want to execute keybindings even when the view is editable
@@ -161,6 +156,9 @@ type View struct {
 
 	// something like '1 of 20' for a list view
 	Footer string
+
+	// if true, the user can scroll all the way past the last item until it appears at the top of the view
+	CanScrollPastBottom bool
 }
 
 // call this in the event of a view resize, or if you want to render new content
@@ -467,6 +465,14 @@ func (v *View) Cursor() (x, y int) {
 	return v.cx, v.cy
 }
 
+func (v *View) CursorX() int {
+	return v.cx
+}
+
+func (v *View) CursorY() int {
+	return v.cy
+}
+
 // SetOrigin sets the origin position of the view's internal buffer,
 // so the buffer starts to be printed from this point, which means that
 // it is linked with the origin point of view. It can be used to
@@ -680,7 +686,11 @@ func (v *View) parseInput(ch rune) (bool, []cell) {
 		if _, ok := v.ei.instruction.(eraseInLineFromCursor); ok {
 			// fill rest of line
 			v.ei.instructionRead()
-			repeatCount = v.InnerWidth() - v.wx
+			cx := 0
+			for _, cell := range v.lines[v.wy] {
+				cx += runewidth.RuneWidth(cell.chr)
+			}
+			repeatCount = v.InnerWidth() - cx
 			ch = ' '
 			moveCursor = false
 		} else if isEscape {
@@ -834,7 +844,7 @@ func (v *View) updateSearchPositions() {
 		v.searcher.searchPositions = []cellPos{}
 		for y, line := range v.lines {
 		lineLoop:
-			for x, _ := range line {
+			for x := range line {
 				if normalizeRune(line[x].chr) == rune(normalizedSearchStr[0]) {
 					for offset := 1; offset < len(normalizedSearchStr); offset++ {
 						if len(line)-1 < x+offset {
@@ -920,17 +930,33 @@ func (v *View) draw() error {
 	}
 
 	y := 0
+	emptyCell := cell{chr: ' ', fgColor: ColorDefault, bgColor: ColorDefault}
+	var prevFgColor Attribute
 	for _, vline := range v.viewLines[start:] {
 		if y >= maxY {
 			break
 		}
 		x := 0
-		for j, c := range vline.line {
+		j := 0
+		var c cell
+		for {
 			if j < v.ox {
+				j++
 				continue
 			}
 			if x >= maxX {
 				break
+			}
+
+			if j > len(vline.line)-1 {
+				c = emptyCell
+				c.fgColor = prevFgColor
+			} else {
+				c = vline.line[j]
+				// capturing previous foreground colour so that if we're using the reverse
+				// attribute we honour the final character's colour and don't awkwardly switch
+				// to a new background colour for the remainder of the line
+				prevFgColor = c.fgColor
 			}
 
 			fgColor := c.fgColor
@@ -956,6 +982,7 @@ func (v *View) draw() error {
 			// Not sure why the previous code was here but it caused problems
 			// when typing wide characters in an editor
 			x += runewidth.RuneWidth(c.chr)
+			j++
 		}
 		y++
 	}
@@ -1193,20 +1220,34 @@ func (v *View) GetClickedTabIndex(x int) int {
 		return 0
 	}
 
-	charIndex := 0
+	charX := 1
+	if x <= charX {
+		return -1
+	}
 	for i, tab := range v.Tabs {
-		charIndex += len(tab + " - ")
-		if x < charIndex {
+		charX += runewidth.StringWidth(tab)
+		if x <= charX {
 			return i
+		}
+		charX += runewidth.StringWidth(" - ")
+		if x <= charX {
+			return -1
 		}
 	}
 
-	return 0
+	return -1
 }
 
 func (v *View) SelectedLineIdx() int {
 	_, seletedLineIdx := v.SelectedPoint()
 	return seletedLineIdx
+}
+
+// expected to only be used in tests
+func (v *View) SelectedLine() string {
+	line := v.lines[v.SelectedLineIdx()]
+	str := lineType(line).String()
+	return strings.Replace(str, "\x00", " ", -1)
 }
 
 func (v *View) SelectedPoint() (int, int) {
@@ -1268,4 +1309,70 @@ func (v *View) OverwriteLines(y int, content string) {
 
 	lines := strings.Replace(content, "\n", "\x1b[K\n", -1)
 	v.writeString(lines)
+}
+
+func (v *View) ScrollUp(amount int) {
+	newOy := v.oy - amount
+	if newOy < 0 {
+		newOy = 0
+	}
+	v.oy = newOy
+}
+
+// ensures we don't scroll past the end of the view's content
+func (v *View) ScrollDown(amount int) {
+	adjustedAmount := v.adjustDownwardScrollAmount(amount)
+	if adjustedAmount > 0 {
+		v.oy += adjustedAmount
+	}
+}
+
+func (v *View) ScrollLeft(amount int) {
+	newOx := v.ox - amount
+	if newOx < 0 {
+		newOx = 0
+	}
+	v.ox = newOx
+}
+
+// not applying any limits to this
+func (v *View) ScrollRight(amount int) {
+	v.ox += amount
+}
+
+func (v *View) adjustDownwardScrollAmount(scrollHeight int) int {
+	_, oy := v.Origin()
+	y := oy
+	if !v.CanScrollPastBottom {
+		_, sy := v.Size()
+		y += sy
+	}
+	scrollableLines := v.ViewLinesHeight() - y
+	if scrollableLines < 0 {
+		return 0
+	}
+
+	margin := v.scrollMargin()
+	if scrollableLines-margin < scrollHeight {
+		scrollHeight = scrollableLines - margin
+	}
+	if oy+scrollHeight < 0 {
+		return 0
+	} else {
+		return scrollHeight
+	}
+}
+
+// scrollMargin is about how many lines must still appear if you scroll
+// all the way down. We'll subtract this from the total amount of scrollable lines
+func (v *View) scrollMargin() int {
+	if v.CanScrollPastBottom {
+		// Setting to 2 because of the newline at the end of the file that we're likely showing.
+		// If we want to scroll past bottom outside the context of reading a file's contents,
+		// we should make this into a field on the view to be configured by the client.
+		// For now we're hardcoding it.
+		return 2
+	} else {
+		return 0
+	}
 }

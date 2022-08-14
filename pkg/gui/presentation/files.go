@@ -1,96 +1,96 @@
 package presentation
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-const EXPANDED_ARROW = "▼"
-const COLLAPSED_ARROW = "►"
+const (
+	EXPANDED_ARROW  = "▼"
+	COLLAPSED_ARROW = "►"
+)
 
-const INNER_ITEM = "├─ "
-const LAST_ITEM = "└─ "
-const NESTED = "│  "
-const NOTHING = "   "
+// keeping these here as individual constants in case later on people want the old tree shape
+const (
+	INNER_ITEM = "  "
+	LAST_ITEM  = "  "
+	NESTED     = "  "
+	NOTHING    = "  "
+)
 
 func RenderFileTree(
-	fileMgr *filetree.FileTreeViewModel,
+	tree filetree.IFileTree,
 	diffName string,
 	submoduleConfigs []*models.SubmoduleConfig,
 ) []string {
-	return renderAux(fileMgr.Tree(), fileMgr.CollapsedPaths(), "", -1, func(n filetree.INode, depth int) string {
-		castN := n.(*filetree.FileNode)
-		return getFileLine(castN.GetHasUnstagedChanges(), castN.GetHasStagedChanges(), castN.NameAtDepth(depth), diffName, submoduleConfigs, castN.File)
+	return renderAux(tree.GetRoot().Raw(), tree.CollapsedPaths(), "", -1, func(node *filetree.Node[models.File], depth int) string {
+		fileNode := filetree.NewFileNode(node)
+
+		return getFileLine(fileNode.GetHasUnstagedChanges(), fileNode.GetHasStagedChanges(), fileNameAtDepth(node, depth), diffName, submoduleConfigs, node.File)
 	})
 }
 
 func RenderCommitFileTree(
-	commitFileMgr *filetree.CommitFileTreeViewModel,
+	tree *filetree.CommitFileTreeViewModel,
 	diffName string,
 	patchManager *patch.PatchManager,
 ) []string {
-	return renderAux(commitFileMgr.Tree(), commitFileMgr.CollapsedPaths(), "", -1, func(n filetree.INode, depth int) string {
-		castN := n.(*filetree.CommitFileNode)
-
+	return renderAux(tree.GetRoot().Raw(), tree.CollapsedPaths(), "", -1, func(node *filetree.Node[models.CommitFile], depth int) string {
 		// This is a little convoluted because we're dealing with either a leaf or a non-leaf.
 		// But this code actually applies to both. If it's a leaf, the status will just
 		// be whatever status it is, but if it's a non-leaf it will determine its status
 		// based on the leaves of that subtree
 		var status patch.PatchStatus
-		if castN.EveryFile(func(file *models.CommitFile) bool {
-			return patchManager.GetFileStatus(file.Name, commitFileMgr.GetParent()) == patch.WHOLE
+		if node.EveryFile(func(file *models.CommitFile) bool {
+			return patchManager.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.WHOLE
 		}) {
 			status = patch.WHOLE
-		} else if castN.EveryFile(func(file *models.CommitFile) bool {
-			return patchManager.GetFileStatus(file.Name, commitFileMgr.GetParent()) == patch.UNSELECTED
+		} else if node.EveryFile(func(file *models.CommitFile) bool {
+			return patchManager.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.UNSELECTED
 		}) {
 			status = patch.UNSELECTED
 		} else {
 			status = patch.PART
 		}
 
-		return getCommitFileLine(castN.NameAtDepth(depth), diffName, castN.File, status)
+		return getCommitFileLine(commitFileNameAtDepth(node, depth), diffName, node.File, status)
 	})
 }
 
-func renderAux(
-	s filetree.INode,
-	collapsedPaths filetree.CollapsedPaths,
+func renderAux[T any](
+	node *filetree.Node[T],
+	collapsedPaths *filetree.CollapsedPaths,
 	prefix string,
 	depth int,
-	renderLine func(filetree.INode, int) string,
+	renderLine func(*filetree.Node[T], int) string,
 ) []string {
-	if s == nil || s.IsNil() {
+	if node == nil {
 		return []string{}
 	}
 
 	isRoot := depth == -1
 
-	renderLineWithPrefix := func() string {
-		return prefix + renderLine(s, depth)
-	}
-
-	if s.IsLeaf() {
+	if node.IsFile() {
 		if isRoot {
 			return []string{}
 		}
-		return []string{renderLineWithPrefix()}
+		return []string{prefix + renderLine(node, depth)}
 	}
 
-	if collapsedPaths.IsCollapsed(s.GetPath()) {
-		return []string{fmt.Sprintf("%s %s", renderLineWithPrefix(), COLLAPSED_ARROW)}
+	if collapsedPaths.IsCollapsed(node.GetPath()) {
+		return []string{prefix + COLLAPSED_ARROW + " " + renderLine(node, depth)}
 	}
 
 	arr := []string{}
 	if !isRoot {
-		arr = append(arr, fmt.Sprintf("%s %s", renderLineWithPrefix(), EXPANDED_ARROW))
+		arr = append(arr, prefix+EXPANDED_ARROW+" "+renderLine(node, depth))
 	}
 
 	newPrefix := prefix
@@ -100,8 +100,8 @@ func renderAux(
 		newPrefix = strings.TrimSuffix(prefix, INNER_ITEM) + NESTED
 	}
 
-	for i, child := range s.GetChildren() {
-		isLast := i == len(s.GetChildren())-1
+	for i, child := range node.Children {
+		isLast := i == len(node.Children)-1
 
 		var childPrefix string
 		if isRoot {
@@ -112,7 +112,7 @@ func renderAux(
 			childPrefix = newPrefix + INNER_ITEM
 		}
 
-		arr = append(arr, renderAux(child, collapsedPaths, childPrefix, depth+1+s.GetCompressionLevel(), renderLine)...)
+		arr = append(arr, renderAux(child, collapsedPaths, childPrefix, depth+1+node.CompressionLevel, renderLine)...)
 	}
 
 	return arr
@@ -129,7 +129,7 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 	} else if file == nil && hasStagedChanges && hasUnstagedChanges {
 		restColor = partiallyModifiedColor
 	} else if hasUnstagedChanges {
-		restColor = style.FgRed
+		restColor = theme.UnstagedChangesColor
 	}
 
 	output := ""
@@ -138,13 +138,13 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 		firstChar := file.ShortStatus[0:1]
 		firstCharCl := style.FgGreen
 		if firstChar == "?" {
-			firstCharCl = style.FgRed
+			firstCharCl = theme.UnstagedChangesColor
 		} else if firstChar == " " {
 			firstCharCl = restColor
 		}
 
 		secondChar := file.ShortStatus[1:2]
-		secondCharCl := style.FgRed
+		secondCharCl := theme.UnstagedChangesColor
 		if secondChar == " " {
 			secondCharCl = restColor
 		}
@@ -154,9 +154,16 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 		output += restColor.Sprint(" ")
 	}
 
+	isSubmodule := file != nil && file.IsSubmodule(submoduleConfigs)
+	isDirectory := file == nil
+
+	if icons.IsIconEnabled() {
+		output += restColor.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isDirectory))
+	}
+
 	output += restColor.Sprint(utils.EscapeSpecialChars(name))
 
-	if file != nil && file.IsSubmodule(submoduleConfigs) {
+	if isSubmodule {
 		output += theme.DefaultTextColor.Sprint(" (submodule)")
 	}
 
@@ -178,12 +185,22 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 		}
 	}
 
+	output := ""
+
 	name = utils.EscapeSpecialChars(name)
-	if commitFile == nil {
-		return colour.Sprint(name)
+	if commitFile != nil {
+		output += getColorForChangeStatus(commitFile.ChangeStatus).Sprint(commitFile.ChangeStatus) + " "
 	}
 
-	return getColorForChangeStatus(commitFile.ChangeStatus).Sprint(commitFile.ChangeStatus) + " " + colour.Sprint(name)
+	isSubmodule := false
+	isDirectory := commitFile == nil
+
+	if icons.IsIconEnabled() {
+		output += colour.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isDirectory))
+	}
+
+	output += colour.Sprint(name)
+	return output
 }
 
 func getColorForChangeStatus(changeStatus string) style.TextStyle {
@@ -193,7 +210,7 @@ func getColorForChangeStatus(changeStatus string) style.TextStyle {
 	case "M", "R":
 		return style.FgYellow
 	case "D":
-		return style.FgRed
+		return theme.UnstagedChangesColor
 	case "C":
 		return style.FgCyan
 	case "T":
@@ -201,4 +218,40 @@ func getColorForChangeStatus(changeStatus string) style.TextStyle {
 	default:
 		return theme.DefaultTextColor
 	}
+}
+
+func fileNameAtDepth(node *filetree.Node[models.File], depth int) string {
+	splitName := split(node.Path)
+	name := join(splitName[depth:])
+
+	if node.File != nil && node.File.IsRename() {
+		splitPrevName := split(node.File.PreviousName)
+
+		prevName := node.File.PreviousName
+		// if the file has just been renamed inside the same directory, we can shave off
+		// the prefix for the previous path too. Otherwise we'll keep it unchanged
+		sameParentDir := len(splitName) == len(splitPrevName) && join(splitName[0:depth]) == join(splitPrevName[0:depth])
+		if sameParentDir {
+			prevName = join(splitPrevName[depth:])
+		}
+
+		return prevName + " → " + name
+	}
+
+	return name
+}
+
+func commitFileNameAtDepth(node *filetree.Node[models.CommitFile], depth int) string {
+	splitName := split(node.Path)
+	name := join(splitName[depth:])
+
+	return name
+}
+
+func split(str string) []string {
+	return strings.Split(str, "/")
+}
+
+func join(strs []string) string {
+	return strings.Join(strs, "/")
 }

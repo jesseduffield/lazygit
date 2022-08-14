@@ -36,36 +36,13 @@ func TestSplitLines(t *testing.T) {
 	}
 }
 
-// TestTrimTrailingNewline is a function.
-func TestTrimTrailingNewline(t *testing.T) {
-	type scenario struct {
-		str      string
-		expected string
-	}
-
-	scenarios := []scenario{
-		{
-			"hello world !\n",
-			"hello world !",
-		},
-		{
-			"hello world !",
-			"hello world !",
-		},
-	}
-
-	for _, s := range scenarios {
-		assert.EqualValues(t, s.expected, TrimTrailingNewline(s.str))
-	}
-}
-
 // TestNormalizeLinefeeds is a function.
 func TestNormalizeLinefeeds(t *testing.T) {
 	type scenario struct {
 		byteArray []byte
 		expected  []byte
 	}
-	var scenarios = []scenario{
+	scenarios := []scenario{
 		{
 			// \r\n
 			[]byte{97, 115, 100, 102, 13, 10},

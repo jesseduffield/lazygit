@@ -22,24 +22,27 @@ gui:
   sidePanelWidth: 0.3333 # number from 0 to 1
   expandFocusedSidePanel: false
   mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
-  language: 'auto' # one of 'auto' | 'en' | 'zh' | 'pl' | 'nl'
+  language: 'auto' # one of 'auto' | 'en' | 'zh' | 'pl' | 'nl' | 'ja' | 'ko'
+  timeFormat: '02 Jan 06 15:04 MST' # https://pkg.go.dev/time#Time.Format
   theme:
     lightTheme: false # For terminals with a light background
     activeBorderColor:
-      - white
+      - green
       - bold
     inactiveBorderColor:
-      - green
+      - white
     optionsTextColor:
       - blue
     selectedLineBgColor:
-      - default
+      - blue # set to `default` to have no background colour
     selectedRangeBgColor:
       - blue
     cherryPickedCommitBgColor:
-      - blue
-    cherryPickedCommitFgColor:
       - cyan
+    cherryPickedCommitFgColor:
+      - blue
+    unstagedChangesColor:
+      - red
   commitLength:
     show: true
   mouseEvents: true
@@ -48,8 +51,11 @@ gui:
   showFileTree: true # for rendering changes files in a tree format
   showListFooter: true # for seeing the '5 of 20' message in list panels
   showRandomTip: true
+  showBottomLine: true # for hiding the bottom information line (unless it has important information to tell you)
   showCommandLog: true
+  showIcons: false
   commandLogSize: 8
+  splitDiff: 'auto' # one of 'auto' | 'always'
 git:
   paging:
     colorArg: always
@@ -69,8 +75,11 @@ git:
     # one of always, never, when-maximised
     # this determines whether the git graph is rendered in the commits panel
     showGraph: 'when-maximised'
+    # displays the whole git graph by default in the commits panel (equivalent to passing the `--all` argument to `git log`)
+    showWholeGraph: false
   skipHookPrefix: WIP
   autoFetch: true
+  autoRefresh: true
   branchLogCmd: 'git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --'
   allBranchesLogCmd: 'git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium'
   overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
@@ -80,11 +89,11 @@ git:
   diffContextSize: 3 # how many lines of context are shown around a change in diffs
 os:
   editCommand: '' # see 'Configuring File Editing' section
-  editCommandTemplate: '{{editor}} {{filename}}'
+  editCommandTemplate: ''
   openCommand: ''
 refresher:
-  refreshInterval: 10 # file/submodule refresh interval in seconds
-  fetchInterval: 60 # re-fetch interval in seconds
+  refreshInterval: 10 # File/submodule refresh interval in seconds. Auto-refresh can be disabled via option 'git.autoRefresh'.
+  fetchInterval: 60 # Re-fetch interval in seconds. Auto-fetch can be disabled via option 'git.autoFetch'.
 update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often an update is checked for
@@ -93,7 +102,8 @@ confirmOnQuit: false
 # determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
 quitOnTopLevelReturn: false
 disableStartupPopups: false
-notARepository: 'prompt' # one of: 'prompt' | 'create' | 'skip'
+notARepository: 'prompt' # one of: 'prompt' | 'create' | 'skip' | 'quit'
+promptToReturnFromSubprocess: true # display confirmation when subprocess terminates
 keybinding:
   universal:
     quit: 'q'
@@ -179,6 +189,7 @@ keybinding:
     checkoutBranchByName: 'c'
     forceCheckoutBranch: 'F'
     rebaseBranch: 'r'
+    renameBranch: 'R'
     mergeIntoCurrentBranch: 'M'
     viewGitFlowOptions: 'i'
     fastForward: 'f' # fast-forward this branch from its upstream
@@ -264,12 +275,12 @@ os:
 
 Lazygit will log an error if none of these options are set.
 
-You can specify a line number you are currently at when in the line-by-line mode.
+You can specify the current line number when you're in the patch explorer.
 
 ```yaml
 os:
   editCommand: 'vim'
-  editCommandTemplate: '{{editor}} +{{line}} {{filename}}'
+  editCommandTemplate: '{{editor}} +{{line}} -- {{filename}}'
 ```
 
 or
@@ -277,23 +288,23 @@ or
 ```yaml
 os:
   editCommand: 'code'
-  editCommandTemplate: '{{editor}} --goto {{filename}}:{{line}}'
+  editCommandTemplate: '{{editor}} --goto -- {{filename}}:{{line}}'
 ```
 
 `{{editor}}` in `editCommandTemplate` is replaced with the value of `editCommand`.
 
 ### Overriding default config file location
 
-To override the default config directory, use `$CONFIG_DIR="~/.config/lazygit"`. This directory contains the config file in addition to some other files lazygit uses to keep track of state across sessions.
+To override the default config directory, use `CONFIG_DIR="$HOME/.config/lazygit"`. This directory contains the config file in addition to some other files lazygit uses to keep track of state across sessions.
 
 To override the individual config file used, use the `--use-config-file` arg or the `LG_CONFIG_FILE` env var.
 
 If you want to merge a specific config file into a more general config file, perhaps for the sake of setting some theme-specific options, you can supply a list of comma-separated config file paths, like so:
 
 ```sh
-lazygit --use-config-file=~/.base_lg_conf,~/.light_theme_lg_conf
+lazygit --use-config-file="$HOME/.base_lg_conf,$HOME/.light_theme_lg_conf"
 or
-LG_CONFIG_FILE="~/.base_lg_conf,~/.light_theme_lg_conf" lazygit
+LG_CONFIG_FILE="$HOME/.base_lg_conf,$HOME/.light_theme_lg_conf" lazygit
 ```
 
 ### Recommended Config Values
@@ -346,9 +357,20 @@ gui:
       - default
 ```
 
-## Struggling to see selected line
+## Highlighting the selected line
 
-If you struggle to see the selected line I recommend using the reverse attribute on selected lines like so:
+If you don't like the default behaviour of highlighting the selected line with a blue background, you can use the `selectedLineBgColor` and `selectedRangeBgColor` keys to customise the behaviour. If you just want to embolden the selected line (this was the original default), you can do the following:
+
+```yaml
+gui:
+  theme:
+    selectedLineBgColor:
+      - default
+    selectedRangeBgColor:
+      - default
+```
+
+You can also use the reverse attribute like so:
 
 ```yaml
 gui:
@@ -359,25 +381,6 @@ gui:
       - reverse
 ```
 
-The following has also worked for a couple of people:
-
-```yaml
-gui:
-  theme:
-    activeBorderColor:
-      - white
-      - bold
-    inactiveBorderColor:
-      - white
-    selectedLineBgColor:
-      - reverse
-      - blue
-```
-
-Alternatively you may have bold fonts disabled in your terminal, in which case enabling bold fonts should solve the problem.
-
-If you're still having trouble please raise an issue.
-
 ## Custom Author Color
 
 Lazygit will assign a random color for every commit author in the commits pane by default.
@@ -387,7 +390,8 @@ You can customize the color in case you're not happy with the randomly assigned 
 ```yaml
 gui:
   authorColors:
-    'John Smith': '#ff0000' # use red for John Smith
+    'John Smith': 'red' # use red for John Smith
+    'Alan Smithee': '#00ff00' # use green for Alan Smithee
 ```
 
 You can use wildcard to set a unified color in case your are lazy to customize the color for every author or you just want a single color for all/other authors:
@@ -396,7 +400,7 @@ You can use wildcard to set a unified color in case your are lazy to customize t
 gui:
   authorColors:
     # use red for John Smith
-    'John Smith': '#ff0000'
+    'John Smith': 'red'
     # use blue for other authors
     '*': '#0000ff'
 ```
@@ -414,6 +418,15 @@ gui:
 ## Example Coloring
 
 ![border example](../../assets/colored-border-example.png)
+
+## Display Nerd Fonts Icons
+
+If you are using [Nerd Fonts](https://www.nerdfonts.com), you can display icons.
+
+```yaml
+gui:
+  showIcons: true
+```
 
 ## Keybindings
 
@@ -465,7 +478,7 @@ services:
 Where:
 
 - `gitDomain` stands for the domain used by git itself (i.e. the one present on clone URLs), e.g. `git.work.com`
-- `provider` is one of `github`, `bitbucket` or `gitlab`
+- `provider` is one of `github`, `bitbucket`, `bitbucketServer`, `azuredevops` or `gitlab`
 - `webDomain` is the URL where your git service exposes a web interface and APIs, e.g. `gitservice.work.com`
 
 ## Predefined commit message prefix
@@ -518,4 +531,9 @@ notARepository: 'create'
 ```yaml
 # to skip without creating a new repo
 notARepository: 'skip'
+```
+
+```yaml
+# to exit immediately if run outside of the Git repository
+notARepository: 'quit'
 ```

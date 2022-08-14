@@ -2,267 +2,246 @@ package uniseg
 
 import "unicode/utf8"
 
-// The states of the grapheme cluster parser.
-const (
-	grAny = iota
-	grCR
-	grControlLF
-	grL
-	grLVV
-	grLVTT
-	grPrepend
-	grExtendedPictographic
-	grExtendedPictographicZWJ
-	grRIOdd
-	grRIEven
-)
-
-// The grapheme cluster parser's breaking instructions.
-const (
-	grNoBoundary = iota
-	grBoundary
-)
-
-// The grapheme cluster parser's state transitions. Maps (state, property) to
-// (new state, breaking instruction, rule number). The breaking instruction
-// always refers to the boundary between the last and next code point.
+// Graphemes implements an iterator over Unicode grapheme clusters, or
+// user-perceived characters. While iterating, it also provides information
+// about word boundaries, sentence boundaries, and line breaks.
 //
-// This map is queried as follows:
+// After constructing the class via [NewGraphemes] for a given string "str",
+// [Next] is called for every grapheme cluster in a loop until it returns false.
+// Inside the loop, information about the grapheme cluster as well as boundary
+// information is available via the various methods (see examples below).
 //
-//   1. Find specific state + specific property. Stop if found.
-//   2. Find specific state + any property.
-//   3. Find any state + specific property.
-//   4. If only (2) or (3) (but not both) was found, stop.
-//   5. If both (2) and (3) were found, use state and breaking instruction from
-//      the transition with the lower rule number, prefer (3) if rule numbers
-//      are equal. Stop.
-//   6. Assume grAny and grBoundary.
-var grTransitions = map[[2]int][3]int{
-	// GB5
-	{grAny, prCR}:      {grCR, grBoundary, 50},
-	{grAny, prLF}:      {grControlLF, grBoundary, 50},
-	{grAny, prControl}: {grControlLF, grBoundary, 50},
-
-	// GB4
-	{grCR, prAny}:        {grAny, grBoundary, 40},
-	{grControlLF, prAny}: {grAny, grBoundary, 40},
-
-	// GB3.
-	{grCR, prLF}: {grAny, grNoBoundary, 30},
-
-	// GB6.
-	{grAny, prL}: {grL, grBoundary, 9990},
-	{grL, prL}:   {grL, grNoBoundary, 60},
-	{grL, prV}:   {grLVV, grNoBoundary, 60},
-	{grL, prLV}:  {grLVV, grNoBoundary, 60},
-	{grL, prLVT}: {grLVTT, grNoBoundary, 60},
-
-	// GB7.
-	{grAny, prLV}: {grLVV, grBoundary, 9990},
-	{grAny, prV}:  {grLVV, grBoundary, 9990},
-	{grLVV, prV}:  {grLVV, grNoBoundary, 70},
-	{grLVV, prT}:  {grLVTT, grNoBoundary, 70},
-
-	// GB8.
-	{grAny, prLVT}: {grLVTT, grBoundary, 9990},
-	{grAny, prT}:   {grLVTT, grBoundary, 9990},
-	{grLVTT, prT}:  {grLVTT, grNoBoundary, 80},
-
-	// GB9.
-	{grAny, prExtend}: {grAny, grNoBoundary, 90},
-	{grAny, prZWJ}:    {grAny, grNoBoundary, 90},
-
-	// GB9a.
-	{grAny, prSpacingMark}: {grAny, grNoBoundary, 91},
-
-	// GB9b.
-	{grAny, prPreprend}: {grPrepend, grBoundary, 9990},
-	{grPrepend, prAny}:  {grAny, grNoBoundary, 92},
-
-	// GB11.
-	{grAny, prExtendedPictographic}:                     {grExtendedPictographic, grBoundary, 9990},
-	{grExtendedPictographic, prExtend}:                  {grExtendedPictographic, grNoBoundary, 110},
-	{grExtendedPictographic, prZWJ}:                     {grExtendedPictographicZWJ, grNoBoundary, 110},
-	{grExtendedPictographicZWJ, prExtendedPictographic}: {grExtendedPictographic, grNoBoundary, 110},
-
-	// GB12 / GB13.
-	{grAny, prRegionalIndicator}:    {grRIOdd, grBoundary, 9990},
-	{grRIOdd, prRegionalIndicator}:  {grRIEven, grNoBoundary, 120},
-	{grRIEven, prRegionalIndicator}: {grRIOdd, grBoundary, 120},
-}
-
-// Graphemes implements an iterator over Unicode extended grapheme clusters,
-// specified in the Unicode Standard Annex #29. Grapheme clusters correspond to
-// "user-perceived characters". These characters often consist of multiple
-// code points (e.g. the "woman kissing woman" emoji consists of 8 code points:
-// woman + ZWJ + heavy black heart (2 code points) + ZWJ + kiss mark + ZWJ +
-// woman) and the rules described in Annex #29 must be applied to group those
-// code points into clusters perceived by the user as one character.
+// Using this class to iterate over a string is convenient but it is much slower
+// than using this package's [Step] or [StepString] functions or any of the
+// other specialized functions starting with "First".
 type Graphemes struct {
-	// The code points over which this class iterates.
-	codePoints []rune
+	// The original string.
+	original string
 
-	// The (byte-based) indices of the code points into the original string plus
-	// len(original string). Thus, len(indices) = len(codePoints) + 1.
-	indices []int
+	// The remaining string to be parsed.
+	remaining string
 
-	// The current grapheme cluster to be returned. These are indices into
-	// codePoints/indices. If start == end, we either haven't started iterating
-	// yet (0) or the iteration has already completed (1).
-	start, end int
+	// The current grapheme cluster.
+	cluster string
 
-	// The index of the next code point to be parsed.
-	pos int
+	// The byte offset of the current grapheme cluster relative to the original
+	// string.
+	offset int
 
-	// The current state of the code point parser.
+	// The current boundary information of the Step() parser.
+	boundaries int
+
+	// The current state of the Step() parser.
 	state int
 }
 
 // NewGraphemes returns a new grapheme cluster iterator.
 func NewGraphemes(s string) *Graphemes {
-	l := utf8.RuneCountInString(s)
-	codePoints := make([]rune, l)
-	indices := make([]int, l+1)
-	i := 0
-	for pos, r := range s {
-		codePoints[i] = r
-		indices[i] = pos
-		i++
+	return &Graphemes{
+		original:  s,
+		remaining: s,
+		state:     -1,
 	}
-	indices[l] = len(s)
-	g := &Graphemes{
-		codePoints: codePoints,
-		indices:    indices,
-	}
-	g.Next() // Parse ahead.
-	return g
 }
 
 // Next advances the iterator by one grapheme cluster and returns false if no
 // clusters are left. This function must be called before the first cluster is
 // accessed.
 func (g *Graphemes) Next() bool {
-	g.start = g.end
-
-	// The state transition gives us a boundary instruction BEFORE the next code
-	// point so we always need to stay ahead by one code point.
-
-	// Parse the next code point.
-	for g.pos <= len(g.codePoints) {
-		// GB2.
-		if g.pos == len(g.codePoints) {
-			g.end = g.pos
-			g.pos++
-			break
-		}
-
-		// Determine the property of the next character.
-		nextProperty := property(g.codePoints[g.pos])
-		g.pos++
-
-		// Find the applicable transition.
-		var boundary bool
-		transition, ok := grTransitions[[2]int{g.state, nextProperty}]
-		if ok {
-			// We have a specific transition. We'll use it.
-			g.state = transition[0]
-			boundary = transition[1] == grBoundary
-		} else {
-			// No specific transition found. Try the less specific ones.
-			transAnyProp, okAnyProp := grTransitions[[2]int{g.state, prAny}]
-			transAnyState, okAnyState := grTransitions[[2]int{grAny, nextProperty}]
-			if okAnyProp && okAnyState {
-				// Both apply. We'll use a mix (see comments for grTransitions).
-				g.state = transAnyState[0]
-				boundary = transAnyState[1] == grBoundary
-				if transAnyProp[2] < transAnyState[2] {
-					g.state = transAnyProp[0]
-					boundary = transAnyProp[1] == grBoundary
-				}
-			} else if okAnyProp {
-				// We only have a specific state.
-				g.state = transAnyProp[0]
-				boundary = transAnyProp[1] == grBoundary
-				// This branch will probably never be reached because okAnyState will
-				// always be true given the current transition map. But we keep it here
-				// for future modifications to the transition map where this may not be
-				// true anymore.
-			} else if okAnyState {
-				// We only have a specific property.
-				g.state = transAnyState[0]
-				boundary = transAnyState[1] == grBoundary
-			} else {
-				// No known transition. GB999: Any x Any.
-				g.state = grAny
-				boundary = true
-			}
-		}
-
-		// If we found a cluster boundary, let's stop here. The current cluster will
-		// be the one that just ended.
-		if g.pos-1 == 0 /* GB1 */ || boundary {
-			g.end = g.pos - 1
-			break
-		}
+	if len(g.remaining) == 0 {
+		// We're already past the end.
+		g.state = -2
+		g.cluster = ""
+		return false
 	}
-
-	return g.start != g.end
+	g.offset += len(g.cluster)
+	g.cluster, g.remaining, g.boundaries, g.state = StepString(g.remaining, g.state)
+	return true
 }
 
 // Runes returns a slice of runes (code points) which corresponds to the current
-// grapheme cluster. If the iterator is already past the end or Next() has not
+// grapheme cluster. If the iterator is already past the end or [Next] has not
 // yet been called, nil is returned.
 func (g *Graphemes) Runes() []rune {
-	if g.start == g.end {
+	if g.state < 0 {
 		return nil
 	}
-	return g.codePoints[g.start:g.end]
+	return []rune(g.cluster)
 }
 
 // Str returns a substring of the original string which corresponds to the
-// current grapheme cluster. If the iterator is already past the end or Next()
+// current grapheme cluster. If the iterator is already past the end or [Next]
 // has not yet been called, an empty string is returned.
 func (g *Graphemes) Str() string {
-	if g.start == g.end {
-		return ""
-	}
-	return string(g.codePoints[g.start:g.end])
+	return g.cluster
 }
 
 // Bytes returns a byte slice which corresponds to the current grapheme cluster.
-// If the iterator is already past the end or Next() has not yet been called,
+// If the iterator is already past the end or [Next] has not yet been called,
 // nil is returned.
 func (g *Graphemes) Bytes() []byte {
-	if g.start == g.end {
+	if g.state < 0 {
 		return nil
 	}
-	return []byte(string(g.codePoints[g.start:g.end]))
+	return []byte(g.cluster)
 }
 
 // Positions returns the interval of the current grapheme cluster as byte
 // positions into the original string. The first returned value "from" indexes
 // the first byte and the second returned value "to" indexes the first byte that
 // is not included anymore, i.e. str[from:to] is the current grapheme cluster of
-// the original string "str". If Next() has not yet been called, both values are
+// the original string "str". If [Next] has not yet been called, both values are
 // 0. If the iterator is already past the end, both values are 1.
 func (g *Graphemes) Positions() (int, int) {
-	return g.indices[g.start], g.indices[g.end]
+	if g.state == -1 {
+		return 0, 0
+	} else if g.state == -2 {
+		return 1, 1
+	}
+	return g.offset, g.offset + len(g.cluster)
+}
+
+// IsWordBoundary returns true if a word ends after the current grapheme
+// cluster.
+func (g *Graphemes) IsWordBoundary() bool {
+	if g.state < 0 {
+		return true
+	}
+	return g.boundaries&MaskWord != 0
+}
+
+// IsSentenceBoundary returns true if a sentence ends after the current
+// grapheme cluster.
+func (g *Graphemes) IsSentenceBoundary() bool {
+	if g.state < 0 {
+		return true
+	}
+	return g.boundaries&MaskSentence != 0
+}
+
+// LineBreak returns whether the line can be broken after the current grapheme
+// cluster. A value of [LineDontBreak] means the line may not be broken, a value
+// of [LineMustBreak] means the line must be broken, and a value of
+// [LineCanBreak] means the line may or may not be broken.
+func (g *Graphemes) LineBreak() int {
+	if g.state == -1 {
+		return LineDontBreak
+	}
+	if g.state == -2 {
+		return LineMustBreak
+	}
+	return g.boundaries & MaskLine
 }
 
 // Reset puts the iterator into its initial state such that the next call to
-// Next() sets it to the first grapheme cluster again.
+// [Next] sets it to the first grapheme cluster again.
 func (g *Graphemes) Reset() {
-	g.start, g.end, g.pos, g.state = 0, 0, 0, grAny
-	g.Next() // Parse ahead again.
+	g.state = -1
+	g.offset = 0
+	g.cluster = ""
+	g.remaining = g.original
 }
 
 // GraphemeClusterCount returns the number of user-perceived characters
-// (grapheme clusters) for the given string. To calculate this number, it
-// iterates through the string using the Graphemes iterator.
+// (grapheme clusters) for the given string.
 func GraphemeClusterCount(s string) (n int) {
-	g := NewGraphemes(s)
-	for g.Next() {
+	state := -1
+	for len(s) > 0 {
+		_, s, _, state = FirstGraphemeClusterInString(s, state)
 		n++
 	}
 	return
+}
+
+// FirstGraphemeCluster returns the first grapheme cluster found in the given
+// byte slice according to the rules of Unicode Standard Annex #29, Grapheme
+// Cluster Boundaries. This function can be called continuously to extract all
+// grapheme clusters from a byte slice, as illustrated in the example below.
+//
+// If you don't know the current state, for example when calling the function
+// for the first time, you must pass -1. For consecutive calls, pass the state
+// and rest slice returned by the previous call.
+//
+// The "rest" slice is the sub-slice of the original byte slice "b" starting
+// after the last byte of the identified grapheme cluster. If the length of the
+// "rest" slice is 0, the entire byte slice "b" has been processed. The
+// "cluster" byte slice is the sub-slice of the input slice containing the
+// identified grapheme cluster.
+//
+// Given an empty byte slice "b", the function returns nil values.
+//
+// While slightly less convenient than using the Graphemes class, this function
+// has much better performance and makes no allocations. It lends itself well to
+// large byte slices.
+//
+// The "reserved" return value is a placeholder for future functionality and may
+// be ignored for the time being.
+func FirstGraphemeCluster(b []byte, state int) (cluster, rest []byte, reserved, newState int) {
+	// An empty byte slice returns nothing.
+	if len(b) == 0 {
+		return
+	}
+
+	// Extract the first rune.
+	r, length := utf8.DecodeRune(b)
+	if len(b) <= length { // If we're already past the end, there is nothing else to parse.
+		return b, nil, 0, grAny
+	}
+
+	// If we don't know the state, determine it now.
+	if state < 0 {
+		state, _ = transitionGraphemeState(state, r)
+	}
+
+	// Transition until we find a boundary.
+	var boundary bool
+	for {
+		r, l := utf8.DecodeRune(b[length:])
+		state, boundary = transitionGraphemeState(state, r)
+
+		if boundary {
+			return b[:length], b[length:], 0, state
+		}
+
+		length += l
+		if len(b) <= length {
+			return b, nil, 0, grAny
+		}
+	}
+}
+
+// FirstGraphemeClusterInString is like [FirstGraphemeCluster] but its input and
+// outputs are strings.
+func FirstGraphemeClusterInString(str string, state int) (cluster, rest string, reserved, newState int) {
+	// An empty string returns nothing.
+	if len(str) == 0 {
+		return
+	}
+
+	// Extract the first rune.
+	r, length := utf8.DecodeRuneInString(str)
+	if len(str) <= length { // If we're already past the end, there is nothing else to parse.
+		return str, "", 0, grAny
+	}
+
+	// If we don't know the state, determine it now.
+	if state < 0 {
+		state, _ = transitionGraphemeState(state, r)
+	}
+
+	// Transition until we find a boundary.
+	var boundary bool
+	for {
+		r, l := utf8.DecodeRuneInString(str[length:])
+		state, boundary = transitionGraphemeState(state, r)
+
+		if boundary {
+			return str[:length], str[length:], 0, state
+		}
+
+		length += l
+		if len(str) <= length {
+			return str, "", 0, grAny
+		}
+	}
 }

@@ -24,10 +24,10 @@ func (f EditorFunc) Edit(v *View, key Key, ch rune, mod Modifier) bool {
 }
 
 // DefaultEditor is the default editor.
-var DefaultEditor Editor = EditorFunc(simpleEditor)
+var DefaultEditor Editor = EditorFunc(SimpleEditor)
 
-// simpleEditor is used as the default gocui editor.
-func simpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
+// SimpleEditor is used as the default gocui editor.
+func SimpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 	switch {
 	case key == KeyBackspace || key == KeyBackspace2:
 		v.TextArea.BackSpaceChar()

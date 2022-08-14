@@ -1,6 +1,10 @@
 package env
 
-import "os"
+import (
+	"os"
+)
+
+// This package encapsulates accessing/mutating the ENV of the program.
 
 func GetGitDirEnv() string {
 	return os.Getenv("GIT_DIR")

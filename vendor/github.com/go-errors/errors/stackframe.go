@@ -53,7 +53,7 @@ func (frame *StackFrame) Func() *runtime.Func {
 func (frame *StackFrame) String() string {
 	str := fmt.Sprintf("%s:%d (0x%x)\n", frame.File, frame.LineNumber, frame.ProgramCounter)
 
-	source, err := frame.SourceLine()
+	source, err := frame.sourceLine()
 	if err != nil {
 		return str
 	}
@@ -63,13 +63,21 @@ func (frame *StackFrame) String() string {
 
 // SourceLine gets the line of code (from File and Line) of the original source if possible.
 func (frame *StackFrame) SourceLine() (string, error) {
+	source, err := frame.sourceLine()
+	if err != nil {
+		return source, New(err)
+	}
+	return source, err
+}
+
+func (frame *StackFrame) sourceLine() (string, error) {
 	if frame.LineNumber <= 0 {
 		return "???", nil
 	}
 
 	file, err := os.Open(frame.File)
 	if err != nil {
-		return "", New(err)
+		return "", err
 	}
 	defer file.Close()
 
@@ -82,7 +90,7 @@ func (frame *StackFrame) SourceLine() (string, error) {
 		currentLine++
 	}
 	if err := scanner.Err(); err != nil {
-		return "", New(err)
+		return "", err
 	}
 
 	return "???", nil

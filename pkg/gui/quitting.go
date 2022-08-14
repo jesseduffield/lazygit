@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // when a user runs lazygit with the LAZYGIT_NEW_DIR_FILE env variable defined
@@ -11,26 +12,29 @@ import (
 // shell can then change to that directory. That means you don't get kicked
 // back to the directory that you started with.
 func (gui *Gui) recordCurrentDirectory() error {
-	if os.Getenv("LAZYGIT_NEW_DIR_FILE") == "" {
-		return nil
-	}
-
 	// determine current directory, set it in LAZYGIT_NEW_DIR_FILE
 	dirName, err := os.Getwd()
 	if err != nil {
 		return err
 	}
+	return gui.recordDirectory(dirName)
+}
 
-	return gui.OSCommand.CreateFileWithContent(os.Getenv("LAZYGIT_NEW_DIR_FILE"), dirName)
+func (gui *Gui) recordDirectory(dirName string) error {
+	newDirFilePath := os.Getenv("LAZYGIT_NEW_DIR_FILE")
+	if newDirFilePath == "" {
+		return nil
+	}
+	return gui.os.CreateFileWithContent(newDirFilePath, dirName)
 }
 
 func (gui *Gui) handleQuitWithoutChangingDirectory() error {
-	gui.State.RetainOriginalDir = true
+	gui.RetainOriginalDir = true
 	return gui.quit()
 }
 
 func (gui *Gui) handleQuit() error {
-	gui.State.RetainOriginalDir = false
+	gui.RetainOriginalDir = false
 	return gui.quit()
 }
 
@@ -40,7 +44,7 @@ func (gui *Gui) handleTopLevelReturn() error {
 	parentContext, hasParent := currentContext.GetParentContext()
 	if hasParent && currentContext != nil && parentContext != nil {
 		// TODO: think about whether this should be marked as a return rather than adding to the stack
-		return gui.pushContext(parentContext)
+		return gui.c.PushContext(parentContext)
 	}
 
 	for _, mode := range gui.modeStatuses() {
@@ -50,17 +54,13 @@ func (gui *Gui) handleTopLevelReturn() error {
 	}
 
 	repoPathStack := gui.RepoPathStack
-	if len(repoPathStack) > 0 {
-		n := len(repoPathStack) - 1
-
-		path := repoPathStack[n]
-
-		gui.RepoPathStack = repoPathStack[:n]
+	if !repoPathStack.IsEmpty() {
+		path := repoPathStack.Pop()
 
 		return gui.dispatchSwitchToRepo(path, true)
 	}
 
-	if gui.UserConfig.QuitOnTopLevelReturn {
+	if gui.c.UserConfig.QuitOnTopLevelReturn {
 		return gui.handleQuit()
 	}
 
@@ -72,11 +72,11 @@ func (gui *Gui) quit() error {
 		return gui.createUpdateQuitConfirmation()
 	}
 
-	if gui.UserConfig.ConfirmOnQuit {
-		return gui.ask(askOpts{
-			title:  "",
-			prompt: gui.Tr.ConfirmQuit,
-			handleConfirm: func() error {
+	if gui.c.UserConfig.ConfirmOnQuit {
+		return gui.c.Confirm(types.ConfirmOpts{
+			Title:  "",
+			Prompt: gui.c.Tr.ConfirmQuit,
+			HandleConfirm: func() error {
 				return gocui.ErrQuit
 			},
 		})

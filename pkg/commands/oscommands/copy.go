@@ -72,7 +72,7 @@ func CopyFile(src, dst string) (err error) {
 		return
 	}
 
-	return
+	return //nolint: nakedret
 }
 
 // CopyDir recursively copies a directory tree, attempting to preserve permissions.
@@ -133,5 +133,5 @@ func CopyDir(src string, dst string) (err error) {
 		}
 	}
 
-	return
+	return //nolint: nakedret
 }

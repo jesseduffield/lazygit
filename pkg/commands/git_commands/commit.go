@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
@@ -20,6 +21,17 @@ func NewCommitCommands(gitCommon *GitCommon) *CommitCommands {
 // RewordLastCommit rewords the topmost commit with the given message
 func (self *CommitCommands) RewordLastCommit(message string) error {
 	return self.cmd.New("git commit --allow-empty --amend --only -m " + self.cmd.Quote(message)).Run()
+}
+
+// ResetAuthor resets the author of the topmost commit
+func (self *CommitCommands) ResetAuthor() error {
+	return self.cmd.New("git commit --allow-empty --only --no-edit --amend --reset-author").Run()
+}
+
+// Sets the commit's author to the supplied value. Value is expected to be of the form 'Name <Email>'
+func (self *CommitCommands) SetAuthor(value string) error {
+	commandStr := fmt.Sprintf("git commit --allow-empty --only --no-edit --amend --author=%s", self.cmd.Quote(value))
+	return self.cmd.New(commandStr).Run()
 }
 
 // ResetToCommit reset to commit
@@ -70,8 +82,35 @@ func (self *CommitCommands) GetHeadCommitMessage() (string, error) {
 func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 	cmdStr := "git rev-list --format=%B --max-count=1 " + commitSha
 	messageWithHeader, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
-	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "\n")
+	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "")
 	return strings.TrimSpace(message), err
+}
+
+func (self *CommitCommands) GetCommitDiff(commitSha string) (string, error) {
+	cmdStr := "git show --no-color " + commitSha
+	diff, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	return diff, err
+}
+
+type Author struct {
+	Name  string
+	Email string
+}
+
+func (self *CommitCommands) GetCommitAuthor(commitSha string) (Author, error) {
+	cmdStr := "git show --no-patch --pretty=format:'%an%x00%ae' " + commitSha
+	output, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	if err != nil {
+		return Author{}, err
+	}
+
+	split := strings.SplitN(strings.TrimSpace(output), "\x00", 2)
+	if len(split) < 2 {
+		return Author{}, errors.New("unexpected git output")
+	}
+
+	author := Author{Name: split[0], Email: split[1]}
+	return author, err
 }
 
 func (self *CommitCommands) GetCommitMessageFirstLine(sha string) (string, error) {

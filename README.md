@@ -1,19 +1,35 @@
 <p align="center">
-  <img src="https://i.imgur.com/oYB7Cj8.png">
+  <img width="536" src="https://user-images.githubusercontent.com/8456633/174470852-339b5011-5800-4bb9-a628-ff230aa8cd4e.png">
 </p>
 
-![CI](https://github.com/jesseduffield/lazygit/workflows/Continuous%20Integration/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GoDoc](https://godoc.org/github.com/jesseduffield/lazygit?status.svg)](http://godoc.org/github.com/jesseduffield/lazygit) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)]() [![TODOs](https://badgen.net/https/api.tickgit.com/badgen/github.com/jesseduffield/lazygit)](https://www.tickgit.com/browse?repo=github.com/jesseduffield/lazygit)
 
-
-
+![CI](https://github.com/jesseduffield/lazygit/workflows/Continuous%20Integration/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit)
+[![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com)
+[![GoDoc](https://godoc.org/github.com/jesseduffield/lazygit?status.svg)](http://godoc.org/github.com/jesseduffield/lazygit)
+[![GitHub Releases](https://img.shields.io/github/downloads/jesseduffield/lazygit/total)](https://github.com/jesseduffield/lazygit/releases)
+[![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases/latest)
+[![homebrew](https://img.shields.io/homebrew/v/lazygit)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/lazygit.rb)
 
 A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
 
-Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? *Are you kidding me?* To stage part of a file you need to use a command line program to step through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, you have to edit an arcane patch file _by hand_? *Are you KIDDING me?!* Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? *YOU HAVE GOT TO BE KIDDING ME!*
+![Gif](../assets/staging.gif)
+
+## Sponsors
+
+<p align="center">
+ Maintenance of this project is made possible by all the <a href="https://github.com/jesseduffield/lazygit/graphs/contributors">contributors</a> and <a href="https://github.com/sponsors/jesseduffield">sponsors</a>. If you'd like to sponsor this project and have your avatar or company logo appear below <a href="https://github.com/sponsors/jesseduffield">click here</a>. 💙
+</p>
+
+<p align="center">
+<!-- sponsors --><a href="https://github.com/atecce"><img src="https://github.com/atecce.png" width="60px" alt="" /></a><a href="https://github.com/intabulas"><img src="https://github.com/intabulas.png" width="60px" alt="" /></a><a href="https://github.com/peppy"><img src="https://github.com/peppy.png" width="60px" alt="" /></a><a href="https://github.com/piot"><img src="https://github.com/piot.png" width="60px" alt="" /></a><a href="https://github.com/kristijanhusak"><img src="https://github.com/kristijanhusak.png" width="60px" alt="" /></a><a href="https://github.com/blacky14"><img src="https://github.com/blacky14.png" width="60px" alt="" /></a><a href="https://github.com/rgwood"><img src="https://github.com/rgwood.png" width="60px" alt="" /></a><a href="https://github.com/oliverguenther"><img src="https://github.com/oliverguenther.png" width="60px" alt="" /></a><a href="https://github.com/pawanjay176"><img src="https://github.com/pawanjay176.png" width="60px" alt="" /></a><a href="https://github.com/bdach"><img src="https://github.com/bdach.png" width="60px" alt="" /></a><a href="https://github.com/naoey"><img src="https://github.com/naoey.png" width="60px" alt="" /></a><a href="https://github.com/jryom"><img src="https://github.com/jryom.png" width="60px" alt="" /></a><a href="https://github.com/sagor999"><img src="https://github.com/sagor999.png" width="60px" alt="" /></a><a href="https://github.com/fargozhu"><img src="https://github.com/fargozhu.png" width="60px" alt="" /></a><a href="https://github.com/carstengehling"><img src="https://github.com/carstengehling.png" width="60px" alt="" /></a><a href="https://github.com/ceuk"><img src="https://github.com/ceuk.png" width="60px" alt="" /></a><a href="https://github.com/akospwc"><img src="https://github.com/akospwc.png" width="60px" alt="" /></a><a href="https://github.com/peterdieleman"><img src="https://github.com/peterdieleman.png" width="60px" alt="" /></a><a href="https://github.com/Xetera"><img src="https://github.com/Xetera.png" width="60px" alt="" /></a><a href="https://github.com/HoldenLucas"><img src="https://github.com/HoldenLucas.png" width="60px" alt="" /></a><a href="https://github.com/barbados-clemens"><img src="https://github.com/barbados-clemens.png" width="60px" alt="" /></a><a href="https://github.com/nartc"><img src="https://github.com/nartc.png" width="60px" alt="" /></a><a href="https://github.com/"><img src="https://github.com/.png" width="60px" alt="" /></a><a href="https://github.com/matejcik"><img src="https://github.com/matejcik.png" width="60px" alt="" /></a><a href="https://github.com/lucatume"><img src="https://github.com/lucatume.png" width="60px" alt="" /></a><a href="https://github.com/dbabiak"><img src="https://github.com/dbabiak.png" width="60px" alt="" /></a><a href="https://github.com/davidlattimore"><img src="https://github.com/davidlattimore.png" width="60px" alt="" /></a><a href="https://github.com/zach-fuller"><img src="https://github.com/zach-fuller.png" width="60px" alt="" /></a><a href="https://github.com/escrafford"><img src="https://github.com/escrafford.png" width="60px" alt="" /></a><a href="https://github.com/KowalskiPiotr98"><img src="https://github.com/KowalskiPiotr98.png" width="60px" alt="" /></a><a href="https://github.com/IvanZuy"><img src="https://github.com/IvanZuy.png" width="60px" alt="" /></a><a href="https://github.com/nicholascloud"><img src="https://github.com/nicholascloud.png" width="60px" alt="" /></a><a href="https://github.com/topher200"><img src="https://github.com/topher200.png" width="60px" alt="" /></a><a href="https://github.com/"><img src="https://github.com/.png" width="60px" alt="" /></a><a href="https://github.com/PhotonQuantum"><img src="https://github.com/PhotonQuantum.png" width="60px" alt="" /></a><a href="https://github.com/GitSquared"><img src="https://github.com/GitSquared.png" width="60px" alt="" /></a><a href="https://github.com/ava1ar"><img src="https://github.com/ava1ar.png" width="60px" alt="" /></a><a href="https://github.com/alqh"><img src="https://github.com/alqh.png" width="60px" alt="" /></a><a href="https://github.com/pedropombeiro"><img src="https://github.com/pedropombeiro.png" width="60px" alt="" /></a><a href="https://github.com/minidfx"><img src="https://github.com/minidfx.png" width="60px" alt="" /></a><a href="https://github.com/JoeKlemmer"><img src="https://github.com/JoeKlemmer.png" width="60px" alt="" /></a><a href="https://github.com/MikaelElkiaer"><img src="https://github.com/MikaelElkiaer.png" width="60px" alt="" /></a><a href="https://github.com/smoogipoo"><img src="https://github.com/smoogipoo.png" width="60px" alt="" /></a><a href="https://github.com/ColonelBucket8"><img src="https://github.com/ColonelBucket8.png" width="60px" alt="" /></a><a href="https://github.com/mutewinter"><img src="https://github.com/mutewinter.png" width="60px" alt="" /></a><a href="https://github.com/andrcuns"><img src="https://github.com/andrcuns.png" width="60px" alt="" /></a><a href="https://github.com/jptechnical"><img src="https://github.com/jptechnical.png" width="60px" alt="" /></a><a href="https://github.com/mb2g17"><img src="https://github.com/mb2g17.png" width="60px" alt="" /></a><a href="https://github.com/jslmorrison"><img src="https://github.com/jslmorrison.png" width="60px" alt="" /></a><a href="https://github.com/pyrooka"><img src="https://github.com/pyrooka.png" width="60px" alt="" /></a><a href="https://github.com/halas"><img src="https://github.com/halas.png" width="60px" alt="" /></a><a href="https://github.com/carlisia"><img src="https://github.com/carlisia.png" width="60px" alt="" /></a><a href="https://github.com/ComplexPlane"><img src="https://github.com/ComplexPlane.png" width="60px" alt="" /></a><a href="https://github.com/kublaios"><img src="https://github.com/kublaios.png" width="60px" alt="" /></a><!-- sponsors -->
+</p>
+
+## Elevator Pitch
+
+Rant time: You've heard it before, git is _powerful_, but what good is that power when everything is so damn hard to do? Interactive rebasing requires you to edit a goddamn TODO file in your editor? _Are you kidding me?_ To stage part of a file you need to use a command line program to step through each hunk and if a hunk can't be split down any further but contains code you don't want to stage, you have to edit an arcane patch file _by hand_? _Are you KIDDING me?!_ Sometimes you get asked to stash your changes when switching branches only to realise that after you switch and unstash that there weren't even any conflicts and it would have been fine to just checkout the branch directly? _YOU HAVE GOT TO BE KIDDING ME!_
 
 If you're a mere mortal like me and you're tired of hearing how powerful git is when in your daily life it's a powerful pain in your ass, lazygit might be for you.
-
-![Gif](../assets/staging.gif)
 
 ## Table of contents
 
@@ -21,11 +37,10 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Binary releases](#binary-releases)
   - [Homebrew](#homebrew)
   - [MacPorts](#macports)
-  - [Ubuntu](#ubuntu)
   - [Void Linux](#void-linux)
   - [Scoop (Windows)](#scoop-windows)
   - [Arch Linux](#arch-linux)
-  - [Fedora and CentOS 7](#fedora-and-centos-7)
+  - [Fedora and RHEL](#fedora-and-rhel)
   - [Solus Linux](#solus-linux)
   - [Funtoo Linux](#funtoo-linux)
   - [FreeBSD](#freebsd)
@@ -81,18 +96,6 @@ Tap:
 sudo port install lazygit
 ```
 
-### Ubuntu
-
-**Deprecated**: will no longer receive updates.
-
-Packages for Ubuntu are available via [Launchpad PPA](https://launchpad.net/~lazygit-team).
-
-```sh
-sudo add-apt-repository ppa:lazygit-team/release
-sudo apt-get update
-sudo apt-get install lazygit
-```
-
 ### Void Linux
 
 Packages for Void Linux are available in the distro repo
@@ -128,9 +131,9 @@ and the git version which builds from the most recent commit.
 Instruction of how to install AUR content can be found here:
 <https://wiki.archlinux.org/index.php/Arch_User_Repository>
 
-### Fedora and CentOS 7
+### Fedora and RHEL
 
-Packages for Fedora and CentOS 7 are available via [Copr](https://copr.fedorainfracloud.org/coprs/atim/lazygit/) (Cool Other Package Repo).
+Packages for Fedora/RHEL and CentOS Stream are available via [Copr](https://copr.fedorainfracloud.org/coprs/atim/lazygit/) (Cool Other Package Repo).
 
 ```sh
 sudo dnf copr enable atim/lazygit -y
@@ -157,7 +160,6 @@ sudo emerge dev-vcs/lazygit
 pkg install lazygit
 ```
 
-
 ### Conda
 
 Released versions are available for different platforms, see <https://anaconda.org/conda-forge/lazygit>
@@ -174,9 +176,9 @@ go install github.com/jesseduffield/lazygit@latest
 
 Please note:
 If you get an error claiming that lazygit cannot be found or is not defined, you
-may need to add `~/go/bin` to your \$PATH (MacOS/Linux), or `%HOME%\go\bin`
-(Windows). Not to be mistaked for `C:\Go\bin` (which is for Go's own binaries,
-not apps like Lazygit).
+may need to add `~/go/bin` to your $PATH (MacOS/Linux), or `%HOME%\go\bin`
+(Windows). Not to be mistaken for `C:\Go\bin` (which is for Go's own binaries,
+not apps like lazygit).
 
 ### Chocolatey (Windows)
 
@@ -232,7 +234,7 @@ lg()
 }
 ```
 
-Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch directories to whatever you were in inside lazyigt. To override this behaviour you can exit using `shift+Q` rather than just `q`.
+Then `source ~/.zshrc` and from now on when you call `lg` and exit you'll switch directories to whatever you were in inside lazygit. To override this behaviour you can exit using `shift+Q` rather than just `q`.
 
 ### Undo/Redo
 
@@ -258,7 +260,6 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 - [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
 - [Twitch Stream](https://www.twitch.tv/jesseduffield)
 
-
 ## Cool features
 
 - Adding files easily
@@ -283,7 +284,10 @@ For contributor discussion about things not better discussed here in the repo, j
 
 [![Slack](../assets/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/zt-5bo2clzo-hB8ZTVN5dWUCqj5QFiQVLA)
 
+Check out this [video](https://www.youtube.com/watch?v=kNavnhzZHtk) walking through the creation of a small feature in lazygit if you want an idea of where to get started.
+
 ### Debugging Locally
+
 Run `lazygit --debug` in one terminal tab and `lazygit --logs` in another to view the program and its log output side by side
 
 ## Donate
@@ -292,14 +296,16 @@ If you would like to support the development of lazygit, consider [sponsoring me
 
 ## FAQ
 
-### I'm struggling to see the selected line
-see [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#struggling-to-see-selected-line)
+### What do the commit colors represent?
 
-## Social
+- Green: the commit is included in the master branch
+- Yellow: the commit is not included in the master branch
+- Red: the commit has not been pushed to the upstream branch
+
+## Shameless Plug
 
 If you want to see what I (Jesse) am up to in terms of development, follow me on
-[twitter](https://twitter.com/DuffieldJesse) or watch me program on
-[twitch](https://www.twitch.tv/jesseduffield).
+[twitter](https://twitter.com/DuffieldJesse) or check out my [blog](https://jesseduffield.com/)
 
 ## Alternatives
 

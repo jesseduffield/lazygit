@@ -8,8 +8,16 @@ type StashEntry struct {
 	Name  string
 }
 
+func (s *StashEntry) FullRefName() string {
+	return s.RefName()
+}
+
 func (s *StashEntry) RefName() string {
 	return fmt.Sprintf("stash@{%d}", s.Index)
+}
+
+func (s *StashEntry) ParentRefName() string {
+	return s.RefName() + "^"
 }
 
 func (s *StashEntry) ID() string {

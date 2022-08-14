@@ -8,8 +8,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
-const MergeSymbol = '⏣'
-const CommitSymbol = '◯'
+const (
+	MergeSymbol  = '⏣'
+	CommitSymbol = '◯'
+)
 
 type cellType int
 
@@ -66,8 +68,10 @@ type rgbCacheKey struct {
 	str string
 }
 
-var rgbCache = make(map[rgbCacheKey]string)
-var rgbCacheMutex sync.RWMutex
+var (
+	rgbCache      = make(map[rgbCacheKey]string)
+	rgbCacheMutex sync.RWMutex
+)
 
 func cachedSprint(style style.TextStyle, str string) string {
 	switch v := style.Style.(type) {

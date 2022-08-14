@@ -7,8 +7,8 @@ package config
 func GetPlatformDefaultConfig() OSConfig {
 	return OSConfig{
 		EditCommand:         ``,
-		EditCommandTemplate: `{{editor}} {{filename}}`,
-		OpenCommand:         "open {{filename}}",
+		EditCommandTemplate: "",
+		OpenCommand:         "open -- {{filename}}",
 		OpenLinkCommand:     "open {{link}}",
 	}
 }

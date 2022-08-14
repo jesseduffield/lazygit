@@ -32,25 +32,32 @@ func (self *ReflogCommitLoader) GetReflogCommits(lastReflogCommit *models.Commit
 		filterPathArg = fmt.Sprintf(" --follow -- %s", self.cmd.Quote(filterPath))
 	}
 
-	cmdObj := self.cmd.New(fmt.Sprintf(`git log -g --abbrev=20 --format="%%h %%ct %%gs"%s`, filterPathArg)).DontLog()
+	cmdObj := self.cmd.New(fmt.Sprintf(`git -c log.showSignature=false log -g --abbrev=40 --format="%s"%s`, "%h%x00%ct%x00%gs%x00%p", filterPathArg)).DontLog()
 	onlyObtainedNewReflogCommits := false
 	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
-		fields := strings.SplitN(line, " ", 3)
-		if len(fields) <= 2 {
+		fields := strings.SplitN(line, "\x00", 4)
+		if len(fields) <= 3 {
 			return false, nil
 		}
 
 		unixTimestamp, _ := strconv.Atoi(fields[1])
+
+		parentHashes := fields[3]
+		parents := []string{}
+		if len(parentHashes) > 0 {
+			parents = strings.Split(parentHashes, " ")
+		}
 
 		commit := &models.Commit{
 			Sha:           fields[0],
 			Name:          fields[2],
 			UnixTimestamp: int64(unixTimestamp),
 			Status:        "reflog",
+			Parents:       parents,
 		}
 
 		// note that the unix timestamp here is the timestamp of the COMMIT, not the reflog entry itself,
-		// so two consequetive reflog entries may have both the same SHA and therefore same timestamp.
+		// so two consecutive reflog entries may have both the same SHA and therefore same timestamp.
 		// We use the reflog message to disambiguate, and fingers crossed that we never see the same of those
 		// twice in a row. Reason being that it would mean we'd be erroneously exiting early.
 		if lastReflogCommit != nil && commit.Sha == lastReflogCommit.Sha && commit.UnixTimestamp == lastReflogCommit.UnixTimestamp && commit.Name == lastReflogCommit.Name {

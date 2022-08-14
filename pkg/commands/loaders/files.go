@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type FileLoaderConfig interface {
@@ -54,28 +53,15 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 			self.Log.Warningf("warning when calling git status: %s", status.StatusString)
 			continue
 		}
-		change := status.Change
-		stagedChange := change[0:1]
-		unstagedChange := change[1:2]
-		untracked := utils.IncludesString([]string{"??", "A ", "AM"}, change)
-		hasNoStagedChanges := utils.IncludesString([]string{" ", "U", "?"}, stagedChange)
-		hasInlineMergeConflicts := utils.IncludesString([]string{"UU", "AA"}, change)
-		hasMergeConflicts := hasInlineMergeConflicts || utils.IncludesString([]string{"DD", "AU", "UA", "UD", "DU"}, change)
 
 		file := &models.File{
-			Name:                    status.Name,
-			PreviousName:            status.PreviousName,
-			DisplayString:           status.StatusString,
-			HasStagedChanges:        !hasNoStagedChanges,
-			HasUnstagedChanges:      unstagedChange != " ",
-			Tracked:                 !untracked,
-			Deleted:                 unstagedChange == "D" || stagedChange == "D",
-			Added:                   unstagedChange == "A" || untracked,
-			HasMergeConflicts:       hasMergeConflicts,
-			HasInlineMergeConflicts: hasInlineMergeConflicts,
-			Type:                    self.getFileType(status.Name),
-			ShortStatus:             change,
+			Name:          status.Name,
+			PreviousName:  status.PreviousName,
+			DisplayString: status.StatusString,
+			Type:          self.getFileType(status.Name),
 		}
+
+		models.SetStatusFields(file, status.Change)
 		files = append(files, file)
 	}
 
@@ -125,7 +111,7 @@ func (c *FileLoader) GitStatus(opts GitStatusOptions) ([]FileStatus, error) {
 
 		if strings.HasPrefix(status.Change, "R") {
 			// if a line starts with 'R' then the next line is the original file.
-			status.PreviousName = strings.TrimSpace(splitLines[i+1])
+			status.PreviousName = splitLines[i+1]
 			status.StatusString = fmt.Sprintf("%s %s -> %s", status.Change, status.PreviousName, status.Name)
 			i++
 		}

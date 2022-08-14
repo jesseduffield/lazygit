@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -64,21 +66,20 @@ outer:
 			if strings.EqualFold(reflogBranch.Name, branch.Name) {
 				branch.Recency = reflogBranch.Recency
 				branchesWithRecency = append(branchesWithRecency, branch)
-				branches = append(branches[0:j], branches[j+1:]...)
+				branches = slices.Remove(branches, j)
 				continue outer
 			}
 		}
 	}
 
-	branches = append(branchesWithRecency, branches...)
+	branches = slices.Prepend(branches, branchesWithRecency...)
 
 	foundHead := false
 	for i, branch := range branches {
 		if branch.Head {
 			foundHead = true
 			branch.Recency = "  *"
-			branches = append(branches[0:i], branches[i+1:]...)
-			branches = append([]*models.Branch{branch}, branches...)
+			branches = slices.Move(branches, i, 0)
 			break
 		}
 	}
@@ -87,7 +88,7 @@ outer:
 		if err != nil {
 			return nil, err
 		}
-		branches = append([]*models.Branch{{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"}}, branches...)
+		branches = slices.Prepend(branches, &models.Branch{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"})
 	}
 
 	configBranches, err := self.config.Branches()
@@ -114,38 +115,47 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 
 	trimmedOutput := strings.TrimSpace(output)
 	outputLines := strings.Split(trimmedOutput, "\n")
-	branches := make([]*models.Branch, 0, len(outputLines))
-	for _, line := range outputLines {
+
+	return slices.FilterMap(outputLines, func(line string) (*models.Branch, bool) {
 		if line == "" {
-			continue
+			return nil, false
 		}
 
-		split := strings.Split(line, SEPARATION_CHAR)
+		split := strings.Split(line, "\x00")
 		if len(split) != 4 {
 			// Ignore line if it isn't separated into 4 parts
 			// This is probably a warning message, for more info see:
 			// https://github.com/jesseduffield/lazygit/issues/1385#issuecomment-885580439
-			continue
+			return nil, false
 		}
 
-		name := strings.TrimPrefix(split[1], "heads/")
-		branch := &models.Branch{
-			Name:      name,
-			Pullables: "?",
-			Pushables: "?",
-			Head:      split[0] == "*",
-		}
+		return obtainBranch(split), true
+	})
+}
 
-		upstreamName := split[2]
-		if upstreamName == "" {
-			// if we're here then it means we do not have a local version of the remote.
-			// The branch might still be tracking a remote though, we just don't know
-			// how many commits ahead/behind it is
-			branches = append(branches, branch)
-			continue
-		}
+// Obtain branch information from parsed line output of getRawBranches()
+// split contains the '|' separated tokens in the line of output
+func obtainBranch(split []string) *models.Branch {
+	name := strings.TrimPrefix(split[1], "heads/")
+	branch := &models.Branch{
+		Name:      name,
+		Pullables: "?",
+		Pushables: "?",
+		Head:      split[0] == "*",
+	}
 
-		track := split[3]
+	upstreamName := split[2]
+	if upstreamName == "" {
+		// if we're here then it means we do not have a local version of the remote.
+		// The branch might still be tracking a remote though, we just don't know
+		// how many commits ahead/behind it is
+		return branch
+	}
+
+	track := split[3]
+	if track == "[gone]" {
+		branch.UpstreamGone = true
+	} else {
 		re := regexp.MustCompile(`ahead (\d+)`)
 		match := re.FindStringSubmatch(track)
 		if len(match) > 1 {
@@ -161,30 +171,32 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 		} else {
 			branch.Pullables = "0"
 		}
-
-		branches = append(branches, branch)
 	}
 
-	return branches
+	return branch
 }
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in
 // int form against the branch to recalculate the time ago
 func (self *BranchLoader) obtainReflogBranches(reflogCommits []*models.Commit) []*models.Branch {
-	foundBranchesMap := map[string]bool{}
+	foundBranches := set.New[string]()
 	re := regexp.MustCompile(`checkout: moving from ([\S]+) to ([\S]+)`)
 	reflogBranches := make([]*models.Branch, 0, len(reflogCommits))
+
 	for _, commit := range reflogCommits {
-		if match := re.FindStringSubmatch(commit.Name); len(match) == 3 {
-			recency := utils.UnixToTimeAgo(commit.UnixTimestamp)
-			for _, branchName := range match[1:] {
-				if !foundBranchesMap[branchName] {
-					foundBranchesMap[branchName] = true
-					reflogBranches = append(reflogBranches, &models.Branch{
-						Recency: recency,
-						Name:    branchName,
-					})
-				}
+		match := re.FindStringSubmatch(commit.Name)
+		if len(match) != 3 {
+			continue
+		}
+
+		recency := utils.UnixToTimeAgo(commit.UnixTimestamp)
+		for _, branchName := range match[1:] {
+			if !foundBranches.Includes(branchName) {
+				foundBranches.Add(branchName)
+				reflogBranches = append(reflogBranches, &models.Branch{
+					Recency: recency,
+					Name:    branchName,
+				})
 			}
 		}
 	}

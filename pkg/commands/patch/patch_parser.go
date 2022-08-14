@@ -4,9 +4,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -182,29 +183,39 @@ func parsePatch(patch string) ([]int, []int, []*PatchLine) {
 }
 
 // Render returns the coloured string of the diff with any selected lines highlighted
-func (p *PatchParser) Render(firstLineIndex int, lastLineIndex int, incLineIndices []int) string {
-	renderedLines := make([]string, len(p.PatchLines))
-	for index, patchLine := range p.PatchLines {
-		selected := index >= firstLineIndex && index <= lastLineIndex
-		included := utils.IncludesInt(incLineIndices, index)
-		renderedLines[index] = patchLine.render(selected, included)
-	}
-	result := strings.Join(renderedLines, "\n")
-	if strings.TrimSpace(utils.Decolorise(result)) == "" {
+func (p *PatchParser) Render(isFocused bool, firstLineIndex int, lastLineIndex int, incLineIndices []int) string {
+	contentToDisplay := slices.Some(p.PatchLines, func(line *PatchLine) bool {
+		return line.Content != ""
+	})
+	if !contentToDisplay {
 		return ""
 	}
+
+	renderedLines := slices.MapWithIndex(p.PatchLines, func(patchLine *PatchLine, index int) string {
+		selected := isFocused && index >= firstLineIndex && index <= lastLineIndex
+		included := lo.Contains(incLineIndices, index)
+		return patchLine.render(selected, included)
+	})
+
+	result := strings.Join(renderedLines, "\n")
+
 	return result
 }
 
-// PlainRenderLines returns the non-coloured string of diff part from firstLineIndex to
-// lastLineIndex
-func (p *PatchParser) PlainRenderLines(firstLineIndex, lastLineIndex int) string {
-	linesToCopy := p.PatchLines[firstLineIndex : lastLineIndex+1]
+func (p *PatchParser) RenderPlain() string {
+	return renderLinesPlain(p.PatchLines)
+}
 
-	renderedLines := make([]string, len(linesToCopy))
-	for index, line := range linesToCopy {
-		renderedLines[index] = line.Content
-	}
+// RenderLinesPlain returns the non-coloured string of diff part from firstLineIndex to
+// lastLineIndex
+func (p *PatchParser) RenderLinesPlain(firstLineIndex, lastLineIndex int) string {
+	return renderLinesPlain(p.PatchLines[firstLineIndex : lastLineIndex+1])
+}
+
+func renderLinesPlain(lines []*PatchLine) string {
+	renderedLines := slices.Map(lines, func(line *PatchLine) string {
+		return line.Content
+	})
 
 	return strings.Join(renderedLines, "\n")
 }

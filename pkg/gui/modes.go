@@ -21,7 +21,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 				return gui.withResetButton(
 					fmt.Sprintf(
 						"%s %s",
-						gui.Tr.LcShowingGitDiff,
+						gui.c.Tr.LcShowingGitDiff,
 						"git diff "+gui.diffStr(),
 					),
 					style.FgMagenta,
@@ -30,11 +30,11 @@ func (gui *Gui) modeStatuses() []modeStatus {
 			reset: gui.exitDiffMode,
 		},
 		{
-			isActive: gui.Git.Patch.PatchManager.Active,
+			isActive: gui.git.Patch.PatchManager.Active,
 			description: func() string {
-				return gui.withResetButton(gui.Tr.LcBuildingPatch, style.FgYellow.SetBold())
+				return gui.withResetButton(gui.c.Tr.LcBuildingPatch, style.FgYellow.SetBold())
 			},
-			reset: gui.handleResetPatch,
+			reset: gui.helpers.PatchBuilding.Reset,
 		},
 		{
 			isActive: gui.State.Modes.Filtering.Active,
@@ -42,7 +42,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 				return gui.withResetButton(
 					fmt.Sprintf(
 						"%s '%s'",
-						gui.Tr.LcFilteringBy,
+						gui.c.Tr.LcFilteringBy,
 						gui.State.Modes.Filtering.GetPath(),
 					),
 					style.FgRed,
@@ -61,28 +61,28 @@ func (gui *Gui) modeStatuses() []modeStatus {
 					style.FgCyan,
 				)
 			},
-			reset: gui.exitCherryPickingMode,
+			reset: gui.helpers.CherryPick.Reset,
 		},
 		{
 			isActive: func() bool {
-				return gui.Git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE
+				return gui.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE
 			},
 			description: func() string {
-				workingTreeState := gui.Git.Status.WorkingTreeState()
+				workingTreeState := gui.git.Status.WorkingTreeState()
 				return gui.withResetButton(
 					formatWorkingTreeState(workingTreeState), style.FgYellow,
 				)
 			},
-			reset: gui.abortMergeOrRebaseWithConfirm,
+			reset: gui.helpers.MergeAndRebase.AbortMergeOrRebaseWithConfirm,
 		},
 		{
 			isActive: func() bool {
-				return gui.State.BisectInfo.Started()
+				return gui.State.Model.BisectInfo.Started()
 			},
 			description: func() string {
 				return gui.withResetButton("bisecting", style.FgGreen)
 			},
-			reset: gui.resetBisect,
+			reset: gui.helpers.Bisect.Reset,
 		},
 	}
 }
@@ -91,6 +91,6 @@ func (gui *Gui) withResetButton(content string, textStyle style.TextStyle) strin
 	return textStyle.Sprintf(
 		"%s %s",
 		content,
-		style.AttrUnderline.Sprint(gui.Tr.ResetInParentheses),
+		style.AttrUnderline.Sprint(gui.c.Tr.ResetInParentheses),
 	)
 }

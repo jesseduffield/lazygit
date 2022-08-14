@@ -1,105 +1,79 @@
 package gui
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type menuItem struct {
-	displayString  string
-	displayStrings []string
-	onPress        func() error
-	// only applies when displayString is used
-	opensMenu bool
-}
-
-// every item in a list context needs an ID
-func (i *menuItem) ID() string {
-	if i.displayString != "" {
-		return i.displayString
-	}
-
-	return strings.Join(i.displayStrings, "-")
-}
-
-// specific functions
-
 func (gui *Gui) getMenuOptions() map[string]string {
-	keybindingConfig := gui.UserConfig.Keybinding
+	keybindingConfig := gui.c.UserConfig.Keybinding
 
 	return map[string]string{
-		gui.getKeyDisplay(keybindingConfig.Universal.Return): gui.Tr.LcClose,
-		fmt.Sprintf("%s %s", gui.getKeyDisplay(keybindingConfig.Universal.PrevItem), gui.getKeyDisplay(keybindingConfig.Universal.NextItem)): gui.Tr.LcNavigate,
-		gui.getKeyDisplay(keybindingConfig.Universal.Select): gui.Tr.LcExecute,
+		keybindings.Label(keybindingConfig.Universal.Return): gui.c.Tr.LcClose,
+		fmt.Sprintf("%s %s", keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
+		keybindings.Label(keybindingConfig.Universal.Select): gui.c.Tr.LcExecute,
 	}
 }
 
-func (gui *Gui) handleMenuClose() error {
-	return gui.returnFromContext()
-}
-
-type createMenuOptions struct {
-	showCancel bool
-}
-
-func (gui *Gui) createMenu(title string, items []*menuItem, createMenuOptions createMenuOptions) error {
-	if createMenuOptions.showCancel {
+// note: items option is mutated by this function
+func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
+	if !opts.HideCancel {
 		// this is mutative but I'm okay with that for now
-		items = append(items, &menuItem{
-			displayStrings: []string{gui.Tr.LcCancel},
-			onPress: func() error {
+		opts.Items = append(opts.Items, &types.MenuItem{
+			LabelColumns: []string{gui.c.Tr.LcCancel},
+			OnPress: func() error {
 				return nil
 			},
 		})
 	}
 
-	gui.State.MenuItems = items
+	maxColumnSize := 1
 
-	stringArrays := make([][]string, len(items))
-	for i, item := range items {
-		if item.opensMenu && item.displayStrings != nil {
-			return errors.New("Message for the developer of this app: you've set opensMenu with displaystrings on the menu panel. Bad developer!. Apologies, user")
+	for _, item := range opts.Items {
+		if item.LabelColumns == nil {
+			item.LabelColumns = []string{item.Label}
 		}
 
-		if item.displayStrings == nil {
-			styledStr := item.displayString
-			if item.opensMenu {
-				styledStr = opensMenuStyle(styledStr)
-			}
-			stringArrays[i] = []string{styledStr}
-		} else {
-			stringArrays[i] = item.displayStrings
+		if item.OpensMenu {
+			item.LabelColumns[0] = presentation.OpensMenuStyle(item.LabelColumns[0])
+		}
+
+		maxColumnSize = utils.Max(maxColumnSize, len(item.LabelColumns))
+	}
+
+	for _, item := range opts.Items {
+		if len(item.LabelColumns) < maxColumnSize {
+			// we require that each item has the same number of columns so we're padding out with blank strings
+			// if this item has too few
+			item.LabelColumns = append(item.LabelColumns, make([]string, maxColumnSize-len(item.LabelColumns))...)
 		}
 	}
 
-	list := utils.RenderDisplayStrings(stringArrays)
+	gui.State.Contexts.Menu.SetMenuItems(opts.Items)
+	gui.State.Contexts.Menu.SetSelectedLineIdx(0)
 
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(false, list)
-	menuView, _ := gui.g.SetView("menu", x0, y0, x1, y1, 0)
-	menuView.Title = title
-	menuView.FgColor = theme.GocuiDefaultTextColor
-	menuView.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
+	gui.Views.Menu.Title = opts.Title
+	gui.Views.Menu.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Menu.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
 		return nil
 	}))
-	menuView.SetContent(list)
-	gui.State.Panels.Menu.SelectedLineIdx = 0
 
-	return gui.pushContext(gui.State.Contexts.Menu)
-}
+	gui.Views.Tooltip.Wrap = true
+	gui.Views.Tooltip.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Tooltip.Visible = true
 
-func (gui *Gui) onMenuPress() error {
-	selectedLine := gui.State.Panels.Menu.SelectedLineIdx
-	if err := gui.returnFromContext(); err != nil {
+	// resetting keybindings so that the menu-specific keybindings are registered
+	if err := gui.resetKeybindings(); err != nil {
 		return err
 	}
 
-	if err := gui.State.MenuItems[selectedLine].onPress(); err != nil {
-		return err
-	}
+	_ = gui.c.PostRefreshUpdate(gui.State.Contexts.Menu)
 
-	return nil
+	// TODO: ensure that if we're opened a menu from within a menu that it renders correctly
+	return gui.c.PushContext(gui.State.Contexts.Menu)
 }

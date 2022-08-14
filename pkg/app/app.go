@@ -2,10 +2,8 @@ package app
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -13,117 +11,91 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aybabtme/humanlog"
+	"github.com/go-errors/errors"
+
+	"github.com/jesseduffield/generics/slices"
+	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/updates"
-	"github.com/sirupsen/logrus"
 )
 
-// App struct
+// App is the struct that's instantiated from within main.go and it manages
+// bootstrapping and running the application.
 type App struct {
 	*common.Common
-	closers       []io.Closer
-	Config        config.AppConfigurer
-	OSCommand     *oscommands.OSCommand
-	Gui           *gui.Gui
-	Updater       *updates.Updater // may only need this on the Gui
-	ClientContext string
+	closers   []io.Closer
+	Config    config.AppConfigurer
+	OSCommand *oscommands.OSCommand
+	Gui       *gui.Gui
+	Updater   *updates.Updater // may only need this on the Gui
 }
 
-type errorMapping struct {
-	originalError string
-	newError      string
-}
+func Run(
+	config config.AppConfigurer,
+	common *common.Common,
+	startArgs appTypes.StartArgs,
+) {
+	app, err := NewApp(config, common)
 
-func newProductionLogger() *logrus.Logger {
-	log := logrus.New()
-	log.Out = ioutil.Discard
-	log.SetLevel(logrus.ErrorLevel)
-	return log
-}
+	if err == nil {
+		err = app.Run(startArgs)
+	}
 
-func getLogLevel() logrus.Level {
-	strLevel := os.Getenv("LOG_LEVEL")
-	level, err := logrus.ParseLevel(strLevel)
 	if err != nil {
-		return logrus.DebugLevel
+		if errorMessage, known := knownError(common.Tr, err); known {
+			log.Fatal(errorMessage)
+		}
+		newErr := errors.Wrap(err, 0)
+		stackTrace := newErr.ErrorStack()
+		app.Log.Error(stackTrace)
+
+		log.Fatalf("%s: %s\n\n%s", common.Tr.ErrorOccurred, constants.Links.Issues, stackTrace)
 	}
-	return level
 }
 
-func newDevelopmentLogger() *logrus.Logger {
-	logger := logrus.New()
-	logger.SetLevel(getLogLevel())
-	logPath, err := config.LogPath()
-	if err != nil {
-		log.Fatal(err)
-	}
-	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("Unable to log to log file: %v", err)
-	}
-	logger.SetOutput(file)
-	return logger
-}
-
-func newLogger(config config.AppConfigurer) *logrus.Entry {
-	var log *logrus.Logger
-	if config.GetDebug() || os.Getenv("DEBUG") == "TRUE" {
-		log = newDevelopmentLogger()
-	} else {
-		log = newProductionLogger()
-	}
-
-	// highly recommended: tail -f development.log | humanlog
-	// https://github.com/aybabtme/humanlog
-	log.Formatter = &logrus.JSONFormatter{}
-
-	return log.WithFields(logrus.Fields{
-		"debug":     config.GetDebug(),
-		"version":   config.GetVersion(),
-		"commit":    config.GetCommit(),
-		"buildDate": config.GetBuildDate(),
-	})
-}
-
-// NewApp bootstrap a new application
-func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
+func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 	userConfig := config.GetUserConfig()
 
-	app := &App{
-		closers: []io.Closer{},
-		Config:  config,
-	}
 	var err error
 	log := newLogger(config)
 	tr, err := i18n.NewTranslationSetFromConfig(log, userConfig.Gui.Language)
 	if err != nil {
-		return app, err
+		return nil, err
 	}
 
-	app.Common = &common.Common{
+	return &common.Common{
 		Log:        log,
 		Tr:         tr,
 		UserConfig: userConfig,
 		Debug:      config.GetDebug(),
+	}, nil
+}
+
+// NewApp bootstrap a new application
+func NewApp(config config.AppConfigurer, common *common.Common) (*App, error) {
+	app := &App{
+		closers: []io.Closer{},
+		Config:  config,
+		Common:  common,
 	}
 
-	// if we are being called in 'demon' mode, we can just return here
-	app.ClientContext = os.Getenv("LAZYGIT_CLIENT_COMMAND")
-	if app.ClientContext != "" {
-		return app, nil
+	app.OSCommand = oscommands.NewOSCommand(common, config, oscommands.GetPlatform(), oscommands.NewNullGuiIO(app.Log))
+
+	var err error
+	app.Updater, err = updates.NewUpdater(common, config, app.OSCommand)
+	if err != nil {
+		return app, err
 	}
 
-	app.OSCommand = oscommands.NewOSCommand(app.Common, oscommands.GetPlatform(), oscommands.NewNullGuiIO(log))
-
-	app.Updater, err = updates.NewUpdater(app.Common, config, app.OSCommand)
+	dirName, err := os.Getwd()
 	if err != nil {
 		return app, err
 	}
@@ -135,7 +107,7 @@ func NewApp(config config.AppConfigurer, filterPath string) (*App, error) {
 
 	gitConfig := git_config.NewStdCachedGitConfig(app.Log)
 
-	app.Gui, err = gui.NewGui(app.Common, config, gitConfig, app.Updater, filterPath, showRecentRepos)
+	app.Gui, err = gui.NewGui(common, config, gitConfig, app.Updater, showRecentRepos, dirName)
 	if err != nil {
 		return app, err
 	}
@@ -200,27 +172,9 @@ func isGitVersionValid(versionStr string) bool {
 	return true
 }
 
-func isGhVersionValid(versionStr string) bool {
-	// output should be something like:
-	// gh version 2.0.0 (2021-08-23)
-	// https://github.com/cli/cli/releases/tag/v2.0.0
-	re := regexp.MustCompile(`[^\d]+([\d\.]+)`)
-	matches := re.FindStringSubmatch(versionStr)
-
-	if len(matches) == 0 {
-		return false
-	}
-
-	ghVersion := matches[1]
-	majorVersion, err := strconv.Atoi(ghVersion[0:1])
-	if err != nil {
-		return false
-	}
-	if majorVersion < 2 {
-		return false
-	}
-
-	return true
+func isDirectoryAGitRepository(dir string) (bool, error) {
+	info, err := os.Stat(filepath.Join(dir, ".git"))
+	return info != nil, err
 }
 
 func (app *App) setupRepo() (bool, error) {
@@ -239,146 +193,69 @@ func (app *App) setupRepo() (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		info, _ := os.Stat(filepath.Join(cwd, ".git"))
-		if info != nil && info.IsDir() {
-			return false, err // Current directory appears to be a git repository.
+		if isRepo, err := isDirectoryAGitRepository(cwd); isRepo {
+			return false, err
 		}
 
-		shouldInitRepo := true
-		notARepository := app.UserConfig.NotARepository
-		if notARepository == "prompt" {
+		var shouldInitRepo bool
+		initialBranchArg := ""
+		switch app.UserConfig.NotARepository {
+		case "prompt":
 			// Offer to initialize a new repository in current directory.
 			fmt.Print(app.Tr.CreateRepo)
 			response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-			if strings.Trim(response, " \n") != "y" {
-				shouldInitRepo = false
-			}
-		} else if notARepository == "skip" {
-			shouldInitRepo = false
-		}
-
-		if !shouldInitRepo {
-			// check if we have a recent repo we can open
-			recentRepos := app.Config.GetAppState().RecentRepos
-			if len(recentRepos) > 0 {
-				var err error
-				// try opening each repo in turn, in case any have been deleted
-				for _, repoDir := range recentRepos {
-					if err = os.Chdir(repoDir); err == nil {
-						return true, nil
-					}
+			shouldInitRepo = (strings.Trim(response, " \r\n") == "y")
+			if shouldInitRepo {
+				// Ask for the initial branch name
+				fmt.Print(app.Tr.InitialBranch)
+				response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+				if trimmedResponse := strings.Trim(response, " \r\n"); len(trimmedResponse) > 0 {
+					initialBranchArg += "--initial-branch=" + app.OSCommand.Quote(trimmedResponse)
 				}
-				return false, err
 			}
-
+		case "create":
+			shouldInitRepo = true
+		case "skip":
+			shouldInitRepo = false
+		case "quit":
+			fmt.Fprintln(os.Stderr, app.Tr.NotARepository)
+			os.Exit(1)
+		default:
+			fmt.Fprintln(os.Stderr, app.Tr.IncorrectNotARepository)
 			os.Exit(1)
 		}
-		if err := app.OSCommand.Cmd.New("git init").Run(); err != nil {
-			return false, err
+
+		if shouldInitRepo {
+			if err := app.OSCommand.Cmd.New("git init " + initialBranchArg).Run(); err != nil {
+				return false, err
+			}
+			return false, nil
 		}
+
+		// check if we have a recent repo we can open
+		for _, repoDir := range app.Config.GetAppState().RecentRepos {
+			if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
+				if err := os.Chdir(repoDir); err == nil {
+					return true, nil
+				}
+			}
+		}
+
+		fmt.Fprintln(os.Stderr, app.Tr.NoRecentRepositories)
+		os.Exit(1)
 	}
 
 	return false, nil
 }
 
-func (app *App) Run() error {
-	if app.ClientContext == "INTERACTIVE_REBASE" {
-		return app.Rebase()
-	}
-
-	if app.ClientContext == "EXIT_IMMEDIATELY" {
-		os.Exit(0)
-	}
-
-	err := app.Gui.RunAndHandleError()
+func (app *App) Run(startArgs appTypes.StartArgs) error {
+	err := app.Gui.RunAndHandleError(startArgs)
 	return err
-}
-
-func gitDir() string {
-	dir := env.GetGitDirEnv()
-	if dir == "" {
-		return ".git"
-	}
-	return dir
-}
-
-// Rebase contains logic for when we've been run in demon mode, meaning we've
-// given lazygit as a command for git to call e.g. to edit a file
-func (app *App) Rebase() error {
-	app.Log.Info("Lazygit invoked as interactive rebase demon")
-	app.Log.Info("args: ", os.Args)
-
-	if strings.HasSuffix(os.Args[1], "git-rebase-todo") {
-		if err := ioutil.WriteFile(os.Args[1], []byte(os.Getenv("LAZYGIT_REBASE_TODO")), 0644); err != nil {
-			return err
-		}
-
-	} else if strings.HasSuffix(os.Args[1], filepath.Join(gitDir(), "COMMIT_EDITMSG")) { // TODO: test
-		// if we are rebasing and squashing, we'll see a COMMIT_EDITMSG
-		// but in this case we don't need to edit it, so we'll just return
-	} else {
-		app.Log.Info("Lazygit demon did not match on any use cases")
-	}
-
-	return nil
 }
 
 // Close closes any resources
 func (app *App) Close() error {
-	for _, closer := range app.closers {
-		err := closer.Close()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// KnownError takes an error and tells us whether it's an error that we know about where we can print a nicely formatted version of it rather than panicking with a stack trace
-func (app *App) KnownError(err error) (string, bool) {
-	errorMessage := err.Error()
-
-	knownErrorMessages := []string{app.Tr.MinGitVersionError}
-
-	for _, message := range knownErrorMessages {
-		if errorMessage == message {
-			return message, true
-		}
-	}
-
-	mappings := []errorMapping{
-		{
-			originalError: "fatal: not a git repository",
-			newError:      app.Tr.NotARepository,
-		},
-	}
-
-	for _, mapping := range mappings {
-		if strings.Contains(errorMessage, mapping.originalError) {
-			return mapping.newError, true
-		}
-	}
-	return "", false
-}
-
-func TailLogs() {
-	logFilePath, err := config.LogPath()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Tailing log file %s\n\n", logFilePath)
-
-	opts := humanlog.DefaultOptions
-	opts.Truncates = false
-
-	_, err = os.Stat(logFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			log.Fatal("Log file does not exist. Run `lazygit --debug` first to create the log file")
-		}
-		log.Fatal(err)
-	}
-
-	TailLogsForPlatform(logFilePath, opts)
+	return slices.TryForEach(app.closers, func(closer io.Closer) error {
+		return closer.Close()
+	})
 }

@@ -2,16 +2,18 @@ package presentation
 
 import (
 	"strings"
-	"sync"
 
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/kyokomi/emoji/v2"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type pipeSetCacheKey struct {
@@ -19,8 +21,10 @@ type pipeSetCacheKey struct {
 	commitCount int
 }
 
-var pipeSetCache = make(map[pipeSetCacheKey][][]*graph.Pipe)
-var mutex sync.Mutex
+var (
+	pipeSetCache = make(map[pipeSetCacheKey][][]*graph.Pipe)
+	mutex        deadlock.Mutex
+)
 
 type bisectBounds struct {
 	newIndex int
@@ -30,8 +34,9 @@ type bisectBounds struct {
 func GetCommitListDisplayStrings(
 	commits []*models.Commit,
 	fullDescription bool,
-	cherryPickedCommitShaMap map[string]bool,
+	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
+	timeFormat string,
 	parseEmoji bool,
 	selectedCommitSha string,
 	startIdx int,
@@ -92,8 +97,9 @@ func GetCommitListDisplayStrings(
 		bisectStatus = getBisectStatus(unfilteredIdx, commit.Sha, bisectInfo, bisectBounds)
 		lines = append(lines, displayCommit(
 			commit,
-			cherryPickedCommitShaMap,
+			cherryPickedCommitShaSet,
 			diffName,
+			timeFormat,
 			parseEmoji,
 			getGraphLine(unfilteredIdx),
 			fullDescription,
@@ -152,7 +158,7 @@ func loadPipesets(commits []*models.Commit) [][]*graph.Pipe {
 		// pipe sets are unique to a commit head. and a commit count. Sometimes we haven't loaded everything for that.
 		// so let's just cache it based on that.
 		getStyle := func(commit *models.Commit) style.TextStyle {
-			return authors.AuthorStyle(commit.Author)
+			return authors.AuthorStyle(commit.AuthorName)
 		}
 		pipeSets = graph.GetPipeSets(commits, getStyle)
 		pipeSetCache[cacheKey] = pipeSets
@@ -226,6 +232,8 @@ func getBisectStatusText(bisectStatus BisectStatus, bisectInfo *git_commands.Bis
 		return style.Sprintf("<-- skipped")
 	case BisectStatusCandidate:
 		return style.Sprintf("?")
+	case BisectStatusNone:
+		return ""
 	}
 
 	return ""
@@ -233,15 +241,16 @@ func getBisectStatusText(bisectStatus BisectStatus, bisectInfo *git_commands.Bis
 
 func displayCommit(
 	commit *models.Commit,
-	cherryPickedCommitShaMap map[string]bool,
+	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
+	timeFormat string,
 	parseEmoji bool,
 	graphLine string,
 	fullDescription bool,
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
 ) []string {
-	shaColor := getShaColor(commit, diffName, cherryPickedCommitShaMap, bisectStatus, bisectInfo)
+	shaColor := getShaColor(commit, diffName, cherryPickedCommitShaSet, bisectStatus, bisectInfo)
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
 
 	actionString := ""
@@ -270,16 +279,19 @@ func displayCommit(
 		authorFunc = authors.LongAuthor
 	}
 
-	cols := make([]string, 0, 5)
+	cols := make([]string, 0, 7)
+	if icons.IsIconEnabled() {
+		cols = append(cols, shaColor.Sprint(icons.IconForCommit(commit)))
+	}
 	cols = append(cols, shaColor.Sprint(commit.ShortSha()))
 	cols = append(cols, bisectString)
 	if fullDescription {
-		cols = append(cols, style.FgBlue.Sprint(utils.UnixToDate(commit.UnixTimestamp)))
+		cols = append(cols, style.FgBlue.Sprint(utils.UnixToDate(commit.UnixTimestamp, timeFormat)))
 	}
 	cols = append(
 		cols,
 		actionString,
-		authorFunc(commit.Author),
+		authorFunc(commit.AuthorName),
 		graphLine+tagString+theme.DefaultTextColor.Sprint(name),
 	)
 
@@ -309,7 +321,7 @@ func getBisectStatusColor(status BisectStatus) style.TextStyle {
 func getShaColor(
 	commit *models.Commit,
 	diffName string,
-	cherryPickedCommitShaMap map[string]bool,
+	cherryPickedCommitShaSet *set.Set[string],
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
 ) style.TextStyle {
@@ -334,7 +346,7 @@ func getShaColor(
 
 	if diffed {
 		shaColor = theme.DiffTerminalColor
-	} else if cherryPickedCommitShaMap[commit.Sha] {
+	} else if cherryPickedCommitShaSet.Includes(commit.Sha) {
 		shaColor = theme.CherryPickedCommitTextStyle
 	}
 

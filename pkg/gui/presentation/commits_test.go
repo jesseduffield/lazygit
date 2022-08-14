@@ -1,10 +1,12 @@
 package presentation
 
 import (
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/gookit/color"
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -25,8 +27,9 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		testName                 string
 		commits                  []*models.Commit
 		fullDescription          bool
-		cherryPickedCommitShaMap map[string]bool
+		cherryPickedCommitShaSet *set.Set[string]
 		diffName                 string
+		timeFormat               string
 		parseEmoji               bool
 		selectedCommitSha        string
 		startIdx                 int
@@ -37,13 +40,14 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		focus                    bool
 	}{
 		{
-			testName:   "no commits",
-			commits:    []*models.Commit{},
-			startIdx:   0,
-			length:     1,
-			showGraph:  false,
-			bisectInfo: git_commands.NewNullBisectInfo(),
-			expected:   "",
+			testName:                 "no commits",
+			commits:                  []*models.Commit{},
+			startIdx:                 0,
+			length:                   1,
+			showGraph:                false,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
+			expected:                 "",
 		},
 		{
 			testName: "some commits",
@@ -51,10 +55,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit1", Sha: "sha1"},
 				{Name: "commit2", Sha: "sha2"},
 			},
-			startIdx:   0,
-			length:     2,
-			showGraph:  false,
-			bisectInfo: git_commands.NewNullBisectInfo(),
+			startIdx:                 0,
+			length:                   2,
+			showGraph:                false,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
 			expected: formatExpected(`
 		sha1 commit1
 		sha2 commit2
@@ -69,10 +74,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
-			startIdx:   0,
-			length:     5,
-			showGraph:  true,
-			bisectInfo: git_commands.NewNullBisectInfo(),
+			startIdx:                 0,
+			length:                   5,
+			showGraph:                true,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
 			expected: formatExpected(`
 		sha1 ⏣─╮ commit1
 		sha2 ◯ │ commit2
@@ -90,10 +96,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
-			startIdx:   0,
-			length:     5,
-			showGraph:  true,
-			bisectInfo: git_commands.NewNullBisectInfo(),
+			startIdx:                 0,
+			length:                   5,
+			showGraph:                true,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
 			expected: formatExpected(`
 		sha1 pick  commit1
 		sha2 pick  commit2
@@ -111,10 +118,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
-			startIdx:   1,
-			length:     10,
-			showGraph:  true,
-			bisectInfo: git_commands.NewNullBisectInfo(),
+			startIdx:                 1,
+			length:                   10,
+			showGraph:                true,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
 			expected: formatExpected(`
 		sha2 pick  commit2
 		sha3       ◯ commit3
@@ -131,10 +139,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
-			startIdx:   3,
-			length:     2,
-			showGraph:  true,
-			bisectInfo: git_commands.NewNullBisectInfo(),
+			startIdx:                 3,
+			length:                   2,
+			showGraph:                true,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
 			expected: formatExpected(`
 		sha4 ◯ commit4
 		sha5 ◯ commit5
@@ -149,10 +158,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
-			startIdx:   0,
-			length:     2,
-			showGraph:  true,
-			bisectInfo: git_commands.NewNullBisectInfo(),
+			startIdx:                 0,
+			length:                   2,
+			showGraph:                true,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
 			expected: formatExpected(`
 		sha1 pick  commit1
 		sha2 pick  commit2
@@ -167,10 +177,11 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}},
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
-			startIdx:   4,
-			length:     2,
-			showGraph:  true,
-			bisectInfo: git_commands.NewNullBisectInfo(),
+			startIdx:                 4,
+			length:                   2,
+			showGraph:                true,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
 			expected: formatExpected(`
 			sha5 ◯ commit5
 				`),
@@ -184,16 +195,37 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit4", Sha: "sha4", Parents: []string{"sha5"}, Action: "pick"},
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
-			startIdx:   0,
-			length:     2,
-			showGraph:  true,
-			bisectInfo: git_commands.NewNullBisectInfo(),
+			startIdx:                 0,
+			length:                   2,
+			showGraph:                true,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
 			expected: formatExpected(`
 			sha1 pick  commit1
 			sha2 pick  commit2
 				`),
 		},
+		{
+			testName: "custom time format",
+			commits: []*models.Commit{
+				{Name: "commit1", Sha: "sha1", UnixTimestamp: 1652443200, AuthorName: "Jesse Duffield"},
+				{Name: "commit2", Sha: "sha2", UnixTimestamp: 1652529600, AuthorName: "Jesse Duffield"},
+			},
+			fullDescription:          true,
+			timeFormat:               "2006-01-02 15:04:05",
+			startIdx:                 0,
+			length:                   2,
+			showGraph:                false,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
+			expected: formatExpected(`
+		sha1 2022-05-13 12:00:00 Jesse Duffield    commit1
+		sha2 2022-05-14 12:00:00 Jesse Duffield    commit2
+						`),
+		},
 	}
+
+	os.Setenv("TZ", "UTC")
 
 	focusing := false
 	for _, scenario := range scenarios {
@@ -209,8 +241,9 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				result := GetCommitListDisplayStrings(
 					s.commits,
 					s.fullDescription,
-					s.cherryPickedCommitShaMap,
+					s.cherryPickedCommitShaSet,
 					s.diffName,
+					s.timeFormat,
 					s.parseEmoji,
 					s.selectedCommitSha,
 					s.startIdx,

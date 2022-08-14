@@ -79,3 +79,4 @@ This package is licensed under the MIT license, see LICENSE.MIT for details.
 > ```
 * v1.4.0 *BREAKING* v1.4.0 reverted all changes from v1.3.0 and is identical to v1.2.0
 * v1.4.1 no code change, but now without an unnecessary cover.out file.
+* v1.4.2 performance improvement to ErrorStack() to avoid unnecessary work https://github.com/go-errors/errors/pull/40

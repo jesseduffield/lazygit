@@ -1,14 +1,11 @@
 package mergeconflicts
 
 import (
-	"sync"
-
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
+// State represents the selection state of the merge conflict context.
 type State struct {
-	sync.Mutex
-
 	// path of the file with the conflicts
 	path string
 
@@ -27,7 +24,6 @@ type State struct {
 
 func NewState() *State {
 	return &State{
-		Mutex:          sync.Mutex{},
 		conflictIndex:  0,
 		selectionIndex: 0,
 		conflicts:      []*mergeConflict{},
@@ -39,14 +35,14 @@ func (s *State) setConflictIndex(index int) {
 	if len(s.conflicts) == 0 {
 		s.conflictIndex = 0
 	} else {
-		s.conflictIndex = clamp(index, 0, len(s.conflicts)-1)
+		s.conflictIndex = utils.Clamp(index, 0, len(s.conflicts)-1)
 	}
 	s.setSelectionIndex(s.selectionIndex)
 }
 
 func (s *State) setSelectionIndex(index int) {
 	if selections := s.availableSelections(); len(selections) != 0 {
-		s.selectionIndex = clamp(index, 0, len(selections)-1)
+		s.selectionIndex = utils.Clamp(index, 0, len(selections)-1)
 	}
 }
 
@@ -150,6 +146,12 @@ func (s *State) Reset() {
 	s.path = ""
 }
 
+// we're not resetting selectedIndex here because the user typically would want
+// to pick either all top hunks or all bottom hunks so we retain that selection
+func (s *State) ResetConflictSelection() {
+	s.conflictIndex = 0
+}
+
 func (s *State) Active() bool {
 	return s.path != ""
 }
@@ -176,7 +178,6 @@ func (s *State) ContentAfterConflictResolve(selection Selection) (bool, string, 
 			content += line
 		}
 	})
-
 	if err != nil {
 		return false, "", err
 	}
@@ -184,11 +185,12 @@ func (s *State) ContentAfterConflictResolve(selection Selection) (bool, string, 
 	return true, content, nil
 }
 
-func clamp(x int, min int, max int) int {
-	if x < min {
-		return min
-	} else if x > max {
-		return max
+func (s *State) GetSelectedLine() int {
+	conflict := s.currentConflict()
+	if conflict == nil {
+		return 1
 	}
-	return x
+	selection := s.Selection()
+	startIndex, _ := selection.bounds(conflict)
+	return startIndex + 1
 }

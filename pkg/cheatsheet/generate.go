@@ -12,18 +12,32 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sort"
 
+	"github.com/jesseduffield/generics/maps"
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/jesseduffield/lazygit/pkg/integration"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type bindingSection struct {
 	title    string
-	bindings []*gui.Binding
+	bindings []*types.Binding
+}
+
+type header struct {
+	// priority decides the order of the headers in the cheatsheet (lower means higher)
+	priority int
+	title    string
+}
+
+type headerWithBindings struct {
+	header   header
+	bindings []*types.Binding
 }
 
 func CommandToRun() string {
@@ -31,25 +45,28 @@ func CommandToRun() string {
 }
 
 func GetDir() string {
-	return integration.GetRootDirectory() + "/docs/keybindings"
+	return utils.GetLazygitRootDirectory() + "/docs/keybindings"
 }
 
 func generateAtDir(cheatsheetDir string) {
-	os.Setenv("LANG", "en")
-
 	translationSetsByLang := i18n.GetTranslationSets()
 	mConfig := config.NewDummyAppConfig()
 
 	for lang := range translationSetsByLang {
-		os.Setenv("LC_ALL", lang)
-		mApp, _ := app.NewApp(mConfig, "")
+		mConfig.GetUserConfig().Gui.Language = lang
+		common, err := app.NewCommon(mConfig)
+		if err != nil {
+			log.Fatal(err)
+		}
+		mApp, _ := app.NewApp(mConfig, common)
 		path := cheatsheetDir + "/Keybindings_" + lang + ".md"
 		file, err := os.Create(path)
 		if err != nil {
 			panic(err)
 		}
 
-		bindingSections := getBindingSections(mApp)
+		bindings := mApp.Gui.GetCheatsheetKeybindings()
+		bindingSections := getBindingSections(bindings, mApp.Tr)
 		content := formatSections(mApp.Tr, bindingSections)
 		content = fmt.Sprintf("_This file is auto-generated. To update, make the changes in the "+
 			"pkg/i18n directory and then run `%s` from the project root._\n\n%s", CommandToRun(), content)
@@ -68,9 +85,7 @@ func writeString(file *os.File, str string) {
 	}
 }
 
-func localisedTitle(mApp *app.App, str string) string {
-	tr := mApp.Tr
-
+func localisedTitle(tr *i18n.TranslationSet, str string) string {
 	contextTitleMap := map[string]string{
 		"global":         tr.GlobalTitle,
 		"navigation":     tr.NavigationTitle,
@@ -88,12 +103,10 @@ func localisedTitle(mApp *app.App, str string) string {
 		"commitMessage":  tr.CommitMessageTitle,
 		"commits":        tr.CommitsTitle,
 		"confirmation":   tr.ConfirmationTitle,
-		"credentials":    tr.CredentialsTitle,
 		"information":    tr.InformationTitle,
-		"main":           tr.MainTitle,
+		"main":           tr.NormalTitle,
 		"patchBuilding":  tr.PatchBuildingTitle,
-		"merging":        tr.MergingTitle,
-		"normal":         tr.NormalTitle,
+		"mergeConflicts": tr.MergingTitle,
 		"staging":        tr.StagingTitle,
 		"menu":           tr.MenuTitle,
 		"search":         tr.SearchTitle,
@@ -111,142 +124,59 @@ func localisedTitle(mApp *app.App, str string) string {
 	return title
 }
 
-func formatTitle(title string) string {
-	return fmt.Sprintf("\n## %s\n\n", title)
-}
-
-func formatBinding(binding *gui.Binding) string {
-	if binding.Alternative != "" {
-		return fmt.Sprintf("  <kbd>%s</kbd>: %s (%s)\n", gui.GetKeyDisplay(binding.Key), binding.Description, binding.Alternative)
-	}
-	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", gui.GetKeyDisplay(binding.Key), binding.Description)
-}
-
-func getBindingSections(mApp *app.App) []*bindingSection {
-	bindingSections := []*bindingSection{}
-
-	bindings := mApp.Gui.GetInitialKeybindings()
-
-	type contextAndViewType struct {
-		subtitle string
-		title    string
-	}
-
-	contextAndViewBindingMap := map[contextAndViewType][]*gui.Binding{}
-
-outer:
-	for _, binding := range bindings {
-		if binding.Tag == "navigation" {
-			key := contextAndViewType{subtitle: "", title: "navigation"}
-			existing := contextAndViewBindingMap[key]
-			if existing == nil {
-				contextAndViewBindingMap[key] = []*gui.Binding{binding}
-			} else {
-				for _, navBinding := range contextAndViewBindingMap[key] {
-					if navBinding.Description == binding.Description {
-						continue outer
-					}
-				}
-				contextAndViewBindingMap[key] = append(contextAndViewBindingMap[key], binding)
-			}
-
-			continue outer
-		}
-
-		contexts := []string{}
-		if len(binding.Contexts) == 0 {
-			contexts = append(contexts, "")
-		} else {
-			contexts = append(contexts, binding.Contexts...)
-		}
-
-		for _, context := range contexts {
-			key := contextAndViewType{subtitle: context, title: binding.ViewName}
-			existing := contextAndViewBindingMap[key]
-			if existing == nil {
-				contextAndViewBindingMap[key] = []*gui.Binding{binding}
-			} else {
-				contextAndViewBindingMap[key] = append(contextAndViewBindingMap[key], binding)
-			}
-		}
-	}
-
-	type groupedBindingsType struct {
-		contextAndView contextAndViewType
-		bindings       []*gui.Binding
-	}
-
-	groupedBindings := make([]groupedBindingsType, len(contextAndViewBindingMap))
-
-	for contextAndView, contextBindings := range contextAndViewBindingMap {
-		groupedBindings = append(groupedBindings, groupedBindingsType{contextAndView: contextAndView, bindings: contextBindings})
-	}
-
-	sort.Slice(groupedBindings, func(i, j int) bool {
-		first := groupedBindings[i].contextAndView
-		second := groupedBindings[j].contextAndView
-		if first.title == "" {
-			return true
-		}
-		if second.title == "" {
+func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*bindingSection {
+	excludedViews := []string{"stagingSecondary", "patchBuildingSecondary"}
+	bindingsToDisplay := slices.Filter(bindings, func(binding *types.Binding) bool {
+		if lo.Contains(excludedViews, binding.ViewName) {
 			return false
 		}
-		if first.title == "navigation" {
-			return true
-		}
-		if second.title == "navigation" {
-			return false
-		}
-		return first.title < second.title || (first.title == second.title && first.subtitle < second.subtitle)
+
+		return (binding.Description != "" || binding.Alternative != "")
 	})
 
-	for _, group := range groupedBindings {
-		contextAndView := group.contextAndView
-		contextBindings := group.bindings
-		mApp.Log.Info("viewname: " + contextAndView.title + ", context: " + contextAndView.subtitle)
-		viewName := contextAndView.title
-		if viewName == "" {
-			viewName = "global"
-		}
-		translatedView := localisedTitle(mApp, viewName)
-		var title string
-		if contextAndView.subtitle == "" {
-			addendum := " " + mApp.Tr.Panel
-			if viewName == "global" || viewName == "navigation" {
-				addendum = ""
+	bindingsByHeader := lo.GroupBy(bindingsToDisplay, func(binding *types.Binding) header {
+		return getHeader(binding, tr)
+	})
+
+	bindingGroups := maps.MapToSlice(
+		bindingsByHeader,
+		func(header header, hBindings []*types.Binding) headerWithBindings {
+			uniqBindings := lo.UniqBy(hBindings, func(binding *types.Binding) string {
+				return binding.Description + keybindings.LabelFromKey(binding.Key)
+			})
+
+			return headerWithBindings{
+				header:   header,
+				bindings: uniqBindings,
 			}
-			title = fmt.Sprintf("%s%s", translatedView, addendum)
-		} else {
-			translatedContextName := localisedTitle(mApp, contextAndView.subtitle)
-			title = fmt.Sprintf("%s %s (%s)", translatedView, mApp.Tr.Panel, translatedContextName)
-		}
+		},
+	)
 
-		for _, binding := range contextBindings {
-			bindingSections = addBinding(title, bindingSections, binding)
+	slices.SortFunc(bindingGroups, func(a, b headerWithBindings) bool {
+		if a.header.priority != b.header.priority {
+			return a.header.priority > b.header.priority
 		}
-	}
+		return a.header.title < b.header.title
+	})
 
-	return bindingSections
+	return slices.Map(bindingGroups, func(hb headerWithBindings) *bindingSection {
+		return &bindingSection{
+			title:    hb.header.title,
+			bindings: hb.bindings,
+		}
+	})
 }
 
-func addBinding(title string, bindingSections []*bindingSection, binding *gui.Binding) []*bindingSection {
-	if binding.Description == "" && binding.Alternative == "" {
-		return bindingSections
+func getHeader(binding *types.Binding, tr *i18n.TranslationSet) header {
+	if binding.Tag == "navigation" {
+		return header{priority: 2, title: localisedTitle(tr, "navigation")}
 	}
 
-	for _, section := range bindingSections {
-		if title == section.title {
-			section.bindings = append(section.bindings, binding)
-			return bindingSections
-		}
+	if binding.ViewName == "" {
+		return header{priority: 3, title: localisedTitle(tr, "global")}
 	}
 
-	section := &bindingSection{
-		title:    title,
-		bindings: []*gui.Binding{binding},
-	}
-
-	return append(bindingSections, section)
+	return header{priority: 1, title: localisedTitle(tr, binding.ViewName)}
 }
 
 func formatSections(tr *i18n.TranslationSet, bindingSections []*bindingSection) string {
@@ -262,4 +192,20 @@ func formatSections(tr *i18n.TranslationSet, bindingSections []*bindingSection) 
 	}
 
 	return content
+}
+
+func formatTitle(title string) string {
+	return fmt.Sprintf("\n## %s\n\n", title)
+}
+
+func formatBinding(binding *types.Binding) string {
+	if binding.Alternative != "" {
+		return fmt.Sprintf(
+			"  <kbd>%s</kbd>: %s (%s)\n",
+			keybindings.LabelFromKey(binding.Key),
+			binding.Description,
+			binding.Alternative,
+		)
+	}
+	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", keybindings.LabelFromKey(binding.Key), binding.Description)
 }

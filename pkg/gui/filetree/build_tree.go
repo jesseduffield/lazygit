@@ -7,10 +7,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-func BuildTreeFromFiles(files []*models.File) *FileNode {
-	root := &FileNode{}
+func BuildTreeFromFiles(files []*models.File) *Node[models.File] {
+	root := &Node[models.File]{}
 
-	var curr *FileNode
+	var curr *Node[models.File]
 	for _, file := range files {
 		splitPath := split(file.Name)
 		curr = root
@@ -30,7 +30,7 @@ func BuildTreeFromFiles(files []*models.File) *FileNode {
 				}
 			}
 
-			newChild := &FileNode{
+			newChild := &Node[models.File]{
 				Path: path,
 				File: setFile,
 			}
@@ -46,17 +46,17 @@ func BuildTreeFromFiles(files []*models.File) *FileNode {
 	return root
 }
 
-func BuildFlatTreeFromCommitFiles(files []*models.CommitFile) *CommitFileNode {
+func BuildFlatTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFile] {
 	rootAux := BuildTreeFromCommitFiles(files)
 	sortedFiles := rootAux.GetLeaves()
 
-	return &CommitFileNode{Children: sortedFiles}
+	return &Node[models.CommitFile]{Children: sortedFiles}
 }
 
-func BuildTreeFromCommitFiles(files []*models.CommitFile) *CommitFileNode {
-	root := &CommitFileNode{}
+func BuildTreeFromCommitFiles(files []*models.CommitFile) *Node[models.CommitFile] {
+	root := &Node[models.CommitFile]{}
 
-	var curr *CommitFileNode
+	var curr *Node[models.CommitFile]
 	for _, file := range files {
 		splitPath := split(file.Name)
 		curr = root
@@ -77,7 +77,7 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *CommitFileNode {
 				}
 			}
 
-			newChild := &CommitFileNode{
+			newChild := &Node[models.CommitFile]{
 				Path: path,
 				File: setFile,
 			}
@@ -93,7 +93,7 @@ func BuildTreeFromCommitFiles(files []*models.CommitFile) *CommitFileNode {
 	return root
 }
 
-func BuildFlatTreeFromFiles(files []*models.File) *FileNode {
+func BuildFlatTreeFromFiles(files []*models.File) *Node[models.File] {
 	rootAux := BuildTreeFromFiles(files)
 	sortedFiles := rootAux.GetLeaves()
 
@@ -128,7 +128,7 @@ func BuildFlatTreeFromFiles(files []*models.File) *FileNode {
 		return false
 	})
 
-	return &FileNode{Children: sortedFiles}
+	return &Node[models.File]{Children: sortedFiles}
 }
 
 func split(str string) []string {

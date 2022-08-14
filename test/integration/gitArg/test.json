@@ -1,0 +1,5 @@
+{
+  "description": "Open lazygit to the branches panel",
+  "speed": 10,
+  "extraCmdArgs": "branch"
+}

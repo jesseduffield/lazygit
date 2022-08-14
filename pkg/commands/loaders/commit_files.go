@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/samber/lo"
 )
 
 type CommitFileLoader struct {
@@ -33,25 +35,22 @@ func (self *CommitFileLoader) GetFilesInDiff(from string, to string, reverse boo
 		return nil, err
 	}
 
-	return self.getCommitFilesFromFilenames(filenames), nil
+	return getCommitFilesFromFilenames(filenames), nil
 }
 
-// filenames string is something like "file1\nfile2\nfile3"
-func (self *CommitFileLoader) getCommitFilesFromFilenames(filenames string) []*models.CommitFile {
-	commitFiles := make([]*models.CommitFile, 0)
-
+// filenames string is something like "MM\x00file1\x00MU\x00file2\x00AA\x00file3\x00"
+// so we need to split it by the null character and then map each status-name pair to a commit file
+func getCommitFilesFromFilenames(filenames string) []*models.CommitFile {
 	lines := strings.Split(strings.TrimRight(filenames, "\x00"), "\x00")
-	n := len(lines)
-	for i := 0; i < n-1; i += 2 {
-		// typical result looks like 'A my_file' meaning my_file was added
-		changeStatus := lines[i]
-		name := lines[i+1]
-
-		commitFiles = append(commitFiles, &models.CommitFile{
-			Name:         name,
-			ChangeStatus: changeStatus,
-		})
+	if len(lines) == 1 {
+		return []*models.CommitFile{}
 	}
 
-	return commitFiles
+	// typical result looks like 'A my_file' meaning my_file was added
+	return slices.Map(lo.Chunk(lines, 2), func(chunk []string) *models.CommitFile {
+		return &models.CommitFile{
+			ChangeStatus: chunk[0],
+			Name:         chunk[1],
+		}
+	})
 }

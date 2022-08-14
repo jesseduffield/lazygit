@@ -1,16 +1,30 @@
 package gui
 
-func (gui *Gui) validateNotInFilterMode() (bool, error) {
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
+
+func (gui *Gui) validateNotInFilterMode() bool {
 	if gui.State.Modes.Filtering.Active() {
-		err := gui.ask(askOpts{
-			title:         gui.Tr.MustExitFilterModeTitle,
-			prompt:        gui.Tr.MustExitFilterModePrompt,
-			handleConfirm: gui.exitFilterMode,
+		_ = gui.c.Confirm(types.ConfirmOpts{
+			Title:         gui.c.Tr.MustExitFilterModeTitle,
+			Prompt:        gui.c.Tr.MustExitFilterModePrompt,
+			HandleConfirm: gui.exitFilterMode,
 		})
 
-		return false, err
+		return false
 	}
-	return true, nil
+	return true
+}
+
+func (gui *Gui) outsideFilterMode(f func() error) func() error {
+	return func() error {
+		if !gui.validateNotInFilterMode() {
+			return nil
+		}
+
+		return f()
+	}
 }
 
 func (gui *Gui) exitFilterMode() error {
@@ -23,7 +37,7 @@ func (gui *Gui) clearFiltering() error {
 		gui.State.ScreenMode = SCREEN_NORMAL
 	}
 
-	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{COMMITS}})
+	return gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
 }
 
 func (gui *Gui) setFiltering(path string) error {
@@ -32,11 +46,11 @@ func (gui *Gui) setFiltering(path string) error {
 		gui.State.ScreenMode = SCREEN_HALF
 	}
 
-	if err := gui.pushContext(gui.State.Contexts.BranchCommits); err != nil {
+	if err := gui.c.PushContext(gui.State.Contexts.LocalCommits); err != nil {
 		return err
 	}
 
-	return gui.refreshSidePanels(refreshOptions{scope: []RefreshableView{COMMITS}, then: func() {
-		gui.State.Contexts.BranchCommits.GetPanelState().SetSelectedLineIdx(0)
+	return gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() {
+		gui.State.Contexts.LocalCommits.SetSelectedLineIdx(0)
 	}})
 }

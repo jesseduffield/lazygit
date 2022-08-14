@@ -59,6 +59,15 @@ func Max(x, y int) int {
 	return y
 }
 
+func Clamp(x int, min int, max int) int {
+	if x < min {
+		return min
+	} else if x > max {
+		return max
+	}
+	return x
+}
+
 func AsJson(i interface{}) string {
 	bytes, _ := json.MarshalIndent(i, "", "    ")
 	return string(bytes)
@@ -66,6 +75,10 @@ func AsJson(i interface{}) string {
 
 // used to keep a number n between 0 and max, allowing for wraparounds
 func ModuloWithWrap(n, max int) int {
+	if max == 0 {
+		return 0
+	}
+
 	if n >= max {
 		return n % max
 	} else if n < 0 {
@@ -114,4 +127,38 @@ func StackTrace() string {
 	buf := make([]byte, 10000)
 	n := runtime.Stack(buf, false)
 	return fmt.Sprintf("%s\n", buf[:n])
+}
+
+// returns the path of the file that calls the function.
+// 'skip' is the number of stack frames to skip.
+func FilePath(skip int) string {
+	_, path, _, _ := runtime.Caller(skip)
+	return path
+}
+
+// for our cheatsheet script and integration tests. Not to be confused with finding the
+// root directory of _any_ random repo.
+func GetLazygitRootDirectory() string {
+	path, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	for {
+		_, err := os.Stat(filepath.Join(path, ".git"))
+
+		if err == nil {
+			return path
+		}
+
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+
+		path = filepath.Dir(path)
+
+		if path == "/" {
+			log.Fatal("must run in lazygit folder or child folder")
+		}
+	}
 }

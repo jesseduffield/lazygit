@@ -58,5 +58,17 @@ func (self *FileCommands) GetEditCmdStr(filename string, lineNumber int) (string
 	}
 
 	editCmdTemplate := self.UserConfig.OS.EditCommandTemplate
+	if len(editCmdTemplate) == 0 {
+		switch editor {
+		case "emacs", "nano", "vi", "vim", "nvim":
+			editCmdTemplate = "{{editor}} +{{line}} -- {{filename}}"
+		case "subl":
+			editCmdTemplate = "{{editor}} -- {{filename}}:{{line}}"
+		case "code":
+			editCmdTemplate = "{{editor}} -r --goto -- {{filename}}:{{line}}"
+		default:
+			editCmdTemplate = "{{editor}} -- {{filename}}"
+		}
+	}
 	return utils.ResolvePlaceholderString(editCmdTemplate, templateValues), nil
 }

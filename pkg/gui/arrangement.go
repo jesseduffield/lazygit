@@ -2,153 +2,16 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/gui/boxlayout"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mattn/go-runewidth"
 )
 
+// In this file we use the boxlayout package, along with knowledge about the app's state,
+// to arrange the windows (i.e. panels) on the screen.
+
 const INFO_SECTION_PADDING = " "
-
-func (gui *Gui) mainSectionChildren() []*boxlayout.Box {
-	currentWindow := gui.currentWindow()
-
-	// if we're not in split mode we can just show the one main panel. Likewise if
-	// the main panel is focused and we're in full-screen mode
-	if !gui.isMainPanelSplit() || (gui.State.ScreenMode == SCREEN_FULL && currentWindow == "main") {
-		return []*boxlayout.Box{
-			{
-				Window: "main",
-				Weight: 1,
-			},
-		}
-	}
-
-	main := "main"
-	secondary := "secondary"
-	if gui.secondaryViewFocused() {
-		// when you think you've focused the secondary view, we've actually just swapped them around in the layout
-		main, secondary = secondary, main
-	}
-
-	return []*boxlayout.Box{
-		{
-			Window: main,
-			Weight: 1,
-		},
-		{
-			Window: secondary,
-			Weight: 1,
-		},
-	}
-}
-
-func (gui *Gui) getMidSectionWeights() (int, int) {
-	currentWindow := gui.currentWindow()
-
-	// we originally specified this as a ratio i.e. .20 would correspond to a weight of 1 against 4
-	sidePanelWidthRatio := gui.UserConfig.Gui.SidePanelWidth
-	// we could make this better by creating ratios like 2:3 rather than always 1:something
-	mainSectionWeight := int(1/sidePanelWidthRatio) - 1
-	sideSectionWeight := 1
-
-	if gui.splitMainPanelSideBySide() {
-		mainSectionWeight = 5 // need to shrink side panel to make way for main panels if side-by-side
-	}
-
-	if currentWindow == "main" {
-		if gui.State.ScreenMode == SCREEN_HALF || gui.State.ScreenMode == SCREEN_FULL {
-			sideSectionWeight = 0
-		}
-	} else {
-		if gui.State.ScreenMode == SCREEN_HALF {
-			mainSectionWeight = 1
-		} else if gui.State.ScreenMode == SCREEN_FULL {
-			mainSectionWeight = 0
-		}
-	}
-
-	return sideSectionWeight, mainSectionWeight
-}
-
-func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*boxlayout.Box {
-	if gui.State.Searching.isSearching {
-		return []*boxlayout.Box{
-			{
-				Window: "searchPrefix",
-				Size:   len(SEARCH_PREFIX),
-			},
-			{
-				Window: "search",
-				Weight: 1,
-			},
-		}
-	}
-
-	result := []*boxlayout.Box{}
-
-	if len(appStatus) > 0 {
-		result = append(result,
-			&boxlayout.Box{
-				Window: "appStatus",
-				Size:   len(appStatus) + len(INFO_SECTION_PADDING),
-			},
-		)
-	}
-
-	result = append(result,
-		[]*boxlayout.Box{
-			{
-				Window: "options",
-				Weight: 1,
-			},
-			{
-				Window: "information",
-				// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
-				Size: len(INFO_SECTION_PADDING) + len(utils.Decolorise(informationStr)),
-			},
-		}...,
-	)
-
-	return result
-}
-
-func (gui *Gui) splitMainPanelSideBySide() bool {
-	if !gui.isMainPanelSplit() {
-		return false
-	}
-
-	mainPanelSplitMode := gui.UserConfig.Gui.MainPanelSplitMode
-	width, height := gui.g.Size()
-
-	switch mainPanelSplitMode {
-	case "vertical":
-		return false
-	case "horizontal":
-		return true
-	default:
-		if width < 200 && height > 30 { // 2 80 character width panels + 40 width for side panel
-			return false
-		} else {
-			return true
-		}
-	}
-}
-
-func (gui *Gui) getExtrasWindowSize(screenHeight int) int {
-	if !gui.ShowExtrasWindow {
-		return 0
-	}
-
-	var baseSize int
-	if gui.currentStaticContext().GetKey() == COMMAND_LOG_CONTEXT_KEY {
-		baseSize = 1000 // my way of saying 'fill the available space'
-	} else if screenHeight < 40 {
-		baseSize = 1
-	} else {
-		baseSize = gui.UserConfig.Gui.CommandLogSize
-	}
-
-	frameSize := 2
-	return baseSize + frameSize
-}
 
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
 	width, height := gui.g.Size()
@@ -167,6 +30,12 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 	}
 
 	extrasWindowSize := gui.getExtrasWindowSize(height)
+
+	showInfoSection := gui.c.UserConfig.Gui.ShowBottomLine || (gui.State.Searching.isSearching || gui.isAnyModeActive())
+	infoSectionSize := 0
+	if showInfoSection {
+		infoSectionSize = 1
+	}
 
 	root := &boxlayout.Box{
 		Direction: boxlayout.ROW,
@@ -199,13 +68,163 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 			},
 			{
 				Direction: boxlayout.COLUMN,
-				Size:      1,
+				Size:      infoSectionSize,
 				Children:  gui.infoSectionChildren(informationStr, appStatus),
 			},
 		},
 	}
 
-	return boxlayout.ArrangeWindows(root, 0, 0, width, height)
+	layerOneWindows := boxlayout.ArrangeWindows(root, 0, 0, width, height)
+	limitWindows := boxlayout.ArrangeWindows(&boxlayout.Box{Window: "limit"}, 0, 0, width, height)
+
+	return MergeMaps(layerOneWindows, limitWindows)
+}
+
+func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
+	result := map[K]V{}
+	for _, currMap := range maps {
+		for key, value := range currMap {
+			result[key] = value
+		}
+	}
+
+	return result
+}
+
+func (gui *Gui) mainSectionChildren() []*boxlayout.Box {
+	currentWindow := gui.currentWindow()
+
+	// if we're not in split mode we can just show the one main panel. Likewise if
+	// the main panel is focused and we're in full-screen mode
+	if !gui.isMainPanelSplit() || (gui.State.ScreenMode == SCREEN_FULL && currentWindow == "main") {
+		return []*boxlayout.Box{
+			{
+				Window: "main",
+				Weight: 1,
+			},
+		}
+	}
+
+	return []*boxlayout.Box{
+		{
+			Window: "main",
+			Weight: 1,
+		},
+		{
+			Window: "secondary",
+			Weight: 1,
+		},
+	}
+}
+
+func (gui *Gui) getMidSectionWeights() (int, int) {
+	currentWindow := gui.currentWindow()
+
+	// we originally specified this as a ratio i.e. .20 would correspond to a weight of 1 against 4
+	sidePanelWidthRatio := gui.c.UserConfig.Gui.SidePanelWidth
+	// we could make this better by creating ratios like 2:3 rather than always 1:something
+	mainSectionWeight := int(1/sidePanelWidthRatio) - 1
+	sideSectionWeight := 1
+
+	if gui.splitMainPanelSideBySide() {
+		mainSectionWeight = 5 // need to shrink side panel to make way for main panels if side-by-side
+	}
+
+	if currentWindow == "main" {
+		if gui.State.ScreenMode == SCREEN_HALF || gui.State.ScreenMode == SCREEN_FULL {
+			sideSectionWeight = 0
+		}
+	} else {
+		if gui.State.ScreenMode == SCREEN_HALF {
+			mainSectionWeight = 1
+		} else if gui.State.ScreenMode == SCREEN_FULL {
+			mainSectionWeight = 0
+		}
+	}
+
+	return sideSectionWeight, mainSectionWeight
+}
+
+func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*boxlayout.Box {
+	if gui.State.Searching.isSearching {
+		return []*boxlayout.Box{
+			{
+				Window: "searchPrefix",
+				Size:   runewidth.StringWidth(SEARCH_PREFIX),
+			},
+			{
+				Window: "search",
+				Weight: 1,
+			},
+		}
+	}
+
+	result := []*boxlayout.Box{}
+
+	if len(appStatus) > 0 {
+		result = append(result,
+			&boxlayout.Box{
+				Window: "appStatus",
+				Size:   runewidth.StringWidth(appStatus) + runewidth.StringWidth(INFO_SECTION_PADDING),
+			},
+		)
+	}
+
+	result = append(result,
+		[]*boxlayout.Box{
+			{
+				Window: "options",
+				Weight: 1,
+			},
+			{
+				Window: "information",
+				// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
+				Size: runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(utils.Decolorise(informationStr)),
+			},
+		}...,
+	)
+
+	return result
+}
+
+func (gui *Gui) splitMainPanelSideBySide() bool {
+	if !gui.isMainPanelSplit() {
+		return false
+	}
+
+	mainPanelSplitMode := gui.c.UserConfig.Gui.MainPanelSplitMode
+	width, height := gui.g.Size()
+
+	switch mainPanelSplitMode {
+	case "vertical":
+		return false
+	case "horizontal":
+		return true
+	default:
+		if width < 200 && height > 30 { // 2 80 character width panels + 40 width for side panel
+			return false
+		} else {
+			return true
+		}
+	}
+}
+
+func (gui *Gui) getExtrasWindowSize(screenHeight int) int {
+	if !gui.ShowExtrasWindow {
+		return 0
+	}
+
+	var baseSize int
+	if gui.currentStaticContext().GetKey() == context.COMMAND_LOG_CONTEXT_KEY {
+		baseSize = 1000 // my way of saying 'fill the available space'
+	} else if screenHeight < 40 {
+		baseSize = 1
+	} else {
+		baseSize = gui.c.UserConfig.Gui.CommandLogSize
+	}
+
+	frameSize := 2
+	return baseSize + frameSize
 }
 
 // The stash window by default only contains one line so that it's not hogging
@@ -259,7 +278,7 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 			fullHeightBox("stash"),
 		}
 	} else if height >= 28 {
-		accordionMode := gui.UserConfig.Gui.ExpandFocusedSidePanel
+		accordionMode := gui.c.UserConfig.Gui.ExpandFocusedSidePanel
 		accordionBox := func(defaultBox *boxlayout.Box) *boxlayout.Box {
 			if accordionMode && defaultBox.Window == currentWindow {
 				return &boxlayout.Box{
@@ -311,6 +330,10 @@ func (gui *Gui) sidePanelChildren(width int, height int) []*boxlayout.Box {
 	}
 }
 
+func (gui *Gui) getCyclableWindows() []string {
+	return []string{"status", "files", "branches", "commits", "stash"}
+}
+
 func (gui *Gui) currentSideWindowName() string {
 	// there is always one and only one cyclable context in the context stack. We'll look from top to bottom
 	gui.State.ContextManager.RLock()
@@ -320,7 +343,7 @@ func (gui *Gui) currentSideWindowName() string {
 		reversedIdx := len(gui.State.ContextManager.ContextStack) - 1 - idx
 		context := gui.State.ContextManager.ContextStack[reversedIdx]
 
-		if context.GetKind() == SIDE_CONTEXT {
+		if context.GetKind() == types.SIDE_CONTEXT {
 			return context.GetWindowName()
 		}
 	}

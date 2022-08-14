@@ -34,6 +34,11 @@ type cmdObjRunner struct {
 var _ ICmdObjRunner = &cmdObjRunner{}
 
 func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
+	if cmdObj.Mutex() != nil {
+		cmdObj.Mutex().Lock()
+		defer cmdObj.Mutex().Unlock()
+	}
+
 	if cmdObj.GetCredentialStrategy() != NONE {
 		return self.runWithCredentialHandling(cmdObj)
 	}
@@ -42,17 +47,14 @@ func (self *cmdObjRunner) Run(cmdObj ICmdObj) error {
 		return self.runAndStream(cmdObj)
 	}
 
-	_, err := self.RunWithOutput(cmdObj)
+	_, err := self.RunWithOutputAux(cmdObj)
 	return err
 }
 
 func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
-	if cmdObj.ShouldStreamOutput() {
-		err := self.runAndStream(cmdObj)
-		// for now we're not capturing output, just because it would take a little more
-		// effort and there's currently no use case for it. Some commands call RunWithOutput
-		// but ignore the output, hence why we've got this check here.
-		return "", err
+	if cmdObj.Mutex() != nil {
+		cmdObj.Mutex().Lock()
+		defer cmdObj.Mutex().Unlock()
 	}
 
 	if cmdObj.GetCredentialStrategy() != NONE {
@@ -63,6 +65,18 @@ func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 		return "", err
 	}
 
+	if cmdObj.ShouldStreamOutput() {
+		err := self.runAndStream(cmdObj)
+		// for now we're not capturing output, just because it would take a little more
+		// effort and there's currently no use case for it. Some commands call RunWithOutput
+		// but ignore the output, hence why we've got this check here.
+		return "", err
+	}
+
+	return self.RunWithOutputAux(cmdObj)
+}
+
+func (self *cmdObjRunner) RunWithOutputAux(cmdObj ICmdObj) (string, error) {
 	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 
 	if cmdObj.ShouldLog() {
@@ -77,6 +91,11 @@ func (self *cmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 }
 
 func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
+	if cmdObj.Mutex() != nil {
+		cmdObj.Mutex().Lock()
+		defer cmdObj.Mutex().Unlock()
+	}
+
 	if cmdObj.GetCredentialStrategy() != NONE {
 		return errors.New("cannot call RunAndProcessLines with credential strategy. If you're seeing this then a contributor to Lazygit has accidentally called this method! Please raise an issue")
 	}
@@ -104,7 +123,7 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 			return err
 		}
 		if stop {
-			_ = cmd.Process.Kill()
+			_ = Kill(cmd)
 			break
 		}
 	}
@@ -188,12 +207,15 @@ func (self *cmdObjRunner) runAndStreamAux(
 	cmdObj ICmdObj,
 	onRun func(*cmdHandler, io.Writer),
 ) error {
+	// if we're streaming this we don't want any fancy terminal stuff
+	cmdObj.AddEnvVars("TERM=dumb")
+
 	cmdWriter := self.guiIO.newCmdWriterFn()
 
 	if cmdObj.ShouldLog() {
 		self.logCmdObj(cmdObj)
 	}
-	self.log.WithField("command", cmdObj.ToString()).Info("RunCommand")
+	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 	cmd := cmdObj.GetCmd()
 
 	var stderr bytes.Buffer
@@ -203,6 +225,9 @@ func (self *cmdObjRunner) runAndStreamAux(
 	if err != nil {
 		return err
 	}
+
+	var stdout bytes.Buffer
+	handler.stdoutPipe = io.TeeReader(handler.stdoutPipe, &stdout)
 
 	defer func() {
 		if closeErr := handler.close(); closeErr != nil {
@@ -215,10 +240,14 @@ func (self *cmdObjRunner) runAndStreamAux(
 	err = cmd.Wait()
 	if err != nil {
 		errStr := stderr.String()
-		if cmdObj.ShouldIgnoreEmptyError() && errStr == "" {
+		if errStr != "" {
+			return errors.New(errStr)
+		}
+
+		if cmdObj.ShouldIgnoreEmptyError() {
 			return nil
 		}
-		return errors.New(stderr.String())
+		return errors.New(stdout.String())
 	}
 
 	return nil

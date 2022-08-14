@@ -69,6 +69,31 @@ type tabClickBinding struct {
 	handler  tabClickHandler
 }
 
+// TODO: would be good to define inbound and outbound click handlers e.g.
+// clicking on a file is an inbound thing where we don't care what context you're
+// in when it happens, whereas clicking on the main view from the files view is an
+// outbound click with a specific handler. But this requires more thinking about
+// where handlers should live.
+type ViewMouseBinding struct {
+	// the view that is clicked
+	ViewName string
+
+	// the view that has focus when the click occurs.
+	FocusedView string
+
+	Handler func(ViewMouseBindingOpts) error
+
+	Modifier Modifier
+
+	// must be a mouse key
+	Key Key
+}
+
+type ViewMouseBindingOpts struct {
+	X int // i.e. origin x + cursor x
+	Y int // i.e. origin y + cursor y
+}
+
 type GuiMutexes struct {
 	// tickingMutex ensures we don't have two loops ticking. The point of 'ticking'
 	// is to refresh the gui rapidly so that loader characters can be animated.
@@ -83,6 +108,8 @@ const (
 	NORMAL PlayMode = iota
 	RECORDING
 	REPLAYING
+	// for the new form of integration tests
+	REPLAYING_NEW
 )
 
 type Recording struct {
@@ -91,8 +118,8 @@ type Recording struct {
 }
 
 type replayedEvents struct {
-	keys    chan *TcellKeyEventWrapper
-	resizes chan *TcellResizeEventWrapper
+	Keys    chan *TcellKeyEventWrapper
+	Resizes chan *TcellResizeEventWrapper
 }
 
 type RecordingConfig struct {
@@ -110,17 +137,18 @@ type Gui struct {
 	PlayMode       PlayMode
 	StartTime      time.Time
 
-	tabClickBindings []*tabClickBinding
-	gEvents          chan GocuiEvent
-	userEvents       chan userEvent
-	views            []*View
-	currentView      *View
-	managers         []Manager
-	keybindings      []*keybinding
-	maxX, maxY       int
-	outputMode       OutputMode
-	stop             chan struct{}
-	blacklist        []Key
+	tabClickBindings  []*tabClickBinding
+	viewMouseBindings []*ViewMouseBinding
+	gEvents           chan GocuiEvent
+	userEvents        chan userEvent
+	views             []*View
+	currentView       *View
+	managers          []Manager
+	keybindings       []*keybinding
+	maxX, maxY        int
+	outputMode        OutputMode
+	stop              chan struct{}
+	blacklist         []Key
 
 	// BgColor and FgColor allow to configure the background and foreground
 	// colors of the GUI.
@@ -190,10 +218,10 @@ func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless b
 			KeyEvents:    []*TcellKeyEventWrapper{},
 			ResizeEvents: []*TcellResizeEventWrapper{},
 		}
-	} else if playMode == REPLAYING {
+	} else if playMode == REPLAYING || playMode == REPLAYING_NEW {
 		g.ReplayedEvents = replayedEvents{
-			keys:    make(chan *TcellKeyEventWrapper),
-			resizes: make(chan *TcellResizeEventWrapper),
+			Keys:    make(chan *TcellKeyEventWrapper),
+			Resizes: make(chan *TcellResizeEventWrapper),
 		}
 	}
 
@@ -335,6 +363,45 @@ func (g *Gui) SetViewOnBottom(name string) (*View, error) {
 	return nil, errors.Wrap(ErrUnknownView, 0)
 }
 
+func (g *Gui) SetViewOnTopOf(toMove string, other string) error {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	if toMove == other {
+		return nil
+	}
+
+	// need to find the two current positions and then move toMove before other in the list.
+	toMoveIndex := -1
+	otherIndex := -1
+
+	for i, v := range g.views {
+		if v.name == toMove {
+			toMoveIndex = i
+		}
+
+		if v.name == other {
+			otherIndex = i
+		}
+	}
+
+	if toMoveIndex == -1 || otherIndex == -1 {
+		return errors.Wrap(ErrUnknownView, 0)
+	}
+
+	// already on top
+	if toMoveIndex > otherIndex {
+		return nil
+	}
+
+	// need to actually do it the other way around. Last is highest
+	viewToMove := g.views[toMoveIndex]
+
+	g.views = append(g.views[:toMoveIndex], g.views[toMoveIndex+1:]...)
+	g.views = append(g.views[:otherIndex], append([]*View{viewToMove}, g.views[otherIndex:]...)...)
+	return nil
+}
+
 // Views returns all the views in the GUI.
 func (g *Gui) Views() []*View {
 	return g.views
@@ -435,7 +502,7 @@ func (g *Gui) CurrentView() *View {
 // It behaves differently on different platforms. Somewhere it doesn't register Alt key press,
 // on others it might report Ctrl as Alt. It's not consistent and therefore it's not recommended
 // to use with mouse keys.
-func (g *Gui) SetKeybinding(viewname string, contexts []string, key interface{}, mod Modifier, handler func(*Gui, *View) error) error {
+func (g *Gui) SetKeybinding(viewname string, key interface{}, mod Modifier, handler func(*Gui, *View) error) error {
 	var kb *keybinding
 
 	k, ch, err := getKey(key)
@@ -447,7 +514,7 @@ func (g *Gui) SetKeybinding(viewname string, contexts []string, key interface{},
 		return ErrBlacklisted
 	}
 
-	kb = newKeybinding(viewname, contexts, k, ch, mod, handler)
+	kb = newKeybinding(viewname, k, ch, mod, handler)
 	g.keybindings = append(g.keybindings, kb)
 	return nil
 }
@@ -469,7 +536,14 @@ func (g *Gui) DeleteKeybinding(viewname string, key interface{}, mod Modifier) e
 }
 
 // DeleteKeybindings deletes all keybindings of view.
-func (g *Gui) DeleteKeybindings(viewname string) {
+func (g *Gui) DeleteAllKeybindings() {
+	g.keybindings = []*keybinding{}
+	g.tabClickBindings = []*tabClickBinding{}
+	g.viewMouseBindings = []*ViewMouseBinding{}
+}
+
+// DeleteKeybindings deletes all keybindings of view.
+func (g *Gui) DeleteViewKeybindings(viewname string) {
 	var s []*keybinding
 	for _, kb := range g.keybindings {
 		if kb.viewName != viewname {
@@ -485,6 +559,12 @@ func (g *Gui) SetTabClickBinding(viewName string, handler tabClickHandler) error
 		viewName: viewName,
 		handler:  handler,
 	})
+
+	return nil
+}
+
+func (g *Gui) SetViewClickBinding(binding *ViewMouseBinding) error {
+	g.viewMouseBindings = append(g.viewMouseBindings, binding)
 
 	return nil
 }
@@ -583,7 +663,6 @@ func (g *Gui) SetManagerFunc(manager func(*Gui) error) {
 // MainLoop runs the main loop until an error is returned. A successful
 // finish should return ErrQuit.
 func (g *Gui) MainLoop() error {
-
 	g.StartTime = time.Now()
 	if g.PlayMode == REPLAYING {
 		go g.replayRecording()
@@ -696,6 +775,8 @@ func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 			}
 		}
 	}
+
+	showScrollbar, realScrollbarStart, realScrollbarEnd := calcRealScrollbarStartEnd(v)
 	for y := v.y0 + 1; y < v.y1 && y < g.maxY; y++ {
 		if y < 0 {
 			continue
@@ -706,12 +787,52 @@ func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 			}
 		}
 		if v.x1 > -1 && v.x1 < g.maxX {
-			if err := g.SetRune(v.x1, y, runeV, fgColor, bgColor); err != nil {
+			runeToPrint := calcScrollbarRune(showScrollbar, realScrollbarStart, realScrollbarEnd, v.y0+1, v.y1-1, y, runeV)
+
+			if err := g.SetRune(v.x1, y, runeToPrint, fgColor, bgColor); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+func calcScrollbarRune(showScrollbar bool, scrollbarStart int, scrollbarEnd int, rangeStart int, rangeEnd int, position int, runeV rune) rune {
+	if !showScrollbar {
+		return runeV
+	} else if position == rangeStart {
+		return '▲'
+	} else if position == rangeEnd {
+		return '▼'
+	} else if position > scrollbarStart && position < scrollbarEnd {
+		return '█'
+	} else if position > rangeStart && position < rangeEnd {
+		// keeping this as a separate branch in case we later want to render something different here.
+		return runeV
+	} else {
+		return runeV
+	}
+}
+
+func calcRealScrollbarStartEnd(v *View) (bool, int, int) {
+	height := v.InnerHeight() + 1
+	fullHeight := v.ViewLinesHeight() - v.scrollMargin()
+
+	if v.CanScrollPastBottom {
+		fullHeight += height
+	}
+
+	if height < 2 || height >= fullHeight {
+		return false, 0, 0
+	}
+
+	originY := v.OriginY()
+	scrollbarStart, scrollbarHeight := calcScrollbar(fullHeight, height, originY, height-1)
+	top := v.y0 + 1
+	realScrollbarStart := top + scrollbarStart
+	realScrollbarEnd := realScrollbarStart + scrollbarHeight
+
+	return true, realScrollbarStart, realScrollbarEnd
 }
 
 func cornerRune(index byte) rune {
@@ -868,9 +989,6 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 			if v != g.currentView {
 				currentFgColor -= AttrBold
 			}
-			if v.HighlightSelectedTabWithoutFocus || v == g.CurrentView() {
-				currentBgColor = v.SelBgColor
-			}
 		}
 		if err := g.SetRune(x, v.y0, ch, currentFgColor, currentBgColor); err != nil {
 			return err
@@ -934,7 +1052,6 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 
 // flush updates the gui, re-drawing frames and buffers.
 func (g *Gui) flush() error {
-
 	// pretty sure we don't need this, but keeping it here in case we get weird visual artifacts
 	// g.clear(g.FgColor, g.BgColor)
 
@@ -968,9 +1085,43 @@ func (g *Gui) draw(v *View) error {
 		return nil
 	}
 
-	if !v.Visible || v.y1 < v.y0 {
+	if !v.Visible || v.y1 < v.y0 || v.x1 < v.x0 {
 		return nil
 	}
+
+	if g.Cursor {
+		if curview := g.currentView; curview != nil {
+			vMaxX, vMaxY := curview.Size()
+			if curview.cx < 0 {
+				curview.cx = 0
+			} else if curview.cx >= vMaxX {
+				curview.cx = vMaxX - 1
+			}
+			if curview.cy < 0 {
+				curview.cy = 0
+			} else if curview.cy >= vMaxY {
+				curview.cy = vMaxY - 1
+			}
+
+			gMaxX, gMaxY := g.Size()
+			cx, cy := curview.x0+curview.cx+1, curview.y0+curview.cy+1
+			// This test probably doesn't need to be here.
+			// tcell is hiding cursor by setting coordinates outside of screen.
+			// Keeping it here for now, as I'm not 100% sure :)
+			if cx >= 0 && cx < gMaxX && cy >= 0 && cy < gMaxY {
+				Screen.ShowCursor(cx, cy)
+			} else {
+				Screen.HideCursor()
+			}
+		}
+	} else {
+		Screen.HideCursor()
+	}
+
+	if err := v.draw(); err != nil {
+		return err
+	}
+
 	if v.Frame {
 		var fgColor, bgColor, frameColor Attribute
 		if g.Highlight && v == g.currentView {
@@ -1014,38 +1165,6 @@ func (g *Gui) draw(v *View) error {
 		}
 	}
 
-	if g.Cursor {
-		if curview := g.currentView; curview != nil {
-			vMaxX, vMaxY := curview.Size()
-			if curview.cx < 0 {
-				curview.cx = 0
-			} else if curview.cx >= vMaxX {
-				curview.cx = vMaxX - 1
-			}
-			if curview.cy < 0 {
-				curview.cy = 0
-			} else if curview.cy >= vMaxY {
-				curview.cy = vMaxY - 1
-			}
-
-			gMaxX, gMaxY := g.Size()
-			cx, cy := curview.x0+curview.cx+1, curview.y0+curview.cy+1
-			// This test probably doesn't need to be here.
-			// tcell is hiding cursor by setting coordinates outside of screen.
-			// Keeping it here for now, as I'm not 100% sure :)
-			if cx >= 0 && cx < gMaxX && cy >= 0 && cy < gMaxY {
-				Screen.ShowCursor(cx, cy)
-			} else {
-				Screen.HideCursor()
-			}
-		}
-	} else {
-		Screen.HideCursor()
-	}
-
-	if err := v.draw(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -1071,9 +1190,11 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			if len(v.Tabs) > 0 {
 				tabIndex := v.GetClickedTabIndex(mx - v.x0)
 
-				for _, binding := range g.tabClickBindings {
-					if binding.viewName == v.Name() {
-						return binding.handler(tabIndex)
+				if tabIndex >= 0 {
+					for _, binding := range g.tabClickBindings {
+						if binding.viewName == v.Name() {
+							return binding.handler(tabIndex)
+						}
 					}
 				}
 			}
@@ -1092,12 +1213,63 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			return err
 		}
 
+		if IsMouseKey(ev.Key) {
+			opts := ViewMouseBindingOpts{X: newCx + v.ox, Y: newCy + v.oy}
+			matched, err := g.execMouseKeybindings(v, ev, opts)
+			if err != nil {
+				return err
+			}
+			if matched {
+				return nil
+			}
+		}
+
 		if _, err := g.execKeybindings(v, ev); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (g *Gui) execMouseKeybindings(view *View, ev *GocuiEvent, opts ViewMouseBindingOpts) (bool, error) {
+	isMatch := func(binding *ViewMouseBinding) bool {
+		return binding.ViewName == view.Name() &&
+			ev.Key == binding.Key &&
+			ev.Mod == binding.Modifier
+	}
+
+	// first pass looks for ones that match the focused view
+	for _, binding := range g.viewMouseBindings {
+		if isMatch(binding) && binding.FocusedView != "" && binding.FocusedView == g.currentView.Name() {
+			return true, binding.Handler(opts)
+		}
+	}
+
+	for _, binding := range g.viewMouseBindings {
+		if isMatch(binding) && binding.FocusedView == "" {
+			return true, binding.Handler(opts)
+		}
+	}
+
+	return false, nil
+}
+
+func IsMouseKey(key interface{}) bool {
+	switch key {
+	case
+		MouseLeft,
+		MouseRight,
+		MouseMiddle,
+		MouseRelease,
+		MouseWheelUp,
+		MouseWheelDown,
+		MouseWheelLeft,
+		MouseWheelRight:
+		return true
+	default:
+		return false
+	}
 }
 
 // execKeybindings executes the keybinding handlers that match the passed view
@@ -1130,10 +1302,10 @@ func (g *Gui) execKeybindings(v *View, ev *GocuiEvent) (matched bool, err error)
 		if !kb.matchKeypress(Key(ev.Key), ev.Ch, Modifier(ev.Mod)) {
 			continue
 		}
-		if kb.matchView(v) {
+		if g.matchView(v, kb) {
 			return g.execKeybinding(v, kb)
 		}
-		if v != nil && kb.matchView(v.ParentView) {
+		if v != nil && g.matchView(v.ParentView, kb) {
 			matchingParentViewKb = kb
 		}
 		if globalKb == nil && kb.viewName == "" && ((v != nil && !v.Editable) || (kb.ch == 0 && kb.key != KeyCtrlU && kb.key != KeyCtrlA && kb.key != KeyCtrlE)) {
@@ -1250,7 +1422,7 @@ func (g *Gui) replayRecording() {
 				case <-ticker.C:
 					timeWaited += 1
 					if timeWaited >= timeToWait {
-						g.ReplayedEvents.keys <- event
+						g.ReplayedEvents.Keys <- event
 						break middle
 					}
 				case <-g.stop:
@@ -1283,7 +1455,7 @@ func (g *Gui) replayRecording() {
 				case <-ticker.C:
 					timeWaited += 1
 					if timeWaited >= timeToWait {
-						g.ReplayedEvents.resizes <- event
+						g.ReplayedEvents.Resizes <- event
 						break middle2
 					}
 				case <-g.stop:
@@ -1333,4 +1505,19 @@ func (g *Gui) Resume() error {
 	g.suspended = false
 
 	return g.screen.Resume()
+}
+
+// matchView returns if the keybinding matches the current view (and the view's context)
+func (g *Gui) matchView(v *View, kb *keybinding) bool {
+	// if the user is typing in a field, ignore char keys
+	if v == nil {
+		return false
+	}
+	if v.Editable == true && kb.ch != 0 {
+		return false
+	}
+	if kb.viewName != v.name {
+		return false
+	}
+	return true
 }

@@ -23,8 +23,8 @@ git add .
 git commit -am "myfile3"
 
 cd ..
-git clone --bare ./actual other_repo
-cd actual
+git clone --bare ./repo other_repo
+cd repo
 
 git submodule add ../other_repo
 git commit -am "add submodule"

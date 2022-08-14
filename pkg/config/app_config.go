@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,7 +15,6 @@ import (
 type AppConfig struct {
 	Debug            bool   `long:"debug" env:"DEBUG" default:"false"`
 	Version          string `long:"version" env:"VERSION" default:"unversioned"`
-	Commit           string `long:"commit" env:"COMMIT"`
 	BuildDate        string `long:"build-date" env:"BUILD_DATE"`
 	Name             string `long:"name" env:"NAME" default:"lazygit"`
 	BuildSource      string `long:"build-source" env:"BUILD_SOURCE" default:""`
@@ -27,15 +27,11 @@ type AppConfig struct {
 	IsNewRepo        bool
 }
 
-// AppConfigurer interface allows individual app config structs to inherit Fields
-// from AppConfig and still be used by lazygit.
 type AppConfigurer interface {
 	GetDebug() bool
 
 	// build info
 	GetVersion() string
-	GetCommit() string
-	GetBuildDate() string
 	GetName() string
 	GetBuildSource() string
 
@@ -43,13 +39,22 @@ type AppConfigurer interface {
 	GetUserConfigPaths() []string
 	GetUserConfigDir() string
 	ReloadUserConfig() error
+	GetTempDir() string
 
 	GetAppState() *AppState
 	SaveAppState() error
 }
 
 // NewAppConfig makes a new app config
-func NewAppConfig(name, version, commit, date string, buildSource string, debuggingFlag bool) (*AppConfig, error) {
+func NewAppConfig(
+	name string,
+	version,
+	commit,
+	date string,
+	buildSource string,
+	debuggingFlag bool,
+	tempDir string,
+) (*AppConfig, error) {
 	configDir, err := findOrCreateConfigDir()
 	if err != nil && !os.IsPermission(err) {
 		return nil, err
@@ -70,21 +75,14 @@ func NewAppConfig(name, version, commit, date string, buildSource string, debugg
 		return nil, err
 	}
 
-	if os.Getenv("DEBUG") == "TRUE" {
-		debuggingFlag = true
-	}
-
-	tempDir := filepath.Join(os.TempDir(), "lazygit")
-
 	appState, err := loadAppState()
 	if err != nil {
 		return nil, err
 	}
 
 	appConfig := &AppConfig{
-		Name:            "lazygit",
+		Name:            name,
 		Version:         version,
-		Commit:          commit,
 		BuildDate:       date,
 		Debug:           debuggingFlag,
 		BuildSource:     buildSource,
@@ -123,7 +121,7 @@ func configDirForVendor(vendor string) string {
 
 func findOrCreateConfigDir() (string, error) {
 	folder := ConfigDir()
-	return folder, os.MkdirAll(folder, 0755)
+	return folder, os.MkdirAll(folder, 0o755)
 }
 
 func loadUserConfigWithDefaults(configFiles []string) (*UserConfig, error) {
@@ -160,7 +158,7 @@ func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error)
 		}
 
 		if err := yaml.Unmarshal(content, base); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
 		}
 	}
 
@@ -173,14 +171,6 @@ func (c *AppConfig) GetDebug() bool {
 
 func (c *AppConfig) GetVersion() string {
 	return c.Version
-}
-
-func (c *AppConfig) GetCommit() string {
-	return c.Commit
-}
-
-func (c *AppConfig) GetBuildDate() string {
-	return c.BuildDate
 }
 
 func (c *AppConfig) GetName() string {
@@ -221,6 +211,10 @@ func (c *AppConfig) ReloadUserConfig() error {
 	return nil
 }
 
+func (c *AppConfig) GetTempDir() string {
+	return c.TempDir
+}
+
 func configFilePath(filename string) (string, error) {
 	folder, err := findOrCreateConfigDir()
 	if err != nil {
@@ -232,7 +226,7 @@ func configFilePath(filename string) (string, error) {
 
 var ConfigFilename = "config.yml"
 
-// ConfigFilename returns the filename of the deafult config file
+// ConfigFilename returns the filename of the default config file
 func (c *AppConfig) ConfigFilename() string {
 	return filepath.Join(c.UserConfigDir, ConfigFilename)
 }
@@ -249,7 +243,7 @@ func (c *AppConfig) SaveAppState() error {
 		return err
 	}
 
-	err = ioutil.WriteFile(filepath, marshalledAppState, 0644)
+	err = ioutil.WriteFile(filepath, marshalledAppState, 0o644)
 	if err != nil && os.IsPermission(err) {
 		// apparently when people have read-only permissions they prefer us to fail silently
 		return nil

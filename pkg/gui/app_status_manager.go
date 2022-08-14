@@ -1,11 +1,20 @@
 package gui
 
 import (
-	"sync"
 	"time"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 )
+
+// statusManager's job is to handle rendering of loading states and toast notifications
+// that you see at the bottom left of the screen.
+type statusManager struct {
+	statuses []appStatus
+	nextId   int
+	mutex    deadlock.Mutex
+}
 
 type appStatus struct {
 	message    string
@@ -13,23 +22,13 @@ type appStatus struct {
 	id         int
 }
 
-type statusManager struct {
-	statuses []appStatus
-	nextId   int
-	mutex    sync.Mutex
-}
-
 func (m *statusManager) removeStatus(id int) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	newStatuses := []appStatus{}
-	for _, status := range m.statuses {
-		if status.id != id {
-			newStatuses = append(newStatuses, status)
-		}
-	}
-	m.statuses = newStatuses
+	m.statuses = slices.Filter(m.statuses, func(status appStatus) bool {
+		return status.id != id
+	})
 }
 
 func (m *statusManager) addWaitingStatus(message string) int {
@@ -83,7 +82,7 @@ func (m *statusManager) getStatusString() string {
 	return topStatus.message
 }
 
-func (gui *Gui) raiseToast(message string) {
+func (gui *Gui) toast(message string) {
 	gui.statusManager.addToastStatus(message)
 
 	gui.renderAppStatus()
@@ -95,7 +94,7 @@ func (gui *Gui) renderAppStatus() {
 		defer ticker.Stop()
 		for range ticker.C {
 			appStatus := gui.statusManager.getStatusString()
-			gui.OnUIThread(func() error {
+			gui.c.OnUIThread(func() error {
 				return gui.renderString(gui.Views.AppStatus, appStatus)
 			})
 
@@ -106,8 +105,8 @@ func (gui *Gui) renderAppStatus() {
 	})
 }
 
-// WithWaitingStatus wraps a function and shows a waiting status while the function is still executing
-func (gui *Gui) WithWaitingStatus(message string, f func() error) error {
+// withWaitingStatus wraps a function and shows a waiting status while the function is still executing
+func (gui *Gui) withWaitingStatus(message string, f func() error) error {
 	go utils.Safe(func() {
 		id := gui.statusManager.addWaitingStatus(message)
 
@@ -118,8 +117,8 @@ func (gui *Gui) WithWaitingStatus(message string, f func() error) error {
 		gui.renderAppStatus()
 
 		if err := f(); err != nil {
-			gui.OnUIThread(func() error {
-				return gui.surfaceError(err)
+			gui.c.OnUIThread(func() error {
+				return gui.c.Error(err)
 			})
 		}
 	})

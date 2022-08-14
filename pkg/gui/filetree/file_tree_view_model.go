@@ -1,159 +1,157 @@
 package filetree
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context/traits"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 
-type FileTreeDisplayFilter int
+type IFileTreeViewModel interface {
+	IFileTree
+	types.IListCursor
+}
 
-const (
-	DisplayAll FileTreeDisplayFilter = iota
-	DisplayStaged
-	DisplayUnstaged
-	// this shows files with merge conflicts
-	DisplayConflicted
-)
-
+// This combines our FileTree struct with a cursor that retains information about
+// which item is selected. It also contains logic for repositioning that cursor
+// after the files are refreshed
 type FileTreeViewModel struct {
-	files          []*models.File
-	tree           *FileNode
-	showTree       bool
-	log            *logrus.Entry
-	filter         FileTreeDisplayFilter
-	collapsedPaths CollapsedPaths
 	sync.RWMutex
+	IFileTree
+	types.IListCursor
 }
 
-func NewFileTreeViewModel(files []*models.File, log *logrus.Entry, showTree bool) *FileTreeViewModel {
-	viewModel := &FileTreeViewModel{
-		log:            log,
-		showTree:       showTree,
-		filter:         DisplayAll,
-		collapsedPaths: CollapsedPaths{},
-		RWMutex:        sync.RWMutex{},
-	}
+var _ IFileTreeViewModel = &FileTreeViewModel{}
 
-	viewModel.SetFiles(files)
-
-	return viewModel
-}
-
-func (self *FileTreeViewModel) InTreeMode() bool {
-	return self.showTree
-}
-
-func (self *FileTreeViewModel) ExpandToPath(path string) {
-	self.collapsedPaths.ExpandToPath(path)
-}
-
-func (self *FileTreeViewModel) GetFilesForDisplay() []*models.File {
-	files := self.files
-
-	switch self.filter {
-	case DisplayAll:
-		return files
-	case DisplayStaged:
-		return self.FilterFiles(func(file *models.File) bool { return file.HasStagedChanges })
-	case DisplayUnstaged:
-		return self.FilterFiles(func(file *models.File) bool { return file.HasUnstagedChanges })
-	case DisplayConflicted:
-		return self.FilterFiles(func(file *models.File) bool { return file.HasMergeConflicts })
-	default:
-		panic(fmt.Sprintf("Unexpected files display filter: %d", self.filter))
+func NewFileTreeViewModel(getFiles func() []*models.File, log *logrus.Entry, showTree bool) *FileTreeViewModel {
+	fileTree := NewFileTree(getFiles, log, showTree)
+	listCursor := traits.NewListCursor(fileTree)
+	return &FileTreeViewModel{
+		IFileTree:   fileTree,
+		IListCursor: listCursor,
 	}
 }
 
-func (self *FileTreeViewModel) FilterFiles(test func(*models.File) bool) []*models.File {
-	result := make([]*models.File, 0)
-	for _, file := range self.files {
-		if test(file) {
-			result = append(result, file)
-		}
-	}
-	return result
-}
-
-func (self *FileTreeViewModel) SetFilter(filter FileTreeDisplayFilter) {
-	self.filter = filter
-	self.SetTree()
-}
-
-func (self *FileTreeViewModel) ToggleShowTree() {
-	self.showTree = !self.showTree
-	self.SetTree()
-}
-
-func (self *FileTreeViewModel) GetItemAtIndex(index int) *FileNode {
-	// need to traverse the three depth first until we get to the index.
-	return self.tree.GetNodeAtIndex(index+1, self.collapsedPaths) // ignoring root
-}
-
-func (self *FileTreeViewModel) GetFile(path string) *models.File {
-	for _, file := range self.files {
-		if file.Name == path {
-			return file
-		}
-	}
-
-	return nil
-}
-
-func (self *FileTreeViewModel) GetIndexForPath(path string) (int, bool) {
-	index, found := self.tree.GetIndexForPath(path, self.collapsedPaths)
-	return index - 1, found
-}
-
-func (self *FileTreeViewModel) GetAllItems() []*FileNode {
-	if self.tree == nil {
+func (self *FileTreeViewModel) GetSelected() *FileNode {
+	if self.Len() == 0 {
 		return nil
 	}
 
-	return self.tree.Flatten(self.collapsedPaths)[1:] // ignoring root
+	return self.Get(self.GetSelectedLineIdx())
 }
 
-func (self *FileTreeViewModel) GetItemsLength() int {
-	return self.tree.Size(self.collapsedPaths) - 1 // ignoring root
+func (self *FileTreeViewModel) GetSelectedFile() *models.File {
+	node := self.GetSelected()
+	if node == nil {
+		return nil
+	}
+
+	return node.File
 }
 
-func (self *FileTreeViewModel) GetAllFiles() []*models.File {
-	return self.files
-}
+func (self *FileTreeViewModel) GetSelectedPath() string {
+	node := self.GetSelected()
+	if node == nil {
+		return ""
+	}
 
-func (self *FileTreeViewModel) SetFiles(files []*models.File) {
-	self.files = files
-
-	self.SetTree()
+	return node.GetPath()
 }
 
 func (self *FileTreeViewModel) SetTree() {
-	filesForDisplay := self.GetFilesForDisplay()
-	if self.showTree {
-		self.tree = BuildTreeFromFiles(filesForDisplay)
-	} else {
-		self.tree = BuildFlatTreeFromFiles(filesForDisplay)
+	newFiles := self.GetAllFiles()
+	selectedNode := self.GetSelected()
+
+	// for when you stage the old file of a rename and the new file is in a collapsed dir
+	for _, file := range newFiles {
+		if selectedNode != nil && selectedNode.Path != "" && file.PreviousName == selectedNode.Path {
+			self.ExpandToPath(file.Name)
+		}
 	}
+
+	prevNodes := self.GetAllItems()
+	prevSelectedLineIdx := self.GetSelectedLineIdx()
+
+	self.IFileTree.SetTree()
+
+	if selectedNode != nil {
+		newNodes := self.GetAllItems()
+		newIdx := self.findNewSelectedIdx(prevNodes[prevSelectedLineIdx:], newNodes)
+		if newIdx != -1 && newIdx != prevSelectedLineIdx {
+			self.SetSelectedLineIdx(newIdx)
+		}
+	}
+
+	self.RefreshSelectedIdx()
 }
 
-func (self *FileTreeViewModel) IsCollapsed(path string) bool {
-	return self.collapsedPaths.IsCollapsed(path)
+// Let's try to find our file again and move the cursor to that.
+// If we can't find our file, it was probably just removed by the user. In that
+// case, we go looking for where the next file has been moved to. Given that the
+// user could have removed a whole directory, we continue iterating through the old
+// nodes until we find one that exists in the new set of nodes, then move the cursor
+// to that.
+// prevNodes starts from our previously selected node because we don't need to consider anything above that
+func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNodes []*FileNode) int {
+	getPaths := func(node *FileNode) []string {
+		if node == nil {
+			return nil
+		}
+		if node.File != nil && node.File.IsRename() {
+			return node.File.Names()
+		} else {
+			return []string{node.Path}
+		}
+	}
+
+	for _, prevNode := range prevNodes {
+		selectedPaths := getPaths(prevNode)
+
+		for idx, node := range currNodes {
+			paths := getPaths(node)
+
+			// If you started off with a rename selected, and now it's broken in two, we want you to jump to the new file, not the old file.
+			// This is because the new should be in the same position as the rename was meaning less cursor jumping
+			foundOldFileInRename := prevNode.File != nil && prevNode.File.IsRename() && node.Path == prevNode.File.PreviousName
+			foundNode := utils.StringArraysOverlap(paths, selectedPaths) && !foundOldFileInRename
+			if foundNode {
+				return idx
+			}
+		}
+	}
+
+	return -1
 }
 
-func (self *FileTreeViewModel) ToggleCollapsed(path string) {
-	self.collapsedPaths.ToggleCollapsed(path)
+func (self *FileTreeViewModel) SetFilter(filter FileTreeDisplayFilter) {
+	self.IFileTree.SetFilter(filter)
+	self.IListCursor.SetSelectedLineIdx(0)
 }
 
-func (self *FileTreeViewModel) Tree() INode {
-	return self.tree
-}
+// If we're going from flat to tree we want to select the same file.
+// If we're going from tree to flat and we have a file selected we want to select that.
+// If instead we've selected a directory we need to select the first file in that directory.
+func (self *FileTreeViewModel) ToggleShowTree() {
+	selectedNode := self.GetSelected()
 
-func (self *FileTreeViewModel) CollapsedPaths() CollapsedPaths {
-	return self.collapsedPaths
-}
+	self.IFileTree.ToggleShowTree()
 
-func (self *FileTreeViewModel) GetFilter() FileTreeDisplayFilter {
-	return self.filter
+	if selectedNode == nil {
+		return
+	}
+	path := selectedNode.Path
+
+	if self.InTreeMode() {
+		self.ExpandToPath(path)
+	} else if len(selectedNode.Children) > 0 {
+		path = selectedNode.GetLeaves()[0].Path
+	}
+
+	index, found := self.GetIndexForPath(path)
+	if found {
+		self.SetSelectedLineIdx(index)
+	}
 }

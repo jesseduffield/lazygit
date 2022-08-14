@@ -1,13 +1,13 @@
 package gui
 
 func (gui *Gui) toggleWhitespaceInDiffView() error {
-	gui.State.IgnoreWhitespaceInDiffView = !gui.State.IgnoreWhitespaceInDiffView
+	gui.IgnoreWhitespaceInDiffView = !gui.IgnoreWhitespaceInDiffView
 
-	toastMessage := gui.Tr.ShowingWhitespaceInDiffView
-	if gui.State.IgnoreWhitespaceInDiffView {
-		toastMessage = gui.Tr.IgnoringWhitespaceInDiffView
+	toastMessage := gui.c.Tr.ShowingWhitespaceInDiffView
+	if gui.IgnoreWhitespaceInDiffView {
+		toastMessage = gui.c.Tr.IgnoringWhitespaceInDiffView
 	}
-	gui.raiseToast(toastMessage)
+	gui.c.Toast(toastMessage)
 
 	return gui.refreshFilesAndSubmodules()
 }

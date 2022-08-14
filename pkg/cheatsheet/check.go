@@ -17,11 +17,11 @@ func Check() {
 	tmpDir := filepath.Join(os.TempDir(), "lazygit_cheatsheet")
 	err := os.RemoveAll(tmpDir)
 	if err != nil {
-		log.Fatalf("Error occured while checking if cheatsheets are up to date: %v", err)
+		log.Fatalf("Error occurred while checking if cheatsheets are up to date: %v", err)
 	}
-	err = os.Mkdir(tmpDir, 0700)
+	err = os.Mkdir(tmpDir, 0o700)
 	if err != nil {
-		log.Fatalf("Error occured while checking if cheatsheets are up to date: %v", err)
+		log.Fatalf("Error occurred while checking if cheatsheets are up to date: %v", err)
 	}
 
 	generateAtDir(tmpDir)
@@ -45,9 +45,9 @@ func Check() {
 			Context:  1,
 		})
 		if err != nil {
-			log.Fatalf("Error occured while checking if cheatsheets are up to date: %v", err)
+			log.Fatalf("Error occurred while checking if cheatsheets are up to date: %v", err)
 		}
-		fmt.Printf("\nCheatsheets are out of date. Please run `%s` at the project root and commit the changes\n", CommandToRun())
+		fmt.Printf("\nCheatsheets are out of date. Please run `%s` at the project root and commit the changes. If you run the script and no keybindings files are updated as a result, try rebasing onto master and trying again.\n", CommandToRun())
 		os.Exit(1)
 	}
 
@@ -62,7 +62,7 @@ func obtainContent(dir string) string {
 		if re.MatchString(path) {
 			bytes, err := ioutil.ReadFile(path)
 			if err != nil {
-				log.Fatalf("Error occured while checking if cheatsheets are up to date: %v", err)
+				log.Fatalf("Error occurred while checking if cheatsheets are up to date: %v", err)
 			}
 			content += fmt.Sprintf("\n%s\n\n", filepath.Base(path))
 			content += string(bytes)
@@ -70,9 +70,8 @@ func obtainContent(dir string) string {
 
 		return nil
 	})
-
 	if err != nil {
-		log.Fatalf("Error occured while checking if cheatsheets are up to date: %v", err)
+		log.Fatalf("Error occurred while checking if cheatsheets are up to date: %v", err)
 	}
 
 	return content

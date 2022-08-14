@@ -11,7 +11,7 @@ import (
 
 // this takes something like:
 // * (HEAD detached at 264fc6f5)
-//	remotes
+// remotes
 // and returns '264fc6f5' as the second match
 const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 
@@ -109,6 +109,10 @@ func (self *BranchCommands) SetUpstream(remoteName string, remoteBranchName stri
 	return self.cmd.New(fmt.Sprintf("git branch --set-upstream-to=%s/%s %s", self.cmd.Quote(remoteName), self.cmd.Quote(remoteBranchName), self.cmd.Quote(branchName))).Run()
 }
 
+func (self *BranchCommands) UnsetUpstream(branchName string) error {
+	return self.cmd.New(fmt.Sprintf("git branch --unset-upstream %s", self.cmd.Quote(branchName))).Run()
+}
+
 func (self *BranchCommands) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
 	return self.GetCommitDifferences("HEAD", "HEAD@{u}")
 }
@@ -142,7 +146,7 @@ func (self *BranchCommands) Rename(oldName string, newName string) error {
 }
 
 func (self *BranchCommands) GetRawBranches() (string, error) {
-	return self.cmd.New(`git for-each-ref --sort=-committerdate --format="%(HEAD)|%(refname:short)|%(upstream:short)|%(upstream:track)" refs/heads`).DontLog().RunWithOutput()
+	return self.cmd.New(`git for-each-ref --sort=-committerdate --format="%(HEAD)%00%(refname:short)%00%(upstream:short)%00%(upstream:track)" refs/heads`).DontLog().RunWithOutput()
 }
 
 type MergeOpts struct {

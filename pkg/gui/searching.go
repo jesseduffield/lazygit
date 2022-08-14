@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -17,7 +18,7 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 
 	gui.Views.Search.ClearTextArea()
 
-	if err := gui.pushContext(gui.State.Contexts.Search); err != nil {
+	if err := gui.c.PushContext(gui.State.Contexts.Search); err != nil {
 		return err
 	}
 
@@ -26,7 +27,7 @@ func (gui *Gui) handleOpenSearch(viewName string) error {
 
 func (gui *Gui) handleSearch() error {
 	gui.State.Searching.searchString = gui.Views.Search.TextArea.GetContent()
-	if err := gui.returnFromContext(); err != nil {
+	if err := gui.c.PopContext(); err != nil {
 		return err
 	}
 
@@ -43,7 +44,7 @@ func (gui *Gui) handleSearch() error {
 }
 
 func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, int) error {
-	keybindingConfig := gui.UserConfig.Keybinding
+	keybindingConfig := gui.c.UserConfig.Keybinding
 
 	return func(y int, index int, total int) error {
 		if total == 0 {
@@ -52,7 +53,7 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 				fmt.Sprintf(
 					"no matches for '%s' %s",
 					gui.State.Searching.searchString,
-					theme.OptionsFgColor.Sprintf("%s: exit search mode", gui.getKeyDisplay(keybindingConfig.Universal.Return)),
+					theme.OptionsFgColor.Sprintf("%s: exit search mode", keybindings.Label(keybindingConfig.Universal.Return)),
 				),
 			)
 		}
@@ -65,9 +66,9 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 				total,
 				theme.OptionsFgColor.Sprintf(
 					"%s: next match, %s: previous match, %s: exit search mode",
-					gui.getKeyDisplay(keybindingConfig.Universal.NextMatch),
-					gui.getKeyDisplay(keybindingConfig.Universal.PrevMatch),
-					gui.getKeyDisplay(keybindingConfig.Universal.Return),
+					keybindings.Label(keybindingConfig.Universal.NextMatch),
+					keybindings.Label(keybindingConfig.Universal.PrevMatch),
+					keybindings.Label(keybindingConfig.Universal.Return),
 				),
 			),
 		)
@@ -93,7 +94,7 @@ func (gui *Gui) handleSearchEscape() error {
 		return err
 	}
 
-	if err := gui.returnFromContext(); err != nil {
+	if err := gui.c.PopContext(); err != nil {
 		return err
 	}
 
