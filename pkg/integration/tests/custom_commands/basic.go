@@ -2,14 +2,14 @@ package custom_commands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var Basic = components.NewIntegrationTest(components.NewIntegrationTestArgs{
+var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using a custom command to create a new file",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	SetupRepo:    func(shell *components.Shell) {},
+	SetupRepo:    func(shell *Shell) {},
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.UserConfig.CustomCommands = []config.CustomCommand{
 			{
@@ -20,15 +20,15 @@ var Basic = components.NewIntegrationTest(components.NewIntegrationTestArgs{
 		}
 	},
 	Run: func(
-		shell *components.Shell,
-		input *components.Input,
-		assert *components.Assert,
+		shell *Shell,
+		input *Input,
+		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
 		assert.WorkingTreeFileCount(0)
 
 		input.PressKeys("a")
 		assert.WorkingTreeFileCount(1)
-		assert.SelectedLineContains("myfile")
+		assert.MatchSelectedLine(Contains("myfile"))
 	},
 })

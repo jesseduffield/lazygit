@@ -3,6 +3,7 @@ package components
 import (
 	"testing"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -44,6 +45,14 @@ func (self *fakeGuiDriver) LogUI(message string) {
 }
 
 func (self *fakeGuiDriver) CheckedOutRef() *models.Branch {
+	return nil
+}
+
+func (self *fakeGuiDriver) MainView() *gocui.View {
+	return nil
+}
+
+func (self *fakeGuiDriver) SecondaryView() *gocui.View {
 	return nil
 }
 

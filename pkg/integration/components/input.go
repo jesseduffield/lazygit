@@ -93,7 +93,7 @@ func (self *Input) PreviousItem() {
 
 func (self *Input) ContinueMerge() {
 	self.PressKeys(self.keys.Universal.CreateRebaseOptionsMenu)
-	self.assert.SelectedLineContains("continue")
+	self.assert.MatchSelectedLine(Contains("continue"))
 	self.Confirm()
 }
 

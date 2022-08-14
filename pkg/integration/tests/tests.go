@@ -17,4 +17,5 @@ var Tests = []*components.IntegrationTest{
 	branch.Suggestions,
 	interactive_rebase.One,
 	custom_commands.Basic,
+	custom_commands.MultiplePrompts,
 }

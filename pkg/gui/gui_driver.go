@@ -71,3 +71,11 @@ func (self *GuiDriver) LogUI(message string) {
 func (self *GuiDriver) CheckedOutRef() *models.Branch {
 	return self.gui.helpers.Refs.GetCheckedOutRef()
 }
+
+func (self *GuiDriver) MainView() *gocui.View {
+	return self.gui.mainView()
+}
+
+func (self *GuiDriver) SecondaryView() *gocui.View {
+	return self.gui.secondaryView()
+}
