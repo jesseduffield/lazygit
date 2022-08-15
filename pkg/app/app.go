@@ -15,6 +15,7 @@ import (
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -151,16 +152,6 @@ func isDirectoryAGitRepository(dir string) (bool, error) {
 	return info != nil, err
 }
 
-func isBareRepo(osCommand *oscommands.OSCommand) (bool, error) {
-	res, err := osCommand.Cmd.New("git rev-parse --is-bare-repository").DontLog().RunWithOutput()
-
-	if err != nil {
-		return false, err
-	}
-
-	// The command returns output with a newline, so we need to strip
-	return strconv.ParseBool(strings.TrimSpace(res))
-}
 
 func openRecentRepo(app *App) bool {
 	for _, repoDir := range app.Config.GetAppState().RecentRepos {
@@ -231,7 +222,7 @@ func (app *App) setupRepo() (bool, error) {
 	}
 
 	// Run this afterward so that the previous repo creation steps can run without this interfering
-	if isBare, err := isBareRepo(app.OSCommand); isBare {
+	if isBare, err := git_commands.IsBareRepo(app.OSCommand); isBare {
 		if err != nil {
 			return false, err
 		}
