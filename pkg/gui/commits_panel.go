@@ -63,6 +63,9 @@ func (gui *Gui) secondaryPatchPanelUpdateOpts() *types.ViewUpdateOpts {
 }
 
 func (gui *Gui) refForLog() string {
+	if val := gui.State.Branch; val != "" {
+		return val
+	}
 	bisectInfo := gui.git.Bisect.GetInfo()
 	gui.State.Model.BisectInfo = bisectInfo
 

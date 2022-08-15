@@ -34,6 +34,7 @@ type cliArgs struct {
 	UseConfigDir       string
 	WorkTree           string
 	GitDir             string
+	Branch             string
 	CustomConfigFile   string
 }
 
@@ -136,7 +137,7 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 
 	parsedGitArg := parseGitArg(cliArgs.GitArg)
 
-	Run(appConfig, common, appTypes.NewStartArgs(cliArgs.FilterPath, parsedGitArg, integrationTest))
+	Run(appConfig, common, appTypes.NewStartArgs(cliArgs.FilterPath, parsedGitArg, cliArgs.Branch, integrationTest))
 }
 
 func parseCliArgsAndEnvVars() *cliArgs {
@@ -178,6 +179,9 @@ func parseCliArgsAndEnvVars() *cliArgs {
 	customConfigFile := ""
 	flaggy.String(&customConfigFile, "ucf", "use-config-file", "Comma separated list to custom config file(s)")
 
+	branch := ""
+	flaggy.String(&branch, "b", "branch", "Branch to show")
+
 	flaggy.Parse()
 
 	if os.Getenv("DEBUG") == "TRUE" {
@@ -196,6 +200,7 @@ func parseCliArgsAndEnvVars() *cliArgs {
 		UseConfigDir:       useConfigDir,
 		WorkTree:           workTree,
 		GitDir:             gitDir,
+		Branch:             branch,
 		CustomConfigFile:   customConfigFile,
 	}
 }

@@ -174,6 +174,7 @@ type GuiRepoState struct {
 	Updating       bool
 	SplitMainPanel bool
 	LimitCommits   bool
+	Branch         string
 
 	IsRefreshingFiles bool
 	Searching         searchingState
@@ -287,6 +288,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 			BisectInfo:            git_commands.NewNullBisectInfo(),
 			FilesTrie:             patricia.NewTrie(),
 		},
+		Branch: startArgs.Branch,
 		Modes: &types.Modes{
 			Filtering:     filtering.New(startArgs.FilterPath),
 			CherryPicking: cherrypicking.New(),
