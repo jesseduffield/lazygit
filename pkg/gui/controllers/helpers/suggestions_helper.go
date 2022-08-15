@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -78,6 +79,26 @@ func (self *SuggestionsHelper) getBranchNames() []string {
 	return slices.Map(self.model.Branches, func(branch *models.Branch) string {
 		return branch.Name
 	})
+}
+
+func (self *SuggestionsHelper) GetRemoteRepoSuggestionsFunc() func(string) []*types.Suggestion {
+	remotesNames := self.getRemoteRepoNames()
+
+	return FuzzySearchFunc(remotesNames)
+}
+
+func (self *SuggestionsHelper) getRemoteRepoNames() []string {
+	remotes := self.model.Remotes
+	result := make([]string, 0, len(remotes))
+	for _, remote := range remotes {
+		if len(remote.Urls) == 0 {
+			continue
+		}
+		info := git_commands.GetRepoInfoFromURL(remote.Urls[0])
+		result = append(result, fmt.Sprintf("%s/%s", info.Owner, info.Repository))
+	}
+
+	return result
 }
 
 func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*types.Suggestion {

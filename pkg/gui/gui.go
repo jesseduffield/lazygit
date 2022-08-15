@@ -238,10 +238,6 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool) error {
 	return nil
 }
 
-type GithubState struct {
-	RecentPRs []*models.GithubPullRequest
-}
-
 // reuseState determines if we pull the repo state from our repo state map or
 // just re-initialize it. For now we're only re-using state when we're going
 // in and out of submodules, for the sake of having the cursor back on the submodule
@@ -290,6 +286,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 			ReflogCommits:         make([]*models.Commit, 0),
 			BisectInfo:            git_commands.NewNullBisectInfo(),
 			FilesTrie:             patricia.NewTrie(),
+			PullRequests:          make([]*models.GithubPullRequest, 0),
 		},
 		Modes: &types.Modes{
 			Filtering:     filtering.New(startArgs.FilterPath),
@@ -776,4 +773,16 @@ func (gui *Gui) onUIThread(f func() error) {
 	gui.g.Update(func(*gocui.Gui) error {
 		return f()
 	})
+}
+
+func (gui *Gui) GetPr(branch *models.Branch) (*models.GithubPullRequest, bool, error) {
+	prs := git_commands.GenerateGithubPullRequestMap(
+		gui.State.Model.PullRequests,
+		[]*models.Branch{branch},
+		gui.State.Model.Remotes,
+	)
+
+	pr, hasPr := prs[branch]
+
+	return pr, hasPr, nil
 }

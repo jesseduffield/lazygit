@@ -224,19 +224,19 @@ type KeybindingFilesConfig struct {
 }
 
 type KeybindingBranchesConfig struct {
-	CreateOrShowPullRequest string `yaml:"createPullRequest"`
-	ViewPullRequestOptions  string `yaml:"viewPullRequestOptions"`
-	CopyPullRequestURL      string `yaml:"copyPullRequestURL"`
-	CheckoutBranchByName    string `yaml:"checkoutBranchByName"`
-	ForceCheckoutBranch     string `yaml:"forceCheckoutBranch"`
-	RebaseBranch            string `yaml:"rebaseBranch"`
-	RenameBranch            string `yaml:"renameBranch"`
-	MergeIntoCurrentBranch  string `yaml:"mergeIntoCurrentBranch"`
-	ViewGitFlowOptions      string `yaml:"viewGitFlowOptions"`
-	FastForward             string `yaml:"fastForward"`
-	PushTag                 string `yaml:"pushTag"`
-	SetUpstream             string `yaml:"setUpstream"`
-	FetchRemote             string `yaml:"fetchRemote"`
+	CreatePullRequest      string `yaml:"createPullRequest"`
+	ViewPullRequestOptions string `yaml:"viewPullRequestOptions"`
+	CopyPullRequestURL     string `yaml:"copyPullRequestURL"`
+	CheckoutBranchByName   string `yaml:"checkoutBranchByName"`
+	ForceCheckoutBranch    string `yaml:"forceCheckoutBranch"`
+	RebaseBranch           string `yaml:"rebaseBranch"`
+	RenameBranch           string `yaml:"renameBranch"`
+	MergeIntoCurrentBranch string `yaml:"mergeIntoCurrentBranch"`
+	ViewGitFlowOptions     string `yaml:"viewGitFlowOptions"`
+	FastForward            string `yaml:"fastForward"`
+	PushTag                string `yaml:"pushTag"`
+	SetUpstream            string `yaml:"setUpstream"`
+	FetchRemote            string `yaml:"fetchRemote"`
 }
 
 type KeybindingCommitsConfig struct {
@@ -505,19 +505,19 @@ func GetDefaultConfig() *UserConfig {
 				OpenStatusFilter:         "<c-b>",
 			},
 			Branches: KeybindingBranchesConfig{
-				CopyPullRequestURL:      "<c-y>",
-				CreateOrShowPullRequest: "o",
-				ViewPullRequestOptions:  "O",
-				CheckoutBranchByName:    "c",
-				ForceCheckoutBranch:     "F",
-				RebaseBranch:            "r",
-				RenameBranch:            "R",
-				MergeIntoCurrentBranch:  "M",
-				ViewGitFlowOptions:      "i",
-				FastForward:             "f",
-				PushTag:                 "P",
-				SetUpstream:             "u",
-				FetchRemote:             "f",
+				CopyPullRequestURL:     "<c-y>",
+				CreatePullRequest:      "o",
+				ViewPullRequestOptions: "O",
+				CheckoutBranchByName:   "c",
+				ForceCheckoutBranch:    "F",
+				RebaseBranch:           "r",
+				RenameBranch:           "R",
+				MergeIntoCurrentBranch: "M",
+				ViewGitFlowOptions:     "i",
+				FastForward:            "f",
+				PushTag:                "P",
+				SetUpstream:            "u",
+				FetchRemote:            "f",
 			},
 			Commits: KeybindingCommitsConfig{
 				SquashDown:                     "s",

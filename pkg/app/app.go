@@ -136,6 +136,29 @@ func (app *App) validateGhVersion() error {
 	return minVersionError
 }
 
+func isGhVersionValid(versionStr string) bool {
+	// output should be something like:
+	// gh version 2.0.0 (2021-08-23)
+	// https://github.com/cli/cli/releases/tag/v2.0.0
+	re := regexp.MustCompile(`[^\d]+([\d\.]+)`)
+	matches := re.FindStringSubmatch(versionStr)
+
+	if len(matches) == 0 {
+		return false
+	}
+
+	ghVersion := matches[1]
+	majorVersion, err := strconv.Atoi(ghVersion[0:1])
+	if err != nil {
+		return false
+	}
+	if majorVersion < 2 {
+		return false
+	}
+
+	return true
+}
+
 func (app *App) validateGitVersion() error {
 	output, err := app.OSCommand.Cmd.New("git --version").RunWithOutput()
 	// if we get an error anywhere here we'll show the same status

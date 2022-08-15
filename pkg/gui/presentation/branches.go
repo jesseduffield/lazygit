@@ -16,15 +16,17 @@ import (
 
 var branchPrefixColorCache = make(map[string]style.TextStyle)
 
-func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string, tr *i18n.TranslationSet) [][]string {
+func GetBranchListDisplayStrings(branches []*models.Branch, prs map[*models.Branch]*models.GithubPullRequest, fullDescription bool, diffName string, tr *i18n.TranslationSet) [][]string {
 	return slices.Map(branches, func(branch *models.Branch) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, fullDescription, diffed, tr)
+		return getBranchDisplayStrings(branch, prs, fullDescription, diffed, tr)
 	})
 }
 
 // getBranchDisplayStrings returns the display string of branch
-func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool, tr *i18n.TranslationSet) []string {
+func getBranchDisplayStrings(b *models.Branch,
+	prs map[*models.Branch]*models.GithubPullRequest, fullDescription bool, diffed bool, tr *i18n.TranslationSet,
+) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
 		displayName = b.DisplayName
@@ -49,7 +51,15 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 	if icons.IsIconEnabled() {
 		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
 	}
-	res = append(res, coloredName)
+
+	pr, hasPr := prs[b]
+
+	if hasPr {
+		res = append(res, coloredPrNumber(pr, hasPr), coloredName)
+	} else {
+		res = append(res, coloredName)
+	}
+
 	if fullDescription {
 		res = append(
 			res,

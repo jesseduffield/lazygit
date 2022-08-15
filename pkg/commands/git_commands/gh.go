@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
@@ -21,17 +20,16 @@ func NewGhCommand(gitCommon *GitCommon) *GhCommands {
 
 // https://github.com/cli/cli/issues/2300
 func (self *GhCommands) BaseRepo() error {
-	return self.cmd.New("git config --local --get-regexp .gh-resolved").StreamOutput().Run()
-
+	return self.cmd.New("git config --local --get-regexp .gh-resolved").Run()
 }
 
 // Ex: git config --local --add "remote.origin.gh-resolved" "jesseduffield/lazygit"
 func (self *GhCommands) SetBaseRepo(repository string) (string, error) {
-	return self.cmd.NewShell(fmt.Sprintf("git config --local --add \"remote.origin.gh-resolved\" \"%s\"", repository)).RunWithOutput()
+	return self.cmd.New(fmt.Sprintf("git config --local --add \"remote.origin.gh-resolved\" \"%s\"", repository)).RunWithOutput()
 }
 
 func (self *GhCommands) prList() (string, error) {
-	return self.cmd.NewShell("gh pr list --limit 100 --state all --json state,url,number,headRefName,headRepositoryOwner").RunWithOutput()
+	return self.cmd.New("gh pr list --limit 500 --state all --json state,url,number,headRefName,headRepositoryOwner").RunWithOutput()
 }
 
 func (self *GhCommands) GithubMostRecentPRs() ([]*models.GithubPullRequest, error) {
@@ -49,17 +47,17 @@ func (self *GhCommands) GithubMostRecentPRs() ([]*models.GithubPullRequest, erro
 	return prs, nil
 }
 
-func GenerateGithubPullRequestMap(prs []*models.GithubPullRequest, branches []*models.Branch, remotes []*models.Remote) (map[*models.Branch]*models.GithubPullRequest, error) {
+func GenerateGithubPullRequestMap(prs []*models.GithubPullRequest, branches []*models.Branch, remotes []*models.Remote) map[*models.Branch]*models.GithubPullRequest {
 	res := map[*models.Branch]*models.GithubPullRequest{}
 
 	if len(prs) == 0 {
-		return res, nil
+		return res
 	}
 
-	remotesToOwnersMap, err := getRemotesToOwnersMap(remotes)
+	remotesToOwnersMap := getRemotesToOwnersMap(remotes)
 
 	if len(remotesToOwnersMap) == 0 {
-		return res, err
+		return res
 	}
 
 	prWithStringKey := map[string]models.GithubPullRequest{}
@@ -87,10 +85,10 @@ func GenerateGithubPullRequestMap(prs []*models.GithubPullRequest, branches []*m
 		res[branch] = &pr
 	}
 
-	return res, nil
+	return res
 }
 
-func GetRepoInfoFromURL(url string) hosting_service.RepoInformation {
+func GetRepoInfoFromURL(url string) RepoInformation {
 	isHTTP := strings.HasPrefix(url, "http")
 
 	if isHTTP {
@@ -98,7 +96,7 @@ func GetRepoInfoFromURL(url string) hosting_service.RepoInformation {
 		owner := strings.Join(splits[3:len(splits)-1], "/")
 		repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
 
-		return hosting_service.RepoInformation{
+		return RepoInformation{
 			Owner:      owner,
 			Repository: repo,
 		}
@@ -109,13 +107,13 @@ func GetRepoInfoFromURL(url string) hosting_service.RepoInformation {
 	owner := strings.Join(splits[0:len(splits)-1], "/")
 	repo := strings.TrimSuffix(splits[len(splits)-1], ".git")
 
-	return hosting_service.RepoInformation{
+	return RepoInformation{
 		Owner:      owner,
 		Repository: repo,
 	}
 }
 
-func getRemotesToOwnersMap(remotes []*models.Remote) (map[string]string, error) {
+func getRemotesToOwnersMap(remotes []*models.Remote) map[string]string {
 	res := map[string]string{}
 	for _, remote := range remotes {
 		if len(remote.Urls) == 0 {
@@ -124,5 +122,10 @@ func getRemotesToOwnersMap(remotes []*models.Remote) (map[string]string, error) 
 
 		res[remote.Name] = GetRepoInfoFromURL(remote.Urls[0]).Owner
 	}
-	return res, nil
+	return res
+}
+
+type RepoInformation struct {
+	Owner      string
+	Repository string
 }

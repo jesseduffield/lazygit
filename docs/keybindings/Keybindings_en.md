@@ -41,75 +41,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>[</kbd>: previous tab
 </pre>
 
-## Branches Panel (Branches Tab)
-
-<pre>
-  <kbd>space</kbd>: checkout
-  <kbd>o</kbd>: create pull request
-  <kbd>O</kbd>: create pull request options
-  <kbd>ctrl+y</kbd>: copy pull request URL to clipboard
-  <kbd>c</kbd>: checkout by name
-  <kbd>F</kbd>: force checkout
-  <kbd>n</kbd>: new branch
-  <kbd>d</kbd>: delete branch
-  <kbd>r</kbd>: rebase checked-out branch onto this branch
-  <kbd>M</kbd>: merge into currently checked out branch
-  <kbd>i</kbd>: show git-flow options
-  <kbd>f</kbd>: fast-forward this branch from its upstream
-  <kbd>g</kbd>: view reset options
-  <kbd>R</kbd>: rename branch
-  <kbd>ctrl+o</kbd>: copy branch name to clipboard
-  <kbd>enter</kbd>: view commits
-</pre>
-
-## Branches Panel (Remote Branches (in Remotes tab))
-
-<pre>
-  <kbd>esc</kbd>: Return to remotes list
-  <kbd>g</kbd>: view reset options
-  <kbd>enter</kbd>: view commits
-  <kbd>space</kbd>: checkout
-  <kbd>n</kbd>: new branch
-  <kbd>M</kbd>: merge into currently checked out branch
-  <kbd>d</kbd>: delete branch
-  <kbd>r</kbd>: rebase checked-out branch onto this branch
-  <kbd>u</kbd>: set as upstream of checked-out branch
-</pre>
-
-## Branches Panel (Remotes Tab)
-
-<pre>
-  <kbd>f</kbd>: fetch remote
-  <kbd>n</kbd>: add new remote
-  <kbd>d</kbd>: remove remote
-  <kbd>e</kbd>: edit remote
-</pre>
-
-## Branches Panel (Sub-commits)
-
-<pre>
-  <kbd>enter</kbd>: view commit's files
-  <kbd>space</kbd>: checkout commit
-  <kbd>g</kbd>: view reset options
-  <kbd>n</kbd>: new branch
-  <kbd>c</kbd>: copy commit (cherry-pick)
-  <kbd>C</kbd>: copy commit range (cherry-pick)
-  <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
-  <kbd>ctrl+o</kbd>: copy commit SHA to clipboard
-</pre>
-
-## Branches Panel (Tags Tab)
-
-<pre>
-  <kbd>space</kbd>: checkout
-  <kbd>d</kbd>: delete tag
-  <kbd>P</kbd>: push tag
-  <kbd>n</kbd>: create tag
-  <kbd>g</kbd>: view reset options
-  <kbd>enter</kbd>: view commits
-</pre>
-
-## Commit Files Panel
+## Commit Files
 
 <pre>
   <kbd>ctrl+o</kbd>: copy the committed file name to the clipboard

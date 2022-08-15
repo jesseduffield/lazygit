@@ -162,7 +162,7 @@ type TranslationSet struct {
 	SwitchRepo                          string
 	LcAllBranchesLogGraph               string
 	UnsupportedGitService               string
-	LcCreateOrShowPullRequest           string
+	LcCreatePullRequest                 string
 	LcCopyPullRequestURL                string
 	NoBranchOnRemote                    string
 	LcFetch                             string
@@ -355,6 +355,8 @@ type TranslationSet struct {
 	LcNextScreenMode                    string
 	LcPrevScreenMode                    string
 	LcStartSearch                       string
+	SelectRemoteRepository              string
+	LcSelectingRemote                   string
 	Panel                               string
 	Keybindings                         string
 	LcRenameBranch                      string
@@ -472,16 +474,12 @@ type TranslationSet struct {
 	ToggleWhitespaceInDiffView          string
 	IgnoringWhitespaceInDiffView        string
 	ShowingWhitespaceInDiffView         string
-	CreateOrOpenPullRequestOptions      string
-	LcCreateOrOpenPullRequestOptions    string
-	LcDefaultBranch                     string
-	LcSelectBranch                      string
-	CreateOrShowPullRequest             string
-	CreatingPullRequestAtUrl            string
 	IncreaseContextInDiffView           string
 	DecreaseContextInDiffView           string
 	CreatePullRequestOptions            string
 	LcCreatePullRequestOptions          string
+	LcDefaultBranch                     string
+	LcSelectBranch                      string
 	CreatePullRequest                   string
 	SelectConfigFile                    string
 	NoConfigFileFoundErr                string
@@ -490,11 +488,8 @@ type TranslationSet struct {
 	MustSpecifyOriginError              string
 	GitOutput                           string
 	GitCommandFailed                    string
-	OpenPr                              string
 	AbortTitle                          string
 	AbortPrompt                         string
-	SelectRemoteRepository              string
-	LcSelectingRemote                   string
 	LcOpenLogMenu                       string
 	LogMenuTitle                        string
 	ToggleShowGitGraphAll               string
@@ -808,7 +803,7 @@ func EnglishTranslationSet() TranslationSet {
 		SwitchRepo:                          `switch to a recent repo`,
 		LcAllBranchesLogGraph:               `show all branch logs`,
 		UnsupportedGitService:               `Unsupported git service`,
-		LcCreateOrShowPullRequest:           `create / open pull request`,
+		LcCreatePullRequest:                 `create pull request`,
 		LcCopyPullRequestURL:                `copy pull request URL to clipboard`,
 		NoBranchOnRemote:                    `This branch doesn't exist on remote. You need to push it to remote first.`,
 		LcFetch:                             `fetch`,
@@ -1002,6 +997,8 @@ func EnglishTranslationSet() TranslationSet {
 		LcNextScreenMode:                    "next screen mode (normal/half/fullscreen)",
 		LcPrevScreenMode:                    "prev screen mode",
 		LcStartSearch:                       "start search",
+		LcSelectingRemote:                   "selecting remote",
+		SelectRemoteRepository:              "select base remote repository",
 		Panel:                               "Panel",
 		Keybindings:                         "Keybindings",
 		LcRenameBranch:                      "rename branch",
@@ -1100,8 +1097,6 @@ func EnglishTranslationSet() TranslationSet {
 		SuggestionsTitle:                    "Suggestions (press %s to focus)",
 		ExtrasTitle:                         "Command Log",
 		PushingTagStatus:                    "pushing tag",
-		SelectRemoteRepository:              "select base remote repository",
-		LcSelectingRemote:                   "selecting remote",
 		PullRequestURLCopiedToClipboard:     "Pull request URL copied to clipboard",
 		CommitDiffCopiedToClipboard:         "Commit diff copied to clipboard",
 		CommitSHACopiedToClipboard:          "Commit SHA copied to clipboard",
@@ -1121,9 +1116,6 @@ func EnglishTranslationSet() TranslationSet {
 		ToggleWhitespaceInDiffView:          "Toggle whether or not whitespace changes are shown in the diff view",
 		IgnoringWhitespaceInDiffView:        "Whitespace will be ignored in the diff view",
 		ShowingWhitespaceInDiffView:         "Whitespace will be shown in the diff view",
-		CreateOrShowPullRequest:             "create / open pull request",
-		CreateOrOpenPullRequestOptions:      "create / open pull request options",
-		LcCreateOrOpenPullRequestOptions:    "create / open pull request options",
 		IncreaseContextInDiffView:           "Increase the size of the context shown around changes in the diff view",
 		DecreaseContextInDiffView:           "Decrease the size of the context shown around changes in the diff view",
 		CreatePullRequest:                   "Create pull request",
@@ -1138,7 +1130,6 @@ func EnglishTranslationSet() TranslationSet {
 		MustSpecifyOriginError:              "Must specify a remote if specifying a branch",
 		GitOutput:                           "Git output:",
 		GitCommandFailed:                    "Git command failed. Check command log for details (open with %s)",
-		OpenPr:                              "Open PR #",
 		AbortTitle:                          "Abort %s",
 		AbortPrompt:                         "Are you sure you want to abort the current %s?",
 		LcOpenLogMenu:                       "open log menu",

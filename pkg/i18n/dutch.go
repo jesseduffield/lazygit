@@ -128,7 +128,7 @@ func dutchTranslationSet() TranslationSet {
 		SwitchRepo:                          "wissel naar een recente repo",
 		LcAllBranchesLogGraph:               `alle logs van de branch laten zien`,
 		UnsupportedGitService:               `Niet-ondersteunde git-service`,
-		LcCreateOrShowPullRequest:           `maak of laat een pull-request zien`,
+		LcCreatePullRequest:                 `maak een pull-request`,
 		LcCopyPullRequestURL:                `kopieer de URL van het pull-verzoek naar het klembord`,
 		NoBranchOnRemote:                    `Deze branch bestaat niet op de remote. U moet het eerst naar de remote pushen.`,
 		LcFetch:                             `fetch`,
