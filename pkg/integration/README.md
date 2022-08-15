@@ -1,6 +1,18 @@
 # Integration Tests
 
-The pkg/integration pacakge is for integration testing: that is, actually running a real lazygit session and having a robot pretend to be a human user and then making assertions that everything works as expected.
+The pkg/integration package is for integration testing: that is, actually running a real lazygit session and having a robot pretend to be a human user and then making assertions that everything works as expected.
+
+TL;DR: integration tests live in pkg/integration/tests. Run integration tests with:
+
+```sh
+go run cmd/integration_test/main.go tui
+```
+
+or
+
+```sh
+go run cmd/integration_test/main.go cli [--slow] [testname or testpath...]
+```
 
 ## Writing tests
 
