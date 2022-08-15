@@ -1,0 +1,10 @@
+0000000000000000000000000000000000000000 cc9defb8ae9134f1a9a6c28a0006dc8c8cd78347 CI <CI@example.com> 1660123588 +1000	commit (initial): commit 01
+cc9defb8ae9134f1a9a6c28a0006dc8c8cd78347 2e2cd25ffdec58d32b5d549f8402bd054e22cc2a CI <CI@example.com> 1660123588 +1000	commit: commit 02
+2e2cd25ffdec58d32b5d549f8402bd054e22cc2a 90fda12ce101e7d0d4594a879e5bbd1be3c857a8 CI <CI@example.com> 1660123588 +1000	commit: commit 03
+90fda12ce101e7d0d4594a879e5bbd1be3c857a8 da71be1afbb03f46e91ab5de17d69f148bb009f3 CI <CI@example.com> 1660123588 +1000	commit: commit 04
+da71be1afbb03f46e91ab5de17d69f148bb009f3 8a3839811a7a9f4c678090c9def892d1e7ad7e54 CI <CI@example.com> 1660123589 +1000	commit: commit 05
+8a3839811a7a9f4c678090c9def892d1e7ad7e54 cc9defb8ae9134f1a9a6c28a0006dc8c8cd78347 CI <CI@example.com> 1660123589 +1000	rebase (start): checkout cc9defb8ae9134f1a9a6c28a0006dc8c8cd78347
+cc9defb8ae9134f1a9a6c28a0006dc8c8cd78347 2e2cd25ffdec58d32b5d549f8402bd054e22cc2a CI <CI@example.com> 1660123589 +1000	rebase: fast-forward
+2e2cd25ffdec58d32b5d549f8402bd054e22cc2a b85535ebf12659044c33386376121d76756ceb59 CI <CI@example.com> 1660123590 +1000	rebase (continue) (fixup): # This is a combination of 2 commits.
+b85535ebf12659044c33386376121d76756ceb59 aba3469fd6fc584a6af9c0073873005ffaaea56c CI <CI@example.com> 1660123590 +1000	rebase (continue) (squash): commit 02
+aba3469fd6fc584a6af9c0073873005ffaaea56c aba3469fd6fc584a6af9c0073873005ffaaea56c CI <CI@example.com> 1660123590 +1000	rebase (continue) (finish): returning to refs/heads/master

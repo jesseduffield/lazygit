@@ -1,16 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"fmt"
-	"log"
-	"os"
-	"path/filepath"
-	"runtime"
-	"runtime/debug"
-	"strings"
-
-	"github.com/integrii/flaggy"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -21,14 +11,14 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	yaml "github.com/jesseduffield/yaml"
 	"github.com/samber/lo"
+
 )
 
-const DEFAULT_VERSION = "unversioned"
-
+// These values may be set by the build script via the LDFLAGS argument
 var (
 	commit      string
-	version     = DEFAULT_VERSION
 	date        string
+	version     string
 	buildSource = "unknown"
 )
 
@@ -123,104 +113,16 @@ func main() {
 		}
 		fmt.Printf("%s\n", buf.String())
 		os.Exit(0)
+
+	ldFlagsBuildInfo := &app.BuildInfo{
+		Commit:      commit,
+		Date:        date,
+		Version:     version,
+		BuildSource: buildSource,
+
 	}
 
-	if configDirFlag {
-		fmt.Printf("%s\n", config.ConfigDir())
-		os.Exit(0)
-	}
-
-	if logFlag {
-		logs.TailLogs()
-		os.Exit(0)
-	}
-
-	if workTree != "" {
-		if err := os.Chdir(workTree); err != nil {
-			log.Fatal(err.Error())
-		}
-	}
-
-	tempDir, err := os.MkdirTemp("", "lazygit-*")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	defer os.RemoveAll(tempDir)
-
-	appConfig, err := config.NewAppConfig("lazygit", version, commit, date, buildSource, debuggingFlag, tempDir)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	common, err := app.NewCommon(appConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if daemon.InDaemonMode() {
-		daemon.Handle(common)
-		return
-	}
-
-	parsedGitArg := parseGitArg(gitArg)
-
-	app.Run(appConfig, common, types.NewStartArgs(filterPath, parsedGitArg))
-}
-
-func parseGitArg(gitArg string) types.GitArg {
-	typedArg := types.GitArg(gitArg)
-
-	// using switch so that linter catches when a new git arg value is defined but not handled here
-	switch typedArg {
-	case types.GitArgNone, types.GitArgStatus, types.GitArgBranch, types.GitArgLog, types.GitArgStash:
-		return typedArg
-	}
-
-	permittedValues := []string{
-		string(types.GitArgStatus),
-		string(types.GitArgBranch),
-		string(types.GitArgLog),
-		string(types.GitArgStash),
-	}
-
-	log.Fatalf("Invalid git arg value: '%s'. Must be one of the following values: %s. e.g. 'lazygit status'. See 'lazygit --help'.",
-		gitArg,
-		strings.Join(permittedValues, ", "),
-	)
-
-	panic("unreachable")
-}
-
-func updateBuildInfo() {
-	// if the version has already been set by build flags then we'll honour that.
-	// chances are it's something like v0.31.0 which is more informative than a
-	// commit hash.
-	if version != DEFAULT_VERSION {
-		return
-	}
-
-	buildInfo, ok := debug.ReadBuildInfo()
-	if !ok {
-		return
-	}
-
-	revision, ok := lo.Find(buildInfo.Settings, func(setting debug.BuildSetting) bool {
-		return setting.Key == "vcs.revision"
-	})
-	if ok {
-		commit = revision.Value
-		// if lazygit was built from source we'll show the version as the
-		// abbreviated commit hash
-		version = utils.ShortSha(revision.Value)
-	}
-
-	// if version hasn't been set we assume that neither has the date
-	time, ok := lo.Find(buildInfo.Settings, func(setting debug.BuildSetting) bool {
-		return setting.Key == "vcs.time"
-	})
-	if ok {
-		date = time.Value
-	}
+	app.Start(ldFlagsBuildInfo, nil)
 }
 
 func getGitVersionInfo() string {

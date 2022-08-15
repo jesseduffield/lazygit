@@ -1,6 +1,9 @@
 package custom_commands
 
 import (
+	"bytes"
+	"text/template"
+
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 )
@@ -100,4 +103,24 @@ func (self *Resolver) resolveMenuOption(option *config.CustomCommandMenuOption, 
 		Description: description,
 		Value:       value,
 	}, nil
+}
+
+type CustomCommandObject struct {
+	// deprecated. Use Responses instead
+	PromptResponses []string
+	Form            map[string]string
+}
+
+func ResolveTemplate(templateStr string, object interface{}) (string, error) {
+	tmpl, err := template.New("template").Parse(templateStr)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, object); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

@@ -1,0 +1,8 @@
+0000000000000000000000000000000000000000 1682dc1949e1937af44b5270fec5c1ac9256c6a1 CI <CI@example.com> 1659873850 +1000	commit (initial): my commit message
+1682dc1949e1937af44b5270fec5c1ac9256c6a1 1682dc1949e1937af44b5270fec5c1ac9256c6a1 CI <CI@example.com> 1659873850 +1000	checkout: moving from master to new-branch
+1682dc1949e1937af44b5270fec5c1ac9256c6a1 1682dc1949e1937af44b5270fec5c1ac9256c6a1 CI <CI@example.com> 1659873850 +1000	checkout: moving from new-branch to new-branch-2
+1682dc1949e1937af44b5270fec5c1ac9256c6a1 1682dc1949e1937af44b5270fec5c1ac9256c6a1 CI <CI@example.com> 1659873850 +1000	checkout: moving from new-branch-2 to new-branch-3
+1682dc1949e1937af44b5270fec5c1ac9256c6a1 1682dc1949e1937af44b5270fec5c1ac9256c6a1 CI <CI@example.com> 1659873850 +1000	checkout: moving from new-branch-3 to branch-to-checkout
+1682dc1949e1937af44b5270fec5c1ac9256c6a1 1682dc1949e1937af44b5270fec5c1ac9256c6a1 CI <CI@example.com> 1659873850 +1000	checkout: moving from branch-to-checkout to other-new-branch-2
+1682dc1949e1937af44b5270fec5c1ac9256c6a1 1682dc1949e1937af44b5270fec5c1ac9256c6a1 CI <CI@example.com> 1659873850 +1000	checkout: moving from other-new-branch-2 to other-new-branch-3
+1682dc1949e1937af44b5270fec5c1ac9256c6a1 1682dc1949e1937af44b5270fec5c1ac9256c6a1 CI <CI@example.com> 1659873850 +1000	checkout: moving from other-new-branch-3 to branch-to-checkout

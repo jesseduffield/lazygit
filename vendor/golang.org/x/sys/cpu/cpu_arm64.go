@@ -41,13 +41,10 @@ func archInit() {
 	switch runtime.GOOS {
 	case "freebsd":
 		readARM64Registers()
-	case "linux", "netbsd":
+	case "linux", "netbsd", "openbsd":
 		doinit()
 	default:
-		// Most platforms don't seem to allow reading these registers.
-		//
-		// OpenBSD:
-		// See https://golang.org/issue/31746
+		// Many platforms don't seem to allow reading these registers.
 		setMinimalFeatures()
 	}
 }

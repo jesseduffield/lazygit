@@ -85,7 +85,8 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Key:         opts.GetKey(opts.Config.Files.IgnoreOrExcludeFile),
 			Handler:     self.checkSelectedFileNode(self.ignoreOrExcludeMenu),
-			Description: self.c.Tr.Actions.IgnoreExcludeFile,
+			Description: self.c.Tr.Actions.LcIgnoreExcludeFile,
+			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
@@ -501,7 +502,7 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
 		return self.c.ErrorMsg(self.c.Tr.Actions.IgnoreFileErr)
 	}
-	err := self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.git.WorkingTree.Ignore)
+	err := self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.LcIgnoreExcludeFile, self.git.WorkingTree.Ignore)
 	if err != nil {
 		return err
 	}
@@ -527,7 +528,7 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 
 func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.Actions.IgnoreExcludeFile,
+		Title: self.c.Tr.Actions.LcIgnoreExcludeFile,
 		Items: []*types.MenuItem{
 			{
 				LabelColumns: []string{self.c.Tr.LcIgnoreFile},

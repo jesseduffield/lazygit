@@ -108,6 +108,8 @@ const (
 	NORMAL PlayMode = iota
 	RECORDING
 	REPLAYING
+	// for the new form of integration tests
+	REPLAYING_NEW
 )
 
 type Recording struct {
@@ -116,8 +118,8 @@ type Recording struct {
 }
 
 type replayedEvents struct {
-	keys    chan *TcellKeyEventWrapper
-	resizes chan *TcellResizeEventWrapper
+	Keys    chan *TcellKeyEventWrapper
+	Resizes chan *TcellResizeEventWrapper
 }
 
 type RecordingConfig struct {
@@ -216,10 +218,10 @@ func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless b
 			KeyEvents:    []*TcellKeyEventWrapper{},
 			ResizeEvents: []*TcellResizeEventWrapper{},
 		}
-	} else if playMode == REPLAYING {
+	} else if playMode == REPLAYING || playMode == REPLAYING_NEW {
 		g.ReplayedEvents = replayedEvents{
-			keys:    make(chan *TcellKeyEventWrapper),
-			resizes: make(chan *TcellResizeEventWrapper),
+			Keys:    make(chan *TcellKeyEventWrapper),
+			Resizes: make(chan *TcellResizeEventWrapper),
 		}
 	}
 
@@ -1420,7 +1422,7 @@ func (g *Gui) replayRecording() {
 				case <-ticker.C:
 					timeWaited += 1
 					if timeWaited >= timeToWait {
-						g.ReplayedEvents.keys <- event
+						g.ReplayedEvents.Keys <- event
 						break middle
 					}
 				case <-g.stop:
@@ -1453,7 +1455,7 @@ func (g *Gui) replayRecording() {
 				case <-ticker.C:
 					timeWaited += 1
 					if timeWaited >= timeToWait {
-						g.ReplayedEvents.resizes <- event
+						g.ReplayedEvents.Resizes <- event
 						break middle2
 					}
 				case <-g.stop:
