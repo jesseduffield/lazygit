@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/generics/slices"
+	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
@@ -152,7 +153,7 @@ func (gui *Gui) dispatchSwitchToRepo(path string, reuse bool) error {
 	gui.Mutexes.RefreshingFilesMutex.Lock()
 	defer gui.Mutexes.RefreshingFilesMutex.Unlock()
 
-	return gui.onNewRepo(types.StartArgs{}, reuse)
+	return gui.onNewRepo(appTypes.StartArgs{}, reuse)
 }
 
 // updateRecentRepoList registers the fact that we opened lazygit in this repo,

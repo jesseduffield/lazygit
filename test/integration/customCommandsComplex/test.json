@@ -1,4 +1,0 @@
-{
-  "description": "Invoke a custom command that creates a file, and then stage and commit that file. In this case we're using a more customised flow",
-  "speed": 5
-}

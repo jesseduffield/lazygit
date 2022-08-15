@@ -262,6 +262,7 @@ type TranslationSet struct {
 	BareRepo                            string
 	InitialBranch                       string
 	NoRecentRepositories                string
+	IncorrectNotARepository             string
 	AutoStashTitle                      string
 	AutoStashPrompt                     string
 	StashPrefix                         string
@@ -569,8 +570,7 @@ type Actions struct {
 	UnstageFile                       string
 	UnstageAllFiles                   string
 	StageAllFiles                     string
-	IgnoreExcludeFile                 string
-	IgnoreFile                        string
+	LcIgnoreExcludeFile               string
 	IgnoreFileErr                     string
 	ExcludeFile                       string
 	ExcludeFileErr                    string
@@ -902,6 +902,7 @@ func EnglishTranslationSet() TranslationSet {
 		BareRepo:                            "You've attempted to open Lazygit in a bare repo but Lazygit does not yet support bare repos. Open most recent repo? (y/n) ",
 		InitialBranch:                       "Branch name? (leave empty for git's default): ",
 		NoRecentRepositories:                "Must open lazygit in a git repository. No valid recent repositories. Exiting.",
+		IncorrectNotARepository:             "The value of 'notARepository' is incorrect. It should be one of 'prompt', 'create', 'skip', or 'quit'.",
 		AutoStashTitle:                      "Autostash?",
 		AutoStashPrompt:                     "You must stash and pop your changes to bring them across. Do this automatically? (enter/esc)",
 		StashPrefix:                         "Auto-stashing changes for ",
@@ -1192,8 +1193,7 @@ func EnglishTranslationSet() TranslationSet {
 			UnstageFile:                       "Unstage file",
 			UnstageAllFiles:                   "Unstage all files",
 			StageAllFiles:                     "Stage all files",
-			IgnoreExcludeFile:                 "Ignore or Exclude file",
-			IgnoreFile:                        "Ignore or Exclude file",
+			LcIgnoreExcludeFile:               "ignore or exclude file",
 			IgnoreFileErr:                     "Cannot ignore .gitignore",
 			ExcludeFile:                       "Exclude file",
 			ExcludeFileErr:                    "Cannot exclude .git/info/exclude",

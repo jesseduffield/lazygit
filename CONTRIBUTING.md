@@ -63,9 +63,9 @@ by setting [`formatting.gofumpt`](https://github.com/golang/tools/blob/master/go
 ```jsonc
 // .vscode/settings.json
 {
-    "gopls": {
-        "formatting.gofumpt": true
-    }
+  "gopls": {
+    "formatting.gofumpt": true
+  }
 }
 ```
 
@@ -82,6 +82,7 @@ From most places in the codebase you have access to a logger e.g. `gui.Log.Warn(
 If you find that the existing logs are too noisy, you can set the log level with e.g. `LOG_LEVEL=warn go run main.go -debug` and then only use `Warn` logs yourself.
 
 If you need to log from code in the vendor directory (e.g. the `gocui` package), you won't have access to the logger, but you can easily add logging support by adding the following:
+
 ```go
 func newLogger() *logrus.Entry {
 	// REPLACE THE BELOW PATH WITH YOUR ACTUAL LOG PATH (YOU'LL SEE THIS PRINTED WHEN YOU RUN `lazygit --logs`
@@ -118,9 +119,7 @@ If you want to trigger a debug session from VSCode, you can use the following sn
       "request": "launch",
       "mode": "auto",
       "program": "main.go",
-      "args": [
-        "--debug"
-      ],
+      "args": ["--debug"],
       "console": "externalTerminal" // <-- you need this to actually see the lazygit UI in a window while debugging
     }
   ]
@@ -129,7 +128,7 @@ If you want to trigger a debug session from VSCode, you can use the following sn
 
 ## Testing
 
-Lazygit has two kinds of tests: unit tests and integration tests. Unit tests go in files that end in `_test.go`, and are written in Go. Lazygit has its own integration test system where you can build a sandbox repo with a shell script, record yourself doing something, and commit the resulting repo snapshot. It's pretty damn cool! To learn more see [here](https://github.com/jesseduffield/lazygit/blob/master/docs/Integration_Tests.md)
+Lazygit has two kinds of tests: unit tests and integration tests. Unit tests go in files that end in `_test.go`, and are written in Go. For integration tests, see [here](https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md)
 
 ## Updating Gocui
 
