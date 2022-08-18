@@ -42,6 +42,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Arch Linux](#arch-linux)
   - [Fedora and RHEL](#fedora-and-rhel)
   - [Solus Linux](#solus-linux)
+  - [Ubuntu](#ubuntu)
   - [Funtoo Linux](#funtoo-linux)
   - [FreeBSD](#freebsd)
   - [Conda](#conda)
@@ -144,6 +145,26 @@ sudo dnf install lazygit
 
 ```sh
 sudo eopkg install lazygit
+```
+
+### Ubuntu
+
+```sh
+LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[0-35.]+')
+```
+
+```sh
+curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+```
+
+```sh
+sudo tar xf lazygit.tar.gz -C /usr/local/bin lazygit
+```
+
+Verify the correct installation of lazygit:
+
+```sh
+lazygit --version
 ```
 
 ### Funtoo Linux
