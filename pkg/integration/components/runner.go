@@ -136,9 +136,10 @@ func createFixture(test *IntegrationTest, paths Paths) error {
 	}
 
 	shell := NewShell()
-	shell.RunCommand("git init")
+	shell.RunCommand("git init -b master")
 	shell.RunCommand(`git config user.email "CI@example.com"`)
 	shell.RunCommand(`git config user.name "CI"`)
+	shell.RunCommand(`git config commit.gpgSign false`)
 
 	test.SetupRepo(shell)
 
