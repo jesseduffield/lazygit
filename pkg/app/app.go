@@ -156,7 +156,6 @@ func isDirectoryAGitRepository(dir string) (bool, error) {
 	return info != nil, err
 }
 
-
 func openRecentRepo(app *App) bool {
 	for _, repoDir := range app.Config.GetAppState().RecentRepos {
 		if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
@@ -218,7 +217,6 @@ func (app *App) setupRepo() (bool, error) {
 			os.Exit(1)
 		}
 
-
 		if shouldInitRepo {
 			if err := app.OSCommand.Cmd.New("git init " + initialBranchArg).Run(); err != nil {
 				return false, err
@@ -248,7 +246,7 @@ func (app *App) setupRepo() (bool, error) {
 		fmt.Print(app.Tr.BareRepo)
 
 		response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-		
+
 		if shouldOpenRecent := strings.Trim(response, " \r\n") == "y"; !shouldOpenRecent {
 			os.Exit(0)
 		}
