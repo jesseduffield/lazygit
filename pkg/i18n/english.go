@@ -259,6 +259,7 @@ type TranslationSet struct {
 	DiscardFileChangesPrompt            string
 	DisabledForGPG                      string
 	CreateRepo                          string
+	BareRepo                            string
 	InitialBranch                       string
 	NoRecentRepositories                string
 	IncorrectNotARepository             string
@@ -898,6 +899,7 @@ func EnglishTranslationSet() TranslationSet {
 		DiscardFileChangesPrompt:            "Are you sure you want to discard this commit's changes to this file? If this file was created in this commit, it will be deleted",
 		DisabledForGPG:                      "Feature not available for users using GPG",
 		CreateRepo:                          "Not in a git repository. Create a new git repository? (y/n): ",
+		BareRepo:                            "You've attempted to open Lazygit in a bare repo but Lazygit does not yet support bare repos. Open most recent repo? (y/n) ",
 		InitialBranch:                       "Branch name? (leave empty for git's default): ",
 		NoRecentRepositories:                "Must open lazygit in a git repository. No valid recent repositories. Exiting.",
 		IncorrectNotARepository:             "The value of 'notARepository' is incorrect. It should be one of 'prompt', 'create', 'skip', or 'quit'.",
