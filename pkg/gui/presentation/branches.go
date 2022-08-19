@@ -54,11 +54,7 @@ func getBranchDisplayStrings(b *models.Branch,
 
 	pr, hasPr := prs[b]
 
-	if hasPr {
-		res = append(res, coloredPrNumber(pr, hasPr), coloredName)
-	} else {
-		res = append(res, coloredName)
-	}
+	res = append(res, coloredPrNumber(pr, hasPr), coloredName)
 
 	if fullDescription {
 		res = append(
