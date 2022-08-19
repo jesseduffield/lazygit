@@ -24,14 +24,23 @@ func (gui *Gui) branchesRenderToMain() error {
 	})
 }
 
-func (gui *Gui) refreshGithubPullRequests() {
+func (gui *Gui) refreshGithubPullRequests() error {
 	if err := gui.git.Gh.BaseRepo(); err == nil {
-		_ = gui.setGithubPullRequests()
-		return
+		err := gui.setGithubPullRequests()
+		if err != nil {
+			return err
+		}
+
+		gui.refreshBranches()
+
+		return nil
 	}
 
 	// when config not exits
-	_ = gui.refreshRemotes()
+	err := gui.refreshRemotes()
+	if err != nil {
+		return err
+	}
 
 	_ = gui.c.Prompt(types.PromptOpts{
 		Title:               gui.c.Tr.SelectRemoteRepository,
@@ -48,11 +57,13 @@ func (gui *Gui) refreshGithubPullRequests() {
 				if err != nil {
 					return err
 				}
-				_ = gui.postRefreshUpdate(gui.State.Contexts.Branches)
+				gui.refreshBranches()
 				return nil
 			})
 		},
 	})
+
+	return nil
 }
 
 func (gui *Gui) setGithubPullRequests() error {

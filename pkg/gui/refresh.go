@@ -238,7 +238,11 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	gui.State.Model.Commits = commits
 
 	if gui.Config.GetUserConfig().Git.EnableGhCommand {
-		gui.refreshGithubPullRequests()
+		err = gui.refreshGithubPullRequests()
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.LocalCommits)
