@@ -380,3 +380,9 @@ func runTuiTest(test *components.IntegrationTest, mode components.Mode, keyPress
 		log.Println(err.Error())
 	}
 }
+
+func runAndPrintError(test *components.IntegrationTest, f func() error) {
+	if err := f(); err != nil {
+		log.Println(err.Error())
+	}
+}

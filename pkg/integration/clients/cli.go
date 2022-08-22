@@ -33,7 +33,7 @@ func RunCLI(testNames []string, slow bool) {
 		getTestsToRun(testNames),
 		log.Printf,
 		runCmdInTerminal,
-		runAndPrintError,
+		runAndPrintFatalError,
 		getModeFromEnv(),
 		keyPressDelay,
 	)
@@ -42,7 +42,7 @@ func RunCLI(testNames []string, slow bool) {
 	}
 }
 
-func runAndPrintError(test *components.IntegrationTest, f func() error) {
+func runAndPrintFatalError(test *components.IntegrationTest, f func() error) {
 	if err := f(); err != nil {
 		log.Fatalf(err.Error())
 	}
