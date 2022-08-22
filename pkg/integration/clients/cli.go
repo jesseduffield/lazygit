@@ -23,10 +23,17 @@ import (
 
 // If invoked directly, you can specify tests to run by passing their names as positional arguments
 
-func RunCLI(testNames []string, slow bool) {
+func RunCLI(testNames []string, slow bool, sandbox bool) {
 	keyPressDelay := tryConvert(os.Getenv("KEY_PRESS_DELAY"), 0)
 	if slow {
 		keyPressDelay = SLOW_KEY_PRESS_DELAY
+	}
+
+	var mode components.Mode
+	if sandbox {
+		mode = components.SANDBOX
+	} else {
+		mode = getModeFromEnv()
 	}
 
 	err := components.RunTests(
@@ -34,7 +41,7 @@ func RunCLI(testNames []string, slow bool) {
 		log.Printf,
 		runCmdInTerminal,
 		runAndPrintFatalError,
-		getModeFromEnv(),
+		mode,
 		keyPressDelay,
 	)
 	if err != nil {

@@ -40,6 +40,15 @@ func (s *Shell) CreateFile(path string, content string) *Shell {
 	return s
 }
 
+func (s *Shell) UpdateFile(path string, content string) *Shell {
+	err := ioutil.WriteFile(path, []byte(content), 0o644)
+	if err != nil {
+		panic(fmt.Sprintf("error updating file: %s\n%s", path, err))
+	}
+
+	return s
+}
+
 func (s *Shell) NewBranch(name string) *Shell {
 	return s.RunCommand("git checkout -b " + name)
 }
@@ -68,6 +77,13 @@ func (s *Shell) EmptyCommit(message string) *Shell {
 func (s *Shell) CreateFileAndAdd(fileName string, fileContents string) *Shell {
 	return s.
 		CreateFile(fileName, fileContents).
+		GitAdd(fileName)
+}
+
+// convenience method for updating a file and adding it
+func (s *Shell) UpdateFileAndAdd(fileName string, fileContents string) *Shell {
+	return s.
+		UpdateFile(fileName, fileContents).
 		GitAdd(fileName)
 }
 

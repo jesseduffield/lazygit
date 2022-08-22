@@ -1,0 +1,3 @@
+0000000000000000000000000000000000000000 b827df09781d0648f66cd9a01f0ec0ad5d412e10 CI <CI@example.com> 1661164934 +1000	branch: Created from HEAD
+b827df09781d0648f66cd9a01f0ec0ad5d412e10 702b646c08ba47b2ac5729deed77188ef1647b4d CI <CI@example.com> 1661164934 +1000	commit: second change
+702b646c08ba47b2ac5729deed77188ef1647b4d 5513fcfcb56cc5f1de7b6b3ded32a945e94f5e37 CI <CI@example.com> 1661164934 +1000	commit: second-change-branch unrelated change

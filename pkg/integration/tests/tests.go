@@ -25,6 +25,8 @@ var tests = []*components.IntegrationTest{
 	commit.NewBranch,
 	branch.Suggestions,
 	branch.Delete,
+	branch.Rebase,
+	branch.RebaseAndDrop,
 	interactive_rebase.One,
 	custom_commands.Basic,
 	custom_commands.MultiplePrompts,
