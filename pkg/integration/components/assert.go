@@ -78,6 +78,14 @@ func (self *Assert) CommitCount(expectedCount int) {
 	})
 }
 
+func (self *Assert) AtLeastOneCommit() {
+	self.assertWithRetries(func() (bool, string) {
+		actualCount := len(self.gui.Model().Commits)
+
+		return actualCount > 0, "Expected at least one commit present"
+	})
+}
+
 func (self *Assert) MatchHeadCommitMessage(matcher *matcher) {
 	self.assertWithRetries(func() (bool, string) {
 		return len(self.gui.Model().Commits) > 0, "Expected at least one commit to be present"

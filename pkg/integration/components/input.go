@@ -147,17 +147,20 @@ func (self *Input) NavigateToListItemContainingText(text string) {
 	if matchCount == 1 {
 		selectedLineIdx := view.SelectedLineIdx()
 		if selectedLineIdx == matchIndex {
+			self.assert.MatchSelectedLine(Contains(text))
 			return
 		}
 		if selectedLineIdx < matchIndex {
 			for i := selectedLineIdx; i < matchIndex; i++ {
 				self.NextItem()
 			}
+			self.assert.MatchSelectedLine(Contains(text))
 			return
 		} else {
 			for i := selectedLineIdx; i > matchIndex; i-- {
 				self.PreviousItem()
 			}
+			self.assert.MatchSelectedLine(Contains(text))
 			return
 		}
 	}
