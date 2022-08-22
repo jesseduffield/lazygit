@@ -8,3 +8,5 @@
 [user]
 	email = CI@example.com
 	name = CI
+[commit]
+	gpgSign = false
