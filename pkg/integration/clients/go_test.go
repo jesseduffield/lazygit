@@ -29,7 +29,7 @@ func TestIntegration(t *testing.T) {
 	testNumber := 0
 
 	err := components.RunTests(
-		tests.Tests,
+		tests.GetTests(),
 		t.Logf,
 		runCmdHeadless,
 		func(test *components.IntegrationTest, f func() error) {

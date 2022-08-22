@@ -2,8 +2,10 @@ package git_commands
 
 import (
 	"path/filepath"
+	"strconv"
+	"strings"
 
-	gogit "github.com/jesseduffield/go-git/v5"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 )
 
@@ -49,13 +51,21 @@ func (self *StatusCommands) WorkingTreeState() enums.RebaseMode {
 	return enums.REBASE_MODE_NONE
 }
 
+func (self *StatusCommands) IsBareRepo() (bool, error) {
+	return IsBareRepo(self.os)
+}
+
+func IsBareRepo(osCommand *oscommands.OSCommand) (bool, error) {
+	res, err := osCommand.Cmd.New("git rev-parse --is-bare-repository").DontLog().RunWithOutput()
+	if err != nil {
+		return false, err
+	}
+
+	// The command returns output with a newline, so we need to strip
+	return strconv.ParseBool(strings.TrimSpace(res))
+}
+
 // IsInMergeState states whether we are still mid-merge
 func (self *StatusCommands) IsInMergeState() (bool, error) {
 	return self.os.FileExists(filepath.Join(self.dotGitDir, "MERGE_HEAD"))
-}
-
-func (self *StatusCommands) IsBareRepo() bool {
-	// note: could use `git rev-parse --is-bare-repository` if we wanna drop go-git
-	_, err := self.repo.Worktree()
-	return err == gogit.ErrIsBareRepository
 }

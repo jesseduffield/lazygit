@@ -135,7 +135,7 @@ jobs:
       - name: Build integration test injector
         run: |
           GOOS=linux go build pkg/integration/clients/injector/main.go
-  check-cheatsheet:
+  check-codebase:
     runs-on: ubuntu-latest
     env:
       GOFLAGS: -mod=vendor
@@ -159,6 +159,10 @@ jobs:
       - name: Check Cheatsheet
         run: |
           go run scripts/cheatsheet/main.go check
+      - name: Check Vendor Directory
+        # ensure our vendor directory matches up with our go modules
+        run: |
+          go mod vendor && git diff --exit-code || (echo "Unexpected change to vendor directory. Run 'go mod vendor' locally and commit the changes" && exit 1)
   lint:
     runs-on: ubuntu-latest
     env:
@@ -183,12 +187,6 @@ jobs:
         uses: golangci/golangci-lint-action@v3.1.0
         with:
           version: latest
-      - name: Format code
-        run: |
-          if [ $(find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;|wc -l) -gt 0 ]; then
-           find . ! -path "./vendor/*" -name "*.go" -exec gofmt -s -d {} \;
-           exit 1
-          fi
       - name: errors
         run: golangci-lint run
         if: ${{ failure() }}

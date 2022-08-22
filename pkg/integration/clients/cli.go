@@ -4,8 +4,11 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
+	"strings"
 
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 )
@@ -20,14 +23,19 @@ import (
 
 // If invoked directly, you can specify tests to run by passing their names as positional arguments
 
-func RunCLI(testNames []string) {
+func RunCLI(testNames []string, slow bool) {
+	keyPressDelay := tryConvert(os.Getenv("KEY_PRESS_DELAY"), 0)
+	if slow {
+		keyPressDelay = SLOW_KEY_PRESS_DELAY
+	}
+
 	err := components.RunTests(
 		getTestsToRun(testNames),
 		log.Printf,
 		runCmdInTerminal,
 		runAndPrintError,
 		getModeFromEnv(),
-		tryConvert(os.Getenv("KEY_PRESS_DELAY"), 0),
+		keyPressDelay,
 	)
 	if err != nil {
 		log.Print(err.Error())
@@ -36,21 +44,30 @@ func RunCLI(testNames []string) {
 
 func runAndPrintError(test *components.IntegrationTest, f func() error) {
 	if err := f(); err != nil {
-		log.Print(err.Error())
+		log.Fatalf(err.Error())
 	}
 }
 
 func getTestsToRun(testNames []string) []*components.IntegrationTest {
+	allIntegrationTests := tests.GetTests()
 	var testsToRun []*components.IntegrationTest
 
 	if len(testNames) == 0 {
-		return tests.Tests
+		return allIntegrationTests
 	}
+
+	testNames = slices.Map(testNames, func(name string) string {
+		// allowing full test paths to be passed for convenience
+		return strings.TrimSuffix(
+			regexp.MustCompile(`.*pkg/integration/tests/`).ReplaceAllString(name, ""),
+			".go",
+		)
+	})
 
 outer:
 	for _, testName := range testNames {
 		// check if our given test name actually exists
-		for _, test := range tests.Tests {
+		for _, test := range allIntegrationTests {
 			if test.Name() == testName {
 				testsToRun = append(testsToRun, test)
 				continue outer

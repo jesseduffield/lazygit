@@ -53,7 +53,7 @@ func NewIntegrationTest(args NewIntegrationTestArgs) *IntegrationTest {
 	if args.Description != unitTestDescription {
 		// this panics if we're in a unit test for our integration tests,
 		// so we're using "test test" as a sentinel value
-		name = testNameFromFilePath()
+		name = testNameFromCurrentFilePath()
 	}
 
 	return &IntegrationTest{
@@ -106,8 +106,12 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 	}
 }
 
-func testNameFromFilePath() string {
+func testNameFromCurrentFilePath() string {
 	path := utils.FilePath(3)
+	return TestNameFromFilePath(path)
+}
+
+func TestNameFromFilePath(path string) string {
 	name := strings.Split(path, "integration/tests/")[1]
 
 	return name[:len(name)-len(".go")]

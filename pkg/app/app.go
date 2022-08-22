@@ -16,6 +16,7 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -200,6 +201,18 @@ func isDirectoryAGitRepository(dir string) (bool, error) {
 	return info != nil, err
 }
 
+func openRecentRepo(app *App) bool {
+	for _, repoDir := range app.Config.GetAppState().RecentRepos {
+		if isRepo, _ := isDirectoryAGitRepository(repoDir); isRepo {
+			if err := os.Chdir(repoDir); err == nil {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func (app *App) setupRepo() (bool, error) {
 	if err := app.validateGitVersion(); err != nil {
 		return false, err
@@ -216,6 +229,7 @@ func (app *App) setupRepo() (bool, error) {
 		if err != nil {
 			return false, err
 		}
+
 		if isRepo, err := isDirectoryAGitRepository(cwd); isRepo {
 			return false, err
 		}
@@ -265,6 +279,28 @@ func (app *App) setupRepo() (bool, error) {
 		}
 
 		fmt.Fprintln(os.Stderr, app.Tr.NoRecentRepositories)
+		os.Exit(1)
+	}
+
+	// Run this afterward so that the previous repo creation steps can run without this interfering
+	if isBare, err := git_commands.IsBareRepo(app.OSCommand); isBare {
+		if err != nil {
+			return false, err
+		}
+
+		fmt.Print(app.Tr.BareRepo)
+
+		response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+
+		if shouldOpenRecent := strings.Trim(response, " \r\n") == "y"; !shouldOpenRecent {
+			os.Exit(0)
+		}
+
+		if didOpenRepo := openRecentRepo(app); didOpenRepo {
+			return true, nil
+		}
+
+		fmt.Println(app.Tr.NoRecentRepositories)
 		os.Exit(1)
 	}
 

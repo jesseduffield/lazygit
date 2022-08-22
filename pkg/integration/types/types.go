@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -28,4 +29,9 @@ type GuiDriver interface {
 	// logs in the actual UI (in the commands panel)
 	LogUI(message string)
 	CheckedOutRef() *models.Branch
+	// the view that appears to the right of the side panel
+	MainView() *gocui.View
+	// the other view that sometimes appears to the right of the side panel
+	// e.g. when we're showing both staged and unstaged changes
+	SecondaryView() *gocui.View
 }

@@ -19,6 +19,8 @@ import (
 
 // This program lets you run integration tests from a TUI. See pkg/integration/README.md for more info.
 
+var SLOW_KEY_PRESS_DELAY = 300
+
 func RunTUI() {
 	rootDir := utils.GetLazygitRootDirectory()
 	testDir := filepath.Join(rootDir, "test", "integration")
@@ -106,7 +108,7 @@ func RunTUI() {
 			return nil
 		}
 
-		suspendAndRunTest(currentTest, components.ASK_TO_UPDATE_SNAPSHOT, 200)
+		suspendAndRunTest(currentTest, components.ASK_TO_UPDATE_SNAPSHOT, SLOW_KEY_PRESS_DELAY)
 
 		return nil
 	}); err != nil {
@@ -168,7 +170,7 @@ func RunTUI() {
 			return err
 		}
 
-		app.filteredTests = tests.Tests
+		app.filteredTests = app.allTests
 		app.renderTests()
 		app.editorView.TextArea.Clear()
 		app.editorView.Clear()
@@ -204,6 +206,7 @@ func RunTUI() {
 }
 
 type app struct {
+	allTests      []*components.IntegrationTest
 	filteredTests []*components.IntegrationTest
 	itemIdx       int
 	testDir       string
@@ -214,7 +217,7 @@ type app struct {
 }
 
 func newApp(testDir string) *app {
-	return &app{testDir: testDir}
+	return &app{testDir: testDir, allTests: tests.GetTests()}
 }
 
 func (self *app) getCurrentTest() *components.IntegrationTest {
@@ -226,7 +229,7 @@ func (self *app) getCurrentTest() *components.IntegrationTest {
 }
 
 func (self *app) loadTests() {
-	self.filteredTests = tests.Tests
+	self.filteredTests = self.allTests
 
 	self.adjustCursor()
 }
@@ -237,9 +240,9 @@ func (self *app) adjustCursor() {
 
 func (self *app) filterWithString(needle string) {
 	if needle == "" {
-		self.filteredTests = tests.Tests
+		self.filteredTests = self.allTests
 	} else {
-		self.filteredTests = slices.Filter(tests.Tests, func(test *components.IntegrationTest) bool {
+		self.filteredTests = slices.Filter(self.allTests, func(test *components.IntegrationTest) bool {
 			return strings.Contains(test.Name(), needle)
 		})
 	}
