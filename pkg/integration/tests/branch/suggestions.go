@@ -2,15 +2,15 @@ package branch
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var Suggestions = components.NewIntegrationTest(components.NewIntegrationTestArgs{
+var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Checking out a branch with name suggestions",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
-	SetupRepo: func(shell *components.Shell) {
+	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("my commit message").
 			NewBranch("new-branch").
@@ -20,7 +20,7 @@ var Suggestions = components.NewIntegrationTest(components.NewIntegrationTestArg
 			NewBranch("other-new-branch-2").
 			NewBranch("other-new-branch-3")
 	},
-	Run: func(shell *components.Shell, input *components.Input, assert *components.Assert, keys config.KeybindingConfig) {
+	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
