@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/bisect"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/branch"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
@@ -27,6 +28,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.Basic,
 	custom_commands.MultiplePrompts,
 	custom_commands.MenuFromCommand,
+	bisect.Basic,
 }
 
 func GetTests() []*components.IntegrationTest {

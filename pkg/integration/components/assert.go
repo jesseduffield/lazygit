@@ -46,7 +46,13 @@ func (self *matcher) context(prefix string) *matcher {
 
 func Contains(target string) *matcher {
 	return &matcher{testFn: func(value string) (bool, string) {
-		return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to contain '%s'", value, target)
+		return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to be found in '%s'", target, value)
+	}}
+}
+
+func NotContains(target string) *matcher {
+	return &matcher{testFn: func(value string) (bool, string) {
+		return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
 	}}
 }
 
@@ -160,6 +166,22 @@ func (self *Assert) MatchCurrentViewTitle(matcher *matcher) {
 	self.matchString(matcher, "Unexpected current view title.",
 		func() string {
 			return self.gui.CurrentContext().GetView().Title
+		},
+	)
+}
+
+func (self *Assert) MatchViewContent(viewName string, matcher *matcher) {
+	self.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", viewName),
+		func() string {
+			return self.gui.View(viewName).Buffer()
+		},
+	)
+}
+
+func (self *Assert) MatchCurrentViewContent(matcher *matcher) {
+	self.matchString(matcher, "Unexpected content in current view.",
+		func() string {
+			return self.gui.CurrentContext().GetView().Buffer()
 		},
 	)
 }
