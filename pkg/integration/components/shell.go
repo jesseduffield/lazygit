@@ -44,6 +44,10 @@ func (s *Shell) NewBranch(name string) *Shell {
 	return s.RunCommand("git checkout -b " + name)
 }
 
+func (s *Shell) Checkout(name string) *Shell {
+	return s.RunCommand("git checkout " + name)
+}
+
 func (s *Shell) GitAdd(path string) *Shell {
 	return s.RunCommand(fmt.Sprintf("git add \"%s\"", path))
 }

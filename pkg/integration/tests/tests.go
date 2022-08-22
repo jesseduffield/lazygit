@@ -29,6 +29,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.MultiplePrompts,
 	custom_commands.MenuFromCommand,
 	bisect.Basic,
+	bisect.FromOtherBranch,
 }
 
 func GetTests() []*components.IntegrationTest {
