@@ -48,6 +48,15 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on github with https remote url",
+			from:      "feature/sum-operation",
+			remoteUrl: "https://github.com/peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Fsum-operation?expand=1", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on bitbucket with specific target branch",
 			from:      "feature/profile-page/avatar",
 			to:        "feature/profile-page",
@@ -78,6 +87,16 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on github with https remote url with specific target branch",
+			from:      "feature/sum-operation",
+			to:        "feature/operations",
+			remoteUrl: "https://github.com/peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Foperations...feature%2Fsum-operation?expand=1", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on gitlab",
 			from:      "feature/ui",
 			remoteUrl: "git@gitlab.com:peter/calculator.git",
@@ -90,6 +109,15 @@ func TestGetPullRequestURL(t *testing.T) {
 			testName:  "Opens a link to new pull request on gitlab in nested groups",
 			from:      "feature/ui",
 			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature%2Fui", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on gitlab with https remote url in nested groups",
+			from:      "feature/ui",
+			remoteUrl: "https://gitlab.com/peter/public/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature%2Fui", url)
@@ -110,6 +138,16 @@ func TestGetPullRequestURL(t *testing.T) {
 			from:      "feature/commit-ui",
 			to:        "epic/ui",
 			remoteUrl: "git@gitlab.com:peter/public/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature%2Fcommit-ui&merge_request[target_branch]=epic%2Fui", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on gitlab with https remote url with specific target branch in nested groups",
+			from:      "feature/commit-ui",
+			to:        "epic/ui",
+			remoteUrl: "https://gitlab.com/peter/public/calculator.git",
 			test: func(url string, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://gitlab.com/peter/public/calculator/merge_requests/new?merge_request[source_branch]=feature%2Fcommit-ui&merge_request[target_branch]=epic%2Fui", url)
