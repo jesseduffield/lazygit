@@ -1,8 +1,6 @@
 package git_commands
 
 import (
-	"fmt"
-
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
@@ -215,7 +213,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 	return self.rebase.ContinueRebase()
 }
 
-func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int) error {
+func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int, newMessage string) error {
 	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
 		return err
 	}
@@ -240,9 +238,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 		return err
 	}
 
-	head_message, _ := self.commit.GetHeadCommitMessage()
-	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	err := self.commit.CommitCmdObj(new_message).Run()
+	err := self.commit.CommitCmdObj(newMessage).Run()
 	if err != nil {
 		return err
 	}

@@ -180,7 +180,9 @@ func (gui *Gui) handlePullPatchIntoNewCommit() error {
 	return gui.c.WithWaitingStatus(gui.c.Tr.RebasingStatus, func() error {
 		commitIndex := gui.getPatchCommitIndex()
 		gui.c.LogAction(gui.c.Tr.Actions.MovePatchIntoNewCommit)
-		err := gui.git.Patch.PullPatchIntoNewCommit(gui.State.Model.Commits, commitIndex)
+		head_message, _ := gui.git.Commit.GetCommitMessage(gui.State.Model.Commits[commitIndex].FullRefName())
+		new_message := fmt.Sprintf("Split from \"%s\"", head_message)
+		err := gui.git.Patch.PullPatchIntoNewCommit(gui.State.Model.Commits, commitIndex, new_message)
 		return gui.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
