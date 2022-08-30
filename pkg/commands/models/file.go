@@ -44,7 +44,7 @@ func (f *File) Names() []string {
 	return result
 }
 
-// returns true if the file names are the same or if a a file rename includes the filename of the other
+// returns true if the file names are the same or if a file rename includes the filename of the other
 func (f *File) Matches(f2 *File) bool {
 	return utils.StringArraysOverlap(f.Names(), f2.Names())
 }
