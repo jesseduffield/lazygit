@@ -29,6 +29,7 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 		Submodules:     NewSubmodulesContext(c),
 		Menu:           NewMenuContext(c),
 		Remotes:        NewRemotesContext(c),
+		Worktrees:      NewWorktreesContext(c),
 		RemoteBranches: NewRemoteBranchesContext(c),
 		LocalCommits:   NewLocalCommitsContext(c),
 		CommitFiles:    commitFilesContext,

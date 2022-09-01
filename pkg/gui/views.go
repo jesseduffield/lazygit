@@ -29,6 +29,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		{viewPtr: &gui.Views.Files, name: "files"},
 		{viewPtr: &gui.Views.Tags, name: "tags"},
 		{viewPtr: &gui.Views.Remotes, name: "remotes"},
+		{viewPtr: &gui.Views.Worktrees, name: "worktrees"},
 		{viewPtr: &gui.Views.Branches, name: "localBranches"},
 		{viewPtr: &gui.Views.RemoteBranches, name: "remoteBranches"},
 		{viewPtr: &gui.Views.ReflogCommits, name: "reflogCommits"},
@@ -112,6 +113,8 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
 
 	gui.Views.Remotes.Title = gui.c.Tr.RemotesTitle
+
+	gui.Views.Worktrees.Title = gui.c.Tr.WorktreesTitle
 
 	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
 
