@@ -147,7 +147,7 @@ func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
 		promptFn = failPromptFn
 	case NONE:
 		// we should never land here
-		return errors.New("runWithCredentialHandling called but cmdObj does not have a a credential strategy")
+		return errors.New("runWithCredentialHandling called but cmdObj does not have a credential strategy")
 	}
 
 	return self.runAndDetectCredentialRequest(cmdObj, promptFn)
