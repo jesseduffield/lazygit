@@ -122,6 +122,7 @@ func (gui *Gui) prepareConfirmationPanel(
 	gui.Views.Confirmation.Wrap = !opts.Editable
 	gui.Views.Confirmation.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Confirmation.Mask = runeForMask(opts.Mask)
+	_ = gui.Views.Confirmation.SetOrigin(0, 0)
 
 	gui.findSuggestions = opts.FindSuggestionsFunc
 	if opts.FindSuggestionsFunc != nil {
@@ -133,6 +134,7 @@ func (gui *Gui) prepareConfirmationPanel(
 		suggestionsView.Title = fmt.Sprintf(gui.c.Tr.SuggestionsTitle, gui.c.UserConfig.Keybinding.Universal.TogglePanel)
 	}
 
+	gui.resizeConfirmationPanel()
 	return nil
 }
 
