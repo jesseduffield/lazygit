@@ -138,6 +138,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		common,
 		func(branches []*models.RemoteBranch) { gui.State.Model.RemoteBranches = branches },
 	)
+	worktreesController := controllers.NewWorktreesController(common)
 	undoController := controllers.NewUndoController(common)
 	globalController := controllers.NewGlobalController(common)
 	contextLinesController := controllers.NewContextLinesController(common)
@@ -177,6 +178,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	for _, context := range []types.Context{
 		gui.State.Contexts.Status,
 		gui.State.Contexts.Remotes,
+		gui.State.Contexts.Worktrees,
 		gui.State.Contexts.Tags,
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
@@ -296,6 +298,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Remotes,
 		remotesController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Worktrees,
+		worktreesController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Stash,

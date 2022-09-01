@@ -14,6 +14,7 @@ var (
 	MERGE_COMMIT_ICON   = "\U000f062d" // 󰘭
 	DEFAULT_REMOTE_ICON = "\uf02a2"    // 󰊢
 	STASH_ICON          = "\uf01c"     // 
+	WORKTREE_ICON       = "\uf02b"     // 
 )
 
 var remoteIcons = map[string]string{
@@ -67,4 +68,8 @@ func IconForRemote(remote *models.Remote) string {
 
 func IconForStash(stash *models.StashEntry) string {
 	return STASH_ICON
+}
+
+func IconForWorktree(tag *models.Worktree) string {
+	return WORKTREE_ICON
 }

@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -117,6 +118,11 @@ outer:
 }
 
 func (self *BranchLoader) obtainBranches() []*models.Branch {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
 	output, err := self.getRawBranches()
 	if err != nil {
 		panic(err)
@@ -135,6 +141,11 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 			// Ignore line if it isn't separated into the expected number of parts
 			// This is probably a warning message, for more info see:
 			// https://github.com/jesseduffield/lazygit/issues/1385#issuecomment-885580439
+			return nil, false
+		}
+
+		if len(split[6]) > 0 && split[6] != currentDir {
+			// Ignore line because it is a branch checked out in a different worktree
 			return nil, false
 		}
 
@@ -166,6 +177,7 @@ var branchFields = []string{
 	"upstream:track",
 	"subject",
 	fmt.Sprintf("objectname:short=%d", utils.COMMIT_HASH_SHORT_SIZE),
+	"worktreepath",
 }
 
 // Obtain branch information from parsed line output of getRawBranches()

@@ -201,6 +201,7 @@ type Model struct {
 	StashEntries []*models.StashEntry
 	SubCommits   []*models.Commit
 	Remotes      []*models.Remote
+	Worktrees    []*models.Worktree
 
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
