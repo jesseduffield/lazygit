@@ -83,6 +83,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 				types.REFLOG,
 				types.TAGS,
 				types.REMOTES,
+				types.WORKTREES,
 				types.STATUS,
 				types.BISECT_INFO,
 				types.STAGING,
@@ -150,6 +151,10 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			refresh("remotes", func() { _ = self.refreshRemotes() })
 		}
 
+		if scopeSet.Includes(types.WORKTREES) {
+			refresh("worktrees", func() { _ = self.refreshWorktrees() })
+		}
+
 		if scopeSet.Includes(types.STAGING) {
 			refresh("staging", func() {
 				fileWg.Wait()
@@ -197,6 +202,7 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.REFLOG:          "reflog",
 		types.TAGS:            "tags",
 		types.REMOTES:         "remotes",
+		types.WORKTREES:       "worktrees",
 		types.STATUS:          "status",
 		types.BISECT_INFO:     "bisect",
 		types.STAGING:         "staging",
@@ -587,6 +593,17 @@ func (self *RefreshHelper) refreshRemotes() error {
 	}
 
 	return nil
+}
+
+func (self *RefreshHelper) refreshWorktrees() error {
+	worktrees, err := self.c.Git().Loaders.Worktrees.GetWorktrees()
+	if err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Model().Worktrees = worktrees
+
+	return self.c.PostRefreshUpdate(self.c.Contexts().Worktrees)
 }
 
 func (self *RefreshHelper) refreshStashEntries() error {

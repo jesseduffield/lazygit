@@ -569,6 +569,10 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 				Tab:      gui.c.Tr.TagsTitle,
 				ViewName: "tags",
 			},
+			{
+				Tab:      gui.c.Tr.WorktreesTitle,
+				ViewName: "worktrees",
+			},
 		},
 		"commits": {
 			{

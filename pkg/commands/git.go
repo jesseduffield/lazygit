@@ -50,6 +50,7 @@ type Loaders struct {
 	RemoteLoader       *git_commands.RemoteLoader
 	StashLoader        *git_commands.StashLoader
 	TagLoader          *git_commands.TagLoader
+	Worktrees          *git_commands.WorktreeLoader
 }
 
 func NewGitCommand(
@@ -133,6 +134,7 @@ func NewGitCommandAux(
 	commitLoader := git_commands.NewCommitLoader(cmn, cmd, dotGitDir, statusCommands.RebaseMode, gitCommon)
 	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)
 	remoteLoader := git_commands.NewRemoteLoader(cmn, cmd, repo.Remotes)
+	worktreeLoader := git_commands.NewWorktreeLoader(cmn, cmd)
 	stashLoader := git_commands.NewStashLoader(cmn, cmd)
 	tagLoader := git_commands.NewTagLoader(cmn, cmd)
 
@@ -161,6 +163,7 @@ func NewGitCommandAux(
 			FileLoader:         fileLoader,
 			ReflogCommitLoader: reflogCommitLoader,
 			RemoteLoader:       remoteLoader,
+			Worktrees:          worktreeLoader,
 			StashLoader:        stashLoader,
 			TagLoader:          tagLoader,
 		},

@@ -200,6 +200,7 @@ type TranslationSet struct {
 	TagsTitle                           string
 	MenuTitle                           string
 	RemotesTitle                        string
+	WorktreesTitle                      string
 	RemoteBranchesTitle                 string
 	PatchBuildingTitle                  string
 	InformationTitle                    string
@@ -541,6 +542,7 @@ type TranslationSet struct {
 	FilterPrefix                        string
 	ExitSearchMode                      string
 	ExitTextFilterMode                  string
+	EnterWorktree                       string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -893,6 +895,7 @@ func EnglishTranslationSet() TranslationSet {
 		TagsTitle:                           "Tags",
 		MenuTitle:                           "Menu",
 		RemotesTitle:                        "Remotes",
+		WorktreesTitle:                      "Worktrees",
 		RemoteBranchesTitle:                 "Remote branches",
 		PatchBuildingTitle:                  "Main panel (patch building)",
 		InformationTitle:                    "Information",
@@ -1235,6 +1238,7 @@ func EnglishTranslationSet() TranslationSet {
 		SearchKeybindings:                   "%s: Next match, %s: Previous match, %s: Exit search mode",
 		SearchPrefix:                        "Search: ",
 		FilterPrefix:                        "Filter: ",
+		EnterWorktree:                       "Enter worktree",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
