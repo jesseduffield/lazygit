@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type WorktreesController struct {
@@ -33,26 +34,15 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 			Handler:     self.checkSelected(self.enter),
 			Description: self.c.Tr.EnterWorktree,
 		},
-		//{
-		//	Key:         opts.GetKey(opts.Config.Universal.Remove),
-		//	Handler:     self.withSelectedTag(self.delete),
-		//	Description: self.c.Tr.LcDeleteTag,
-		//},
-		//{
-		//	Key:         opts.GetKey(opts.Config.Branches.PushTag),
-		//	Handler:     self.withSelectedTag(self.push),
-		//	Description: self.c.Tr.LcPushTag,
-		//},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.Remove),
+			Handler:     self.checkSelected(self.delete),
+			Description: self.c.Tr.DeleteWorktree,
+		},
 		//{
 		//	Key:         opts.GetKey(opts.Config.Universal.New),
 		//	Handler:     self.create,
 		//	Description: self.c.Tr.LcCreateTag,
-		//},
-		//{
-		//	Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
-		//	Handler:     self.withSelectedTag(self.createResetMenu),
-		//	Description: self.c.Tr.LcViewResetOptions,
-		//	OpensMenu:   true,
 		//},
 	}
 
@@ -95,26 +85,50 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 //	return gui.dispatchSwitchToRepo(submodule.Path, true)
 //}
 
-//	func (self *WorktreesController) delete(tag *models.Tag) error {
-//		prompt := utils.ResolvePlaceholderString(
-//			self.c.Tr.DeleteTagPrompt,
-//			map[string]string{
-//				"tagName": tag.Name,
-//			},
-//		)
-//
-//		return self.c.Confirm(types.ConfirmOpts{
-//			Title:  self.c.Tr.DeleteTagTitle,
-//			Prompt: prompt,
-//			HandleConfirm: func() error {
-//				self.c.LogAction(self.c.Tr.Actions.DeleteTag)
-//				if err := self.git.Tag.Delete(tag.Name); err != nil {
-//					return self.c.Error(err)
-//				}
-//				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
-//			},
-//		})
-//	}
+func (self *WorktreesController) delete(worktree *models.Worktree) error {
+	if worktree.Main {
+		return self.c.ErrorMsg(self.c.Tr.CantDeleteMainWorktree)
+	}
+
+	if worktree.Current {
+		return self.c.ErrorMsg(self.c.Tr.CantDeleteCurrentWorktree)
+	}
+
+	return self.deleteWithForce(worktree, false)
+}
+
+func (self *WorktreesController) deleteWithForce(worktree *models.Worktree, force bool) error {
+	title := self.c.Tr.DeleteWorktreeTitle
+	var templateStr string
+	if force {
+		templateStr = self.c.Tr.ForceDeleteWorktreePrompt
+	} else {
+		templateStr = self.c.Tr.DeleteWorktreePrompt
+	}
+	message := utils.ResolvePlaceholderString(
+		templateStr,
+		map[string]string{
+			"worktreeName": worktree.Name,
+		},
+	)
+
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  title,
+		Prompt: message,
+		HandleConfirm: func() error {
+			self.c.LogAction(self.c.Tr.Actions.DeleteWorktree)
+			if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
+				errMessage := err.Error()
+				if !force {
+					return self.deleteWithForce(worktree, true)
+				}
+				return self.c.ErrorMsg(errMessage)
+			}
+			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES}})
+		},
+	})
+}
+
 //
 //	func (self *WorktreesController) push(tag *models.Tag) error {
 //		title := utils.ResolvePlaceholderString(
