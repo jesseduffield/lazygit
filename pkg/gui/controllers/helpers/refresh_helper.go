@@ -638,16 +638,13 @@ func (self *RefreshHelper) refreshStatus() {
 	}
 
 	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
-
 	var repoName string
-	worktreeName := self.worktreeHelper.GetCurrentWorktreeName()
-	if len(worktreeName) > 0 {
-		worktreeName = fmt.Sprintf("[%s]", worktreeName)
-		repoName = self.worktreeHelper.GetMainWorktreeName()
-	} else {
-		repoName = utils.GetCurrentRepoName()
+	repoName = utils.GetCurrentRepoName()
+	mainWorktreeName := self.worktreeHelper.GetMainWorktreeName()
+	if repoName != mainWorktreeName {
+		repoName = fmt.Sprintf("%s(%s)", mainWorktreeName, style.FgBlue.Sprint(repoName))
 	}
-	status += fmt.Sprintf("%s%s → %s ", repoName, worktreeName, name)
+	status += fmt.Sprintf("%s → %s ", repoName, name)
 
 	self.c.SetViewContent(self.c.Views().Status, status)
 }

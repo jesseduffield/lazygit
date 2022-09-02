@@ -20,16 +20,22 @@ func getWorktreeDisplayStrings(w *models.Worktree) []string {
 
 	current := ""
 	currentColor := style.FgCyan
-	if w.Current {
+	if w.Current() {
 		current = "  *"
 		currentColor = style.FgGreen
+	}
+
+	icon := icons.IconForWorktree(w, false)
+	if w.Missing() {
+		textStyle = style.FgRed
+		icon = icons.IconForWorktree(w, true)
 	}
 
 	res := make([]string, 0, 3)
 	res = append(res, currentColor.Sprint(current))
 	if icons.IsIconEnabled() {
-		res = append(res, textStyle.Sprint(icons.IconForWorktree(w)))
+		res = append(res, textStyle.Sprint(icon))
 	}
-	res = append(res, textStyle.Sprint(w.Name))
+	res = append(res, textStyle.Sprint(w.Name()))
 	return res
 }

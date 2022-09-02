@@ -138,6 +138,10 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 }
 
 func (self *ReposHelper) DispatchSwitchToRepo(path string, reuse bool) error {
+	return self.DispatchSwitchTo(path, reuse, self.c.Tr.ErrRepositoryMovedOrDeleted)
+}
+
+func (self *ReposHelper) DispatchSwitchTo(path string, reuse bool, errMsg string) error {
 	env.UnsetGitDirEnvs()
 	originalPath, err := os.Getwd()
 	if err != nil {
@@ -146,7 +150,7 @@ func (self *ReposHelper) DispatchSwitchToRepo(path string, reuse bool) error {
 
 	if err := os.Chdir(path); err != nil {
 		if os.IsNotExist(err) {
-			return self.c.ErrorMsg(self.c.Tr.ErrRepositoryMovedOrDeleted)
+			return self.c.ErrorMsg(errMsg)
 		}
 		return err
 	}

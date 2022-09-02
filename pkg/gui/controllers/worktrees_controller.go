@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -56,7 +55,11 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 		if worktree == nil {
 			task = types.NewRenderStringTask("No worktrees")
 		} else {
-			task = types.NewRenderStringTask(fmt.Sprintf("%s\nPath: %s", style.FgGreen.Sprint(worktree.Name), worktree.Path))
+			missing := ""
+			if worktree.Missing() {
+				missing = style.FgRed.Sprint(" (missing)")
+			}
+			task = types.NewRenderStringTask(fmt.Sprintf("%s\nPath: %s%s", style.FgGreen.Sprint(worktree.Name()), worktree.Path, missing))
 		}
 
 		return self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -86,11 +89,11 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 //}
 
 func (self *WorktreesController) delete(worktree *models.Worktree) error {
-	if worktree.Main {
+	if worktree.Main() {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteMainWorktree)
 	}
 
-	if worktree.Current {
+	if worktree.Current() {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCurrentWorktree)
 	}
 
@@ -108,7 +111,7 @@ func (self *WorktreesController) deleteWithForce(worktree *models.Worktree, forc
 	message := utils.ResolvePlaceholderString(
 		templateStr,
 		map[string]string{
-			"worktreeName": worktree.Name,
+			"worktreeName": worktree.Name(),
 		},
 	)
 
@@ -170,14 +173,11 @@ func (self *WorktreesController) GetOnClick() func() error {
 }
 
 func (self *WorktreesController) enter(worktree *models.Worktree) error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
+	// if we were in a submodule, we want to forget about that stack of repos
+	// so that hitting escape in the new repo does nothing
+	self.c.State().GetRepoPathStack().Clear()
 
-	self.c.State().GetRepoPathStack().Push(wd)
-
-	return self.c.Helpers().Repos.DispatchSwitchToRepo(worktree.Path, true)
+	return self.c.Helpers().Repos.DispatchSwitchTo(worktree.Path, true, self.c.Tr.ErrWorktreeMovedOrDeleted)
 }
 
 func (self *WorktreesController) checkSelected(callback func(worktree *models.Worktree) error) func() error {

@@ -7,14 +7,15 @@ import (
 )
 
 var (
-	BRANCH_ICON          = "\U000f062c" // 󰘬
-	DETACHED_HEAD_ICON   = "\ue729"     // 
-	TAG_ICON             = "\uf02b"     // 
-	COMMIT_ICON          = "\U000f0718" // 󰜘
-	MERGE_COMMIT_ICON    = "\U000f062d" // 󰘭
-	DEFAULT_REMOTE_ICON  = "\uf02a2"    // 󰊢
-	STASH_ICON           = "\uf01c"     // 
-	LINKED_WORKTREE_ICON = "\uf838"     // 
+	BRANCH_ICON                  = "\U000f062c" // 󰘬
+	DETACHED_HEAD_ICON           = "\ue729"     // 
+	TAG_ICON                     = "\uf02b"     // 
+	COMMIT_ICON                  = "\U000f0718" // 󰜘
+	MERGE_COMMIT_ICON            = "\U000f062d" // 󰘭
+	DEFAULT_REMOTE_ICON          = "\uf02a2"    // 󰊢
+	STASH_ICON                   = "\uf01c"     // 
+	LINKED_WORKTREE_ICON         = "\uf838"     // 
+	MISSING_LINKED_WORKTREE_ICON = "\uf839"     // 
 )
 
 var remoteIcons = map[string]string{
@@ -70,9 +71,12 @@ func IconForStash(stash *models.StashEntry) string {
 	return STASH_ICON
 }
 
-func IconForWorktree(worktree *models.Worktree) string {
-	if worktree.Main {
+func IconForWorktree(worktree *models.Worktree, missing bool) string {
+	if worktree.Main() {
 		return ""
+	}
+	if missing {
+		return MISSING_LINKED_WORKTREE_ICON
 	}
 	return LINKED_WORKTREE_ICON
 }
