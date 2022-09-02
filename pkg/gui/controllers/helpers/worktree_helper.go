@@ -1,9 +1,5 @@
 package helpers
 
-import (
-	"path/filepath"
-)
-
 type IWorktreeHelper interface {
 	GetMainWorktreeName() string
 	GetCurrentWorktreeName() string
@@ -21,23 +17,23 @@ func NewWorktreeHelper(c *HelperCommon) *WorktreeHelper {
 
 func (self *WorktreeHelper) GetMainWorktreeName() string {
 	for _, worktree := range self.c.Model().Worktrees {
-		if worktree.Main {
-			return filepath.Base(worktree.Path)
+		if worktree.Main() {
+			return worktree.Name()
 		}
 	}
 
 	return ""
 }
 
-func (self *WorktreeHelper) GetCurrentWorktreeName() string {
-	for _, worktree := range self.c.Model().Worktrees {
-		if worktree.Current {
-			if worktree.Main {
-				return ""
-			}
-			return worktree.Name
-		}
-	}
-
-	return ""
-}
+//func (self *WorktreeHelper) GetCurrentWorktreeName() string {
+//	for _, worktree := range self.c.Model().Worktrees {
+//		if worktree.Current() {
+//			if worktree.Main() {
+//				return ""
+//			}
+//			return worktree.Name()
+//		}
+//	}
+//
+//	return ""
+//}

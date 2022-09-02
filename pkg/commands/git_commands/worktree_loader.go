@@ -1,10 +1,6 @@
 package git_commands
 
 import (
-	"errors"
-	"io/fs"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -28,11 +24,6 @@ func NewWorktreeLoader(
 }
 
 func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
 	cmdArgs := NewGitCmd("worktree").Arg("list", "--porcelain", "-z").ToArgv()
 	worktreesOutput, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
@@ -51,25 +42,9 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		}
 		if strings.HasPrefix(splitLine, "worktree ") {
 			path := strings.SplitN(splitLine, " ", 2)[1]
-
-			if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
-				// Ignore because the worktree is points to a non-existing filesystem location
-				continue
-			}
-
-			main := false
-			name := "main"
-			if len(worktrees) == 0 {
-				main = true
-			} else {
-				name = filepath.Base(path)
-			}
-
 			currentWorktree = &models.Worktree{
-				Name:    name,
-				Path:    path,
-				Main:    main,
-				Current: path == currentDir,
+				Id:   len(worktrees),
+				Path: path,
 			}
 		}
 	}
