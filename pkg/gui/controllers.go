@@ -45,7 +45,17 @@ func (gui *Gui) resetHelpersAndControllers() {
 	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
 	stagingHelper := helpers.NewStagingHelper(helperCommon)
 	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
-	refreshHelper := helpers.NewRefreshHelper(helperCommon, refsHelper, rebaseHelper, patchBuildingHelper, stagingHelper, mergeConflictsHelper, gui.fileWatcher)
+	worktreeHelper := helpers.NewWorktreeHelper(helperCommon)
+	refreshHelper := helpers.NewRefreshHelper(
+		helperCommon,
+		refsHelper,
+		rebaseHelper,
+		patchBuildingHelper,
+		stagingHelper,
+		mergeConflictsHelper,
+		worktreeHelper,
+		gui.fileWatcher,
+	)
 	diffHelper := helpers.NewDiffHelper(helperCommon)
 	cherryPickHelper := helpers.NewCherryPickHelper(
 		helperCommon,
@@ -99,7 +109,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 			modeHelper,
 			appStatusHelper,
 		),
-		Search: helpers.NewSearchHelper(helperCommon),
+		Search:   helpers.NewSearchHelper(helperCommon),
+		Worktree: worktreeHelper,
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(
