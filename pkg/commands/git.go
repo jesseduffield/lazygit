@@ -37,6 +37,7 @@ type GitCommand struct {
 	Tag         *git_commands.TagCommands
 	WorkingTree *git_commands.WorkingTreeCommands
 	Bisect      *git_commands.BisectCommands
+	Worktree    *git_commands.WorktreeCommands
 
 	Loaders Loaders
 }
@@ -128,6 +129,7 @@ func NewGitCommandAux(
 		})
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
+	worktreeCommands := git_commands.NewWorktreeCommands(gitCommon)
 
 	branchLoader := git_commands.NewBranchLoader(cmn, cmd, branchCommands.CurrentBranchInfo, configCommands)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
@@ -156,6 +158,7 @@ func NewGitCommandAux(
 		Tag:         tagCommands,
 		Bisect:      bisectCommands,
 		WorkingTree: workingTreeCommands,
+		Worktree:    worktreeCommands,
 		Loaders: Loaders{
 			BranchLoader:       branchLoader,
 			CommitFileLoader:   commitFileLoader,
