@@ -1,6 +1,8 @@
 package git_commands
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,20 +45,26 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 	var currentWorktree *models.Worktree
 	for _, splitLine := range splitLines {
 		if len(splitLine) == 0 && currentWorktree != nil {
-
 			worktrees = append(worktrees, currentWorktree)
 			currentWorktree = nil
 			continue
 		}
 		if strings.HasPrefix(splitLine, "worktree ") {
+			path := strings.SplitN(splitLine, " ", 2)[1]
+
+			if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+				// Ignore because the worktree is points to a non-existing filesystem location
+				continue
+			}
+
 			main := false
 			name := "main"
-			path := strings.SplitN(splitLine, " ", 2)[1]
 			if len(worktrees) == 0 {
 				main = true
 			} else {
 				name = filepath.Base(path)
 			}
+
 			currentWorktree = &models.Worktree{
 				Name:    name,
 				Path:    path,
