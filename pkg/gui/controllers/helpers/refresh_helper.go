@@ -27,6 +27,7 @@ type RefreshHelper struct {
 	patchBuildingHelper  *PatchBuildingHelper
 	stagingHelper        *StagingHelper
 	mergeConflictsHelper *MergeConflictsHelper
+	worktreeHelper       *WorktreeHelper
 	fileWatcher          types.IFileWatcher
 }
 
@@ -37,6 +38,7 @@ func NewRefreshHelper(
 	patchBuildingHelper *PatchBuildingHelper,
 	stagingHelper *StagingHelper,
 	mergeConflictsHelper *MergeConflictsHelper,
+	worktreeHelper *WorktreeHelper,
 	fileWatcher types.IFileWatcher,
 ) *RefreshHelper {
 	return &RefreshHelper{
@@ -46,6 +48,7 @@ func NewRefreshHelper(
 		patchBuildingHelper:  patchBuildingHelper,
 		stagingHelper:        stagingHelper,
 		mergeConflictsHelper: mergeConflictsHelper,
+		worktreeHelper:       worktreeHelper,
 		fileWatcher:          fileWatcher,
 	}
 }
@@ -603,8 +606,16 @@ func (self *RefreshHelper) refreshStatus() {
 	}
 
 	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
-	repoName := utils.GetCurrentRepoName()
-	status += fmt.Sprintf("%s → %s ", repoName, name)
+
+	var repoName string
+	worktreeName := self.worktreeHelper.GetCurrentWorktreeName()
+	if len(worktreeName) > 0 {
+		worktreeName = fmt.Sprintf("[%s]", worktreeName)
+		repoName = self.worktreeHelper.GetMainWorktreeName()
+	} else {
+		repoName = utils.GetCurrentRepoName()
+	}
+	status += fmt.Sprintf("%s%s → %s ", repoName, worktreeName, name)
 
 	self.c.SetViewContent(self.c.Views().Status, status)
 }
