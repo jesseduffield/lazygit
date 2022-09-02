@@ -542,6 +542,12 @@ type TranslationSet struct {
 	ExitSearchMode                      string
 	ExitTextFilterMode                  string
 	EnterWorktree                       string
+	DeleteWorktree                      string
+	DeleteWorktreeTitle                 string
+	DeleteWorktreePrompt                string
+	ForceDeleteWorktreePrompt           string
+	CantDeleteCurrentWorktree           string
+	CantDeleteMainWorktree              string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -668,6 +674,7 @@ type Actions struct {
 	ResetBisect                       string
 	BisectSkip                        string
 	BisectMark                        string
+	DeleteWorktree                    string
 }
 
 const englishIntroPopupMessage = `
@@ -1237,6 +1244,12 @@ func EnglishTranslationSet() TranslationSet {
 		SearchPrefix:                        "Search: ",
 		FilterPrefix:                        "Filter: ",
 		EnterWorktree:                       "Enter worktree",
+		DeleteWorktree:                      "Delete worktree",
+		DeleteWorktreeTitle:                 "Delete worktree",
+		DeleteWorktreePrompt:                "Are you sure you want to delete worktree '{{.worktreeName}}'?",
+		ForceDeleteWorktreePrompt:           "'{{.worktreeName}}' is not fully merged. Are you sure you want to delete it?",
+		CantDeleteCurrentWorktree:           "You cannot delete the current worktree!",
+		CantDeleteMainWorktree:              "You cannot delete the main worktree!",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
@@ -1344,6 +1357,7 @@ func EnglishTranslationSet() TranslationSet {
 			ResetBisect:                       "Reset bisect",
 			BisectSkip:                        "Bisect skip",
 			BisectMark:                        "Bisect mark",
+			DeleteWorktree:                    "Delete worktree",
 		},
 		Bisect: Bisect{
 			Mark:                        "Mark %s as %s",
