@@ -144,8 +144,10 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 			return nil, false
 		}
 
-		if len(split[6]) > 0 && split[6] != currentDir {
+		branchDir := split[6]
+		if len(branchDir) > 0 && branchDir != currentDir {
 			// Ignore line because it is a branch checked out in a different worktree
+			// Branches which are not checked out will not have a path, so we should not ignore them.
 			return nil, false
 		}
 
