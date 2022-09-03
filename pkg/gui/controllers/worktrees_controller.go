@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"fmt"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -53,27 +55,32 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 		var task types.UpdateTask
 		worktree := self.context().GetSelected()
 		if worktree == nil {
-			task = types.NewRenderStringTask("No worktrees")
+			task = types.NewRenderStringTask(self.c.Tr.NoWorktreesThisRepo)
 		} else {
+			main := ""
+			if worktree.Main() {
+				main = style.FgDefault.Sprintf(" %s", self.c.Tr.MainWorktree)
+			}
+
 			missing := ""
 			if worktree.Missing() {
-				missing = style.FgRed.Sprint(" (missing)")
+				missing = style.FgRed.Sprintf(" %s", self.c.Tr.MissingWorktree)
 			}
-			task = types.NewRenderStringTask(
-				fmt.Sprintf(
-					"Name:   %s\nBranch: %s\nPath:   %s%s\n",
-					style.FgGreen.Sprint(worktree.Name()),
-					style.FgYellow.Sprint(worktree.Branch),
-					style.FgCyan.Sprint(worktree.Path),
-					missing,
-				),
-			)
+
+			var builder strings.Builder
+			w := tabwriter.NewWriter(&builder, 0, 0, 2, ' ', 0)
+			_, _ = fmt.Fprintf(w, "%s:\t%s%s\n", self.c.Tr.Name, style.FgGreen.Sprint(worktree.Name()), main)
+			_, _ = fmt.Fprintf(w, "%s:\t%s\n", self.c.Tr.Branch, style.FgYellow.Sprint(worktree.Branch))
+			_, _ = fmt.Fprintf(w, "%s:\t%s%s\n", self.c.Tr.Path, style.FgCyan.Sprint(worktree.Path), missing)
+			_ = w.Flush()
+
+			task = types.NewRenderStringTask(builder.String())
 		}
 
 		return self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: self.c.MainViewPairs().Normal,
 			Main: &types.ViewUpdateOpts{
-				Title: "Worktree",
+				Title: self.c.Tr.WorktreeTitle,
 				Task:  task,
 			},
 		})
