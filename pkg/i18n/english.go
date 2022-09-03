@@ -200,7 +200,6 @@ type TranslationSet struct {
 	TagsTitle                           string
 	MenuTitle                           string
 	RemotesTitle                        string
-	WorktreesTitle                      string
 	RemoteBranchesTitle                 string
 	PatchBuildingTitle                  string
 	InformationTitle                    string
@@ -546,10 +545,18 @@ type TranslationSet struct {
 	EnterWorktree                       string
 	DeleteWorktree                      string
 	DeleteWorktreeTitle                 string
+	WorktreesTitle                      string
+	WorktreeTitle                       string
 	DeleteWorktreePrompt                string
 	ForceDeleteWorktreePrompt           string
 	CantDeleteCurrentWorktree           string
 	CantDeleteMainWorktree              string
+	NoWorktreesThisRepo                 string
+	MissingWorktree                     string
+	MainWorktree                        string
+	Name                                string
+	Branch                              string
+	Path                                string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -903,7 +910,6 @@ func EnglishTranslationSet() TranslationSet {
 		TagsTitle:                           "Tags",
 		MenuTitle:                           "Menu",
 		RemotesTitle:                        "Remotes",
-		WorktreesTitle:                      "Worktrees",
 		RemoteBranchesTitle:                 "Remote branches",
 		PatchBuildingTitle:                  "Main panel (patch building)",
 		InformationTitle:                    "Information",
@@ -1247,6 +1253,8 @@ func EnglishTranslationSet() TranslationSet {
 		SearchKeybindings:                   "%s: Next match, %s: Previous match, %s: Exit search mode",
 		SearchPrefix:                        "Search: ",
 		FilterPrefix:                        "Filter: ",
+		WorktreesTitle:                      "Worktrees",
+		WorktreeTitle:                       "Worktree",
 		EnterWorktree:                       "Enter worktree",
 		DeleteWorktree:                      "Delete worktree",
 		DeleteWorktreeTitle:                 "Delete worktree",
@@ -1254,6 +1262,12 @@ func EnglishTranslationSet() TranslationSet {
 		ForceDeleteWorktreePrompt:           "'{{.worktreeName}}' is not fully merged. Are you sure you want to delete it?",
 		CantDeleteCurrentWorktree:           "You cannot delete the current worktree!",
 		CantDeleteMainWorktree:              "You cannot delete the main worktree!",
+		NoWorktreesThisRepo:                 "No worktrees",
+		MissingWorktree:                     "(missing)",
+		MainWorktree:                        "(main)",
+		Name:                                "Name",
+		Branch:                              "Branch",
+		Path:                                "Path",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
