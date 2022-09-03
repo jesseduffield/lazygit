@@ -11,8 +11,9 @@ import (
 
 // Worktree : A git worktree
 type Worktree struct {
-	Id   int
-	Path string
+	Id     int
+	Path   string
+	Branch string
 }
 
 func (w *Worktree) RefName() string {

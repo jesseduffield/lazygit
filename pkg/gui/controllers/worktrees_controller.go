@@ -59,7 +59,15 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 			if worktree.Missing() {
 				missing = style.FgRed.Sprint(" (missing)")
 			}
-			task = types.NewRenderStringTask(fmt.Sprintf("%s\nPath: %s%s", style.FgGreen.Sprint(worktree.Name()), worktree.Path, missing))
+			task = types.NewRenderStringTask(
+				fmt.Sprintf(
+					"Name:   %s\nBranch: %s\nPath:   %s%s\n",
+					style.FgGreen.Sprint(worktree.Name()),
+					style.FgYellow.Sprint(worktree.Branch),
+					style.FgCyan.Sprint(worktree.Path),
+					missing,
+				),
+			)
 		}
 
 		return self.c.RenderToMainViews(types.RefreshMainOpts{
