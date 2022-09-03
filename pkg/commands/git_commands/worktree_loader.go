@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -46,18 +47,11 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 				Id:   len(worktrees),
 				Path: path,
 			}
+		} else if strings.HasPrefix(splitLine, "branch ") {
+			branch := strings.SplitN(splitLine, " ", 2)[1]
+			currentWorktree.Branch = filepath.Base(branch)
 		}
 	}
-
-	/*
-		worktree /Users/jbaranick/Source/lazygit
-		HEAD f6d6b5dec0432ffa953611700ab9b1ff0089f948
-		branch refs/heads/worktree_support
-
-		worktree /Users/jbaranick/Source/lazygit/.worktrees/worktree_tests
-		HEAD f6d6b5dec0432ffa953611700ab9b1ff0089f948
-		branch refs/heads/worktree_tests
-	*/
 
 	return worktrees, nil
 }
