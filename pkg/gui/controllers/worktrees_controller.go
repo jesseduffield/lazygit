@@ -40,11 +40,11 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 			Handler:     self.checkSelected(self.delete),
 			Description: self.c.Tr.DeleteWorktree,
 		},
-		//{
-		//	Key:         opts.GetKey(opts.Config.Universal.New),
-		//	Handler:     self.create,
-		//	Description: self.c.Tr.LcCreateTag,
-		//},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.New),
+			Handler:     self.create,
+			Description: self.c.Tr.CreateWorktree,
+		},
 	}
 
 	return bindings
@@ -103,6 +103,10 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 //	return gui.dispatchSwitchToRepo(submodule.Path, true)
 //}
 
+func (self *WorktreesController) create() error {
+	return self.c.Helpers().Worktree.NewWorktree()
+}
+
 func (self *WorktreesController) delete(worktree *models.Worktree) error {
 	if worktree.Main() {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteMainWorktree)
@@ -146,42 +150,6 @@ func (self *WorktreesController) deleteWithForce(worktree *models.Worktree, forc
 		},
 	})
 }
-
-//
-//	func (self *WorktreesController) push(tag *models.Tag) error {
-//		title := utils.ResolvePlaceholderString(
-//			self.c.Tr.PushTagTitle,
-//			map[string]string{
-//				"tagName": tag.Name,
-//			},
-//		)
-//
-//		return self.c.Prompt(types.PromptOpts{
-//			Title:               title,
-//			InitialContent:      "origin",
-//			FindSuggestionsFunc: self.helpers.Suggestions.GetRemoteSuggestionsFunc(),
-//			HandleConfirm: func(response string) error {
-//				return self.c.WithWaitingStatus(self.c.Tr.PushingTagStatus, func() error {
-//					self.c.LogAction(self.c.Tr.Actions.PushTag)
-//					err := self.git.Tag.Push(response, tag.Name)
-//					if err != nil {
-//						_ = self.c.Error(err)
-//					}
-//
-//					return nil
-//				})
-//			},
-//		})
-//	}
-//
-//	func (self *WorktreesController) createResetMenu(tag *models.Tag) error {
-//		return self.helpers.Refs.CreateGitResetMenu(tag.Name)
-//	}
-//
-//	func (self *WorktreesController) create() error {
-//		// leaving commit SHA blank so that we're just creating the tag for the current commit
-//		return self.helpers.Tags.CreateTagMenu("", func() { self.context().SetSelectedLineIdx(0) })
-//	}
 
 func (self *WorktreesController) GetOnClick() func() error {
 	return self.checkSelected(self.enter)
