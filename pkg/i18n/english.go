@@ -554,6 +554,8 @@ type TranslationSet struct {
 	NoWorktreesThisRepo                 string
 	MissingWorktree                     string
 	MainWorktree                        string
+	CreateWorktree                      string
+	NewWorktreePath                     string
 	Name                                string
 	Branch                              string
 	Path                                string
@@ -684,6 +686,7 @@ type Actions struct {
 	BisectSkip                        string
 	BisectMark                        string
 	DeleteWorktree                    string
+	CreateWorktree                    string
 }
 
 const englishIntroPopupMessage = `
@@ -1265,6 +1268,8 @@ func EnglishTranslationSet() TranslationSet {
 		NoWorktreesThisRepo:                 "No worktrees",
 		MissingWorktree:                     "(missing)",
 		MainWorktree:                        "(main)",
+		CreateWorktree:                      "Create worktree",
+		NewWorktreePath:                     "New Worktree path",
 		Name:                                "Name",
 		Branch:                              "Branch",
 		Path:                                "Path",
@@ -1376,6 +1381,7 @@ func EnglishTranslationSet() TranslationSet {
 			BisectSkip:                        "Bisect skip",
 			BisectMark:                        "Bisect mark",
 			DeleteWorktree:                    "Delete worktree",
+			CreateWorktree:                    "Create worktree",
 		},
 		Bisect: Bisect{
 			Mark:                        "Mark %s as %s",
