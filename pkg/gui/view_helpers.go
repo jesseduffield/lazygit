@@ -87,7 +87,8 @@ func (gui *Gui) resizeConfirmationPanel() {
 	}
 	panelWidth := gui.getConfirmationPanelWidth()
 	prompt := gui.Views.Confirmation.Buffer()
-	panelHeight := gui.getMessageHeight(true, prompt, panelWidth) + suggestionsViewHeight
+	wrap := !gui.Views.Confirmation.Editable
+	panelHeight := gui.getMessageHeight(wrap, prompt, panelWidth) + suggestionsViewHeight
 	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsAux(panelWidth, panelHeight)
 	confirmationViewBottom := y1 - suggestionsViewHeight
 	_, _ = gui.g.SetView(gui.Views.Confirmation.Name(), x0, y0, x1, confirmationViewBottom, 0)
