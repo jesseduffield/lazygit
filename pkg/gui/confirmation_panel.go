@@ -181,6 +181,7 @@ func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 		textArea := confirmationView.TextArea
 		textArea.Clear()
 		textArea.TypeString(opts.Prompt)
+		gui.resizeConfirmationPanel()
 		confirmationView.RenderTextArea()
 	} else {
 		if err := gui.renderString(confirmationView, style.AttrBold.Sprint(opts.Prompt)); err != nil {
