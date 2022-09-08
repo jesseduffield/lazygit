@@ -11,6 +11,10 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
+const (
+	nop = "<nop>"
+)
+
 var keyMapReversed = map[gocui.Key]string{
 	gocui.KeyF1:          "f1",
 	gocui.KeyF2:          "f2",
@@ -170,6 +174,10 @@ func LabelFromKey(key types.Key) string {
 func GetKey(key string) types.Key {
 	runeCount := utf8.RuneCountInString(key)
 	if runeCount > 1 {
+		// indicates that action has no operations
+		if strings.ToLower(key) == nop {
+			return []rune(key)[0]
+		}
 		binding := keyMap[strings.ToLower(key)]
 		if binding == nil {
 			log.Fatalf("Unrecognized key %s for keybinding. For permitted values see %s", strings.ToLower(key), constants.Links.Docs.CustomKeybindings)

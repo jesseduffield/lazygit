@@ -1,6 +1,7 @@
 ## Possible keybindings
 | Put in        | You will get   |
 |---------------|----------------|
+| `<nop>`       | No operation   |
 | `<f1>`        | F1             |
 | `<f2>`        | F2             |
 | `<f3>`        | F3             |

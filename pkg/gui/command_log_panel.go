@@ -189,6 +189,13 @@ func (gui *Gui) getRandomTip() string {
 			"If you ever find a bug, do not hesitate to raise an issue on the repo:\n%s",
 			constants.Links.Issues,
 		),
+
+		// config tips
+		"`lazygit -cd` prints the location of lazygit config directory",
+		fmt.Sprintf(
+			"You can deactivate any key using special `<nop>` key binding in config file:\n%s",
+			constants.Links.Docs.CustomKeybindings,
+		),
 	}
 
 	rand.Seed(time.Now().UnixNano())
