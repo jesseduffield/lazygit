@@ -453,6 +453,7 @@ keybinding:
     redo: '<c-r>'
     diffingMenu: 'M'
     filteringMenu: '<c-f>'
+    quit: '<nop>'
   files:
     ignoreFile: 'I'
   commits:
