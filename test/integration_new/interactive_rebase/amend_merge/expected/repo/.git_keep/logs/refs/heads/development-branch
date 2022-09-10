@@ -1,0 +1,2 @@
+0000000000000000000000000000000000000000 a69464e3729a09e3a526d4a2db209ee43e64ba1c CI <CI@example.com> 1662823399 +0200	commit (initial): initial commit
+a69464e3729a09e3a526d4a2db209ee43e64ba1c 77e1bb1effc5857c4d701219a001823432e3586d CI <CI@example.com> 1662823399 +0200	merge feature-branch: Merge made by the 'ort' strategy.

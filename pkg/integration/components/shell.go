@@ -64,7 +64,7 @@ func (s *Shell) Checkout(name string) *Shell {
 }
 
 func (s *Shell) Merge(name string) *Shell {
-	return s.RunCommand("git merge --commit " + name)
+	return s.RunCommand("git merge --commit --no-ff " + name)
 }
 
 func (s *Shell) GitAdd(path string) *Shell {
