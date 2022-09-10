@@ -63,6 +63,10 @@ func (s *Shell) Checkout(name string) *Shell {
 	return s.RunCommand("git checkout " + name)
 }
 
+func (s *Shell) Merge(name string) *Shell {
+	return s.RunCommand("git merge --commit " + name)
+}
+
 func (s *Shell) GitAdd(path string) *Shell {
 	return s.RunCommand(fmt.Sprintf("git add \"%s\"", path))
 }
