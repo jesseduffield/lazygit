@@ -255,7 +255,7 @@ func (self *RebaseCommands) SquashAllAboveFixupCommits(sha string) error {
 	return self.runSkipEditorCommand(
 		self.cmd.New(
 			fmt.Sprintf(
-				"git rebase --interactive --autostash --autosquash %s^",
+				"git rebase --interactive --rebase-merges --autostash --autosquash %s^",
 				sha,
 			),
 		),
