@@ -138,13 +138,7 @@ func UTF16PtrToString(p *uint16) string {
 		ptr = unsafe.Pointer(uintptr(ptr) + unsafe.Sizeof(*p))
 	}
 
-	var s []uint16
-	h := (*unsafeheader.Slice)(unsafe.Pointer(&s))
-	h.Data = unsafe.Pointer(p)
-	h.Len = n
-	h.Cap = n
-
-	return string(utf16.Decode(s))
+	return string(utf16.Decode(unsafe.Slice(p, n)))
 }
 
 func Getpagesize() int { return 4096 }
@@ -364,6 +358,15 @@ func NewCallbackCDecl(fn interface{}) uintptr {
 //sys	SetCommTimeouts(handle Handle, timeouts *CommTimeouts) (err error)
 //sys	GetActiveProcessorCount(groupNumber uint16) (ret uint32)
 //sys	GetMaximumProcessorCount(groupNumber uint16) (ret uint32)
+//sys	EnumWindows(enumFunc uintptr, param unsafe.Pointer) (err error) = user32.EnumWindows
+//sys	EnumChildWindows(hwnd HWND, enumFunc uintptr, param unsafe.Pointer) = user32.EnumChildWindows
+//sys	GetClassName(hwnd HWND, className *uint16, maxCount int32) (copied int32, err error) = user32.GetClassNameW
+//sys	GetDesktopWindow() (hwnd HWND) = user32.GetDesktopWindow
+//sys	GetForegroundWindow() (hwnd HWND) = user32.GetForegroundWindow
+//sys	IsWindow(hwnd HWND) (isWindow bool) = user32.IsWindow
+//sys	IsWindowUnicode(hwnd HWND) (isUnicode bool) = user32.IsWindowUnicode
+//sys	IsWindowVisible(hwnd HWND) (isVisible bool) = user32.IsWindowVisible
+//sys	GetGUIThreadInfo(thread uint32, info *GUIThreadInfo) (err error) = user32.GetGUIThreadInfo
 
 // Volume Management Functions
 //sys	DefineDosDevice(flags uint32, deviceName *uint16, targetPath *uint16) (err error) = DefineDosDeviceW

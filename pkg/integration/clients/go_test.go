@@ -7,6 +7,8 @@ package clients
 // for an example
 
 import (
+	"bytes"
+	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -39,6 +41,7 @@ func TestIntegration(t *testing.T) {
 			}
 
 			t.Run(test.Name(), func(t *testing.T) {
+				t.Parallel()
 				err := f()
 				assert.NoError(t, err)
 			})
@@ -57,12 +60,26 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 		"TERM=xterm",
 	)
 
-	f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
+	// not writing stderr to the pty because we want to capture a panic if
+	// there is one. But some commands will not be in tty mode if stderr is
+	// not a terminal. We'll need to keep an eye out for that.
+	stderr := new(bytes.Buffer)
+	cmd.Stderr = stderr
+
+	// these rows and columns are ignored because internally we use tcell's
+	// simulation screen. However we still need the pty for the sake of
+	// running other commands in a pty.
+	f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 300, Cols: 300})
 	if err != nil {
 		return err
 	}
 
 	_, _ = io.Copy(ioutil.Discard, f)
+
+	if cmd.Wait() != nil {
+		// return an error with the stderr output
+		return errors.New(stderr.String())
+	}
 
 	return f.Close()
 }

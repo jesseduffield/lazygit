@@ -84,9 +84,11 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentViewName("mergeConflicts")
 		input.PrimaryAction()
 
+		assert.MatchViewContent("information", Contains("rebasing"))
 		assert.InConfirm()
 		assert.MatchCurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
 		input.Confirm()
+		assert.MatchViewContent("information", NotContains("rebasing"))
 
 		// this proves we actually have integrated the changes from second-change-branch
 		assert.MatchViewContent("commits", Contains("second-change-branch unrelated change"))

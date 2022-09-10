@@ -3,13 +3,13 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/rivo/uniseg.svg)](https://pkg.go.dev/github.com/rivo/uniseg)
 [![Go Report](https://img.shields.io/badge/go%20report-A%2B-brightgreen.svg)](https://goreportcard.com/report/github.com/rivo/uniseg)
 
-This Go package implements Unicode Text Segmentation according to [Unicode Standard Annex #29](https://unicode.org/reports/tr29/) and Unicode Line Breaking according to [Unicode Standard Annex #14](https://unicode.org/reports/tr14/) (Unicode version 14.0.0).
+This Go package implements Unicode Text Segmentation according to [Unicode Standard Annex #29](https://unicode.org/reports/tr29/), Unicode Line Breaking according to [Unicode Standard Annex #14](https://unicode.org/reports/tr14/) (Unicode version 14.0.0), and monospace font string width calculation similar to [wcwidth](https://man7.org/linux/man-pages/man3/wcwidth.3.html).
 
 ## Background
 
 ### Grapheme Clusters
 
-In Go, [strings are read-only slices of bytes](https://blog.golang.org/strings). They can be turned into Unicode code points using the `for` loop or by casting: `[]rune(str)`. However, multiple code points may be combined into one user-perceived character or what the Unicode specification calls "grapheme cluster". Here are some examples:
+In Go, [strings are read-only slices of bytes](https://go.dev/blog/strings). They can be turned into Unicode code points using the `for` loop or by casting: `[]rune(str)`. However, multiple code points may be combined into one user-perceived character or what the Unicode specification calls "grapheme cluster". Here are some examples:
 
 |String|Bytes (UTF-8)|Code points (runes)|Grapheme clusters|
 |-|-|-|-|
@@ -31,6 +31,10 @@ Sentence boundaries are often used for triple-click or some other method of sele
 
 Line breaking, also known as word wrapping, is the process of breaking a section of text into lines such that it will fit in the available width of a page, window or other display area. This package provides tools to determine where a string may or may not be broken and where it must be broken (for example after newline characters).
 
+### Monospace Width
+
+Most terminals or text displays / text editors using a monospace font (for example source code editors) use a fixed width for each character. Some characters such as emojis or characters found in Asian and other languages may take up more than one character cell. This package provides tools to determine the number of cells a string will take up when displayed in a monospace font. See [here](https://pkg.go.dev/github.com/rivo/uniseg#hdr-Monospace_Width) for more information.
+
 ## Installation
 
 ```bash
@@ -45,6 +49,14 @@ go get github.com/rivo/uniseg
 n := uniseg.GraphemeClusterCount("🇩🇪🏳️‍🌈")
 fmt.Println(n)
 // 2
+```
+
+### Calculating the Monospace String Width
+
+```go
+width := uniseg.StringWidth("🇩🇪🏳️‍🌈!")
+fmt.Println(width)
+// 5
 ```
 
 ### Using the [`Graphemes`](https://pkg.go.dev/github.com/rivo/uniseg#Graphemes) Class

@@ -13,7 +13,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo: func(shell *Shell) {
 		commonRebaseSetup(shell)
 		// addin a couple additional commits so that we can drop one
-		shell.EmptyCommit("to drop")
+		shell.EmptyCommit("to remove")
 		shell.EmptyCommit("to keep")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
@@ -29,6 +29,8 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.MatchCurrentViewContent(Contains("Are you sure you want to rebase 'first-change-branch' onto 'second-change-branch'?"))
 		input.Confirm()
 
+		assert.MatchViewContent("information", Contains("rebasing"))
+
 		assert.InConfirm()
 		assert.MatchCurrentViewContent(Contains("Conflicts!"))
 		input.Confirm()
@@ -37,9 +39,10 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.MatchSelectedLine(Contains("file"))
 
 		input.SwitchToCommitsWindow()
+		assert.MatchSelectedLine(Contains("pick")) // this means it's a rebasing commit
 		input.NextItem()
 		input.PressKeys(keys.Universal.Remove)
-		assert.MatchSelectedLine(Contains("to drop"))
+		assert.MatchSelectedLine(Contains("to remove"))
 		assert.MatchSelectedLine(Contains("drop"))
 
 		input.SwitchToFilesWindow()
@@ -55,9 +58,11 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.MatchCurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
 		input.Confirm()
 
+		assert.MatchViewContent("information", NotContains("rebasing"))
+
 		// this proves we actually have integrated the changes from second-change-branch
 		assert.MatchViewContent("commits", Contains("second-change-branch unrelated change"))
 		assert.MatchViewContent("commits", Contains("to keep"))
-		assert.MatchViewContent("commits", NotContains("to drop"))
+		assert.MatchViewContent("commits", NotContains("to remove"))
 	},
 })

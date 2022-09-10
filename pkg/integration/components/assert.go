@@ -111,6 +111,13 @@ func (self *Assert) CurrentViewName(expectedViewName string) {
 	})
 }
 
+func (self *Assert) CurrentWindowName(expectedWindowName string) {
+	self.assertWithRetries(func() (bool, string) {
+		actual := self.gui.CurrentContext().GetView().Name()
+		return actual == expectedWindowName, fmt.Sprintf("Expected current window name to be '%s', but got '%s'", expectedWindowName, actual)
+	})
+}
+
 func (self *Assert) CurrentBranchName(expectedViewName string) {
 	self.assertWithRetries(func() (bool, string) {
 		actual := self.gui.CheckedOutRef().Name
@@ -210,7 +217,7 @@ func (self *Assert) matchString(matcher *matcher, context string, getValue func(
 }
 
 func (self *Assert) assertWithRetries(test func() (bool, string)) {
-	waitTimes := []int{0, 1, 5, 10, 200, 500, 1000}
+	waitTimes := []int{0, 1, 5, 10, 200, 500, 1000, 2000}
 
 	var message string
 	for _, waitTime := range waitTimes {

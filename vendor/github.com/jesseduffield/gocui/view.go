@@ -1245,6 +1245,9 @@ func (v *View) SelectedLineIdx() int {
 
 // expected to only be used in tests
 func (v *View) SelectedLine() string {
+	if len(v.lines) == 0 {
+		return ""
+	}
 	line := v.lines[v.SelectedLineIdx()]
 	str := lineType(line).String()
 	return strings.Replace(str, "\x00", " ", -1)

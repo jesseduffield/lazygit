@@ -58,11 +58,11 @@ func RunTests(
 	for _, test := range tests {
 		test := test
 
-		paths := NewPaths(
-			filepath.Join(testDir, test.Name()),
-		)
-
 		testWrapper(test, func() error { //nolint: thelper
+			paths := NewPaths(
+				filepath.Join(testDir, test.Name()),
+			)
+
 			return runTest(test, paths, projectRootDir, logf, runCmd, mode, keyPressDelay)
 		})
 	}
@@ -126,26 +126,13 @@ func buildLazygit() error {
 }
 
 func createFixture(test *IntegrationTest, paths Paths) error {
-	originalDir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	if err := os.Chdir(paths.ActualRepo()); err != nil {
-		panic(err)
-	}
-
-	shell := NewShell()
+	shell := NewShell(paths.ActualRepo())
 	shell.RunCommand("git init -b master")
 	shell.RunCommand(`git config user.email "CI@example.com"`)
 	shell.RunCommand(`git config user.name "CI"`)
 	shell.RunCommand(`git config commit.gpgSign false`)
 
 	test.SetupRepo(shell)
-
-	if err := os.Chdir(originalDir); err != nil {
-		panic(err)
-	}
 
 	return nil
 }
