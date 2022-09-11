@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type WorktreesContext struct {
@@ -22,7 +23,12 @@ func NewWorktreesContext(c *ContextCommon) *WorktreesContext {
 	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
-		return presentation.GetWorktreeListDisplayStrings(c.Model().Worktrees)
+		return lo.Map(c.Model().Worktrees, func(worktree *models.Worktree, _ int) []string {
+			return presentation.GetWorktreeDisplayString(
+				c.Git().Worktree.IsCurrentWorktree(worktree),
+				c.Git().Worktree.IsWorktreePathMissing(worktree),
+				worktree)
+		})
 	}
 
 	return &WorktreesContext{

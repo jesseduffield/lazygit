@@ -1,34 +1,26 @@
 package presentation
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
-func GetWorktreeListDisplayStrings(worktrees []*models.Worktree) [][]string {
-	return slices.Map(worktrees, func(worktree *models.Worktree) []string {
-		return getWorktreeDisplayStrings(worktree)
-	})
-}
-
-// getWorktreeDisplayStrings returns the display string of branch
-func getWorktreeDisplayStrings(w *models.Worktree) []string {
+func GetWorktreeDisplayString(isCurrent bool, isPathMissing bool, worktree *models.Worktree) []string {
 	textStyle := theme.DefaultTextColor
 
 	current := ""
 	currentColor := style.FgCyan
-	if w.Current() {
+	if isCurrent {
 		current = "  *"
 		currentColor = style.FgGreen
 	}
 
-	icon := icons.IconForWorktree(w, false)
-	if w.Missing() {
+	icon := icons.IconForWorktree(worktree, false)
+	if isPathMissing {
 		textStyle = style.FgRed
-		icon = icons.IconForWorktree(w, true)
+		icon = icons.IconForWorktree(worktree, true)
 	}
 
 	res := make([]string, 0, 3)
@@ -36,6 +28,6 @@ func getWorktreeDisplayStrings(w *models.Worktree) []string {
 	if icons.IsIconEnabled() {
 		res = append(res, textStyle.Sprint(icon))
 	}
-	res = append(res, textStyle.Sprint(w.Name()))
+	res = append(res, textStyle.Sprint(worktree.Name()))
 	return res
 }

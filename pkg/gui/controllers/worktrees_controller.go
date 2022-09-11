@@ -63,7 +63,7 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 			}
 
 			missing := ""
-			if worktree.Missing() {
+			if self.c.Git().Worktree.IsWorktreePathMissing(worktree) {
 				missing = style.FgRed.Sprintf(" %s", self.c.Tr.MissingWorktree)
 			}
 
@@ -112,7 +112,7 @@ func (self *WorktreesController) delete(worktree *models.Worktree) error {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteMainWorktree)
 	}
 
-	if worktree.Current() {
+	if self.c.Git().Worktree.IsCurrentWorktree(worktree) {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCurrentWorktree)
 	}
 

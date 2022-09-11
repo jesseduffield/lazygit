@@ -638,8 +638,7 @@ func (self *RefreshHelper) refreshStatus() {
 	}
 
 	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
-	var repoName string
-	repoName = utils.GetCurrentRepoName()
+	repoName := utils.GetCurrentRepoName()
 	mainWorktreeName := self.worktreeHelper.GetMainWorktreeName()
 	if repoName != mainWorktreeName {
 		repoName = fmt.Sprintf("%s(%s)", mainWorktreeName, style.FgBlue.Sprint(repoName))
