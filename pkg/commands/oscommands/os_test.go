@@ -1,7 +1,6 @@
 package oscommands
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -149,7 +148,7 @@ func TestOSCommandAppendLineToFile(t *testing.T) {
 		{
 			filepath.Join(os.TempDir(), "testFile"),
 			func(path string) {
-				if err := ioutil.WriteFile(path, []byte("hello"), 0o600); err != nil {
+				if err := os.WriteFile(path, []byte("hello"), 0o600); err != nil {
 					panic(err)
 				}
 			},
@@ -160,7 +159,7 @@ func TestOSCommandAppendLineToFile(t *testing.T) {
 		{
 			filepath.Join(os.TempDir(), "emptyTestFile"),
 			func(path string) {
-				if err := ioutil.WriteFile(path, []byte(""), 0o600); err != nil {
+				if err := os.WriteFile(path, []byte(""), 0o600); err != nil {
 					panic(err)
 				}
 			},
@@ -171,7 +170,7 @@ func TestOSCommandAppendLineToFile(t *testing.T) {
 		{
 			filepath.Join(os.TempDir(), "testFileWithNewline"),
 			func(path string) {
-				if err := ioutil.WriteFile(path, []byte("hello\n"), 0o600); err != nil {
+				if err := os.WriteFile(path, []byte("hello\n"), 0o600); err != nil {
 					panic(err)
 				}
 			},
@@ -187,7 +186,7 @@ func TestOSCommandAppendLineToFile(t *testing.T) {
 		if err := osCommand.AppendLineToFile(s.path, "world"); err != nil {
 			panic(err)
 		}
-		f, err := ioutil.ReadFile(s.path)
+		f, err := os.ReadFile(s.path)
 		if err != nil {
 			panic(err)
 		}

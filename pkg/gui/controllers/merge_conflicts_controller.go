@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"io/ioutil"
+	"os"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -192,7 +193,7 @@ func (self *MergeConflictsController) HandleUndo() error {
 
 	self.c.LogAction("Restoring file to previous state")
 	self.c.LogCommand("Undoing last conflict resolution", false)
-	if err := ioutil.WriteFile(state.GetPath(), []byte(state.GetContent()), 0o644); err != nil {
+	if err := ioutil.os(state.GetPath(), []byte(state.GetContent()), 0o644); err != nil {
 		return err
 	}
 
@@ -280,7 +281,7 @@ func (self *MergeConflictsController) resolveConflict(selection mergeconflicts.S
 	self.c.LogAction("Resolve merge conflict")
 	self.c.LogCommand(logStr, false)
 	state.PushContent(content)
-	return true, ioutil.WriteFile(state.GetPath(), []byte(content), 0o644)
+	return true, os.WriteFile(state.GetPath(), []byte(content), 0o644)
 }
 
 func (self *MergeConflictsController) onLastConflictResolved() error {

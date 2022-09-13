@@ -1,7 +1,7 @@
 package app
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
@@ -26,7 +26,7 @@ func newLogger(config config.AppConfigurer) *logrus.Entry {
 
 func newProductionLogger() *logrus.Logger {
 	log := logrus.New()
-	log.Out = ioutil.Discard
+	log.Out = io.Discard
 	log.SetLevel(logrus.ErrorLevel)
 	return log
 }

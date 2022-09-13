@@ -1,7 +1,6 @@
 package daemon
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -77,7 +76,7 @@ func (self *rebaseDaemon) Run() error {
 	self.c.Log.Info("args: ", os.Args)
 
 	if strings.HasSuffix(os.Args[1], "git-rebase-todo") {
-		if err := ioutil.WriteFile(os.Args[1], []byte(os.Getenv(RebaseTODOEnvKey)), 0o644); err != nil {
+		if err := os.WriteFile(os.Args[1], []byte(os.Getenv(RebaseTODOEnvKey)), 0o644); err != nil {
 			return err
 		}
 	} else if strings.HasSuffix(os.Args[1], filepath.Join(gitDir(), "COMMIT_EDITMSG")) { // TODO: test

@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -152,7 +151,7 @@ func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error)
 			file.Close()
 		}
 
-		content, err := ioutil.ReadFile(path)
+		content, err := os.ReadFile(path)
 		if err != nil {
 			return nil, err
 		}
@@ -243,7 +242,7 @@ func (c *AppConfig) SaveAppState() error {
 		return err
 	}
 
-	err = ioutil.WriteFile(filepath, marshalledAppState, 0o644)
+	err = os.WriteFile(filepath, marshalledAppState, 0o644)
 	if err != nil && os.IsPermission(err) {
 		// apparently when people have read-only permissions they prefer us to fail silently
 		return nil
@@ -263,7 +262,7 @@ func loadAppState() (*AppState, error) {
 		return nil, err
 	}
 
-	appStateBytes, err := ioutil.ReadFile(filepath)
+	appStateBytes, err := os.ReadFile(filepath)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}

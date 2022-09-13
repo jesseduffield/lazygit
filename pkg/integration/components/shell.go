@@ -2,7 +2,6 @@ package components
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -38,7 +37,7 @@ func (s *Shell) RunCommand(cmdStr string) *Shell {
 
 func (s *Shell) CreateFile(path string, content string) *Shell {
 	fullPath := filepath.Join(s.dir, path)
-	err := ioutil.WriteFile(fullPath, []byte(content), 0o644)
+	err := os.WriteFile(fullPath, []byte(content), 0o644)
 	if err != nil {
 		panic(fmt.Sprintf("error creating file: %s\n%s", fullPath, err))
 	}
@@ -48,7 +47,7 @@ func (s *Shell) CreateFile(path string, content string) *Shell {
 
 func (s *Shell) UpdateFile(path string, content string) *Shell {
 	fullPath := filepath.Join(s.dir, path)
-	err := ioutil.WriteFile(fullPath, []byte(content), 0o644)
+	err := os.WriteFile(fullPath, []byte(content), 0o644)
 	if err != nil {
 		panic(fmt.Sprintf("error updating file: %s\n%s", fullPath, err))
 	}

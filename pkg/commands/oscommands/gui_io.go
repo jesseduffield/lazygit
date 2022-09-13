@@ -1,10 +1,8 @@
 package oscommands
 
 import (
-	"io"
-	"io/ioutil"
-
 	"github.com/sirupsen/logrus"
+	"io"
 )
 
 // this struct captures some IO stuff
@@ -45,7 +43,7 @@ func NewNullGuiIO(log *logrus.Entry) *guiIO {
 	return &guiIO{
 		log:                   log,
 		logCommandFn:          func(string, bool) {},
-		newCmdWriterFn:        func() io.Writer { return ioutil.Discard },
+		newCmdWriterFn:        func() io.Writer { return io.Discard },
 		promptForCredentialFn: failPromptFn,
 	}
 }
