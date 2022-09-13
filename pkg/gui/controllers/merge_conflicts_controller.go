@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/jesseduffield/gocui"
@@ -193,7 +192,7 @@ func (self *MergeConflictsController) HandleUndo() error {
 
 	self.c.LogAction("Restoring file to previous state")
 	self.c.LogCommand("Undoing last conflict resolution", false)
-	if err := ioutil.os(state.GetPath(), []byte(state.GetContent()), 0o644); err != nil {
+	if err := os.WriteFile(state.GetPath(), []byte(state.GetContent()), 0o644); err != nil {
 		return err
 	}
 
