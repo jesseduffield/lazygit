@@ -1,8 +1,9 @@
 package oscommands
 
 import (
-	"github.com/sirupsen/logrus"
 	"io"
+
+	"github.com/sirupsen/logrus"
 )
 
 // this struct captures some IO stuff

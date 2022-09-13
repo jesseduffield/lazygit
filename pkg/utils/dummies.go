@@ -1,11 +1,12 @@
 package utils
 
 import (
+	"io"
+
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/sirupsen/logrus"
-	"io"
 )
 
 // NewDummyLog creates a new dummy Log for testing
