@@ -445,6 +445,13 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
+	if self.isHeadCommit() {
+		if err := self.helpers.AmendHelper.AmendHead(); err != nil {
+			return err
+		}
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	}
+
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
