@@ -421,6 +421,14 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
+				if index := self.context().GetSelectedLineIdx(); index == 0 {
+					if err := self.git.Commit.AmendHead(); err != nil {
+						return err
+					}
+					if err := self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
+						return err
+					}
+				}
 				err := self.git.Rebase.AmendTo(commit.Sha)
 				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 			})
