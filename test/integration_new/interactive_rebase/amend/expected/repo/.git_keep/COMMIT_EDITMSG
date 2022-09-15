@@ -1,0 +1,38 @@
+commit 02
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date:      Thu Sep 15 18:00:45 2022 +0200
+#
+# interactive rebase in progress; onto 66699d7
+# Last command done (1 command done):
+#    edit 38889b8 commit 02
+# Next commands to do (3 remaining commands):
+#    pick c2a206d commit 03
+#    pick 18cb5ed commit 04
+# You are currently editing a commit while rebasing branch 'master' on '66699d7'.
+#
+# Changes to be committed:
+#	new file:   file02.txt
+#	new file:   password.txt
+#
+# ------------------------ >8 ------------------------
+# Do not modify or remove the line above.
+# Everything below it will be ignored.
+diff --git a/file02.txt b/file02.txt
+new file mode 100644
+index 0000000..0647fe4
+--- /dev/null
++++ b/file02.txt
+@@ -0,0 +1 @@
++file02 content
+\ No newline at end of file
+diff --git a/password.txt b/password.txt
+new file mode 100644
+index 0000000..7715cc1
+--- /dev/null
++++ b/password.txt
+@@ -0,0 +1 @@
++hunter2
+\ No newline at end of file
