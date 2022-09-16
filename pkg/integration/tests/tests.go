@@ -13,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -27,6 +28,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.Basic,
 	custom_commands.MultiplePrompts,
 	custom_commands.MenuFromCommand,
+	stash.Stash,
 }
 
 func GetTests() []*components.IntegrationTest {
