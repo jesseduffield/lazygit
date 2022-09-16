@@ -24,6 +24,7 @@ import (
 var tests = []*components.IntegrationTest{
 	commit.Commit,
 	commit.NewBranch,
+	commit.AmendHead,
 	branch.Suggestions,
 	branch.Delete,
 	branch.Rebase,

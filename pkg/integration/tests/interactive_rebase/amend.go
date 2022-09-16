@@ -6,7 +6,7 @@ import (
 )
 
 var AmendDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Tries amending a commit during a rebase.",
+	Description:  "Amend a commit during a rebase.",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -23,12 +23,17 @@ var AmendDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.MatchSelectedLine(Contains("YOU ARE HERE"))
 
 		shell.CreateFileAndAdd("password.txt", "hunter2")
+		input.SwitchToFilesWindow()
+		input.PressKeys(keys.Files.RefreshFiles)
+		input.SwitchToCommitsWindow()
+		assert.CurrentViewName("commits")
 
 		input.PressKeys(keys.Commits.AmendToCommit)
-		input.PressKeys(keys.Universal.Return)
+		input.Confirm()
 
 		input.ContinueRebase()
 
 		assert.CommitCount(5)
+		assert.WorkingTreeFileCount(0)
 	},
 })

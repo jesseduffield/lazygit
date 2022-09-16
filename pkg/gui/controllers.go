@@ -24,6 +24,7 @@ func (gui *Gui) resetControllers() {
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
+	gpgHelper := helpers.NewGpgHelper(helperCommon, gui.os, gui.git)
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
 		Host:           helpers.NewHostHelper(helperCommon, gui.git),
@@ -33,7 +34,7 @@ func (gui *Gui) resetControllers() {
 		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
 		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, model),
 		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
-		GPG:            helpers.NewGpgHelper(helperCommon, gui.os, gui.git),
+		GPG:            gpgHelper,
 		MergeAndRebase: rebaseHelper,
 		MergeConflicts: helpers.NewMergeConflictsHelper(helperCommon, gui.State.Contexts, gui.git),
 		CherryPick: helpers.NewCherryPickHelper(
@@ -43,7 +44,8 @@ func (gui *Gui) resetControllers() {
 			func() *cherrypicking.CherryPicking { return gui.State.Modes.CherryPicking },
 			rebaseHelper,
 		),
-		Upstream: helpers.NewUpstreamHelper(helperCommon, model, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
+		Upstream:    helpers.NewUpstreamHelper(helperCommon, model, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
+		AmendHelper: helpers.NewAmendHelper(helperCommon, gui.git, gpgHelper),
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(

@@ -415,20 +415,23 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
+	noStagedFiles := len(self.model.Files) == 0
+	if noStagedFiles {
+		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
+	}
+
+	isHead := self.context().GetSelectedLineIdx() == 0
+	isRebasing := commit.Status == "rebasing"
+	if isHead || isRebasing {
+		self.helpers.AmendHelper.AmendHead()
+	}
+
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-				if index := self.context().GetSelectedLineIdx(); index == 0 {
-					if err := self.git.Commit.AmendHead(); err != nil {
-						return err
-					}
-					if err := self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
-						return err
-					}
-				}
 				err := self.git.Rebase.AmendTo(commit.Sha)
 				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 			})

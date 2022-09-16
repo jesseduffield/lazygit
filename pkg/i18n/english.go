@@ -33,7 +33,10 @@ type TranslationSet struct {
 	CommitChanges                       string
 	AmendLastCommit                     string
 	AmendLastCommitTitle                string
+	AmendHEAD                           string
+	AmendHEADTitle                      string
 	SureToAmend                         string
+	SureToAmendHEAD                     string
 	NoCommitToAmend                     string
 	CommitChangesWithEditor             string
 	StatusTitle                         string
@@ -675,7 +678,10 @@ func EnglishTranslationSet() TranslationSet {
 		CommitChanges:                       "commit changes",
 		AmendLastCommit:                     "amend last commit",
 		AmendLastCommitTitle:                "Amend Last Commit",
+		AmendHEAD:                           "Amend HEAD",
+		AmendHEADTitle:                      "amend HEAD",
 		SureToAmend:                         "Are you sure you want to amend last commit? Afterwards, you can change commit message from the commits panel.",
+		SureToAmendHEAD:                     "Are you sure you want to amend HEAD? Afterwards, you can change commit message from the commits panel.",
 		NoCommitToAmend:                     "There's no commit to amend.",
 		CommitChangesWithEditor:             "commit changes using git editor",
 		StatusTitle:                         "Status",
