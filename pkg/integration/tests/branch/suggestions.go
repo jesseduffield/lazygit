@@ -34,6 +34,7 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 
 		// we expect the first suggestion to be the branch we want because it most
 		// closely matches what we typed in
+		assert.MatchSelectedLine(Contains("branch-to-checkout"))
 		input.Confirm()
 
 		assert.CurrentBranchName("branch-to-checkout")
