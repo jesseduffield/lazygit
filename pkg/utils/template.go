@@ -7,7 +7,7 @@ import (
 )
 
 func ResolveTemplate(templateStr string, object interface{}) (string, error) {
-	tmpl, err := template.New("template").Parse(templateStr)
+	tmpl, err := template.New("template").Option("missingkey=error").Parse(templateStr)
 	if err != nil {
 		return "", err
 	}
