@@ -12,6 +12,10 @@ For old installations (slightly embarrassing: I didn't realise at the time that 
 - MacOS: `~/Library/Application Support/jesseduffield/lazygit/config.yml`
 - Windows: `%APPDATA%\jesseduffield\lazygit\config.yml`
 
+If you want to change the config directory:
+
+- MacOS: `export XDG_CONFIG_HOME="$HOME/.config"`
+
 ## Default
 
 ```yaml
