@@ -42,6 +42,7 @@ func RunTests(
 	testWrapper func(test *IntegrationTest, f func() error),
 	mode Mode,
 	keyPressDelay int,
+	maxAttempts int,
 ) error {
 	projectRootDir := utils.GetLazygitRootDirectory()
 	err := os.Chdir(projectRootDir)
@@ -63,7 +64,19 @@ func RunTests(
 				filepath.Join(testDir, test.Name()),
 			)
 
-			return runTest(test, paths, projectRootDir, logf, runCmd, mode, keyPressDelay)
+			for i := 0; i < maxAttempts; i++ {
+				err := runTest(test, paths, projectRootDir, logf, runCmd, mode, keyPressDelay)
+				if err != nil {
+					if i == maxAttempts-1 {
+						return err
+					}
+					logf("retrying test %s", test.Name())
+				} else {
+					break
+				}
+			}
+
+			return nil
 		})
 	}
 

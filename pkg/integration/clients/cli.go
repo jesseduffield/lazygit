@@ -43,6 +43,7 @@ func RunCLI(testNames []string, slow bool, sandbox bool) {
 		runAndPrintFatalError,
 		mode,
 		keyPressDelay,
+		1,
 	)
 	if err != nil {
 		log.Print(err.Error())

@@ -375,6 +375,7 @@ func runTuiTest(test *components.IntegrationTest, mode components.Mode, keyPress
 		runAndPrintError,
 		mode,
 		keyPressDelay,
+		1,
 	)
 	if err != nil {
 		log.Println(err.Error())

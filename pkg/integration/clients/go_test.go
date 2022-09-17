@@ -48,6 +48,9 @@ func TestIntegration(t *testing.T) {
 		},
 		components.CHECK_SNAPSHOT,
 		0,
+		// allowing two attempts at the test. If a test fails intermittently,
+		// there may be a concurrency issue that we need to resolve.
+		2,
 	)
 
 	assert.NoError(t, err)
