@@ -106,7 +106,7 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	// these rows and columns are ignored because internally we use tcell's
 	// simulation screen. However we still need the pty for the sake of
 	// running other commands in a pty.
-	f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 300, Cols: 300})
+	f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 100, Cols: 100})
 	if err != nil {
 		return err
 	}
