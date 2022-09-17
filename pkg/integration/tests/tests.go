@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/bisect"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/branch"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/cherry_pick"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
@@ -33,6 +34,8 @@ var tests = []*components.IntegrationTest{
 	custom_commands.MenuFromCommand,
 	bisect.Basic,
 	bisect.FromOtherBranch,
+	cherry_pick.CherryPick,
+	cherry_pick.CherryPickConflicts,
 }
 
 func GetTests() []*components.IntegrationTest {
@@ -52,6 +55,11 @@ func GetTests() []*components.IntegrationTest {
 		if !info.IsDir() && strings.HasSuffix(path, ".go") {
 			// ignoring this current file
 			if filepath.Base(path) == "tests.go" {
+				return nil
+			}
+
+			// the shared directory won't itself contain tests: only shared helper functions
+			if filepath.Base(filepath.Dir(path)) == "shared" {
 				return nil
 			}
 

@@ -3,6 +3,7 @@ package branch
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/shared"
 )
 
 var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
@@ -11,7 +12,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
-		commonRebaseSetup(shell)
+		shared.MergeConflictsSetup(shell)
 		// addin a couple additional commits so that we can drop one
 		shell.EmptyCommit("to remove")
 		shell.EmptyCommit("to keep")

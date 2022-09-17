@@ -3,51 +3,8 @@ package branch
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/shared"
 )
-
-var originalFileContent = `
-This
-Is
-The
-Original
-File
-`
-
-var firstChangeFileContent = `
-This
-Is
-The
-First Change
-File
-`
-
-var secondChangeFileContent = `
-This
-Is
-The
-Second Change
-File
-`
-
-// prepares us for a rebase that has conflicts
-var commonRebaseSetup = func(shell *Shell) {
-	shell.
-		NewBranch("original-branch").
-		EmptyCommit("one").
-		EmptyCommit("two").
-		EmptyCommit("three").
-		CreateFileAndAdd("file", originalFileContent).
-		Commit("original").
-		NewBranch("first-change-branch").
-		UpdateFileAndAdd("file", firstChangeFileContent).
-		Commit("first change").
-		Checkout("original-branch").
-		NewBranch("second-change-branch").
-		UpdateFileAndAdd("file", secondChangeFileContent).
-		Commit("second change").
-		EmptyCommit("second-change-branch unrelated change").
-		Checkout("first-change-branch")
-}
 
 var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Rebase onto another branch, deal with the conflicts.",
@@ -55,7 +12,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
-		commonRebaseSetup(shell)
+		shared.MergeConflictsSetup(shell)
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()

@@ -76,6 +76,11 @@ func (self *Input) Confirm() {
 	self.pressKey(self.keys.Universal.Confirm)
 }
 
+// i.e. same as Confirm
+func (self *Input) Enter() {
+	self.pressKey(self.keys.Universal.Confirm)
+}
+
 // i.e. pressing escape
 func (self *Input) Cancel() {
 	self.pressKey(self.keys.Universal.Return)

@@ -1,5 +1,0 @@
-0000000000000000000000000000000000000000 2cf63d6da8c52131dd79622f8572b44a1267e420 CI <CI@example.com> 1617673072 +1000	commit (initial): first commit
-2cf63d6da8c52131dd79622f8572b44a1267e420 bfcc5725cd2ef871ff804996f4e02beef3e4dec2 CI <CI@example.com> 1617673072 +1000	commit: first commit on master
-bfcc5725cd2ef871ff804996f4e02beef3e4dec2 f4ffac820a371104fe611d81bc13a45b70a3ebb3 CI <CI@example.com> 1617673072 +1000	commit: second commit on master
-f4ffac820a371104fe611d81bc13a45b70a3ebb3 facb56c48e4718f71c08116153c93d87bc699671 CI <CI@example.com> 1617673072 +1000	commit: third commit on master
-facb56c48e4718f71c08116153c93d87bc699671 339e2d062760be9ecdb4bb90f97bdb0e634e7831 CI <CI@example.com> 1617673072 +1000	commit: fourth commit on master
