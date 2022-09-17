@@ -11,7 +11,7 @@ go run cmd/integration_test/main.go tui
 or
 
 ```sh
-go run cmd/integration_test/main.go cli [--slow] [testname or testpath...]
+go run cmd/integration_test/main.go cli [--slow or --sandbox] [testname or testpath...]
 ```
 
 ## Writing tests
@@ -49,7 +49,7 @@ If you find yourself doing something frequently in a test, consider making it a 
 
 There are three ways to invoke a test:
 
-1. go run cmd/integration_test/main.go cli [--slow] [testname or testpath...]
+1. go run cmd/integration_test/main.go cli [--slow or --sandbox] [testname or testpath...]
 2. go run cmd/integration_test/main.go tui
 3. go test pkg/integration/clients/go_test.go
 
@@ -69,7 +69,7 @@ At the moment (this is subject to change) each test has a snapshot repo created 
 
 Say you want to do a manual test of how lazygit handles merge-conflicts, but you can't be bothered actually finding a way to create merge conflicts in a repo. To make your life easier, you can simply run a merge-conflicts test in sandbox mode, meaning the setup step is run for you, and then instead of the test driving the lazygit session, you're allowed to drive it yourself.
 
-To run a test in sandbox mode you can press 's' on a test in the test TUI or pass the env var MODE=sandbox to the test runner.
+To run a test in sandbox mode you can press 's' on a test in the test TUI or in the test runner pass MODE=sandbox or the --sandbox argument.
 
 ## Migration process
 

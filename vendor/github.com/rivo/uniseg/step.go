@@ -2,31 +2,37 @@ package uniseg
 
 import "unicode/utf8"
 
-// The bit masks used to extract boundary information returned by the Step()
-// function.
+// The bit masks used to extract boundary information returned by [Step].
 const (
 	MaskLine     = 3
 	MaskWord     = 4
 	MaskSentence = 8
 )
 
-// The bit positions by which boundary flags are shifted by the Step() function.
-// This must correspond to the Mask constants.
+// The number of bits to shift the boundary information returned by [Step] to
+// obtain the monospace width of the grapheme cluster.
+const ShiftWidth = 4
+
+// The bit positions by which boundary flags are shifted by the [Step] function.
+// These must correspond to the Mask constants.
 const (
 	shiftWord     = 2
 	shiftSentence = 3
+	// shiftwWidth is ShiftWidth above. No mask as these are always the remaining bits.
 )
 
-// The bit positions by which states are shifted by the Step() function. These
+// The bit positions by which states are shifted by the [Step] function. These
 // values must ensure state values defined for each of the boundary algorithms
-// don't overlap (and that they all still fit in a single int).
+// don't overlap (and that they all still fit in a single int). These must
+// correspond to the Mask constants.
 const (
 	shiftWordState     = 4
 	shiftSentenceState = 9
 	shiftLineState     = 13
+	shiftPropState     = 21 // No mask as these are always the remaining bits.
 )
 
-// The bit mask used to extract the state returned by the Step() function, after
+// The bit mask used to extract the state returned by the [Step] function, after
 // shifting. These values must correspond to the shift constants.
 const (
 	maskGraphemeState = 0xf
@@ -37,10 +43,11 @@ const (
 
 // Step returns the first grapheme cluster (user-perceived character) found in
 // the given byte slice. It also returns information about the boundary between
-// that grapheme cluster and the one following it. There are three types of
-// boundary information: word boundaries, sentence boundaries, and line breaks.
-// This function is therefore a combination of FirstGraphemeCluster(),
-// FirstWord(), FirstSentence(), and FirstLineSegment().
+// that grapheme cluster and the one following it as well as the monospace width
+// of the grapheme cluster. There are three types of boundary information: word
+// boundaries, sentence boundaries, and line breaks. This function is therefore
+// a combination of [FirstGraphemeCluster], [FirstWord], [FirstSentence], and
+// [FirstLineSegment].
 //
 // The "boundaries" return value can be evaluated as follows:
 //
@@ -54,6 +61,8 @@ const (
 //     boundary.
 //   - boundaries&MaskLine == LineCanBreak: You may or may not break the line at
 //     the boundary.
+//   - boundaries >> ShiftWidth: The width of the grapheme cluster for most
+//     monospace fonts where a value of 1 represents one character cell.
 //
 // This function can be called continuously to extract all grapheme clusters
 // from a byte slice, as illustrated in the examples below.
@@ -87,14 +96,20 @@ func Step(b []byte, state int) (cluster, rest []byte, boundaries int, newState i
 	// Extract the first rune.
 	r, length := utf8.DecodeRune(b)
 	if len(b) <= length { // If we're already past the end, there is nothing else to parse.
-		return b, nil, LineMustBreak | (1 << shiftWord) | (1 << shiftSentence), grAny | (wbAny << shiftWordState) | (sbAny << shiftSentenceState) | (lbAny << shiftLineState)
+		var prop int
+		if state < 0 {
+			prop = property(graphemeCodePoints, r)
+		} else {
+			prop = state >> shiftPropState
+		}
+		return b, nil, LineMustBreak | (1 << shiftWord) | (1 << shiftSentence) | (runeWidth(r, prop) << ShiftWidth), grAny | (wbAny << shiftWordState) | (sbAny << shiftSentenceState) | (lbAny << shiftLineState) | (prop << shiftPropState)
 	}
 
 	// If we don't know the state, determine it now.
-	var graphemeState, wordState, sentenceState, lineState int
+	var graphemeState, wordState, sentenceState, lineState, firstProp int
 	remainder := b[length:]
 	if state < 0 {
-		graphemeState, _ = transitionGraphemeState(state, r)
+		graphemeState, firstProp, _ = transitionGraphemeState(state, r)
 		wordState, _ = transitionWordBreakState(state, r, remainder, "")
 		sentenceState, _ = transitionSentenceBreakState(state, r, remainder, "")
 		lineState, _ = transitionLineBreakState(state, r, remainder, "")
@@ -103,36 +118,51 @@ func Step(b []byte, state int) (cluster, rest []byte, boundaries int, newState i
 		wordState = (state >> shiftWordState) & maskWordState
 		sentenceState = (state >> shiftSentenceState) & maskSentenceState
 		lineState = (state >> shiftLineState) & maskLineState
+		firstProp = state >> shiftPropState
 	}
 
 	// Transition until we find a grapheme cluster boundary.
-	var (
-		graphemeBoundary, wordBoundary, sentenceBoundary bool
-		lineBreak                                        int
-	)
+	width := runeWidth(r, firstProp)
 	for {
+		var (
+			graphemeBoundary, wordBoundary, sentenceBoundary bool
+			lineBreak, prop                                  int
+		)
+
 		r, l := utf8.DecodeRune(remainder)
 		remainder = b[length+l:]
 
-		graphemeState, graphemeBoundary = transitionGraphemeState(graphemeState, r)
+		graphemeState, prop, graphemeBoundary = transitionGraphemeState(graphemeState, r)
 		wordState, wordBoundary = transitionWordBreakState(wordState, r, remainder, "")
 		sentenceState, sentenceBoundary = transitionSentenceBreakState(sentenceState, r, remainder, "")
 		lineState, lineBreak = transitionLineBreakState(lineState, r, remainder, "")
 
 		if graphemeBoundary {
-			boundary := lineBreak
+			boundary := lineBreak | (width << ShiftWidth)
 			if wordBoundary {
 				boundary |= 1 << shiftWord
 			}
 			if sentenceBoundary {
 				boundary |= 1 << shiftSentence
 			}
-			return b[:length], b[length:], boundary, graphemeState | (wordState << shiftWordState) | (sentenceState << shiftSentenceState) | (lineState << shiftLineState)
+			return b[:length], b[length:], boundary, graphemeState | (wordState << shiftWordState) | (sentenceState << shiftSentenceState) | (lineState << shiftLineState) | (prop << shiftPropState)
+		}
+
+		if r == vs16 {
+			width = 2
+		} else if firstProp != prExtendedPictographic && firstProp != prRegionalIndicator && firstProp != prL {
+			width += runeWidth(r, prop)
+		} else if firstProp == prExtendedPictographic {
+			if r == vs15 {
+				width = 1
+			} else {
+				width = 2
+			}
 		}
 
 		length += l
 		if len(b) <= length {
-			return b, nil, LineMustBreak | (1 << shiftWord) | (1 << shiftSentence), grAny | (wbAny << shiftWordState) | (sbAny << shiftSentenceState) | (lbAny << shiftLineState)
+			return b, nil, LineMustBreak | (1 << shiftWord) | (1 << shiftSentence) | (width << ShiftWidth), grAny | (wbAny << shiftWordState) | (sbAny << shiftSentenceState) | (lbAny << shiftLineState) | (prop << shiftPropState)
 		}
 	}
 }
@@ -147,14 +177,15 @@ func StepString(str string, state int) (cluster, rest string, boundaries int, ne
 	// Extract the first rune.
 	r, length := utf8.DecodeRuneInString(str)
 	if len(str) <= length { // If we're already past the end, there is nothing else to parse.
-		return str, "", LineMustBreak | (1 << shiftWord) | (1 << shiftSentence), grAny | (wbAny << shiftWordState) | (sbAny << shiftSentenceState) | (lbAny << shiftLineState)
+		prop := property(graphemeCodePoints, r)
+		return str, "", LineMustBreak | (1 << shiftWord) | (1 << shiftSentence) | (runeWidth(r, prop) << ShiftWidth), grAny | (wbAny << shiftWordState) | (sbAny << shiftSentenceState) | (lbAny << shiftLineState)
 	}
 
 	// If we don't know the state, determine it now.
-	var graphemeState, wordState, sentenceState, lineState int
+	var graphemeState, wordState, sentenceState, lineState, firstProp int
 	remainder := str[length:]
 	if state < 0 {
-		graphemeState, _ = transitionGraphemeState(state, r)
+		graphemeState, firstProp, _ = transitionGraphemeState(state, r)
 		wordState, _ = transitionWordBreakState(state, r, nil, remainder)
 		sentenceState, _ = transitionSentenceBreakState(state, r, nil, remainder)
 		lineState, _ = transitionLineBreakState(state, r, nil, remainder)
@@ -163,36 +194,51 @@ func StepString(str string, state int) (cluster, rest string, boundaries int, ne
 		wordState = (state >> shiftWordState) & maskWordState
 		sentenceState = (state >> shiftSentenceState) & maskSentenceState
 		lineState = (state >> shiftLineState) & maskLineState
+		firstProp = state >> shiftPropState
 	}
 
 	// Transition until we find a grapheme cluster boundary.
-	var (
-		graphemeBoundary, wordBoundary, sentenceBoundary bool
-		lineBreak                                        int
-	)
+	width := runeWidth(r, firstProp)
 	for {
+		var (
+			graphemeBoundary, wordBoundary, sentenceBoundary bool
+			lineBreak, prop                                  int
+		)
+
 		r, l := utf8.DecodeRuneInString(remainder)
 		remainder = str[length+l:]
 
-		graphemeState, graphemeBoundary = transitionGraphemeState(graphemeState, r)
+		graphemeState, prop, graphemeBoundary = transitionGraphemeState(graphemeState, r)
 		wordState, wordBoundary = transitionWordBreakState(wordState, r, nil, remainder)
 		sentenceState, sentenceBoundary = transitionSentenceBreakState(sentenceState, r, nil, remainder)
 		lineState, lineBreak = transitionLineBreakState(lineState, r, nil, remainder)
 
 		if graphemeBoundary {
-			boundary := lineBreak
+			boundary := lineBreak | (width << ShiftWidth)
 			if wordBoundary {
 				boundary |= 1 << shiftWord
 			}
 			if sentenceBoundary {
 				boundary |= 1 << shiftSentence
 			}
-			return str[:length], str[length:], boundary, graphemeState | (wordState << shiftWordState) | (sentenceState << shiftSentenceState) | (lineState << shiftLineState)
+			return str[:length], str[length:], boundary, graphemeState | (wordState << shiftWordState) | (sentenceState << shiftSentenceState) | (lineState << shiftLineState) | (prop << shiftPropState)
+		}
+
+		if r == vs16 {
+			width = 2
+		} else if firstProp != prExtendedPictographic && firstProp != prRegionalIndicator && firstProp != prL {
+			width += runeWidth(r, prop)
+		} else if firstProp == prExtendedPictographic {
+			if r == vs15 {
+				width = 1
+			} else {
+				width = 2
+			}
 		}
 
 		length += l
 		if len(str) <= length {
-			return str, "", LineMustBreak | (1 << shiftWord) | (1 << shiftSentence), grAny | (wbAny << shiftWordState) | (sbAny << shiftSentenceState) | (lbAny << shiftLineState)
+			return str, "", LineMustBreak | (1 << shiftWord) | (1 << shiftSentence) | (width << ShiftWidth), grAny | (wbAny << shiftWordState) | (sbAny << shiftSentenceState) | (lbAny << shiftLineState) | (prop << shiftPropState)
 		}
 	}
 }

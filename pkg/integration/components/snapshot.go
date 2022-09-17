@@ -174,7 +174,7 @@ func (self *Snapshotter) compareSnapshots() error {
 			}
 			self.logf("%s", string(bytes))
 
-			return errors.New(getDiff(f.Name(), actualRepo, expectedRepo))
+			return errors.New(getDiff(f.Name(), expectedRepo, actualRepo))
 		}
 	}
 

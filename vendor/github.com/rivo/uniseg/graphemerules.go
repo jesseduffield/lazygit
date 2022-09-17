@@ -27,14 +27,14 @@ const (
 //
 // This map is queried as follows:
 //
-//   1. Find specific state + specific property. Stop if found.
-//   2. Find specific state + any property.
-//   3. Find any state + specific property.
-//   4. If only (2) or (3) (but not both) was found, stop.
-//   5. If both (2) and (3) were found, use state from (3) and breaking instruction
-//      from the transition with the lower rule number, prefer (3) if rule numbers
-//      are equal. Stop.
-//   6. Assume grAny and grBoundary.
+//  1. Find specific state + specific property. Stop if found.
+//  2. Find specific state + any property.
+//  3. Find any state + specific property.
+//  4. If only (2) or (3) (but not both) was found, stop.
+//  5. If both (2) and (3) were found, use state from (3) and breaking instruction
+//     from the transition with the lower rule number, prefer (3) if rule numbers
+//     are equal. Stop.
+//  6. Assume grAny and grBoundary.
 //
 // Unicode version 14.0.0.
 var grTransitions = map[[2]int][3]int{
@@ -92,22 +92,23 @@ var grTransitions = map[[2]int][3]int{
 }
 
 // transitionGraphemeState determines the new state of the grapheme cluster
-// parser given the current state and the next code point. It also returns
-// whether a cluster boundary was detected.
-func transitionGraphemeState(state int, r rune) (newState int, boundary bool) {
+// parser given the current state and the next code point. It also returns the
+// code point's grapheme property (the value mapped by the [graphemeCodePoints]
+// table) and whether a cluster boundary was detected.
+func transitionGraphemeState(state int, r rune) (newState, prop int, boundary bool) {
 	// Determine the property of the next character.
-	nextProperty := property(graphemeCodePoints, r)
+	prop = property(graphemeCodePoints, r)
 
 	// Find the applicable transition.
-	transition, ok := grTransitions[[2]int{state, nextProperty}]
+	transition, ok := grTransitions[[2]int{state, prop}]
 	if ok {
 		// We have a specific transition. We'll use it.
-		return transition[0], transition[1] == grBoundary
+		return transition[0], prop, transition[1] == grBoundary
 	}
 
 	// No specific transition found. Try the less specific ones.
 	transAnyProp, okAnyProp := grTransitions[[2]int{state, prAny}]
-	transAnyState, okAnyState := grTransitions[[2]int{grAny, nextProperty}]
+	transAnyState, okAnyState := grTransitions[[2]int{grAny, prop}]
 	if okAnyProp && okAnyState {
 		// Both apply. We'll use a mix (see comments for grTransitions).
 		newState = transAnyState[0]
@@ -120,7 +121,7 @@ func transitionGraphemeState(state int, r rune) (newState int, boundary bool) {
 
 	if okAnyProp {
 		// We only have a specific state.
-		return transAnyProp[0], transAnyProp[1] == grBoundary
+		return transAnyProp[0], prop, transAnyProp[1] == grBoundary
 		// This branch will probably never be reached because okAnyState will
 		// always be true given the current transition map. But we keep it here
 		// for future modifications to the transition map where this may not be
@@ -129,9 +130,9 @@ func transitionGraphemeState(state int, r rune) (newState int, boundary bool) {
 
 	if okAnyState {
 		// We only have a specific property.
-		return transAnyState[0], transAnyState[1] == grBoundary
+		return transAnyState[0], prop, transAnyState[1] == grBoundary
 	}
 
 	// No known transition. GB999: Any ÷ Any.
-	return grAny, true
+	return grAny, prop, true
 }

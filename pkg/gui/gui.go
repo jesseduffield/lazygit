@@ -494,8 +494,6 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	})
 	deadlock.Opts.Disable = !gui.Debug
 
-	gui.handleTestMode(startArgs.IntegrationTest)
-
 	gui.g.OnSearchEscape = gui.onSearchEscape
 	if err := gui.Config.ReloadUserConfig(); err != nil {
 		return nil
@@ -551,6 +549,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	}
 
 	gui.c.Log.Info("starting main loop")
+
+	gui.handleTestMode(startArgs.IntegrationTest)
 
 	return gui.g.MainLoop()
 }

@@ -34,4 +34,5 @@ type GuiDriver interface {
 	// the other view that sometimes appears to the right of the side panel
 	// e.g. when we're showing both staged and unstaged changes
 	SecondaryView() *gocui.View
+	View(viewName string) *gocui.View
 }

@@ -310,7 +310,7 @@ func getTestSpeeds(testStartSpeed float64, mode Mode, speedStr string) []float64
 	if startSpeed > 5 {
 		speeds = append(speeds, 5)
 	}
-	speeds = append(speeds, 1, 1)
+	speeds = append(speeds, 1, 0.5, 0.5)
 
 	return speeds
 }

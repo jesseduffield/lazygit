@@ -42,6 +42,7 @@ func RunTests(
 	testWrapper func(test *IntegrationTest, f func() error),
 	mode Mode,
 	keyPressDelay int,
+	maxAttempts int,
 ) error {
 	projectRootDir := utils.GetLazygitRootDirectory()
 	err := os.Chdir(projectRootDir)
@@ -58,12 +59,24 @@ func RunTests(
 	for _, test := range tests {
 		test := test
 
-		paths := NewPaths(
-			filepath.Join(testDir, test.Name()),
-		)
-
 		testWrapper(test, func() error { //nolint: thelper
-			return runTest(test, paths, projectRootDir, logf, runCmd, mode, keyPressDelay)
+			paths := NewPaths(
+				filepath.Join(testDir, test.Name()),
+			)
+
+			for i := 0; i < maxAttempts; i++ {
+				err := runTest(test, paths, projectRootDir, logf, runCmd, mode, keyPressDelay)
+				if err != nil {
+					if i == maxAttempts-1 {
+						return err
+					}
+					logf("retrying test %s", test.Name())
+				} else {
+					break
+				}
+			}
+
+			return nil
 		})
 	}
 
@@ -126,26 +139,13 @@ func buildLazygit() error {
 }
 
 func createFixture(test *IntegrationTest, paths Paths) error {
-	originalDir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	if err := os.Chdir(paths.ActualRepo()); err != nil {
-		panic(err)
-	}
-
-	shell := NewShell()
+	shell := NewShell(paths.ActualRepo())
 	shell.RunCommand("git init -b master")
 	shell.RunCommand(`git config user.email "CI@example.com"`)
 	shell.RunCommand(`git config user.name "CI"`)
 	shell.RunCommand(`git config commit.gpgSign false`)
 
 	test.SetupRepo(shell)
-
-	if err := os.Chdir(originalDir); err != nil {
-		panic(err)
-	}
 
 	return nil
 }

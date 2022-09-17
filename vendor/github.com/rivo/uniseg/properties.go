@@ -3,9 +3,9 @@ package uniseg
 // The Unicode properties as used in the various parsers. Only the ones needed
 // in the context of this package are included.
 const (
-	prXX  = 0    // Same as prAny.
-	prAny = iota // prAny must be 0.
-	prPrepend
+	prXX      = 0    // Same as prAny.
+	prAny     = iota // prAny must be 0.
+	prPrepend        // Grapheme properties must come first, to reduce the number of bits stored in the state vector.
 	prCR
 	prLF
 	prControl
@@ -86,6 +86,7 @@ const (
 	prW
 	prH
 	prF
+	prEmojiPresentation
 )
 
 // Unicode General Categories. Only the ones needed in the context of this
@@ -122,6 +123,12 @@ const (
 	gcCn
 	gcCs
 	gcCo
+)
+
+// Special code points.
+const (
+	vs15 = 0xfe0e // Variation Selector-15 (text presentation)
+	vs16 = 0xfe0f // Variation Selector-16 (emoji presentation)
 )
 
 // propertySearch performs a binary search on a property slice and returns the

@@ -1,0 +1,13 @@
+0000000000000000000000000000000000000000 0227353d56e56df9e9f94559f90b86ce7aa1ca5c CI <CI@example.com> 1661164934 +1000	commit (initial): one
+0227353d56e56df9e9f94559f90b86ce7aa1ca5c d7149d98e6da25303f9a8cdff131da4b0723a412 CI <CI@example.com> 1661164934 +1000	commit: two
+d7149d98e6da25303f9a8cdff131da4b0723a412 4c66ef64d685d244db41efda29deffb381c46c3d CI <CI@example.com> 1661164934 +1000	commit: three
+4c66ef64d685d244db41efda29deffb381c46c3d b827df09781d0648f66cd9a01f0ec0ad5d412e10 CI <CI@example.com> 1661164934 +1000	commit: original
+b827df09781d0648f66cd9a01f0ec0ad5d412e10 b827df09781d0648f66cd9a01f0ec0ad5d412e10 CI <CI@example.com> 1661164934 +1000	checkout: moving from original-branch to first-change-branch
+b827df09781d0648f66cd9a01f0ec0ad5d412e10 f42b6ab94e265acf87a9b3bf8cfa1105fcad57b2 CI <CI@example.com> 1661164934 +1000	commit: first change
+f42b6ab94e265acf87a9b3bf8cfa1105fcad57b2 b827df09781d0648f66cd9a01f0ec0ad5d412e10 CI <CI@example.com> 1661164934 +1000	checkout: moving from first-change-branch to original-branch
+b827df09781d0648f66cd9a01f0ec0ad5d412e10 b827df09781d0648f66cd9a01f0ec0ad5d412e10 CI <CI@example.com> 1661164934 +1000	checkout: moving from original-branch to second-change-branch
+b827df09781d0648f66cd9a01f0ec0ad5d412e10 702b646c08ba47b2ac5729deed77188ef1647b4d CI <CI@example.com> 1661164934 +1000	commit: second change
+702b646c08ba47b2ac5729deed77188ef1647b4d 5513fcfcb56cc5f1de7b6b3ded32a945e94f5e37 CI <CI@example.com> 1661164934 +1000	commit: second-change-branch unrelated change
+5513fcfcb56cc5f1de7b6b3ded32a945e94f5e37 f42b6ab94e265acf87a9b3bf8cfa1105fcad57b2 CI <CI@example.com> 1661164934 +1000	checkout: moving from second-change-branch to first-change-branch
+f42b6ab94e265acf87a9b3bf8cfa1105fcad57b2 5513fcfcb56cc5f1de7b6b3ded32a945e94f5e37 CI <CI@example.com> 1661164936 +1000	rebase (start): checkout second-change-branch
+5513fcfcb56cc5f1de7b6b3ded32a945e94f5e37 5513fcfcb56cc5f1de7b6b3ded32a945e94f5e37 CI <CI@example.com> 1661164938 +1000	rebase (continue) (finish): returning to refs/heads/first-change-branch

@@ -93,7 +93,7 @@ func (self *IntegrationTest) SetupRepo(shell *Shell) {
 
 // I want access to all contexts, the model, the ability to press a key, the ability to log,
 func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
-	shell := NewShell()
+	shell := NewShell("/tmp/lazygit-test")
 	assert := NewAssert(gui)
 	keys := gui.Keys()
 	input := NewInput(gui, keys, assert, KeyPressDelay())

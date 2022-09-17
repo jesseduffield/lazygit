@@ -42,7 +42,7 @@ func (gui *Gui) handleTestMode(test integrationTypes.IntegrationTest) {
 	if Replaying() {
 		gui.g.RecordingConfig = gocui.RecordingConfig{
 			Speed:  GetRecordingSpeed(),
-			Leeway: 100,
+			Leeway: 1000,
 		}
 
 		var err error

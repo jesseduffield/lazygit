@@ -3213,3 +3213,22 @@ type ModuleInfo struct {
 }
 
 const ALL_PROCESSOR_GROUPS = 0xFFFF
+
+type Rect struct {
+	Left   int32
+	Top    int32
+	Right  int32
+	Bottom int32
+}
+
+type GUIThreadInfo struct {
+	Size        uint32
+	Flags       uint32
+	Active      HWND
+	Focus       HWND
+	Capture     HWND
+	MenuOwner   HWND
+	MoveSize    HWND
+	CaretHandle HWND
+	CaretRect   Rect
+}

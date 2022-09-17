@@ -4,12 +4,14 @@ import "unicode/utf8"
 
 // Graphemes implements an iterator over Unicode grapheme clusters, or
 // user-perceived characters. While iterating, it also provides information
-// about word boundaries, sentence boundaries, and line breaks.
+// about word boundaries, sentence boundaries, line breaks, and monospace
+// character widths.
 //
 // After constructing the class via [NewGraphemes] for a given string "str",
-// [Next] is called for every grapheme cluster in a loop until it returns false.
-// Inside the loop, information about the grapheme cluster as well as boundary
-// information is available via the various methods (see examples below).
+// [Graphemes.Next] is called for every grapheme cluster in a loop until it
+// returns false. Inside the loop, information about the grapheme cluster as
+// well as boundary information and character width is available via the various
+// methods (see examples below).
 //
 // Using this class to iterate over a string is convenient but it is much slower
 // than using this package's [Step] or [StepString] functions or any of the
@@ -28,18 +30,18 @@ type Graphemes struct {
 	// string.
 	offset int
 
-	// The current boundary information of the Step() parser.
+	// The current boundary information of the [Step] parser.
 	boundaries int
 
-	// The current state of the Step() parser.
+	// The current state of the [Step] parser.
 	state int
 }
 
 // NewGraphemes returns a new grapheme cluster iterator.
-func NewGraphemes(s string) *Graphemes {
+func NewGraphemes(str string) *Graphemes {
 	return &Graphemes{
-		original:  s,
-		remaining: s,
+		original:  str,
+		remaining: str,
 		state:     -1,
 	}
 }
@@ -60,8 +62,8 @@ func (g *Graphemes) Next() bool {
 }
 
 // Runes returns a slice of runes (code points) which corresponds to the current
-// grapheme cluster. If the iterator is already past the end or [Next] has not
-// yet been called, nil is returned.
+// grapheme cluster. If the iterator is already past the end or [Graphemes.Next]
+// has not yet been called, nil is returned.
 func (g *Graphemes) Runes() []rune {
 	if g.state < 0 {
 		return nil
@@ -70,15 +72,15 @@ func (g *Graphemes) Runes() []rune {
 }
 
 // Str returns a substring of the original string which corresponds to the
-// current grapheme cluster. If the iterator is already past the end or [Next]
-// has not yet been called, an empty string is returned.
+// current grapheme cluster. If the iterator is already past the end or
+// [Graphemes.Next] has not yet been called, an empty string is returned.
 func (g *Graphemes) Str() string {
 	return g.cluster
 }
 
 // Bytes returns a byte slice which corresponds to the current grapheme cluster.
-// If the iterator is already past the end or [Next] has not yet been called,
-// nil is returned.
+// If the iterator is already past the end or [Graphemes.Next] has not yet been
+// called, nil is returned.
 func (g *Graphemes) Bytes() []byte {
 	if g.state < 0 {
 		return nil
@@ -90,8 +92,8 @@ func (g *Graphemes) Bytes() []byte {
 // positions into the original string. The first returned value "from" indexes
 // the first byte and the second returned value "to" indexes the first byte that
 // is not included anymore, i.e. str[from:to] is the current grapheme cluster of
-// the original string "str". If [Next] has not yet been called, both values are
-// 0. If the iterator is already past the end, both values are 1.
+// the original string "str". If [Graphemes.Next] has not yet been called, both
+// values are 0. If the iterator is already past the end, both values are 1.
 func (g *Graphemes) Positions() (int, int) {
 	if g.state == -1 {
 		return 0, 0
@@ -133,8 +135,16 @@ func (g *Graphemes) LineBreak() int {
 	return g.boundaries & MaskLine
 }
 
+// Width returns the monospace width of the current grapheme cluster.
+func (g *Graphemes) Width() int {
+	if g.state < 0 {
+		return 0
+	}
+	return g.boundaries >> ShiftWidth
+}
+
 // Reset puts the iterator into its initial state such that the next call to
-// [Next] sets it to the first grapheme cluster again.
+// [Graphemes.Next] sets it to the first grapheme cluster again.
 func (g *Graphemes) Reset() {
 	g.state = -1
 	g.offset = 0
@@ -153,6 +163,10 @@ func GraphemeClusterCount(s string) (n int) {
 	return
 }
 
+// The number of bits the grapheme property must be shifted to make place for
+// grapheme states.
+const shiftGraphemePropState = 4
+
 // FirstGraphemeCluster returns the first grapheme cluster found in the given
 // byte slice according to the rules of Unicode Standard Annex #29, Grapheme
 // Cluster Boundaries. This function can be called continuously to extract all
@@ -168,15 +182,15 @@ func GraphemeClusterCount(s string) (n int) {
 // "cluster" byte slice is the sub-slice of the input slice containing the
 // identified grapheme cluster.
 //
+// The returned width is the width of the grapheme cluster for most monospace
+// fonts where a value of 1 represents one character cell.
+//
 // Given an empty byte slice "b", the function returns nil values.
 //
 // While slightly less convenient than using the Graphemes class, this function
 // has much better performance and makes no allocations. It lends itself well to
 // large byte slices.
-//
-// The "reserved" return value is a placeholder for future functionality and may
-// be ignored for the time being.
-func FirstGraphemeCluster(b []byte, state int) (cluster, rest []byte, reserved, newState int) {
+func FirstGraphemeCluster(b []byte, state int) (cluster, rest []byte, width, newState int) {
 	// An empty byte slice returns nothing.
 	if len(b) == 0 {
 		return
@@ -185,34 +199,60 @@ func FirstGraphemeCluster(b []byte, state int) (cluster, rest []byte, reserved, 
 	// Extract the first rune.
 	r, length := utf8.DecodeRune(b)
 	if len(b) <= length { // If we're already past the end, there is nothing else to parse.
-		return b, nil, 0, grAny
+		var prop int
+		if state < 0 {
+			prop = property(graphemeCodePoints, r)
+		} else {
+			prop = state >> shiftGraphemePropState
+		}
+		return b, nil, runeWidth(r, prop), grAny | (prop << shiftGraphemePropState)
 	}
 
 	// If we don't know the state, determine it now.
+	var firstProp int
 	if state < 0 {
-		state, _ = transitionGraphemeState(state, r)
+		state, firstProp, _ = transitionGraphemeState(state, r)
+	} else {
+		firstProp = state >> shiftGraphemePropState
 	}
+	width += runeWidth(r, firstProp)
 
 	// Transition until we find a boundary.
-	var boundary bool
 	for {
+		var (
+			prop     int
+			boundary bool
+		)
+
 		r, l := utf8.DecodeRune(b[length:])
-		state, boundary = transitionGraphemeState(state, r)
+		state, prop, boundary = transitionGraphemeState(state&maskGraphemeState, r)
 
 		if boundary {
-			return b[:length], b[length:], 0, state
+			return b[:length], b[length:], width, state | (prop << shiftGraphemePropState)
+		}
+
+		if r == vs16 {
+			width = 2
+		} else if firstProp != prExtendedPictographic && firstProp != prRegionalIndicator && firstProp != prL {
+			width += runeWidth(r, prop)
+		} else if firstProp == prExtendedPictographic {
+			if r == vs15 {
+				width = 1
+			} else {
+				width = 2
+			}
 		}
 
 		length += l
 		if len(b) <= length {
-			return b, nil, 0, grAny
+			return b, nil, width, grAny | (prop << shiftGraphemePropState)
 		}
 	}
 }
 
 // FirstGraphemeClusterInString is like [FirstGraphemeCluster] but its input and
 // outputs are strings.
-func FirstGraphemeClusterInString(str string, state int) (cluster, rest string, reserved, newState int) {
+func FirstGraphemeClusterInString(str string, state int) (cluster, rest string, width, newState int) {
 	// An empty string returns nothing.
 	if len(str) == 0 {
 		return
@@ -221,27 +261,53 @@ func FirstGraphemeClusterInString(str string, state int) (cluster, rest string, 
 	// Extract the first rune.
 	r, length := utf8.DecodeRuneInString(str)
 	if len(str) <= length { // If we're already past the end, there is nothing else to parse.
-		return str, "", 0, grAny
+		var prop int
+		if state < 0 {
+			prop = property(graphemeCodePoints, r)
+		} else {
+			prop = state >> shiftGraphemePropState
+		}
+		return str, "", runeWidth(r, prop), grAny | (prop << shiftGraphemePropState)
 	}
 
 	// If we don't know the state, determine it now.
+	var firstProp int
 	if state < 0 {
-		state, _ = transitionGraphemeState(state, r)
+		state, firstProp, _ = transitionGraphemeState(state, r)
+	} else {
+		firstProp = state >> shiftGraphemePropState
 	}
+	width += runeWidth(r, firstProp)
 
 	// Transition until we find a boundary.
-	var boundary bool
 	for {
+		var (
+			prop     int
+			boundary bool
+		)
+
 		r, l := utf8.DecodeRuneInString(str[length:])
-		state, boundary = transitionGraphemeState(state, r)
+		state, prop, boundary = transitionGraphemeState(state&maskGraphemeState, r)
 
 		if boundary {
-			return str[:length], str[length:], 0, state
+			return str[:length], str[length:], width, state | (prop << shiftGraphemePropState)
+		}
+
+		if r == vs16 {
+			width = 2
+		} else if firstProp != prExtendedPictographic && firstProp != prRegionalIndicator && firstProp != prL {
+			width += runeWidth(r, prop)
+		} else if firstProp == prExtendedPictographic {
+			if r == vs15 {
+				width = 1
+			} else {
+				width = 2
+			}
 		}
 
 		length += l
 		if len(str) <= length {
-			return str, "", 0, grAny
+			return str, "", width, grAny | (prop << shiftGraphemePropState)
 		}
 	}
 }

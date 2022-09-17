@@ -206,6 +206,16 @@ func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless b
 		return nil, err
 	}
 
+	if headless || runtime.GOOS == "windows" {
+		g.maxX, g.maxY = g.screen.Size()
+	} else {
+		// TODO: find out if we actually need this bespoke logic for linux
+		g.maxX, g.maxY, err = g.getTermWindowSize()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	g.outputMode = mode
 
 	g.stop = make(chan struct{})
@@ -223,15 +233,6 @@ func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless b
 			Keys:    make(chan *TcellKeyEventWrapper),
 			Resizes: make(chan *TcellResizeEventWrapper),
 		}
-	}
-
-	if runtime.GOOS != "windows" {
-		g.maxX, g.maxY, err = g.getTermWindowSize()
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		g.maxX, g.maxY = Screen.Size()
 	}
 
 	g.BgColor, g.FgColor, g.FrameColor = ColorDefault, ColorDefault, ColorDefault
