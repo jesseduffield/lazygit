@@ -76,6 +76,12 @@ func (self *Input) Confirm() {
 	self.pressKey(self.keys.Universal.Confirm)
 }
 
+func (self *Input) ProceedWhenAsked(matcher *matcher) {
+	self.assert.InConfirm()
+	self.assert.MatchCurrentViewContent(matcher)
+	self.Confirm()
+}
+
 // i.e. same as Confirm
 func (self *Input) Enter() {
 	self.pressKey(self.keys.Universal.Confirm)
