@@ -44,6 +44,11 @@ func (self *FakeCmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
 	return output, err
 }
 
+func (self *FakeCmdObjRunner) RunWithOutputs(cmdObj ICmdObj) (string, string, error) {
+	output, err := self.RunWithOutput(cmdObj)
+	return output, "", err
+}
+
 func (self *FakeCmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error {
 	output, err := self.RunWithOutput(cmdObj)
 	if err != nil {

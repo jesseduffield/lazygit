@@ -21,6 +21,10 @@ func (self *gitCmdObjRunner) RunWithOutput(cmdObj oscommands.ICmdObj) (string, e
 	return self.innerRunner.RunWithOutput(cmdObj)
 }
 
+func (self *gitCmdObjRunner) RunWithOutputs(cmdObj oscommands.ICmdObj) (string, string, error) {
+	return self.innerRunner.RunWithOutputs(cmdObj)
+}
+
 func (self *gitCmdObjRunner) RunAndProcessLines(cmdObj oscommands.ICmdObj, onLine func(line string) (bool, error)) error {
 	return self.innerRunner.RunAndProcessLines(cmdObj, onLine)
 }
