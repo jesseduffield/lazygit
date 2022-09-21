@@ -116,7 +116,7 @@ func runTest(
 	return HandleSnapshots(paths, logf, test, mode)
 }
 
-func prepareTestDir(
+func createTestDir(
 	test *IntegrationTest,
 	paths Paths,
 ) error {
@@ -125,6 +125,17 @@ func prepareTestDir(
 
 	err := os.Mkdir(paths.ActualRepo(), 0o777)
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func prepareTestDir(
+	test *IntegrationTest,
+	paths Paths,
+) error {
+	if err := createTestDir(test, paths); err != nil {
 		return err
 	}
 

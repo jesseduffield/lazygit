@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -421,18 +420,17 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
-	isRebasing := commit.ExtraInfo == "(HEAD)"
-	if isRebasing {
-		if isHead := strings.Contains(commit.Name, self.c.Tr.YouAreHere); isHead {
-			return self.helpers.AmendHelper.AmendHead()
-		} else {
-			return self.c.Alert("No", "You cannot amend to non-HEAD commit during interactive rebase!")
-		}
-	} else {
-		if isHead := self.context().GetSelectedLineIdx() == 0; isHead {
-			return self.helpers.AmendHelper.AmendHead()
-		}
+	if isHead := commit.ExtraInfo == "(HEAD)"; isHead {
+		return self.helpers.AmendHelper.AmendHead()
 	}
+
+	if isRebasing := commit.Status == "rebasing"; isRebasing {
+		return self.c.Alert(self.c.Tr.AmendCommitTitle, self.c.Tr.AmendCommitDenied)
+	}
+
+	// TODO: this still means that trying to amend a commit from before the rebase
+	// will fallthrough and result in a 'cannot rebase while rebasing error'
+	// since its Status isn't "rebasing" nor is it HEAD
 
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.AmendCommitTitle,

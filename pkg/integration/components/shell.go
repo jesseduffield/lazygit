@@ -42,7 +42,6 @@ func (s *Shell) CreateFile(path string, content string) *Shell {
 	fullPath := filepath.Join(s.dir, path)
 	err := os.WriteFile(fullPath, []byte(content), 0o644)
 	if err != nil {
-		// panic(fmt.Sprintf("Shells dir: %s\n", s.dir))
 		panic(fmt.Sprintf("error creating file: %s\n%s", fullPath, err))
 	}
 

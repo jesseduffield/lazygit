@@ -234,6 +234,7 @@ type TranslationSet struct {
 	LcScrollUpMainPanel                 string
 	LcScrollDownMainPanel               string
 	AmendCommitTitle                    string
+	AmendCommitDenied                   string
 	AmendCommitPrompt                   string
 	DeleteCommitTitle                   string
 	DeleteCommitPrompt                  string
@@ -876,6 +877,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcScrollUpMainPanel:                 "scroll up main panel",
 		LcScrollDownMainPanel:               "scroll down main panel",
 		AmendCommitTitle:                    "Amend Commit",
+		AmendCommitDenied:                   "You cannot amend to non-HEAD commit during interactive rebase!",
 		AmendCommitPrompt:                   "Are you sure you want to amend this commit with your staged files?",
 		DeleteCommitTitle:                   "Delete Commit",
 		DeleteCommitPrompt:                  "Are you sure you want to delete this commit?",
