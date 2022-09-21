@@ -18,6 +18,9 @@ type Shell struct {
 }
 
 func NewShell(dir string) *Shell {
+	if _, err := os.Open(dir); err != nil {
+		panic(fmt.Sprintf("error spawning shell in dir '%s'\n%s", dir, err))
+	}
 	return &Shell{dir: dir}
 }
 
@@ -39,6 +42,7 @@ func (s *Shell) CreateFile(path string, content string) *Shell {
 	fullPath := filepath.Join(s.dir, path)
 	err := os.WriteFile(fullPath, []byte(content), 0o644)
 	if err != nil {
+		// panic(fmt.Sprintf("Shells dir: %s\n", s.dir))
 		panic(fmt.Sprintf("error creating file: %s\n%s", fullPath, err))
 	}
 

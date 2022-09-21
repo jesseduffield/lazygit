@@ -1,7 +1,9 @@
 package components
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -93,7 +95,17 @@ func (self *IntegrationTest) SetupRepo(shell *Shell) {
 
 // I want access to all contexts, the model, the ability to press a key, the ability to log,
 func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
-	shell := NewShell("/tmp/lazygit-test")
+	projectRootDir := utils.GetLazygitRootDirectory()
+	testDir := filepath.Join(projectRootDir, "test", "integration_new")
+
+	dir := filepath.Join(testDir, self.Name())
+	prepareTestDir(self, NewPaths(dir))
+
+	if _, err := os.Open(dir); err != nil {
+		panic(fmt.Sprintf("cannot create dir '%s'for repo!\n%s\n", dir, err))
+	}
+
+	shell := NewShell(dir)
 	assert := NewAssert(gui)
 	keys := gui.Keys()
 	input := NewInput(gui, keys, assert, KeyPressDelay())
