@@ -208,7 +208,7 @@ type KeybindingStatusConfig struct {
 type KeybindingFilesConfig struct {
 	CommitChanges            string `yaml:"commitChanges"`
 	CommitChangesWithoutHook string `yaml:"commitChangesWithoutHook"`
-	AmendLastCommit          string `yaml:"amendLastCommit"`
+	AmendHEAD                string `yaml:"amendLastCommit"`
 	CommitChangesWithEditor  string `yaml:"commitChangesWithEditor"`
 	IgnoreOrExcludeFile      string `yaml:"IgnoreOrExcludeFile"`
 	RefreshFiles             string `yaml:"refreshFiles"`
@@ -493,7 +493,7 @@ func GetDefaultConfig() *UserConfig {
 			Files: KeybindingFilesConfig{
 				CommitChanges:            "c",
 				CommitChangesWithoutHook: "w",
-				AmendLastCommit:          "A",
+				AmendHEAD:                "A",
 				CommitChangesWithEditor:  "C",
 				IgnoreOrExcludeFile:      "i",
 				RefreshFiles:             "r",

@@ -63,9 +63,9 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.LcCommitChangesWithoutHook,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.AmendLastCommit),
+			Key:         opts.GetKey(opts.Config.Files.AmendHEAD),
 			Handler:     self.handleAmendCommitPress,
-			Description: self.c.Tr.AmendLastCommit,
+			Description: self.c.Tr.AmendHEAD,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),

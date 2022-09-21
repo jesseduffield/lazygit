@@ -157,8 +157,8 @@ func (gui *Gui) getRandomTip() string {
 			formattedKey(config.Commits.AmendToCommit),
 		),
 		fmt.Sprintf(
-			"You can amend the last commit with your new file changes by pressing '%s' in the files panel",
-			formattedKey(config.Files.AmendLastCommit),
+			"You can amend the HEAD with your new file changes by pressing '%s' in the files panel",
+			formattedKey(config.Files.AmendHEAD),
 		),
 		fmt.Sprintf(
 			"You can now navigate the side panels with '%s' and '%s'",

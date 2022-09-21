@@ -31,8 +31,6 @@ type TranslationSet struct {
 	CredentialsPassphrase               string
 	PassUnameWrong                      string
 	CommitChanges                       string
-	AmendLastCommit                     string
-	AmendLastCommitTitle                string
 	AmendHEAD                           string
 	AmendHEADTitle                      string
 	SureToAmend                         string
@@ -676,12 +674,9 @@ func EnglishTranslationSet() TranslationSet {
 		CredentialsPassphrase:               "Enter passphrase for SSH key",
 		PassUnameWrong:                      "Password, passphrase and/or username wrong",
 		CommitChanges:                       "commit changes",
-		AmendLastCommit:                     "amend last commit",
-		AmendLastCommitTitle:                "Amend Last Commit",
-		AmendHEAD:                           "Amend HEAD",
-		AmendHEADTitle:                      "amend HEAD",
-		SureToAmend:                         "Are you sure you want to amend last commit? Afterwards, you can change commit message from the commits panel.",
-		SureToAmendHEAD:                     "Are you sure you want to amend HEAD? Afterwards, you can change commit message from the commits panel.",
+		AmendHEAD:                           "amend HEAD",
+		AmendHEADTitle:                      "Amend HEAD",
+		SureToAmend:                         "Are you sure you want to amend HEAD? Afterwards, you can change commit message from the commits panel.",
 		NoCommitToAmend:                     "There's no commit to amend.",
 		CommitChangesWithEditor:             "commit changes using git editor",
 		StatusTitle:                         "Status",

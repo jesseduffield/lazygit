@@ -98,7 +98,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
   <kbd>c</kbd>: commit changes
   <kbd>w</kbd>: commit changes without pre-commit hook
-  <kbd>A</kbd>: amend last commit
+  <kbd>A</kbd>: amend HEAD
   <kbd>C</kbd>: commit changes using git editor
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
