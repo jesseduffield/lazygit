@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -420,10 +421,17 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
-	isHead := self.context().GetSelectedLineIdx() == 0
-	isRebasing := commit.Status == "rebasing"
-	if isHead || isRebasing {
-		self.helpers.AmendHelper.AmendHead()
+	isRebasing := commit.ExtraInfo == "(HEAD)"
+	if isRebasing {
+		if isHead := strings.Contains(commit.Name, self.c.Tr.YouAreHere); isHead {
+			return self.helpers.AmendHelper.AmendHead()
+		} else {
+			return self.c.Alert("No", "You cannot amend to non-HEAD commit during interactive rebase!")
+		}
+	} else {
+		if isHead := self.context().GetSelectedLineIdx() == 0; isHead {
+			return self.helpers.AmendHelper.AmendHead()
+		}
 	}
 
 	return self.c.Confirm(types.ConfirmOpts{

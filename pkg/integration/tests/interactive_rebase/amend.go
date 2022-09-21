@@ -22,9 +22,12 @@ var AmendDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		input.PressKeys(keys.Universal.Edit)
 		assert.MatchSelectedLine(Contains("YOU ARE HERE"))
 
+		// this causes a panic
 		shell.CreateFileAndAdd("password.txt", "hunter2")
+
 		input.SwitchToFilesWindow()
 		input.PressKeys(keys.Files.RefreshFiles)
+		assert.WorkingTreeFileCount(1)
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
