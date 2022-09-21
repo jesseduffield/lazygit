@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var AmendHeadDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
+var AmendNonHeadDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Amend a commit during a rebase.",
 	ExtraCmdArgs: "",
 	Skip:         false,
@@ -30,9 +30,12 @@ var AmendHeadDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
-		input.PressKeys(keys.Commits.AmendToCommit)
-		assert.InConfirm()
-		input.Confirm()
+		for i := 0; i < 3; i++ {
+			input.PreviousItem()
+			input.PressKeys(keys.Commits.AmendToCommit)
+			assert.InAlert()
+			input.Confirm()
+		}
 
 		input.ContinueRebase()
 

@@ -32,6 +32,8 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.One,
 	interactive_rebase.AmendMerge,
 	interactive_rebase.AmendDuringRebase,
+	interactive_rebase.AmendHeadDuringRebase,
+	interactive_rebase.AmendNonHeadDuringRebase,
 	custom_commands.Basic,
 	custom_commands.MultiplePrompts,
 	custom_commands.MenuFromCommand,
