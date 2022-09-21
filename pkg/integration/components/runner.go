@@ -117,7 +117,6 @@ func runTest(
 }
 
 func createTestDir(
-	test *IntegrationTest,
 	paths Paths,
 ) error {
 	findOrCreateDir(paths.Root())
@@ -135,7 +134,7 @@ func prepareTestDir(
 	test *IntegrationTest,
 	paths Paths,
 ) error {
-	if err := createTestDir(test, paths); err != nil {
+	if err := createTestDir(paths); err != nil {
 		return err
 	}
 
