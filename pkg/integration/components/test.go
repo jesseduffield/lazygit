@@ -1,7 +1,6 @@
 package components
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -99,11 +98,7 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 	testDir := filepath.Join(projectRootDir, "test", "integration_new")
 
 	dir := filepath.Join(testDir, self.Name())
-	prepareTestDir(self, NewPaths(dir))
-
-	if _, err := os.Open(dir); err != nil {
-		panic(fmt.Sprintf("cannot create dir '%s'for repo!\n%s\n", dir, err))
-	}
+	findOrCreateDir(filepath.Join(dir, "actual", "repo"))
 
 	shell := NewShell(dir)
 	assert := NewAssert(gui)
