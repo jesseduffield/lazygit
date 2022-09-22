@@ -25,11 +25,15 @@ func (self *GhCommands) BaseRepo() error {
 
 // Ex: git config --local --add "remote.origin.gh-resolved" "jesseduffield/lazygit"
 func (self *GhCommands) SetBaseRepo(repository string) (string, error) {
-	return self.cmd.New(fmt.Sprintf("git config --local --add \"remote.origin.gh-resolved\" \"%s\"", repository)).RunWithOutput()
+	return self.cmd.New(
+		fmt.Sprintf("git config --local --add \"remote.origin.gh-resolved\" \"%s\"", repository),
+	).RunWithOutput()
 }
 
 func (self *GhCommands) prList() (string, error) {
-	return self.cmd.New("gh pr list --limit 500 --state all --json state,url,number,headRefName,headRepositoryOwner").RunWithOutput()
+	return self.cmd.New(
+		"gh pr list --limit 500 --state all --json state,url,number,headRefName,headRepositoryOwner",
+	).RunWithOutput()
 }
 
 func (self *GhCommands) GithubMostRecentPRs() ([]*models.GithubPullRequest, error) {
@@ -60,23 +64,33 @@ func GenerateGithubPullRequestMap(prs []*models.GithubPullRequest, branches []*m
 		return res
 	}
 
-	prWithStringKey := map[string]models.GithubPullRequest{}
+	// A PR can be identified by two things: the owner e.g. 'jesseduffield' and the
+	// branch name e.g. 'feature/my-feature'. The owner might be different
+	// to the owner of the repo if the PR is from a fork of that repo.
+	type prKey struct {
+		owner      string
+		branchName string
+	}
+
+	prByKey := map[prKey]models.GithubPullRequest{}
 
 	for _, pr := range prs {
-		prWithStringKey[pr.UserName()+":"+pr.BranchName()] = *pr
+		prByKey[prKey{owner: pr.UserName(), branchName: pr.BranchName()}] = *pr
 	}
 
 	for _, branch := range branches {
-		if !branch.IsTrackingRemote() || branch.UpstreamBranch == "" {
+		if !branch.IsTrackingRemote() {
 			continue
 		}
 
+		// TODO: support branches whose UpstreamRemote contains a full git
+		// URL rather than just a remote name.
 		owner, foundRemoteOwner := remotesToOwnersMap[branch.UpstreamRemote]
 		if !foundRemoteOwner {
 			continue
 		}
 
-		pr, hasPr := prWithStringKey[owner+":"+branch.UpstreamBranch]
+		pr, hasPr := prByKey[prKey{owner: owner, branchName: branch.UpstreamBranch}]
 
 		if !hasPr {
 			continue
@@ -88,6 +102,24 @@ func GenerateGithubPullRequestMap(prs []*models.GithubPullRequest, branches []*m
 	return res
 }
 
+func getRemotesToOwnersMap(remotes []*models.Remote) map[string]string {
+	res := map[string]string{}
+	for _, remote := range remotes {
+		if len(remote.Urls) == 0 {
+			continue
+		}
+
+		res[remote.Name] = GetRepoInfoFromURL(remote.Urls[0]).Owner
+	}
+	return res
+}
+
+type RepoInformation struct {
+	Owner      string
+	Repository string
+}
+
+// TODO: move this into hosting_service.go
 func GetRepoInfoFromURL(url string) RepoInformation {
 	isHTTP := strings.HasPrefix(url, "http")
 
@@ -111,21 +143,4 @@ func GetRepoInfoFromURL(url string) RepoInformation {
 		Owner:      owner,
 		Repository: repo,
 	}
-}
-
-func getRemotesToOwnersMap(remotes []*models.Remote) map[string]string {
-	res := map[string]string{}
-	for _, remote := range remotes {
-		if len(remote.Urls) == 0 {
-			continue
-		}
-
-		res[remote.Name] = GetRepoInfoFromURL(remote.Urls[0]).Owner
-	}
-	return res
-}
-
-type RepoInformation struct {
-	Owner      string
-	Repository string
 }

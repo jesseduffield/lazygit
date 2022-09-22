@@ -195,7 +195,7 @@ func (self *BranchesController) copyPullRequestURL() error {
 		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
 	}
 
-	url, err := self.helpers.Host.GetPullRequestURL(branch.Name, "")
+	url, err := self.git.HostingService.GetPullRequestURL(branch.Name, "")
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -462,7 +462,7 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 }
 
 func (self *BranchesController) createPullRequest(from string, to string) error {
-	url, err := self.helpers.Host.GetPullRequestURL(from, to)
+	url, err := self.git.HostingService.GetPullRequestURL(from, to)
 	if err != nil {
 		return self.c.Error(err)
 	}

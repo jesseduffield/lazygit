@@ -134,15 +134,21 @@ func SetCustomBranches(customBranchColors map[string]string) {
 
 func coloredPrNumber(pr *models.GithubPullRequest, hasPr bool) string {
 	if hasPr {
-		colour := style.FgMagenta // = state MERGED
-		switch pr.State {
-		case "OPEN":
-			colour = style.FgGreen
-		case "CLOSED":
-			colour = style.FgRed
-		}
-		return colour.Sprint("#" + strconv.Itoa(pr.Number))
+		return prColor(pr.State).Sprint("#" + strconv.Itoa(pr.Number))
 	}
 
 	return ("")
+}
+
+func prColor(state string) style.TextStyle {
+	switch state {
+	case "OPEN":
+		return style.FgGreen
+	case "CLOSED":
+		return style.FgRed
+	case "MERGED":
+		return style.FgMagenta
+	default:
+		return style.FgDefault
+	}
 }

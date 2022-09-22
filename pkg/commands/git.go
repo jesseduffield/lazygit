@@ -22,23 +22,24 @@ import (
 
 // GitCommand is our main git interface
 type GitCommand struct {
-	Branch      *git_commands.BranchCommands
-	Commit      *git_commands.CommitCommands
-	Config      *git_commands.ConfigCommands
-	Custom      *git_commands.CustomCommands
-	File        *git_commands.FileCommands
-	Flow        *git_commands.FlowCommands
-	Patch       *git_commands.PatchCommands
-	Rebase      *git_commands.RebaseCommands
-	Remote      *git_commands.RemoteCommands
-	Stash       *git_commands.StashCommands
-	Status      *git_commands.StatusCommands
-	Submodule   *git_commands.SubmoduleCommands
-	Sync        *git_commands.SyncCommands
-	Tag         *git_commands.TagCommands
-	WorkingTree *git_commands.WorkingTreeCommands
-	Bisect      *git_commands.BisectCommands
-	Gh          *git_commands.GhCommands
+	Branch         *git_commands.BranchCommands
+	Commit         *git_commands.CommitCommands
+	Config         *git_commands.ConfigCommands
+	Custom         *git_commands.CustomCommands
+	File           *git_commands.FileCommands
+	Flow           *git_commands.FlowCommands
+	Patch          *git_commands.PatchCommands
+	Rebase         *git_commands.RebaseCommands
+	Remote         *git_commands.RemoteCommands
+	Stash          *git_commands.StashCommands
+	Status         *git_commands.StatusCommands
+	Submodule      *git_commands.SubmoduleCommands
+	Sync           *git_commands.SyncCommands
+	Tag            *git_commands.TagCommands
+	WorkingTree    *git_commands.WorkingTreeCommands
+	Bisect         *git_commands.BisectCommands
+	Gh             *git_commands.GhCommands
+	HostingService *git_commands.HostingService
 
 	Loaders Loaders
 }
@@ -121,25 +122,27 @@ func NewGitCommandAux(
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchManager)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
 	ghCommands := git_commands.NewGhCommand(gitCommon)
+	hostingServiceCommands := git_commands.NewHostingServiceCommand(gitCommon)
 
 	return &GitCommand{
-		Branch:      branchCommands,
-		Commit:      commitCommands,
-		Config:      configCommands,
-		Custom:      customCommands,
-		File:        fileCommands,
-		Flow:        flowCommands,
-		Patch:       patchCommands,
-		Rebase:      rebaseCommands,
-		Remote:      remoteCommands,
-		Stash:       stashCommands,
-		Status:      statusCommands,
-		Submodule:   submoduleCommands,
-		Sync:        syncCommands,
-		Tag:         tagCommands,
-		Bisect:      bisectCommands,
-		WorkingTree: workingTreeCommands,
-		Gh:          ghCommands,
+		Branch:         branchCommands,
+		Commit:         commitCommands,
+		Config:         configCommands,
+		Custom:         customCommands,
+		File:           fileCommands,
+		Flow:           flowCommands,
+		Patch:          patchCommands,
+		Rebase:         rebaseCommands,
+		Remote:         remoteCommands,
+		Stash:          stashCommands,
+		Status:         statusCommands,
+		Submodule:      submoduleCommands,
+		Sync:           syncCommands,
+		Tag:            tagCommands,
+		Bisect:         bisectCommands,
+		WorkingTree:    workingTreeCommands,
+		Gh:             ghCommands,
+		HostingService: hostingServiceCommands,
 		Loaders: Loaders{
 			Branches:      loaders.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchName, configCommands),
 			CommitFiles:   loaders.NewCommitFileLoader(cmn, cmd),

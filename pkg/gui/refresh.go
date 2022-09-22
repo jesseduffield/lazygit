@@ -164,21 +164,38 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 	return nil
 }
 
-// during startup, the bottleneck is fetching the reflog entries. We need these
-// on startup to sort the branches by recency. So we have two phases: INITIAL, and COMPLETE.
-// In the initial phase we don't get any reflog commits, but we asynchronously get them
-// and refresh the branches after that
-func (gui *Gui) refreshReflogCommitsConsideringStartup() {
+// during startup, the bottleneck is fetching the reflog entries and Github PRs, both of which affect the contents of the branches view.
+// So we have two phases: INITIAL, and COMPLETE.
+// In the initial phase we asynchronously refresh the dependencies (reflog entries and Github PRs) and then refresh the branches view.
+// After that, we synchronously refresh the dependencies
+func (gui *Gui) refreshBranchDependenciesConsideringStartup() {
+	refreshDeps := func() {
+		wg := sync.WaitGroup{}
+		wg.Add(2)
+
+		go func() {
+			_ = gui.refreshReflogCommits()
+			wg.Done()
+		}()
+
+		go func() {
+			_ = gui.refreshGithubPullRequests()
+			wg.Done()
+		}()
+
+		wg.Wait()
+	}
+
 	switch gui.State.StartupStage {
 	case INITIAL:
 		go utils.Safe(func() {
-			_ = gui.refreshReflogCommits()
+			refreshDeps()
 			gui.refreshBranches()
 			gui.State.StartupStage = COMPLETE
 		})
 
 	case COMPLETE:
-		_ = gui.refreshReflogCommits()
+		refreshDeps()
 	}
 }
 
@@ -190,7 +207,7 @@ func (gui *Gui) refreshCommits() {
 	wg.Add(2)
 
 	go utils.Safe(func() {
-		gui.refreshReflogCommitsConsideringStartup()
+		gui.refreshBranchDependenciesConsideringStartup()
 
 		gui.refreshBranches()
 		wg.Done()
@@ -236,14 +253,6 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 		return err
 	}
 	gui.State.Model.Commits = commits
-
-	if gui.Config.GetUserConfig().Git.EnableGhCommand {
-		err = gui.refreshGithubPullRequests()
-
-		if err != nil {
-			return err
-		}
-	}
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.LocalCommits)
 }
@@ -718,4 +727,62 @@ func (gui *Gui) refreshMergePanel(isFocused bool) error {
 			Task: task,
 		},
 	})
+}
+
+func (gui *Gui) refreshGithubPullRequests() error {
+	if !gui.Config.GetUserConfig().Git.EnableGhCommand {
+		return nil
+	}
+
+	if err := gui.git.Gh.BaseRepo(); err == nil {
+		if err := gui.setGithubPullRequests(); err != nil {
+			return gui.c.Error(err)
+		}
+
+		return nil
+	}
+
+	// when config not exists
+	err := gui.refreshRemotes()
+	if err != nil {
+		return err
+	}
+
+	_ = gui.c.Prompt(types.PromptOpts{
+		Title:               gui.c.Tr.SelectRemoteRepository,
+		InitialContent:      "",
+		FindSuggestionsFunc: gui.helpers.Suggestions.GetRemoteRepoSuggestionsFunc(),
+		HandleConfirm: func(repository string) error {
+			return gui.c.WithWaitingStatus(gui.c.Tr.LcSelectingRemote, func() error {
+				// `repository` is something like 'jesseduffield/lazygit'
+				_, err := gui.git.Gh.SetBaseRepo(repository)
+				if err != nil {
+					return gui.c.Error(err)
+				}
+
+				if err := gui.setGithubPullRequests(); err != nil {
+					return gui.c.Error(err)
+				}
+
+				// calling refreshBranches explicitly because it may have taken
+				// a while for the user to submit their response.
+				gui.refreshBranches()
+
+				return nil
+			})
+		},
+	})
+
+	return nil
+}
+
+func (gui *Gui) setGithubPullRequests() error {
+	prs, err := gui.git.Gh.GithubMostRecentPRs()
+	if err != nil {
+		return err
+	}
+
+	gui.State.Model.PullRequests = prs
+
+	return nil
 }

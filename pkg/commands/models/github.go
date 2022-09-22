@@ -9,10 +9,12 @@ type GithubPullRequest struct {
 }
 
 func (pr *GithubPullRequest) UserName() string {
+	// e.g. 'jesseduffield'
 	return pr.HeadRepositoryOwner.Login
 }
 
 func (pr *GithubPullRequest) BranchName() string {
+	// e.g. 'feature/my-feature'
 	return pr.HeadRefName
 }
 

@@ -420,7 +420,9 @@ type TranslationSet struct {
 	LcBuildingPatch                     string
 	LcViewCommits                       string
 	MinGitVersionError                  string
+	FailedToObtainGitVersionError       string
 	MinGhVersionError                   string
+	FailedToObtainGhVersionError        string
 	LcRunningCustomCommandStatus        string
 	LcSubmoduleStashAndReset            string
 	LcAndResetSubmodules                string
@@ -1000,7 +1002,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcPrevScreenMode:                    "prev screen mode",
 		LcStartSearch:                       "start search",
 		LcSelectingRemote:                   "selecting remote",
-		SelectRemoteRepository:              "select base remote repository",
+		SelectRemoteRepository:              "Select GitHub base remote repository (for PRs)",
 		Panel:                               "Panel",
 		Keybindings:                         "Keybindings",
 		LcRenameBranch:                      "rename branch",
@@ -1065,6 +1067,8 @@ func EnglishTranslationSet() TranslationSet {
 		LcViewCommits:                       "view commits",
 		MinGitVersionError:                  "Git version must be at least 2.0 (i.e. from 2014 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
 		MinGhVersionError:                   "GH version must be at least 2.0. Please upgrade your gh version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
+		FailedToObtainGitVersionError:       "Failed to obtain git version. Output from running 'git --version' was: %s",
+		FailedToObtainGhVersionError:        "Failed to obtain gh version. Output from running 'gh --version' was: %s",
 		LcRunningCustomCommandStatus:        "running custom command",
 		LcSubmoduleStashAndReset:            "stash uncommitted submodule changes and update",
 		LcAndResetSubmodules:                "and reset submodules",

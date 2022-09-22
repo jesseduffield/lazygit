@@ -23,10 +23,9 @@ func (gui *Gui) resetControllers() {
 	)
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
-	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
+	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, gui.git, model, gui.refreshSuggestions)
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
-		Host:           helpers.NewHostHelper(helperCommon, gui.git),
 		PatchBuilding:  helpers.NewPatchBuildingHelper(helperCommon, gui.git, gui.State.Contexts),
 		Bisect:         helpers.NewBisectHelper(helperCommon, gui.git),
 		Suggestions:    suggestionsHelper,

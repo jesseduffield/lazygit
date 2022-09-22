@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/jesseduffield/generics/slices"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -37,6 +37,7 @@ type SuggestionsHelper struct {
 	c *types.HelperCommon
 
 	model                *types.Model
+	git                  *commands.GitCommand
 	refreshSuggestionsFn func()
 }
 
@@ -44,11 +45,13 @@ var _ ISuggestionsHelper = &SuggestionsHelper{}
 
 func NewSuggestionsHelper(
 	c *types.HelperCommon,
+	git *commands.GitCommand,
 	model *types.Model,
 	refreshSuggestionsFn func(),
 ) *SuggestionsHelper {
 	return &SuggestionsHelper{
 		c:                    c,
+		git:                  git,
 		model:                model,
 		refreshSuggestionsFn: refreshSuggestionsFn,
 	}
@@ -94,8 +97,12 @@ func (self *SuggestionsHelper) getRemoteRepoNames() []string {
 		if len(remote.Urls) == 0 {
 			continue
 		}
-		info := git_commands.GetRepoInfoFromURL(remote.Urls[0])
-		result = append(result, fmt.Sprintf("%s/%s", info.Owner, info.Repository))
+		repoName, err := self.git.HostingService.GetRepoNameFromRemoteURL(remote.Urls[0])
+		if err != nil {
+			self.c.Log.Error(err)
+			continue
+		}
+		result = append(result, repoName)
 	}
 
 	return result

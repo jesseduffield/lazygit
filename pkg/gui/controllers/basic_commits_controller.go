@@ -150,7 +150,7 @@ func (self *BasicCommitsController) copyCommitSHAToClipboard(commit *models.Comm
 }
 
 func (self *BasicCommitsController) copyCommitURLToClipboard(commit *models.Commit) error {
-	url, err := self.helpers.Host.GetCommitURL(commit.Sha)
+	url, err := self.git.HostingService.GetCommitURL(commit.Sha)
 	if err != nil {
 		return err
 	}
@@ -212,7 +212,7 @@ func (self *BasicCommitsController) copyCommitMessageToClipboard(commit *models.
 }
 
 func (self *BasicCommitsController) openInBrowser(commit *models.Commit) error {
-	url, err := self.helpers.Host.GetCommitURL(commit.Sha)
+	url, err := self.git.HostingService.GetCommitURL(commit.Sha)
 	if err != nil {
 		return self.c.Error(err)
 	}

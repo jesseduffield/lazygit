@@ -124,17 +124,15 @@ func NewApp(config config.AppConfigurer, common *common.Common) (*App, error) {
 
 func (app *App) validateGhVersion() error {
 	output, err := app.OSCommand.Cmd.New("gh --version").RunWithOutput()
-	// if we get an error anywhere here we'll show the same status
-	minVersionError := errors.New(app.Tr.MinGhVersionError)
 	if err != nil {
-		return minVersionError
+		return fmt.Errorf(app.Tr.FailedToObtainGhVersionError, err.Error())
 	}
 
-	if isGhVersionValid(output) {
-		return nil
+	if !isGhVersionValid(output) {
+		return errors.New(app.Tr.MinGhVersionError)
 	}
 
-	return minVersionError
+	return nil
 }
 
 func isGhVersionValid(versionStr string) bool {
@@ -162,17 +160,15 @@ func isGhVersionValid(versionStr string) bool {
 
 func (app *App) validateGitVersion() error {
 	output, err := app.OSCommand.Cmd.New("git --version").RunWithOutput()
-	// if we get an error anywhere here we'll show the same status
-	minVersionError := errors.New(app.Tr.MinGitVersionError)
 	if err != nil {
-		return minVersionError
+		return fmt.Errorf(app.Tr.FailedToObtainGitVersionError, err.Error())
 	}
 
-	if isGitVersionValid(output) {
-		return nil
+	if !isGitVersionValid(output) {
+		return errors.New(app.Tr.MinGitVersionError)
 	}
 
-	return minVersionError
+	return nil
 }
 
 func isGitVersionValid(versionStr string) bool {
