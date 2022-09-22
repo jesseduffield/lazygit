@@ -52,7 +52,7 @@ jobs:
       fail-fast: false
       matrix:
         parallelism: [5]
-        index: [1,2,3,4,5]
+        index: [0,1,2,3,4]
     name: "Integration Tests (Old pattern) (${{ matrix.index }}/${{ matrix.parallelism }})"
     env:
       GOFLAGS: -mod=vendor
