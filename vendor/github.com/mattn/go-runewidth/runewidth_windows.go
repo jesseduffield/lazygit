@@ -1,5 +1,5 @@
-// +build windows
-// +build !appengine
+//go:build windows && !appengine
+// +build windows,!appengine
 
 package runewidth
 
