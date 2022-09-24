@@ -18,7 +18,7 @@ type Shell struct {
 }
 
 func NewShell(dir string) *Shell {
-	if _, err := os.Open(dir); err != nil {
+	if _, err := os.Stat(dir); err != nil {
 		panic(fmt.Sprintf("error spawning shell in dir '%s'\n%s", dir, err))
 	}
 	return &Shell{dir: dir}
