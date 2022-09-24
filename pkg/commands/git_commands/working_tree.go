@@ -41,6 +41,15 @@ func (self *WorkingTreeCommands) OpenMergeTool() error {
 	return self.OpenMergeToolCmdObj().Run()
 }
 
+// Returns SHA for HEAD
+func (self *WorkingTreeCommands) Head() (string, error) {
+	head, err := self.cmd.New("git rev-parse HEAD").RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+	return head, nil
+}
+
 // StageFile stages a file
 func (self *WorkingTreeCommands) StageFile(path string) error {
 	return self.StageFiles([]string{path})

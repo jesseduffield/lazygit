@@ -420,7 +420,11 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
-	if isHead := commit.ExtraInfo == "(HEAD)"; isHead {
+	headSha, err := self.git.WorkingTree.Head()
+	if err != nil {
+		return err
+	}
+	if isHead := commit.Sha == headSha; isHead {
 		return self.helpers.AmendHelper.AmendHead()
 	}
 
