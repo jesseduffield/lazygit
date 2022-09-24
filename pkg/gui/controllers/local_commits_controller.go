@@ -415,8 +415,7 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
-	noStagedFiles := len(self.model.Files) == 0
-	if noStagedFiles {
+	if noStagedFiles := !self.helpers.WorkingTree.AnyStagedFiles(); noStagedFiles {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
