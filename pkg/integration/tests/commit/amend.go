@@ -21,9 +21,12 @@ var AmendHead = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.PressKeys(keys.Commits.AmendToCommit)
 		assert.InConfirm()
+		assert.MatchCurrentViewContent(Contains("Are you sure you want to amend this commit"))
 		input.Confirm()
 
 		assert.CommitCount(5)
 		assert.WorkingTreeFileCount(0)
+		assert.MatchMainViewContent(Contains("password.txt"))
+		assert.MatchMainViewContent(Contains("hunter2"))
 	},
 })

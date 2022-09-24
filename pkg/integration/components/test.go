@@ -100,9 +100,6 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 	testDir := filepath.Join(projectRootDir, "test", "integration_new")
 
 	dir := filepath.Join(testDir, self.Name())
-	if err := createTestDir(NewPaths(dir)); err != nil {
-		panic(fmt.Sprintf("Error creating test dir '%s'\n%s", dir, err))
-	}
 
 	shell := NewShell(dir)
 	assert := NewAssert(gui)

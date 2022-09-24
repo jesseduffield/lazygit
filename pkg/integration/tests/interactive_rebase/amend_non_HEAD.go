@@ -6,7 +6,7 @@ import (
 )
 
 var AmendNonHeadDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Amend a commit during a rebase.",
+	Description:  "Attempt to amend non-HEAD commits during a rebase, ensuring we get rejected each time.",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -34,6 +34,7 @@ var AmendNonHeadDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			input.PreviousItem()
 			input.PressKeys(keys.Commits.AmendToCommit)
 			assert.InAlert()
+			assert.MatchCurrentViewContent(Contains("You cannot amend"))
 			input.Confirm()
 		}
 
