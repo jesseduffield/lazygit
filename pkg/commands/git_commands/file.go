@@ -1,7 +1,7 @@
 package git_commands
 
 import (
-	"io/ioutil"
+	"os"
 	"strconv"
 
 	"github.com/go-errors/errors"
@@ -20,7 +20,7 @@ func NewFileCommands(gitCommon *GitCommon) *FileCommands {
 
 // Cat obtains the content of a file
 func (self *FileCommands) Cat(fileName string) (string, error) {
-	buf, err := ioutil.ReadFile(fileName)
+	buf, err := os.ReadFile(fileName)
 	if err != nil {
 		return "", nil
 	}

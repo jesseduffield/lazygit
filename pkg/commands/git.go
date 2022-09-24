@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -68,7 +67,7 @@ func NewGitCommand(
 		return nil, err
 	}
 
-	dotGitDir, err := findDotGitDir(os.Stat, ioutil.ReadFile)
+	dotGitDir, err := findDotGitDir(os.Stat, os.ReadFile)
 	if err != nil {
 		return nil, err
 	}

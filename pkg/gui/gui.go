@@ -2,7 +2,7 @@ package gui
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -656,8 +656,8 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unpara
 
 	err := subprocess.Run()
 
-	subprocess.Stdout = ioutil.Discard
-	subprocess.Stderr = ioutil.Discard
+	subprocess.Stdout = io.Discard
+	subprocess.Stderr = io.Discard
 	subprocess.Stdin = nil
 
 	if gui.Config.GetUserConfig().PromptToReturnFromSubprocess {

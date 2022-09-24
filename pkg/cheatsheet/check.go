@@ -3,7 +3,6 @@ package cheatsheet
 import (
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -60,7 +59,7 @@ func obtainContent(dir string) string {
 	content := ""
 	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if re.MatchString(path) {
-			bytes, err := ioutil.ReadFile(path)
+			bytes, err := os.ReadFile(path)
 			if err != nil {
 				log.Fatalf("Error occurred while checking if cheatsheets are up to date: %v", err)
 			}

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"io/ioutil"
+	"io"
 
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -12,7 +12,7 @@ import (
 // NewDummyLog creates a new dummy Log for testing
 func NewDummyLog() *logrus.Entry {
 	log := logrus.New()
-	log.Out = ioutil.Discard
+	log.Out = io.Discard
 	return log.WithField("test", "test")
 }
 

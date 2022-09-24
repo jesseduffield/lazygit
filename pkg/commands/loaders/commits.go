@@ -3,7 +3,6 @@ package loaders
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -50,7 +49,7 @@ func NewCommitLoader(
 		cmd:                  cmd,
 		getCurrentBranchName: getCurrentBranchName,
 		getRebaseMode:        getRebaseMode,
-		readFile:             ioutil.ReadFile,
+		readFile:             os.ReadFile,
 		walkFiles:            filepath.Walk,
 		dotGitDir:            dotGitDir,
 	}

@@ -2,7 +2,6 @@ package gui
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -93,7 +92,7 @@ func GetRecordingSpeed() float64 {
 func LoadRecording() (*gocui.Recording, error) {
 	path := os.Getenv("REPLAY_EVENTS_FROM")
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -120,5 +119,5 @@ func SaveRecording(recording *gocui.Recording) error {
 
 	path := recordEventsTo()
 
-	return ioutil.WriteFile(path, jsonEvents, 0o600)
+	return os.WriteFile(path, jsonEvents, 0o600)
 }
