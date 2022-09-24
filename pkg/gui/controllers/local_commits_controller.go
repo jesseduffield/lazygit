@@ -424,7 +424,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		return self.helpers.AmendHelper.AmendHead()
 	}
 
-	if isRebasing := commit.Status == "rebasing"; isRebasing {
+	if self.git.Status.Rebasing() {
 		return self.c.Alert(self.c.Tr.AmendCommitTitle, self.c.Tr.AmendCommitDenied)
 	}
 

@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -76,7 +75,7 @@ func (self *UndoController) reflogUndo() error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := self.c.Tr.UndoingStatus
 
-	if self.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if self.git.Status.Rebasing() {
 		return self.c.ErrorMsg(self.c.Tr.LcCantUndoWhileRebasing)
 	}
 
@@ -124,7 +123,7 @@ func (self *UndoController) reflogRedo() error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := self.c.Tr.RedoingStatus
 
-	if self.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if self.git.Status.Rebasing() {
 		return self.c.ErrorMsg(self.c.Tr.LcCantRedoWhileRebasing)
 	}
 

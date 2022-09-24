@@ -6,7 +6,6 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
-	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 )
 
 type PatchCommands struct {
@@ -174,7 +173,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 	}
 
 	if err := self.PatchManager.ApplyPatches(true); err != nil {
-		if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+		if self.status.Rebasing() {
 			if err := self.rebase.AbortRebase(); err != nil {
 				return err
 			}
@@ -194,7 +193,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 	self.rebase.onSuccessfulContinue = func() error {
 		// add patches to index
 		if err := self.PatchManager.ApplyPatches(false); err != nil {
-			if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+			if self.status.Rebasing() {
 				if err := self.rebase.AbortRebase(); err != nil {
 					return err
 				}

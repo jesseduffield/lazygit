@@ -51,6 +51,14 @@ func (self *StatusCommands) WorkingTreeState() enums.RebaseMode {
 	return enums.REBASE_MODE_NONE
 }
 
+func (self *StatusCommands) Rebasing() bool {
+	return self.WorkingTreeState() == enums.REBASE_MODE_REBASING
+}
+
+func (self *StatusCommands) Merging() bool {
+	return self.WorkingTreeState() == enums.REBASE_MODE_MERGING
+}
+
 func (self *StatusCommands) IsBareRepo() (bool, error) {
 	return IsBareRepo(self.os)
 }
