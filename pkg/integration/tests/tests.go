@@ -31,7 +31,6 @@ var tests = []*components.IntegrationTest{
 	branch.RebaseAndDrop,
 	interactive_rebase.One,
 	interactive_rebase.AmendMerge,
-	interactive_rebase.AmendDuringRebase,
 	interactive_rebase.AmendHeadDuringRebase,
 	interactive_rebase.AmendNonHeadDuringRebase,
 	custom_commands.Basic,

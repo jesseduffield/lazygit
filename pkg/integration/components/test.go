@@ -99,7 +99,6 @@ func (self *IntegrationTest) CreateTestDir() string {
 
 // I want access to all contexts, the model, the ability to press a key, the ability to log,
 func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
-
 	dir := self.CreateTestDir()
 
 	shell := NewShell(dir)

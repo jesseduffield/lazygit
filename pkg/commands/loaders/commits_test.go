@@ -185,7 +185,7 @@ func TestGetCommits(t *testing.T) {
 				getCurrentBranchName: func() (string, string, error) {
 					return scenario.currentBranchName, scenario.currentBranchName, nil
 				},
-				getRebaseMode: func() (enums.RebaseMode, error) { return scenario.rebaseMode, nil },
+				getRebaseMode: func() enums.RebaseMode { return scenario.rebaseMode },
 				dotGitDir:     ".git",
 				readFile: func(filename string) ([]byte, error) {
 					return []byte(""), nil
