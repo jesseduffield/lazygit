@@ -20,7 +20,7 @@ var AmendHead = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentViewName("commits")
 
 		input.PressKeys(keys.Commits.AmendToCommit)
-		input.ProceedWhenAsked(Contains("Are you sure you want to amend this commit"))
+		input.ProceedWhenAsked(Contains("Are you sure you want to amend HEAD"))
 
 		assert.CommitCount(5)
 		assert.WorkingTreeFileCount(0)
