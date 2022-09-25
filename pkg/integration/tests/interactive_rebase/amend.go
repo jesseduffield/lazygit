@@ -31,9 +31,7 @@ var AmendHeadDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentViewName("commits")
 
 		input.PressKeys(keys.Commits.AmendToCommit)
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to amend"))
-		input.Confirm()
+		input.ProceedWhenAsked(Contains("Are you sure you want to amend"))
 
 		input.ContinueRebase()
 
