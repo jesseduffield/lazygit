@@ -30,7 +30,7 @@ type CommitLoader struct {
 	cmd oscommands.ICmdObjBuilder
 
 	getCurrentBranchName func() (string, string, error)
-	getRebaseMode        func() (enums.RebaseMode, error)
+	getRebaseMode        func() enums.RebaseMode
 	readFile             func(filename string) ([]byte, error)
 	walkFiles            func(root string, fn filepath.WalkFunc) error
 	dotGitDir            string
@@ -42,7 +42,7 @@ func NewCommitLoader(
 	cmd oscommands.ICmdObjBuilder,
 	dotGitDir string,
 	getCurrentBranchName func() (string, string, error),
-	getRebaseMode func() (enums.RebaseMode, error),
+	getRebaseMode func() enums.RebaseMode,
 ) *CommitLoader {
 	return &CommitLoader{
 		Common:               cmn,
@@ -68,10 +68,6 @@ type GetCommitsOptions struct {
 func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, error) {
 	commits := []*models.Commit{}
 	var rebasingCommits []*models.Commit
-	rebaseMode, err := self.getRebaseMode()
-	if err != nil {
-		return nil, err
-	}
 
 	if opts.IncludeRebaseCommits && opts.FilterPath == "" {
 		var err error
@@ -106,6 +102,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		return commits, nil
 	}
 
+	rebaseMode := self.getRebaseMode()
 	if rebaseMode != enums.REBASE_MODE_NONE {
 		currentCommit := commits[len(rebasingCommits)]
 		youAreHere := style.FgYellow.Sprintf("<-- %s ---", self.Tr.YouAreHere)
@@ -130,11 +127,7 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 		}
 	}
 
-	rebaseMode, err := self.getRebaseMode()
-	if err != nil {
-		return nil, err
-	}
-
+	rebaseMode := self.getRebaseMode()
 	if rebaseMode == enums.REBASE_MODE_NONE {
 		// not in rebase mode so return original commits
 		return result, nil
