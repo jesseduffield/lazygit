@@ -50,8 +50,6 @@ func RunTests(
 		return err
 	}
 
-	testDir := filepath.Join(projectRootDir, "test", "integration_new")
-
 	if err := buildLazygit(); err != nil {
 		return err
 	}
@@ -59,9 +57,10 @@ func RunTests(
 	for _, test := range tests {
 		test := test
 
+		testDir := test.CreateTestDir()
 		testWrapper(test, func() error { //nolint: thelper
 			paths := NewPaths(
-				filepath.Join(testDir, test.Name()),
+				testDir,
 			)
 
 			for i := 0; i < maxAttempts; i++ {

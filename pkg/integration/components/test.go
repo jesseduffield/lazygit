@@ -92,13 +92,15 @@ func (self *IntegrationTest) SetupRepo(shell *Shell) {
 	self.setupRepo(shell)
 }
 
+func (self *IntegrationTest) CreateTestDir() string {
+	projectRootDir := utils.GetLazygitRootDirectory()
+	return filepath.Join(projectRootDir, "test", "integration_new", self.Name())
+}
+
 // I want access to all contexts, the model, the ability to press a key, the ability to log,
 func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
-	// TODO: this is created both here and in runner.go
-	projectRootDir := utils.GetLazygitRootDirectory()
-	testDir := filepath.Join(projectRootDir, "test", "integration_new")
 
-	dir := filepath.Join(testDir, self.Name())
+	dir := self.CreateTestDir()
 
 	shell := NewShell(dir)
 	assert := NewAssert(gui)
