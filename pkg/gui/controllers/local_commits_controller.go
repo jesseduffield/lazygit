@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -423,6 +424,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 	if err != nil {
 		return err
 	}
+	headSha = strings.Trim(headSha, "\n")
 	if isHead := commit.Sha == headSha; isHead {
 		return self.helpers.AmendHelper.AmendHead()
 	}

@@ -21,6 +21,7 @@ type ICmdObj interface {
 	// runs the command and returns an error if any
 	Run() error
 	// runs the command and returns the output as a string, and an error if any
+	// note: newlines not trimmed
 	RunWithOutput() (string, error)
 	// runs the command and returns stdout and stderr as a string, and an error if any
 	RunWithOutputs() (string, string, error)
