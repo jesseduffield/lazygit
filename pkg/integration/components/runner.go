@@ -57,7 +57,7 @@ func RunTests(
 	for _, test := range tests {
 		test := test
 
-		testDir := test.CreateTestDir()
+		testDir := test.GetTestDir()
 		testWrapper(test, func() error { //nolint: thelper
 			paths := NewPaths(
 				testDir,
