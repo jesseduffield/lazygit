@@ -12,7 +12,7 @@ var AmendHeadDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.
-			CreateNCommits(5) // these will appear as commit 05, 04, 04, down to 01
+			CreateNCommits(5)
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToCommitsWindow()

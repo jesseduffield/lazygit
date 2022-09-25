@@ -431,10 +431,6 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		return self.c.Alert(self.c.Tr.AmendCommitTitle, self.c.Tr.AmendCommitDenied)
 	}
 
-	// TODO: this still means that trying to amend a commit from before the rebase
-	// will fallthrough and result in a 'cannot rebase while rebasing error'
-	// since its Status isn't "rebasing" nor is it HEAD
-
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
