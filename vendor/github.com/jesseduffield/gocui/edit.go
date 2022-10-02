@@ -37,8 +37,12 @@ func SimpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 		v.TextArea.MoveCursorDown()
 	case key == KeyArrowUp:
 		v.TextArea.MoveCursorUp()
+	case key == KeyArrowLeft && (mod&ModAlt) != 0:
+		v.TextArea.MoveLeftWord()
 	case key == KeyArrowLeft:
 		v.TextArea.MoveCursorLeft()
+	case key == KeyArrowRight && (mod&ModAlt) != 0:
+		v.TextArea.MoveRightWord()
 	case key == KeyArrowRight:
 		v.TextArea.MoveCursorRight()
 	case key == KeyEnter:
