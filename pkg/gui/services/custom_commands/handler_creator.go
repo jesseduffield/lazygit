@@ -2,6 +2,7 @@ package custom_commands
 
 import (
 	"strings"
+	"text/template"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -166,7 +167,11 @@ func (self *HandlerCreator) getResolveTemplateFn(form map[string]string, promptR
 		Form:            form,
 	}
 
-	return func(templateStr string) (string, error) { return utils.ResolveTemplate(templateStr, objects) }
+	funcs := template.FuncMap{
+		"Quote": self.os.Quote,
+	}
+
+	return func(templateStr string) (string, error) { return utils.ResolveTemplate(templateStr, objects, funcs) }
 }
 
 func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, sessionState *SessionState, promptResponses []string, form map[string]string) error {

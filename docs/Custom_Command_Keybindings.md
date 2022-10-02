@@ -8,7 +8,7 @@ customCommands:
     command: 'hub browse -- "commit/{{.SelectedLocalCommit.Sha}}"'
     context: 'commits'
   - key: 'a'
-    command: "git {{if .SelectedFile.HasUnstagedChanges}} add {{else}} reset {{end}} {{.SelectedFile.Name}}"
+    command: "git {{if .SelectedFile.HasUnstagedChanges}} add {{else}} reset {{end}} {{.SelectedFile.Name | Quote}}"
     context: 'files'
     description: 'toggle file staged'
   - key: 'C'

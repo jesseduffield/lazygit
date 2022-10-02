@@ -17,7 +17,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 			{
 				Key:     "a",
 				Context: "files",
-				Command: `echo "{{.Form.FileContent}}" > {{.Form.FileName}}`,
+				Command: `echo {{.Form.FileContent | Quote}} > {{.Form.FileName | Quote}}`,
 				Prompts: []config.CustomCommandPrompt{
 					{
 						Key:   "FileName",
@@ -37,7 +37,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 							{
 								Name:        "bar",
 								Description: "Bar",
-								Value:       "BAR",
+								Value:       `"BAR"`,
 							},
 							{
 								Name:        "baz",
@@ -67,7 +67,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.InPrompt()
 		assert.MatchCurrentViewTitle(Equals("Enter a file name"))
-		input.Type("myfile")
+		input.Type("my file")
 		input.Confirm()
 
 		assert.InMenu()
@@ -82,7 +82,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Confirm()
 
 		assert.WorkingTreeFileCount(1)
-		assert.MatchSelectedLine(Contains("myfile"))
-		assert.MatchMainViewContent(Contains("BAR"))
+		assert.MatchSelectedLine(Contains("my file"))
+		assert.MatchMainViewContent(Contains(`"BAR"`))
 	},
 })
