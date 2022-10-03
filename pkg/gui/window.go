@@ -3,8 +3,10 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -14,18 +16,18 @@ import (
 // space. Right now most windows are 1:1 with views, except for commitFiles which
 // is a view that moves between windows
 
-func (gui *Gui) initialWindowViewNameMap(contextTree *context.ContextTree) map[string]string {
-	result := map[string]string{}
+func (gui *Gui) initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSafeMap[string, string] {
+	result := utils.NewThreadSafeMap[string, string]()
 
 	for _, context := range contextTree.Flatten() {
-		result[context.GetWindowName()] = context.GetViewName()
+		result.Set(context.GetWindowName(), context.GetViewName())
 	}
 
 	return result
 }
 
 func (gui *Gui) getViewNameForWindow(window string) string {
-	viewName, ok := gui.State.WindowViewNameMap[window]
+	viewName, ok := gui.State.WindowViewNameMap.Get(window)
 	if !ok {
 		panic(fmt.Sprintf("Viewname not found for window: %s", window))
 	}
@@ -50,7 +52,7 @@ func (gui *Gui) setWindowContext(c types.Context) {
 		gui.resetWindowContext(c)
 	}
 
-	gui.State.WindowViewNameMap[c.GetWindowName()] = c.GetViewName()
+	gui.State.WindowViewNameMap.Set(c.GetWindowName(), c.GetViewName())
 }
 
 func (gui *Gui) currentWindow() string {
@@ -59,39 +61,57 @@ func (gui *Gui) currentWindow() string {
 
 // assumes the context's windowName has been set to the new window if necessary
 func (gui *Gui) resetWindowContext(c types.Context) {
-	for windowName, viewName := range gui.State.WindowViewNameMap {
+	for _, windowName := range gui.State.WindowViewNameMap.Keys() {
+		viewName, ok := gui.State.WindowViewNameMap.Get(windowName)
+		if !ok {
+			continue
+		}
 		if viewName == c.GetViewName() && windowName != c.GetWindowName() {
 			for _, context := range gui.State.Contexts.Flatten() {
 				if context.GetKey() != c.GetKey() && context.GetWindowName() == windowName {
-					gui.State.WindowViewNameMap[windowName] = context.GetViewName()
+					gui.State.WindowViewNameMap.Set(windowName, context.GetViewName())
 				}
 			}
 		}
 	}
 }
 
-func (gui *Gui) moveToTopOfWindow(context types.Context) {
+// moves given context's view to the top of the window and returns
+// true if the view was not already on top.
+func (gui *Gui) moveToTopOfWindow(context types.Context) bool {
 	view := context.GetView()
 	if view == nil {
-		return
+		return false
 	}
 
 	window := context.GetWindowName()
 
+	topView := gui.topViewInWindow(window)
+
+	if view.Name() == topView.Name() {
+		return false
+	} else {
+		if err := gui.g.SetViewOnTopOf(view.Name(), topView.Name()); err != nil {
+			gui.Log.Error(err)
+		}
+
+		return true
+	}
+}
+
+func (gui *Gui) topViewInWindow(windowName string) *gocui.View {
 	// now I need to find all views in that same window, via contexts. And I guess then I need to find the index of the highest view in that list.
-	viewNamesInWindow := gui.viewNamesInWindow(window)
+	viewNamesInWindow := gui.viewNamesInWindow(windowName)
 
 	// The views list is ordered highest-last, so we're grabbing the last view of the window
-	topView := view
+	var topView *gocui.View
 	for _, currentView := range gui.g.Views() {
 		if lo.Contains(viewNamesInWindow, currentView.Name()) {
 			topView = currentView
 		}
 	}
 
-	if err := gui.g.SetViewOnTopOf(view.Name(), topView.Name()); err != nil {
-		gui.Log.Error(err)
-	}
+	return topView
 }
 
 func (gui *Gui) viewNamesInWindow(windowName string) []string {

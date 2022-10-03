@@ -403,6 +403,21 @@ func (g *Gui) SetViewOnTopOf(toMove string, other string) error {
 	return nil
 }
 
+// replaces the content in toView with the content in fromView
+func (g *Gui) CopyContent(fromView *View, toView *View) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	toView.clear()
+
+	toView.lines = fromView.lines
+	toView.viewLines = fromView.viewLines
+	toView.ox = fromView.ox
+	toView.oy = fromView.oy
+	toView.cx = fromView.cx
+	toView.cy = fromView.cy
+}
+
 // Views returns all the views in the GUI.
 func (g *Gui) Views() []*View {
 	return g.views

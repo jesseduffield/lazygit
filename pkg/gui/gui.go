@@ -185,7 +185,7 @@ type GuiRepoState struct {
 	// WindowViewNameMap is a mapping of windows to the current view of that window.
 	// Some views move between windows for example the commitFiles view and when cycling through
 	// side windows we need to know which view to give focus to for a given window
-	WindowViewNameMap map[string]string
+	WindowViewNameMap *utils.ThreadSafeMap[string, string]
 
 	// tells us whether we've set up our views for the current repo. We'll need to
 	// do this whenever we switch back and forth between repos to get the views
