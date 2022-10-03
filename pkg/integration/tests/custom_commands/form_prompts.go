@@ -17,7 +17,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 			{
 				Key:     "a",
 				Context: "files",
-				Command: `echo {{.Form.FileContent | Quote}} > {{.Form.FileName | Quote}}`,
+				Command: `echo {{.Form.FileContent | quote}} > {{.Form.FileName | quote}}`,
 				Prompts: []config.CustomCommandPrompt{
 					{
 						Key:   "FileName",

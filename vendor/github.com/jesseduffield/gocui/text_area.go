@@ -64,6 +64,54 @@ func (self *TextArea) MoveCursorRight() {
 	self.cursor++
 }
 
+func (self *TextArea) MoveLeftWord() {
+	if self.cursor == 0 {
+		return
+	}
+	if self.atLineStart() {
+		self.cursor--
+		return
+	}
+
+	for !self.atLineStart() && strings.ContainsRune(WHITESPACES, self.content[self.cursor-1]) {
+		self.cursor--
+	}
+	separators := false
+	for !self.atLineStart() && strings.ContainsRune(WORD_SEPARATORS, self.content[self.cursor-1]) {
+		self.cursor--
+		separators = true
+	}
+	if !separators {
+		for !self.atLineStart() && !strings.ContainsRune(WHITESPACES+WORD_SEPARATORS, self.content[self.cursor-1]) {
+			self.cursor--
+		}
+	}
+}
+
+func (self *TextArea) MoveRightWord() {
+	if self.atEnd() {
+		return
+	}
+	if self.atLineEnd() {
+		self.cursor++
+		return
+	}
+
+	for !self.atLineEnd() && strings.ContainsRune(WHITESPACES, self.content[self.cursor]) {
+		self.cursor++
+	}
+	separators := false
+	for !self.atLineEnd() && strings.ContainsRune(WORD_SEPARATORS, self.content[self.cursor]) {
+		self.cursor++
+		separators = true
+	}
+	if !separators {
+		for !self.atLineEnd() && !strings.ContainsRune(WHITESPACES+WORD_SEPARATORS, self.content[self.cursor]) {
+			self.cursor++
+		}
+	}
+}
+
 func (self *TextArea) MoveCursorUp() {
 	x, y := self.GetCursorXY()
 	self.SetCursor2D(x, y-1)

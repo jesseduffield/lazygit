@@ -1115,9 +1115,13 @@ func Shutdown(fd Handle, how int) (err error) {
 }
 
 func WSASendto(s Handle, bufs *WSABuf, bufcnt uint32, sent *uint32, flags uint32, to Sockaddr, overlapped *Overlapped, croutine *byte) (err error) {
-	rsa, l, err := to.sockaddr()
-	if err != nil {
-		return err
+	var rsa unsafe.Pointer
+	var l int32
+	if to != nil {
+		rsa, l, err = to.sockaddr()
+		if err != nil {
+			return err
+		}
 	}
 	return WSASendTo(s, bufs, bufcnt, sent, flags, (*RawSockaddrAny)(unsafe.Pointer(rsa)), l, overlapped, croutine)
 }

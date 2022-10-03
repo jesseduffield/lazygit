@@ -214,6 +214,8 @@ func (ei *escapeInterpreter) outputNormal() error {
 		case p == 0:
 			ei.curFgColor = ColorDefault
 			ei.curBgColor = ColorDefault
+		case p >= 21 && p <= 29:
+			ei.curFgColor &= ^getFontEffect(p - 20)
 		default:
 			ei.curFgColor |= getFontEffect(p)
 		}

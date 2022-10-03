@@ -168,7 +168,7 @@ func (self *HandlerCreator) getResolveTemplateFn(form map[string]string, promptR
 	}
 
 	funcs := template.FuncMap{
-		"Quote": self.os.Quote,
+		"quote": self.os.Quote,
 	}
 
 	return func(templateStr string) (string, error) { return utils.ResolveTemplate(templateStr, objects, funcs) }

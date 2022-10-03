@@ -601,6 +601,14 @@ func (v *View) writeCells(x, y int, cells []cell) {
 	v.lines[y] = line[:newLen]
 }
 
+// readCell gets cell at specified location (x, y)
+func (v *View) readCell(x, y int) (cell, bool) {
+	if y < 0 || y >= len(v.lines) || x < 0 || x >= len(v.lines[y]) {
+		return cell{}, false
+	}
+	return v.lines[y][x], true
+}
+
 // Write appends a byte slice into the view's internal buffer. Because
 // View implements the io.Writer interface, it can be passed as parameter
 // of functions like fmt.Fprintf, fmt.Fprintln, io.Copy, etc. Clear must
@@ -631,17 +639,29 @@ func (v *View) writeRunes(p []rune) {
 	for _, r := range p {
 		switch r {
 		case '\n':
+			if c, ok := v.readCell(v.wx+1, v.wy); !ok || c.chr == 0 {
+				v.writeCells(v.wx, v.wy, []cell{{
+					chr:     0,
+					fgColor: 0,
+					bgColor: 0,
+				}})
+			}
+			v.wx = 0
 			v.wy++
 			if v.wy >= len(v.lines) {
 				v.lines = append(v.lines, nil)
 			}
-
-			fallthrough
-			// not valid in every OS, but making runtime OS checks in cycle is bad.
 		case '\r':
+			if c, ok := v.readCell(v.wx, v.wy); !ok || c.chr == 0 {
+				v.writeCells(v.wx, v.wy, []cell{{
+					chr:     0,
+					fgColor: 0,
+					bgColor: 0,
+				}})
+			}
 			v.wx = 0
 		default:
-			moveCursor, cells := v.parseInput(r)
+			moveCursor, cells := v.parseInput(r, v.wx, v.wy)
 			if cells == nil {
 				continue
 			}
@@ -666,7 +686,7 @@ func (v *View) writeString(s string) {
 // parseInput parses char by char the input written to the View. It returns nil
 // while processing ESC sequences. Otherwise, it returns a cell slice that
 // contains the processed data.
-func (v *View) parseInput(ch rune) (bool, []cell) {
+func (v *View) parseInput(ch rune, x int, y int) (bool, []cell) {
 	cells := []cell{}
 	moveCursor := true
 
@@ -698,8 +718,9 @@ func (v *View) parseInput(ch rune) (bool, []cell) {
 			return moveCursor, nil
 		} else if ch == '\t' {
 			// fill tab-sized space
+			const tabStop = 4
 			ch = ' '
-			repeatCount = 4
+			repeatCount = tabStop - (x % tabStop)
 		}
 		c := cell{
 			fgColor: v.ei.curFgColor,
@@ -936,11 +957,14 @@ func (v *View) draw() error {
 		if y >= maxY {
 			break
 		}
-		x := 0
+		x := -v.ox
 		j := 0
 		var c cell
 		for {
-			if j < v.ox {
+			if x < 0 {
+				if j < len(vline.line) {
+					x += runewidth.RuneWidth(vline.line[j].chr)
+				}
 				j++
 				continue
 			}
