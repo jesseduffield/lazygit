@@ -27,11 +27,35 @@ func (gui *Gui) runTaskForView(view *gocui.View, task types.UpdateTask) error {
 }
 
 func (gui *Gui) moveMainContextPairToTop(pair types.MainContextPair) {
-	gui.setWindowContext(pair.Main)
-	gui.moveToTopOfWindow(pair.Main)
+	gui.moveMainContextToTop(pair.Main)
 	if pair.Secondary != nil {
-		gui.setWindowContext(pair.Secondary)
-		gui.moveToTopOfWindow(pair.Secondary)
+		gui.moveMainContextToTop(pair.Secondary)
+	}
+}
+
+func (gui *Gui) moveMainContextToTop(context types.Context) {
+	gui.setWindowContext(context)
+
+	view := context.GetView()
+
+	topView := gui.topViewInWindow(context.GetWindowName())
+	if topView == nil {
+		gui.Log.Error("unexpected: topView is nil")
+		return
+	}
+
+	if topView != view {
+		// We need to copy the content to avoid a flicker effect: If we're flicking
+		// through files in the files panel, we use a different view to render the
+		// files vs the directories, and if you select dir A, then file B, then dir
+		// C, you'll briefly see dir A's contents again before the view is updated.
+		// So here we're copying the content from the top window to avoid that
+		// flicker effect.
+		gui.g.CopyContent(topView, view)
+
+		if err := gui.g.SetViewOnTopOf(view.Name(), topView.Name()); err != nil {
+			gui.Log.Error(err)
+		}
 	}
 }
 

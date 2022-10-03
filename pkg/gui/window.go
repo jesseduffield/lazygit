@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
@@ -70,28 +71,42 @@ func (gui *Gui) resetWindowContext(c types.Context) {
 	}
 }
 
-func (gui *Gui) moveToTopOfWindow(context types.Context) {
+// moves given context's view to the top of the window and returns
+// true if the view was not already on top.
+func (gui *Gui) moveToTopOfWindow(context types.Context) bool {
 	view := context.GetView()
 	if view == nil {
-		return
+		return false
 	}
 
 	window := context.GetWindowName()
 
+	topView := gui.topViewInWindow(window)
+
+	if view.Name() == topView.Name() {
+		return false
+	} else {
+		if err := gui.g.SetViewOnTopOf(view.Name(), topView.Name()); err != nil {
+			gui.Log.Error(err)
+		}
+
+		return true
+	}
+}
+
+func (gui *Gui) topViewInWindow(windowName string) *gocui.View {
 	// now I need to find all views in that same window, via contexts. And I guess then I need to find the index of the highest view in that list.
-	viewNamesInWindow := gui.viewNamesInWindow(window)
+	viewNamesInWindow := gui.viewNamesInWindow(windowName)
 
 	// The views list is ordered highest-last, so we're grabbing the last view of the window
-	topView := view
+	var topView *gocui.View
 	for _, currentView := range gui.g.Views() {
 		if lo.Contains(viewNamesInWindow, currentView.Name()) {
 			topView = currentView
 		}
 	}
 
-	if err := gui.g.SetViewOnTopOf(view.Name(), topView.Name()); err != nil {
-		gui.Log.Error(err)
-	}
+	return topView
 }
 
 func (gui *Gui) viewNamesInWindow(windowName string) []string {
