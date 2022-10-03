@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -15,18 +16,18 @@ import (
 // space. Right now most windows are 1:1 with views, except for commitFiles which
 // is a view that moves between windows
 
-func (gui *Gui) initialWindowViewNameMap(contextTree *context.ContextTree) map[string]string {
-	result := map[string]string{}
+func (gui *Gui) initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSafeMap[string, string] {
+	result := utils.NewThreadSafeMap[string, string]()
 
 	for _, context := range contextTree.Flatten() {
-		result[context.GetWindowName()] = context.GetViewName()
+		result.Set(context.GetWindowName(), context.GetViewName())
 	}
 
 	return result
 }
 
 func (gui *Gui) getViewNameForWindow(window string) string {
-	viewName, ok := gui.State.WindowViewNameMap[window]
+	viewName, ok := gui.State.WindowViewNameMap.Get(window)
 	if !ok {
 		panic(fmt.Sprintf("Viewname not found for window: %s", window))
 	}
@@ -51,7 +52,7 @@ func (gui *Gui) setWindowContext(c types.Context) {
 		gui.resetWindowContext(c)
 	}
 
-	gui.State.WindowViewNameMap[c.GetWindowName()] = c.GetViewName()
+	gui.State.WindowViewNameMap.Set(c.GetWindowName(), c.GetViewName())
 }
 
 func (gui *Gui) currentWindow() string {
@@ -60,11 +61,15 @@ func (gui *Gui) currentWindow() string {
 
 // assumes the context's windowName has been set to the new window if necessary
 func (gui *Gui) resetWindowContext(c types.Context) {
-	for windowName, viewName := range gui.State.WindowViewNameMap {
+	for _, windowName := range gui.State.WindowViewNameMap.Keys() {
+		viewName, ok := gui.State.WindowViewNameMap.Get(windowName)
+		if !ok {
+			continue
+		}
 		if viewName == c.GetViewName() && windowName != c.GetWindowName() {
 			for _, context := range gui.State.Contexts.Flatten() {
 				if context.GetKey() != c.GetKey() && context.GetWindowName() == windowName {
-					gui.State.WindowViewNameMap[windowName] = context.GetViewName()
+					gui.State.WindowViewNameMap.Set(windowName, context.GetViewName())
 				}
 			}
 		}
