@@ -55,9 +55,9 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.InMenu()
 		assert.MatchCurrentViewTitle(Equals("Choose commit message"))
-		assert.MatchSelectedLine(Equals("baz"))
+		assert.MatchSelectedLine(Equals("baz ")) // TODO: remove the trailing space
 		input.NextItem()
-		assert.MatchSelectedLine(Equals("bar"))
+		assert.MatchSelectedLine(Equals("bar ")) // TODO: remove the trailing space
 		input.Confirm()
 
 		assert.InPrompt()
