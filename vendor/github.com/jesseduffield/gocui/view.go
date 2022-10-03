@@ -1080,7 +1080,7 @@ func (v *View) BufferLines() []string {
 	lines := make([]string, len(v.lines))
 	for i, l := range v.lines {
 		str := lineType(l).String()
-		str = strings.Replace(str, "\x00", " ", -1)
+		str = strings.Replace(str, "\x00", "", -1)
 		lines[i] = str
 	}
 	return lines
@@ -1098,7 +1098,7 @@ func (v *View) ViewBufferLines() []string {
 	lines := make([]string, len(v.viewLines))
 	for i, l := range v.viewLines {
 		str := lineType(l.line).String()
-		str = strings.Replace(str, "\x00", " ", -1)
+		str = strings.Replace(str, "\x00", "", -1)
 		lines[i] = str
 	}
 	return lines
@@ -1274,7 +1274,7 @@ func (v *View) SelectedLine() string {
 	}
 	line := v.lines[v.SelectedLineIdx()]
 	str := lineType(line).String()
-	return strings.Replace(str, "\x00", " ", -1)
+	return strings.Replace(str, "\x00", "", -1)
 }
 
 func (v *View) SelectedPoint() (int, int) {
