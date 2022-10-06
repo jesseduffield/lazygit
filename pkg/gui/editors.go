@@ -22,8 +22,12 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.MoveCursorDown()
 	case key == gocui.KeyArrowUp:
 		textArea.MoveCursorUp()
+	case key == gocui.KeyArrowLeft && (mod&gocui.ModAlt) != 0:
+		textArea.MoveLeftWord()
 	case key == gocui.KeyArrowLeft || key == gocui.KeyCtrlB:
 		textArea.MoveCursorLeft()
+	case key == gocui.KeyArrowRight && (mod&gocui.ModAlt) != 0:
+		textArea.MoveRightWord()
 	case key == gocui.KeyArrowRight || key == gocui.KeyCtrlF:
 		textArea.MoveCursorRight()
 	case key == newlineKey:
