@@ -201,6 +201,7 @@ keybinding:
     fetchRemote: 'f'
   commits:
     squashDown: 's'
+    rebaseCommit: 'r' # only in branch commit view
     renameCommit: 'r'
     renameCommitWithEditor: 'R'
     viewResetOptions: 'g'

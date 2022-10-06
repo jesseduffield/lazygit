@@ -112,6 +112,7 @@ func chineseTranslationSet() TranslationSet {
 		Squash:                              "压缩",
 		LcPickCommit:                        "选择提交（变基过程中）",
 		LcRevertCommit:                      "还原提交",
+		// LcRebaseCommit:                      "rebase checked out branch onto selected commit",
 		LcRewordCommit:                      "改写提交",
 		LcDeleteCommit:                      "删除提交",
 		LcMoveDownCommit:                    "下移提交",

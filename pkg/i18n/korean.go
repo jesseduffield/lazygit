@@ -102,6 +102,7 @@ func koreanTranslationSet() TranslationSet {
 		Squash:                              "Squash",
 		LcPickCommit:                        "pick commit (when mid-rebase)",
 		LcRevertCommit:                      "커밋 되돌리기",
+		// LcRebaseCommit:                      "rebase checked out branch onto selected commit",
 		LcRewordCommit:                      "커밋메시지 변경",
 		LcDeleteCommit:                      "커밋 삭제",
 		LcMoveDownCommit:                    "커밋을 1개 아래로 이동",

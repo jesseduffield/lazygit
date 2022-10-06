@@ -103,6 +103,7 @@ func japaneseTranslationSet() TranslationSet {
 		// Squash:                              "Squash",
 		// LcPickCommit:                        "pick commit (when mid-rebase)",
 		LcRevertCommit:       "コミットをrevert",
+		// LcRebaseCommit:                      "rebase checked out branch onto selected commit",
 		LcRewordCommit:       "コミットメッセージを変更",
 		LcDeleteCommit:       "コミットを削除",
 		LcMoveDownCommit:     "コミットを1つ下に移動",

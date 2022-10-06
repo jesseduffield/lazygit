@@ -240,6 +240,7 @@ type KeybindingBranchesConfig struct {
 
 type KeybindingCommitsConfig struct {
 	SquashDown                     string `yaml:"squashDown"`
+	RebaseCommit                   string `yaml:"rebaseCommit"`
 	RenameCommit                   string `yaml:"renameCommit"`
 	RenameCommitWithEditor         string `yaml:"renameCommitWithEditor"`
 	ViewResetOptions               string `yaml:"viewResetOptions"`
@@ -523,6 +524,7 @@ func GetDefaultConfig() *UserConfig {
 			},
 			Commits: KeybindingCommitsConfig{
 				SquashDown:                     "s",
+				RebaseCommit:                   "r",
 				RenameCommit:                   "r",
 				RenameCommitWithEditor:         "R",
 				ViewResetOptions:               "g",

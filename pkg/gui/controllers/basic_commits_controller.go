@@ -40,6 +40,11 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.LcCheckoutCommit,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Commits.RebaseCommit),
+			Handler:     self.checkSelected(self.rebase),
+			Description: self.c.Tr.LcRebaseCommit,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Commits.CopyCommitAttributeToClipboard),
 			Handler:     self.checkSelected(self.copyCommitAttribute),
 			Description: self.c.Tr.LcCopyCommitAttributeToClipboard,
@@ -94,6 +99,10 @@ func (self *BasicCommitsController) checkSelected(callback func(*models.Commit) 
 
 func (self *BasicCommitsController) Context() types.Context {
 	return self.context
+}
+
+func (self *BasicCommitsController) rebase(commit *models.Commit) error {
+	return self.helpers.MergeAndRebase.RebaseOntoRef(commit.Sha)
 }
 
 func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) error {
