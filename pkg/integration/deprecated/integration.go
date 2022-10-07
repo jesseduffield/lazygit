@@ -178,7 +178,7 @@ func RunTests(
 							}
 
 							// get the log file and print it
-							bytes, err := ioutil.ReadFile(filepath.Join(configDir, "development.log"))
+							bytes, err := os.ReadFile(filepath.Join(configDir, "development.log"))
 							if err != nil {
 								return err
 							}
@@ -310,7 +310,7 @@ func getTestSpeeds(testStartSpeed float64, mode Mode, speedStr string) []float64
 	if startSpeed > 5 {
 		speeds = append(speeds, 5)
 	}
-	speeds = append(speeds, 1, 1)
+	speeds = append(speeds, 1, 0.5, 0.5)
 
 	return speeds
 }
@@ -324,7 +324,7 @@ func LoadTests(testDir string) ([]*IntegrationTest, error) {
 	tests := make([]*IntegrationTest, len(paths))
 
 	for i, path := range paths {
-		data, err := ioutil.ReadFile(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			return nil, err
 		}
@@ -406,7 +406,7 @@ func generateSnapshot(dir string) (string, error) {
 			return nil
 		}
 
-		bytes, err := ioutil.ReadFile(path)
+		bytes, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}

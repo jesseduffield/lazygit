@@ -2,7 +2,7 @@ package oscommands
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -151,7 +151,7 @@ func (c *OSCommand) CreateFileWithContent(path string, content string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path, []byte(content), 0o644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		c.Log.Error(err)
 		return utils.WrapError(err)
 	}
@@ -215,7 +215,7 @@ func (c *OSCommand) PipeCommands(commandStrings ...string) error {
 				c.Log.Error(err)
 			}
 
-			if b, err := ioutil.ReadAll(stderr); err == nil {
+			if b, err := io.ReadAll(stderr); err == nil {
 				if len(b) > 0 {
 					finalErrors = append(finalErrors, string(b))
 				}

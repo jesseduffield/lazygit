@@ -6,8 +6,8 @@ import (
 	"text/template"
 )
 
-func ResolveTemplate(templateStr string, object interface{}) (string, error) {
-	tmpl, err := template.New("template").Parse(templateStr)
+func ResolveTemplate(templateStr string, object interface{}, funcs template.FuncMap) (string, error) {
+	tmpl, err := template.New("template").Funcs(funcs).Option("missingkey=error").Parse(templateStr)
 	if err != nil {
 		return "", err
 	}

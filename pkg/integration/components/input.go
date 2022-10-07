@@ -42,22 +42,27 @@ func (self *Input) pressKey(keyStr string) {
 
 func (self *Input) SwitchToStatusWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[0])
+	self.assert.CurrentWindowName("status")
 }
 
 func (self *Input) SwitchToFilesWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[1])
+	self.assert.CurrentWindowName("files")
 }
 
 func (self *Input) SwitchToBranchesWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[2])
+	self.assert.CurrentWindowName("localBranches")
 }
 
 func (self *Input) SwitchToCommitsWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[3])
+	self.assert.CurrentWindowName("commits")
 }
 
 func (self *Input) SwitchToStashWindow() {
 	self.pressKey(self.keys.Universal.JumpToBlock[4])
+	self.assert.CurrentWindowName("stash")
 }
 
 func (self *Input) Type(content string) {
@@ -68,6 +73,17 @@ func (self *Input) Type(content string) {
 
 // i.e. pressing enter
 func (self *Input) Confirm() {
+	self.pressKey(self.keys.Universal.Confirm)
+}
+
+func (self *Input) ProceedWhenAsked(matcher *matcher) {
+	self.assert.InConfirm()
+	self.assert.MatchCurrentViewContent(matcher)
+	self.Confirm()
+}
+
+// i.e. same as Confirm
+func (self *Input) Enter() {
 	self.pressKey(self.keys.Universal.Confirm)
 }
 
@@ -132,35 +148,43 @@ func (self *Input) NavigateToListItemContainingText(text string) {
 
 	view := currentContext.GetView()
 
-	// first we look for a duplicate on the current screen. We won't bother looking beyond that though.
-	matchCount := 0
-	matchIndex := -1
-	for i, line := range view.ViewBufferLines() {
-		if strings.Contains(line, text) {
-			matchCount++
-			matchIndex = i
-		}
-	}
-	if matchCount > 1 {
-		self.assert.Fail(fmt.Sprintf("Found %d matches for %s, expected only a single match", matchCount, text))
-	}
-	if matchCount == 1 {
-		selectedLineIdx := view.SelectedLineIdx()
-		if selectedLineIdx == matchIndex {
-			return
-		}
-		if selectedLineIdx < matchIndex {
-			for i := selectedLineIdx; i < matchIndex; i++ {
-				self.NextItem()
-			}
-			return
-		} else {
-			for i := selectedLineIdx; i > matchIndex; i-- {
-				self.PreviousItem()
-			}
-			return
-		}
-	}
+	var matchIndex int
 
-	self.assert.Fail(fmt.Sprintf("Could not find item containing text: %s", text))
+	self.assert.assertWithRetries(func() (bool, string) {
+		matchCount := 0
+		matchIndex = -1
+		// first we look for a duplicate on the current screen. We won't bother looking beyond that though.
+		for i, line := range view.ViewBufferLines() {
+			if strings.Contains(line, text) {
+				matchCount++
+				matchIndex = i
+			}
+		}
+		if matchCount > 1 {
+			return false, fmt.Sprintf("Found %d matches for %s, expected only a single match", matchCount, text)
+		} else if matchCount == 0 {
+			return false, fmt.Sprintf("Could not find item containing text: %s", text)
+		} else {
+			return true, ""
+		}
+	})
+
+	selectedLineIdx := view.SelectedLineIdx()
+	if selectedLineIdx == matchIndex {
+		self.assert.MatchSelectedLine(Contains(text))
+		return
+	}
+	if selectedLineIdx < matchIndex {
+		for i := selectedLineIdx; i < matchIndex; i++ {
+			self.NextItem()
+		}
+		self.assert.MatchSelectedLine(Contains(text))
+		return
+	} else {
+		for i := selectedLineIdx; i > matchIndex; i-- {
+			self.PreviousItem()
+		}
+		self.assert.MatchSelectedLine(Contains(text))
+		return
+	}
 }

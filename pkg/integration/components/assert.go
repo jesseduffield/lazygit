@@ -46,7 +46,13 @@ func (self *matcher) context(prefix string) *matcher {
 
 func Contains(target string) *matcher {
 	return &matcher{testFn: func(value string) (bool, string) {
-		return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to contain '%s'", value, target)
+		return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to be found in '%s'", target, value)
+	}}
+}
+
+func NotContains(target string) *matcher {
+	return &matcher{testFn: func(value string) (bool, string) {
+		return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
 	}}
 }
 
@@ -89,6 +95,14 @@ func (self *Assert) StashCount(expectedCount int) {
 	})
 }
 
+func (self *Assert) AtLeastOneCommit() {
+	self.assertWithRetries(func() (bool, string) {
+		actualCount := len(self.gui.Model().Commits)
+
+		return actualCount > 0, "Expected at least one commit present"
+	})
+}
+
 func (self *Assert) MatchHeadCommitMessage(matcher *matcher) {
 	self.assertWithRetries(func() (bool, string) {
 		return len(self.gui.Model().Commits) > 0, "Expected at least one commit to be present"
@@ -105,6 +119,13 @@ func (self *Assert) CurrentViewName(expectedViewName string) {
 	self.assertWithRetries(func() (bool, string) {
 		actual := self.gui.CurrentContext().GetView().Name()
 		return actual == expectedViewName, fmt.Sprintf("Expected current view name to be '%s', but got '%s'", expectedViewName, actual)
+	})
+}
+
+func (self *Assert) CurrentWindowName(expectedWindowName string) {
+	self.assertWithRetries(func() (bool, string) {
+		actual := self.gui.CurrentContext().GetView().Name()
+		return actual == expectedWindowName, fmt.Sprintf("Expected current window name to be '%s', but got '%s'", expectedWindowName, actual)
 	})
 }
 
@@ -167,6 +188,22 @@ func (self *Assert) MatchCurrentViewTitle(matcher *matcher) {
 	)
 }
 
+func (self *Assert) MatchViewContent(viewName string, matcher *matcher) {
+	self.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", viewName),
+		func() string {
+			return self.gui.View(viewName).Buffer()
+		},
+	)
+}
+
+func (self *Assert) MatchCurrentViewContent(matcher *matcher) {
+	self.matchString(matcher, "Unexpected content in current view.",
+		func() string {
+			return self.gui.CurrentContext().GetView().Buffer()
+		},
+	)
+}
+
 func (self *Assert) MatchMainViewContent(matcher *matcher) {
 	self.matchString(matcher, "Unexpected main view content.",
 		func() string {
@@ -191,7 +228,7 @@ func (self *Assert) matchString(matcher *matcher, context string, getValue func(
 }
 
 func (self *Assert) assertWithRetries(test func() (bool, string)) {
-	waitTimes := []int{0, 1, 5, 10, 200, 500, 1000}
+	waitTimes := []int{0, 1, 5, 10, 200, 500, 1000, 2000, 4000}
 
 	var message string
 	for _, waitTime := range waitTimes {

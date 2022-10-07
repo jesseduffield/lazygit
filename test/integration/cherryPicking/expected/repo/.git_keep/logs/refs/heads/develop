@@ -1,5 +1,0 @@
-0000000000000000000000000000000000000000 9bb8cd97914c8e8a7b8a6ec6f94bca0b09fa0048 CI <CI@example.com> 1617673072 +1000	branch: Created from HEAD
-9bb8cd97914c8e8a7b8a6ec6f94bca0b09fa0048 7923e4a952f4b169373b0389be6a9db3cd929547 CI <CI@example.com> 1617673072 +1000	commit: first commit on develop
-7923e4a952f4b169373b0389be6a9db3cd929547 7317cf7580efd92f974c8dfb3cde84eded8dafec CI <CI@example.com> 1617673072 +1000	commit: second commit on develop
-7317cf7580efd92f974c8dfb3cde84eded8dafec 234e2fa9a01b8d7e849b0c2a1bbd550e788ea18d CI <CI@example.com> 1617673072 +1000	commit: third commit on develop
-234e2fa9a01b8d7e849b0c2a1bbd550e788ea18d 0556e5da1cda4e150d6cc1182be6efdb061f59fe CI <CI@example.com> 1617673072 +1000	commit: fourth commit on develop

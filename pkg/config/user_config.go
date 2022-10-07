@@ -314,6 +314,8 @@ type CustomCommand struct {
 }
 
 type CustomCommandPrompt struct {
+	Key string `yaml:"key"`
+
 	// one of 'input', 'menu', 'confirm', or 'menuFromCommand'
 	Type string `yaml:"type"`
 

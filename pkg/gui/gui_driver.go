@@ -79,3 +79,11 @@ func (self *GuiDriver) MainView() *gocui.View {
 func (self *GuiDriver) SecondaryView() *gocui.View {
 	return self.gui.secondaryView()
 }
+
+func (self *GuiDriver) View(viewName string) *gocui.View {
+	view, err := self.gui.g.View(viewName)
+	if err != nil {
+		panic(err)
+	}
+	return view
+}

@@ -57,6 +57,11 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		if isRepo, err := isDirectoryAGitRepository(absRepoPath); err != nil || !isRepo {
+			log.Fatal(absRepoPath + " is not a valid git repository.")
+		}
+
 		cliArgs.WorkTree = absRepoPath
 		cliArgs.GitDir = filepath.Join(absRepoPath, ".git")
 	}

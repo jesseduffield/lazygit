@@ -22,9 +22,13 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.MoveCursorDown()
 	case key == gocui.KeyArrowUp:
 		textArea.MoveCursorUp()
-	case key == gocui.KeyArrowLeft:
+	case key == gocui.KeyArrowLeft && (mod&gocui.ModAlt) != 0:
+		textArea.MoveLeftWord()
+	case key == gocui.KeyArrowLeft || key == gocui.KeyCtrlB:
 		textArea.MoveCursorLeft()
-	case key == gocui.KeyArrowRight:
+	case key == gocui.KeyArrowRight && (mod&gocui.ModAlt) != 0:
+		textArea.MoveRightWord()
+	case key == gocui.KeyArrowRight || key == gocui.KeyCtrlF:
 		textArea.MoveCursorRight()
 	case key == newlineKey:
 		if allowMultiline {
@@ -38,10 +42,16 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.ToggleOverwrite()
 	case key == gocui.KeyCtrlU:
 		textArea.DeleteToStartOfLine()
+	case key == gocui.KeyCtrlK:
+		textArea.DeleteToEndOfLine()
 	case key == gocui.KeyCtrlA || key == gocui.KeyHome:
 		textArea.GoToStartOfLine()
 	case key == gocui.KeyCtrlE || key == gocui.KeyEnd:
 		textArea.GoToEndOfLine()
+	case key == gocui.KeyCtrlW:
+		textArea.BackSpaceWord()
+	case key == gocui.KeyCtrlY:
+		textArea.Yank()
 
 		// TODO: see if we need all three of these conditions: maybe the final one is sufficient
 	case ch != 0 && mod == 0 && unicode.IsPrint(ch):

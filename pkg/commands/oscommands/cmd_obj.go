@@ -22,6 +22,8 @@ type ICmdObj interface {
 	Run() error
 	// runs the command and returns the output as a string, and an error if any
 	RunWithOutput() (string, error)
+	// runs the command and returns stdout and stderr as a string, and an error if any
+	RunWithOutputs() (string, string, error)
 	// runs the command and runs a callback function on each line of the output. If the callback returns true for the boolean value, we kill the process and return.
 	RunAndProcessLines(onLine func(line string) (bool, error)) error
 
@@ -160,6 +162,10 @@ func (self *CmdObj) Run() error {
 
 func (self *CmdObj) RunWithOutput() (string, error) {
 	return self.runner.RunWithOutput(self)
+}
+
+func (self *CmdObj) RunWithOutputs() (string, string, error) {
+	return self.runner.RunWithOutputs(self)
 }
 
 func (self *CmdObj) RunAndProcessLines(onLine func(line string) (bool, error)) error {

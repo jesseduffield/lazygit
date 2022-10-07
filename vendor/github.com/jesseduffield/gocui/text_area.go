@@ -1,11 +1,21 @@
 package gocui
 
-import "github.com/mattn/go-runewidth"
+import (
+	"strings"
+
+	"github.com/mattn/go-runewidth"
+)
+
+const (
+	WHITESPACES     = " \t"
+	WORD_SEPARATORS = "*?_+-.[]~=/&;!#$%^(){}<>"
+)
 
 type TextArea struct {
 	content   []rune
 	cursor    int
 	overwrite bool
+	clipboard string
 }
 
 func (self *TextArea) TypeRune(r rune) {
@@ -54,6 +64,54 @@ func (self *TextArea) MoveCursorRight() {
 	self.cursor++
 }
 
+func (self *TextArea) MoveLeftWord() {
+	if self.cursor == 0 {
+		return
+	}
+	if self.atLineStart() {
+		self.cursor--
+		return
+	}
+
+	for !self.atLineStart() && strings.ContainsRune(WHITESPACES, self.content[self.cursor-1]) {
+		self.cursor--
+	}
+	separators := false
+	for !self.atLineStart() && strings.ContainsRune(WORD_SEPARATORS, self.content[self.cursor-1]) {
+		self.cursor--
+		separators = true
+	}
+	if !separators {
+		for !self.atLineStart() && !strings.ContainsRune(WHITESPACES+WORD_SEPARATORS, self.content[self.cursor-1]) {
+			self.cursor--
+		}
+	}
+}
+
+func (self *TextArea) MoveRightWord() {
+	if self.atEnd() {
+		return
+	}
+	if self.atLineEnd() {
+		self.cursor++
+		return
+	}
+
+	for !self.atLineEnd() && strings.ContainsRune(WHITESPACES, self.content[self.cursor]) {
+		self.cursor++
+	}
+	separators := false
+	for !self.atLineEnd() && strings.ContainsRune(WORD_SEPARATORS, self.content[self.cursor]) {
+		self.cursor++
+		separators = true
+	}
+	if !separators {
+		for !self.atLineEnd() && !strings.ContainsRune(WHITESPACES+WORD_SEPARATORS, self.content[self.cursor]) {
+			self.cursor++
+		}
+	}
+}
+
 func (self *TextArea) MoveCursorUp() {
 	x, y := self.GetCursorXY()
 	self.SetCursor2D(x, y-1)
@@ -92,8 +150,23 @@ func (self *TextArea) DeleteToStartOfLine() {
 	// otherwise, you delete everything up to the start of the current line, without
 	// deleting the newline character
 	newlineIndex := self.closestNewlineOnLeft()
+	self.clipboard = string(self.content[newlineIndex+1 : self.cursor])
 	self.content = append(self.content[:newlineIndex+1], self.content[self.cursor:]...)
 	self.cursor = newlineIndex + 1
+}
+
+func (self *TextArea) DeleteToEndOfLine() {
+	if self.atEnd() {
+		return
+	}
+	if self.atLineEnd() {
+		self.content = append(self.content[:self.cursor], self.content[self.cursor+1:]...)
+		return
+	}
+
+	lineEndIndex := self.closestNewlineOnRight()
+	self.clipboard = string(self.content[self.cursor:lineEndIndex])
+	self.content = append(self.content[:self.cursor], self.content[lineEndIndex:]...)
 }
 
 func (self *TextArea) GoToStartOfLine() {
@@ -140,6 +213,43 @@ func (self *TextArea) closestNewlineOnRight() int {
 func (self *TextArea) atLineStart() bool {
 	return self.cursor == 0 ||
 		(len(self.content) > self.cursor-1 && self.content[self.cursor-1] == '\n')
+}
+
+func (self *TextArea) atLineEnd() bool {
+	return self.atEnd() ||
+		(len(self.content) > self.cursor && self.content[self.cursor] == '\n')
+}
+
+func (self *TextArea) BackSpaceWord() {
+	if self.cursor == 0 {
+		return
+	}
+	if self.atLineStart() {
+		self.BackSpaceChar()
+		return
+	}
+
+	right := self.cursor
+	for !self.atLineStart() && strings.ContainsRune(WHITESPACES, self.content[self.cursor-1]) {
+		self.cursor--
+	}
+	separators := false
+	for !self.atLineStart() && strings.ContainsRune(WORD_SEPARATORS, self.content[self.cursor-1]) {
+		self.cursor--
+		separators = true
+	}
+	if !separators {
+		for !self.atLineStart() && !strings.ContainsRune(WHITESPACES+WORD_SEPARATORS, self.content[self.cursor-1]) {
+			self.cursor--
+		}
+	}
+
+	self.clipboard = string(self.content[self.cursor:right])
+	self.content = append(self.content[:self.cursor], self.content[right:]...)
+}
+
+func (self *TextArea) Yank() {
+	self.TypeString(self.clipboard)
 }
 
 func (self *TextArea) GetCursorXY() (int, int) {

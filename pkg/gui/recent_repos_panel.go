@@ -2,7 +2,6 @@ package gui
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,7 +19,7 @@ import (
 
 func (gui *Gui) getCurrentBranch(path string) string {
 	readHeadFile := func(path string) (string, error) {
-		headFile, err := ioutil.ReadFile(filepath.Join(path, "HEAD"))
+		headFile, err := os.ReadFile(filepath.Join(path, "HEAD"))
 		if err == nil {
 			content := strings.TrimSpace(string(headFile))
 			refsPrefix := "ref: refs/heads/"
@@ -47,7 +46,7 @@ func (gui *Gui) getCurrentBranch(path string) string {
 			}
 		} else {
 			// worktree
-			if worktreeGitDir, err := ioutil.ReadFile(gitDirPath); err == nil {
+			if worktreeGitDir, err := os.ReadFile(gitDirPath); err == nil {
 				content := strings.TrimSpace(string(worktreeGitDir))
 				worktreePath := strings.TrimPrefix(content, "gitdir: ")
 				if branch, err := readHeadFile(worktreePath); err == nil {

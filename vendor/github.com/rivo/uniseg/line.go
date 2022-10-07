@@ -13,7 +13,7 @@ import "unicode/utf8"
 //
 // The returned "segment" may not be broken into smaller parts, unless no other
 // breaking opportunities present themselves, in which case you may break by
-// grapheme clusters (using the FirstGraphemeCluster() function to determine the
+// grapheme clusters (using the [FirstGraphemeCluster] function to determine the
 // grapheme clusters).
 //
 // The "mustBreak" flag indicates whether you MUST break the line after the
@@ -42,7 +42,7 @@ import "unicode/utf8"
 //
 // Note also that this algorithm may break within grapheme clusters. This is
 // addressed in Section 8.2 Example 6 of UAX #14. To avoid this, you can use
-// the Step() function instead.
+// the [Step] function instead.
 func FirstLineSegment(b []byte, state int) (segment, rest []byte, mustBreak bool, newState int) {
 	// An empty byte slice returns nothing.
 	if len(b) == 0 {
@@ -114,7 +114,9 @@ func FirstLineSegmentInString(str string, state int) (segment, rest string, must
 }
 
 // HasTrailingLineBreak returns true if the last rune in the given byte slice is
-// one of the hard line break code points as defined in LB4 and LB5 of UAX #14.
+// one of the hard line break code points defined in LB4 and LB5 of [UAX #14].
+//
+// [UAX #14]: https://www.unicode.org/reports/tr14/#Algorithm
 func HasTrailingLineBreak(b []byte) bool {
 	r, _ := utf8.DecodeLastRune(b)
 	property, _ := propertyWithGenCat(lineBreakCodePoints, r)

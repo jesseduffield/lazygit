@@ -7,7 +7,7 @@ package uniseg
 // and
 // https://unicode.org/Public/14.0.0/ucd/emoji/emoji-data.txt
 // ("Extended_Pictographic" only)
-// on July 25, 2022. See https://www.unicode.org/license.html for the Unicode
+// on September 10, 2022. See https://www.unicode.org/license.html for the Unicode
 // license agreement.
 var workBreakCodePoints = [][3]int{
 	{0x000A, 0x000A, prLF},                     // Cc       <control-000A>
@@ -624,8 +624,8 @@ var workBreakCodePoints = [][3]int{
 	{0x212A, 0x212D, prALetter},                // L&   [4] KELVIN SIGN..BLACK-LETTER CAPITAL C
 	{0x212F, 0x2134, prALetter},                // L&   [6] SCRIPT SMALL E..SCRIPT SMALL O
 	{0x2135, 0x2138, prALetter},                // Lo   [4] ALEF SYMBOL..DALET SYMBOL
-	{0x2139, 0x2139, prALetter},                // L&       INFORMATION SOURCE
 	{0x2139, 0x2139, prExtendedPictographic},   // E0.6   [1] (ℹ️)       information
+	{0x2139, 0x2139, prALetter},                // L&       INFORMATION SOURCE
 	{0x213C, 0x213F, prALetter},                // L&   [4] DOUBLE-STRUCK SMALL PI..DOUBLE-STRUCK CAPITAL PI
 	{0x2145, 0x2149, prALetter},                // L&   [5] DOUBLE-STRUCK ITALIC CAPITAL D..DOUBLE-STRUCK ITALIC SMALL J
 	{0x214E, 0x214E, prALetter},                // L&       TURNED SMALL F

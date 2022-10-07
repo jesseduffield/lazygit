@@ -1,1 +1,0 @@
-{ "description": "In this test we fix some merge conflicts, ensuring that in the flat tree structure the conflicts are bubbled to the top, and that after resolving the conflicts your cursor stays on the same line, able to select the next conflicted file. We also switch to tree mode and ensure that works too.", "speed": 10 }

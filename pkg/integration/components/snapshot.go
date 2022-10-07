@@ -168,13 +168,13 @@ func (self *Snapshotter) compareSnapshots() error {
 
 		if expectedRepo != actualRepo {
 			// get the log file and print it
-			bytes, err := ioutil.ReadFile(filepath.Join(self.paths.Config(), "development.log"))
+			bytes, err := os.ReadFile(filepath.Join(self.paths.Config(), "development.log"))
 			if err != nil {
 				return err
 			}
 			self.logf("%s", string(bytes))
 
-			return errors.New(getDiff(f.Name(), actualRepo, expectedRepo))
+			return errors.New(getDiff(f.Name(), expectedRepo, actualRepo))
 		}
 	}
 
@@ -250,7 +250,7 @@ func generateSnapshot(dir string) (string, error) {
 			return nil
 		}
 
-		bytes, err := ioutil.ReadFile(path)
+		bytes, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}

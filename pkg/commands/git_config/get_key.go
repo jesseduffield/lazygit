@@ -3,7 +3,7 @@ package git_config
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os/exec"
 	"strings"
 	"syscall"
@@ -38,7 +38,7 @@ import (
 func runGitConfigCmd(cmd *exec.Cmd) (string, error) {
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
-	cmd.Stderr = ioutil.Discard
+	cmd.Stderr = io.Discard
 
 	err := cmd.Run()
 	if exitError, ok := err.(*exec.ExitError); ok {

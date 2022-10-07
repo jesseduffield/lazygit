@@ -2,7 +2,7 @@ package git_commands
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -202,7 +202,7 @@ func (self *RebaseCommands) AmendTo(sha string) error {
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
 func (self *RebaseCommands) EditRebaseTodo(index int, action string) error {
 	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
@@ -217,7 +217,7 @@ func (self *RebaseCommands) EditRebaseTodo(index int, action string) error {
 	content[contentIndex] = action + " " + strings.Join(splitLine[1:], " ")
 	result := strings.Join(content, "\n")
 
-	return ioutil.WriteFile(fileName, []byte(result), 0o644)
+	return os.WriteFile(fileName, []byte(result), 0o644)
 }
 
 func (self *RebaseCommands) getTodoCommitCount(content []string) int {
@@ -234,7 +234,7 @@ func (self *RebaseCommands) getTodoCommitCount(content []string) int {
 // MoveTodoDown moves a rebase todo item down by one position
 func (self *RebaseCommands) MoveTodoDown(index int) error {
 	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
-	bytes, err := ioutil.ReadFile(fileName)
+	bytes, err := os.ReadFile(fileName)
 	if err != nil {
 		return err
 	}
@@ -247,7 +247,7 @@ func (self *RebaseCommands) MoveTodoDown(index int) error {
 	rearrangedContent = append(rearrangedContent, content[contentIndex+1:]...)
 	result := strings.Join(rearrangedContent, "\n")
 
-	return ioutil.WriteFile(fileName, []byte(result), 0o644)
+	return os.WriteFile(fileName, []byte(result), 0o644)
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one
@@ -255,7 +255,7 @@ func (self *RebaseCommands) SquashAllAboveFixupCommits(sha string) error {
 	return self.runSkipEditorCommand(
 		self.cmd.New(
 			fmt.Sprintf(
-				"git rebase --interactive --autostash --autosquash %s^",
+				"git rebase --interactive --rebase-merges --autostash --autosquash %s^",
 				sha,
 			),
 		),

@@ -1,0 +1,4 @@
+0000000000000000000000000000000000000000 3ad14f8b4ed479f2fd9d8d4f7fe2a9913771b7f3 CI <CI@example.com> 1663440492 -0700	commit (initial): initial commit
+3ad14f8b4ed479f2fd9d8d4f7fe2a9913771b7f3 f68c5b48c653ca6ab23abd7606fe8fa8cc8d5b15 CI <CI@example.com> 1663440492 -0700	merge feature-branch: Merge made by the 'recursive' strategy.
+f68c5b48c653ca6ab23abd7606fe8fa8cc8d5b15 7802c86c6ce62289e32aa13d0c85dc3f733195cb CI <CI@example.com> 1663440493 -0700	commit: fixup! Merge branch 'feature-branch' into development-branch
+7802c86c6ce62289e32aa13d0c85dc3f733195cb f517de66e2a158d4a1d85246611cae9ca23a938d CI <CI@example.com> 1663440494 -0700	rebase (finish): refs/heads/development-branch onto 3ad14f8b4ed479f2fd9d8d4f7fe2a9913771b7f3

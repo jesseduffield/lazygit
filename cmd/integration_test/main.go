@@ -13,7 +13,7 @@ Usage:
 	See https://github.com/jesseduffield/lazygit/tree/master/pkg/integration/README.md
 
 	CLI mode:
-		> go run cmd/integration_test/main.go cli [--slow] <test1> <test2> ...
+		> go run cmd/integration_test/main.go cli [--slow] [--sandbox] <test1> <test2> ...
 	If you pass no test names, it runs all tests
 	Accepted environment variables:
 	KEY_PRESS_DELAY (e.g. 200): the number of milliseconds to wait between keypresses
@@ -42,12 +42,19 @@ func main() {
 	case "cli":
 		testNames := os.Args[2:]
 		slow := false
+		sandbox := false
 		// get the next arg if it's --slow
-		if len(os.Args) > 2 && (os.Args[2] == "--slow" || os.Args[2] == "-slow") {
-			testNames = os.Args[3:]
-			slow = true
+		if len(os.Args) > 2 {
+			if os.Args[2] == "--slow" || os.Args[2] == "-slow" {
+				testNames = os.Args[3:]
+				slow = true
+			} else if os.Args[2] == "--sandbox" || os.Args[2] == "-sandbox" {
+				testNames = os.Args[3:]
+				sandbox = true
+			}
 		}
-		clients.RunCLI(testNames, slow)
+
+		clients.RunCLI(testNames, slow, sandbox)
 	case "tui":
 		clients.RunTUI()
 	default:

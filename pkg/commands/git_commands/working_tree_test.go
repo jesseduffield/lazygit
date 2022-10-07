@@ -2,7 +2,7 @@ package git_commands
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"testing"
 
@@ -432,7 +432,7 @@ func TestWorkingTreeApplyPatch(t *testing.T) {
 
 			filename := matches[1]
 
-			content, err := ioutil.ReadFile(filename)
+			content, err := os.ReadFile(filename)
 			assert.NoError(t, err)
 
 			assert.Equal(t, "test", string(content))

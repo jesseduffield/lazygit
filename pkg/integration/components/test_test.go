@@ -56,6 +56,10 @@ func (self *fakeGuiDriver) SecondaryView() *gocui.View {
 	return nil
 }
 
+func (self *fakeGuiDriver) View(viewName string) *gocui.View {
+	return nil
+}
+
 func TestAssertionFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,

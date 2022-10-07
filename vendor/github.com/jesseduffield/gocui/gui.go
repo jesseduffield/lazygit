@@ -206,6 +206,16 @@ func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless b
 		return nil, err
 	}
 
+	if headless || runtime.GOOS == "windows" {
+		g.maxX, g.maxY = g.screen.Size()
+	} else {
+		// TODO: find out if we actually need this bespoke logic for linux
+		g.maxX, g.maxY, err = g.getTermWindowSize()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	g.outputMode = mode
 
 	g.stop = make(chan struct{})
@@ -223,15 +233,6 @@ func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless b
 			Keys:    make(chan *TcellKeyEventWrapper),
 			Resizes: make(chan *TcellResizeEventWrapper),
 		}
-	}
-
-	if runtime.GOOS != "windows" {
-		g.maxX, g.maxY, err = g.getTermWindowSize()
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		g.maxX, g.maxY = Screen.Size()
 	}
 
 	g.BgColor, g.FgColor, g.FrameColor = ColorDefault, ColorDefault, ColorDefault
@@ -400,6 +401,21 @@ func (g *Gui) SetViewOnTopOf(toMove string, other string) error {
 	g.views = append(g.views[:toMoveIndex], g.views[toMoveIndex+1:]...)
 	g.views = append(g.views[:otherIndex], append([]*View{viewToMove}, g.views[otherIndex:]...)...)
 	return nil
+}
+
+// replaces the content in toView with the content in fromView
+func (g *Gui) CopyContent(fromView *View, toView *View) {
+	g.Mutexes.ViewsMutex.Lock()
+	defer g.Mutexes.ViewsMutex.Unlock()
+
+	toView.clear()
+
+	toView.lines = fromView.lines
+	toView.viewLines = fromView.viewLines
+	toView.ox = fromView.ox
+	toView.oy = fromView.oy
+	toView.cx = fromView.cx
+	toView.cy = fromView.cy
 }
 
 // Views returns all the views in the GUI.

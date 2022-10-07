@@ -2,6 +2,7 @@ package custom_commands
 
 import (
 	"strings"
+	"text/template"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -45,8 +46,9 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 	return func() error {
 		sessionState := self.sessionStateLoader.call()
 		promptResponses := make([]string, len(customCommand.Prompts))
+		form := make(map[string]string)
 
-		f := func() error { return self.finalHandler(customCommand, sessionState, promptResponses) }
+		f := func() error { return self.finalHandler(customCommand, sessionState, promptResponses, form) }
 
 		// if we have prompts we'll recursively wrap our confirm handlers with more prompts
 		// until we reach the actual command
@@ -60,10 +62,11 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 
 			wrappedF := func(response string) error {
 				promptResponses[idx] = response
+				form[prompt.Key] = response
 				return g()
 			}
 
-			resolveTemplate := self.getResolveTemplateFn(promptResponses, sessionState)
+			resolveTemplate := self.getResolveTemplateFn(form, promptResponses, sessionState)
 			resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
 			if err != nil {
 				return self.c.Error(err)
@@ -154,19 +157,25 @@ func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPr
 type CustomCommandObjects struct {
 	*SessionState
 	PromptResponses []string
+	Form            map[string]string
 }
 
-func (self *HandlerCreator) getResolveTemplateFn(promptResponses []string, sessionState *SessionState) func(string) (string, error) {
+func (self *HandlerCreator) getResolveTemplateFn(form map[string]string, promptResponses []string, sessionState *SessionState) func(string) (string, error) {
 	objects := CustomCommandObjects{
 		SessionState:    sessionState,
 		PromptResponses: promptResponses,
+		Form:            form,
 	}
 
-	return func(templateStr string) (string, error) { return utils.ResolveTemplate(templateStr, objects) }
+	funcs := template.FuncMap{
+		"quote": self.os.Quote,
+	}
+
+	return func(templateStr string) (string, error) { return utils.ResolveTemplate(templateStr, objects, funcs) }
 }
 
-func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, sessionState *SessionState, promptResponses []string) error {
-	resolveTemplate := self.getResolveTemplateFn(promptResponses, sessionState)
+func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, sessionState *SessionState, promptResponses []string, form map[string]string) error {
+	resolveTemplate := self.getResolveTemplateFn(form, promptResponses, sessionState)
 	cmdStr, err := resolveTemplate(customCommand.Command)
 	if err != nil {
 		return self.c.Error(err)

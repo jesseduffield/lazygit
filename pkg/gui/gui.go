@@ -2,7 +2,7 @@ package gui
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -185,7 +185,7 @@ type GuiRepoState struct {
 	// WindowViewNameMap is a mapping of windows to the current view of that window.
 	// Some views move between windows for example the commitFiles view and when cycling through
 	// side windows we need to know which view to give focus to for a given window
-	WindowViewNameMap map[string]string
+	WindowViewNameMap *utils.ThreadSafeMap[string, string]
 
 	// tells us whether we've set up our views for the current repo. We'll need to
 	// do this whenever we switch back and forth between repos to get the views
@@ -494,8 +494,6 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	})
 	deadlock.Opts.Disable = !gui.Debug
 
-	gui.handleTestMode(startArgs.IntegrationTest)
-
 	gui.g.OnSearchEscape = gui.onSearchEscape
 	if err := gui.Config.ReloadUserConfig(); err != nil {
 		return nil
@@ -551,6 +549,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	}
 
 	gui.c.Log.Info("starting main loop")
+
+	gui.handleTestMode(startArgs.IntegrationTest)
 
 	return gui.g.MainLoop()
 }
@@ -656,13 +656,16 @@ func (gui *Gui) runSubprocess(cmdObj oscommands.ICmdObj) error { //nolint:unpara
 
 	err := subprocess.Run()
 
-	subprocess.Stdout = ioutil.Discard
-	subprocess.Stderr = ioutil.Discard
+	subprocess.Stdout = io.Discard
+	subprocess.Stderr = io.Discard
 	subprocess.Stdin = nil
 
 	if gui.Config.GetUserConfig().PromptToReturnFromSubprocess {
 		fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint(gui.Tr.PressEnterToReturn))
-		fmt.Scanln() // wait for enter press
+
+		// scan to buffer to prevent run unintentional operations when TUI resumes.
+		var buffer string
+		fmt.Scanln(&buffer) // wait for enter press
 	}
 
 	return err
