@@ -29,6 +29,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.MultiplePrompts,
 	custom_commands.MenuFromCommand,
 	stash.Stash,
+	stash.StashIncludingUntrackedFiles,
 }
 
 func GetTests() []*components.IntegrationTest {
