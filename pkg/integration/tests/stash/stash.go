@@ -19,7 +19,10 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.StashCount(0)
 
 		input.PressKeys(keys.Files.ViewStashOptions)
-		input.Confirm()
+		assert.InMenu()
+
+		input.PressKeys("a")
+		input.Type("stash name")
 		input.Confirm()
 
 		assert.StashCount(1)
