@@ -140,13 +140,28 @@ Lazygit has two kinds of tests: unit tests and integration tests. Unit tests go 
 
 Sometimes you will need to make a change in the gocui fork (https://github.com/jesseduffield/gocui). Gocui is the package responsible for rendering windows and handling user input. Here's the typical process to follow:
 
-1. Make the changes in gocui inside the vendor directory so it's easy to test against lazygit
+1. Make the changes in gocui inside lazygit's vendor directory so it's easy to test against lazygit
 2. Copy the changes over to the actual gocui repo (clone it if you haven't already, and use the `awesome` branch, not `master`)
 3. Raise a PR on the gocui repo with your changes
 4. After that PR is merged, make a PR in lazygit bumping the gocui version. You can bump the version by running the following at the lazygit repo root:
 
 ```sh
 ./scripts/bump_gocui.sh
+```
+
+5. Raise a PR in lazygit with those changes
+
+## Updating Lazycore
+
+[Lazycore](https://github.com/jesseduffield/lazycore) is a repo containing shared functionality between lazygit and lazydocker. Sometimes you will need to make a change to that repo and import the changes into lazygit. Similar to updating Gocui, here's what you do:
+
+1. Make the changes in lazycore inside lazygit's vendor directory so it's easy to test against lazygit
+2. Copy the changes over to the actual lazycore repo (clone it if you haven't already, and use the `master` branch)
+3. Raise a PR on the lazycore repo with your changes
+4. After that PR is merged, make a PR in lazygit bumping the lazycore version. You can bump the version by running the following at the lazygit repo root:
+
+```sh
+./scripts/bump_lazycore.sh
 ```
 
 5. Raise a PR in lazygit with those changes
