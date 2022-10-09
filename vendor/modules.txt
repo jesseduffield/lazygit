@@ -178,6 +178,10 @@ github.com/jesseduffield/gocui
 # github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10
 ## explicit; go 1.18
 github.com/jesseduffield/kill
+# github.com/jesseduffield/lazycore v0.0.0-20221009152330-3297d5700785
+## explicit; go 1.18
+github.com/jesseduffield/lazycore/pkg/boxlayout
+github.com/jesseduffield/lazycore/pkg/utils
 # github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 ## explicit; go 1.15
 github.com/jesseduffield/minimal/gitignore
@@ -235,7 +239,7 @@ github.com/rivo/uniseg
 # github.com/sahilm/fuzzy v0.1.0
 ## explicit
 github.com/sahilm/fuzzy
-# github.com/samber/lo v1.10.1
+# github.com/samber/lo v1.31.0
 ## explicit; go 1.18
 github.com/samber/lo
 # github.com/sanity-io/litter v1.5.2
@@ -253,7 +257,7 @@ github.com/sirupsen/logrus
 # github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 ## explicit
 github.com/spkg/bom
-# github.com/stretchr/testify v1.7.0
+# github.com/stretchr/testify v1.8.0
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 # github.com/xanzy/ssh-agent v0.2.1
@@ -312,6 +316,6 @@ gopkg.in/ozeidan/fuzzy-patricia.v3/patricia
 # gopkg.in/warnings.v0 v0.1.2
 ## explicit
 gopkg.in/warnings.v0
-# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+# gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3

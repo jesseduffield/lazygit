@@ -20,6 +20,7 @@ require (
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
 	github.com/jesseduffield/gocui v0.3.1-0.20221003162644-fead10f7b360
 	github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10
+	github.com/jesseduffield/lazycore v0.0.0-20221009152330-3297d5700785
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 	github.com/jesseduffield/yaml v2.1.0+incompatible
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
@@ -29,15 +30,15 @@ require (
 	github.com/mgutz/str v1.2.0
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/sahilm/fuzzy v0.1.0
-	github.com/samber/lo v1.10.1
+	github.com/samber/lo v1.31.0
 	github.com/sanity-io/litter v1.5.2
 	github.com/sasha-s/go-deadlock v0.3.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.0
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
 	gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

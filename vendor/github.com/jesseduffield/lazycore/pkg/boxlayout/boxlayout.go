@@ -2,7 +2,7 @@ package boxlayout
 
 import (
 	"github.com/jesseduffield/generics/slices"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/samber/lo"
 )
 
