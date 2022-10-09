@@ -1,28 +1,113 @@
 package lo
 
-func longestCollection(collections ...[]interface{}) int {
-	max := 0
+// T2 creates a tuple from a list of values.
+// Play: https://go.dev/play/p/IllL3ZO4BQm
+func T2[A any, B any](a A, b B) Tuple2[A, B] {
+	return Tuple2[A, B]{A: a, B: b}
+}
 
-	for _, collection := range collections {
-		if len(collection) > max {
-			max = len(collection)
-		}
-	}
+// T3 creates a tuple from a list of values.
+// Play: https://go.dev/play/p/IllL3ZO4BQm
+func T3[A any, B any, C any](a A, b B, c C) Tuple3[A, B, C] {
+	return Tuple3[A, B, C]{A: a, B: b, C: c}
+}
 
-	return max
+// T4 creates a tuple from a list of values.
+// Play: https://go.dev/play/p/IllL3ZO4BQm
+func T4[A any, B any, C any, D any](a A, b B, c C, d D) Tuple4[A, B, C, D] {
+	return Tuple4[A, B, C, D]{A: a, B: b, C: c, D: d}
+}
+
+// T5 creates a tuple from a list of values.
+// Play: https://go.dev/play/p/IllL3ZO4BQm
+func T5[A any, B any, C any, D any, E any](a A, b B, c C, d D, e E) Tuple5[A, B, C, D, E] {
+	return Tuple5[A, B, C, D, E]{A: a, B: b, C: c, D: d, E: e}
+}
+
+// T6 creates a tuple from a list of values.
+// Play: https://go.dev/play/p/IllL3ZO4BQm
+func T6[A any, B any, C any, D any, E any, F any](a A, b B, c C, d D, e E, f F) Tuple6[A, B, C, D, E, F] {
+	return Tuple6[A, B, C, D, E, F]{A: a, B: b, C: c, D: d, E: e, F: f}
+}
+
+// T7 creates a tuple from a list of values.
+// Play: https://go.dev/play/p/IllL3ZO4BQm
+func T7[A any, B any, C any, D any, E any, F any, G any](a A, b B, c C, d D, e E, f F, g G) Tuple7[A, B, C, D, E, F, G] {
+	return Tuple7[A, B, C, D, E, F, G]{A: a, B: b, C: c, D: d, E: e, F: f, G: g}
+}
+
+// T8 creates a tuple from a list of values.
+// Play: https://go.dev/play/p/IllL3ZO4BQm
+func T8[A any, B any, C any, D any, E any, F any, G any, H any](a A, b B, c C, d D, e E, f F, g G, h H) Tuple8[A, B, C, D, E, F, G, H] {
+	return Tuple8[A, B, C, D, E, F, G, H]{A: a, B: b, C: c, D: d, E: e, F: f, G: g, H: h}
+}
+
+// T8 creates a tuple from a list of values.
+// Play: https://go.dev/play/p/IllL3ZO4BQm
+func T9[A any, B any, C any, D any, E any, F any, G any, H any, I any](a A, b B, c C, d D, e E, f F, g G, h H, i I) Tuple9[A, B, C, D, E, F, G, H, I] {
+	return Tuple9[A, B, C, D, E, F, G, H, I]{A: a, B: b, C: c, D: d, E: e, F: f, G: g, H: h, I: i}
+}
+
+// Unpack2 returns values contained in tuple.
+// Play: https://go.dev/play/p/xVP_k0kJ96W
+func Unpack2[A any, B any](tuple Tuple2[A, B]) (A, B) {
+	return tuple.A, tuple.B
+}
+
+// Unpack3 returns values contained in tuple.
+// Play: https://go.dev/play/p/xVP_k0kJ96W
+func Unpack3[A any, B any, C any](tuple Tuple3[A, B, C]) (A, B, C) {
+	return tuple.A, tuple.B, tuple.C
+}
+
+// Unpack4 returns values contained in tuple.
+// Play: https://go.dev/play/p/xVP_k0kJ96W
+func Unpack4[A any, B any, C any, D any](tuple Tuple4[A, B, C, D]) (A, B, C, D) {
+	return tuple.A, tuple.B, tuple.C, tuple.D
+}
+
+// Unpack5 returns values contained in tuple.
+// Play: https://go.dev/play/p/xVP_k0kJ96W
+func Unpack5[A any, B any, C any, D any, E any](tuple Tuple5[A, B, C, D, E]) (A, B, C, D, E) {
+	return tuple.A, tuple.B, tuple.C, tuple.D, tuple.E
+}
+
+// Unpack6 returns values contained in tuple.
+// Play: https://go.dev/play/p/xVP_k0kJ96W
+func Unpack6[A any, B any, C any, D any, E any, F any](tuple Tuple6[A, B, C, D, E, F]) (A, B, C, D, E, F) {
+	return tuple.A, tuple.B, tuple.C, tuple.D, tuple.E, tuple.F
+}
+
+// Unpack7 returns values contained in tuple.
+// Play: https://go.dev/play/p/xVP_k0kJ96W
+func Unpack7[A any, B any, C any, D any, E any, F any, G any](tuple Tuple7[A, B, C, D, E, F, G]) (A, B, C, D, E, F, G) {
+	return tuple.A, tuple.B, tuple.C, tuple.D, tuple.E, tuple.F, tuple.G
+}
+
+// Unpack8 returns values contained in tuple.
+// Play: https://go.dev/play/p/xVP_k0kJ96W
+func Unpack8[A any, B any, C any, D any, E any, F any, G any, H any](tuple Tuple8[A, B, C, D, E, F, G, H]) (A, B, C, D, E, F, G, H) {
+	return tuple.A, tuple.B, tuple.C, tuple.D, tuple.E, tuple.F, tuple.G, tuple.H
+}
+
+// Unpack9 returns values contained in tuple.
+// Play: https://go.dev/play/p/xVP_k0kJ96W
+func Unpack9[A any, B any, C any, D any, E any, F any, G any, H any, I any](tuple Tuple9[A, B, C, D, E, F, G, H, I]) (A, B, C, D, E, F, G, H, I) {
+	return tuple.A, tuple.B, tuple.C, tuple.D, tuple.E, tuple.F, tuple.G, tuple.H, tuple.I
 }
 
 // Zip2 creates a slice of grouped elements, the first of which contains the first elements
 // of the given arrays, the second of which contains the second elements of the given arrays, and so on.
 // When collections have different size, the Tuple attributes are filled with zero value.
+// Play: https://go.dev/play/p/jujaA6GaJTp
 func Zip2[A any, B any](a []A, b []B) []Tuple2[A, B] {
-	size := Max[int]([]int{len(a), len(b)})
+	size := Max([]int{len(a), len(b)})
 
 	result := make([]Tuple2[A, B], 0, size)
 
 	for index := 0; index < size; index++ {
-		_a, _ := Nth[A](a, index)
-		_b, _ := Nth[B](b, index)
+		_a, _ := Nth(a, index)
+		_b, _ := Nth(b, index)
 
 		result = append(result, Tuple2[A, B]{
 			A: _a,
@@ -36,15 +121,16 @@ func Zip2[A any, B any](a []A, b []B) []Tuple2[A, B] {
 // Zip3 creates a slice of grouped elements, the first of which contains the first elements
 // of the given arrays, the second of which contains the second elements of the given arrays, and so on.
 // When collections have different size, the Tuple attributes are filled with zero value.
+// Play: https://go.dev/play/p/jujaA6GaJTp
 func Zip3[A any, B any, C any](a []A, b []B, c []C) []Tuple3[A, B, C] {
-	size := Max[int]([]int{len(a), len(b), len(c)})
+	size := Max([]int{len(a), len(b), len(c)})
 
 	result := make([]Tuple3[A, B, C], 0, size)
 
 	for index := 0; index < size; index++ {
-		_a, _ := Nth[A](a, index)
-		_b, _ := Nth[B](b, index)
-		_c, _ := Nth[C](c, index)
+		_a, _ := Nth(a, index)
+		_b, _ := Nth(b, index)
+		_c, _ := Nth(c, index)
 
 		result = append(result, Tuple3[A, B, C]{
 			A: _a,
@@ -59,16 +145,17 @@ func Zip3[A any, B any, C any](a []A, b []B, c []C) []Tuple3[A, B, C] {
 // Zip4 creates a slice of grouped elements, the first of which contains the first elements
 // of the given arrays, the second of which contains the second elements of the given arrays, and so on.
 // When collections have different size, the Tuple attributes are filled with zero value.
+// Play: https://go.dev/play/p/jujaA6GaJTp
 func Zip4[A any, B any, C any, D any](a []A, b []B, c []C, d []D) []Tuple4[A, B, C, D] {
-	size := Max[int]([]int{len(a), len(b), len(c), len(d)})
+	size := Max([]int{len(a), len(b), len(c), len(d)})
 
 	result := make([]Tuple4[A, B, C, D], 0, size)
 
 	for index := 0; index < size; index++ {
-		_a, _ := Nth[A](a, index)
-		_b, _ := Nth[B](b, index)
-		_c, _ := Nth[C](c, index)
-		_d, _ := Nth[D](d, index)
+		_a, _ := Nth(a, index)
+		_b, _ := Nth(b, index)
+		_c, _ := Nth(c, index)
+		_d, _ := Nth(d, index)
 
 		result = append(result, Tuple4[A, B, C, D]{
 			A: _a,
@@ -84,17 +171,18 @@ func Zip4[A any, B any, C any, D any](a []A, b []B, c []C, d []D) []Tuple4[A, B,
 // Zip5 creates a slice of grouped elements, the first of which contains the first elements
 // of the given arrays, the second of which contains the second elements of the given arrays, and so on.
 // When collections have different size, the Tuple attributes are filled with zero value.
+// Play: https://go.dev/play/p/jujaA6GaJTp
 func Zip5[A any, B any, C any, D any, E any](a []A, b []B, c []C, d []D, e []E) []Tuple5[A, B, C, D, E] {
-	size := Max[int]([]int{len(a), len(b), len(c), len(d), len(e)})
+	size := Max([]int{len(a), len(b), len(c), len(d), len(e)})
 
 	result := make([]Tuple5[A, B, C, D, E], 0, size)
 
 	for index := 0; index < size; index++ {
-		_a, _ := Nth[A](a, index)
-		_b, _ := Nth[B](b, index)
-		_c, _ := Nth[C](c, index)
-		_d, _ := Nth[D](d, index)
-		_e, _ := Nth[E](e, index)
+		_a, _ := Nth(a, index)
+		_b, _ := Nth(b, index)
+		_c, _ := Nth(c, index)
+		_d, _ := Nth(d, index)
+		_e, _ := Nth(e, index)
 
 		result = append(result, Tuple5[A, B, C, D, E]{
 			A: _a,
@@ -111,18 +199,19 @@ func Zip5[A any, B any, C any, D any, E any](a []A, b []B, c []C, d []D, e []E) 
 // Zip6 creates a slice of grouped elements, the first of which contains the first elements
 // of the given arrays, the second of which contains the second elements of the given arrays, and so on.
 // When collections have different size, the Tuple attributes are filled with zero value.
+// Play: https://go.dev/play/p/jujaA6GaJTp
 func Zip6[A any, B any, C any, D any, E any, F any](a []A, b []B, c []C, d []D, e []E, f []F) []Tuple6[A, B, C, D, E, F] {
-	size := Max[int]([]int{len(a), len(b), len(c), len(d), len(e), len(f)})
+	size := Max([]int{len(a), len(b), len(c), len(d), len(e), len(f)})
 
 	result := make([]Tuple6[A, B, C, D, E, F], 0, size)
 
 	for index := 0; index < size; index++ {
-		_a, _ := Nth[A](a, index)
-		_b, _ := Nth[B](b, index)
-		_c, _ := Nth[C](c, index)
-		_d, _ := Nth[D](d, index)
-		_e, _ := Nth[E](e, index)
-		_f, _ := Nth[F](f, index)
+		_a, _ := Nth(a, index)
+		_b, _ := Nth(b, index)
+		_c, _ := Nth(c, index)
+		_d, _ := Nth(d, index)
+		_e, _ := Nth(e, index)
+		_f, _ := Nth(f, index)
 
 		result = append(result, Tuple6[A, B, C, D, E, F]{
 			A: _a,
@@ -140,19 +229,20 @@ func Zip6[A any, B any, C any, D any, E any, F any](a []A, b []B, c []C, d []D, 
 // Zip7 creates a slice of grouped elements, the first of which contains the first elements
 // of the given arrays, the second of which contains the second elements of the given arrays, and so on.
 // When collections have different size, the Tuple attributes are filled with zero value.
+// Play: https://go.dev/play/p/jujaA6GaJTp
 func Zip7[A any, B any, C any, D any, E any, F any, G any](a []A, b []B, c []C, d []D, e []E, f []F, g []G) []Tuple7[A, B, C, D, E, F, G] {
-	size := Max[int]([]int{len(a), len(b), len(c), len(d), len(e), len(f), len(g)})
+	size := Max([]int{len(a), len(b), len(c), len(d), len(e), len(f), len(g)})
 
 	result := make([]Tuple7[A, B, C, D, E, F, G], 0, size)
 
 	for index := 0; index < size; index++ {
-		_a, _ := Nth[A](a, index)
-		_b, _ := Nth[B](b, index)
-		_c, _ := Nth[C](c, index)
-		_d, _ := Nth[D](d, index)
-		_e, _ := Nth[E](e, index)
-		_f, _ := Nth[F](f, index)
-		_g, _ := Nth[G](g, index)
+		_a, _ := Nth(a, index)
+		_b, _ := Nth(b, index)
+		_c, _ := Nth(c, index)
+		_d, _ := Nth(d, index)
+		_e, _ := Nth(e, index)
+		_f, _ := Nth(f, index)
+		_g, _ := Nth(g, index)
 
 		result = append(result, Tuple7[A, B, C, D, E, F, G]{
 			A: _a,
@@ -171,20 +261,21 @@ func Zip7[A any, B any, C any, D any, E any, F any, G any](a []A, b []B, c []C, 
 // Zip8 creates a slice of grouped elements, the first of which contains the first elements
 // of the given arrays, the second of which contains the second elements of the given arrays, and so on.
 // When collections have different size, the Tuple attributes are filled with zero value.
+// Play: https://go.dev/play/p/jujaA6GaJTp
 func Zip8[A any, B any, C any, D any, E any, F any, G any, H any](a []A, b []B, c []C, d []D, e []E, f []F, g []G, h []H) []Tuple8[A, B, C, D, E, F, G, H] {
-	size := Max[int]([]int{len(a), len(b), len(c), len(d), len(e), len(f), len(g), len(h)})
+	size := Max([]int{len(a), len(b), len(c), len(d), len(e), len(f), len(g), len(h)})
 
 	result := make([]Tuple8[A, B, C, D, E, F, G, H], 0, size)
 
 	for index := 0; index < size; index++ {
-		_a, _ := Nth[A](a, index)
-		_b, _ := Nth[B](b, index)
-		_c, _ := Nth[C](c, index)
-		_d, _ := Nth[D](d, index)
-		_e, _ := Nth[E](e, index)
-		_f, _ := Nth[F](f, index)
-		_g, _ := Nth[G](g, index)
-		_h, _ := Nth[H](h, index)
+		_a, _ := Nth(a, index)
+		_b, _ := Nth(b, index)
+		_c, _ := Nth(c, index)
+		_d, _ := Nth(d, index)
+		_e, _ := Nth(e, index)
+		_f, _ := Nth(f, index)
+		_g, _ := Nth(g, index)
+		_h, _ := Nth(h, index)
 
 		result = append(result, Tuple8[A, B, C, D, E, F, G, H]{
 			A: _a,
@@ -204,21 +295,22 @@ func Zip8[A any, B any, C any, D any, E any, F any, G any, H any](a []A, b []B, 
 // Zip9 creates a slice of grouped elements, the first of which contains the first elements
 // of the given arrays, the second of which contains the second elements of the given arrays, and so on.
 // When collections have different size, the Tuple attributes are filled with zero value.
+// Play: https://go.dev/play/p/jujaA6GaJTp
 func Zip9[A any, B any, C any, D any, E any, F any, G any, H any, I any](a []A, b []B, c []C, d []D, e []E, f []F, g []G, h []H, i []I) []Tuple9[A, B, C, D, E, F, G, H, I] {
-	size := Max[int]([]int{len(a), len(b), len(c), len(d), len(e), len(f), len(g), len(h), len(i)})
+	size := Max([]int{len(a), len(b), len(c), len(d), len(e), len(f), len(g), len(h), len(i)})
 
 	result := make([]Tuple9[A, B, C, D, E, F, G, H, I], 0, size)
 
 	for index := 0; index < size; index++ {
-		_a, _ := Nth[A](a, index)
-		_b, _ := Nth[B](b, index)
-		_c, _ := Nth[C](c, index)
-		_d, _ := Nth[D](d, index)
-		_e, _ := Nth[E](e, index)
-		_f, _ := Nth[F](f, index)
-		_g, _ := Nth[G](g, index)
-		_h, _ := Nth[H](h, index)
-		_i, _ := Nth[I](i, index)
+		_a, _ := Nth(a, index)
+		_b, _ := Nth(b, index)
+		_c, _ := Nth(c, index)
+		_d, _ := Nth(d, index)
+		_e, _ := Nth(e, index)
+		_f, _ := Nth(f, index)
+		_g, _ := Nth(g, index)
+		_h, _ := Nth(h, index)
+		_i, _ := Nth(i, index)
 
 		result = append(result, Tuple9[A, B, C, D, E, F, G, H, I]{
 			A: _a,
@@ -238,6 +330,7 @@ func Zip9[A any, B any, C any, D any, E any, F any, G any, H any, I any](a []A, 
 
 // Unzip2 accepts an array of grouped elements and creates an array regrouping the elements
 // to their pre-zip configuration.
+// Play: https://go.dev/play/p/ciHugugvaAW
 func Unzip2[A any, B any](tuples []Tuple2[A, B]) ([]A, []B) {
 	size := len(tuples)
 	r1 := make([]A, 0, size)
@@ -253,6 +346,7 @@ func Unzip2[A any, B any](tuples []Tuple2[A, B]) ([]A, []B) {
 
 // Unzip3 accepts an array of grouped elements and creates an array regrouping the elements
 // to their pre-zip configuration.
+// Play: https://go.dev/play/p/ciHugugvaAW
 func Unzip3[A any, B any, C any](tuples []Tuple3[A, B, C]) ([]A, []B, []C) {
 	size := len(tuples)
 	r1 := make([]A, 0, size)
@@ -270,6 +364,7 @@ func Unzip3[A any, B any, C any](tuples []Tuple3[A, B, C]) ([]A, []B, []C) {
 
 // Unzip4 accepts an array of grouped elements and creates an array regrouping the elements
 // to their pre-zip configuration.
+// Play: https://go.dev/play/p/ciHugugvaAW
 func Unzip4[A any, B any, C any, D any](tuples []Tuple4[A, B, C, D]) ([]A, []B, []C, []D) {
 	size := len(tuples)
 	r1 := make([]A, 0, size)
@@ -289,6 +384,7 @@ func Unzip4[A any, B any, C any, D any](tuples []Tuple4[A, B, C, D]) ([]A, []B, 
 
 // Unzip5 accepts an array of grouped elements and creates an array regrouping the elements
 // to their pre-zip configuration.
+// Play: https://go.dev/play/p/ciHugugvaAW
 func Unzip5[A any, B any, C any, D any, E any](tuples []Tuple5[A, B, C, D, E]) ([]A, []B, []C, []D, []E) {
 	size := len(tuples)
 	r1 := make([]A, 0, size)
@@ -310,6 +406,7 @@ func Unzip5[A any, B any, C any, D any, E any](tuples []Tuple5[A, B, C, D, E]) (
 
 // Unzip6 accepts an array of grouped elements and creates an array regrouping the elements
 // to their pre-zip configuration.
+// Play: https://go.dev/play/p/ciHugugvaAW
 func Unzip6[A any, B any, C any, D any, E any, F any](tuples []Tuple6[A, B, C, D, E, F]) ([]A, []B, []C, []D, []E, []F) {
 	size := len(tuples)
 	r1 := make([]A, 0, size)
@@ -333,6 +430,7 @@ func Unzip6[A any, B any, C any, D any, E any, F any](tuples []Tuple6[A, B, C, D
 
 // Unzip7 accepts an array of grouped elements and creates an array regrouping the elements
 // to their pre-zip configuration.
+// Play: https://go.dev/play/p/ciHugugvaAW
 func Unzip7[A any, B any, C any, D any, E any, F any, G any](tuples []Tuple7[A, B, C, D, E, F, G]) ([]A, []B, []C, []D, []E, []F, []G) {
 	size := len(tuples)
 	r1 := make([]A, 0, size)
@@ -358,6 +456,7 @@ func Unzip7[A any, B any, C any, D any, E any, F any, G any](tuples []Tuple7[A, 
 
 // Unzip8 accepts an array of grouped elements and creates an array regrouping the elements
 // to their pre-zip configuration.
+// Play: https://go.dev/play/p/ciHugugvaAW
 func Unzip8[A any, B any, C any, D any, E any, F any, G any, H any](tuples []Tuple8[A, B, C, D, E, F, G, H]) ([]A, []B, []C, []D, []E, []F, []G, []H) {
 	size := len(tuples)
 	r1 := make([]A, 0, size)
@@ -385,6 +484,7 @@ func Unzip8[A any, B any, C any, D any, E any, F any, G any, H any](tuples []Tup
 
 // Unzip9 accepts an array of grouped elements and creates an array regrouping the elements
 // to their pre-zip configuration.
+// Play: https://go.dev/play/p/ciHugugvaAW
 func Unzip9[A any, B any, C any, D any, E any, F any, G any, H any, I any](tuples []Tuple9[A, B, C, D, E, F, G, H, I]) ([]A, []B, []C, []D, []E, []F, []G, []H, []I) {
 	size := len(tuples)
 	r1 := make([]A, 0, size)
