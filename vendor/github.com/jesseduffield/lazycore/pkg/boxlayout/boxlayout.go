@@ -1,7 +1,6 @@
 package boxlayout
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -95,7 +94,7 @@ func ArrangeWindows(root *Box, x0, y0, width, height int) map[string]Dimensions 
 }
 
 func calcSizes(boxes []*Box, availableSpace int) []int {
-	normalizedWeights := normalizeWeights(slices.Map(boxes, func(box *Box) int { return box.Weight }))
+	normalizedWeights := normalizeWeights(lo.Map(boxes, func(box *Box, _ int) int { return box.Weight }))
 
 	totalWeight := 0
 	reservedSpace := 0
@@ -152,13 +151,13 @@ func normalizeWeights(weights []int) []int {
 	}
 
 	// to spare us some computation we'll exit early if any of our weights is 1
-	if slices.Some(weights, func(weight int) bool { return weight == 1 }) {
+	if lo.SomeBy(weights, func(weight int) bool { return weight == 1 }) {
 		return weights
 	}
 
 	// map weights to factorSlices and find the lowest common factor
-	positiveWeights := slices.Filter(weights, func(weight int) bool { return weight > 0 })
-	factorSlices := slices.Map(positiveWeights, func(weight int) []int { return calcFactors(weight) })
+	positiveWeights := lo.Filter(weights, func(weight int, _ int) bool { return weight > 0 })
+	factorSlices := lo.Map(positiveWeights, func(weight int, _ int) []int { return calcFactors(weight) })
 	commonFactors := factorSlices[0]
 	for _, factors := range factorSlices {
 		commonFactors = lo.Intersect(commonFactors, factors)
@@ -168,7 +167,7 @@ func normalizeWeights(weights []int) []int {
 		return weights
 	}
 
-	newWeights := slices.Map(weights, func(weight int) int { return weight / commonFactors[0] })
+	newWeights := lo.Map(weights, func(weight int, _ int) int { return weight / commonFactors[0] })
 
 	return normalizeWeights(newWeights)
 }
