@@ -84,3 +84,5 @@ go run pkg/integration/deprecated/cmd/tui/main.go
 ```
 
 The tests in the old format live in test/integration. In the old format, test definitions are co-located with the snapshots. The setup step is done in a `setup.sh` shell script and the `recording.json` file contains the recorded keypresses to be replayed during the test.
+
+If you have rewritten an integration test under the new pattern, be sure to delete the old integration test directory.
