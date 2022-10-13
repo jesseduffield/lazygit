@@ -65,8 +65,8 @@ outer:
 }
 
 func (self *StashLoader) getUnfilteredStashEntries() []*models.StashEntry {
-	rawString, _ := self.cmd.New("git stash list --pretty='%gs'").DontLog().RunWithOutput()
-	return slices.MapWithIndex(utils.SplitLines(rawString), func(line string, index int) *models.StashEntry {
+	rawString, _ := self.cmd.New("git stash list -z --pretty='%gs'").DontLog().RunWithOutput()
+	return slices.MapWithIndex(utils.SplitNul(rawString), func(line string, index int) *models.StashEntry {
 		return self.stashEntryFromLine(line, index)
 	})
 }

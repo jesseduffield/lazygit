@@ -22,7 +22,7 @@ func TestGetStashEntries(t *testing.T) {
 			"No stash entries found",
 			"",
 			oscommands.NewFakeRunner(t).
-				Expect(`git stash list --pretty='%gs'`, "", nil),
+				Expect(`git stash list -z --pretty='%gs'`, "", nil),
 			[]*models.StashEntry{},
 		},
 		{
@@ -30,8 +30,8 @@ func TestGetStashEntries(t *testing.T) {
 			"",
 			oscommands.NewFakeRunner(t).
 				Expect(
-					`git stash list --pretty='%gs'`,
-					"WIP on add-pkg-commands-test: 55c6af2 increase parallel build\nWIP on master: bb86a3f update github template",
+					`git stash list -z --pretty='%gs'`,
+					"WIP on add-pkg-commands-test: 55c6af2 increase parallel build\x00WIP on master: bb86a3f update github template\x00",
 					nil,
 				),
 			[]*models.StashEntry{
