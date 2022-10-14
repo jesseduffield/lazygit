@@ -3,6 +3,7 @@ package presentation
 import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -19,5 +20,11 @@ func getStashEntryDisplayStrings(s *models.StashEntry, diffed bool) []string {
 	if diffed {
 		textStyle = theme.DiffTerminalColor
 	}
-	return []string{textStyle.Sprint(s.Name)}
+
+	res := make([]string, 0, 2)
+	if icons.IsIconEnabled() {
+		res = append(res, textStyle.Sprint(icons.IconForStash(s)))
+	}
+	res = append(res, textStyle.Sprint(s.Name))
+	return res
 }
