@@ -17,6 +17,14 @@ func SplitLines(multilineString string) []string {
 	return lines
 }
 
+func SplitNul(str string) []string {
+	if str == "" {
+		return make([]string, 0)
+	}
+	str = strings.TrimSuffix(str, "\x00")
+	return strings.Split(str, "\x00")
+}
+
 // NormalizeLinefeeds - Removes all Windows and Mac style line feeds
 func NormalizeLinefeeds(str string) string {
 	str = strings.Replace(str, "\r\n", "\n", -1)
