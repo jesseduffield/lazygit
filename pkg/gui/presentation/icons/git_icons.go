@@ -13,6 +13,7 @@ const (
 	COMMIT_ICON         = "\ufc16" // ﰖ
 	MERGE_COMMIT_ICON   = "\ufb2c" // שּׁ
 	DEFAULT_REMOTE_ICON = "\uf7a1" // 
+	STASH_ICON          = "\uf01c" // 
 )
 
 type remoteIcon struct {
@@ -58,4 +59,8 @@ func IconForRemote(remote *models.Remote) string {
 		}
 	}
 	return DEFAULT_REMOTE_ICON
+}
+
+func IconForStash(stash *models.StashEntry) string {
+	return STASH_ICON
 }
