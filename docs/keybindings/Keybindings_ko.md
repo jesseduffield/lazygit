@@ -63,6 +63,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>g</kbd>: pop
   <kbd>d</kbd>: drop
   <kbd>n</kbd>: 새 브랜치 생성
+  <kbd>r</kbd>: rename stash
   <kbd>enter</kbd>: view selected item's files
 </pre>
 

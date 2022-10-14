@@ -231,6 +231,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>g</kbd>: wyciągnij
   <kbd>d</kbd>: porzuć
   <kbd>n</kbd>: nowa gałąź
+  <kbd>r</kbd>: rename stash
   <kbd>enter</kbd>: przeglądaj pliki commita
 </pre>
 

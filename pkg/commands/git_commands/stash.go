@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -29,8 +30,9 @@ func (self *StashCommands) DropNewest() error {
 	return self.cmd.New("git stash drop").Run()
 }
 
-func (self *StashCommands) Drop(index int) error {
-	return self.cmd.New(fmt.Sprintf("git stash drop stash@{%d}", index)).Run()
+func (self *StashCommands) Drop(index int) (string, error) {
+	output, _, err := self.cmd.New(fmt.Sprintf("git stash drop stash@{%d}", index)).RunWithOutputs()
+	return output, err
 }
 
 func (self *StashCommands) Pop(index int) error {
@@ -44,6 +46,14 @@ func (self *StashCommands) Apply(index int) error {
 // Save save stash
 func (self *StashCommands) Save(message string) error {
 	return self.cmd.New("git stash save " + self.cmd.Quote(message)).Run()
+}
+
+func (self *StashCommands) Store(sha string, message string) error {
+	trimmedMessage := strings.Trim(message, " \t")
+	if len(trimmedMessage) > 0 {
+		return self.cmd.New(fmt.Sprintf("git stash store  %s -m %s", self.cmd.Quote(sha), self.cmd.Quote(trimmedMessage))).Run()
+	}
+	return self.cmd.New(fmt.Sprintf("git stash store %s", self.cmd.Quote(sha))).Run()
 }
 
 func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {

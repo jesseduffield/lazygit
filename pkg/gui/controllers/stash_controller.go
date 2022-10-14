@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"regexp"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type StashController struct {
@@ -43,6 +46,11 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.checkSelected(self.handleNewBranchOffStashEntry),
 			Description: self.c.Tr.LcNewBranch,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Stash.RenameStash),
+			Handler:     self.checkSelected(self.handleRenameStashEntry),
+			Description: self.c.Tr.LcRenameStash,
 		},
 	}
 
@@ -122,7 +130,7 @@ func (self *StashController) handleStashDrop(stashEntry *models.StashEntry) erro
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.Stash)
-			err := self.git.Stash.Drop(stashEntry.Index)
+			_, err := self.git.Stash.Drop(stashEntry.Index)
 			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			if err != nil {
 				return self.c.Error(err)
@@ -138,4 +146,39 @@ func (self *StashController) postStashRefresh() error {
 
 func (self *StashController) handleNewBranchOffStashEntry(stashEntry *models.StashEntry) error {
 	return self.helpers.Refs.NewBranch(stashEntry.RefName(), stashEntry.Description(), "")
+}
+
+func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntry) error {
+	message := utils.ResolvePlaceholderString(
+		self.c.Tr.RenameStashPrompt,
+		map[string]string{
+			"stashName": stashEntry.RefName(),
+		},
+	)
+
+	return self.c.Prompt(types.PromptOpts{
+		Title:          message,
+		InitialContent: stashEntry.Name,
+		HandleConfirm: func(response string) error {
+			self.c.LogAction(self.c.Tr.Actions.RenameStash)
+			output, err := self.git.Stash.Drop(stashEntry.Index)
+			if err != nil {
+				return err
+			}
+
+			stashShaPattern := regexp.MustCompile(`\(([0-9a-f]+)\)`)
+			matches := stashShaPattern.FindStringSubmatch(output)
+			stashSha := ""
+			if len(matches) > 1 {
+				stashSha = matches[1]
+			}
+
+			err = self.git.Stash.Store(stashSha, response)
+			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	})
 }

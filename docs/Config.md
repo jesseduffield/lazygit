@@ -223,6 +223,7 @@ keybinding:
     viewBisectOptions: 'b'
   stash:
     popStash: 'g'
+    renameStash: 'r'
   commitFiles:
     checkoutCommitFile: 'c'
   main:

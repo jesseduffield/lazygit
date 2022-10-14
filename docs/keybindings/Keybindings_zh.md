@@ -264,6 +264,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>g</kbd>: 应用并删除
   <kbd>d</kbd>: 删除
   <kbd>n</kbd>: 新分支
+  <kbd>r</kbd>: rename stash
   <kbd>enter</kbd>: 查看提交的文件
 </pre>
 
