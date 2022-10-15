@@ -8,6 +8,7 @@ import (
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/bisect"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/branch"
@@ -15,7 +16,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // Here is where we lists the actual tests that will run. When you create a new test,
@@ -53,7 +53,7 @@ func GetTests() []*components.IntegrationTest {
 
 	missingTestNames := []string{}
 
-	if err := filepath.Walk(filepath.Join(utils.GetLazygitRootDirectory(), "pkg/integration/tests"), func(path string, info os.FileInfo, err error) error {
+	if err := filepath.Walk(filepath.Join(utils.GetLazyRootDirectory(), "pkg/integration/tests"), func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() && strings.HasSuffix(path, ".go") {
 			// ignoring this current file
 			if filepath.Base(path) == "tests.go" {

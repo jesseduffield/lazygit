@@ -15,12 +15,12 @@ import (
 
 	"github.com/jesseduffield/generics/maps"
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/app"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -44,8 +44,8 @@ func CommandToRun() string {
 	return "go run scripts/cheatsheet/main.go generate"
 }
 
-func GetDir() string {
-	return utils.GetLazygitRootDirectory() + "/docs/keybindings"
+func GetKeybindingsDir() string {
+	return utils.GetLazyRootDirectory() + "/docs/keybindings"
 }
 
 func generateAtDir(cheatsheetDir string) {
@@ -75,7 +75,7 @@ func generateAtDir(cheatsheetDir string) {
 }
 
 func Generate() {
-	generateAtDir(GetDir())
+	generateAtDir(GetKeybindingsDir())
 }
 
 func writeString(file *os.File, str string) {

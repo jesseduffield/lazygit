@@ -9,12 +9,12 @@ import (
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // This program lets you run integration tests from a TUI. See pkg/integration/README.md for more info.
@@ -22,7 +22,7 @@ import (
 var SLOW_KEY_PRESS_DELAY = 300
 
 func RunTUI() {
-	rootDir := utils.GetLazygitRootDirectory()
+	rootDir := utils.GetLazyRootDirectory()
 	testDir := filepath.Join(rootDir, "test", "integration")
 
 	app := newApp(testDir)

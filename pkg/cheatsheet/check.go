@@ -12,7 +12,7 @@ import (
 )
 
 func Check() {
-	dir := GetDir()
+	dir := GetKeybindingsDir()
 	tmpDir := filepath.Join(os.TempDir(), "lazygit_cheatsheet")
 	err := os.RemoveAll(tmpDir)
 	if err != nil {
