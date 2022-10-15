@@ -51,7 +51,7 @@ func (self *StashCommands) Save(message string) error {
 func (self *StashCommands) Store(sha string, message string) error {
 	trimmedMessage := strings.Trim(message, " \t")
 	if len(trimmedMessage) > 0 {
-		return self.cmd.New(fmt.Sprintf("git stash store  %s -m %s", self.cmd.Quote(sha), self.cmd.Quote(trimmedMessage))).Run()
+		return self.cmd.New(fmt.Sprintf("git stash store %s -m %s", self.cmd.Quote(sha), self.cmd.Quote(trimmedMessage))).Run()
 	}
 	return self.cmd.New(fmt.Sprintf("git stash store %s", self.cmd.Quote(sha))).Run()
 }
