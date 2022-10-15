@@ -20,7 +20,7 @@ require (
 	github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
 	github.com/jesseduffield/gocui v0.3.1-0.20221003162644-fead10f7b360
 	github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10
-	github.com/jesseduffield/lazycore v0.0.0-20221009164442-17c8b878c316
+	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 	github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 	github.com/jesseduffield/yaml v2.1.0+incompatible
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0

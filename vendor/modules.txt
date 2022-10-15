@@ -178,7 +178,7 @@ github.com/jesseduffield/gocui
 # github.com/jesseduffield/kill v0.0.0-20220618033138-bfbe04675d10
 ## explicit; go 1.18
 github.com/jesseduffield/kill
-# github.com/jesseduffield/lazycore v0.0.0-20221009164442-17c8b878c316
+# github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
 ## explicit; go 1.18
 github.com/jesseduffield/lazycore/pkg/boxlayout
 github.com/jesseduffield/lazycore/pkg/utils

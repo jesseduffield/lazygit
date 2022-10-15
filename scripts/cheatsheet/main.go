@@ -18,7 +18,7 @@ func main() {
 	switch command {
 	case "generate":
 		cheatsheet.Generate()
-		fmt.Printf("\nGenerated cheatsheets in %s\n", cheatsheet.GetDir())
+		fmt.Printf("\nGenerated cheatsheets in %s\n", cheatsheet.GetKeybindingsDir())
 	case "check":
 		cheatsheet.Check()
 	default:
