@@ -1,7 +1,9 @@
 package git_commands
 
 import (
+	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
@@ -115,6 +117,29 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+func (self *StashCommands) Rename(index int, message string) error {
+	output, err := self.Drop(index)
+	if err != nil {
+		return err
+	}
+
+	// `output` is in the following format:
+	// Dropped refs/stash@{0} (f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd)
+	stashShaPattern := regexp.MustCompile(`\(([0-9a-f]+)\)`)
+	matches := stashShaPattern.FindStringSubmatch(output)
+	if len(matches) <= 1 {
+		return errors.New("Output of `git stash drop` is invalid") // Usually this error does not occur
+	}
+	stashSha := matches[1]
+
+	err = self.Store(stashSha, message)
+	if err != nil {
+		return err
 	}
 
 	return nil

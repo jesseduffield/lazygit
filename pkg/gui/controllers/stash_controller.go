@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"regexp"
-
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -161,23 +159,12 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 		InitialContent: stashEntry.Name,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.RenameStash)
-			output, err := self.git.Stash.Drop(stashEntry.Index)
-			if err != nil {
-				return err
-			}
-
-			stashShaPattern := regexp.MustCompile(`\(([0-9a-f]+)\)`)
-			matches := stashShaPattern.FindStringSubmatch(output)
-			stashSha := ""
-			if len(matches) > 1 {
-				stashSha = matches[1]
-			}
-
-			err = self.git.Stash.Store(stashSha, response)
+			err := self.git.Stash.Rename(stashEntry.Index, response)
 			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			if err != nil {
 				return err
 			}
+			self.context().SetSelectedLineIdx(0) // Select the renamed stash
 			return nil
 		},
 	})

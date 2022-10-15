@@ -123,3 +123,46 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 		})
 	}
 }
+
+func TestStashRename(t *testing.T) {
+	type scenario struct {
+		testName         string
+		index            int
+		message          string
+		expectedDropCmd  []string
+		dropResult       string
+		expectedStoreCmd []string
+	}
+
+	scenarios := []scenario{
+		{
+			testName:         "Default case",
+			index:            3,
+			message:          "New message",
+			expectedDropCmd:  []string{"stash", "drop", "stash@{3}"},
+			dropResult:       "Dropped refs/stash@{3} (f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd)\n",
+			expectedStoreCmd: []string{"stash", "store", "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd", "-m", "New message"},
+		},
+		{
+			testName:         "Empty message",
+			index:            4,
+			message:          "",
+			expectedDropCmd:  []string{"stash", "drop", "stash@{4}"},
+			dropResult:       "Dropped refs/stash@{4} (f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd)\n",
+			expectedStoreCmd: []string{"stash", "store", "f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd"},
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			runner := oscommands.NewFakeRunner(t).
+				ExpectGitArgs(s.expectedDropCmd, s.dropResult, nil).
+				ExpectGitArgs(s.expectedStoreCmd, "", nil)
+			instance := buildStashCommands(commonDeps{runner: runner})
+
+			err := instance.Rename(s.index, s.message)
+			assert.NoError(t, err)
+		})
+	}
+}
