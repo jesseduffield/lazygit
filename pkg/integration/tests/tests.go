@@ -16,6 +16,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 )
 
 // Here is where we lists the actual tests that will run. When you create a new test,
@@ -38,6 +39,7 @@ var tests = []*components.IntegrationTest{
 	cherry_pick.CherryPick,
 	cherry_pick.CherryPickConflicts,
 	custom_commands.FormPrompts,
+	stash.Rename,
 }
 
 func GetTests() []*components.IntegrationTest {

@@ -111,3 +111,8 @@ func (s *Shell) CreateNCommits(n int) *Shell {
 
 	return s
 }
+
+func (s *Shell) StashWithMessage(message string) *Shell {
+	s.RunCommand(fmt.Sprintf(`git stash -m "%s"`, message))
+	return s
+}
