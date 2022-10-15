@@ -436,6 +436,8 @@ gui:
 
 For all possible keybinding options, check [Custom_Keybindings.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md)
 
+You can disable certain key bindings by specifying `null`.
+
 ### Example Keybindings For Colemak Users
 
 ```yaml
