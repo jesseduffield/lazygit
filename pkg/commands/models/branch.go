@@ -11,6 +11,7 @@ type Branch struct {
 	Pullables    string
 	UpstreamGone bool
 	Head         bool
+	DetachedHead bool
 	// if we have a named remote locally this will be the name of that remote e.g.
 	// 'origin' or 'tiwood'. If we don't have the remote locally it'll look like
 	// 'git@github.com:tiwood/lazygit.git'
@@ -19,6 +20,9 @@ type Branch struct {
 }
 
 func (b *Branch) FullRefName() string {
+	if b.DetachedHead {
+		return b.Name
+	}
 	return "refs/heads/" + b.Name
 }
 

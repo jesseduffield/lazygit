@@ -27,24 +27,30 @@ type BranchLoaderConfigCommands interface {
 	Branches() (map[string]*config.Branch, error)
 }
 
+type BranchInfo struct {
+	RefName      string
+	DisplayName  string // e.g. '(HEAD detached at 123asdf)'
+	DetachedHead bool
+}
+
 // BranchLoader returns a list of Branch objects for the current repo
 type BranchLoader struct {
 	*common.Common
 	getRawBranches       func() (string, error)
-	getCurrentBranchName func() (string, string, error)
+	getCurrentBranchInfo func() (BranchInfo, error)
 	config               BranchLoaderConfigCommands
 }
 
 func NewBranchLoader(
 	cmn *common.Common,
 	getRawBranches func() (string, error),
-	getCurrentBranchName func() (string, string, error),
+	getCurrentBranchInfo func() (BranchInfo, error),
 	config BranchLoaderConfigCommands,
 ) *BranchLoader {
 	return &BranchLoader{
 		Common:               cmn,
 		getRawBranches:       getRawBranches,
-		getCurrentBranchName: getCurrentBranchName,
+		getCurrentBranchInfo: getCurrentBranchInfo,
 		config:               config,
 	}
 }
@@ -84,11 +90,11 @@ outer:
 		}
 	}
 	if !foundHead {
-		currentBranchName, currentBranchDisplayName, err := self.getCurrentBranchName()
+		info, err := self.getCurrentBranchInfo()
 		if err != nil {
 			return nil, err
 		}
-		branches = slices.Prepend(branches, &models.Branch{Name: currentBranchName, DisplayName: currentBranchDisplayName, Head: true, Recency: "  *"})
+		branches = slices.Prepend(branches, &models.Branch{Name: info.RefName, DisplayName: info.DisplayName, Head: true, DetachedHead: info.DetachedHead, Recency: "  *"})
 	}
 
 	configBranches, err := self.config.Branches()

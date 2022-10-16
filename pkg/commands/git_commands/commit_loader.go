@@ -29,7 +29,7 @@ type CommitLoader struct {
 	*common.Common
 	cmd oscommands.ICmdObjBuilder
 
-	getCurrentBranchName func() (string, string, error)
+	getCurrentBranchInfo func() (BranchInfo, error)
 	getRebaseMode        func() (enums.RebaseMode, error)
 	readFile             func(filename string) ([]byte, error)
 	walkFiles            func(root string, fn filepath.WalkFunc) error
@@ -41,13 +41,13 @@ func NewCommitLoader(
 	cmn *common.Common,
 	cmd oscommands.ICmdObjBuilder,
 	dotGitDir string,
-	getCurrentBranchName func() (string, string, error),
+	getCurrentBranchInfo func() (BranchInfo, error),
 	getRebaseMode func() (enums.RebaseMode, error),
 ) *CommitLoader {
 	return &CommitLoader{
 		Common:               cmn,
 		cmd:                  cmd,
-		getCurrentBranchName: getCurrentBranchName,
+		getCurrentBranchInfo: getCurrentBranchInfo,
 		getRebaseMode:        getRebaseMode,
 		readFile:             os.ReadFile,
 		walkFiles:            filepath.Walk,
@@ -371,13 +371,13 @@ func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*mod
 }
 
 func (self *CommitLoader) getMergeBase(refName string) (string, error) {
-	currentBranch, _, err := self.getCurrentBranchName()
+	info, err := self.getCurrentBranchInfo()
 	if err != nil {
 		return "", err
 	}
 
 	baseBranch := "master"
-	if strings.HasPrefix(currentBranch, "feature/") {
+	if strings.HasPrefix(info.RefName, "feature/") {
 		baseBranch = "develop"
 	}
 

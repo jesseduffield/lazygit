@@ -26,6 +26,7 @@ import (
 var tests = []*components.IntegrationTest{
 	bisect.Basic,
 	bisect.FromOtherBranch,
+	branch.CheckoutByName,
 	branch.Delete,
 	branch.Rebase,
 	branch.RebaseAndDrop,

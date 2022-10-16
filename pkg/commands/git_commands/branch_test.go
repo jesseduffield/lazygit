@@ -53,10 +53,10 @@ func TestBranchGetCommitDifferences(t *testing.T) {
 
 func TestBranchNewBranch(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		Expect(`git checkout -b "test" "master"`, "", nil)
+		Expect(`git checkout -b "test" "refs/heads/master"`, "", nil)
 	instance := buildBranchCommands(commonDeps{runner: runner})
 
-	assert.NoError(t, instance.New("test", "master"))
+	assert.NoError(t, instance.New("test", "refs/heads/master"))
 	runner.CheckForMissingCalls()
 }
 
@@ -162,32 +162,34 @@ func TestBranchGetAllBranchGraph(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestBranchCurrentBranchName(t *testing.T) {
+func TestBranchCurrentBranchInfo(t *testing.T) {
 	type scenario struct {
 		testName string
 		runner   *oscommands.FakeCmdObjRunner
-		test     func(string, string, error)
+		test     func(BranchInfo, error)
 	}
 
 	scenarios := []scenario{
 		{
 			"says we are on the master branch if we are",
 			oscommands.NewFakeRunner(t).Expect(`git symbolic-ref --short HEAD`, "master", nil),
-			func(name string, displayname string, err error) {
+			func(info BranchInfo, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "master", name)
-				assert.EqualValues(t, "master", displayname)
+				assert.EqualValues(t, "master", info.RefName)
+				assert.EqualValues(t, "master", info.DisplayName)
+				assert.False(t, info.DetachedHead)
 			},
 		},
 		{
 			"falls back to git `git branch --contains` if symbolic-ref fails",
 			oscommands.NewFakeRunner(t).
 				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
-				Expect(`git branch --contains`, "* master", nil),
-			func(name string, displayname string, err error) {
+				Expect(`git branch --contains`, "* (HEAD detached at 8982166a)", nil),
+			func(info BranchInfo, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "master", name)
-				assert.EqualValues(t, "master", displayname)
+				assert.EqualValues(t, "8982166a", info.RefName)
+				assert.EqualValues(t, "(HEAD detached at 8982166a)", info.DisplayName)
+				assert.True(t, info.DetachedHead)
 			},
 		},
 		{
@@ -195,10 +197,11 @@ func TestBranchCurrentBranchName(t *testing.T) {
 			oscommands.NewFakeRunner(t).
 				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
 				Expect(`git branch --contains`, "* (HEAD detached at 123abcd)", nil),
-			func(name string, displayname string, err error) {
+			func(info BranchInfo, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "123abcd", name)
-				assert.EqualValues(t, "(HEAD detached at 123abcd)", displayname)
+				assert.EqualValues(t, "123abcd", info.RefName)
+				assert.EqualValues(t, "(HEAD detached at 123abcd)", info.DisplayName)
+				assert.True(t, info.DetachedHead)
 			},
 		},
 		{
@@ -206,10 +209,11 @@ func TestBranchCurrentBranchName(t *testing.T) {
 			oscommands.NewFakeRunner(t).
 				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
 				Expect(`git branch --contains`, "", errors.New("error")),
-			func(name string, displayname string, err error) {
+			func(info BranchInfo, err error) {
 				assert.Error(t, err)
-				assert.EqualValues(t, "", name)
-				assert.EqualValues(t, "", displayname)
+				assert.EqualValues(t, "", info.RefName)
+				assert.EqualValues(t, "", info.DisplayName)
+				assert.False(t, info.DetachedHead)
 			},
 		},
 	}
@@ -218,7 +222,7 @@ func TestBranchCurrentBranchName(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildBranchCommands(commonDeps{runner: s.runner})
-			s.test(instance.CurrentBranchName())
+			s.test(instance.CurrentBranchInfo())
 			s.runner.CheckForMissingCalls()
 		})
 	}

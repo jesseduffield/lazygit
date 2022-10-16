@@ -30,18 +30,20 @@ func (self *BranchCommands) New(name string, base string) error {
 	return self.cmd.New(fmt.Sprintf("git checkout -b %s %s", self.cmd.Quote(name), self.cmd.Quote(base))).Run()
 }
 
-// CurrentBranchName get the current branch name and displayname.
-// the first returned string is the name and the second is the displayname
-// e.g. name is 123asdf and displayname is '(HEAD detached at 123asdf)'
-func (self *BranchCommands) CurrentBranchName() (string, string, error) {
+// CurrentBranchInfo get the current branch information.
+func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	branchName, err := self.cmd.New("git symbolic-ref --short HEAD").DontLog().RunWithOutput()
 	if err == nil && branchName != "HEAD\n" {
 		trimmedBranchName := strings.TrimSpace(branchName)
-		return trimmedBranchName, trimmedBranchName, nil
+		return BranchInfo{
+			RefName:      trimmedBranchName,
+			DisplayName:  trimmedBranchName,
+			DetachedHead: false,
+		}, nil
 	}
 	output, err := self.cmd.New("git branch --contains").DontLog().RunWithOutput()
 	if err != nil {
-		return "", "", err
+		return BranchInfo{}, err
 	}
 	for _, line := range utils.SplitLines(output) {
 		re := regexp.MustCompile(CurrentBranchNameRegex)
@@ -49,10 +51,18 @@ func (self *BranchCommands) CurrentBranchName() (string, string, error) {
 		if len(match) > 0 {
 			branchName = match[1]
 			displayBranchName := match[0][2:]
-			return branchName, displayBranchName, nil
+			return BranchInfo{
+				RefName:      branchName,
+				DisplayName:  displayBranchName,
+				DetachedHead: true,
+			}, nil
 		}
 	}
-	return "HEAD", "HEAD", nil
+	return BranchInfo{
+		RefName:      "HEAD",
+		DisplayName:  "HEAD",
+		DetachedHead: true,
+	}, nil
 }
 
 // Delete delete branch
