@@ -83,6 +83,8 @@ func polishTranslationSet() TranslationSet {
 		SureDropStashEntry:                  "Jesteś pewny, że chcesz porzucić tę pozycję w schowku?",
 		NoTrackedStagedFilesStash:           "Nie masz śledzonych/zatwierdzonych plików do przechowania",
 		StashChanges:                        "Przechowaj zmiany",
+		LcRenameStash:                       "rename stash",
+		RenameStashPrompt:                   "Rename stash: {{.stashName}}",
 		OpenConfig:                          "otwórz konfigurację",
 		EditConfig:                          "edytuj konfigurację",
 		ForcePush:                           "Wymuś wysłanie",

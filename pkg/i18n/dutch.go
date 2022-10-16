@@ -105,6 +105,8 @@ func dutchTranslationSet() TranslationSet {
 		SureApplyStashEntry:                 "Weet je zeker dat je deze stash entry wil toepassen?",
 		NoTrackedStagedFilesStash:           "Je hebt geen tracked/staged bestanden om te laten stashen",
 		StashChanges:                        "Stash veranderingen",
+		LcRenameStash:                       "rename stash",
+		RenameStashPrompt:                   "Rename stash: {{.stashName}}",
 		NoChangedFiles:                      "Geen veranderde bestanden",
 		OpenConfig:                          "open config bestand",
 		EditConfig:                          "verander config bestand",
