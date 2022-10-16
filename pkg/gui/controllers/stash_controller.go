@@ -128,7 +128,7 @@ func (self *StashController) handleStashDrop(stashEntry *models.StashEntry) erro
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.Stash)
-			_, err := self.git.Stash.Drop(stashEntry.Index)
+			err := self.git.Stash.Drop(stashEntry.Index)
 			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			if err != nil {
 				return self.c.Error(err)

@@ -1,9 +1,7 @@
 package git_commands
 
 import (
-	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
@@ -32,9 +30,8 @@ func (self *StashCommands) DropNewest() error {
 	return self.cmd.New("git stash drop").Run()
 }
 
-func (self *StashCommands) Drop(index int) (string, error) {
-	output, _, err := self.cmd.New(fmt.Sprintf("git stash drop stash@{%d}", index)).RunWithOutputs()
-	return output, err
+func (self *StashCommands) Drop(index int) error {
+	return self.cmd.New(fmt.Sprintf("git stash drop stash@{%d}", index)).Run()
 }
 
 func (self *StashCommands) Pop(index int) error {
@@ -56,6 +53,11 @@ func (self *StashCommands) Store(sha string, message string) error {
 		return self.cmd.New(fmt.Sprintf("git stash store %s -m %s", self.cmd.Quote(sha), self.cmd.Quote(trimmedMessage))).Run()
 	}
 	return self.cmd.New(fmt.Sprintf("git stash store %s", self.cmd.Quote(sha))).Run()
+}
+
+func (self *StashCommands) Sha(index int) (string, error) {
+	sha, _, err := self.cmd.New(fmt.Sprintf("git rev-parse refs/stash@{%d}", index)).DontLog().RunWithOutputs()
+	return strings.Trim(sha, "\r\n"), err
 }
 
 func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
@@ -123,21 +125,16 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 }
 
 func (self *StashCommands) Rename(index int, message string) error {
-	output, err := self.Drop(index)
+	sha, err := self.Sha(index)
 	if err != nil {
 		return err
 	}
 
-	// `output` is in the following format:
-	// Dropped refs/stash@{0} (f0d0f20f2f61ffd6d6bfe0752deffa38845a3edd)
-	stashShaPattern := regexp.MustCompile(`\(([0-9a-f]+)\)`)
-	matches := stashShaPattern.FindStringSubmatch(output)
-	if len(matches) <= 1 {
-		return errors.New("Output of `git stash drop` is invalid") // Usually this error does not occur
+	if err := self.Drop(index); err != nil {
+		return err
 	}
-	stashSha := matches[1]
 
-	err = self.Store(stashSha, message)
+	err = self.Store(sha, message)
 	if err != nil {
 		return err
 	}
