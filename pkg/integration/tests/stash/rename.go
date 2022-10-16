@@ -13,7 +13,9 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo: func(shell *Shell) {
 		shell.
 			EmptyCommit("blah").
-			CreateFileAndAdd("foo", "change to stash").
+			CreateFileAndAdd("file-1", "change to stash1").
+			StashWithMessage("foo").
+			CreateFileAndAdd("file-2", "change to stash2").
 			StashWithMessage("bar")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
@@ -21,13 +23,15 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentViewName("stash")
 
 		assert.MatchSelectedLine(Equals("On master: bar"))
+		input.NextItem()
+		assert.MatchSelectedLine(Equals("On master: foo"))
 		input.PressKeys(keys.Stash.RenameStash)
 		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Rename stash: stash@{0}"))
+		assert.MatchCurrentViewTitle(Equals("Rename stash: stash@{1}"))
 
 		input.Type(" baz")
 		input.Confirm()
 
-		assert.MatchSelectedLine(Equals("On master: bar baz"))
+		assert.MatchSelectedLine(Equals("On master: foo baz"))
 	},
 })
