@@ -611,6 +611,8 @@ func (g *Gui) WhitelistKeybinding(k Key) error {
 // typed Key or rune.
 func getKey(key interface{}) (Key, rune, error) {
 	switch t := key.(type) {
+	case nil: // Ignore keybinding if `nil`
+		return 0, 0, nil
 	case Key:
 		return t, 0, nil
 	case rune:
