@@ -438,6 +438,12 @@ For all possible keybinding options, check [Custom_Keybindings.md](https://githu
 
 You can disable certain key bindings by specifying `null`.
 
+```yaml
+keybinding:
+  universal:
+    edit: null # disable 'edit file'
+```
+
 ### Example Keybindings For Colemak Users
 
 ```yaml
