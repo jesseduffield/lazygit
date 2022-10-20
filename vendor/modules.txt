@@ -128,7 +128,7 @@ github.com/jbenet/go-context/io
 github.com/jesseduffield/generics/maps
 github.com/jesseduffield/generics/set
 github.com/jesseduffield/generics/slices
-# github.com/jesseduffield/go-git/v5 v5.1.2-0.20201006095850-341962be15a4
+# github.com/jesseduffield/go-git/v5 v5.1.2-0.20221018185014-fdd53fef665d
 ## explicit; go 1.13
 github.com/jesseduffield/go-git/v5
 github.com/jesseduffield/go-git/v5/config
