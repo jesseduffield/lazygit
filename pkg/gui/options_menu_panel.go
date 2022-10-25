@@ -58,7 +58,7 @@ func (gui *Gui) handleCreateOptionsMenu() error {
 			OpensMenu: binding.OpensMenu,
 			Label:     binding.Description,
 			OnPress: func() error {
-				if binding.Key == nil {
+				if binding.Handler == nil {
 					return nil
 				}
 
