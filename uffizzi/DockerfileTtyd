@@ -1,0 +1,17 @@
+
+FROM uffizzi/ttyd:golang1.18-alpine as build
+
+WORKDIR /go/src/github.com/jesseduffield/lazygit/
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build
+
+RUN     apk update --quiet && \
+        apk add -q --no-cache libgcc tini
+
+
+EXPOSE  7700/tcp
+
+ENTRYPOINT ["tini", "--"]
+CMD     ["ttyd", "/bin/zsh"]
