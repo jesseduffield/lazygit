@@ -29,6 +29,7 @@ type TranslationSet struct {
 	CredentialsUsername                 string
 	CredentialsPassword                 string
 	CredentialsPassphrase               string
+	CredentialsPIN                      string
 	PassUnameWrong                      string
 	CommitChanges                       string
 	AmendLastCommit                     string
@@ -676,6 +677,7 @@ func EnglishTranslationSet() TranslationSet {
 		CredentialsUsername:                 "Username",
 		CredentialsPassword:                 "Password",
 		CredentialsPassphrase:               "Enter passphrase for SSH key",
+		CredentialsPIN:                      "Enter PIN for SSH key",
 		PassUnameWrong:                      "Password, passphrase and/or username wrong",
 		CommitChanges:                       "commit changes",
 		AmendLastCommit:                     "amend last commit",
