@@ -22,7 +22,7 @@ func ContainsBy[T any](collection []T, predicate func(T) bool) bool {
 	return false
 }
 
-// Every returns true if all elements of a subset are contained into a collection.
+// Every returns true if all elements of a subset are contained into a collection or if the subset is empty.
 func Every[T comparable](collection []T, subset []T) bool {
 	for _, elem := range subset {
 		if !Contains(collection, elem) {
@@ -33,7 +33,19 @@ func Every[T comparable](collection []T, subset []T) bool {
 	return true
 }
 
+// EveryBy returns true if the predicate returns true for all of the elements in the collection or if the collection is empty.
+func EveryBy[V any](collection []V, predicate func(V) bool) bool {
+	for _, v := range collection {
+		if !predicate(v) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Some returns true if at least 1 element of a subset is contained into a collection.
+// If the subset is empty Some returns false.
 func Some[T comparable](collection []T, subset []T) bool {
 	for _, elem := range subset {
 		if Contains(collection, elem) {
@@ -42,6 +54,40 @@ func Some[T comparable](collection []T, subset []T) bool {
 	}
 
 	return false
+}
+
+// SomeBy returns true if the predicate returns true for any of the elements in the collection.
+// If the collection is empty SomeBy returns false.
+func SomeBy[V any](collection []V, predicate func(V) bool) bool {
+	for _, v := range collection {
+		if predicate(v) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// None returns true if no element of a subset are contained into a collection or if the subset is empty.
+func None[V comparable](collection []V, subset []V) bool {
+	for _, elem := range subset {
+		if Contains(collection, elem) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// NoneBy returns true if the predicate returns true for none of the elements in the collection or if the collection is empty.
+func NoneBy[V any](collection []V, predicate func(V) bool) bool {
+	for _, v := range collection {
+		if predicate(v) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Intersect returns the intersection between two collections.
@@ -123,6 +169,31 @@ func Union[T comparable](list1 []T, list2 []T) []T {
 			continue
 		}
 		if _, ok := seen[e]; ok {
+			result = append(result, e)
+		}
+	}
+
+	return result
+}
+
+// Without returns slice excluding all given values.
+func Without[T comparable](collection []T, exclude ...T) []T {
+	result := make([]T, 0, len(collection))
+	for _, e := range collection {
+		if !Contains(exclude, e) {
+			result = append(result, e)
+		}
+	}
+	return result
+}
+
+// WithoutEmpty returns slice excluding empty values.
+func WithoutEmpty[T comparable](collection []T) []T {
+	var empty T
+
+	result := make([]T, 0, len(collection))
+	for _, e := range collection {
+		if e != empty {
 			result = append(result, e)
 		}
 	}

@@ -179,6 +179,5 @@ func GetKey(key string) types.Key {
 	} else if runeCount == 1 {
 		return []rune(key)[0]
 	}
-	log.Fatal("Key empty for keybinding: " + strings.ToLower(key))
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type StashController struct {
@@ -43,6 +44,11 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.checkSelected(self.handleNewBranchOffStashEntry),
 			Description: self.c.Tr.LcNewBranch,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Stash.RenameStash),
+			Handler:     self.checkSelected(self.handleRenameStashEntry),
+			Description: self.c.Tr.LcRenameStash,
 		},
 	}
 
@@ -138,4 +144,28 @@ func (self *StashController) postStashRefresh() error {
 
 func (self *StashController) handleNewBranchOffStashEntry(stashEntry *models.StashEntry) error {
 	return self.helpers.Refs.NewBranch(stashEntry.RefName(), stashEntry.Description(), "")
+}
+
+func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntry) error {
+	message := utils.ResolvePlaceholderString(
+		self.c.Tr.RenameStashPrompt,
+		map[string]string{
+			"stashName": stashEntry.RefName(),
+		},
+	)
+
+	return self.c.Prompt(types.PromptOpts{
+		Title:          message,
+		InitialContent: stashEntry.Name,
+		HandleConfirm: func(response string) error {
+			self.c.LogAction(self.c.Tr.Actions.RenameStash)
+			err := self.git.Stash.Rename(stashEntry.Index, response)
+			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
+			if err != nil {
+				return err
+			}
+			self.context().SetSelectedLineIdx(0) // Select the renamed stash
+			return nil
+		},
+	})
 }

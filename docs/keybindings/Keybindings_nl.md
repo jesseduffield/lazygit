@@ -238,6 +238,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>g</kbd>: pop
   <kbd>d</kbd>: laten vallen
   <kbd>n</kbd>: nieuwe branch
+  <kbd>r</kbd>: rename stash
   <kbd>enter</kbd>: bekijk gecommite bestanden
 </pre>
 

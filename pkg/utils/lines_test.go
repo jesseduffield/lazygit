@@ -36,6 +36,37 @@ func TestSplitLines(t *testing.T) {
 	}
 }
 
+func TestSplitNul(t *testing.T) {
+	type scenario struct {
+		multilineString string
+		expected        []string
+	}
+
+	scenarios := []scenario{
+		{
+			"",
+			[]string{},
+		},
+		{
+			"\x00",
+			[]string{
+				"",
+			},
+		},
+		{
+			"hello world !\x00hello universe !\x00",
+			[]string{
+				"hello world !",
+				"hello universe !",
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		assert.EqualValues(t, s.expected, SplitNul(s.multilineString))
+	}
+}
+
 // TestNormalizeLinefeeds is a function.
 func TestNormalizeLinefeeds(t *testing.T) {
 	type scenario struct {

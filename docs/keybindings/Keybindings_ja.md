@@ -48,6 +48,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>g</kbd>: pop
   <kbd>d</kbd>: drop
   <kbd>n</kbd>: 新しいブランチを作成
+  <kbd>r</kbd>: Stashを変更
   <kbd>enter</kbd>: view selected item's files
 </pre>
 

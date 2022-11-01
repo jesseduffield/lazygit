@@ -223,6 +223,7 @@ keybinding:
     viewBisectOptions: 'b'
   stash:
     popStash: 'g'
+    renameStash: 'r'
   commitFiles:
     checkoutCommitFile: 'c'
   main:
@@ -434,6 +435,14 @@ gui:
 ## Keybindings
 
 For all possible keybinding options, check [Custom_Keybindings.md](https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md)
+
+You can disable certain key bindings by specifying `null`.
+
+```yaml
+keybinding:
+  universal:
+    edit: null # disable 'edit file'
+```
 
 ### Example Keybindings For Colemak Users
 

@@ -128,6 +128,8 @@ type TranslationSet struct {
 	NoTrackedStagedFilesStash           string
 	NoFilesToStash                      string
 	StashChanges                        string
+	LcRenameStash                       string
+	RenameStashPrompt                   string
 	OpenConfig                          string
 	EditConfig                          string
 	ForcePush                           string
@@ -603,6 +605,7 @@ type Actions struct {
 	UpdateRemote                      string
 	ApplyPatch                        string
 	Stash                             string
+	RenameStash                       string
 	RemoveSubmodule                   string
 	ResetSubmodule                    string
 	AddSubmodule                      string
@@ -771,6 +774,8 @@ func EnglishTranslationSet() TranslationSet {
 		NoTrackedStagedFilesStash:           "You have no tracked/staged files to stash",
 		NoFilesToStash:                      "You have no files to stash",
 		StashChanges:                        "Stash changes",
+		LcRenameStash:                       "rename stash",
+		RenameStashPrompt:                   "Rename stash: {{.stashName}}",
 		OpenConfig:                          "open config file",
 		EditConfig:                          "edit config file",
 		ForcePush:                           "Force push",
@@ -1230,6 +1235,7 @@ func EnglishTranslationSet() TranslationSet {
 			UpdateRemote:                      "Update remote",
 			ApplyPatch:                        "Apply patch",
 			Stash:                             "Stash",
+			RenameStash:                       "Rename stash",
 			RemoveSubmodule:                   "Remove submodule",
 			ResetSubmodule:                    "Reset submodule",
 			AddSubmodule:                      "Add submodule",

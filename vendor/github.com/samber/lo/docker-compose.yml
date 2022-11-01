@@ -2,8 +2,8 @@ version: '3'
 
 services:
   dev:
-    build: .
+    image: golang:1.18-bullseye
     volumes:
       - ./:/go/src/github.com/samber/lo
     working_dir: /go/src/github.com/samber/lo
-    command: bash -c 'make tools ; make watch-test'
+    command: make watch-test

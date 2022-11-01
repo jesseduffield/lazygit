@@ -89,6 +89,7 @@ func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
 		view := getView()
 		view.ClearTextArea()
 		view.TextArea.TypeString(text)
+		_ = gui.resizePopupPanel(view, view.TextArea.GetContent())
 		view.RenderTextArea()
 	}
 }

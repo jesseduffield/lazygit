@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // this is the integration runner for the new and improved integration interface
@@ -44,7 +44,7 @@ func RunTests(
 	keyPressDelay int,
 	maxAttempts int,
 ) error {
-	projectRootDir := utils.GetLazygitRootDirectory()
+	projectRootDir := utils.GetLazyRootDirectory()
 	err := os.Chdir(projectRootDir)
 	if err != nil {
 		return err
