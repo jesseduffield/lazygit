@@ -566,7 +566,20 @@ func (self *FilesController) HandleWIPCommitPress() error {
 }
 
 func (self *FilesController) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
-	cfg, ok := self.c.UserConfig.Git.CommitPrefixes[utils.GetCurrentRepoName()]
+    indexToUse := utils.GetCurrentRepoName()
+
+    for expression := range self.c.UserConfig.Git.CommitPrefixes {
+        matched, err := regexp.MatchString(expression, indexToUse)
+        if err != nil {
+            return nil
+        }
+        if matched {
+            indexToUse = expression
+            break
+        }
+    }
+
+	cfg, ok := self.c.UserConfig.Git.CommitPrefixes[indexToUse]
 	if !ok {
 		return nil
 	}
