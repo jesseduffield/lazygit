@@ -128,7 +128,7 @@ func NewGitCommandAux(
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
 
-	branchLoader := git_commands.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchInfo, configCommands)
+	branchLoader := git_commands.NewBranchLoader(cmn, cmd, branchCommands.CurrentBranchInfo, configCommands)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
 	commitLoader := git_commands.NewCommitLoader(cmn, cmd, dotGitDir, statusCommands.RebaseMode)
 	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)

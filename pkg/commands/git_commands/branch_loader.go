@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -8,8 +9,10 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/go-git/v5/config"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 // context:
@@ -36,20 +39,20 @@ type BranchInfo struct {
 // BranchLoader returns a list of Branch objects for the current repo
 type BranchLoader struct {
 	*common.Common
-	getRawBranches       func() (string, error)
+	cmd                  oscommands.ICmdObjBuilder
 	getCurrentBranchInfo func() (BranchInfo, error)
 	config               BranchLoaderConfigCommands
 }
 
 func NewBranchLoader(
 	cmn *common.Common,
-	getRawBranches func() (string, error),
+	cmd oscommands.ICmdObjBuilder,
 	getCurrentBranchInfo func() (BranchInfo, error),
 	config BranchLoaderConfigCommands,
 ) *BranchLoader {
 	return &BranchLoader{
 		Common:               cmn,
-		getRawBranches:       getRawBranches,
+		cmd:                  cmd,
 		getCurrentBranchInfo: getCurrentBranchInfo,
 		config:               config,
 	}
@@ -128,8 +131,8 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 		}
 
 		split := strings.Split(line, "\x00")
-		if len(split) != 4 {
-			// Ignore line if it isn't separated into 4 parts
+		if len(split) != len(branchFields) {
+			// Ignore line if it isn't separated into the expected number of parts
 			// This is probably a warning message, for more info see:
 			// https://github.com/jesseduffield/lazygit/issues/1385#issuecomment-885580439
 			return nil, false
@@ -139,47 +142,81 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 	})
 }
 
-// Obtain branch information from parsed line output of getRawBranches()
-// split contains the '|' separated tokens in the line of output
-func obtainBranch(split []string) *models.Branch {
-	name := strings.TrimPrefix(split[1], "heads/")
-	branch := &models.Branch{
-		Name:      name,
-		Pullables: "?",
-		Pushables: "?",
-		Head:      split[0] == "*",
-	}
+func (self *BranchLoader) getRawBranches() (string, error) {
+	format := strings.Join(
+		lo.Map(branchFields, func(thing string, _ int) string {
+			return "%(" + thing + ")"
+		}),
+		"%00",
+	)
 
+	cmdArgs := NewGitCmd("for-each-ref").
+		Arg("--sort=-committerdate").
+		Arg(fmt.Sprintf("--format=%s", format)).
+		Arg("refs/heads").
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+}
+
+var branchFields = []string{
+	"HEAD",
+	"refname:short",
+	"upstream:short",
+	"upstream:track",
+	"subject",
+	fmt.Sprintf("objectname:short=%d", utils.COMMIT_HASH_SHORT_SIZE),
+}
+
+// Obtain branch information from parsed line output of getRawBranches()
+func obtainBranch(split []string) *models.Branch {
+	headMarker := split[0]
+	fullName := split[1]
 	upstreamName := split[2]
+	track := split[3]
+	subject := split[4]
+	commitHash := split[5]
+
+	name := strings.TrimPrefix(fullName, "heads/")
+	pushables, pullables, gone := parseUpstreamInfo(upstreamName, track)
+
+	return &models.Branch{
+		Name:         name,
+		Pushables:    pushables,
+		Pullables:    pullables,
+		UpstreamGone: gone,
+		Head:         headMarker == "*",
+		Subject:      subject,
+		CommitHash:   commitHash,
+	}
+}
+
+func parseUpstreamInfo(upstreamName string, track string) (string, string, bool) {
 	if upstreamName == "" {
 		// if we're here then it means we do not have a local version of the remote.
 		// The branch might still be tracking a remote though, we just don't know
 		// how many commits ahead/behind it is
-		return branch
+		return "?", "?", false
 	}
 
-	track := split[3]
 	if track == "[gone]" {
-		branch.UpstreamGone = true
-	} else {
-		re := regexp.MustCompile(`ahead (\d+)`)
-		match := re.FindStringSubmatch(track)
-		if len(match) > 1 {
-			branch.Pushables = match[1]
-		} else {
-			branch.Pushables = "0"
-		}
-
-		re = regexp.MustCompile(`behind (\d+)`)
-		match = re.FindStringSubmatch(track)
-		if len(match) > 1 {
-			branch.Pullables = match[1]
-		} else {
-			branch.Pullables = "0"
-		}
+		return "?", "?", true
 	}
 
-	return branch
+	pushables := parseDifference(track, `ahead (\d+)`)
+	pullables := parseDifference(track, `behind (\d+)`)
+
+	return pushables, pullables, false
+}
+
+func parseDifference(track string, regexStr string) string {
+	re := regexp.MustCompile(regexStr)
+	match := re.FindStringSubmatch(track)
+	if len(match) > 1 {
+		return match[1]
+	} else {
+		return "0"
+	}
 }
 
 // TODO: only look at the new reflog commits, and otherwise store the recencies in

@@ -149,9 +149,11 @@ func SafeTruncate(str string, limit int) string {
 	}
 }
 
+const COMMIT_HASH_SHORT_SIZE = 8
+
 func ShortSha(sha string) string {
-	if len(sha) < 8 {
+	if len(sha) < COMMIT_HASH_SHORT_SIZE {
 		return sha
 	}
-	return sha[:8]
+	return sha[:COMMIT_HASH_SHORT_SIZE]
 }

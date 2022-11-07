@@ -188,16 +188,6 @@ func (self *BranchCommands) Rename(oldName string, newName string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *BranchCommands) GetRawBranches() (string, error) {
-	cmdArgs := NewGitCmd("for-each-ref").
-		Arg("--sort=-committerdate").
-		Arg(`--format=%(HEAD)%00%(refname:short)%00%(upstream:short)%00%(upstream:track)`).
-		Arg("refs/heads").
-		ToArgv()
-
-	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-}
-
 type MergeOpts struct {
 	FastForwardOnly bool
 }

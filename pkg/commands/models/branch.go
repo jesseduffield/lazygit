@@ -5,11 +5,16 @@ package models
 type Branch struct {
 	Name string
 	// the displayname is something like '(HEAD detached at 123asdf)', whereas in that case the name would be '123asdf'
-	DisplayName  string
-	Recency      string
-	Pushables    string
-	Pullables    string
+	DisplayName string
+	// indicator of when the branch was last checked out e.g. '2d', '3m'
+	Recency string
+	// how many commits ahead we are from the remote branch (how many commits we can push)
+	Pushables string
+	// how many commits behind we are from the remote branch (how many commits we can pull)
+	Pullables string
+	// whether the remote branch is 'gone' i.e. we're tracking a remote branch that has been deleted
 	UpstreamGone bool
+	// whether this is the current branch. Exactly one branch should have this be true
 	Head         bool
 	DetachedHead bool
 	// if we have a named remote locally this will be the name of that remote e.g.
@@ -17,6 +22,10 @@ type Branch struct {
 	// 'git@github.com:tiwood/lazygit.git'
 	UpstreamRemote string
 	UpstreamBranch string
+	// subject line in commit message
+	Subject string
+	// commit hash
+	CommitHash string
 }
 
 func (b *Branch) FullRefName() string {

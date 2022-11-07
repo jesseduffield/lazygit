@@ -49,6 +49,7 @@ type GuiConfig struct {
 	ShowCommandLog              bool               `yaml:"showCommandLog"`
 	ShowBottomLine              bool               `yaml:"showBottomLine"`
 	ShowIcons                   bool               `yaml:"showIcons"`
+	ShowBranchCommitHash        bool               `yaml:"showBranchCommitHash"`
 	ExperimentalShowBranchHeads bool               `yaml:"experimentalShowBranchHeads"`
 	CommandLogSize              int                `yaml:"commandLogSize"`
 	SplitDiff                   string             `yaml:"splitDiff"`
@@ -426,6 +427,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowRandomTip:               true,
 			ShowIcons:                   false,
 			ExperimentalShowBranchHeads: false,
+			ShowBranchCommitHash:        false,
 			CommandLogSize:              8,
 			SplitDiff:                   "auto",
 			SkipRewordInEditorWarning:   false,
