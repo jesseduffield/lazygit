@@ -303,7 +303,7 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 We love your input! Please check out the [contributing guide](CONTRIBUTING.md).
 For contributor discussion about things not better discussed here in the repo, join the discord channel
 
-<img src='../assets/discord.png' width='75'>
+<a href="https://discord.gg/ehwFt2t4wt"><img src='../assets/discord.png' width='75'></a>
 
 Check out this [video](https://www.youtube.com/watch?v=kNavnhzZHtk) walking through the creation of a small feature in lazygit if you want an idea of where to get started.
 
