@@ -301,9 +301,9 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 ## Contributing
 
 We love your input! Please check out the [contributing guide](CONTRIBUTING.md).
-For contributor discussion about things not better discussed here in the repo, join the slack channel
+For contributor discussion about things not better discussed here in the repo, join the discord channel
 
-[![Slack](../assets/slack_rgb.png)](https://join.slack.com/t/lazygit/shared_invite/zt-5bo2clzo-hB8ZTVN5dWUCqj5QFiQVLA)
+[![Discord](../assets/discord.png)](https://discord.gg/ehwFt2t4wt)
 
 Check out this [video](https://www.youtube.com/watch?v=kNavnhzZHtk) walking through the creation of a small feature in lazygit if you want an idea of where to get started.
 
