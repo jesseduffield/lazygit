@@ -55,7 +55,6 @@ type GuiConfig struct {
 }
 
 type ThemeConfig struct {
-	LightTheme                bool     `yaml:"lightTheme"`
 	ActiveBorderColor         []string `yaml:"activeBorderColor"`
 	InactiveBorderColor       []string `yaml:"inactiveBorderColor"`
 	OptionsTextColor          []string `yaml:"optionsTextColor"`
@@ -358,9 +357,8 @@ func GetDefaultConfig() *UserConfig {
 			Language:               "auto",
 			TimeFormat:             time.RFC822,
 			Theme: ThemeConfig{
-				LightTheme:                false,
 				ActiveBorderColor:         []string{"green", "bold"},
-				InactiveBorderColor:       []string{"white"},
+				InactiveBorderColor:       []string{"default"},
 				OptionsTextColor:          []string{"blue"},
 				SelectedLineBgColor:       []string{"blue"},
 				SelectedRangeBgColor:      []string{"blue"},
