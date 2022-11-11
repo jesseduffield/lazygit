@@ -241,7 +241,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	if cached {
 		cachedArg = " --cached"
 	}
-	if !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached {
+	if !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile() {
 		trackedArg = "--no-index -- /dev/null"
 	}
 	if plain {

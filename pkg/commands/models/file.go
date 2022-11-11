@@ -29,6 +29,7 @@ type IFile interface {
 	GetIsTracked() bool
 	GetPath() string
 	GetPreviousPath() string
+	GetIsFile() bool
 }
 
 func (f *File) IsRename() bool {
@@ -90,6 +91,10 @@ func (f *File) GetPath() string {
 
 func (f *File) GetPreviousPath() string {
 	return f.PreviousName
+}
+
+func (f *File) GetIsFile() bool {
+	return true
 }
 
 type StatusFields struct {
