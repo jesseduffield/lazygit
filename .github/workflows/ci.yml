@@ -73,8 +73,9 @@ jobs:
           restore-keys: |
             ${{runner.os}}-go-
       - name: Test code
+        # for file.allow thing see https://vielmetti.typepad.com/logbook/2022/10/git-security-fixes-lead-to-fatal-transport-file-not-allowed-error-in-ci-systems-cve-2022-39253.html
         run: |
-          PARALLEL_TOTAL=${{ matrix.parallelism }} PARALLEL_INDEX=${{ matrix.index }} go test pkg/integration/deprecated/*.go
+          git config --global protocol.file.allow always && PARALLEL_TOTAL=${{ matrix.parallelism }} PARALLEL_INDEX=${{ matrix.index }} go test pkg/integration/deprecated/*.go
   integration-tests:
     runs-on: ubuntu-latest
     name: "Integration Tests"
