@@ -1,4 +1,4 @@
-package loaders
+package git_commands
 
 import (
 	"github.com/jesseduffield/generics/slices"

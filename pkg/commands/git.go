@@ -11,7 +11,6 @@ import (
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -42,14 +41,14 @@ type GitCommand struct {
 }
 
 type Loaders struct {
-	Branches      *loaders.BranchLoader
-	CommitFiles   *loaders.CommitFileLoader
-	Commits       *loaders.CommitLoader
-	Files         *loaders.FileLoader
-	ReflogCommits *loaders.ReflogCommitLoader
-	Remotes       *loaders.RemoteLoader
-	Stash         *loaders.StashLoader
-	Tags          *loaders.TagLoader
+	BranchLoader       *git_commands.BranchLoader
+	CommitFileLoader   *git_commands.CommitFileLoader
+	CommitLoader       *git_commands.CommitLoader
+	FileLoader         *git_commands.FileLoader
+	ReflogCommitLoader *git_commands.ReflogCommitLoader
+	RemoteLoader       *git_commands.RemoteLoader
+	StashLoader        *git_commands.StashLoader
+	TagLoader          *git_commands.TagLoader
 }
 
 func NewGitCommand(
@@ -98,10 +97,11 @@ func NewGitCommandAux(
 	// on the one struct.
 	// common ones are: cmn, osCommand, dotGitDir, configCommands
 	configCommands := git_commands.NewConfigCommands(cmn, gitConfig, repo)
-	gitCommon := git_commands.NewGitCommon(cmn, cmd, osCommand, dotGitDir, repo, configCommands, syncMutex)
 
+	fileLoader := git_commands.NewFileLoader(cmn, cmd, configCommands)
+
+	gitCommon := git_commands.NewGitCommon(cmn, cmd, osCommand, dotGitDir, repo, configCommands, syncMutex)
 	statusCommands := git_commands.NewStatusCommands(gitCommon)
-	fileLoader := loaders.NewFileLoader(cmn, cmd, configCommands)
 	flowCommands := git_commands.NewFlowCommands(gitCommon)
 	remoteCommands := git_commands.NewRemoteCommands(gitCommon)
 	branchCommands := git_commands.NewBranchCommands(gitCommon)
@@ -118,6 +118,14 @@ func NewGitCommandAux(
 	patchManager := patch.NewPatchManager(cmn.Log, workingTreeCommands.ApplyPatch, workingTreeCommands.ShowFileDiff)
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchManager)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
+
+	branchLoader := git_commands.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchName, configCommands)
+	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
+	commitLoader := git_commands.NewCommitLoader(cmn, cmd, dotGitDir, branchCommands.CurrentBranchName, statusCommands.RebaseMode)
+	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)
+	remoteLoader := git_commands.NewRemoteLoader(cmn, cmd, repo.Remotes)
+	stashLoader := git_commands.NewStashLoader(cmn, cmd)
+	tagLoader := git_commands.NewTagLoader(cmn, cmd)
 
 	return &GitCommand{
 		Branch:      branchCommands,
@@ -137,14 +145,14 @@ func NewGitCommandAux(
 		Bisect:      bisectCommands,
 		WorkingTree: workingTreeCommands,
 		Loaders: Loaders{
-			Branches:      loaders.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchName, configCommands),
-			CommitFiles:   loaders.NewCommitFileLoader(cmn, cmd),
-			Commits:       loaders.NewCommitLoader(cmn, cmd, dotGitDir, branchCommands.CurrentBranchName, statusCommands.RebaseMode),
-			Files:         fileLoader,
-			ReflogCommits: loaders.NewReflogCommitLoader(cmn, cmd),
-			Remotes:       loaders.NewRemoteLoader(cmn, cmd, repo.Remotes),
-			Stash:         loaders.NewStashLoader(cmn, cmd),
-			Tags:          loaders.NewTagLoader(cmn, cmd),
+			BranchLoader:       branchLoader,
+			CommitFileLoader:   commitFileLoader,
+			CommitLoader:       commitLoader,
+			FileLoader:         fileLoader,
+			ReflogCommitLoader: reflogCommitLoader,
+			RemoteLoader:       remoteLoader,
+			StashLoader:        stashLoader,
+			TagLoader:          tagLoader,
 		},
 	}
 }

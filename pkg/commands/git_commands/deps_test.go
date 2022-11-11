@@ -6,7 +6,6 @@ import (
 	"github.com/go-errors/errors"
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -89,8 +88,8 @@ func buildRepo() *gogit.Repository {
 	return repo
 }
 
-func buildFileLoader(gitCommon *GitCommon) *loaders.FileLoader {
-	return loaders.NewFileLoader(gitCommon.Common, gitCommon.cmd, gitCommon.config)
+func buildFileLoader(gitCommon *GitCommon) *FileLoader {
+	return NewFileLoader(gitCommon.Common, gitCommon.cmd, gitCommon.config)
 }
 
 func buildSubmoduleCommands(deps commonDeps) *SubmoduleCommands {

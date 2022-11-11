@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/generics/slices"
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -18,13 +17,13 @@ import (
 type WorkingTreeCommands struct {
 	*GitCommon
 	submodule  *SubmoduleCommands
-	fileLoader *loaders.FileLoader
+	fileLoader *FileLoader
 }
 
 func NewWorkingTreeCommands(
 	gitCommon *GitCommon,
 	submodule *SubmoduleCommands,
-	fileLoader *loaders.FileLoader,
+	fileLoader *FileLoader,
 ) *WorkingTreeCommands {
 	return &WorkingTreeCommands{
 		GitCommon:  gitCommon,
@@ -90,7 +89,7 @@ func (self *WorkingTreeCommands) BeforeAndAfterFileForRename(file *models.File) 
 	// all files, passing the --no-renames flag and then recursively call the function
 	// again for the before file and after file.
 
-	filesWithoutRenames := self.fileLoader.GetStatusFiles(loaders.GetStatusFileOptions{NoRenames: true})
+	filesWithoutRenames := self.fileLoader.GetStatusFiles(GetStatusFileOptions{NoRenames: true})
 
 	var beforeFile *models.File
 	var afterFile *models.File

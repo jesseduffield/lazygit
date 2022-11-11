@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -57,8 +57,8 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 	}
 
 	// need to populate my sub commits
-	commits, err := self.git.Loaders.Commits.GetCommits(
-		loaders.GetCommitsOptions{
+	commits, err := self.git.Loaders.CommitLoader.GetCommits(
+		git_commands.GetCommitsOptions{
 			Limit:                true,
 			FilterPath:           self.modes.Filtering.GetPath(),
 			IncludeRebaseCommits: false,

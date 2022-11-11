@@ -7,7 +7,7 @@ import (
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/generics/slices"
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -223,8 +223,8 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 	gui.Mutexes.LocalCommitsMutex.Lock()
 	defer gui.Mutexes.LocalCommitsMutex.Unlock()
 
-	commits, err := gui.git.Loaders.Commits.GetCommits(
-		loaders.GetCommitsOptions{
+	commits, err := gui.git.Loaders.CommitLoader.GetCommits(
+		git_commands.GetCommitsOptions{
 			Limit:                gui.State.Contexts.LocalCommits.GetLimitCommits(),
 			FilterPath:           gui.State.Modes.Filtering.GetPath(),
 			IncludeRebaseCommits: true,
@@ -245,7 +245,7 @@ func (gui *Gui) refreshCommitFilesContext() error {
 	to := ref.RefName()
 	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
 
-	files, err := gui.git.Loaders.CommitFiles.GetFilesInDiff(from, to, reverse)
+	files, err := gui.git.Loaders.CommitFileLoader.GetFilesInDiff(from, to, reverse)
 	if err != nil {
 		return gui.c.Error(err)
 	}
@@ -259,7 +259,7 @@ func (gui *Gui) refreshRebaseCommits() error {
 	gui.Mutexes.LocalCommitsMutex.Lock()
 	defer gui.Mutexes.LocalCommitsMutex.Unlock()
 
-	updatedCommits, err := gui.git.Loaders.Commits.MergeRebasingCommits(gui.State.Model.Commits)
+	updatedCommits, err := gui.git.Loaders.CommitLoader.MergeRebasingCommits(gui.State.Model.Commits)
 	if err != nil {
 		return err
 	}
@@ -269,7 +269,7 @@ func (gui *Gui) refreshRebaseCommits() error {
 }
 
 func (self *Gui) refreshTags() error {
-	tags, err := self.git.Loaders.Tags.GetTags()
+	tags, err := self.git.Loaders.TagLoader.GetTags()
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -300,13 +300,13 @@ func (gui *Gui) refreshBranches() {
 		// which allows us to order them correctly. So if we're filtering we'll just
 		// manually load all the reflog commits here
 		var err error
-		reflogCommits, _, err = gui.git.Loaders.ReflogCommits.GetReflogCommits(nil, "")
+		reflogCommits, _, err = gui.git.Loaders.ReflogCommitLoader.GetReflogCommits(nil, "")
 		if err != nil {
 			gui.c.Log.Error(err)
 		}
 	}
 
-	branches, err := gui.git.Loaders.Branches.Load(reflogCommits)
+	branches, err := gui.git.Loaders.BranchLoader.Load(reflogCommits)
 	if err != nil {
 		_ = gui.c.Error(err)
 	}
@@ -406,8 +406,8 @@ func (gui *Gui) refreshStateFiles() error {
 		}
 	}
 
-	files := gui.git.Loaders.Files.
-		GetStatusFiles(loaders.GetStatusFileOptions{})
+	files := gui.git.Loaders.FileLoader.
+		GetStatusFiles(git_commands.GetStatusFileOptions{})
 
 	conflictFileCount := 0
 	for _, file := range files {
@@ -463,7 +463,7 @@ func (gui *Gui) refreshReflogCommits() error {
 	}
 
 	refresh := func(stateCommits *[]*models.Commit, filterPath string) error {
-		commits, onlyObtainedNewReflogCommits, err := gui.git.Loaders.ReflogCommits.
+		commits, onlyObtainedNewReflogCommits, err := gui.git.Loaders.ReflogCommitLoader.
 			GetReflogCommits(lastReflogCommit, filterPath)
 		if err != nil {
 			return gui.c.Error(err)
@@ -495,7 +495,7 @@ func (gui *Gui) refreshReflogCommits() error {
 func (gui *Gui) refreshRemotes() error {
 	prevSelectedRemote := gui.State.Contexts.Remotes.GetSelected()
 
-	remotes, err := gui.git.Loaders.Remotes.GetRemotes()
+	remotes, err := gui.git.Loaders.RemoteLoader.GetRemotes()
 	if err != nil {
 		return gui.c.Error(err)
 	}
@@ -525,7 +525,7 @@ func (gui *Gui) refreshRemotes() error {
 }
 
 func (gui *Gui) refreshStashEntries() error {
-	gui.State.Model.StashEntries = gui.git.Loaders.Stash.
+	gui.State.Model.StashEntries = gui.git.Loaders.StashLoader.
 		GetStashEntries(gui.State.Modes.Filtering.GetPath())
 
 	return gui.postRefreshUpdate(gui.State.Contexts.Stash)
