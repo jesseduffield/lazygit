@@ -45,6 +45,15 @@ func (s *Shell) CreateFile(path string, content string) *Shell {
 	return s
 }
 
+func (s *Shell) CreateDir(path string) *Shell {
+	fullPath := filepath.Join(s.dir, path)
+	if err := os.MkdirAll(fullPath, 0o755); err != nil {
+		panic(fmt.Sprintf("error creating directory: %s\n%s", fullPath, err))
+	}
+
+	return s
+}
+
 func (s *Shell) UpdateFile(path string, content string) *Shell {
 	fullPath := filepath.Join(s.dir, path)
 	err := os.WriteFile(fullPath, []byte(content), 0o644)

@@ -42,6 +42,10 @@ func (self *FileNode) GetIsTracked() bool {
 	return self.SomeFile(func(file *models.File) bool { return file.Tracked })
 }
 
+func (self *FileNode) GetIsFile() bool {
+	return self.IsFile()
+}
+
 func (self *FileNode) GetPreviousPath() string {
 	if self.File == nil {
 		return ""
