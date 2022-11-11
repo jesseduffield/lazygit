@@ -144,6 +144,7 @@ func createFixture(test *IntegrationTest, paths Paths) error {
 	shell.RunCommand(`git config user.email "CI@example.com"`)
 	shell.RunCommand(`git config user.name "CI"`)
 	shell.RunCommand(`git config commit.gpgSign false`)
+	shell.RunCommand(`git config protocol.file.allow always`)
 
 	test.SetupRepo(shell)
 
