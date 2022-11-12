@@ -45,7 +45,6 @@ var tests = []*components.IntegrationTest{
 	stash.Rename,
 	stash.Stash,
 	stash.StashIncludingUntrackedFiles,
-	stash.Stash,
 }
 
 func GetTests() []*components.IntegrationTest {
