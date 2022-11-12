@@ -39,7 +39,7 @@ func TestRenderFileTree(t *testing.T) {
 			files: []*models.File{
 				{Name: "test", ShortStatus: " M", HasStagedChanges: true},
 			},
-			expected: []string{" M test"},
+			expected: []string{"[ M] test"},
 		},
 		{
 			name: "big example",
@@ -56,10 +56,10 @@ func TestRenderFileTree(t *testing.T) {
 ► dir1
 ▼ dir2
   ▼ dir2
-     M file3
-    M  file4
-  M  file5
-M  file1
+    [ M] file3
+    [M ] file4
+  [M ] file5
+[M ] file1
 `,
 			),
 			collapsedPaths: []string{"dir1"},

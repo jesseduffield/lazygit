@@ -149,8 +149,10 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 			secondCharCl = restColor
 		}
 
-		output = firstCharCl.Sprint(firstChar)
+		output = "["
+		output += firstCharCl.Sprint(firstChar)
 		output += secondCharCl.Sprint(secondChar)
+		output += "]"
 		output += restColor.Sprint(" ")
 	}
 
