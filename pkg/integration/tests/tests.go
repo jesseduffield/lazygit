@@ -18,7 +18,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // Here is where we lists the actual tests that will run. When you create a new test,
