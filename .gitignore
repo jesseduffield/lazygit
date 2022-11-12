@@ -27,6 +27,7 @@ lazygit.exe
 !.circleci/
 !.github/
 !.vscode/
+!.devcontainer/
 
 # these are for our integration tests
 !.git_keep
