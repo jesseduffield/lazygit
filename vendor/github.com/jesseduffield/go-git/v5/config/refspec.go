@@ -11,11 +11,13 @@ const (
 	refSpecWildcard  = "*"
 	refSpecForce     = "+"
 	refSpecSeparator = ":"
+	refSpecNegative  = "^"
 )
 
 var (
 	ErrRefSpecMalformedSeparator = errors.New("malformed refspec, separators are wrong")
 	ErrRefSpecMalformedWildcard  = errors.New("malformed refspec, mismatched number of wildcards")
+	ErrRefSpecMalformedNegative  = errors.New("malformed negative refspec, one ^ and no separators allowed")
 )
 
 // RefSpec is a mapping from local branches to remote references.
@@ -31,6 +33,24 @@ type RefSpec string
 // Validate validates the RefSpec
 func (s RefSpec) Validate() error {
 	spec := string(s)
+
+	if strings.Index(spec, refSpecNegative) == 0 {
+		// This is a negative refspec
+		if strings.Count(spec, refSpecNegative) != 1 {
+			return ErrRefSpecMalformedNegative
+		}
+
+		if strings.Count(spec, refSpecSeparator) != 0 {
+			return ErrRefSpecMalformedNegative
+		}
+
+		if strings.Count(spec, refSpecWildcard) > 1 {
+			return ErrRefSpecMalformedWildcard
+		}
+
+		return nil
+	}
+
 	if strings.Count(spec, refSpecSeparator) != 1 {
 		return ErrRefSpecMalformedSeparator
 	}
@@ -64,12 +84,17 @@ func (s RefSpec) IsExactSHA1() bool {
 	return plumbing.IsHash(s.Src())
 }
 
+// IsNegative returns if the refspec is a negative one
+func (s RefSpec) IsNegative() bool {
+	return s[0] == refSpecNegative[0]
+}
+
 // Src return the src side.
 func (s RefSpec) Src() string {
 	spec := string(s)
 
 	var start int
-	if s.IsForceUpdate() {
+	if s.IsForceUpdate() || s.IsNegative() {
 		start = 1
 	} else {
 		start = 0
