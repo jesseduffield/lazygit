@@ -24,9 +24,6 @@ var (
 	// DefaultTextColor is the default text color
 	DefaultTextColor = style.FgWhite
 
-	// DefaultHiTextColor is the default highlighted text color
-	DefaultHiTextColor = style.FgLightWhite
-
 	// SelectedLineBgColor is the background color for the selected line
 	SelectedLineBgColor = style.New()
 
@@ -61,14 +58,6 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 	OptionsColor = GetGocuiStyle(themeConfig.OptionsTextColor)
 	OptionsFgColor = GetTextStyle(themeConfig.OptionsTextColor, false)
 
-	isLightTheme := themeConfig.LightTheme
-	if isLightTheme {
-		DefaultTextColor = style.FgBlack
-		DefaultHiTextColor = style.FgBlackLighter
-		GocuiDefaultTextColor = gocui.ColorBlack
-	} else {
-		DefaultTextColor = style.FgWhite
-		DefaultHiTextColor = style.FgLightWhite
-		GocuiDefaultTextColor = gocui.ColorWhite
-	}
+	DefaultTextColor = style.FgDefault
+	GocuiDefaultTextColor = gocui.ColorDefault
 }

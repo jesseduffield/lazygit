@@ -27,6 +27,7 @@ var (
 	BgBlue    = FromBasicBg(color.BgBlue)
 	BgMagenta = FromBasicBg(color.BgMagenta)
 	BgCyan    = FromBasicBg(color.BgCyan)
+	BgDefault = FromBasicBg(color.BgDefault)
 
 	// will not print any colour escape codes, including the reset escape code
 	Nothing = New()

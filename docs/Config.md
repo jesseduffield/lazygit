@@ -29,7 +29,6 @@ gui:
   language: 'auto' # one of 'auto' | 'en' | 'zh' | 'pl' | 'nl' | 'ja' | 'ko'
   timeFormat: '02 Jan 06 15:04 MST' # https://pkg.go.dev/time#Time.Format
   theme:
-    lightTheme: false # For terminals with a light background
     activeBorderColor:
       - green
       - bold
@@ -343,23 +342,6 @@ The available attributes are:
 - default
 - reverse # useful for high-contrast
 - underline
-
-## Light terminal theme
-
-If you have issues with a light terminal theme where you can't read / see the text add these settings
-
-```yaml
-gui:
-  theme:
-    lightTheme: true
-    activeBorderColor:
-      - black
-      - bold
-    inactiveBorderColor:
-      - black
-    selectedLineBgColor:
-      - default
-```
 
 ## Highlighting the selected line
 
