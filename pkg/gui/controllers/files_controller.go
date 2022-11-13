@@ -842,7 +842,6 @@ func (self *FilesController) toggleTreeView() error {
 }
 
 func (self *FilesController) handleStashSave(stashFunc func(message string) error, action string) error {
-
 	return self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.StashChanges,
 		HandleConfirm: func(stashComment string) error {
