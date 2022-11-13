@@ -27,13 +27,21 @@ import (
 // a string, we derive it when a new TextStyle is created and store it in the
 // `style` field.
 
-var HIDE_UNDERSCORES bool
-
 // See https://github.com/xtermjs/xterm.js/issues/4238
 // VSCode is soon to fix this in an upcoming update.
 // Once that's done, we can scrap the HIDE_UNDERSCORES variable
-func init() {
-	HIDE_UNDERSCORES = os.Getenv("TERM_PROGRAM") == "vscode"
+var (
+	underscoreEnvChecked bool
+	hideUnderscores      bool
+)
+
+func hideUnderScores() bool {
+	if !underscoreEnvChecked {
+		hideUnderscores = os.Getenv("TERM_PROGRAM") == "vscode"
+		underscoreEnvChecked = true
+	}
+
+	return hideUnderscores
 }
 
 type TextStyle struct {
@@ -75,7 +83,7 @@ func (b TextStyle) SetBold() TextStyle {
 }
 
 func (b TextStyle) SetUnderline() TextStyle {
-	if HIDE_UNDERSCORES {
+	if hideUnderScores() {
 		return b
 	}
 
