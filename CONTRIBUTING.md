@@ -23,6 +23,26 @@ welcome your pull requests:
 
 If you've never written Go in your life, then join the club! Lazygit was the maintainer's first Go program, and most contributors have never used Go before. Go is widely considered an easy-to-learn language, so if you're looking for an open source project to gain dev experience, you've come to the right place.
 
+## Running in a VSCode dev container
+
+If you want to spare yourself the hassle of setting up your dev environment yourself (i.e. installing Go, extensions, and extra tools), you can run the Lazygit code in a VSCode dev container like so:
+
+![image](https://user-images.githubusercontent.com/8456633/201500508-0d55f99f-5035-4a6f-a0f8-eaea5c003e5d.png)
+
+This requires that:
+* you have docker installed
+* you have the dev containers extension installed in VSCode
+
+See [here](https://code.visualstudio.com/docs/devcontainers/containers) for more info about dev containers.
+
+## Running in a Github Codespace
+
+If you want to start contributing to Lazygit with the click of a button, you can open the lazygit codebase in a Codespace:
+
+![image](https://user-images.githubusercontent.com/8456633/201500566-ffe9105d-6030-4cc7-a525-6570b0b413a2.png)
+
+This allows you to contribute to Lazygit without needing to install anything on your local machine. The Codespace has all the necessary tools and extensions pre-installed.
+
 ## Code of conduct
 
 Please note by participating in this project, you agree to abide by the [code of conduct].
@@ -191,6 +211,8 @@ Sometimes you will need to make a change in the gocui fork (https://github.com/j
 ```sh
 ./scripts/bump_lazycore.sh
 ```
+
+Or if you're using VSCode, there is a bump lazycore task you can find by going `cmd+shift+p` and typing 'Run task'
 
 5. Raise a PR in lazygit with those changes
 
