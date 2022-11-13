@@ -19,6 +19,7 @@ type OSCommandDeps struct {
 	GetenvFn     func(string) string
 	RemoveFileFn func(string) error
 	Cmd          *CmdObjBuilder
+	TempDir      string
 }
 
 func NewDummyOSCommandWithDeps(deps OSCommandDeps) *OSCommand {
@@ -38,6 +39,7 @@ func NewDummyOSCommandWithDeps(deps OSCommandDeps) *OSCommand {
 		getenvFn:     deps.GetenvFn,
 		removeFileFn: deps.RemoveFileFn,
 		guiIO:        NewNullGuiIO(utils.NewDummyLog()),
+		tempDir:      deps.TempDir,
 	}
 }
 
