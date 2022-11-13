@@ -61,6 +61,15 @@ The name of a test is based on its path, so the name of the test at `pkg/integra
 
 You can pass the KEY_PRESS_DELAY env var to the test runner in order to set a delay in milliseconds between keypresses, which helps for watching a test at a realistic speed to understand what it's doing. Or you can pass the '--slow' flag which sets a pre-set 'slow' key delay. In the tui you can press 't' to run the test in slow mode.
 
+### Running tests in VSCode
+
+If you've opened an integration test file in your editor you can run that file by bringing up the command panel with `cmd+shift+p` and typing 'run task', then selecting the test task you want to run 
+
+![image](https://user-images.githubusercontent.com/8456633/201500427-b86e129f-5f35-4d55-b7bd-fff5d8e4a04e.png)
+![image](https://user-images.githubusercontent.com/8456633/201500431-903deb8c-c210-4054-8514-ab7088c7a839.png)
+The test will run in a VSCode terminal:
+![image](https://user-images.githubusercontent.com/8456633/201500446-b87abf11-9653-438f-8a9a-e0bf8abdb7ee.png)
+
 ### Snapshots
 
 At the moment (this is subject to change) each test has a snapshot repo created after running for the first time. These snapshots live in `test/integration_new`, in folders named 'expected' (alongside the 'actual' folders which contain the resulting repo from the last test run). Whenever you run a test, the resultant repo will be compared against the snapshot repo and if they're different, you'll be asked whether you want to update the snapshot. If you want to update a snapshot without being prompted you can pass MODE=update to the test runner.
