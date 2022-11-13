@@ -270,6 +270,7 @@ func mergeBuildInfo(buildInfo *BuildInfo) {
 		buildInfo.Date = time.Value
 	}
 }
+
 func getGitVersionInfo() string {
 	cmd := secureexec.Command("git", "--version")
 	stdout, _ := cmd.Output()
