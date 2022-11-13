@@ -1,6 +1,8 @@
 package style
 
 import (
+	"os"
+
 	"github.com/gookit/color"
 )
 
@@ -24,6 +26,15 @@ import (
 // So that we aren't rederiving the underlying style each time we want to print
 // a string, we derive it when a new TextStyle is created and store it in the
 // `style` field.
+
+var HIDE_UNDERSCORES bool
+
+// See https://github.com/xtermjs/xterm.js/issues/4238
+// VSCode is soon to fix this in an upcoming update.
+// Once that's done, we can scrap the HIDE_UNDERSCORES variable
+func init() {
+	HIDE_UNDERSCORES = os.Getenv("TERM_PROGRAM") == "vscode"
+}
 
 type TextStyle struct {
 	fg         *Color
@@ -64,6 +75,10 @@ func (b TextStyle) SetBold() TextStyle {
 }
 
 func (b TextStyle) SetUnderline() TextStyle {
+	if HIDE_UNDERSCORES {
+		return b
+	}
+
 	b.decoration.SetUnderline()
 	b.Style = b.deriveStyle()
 	return b
