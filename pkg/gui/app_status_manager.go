@@ -82,6 +82,10 @@ func (m *statusManager) getStatusString() string {
 	return topStatus.message
 }
 
+func (m *statusManager) showStatus() bool {
+	return len(m.statuses) > 0
+}
+
 func (gui *Gui) toast(message string) {
 	gui.statusManager.addToastStatus(message)
 

@@ -31,7 +31,7 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 
 	extrasWindowSize := gui.getExtrasWindowSize(height)
 
-	showInfoSection := gui.c.UserConfig.Gui.ShowBottomLine || (gui.State.Searching.isSearching || gui.isAnyModeActive())
+	showInfoSection := gui.c.UserConfig.Gui.ShowBottomLine || gui.State.Searching.isSearching || gui.isAnyModeActive() || gui.statusManager.showStatus()
 	infoSectionSize := 0
 	if showInfoSection {
 		infoSectionSize = 1
