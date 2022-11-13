@@ -6,12 +6,20 @@
     {
       "label": "Generate cheatsheet",
       "type": "process",
-      "command": "go run scripts/cheatsheet/main.go "
+      "command": "go run scripts/cheatsheet/main.go ",
+      "problemMatcher": [],
     },
     {
       "label": "Bump gocui",
       "type": "shell",
-      "command": "./scripts/bump_gocui.sh"
+      "command": "./scripts/bump_gocui.sh",
+      "problemMatcher": [],
+    },
+    {
+      "label": "Bump lazycore",
+      "type": "shell",
+      "command": "./scripts/bump_lazycore.sh",
+      "problemMatcher": [],
     },
     {
       "label": "Run current file integration test",
@@ -42,11 +50,4 @@
       }
     }
   ],
-  "inputs": [
-    {
-        "id": "testname",
-        "description": "Test name/path (e.g. 'commit/commit'):",
-        "type": "promptString"
-    },
-  ]
 }
