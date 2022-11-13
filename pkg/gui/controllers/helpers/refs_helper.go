@@ -122,10 +122,6 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	// loading a heap of commits is slow so we limit them whenever doing a reset
 	self.contexts.LocalCommits.SetLimitCommits(true)
 
-	if err := self.c.PushContext(self.contexts.LocalCommits); err != nil {
-		return err
-	}
-
 	if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}}); err != nil {
 		return err
 	}
