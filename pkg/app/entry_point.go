@@ -17,6 +17,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/env"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/logs"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
@@ -83,7 +84,8 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 	}
 
 	if cliArgs.PrintVersionInfo {
-		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s\n", buildInfo.Commit, buildInfo.Date, buildInfo.BuildSource, buildInfo.Version, runtime.GOOS, runtime.GOARCH)
+		gitVersion := getGitVersionInfo()
+		fmt.Printf("commit=%s, build date=%s, build source=%s, version=%s, os=%s, arch=%s, git version=%s\n", buildInfo.Commit, buildInfo.Date, buildInfo.BuildSource, buildInfo.Version, runtime.GOOS, runtime.GOARCH, gitVersion)
 		os.Exit(0)
 	}
 
@@ -267,4 +269,11 @@ func mergeBuildInfo(buildInfo *BuildInfo) {
 	if ok {
 		buildInfo.Date = time.Value
 	}
+}
+
+func getGitVersionInfo() string {
+	cmd := secureexec.Command("git", "--version")
+	stdout, _ := cmd.Output()
+	gitVersion := strings.Trim(strings.TrimPrefix(string(stdout), "git version "), " \r\n")
+	return gitVersion
 }
