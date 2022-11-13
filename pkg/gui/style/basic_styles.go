@@ -1,10 +1,19 @@
 package style
 
 import (
+	"os"
 	"text/template"
 
 	"github.com/gookit/color"
 )
+
+// See https://github.com/xtermjs/xterm.js/issues/4238
+// VSCode is soon to fix this in an upcoming update.
+// Once that's done, we can scrap the HIDE_UNDERSCORES variable
+// duplicating because init() isn't always called when we need it
+func init() {
+	HIDE_UNDERSCORES = os.Getenv("TERM_PROGRAM") == "vscode"
+}
 
 var (
 	FgWhite        = FromBasicFg(color.FgWhite)
