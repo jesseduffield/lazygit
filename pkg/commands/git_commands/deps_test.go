@@ -1,6 +1,8 @@
 package git_commands
 
 import (
+	"os"
+
 	"github.com/go-errors/errors"
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
@@ -70,6 +72,7 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 		GetenvFn:     getenv,
 		Cmd:          cmd,
 		RemoveFileFn: removeFile,
+		TempDir:      os.TempDir(),
 	})
 
 	gitCommon.dotGitDir = deps.dotGitDir
