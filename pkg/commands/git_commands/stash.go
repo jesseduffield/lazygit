@@ -4,19 +4,18 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/loaders"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
 type StashCommands struct {
 	*GitCommon
-	fileLoader  *loaders.FileLoader
+	fileLoader  *FileLoader
 	workingTree *WorkingTreeCommands
 }
 
 func NewStashCommands(
 	gitCommon *GitCommon,
-	fileLoader *loaders.FileLoader,
+	fileLoader *FileLoader,
 	workingTree *WorkingTreeCommands,
 ) *StashCommands {
 	return &StashCommands{
@@ -111,7 +110,7 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 	// meaning it's deleted in your working tree but added in your index. Given that it's
 	// now safely stashed, we need to remove it.
 	files := self.fileLoader.
-		GetStatusFiles(loaders.GetStatusFileOptions{})
+		GetStatusFiles(GetStatusFileOptions{})
 
 	for _, file := range files {
 		if file.ShortStatus == "AD" {

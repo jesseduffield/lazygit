@@ -1,4 +1,4 @@
-package loaders
+package git_commands
 
 // "*|feat/detect-purge|origin/feat/detect-purge|[ahead 1]"
 import (
