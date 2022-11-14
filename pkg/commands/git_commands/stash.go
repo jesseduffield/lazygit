@@ -123,6 +123,10 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 	return nil
 }
 
+func (self *StashCommands) StashIncludeUntrackedChanges(message string) error {
+	return self.cmd.New(fmt.Sprintf("git stash save %s --include-untracked", self.cmd.Quote(message))).Run()
+}
+
 func (self *StashCommands) Rename(index int, message string) error {
 	sha, err := self.Sha(index)
 	if err != nil {

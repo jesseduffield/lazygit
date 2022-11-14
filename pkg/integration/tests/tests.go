@@ -24,24 +24,26 @@ import (
 // be sure to add it to this list.
 
 var tests = []*components.IntegrationTest{
-	commit.Commit,
-	commit.NewBranch,
-	branch.Suggestions,
+	bisect.Basic,
+	bisect.FromOtherBranch,
 	branch.Delete,
 	branch.Rebase,
 	branch.RebaseAndDrop,
-	interactive_rebase.One,
-	interactive_rebase.AmendMerge,
-	custom_commands.Basic,
-	custom_commands.MultiplePrompts,
-	custom_commands.MenuFromCommand,
-	bisect.Basic,
-	bisect.FromOtherBranch,
+	branch.Suggestions,
 	cherry_pick.CherryPick,
 	cherry_pick.CherryPickConflicts,
+	commit.Commit,
+	commit.NewBranch,
+	custom_commands.Basic,
 	custom_commands.FormPrompts,
-	stash.Rename,
+	custom_commands.MenuFromCommand,
+	custom_commands.MultiplePrompts,
 	file.DirWithUntrackedFile,
+	interactive_rebase.AmendMerge,
+	interactive_rebase.One,
+	stash.Rename,
+	stash.Stash,
+	stash.StashIncludingUntrackedFiles,
 }
 
 func GetTests() []*components.IntegrationTest {
