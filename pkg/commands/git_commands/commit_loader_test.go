@@ -182,8 +182,8 @@ func TestGetCommits(t *testing.T) {
 			builder := &CommitLoader{
 				Common: utils.NewDummyCommon(),
 				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
-				getCurrentBranchName: func() (string, string, error) {
-					return scenario.currentBranchName, scenario.currentBranchName, nil
+				getCurrentBranchInfo: func() (BranchInfo, error) {
+					return BranchInfo{RefName: scenario.currentBranchName, DisplayName: scenario.currentBranchName, DetachedHead: false}, nil
 				},
 				getRebaseMode: func() (enums.RebaseMode, error) { return scenario.rebaseMode, nil },
 				dotGitDir:     ".git",

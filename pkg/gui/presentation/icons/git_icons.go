@@ -29,7 +29,7 @@ var remoteIcons = []remoteIcon{
 }
 
 func IconForBranch(branch *models.Branch) string {
-	if branch.DisplayName != "" {
+	if branch.DetachedHead {
 		return DETACHED_HEAD_ICON
 	}
 	return BRANCH_ICON

@@ -255,7 +255,7 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 		return nil
 	}
 
-	if err := self.git.Branch.New(newBranchName, branch.Name); err != nil {
+	if err := self.git.Branch.New(newBranchName, branch.FullRefName()); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -411,7 +411,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 }
 
 func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
-	return self.helpers.Refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), "")
+	return self.helpers.Refs.NewBranch(selectedBranch.FullRefName(), selectedBranch.RefName(), "")
 }
 
 func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
