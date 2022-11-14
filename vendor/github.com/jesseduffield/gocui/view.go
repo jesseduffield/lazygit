@@ -950,33 +950,44 @@ func (v *View) draw() error {
 		start = len(v.viewLines) - 1
 	}
 
-	y := 0
 	emptyCell := cell{chr: ' ', fgColor: ColorDefault, bgColor: ColorDefault}
 	var prevFgColor Attribute
-	for _, vline := range v.viewLines[start:] {
+
+	for y, vline := range v.viewLines[start:] {
 		if y >= maxY {
 			break
 		}
+
+		// x tracks the current x position in the view, and cellIdx tracks the
+		// index of the cell. If we print a double-sized rune, we increment cellIdx
+		// by one but x by two.
 		x := -v.ox
-		j := 0
+		cellIdx := 0
+
 		var c cell
 		for {
-			if x < 0 {
-				if j < len(vline.line) {
-					x += runewidth.RuneWidth(vline.line[j].chr)
-				}
-				j++
-				continue
-			}
 			if x >= maxX {
 				break
 			}
 
-			if j > len(vline.line)-1 {
+			if x < 0 {
+				if cellIdx < len(vline.line) {
+					x += runewidth.RuneWidth(vline.line[cellIdx].chr)
+					cellIdx++
+					continue
+				} else {
+					// no more characters to write so we're only going to be printing empty cells
+					// past this point
+					x = 0
+				}
+			}
+
+			// if we're out of cells to write, we'll just print empty cells.
+			if cellIdx > len(vline.line)-1 {
 				c = emptyCell
 				c.fgColor = prevFgColor
 			} else {
-				c = vline.line[j]
+				c = vline.line[cellIdx]
 				// capturing previous foreground colour so that if we're using the reverse
 				// attribute we honour the final character's colour and don't awkwardly switch
 				// to a new background colour for the remainder of the line
@@ -1006,9 +1017,8 @@ func (v *View) draw() error {
 			// Not sure why the previous code was here but it caused problems
 			// when typing wide characters in an editor
 			x += runewidth.RuneWidth(c.chr)
-			j++
+			cellIdx++
 		}
-		y++
 	}
 	return nil
 }

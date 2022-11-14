@@ -39,6 +39,8 @@ const (
 	stateEscape
 	stateCSI
 	stateParams
+	stateOSC
+	stateOSCEscape
 
 	bold               fontEffect = 1
 	faint              fontEffect = 2
@@ -124,11 +126,16 @@ func (ei *escapeInterpreter) parseOne(ch rune) (isEscape bool, err error) {
 		}
 		return false, nil
 	case stateEscape:
-		if ch == '[' {
+		switch ch {
+		case '[':
 			ei.state = stateCSI
 			return true, nil
+		case ']':
+			ei.state = stateOSC
+			return true, nil
+		default:
+			return false, errNotCSI
 		}
-		return false, errNotCSI
 	case stateCSI:
 		switch {
 		case ch >= '0' && ch <= '9':
@@ -189,6 +196,16 @@ func (ei *escapeInterpreter) parseOne(ch rune) (isEscape bool, err error) {
 		default:
 			return false, errCSIParseError
 		}
+	case stateOSC:
+		switch ch {
+		case 0x1b:
+			ei.state = stateOSCEscape
+			return true, nil
+		}
+		return true, nil
+	case stateOSCEscape:
+		ei.state = stateNone
+		return true, nil
 	}
 	return false, nil
 }
