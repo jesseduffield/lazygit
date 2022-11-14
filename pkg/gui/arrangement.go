@@ -31,7 +31,7 @@ func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map
 
 	extrasWindowSize := gui.getExtrasWindowSize(height)
 
-	showInfoSection := gui.c.UserConfig.Gui.ShowBottomLine || (gui.State.Searching.isSearching || gui.isAnyModeActive())
+	showInfoSection := gui.c.UserConfig.Gui.ShowBottomLine || gui.State.Searching.isSearching || gui.isAnyModeActive() || gui.statusManager.showStatus()
 	infoSectionSize := 0
 	if showInfoSection {
 		infoSectionSize = 1
@@ -159,30 +159,26 @@ func (gui *Gui) infoSectionChildren(informationStr string, appStatus string) []*
 		}
 	}
 
-	result := []*boxlayout.Box{}
+	appStatusBox := &boxlayout.Box{Window: "appStatus"}
+	optionsBox := &boxlayout.Box{Window: "options"}
 
-	if len(appStatus) > 0 {
-		result = append(result,
-			&boxlayout.Box{
-				Window: "appStatus",
-				Size:   runewidth.StringWidth(appStatus) + runewidth.StringWidth(INFO_SECTION_PADDING),
-			},
-		)
+	if !gui.c.UserConfig.Gui.ShowBottomLine {
+		optionsBox.Weight = 0
+		appStatusBox.Weight = 1
+	} else {
+		optionsBox.Weight = 1
+		appStatusBox.Size = runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(appStatus)
 	}
 
-	result = append(result,
-		[]*boxlayout.Box{
-			{
-				Window: "options",
-				Weight: 1,
-			},
-			{
-				Window: "information",
-				// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
-				Size: runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(utils.Decolorise(informationStr)),
-			},
-		}...,
-	)
+	result := []*boxlayout.Box{appStatusBox, optionsBox}
+
+	if gui.c.UserConfig.Gui.ShowBottomLine || gui.isAnyModeActive() {
+		result = append(result, &boxlayout.Box{
+			Window: "information",
+			// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length
+			Size: runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(utils.Decolorise(informationStr)),
+		})
+	}
 
 	return result
 }
