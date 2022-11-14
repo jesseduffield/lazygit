@@ -32,12 +32,8 @@ checksum:
 snapshot:
   name_template: '{{ .Tag }}-next'
 changelog:
+  use: github-native
   sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
-      - '^bump'
 brews:
   -
     # Repository to push the tap to.
