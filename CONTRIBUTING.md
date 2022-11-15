@@ -41,6 +41,8 @@ If you want to start contributing to Lazygit with the click of a button, you can
 
 ![image](https://user-images.githubusercontent.com/8456633/201500566-ffe9105d-6030-4cc7-a525-6570b0b413a2.png)
 
+To run lazygit from within the integrated terminal just go `go run main.go`
+
 This allows you to contribute to Lazygit without needing to install anything on your local machine. The Codespace has all the necessary tools and extensions pre-installed.
 
 ## Code of conduct
