@@ -46,6 +46,8 @@ gui:
       - blue
     unstagedChangesColor:
       - red
+    defaultFgColor:
+      - white
   commitLength:
     show: true
   mouseEvents: true

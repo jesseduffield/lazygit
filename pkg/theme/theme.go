@@ -58,6 +58,6 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 	OptionsColor = GetGocuiStyle(themeConfig.OptionsTextColor)
 	OptionsFgColor = GetTextStyle(themeConfig.OptionsTextColor, false)
 
-	DefaultTextColor = style.FgDefault
-	GocuiDefaultTextColor = gocui.ColorDefault
+	DefaultTextColor = GetTextStyle(themeConfig.DefaultFgColor, false)
+	GocuiDefaultTextColor = GetGocuiStyle(themeConfig.DefaultFgColor)
 }
