@@ -14,6 +14,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/branch"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/cherry_pick"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/config"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
@@ -45,6 +46,7 @@ var tests = []*components.IntegrationTest{
 	stash.Rename,
 	stash.Stash,
 	stash.StashIncludingUntrackedFiles,
+	config.RemoteNamedStar,
 }
 
 func GetTests() []*components.IntegrationTest {

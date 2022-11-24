@@ -45,7 +45,7 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 	remotes := slices.Map(goGitRemotes, func(goGitRemote *gogit.Remote) *models.Remote {
 		remoteName := goGitRemote.Config().Name
 
-		re := regexp.MustCompile(fmt.Sprintf(`(?m)^\s*%s\/([\S]+)`, remoteName))
+		re := regexp.MustCompile(fmt.Sprintf(`(?m)^\s*%s\/([\S]+)`, regexp.QuoteMeta(remoteName)))
 		matches := re.FindAllStringSubmatch(remoteBranchesStr, -1)
 		branches := slices.Map(matches, func(match []string) *models.RemoteBranch {
 			return &models.RemoteBranch{
