@@ -125,3 +125,8 @@ func (s *Shell) StashWithMessage(message string) *Shell {
 	s.RunCommand(fmt.Sprintf(`git stash -m "%s"`, message))
 	return s
 }
+
+func (s *Shell) SetConfig(key string, value string) *Shell {
+	s.RunCommand(fmt.Sprintf(`git config --local "%s" %s`, key, value))
+	return s
+}
