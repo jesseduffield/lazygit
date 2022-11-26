@@ -67,26 +67,38 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 			}
 
 			resolveTemplate := self.getResolveTemplateFn(form, promptResponses, sessionState)
-			resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
-			if err != nil {
-				return self.c.Error(err)
-			}
 
 			switch prompt.Type {
 			case "input":
 				f = func() error {
+					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
+					if err != nil {
+						return self.c.Error(err)
+					}
 					return self.inputPrompt(resolvedPrompt, wrappedF)
 				}
 			case "menu":
 				f = func() error {
+					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
+					if err != nil {
+						return self.c.Error(err)
+					}
 					return self.menuPrompt(resolvedPrompt, wrappedF)
 				}
 			case "menuFromCommand":
 				f = func() error {
+					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
+					if err != nil {
+						return self.c.Error(err)
+					}
 					return self.menuPromptFromCommand(resolvedPrompt, wrappedF)
 				}
 			case "confirm":
 				f = func() error {
+					resolvedPrompt, err := self.resolver.resolvePrompt(&prompt, resolveTemplate)
+					if err != nil {
+						return self.c.Error(err)
+					}
 					return self.confirmPrompt(resolvedPrompt, g)
 				}
 			default:

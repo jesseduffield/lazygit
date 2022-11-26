@@ -39,6 +39,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.Basic,
 	custom_commands.FormPrompts,
 	custom_commands.MenuFromCommand,
+	custom_commands.MenuFromCommandsOutput,
 	custom_commands.MultiplePrompts,
 	file.DirWithUntrackedFile,
 	interactive_rebase.AmendMerge,
