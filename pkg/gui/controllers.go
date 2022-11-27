@@ -24,6 +24,10 @@ func (gui *Gui) resetControllers() {
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
+	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
+	getSavedCommitMessage := func() string {
+		return gui.State.savedCommitMessage
+	}
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
 		Host:           helpers.NewHostHelper(helperCommon, gui.git),
@@ -31,7 +35,7 @@ func (gui *Gui) resetControllers() {
 		Bisect:         helpers.NewBisectHelper(helperCommon, gui.git),
 		Suggestions:    suggestionsHelper,
 		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
-		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, model),
+		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, gui.State.Contexts, refsHelper, model, setCommitMessage, getSavedCommitMessage),
 		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
 		GPG:            helpers.NewGpgHelper(helperCommon, gui.os, gui.git),
 		MergeAndRebase: rebaseHelper,
@@ -76,15 +80,9 @@ func (gui *Gui) resetControllers() {
 
 	bisectController := controllers.NewBisectController(common)
 
-	getSavedCommitMessage := func() string {
-		return gui.State.savedCommitMessage
-	}
-
 	getCommitMessage := func() string {
 		return strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
 	}
-
-	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 
 	onCommitAttempt := func(message string) {
 		gui.State.savedCommitMessage = message

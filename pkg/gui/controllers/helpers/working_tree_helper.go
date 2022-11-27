@@ -2,13 +2,14 @@ package helpers
 
 import (
 	"fmt"
-    "regexp"
+	"regexp"
+
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type IWorkingTreeHelper interface {
@@ -19,30 +20,30 @@ type IWorkingTreeHelper interface {
 }
 
 type WorkingTreeHelper struct {
-	c   *types.HelperCommon
-	git *commands.GitCommand
-	contexts *context.ContextTree
-    refHelper *RefsHelper
-	model *types.Model
+	c                     *types.HelperCommon
+	git                   *commands.GitCommand
+	contexts              *context.ContextTree
+	refHelper             *RefsHelper
+	model                 *types.Model
 	setCommitMessage      func(message string)
 	getSavedCommitMessage func() string
 }
 
 func NewWorkingTreeHelper(
-    c *types.HelperCommon,
-    git *commands.GitCommand,
-    contexts *context.ContextTree,
-    refHelper *RefsHelper,
-    model *types.Model,
+	c *types.HelperCommon,
+	git *commands.GitCommand,
+	contexts *context.ContextTree,
+	refHelper *RefsHelper,
+	model *types.Model,
 	setCommitMessage func(message string),
 	getSavedCommitMessage func() string,
 ) *WorkingTreeHelper {
 	return &WorkingTreeHelper{
-		c:     c,
-		git:   git,
-        contexts: contexts,
-        refHelper: refHelper,
-		model: model,
+		c:                     c,
+		git:                   git,
+		contexts:              contexts,
+		refHelper:             refHelper,
+		model:                 model,
 		setCommitMessage:      setCommitMessage,
 		getSavedCommitMessage: getSavedCommitMessage,
 	}
@@ -190,7 +191,7 @@ func (self *WorkingTreeHelper) prepareFilesForCommit() error {
 			return err
 		}
 
-		return self.syncRefresh();
+		return self.syncRefresh()
 	}
 
 	return nil
@@ -204,4 +205,3 @@ func (self *WorkingTreeHelper) commitPrefixConfigForRepo() *config.CommitPrefixC
 
 	return &cfg
 }
-
