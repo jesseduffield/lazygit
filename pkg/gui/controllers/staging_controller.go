@@ -73,6 +73,21 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 			Handler:     self.EditHunkAndRefresh,
 			Description: self.c.Tr.EditHunk,
 		},
+		{
+			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
+			Handler:     self.helpers.WorkingTree.HandleCommitPress,
+			Description: self.c.Tr.CommitChanges,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
+			Handler:     self.helpers.WorkingTree.HandleWIPCommitPress,
+			Description: self.c.Tr.LcCommitChangesWithoutHook,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
+			Handler:     self.helpers.WorkingTree.HandleCommitEditorPress,
+			Description: self.c.Tr.CommitChangesWithEditor,
+		},
 	}
 }
 
