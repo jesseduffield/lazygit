@@ -238,6 +238,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>space</kbd>: 切换行暂存状态
   <kbd>d</kbd>: 取消变更 (git reset)
   <kbd>E</kbd>: edit hunk
+  <kbd>c</kbd>: 提交更改
+  <kbd>w</kbd>: 提交更改而无需预先提交钩子
+  <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
 </pre>
 
 ## 正常

@@ -136,6 +136,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>space</kbd>: 선택한 행을 staged / unstaged
   <kbd>d</kbd>: 변경을 삭제 (git reset)
   <kbd>E</kbd>: edit hunk
+  <kbd>c</kbd>: 커밋 변경내용
+  <kbd>w</kbd>: commit changes without pre-commit hook
+  <kbd>C</kbd>: Git 편집기를 사용하여 변경 내용을 커밋합니다.
 </pre>
 
 ## 브랜치
