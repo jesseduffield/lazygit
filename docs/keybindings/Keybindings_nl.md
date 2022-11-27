@@ -61,7 +61,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: bekijk stash opties
   <kbd>a</kbd>: toggle staged alle
   <kbd>enter</kbd>: stage individuele hunks/lijnen
-  <kbd>g</kbd>: bekijk upstream reset opties
   <kbd>D</kbd>: bekijk reset opties
   <kbd>`</kbd>: toggle bestandsboom weergave
   <kbd>M</kbd>: open external merge tool (git mergetool)

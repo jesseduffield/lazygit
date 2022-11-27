@@ -168,7 +168,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: view stash options
   <kbd>a</kbd>: すべての変更をステージ/アンステージ
   <kbd>enter</kbd>: stage individual hunks/lines for file, or collapse/expand for directory
-  <kbd>g</kbd>: view upstream reset options
   <kbd>D</kbd>: view reset options
   <kbd>`</kbd>: ファイルツリーの表示を切り替え
   <kbd>M</kbd>: git mergetoolを開く

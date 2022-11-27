@@ -131,7 +131,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>S</kbd>: wyświetl opcje schowka
   <kbd>a</kbd>: przełącz stan poczekalni wszystkich
   <kbd>enter</kbd>: zatwierdź pojedyncze linie
-  <kbd>g</kbd>: view upstream reset options
   <kbd>D</kbd>: wyświetl opcje resetu
   <kbd>`</kbd>: toggle file tree view
   <kbd>M</kbd>: open external merge tool (git mergetool)

@@ -17,16 +17,17 @@ import (
 type IRefsHelper interface {
 	CheckoutRef(ref string, options types.CheckoutRefOptions) error
 	GetCheckedOutRef() *models.Branch
-	CreateGitResetMenu(ref string) error
+	CreateGitResetMenu(ref string, opts types.CreateGitResetMenuOpts) error
 	ResetToRef(ref string, strength string, envVars []string) error
 	NewBranch(from string, fromDescription string, suggestedBranchname string) error
 }
 
 type RefsHelper struct {
-	c        *types.HelperCommon
-	git      *commands.GitCommand
-	contexts *context.ContextTree
-	model    *types.Model
+	c                *types.HelperCommon
+	git              *commands.GitCommand
+	contexts         *context.ContextTree
+	model            *types.Model
+	suggestionHelper *SuggestionsHelper
 }
 
 func NewRefsHelper(
@@ -34,12 +35,14 @@ func NewRefsHelper(
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 	model *types.Model,
+	suggestionHelper *SuggestionsHelper,
 ) *RefsHelper {
 	return &RefsHelper{
-		c:        c,
-		git:      git,
-		contexts: contexts,
-		model:    model,
+		c:                c,
+		git:              git,
+		contexts:         contexts,
+		model:            model,
+		suggestionHelper: suggestionHelper,
 	}
 }
 
@@ -113,7 +116,7 @@ func (self *RefsHelper) GetCheckedOutRef() *models.Branch {
 }
 
 func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string) error {
-	if err := self.git.Commit.ResetToCommit(ref, strength, envVars); err != nil {
+	if err := self.git.Commit.ResetToDestination(ref, strength, envVars); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -129,30 +132,72 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 	return nil
 }
 
-func (self *RefsHelper) CreateGitResetMenu(ref string) error {
+func (self *RefsHelper) CreateGitResetMenu(ref string, opts types.CreateGitResetMenuOpts) error {
 	type strengthWithKey struct {
 		strength string
 		key      types.Key
+		ref      string
 	}
+
 	strengths := []strengthWithKey{
-		{strength: "soft", key: 's'},
-		{strength: "mixed", key: 'm'},
-		{strength: "hard", key: 'h'},
+		{strength: "soft", key: 's', ref: ref},
+		{strength: "mixed", key: 'm', ref: ref},
+		{strength: "hard", key: 'h', ref: ref},
 	}
 
 	menuItems := slices.Map(strengths, func(row strengthWithKey) *types.MenuItem {
 		return &types.MenuItem{
 			LabelColumns: []string{
 				fmt.Sprintf("%s reset", row.strength),
-				style.FgRed.Sprintf("reset --%s %s", row.strength, ref),
+				style.FgRed.Sprintf("reset --%s %s", row.strength, row.ref),
 			},
 			OnPress: func() error {
 				self.c.LogAction("Reset")
-				return self.ResetToRef(ref, row.strength, []string{})
+				return self.ResetToRef(row.ref, row.strength, []string{})
 			},
 			Key: row.key,
 		}
 	})
+
+	if opts.ShowUpstreamOption {
+		menuItems = append(menuItems, &types.MenuItem{
+			LabelColumns: []string{
+				fmt.Sprintf(self.c.Tr.ResetToUpstreamOption, ref),
+				style.FgRed.Sprintf(""),
+			},
+			OnPress: func() error {
+				return self.CreateGitResetMenu(fmt.Sprintf("%s@{upstream}", ref), types.CreateGitResetMenuOpts{
+					ShowUpstreamOption:  false,
+					ShowCustomRefOption: false,
+				})
+			},
+			Key:       'u',
+			OpensMenu: true,
+		})
+	}
+
+	if opts.ShowCustomRefOption {
+		menuItems = append(menuItems, &types.MenuItem{
+			LabelColumns: []string{
+				fmt.Sprintf(self.c.Tr.ResetToCustomDestination),
+				style.FgRed.Sprintf(""),
+			},
+			OnPress: func() error {
+				return self.c.Prompt(types.PromptOpts{
+					Title: self.c.Tr.ResetToCustomDestination,
+					HandleConfirm: func(s string) error {
+						return self.CreateGitResetMenu(s, types.CreateGitResetMenuOpts{
+							ShowCustomRefOption: false,
+							ShowUpstreamOption:  true,
+						})
+					},
+					FindSuggestionsFunc: self.suggestionHelper.GetRefsSuggestionsFunc(),
+				})
+			},
+			Key:       'c',
+			OpensMenu: true,
+		})
+	}
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: fmt.Sprintf("%s %s", self.c.Tr.LcResetTo, ref),

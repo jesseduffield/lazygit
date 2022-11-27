@@ -15,15 +15,19 @@ func (gui *Gui) resetControllers() {
 	helperCommon := gui.c
 	osCommand := gui.os
 	model := gui.State.Model
+
+	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
+
 	refsHelper := helpers.NewRefsHelper(
 		helperCommon,
 		gui.git,
 		gui.State.Contexts,
 		model,
+		suggestionsHelper,
 	)
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
-	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
+
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
 		Host:           helpers.NewHostHelper(helperCommon, gui.git),

@@ -17,13 +17,13 @@ func TestCommitRewordCommit(t *testing.T) {
 	runner.CheckForMissingCalls()
 }
 
-func TestCommitResetToCommit(t *testing.T) {
+func TestCommitResetToDestination(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
 		ExpectGitArgs([]string{"reset", "--hard", "78976bc"}, "", nil)
 
 	instance := buildCommitCommands(commonDeps{runner: runner})
 
-	assert.NoError(t, instance.ResetToCommit("78976bc", "hard", []string{}))
+	assert.NoError(t, instance.ResetToDestination("78976bc", "hard", []string{}))
 	runner.CheckForMissingCalls()
 }
 
