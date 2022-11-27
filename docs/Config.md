@@ -481,6 +481,7 @@ Where:
 
 In situations where certain naming pattern is used for branches and commits, pattern can be used to populate
 commit message with prefix that is parsed from the branch name.
+"Repository folder name" can containt regexp to match repo name. Will be taken first matching regexp pattern as commit prefix configuration, please ensure that "more wildcard" patterns will be in the end of the list.
 
 Example:
 
@@ -491,6 +492,9 @@ Example:
 git:
   commitPrefixes:
     my_project: # This is repository folder name
+      pattern: "^\\w+\\/(\\w+-\\w+).*"
+      replace: '[$1] '
+    my_regexp_.*: # This is regexp for folder name
       pattern: "^\\w+\\/(\\w+-\\w+).*"
       replace: '[$1] '
 ```
