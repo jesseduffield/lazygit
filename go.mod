@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/OpenPeeDeeP/xdg v1.0.0
-	github.com/atotto/clipboard v0.1.2
+	github.com/atotto/clipboard v0.1.4
 	github.com/aybabtme/humanlog v0.4.1
 	github.com/cli/safeexec v1.0.0
 	github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
