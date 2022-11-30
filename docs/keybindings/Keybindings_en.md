@@ -191,6 +191,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>space</kbd>: toggle line staged / unstaged
   <kbd>d</kbd>: delete change (git reset)
   <kbd>E</kbd>: edit hunk
+  <kbd>c</kbd>: commit changes
+  <kbd>w</kbd>: commit changes without pre-commit hook
+  <kbd>C</kbd>: commit changes using git editor
 </pre>
 
 ## Reflog

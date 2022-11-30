@@ -251,6 +251,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>space</kbd>: 選択行をステージ/アンステージ
   <kbd>d</kbd>: 変更を削除 (git reset)
   <kbd>E</kbd>: edit hunk
+  <kbd>c</kbd>: 変更をコミット
+  <kbd>w</kbd>: pre-commitフックを実行せずに変更をコミット
+  <kbd>C</kbd>: gitエディタを使用して変更をコミット
 </pre>
 
 ## リモート

@@ -229,6 +229,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>space</kbd>: toggle lijnen staged / unstaged
   <kbd>d</kbd>: verwijdert change (git reset)
   <kbd>E</kbd>: edit hunk
+  <kbd>c</kbd>: commit veranderingen
+  <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
+  <kbd>C</kbd>: commit veranderingen met de git editor
 </pre>
 
 ## Stash
