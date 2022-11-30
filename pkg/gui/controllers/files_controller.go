@@ -83,7 +83,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.LcOpenFile,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.IgnoreOrExcludeFile),
+			Key:         opts.GetKey(opts.Config.Files.IgnoreFile),
 			Handler:     self.checkSelectedFileNode(self.ignoreOrExcludeMenu),
 			Description: self.c.Tr.Actions.LcIgnoreExcludeFile,
 			OpensMenu:   true,
