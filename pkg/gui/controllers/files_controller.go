@@ -1,18 +1,14 @@
 package controllers
 
 import (
-	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type FilesController struct {
@@ -54,12 +50,12 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
-			Handler:     self.HandleCommitPress,
+			Handler:     self.helpers.WorkingTree.HandleCommitPress,
 			Description: self.c.Tr.CommitChanges,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
-			Handler:     self.HandleWIPCommitPress,
+			Handler:     self.helpers.WorkingTree.HandleWIPCommitPress,
 			Description: self.c.Tr.LcCommitChangesWithoutHook,
 		},
 		{
@@ -69,7 +65,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
-			Handler:     self.HandleCommitEditorPress,
+			Handler:     self.helpers.WorkingTree.HandleCommitEditorPress,
 			Description: self.c.Tr.CommitChangesWithEditor,
 		},
 		{
@@ -83,7 +79,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Description: self.c.Tr.LcOpenFile,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Files.IgnoreOrExcludeFile),
+			Key:         opts.GetKey(opts.Config.Files.IgnoreFile),
 			Handler:     self.checkSelectedFileNode(self.ignoreOrExcludeMenu),
 			Description: self.c.Tr.Actions.LcIgnoreExcludeFile,
 			OpensMenu:   true,
@@ -554,103 +550,8 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 	})
 }
 
-func (self *FilesController) HandleWIPCommitPress() error {
-	skipHookPrefix := self.c.UserConfig.Git.SkipHookPrefix
-	if skipHookPrefix == "" {
-		return self.c.ErrorMsg(self.c.Tr.SkipHookPrefixNotConfigured)
-	}
-
-	self.setCommitMessage(skipHookPrefix)
-
-	return self.HandleCommitPress()
-}
-
-func (self *FilesController) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
-	cfg, ok := self.c.UserConfig.Git.CommitPrefixes[utils.GetCurrentRepoName()]
-	if !ok {
-		return nil
-	}
-
-	return &cfg
-}
-
-func (self *FilesController) prepareFilesForCommit() error {
-	noStagedFiles := !self.helpers.WorkingTree.AnyStagedFiles()
-	if noStagedFiles && self.c.UserConfig.Gui.SkipNoStagedFilesWarning {
-		self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-		err := self.git.WorkingTree.StageAll()
-		if err != nil {
-			return err
-		}
-
-		return self.syncRefresh()
-	}
-
-	return nil
-}
-
-// for when you need to refetch files before continuing an action. Runs synchronously.
-func (self *FilesController) syncRefresh() error {
-	return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.FILES}})
-}
-
 func (self *FilesController) refresh() error {
 	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-}
-
-func (self *FilesController) HandleCommitPress() error {
-	if err := self.prepareFilesForCommit(); err != nil {
-		return self.c.Error(err)
-	}
-
-	if len(self.model.Files) == 0 {
-		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
-	}
-
-	if !self.helpers.WorkingTree.AnyStagedFiles() {
-		return self.promptToStageAllAndRetry(self.HandleCommitPress)
-	}
-
-	savedCommitMessage := self.getSavedCommitMessage()
-	if len(savedCommitMessage) > 0 {
-		self.setCommitMessage(savedCommitMessage)
-	} else {
-		commitPrefixConfig := self.commitPrefixConfigForRepo()
-		if commitPrefixConfig != nil {
-			prefixPattern := commitPrefixConfig.Pattern
-			prefixReplace := commitPrefixConfig.Replace
-			rgx, err := regexp.Compile(prefixPattern)
-			if err != nil {
-				return self.c.ErrorMsg(fmt.Sprintf("%s: %s", self.c.Tr.LcCommitPrefixPatternError, err.Error()))
-			}
-			prefix := rgx.ReplaceAllString(self.helpers.Refs.GetCheckedOutRef().Name, prefixReplace)
-			self.setCommitMessage(prefix)
-		}
-	}
-
-	if err := self.c.PushContext(self.contexts.CommitMessage); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (self *FilesController) promptToStageAllAndRetry(retry func() error) error {
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.NoFilesStagedTitle,
-		Prompt: self.c.Tr.NoFilesStagedPrompt,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-			if err := self.git.WorkingTree.StageAll(); err != nil {
-				return self.c.Error(err)
-			}
-			if err := self.syncRefresh(); err != nil {
-				return self.c.Error(err)
-			}
-
-			return retry()
-		},
-	})
 }
 
 func (self *FilesController) handleAmendCommitPress() error {
@@ -659,7 +560,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 	}
 
 	if !self.helpers.WorkingTree.AnyStagedFiles() {
-		return self.promptToStageAllAndRetry(self.handleAmendCommitPress)
+		return self.helpers.WorkingTree.PromptToStageAllAndRetry(self.handleAmendCommitPress)
 	}
 
 	if len(self.model.Commits) == 0 {
@@ -675,23 +576,6 @@ func (self *FilesController) handleAmendCommitPress() error {
 			return self.helpers.GPG.WithGpgHandling(cmdObj, self.c.Tr.AmendingStatus, nil)
 		},
 	})
-}
-
-// HandleCommitEditorPress - handle when the user wants to commit changes via
-// their editor rather than via the popup panel
-func (self *FilesController) HandleCommitEditorPress() error {
-	if len(self.model.Files) == 0 {
-		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
-	}
-
-	if !self.helpers.WorkingTree.AnyStagedFiles() {
-		return self.promptToStageAllAndRetry(self.HandleCommitEditorPress)
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.Commit)
-	return self.c.RunSubprocessAndRefresh(
-		self.git.Commit.CommitEditorCmdObj(),
-	)
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {

@@ -168,6 +168,9 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>space</kbd>: toggle line staged / unstaged
   <kbd>d</kbd>: delete change (git reset)
   <kbd>E</kbd>: edit hunk
+  <kbd>c</kbd>: Zatwierdź zmiany
+  <kbd>w</kbd>: zatwierdź zmiany bez skryptu pre-commit
+  <kbd>C</kbd>: Zatwierdź zmiany używając edytora
 </pre>
 
 ## Reflog
