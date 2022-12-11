@@ -113,6 +113,7 @@ keybinding:
     quit: 'q'
     quit-alt1: '<c-c>' # alternative/alias of quit
     return: '<esc>' # return to previous menu, will quit if there's nowhere to return
+    return-alt1: ';' # Can be set as a single character key to return to the previous menu level
     quitWithoutChangingDirectory: 'Q'
     togglePanel: '<tab>' # goto the next panel
     prevItem: '<up>' # go one line up
