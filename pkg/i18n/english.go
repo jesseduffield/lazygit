@@ -851,7 +851,7 @@ func EnglishTranslationSet() TranslationSet {
 		GlobalTitle:                         "Global Keybindings",
 		ConflictsResolved:                   "all merge conflicts resolved. Continue?",
 		RebasingTitle:                       "Rebasing",
-		ConfirmRebase:                       "Are you sure you want to rebase '{{.checkedOutBranch}}' onto '{{.selectedBranch}}'?",
+		ConfirmRebase:                       "Are you sure you want to rebase '{{.checkedOutBranch}}' on top of '{{.selectedBranch}}'?",
 		ConfirmMerge:                        "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                  "Cannot fast-forward a branch whose remote is not registered locally",

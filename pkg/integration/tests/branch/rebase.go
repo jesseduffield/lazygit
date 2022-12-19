@@ -24,7 +24,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 		input.PressKeys(keys.Branches.RebaseBranch)
 
 		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to rebase 'first-change-branch' onto 'second-change-branch'?"))
+		assert.MatchCurrentViewContent(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
 		input.Confirm()
 
 		assert.InConfirm()
