@@ -39,11 +39,6 @@ func getIntegrationTest() integrationTypes.IntegrationTest {
 		return nil
 	}
 
-	if os.Getenv(components.SANDBOX_ENV_VAR) == "true" {
-		// when in sandbox mode we don't want the test controlling the gui
-		return nil
-	}
-
 	integrationTestName := os.Getenv(components.TEST_NAME_ENV_VAR)
 	if integrationTestName == "" {
 		panic(fmt.Sprintf(
