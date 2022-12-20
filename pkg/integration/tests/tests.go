@@ -36,6 +36,7 @@ var tests = []*components.IntegrationTest{
 	cherry_pick.CherryPick,
 	cherry_pick.CherryPickConflicts,
 	commit.Commit,
+	commit.CommitMultiline,
 	commit.NewBranch,
 	commit.Staged,
 	commit.Unstaged,

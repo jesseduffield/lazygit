@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -53,6 +54,16 @@ func Contains(target string) *matcher {
 func NotContains(target string) *matcher {
 	return &matcher{testFn: func(value string) (bool, string) {
 		return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
+	}}
+}
+
+func MatchesRegexp(regexStr string) *matcher {
+	return &matcher{testFn: func(value string) (bool, string) {
+		matched, err := regexp.MatchString(regexStr, value)
+		if err != nil {
+			return false, fmt.Sprintf("Unexpected error parsing regular expression '%s': %s", regexStr, err.Error())
+		}
+		return matched, fmt.Sprintf("Expected '%s' to match regular expression '%s'", value, regexStr)
 	}}
 }
 
