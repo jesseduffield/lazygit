@@ -255,9 +255,7 @@ func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless b
 // Close finalizes the library. It should be called after a successful
 // initialization and when gocui is not needed anymore.
 func (g *Gui) Close() {
-	go func() {
-		g.stop <- struct{}{}
-	}()
+	close(g.stop)
 	Screen.Fini()
 }
 

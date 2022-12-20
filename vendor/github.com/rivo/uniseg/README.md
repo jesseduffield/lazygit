@@ -133,6 +133,13 @@ Similarly, use
 - [`FirstSentence`](https://pkg.go.dev/github.com/rivo/uniseg#FirstSentence) or [`FirstSentenceInString`](https://pkg.go.dev/github.com/rivo/uniseg#FirstSentenceInString) for sentence segmentation only, and
 - [`FirstLineSegment`](https://pkg.go.dev/github.com/rivo/uniseg#FirstLineSegment) or [`FirstLineSegmentInString`](https://pkg.go.dev/github.com/rivo/uniseg#FirstLineSegmentInString) for line breaking / word wrapping (although using [`Step`](https://pkg.go.dev/github.com/rivo/uniseg#Step) or [`StepString`](https://pkg.go.dev/github.com/rivo/uniseg#StepString) is preferred as it will observe grapheme cluster boundaries).
 
+Finally, if you need to reverse a string while preserving grapheme clusters, use [`ReverseString`](https://pkg.go.dev/github.com/rivo/uniseg#ReverseString):
+
+```go
+fmt.Println(uniseg.ReverseString("🇩🇪🏳️‍🌈"))
+// 🏳️‍🌈🇩🇪
+```
+
 ## Documentation
 
 Refer to https://pkg.go.dev/github.com/rivo/uniseg for the package's documentation.
