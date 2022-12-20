@@ -425,6 +425,7 @@ func GetDefaultConfig() *UserConfig {
 				Quit:                         "q",
 				QuitAlt1:                     "<c-c>",
 				Return:                       "<esc>",
+				ReturnAlt1:                   "",
 				QuitWithoutChangingDirectory: "Q",
 				TogglePanel:                  "<tab>",
 				PrevItem:                     "<up>",
