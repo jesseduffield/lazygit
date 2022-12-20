@@ -3,23 +3,29 @@ package controllers
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 )
 
 // given we have no fields here, arguably we shouldn't even need this factory
 // struct, but we're maintaining consistency with the other files.
 type VerticalScrollControllerFactory struct {
-	controllerCommon *controllerCommon
+	controllerCommon     *controllerCommon
+	viewBufferManagerMap *map[string]*tasks.ViewBufferManager
 }
 
-func NewVerticalScrollControllerFactory(c *controllerCommon) *VerticalScrollControllerFactory {
-	return &VerticalScrollControllerFactory{controllerCommon: c}
+func NewVerticalScrollControllerFactory(c *controllerCommon, viewBufferManagerMap *map[string]*tasks.ViewBufferManager) *VerticalScrollControllerFactory {
+	return &VerticalScrollControllerFactory{
+		controllerCommon:     c,
+		viewBufferManagerMap: viewBufferManagerMap,
+	}
 }
 
 func (self *VerticalScrollControllerFactory) Create(context types.Context) types.IController {
 	return &VerticalScrollController{
-		baseController:   baseController{},
-		controllerCommon: self.controllerCommon,
-		context:          context,
+		baseController:       baseController{},
+		controllerCommon:     self.controllerCommon,
+		context:              context,
+		viewBufferManagerMap: self.viewBufferManagerMap,
 	}
 }
 
@@ -27,7 +33,8 @@ type VerticalScrollController struct {
 	baseController
 	*controllerCommon
 
-	context types.Context
+	context              types.Context
+	viewBufferManagerMap *map[string]*tasks.ViewBufferManager
 }
 
 func (self *VerticalScrollController) Context() types.Context {
@@ -64,7 +71,12 @@ func (self *VerticalScrollController) HandleScrollUp() error {
 }
 
 func (self *VerticalScrollController) HandleScrollDown() error {
-	self.context.GetViewTrait().ScrollDown(self.c.UserConfig.Gui.ScrollHeight)
+	scrollHeight := self.c.UserConfig.Gui.ScrollHeight
+	self.context.GetViewTrait().ScrollDown(scrollHeight)
+
+	if manager, ok := (*self.viewBufferManagerMap)[self.context.GetViewName()]; ok {
+		manager.ReadLines(scrollHeight)
+	}
 
 	return nil
 }
