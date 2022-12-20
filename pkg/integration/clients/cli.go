@@ -29,19 +29,12 @@ func RunCLI(testNames []string, slow bool, sandbox bool) {
 		keyPressDelay = SLOW_KEY_PRESS_DELAY
 	}
 
-	var mode components.Mode
-	if sandbox {
-		mode = components.SANDBOX
-	} else {
-		mode = getModeFromEnv()
-	}
-
 	err := components.RunTests(
 		getTestsToRun(testNames),
 		log.Printf,
 		runCmdInTerminal,
 		runAndPrintFatalError,
-		mode,
+		sandbox,
 		keyPressDelay,
 		1,
 	)
@@ -93,22 +86,6 @@ func runCmdInTerminal(cmd *exec.Cmd) error {
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
-}
-
-func getModeFromEnv() components.Mode {
-	switch os.Getenv("MODE") {
-	case "", "ask":
-		return components.ASK_TO_UPDATE_SNAPSHOT
-	case "check":
-		return components.CHECK_SNAPSHOT
-	case "update":
-		return components.UPDATE_SNAPSHOT
-	case "sandbox":
-		return components.SANDBOX
-	default:
-		log.Fatalf("unknown test mode: %s, must be one of [ask, check, update, sandbox]", os.Getenv("MODE"))
-		panic("unreachable")
-	}
 }
 
 func tryConvert(numStr string, defaultVal int) int {

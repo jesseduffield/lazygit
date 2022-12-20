@@ -2,6 +2,8 @@ package components
 
 import (
 	"fmt"
+	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -53,6 +55,16 @@ func Contains(target string) *matcher {
 func NotContains(target string) *matcher {
 	return &matcher{testFn: func(value string) (bool, string) {
 		return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
+	}}
+}
+
+func MatchesRegexp(regexStr string) *matcher {
+	return &matcher{testFn: func(value string) (bool, string) {
+		matched, err := regexp.MatchString(regexStr, value)
+		if err != nil {
+			return false, fmt.Sprintf("Unexpected error parsing regular expression '%s': %s", regexStr, err.Error())
+		}
+		return matched, fmt.Sprintf("Expected '%s' to match regular expression '%s'", value, regexStr)
 	}}
 }
 
@@ -247,4 +259,20 @@ func (self *Assert) assertWithRetries(test func() (bool, string)) {
 // for when you just want to fail the test yourself
 func (self *Assert) Fail(message string) {
 	self.gui.Fail(message)
+}
+
+// This does _not_ check the files panel, it actually checks the filesystem
+func (self *Assert) FileSystemPathPresent(path string) {
+	self.assertWithRetries(func() (bool, string) {
+		_, err := os.Stat(path)
+		return err == nil, fmt.Sprintf("Expected path '%s' to exist, but it does not", path)
+	})
+}
+
+// This does _not_ check the files panel, it actually checks the filesystem
+func (self *Assert) FileSystemPathNotPresent(path string) {
+	self.assertWithRetries(func() (bool, string) {
+		_, err := os.Stat(path)
+		return os.IsNotExist(err), fmt.Sprintf("Expected path '%s' to not exist, but it does", path)
+	})
 }

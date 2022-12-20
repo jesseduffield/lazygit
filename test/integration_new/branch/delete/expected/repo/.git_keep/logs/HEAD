@@ -1,3 +1,0 @@
-0000000000000000000000000000000000000000 a7222d091ed91af493b7173e4b09dd2de085031d CI <CI@example.com> 1661162427 +1000	commit (initial): blah
-a7222d091ed91af493b7173e4b09dd2de085031d a7222d091ed91af493b7173e4b09dd2de085031d CI <CI@example.com> 1661162427 +1000	checkout: moving from master to branch-one
-a7222d091ed91af493b7173e4b09dd2de085031d a7222d091ed91af493b7173e4b09dd2de085031d CI <CI@example.com> 1661162427 +1000	checkout: moving from branch-one to branch-two
