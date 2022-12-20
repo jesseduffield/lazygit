@@ -18,6 +18,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 )
 
@@ -25,6 +26,7 @@ import (
 // be sure to add it to this list.
 
 var tests = []*components.IntegrationTest{
+	misc.ConfirmOnQuit,
 	bisect.Basic,
 	bisect.FromOtherBranch,
 	branch.CheckoutByName,
