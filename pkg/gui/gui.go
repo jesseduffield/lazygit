@@ -32,6 +32,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -426,7 +427,7 @@ func (gui *Gui) initGocui(headless bool, test integrationTypes.IntegrationTest) 
 		playMode = gocui.RECORDING
 	} else if Replaying() {
 		playMode = gocui.REPLAYING
-	} else if test != nil {
+	} else if test != nil && os.Getenv(components.SANDBOX_ENV_VAR) != "true" {
 		playMode = gocui.REPLAYING_NEW
 	}
 

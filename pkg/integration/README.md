@@ -61,6 +61,8 @@ The name of a test is based on its path, so the name of the test at `pkg/integra
 
 You can pass the KEY_PRESS_DELAY env var to the test runner in order to set a delay in milliseconds between keypresses, which helps for watching a test at a realistic speed to understand what it's doing. Or you can pass the '--slow' flag which sets a pre-set 'slow' key delay. In the tui you can press 't' to run the test in slow mode.
 
+The resultant repo will be stored in `test/integration_new`, so if you're not sure what went wrong you can go there and inspect the repo.
+
 ### Running tests in VSCode
 
 If you've opened an integration test file in your editor you can run that file by bringing up the command panel with `cmd+shift+p` and typing 'run task', then selecting the test task you want to run
