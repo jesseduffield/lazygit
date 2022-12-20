@@ -63,26 +63,22 @@ You can pass the KEY_PRESS_DELAY env var to the test runner in order to set a de
 
 ### Running tests in VSCode
 
-If you've opened an integration test file in your editor you can run that file by bringing up the command panel with `cmd+shift+p` and typing 'run task', then selecting the test task you want to run 
+If you've opened an integration test file in your editor you can run that file by bringing up the command panel with `cmd+shift+p` and typing 'run task', then selecting the test task you want to run
 
 ![image](https://user-images.githubusercontent.com/8456633/201500427-b86e129f-5f35-4d55-b7bd-fff5d8e4a04e.png)
 ![image](https://user-images.githubusercontent.com/8456633/201500431-903deb8c-c210-4054-8514-ab7088c7a839.png)
 The test will run in a VSCode terminal:
 ![image](https://user-images.githubusercontent.com/8456633/201500446-b87abf11-9653-438f-8a9a-e0bf8abdb7ee.png)
 
-### Snapshots
-
-At the moment (this is subject to change) each test has a snapshot repo created after running for the first time. These snapshots live in `test/integration_new`, in folders named 'expected' (alongside the 'actual' folders which contain the resulting repo from the last test run). Whenever you run a test, the resultant repo will be compared against the snapshot repo and if they're different, you'll be asked whether you want to update the snapshot. If you want to update a snapshot without being prompted you can pass MODE=update to the test runner.
-
 ### Sandbox mode
 
 Say you want to do a manual test of how lazygit handles merge-conflicts, but you can't be bothered actually finding a way to create merge conflicts in a repo. To make your life easier, you can simply run a merge-conflicts test in sandbox mode, meaning the setup step is run for you, and then instead of the test driving the lazygit session, you're allowed to drive it yourself.
 
-To run a test in sandbox mode you can press 's' on a test in the test TUI or in the test runner pass MODE=sandbox or the --sandbox argument.
+To run a test in sandbox mode you can press 's' on a test in the test TUI or in the test runner pass the --sandbox argument.
 
 ## Migration process
 
-At the time of writing, most tests are created under an old approach, where you would record yourself in a lazygit session and then the test would replay the keybindings with the same timestamps. This old approach is great for writing tests quickly, but is much harder to maintain. It has to rely entirely on snapshots to determining if a test passes or fails, and can't do assertions along the way. It's also harder to grok what's the intention behind certain actions that take place within the test (e.g. was the recorder intentionally switching to another panel or was that just a misclick?).
+At the time of writing, most tests are created under an old approach, where you would record yourself in a lazygit session and then the test would replay the keybindings with the same timestamps. This old approach is great for writing tests quickly, but is much harder to maintain. It has to rely on snapshots to determining if a test passes or fails, and can't do assertions along the way. It's also harder to grok what's the intention behind certain actions that take place within the test (e.g. was the recorder intentionally switching to another panel or was that just a misclick?).
 
 At the moment, all the deprecated test code lives in pkg/integration/deprecated. Hopefully in the very near future we migrate everything across so that we don't need to maintain two systems.
 
@@ -92,6 +88,6 @@ We should never write any new tests under the old method, and if a given test br
 go run pkg/integration/deprecated/cmd/tui/main.go
 ```
 
-The tests in the old format live in test/integration. In the old format, test definitions are co-located with the snapshots. The setup step is done in a `setup.sh` shell script and the `recording.json` file contains the recorded keypresses to be replayed during the test.
+The tests in the old format live in test/integration. In the old format, test definitions are co-located with snapshots. The setup step is done in a `setup.sh` shell script and the `recording.json` file contains the recorded keypresses to be replayed during the test.
 
 If you have rewritten an integration test under the new pattern, be sure to delete the old integration test directory.

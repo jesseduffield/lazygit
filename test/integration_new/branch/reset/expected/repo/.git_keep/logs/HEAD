@@ -1,6 +1,0 @@
-0000000000000000000000000000000000000000 bc64902742511e6be6e8d4f6aa90f113ab03f232 CI <CI@example.com> 1671449839 +1100	commit (initial): root commit
-bc64902742511e6be6e8d4f6aa90f113ab03f232 bc64902742511e6be6e8d4f6aa90f113ab03f232 CI <CI@example.com> 1671449839 +1100	checkout: moving from current-branch to other-branch
-bc64902742511e6be6e8d4f6aa90f113ab03f232 0e9962fc70276ff33de86f77f20ed4482273711a CI <CI@example.com> 1671449839 +1100	commit: other-branch commit
-0e9962fc70276ff33de86f77f20ed4482273711a bc64902742511e6be6e8d4f6aa90f113ab03f232 CI <CI@example.com> 1671449839 +1100	checkout: moving from other-branch to current-branch
-bc64902742511e6be6e8d4f6aa90f113ab03f232 bad42488b30daac9e329ccb76a758d78c484a463 CI <CI@example.com> 1671449839 +1100	commit: current-branch commit
-bad42488b30daac9e329ccb76a758d78c484a463 0e9962fc70276ff33de86f77f20ed4482273711a CI <CI@example.com> 1671449840 +1100	reset: moving to other-branch

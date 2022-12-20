@@ -82,7 +82,7 @@ func RunTUI() {
 			return nil
 		}
 
-		suspendAndRunTest(currentTest, components.SANDBOX, 0)
+		suspendAndRunTest(currentTest, true, 0)
 
 		return nil
 	}); err != nil {
@@ -95,7 +95,7 @@ func RunTUI() {
 			return nil
 		}
 
-		suspendAndRunTest(currentTest, components.ASK_TO_UPDATE_SNAPSHOT, 0)
+		suspendAndRunTest(currentTest, false, 0)
 
 		return nil
 	}); err != nil {
@@ -108,7 +108,7 @@ func RunTUI() {
 			return nil
 		}
 
-		suspendAndRunTest(currentTest, components.ASK_TO_UPDATE_SNAPSHOT, SLOW_KEY_PRESS_DELAY)
+		suspendAndRunTest(currentTest, false, SLOW_KEY_PRESS_DELAY)
 
 		return nil
 	}); err != nil {
@@ -268,12 +268,12 @@ func (self *app) wrapEditor(f func(v *gocui.View, key gocui.Key, ch rune, mod go
 	}
 }
 
-func suspendAndRunTest(test *components.IntegrationTest, mode components.Mode, keyPressDelay int) {
+func suspendAndRunTest(test *components.IntegrationTest, sandbox bool, keyPressDelay int) {
 	if err := gocui.Screen.Suspend(); err != nil {
 		panic(err)
 	}
 
-	runTuiTest(test, mode, keyPressDelay)
+	runTuiTest(test, sandbox, keyPressDelay)
 
 	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint("press enter to return"))
 	fmt.Scanln() // wait for enter press
@@ -367,13 +367,13 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-func runTuiTest(test *components.IntegrationTest, mode components.Mode, keyPressDelay int) {
+func runTuiTest(test *components.IntegrationTest, sandbox bool, keyPressDelay int) {
 	err := components.RunTests(
 		[]*components.IntegrationTest{test},
 		log.Printf,
 		runCmdInTerminal,
 		runAndPrintError,
-		mode,
+		sandbox,
 		keyPressDelay,
 		1,
 	)
