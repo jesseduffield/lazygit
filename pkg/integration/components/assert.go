@@ -192,6 +192,13 @@ func (self *Assert) InMenu() {
 	})
 }
 
+func (self *Assert) NotInPopup() {
+	self.assertWithRetries(func() (bool, string) {
+		currentViewName := self.gui.CurrentContext().GetView().Name()
+		return currentViewName != "menu" && currentViewName != "confirmation" && currentViewName != "commitMessage", "Expected popup not to be focused"
+	})
+}
+
 func (self *Assert) MatchCurrentViewTitle(matcher *matcher) {
 	self.matchString(matcher, "Unexpected current view title.",
 		func() string {
