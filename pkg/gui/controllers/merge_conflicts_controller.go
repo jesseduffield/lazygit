@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type MergeConflictsController struct {
@@ -136,14 +137,16 @@ func (self *MergeConflictsController) GetMouseKeybindings(opts types.Keybindings
 
 func (self *MergeConflictsController) HandleScrollUp() error {
 	self.context().SetUserScrolling(true)
-	self.context().GetViewTrait().ScrollUp(self.c.UserConfig.Gui.ScrollHeight)
+	var _, windowHeight = self.context().GetViewTrait().ViewPortYBounds()
+	self.context().GetViewTrait().ScrollUp(utils.ScrollHeight(windowHeight, self.c.UserConfig.Gui.ScrollHeight))
 
 	return nil
 }
 
 func (self *MergeConflictsController) HandleScrollDown() error {
 	self.context().SetUserScrolling(true)
-	self.context().GetViewTrait().ScrollDown(self.c.UserConfig.Gui.ScrollHeight)
+	var _, windowHeight = self.context().GetViewTrait().ViewPortYBounds()
+	self.context().GetViewTrait().ScrollDown(utils.ScrollHeight(windowHeight, self.c.UserConfig.Gui.ScrollHeight))
 
 	return nil
 }

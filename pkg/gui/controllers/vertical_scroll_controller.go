@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // given we have no fields here, arguably we shouldn't even need this factory
@@ -58,13 +59,15 @@ func (self *VerticalScrollController) GetMouseKeybindings(opts types.Keybindings
 }
 
 func (self *VerticalScrollController) HandleScrollUp() error {
-	self.context.GetViewTrait().ScrollUp(self.c.UserConfig.Gui.ScrollHeight)
+	var _, windowHeight = self.context.GetViewTrait().ViewPortYBounds()
+	self.context.GetViewTrait().ScrollUp(utils.ScrollHeight(windowHeight, self.c.UserConfig.Gui.ScrollHeight))
 
 	return nil
 }
 
 func (self *VerticalScrollController) HandleScrollDown() error {
-	self.context.GetViewTrait().ScrollDown(self.c.UserConfig.Gui.ScrollHeight)
+	var _, windowHeight = self.context.GetViewTrait().ViewPortYBounds()
+	self.context.GetViewTrait().ScrollDown(utils.ScrollHeight(windowHeight, self.c.UserConfig.Gui.ScrollHeight))
 
 	return nil
 }

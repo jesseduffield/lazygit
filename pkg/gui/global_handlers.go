@@ -62,11 +62,11 @@ func (gui *Gui) prevScreenMode() error {
 }
 
 func (gui *Gui) scrollUpView(view *gocui.View) {
-	view.ScrollUp(gui.c.UserConfig.Gui.ScrollHeight)
+	view.ScrollUp(utils.ScrollHeight(view.Height(), gui.c.UserConfig.Gui.ScrollHeight))
 }
 
 func (gui *Gui) scrollDownView(view *gocui.View) {
-	scrollHeight := gui.c.UserConfig.Gui.ScrollHeight
+	scrollHeight := utils.ScrollHeight(view.Height(), gui.c.UserConfig.Gui.ScrollHeight)
 	view.ScrollDown(scrollHeight)
 
 	if manager, ok := gui.viewBufferManagerMap[view.Name()]; ok {

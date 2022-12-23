@@ -21,7 +21,7 @@ If you want to change the config directory:
 ```yaml
 gui:
   # stuff relating to the UI
-  scrollHeight: 2 # how many lines you scroll by
+  scrollHeight: 2 # how many lines you scroll by; a value of 0.5 means to scroll half a page
   scrollPastBottom: true # enable scrolling past the bottom
   sidePanelWidth: 0.3333 # number from 0 to 1
   expandFocusedSidePanel: false
