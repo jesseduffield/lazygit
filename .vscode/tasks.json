@@ -29,6 +29,9 @@
       "group": {
         "kind": "test",
         "isDefault": true
+      },
+      "presentation": {
+        "focus": true
       }
     },
     {
@@ -38,6 +41,9 @@
       "problemMatcher": [],
       "group": {
         "kind": "test",
+      },
+      "presentation": {
+        "focus": true
       }
     },
     {
@@ -47,6 +53,9 @@
       "problemMatcher": [],
       "group": {
         "kind": "test",
+      },
+      "presentation": {
+        "focus": true
       }
     }
   ],
