@@ -247,7 +247,7 @@ func (self *Assert) matchString(matcher *matcher, context string, getValue func(
 }
 
 func (self *Assert) assertWithRetries(test func() (bool, string)) {
-	waitTimes := []int{0, 1, 5, 10, 200, 500, 1000, 2000, 4000}
+	waitTimes := []int{0, 1, 1, 1, 1, 1, 5, 10, 20, 40, 100, 200, 500, 1000, 2000, 4000}
 
 	var message string
 	for _, waitTime := range waitTimes {
