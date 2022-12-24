@@ -24,11 +24,9 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.SelectedLine(Contains("third commit"))
 
-		input.PressKeys(keys.Universal.DiffingMenu)
-		assert.InMenu()
-		assert.CurrentViewTitle(Equals("Diffing"))
-		assert.SelectedLine(Contains("diff"))
-		input.Confirm()
+		input.Press(keys.Universal.DiffingMenu)
+		input.Menu(Equals("Diffing"), MatchesRegexp(`diff \w+`))
+
 		assert.NotInPopup()
 
 		assert.ViewContent("information", Contains("showing output for: git diff"))
@@ -40,10 +38,9 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.MainViewContent(Contains("-second line\n-third line"))
 
-		input.PressKeys(keys.Universal.DiffingMenu)
-		assert.InMenu()
-		input.NavigateToListItemContainingText("reverse diff direction")
-		input.Confirm()
+		input.Press(keys.Universal.DiffingMenu)
+		input.Menu(Equals("Diffing"), Contains("reverse diff direction"))
+		assert.NotInPopup()
 
 		assert.MainViewContent(Contains("+second line\n+third line"))
 

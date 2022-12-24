@@ -63,23 +63,13 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	) {
 		assert.WorkingTreeFileCount(0)
 
-		input.PressKeys("a")
+		input.Press("a")
 
-		assert.InPrompt()
-		assert.CurrentViewTitle(Equals("Enter a file name"))
-		input.Type("my file")
-		input.Confirm()
+		input.Prompt(Equals("Enter a file name"), "my file")
 
-		assert.InMenu()
-		assert.CurrentViewTitle(Equals("Choose file content"))
-		assert.SelectedLine(Contains("foo"))
-		input.NextItem()
-		assert.SelectedLine(Contains("bar"))
-		input.Confirm()
+		input.Menu(Equals("Choose file content"), Contains("bar"))
 
-		assert.InConfirm()
-		assert.CurrentViewTitle(Equals("Are you sure?"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("Are you sure?"), Equals("Are you REALLY sure you want to make this file? Up to you buddy."))
 
 		assert.WorkingTreeFileCount(1)
 		assert.SelectedLine(Contains("my file"))

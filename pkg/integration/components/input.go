@@ -28,87 +28,81 @@ func NewInput(gui integrationTypes.GuiDriver, keys config.KeybindingConfig, asse
 
 // key is something like 'w' or '<space>'. It's best not to pass a direct value,
 // but instead to go through the default user config to get a more meaningful key name
-func (self *Input) PressKeys(keyStrs ...string) {
+func (self *Input) Press(keyStrs ...string) {
 	for _, keyStr := range keyStrs {
-		self.pressKey(keyStr)
+		self.press(keyStr)
 	}
 }
 
-func (self *Input) pressKey(keyStr string) {
+func (self *Input) press(keyStr string) {
 	self.Wait(self.pushKeyDelay)
 
 	self.gui.PressKey(keyStr)
 }
 
 func (self *Input) SwitchToStatusWindow() {
-	self.pressKey(self.keys.Universal.JumpToBlock[0])
+	self.press(self.keys.Universal.JumpToBlock[0])
 	self.assert.CurrentWindowName("status")
 }
 
 func (self *Input) SwitchToFilesWindow() {
-	self.pressKey(self.keys.Universal.JumpToBlock[1])
+	self.press(self.keys.Universal.JumpToBlock[1])
 	self.assert.CurrentWindowName("files")
 }
 
 func (self *Input) SwitchToBranchesWindow() {
-	self.pressKey(self.keys.Universal.JumpToBlock[2])
+	self.press(self.keys.Universal.JumpToBlock[2])
 	self.assert.CurrentWindowName("localBranches")
 }
 
 func (self *Input) SwitchToCommitsWindow() {
-	self.pressKey(self.keys.Universal.JumpToBlock[3])
+	self.press(self.keys.Universal.JumpToBlock[3])
 	self.assert.CurrentWindowName("commits")
 }
 
 func (self *Input) SwitchToStashWindow() {
-	self.pressKey(self.keys.Universal.JumpToBlock[4])
+	self.press(self.keys.Universal.JumpToBlock[4])
 	self.assert.CurrentWindowName("stash")
 }
 
 func (self *Input) Type(content string) {
 	for _, char := range content {
-		self.pressKey(string(char))
+		self.press(string(char))
 	}
 }
 
 // i.e. pressing enter
 func (self *Input) Confirm() {
-	self.pressKey(self.keys.Universal.Confirm)
-}
-
-func (self *Input) ProceedWhenAsked(matcher *matcher) {
-	self.assert.InConfirm()
-	self.assert.CurrentViewContent(matcher)
-	self.Confirm()
+	self.press(self.keys.Universal.Confirm)
 }
 
 // i.e. same as Confirm
 func (self *Input) Enter() {
-	self.pressKey(self.keys.Universal.Confirm)
+	self.press(self.keys.Universal.Confirm)
 }
 
 // i.e. pressing escape
 func (self *Input) Cancel() {
-	self.pressKey(self.keys.Universal.Return)
+	self.press(self.keys.Universal.Return)
 }
 
 // i.e. pressing space
 func (self *Input) PrimaryAction() {
-	self.pressKey(self.keys.Universal.Select)
+	self.press(self.keys.Universal.Select)
 }
 
 // i.e. pressing down arrow
 func (self *Input) NextItem() {
-	self.pressKey(self.keys.Universal.NextItem)
+	self.press(self.keys.Universal.NextItem)
 }
 
 // i.e. pressing up arrow
 func (self *Input) PreviousItem() {
-	self.pressKey(self.keys.Universal.PrevItem)
+	self.press(self.keys.Universal.PrevItem)
 }
 
 func (self *Input) ContinueMerge() {
-	self.PressKeys(self.keys.Universal.CreateRebaseOptionsMenu)
+	self.Press(self.keys.Universal.CreateRebaseOptionsMenu)
 	self.assert.SelectedLine(Contains("continue"))
 	self.Confirm()
 }
@@ -141,7 +135,7 @@ func (self *Input) Log(message string) {
 // If this changes in future, we'll need to update this code to first attempt to find the item
 // in the current page and failing that, jump to the top of the view and iterate through all of it,
 // looking for the item.
-func (self *Input) NavigateToListItemContainingText(text string) {
+func (self *Input) NavigateToListItem(matcher *matcher) {
 	self.assert.InListContext()
 
 	currentContext := self.gui.CurrentContext().(types.IListContext)
@@ -151,19 +145,20 @@ func (self *Input) NavigateToListItemContainingText(text string) {
 	var matchIndex int
 
 	self.assert.assertWithRetries(func() (bool, string) {
-		matchCount := 0
 		matchIndex = -1
+		var matches []string
 		// first we look for a duplicate on the current screen. We won't bother looking beyond that though.
 		for i, line := range view.ViewBufferLines() {
-			if strings.Contains(line, text) {
-				matchCount++
+			ok, _ := matcher.test(line)
+			if ok {
+				matches = append(matches, line)
 				matchIndex = i
 			}
 		}
-		if matchCount > 1 {
-			return false, fmt.Sprintf("Found %d matches for %s, expected only a single match", matchCount, text)
-		} else if matchCount == 0 {
-			return false, fmt.Sprintf("Could not find item containing text: %s", text)
+		if len(matches) > 1 {
+			return false, fmt.Sprintf("Found %d matches for `%s`, expected only a single match. Lines:\n%s", len(matches), matcher.name, strings.Join(matches, "\n"))
+		} else if len(matches) == 0 {
+			return false, fmt.Sprintf("Could not find item matching: %s", matcher.name)
 		} else {
 			return true, ""
 		}
@@ -171,20 +166,67 @@ func (self *Input) NavigateToListItemContainingText(text string) {
 
 	selectedLineIdx := view.SelectedLineIdx()
 	if selectedLineIdx == matchIndex {
-		self.assert.SelectedLine(Contains(text))
+		self.assert.SelectedLine(matcher)
 		return
 	}
 	if selectedLineIdx < matchIndex {
 		for i := selectedLineIdx; i < matchIndex; i++ {
 			self.NextItem()
 		}
-		self.assert.SelectedLine(Contains(text))
+		self.assert.SelectedLine(matcher)
 		return
 	} else {
 		for i := selectedLineIdx; i > matchIndex; i-- {
 			self.PreviousItem()
 		}
-		self.assert.SelectedLine(Contains(text))
+		self.assert.SelectedLine(matcher)
 		return
 	}
+}
+
+func (self *Input) AcceptConfirmation(title *matcher, content *matcher) {
+	self.assert.InConfirm()
+	self.assert.CurrentViewTitle(title)
+	self.assert.CurrentViewContent(content)
+	self.Confirm()
+}
+
+func (self *Input) DenyConfirmation(title *matcher, content *matcher) {
+	self.assert.InConfirm()
+	self.assert.CurrentViewTitle(title)
+	self.assert.CurrentViewContent(content)
+	self.Cancel()
+}
+
+func (self *Input) Prompt(title *matcher, textToType string) {
+	self.assert.InPrompt()
+	self.assert.CurrentViewTitle(title)
+	self.Type(textToType)
+	self.Confirm()
+}
+
+// type some text into a prompt, then switch to the suggestions panel and expect the first
+// item to match the given matcher, then confirm that item.
+func (self *Input) Typeahead(title *matcher, textToType string, expectedFirstOption *matcher) {
+	self.assert.InPrompt()
+	self.assert.CurrentViewTitle(title)
+	self.Type(textToType)
+	self.Press(self.keys.Universal.TogglePanel)
+	self.assert.CurrentViewName("suggestions")
+	self.assert.SelectedLine(expectedFirstOption)
+	self.Confirm()
+}
+
+func (self *Input) Menu(title *matcher, optionToSelect *matcher) {
+	self.assert.InMenu()
+	self.assert.CurrentViewTitle(title)
+	self.NavigateToListItem(optionToSelect)
+	self.Confirm()
+}
+
+func (self *Input) Alert(title *matcher, content *matcher) {
+	self.assert.InListContext()
+	self.assert.CurrentViewTitle(title)
+	self.assert.CurrentViewContent(content)
+	self.Confirm()
 }

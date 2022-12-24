@@ -75,47 +75,47 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(3)
 
 		type statusFile struct {
-			status string
-			path   string
+			status    string
+			label     string
+			menuTitle string
 		}
 
 		discardOneByOne := func(files []statusFile) {
 			for _, file := range files {
-				assert.SelectedLine(Contains(file.status + " " + file.path))
-				input.PressKeys(keys.Universal.Remove)
-				assert.InMenu()
-				assert.CurrentViewContent(Contains("discard all changes"))
-				input.Confirm()
+				assert.SelectedLine(Contains(file.status + " " + file.label))
+				input.Press(keys.Universal.Remove)
+				input.Menu(Equals(file.menuTitle), Contains("discard all changes"))
 			}
 		}
 
 		discardOneByOne([]statusFile{
-			{"UA", "added-them-changed-us.txt"},
-			{"AA", "both-added.txt"},
-			{"DD", "both-deleted.txt"},
-			{"UU", "both-modded.txt"},
-			{"AU", "changed-them-added-us.txt"},
-			{"UD", "deleted-them.txt"},
-			{"DU", "deleted-us.txt"},
+			{status: "UA", label: "added-them-changed-us.txt", menuTitle: "added-them-changed-us.txt"},
+			{status: "AA", label: "both-added.txt", menuTitle: "both-added.txt"},
+			{status: "DD", label: "both-deleted.txt", menuTitle: "both-deleted.txt"},
+			{status: "UU", label: "both-modded.txt", menuTitle: "both-modded.txt"},
+			{status: "AU", label: "changed-them-added-us.txt", menuTitle: "changed-them-added-us.txt"},
+			{status: "UD", label: "deleted-them.txt", menuTitle: "deleted-them.txt"},
+			{status: "DU", label: "deleted-us.txt", menuTitle: "deleted-us.txt"},
 		})
 
 		assert.InConfirm()
 		assert.CurrentViewTitle(Contains("continue"))
 		assert.CurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
-		input.PressKeys(keys.Universal.Return)
+		input.Press(keys.Universal.Return)
 
 		discardOneByOne([]statusFile{
-			{"MD", "change-delete.txt"},
-			{"D ", "delete-change.txt"},
-			{"D ", "deleted-staged.txt"},
-			{" D", "deleted.txt"},
-			{"MM", "double-modded.txt"},
-			{"M ", "modded-staged.txt"},
-			{" M", "modded.txt"},
-			{"R ", "renamed.txt → renamed2.txt"},
-			{"AM", "added-changed.txt"},
-			{"A ", "new-staged.txt"},
-			{"??", "new.txt"},
+			{status: "MD", label: "change-delete.txt", menuTitle: "change-delete.txt"},
+			{status: "D ", label: "delete-change.txt", menuTitle: "delete-change.txt"},
+			{status: "D ", label: "deleted-staged.txt", menuTitle: "deleted-staged.txt"},
+			{status: " D", label: "deleted.txt", menuTitle: "deleted.txt"},
+			{status: "MM", label: "double-modded.txt", menuTitle: "double-modded.txt"},
+			{status: "M ", label: "modded-staged.txt", menuTitle: "modded-staged.txt"},
+			{status: " M", label: "modded.txt", menuTitle: "modded.txt"},
+			// the menu title only includes the new file
+			{status: "R ", label: "renamed.txt → renamed2.txt", menuTitle: "renamed2.txt"},
+			{status: "AM", label: "added-changed.txt", menuTitle: "added-changed.txt"},
+			{status: "A ", label: "new-staged.txt", menuTitle: "new-staged.txt"},
+			{status: "??", label: "new.txt", menuTitle: "new.txt"},
 		})
 
 		assert.WorkingTreeFileCount(0)

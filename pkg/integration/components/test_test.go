@@ -64,8 +64,8 @@ func TestAssertionFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
 		Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-			input.PressKeys("a")
-			input.PressKeys("b")
+			input.Press("a")
+			input.Press("b")
 			assert.CommitCount(2)
 		},
 	})
@@ -91,8 +91,8 @@ func TestSuccess(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
 		Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-			input.PressKeys("a")
-			input.PressKeys("b")
+			input.Press("a")
+			input.Press("b")
 			assert.CommitCount(0)
 		},
 	})

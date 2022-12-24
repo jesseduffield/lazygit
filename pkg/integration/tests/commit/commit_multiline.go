@@ -17,11 +17,12 @@ var CommitMultiline = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(0)
 
 		input.PrimaryAction()
-		input.PressKeys(keys.Files.CommitChanges)
+		input.Press(keys.Files.CommitChanges)
 
+		assert.InCommitMessagePanel()
 		input.Type("first line")
-		input.PressKeys(keys.Universal.AppendNewline)
-		input.PressKeys(keys.Universal.AppendNewline)
+		input.Press(keys.Universal.AppendNewline)
+		input.Press(keys.Universal.AppendNewline)
 		input.Type("third line")
 		input.Confirm()
 

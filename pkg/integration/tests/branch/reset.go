@@ -28,17 +28,9 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 		input.NextItem()
 		assert.SelectedLine(Contains("other-branch"))
 
-		input.PressKeys(keys.Commits.ViewResetOptions)
-		assert.InMenu()
-		assert.CurrentViewTitle(Contains("reset to other-branch"))
+		input.Press(keys.Commits.ViewResetOptions)
 
-		assert.SelectedLine(Contains("soft reset"))
-		input.NextItem()
-		assert.SelectedLine(Contains("mixed reset"))
-		input.NextItem()
-		assert.SelectedLine(Contains("hard reset"))
-
-		input.Confirm()
+		input.Menu(Contains("reset to other-branch"), Contains("hard reset"))
 
 		// ensure that we've returned from the menu before continuing
 		assert.CurrentViewName("localBranches")

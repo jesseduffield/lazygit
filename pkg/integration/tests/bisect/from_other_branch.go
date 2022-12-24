@@ -24,20 +24,6 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		viewBisectOptions := func() {
-			input.PressKeys(keys.Commits.ViewBisectOptions)
-			assert.InMenu()
-		}
-
-		markCommitAsGood := func() {
-			viewBisectOptions()
-			assert.SelectedLine(Contains("bad"))
-			input.NextItem()
-			assert.SelectedLine(Contains("good"))
-
-			input.Confirm()
-		}
-
 		assert.ViewContent("information", Contains("bisecting"))
 
 		assert.AtLeastOneCommit()
@@ -51,13 +37,10 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.SelectedLine(Contains("<-- current"))
 		assert.SelectedLine(Contains("commit 07"))
 
-		markCommitAsGood()
+		input.Press(keys.Commits.ViewBisectOptions)
+		input.Menu(Equals("Bisect"), MatchesRegexp(`mark .* as good`))
 
-		assert.InAlert()
-		assert.CurrentViewContent(Contains("Bisect complete!"))
-		assert.CurrentViewContent(Contains("commit 08"))
-		assert.CurrentViewContent(Contains("Do you want to reset"))
-		input.Confirm()
+		input.Alert(Equals("Bisect complete"), MatchesRegexp(`(?s)commit 08.*Do you want to reset`))
 
 		assert.ViewContent("information", NotContains("bisecting"))
 

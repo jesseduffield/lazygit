@@ -11,15 +11,12 @@ var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		config.UserConfig.ConfirmOnQuit = true
-		config.UserConfig.Gui.Theme.ActiveBorderColor = []string{"red"}
 	},
 	SetupRepo: func(shell *Shell) {},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(0)
 
-		input.PressKeys(keys.Universal.Quit)
-		assert.InConfirm()
-		assert.CurrentViewContent(Contains("Are you sure you want to quit?"))
-		input.Confirm()
+		input.Press(keys.Universal.Quit)
+		input.AcceptConfirmation(Equals(""), Contains("Are you sure you want to quit?"))
 	},
 })

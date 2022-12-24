@@ -20,8 +20,9 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 		input.PrimaryAction()
 		input.NextItem()
 		input.PrimaryAction()
-		input.PressKeys(keys.Files.CommitChanges)
+		input.Press(keys.Files.CommitChanges)
 
+		assert.InCommitMessagePanel()
 		commitMessage := "my commit message"
 		input.Type(commitMessage)
 		input.Confirm()

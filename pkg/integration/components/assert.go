@@ -21,57 +21,44 @@ func NewAssert(gui integrationTypes.GuiDriver) *Assert {
 	return &Assert{gui: gui}
 }
 
-// for making assertions on string values
-type matcher struct {
-	testFn func(string) (bool, string)
-	prefix string
-}
-
-func (self *matcher) test(value string) (bool, string) {
-	ok, message := self.testFn(value)
-	if ok {
-		return true, ""
-	}
-
-	if self.prefix != "" {
-		return false, self.prefix + " " + message
-	}
-
-	return false, message
-}
-
-func (self *matcher) context(prefix string) *matcher {
-	self.prefix = prefix
-
-	return self
-}
-
 func Contains(target string) *matcher {
-	return &matcher{testFn: func(value string) (bool, string) {
-		return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to be found in '%s'", target, value)
-	}}
+	return NewMatcher(
+		fmt.Sprintf("contains '%s'", target),
+		func(value string) (bool, string) {
+			return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to be found in '%s'", target, value)
+		},
+	)
 }
 
 func NotContains(target string) *matcher {
-	return &matcher{testFn: func(value string) (bool, string) {
-		return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
-	}}
+	return NewMatcher(
+		fmt.Sprintf("does not contain '%s'", target),
+		func(value string) (bool, string) {
+			return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
+		},
+	)
 }
 
-func MatchesRegexp(regexStr string) *matcher {
-	return &matcher{testFn: func(value string) (bool, string) {
-		matched, err := regexp.MatchString(regexStr, value)
-		if err != nil {
-			return false, fmt.Sprintf("Unexpected error parsing regular expression '%s': %s", regexStr, err.Error())
-		}
-		return matched, fmt.Sprintf("Expected '%s' to match regular expression '%s'", value, regexStr)
-	}}
+func MatchesRegexp(target string) *matcher {
+	return NewMatcher(
+		fmt.Sprintf("matches regular expression '%s'", target),
+		func(value string) (bool, string) {
+			matched, err := regexp.MatchString(target, value)
+			if err != nil {
+				return false, fmt.Sprintf("Unexpected error parsing regular expression '%s': %s", target, err.Error())
+			}
+			return matched, fmt.Sprintf("Expected '%s' to match regular expression '%s'", value, target)
+		},
+	)
 }
 
 func Equals(target string) *matcher {
-	return &matcher{testFn: func(value string) (bool, string) {
-		return target == value, fmt.Sprintf("Expected '%s' to equal '%s'", value, target)
-	}}
+	return NewMatcher(
+		fmt.Sprintf("equals '%s'", target),
+		func(value string) (bool, string) {
+			return target == value, fmt.Sprintf("Expected '%s' to equal '%s'", value, target)
+		},
+	)
 }
 
 func (self *Assert) WorkingTreeFileCount(expectedCount int) {
@@ -183,6 +170,13 @@ func (self *Assert) InAlert() {
 	self.assertWithRetries(func() (bool, string) {
 		currentView := self.gui.CurrentContext().GetView()
 		return currentView.Name() == "confirmation" && !currentView.Editable, "Expected alert popup to be focused"
+	})
+}
+
+func (self *Assert) InCommitMessagePanel() {
+	self.assertWithRetries(func() (bool, string) {
+		currentView := self.gui.CurrentContext().GetView()
+		return currentView.Name() == "commitMessage", "Expected commit message panel to be focused"
 	})
 }
 

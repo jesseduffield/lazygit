@@ -18,11 +18,28 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(0)
 
+		assert.CurrentViewName("files")
+		assert.SelectedLine(Contains("myfile"))
+		// stage the file
 		input.PrimaryAction()
-		input.Confirm()
-		input.PrimaryAction()
-		input.PressKeys(keys.Files.CommitChanges)
+		input.Enter()
+		assert.CurrentViewName("stagingSecondary")
+		// we start with both lines having been staged
+		assert.ViewContent("stagingSecondary", Contains("+myfile content"))
+		assert.ViewContent("stagingSecondary", Contains("+with a second line"))
+		assert.ViewContent("staging", NotContains("+myfile content"))
+		assert.ViewContent("staging", NotContains("+with a second line"))
 
+		// unstage the selected line
+		input.PrimaryAction()
+
+		// the line should have been moved to the main view
+		assert.ViewContent("stagingSecondary", NotContains("+myfile content"))
+		assert.ViewContent("stagingSecondary", Contains("+with a second line"))
+		assert.ViewContent("staging", Contains("+myfile content"))
+		assert.ViewContent("staging", NotContains("+with a second line"))
+
+		input.Press(keys.Files.CommitChanges)
 		commitMessage := "my commit message"
 		input.Type(commitMessage)
 		input.Confirm()
@@ -30,5 +47,7 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(1)
 		assert.HeadCommitMessage(Equals(commitMessage))
 		assert.CurrentWindowName("stagingSecondary")
+
+		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
 	},
 })

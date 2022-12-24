@@ -26,11 +26,9 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentViewName("localBranches")
 
 		assert.SelectedLine(Contains("branch-a"))
-		input.PressKeys(keys.Universal.DiffingMenu)
-		assert.InMenu()
-		assert.CurrentViewTitle(Equals("Diffing"))
-		assert.SelectedLine(Contains("diff branch-a"))
-		input.Confirm()
+		input.Press(keys.Universal.DiffingMenu)
+
+		input.Menu(Equals("Diffing"), Equals("diff branch-a"))
 
 		assert.CurrentViewName("localBranches")
 
@@ -51,20 +49,14 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 		// add the file to the patch
 		input.PrimaryAction()
 
-		input.PressKeys(keys.Universal.DiffingMenu)
-		assert.InMenu()
-		assert.CurrentViewTitle(Equals("Diffing"))
-		input.NavigateToListItemContainingText("exit diff mode")
-		input.Confirm()
+		input.Press(keys.Universal.DiffingMenu)
+		input.Menu(Equals("Diffing"), Contains("exit diff mode"))
 
 		assert.ViewContent("information", NotContains("building patch"))
 
-		input.PressKeys(keys.Universal.CreatePatchOptionsMenu)
-		assert.InMenu()
-		assert.CurrentViewTitle(Equals("Patch Options"))
-		// including the keybinding 'a' here to distinguish the menu item from the 'apply patch in reverse' item
-		input.NavigateToListItemContainingText("a apply patch")
-		input.Confirm()
+		input.Press(keys.Universal.CreatePatchOptionsMenu)
+		// adding the regex '$' here to distinguish the menu item from the 'apply patch in reverse' item
+		input.Menu(Equals("Patch Options"), MatchesRegexp("apply patch$"))
 
 		input.SwitchToFilesWindow()
 

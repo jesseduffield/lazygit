@@ -23,13 +23,10 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentViewName("commits")
 		input.NextItem()
 
-		input.PressKeys(keys.Universal.New)
-
-		assert.CurrentViewName("confirmation")
+		input.Press(keys.Universal.New)
 
 		branchName := "my-branch-name"
-		input.Type(branchName)
-		input.Confirm()
+		input.Prompt(Contains("New Branch Name"), branchName)
 
 		assert.CommitCount(2)
 		assert.HeadCommitMessage(Contains("commit 2"))

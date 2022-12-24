@@ -26,42 +26,36 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.CurrentViewName("subCommits")
 		assert.SelectedLine(Contains("second-change-branch unrelated change"))
-		input.PressKeys(keys.Commits.CherryPickCopy)
+		input.Press(keys.Commits.CherryPickCopy)
 		assert.ViewContent("information", Contains("1 commit copied"))
 
 		input.NextItem()
 		assert.SelectedLine(Contains("second change"))
-		input.PressKeys(keys.Commits.CherryPickCopy)
+		input.Press(keys.Commits.CherryPickCopy)
 		assert.ViewContent("information", Contains("2 commits copied"))
 
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
 		assert.SelectedLine(Contains("first change"))
-		input.PressKeys(keys.Commits.PasteCommits)
-		assert.InAlert()
-		assert.CurrentViewContent(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
+		input.Press(keys.Commits.PasteCommits)
+		input.Alert(Equals("Cherry-Pick"), Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
 
-		input.Confirm()
-
-		assert.CurrentViewContent(Contains("Conflicts!"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("Auto-merge failed"), Contains("Conflicts!"))
 
 		assert.CurrentViewName("files")
 		assert.SelectedLine(Contains("file"))
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke
-		input.PressKeys(keys.Universal.Confirm)
+		input.Press(keys.Universal.Confirm)
 
 		assert.CurrentViewName("mergeConflicts")
 		// picking 'Second change'
 		input.NextItem()
 		input.PrimaryAction()
 
-		assert.InConfirm()
-		assert.CurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
 
 		assert.CurrentViewName("files")
 		assert.WorkingTreeFileCount(0)
@@ -81,7 +75,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.SelectedLine(Contains("first change"))
 
 		assert.ViewContent("information", Contains("2 commits copied"))
-		input.PressKeys(keys.Universal.Return)
+		input.Press(keys.Universal.Return)
 		assert.ViewContent("information", NotContains("commits copied"))
 	},
 })

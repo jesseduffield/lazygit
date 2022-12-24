@@ -21,30 +21,26 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.SelectedLine(Contains("first-change-branch"))
 		input.NextItem()
 		assert.SelectedLine(Contains("second-change-branch"))
-		input.PressKeys(keys.Branches.RebaseBranch)
+		input.Press(keys.Branches.RebaseBranch)
 
-		assert.InConfirm()
-		assert.CurrentViewContent(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("Rebasing"), Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
 
-		assert.InConfirm()
-		assert.CurrentViewContent(Contains("Conflicts!"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("Auto-merge failed"), Contains("Conflicts!"))
 
 		assert.CurrentViewName("files")
 		assert.SelectedLine(Contains("file"))
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke
-		input.PressKeys(keys.Universal.Confirm)
+		input.Press(keys.Universal.Confirm)
 
 		assert.CurrentViewName("mergeConflicts")
 		input.PrimaryAction()
 
 		assert.ViewContent("information", Contains("rebasing"))
-		assert.InConfirm()
-		assert.CurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
-		input.Confirm()
+
+		input.AcceptConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
+
 		assert.ViewContent("information", NotContains("rebasing"))
 
 		// this proves we actually have integrated the changes from second-change-branch

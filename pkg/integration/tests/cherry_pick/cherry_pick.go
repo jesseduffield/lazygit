@@ -35,23 +35,21 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.CurrentViewName("subCommits")
 		assert.SelectedLine(Contains("four"))
-		input.PressKeys(keys.Commits.CherryPickCopy)
+		input.Press(keys.Commits.CherryPickCopy)
 		assert.ViewContent("information", Contains("1 commit copied"))
 
 		input.NextItem()
 		assert.SelectedLine(Contains("three"))
-		input.PressKeys(keys.Commits.CherryPickCopy)
+		input.Press(keys.Commits.CherryPickCopy)
 		assert.ViewContent("information", Contains("2 commits copied"))
 
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
 		assert.SelectedLine(Contains("two"))
-		input.PressKeys(keys.Commits.PasteCommits)
-		assert.InAlert()
-		assert.CurrentViewContent(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
+		input.Press(keys.Commits.PasteCommits)
+		input.Alert(Equals("Cherry-Pick"), Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
 
-		input.Confirm()
 		assert.CurrentViewName("commits")
 		assert.SelectedLine(Contains("four"))
 		input.NextItem()
@@ -60,7 +58,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.SelectedLine(Contains("two"))
 
 		assert.ViewContent("information", Contains("2 commits copied"))
-		input.PressKeys(keys.Universal.Return)
+		input.Press(keys.Universal.Return)
 		assert.ViewContent("information", NotContains("commits copied"))
 	},
 })

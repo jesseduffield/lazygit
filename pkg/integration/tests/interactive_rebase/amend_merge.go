@@ -36,8 +36,8 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 		mergeCommitMessage := "Merge branch 'feature-branch' into development-branch"
 		assert.HeadCommitMessage(Contains(mergeCommitMessage))
 
-		input.PressKeys(keys.Commits.AmendToCommit)
-		input.ProceedWhenAsked(Contains("Are you sure you want to amend this commit with your staged files?"))
+		input.Press(keys.Commits.AmendToCommit)
+		input.AcceptConfirmation(Equals("Amend Commit"), Contains("Are you sure you want to amend this commit with your staged files?"))
 
 		// assuring we haven't added a brand new commit
 		assert.CommitCount(3)

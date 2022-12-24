@@ -115,6 +115,10 @@ func prepareTestDir(
 }
 
 func buildLazygit() error {
+	// // TODO: remove this line!
+	// // skipping this because I'm not making changes to the app code atm.
+	// return nil
+
 	osCommand := oscommands.NewDummyOSCommand()
 	return osCommand.Cmd.New(fmt.Sprintf(
 		"go build -o %s pkg/integration/clients/injector/main.go", tempLazygitPath(),

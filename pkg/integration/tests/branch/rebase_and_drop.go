@@ -24,17 +24,13 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.SelectedLine(Contains("first-change-branch"))
 		input.NextItem()
 		assert.SelectedLine(Contains("second-change-branch"))
-		input.PressKeys(keys.Branches.RebaseBranch)
+		input.Press(keys.Branches.RebaseBranch)
 
-		assert.InConfirm()
-		assert.CurrentViewContent(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("Rebasing"), Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
 
 		assert.ViewContent("information", Contains("rebasing"))
 
-		assert.InConfirm()
-		assert.CurrentViewContent(Contains("Conflicts!"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("Auto-merge failed"), Contains("Conflicts!"))
 
 		assert.CurrentViewName("files")
 		assert.SelectedLine(Contains("file"))
@@ -42,22 +38,22 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToCommitsWindow()
 		assert.SelectedLine(Contains("pick")) // this means it's a rebasing commit
 		input.NextItem()
-		input.PressKeys(keys.Universal.Remove)
+		input.Press(keys.Universal.Remove)
+		// this is the commit name
 		assert.SelectedLine(Contains("to remove"))
+		// the commit has been marked to drop once we continue the rebase.
 		assert.SelectedLine(Contains("drop"))
 
 		input.SwitchToFilesWindow()
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke
-		input.PressKeys(keys.Universal.Confirm)
+		input.Press(keys.Universal.Confirm)
 
 		assert.CurrentViewName("mergeConflicts")
 		input.PrimaryAction()
 
-		assert.InConfirm()
-		assert.CurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
 
 		assert.ViewContent("information", NotContains("rebasing"))
 
