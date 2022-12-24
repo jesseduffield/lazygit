@@ -34,17 +34,17 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentViewName("commits")
 
 		mergeCommitMessage := "Merge branch 'feature-branch' into development-branch"
-		assert.MatchHeadCommitMessage(Contains(mergeCommitMessage))
+		assert.HeadCommitMessage(Contains(mergeCommitMessage))
 
 		input.PressKeys(keys.Commits.AmendToCommit)
 		input.ProceedWhenAsked(Contains("Are you sure you want to amend this commit with your staged files?"))
 
 		// assuring we haven't added a brand new commit
 		assert.CommitCount(3)
-		assert.MatchHeadCommitMessage(Contains(mergeCommitMessage))
+		assert.HeadCommitMessage(Contains(mergeCommitMessage))
 
 		// assuring the post-merge file shows up in the merge commit.
-		assert.MatchMainViewContent(Contains(postMergeFilename))
-		assert.MatchMainViewContent(Contains("++" + postMergeFileContent))
+		assert.MainViewContent(Contains(postMergeFilename))
+		assert.MainViewContent(Contains("++" + postMergeFileContent))
 	},
 })

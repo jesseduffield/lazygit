@@ -19,7 +19,7 @@ var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.PressKeys(keys.Universal.Quit)
 		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to quit?"))
+		assert.CurrentViewContent(Contains("Are you sure you want to quit?"))
 		input.Confirm()
 	},
 })

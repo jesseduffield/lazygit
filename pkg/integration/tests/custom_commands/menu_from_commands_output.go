@@ -53,15 +53,15 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 		input.PressKeys("a")
 
 		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Which git command do you want to run?"))
-		assert.MatchSelectedLine(Equals("branch"))
+		assert.CurrentViewTitle(Equals("Which git command do you want to run?"))
+		assert.SelectedLine(Equals("branch"))
 		input.Confirm()
 
 		assert.InMenu()
-		assert.MatchCurrentViewTitle(Equals("Branch:"))
+		assert.CurrentViewTitle(Equals("Branch:"))
 		input.NextItem()
 		input.NextItem()
-		assert.MatchSelectedLine(Equals("master"))
+		assert.SelectedLine(Equals("master"))
 		input.Confirm()
 
 		assert.CurrentBranchName("master")

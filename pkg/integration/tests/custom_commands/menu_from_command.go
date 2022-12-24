@@ -54,21 +54,21 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		input.PressKeys("a")
 
 		assert.InMenu()
-		assert.MatchCurrentViewTitle(Equals("Choose commit message"))
-		assert.MatchSelectedLine(Equals("baz"))
+		assert.CurrentViewTitle(Equals("Choose commit message"))
+		assert.SelectedLine(Equals("baz"))
 		input.NextItem()
-		assert.MatchSelectedLine(Equals("bar"))
+		assert.SelectedLine(Equals("bar"))
 		input.Confirm()
 
 		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Description"))
+		assert.CurrentViewTitle(Equals("Description"))
 		input.Type(" my branch")
 		input.Confirm()
 
 		input.SwitchToFilesWindow()
 
 		assert.WorkingTreeFileCount(1)
-		assert.MatchSelectedLine(Contains("output.txt"))
-		assert.MatchMainViewContent(Contains("bar Branch: #feature/foo my branch feature/foo"))
+		assert.SelectedLine(Contains("output.txt"))
+		assert.MainViewContent(Contains("bar Branch: #feature/foo my branch feature/foo"))
 	},
 })

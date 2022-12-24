@@ -115,7 +115,7 @@ func (self *Assert) AtLeastOneCommit() {
 	})
 }
 
-func (self *Assert) MatchHeadCommitMessage(matcher *matcher) {
+func (self *Assert) HeadCommitMessage(matcher *matcher) {
 	self.assertWithRetries(func() (bool, string) {
 		return len(self.gui.Model().Commits) > 0, "Expected at least one commit to be present"
 	})
@@ -156,7 +156,7 @@ func (self *Assert) InListContext() {
 	})
 }
 
-func (self *Assert) MatchSelectedLine(matcher *matcher) {
+func (self *Assert) SelectedLine(matcher *matcher) {
 	self.matchString(matcher, "Unexpected selected line.",
 		func() string {
 			return self.gui.CurrentContext().GetView().SelectedLine()
@@ -199,7 +199,7 @@ func (self *Assert) NotInPopup() {
 	})
 }
 
-func (self *Assert) MatchCurrentViewTitle(matcher *matcher) {
+func (self *Assert) CurrentViewTitle(matcher *matcher) {
 	self.matchString(matcher, "Unexpected current view title.",
 		func() string {
 			return self.gui.CurrentContext().GetView().Title
@@ -207,7 +207,7 @@ func (self *Assert) MatchCurrentViewTitle(matcher *matcher) {
 	)
 }
 
-func (self *Assert) MatchViewContent(viewName string, matcher *matcher) {
+func (self *Assert) ViewContent(viewName string, matcher *matcher) {
 	self.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", viewName),
 		func() string {
 			return self.gui.View(viewName).Buffer()
@@ -215,7 +215,7 @@ func (self *Assert) MatchViewContent(viewName string, matcher *matcher) {
 	)
 }
 
-func (self *Assert) MatchCurrentViewContent(matcher *matcher) {
+func (self *Assert) CurrentViewContent(matcher *matcher) {
 	self.matchString(matcher, "Unexpected content in current view.",
 		func() string {
 			return self.gui.CurrentContext().GetView().Buffer()
@@ -223,7 +223,7 @@ func (self *Assert) MatchCurrentViewContent(matcher *matcher) {
 	)
 }
 
-func (self *Assert) MatchMainViewContent(matcher *matcher) {
+func (self *Assert) MainViewContent(matcher *matcher) {
 	self.matchString(matcher, "Unexpected main view content.",
 		func() string {
 			return self.gui.MainView().Buffer()
@@ -231,7 +231,7 @@ func (self *Assert) MatchMainViewContent(matcher *matcher) {
 	)
 }
 
-func (self *Assert) MatchSecondaryViewContent(matcher *matcher) {
+func (self *Assert) SecondaryViewContent(matcher *matcher) {
 	self.matchString(matcher, "Unexpected secondary view title.",
 		func() string {
 			return self.gui.SecondaryView().Buffer()

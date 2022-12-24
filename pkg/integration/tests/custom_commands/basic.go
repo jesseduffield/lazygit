@@ -31,6 +31,6 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.PressKeys("a")
 		assert.WorkingTreeFileCount(1)
-		assert.MatchSelectedLine(Contains("myfile"))
+		assert.SelectedLine(Contains("myfile"))
 	},
 })

@@ -64,23 +64,23 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		input.PressKeys("a")
 
 		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Enter a file name"))
+		assert.CurrentViewTitle(Equals("Enter a file name"))
 		input.Type("myfile")
 		input.Confirm()
 
 		assert.InMenu()
-		assert.MatchCurrentViewTitle(Equals("Choose file content"))
-		assert.MatchSelectedLine(Contains("foo"))
+		assert.CurrentViewTitle(Equals("Choose file content"))
+		assert.SelectedLine(Contains("foo"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("bar"))
+		assert.SelectedLine(Contains("bar"))
 		input.Confirm()
 
 		assert.InConfirm()
-		assert.MatchCurrentViewTitle(Equals("Are you sure?"))
+		assert.CurrentViewTitle(Equals("Are you sure?"))
 		input.Confirm()
 
 		assert.WorkingTreeFileCount(1)
-		assert.MatchSelectedLine(Contains("myfile"))
-		assert.MatchMainViewContent(Contains("BAR"))
+		assert.SelectedLine(Contains("myfile"))
+		assert.MainViewContent(Contains("BAR"))
 	},
 })

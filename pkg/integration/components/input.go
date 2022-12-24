@@ -78,7 +78,7 @@ func (self *Input) Confirm() {
 
 func (self *Input) ProceedWhenAsked(matcher *matcher) {
 	self.assert.InConfirm()
-	self.assert.MatchCurrentViewContent(matcher)
+	self.assert.CurrentViewContent(matcher)
 	self.Confirm()
 }
 
@@ -109,7 +109,7 @@ func (self *Input) PreviousItem() {
 
 func (self *Input) ContinueMerge() {
 	self.PressKeys(self.keys.Universal.CreateRebaseOptionsMenu)
-	self.assert.MatchSelectedLine(Contains("continue"))
+	self.assert.SelectedLine(Contains("continue"))
 	self.Confirm()
 }
 
@@ -171,20 +171,20 @@ func (self *Input) NavigateToListItemContainingText(text string) {
 
 	selectedLineIdx := view.SelectedLineIdx()
 	if selectedLineIdx == matchIndex {
-		self.assert.MatchSelectedLine(Contains(text))
+		self.assert.SelectedLine(Contains(text))
 		return
 	}
 	if selectedLineIdx < matchIndex {
 		for i := selectedLineIdx; i < matchIndex; i++ {
 			self.NextItem()
 		}
-		self.assert.MatchSelectedLine(Contains(text))
+		self.assert.SelectedLine(Contains(text))
 		return
 	} else {
 		for i := selectedLineIdx; i > matchIndex; i-- {
 			self.PreviousItem()
 		}
-		self.assert.MatchSelectedLine(Contains(text))
+		self.assert.SelectedLine(Contains(text))
 		return
 	}
 }

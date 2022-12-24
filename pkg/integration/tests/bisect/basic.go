@@ -26,16 +26,16 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 		}
 		markCommitAsBad := func() {
 			viewBisectOptions()
-			assert.MatchSelectedLine(Contains("bad"))
+			assert.SelectedLine(Contains("bad"))
 
 			input.Confirm()
 		}
 
 		markCommitAsGood := func() {
 			viewBisectOptions()
-			assert.MatchSelectedLine(Contains("bad"))
+			assert.SelectedLine(Contains("bad"))
 			input.NextItem()
-			assert.MatchSelectedLine(Contains("good"))
+			assert.SelectedLine(Contains("good"))
 
 			input.Confirm()
 		}
@@ -44,16 +44,16 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.SwitchToCommitsWindow()
 
-		assert.MatchSelectedLine(Contains("commit 10"))
+		assert.SelectedLine(Contains("commit 10"))
 
 		input.NavigateToListItemContainingText("commit 09")
 
 		markCommitAsBad()
 
-		assert.MatchViewContent("information", Contains("bisecting"))
+		assert.ViewContent("information", Contains("bisecting"))
 
 		assert.CurrentViewName("commits")
-		assert.MatchSelectedLine(Contains("<-- bad"))
+		assert.SelectedLine(Contains("<-- bad"))
 
 		input.NavigateToListItemContainingText("commit 02")
 
@@ -61,26 +61,26 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 
 		// lazygit will land us in the comit between our good and bad commits.
 		assert.CurrentViewName("commits")
-		assert.MatchSelectedLine(Contains("commit 05"))
-		assert.MatchSelectedLine(Contains("<-- current"))
+		assert.SelectedLine(Contains("commit 05"))
+		assert.SelectedLine(Contains("<-- current"))
 
 		markCommitAsBad()
 
 		assert.CurrentViewName("commits")
-		assert.MatchSelectedLine(Contains("commit 04"))
-		assert.MatchSelectedLine(Contains("<-- current"))
+		assert.SelectedLine(Contains("commit 04"))
+		assert.SelectedLine(Contains("<-- current"))
 
 		markCommitAsGood()
 
 		assert.InAlert()
-		assert.MatchCurrentViewContent(Contains("Bisect complete!"))
+		assert.CurrentViewContent(Contains("Bisect complete!"))
 		// commit 5 is the culprit because we marked 4 as good and 5 as bad.
-		assert.MatchCurrentViewContent(Contains("commit 05"))
-		assert.MatchCurrentViewContent(Contains("Do you want to reset"))
+		assert.CurrentViewContent(Contains("commit 05"))
+		assert.CurrentViewContent(Contains("Do you want to reset"))
 		input.Confirm()
 
 		assert.CurrentViewName("commits")
-		assert.MatchCurrentViewContent(Contains("commit 04"))
-		assert.MatchViewContent("information", NotContains("bisecting"))
+		assert.CurrentViewContent(Contains("commit 04"))
+		assert.ViewContent("information", NotContains("bisecting"))
 	},
 })

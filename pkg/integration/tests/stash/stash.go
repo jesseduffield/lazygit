@@ -24,7 +24,7 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.PressKeys("a")
 		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Stash changes"))
+		assert.CurrentViewTitle(Equals("Stash changes"))
 
 		input.Type("my stashed file")
 		input.Confirm()

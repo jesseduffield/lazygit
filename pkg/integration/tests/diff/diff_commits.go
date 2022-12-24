@@ -22,35 +22,35 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
-		assert.MatchSelectedLine(Contains("third commit"))
+		assert.SelectedLine(Contains("third commit"))
 
 		input.PressKeys(keys.Universal.DiffingMenu)
 		assert.InMenu()
-		assert.MatchCurrentViewTitle(Equals("Diffing"))
-		assert.MatchSelectedLine(Contains("diff"))
+		assert.CurrentViewTitle(Equals("Diffing"))
+		assert.SelectedLine(Contains("diff"))
 		input.Confirm()
 		assert.NotInPopup()
 
-		assert.MatchViewContent("information", Contains("showing output for: git diff"))
+		assert.ViewContent("information", Contains("showing output for: git diff"))
 
 		input.NextItem()
 		input.NextItem()
 
-		assert.MatchSelectedLine(Contains("first commit"))
+		assert.SelectedLine(Contains("first commit"))
 
-		assert.MatchMainViewContent(Contains("-second line\n-third line"))
+		assert.MainViewContent(Contains("-second line\n-third line"))
 
 		input.PressKeys(keys.Universal.DiffingMenu)
 		assert.InMenu()
 		input.NavigateToListItemContainingText("reverse diff direction")
 		input.Confirm()
 
-		assert.MatchMainViewContent(Contains("+second line\n+third line"))
+		assert.MainViewContent(Contains("+second line\n+third line"))
 
 		input.Enter()
 
 		assert.CurrentViewName("commitFiles")
-		assert.MatchSelectedLine(Contains("file1"))
-		assert.MatchMainViewContent(Contains("+second line\n+third line"))
+		assert.SelectedLine(Contains("file1"))
+		assert.MainViewContent(Contains("+second line\n+third line"))
 	},
 })

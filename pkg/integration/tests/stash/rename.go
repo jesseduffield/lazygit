@@ -22,16 +22,16 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToStashWindow()
 		assert.CurrentViewName("stash")
 
-		assert.MatchSelectedLine(Equals("On master: bar"))
+		assert.SelectedLine(Equals("On master: bar"))
 		input.NextItem()
-		assert.MatchSelectedLine(Equals("On master: foo"))
+		assert.SelectedLine(Equals("On master: foo"))
 		input.PressKeys(keys.Stash.RenameStash)
 		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Rename stash: stash@{1}"))
+		assert.CurrentViewTitle(Equals("Rename stash: stash@{1}"))
 
 		input.Type(" baz")
 		input.Confirm()
 
-		assert.MatchSelectedLine(Equals("On master: foo baz"))
+		assert.SelectedLine(Equals("On master: foo baz"))
 	},
 })

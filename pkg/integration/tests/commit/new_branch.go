@@ -32,7 +32,7 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Confirm()
 
 		assert.CommitCount(2)
-		assert.MatchHeadCommitMessage(Contains("commit 2"))
+		assert.HeadCommitMessage(Contains("commit 2"))
 		assert.CurrentBranchName(branchName)
 	},
 })

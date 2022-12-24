@@ -31,39 +31,39 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		markCommitAsGood := func() {
 			viewBisectOptions()
-			assert.MatchSelectedLine(Contains("bad"))
+			assert.SelectedLine(Contains("bad"))
 			input.NextItem()
-			assert.MatchSelectedLine(Contains("good"))
+			assert.SelectedLine(Contains("good"))
 
 			input.Confirm()
 		}
 
-		assert.MatchViewContent("information", Contains("bisecting"))
+		assert.ViewContent("information", Contains("bisecting"))
 
 		assert.AtLeastOneCommit()
 
 		input.SwitchToCommitsWindow()
 
-		assert.MatchSelectedLine(Contains("<-- bad"))
-		assert.MatchSelectedLine(Contains("commit 08"))
+		assert.SelectedLine(Contains("<-- bad"))
+		assert.SelectedLine(Contains("commit 08"))
 
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("<-- current"))
-		assert.MatchSelectedLine(Contains("commit 07"))
+		assert.SelectedLine(Contains("<-- current"))
+		assert.SelectedLine(Contains("commit 07"))
 
 		markCommitAsGood()
 
 		assert.InAlert()
-		assert.MatchCurrentViewContent(Contains("Bisect complete!"))
-		assert.MatchCurrentViewContent(Contains("commit 08"))
-		assert.MatchCurrentViewContent(Contains("Do you want to reset"))
+		assert.CurrentViewContent(Contains("Bisect complete!"))
+		assert.CurrentViewContent(Contains("commit 08"))
+		assert.CurrentViewContent(Contains("Do you want to reset"))
 		input.Confirm()
 
-		assert.MatchViewContent("information", NotContains("bisecting"))
+		assert.ViewContent("information", NotContains("bisecting"))
 
 		// back in master branch which just had the one commit
 		assert.CurrentViewName("commits")
 		assert.CommitCount(1)
-		assert.MatchSelectedLine(Contains("only commit on master"))
+		assert.SelectedLine(Contains("only commit on master"))
 	},
 })

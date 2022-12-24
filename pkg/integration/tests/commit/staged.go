@@ -28,7 +28,7 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Confirm()
 
 		assert.CommitCount(1)
-		assert.MatchHeadCommitMessage(Equals(commitMessage))
+		assert.HeadCommitMessage(Equals(commitMessage))
 		assert.CurrentWindowName("stagingSecondary")
 	},
 })

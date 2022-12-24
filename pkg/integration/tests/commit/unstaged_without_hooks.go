@@ -27,7 +27,7 @@ var UnstagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Confirm()
 
 		assert.CommitCount(1)
-		assert.MatchHeadCommitMessage(Equals("WIP" + commitMessage))
+		assert.HeadCommitMessage(Equals("WIP" + commitMessage))
 		assert.CurrentWindowName("staging")
 	},
 })

@@ -24,19 +24,19 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.MatchSelectedLine(Contains("current-branch"))
+		assert.SelectedLine(Contains("current-branch"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("other-branch"))
+		assert.SelectedLine(Contains("other-branch"))
 
 		input.PressKeys(keys.Commits.ViewResetOptions)
 		assert.InMenu()
-		assert.MatchCurrentViewTitle(Contains("reset to other-branch"))
+		assert.CurrentViewTitle(Contains("reset to other-branch"))
 
-		assert.MatchSelectedLine(Contains("soft reset"))
+		assert.SelectedLine(Contains("soft reset"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("mixed reset"))
+		assert.SelectedLine(Contains("mixed reset"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("hard reset"))
+		assert.SelectedLine(Contains("hard reset"))
 
 		input.Confirm()
 
@@ -47,8 +47,8 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 		assert.CommitCount(2)
-		assert.MatchSelectedLine(Contains("other-branch commit"))
+		assert.SelectedLine(Contains("other-branch commit"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("root commit"))
+		assert.SelectedLine(Contains("root commit"))
 	},
 })

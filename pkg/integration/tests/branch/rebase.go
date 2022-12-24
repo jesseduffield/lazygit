@@ -18,21 +18,21 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.MatchSelectedLine(Contains("first-change-branch"))
+		assert.SelectedLine(Contains("first-change-branch"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("second-change-branch"))
+		assert.SelectedLine(Contains("second-change-branch"))
 		input.PressKeys(keys.Branches.RebaseBranch)
 
 		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
+		assert.CurrentViewContent(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
 		input.Confirm()
 
 		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Conflicts!"))
+		assert.CurrentViewContent(Contains("Conflicts!"))
 		input.Confirm()
 
 		assert.CurrentViewName("files")
-		assert.MatchSelectedLine(Contains("file"))
+		assert.SelectedLine(Contains("file"))
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke
@@ -41,13 +41,13 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentViewName("mergeConflicts")
 		input.PrimaryAction()
 
-		assert.MatchViewContent("information", Contains("rebasing"))
+		assert.ViewContent("information", Contains("rebasing"))
 		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
+		assert.CurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
 		input.Confirm()
-		assert.MatchViewContent("information", NotContains("rebasing"))
+		assert.ViewContent("information", NotContains("rebasing"))
 
 		// this proves we actually have integrated the changes from second-change-branch
-		assert.MatchViewContent("commits", Contains("second-change-branch unrelated change"))
+		assert.ViewContent("commits", Contains("second-change-branch unrelated change"))
 	},
 })

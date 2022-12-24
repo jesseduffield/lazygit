@@ -18,37 +18,37 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.MatchSelectedLine(Contains("first-change-branch"))
+		assert.SelectedLine(Contains("first-change-branch"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("second-change-branch"))
+		assert.SelectedLine(Contains("second-change-branch"))
 
 		input.Enter()
 
 		assert.CurrentViewName("subCommits")
-		assert.MatchSelectedLine(Contains("second-change-branch unrelated change"))
+		assert.SelectedLine(Contains("second-change-branch unrelated change"))
 		input.PressKeys(keys.Commits.CherryPickCopy)
-		assert.MatchViewContent("information", Contains("1 commit copied"))
+		assert.ViewContent("information", Contains("1 commit copied"))
 
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("second change"))
+		assert.SelectedLine(Contains("second change"))
 		input.PressKeys(keys.Commits.CherryPickCopy)
-		assert.MatchViewContent("information", Contains("2 commits copied"))
+		assert.ViewContent("information", Contains("2 commits copied"))
 
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
-		assert.MatchSelectedLine(Contains("first change"))
+		assert.SelectedLine(Contains("first change"))
 		input.PressKeys(keys.Commits.PasteCommits)
 		assert.InAlert()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
+		assert.CurrentViewContent(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
 
 		input.Confirm()
 
-		assert.MatchCurrentViewContent(Contains("Conflicts!"))
+		assert.CurrentViewContent(Contains("Conflicts!"))
 		input.Confirm()
 
 		assert.CurrentViewName("files")
-		assert.MatchSelectedLine(Contains("file"))
+		assert.SelectedLine(Contains("file"))
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke
@@ -60,7 +60,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		input.PrimaryAction()
 
 		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
+		assert.CurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
 		input.Confirm()
 
 		assert.CurrentViewName("files")
@@ -69,19 +69,19 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
-		assert.MatchSelectedLine(Contains("second-change-branch unrelated change"))
+		assert.SelectedLine(Contains("second-change-branch unrelated change"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("second change"))
+		assert.SelectedLine(Contains("second change"))
 		// because we picked 'Second change' when resolving the conflict,
 		// we now see this commit as having replaced First Change with Second Change,
 		// as opposed to replacing 'Original' with 'Second change'
-		assert.MatchMainViewContent(Contains("-First Change"))
-		assert.MatchMainViewContent(Contains("+Second Change"))
+		assert.MainViewContent(Contains("-First Change"))
+		assert.MainViewContent(Contains("+Second Change"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("first change"))
+		assert.SelectedLine(Contains("first change"))
 
-		assert.MatchViewContent("information", Contains("2 commits copied"))
+		assert.ViewContent("information", Contains("2 commits copied"))
 		input.PressKeys(keys.Universal.Return)
-		assert.MatchViewContent("information", NotContains("commits copied"))
+		assert.ViewContent("information", NotContains("commits copied"))
 	},
 })
