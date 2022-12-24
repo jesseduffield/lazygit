@@ -52,6 +52,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.MenuFromCommandsOutput,
 	custom_commands.MultiplePrompts,
 	file.DirWithUntrackedFile,
+	file.DiscardChanges,
 	interactive_rebase.AmendMerge,
 	interactive_rebase.One,
 	stash.Rename,

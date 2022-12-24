@@ -35,6 +35,32 @@ func (s *Shell) RunCommand(cmdStr string) *Shell {
 	return s
 }
 
+func (s *Shell) RunShellCommand(cmdStr string) *Shell {
+	cmd := secureexec.Command("sh", "-c", cmdStr)
+	cmd.Env = os.Environ()
+	cmd.Dir = s.dir
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		panic(fmt.Sprintf("error running shell command: %s\n%s", cmdStr, string(output)))
+	}
+
+	return s
+}
+
+func (s *Shell) RunShellCommandExpectError(cmdStr string) *Shell {
+	cmd := secureexec.Command("sh", "-c", cmdStr)
+	cmd.Env = os.Environ()
+	cmd.Dir = s.dir
+
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		panic(fmt.Sprintf("Expected error running shell command: %s\n%s", cmdStr, string(output)))
+	}
+
+	return s
+}
+
 func (s *Shell) CreateFile(path string, content string) *Shell {
 	fullPath := filepath.Join(s.dir, path)
 	err := os.WriteFile(fullPath, []byte(content), 0o644)

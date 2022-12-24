@@ -1,4 +1,0 @@
-0000000000000000000000000000000000000000 98e834e9cdae1191de7fafb2b6f334bddd0793e8 CI <CI@example.com> 1617671344 +1000	branch: Created from conflict
-98e834e9cdae1191de7fafb2b6f334bddd0793e8 c91b3b139ea108475c19839fcda3a4e33db4ccc9 CI <CI@example.com> 1617671344 +1000	commit: both-deleted.txt renamed in changed-them-added-us.txt
-c91b3b139ea108475c19839fcda3a4e33db4ccc9 11bdfc142c42c6ffaa904890ab61ec76262ec9ca CI <CI@example.com> 1617671344 +1000	commit: three
-11bdfc142c42c6ffaa904890ab61ec76262ec9ca 854f08fa802293e0679d07771547fe9fe5d159e8 CI <CI@example.com> 1617671365 +1000	commit (merge): Merge branch 'conflict' into conflict_second
