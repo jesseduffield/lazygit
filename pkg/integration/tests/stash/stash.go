@@ -19,15 +19,12 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.StashCount(0)
 		assert.WorkingTreeFileCount(1)
 
-		input.PressKeys(keys.Files.ViewStashOptions)
-		assert.InMenu()
+		input.Press(keys.Files.ViewStashOptions)
 
-		input.PressKeys("a")
-		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Stash changes"))
+		input.Menu(Equals("Stash options"), MatchesRegexp("stash all changes$"))
 
-		input.Type("my stashed file")
-		input.Confirm()
+		input.Prompt(Equals("Stash changes"), "my stashed file")
+
 		assert.StashCount(1)
 		assert.WorkingTreeFileCount(0)
 	},

@@ -18,21 +18,21 @@ var One = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
-		input.NavigateToListItemContainingText("commit 02")
-		input.PressKeys(keys.Universal.Edit)
-		assert.MatchSelectedLine(Contains("YOU ARE HERE"))
+		input.NavigateToListItem(Contains("commit 02"))
+		input.Press(keys.Universal.Edit)
+		assert.SelectedLine(Contains("YOU ARE HERE"))
 
 		input.PreviousItem()
-		input.PressKeys(keys.Commits.MarkCommitAsFixup)
-		assert.MatchSelectedLine(Contains("fixup"))
+		input.Press(keys.Commits.MarkCommitAsFixup)
+		assert.SelectedLine(Contains("fixup"))
 
 		input.PreviousItem()
-		input.PressKeys(keys.Universal.Remove)
-		assert.MatchSelectedLine(Contains("drop"))
+		input.Press(keys.Universal.Remove)
+		assert.SelectedLine(Contains("drop"))
 
 		input.PreviousItem()
-		input.PressKeys(keys.Commits.SquashDown)
-		assert.MatchSelectedLine(Contains("squash"))
+		input.Press(keys.Commits.SquashDown)
+		assert.SelectedLine(Contains("squash"))
 
 		input.ContinueRebase()
 

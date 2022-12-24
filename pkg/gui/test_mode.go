@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -17,6 +18,10 @@ type IntegrationTest interface {
 }
 
 func (gui *Gui) handleTestMode(test integrationTypes.IntegrationTest) {
+	if os.Getenv(components.SANDBOX_ENV_VAR) == "true" {
+		return
+	}
+
 	if test != nil {
 		go func() {
 			time.Sleep(time.Millisecond * 100)

@@ -24,9 +24,9 @@ var DirWithUntrackedFile = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(1)
 
-		assert.MatchMainViewContent(NotContains("error: Could not access"))
+		assert.MainViewContent(NotContains("error: Could not access"))
 		// we show baz because it's a modified file but we don't show bar because it's untracked
 		// (though it would be cool if we could show that too)
-		assert.MatchMainViewContent(Contains("baz"))
+		assert.MainViewContent(Contains("baz"))
 	},
 })

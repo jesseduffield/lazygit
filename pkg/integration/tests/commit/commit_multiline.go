@@ -17,18 +17,19 @@ var CommitMultiline = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(0)
 
 		input.PrimaryAction()
-		input.PressKeys(keys.Files.CommitChanges)
+		input.Press(keys.Files.CommitChanges)
 
+		assert.InCommitMessagePanel()
 		input.Type("first line")
-		input.PressKeys(keys.Universal.AppendNewline)
-		input.PressKeys(keys.Universal.AppendNewline)
+		input.Press(keys.Universal.AppendNewline)
+		input.Press(keys.Universal.AppendNewline)
 		input.Type("third line")
 		input.Confirm()
 
 		assert.CommitCount(1)
-		assert.MatchHeadCommitMessage(Equals("first line"))
+		assert.HeadCommitMessage(Equals("first line"))
 
 		input.SwitchToCommitsWindow()
-		assert.MatchMainViewContent(MatchesRegexp("first line\n\\s*\n\\s*third line"))
+		assert.MainViewContent(MatchesRegexp("first line\n\\s*\n\\s*third line"))
 	},
 })

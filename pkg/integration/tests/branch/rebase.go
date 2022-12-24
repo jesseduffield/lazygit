@@ -18,36 +18,32 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.MatchSelectedLine(Contains("first-change-branch"))
+		assert.SelectedLine(Contains("first-change-branch"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("second-change-branch"))
-		input.PressKeys(keys.Branches.RebaseBranch)
+		assert.SelectedLine(Contains("second-change-branch"))
+		input.Press(keys.Branches.RebaseBranch)
 
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("Rebasing"), Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
 
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Conflicts!"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("Auto-merge failed"), Contains("Conflicts!"))
 
 		assert.CurrentViewName("files")
-		assert.MatchSelectedLine(Contains("file"))
+		assert.SelectedLine(Contains("file"))
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke
-		input.PressKeys(keys.Universal.Confirm)
+		input.Press(keys.Universal.Confirm)
 
 		assert.CurrentViewName("mergeConflicts")
 		input.PrimaryAction()
 
-		assert.MatchViewContent("information", Contains("rebasing"))
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
-		input.Confirm()
-		assert.MatchViewContent("information", NotContains("rebasing"))
+		assert.ViewContent("information", Contains("rebasing"))
+
+		input.AcceptConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
+
+		assert.ViewContent("information", NotContains("rebasing"))
 
 		// this proves we actually have integrated the changes from second-change-branch
-		assert.MatchViewContent("commits", Contains("second-change-branch unrelated change"))
+		assert.ViewContent("commits", Contains("second-change-branch unrelated change"))
 	},
 })

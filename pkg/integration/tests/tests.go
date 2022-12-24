@@ -16,6 +16,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/config"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
@@ -44,19 +45,22 @@ var tests = []*components.IntegrationTest{
 	commit.Staged,
 	commit.Unstaged,
 	commit.StagedWithoutHooks,
-	commit.UnstagedWithoutHooks,
 	custom_commands.Basic,
 	custom_commands.FormPrompts,
 	custom_commands.MenuFromCommand,
 	custom_commands.MenuFromCommandsOutput,
 	custom_commands.MultiplePrompts,
 	file.DirWithUntrackedFile,
+	file.DiscardChanges,
 	interactive_rebase.AmendMerge,
 	interactive_rebase.One,
 	stash.Rename,
 	stash.Stash,
 	stash.StashIncludingUntrackedFiles,
 	config.RemoteNamedStar,
+	diff.Diff,
+	diff.DiffAndApplyPatch,
+	diff.DiffCommits,
 }
 
 func GetTests() []*components.IntegrationTest {

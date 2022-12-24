@@ -20,21 +20,18 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.MatchSelectedLine(Contains("branch-two"))
-		input.PressKeys(keys.Universal.Remove)
-		assert.InAlert()
-		assert.MatchCurrentViewContent(Contains("You cannot delete the checked out branch!"))
-
-		input.Confirm()
+		assert.SelectedLine(Contains("branch-two"))
+		input.Press(keys.Universal.Remove)
+		input.Alert(Equals("Error"), Contains("You cannot delete the checked out branch!"))
 
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("branch-one"))
-		input.PressKeys(keys.Universal.Remove)
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to delete the branch 'branch-one'?"))
-		input.Confirm()
+		assert.SelectedLine(Contains("branch-one"))
+
+		input.Press(keys.Universal.Remove)
+		input.AcceptConfirmation(Equals("Delete Branch"), Contains("Are you sure you want to delete the branch 'branch-one'?"))
+
 		assert.CurrentViewName("localBranches")
-		assert.MatchSelectedLine(Contains("master"))
-		assert.MatchCurrentViewContent(NotContains("branch-one"))
+		assert.SelectedLine(Contains("master"))
+		assert.CurrentViewContent(NotContains("branch-one"))
 	},
 })

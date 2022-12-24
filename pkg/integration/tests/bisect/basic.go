@@ -20,67 +20,53 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		viewBisectOptions := func() {
-			input.PressKeys(keys.Commits.ViewBisectOptions)
-			assert.InMenu()
-		}
 		markCommitAsBad := func() {
-			viewBisectOptions()
-			assert.MatchSelectedLine(Contains("bad"))
-
-			input.Confirm()
+			input.Press(keys.Commits.ViewBisectOptions)
+			input.Menu(Equals("Bisect"), MatchesRegexp(`mark .* as bad`))
 		}
 
 		markCommitAsGood := func() {
-			viewBisectOptions()
-			assert.MatchSelectedLine(Contains("bad"))
-			input.NextItem()
-			assert.MatchSelectedLine(Contains("good"))
-
-			input.Confirm()
+			input.Press(keys.Commits.ViewBisectOptions)
+			input.Menu(Equals("Bisect"), MatchesRegexp(`mark .* as good`))
 		}
 
 		assert.AtLeastOneCommit()
 
 		input.SwitchToCommitsWindow()
 
-		assert.MatchSelectedLine(Contains("commit 10"))
+		assert.SelectedLine(Contains("commit 10"))
 
-		input.NavigateToListItemContainingText("commit 09")
-
-		markCommitAsBad()
-
-		assert.MatchViewContent("information", Contains("bisecting"))
-
-		assert.CurrentViewName("commits")
-		assert.MatchSelectedLine(Contains("<-- bad"))
-
-		input.NavigateToListItemContainingText("commit 02")
-
-		markCommitAsGood()
-
-		// lazygit will land us in the comit between our good and bad commits.
-		assert.CurrentViewName("commits")
-		assert.MatchSelectedLine(Contains("commit 05"))
-		assert.MatchSelectedLine(Contains("<-- current"))
+		input.NavigateToListItem(Contains("commit 09"))
 
 		markCommitAsBad()
 
+		assert.ViewContent("information", Contains("bisecting"))
+
 		assert.CurrentViewName("commits")
-		assert.MatchSelectedLine(Contains("commit 04"))
-		assert.MatchSelectedLine(Contains("<-- current"))
+		assert.SelectedLine(Contains("<-- bad"))
+
+		input.NavigateToListItem(Contains("commit 02"))
 
 		markCommitAsGood()
 
-		assert.InAlert()
-		assert.MatchCurrentViewContent(Contains("Bisect complete!"))
+		// lazygit will land us in the commit between our good and bad commits.
+		assert.CurrentViewName("commits")
+		assert.SelectedLine(Contains("commit 05"))
+		assert.SelectedLine(Contains("<-- current"))
+
+		markCommitAsBad()
+
+		assert.CurrentViewName("commits")
+		assert.SelectedLine(Contains("commit 04"))
+		assert.SelectedLine(Contains("<-- current"))
+
+		markCommitAsGood()
+
 		// commit 5 is the culprit because we marked 4 as good and 5 as bad.
-		assert.MatchCurrentViewContent(Contains("commit 05"))
-		assert.MatchCurrentViewContent(Contains("Do you want to reset"))
-		input.Confirm()
+		input.Alert(Equals("Bisect complete"), MatchesRegexp("(?s)commit 05.*Do you want to reset"))
 
 		assert.CurrentViewName("commits")
-		assert.MatchCurrentViewContent(Contains("commit 04"))
-		assert.MatchViewContent("information", NotContains("bisecting"))
+		assert.CurrentViewContent(Contains("commit 04"))
+		assert.ViewContent("information", NotContains("bisecting"))
 	},
 })

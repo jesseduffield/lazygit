@@ -18,17 +18,38 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(0)
 
+		// stage the file
+		assert.CurrentViewName("files")
+		assert.SelectedLine(Contains("myfile"))
 		input.PrimaryAction()
-		input.Confirm()
-		input.PrimaryAction()
-		input.PressKeys(keys.Files.CommitChangesWithoutHook)
+		input.Enter()
+		assert.CurrentViewName("stagingSecondary")
+		// we start with both lines having been staged
+		assert.ViewContent("stagingSecondary", Contains("+myfile content"))
+		assert.ViewContent("stagingSecondary", Contains("+with a second line"))
+		assert.ViewContent("staging", NotContains("+myfile content"))
+		assert.ViewContent("staging", NotContains("+with a second line"))
 
-		commitMessage := "my commit message"
+		// unstage the selected line
+		input.PrimaryAction()
+
+		// the line should have been moved to the main view
+		assert.ViewContent("stagingSecondary", NotContains("+myfile content"))
+		assert.ViewContent("stagingSecondary", Contains("+with a second line"))
+		assert.ViewContent("staging", Contains("+myfile content"))
+		assert.ViewContent("staging", NotContains("+with a second line"))
+
+		input.Press(keys.Files.CommitChangesWithoutHook)
+		assert.InCommitMessagePanel()
+		assert.CurrentViewContent(Contains("WIP"))
+		commitMessage := ": my commit message"
 		input.Type(commitMessage)
 		input.Confirm()
 
 		assert.CommitCount(1)
-		assert.MatchHeadCommitMessage(Equals("WIP" + commitMessage))
-		assert.CurrentWindowName("stagingSecondary")
+		assert.HeadCommitMessage(Equals("WIP" + commitMessage))
+		assert.CurrentViewName("stagingSecondary")
+
+		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
 	},
 })

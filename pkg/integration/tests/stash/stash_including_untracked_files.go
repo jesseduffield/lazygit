@@ -20,15 +20,12 @@ var StashIncludingUntrackedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.StashCount(0)
 		assert.WorkingTreeFileCount(2)
 
-		input.PressKeys(keys.Files.ViewStashOptions)
-		assert.InMenu()
+		input.Press(keys.Files.ViewStashOptions)
 
-		input.PressKeys("U")
-		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Stash changes"))
+		input.Menu(Equals("Stash options"), Contains("stash all changes including untracked files"))
 
-		input.Type("my stashed file")
-		input.Confirm()
+		input.Prompt(Equals("Stash changes"), "my stashed file")
+
 		assert.StashCount(1)
 		assert.WorkingTreeFileCount(0)
 	},

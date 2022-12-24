@@ -24,18 +24,11 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		input.PressKeys(keys.Branches.CheckoutBranchByName)
-		assert.CurrentViewName("confirmation")
-
-		input.Type("branch-to")
-
-		input.PressKeys(keys.Universal.TogglePanel)
-		assert.CurrentViewName("suggestions")
+		input.Press(keys.Branches.CheckoutBranchByName)
 
 		// we expect the first suggestion to be the branch we want because it most
 		// closely matches what we typed in
-		assert.MatchSelectedLine(Contains("branch-to-checkout"))
-		input.Confirm()
+		input.Typeahead(Equals("Branch name:"), "branch-to", Contains("branch-to-checkout"))
 
 		assert.CurrentBranchName("branch-to-checkout")
 	},

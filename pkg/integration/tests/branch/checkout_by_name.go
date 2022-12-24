@@ -21,19 +21,16 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.MatchSelectedLine(Contains("master"))
+		assert.SelectedLine(Contains("master"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("@"))
-		input.PressKeys(keys.Branches.CheckoutBranchByName)
-		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Branch name:"))
-		input.Type("new-branch")
-		input.Confirm()
-		assert.InAlert()
-		assert.MatchCurrentViewContent(Equals("Branch not found. Create a new branch named new-branch?"))
-		input.Confirm()
+		assert.SelectedLine(Contains("@"))
+		input.Press(keys.Branches.CheckoutBranchByName)
+
+		input.Prompt(Equals("Branch name:"), "new-branch")
+
+		input.Alert(Equals("Branch not found"), Equals("Branch not found. Create a new branch named new-branch?"))
 
 		assert.CurrentViewName("localBranches")
-		assert.MatchSelectedLine(Contains("new-branch"))
+		assert.SelectedLine(Contains("new-branch"))
 	},
 })

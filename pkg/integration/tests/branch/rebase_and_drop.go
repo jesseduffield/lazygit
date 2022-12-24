@@ -21,49 +21,45 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.MatchSelectedLine(Contains("first-change-branch"))
+		assert.SelectedLine(Contains("first-change-branch"))
 		input.NextItem()
-		assert.MatchSelectedLine(Contains("second-change-branch"))
-		input.PressKeys(keys.Branches.RebaseBranch)
+		assert.SelectedLine(Contains("second-change-branch"))
+		input.Press(keys.Branches.RebaseBranch)
 
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("Rebasing"), Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
 
-		assert.MatchViewContent("information", Contains("rebasing"))
+		assert.ViewContent("information", Contains("rebasing"))
 
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Conflicts!"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("Auto-merge failed"), Contains("Conflicts!"))
 
 		assert.CurrentViewName("files")
-		assert.MatchSelectedLine(Contains("file"))
+		assert.SelectedLine(Contains("file"))
 
 		input.SwitchToCommitsWindow()
-		assert.MatchSelectedLine(Contains("pick")) // this means it's a rebasing commit
+		assert.SelectedLine(Contains("pick")) // this means it's a rebasing commit
 		input.NextItem()
-		input.PressKeys(keys.Universal.Remove)
-		assert.MatchSelectedLine(Contains("to remove"))
-		assert.MatchSelectedLine(Contains("drop"))
+		input.Press(keys.Universal.Remove)
+		// this is the commit name
+		assert.SelectedLine(Contains("to remove"))
+		// the commit has been marked to drop once we continue the rebase.
+		assert.SelectedLine(Contains("drop"))
 
 		input.SwitchToFilesWindow()
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke
-		input.PressKeys(keys.Universal.Confirm)
+		input.Press(keys.Universal.Confirm)
 
 		assert.CurrentViewName("mergeConflicts")
 		input.PrimaryAction()
 
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
-		input.Confirm()
+		input.AcceptConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
 
-		assert.MatchViewContent("information", NotContains("rebasing"))
+		assert.ViewContent("information", NotContains("rebasing"))
 
 		// this proves we actually have integrated the changes from second-change-branch
-		assert.MatchViewContent("commits", Contains("second-change-branch unrelated change"))
-		assert.MatchViewContent("commits", Contains("to keep"))
-		assert.MatchViewContent("commits", NotContains("to remove"))
+		assert.ViewContent("commits", Contains("second-change-branch unrelated change"))
+		assert.ViewContent("commits", Contains("to keep"))
+		assert.ViewContent("commits", NotContains("to remove"))
 	},
 })

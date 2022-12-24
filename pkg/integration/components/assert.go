@@ -21,57 +21,44 @@ func NewAssert(gui integrationTypes.GuiDriver) *Assert {
 	return &Assert{gui: gui}
 }
 
-// for making assertions on string values
-type matcher struct {
-	testFn func(string) (bool, string)
-	prefix string
-}
-
-func (self *matcher) test(value string) (bool, string) {
-	ok, message := self.testFn(value)
-	if ok {
-		return true, ""
-	}
-
-	if self.prefix != "" {
-		return false, self.prefix + " " + message
-	}
-
-	return false, message
-}
-
-func (self *matcher) context(prefix string) *matcher {
-	self.prefix = prefix
-
-	return self
-}
-
 func Contains(target string) *matcher {
-	return &matcher{testFn: func(value string) (bool, string) {
-		return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to be found in '%s'", target, value)
-	}}
+	return NewMatcher(
+		fmt.Sprintf("contains '%s'", target),
+		func(value string) (bool, string) {
+			return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to be found in '%s'", target, value)
+		},
+	)
 }
 
 func NotContains(target string) *matcher {
-	return &matcher{testFn: func(value string) (bool, string) {
-		return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
-	}}
+	return NewMatcher(
+		fmt.Sprintf("does not contain '%s'", target),
+		func(value string) (bool, string) {
+			return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
+		},
+	)
 }
 
-func MatchesRegexp(regexStr string) *matcher {
-	return &matcher{testFn: func(value string) (bool, string) {
-		matched, err := regexp.MatchString(regexStr, value)
-		if err != nil {
-			return false, fmt.Sprintf("Unexpected error parsing regular expression '%s': %s", regexStr, err.Error())
-		}
-		return matched, fmt.Sprintf("Expected '%s' to match regular expression '%s'", value, regexStr)
-	}}
+func MatchesRegexp(target string) *matcher {
+	return NewMatcher(
+		fmt.Sprintf("matches regular expression '%s'", target),
+		func(value string) (bool, string) {
+			matched, err := regexp.MatchString(target, value)
+			if err != nil {
+				return false, fmt.Sprintf("Unexpected error parsing regular expression '%s': %s", target, err.Error())
+			}
+			return matched, fmt.Sprintf("Expected '%s' to match regular expression '%s'", value, target)
+		},
+	)
 }
 
 func Equals(target string) *matcher {
-	return &matcher{testFn: func(value string) (bool, string) {
-		return target == value, fmt.Sprintf("Expected '%s' to equal '%s'", value, target)
-	}}
+	return NewMatcher(
+		fmt.Sprintf("equals '%s'", target),
+		func(value string) (bool, string) {
+			return target == value, fmt.Sprintf("Expected '%s' to equal '%s'", value, target)
+		},
+	)
 }
 
 func (self *Assert) WorkingTreeFileCount(expectedCount int) {
@@ -115,7 +102,7 @@ func (self *Assert) AtLeastOneCommit() {
 	})
 }
 
-func (self *Assert) MatchHeadCommitMessage(matcher *matcher) {
+func (self *Assert) HeadCommitMessage(matcher *matcher) {
 	self.assertWithRetries(func() (bool, string) {
 		return len(self.gui.Model().Commits) > 0, "Expected at least one commit to be present"
 	})
@@ -156,7 +143,7 @@ func (self *Assert) InListContext() {
 	})
 }
 
-func (self *Assert) MatchSelectedLine(matcher *matcher) {
+func (self *Assert) SelectedLine(matcher *matcher) {
 	self.matchString(matcher, "Unexpected selected line.",
 		func() string {
 			return self.gui.CurrentContext().GetView().SelectedLine()
@@ -186,13 +173,27 @@ func (self *Assert) InAlert() {
 	})
 }
 
+func (self *Assert) InCommitMessagePanel() {
+	self.assertWithRetries(func() (bool, string) {
+		currentView := self.gui.CurrentContext().GetView()
+		return currentView.Name() == "commitMessage", "Expected commit message panel to be focused"
+	})
+}
+
 func (self *Assert) InMenu() {
 	self.assertWithRetries(func() (bool, string) {
 		return self.gui.CurrentContext().GetView().Name() == "menu", "Expected popup menu to be focused"
 	})
 }
 
-func (self *Assert) MatchCurrentViewTitle(matcher *matcher) {
+func (self *Assert) NotInPopup() {
+	self.assertWithRetries(func() (bool, string) {
+		currentViewName := self.gui.CurrentContext().GetView().Name()
+		return currentViewName != "menu" && currentViewName != "confirmation" && currentViewName != "commitMessage", "Expected popup not to be focused"
+	})
+}
+
+func (self *Assert) CurrentViewTitle(matcher *matcher) {
 	self.matchString(matcher, "Unexpected current view title.",
 		func() string {
 			return self.gui.CurrentContext().GetView().Title
@@ -200,7 +201,7 @@ func (self *Assert) MatchCurrentViewTitle(matcher *matcher) {
 	)
 }
 
-func (self *Assert) MatchViewContent(viewName string, matcher *matcher) {
+func (self *Assert) ViewContent(viewName string, matcher *matcher) {
 	self.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", viewName),
 		func() string {
 			return self.gui.View(viewName).Buffer()
@@ -208,7 +209,7 @@ func (self *Assert) MatchViewContent(viewName string, matcher *matcher) {
 	)
 }
 
-func (self *Assert) MatchCurrentViewContent(matcher *matcher) {
+func (self *Assert) CurrentViewContent(matcher *matcher) {
 	self.matchString(matcher, "Unexpected content in current view.",
 		func() string {
 			return self.gui.CurrentContext().GetView().Buffer()
@@ -216,7 +217,7 @@ func (self *Assert) MatchCurrentViewContent(matcher *matcher) {
 	)
 }
 
-func (self *Assert) MatchMainViewContent(matcher *matcher) {
+func (self *Assert) MainViewContent(matcher *matcher) {
 	self.matchString(matcher, "Unexpected main view content.",
 		func() string {
 			return self.gui.MainView().Buffer()
@@ -224,7 +225,7 @@ func (self *Assert) MatchMainViewContent(matcher *matcher) {
 	)
 }
 
-func (self *Assert) MatchSecondaryViewContent(matcher *matcher) {
+func (self *Assert) SecondaryViewContent(matcher *matcher) {
 	self.matchString(matcher, "Unexpected secondary view title.",
 		func() string {
 			return self.gui.SecondaryView().Buffer()
@@ -240,7 +241,7 @@ func (self *Assert) matchString(matcher *matcher, context string, getValue func(
 }
 
 func (self *Assert) assertWithRetries(test func() (bool, string)) {
-	waitTimes := []int{0, 1, 5, 10, 200, 500, 1000, 2000, 4000}
+	waitTimes := []int{0, 1, 1, 1, 1, 1, 5, 10, 20, 40, 100, 200, 500, 1000, 2000, 4000}
 
 	var message string
 	for _, waitTime := range waitTimes {
