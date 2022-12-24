@@ -57,6 +57,18 @@
       "presentation": {
         "focus": true
       }
+    },
+    {
+      "label": "Open deprecated test TUI",
+      "type": "shell",
+      "command": "go run pkg/integration/deprecated/cmd/tui/main.go",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+      },
+      "presentation": {
+        "focus": true
+      }
     }
   ],
 }
