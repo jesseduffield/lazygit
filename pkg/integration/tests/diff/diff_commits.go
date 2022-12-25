@@ -22,7 +22,11 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
-		assert.SelectedLine(Contains("third commit"))
+		assert.CurrentViewLines(
+			Contains("third commit"),
+			Contains("second commit"),
+			Contains("first commit"),
+		)
 
 		input.Press(keys.Universal.DiffingMenu)
 		input.Menu(Equals("Diffing"), MatchesRegexp(`diff \w+`))
@@ -33,7 +37,6 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.NextItem()
 		input.NextItem()
-
 		assert.SelectedLine(Contains("first commit"))
 
 		assert.MainViewContent(Contains("-second line\n-third line"))

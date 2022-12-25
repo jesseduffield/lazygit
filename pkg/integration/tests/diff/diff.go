@@ -25,7 +25,10 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.SelectedLine(Contains("branch-a"))
+		assert.CurrentViewTopLines(
+			Contains("branch-a"),
+			Contains("branch-b"),
+		)
 		input.Press(keys.Universal.DiffingMenu)
 		input.Menu(Equals("Diffing"), Contains(`diff branch-a`))
 

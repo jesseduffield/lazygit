@@ -21,9 +21,22 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.SelectedLine(Contains("first-change-branch"))
+		assert.ViewLines(
+			"localBranches",
+			Contains("first-change-branch"),
+			Contains("second-change-branch"),
+			Contains("original-branch"),
+		)
+
+		assert.ViewTopLines(
+			"commits",
+			Contains("to keep"),
+			Contains("to remove"),
+			Contains("first change"),
+			Contains("original"),
+		)
+
 		input.NextItem()
-		assert.SelectedLine(Contains("second-change-branch"))
 		input.Press(keys.Branches.RebaseBranch)
 
 		input.AcceptConfirmation(Equals("Rebasing"), Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
@@ -36,13 +49,18 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.SelectedLine(Contains("file"))
 
 		input.SwitchToCommitsWindow()
-		assert.SelectedLine(Contains("pick")) // this means it's a rebasing commit
+		assert.ViewTopLines(
+			"commits",
+			MatchesRegexp(`pick.*to keep`),
+			MatchesRegexp(`pick.*to remove`),
+			MatchesRegexp("YOU ARE HERE.*second-change-branch unrelated change"),
+			MatchesRegexp("second change"),
+			MatchesRegexp("original"),
+		)
+		assert.SelectedLineIdx(0)
 		input.NextItem()
 		input.Press(keys.Universal.Remove)
-		// this is the commit name
-		assert.SelectedLine(Contains("to remove"))
-		// the commit has been marked to drop once we continue the rebase.
-		assert.SelectedLine(Contains("drop"))
+		assert.SelectedLine(MatchesRegexp(`drop.*to remove`))
 
 		input.SwitchToFilesWindow()
 
@@ -57,9 +75,12 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.ViewContent("information", NotContains("rebasing"))
 
-		// this proves we actually have integrated the changes from second-change-branch
-		assert.ViewContent("commits", Contains("second-change-branch unrelated change"))
-		assert.ViewContent("commits", Contains("to keep"))
-		assert.ViewContent("commits", NotContains("to remove"))
+		assert.ViewTopLines(
+			"commits",
+			Contains("to keep"),
+			Contains("second-change-branch unrelated change"),
+			Contains("second change"),
+			Contains("original"),
+		)
 	},
 })

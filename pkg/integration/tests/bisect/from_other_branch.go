@@ -30,12 +30,14 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.SwitchToCommitsWindow()
 
-		assert.SelectedLine(Contains("<-- bad"))
-		assert.SelectedLine(Contains("commit 08"))
+		assert.ViewTopLines("commits",
+			MatchesRegexp(`<-- bad.*commit 08`),
+			MatchesRegexp(`<-- current.*commit 07`),
+			MatchesRegexp(`\?.*commit 06`),
+			MatchesRegexp(`<-- good.*commit 05`),
+		)
 
 		input.NextItem()
-		assert.SelectedLine(Contains("<-- current"))
-		assert.SelectedLine(Contains("commit 07"))
 
 		input.Press(keys.Commits.ViewBisectOptions)
 		input.Menu(Equals("Bisect"), MatchesRegexp(`mark .* as good`))
@@ -46,7 +48,8 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		// back in master branch which just had the one commit
 		assert.CurrentViewName("commits")
-		assert.CommitCount(1)
-		assert.SelectedLine(Contains("only commit on master"))
+		assert.CurrentViewLines(
+			Contains("only commit on master"),
+		)
 	},
 })

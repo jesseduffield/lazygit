@@ -18,26 +18,37 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.SelectedLine(Contains("first-change-branch"))
+		assert.CurrentViewLines(
+			Contains("first-change-branch"),
+			Contains("second-change-branch"),
+			Contains("original-branch"),
+		)
+
 		input.NextItem()
-		assert.SelectedLine(Contains("second-change-branch"))
 
 		input.Enter()
 
 		assert.CurrentViewName("subCommits")
-		assert.SelectedLine(Contains("second-change-branch unrelated change"))
+
+		assert.CurrentViewTopLines(
+			Contains("second-change-branch unrelated change"),
+			Contains("second change"),
+		)
+
 		input.Press(keys.Commits.CherryPickCopy)
 		assert.ViewContent("information", Contains("1 commit copied"))
 
 		input.NextItem()
-		assert.SelectedLine(Contains("second change"))
 		input.Press(keys.Commits.CherryPickCopy)
 		assert.ViewContent("information", Contains("2 commits copied"))
 
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
-		assert.SelectedLine(Contains("first change"))
+		assert.CurrentViewTopLines(
+			Contains("first change"),
+		)
+
 		input.Press(keys.Commits.PasteCommits)
 		input.Alert(Equals("Cherry-Pick"), Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
 
@@ -63,16 +74,17 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
-		assert.SelectedLine(Contains("second-change-branch unrelated change"))
+		assert.CurrentViewTopLines(
+			Contains("second-change-branch unrelated change"),
+			Contains("second change"),
+			Contains("first change"),
+		)
 		input.NextItem()
-		assert.SelectedLine(Contains("second change"))
 		// because we picked 'Second change' when resolving the conflict,
 		// we now see this commit as having replaced First Change with Second Change,
 		// as opposed to replacing 'Original' with 'Second change'
 		assert.MainViewContent(Contains("-First Change"))
 		assert.MainViewContent(Contains("+Second Change"))
-		input.NextItem()
-		assert.SelectedLine(Contains("first change"))
 
 		assert.ViewContent("information", Contains("2 commits copied"))
 		input.Press(keys.Universal.Return)

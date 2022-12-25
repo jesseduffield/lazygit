@@ -24,8 +24,11 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
+		assert.CurrentViewLines(
+			Contains("branch-a"),
+			Contains("branch-b"),
+		)
 
-		assert.SelectedLine(Contains("branch-a"))
 		input.Press(keys.Universal.DiffingMenu)
 
 		input.Menu(Equals("Diffing"), Equals("diff branch-a"))

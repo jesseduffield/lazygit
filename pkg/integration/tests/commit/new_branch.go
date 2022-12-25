@@ -21,6 +21,11 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
+		assert.CurrentViewLines(
+			Contains("commit 3"),
+			Contains("commit 2"),
+			Contains("commit 1"),
+		)
 		input.NextItem()
 
 		input.Press(keys.Universal.New)
@@ -28,8 +33,11 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		branchName := "my-branch-name"
 		input.Prompt(Contains("New Branch Name"), branchName)
 
-		assert.CommitCount(2)
-		assert.HeadCommitMessage(Contains("commit 2"))
 		assert.CurrentBranchName(branchName)
+
+		assert.ViewLines("commits",
+			Contains("commit 2"),
+			Contains("commit 1"),
+		)
 	},
 })

@@ -27,35 +27,50 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.SelectedLine(Contains("first-branch"))
+		assert.CurrentViewLines(
+			Contains("first-branch"),
+			Contains("second-branch"),
+			Contains("master"),
+		)
+
 		input.NextItem()
-		assert.SelectedLine(Contains("second-branch"))
 
 		input.Enter()
 
 		assert.CurrentViewName("subCommits")
-		assert.SelectedLine(Contains("four"))
+		assert.CurrentViewLines(
+			Contains("four"),
+			Contains("three"),
+			Contains("base"),
+		)
+
+		// copy commits 'four' and 'three'
 		input.Press(keys.Commits.CherryPickCopy)
 		assert.ViewContent("information", Contains("1 commit copied"))
-
 		input.NextItem()
-		assert.SelectedLine(Contains("three"))
 		input.Press(keys.Commits.CherryPickCopy)
 		assert.ViewContent("information", Contains("2 commits copied"))
 
 		input.SwitchToCommitsWindow()
 		assert.CurrentViewName("commits")
 
-		assert.SelectedLine(Contains("two"))
+		assert.CurrentViewLines(
+			Contains("two"),
+			Contains("one"),
+			Contains("base"),
+		)
+
 		input.Press(keys.Commits.PasteCommits)
 		input.Alert(Equals("Cherry-Pick"), Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
 
 		assert.CurrentViewName("commits")
-		assert.SelectedLine(Contains("four"))
-		input.NextItem()
-		assert.SelectedLine(Contains("three"))
-		input.NextItem()
-		assert.SelectedLine(Contains("two"))
+		assert.CurrentViewLines(
+			Contains("four"),
+			Contains("three"),
+			Contains("two"),
+			Contains("one"),
+			Contains("base"),
+		)
 
 		assert.ViewContent("information", Contains("2 commits copied"))
 		input.Press(keys.Universal.Return)

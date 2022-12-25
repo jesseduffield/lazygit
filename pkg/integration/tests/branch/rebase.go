@@ -18,9 +18,20 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToBranchesWindow()
 		assert.CurrentViewName("localBranches")
 
-		assert.SelectedLine(Contains("first-change-branch"))
+		assert.ViewLines(
+			"localBranches",
+			Contains("first-change-branch"),
+			Contains("second-change-branch"),
+			Contains("original-branch"),
+		)
+
+		assert.ViewTopLines(
+			"commits",
+			Contains("first change"),
+			Contains("original"),
+		)
+
 		input.NextItem()
-		assert.SelectedLine(Contains("second-change-branch"))
 		input.Press(keys.Branches.RebaseBranch)
 
 		input.AcceptConfirmation(Equals("Rebasing"), Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
@@ -43,7 +54,11 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.ViewContent("information", NotContains("rebasing"))
 
-		// this proves we actually have integrated the changes from second-change-branch
-		assert.ViewContent("commits", Contains("second-change-branch unrelated change"))
+		assert.ViewTopLines(
+			"commits",
+			Contains("second-change-branch unrelated change"),
+			Contains("second change"),
+			Contains("original"),
+		)
 	},
 })

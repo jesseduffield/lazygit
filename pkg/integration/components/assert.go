@@ -151,6 +151,13 @@ func (self *Assert) SelectedLine(matcher *matcher) {
 	)
 }
 
+func (self *Assert) SelectedLineIdx(expected int) {
+	self.assertWithRetries(func() (bool, string) {
+		actual := self.gui.CurrentContext().GetView().SelectedLineIdx()
+		return expected == actual, fmt.Sprintf("Expected selected line index to be %d, got %d", expected, actual)
+	})
+}
+
 func (self *Assert) InPrompt() {
 	self.assertWithRetries(func() (bool, string) {
 		currentView := self.gui.CurrentContext().GetView()
@@ -207,6 +214,47 @@ func (self *Assert) ViewContent(viewName string, matcher *matcher) {
 			return self.gui.View(viewName).Buffer()
 		},
 	)
+}
+
+// asserts that the given view has lines matching the given matchers.
+func (self *Assert) ViewLines(viewName string, matchers ...*matcher) {
+	self.assertWithRetries(func() (bool, string) {
+		lines := self.gui.View(viewName).BufferLines()
+		return len(lines) == len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected %d, got %d", len(matchers), len(lines))
+	})
+
+	for i, matcher := range matchers {
+		self.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", viewName),
+			func() string {
+				return self.gui.View(viewName).BufferLines()[i]
+			},
+		)
+	}
+}
+
+func (self *Assert) CurrentViewLines(matchers ...*matcher) {
+	self.ViewLines(self.gui.CurrentContext().GetView().Name(), matchers...)
+}
+
+// asserts that the given view has lines matching the given matchers. So if three matchers
+// are passed, we only check the first three lines of the view.
+func (self *Assert) ViewTopLines(viewName string, matchers ...*matcher) {
+	self.assertWithRetries(func() (bool, string) {
+		lines := self.gui.View(viewName).BufferLines()
+		return len(lines) >= len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected at least %d, got %d", len(matchers), len(lines))
+	})
+
+	for i, matcher := range matchers {
+		self.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", viewName),
+			func() string {
+				return self.gui.View(viewName).BufferLines()[i]
+			},
+		)
+	}
+}
+
+func (self *Assert) CurrentViewTopLines(matchers ...*matcher) {
+	self.ViewTopLines(self.gui.CurrentContext().GetView().Name(), matchers...)
 }
 
 func (self *Assert) CurrentViewContent(matcher *matcher) {
