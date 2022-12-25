@@ -20,19 +20,19 @@ var One = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.NavigateToListItem(Contains("commit 02"))
 		input.Press(keys.Universal.Edit)
-		assert.SelectedLine(Contains("YOU ARE HERE"))
+		assert.CurrentLine(Contains("YOU ARE HERE"))
 
 		input.PreviousItem()
 		input.Press(keys.Commits.MarkCommitAsFixup)
-		assert.SelectedLine(Contains("fixup"))
+		assert.CurrentLine(Contains("fixup"))
 
 		input.PreviousItem()
 		input.Press(keys.Universal.Remove)
-		assert.SelectedLine(Contains("drop"))
+		assert.CurrentLine(Contains("drop"))
 
 		input.PreviousItem()
 		input.Press(keys.Commits.SquashDown)
-		assert.SelectedLine(Contains("squash"))
+		assert.CurrentLine(Contains("squash"))
 
 		input.ContinueRebase()
 

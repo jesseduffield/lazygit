@@ -55,7 +55,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		input.AcceptConfirmation(Equals("Auto-merge failed"), Contains("Conflicts!"))
 
 		assert.CurrentViewName("files")
-		assert.SelectedLine(Contains("file"))
+		assert.CurrentLine(Contains("file"))
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke

@@ -72,7 +72,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		input.AcceptConfirmation(Equals("Are you sure?"), Equals("Are you REALLY sure you want to make this file? Up to you buddy."))
 
 		assert.WorkingTreeFileCount(1)
-		assert.SelectedLine(Contains("my file"))
+		assert.CurrentLine(Contains("my file"))
 		assert.MainViewContent(Contains(`"BAR"`))
 	},
 })

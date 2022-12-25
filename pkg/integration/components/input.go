@@ -103,7 +103,7 @@ func (self *Input) PreviousItem() {
 
 func (self *Input) ContinueMerge() {
 	self.Press(self.keys.Universal.CreateRebaseOptionsMenu)
-	self.assert.SelectedLine(Contains("continue"))
+	self.assert.CurrentLine(Contains("continue"))
 	self.Confirm()
 }
 
@@ -166,20 +166,20 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 
 	selectedLineIdx := view.SelectedLineIdx()
 	if selectedLineIdx == matchIndex {
-		self.assert.SelectedLine(matcher)
+		self.assert.CurrentLine(matcher)
 		return
 	}
 	if selectedLineIdx < matchIndex {
 		for i := selectedLineIdx; i < matchIndex; i++ {
 			self.NextItem()
 		}
-		self.assert.SelectedLine(matcher)
+		self.assert.CurrentLine(matcher)
 		return
 	} else {
 		for i := selectedLineIdx; i > matchIndex; i-- {
 			self.PreviousItem()
 		}
-		self.assert.SelectedLine(matcher)
+		self.assert.CurrentLine(matcher)
 		return
 	}
 }
@@ -213,7 +213,7 @@ func (self *Input) Typeahead(title *matcher, textToType string, expectedFirstOpt
 	self.Type(textToType)
 	self.Press(self.keys.Universal.TogglePanel)
 	self.assert.CurrentViewName("suggestions")
-	self.assert.SelectedLine(expectedFirstOption)
+	self.assert.CurrentLine(expectedFirstOption)
 	self.Confirm()
 }
 

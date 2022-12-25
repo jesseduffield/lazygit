@@ -31,6 +31,6 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Prompt(Equals("Rename stash: stash@{1}"), " baz")
 
-		assert.SelectedLine(Equals("On master: foo baz"))
+		assert.CurrentLine(Equals("On master: foo baz"))
 	},
 })

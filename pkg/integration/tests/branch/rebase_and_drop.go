@@ -46,7 +46,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		input.AcceptConfirmation(Equals("Auto-merge failed"), Contains("Conflicts!"))
 
 		assert.CurrentViewName("files")
-		assert.SelectedLine(Contains("file"))
+		assert.CurrentLine(Contains("file"))
 
 		input.SwitchToCommitsWindow()
 		assert.ViewTopLines(
@@ -57,10 +57,10 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 			MatchesRegexp("second change"),
 			MatchesRegexp("original"),
 		)
-		assert.SelectedLineIdx(0)
+		assert.CurrentLineIdx(0)
 		input.NextItem()
 		input.Press(keys.Universal.Remove)
-		assert.SelectedLine(MatchesRegexp(`drop.*to remove`))
+		assert.CurrentLine(MatchesRegexp(`drop.*to remove`))
 
 		input.SwitchToFilesWindow()
 

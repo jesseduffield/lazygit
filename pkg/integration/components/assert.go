@@ -143,7 +143,7 @@ func (self *Assert) InListContext() {
 	})
 }
 
-func (self *Assert) SelectedLine(matcher *matcher) {
+func (self *Assert) CurrentLine(matcher *matcher) {
 	self.matchString(matcher, "Unexpected selected line.",
 		func() string {
 			return self.gui.CurrentContext().GetView().SelectedLine()
@@ -151,7 +151,7 @@ func (self *Assert) SelectedLine(matcher *matcher) {
 	)
 }
 
-func (self *Assert) SelectedLineIdx(expected int) {
+func (self *Assert) CurrentLineIdx(expected int) {
 	self.assertWithRetries(func() (bool, string) {
 		actual := self.gui.CurrentContext().GetView().SelectedLineIdx()
 		return expected == actual, fmt.Sprintf("Expected selected line index to be %d, got %d", expected, actual)

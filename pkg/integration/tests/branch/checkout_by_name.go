@@ -40,6 +40,6 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 			Contains("@"),
 		)
 
-		assert.SelectedLine(Contains("new-branch"))
+		assert.CurrentLine(Contains("new-branch"))
 	},
 })

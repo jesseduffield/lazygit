@@ -19,7 +19,7 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(0)
 
 		assert.CurrentViewName("files")
-		assert.SelectedLine(Contains("myfile"))
+		assert.CurrentLine(Contains("myfile"))
 		// stage the file
 		input.PrimaryAction()
 		input.Enter()

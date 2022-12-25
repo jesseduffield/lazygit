@@ -39,6 +39,6 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			MatchesRegexp(`\*.*branch-two`),
 			MatchesRegexp(`master`),
 		)
-		assert.SelectedLineIdx(1)
+		assert.CurrentLineIdx(1)
 	},
 })

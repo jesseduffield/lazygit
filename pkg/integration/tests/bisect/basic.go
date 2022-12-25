@@ -34,7 +34,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.SwitchToCommitsWindow()
 
-		assert.SelectedLine(Contains("commit 10"))
+		assert.CurrentLine(Contains("commit 10"))
 
 		input.NavigateToListItem(Contains("commit 09"))
 
@@ -43,7 +43,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.ViewContent("information", Contains("bisecting"))
 
 		assert.CurrentViewName("commits")
-		assert.SelectedLine(Contains("<-- bad"))
+		assert.CurrentLine(Contains("<-- bad"))
 
 		input.NavigateToListItem(Contains("commit 02"))
 
@@ -51,14 +51,14 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 
 		// lazygit will land us in the commit between our good and bad commits.
 		assert.CurrentViewName("commits")
-		assert.SelectedLine(Contains("commit 05"))
-		assert.SelectedLine(Contains("<-- current"))
+		assert.CurrentLine(Contains("commit 05"))
+		assert.CurrentLine(Contains("<-- current"))
 
 		markCommitAsBad()
 
 		assert.CurrentViewName("commits")
-		assert.SelectedLine(Contains("commit 04"))
-		assert.SelectedLine(Contains("<-- current"))
+		assert.CurrentLine(Contains("commit 04"))
+		assert.CurrentLine(Contains("<-- current"))
 
 		markCommitAsGood()
 

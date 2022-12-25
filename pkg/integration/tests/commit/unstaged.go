@@ -21,7 +21,7 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(0)
 
 		assert.CurrentViewName("files")
-		assert.SelectedLine(Contains("myfile"))
+		assert.CurrentLine(Contains("myfile"))
 		input.Enter()
 		assert.CurrentViewName("staging")
 		assert.ViewContent("stagingSecondary", NotContains("+myfile content"))

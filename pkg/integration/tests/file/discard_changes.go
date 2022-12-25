@@ -82,7 +82,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		discardOneByOne := func(files []statusFile) {
 			for _, file := range files {
-				assert.SelectedLine(Contains(file.status + " " + file.label))
+				assert.CurrentLine(Contains(file.status + " " + file.label))
 				input.Press(keys.Universal.Remove)
 				input.Menu(Equals(file.menuTitle), Contains("discard all changes"))
 			}

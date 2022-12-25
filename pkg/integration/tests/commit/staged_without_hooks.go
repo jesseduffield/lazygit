@@ -20,7 +20,7 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 
 		// stage the file
 		assert.CurrentViewName("files")
-		assert.SelectedLine(Contains("myfile"))
+		assert.CurrentLine(Contains("myfile"))
 		input.PrimaryAction()
 		input.Enter()
 		assert.CurrentViewName("stagingSecondary")

@@ -43,10 +43,10 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Enter()
 		assert.CurrentViewName("subCommits")
 		assert.MainViewContent(Contains("+second line"))
-		assert.SelectedLine(Contains("update"))
+		assert.CurrentLine(Contains("update"))
 		input.Enter()
 		assert.CurrentViewName("commitFiles")
-		assert.SelectedLine(Contains("file1"))
+		assert.CurrentLine(Contains("file1"))
 		assert.MainViewContent(Contains("+second line"))
 
 		// add the file to the patch
@@ -63,7 +63,7 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.SwitchToFilesWindow()
 
-		assert.SelectedLine(Contains("file1"))
+		assert.CurrentLine(Contains("file1"))
 		assert.MainViewContent(Contains("+second line"))
 	},
 })

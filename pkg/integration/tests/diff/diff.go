@@ -42,10 +42,10 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Enter()
 		assert.CurrentViewName("subCommits")
 		assert.MainViewContent(Contains("+second line"))
-		assert.SelectedLine(Contains("update"))
+		assert.CurrentLine(Contains("update"))
 		input.Enter()
 		assert.CurrentViewName("commitFiles")
-		assert.SelectedLine(Contains("file1"))
+		assert.CurrentLine(Contains("file1"))
 		assert.MainViewContent(Contains("+second line"))
 
 		input.Press(keys.Universal.Return)
