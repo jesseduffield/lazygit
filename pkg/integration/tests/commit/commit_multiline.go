@@ -29,7 +29,7 @@ var CommitMultiline = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(1)
 		assert.HeadCommitMessage(Equals("first line"))
 
-		input.SwitchToCommitsWindow()
+		input.SwitchToCommitsView()
 		assert.MainView().Content(MatchesRegexp("first line\n\\s*\n\\s*third line"))
 	},
 })

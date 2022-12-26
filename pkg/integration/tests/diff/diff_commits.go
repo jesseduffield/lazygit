@@ -19,9 +19,9 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Commit("third commit")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToCommitsWindow()
+		input.SwitchToCommitsView()
 
-		assert.CurrentView().Name("commits").Lines(
+		assert.CurrentView().Lines(
 			Contains("third commit"),
 			Contains("second commit"),
 			Contains("first commit"),

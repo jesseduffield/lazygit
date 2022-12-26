@@ -19,8 +19,8 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(3)
 
-		input.SwitchToCommitsWindow()
-		assert.CurrentView().Name("commits").Lines(
+		input.SwitchToCommitsView()
+		assert.CurrentView().Lines(
 			Contains("commit 3"),
 			Contains("commit 2"),
 			Contains("commit 1"),

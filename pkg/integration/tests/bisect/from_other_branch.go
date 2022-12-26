@@ -28,9 +28,9 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.AtLeastOneCommit()
 
-		input.SwitchToCommitsWindow()
+		input.SwitchToCommitsView()
 
-		assert.CurrentView().Name("commits").TopLines(
+		assert.CurrentView().TopLines(
 			MatchesRegexp(`<-- bad.*commit 08`),
 			MatchesRegexp(`<-- current.*commit 07`),
 			MatchesRegexp(`\?.*commit 06`),

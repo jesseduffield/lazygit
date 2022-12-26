@@ -30,8 +30,7 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(3)
 
-		input.SwitchToCommitsWindow()
-		assert.CurrentView().Name("commits")
+		input.SwitchToCommitsView()
 
 		mergeCommitMessage := "Merge branch 'feature-branch' into development-branch"
 		assert.HeadCommitMessage(Contains(mergeCommitMessage))

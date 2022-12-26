@@ -49,7 +49,7 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		keys config.KeybindingConfig,
 	) {
 		assert.WorkingTreeFileCount(0)
-		input.SwitchToBranchesWindow()
+		input.SwitchToBranchesView()
 
 		input.Press("a")
 
@@ -57,7 +57,7 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Prompt(Equals("Description"), " my branch")
 
-		input.SwitchToFilesWindow()
+		input.SwitchToFilesView()
 
 		assert.WorkingTreeFileCount(1)
 		assert.CurrentView().SelectedLine(Contains("output.txt"))

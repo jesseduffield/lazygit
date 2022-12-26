@@ -45,9 +45,21 @@ func (self *Input) SwitchToStatusWindow() {
 	self.assert.CurrentWindowName("status")
 }
 
+// switch to status window and assert that the status view is on top
+func (self *Input) SwitchToStatusView() {
+	self.SwitchToStatusWindow()
+	self.assert.CurrentView().Name("status")
+}
+
 func (self *Input) SwitchToFilesWindow() {
 	self.press(self.keys.Universal.JumpToBlock[1])
 	self.assert.CurrentWindowName("files")
+}
+
+// switch to files window and assert that the files view is on top
+func (self *Input) SwitchToFilesView() {
+	self.SwitchToFilesWindow()
+	self.assert.CurrentView().Name("files")
 }
 
 func (self *Input) SwitchToBranchesWindow() {
@@ -55,14 +67,32 @@ func (self *Input) SwitchToBranchesWindow() {
 	self.assert.CurrentWindowName("localBranches")
 }
 
+// switch to branches window and assert that the branches view is on top
+func (self *Input) SwitchToBranchesView() {
+	self.SwitchToBranchesWindow()
+	self.assert.CurrentView().Name("localBranches")
+}
+
 func (self *Input) SwitchToCommitsWindow() {
 	self.press(self.keys.Universal.JumpToBlock[3])
 	self.assert.CurrentWindowName("commits")
 }
 
+// switch to commits window and assert that the commits view is on top
+func (self *Input) SwitchToCommitsView() {
+	self.SwitchToCommitsWindow()
+	self.assert.CurrentView().Name("commits")
+}
+
 func (self *Input) SwitchToStashWindow() {
 	self.press(self.keys.Universal.JumpToBlock[4])
 	self.assert.CurrentWindowName("stash")
+}
+
+// switch to stash window and assert that the stash view is on top
+func (self *Input) SwitchToStashView() {
+	self.SwitchToStashWindow()
+	self.assert.CurrentView().Name("stash")
 }
 
 func (self *Input) Type(content string) {

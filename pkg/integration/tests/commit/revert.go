@@ -18,9 +18,9 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(1)
 
-		input.SwitchToCommitsWindow()
+		input.SwitchToCommitsView()
 
-		assert.CurrentView().Name("commits").Lines(
+		assert.CurrentView().Lines(
 			Contains("first commit"),
 		)
 

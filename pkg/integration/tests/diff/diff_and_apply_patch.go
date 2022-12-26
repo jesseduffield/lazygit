@@ -22,8 +22,8 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Checkout("branch-a")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
-		assert.CurrentView().Name("localBranches").Lines(
+		input.SwitchToBranchesView()
+		assert.CurrentView().Lines(
 			Contains("branch-a"),
 			Contains("branch-b"),
 		)
@@ -60,7 +60,7 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 		// adding the regex '$' here to distinguish the menu item from the 'apply patch in reverse' item
 		input.Menu(Equals("Patch Options"), MatchesRegexp("apply patch$"))
 
-		input.SwitchToFilesWindow()
+		input.SwitchToFilesView()
 
 		assert.CurrentView().SelectedLine(Contains("file1"))
 		assert.MainView().Content(Contains("+second line"))

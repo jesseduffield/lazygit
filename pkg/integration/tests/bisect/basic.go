@@ -32,7 +32,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.AtLeastOneCommit()
 
-		input.SwitchToCommitsWindow()
+		input.SwitchToCommitsView()
 
 		assert.CurrentView().SelectedLine(Contains("commit 10"))
 

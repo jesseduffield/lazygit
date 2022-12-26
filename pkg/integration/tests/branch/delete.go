@@ -17,9 +17,9 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("branch-two")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
+		input.SwitchToBranchesView()
 
-		assert.CurrentView().Name("localBranches").Lines(
+		assert.CurrentView().Lines(
 			MatchesRegexp(`\*.*branch-two`),
 			MatchesRegexp(`branch-one`),
 			MatchesRegexp(`master`),

@@ -18,9 +18,9 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 			EmptyCommit("blah")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
+		input.SwitchToBranchesView()
 
-		assert.CurrentView().Name("localBranches").Lines(
+		assert.CurrentView().Lines(
 			Contains("master"),
 			Contains("@"),
 		)

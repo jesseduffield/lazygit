@@ -15,8 +15,8 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		shared.MergeConflictsSetup(shell)
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
-		assert.CurrentView().Name("localBranches").Lines(
+		input.SwitchToBranchesView()
+		assert.CurrentView().Lines(
 			Contains("first-change-branch"),
 			Contains("second-change-branch"),
 			Contains("original-branch"),
@@ -38,9 +38,9 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Press(keys.Commits.CherryPickCopy)
 		assert.View("information").Content(Contains("2 commits copied"))
 
-		input.SwitchToCommitsWindow()
+		input.SwitchToCommitsView()
 
-		assert.CurrentView().Name("commits").TopLines(
+		assert.CurrentView().TopLines(
 			Contains("first change"),
 		)
 
@@ -66,9 +66,9 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentView().Name("files")
 		assert.WorkingTreeFileCount(0)
 
-		input.SwitchToCommitsWindow()
+		input.SwitchToCommitsView()
 
-		assert.CurrentView().Name("commits").TopLines(
+		assert.CurrentView().TopLines(
 			Contains("second-change-branch unrelated change"),
 			Contains("second change"),
 			Contains("first change"),

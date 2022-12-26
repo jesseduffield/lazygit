@@ -24,9 +24,9 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			Checkout("first-branch")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
+		input.SwitchToBranchesView()
 
-		assert.CurrentView().Name("localBranches").Lines(
+		assert.CurrentView().Lines(
 			Contains("first-branch"),
 			Contains("second-branch"),
 			Contains("master"),
@@ -49,9 +49,9 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Press(keys.Commits.CherryPickCopy)
 		assert.View("information").Content(Contains("2 commits copied"))
 
-		input.SwitchToCommitsWindow()
+		input.SwitchToCommitsView()
 
-		assert.CurrentView().Name("commits").Lines(
+		assert.CurrentView().Lines(
 			Contains("two"),
 			Contains("one"),
 			Contains("base"),

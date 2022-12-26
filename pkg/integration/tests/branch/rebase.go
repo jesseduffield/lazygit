@@ -15,8 +15,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 		shared.MergeConflictsSetup(shell)
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
-		assert.CurrentView().Name("localBranches")
+		input.SwitchToBranchesView()
 
 		assert.View("localBranches").Lines(
 			Contains("first-change-branch"),

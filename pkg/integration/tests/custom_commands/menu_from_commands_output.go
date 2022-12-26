@@ -50,7 +50,7 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentBranchName("feature/bar")
 
 		assert.WorkingTreeFileCount(0)
-		input.SwitchToBranchesWindow()
+		input.SwitchToBranchesView()
 
 		input.Press("a")
 

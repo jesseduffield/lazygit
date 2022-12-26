@@ -18,9 +18,9 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("to keep")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
+		input.SwitchToBranchesView()
 
-		assert.CurrentView().Name("localBranches").Lines(
+		assert.CurrentView().Lines(
 			Contains("first-change-branch"),
 			Contains("second-change-branch"),
 			Contains("original-branch"),
@@ -46,9 +46,8 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 			Name("files").
 			SelectedLine(Contains("file"))
 
-		input.SwitchToCommitsWindow()
+		input.SwitchToCommitsView()
 		assert.CurrentView().
-			Name("commits").
 			TopLines(
 				MatchesRegexp(`pick.*to keep`),
 				MatchesRegexp(`pick.*to remove`),
@@ -62,7 +61,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Press(keys.Universal.Remove)
 		assert.CurrentView().SelectedLine(MatchesRegexp(`drop.*to remove`))
 
-		input.SwitchToFilesWindow()
+		input.SwitchToFilesView()
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke

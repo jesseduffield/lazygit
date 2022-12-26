@@ -15,8 +15,8 @@ var One = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateNCommits(5) // these will appears at commit 05, 04, 04, down to 01
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToCommitsWindow()
-		assert.CurrentView().Name("commits").Lines(
+		input.SwitchToCommitsView()
+		assert.CurrentView().Lines(
 			Contains("commit 05"),
 			Contains("commit 04"),
 			Contains("commit 03"),

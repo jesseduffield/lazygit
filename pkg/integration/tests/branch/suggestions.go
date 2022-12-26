@@ -21,8 +21,7 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("other-new-branch-3")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
-		assert.CurrentView().Name("localBranches")
+		input.SwitchToBranchesView()
 
 		input.Press(keys.Branches.CheckoutBranchByName)
 

@@ -19,9 +19,9 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 			StashWithMessage("bar")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToStashWindow()
+		input.SwitchToStashView()
 
-		assert.CurrentView().Name("stash").Lines(
+		assert.CurrentView().Lines(
 			Equals("On master: bar"),
 			Equals("On master: foo"),
 		)

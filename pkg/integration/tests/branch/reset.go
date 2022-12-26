@@ -26,9 +26,9 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 			Contains("root commit"),
 		)
 
-		input.SwitchToBranchesWindow()
+		input.SwitchToBranchesView()
 
-		assert.CurrentView().Name("localBranches").Lines(
+		assert.CurrentView().Lines(
 			Contains("current-branch"),
 			Contains("other-branch"),
 		)
@@ -42,8 +42,8 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentView().Name("localBranches")
 
 		// assert that we now have the expected commits in the commit panel
-		input.SwitchToCommitsWindow()
-		assert.CurrentView().Name("commits").Lines(
+		input.SwitchToCommitsView()
+		assert.CurrentView().Lines(
 			Contains("other-branch commit"),
 			Contains("root commit"),
 		)

@@ -22,9 +22,9 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Checkout("branch-a")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
+		input.SwitchToBranchesView()
 
-		assert.CurrentView().Name("localBranches").TopLines(
+		assert.CurrentView().TopLines(
 			Contains("branch-a"),
 			Contains("branch-b"),
 		)
