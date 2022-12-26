@@ -27,7 +27,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		)
 
 		assert.View("commits").TopLines(
-			Contains("to keep"),
+			Contains("to keep").IsSelected(),
 			Contains("to remove"),
 			Contains("first change"),
 			Contains("original"),
@@ -44,22 +44,29 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.CurrentView().
 			Name("files").
-			SelectedLine(Contains("file"))
+			SelectedLine(MatchesRegexp("UU.*file"))
 
 		input.SwitchToCommitsView()
 		assert.CurrentView().
 			TopLines(
-				MatchesRegexp(`pick.*to keep`),
+				MatchesRegexp(`pick.*to keep`).IsSelected(),
 				MatchesRegexp(`pick.*to remove`),
 				MatchesRegexp("YOU ARE HERE.*second-change-branch unrelated change"),
 				MatchesRegexp("second change"),
 				MatchesRegexp("original"),
-			).
-			SelectedLineIdx(0)
+			)
 
 		input.NextItem()
 		input.Press(keys.Universal.Remove)
-		assert.CurrentView().SelectedLine(MatchesRegexp(`drop.*to remove`))
+
+		assert.CurrentView().
+			TopLines(
+				MatchesRegexp(`pick.*to keep`),
+				MatchesRegexp(`drop.*to remove`).IsSelected(),
+				MatchesRegexp("YOU ARE HERE.*second-change-branch unrelated change"),
+				MatchesRegexp("second change"),
+				MatchesRegexp("original"),
+			)
 
 		input.SwitchToFilesView()
 
@@ -76,7 +83,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.View("commits").TopLines(
 			Contains("to keep"),
-			Contains("second-change-branch unrelated change"),
+			Contains("second-change-branch unrelated change").IsSelected(),
 			Contains("second change"),
 			Contains("original"),
 		)

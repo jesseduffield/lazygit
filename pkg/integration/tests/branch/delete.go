@@ -36,8 +36,7 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentView().Name("localBranches").
 			Lines(
 				MatchesRegexp(`\*.*branch-two`),
-				MatchesRegexp(`master`),
-			).
-			SelectedLineIdx(1)
+				MatchesRegexp(`master`).IsSelected(),
+			)
 	},
 })

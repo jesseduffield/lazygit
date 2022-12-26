@@ -29,10 +29,9 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.CurrentView().Name("commits").
 			Lines(
-				Contains("Revert \"first commit\""),
+				Contains("Revert \"first commit\"").IsSelected(),
 				Contains("first commit"),
-			).
-			SelectedLineIdx(0)
+			)
 
 		assert.MainView().Content(Contains("-myfile content"))
 		assert.FileSystemPathNotPresent("myfile")

@@ -42,8 +42,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.View("information").Content(Contains("bisecting"))
 
-		assert.CurrentView().Name("commits")
-		assert.CurrentView().SelectedLine(Contains("<-- bad"))
+		assert.CurrentView().Name("commits").SelectedLine(Contains("<-- bad"))
 
 		input.NavigateToListItem(Contains("commit 02"))
 

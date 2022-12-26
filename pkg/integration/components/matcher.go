@@ -41,11 +41,6 @@ func (self *matcher) name() string {
 }
 
 func (self *matcher) test(value string) (bool, string) {
-	// if there are no rules, then we pass the test by default
-	if len(self.rules) == 0 {
-		return true, ""
-	}
-
 	for _, rule := range self.rules {
 		ok, message := rule.testFn(value)
 		if ok {
@@ -63,33 +58,25 @@ func (self *matcher) test(value string) (bool, string) {
 }
 
 func (self *matcher) Contains(target string) *matcher {
-	rule := matcherRule{
+	return self.appendRule(matcherRule{
 		name: fmt.Sprintf("contains '%s'", target),
 		testFn: func(value string) (bool, string) {
 			return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to be found in '%s'", target, value)
 		},
-	}
-
-	self.rules = append(self.rules, rule)
-
-	return self
+	})
 }
 
 func (self *matcher) DoesNotContain(target string) *matcher {
-	rule := matcherRule{
+	return self.appendRule(matcherRule{
 		name: fmt.Sprintf("does not contain '%s'", target),
 		testFn: func(value string) (bool, string) {
 			return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
 		},
-	}
-
-	self.rules = append(self.rules, rule)
-
-	return self
+	})
 }
 
 func (self *matcher) MatchesRegexp(target string) *matcher {
-	rule := matcherRule{
+	return self.appendRule(matcherRule{
 		name: fmt.Sprintf("matches regular expression '%s'", target),
 		testFn: func(value string) (bool, string) {
 			matched, err := regexp.MatchString(target, value)
@@ -98,30 +85,52 @@ func (self *matcher) MatchesRegexp(target string) *matcher {
 			}
 			return matched, fmt.Sprintf("Expected '%s' to match regular expression '%s'", value, target)
 		},
-	}
-
-	self.rules = append(self.rules, rule)
-
-	return self
+	})
 }
 
 func (self *matcher) Equals(target string) *matcher {
-	rule := matcherRule{
+	return self.appendRule(matcherRule{
 		name: fmt.Sprintf("equals '%s'", target),
 		testFn: func(value string) (bool, string) {
 			return target == value, fmt.Sprintf("Expected '%s' to equal '%s'", value, target)
 		},
-	}
+	})
+}
 
+const IS_SELECTED_RULE_NAME = "is selected"
+
+// special rule that is only to be used in the TopLines and Lines methods, as a way of
+// asserting that a given line is selected.
+func (self *matcher) IsSelected() *matcher {
+	return self.appendRule(matcherRule{
+		name: IS_SELECTED_RULE_NAME,
+		testFn: func(value string) (bool, string) {
+			panic("Special IsSelected matcher is not supposed to have its testFn method called. This rule should only be used within the .Lines() and .TopLines() method on a ViewAsserter.")
+		},
+	})
+}
+
+func (self *matcher) appendRule(rule matcherRule) *matcher {
 	self.rules = append(self.rules, rule)
 
 	return self
 }
 
+// adds context so that if the matcher test(s) fails, we understand what we were trying to test.
+// E.g. prefix: "Unexpected content in view 'files'."
 func (self *matcher) context(prefix string) *matcher {
 	self.prefix = prefix
 
 	return self
+}
+
+// if the matcher has an `IsSelected` rule, it returns true, along with the matcher after that rule has been removed
+func (self *matcher) checkIsSelected() (bool, *matcher) {
+	check := lo.ContainsBy(self.rules, func(rule matcherRule) bool { return rule.name == IS_SELECTED_RULE_NAME })
+
+	self.rules = lo.Filter(self.rules, func(rule matcherRule, _ int) bool { return rule.name != IS_SELECTED_RULE_NAME })
+
+	return check, self
 }
 
 // this matcher has no rules meaning it always passes the test. Use this

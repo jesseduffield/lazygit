@@ -44,17 +44,7 @@ func (self *ViewAsserter) TopLines(matchers ...*matcher) *ViewAsserter {
 		return len(lines) >= len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected at least %d, got %d", len(matchers), len(lines))
 	})
 
-	view := self.getView()
-
-	for i, matcher := range matchers {
-		self.assert.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", view.Name()),
-			func() string {
-				return view.BufferLines()[i]
-			},
-		)
-	}
-
-	return self
+	return self.assertLines(matchers...)
 }
 
 // asserts that the view has lines matching the given matchers. One matcher must be passed for each line.
@@ -65,14 +55,27 @@ func (self *ViewAsserter) Lines(matchers ...*matcher) *ViewAsserter {
 		return len(lines) == len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected %d, got %d", len(matchers), len(lines))
 	})
 
+	return self.assertLines(matchers...)
+}
+
+func (self *ViewAsserter) assertLines(matchers ...*matcher) *ViewAsserter {
 	view := self.getView()
 
 	for i, matcher := range matchers {
+		checkIsSelected, matcher := matcher.checkIsSelected()
+
 		self.assert.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", view.Name()),
 			func() string {
 				return view.BufferLines()[i]
 			},
 		)
+
+		if checkIsSelected {
+			self.assert.assertWithRetries(func() (bool, string) {
+				lineIdx := view.SelectedLineIdx()
+				return lineIdx == i, fmt.Sprintf("Unexpected selected line index in view '%s'. Expected %d, got %d", view.Name(), i, lineIdx)
+			})
+		}
 	}
 
 	return self

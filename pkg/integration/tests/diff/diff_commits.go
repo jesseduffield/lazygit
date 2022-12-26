@@ -48,8 +48,7 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Enter()
 
-		assert.CurrentView().Name("commitFiles")
-		assert.CurrentView().SelectedLine(Contains("file1"))
+		assert.CurrentView().Name("commitFiles").SelectedLine(Contains("file1"))
 		assert.MainView().Content(Contains("+second line\n+third line"))
 	},
 })
