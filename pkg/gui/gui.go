@@ -341,7 +341,6 @@ func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartAr
 func NewGui(
 	cmn *common.Common,
 	config config.AppConfigurer,
-	gitConfig git_config.IGitConfig,
 	updater *updates.Updater,
 	showRecentRepos bool,
 	initialDir string,
