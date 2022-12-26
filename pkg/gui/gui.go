@@ -76,9 +76,10 @@ type Repo string
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
 	*common.Common
-	g   *gocui.Gui
-	git *commands.GitCommand
-	os  *oscommands.OSCommand
+	g          *gocui.Gui
+	gitVersion *git_commands.GitVersion
+	git        *commands.GitCommand
+	os         *oscommands.OSCommand
 
 	// this is the state of the GUI for the current repo
 	State *GuiRepoState
@@ -222,6 +223,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool) error {
 	var err error
 	gui.git, err = commands.NewGitCommand(
 		gui.Common,
+		gui.gitVersion,
 		gui.os,
 		git_config.NewStdCachedGitConfig(gui.Log),
 		gui.Mutexes.SyncMutex,
@@ -341,12 +343,14 @@ func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartAr
 func NewGui(
 	cmn *common.Common,
 	config config.AppConfigurer,
+	gitVersion *git_commands.GitVersion,
 	updater *updates.Updater,
 	showRecentRepos bool,
 	initialDir string,
 ) (*Gui, error) {
 	gui := &Gui{
 		Common:                  cmn,
+		gitVersion:              gitVersion,
 		Config:                  config,
 		Updater:                 updater,
 		statusManager:           &statusManager{},
