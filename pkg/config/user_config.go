@@ -9,8 +9,6 @@ type UserConfig struct {
 	Git                  GitConfig        `yaml:"git"`
 	Update               UpdateConfig     `yaml:"update"`
 	Refresher            RefresherConfig  `yaml:"refresher"`
-	Reporting            string           `yaml:"reporting"`
-	SplashUpdatesIndex   int              `yaml:"splashUpdatesIndex"`
 	ConfirmOnQuit        bool             `yaml:"confirmOnQuit"`
 	QuitOnTopLevelReturn bool             `yaml:"quitOnTopLevelReturn"`
 	Keybinding           KeybindingConfig `yaml:"keybinding"`
@@ -415,8 +413,6 @@ func GetDefaultConfig() *UserConfig {
 			Method: "prompt",
 			Days:   14,
 		},
-		Reporting:            "undetermined",
-		SplashUpdatesIndex:   0,
 		ConfirmOnQuit:        false,
 		QuitOnTopLevelReturn: false,
 		Keybinding: KeybindingConfig{
