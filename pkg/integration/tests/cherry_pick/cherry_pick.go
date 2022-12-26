@@ -25,9 +25,8 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()
-		assert.CurrentViewName("localBranches")
 
-		assert.CurrentViewLines(
+		assert.CurrentView().Name("localBranches").Lines(
 			Contains("first-branch"),
 			Contains("second-branch"),
 			Contains("master"),
@@ -37,8 +36,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Enter()
 
-		assert.CurrentViewName("subCommits")
-		assert.CurrentViewLines(
+		assert.CurrentView().Name("subCommits").Lines(
 			Contains("four"),
 			Contains("three"),
 			Contains("base"),
@@ -46,15 +44,14 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 
 		// copy commits 'four' and 'three'
 		input.Press(keys.Commits.CherryPickCopy)
-		assert.ViewContent("information", Contains("1 commit copied"))
+		assert.View("information").Content(Contains("1 commit copied"))
 		input.NextItem()
 		input.Press(keys.Commits.CherryPickCopy)
-		assert.ViewContent("information", Contains("2 commits copied"))
+		assert.View("information").Content(Contains("2 commits copied"))
 
 		input.SwitchToCommitsWindow()
-		assert.CurrentViewName("commits")
 
-		assert.CurrentViewLines(
+		assert.CurrentView().Name("commits").Lines(
 			Contains("two"),
 			Contains("one"),
 			Contains("base"),
@@ -63,8 +60,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Press(keys.Commits.PasteCommits)
 		input.Alert(Equals("Cherry-Pick"), Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
 
-		assert.CurrentViewName("commits")
-		assert.CurrentViewLines(
+		assert.CurrentView().Name("commits").Lines(
 			Contains("four"),
 			Contains("three"),
 			Contains("two"),
@@ -72,8 +68,8 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			Contains("base"),
 		)
 
-		assert.ViewContent("information", Contains("2 commits copied"))
+		assert.View("information").Content(Contains("2 commits copied"))
 		input.Press(keys.Universal.Return)
-		assert.ViewContent("information", NotContains("commits copied"))
+		assert.View("information").Content(NotContains("commits copied"))
 	},
 })

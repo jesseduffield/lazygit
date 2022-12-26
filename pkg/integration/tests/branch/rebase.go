@@ -16,17 +16,15 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()
-		assert.CurrentViewName("localBranches")
+		assert.CurrentView().Name("localBranches")
 
-		assert.ViewLines(
-			"localBranches",
+		assert.View("localBranches").Lines(
 			Contains("first-change-branch"),
 			Contains("second-change-branch"),
 			Contains("original-branch"),
 		)
 
-		assert.ViewTopLines(
-			"commits",
+		assert.View("commits").TopLines(
 			Contains("first change"),
 			Contains("original"),
 		)
@@ -35,27 +33,24 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Press(keys.Branches.RebaseBranch)
 
 		input.AcceptConfirmation(Equals("Rebasing"), Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
-
 		input.AcceptConfirmation(Equals("Auto-merge failed"), Contains("Conflicts!"))
 
-		assert.CurrentViewName("files")
-		assert.CurrentLine(Contains("file"))
+		assert.CurrentView().Name("files").SelectedLine(Contains("file"))
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke
 		input.Press(keys.Universal.Confirm)
 
-		assert.CurrentViewName("mergeConflicts")
+		assert.CurrentView().Name("mergeConflicts")
 		input.PrimaryAction()
 
-		assert.ViewContent("information", Contains("rebasing"))
+		assert.View("information").Content(Contains("rebasing"))
 
 		input.AcceptConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
 
-		assert.ViewContent("information", NotContains("rebasing"))
+		assert.View("information").Content(NotContains("rebasing"))
 
-		assert.ViewTopLines(
-			"commits",
+		assert.View("commits").TopLines(
 			Contains("second-change-branch unrelated change"),
 			Contains("second change"),
 			Contains("original"),

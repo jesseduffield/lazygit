@@ -22,7 +22,7 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()
-		assert.CurrentViewName("localBranches")
+		assert.CurrentView().Name("localBranches")
 
 		input.Press(keys.Branches.CheckoutBranchByName)
 

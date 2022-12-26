@@ -19,36 +19,36 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(0)
 
 		// stage the file
-		assert.CurrentViewName("files")
-		assert.CurrentLine(Contains("myfile"))
+		assert.CurrentView().Name("files")
+		assert.CurrentView().SelectedLine(Contains("myfile"))
 		input.PrimaryAction()
 		input.Enter()
-		assert.CurrentViewName("stagingSecondary")
+		assert.CurrentView().Name("stagingSecondary")
 		// we start with both lines having been staged
-		assert.ViewContent("stagingSecondary", Contains("+myfile content"))
-		assert.ViewContent("stagingSecondary", Contains("+with a second line"))
-		assert.ViewContent("staging", NotContains("+myfile content"))
-		assert.ViewContent("staging", NotContains("+with a second line"))
+		assert.View("stagingSecondary").Content(Contains("+myfile content"))
+		assert.View("stagingSecondary").Content(Contains("+with a second line"))
+		assert.View("staging").Content(NotContains("+myfile content"))
+		assert.View("staging").Content(NotContains("+with a second line"))
 
 		// unstage the selected line
 		input.PrimaryAction()
 
 		// the line should have been moved to the main view
-		assert.ViewContent("stagingSecondary", NotContains("+myfile content"))
-		assert.ViewContent("stagingSecondary", Contains("+with a second line"))
-		assert.ViewContent("staging", Contains("+myfile content"))
-		assert.ViewContent("staging", NotContains("+with a second line"))
+		assert.View("stagingSecondary").Content(NotContains("+myfile content"))
+		assert.View("stagingSecondary").Content(Contains("+with a second line"))
+		assert.View("staging").Content(Contains("+myfile content"))
+		assert.View("staging").Content(NotContains("+with a second line"))
 
 		input.Press(keys.Files.CommitChangesWithoutHook)
 		assert.InCommitMessagePanel()
-		assert.CurrentViewContent(Contains("WIP"))
+		assert.CurrentView().Content(Contains("WIP"))
 		commitMessage := ": my commit message"
 		input.Type(commitMessage)
 		input.Confirm()
 
 		assert.CommitCount(1)
 		assert.HeadCommitMessage(Equals("WIP" + commitMessage))
-		assert.CurrentViewName("stagingSecondary")
+		assert.CurrentView().Name("stagingSecondary")
 
 		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
 	},

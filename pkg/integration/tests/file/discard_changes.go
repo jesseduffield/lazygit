@@ -82,7 +82,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		discardOneByOne := func(files []statusFile) {
 			for _, file := range files {
-				assert.CurrentLine(Contains(file.status + " " + file.label))
+				assert.CurrentView().SelectedLine(Contains(file.status + " " + file.label))
 				input.Press(keys.Universal.Remove)
 				input.Menu(Equals(file.menuTitle), Contains("discard all changes"))
 			}
@@ -98,10 +98,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "DU", label: "deleted-us.txt", menuTitle: "deleted-us.txt"},
 		})
 
-		assert.InConfirm()
-		assert.CurrentViewTitle(Contains("continue"))
-		assert.CurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
-		input.Press(keys.Universal.Return)
+		input.DenyConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
 
 		discardOneByOne([]statusFile{
 			{status: "MD", label: "change-delete.txt", menuTitle: "change-delete.txt"},

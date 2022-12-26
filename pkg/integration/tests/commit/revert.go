@@ -20,13 +20,21 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.SwitchToCommitsWindow()
 
+		assert.CurrentView().Name("commits").Lines(
+			Contains("first commit"),
+		)
+
 		input.Press(keys.Commits.RevertCommit)
 		input.AcceptConfirmation(Equals("Revert commit"), MatchesRegexp(`Are you sure you want to revert \w+?`))
 
-		assert.CommitCount(2)
-		assert.HeadCommitMessage(Contains("Revert \"first commit\""))
-		input.PreviousItem()
-		assert.MainViewContent(Contains("-myfile content"))
+		assert.CurrentView().Name("commits").
+			Lines(
+				Contains("Revert \"first commit\""),
+				Contains("first commit"),
+			).
+			SelectedLineIdx(0)
+
+		assert.MainView().Content(Contains("-myfile content"))
 		assert.FileSystemPathNotPresent("myfile")
 	},
 })

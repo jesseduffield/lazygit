@@ -103,7 +103,7 @@ func (self *Input) PreviousItem() {
 
 func (self *Input) ContinueMerge() {
 	self.Press(self.keys.Universal.CreateRebaseOptionsMenu)
-	self.assert.CurrentLine(Contains("continue"))
+	self.assert.CurrentView().SelectedLine(Contains("continue"))
 	self.Confirm()
 }
 
@@ -166,41 +166,41 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 
 	selectedLineIdx := view.SelectedLineIdx()
 	if selectedLineIdx == matchIndex {
-		self.assert.CurrentLine(matcher)
+		self.assert.CurrentView().SelectedLine(matcher)
 		return
 	}
 	if selectedLineIdx < matchIndex {
 		for i := selectedLineIdx; i < matchIndex; i++ {
 			self.NextItem()
 		}
-		self.assert.CurrentLine(matcher)
+		self.assert.CurrentView().SelectedLine(matcher)
 		return
 	} else {
 		for i := selectedLineIdx; i > matchIndex; i-- {
 			self.PreviousItem()
 		}
-		self.assert.CurrentLine(matcher)
+		self.assert.CurrentView().SelectedLine(matcher)
 		return
 	}
 }
 
 func (self *Input) AcceptConfirmation(title *matcher, content *matcher) {
 	self.assert.InConfirm()
-	self.assert.CurrentViewTitle(title)
-	self.assert.CurrentViewContent(content)
+	self.assert.CurrentView().Title(title)
+	self.assert.CurrentView().Content(content)
 	self.Confirm()
 }
 
 func (self *Input) DenyConfirmation(title *matcher, content *matcher) {
 	self.assert.InConfirm()
-	self.assert.CurrentViewTitle(title)
-	self.assert.CurrentViewContent(content)
+	self.assert.CurrentView().Title(title)
+	self.assert.CurrentView().Content(content)
 	self.Cancel()
 }
 
 func (self *Input) Prompt(title *matcher, textToType string) {
 	self.assert.InPrompt()
-	self.assert.CurrentViewTitle(title)
+	self.assert.CurrentView().Title(title)
 	self.Type(textToType)
 	self.Confirm()
 }
@@ -209,24 +209,24 @@ func (self *Input) Prompt(title *matcher, textToType string) {
 // item to match the given matcher, then confirm that item.
 func (self *Input) Typeahead(title *matcher, textToType string, expectedFirstOption *matcher) {
 	self.assert.InPrompt()
-	self.assert.CurrentViewTitle(title)
+	self.assert.CurrentView().Title(title)
 	self.Type(textToType)
 	self.Press(self.keys.Universal.TogglePanel)
-	self.assert.CurrentViewName("suggestions")
-	self.assert.CurrentLine(expectedFirstOption)
+	self.assert.CurrentView().Name("suggestions")
+	self.assert.CurrentView().SelectedLine(expectedFirstOption)
 	self.Confirm()
 }
 
 func (self *Input) Menu(title *matcher, optionToSelect *matcher) {
 	self.assert.InMenu()
-	self.assert.CurrentViewTitle(title)
+	self.assert.CurrentView().Title(title)
 	self.NavigateToListItem(optionToSelect)
 	self.Confirm()
 }
 
 func (self *Input) Alert(title *matcher, content *matcher) {
 	self.assert.InListContext()
-	self.assert.CurrentViewTitle(title)
-	self.assert.CurrentViewContent(content)
+	self.assert.CurrentView().Title(title)
+	self.assert.CurrentView().Content(content)
 	self.Confirm()
 }

@@ -24,13 +24,13 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		assert.ViewContent("information", Contains("bisecting"))
+		assert.View("information").Content(Contains("bisecting"))
 
 		assert.AtLeastOneCommit()
 
 		input.SwitchToCommitsWindow()
 
-		assert.ViewTopLines("commits",
+		assert.CurrentView().Name("commits").TopLines(
 			MatchesRegexp(`<-- bad.*commit 08`),
 			MatchesRegexp(`<-- current.*commit 07`),
 			MatchesRegexp(`\?.*commit 06`),
@@ -44,11 +44,10 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Alert(Equals("Bisect complete"), MatchesRegexp(`(?s)commit 08.*Do you want to reset`))
 
-		assert.ViewContent("information", NotContains("bisecting"))
+		assert.View("information").Content(NotContains("bisecting"))
 
 		// back in master branch which just had the one commit
-		assert.CurrentViewName("commits")
-		assert.CurrentViewLines(
+		assert.CurrentView().Name("commits").Lines(
 			Contains("only commit on master"),
 		)
 	},

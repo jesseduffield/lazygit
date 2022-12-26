@@ -20,8 +20,7 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(3)
 
 		input.SwitchToCommitsWindow()
-		assert.CurrentViewName("commits")
-		assert.CurrentViewLines(
+		assert.CurrentView().Name("commits").Lines(
 			Contains("commit 3"),
 			Contains("commit 2"),
 			Contains("commit 1"),
@@ -35,7 +34,7 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.CurrentBranchName(branchName)
 
-		assert.ViewLines("commits",
+		assert.View("commits").Lines(
 			Contains("commit 2"),
 			Contains("commit 1"),
 		)

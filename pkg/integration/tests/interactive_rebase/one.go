@@ -16,26 +16,61 @@ var One = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToCommitsWindow()
-		assert.CurrentViewName("commits")
+		assert.CurrentView().Name("commits").Lines(
+			Contains("commit 05"),
+			Contains("commit 04"),
+			Contains("commit 03"),
+			Contains("commit 02"),
+			Contains("commit 01"),
+		)
 
 		input.NavigateToListItem(Contains("commit 02"))
 		input.Press(keys.Universal.Edit)
-		assert.CurrentLine(Contains("YOU ARE HERE"))
+
+		assert.CurrentView().Lines(
+			MatchesRegexp("pick.*commit 05"),
+			MatchesRegexp("pick.*commit 04"),
+			MatchesRegexp("pick.*commit 03"),
+			MatchesRegexp("YOU ARE HERE.*commit 02"),
+			Contains("commit 01"),
+		)
 
 		input.PreviousItem()
 		input.Press(keys.Commits.MarkCommitAsFixup)
-		assert.CurrentLine(Contains("fixup"))
+		assert.CurrentView().Lines(
+			MatchesRegexp("pick.*commit 05"),
+			MatchesRegexp("pick.*commit 04"),
+			MatchesRegexp("fixup.*commit 03"),
+			MatchesRegexp("YOU ARE HERE.*commit 02"),
+			Contains("commit 01"),
+		)
 
 		input.PreviousItem()
 		input.Press(keys.Universal.Remove)
-		assert.CurrentLine(Contains("drop"))
+		assert.CurrentView().Lines(
+			MatchesRegexp("pick.*commit 05"),
+			MatchesRegexp("drop.*commit 04"),
+			MatchesRegexp("fixup.*commit 03"),
+			MatchesRegexp("YOU ARE HERE.*commit 02"),
+			Contains("commit 01"),
+		)
 
 		input.PreviousItem()
 		input.Press(keys.Commits.SquashDown)
-		assert.CurrentLine(Contains("squash"))
+
+		assert.CurrentView().Lines(
+			MatchesRegexp("squash.*commit 05"),
+			MatchesRegexp("drop.*commit 04"),
+			MatchesRegexp("fixup.*commit 03"),
+			MatchesRegexp("YOU ARE HERE.*commit 02"),
+			Contains("commit 01"),
+		)
 
 		input.ContinueRebase()
 
-		assert.CommitCount(2)
+		assert.CurrentView().Lines(
+			Contains("commit 02"),
+			Contains("commit 01"),
+		)
 	},
 })

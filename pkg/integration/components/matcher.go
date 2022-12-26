@@ -1,5 +1,11 @@
 package components
 
+import (
+	"fmt"
+	"regexp"
+	"strings"
+)
+
 // for making assertions on string values
 type matcher struct {
 	// e.g. "contains 'foo'"
@@ -32,4 +38,44 @@ func (self *matcher) context(prefix string) *matcher {
 	self.prefix = prefix
 
 	return self
+}
+
+func Contains(target string) *matcher {
+	return NewMatcher(
+		fmt.Sprintf("contains '%s'", target),
+		func(value string) (bool, string) {
+			return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to be found in '%s'", target, value)
+		},
+	)
+}
+
+func NotContains(target string) *matcher {
+	return NewMatcher(
+		fmt.Sprintf("does not contain '%s'", target),
+		func(value string) (bool, string) {
+			return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
+		},
+	)
+}
+
+func MatchesRegexp(target string) *matcher {
+	return NewMatcher(
+		fmt.Sprintf("matches regular expression '%s'", target),
+		func(value string) (bool, string) {
+			matched, err := regexp.MatchString(target, value)
+			if err != nil {
+				return false, fmt.Sprintf("Unexpected error parsing regular expression '%s': %s", target, err.Error())
+			}
+			return matched, fmt.Sprintf("Expected '%s' to match regular expression '%s'", value, target)
+		},
+	)
+}
+
+func Equals(target string) *matcher {
+	return NewMatcher(
+		fmt.Sprintf("equals '%s'", target),
+		func(value string) (bool, string) {
+			return target == value, fmt.Sprintf("Expected '%s' to equal '%s'", value, target)
+		},
+	)
 }

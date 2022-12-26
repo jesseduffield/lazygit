@@ -19,17 +19,14 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()
-		assert.CurrentViewName("localBranches")
 
-		assert.ViewLines(
-			"localBranches",
+		assert.CurrentView().Name("localBranches").Lines(
 			Contains("first-change-branch"),
 			Contains("second-change-branch"),
 			Contains("original-branch"),
 		)
 
-		assert.ViewTopLines(
-			"commits",
+		assert.View("commits").TopLines(
 			Contains("to keep"),
 			Contains("to remove"),
 			Contains("first change"),
@@ -41,26 +38,29 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.AcceptConfirmation(Equals("Rebasing"), Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?"))
 
-		assert.ViewContent("information", Contains("rebasing"))
+		assert.View("information").Content(Contains("rebasing"))
 
 		input.AcceptConfirmation(Equals("Auto-merge failed"), Contains("Conflicts!"))
 
-		assert.CurrentViewName("files")
-		assert.CurrentLine(Contains("file"))
+		assert.CurrentView().
+			Name("files").
+			SelectedLine(Contains("file"))
 
 		input.SwitchToCommitsWindow()
-		assert.ViewTopLines(
-			"commits",
-			MatchesRegexp(`pick.*to keep`),
-			MatchesRegexp(`pick.*to remove`),
-			MatchesRegexp("YOU ARE HERE.*second-change-branch unrelated change"),
-			MatchesRegexp("second change"),
-			MatchesRegexp("original"),
-		)
-		assert.CurrentLineIdx(0)
+		assert.CurrentView().
+			Name("commits").
+			TopLines(
+				MatchesRegexp(`pick.*to keep`),
+				MatchesRegexp(`pick.*to remove`),
+				MatchesRegexp("YOU ARE HERE.*second-change-branch unrelated change"),
+				MatchesRegexp("second change"),
+				MatchesRegexp("original"),
+			).
+			SelectedLineIdx(0)
+
 		input.NextItem()
 		input.Press(keys.Universal.Remove)
-		assert.CurrentLine(MatchesRegexp(`drop.*to remove`))
+		assert.CurrentView().SelectedLine(MatchesRegexp(`drop.*to remove`))
 
 		input.SwitchToFilesWindow()
 
@@ -68,15 +68,14 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		// keybinding to something more bespoke
 		input.Press(keys.Universal.Confirm)
 
-		assert.CurrentViewName("mergeConflicts")
+		assert.CurrentView().Name("mergeConflicts")
 		input.PrimaryAction()
 
 		input.AcceptConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
 
-		assert.ViewContent("information", NotContains("rebasing"))
+		assert.View("information").Content(NotContains("rebasing"))
 
-		assert.ViewTopLines(
-			"commits",
+		assert.View("commits").TopLines(
 			Contains("to keep"),
 			Contains("second-change-branch unrelated change"),
 			Contains("second change"),

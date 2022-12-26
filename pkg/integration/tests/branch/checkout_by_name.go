@@ -19,9 +19,8 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesWindow()
-		assert.CurrentViewName("localBranches")
 
-		assert.CurrentViewLines(
+		assert.CurrentView().Name("localBranches").Lines(
 			Contains("master"),
 			Contains("@"),
 		)
@@ -33,13 +32,12 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Alert(Equals("Branch not found"), Equals("Branch not found. Create a new branch named new-branch?"))
 
-		assert.CurrentViewName("localBranches")
-		assert.CurrentViewLines(
-			MatchesRegexp(`\*.*new-branch`),
-			Contains("master"),
-			Contains("@"),
-		)
-
-		assert.CurrentLine(Contains("new-branch"))
+		assert.CurrentView().Name("localBranches").
+			Lines(
+				MatchesRegexp(`\*.*new-branch`),
+				Contains("master"),
+				Contains("@"),
+			).
+			SelectedLine(Contains("new-branch"))
 	},
 })
