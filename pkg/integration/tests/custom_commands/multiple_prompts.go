@@ -67,7 +67,10 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Menu(Equals("Choose file content"), Contains("bar"))
 
-		input.AcceptConfirmation(Equals("Are you sure?"), Equals("Are you REALLY sure you want to make this file? Up to you buddy."))
+		input.InConfirm().
+			Title(Equals("Are you sure?")).
+			Content(Equals("Are you REALLY sure you want to make this file? Up to you buddy.")).
+			Confirm()
 
 		assert.WorkingTreeFileCount(1)
 		assert.CurrentView().SelectedLine(Contains("myfile"))

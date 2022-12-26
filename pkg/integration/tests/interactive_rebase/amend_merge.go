@@ -36,7 +36,10 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.HeadCommitMessage(Contains(mergeCommitMessage))
 
 		input.Press(keys.Commits.AmendToCommit)
-		input.AcceptConfirmation(Equals("Amend Commit"), Contains("Are you sure you want to amend this commit with your staged files?"))
+		input.InConfirm().
+			Title(Equals("Amend Commit")).
+			Content(Contains("Are you sure you want to amend this commit with your staged files?")).
+			Confirm()
 
 		// assuring we haven't added a brand new commit
 		assert.CommitCount(3)

@@ -31,7 +31,10 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 		input.NextItem()
 
 		input.Press(keys.Universal.Remove)
-		input.AcceptConfirmation(Equals("Delete Branch"), Contains("Are you sure you want to delete the branch 'branch-one'?"))
+		input.InConfirm().
+			Title(Equals("Delete Branch")).
+			Content(Contains("Are you sure you want to delete the branch 'branch-one'?")).
+			Confirm()
 
 		assert.CurrentView().Name("localBranches").
 			Lines(

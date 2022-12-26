@@ -98,7 +98,10 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "DU", label: "deleted-us.txt", menuTitle: "deleted-us.txt"},
 		})
 
-		input.DenyConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
+		input.InConfirm().
+			Title(Equals("continue")).
+			Content(Contains("all merge conflicts resolved. Continue?")).
+			Cancel()
 
 		discardOneByOne([]statusFile{
 			{status: "MD", label: "change-delete.txt", menuTitle: "change-delete.txt"},

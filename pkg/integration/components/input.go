@@ -215,18 +215,10 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 	}
 }
 
-func (self *Input) AcceptConfirmation(title *matcher, content *matcher) {
+func (self *Input) InConfirm() *ConfirmationAsserter {
 	self.assert.InConfirm()
-	self.assert.CurrentView().Title(title)
-	self.assert.CurrentView().Content(content)
-	self.Confirm()
-}
 
-func (self *Input) DenyConfirmation(title *matcher, content *matcher) {
-	self.assert.InConfirm()
-	self.assert.CurrentView().Title(title)
-	self.assert.CurrentView().Content(content)
-	self.Cancel()
+	return &ConfirmationAsserter{assert: self.assert, input: self}
 }
 
 func (self *Input) Prompt(title *matcher, textToType string) {
