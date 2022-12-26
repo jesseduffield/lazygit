@@ -10,6 +10,7 @@ import (
 func TestSyncPush(t *testing.T) {
 	type scenario struct {
 		testName string
+		version  *GitVersion
 		opts     PushOpts
 		test     func(oscommands.ICmdObj, error)
 	}
@@ -17,6 +18,7 @@ func TestSyncPush(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName: "Push with force disabled",
+			version:  &GitVersion{2, 29, 3, ""},
 			opts:     PushOpts{Force: false},
 			test: func(cmdObj oscommands.ICmdObj, err error) {
 				assert.Equal(t, cmdObj.ToString(), "git push")
@@ -25,6 +27,7 @@ func TestSyncPush(t *testing.T) {
 		},
 		{
 			testName: "Push with force enabled",
+			version:  &GitVersion{2, 29, 3, ""},
 			opts:     PushOpts{Force: true},
 			test: func(cmdObj oscommands.ICmdObj, err error) {
 				assert.Equal(t, cmdObj.ToString(), "git push --force-with-lease")
@@ -32,7 +35,17 @@ func TestSyncPush(t *testing.T) {
 			},
 		},
 		{
+			testName: "Push with force enabled (>= 2.30.0)",
+			version:  &GitVersion{2, 30, 0, ""},
+			opts:     PushOpts{Force: true},
+			test: func(cmdObj oscommands.ICmdObj, err error) {
+				assert.Equal(t, cmdObj.ToString(), "git push --force-with-lease --force-if-includes")
+				assert.NoError(t, err)
+			},
+		},
+		{
 			testName: "Push with force disabled, upstream supplied",
+			version:  &GitVersion{2, 29, 3, ""},
 			opts: PushOpts{
 				Force:          false,
 				UpstreamRemote: "origin",
@@ -45,6 +58,7 @@ func TestSyncPush(t *testing.T) {
 		},
 		{
 			testName: "Push with force disabled, setting upstream",
+			version:  &GitVersion{2, 29, 3, ""},
 			opts: PushOpts{
 				Force:          false,
 				UpstreamRemote: "origin",
@@ -58,6 +72,7 @@ func TestSyncPush(t *testing.T) {
 		},
 		{
 			testName: "Push with force enabled, setting upstream",
+			version:  &GitVersion{2, 29, 3, ""},
 			opts: PushOpts{
 				Force:          true,
 				UpstreamRemote: "origin",
@@ -70,7 +85,22 @@ func TestSyncPush(t *testing.T) {
 			},
 		},
 		{
+			testName: "Push with force enabled, setting upstream (>= 2.30.0)",
+			version:  &GitVersion{2, 30, 0, ""},
+			opts: PushOpts{
+				Force:          true,
+				UpstreamRemote: "origin",
+				UpstreamBranch: "master",
+				SetUpstream:    true,
+			},
+			test: func(cmdObj oscommands.ICmdObj, err error) {
+				assert.Equal(t, cmdObj.ToString(), `git push --force-with-lease --force-if-includes --set-upstream "origin" "master"`)
+				assert.NoError(t, err)
+			},
+		},
+		{
 			testName: "Push with remote branch but no origin",
+			version:  &GitVersion{2, 29, 3, ""},
 			opts: PushOpts{
 				Force:          true,
 				UpstreamRemote: "",
@@ -87,7 +117,7 @@ func TestSyncPush(t *testing.T) {
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
-			instance := buildSyncCommands(commonDeps{})
+			instance := buildSyncCommands(commonDeps{gitVersion: s.version})
 			s.test(instance.PushCmdObj(s.opts))
 		})
 	}
