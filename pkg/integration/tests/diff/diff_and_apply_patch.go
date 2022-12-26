@@ -22,29 +22,31 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Checkout("branch-a")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
-		assert.CurrentViewName("localBranches")
+		input.SwitchToBranchesView()
+		assert.CurrentView().Lines(
+			Contains("branch-a"),
+			Contains("branch-b"),
+		)
 
-		assert.SelectedLine(Contains("branch-a"))
 		input.Press(keys.Universal.DiffingMenu)
 
 		input.Menu(Equals("Diffing"), Equals("diff branch-a"))
 
-		assert.CurrentViewName("localBranches")
+		assert.CurrentView().Name("localBranches")
 
-		assert.ViewContent("information", Contains("showing output for: git diff branch-a branch-a"))
+		assert.View("information").Content(Contains("showing output for: git diff branch-a branch-a"))
 		input.NextItem()
-		assert.ViewContent("information", Contains("showing output for: git diff branch-a branch-b"))
-		assert.MainViewContent(Contains("+second line"))
+		assert.View("information").Content(Contains("showing output for: git diff branch-a branch-b"))
+		assert.MainView().Content(Contains("+second line"))
 
 		input.Enter()
-		assert.CurrentViewName("subCommits")
-		assert.MainViewContent(Contains("+second line"))
-		assert.SelectedLine(Contains("update"))
+		assert.CurrentView().Name("subCommits")
+		assert.MainView().Content(Contains("+second line"))
+		assert.CurrentView().SelectedLine(Contains("update"))
 		input.Enter()
-		assert.CurrentViewName("commitFiles")
-		assert.SelectedLine(Contains("file1"))
-		assert.MainViewContent(Contains("+second line"))
+		assert.CurrentView().Name("commitFiles")
+		assert.CurrentView().SelectedLine(Contains("file1"))
+		assert.MainView().Content(Contains("+second line"))
 
 		// add the file to the patch
 		input.PrimaryAction()
@@ -52,15 +54,15 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Press(keys.Universal.DiffingMenu)
 		input.Menu(Equals("Diffing"), Contains("exit diff mode"))
 
-		assert.ViewContent("information", NotContains("building patch"))
+		assert.View("information").Content(DoesNotContain("building patch"))
 
 		input.Press(keys.Universal.CreatePatchOptionsMenu)
 		// adding the regex '$' here to distinguish the menu item from the 'apply patch in reverse' item
 		input.Menu(Equals("Patch Options"), MatchesRegexp("apply patch$"))
 
-		input.SwitchToFilesWindow()
+		input.SwitchToFilesView()
 
-		assert.SelectedLine(Contains("file1"))
-		assert.MainViewContent(Contains("+second line"))
+		assert.CurrentView().SelectedLine(Contains("file1"))
+		assert.MainView().Content(Contains("+second line"))
 	},
 })

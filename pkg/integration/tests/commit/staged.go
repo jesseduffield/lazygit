@@ -18,26 +18,26 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(0)
 
-		assert.CurrentViewName("files")
-		assert.SelectedLine(Contains("myfile"))
+		assert.CurrentView().Name("files")
+		assert.CurrentView().SelectedLine(Contains("myfile"))
 		// stage the file
 		input.PrimaryAction()
 		input.Enter()
-		assert.CurrentViewName("stagingSecondary")
+		assert.CurrentView().Name("stagingSecondary")
 		// we start with both lines having been staged
-		assert.ViewContent("stagingSecondary", Contains("+myfile content"))
-		assert.ViewContent("stagingSecondary", Contains("+with a second line"))
-		assert.ViewContent("staging", NotContains("+myfile content"))
-		assert.ViewContent("staging", NotContains("+with a second line"))
+		assert.View("stagingSecondary").Content(Contains("+myfile content"))
+		assert.View("stagingSecondary").Content(Contains("+with a second line"))
+		assert.View("staging").Content(DoesNotContain("+myfile content"))
+		assert.View("staging").Content(DoesNotContain("+with a second line"))
 
 		// unstage the selected line
 		input.PrimaryAction()
 
 		// the line should have been moved to the main view
-		assert.ViewContent("stagingSecondary", NotContains("+myfile content"))
-		assert.ViewContent("stagingSecondary", Contains("+with a second line"))
-		assert.ViewContent("staging", Contains("+myfile content"))
-		assert.ViewContent("staging", NotContains("+with a second line"))
+		assert.View("stagingSecondary").Content(DoesNotContain("+myfile content"))
+		assert.View("stagingSecondary").Content(Contains("+with a second line"))
+		assert.View("staging").Content(Contains("+myfile content"))
+		assert.View("staging").Content(DoesNotContain("+with a second line"))
 
 		input.Press(keys.Files.CommitChanges)
 		commitMessage := "my commit message"

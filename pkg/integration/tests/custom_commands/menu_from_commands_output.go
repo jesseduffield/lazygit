@@ -50,13 +50,14 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentBranchName("feature/bar")
 
 		assert.WorkingTreeFileCount(0)
-		input.SwitchToBranchesWindow()
+		input.SwitchToBranchesView()
 
 		input.Press("a")
 
 		assert.InPrompt()
-		assert.CurrentViewTitle(Equals("Which git command do you want to run?"))
-		assert.SelectedLine(Equals("branch"))
+		assert.CurrentView().
+			Title(Equals("Which git command do you want to run?")).
+			SelectedLine(Equals("branch"))
 		input.Confirm()
 
 		input.Menu(Equals("Branch:"), Equals("master"))

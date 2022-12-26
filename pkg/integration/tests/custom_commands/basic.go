@@ -30,7 +30,9 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.WorkingTreeFileCount(0)
 
 		input.Press("a")
-		assert.WorkingTreeFileCount(1)
-		assert.SelectedLine(Contains("myfile"))
+
+		assert.View("files").Lines(
+			Contains("myfile"),
+		)
 	},
 })

@@ -19,16 +19,17 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 			StashWithMessage("bar")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToStashWindow()
-		assert.CurrentViewName("stash")
+		input.SwitchToStashView()
 
-		assert.SelectedLine(Equals("On master: bar"))
+		assert.CurrentView().Lines(
+			Equals("On master: bar"),
+			Equals("On master: foo"),
+		)
 		input.NextItem()
-		assert.SelectedLine(Equals("On master: foo"))
 		input.Press(keys.Stash.RenameStash)
 
 		input.Prompt(Equals("Rename stash: stash@{1}"), " baz")
 
-		assert.SelectedLine(Equals("On master: foo baz"))
+		assert.CurrentView().SelectedLine(Equals("On master: foo baz"))
 	},
 })

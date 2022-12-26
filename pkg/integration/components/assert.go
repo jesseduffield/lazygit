@@ -3,10 +3,9 @@ package components
 import (
 	"fmt"
 	"os"
-	"regexp"
-	"strings"
 	"time"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
@@ -19,46 +18,6 @@ type Assert struct {
 
 func NewAssert(gui integrationTypes.GuiDriver) *Assert {
 	return &Assert{gui: gui}
-}
-
-func Contains(target string) *matcher {
-	return NewMatcher(
-		fmt.Sprintf("contains '%s'", target),
-		func(value string) (bool, string) {
-			return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to be found in '%s'", target, value)
-		},
-	)
-}
-
-func NotContains(target string) *matcher {
-	return NewMatcher(
-		fmt.Sprintf("does not contain '%s'", target),
-		func(value string) (bool, string) {
-			return !strings.Contains(value, target), fmt.Sprintf("Expected '%s' to NOT be found in '%s'", target, value)
-		},
-	)
-}
-
-func MatchesRegexp(target string) *matcher {
-	return NewMatcher(
-		fmt.Sprintf("matches regular expression '%s'", target),
-		func(value string) (bool, string) {
-			matched, err := regexp.MatchString(target, value)
-			if err != nil {
-				return false, fmt.Sprintf("Unexpected error parsing regular expression '%s': %s", target, err.Error())
-			}
-			return matched, fmt.Sprintf("Expected '%s' to match regular expression '%s'", value, target)
-		},
-	)
-}
-
-func Equals(target string) *matcher {
-	return NewMatcher(
-		fmt.Sprintf("equals '%s'", target),
-		func(value string) (bool, string) {
-			return target == value, fmt.Sprintf("Expected '%s' to equal '%s'", value, target)
-		},
-	)
 }
 
 func (self *Assert) WorkingTreeFileCount(expectedCount int) {
@@ -114,13 +73,6 @@ func (self *Assert) HeadCommitMessage(matcher *matcher) {
 	)
 }
 
-func (self *Assert) CurrentViewName(expectedViewName string) {
-	self.assertWithRetries(func() (bool, string) {
-		actual := self.gui.CurrentContext().GetView().Name()
-		return actual == expectedViewName, fmt.Sprintf("Expected current view name to be '%s', but got '%s'", expectedViewName, actual)
-	})
-}
-
 func (self *Assert) CurrentWindowName(expectedWindowName string) {
 	self.assertWithRetries(func() (bool, string) {
 		actual := self.gui.CurrentContext().GetView().Name()
@@ -141,14 +93,6 @@ func (self *Assert) InListContext() {
 		_, ok := currentContext.(types.IListContext)
 		return ok, fmt.Sprintf("Expected current context to be a list context, but got %s", currentContext.GetKey())
 	})
-}
-
-func (self *Assert) SelectedLine(matcher *matcher) {
-	self.matchString(matcher, "Unexpected selected line.",
-		func() string {
-			return self.gui.CurrentContext().GetView().SelectedLine()
-		},
-	)
 }
 
 func (self *Assert) InPrompt() {
@@ -191,46 +135,6 @@ func (self *Assert) NotInPopup() {
 		currentViewName := self.gui.CurrentContext().GetView().Name()
 		return currentViewName != "menu" && currentViewName != "confirmation" && currentViewName != "commitMessage", "Expected popup not to be focused"
 	})
-}
-
-func (self *Assert) CurrentViewTitle(matcher *matcher) {
-	self.matchString(matcher, "Unexpected current view title.",
-		func() string {
-			return self.gui.CurrentContext().GetView().Title
-		},
-	)
-}
-
-func (self *Assert) ViewContent(viewName string, matcher *matcher) {
-	self.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", viewName),
-		func() string {
-			return self.gui.View(viewName).Buffer()
-		},
-	)
-}
-
-func (self *Assert) CurrentViewContent(matcher *matcher) {
-	self.matchString(matcher, "Unexpected content in current view.",
-		func() string {
-			return self.gui.CurrentContext().GetView().Buffer()
-		},
-	)
-}
-
-func (self *Assert) MainViewContent(matcher *matcher) {
-	self.matchString(matcher, "Unexpected main view content.",
-		func() string {
-			return self.gui.MainView().Buffer()
-		},
-	)
-}
-
-func (self *Assert) SecondaryViewContent(matcher *matcher) {
-	self.matchString(matcher, "Unexpected secondary view title.",
-		func() string {
-			return self.gui.SecondaryView().Buffer()
-		},
-	)
 }
 
 func (self *Assert) matchString(matcher *matcher, context string, getValue func() string) {
@@ -276,4 +180,36 @@ func (self *Assert) FileSystemPathNotPresent(path string) {
 		_, err := os.Stat(path)
 		return os.IsNotExist(err), fmt.Sprintf("Expected path '%s' to not exist, but it does", path)
 	})
+}
+
+func (self *Assert) CurrentView() *ViewAsserter {
+	return &ViewAsserter{
+		context: "current view",
+		getView: func() *gocui.View { return self.gui.CurrentContext().GetView() },
+		assert:  self,
+	}
+}
+
+func (self *Assert) View(viewName string) *ViewAsserter {
+	return &ViewAsserter{
+		context: fmt.Sprintf("%s view", viewName),
+		getView: func() *gocui.View { return self.gui.View(viewName) },
+		assert:  self,
+	}
+}
+
+func (self *Assert) MainView() *ViewAsserter {
+	return &ViewAsserter{
+		context: "main view",
+		getView: func() *gocui.View { return self.gui.MainView() },
+		assert:  self,
+	}
+}
+
+func (self *Assert) SecondaryView() *ViewAsserter {
+	return &ViewAsserter{
+		context: "secondary view",
+		getView: func() *gocui.View { return self.gui.SecondaryView() },
+		assert:  self,
+	}
 }

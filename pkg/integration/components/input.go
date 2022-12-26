@@ -45,9 +45,21 @@ func (self *Input) SwitchToStatusWindow() {
 	self.assert.CurrentWindowName("status")
 }
 
+// switch to status window and assert that the status view is on top
+func (self *Input) SwitchToStatusView() {
+	self.SwitchToStatusWindow()
+	self.assert.CurrentView().Name("status")
+}
+
 func (self *Input) SwitchToFilesWindow() {
 	self.press(self.keys.Universal.JumpToBlock[1])
 	self.assert.CurrentWindowName("files")
+}
+
+// switch to files window and assert that the files view is on top
+func (self *Input) SwitchToFilesView() {
+	self.SwitchToFilesWindow()
+	self.assert.CurrentView().Name("files")
 }
 
 func (self *Input) SwitchToBranchesWindow() {
@@ -55,14 +67,32 @@ func (self *Input) SwitchToBranchesWindow() {
 	self.assert.CurrentWindowName("localBranches")
 }
 
+// switch to branches window and assert that the branches view is on top
+func (self *Input) SwitchToBranchesView() {
+	self.SwitchToBranchesWindow()
+	self.assert.CurrentView().Name("localBranches")
+}
+
 func (self *Input) SwitchToCommitsWindow() {
 	self.press(self.keys.Universal.JumpToBlock[3])
 	self.assert.CurrentWindowName("commits")
 }
 
+// switch to commits window and assert that the commits view is on top
+func (self *Input) SwitchToCommitsView() {
+	self.SwitchToCommitsWindow()
+	self.assert.CurrentView().Name("commits")
+}
+
 func (self *Input) SwitchToStashWindow() {
 	self.press(self.keys.Universal.JumpToBlock[4])
 	self.assert.CurrentWindowName("stash")
+}
+
+// switch to stash window and assert that the stash view is on top
+func (self *Input) SwitchToStashView() {
+	self.SwitchToStashWindow()
+	self.assert.CurrentView().Name("stash")
 }
 
 func (self *Input) Type(content string) {
@@ -103,7 +133,7 @@ func (self *Input) PreviousItem() {
 
 func (self *Input) ContinueMerge() {
 	self.Press(self.keys.Universal.CreateRebaseOptionsMenu)
-	self.assert.SelectedLine(Contains("continue"))
+	self.assert.CurrentView().SelectedLine(Contains("continue"))
 	self.Confirm()
 }
 
@@ -147,8 +177,9 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 	self.assert.assertWithRetries(func() (bool, string) {
 		matchIndex = -1
 		var matches []string
+		lines := view.ViewBufferLines()
 		// first we look for a duplicate on the current screen. We won't bother looking beyond that though.
-		for i, line := range view.ViewBufferLines() {
+		for i, line := range lines {
 			ok, _ := matcher.test(line)
 			if ok {
 				matches = append(matches, line)
@@ -156,9 +187,9 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 			}
 		}
 		if len(matches) > 1 {
-			return false, fmt.Sprintf("Found %d matches for `%s`, expected only a single match. Lines:\n%s", len(matches), matcher.name, strings.Join(matches, "\n"))
+			return false, fmt.Sprintf("Found %d matches for `%s`, expected only a single match. Matching lines:\n%s", len(matches), matcher.name(), strings.Join(matches, "\n"))
 		} else if len(matches) == 0 {
-			return false, fmt.Sprintf("Could not find item matching: %s", matcher.name)
+			return false, fmt.Sprintf("Could not find item matching: %s. Lines:\n%s", matcher.name(), strings.Join(lines, "\n"))
 		} else {
 			return true, ""
 		}
@@ -166,41 +197,41 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 
 	selectedLineIdx := view.SelectedLineIdx()
 	if selectedLineIdx == matchIndex {
-		self.assert.SelectedLine(matcher)
+		self.assert.CurrentView().SelectedLine(matcher)
 		return
 	}
 	if selectedLineIdx < matchIndex {
 		for i := selectedLineIdx; i < matchIndex; i++ {
 			self.NextItem()
 		}
-		self.assert.SelectedLine(matcher)
+		self.assert.CurrentView().SelectedLine(matcher)
 		return
 	} else {
 		for i := selectedLineIdx; i > matchIndex; i-- {
 			self.PreviousItem()
 		}
-		self.assert.SelectedLine(matcher)
+		self.assert.CurrentView().SelectedLine(matcher)
 		return
 	}
 }
 
 func (self *Input) AcceptConfirmation(title *matcher, content *matcher) {
 	self.assert.InConfirm()
-	self.assert.CurrentViewTitle(title)
-	self.assert.CurrentViewContent(content)
+	self.assert.CurrentView().Title(title)
+	self.assert.CurrentView().Content(content)
 	self.Confirm()
 }
 
 func (self *Input) DenyConfirmation(title *matcher, content *matcher) {
 	self.assert.InConfirm()
-	self.assert.CurrentViewTitle(title)
-	self.assert.CurrentViewContent(content)
+	self.assert.CurrentView().Title(title)
+	self.assert.CurrentView().Content(content)
 	self.Cancel()
 }
 
 func (self *Input) Prompt(title *matcher, textToType string) {
 	self.assert.InPrompt()
-	self.assert.CurrentViewTitle(title)
+	self.assert.CurrentView().Title(title)
 	self.Type(textToType)
 	self.Confirm()
 }
@@ -209,24 +240,24 @@ func (self *Input) Prompt(title *matcher, textToType string) {
 // item to match the given matcher, then confirm that item.
 func (self *Input) Typeahead(title *matcher, textToType string, expectedFirstOption *matcher) {
 	self.assert.InPrompt()
-	self.assert.CurrentViewTitle(title)
+	self.assert.CurrentView().Title(title)
 	self.Type(textToType)
 	self.Press(self.keys.Universal.TogglePanel)
-	self.assert.CurrentViewName("suggestions")
-	self.assert.SelectedLine(expectedFirstOption)
+	self.assert.CurrentView().Name("suggestions")
+	self.assert.CurrentView().SelectedLine(expectedFirstOption)
 	self.Confirm()
 }
 
 func (self *Input) Menu(title *matcher, optionToSelect *matcher) {
 	self.assert.InMenu()
-	self.assert.CurrentViewTitle(title)
+	self.assert.CurrentView().Title(title)
 	self.NavigateToListItem(optionToSelect)
 	self.Confirm()
 }
 
 func (self *Input) Alert(title *matcher, content *matcher) {
 	self.assert.InListContext()
-	self.assert.CurrentViewTitle(title)
-	self.assert.CurrentViewContent(content)
+	self.assert.CurrentView().Title(title)
+	self.assert.CurrentView().Content(content)
 	self.Confirm()
 }

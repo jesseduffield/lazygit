@@ -19,35 +19,36 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Commit("third commit")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToCommitsWindow()
-		assert.CurrentViewName("commits")
+		input.SwitchToCommitsView()
 
-		assert.SelectedLine(Contains("third commit"))
+		assert.CurrentView().Lines(
+			Contains("third commit"),
+			Contains("second commit"),
+			Contains("first commit"),
+		)
 
 		input.Press(keys.Universal.DiffingMenu)
 		input.Menu(Equals("Diffing"), MatchesRegexp(`diff \w+`))
 
 		assert.NotInPopup()
 
-		assert.ViewContent("information", Contains("showing output for: git diff"))
+		assert.View("information").Content(Contains("showing output for: git diff"))
 
 		input.NextItem()
 		input.NextItem()
+		assert.CurrentView().SelectedLine(Contains("first commit"))
 
-		assert.SelectedLine(Contains("first commit"))
-
-		assert.MainViewContent(Contains("-second line\n-third line"))
+		assert.MainView().Content(Contains("-second line\n-third line"))
 
 		input.Press(keys.Universal.DiffingMenu)
 		input.Menu(Equals("Diffing"), Contains("reverse diff direction"))
 		assert.NotInPopup()
 
-		assert.MainViewContent(Contains("+second line\n+third line"))
+		assert.MainView().Content(Contains("+second line\n+third line"))
 
 		input.Enter()
 
-		assert.CurrentViewName("commitFiles")
-		assert.SelectedLine(Contains("file1"))
-		assert.MainViewContent(Contains("+second line\n+third line"))
+		assert.CurrentView().Name("commitFiles").SelectedLine(Contains("file1"))
+		assert.MainView().Content(Contains("+second line\n+third line"))
 	},
 })

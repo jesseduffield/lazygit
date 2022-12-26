@@ -19,8 +19,12 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(3)
 
-		input.SwitchToCommitsWindow()
-		assert.CurrentViewName("commits")
+		input.SwitchToCommitsView()
+		assert.CurrentView().Lines(
+			Contains("commit 3"),
+			Contains("commit 2"),
+			Contains("commit 1"),
+		)
 		input.NextItem()
 
 		input.Press(keys.Universal.New)
@@ -28,8 +32,11 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		branchName := "my-branch-name"
 		input.Prompt(Contains("New Branch Name"), branchName)
 
-		assert.CommitCount(2)
-		assert.HeadCommitMessage(Contains("commit 2"))
 		assert.CurrentBranchName(branchName)
+
+		assert.View("commits").Lines(
+			Contains("commit 2"),
+			Contains("commit 1"),
+		)
 	},
 })

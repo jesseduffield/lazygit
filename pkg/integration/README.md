@@ -39,7 +39,11 @@ The run step has four arguments passed in:
 
 ### Tips
 
+#### Handle most setup in the `shell` part of the test
+
 Try to do as much setup work as possible in your setup step. For example, if all you're testing is that the user is able to resolve merge conflicts, create the merge conflicts in the setup step. On the other hand, if you're testing to see that lazygit can warn the user about merge conflicts after an attempted merge, it's fine to wait until the run step to actually create the conflicts. If the run step is focused on the thing you're trying to test, the test will run faster and its intent will be clearer.
+
+#### Assert after input
 
 Use assertions to ensure that lazygit has processed all your keybindings so far. Each time you press a key, something should happen on the screen, so you should assert that that thing has happened. This means we won't get into trouble from keys being entered two quickly because at each stage we ensure the key has been processed. This also makes tests more readable because they help explain what we expect to be happening on-screen. For example:
 
@@ -47,6 +51,10 @@ Use assertions to ensure that lazygit has processed all your keybindings so far.
 input.Press(keys.Files.CommitChanges)
 assert.InCommitMessagePanel()
 ```
+
+Note that there are some `input` methods that have assertions baked in, such as the `SwitchToView` methods.
+
+#### Create helper functions for (very) frequently used test logic
 
 If you find yourself doing something frequently in a test, consider making it a method in one of the helper arguments. For example, instead of calling `input.PressKey(keys.Universal.Confirm)` in 100 places, it's better to have a method `input.Confirm()`. This is not to say that everything should be made into a method on the input struct: just things that are particularly common in tests.
 
