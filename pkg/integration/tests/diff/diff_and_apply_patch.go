@@ -54,7 +54,7 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Press(keys.Universal.DiffingMenu)
 		input.Menu(Equals("Diffing"), Contains("exit diff mode"))
 
-		assert.View("information").Content(NotContains("building patch"))
+		assert.View("information").Content(DoesNotContain("building patch"))
 
 		input.Press(keys.Universal.CreatePatchOptionsMenu)
 		// adding the regex '$' here to distinguish the menu item from the 'apply patch in reverse' item

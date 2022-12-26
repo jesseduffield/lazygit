@@ -44,7 +44,7 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Alert(Equals("Bisect complete"), MatchesRegexp(`(?s)commit 08.*Do you want to reset`))
 
-		assert.View("information").Content(NotContains("bisecting"))
+		assert.View("information").Content(DoesNotContain("bisecting"))
 
 		// back in master branch which just had the one commit
 		assert.CurrentView().Name("commits").Lines(

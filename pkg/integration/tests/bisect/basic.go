@@ -52,15 +52,13 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 		// lazygit will land us in the commit between our good and bad commits.
 		assert.CurrentView().
 			Name("commits").
-			SelectedLine(Contains("commit 05")).
-			SelectedLine(Contains("<-- current"))
+			SelectedLine(Contains("commit 05").Contains("<-- current"))
 
 		markCommitAsBad()
 
 		assert.CurrentView().
 			Name("commits").
-			SelectedLine(Contains("commit 04")).
-			SelectedLine(Contains("<-- current"))
+			SelectedLine(Contains("commit 04").Contains("<-- current"))
 
 		markCommitAsGood()
 
@@ -68,6 +66,6 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Alert(Equals("Bisect complete"), MatchesRegexp("(?s)commit 05.*Do you want to reset"))
 
 		assert.CurrentView().Name("commits").Content(Contains("commit 04"))
-		assert.View("information").Content(NotContains("bisecting"))
+		assert.View("information").Content(DoesNotContain("bisecting"))
 	},
 })

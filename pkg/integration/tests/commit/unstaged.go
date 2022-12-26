@@ -23,10 +23,10 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentView().Name("files").SelectedLine(Contains("myfile"))
 		input.Enter()
 		assert.CurrentView().Name("staging")
-		assert.View("stagingSecondary").Content(NotContains("+myfile content"))
+		assert.View("stagingSecondary").Content(DoesNotContain("+myfile content"))
 		// stage the first line
 		input.PrimaryAction()
-		assert.View("staging").Content(NotContains("+myfile content"))
+		assert.View("staging").Content(DoesNotContain("+myfile content"))
 		assert.View("stagingSecondary").Content(Contains("+myfile content"))
 
 		input.Press(keys.Files.CommitChanges)

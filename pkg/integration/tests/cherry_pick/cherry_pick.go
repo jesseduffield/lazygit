@@ -70,6 +70,6 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.View("information").Content(Contains("2 commits copied"))
 		input.Press(keys.Universal.Return)
-		assert.View("information").Content(NotContains("commits copied"))
+		assert.View("information").Content(DoesNotContain("commits copied"))
 	},
 })

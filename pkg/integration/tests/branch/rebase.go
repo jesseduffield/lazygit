@@ -47,7 +47,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.AcceptConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
 
-		assert.View("information").Content(NotContains("rebasing"))
+		assert.View("information").Content(DoesNotContain("rebasing"))
 
 		assert.View("commits").TopLines(
 			Contains("second-change-branch unrelated change"),

@@ -25,7 +25,7 @@ var DirWithUntrackedFile = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(1)
 
 		assert.MainView().
-			Content(NotContains("error: Could not access")).
+			Content(DoesNotContain("error: Could not access")).
 			// we show baz because it's a modified file but we don't show bar because it's untracked
 			// (though it would be cool if we could show that too)
 			Content(Contains("baz"))

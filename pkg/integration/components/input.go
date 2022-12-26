@@ -177,8 +177,9 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 	self.assert.assertWithRetries(func() (bool, string) {
 		matchIndex = -1
 		var matches []string
+		lines := view.ViewBufferLines()
 		// first we look for a duplicate on the current screen. We won't bother looking beyond that though.
-		for i, line := range view.ViewBufferLines() {
+		for i, line := range lines {
 			ok, _ := matcher.test(line)
 			if ok {
 				matches = append(matches, line)
@@ -186,9 +187,9 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 			}
 		}
 		if len(matches) > 1 {
-			return false, fmt.Sprintf("Found %d matches for `%s`, expected only a single match. Lines:\n%s", len(matches), matcher.name, strings.Join(matches, "\n"))
+			return false, fmt.Sprintf("Found %d matches for `%s`, expected only a single match. Matching lines:\n%s", len(matches), matcher.name(), strings.Join(matches, "\n"))
 		} else if len(matches) == 0 {
-			return false, fmt.Sprintf("Could not find item matching: %s", matcher.name)
+			return false, fmt.Sprintf("Could not find item matching: %s. Lines:\n%s", matcher.name(), strings.Join(lines, "\n"))
 		} else {
 			return true, ""
 		}

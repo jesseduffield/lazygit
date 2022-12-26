@@ -27,17 +27,17 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 		// we start with both lines having been staged
 		assert.View("stagingSecondary").Content(Contains("+myfile content"))
 		assert.View("stagingSecondary").Content(Contains("+with a second line"))
-		assert.View("staging").Content(NotContains("+myfile content"))
-		assert.View("staging").Content(NotContains("+with a second line"))
+		assert.View("staging").Content(DoesNotContain("+myfile content"))
+		assert.View("staging").Content(DoesNotContain("+with a second line"))
 
 		// unstage the selected line
 		input.PrimaryAction()
 
 		// the line should have been moved to the main view
-		assert.View("stagingSecondary").Content(NotContains("+myfile content"))
+		assert.View("stagingSecondary").Content(DoesNotContain("+myfile content"))
 		assert.View("stagingSecondary").Content(Contains("+with a second line"))
 		assert.View("staging").Content(Contains("+myfile content"))
-		assert.View("staging").Content(NotContains("+with a second line"))
+		assert.View("staging").Content(DoesNotContain("+with a second line"))
 
 		input.Press(keys.Files.CommitChanges)
 		commitMessage := "my commit message"
