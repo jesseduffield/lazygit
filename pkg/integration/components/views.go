@@ -36,7 +36,7 @@ func (self *Views) Secondary() *View {
 	}
 }
 
-func (self *Views) ByName(viewName string) *View {
+func (self *Views) byName(viewName string) *View {
 	return &View{
 		context: fmt.Sprintf("%s view", viewName),
 		getView: func() *gocui.View { return self.t.gui.View(viewName) },
@@ -45,77 +45,77 @@ func (self *Views) ByName(viewName string) *View {
 }
 
 func (self *Views) Commits() *View {
-	return self.ByName("commits")
+	return self.byName("commits")
 }
 
 func (self *Views) Files() *View {
-	return self.ByName("files")
+	return self.byName("files")
 }
 
 func (self *Views) Status() *View {
-	return self.ByName("status")
+	return self.byName("status")
 }
 
 func (self *Views) Submodules() *View {
-	return self.ByName("submodules")
+	return self.byName("submodules")
 }
 
 func (self *Views) Information() *View {
-	return self.ByName("information")
+	return self.byName("information")
 }
 
 func (self *Views) Branches() *View {
-	return self.ByName("localBranches")
+	return self.byName("localBranches")
 }
 
 func (self *Views) RemoteBranches() *View {
-	return self.ByName("remoteBranches")
+	return self.byName("remoteBranches")
 }
 
 func (self *Views) Tags() *View {
-	return self.ByName("tags")
+	return self.byName("tags")
 }
 
 func (self *Views) ReflogCommits() *View {
-	return self.ByName("reflogCommits")
+	return self.byName("reflogCommits")
 }
 
 func (self *Views) SubCommits() *View {
-	return self.ByName("subCommits")
+	return self.byName("subCommits")
 }
 
 func (self *Views) CommitFiles() *View {
-	return self.ByName("commitFiles")
+	return self.byName("commitFiles")
 }
 
 func (self *Views) Stash() *View {
-	return self.ByName("stash")
+	return self.byName("stash")
 }
 
 func (self *Views) Staging() *View {
-	return self.ByName("staging")
+	return self.byName("staging")
 }
 
 func (self *Views) StagingSecondary() *View {
-	return self.ByName("stagingSecondary")
+	return self.byName("stagingSecondary")
 }
 
 func (self *Views) Menu() *View {
-	return self.ByName("menu")
+	return self.byName("menu")
 }
 
 func (self *Views) Confirmation() *View {
-	return self.ByName("confirmation")
+	return self.byName("confirmation")
 }
 
 func (self *Views) CommitMessage() *View {
-	return self.ByName("commitMessage")
+	return self.byName("commitMessage")
 }
 
 func (self *Views) Suggestions() *View {
-	return self.ByName("suggestions")
+	return self.byName("suggestions")
 }
 
 func (self *Views) MergeConflicts() *View {
-	return self.ByName("mergeConflicts")
+	return self.byName("mergeConflicts")
 }
