@@ -59,13 +59,13 @@ var One = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp("fixup.*commit 03"),
 				MatchesRegexp("YOU ARE HERE.*commit 02"),
 				Contains("commit 01"),
+			).
+			Tap(func() {
+				input.ContinueRebase()
+			}).
+			Lines(
+				Contains("commit 02"),
+				Contains("commit 01"),
 			)
-
-		input.ContinueRebase()
-
-		input.Views().Commits().Lines(
-			Contains("commit 02"),
-			Contains("commit 01"),
-		)
 	},
 })

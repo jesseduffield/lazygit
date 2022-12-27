@@ -36,11 +36,11 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 		// unstage the selected line
 		input.Views().StagingSecondary().
 			IsFocused().
-			PressPrimaryAction()
-
-		// the line should have been moved to the main view
-		input.Views().Staging().Content(Contains("+myfile content").DoesNotContain("+with a second line"))
-		input.Views().StagingSecondary().
+			PressPrimaryAction().
+			Tap(func() {
+				// the line should have been moved to the main view
+				input.Views().Staging().Content(Contains("+myfile content").DoesNotContain("+with a second line"))
+			}).
 			Content(DoesNotContain("+myfile content").Contains("+with a second line")).
 			Press(keys.Files.CommitChangesWithoutHook)
 

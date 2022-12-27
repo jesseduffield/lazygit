@@ -36,17 +36,17 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp(`<-- good.*commit 05`),
 			).
 			SelectNextItem().
-			Press(keys.Commits.ViewBisectOptions)
+			Press(keys.Commits.ViewBisectOptions).
+			Tap(func() {
+				input.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 
-		input.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
+				input.ExpectAlert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
 
-		input.ExpectAlert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
-
-		input.Views().Information().Content(DoesNotContain("bisecting"))
-
-		// back in master branch which just had the one commit
-		input.Views().Commits().Lines(
-			Contains("only commit on master"),
-		)
+				input.Views().Information().Content(DoesNotContain("bisecting"))
+			}).
+			// back in master branch which just had the one commit
+			Lines(
+				Contains("only commit on master"),
+			)
 	},
 })

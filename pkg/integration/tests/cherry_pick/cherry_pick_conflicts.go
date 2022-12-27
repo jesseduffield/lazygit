@@ -31,11 +31,10 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("second-change-branch unrelated change"),
 				Contains("second change"),
 			).
-			Press(keys.Commits.CherryPickCopy)
-
-		input.Views().Information().Content(Contains("1 commit copied"))
-
-		input.Views().SubCommits().
+			Press(keys.Commits.CherryPickCopy).
+			Tap(func() {
+				input.Views().Information().Content(Contains("1 commit copied"))
+			}).
 			SelectNextItem().
 			Press(keys.Commits.CherryPickCopy)
 
@@ -80,20 +79,20 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("second change"),
 				Contains("first change"),
 			).
-			SelectNextItem()
+			SelectNextItem().
+			Tap(func() {
+				// because we picked 'Second change' when resolving the conflict,
+				// we now see this commit as having replaced First Change with Second Change,
+				// as opposed to replacing 'Original' with 'Second change'
+				input.Views().Main().
+					Content(Contains("-First Change")).
+					Content(Contains("+Second Change"))
 
-		// because we picked 'Second change' when resolving the conflict,
-		// we now see this commit as having replaced First Change with Second Change,
-		// as opposed to replacing 'Original' with 'Second change'
-		input.Views().Main().
-			Content(Contains("-First Change")).
-			Content(Contains("+Second Change"))
-
-		input.Views().Information().Content(Contains("2 commits copied"))
-
-		input.Views().Commits().
-			PressEscape()
-
-		input.Views().Information().Content(DoesNotContain("commits copied"))
+				input.Views().Information().Content(Contains("2 commits copied"))
+			}).
+			PressEscape().
+			Tap(func() {
+				input.Views().Information().Content(DoesNotContain("commits copied"))
+			})
 	},
 })

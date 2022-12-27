@@ -33,35 +33,33 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 		input.ExpectMenu().Title(Equals("Diffing")).Select(Contains(`diff branch-a`)).Confirm()
 
 		input.Views().Branches().
-			IsFocused()
-
-		input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-a"))
-
-		input.Views().Branches().
-			SelectNextItem()
-
-		input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b"))
-		input.Views().Main().Content(Contains("+second line"))
-
-		input.Views().Branches().
+			IsFocused().
+			Tap(func() {
+				input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-a"))
+			}).
+			SelectNextItem().
+			Tap(func() {
+				input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b"))
+				input.Views().Main().Content(Contains("+second line"))
+			}).
 			PressEnter()
 
 		input.Views().SubCommits().
 			IsFocused().
-			SelectedLine(Contains("update"))
-
-		input.Views().Main().Content(Contains("+second line"))
-
-		input.Views().SubCommits().
+			SelectedLine(Contains("update")).
+			Tap(func() {
+				input.Views().Main().Content(Contains("+second line"))
+			}).
 			PressEnter()
 
 		input.Views().CommitFiles().
 			IsFocused().
-			SelectedLine(Contains("file1"))
+			SelectedLine(Contains("file1")).
+			Tap(func() {
+				input.Views().Main().Content(Contains("+second line"))
+			}).
+			PressEscape()
 
-		input.Views().Main().Content(Contains("+second line"))
-
-		input.Views().CommitFiles().PressEscape()
 		input.Views().SubCommits().PressEscape()
 
 		input.Views().Branches().

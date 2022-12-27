@@ -26,10 +26,10 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("On master: foo"),
 			).
 			SelectNextItem().
-			Press(keys.Stash.RenameStash)
-
-		input.ExpectPrompt().Title(Equals("Rename stash: stash@{1}")).Type(" baz").Confirm()
-
-		input.Views().Stash().SelectedLine(Equals("On master: foo baz"))
+			Press(keys.Stash.RenameStash).
+			Tap(func() {
+				input.ExpectPrompt().Title(Equals("Rename stash: stash@{1}")).Type(" baz").Confirm()
+			}).
+			SelectedLine(Equals("On master: foo baz"))
 	},
 })

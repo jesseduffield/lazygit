@@ -42,11 +42,10 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("base"),
 			).
 			// copy commits 'four' and 'three'
-			Press(keys.Commits.CherryPickCopy)
-
-		input.Views().Information().Content(Contains("1 commit copied"))
-
-		input.Views().SubCommits().
+			Press(keys.Commits.CherryPickCopy).
+			Tap(func() {
+				input.Views().Information().Content(Contains("1 commit copied"))
+			}).
 			SelectNextItem().
 			Press(keys.Commits.CherryPickCopy)
 
@@ -59,29 +58,27 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 				Contains("base"),
 			).
-			Press(keys.Commits.PasteCommits)
-
-		input.ExpectAlert().
-			Title(Equals("Cherry-Pick")).
-			Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
-			Confirm()
-
-		input.Views().Commits().
-			IsFocused().
+			Press(keys.Commits.PasteCommits).
+			Tap(func() {
+				input.ExpectAlert().
+					Title(Equals("Cherry-Pick")).
+					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
+					Confirm()
+			}).
 			Lines(
 				Contains("four"),
 				Contains("three"),
 				Contains("two"),
 				Contains("one"),
 				Contains("base"),
-			)
-
-			// we need to manually exit out of cherrry pick mode
-		input.Views().Information().Content(Contains("2 commits copied"))
-
-		input.Views().Commits().
-			PressEscape()
-
-		input.Views().Information().Content(DoesNotContain("commits copied"))
+			).
+			Tap(func() {
+				// we need to manually exit out of cherry pick mode
+				input.Views().Information().Content(Contains("2 commits copied"))
+			}).
+			PressEscape().
+			Tap(func() {
+				input.Views().Information().Content(DoesNotContain("commits copied"))
+			})
 	},
 })

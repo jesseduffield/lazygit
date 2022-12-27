@@ -21,22 +21,22 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Views().Commits().
 			Focus().
+			SelectNextItem().
 			Lines(
 				Contains("commit 3"),
-				Contains("commit 2"),
+				Contains("commit 2").IsSelected(),
 				Contains("commit 1"),
 			).
-			SelectNextItem().
-			Press(keys.Universal.New)
+			Press(keys.Universal.New).
+			Tap(func() {
+				branchName := "my-branch-name"
+				input.ExpectPrompt().Title(Contains("New Branch Name")).Type(branchName).Confirm()
 
-		branchName := "my-branch-name"
-		input.ExpectPrompt().Title(Contains("New Branch Name")).Type(branchName).Confirm()
-
-		input.Model().CurrentBranchName(branchName)
-
-		input.Views().Commits().Lines(
-			Contains("commit 2"),
-			Contains("commit 1"),
-		)
+				input.Model().CurrentBranchName(branchName)
+			}).
+			Lines(
+				Contains("commit 2"),
+				Contains("commit 1"),
+			)
 	},
 })

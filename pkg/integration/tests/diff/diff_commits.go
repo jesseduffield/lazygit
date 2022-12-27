@@ -22,31 +22,28 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Views().Commits().
 			Focus().
 			Lines(
-				Contains("third commit"),
+				Contains("third commit").IsSelected(),
 				Contains("second commit"),
 				Contains("first commit"),
 			).
-			Press(keys.Universal.DiffingMenu)
+			Press(keys.Universal.DiffingMenu).
+			Tap(func() {
+				input.ExpectMenu().Title(Equals("Diffing")).Select(MatchesRegexp(`diff \w+`)).Confirm()
 
-		input.ExpectMenu().Title(Equals("Diffing")).Select(MatchesRegexp(`diff \w+`)).Confirm()
-
-		input.Views().Information().Content(Contains("showing output for: git diff"))
-
-		input.Views().Commits().
+				input.Views().Information().Content(Contains("showing output for: git diff"))
+			}).
 			SelectNextItem().
 			SelectNextItem().
-			SelectedLine(Contains("first commit"))
+			SelectedLine(Contains("first commit")).
+			Tap(func() {
+				input.Views().Main().Content(Contains("-second line\n-third line"))
+			}).
+			Press(keys.Universal.DiffingMenu).
+			Tap(func() {
+				input.ExpectMenu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
 
-		input.Views().Main().Content(Contains("-second line\n-third line"))
-
-		input.Views().Commits().
-			Press(keys.Universal.DiffingMenu)
-
-		input.ExpectMenu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
-
-		input.Views().Main().Content(Contains("+second line\n+third line"))
-
-		input.Views().Commits().
+				input.Views().Main().Content(Contains("+second line\n+third line"))
+			}).
 			PressEnter()
 
 		input.Views().CommitFiles().

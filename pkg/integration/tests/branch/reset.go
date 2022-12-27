@@ -37,9 +37,6 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.ExpectMenu().Title(Contains("reset to other-branch")).Select(Contains("hard reset")).Confirm()
 
-		// ensure that we've returned from the menu before continuing
-		input.Views().Branches().IsFocused()
-
 		// assert that we now have the expected commits in the commit panel
 		input.Views().Commits().
 			Lines(

@@ -24,20 +24,18 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp(`branch-one`),
 				MatchesRegexp(`master`),
 			).
-			Press(keys.Universal.Remove)
-
-		input.ExpectAlert().Title(Equals("Error")).Content(Contains("You cannot delete the checked out branch!")).Confirm()
-
-		input.Views().Branches().
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				input.ExpectAlert().Title(Equals("Error")).Content(Contains("You cannot delete the checked out branch!")).Confirm()
+			}).
 			SelectNextItem().
-			Press(keys.Universal.Remove)
-
-		input.ExpectConfirmation().
-			Title(Equals("Delete Branch")).
-			Content(Contains("Are you sure you want to delete the branch 'branch-one'?")).
-			Confirm()
-
-		input.Views().Branches().IsFocused().
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				input.ExpectConfirmation().
+					Title(Equals("Delete Branch")).
+					Content(Contains("Are you sure you want to delete the branch 'branch-one'?")).
+					Confirm()
+			}).
 			Lines(
 				MatchesRegexp(`\*.*branch-two`),
 				MatchesRegexp(`master`).IsSelected(),

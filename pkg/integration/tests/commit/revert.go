@@ -23,14 +23,13 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("first commit"),
 			).
-			Press(keys.Commits.RevertCommit)
-
-		input.ExpectConfirmation().
-			Title(Equals("Revert commit")).
-			Content(MatchesRegexp(`Are you sure you want to revert \w+?`)).
-			Confirm()
-
-		input.Views().Commits().IsFocused().
+			Press(keys.Commits.RevertCommit).
+			Tap(func() {
+				input.ExpectConfirmation().
+					Title(Equals("Revert commit")).
+					Content(MatchesRegexp(`Are you sure you want to revert \w+?`)).
+					Confirm()
+			}).
 			Lines(
 				Contains("Revert \"first commit\"").IsSelected(),
 				Contains("first commit"),

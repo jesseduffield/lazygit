@@ -28,7 +28,8 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.ExpectCommitMessagePanel().Type(commitMessage).Confirm()
 
-		input.Model().CommitCount(1)
-		input.Model().HeadCommitMessage(Equals(commitMessage))
+		input.Model().
+			CommitCount(1).
+			HeadCommitMessage(Equals(commitMessage))
 	},
 })

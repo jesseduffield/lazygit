@@ -36,38 +36,34 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Views().Branches().
 			IsFocused().
-			SelectNextItem()
-
-		input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b"))
-		input.Views().Main().Content(Contains("+second line"))
-
-		input.Views().Branches().
+			SelectNextItem().
+			Tap(func() {
+				input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b"))
+				input.Views().Main().Content(Contains("+second line"))
+			}).
 			PressEnter()
 
 		input.Views().SubCommits().
 			IsFocused().
-			SelectedLine(Contains("update"))
-
-		input.Views().Main().Content(Contains("+second line"))
-
-		input.Views().SubCommits().
+			SelectedLine(Contains("update")).
+			Tap(func() {
+				input.Views().Main().Content(Contains("+second line"))
+			}).
 			PressEnter()
 
 		input.Views().CommitFiles().
 			IsFocused().
-			SelectedLine(Contains("file1"))
-
-		input.Views().Main().Content(Contains("+second line"))
-
-		input.Views().CommitFiles().
+			SelectedLine(Contains("file1")).
+			Tap(func() {
+				input.Views().Main().Content(Contains("+second line"))
+			}).
 			PressPrimaryAction(). // add the file to the patch
-			Press(keys.Universal.DiffingMenu)
+			Press(keys.Universal.DiffingMenu).
+			Tap(func() {
+				input.ExpectMenu().Title(Equals("Diffing")).Select(Contains("exit diff mode")).Confirm()
 
-		input.ExpectMenu().Title(Equals("Diffing")).Select(Contains("exit diff mode")).Confirm()
-
-		input.Views().Information().Content(DoesNotContain("building patch"))
-
-		input.Views().CommitFiles().
+				input.Views().Information().Content(DoesNotContain("building patch"))
+			}).
 			Press(keys.Universal.CreatePatchOptionsMenu)
 
 		// adding the regex '$' here to distinguish the menu item from the 'apply patch in reverse' item

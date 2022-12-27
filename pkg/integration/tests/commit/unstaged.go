@@ -26,18 +26,16 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 			PressEnter()
 
 		input.Views().Staging().
-			IsFocused()
-
-		input.Views().StagingSecondary().Content(DoesNotContain("+myfile content"))
-
-		// stage the first line
-		input.Views().Staging().
-			PressPrimaryAction()
-
-		input.Views().Staging().Content(DoesNotContain("+myfile content"))
-		input.Views().StagingSecondary().Content(Contains("+myfile content"))
-
-		input.Views().Staging().
+			IsFocused().
+			Tap(func() {
+				input.Views().StagingSecondary().Content(DoesNotContain("+myfile content"))
+			}).
+			// stage the first line
+			PressPrimaryAction().
+			Tap(func() {
+				input.Views().Staging().Content(DoesNotContain("+myfile content"))
+				input.Views().StagingSecondary().Content(Contains("+myfile content"))
+			}).
 			Press(keys.Files.CommitChanges)
 
 		commitMessage := "my commit message"

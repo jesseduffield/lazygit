@@ -24,24 +24,24 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 			PressPrimaryAction(). // stage the file
 			PressEnter()
 
-		input.Views().StagingSecondary().IsFocused()
-		// we start with both lines having been staged
-		input.Views().StagingSecondary().Content(Contains("+myfile content"))
-		input.Views().StagingSecondary().Content(Contains("+with a second line"))
-		input.Views().Staging().Content(DoesNotContain("+myfile content"))
-		input.Views().Staging().Content(DoesNotContain("+with a second line"))
-
-		// unstage the selected line
 		input.Views().StagingSecondary().
-			PressPrimaryAction()
-
-		// the line should have been moved to the main view
-		input.Views().StagingSecondary().Content(DoesNotContain("+myfile content"))
-		input.Views().StagingSecondary().Content(Contains("+with a second line"))
-		input.Views().Staging().Content(Contains("+myfile content"))
-		input.Views().Staging().Content(DoesNotContain("+with a second line"))
-
-		input.Views().StagingSecondary().
+			IsFocused().
+			Tap(func() {
+				// we start with both lines having been staged
+				input.Views().StagingSecondary().Content(Contains("+myfile content"))
+				input.Views().StagingSecondary().Content(Contains("+with a second line"))
+				input.Views().Staging().Content(DoesNotContain("+myfile content"))
+				input.Views().Staging().Content(DoesNotContain("+with a second line"))
+			}).
+			// unstage the selected line
+			PressPrimaryAction().
+			Tap(func() {
+				// the line should have been moved to the main view
+				input.Views().StagingSecondary().Content(DoesNotContain("+myfile content"))
+				input.Views().StagingSecondary().Content(Contains("+with a second line"))
+				input.Views().Staging().Content(Contains("+myfile content"))
+				input.Views().Staging().Content(DoesNotContain("+with a second line"))
+			}).
 			Press(keys.Files.CommitChanges)
 
 		commitMessage := "my commit message"

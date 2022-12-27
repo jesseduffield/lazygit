@@ -194,3 +194,11 @@ func (self *View) NavigateToListItem(matcher *matcher) *View {
 
 	return self
 }
+
+// for when you want to make some assertion unrelated to the current view
+// without breaking the method chain
+func (self *View) Tap(f func()) *View {
+	f()
+
+	return self
+}

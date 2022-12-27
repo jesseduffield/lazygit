@@ -21,22 +21,20 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Views().Branches().
 			Focus().
 			Lines(
-				Contains("master"),
+				Contains("master").IsSelected(),
 				Contains("@"),
 			).
 			SelectNextItem().
-			Press(keys.Branches.CheckoutBranchByName)
+			Press(keys.Branches.CheckoutBranchByName).
+			Tap(func() {
+				input.ExpectPrompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
 
-		input.ExpectPrompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
-
-		input.ExpectAlert().Title(Equals("Branch not found")).Content(Equals("Branch not found. Create a new branch named new-branch?")).Confirm()
-
-		input.Views().Branches().IsFocused().
+				input.ExpectAlert().Title(Equals("Branch not found")).Content(Equals("Branch not found. Create a new branch named new-branch?")).Confirm()
+			}).
 			Lines(
-				MatchesRegexp(`\*.*new-branch`),
+				MatchesRegexp(`\*.*new-branch`).IsSelected(),
 				Contains("master"),
 				Contains("@"),
-			).
-			SelectedLine(Contains("new-branch"))
+			)
 	},
 })
