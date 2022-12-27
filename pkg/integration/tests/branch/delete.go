@@ -16,8 +16,8 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("branch-one").
 			NewBranch("branch-two")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Views().Branches().
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
 			Focus().
 			Lines(
 				MatchesRegexp(`\*.*branch-two`).IsSelected(),
@@ -26,12 +26,12 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				input.ExpectAlert().Title(Equals("Error")).Content(Contains("You cannot delete the checked out branch!")).Confirm()
+				t.ExpectAlert().Title(Equals("Error")).Content(Contains("You cannot delete the checked out branch!")).Confirm()
 			}).
 			SelectNextItem().
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				input.ExpectConfirmation().
+				t.ExpectConfirmation().
 					Title(Equals("Delete Branch")).
 					Content(Contains("Are you sure you want to delete the branch 'branch-one'?")).
 					Confirm()

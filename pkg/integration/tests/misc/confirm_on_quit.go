@@ -13,14 +13,14 @@ var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{
 		config.UserConfig.ConfirmOnQuit = true
 	},
 	SetupRepo: func(shell *Shell) {},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Model().CommitCount(0)
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Model().CommitCount(0)
 
-		input.Views().Files().
+		t.Views().Files().
 			IsFocused().
 			Press(keys.Universal.Quit)
 
-		input.ExpectConfirmation().
+		t.ExpectConfirmation().
 			Title(Equals("")).
 			Content(Contains("Are you sure you want to quit?")).
 			Confirm()

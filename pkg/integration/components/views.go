@@ -7,7 +7,7 @@ import (
 )
 
 type Views struct {
-	input *Input
+	t *TestDriver
 }
 
 // not exporting this because I want the test to always be explicit about what
@@ -15,32 +15,32 @@ type Views struct {
 func (self *Views) current() *View {
 	return &View{
 		context: "current view",
-		getView: func() *gocui.View { return self.input.gui.CurrentContext().GetView() },
-		input:   self.input,
+		getView: func() *gocui.View { return self.t.gui.CurrentContext().GetView() },
+		t:       self.t,
 	}
 }
 
 func (self *Views) Main() *View {
 	return &View{
 		context: "main view",
-		getView: func() *gocui.View { return self.input.gui.MainView() },
-		input:   self.input,
+		getView: func() *gocui.View { return self.t.gui.MainView() },
+		t:       self.t,
 	}
 }
 
 func (self *Views) Secondary() *View {
 	return &View{
 		context: "secondary view",
-		getView: func() *gocui.View { return self.input.gui.SecondaryView() },
-		input:   self.input,
+		getView: func() *gocui.View { return self.t.gui.SecondaryView() },
+		t:       self.t,
 	}
 }
 
 func (self *Views) ByName(viewName string) *View {
 	return &View{
 		context: fmt.Sprintf("%s view", viewName),
-		getView: func() *gocui.View { return self.input.gui.View(viewName) },
-		input:   self.input,
+		getView: func() *gocui.View { return self.t.gui.View(viewName) },
+		t:       self.t,
 	}
 }
 

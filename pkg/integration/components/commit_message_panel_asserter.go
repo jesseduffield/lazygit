@@ -1,11 +1,11 @@
 package components
 
 type CommitMessagePanelAsserter struct {
-	input *Input
+	t *TestDriver
 }
 
 func (self *CommitMessagePanelAsserter) getViewAsserter() *View {
-	return self.input.Views().CommitMessage()
+	return self.t.Views().CommitMessage()
 }
 
 // asserts on the text initially present in the prompt
@@ -16,13 +16,13 @@ func (self *CommitMessagePanelAsserter) InitialText(expected *matcher) *CommitMe
 }
 
 func (self *CommitMessagePanelAsserter) Type(value string) *CommitMessagePanelAsserter {
-	self.input.typeContent(value)
+	self.t.typeContent(value)
 
 	return self
 }
 
 func (self *CommitMessagePanelAsserter) AddNewline() *CommitMessagePanelAsserter {
-	self.input.press(self.input.keys.Universal.AppendNewline)
+	self.t.press(self.t.keys.Universal.AppendNewline)
 
 	return self
 }

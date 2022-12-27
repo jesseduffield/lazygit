@@ -43,23 +43,23 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(
 		shell *Shell,
-		input *Input,
+		t *TestDriver,
 		keys config.KeybindingConfig,
 	) {
-		input.Model().CurrentBranchName("feature/bar")
-		input.Model().WorkingTreeFileCount(0)
+		t.Model().CurrentBranchName("feature/bar")
+		t.Model().WorkingTreeFileCount(0)
 
-		input.Views().Branches().
+		t.Views().Branches().
 			Focus().
 			Press("a")
 
-		input.ExpectPrompt().
+		t.ExpectPrompt().
 			Title(Equals("Which git command do you want to run?")).
 			InitialText(Equals("branch")).
 			Confirm()
 
-		input.ExpectMenu().Title(Equals("Branch:")).Select(Equals("master")).Confirm()
+		t.ExpectMenu().Title(Equals("Branch:")).Select(Equals("master")).Confirm()
 
-		input.Model().CurrentBranchName("master")
+		t.Model().CurrentBranchName("master")
 	},
 })

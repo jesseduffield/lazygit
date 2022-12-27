@@ -14,10 +14,10 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("myfile", "myfile content")
 		shell.CreateFile("myfile2", "myfile2 content")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Model().CommitCount(0)
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Model().CommitCount(0)
 
-		input.Views().Files().
+		t.Views().Files().
 			IsFocused().
 			PressPrimaryAction(). // stage file
 			SelectNextItem().
@@ -26,9 +26,9 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		commitMessage := "my commit message"
 
-		input.ExpectCommitMessagePanel().Type(commitMessage).Confirm()
+		t.ExpectCommitMessagePanel().Type(commitMessage).Confirm()
 
-		input.Model().
+		t.Model().
 			CommitCount(1).
 			HeadCommitMessage(Equals(commitMessage))
 	},

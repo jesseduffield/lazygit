@@ -23,8 +23,8 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			EmptyCommit("four").
 			Checkout("first-branch")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Views().Branches().
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
 			Focus().
 			Lines(
 				Contains("first-branch"),
@@ -34,7 +34,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			PressEnter()
 
-		input.Views().SubCommits().
+		t.Views().SubCommits().
 			IsFocused().
 			Lines(
 				Contains("four").IsSelected(),
@@ -44,14 +44,14 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			// copy commits 'four' and 'three'
 			Press(keys.Commits.CherryPickCopy).
 			Tap(func() {
-				input.Views().Information().Content(Contains("1 commit copied"))
+				t.Views().Information().Content(Contains("1 commit copied"))
 			}).
 			SelectNextItem().
 			Press(keys.Commits.CherryPickCopy)
 
-		input.Views().Information().Content(Contains("2 commits copied"))
+		t.Views().Information().Content(Contains("2 commits copied"))
 
-		input.Views().Commits().
+		t.Views().Commits().
 			Focus().
 			Lines(
 				Contains("two").IsSelected(),
@@ -60,7 +60,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.PasteCommits).
 			Tap(func() {
-				input.ExpectAlert().
+				t.ExpectAlert().
 					Title(Equals("Cherry-Pick")).
 					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
 					Confirm()
@@ -74,11 +74,11 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Tap(func() {
 				// we need to manually exit out of cherry pick mode
-				input.Views().Information().Content(Contains("2 commits copied"))
+				t.Views().Information().Content(Contains("2 commits copied"))
 			}).
 			PressEscape().
 			Tap(func() {
-				input.Views().Information().Content(DoesNotContain("commits copied"))
+				t.Views().Information().Content(DoesNotContain("commits copied"))
 			})
 	},
 })

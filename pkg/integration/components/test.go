@@ -25,7 +25,7 @@ type IntegrationTest struct {
 	setupConfig  func(config *config.AppConfig)
 	run          func(
 		shell *Shell,
-		input *Input,
+		testController *TestDriver,
 		keys config.KeybindingConfig,
 	)
 }
@@ -40,7 +40,7 @@ type NewIntegrationTestArgs struct {
 	// takes a config and mutates. The mutated context will end up being passed to the gui
 	SetupConfig func(config *config.AppConfig)
 	// runs the test
-	Run func(shell *Shell, input *Input, keys config.KeybindingConfig)
+	Run func(shell *Shell, t *TestDriver, keys config.KeybindingConfig)
 	// additional args passed to lazygit
 	ExtraCmdArgs string
 	// for when a test is flakey
@@ -94,13 +94,13 @@ func (self *IntegrationTest) SetupRepo(shell *Shell) {
 func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 	shell := NewShell("/tmp/lazygit-test")
 	keys := gui.Keys()
-	input := NewInput(gui, keys, KeyPressDelay())
+	testController := NewTestController(gui, keys, KeyPressDelay())
 
-	self.run(shell, input, keys)
+	self.run(shell, testController, keys)
 
 	if KeyPressDelay() > 0 {
 		// the dev would want to see the final state if they're running in slow mode
-		input.Wait(2000)
+		testController.Wait(2000)
 	}
 }
 

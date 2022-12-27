@@ -23,12 +23,12 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(
 		shell *Shell,
-		input *Input,
+		t *TestDriver,
 		keys config.KeybindingConfig,
 	) {
-		input.Model().WorkingTreeFileCount(0)
+		t.Model().WorkingTreeFileCount(0)
 
-		input.Views().Files().
+		t.Views().Files().
 			IsFocused().
 			Press("a").
 			Lines(

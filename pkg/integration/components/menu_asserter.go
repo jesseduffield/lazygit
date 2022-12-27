@@ -1,12 +1,12 @@
 package components
 
 type MenuAsserter struct {
-	input           *Input
+	t               *TestDriver
 	hasCheckedTitle bool
 }
 
 func (self *MenuAsserter) getViewAsserter() *View {
-	return self.input.Views().Menu()
+	return self.t.Views().Menu()
 }
 
 // asserts that the popup has the expected title
@@ -38,6 +38,6 @@ func (self *MenuAsserter) Select(option *matcher) *MenuAsserter {
 
 func (self *MenuAsserter) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedTitle {
-		self.input.Fail("You must check the title of a menu popup by calling Title() before calling Confirm()/Cancel().")
+		self.t.Fail("You must check the title of a menu popup by calling Title() before calling Confirm()/Cancel().")
 	}
 }

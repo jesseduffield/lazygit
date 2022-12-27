@@ -21,8 +21,8 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 
 		shell.Checkout("branch-a")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Views().Branches().
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
 			Focus().
 			TopLines(
 				Contains("branch-a"),
@@ -30,44 +30,44 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.DiffingMenu)
 
-		input.ExpectMenu().Title(Equals("Diffing")).Select(Contains(`diff branch-a`)).Confirm()
+		t.ExpectMenu().Title(Equals("Diffing")).Select(Contains(`diff branch-a`)).Confirm()
 
-		input.Views().Branches().
+		t.Views().Branches().
 			IsFocused().
 			Tap(func() {
-				input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-a"))
+				t.Views().Information().Content(Contains("showing output for: git diff branch-a branch-a"))
 			}).
 			SelectNextItem().
 			Tap(func() {
-				input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b"))
-				input.Views().Main().Content(Contains("+second line"))
+				t.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b"))
+				t.Views().Main().Content(Contains("+second line"))
 			}).
 			PressEnter()
 
-		input.Views().SubCommits().
+		t.Views().SubCommits().
 			IsFocused().
 			SelectedLine(Contains("update")).
 			Tap(func() {
-				input.Views().Main().Content(Contains("+second line"))
+				t.Views().Main().Content(Contains("+second line"))
 			}).
 			PressEnter()
 
-		input.Views().CommitFiles().
+		t.Views().CommitFiles().
 			IsFocused().
 			SelectedLine(Contains("file1")).
 			Tap(func() {
-				input.Views().Main().Content(Contains("+second line"))
+				t.Views().Main().Content(Contains("+second line"))
 			}).
 			PressEscape()
 
-		input.Views().SubCommits().PressEscape()
+		t.Views().SubCommits().PressEscape()
 
-		input.Views().Branches().
+		t.Views().Branches().
 			IsFocused().
 			Press(keys.Universal.DiffingMenu)
 
-		input.ExpectMenu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
-		input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b -R"))
-		input.Views().Main().Content(Contains("-second line"))
+		t.ExpectMenu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
+		t.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b -R"))
+		t.Views().Main().Content(Contains("-second line"))
 	},
 })

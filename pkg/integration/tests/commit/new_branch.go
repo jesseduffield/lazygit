@@ -16,10 +16,10 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			EmptyCommit("commit 2").
 			EmptyCommit("commit 3")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Model().CommitCount(3)
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Model().CommitCount(3)
 
-		input.Views().Commits().
+		t.Views().Commits().
 			Focus().
 			SelectNextItem().
 			Lines(
@@ -30,9 +30,9 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.New).
 			Tap(func() {
 				branchName := "my-branch-name"
-				input.ExpectPrompt().Title(Contains("New Branch Name")).Type(branchName).Confirm()
+				t.ExpectPrompt().Title(Contains("New Branch Name")).Type(branchName).Confirm()
 
-				input.Model().CurrentBranchName(branchName)
+				t.Model().CurrentBranchName(branchName)
 			}).
 			Lines(
 				Contains("commit 2"),

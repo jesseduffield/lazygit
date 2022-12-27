@@ -21,10 +21,10 @@ var DirWithUntrackedFile = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("dir/untracked", "bar")
 		shell.UpdateFile("dir/file", "baz")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Model().CommitCount(1)
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Model().CommitCount(1)
 
-		input.Views().Main().
+		t.Views().Main().
 			Content(DoesNotContain("error: Could not access")).
 			// we show baz because it's a modified file but we don't show bar because it's untracked
 			// (though it would be cool if we could show that too)

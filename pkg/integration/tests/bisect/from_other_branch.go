@@ -20,14 +20,14 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {},
 	Run: func(
 		shell *Shell,
-		input *Input,
+		t *TestDriver,
 		keys config.KeybindingConfig,
 	) {
-		input.Views().Information().Content(Contains("bisecting"))
+		t.Views().Information().Content(Contains("bisecting"))
 
-		input.Model().AtLeastOneCommit()
+		t.Model().AtLeastOneCommit()
 
-		input.Views().Commits().
+		t.Views().Commits().
 			Focus().
 			TopLines(
 				MatchesRegexp(`<-- bad.*commit 08`),
@@ -38,11 +38,11 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Commits.ViewBisectOptions).
 			Tap(func() {
-				input.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
+				t.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 
-				input.ExpectAlert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
+				t.ExpectAlert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
 
-				input.Views().Information().Content(DoesNotContain("bisecting"))
+				t.Views().Information().Content(DoesNotContain("bisecting"))
 			}).
 			// back in master branch which just had the one commit
 			Lines(

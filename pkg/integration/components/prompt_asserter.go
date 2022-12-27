@@ -1,12 +1,12 @@
 package components
 
 type PromptAsserter struct {
-	input           *Input
+	t               *TestDriver
 	hasCheckedTitle bool
 }
 
 func (self *PromptAsserter) getViewAsserter() *View {
-	return self.input.Views().Confirmation()
+	return self.t.Views().Confirmation()
 }
 
 // asserts that the popup has the expected title
@@ -26,7 +26,7 @@ func (self *PromptAsserter) InitialText(expected *matcher) *PromptAsserter {
 }
 
 func (self *PromptAsserter) Type(value string) *PromptAsserter {
-	self.input.typeContent(value)
+	self.t.typeContent(value)
 
 	return self
 }
@@ -49,25 +49,25 @@ func (self *PromptAsserter) Cancel() {
 
 func (self *PromptAsserter) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedTitle {
-		self.input.Fail("You must check the title of a prompt popup by calling Title() before calling Confirm()/Cancel().")
+		self.t.Fail("You must check the title of a prompt popup by calling Title() before calling Confirm()/Cancel().")
 	}
 }
 
 func (self *PromptAsserter) SuggestionLines(matchers ...*matcher) *PromptAsserter {
-	self.input.Views().Suggestions().Lines(matchers...)
+	self.t.Views().Suggestions().Lines(matchers...)
 
 	return self
 }
 
 func (self *PromptAsserter) SuggestionTopLines(matchers ...*matcher) *PromptAsserter {
-	self.input.Views().Suggestions().TopLines(matchers...)
+	self.t.Views().Suggestions().TopLines(matchers...)
 
 	return self
 }
 
 func (self *PromptAsserter) SelectFirstSuggestion() *PromptAsserter {
-	self.input.press(self.input.keys.Universal.TogglePanel)
-	self.input.Views().Suggestions().
+	self.t.press(self.t.keys.Universal.TogglePanel)
+	self.t.Views().Suggestions().
 		IsFocused().
 		SelectedLineIdx(0)
 
@@ -75,8 +75,8 @@ func (self *PromptAsserter) SelectFirstSuggestion() *PromptAsserter {
 }
 
 func (self *PromptAsserter) SelectSuggestion(matcher *matcher) *PromptAsserter {
-	self.input.press(self.input.keys.Universal.TogglePanel)
-	self.input.Views().Suggestions().
+	self.t.press(self.t.keys.Universal.TogglePanel)
+	self.t.Views().Suggestions().
 		IsFocused().
 		NavigateToListItem(matcher)
 

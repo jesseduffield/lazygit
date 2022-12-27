@@ -14,8 +14,8 @@ var One = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.
 			CreateNCommits(5) // these will appears at commit 05, 04, 04, down to 01
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Views().Commits().
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Commits().
 			Focus().
 			Lines(
 				Contains("commit 05"),
@@ -61,7 +61,7 @@ var One = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 01"),
 			).
 			Tap(func() {
-				input.ContinueRebase()
+				t.ContinueRebase()
 			}).
 			Lines(
 				Contains("commit 02"),

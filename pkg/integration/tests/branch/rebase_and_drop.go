@@ -17,8 +17,8 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("to remove")
 		shell.EmptyCommit("to keep")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Views().Branches().
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
 			Focus().
 			Lines(
 				Contains("first-change-branch"),
@@ -26,7 +26,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("original-branch"),
 			)
 
-		input.Views().Commits().
+		t.Views().Commits().
 			TopLines(
 				Contains("to keep").IsSelected(),
 				Contains("to remove"),
@@ -36,22 +36,22 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Branches.RebaseBranch)
 
-		input.ExpectConfirmation().
+		t.ExpectConfirmation().
 			Title(Equals("Rebasing")).
 			Content(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?")).
 			Confirm()
 
-		input.Views().Information().Content(Contains("rebasing"))
+		t.Views().Information().Content(Contains("rebasing"))
 
-		input.ExpectConfirmation().
+		t.ExpectConfirmation().
 			Title(Equals("Auto-merge failed")).
 			Content(Contains("Conflicts!")).
 			Confirm()
 
-		input.Views().Files().IsFocused().
+		t.Views().Files().IsFocused().
 			SelectedLine(MatchesRegexp("UU.*file"))
 
-		input.Views().Commits().
+		t.Views().Commits().
 			Focus().
 			TopLines(
 				MatchesRegexp(`pick.*to keep`).IsSelected(),
@@ -70,22 +70,22 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp("original"),
 			)
 
-		input.Views().Files().
+		t.Views().Files().
 			Focus().
 			PressEnter()
 
-		input.Views().MergeConflicts().
+		t.Views().MergeConflicts().
 			IsFocused().
 			PressPrimaryAction()
 
-		input.ExpectConfirmation().
+		t.ExpectConfirmation().
 			Title(Equals("continue")).
 			Content(Contains("all merge conflicts resolved. Continue?")).
 			Confirm()
 
-		input.Views().Information().Content(DoesNotContain("rebasing"))
+		t.Views().Information().Content(DoesNotContain("rebasing"))
 
-		input.Views().Commits().TopLines(
+		t.Views().Commits().TopLines(
 			Contains("to keep"),
 			Contains("second-change-branch unrelated change").IsSelected(),
 			Contains("second change"),

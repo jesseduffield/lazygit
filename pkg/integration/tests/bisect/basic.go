@@ -16,33 +16,33 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {},
 	Run: func(
 		shell *Shell,
-		input *Input,
+		t *TestDriver,
 		keys config.KeybindingConfig,
 	) {
 		markCommitAsBad := func() {
-			input.Views().Commits().
+			t.Views().Commits().
 				Press(keys.Commits.ViewBisectOptions)
 
-			input.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as bad`)).Confirm()
+			t.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as bad`)).Confirm()
 		}
 
 		markCommitAsGood := func() {
-			input.Views().Commits().
+			t.Views().Commits().
 				Press(keys.Commits.ViewBisectOptions)
 
-			input.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
+			t.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 		}
 
-		input.Model().AtLeastOneCommit()
+		t.Model().AtLeastOneCommit()
 
-		input.Views().Commits().
+		t.Views().Commits().
 			Focus().
 			SelectedLine(Contains("commit 10")).
 			NavigateToListItem(Contains("commit 09")).
 			Tap(func() {
 				markCommitAsBad()
 
-				input.Views().Information().Content(Contains("bisecting"))
+				t.Views().Information().Content(Contains("bisecting"))
 			}).
 			SelectedLine(Contains("<-- bad")).
 			NavigateToListItem(Contains("commit 02")).
@@ -55,11 +55,11 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 				markCommitAsGood()
 
 				// commit 5 is the culprit because we marked 4 as good and 5 as bad.
-				input.ExpectAlert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 05.*Do you want to reset")).Confirm()
+				t.ExpectAlert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 05.*Do you want to reset")).Confirm()
 			}).
 			IsFocused().
 			Content(Contains("commit 04"))
 
-		input.Views().Information().Content(DoesNotContain("bisecting"))
+		t.Views().Information().Content(DoesNotContain("bisecting"))
 	},
 })

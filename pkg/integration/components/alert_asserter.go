@@ -1,13 +1,13 @@
 package components
 
 type AlertAsserter struct {
-	input             *Input
+	t                 *TestDriver
 	hasCheckedTitle   bool
 	hasCheckedContent bool
 }
 
 func (self *AlertAsserter) getViewAsserter() *View {
-	return self.input.Views().Confirmation()
+	return self.t.Views().Confirmation()
 }
 
 // asserts that the alert view has the expected title
@@ -42,6 +42,6 @@ func (self *AlertAsserter) Cancel() {
 
 func (self *AlertAsserter) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedContent || !self.hasCheckedTitle {
-		self.input.Fail("You must both check the content and title of a confirmation popup by calling Title()/Content() before calling Confirm()/Cancel().")
+		self.t.Fail("You must both check the content and title of a confirmation popup by calling Title()/Content() before calling Confirm()/Cancel().")
 	}
 }

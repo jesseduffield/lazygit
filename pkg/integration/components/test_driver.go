@@ -11,15 +11,15 @@ import (
 	"github.com/samber/lo"
 )
 
-type Input struct {
+type TestDriver struct {
 	gui          integrationTypes.GuiDriver
 	keys         config.KeybindingConfig
 	pushKeyDelay int
 	*assertionHelper
 }
 
-func NewInput(gui integrationTypes.GuiDriver, keys config.KeybindingConfig, pushKeyDelay int) *Input {
-	return &Input{
+func NewTestController(gui integrationTypes.GuiDriver, keys config.KeybindingConfig, pushKeyDelay int) *TestDriver {
+	return &TestDriver{
 		gui:             gui,
 		keys:            keys,
 		pushKeyDelay:    pushKeyDelay,
@@ -29,19 +29,19 @@ func NewInput(gui integrationTypes.GuiDriver, keys config.KeybindingConfig, push
 
 // key is something like 'w' or '<space>'. It's best not to pass a direct value,
 // but instead to go through the default user config to get a more meaningful key name
-func (self *Input) press(keyStr string) {
+func (self *TestDriver) press(keyStr string) {
 	self.Wait(self.pushKeyDelay)
 
 	self.gui.PressKey(keyStr)
 }
 
-func (self *Input) typeContent(content string) {
+func (self *TestDriver) typeContent(content string) {
 	for _, char := range content {
 		self.press(string(char))
 	}
 }
 
-func (self *Input) ContinueMerge() {
+func (self *TestDriver) ContinueMerge() {
 	self.Views().current().Press(self.keys.Universal.CreateRebaseOptionsMenu)
 
 	self.ExpectMenu().
@@ -50,20 +50,20 @@ func (self *Input) ContinueMerge() {
 		Confirm()
 }
 
-func (self *Input) ContinueRebase() {
+func (self *TestDriver) ContinueRebase() {
 	self.ContinueMerge()
 }
 
 // for when you want to allow lazygit to process something before continuing
-func (self *Input) Wait(milliseconds int) {
+func (self *TestDriver) Wait(milliseconds int) {
 	time.Sleep(time.Duration(milliseconds) * time.Millisecond)
 }
 
-func (self *Input) LogUI(message string) {
+func (self *TestDriver) LogUI(message string) {
 	self.gui.LogUI(message)
 }
 
-func (self *Input) Log(message string) {
+func (self *TestDriver) Log(message string) {
 	self.gui.LogUI(message)
 }
 
@@ -78,7 +78,7 @@ func (self *Input) Log(message string) {
 // If this changes in future, we'll need to update this code to first attempt to find the item
 // in the current page and failing that, jump to the top of the view and iterate through all of it,
 // looking for the item.
-func (self *Input) navigateToListItem(matcher *matcher) {
+func (self *TestDriver) navigateToListItem(matcher *matcher) {
 	self.inListContext()
 
 	currentContext := self.gui.CurrentContext().(types.IListContext)
@@ -128,7 +128,7 @@ func (self *Input) navigateToListItem(matcher *matcher) {
 	}
 }
 
-func (self *Input) inListContext() {
+func (self *TestDriver) inListContext() {
 	self.assertWithRetries(func() (bool, string) {
 		currentContext := self.gui.CurrentContext()
 		_, ok := currentContext.(types.IListContext)
@@ -136,39 +136,39 @@ func (self *Input) inListContext() {
 	})
 }
 
-func (self *Input) ExpectConfirmation() *ConfirmationAsserter {
+func (self *TestDriver) ExpectConfirmation() *ConfirmationAsserter {
 	self.inConfirm()
 
-	return &ConfirmationAsserter{input: self}
+	return &ConfirmationAsserter{t: self}
 }
 
-func (self *Input) inConfirm() {
+func (self *TestDriver) inConfirm() {
 	self.assertWithRetries(func() (bool, string) {
 		currentView := self.gui.CurrentContext().GetView()
 		return currentView.Name() == "confirmation" && !currentView.Editable, "Expected confirmation popup to be focused"
 	})
 }
 
-func (self *Input) ExpectPrompt() *PromptAsserter {
+func (self *TestDriver) ExpectPrompt() *PromptAsserter {
 	self.inPrompt()
 
-	return &PromptAsserter{input: self}
+	return &PromptAsserter{t: self}
 }
 
-func (self *Input) inPrompt() {
+func (self *TestDriver) inPrompt() {
 	self.assertWithRetries(func() (bool, string) {
 		currentView := self.gui.CurrentContext().GetView()
 		return currentView.Name() == "confirmation" && currentView.Editable, "Expected prompt popup to be focused"
 	})
 }
 
-func (self *Input) ExpectAlert() *AlertAsserter {
+func (self *TestDriver) ExpectAlert() *AlertAsserter {
 	self.inAlert()
 
-	return &AlertAsserter{input: self}
+	return &AlertAsserter{t: self}
 }
 
-func (self *Input) inAlert() {
+func (self *TestDriver) inAlert() {
 	// basically the same thing as a confirmation popup with the current implementation
 	self.assertWithRetries(func() (bool, string) {
 		currentView := self.gui.CurrentContext().GetView()
@@ -176,32 +176,32 @@ func (self *Input) inAlert() {
 	})
 }
 
-func (self *Input) ExpectMenu() *MenuAsserter {
+func (self *TestDriver) ExpectMenu() *MenuAsserter {
 	self.inMenu()
 
-	return &MenuAsserter{input: self}
+	return &MenuAsserter{t: self}
 }
 
-func (self *Input) inMenu() {
+func (self *TestDriver) inMenu() {
 	self.assertWithRetries(func() (bool, string) {
 		return self.gui.CurrentContext().GetView().Name() == "menu", "Expected popup menu to be focused"
 	})
 }
 
-func (self *Input) ExpectCommitMessagePanel() *CommitMessagePanelAsserter {
+func (self *TestDriver) ExpectCommitMessagePanel() *CommitMessagePanelAsserter {
 	self.inCommitMessagePanel()
 
-	return &CommitMessagePanelAsserter{input: self}
+	return &CommitMessagePanelAsserter{t: self}
 }
 
-func (self *Input) inCommitMessagePanel() {
+func (self *TestDriver) inCommitMessagePanel() {
 	self.assertWithRetries(func() (bool, string) {
 		currentView := self.gui.CurrentContext().GetView()
 		return currentView.Name() == "commitMessage", "Expected commit message panel to be focused"
 	})
 }
 
-func (self *Input) currentWindowName(expectedWindowName string) {
+func (self *TestDriver) currentWindowName(expectedWindowName string) {
 	self.assertWithRetries(func() (bool, string) {
 		actual := self.gui.CurrentContext().GetView().Name()
 		return actual == expectedWindowName, fmt.Sprintf("Expected current window name to be '%s', but got '%s'", expectedWindowName, actual)
@@ -209,27 +209,27 @@ func (self *Input) currentWindowName(expectedWindowName string) {
 }
 
 // for making assertions on lazygit views
-func (self *Input) Views() *Views {
-	return &Views{input: self}
+func (self *TestDriver) Views() *Views {
+	return &Views{t: self}
 }
 
 // for making assertions on the lazygit model
-func (self *Input) Model() *Model {
+func (self *TestDriver) Model() *Model {
 	return &Model{assertionHelper: self.assertionHelper, gui: self.gui}
 }
 
 // for making assertions on the file system
-func (self *Input) FileSystem() *FileSystem {
+func (self *TestDriver) FileSystem() *FileSystem {
 	return &FileSystem{assertionHelper: self.assertionHelper}
 }
 
 // for when you just want to fail the test yourself.
 // This runs callbacks to ensure we render the error after closing the gui.
-func (self *Input) Fail(message string) {
+func (self *TestDriver) Fail(message string) {
 	self.assertionHelper.fail(message)
 }
 
-func (self *Input) NotInPopup() {
+func (self *TestDriver) NotInPopup() {
 	self.assertWithRetries(func() (bool, string) {
 		viewName := self.gui.CurrentContext().GetView().Name()
 		return !lo.Contains([]string{"menu", "confirmation", "commitMessage"}, viewName), fmt.Sprintf("Unexpected popup view present: %s view", viewName)

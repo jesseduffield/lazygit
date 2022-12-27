@@ -55,26 +55,26 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(
 		shell *Shell,
-		input *Input,
+		t *TestDriver,
 		keys config.KeybindingConfig,
 	) {
-		input.Model().WorkingTreeFileCount(0)
+		t.Model().WorkingTreeFileCount(0)
 
-		input.Views().Files().
+		t.Views().Files().
 			IsFocused().
 			Press("a")
 
-		input.ExpectPrompt().Title(Equals("Enter a file name")).Type("myfile").Confirm()
+		t.ExpectPrompt().Title(Equals("Enter a file name")).Type("myfile").Confirm()
 
-		input.ExpectMenu().Title(Equals("Choose file content")).Select(Contains("bar")).Confirm()
+		t.ExpectMenu().Title(Equals("Choose file content")).Select(Contains("bar")).Confirm()
 
-		input.ExpectConfirmation().
+		t.ExpectConfirmation().
 			Title(Equals("Are you sure?")).
 			Content(Equals("Are you REALLY sure you want to make this file? Up to you buddy.")).
 			Confirm()
 
-		input.Model().WorkingTreeFileCount(1)
-		input.Views().Files().SelectedLine(Contains("myfile"))
-		input.Views().Main().Content(Contains("BAR"))
+		t.Model().WorkingTreeFileCount(1)
+		t.Views().Files().SelectedLine(Contains("myfile"))
+		t.Views().Main().Content(Contains("BAR"))
 	},
 })

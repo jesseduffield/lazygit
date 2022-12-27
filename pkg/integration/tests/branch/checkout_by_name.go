@@ -17,8 +17,8 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 			Checkout("master").
 			EmptyCommit("blah")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Views().Branches().
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
 			Focus().
 			Lines(
 				Contains("master").IsSelected(),
@@ -27,9 +27,9 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Branches.CheckoutBranchByName).
 			Tap(func() {
-				input.ExpectPrompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
+				t.ExpectPrompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
 
-				input.ExpectAlert().Title(Equals("Branch not found")).Content(Equals("Branch not found. Create a new branch named new-branch?")).Confirm()
+				t.ExpectAlert().Title(Equals("Branch not found")).Content(Equals("Branch not found. Create a new branch named new-branch?")).Confirm()
 			}).
 			Lines(
 				MatchesRegexp(`\*.*new-branch`).IsSelected(),

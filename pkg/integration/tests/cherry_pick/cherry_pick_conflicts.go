@@ -14,8 +14,8 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo: func(shell *Shell) {
 		shared.MergeConflictsSetup(shell)
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Views().Branches().
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
 			Focus().
 			Lines(
 				Contains("first-change-branch"),
@@ -25,7 +25,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			PressEnter()
 
-		input.Views().SubCommits().
+		t.Views().SubCommits().
 			IsFocused().
 			TopLines(
 				Contains("second-change-branch unrelated change"),
@@ -33,46 +33,46 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.CherryPickCopy).
 			Tap(func() {
-				input.Views().Information().Content(Contains("1 commit copied"))
+				t.Views().Information().Content(Contains("1 commit copied"))
 			}).
 			SelectNextItem().
 			Press(keys.Commits.CherryPickCopy)
 
-		input.Views().Information().Content(Contains("2 commits copied"))
+		t.Views().Information().Content(Contains("2 commits copied"))
 
-		input.Views().Commits().
+		t.Views().Commits().
 			Focus().
 			TopLines(
 				Contains("first change"),
 			).
 			Press(keys.Commits.PasteCommits)
 
-		input.ExpectAlert().Title(Equals("Cherry-Pick")).Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).Confirm()
+		t.ExpectAlert().Title(Equals("Cherry-Pick")).Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).Confirm()
 
-		input.ExpectConfirmation().
+		t.ExpectConfirmation().
 			Title(Equals("Auto-merge failed")).
 			Content(Contains("Conflicts!")).
 			Confirm()
 
-		input.Views().Files().
+		t.Views().Files().
 			IsFocused().
 			SelectedLine(Contains("file")).
 			PressEnter()
 
-		input.Views().MergeConflicts().
+		t.Views().MergeConflicts().
 			IsFocused().
 			// picking 'Second change'
 			SelectNextItem().
 			PressPrimaryAction()
 
-		input.ExpectConfirmation().
+		t.ExpectConfirmation().
 			Title(Equals("continue")).
 			Content(Contains("all merge conflicts resolved. Continue?")).
 			Confirm()
 
-		input.Model().WorkingTreeFileCount(0)
+		t.Model().WorkingTreeFileCount(0)
 
-		input.Views().Commits().
+		t.Views().Commits().
 			Focus().
 			TopLines(
 				Contains("second-change-branch unrelated change"),
@@ -84,15 +84,15 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 				// because we picked 'Second change' when resolving the conflict,
 				// we now see this commit as having replaced First Change with Second Change,
 				// as opposed to replacing 'Original' with 'Second change'
-				input.Views().Main().
+				t.Views().Main().
 					Content(Contains("-First Change")).
 					Content(Contains("+Second Change"))
 
-				input.Views().Information().Content(Contains("2 commits copied"))
+				t.Views().Information().Content(Contains("2 commits copied"))
 			}).
 			PressEscape().
 			Tap(func() {
-				input.Views().Information().Content(DoesNotContain("commits copied"))
+				t.Views().Information().Content(DoesNotContain("commits copied"))
 			})
 	},
 })

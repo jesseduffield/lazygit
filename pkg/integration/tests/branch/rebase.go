@@ -14,13 +14,13 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo: func(shell *Shell) {
 		shared.MergeConflictsSetup(shell)
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Views().Commits().TopLines(
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Commits().TopLines(
 			Contains("first change"),
 			Contains("original"),
 		)
 
-		input.Views().Branches().
+		t.Views().Branches().
 			Focus().
 			Lines(
 				Contains("first-change-branch"),
@@ -30,35 +30,35 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Branches.RebaseBranch)
 
-		input.ExpectConfirmation().
+		t.ExpectConfirmation().
 			Title(Equals("Rebasing")).
 			Content(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?")).
 			Confirm()
 
-		input.ExpectConfirmation().
+		t.ExpectConfirmation().
 			Title(Equals("Auto-merge failed")).
 			Content(Contains("Conflicts!")).
 			Confirm()
 
-		input.Views().Files().
+		t.Views().Files().
 			IsFocused().
 			SelectedLine(Contains("file")).
 			PressEnter()
 
-		input.Views().MergeConflicts().
+		t.Views().MergeConflicts().
 			IsFocused().
 			PressPrimaryAction()
 
-		input.Views().Information().Content(Contains("rebasing"))
+		t.Views().Information().Content(Contains("rebasing"))
 
-		input.ExpectConfirmation().
+		t.ExpectConfirmation().
 			Title(Equals("continue")).
 			Content(Contains("all merge conflicts resolved. Continue?")).
 			Confirm()
 
-		input.Views().Information().Content(DoesNotContain("rebasing"))
+		t.Views().Information().Content(DoesNotContain("rebasing"))
 
-		input.Views().Commits().TopLines(
+		t.Views().Commits().TopLines(
 			Contains("second-change-branch unrelated change"),
 			Contains("second change"),
 			Contains("original"),

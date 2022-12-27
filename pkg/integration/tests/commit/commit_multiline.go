@@ -13,20 +13,20 @@ var CommitMultiline = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFile("myfile", "myfile content")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Model().CommitCount(0)
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Model().CommitCount(0)
 
-		input.Views().Files().
+		t.Views().Files().
 			IsFocused().
 			PressPrimaryAction().
 			Press(keys.Files.CommitChanges)
 
-		input.ExpectCommitMessagePanel().Type("first line").AddNewline().AddNewline().Type("third line").Confirm()
+		t.ExpectCommitMessagePanel().Type("first line").AddNewline().AddNewline().Type("third line").Confirm()
 
-		input.Model().CommitCount(1)
-		input.Model().HeadCommitMessage(Equals("first line"))
+		t.Model().CommitCount(1)
+		t.Model().HeadCommitMessage(Equals("first line"))
 
-		input.Views().Commits().Focus()
-		input.Views().Main().Content(MatchesRegexp("first line\n\\s*\n\\s*third line"))
+		t.Views().Commits().Focus()
+		t.Views().Main().Content(MatchesRegexp("first line\n\\s*\n\\s*third line"))
 	},
 })

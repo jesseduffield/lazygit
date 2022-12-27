@@ -20,20 +20,20 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("other-new-branch-2").
 			NewBranch("other-new-branch-3")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Views().Branches().
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
 			Focus().
 			Press(keys.Branches.CheckoutBranchByName)
 
 		// we expect the first suggestion to be the branch we want because it most
 		// closely matches what we typed in
-		input.ExpectPrompt().
+		t.ExpectPrompt().
 			Title(Equals("Branch name:")).
 			Type("branch-to").
 			SuggestionTopLines(Contains("branch-to-checkout")).
 			SelectFirstSuggestion().
 			Confirm()
 
-		input.Model().CurrentBranchName("branch-to-checkout")
+		t.Model().CurrentBranchName("branch-to-checkout")
 	},
 })

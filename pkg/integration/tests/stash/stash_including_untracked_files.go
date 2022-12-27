@@ -16,18 +16,18 @@ var StashIncludingUntrackedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("file_2", "content")
 		shell.GitAdd("file_1")
 	},
-	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
-		input.Model().StashCount(0)
-		input.Model().WorkingTreeFileCount(2)
+	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		t.Model().StashCount(0)
+		t.Model().WorkingTreeFileCount(2)
 
-		input.Views().Files().
+		t.Views().Files().
 			Press(keys.Files.ViewStashOptions)
 
-		input.ExpectMenu().Title(Equals("Stash options")).Select(Contains("stash all changes including untracked files")).Confirm()
+		t.ExpectMenu().Title(Equals("Stash options")).Select(Contains("stash all changes including untracked files")).Confirm()
 
-		input.ExpectPrompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
+		t.ExpectPrompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
 
-		input.Model().StashCount(1)
-		input.Model().WorkingTreeFileCount(0)
+		t.Model().StashCount(1)
+		t.Model().WorkingTreeFileCount(0)
 	},
 })
