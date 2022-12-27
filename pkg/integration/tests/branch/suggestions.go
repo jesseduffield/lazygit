@@ -31,8 +31,7 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 			Title(Equals("Branch name:")).
 			Type("branch-to").
 			SuggestionTopLines(Contains("branch-to-checkout")).
-			SelectFirstSuggestion().
-			Confirm()
+			ConfirmFirstSuggestion()
 
 		t.Git().CurrentBranchName("branch-to-checkout")
 	},

@@ -207,13 +207,6 @@ func (self *TestDriver) inCommitMessagePanel() {
 	})
 }
 
-func (self *TestDriver) currentWindowName(expectedWindowName string) {
-	self.assertWithRetries(func() (bool, string) {
-		actual := self.gui.CurrentContext().GetView().Name()
-		return actual == expectedWindowName, fmt.Sprintf("Expected current window name to be '%s', but got '%s'", expectedWindowName, actual)
-	})
-}
-
 // for making assertions on lazygit views
 func (self *TestDriver) Views() *Views {
 	return &Views{t: self}

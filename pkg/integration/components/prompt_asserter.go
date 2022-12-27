@@ -65,20 +65,18 @@ func (self *PromptAsserter) SuggestionTopLines(matchers ...*matcher) *PromptAsse
 	return self
 }
 
-func (self *PromptAsserter) SelectFirstSuggestion() *PromptAsserter {
+func (self *PromptAsserter) ConfirmFirstSuggestion() {
 	self.t.press(self.t.keys.Universal.TogglePanel)
 	self.t.Views().Suggestions().
 		IsFocused().
-		SelectedLineIdx(0)
-
-	return self
+		SelectedLineIdx(0).
+		PressEnter()
 }
 
-func (self *PromptAsserter) SelectSuggestion(matcher *matcher) *PromptAsserter {
+func (self *PromptAsserter) ConfirmSuggestion(matcher *matcher) {
 	self.t.press(self.t.keys.Universal.TogglePanel)
 	self.t.Views().Suggestions().
 		IsFocused().
-		NavigateToListItem(matcher)
-
-	return self
+		NavigateToListItem(matcher).
+		PressEnter()
 }
