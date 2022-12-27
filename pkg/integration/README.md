@@ -24,17 +24,13 @@ In the setup step, we prepare a repo with shell commands, for example, creating 
 
 ### Run step
 
-The run step has three arguments passed in:
+The run step has two arguments passed in:
 
-1. `shell`
-2. `t` (the test driver)
-4. `keys`
-
-`shell` we've already seen in the setup step. The reason it's passed into the run step is that we may want to emulate background events. For example, the user modifying a file outside of lazygit.
+1. `t` (the test driver)
+2. `keys`
 
 `t` is for driving the gui by pressing certain keys, selecting list items, etc.
-
-`assert` is for asserting on the state of the lazygit session. When you call a method on `assert`, the assert struct will wait for the assertion to hold true and then continue (failing the test after a timeout). For this reason, assertions have two purposes: one is to ensure the test fails as soon as something unexpected happens, but another is to allow lazygit to process a keypress before you follow up with more keypresses. If you input a bunch of keypresses too quickly lazygit might get confused.
+`keys` is for use when getting the test to press a particular key e.g. `t.Views().Commits().Focus().PressKey(keys.Universal.Confirm)`
 
 ### Tips
 
@@ -46,18 +42,7 @@ Try to do as much setup work as possible in your setup step. For example, if all
 
 If you find yourself doing something frequently in a test, consider making it a method in one of the helper arguments. For example, instead of calling `t.PressKey(keys.Universal.Confirm)` in 100 places, it's better to have a method `t.Confirm()`. This is not to say that everything should be made into a helper method: just things that are particularly common in tests.
 
-Also, given how often we need to select a menu item or type into a prompt panel, there are some helper functions for that. For example:
-
-```go
-// asserts that a prompt opens with the title 'Enter a file name', and then types 'my file' and confirms
-t.Prompt(Equals("Enter a file name"), "my file")
-
-// asserts that a menu opens with the title: 'Choose file content', and then selects the option which contains 'bar'
-t.Menu(Equals("Choose file content"), Contains("bar"))
-
-// asserts a confirmation appears with the title 'Are you sure?' and the content 'Are you REALLY sure' and then confirms
-t.AcceptConfirmation(Equals("Are you sure?"), Equals("Are you REALLY sure?"))
-```
+Also, given how often we need to select a menu item or type into a prompt panel, there are some helper functions for that. See `ExpectConfirmation` for an example.
 
 ## Running tests
 
