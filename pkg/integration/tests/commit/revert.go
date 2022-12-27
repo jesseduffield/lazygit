@@ -16,8 +16,6 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Commit("first commit")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().CommitCount(1)
-
 		t.Views().Commits().
 			Focus().
 			Lines(

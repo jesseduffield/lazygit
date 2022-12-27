@@ -72,8 +72,6 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().CommitCount(3)
-
 		type statusFile struct {
 			status    string
 			label     string
@@ -121,6 +119,6 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "??", label: "new.txt", menuTitle: "new.txt"},
 		})
 
-		t.Model().WorkingTreeFileCount(0)
+		t.Views().Files().IsEmpty()
 	},
 })

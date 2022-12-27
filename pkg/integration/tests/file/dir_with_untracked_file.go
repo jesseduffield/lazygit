@@ -22,7 +22,10 @@ var DirWithUntrackedFile = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.UpdateFile("dir/file", "baz")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().CommitCount(1)
+		t.Views().Commits().
+			Lines(
+				Contains("first commit"),
+			)
 
 		t.Views().Main().
 			Content(DoesNotContain("error: Could not access")).

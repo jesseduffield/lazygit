@@ -28,10 +28,14 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateFileAndAdd(postMergeFilename, postMergeFileContent)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().CommitCount(3)
-
 		mergeCommitMessage := "Merge branch 'feature-branch' into development-branch"
-		t.Model().HeadCommitMessage(Contains(mergeCommitMessage))
+
+		t.Views().Commits().
+			Lines(
+				Contains(mergeCommitMessage),
+				Contains("new feature commit"),
+				Contains("initial commit"),
+			)
 
 		t.Views().Commits().
 			Focus().
@@ -43,8 +47,12 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		// assuring we haven't added a brand new commit
-		t.Model().CommitCount(3)
-		t.Model().HeadCommitMessage(Contains(mergeCommitMessage))
+		t.Views().Commits().
+			Lines(
+				Contains(mergeCommitMessage),
+				Contains("new feature commit"),
+				Contains("initial commit"),
+			)
 
 		// assuring the post-merge file shows up in the merge commit.
 		t.Views().Main().

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -89,9 +90,12 @@ func (self *IntegrationTest) SetupRepo(shell *Shell) {
 	self.setupRepo(shell)
 }
 
-// I want access to all contexts, the model, the ability to press a key, the ability to log,
 func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
-	shell := NewShell("/tmp/lazygit-test", func(errorMsg string) { gui.Fail(errorMsg) })
+	// we pass the --pass arg to lazygit when running an integration test, and that
+	// ends up stored in the following env var
+	repoPath := env.GetGitWorkTreeEnv()
+
+	shell := NewShell(repoPath, func(errorMsg string) { gui.Fail(errorMsg) })
 	keys := gui.Keys()
 	testDriver := NewTestDriver(gui, shell, keys, KeyPressDelay())
 

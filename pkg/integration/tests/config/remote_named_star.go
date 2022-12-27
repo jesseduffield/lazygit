@@ -17,6 +17,10 @@ var RemoteNamedStar = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig: func(cfg *config.AppConfig) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		// here we're just asserting that we haven't panicked upon starting lazygit
-		t.Model().AtLeastOneCommit()
+		t.Views().Commits().
+			Lines(
+				Anything(),
+				Anything(),
+			)
 	},
 })

@@ -38,6 +38,17 @@ func (self *Shell) RunCommand(cmdStr string) *Shell {
 	return self
 }
 
+func (self *Shell) runCommandWithOutput(cmdStr string) (string, error) {
+	args := str.ToArgv(cmdStr)
+	cmd := secureexec.Command(args[0], args[1:]...)
+	cmd.Env = os.Environ()
+	cmd.Dir = self.dir
+
+	output, err := cmd.CombinedOutput()
+
+	return string(output), err
+}
+
 func (self *Shell) RunShellCommand(cmdStr string) *Shell {
 	cmd := secureexec.Command("sh", "-c", cmdStr)
 	cmd.Env = os.Environ()

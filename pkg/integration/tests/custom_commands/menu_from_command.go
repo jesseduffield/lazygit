@@ -43,7 +43,9 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		}
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().WorkingTreeFileCount(0)
+		t.Views().Files().
+			IsEmpty()
+
 		t.Views().Branches().
 			Focus().
 			Press("a")
@@ -52,9 +54,12 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPrompt().Title(Equals("Description")).Type(" my branch").Confirm()
 
-		t.Model().WorkingTreeFileCount(1)
+		t.Views().Files().
+			Focus().
+			Lines(
+				Contains("output.txt").IsSelected(),
+			)
 
-		t.Views().Files().Focus().SelectedLine(Contains("output.txt"))
 		t.Views().Main().Content(Contains("bar Branch: #feature/foo my branch feature/foo"))
 	},
 })

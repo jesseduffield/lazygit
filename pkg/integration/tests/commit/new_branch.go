@@ -17,22 +17,20 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			EmptyCommit("commit 3")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().CommitCount(3)
-
 		t.Views().Commits().
 			Focus().
-			SelectNextItem().
 			Lines(
-				Contains("commit 3"),
-				Contains("commit 2").IsSelected(),
+				Contains("commit 3").IsSelected(),
+				Contains("commit 2"),
 				Contains("commit 1"),
 			).
+			SelectNextItem().
 			Press(keys.Universal.New).
 			Tap(func() {
 				branchName := "my-branch-name"
 				t.ExpectPrompt().Title(Contains("New Branch Name")).Type(branchName).Confirm()
 
-				t.Model().CurrentBranchName(branchName)
+				t.Git().CurrentBranchName(branchName)
 			}).
 			Lines(
 				Contains("commit 2"),

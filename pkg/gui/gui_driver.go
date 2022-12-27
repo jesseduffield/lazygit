@@ -49,10 +49,6 @@ func (self *GuiDriver) CurrentContext() types.Context {
 	return self.gui.c.CurrentContext()
 }
 
-func (self *GuiDriver) Model() *types.Model {
-	return self.gui.State.Model
-}
-
 func (self *GuiDriver) Fail(message string) {
 	self.gui.g.Close()
 	// need to give the gui time to close

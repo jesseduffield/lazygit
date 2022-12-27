@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 )
@@ -28,6 +29,10 @@ func (self *View) Title(expected *matcher) *View {
 // This method is convenient when you have a list of commits but you only want to
 // assert on the first couple of commits.
 func (self *View) TopLines(matchers ...*matcher) *View {
+	if len(matchers) < 1 {
+		self.t.fail("TopLines method requires at least one matcher. If you are trying to assert that there are no lines, use .IsEmpty()")
+	}
+
 	self.t.assertWithRetries(func() (bool, string) {
 		lines := self.getView().BufferLines()
 		return len(lines) >= len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected at least %d, got %d", len(matchers), len(lines))
@@ -39,10 +44,7 @@ func (self *View) TopLines(matchers ...*matcher) *View {
 // asserts that the view has lines matching the given matchers. One matcher must be passed for each line.
 // If you only care about the top n lines, use the TopLines method instead.
 func (self *View) Lines(matchers ...*matcher) *View {
-	self.t.assertWithRetries(func() (bool, string) {
-		lines := self.getView().BufferLines()
-		return len(lines) == len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected %d, got %d", len(matchers), len(lines))
-	})
+	self.LineCount(len(matchers))
 
 	return self.assertLines(matchers...)
 }
@@ -180,6 +182,41 @@ func (self *View) NavigateToListItem(matcher *matcher) *View {
 	self.IsFocused()
 
 	self.t.navigateToListItem(matcher)
+
+	return self
+}
+
+// returns true if the view is a list view and it contains no items
+func (self *View) IsEmpty() *View {
+	self.t.assertWithRetries(func() (bool, string) {
+		actual := strings.TrimSpace(self.getView().Buffer())
+		return actual == "", fmt.Sprintf("%s: Unexpected content in view: expected no content. Content: %s", self.context, actual)
+	})
+
+	return self
+}
+
+func (self *View) LineCount(expectedCount int) *View {
+	if expectedCount == 0 {
+		return self.IsEmpty()
+	}
+
+	self.t.assertWithRetries(func() (bool, string) {
+		lines := self.getView().BufferLines()
+		return len(lines) == expectedCount, fmt.Sprintf("unexpected number of lines in view. Expected %d, got %d", expectedCount, len(lines))
+	})
+
+	self.t.assertWithRetries(func() (bool, string) {
+		lines := self.getView().BufferLines()
+
+		// if the view has a single blank line (often the case) we want to treat that as having no lines
+		if len(lines) == 1 && expectedCount == 1 {
+			actual := strings.TrimSpace(self.getView().Buffer())
+			return actual == "", fmt.Sprintf("unexpected number of lines in view. Expected %d, got 0", expectedCount)
+		}
+
+		return len(lines) == expectedCount, fmt.Sprintf("unexpected number of lines in view. Expected %d, got %d", expectedCount, len(lines))
+	})
 
 	return self
 }

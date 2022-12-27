@@ -16,7 +16,8 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateFile("myfile2", "myfile2 content")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().CommitCount(0)
+		t.Views().Commits().
+			IsEmpty()
 
 		t.Views().Files().
 			IsFocused().
@@ -47,8 +48,11 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 		commitMessage := "my commit message"
 		t.ExpectCommitMessagePanel().Type(commitMessage).Confirm()
 
-		t.Model().CommitCount(1)
-		t.Model().HeadCommitMessage(Equals(commitMessage))
+		t.Views().Commits().
+			Lines(
+				Contains(commitMessage),
+			)
+
 		t.Views().StagingSecondary().IsFocused()
 
 		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)

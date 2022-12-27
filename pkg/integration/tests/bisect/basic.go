@@ -29,8 +29,6 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 			t.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 		}
 
-		t.Model().AtLeastOneCommit()
-
 		t.Views().Commits().
 			Focus().
 			SelectedLine(Contains("commit 10")).

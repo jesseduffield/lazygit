@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
-	"github.com/samber/lo"
 )
 
 type TestDriver struct {
@@ -220,9 +219,9 @@ func (self *TestDriver) Views() *Views {
 	return &Views{t: self}
 }
 
-// for making assertions on the lazygit model
-func (self *TestDriver) Model() *Model {
-	return &Model{assertionHelper: self.assertionHelper, gui: self.gui}
+// for making assertions through git itself
+func (self *TestDriver) Git() *Git {
+	return &Git{assertionHelper: self.assertionHelper, shell: self.shell}
 }
 
 // for making assertions on the file system
@@ -234,11 +233,4 @@ func (self *TestDriver) FileSystem() *FileSystem {
 // This runs callbacks to ensure we render the error after closing the gui.
 func (self *TestDriver) Fail(message string) {
 	self.assertionHelper.fail(message)
-}
-
-func (self *TestDriver) NotInPopup() {
-	self.assertWithRetries(func() (bool, string) {
-		viewName := self.gui.CurrentContext().GetView().Name()
-		return !lo.Contains([]string{"menu", "confirmation", "commitMessage"}, viewName), fmt.Sprintf("Unexpected popup view present: %s view", viewName)
-	})
 }

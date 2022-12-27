@@ -54,9 +54,8 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		}
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().WorkingTreeFileCount(0)
-
 		t.Views().Files().
+			IsEmpty().
 			IsFocused().
 			Press("a")
 
@@ -69,8 +68,12 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Equals("Are you REALLY sure you want to make this file? Up to you buddy.")).
 			Confirm()
 
-		t.Model().WorkingTreeFileCount(1)
-		t.Views().Files().SelectedLine(Contains("myfile"))
+		t.Views().Files().
+			Focus().
+			Lines(
+				Contains("myfile").IsSelected(),
+			)
+
 		t.Views().Main().Content(Contains("BAR"))
 	},
 })

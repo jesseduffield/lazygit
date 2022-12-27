@@ -56,9 +56,8 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		}
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().WorkingTreeFileCount(0)
-
 		t.Views().Files().
+			IsEmpty().
 			IsFocused().
 			Press("a")
 
@@ -71,8 +70,11 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Equals("Are you REALLY sure you want to make this file? Up to you buddy.")).
 			Confirm()
 
-		t.Model().WorkingTreeFileCount(1)
-		t.Views().Files().SelectedLine(Contains("my file"))
+		t.Views().Files().
+			Lines(
+				Contains("my file").IsSelected(),
+			)
+
 		t.Views().Main().Content(Contains(`"BAR"`))
 	},
 })

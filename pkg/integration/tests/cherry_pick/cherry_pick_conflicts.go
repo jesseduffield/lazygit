@@ -70,7 +70,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Contains("all merge conflicts resolved. Continue?")).
 			Confirm()
 
-		t.Model().WorkingTreeFileCount(0)
+		t.Views().Files().IsEmpty()
 
 		t.Views().Commits().
 			Focus().

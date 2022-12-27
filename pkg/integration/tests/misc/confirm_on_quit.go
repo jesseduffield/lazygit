@@ -14,8 +14,6 @@ var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	SetupRepo: func(shell *Shell) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().CommitCount(0)
-
 		t.Views().Files().
 			IsFocused().
 			Press(keys.Universal.Quit)

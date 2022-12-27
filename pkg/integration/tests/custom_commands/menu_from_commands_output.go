@@ -42,8 +42,7 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 		}
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().CurrentBranchName("feature/bar")
-		t.Model().WorkingTreeFileCount(0)
+		t.Git().CurrentBranchName("feature/bar")
 
 		t.Views().Branches().
 			Focus().
@@ -56,6 +55,6 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectMenu().Title(Equals("Branch:")).Select(Equals("master")).Confirm()
 
-		t.Model().CurrentBranchName("master")
+		t.Git().CurrentBranchName("master")
 	},
 })

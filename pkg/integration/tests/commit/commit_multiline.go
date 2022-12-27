@@ -14,7 +14,8 @@ var CommitMultiline = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("myfile", "myfile content")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().CommitCount(0)
+		t.Views().Commits().
+			IsEmpty()
 
 		t.Views().Files().
 			IsFocused().
@@ -23,8 +24,10 @@ var CommitMultiline = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectCommitMessagePanel().Type("first line").AddNewline().AddNewline().Type("third line").Confirm()
 
-		t.Model().CommitCount(1)
-		t.Model().HeadCommitMessage(Equals("first line"))
+		t.Views().Commits().
+			Lines(
+				Contains("first line"),
+			)
 
 		t.Views().Commits().Focus()
 		t.Views().Main().Content(MatchesRegexp("first line\n\\s*\n\\s*third line"))

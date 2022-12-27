@@ -21,8 +21,6 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Information().Content(Contains("bisecting"))
 
-		t.Model().AtLeastOneCommit()
-
 		t.Views().Commits().
 			Focus().
 			TopLines(

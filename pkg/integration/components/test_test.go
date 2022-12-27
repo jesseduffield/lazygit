@@ -30,10 +30,6 @@ func (self *fakeGuiDriver) CurrentContext() types.Context {
 	return nil
 }
 
-func (self *fakeGuiDriver) Model() *types.Model {
-	return &types.Model{Commits: []*models.Commit{}}
-}
-
 func (self *fakeGuiDriver) Fail(message string) {
 	self.failureMessage = message
 }
@@ -66,7 +62,6 @@ func TestAssertionFailure(t *testing.T) {
 		Run: func(t *TestDriver, keys config.KeybindingConfig) {
 			t.press("a")
 			t.press("b")
-			t.Model().CommitCount(2)
 		},
 	})
 	driver := &fakeGuiDriver{}
@@ -93,7 +88,6 @@ func TestSuccess(t *testing.T) {
 		Run: func(t *TestDriver, keys config.KeybindingConfig) {
 			t.press("a")
 			t.press("b")
-			t.Model().CommitCount(0)
 		},
 	})
 	driver := &fakeGuiDriver{}

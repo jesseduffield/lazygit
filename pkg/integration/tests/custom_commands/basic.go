@@ -22,9 +22,8 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 		}
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Model().WorkingTreeFileCount(0)
-
 		t.Views().Files().
+			IsEmpty().
 			IsFocused().
 			Press("a").
 			Lines(
