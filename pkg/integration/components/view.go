@@ -212,7 +212,7 @@ func (self *View) LineCount(expectedCount int) *View {
 		// if the view has a single blank line (often the case) we want to treat that as having no lines
 		if len(lines) == 1 && expectedCount == 1 {
 			actual := strings.TrimSpace(self.getView().Buffer())
-			return actual == "", fmt.Sprintf("unexpected number of lines in view. Expected %d, got 0", expectedCount)
+			return actual != "", "unexpected number of lines in view. Expected 1, got 0"
 		}
 
 		return len(lines) == expectedCount, fmt.Sprintf("unexpected number of lines in view. Expected %d, got %d", expectedCount, len(lines))
