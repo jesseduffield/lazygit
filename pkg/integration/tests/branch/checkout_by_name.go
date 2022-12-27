@@ -28,7 +28,7 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Press(keys.Branches.CheckoutBranchByName)
 
-		input.Prompt(Equals("Branch name:"), "new-branch")
+		input.Prompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
 
 		input.Alert(Equals("Branch not found"), Equals("Branch not found. Create a new branch named new-branch?"))
 

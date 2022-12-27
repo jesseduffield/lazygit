@@ -36,14 +36,14 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		input.NextItem()
 		input.Press(keys.Branches.RebaseBranch)
 
-		input.InConfirm().
+		input.Confirmation().
 			Title(Equals("Rebasing")).
 			Content(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?")).
 			Confirm()
 
 		assert.View("information").Content(Contains("rebasing"))
 
-		input.InConfirm().
+		input.Confirmation().
 			Title(Equals("Auto-merge failed")).
 			Content(Contains("Conflicts!")).
 			Confirm()
@@ -83,7 +83,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentView().Name("mergeConflicts")
 		input.PrimaryAction()
 
-		input.InConfirm().
+		input.Confirmation().
 			Title(Equals("continue")).
 			Content(Contains("all merge conflicts resolved. Continue?")).
 			Confirm()

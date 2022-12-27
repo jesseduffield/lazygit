@@ -17,7 +17,7 @@ var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(0)
 
 		input.Press(keys.Universal.Quit)
-		input.InConfirm().
+		input.Confirmation().
 			Title(Equals("")).
 			Content(Contains("Are you sure you want to quit?")).
 			Confirm()

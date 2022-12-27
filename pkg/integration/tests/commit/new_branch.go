@@ -30,7 +30,7 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Press(keys.Universal.New)
 
 		branchName := "my-branch-name"
-		input.Prompt(Contains("New Branch Name"), branchName)
+		input.Prompt().Title(Equals("New Branch Name")).Type(branchName).Confirm()
 
 		assert.CurrentBranchName(branchName)
 

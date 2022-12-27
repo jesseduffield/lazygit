@@ -55,7 +55,7 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Menu(Equals("Choose commit message"), Contains("bar"))
 
-		input.Prompt(Equals("Description"), " my branch")
+		input.Prompt().Title(Equals("Description")).Type(" my branch").Confirm()
 
 		input.SwitchToFilesView()
 

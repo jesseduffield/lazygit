@@ -25,7 +25,7 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 		)
 
 		input.Press(keys.Commits.RevertCommit)
-		input.InConfirm().
+		input.Confirmation().
 			Title(Equals("Revert commit")).
 			Content(MatchesRegexp(`Are you sure you want to revert \w+?`)).
 			Confirm()

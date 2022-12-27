@@ -23,7 +23,7 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Menu(Equals("Stash options"), MatchesRegexp("stash all changes$"))
 
-		input.Prompt(Equals("Stash changes"), "my stashed file")
+		input.Prompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
 
 		assert.StashCount(1)
 		assert.WorkingTreeFileCount(0)

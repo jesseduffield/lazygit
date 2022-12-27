@@ -215,17 +215,16 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 	}
 }
 
-func (self *Input) InConfirm() *ConfirmationAsserter {
+func (self *Input) Confirmation() *ConfirmationAsserter {
 	self.assert.InConfirm()
 
 	return &ConfirmationAsserter{assert: self.assert, input: self}
 }
 
-func (self *Input) Prompt(title *matcher, textToType string) {
+func (self *Input) Prompt() *PromptAsserter {
 	self.assert.InPrompt()
-	self.assert.CurrentView().Title(title)
-	self.Type(textToType)
-	self.Confirm()
+
+	return &PromptAsserter{assert: self.assert, input: self}
 }
 
 // type some text into a prompt, then switch to the suggestions panel and expect the first

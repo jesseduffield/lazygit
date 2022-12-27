@@ -63,11 +63,11 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Press("a")
 
-		input.Prompt(Equals("Enter a file name"), "myfile")
+		input.Prompt().Title(Equals("Enter a file name")).Type("myfile").Confirm()
 
 		input.Menu(Equals("Choose file content"), Contains("bar"))
 
-		input.InConfirm().
+		input.Confirmation().
 			Title(Equals("Are you sure?")).
 			Content(Equals("Are you REALLY sure you want to make this file? Up to you buddy.")).
 			Confirm()

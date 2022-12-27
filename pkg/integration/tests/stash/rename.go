@@ -28,7 +28,7 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 		input.NextItem()
 		input.Press(keys.Stash.RenameStash)
 
-		input.Prompt(Equals("Rename stash: stash@{1}"), " baz")
+		input.Prompt().Title(Equals("Rename stash: stash@{1}")).Type(" baz").Confirm()
 
 		assert.CurrentView().SelectedLine(Equals("On master: foo baz"))
 	},
