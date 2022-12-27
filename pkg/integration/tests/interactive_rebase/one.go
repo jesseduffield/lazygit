@@ -61,7 +61,7 @@ var One = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 01"),
 			).
 			Tap(func() {
-				t.ContinueRebase()
+				t.Actions().ContinueRebase()
 			}).
 			Lines(
 				Contains("commit 02"),

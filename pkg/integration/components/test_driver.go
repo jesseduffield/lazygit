@@ -42,17 +42,8 @@ func (self *TestDriver) typeContent(content string) {
 	}
 }
 
-func (self *TestDriver) ContinueMerge() {
-	self.Views().current().Press(self.keys.Universal.CreateRebaseOptionsMenu)
-
-	self.ExpectMenu().
-		Title(Equals("Rebase Options")).
-		Select(Contains("continue")).
-		Confirm()
-}
-
-func (self *TestDriver) ContinueRebase() {
-	self.ContinueMerge()
+func (self *TestDriver) Actions() *Actions {
+	return &Actions{t: self}
 }
 
 // for when you want to allow lazygit to process something before continuing
