@@ -18,20 +18,20 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("to keep")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Branches().
-			Focus().
-			Lines(
-				Contains("first-change-branch"),
-				Contains("second-change-branch"),
-				Contains("original-branch"),
-			)
-
 		t.Views().Commits().
 			TopLines(
-				Contains("to keep").IsSelected(),
+				Contains("to keep"),
 				Contains("to remove"),
 				Contains("first change"),
 				Contains("original"),
+			)
+
+		t.Views().Branches().
+			Focus().
+			Lines(
+				Contains("first-change-branch").IsSelected(),
+				Contains("second-change-branch"),
+				Contains("original-branch"),
 			).
 			SelectNextItem().
 			Press(keys.Branches.RebaseBranch)
