@@ -18,11 +18,10 @@ type Input struct {
 	pushKeyDelay int
 }
 
-func NewInput(gui integrationTypes.GuiDriver, keys config.KeybindingConfig, assert *Assert, pushKeyDelay int) *Input {
+func NewInput(gui integrationTypes.GuiDriver, keys config.KeybindingConfig, pushKeyDelay int) *Input {
 	return &Input{
 		gui:             gui,
 		keys:            keys,
-		assert:          assert,
 		pushKeyDelay:    pushKeyDelay,
 		assertionHelper: assert.assertionHelper,
 	}
@@ -53,14 +52,14 @@ func (self *Input) SwitchToStatusView() {
 	self.assert.Views().Current().Name("status")
 }
 
-func (self *Input) SwitchToFilesWindow() {
+func (self *Input) switchToFilesWindow() {
 	self.press(self.keys.Universal.JumpToBlock[1])
 	self.currentWindowName("files")
 }
 
 // switch to files window and assert that the files view is on top
 func (self *Input) SwitchToFilesView() {
-	self.SwitchToFilesWindow()
+	self.switchToFilesWindow()
 	self.assert.Views().Current().Name("files")
 }
 

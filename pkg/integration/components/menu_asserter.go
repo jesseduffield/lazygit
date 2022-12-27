@@ -6,7 +6,7 @@ type MenuAsserter struct {
 	hasCheckedTitle bool
 }
 
-func (self *MenuAsserter) getViewAsserter() *Views {
+func (self *MenuAsserter) getViewAsserter() *View {
 	return self.assert.Views().ByName("menu")
 }
 

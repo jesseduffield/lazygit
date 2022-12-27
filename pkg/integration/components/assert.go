@@ -7,7 +7,8 @@ import (
 // through this struct we assert on the state of the lazygit gui
 
 type Assert struct {
-	gui integrationTypes.GuiDriver
+	input *Input
+	gui   integrationTypes.GuiDriver
 	*assertionHelper
 }
 
@@ -16,8 +17,8 @@ func NewAssert(gui integrationTypes.GuiDriver) *Assert {
 }
 
 // for making assertions on lazygit views
-func (self *Assert) Views() *ViewAsserterGetter {
-	return &ViewAsserterGetter{assert: self}
+func (self *Assert) Views() *Views {
+	return &Views{assert: self, input: self.input}
 }
 
 // for making assertions on the lazygit model

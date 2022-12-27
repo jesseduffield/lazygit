@@ -6,7 +6,7 @@ type PromptAsserter struct {
 	hasCheckedTitle bool
 }
 
-func (self *PromptAsserter) getViewAsserter() *Views {
+func (self *PromptAsserter) getViewAsserter() *View {
 	return self.assert.Views().ByName("confirmation")
 }
 

@@ -7,7 +7,7 @@ type ConfirmationAsserter struct {
 	hasCheckedContent bool
 }
 
-func (self *ConfirmationAsserter) getViewAsserter() *Views {
+func (self *ConfirmationAsserter) getViewAsserter() *View {
 	return self.assert.Views().ByName("confirmation")
 }
 
