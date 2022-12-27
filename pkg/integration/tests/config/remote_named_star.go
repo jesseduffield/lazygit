@@ -15,11 +15,7 @@ var RemoteNamedStar = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateNCommits(2)
 	},
 	SetupConfig: func(cfg *config.AppConfig) {},
-	Run: func(
-		shell *Shell,
-		t *TestDriver,
-		keys config.KeybindingConfig,
-	) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		// here we're just asserting that we haven't panicked upon starting lazygit
 		t.Model().AtLeastOneCommit()
 	},

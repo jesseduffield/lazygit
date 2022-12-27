@@ -16,7 +16,7 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("branch-one").
 			NewBranch("branch-two")
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
 			Focus().
 			Lines(

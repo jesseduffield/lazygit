@@ -41,11 +41,7 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 			},
 		}
 	},
-	Run: func(
-		shell *Shell,
-		t *TestDriver,
-		keys config.KeybindingConfig,
-	) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Model().CurrentBranchName("feature/bar")
 		t.Model().WorkingTreeFileCount(0)
 

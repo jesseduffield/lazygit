@@ -18,7 +18,7 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateFileAndAdd("file-2", "change to stash2").
 			StashWithMessage("bar")
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Stash().
 			Focus().
 			Lines(

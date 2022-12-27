@@ -14,11 +14,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateNCommits(10)
 	},
 	SetupConfig: func(cfg *config.AppConfig) {},
-	Run: func(
-		shell *Shell,
-		t *TestDriver,
-		keys config.KeybindingConfig,
-	) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		markCommitAsBad := func() {
 			t.Views().Commits().
 				Press(keys.Commits.ViewBisectOptions)

@@ -16,7 +16,7 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			EmptyCommit("commit 2").
 			EmptyCommit("commit 3")
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Model().CommitCount(3)
 
 		t.Views().Commits().

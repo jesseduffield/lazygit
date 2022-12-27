@@ -20,7 +20,7 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("other-new-branch-2").
 			NewBranch("other-new-branch-3")
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
 			Focus().
 			Press(keys.Branches.CheckoutBranchByName)

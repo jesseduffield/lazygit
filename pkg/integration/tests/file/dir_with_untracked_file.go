@@ -21,7 +21,7 @@ var DirWithUntrackedFile = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("dir/untracked", "bar")
 		shell.UpdateFile("dir/file", "baz")
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Model().CommitCount(1)
 
 		t.Views().Main().

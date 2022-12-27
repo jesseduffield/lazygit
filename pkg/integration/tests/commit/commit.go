@@ -14,7 +14,7 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("myfile", "myfile content")
 		shell.CreateFile("myfile2", "myfile2 content")
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Model().CommitCount(0)
 
 		t.Views().Files().

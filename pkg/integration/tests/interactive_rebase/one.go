@@ -14,7 +14,7 @@ var One = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.
 			CreateNCommits(5) // these will appears at commit 05, 04, 04, down to 01
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
 			Lines(

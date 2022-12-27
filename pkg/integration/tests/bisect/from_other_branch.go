@@ -18,11 +18,7 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			RunCommand("git bisect start other~2 other~5")
 	},
 	SetupConfig: func(cfg *config.AppConfig) {},
-	Run: func(
-		shell *Shell,
-		t *TestDriver,
-		keys config.KeybindingConfig,
-	) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Information().Content(Contains("bisecting"))
 
 		t.Model().AtLeastOneCommit()

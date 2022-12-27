@@ -13,7 +13,7 @@ var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{
 		config.UserConfig.ConfirmOnQuit = true
 	},
 	SetupRepo: func(shell *Shell) {},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Model().CommitCount(0)
 
 		t.Views().Files().

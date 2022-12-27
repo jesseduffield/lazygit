@@ -20,7 +20,7 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Checkout("current-branch")
 		shell.EmptyCommit("current-branch commit")
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().Lines(
 			Contains("current-branch commit"),
 			Contains("root commit"),

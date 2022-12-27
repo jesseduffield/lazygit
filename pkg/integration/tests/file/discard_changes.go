@@ -71,7 +71,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.RunShellCommand(`echo "renamed\nhaha" > renamed2.txt && git add renamed2.txt`)
 	},
 
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Model().CommitCount(3)
 
 		type statusFile struct {

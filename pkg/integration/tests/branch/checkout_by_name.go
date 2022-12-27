@@ -17,7 +17,7 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 			Checkout("master").
 			EmptyCommit("blah")
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
 			Focus().
 			Lines(

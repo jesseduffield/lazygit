@@ -18,7 +18,7 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.UpdateFileAndAdd("file1", "first line\nsecond line\nthird line\n")
 		shell.Commit("third commit")
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
 			Lines(

@@ -15,7 +15,7 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("file", "content")
 		shell.GitAddAll()
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Model().StashCount(0)
 		t.Model().WorkingTreeFileCount(1)
 

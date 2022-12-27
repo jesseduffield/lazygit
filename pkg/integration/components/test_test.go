@@ -63,7 +63,7 @@ func (self *fakeGuiDriver) View(viewName string) *gocui.View {
 func TestAssertionFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
-		Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		Run: func(t *TestDriver, keys config.KeybindingConfig) {
 			t.press("a")
 			t.press("b")
 			t.Model().CommitCount(2)
@@ -78,7 +78,7 @@ func TestAssertionFailure(t *testing.T) {
 func TestManualFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
-		Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		Run: func(t *TestDriver, keys config.KeybindingConfig) {
 			t.Fail("blah")
 		},
 	})
@@ -90,7 +90,7 @@ func TestManualFailure(t *testing.T) {
 func TestSuccess(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
-		Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+		Run: func(t *TestDriver, keys config.KeybindingConfig) {
 			t.press("a")
 			t.press("b")
 			t.Model().CommitCount(0)

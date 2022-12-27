@@ -16,14 +16,16 @@ type TestDriver struct {
 	keys         config.KeybindingConfig
 	pushKeyDelay int
 	*assertionHelper
+	shell *Shell
 }
 
-func NewTestController(gui integrationTypes.GuiDriver, keys config.KeybindingConfig, pushKeyDelay int) *TestDriver {
+func NewTestDriver(gui integrationTypes.GuiDriver, shell *Shell, keys config.KeybindingConfig, pushKeyDelay int) *TestDriver {
 	return &TestDriver{
 		gui:             gui,
 		keys:            keys,
 		pushKeyDelay:    pushKeyDelay,
 		assertionHelper: &assertionHelper{gui: gui},
+		shell:           shell,
 	}
 }
 
@@ -65,6 +67,11 @@ func (self *TestDriver) LogUI(message string) {
 
 func (self *TestDriver) Log(message string) {
 	self.gui.LogUI(message)
+}
+
+// allows the user to run shell commands during the test to emulate background activity
+func (self *TestDriver) Shell() *Shell {
+	return self.shell
 }
 
 // this will look for a list item in the current panel and if it finds it, it will

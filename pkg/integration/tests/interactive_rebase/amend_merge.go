@@ -27,7 +27,7 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			Merge("feature-branch").
 			CreateFileAndAdd(postMergeFilename, postMergeFileContent)
 	},
-	Run: func(shell *Shell, t *TestDriver, keys config.KeybindingConfig) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Model().CommitCount(3)
 
 		mergeCommitMessage := "Merge branch 'feature-branch' into development-branch"
