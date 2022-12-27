@@ -11,18 +11,20 @@ import (
 )
 
 type Input struct {
-	gui          integrationTypes.GuiDriver
-	keys         config.KeybindingConfig
-	assert       *Assert
+	gui    integrationTypes.GuiDriver
+	keys   config.KeybindingConfig
+	assert *Assert
+	*assertionHelper
 	pushKeyDelay int
 }
 
 func NewInput(gui integrationTypes.GuiDriver, keys config.KeybindingConfig, assert *Assert, pushKeyDelay int) *Input {
 	return &Input{
-		gui:          gui,
-		keys:         keys,
-		assert:       assert,
-		pushKeyDelay: pushKeyDelay,
+		gui:             gui,
+		keys:            keys,
+		assert:          assert,
+		pushKeyDelay:    pushKeyDelay,
+		assertionHelper: assert.assertionHelper,
 	}
 }
 
@@ -42,7 +44,7 @@ func (self *Input) press(keyStr string) {
 
 func (self *Input) SwitchToStatusWindow() {
 	self.press(self.keys.Universal.JumpToBlock[0])
-	self.assert.CurrentWindowName("status")
+	self.currentWindowName("status")
 }
 
 // switch to status window and assert that the status view is on top
@@ -53,7 +55,7 @@ func (self *Input) SwitchToStatusView() {
 
 func (self *Input) SwitchToFilesWindow() {
 	self.press(self.keys.Universal.JumpToBlock[1])
-	self.assert.CurrentWindowName("files")
+	self.currentWindowName("files")
 }
 
 // switch to files window and assert that the files view is on top
@@ -64,7 +66,7 @@ func (self *Input) SwitchToFilesView() {
 
 func (self *Input) SwitchToBranchesWindow() {
 	self.press(self.keys.Universal.JumpToBlock[2])
-	self.assert.CurrentWindowName("localBranches")
+	self.currentWindowName("localBranches")
 }
 
 // switch to branches window and assert that the branches view is on top
@@ -75,7 +77,7 @@ func (self *Input) SwitchToBranchesView() {
 
 func (self *Input) SwitchToCommitsWindow() {
 	self.press(self.keys.Universal.JumpToBlock[3])
-	self.assert.CurrentWindowName("commits")
+	self.currentWindowName("commits")
 }
 
 // switch to commits window and assert that the commits view is on top
@@ -86,7 +88,7 @@ func (self *Input) SwitchToCommitsView() {
 
 func (self *Input) SwitchToStashWindow() {
 	self.press(self.keys.Universal.JumpToBlock[4])
-	self.assert.CurrentWindowName("stash")
+	self.currentWindowName("stash")
 }
 
 // switch to stash window and assert that the stash view is on top
@@ -166,7 +168,7 @@ func (self *Input) Log(message string) {
 // in the current page and failing that, jump to the top of the view and iterate through all of it,
 // looking for the item.
 func (self *Input) NavigateToListItem(matcher *matcher) {
-	self.assert.InListContext()
+	self.inListContext()
 
 	currentContext := self.gui.CurrentContext().(types.IListContext)
 
@@ -215,32 +217,82 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 	}
 }
 
+func (self *Input) inListContext() {
+	self.assertWithRetries(func() (bool, string) {
+		currentContext := self.gui.CurrentContext()
+		_, ok := currentContext.(types.IListContext)
+		return ok, fmt.Sprintf("Expected current context to be a list context, but got %s", currentContext.GetKey())
+	})
+}
+
 func (self *Input) Confirmation() *ConfirmationAsserter {
-	self.assert.InConfirm()
+	self.inConfirm()
 
 	return &ConfirmationAsserter{assert: self.assert, input: self}
 }
 
+func (self *Input) inConfirm() {
+	self.assertWithRetries(func() (bool, string) {
+		currentView := self.gui.CurrentContext().GetView()
+		return currentView.Name() == "confirmation" && !currentView.Editable, "Expected confirmation popup to be focused"
+	})
+}
+
 func (self *Input) Prompt() *PromptAsserter {
-	self.assert.InPrompt()
+	self.inPrompt()
 
 	return &PromptAsserter{assert: self.assert, input: self}
 }
 
+func (self *Input) inPrompt() {
+	self.assertWithRetries(func() (bool, string) {
+		currentView := self.gui.CurrentContext().GetView()
+		return currentView.Name() == "confirmation" && currentView.Editable, "Expected prompt popup to be focused"
+	})
+}
+
 func (self *Input) Alert() *AlertAsserter {
-	self.assert.InAlert()
+	self.inAlert()
 
 	return &AlertAsserter{assert: self.assert, input: self}
 }
 
+func (self *Input) inAlert() {
+	// basically the same thing as a confirmation popup with the current implementation
+	self.assertWithRetries(func() (bool, string) {
+		currentView := self.gui.CurrentContext().GetView()
+		return currentView.Name() == "confirmation" && !currentView.Editable, "Expected alert popup to be focused"
+	})
+}
+
 func (self *Input) Menu() *MenuAsserter {
-	self.assert.InMenu()
+	self.inMenu()
 
 	return &MenuAsserter{assert: self.assert, input: self}
 }
 
+func (self *Input) inMenu() {
+	self.assertWithRetries(func() (bool, string) {
+		return self.gui.CurrentContext().GetView().Name() == "menu", "Expected popup menu to be focused"
+	})
+}
+
 func (self *Input) CommitMessagePanel() *CommitMessagePanelAsserter {
-	self.assert.InCommitMessagePanel()
+	self.inCommitMessagePanel()
 
 	return &CommitMessagePanelAsserter{assert: self.assert, input: self}
+}
+
+func (self *Input) inCommitMessagePanel() {
+	self.assertWithRetries(func() (bool, string) {
+		currentView := self.gui.CurrentContext().GetView()
+		return currentView.Name() == "commitMessage", "Expected commit message panel to be focused"
+	})
+}
+
+func (self *Input) currentWindowName(expectedWindowName string) {
+	self.assertWithRetries(func() (bool, string) {
+		actual := self.gui.CurrentContext().GetView().Name()
+		return actual == expectedWindowName, fmt.Sprintf("Expected current window name to be '%s', but got '%s'", expectedWindowName, actual)
+	})
 }

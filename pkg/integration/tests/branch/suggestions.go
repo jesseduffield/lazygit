@@ -34,6 +34,6 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectFirstSuggestion().
 			Confirm()
 
-		assert.CurrentBranchName("branch-to-checkout")
+		assert.Model().CurrentBranchName("branch-to-checkout")
 	},
 })

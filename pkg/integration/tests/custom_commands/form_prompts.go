@@ -61,7 +61,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		assert.WorkingTreeFileCount(0)
+		assert.Model().WorkingTreeFileCount(0)
 
 		input.Press("a")
 
@@ -74,7 +74,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Equals("Are you REALLY sure you want to make this file? Up to you buddy.")).
 			Confirm()
 
-		assert.WorkingTreeFileCount(1)
+		assert.Model().WorkingTreeFileCount(1)
 		assert.Views().Current().SelectedLine(Contains("my file"))
 		assert.Views().Main().Content(Contains(`"BAR"`))
 	},

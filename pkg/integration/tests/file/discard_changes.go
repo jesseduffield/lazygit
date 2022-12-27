@@ -72,7 +72,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(3)
+		assert.Model().CommitCount(3)
 
 		type statusFile struct {
 			status    string
@@ -118,6 +118,6 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "??", label: "new.txt", menuTitle: "new.txt"},
 		})
 
-		assert.WorkingTreeFileCount(0)
+		assert.Model().WorkingTreeFileCount(0)
 	},
 })

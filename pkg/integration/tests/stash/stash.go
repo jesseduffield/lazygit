@@ -16,8 +16,8 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.GitAddAll()
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.StashCount(0)
-		assert.WorkingTreeFileCount(1)
+		assert.Model().StashCount(0)
+		assert.Model().WorkingTreeFileCount(1)
 
 		input.Press(keys.Files.ViewStashOptions)
 
@@ -25,7 +25,7 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Prompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
 
-		assert.StashCount(1)
-		assert.WorkingTreeFileCount(0)
+		assert.Model().StashCount(1)
+		assert.Model().WorkingTreeFileCount(0)
 	},
 })

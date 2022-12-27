@@ -70,7 +70,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		assert.Views().Current().Name("files")
-		assert.WorkingTreeFileCount(0)
+		assert.Model().WorkingTreeFileCount(0)
 
 		input.SwitchToCommitsView()
 

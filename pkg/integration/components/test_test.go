@@ -66,7 +66,7 @@ func TestAssertionFailure(t *testing.T) {
 		Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 			input.Press("a")
 			input.Press("b")
-			assert.CommitCount(2)
+			assert.Model().CommitCount(2)
 		},
 	})
 	driver := &fakeGuiDriver{}
@@ -93,7 +93,7 @@ func TestSuccess(t *testing.T) {
 		Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 			input.Press("a")
 			input.Press("b")
-			assert.CommitCount(0)
+			assert.Model().CommitCount(0)
 		},
 	})
 	driver := &fakeGuiDriver{}

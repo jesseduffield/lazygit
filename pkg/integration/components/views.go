@@ -6,7 +6,7 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
-type ViewAsserter struct {
+type Views struct {
 	// context is prepended to any error messages e.g. 'context: "current view"'
 	context string
 	getView func() *gocui.View
@@ -15,7 +15,7 @@ type ViewAsserter struct {
 
 // asserts that the view has the expected name. This is typically used in tandem with the CurrentView method i.e.;
 // assert.CurrentView().Name("commits") to assert that the current view is the commits view.
-func (self *ViewAsserter) Name(expected string) *ViewAsserter {
+func (self *Views) Name(expected string) *Views {
 	self.assert.assertWithRetries(func() (bool, string) {
 		actual := self.getView().Name()
 		return actual == expected, fmt.Sprintf("%s: Expected view name to be '%s', but got '%s'", self.context, expected, actual)
@@ -25,7 +25,7 @@ func (self *ViewAsserter) Name(expected string) *ViewAsserter {
 }
 
 // asserts that the view has the expected title
-func (self *ViewAsserter) Title(expected *matcher) *ViewAsserter {
+func (self *Views) Title(expected *matcher) *Views {
 	self.assert.assertWithRetries(func() (bool, string) {
 		actual := self.getView().Title
 		return expected.context(fmt.Sprintf("%s title", self.context)).test(actual)
@@ -38,7 +38,7 @@ func (self *ViewAsserter) Title(expected *matcher) *ViewAsserter {
 // are passed, we only check the first three lines of the view.
 // This method is convenient when you have a list of commits but you only want to
 // assert on the first couple of commits.
-func (self *ViewAsserter) TopLines(matchers ...*matcher) *ViewAsserter {
+func (self *Views) TopLines(matchers ...*matcher) *Views {
 	self.assert.assertWithRetries(func() (bool, string) {
 		lines := self.getView().BufferLines()
 		return len(lines) >= len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected at least %d, got %d", len(matchers), len(lines))
@@ -49,7 +49,7 @@ func (self *ViewAsserter) TopLines(matchers ...*matcher) *ViewAsserter {
 
 // asserts that the view has lines matching the given matchers. One matcher must be passed for each line.
 // If you only care about the top n lines, use the TopLines method instead.
-func (self *ViewAsserter) Lines(matchers ...*matcher) *ViewAsserter {
+func (self *Views) Lines(matchers ...*matcher) *Views {
 	self.assert.assertWithRetries(func() (bool, string) {
 		lines := self.getView().BufferLines()
 		return len(lines) == len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected %d, got %d", len(matchers), len(lines))
@@ -58,7 +58,7 @@ func (self *ViewAsserter) Lines(matchers ...*matcher) *ViewAsserter {
 	return self.assertLines(matchers...)
 }
 
-func (self *ViewAsserter) assertLines(matchers ...*matcher) *ViewAsserter {
+func (self *Views) assertLines(matchers ...*matcher) *Views {
 	view := self.getView()
 
 	for i, matcher := range matchers {
@@ -82,7 +82,7 @@ func (self *ViewAsserter) assertLines(matchers ...*matcher) *ViewAsserter {
 }
 
 // asserts on the content of the view i.e. the stuff within the view's frame.
-func (self *ViewAsserter) Content(matcher *matcher) *ViewAsserter {
+func (self *Views) Content(matcher *matcher) *Views {
 	self.assert.matchString(matcher, fmt.Sprintf("%s: Unexpected content.", self.context),
 		func() string {
 			return self.getView().Buffer()
@@ -93,7 +93,7 @@ func (self *ViewAsserter) Content(matcher *matcher) *ViewAsserter {
 }
 
 // asserts on the selected line of the view
-func (self *ViewAsserter) SelectedLine(matcher *matcher) *ViewAsserter {
+func (self *Views) SelectedLine(matcher *matcher) *Views {
 	self.assert.matchString(matcher, fmt.Sprintf("%s: Unexpected selected line.", self.context),
 		func() string {
 			return self.getView().SelectedLine()
@@ -104,11 +104,47 @@ func (self *ViewAsserter) SelectedLine(matcher *matcher) *ViewAsserter {
 }
 
 // asserts on the index of the selected line. 0 is the first index, representing the line at the top of the view.
-func (self *ViewAsserter) SelectedLineIdx(expected int) *ViewAsserter {
+func (self *Views) SelectedLineIdx(expected int) *Views {
 	self.assert.assertWithRetries(func() (bool, string) {
 		actual := self.getView().SelectedLineIdx()
 		return expected == actual, fmt.Sprintf("%s: Expected selected line index to be %d, got %d", self.context, expected, actual)
 	})
 
 	return self
+}
+
+type ViewAsserterGetter struct {
+	assert *Assert
+}
+
+func (self *ViewAsserterGetter) Current() *Views {
+	return &Views{
+		context: "current view",
+		getView: func() *gocui.View { return self.assert.gui.CurrentContext().GetView() },
+		assert:  self.assert,
+	}
+}
+
+func (self *ViewAsserterGetter) Main() *Views {
+	return &Views{
+		context: "main view",
+		getView: func() *gocui.View { return self.assert.gui.MainView() },
+		assert:  self.assert,
+	}
+}
+
+func (self *ViewAsserterGetter) Secondary() *Views {
+	return &Views{
+		context: "secondary view",
+		getView: func() *gocui.View { return self.assert.gui.SecondaryView() },
+		assert:  self.assert,
+	}
+}
+
+func (self *ViewAsserterGetter) ByName(viewName string) *Views {
+	return &Views{
+		context: fmt.Sprintf("%s view", viewName),
+		getView: func() *gocui.View { return self.assert.gui.View(viewName) },
+		assert:  self.assert,
+	}
 }

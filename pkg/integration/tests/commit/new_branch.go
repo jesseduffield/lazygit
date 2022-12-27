@@ -17,7 +17,7 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			EmptyCommit("commit 3")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(3)
+		assert.Model().CommitCount(3)
 
 		input.SwitchToCommitsView()
 		assert.Views().Current().Lines(
@@ -32,7 +32,7 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		branchName := "my-branch-name"
 		input.Prompt().Title(Equals("New Branch Name")).Type(branchName).Confirm()
 
-		assert.CurrentBranchName(branchName)
+		assert.Model().CurrentBranchName(branchName)
 
 		assert.Views().ByName("commits").Lines(
 			Contains("commit 2"),

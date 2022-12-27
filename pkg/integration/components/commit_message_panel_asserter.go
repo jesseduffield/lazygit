@@ -5,7 +5,7 @@ type CommitMessagePanelAsserter struct {
 	input  *Input
 }
 
-func (self *CommitMessagePanelAsserter) getViewAsserter() *ViewAsserter {
+func (self *CommitMessagePanelAsserter) getViewAsserter() *Views {
 	return self.assert.Views().ByName("commitMessage")
 }
 

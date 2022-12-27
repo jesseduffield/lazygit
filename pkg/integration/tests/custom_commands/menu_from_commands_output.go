@@ -47,21 +47,20 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		assert.CurrentBranchName("feature/bar")
+		assert.Model().CurrentBranchName("feature/bar")
 
-		assert.WorkingTreeFileCount(0)
+		assert.Model().WorkingTreeFileCount(0)
 		input.SwitchToBranchesView()
 
 		input.Press("a")
 
-		assert.InPrompt()
-		assert.Views().Current().
+		input.Prompt().
 			Title(Equals("Which git command do you want to run?")).
-			SelectedLine(Equals("branch"))
-		input.Confirm()
+			InitialText(Equals("branch")).
+			Confirm()
 
 		input.Menu().Title(Equals("Branch:")).Select(Equals("master")).Confirm()
 
-		assert.CurrentBranchName("master")
+		assert.Model().CurrentBranchName("master")
 	},
 })

@@ -30,7 +30,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 			input.Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 		}
 
-		assert.AtLeastOneCommit()
+		assert.Model().AtLeastOneCommit()
 
 		input.SwitchToCommitsView()
 

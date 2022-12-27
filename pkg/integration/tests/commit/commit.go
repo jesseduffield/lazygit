@@ -15,7 +15,7 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("myfile2", "myfile2 content")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(0)
+		assert.Model().CommitCount(0)
 
 		input.PrimaryAction()
 		input.NextItem()
@@ -26,7 +26,7 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.CommitMessagePanel().Type(commitMessage).Confirm()
 
-		assert.CommitCount(1)
-		assert.HeadCommitMessage(Equals(commitMessage))
+		assert.Model().CommitCount(1)
+		assert.Model().HeadCommitMessage(Equals(commitMessage))
 	},
 })

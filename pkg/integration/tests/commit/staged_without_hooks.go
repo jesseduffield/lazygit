@@ -16,7 +16,7 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateFile("myfile2", "myfile2 content")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(0)
+		assert.Model().CommitCount(0)
 
 		// stage the file
 		assert.Views().Current().Name("files")
@@ -44,8 +44,8 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 		commitMessage := ": my commit message"
 		input.CommitMessagePanel().InitialText(Contains("WIP")).Type(commitMessage).Confirm()
 
-		assert.CommitCount(1)
-		assert.HeadCommitMessage(Equals("WIP" + commitMessage))
+		assert.Model().CommitCount(1)
+		assert.Model().HeadCommitMessage(Equals("WIP" + commitMessage))
 		assert.Views().Current().Name("stagingSecondary")
 
 		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)

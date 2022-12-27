@@ -18,7 +18,7 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateFile("myfile2", "myfile2 content")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(0)
+		assert.Model().CommitCount(0)
 
 		assert.Views().Current().Name("files").SelectedLine(Contains("myfile"))
 		input.Enter()
@@ -34,9 +34,9 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 		commitMessage := "my commit message"
 		input.CommitMessagePanel().Type(commitMessage).Confirm()
 
-		assert.CommitCount(1)
-		assert.HeadCommitMessage(Equals(commitMessage))
-		assert.CurrentWindowName("staging")
+		assert.Model().CommitCount(1)
+		assert.Model().HeadCommitMessage(Equals(commitMessage))
+		assert.Views().Current().Name("staging")
 
 		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
 	},

@@ -22,6 +22,6 @@ var RemoteNamedStar = NewIntegrationTest(NewIntegrationTestArgs{
 		keys config.KeybindingConfig,
 	) {
 		// here we're just asserting that we haven't panicked upon starting lazygit
-		assert.AtLeastOneCommit()
+		assert.Model().AtLeastOneCommit()
 	},
 })

@@ -27,7 +27,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		assert.WorkingTreeFileCount(0)
+		assert.Model().WorkingTreeFileCount(0)
 
 		input.Press("a")
 

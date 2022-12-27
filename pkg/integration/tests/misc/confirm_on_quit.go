@@ -14,7 +14,7 @@ var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	SetupRepo: func(shell *Shell) {},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(0)
+		assert.Model().CommitCount(0)
 
 		input.Press(keys.Universal.Quit)
 		input.Confirmation().

@@ -28,12 +28,12 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateFileAndAdd(postMergeFilename, postMergeFileContent)
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(3)
+		assert.Model().CommitCount(3)
 
 		input.SwitchToCommitsView()
 
 		mergeCommitMessage := "Merge branch 'feature-branch' into development-branch"
-		assert.HeadCommitMessage(Contains(mergeCommitMessage))
+		assert.Model().HeadCommitMessage(Contains(mergeCommitMessage))
 
 		input.Press(keys.Commits.AmendToCommit)
 		input.Confirmation().
@@ -42,8 +42,8 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		// assuring we haven't added a brand new commit
-		assert.CommitCount(3)
-		assert.HeadCommitMessage(Contains(mergeCommitMessage))
+		assert.Model().CommitCount(3)
+		assert.Model().HeadCommitMessage(Contains(mergeCommitMessage))
 
 		// assuring the post-merge file shows up in the merge commit.
 		assert.Views().Main().

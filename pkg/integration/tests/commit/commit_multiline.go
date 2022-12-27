@@ -14,15 +14,15 @@ var CommitMultiline = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("myfile", "myfile content")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(0)
+		assert.Model().CommitCount(0)
 
 		input.PrimaryAction()
 		input.Press(keys.Files.CommitChanges)
 
 		input.CommitMessagePanel().Type("first line").AddNewline().AddNewline().Type("third line").Confirm()
 
-		assert.CommitCount(1)
-		assert.HeadCommitMessage(Equals("first line"))
+		assert.Model().CommitCount(1)
+		assert.Model().HeadCommitMessage(Equals("first line"))
 
 		input.SwitchToCommitsView()
 		assert.Views().Main().Content(MatchesRegexp("first line\n\\s*\n\\s*third line"))

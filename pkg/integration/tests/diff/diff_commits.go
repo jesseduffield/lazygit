@@ -30,8 +30,6 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 		input.Press(keys.Universal.DiffingMenu)
 		input.Menu().Title(Equals("Diffing")).Select(MatchesRegexp(`diff \w+`)).Confirm()
 
-		assert.NotInPopup()
-
 		assert.Views().ByName("information").Content(Contains("showing output for: git diff"))
 
 		input.NextItem()
@@ -42,7 +40,6 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Press(keys.Universal.DiffingMenu)
 		input.Menu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
-		assert.NotInPopup()
 
 		assert.Views().Main().Content(Contains("+second line\n+third line"))
 

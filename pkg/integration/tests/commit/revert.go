@@ -16,7 +16,7 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Commit("first commit")
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(1)
+		assert.Model().CommitCount(1)
 
 		input.SwitchToCommitsView()
 
@@ -37,6 +37,6 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 			)
 
 		assert.Views().Main().Content(Contains("-myfile content"))
-		assert.FileSystemPathNotPresent("myfile")
+		assert.FileSystem().PathNotPresent("myfile")
 	},
 })

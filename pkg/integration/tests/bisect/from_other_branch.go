@@ -26,7 +26,7 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	) {
 		assert.Views().ByName("information").Content(Contains("bisecting"))
 
-		assert.AtLeastOneCommit()
+		assert.Model().AtLeastOneCommit()
 
 		input.SwitchToCommitsView()
 
