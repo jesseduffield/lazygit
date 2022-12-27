@@ -19,12 +19,7 @@ var CommitMultiline = NewIntegrationTest(NewIntegrationTestArgs{
 		input.PrimaryAction()
 		input.Press(keys.Files.CommitChanges)
 
-		assert.InCommitMessagePanel()
-		input.Type("first line")
-		input.Press(keys.Universal.AppendNewline)
-		input.Press(keys.Universal.AppendNewline)
-		input.Type("third line")
-		input.Confirm()
+		input.CommitMessagePanel().Type("first line").AddNewline().AddNewline().Type("third line").Confirm()
 
 		assert.CommitCount(1)
 		assert.HeadCommitMessage(Equals("first line"))

@@ -40,11 +40,9 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.View("staging").Content(Contains("+myfile content").DoesNotContain("+with a second line"))
 
 		input.Press(keys.Files.CommitChangesWithoutHook)
-		assert.InCommitMessagePanel()
-		assert.CurrentView().Content(Contains("WIP"))
+
 		commitMessage := ": my commit message"
-		input.Type(commitMessage)
-		input.Confirm()
+		input.CommitMessagePanel().InitialText(Contains("WIP")).Type(commitMessage).Confirm()
 
 		assert.CommitCount(1)
 		assert.HeadCommitMessage(Equals("WIP" + commitMessage))

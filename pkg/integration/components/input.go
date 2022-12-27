@@ -238,3 +238,9 @@ func (self *Input) Menu() *MenuAsserter {
 
 	return &MenuAsserter{assert: self.assert, input: self}
 }
+
+func (self *Input) CommitMessagePanel() *CommitMessagePanelAsserter {
+	self.assert.InCommitMessagePanel()
+
+	return &CommitMessagePanelAsserter{assert: self.assert, input: self}
+}
