@@ -19,7 +19,7 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesView()
 
-		assert.CurrentView().Lines(
+		assert.Views().Current().Lines(
 			MatchesRegexp(`\*.*branch-two`),
 			MatchesRegexp(`branch-one`),
 			MatchesRegexp(`master`),
@@ -36,7 +36,7 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Contains("Are you sure you want to delete the branch 'branch-one'?")).
 			Confirm()
 
-		assert.CurrentView().Name("localBranches").
+		assert.Views().Current().Name("localBranches").
 			Lines(
 				MatchesRegexp(`\*.*branch-two`),
 				MatchesRegexp(`master`).IsSelected(),

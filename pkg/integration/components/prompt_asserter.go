@@ -7,7 +7,7 @@ type PromptAsserter struct {
 }
 
 func (self *PromptAsserter) getViewAsserter() *ViewAsserter {
-	return self.assert.View("confirmation")
+	return self.assert.Views().ByName("confirmation")
 }
 
 // asserts that the popup has the expected title
@@ -55,27 +55,27 @@ func (self *PromptAsserter) checkNecessaryChecksCompleted() {
 }
 
 func (self *PromptAsserter) SuggestionLines(matchers ...*matcher) *PromptAsserter {
-	self.assert.View("suggestions").Lines(matchers...)
+	self.assert.Views().ByName("suggestions").Lines(matchers...)
 
 	return self
 }
 
 func (self *PromptAsserter) SuggestionTopLines(matchers ...*matcher) *PromptAsserter {
-	self.assert.View("suggestions").TopLines(matchers...)
+	self.assert.Views().ByName("suggestions").TopLines(matchers...)
 
 	return self
 }
 
 func (self *PromptAsserter) SelectFirstSuggestion() *PromptAsserter {
 	self.input.Press(self.input.keys.Universal.TogglePanel)
-	self.assert.CurrentView().Name("suggestions")
+	self.assert.Views().Current().Name("suggestions")
 
 	return self
 }
 
 func (self *PromptAsserter) SelectSuggestion(matcher *matcher) *PromptAsserter {
 	self.input.Press(self.input.keys.Universal.TogglePanel)
-	self.assert.CurrentView().Name("suggestions")
+	self.assert.Views().Current().Name("suggestions")
 
 	self.input.NavigateToListItem(matcher)
 

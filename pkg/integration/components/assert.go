@@ -182,34 +182,44 @@ func (self *Assert) FileSystemPathNotPresent(path string) {
 	})
 }
 
-func (self *Assert) CurrentView() *ViewAsserter {
+func (self *Assert) Views() *ViewAsserterGetter {
+	return &ViewAsserterGetter{
+		assert: self,
+	}
+}
+
+type ViewAsserterGetter struct {
+	assert *Assert
+}
+
+func (self *ViewAsserterGetter) Current() *ViewAsserter {
 	return &ViewAsserter{
 		context: "current view",
-		getView: func() *gocui.View { return self.gui.CurrentContext().GetView() },
-		assert:  self,
+		getView: func() *gocui.View { return self.assert.gui.CurrentContext().GetView() },
+		assert:  self.assert,
 	}
 }
 
-func (self *Assert) View(viewName string) *ViewAsserter {
-	return &ViewAsserter{
-		context: fmt.Sprintf("%s view", viewName),
-		getView: func() *gocui.View { return self.gui.View(viewName) },
-		assert:  self,
-	}
-}
-
-func (self *Assert) MainView() *ViewAsserter {
+func (self *ViewAsserterGetter) Main() *ViewAsserter {
 	return &ViewAsserter{
 		context: "main view",
-		getView: func() *gocui.View { return self.gui.MainView() },
-		assert:  self,
+		getView: func() *gocui.View { return self.assert.gui.MainView() },
+		assert:  self.assert,
 	}
 }
 
-func (self *Assert) SecondaryView() *ViewAsserter {
+func (self *ViewAsserterGetter) Secondary() *ViewAsserter {
 	return &ViewAsserter{
 		context: "secondary view",
-		getView: func() *gocui.View { return self.gui.SecondaryView() },
-		assert:  self,
+		getView: func() *gocui.View { return self.assert.gui.SecondaryView() },
+		assert:  self.assert,
+	}
+}
+
+func (self *ViewAsserterGetter) ByName(viewName string) *ViewAsserter {
+	return &ViewAsserter{
+		context: fmt.Sprintf("%s view", viewName),
+		getView: func() *gocui.View { return self.assert.gui.View(viewName) },
+		assert:  self.assert,
 	}
 }

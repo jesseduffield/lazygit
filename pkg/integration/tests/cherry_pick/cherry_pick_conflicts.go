@@ -16,7 +16,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesView()
-		assert.CurrentView().Lines(
+		assert.Views().Current().Lines(
 			Contains("first-change-branch"),
 			Contains("second-change-branch"),
 			Contains("original-branch"),
@@ -26,21 +26,21 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Enter()
 
-		assert.CurrentView().Name("subCommits").TopLines(
+		assert.Views().Current().Name("subCommits").TopLines(
 			Contains("second-change-branch unrelated change"),
 			Contains("second change"),
 		)
 
 		input.Press(keys.Commits.CherryPickCopy)
-		assert.View("information").Content(Contains("1 commit copied"))
+		assert.Views().ByName("information").Content(Contains("1 commit copied"))
 
 		input.NextItem()
 		input.Press(keys.Commits.CherryPickCopy)
-		assert.View("information").Content(Contains("2 commits copied"))
+		assert.Views().ByName("information").Content(Contains("2 commits copied"))
 
 		input.SwitchToCommitsView()
 
-		assert.CurrentView().TopLines(
+		assert.Views().Current().TopLines(
 			Contains("first change"),
 		)
 
@@ -52,14 +52,14 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Contains("Conflicts!")).
 			Confirm()
 
-		assert.CurrentView().Name("files")
-		assert.CurrentView().SelectedLine(Contains("file"))
+		assert.Views().Current().Name("files")
+		assert.Views().Current().SelectedLine(Contains("file"))
 
 		// not using Confirm() convenience method because I suspect we might change this
 		// keybinding to something more bespoke
 		input.Press(keys.Universal.Confirm)
 
-		assert.CurrentView().Name("mergeConflicts")
+		assert.Views().Current().Name("mergeConflicts")
 		// picking 'Second change'
 		input.NextItem()
 		input.PrimaryAction()
@@ -69,12 +69,12 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Contains("all merge conflicts resolved. Continue?")).
 			Confirm()
 
-		assert.CurrentView().Name("files")
+		assert.Views().Current().Name("files")
 		assert.WorkingTreeFileCount(0)
 
 		input.SwitchToCommitsView()
 
-		assert.CurrentView().TopLines(
+		assert.Views().Current().TopLines(
 			Contains("second-change-branch unrelated change"),
 			Contains("second change"),
 			Contains("first change"),
@@ -83,12 +83,12 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 		// because we picked 'Second change' when resolving the conflict,
 		// we now see this commit as having replaced First Change with Second Change,
 		// as opposed to replacing 'Original' with 'Second change'
-		assert.MainView().
+		assert.Views().Main().
 			Content(Contains("-First Change")).
 			Content(Contains("+Second Change"))
 
-		assert.View("information").Content(Contains("2 commits copied"))
+		assert.Views().ByName("information").Content(Contains("2 commits copied"))
 		input.Press(keys.Universal.Return)
-		assert.View("information").Content(DoesNotContain("commits copied"))
+		assert.Views().ByName("information").Content(DoesNotContain("commits copied"))
 	},
 })

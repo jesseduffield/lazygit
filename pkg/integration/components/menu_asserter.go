@@ -7,7 +7,7 @@ type MenuAsserter struct {
 }
 
 func (self *MenuAsserter) getViewAsserter() *ViewAsserter {
-	return self.assert.View("menu")
+	return self.assert.Views().ByName("menu")
 }
 
 // asserts that the popup has the expected title

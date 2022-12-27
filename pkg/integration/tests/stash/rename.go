@@ -21,7 +21,7 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToStashView()
 
-		assert.CurrentView().Lines(
+		assert.Views().Current().Lines(
 			Equals("On master: bar"),
 			Equals("On master: foo"),
 		)
@@ -30,6 +30,6 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Prompt().Title(Equals("Rename stash: stash@{1}")).Type(" baz").Confirm()
 
-		assert.CurrentView().SelectedLine(Equals("On master: foo baz"))
+		assert.Views().Current().SelectedLine(Equals("On master: foo baz"))
 	},
 })

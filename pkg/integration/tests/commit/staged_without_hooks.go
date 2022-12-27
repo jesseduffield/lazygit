@@ -19,16 +19,16 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CommitCount(0)
 
 		// stage the file
-		assert.CurrentView().Name("files")
-		assert.CurrentView().SelectedLine(Contains("myfile"))
+		assert.Views().Current().Name("files")
+		assert.Views().Current().SelectedLine(Contains("myfile"))
 		input.PrimaryAction()
 		input.Enter()
-		assert.CurrentView().Name("stagingSecondary")
+		assert.Views().Current().Name("stagingSecondary")
 		// we start with both lines having been staged
-		assert.View("stagingSecondary").Content(
+		assert.Views().ByName("stagingSecondary").Content(
 			Contains("+myfile content").Contains("+with a second line"),
 		)
-		assert.View("staging").Content(
+		assert.Views().ByName("staging").Content(
 			DoesNotContain("+myfile content").DoesNotContain("+with a second line"),
 		)
 
@@ -36,8 +36,8 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 		input.PrimaryAction()
 
 		// the line should have been moved to the main view
-		assert.View("stagingSecondary").Content(DoesNotContain("+myfile content").Contains("+with a second line"))
-		assert.View("staging").Content(Contains("+myfile content").DoesNotContain("+with a second line"))
+		assert.Views().ByName("stagingSecondary").Content(DoesNotContain("+myfile content").Contains("+with a second line"))
+		assert.Views().ByName("staging").Content(Contains("+myfile content").DoesNotContain("+with a second line"))
 
 		input.Press(keys.Files.CommitChangesWithoutHook)
 
@@ -46,7 +46,7 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assert.CommitCount(1)
 		assert.HeadCommitMessage(Equals("WIP" + commitMessage))
-		assert.CurrentView().Name("stagingSecondary")
+		assert.Views().Current().Name("stagingSecondary")
 
 		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
 	},

@@ -31,7 +31,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Press("a")
 
-		assert.View("files").Lines(
+		assert.Views().ByName("files").Lines(
 			Contains("myfile"),
 		)
 	},

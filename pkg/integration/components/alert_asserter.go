@@ -8,7 +8,7 @@ type AlertAsserter struct {
 }
 
 func (self *AlertAsserter) getViewAsserter() *ViewAsserter {
-	return self.assert.View("confirmation")
+	return self.assert.Views().ByName("confirmation")
 }
 
 // asserts that the alert view has the expected title

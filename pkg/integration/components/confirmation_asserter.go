@@ -8,7 +8,7 @@ type ConfirmationAsserter struct {
 }
 
 func (self *ConfirmationAsserter) getViewAsserter() *ViewAsserter {
-	return self.assert.View("confirmation")
+	return self.assert.Views().ByName("confirmation")
 }
 
 // asserts that the confirmation view has the expected title

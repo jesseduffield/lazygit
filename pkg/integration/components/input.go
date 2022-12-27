@@ -48,7 +48,7 @@ func (self *Input) SwitchToStatusWindow() {
 // switch to status window and assert that the status view is on top
 func (self *Input) SwitchToStatusView() {
 	self.SwitchToStatusWindow()
-	self.assert.CurrentView().Name("status")
+	self.assert.Views().Current().Name("status")
 }
 
 func (self *Input) SwitchToFilesWindow() {
@@ -59,7 +59,7 @@ func (self *Input) SwitchToFilesWindow() {
 // switch to files window and assert that the files view is on top
 func (self *Input) SwitchToFilesView() {
 	self.SwitchToFilesWindow()
-	self.assert.CurrentView().Name("files")
+	self.assert.Views().Current().Name("files")
 }
 
 func (self *Input) SwitchToBranchesWindow() {
@@ -70,7 +70,7 @@ func (self *Input) SwitchToBranchesWindow() {
 // switch to branches window and assert that the branches view is on top
 func (self *Input) SwitchToBranchesView() {
 	self.SwitchToBranchesWindow()
-	self.assert.CurrentView().Name("localBranches")
+	self.assert.Views().Current().Name("localBranches")
 }
 
 func (self *Input) SwitchToCommitsWindow() {
@@ -81,7 +81,7 @@ func (self *Input) SwitchToCommitsWindow() {
 // switch to commits window and assert that the commits view is on top
 func (self *Input) SwitchToCommitsView() {
 	self.SwitchToCommitsWindow()
-	self.assert.CurrentView().Name("commits")
+	self.assert.Views().Current().Name("commits")
 }
 
 func (self *Input) SwitchToStashWindow() {
@@ -92,7 +92,7 @@ func (self *Input) SwitchToStashWindow() {
 // switch to stash window and assert that the stash view is on top
 func (self *Input) SwitchToStashView() {
 	self.SwitchToStashWindow()
-	self.assert.CurrentView().Name("stash")
+	self.assert.Views().Current().Name("stash")
 }
 
 func (self *Input) Type(content string) {
@@ -133,7 +133,7 @@ func (self *Input) PreviousItem() {
 
 func (self *Input) ContinueMerge() {
 	self.Press(self.keys.Universal.CreateRebaseOptionsMenu)
-	self.assert.CurrentView().SelectedLine(Contains("continue"))
+	self.assert.Views().Current().SelectedLine(Contains("continue"))
 	self.Confirm()
 }
 
@@ -197,20 +197,20 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 
 	selectedLineIdx := view.SelectedLineIdx()
 	if selectedLineIdx == matchIndex {
-		self.assert.CurrentView().SelectedLine(matcher)
+		self.assert.Views().Current().SelectedLine(matcher)
 		return
 	}
 	if selectedLineIdx < matchIndex {
 		for i := selectedLineIdx; i < matchIndex; i++ {
 			self.NextItem()
 		}
-		self.assert.CurrentView().SelectedLine(matcher)
+		self.assert.Views().Current().SelectedLine(matcher)
 		return
 	} else {
 		for i := selectedLineIdx; i > matchIndex; i-- {
 			self.PreviousItem()
 		}
-		self.assert.CurrentView().SelectedLine(matcher)
+		self.assert.Views().Current().SelectedLine(matcher)
 		return
 	}
 }

@@ -75,7 +75,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		assert.WorkingTreeFileCount(1)
-		assert.CurrentView().SelectedLine(Contains("my file"))
-		assert.MainView().Content(Contains(`"BAR"`))
+		assert.Views().Current().SelectedLine(Contains("my file"))
+		assert.Views().Main().Content(Contains(`"BAR"`))
 	},
 })

@@ -46,7 +46,7 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.HeadCommitMessage(Contains(mergeCommitMessage))
 
 		// assuring the post-merge file shows up in the merge commit.
-		assert.MainView().
+		assert.Views().Main().
 			Content(Contains(postMergeFilename)).
 			Content(Contains("++" + postMergeFileContent))
 	},

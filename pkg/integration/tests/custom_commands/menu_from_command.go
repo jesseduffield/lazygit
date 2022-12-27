@@ -60,7 +60,7 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 		input.SwitchToFilesView()
 
 		assert.WorkingTreeFileCount(1)
-		assert.CurrentView().SelectedLine(Contains("output.txt"))
-		assert.MainView().Content(Contains("bar Branch: #feature/foo my branch feature/foo"))
+		assert.Views().Current().SelectedLine(Contains("output.txt"))
+		assert.Views().Main().Content(Contains("bar Branch: #feature/foo my branch feature/foo"))
 	},
 })

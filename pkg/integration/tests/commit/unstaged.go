@@ -20,14 +20,14 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		assert.CommitCount(0)
 
-		assert.CurrentView().Name("files").SelectedLine(Contains("myfile"))
+		assert.Views().Current().Name("files").SelectedLine(Contains("myfile"))
 		input.Enter()
-		assert.CurrentView().Name("staging")
-		assert.View("stagingSecondary").Content(DoesNotContain("+myfile content"))
+		assert.Views().Current().Name("staging")
+		assert.Views().ByName("stagingSecondary").Content(DoesNotContain("+myfile content"))
 		// stage the first line
 		input.PrimaryAction()
-		assert.View("staging").Content(DoesNotContain("+myfile content"))
-		assert.View("stagingSecondary").Content(Contains("+myfile content"))
+		assert.Views().ByName("staging").Content(DoesNotContain("+myfile content"))
+		assert.Views().ByName("stagingSecondary").Content(Contains("+myfile content"))
 
 		input.Press(keys.Files.CommitChanges)
 

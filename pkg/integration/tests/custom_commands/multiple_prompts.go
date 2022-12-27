@@ -73,7 +73,7 @@ var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		assert.WorkingTreeFileCount(1)
-		assert.CurrentView().SelectedLine(Contains("myfile"))
-		assert.MainView().Content(Contains("BAR"))
+		assert.Views().Current().SelectedLine(Contains("myfile"))
+		assert.Views().Main().Content(Contains("BAR"))
 	},
 })

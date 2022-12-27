@@ -6,7 +6,7 @@ type CommitMessagePanelAsserter struct {
 }
 
 func (self *CommitMessagePanelAsserter) getViewAsserter() *ViewAsserter {
-	return self.assert.View("commitMessage")
+	return self.assert.Views().ByName("commitMessage")
 }
 
 // asserts on the text initially present in the prompt

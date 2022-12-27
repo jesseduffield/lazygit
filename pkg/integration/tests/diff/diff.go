@@ -24,35 +24,35 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
 		input.SwitchToBranchesView()
 
-		assert.CurrentView().TopLines(
+		assert.Views().Current().TopLines(
 			Contains("branch-a"),
 			Contains("branch-b"),
 		)
 		input.Press(keys.Universal.DiffingMenu)
 		input.Menu().Title(Equals("Diffing")).Select(Contains(`diff branch-a`)).Confirm()
 
-		assert.CurrentView().Name("localBranches")
+		assert.Views().Current().Name("localBranches")
 
-		assert.View("information").Content(Contains("showing output for: git diff branch-a branch-a"))
+		assert.Views().ByName("information").Content(Contains("showing output for: git diff branch-a branch-a"))
 		input.NextItem()
-		assert.View("information").Content(Contains("showing output for: git diff branch-a branch-b"))
-		assert.MainView().Content(Contains("+second line"))
+		assert.Views().ByName("information").Content(Contains("showing output for: git diff branch-a branch-b"))
+		assert.Views().Main().Content(Contains("+second line"))
 
 		input.Enter()
-		assert.CurrentView().Name("subCommits")
-		assert.MainView().Content(Contains("+second line"))
-		assert.CurrentView().SelectedLine(Contains("update"))
+		assert.Views().Current().Name("subCommits")
+		assert.Views().Main().Content(Contains("+second line"))
+		assert.Views().Current().SelectedLine(Contains("update"))
 		input.Enter()
-		assert.CurrentView().Name("commitFiles").SelectedLine(Contains("file1"))
-		assert.MainView().Content(Contains("+second line"))
+		assert.Views().Current().Name("commitFiles").SelectedLine(Contains("file1"))
+		assert.Views().Main().Content(Contains("+second line"))
 
 		input.Press(keys.Universal.Return)
 		input.Press(keys.Universal.Return)
-		assert.CurrentView().Name("localBranches")
+		assert.Views().Current().Name("localBranches")
 
 		input.Press(keys.Universal.DiffingMenu)
 		input.Menu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
-		assert.View("information").Content(Contains("showing output for: git diff branch-a branch-b -R"))
-		assert.MainView().Content(Contains("-second line"))
+		assert.Views().ByName("information").Content(Contains("showing output for: git diff branch-a branch-b -R"))
+		assert.Views().Main().Content(Contains("-second line"))
 	},
 })
