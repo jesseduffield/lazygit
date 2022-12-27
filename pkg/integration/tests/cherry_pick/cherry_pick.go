@@ -58,7 +58,10 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 		)
 
 		input.Press(keys.Commits.PasteCommits)
-		input.Alert(Equals("Cherry-Pick"), Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
+		input.Alert().
+			Title(Equals("Cherry-Pick")).
+			Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
+			Confirm()
 
 		assert.CurrentView().Name("commits").Lines(
 			Contains("four"),

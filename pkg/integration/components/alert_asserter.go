@@ -1,18 +1,18 @@
 package components
 
-type ConfirmationAsserter struct {
+type AlertAsserter struct {
 	assert            *Assert
 	input             *Input
 	hasCheckedTitle   bool
 	hasCheckedContent bool
 }
 
-func (self *ConfirmationAsserter) getViewAsserter() *ViewAsserter {
+func (self *AlertAsserter) getViewAsserter() *ViewAsserter {
 	return self.assert.View("confirmation")
 }
 
-// asserts that the confirmation view has the expected title
-func (self *ConfirmationAsserter) Title(expected *matcher) *ConfirmationAsserter {
+// asserts that the alert view has the expected title
+func (self *AlertAsserter) Title(expected *matcher) *AlertAsserter {
 	self.getViewAsserter().Title(expected)
 
 	self.hasCheckedTitle = true
@@ -20,8 +20,8 @@ func (self *ConfirmationAsserter) Title(expected *matcher) *ConfirmationAsserter
 	return self
 }
 
-// asserts that the confirmation view has the expected content
-func (self *ConfirmationAsserter) Content(expected *matcher) *ConfirmationAsserter {
+// asserts that the alert view has the expected content
+func (self *AlertAsserter) Content(expected *matcher) *AlertAsserter {
 	self.getViewAsserter().Content(expected)
 
 	self.hasCheckedContent = true
@@ -29,19 +29,19 @@ func (self *ConfirmationAsserter) Content(expected *matcher) *ConfirmationAssert
 	return self
 }
 
-func (self *ConfirmationAsserter) Confirm() {
+func (self *AlertAsserter) Confirm() {
 	self.checkNecessaryChecksCompleted()
 
 	self.input.Confirm()
 }
 
-func (self *ConfirmationAsserter) Cancel() {
+func (self *AlertAsserter) Cancel() {
 	self.checkNecessaryChecksCompleted()
 
 	self.input.Press(self.input.keys.Universal.Return)
 }
 
-func (self *ConfirmationAsserter) checkNecessaryChecksCompleted() {
+func (self *AlertAsserter) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedContent || !self.hasCheckedTitle {
 		self.assert.Fail("You must both check the content and title of a confirmation popup by calling Title()/Content() before calling Confirm()/Cancel().")
 	}

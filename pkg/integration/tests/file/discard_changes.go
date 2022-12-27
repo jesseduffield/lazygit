@@ -84,7 +84,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			for _, file := range files {
 				assert.CurrentView().SelectedLine(Contains(file.status + " " + file.label))
 				input.Press(keys.Universal.Remove)
-				input.Menu(Equals(file.menuTitle), Contains("discard all changes"))
+				input.Menu().Title(Equals(file.menuTitle)).Select(Contains("discard all changes")).Confirm()
 			}
 		}
 

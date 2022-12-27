@@ -27,7 +27,12 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 
 		// we expect the first suggestion to be the branch we want because it most
 		// closely matches what we typed in
-		input.Typeahead(Equals("Branch name:"), "branch-to", Contains("branch-to-checkout"))
+		input.Prompt().
+			Title(Equals("Branch name:")).
+			Type("branch-to").
+			SuggestionTopLines(Contains("branch-to-checkout")).
+			SelectFirstSuggestion().
+			Confirm()
 
 		assert.CurrentBranchName("branch-to-checkout")
 	},

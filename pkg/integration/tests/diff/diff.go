@@ -29,7 +29,7 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 			Contains("branch-b"),
 		)
 		input.Press(keys.Universal.DiffingMenu)
-		input.Menu(Equals("Diffing"), Contains(`diff branch-a`))
+		input.Menu().Title(Equals("Diffing")).Select(Contains(`diff branch-a`)).Confirm()
 
 		assert.CurrentView().Name("localBranches")
 
@@ -51,7 +51,7 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.CurrentView().Name("localBranches")
 
 		input.Press(keys.Universal.DiffingMenu)
-		input.Menu(Equals("Diffing"), Contains("reverse diff direction"))
+		input.Menu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
 		assert.View("information").Content(Contains("showing output for: git diff branch-a branch-b -R"))
 		assert.MainView().Content(Contains("-second line"))
 	},

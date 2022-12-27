@@ -22,12 +22,12 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 	) {
 		markCommitAsBad := func() {
 			input.Press(keys.Commits.ViewBisectOptions)
-			input.Menu(Equals("Bisect"), MatchesRegexp(`mark .* as bad`))
+			input.Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as bad`)).Confirm()
 		}
 
 		markCommitAsGood := func() {
 			input.Press(keys.Commits.ViewBisectOptions)
-			input.Menu(Equals("Bisect"), MatchesRegexp(`mark .* as good`))
+			input.Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 		}
 
 		assert.AtLeastOneCommit()
@@ -62,7 +62,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 		markCommitAsGood()
 
 		// commit 5 is the culprit because we marked 4 as good and 5 as bad.
-		input.Alert(Equals("Bisect complete"), MatchesRegexp("(?s)commit 05.*Do you want to reset"))
+		input.Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 05.*Do you want to reset")).Confirm()
 
 		assert.CurrentView().Name("commits").Content(Contains("commit 04"))
 		assert.View("information").Content(DoesNotContain("bisecting"))

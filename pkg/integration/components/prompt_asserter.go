@@ -26,22 +26,6 @@ func (self *PromptAsserter) InitialText(expected *matcher) *PromptAsserter {
 	return self
 }
 
-func (self *PromptAsserter) Confirm() *PromptAsserter {
-	self.checkNecessaryChecksCompleted()
-
-	self.input.Confirm()
-
-	return self
-}
-
-func (self *PromptAsserter) Cancel() *PromptAsserter {
-	self.checkNecessaryChecksCompleted()
-
-	self.input.Press(self.input.keys.Universal.Return)
-
-	return self
-}
-
 func (self *PromptAsserter) Type(value string) *PromptAsserter {
 	self.input.Type(value)
 
@@ -52,8 +36,48 @@ func (self *PromptAsserter) Clear() *PromptAsserter {
 	panic("Clear method not yet implemented!")
 }
 
+func (self *PromptAsserter) Confirm() {
+	self.checkNecessaryChecksCompleted()
+
+	self.input.Confirm()
+}
+
+func (self *PromptAsserter) Cancel() {
+	self.checkNecessaryChecksCompleted()
+
+	self.input.Press(self.input.keys.Universal.Return)
+}
+
 func (self *PromptAsserter) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedTitle {
 		self.assert.Fail("You must check the title of a prompt popup by calling Title() before calling Confirm()/Cancel().")
 	}
+}
+
+func (self *PromptAsserter) SuggestionLines(matchers ...*matcher) *PromptAsserter {
+	self.assert.View("suggestions").Lines(matchers...)
+
+	return self
+}
+
+func (self *PromptAsserter) SuggestionTopLines(matchers ...*matcher) *PromptAsserter {
+	self.assert.View("suggestions").TopLines(matchers...)
+
+	return self
+}
+
+func (self *PromptAsserter) SelectFirstSuggestion() *PromptAsserter {
+	self.input.Press(self.input.keys.Universal.TogglePanel)
+	self.assert.CurrentView().Name("suggestions")
+
+	return self
+}
+
+func (self *PromptAsserter) SelectSuggestion(matcher *matcher) *PromptAsserter {
+	self.input.Press(self.input.keys.Universal.TogglePanel)
+	self.assert.CurrentView().Name("suggestions")
+
+	self.input.NavigateToListItem(matcher)
+
+	return self
 }

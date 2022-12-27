@@ -28,7 +28,7 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 		)
 
 		input.Press(keys.Universal.DiffingMenu)
-		input.Menu(Equals("Diffing"), MatchesRegexp(`diff \w+`))
+		input.Menu().Title(Equals("Diffing")).Select(MatchesRegexp(`diff \w+`)).Confirm()
 
 		assert.NotInPopup()
 
@@ -41,7 +41,7 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 		assert.MainView().Content(Contains("-second line\n-third line"))
 
 		input.Press(keys.Universal.DiffingMenu)
-		input.Menu(Equals("Diffing"), Contains("reverse diff direction"))
+		input.Menu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
 		assert.NotInPopup()
 
 		assert.MainView().Content(Contains("+second line\n+third line"))

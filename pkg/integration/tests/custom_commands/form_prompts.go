@@ -67,7 +67,7 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Prompt().Title(Equals("Enter a file name")).Type("my file").Confirm()
 
-		input.Menu(Equals("Choose file content"), Contains("bar"))
+		input.Menu().Title(Equals("Choose file content")).Select(Contains("bar")).Confirm()
 
 		input.Confirmation().
 			Title(Equals("Are you sure?")).

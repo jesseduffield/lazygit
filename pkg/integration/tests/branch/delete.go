@@ -26,7 +26,7 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 		)
 
 		input.Press(keys.Universal.Remove)
-		input.Alert(Equals("Error"), Contains("You cannot delete the checked out branch!"))
+		input.Alert().Title(Equals("Error")).Content(Contains("You cannot delete the checked out branch!")).Confirm()
 
 		input.NextItem()
 

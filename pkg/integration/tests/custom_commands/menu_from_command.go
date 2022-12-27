@@ -53,7 +53,7 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Press("a")
 
-		input.Menu(Equals("Choose commit message"), Contains("bar"))
+		input.Menu().Title(Equals("Choose commit message")).Select(Contains("bar")).Confirm()
 
 		input.Prompt().Title(Equals("Description")).Type(" my branch").Confirm()
 

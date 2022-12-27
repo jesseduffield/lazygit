@@ -30,7 +30,7 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Prompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
 
-		input.Alert(Equals("Branch not found"), Equals("Branch not found. Create a new branch named new-branch?"))
+		input.Alert().Title(Equals("Branch not found")).Content(Equals("Branch not found. Create a new branch named new-branch?")).Confirm()
 
 		assert.CurrentView().Name("localBranches").
 			Lines(

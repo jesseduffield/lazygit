@@ -40,9 +40,9 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 		input.NextItem()
 
 		input.Press(keys.Commits.ViewBisectOptions)
-		input.Menu(Equals("Bisect"), MatchesRegexp(`mark .* as good`))
+		input.Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 
-		input.Alert(Equals("Bisect complete"), MatchesRegexp(`(?s)commit 08.*Do you want to reset`))
+		input.Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
 
 		assert.View("information").Content(DoesNotContain("bisecting"))
 

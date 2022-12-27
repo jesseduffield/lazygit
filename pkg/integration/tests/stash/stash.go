@@ -21,7 +21,7 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Press(keys.Files.ViewStashOptions)
 
-		input.Menu(Equals("Stash options"), MatchesRegexp("stash all changes$"))
+		input.Menu().Title(Equals("Stash options")).Select(MatchesRegexp("stash all changes$")).Confirm()
 
 		input.Prompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
 

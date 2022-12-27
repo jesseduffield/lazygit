@@ -227,28 +227,14 @@ func (self *Input) Prompt() *PromptAsserter {
 	return &PromptAsserter{assert: self.assert, input: self}
 }
 
-// type some text into a prompt, then switch to the suggestions panel and expect the first
-// item to match the given matcher, then confirm that item.
-func (self *Input) Typeahead(title *matcher, textToType string, expectedFirstOption *matcher) {
-	self.assert.InPrompt()
-	self.assert.CurrentView().Title(title)
-	self.Type(textToType)
-	self.Press(self.keys.Universal.TogglePanel)
-	self.assert.CurrentView().Name("suggestions")
-	self.assert.CurrentView().SelectedLine(expectedFirstOption)
-	self.Confirm()
+func (self *Input) Alert() *AlertAsserter {
+	self.assert.InAlert()
+
+	return &AlertAsserter{assert: self.assert, input: self}
 }
 
-func (self *Input) Menu(title *matcher, optionToSelect *matcher) {
+func (self *Input) Menu() *MenuAsserter {
 	self.assert.InMenu()
-	self.assert.CurrentView().Title(title)
-	self.NavigateToListItem(optionToSelect)
-	self.Confirm()
-}
 
-func (self *Input) Alert(title *matcher, content *matcher) {
-	self.assert.InListContext()
-	self.assert.CurrentView().Title(title)
-	self.assert.CurrentView().Content(content)
-	self.Confirm()
+	return &MenuAsserter{assert: self.assert, input: self}
 }

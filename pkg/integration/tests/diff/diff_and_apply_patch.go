@@ -30,7 +30,7 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		input.Press(keys.Universal.DiffingMenu)
 
-		input.Menu(Equals("Diffing"), Equals("diff branch-a"))
+		input.Menu().Title(Equals("Diffing")).Select(Equals("diff branch-a")).Confirm()
 
 		assert.CurrentView().Name("localBranches")
 
@@ -52,13 +52,13 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 		input.PrimaryAction()
 
 		input.Press(keys.Universal.DiffingMenu)
-		input.Menu(Equals("Diffing"), Contains("exit diff mode"))
+		input.Menu().Title(Equals("Diffing")).Select(Contains("exit diff mode")).Confirm()
 
 		assert.View("information").Content(DoesNotContain("building patch"))
 
 		input.Press(keys.Universal.CreatePatchOptionsMenu)
 		// adding the regex '$' here to distinguish the menu item from the 'apply patch in reverse' item
-		input.Menu(Equals("Patch Options"), MatchesRegexp("apply patch$"))
+		input.Menu().Title(Equals("Patch Options")).Select(MatchesRegexp("apply patch$")).Confirm()
 
 		input.SwitchToFilesView()
 

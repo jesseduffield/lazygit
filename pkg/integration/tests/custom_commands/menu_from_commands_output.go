@@ -60,7 +60,7 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectedLine(Equals("branch"))
 		input.Confirm()
 
-		input.Menu(Equals("Branch:"), Equals("master"))
+		input.Menu().Title(Equals("Branch:")).Select(Equals("master")).Confirm()
 
 		assert.CurrentBranchName("master")
 	},
