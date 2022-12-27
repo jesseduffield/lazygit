@@ -48,8 +48,8 @@ Try to do as much setup work as possible in your setup step. For example, if all
 Use assertions to ensure that lazygit has processed all your keybindings so far. Each time you press a key, something should happen on the screen, so you should assert that that thing has happened. This means we won't get into trouble from keys being entered two quickly because at each stage we ensure the key has been processed. This also makes tests more readable because they help explain what we expect to be happening on-screen. For example:
 
 ```go
-input.Press(keys.Files.CommitChanges)
-assert.InCommitMessagePanel()
+input.press(keys.Files.CommitChanges)
+input.InCommitMessagePanel()
 ```
 
 Note that there are some `input` methods that have assertions baked in, such as the `SwitchToView` methods.

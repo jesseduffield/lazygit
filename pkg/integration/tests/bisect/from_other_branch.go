@@ -21,33 +21,31 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(
 		shell *Shell,
 		input *Input,
-		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		assert.Views().ByName("information").Content(Contains("bisecting"))
+		input.Views().Information().Content(Contains("bisecting"))
 
-		assert.Model().AtLeastOneCommit()
+		input.Model().AtLeastOneCommit()
 
-		input.SwitchToCommitsView()
+		input.Views().Commits().
+			Focus().
+			TopLines(
+				MatchesRegexp(`<-- bad.*commit 08`),
+				MatchesRegexp(`<-- current.*commit 07`),
+				MatchesRegexp(`\?.*commit 06`),
+				MatchesRegexp(`<-- good.*commit 05`),
+			).
+			SelectNextItem().
+			Press(keys.Commits.ViewBisectOptions)
 
-		assert.Views().Current().TopLines(
-			MatchesRegexp(`<-- bad.*commit 08`),
-			MatchesRegexp(`<-- current.*commit 07`),
-			MatchesRegexp(`\?.*commit 06`),
-			MatchesRegexp(`<-- good.*commit 05`),
-		)
+		input.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 
-		input.NextItem()
+		input.ExpectAlert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
 
-		input.Press(keys.Commits.ViewBisectOptions)
-		input.Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
-
-		input.Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
-
-		assert.Views().ByName("information").Content(DoesNotContain("bisecting"))
+		input.Views().Information().Content(DoesNotContain("bisecting"))
 
 		// back in master branch which just had the one commit
-		assert.Views().Current().Name("commits").Lines(
+		input.Views().Commits().Lines(
 			Contains("only commit on master"),
 		)
 	},

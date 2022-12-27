@@ -8,14 +8,14 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	"github.com/samber/lo"
 )
 
 type Input struct {
-	gui    integrationTypes.GuiDriver
-	keys   config.KeybindingConfig
-	assert *Assert
-	*assertionHelper
+	gui          integrationTypes.GuiDriver
+	keys         config.KeybindingConfig
 	pushKeyDelay int
+	*assertionHelper
 }
 
 func NewInput(gui integrationTypes.GuiDriver, keys config.KeybindingConfig, pushKeyDelay int) *Input {
@@ -23,119 +23,31 @@ func NewInput(gui integrationTypes.GuiDriver, keys config.KeybindingConfig, push
 		gui:             gui,
 		keys:            keys,
 		pushKeyDelay:    pushKeyDelay,
-		assertionHelper: assert.assertionHelper,
+		assertionHelper: &assertionHelper{gui: gui},
 	}
 }
 
 // key is something like 'w' or '<space>'. It's best not to pass a direct value,
 // but instead to go through the default user config to get a more meaningful key name
-func (self *Input) Press(keyStrs ...string) {
-	for _, keyStr := range keyStrs {
-		self.press(keyStr)
-	}
-}
-
 func (self *Input) press(keyStr string) {
 	self.Wait(self.pushKeyDelay)
 
 	self.gui.PressKey(keyStr)
 }
 
-func (self *Input) SwitchToStatusWindow() {
-	self.press(self.keys.Universal.JumpToBlock[0])
-	self.currentWindowName("status")
-}
-
-// switch to status window and assert that the status view is on top
-func (self *Input) SwitchToStatusView() {
-	self.SwitchToStatusWindow()
-	self.assert.Views().Current().Name("status")
-}
-
-func (self *Input) switchToFilesWindow() {
-	self.press(self.keys.Universal.JumpToBlock[1])
-	self.currentWindowName("files")
-}
-
-// switch to files window and assert that the files view is on top
-func (self *Input) SwitchToFilesView() {
-	self.switchToFilesWindow()
-	self.assert.Views().Current().Name("files")
-}
-
-func (self *Input) SwitchToBranchesWindow() {
-	self.press(self.keys.Universal.JumpToBlock[2])
-	self.currentWindowName("localBranches")
-}
-
-// switch to branches window and assert that the branches view is on top
-func (self *Input) SwitchToBranchesView() {
-	self.SwitchToBranchesWindow()
-	self.assert.Views().Current().Name("localBranches")
-}
-
-func (self *Input) SwitchToCommitsWindow() {
-	self.press(self.keys.Universal.JumpToBlock[3])
-	self.currentWindowName("commits")
-}
-
-// switch to commits window and assert that the commits view is on top
-func (self *Input) SwitchToCommitsView() {
-	self.SwitchToCommitsWindow()
-	self.assert.Views().Current().Name("commits")
-}
-
-func (self *Input) SwitchToStashWindow() {
-	self.press(self.keys.Universal.JumpToBlock[4])
-	self.currentWindowName("stash")
-}
-
-// switch to stash window and assert that the stash view is on top
-func (self *Input) SwitchToStashView() {
-	self.SwitchToStashWindow()
-	self.assert.Views().Current().Name("stash")
-}
-
-func (self *Input) Type(content string) {
+func (self *Input) typeContent(content string) {
 	for _, char := range content {
 		self.press(string(char))
 	}
 }
 
-// i.e. pressing enter
-func (self *Input) Confirm() {
-	self.press(self.keys.Universal.Confirm)
-}
-
-// i.e. same as Confirm
-func (self *Input) Enter() {
-	self.press(self.keys.Universal.Confirm)
-}
-
-// i.e. pressing escape
-func (self *Input) Cancel() {
-	self.press(self.keys.Universal.Return)
-}
-
-// i.e. pressing space
-func (self *Input) PrimaryAction() {
-	self.press(self.keys.Universal.Select)
-}
-
-// i.e. pressing down arrow
-func (self *Input) NextItem() {
-	self.press(self.keys.Universal.NextItem)
-}
-
-// i.e. pressing up arrow
-func (self *Input) PreviousItem() {
-	self.press(self.keys.Universal.PrevItem)
-}
-
 func (self *Input) ContinueMerge() {
-	self.Press(self.keys.Universal.CreateRebaseOptionsMenu)
-	self.assert.Views().Current().SelectedLine(Contains("continue"))
-	self.Confirm()
+	self.Views().current().Press(self.keys.Universal.CreateRebaseOptionsMenu)
+
+	self.ExpectMenu().
+		Title(Equals("Rebase Options")).
+		Select(Contains("continue")).
+		Confirm()
 }
 
 func (self *Input) ContinueRebase() {
@@ -166,7 +78,7 @@ func (self *Input) Log(message string) {
 // If this changes in future, we'll need to update this code to first attempt to find the item
 // in the current page and failing that, jump to the top of the view and iterate through all of it,
 // looking for the item.
-func (self *Input) NavigateToListItem(matcher *matcher) {
+func (self *Input) navigateToListItem(matcher *matcher) {
 	self.inListContext()
 
 	currentContext := self.gui.CurrentContext().(types.IListContext)
@@ -175,7 +87,7 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 
 	var matchIndex int
 
-	self.assert.assertWithRetries(func() (bool, string) {
+	self.assertWithRetries(func() (bool, string) {
 		matchIndex = -1
 		var matches []string
 		lines := view.ViewBufferLines()
@@ -198,20 +110,20 @@ func (self *Input) NavigateToListItem(matcher *matcher) {
 
 	selectedLineIdx := view.SelectedLineIdx()
 	if selectedLineIdx == matchIndex {
-		self.assert.Views().Current().SelectedLine(matcher)
+		self.Views().current().SelectedLine(matcher)
 		return
 	}
 	if selectedLineIdx < matchIndex {
 		for i := selectedLineIdx; i < matchIndex; i++ {
-			self.NextItem()
+			self.Views().current().SelectNextItem()
 		}
-		self.assert.Views().Current().SelectedLine(matcher)
+		self.Views().current().SelectedLine(matcher)
 		return
 	} else {
 		for i := selectedLineIdx; i > matchIndex; i-- {
-			self.PreviousItem()
+			self.Views().current().SelectPreviousItem()
 		}
-		self.assert.Views().Current().SelectedLine(matcher)
+		self.Views().current().SelectedLine(matcher)
 		return
 	}
 }
@@ -224,10 +136,10 @@ func (self *Input) inListContext() {
 	})
 }
 
-func (self *Input) Confirmation() *ConfirmationAsserter {
+func (self *Input) ExpectConfirmation() *ConfirmationAsserter {
 	self.inConfirm()
 
-	return &ConfirmationAsserter{assert: self.assert, input: self}
+	return &ConfirmationAsserter{input: self}
 }
 
 func (self *Input) inConfirm() {
@@ -237,10 +149,10 @@ func (self *Input) inConfirm() {
 	})
 }
 
-func (self *Input) Prompt() *PromptAsserter {
+func (self *Input) ExpectPrompt() *PromptAsserter {
 	self.inPrompt()
 
-	return &PromptAsserter{assert: self.assert, input: self}
+	return &PromptAsserter{input: self}
 }
 
 func (self *Input) inPrompt() {
@@ -250,10 +162,10 @@ func (self *Input) inPrompt() {
 	})
 }
 
-func (self *Input) Alert() *AlertAsserter {
+func (self *Input) ExpectAlert() *AlertAsserter {
 	self.inAlert()
 
-	return &AlertAsserter{assert: self.assert, input: self}
+	return &AlertAsserter{input: self}
 }
 
 func (self *Input) inAlert() {
@@ -264,10 +176,10 @@ func (self *Input) inAlert() {
 	})
 }
 
-func (self *Input) Menu() *MenuAsserter {
+func (self *Input) ExpectMenu() *MenuAsserter {
 	self.inMenu()
 
-	return &MenuAsserter{assert: self.assert, input: self}
+	return &MenuAsserter{input: self}
 }
 
 func (self *Input) inMenu() {
@@ -276,10 +188,10 @@ func (self *Input) inMenu() {
 	})
 }
 
-func (self *Input) CommitMessagePanel() *CommitMessagePanelAsserter {
+func (self *Input) ExpectCommitMessagePanel() *CommitMessagePanelAsserter {
 	self.inCommitMessagePanel()
 
-	return &CommitMessagePanelAsserter{assert: self.assert, input: self}
+	return &CommitMessagePanelAsserter{input: self}
 }
 
 func (self *Input) inCommitMessagePanel() {
@@ -293,5 +205,33 @@ func (self *Input) currentWindowName(expectedWindowName string) {
 	self.assertWithRetries(func() (bool, string) {
 		actual := self.gui.CurrentContext().GetView().Name()
 		return actual == expectedWindowName, fmt.Sprintf("Expected current window name to be '%s', but got '%s'", expectedWindowName, actual)
+	})
+}
+
+// for making assertions on lazygit views
+func (self *Input) Views() *Views {
+	return &Views{input: self}
+}
+
+// for making assertions on the lazygit model
+func (self *Input) Model() *Model {
+	return &Model{assertionHelper: self.assertionHelper, gui: self.gui}
+}
+
+// for making assertions on the file system
+func (self *Input) FileSystem() *FileSystem {
+	return &FileSystem{assertionHelper: self.assertionHelper}
+}
+
+// for when you just want to fail the test yourself.
+// This runs callbacks to ensure we render the error after closing the gui.
+func (self *Input) Fail(message string) {
+	self.assertionHelper.fail(message)
+}
+
+func (self *Input) NotInPopup() {
+	self.assertWithRetries(func() (bool, string) {
+		viewName := self.gui.CurrentContext().GetView().Name()
+		return !lo.Contains([]string{"menu", "confirmation", "commitMessage"}, viewName), fmt.Sprintf("Unexpected popup view present: %s view", viewName)
 	})
 }

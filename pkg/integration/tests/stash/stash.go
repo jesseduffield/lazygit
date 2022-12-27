@@ -15,17 +15,18 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFile("file", "content")
 		shell.GitAddAll()
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.Model().StashCount(0)
-		assert.Model().WorkingTreeFileCount(1)
+	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
+		input.Model().StashCount(0)
+		input.Model().WorkingTreeFileCount(1)
 
-		input.Press(keys.Files.ViewStashOptions)
+		input.Views().Files().
+			Press(keys.Files.ViewStashOptions)
 
-		input.Menu().Title(Equals("Stash options")).Select(MatchesRegexp("stash all changes$")).Confirm()
+		input.ExpectMenu().Title(Equals("Stash options")).Select(MatchesRegexp("stash all changes$")).Confirm()
 
-		input.Prompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
+		input.ExpectPrompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
 
-		assert.Model().StashCount(1)
-		assert.Model().WorkingTreeFileCount(0)
+		input.Model().StashCount(1)
+		input.Model().WorkingTreeFileCount(0)
 	},
 })

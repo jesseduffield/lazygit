@@ -17,22 +17,21 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 			Checkout("master").
 			EmptyCommit("blah")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesView()
+	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
+		input.Views().Branches().
+			Focus().
+			Lines(
+				Contains("master"),
+				Contains("@"),
+			).
+			SelectNextItem().
+			Press(keys.Branches.CheckoutBranchByName)
 
-		assert.Views().Current().Lines(
-			Contains("master"),
-			Contains("@"),
-		)
-		input.NextItem()
+		input.ExpectPrompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
 
-		input.Press(keys.Branches.CheckoutBranchByName)
+		input.ExpectAlert().Title(Equals("Branch not found")).Content(Equals("Branch not found. Create a new branch named new-branch?")).Confirm()
 
-		input.Prompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
-
-		input.Alert().Title(Equals("Branch not found")).Content(Equals("Branch not found. Create a new branch named new-branch?")).Confirm()
-
-		assert.Views().Current().Name("localBranches").
+		input.Views().Branches().IsFocused().
 			Lines(
 				MatchesRegexp(`\*.*new-branch`),
 				Contains("master"),

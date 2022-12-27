@@ -15,28 +15,28 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.GitAddAll()
 		shell.Commit("first commit")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.Model().CommitCount(1)
+	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
+		input.Model().CommitCount(1)
 
-		input.SwitchToCommitsView()
+		input.Views().Commits().
+			Focus().
+			Lines(
+				Contains("first commit"),
+			).
+			Press(keys.Commits.RevertCommit)
 
-		assert.Views().Current().Lines(
-			Contains("first commit"),
-		)
-
-		input.Press(keys.Commits.RevertCommit)
-		input.Confirmation().
+		input.ExpectConfirmation().
 			Title(Equals("Revert commit")).
 			Content(MatchesRegexp(`Are you sure you want to revert \w+?`)).
 			Confirm()
 
-		assert.Views().Current().Name("commits").
+		input.Views().Commits().IsFocused().
 			Lines(
 				Contains("Revert \"first commit\"").IsSelected(),
 				Contains("first commit"),
 			)
 
-		assert.Views().Main().Content(Contains("-myfile content"))
-		assert.FileSystem().PathNotPresent("myfile")
+		input.Views().Main().Content(Contains("-myfile content"))
+		input.FileSystem().PathNotPresent("myfile")
 	},
 })

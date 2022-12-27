@@ -1,13 +1,12 @@
 package components
 
 type PromptAsserter struct {
-	assert          *Assert
 	input           *Input
 	hasCheckedTitle bool
 }
 
 func (self *PromptAsserter) getViewAsserter() *View {
-	return self.assert.Views().ByName("confirmation")
+	return self.input.Views().Confirmation()
 }
 
 // asserts that the popup has the expected title
@@ -27,7 +26,7 @@ func (self *PromptAsserter) InitialText(expected *matcher) *PromptAsserter {
 }
 
 func (self *PromptAsserter) Type(value string) *PromptAsserter {
-	self.input.Type(value)
+	self.input.typeContent(value)
 
 	return self
 }
@@ -39,45 +38,47 @@ func (self *PromptAsserter) Clear() *PromptAsserter {
 func (self *PromptAsserter) Confirm() {
 	self.checkNecessaryChecksCompleted()
 
-	self.input.Confirm()
+	self.getViewAsserter().PressEnter()
 }
 
 func (self *PromptAsserter) Cancel() {
 	self.checkNecessaryChecksCompleted()
 
-	self.input.Press(self.input.keys.Universal.Return)
+	self.getViewAsserter().PressEscape()
 }
 
 func (self *PromptAsserter) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedTitle {
-		self.assert.Fail("You must check the title of a prompt popup by calling Title() before calling Confirm()/Cancel().")
+		self.input.Fail("You must check the title of a prompt popup by calling Title() before calling Confirm()/Cancel().")
 	}
 }
 
 func (self *PromptAsserter) SuggestionLines(matchers ...*matcher) *PromptAsserter {
-	self.assert.Views().ByName("suggestions").Lines(matchers...)
+	self.input.Views().Suggestions().Lines(matchers...)
 
 	return self
 }
 
 func (self *PromptAsserter) SuggestionTopLines(matchers ...*matcher) *PromptAsserter {
-	self.assert.Views().ByName("suggestions").TopLines(matchers...)
+	self.input.Views().Suggestions().TopLines(matchers...)
 
 	return self
 }
 
 func (self *PromptAsserter) SelectFirstSuggestion() *PromptAsserter {
-	self.input.Press(self.input.keys.Universal.TogglePanel)
-	self.assert.Views().Current().Name("suggestions")
+	self.input.press(self.input.keys.Universal.TogglePanel)
+	self.input.Views().Suggestions().
+		IsFocused().
+		SelectedLineIdx(0)
 
 	return self
 }
 
 func (self *PromptAsserter) SelectSuggestion(matcher *matcher) *PromptAsserter {
-	self.input.Press(self.input.keys.Universal.TogglePanel)
-	self.assert.Views().Current().Name("suggestions")
-
-	self.input.NavigateToListItem(matcher)
+	self.input.press(self.input.keys.Universal.TogglePanel)
+	self.input.Views().Suggestions().
+		IsFocused().
+		NavigateToListItem(matcher)
 
 	return self
 }

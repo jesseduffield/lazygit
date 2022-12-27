@@ -24,15 +24,15 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(
 		shell *Shell,
 		input *Input,
-		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		assert.Model().WorkingTreeFileCount(0)
+		input.Model().WorkingTreeFileCount(0)
 
-		input.Press("a")
-
-		assert.Views().ByName("files").Lines(
-			Contains("myfile"),
-		)
+		input.Views().Files().
+			IsFocused().
+			Press("a").
+			Lines(
+				Contains("myfile"),
+			)
 	},
 })

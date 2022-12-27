@@ -1,14 +1,13 @@
 package components
 
 type ConfirmationAsserter struct {
-	assert            *Assert
 	input             *Input
 	hasCheckedTitle   bool
 	hasCheckedContent bool
 }
 
 func (self *ConfirmationAsserter) getViewAsserter() *View {
-	return self.assert.Views().ByName("confirmation")
+	return self.input.Views().Confirmation()
 }
 
 // asserts that the confirmation view has the expected title
@@ -32,17 +31,17 @@ func (self *ConfirmationAsserter) Content(expected *matcher) *ConfirmationAssert
 func (self *ConfirmationAsserter) Confirm() {
 	self.checkNecessaryChecksCompleted()
 
-	self.input.Confirm()
+	self.getViewAsserter().PressEnter()
 }
 
 func (self *ConfirmationAsserter) Cancel() {
 	self.checkNecessaryChecksCompleted()
 
-	self.input.Press(self.input.keys.Universal.Return)
+	self.getViewAsserter().PressEscape()
 }
 
 func (self *ConfirmationAsserter) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedContent || !self.hasCheckedTitle {
-		self.assert.Fail("You must both check the content and title of a confirmation popup by calling Title()/Content() before calling Confirm()/Cancel().")
+		self.input.Fail("You must both check the content and title of a confirmation popup by calling Title()/Content() before calling Confirm()/Cancel().")
 	}
 }

@@ -17,55 +17,51 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.EmptyCommit("to remove")
 		shell.EmptyCommit("to keep")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesView()
+	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
+		input.Views().Branches().
+			Focus().
+			Lines(
+				Contains("first-change-branch"),
+				Contains("second-change-branch"),
+				Contains("original-branch"),
+			)
 
-		assert.Views().Current().Lines(
-			Contains("first-change-branch"),
-			Contains("second-change-branch"),
-			Contains("original-branch"),
-		)
+		input.Views().Commits().
+			TopLines(
+				Contains("to keep").IsSelected(),
+				Contains("to remove"),
+				Contains("first change"),
+				Contains("original"),
+			).
+			SelectNextItem().
+			Press(keys.Branches.RebaseBranch)
 
-		assert.Views().ByName("commits").TopLines(
-			Contains("to keep").IsSelected(),
-			Contains("to remove"),
-			Contains("first change"),
-			Contains("original"),
-		)
-
-		input.NextItem()
-		input.Press(keys.Branches.RebaseBranch)
-
-		input.Confirmation().
+		input.ExpectConfirmation().
 			Title(Equals("Rebasing")).
 			Content(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?")).
 			Confirm()
 
-		assert.Views().ByName("information").Content(Contains("rebasing"))
+		input.Views().Information().Content(Contains("rebasing"))
 
-		input.Confirmation().
+		input.ExpectConfirmation().
 			Title(Equals("Auto-merge failed")).
 			Content(Contains("Conflicts!")).
 			Confirm()
 
-		assert.Views().Current().
-			Name("files").
+		input.Views().Files().IsFocused().
 			SelectedLine(MatchesRegexp("UU.*file"))
 
-		input.SwitchToCommitsView()
-		assert.Views().Current().
+		input.Views().Commits().
+			Focus().
 			TopLines(
 				MatchesRegexp(`pick.*to keep`).IsSelected(),
 				MatchesRegexp(`pick.*to remove`),
 				MatchesRegexp("YOU ARE HERE.*second-change-branch unrelated change"),
 				MatchesRegexp("second change"),
 				MatchesRegexp("original"),
-			)
-
-		input.NextItem()
-		input.Press(keys.Universal.Remove)
-
-		assert.Views().Current().
+			).
+			SelectNextItem().
+			Press(keys.Universal.Remove).
 			TopLines(
 				MatchesRegexp(`pick.*to keep`),
 				MatchesRegexp(`drop.*to remove`).IsSelected(),
@@ -74,23 +70,22 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 				MatchesRegexp("original"),
 			)
 
-		input.SwitchToFilesView()
+		input.Views().Files().
+			Focus().
+			PressEnter()
 
-		// not using Confirm() convenience method because I suspect we might change this
-		// keybinding to something more bespoke
-		input.Press(keys.Universal.Confirm)
+		input.Views().MergeConflicts().
+			IsFocused().
+			PressPrimaryAction()
 
-		assert.Views().Current().Name("mergeConflicts")
-		input.PrimaryAction()
-
-		input.Confirmation().
+		input.ExpectConfirmation().
 			Title(Equals("continue")).
 			Content(Contains("all merge conflicts resolved. Continue?")).
 			Confirm()
 
-		assert.Views().ByName("information").Content(DoesNotContain("rebasing"))
+		input.Views().Information().Content(DoesNotContain("rebasing"))
 
-		assert.Views().ByName("commits").TopLines(
+		input.Views().Commits().TopLines(
 			Contains("to keep"),
 			Contains("second-change-branch unrelated change").IsSelected(),
 			Contains("second change"),

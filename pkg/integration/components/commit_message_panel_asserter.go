@@ -1,12 +1,11 @@
 package components
 
 type CommitMessagePanelAsserter struct {
-	assert *Assert
-	input  *Input
+	input *Input
 }
 
 func (self *CommitMessagePanelAsserter) getViewAsserter() *View {
-	return self.assert.Views().ByName("commitMessage")
+	return self.input.Views().CommitMessage()
 }
 
 // asserts on the text initially present in the prompt
@@ -17,13 +16,13 @@ func (self *CommitMessagePanelAsserter) InitialText(expected *matcher) *CommitMe
 }
 
 func (self *CommitMessagePanelAsserter) Type(value string) *CommitMessagePanelAsserter {
-	self.input.Type(value)
+	self.input.typeContent(value)
 
 	return self
 }
 
 func (self *CommitMessagePanelAsserter) AddNewline() *CommitMessagePanelAsserter {
-	self.input.Press(self.input.keys.Universal.AppendNewline)
+	self.input.press(self.input.keys.Universal.AppendNewline)
 
 	return self
 }
@@ -33,9 +32,9 @@ func (self *CommitMessagePanelAsserter) Clear() *CommitMessagePanelAsserter {
 }
 
 func (self *CommitMessagePanelAsserter) Confirm() {
-	self.input.Confirm()
+	self.getViewAsserter().PressEnter()
 }
 
 func (self *CommitMessagePanelAsserter) Cancel() {
-	self.input.Press(self.input.keys.Universal.Return)
+	self.getViewAsserter().PressEscape()
 }

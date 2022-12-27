@@ -7,15 +7,15 @@ import (
 )
 
 type Views struct {
-	assert *Assert
-	input  *Input
+	input *Input
 }
 
-func (self *Views) Current() *View {
+// not exporting this because I want the test to always be explicit about what
+// view it's dealing with.
+func (self *Views) current() *View {
 	return &View{
 		context: "current view",
-		getView: func() *gocui.View { return self.assert.gui.CurrentContext().GetView() },
-		assert:  self.assert,
+		getView: func() *gocui.View { return self.input.gui.CurrentContext().GetView() },
 		input:   self.input,
 	}
 }
@@ -23,8 +23,7 @@ func (self *Views) Current() *View {
 func (self *Views) Main() *View {
 	return &View{
 		context: "main view",
-		getView: func() *gocui.View { return self.assert.gui.MainView() },
-		assert:  self.assert,
+		getView: func() *gocui.View { return self.input.gui.MainView() },
 		input:   self.input,
 	}
 }
@@ -32,8 +31,7 @@ func (self *Views) Main() *View {
 func (self *Views) Secondary() *View {
 	return &View{
 		context: "secondary view",
-		getView: func() *gocui.View { return self.assert.gui.SecondaryView() },
-		assert:  self.assert,
+		getView: func() *gocui.View { return self.input.gui.SecondaryView() },
 		input:   self.input,
 	}
 }
@@ -41,143 +39,83 @@ func (self *Views) Secondary() *View {
 func (self *Views) ByName(viewName string) *View {
 	return &View{
 		context: fmt.Sprintf("%s view", viewName),
-		getView: func() *gocui.View { return self.assert.gui.View(viewName) },
-		assert:  self.assert,
+		getView: func() *gocui.View { return self.input.gui.View(viewName) },
 		input:   self.input,
 	}
 }
 
-type View struct {
-	// context is prepended to any error messages e.g. 'context: "current view"'
-	context string
-	getView func() *gocui.View
-	assert  *Assert
-	input   *Input
+func (self *Views) Commits() *View {
+	return self.ByName("commits")
 }
 
-// asserts that the view has the expected name. This is typically used in tandem with the CurrentView method i.e.;
-// assert.CurrentView().Name("commits") to assert that the current view is the commits view.
-func (self *View) Name(expected string) *View {
-	self.assert.assertWithRetries(func() (bool, string) {
-		actual := self.getView().Name()
-		return actual == expected, fmt.Sprintf("%s: Expected view name to be '%s', but got '%s'", self.context, expected, actual)
-	})
-
-	return self
+func (self *Views) Files() *View {
+	return self.ByName("files")
 }
 
-// asserts that the view has the expected title
-func (self *View) Title(expected *matcher) *View {
-	self.assert.assertWithRetries(func() (bool, string) {
-		actual := self.getView().Title
-		return expected.context(fmt.Sprintf("%s title", self.context)).test(actual)
-	})
-
-	return self
+func (self *Views) Status() *View {
+	return self.ByName("status")
 }
 
-// asserts that the view has lines matching the given matchers. So if three matchers
-// are passed, we only check the first three lines of the view.
-// This method is convenient when you have a list of commits but you only want to
-// assert on the first couple of commits.
-func (self *View) TopLines(matchers ...*matcher) *View {
-	self.assert.assertWithRetries(func() (bool, string) {
-		lines := self.getView().BufferLines()
-		return len(lines) >= len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected at least %d, got %d", len(matchers), len(lines))
-	})
-
-	return self.assertLines(matchers...)
+func (self *Views) Submodules() *View {
+	return self.ByName("submodules")
 }
 
-// asserts that the view has lines matching the given matchers. One matcher must be passed for each line.
-// If you only care about the top n lines, use the TopLines method instead.
-func (self *View) Lines(matchers ...*matcher) *View {
-	self.assert.assertWithRetries(func() (bool, string) {
-		lines := self.getView().BufferLines()
-		return len(lines) == len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected %d, got %d", len(matchers), len(lines))
-	})
-
-	return self.assertLines(matchers...)
+func (self *Views) Information() *View {
+	return self.ByName("information")
 }
 
-func (self *View) assertLines(matchers ...*matcher) *View {
-	view := self.getView()
-
-	for i, matcher := range matchers {
-		checkIsSelected, matcher := matcher.checkIsSelected()
-
-		self.assert.matchString(matcher, fmt.Sprintf("Unexpected content in view '%s'.", view.Name()),
-			func() string {
-				return view.BufferLines()[i]
-			},
-		)
-
-		if checkIsSelected {
-			self.assert.assertWithRetries(func() (bool, string) {
-				lineIdx := view.SelectedLineIdx()
-				return lineIdx == i, fmt.Sprintf("Unexpected selected line index in view '%s'. Expected %d, got %d", view.Name(), i, lineIdx)
-			})
-		}
-	}
-
-	return self
+func (self *Views) Branches() *View {
+	return self.ByName("localBranches")
 }
 
-// asserts on the content of the view i.e. the stuff within the view's frame.
-func (self *View) Content(matcher *matcher) *View {
-	self.assert.matchString(matcher, fmt.Sprintf("%s: Unexpected content.", self.context),
-		func() string {
-			return self.getView().Buffer()
-		},
-	)
-
-	return self
+func (self *Views) RemoteBranches() *View {
+	return self.ByName("remoteBranches")
 }
 
-// asserts on the selected line of the view
-func (self *View) SelectedLine(matcher *matcher) *View {
-	self.assert.matchString(matcher, fmt.Sprintf("%s: Unexpected selected line.", self.context),
-		func() string {
-			return self.getView().SelectedLine()
-		},
-	)
-
-	return self
+func (self *Views) Tags() *View {
+	return self.ByName("tags")
 }
 
-// asserts on the index of the selected line. 0 is the first index, representing the line at the top of the view.
-func (self *View) SelectedLineIdx(expected int) *View {
-	self.assert.assertWithRetries(func() (bool, string) {
-		actual := self.getView().SelectedLineIdx()
-		return expected == actual, fmt.Sprintf("%s: Expected selected line index to be %d, got %d", self.context, expected, actual)
-	})
-
-	return self
+func (self *Views) ReflogCommits() *View {
+	return self.ByName("reflogCommits")
 }
 
-// func (self *View) Focus() *View {
-// 	// we can easily change focus by switching to the view's window, but this assumes that the desired view
-// 	// is at the top of that window. So for now we'll switch to the window then assert that the desired
-// 	// view is on top (i.e. that it's the current view).
-// 	whitelistedViewNames := []string{"status", "files", "localBranches", "commits", "stash"}
+func (self *Views) SubCommits() *View {
+	return self.ByName("subCommits")
+}
 
-// 	viewName := self.getView().Name()
+func (self *Views) CommitFiles() *View {
+	return self.ByName("commitFiles")
+}
 
-// 	if !lo.Contains(whitelistedViewNames, self.getView().Name()) {
-// 		self.assert.fail(fmt.Sprintf("Cannot focus view %s: Focus() method not implemented", viewName))
-// 	}
+func (self *Views) Stash() *View {
+	return self.ByName("stash")
+}
 
-// 	windowIndexMap := map[string]int{
-// 		"status":        0,
-// 		"files":         1,
-// 		"localBranches": 2,
-// 		"commits":       3,
-// 		"stash":         4,
-// 	}
+func (self *Views) Staging() *View {
+	return self.ByName("staging")
+}
 
-// 	self.input.switchToFilesWindow()
-// 	self.press(self.keys.Universal.JumpToBlock[1])
-// 	self.assert.Views().Current().Name(viewName)
+func (self *Views) StagingSecondary() *View {
+	return self.ByName("stagingSecondary")
+}
 
-// 	return self
-// }
+func (self *Views) Menu() *View {
+	return self.ByName("menu")
+}
+
+func (self *Views) Confirmation() *View {
+	return self.ByName("confirmation")
+}
+
+func (self *Views) CommitMessage() *View {
+	return self.ByName("commitMessage")
+}
+
+func (self *Views) Suggestions() *View {
+	return self.ByName("suggestions")
+}
+
+func (self *Views) MergeConflicts() *View {
+	return self.ByName("mergeConflicts")
+}

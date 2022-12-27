@@ -63,10 +63,10 @@ func (self *fakeGuiDriver) View(viewName string) *gocui.View {
 func TestAssertionFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
-		Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-			input.Press("a")
-			input.Press("b")
-			assert.Model().CommitCount(2)
+		Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
+			input.press("a")
+			input.press("b")
+			input.Model().CommitCount(2)
 		},
 	})
 	driver := &fakeGuiDriver{}
@@ -78,8 +78,8 @@ func TestAssertionFailure(t *testing.T) {
 func TestManualFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
-		Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-			assert.Fail("blah")
+		Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
+			input.Fail("blah")
 		},
 	})
 	driver := &fakeGuiDriver{}
@@ -90,10 +90,10 @@ func TestManualFailure(t *testing.T) {
 func TestSuccess(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
-		Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-			input.Press("a")
-			input.Press("b")
-			assert.Model().CommitCount(0)
+		Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
+			input.press("a")
+			input.press("b")
+			input.Model().CommitCount(0)
 		},
 	})
 	driver := &fakeGuiDriver{}

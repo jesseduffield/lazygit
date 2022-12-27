@@ -45,22 +45,20 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(
 		shell *Shell,
 		input *Input,
-		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		assert.Model().WorkingTreeFileCount(0)
-		input.SwitchToBranchesView()
+		input.Model().WorkingTreeFileCount(0)
+		input.Views().Branches().
+			Focus().
+			Press("a")
 
-		input.Press("a")
+		input.ExpectMenu().Title(Equals("Choose commit message")).Select(Contains("bar")).Confirm()
 
-		input.Menu().Title(Equals("Choose commit message")).Select(Contains("bar")).Confirm()
+		input.ExpectPrompt().Title(Equals("Description")).Type(" my branch").Confirm()
 
-		input.Prompt().Title(Equals("Description")).Type(" my branch").Confirm()
+		input.Model().WorkingTreeFileCount(1)
 
-		input.SwitchToFilesView()
-
-		assert.Model().WorkingTreeFileCount(1)
-		assert.Views().Current().SelectedLine(Contains("output.txt"))
-		assert.Views().Main().Content(Contains("bar Branch: #feature/foo my branch feature/foo"))
+		input.Views().Files().Focus().SelectedLine(Contains("output.txt"))
+		input.Views().Main().Content(Contains("bar Branch: #feature/foo my branch feature/foo"))
 	},
 })

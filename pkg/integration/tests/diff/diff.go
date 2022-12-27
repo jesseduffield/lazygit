@@ -21,38 +21,55 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 
 		shell.Checkout("branch-a")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesView()
+	Run: func(shell *Shell, input *Input, keys config.KeybindingConfig) {
+		input.Views().Branches().
+			Focus().
+			TopLines(
+				Contains("branch-a"),
+				Contains("branch-b"),
+			).
+			Press(keys.Universal.DiffingMenu)
 
-		assert.Views().Current().TopLines(
-			Contains("branch-a"),
-			Contains("branch-b"),
-		)
-		input.Press(keys.Universal.DiffingMenu)
-		input.Menu().Title(Equals("Diffing")).Select(Contains(`diff branch-a`)).Confirm()
+		input.ExpectMenu().Title(Equals("Diffing")).Select(Contains(`diff branch-a`)).Confirm()
 
-		assert.Views().Current().Name("localBranches")
+		input.Views().Branches().
+			IsFocused()
 
-		assert.Views().ByName("information").Content(Contains("showing output for: git diff branch-a branch-a"))
-		input.NextItem()
-		assert.Views().ByName("information").Content(Contains("showing output for: git diff branch-a branch-b"))
-		assert.Views().Main().Content(Contains("+second line"))
+		input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-a"))
 
-		input.Enter()
-		assert.Views().Current().Name("subCommits")
-		assert.Views().Main().Content(Contains("+second line"))
-		assert.Views().Current().SelectedLine(Contains("update"))
-		input.Enter()
-		assert.Views().Current().Name("commitFiles").SelectedLine(Contains("file1"))
-		assert.Views().Main().Content(Contains("+second line"))
+		input.Views().Branches().
+			SelectNextItem()
 
-		input.Press(keys.Universal.Return)
-		input.Press(keys.Universal.Return)
-		assert.Views().Current().Name("localBranches")
+		input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b"))
+		input.Views().Main().Content(Contains("+second line"))
 
-		input.Press(keys.Universal.DiffingMenu)
-		input.Menu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
-		assert.Views().ByName("information").Content(Contains("showing output for: git diff branch-a branch-b -R"))
-		assert.Views().Main().Content(Contains("-second line"))
+		input.Views().Branches().
+			PressEnter()
+
+		input.Views().SubCommits().
+			IsFocused().
+			SelectedLine(Contains("update"))
+
+		input.Views().Main().Content(Contains("+second line"))
+
+		input.Views().SubCommits().
+			PressEnter()
+
+		input.Views().CommitFiles().
+			IsFocused().
+			SelectedLine(Contains("file1"))
+
+		input.Views().Main().Content(Contains("+second line"))
+
+		input.Views().CommitFiles().PressEscape()
+		input.Views().SubCommits().PressEscape()
+
+		input.Views().Branches().
+			IsFocused().
+			Press(keys.Universal.DiffingMenu)
+
+		input.ExpectMenu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
+		input.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b -R"))
+		input.Views().Main().Content(Contains("-second line"))
 	},
 })

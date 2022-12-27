@@ -58,24 +58,25 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(
 		shell *Shell,
 		input *Input,
-		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		assert.Model().WorkingTreeFileCount(0)
+		input.Model().WorkingTreeFileCount(0)
 
-		input.Press("a")
+		input.Views().Files().
+			IsFocused().
+			Press("a")
 
-		input.Prompt().Title(Equals("Enter a file name")).Type("my file").Confirm()
+		input.ExpectPrompt().Title(Equals("Enter a file name")).Type("my file").Confirm()
 
-		input.Menu().Title(Equals("Choose file content")).Select(Contains("bar")).Confirm()
+		input.ExpectMenu().Title(Equals("Choose file content")).Select(Contains("bar")).Confirm()
 
-		input.Confirmation().
+		input.ExpectConfirmation().
 			Title(Equals("Are you sure?")).
 			Content(Equals("Are you REALLY sure you want to make this file? Up to you buddy.")).
 			Confirm()
 
-		assert.Model().WorkingTreeFileCount(1)
-		assert.Views().Current().SelectedLine(Contains("my file"))
-		assert.Views().Main().Content(Contains(`"BAR"`))
+		input.Model().WorkingTreeFileCount(1)
+		input.Views().Files().SelectedLine(Contains("my file"))
+		input.Views().Main().Content(Contains(`"BAR"`))
 	},
 })

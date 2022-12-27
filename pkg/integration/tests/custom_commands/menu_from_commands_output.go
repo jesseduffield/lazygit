@@ -44,23 +44,22 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(
 		shell *Shell,
 		input *Input,
-		assert *Assert,
 		keys config.KeybindingConfig,
 	) {
-		assert.Model().CurrentBranchName("feature/bar")
+		input.Model().CurrentBranchName("feature/bar")
+		input.Model().WorkingTreeFileCount(0)
 
-		assert.Model().WorkingTreeFileCount(0)
-		input.SwitchToBranchesView()
+		input.Views().Branches().
+			Focus().
+			Press("a")
 
-		input.Press("a")
-
-		input.Prompt().
+		input.ExpectPrompt().
 			Title(Equals("Which git command do you want to run?")).
 			InitialText(Equals("branch")).
 			Confirm()
 
-		input.Menu().Title(Equals("Branch:")).Select(Equals("master")).Confirm()
+		input.ExpectMenu().Title(Equals("Branch:")).Select(Equals("master")).Confirm()
 
-		assert.Model().CurrentBranchName("master")
+		input.Model().CurrentBranchName("master")
 	},
 })
