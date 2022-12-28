@@ -23,53 +23,62 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			EmptyCommit("four").
 			Checkout("first-branch")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesView()
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
+			Focus().
+			Lines(
+				Contains("first-branch"),
+				Contains("second-branch"),
+				Contains("master"),
+			).
+			SelectNextItem().
+			PressEnter()
 
-		assert.CurrentView().Lines(
-			Contains("first-branch"),
-			Contains("second-branch"),
-			Contains("master"),
-		)
+		t.Views().SubCommits().
+			IsFocused().
+			Lines(
+				Contains("four").IsSelected(),
+				Contains("three"),
+				Contains("base"),
+			).
+			// copy commits 'four' and 'three'
+			Press(keys.Commits.CherryPickCopy).
+			Tap(func() {
+				t.Views().Information().Content(Contains("1 commit copied"))
+			}).
+			SelectNextItem().
+			Press(keys.Commits.CherryPickCopy)
 
-		input.NextItem()
+		t.Views().Information().Content(Contains("2 commits copied"))
 
-		input.Enter()
-
-		assert.CurrentView().Name("subCommits").Lines(
-			Contains("four"),
-			Contains("three"),
-			Contains("base"),
-		)
-
-		// copy commits 'four' and 'three'
-		input.Press(keys.Commits.CherryPickCopy)
-		assert.View("information").Content(Contains("1 commit copied"))
-		input.NextItem()
-		input.Press(keys.Commits.CherryPickCopy)
-		assert.View("information").Content(Contains("2 commits copied"))
-
-		input.SwitchToCommitsView()
-
-		assert.CurrentView().Lines(
-			Contains("two"),
-			Contains("one"),
-			Contains("base"),
-		)
-
-		input.Press(keys.Commits.PasteCommits)
-		input.Alert(Equals("Cherry-Pick"), Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
-
-		assert.CurrentView().Name("commits").Lines(
-			Contains("four"),
-			Contains("three"),
-			Contains("two"),
-			Contains("one"),
-			Contains("base"),
-		)
-
-		assert.View("information").Content(Contains("2 commits copied"))
-		input.Press(keys.Universal.Return)
-		assert.View("information").Content(DoesNotContain("commits copied"))
+		t.Views().Commits().
+			Focus().
+			Lines(
+				Contains("two").IsSelected(),
+				Contains("one"),
+				Contains("base"),
+			).
+			Press(keys.Commits.PasteCommits).
+			Tap(func() {
+				t.ExpectPopup().Alert().
+					Title(Equals("Cherry-Pick")).
+					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
+					Confirm()
+			}).
+			Lines(
+				Contains("four"),
+				Contains("three"),
+				Contains("two"),
+				Contains("one"),
+				Contains("base"),
+			).
+			Tap(func() {
+				// we need to manually exit out of cherry pick mode
+				t.Views().Information().Content(Contains("2 commits copied"))
+			}).
+			PressEscape().
+			Tap(func() {
+				t.Views().Information().Content(DoesNotContain("commits copied"))
+			})
 	},
 })

@@ -14,57 +14,46 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateNCommits(10)
 	},
 	SetupConfig: func(cfg *config.AppConfig) {},
-	Run: func(
-		shell *Shell,
-		input *Input,
-		assert *Assert,
-		keys config.KeybindingConfig,
-	) {
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		markCommitAsBad := func() {
-			input.Press(keys.Commits.ViewBisectOptions)
-			input.Menu(Equals("Bisect"), MatchesRegexp(`mark .* as bad`))
+			t.Views().Commits().
+				Press(keys.Commits.ViewBisectOptions)
+
+			t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as bad`)).Confirm()
 		}
 
 		markCommitAsGood := func() {
-			input.Press(keys.Commits.ViewBisectOptions)
-			input.Menu(Equals("Bisect"), MatchesRegexp(`mark .* as good`))
+			t.Views().Commits().
+				Press(keys.Commits.ViewBisectOptions)
+
+			t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 		}
 
-		assert.AtLeastOneCommit()
+		t.Views().Commits().
+			Focus().
+			SelectedLine(Contains("commit 10")).
+			NavigateToListItem(Contains("commit 09")).
+			Tap(func() {
+				markCommitAsBad()
 
-		input.SwitchToCommitsView()
+				t.Views().Information().Content(Contains("bisecting"))
+			}).
+			SelectedLine(Contains("<-- bad")).
+			NavigateToListItem(Contains("commit 02")).
+			Tap(markCommitAsGood).
+			// lazygit will land us in the commit between our good and bad commits.
+			SelectedLine(Contains("commit 05").Contains("<-- current")).
+			Tap(markCommitAsBad).
+			SelectedLine(Contains("commit 04").Contains("<-- current")).
+			Tap(func() {
+				markCommitAsGood()
 
-		assert.CurrentView().SelectedLine(Contains("commit 10"))
+				// commit 5 is the culprit because we marked 4 as good and 5 as bad.
+				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 05.*Do you want to reset")).Confirm()
+			}).
+			IsFocused().
+			Content(Contains("commit 04"))
 
-		input.NavigateToListItem(Contains("commit 09"))
-
-		markCommitAsBad()
-
-		assert.View("information").Content(Contains("bisecting"))
-
-		assert.CurrentView().Name("commits").SelectedLine(Contains("<-- bad"))
-
-		input.NavigateToListItem(Contains("commit 02"))
-
-		markCommitAsGood()
-
-		// lazygit will land us in the commit between our good and bad commits.
-		assert.CurrentView().
-			Name("commits").
-			SelectedLine(Contains("commit 05").Contains("<-- current"))
-
-		markCommitAsBad()
-
-		assert.CurrentView().
-			Name("commits").
-			SelectedLine(Contains("commit 04").Contains("<-- current"))
-
-		markCommitAsGood()
-
-		// commit 5 is the culprit because we marked 4 as good and 5 as bad.
-		input.Alert(Equals("Bisect complete"), MatchesRegexp("(?s)commit 05.*Do you want to reset"))
-
-		assert.CurrentView().Name("commits").Content(Contains("commit 04"))
-		assert.View("information").Content(DoesNotContain("bisecting"))
+		t.Views().Information().Content(DoesNotContain("bisecting"))
 	},
 })

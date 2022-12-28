@@ -20,32 +20,31 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Checkout("current-branch")
 		shell.EmptyCommit("current-branch commit")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.View("commits").Lines(
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Commits().Lines(
 			Contains("current-branch commit"),
 			Contains("root commit"),
 		)
 
-		input.SwitchToBranchesView()
+		t.Views().Branches().
+			Focus().
+			Lines(
+				Contains("current-branch").IsSelected(),
+				Contains("other-branch"),
+			).
+			SelectNextItem().
+			Press(keys.Commits.ViewResetOptions)
 
-		assert.CurrentView().Lines(
-			Contains("current-branch"),
-			Contains("other-branch"),
-		)
-		input.NextItem()
-
-		input.Press(keys.Commits.ViewResetOptions)
-
-		input.Menu(Contains("reset to other-branch"), Contains("hard reset"))
-
-		// ensure that we've returned from the menu before continuing
-		assert.CurrentView().Name("localBranches")
+		t.ExpectPopup().Menu().
+			Title(Contains("reset to other-branch")).
+			Select(Contains("hard reset")).
+			Confirm()
 
 		// assert that we now have the expected commits in the commit panel
-		input.SwitchToCommitsView()
-		assert.CurrentView().Lines(
-			Contains("other-branch commit"),
-			Contains("root commit"),
-		)
+		t.Views().Commits().
+			Lines(
+				Contains("other-branch commit"),
+				Contains("root commit"),
+			)
 	},
 })

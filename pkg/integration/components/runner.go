@@ -126,7 +126,7 @@ func buildLazygit() error {
 }
 
 func createFixture(test *IntegrationTest, paths Paths) error {
-	shell := NewShell(paths.ActualRepo())
+	shell := NewShell(paths.ActualRepo(), func(errorMsg string) { panic(errorMsg) })
 	shell.RunCommand("git init -b master")
 	shell.RunCommand(`git config user.email "CI@example.com"`)
 	shell.RunCommand(`git config user.name "CI"`)

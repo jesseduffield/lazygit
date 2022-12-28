@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-// TODO: find out why we can't use assert.SelectedLine() on the staging/stagingSecondary views.
+// TODO: find out why we can't use .SelectedLine() on the staging/stagingSecondary views.
 
 var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Staging a couple files, going in the unstaged files menu, staging a line and committing",
@@ -17,27 +17,37 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateFile("myfile", "myfile content\nwith a second line").
 			CreateFile("myfile2", "myfile2 content")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(0)
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Commits().
+			IsEmpty()
 
-		assert.CurrentView().Name("files").SelectedLine(Contains("myfile"))
-		input.Enter()
-		assert.CurrentView().Name("staging")
-		assert.View("stagingSecondary").Content(DoesNotContain("+myfile content"))
-		// stage the first line
-		input.PrimaryAction()
-		assert.View("staging").Content(DoesNotContain("+myfile content"))
-		assert.View("stagingSecondary").Content(Contains("+myfile content"))
+		t.Views().Files().
+			IsFocused().
+			SelectedLine(Contains("myfile")).
+			PressEnter()
 
-		input.Press(keys.Files.CommitChanges)
-		assert.InCommitMessagePanel()
+		t.Views().Staging().
+			IsFocused().
+			Tap(func() {
+				t.Views().StagingSecondary().Content(DoesNotContain("+myfile content"))
+			}).
+			// stage the first line
+			PressPrimaryAction().
+			Tap(func() {
+				t.Views().Staging().Content(DoesNotContain("+myfile content"))
+				t.Views().StagingSecondary().Content(Contains("+myfile content"))
+			}).
+			Press(keys.Files.CommitChanges)
+
 		commitMessage := "my commit message"
-		input.Type(commitMessage)
-		input.Confirm()
+		t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()
 
-		assert.CommitCount(1)
-		assert.HeadCommitMessage(Equals(commitMessage))
-		assert.CurrentWindowName("staging")
+		t.Views().Commits().
+			Lines(
+				Contains(commitMessage),
+			)
+
+		t.Views().Staging().IsFocused()
 
 		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
 	},

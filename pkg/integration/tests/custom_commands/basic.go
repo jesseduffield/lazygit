@@ -21,18 +21,13 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 			},
 		}
 	},
-	Run: func(
-		shell *Shell,
-		input *Input,
-		assert *Assert,
-		keys config.KeybindingConfig,
-	) {
-		assert.WorkingTreeFileCount(0)
-
-		input.Press("a")
-
-		assert.View("files").Lines(
-			Contains("myfile"),
-		)
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Files().
+			IsEmpty().
+			IsFocused().
+			Press("a").
+			Lines(
+				Contains("myfile"),
+			)
 	},
 })

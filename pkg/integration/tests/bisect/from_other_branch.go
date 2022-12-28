@@ -18,37 +18,29 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			RunCommand("git bisect start other~2 other~5")
 	},
 	SetupConfig: func(cfg *config.AppConfig) {},
-	Run: func(
-		shell *Shell,
-		input *Input,
-		assert *Assert,
-		keys config.KeybindingConfig,
-	) {
-		assert.View("information").Content(Contains("bisecting"))
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Information().Content(Contains("bisecting"))
 
-		assert.AtLeastOneCommit()
+		t.Views().Commits().
+			Focus().
+			TopLines(
+				MatchesRegexp(`<-- bad.*commit 08`),
+				MatchesRegexp(`<-- current.*commit 07`),
+				MatchesRegexp(`\?.*commit 06`),
+				MatchesRegexp(`<-- good.*commit 05`),
+			).
+			SelectNextItem().
+			Press(keys.Commits.ViewBisectOptions).
+			Tap(func() {
+				t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 
-		input.SwitchToCommitsView()
+				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
 
-		assert.CurrentView().TopLines(
-			MatchesRegexp(`<-- bad.*commit 08`),
-			MatchesRegexp(`<-- current.*commit 07`),
-			MatchesRegexp(`\?.*commit 06`),
-			MatchesRegexp(`<-- good.*commit 05`),
-		)
-
-		input.NextItem()
-
-		input.Press(keys.Commits.ViewBisectOptions)
-		input.Menu(Equals("Bisect"), MatchesRegexp(`mark .* as good`))
-
-		input.Alert(Equals("Bisect complete"), MatchesRegexp(`(?s)commit 08.*Do you want to reset`))
-
-		assert.View("information").Content(DoesNotContain("bisecting"))
-
-		// back in master branch which just had the one commit
-		assert.CurrentView().Name("commits").Lines(
-			Contains("only commit on master"),
-		)
+				t.Views().Information().Content(DoesNotContain("bisecting"))
+			}).
+			// back in master branch which just had the one commit
+			Lines(
+				Contains("only commit on master"),
+			)
 	},
 })

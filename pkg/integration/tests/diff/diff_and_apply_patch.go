@@ -21,48 +21,58 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		shell.Checkout("branch-a")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesView()
-		assert.CurrentView().Lines(
-			Contains("branch-a"),
-			Contains("branch-b"),
-		)
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
+			Focus().
+			Lines(
+				Contains("branch-a"),
+				Contains("branch-b"),
+			).
+			Press(keys.Universal.DiffingMenu)
 
-		input.Press(keys.Universal.DiffingMenu)
+		t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Equals("diff branch-a")).Confirm()
 
-		input.Menu(Equals("Diffing"), Equals("diff branch-a"))
+		t.Views().Information().Content(Contains("showing output for: git diff branch-a branch-a"))
 
-		assert.CurrentView().Name("localBranches")
+		t.Views().Branches().
+			IsFocused().
+			SelectNextItem().
+			Tap(func() {
+				t.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b"))
+				t.Views().Main().Content(Contains("+second line"))
+			}).
+			PressEnter()
 
-		assert.View("information").Content(Contains("showing output for: git diff branch-a branch-a"))
-		input.NextItem()
-		assert.View("information").Content(Contains("showing output for: git diff branch-a branch-b"))
-		assert.MainView().Content(Contains("+second line"))
+		t.Views().SubCommits().
+			IsFocused().
+			SelectedLine(Contains("update")).
+			Tap(func() {
+				t.Views().Main().Content(Contains("+second line"))
+			}).
+			PressEnter()
 
-		input.Enter()
-		assert.CurrentView().Name("subCommits")
-		assert.MainView().Content(Contains("+second line"))
-		assert.CurrentView().SelectedLine(Contains("update"))
-		input.Enter()
-		assert.CurrentView().Name("commitFiles")
-		assert.CurrentView().SelectedLine(Contains("file1"))
-		assert.MainView().Content(Contains("+second line"))
+		t.Views().CommitFiles().
+			IsFocused().
+			SelectedLine(Contains("file1")).
+			Tap(func() {
+				t.Views().Main().Content(Contains("+second line"))
+			}).
+			PressPrimaryAction(). // add the file to the patch
+			Press(keys.Universal.DiffingMenu).
+			Tap(func() {
+				t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains("exit diff mode")).Confirm()
 
-		// add the file to the patch
-		input.PrimaryAction()
+				t.Views().Information().Content(DoesNotContain("building patch"))
+			}).
+			Press(keys.Universal.CreatePatchOptionsMenu)
 
-		input.Press(keys.Universal.DiffingMenu)
-		input.Menu(Equals("Diffing"), Contains("exit diff mode"))
-
-		assert.View("information").Content(DoesNotContain("building patch"))
-
-		input.Press(keys.Universal.CreatePatchOptionsMenu)
 		// adding the regex '$' here to distinguish the menu item from the 'apply patch in reverse' item
-		input.Menu(Equals("Patch Options"), MatchesRegexp("apply patch$"))
+		t.ExpectPopup().Menu().Title(Equals("Patch Options")).Select(MatchesRegexp("apply patch$")).Confirm()
 
-		input.SwitchToFilesView()
+		t.Views().Files().
+			Focus().
+			SelectedLine(Contains("file1"))
 
-		assert.CurrentView().SelectedLine(Contains("file1"))
-		assert.MainView().Content(Contains("+second line"))
+		t.Views().Main().Content(Contains("+second line"))
 	},
 })

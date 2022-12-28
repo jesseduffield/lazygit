@@ -71,9 +71,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.RunShellCommand(`echo "renamed\nhaha" > renamed2.txt && git add renamed2.txt`)
 	},
 
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(3)
-
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		type statusFile struct {
 			status    string
 			label     string
@@ -82,9 +80,12 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		discardOneByOne := func(files []statusFile) {
 			for _, file := range files {
-				assert.CurrentView().SelectedLine(Contains(file.status + " " + file.label))
-				input.Press(keys.Universal.Remove)
-				input.Menu(Equals(file.menuTitle), Contains("discard all changes"))
+				t.Views().Files().
+					IsFocused().
+					SelectedLine(Contains(file.status + " " + file.label)).
+					Press(keys.Universal.Remove)
+
+				t.ExpectPopup().Menu().Title(Equals(file.menuTitle)).Select(Contains("discard all changes")).Confirm()
 			}
 		}
 
@@ -98,7 +99,10 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "DU", label: "deleted-us.txt", menuTitle: "deleted-us.txt"},
 		})
 
-		input.DenyConfirmation(Equals("continue"), Contains("all merge conflicts resolved. Continue?"))
+		t.ExpectPopup().Confirmation().
+			Title(Equals("continue")).
+			Content(Contains("all merge conflicts resolved. Continue?")).
+			Cancel()
 
 		discardOneByOne([]statusFile{
 			{status: "MD", label: "change-delete.txt", menuTitle: "change-delete.txt"},
@@ -115,6 +119,6 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "??", label: "new.txt", menuTitle: "new.txt"},
 		})
 
-		assert.WorkingTreeFileCount(0)
+		t.Views().Files().IsEmpty()
 	},
 })

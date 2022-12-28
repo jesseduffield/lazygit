@@ -18,37 +18,38 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.UpdateFileAndAdd("file1", "first line\nsecond line\nthird line\n")
 		shell.Commit("third commit")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToCommitsView()
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Commits().
+			Focus().
+			Lines(
+				Contains("third commit").IsSelected(),
+				Contains("second commit"),
+				Contains("first commit"),
+			).
+			Press(keys.Universal.DiffingMenu).
+			Tap(func() {
+				t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(MatchesRegexp(`diff \w+`)).Confirm()
 
-		assert.CurrentView().Lines(
-			Contains("third commit"),
-			Contains("second commit"),
-			Contains("first commit"),
-		)
+				t.Views().Information().Content(Contains("showing output for: git diff"))
+			}).
+			SelectNextItem().
+			SelectNextItem().
+			SelectedLine(Contains("first commit")).
+			Tap(func() {
+				t.Views().Main().Content(Contains("-second line\n-third line"))
+			}).
+			Press(keys.Universal.DiffingMenu).
+			Tap(func() {
+				t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
 
-		input.Press(keys.Universal.DiffingMenu)
-		input.Menu(Equals("Diffing"), MatchesRegexp(`diff \w+`))
+				t.Views().Main().Content(Contains("+second line\n+third line"))
+			}).
+			PressEnter()
 
-		assert.NotInPopup()
+		t.Views().CommitFiles().
+			IsFocused().
+			SelectedLine(Contains("file1"))
 
-		assert.View("information").Content(Contains("showing output for: git diff"))
-
-		input.NextItem()
-		input.NextItem()
-		assert.CurrentView().SelectedLine(Contains("first commit"))
-
-		assert.MainView().Content(Contains("-second line\n-third line"))
-
-		input.Press(keys.Universal.DiffingMenu)
-		input.Menu(Equals("Diffing"), Contains("reverse diff direction"))
-		assert.NotInPopup()
-
-		assert.MainView().Content(Contains("+second line\n+third line"))
-
-		input.Enter()
-
-		assert.CurrentView().Name("commitFiles").SelectedLine(Contains("file1"))
-		assert.MainView().Content(Contains("+second line\n+third line"))
+		t.Views().Main().Content(Contains("+second line\n+third line"))
 	},
 })
