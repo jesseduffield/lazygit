@@ -47,6 +47,6 @@ var DiscardStagedChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			)
 
 		// the file should have the same content that it originally had, given that that was committed already
-		t.FileSystem().FileContainsContent("fileToRemove", Equals("original content"))
+		t.FileSystem().FileContent("fileToRemove", Equals("original content"))
 	},
 })

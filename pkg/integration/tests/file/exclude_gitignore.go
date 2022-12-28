@@ -33,7 +33,7 @@ var ExcludeGitignore = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Equals("Cannot ignore .gitignore")).Confirm()
 			})
 
-		t.FileSystem().FileContainsContent(".gitignore", Equals(""))
-		t.FileSystem().FileContainsContent(".git/info/exclude", DoesNotContain(".gitignore"))
+		t.FileSystem().FileContent(".gitignore", Equals(""))
+		t.FileSystem().FileContent(".git/info/exclude", DoesNotContain(".gitignore"))
 	},
 })
