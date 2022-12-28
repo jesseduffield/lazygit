@@ -1,1 +1,0 @@
-{ "description": "Open lazygit with a filter path given", "speed": 10, "extraCmdArgs": "-f file1" }

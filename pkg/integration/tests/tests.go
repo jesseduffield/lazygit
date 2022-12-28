@@ -18,6 +18,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_path"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
@@ -67,6 +68,9 @@ var tests = []*components.IntegrationTest{
 	diff.DiffCommits,
 	sync.FetchPrune,
 	sync.RenameBranchAndPull,
+	filter_by_path.CliArg,
+	filter_by_path.SelectFile,
+	filter_by_path.TypeFile,
 }
 
 func GetTests() []*components.IntegrationTest {
