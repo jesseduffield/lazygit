@@ -101,7 +101,6 @@ refresher:
 update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often an update is checked for
-reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
 confirmOnQuit: false
 # determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
 quitOnTopLevelReturn: false
