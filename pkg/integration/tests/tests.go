@@ -45,6 +45,7 @@ var tests = []*components.IntegrationTest{
 	commit.Staged,
 	commit.Unstaged,
 	commit.StagedWithoutHooks,
+	commit.DiscardOldFileChange,
 	custom_commands.Basic,
 	custom_commands.FormPrompts,
 	custom_commands.MenuFromCommand,
