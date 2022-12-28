@@ -61,11 +61,11 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Press("a")
 
-		t.ExpectPrompt().Title(Equals("Enter a file name")).Type("my file").Confirm()
+		t.ExpectPopup().Prompt().Title(Equals("Enter a file name")).Type("my file").Confirm()
 
-		t.ExpectMenu().Title(Equals("Choose file content")).Select(Contains("bar")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Choose file content")).Select(Contains("bar")).Confirm()
 
-		t.ExpectConfirmation().
+		t.ExpectPopup().Confirmation().
 			Title(Equals("Are you sure?")).
 			Content(Equals("Are you REALLY sure you want to make this file? Up to you buddy.")).
 			Confirm()

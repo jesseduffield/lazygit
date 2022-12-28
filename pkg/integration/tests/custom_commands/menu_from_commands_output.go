@@ -48,12 +48,12 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Press("a")
 
-		t.ExpectPrompt().
+		t.ExpectPopup().Prompt().
 			Title(Equals("Which git command do you want to run?")).
 			InitialText(Equals("branch")).
 			Confirm()
 
-		t.ExpectMenu().Title(Equals("Branch:")).Select(Equals("master")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Branch:")).Select(Equals("master")).Confirm()
 
 		t.Git().CurrentBranchName("master")
 	},

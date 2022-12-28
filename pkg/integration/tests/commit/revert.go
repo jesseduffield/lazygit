@@ -23,7 +23,7 @@ var Revert = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.RevertCommit).
 			Tap(func() {
-				t.ExpectConfirmation().
+				t.ExpectPopup().Confirmation().
 					Title(Equals("Revert commit")).
 					Content(MatchesRegexp(`Are you sure you want to revert \w+?`)).
 					Confirm()

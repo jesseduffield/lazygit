@@ -30,7 +30,7 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.DiffingMenu)
 
-		t.ExpectMenu().Title(Equals("Diffing")).Select(Contains(`diff branch-a`)).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains(`diff branch-a`)).Confirm()
 
 		t.Views().Branches().
 			IsFocused().
@@ -66,7 +66,7 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Press(keys.Universal.DiffingMenu)
 
-		t.ExpectMenu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
 		t.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b -R"))
 		t.Views().Main().Content(Contains("-second line"))
 	},

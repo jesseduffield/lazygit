@@ -8,7 +8,7 @@ type Actions struct {
 func (self *Actions) ContinueMerge() {
 	self.t.Views().current().Press(self.t.keys.Universal.CreateRebaseOptionsMenu)
 
-	self.t.ExpectMenu().
+	self.t.ExpectPopup().Menu().
 		Title(Equals("Rebase Options")).
 		Select(Contains("continue")).
 		Confirm()

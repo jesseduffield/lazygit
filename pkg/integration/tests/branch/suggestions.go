@@ -27,7 +27,7 @@ var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 
 		// we expect the first suggestion to be the branch we want because it most
 		// closely matches what we typed in
-		t.ExpectPrompt().
+		t.ExpectPopup().Prompt().
 			Title(Equals("Branch name:")).
 			Type("branch-to").
 			SuggestionTopLines(Contains("branch-to-checkout")).

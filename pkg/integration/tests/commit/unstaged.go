@@ -40,7 +40,7 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Files.CommitChanges)
 
 		commitMessage := "my commit message"
-		t.ExpectCommitMessagePanel().Type(commitMessage).Confirm()
+		t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()
 
 		t.Views().Commits().
 			Lines(

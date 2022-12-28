@@ -60,7 +60,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.PasteCommits).
 			Tap(func() {
-				t.ExpectAlert().
+				t.ExpectPopup().Alert().
 					Title(Equals("Cherry-Pick")).
 					Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
 					Confirm()

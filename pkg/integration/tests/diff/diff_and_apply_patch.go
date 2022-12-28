@@ -30,7 +30,7 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.DiffingMenu)
 
-		t.ExpectMenu().Title(Equals("Diffing")).Select(Equals("diff branch-a")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Equals("diff branch-a")).Confirm()
 
 		t.Views().Information().Content(Contains("showing output for: git diff branch-a branch-a"))
 
@@ -60,14 +60,14 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 			PressPrimaryAction(). // add the file to the patch
 			Press(keys.Universal.DiffingMenu).
 			Tap(func() {
-				t.ExpectMenu().Title(Equals("Diffing")).Select(Contains("exit diff mode")).Confirm()
+				t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains("exit diff mode")).Confirm()
 
 				t.Views().Information().Content(DoesNotContain("building patch"))
 			}).
 			Press(keys.Universal.CreatePatchOptionsMenu)
 
 		// adding the regex '$' here to distinguish the menu item from the 'apply patch in reverse' item
-		t.ExpectMenu().Title(Equals("Patch Options")).Select(MatchesRegexp("apply patch$")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Patch Options")).Select(MatchesRegexp("apply patch$")).Confirm()
 
 		t.Views().Files().
 			Focus().

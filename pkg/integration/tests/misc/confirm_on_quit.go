@@ -18,7 +18,7 @@ var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Press(keys.Universal.Quit)
 
-		t.ExpectConfirmation().
+		t.ExpectPopup().Confirmation().
 			Title(Equals("")).
 			Content(Contains("Are you sure you want to quit?")).
 			Confirm()

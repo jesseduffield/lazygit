@@ -133,74 +133,14 @@ func (self *TestDriver) inListContext() {
 	})
 }
 
-func (self *TestDriver) ExpectConfirmation() *ConfirmationAsserter {
-	self.inConfirm()
-
-	return &ConfirmationAsserter{t: self}
-}
-
-func (self *TestDriver) inConfirm() {
-	self.assertWithRetries(func() (bool, string) {
-		currentView := self.gui.CurrentContext().GetView()
-		return currentView.Name() == "confirmation" && !currentView.Editable, "Expected confirmation popup to be focused"
-	})
-}
-
-func (self *TestDriver) ExpectPrompt() *PromptAsserter {
-	self.inPrompt()
-
-	return &PromptAsserter{t: self}
-}
-
-func (self *TestDriver) inPrompt() {
-	self.assertWithRetries(func() (bool, string) {
-		currentView := self.gui.CurrentContext().GetView()
-		return currentView.Name() == "confirmation" && currentView.Editable, "Expected prompt popup to be focused"
-	})
-}
-
-func (self *TestDriver) ExpectAlert() *AlertAsserter {
-	self.inAlert()
-
-	return &AlertAsserter{t: self}
-}
-
-func (self *TestDriver) inAlert() {
-	// basically the same thing as a confirmation popup with the current implementation
-	self.assertWithRetries(func() (bool, string) {
-		currentView := self.gui.CurrentContext().GetView()
-		return currentView.Name() == "confirmation" && !currentView.Editable, "Expected alert popup to be focused"
-	})
-}
-
-func (self *TestDriver) ExpectMenu() *MenuAsserter {
-	self.inMenu()
-
-	return &MenuAsserter{t: self}
-}
-
-func (self *TestDriver) inMenu() {
-	self.assertWithRetries(func() (bool, string) {
-		return self.gui.CurrentContext().GetView().Name() == "menu", "Expected popup menu to be focused"
-	})
-}
-
-func (self *TestDriver) ExpectCommitMessagePanel() *CommitMessagePanelAsserter {
-	self.inCommitMessagePanel()
-
-	return &CommitMessagePanelAsserter{t: self}
-}
-
-func (self *TestDriver) inCommitMessagePanel() {
-	self.assertWithRetries(func() (bool, string) {
-		currentView := self.gui.CurrentContext().GetView()
-		return currentView.Name() == "commitMessage", "Expected commit message panel to be focused"
-	})
-}
-
 // for making assertions on lazygit views
 func (self *TestDriver) Views() *Views {
 	return &Views{t: self}
+}
+
+// for interacting with popups
+func (self *TestDriver) ExpectPopup() *Popup {
+	return &Popup{t: self}
 }
 
 // for making assertions through git itself

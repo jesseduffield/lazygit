@@ -28,7 +28,7 @@ var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.New).
 			Tap(func() {
 				branchName := "my-branch-name"
-				t.ExpectPrompt().Title(Contains("New Branch Name")).Type(branchName).Confirm()
+				t.ExpectPopup().Prompt().Title(Contains("New Branch Name")).Type(branchName).Confirm()
 
 				t.Git().CurrentBranchName(branchName)
 			}).

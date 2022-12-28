@@ -27,9 +27,9 @@ var StashIncludingUntrackedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Files.ViewStashOptions)
 
-		t.ExpectMenu().Title(Equals("Stash options")).Select(Contains("stash all changes including untracked files")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Stash options")).Select(Contains("stash all changes including untracked files")).Confirm()
 
-		t.ExpectPrompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
+		t.ExpectPopup().Prompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
 
 		t.Views().Stash().
 			Lines(

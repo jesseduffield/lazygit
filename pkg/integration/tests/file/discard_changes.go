@@ -85,7 +85,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 					SelectedLine(Contains(file.status + " " + file.label)).
 					Press(keys.Universal.Remove)
 
-				t.ExpectMenu().Title(Equals(file.menuTitle)).Select(Contains("discard all changes")).Confirm()
+				t.ExpectPopup().Menu().Title(Equals(file.menuTitle)).Select(Contains("discard all changes")).Confirm()
 			}
 		}
 
@@ -99,7 +99,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "DU", label: "deleted-us.txt", menuTitle: "deleted-us.txt"},
 		})
 
-		t.ExpectConfirmation().
+		t.ExpectPopup().Confirmation().
 			Title(Equals("continue")).
 			Content(Contains("all merge conflicts resolved. Continue?")).
 			Cancel()

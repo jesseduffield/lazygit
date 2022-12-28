@@ -35,7 +35,7 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Commits.ViewResetOptions)
 
-		t.ExpectMenu().
+		t.ExpectPopup().Menu().
 			Title(Contains("reset to other-branch")).
 			Select(Contains("hard reset")).
 			Confirm()

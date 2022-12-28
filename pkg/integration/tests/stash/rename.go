@@ -28,7 +28,7 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Stash.RenameStash).
 			Tap(func() {
-				t.ExpectPrompt().Title(Equals("Rename stash: stash@{1}")).Type(" baz").Confirm()
+				t.ExpectPopup().Prompt().Title(Equals("Rename stash: stash@{1}")).Type(" baz").Confirm()
 			}).
 			SelectedLine(Equals("On master: foo baz"))
 	},

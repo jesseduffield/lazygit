@@ -19,14 +19,14 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 			t.Views().Commits().
 				Press(keys.Commits.ViewBisectOptions)
 
-			t.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as bad`)).Confirm()
+			t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as bad`)).Confirm()
 		}
 
 		markCommitAsGood := func() {
 			t.Views().Commits().
 				Press(keys.Commits.ViewBisectOptions)
 
-			t.ExpectMenu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
+			t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 		}
 
 		t.Views().Commits().
@@ -49,7 +49,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 				markCommitAsGood()
 
 				// commit 5 is the culprit because we marked 4 as good and 5 as bad.
-				t.ExpectAlert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 05.*Do you want to reset")).Confirm()
+				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 05.*Do you want to reset")).Confirm()
 			}).
 			IsFocused().
 			Content(Contains("commit 04"))

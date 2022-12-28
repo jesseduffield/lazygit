@@ -27,7 +27,7 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		commitMessage := "my commit message"
 
-		t.ExpectCommitMessagePanel().Type(commitMessage).Confirm()
+		t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()
 
 		t.Views().Commits().
 			Lines(

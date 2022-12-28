@@ -46,7 +46,7 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Files.CommitChangesWithoutHook)
 
 		commitMessage := ": my commit message"
-		t.ExpectCommitMessagePanel().InitialText(Contains("WIP")).Type(commitMessage).Confirm()
+		t.ExpectPopup().CommitMessagePanel().InitialText(Contains("WIP")).Type(commitMessage).Confirm()
 
 		t.Views().Commits().
 			Lines(

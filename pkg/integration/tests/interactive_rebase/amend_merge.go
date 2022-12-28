@@ -41,7 +41,7 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Press(keys.Commits.AmendToCommit)
 
-		t.ExpectConfirmation().
+		t.ExpectPopup().Confirmation().
 			Title(Equals("Amend Commit")).
 			Content(Contains("Are you sure you want to amend this commit with your staged files?")).
 			Confirm()

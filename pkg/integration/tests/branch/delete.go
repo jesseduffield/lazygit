@@ -26,12 +26,12 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectAlert().Title(Equals("Error")).Content(Contains("You cannot delete the checked out branch!")).Confirm()
+				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("You cannot delete the checked out branch!")).Confirm()
 			}).
 			SelectNextItem().
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectConfirmation().
+				t.ExpectPopup().Confirmation().
 					Title(Equals("Delete Branch")).
 					Content(Contains("Are you sure you want to delete the branch 'branch-one'?")).
 					Confirm()

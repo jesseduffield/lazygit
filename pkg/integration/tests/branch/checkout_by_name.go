@@ -27,9 +27,9 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Branches.CheckoutBranchByName).
 			Tap(func() {
-				t.ExpectPrompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
+				t.ExpectPopup().Prompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
 
-				t.ExpectAlert().Title(Equals("Branch not found")).Content(Equals("Branch not found. Create a new branch named new-branch?")).Confirm()
+				t.ExpectPopup().Alert().Title(Equals("Branch not found")).Content(Equals("Branch not found. Create a new branch named new-branch?")).Confirm()
 			}).
 			Lines(
 				MatchesRegexp(`\*.*new-branch`).IsSelected(),

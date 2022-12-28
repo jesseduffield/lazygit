@@ -50,9 +50,9 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Press("a")
 
-		t.ExpectMenu().Title(Equals("Choose commit message")).Select(Contains("bar")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Choose commit message")).Select(Contains("bar")).Confirm()
 
-		t.ExpectPrompt().Title(Equals("Description")).Type(" my branch").Confirm()
+		t.ExpectPopup().Prompt().Title(Equals("Description")).Type(" my branch").Confirm()
 
 		t.Views().Files().
 			Focus().
