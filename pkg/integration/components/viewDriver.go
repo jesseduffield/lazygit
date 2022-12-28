@@ -7,7 +7,7 @@ import (
 	"github.com/jesseduffield/gocui"
 )
 
-type View struct {
+type ViewDriver struct {
 	// context is prepended to any error messages e.g. 'context: "current view"'
 	context string
 	getView func() *gocui.View
@@ -15,7 +15,7 @@ type View struct {
 }
 
 // asserts that the view has the expected title
-func (self *View) Title(expected *matcher) *View {
+func (self *ViewDriver) Title(expected *matcher) *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
 		actual := self.getView().Title
 		return expected.context(fmt.Sprintf("%s title", self.context)).test(actual)
@@ -28,7 +28,7 @@ func (self *View) Title(expected *matcher) *View {
 // are passed, we only check the first three lines of the view.
 // This method is convenient when you have a list of commits but you only want to
 // assert on the first couple of commits.
-func (self *View) TopLines(matchers ...*matcher) *View {
+func (self *ViewDriver) TopLines(matchers ...*matcher) *ViewDriver {
 	if len(matchers) < 1 {
 		self.t.fail("TopLines method requires at least one matcher. If you are trying to assert that there are no lines, use .IsEmpty()")
 	}
@@ -43,13 +43,13 @@ func (self *View) TopLines(matchers ...*matcher) *View {
 
 // asserts that the view has lines matching the given matchers. One matcher must be passed for each line.
 // If you only care about the top n lines, use the TopLines method instead.
-func (self *View) Lines(matchers ...*matcher) *View {
+func (self *ViewDriver) Lines(matchers ...*matcher) *ViewDriver {
 	self.LineCount(len(matchers))
 
 	return self.assertLines(matchers...)
 }
 
-func (self *View) assertLines(matchers ...*matcher) *View {
+func (self *ViewDriver) assertLines(matchers ...*matcher) *ViewDriver {
 	view := self.getView()
 
 	for i, matcher := range matchers {
@@ -73,7 +73,7 @@ func (self *View) assertLines(matchers ...*matcher) *View {
 }
 
 // asserts on the content of the view i.e. the stuff within the view's frame.
-func (self *View) Content(matcher *matcher) *View {
+func (self *ViewDriver) Content(matcher *matcher) *ViewDriver {
 	self.t.matchString(matcher, fmt.Sprintf("%s: Unexpected content.", self.context),
 		func() string {
 			return self.getView().Buffer()
@@ -84,7 +84,7 @@ func (self *View) Content(matcher *matcher) *View {
 }
 
 // asserts on the selected line of the view
-func (self *View) SelectedLine(matcher *matcher) *View {
+func (self *ViewDriver) SelectedLine(matcher *matcher) *ViewDriver {
 	self.t.matchString(matcher, fmt.Sprintf("%s: Unexpected selected line.", self.context),
 		func() string {
 			return self.getView().SelectedLine()
@@ -95,7 +95,7 @@ func (self *View) SelectedLine(matcher *matcher) *View {
 }
 
 // asserts on the index of the selected line. 0 is the first index, representing the line at the top of the view.
-func (self *View) SelectedLineIdx(expected int) *View {
+func (self *ViewDriver) SelectedLineIdx(expected int) *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
 		actual := self.getView().SelectedLineIdx()
 		return expected == actual, fmt.Sprintf("%s: Expected selected line index to be %d, got %d", self.context, expected, actual)
@@ -105,7 +105,7 @@ func (self *View) SelectedLineIdx(expected int) *View {
 }
 
 // focus the view (assumes the view is a side-view that can be focused via a keybinding)
-func (self *View) Focus() *View {
+func (self *ViewDriver) Focus() *ViewDriver {
 	// we can easily change focus by switching to the view's window, but this assumes that the desired view
 	// is at the top of that window. So for now we'll switch to the window then assert that the desired
 	// view is on top (i.e. that it's the current view).
@@ -135,7 +135,7 @@ func (self *View) Focus() *View {
 }
 
 // asserts that the view is focused
-func (self *View) IsFocused() *View {
+func (self *ViewDriver) IsFocused() *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
 		expected := self.getView().Name()
 		actual := self.t.gui.CurrentContext().GetView().Name()
@@ -145,7 +145,7 @@ func (self *View) IsFocused() *View {
 	return self
 }
 
-func (self *View) Press(keyStr string) *View {
+func (self *ViewDriver) Press(keyStr string) *ViewDriver {
 	self.IsFocused()
 
 	self.t.press(keyStr)
@@ -154,31 +154,31 @@ func (self *View) Press(keyStr string) *View {
 }
 
 // i.e. pressing down arrow
-func (self *View) SelectNextItem() *View {
+func (self *ViewDriver) SelectNextItem() *ViewDriver {
 	return self.Press(self.t.keys.Universal.NextItem)
 }
 
 // i.e. pressing up arrow
-func (self *View) SelectPreviousItem() *View {
+func (self *ViewDriver) SelectPreviousItem() *ViewDriver {
 	return self.Press(self.t.keys.Universal.PrevItem)
 }
 
 // i.e. pressing space
-func (self *View) PressPrimaryAction() *View {
+func (self *ViewDriver) PressPrimaryAction() *ViewDriver {
 	return self.Press(self.t.keys.Universal.Select)
 }
 
 // i.e. pressing space
-func (self *View) PressEnter() *View {
+func (self *ViewDriver) PressEnter() *ViewDriver {
 	return self.Press(self.t.keys.Universal.Confirm)
 }
 
 // i.e. pressing escape
-func (self *View) PressEscape() *View {
+func (self *ViewDriver) PressEscape() *ViewDriver {
 	return self.Press(self.t.keys.Universal.Return)
 }
 
-func (self *View) NavigateToListItem(matcher *matcher) *View {
+func (self *ViewDriver) NavigateToListItem(matcher *matcher) *ViewDriver {
 	self.IsFocused()
 
 	self.t.navigateToListItem(matcher)
@@ -187,7 +187,7 @@ func (self *View) NavigateToListItem(matcher *matcher) *View {
 }
 
 // returns true if the view is a list view and it contains no items
-func (self *View) IsEmpty() *View {
+func (self *ViewDriver) IsEmpty() *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
 		actual := strings.TrimSpace(self.getView().Buffer())
 		return actual == "", fmt.Sprintf("%s: Unexpected content in view: expected no content. Content: %s", self.context, actual)
@@ -196,7 +196,7 @@ func (self *View) IsEmpty() *View {
 	return self
 }
 
-func (self *View) LineCount(expectedCount int) *View {
+func (self *ViewDriver) LineCount(expectedCount int) *ViewDriver {
 	if expectedCount == 0 {
 		return self.IsEmpty()
 	}
@@ -223,7 +223,7 @@ func (self *View) LineCount(expectedCount int) *View {
 
 // for when you want to make some assertion unrelated to the current view
 // without breaking the method chain
-func (self *View) Tap(f func()) *View {
+func (self *ViewDriver) Tap(f func()) *ViewDriver {
 	f()
 
 	return self
