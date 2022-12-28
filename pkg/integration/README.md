@@ -79,6 +79,8 @@ To run a test in sandbox mode you can press 's' on a test in the test TUI or in 
 
 ## Migration process
 
+You can watch how to migrate tests in this youtube [video](https://youtu.be/cJtOJu6-HcA).
+
 At the time of writing, most tests are created under an old approach, where you would record yourself in a lazygit session and then the test would replay the keybindings with the same timestamps. This old approach is great for writing tests quickly, but is much harder to maintain. It has to rely on snapshots to determining if a test passes or fails, and can't do assertions along the way. It's also harder to grok what's the intention behind certain actions that take place within the test (e.g. was the recorder intentionally switching to another panel or was that just a misclick?).
 
 At the moment, all the deprecated test code lives in pkg/integration/deprecated. Hopefully in the very near future we migrate everything across so that we don't need to maintain two systems.
