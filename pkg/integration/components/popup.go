@@ -4,10 +4,10 @@ type Popup struct {
 	t *TestDriver
 }
 
-func (self *Popup) Confirmation() *ConfirmationAsserter {
+func (self *Popup) Confirmation() *ConfirmationDriver {
 	self.inConfirm()
 
-	return &ConfirmationAsserter{t: self.t}
+	return &ConfirmationDriver{t: self.t}
 }
 
 func (self *Popup) inConfirm() {
@@ -17,10 +17,10 @@ func (self *Popup) inConfirm() {
 	})
 }
 
-func (self *Popup) Prompt() *PromptAsserter {
+func (self *Popup) Prompt() *PromptDriver {
 	self.inPrompt()
 
-	return &PromptAsserter{t: self.t}
+	return &PromptDriver{t: self.t}
 }
 
 func (self *Popup) inPrompt() {
@@ -30,10 +30,10 @@ func (self *Popup) inPrompt() {
 	})
 }
 
-func (self *Popup) Alert() *AlertAsserter {
+func (self *Popup) Alert() *AlertDriver {
 	self.inAlert()
 
-	return &AlertAsserter{t: self.t}
+	return &AlertDriver{t: self.t}
 }
 
 func (self *Popup) inAlert() {
@@ -44,10 +44,10 @@ func (self *Popup) inAlert() {
 	})
 }
 
-func (self *Popup) Menu() *MenuAsserter {
+func (self *Popup) Menu() *MenuDriver {
 	self.inMenu()
 
-	return &MenuAsserter{t: self.t}
+	return &MenuDriver{t: self.t}
 }
 
 func (self *Popup) inMenu() {
@@ -56,10 +56,10 @@ func (self *Popup) inMenu() {
 	})
 }
 
-func (self *Popup) CommitMessagePanel() *CommitMessagePanelAsserter {
+func (self *Popup) CommitMessagePanel() *CommitMessagePanelDriver {
 	self.inCommitMessagePanel()
 
-	return &CommitMessagePanelAsserter{t: self.t}
+	return &CommitMessagePanelDriver{t: self.t}
 }
 
 func (self *Popup) inCommitMessagePanel() {

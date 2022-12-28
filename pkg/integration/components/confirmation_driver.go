@@ -1,18 +1,18 @@
 package components
 
-type ConfirmationAsserter struct {
+type ConfirmationDriver struct {
 	t                 *TestDriver
 	hasCheckedTitle   bool
 	hasCheckedContent bool
 }
 
-func (self *ConfirmationAsserter) getViewAsserter() *View {
+func (self *ConfirmationDriver) getViewDriver() *ViewDriver {
 	return self.t.Views().Confirmation()
 }
 
 // asserts that the confirmation view has the expected title
-func (self *ConfirmationAsserter) Title(expected *matcher) *ConfirmationAsserter {
-	self.getViewAsserter().Title(expected)
+func (self *ConfirmationDriver) Title(expected *matcher) *ConfirmationDriver {
+	self.getViewDriver().Title(expected)
 
 	self.hasCheckedTitle = true
 
@@ -20,27 +20,27 @@ func (self *ConfirmationAsserter) Title(expected *matcher) *ConfirmationAsserter
 }
 
 // asserts that the confirmation view has the expected content
-func (self *ConfirmationAsserter) Content(expected *matcher) *ConfirmationAsserter {
-	self.getViewAsserter().Content(expected)
+func (self *ConfirmationDriver) Content(expected *matcher) *ConfirmationDriver {
+	self.getViewDriver().Content(expected)
 
 	self.hasCheckedContent = true
 
 	return self
 }
 
-func (self *ConfirmationAsserter) Confirm() {
+func (self *ConfirmationDriver) Confirm() {
 	self.checkNecessaryChecksCompleted()
 
-	self.getViewAsserter().PressEnter()
+	self.getViewDriver().PressEnter()
 }
 
-func (self *ConfirmationAsserter) Cancel() {
+func (self *ConfirmationDriver) Cancel() {
 	self.checkNecessaryChecksCompleted()
 
-	self.getViewAsserter().PressEscape()
+	self.getViewDriver().PressEscape()
 }
 
-func (self *ConfirmationAsserter) checkNecessaryChecksCompleted() {
+func (self *ConfirmationDriver) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedContent || !self.hasCheckedTitle {
 		self.t.Fail("You must both check the content and title of a confirmation popup by calling Title()/Content() before calling Confirm()/Cancel().")
 	}

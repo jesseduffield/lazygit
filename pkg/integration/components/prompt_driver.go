@@ -1,17 +1,17 @@
 package components
 
-type PromptAsserter struct {
+type PromptDriver struct {
 	t               *TestDriver
 	hasCheckedTitle bool
 }
 
-func (self *PromptAsserter) getViewAsserter() *View {
+func (self *PromptDriver) getViewDriver() *ViewDriver {
 	return self.t.Views().Confirmation()
 }
 
 // asserts that the popup has the expected title
-func (self *PromptAsserter) Title(expected *matcher) *PromptAsserter {
-	self.getViewAsserter().Title(expected)
+func (self *PromptDriver) Title(expected *matcher) *PromptDriver {
+	self.getViewDriver().Title(expected)
 
 	self.hasCheckedTitle = true
 
@@ -19,53 +19,53 @@ func (self *PromptAsserter) Title(expected *matcher) *PromptAsserter {
 }
 
 // asserts on the text initially present in the prompt
-func (self *PromptAsserter) InitialText(expected *matcher) *PromptAsserter {
-	self.getViewAsserter().Content(expected)
+func (self *PromptDriver) InitialText(expected *matcher) *PromptDriver {
+	self.getViewDriver().Content(expected)
 
 	return self
 }
 
-func (self *PromptAsserter) Type(value string) *PromptAsserter {
+func (self *PromptDriver) Type(value string) *PromptDriver {
 	self.t.typeContent(value)
 
 	return self
 }
 
-func (self *PromptAsserter) Clear() *PromptAsserter {
+func (self *PromptDriver) Clear() *PromptDriver {
 	panic("Clear method not yet implemented!")
 }
 
-func (self *PromptAsserter) Confirm() {
+func (self *PromptDriver) Confirm() {
 	self.checkNecessaryChecksCompleted()
 
-	self.getViewAsserter().PressEnter()
+	self.getViewDriver().PressEnter()
 }
 
-func (self *PromptAsserter) Cancel() {
+func (self *PromptDriver) Cancel() {
 	self.checkNecessaryChecksCompleted()
 
-	self.getViewAsserter().PressEscape()
+	self.getViewDriver().PressEscape()
 }
 
-func (self *PromptAsserter) checkNecessaryChecksCompleted() {
+func (self *PromptDriver) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedTitle {
 		self.t.Fail("You must check the title of a prompt popup by calling Title() before calling Confirm()/Cancel().")
 	}
 }
 
-func (self *PromptAsserter) SuggestionLines(matchers ...*matcher) *PromptAsserter {
+func (self *PromptDriver) SuggestionLines(matchers ...*matcher) *PromptDriver {
 	self.t.Views().Suggestions().Lines(matchers...)
 
 	return self
 }
 
-func (self *PromptAsserter) SuggestionTopLines(matchers ...*matcher) *PromptAsserter {
+func (self *PromptDriver) SuggestionTopLines(matchers ...*matcher) *PromptDriver {
 	self.t.Views().Suggestions().TopLines(matchers...)
 
 	return self
 }
 
-func (self *PromptAsserter) ConfirmFirstSuggestion() {
+func (self *PromptDriver) ConfirmFirstSuggestion() {
 	self.t.press(self.t.keys.Universal.TogglePanel)
 	self.t.Views().Suggestions().
 		IsFocused().
@@ -73,7 +73,7 @@ func (self *PromptAsserter) ConfirmFirstSuggestion() {
 		PressEnter()
 }
 
-func (self *PromptAsserter) ConfirmSuggestion(matcher *matcher) {
+func (self *PromptDriver) ConfirmSuggestion(matcher *matcher) {
 	self.t.press(self.t.keys.Universal.TogglePanel)
 	self.t.Views().Suggestions().
 		IsFocused().
