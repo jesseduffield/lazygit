@@ -54,7 +54,7 @@ var tests = []*components.IntegrationTest{
 	file.DirWithUntrackedFile,
 	file.DiscardChanges,
 	file.DiscardStagedChanges,
-	file.ExcludeGitignore,
+	file.GitIgnore,
 	interactive_rebase.AmendMerge,
 	interactive_rebase.One,
 	stash.Rename,
