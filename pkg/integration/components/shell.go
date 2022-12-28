@@ -193,3 +193,9 @@ func (self *Shell) RemoveRemoteBranch(remoteName string, branch string) *Shell {
 
 	return self
 }
+
+func (self *Shell) HardReset(ref string) *Shell {
+	self.RunCommand(fmt.Sprintf("git reset --hard %s", ref))
+
+	return self
+}

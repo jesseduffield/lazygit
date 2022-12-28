@@ -66,6 +66,7 @@ var tests = []*components.IntegrationTest{
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,
 	sync.FetchPrune,
+	sync.RenameBranchAndPull,
 }
 
 func GetTests() []*components.IntegrationTest {
