@@ -170,3 +170,26 @@ func (self *Shell) SetConfig(key string, value string) *Shell {
 	self.RunCommand(fmt.Sprintf(`git config --local "%s" %s`, key, value))
 	return self
 }
+
+// creates a clone of the repo in a sibling directory and adds the clone
+// as a remote, then fetches it.
+func (self *Shell) CloneIntoRemote(name string) *Shell {
+	self.RunCommand(fmt.Sprintf("git clone --bare . ../%s", name))
+	self.RunCommand(fmt.Sprintf("git remote add %s ../%s", name, name))
+	self.RunCommand(fmt.Sprintf("git fetch %s", name))
+
+	return self
+}
+
+// e.g. branch: 'master', upstream: 'origin/master'
+func (self *Shell) SetBranchUpstream(branch string, upstream string) *Shell {
+	self.RunCommand(fmt.Sprintf("git branch --set-upstream-to=%s %s", upstream, branch))
+
+	return self
+}
+
+func (self *Shell) RemoveRemoteBranch(remoteName string, branch string) *Shell {
+	self.RunCommand(fmt.Sprintf("git -C ../%s branch -d %s", remoteName, branch))
+
+	return self
+}

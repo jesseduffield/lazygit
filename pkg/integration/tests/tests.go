@@ -21,6 +21,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
 )
 
 // Here is where we lists the actual tests that will run. When you create a new test,
@@ -64,6 +65,7 @@ var tests = []*components.IntegrationTest{
 	diff.Diff,
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,
+	sync.FetchPrune,
 }
 
 func GetTests() []*components.IntegrationTest {
