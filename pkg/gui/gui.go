@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazycore/pkg/boxlayout"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -32,7 +33,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
-	"github.com/jesseduffield/lazygit/pkg/snake"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -57,18 +57,6 @@ const StartupPopupVersion = 5
 
 // OverlappingEdges determines if panel edges overlap
 var OverlappingEdges = false
-
-type ContextManager struct {
-	ContextStack []types.Context
-	sync.RWMutex
-}
-
-func NewContextManager() ContextManager {
-	return ContextManager{
-		ContextStack: []types.Context{},
-		RWMutex:      sync.RWMutex{},
-	}
-}
 
 type Repo string
 
@@ -117,12 +105,7 @@ type Gui struct {
 	// this tells us whether our views have been initially set up
 	ViewsSetup bool
 
-	Views Views
-
-	// if we've suspended the gui (e.g. because we've switched to a subprocess)
-	// we typically want to pause some things that are running like background
-	// file refreshes
-	PauseBackgroundThreads bool
+	Views types.Views
 
 	// Log of the commands that get run, to be displayed to the user.
 	CmdLog []string
@@ -139,6 +122,8 @@ type Gui struct {
 	// flag as to whether or not the diff view should ignore whitespace
 	IgnoreWhitespaceInDiffView bool
 
+	IsRefreshingFiles bool
+
 	// we use this to decide whether we'll return to the original directory that
 	// lazygit was opened in, or if we'll retain the one we're currently in.
 	RetainOriginalDir bool
@@ -153,10 +138,52 @@ type Gui struct {
 	// process
 	InitialDir string
 
+	BackgroundRoutineMgr *BackgroundRoutineMgr
+	// for accessing the gui's state from outside this package
+	stateAccessor *StateAccessor
+
+	Updating bool
+
 	c       *types.HelperCommon
 	helpers *helpers.Helpers
+}
 
-	snakeGame *snake.Game
+type StateAccessor struct {
+	gui *Gui
+}
+
+var _ types.IStateAccessor = new(StateAccessor)
+
+func (self *StateAccessor) GetIgnoreWhitespaceInDiffView() bool {
+	return self.gui.IgnoreWhitespaceInDiffView
+}
+
+func (self *StateAccessor) SetIgnoreWhitespaceInDiffView(value bool) {
+	self.gui.IgnoreWhitespaceInDiffView = value
+}
+
+func (self *StateAccessor) GetRepoPathStack() *utils.StringStack {
+	return self.gui.RepoPathStack
+}
+
+func (self *StateAccessor) GetUpdating() bool {
+	return self.gui.Updating
+}
+
+func (self *StateAccessor) SetUpdating(value bool) {
+	self.gui.Updating = value
+}
+
+func (self *StateAccessor) GetRepoState() types.IRepoStateAccessor {
+	return self.gui.State
+}
+
+func (self *StateAccessor) GetIsRefreshingFiles() bool {
+	return self.gui.IsRefreshingFiles
+}
+
+func (self *StateAccessor) SetIsRefreshingFiles(value bool) {
+	self.gui.IsRefreshingFiles = value
 }
 
 // we keep track of some stuff from one render to the next to see if certain
@@ -174,16 +201,14 @@ type GuiRepoState struct {
 	// Suggestions will sometimes appear when typing into a prompt
 	Suggestions []*types.Suggestion
 
-	Updating       bool
 	SplitMainPanel bool
 	LimitCommits   bool
 
-	IsRefreshingFiles bool
-	Searching         searchingState
-	StartupStage      StartupStage // Allows us to not load everything at once
+	Searching    searchingState
+	StartupStage types.StartupStage // Allows us to not load everything at once
 
-	ContextManager ContextManager
-	Contexts       *context.ContextTree
+	ContextMgr ContextMgr
+	Contexts   *context.ContextTree
 
 	// WindowViewNameMap is a mapping of windows to the current view of that window.
 	// Some views move between windows for example the commitFiles view and when cycling through
@@ -204,19 +229,37 @@ type GuiRepoState struct {
 	CurrentPopupOpts *types.CreatePopupPanelOpts
 }
 
+var _ types.IRepoStateAccessor = new(GuiRepoState)
+
+func (self *GuiRepoState) GetViewsSetup() bool {
+	return self.ViewsSetup
+}
+
+func (self *GuiRepoState) GetWindowViewNameMap() *utils.ThreadSafeMap[string, string] {
+	return self.WindowViewNameMap
+}
+
+func (self *GuiRepoState) GetStartupStage() types.StartupStage {
+	return self.StartupStage
+}
+
+func (self *GuiRepoState) SetStartupStage(value types.StartupStage) {
+	self.StartupStage = value
+}
+
+func (self *GuiRepoState) GetCurrentPopupOpts() *types.CreatePopupPanelOpts {
+	return self.CurrentPopupOpts
+}
+
+func (self *GuiRepoState) SetCurrentPopupOpts(value *types.CreatePopupPanelOpts) {
+	self.CurrentPopupOpts = value
+}
+
 type searchingState struct {
 	view         *gocui.View
 	isSearching  bool
 	searchString string
 }
-
-// startup stages so we don't need to load everything at once
-type StartupStage int
-
-const (
-	INITIAL StartupStage = iota
-	COMPLETE
-)
 
 func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool) error {
 	var err error
@@ -278,8 +321,6 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 	initialContext := initialContext(contextTree, startArgs)
 	initialScreenMode := initialScreenMode(startArgs, gui.Config)
 
-	initialWindowViewNameMap := gui.initialWindowViewNameMap(contextTree)
-
 	gui.State = &GuiRepoState{
 		Model: &types.Model{
 			CommitFiles:           nil,
@@ -298,9 +339,9 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 		},
 		ScreenMode: initialScreenMode,
 		// TODO: put contexts in the context manager
-		ContextManager:    NewContextManager(),
+		ContextMgr:        NewContextMgr(initialContext, gui),
 		Contexts:          contextTree,
-		WindowViewNameMap: initialWindowViewNameMap,
+		WindowViewNameMap: initialWindowViewNameMap(contextTree),
 	}
 
 	if err := gui.c.PushContext(initialContext); err != nil {
@@ -308,6 +349,16 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 	}
 
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
+}
+
+func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSafeMap[string, string] {
+	result := utils.NewThreadSafeMap[string, string]()
+
+	for _, context := range contextTree.Flatten() {
+		result.Set(context.GetWindowName(), context.GetViewName())
+	}
+
+	return result
 }
 
 func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) WindowMaximisation {
@@ -391,7 +442,7 @@ func NewGui(
 		InitialDir: initialDir,
 	}
 
-	gui.watchFilesForChanges()
+	gui.WatchFilesForChanges()
 
 	gui.PopupHandler = popup.NewPopupHandler(
 		cmn,
@@ -428,6 +479,9 @@ func NewGui(
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
 	icons.SetIconEnabled(gui.UserConfig.Gui.ShowIcons)
 	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
+
+	gui.BackgroundRoutineMgr = &BackgroundRoutineMgr{gui: gui}
+	gui.stateAccessor = &StateAccessor{gui: gui}
 
 	return gui, nil
 }
@@ -539,7 +593,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	gui.waitForIntro.Add(1)
 
-	gui.startBackgroundRoutines()
+	gui.BackgroundRoutineMgr.startBackgroundRoutines()
 
 	gui.c.Log.Info("starting main loop")
 
@@ -565,11 +619,11 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 			switch err {
 			case gocui.ErrQuit:
 				if gui.RetainOriginalDir {
-					if err := gui.recordDirectory(gui.InitialDir); err != nil {
+					if err := gui.helpers.RecordDirectory.RecordDirectory(gui.InitialDir); err != nil {
 						return err
 					}
 				} else {
-					if err := gui.recordCurrentDirectory(); err != nil {
+					if err := gui.helpers.RecordDirectory.RecordCurrentDirectory(); err != nil {
 						return err
 					}
 				}
@@ -639,15 +693,14 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 		return false, gui.c.Error(err)
 	}
 
-	gui.PauseBackgroundThreads = true
+	gui.BackgroundRoutineMgr.PauseBackgroundThreads(true)
+	defer gui.BackgroundRoutineMgr.PauseBackgroundThreads(false)
 
 	cmdErr := gui.runSubprocess(subprocess)
 
 	if err := gui.g.Resume(); err != nil {
 		return false, err
 	}
-
-	gui.PauseBackgroundThreads = false
 
 	if cmdErr != nil {
 		return false, gui.c.Error(cmdErr)
@@ -750,4 +803,38 @@ func (gui *Gui) onUIThread(f func() error) {
 	gui.g.Update(func(*gocui.Gui) error {
 		return f()
 	})
+}
+
+func (gui *Gui) startBackgroundRoutines() {
+	mgr := &BackgroundRoutineMgr{gui: gui}
+	mgr.startBackgroundRoutines()
+}
+
+func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
+	windowArranger := &WindowArranger{gui: gui}
+	return windowArranger.getWindowDimensions(informationStr, appStatus)
+}
+
+func (gui *Gui) replaceContext(c types.Context) error {
+	return gui.State.ContextMgr.replaceContext(c)
+}
+
+func (gui *Gui) pushContext(c types.Context, opts ...types.OnFocusOpts) error {
+	return gui.State.ContextMgr.pushContext(c, opts...)
+}
+
+func (gui *Gui) popContext() error {
+	return gui.State.ContextMgr.popContext()
+}
+
+func (gui *Gui) currentContext() types.Context {
+	return gui.State.ContextMgr.currentContext()
+}
+
+func (gui *Gui) currentSideContext() types.Context {
+	return gui.State.ContextMgr.currentSideContext()
+}
+
+func (gui *Gui) currentStaticContext() types.Context {
+	return gui.State.ContextMgr.currentStaticContext()
 }

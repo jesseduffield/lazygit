@@ -10,7 +10,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/snake"
 )
 
 func (gui *Gui) resetControllers() {
@@ -31,10 +30,17 @@ func (gui *Gui) resetControllers() {
 		return gui.State.savedCommitMessage
 	}
 	gpgHelper := helpers.NewGpgHelper(helperCommon, gui.os, gui.git)
+	viewHelper := helpers.NewViewHelper(helperCommon, gui.State.Contexts)
+	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
+	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon, gui.git, gui.State.Contexts)
+	stagingHelper := helpers.NewStagingHelper(helperCommon, gui.git, gui.State.Contexts)
+	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon, gui.State.Contexts, gui.git)
+	refreshHelper := helpers.NewRefreshHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper, rebaseHelper, patchBuildingHelper, stagingHelper, mergeConflictsHelper, gui.fileWatcher)
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
 		Host:           helpers.NewHostHelper(helperCommon, gui.git),
-		PatchBuilding:  helpers.NewPatchBuildingHelper(helperCommon, gui.git, gui.State.Contexts),
+		PatchBuilding:  patchBuildingHelper,
+		Staging:        stagingHelper,
 		Bisect:         helpers.NewBisectHelper(helperCommon, gui.git),
 		Suggestions:    suggestionsHelper,
 		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
@@ -42,7 +48,7 @@ func (gui *Gui) resetControllers() {
 		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
 		GPG:            gpgHelper,
 		MergeAndRebase: rebaseHelper,
-		MergeConflicts: helpers.NewMergeConflictsHelper(helperCommon, gui.State.Contexts, gui.git),
+		MergeConflicts: mergeConflictsHelper,
 		CherryPick: helpers.NewCherryPickHelper(
 			helperCommon,
 			gui.git,
@@ -50,8 +56,16 @@ func (gui *Gui) resetControllers() {
 			func() *cherrypicking.CherryPicking { return gui.State.Modes.CherryPicking },
 			rebaseHelper,
 		),
-		Upstream:    helpers.NewUpstreamHelper(helperCommon, model, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
-		AmendHelper: helpers.NewAmendHelper(helperCommon, gui.git, gpgHelper),
+		Upstream:        helpers.NewUpstreamHelper(helperCommon, model, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
+		AmendHelper:     helpers.NewAmendHelper(helperCommon, gui.git, gpgHelper),
+		Snake:           helpers.NewSnakeHelper(helperCommon),
+		Diff:            helpers.NewDiffHelper(helperCommon),
+		Repos:           helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo),
+		RecordDirectory: recordDirectoryHelper,
+		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater),
+		Window:          helpers.NewWindowHelper(helperCommon, viewHelper, gui.State.Contexts),
+		View:            viewHelper,
+		Refresh:         refreshHelper,
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(
@@ -77,10 +91,7 @@ func (gui *Gui) resetControllers() {
 		common,
 	)
 
-	submodulesController := controllers.NewSubmodulesController(
-		common,
-		gui.enterSubmodule,
-	)
+	submodulesController := controllers.NewSubmodulesController(common)
 
 	bisectController := controllers.NewBisectController(common)
 
@@ -114,7 +125,6 @@ func (gui *Gui) resetControllers() {
 	tagsController := controllers.NewTagsController(common)
 	filesController := controllers.NewFilesController(
 		common,
-		gui.enterSubmodule,
 		setCommitMessage,
 		getSavedCommitMessage,
 	)
@@ -137,7 +147,10 @@ func (gui *Gui) resetControllers() {
 	stagingController := controllers.NewStagingController(common, gui.State.Contexts.Staging, gui.State.Contexts.StagingSecondary, false)
 	stagingSecondaryController := controllers.NewStagingController(common, gui.State.Contexts.StagingSecondary, gui.State.Contexts.Staging, true)
 	patchBuildingController := controllers.NewPatchBuildingController(common)
-	snakeController := controllers.NewSnakeController(common, func() *snake.Game { return gui.snakeGame })
+	snakeController := controllers.NewSnakeController(common)
+	reflogCommitsController := controllers.NewReflogCommitsController(common, gui.State.Contexts.ReflogCommits)
+	subCommitsController := controllers.NewSubCommitsController(common, gui.State.Contexts.SubCommits)
+	statusController := controllers.NewStatusController(common)
 
 	setSubCommits := func(commits []*models.Commit) {
 		gui.Mutexes.SubCommitsMutex.Lock()
@@ -163,7 +176,7 @@ func (gui *Gui) resetControllers() {
 		gui.State.Contexts.Stash,
 	} {
 		controllers.AttachControllers(context, controllers.NewSwitchToDiffFilesController(
-			common, gui.SwitchToCommitFilesContext, context,
+			common, context, gui.State.Contexts.CommitFiles,
 		))
 	}
 
@@ -174,6 +187,14 @@ func (gui *Gui) resetControllers() {
 	} {
 		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
 	}
+
+	controllers.AttachControllers(gui.State.Contexts.ReflogCommits,
+		reflogCommitsController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.SubCommits,
+		subCommitsController,
+	)
 
 	// TODO: add scroll controllers for main panels (need to bring some more functionality across for that e.g. reading more from the currently displayed git command)
 	controllers.AttachControllers(gui.State.Contexts.Staging,
@@ -254,6 +275,10 @@ func (gui *Gui) resetControllers() {
 		remoteBranchesController,
 	)
 
+	controllers.AttachControllers(gui.State.Contexts.Status,
+		statusController,
+	)
+
 	controllers.AttachControllers(gui.State.Contexts.Global,
 		syncController,
 		undoController,
@@ -269,5 +294,16 @@ func (gui *Gui) resetControllers() {
 	listControllerFactory := controllers.NewListControllerFactory(gui.c)
 	for _, context := range gui.getListContexts() {
 		controllers.AttachControllers(context, listControllerFactory.Create(context))
+	}
+}
+
+func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
+	return func(text string) {
+		// using a getView function so that we don't need to worry about when the view is created
+		view := getView()
+		view.ClearTextArea()
+		view.TextArea.TypeString(text)
+		_ = gui.resizePopupPanel(view, view.TextArea.GetContent())
+		view.RenderTextArea()
 	}
 }

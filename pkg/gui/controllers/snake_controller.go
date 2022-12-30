@@ -8,20 +8,16 @@ import (
 type SnakeController struct {
 	baseController
 	*controllerCommon
-
-	getGame func() *snake.Game
 }
 
 var _ types.IController = &SnakeController{}
 
 func NewSnakeController(
 	common *controllerCommon,
-	getGame func() *snake.Game,
 ) *SnakeController {
 	return &SnakeController{
 		baseController:   baseController{},
 		controllerCommon: common,
-		getGame:          getGame,
 	}
 }
 
@@ -56,9 +52,24 @@ func (self *SnakeController) Context() types.Context {
 	return self.contexts.Snake
 }
 
+func (self *SnakeController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(types.OnFocusOpts) error {
+		self.helpers.Snake.StartGame()
+		return nil
+	}
+}
+
+func (self *SnakeController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
+	return func(types.OnFocusLostOpts) error {
+		self.helpers.Snake.ExitGame()
+		self.helpers.Window.MoveToTopOfWindow(self.contexts.Submodules)
+		return nil
+	}
+}
+
 func (self *SnakeController) SetDirection(direction snake.Direction) func() error {
 	return func() error {
-		self.getGame().SetDirection(direction)
+		self.helpers.Snake.SetDirection(direction)
 		return nil
 	}
 }

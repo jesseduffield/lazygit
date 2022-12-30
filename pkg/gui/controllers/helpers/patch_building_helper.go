@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -59,4 +60,60 @@ func (self *PatchBuildingHelper) Reset() error {
 
 	// refreshing the current context so that the secondary panel is hidden if necessary.
 	return self.c.PostRefreshUpdate(self.c.CurrentContext())
+}
+
+func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpts) error {
+	selectedLineIdx := -1
+	if opts.ClickedWindowName == "main" {
+		selectedLineIdx = opts.ClickedViewLineIdx
+	}
+
+	if !self.git.Patch.PatchBuilder.Active() {
+		return self.Escape()
+	}
+
+	// get diff from commit file that's currently selected
+	path := self.contexts.CommitFiles.GetSelectedPath()
+	if path == "" {
+		return nil
+	}
+
+	ref := self.contexts.CommitFiles.CommitFileTreeViewModel.GetRef()
+	to := ref.RefName()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	diff, err := self.git.WorkingTree.ShowFileDiff(from, to, reverse, path, true, self.c.State().GetIgnoreWhitespaceInDiffView())
+	if err != nil {
+		return err
+	}
+
+	secondaryDiff := self.git.Patch.PatchBuilder.RenderPatchForFile(path, false, false)
+	if err != nil {
+		return err
+	}
+
+	context := self.contexts.CustomPatchBuilder
+
+	oldState := context.GetState()
+
+	state := patch_exploring.NewState(diff, selectedLineIdx, oldState, self.c.Log)
+	context.SetState(state)
+	if state == nil {
+		return self.Escape()
+	}
+
+	mainContent := context.GetContentToRender(true)
+
+	self.contexts.CustomPatchBuilder.FocusSelection()
+
+	return self.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: self.c.MainViewPairs().PatchBuilding,
+		Main: &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(mainContent),
+			Title: self.c.Tr.Patch,
+		},
+		Secondary: &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(secondaryDiff),
+			Title: self.c.Tr.CustomPatch,
+		},
+	})
 }

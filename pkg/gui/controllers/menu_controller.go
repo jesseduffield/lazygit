@@ -44,6 +44,14 @@ func (self *MenuController) GetOnClick() func() error {
 	return self.press
 }
 
+func (self *MenuController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(types.OnFocusOpts) error {
+		selectedMenuItem := self.context().GetSelected()
+		self.c.Views().Tooltip.SetContent(selectedMenuItem.Tooltip)
+		return nil
+	}
+}
+
 func (self *MenuController) press() error {
 	return self.context().OnMenuPress(self.context().GetSelected())
 }

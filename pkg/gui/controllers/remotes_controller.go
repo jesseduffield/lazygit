@@ -1,8 +1,12 @@
 package controllers
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -58,6 +62,28 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 	}
 
 	return bindings
+}
+
+func (self *RemotesController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.helpers.Diff.WithDiffModeCheck(func() error {
+			var task types.UpdateTask
+			remote := self.context.GetSelected()
+			if remote == nil {
+				task = types.NewRenderStringTask("No remotes")
+			} else {
+				task = types.NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n")))
+			}
+
+			return self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title: "Remote",
+					Task:  task,
+				},
+			})
+		})
+	}
 }
 
 func (self *RemotesController) GetOnClick() func() error {

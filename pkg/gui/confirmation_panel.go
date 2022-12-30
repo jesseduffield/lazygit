@@ -195,10 +195,8 @@ func (gui *Gui) createPopupPanel(ctx context.Context, opts types.CreatePopupPane
 		gui.resizeConfirmationPanel()
 		confirmationView.RenderTextArea()
 	} else {
-		if err := gui.renderString(confirmationView, style.AttrBold.Sprint(opts.Prompt)); err != nil {
-			cancel()
-			return err
-		}
+		gui.c.ResetViewOrigin(confirmationView)
+		gui.c.SetViewContent(confirmationView, style.AttrBold.Sprint(opts.Prompt))
 	}
 
 	if err := gui.setKeyBindings(cancel, opts); err != nil {
@@ -220,7 +218,7 @@ func (gui *Gui) setKeyBindings(cancel context.CancelFunc, opts types.CreatePopup
 		},
 	)
 
-	_ = gui.renderString(gui.Views.Options, actions)
+	gui.c.SetViewContent(gui.Views.Options, actions)
 	var onConfirm func() error
 	if opts.HandleConfirmPrompt != nil {
 		onConfirm = gui.wrappedPromptConfirmationFunction(cancel, opts.HandleConfirmPrompt, func() string { return gui.Views.Confirmation.TextArea.GetContent() })
@@ -251,7 +249,7 @@ func (gui *Gui) setKeyBindings(cancel context.CancelFunc, opts types.CreatePopup
 			Key:      keybindings.GetKey(keybindingConfig.Universal.TogglePanel),
 			Handler: func() error {
 				if len(gui.State.Suggestions) > 0 {
-					return gui.replaceContext(gui.State.Contexts.Suggestions)
+					return gui.c.ReplaceContext(gui.State.Contexts.Suggestions)
 				}
 				return nil
 			},
@@ -269,7 +267,7 @@ func (gui *Gui) setKeyBindings(cancel context.CancelFunc, opts types.CreatePopup
 		{
 			ViewName: "suggestions",
 			Key:      keybindings.GetKey(keybindingConfig.Universal.TogglePanel),
-			Handler:  func() error { return gui.replaceContext(gui.State.Contexts.Confirmation) },
+			Handler:  func() error { return gui.c.ReplaceContext(gui.State.Contexts.Confirmation) },
 		},
 	}
 
@@ -313,5 +311,6 @@ func (gui *Gui) handleAskFocused() error {
 		},
 	)
 
-	return gui.renderString(gui.Views.Options, message)
+	gui.c.SetViewContent(gui.Views.Options, message)
+	return nil
 }

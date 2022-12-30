@@ -111,6 +111,30 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 	}
 }
 
+func (self *BranchesController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.helpers.Diff.WithDiffModeCheck(func() error {
+			var task types.UpdateTask
+			branch := self.context().GetSelected()
+			if branch == nil {
+				task = types.NewRenderStringTask(self.c.Tr.NoBranchesThisRepo)
+			} else {
+				cmdObj := self.c.Git().Branch.GetGraphCmdObj(branch.FullRefName())
+
+				task = types.NewRunPtyTask(cmdObj.GetCmd())
+			}
+
+			return self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title: self.c.Tr.LogTitle,
+					Task:  task,
+				},
+			})
+		})
+	}
+}
+
 func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error {
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Actions.SetUnsetUpstream,

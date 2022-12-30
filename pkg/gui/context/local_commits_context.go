@@ -11,16 +11,15 @@ type LocalCommitsContext struct {
 	*ViewportListContextTrait
 }
 
-var _ types.IListContext = (*LocalCommitsContext)(nil)
+var (
+	_ types.IListContext    = (*LocalCommitsContext)(nil)
+	_ types.DiffableContext = (*LocalCommitsContext)(nil)
+)
 
 func NewLocalCommitsContext(
 	getModel func() []*models.Commit,
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	onFocus func(types.OnFocusOpts) error,
-	onRenderToMain func() error,
-	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *LocalCommitsContext {
@@ -36,11 +35,7 @@ func NewLocalCommitsContext(
 					Key:        LOCAL_COMMITS_CONTEXT_KEY,
 					Kind:       types.SIDE_CONTEXT,
 					Focusable:  true,
-				}), ContextCallbackOpts{
-					OnFocus:        onFocus,
-					OnFocusLost:    onFocusLost,
-					OnRenderToMain: onRenderToMain,
-				}),
+				}), ContextCallbackOpts{}),
 				list:              viewModel,
 				getDisplayStrings: getDisplayStrings,
 				c:                 c,
@@ -89,6 +84,12 @@ func (self *LocalCommitsContext) GetSelectedRef() types.Ref {
 		return nil
 	}
 	return commit
+}
+
+func (self *LocalCommitsContext) GetDiffTerminals() []string {
+	itemId := self.GetSelectedItemId()
+
+	return []string{itemId}
 }
 
 func (self *LocalCommitsViewModel) SetLimitCommits(value bool) {

@@ -12,16 +12,15 @@ type RemoteBranchesContext struct {
 	*DynamicTitleBuilder
 }
 
-var _ types.IListContext = (*RemoteBranchesContext)(nil)
+var (
+	_ types.IListContext    = (*RemoteBranchesContext)(nil)
+	_ types.DiffableContext = (*RemoteBranchesContext)(nil)
+)
 
 func NewRemoteBranchesContext(
 	getModel func() []*models.RemoteBranch,
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	onFocus func(types.OnFocusOpts) error,
-	onRenderToMain func() error,
-	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *RemoteBranchesContext {
@@ -38,11 +37,7 @@ func NewRemoteBranchesContext(
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
 				Transient:  true,
-			}), ContextCallbackOpts{
-				OnFocus:        onFocus,
-				OnFocusLost:    onFocusLost,
-				OnRenderToMain: onRenderToMain,
-			}),
+			}), ContextCallbackOpts{}),
 			list:              viewModel,
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,
@@ -65,4 +60,10 @@ func (self *RemoteBranchesContext) GetSelectedRef() types.Ref {
 		return nil
 	}
 	return remoteBranch
+}
+
+func (self *RemoteBranchesContext) GetDiffTerminals() []string {
+	itemId := self.GetSelectedItemId()
+
+	return []string{itemId}
 }

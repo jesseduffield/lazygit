@@ -99,7 +99,8 @@ func (gui *Gui) renderAppStatus() {
 		for range ticker.C {
 			appStatus := gui.statusManager.getStatusString()
 			gui.c.OnUIThread(func() error {
-				return gui.renderString(gui.Views.AppStatus, appStatus)
+				gui.c.SetViewContent(gui.Views.AppStatus, appStatus)
+				return nil
 			})
 
 			if appStatus == "" {

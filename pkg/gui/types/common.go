@@ -1,12 +1,15 @@
 package types
 
 import (
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
@@ -27,6 +30,12 @@ type IGuiCommon interface {
 	// e.g. expanding or collapsing a folder in a file view. Calling 'Refresh' in this
 	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'
 	PostRefreshUpdate(Context) error
+
+	// renders string to a view without resetting its origin
+	SetViewContent(view *gocui.View, content string)
+	// resets cursor and origin of view. Often used before calling SetViewContent
+	ResetViewOrigin(view *gocui.View)
+
 	// this just re-renders the screen
 	Render()
 	// allows rendering to main views (i.e. the ones to the right of the side panel)
@@ -42,12 +51,15 @@ type IGuiCommon interface {
 
 	PushContext(context Context, opts ...OnFocusOpts) error
 	PopContext() error
+	ReplaceContext(context Context) error
 	CurrentContext() Context
 	CurrentStaticContext() Context
+	CurrentSideContext() Context
 	IsCurrentContext(Context) bool
 	// enters search mode for the current view
 	OpenSearch()
 
+	GetConfig() config.AppConfigurer
 	GetAppState() *config.AppState
 	SaveAppState() error
 
@@ -55,6 +67,21 @@ type IGuiCommon interface {
 	// Only necessary to call if you're not already on the UI thread i.e. you're inside a goroutine.
 	// All controller handlers are executed on the UI thread.
 	OnUIThread(f func() error)
+
+	// returns the gocui Gui struct. There is a good chance you don't actually want to use
+	// this struct and instead want to use another method above
+	GocuiGui() *gocui.Gui
+
+	Views() Views
+
+	Git() *commands.GitCommand
+	OS() *oscommands.OSCommand
+	Model() *Model
+	Modes() *Modes
+
+	Mutexes() Mutexes
+
+	State() IStateAccessor
 }
 
 type IPopupHandler interface {
@@ -175,4 +202,37 @@ type Mutexes struct {
 	SubprocessMutex       *deadlock.Mutex
 	PopupMutex            *deadlock.Mutex
 	PtyMutex              *deadlock.Mutex
+}
+
+type IStateAccessor interface {
+	GetIgnoreWhitespaceInDiffView() bool
+	SetIgnoreWhitespaceInDiffView(value bool)
+	GetRepoPathStack() *utils.StringStack
+	GetRepoState() IRepoStateAccessor
+	// tells us whether we're currently updating lazygit
+	GetUpdating() bool
+	SetUpdating(bool)
+	SetIsRefreshingFiles(bool)
+	GetIsRefreshingFiles() bool
+}
+
+type IRepoStateAccessor interface {
+	GetViewsSetup() bool
+	GetWindowViewNameMap() *utils.ThreadSafeMap[string, string]
+	GetStartupStage() StartupStage
+	SetStartupStage(stage StartupStage)
+	GetCurrentPopupOpts() *CreatePopupPanelOpts
+	SetCurrentPopupOpts(*CreatePopupPanelOpts)
+}
+
+// startup stages so we don't need to load everything at once
+type StartupStage int
+
+const (
+	INITIAL StartupStage = iota
+	COMPLETE
+)
+
+type IFileWatcher interface {
+	AddFilesToFileWatcher(files []*models.File) error
 }

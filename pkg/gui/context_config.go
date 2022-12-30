@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -16,9 +17,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Focusable:             false,
 				HasUncontrolledBounds: true, // setting to true because the global context doesn't even have a view
 			}),
-			context.ContextCallbackOpts{
-				OnRenderToMain: gui.statusRenderToMain,
-			},
+			context.ContextCallbackOpts{},
 		),
 		Status: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
@@ -28,9 +27,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.STATUS_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			context.ContextCallbackOpts{
-				OnRenderToMain: gui.statusRenderToMain,
-			},
+			context.ContextCallbackOpts{},
 		),
 		Snake: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
@@ -40,17 +37,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.SNAKE_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			context.ContextCallbackOpts{
-				OnFocus: func(opts types.OnFocusOpts) error {
-					gui.startSnake()
-					return nil
-				},
-				OnFocusLost: func(opts types.OnFocusLostOpts) error {
-					gui.snakeGame.Exit()
-					gui.moveToTopOfWindow(gui.State.Contexts.Submodules)
-					return nil
-				},
-			},
+			context.ContextCallbackOpts{},
 		),
 		Files:          gui.filesListContext(),
 		Submodules:     gui.submodulesListContext(),
@@ -73,11 +60,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.NORMAL_MAIN_CONTEXT_KEY,
 				Focusable:  false,
 			}),
-			context.ContextCallbackOpts{
-				OnFocus: func(opts types.OnFocusOpts) error {
-					return nil // TODO: should we do something here? We should allow for scrolling the panel
-				},
-			},
+			context.ContextCallbackOpts{},
 		),
 		NormalSecondary: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
@@ -97,7 +80,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				gui.Views.Staging.Wrap = false
 				gui.Views.StagingSecondary.Wrap = false
 
-				return gui.refreshStagingPanel(opts)
+				return gui.helpers.Staging.RefreshStagingPanel(opts)
 			},
 			func(opts types.OnFocusLostOpts) error {
 				gui.State.Contexts.Staging.SetState(nil)
@@ -121,7 +104,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				gui.Views.Staging.Wrap = false
 				gui.Views.StagingSecondary.Wrap = false
 
-				return gui.refreshStagingPanel(opts)
+				return gui.helpers.Staging.RefreshStagingPanel(opts)
 			},
 			func(opts types.OnFocusLostOpts) error {
 				gui.State.Contexts.StagingSecondary.SetState(nil)
@@ -145,7 +128,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				// no need to change wrap on the secondary view because it can't be interacted with
 				gui.Views.PatchBuilding.Wrap = false
 
-				return gui.refreshPatchBuildingPanel(opts)
+				return gui.helpers.PatchBuilding.RefreshPatchBuildingPanel(opts)
 			},
 			func(opts types.OnFocusLostOpts) error {
 				gui.Views.PatchBuilding.Wrap = true
@@ -180,20 +163,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 		),
 		MergeConflicts: context.NewMergeConflictsContext(
 			gui.Views.MergeConflicts,
-			context.ContextCallbackOpts{
-				OnFocus: OnFocusWrapper(func() error {
-					gui.Views.MergeConflicts.Wrap = false
-
-					return gui.refreshMergePanel(true)
-				}),
-				OnFocusLost: func(opts types.OnFocusLostOpts) error {
-					gui.State.Contexts.MergeConflicts.SetUserScrolling(false)
-					gui.State.Contexts.MergeConflicts.GetState().ResetConflictSelection()
-					gui.Views.MergeConflicts.Wrap = true
-
-					return nil
-				},
-			},
+			context.ContextCallbackOpts{},
 			gui.c,
 			func() map[string]string {
 				// wrapping in a function because contexts are initialized before helpers
@@ -211,10 +181,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			}),
 			context.ContextCallbackOpts{
 				OnFocus: OnFocusWrapper(gui.handleAskFocused),
-				OnFocusLost: func(types.OnFocusLostOpts) error {
-					gui.deactivateConfirmationPrompt()
-					return nil
-				},
 			},
 		),
 		CommitMessage: context.NewSimpleContext(
@@ -277,4 +243,28 @@ func (gui *Gui) getPatchExplorerContexts() []types.IPatchExplorerContext {
 		gui.State.Contexts.StagingSecondary,
 		gui.State.Contexts.CustomPatchBuilder,
 	}
+}
+
+func (gui *Gui) popupViewNames() []string {
+	popups := slices.Filter(gui.State.Contexts.Flatten(), func(c types.Context) bool {
+		return c.GetKind() == types.PERSISTENT_POPUP || c.GetKind() == types.TEMPORARY_POPUP
+	})
+
+	return slices.Map(popups, func(c types.Context) string {
+		return c.GetViewName()
+	})
+}
+
+func (gui *Gui) defaultSideContext() types.Context {
+	if gui.State.Modes.Filtering.Active() {
+		return gui.State.Contexts.LocalCommits
+	} else {
+		return gui.State.Contexts.Files
+	}
+}
+
+func (gui *Gui) TransientContexts() []types.Context {
+	return slices.Filter(gui.State.Contexts.Flatten(), func(context types.Context) bool {
+		return context.IsTransient()
+	})
 }

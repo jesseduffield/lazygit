@@ -6,29 +6,19 @@ import (
 )
 
 type SimpleContext struct {
-	OnFocus     func(opts types.OnFocusOpts) error
-	OnFocusLost func(opts types.OnFocusLostOpts) error
-	OnRender    func() error
-	// this is for pushing some content to the main view
-	OnRenderToMain func() error
+	OnRender func() error
 
 	*BaseContext
 }
 
 type ContextCallbackOpts struct {
-	OnFocus        func(opts types.OnFocusOpts) error
-	OnFocusLost    func(opts types.OnFocusLostOpts) error
-	OnRender       func() error
-	OnRenderToMain func() error
+	OnRender func() error
 }
 
 func NewSimpleContext(baseContext *BaseContext, opts ContextCallbackOpts) *SimpleContext {
 	return &SimpleContext{
-		OnFocus:        opts.OnFocus,
-		OnFocusLost:    opts.OnFocusLost,
-		OnRender:       opts.OnRender,
-		OnRenderToMain: opts.OnRenderToMain,
-		BaseContext:    baseContext,
+		OnRender:    opts.OnRender,
+		BaseContext: baseContext,
 	}
 }
 
@@ -54,14 +44,14 @@ func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) error {
 		self.GetViewTrait().SetHighlight(true)
 	}
 
-	if self.OnFocus != nil {
-		if err := self.OnFocus(opts); err != nil {
+	if self.onFocusFn != nil {
+		if err := self.onFocusFn(opts); err != nil {
 			return err
 		}
 	}
 
-	if self.OnRenderToMain != nil {
-		if err := self.OnRenderToMain(); err != nil {
+	if self.onRenderToMainFn != nil {
+		if err := self.onRenderToMainFn(); err != nil {
 			return err
 		}
 	}
@@ -70,8 +60,8 @@ func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) error {
 }
 
 func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) error {
-	if self.OnFocusLost != nil {
-		return self.OnFocusLost(opts)
+	if self.onFocusLostFn != nil {
+		return self.onFocusLostFn(opts)
 	}
 	return nil
 }
@@ -84,8 +74,8 @@ func (self *SimpleContext) HandleRender() error {
 }
 
 func (self *SimpleContext) HandleRenderToMain() error {
-	if self.OnRenderToMain != nil {
-		return self.OnRenderToMain()
+	if self.onRenderToMainFn != nil {
+		return self.onRenderToMainFn()
 	}
 
 	return nil

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -113,13 +112,13 @@ func (gui *Gui) scrollDownMain() error {
 }
 
 func (gui *Gui) mainView() *gocui.View {
-	viewName := gui.getViewNameForWindow("main")
+	viewName := gui.helpers.Window.GetViewNameForWindow("main")
 	view, _ := gui.g.View(viewName)
 	return view
 }
 
 func (gui *Gui) secondaryView() *gocui.View {
-	viewName := gui.getViewNameForWindow("secondary")
+	viewName := gui.helpers.Window.GetViewNameForWindow("secondary")
 	view, _ := gui.g.View(viewName)
 	return view
 }
@@ -162,17 +161,19 @@ func (gui *Gui) handleRefresh() error {
 	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (gui *Gui) backgroundFetch() (err error) {
-	err = gui.git.Sync.Fetch(git_commands.FetchOptions{Background: true})
-
-	_ = gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
-
-	return err
-}
-
 func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	// important to note that this assumes we've selected an item in a side context
-	itemId := gui.getSideContextSelectedItemId()
+	currentSideContext := gui.c.CurrentSideContext()
+	if currentSideContext == nil {
+		return nil
+	}
+
+	listContext, ok := currentSideContext.(types.IListContext)
+	if !ok {
+		return nil
+	}
+
+	itemId := listContext.GetSelectedItemId()
 
 	if itemId == "" {
 		return nil
@@ -188,4 +189,14 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	gui.c.Toast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.c.Tr.LcCopiedToClipboard))
 
 	return nil
+}
+
+func (gui *Gui) rerenderView(view *gocui.View) error {
+	context, ok := gui.helpers.View.ContextForView(view.Name())
+	if !ok {
+		gui.Log.Errorf("no context found for view %s", view.Name())
+		return nil
+	}
+
+	return context.HandleRender()
 }

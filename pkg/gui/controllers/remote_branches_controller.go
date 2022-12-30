@@ -73,6 +73,29 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 	}
 }
 
+func (self *RemoteBranchesController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.helpers.Diff.WithDiffModeCheck(func() error {
+			var task types.UpdateTask
+			remoteBranch := self.context().GetSelected()
+			if remoteBranch == nil {
+				task = types.NewRenderStringTask("No branches for this remote")
+			} else {
+				cmdObj := self.git.Branch.GetGraphCmdObj(remoteBranch.FullRefName())
+				task = types.NewRunCommandTask(cmdObj.GetCmd())
+			}
+
+			return self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title: "Remote Branch",
+					Task:  task,
+				},
+			})
+		})
+	}
+}
+
 func (self *RemoteBranchesController) Context() types.Context {
 	return self.context()
 }

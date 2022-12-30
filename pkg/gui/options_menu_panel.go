@@ -50,7 +50,7 @@ func uniqueBindings(bindings []*types.Binding) []*types.Binding {
 }
 
 func (gui *Gui) handleCreateOptionsMenu() error {
-	ctx := gui.currentContext()
+	ctx := gui.c.CurrentContext()
 	// Don't show menu while displaying popup.
 	if ctx.GetKind() == types.PERSISTENT_POPUP || ctx.GetKind() == types.TEMPORARY_POPUP {
 		return nil

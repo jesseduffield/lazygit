@@ -15,16 +15,15 @@ type SubCommitsContext struct {
 	*DynamicTitleBuilder
 }
 
-var _ types.IListContext = (*SubCommitsContext)(nil)
+var (
+	_ types.IListContext    = (*SubCommitsContext)(nil)
+	_ types.DiffableContext = (*SubCommitsContext)(nil)
+)
 
 func NewSubCommitsContext(
 	getModel func() []*models.Commit,
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	onFocus func(types.OnFocusOpts) error,
-	onRenderToMain func() error,
-	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *SubCommitsContext {
@@ -46,11 +45,7 @@ func NewSubCommitsContext(
 					Kind:       types.SIDE_CONTEXT,
 					Focusable:  true,
 					Transient:  true,
-				}), ContextCallbackOpts{
-					OnFocus:        onFocus,
-					OnFocusLost:    onFocusLost,
-					OnRenderToMain: onRenderToMain,
-				}),
+				}), ContextCallbackOpts{}),
 				list:              viewModel,
 				getDisplayStrings: getDisplayStrings,
 				c:                 c,
@@ -110,4 +105,10 @@ func (self *SubCommitsContext) SetLimitCommits(value bool) {
 
 func (self *SubCommitsContext) GetLimitCommits() bool {
 	return self.limitCommits
+}
+
+func (self *SubCommitsContext) GetDiffTerminals() []string {
+	itemId := self.GetSelectedItemId()
+
+	return []string{itemId}
 }

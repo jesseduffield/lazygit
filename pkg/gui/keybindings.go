@@ -77,7 +77,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.OpenRecentRepos),
-			Handler:     self.handleCreateRecentReposMenu,
+			Handler:     self.helpers.Repos.CreateRecentReposMenu,
 			Description: self.c.Tr.SwitchRepo,
 		},
 		{
@@ -154,12 +154,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:     self.handleCreateOptionsMenu,
 		},
 		{
-			ViewName:    "status",
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.handleEditConfig,
-			Description: self.c.Tr.EditConfig,
-		},
-		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.NextScreenMode),
 			Handler:     self.nextScreenMode,
@@ -171,30 +165,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:     self.prevScreenMode,
 			Description: self.c.Tr.LcPrevScreenMode,
 		},
-		{
-			ViewName:    "status",
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
-			Handler:     self.handleOpenConfig,
-			Description: self.c.Tr.OpenConfig,
-		},
-		{
-			ViewName:    "status",
-			Key:         opts.GetKey(opts.Config.Status.CheckForUpdate),
-			Handler:     self.handleCheckForUpdate,
-			Description: self.c.Tr.LcCheckForUpdate,
-		},
-		{
-			ViewName:    "status",
-			Key:         opts.GetKey(opts.Config.Status.RecentRepos),
-			Handler:     self.handleCreateRecentReposMenu,
-			Description: self.c.Tr.SwitchRepo,
-		},
-		{
-			ViewName:    "status",
-			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraph),
-			Handler:     self.handleShowAllBranchLogs,
-			Description: self.c.Tr.LcAllBranchesLogGraph,
-		},
+
 		{
 			ViewName:    "files",
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
@@ -308,12 +279,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Key:      gocui.MouseWheelUp,
 			Modifier: gocui.ModNone,
 			Handler:  self.scrollUpSecondary,
-		},
-		{
-			ViewName: "status",
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  self.handleStatusClick,
 		},
 		{
 			ViewName: "search",
@@ -496,7 +461,9 @@ func (gui *Gui) resetKeybindings() error {
 	for _, values := range gui.viewTabMap() {
 		for _, value := range values {
 			viewName := value.ViewName
-			tabClickCallback := func(tabIndex int) error { return gui.onViewTabClick(gui.windowForView(viewName), tabIndex) }
+			tabClickCallback := func(tabIndex int) error {
+				return gui.onViewTabClick(gui.helpers.Window.WindowForView(viewName), tabIndex)
+			}
 
 			if err := gui.g.SetTabClickBinding(viewName, tabClickCallback); err != nil {
 				return err

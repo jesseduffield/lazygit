@@ -18,10 +18,6 @@ func NewSubmodulesContext(
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
-	onFocus func(types.OnFocusOpts) error,
-	onRenderToMain func() error,
-	onFocusLost func(opts types.OnFocusLostOpts) error,
-
 	c *types.HelperCommon,
 ) *SubmodulesContext {
 	viewModel := NewBasicViewModel(getModel)
@@ -35,11 +31,7 @@ func NewSubmodulesContext(
 				Key:        SUBMODULES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
-			}), ContextCallbackOpts{
-				OnFocus:        onFocus,
-				OnFocusLost:    onFocusLost,
-				OnRenderToMain: onRenderToMain,
-			}),
+			}), ContextCallbackOpts{}),
 			list:              viewModel,
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,

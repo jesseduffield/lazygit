@@ -1,32 +1,9 @@
 package gui
 
 import (
-	"os"
-
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
-
-// when a user runs lazygit with the LAZYGIT_NEW_DIR_FILE env variable defined
-// we will write the current directory to that file on exit so that their
-// shell can then change to that directory. That means you don't get kicked
-// back to the directory that you started with.
-func (gui *Gui) recordCurrentDirectory() error {
-	// determine current directory, set it in LAZYGIT_NEW_DIR_FILE
-	dirName, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	return gui.recordDirectory(dirName)
-}
-
-func (gui *Gui) recordDirectory(dirName string) error {
-	newDirFilePath := os.Getenv("LAZYGIT_NEW_DIR_FILE")
-	if newDirFilePath == "" {
-		return nil
-	}
-	return gui.os.CreateFileWithContent(newDirFilePath, dirName)
-}
 
 func (gui *Gui) handleQuitWithoutChangingDirectory() error {
 	gui.RetainOriginalDir = true
@@ -39,7 +16,7 @@ func (gui *Gui) handleQuit() error {
 }
 
 func (gui *Gui) handleTopLevelReturn() error {
-	currentContext := gui.currentContext()
+	currentContext := gui.c.CurrentContext()
 
 	parentContext, hasParent := currentContext.GetParentContext()
 	if hasParent && currentContext != nil && parentContext != nil {
@@ -53,11 +30,9 @@ func (gui *Gui) handleTopLevelReturn() error {
 		}
 	}
 
-	repoPathStack := gui.RepoPathStack
+	repoPathStack := gui.c.State().GetRepoPathStack()
 	if !repoPathStack.IsEmpty() {
-		path := repoPathStack.Pop()
-
-		return gui.dispatchSwitchToRepo(path, true)
+		return gui.helpers.Repos.DispatchSwitchToRepo(repoPathStack.Pop(), true)
 	}
 
 	if gui.c.UserConfig.QuitOnTopLevelReturn {
@@ -68,7 +43,7 @@ func (gui *Gui) handleTopLevelReturn() error {
 }
 
 func (gui *Gui) quit() error {
-	if gui.State.Updating {
+	if gui.c.State().GetUpdating() {
 		return gui.createUpdateQuitConfirmation()
 	}
 
@@ -83,4 +58,14 @@ func (gui *Gui) quit() error {
 	}
 
 	return gocui.ErrQuit
+}
+
+func (gui *Gui) createUpdateQuitConfirmation() error {
+	return gui.c.Confirm(types.ConfirmOpts{
+		Title:  gui.Tr.ConfirmQuitDuringUpdateTitle,
+		Prompt: gui.Tr.ConfirmQuitDuringUpdate,
+		HandleConfirm: func() error {
+			return gocui.ErrQuit
+		},
+	})
 }

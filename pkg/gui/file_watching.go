@@ -17,6 +17,8 @@ import (
 // file watching is only really an added bonus for faster refreshing.
 const MAX_WATCHED_FILES = 50
 
+var _ types.IFileWatcher = new(fileWatcher)
+
 type fileWatcher struct {
 	Watcher          *fsnotify.Watcher
 	WatchedFilenames []string
@@ -60,7 +62,7 @@ func (w *fileWatcher) watchFilename(filename string) {
 	w.WatchedFilenames = append(w.WatchedFilenames, filename)
 }
 
-func (w *fileWatcher) addFilesToFileWatcher(files []*models.File) error {
+func (w *fileWatcher) AddFilesToFileWatcher(files []*models.File) error {
 	if w.Disabled {
 		return nil
 	}
@@ -102,7 +104,7 @@ func min(a int, b int) int {
 
 // NOTE: given that we often edit files ourselves, this may make us end up refreshing files too often
 // TODO: consider watching the whole directory recursively (could be more expensive)
-func (gui *Gui) watchFilesForChanges() {
+func (gui *Gui) WatchFilesForChanges() {
 	gui.fileWatcher = NewFileWatcher(gui.Log)
 	if gui.fileWatcher.Disabled {
 		return
@@ -117,7 +119,7 @@ func (gui *Gui) watchFilesForChanges() {
 					continue
 				}
 				// only refresh if we're not already
-				if !gui.State.IsRefreshingFiles {
+				if !gui.IsRefreshingFiles {
 					_ = gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 				}
 

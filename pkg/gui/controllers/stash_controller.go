@@ -55,6 +55,28 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 	return bindings
 }
 
+func (self *StashController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.helpers.Diff.WithDiffModeCheck(func() error {
+			var task types.UpdateTask
+			stashEntry := self.context().GetSelected()
+			if stashEntry == nil {
+				task = types.NewRenderStringTask(self.c.Tr.NoStashEntries)
+			} else {
+				task = types.NewRunPtyTask(self.git.Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
+			}
+
+			return self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title: "Stash",
+					Task:  task,
+				},
+			})
+		})
+	}
+}
+
 func (self *StashController) checkSelected(callback func(*models.StashEntry) error) func() error {
 	return func() error {
 		item := self.context().GetSelected()

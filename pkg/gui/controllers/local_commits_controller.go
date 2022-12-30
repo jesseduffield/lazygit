@@ -12,6 +12,9 @@ import (
 	"github.com/samber/lo"
 )
 
+// after selecting the 200th commit, we'll load in all the rest
+const COMMIT_THRESHOLD = 200
+
 type (
 	PullFilesFn func() error
 )
@@ -148,6 +151,50 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 	}...)
 
 	return bindings
+}
+
+func (self *LocalCommitsController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.helpers.Diff.WithDiffModeCheck(func() error {
+			var task types.UpdateTask
+			commit := self.context().GetSelected()
+			if commit == nil {
+				task = types.NewRenderStringTask(self.c.Tr.NoCommitsThisBranch)
+			} else if commit.Action == todo.UpdateRef {
+				task = types.NewRenderStringTask(
+					utils.ResolvePlaceholderString(
+						self.c.Tr.UpdateRefHere,
+						map[string]string{
+							"ref": commit.Name,
+						}))
+			} else {
+				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Sha, self.c.Modes().Filtering.GetPath(), self.c.State().GetIgnoreWhitespaceInDiffView())
+				task = types.NewRunPtyTask(cmdObj.GetCmd())
+			}
+
+			return self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title: "Patch",
+					Task:  task,
+				},
+				Secondary: secondaryPatchPanelUpdateOpts(self.c),
+			})
+		})
+	}
+}
+
+func secondaryPatchPanelUpdateOpts(c *types.HelperCommon) *types.ViewUpdateOpts {
+	if c.Git().Patch.PatchBuilder.Active() {
+		patch := c.Git().Patch.PatchBuilder.RenderAggregatedPatch(false)
+
+		return &types.ViewUpdateOpts{
+			Task:  types.NewRenderStringWithoutScrollTask(patch),
+			Title: c.Tr.CustomPatch,
+		}
+	}
+
+	return nil
 }
 
 func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
@@ -750,6 +797,22 @@ func (self *LocalCommitsController) checkSelected(callback func(*models.Commit) 
 		}
 
 		return callback(commit)
+	}
+}
+
+func (self *LocalCommitsController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(types.OnFocusOpts) error {
+		context := self.context()
+		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
+			context.SetLimitCommits(false)
+			go utils.Safe(func() {
+				if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}}); err != nil {
+					_ = self.c.Error(err)
+				}
+			})
+		}
+
+		return nil
 	}
 }
 

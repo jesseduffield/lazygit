@@ -21,7 +21,8 @@ func (gui *Gui) handleCommitMessageFocused() error {
 
 	gui.RenderCommitLength()
 
-	return gui.renderString(gui.Views.Options, message)
+	gui.c.SetViewContent(gui.Views.Options, message)
+	return nil
 }
 
 func (gui *Gui) RenderCommitLength() {

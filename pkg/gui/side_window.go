@@ -2,7 +2,7 @@ package gui
 
 func (gui *Gui) nextSideWindow() error {
 	windows := gui.getCyclableWindows()
-	currentWindow := gui.currentWindow()
+	currentWindow := gui.helpers.Window.CurrentWindow()
 	var newWindow string
 	if currentWindow == "" || currentWindow == windows[len(windows)-1] {
 		newWindow = windows[0]
@@ -17,18 +17,16 @@ func (gui *Gui) nextSideWindow() error {
 			}
 		}
 	}
-	if err := gui.resetOrigin(gui.Views.Main); err != nil {
-		return err
-	}
+	gui.c.ResetViewOrigin(gui.Views.Main)
 
-	context := gui.getContextForWindow(newWindow)
+	context := gui.helpers.Window.GetContextForWindow(newWindow)
 
 	return gui.c.PushContext(context)
 }
 
 func (gui *Gui) previousSideWindow() error {
 	windows := gui.getCyclableWindows()
-	currentWindow := gui.currentWindow()
+	currentWindow := gui.helpers.Window.CurrentWindow()
 	var newWindow string
 	if currentWindow == "" || currentWindow == windows[0] {
 		newWindow = windows[len(windows)-1]
@@ -43,19 +41,21 @@ func (gui *Gui) previousSideWindow() error {
 			}
 		}
 	}
-	if err := gui.resetOrigin(gui.Views.Main); err != nil {
-		return err
-	}
+	gui.c.ResetViewOrigin(gui.Views.Main)
 
-	context := gui.getContextForWindow(newWindow)
+	context := gui.helpers.Window.GetContextForWindow(newWindow)
 
 	return gui.c.PushContext(context)
 }
 
 func (gui *Gui) goToSideWindow(window string) func() error {
 	return func() error {
-		context := gui.getContextForWindow(window)
+		context := gui.helpers.Window.GetContextForWindow(window)
 
 		return gui.c.PushContext(context)
 	}
+}
+
+func (gui *Gui) getCyclableWindows() []string {
+	return []string{"status", "files", "branches", "commits", "stash"}
 }

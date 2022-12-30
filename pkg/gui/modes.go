@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
@@ -22,12 +23,12 @@ func (gui *Gui) modeStatuses() []modeStatus {
 					fmt.Sprintf(
 						"%s %s",
 						gui.c.Tr.LcShowingGitDiff,
-						"git diff "+gui.diffStr(),
+						"git diff "+gui.helpers.Diff.DiffStr(),
 					),
 					style.FgMagenta,
 				)
 			},
-			reset: gui.exitDiffMode,
+			reset: gui.helpers.Diff.ExitDiffMode,
 		},
 		{
 			isActive: gui.git.Patch.PatchBuilder.Active,
@@ -77,7 +78,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 			description: func() string {
 				workingTreeState := gui.git.Status.WorkingTreeState()
 				return gui.withResetButton(
-					formatWorkingTreeState(workingTreeState), style.FgYellow,
+					presentation.FormatWorkingTreeState(workingTreeState), style.FgYellow,
 				)
 			},
 			reset: gui.helpers.MergeAndRebase.AbortMergeOrRebaseWithConfirm,

@@ -14,20 +14,16 @@ import (
 type SubmodulesController struct {
 	baseController
 	*controllerCommon
-
-	enterSubmodule func(submodule *models.SubmoduleConfig) error
 }
 
 var _ types.IController = &SubmodulesController{}
 
 func NewSubmodulesController(
 	controllerCommon *controllerCommon,
-	enterSubmodule func(submodule *models.SubmoduleConfig) error,
 ) *SubmodulesController {
 	return &SubmodulesController{
 		baseController:   baseController{},
 		controllerCommon: controllerCommon,
-		enterSubmodule:   enterSubmodule,
 	}
 }
 
@@ -81,8 +77,43 @@ func (self *SubmodulesController) GetOnClick() func() error {
 	return self.checkSelected(self.enter)
 }
 
+func (self *SubmodulesController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.helpers.Diff.WithDiffModeCheck(func() error {
+			var task types.UpdateTask
+			submodule := self.context().GetSelected()
+			if submodule == nil {
+				task = types.NewRenderStringTask("No submodules")
+			} else {
+				prefix := fmt.Sprintf(
+					"Name: %s\nPath: %s\nUrl:  %s\n\n",
+					style.FgGreen.Sprint(submodule.Name),
+					style.FgYellow.Sprint(submodule.Path),
+					style.FgCyan.Sprint(submodule.Url),
+				)
+
+				file := self.helpers.WorkingTree.FileForSubmodule(submodule)
+				if file == nil {
+					task = types.NewRenderStringTask(prefix)
+				} else {
+					cmdObj := self.git.WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, self.c.State().GetIgnoreWhitespaceInDiffView())
+					task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix)
+				}
+			}
+
+			return self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title: "Submodule",
+					Task:  task,
+				},
+			})
+		})
+	}
+}
+
 func (self *SubmodulesController) enter(submodule *models.SubmoduleConfig) error {
-	return self.enterSubmodule(submodule)
+	return self.helpers.Repos.EnterSubmodule(submodule)
 }
 
 func (self *SubmodulesController) add() error {

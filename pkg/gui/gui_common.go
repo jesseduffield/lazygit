@@ -1,8 +1,8 @@
 package gui
 
 import (
-	"errors"
-
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -41,21 +41,15 @@ func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
 }
 
 func (self *guiCommon) PushContext(context types.Context, opts ...types.OnFocusOpts) error {
-	singleOpts := types.OnFocusOpts{}
-	if len(opts) > 0 {
-		// using triple dot but you should only ever pass one of these opt structs
-		if len(opts) > 1 {
-			return errors.New("cannot pass multiple opts to pushContext")
-		}
-
-		singleOpts = opts[0]
-	}
-
-	return self.gui.pushContext(context, singleOpts)
+	return self.gui.pushContext(context, opts...)
 }
 
 func (self *guiCommon) PopContext() error {
 	return self.gui.popContext()
+}
+
+func (self *guiCommon) ReplaceContext(context types.Context) error {
+	return self.gui.replaceContext(context)
 }
 
 func (self *guiCommon) CurrentContext() types.Context {
@@ -64,6 +58,10 @@ func (self *guiCommon) CurrentContext() types.Context {
 
 func (self *guiCommon) CurrentStaticContext() types.Context {
 	return self.gui.currentStaticContext()
+}
+
+func (self *guiCommon) CurrentSideContext() types.Context {
+	return self.gui.currentSideContext()
 }
 
 func (self *guiCommon) IsCurrentContext(c types.Context) bool {
@@ -78,12 +76,52 @@ func (self *guiCommon) SaveAppState() error {
 	return self.gui.Config.SaveAppState()
 }
 
+func (self *guiCommon) GetConfig() config.AppConfigurer {
+	return self.gui.Config
+}
+
+func (self *guiCommon) ResetViewOrigin(view *gocui.View) {
+	self.gui.resetViewOrigin(view)
+}
+
+func (self *guiCommon) SetViewContent(view *gocui.View, content string) {
+	self.gui.setViewContent(view, content)
+}
+
 func (self *guiCommon) Render() {
 	self.gui.render()
 }
 
+func (self *guiCommon) Views() types.Views {
+	return self.gui.Views
+}
+
+func (self *guiCommon) Git() *commands.GitCommand {
+	return self.gui.git
+}
+
+func (self *guiCommon) OS() *oscommands.OSCommand {
+	return self.gui.os
+}
+
+func (self *guiCommon) Modes() *types.Modes {
+	return self.gui.State.Modes
+}
+
+func (self *guiCommon) Model() *types.Model {
+	return self.gui.State.Model
+}
+
+func (self *guiCommon) Mutexes() types.Mutexes {
+	return self.gui.Mutexes
+}
+
 func (self *guiCommon) OpenSearch() {
 	_ = self.gui.handleOpenSearch(self.gui.currentViewName())
+}
+
+func (self *guiCommon) GocuiGui() *gocui.Gui {
+	return self.gui.g
 }
 
 func (self *guiCommon) OnUIThread(f func() error) {
@@ -101,4 +139,8 @@ func (self *guiCommon) MainViewPairs() types.MainViewPairs {
 		PatchBuilding:  self.gui.patchBuildingMainContextPair(),
 		MergeConflicts: self.gui.mergingMainContextPair(),
 	}
+}
+
+func (self *guiCommon) State() types.IStateAccessor {
+	return self.gui.stateAccessor
 }

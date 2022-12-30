@@ -15,7 +15,6 @@ type FilesController struct {
 	baseController // nolint: unused
 	*controllerCommon
 
-	enterSubmodule        func(submodule *models.SubmoduleConfig) error
 	setCommitMessage      func(message string)
 	getSavedCommitMessage func() string
 }
@@ -24,13 +23,11 @@ var _ types.IController = &FilesController{}
 
 func NewFilesController(
 	common *controllerCommon,
-	enterSubmodule func(submodule *models.SubmoduleConfig) error,
 	setCommitMessage func(message string),
 	getSavedCommitMessage func() string,
 ) *FilesController {
 	return &FilesController{
 		controllerCommon:      common,
-		enterSubmodule:        enterSubmodule,
 		setCommitMessage:      setCommitMessage,
 		getSavedCommitMessage: getSavedCommitMessage,
 	}
@@ -172,6 +169,74 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 			Handler:     self.onClickSecondary,
 			FocusedView: self.context().GetViewName(),
 		},
+	}
+}
+
+func (self *FilesController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.helpers.Diff.WithDiffModeCheck(func() error {
+			node := self.context().GetSelected()
+
+			if node == nil {
+				return self.c.RenderToMainViews(types.RefreshMainOpts{
+					Pair: self.c.MainViewPairs().Normal,
+					Main: &types.ViewUpdateOpts{
+						Title: self.c.Tr.DiffTitle,
+						Task:  types.NewRenderStringTask(self.c.Tr.NoChangedFiles),
+					},
+				})
+			}
+
+			if node.File != nil && node.File.HasInlineMergeConflicts {
+				hasConflicts, err := self.helpers.MergeConflicts.SetMergeState(node.GetPath())
+				if err != nil {
+					return err
+				}
+
+				if hasConflicts {
+					return self.helpers.MergeConflicts.Render(false)
+				}
+			}
+
+			self.helpers.MergeConflicts.ResetMergeState()
+
+			pair := self.c.MainViewPairs().Normal
+			if node.File != nil {
+				pair = self.c.MainViewPairs().Staging
+			}
+
+			split := self.c.UserConfig.Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
+			mainShowsStaged := !split && node.GetHasStagedChanges()
+
+			cmdObj := self.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, self.c.State().GetIgnoreWhitespaceInDiffView())
+			title := self.c.Tr.UnstagedChanges
+			if mainShowsStaged {
+				title = self.c.Tr.StagedChanges
+			}
+			refreshOpts := types.RefreshMainOpts{
+				Pair: pair,
+				Main: &types.ViewUpdateOpts{
+					Task:  types.NewRunPtyTask(cmdObj.GetCmd()),
+					Title: title,
+				},
+			}
+
+			if split {
+				cmdObj := self.git.WorkingTree.WorktreeFileDiffCmdObj(node, false, true, self.c.State().GetIgnoreWhitespaceInDiffView())
+
+				title := self.c.Tr.StagedChanges
+				if mainShowsStaged {
+					title = self.c.Tr.UnstagedChanges
+				}
+
+				refreshOpts.Secondary = &types.ViewUpdateOpts{
+					Title: title,
+					Task:  types.NewRunPtyTask(cmdObj.GetCmd()),
+				}
+			}
+
+			return self.c.RenderToMainViews(refreshOpts)
+		})
 	}
 }
 
@@ -379,7 +444,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 	submoduleConfigs := self.model.Submodules
 	if file.IsSubmodule(submoduleConfigs) {
 		submoduleConfig := file.SubmoduleConfig(submoduleConfigs)
-		return self.enterSubmodule(submoduleConfig)
+		return self.helpers.Repos.EnterSubmodule(submoduleConfig)
 	}
 
 	if file.HasInlineMergeConflicts {

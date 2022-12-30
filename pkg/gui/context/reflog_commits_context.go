@@ -11,16 +11,15 @@ type ReflogCommitsContext struct {
 	*ListContextTrait
 }
 
-var _ types.IListContext = (*ReflogCommitsContext)(nil)
+var (
+	_ types.IListContext    = (*ReflogCommitsContext)(nil)
+	_ types.DiffableContext = (*ReflogCommitsContext)(nil)
+)
 
 func NewReflogCommitsContext(
 	getModel func() []*models.Commit,
 	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	onFocus func(types.OnFocusOpts) error,
-	onRenderToMain func() error,
-	onFocusLost func(opts types.OnFocusLostOpts) error,
 
 	c *types.HelperCommon,
 ) *ReflogCommitsContext {
@@ -35,11 +34,7 @@ func NewReflogCommitsContext(
 				Key:        REFLOG_COMMITS_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
-			}), ContextCallbackOpts{
-				OnFocus:        onFocus,
-				OnFocusLost:    onFocusLost,
-				OnRenderToMain: onRenderToMain,
-			}),
+			}), ContextCallbackOpts{}),
 			list:              viewModel,
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,
@@ -70,4 +65,10 @@ func (self *ReflogCommitsContext) GetSelectedRef() types.Ref {
 
 func (self *ReflogCommitsContext) GetCommits() []*models.Commit {
 	return self.getModel()
+}
+
+func (self *ReflogCommitsContext) GetDiffTerminals() []string {
+	itemId := self.GetSelectedItemId()
+
+	return []string{itemId}
 }

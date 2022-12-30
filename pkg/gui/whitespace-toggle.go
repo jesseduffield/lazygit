@@ -13,5 +13,5 @@ func (gui *Gui) toggleWhitespaceInDiffView() error {
 	}
 	gui.c.Toast(toastMessage)
 
-	return gui.currentSideListContext().HandleFocus(types.OnFocusOpts{})
+	return gui.c.CurrentSideContext().HandleFocus(types.OnFocusOpts{})
 }

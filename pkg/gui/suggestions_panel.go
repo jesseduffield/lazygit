@@ -21,6 +21,6 @@ func (gui *Gui) getSelectedSuggestion() *types.Suggestion {
 func (gui *Gui) setSuggestions(suggestions []*types.Suggestion) {
 	gui.State.Suggestions = suggestions
 	gui.State.Contexts.Suggestions.SetSelectedLineIdx(0)
-	_ = gui.resetOrigin(gui.Views.Suggestions)
+	gui.c.ResetViewOrigin(gui.Views.Suggestions)
 	_ = gui.State.Contexts.Suggestions.HandleRender()
 }

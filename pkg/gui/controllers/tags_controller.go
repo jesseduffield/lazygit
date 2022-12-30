@@ -56,6 +56,29 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 	return bindings
 }
 
+func (self *TagsController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.helpers.Diff.WithDiffModeCheck(func() error {
+			var task types.UpdateTask
+			tag := self.context().GetSelected()
+			if tag == nil {
+				task = types.NewRenderStringTask("No tags")
+			} else {
+				cmdObj := self.git.Branch.GetGraphCmdObj(tag.FullRefName())
+				task = types.NewRunCommandTask(cmdObj.GetCmd())
+			}
+
+			return self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title: "Tag",
+					Task:  task,
+				},
+			})
+		})
+	}
+}
+
 func (self *TagsController) checkout(tag *models.Tag) error {
 	self.c.LogAction(self.c.Tr.Actions.CheckoutTag)
 	if err := self.helpers.Refs.CheckoutRef(tag.Name, types.CheckoutRefOptions{}); err != nil {

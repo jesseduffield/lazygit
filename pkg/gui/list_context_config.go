@@ -34,9 +34,6 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 				return []string{line}
 			})
 		},
-		nil,
-		gui.withDiffModeCheck(gui.filesRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -48,9 +45,6 @@ func (gui *Gui) branchesListContext() *context.BranchesContext {
 		func(startIdx int, length int) [][]string {
 			return presentation.GetBranchListDisplayStrings(gui.State.Model.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref, gui.Tr)
 		},
-		nil,
-		gui.withDiffModeCheck(gui.branchesRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -62,9 +56,6 @@ func (gui *Gui) remotesListContext() *context.RemotesContext {
 		func(startIdx int, length int) [][]string {
 			return presentation.GetRemoteListDisplayStrings(gui.State.Model.Remotes, gui.State.Modes.Diffing.Ref)
 		},
-		nil,
-		gui.withDiffModeCheck(gui.remotesRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -76,9 +67,6 @@ func (gui *Gui) remoteBranchesListContext() *context.RemoteBranchesContext {
 		func(startIdx int, length int) [][]string {
 			return presentation.GetRemoteBranchListDisplayStrings(gui.State.Model.RemoteBranches, gui.State.Modes.Diffing.Ref)
 		},
-		nil,
-		gui.withDiffModeCheck(gui.remoteBranchesRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -86,7 +74,7 @@ func (gui *Gui) remoteBranchesListContext() *context.RemoteBranchesContext {
 func (gui *Gui) withDiffModeCheck(f func() error) func() error {
 	return func() error {
 		if gui.State.Modes.Diffing.Active() {
-			return gui.renderDiff()
+			return gui.helpers.Diff.RenderDiff()
 		}
 
 		return f()
@@ -100,9 +88,6 @@ func (gui *Gui) tagsListContext() *context.TagsContext {
 		func(startIdx int, length int) [][]string {
 			return presentation.GetTagListDisplayStrings(gui.State.Model.Tags, gui.State.Modes.Diffing.Ref)
 		},
-		nil,
-		gui.withDiffModeCheck(gui.tagsRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -113,7 +98,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 		gui.Views.Commits,
 		func(startIdx int, length int) [][]string {
 			selectedCommitSha := ""
-			if gui.currentContext().GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
+			if gui.c.CurrentContext().GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
 				selectedCommit := gui.State.Contexts.LocalCommits.GetSelected()
 				if selectedCommit != nil {
 					selectedCommitSha = selectedCommit.Sha
@@ -138,9 +123,6 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 				showYouAreHereLabel,
 			)
 		},
-		OnFocusWrapper(gui.onCommitFocus),
-		gui.withDiffModeCheck(gui.branchCommitsRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -151,7 +133,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 		gui.Views.SubCommits,
 		func(startIdx int, length int) [][]string {
 			selectedCommitSha := ""
-			if gui.currentContext().GetKey() == context.SUB_COMMITS_CONTEXT_KEY {
+			if gui.c.CurrentContext().GetKey() == context.SUB_COMMITS_CONTEXT_KEY {
 				selectedCommit := gui.State.Contexts.SubCommits.GetSelected()
 				if selectedCommit != nil {
 					selectedCommitSha = selectedCommit.Sha
@@ -173,9 +155,6 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 				false,
 			)
 		},
-		OnFocusWrapper(gui.onSubCommitFocus),
-		gui.withDiffModeCheck(gui.subCommitsRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -213,9 +192,6 @@ func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 				gui.c.UserConfig.Git.ParseEmoji,
 			)
 		},
-		nil,
-		gui.withDiffModeCheck(gui.reflogCommitsRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -227,9 +203,6 @@ func (gui *Gui) stashListContext() *context.StashContext {
 		func(startIdx int, length int) [][]string {
 			return presentation.GetStashEntryListDisplayStrings(gui.State.Model.StashEntries, gui.State.Modes.Diffing.Ref)
 		},
-		nil,
-		gui.withDiffModeCheck(gui.stashRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -248,9 +221,6 @@ func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 				return []string{line}
 			})
 		},
-		nil,
-		gui.withDiffModeCheck(gui.commitFilesRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -262,9 +232,6 @@ func (gui *Gui) submodulesListContext() *context.SubmodulesContext {
 		func(startIdx int, length int) [][]string {
 			return presentation.GetSubmoduleListDisplayStrings(gui.State.Model.Submodules)
 		},
-		nil,
-		gui.withDiffModeCheck(gui.submodulesRenderToMain),
-		nil,
 		gui.c,
 	)
 }
@@ -275,12 +242,6 @@ func (gui *Gui) suggestionsListContext() *context.SuggestionsContext {
 		gui.Views.Suggestions,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetSuggestionListDisplayStrings(gui.State.Suggestions)
-		},
-		nil,
-		nil,
-		func(types.OnFocusLostOpts) error {
-			gui.deactivateConfirmationPrompt()
-			return nil
 		},
 		gui.c,
 	)

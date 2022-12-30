@@ -15,7 +15,7 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 			{
 				Label: gui.c.Tr.ToggleShowCommandLog,
 				OnPress: func() error {
-					currentContext := gui.currentStaticContext()
+					currentContext := gui.c.CurrentStaticContext()
 					if gui.ShowExtrasWindow && currentContext.GetKey() == context.COMMAND_LOG_CONTEXT_KEY {
 						if err := gui.c.PopContext(); err != nil {
 							return err
@@ -39,7 +39,7 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 func (gui *Gui) handleFocusCommandLog() error {
 	gui.ShowExtrasWindow = true
 	// TODO: is this necessary? Can't I just call 'return from context'?
-	gui.State.Contexts.CommandLog.SetParentContext(gui.currentSideContext())
+	gui.State.Contexts.CommandLog.SetParentContext(gui.c.CurrentSideContext())
 	return gui.c.PushContext(gui.State.Contexts.CommandLog)
 }
 

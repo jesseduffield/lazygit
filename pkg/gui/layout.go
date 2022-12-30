@@ -101,11 +101,11 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		if err != nil && !gocui.IsUnknownView(err) {
 			return err
 		}
-		view.Visible = gui.getViewNameForWindow(context.GetWindowName()) == context.GetViewName()
+		view.Visible = gui.helpers.Window.GetViewNameForWindow(context.GetWindowName()) == context.GetViewName()
 	}
 
 	if gui.PrevLayout.Information != informationStr {
-		gui.setViewContent(gui.Views.Information, informationStr)
+		gui.c.SetViewContent(gui.Views.Information, informationStr)
 		gui.PrevLayout.Information = informationStr
 	}
 
@@ -181,7 +181,7 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 		}
 	}
 
-	initialContext := gui.currentSideContext()
+	initialContext := gui.c.CurrentSideContext()
 	if err := gui.c.PushContext(initialContext); err != nil {
 		return err
 	}
@@ -226,15 +226,44 @@ func (gui *Gui) onInitialViewsCreation() error {
 	}
 
 	if gui.showRecentRepos {
-		if err := gui.handleCreateRecentReposMenu(); err != nil {
+		if err := gui.helpers.Repos.CreateRecentReposMenu(); err != nil {
 			return err
 		}
 		gui.showRecentRepos = false
 	}
 
-	gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
+	gui.helpers.Update.CheckForUpdateInBackground()
 
 	gui.waitForIntro.Done()
+
+	return nil
+}
+
+// getFocusLayout returns a manager function for when view gain and lose focus
+func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
+	var previousView *gocui.View
+	return func(g *gocui.Gui) error {
+		newView := gui.g.CurrentView()
+		// for now we don't consider losing focus to a popup panel as actually losing focus
+		if newView != previousView && !gui.isPopupPanel(newView.Name()) {
+			if err := gui.onViewFocusLost(previousView); err != nil {
+				return err
+			}
+
+			previousView = newView
+		}
+		return nil
+	}
+}
+
+func (gui *Gui) onViewFocusLost(oldView *gocui.View) error {
+	if oldView == nil {
+		return nil
+	}
+
+	oldView.Highlight = false
+
+	_ = oldView.SetOriginX(0)
 
 	return nil
 }
