@@ -9,6 +9,7 @@ import (
 
 type GitCommon struct {
 	*common.Common
+	version   *GitVersion
 	cmd       oscommands.ICmdObjBuilder
 	os        *oscommands.OSCommand
 	dotGitDir string
@@ -20,6 +21,7 @@ type GitCommon struct {
 
 func NewGitCommon(
 	cmn *common.Common,
+	version *GitVersion,
 	cmd oscommands.ICmdObjBuilder,
 	osCommand *oscommands.OSCommand,
 	dotGitDir string,
@@ -29,6 +31,7 @@ func NewGitCommon(
 ) *GitCommon {
 	return &GitCommon{
 		Common:    cmn,
+		version:   version,
 		cmd:       cmd,
 		os:        osCommand,
 		dotGitDir: dotGitDir,

@@ -7,8 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/go-errors/errors"
@@ -17,7 +15,6 @@ import (
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -101,54 +98,36 @@ func NewApp(config config.AppConfigurer, common *common.Common) (*App, error) {
 		return app, err
 	}
 
+	gitVersion, err := app.validateGitVersion()
+	if err != nil {
+		return app, err
+	}
+
 	showRecentRepos, err := app.setupRepo()
 	if err != nil {
 		return app, err
 	}
 
-	gitConfig := git_config.NewStdCachedGitConfig(app.Log)
-
-	app.Gui, err = gui.NewGui(common, config, gitConfig, app.Updater, showRecentRepos, dirName)
+	app.Gui, err = gui.NewGui(common, config, gitVersion, app.Updater, showRecentRepos, dirName)
 	if err != nil {
 		return app, err
 	}
 	return app, nil
 }
 
-func (app *App) validateGitVersion() error {
-	output, err := app.OSCommand.Cmd.New("git --version").RunWithOutput()
+func (app *App) validateGitVersion() (*git_commands.GitVersion, error) {
+	version, err := git_commands.GetGitVersion(app.OSCommand)
 	// if we get an error anywhere here we'll show the same status
 	minVersionError := errors.New(app.Tr.MinGitVersionError)
 	if err != nil {
-		return minVersionError
+		return nil, minVersionError
 	}
 
-	if isGitVersionValid(output) {
-		return nil
+	if version.IsOlderThan(2, 0, 0) {
+		return nil, minVersionError
 	}
 
-	return minVersionError
-}
-
-func isGitVersionValid(versionStr string) bool {
-	// output should be something like: 'git version 2.23.0 (blah)'
-	re := regexp.MustCompile(`[^\d]+([\d\.]+)`)
-	matches := re.FindStringSubmatch(versionStr)
-
-	if len(matches) == 0 {
-		return false
-	}
-
-	gitVersion := matches[1]
-	majorVersion, err := strconv.Atoi(gitVersion[0:1])
-	if err != nil {
-		return false
-	}
-	if majorVersion < 2 {
-		return false
-	}
-
-	return true
+	return version, nil
 }
 
 func isDirectoryAGitRepository(dir string) (bool, error) {
@@ -169,10 +148,6 @@ func openRecentRepo(app *App) bool {
 }
 
 func (app *App) setupRepo() (bool, error) {
-	if err := app.validateGitVersion(); err != nil {
-		return false, err
-	}
-
 	if env.GetGitDirEnv() != "" {
 		// we've been given the git dir directly. We'll verify this dir when initializing our Git object
 		return false, nil
