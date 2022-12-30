@@ -40,6 +40,9 @@ type Views struct {
 	Suggestions   *gocui.View
 	Tooltip       *gocui.View
 	Extras        *gocui.View
+
+	// for playing the easter egg snake game
+	Snake *gocui.View
 }
 
 type viewNameMapping struct {
@@ -58,6 +61,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 		// first layer. Ordering within this layer does not matter because there are
 		// no overlapping views
 		{viewPtr: &gui.Views.Status, name: "status"},
+		{viewPtr: &gui.Views.Snake, name: "snake"},
 		{viewPtr: &gui.Views.Submodules, name: "submodules"},
 		{viewPtr: &gui.Views.Files, name: "files"},
 		{viewPtr: &gui.Views.Tags, name: "tags"},
@@ -219,6 +223,9 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Extras.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Extras.Autoscroll = true
 	gui.Views.Extras.Wrap = true
+
+	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
+	gui.Views.Snake.FgColor = gocui.ColorGreen
 
 	return nil
 }

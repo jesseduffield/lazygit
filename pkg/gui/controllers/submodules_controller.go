@@ -69,6 +69,11 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			Description: self.c.Tr.LcViewBulkSubmoduleOptions,
 			OpensMenu:   true,
 		},
+		{
+			Key:         nil,
+			Handler:     self.easterEgg,
+			Description: self.c.Tr.EasterEgg,
+		},
 	}
 }
 
@@ -217,6 +222,10 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 			return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUBMODULES, types.FILES}})
 		},
 	})
+}
+
+func (self *SubmodulesController) easterEgg() error {
+	return self.c.PushContext(self.contexts.Snake)
 }
 
 func (self *SubmodulesController) checkSelected(callback func(*models.SubmoduleConfig) error) func() error {

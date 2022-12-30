@@ -17,6 +17,8 @@ type TranslationSet struct {
 	BranchesTitle                       string
 	CommitsTitle                        string
 	StashTitle                          string
+	SnakeTitle                          string
+	EasterEgg                           string
 	UnstagedChanges                     string
 	StagedChanges                       string
 	MainTitle                           string
@@ -213,6 +215,7 @@ type TranslationSet struct {
 	ErrorOccurred                       string
 	NoRoom                              string
 	YouAreHere                          string
+	YouDied                             string
 	LcRewordNotSupported                string
 	LcCherryPickCopy                    string
 	LcCherryPickCopyRange               string
@@ -665,6 +668,8 @@ func EnglishTranslationSet() TranslationSet {
 		BranchesTitle:                       "Branches",
 		CommitsTitle:                        "Commits",
 		StashTitle:                          "Stash",
+		SnakeTitle:                          "Snake",
+		EasterEgg:                           "easter egg",
 		UnstagedChanges:                     `Unstaged Changes`,
 		StagedChanges:                       `Staged Changes`,
 		MainTitle:                           "Main",
@@ -861,6 +866,7 @@ func EnglishTranslationSet() TranslationSet {
 		ErrorOccurred:                       "An error occurred! Please create an issue at",
 		NoRoom:                              "Not enough room",
 		YouAreHere:                          "YOU ARE HERE",
+		YouDied:                             "YOU DIED!",
 		LcRewordNotSupported:                "rewording commits while interactively rebasing is not currently supported",
 		LcCherryPickCopy:                    "copy commit (cherry-pick)",
 		LcCherryPickCopyRange:               "copy commit range (cherry-pick)",
