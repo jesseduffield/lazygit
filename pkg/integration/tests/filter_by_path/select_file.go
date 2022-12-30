@@ -34,7 +34,7 @@ var SelectFile = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Menu().Title(Equals("Filtering")).Select(Contains("filter by 'filterFile'")).Confirm()
 
-		postFilterTest(t, keys)
+		postFilterTest(t)
 	},
 })
 
@@ -50,7 +50,7 @@ func commonSetup(shell *Shell) {
 	shell.Commit("only filterFile")
 }
 
-func postFilterTest(t *TestDriver, keys config.KeybindingConfig) {
+func postFilterTest(t *TestDriver) {
 	t.Views().Information().Content(Contains("filtering by 'filterFile'"))
 
 	t.Views().Commits().

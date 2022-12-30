@@ -30,6 +30,6 @@ var TypeFile = NewIntegrationTest(NewIntegrationTestArgs{
 			SuggestionLines(Equals("filterFile")).
 			ConfirmFirstSuggestion()
 
-		postFilterTest(t, keys)
+		postFilterTest(t)
 	},
 })

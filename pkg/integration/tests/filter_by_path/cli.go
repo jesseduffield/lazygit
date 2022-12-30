@@ -15,6 +15,6 @@ var CliArg = NewIntegrationTest(NewIntegrationTestArgs{
 		commonSetup(shell)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		postFilterTest(t, keys)
+		postFilterTest(t)
 	},
 })
