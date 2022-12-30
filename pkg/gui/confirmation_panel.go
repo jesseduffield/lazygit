@@ -290,8 +290,13 @@ func (gui *Gui) clearConfirmationViewKeyBindings() {
 
 func (gui *Gui) refreshSuggestions() {
 	gui.suggestionsAsyncHandler.Do(func() func() {
-		suggestions := gui.findSuggestions(gui.c.GetPromptInput())
-		return func() { gui.setSuggestions(suggestions) }
+		findSuggestionsFn := gui.findSuggestions
+		if findSuggestionsFn != nil {
+			suggestions := gui.findSuggestions(gui.c.GetPromptInput())
+			return func() { gui.setSuggestions(suggestions) }
+		} else {
+			return func() {}
+		}
 	})
 }
 

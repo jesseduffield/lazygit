@@ -18,9 +18,11 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_path"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
 )
 
 // Here is where we lists the actual tests that will run. When you create a new test,
@@ -54,7 +56,7 @@ var tests = []*components.IntegrationTest{
 	file.DirWithUntrackedFile,
 	file.DiscardChanges,
 	file.DiscardStagedChanges,
-	file.ExcludeGitignore,
+	file.GitIgnore,
 	interactive_rebase.AmendMerge,
 	interactive_rebase.One,
 	stash.Rename,
@@ -64,6 +66,11 @@ var tests = []*components.IntegrationTest{
 	diff.Diff,
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,
+	sync.FetchPrune,
+	sync.RenameBranchAndPull,
+	filter_by_path.CliArg,
+	filter_by_path.SelectFile,
+	filter_by_path.TypeFile,
 }
 
 func GetTests() []*components.IntegrationTest {
