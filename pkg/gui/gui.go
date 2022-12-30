@@ -33,6 +33,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	"github.com/jesseduffield/lazygit/pkg/snake"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -154,6 +155,8 @@ type Gui struct {
 
 	c       *types.HelperCommon
 	helpers *helpers.Helpers
+
+	snakeGame *snake.Game
 }
 
 // we keep track of some stuff from one render to the next to see if certain

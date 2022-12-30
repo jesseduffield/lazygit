@@ -131,7 +131,7 @@ func getBindingSections(bindings []*types.Binding, tr *i18n.TranslationSet) []*b
 			return false
 		}
 
-		return (binding.Description != "" || binding.Alternative != "")
+		return (binding.Description != "" || binding.Alternative != "") && binding.Key != nil
 	})
 
 	bindingsByHeader := lo.GroupBy(bindingsToDisplay, func(binding *types.Binding) header {
