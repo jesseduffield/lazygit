@@ -20,6 +20,7 @@ testtag
 func TestGetTags(t *testing.T) {
 	type scenario struct {
 		testName      string
+		gitVersion    *GitVersion
 		runner        *oscommands.FakeCmdObjRunner
 		expectedTags  []*models.Tag
 		expectedError error
@@ -27,16 +28,41 @@ func TestGetTags(t *testing.T) {
 
 	scenarios := []scenario{
 		{
-			testName: "should return no tags if there are none",
+			testName:   "should return no tags if there are none",
+			gitVersion: &GitVersion{2, 7, 0, ""},
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git tag --list --sort=-creatordate`, "", nil),
 			expectedTags:  []*models.Tag{},
 			expectedError: nil,
 		},
 		{
-			testName: "should return tags if present",
+			testName:   "should return no tags if there are none (< 2.7.0)",
+			gitVersion: &GitVersion{2, 6, 7, ""},
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git tag --list --sort=-v:refname`, "", nil),
+			expectedTags:  []*models.Tag{},
+			expectedError: nil,
+		},
+		{
+			testName:   "should return tags if present",
+			gitVersion: &GitVersion{2, 7, 0, ""},
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git tag --list --sort=-creatordate`, tagsOutput, nil),
+			expectedTags: []*models.Tag{
+				{Name: "v0.34"},
+				{Name: "v0.33"},
+				{Name: "v0.32.2"},
+				{Name: "v0.32.1"},
+				{Name: "v0.32"},
+				{Name: "testtag"},
+			},
+			expectedError: nil,
+		},
+		{
+			testName:   "should return tags if present (< 2.7.0)",
+			gitVersion: &GitVersion{2, 6, 7, ""},
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git tag --list --sort=-v:refname`, tagsOutput, nil),
 			expectedTags: []*models.Tag{
 				{Name: "v0.34"},
 				{Name: "v0.33"},
@@ -52,10 +78,11 @@ func TestGetTags(t *testing.T) {
 	for _, scenario := range scenarios {
 		scenario := scenario
 		t.Run(scenario.testName, func(t *testing.T) {
-			loader := &TagLoader{
-				Common: utils.NewDummyCommon(),
-				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
-			}
+			loader := NewTagLoader(
+				utils.NewDummyCommon(),
+				scenario.gitVersion,
+				oscommands.NewDummyCmdObjBuilder(scenario.runner),
+			)
 
 			tags, err := loader.GetTags()
 

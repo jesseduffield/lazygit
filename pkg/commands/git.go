@@ -128,7 +128,7 @@ func NewGitCommandAux(
 	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)
 	remoteLoader := git_commands.NewRemoteLoader(cmn, cmd, repo.Remotes)
 	stashLoader := git_commands.NewStashLoader(cmn, cmd)
-	tagLoader := git_commands.NewTagLoader(cmn, cmd)
+	tagLoader := git_commands.NewTagLoader(cmn, version, cmd)
 
 	return &GitCommand{
 		Branch:      branchCommands,
