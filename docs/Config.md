@@ -63,6 +63,7 @@ gui:
   commandLogSize: 8
   splitDiff: 'auto' # one of 'auto' | 'always'
   skipRewordInEditorWarning: false # for skipping the confirmation before launching the reword editor
+  border: 'single' # one of 'single' | 'double' | 'rounded'
 git:
   paging:
     colorArg: always

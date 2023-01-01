@@ -52,6 +52,7 @@ type GuiConfig struct {
 	SplitDiff                 string             `yaml:"splitDiff"`
 	SkipRewordInEditorWarning bool               `yaml:"skipRewordInEditorWarning"`
 	WindowSize                string             `yaml:"windowSize"`
+	Border                    string             `yaml:"border"`
 }
 
 type ThemeConfig struct {
@@ -381,6 +382,7 @@ func GetDefaultConfig() *UserConfig {
 			CommandLogSize:            8,
 			SplitDiff:                 "auto",
 			SkipRewordInEditorWarning: false,
+			Border:                    "single",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

@@ -121,6 +121,13 @@ func (gui *Gui) createAllViews() error {
 			return err
 		}
 	}
+	frameRunes := []rune{'─', '│', '┌', '┐', '└', '┘'}
+	switch gui.c.UserConfig.Gui.Border {
+	case "double":
+		frameRunes = []rune{'═', '║', '╔', '╗', '╚', '╝'}
+	case "rounded":
+		frameRunes = []rune{'─', '│', '╭', '╮', '╰', '╯'}
+	}
 
 	gui.Views.Options.FgColor = theme.OptionsColor
 	gui.Views.Options.Frame = false
@@ -132,28 +139,41 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Stash.Title = gui.c.Tr.StashTitle
 	gui.Views.Stash.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Stash.FrameRunes = frameRunes
 
 	gui.Views.Commits.Title = gui.c.Tr.CommitsTitle
 	gui.Views.Commits.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Commits.FrameRunes = frameRunes
 
 	gui.Views.CommitFiles.Title = gui.c.Tr.CommitFiles
 	gui.Views.CommitFiles.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.CommitFiles.FrameRunes = frameRunes
+
+	gui.Views.ReflogCommits.FrameRunes = frameRunes
 
 	gui.Views.SubCommits.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.SubCommits.FrameRunes = frameRunes
 
 	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
 	gui.Views.Branches.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Branches.FrameRunes = frameRunes
 
 	gui.Views.Remotes.Title = gui.c.Tr.RemotesTitle
 	gui.Views.Remotes.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Remotes.FrameRunes = frameRunes
 
 	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
 	gui.Views.Tags.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Tags.FrameRunes = frameRunes
 
 	gui.Views.RemoteBranches.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.RemoteBranches.FrameRunes = frameRunes
 
 	gui.Views.Files.Title = gui.c.Tr.FilesTitle
 	gui.Views.Files.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Files.FrameRunes = frameRunes
+
+	gui.Views.Submodules.FrameRunes = frameRunes
 
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
 		view.Title = gui.c.Tr.DiffTitle
@@ -161,6 +181,7 @@ func (gui *Gui) createAllViews() error {
 		view.FgColor = theme.GocuiDefaultTextColor
 		view.IgnoreCarriageReturns = true
 		view.CanScrollPastBottom = gui.c.UserConfig.Gui.ScrollPastBottom
+		view.FrameRunes = frameRunes
 	}
 
 	gui.Views.Staging.Title = gui.c.Tr.UnstagedChanges
@@ -185,9 +206,11 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Limit.Title = gui.c.Tr.NotEnoughSpace
 	gui.Views.Limit.Wrap = true
+	gui.Views.Limit.FrameRunes = frameRunes
 
 	gui.Views.Status.Title = gui.c.Tr.StatusTitle
 	gui.Views.Status.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Status.FrameRunes = frameRunes
 
 	gui.Views.Search.BgColor = gocui.ColorDefault
 	gui.Views.Search.FgColor = gocui.ColorGreen
@@ -204,14 +227,19 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.CommitMessage.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.CommitMessage.Editable = true
 	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
+	gui.Views.CommitMessage.FrameRunes = frameRunes
 
 	gui.Views.Confirmation.Visible = false
+	gui.Views.Confirmation.FrameRunes = frameRunes
 
 	gui.Views.Suggestions.Visible = false
+	gui.Views.Suggestions.FrameRunes = frameRunes
 
 	gui.Views.Tooltip.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.Tooltip.FrameRunes = frameRunes
 
 	gui.Views.Menu.Visible = false
+	gui.Views.Menu.FrameRunes = frameRunes
 
 	gui.Views.Tooltip.Visible = false
 
@@ -223,6 +251,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Extras.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Extras.Autoscroll = true
 	gui.Views.Extras.Wrap = true
+	gui.Views.Extras.FrameRunes = frameRunes
 
 	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
 	gui.Views.Snake.FgColor = gocui.ColorGreen
