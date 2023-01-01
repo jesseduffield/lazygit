@@ -67,6 +67,7 @@ git:
     useConfig: false
   commit:
     signOff: false
+    verbose: false
   merging:
     # only applicable to unix users
     manualCommit: false
