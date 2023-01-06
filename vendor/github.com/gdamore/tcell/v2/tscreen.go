@@ -134,7 +134,6 @@ type tScreen struct {
 	clear        bool
 	cursorx      int
 	cursory      int
-	wasbtn       bool
 	acs          map[rune]string
 	charset      string
 	encoder      transform.Transformer
@@ -199,9 +198,13 @@ func (t *tScreen) Init() error {
 	if os.Getenv("TCELL_TRUECOLOR") == "disable" {
 		t.truecolor = false
 	}
-	t.colors = make(map[Color]Color)
-	t.palette = make([]Color, t.nColors())
-	for i := 0; i < t.nColors(); i++ {
+	nColors := t.nColors()
+	if nColors > 256 {
+		nColors = 256 // clip to reasonable limits
+	}
+	t.colors = make(map[Color]Color, nColors)
+	t.palette = make([]Color, nColors)
+	for i := 0; i < nColors; i++ {
 		t.palette[i] = Color(i) | ColorValid
 		// identity map for our builtin colors
 		t.colors[Color(i)|ColorValid] = Color(i) | ColorValid
@@ -346,7 +349,7 @@ func (t *tScreen) prepareExtendedOSC() {
 		t.enterUrl = t.ti.EnterUrl
 		t.exitUrl = t.ti.ExitUrl
 	} else if t.ti.Mouse != "" {
-		t.enterUrl = "\x1b]8;;%p1%s\x1b\\"
+		t.enterUrl = "\x1b]8;%p2%s;%p1%s\x1b\\"
 		t.exitUrl = "\x1b]8;;\x1b\\"
 	}
 
@@ -572,18 +575,6 @@ func (t *tScreen) SetStyle(style Style) {
 
 func (t *tScreen) Clear() {
 	t.Fill(' ', t.style)
-	t.Lock()
-	t.clear = true
-	w, h := t.cells.Size()
-	// because we are going to clear (see t.clear) in the next cycle,
-	// let's also unmark the dirty bit so that we don't waste cycles
-	// drawing things that are already dealt with via the clear escape sequence.
-	for row := 0; row < h; row++ {
-		for col := 0; col < w; col++ {
-			t.cells.SetDirty(col, row, false)
-		}
-	}
-	t.Unlock()
 }
 
 func (t *tScreen) Fill(r rune, style Style) {
@@ -794,7 +785,7 @@ func (t *tScreen) drawCell(x, y int) int {
 		// URL string can be long, so don't send it unless we really need to
 		if t.enterUrl != "" && t.curstyle != style {
 			if style.url != "" {
-				t.TPuts(ti.TParm(t.enterUrl, style.url))
+				t.TPuts(ti.TParm(t.enterUrl, style.url, style.urlId))
 			} else {
 				t.TPuts(t.exitUrl)
 			}
@@ -1229,28 +1220,16 @@ func (t *tScreen) buildMouseEvent(x, y, btn int) *EventMouse {
 	switch btn & 0x43 {
 	case 0:
 		button = Button1
-		t.wasbtn = true
 	case 1:
 		button = Button3 // Note we prefer to treat right as button 2
-		t.wasbtn = true
 	case 2:
 		button = Button2 // And the middle button as button 3
-		t.wasbtn = true
 	case 3:
 		button = ButtonNone
-		t.wasbtn = false
 	case 0x40:
-		if !t.wasbtn {
-			button = WheelUp
-		} else {
-			button = Button1
-		}
+		button = WheelUp
 	case 0x41:
-		if !t.wasbtn {
-			button = WheelDown
-		} else {
-			button = Button2
-		}
+		button = WheelDown
 	}
 
 	if btn&0x4 != 0 {

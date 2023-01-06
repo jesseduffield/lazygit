@@ -1,11 +1,12 @@
 package popup
 
 import (
+	"context"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	gctx "github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -16,7 +17,7 @@ type PopupHandler struct {
 	*common.Common
 	index int
 	deadlock.Mutex
-	createPopupPanelFn  func(types.CreatePopupPanelOpts) error
+	createPopupPanelFn  func(context.Context, types.CreatePopupPanelOpts) error
 	onErrorFn           func() error
 	popContextFn        func() error
 	currentContextFn    func() types.Context
@@ -30,7 +31,7 @@ var _ types.IPopupHandler = &PopupHandler{}
 
 func NewPopupHandler(
 	common *common.Common,
-	createPopupPanelFn func(types.CreatePopupPanelOpts) error,
+	createPopupPanelFn func(context.Context, types.CreatePopupPanelOpts) error,
 	onErrorFn func() error,
 	popContextFn func() error,
 	currentContextFn func() types.Context,
@@ -96,7 +97,7 @@ func (self *PopupHandler) Confirm(opts types.ConfirmOpts) error {
 	self.index++
 	self.Unlock()
 
-	return self.createPopupPanelFn(types.CreatePopupPanelOpts{
+	return self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
 		Title:         opts.Title,
 		Prompt:        opts.Prompt,
 		HandleConfirm: opts.HandleConfirm,
@@ -109,7 +110,7 @@ func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
 	self.index++
 	self.Unlock()
 
-	return self.createPopupPanelFn(types.CreatePopupPanelOpts{
+	return self.createPopupPanelFn(context.Background(), types.CreatePopupPanelOpts{
 		Title:               opts.Title,
 		Prompt:              opts.InitialContent,
 		Editable:            true,
@@ -127,12 +128,15 @@ func (self *PopupHandler) WithLoaderPanel(message string, f func() error) error 
 	index = self.index
 	self.Unlock()
 
-	err := self.createPopupPanelFn(types.CreatePopupPanelOpts{
+	ctx, cancel := context.WithCancel(context.Background())
+
+	err := self.createPopupPanelFn(ctx, types.CreatePopupPanelOpts{
 		Prompt:    message,
 		HasLoader: true,
 	})
 	if err != nil {
 		self.Log.Error(err)
+		cancel()
 		return nil
 	}
 
@@ -141,8 +145,10 @@ func (self *PopupHandler) WithLoaderPanel(message string, f func() error) error 
 			self.Log.Error(err)
 		}
 
+		cancel()
+
 		self.Lock()
-		if index == self.index && self.currentContextFn().GetKey() == context.CONFIRMATION_CONTEXT_KEY {
+		if index == self.index && self.currentContextFn().GetKey() == gctx.CONFIRMATION_CONTEXT_KEY {
 			_ = self.popContextFn()
 		}
 		self.Unlock()
