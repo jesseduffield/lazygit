@@ -127,6 +127,8 @@ func (gui *Gui) createAllViews() error {
 		frameRunes = []rune{'═', '║', '╔', '╗', '╚', '╝'}
 	case "rounded":
 		frameRunes = []rune{'─', '│', '╭', '╮', '╰', '╯'}
+	case "hidden":
+		frameRunes = []rune{' ', ' ', ' ', ' ', ' ', ' '}
 	}
 
 	gui.Views.Options.FgColor = theme.OptionsColor
