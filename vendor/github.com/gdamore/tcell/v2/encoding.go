@@ -1,4 +1,4 @@
-// Copyright 2015 The TCell Authors
+// Copyright 2022 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -38,19 +38,19 @@ var encodingFallback EncodingFallback = EncodingFallbackFail
 // the common ones exist already as stock variables.  For example, ISO8859-15
 // can be registered using the following code:
 //
-//   import "golang.org/x/text/encoding/charmap"
+//	import "golang.org/x/text/encoding/charmap"
 //
-//     ...
-//     RegisterEncoding("ISO8859-15", charmap.ISO8859_15)
+//	  ...
+//	  RegisterEncoding("ISO8859-15", charmap.ISO8859_15)
 //
 // Aliases can be registered as well, for example "8859-15" could be an alias
 // for "ISO8859-15".
 //
-// For POSIX systems, the tcell package will check the environment variables
+// For POSIX systems, this package will check the environment variables
 // LC_ALL, LC_CTYPE,  and LANG (in that order) to determine the character set.
 // These are expected to have the following pattern:
 //
-//	 $language[.$codeset[@$variant]
+//	$language[.$codeset[@$variant]
 //
 // We extract only the $codeset part, which will usually be something like
 // UTF-8 or ISO8859-15 or KOI8-R.  Note that if the locale is either "POSIX"
@@ -64,9 +64,11 @@ var encodingFallback EncodingFallback = EncodingFallbackFail
 // quite a lot processing overhead.
 //
 // Note that some encodings are quite large (for example GB18030 which is a
-// superset of Unicode) and so the application size can be expected ot
-// increase quite a bit as each encoding is added.  The East Asian encodings
-// have been seen to add 100-200K per encoding to the application size.
+// superset of Unicode) and so the application size can be expected to
+// increase quite a bit as each encoding is added.
+
+// The East Asian encodings have been seen to add 100-200K per encoding to the
+// size of the resulting binary.
 //
 func RegisterEncoding(charset string, enc encoding.Encoding) {
 	encodingLk.Lock()
@@ -75,7 +77,7 @@ func RegisterEncoding(charset string, enc encoding.Encoding) {
 	encodingLk.Unlock()
 }
 
-// EncodingFallback describes how the system behavees when the locale
+// EncodingFallback describes how the system behaves when the locale
 // requires a character set that we do not support.  The system always
 // supports UTF-8 and US-ASCII. On Windows consoles, UTF-16LE is also
 // supported automatically.  Other character sets must be added using the
@@ -88,7 +90,7 @@ const (
 	// when it cannot find an encoding.
 	EncodingFallbackFail = iota
 
-	// EncodingFallbackASCII behaviore causes GetEncoding to fall back
+	// EncodingFallbackASCII behavior causes GetEncoding to fall back
 	// to a 7-bit ASCII encoding, if no other encoding can be found.
 	EncodingFallbackASCII
 

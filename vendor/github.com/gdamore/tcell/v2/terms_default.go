@@ -1,3 +1,4 @@
+//go:build !tcell_minimal
 // +build !tcell_minimal
 
 // Copyright 2019 The TCell Authors

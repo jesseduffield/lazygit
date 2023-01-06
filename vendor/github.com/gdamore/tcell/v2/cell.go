@@ -1,4 +1,4 @@
-// Copyright 2019 The TCell Authors
+// Copyright 2022 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -15,6 +15,8 @@
 package tcell
 
 import (
+	"os"
+
 	runewidth "github.com/mattn/go-runewidth"
 )
 
@@ -173,5 +175,22 @@ func (cb *CellBuffer) Fill(r rune, style Style) {
 		c.currComb = nil
 		c.currStyle = style
 		c.width = 1
+	}
+}
+
+var runeConfig *runewidth.Condition;
+func init() {
+	// The defaults for the runewidth package are poorly chosen for terminal
+	// applications.  We however will honor the setting in the environment if
+	// it is set.
+	if os.Getenv("RUNEWIDTH_EASTASIAN") == "" {
+		runewidth.DefaultCondition.EastAsianWidth = false;
+	}
+
+	// For performance reasons, we create a lookup table.  However some users
+	// might be more memory conscious.  If that's you, set the TCELL_MINIMIZE
+	// environment variable.
+	if os.Getenv("TCELL_MINIMIZE") == "" {
+		runewidth.CreateLUT()
 	}
 }

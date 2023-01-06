@@ -5,6 +5,7 @@
 package gocui
 
 import (
+	"context"
 	standardErrors "errors"
 	"log"
 	"runtime"
@@ -1357,7 +1358,7 @@ func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
 	return true, nil
 }
 
-func (g *Gui) StartTicking() {
+func (g *Gui) StartTicking(ctx context.Context) {
 	go func() {
 		g.Mutexes.tickingMutex.Lock()
 		defer g.Mutexes.tickingMutex.Unlock()
@@ -1378,6 +1379,8 @@ func (g *Gui) StartTicking() {
 						continue outer
 					}
 				}
+				return
+			case <-ctx.Done():
 				return
 			case <-g.stop:
 				return
