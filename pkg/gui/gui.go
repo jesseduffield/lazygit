@@ -277,7 +277,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 	contextTree := gui.contextTree()
 
 	initialContext := initialContext(contextTree, startArgs)
-	initialScreenMode := initialScreenMode(startArgs)
+	initialScreenMode := initialScreenMode(startArgs, gui.Config)
 
 	initialWindowViewNameMap := gui.initialWindowViewNameMap(contextTree)
 
@@ -307,11 +307,20 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
 }
 
-func initialScreenMode(startArgs appTypes.StartArgs) WindowMaximisation {
+func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) WindowMaximisation {
 	if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
 		return SCREEN_HALF
 	} else {
-		return SCREEN_NORMAL
+		defaultScreenMode := config.GetUserConfig().Gui.ScreenMode
+
+		switch defaultScreenMode {
+		case "half":
+			return SCREEN_HALF
+		case "full":
+			return SCREEN_FULL
+		default:
+			return SCREEN_NORMAL
+		}
 	}
 }
 

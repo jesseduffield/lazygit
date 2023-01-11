@@ -50,6 +50,7 @@ type GuiConfig struct {
 	ShowIcons                bool               `yaml:"showIcons"`
 	CommandLogSize           int                `yaml:"commandLogSize"`
 	SplitDiff                string             `yaml:"splitDiff"`
+	ScreenMode               string             `yaml:"screenMode"`
 }
 
 type ThemeConfig struct {
