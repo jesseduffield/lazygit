@@ -46,7 +46,7 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Description: self.c.Tr.LcCreateTag,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.ScrollDownMainAlt1),
+			Key:         opts.GetKey(opts.Config.Tags.JumpToCommit),
 			Handler:     self.withSelectedTag(self.jumpToCommit),
 			Description: self.c.Tr.LcJumpToCommit,
 		},
