@@ -516,6 +516,7 @@ type TranslationSet struct {
 	CustomPatch                         string
 	LcCommitsCopied                     string
 	LcCommitCopied                      string
+	LcJumpToCommit                      string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -1167,6 +1168,7 @@ func EnglishTranslationSet() TranslationSet {
 		CustomPatch:                         "Custom patch",
 		LcCommitsCopied:                     "commits copied",
 		LcCommitCopied:                      "commit copied",
+		LcJumpToCommit:                      "Jump to commit",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
