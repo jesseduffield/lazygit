@@ -290,6 +290,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>d</kbd>: delete tag
   <kbd>P</kbd>: push tag
   <kbd>n</kbd>: create tag
+  <kbd>J</kbd>: Jump to commit
   <kbd>g</kbd>: view reset options
   <kbd>enter</kbd>: view commits
 </pre>

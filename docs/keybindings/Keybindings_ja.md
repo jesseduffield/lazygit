@@ -144,6 +144,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>d</kbd>: タグを削除
   <kbd>P</kbd>: タグをpush
   <kbd>n</kbd>: タグを作成
+  <kbd>J</kbd>: Jump to commit
   <kbd>g</kbd>: view reset options
   <kbd>enter</kbd>: コミットを閲覧
 </pre>
