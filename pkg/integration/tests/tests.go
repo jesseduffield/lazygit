@@ -23,6 +23,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/tag"
 )
 
 // Here is where we lists the actual tests that will run. When you create a new test,
@@ -71,6 +72,7 @@ var tests = []*components.IntegrationTest{
 	filter_by_path.CliArg,
 	filter_by_path.SelectFile,
 	filter_by_path.TypeFile,
+	tag.JumpToCommit,
 }
 
 func GetTests() []*components.IntegrationTest {
