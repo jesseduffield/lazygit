@@ -641,6 +641,7 @@ type Actions struct {
 	ResetBisect                       string
 	BisectSkip                        string
 	BisectMark                        string
+	TagNotFound                       string
 }
 
 const englishIntroPopupMessage = `
@@ -1275,6 +1276,7 @@ func EnglishTranslationSet() TranslationSet {
 			ResetBisect:                       "Reset bisect",
 			BisectSkip:                        "Bisect skip",
 			BisectMark:                        "Bisect mark",
+			TagNotFound:                       "Could not find tag '%s' in commits",
 		},
 		Bisect: Bisect{
 			Mark:                        "mark %s as %s",

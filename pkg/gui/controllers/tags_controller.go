@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -92,7 +94,7 @@ func (self *TagsController) delete(tag *models.Tag) error {
 
 func (self *TagsController) jumpToCommit(tag *models.Tag) error {
 	tagName := tag.ID()
-	index := 0
+	index := -1
 	for idx, commit := range self.contexts.LocalCommits.GetCommits() {
 		for _, commitTag := range commit.Tags {
 			if commitTag == tagName {
@@ -102,8 +104,13 @@ func (self *TagsController) jumpToCommit(tag *models.Tag) error {
 		}
 	}
 
-	self.contexts.LocalCommits.SetSelectedLineIdx(index)
-	return self.c.PushContext(self.contexts.LocalCommits)
+	if index < 0 {
+		self.c.LogAction(fmt.Sprintf(self.c.Tr.Actions.TagNotFound, tagName))
+		return nil
+	} else {
+		self.contexts.LocalCommits.SetSelectedLineIdx(index)
+		return self.c.PushContext(self.contexts.LocalCommits)
+	}
 }
 
 func (self *TagsController) push(tag *models.Tag) error {

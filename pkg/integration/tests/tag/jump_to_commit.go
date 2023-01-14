@@ -21,7 +21,8 @@ var JumpToCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.
 			EmptyCommit("blah").
 			EmptyCommit("blah").
-			EmptyCommitWithTag(commitMessage, tagName).
+			EmptyCommit(commitMessage).
+			Tag(tagName).
 			EmptyCommit("blah").
 			EmptyCommit("blah")
 	},

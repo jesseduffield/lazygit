@@ -132,11 +132,6 @@ func (self *Shell) EmptyCommit(message string) *Shell {
 	return self.RunCommand(fmt.Sprintf("git commit --allow-empty -m \"%s\"", message))
 }
 
-func (self *Shell) EmptyCommitWithTag(message string, tagName string) *Shell {
-	output, _ := self.runCommandWithOutput(fmt.Sprintf("git commit --allow-empty -m \"%s\"", message))
-	return self.Tag(tagName, output)
-}
-
 // convenience method for creating a file and adding it
 func (self *Shell) CreateFileAndAdd(fileName string, fileContents string) *Shell {
 	return self.
@@ -205,6 +200,6 @@ func (self *Shell) HardReset(ref string) *Shell {
 	return self
 }
 
-func (self *Shell) Tag(tagName string, name string) *Shell {
+func (self *Shell) Tag(tagName string) *Shell {
 	return self.RunCommand(fmt.Sprintf(`git tag -- "%s" `, tagName))
 }
