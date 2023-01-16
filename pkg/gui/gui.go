@@ -311,9 +311,9 @@ func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer
 	if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
 		return SCREEN_HALF
 	} else {
-		defaultScreenMode := config.GetUserConfig().Gui.ScreenMode
+		defaultWindowSize := config.GetUserConfig().Gui.WindowSize
 
-		switch defaultScreenMode {
+		switch defaultWindowSize {
 		case "half":
 			return SCREEN_HALF
 		case "full":
