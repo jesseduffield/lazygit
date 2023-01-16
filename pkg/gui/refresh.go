@@ -73,13 +73,14 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 	f := func() {
 		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
-			// not refreshing staging/patch-building unless explicitly requested because we only need
+			// not refreshing patch-building unless explicitly requested because we only need
 			// to refresh those while focused.
 			scopeSet = set.NewFromSlice([]types.RefreshableView{
 				types.COMMITS,
 				types.BRANCHES,
 				types.FILES,
 				types.STASH,
+				types.STAGING,
 				types.REFLOG,
 				types.TAGS,
 				types.REMOTES,
