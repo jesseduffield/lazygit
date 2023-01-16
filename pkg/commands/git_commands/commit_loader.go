@@ -446,14 +446,4 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 	).DontLog()
 }
 
-var prettyFormat = fmt.Sprintf(
-	"--pretty=format:\"%%H%s%%at%s%%aN%s%%ae%s%%d%s%%p%s%%s\"",
-	NULL_CODE,
-	NULL_CODE,
-	NULL_CODE,
-	NULL_CODE,
-	NULL_CODE,
-	NULL_CODE,
-)
-
-const NULL_CODE = "%x00"
+const prettyFormat = `--pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s"`
