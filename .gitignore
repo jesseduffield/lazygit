@@ -42,11 +42,7 @@ test/integration/*/used_config/
 test/integration/*/expected/**/hooks/
 test/integration/*/expected_remote/**/hooks/
 
-test/integration_new/**/actual/
-test/integration_new/**/used_config/
-# these sample hooks waste too much space
-test/integration_new/**/expected/**/hooks/
-test/integration_new/**/expected_remote/**/hooks/
+test/integration_new/**
 
 oryxBuildBinary
 __debug_bin

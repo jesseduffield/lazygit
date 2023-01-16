@@ -16,25 +16,29 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			NewBranch("branch-one").
 			NewBranch("branch-two")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
-		assert.CurrentViewName("localBranches")
-
-		assert.MatchSelectedLine(Contains("branch-two"))
-		input.PressKeys(keys.Universal.Remove)
-		assert.InAlert()
-		assert.MatchCurrentViewContent(Contains("You cannot delete the checked out branch!"))
-
-		input.Confirm()
-
-		input.NextItem()
-		assert.MatchSelectedLine(Contains("branch-one"))
-		input.PressKeys(keys.Universal.Remove)
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to delete the branch 'branch-one'?"))
-		input.Confirm()
-		assert.CurrentViewName("localBranches")
-		assert.MatchSelectedLine(Contains("master"))
-		assert.MatchCurrentViewContent(NotContains("branch-one"))
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
+			Focus().
+			Lines(
+				MatchesRegexp(`\*.*branch-two`).IsSelected(),
+				MatchesRegexp(`branch-one`),
+				MatchesRegexp(`master`),
+			).
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("You cannot delete the checked out branch!")).Confirm()
+			}).
+			SelectNextItem().
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				t.ExpectPopup().Confirmation().
+					Title(Equals("Delete Branch")).
+					Content(Contains("Are you sure you want to delete the branch 'branch-one'?")).
+					Confirm()
+			}).
+			Lines(
+				MatchesRegexp(`\*.*branch-two`),
+				MatchesRegexp(`master`).IsSelected(),
+			)
 	},
 })

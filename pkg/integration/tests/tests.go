@@ -16,15 +16,20 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/config"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_path"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
 )
 
 // Here is where we lists the actual tests that will run. When you create a new test,
 // be sure to add it to this list.
 
 var tests = []*components.IntegrationTest{
+	misc.ConfirmOnQuit,
 	bisect.Basic,
 	bisect.FromOtherBranch,
 	branch.CheckoutByName,
@@ -32,26 +37,40 @@ var tests = []*components.IntegrationTest{
 	branch.Rebase,
 	branch.RebaseAndDrop,
 	branch.Suggestions,
+	branch.Reset,
 	cherry_pick.CherryPick,
 	cherry_pick.CherryPickConflicts,
 	commit.Commit,
+	commit.CommitMultiline,
+	commit.Revert,
 	commit.NewBranch,
 	commit.Staged,
 	commit.Unstaged,
 	commit.StagedWithoutHooks,
-	commit.UnstagedWithoutHooks,
+	commit.DiscardOldFileChange,
 	custom_commands.Basic,
 	custom_commands.FormPrompts,
 	custom_commands.MenuFromCommand,
 	custom_commands.MenuFromCommandsOutput,
 	custom_commands.MultiplePrompts,
 	file.DirWithUntrackedFile,
+	file.DiscardChanges,
+	file.DiscardStagedChanges,
+	file.GitIgnore,
 	interactive_rebase.AmendMerge,
 	interactive_rebase.One,
 	stash.Rename,
 	stash.Stash,
 	stash.StashIncludingUntrackedFiles,
 	config.RemoteNamedStar,
+	diff.Diff,
+	diff.DiffAndApplyPatch,
+	diff.DiffCommits,
+	sync.FetchPrune,
+	sync.RenameBranchAndPull,
+	filter_by_path.CliArg,
+	filter_by_path.SelectFile,
+	filter_by_path.TypeFile,
 }
 
 func GetTests() []*components.IntegrationTest {

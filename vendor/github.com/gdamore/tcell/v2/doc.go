@@ -36,13 +36,12 @@
 //
 // Note that support for non-UTF-8 locales (other than C)  must be enabled
 // by the application using RegisterEncoding() -- we don't have them all
-// enabled by default to avoid bloating the application unneccessarily.
+// enabled by default to avoid bloating the application unnecessarily.
 // (These days UTF-8 is good enough for almost everyone, and nobody should
 // be using legacy locales anymore.)  Also, actual glyphs for various code
 // point will only be displayed if your terminal or emulator (or the font
 // the emulator is using) supports them.
 //
-// A rich set of keycodes is supported, with support for up to 65 function
+// A rich set of key codes is supported, with support for up to 65 function
 // keys, and various other special keys.
-//
 package tcell

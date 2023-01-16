@@ -1,1 +1,0 @@
-{ "description": "discard file changes for various kinds of situations (merge conflicts, etc). Skipped because it's failing on CI for some reason", "speed": 5, "skip": true }

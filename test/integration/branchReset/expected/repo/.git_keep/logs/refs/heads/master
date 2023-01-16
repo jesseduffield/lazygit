@@ -1,6 +1,0 @@
-0000000000000000000000000000000000000000 3714b55ba17f3d8b0233c6e5924a5e497eb09bb7 CI <CI@example.com> 1617686737 +1000	commit (initial): first commit
-3714b55ba17f3d8b0233c6e5924a5e497eb09bb7 bd8db1919bbbbd4509ad4d9fa3baf546460e17a2 CI <CI@example.com> 1617686737 +1000	commit: first commit on master
-bd8db1919bbbbd4509ad4d9fa3baf546460e17a2 106606554f129e8b6e4b942908734deef5628dcd CI <CI@example.com> 1617686737 +1000	commit: second commit on master
-106606554f129e8b6e4b942908734deef5628dcd a73e01f9d181ff16b3d821dd962e98accbd62936 CI <CI@example.com> 1617686737 +1000	commit: third commit on master
-a73e01f9d181ff16b3d821dd962e98accbd62936 7cd86f0c3e1894b4270d0bf9fa246c33568f9bf1 CI <CI@example.com> 1617686737 +1000	commit: fourth commit on master
-7cd86f0c3e1894b4270d0bf9fa246c33568f9bf1 27ba706fa463253f9189b2f258430877d2b5ed4f CI <CI@example.com> 1617686741 +1000	reset: moving to develop

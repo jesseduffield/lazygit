@@ -20,7 +20,6 @@ type GuiDriver interface {
 	PressKey(string)
 	Keys() config.KeybindingConfig
 	CurrentContext() types.Context
-	Model() *types.Model
 	Fail(message string)
 	// These two log methods are for the sake of debugging while testing. There's no need to actually
 	// commit any logging.

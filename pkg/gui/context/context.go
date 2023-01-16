@@ -7,6 +7,7 @@ import (
 const (
 	GLOBAL_CONTEXT_KEY                   types.ContextKey = "global"
 	STATUS_CONTEXT_KEY                   types.ContextKey = "status"
+	SNAKE_CONTEXT_KEY                    types.ContextKey = "snake"
 	FILES_CONTEXT_KEY                    types.ContextKey = "files"
 	LOCAL_BRANCHES_CONTEXT_KEY           types.ContextKey = "localBranches"
 	REMOTES_CONTEXT_KEY                  types.ContextKey = "remotes"
@@ -74,6 +75,7 @@ var AllContextKeys = []types.ContextKey{
 type ContextTree struct {
 	Global                      types.Context
 	Status                      types.Context
+	Snake                       types.Context
 	Files                       *WorkingTreeContext
 	Menu                        *MenuContext
 	Branches                    *BranchesContext
@@ -112,6 +114,7 @@ func (self *ContextTree) Flatten() []types.Context {
 	return []types.Context{
 		self.Global,
 		self.Status,
+		self.Snake,
 		self.Submodules,
 		self.Files,
 		self.SubCommits,

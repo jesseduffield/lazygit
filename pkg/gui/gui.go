@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/jesseduffield/gocui"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
@@ -32,7 +31,9 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	"github.com/jesseduffield/lazygit/pkg/snake"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -75,9 +76,10 @@ type Repo string
 // Gui wraps the gocui Gui object which handles rendering and events
 type Gui struct {
 	*common.Common
-	g   *gocui.Gui
-	git *commands.GitCommand
-	os  *oscommands.OSCommand
+	g          *gocui.Gui
+	gitVersion *git_commands.GitVersion
+	git        *commands.GitCommand
+	os         *oscommands.OSCommand
 
 	// this is the state of the GUI for the current repo
 	State *GuiRepoState
@@ -154,6 +156,8 @@ type Gui struct {
 
 	c       *types.HelperCommon
 	helpers *helpers.Helpers
+
+	snakeGame *snake.Game
 }
 
 // we keep track of some stuff from one render to the next to see if certain
@@ -219,6 +223,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool) error {
 	var err error
 	gui.git, err = commands.NewGitCommand(
 		gui.Common,
+		gui.gitVersion,
 		gui.os,
 		git_config.NewStdCachedGitConfig(gui.Log),
 		gui.Mutexes.SyncMutex,
@@ -338,13 +343,14 @@ func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartAr
 func NewGui(
 	cmn *common.Common,
 	config config.AppConfigurer,
-	gitConfig git_config.IGitConfig,
+	gitVersion *git_commands.GitVersion,
 	updater *updates.Updater,
 	showRecentRepos bool,
 	initialDir string,
 ) (*Gui, error) {
 	gui := &Gui{
 		Common:                  cmn,
+		gitVersion:              gitVersion,
 		Config:                  config,
 		Updater:                 updater,
 		statusManager:           &statusManager{},
@@ -426,7 +432,7 @@ func (gui *Gui) initGocui(headless bool, test integrationTypes.IntegrationTest) 
 		playMode = gocui.RECORDING
 	} else if Replaying() {
 		playMode = gocui.REPLAYING
-	} else if test != nil {
+	} else if test != nil && os.Getenv(components.SANDBOX_ENV_VAR) != "true" {
 		playMode = gocui.REPLAYING_NEW
 	}
 
@@ -526,27 +532,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	gui.waitForIntro.Add(1)
 
-	if userConfig.Git.AutoFetch {
-		fetchInterval := userConfig.Refresher.FetchInterval
-		if fetchInterval > 0 {
-			go utils.Safe(gui.startBackgroundFetch)
-		} else {
-			gui.c.Log.Errorf(
-				"Value of config option 'refresher.fetchInterval' (%d) is invalid, disabling auto-fetch",
-				fetchInterval)
-		}
-	}
-
-	if userConfig.Git.AutoRefresh {
-		refreshInterval := userConfig.Refresher.RefreshInterval
-		if refreshInterval > 0 {
-			gui.goEvery(time.Second*time.Duration(refreshInterval), gui.stopChan, gui.refreshFilesAndSubmodules)
-		} else {
-			gui.c.Log.Errorf(
-				"Value of config option 'refresher.refreshInterval' (%d) is invalid, disabling auto-refresh",
-				refreshInterval)
-		}
-	}
+	gui.startBackgroundRoutines()
 
 	gui.c.Log.Info("starting main loop")
 
@@ -719,43 +705,6 @@ func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 		HandleConfirm: onConfirm,
 		HandleClose:   onConfirm,
 	})
-}
-
-func (gui *Gui) goEvery(interval time.Duration, stop chan struct{}, function func() error) {
-	go utils.Safe(func() {
-		ticker := time.NewTicker(interval)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ticker.C:
-				if gui.PauseBackgroundThreads {
-					continue
-				}
-				_ = function()
-			case <-stop:
-				return
-			}
-		}
-	})
-}
-
-func (gui *Gui) startBackgroundFetch() {
-	gui.waitForIntro.Wait()
-	isNew := gui.IsNewRepo
-	userConfig := gui.UserConfig
-	if !isNew {
-		time.After(time.Duration(userConfig.Refresher.FetchInterval) * time.Second)
-	}
-	err := gui.backgroundFetch()
-	if err != nil && strings.Contains(err.Error(), "exit status 128") && isNew {
-		_ = gui.c.Alert(gui.c.Tr.NoAutomaticGitFetchTitle, gui.c.Tr.NoAutomaticGitFetchBody)
-	} else {
-		gui.goEvery(time.Second*time.Duration(userConfig.Refresher.FetchInterval), gui.stopChan, func() error {
-			err := gui.backgroundFetch()
-			gui.render()
-			return err
-		})
-	}
 }
 
 // setColorScheme sets the color scheme for the app based on the user config

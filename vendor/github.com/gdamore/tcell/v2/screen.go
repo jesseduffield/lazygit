@@ -24,12 +24,13 @@ type Screen interface {
 	// Fini finalizes the screen also releasing resources.
 	Fini()
 
-	// Clear erases the screen.  The contents of any screen buffers
-	// will also be cleared.  This has the logical effect of
-	// filling the screen with spaces, using the global default style.
+	// Clear logically erases the screen.
+	// This is effectively a short-cut for Fill(' ', StyleDefault).
 	Clear()
 
 	// Fill fills the screen with the given character and style.
+	// The effect of filling the screen is not visible until Show
+	// is called (or Sync).
 	Fill(rune, Style)
 
 	// SetCell is an older API, and will be removed.  Please use
@@ -42,7 +43,7 @@ type Screen interface {
 	// and may not actually be what is displayed, but rather are what will
 	// be displayed if Show() or Sync() is called.  The width is the width
 	// in screen cells; most often this will be 1, but some East Asian
-	// characters require two cells.
+	// characters and emoji require two cells.
 	GetContent(x, y int) (primary rune, combining []rune, style Style, width int)
 
 	// SetContent sets the contents of the given cell location.  If
@@ -54,7 +55,7 @@ type Screen interface {
 	//
 	// The results are not displayed until Show() or Sync() is called.
 	//
-	// Note that wide (East Asian full width) runes occupy two cells,
+	// Note that wide (East Asian full width and emoji) runes occupy two cells,
 	// and attempts to place character at next cell to the right will have
 	// undefined effects.  Wide runes that are printed in the
 	// last column will be replaced with a single width space on output.

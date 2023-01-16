@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build aix || darwin || dragonfly || freebsd || linux || netbsd || openbsd || solaris || zos
 // +build aix darwin dragonfly freebsd linux netbsd openbsd solaris zos
 
 package tcell
@@ -60,7 +61,7 @@ func (tty *stdIoTty) Start() error {
 	defer tty.l.Unlock()
 
 	// We open another copy of /dev/tty.  This is a workaround for unusual behavior
-	// observed in macOS, apparently caused when a subshell (for example) closes our
+	// observed in macOS, apparently caused when a sub-shell (for example) closes our
 	// own tty device (when it exits for example).  Getting a fresh new one seems to
 	// resolve the problem.  (We believe this is a bug in the macOS tty driver that
 	// fails to account for dup() references to the same file before applying close()
@@ -162,7 +163,7 @@ func (tty *stdIoTty) NotifyResize(cb func()) {
 func NewStdIoTty() (Tty, error) {
 	tty := &stdIoTty{
 		sig: make(chan os.Signal),
-		in: os.Stdin,
+		in:  os.Stdin,
 		out: os.Stdout,
 	}
 	var err error

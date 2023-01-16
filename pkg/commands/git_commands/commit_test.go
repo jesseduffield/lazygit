@@ -32,6 +32,7 @@ func TestCommitCommitObj(t *testing.T) {
 		testName             string
 		message              string
 		configSignoff        bool
+		configVerbose        bool
 		configSkipHookPrefix string
 		expected             string
 	}
@@ -41,6 +42,7 @@ func TestCommitCommitObj(t *testing.T) {
 			testName:             "Commit",
 			message:              "test",
 			configSignoff:        false,
+			configVerbose:        false,
 			configSkipHookPrefix: "",
 			expected:             `git commit -m "test"`,
 		},
@@ -48,6 +50,7 @@ func TestCommitCommitObj(t *testing.T) {
 			testName:             "Commit with --no-verify flag",
 			message:              "WIP: test",
 			configSignoff:        false,
+			configVerbose:        false,
 			configSkipHookPrefix: "WIP",
 			expected:             `git commit --no-verify -m "WIP: test"`,
 		},
@@ -55,6 +58,7 @@ func TestCommitCommitObj(t *testing.T) {
 			testName:             "Commit with multiline message",
 			message:              "line1\nline2",
 			configSignoff:        false,
+			configVerbose:        false,
 			configSkipHookPrefix: "",
 			expected:             `git commit -m "line1" -m "line2"`,
 		},
@@ -62,13 +66,23 @@ func TestCommitCommitObj(t *testing.T) {
 			testName:             "Commit with signoff",
 			message:              "test",
 			configSignoff:        true,
+			configVerbose:        false,
 			configSkipHookPrefix: "",
 			expected:             `git commit --signoff -m "test"`,
+		},
+		{
+			testName:             "Commit with message ignores verbose flag",
+			message:              "test",
+			configSignoff:        false,
+			configVerbose:        true,
+			configSkipHookPrefix: "",
+			expected:             `git commit -m "test"`,
 		},
 		{
 			testName:             "Commit with signoff and no-verify",
 			message:              "WIP: test",
 			configSignoff:        true,
+			configVerbose:        false,
 			configSkipHookPrefix: "WIP",
 			expected:             `git commit --no-verify --signoff -m "WIP: test"`,
 		},
@@ -79,6 +93,7 @@ func TestCommitCommitObj(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.Commit.SignOff = s.configSignoff
+			userConfig.Git.Commit.Verbose = s.configVerbose
 			userConfig.Git.SkipHookPrefix = s.configSkipHookPrefix
 
 			instance := buildCommitCommands(commonDeps{userConfig: userConfig})

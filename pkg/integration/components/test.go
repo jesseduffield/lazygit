@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/env"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -24,9 +25,7 @@ type IntegrationTest struct {
 	setupRepo    func(shell *Shell)
 	setupConfig  func(config *config.AppConfig)
 	run          func(
-		shell *Shell,
-		input *Input,
-		assert *Assert,
+		testDriver *TestDriver,
 		keys config.KeybindingConfig,
 	)
 }
@@ -41,7 +40,7 @@ type NewIntegrationTestArgs struct {
 	// takes a config and mutates. The mutated context will end up being passed to the gui
 	SetupConfig func(config *config.AppConfig)
 	// runs the test
-	Run func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig)
+	Run func(t *TestDriver, keys config.KeybindingConfig)
 	// additional args passed to lazygit
 	ExtraCmdArgs string
 	// for when a test is flakey
@@ -91,18 +90,20 @@ func (self *IntegrationTest) SetupRepo(shell *Shell) {
 	self.setupRepo(shell)
 }
 
-// I want access to all contexts, the model, the ability to press a key, the ability to log,
 func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
-	shell := NewShell("/tmp/lazygit-test")
-	assert := NewAssert(gui)
-	keys := gui.Keys()
-	input := NewInput(gui, keys, assert, KeyPressDelay())
+	// we pass the --pass arg to lazygit when running an integration test, and that
+	// ends up stored in the following env var
+	repoPath := env.GetGitWorkTreeEnv()
 
-	self.run(shell, input, assert, keys)
+	shell := NewShell(repoPath, func(errorMsg string) { gui.Fail(errorMsg) })
+	keys := gui.Keys()
+	testDriver := NewTestDriver(gui, shell, keys, KeyPressDelay())
+
+	self.run(testDriver, keys)
 
 	if KeyPressDelay() > 0 {
 		// the dev would want to see the final state if they're running in slow mode
-		input.Wait(2000)
+		testDriver.Wait(2000)
 	}
 }
 

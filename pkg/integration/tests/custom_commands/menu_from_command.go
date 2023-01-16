@@ -42,33 +42,24 @@ var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 			},
 		}
 	},
-	Run: func(
-		shell *Shell,
-		input *Input,
-		assert *Assert,
-		keys config.KeybindingConfig,
-	) {
-		assert.WorkingTreeFileCount(0)
-		input.SwitchToBranchesWindow()
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Files().
+			IsEmpty()
 
-		input.PressKeys("a")
+		t.Views().Branches().
+			Focus().
+			Press("a")
 
-		assert.InMenu()
-		assert.MatchCurrentViewTitle(Equals("Choose commit message"))
-		assert.MatchSelectedLine(Equals("baz"))
-		input.NextItem()
-		assert.MatchSelectedLine(Equals("bar"))
-		input.Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Choose commit message")).Select(Contains("bar")).Confirm()
 
-		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Description"))
-		input.Type(" my branch")
-		input.Confirm()
+		t.ExpectPopup().Prompt().Title(Equals("Description")).Type(" my branch").Confirm()
 
-		input.SwitchToFilesWindow()
+		t.Views().Files().
+			Focus().
+			Lines(
+				Contains("output.txt").IsSelected(),
+			)
 
-		assert.WorkingTreeFileCount(1)
-		assert.MatchSelectedLine(Contains("output.txt"))
-		assert.MatchMainViewContent(Contains("bar Branch: #feature/foo my branch feature/foo"))
+		t.Views().Main().Content(Contains("bar Branch: #feature/foo my branch feature/foo"))
 	},
 })

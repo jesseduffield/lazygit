@@ -30,10 +30,6 @@ func (self *fakeGuiDriver) CurrentContext() types.Context {
 	return nil
 }
 
-func (self *fakeGuiDriver) Model() *types.Model {
-	return &types.Model{Commits: []*models.Commit{}}
-}
-
 func (self *fakeGuiDriver) Fail(message string) {
 	self.failureMessage = message
 }
@@ -60,26 +56,11 @@ func (self *fakeGuiDriver) View(viewName string) *gocui.View {
 	return nil
 }
 
-func TestAssertionFailure(t *testing.T) {
-	test := NewIntegrationTest(NewIntegrationTestArgs{
-		Description: unitTestDescription,
-		Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-			input.PressKeys("a")
-			input.PressKeys("b")
-			assert.CommitCount(2)
-		},
-	})
-	driver := &fakeGuiDriver{}
-	test.Run(driver)
-	assert.EqualValues(t, []string{"a", "b"}, driver.pressedKeys)
-	assert.Equal(t, "Expected 2 commits present, but got 0", driver.failureMessage)
-}
-
 func TestManualFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
-		Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-			assert.Fail("blah")
+		Run: func(t *TestDriver, keys config.KeybindingConfig) {
+			t.Fail("blah")
 		},
 	})
 	driver := &fakeGuiDriver{}
@@ -90,10 +71,9 @@ func TestManualFailure(t *testing.T) {
 func TestSuccess(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,
-		Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-			input.PressKeys("a")
-			input.PressKeys("b")
-			assert.CommitCount(0)
+		Run: func(t *TestDriver, keys config.KeybindingConfig) {
+			t.press("a")
+			t.press("b")
 		},
 	})
 	driver := &fakeGuiDriver{}

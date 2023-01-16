@@ -9,8 +9,6 @@ type UserConfig struct {
 	Git                  GitConfig        `yaml:"git"`
 	Update               UpdateConfig     `yaml:"update"`
 	Refresher            RefresherConfig  `yaml:"refresher"`
-	Reporting            string           `yaml:"reporting"`
-	SplashUpdatesIndex   int              `yaml:"splashUpdatesIndex"`
 	ConfirmOnQuit        bool             `yaml:"confirmOnQuit"`
 	QuitOnTopLevelReturn bool             `yaml:"quitOnTopLevelReturn"`
 	Keybinding           KeybindingConfig `yaml:"keybinding"`
@@ -96,6 +94,7 @@ type PagingConfig struct {
 
 type CommitConfig struct {
 	SignOff bool `yaml:"signOff"`
+	Verbose bool `yaml:"verbose"`
 }
 
 type MergingConfig struct {
@@ -136,6 +135,7 @@ type KeybindingUniversalConfig struct {
 	Quit                         string   `yaml:"quit"`
 	QuitAlt1                     string   `yaml:"quit-alt1"`
 	Return                       string   `yaml:"return"`
+	ReturnAlt1                   string   `yaml:"return-alt1"`
 	QuitWithoutChangingDirectory string   `yaml:"quitWithoutChangingDirectory"`
 	TogglePanel                  string   `yaml:"togglePanel"`
 	PrevItem                     string   `yaml:"prevItem"`
@@ -387,6 +387,7 @@ func GetDefaultConfig() *UserConfig {
 			},
 			Commit: CommitConfig{
 				SignOff: false,
+				Verbose: false,
 			},
 			Merging: MergingConfig{
 				ManualCommit: false,
@@ -415,8 +416,6 @@ func GetDefaultConfig() *UserConfig {
 			Method: "prompt",
 			Days:   14,
 		},
-		Reporting:            "undetermined",
-		SplashUpdatesIndex:   0,
 		ConfirmOnQuit:        false,
 		QuitOnTopLevelReturn: false,
 		Keybinding: KeybindingConfig{
@@ -424,6 +423,7 @@ func GetDefaultConfig() *UserConfig {
 				Quit:                         "q",
 				QuitAlt1:                     "<c-c>",
 				Return:                       "<esc>",
+				ReturnAlt1:                   "",
 				QuitWithoutChangingDirectory: "Q",
 				TogglePanel:                  "<tab>",
 				PrevItem:                     "<up>",

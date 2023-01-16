@@ -163,6 +163,25 @@ func GraphemeClusterCount(s string) (n int) {
 	return
 }
 
+// ReverseString reverses the given string while observing grapheme cluster
+// boundaries.
+func ReverseString(s string) string {
+	str := []byte(s)
+	reversed := make([]byte, len(str))
+	state := -1
+	index := len(str)
+	for len(str) > 0 {
+		var cluster []byte
+		cluster, str, _, state = FirstGraphemeCluster(str, state)
+		index -= len(cluster)
+		copy(reversed[index:], cluster)
+		if index <= len(str)/2 {
+			break
+		}
+	}
+	return string(reversed)
+}
+
 // The number of bits the grapheme property must be shifted to make place for
 // grapheme states.
 const shiftGraphemePropState = 4

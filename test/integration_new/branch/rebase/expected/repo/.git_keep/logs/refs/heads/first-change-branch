@@ -1,3 +1,0 @@
-0000000000000000000000000000000000000000 b827df09781d0648f66cd9a01f0ec0ad5d412e10 CI <CI@example.com> 1661164934 +1000	branch: Created from HEAD
-b827df09781d0648f66cd9a01f0ec0ad5d412e10 f42b6ab94e265acf87a9b3bf8cfa1105fcad57b2 CI <CI@example.com> 1661164934 +1000	commit: first change
-f42b6ab94e265acf87a9b3bf8cfa1105fcad57b2 5513fcfcb56cc5f1de7b6b3ded32a945e94f5e37 CI <CI@example.com> 1661164938 +1000	rebase (continue) (finish): refs/heads/first-change-branch onto 5513fcfcb56cc5f1de7b6b3ded32a945e94f5e37

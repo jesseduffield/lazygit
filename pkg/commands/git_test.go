@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-errors/errors"
 	gogit "github.com/jesseduffield/go-git/v5"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -218,6 +219,7 @@ func TestNewGitCommand(t *testing.T) {
 			s.setup()
 			s.test(
 				NewGitCommand(utils.NewDummyCommon(),
+					&git_commands.GitVersion{},
 					oscommands.NewDummyOSCommand(),
 					git_config.NewFakeGitConfig(nil),
 					&deadlock.Mutex{},

@@ -17,23 +17,24 @@ var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 			Checkout("master").
 			EmptyCommit("blah")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
-		assert.CurrentViewName("localBranches")
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
+			Focus().
+			Lines(
+				Contains("master").IsSelected(),
+				Contains("@"),
+			).
+			SelectNextItem().
+			Press(keys.Branches.CheckoutBranchByName).
+			Tap(func() {
+				t.ExpectPopup().Prompt().Title(Equals("Branch name:")).Type("new-branch").Confirm()
 
-		assert.MatchSelectedLine(Contains("master"))
-		input.NextItem()
-		assert.MatchSelectedLine(Contains("@"))
-		input.PressKeys(keys.Branches.CheckoutBranchByName)
-		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Branch name:"))
-		input.Type("new-branch")
-		input.Confirm()
-		assert.InAlert()
-		assert.MatchCurrentViewContent(Equals("Branch not found. Create a new branch named new-branch?"))
-		input.Confirm()
-
-		assert.CurrentViewName("localBranches")
-		assert.MatchSelectedLine(Contains("new-branch"))
+				t.ExpectPopup().Alert().Title(Equals("Branch not found")).Content(Equals("Branch not found. Create a new branch named new-branch?")).Confirm()
+			}).
+			Lines(
+				MatchesRegexp(`\*.*new-branch`).IsSelected(),
+				Contains("master"),
+				Contains("@"),
+			)
 	},
 })

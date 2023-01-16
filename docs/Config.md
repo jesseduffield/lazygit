@@ -67,6 +67,7 @@ git:
     useConfig: false
   commit:
     signOff: false
+    verbose: false
   merging:
     # only applicable to unix users
     manualCommit: false
@@ -101,7 +102,6 @@ refresher:
 update:
   method: prompt # can be: prompt | background | never
   days: 14 # how often an update is checked for
-reporting: 'undetermined' # one of: 'on' | 'off' | 'undetermined'
 confirmOnQuit: false
 # determines whether hitting 'esc' will quit the application when there is nothing to cancel/close
 quitOnTopLevelReturn: false
@@ -113,6 +113,8 @@ keybinding:
     quit: 'q'
     quit-alt1: '<c-c>' # alternative/alias of quit
     return: '<esc>' # return to previous menu, will quit if there's nowhere to return
+    # When set to a printable character, this will work for returning from non-prompt panels
+    return-alt1: null
     quitWithoutChangingDirectory: 'Q'
     togglePanel: '<tab>' # goto the next panel
     prevItem: '<up>' # go one line up
@@ -187,6 +189,8 @@ keybinding:
     viewResetOptions: 'D'
     fetch: 'f'
     toggleTreeView: '`'
+    openMergeTool: 'M'
+    openStatusFilter: '<c-b>'
   branches:
     createPullRequest: 'o'
     viewPullRequestOptions: 'O'

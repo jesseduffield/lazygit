@@ -41,29 +41,20 @@ var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 			},
 		}
 	},
-	Run: func(
-		shell *Shell,
-		input *Input,
-		assert *Assert,
-		keys config.KeybindingConfig,
-	) {
-		assert.WorkingTreeFileCount(0)
-		input.SwitchToBranchesWindow()
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Git().CurrentBranchName("feature/bar")
 
-		input.PressKeys("a")
+		t.Views().Branches().
+			Focus().
+			Press("a")
 
-		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Which git command do you want to run?"))
-		assert.MatchSelectedLine(Equals("branch"))
-		input.Confirm()
+		t.ExpectPopup().Prompt().
+			Title(Equals("Which git command do you want to run?")).
+			InitialText(Equals("branch")).
+			Confirm()
 
-		assert.InMenu()
-		assert.MatchCurrentViewTitle(Equals("Branch:"))
-		input.NextItem()
-		input.NextItem()
-		assert.MatchSelectedLine(Equals("master"))
-		input.Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Branch:")).Select(Equals("master")).Confirm()
 
-		assert.CurrentBranchName("master")
+		t.Git().CurrentBranchName("master")
 	},
 })

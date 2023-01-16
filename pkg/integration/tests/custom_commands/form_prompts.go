@@ -55,34 +55,26 @@ var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 			},
 		}
 	},
-	Run: func(
-		shell *Shell,
-		input *Input,
-		assert *Assert,
-		keys config.KeybindingConfig,
-	) {
-		assert.WorkingTreeFileCount(0)
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Files().
+			IsEmpty().
+			IsFocused().
+			Press("a")
 
-		input.PressKeys("a")
+		t.ExpectPopup().Prompt().Title(Equals("Enter a file name")).Type("my file").Confirm()
 
-		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Enter a file name"))
-		input.Type("my file")
-		input.Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Choose file content")).Select(Contains("bar")).Confirm()
 
-		assert.InMenu()
-		assert.MatchCurrentViewTitle(Equals("Choose file content"))
-		assert.MatchSelectedLine(Contains("foo"))
-		input.NextItem()
-		assert.MatchSelectedLine(Contains("bar"))
-		input.Confirm()
+		t.ExpectPopup().Confirmation().
+			Title(Equals("Are you sure?")).
+			Content(Equals("Are you REALLY sure you want to make this file? Up to you buddy.")).
+			Confirm()
 
-		assert.InConfirm()
-		assert.MatchCurrentViewTitle(Equals("Are you sure?"))
-		input.Confirm()
+		t.Views().Files().
+			Lines(
+				Contains("my file").IsSelected(),
+			)
 
-		assert.WorkingTreeFileCount(1)
-		assert.MatchSelectedLine(Contains("my file"))
-		assert.MatchMainViewContent(Contains(`"BAR"`))
+		t.Views().Main().Content(Contains(`"BAR"`))
 	},
 })

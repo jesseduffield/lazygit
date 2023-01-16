@@ -76,26 +76,21 @@ func (gui *Gui) resetWindowContext(c types.Context) {
 	}
 }
 
-// moves given context's view to the top of the window and returns
-// true if the view was not already on top.
-func (gui *Gui) moveToTopOfWindow(context types.Context) bool {
+// moves given context's view to the top of the window
+func (gui *Gui) moveToTopOfWindow(context types.Context) {
 	view := context.GetView()
 	if view == nil {
-		return false
+		return
 	}
 
 	window := context.GetWindowName()
 
 	topView := gui.topViewInWindow(window)
 
-	if view.Name() == topView.Name() {
-		return false
-	} else {
+	if view.Name() != topView.Name() {
 		if err := gui.g.SetViewOnTopOf(view.Name(), topView.Name()); err != nil {
 			gui.Log.Error(err)
 		}
-
-		return true
 	}
 }
 

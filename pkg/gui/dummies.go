@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -17,6 +17,6 @@ func NewDummyUpdater() *updates.Updater {
 
 func NewDummyGui() *Gui {
 	newAppConfig := config.NewDummyAppConfig()
-	dummyGui, _ := NewGui(utils.NewDummyCommon(), newAppConfig, git_config.NewFakeGitConfig(nil), NewDummyUpdater(), false, "")
+	dummyGui, _ := NewGui(utils.NewDummyCommon(), newAppConfig, &git_commands.GitVersion{}, NewDummyUpdater(), false, "")
 	return dummyGui
 }

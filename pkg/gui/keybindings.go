@@ -75,6 +75,12 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:  self.handleTopLevelReturn,
 		},
 		{
+			ViewName: "",
+			Key:      opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Modifier: gocui.ModNone,
+			Handler:  self.handleTopLevelReturn,
+		},
+		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.OpenRecentRepos),
 			Handler:     self.handleCreateRecentReposMenu,

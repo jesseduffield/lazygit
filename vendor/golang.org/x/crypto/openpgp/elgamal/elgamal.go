@@ -10,6 +10,12 @@
 // This form of ElGamal embeds PKCS#1 v1.5 padding, which may make it
 // unsuitable for other protocols. RSA should be used in preference in any
 // case.
+//
+// Deprecated: this package was only provided to support ElGamal encryption in
+// OpenPGP. The golang.org/x/crypto/openpgp package is now deprecated (see
+// https://golang.org/issue/44226), and ElGamal in the OpenPGP ecosystem has
+// compatibility and security issues (see https://eprint.iacr.org/2021/923).
+// Moreover, this package doesn't protect against side-channel attacks.
 package elgamal // import "golang.org/x/crypto/openpgp/elgamal"
 
 import (

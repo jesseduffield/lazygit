@@ -18,29 +18,12 @@ const (
 	SANDBOX_ENV_VAR   = "SANDBOX"
 )
 
-type Mode int
-
-const (
-	// Default: if a snapshot test fails, the we'll be asked whether we want to update it
-	ASK_TO_UPDATE_SNAPSHOT Mode = iota
-	// fails the test if the snapshots don't match
-	CHECK_SNAPSHOT
-	// runs the test and updates the snapshot
-	UPDATE_SNAPSHOT
-	// This just makes use of the setup step of the test to get you into
-	// a lazygit session. Then you'll be able to do whatever you want. Useful
-	// when you want to test certain things without needing to manually set
-	// up the situation yourself.
-	// fails the test if the snapshots don't match
-	SANDBOX
-)
-
 func RunTests(
 	tests []*IntegrationTest,
 	logf func(format string, formatArgs ...interface{}),
 	runCmd func(cmd *exec.Cmd) error,
 	testWrapper func(test *IntegrationTest, f func() error),
-	mode Mode,
+	sandbox bool,
 	keyPressDelay int,
 	maxAttempts int,
 ) error {
@@ -65,7 +48,7 @@ func RunTests(
 			)
 
 			for i := 0; i < maxAttempts; i++ {
-				err := runTest(test, paths, projectRootDir, logf, runCmd, mode, keyPressDelay)
+				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, keyPressDelay)
 				if err != nil {
 					if i == maxAttempts-1 {
 						return err
@@ -89,7 +72,7 @@ func runTest(
 	projectRootDir string,
 	logf func(format string, formatArgs ...interface{}),
 	runCmd func(cmd *exec.Cmd) error,
-	mode Mode,
+	sandbox bool,
 	keyPressDelay int,
 ) error {
 	if test.Skip() {
@@ -103,7 +86,7 @@ func runTest(
 		return err
 	}
 
-	cmd, err := getLazygitCommand(test, paths, projectRootDir, mode, keyPressDelay)
+	cmd, err := getLazygitCommand(test, paths, projectRootDir, sandbox, keyPressDelay)
 	if err != nil {
 		return err
 	}
@@ -113,7 +96,7 @@ func runTest(
 		return err
 	}
 
-	return HandleSnapshots(paths, logf, test, mode)
+	return nil
 }
 
 func prepareTestDir(
@@ -132,6 +115,10 @@ func prepareTestDir(
 }
 
 func buildLazygit() error {
+	// // TODO: remove this line!
+	// // skipping this because I'm not making changes to the app code atm.
+	// return nil
+
 	osCommand := oscommands.NewDummyOSCommand()
 	return osCommand.Cmd.New(fmt.Sprintf(
 		"go build -o %s pkg/integration/clients/injector/main.go", tempLazygitPath(),
@@ -139,7 +126,7 @@ func buildLazygit() error {
 }
 
 func createFixture(test *IntegrationTest, paths Paths) error {
-	shell := NewShell(paths.ActualRepo())
+	shell := NewShell(paths.ActualRepo(), func(errorMsg string) { panic(errorMsg) })
 	shell.RunCommand("git init -b master")
 	shell.RunCommand(`git config user.email "CI@example.com"`)
 	shell.RunCommand(`git config user.name "CI"`)
@@ -151,7 +138,7 @@ func createFixture(test *IntegrationTest, paths Paths) error {
 	return nil
 }
 
-func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, mode Mode, keyPressDelay int) (*exec.Cmd, error) {
+func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandbox bool, keyPressDelay int) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")
@@ -170,8 +157,8 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, mode 
 	cmdObj := osCommand.Cmd.New(cmdStr)
 
 	cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", TEST_NAME_ENV_VAR, test.Name()))
-	if mode == SANDBOX {
-		cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", "SANDBOX", "true"))
+	if sandbox {
+		cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", SANDBOX_ENV_VAR, "true"))
 	}
 
 	if keyPressDelay > 0 {

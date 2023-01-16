@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
+	"github.com/jesseduffield/lazygit/pkg/snake"
 )
 
 func (gui *Gui) resetControllers() {
@@ -119,7 +120,7 @@ func (gui *Gui) resetControllers() {
 	undoController := controllers.NewUndoController(common)
 	globalController := controllers.NewGlobalController(common)
 	contextLinesController := controllers.NewContextLinesController(common)
-	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common)
+	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common, &gui.viewBufferManagerMap)
 
 	branchesController := controllers.NewBranchesController(common)
 	gitFlowController := controllers.NewGitFlowController(common)
@@ -130,6 +131,7 @@ func (gui *Gui) resetControllers() {
 	stagingController := controllers.NewStagingController(common, gui.State.Contexts.Staging, gui.State.Contexts.StagingSecondary, false)
 	stagingSecondaryController := controllers.NewStagingController(common, gui.State.Contexts.StagingSecondary, gui.State.Contexts.Staging, true)
 	patchBuildingController := controllers.NewPatchBuildingController(common)
+	snakeController := controllers.NewSnakeController(common, func() *snake.Game { return gui.snakeGame })
 
 	setSubCommits := func(commits []*models.Commit) { gui.State.Model.SubCommits = commits }
 
@@ -246,6 +248,10 @@ func (gui *Gui) resetControllers() {
 		undoController,
 		globalController,
 		contextLinesController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Snake,
+		snakeController,
 	)
 
 	// this must come last so that we've got our click handlers defined against the context

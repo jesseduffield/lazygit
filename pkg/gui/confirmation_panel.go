@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -16,8 +17,10 @@ import (
 // This file is for the rendering of confirmation panels along with setting and handling associated
 // keybindings.
 
-func (gui *Gui) wrappedConfirmationFunction(function func() error) func() error {
+func (gui *Gui) wrappedConfirmationFunction(cancel context.CancelFunc, function func() error) func() error {
 	return func() error {
+		cancel()
+
 		if err := gui.c.PopContext(); err != nil {
 			return err
 		}
@@ -32,8 +35,10 @@ func (gui *Gui) wrappedConfirmationFunction(function func() error) func() error 
 	}
 }
 
-func (gui *Gui) wrappedPromptConfirmationFunction(function func(string) error, getResponse func() string) func() error {
+func (gui *Gui) wrappedPromptConfirmationFunction(cancel context.CancelFunc, function func(string) error, getResponse func() string) func() error {
 	return func() error {
+		cancel()
+
 		if err := gui.c.PopContext(); err != nil {
 			return err
 		}
@@ -111,11 +116,12 @@ func (gui *Gui) getConfirmationPanelWidth() int {
 }
 
 func (gui *Gui) prepareConfirmationPanel(
+	ctx context.Context,
 	opts types.ConfirmOpts,
 ) error {
 	gui.Views.Confirmation.HasLoader = opts.HasLoader
 	if opts.HasLoader {
-		gui.g.StartTicking()
+		gui.g.StartTicking(ctx)
 	}
 	gui.Views.Confirmation.Title = opts.Title
 	// for now we do not support wrapping in our editor
@@ -145,9 +151,11 @@ func runeForMask(mask bool) rune {
 	return 0
 }
 
-func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
+func (gui *Gui) createPopupPanel(ctx context.Context, opts types.CreatePopupPanelOpts) error {
 	gui.Mutexes.PopupMutex.Lock()
 	defer gui.Mutexes.PopupMutex.Unlock()
+
+	ctx, cancel := context.WithCancel(ctx)
 
 	// we don't allow interruptions of non-loader popups in case we get stuck somehow
 	// e.g. a credentials popup never gets its required user input so a process hangs
@@ -155,6 +163,7 @@ func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 	// The proper solution is to have a queue of popup options
 	if gui.State.CurrentPopupOpts != nil && !gui.State.CurrentPopupOpts.HasLoader {
 		gui.Log.Error("ignoring create popup panel because a popup panel is already open")
+		cancel()
 		return nil
 	}
 
@@ -162,6 +171,7 @@ func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 	gui.clearConfirmationViewKeyBindings()
 
 	err := gui.prepareConfirmationPanel(
+		ctx,
 		types.ConfirmOpts{
 			Title:               opts.Title,
 			Prompt:              opts.Prompt,
@@ -171,6 +181,7 @@ func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 			Mask:                opts.Mask,
 		})
 	if err != nil {
+		cancel()
 		return err
 	}
 	confirmationView := gui.Views.Confirmation
@@ -185,11 +196,13 @@ func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 		confirmationView.RenderTextArea()
 	} else {
 		if err := gui.renderString(confirmationView, style.AttrBold.Sprint(opts.Prompt)); err != nil {
+			cancel()
 			return err
 		}
 	}
 
-	if err := gui.setKeyBindings(opts); err != nil {
+	if err := gui.setKeyBindings(cancel, opts); err != nil {
+		cancel()
 		return err
 	}
 
@@ -198,7 +211,7 @@ func (gui *Gui) createPopupPanel(opts types.CreatePopupPanelOpts) error {
 	return gui.c.PushContext(gui.State.Contexts.Confirmation)
 }
 
-func (gui *Gui) setKeyBindings(opts types.CreatePopupPanelOpts) error {
+func (gui *Gui) setKeyBindings(cancel context.CancelFunc, opts types.CreatePopupPanelOpts) error {
 	actions := utils.ResolvePlaceholderString(
 		gui.c.Tr.CloseConfirm,
 		map[string]string{
@@ -210,13 +223,14 @@ func (gui *Gui) setKeyBindings(opts types.CreatePopupPanelOpts) error {
 	_ = gui.renderString(gui.Views.Options, actions)
 	var onConfirm func() error
 	if opts.HandleConfirmPrompt != nil {
-		onConfirm = gui.wrappedPromptConfirmationFunction(opts.HandleConfirmPrompt, func() string { return gui.Views.Confirmation.TextArea.GetContent() })
+		onConfirm = gui.wrappedPromptConfirmationFunction(cancel, opts.HandleConfirmPrompt, func() string { return gui.Views.Confirmation.TextArea.GetContent() })
 	} else {
-		onConfirm = gui.wrappedConfirmationFunction(opts.HandleConfirm)
+		onConfirm = gui.wrappedConfirmationFunction(cancel, opts.HandleConfirm)
 	}
 
 	keybindingConfig := gui.c.UserConfig.Keybinding
 	onSuggestionConfirm := gui.wrappedPromptConfirmationFunction(
+		cancel,
 		opts.HandleConfirmPrompt,
 		gui.getSelectedSuggestionValue,
 	)
@@ -235,7 +249,7 @@ func (gui *Gui) setKeyBindings(opts types.CreatePopupPanelOpts) error {
 		{
 			ViewName: "confirmation",
 			Key:      keybindings.GetKey(keybindingConfig.Universal.Return),
-			Handler:  gui.wrappedConfirmationFunction(opts.HandleClose),
+			Handler:  gui.wrappedConfirmationFunction(cancel, opts.HandleClose),
 		},
 		{
 			ViewName: "confirmation",
@@ -260,7 +274,7 @@ func (gui *Gui) setKeyBindings(opts types.CreatePopupPanelOpts) error {
 		{
 			ViewName: "suggestions",
 			Key:      keybindings.GetKey(keybindingConfig.Universal.Return),
-			Handler:  gui.wrappedConfirmationFunction(opts.HandleClose),
+			Handler:  gui.wrappedConfirmationFunction(cancel, opts.HandleClose),
 		},
 		{
 			ViewName: "suggestions",
@@ -290,8 +304,13 @@ func (gui *Gui) clearConfirmationViewKeyBindings() {
 
 func (gui *Gui) refreshSuggestions() {
 	gui.suggestionsAsyncHandler.Do(func() func() {
-		suggestions := gui.findSuggestions(gui.c.GetPromptInput())
-		return func() { gui.setSuggestions(suggestions) }
+		findSuggestionsFn := gui.findSuggestions
+		if findSuggestionsFn != nil {
+			suggestions := gui.findSuggestions(gui.c.GetPromptInput())
+			return func() { gui.setSuggestions(suggestions) }
+		} else {
+			return func() {}
+		}
 	})
 }
 

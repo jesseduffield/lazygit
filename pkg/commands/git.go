@@ -53,6 +53,7 @@ type Loaders struct {
 
 func NewGitCommand(
 	cmn *common.Common,
+	version *git_commands.GitVersion,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
 	syncMutex *deadlock.Mutex,
@@ -73,6 +74,7 @@ func NewGitCommand(
 
 	return NewGitCommandAux(
 		cmn,
+		version,
 		osCommand,
 		gitConfig,
 		dotGitDir,
@@ -83,6 +85,7 @@ func NewGitCommand(
 
 func NewGitCommandAux(
 	cmn *common.Common,
+	version *git_commands.GitVersion,
 	osCommand *oscommands.OSCommand,
 	gitConfig git_config.IGitConfig,
 	dotGitDir string,
@@ -100,7 +103,7 @@ func NewGitCommandAux(
 
 	fileLoader := git_commands.NewFileLoader(cmn, cmd, configCommands)
 
-	gitCommon := git_commands.NewGitCommon(cmn, cmd, osCommand, dotGitDir, repo, configCommands, syncMutex)
+	gitCommon := git_commands.NewGitCommon(cmn, version, cmd, osCommand, dotGitDir, repo, configCommands, syncMutex)
 	statusCommands := git_commands.NewStatusCommands(gitCommon)
 	flowCommands := git_commands.NewFlowCommands(gitCommon)
 	remoteCommands := git_commands.NewRemoteCommands(gitCommon)
@@ -125,7 +128,7 @@ func NewGitCommandAux(
 	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)
 	remoteLoader := git_commands.NewRemoteLoader(cmn, cmd, repo.Remotes)
 	stashLoader := git_commands.NewStashLoader(cmn, cmd)
-	tagLoader := git_commands.NewTagLoader(cmn, cmd)
+	tagLoader := git_commands.NewTagLoader(cmn, version, cmd)
 
 	return &GitCommand{
 		Branch:      branchCommands,

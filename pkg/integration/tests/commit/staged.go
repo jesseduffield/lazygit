@@ -15,20 +15,46 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateFile("myfile", "myfile content\nwith a second line").
 			CreateFile("myfile2", "myfile2 content")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(0)
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Commits().
+			IsEmpty()
 
-		input.PrimaryAction()
-		input.Confirm()
-		input.PrimaryAction()
-		input.PressKeys(keys.Files.CommitChanges)
+		t.Views().Files().
+			IsFocused().
+			SelectedLine(Contains("myfile")).
+			PressPrimaryAction(). // stage the file
+			PressEnter()
+
+		t.Views().StagingSecondary().
+			IsFocused().
+			Tap(func() {
+				// we start with both lines having been staged
+				t.Views().StagingSecondary().Content(Contains("+myfile content"))
+				t.Views().StagingSecondary().Content(Contains("+with a second line"))
+				t.Views().Staging().Content(DoesNotContain("+myfile content"))
+				t.Views().Staging().Content(DoesNotContain("+with a second line"))
+			}).
+			// unstage the selected line
+			PressPrimaryAction().
+			Tap(func() {
+				// the line should have been moved to the main view
+				t.Views().StagingSecondary().Content(DoesNotContain("+myfile content"))
+				t.Views().StagingSecondary().Content(Contains("+with a second line"))
+				t.Views().Staging().Content(Contains("+myfile content"))
+				t.Views().Staging().Content(DoesNotContain("+with a second line"))
+			}).
+			Press(keys.Files.CommitChanges)
 
 		commitMessage := "my commit message"
-		input.Type(commitMessage)
-		input.Confirm()
+		t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()
 
-		assert.CommitCount(1)
-		assert.MatchHeadCommitMessage(Equals(commitMessage))
-		assert.CurrentWindowName("stagingSecondary")
+		t.Views().Commits().
+			Lines(
+				Contains(commitMessage),
+			)
+
+		t.Views().StagingSecondary().IsFocused()
+
+		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
 	},
 })

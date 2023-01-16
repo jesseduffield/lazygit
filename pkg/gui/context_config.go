@@ -32,6 +32,26 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				OnRenderToMain: gui.statusRenderToMain,
 			},
 		),
+		Snake: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:       types.SIDE_CONTEXT,
+				View:       gui.Views.Snake,
+				WindowName: "files",
+				Key:        context.SNAKE_CONTEXT_KEY,
+				Focusable:  true,
+			}),
+			context.ContextCallbackOpts{
+				OnFocus: func(opts types.OnFocusOpts) error {
+					gui.startSnake()
+					return nil
+				},
+				OnFocusLost: func(opts types.OnFocusLostOpts) error {
+					gui.snakeGame.Exit()
+					gui.moveToTopOfWindow(gui.State.Contexts.Submodules)
+					return nil
+				},
+			},
+		),
 		Files:          gui.filesListContext(),
 		Submodules:     gui.submodulesListContext(),
 		Menu:           gui.menuListContext(),

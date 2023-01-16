@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -47,15 +49,11 @@ func (self *GuiDriver) CurrentContext() types.Context {
 	return self.gui.c.CurrentContext()
 }
 
-func (self *GuiDriver) Model() *types.Model {
-	return self.gui.State.Model
-}
-
 func (self *GuiDriver) Fail(message string) {
 	self.gui.g.Close()
 	// need to give the gui time to close
 	time.Sleep(time.Millisecond * 100)
-	panic(message)
+	panic(fmt.Sprintf("%s\nLog:\n%s", message, strings.Join(self.gui.CmdLog, "\n")))
 }
 
 // logs to the normal place that you log to i.e. viewable with `lazygit --logs`

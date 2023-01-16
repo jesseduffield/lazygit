@@ -1,4 +1,0 @@
-{
-    "description": "In this test we attempt to add .gitignore to .git/info/exclude to ensure lazygit rejects the action",
-    "speed": 5
-}

@@ -18,52 +18,29 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			RunCommand("git bisect start other~2 other~5")
 	},
 	SetupConfig: func(cfg *config.AppConfig) {},
-	Run: func(
-		shell *Shell,
-		input *Input,
-		assert *Assert,
-		keys config.KeybindingConfig,
-	) {
-		viewBisectOptions := func() {
-			input.PressKeys(keys.Commits.ViewBisectOptions)
-			assert.InMenu()
-		}
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Information().Content(Contains("bisecting"))
 
-		markCommitAsGood := func() {
-			viewBisectOptions()
-			assert.MatchSelectedLine(Contains("bad"))
-			input.NextItem()
-			assert.MatchSelectedLine(Contains("good"))
+		t.Views().Commits().
+			Focus().
+			TopLines(
+				MatchesRegexp(`<-- bad.*commit 08`),
+				MatchesRegexp(`<-- current.*commit 07`),
+				MatchesRegexp(`\?.*commit 06`),
+				MatchesRegexp(`<-- good.*commit 05`),
+			).
+			SelectNextItem().
+			Press(keys.Commits.ViewBisectOptions).
+			Tap(func() {
+				t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
 
-			input.Confirm()
-		}
+				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
 
-		assert.MatchViewContent("information", Contains("bisecting"))
-
-		assert.AtLeastOneCommit()
-
-		input.SwitchToCommitsWindow()
-
-		assert.MatchSelectedLine(Contains("<-- bad"))
-		assert.MatchSelectedLine(Contains("commit 08"))
-
-		input.NextItem()
-		assert.MatchSelectedLine(Contains("<-- current"))
-		assert.MatchSelectedLine(Contains("commit 07"))
-
-		markCommitAsGood()
-
-		assert.InAlert()
-		assert.MatchCurrentViewContent(Contains("Bisect complete!"))
-		assert.MatchCurrentViewContent(Contains("commit 08"))
-		assert.MatchCurrentViewContent(Contains("Do you want to reset"))
-		input.Confirm()
-
-		assert.MatchViewContent("information", NotContains("bisecting"))
-
-		// back in master branch which just had the one commit
-		assert.CurrentViewName("commits")
-		assert.CommitCount(1)
-		assert.MatchSelectedLine(Contains("only commit on master"))
+				t.Views().Information().Content(DoesNotContain("bisecting"))
+			}).
+			// back in master branch which just had the one commit
+			Lines(
+				Contains("only commit on master"),
+			)
 	},
 })

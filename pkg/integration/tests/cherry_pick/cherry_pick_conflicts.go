@@ -14,74 +14,85 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo: func(shell *Shell) {
 		shared.MergeConflictsSetup(shell)
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
-		assert.CurrentViewName("localBranches")
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Branches().
+			Focus().
+			Lines(
+				Contains("first-change-branch"),
+				Contains("second-change-branch"),
+				Contains("original-branch"),
+			).
+			SelectNextItem().
+			PressEnter()
 
-		assert.MatchSelectedLine(Contains("first-change-branch"))
-		input.NextItem()
-		assert.MatchSelectedLine(Contains("second-change-branch"))
+		t.Views().SubCommits().
+			IsFocused().
+			TopLines(
+				Contains("second-change-branch unrelated change"),
+				Contains("second change"),
+			).
+			Press(keys.Commits.CherryPickCopy).
+			Tap(func() {
+				t.Views().Information().Content(Contains("1 commit copied"))
+			}).
+			SelectNextItem().
+			Press(keys.Commits.CherryPickCopy)
 
-		input.Enter()
+		t.Views().Information().Content(Contains("2 commits copied"))
 
-		assert.CurrentViewName("subCommits")
-		assert.MatchSelectedLine(Contains("second-change-branch unrelated change"))
-		input.PressKeys(keys.Commits.CherryPickCopy)
-		assert.MatchViewContent("information", Contains("1 commit copied"))
+		t.Views().Commits().
+			Focus().
+			TopLines(
+				Contains("first change"),
+			).
+			Press(keys.Commits.PasteCommits)
 
-		input.NextItem()
-		assert.MatchSelectedLine(Contains("second change"))
-		input.PressKeys(keys.Commits.CherryPickCopy)
-		assert.MatchViewContent("information", Contains("2 commits copied"))
+		t.ExpectPopup().Alert().Title(Equals("Cherry-Pick")).Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).Confirm()
 
-		input.SwitchToCommitsWindow()
-		assert.CurrentViewName("commits")
+		t.ExpectPopup().Confirmation().
+			Title(Equals("Auto-merge failed")).
+			Content(Contains("Conflicts!")).
+			Confirm()
 
-		assert.MatchSelectedLine(Contains("first change"))
-		input.PressKeys(keys.Commits.PasteCommits)
-		assert.InAlert()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?"))
+		t.Views().Files().
+			IsFocused().
+			SelectedLine(Contains("file")).
+			PressEnter()
 
-		input.Confirm()
+		t.Views().MergeConflicts().
+			IsFocused().
+			// picking 'Second change'
+			SelectNextItem().
+			PressPrimaryAction()
 
-		assert.MatchCurrentViewContent(Contains("Conflicts!"))
-		input.Confirm()
+		t.ExpectPopup().Confirmation().
+			Title(Equals("continue")).
+			Content(Contains("all merge conflicts resolved. Continue?")).
+			Confirm()
 
-		assert.CurrentViewName("files")
-		assert.MatchSelectedLine(Contains("file"))
+		t.Views().Files().IsEmpty()
 
-		// not using Confirm() convenience method because I suspect we might change this
-		// keybinding to something more bespoke
-		input.PressKeys(keys.Universal.Confirm)
+		t.Views().Commits().
+			Focus().
+			TopLines(
+				Contains("second-change-branch unrelated change"),
+				Contains("second change"),
+				Contains("first change"),
+			).
+			SelectNextItem().
+			Tap(func() {
+				// because we picked 'Second change' when resolving the conflict,
+				// we now see this commit as having replaced First Change with Second Change,
+				// as opposed to replacing 'Original' with 'Second change'
+				t.Views().Main().
+					Content(Contains("-First Change")).
+					Content(Contains("+Second Change"))
 
-		assert.CurrentViewName("mergeConflicts")
-		// picking 'Second change'
-		input.NextItem()
-		input.PrimaryAction()
-
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
-		input.Confirm()
-
-		assert.CurrentViewName("files")
-		assert.WorkingTreeFileCount(0)
-
-		input.SwitchToCommitsWindow()
-		assert.CurrentViewName("commits")
-
-		assert.MatchSelectedLine(Contains("second-change-branch unrelated change"))
-		input.NextItem()
-		assert.MatchSelectedLine(Contains("second change"))
-		// because we picked 'Second change' when resolving the conflict,
-		// we now see this commit as having replaced First Change with Second Change,
-		// as opposed to replacing 'Original' with 'Second change'
-		assert.MatchMainViewContent(Contains("-First Change"))
-		assert.MatchMainViewContent(Contains("+Second Change"))
-		input.NextItem()
-		assert.MatchSelectedLine(Contains("first change"))
-
-		assert.MatchViewContent("information", Contains("2 commits copied"))
-		input.PressKeys(keys.Universal.Return)
-		assert.MatchViewContent("information", NotContains("commits copied"))
+				t.Views().Information().Content(Contains("2 commits copied"))
+			}).
+			PressEscape().
+			Tap(func() {
+				t.Views().Information().Content(DoesNotContain("commits copied"))
+			})
 	},
 })

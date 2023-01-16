@@ -18,20 +18,18 @@ var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateFileAndAdd("file-2", "change to stash2").
 			StashWithMessage("bar")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToStashWindow()
-		assert.CurrentViewName("stash")
-
-		assert.MatchSelectedLine(Equals("On master: bar"))
-		input.NextItem()
-		assert.MatchSelectedLine(Equals("On master: foo"))
-		input.PressKeys(keys.Stash.RenameStash)
-		assert.InPrompt()
-		assert.MatchCurrentViewTitle(Equals("Rename stash: stash@{1}"))
-
-		input.Type(" baz")
-		input.Confirm()
-
-		assert.MatchSelectedLine(Equals("On master: foo baz"))
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Stash().
+			Focus().
+			Lines(
+				Equals("On master: bar"),
+				Equals("On master: foo"),
+			).
+			SelectNextItem().
+			Press(keys.Stash.RenameStash).
+			Tap(func() {
+				t.ExpectPopup().Prompt().Title(Equals("Rename stash: stash@{1}")).Type(" baz").Confirm()
+			}).
+			SelectedLine(Equals("On master: foo baz"))
 	},
 })

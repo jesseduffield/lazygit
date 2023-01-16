@@ -14,40 +14,54 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupRepo: func(shell *Shell) {
 		shared.MergeConflictsSetup(shell)
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToBranchesWindow()
-		assert.CurrentViewName("localBranches")
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Commits().TopLines(
+			Contains("first change"),
+			Contains("original"),
+		)
 
-		assert.MatchSelectedLine(Contains("first-change-branch"))
-		input.NextItem()
-		assert.MatchSelectedLine(Contains("second-change-branch"))
-		input.PressKeys(keys.Branches.RebaseBranch)
+		t.Views().Branches().
+			Focus().
+			Lines(
+				Contains("first-change-branch"),
+				Contains("second-change-branch"),
+				Contains("original-branch"),
+			).
+			SelectNextItem().
+			Press(keys.Branches.RebaseBranch)
 
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Are you sure you want to rebase 'first-change-branch' onto 'second-change-branch'?"))
-		input.Confirm()
+		t.ExpectPopup().Confirmation().
+			Title(Equals("Rebasing")).
+			Content(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?")).
+			Confirm()
 
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("Conflicts!"))
-		input.Confirm()
+		t.ExpectPopup().Confirmation().
+			Title(Equals("Auto-merge failed")).
+			Content(Contains("Conflicts!")).
+			Confirm()
 
-		assert.CurrentViewName("files")
-		assert.MatchSelectedLine(Contains("file"))
+		t.Views().Files().
+			IsFocused().
+			SelectedLine(Contains("file")).
+			PressEnter()
 
-		// not using Confirm() convenience method because I suspect we might change this
-		// keybinding to something more bespoke
-		input.PressKeys(keys.Universal.Confirm)
+		t.Views().MergeConflicts().
+			IsFocused().
+			PressPrimaryAction()
 
-		assert.CurrentViewName("mergeConflicts")
-		input.PrimaryAction()
+		t.Views().Information().Content(Contains("rebasing"))
 
-		assert.MatchViewContent("information", Contains("rebasing"))
-		assert.InConfirm()
-		assert.MatchCurrentViewContent(Contains("all merge conflicts resolved. Continue?"))
-		input.Confirm()
-		assert.MatchViewContent("information", NotContains("rebasing"))
+		t.ExpectPopup().Confirmation().
+			Title(Equals("continue")).
+			Content(Contains("all merge conflicts resolved. Continue?")).
+			Confirm()
 
-		// this proves we actually have integrated the changes from second-change-branch
-		assert.MatchViewContent("commits", Contains("second-change-branch unrelated change"))
+		t.Views().Information().Content(DoesNotContain("rebasing"))
+
+		t.Views().Commits().TopLines(
+			Contains("second-change-branch unrelated change"),
+			Contains("second change"),
+			Contains("original"),
+		)
 	},
 })

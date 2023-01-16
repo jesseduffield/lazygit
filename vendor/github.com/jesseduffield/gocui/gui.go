@@ -5,6 +5,7 @@
 package gocui
 
 import (
+	"context"
 	standardErrors "errors"
 	"log"
 	"runtime"
@@ -255,9 +256,7 @@ func NewGui(mode OutputMode, supportOverlaps bool, playMode PlayMode, headless b
 // Close finalizes the library. It should be called after a successful
 // initialization and when gocui is not needed anymore.
 func (g *Gui) Close() {
-	go func() {
-		g.stop <- struct{}{}
-	}()
+	close(g.stop)
 	Screen.Fini()
 }
 
@@ -1359,7 +1358,7 @@ func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
 	return true, nil
 }
 
-func (g *Gui) StartTicking() {
+func (g *Gui) StartTicking(ctx context.Context) {
 	go func() {
 		g.Mutexes.tickingMutex.Lock()
 		defer g.Mutexes.tickingMutex.Unlock()
@@ -1380,6 +1379,8 @@ func (g *Gui) StartTicking() {
 						continue outer
 					}
 				}
+				return
+			case <-ctx.Done():
 				return
 			case <-g.stop:
 				return

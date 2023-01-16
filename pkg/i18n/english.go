@@ -17,6 +17,8 @@ type TranslationSet struct {
 	BranchesTitle                       string
 	CommitsTitle                        string
 	StashTitle                          string
+	SnakeTitle                          string
+	EasterEgg                           string
 	UnstagedChanges                     string
 	StagedChanges                       string
 	MainTitle                           string
@@ -29,6 +31,7 @@ type TranslationSet struct {
 	CredentialsUsername                 string
 	CredentialsPassword                 string
 	CredentialsPassphrase               string
+	CredentialsPIN                      string
 	PassUnameWrong                      string
 	CommitChanges                       string
 	AmendLastCommit                     string
@@ -212,6 +215,7 @@ type TranslationSet struct {
 	ErrorOccurred                       string
 	NoRoom                              string
 	YouAreHere                          string
+	YouDied                             string
 	LcRewordNotSupported                string
 	LcCherryPickCopy                    string
 	LcCherryPickCopyRange               string
@@ -664,6 +668,8 @@ func EnglishTranslationSet() TranslationSet {
 		BranchesTitle:                       "Branches",
 		CommitsTitle:                        "Commits",
 		StashTitle:                          "Stash",
+		SnakeTitle:                          "Snake",
+		EasterEgg:                           "easter egg",
 		UnstagedChanges:                     `Unstaged Changes`,
 		StagedChanges:                       `Staged Changes`,
 		MainTitle:                           "Main",
@@ -676,6 +682,7 @@ func EnglishTranslationSet() TranslationSet {
 		CredentialsUsername:                 "Username",
 		CredentialsPassword:                 "Password",
 		CredentialsPassphrase:               "Enter passphrase for SSH key",
+		CredentialsPIN:                      "Enter PIN for SSH key",
 		PassUnameWrong:                      "Password, passphrase and/or username wrong",
 		CommitChanges:                       "commit changes",
 		AmendLastCommit:                     "amend last commit",
@@ -851,7 +858,7 @@ func EnglishTranslationSet() TranslationSet {
 		GlobalTitle:                         "Global Keybindings",
 		ConflictsResolved:                   "all merge conflicts resolved. Continue?",
 		RebasingTitle:                       "Rebasing",
-		ConfirmRebase:                       "Are you sure you want to rebase '{{.checkedOutBranch}}' onto '{{.selectedBranch}}'?",
+		ConfirmRebase:                       "Are you sure you want to rebase '{{.checkedOutBranch}}' on top of '{{.selectedBranch}}'?",
 		ConfirmMerge:                        "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                  "Cannot fast-forward a branch whose remote is not registered locally",
@@ -859,6 +866,7 @@ func EnglishTranslationSet() TranslationSet {
 		ErrorOccurred:                       "An error occurred! Please create an issue at",
 		NoRoom:                              "Not enough room",
 		YouAreHere:                          "YOU ARE HERE",
+		YouDied:                             "YOU DIED!",
 		LcRewordNotSupported:                "rewording commits while interactively rebasing is not currently supported",
 		LcCherryPickCopy:                    "copy commit (cherry-pick)",
 		LcCherryPickCopyRange:               "copy commit range (cherry-pick)",

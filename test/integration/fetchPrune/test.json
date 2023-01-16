@@ -1,4 +1,0 @@
-{
-  "description": "fetch from the remote with the 'prune' option set in the git config. Note this has a false positive until we find a way to show ls-remote origin in all tests when creating snapshots.",
-  "speed": 10
-}

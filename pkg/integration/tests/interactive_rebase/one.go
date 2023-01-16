@@ -14,28 +14,58 @@ var One = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.
 			CreateNCommits(5) // these will appears at commit 05, 04, 04, down to 01
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		input.SwitchToCommitsWindow()
-		assert.CurrentViewName("commits")
-
-		input.NavigateToListItemContainingText("commit 02")
-		input.PressKeys(keys.Universal.Edit)
-		assert.MatchSelectedLine(Contains("YOU ARE HERE"))
-
-		input.PreviousItem()
-		input.PressKeys(keys.Commits.MarkCommitAsFixup)
-		assert.MatchSelectedLine(Contains("fixup"))
-
-		input.PreviousItem()
-		input.PressKeys(keys.Universal.Remove)
-		assert.MatchSelectedLine(Contains("drop"))
-
-		input.PreviousItem()
-		input.PressKeys(keys.Commits.SquashDown)
-		assert.MatchSelectedLine(Contains("squash"))
-
-		input.ContinueRebase()
-
-		assert.CommitCount(2)
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Commits().
+			Focus().
+			Lines(
+				Contains("commit 05"),
+				Contains("commit 04"),
+				Contains("commit 03"),
+				Contains("commit 02"),
+				Contains("commit 01"),
+			).
+			NavigateToListItem(Contains("commit 02")).
+			Press(keys.Universal.Edit).
+			Lines(
+				MatchesRegexp("pick.*commit 05"),
+				MatchesRegexp("pick.*commit 04"),
+				MatchesRegexp("pick.*commit 03"),
+				MatchesRegexp("YOU ARE HERE.*commit 02").IsSelected(),
+				Contains("commit 01"),
+			).
+			SelectPreviousItem().
+			Press(keys.Commits.MarkCommitAsFixup).
+			Lines(
+				MatchesRegexp("pick.*commit 05"),
+				MatchesRegexp("pick.*commit 04"),
+				MatchesRegexp("fixup.*commit 03").IsSelected(),
+				MatchesRegexp("YOU ARE HERE.*commit 02"),
+				Contains("commit 01"),
+			).
+			SelectPreviousItem().
+			Press(keys.Universal.Remove).
+			Lines(
+				MatchesRegexp("pick.*commit 05"),
+				MatchesRegexp("drop.*commit 04").IsSelected(),
+				MatchesRegexp("fixup.*commit 03"),
+				MatchesRegexp("YOU ARE HERE.*commit 02"),
+				Contains("commit 01"),
+			).
+			SelectPreviousItem().
+			Press(keys.Commits.SquashDown).
+			Lines(
+				MatchesRegexp("squash.*commit 05").IsSelected(),
+				MatchesRegexp("drop.*commit 04"),
+				MatchesRegexp("fixup.*commit 03"),
+				MatchesRegexp("YOU ARE HERE.*commit 02"),
+				Contains("commit 01"),
+			).
+			Tap(func() {
+				t.Actions().ContinueRebase()
+			}).
+			Lines(
+				Contains("commit 02"),
+				Contains("commit 01"),
+			)
 	},
 })

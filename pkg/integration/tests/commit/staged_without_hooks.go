@@ -15,20 +15,46 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 			CreateFile("myfile", "myfile content\nwith a second line").
 			CreateFile("myfile2", "myfile2 content")
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(0)
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
+		t.Views().Commits().
+			IsEmpty()
 
-		input.PrimaryAction()
-		input.Confirm()
-		input.PrimaryAction()
-		input.PressKeys(keys.Files.CommitChangesWithoutHook)
+		// stage the file
+		t.Views().Files().
+			IsFocused().
+			SelectedLine(Contains("myfile")).
+			PressPrimaryAction().
+			PressEnter()
 
-		commitMessage := "my commit message"
-		input.Type(commitMessage)
-		input.Confirm()
+		// we start with both lines having been staged
+		t.Views().StagingSecondary().Content(
+			Contains("+myfile content").Contains("+with a second line"),
+		)
+		t.Views().Staging().Content(
+			DoesNotContain("+myfile content").DoesNotContain("+with a second line"),
+		)
 
-		assert.CommitCount(1)
-		assert.MatchHeadCommitMessage(Equals("WIP" + commitMessage))
-		assert.CurrentWindowName("stagingSecondary")
+		// unstage the selected line
+		t.Views().StagingSecondary().
+			IsFocused().
+			PressPrimaryAction().
+			Tap(func() {
+				// the line should have been moved to the main view
+				t.Views().Staging().Content(Contains("+myfile content").DoesNotContain("+with a second line"))
+			}).
+			Content(DoesNotContain("+myfile content").Contains("+with a second line")).
+			Press(keys.Files.CommitChangesWithoutHook)
+
+		commitMessage := ": my commit message"
+		t.ExpectPopup().CommitMessagePanel().InitialText(Contains("WIP")).Type(commitMessage).Confirm()
+
+		t.Views().Commits().
+			Lines(
+				Contains("WIP" + commitMessage),
+			)
+
+		t.Views().StagingSecondary().IsFocused()
+
+		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
 	},
 })

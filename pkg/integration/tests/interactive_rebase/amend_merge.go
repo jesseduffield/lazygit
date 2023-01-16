@@ -27,24 +27,36 @@ var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			Merge("feature-branch").
 			CreateFileAndAdd(postMergeFilename, postMergeFileContent)
 	},
-	Run: func(shell *Shell, input *Input, assert *Assert, keys config.KeybindingConfig) {
-		assert.CommitCount(3)
-
-		input.SwitchToCommitsWindow()
-		assert.CurrentViewName("commits")
-
+	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		mergeCommitMessage := "Merge branch 'feature-branch' into development-branch"
-		assert.MatchHeadCommitMessage(Contains(mergeCommitMessage))
 
-		input.PressKeys(keys.Commits.AmendToCommit)
-		input.ProceedWhenAsked(Contains("Are you sure you want to amend this commit with your staged files?"))
+		t.Views().Commits().
+			Lines(
+				Contains(mergeCommitMessage),
+				Contains("new feature commit"),
+				Contains("initial commit"),
+			)
+
+		t.Views().Commits().
+			Focus().
+			Press(keys.Commits.AmendToCommit)
+
+		t.ExpectPopup().Confirmation().
+			Title(Equals("Amend Commit")).
+			Content(Contains("Are you sure you want to amend this commit with your staged files?")).
+			Confirm()
 
 		// assuring we haven't added a brand new commit
-		assert.CommitCount(3)
-		assert.MatchHeadCommitMessage(Contains(mergeCommitMessage))
+		t.Views().Commits().
+			Lines(
+				Contains(mergeCommitMessage),
+				Contains("new feature commit"),
+				Contains("initial commit"),
+			)
 
 		// assuring the post-merge file shows up in the merge commit.
-		assert.MatchMainViewContent(Contains(postMergeFilename))
-		assert.MatchMainViewContent(Contains("++" + postMergeFileContent))
+		t.Views().Main().
+			Content(Contains(postMergeFilename)).
+			Content(Contains("++" + postMergeFileContent))
 	},
 })
