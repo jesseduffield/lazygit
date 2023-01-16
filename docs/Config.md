@@ -189,6 +189,8 @@ keybinding:
     viewResetOptions: 'D'
     fetch: 'f'
     toggleTreeView: '`'
+    openMergeTool: 'M'
+    openStatusFilter: '<c-b>'
   branches:
     createPullRequest: 'o'
     viewPullRequestOptions: 'O'
