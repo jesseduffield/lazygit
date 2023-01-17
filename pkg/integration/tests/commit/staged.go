@@ -53,8 +53,6 @@ var Staged = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(commitMessage),
 			)
 
-		t.Views().StagingSecondary().IsFocused()
-
-		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
+		t.Views().Staging().IsFocused()
 	},
 })
