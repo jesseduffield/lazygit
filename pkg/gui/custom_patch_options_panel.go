@@ -3,6 +3,7 @@ package gui
 import (
 	"fmt"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -27,6 +28,11 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 			Label:   "apply patch in reverse",
 			OnPress: func() error { return gui.handleApplyPatch(true) },
 			Key:     'r',
+		},
+		{
+			Label:   "Copy patch to clipboard",
+			OnPress: func() error { return gui.copyPatchToClipbaord() },
+			Key:     gocui.KeyCtrlO,
 		},
 	}
 
@@ -191,4 +197,17 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 		return gui.c.Error(err)
 	}
 	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+}
+
+func (gui *Gui) copyPatchToClipbaord() error {
+	patch := gui.git.Patch.PatchManager.RenderAggregatedPatchColored(true)
+
+	gui.c.LogAction(gui.c.Tr.Actions.CopyPatchToClipboard)
+	if err := gui.os.CopyToClipboard(patch); err != nil {
+		return gui.c.Error(err)
+	}
+
+	gui.c.Toast((gui.c.Tr.Actions.CopyPatchToClipboard))
+
+	return nil
 }
