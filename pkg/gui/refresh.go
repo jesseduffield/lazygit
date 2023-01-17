@@ -85,7 +85,7 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 				types.REMOTES,
 				types.STATUS,
 				types.BISECT_INFO,
-                types.STAGING,
+				types.STAGING,
 			})
 		} else {
 			scopeSet = set.NewFromSlice(options.Scope)

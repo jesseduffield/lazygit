@@ -330,7 +330,7 @@ func (self *FilesController) press(node *filetree.FileNode) error {
 		return err
 	}
 
-    return self.c.PushContext(self.contexts.Files)
+	return self.c.PushContext(self.contexts.Files)
 }
 
 func (self *FilesController) checkSelectedFileNode(callback func(*filetree.FileNode) error) func() error {
