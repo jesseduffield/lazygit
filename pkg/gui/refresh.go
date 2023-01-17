@@ -73,8 +73,8 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 	f := func() {
 		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
-			// not refreshing staging/patch-building unless explicitly requested because we only need
-			// to refresh those while focused.
+			// not refreshing patch-building unless explicitly requested because we only need
+			// to refresh it while focused.
 			scopeSet = set.NewFromSlice([]types.RefreshableView{
 				types.COMMITS,
 				types.BRANCHES,
@@ -85,6 +85,7 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 				types.REMOTES,
 				types.STATUS,
 				types.BISECT_INFO,
+                types.STAGING,
 			})
 		} else {
 			scopeSet = set.NewFromSlice(options.Scope)
@@ -560,6 +561,11 @@ func (gui *Gui) refreshStatus() {
 }
 
 func (gui *Gui) refreshStagingPanel(focusOpts types.OnFocusOpts) error {
+	file := gui.getSelectedFile()
+	if file == nil || (!file.HasUnstagedChanges && !file.HasStagedChanges) {
+		return nil
+	}
+
 	secondaryFocused := gui.secondaryStagingFocused()
 
 	mainSelectedLineIdx := -1
@@ -574,11 +580,6 @@ func (gui *Gui) refreshStagingPanel(focusOpts types.OnFocusOpts) error {
 
 	mainContext := gui.State.Contexts.Staging
 	secondaryContext := gui.State.Contexts.StagingSecondary
-
-	file := gui.getSelectedFile()
-	if file == nil || (!file.HasUnstagedChanges && !file.HasStagedChanges) {
-		return gui.handleStagingEscape()
-	}
 
 	mainDiff := gui.git.WorkingTree.WorktreeFileDiff(file, true, false, false)
 	secondaryDiff := gui.git.WorkingTree.WorktreeFileDiff(file, true, true, false)
@@ -607,7 +608,7 @@ func (gui *Gui) refreshStagingPanel(focusOpts types.OnFocusOpts) error {
 	secondaryContext.GetMutex().Unlock()
 
 	if mainState == nil && secondaryState == nil {
-		return gui.handleStagingEscape()
+		return nil
 	}
 
 	if mainState == nil && !secondaryFocused {
