@@ -76,7 +76,7 @@ type GitConfig struct {
 	AutoFetch           bool                          `yaml:"autoFetch"`
 	AutoRefresh         bool                          `yaml:"autoRefresh"`
 	BranchLogCmd        string                        `yaml:"branchLogCmd"`
-	AllBranchesLogCmd   string                        `yaml:"allBranchesLogCmd"`
+	AllBranchesLogCmd   AllBranchesLogCmdConfig       `yaml:"allBranchesLogCmd"`
 	OverrideGpg         bool                          `yaml:"overrideGpg"`
 	DisableForcePushing bool                          `yaml:"disableForcePushing"`
 	CommitPrefixes      map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
@@ -100,6 +100,11 @@ type CommitConfig struct {
 type MergingConfig struct {
 	ManualCommit bool   `yaml:"manualCommit"`
 	Args         string `yaml:"args"`
+}
+
+type AllBranchesLogCmdConfig struct {
+	Idx      int      `yaml:"idx"`
+	Commands []string `yaml:"commands"`
 }
 
 type LogConfig struct {
@@ -398,11 +403,17 @@ func GetDefaultConfig() *UserConfig {
 				ShowGraph:      "when-maximised",
 				ShowWholeGraph: false,
 			},
-			SkipHookPrefix:      "WIP",
-			AutoFetch:           true,
-			AutoRefresh:         true,
-			BranchLogCmd:        "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
-			AllBranchesLogCmd:   "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
+			SkipHookPrefix: "WIP",
+			AutoFetch:      true,
+			AutoRefresh:    true,
+			BranchLogCmd:   "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
+			AllBranchesLogCmd: AllBranchesLogCmdConfig{
+				Idx: -1,
+				Commands: []string{
+					"git log --graph --all --color=always --abbrev-commit --decorate --date=relative --pretty=medium",
+					"git log --graph --all --color=always --abbrev-commit --decorate --oneline",
+				},
+			},
 			DisableForcePushing: false,
 			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
 			ParseEmoji:          false,

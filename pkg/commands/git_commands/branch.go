@@ -178,5 +178,9 @@ func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
 }
 
 func (self *BranchCommands) AllBranchesLogCmdObj() oscommands.ICmdObj {
-	return self.cmd.New(self.UserConfig.Git.AllBranchesLogCmd).DontLog()
+	self.UserConfig.Git.AllBranchesLogCmd.Idx++
+	if self.UserConfig.Git.AllBranchesLogCmd.Idx >= len(self.UserConfig.Git.AllBranchesLogCmd.Commands) {
+		self.UserConfig.Git.AllBranchesLogCmd.Idx = 0
+	}
+	return self.cmd.New(self.UserConfig.Git.AllBranchesLogCmd.Commands[self.UserConfig.Git.AllBranchesLogCmd.Idx]).DontLog()
 }
