@@ -29,7 +29,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 			Key:     'r',
 		},
 		{
-			Label:   "Copy patch to clipboard",
+			Label:   "copy patch to clipboard",
 			OnPress: func() error { return gui.copyPatchToClipboard() },
 			Key:     'y',
 		},
