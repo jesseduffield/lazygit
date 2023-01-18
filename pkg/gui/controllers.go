@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/snake"
 )
 
@@ -92,6 +93,9 @@ func (gui *Gui) resetControllers() {
 
 	onCommitSuccess := func() {
 		gui.State.savedCommitMessage = ""
+		_ = gui.c.Refresh(types.RefreshOptions{
+			Scope: []types.RefreshableView{types.STAGING},
+		})
 	}
 
 	commitMessageController := controllers.NewCommitMessageController(
