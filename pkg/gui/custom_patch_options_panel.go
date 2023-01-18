@@ -30,7 +30,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 		},
 		{
 			Label:   "Copy patch to clipboard",
-			OnPress: func() error { return gui.copyPatchToClipbaord() },
+			OnPress: func() error { return gui.copyPatchToClipboard() },
 			Key:     'y',
 		},
 	}
@@ -198,7 +198,7 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (gui *Gui) copyPatchToClipbaord() error {
+func (gui *Gui) copyPatchToClipboard() error {
 	patch := gui.git.Patch.PatchManager.RenderAggregatedPatchColored(true)
 
 	gui.c.LogAction(gui.c.Tr.Actions.CopyPatchToClipboard)
