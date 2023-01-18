@@ -22,9 +22,12 @@ func ResolveTemplate(templateStr string, object interface{}, funcs template.Func
 
 // ResolvePlaceholderString populates a template with values
 func ResolvePlaceholderString(str string, arguments map[string]string) string {
+	oldnews := make([]string, 0, len(arguments)*4)
 	for key, value := range arguments {
-		str = strings.Replace(str, "{{"+key+"}}", value, -1)
-		str = strings.Replace(str, "{{."+key+"}}", value, -1)
+		oldnews = append(oldnews,
+			"{{"+key+"}}", value,
+			"{{."+key+"}}", value,
+		)
 	}
-	return str
+	return strings.NewReplacer(oldnews...).Replace(str)
 }
