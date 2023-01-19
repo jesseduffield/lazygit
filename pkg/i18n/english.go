@@ -815,7 +815,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcMergeIntoCurrentBranch:            `merge into currently checked out branch`,
 		ConfirmQuit:                         `Are you sure you want to quit?`,
 		SwitchRepo:                          `switch to a recent repo`,
-		LcAllBranchesLogGraph:               `show all branch logs`,
+		LcAllBranchesLogGraph:               `show or cycle through all branch logs`,
 		UnsupportedGitService:               `Unsupported git service`,
 		LcCreatePullRequest:                 `create pull request`,
 		LcCopyPullRequestURL:                `copy pull request URL to clipboard`,
