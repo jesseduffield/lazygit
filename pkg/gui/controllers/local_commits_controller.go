@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -19,7 +20,6 @@ type (
 type LocalCommitsController struct {
 	baseController
 	*controllerCommon
-
 	pullFiles PullFilesFn
 }
 
@@ -209,24 +209,30 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 		return nil
 	}
 
-	message, err := self.git.Commit.GetCommitMessage(commit.Sha)
+	commitMessage, err := self.git.Commit.GetCommitMessage(commit.Sha)
 	if err != nil {
 		return self.c.Error(err)
 	}
 
-	// TODO: use the commit message panel here
-	return self.c.Prompt(types.PromptOpts{
-		Title:          self.c.Tr.LcRewordCommit,
-		InitialContent: message,
-		HandleConfirm: func(response string) error {
-			self.c.LogAction(self.c.Tr.Actions.RewordCommit)
-			if err := self.git.Rebase.RewordCommit(self.model.Commits, self.context().GetSelectedLineIdx(), response); err != nil {
-				return self.c.Error(err)
-			}
-
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	return self.helpers.Commits.OpenCommitMessagePanel(
+		&helpers.OpenCommitMessagePanelOpts{
+			CommitIndex:     self.context().GetSelectedLineIdx(),
+			InitialMessage:  commitMessage,
+			Title:           self.c.Tr.Actions.RewordCommit,
+			PreserveMessage: false,
+			OnConfirm:       self.handleReword,
 		},
-	})
+	)
+}
+
+func (self *LocalCommitsController) handleReword(message string) error {
+	err := self.git.Rebase.RewordCommit(self.model.Commits, self.contexts.LocalCommits.GetSelectedLineIdx(), message)
+	if err != nil {
+		return self.c.Error(err)
+	}
+	self.helpers.Commits.OnCommitSuccess()
+	_ = self.helpers.Commits.EscapeCommitsPanel()
+	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (self *LocalCommitsController) doRewordEditor() error {

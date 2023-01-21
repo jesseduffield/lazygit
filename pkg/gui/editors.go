@@ -4,15 +4,9 @@ import (
 	"unicode"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 )
 
 func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch rune, mod gocui.Modifier, allowMultiline bool) bool {
-	newlineKey, ok := keybindings.GetKey(gui.c.UserConfig.Keybinding.Universal.AppendNewline).(gocui.Key)
-	if !ok {
-		newlineKey = gocui.KeyAltEnter
-	}
-
 	switch {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		textArea.BackSpaceChar()
@@ -30,7 +24,7 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 		textArea.MoveRightWord()
 	case key == gocui.KeyArrowRight || key == gocui.KeyCtrlF:
 		textArea.MoveCursorRight()
-	case key == newlineKey:
+	case key == gocui.KeyEnter:
 		if allowMultiline {
 			textArea.TypeRune('\n')
 		} else {
@@ -66,22 +60,20 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 // we've just copy+pasted the editor from gocui to here so that we can also re-
 // render the commit message length on each keypress
 func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
-	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, true)
-
-	// This function is called again on refresh as part of the general resize popup call,
-	// but we need to call it here so that when we go to render the text area it's not
-	// considered out of bounds to add a newline, meaning we can avoid unnecessary scrolling.
-	err := gui.resizePopupPanel(v, v.TextArea.GetContent())
-	if err != nil {
-		gui.c.Log.Error(err)
-	}
+	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
 	v.RenderTextArea()
 	gui.RenderCommitLength()
-
 	return matched
 }
 
-func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
+func (gui *Gui) commitDescriptionEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
+	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, true)
+	v.RenderTextArea()
+	gui.RenderCommitLength()
+	return matched
+}
+
+func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
 
 	v.RenderTextArea()

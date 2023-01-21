@@ -165,6 +165,7 @@ type KeybindingUniversalConfig struct {
 	Select                       string   `yaml:"select"`
 	GoInto                       string   `yaml:"goInto"`
 	Confirm                      string   `yaml:"confirm"`
+	ConfirmInEditor              string   `yaml:"confirmInEditor"`
 	Remove                       string   `yaml:"remove"`
 	New                          string   `yaml:"new"`
 	Edit                         string   `yaml:"edit"`
@@ -193,7 +194,6 @@ type KeybindingUniversalConfig struct {
 	CopyToClipboard              string   `yaml:"copyToClipboard"`
 	OpenRecentRepos              string   `yaml:"openRecentRepos"`
 	SubmitEditorText             string   `yaml:"submitEditorText"`
-	AppendNewline                string   `yaml:"appendNewline"`
 	ExtrasMenu                   string   `yaml:"extrasMenu"`
 	ToggleWhitespaceInDiffView   string   `yaml:"toggleWhitespaceInDiffView"`
 	IncreaseContextInDiffView    string   `yaml:"increaseContextInDiffView"`
@@ -492,6 +492,7 @@ func GetDefaultConfig() *UserConfig {
 				Select:                       "<space>",
 				GoInto:                       "<enter>",
 				Confirm:                      "<enter>",
+				ConfirmInEditor:              "<a-enter>",
 				Remove:                       "d",
 				New:                          "n",
 				Edit:                         "e",
@@ -520,7 +521,6 @@ func GetDefaultConfig() *UserConfig {
 				DiffingMenuAlt:               "<c-e>",
 				CopyToClipboard:              "<c-o>",
 				SubmitEditorText:             "<enter>",
-				AppendNewline:                "<a-enter>",
 				ExtrasMenu:                   "@",
 				ToggleWhitespaceInDiffView:   "<c-w>",
 				IncreaseContextInDiffView:    "}",

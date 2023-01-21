@@ -217,17 +217,29 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				},
 			},
 		),
-		CommitMessage: context.NewSimpleContext(
+		CommitMessage: context.NewCommitMessageContext(
+			gui.Views.CommitMessage,
+			context.ContextCallbackOpts{
+				OnFocus: OnFocusWrapper(gui.handleCommitMessageFocused),
+			},
+		),
+		CommitDescription: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:                  types.PERSISTENT_POPUP,
-				View:                  gui.Views.CommitMessage,
-				WindowName:            "commitMessage",
-				Key:                   context.COMMIT_MESSAGE_CONTEXT_KEY,
+				View:                  gui.Views.CommitDescription,
+				WindowName:            "commitDescription",
+				Key:                   context.COMMIT_DESCRIPTION_CONTEXT_KEY,
 				Focusable:             true,
 				HasUncontrolledBounds: true,
 			}),
 			context.ContextCallbackOpts{
-				OnFocus: OnFocusWrapper(gui.handleCommitMessageFocused),
+				OnFocus: func(opts types.OnFocusOpts) error {
+					_, err := gui.g.SetViewBeneath("commitDescription", "commitMessage", 10)
+					if err != nil {
+						return err
+					}
+					return nil
+				},
 			},
 		),
 		Search: context.NewSimpleContext(

@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 // This file is for the management of contexts. There is a context stack such that
@@ -144,6 +145,36 @@ func (gui *Gui) popContext() error {
 	}
 
 	return gui.activateContext(newContext, types.OnFocusOpts{})
+}
+
+func (gui *Gui) removeContexts(contextsToRemove []types.Context) error {
+	gui.State.ContextManager.Lock()
+
+	if len(gui.State.ContextManager.ContextStack) == 1 {
+		gui.State.ContextManager.Unlock()
+		return nil
+	}
+
+	rest := lo.Filter(gui.State.ContextManager.ContextStack, func(context types.Context, _ int) bool {
+		for _, contextToRemove := range contextsToRemove {
+			if context.GetKey() == contextToRemove.GetKey() {
+				return false
+			}
+		}
+		return true
+	})
+	gui.State.ContextManager.ContextStack = rest
+	contextToActivate := rest[len(rest)-1]
+	gui.State.ContextManager.Unlock()
+
+	for _, context := range contextsToRemove {
+		if err := gui.deactivateContext(context, types.OnFocusLostOpts{NewContextKey: contextToActivate.GetKey()}); err != nil {
+			return err
+		}
+	}
+
+	// activate the item at the top of the stack
+	return gui.activateContext(contextToActivate, types.OnFocusOpts{})
 }
 
 func (gui *Gui) deactivateContext(c types.Context, opts types.OnFocusLostOpts) error {

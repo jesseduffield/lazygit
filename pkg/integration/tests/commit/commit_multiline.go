@@ -22,14 +22,20 @@ var CommitMultiline = NewIntegrationTest(NewIntegrationTestArgs{
 			PressPrimaryAction().
 			Press(keys.Files.CommitChanges)
 
-		t.ExpectPopup().CommitMessagePanel().Type("first line").AddNewline().AddNewline().Type("third line").Confirm()
-
+		t.ExpectPopup().CommitMessagePanel().
+			Type("first line").
+			SwitchToDescription().
+			AddNewline().
+			AddNewline().
+			Type("fourth line").
+			SwitchToSummary().
+			Confirm()
 		t.Views().Commits().
 			Lines(
 				Contains("first line"),
 			)
 
 		t.Views().Commits().Focus()
-		t.Views().Main().Content(MatchesRegexp("first line\n\\s*\n\\s*third line"))
+		t.Views().Main().Content(MatchesRegexp("first line\n\\s*\n\\s*fourth line"))
 	},
 })
