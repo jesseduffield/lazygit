@@ -52,6 +52,10 @@ func (self *guiCommon) ReplaceContext(context types.Context) error {
 	return self.gui.State.ContextMgr.Replace(context)
 }
 
+func (self *guiCommon) RemoveContexts(contexts []types.Context) error {
+	return self.gui.State.ContextMgr.RemoveContexts(contexts)
+}
+
 func (self *guiCommon) CurrentContext() types.Context {
 	return self.gui.State.ContextMgr.Current()
 }

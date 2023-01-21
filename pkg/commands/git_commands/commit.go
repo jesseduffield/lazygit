@@ -8,6 +8,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
+var ErrInvalidCommitIndex = errors.New("invalid commit index")
+
 type CommitCommands struct {
 	*GitCommon
 }
@@ -16,11 +18,6 @@ func NewCommitCommands(gitCommon *GitCommon) *CommitCommands {
 	return &CommitCommands{
 		GitCommon: gitCommon,
 	}
-}
-
-// RewordLastCommit rewords the topmost commit with the given message
-func (self *CommitCommands) RewordLastCommit(message string) error {
-	return self.cmd.New("git commit --allow-empty --amend --only -m " + self.cmd.Quote(message)).Run()
 }
 
 // ResetAuthor resets the author of the topmost commit
@@ -45,11 +42,7 @@ func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars [
 }
 
 func (self *CommitCommands) CommitCmdObj(message string) oscommands.ICmdObj {
-	splitMessage := strings.Split(message, "\n")
-	lineArgs := ""
-	for _, line := range splitMessage {
-		lineArgs += fmt.Sprintf(" -m %s", self.cmd.Quote(line))
-	}
+	messageArgs := self.commitMessageArgs(message)
 
 	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
 	noVerifyFlag := ""
@@ -57,7 +50,23 @@ func (self *CommitCommands) CommitCmdObj(message string) oscommands.ICmdObj {
 		noVerifyFlag = " --no-verify"
 	}
 
-	return self.cmd.New(fmt.Sprintf("git commit%s%s%s", noVerifyFlag, self.signoffFlag(), lineArgs))
+	return self.cmd.New(fmt.Sprintf("git commit%s%s%s", noVerifyFlag, self.signoffFlag(), messageArgs))
+}
+
+// RewordLastCommit rewords the topmost commit with the given message
+func (self *CommitCommands) RewordLastCommit(message string) error {
+	messageArgs := self.commitMessageArgs(message)
+	return self.cmd.New(fmt.Sprintf("git commit --allow-empty --amend --only%s", messageArgs)).Run()
+}
+
+func (self *CommitCommands) commitMessageArgs(message string) string {
+	msg, description, _ := strings.Cut(message, "\n")
+	descriptionArgs := ""
+	if description != "" {
+		descriptionArgs = fmt.Sprintf(" -m %s", self.cmd.Quote(description))
+	}
+
+	return fmt.Sprintf(" -m %s%s", self.cmd.Quote(msg), descriptionArgs)
 }
 
 // runs git commit without the -m argument meaning it will invoke the user's editor
@@ -177,4 +186,14 @@ func (self *CommitCommands) RevertMerge(sha string, parentNumber int) error {
 // CreateFixupCommit creates a commit that fixes up a previous commit
 func (self *CommitCommands) CreateFixupCommit(sha string) error {
 	return self.cmd.New(fmt.Sprintf("git commit --fixup=%s", sha)).Run()
+}
+
+// a value of 0 means the head commit, 1 is the parent commit, etc
+func (self *CommitCommands) GetCommitMessageFromHistory(value int) (string, error) {
+	hash, _ := self.cmd.New(fmt.Sprintf("git log -1 --skip=%d --pretty=%%H", value)).DontLog().RunWithOutput()
+	formattedHash := strings.TrimSpace(hash)
+	if len(formattedHash) == 0 {
+		return "", ErrInvalidCommitIndex
+	}
+	return self.GetCommitMessage(formattedHash)
 }

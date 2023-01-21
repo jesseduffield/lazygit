@@ -23,8 +23,8 @@ var RewordLastCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.RenameCommit).
 			Tap(func() {
-				t.ExpectPopup().Prompt().
-					Title(Equals("reword commit")).
+				t.ExpectPopup().CommitMessagePanel().
+					Title(Equals("Reword commit")).
 					InitialText(Equals("commit 02")).
 					Clear().
 					Type("renamed 02").

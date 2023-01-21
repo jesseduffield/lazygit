@@ -207,6 +207,10 @@ func (self *Views) CommitMessage() *ViewDriver {
 	return self.regularView("commitMessage")
 }
 
+func (self *Views) CommitDescription() *ViewDriver {
+	return self.regularView("commitDescription")
+}
+
 func (self *Views) Suggestions() *ViewDriver {
 	return self.regularView("suggestions")
 }

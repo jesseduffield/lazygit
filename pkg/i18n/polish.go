@@ -10,7 +10,7 @@ func polishTranslationSet() TranslationSet {
 		StashTitle:                          "Schowek",
 		UnstagedChanges:                     "Zmiany poza poczekalnią",
 		StagedChanges:                       "Zmiany w poczekalni",
-		CommitMessage:                       "Komunikat commita",
+		CommitSummary:                       "Komunikat commita",
 		CredentialsUsername:                 "Użytkownik",
 		CredentialsPassword:                 "Hasło",
 		CredentialsPassphrase:               "Fraza",

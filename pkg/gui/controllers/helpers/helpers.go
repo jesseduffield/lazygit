@@ -32,6 +32,7 @@ type Helpers struct {
 	GPG            *GpgHelper
 	Upstream       *UpstreamHelper
 	AmendHelper    *AmendHelper
+	Commits        *CommitsHelper
 	Snake          *SnakeHelper
 	// lives in context package because our contexts need it to render to main
 	Diff              *DiffHelper
@@ -64,6 +65,7 @@ func NewStubHelpers() *Helpers {
 		GPG:               &GpgHelper{},
 		Upstream:          &UpstreamHelper{},
 		AmendHelper:       &AmendHelper{},
+		Commits:           &CommitsHelper{},
 		Snake:             &SnakeHelper{},
 		Diff:              &DiffHelper{},
 		Repos:             &ReposHelper{},

@@ -47,7 +47,7 @@ func chineseTranslationSet() TranslationSet {
 		StagingTitle:                        "正在暂存",
 		MergingTitle:                        "正在合并",
 		NormalTitle:                         "正常",
-		CommitMessage:                       "提交信息",
+		CommitSummary:                       "提交信息",
 		CredentialsUsername:                 "用户名",
 		CredentialsPassword:                 "密码",
 		CredentialsPassphrase:               "输入 SSH 密钥的密码",

@@ -34,7 +34,7 @@ func japaneseTranslationSet() TranslationSet {
 		MergingTitle:            "メインパネル (Merging)",
 		NormalTitle:             "メインパネル (Normal)",
 		LogTitle:                "ログ",
-		CommitMessage:           "コミットメッセージ",
+		CommitSummary:           "コミットメッセージ",
 		CredentialsUsername:     "ユーザ名",
 		CredentialsPassword:     "パスワード",
 		CredentialsPassphrase:   "SSH鍵のパスフレーズを入力",

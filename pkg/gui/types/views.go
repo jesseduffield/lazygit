@@ -22,20 +22,21 @@ type Views struct {
 	PatchBuildingSecondary *gocui.View
 	MergeConflicts         *gocui.View
 
-	Options       *gocui.View
-	Confirmation  *gocui.View
-	Menu          *gocui.View
-	CommitMessage *gocui.View
-	CommitFiles   *gocui.View
-	SubCommits    *gocui.View
-	Information   *gocui.View
-	AppStatus     *gocui.View
-	Search        *gocui.View
-	SearchPrefix  *gocui.View
-	Limit         *gocui.View
-	Suggestions   *gocui.View
-	Tooltip       *gocui.View
-	Extras        *gocui.View
+	Options           *gocui.View
+	Confirmation      *gocui.View
+	Menu              *gocui.View
+	CommitMessage     *gocui.View
+	CommitDescription *gocui.View
+	CommitFiles       *gocui.View
+	SubCommits        *gocui.View
+	Information       *gocui.View
+	AppStatus         *gocui.View
+	Search            *gocui.View
+	SearchPrefix      *gocui.View
+	Limit             *gocui.View
+	Suggestions       *gocui.View
+	Tooltip           *gocui.View
+	Extras            *gocui.View
 
 	// for playing the easter egg snake game
 	Snake *gocui.View

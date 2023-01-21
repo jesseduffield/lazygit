@@ -100,6 +100,16 @@ func NewContextTree(c *ContextCommon) *ContextTree {
 		),
 		Confirmation:  NewConfirmationContext(c),
 		CommitMessage: NewCommitMessageContext(c),
+		CommitDescription: NewSimpleContext(
+			NewBaseContext(NewBaseContextOpts{
+				Kind:                  types.PERSISTENT_POPUP,
+				View:                  c.Views().CommitDescription,
+				WindowName:            "commitDescription",
+				Key:                   COMMIT_DESCRIPTION_CONTEXT_KEY,
+				Focusable:             true,
+				HasUncontrolledBounds: true,
+			}),
+		),
 		Search: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{
 				Kind:       types.PERSISTENT_POPUP,

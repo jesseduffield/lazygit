@@ -14,22 +14,15 @@ import (
 type FilesController struct {
 	baseController // nolint: unused
 	c              *ControllerCommon
-
-	setCommitMessage      func(message string)
-	getSavedCommitMessage func() string
 }
 
 var _ types.IController = &FilesController{}
 
 func NewFilesController(
 	common *ControllerCommon,
-	setCommitMessage func(message string),
-	getSavedCommitMessage func() string,
 ) *FilesController {
 	return &FilesController{
-		c:                     common,
-		setCommitMessage:      setCommitMessage,
-		getSavedCommitMessage: getSavedCommitMessage,
+		c: common,
 	}
 }
 

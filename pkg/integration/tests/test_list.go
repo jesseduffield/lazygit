@@ -53,6 +53,7 @@ var tests = []*components.IntegrationTest{
 	commit.ResetAuthor,
 	commit.Revert,
 	commit.RevertMerge,
+	commit.Reword,
 	commit.Search,
 	commit.SetAuthor,
 	commit.StageRangeOfLines,

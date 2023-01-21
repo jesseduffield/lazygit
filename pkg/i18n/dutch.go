@@ -13,7 +13,7 @@ func dutchTranslationSet() TranslationSet {
 		MainTitle:                           "Hoofd",
 		StagingTitle:                        "Staging",
 		NormalTitle:                         "Normaal",
-		CommitMessage:                       "Commitbericht",
+		CommitSummary:                       "Commitbericht",
 		CredentialsUsername:                 "Gebruikersnaam",
 		CredentialsPassword:                 "Wachtwoord",
 		CredentialsPassphrase:               "Voer een wachtwoordzin in voor de SSH-sleutel",

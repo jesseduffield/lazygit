@@ -33,7 +33,7 @@ func koreanTranslationSet() TranslationSet {
 		MergingTitle:                        "메인 패널 (Merging)",
 		NormalTitle:                         "메인 패널 (Normal)",
 		LogTitle:                            "로그",
-		CommitMessage:                       "커밋 메시지",
+		CommitSummary:                       "커밋 메시지",
 		CredentialsUsername:                 "사용자 이름",
 		CredentialsPassword:                 "패스워드",
 		CredentialsPassphrase:               "SSH키의 passphrase 입력",

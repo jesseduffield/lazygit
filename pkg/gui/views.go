@@ -56,6 +56,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 
 		// popups.
 		{viewPtr: &gui.Views.CommitMessage, name: "commitMessage"},
+		{viewPtr: &gui.Views.CommitDescription, name: "commitDescription"},
 		{viewPtr: &gui.Views.Menu, name: "menu"},
 		{viewPtr: &gui.Views.Suggestions, name: "suggestions"},
 		{viewPtr: &gui.Views.Confirmation, name: "confirmation"},
@@ -152,12 +153,19 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.AppStatus.Frame = false
 
 	gui.Views.CommitMessage.Visible = false
-	gui.Views.CommitMessage.Title = gui.c.Tr.CommitMessage
+	gui.Views.CommitMessage.Title = gui.c.Tr.CommitSummary
 	gui.Views.CommitMessage.Editable = true
 	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
 
+	gui.Views.CommitDescription.Visible = false
+	gui.Views.CommitDescription.Title = gui.c.Tr.CommitDescriptionTitle
+	gui.Views.CommitDescription.Subtitle = gui.Tr.CommitDescriptionSubTitle
+	gui.Views.CommitDescription.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.CommitDescription.Editable = true
+	gui.Views.CommitDescription.Editor = gocui.EditorFunc(gui.commitDescriptionEditor)
+
 	gui.Views.Confirmation.Visible = false
-	gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.defaultEditor)
+	gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.promptEditor)
 
 	gui.Views.Suggestions.Visible = false
 

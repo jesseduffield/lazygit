@@ -22,10 +22,23 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, refsHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon)
-	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
-	getSavedCommitMessage := func() string {
-		return gui.State.savedCommitMessage
+
+	setCommitSummary := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
+	setCommitDescription := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitDescription })
+	getCommitSummary := func() string {
+		return strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
 	}
+
+	getCommitDescription := func() string {
+		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetContent())
+	}
+	commitsHelper := helpers.NewCommitsHelper(helperCommon,
+		getCommitSummary,
+		setCommitSummary,
+		getCommitDescription,
+		setCommitDescription,
+	)
+
 	gpgHelper := helpers.NewGpgHelper(helperCommon)
 	viewHelper := helpers.NewViewHelper(helperCommon, gui.State.Contexts)
 	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
@@ -60,7 +73,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Bisect:          bisectHelper,
 		Suggestions:     suggestionsHelper,
 		Files:           helpers.NewFilesHelper(helperCommon),
-		WorkingTree:     helpers.NewWorkingTreeHelper(helperCommon, refsHelper, setCommitMessage, getSavedCommitMessage),
+		WorkingTree:     helpers.NewWorkingTreeHelper(helperCommon, refsHelper, commitsHelper, gpgHelper),
 		Tags:            helpers.NewTagsHelper(helperCommon),
 		GPG:             helpers.NewGpgHelper(helperCommon),
 		MergeAndRebase:  rebaseHelper,
@@ -68,6 +81,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		CherryPick:      cherryPickHelper,
 		Upstream:        helpers.NewUpstreamHelper(helperCommon, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
 		AmendHelper:     helpers.NewAmendHelper(helperCommon, gpgHelper),
+		Commits:         commitsHelper,
 		Snake:           helpers.NewSnakeHelper(helperCommon),
 		Diff:            diffHelper,
 		Repos:           helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo),
@@ -102,27 +116,12 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	bisectController := controllers.NewBisectController(common)
 
-	getCommitMessage := func() string {
-		return strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
-	}
-
-	onCommitAttempt := func(message string) {
-		gui.State.savedCommitMessage = message
-		gui.Views.CommitMessage.ClearTextArea()
-	}
-
-	onCommitSuccess := func() {
-		gui.State.savedCommitMessage = ""
-		_ = gui.c.Refresh(types.RefreshOptions{
-			Scope: []types.RefreshableView{types.STAGING},
-		})
-	}
-
 	commitMessageController := controllers.NewCommitMessageController(
 		common,
-		getCommitMessage,
-		onCommitAttempt,
-		onCommitSuccess,
+	)
+
+	commitDescriptionController := controllers.NewCommitDescriptionController(
+		common,
 	)
 
 	remoteBranchesController := controllers.NewRemoteBranchesController(common)
@@ -132,8 +131,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 	tagsController := controllers.NewTagsController(common)
 	filesController := controllers.NewFilesController(
 		common,
-		setCommitMessage,
-		getSavedCommitMessage,
 	)
 	mergeConflictsController := controllers.NewMergeConflictsController(common)
 	remotesController := controllers.NewRemotesController(
@@ -302,6 +299,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 		commitMessageController,
 	)
 
+	controllers.AttachControllers(gui.State.Contexts.CommitDescription,
+		commitDescriptionController,
+	)
+
 	controllers.AttachControllers(gui.State.Contexts.RemoteBranches,
 		remoteBranchesController,
 	)
@@ -341,13 +342,13 @@ func (gui *Gui) resetHelpersAndControllers() {
 	}
 }
 
-func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
+func (gui *Gui) getCommitMessageSetTextareaTextFn(getView func() *gocui.View) func(string) {
 	return func(text string) {
 		// using a getView function so that we don't need to worry about when the view is created
 		view := getView()
 		view.ClearTextArea()
 		view.TextArea.TypeString(text)
-		_ = gui.helpers.Confirmation.ResizePopupPanel(view, view.TextArea.GetContent())
+		gui.helpers.Confirmation.ResizeCommitMessagePanels()
 		view.RenderTextArea()
 	}
 }
