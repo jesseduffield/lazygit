@@ -1,11 +1,16 @@
 package components
 
 type CommitMessagePanelDriver struct {
-	t *TestDriver
+	t      *TestDriver
+	reword bool
 }
 
 func (self *CommitMessagePanelDriver) getViewDriver() *ViewDriver {
-	return self.t.Views().CommitMessage()
+	if self.reword {
+		return self.t.Views().RewordCommitMessage()
+	} else {
+		return self.t.Views().CommitMessage()
+	}
 }
 
 // asserts on the text initially present in the prompt

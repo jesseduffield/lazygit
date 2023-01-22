@@ -1,5 +1,7 @@
 package components
 
+import "fmt"
+
 type Popup struct {
 	t *TestDriver
 }
@@ -57,14 +59,20 @@ func (self *Popup) inMenu() {
 }
 
 func (self *Popup) CommitMessagePanel() *CommitMessagePanelDriver {
-	self.inCommitMessagePanel()
+	self.assertCurrentView("commitMessage")
 
 	return &CommitMessagePanelDriver{t: self.t}
 }
 
-func (self *Popup) inCommitMessagePanel() {
+func (self *Popup) RewordCommitPanel() *CommitMessagePanelDriver {
+	self.assertCurrentView("rewordCommitMessage")
+
+	return &CommitMessagePanelDriver{t: self.t, reword: true}
+}
+
+func (self *Popup) assertCurrentView(expectedView string) {
 	self.t.assertWithRetries(func() (bool, string) {
 		currentView := self.t.gui.CurrentContext().GetView()
-		return currentView.Name() == "commitMessage", "Expected commit message panel to be focused"
+		return currentView.Name() == expectedView, fmt.Sprintf("Expected %s panel to be focused", expectedView)
 	})
 }
