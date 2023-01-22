@@ -230,6 +230,19 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				OnFocus: OnFocusWrapper(gui.handleCommitMessageFocused),
 			},
 		),
+		RewordCommitMessage: context.NewSimpleContext(
+			context.NewBaseContext(context.NewBaseContextOpts{
+				Kind:                  types.PERSISTENT_POPUP,
+				View:                  gui.Views.RewordCommitMessage,
+				WindowName:            "rewordCommitMessage",
+				Key:                   context.REWORD_COMMIT_CONTEXT_KEY,
+				Focusable:             true,
+				HasUncontrolledBounds: true,
+			}),
+			context.ContextCallbackOpts{
+				OnFocus: OnFocusWrapper(gui.handleCommitMessageFocused),
+			},
+		),
 		Search: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.PERSISTENT_POPUP,

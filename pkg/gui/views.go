@@ -26,20 +26,21 @@ type Views struct {
 	PatchBuildingSecondary *gocui.View
 	MergeConflicts         *gocui.View
 
-	Options       *gocui.View
-	Confirmation  *gocui.View
-	Menu          *gocui.View
-	CommitMessage *gocui.View
-	CommitFiles   *gocui.View
-	SubCommits    *gocui.View
-	Information   *gocui.View
-	AppStatus     *gocui.View
-	Search        *gocui.View
-	SearchPrefix  *gocui.View
-	Limit         *gocui.View
-	Suggestions   *gocui.View
-	Tooltip       *gocui.View
-	Extras        *gocui.View
+	Options             *gocui.View
+	Confirmation        *gocui.View
+	Menu                *gocui.View
+	CommitMessage       *gocui.View
+	RewordCommitMessage *gocui.View
+	CommitFiles         *gocui.View
+	SubCommits          *gocui.View
+	Information         *gocui.View
+	AppStatus           *gocui.View
+	Search              *gocui.View
+	SearchPrefix        *gocui.View
+	Limit               *gocui.View
+	Suggestions         *gocui.View
+	Tooltip             *gocui.View
+	Extras              *gocui.View
 
 	// for playing the easter egg snake game
 	Snake *gocui.View
@@ -94,6 +95,7 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 
 		// popups.
 		{viewPtr: &gui.Views.CommitMessage, name: "commitMessage"},
+		{viewPtr: &gui.Views.RewordCommitMessage, name: "rewordCommitMessage"},
 		{viewPtr: &gui.Views.Menu, name: "menu"},
 		{viewPtr: &gui.Views.Suggestions, name: "suggestions"},
 		{viewPtr: &gui.Views.Confirmation, name: "confirmation"},
@@ -204,6 +206,12 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.CommitMessage.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.CommitMessage.Editable = true
 	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
+
+	gui.Views.RewordCommitMessage.Visible = false
+	gui.Views.RewordCommitMessage.Title = gui.c.Tr.CommitMessage
+	gui.Views.RewordCommitMessage.FgColor = theme.GocuiDefaultTextColor
+	gui.Views.RewordCommitMessage.Editable = true
+	gui.Views.RewordCommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
 
 	gui.Views.Confirmation.Visible = false
 

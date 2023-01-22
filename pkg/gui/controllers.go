@@ -26,6 +26,7 @@ func (gui *Gui) resetControllers() {
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
 	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
+	setRewordCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.RewordCommitMessage })
 	getSavedCommitMessage := func() string {
 		return gui.State.savedCommitMessage
 	}
@@ -104,7 +105,8 @@ func (gui *Gui) resetControllers() {
 	remoteBranchesController := controllers.NewRemoteBranchesController(common)
 
 	menuController := controllers.NewMenuController(common)
-	localCommitsController := controllers.NewLocalCommitsController(common, syncController.HandlePull)
+	localCommitsController := controllers.NewLocalCommitsController(common, syncController.HandlePull, setRewordCommitMessage)
+	rewordCommitsController := controllers.NewRewordCommitController(common)
 	tagsController := controllers.NewTagsController(common)
 	filesController := controllers.NewFilesController(
 		common,
@@ -237,6 +239,10 @@ func (gui *Gui) resetControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.CommitMessage,
 		commitMessageController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.RewordCommitMessage,
+		rewordCommitsController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.RemoteBranches,

@@ -17,7 +17,8 @@ type LocalCommitsController struct {
 	baseController
 	*controllerCommon
 
-	pullFiles PullFilesFn
+	pullFiles              PullFilesFn
+	setRewordCommitMessage func(message string)
 }
 
 var _ types.IController = &LocalCommitsController{}
@@ -25,11 +26,13 @@ var _ types.IController = &LocalCommitsController{}
 func NewLocalCommitsController(
 	common *controllerCommon,
 	pullFiles PullFilesFn,
+	setRewordCommitMessage func(message string),
 ) *LocalCommitsController {
 	return &LocalCommitsController{
-		baseController:   baseController{},
-		controllerCommon: common,
-		pullFiles:        pullFiles,
+		baseController:         baseController{},
+		controllerCommon:       common,
+		pullFiles:              pullFiles,
+		setRewordCommitMessage: setRewordCommitMessage,
 	}
 }
 
@@ -211,19 +214,8 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 		return self.c.Error(err)
 	}
 
-	// TODO: use the commit message panel here
-	return self.c.Prompt(types.PromptOpts{
-		Title:          self.c.Tr.LcRewordCommit,
-		InitialContent: message,
-		HandleConfirm: func(response string) error {
-			self.c.LogAction(self.c.Tr.Actions.RewordCommit)
-			if err := self.git.Rebase.RewordCommit(self.model.Commits, self.context().GetSelectedLineIdx(), response); err != nil {
-				return self.c.Error(err)
-			}
-
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-		},
-	})
+	self.setRewordCommitMessage(message)
+	return self.c.PushContext(self.contexts.RewordCommitMessage)
 }
 
 func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
