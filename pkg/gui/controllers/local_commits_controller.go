@@ -255,11 +255,15 @@ func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
 		return nil
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:         self.c.Tr.RewordInEditorTitle,
-		Prompt:        self.c.Tr.RewordInEditorPrompt,
-		HandleConfirm: self.doRewordEditor,
-	})
+	if self.c.UserConfig.Gui.SkipRewordInEditorWarning {
+		return self.doRewordEditor()
+	} else {
+		return self.c.Confirm(types.ConfirmOpts{
+			Title:         self.c.Tr.RewordInEditorTitle,
+			Prompt:        self.c.Tr.RewordInEditorPrompt,
+			HandleConfirm: self.doRewordEditor,
+		})
+	}
 }
 
 func (self *LocalCommitsController) drop(commit *models.Commit) error {
