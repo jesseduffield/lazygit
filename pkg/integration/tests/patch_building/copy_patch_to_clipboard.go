@@ -49,7 +49,7 @@ var BuildPatchAndCopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 		if err != nil {
 			t.Fail(err.Error())
 		}
-		if !strings.HasPrefix(text, "diff") {
+		if !strings.HasPrefix(text, "diff --git a/file1 b/file1") {
 			t.Fail("Text from clipboard did not match with git diff")
 		}
 	},
