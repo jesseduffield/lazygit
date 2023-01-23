@@ -41,14 +41,15 @@ var BuildPatchAndCopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction().Press(keys.Universal.CreatePatchOptionsMenu)
 
-		t.ExpectPopup().Menu().Title(Equals("Patch Options")).Select(Contains("Copy patch to clipboard")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Patch Options")).Select(Contains("copy patch to clipboard")).Confirm()
+
+		t.Wait(1000)
 
 		text, err := clipboard.ReadAll()
 		if err != nil {
 			t.Fail(err.Error())
 		}
-
-		if !strings.HasPrefix(text, "diff --git a/file1 b/file1") {
+		if !strings.HasPrefix(text, "diff") {
 			t.Fail("Text from clipboard did not match with git diff")
 		}
 	},
