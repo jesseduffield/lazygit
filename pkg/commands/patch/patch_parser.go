@@ -210,10 +210,10 @@ func (p *PatchParser) RenderLinesPlain(firstLineIndex, lastLineIndex int) string
 
 func renderLinesPlain(lines []*PatchLine) string {
 	renderedLines := slices.Map(lines, func(line *PatchLine) string {
-		return line.Content
+		return line.Content + "\n"
 	})
 
-	return strings.Join(renderedLines, "\n")
+	return strings.Join(renderedLines, "")
 }
 
 // GetNextStageableLineIndex takes a line index and returns the line index of the next stageable line
