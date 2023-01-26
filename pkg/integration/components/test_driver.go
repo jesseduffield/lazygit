@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
@@ -141,6 +142,21 @@ func (self *TestDriver) Views() *Views {
 // for interacting with popups
 func (self *TestDriver) ExpectPopup() *Popup {
 	return &Popup{t: self}
+}
+
+func (self *TestDriver) ExpectToast(matcher *matcher) {
+	self.Views().AppStatus().Content(matcher)
+}
+
+func (self *TestDriver) ExpectClipboard(matcher *matcher) {
+	self.assertWithRetries(func() (bool, string) {
+		text, err := clipboard.ReadAll()
+		if err != nil {
+			return false, "Error occured when reading from clipboard: " + err.Error()
+		}
+		ok, _ := matcher.test(text)
+		return ok, fmt.Sprintf("Expected clipboard to match %s, but got %s", matcher.name(), text)
+	})
 }
 
 // for making assertions through git itself

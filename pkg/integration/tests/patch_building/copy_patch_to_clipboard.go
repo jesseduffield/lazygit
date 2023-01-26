@@ -1,9 +1,6 @@
 package patch_building
 
 import (
-	"strings"
-
-	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
@@ -39,18 +36,18 @@ var BuildPatchAndCopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("M file1").IsSelected(),
 			).
-			PressPrimaryAction().Press(keys.Universal.CreatePatchOptionsMenu)
+			PressPrimaryAction()
+
+		t.Views().Information().Content(Contains("building patch"))
+
+		t.Views().
+			CommitFiles().
+			Press(keys.Universal.CreatePatchOptionsMenu)
 
 		t.ExpectPopup().Menu().Title(Equals("Patch Options")).Select(Contains("copy patch to clipboard")).Confirm()
 
-		t.Wait(1000)
+		t.ExpectToast(Contains("Patch copied to clipboard"))
 
-		text, err := clipboard.ReadAll()
-		if err != nil {
-			t.Fail(err.Error())
-		}
-		if !strings.HasPrefix(text, "diff --git a/file1 b/file1") {
-			t.Fail("Text from clipboard did not match with git diff")
-		}
+		t.ExpectClipboard(Contains("diff --git a/file1 b/file1"))
 	},
 })
