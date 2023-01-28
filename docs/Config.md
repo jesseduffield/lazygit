@@ -74,7 +74,7 @@ git:
     # extra args passed to `git merge`, e.g. --no-ff
     args: ''
   log:
-    # one of date-order, author-date-order, topo-order.
+    # one of date-order, author-date-order, topo-order or default.
     # topo-order makes it easier to read the git log graph, but commits may not
     # appear chronologically. See https://git-scm.com/docs/git-log#_commit_ordering
     order: 'topo-order'

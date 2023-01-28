@@ -426,7 +426,10 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 	config := self.UserConfig.Git.Log
 
-	orderFlag := "--" + config.Order
+	orderFlag := ""
+	if config.Order != "default" {
+		orderFlag = " --" + config.Order
+	}
 	allFlag := ""
 	if opts.All {
 		allFlag = " --all"
@@ -434,7 +437,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 	return self.cmd.New(
 		fmt.Sprintf(
-			"git -c log.showSignature=false log %s %s %s --oneline %s%s --abbrev=%d%s",
+			"git -c log.showSignature=false log %s%s%s --oneline %s%s --abbrev=%d%s",
 			self.cmd.Quote(opts.RefName),
 			orderFlag,
 			allFlag,
