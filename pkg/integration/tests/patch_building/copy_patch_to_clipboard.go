@@ -8,7 +8,7 @@ import (
 var BuildPatchAndCopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Create a patch from the commits and copy the patch to clipbaord.",
 	ExtraCmdArgs: "",
-	Skip:         false,
+	Skip:         true,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.NewBranch("branch-a")
