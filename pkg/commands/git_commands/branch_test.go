@@ -181,26 +181,30 @@ func TestBranchCurrentBranchInfo(t *testing.T) {
 			},
 		},
 		{
-			"falls back to git `git branch --contains` if symbolic-ref fails",
+			"falls back to git `git branch --points-at=HEAD` if symbolic-ref fails",
 			oscommands.NewFakeRunner(t).
 				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
-				Expect(`git branch --contains`, "* (HEAD detached at 8982166a)", nil),
+				Expect(`git branch --points-at=HEAD --format="%(HEAD)%00%(objectname)%00%(refname)"`, "*\x006f71c57a8d4bd6c11399c3f55f42c815527a73a4\x00(HEAD detached at 6f71c57a)\n", nil),
 			func(info BranchInfo, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "8982166a", info.RefName)
-				assert.EqualValues(t, "(HEAD detached at 8982166a)", info.DisplayName)
+				assert.EqualValues(t, "6f71c57a8d4bd6c11399c3f55f42c815527a73a4", info.RefName)
+				assert.EqualValues(t, "(HEAD detached at 6f71c57a)", info.DisplayName)
 				assert.True(t, info.DetachedHead)
 			},
 		},
 		{
-			"handles a detached head",
+			"handles a detached head (LANG=zh_CN.UTF-8)",
 			oscommands.NewFakeRunner(t).
 				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
-				Expect(`git branch --contains`, "* (HEAD detached at 123abcd)", nil),
+				Expect(
+					`git branch --points-at=HEAD --format="%(HEAD)%00%(objectname)%00%(refname)"`,
+					"*\x00679b0456f3db7c505b398def84e7d023e5b55a8d\x00（头指针在 679b0456 分离）\n"+
+						" \x00679b0456f3db7c505b398def84e7d023e5b55a8d\x00refs/heads/master\n",
+					nil),
 			func(info BranchInfo, err error) {
 				assert.NoError(t, err)
-				assert.EqualValues(t, "123abcd", info.RefName)
-				assert.EqualValues(t, "(HEAD detached at 123abcd)", info.DisplayName)
+				assert.EqualValues(t, "679b0456f3db7c505b398def84e7d023e5b55a8d", info.RefName)
+				assert.EqualValues(t, "（头指针在 679b0456 分离）", info.DisplayName)
 				assert.True(t, info.DetachedHead)
 			},
 		},
@@ -208,7 +212,7 @@ func TestBranchCurrentBranchInfo(t *testing.T) {
 			"bubbles up error if there is one",
 			oscommands.NewFakeRunner(t).
 				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
-				Expect(`git branch --contains`, "", errors.New("error")),
+				Expect(`git branch --points-at=HEAD --format="%(HEAD)%00%(objectname)%00%(refname)"`, "", errors.New("error")),
 			func(info BranchInfo, err error) {
 				assert.Error(t, err)
 				assert.EqualValues(t, "", info.RefName)
