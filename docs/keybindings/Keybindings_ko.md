@@ -263,6 +263,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>d</kbd>: 태그 삭제
   <kbd>P</kbd>: 태그를 push
   <kbd>n</kbd>: 태그를 생성
+  <kbd>J</kbd>: Jump to commit
   <kbd>g</kbd>: view reset options
   <kbd>enter</kbd>: 커밋 보기
 </pre>

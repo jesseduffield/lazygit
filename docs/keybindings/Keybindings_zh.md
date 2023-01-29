@@ -202,6 +202,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>d</kbd>: 删除标签
   <kbd>P</kbd>: 推送标签
   <kbd>n</kbd>: 创建标签
+  <kbd>J</kbd>: Jump to commit
   <kbd>g</kbd>: 查看重置选项
   <kbd>enter</kbd>: 查看提交
 </pre>

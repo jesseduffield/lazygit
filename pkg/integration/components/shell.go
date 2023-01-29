@@ -199,3 +199,7 @@ func (self *Shell) HardReset(ref string) *Shell {
 
 	return self
 }
+
+func (self *Shell) Tag(tagName string) *Shell {
+	return self.RunCommand(fmt.Sprintf(`git tag -- "%s" `, tagName))
+}

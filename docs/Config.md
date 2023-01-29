@@ -205,6 +205,8 @@ keybinding:
     pushTag: 'P'
     setUpstream: 'u' # set as upstream of checked-out branch
     fetchRemote: 'f'
+  tags:
+    jumpToCommit: 'J'
   commits:
     squashDown: 's'
     renameCommit: 'r'

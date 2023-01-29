@@ -124,6 +124,7 @@ type KeybindingConfig struct {
 	Status      KeybindingStatusConfig      `yaml:"status"`
 	Files       KeybindingFilesConfig       `yaml:"files"`
 	Branches    KeybindingBranchesConfig    `yaml:"branches"`
+	Tags        KeybindingTagsConfig        `yaml:"tags"`
 	Commits     KeybindingCommitsConfig     `yaml:"commits"`
 	Stash       KeybindingStashConfig       `yaml:"stash"`
 	CommitFiles KeybindingCommitFilesConfig `yaml:"commitFiles"`
@@ -237,6 +238,10 @@ type KeybindingBranchesConfig struct {
 	PushTag                string `yaml:"pushTag"`
 	SetUpstream            string `yaml:"setUpstream"`
 	FetchRemote            string `yaml:"fetchRemote"`
+}
+
+type KeybindingTagsConfig struct {
+	JumpToCommit string `yaml:"jumpToCommit"`
 }
 
 type KeybindingCommitsConfig struct {
@@ -523,6 +528,9 @@ func GetDefaultConfig() *UserConfig {
 				PushTag:                "P",
 				SetUpstream:            "u",
 				FetchRemote:            "f",
+			},
+			Tags: KeybindingTagsConfig{
+				JumpToCommit: "J",
 			},
 			Commits: KeybindingCommitsConfig{
 				SquashDown:                     "s",

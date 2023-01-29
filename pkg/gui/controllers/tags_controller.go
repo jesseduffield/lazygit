@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -46,6 +48,11 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Description: self.c.Tr.LcCreateTag,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Tags.JumpToCommit),
+			Handler:     self.withSelectedTag(self.jumpToCommit),
+			Description: self.c.Tr.LcJumpToCommit,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.withSelectedTag(self.createResetMenu),
 			Description: self.c.Tr.LcViewResetOptions,
@@ -83,6 +90,27 @@ func (self *TagsController) delete(tag *models.Tag) error {
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
 		},
 	})
+}
+
+func (self *TagsController) jumpToCommit(tag *models.Tag) error {
+	tagName := tag.ID()
+	index := -1
+	for idx, commit := range self.contexts.LocalCommits.GetCommits() {
+		for _, commitTag := range commit.Tags {
+			if commitTag == tagName {
+				index = idx
+				break
+			}
+		}
+	}
+
+	if index < 0 {
+		self.c.LogAction(fmt.Sprintf(self.c.Tr.Actions.TagNotFound, tagName))
+		return nil
+	} else {
+		self.contexts.LocalCommits.SetSelectedLineIdx(index)
+		return self.c.PushContext(self.contexts.LocalCommits)
+	}
 }
 
 func (self *TagsController) push(tag *models.Tag) error {

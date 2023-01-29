@@ -513,6 +513,7 @@ type TranslationSet struct {
 	CustomPatch                         string
 	LcCommitsCopied                     string
 	LcCommitCopied                      string
+	LcJumpToCommit                      string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -637,6 +638,7 @@ type Actions struct {
 	ResetBisect                       string
 	BisectSkip                        string
 	BisectMark                        string
+	TagNotFound                       string
 }
 
 const englishIntroPopupMessage = `
@@ -1161,6 +1163,7 @@ func EnglishTranslationSet() TranslationSet {
 		CustomPatch:                         "Custom patch",
 		LcCommitsCopied:                     "commits copied",
 		LcCommitCopied:                      "commit copied",
+		LcJumpToCommit:                      "Jump to commit",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
@@ -1267,6 +1270,7 @@ func EnglishTranslationSet() TranslationSet {
 			ResetBisect:                       "Reset bisect",
 			BisectSkip:                        "Bisect skip",
 			BisectMark:                        "Bisect mark",
+			TagNotFound:                       "Could not find tag '%s' in commits",
 		},
 		Bisect: Bisect{
 			Mark:                        "mark %s as %s",
