@@ -74,9 +74,12 @@ func (self *CommitCommands) signoffFlag() string {
 }
 
 func (self *CommitCommands) verboseFlag() string {
-	if self.UserConfig.Git.Commit.Verbose {
+	switch self.config.UserConfig.Git.Commit.Verbose {
+	case "always":
 		return " --verbose"
-	} else {
+	case "never":
+		return " --no-verbose"
+	default:
 		return ""
 	}
 }

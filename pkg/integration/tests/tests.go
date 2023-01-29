@@ -38,6 +38,7 @@ var tests = []*components.IntegrationTest{
 	branch.RebaseAndDrop,
 	branch.Suggestions,
 	branch.Reset,
+	branch.DetachedHead,
 	cherry_pick.CherryPick,
 	cherry_pick.CherryPickConflicts,
 	commit.Commit,

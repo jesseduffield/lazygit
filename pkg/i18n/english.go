@@ -59,8 +59,6 @@ type TranslationSet struct {
 	MergeConflictsTitle                 string
 	LcCheckout                          string
 	NoChangedFiles                      string
-	NoFilesDisplay                      string
-	NotAFile                            string
 	PullWait                            string
 	PushWait                            string
 	FetchWait                           string
@@ -89,7 +87,6 @@ type TranslationSet struct {
 	LcQuit                              string
 	LcSquashDown                        string
 	LcFixupCommit                       string
-	OnlySquashTopmostCommit             string
 	YouNoCommitsToSquash                string
 	Fixup                               string
 	SureFixupThisCommit                 string
@@ -709,8 +706,6 @@ func EnglishTranslationSet() TranslationSet {
 		FilterUnstagedFiles:                 "Show only unstaged files",
 		ResetCommitFilterState:              "Reset filter",
 		NoChangedFiles:                      "No changed files",
-		NoFilesDisplay:                      "No file to display",
-		NotAFile:                            "Not a file",
 		PullWait:                            "Pulling...",
 		PushWait:                            "Pushing...",
 		FetchWait:                           "Fetching...",
@@ -740,7 +735,6 @@ func EnglishTranslationSet() TranslationSet {
 		LcSquashDown:                        "squash down",
 		LcFixupCommit:                       "fixup commit",
 		NoCommitsThisBranch:                 "No commits for this branch",
-		OnlySquashTopmostCommit:             "Can only squash topmost commit",
 		YouNoCommitsToSquash:                "You have no commits to squash with",
 		Fixup:                               "Fixup",
 		SureFixupThisCommit:                 "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",

@@ -202,10 +202,6 @@ func (p *PatchParser) Render(isFocused bool, firstLineIndex int, lastLineIndex i
 	return result
 }
 
-func (p *PatchParser) RenderPlain() string {
-	return renderLinesPlain(p.PatchLines)
-}
-
 // RenderLinesPlain returns the non-coloured string of diff part from firstLineIndex to
 // lastLineIndex
 func (p *PatchParser) RenderLinesPlain(firstLineIndex, lastLineIndex int) string {
@@ -214,10 +210,10 @@ func (p *PatchParser) RenderLinesPlain(firstLineIndex, lastLineIndex int) string
 
 func renderLinesPlain(lines []*PatchLine) string {
 	renderedLines := slices.Map(lines, func(line *PatchLine) string {
-		return line.Content
+		return line.Content + "\n"
 	})
 
-	return strings.Join(renderedLines, "\n")
+	return strings.Join(renderedLines, "")
 }
 
 // GetNextStageableLineIndex takes a line index and returns the line index of the next stageable line

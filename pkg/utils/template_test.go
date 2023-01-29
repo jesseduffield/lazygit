@@ -53,6 +53,13 @@ func TestResolvePlaceholderString(t *testing.T) {
 			},
 			"{{}} {{ this }} { should not throw}} an {{{{}}}} error",
 		},
+		{
+			"{{a}}",
+			map[string]string{
+				"a": "X{{.a}}X",
+			},
+			"X{{.a}}X",
+		},
 	}
 
 	for _, s := range scenarios {

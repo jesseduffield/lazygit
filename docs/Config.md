@@ -62,20 +62,21 @@ gui:
   showIcons: false
   commandLogSize: 8
   splitDiff: 'auto' # one of 'auto' | 'always'
+  skipRewordInEditorWarning: false # for skipping the confirmation before launching the reword editor
 git:
   paging:
     colorArg: always
     useConfig: false
   commit:
     signOff: false
-    verbose: false
+    verbose: default # one of 'default' | 'always' | 'never'
   merging:
     # only applicable to unix users
     manualCommit: false
     # extra args passed to `git merge`, e.g. --no-ff
     args: ''
   log:
-    # one of date-order, author-date-order, topo-order.
+    # one of date-order, author-date-order, topo-order or default.
     # topo-order makes it easier to read the git log graph, but commits may not
     # appear chronologically. See https://git-scm.com/docs/git-log#_commit_ordering
     order: 'topo-order'
@@ -190,6 +191,8 @@ keybinding:
     viewResetOptions: 'D'
     fetch: 'f'
     toggleTreeView: '`'
+    openMergeTool: 'M'
+    openStatusFilter: '<c-b>'
   branches:
     createPullRequest: 'o'
     viewPullRequestOptions: 'O'

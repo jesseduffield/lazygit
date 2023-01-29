@@ -27,6 +27,7 @@ func TestGetCommits(t *testing.T) {
 		runner            *oscommands.FakeCmdObjRunner
 		expectedCommits   []*models.Commit
 		expectedError     error
+		logOrder          string
 		rebaseMode        enums.RebaseMode
 		currentBranchName string
 		opts              GetCommitsOptions
@@ -35,18 +36,20 @@ func TestGetCommits(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName:          "should return no commits if there are none",
+			logOrder:          "topo-order",
 			rebaseMode:        enums.REBASE_MODE_NONE,
 			currentBranchName: "master",
 			opts:              GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
-				Expect(`git -c log.showSignature=false log "HEAD" --topo-order  --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40`, "", nil),
+				Expect(`git -c log.showSignature=false log "HEAD" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40`, "", nil),
 
 			expectedCommits: []*models.Commit{},
 			expectedError:   nil,
 		},
 		{
 			testName:          "should return commits if they are present",
+			logOrder:          "topo-order",
 			rebaseMode:        enums.REBASE_MODE_NONE,
 			currentBranchName: "master",
 			opts:              GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
@@ -54,7 +57,7 @@ func TestGetCommits(t *testing.T) {
 				// here it's seeing which commits are yet to be pushed
 				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
-				Expect(`git -c log.showSignature=false log "HEAD" --topo-order  --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40`, commitsOutput, nil).
+				Expect(`git -c log.showSignature=false log "HEAD" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40`, commitsOutput, nil).
 				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
 				Expect(`git merge-base "HEAD" "master"`, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
 
@@ -174,13 +177,29 @@ func TestGetCommits(t *testing.T) {
 			},
 			expectedError: nil,
 		},
+		{
+			testName:          "should not specify order if `log.order` is `default`",
+			logOrder:          "default",
+			rebaseMode:        enums.REBASE_MODE_NONE,
+			currentBranchName: "master",
+			opts:              GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				Expect(`git -c log.showSignature=false log "HEAD" --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40`, "", nil),
+
+			expectedCommits: []*models.Commit{},
+			expectedError:   nil,
+		},
 	}
 
 	for _, scenario := range scenarios {
 		scenario := scenario
 		t.Run(scenario.testName, func(t *testing.T) {
+			common := utils.NewDummyCommon()
+			common.UserConfig.Git.Log.Order = scenario.logOrder
+
 			builder := &CommitLoader{
-				Common: utils.NewDummyCommon(),
+				Common: common,
 				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
 				getCurrentBranchInfo: func() (BranchInfo, error) {
 					return BranchInfo{RefName: scenario.currentBranchName, DisplayName: scenario.currentBranchName, DetachedHead: false}, nil
