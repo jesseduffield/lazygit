@@ -226,6 +226,26 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 	})
 }
 
+func (self *LocalCommitsController) doRewordEditor() error {
+	self.c.LogAction(self.c.Tr.Actions.RewordCommit)
+
+	if self.context().GetSelectedLineIdx() == 0 {
+		return self.c.RunSubprocessAndRefresh(self.os.Cmd.New("git commit --allow-empty --amend --only"))
+	}
+
+	subProcess, err := self.git.Rebase.RewordCommitInEditor(
+		self.model.Commits, self.context().GetSelectedLineIdx(),
+	)
+	if err != nil {
+		return self.c.Error(err)
+	}
+	if subProcess != nil {
+		return self.c.RunSubprocessAndRefresh(subProcess)
+	}
+
+	return nil
+}
+
 func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
 	midRebase, err := self.handleMidRebaseCommand("reword", commit)
 	if err != nil {
@@ -235,29 +255,15 @@ func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
 		return nil
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.RewordInEditorTitle,
-		Prompt: self.c.Tr.RewordInEditorPrompt,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.RewordCommit)
-
-			if self.context().GetSelectedLineIdx() == 0 {
-				return self.c.RunSubprocessAndRefresh(self.os.Cmd.New("git commit --allow-empty --amend --only"))
-			}
-
-			subProcess, err := self.git.Rebase.RewordCommitInEditor(
-				self.model.Commits, self.context().GetSelectedLineIdx(),
-			)
-			if err != nil {
-				return self.c.Error(err)
-			}
-			if subProcess != nil {
-				return self.c.RunSubprocessAndRefresh(subProcess)
-			}
-
-			return nil
-		},
-	})
+	if self.c.UserConfig.Gui.SkipRewordInEditorWarning {
+		return self.doRewordEditor()
+	} else {
+		return self.c.Confirm(types.ConfirmOpts{
+			Title:         self.c.Tr.RewordInEditorTitle,
+			Prompt:        self.c.Tr.RewordInEditorPrompt,
+			HandleConfirm: self.doRewordEditor,
+		})
+	}
 }
 
 func (self *LocalCommitsController) drop(commit *models.Commit) error {
