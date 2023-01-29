@@ -28,11 +28,6 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 			OnPress: func() error { return gui.handleApplyPatch(true) },
 			Key:     'r',
 		},
-		{
-			Label:   "copy patch to clipboard",
-			OnPress: func() error { return gui.copyPatchToClipboard() },
-			Key:     'y',
-		},
 	}
 
 	if gui.git.Patch.PatchManager.CanRebase && gui.git.Status.WorkingTreeState() == enums.REBASE_MODE_NONE {
@@ -73,6 +68,14 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 			}
 		}
 	}
+
+	menuItems = append(menuItems, []*types.MenuItem{
+		{
+			Label:   "copy patch to clipboard",
+			OnPress: func() error { return gui.copyPatchToClipboard() },
+			Key:     'y',
+		},
+	}...)
 
 	return gui.c.Menu(types.CreateMenuOptions{Title: gui.c.Tr.PatchOptionsTitle, Items: menuItems})
 }
@@ -206,7 +209,7 @@ func (gui *Gui) copyPatchToClipboard() error {
 		return gui.c.Error(err)
 	}
 
-	gui.c.Toast(gui.c.Tr.Actions.CopyPatchToClipboard)
+	gui.c.Toast(gui.c.Tr.PatchCopiedToClipboard)
 
 	return nil
 }
