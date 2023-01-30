@@ -1,8 +1,6 @@
 package gui
 
 import (
-	"reflect"
-
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -116,12 +114,23 @@ func (gui *Gui) windowForView(viewName string) string {
 }
 
 func (gui *Gui) createAllViews() error {
+	frameRunes := []rune{'─', '│', '┌', '┐', '└', '┘'}
+	switch gui.c.UserConfig.Gui.Border {
+	case "double":
+		frameRunes = []rune{'═', '║', '╔', '╗', '╚', '╝'}
+	case "rounded":
+		frameRunes = []rune{'─', '│', '╭', '╮', '╰', '╯'}
+	case "hidden":
+		frameRunes = []rune{' ', ' ', ' ', ' ', ' ', ' '}
+	}
+
 	var err error
 	for _, mapping := range gui.orderedViewNameMappings() {
 		*mapping.viewPtr, err = gui.prepareView(mapping.name)
 		if err != nil && err.Error() != UNKNOWN_VIEW_ERROR_MSG {
 			return err
 		}
+		(*mapping.viewPtr).FrameRunes = frameRunes
 	}
 
 	gui.Views.Options.FgColor = theme.OptionsColor
@@ -228,24 +237,6 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
 	gui.Views.Snake.FgColor = gocui.ColorGreen
-
-	frameRunes := []rune{'─', '│', '┌', '┐', '└', '┘'}
-	switch gui.c.UserConfig.Gui.Border {
-	case "double":
-		frameRunes = []rune{'═', '║', '╔', '╗', '╚', '╝'}
-	case "rounded":
-		frameRunes = []rune{'─', '│', '╭', '╮', '╰', '╯'}
-	case "hidden":
-		frameRunes = []rune{' ', ' ', ' ', ' ', ' ', ' '}
-	}
-
-	v := reflect.ValueOf(gui.Views)
-	for i := 0; i < v.NumField(); i++ {
-		view := v.Field(i).Interface().(*gocui.View)
-		if view.Frame {
-			view.FrameRunes = frameRunes
-		}
-	}
 
 	return nil
 }
