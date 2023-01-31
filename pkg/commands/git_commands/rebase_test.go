@@ -46,7 +46,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildRebaseCommands(commonDeps{runner: s.runner})
-			s.test(instance.RebaseBranch(s.arg))
+			s.test(instance.RebaseBranch(s.arg).Run())
 		})
 	}
 }

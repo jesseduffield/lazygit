@@ -121,7 +121,7 @@ func (self *RemoteBranchesController) merge(selectedBranch *models.RemoteBranch)
 }
 
 func (self *RemoteBranchesController) rebase(selectedBranch *models.RemoteBranch) error {
-	return self.helpers.MergeAndRebase.RebaseOntoRef(selectedBranch.FullName())
+	return self.helpers.MergeAndRebase.RebaseOntoRef(selectedBranch)
 }
 
 func (self *RemoteBranchesController) createResetMenu(selectedBranch *models.RemoteBranch) error {

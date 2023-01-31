@@ -34,7 +34,9 @@ func NewGpgHelper(
 func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
 	useSubprocess := self.git.Config.UsingGpg()
 	if useSubprocess {
-		success, err := self.c.RunSubprocess(self.os.Cmd.NewShell(cmdObj.ToString()))
+		cmdObj = self.os.Cmd.NewShell(cmdObj.ToString()).
+			AddEnvVars(cmdObj.GetEnvVars()...)
+		success, err := self.c.RunSubprocess(cmdObj)
 		if success && onSuccess != nil {
 			if err := onSuccess(); err != nil {
 				return err
@@ -51,7 +53,8 @@ func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus 
 }
 
 func (self *GpgHelper) runAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
-	cmdObj = self.os.Cmd.NewShell(cmdObj.ToString())
+	cmdObj = self.os.Cmd.NewShell(cmdObj.ToString()).
+		AddEnvVars(cmdObj.GetEnvVars()...)
 
 	return self.c.WithWaitingStatus(waitingStatus, func() error {
 		if err := cmdObj.StreamOutput().Run(); err != nil {

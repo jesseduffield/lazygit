@@ -22,8 +22,9 @@ func (gui *Gui) resetControllers() {
 		gui.State.Contexts,
 		model,
 	)
+	gpgHelper := helpers.NewGpgHelper(helperCommon, gui.os, gui.git)
 
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper, gpgHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
 	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	getSavedCommitMessage := func() string {
@@ -38,7 +39,7 @@ func (gui *Gui) resetControllers() {
 		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
 		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, gui.State.Contexts, refsHelper, model, setCommitMessage, getSavedCommitMessage),
 		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
-		GPG:            helpers.NewGpgHelper(helperCommon, gui.os, gui.git),
+		GPG:            gpgHelper,
 		MergeAndRebase: rebaseHelper,
 		MergeConflicts: helpers.NewMergeConflictsHelper(helperCommon, gui.State.Contexts, gui.git),
 		CherryPick: helpers.NewCherryPickHelper(

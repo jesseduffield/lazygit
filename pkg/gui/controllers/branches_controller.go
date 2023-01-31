@@ -309,8 +309,8 @@ func (self *BranchesController) merge() error {
 }
 
 func (self *BranchesController) rebase() error {
-	selectedBranchName := self.context().GetSelected().Name
-	return self.helpers.MergeAndRebase.RebaseOntoRef(selectedBranchName)
+	selectedBranch := self.context().GetSelected()
+	return self.helpers.MergeAndRebase.RebaseOntoRef(selectedBranch)
 }
 
 func (self *BranchesController) fastForward(branch *models.Branch) error {

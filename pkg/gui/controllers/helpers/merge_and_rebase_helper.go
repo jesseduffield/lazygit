@@ -18,6 +18,7 @@ type MergeAndRebaseHelper struct {
 	contexts   *context.ContextTree
 	git        *commands.GitCommand
 	refsHelper *RefsHelper
+	gpgHelper  *GpgHelper
 }
 
 func NewMergeAndRebaseHelper(
@@ -25,12 +26,14 @@ func NewMergeAndRebaseHelper(
 	contexts *context.ContextTree,
 	git *commands.GitCommand,
 	refsHelper *RefsHelper,
+	gpgHelper *GpgHelper,
 ) *MergeAndRebaseHelper {
 	return &MergeAndRebaseHelper{
 		c:          c,
 		contexts:   contexts,
 		git:        git,
 		refsHelper: refsHelper,
+		gpgHelper:  gpgHelper,
 	}
 }
 
@@ -195,16 +198,16 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 	})
 }
 
-func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
-	checkedOutBranch := self.refsHelper.GetCheckedOutRef().Name
-	if ref == checkedOutBranch {
+func (self *MergeAndRebaseHelper) RebaseOntoRef(ref types.Ref) error {
+	checkedOutBranch := self.refsHelper.GetCheckedOutRef()
+	if ref.FullRefName() == checkedOutBranch.FullRefName() {
 		return self.c.ErrorMsg(self.c.Tr.CantRebaseOntoSelf)
 	}
 	prompt := utils.ResolvePlaceholderString(
 		self.c.Tr.ConfirmRebase,
 		map[string]string{
-			"checkedOutBranch": checkedOutBranch,
-			"selectedBranch":   ref,
+			"checkedOutBranch": checkedOutBranch.RefName(),
+			"selectedBranch":   ref.RefName(),
 		},
 	)
 
@@ -213,7 +216,13 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
-			err := self.git.Rebase.RebaseBranch(ref)
+			cmdObj := self.git.Rebase.RebaseBranch(ref.FullRefName())
+			var err error
+			if self.git.Config.UsingGpg() {
+				err = self.gpgHelper.WithGpgHandling(cmdObj, self.c.Tr.RebasingStatus, nil)
+			} else {
+				err = cmdObj.Run()
+			}
 			return self.CheckMergeOrRebase(err)
 		},
 	})
