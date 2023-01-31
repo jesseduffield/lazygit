@@ -463,6 +463,7 @@ type TranslationSet struct {
 	CommitURLCopiedToClipboard          string
 	CommitMessageCopiedToClipboard      string
 	CommitAuthorCopiedToClipboard       string
+	PatchCopiedToClipboard              string
 	LcCopiedToClipboard                 string
 	ErrCannotEditDirectory              string
 	ErrStageDirWithInlineMergeConflicts string
@@ -566,6 +567,7 @@ type Actions struct {
 	CopyCommitURLToClipboard          string
 	CopyCommitAuthorToClipboard       string
 	CopyCommitAttributeToClipboard    string
+	CopyPatchToClipboard              string
 	CustomCommand                     string
 	DiscardAllChangesInDirectory      string
 	DiscardUnstagedChangesInDirectory string
@@ -1111,6 +1113,7 @@ func EnglishTranslationSet() TranslationSet {
 		CommitURLCopiedToClipboard:          "Commit URL copied to clipboard",
 		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
 		CommitAuthorCopiedToClipboard:       "Commit author copied to clipboard",
+		PatchCopiedToClipboard:              "Patch copied to clipboard",
 		LcCopiedToClipboard:                 "copied to clipboard",
 		ErrCannotEditDirectory:              "Cannot edit directory: you can only edit individual files",
 		ErrStageDirWithInlineMergeConflicts: "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
@@ -1195,6 +1198,7 @@ func EnglishTranslationSet() TranslationSet {
 			CopyCommitURLToClipboard:          "Copy commit URL to clipboard",
 			CopyCommitAuthorToClipboard:       "Copy commit author to clipboard",
 			CopyCommitAttributeToClipboard:    "Copy to clipboard",
+			CopyPatchToClipboard:              "Copy patch to clipboard",
 			MoveCommitUp:                      "Move commit up",
 			MoveCommitDown:                    "Move commit down",
 			CustomCommand:                     "Custom command",

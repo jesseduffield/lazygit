@@ -21,6 +21,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_path"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/patch_building"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
 )
@@ -72,6 +73,7 @@ var tests = []*components.IntegrationTest{
 	filter_by_path.CliArg,
 	filter_by_path.SelectFile,
 	filter_by_path.TypeFile,
+	patch_building.BuildPatchAndCopyToClipboard,
 }
 
 func GetTests() []*components.IntegrationTest {

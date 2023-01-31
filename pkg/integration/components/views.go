@@ -64,6 +64,10 @@ func (self *Views) Information() *ViewDriver {
 	return self.byName("information")
 }
 
+func (self *Views) AppStatus() *ViewDriver {
+	return self.byName("appStatus")
+}
+
 func (self *Views) Branches() *ViewDriver {
 	return self.byName("localBranches")
 }
