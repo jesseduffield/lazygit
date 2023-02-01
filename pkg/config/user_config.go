@@ -51,7 +51,7 @@ type GuiConfig struct {
 	CommandLogSize            int                `yaml:"commandLogSize"`
 	SplitDiff                 string             `yaml:"splitDiff"`
 	SkipRewordInEditorWarning bool               `yaml:"skipRewordInEditorWarning"`
-  WindowSize               string              `yaml:"windowSize"`
+	WindowSize                string             `yaml:"windowSize"`
 }
 
 type ThemeConfig struct {
