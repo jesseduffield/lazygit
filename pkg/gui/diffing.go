@@ -95,6 +95,10 @@ func (gui *Gui) diffStr() string {
 		output += " -R"
 	}
 
+	if gui.IgnoreWhitespaceInDiffView {
+		output += " --ignore-all-space"
+	}
+
 	file := gui.currentlySelectedFilename()
 	if file != "" {
 		output += " -- " + file

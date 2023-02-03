@@ -177,30 +177,34 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 
 func TestCommitShowCmdObj(t *testing.T) {
 	type scenario struct {
-		testName    string
-		filterPath  string
-		contextSize int
-		expected    string
+		testName         string
+		filterPath       string
+		contextSize      int
+		ignoreWhitespace bool
+		expected         string
 	}
 
 	scenarios := []scenario{
 		{
-			testName:    "Default case without filter path",
-			filterPath:  "",
-			contextSize: 3,
-			expected:    "git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890",
+			testName:         "Default case without filter path",
+			filterPath:       "",
+			contextSize:      3,
+			ignoreWhitespace: false,
+			expected:         "git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890",
 		},
 		{
-			testName:    "Default case with filter path",
-			filterPath:  "file.txt",
-			contextSize: 3,
-			expected:    `git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890 -- "file.txt"`,
+			testName:         "Default case with filter path",
+			filterPath:       "file.txt",
+			contextSize:      3,
+			ignoreWhitespace: true,
+			expected:         `git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890 --ignore-all-space -- "file.txt"`,
 		},
 		{
-			testName:    "Show diff with custom context size",
-			filterPath:  "",
-			contextSize: 77,
-			expected:    "git show --submodule --color=always --unified=77 --no-renames --stat -p 1234567890",
+			testName:         "Show diff with custom context size",
+			filterPath:       "",
+			contextSize:      77,
+			ignoreWhitespace: false,
+			expected:         "git show --submodule --color=always --unified=77 --no-renames --stat -p 1234567890",
 		},
 	}
 
@@ -212,7 +216,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 
 			instance := buildCommitCommands(commonDeps{userConfig: userConfig})
 
-			cmdStr := instance.ShowCmdObj("1234567890", s.filterPath).ToString()
+			cmdStr := instance.ShowCmdObj("1234567890", s.filterPath, s.ignoreWhitespace).ToString()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}

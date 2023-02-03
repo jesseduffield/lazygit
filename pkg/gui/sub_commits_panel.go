@@ -10,7 +10,8 @@ func (gui *Gui) subCommitsRenderToMain() error {
 	if commit == nil {
 		task = types.NewRenderStringTask("No commits")
 	} else {
-		cmdObj := gui.git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
+		cmdObj := gui.git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath(),
+			gui.IgnoreWhitespaceInDiffView)
 
 		task = types.NewRunPtyTask(cmdObj.GetCmd())
 	}

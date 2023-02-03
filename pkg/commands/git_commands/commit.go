@@ -149,14 +149,19 @@ func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
 	return self.cmd.New("git commit --amend --no-edit --allow-empty")
 }
 
-func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands.ICmdObj {
+func (self *CommitCommands) ShowCmdObj(sha string, filterPath string, ignoreWhitespace bool) oscommands.ICmdObj {
 	contextSize := self.UserConfig.Git.DiffContextSize
 	filterPathArg := ""
 	if filterPath != "" {
 		filterPathArg = fmt.Sprintf(" -- %s", self.cmd.Quote(filterPath))
 	}
+	ignoreWhitespaceArg := ""
+	if ignoreWhitespace {
+		ignoreWhitespaceArg = " --ignore-all-space"
+	}
 
-	cmdStr := fmt.Sprintf("git show --submodule --color=%s --unified=%d --no-renames --stat -p %s%s", self.UserConfig.Git.Paging.ColorArg, contextSize, sha, filterPathArg)
+	cmdStr := fmt.Sprintf("git show --submodule --color=%s --unified=%d --no-renames --stat -p %s%s%s",
+		self.UserConfig.Git.Paging.ColorArg, contextSize, sha, ignoreWhitespaceArg, filterPathArg)
 	return self.cmd.New(cmdStr).DontLog()
 }
 
