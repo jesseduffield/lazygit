@@ -34,7 +34,21 @@ func NewFilesHelper(
 var _ IFilesHelper = &FilesHelper{}
 
 func (self *FilesHelper) EditFile(filename string) error {
-	return self.EditFileAtLine(filename, 1)
+	editor, err := self.git.File.GetEditor()
+	if err != nil {
+		return self.c.Error(err)
+	}
+	editCmd := ""
+	switch editor {
+	case "code":
+		editCmd = editor + " -r --goto -- " + filename
+	default:
+		editCmd = editor + " -- " + filename
+	}
+	self.c.LogAction(self.c.Tr.Actions.EditFile)
+	return self.c.RunSubprocessAndRefresh(
+		self.os.Cmd.NewShell(editCmd),
+	)
 }
 
 func (self *FilesHelper) EditFileAtLine(filename string, lineNumber int) error {

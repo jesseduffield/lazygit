@@ -27,7 +27,7 @@ func (self *FileCommands) Cat(fileName string) (string, error) {
 	return string(buf), nil
 }
 
-func (self *FileCommands) GetEditCmdStr(filename string, lineNumber int) (string, error) {
+func (self *FileCommands) GetEditor() (string, error) {
 	editor := self.UserConfig.OS.EditCommand
 
 	if editor == "" {
@@ -49,6 +49,14 @@ func (self *FileCommands) GetEditCmdStr(filename string, lineNumber int) (string
 	}
 	if editor == "" {
 		return "", errors.New("No editor defined in config file, $GIT_EDITOR, $VISUAL, $EDITOR, or git config")
+	}
+	return editor, nil
+}
+
+func (self *FileCommands) GetEditCmdStr(filename string, lineNumber int) (string, error) {
+	editor, err := self.GetEditor()
+	if err != nil {
+		return "", err
 	}
 
 	templateValues := map[string]string{
