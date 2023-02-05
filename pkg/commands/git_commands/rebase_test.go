@@ -62,6 +62,7 @@ func TestRebaseSkipEditorCommand(t *testing.T) {
 			`^VISUAL=.*$`,
 			`^EDITOR=.*$`,
 			`^GIT_EDITOR=.*$`,
+			`^GIT_SEQUENCE_EDITOR=.*$`,
 			"^" + daemon.DaemonKindEnvKey + "=" + string(daemon.ExitImmediately) + "$",
 		} {
 			regexStr := regexStr
