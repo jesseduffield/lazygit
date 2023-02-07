@@ -193,6 +193,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Remote Branches
 
 <pre>
+  <kbd>ctrl+o</kbd>: kopieer branch name naar klembord
   <kbd>space</kbd>: uitchecken
   <kbd>n</kbd>: nieuwe branch
   <kbd>M</kbd>: merge in met huidige checked out branch

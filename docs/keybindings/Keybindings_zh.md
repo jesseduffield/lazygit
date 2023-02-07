@@ -274,6 +274,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 远程分支
 
 <pre>
+  <kbd>ctrl+o</kbd>: 将分支名称复制到剪贴板
   <kbd>space</kbd>: 检出
   <kbd>n</kbd>: 新分支
   <kbd>M</kbd>: 合并到当前检出的分支

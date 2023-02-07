@@ -268,6 +268,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## リモートブランチ
 
 <pre>
+  <kbd>ctrl+o</kbd>: ブランチ名をクリップボードにコピー
   <kbd>space</kbd>: チェックアウト
   <kbd>n</kbd>: 新しいブランチを作成
   <kbd>M</kbd>: 現在のブランチにマージ

@@ -199,6 +199,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 원격 브랜치
 
 <pre>
+  <kbd>ctrl+o</kbd>: 브랜치명을 클립보드에 복사
   <kbd>space</kbd>: 체크아웃
   <kbd>n</kbd>: 새 브랜치 생성
   <kbd>M</kbd>: 현재 브랜치에 병합
