@@ -68,6 +68,7 @@ var tests = []*components.IntegrationTest{
 	diff.Diff,
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,
+	diff.IgnoreWhitespace,
 	sync.FetchPrune,
 	sync.RenameBranchAndPull,
 	filter_by_path.CliArg,
