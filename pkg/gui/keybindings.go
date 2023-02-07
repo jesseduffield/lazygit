@@ -356,7 +356,7 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.LcCopySubmoduleNameToClipboard,
 		},
 		{
-			ViewName:    "files",
+			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.ToggleWhitespaceInDiffView),
 			Handler:     self.toggleWhitespaceInDiffView,
 			Description: self.c.Tr.ToggleWhitespaceInDiffView,

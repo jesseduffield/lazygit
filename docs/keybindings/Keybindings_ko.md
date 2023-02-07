@@ -18,6 +18,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>W</kbd>: Diff 메뉴 열기
   <kbd>ctrl+e</kbd>: Diff 메뉴 열기
   <kbd>@</kbd>: 명령어 로그 메뉴 열기
+  <kbd>ctrl+w</kbd>: 공백문자를 Diff 뷰에서 표시 여부 전환
   <kbd>}</kbd>: diff 보기의 변경 사항 주위에 표시되는 컨텍스트의 크기를 늘리기
   <kbd>{</kbd>: diff 보기의 변경 사항 주위에 표시되는 컨텍스트 크기 줄이기
   <kbd>:</kbd>: execute custom command
@@ -271,7 +272,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+o</kbd>: 파일명을 클립보드에 복사
-  <kbd>ctrl+w</kbd>: 공백문자를 Diff 뷰에서 표시 여부 전환
   <kbd>d</kbd>: view 'discard changes' options
   <kbd>space</kbd>: Staged 전환
   <kbd>ctrl+b</kbd>: 파일을 필터하기 (Staged/unstaged)

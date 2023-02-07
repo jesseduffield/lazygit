@@ -18,6 +18,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>W</kbd>: 差分メニューを開く
   <kbd>ctrl+e</kbd>: 差分メニューを開く
   <kbd>@</kbd>: コマンドログメニューを開く
+  <kbd>ctrl+w</kbd>: 空白文字の差分の表示有無を切り替え
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
   <kbd>:</kbd>: カスタムコマンドを実行
@@ -152,7 +153,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+o</kbd>: ファイル名をクリップボードにコピー
-  <kbd>ctrl+w</kbd>: 空白文字の差分の表示有無を切り替え
   <kbd>d</kbd>: view 'discard changes' options
   <kbd>space</kbd>: ステージ/アンステージ
   <kbd>ctrl+b</kbd>: ファイルをフィルタ (ステージ/アンステージ)

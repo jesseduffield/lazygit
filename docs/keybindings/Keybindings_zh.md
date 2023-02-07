@@ -18,6 +18,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>W</kbd>: 打开 diff 菜单
   <kbd>ctrl+e</kbd>: 打开 diff 菜单
   <kbd>@</kbd>: 打开命令日志菜单
+  <kbd>ctrl+w</kbd>: 切换是否在差异视图中显示空白字符差异
   <kbd>}</kbd>: 扩大差异视图中显示的上下文范围
   <kbd>{</kbd>: 缩小差异视图中显示的上下文范围
   <kbd>:</kbd>: 执行自定义命令
@@ -157,7 +158,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+o</kbd>: 将文件名复制到剪贴板
-  <kbd>ctrl+w</kbd>: 切换是否在差异视图中显示空白字符差异
   <kbd>d</kbd>: 查看'放弃更改'选项
   <kbd>space</kbd>: 切换暂存状态
   <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)
