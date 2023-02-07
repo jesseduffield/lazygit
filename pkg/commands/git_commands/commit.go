@@ -156,7 +156,7 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands
 		filterPathArg = fmt.Sprintf(" -- %s", self.cmd.Quote(filterPath))
 	}
 
-	cmdStr := fmt.Sprintf("git show --submodule --color=%s --unified=%d --no-renames --stat -p %s %s", self.UserConfig.Git.Paging.ColorArg, contextSize, sha, filterPathArg)
+	cmdStr := fmt.Sprintf("git show --submodule --color=%s --unified=%d --no-renames --stat -p %s%s", self.UserConfig.Git.Paging.ColorArg, contextSize, sha, filterPathArg)
 	return self.cmd.New(cmdStr).DontLog()
 }
 

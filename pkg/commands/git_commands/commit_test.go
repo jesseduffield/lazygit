@@ -188,19 +188,19 @@ func TestCommitShowCmdObj(t *testing.T) {
 			testName:    "Default case without filter path",
 			filterPath:  "",
 			contextSize: 3,
-			expected:    "git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890 ",
+			expected:    "git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890",
 		},
 		{
 			testName:    "Default case with filter path",
 			filterPath:  "file.txt",
 			contextSize: 3,
-			expected:    `git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890  -- "file.txt"`,
+			expected:    `git show --submodule --color=always --unified=3 --no-renames --stat -p 1234567890 -- "file.txt"`,
 		},
 		{
 			testName:    "Show diff with custom context size",
 			filterPath:  "",
 			contextSize: 77,
-			expected:    "git show --submodule --color=always --unified=77 --no-renames --stat -p 1234567890 ",
+			expected:    "git show --submodule --color=always --unified=77 --no-renames --stat -p 1234567890",
 		},
 	}
 
