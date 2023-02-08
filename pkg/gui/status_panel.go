@@ -128,6 +128,48 @@ func (gui *Gui) handleEditConfig() error {
 	return gui.askForConfigFile(gui.helpers.Files.EditFile)
 }
 
+// TODO: function name is bad
+func splitUrl(url string) string {
+	s := strings.Split(url, "https://github.com")
+
+	// https://github.com/willparsons/astrovim-config.git
+	// willparsons/astrovim-config
+
+	// TODO: this can fail
+	return s[1]
+}
+
+func (gui *Gui) handleClone() error {
+	return gui.c.Prompt(types.PromptOpts{
+		Title: "Repository url",
+		HandleConfirm: func(url string) error {
+			return gui.c.Prompt(types.PromptOpts{
+				Title: "Destination folder",
+				HandleConfirm: func(destination string) error {
+					message := utils.ResolvePlaceholderString(
+						gui.c.Tr.Cloning,
+						map[string]string{
+							"url":         splitUrl(url),
+							"destination": destination,
+						},
+					)
+
+					return gui.c.WithLoaderPanel(message, func() error {
+						err := gui.git.Clone.Clone(url, destination)
+						if err != nil {
+							_ = gui.c.Error(err)
+						}
+
+						return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+					})
+				},
+				// TODO: suggestions
+				// FindSuggestionsFunc: nil,
+			})
+		},
+	})
+}
+
 func lazygitTitle() string {
 	return `
    _                       _ _
