@@ -235,6 +235,7 @@ type KeybindingBranchesConfig struct {
 	MergeIntoCurrentBranch string `yaml:"mergeIntoCurrentBranch"`
 	ViewGitFlowOptions     string `yaml:"viewGitFlowOptions"`
 	FastForward            string `yaml:"fastForward"`
+	CreateTag              string `yaml:"createTag"`
 	PushTag                string `yaml:"pushTag"`
 	SetUpstream            string `yaml:"setUpstream"`
 	FetchRemote            string `yaml:"fetchRemote"`
@@ -521,6 +522,7 @@ func GetDefaultConfig() *UserConfig {
 				MergeIntoCurrentBranch: "M",
 				ViewGitFlowOptions:     "i",
 				FastForward:            "f",
+				CreateTag:              "T",
 				PushTag:                "P",
 				SetUpstream:            "u",
 				FetchRemote:            "f",

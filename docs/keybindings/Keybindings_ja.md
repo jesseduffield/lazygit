@@ -191,6 +191,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>r</kbd>: rebase checked-out branch onto this branch
   <kbd>M</kbd>: 現在のブランチにマージ
   <kbd>f</kbd>: fast-forward this branch from its upstream
+  <kbd>T</kbd>: タグを作成
   <kbd>g</kbd>: view reset options
   <kbd>R</kbd>: ブランチ名を変更
   <kbd>u</kbd>: set/unset upstream

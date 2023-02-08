@@ -131,6 +131,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>r</kbd>: rebase checked-out branch onto this branch
   <kbd>M</kbd>: merge into currently checked out branch
   <kbd>f</kbd>: fast-forward this branch from its upstream
+  <kbd>T</kbd>: create tag
   <kbd>g</kbd>: view reset options
   <kbd>R</kbd>: rename branch
   <kbd>u</kbd>: set/unset upstream

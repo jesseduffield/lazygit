@@ -91,6 +91,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>r</kbd>: zmiana bazy gałęzi
   <kbd>M</kbd>: scal do obecnej gałęzi
   <kbd>f</kbd>: fast-forward this branch from its upstream
+  <kbd>T</kbd>: create tag
   <kbd>g</kbd>: wyświetl opcje resetu
   <kbd>R</kbd>: rename branch
   <kbd>u</kbd>: set/unset upstream

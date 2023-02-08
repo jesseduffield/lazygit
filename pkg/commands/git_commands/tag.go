@@ -14,12 +14,20 @@ func NewTagCommands(gitCommon *GitCommon) *TagCommands {
 	}
 }
 
-func (self *TagCommands) CreateLightweight(tagName string, commitSha string) error {
-	return self.cmd.New(fmt.Sprintf("git tag -- %s %s", self.cmd.Quote(tagName), commitSha)).Run()
+func (self *TagCommands) CreateLightweight(tagName string, ref string) error {
+	if len(ref) > 0 {
+		return self.cmd.New(fmt.Sprintf("git tag -- %s %s", self.cmd.Quote(tagName), self.cmd.Quote(ref))).Run()
+	} else {
+		return self.cmd.New(fmt.Sprintf("git tag -- %s", self.cmd.Quote(tagName))).Run()
+	}
 }
 
-func (self *TagCommands) CreateAnnotated(tagName, commitSha, msg string) error {
-	return self.cmd.New(fmt.Sprintf("git tag %s %s -m %s", tagName, commitSha, self.cmd.Quote(msg))).Run()
+func (self *TagCommands) CreateAnnotated(tagName, ref, msg string) error {
+	if len(ref) > 0 {
+		return self.cmd.New(fmt.Sprintf("git tag %s %s -m %s", self.cmd.Quote(tagName), self.cmd.Quote(ref), self.cmd.Quote(msg))).Run()
+	} else {
+		return self.cmd.New(fmt.Sprintf("git tag %s -m %s", self.cmd.Quote(tagName), self.cmd.Quote(msg))).Run()
+	}
 }
 
 func (self *TagCommands) Delete(tagName string) error {
