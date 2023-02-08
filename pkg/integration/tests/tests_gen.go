@@ -27,6 +27,7 @@ var tests = []*components.IntegrationTest{
 	bisect.Basic,
 	bisect.FromOtherBranch,
 	branch.CheckoutByName,
+	branch.CreateTag,
 	branch.Delete,
 	branch.DetachedHead,
 	branch.OpenWithCliArg,
