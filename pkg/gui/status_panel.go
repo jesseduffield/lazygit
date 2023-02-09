@@ -169,8 +169,6 @@ func (gui *Gui) handleClone() error {
 						return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 					})
 				},
-				// TODO: suggestions
-				// FindSuggestionsFunc: nil,
 			})
 		},
 	})
