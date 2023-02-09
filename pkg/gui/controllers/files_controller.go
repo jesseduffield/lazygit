@@ -12,7 +12,7 @@ import (
 )
 
 type FilesController struct {
-	baseController
+	baseController // nolint: unused
 	*controllerCommon
 
 	enterSubmodule        func(submodule *models.SubmoduleConfig) error
