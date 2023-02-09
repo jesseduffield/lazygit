@@ -165,6 +165,8 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandb
 		cmdObj.AddEnvVars(fmt.Sprintf("KEY_PRESS_DELAY=%d", keyPressDelay))
 	}
 
+	cmdObj.AddEnvVars("GIT_CONFIG_GLOBAL=/dev/null")
+
 	return cmdObj.GetCmd(), nil
 }
 
