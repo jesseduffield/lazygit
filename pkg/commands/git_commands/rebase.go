@@ -129,7 +129,7 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseSha string, todo
 		debug = "TRUE"
 	}
 
-	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty %s", baseSha)
+	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty --no-autosquash %s", baseSha)
 	self.Log.WithField("command", cmdStr).Debug("RunCommand")
 
 	cmdObj := self.cmd.New(cmdStr)

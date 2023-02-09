@@ -45,9 +45,7 @@ var RebaseDoesNotAutosquash = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		t.Views().Commits().Lines(
-			/* Expected the fixup to be kept, but it's gone:
 			Contains("fixup! branch commit"),
-			*/
 			Contains("branch commit"),
 			Contains("master commit"),
 			Contains("base"),
