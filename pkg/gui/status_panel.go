@@ -128,15 +128,21 @@ func (gui *Gui) handleEditConfig() error {
 	return gui.askForConfigFile(gui.helpers.Files.EditFile)
 }
 
-// TODO: function name is bad
-func splitUrl(url string) string {
-	s := strings.Split(url, "https://github.com")
+// Minimises a repository url to "author/repo-name" if applicable
+func minimiseURL(url string) string {
+	sshPrefix := "git@github.com:"
+	httpsPrefix := "https://github.com/"
 
-	// https://github.com/willparsons/astrovim-config.git
-	// willparsons/astrovim-config
+	if s, found := strings.CutPrefix(url, sshPrefix); found {
+		return s
+	}
 
-	// TODO: this can fail
-	return s[1]
+	if s, found := strings.CutPrefix(url, httpsPrefix); found {
+		return s
+	}
+
+	// do nothing if there is no prefix to remove
+	return url
 }
 
 func (gui *Gui) handleClone() error {
@@ -149,7 +155,7 @@ func (gui *Gui) handleClone() error {
 					message := utils.ResolvePlaceholderString(
 						gui.c.Tr.Cloning,
 						map[string]string{
-							"url":         splitUrl(url),
+							"url":         minimiseURL(url),
 							"destination": destination,
 						},
 					)
