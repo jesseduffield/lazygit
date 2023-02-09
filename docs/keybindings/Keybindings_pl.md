@@ -18,6 +18,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>W</kbd>: open diff menu
   <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
+  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
   <kbd>:</kbd>: wykonaj własną komendę
@@ -115,7 +116,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+o</kbd>: copy the file name to the clipboard
-  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>d</kbd>: pokaż opcje porzucania zmian
   <kbd>space</kbd>: przełącz stan poczekalni
   <kbd>ctrl+b</kbd>: Filter files (staged/unstaged)

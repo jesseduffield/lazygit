@@ -1,5 +1,9 @@
 package gui
 
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
+
 func (gui *Gui) toggleWhitespaceInDiffView() error {
 	gui.IgnoreWhitespaceInDiffView = !gui.IgnoreWhitespaceInDiffView
 
@@ -9,5 +13,5 @@ func (gui *Gui) toggleWhitespaceInDiffView() error {
 	}
 	gui.c.Toast(toastMessage)
 
-	return gui.refreshFilesAndSubmodules()
+	return gui.currentSideListContext().HandleFocus(types.OnFocusOpts{})
 }

@@ -15,7 +15,8 @@ func (gui *Gui) commitFilesRenderToMain() error {
 	to := ref.RefName()
 	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
 
-	cmdObj := gui.git.WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false)
+	cmdObj := gui.git.WorkingTree.ShowFileDiffCmdObj(from, to, reverse, node.GetPath(), false,
+		gui.IgnoreWhitespaceInDiffView)
 	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
 	pair := gui.c.MainViewPairs().Normal

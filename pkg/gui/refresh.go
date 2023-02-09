@@ -658,7 +658,8 @@ func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 	ref := gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.GetRef()
 	to := ref.RefName()
 	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
-	diff, err := gui.git.WorkingTree.ShowFileDiff(from, to, reverse, path, true)
+	diff, err := gui.git.WorkingTree.ShowFileDiff(from, to, reverse, path, true,
+		gui.IgnoreWhitespaceInDiffView)
 	if err != nil {
 		return err
 	}
