@@ -191,6 +191,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Remote Branches
 
 <pre>
+  <kbd>ctrl+o</kbd>: copy branch name to clipboard
   <kbd>space</kbd>: przełącz
   <kbd>n</kbd>: nowa gałąź
   <kbd>M</kbd>: scal do obecnej gałęzi

@@ -212,6 +212,12 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.LcCopyBranchNameToClipboard,
 		},
 		{
+			ViewName:    "remoteBranches",
+			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
+			Handler:     self.handleCopySelectedSideContextItemToClipboard,
+			Description: self.c.Tr.LcCopyBranchNameToClipboard,
+		},
+		{
 			ViewName:    "commits",
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.handleCopySelectedSideContextItemToClipboard,
