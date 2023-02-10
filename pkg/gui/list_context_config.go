@@ -165,7 +165,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 				git_commands.NewNullBisectInfo(),
 			)
 		},
-		nil,
+		OnFocusWrapper(gui.onSubCommitFocus),
 		gui.withDiffModeCheck(gui.subCommitsRenderToMain),
 		nil,
 		gui.c,

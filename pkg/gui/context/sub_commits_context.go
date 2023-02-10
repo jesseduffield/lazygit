@@ -30,7 +30,8 @@ func NewSubCommitsContext(
 ) *SubCommitsContext {
 	viewModel := &SubCommitsViewModel{
 		BasicViewModel: NewBasicViewModel(getModel),
-		refName:        "",
+		ref:            nil,
+		limitCommits:   true,
 	}
 
 	return &SubCommitsContext{
@@ -60,12 +61,18 @@ func NewSubCommitsContext(
 
 type SubCommitsViewModel struct {
 	// name of the ref that the sub-commits are shown for
-	refName string
+	ref types.Ref
 	*BasicViewModel[*models.Commit]
+
+	limitCommits bool
 }
 
-func (self *SubCommitsViewModel) SetRefName(refName string) {
-	self.refName = refName
+func (self *SubCommitsViewModel) SetRef(ref types.Ref) {
+	self.ref = ref
+}
+
+func (self *SubCommitsViewModel) GetRef() types.Ref {
+	return self.ref
 }
 
 func (self *SubCommitsContext) GetSelectedItemId() string {
@@ -94,5 +101,13 @@ func (self *SubCommitsContext) GetCommits() []*models.Commit {
 }
 
 func (self *SubCommitsContext) Title() string {
-	return fmt.Sprintf(self.c.Tr.SubCommitsDynamicTitle, utils.TruncateWithEllipsis(self.refName, 50))
+	return fmt.Sprintf(self.c.Tr.SubCommitsDynamicTitle, utils.TruncateWithEllipsis(self.ref.RefName(), 50))
+}
+
+func (self *SubCommitsContext) SetLimitCommits(value bool) {
+	self.limitCommits = value
+}
+
+func (self *SubCommitsContext) GetLimitCommits() bool {
+	return self.limitCommits
 }
