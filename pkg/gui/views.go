@@ -117,7 +117,7 @@ func (gui *Gui) createAllViews() error {
 	var err error
 	for _, mapping := range gui.orderedViewNameMappings() {
 		*mapping.viewPtr, err = gui.prepareView(mapping.name)
-		if err != nil && err.Error() != UNKNOWN_VIEW_ERROR_MSG {
+		if err != nil && !gocui.IsUnknownView(err) {
 			return err
 		}
 	}
