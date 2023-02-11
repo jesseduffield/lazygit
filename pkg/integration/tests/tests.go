@@ -77,6 +77,7 @@ var tests = []*components.IntegrationTest{
 	filter_by_path.TypeFile,
 	patch_building.BuildPatchAndCopyToClipboard,
 	submodule.Add,
+	submodule.Remove,
 }
 
 func GetTests() []*components.IntegrationTest {
