@@ -32,7 +32,10 @@ func (self *PromptDriver) Type(value string) *PromptDriver {
 }
 
 func (self *PromptDriver) Clear() *PromptDriver {
-	panic("Clear method not yet implemented!")
+	// TODO: soft-code this
+	self.t.press("<c-u>")
+
+	return self
 }
 
 func (self *PromptDriver) Confirm() {
