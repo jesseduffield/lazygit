@@ -78,6 +78,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.BuildPatchAndCopyToClipboard,
 	submodule.Add,
 	submodule.Remove,
+	submodule.Enter,
 }
 
 func GetTests() []*components.IntegrationTest {

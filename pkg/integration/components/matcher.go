@@ -83,7 +83,7 @@ func (self *matcher) MatchesRegexp(target string) *matcher {
 			if err != nil {
 				return false, fmt.Sprintf("Unexpected error parsing regular expression '%s': %s", target, err.Error())
 			}
-			return matched, fmt.Sprintf("Expected '%s' to match regular expression '%s'", value, target)
+			return matched, fmt.Sprintf("Expected '%s' to match regular expression /%s/", value, target)
 		},
 	})
 }
