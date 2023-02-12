@@ -163,10 +163,10 @@ func (gui *Gui) handleClone() error {
 					return gui.c.WithLoaderPanel(message, func() error {
 						err := gui.git.Clone.Clone(url, destination)
 						if err != nil {
-							_ = gui.c.Error(err)
+							return gui.c.Error(err)
 						}
 
-						return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+						return err
 					})
 				},
 			})
