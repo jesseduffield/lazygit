@@ -79,6 +79,7 @@ var tests = []*components.IntegrationTest{
 	submodule.Add,
 	submodule.Remove,
 	submodule.Enter,
+	submodule.Reset,
 }
 
 func GetTests() []*components.IntegrationTest {

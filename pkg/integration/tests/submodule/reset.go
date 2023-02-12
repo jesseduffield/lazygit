@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var Enter = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Enter a submodule, add a commit, and then stage the change in the parent repo",
+var Reset = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Enter a submodule, create a commit and stage some changes, then reset the submodule from back in the parent repo. This test captures functionality around getting a dirty submodule out of your files panel.",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
@@ -14,7 +14,7 @@ var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 			{
 				Key:     "e",
 				Context: "files",
-				Command: "git commit --allow-empty -m \"empty commit\"",
+				Command: "git commit --allow-empty -m \"empty commit\" && echo \"my_file content\" > my_file",
 			},
 		}
 	},
@@ -44,11 +44,19 @@ var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 
 		assertInSubmodule()
 
+		t.Views().Status().Content(Contains("my_submodule"))
+
 		t.Views().Files().IsFocused().
 			Press("e").
 			Tap(func() {
 				t.Views().Commits().Content(Contains("empty commit"))
+				t.Views().Files().Content(Contains("my_file"))
 			}).
+			Lines(
+				Contains("my_file").IsSelected(),
+			).
+			// stage my_file
+			PressPrimaryAction().
 			// return to the parent repo
 			PressEscape()
 
@@ -56,27 +64,42 @@ var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Submodules().IsFocused()
 
-		// we see the new commit in the submodule is ready to be staged in the parent repo
-		t.Views().Main().Content(Contains("> empty commit"))
+		t.Views().Main().Content(Contains("Submodule my_submodule contains modified content"))
 
 		t.Views().Files().Focus().
 			Lines(
 				MatchesRegexp(` M.*my_submodule \(submodule\)`).IsSelected(),
 			).
+			Press(keys.Universal.Remove).
 			Tap(func() {
-				// main view also shows the new commit when we're looking at the submodule within the files view
-				t.Views().Main().Content(Contains("> empty commit"))
-			}).
-			PressPrimaryAction().
-			Press(keys.Files.CommitChanges).
-			Tap(func() {
-				t.ExpectPopup().CommitMessagePanel().Type("submodule change").Confirm()
+				t.ExpectPopup().Menu().Title(Equals("my_submodule")).Select(Contains("stash uncommitted submodule changes and update")).Confirm()
 			}).
 			IsEmpty()
 
-		t.Views().Submodules().Focus()
+		t.Views().Submodules().Focus().
+			PressEnter()
 
-		// we no longer report a new commit because we've committed it in the parent repo
-		t.Views().Main().Content(DoesNotContain("> empty commit"))
+		assertInSubmodule()
+
+		// submodule has been hard reset to the commit the parent repo specifies
+		t.Views().Branches().Lines(
+			Contains("HEAD detached").IsSelected(),
+			Contains("master"),
+		)
+
+		// empty commit is gone
+		t.Views().Commits().Lines(
+			Contains("first commit").IsSelected(),
+		)
+
+		// the staged change has been stashed
+		t.Views().Files().IsEmpty()
+
+		t.Views().Stash().Focus().
+			Lines(
+				Contains("WIP on master").IsSelected(),
+			)
+
+		t.Views().Main().Content(Contains("my_file content"))
 	},
 })
