@@ -23,6 +23,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/patch_building"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/submodule"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
 )
 
@@ -75,6 +76,10 @@ var tests = []*components.IntegrationTest{
 	filter_by_path.SelectFile,
 	filter_by_path.TypeFile,
 	patch_building.BuildPatchAndCopyToClipboard,
+	submodule.Add,
+	submodule.Remove,
+	submodule.Enter,
+	submodule.Reset,
 }
 
 func GetTests() []*components.IntegrationTest {

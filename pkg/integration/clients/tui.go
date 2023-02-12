@@ -307,6 +307,7 @@ func (self *app) layout(g *gocui.Gui) error {
 		}
 
 		listView.Highlight = true
+		listView.SelBgColor = gocui.ColorBlue
 		self.renderTests()
 		listView.Title = "Tests"
 		listView.FgColor = gocui.ColorDefault

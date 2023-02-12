@@ -348,6 +348,7 @@ func (app *App) layout(g *gocui.Gui) error {
 			return err
 		}
 		listView.Highlight = true
+		listView.SelBgColor = gocui.ColorBlue
 		listView.Clear()
 		for _, test := range app.tests {
 			fmt.Fprintln(listView, test.Name)

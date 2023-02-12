@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/samber/lo"
 )
 
 type ViewDriver struct {
@@ -104,32 +105,56 @@ func (self *ViewDriver) SelectedLineIdx(expected int) *ViewDriver {
 	return self
 }
 
-// focus the view (assumes the view is a side-view that can be focused via a keybinding)
+// focus the view (assumes the view is a side-view)
 func (self *ViewDriver) Focus() *ViewDriver {
-	// we can easily change focus by switching to the view's window, but this assumes that the desired view
-	// is at the top of that window. So for now we'll switch to the window then assert that the desired
-	// view is on top (i.e. that it's the current view).
-	// If we want to support other views e.g. the tags view, we'll need to add more logic here.
 	viewName := self.getView().Name()
 
-	// using a map rather than a slice because we might add other views which share a window index later
-	windowIndexMap := map[string]int{
-		"status":        0,
-		"files":         1,
-		"localBranches": 2,
-		"commits":       3,
-		"stash":         4,
+	type window struct {
+		name      string
+		viewNames []string
+	}
+	windows := []window{
+		{name: "status", viewNames: []string{"status"}},
+		{name: "files", viewNames: []string{"files", "submodules"}},
+		{name: "branches", viewNames: []string{"localBranches", "remotes", "tags"}},
+		{name: "commits", viewNames: []string{"commits", "reflogCommits"}},
+		{name: "stash", viewNames: []string{"stash"}},
 	}
 
-	index, ok := windowIndexMap[viewName]
-	if !ok {
-		self.t.fail(fmt.Sprintf("Cannot focus view %s: Focus() method not implemented", viewName))
+	for windowIndex, window := range windows {
+		if lo.Contains(window.viewNames, viewName) {
+			tabIndex := lo.IndexOf(window.viewNames, viewName)
+			// jump to the desired window
+			self.t.press(self.t.keys.Universal.JumpToBlock[windowIndex])
+
+			// assert we're in the window before continuing
+			self.t.assertWithRetries(func() (bool, string) {
+				currentWindowName := self.t.gui.CurrentContext().GetWindowName()
+				// by convention the window is named after the first view in the window
+				return currentWindowName == window.name, fmt.Sprintf("Expected to be in window '%s', but was in '%s'", window.name, currentWindowName)
+			})
+
+			// switch to the desired tab
+			currentViewName := self.t.gui.CurrentContext().GetViewName()
+			currentViewTabIndex := lo.IndexOf(window.viewNames, currentViewName)
+			if tabIndex > currentViewTabIndex {
+				for i := 0; i < tabIndex-currentViewTabIndex; i++ {
+					self.t.press(self.t.keys.Universal.NextTab)
+				}
+			} else if tabIndex < currentViewTabIndex {
+				for i := 0; i < currentViewTabIndex-tabIndex; i++ {
+					self.t.press(self.t.keys.Universal.PrevTab)
+				}
+			}
+
+			// assert that we're now in the expected view
+			self.IsFocused()
+
+			return self
+		}
 	}
 
-	self.t.press(self.t.keys.Universal.JumpToBlock[index])
-
-	// assert that we land in the expected view
-	self.IsFocused()
+	self.t.fail(fmt.Sprintf("Cannot focus view %s: Focus() method not implemented", viewName))
 
 	return self
 }
