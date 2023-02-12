@@ -166,7 +166,13 @@ func (gui *Gui) handleClone() error {
 							return gui.c.Error(err)
 						}
 
-						return err
+						return gui.c.Confirm(types.ConfirmOpts{
+							Title:  "Switch repository",
+							Prompt: "Do you want to switch to the repository that you just cloned?",
+							HandleConfirm: func() error {
+								return gui.dispatchSwitchToRepo(destination, false)
+							},
+						})
 					})
 				},
 			})
