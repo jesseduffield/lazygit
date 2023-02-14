@@ -200,7 +200,8 @@ func (self *StagingController) applySelection(reverse bool) error {
 	}
 
 	if state.SelectingRange() {
-		state.SetLineSelectMode()
+		firstLine, _ := state.SelectedRange()
+		state.SelectLine(firstLine)
 	}
 
 	return nil

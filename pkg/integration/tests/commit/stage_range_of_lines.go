@@ -34,9 +34,6 @@ var StageRangeOfLines = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(
 				Contains(" 3rd\n 4th\n-5th\n+5th changed\n 6th"),
 			).
-			/* EXPECTED:
 			SelectedLine(Equals("-5th"))
-			ACTUAL */
-			SelectedLine(Equals("+5th changed"))
 	},
 })
