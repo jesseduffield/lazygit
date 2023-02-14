@@ -332,6 +332,12 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:  self.handleSearchEscape,
 		},
 		{
+			ViewName: "search",
+			Key:      opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Modifier: gocui.ModNone,
+			Handler:  self.handleSearchEscape,
+		},
+		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.PrevItem),
 			Modifier: gocui.ModNone,

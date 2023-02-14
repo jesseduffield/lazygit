@@ -65,6 +65,11 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Description: self.c.Tr.ReturnToRemotesList,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Handler:     self.escape,
+			Description: self.c.Tr.ReturnToRemotesList,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.checkSelected(self.createResetMenu),
 			Description: self.c.Tr.LcViewResetOptions,
