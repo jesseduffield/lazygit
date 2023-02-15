@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
 
@@ -88,6 +89,9 @@ func (self *ViewDriver) Content(matcher *matcher) *ViewDriver {
 func (self *ViewDriver) SelectedLine(matcher *matcher) *ViewDriver {
 	self.t.matchString(matcher, fmt.Sprintf("%s: Unexpected selected line.", self.context),
 		func() string {
+			if idx, ok := self.selectedLineIdxInPatchExplorer(); ok {
+				return self.getView().BufferLines()[idx]
+			}
 			return self.getView().SelectedLine()
 		},
 	)
@@ -98,11 +102,23 @@ func (self *ViewDriver) SelectedLine(matcher *matcher) *ViewDriver {
 // asserts on the index of the selected line. 0 is the first index, representing the line at the top of the view.
 func (self *ViewDriver) SelectedLineIdx(expected int) *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
-		actual := self.getView().SelectedLineIdx()
+		actual, ok := self.selectedLineIdxInPatchExplorer()
+		if !ok {
+			actual = self.getView().SelectedLineIdx()
+		}
 		return expected == actual, fmt.Sprintf("%s: Expected selected line index to be %d, got %d", self.context, expected, actual)
 	})
 
 	return self
+}
+
+func (self *ViewDriver) selectedLineIdxInPatchExplorer() (int, bool) {
+	context := self.t.gui.ContextForView(self.getView().Name())
+	patchExplorerContext, ok := context.(types.IPatchExplorerContext)
+	if ok && patchExplorerContext.GetState() != nil {
+		return patchExplorerContext.GetState().GetSelectedLineIdx(), true
+	}
+	return 0, false
 }
 
 // focus the view (assumes the view is a side-view)
