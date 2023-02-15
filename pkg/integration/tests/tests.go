@@ -38,6 +38,7 @@ var tests = []*components.IntegrationTest{
 	branch.Delete,
 	branch.Rebase,
 	branch.RebaseAndDrop,
+	branch.RebaseDoesNotAutosquash,
 	branch.Suggestions,
 	branch.Reset,
 	branch.DetachedHead,
