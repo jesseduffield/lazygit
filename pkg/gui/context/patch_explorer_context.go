@@ -100,12 +100,9 @@ func (self *PatchExplorerContext) focusSelection() {
 	bufferHeight := viewHeight - 1
 	_, origin := view.Origin()
 
-	selectedLineIdx := state.GetSelectedLineIdx()
-
 	newOrigin := state.CalculateOrigin(origin, bufferHeight)
 
 	_ = view.SetOriginY(newOrigin)
-	_ = view.SetCursor(0, selectedLineIdx-newOrigin)
 }
 
 func (self *PatchExplorerContext) GetContentToRender(isFocused bool) string {
