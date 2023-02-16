@@ -20,6 +20,7 @@ type BaseContext struct {
 	focusable           bool
 	transient           bool
 	hasControlledBounds bool
+	highlightOnFocus    bool
 
 	*ParentContextMgr
 }
@@ -34,6 +35,7 @@ type NewBaseContextOpts struct {
 	Focusable             bool
 	Transient             bool
 	HasUncontrolledBounds bool // negating for the sake of making false the default
+	HighlightOnFocus      bool
 
 	OnGetOptionsMap func() map[string]string
 }
@@ -52,6 +54,7 @@ func NewBaseContext(opts NewBaseContextOpts) *BaseContext {
 		focusable:           opts.Focusable,
 		transient:           opts.Transient,
 		hasControlledBounds: hasControlledBounds,
+		highlightOnFocus:    opts.HighlightOnFocus,
 		ParentContextMgr:    &ParentContextMgr{},
 		viewTrait:           viewTrait,
 	}

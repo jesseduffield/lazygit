@@ -418,9 +418,10 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 		if err != nil {
 			return err
 		}
-		_, rcy, err = v.realPosition(v.cx, v.cy)
-		if err != nil {
-			return err
+		_, rrcy, err := v.realPosition(v.cx, v.cy)
+		// if error is not nil, then the cursor is out of bounds, which is fine
+		if err == nil {
+			rcy = rrcy
 		}
 	}
 
@@ -458,6 +459,22 @@ func (v *View) SetCursor(x, y int) error {
 	v.cx = x
 	v.cy = y
 	return nil
+}
+
+func (v *View) SetCursorX(x int) {
+	maxX, _ := v.Size()
+	if x < 0 || x >= maxX {
+		return
+	}
+	v.cx = x
+}
+
+func (v *View) SetCursorY(y int) {
+	_, maxY := v.Size()
+	if y < 0 || y >= maxY {
+		return
+	}
+	v.cy = y
 }
 
 // Cursor returns the cursor position of the view.
@@ -1349,11 +1366,12 @@ func (v *View) OverwriteLines(y int, content string) {
 }
 
 func (v *View) ScrollUp(amount int) {
-	newOy := v.oy - amount
-	if newOy < 0 {
-		newOy = 0
+	if amount > v.oy {
+		amount = v.oy
 	}
-	v.oy = newOy
+
+	v.oy -= amount
+	v.cy += amount
 }
 
 // ensures we don't scroll past the end of the view's content
@@ -1361,6 +1379,7 @@ func (v *View) ScrollDown(amount int) {
 	adjustedAmount := v.adjustDownwardScrollAmount(amount)
 	if adjustedAmount > 0 {
 		v.oy += adjustedAmount
+		v.cy -= adjustedAmount
 	}
 }
 
