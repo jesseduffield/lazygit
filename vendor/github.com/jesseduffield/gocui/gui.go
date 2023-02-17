@@ -1021,7 +1021,7 @@ func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
 		return nil
 	}
 
-	start := v.x1 - 5 - len(v.Subtitle)
+	start := v.x1 - 5 - runewidth.StringWidth(v.Subtitle)
 	if start < v.x0 {
 		return nil
 	}
@@ -1050,7 +1050,7 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 		return nil
 	}
 
-	start := v.x1 - 1 - len(message)
+	start := v.x1 - 1 - runewidth.StringWidth(message)
 	if start < v.x0 {
 		return nil
 	}

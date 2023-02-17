@@ -872,28 +872,34 @@ func (v *View) updateSearchPositions() {
 		var normalizedSearchStr string
 		// if we have any uppercase characters we'll do a case-sensitive search
 		if containsUpcaseChar(v.searcher.searchString) {
-			normalizedSearchStr = v.searcher.searchString
 			normalizeRune = func(r rune) rune { return r }
+			normalizedSearchStr = v.searcher.searchString
 		} else {
-			normalizedSearchStr = strings.ToLower(v.searcher.searchString)
 			normalizeRune = unicode.ToLower
+			normalizedSearchStr = strings.ToLower(v.searcher.searchString)
 		}
 
 		v.searcher.searchPositions = []cellPos{}
 		for y, line := range v.lines {
-		lineLoop:
-			for x := range line {
-				if normalizeRune(line[x].chr) == rune(normalizedSearchStr[0]) {
-					for offset := 1; offset < len(normalizedSearchStr); offset++ {
-						if len(line)-1 < x+offset {
-							continue lineLoop
-						}
-						if normalizeRune(line[x+offset].chr) != rune(normalizedSearchStr[offset]) {
-							continue lineLoop
-						}
+			x := 0
+			for startIdx, c := range line {
+				found := true
+				offset := 0
+				for _, c := range normalizedSearchStr {
+					if len(line)-1 < startIdx+offset {
+						found = false
+						break
 					}
+					if normalizeRune(line[startIdx+offset].chr) != c {
+						found = false
+						break
+					}
+					offset += 1
+				}
+				if found {
 					v.searcher.searchPositions = append(v.searcher.searchPositions, cellPos{x: x, y: y})
 				}
+				x += runewidth.RuneWidth(c.chr)
 			}
 		}
 	}
@@ -1053,11 +1059,11 @@ func (v *View) viewLineLengthIgnoringTrailingBlankLines() int {
 }
 
 func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
-	searchStringLength := len(v.searcher.searchString)
+	searchStringWidth := runewidth.StringWidth(v.searcher.searchString)
 	for i, pos := range v.searcher.searchPositions {
 		adjustedY := y + v.oy
 		adjustedX := x + v.ox
-		if adjustedY == pos.y && adjustedX >= pos.x && adjustedX < pos.x+searchStringLength {
+		if adjustedY == pos.y && adjustedX >= pos.x && adjustedX < pos.x+searchStringWidth {
 			return true, i == v.searcher.currentSearchIndex
 		}
 	}
