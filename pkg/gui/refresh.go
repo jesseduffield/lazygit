@@ -618,6 +618,12 @@ func (gui *Gui) refreshStagingPanel(focusOpts types.OnFocusOpts) error {
 		return gui.c.PushContext(mainContext, focusOpts)
 	}
 
+	if secondaryFocused {
+		gui.State.Contexts.StagingSecondary.FocusSelection()
+	} else {
+		gui.State.Contexts.Staging.FocusSelection()
+	}
+
 	return gui.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: gui.c.MainViewPairs().Staging,
 		Main: &types.ViewUpdateOpts{
@@ -678,6 +684,8 @@ func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 	if state == nil {
 		return gui.helpers.PatchBuilding.Escape()
 	}
+
+	gui.State.Contexts.CustomPatchBuilder.FocusSelection()
 
 	mainContent := context.GetContentToRender(true)
 

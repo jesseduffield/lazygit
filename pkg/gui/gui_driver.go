@@ -49,6 +49,15 @@ func (self *GuiDriver) CurrentContext() types.Context {
 	return self.gui.c.CurrentContext()
 }
 
+func (self *GuiDriver) ContextForView(viewName string) types.Context {
+	context, ok := self.gui.contextForView(viewName)
+	if !ok {
+		return nil
+	}
+
+	return context
+}
+
 func (self *GuiDriver) Fail(message string) {
 	self.gui.g.Close()
 	// need to give the gui time to close

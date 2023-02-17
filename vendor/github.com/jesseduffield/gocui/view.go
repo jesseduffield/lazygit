@@ -418,9 +418,10 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 		if err != nil {
 			return err
 		}
-		_, rcy, err = v.realPosition(v.cx, v.cy)
-		if err != nil {
-			return err
+		_, rrcy, err := v.realPosition(v.cx, v.cy)
+		// if error is not nil, then the cursor is out of bounds, which is fine
+		if err == nil {
+			rcy = rrcy
 		}
 	}
 
@@ -458,6 +459,22 @@ func (v *View) SetCursor(x, y int) error {
 	v.cx = x
 	v.cy = y
 	return nil
+}
+
+func (v *View) SetCursorX(x int) {
+	maxX, _ := v.Size()
+	if x < 0 || x >= maxX {
+		return
+	}
+	v.cx = x
+}
+
+func (v *View) SetCursorY(y int) {
+	_, maxY := v.Size()
+	if y < 0 || y >= maxY {
+		return
+	}
+	v.cy = y
 }
 
 // Cursor returns the cursor position of the view.
@@ -855,28 +872,34 @@ func (v *View) updateSearchPositions() {
 		var normalizedSearchStr string
 		// if we have any uppercase characters we'll do a case-sensitive search
 		if containsUpcaseChar(v.searcher.searchString) {
-			normalizedSearchStr = v.searcher.searchString
 			normalizeRune = func(r rune) rune { return r }
+			normalizedSearchStr = v.searcher.searchString
 		} else {
-			normalizedSearchStr = strings.ToLower(v.searcher.searchString)
 			normalizeRune = unicode.ToLower
+			normalizedSearchStr = strings.ToLower(v.searcher.searchString)
 		}
 
 		v.searcher.searchPositions = []cellPos{}
 		for y, line := range v.lines {
-		lineLoop:
-			for x := range line {
-				if normalizeRune(line[x].chr) == rune(normalizedSearchStr[0]) {
-					for offset := 1; offset < len(normalizedSearchStr); offset++ {
-						if len(line)-1 < x+offset {
-							continue lineLoop
-						}
-						if normalizeRune(line[x+offset].chr) != rune(normalizedSearchStr[offset]) {
-							continue lineLoop
-						}
+			x := 0
+			for startIdx, c := range line {
+				found := true
+				offset := 0
+				for _, c := range normalizedSearchStr {
+					if len(line)-1 < startIdx+offset {
+						found = false
+						break
 					}
+					if normalizeRune(line[startIdx+offset].chr) != c {
+						found = false
+						break
+					}
+					offset += 1
+				}
+				if found {
 					v.searcher.searchPositions = append(v.searcher.searchPositions, cellPos{x: x, y: y})
 				}
+				x += runewidth.RuneWidth(c.chr)
 			}
 		}
 	}
@@ -1036,11 +1059,11 @@ func (v *View) viewLineLengthIgnoringTrailingBlankLines() int {
 }
 
 func (v *View) isPatternMatchedRune(x, y int) (bool, bool) {
-	searchStringLength := len(v.searcher.searchString)
+	searchStringWidth := runewidth.StringWidth(v.searcher.searchString)
 	for i, pos := range v.searcher.searchPositions {
 		adjustedY := y + v.oy
 		adjustedX := x + v.ox
-		if adjustedY == pos.y && adjustedX >= pos.x && adjustedX < pos.x+searchStringLength {
+		if adjustedY == pos.y && adjustedX >= pos.x && adjustedX < pos.x+searchStringWidth {
 			return true, i == v.searcher.currentSearchIndex
 		}
 	}
@@ -1349,11 +1372,12 @@ func (v *View) OverwriteLines(y int, content string) {
 }
 
 func (v *View) ScrollUp(amount int) {
-	newOy := v.oy - amount
-	if newOy < 0 {
-		newOy = 0
+	if amount > v.oy {
+		amount = v.oy
 	}
-	v.oy = newOy
+
+	v.oy -= amount
+	v.cy += amount
 }
 
 // ensures we don't scroll past the end of the view's content
@@ -1361,6 +1385,7 @@ func (v *View) ScrollDown(amount int) {
 	adjustedAmount := v.adjustDownwardScrollAmount(amount)
 	if adjustedAmount > 0 {
 		v.oy += adjustedAmount
+		v.cy -= adjustedAmount
 	}
 }
 
