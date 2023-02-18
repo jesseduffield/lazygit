@@ -30,10 +30,6 @@ func (self *fakeGuiDriver) CurrentContext() types.Context {
 	return nil
 }
 
-func (self *fakeGuiDriver) ContextForView(viewName string) types.Context {
-	return nil
-}
-
 func (self *fakeGuiDriver) Fail(message string) {
 	self.failureMessage = message
 }
