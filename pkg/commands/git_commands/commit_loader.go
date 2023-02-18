@@ -401,7 +401,9 @@ func ignoringWarnings(commandOutput string) string {
 func (self *CommitLoader) getFirstPushedCommit(refName string) (string, error) {
 	output, err := self.cmd.
 		New(
-			fmt.Sprintf("git merge-base %s %s@{u}", self.cmd.Quote(refName), self.cmd.Quote(refName)),
+			fmt.Sprintf("git merge-base %s %s@{u}",
+				self.cmd.Quote(refName),
+				self.cmd.Quote(strings.TrimPrefix(refName, "refs/heads/"))),
 		).
 		DontLog().
 		RunWithOutput()
