@@ -54,10 +54,7 @@ func TestGetCommits(t *testing.T) {
 			currentBranchName: "mybranch",
 			opts:              GetCommitsOptions{RefName: "refs/heads/mybranch", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
-				/* EXPECTED:
 				Expect(`git merge-base "refs/heads/mybranch" "mybranch"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
-				ACTUAL: */
-				Expect(`git merge-base "refs/heads/mybranch" "refs/heads/mybranch"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				Expect(`git -c log.showSignature=false log "refs/heads/mybranch" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40`, "", nil),
 
 			expectedCommits: []*models.Commit{},
