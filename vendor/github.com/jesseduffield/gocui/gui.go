@@ -1555,3 +1555,30 @@ func (g *Gui) matchView(v *View, kb *keybinding) bool {
 	}
 	return true
 }
+
+// returns a string representation of the current state of the gui, character-for-character
+func (g *Gui) Snapshot() string {
+	if g.screen == nil {
+		return "<no screen rendered>"
+	}
+
+	width, height := g.screen.Size()
+
+	builder := &strings.Builder{}
+
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			char, _, _, charWidth := g.screen.GetContent(x, y)
+			if charWidth == 0 {
+				continue
+			}
+			builder.WriteRune(char)
+			if charWidth > 1 {
+				x += charWidth - 1
+			}
+		}
+		builder.WriteRune('\n')
+	}
+
+	return builder.String()
+}

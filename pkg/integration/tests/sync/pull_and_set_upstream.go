@@ -9,9 +9,7 @@ var PullAndSetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Pull a commit from the remote, setting the upstream branch in the process",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Git.AutoFetch = false
-	},
+	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")
 		shell.EmptyCommit("two")

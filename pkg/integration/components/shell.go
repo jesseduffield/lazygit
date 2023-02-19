@@ -116,6 +116,10 @@ func (self *Shell) Merge(name string) *Shell {
 	return self.RunCommand("git merge --commit --no-ff " + name)
 }
 
+func (self *Shell) ContinueMerge() *Shell {
+	return self.RunCommand("git -c core.editor=true merge --continue")
+}
+
 func (self *Shell) GitAdd(path string) *Shell {
 	return self.RunCommand(fmt.Sprintf("git add \"%s\"", path))
 }

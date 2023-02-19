@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/cherry_pick"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/config"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/conflicts"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
@@ -19,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/submodule"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/undo"
 )
 
 var tests = []*components.IntegrationTest{
@@ -27,6 +29,7 @@ var tests = []*components.IntegrationTest{
 	branch.CheckoutByName,
 	branch.Delete,
 	branch.DetachedHead,
+	branch.OpenWithCliArg,
 	branch.Rebase,
 	branch.RebaseAndDrop,
 	branch.RebaseDoesNotAutosquash,
@@ -39,11 +42,13 @@ var tests = []*components.IntegrationTest{
 	commit.DiscardOldFileChange,
 	commit.NewBranch,
 	commit.Revert,
+	commit.RevertMerge,
 	commit.StageRangeOfLines,
 	commit.Staged,
 	commit.StagedWithoutHooks,
 	commit.Unstaged,
 	config.RemoteNamedStar,
+	conflicts.UndoChooseHunk,
 	custom_commands.Basic,
 	custom_commands.FormPrompts,
 	custom_commands.MenuFromCommand,
@@ -63,6 +68,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.AmendMerge,
 	interactive_rebase.One,
 	misc.ConfirmOnQuit,
+	misc.InitialOpen,
 	patch_building.CopyPatchToClipboard,
 	stash.Rename,
 	stash.Stash,
@@ -72,7 +78,11 @@ var tests = []*components.IntegrationTest{
 	submodule.Remove,
 	submodule.Reset,
 	sync.FetchPrune,
+	sync.ForcePush,
+	sync.ForcePushMultipleMatching,
+	sync.ForcePushMultipleUpstream,
 	sync.Pull,
 	sync.PullAndSetUpstream,
 	sync.RenameBranchAndPull,
+	undo.UndoDrop,
 }

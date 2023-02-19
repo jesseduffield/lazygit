@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var Pull = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Pull a commit from the remote",
+var ForcePush = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Push to a remote with new commits, requiring a force push",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -28,14 +28,29 @@ var Pull = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Status().Content(Contains("↓1 repo → master"))
 
-		t.Views().Files().IsFocused().Press(keys.Universal.Pull)
+		t.Views().Files().IsFocused().Press(keys.Universal.Push)
+
+		t.ExpectPopup().Confirmation().
+			Title(Equals("Force push")).
+			Content(Equals("Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.")).
+			Confirm()
 
 		t.Views().Commits().
 			Lines(
-				Contains("two"),
 				Contains("one"),
 			)
 
 		t.Views().Status().Content(Contains("✓ repo → master"))
+
+		t.Views().Remotes().Focus().
+			Lines(Contains("origin")).
+			PressEnter()
+
+		t.Views().RemoteBranches().IsFocused().
+			Lines(Contains("master")).
+			PressEnter()
+
+		t.Views().SubCommits().IsFocused().
+			Lines(Contains("one"))
 	},
 })
