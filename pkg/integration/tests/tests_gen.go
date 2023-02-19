@@ -27,6 +27,7 @@ var tests = []*components.IntegrationTest{
 	branch.CheckoutByName,
 	branch.Delete,
 	branch.DetachedHead,
+	branch.OpenWithCliArg,
 	branch.Rebase,
 	branch.RebaseAndDrop,
 	branch.RebaseDoesNotAutosquash,
