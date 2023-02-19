@@ -181,7 +181,6 @@ func dutchTranslationSet() TranslationSet {
 		LcPasteCommits:                      "plak commits (cherry-pick)",
 		SureCherryPick:                      "Weet je zeker dat je de gekopieerde commits naar deze branch wil cherry-picken?",
 		CherryPick:                          "Cherry-Pick",
-		CannotRebaseOntoFirstCommit:         "Je kan niet interactief rebasen naar de eerste commit",
 		Donate:                              "Doneer",
 		PrevLine:                            "selecteer de vorige lijn",
 		NextLine:                            "selecteer de volgende lijn",

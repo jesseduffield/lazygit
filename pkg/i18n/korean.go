@@ -217,7 +217,6 @@ func koreanTranslationSet() TranslationSet {
 		LcPasteCommits:                      "커밋을 붙여넣기 (cherry-pick)",
 		SureCherryPick:                      "정말로 복사한 커밋을 이 브랜치에 체리픽하시겠습니까?",
 		CherryPick:                          "체리픽",
-		CannotRebaseOntoFirstCommit:         "첫 번째 커밋에 대해 대화식으로 리베이스할 수 없습니다.",
 		Donate:                              "후원",
 		AskQuestion:                         "질문하기",
 		PrevLine:                            "이전 줄 선택",

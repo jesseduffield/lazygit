@@ -149,7 +149,6 @@ func polishTranslationSet() TranslationSet {
 		LcPasteCommits:                      "wklej commity (przebieranie)",
 		SureCherryPick:                      "Czy na pewno chcesz przebierać w skopiowanych commitach na tej gałęzi?",
 		CherryPick:                          "Przebieranie",
-		CannotRebaseOntoFirstCommit:         "Nie można interaktywnie zmienić bazy na pierwszym commicie",
 		Donate:                              "Wesprzyj",
 		PrevLine:                            "poprzednia linia",
 		NextLine:                            "następna linia",

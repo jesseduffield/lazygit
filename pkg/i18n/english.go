@@ -219,7 +219,6 @@ type TranslationSet struct {
 	LcPasteCommits                      string
 	SureCherryPick                      string
 	CherryPick                          string
-	CannotRebaseOntoFirstCommit         string
 	Donate                              string
 	AskQuestion                         string
 	PrevLine                            string
@@ -868,7 +867,6 @@ func EnglishTranslationSet() TranslationSet {
 		LcPasteCommits:                      "paste commits (cherry-pick)",
 		SureCherryPick:                      "Are you sure you want to cherry-pick the copied commits onto this branch?",
 		CherryPick:                          "Cherry-Pick",
-		CannotRebaseOntoFirstCommit:         "You cannot interactive rebase onto the first commit",
 		Donate:                              "Donate",
 		AskQuestion:                         "Ask Question",
 		PrevLine:                            "select previous line",

@@ -216,7 +216,6 @@ func chineseTranslationSet() TranslationSet {
 		LcPasteCommits:                      "粘贴提交（拣选）",
 		SureCherryPick:                      "您确定要将选中的提交进行拣选到这个分支吗？",
 		CherryPick:                          "拣选 (Cherry-Pick)",
-		CannotRebaseOntoFirstCommit:         "您不能以交互方式变基 (rebase) 至第一次提交",
 		Donate:                              "捐助",
 		AskQuestion:                         "提问咨询",
 		PrevLine:                            "选择上一行",
