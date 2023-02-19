@@ -178,10 +178,6 @@ func (self *RebaseCommands) BuildSingleActionTodo(commits []*models.Commit, acti
 
 	if action == "squash" || action == "fixup" {
 		baseIndex++
-
-		if len(commits) <= baseIndex {
-			return nil, "", errors.New(self.Tr.CannotSquashOntoSecondCommit)
-		}
 	}
 
 	todoLines := self.BuildTodoLines(commits[0:baseIndex], func(commit *models.Commit, i int) string {
