@@ -64,6 +64,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.AmendMerge,
 	interactive_rebase.One,
 	misc.ConfirmOnQuit,
+	misc.InitialOpen,
 	patch_building.CopyPatchToClipboard,
 	stash.Rename,
 	stash.Stash,
