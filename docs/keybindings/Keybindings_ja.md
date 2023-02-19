@@ -11,7 +11,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>m</kbd>: view merge/rebase options
   <kbd>ctrl+p</kbd>: view custom patch options
   <kbd>R</kbd>: リフレッシュ
-  <kbd>x</kbd>: メニューを開く
+  <kbd>?</kbd>: メニューを開く
   <kbd>+</kbd>: 次のスクリーンモード (normal/half/fullscreen)
   <kbd>_</kbd>: 前のスクリーンモード
   <kbd>ctrl+s</kbd>: view filter-by-path options

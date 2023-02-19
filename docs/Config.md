@@ -136,7 +136,7 @@ keybinding:
     jumpToBlock: ['1', '2', '3', '4', '5'] # goto the Nth block / panel
     nextMatch: 'n'
     prevMatch: 'N'
-    optionMenu: 'x' # show help menu
+    optionMenu: null # show help menu
     optionMenu-alt1: '?' # show help menu
     select: '<space>'
     goInto: '<enter>'

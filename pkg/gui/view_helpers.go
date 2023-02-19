@@ -107,9 +107,9 @@ func (gui *Gui) globalOptionsMap() map[string]string {
 	return map[string]string{
 		fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollUpMain), keybindings.Label(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               gui.c.Tr.LcScroll,
 		fmt.Sprintf("%s %s %s %s", keybindings.Label(keybindingConfig.Universal.PrevBlock), keybindings.Label(keybindingConfig.Universal.NextBlock), keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
-		keybindings.Label(keybindingConfig.Universal.Return):     gui.c.Tr.LcCancel,
-		keybindings.Label(keybindingConfig.Universal.Quit):       gui.c.Tr.LcQuit,
-		keybindings.Label(keybindingConfig.Universal.OptionMenu): gui.c.Tr.LcMenu,
+		keybindings.Label(keybindingConfig.Universal.Return):         gui.c.Tr.LcCancel,
+		keybindings.Label(keybindingConfig.Universal.Quit):           gui.c.Tr.LcQuit,
+		keybindings.Label(keybindingConfig.Universal.OptionMenuAlt1): gui.c.Tr.LcMenu,
 		fmt.Sprintf("%s-%s", keybindings.Label(keybindingConfig.Universal.JumpToBlock[0]), keybindings.Label(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): gui.c.Tr.LcJump,
 		fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollLeft), keybindings.Label(keybindingConfig.Universal.ScrollRight)):                                                    gui.c.Tr.LcScrollLeftRight,
 	}
