@@ -1,3 +1,5 @@
+//go:generate go run tests_generator.go
+
 package tests
 
 import (
@@ -10,79 +12,7 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/bisect"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/branch"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/cherry_pick"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/config"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_path"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/patch_building"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/submodule"
-	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
 )
-
-// Here is where we lists the actual tests that will run. When you create a new test,
-// be sure to add it to this list.
-
-var tests = []*components.IntegrationTest{
-	misc.ConfirmOnQuit,
-	bisect.Basic,
-	bisect.FromOtherBranch,
-	branch.CheckoutByName,
-	branch.Delete,
-	branch.Rebase,
-	branch.RebaseAndDrop,
-	branch.RebaseDoesNotAutosquash,
-	branch.Suggestions,
-	branch.Reset,
-	branch.DetachedHead,
-	cherry_pick.CherryPick,
-	cherry_pick.CherryPickConflicts,
-	commit.Commit,
-	commit.CommitMultiline,
-	commit.Revert,
-	commit.NewBranch,
-	commit.Staged,
-	commit.Unstaged,
-	commit.StagedWithoutHooks,
-	commit.DiscardOldFileChange,
-	commit.StageRangeOfLines,
-	custom_commands.Basic,
-	custom_commands.FormPrompts,
-	custom_commands.MenuFromCommand,
-	custom_commands.MenuFromCommandsOutput,
-	custom_commands.MultiplePrompts,
-	file.DirWithUntrackedFile,
-	file.DiscardChanges,
-	file.DiscardStagedChanges,
-	file.GitIgnore,
-	interactive_rebase.AmendMerge,
-	interactive_rebase.One,
-	stash.Rename,
-	stash.Stash,
-	stash.StashIncludingUntrackedFiles,
-	config.RemoteNamedStar,
-	diff.Diff,
-	diff.DiffAndApplyPatch,
-	diff.DiffCommits,
-	diff.IgnoreWhitespace,
-	sync.FetchPrune,
-	sync.RenameBranchAndPull,
-	filter_by_path.CliArg,
-	filter_by_path.SelectFile,
-	filter_by_path.TypeFile,
-	patch_building.BuildPatchAndCopyToClipboard,
-	submodule.Add,
-	submodule.Remove,
-	submodule.Enter,
-	submodule.Reset,
-}
 
 func GetTests() []*components.IntegrationTest {
 	// first we ensure that each test in this directory has actually been added to the above list.
@@ -99,8 +29,8 @@ func GetTests() []*components.IntegrationTest {
 
 	if err := filepath.Walk(filepath.Join(utils.GetLazyRootDirectory(), "pkg/integration/tests"), func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() && strings.HasSuffix(path, ".go") {
-			// ignoring this current file
-			if filepath.Base(path) == "tests.go" {
+			// ignoring non-test files
+			if filepath.Base(path) == "tests.go" || filepath.Base(path) == "tests_gen.go" || filepath.Base(path) == "tests_generator.go" {
 				return nil
 			}
 
@@ -121,13 +51,13 @@ func GetTests() []*components.IntegrationTest {
 	}
 
 	if len(missingTestNames) > 0 {
-		panic(fmt.Sprintf("The following tests are missing from the list of tests: %s. You need to add them to `pkg/integration/tests/tests.go`.", strings.Join(missingTestNames, ", ")))
+		panic(fmt.Sprintf("The following tests are missing from the list of tests: %s. You need to add them to `pkg/integration/tests/tests_gen.go`. Use `go generate ./...` to regenerate the tests list.", strings.Join(missingTestNames, ", ")))
 	}
 
 	if testCount > len(tests) {
-		panic("you have not added all of the tests to the tests list in `pkg/integration/tests/tests.go`")
+		panic("you have not added all of the tests to the tests list in `pkg/integration/tests/tests_gen.go`. Use `go generate ./...` to regenerate the tests list.")
 	} else if testCount < len(tests) {
-		panic("There are more tests in `pkg/integration/tests/tests.go` than there are test files in the tests directory. Ensure that you only have one test per file and you haven't included the same test twice in the tests list.")
+		panic("There are more tests in `pkg/integration/tests/tests_gen.go` than there are test files in the tests directory. Ensure that you only have one test per file and you haven't included the same test twice in the tests list. Use `go generate ./...` to regenerate the tests list.")
 	}
 
 	return tests

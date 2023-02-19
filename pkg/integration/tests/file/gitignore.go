@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var GitIgnore = NewIntegrationTest(NewIntegrationTestArgs{
+var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Verify that we can't ignore the .gitignore file, then ignore/exclude other files",
 	ExtraCmdArgs: "",
 	Skip:         false,

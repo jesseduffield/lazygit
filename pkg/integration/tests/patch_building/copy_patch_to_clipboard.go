@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var BuildPatchAndCopyToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
+var CopyPatchToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Create a patch from the commits and copy the patch to clipbaord.",
 	ExtraCmdArgs: "",
 	Skip:         true,
