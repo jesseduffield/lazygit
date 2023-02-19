@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/cherry_pick"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/commit"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/config"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/conflicts"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
@@ -46,6 +47,7 @@ var tests = []*components.IntegrationTest{
 	commit.StagedWithoutHooks,
 	commit.Unstaged,
 	config.RemoteNamedStar,
+	conflicts.UndoChooseHunk,
 	custom_commands.Basic,
 	custom_commands.FormPrompts,
 	custom_commands.MenuFromCommand,

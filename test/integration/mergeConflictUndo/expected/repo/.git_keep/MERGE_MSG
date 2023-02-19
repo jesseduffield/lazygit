@@ -1,9 +1,0 @@
-Merge branch 'develop' into other_branch
-
-# Conflicts:
-#	directory/file
-#	directory/file2
-#	file1
-#	file3
-#	file4
-#	file5
