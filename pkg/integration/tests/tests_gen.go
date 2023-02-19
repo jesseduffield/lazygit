@@ -40,6 +40,7 @@ var tests = []*components.IntegrationTest{
 	commit.DiscardOldFileChange,
 	commit.NewBranch,
 	commit.Revert,
+	commit.RevertMerge,
 	commit.StageRangeOfLines,
 	commit.Staged,
 	commit.StagedWithoutHooks,

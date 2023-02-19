@@ -47,3 +47,11 @@ var MergeConflictsSetup = func(shell *Shell) {
 		EmptyCommit("second-change-branch unrelated change").
 		Checkout("first-change-branch")
 }
+
+var CreateMergeCommit = func(shell *Shell) {
+	MergeConflictsSetup(shell)
+
+	shell.RunShellCommandExpectError("git merge --no-edit second-change-branch")
+	shell.UpdateFileAndAdd("file", SecondChangeFileContent)
+	shell.ContinueMerge()
+}
