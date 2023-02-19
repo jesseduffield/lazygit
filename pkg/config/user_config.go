@@ -178,8 +178,8 @@ type KeybindingUniversalConfig struct {
 	ScrollDownMainAlt2           string   `yaml:"scrollDownMain-alt2"`
 	ExecuteCustomCommand         string   `yaml:"executeCustomCommand"`
 	CreateRebaseOptionsMenu      string   `yaml:"createRebaseOptionsMenu"`
-	PushFiles                    string   `yaml:"pushFiles"`
-	PullFiles                    string   `yaml:"pullFiles"`
+	Push                         string   `yaml:"pushFiles"` // 'Files' appended for legacy reasons
+	Pull                         string   `yaml:"pullFiles"` // 'Files' appended for legacy reasons
 	Refresh                      string   `yaml:"refresh"`
 	CreatePatchOptionsMenu       string   `yaml:"createPatchOptionsMenu"`
 	NextTab                      string   `yaml:"nextTab"`
@@ -468,8 +468,8 @@ func GetDefaultConfig() *UserConfig {
 				ScrollDownMainAlt2:           "<c-d>",
 				ExecuteCustomCommand:         ":",
 				CreateRebaseOptionsMenu:      "m",
-				PushFiles:                    "P",
-				PullFiles:                    "p",
+				Push:                         "P",
+				Pull:                         "p",
 				Refresh:                      "R",
 				CreatePatchOptionsMenu:       "<c-p>",
 				NextTab:                      "]",

@@ -46,7 +46,7 @@ var RenameBranchAndPull = NewIntegrationTest(NewIntegrationTestArgs{
 					Type("-local").
 					Confirm()
 			}).
-			Press(keys.Universal.PullFiles)
+			Press(keys.Universal.Pull)
 
 		t.Views().Commits().
 			Lines(
