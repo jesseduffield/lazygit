@@ -69,6 +69,18 @@
       "presentation": {
         "focus": true
       }
-    }
+    },
+    {
+      "label": "Sync tests list",
+      "type": "shell",
+      "command": "go generate ./...",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+      },
+      "presentation": {
+        "focus": true
+      }
+    },
   ],
 }
