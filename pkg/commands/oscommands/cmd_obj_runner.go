@@ -338,6 +338,8 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 		compiledPrompts[compiledPattern] = askFor
 	}
 
+	newlineRegex := regexp.MustCompile("\n")
+
 	// this function takes each word of output from the command and builds up a string to see if we're being asked for a password
 	return func(newBytes []byte) (CredentialType, bool) {
 		_, err := ttyText.Write(newBytes)
@@ -352,10 +354,10 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 			}
 		}
 
-		if match, _ := regexp.MatchString("\n", ttyText.String()); match {
-			newText := strings.Split(ttyText.String(), "\n")
+		if indices := newlineRegex.FindIndex([]byte(ttyText.String())); indices != nil {
+			newText := []byte(ttyText.String()[indices[1]:])
 			ttyText.Reset()
-			ttyText.Write([]byte(newText[len(newText)-1]))
+			ttyText.Write(newText)
 		}
 		return 0, false
 	}
