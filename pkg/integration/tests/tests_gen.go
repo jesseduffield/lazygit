@@ -85,5 +85,6 @@ var tests = []*components.IntegrationTest{
 	sync.Pull,
 	sync.PullAndSetUpstream,
 	sync.RenameBranchAndPull,
+	undo.UndoCheckoutAndDrop,
 	undo.UndoDrop,
 }
