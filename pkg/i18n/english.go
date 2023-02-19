@@ -1072,7 +1072,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcCreateNewBranchFromCommit:         "create new branch off of commit",
 		LcBuildingPatch:                     "building patch",
 		LcViewCommits:                       "view commits",
-		MinGitVersionError:                  "Git version must be at least 2.0 (i.e. from 2014 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
+		MinGitVersionError:                  "Git version must be at least 2.20 (i.e. from 2018 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
 		LcRunningCustomCommandStatus:        "running custom command",
 		LcSubmoduleStashAndReset:            "stash uncommitted submodule changes and update",
 		LcAndResetSubmodules:                "and reset submodules",

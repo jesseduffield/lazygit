@@ -406,7 +406,7 @@ func koreanTranslationSet() TranslationSet {
 		LcCreateNewBranchFromCommit:         "커밋에서 새 브랜치를 만듭니다.",
 		LcBuildingPatch:                     "building patch",
 		LcViewCommits:                       "커밋 보기",
-		MinGitVersionError:                  "lazygit 실행을 위해서는 Git 2.0 이후의 버전(2014년 이후의)이 필요합니다. Git를 업데이트 해주세요. 아니면 lazygit이 이전 버전과 더 잘 호환되도록 https://github.com/jesseduffield/lazygit/issues 에 issue를 작성해 주세요.",
+		MinGitVersionError:                  "lazygit 실행을 위해서는 Git 2.20 이후의 버전(2018년 이후의)이 필요합니다. Git를 업데이트 해주세요. 아니면 lazygit이 이전 버전과 더 잘 호환되도록 https://github.com/jesseduffield/lazygit/issues 에 issue를 작성해 주세요.",
 		LcRunningCustomCommandStatus:        "커스텀 명령어 실행",
 		LcSubmoduleStashAndReset:            "stash uncommitted submodule changes and update",
 		LcAndResetSubmodules:                "and reset submodules",
