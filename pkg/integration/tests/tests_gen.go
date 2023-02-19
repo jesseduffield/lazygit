@@ -73,6 +73,8 @@ var tests = []*components.IntegrationTest{
 	submodule.Reset,
 	sync.FetchPrune,
 	sync.ForcePush,
+	sync.ForcePushMultipleMatching,
+	sync.ForcePushMultipleUpstream,
 	sync.Pull,
 	sync.PullAndSetUpstream,
 	sync.RenameBranchAndPull,
