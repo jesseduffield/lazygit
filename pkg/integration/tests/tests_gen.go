@@ -22,6 +22,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/tag"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/undo"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/ui"
 )
 
 var tests = []*components.IntegrationTest{
@@ -101,4 +102,5 @@ var tests = []*components.IntegrationTest{
 	tag.Reset,
 	undo.UndoCheckoutAndDrop,
 	undo.UndoDrop,
+	ui.SwitchTabFromMenu,
 }
