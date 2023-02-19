@@ -72,5 +72,6 @@ var tests = []*components.IntegrationTest{
 	submodule.Remove,
 	submodule.Reset,
 	sync.FetchPrune,
+	sync.Pull,
 	sync.RenameBranchAndPull,
 }

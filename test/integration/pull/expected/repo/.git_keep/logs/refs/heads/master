@@ -1,6 +1,0 @@
-0000000000000000000000000000000000000000 3ea0c134bed03d0a2cb7eeaff586af277d137129 CI <CI@example.com> 1648348653 +1100	commit (initial): myfile1
-3ea0c134bed03d0a2cb7eeaff586af277d137129 7b9a91f4ecba02fd55dbf3f372bc3faee3897939 CI <CI@example.com> 1648348653 +1100	commit: myfile2
-7b9a91f4ecba02fd55dbf3f372bc3faee3897939 f0eb4a85b26f51dc8c23e31bb7f541f0e2d1d2d0 CI <CI@example.com> 1648348653 +1100	commit: myfile3
-f0eb4a85b26f51dc8c23e31bb7f541f0e2d1d2d0 97bf06c598032ab5ad0faf744c91545071f3cb38 CI <CI@example.com> 1648348653 +1100	commit: myfile4
-97bf06c598032ab5ad0faf744c91545071f3cb38 7b9a91f4ecba02fd55dbf3f372bc3faee3897939 CI <CI@example.com> 1648348653 +1100	reset: moving to HEAD~2
-7b9a91f4ecba02fd55dbf3f372bc3faee3897939 97bf06c598032ab5ad0faf744c91545071f3cb38 CI <CI@example.com> 1648348654 +1100	rebase -i (finish): refs/heads/master onto 97bf06c598032ab5ad0faf744c91545071f3cb38
