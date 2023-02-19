@@ -72,6 +72,10 @@ func (self *Views) Branches() *ViewDriver {
 	return self.byName("localBranches")
 }
 
+func (self *Views) Remotes() *ViewDriver {
+	return self.byName("remotes")
+}
+
 func (self *Views) RemoteBranches() *ViewDriver {
 	return self.byName("remoteBranches")
 }
