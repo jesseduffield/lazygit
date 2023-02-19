@@ -346,6 +346,11 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 			}
 		}
 
+		if match, _ := regexp.MatchString("\n", ttyText.String()); match {
+			newText := strings.Split(ttyText.String(), "\n")
+			ttyText.Reset()
+			ttyText.Write([]byte(newText[len(newText)-1]))
+		}
 		return 0, false
 	}
 }
