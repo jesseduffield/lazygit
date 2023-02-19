@@ -74,7 +74,7 @@ outer:
 				continue outer
 			}
 		}
-		log.Fatalf("test %s not found. Perhaps you forgot to add it to `pkg/integration/integration_tests/tests.go`?", testName)
+		log.Fatalf("test %s not found. Perhaps you forgot to add it to `pkg/integration/integration_tests/tests_gen.go`? This can be done by running `go generate ./...` from the Lazygit root. You'll need to ensure that your test name and the file name match (where the test name is in PascalCase and the file name is in snake_case).", testName)
 	}
 
 	return testsToRun

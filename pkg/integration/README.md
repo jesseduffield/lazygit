@@ -16,7 +16,9 @@ go run cmd/integration_test/main.go cli [--slow or --sandbox] [testname or testp
 
 ## Writing tests
 
-The tests live in pkg/integration/tests. Each test has two important steps: the setup step and the run step.
+The tests live in pkg/integration/tests. Each test is listed in `pkg/integration/tests/tests_gen.go` which is an auto-generated file. You can re-generate that file by running `go generate ./...` at the root of the Lazygit repo.
+
+Each test has two important steps: the setup step and the run step.
 
 ### Setup step
 

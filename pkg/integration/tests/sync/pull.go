@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var RenameBranchAndPull = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Rename a branch to no longer match its upstream, then pull from the upstream",
+var Pull = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Pull a commit from the remote",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
@@ -28,30 +28,16 @@ var RenameBranchAndPull = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("one"),
 			)
 
-		t.Views().Branches().
-			Focus().
-			Lines(
-				Contains("master"),
-			).
-			Press(keys.Branches.RenameBranch).
-			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("rename branch")).
-					Content(Equals("This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?")).
-					Confirm()
+		t.Views().Status().Content(Contains("↓1 repo → master"))
 
-				t.ExpectPopup().Prompt().
-					Title(Contains("Enter new branch name")).
-					InitialText(Equals("master")).
-					Type("-local").
-					Confirm()
-			}).
-			Press(keys.Universal.Pull)
+		t.Views().Files().IsFocused().Press(keys.Universal.Pull)
 
 		t.Views().Commits().
 			Lines(
 				Contains("two"),
 				Contains("one"),
 			)
+
+		t.Views().Status().Content(Contains("✓ repo → master"))
 	},
 })
