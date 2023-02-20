@@ -148,8 +148,8 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 }
 
 func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
-	if len(self.model.Commits) <= 1 {
-		return self.c.ErrorMsg(self.c.Tr.YouNoCommitsToSquash)
+	if self.context().GetSelectedLineIdx() >= len(self.model.Commits)-1 {
+		return self.c.ErrorMsg(self.c.Tr.CannotSquashOrFixupFirstCommit)
 	}
 
 	applied, err := self.handleMidRebaseCommand("squash", commit)
@@ -173,8 +173,8 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) fixup(commit *models.Commit) error {
-	if len(self.model.Commits) <= 1 {
-		return self.c.ErrorMsg(self.c.Tr.YouNoCommitsToSquash)
+	if self.context().GetSelectedLineIdx() >= len(self.model.Commits)-1 {
+		return self.c.ErrorMsg(self.c.Tr.CannotSquashOrFixupFirstCommit)
 	}
 
 	applied, err := self.handleMidRebaseCommand("fixup", commit)
@@ -428,7 +428,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-				err := self.git.Rebase.AmendTo(commit.Sha)
+				err := self.git.Rebase.AmendTo(commit)
 				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 			})
 		},
@@ -571,7 +571,7 @@ func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Co
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
-				err := self.git.Rebase.SquashAllAboveFixupCommits(commit.Sha)
+				err := self.git.Rebase.SquashAllAboveFixupCommits(commit)
 				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 			})
 		},

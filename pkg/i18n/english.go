@@ -87,7 +87,7 @@ type TranslationSet struct {
 	LcQuit                              string
 	LcSquashDown                        string
 	LcFixupCommit                       string
-	YouNoCommitsToSquash                string
+	CannotSquashOrFixupFirstCommit      string
 	Fixup                               string
 	SureFixupThisCommit                 string
 	SureSquashThisCommit                string
@@ -219,8 +219,6 @@ type TranslationSet struct {
 	LcPasteCommits                      string
 	SureCherryPick                      string
 	CherryPick                          string
-	CannotRebaseOntoFirstCommit         string
-	CannotSquashOntoSecondCommit        string
 	Donate                              string
 	AskQuestion                         string
 	PrevLine                            string
@@ -737,7 +735,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcSquashDown:                        "squash down",
 		LcFixupCommit:                       "fixup commit",
 		NoCommitsThisBranch:                 "No commits for this branch",
-		YouNoCommitsToSquash:                "You have no commits to squash with",
+		CannotSquashOrFixupFirstCommit:      "There's no commit below to squash into",
 		Fixup:                               "Fixup",
 		SureFixupThisCommit:                 "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
 		SureSquashThisCommit:                "Are you sure you want to squash this commit into the commit below?",
@@ -869,8 +867,6 @@ func EnglishTranslationSet() TranslationSet {
 		LcPasteCommits:                      "paste commits (cherry-pick)",
 		SureCherryPick:                      "Are you sure you want to cherry-pick the copied commits onto this branch?",
 		CherryPick:                          "Cherry-Pick",
-		CannotRebaseOntoFirstCommit:         "You cannot interactive rebase onto the first commit",
-		CannotSquashOntoSecondCommit:        "You cannot squash/fixup onto the second commit",
 		Donate:                              "Donate",
 		AskQuestion:                         "Ask Question",
 		PrevLine:                            "select previous line",

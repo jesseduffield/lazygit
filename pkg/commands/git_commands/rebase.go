@@ -130,7 +130,7 @@ func (self *RebaseCommands) InteractiveRebaseBreakAfter(commits []*models.Commit
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit a todo string to write to the todo file
-func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseSha string, todoLines []TodoLine, overrideEditor bool) oscommands.ICmdObj {
+func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseShaOrRoot string, todoLines []TodoLine, overrideEditor bool) oscommands.ICmdObj {
 	todo := self.buildTodo(todoLines)
 	ex := oscommands.GetLazygitPath()
 
@@ -139,7 +139,7 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseSha string, todo
 		debug = "TRUE"
 	}
 
-	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty --no-autosquash %s", baseSha)
+	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty --no-autosquash %s", baseShaOrRoot)
 	self.Log.WithField("command", cmdStr).Debug("RunCommand")
 
 	cmdObj := self.cmd.New(cmdStr)
@@ -172,16 +172,8 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseSha string, todo
 func (self *RebaseCommands) BuildSingleActionTodo(commits []*models.Commit, actionIndex int, action string) ([]TodoLine, string, error) {
 	baseIndex := actionIndex + 1
 
-	if len(commits) <= baseIndex {
-		return nil, "", errors.New(self.Tr.CannotRebaseOntoFirstCommit)
-	}
-
 	if action == "squash" || action == "fixup" {
 		baseIndex++
-
-		if len(commits) <= baseIndex {
-			return nil, "", errors.New(self.Tr.CannotSquashOntoSecondCommit)
-		}
 	}
 
 	todoLines := self.BuildTodoLines(commits[0:baseIndex], func(commit *models.Commit, i int) string {
@@ -197,16 +189,21 @@ func (self *RebaseCommands) BuildSingleActionTodo(commits []*models.Commit, acti
 		}
 	})
 
-	return todoLines, commits[baseIndex].Sha, nil
+	baseSha := "--root"
+	if baseIndex < len(commits) {
+		baseSha = commits[baseIndex].Sha
+	}
+
+	return todoLines, baseSha, nil
 }
 
 // AmendTo amends the given commit with whatever files are staged
-func (self *RebaseCommands) AmendTo(sha string) error {
-	if err := self.commit.CreateFixupCommit(sha); err != nil {
+func (self *RebaseCommands) AmendTo(commit *models.Commit) error {
+	if err := self.commit.CreateFixupCommit(commit.Sha); err != nil {
 		return err
 	}
 
-	return self.SquashAllAboveFixupCommits(sha)
+	return self.SquashAllAboveFixupCommits(commit)
 }
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
@@ -261,12 +258,17 @@ func (self *RebaseCommands) MoveTodoDown(index int) error {
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one
-func (self *RebaseCommands) SquashAllAboveFixupCommits(sha string) error {
+func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) error {
+	shaOrRoot := commit.Sha + "^"
+	if commit.IsFirstCommit() {
+		shaOrRoot = "--root"
+	}
+
 	return self.runSkipEditorCommand(
 		self.cmd.New(
 			fmt.Sprintf(
-				"git rebase --interactive --rebase-merges --autostash --autosquash %s^",
-				sha,
+				"git rebase --interactive --rebase-merges --autostash --autosquash %s",
+				shaOrRoot,
 			),
 		),
 	)
