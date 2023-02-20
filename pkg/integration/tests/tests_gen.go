@@ -89,6 +89,7 @@ var tests = []*components.IntegrationTest{
 	tag.Checkout,
 	tag.CrudAnnotated,
 	tag.CrudLightweight,
+	tag.Reset,
 	undo.UndoCheckoutAndDrop,
 	undo.UndoDrop,
 }
