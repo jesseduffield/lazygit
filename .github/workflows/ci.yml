@@ -51,11 +51,9 @@ jobs:
       fail-fast: false
       matrix:
         git-version:
-          # - 2.20.0
-          # - 2.21.4
-          - 2.22.0
+          - 2.20.0 # oldest supported version
           - 2.22.5
-          - 2.23.4
+          - 2.23.0 # first version with switch and restore
           - 2.30.8
           - 2.39.2
     runs-on: ubuntu-latest

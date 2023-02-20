@@ -49,7 +49,7 @@ func (self *StashCommands) Save(message string) error {
 func (self *StashCommands) Store(sha string, message string) error {
 	trimmedMessage := strings.Trim(message, " \t")
 	if len(trimmedMessage) > 0 {
-		return self.cmd.New(fmt.Sprintf("git stash store %s -m %s", self.cmd.Quote(sha), self.cmd.Quote(trimmedMessage))).Run()
+		return self.cmd.New(fmt.Sprintf("git stash store -m %s %s", self.cmd.Quote(trimmedMessage), self.cmd.Quote(sha))).Run()
 	}
 	return self.cmd.New(fmt.Sprintf("git stash store %s", self.cmd.Quote(sha))).Run()
 }
@@ -66,7 +66,7 @@ func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
 }
 
 func (self *StashCommands) StashAndKeepIndex(message string) error {
-	return self.cmd.New(fmt.Sprintf("git stash save %s --keep-index", self.cmd.Quote(message))).Run()
+	return self.cmd.New(fmt.Sprintf("git stash save --keep-index %s", self.cmd.Quote(message))).Run()
 }
 
 func (self *StashCommands) StashUnstagedChanges(message string) error {
@@ -124,7 +124,7 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 }
 
 func (self *StashCommands) StashIncludeUntrackedChanges(message string) error {
-	return self.cmd.New(fmt.Sprintf("git stash save %s --include-untracked", self.cmd.Quote(message))).Run()
+	return self.cmd.New(fmt.Sprintf("git stash save --include-untracked %s", self.cmd.Quote(message))).Run()
 }
 
 func (self *StashCommands) Rename(index int, message string) error {
