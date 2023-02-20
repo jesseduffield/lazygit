@@ -132,7 +132,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description: self.c.Tr.LcRevertCommit,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.TagCommit),
+			Key:         opts.GetKey(opts.Config.Commits.CreateTag),
 			Handler:     self.checkSelected(self.createTag),
 			Description: self.c.Tr.LcTagCommit,
 		},
