@@ -1,6 +1,0 @@
-0000000000000000000000000000000000000000 f8e5bdb9f59bd7ae0c72bb4aa0bb9d6af96ec689 CI <CI@example.com> 1651831332 +0200	commit (initial): file0
-f8e5bdb9f59bd7ae0c72bb4aa0bb9d6af96ec689 e702e6113eff6883a33505e2b28cff2df3420fed CI <CI@example.com> 1651831332 +0200	commit: file1
-e702e6113eff6883a33505e2b28cff2df3420fed b245d3aa308ffdfdd194a94ad84a678a8a7a028c CI <CI@example.com> 1651831332 +0200	commit: file2
-b245d3aa308ffdfdd194a94ad84a678a8a7a028c 70dfa7fd25e9af49b7277738270a61d5dfbbac53 CI <CI@example.com> 1651831340 +0200	commit: [lazygit] stashing unstaged changes
-70dfa7fd25e9af49b7277738270a61d5dfbbac53 70dfa7fd25e9af49b7277738270a61d5dfbbac53 CI <CI@example.com> 1651831340 +0200	reset: moving to HEAD
-70dfa7fd25e9af49b7277738270a61d5dfbbac53 b245d3aa308ffdfdd194a94ad84a678a8a7a028c CI <CI@example.com> 1651831340 +0200	reset: moving to HEAD^
