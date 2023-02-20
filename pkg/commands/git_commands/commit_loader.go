@@ -202,7 +202,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	// I suspect that will cause some damage
 	cmdObj := self.cmd.New(
 		fmt.Sprintf(
-			"git -c log.showSignature=false show %s --no-patch --oneline %s --abbrev=%d",
+			"git show %s --no-patch --oneline %s --abbrev=%d --no-show-signature",
 			strings.Join(commitShas, " "),
 			prettyFormat,
 			20,

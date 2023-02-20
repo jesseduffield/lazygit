@@ -32,7 +32,7 @@ func (self *ReflogCommitLoader) GetReflogCommits(lastReflogCommit *models.Commit
 		filterPathArg = fmt.Sprintf(" --follow -- %s", self.cmd.Quote(filterPath))
 	}
 
-	cmdObj := self.cmd.New(fmt.Sprintf(`git -c log.showSignature=false log -g --abbrev=40 --format="%s"%s`, "%h%x00%ct%x00%gs%x00%p", filterPathArg)).DontLog()
+	cmdObj := self.cmd.New(fmt.Sprintf(`git log -g --abbrev=40 --no-show-signature --format="%s"%s`, "%h%x00%ct%x00%gs%x00%p", filterPathArg)).DontLog()
 	onlyObtainedNewReflogCommits := false
 	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
 		fields := strings.SplitN(line, "\x00", 4)
