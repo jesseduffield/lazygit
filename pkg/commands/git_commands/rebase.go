@@ -198,12 +198,12 @@ func (self *RebaseCommands) BuildSingleActionTodo(commits []*models.Commit, acti
 }
 
 // AmendTo amends the given commit with whatever files are staged
-func (self *RebaseCommands) AmendTo(sha string) error {
-	if err := self.commit.CreateFixupCommit(sha); err != nil {
+func (self *RebaseCommands) AmendTo(commit *models.Commit) error {
+	if err := self.commit.CreateFixupCommit(commit.Sha); err != nil {
 		return err
 	}
 
-	return self.SquashAllAboveFixupCommits(sha)
+	return self.SquashAllAboveFixupCommits(commit)
 }
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
@@ -258,12 +258,17 @@ func (self *RebaseCommands) MoveTodoDown(index int) error {
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one
-func (self *RebaseCommands) SquashAllAboveFixupCommits(sha string) error {
+func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) error {
+	shaOrRoot := commit.Sha + "^"
+	if commit.IsFirstCommit() {
+		shaOrRoot = "--root"
+	}
+
 	return self.runSkipEditorCommand(
 		self.cmd.New(
 			fmt.Sprintf(
-				"git rebase --interactive --rebase-merges --autostash --autosquash %s^",
-				sha,
+				"git rebase --interactive --rebase-merges --autostash --autosquash %s",
+				shaOrRoot,
 			),
 		),
 	)
