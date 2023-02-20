@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var Stash = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Stashing files directly (not going through the stash menu)",
+var StashAll = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Stashing all changes (via the menu)",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -23,7 +23,9 @@ var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("file"),
 			).
-			Press(keys.Files.StashAllChanges)
+			Press(keys.Files.ViewStashOptions)
+
+		t.ExpectPopup().Menu().Title(Equals("Stash options")).Select(MatchesRegexp("stash all changes$")).Confirm()
 
 		t.ExpectPopup().Prompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
 

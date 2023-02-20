@@ -207,3 +207,9 @@ func (self *Shell) HardReset(ref string) *Shell {
 
 	return self
 }
+
+func (self *Shell) Stash(message string) *Shell {
+	self.RunCommand(fmt.Sprintf("git stash -m \"%s\"", message))
+
+	return self
+}
