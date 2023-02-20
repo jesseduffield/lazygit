@@ -87,6 +87,11 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description: self.c.Tr.FastForward,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Branches.CreateTag),
+			Handler:     self.checkSelected(self.createTag),
+			Description: self.c.Tr.LcCreateTag,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.checkSelected(self.createResetMenu),
 			Description: self.c.Tr.LcViewResetOptions,
@@ -361,6 +366,10 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 
 		return nil
 	})
+}
+
+func (self *BranchesController) createTag(branch *models.Branch) error {
+	return self.helpers.Tags.CreateTagMenu(branch.FullRefName(), func() {})
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {

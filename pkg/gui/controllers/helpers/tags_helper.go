@@ -21,20 +21,20 @@ func NewTagsHelper(c *types.HelperCommon, git *commands.GitCommand) *TagsHelper 
 	}
 }
 
-func (self *TagsHelper) CreateTagMenu(commitSha string, onCreate func()) error {
+func (self *TagsHelper) CreateTagMenu(ref string, onCreate func()) error {
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.TagMenuTitle,
 		Items: []*types.MenuItem{
 			{
 				Label: self.c.Tr.LcLightweightTag,
 				OnPress: func() error {
-					return self.handleCreateLightweightTag(commitSha, onCreate)
+					return self.handleCreateLightweightTag(ref, onCreate)
 				},
 			},
 			{
 				Label: self.c.Tr.LcAnnotatedTag,
 				OnPress: func() error {
-					return self.handleCreateAnnotatedTag(commitSha, onCreate)
+					return self.handleCreateAnnotatedTag(ref, onCreate)
 				},
 			},
 		},
@@ -48,7 +48,7 @@ func (self *TagsHelper) afterTagCreate(onCreate func()) error {
 	})
 }
 
-func (self *TagsHelper) handleCreateAnnotatedTag(commitSha string, onCreate func()) error {
+func (self *TagsHelper) handleCreateAnnotatedTag(ref string, onCreate func()) error {
 	return self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.TagNameTitle,
 		HandleConfirm: func(tagName string) error {
@@ -56,7 +56,7 @@ func (self *TagsHelper) handleCreateAnnotatedTag(commitSha string, onCreate func
 				Title: self.c.Tr.TagMessageTitle,
 				HandleConfirm: func(msg string) error {
 					self.c.LogAction(self.c.Tr.Actions.CreateAnnotatedTag)
-					if err := self.git.Tag.CreateAnnotated(tagName, commitSha, msg); err != nil {
+					if err := self.git.Tag.CreateAnnotated(tagName, ref, msg); err != nil {
 						return self.c.Error(err)
 					}
 					return self.afterTagCreate(onCreate)
@@ -66,12 +66,12 @@ func (self *TagsHelper) handleCreateAnnotatedTag(commitSha string, onCreate func
 	})
 }
 
-func (self *TagsHelper) handleCreateLightweightTag(commitSha string, onCreate func()) error {
+func (self *TagsHelper) handleCreateLightweightTag(ref string, onCreate func()) error {
 	return self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.TagNameTitle,
 		HandleConfirm: func(tagName string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateLightweightTag)
-			if err := self.git.Tag.CreateLightweight(tagName, commitSha); err != nil {
+			if err := self.git.Tag.CreateLightweight(tagName, ref); err != nil {
 				return self.c.Error(err)
 			}
 			return self.afterTagCreate(onCreate)

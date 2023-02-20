@@ -84,6 +84,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>r</kbd>: rebase branch
   <kbd>M</kbd>: merge in met huidige checked out branch
   <kbd>f</kbd>: fast-forward deze branch vanaf zijn upstream
+  <kbd>T</kbd>: creëer tag
   <kbd>g</kbd>: bekijk reset opties
   <kbd>R</kbd>: hernoem branch
   <kbd>u</kbd>: set/unset upstream

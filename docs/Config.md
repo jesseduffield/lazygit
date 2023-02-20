@@ -203,6 +203,7 @@ keybinding:
     mergeIntoCurrentBranch: 'M'
     viewGitFlowOptions: 'i'
     fastForward: 'f' # fast-forward this branch from its upstream
+    createTag: 'T'
     pushTag: 'P'
     setUpstream: 'u' # set as upstream of checked-out branch
     fetchRemote: 'f'

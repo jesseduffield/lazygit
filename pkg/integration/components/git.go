@@ -14,6 +14,10 @@ func (self *Git) CurrentBranchName(expectedName string) *Git {
 	return self.assert("git rev-parse --abbrev-ref HEAD", expectedName)
 }
 
+func (self *Git) TagNamesAt(ref string, expectedNames []string) *Git {
+	return self.assert(fmt.Sprintf(`git tag --sort=v:refname --points-at "%s"`, ref), strings.Join(expectedNames, "\n"))
+}
+
 func (self *Git) assert(cmdStr string, expected string) *Git {
 	self.assertWithRetries(func() (bool, string) {
 		output, err := self.shell.runCommandWithOutput(cmdStr)

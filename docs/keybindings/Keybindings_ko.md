@@ -158,6 +158,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>r</kbd>: 체크아웃된 브랜치를 이 브랜치에 리베이스
   <kbd>M</kbd>: 현재 브랜치에 병합
   <kbd>f</kbd>: fast-forward this branch from its upstream
+  <kbd>T</kbd>: 태그를 생성
   <kbd>g</kbd>: view reset options
   <kbd>R</kbd>: 브랜치 이름 변경
   <kbd>u</kbd>: set/unset upstream
