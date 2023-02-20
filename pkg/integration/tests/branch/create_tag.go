@@ -35,7 +35,7 @@ var CreateTag = NewIntegrationTest(NewIntegrationTestArgs{
 			Type("new-tag").
 			Confirm()
 
-		t.Views().Tags().
+		t.Views().Tags().Focus().
 			Lines(
 				MatchesRegexp(`new-tag`).IsSelected(),
 			)
