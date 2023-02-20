@@ -298,7 +298,8 @@ func (self *LocalCommitsController) edit(commit *models.Commit) error {
 
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
-		return self.interactiveRebase("edit")
+		err := self.git.Rebase.InteractiveRebaseBreakAfter(self.model.Commits, self.context().GetSelectedLineIdx())
+		return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
 

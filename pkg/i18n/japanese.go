@@ -405,7 +405,7 @@ func japaneseTranslationSet() TranslationSet {
 		LcCreateNewBranchFromCommit:  "コミットにブランチを作成",
 		LcBuildingPatch:              "パッチを構築",
 		LcViewCommits:                "コミットを閲覧",
-		MinGitVersionError:           "lazygitの実行にはGit 2.0以降のバージョンが必要です。Gitを更新してください。もしくは、lazygitの後方互換性を改善するために https://github.com/jesseduffield/lazygit/issues にissueを作成してください。",
+		MinGitVersionError:           "lazygitの実行にはGit 2.20以降のバージョンが必要です。Gitを更新してください。もしくは、lazygitの後方互換性を改善するために https://github.com/jesseduffield/lazygit/issues にissueを作成してください。",
 		LcRunningCustomCommandStatus: "カスタムコマンドを実行",
 		// LcSubmoduleStashAndReset:            "stash uncommitted submodule changes and update",
 		// LcAndResetSubmodules:                "and reset submodules",

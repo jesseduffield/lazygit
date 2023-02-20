@@ -123,7 +123,7 @@ func (app *App) validateGitVersion() (*git_commands.GitVersion, error) {
 		return nil, minVersionError
 	}
 
-	if version.IsOlderThan(2, 0, 0) {
+	if version.IsOlderThan(2, 20, 0) {
 		return nil, minVersionError
 	}
 

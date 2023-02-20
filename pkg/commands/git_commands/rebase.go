@@ -117,6 +117,16 @@ func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index in
 	return self.PrepareInteractiveRebaseCommand(sha, todo, true).Run()
 }
 
+func (self *RebaseCommands) InteractiveRebaseBreakAfter(commits []*models.Commit, index int) error {
+	todo, sha, err := self.BuildSingleActionTodo(commits, index-1, "pick")
+	if err != nil {
+		return err
+	}
+
+	todo = append(todo, TodoLine{Action: "break", Commit: nil})
+	return self.PrepareInteractiveRebaseCommand(sha, todo, true).Run()
+}
+
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit a todo string to write to the todo file
@@ -400,5 +410,9 @@ type TodoLine struct {
 }
 
 func (self *TodoLine) ToString() string {
-	return self.Action + " " + self.Commit.Sha + " " + self.Commit.Name + "\n"
+	if self.Action == "break" {
+		return self.Action + "\n"
+	} else {
+		return self.Action + " " + self.Commit.Sha + " " + self.Commit.Name + "\n"
+	}
 }
