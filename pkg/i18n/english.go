@@ -985,7 +985,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcTagCommit:                         "tag commit",
 		TagMenuTitle:                        "Create tag",
 		TagNameTitle:                        "Tag name:",
-		TagMessageTitle:                     "Tag message: ",
+		TagMessageTitle:                     "Tag message:",
 		LcAnnotatedTag:                      "annotated tag",
 		LcLightweightTag:                    "lightweight tag",
 		LcDeleteTag:                         "delete tag",

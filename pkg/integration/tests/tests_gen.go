@@ -20,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/submodule"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/tag"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/undo"
 )
 
@@ -85,6 +86,8 @@ var tests = []*components.IntegrationTest{
 	sync.Pull,
 	sync.PullAndSetUpstream,
 	sync.RenameBranchAndPull,
+	tag.CrudAnnotated,
+	tag.CrudLightweight,
 	undo.UndoCheckoutAndDrop,
 	undo.UndoDrop,
 }
