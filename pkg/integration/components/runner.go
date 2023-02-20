@@ -143,7 +143,7 @@ func buildLazygit() error {
 
 func createFixture(test *IntegrationTest, paths Paths, rootDir string) error {
 	shell := NewShell(paths.ActualRepo(), func(errorMsg string) { panic(errorMsg) })
-	shell.RunCommand("git init -b master")
+	shell.RunCommand("git init")
 
 	os.Setenv(GIT_CONFIG_GLOBAL_ENV_VAR, globalGitConfigPath(rootDir))
 

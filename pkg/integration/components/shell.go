@@ -207,11 +207,6 @@ func (self *Shell) CreateNCommitsStartingAt(n, startIndex int) *Shell {
 	return self
 }
 
-func (self *Shell) StashWithMessage(message string) *Shell {
-	self.RunCommand(fmt.Sprintf(`git stash -m "%s"`, message))
-	return self
-}
-
 func (self *Shell) SetConfig(key string, value string) *Shell {
 	self.RunCommand(fmt.Sprintf(`git config --local "%s" "%s"`, key, value))
 	return self
@@ -261,7 +256,7 @@ func (self *Shell) HardReset(ref string) *Shell {
 }
 
 func (self *Shell) Stash(message string) *Shell {
-	self.RunCommand(fmt.Sprintf("git stash -m \"%s\"", message))
+	self.RunCommand(fmt.Sprintf("git stash push -m \"%s\"", message))
 
 	return self
 }

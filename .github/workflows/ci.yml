@@ -47,11 +47,44 @@ jobs:
         run: |
           go test ./... -short
   integration-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        git-version:
+          # - 2.20.0
+          # - 2.21.4
+          - 2.22.0
+          - 2.22.5
+          - 2.23.4
+          - 2.30.8
+          - 2.39.2
     runs-on: ubuntu-latest
-    name: "Integration Tests"
+    name: "Integration Tests - git ${{matrix.git-version}}"
     env:
       GOFLAGS: -mod=vendor
     steps:
+      - name: Restore Git cache
+        id: cache-git-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: ~/git-${{matrix.git-version}}
+          key: ${{runner.os}}-git-${{matrix.git-version}}
+      - name: Install Git dependencies
+        run: sudo apt-get install --no-install-recommends -y build-essential ca-certificates curl gettext libcurl4-gnutls-dev libexpat1-dev libssl-dev libz-dev openssl
+      - name: Build Git ${{matrix.git-version}}
+        if: steps.cache-git-restore.outputs.cache-hit != 'true'
+        run: >
+          curl -sL "https://mirrors.edge.kernel.org/pub/software/scm/git/git-${{matrix.git-version}}.tar.xz" -o - | tar xJ -C "$HOME"
+          && cd "$HOME/git-${{matrix.git-version}}"
+          && ./configure
+          && make -j
+      - name: Install Git ${{matrix.git-version}}
+        run: sudo make -C "$HOME/git-${{matrix.git-version}}" -j install
+      - name: Save Git cache
+        uses: actions/cache/save@v3
+        with:
+          path: ~/git-${{matrix.git-version}}
+          key: ${{runner.os}}-git-${{matrix.git-version}}
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Setup Go
@@ -59,7 +92,7 @@ jobs:
         with:
           go-version: 1.18.x
       - name: Cache build
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -69,7 +102,9 @@ jobs:
             ${{runner.os}}-go-
       - name: Test code
         # LONG_WAIT_BEFORE_FAIL means that for a given test assertion, we'll wait longer before failing
+        # `GIT_CONFIG_GLOBAL` is available in git 2.32.0 or later
         run: |
+          cp -f test/global_git_config ~/.gitconfig
           LONG_WAIT_BEFORE_FAIL=true go test pkg/integration/clients/*.go
   build:
     runs-on: ubuntu-latest
@@ -84,7 +119,7 @@ jobs:
         with:
           go-version: 1.18.x
       - name: Cache build
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -120,7 +155,7 @@ jobs:
         with:
           go-version: 1.18.x
       - name: Cache build
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -152,7 +187,7 @@ jobs:
         with:
           go-version: 1.18.x
       - name: Cache build
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
