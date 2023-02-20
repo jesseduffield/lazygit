@@ -136,6 +136,10 @@ func (self *Shell) EmptyCommit(message string) *Shell {
 	return self.RunCommand(fmt.Sprintf("git commit --allow-empty -m \"%s\"", message))
 }
 
+func (self *Shell) CreateLightweightTag(name string, ref string) *Shell {
+	return self.RunCommand(fmt.Sprintf("git tag %s %s", name, ref))
+}
+
 // convenience method for creating a file and adding it
 func (self *Shell) CreateFileAndAdd(fileName string, fileContents string) *Shell {
 	return self.

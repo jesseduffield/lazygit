@@ -20,6 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/submodule"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/tag"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/undo"
 )
 
@@ -40,6 +41,7 @@ var tests = []*components.IntegrationTest{
 	cherry_pick.CherryPickConflicts,
 	commit.Commit,
 	commit.CommitMultiline,
+	commit.CreateTag,
 	commit.DiscardOldFileChange,
 	commit.NewBranch,
 	commit.Revert,
@@ -85,5 +87,10 @@ var tests = []*components.IntegrationTest{
 	sync.Pull,
 	sync.PullAndSetUpstream,
 	sync.RenameBranchAndPull,
+	tag.Checkout,
+	tag.CrudAnnotated,
+	tag.CrudLightweight,
+	tag.Reset,
+	undo.UndoCheckoutAndDrop,
 	undo.UndoDrop,
 }

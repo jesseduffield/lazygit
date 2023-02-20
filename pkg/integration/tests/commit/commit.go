@@ -20,18 +20,42 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Files().
 			IsFocused().
+			Lines(
+				Contains("?? myfile").IsSelected(),
+				Contains("?? myfile2"),
+			).
 			PressPrimaryAction(). // stage file
+			Lines(
+				Contains("A  myfile").IsSelected(),
+				Contains("?? myfile2"),
+			).
 			SelectNextItem().
 			PressPrimaryAction(). // stage other file
+			Lines(
+				Contains("A  myfile"),
+				Contains("A  myfile2").IsSelected(),
+			).
 			Press(keys.Files.CommitChanges)
 
 		commitMessage := "my commit message"
 
 		t.ExpectPopup().CommitMessagePanel().Type(commitMessage).Confirm()
 
+		t.Views().Files().
+			IsEmpty()
+
 		t.Views().Commits().
+			Focus().
 			Lines(
-				Contains(commitMessage),
+				Contains(commitMessage).IsSelected(),
+			).
+			PressEnter()
+
+		t.Views().CommitFiles().
+			IsFocused().
+			Lines(
+				Contains("A myfile"),
+				Contains("A myfile2"),
 			)
 	},
 })

@@ -1,6 +1,8 @@
 package git_commands
 
 import (
+	"regexp"
+
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -26,16 +28,26 @@ func NewTagLoader(
 func (self *TagLoader) GetTags() ([]*models.Tag, error) {
 	// get remote branches, sorted  by creation date (descending)
 	// see: https://git-scm.com/docs/git-tag#Documentation/git-tag.txt---sortltkeygt
-	tagsOutput, err := self.cmd.New(`git tag --list --sort=-creatordate`).DontLog().RunWithOutput()
+	tagsOutput, err := self.cmd.New(`git tag --list -n --sort=-creatordate`).DontLog().RunWithOutput()
 	if err != nil {
 		return nil, err
 	}
 
 	split := utils.SplitLines(tagsOutput)
 
-	tags := slices.Map(split, func(tagName string) *models.Tag {
+	lineRegex := regexp.MustCompile(`^([^\s]+)(\s+)?(.*)$`)
+
+	tags := slices.Map(split, func(line string) *models.Tag {
+		matches := lineRegex.FindStringSubmatch(line)
+		tagName := matches[1]
+		message := ""
+		if len(matches) > 3 {
+			message = matches[3]
+		}
+
 		return &models.Tag{
-			Name: tagName,
+			Name:    tagName,
+			Message: message,
 		}
 	})
 

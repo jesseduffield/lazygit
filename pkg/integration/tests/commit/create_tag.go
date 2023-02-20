@@ -1,4 +1,4 @@
-package branch
+package commit
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -6,25 +6,22 @@ import (
 )
 
 var CreateTag = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Create a new tag on branch",
+	Description:  "Create a new tag on a commit",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
-		shell.
-			CreateNCommits(10).
-			NewBranch("new-branch").
-			EmptyCommit("new commit")
+		shell.EmptyCommit("one")
+		shell.EmptyCommit("two")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Branches().
+		t.Views().Commits().
 			Focus().
 			Lines(
-				MatchesRegexp(`\*\s*new-branch`).IsSelected(),
-				MatchesRegexp(`master`),
+				Contains("two").IsSelected(),
+				Contains("one"),
 			).
-			SelectNextItem().
-			Press(keys.Branches.CreateTag)
+			Press(keys.Commits.CreateTag)
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Create tag")).
@@ -36,13 +33,19 @@ var CreateTag = NewIntegrationTest(NewIntegrationTestArgs{
 			Type("new-tag").
 			Confirm()
 
-		t.Views().Tags().Focus().
+		t.Views().Commits().
 			Lines(
-				MatchesRegexp(`new-tag`).IsSelected(),
+				MatchesRegexp(`new-tag.*two`).IsSelected(),
+				MatchesRegexp(`one`),
+			)
+
+		t.Views().Tags().
+			Focus().
+			Lines(
+				MatchesRegexp(`new-tag.*two`).IsSelected(),
 			)
 
 		t.Git().
-			TagNamesAt("HEAD", []string{}).
-			TagNamesAt("master", []string{"new-tag"})
+			TagNamesAt("HEAD", []string{"new-tag"})
 	},
 })
