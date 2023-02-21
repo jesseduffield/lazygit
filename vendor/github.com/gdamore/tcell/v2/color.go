@@ -1002,14 +1002,14 @@ func (c Color) IsRGB() bool {
 }
 
 // Hex returns the color's hexadecimal RGB 24-bit value with each component
-// consisting of a single byte, ala R << 16 | G << 8 | B.  If the color
+// consisting of a single byte, R << 16 | G << 8 | B.  If the color
 // is unknown or unset, -1 is returned.
 func (c Color) Hex() int32 {
 	if !c.Valid() {
 		return -1
 	}
 	if c&ColorIsRGB != 0 {
-		return int32(c) & 0xffffff
+		return int32(c & 0xffffff)
 	}
 	if v, ok := ColorValues[c]; ok {
 		return v
@@ -1036,7 +1036,7 @@ func (c Color) TrueColor() Color {
 		return ColorDefault
 	}
 	if c&ColorIsRGB != 0 {
-		return c
+		return c | ColorValid
 	}
 	return Color(c.Hex()) | ColorIsRGB | ColorValid
 }

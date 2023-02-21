@@ -264,7 +264,11 @@ Windows console mode applications are supported.
 Modern console applications like ConEmu and the Windows 10 terminal,
 support all the good features (resize, mouse tracking, etc.)
 
-### Plan9, WASM, and others
+### WASM
+
+WASM is supported, but needs additional setup detailed in [README-wasm](README-wasm.md).
+
+### Plan9 and others
 
 These platforms won't work, but compilation stubs are supplied
 for folks that want to include parts of this in software for those

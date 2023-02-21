@@ -83,10 +83,12 @@ const (
 // has much better performance and makes no allocations. It lends itself well to
 // large byte slices.
 //
-// Note that in accordance with UAX #14 LB3, the final segment will end with
+// Note that in accordance with [UAX #14 LB3], the final segment will end with
 // a mandatory line break (boundaries&MaskLine == LineMustBreak). You can choose
 // to ignore this by checking if the length of the "rest" slice is 0 and calling
 // [HasTrailingLineBreak] or [HasTrailingLineBreakInString] on the last rune.
+//
+// [UAX #14 LB3]: https://www.unicode.org/reports/tr14/#Algorithm
 func Step(b []byte, state int) (cluster, rest []byte, boundaries int, newState int) {
 	// An empty byte slice returns nothing.
 	if len(b) == 0 {
