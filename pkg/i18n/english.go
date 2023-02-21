@@ -115,6 +115,8 @@ type TranslationSet struct {
 	LcRedoReflog                        string
 	UndoTooltip                         string
 	RedoTooltip                         string
+	DiscardAllTooltip                   string
+	DiscardUnstagedTooltip              string
 	LcPop                               string
 	LcDrop                              string
 	LcApply                             string
@@ -762,6 +764,8 @@ func EnglishTranslationSet() TranslationSet {
 		LcRedoReflog:                        "redo (via reflog) (experimental)",
 		UndoTooltip:                         "The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration.",
 		RedoTooltip:                         "The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration.",
+		DiscardAllTooltip:                   "Discard both staged and unstaged changes in '{{.path}}'.",
+		DiscardUnstagedTooltip:              "Discard unstaged changes in '{{.path}}'.",
 		LcPop:                               "pop",
 		LcDrop:                              "drop",
 		LcApply:                             "apply",

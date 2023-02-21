@@ -11,7 +11,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>m</kbd>: 查看 合并/变基 选项
   <kbd>ctrl+p</kbd>: 查看自定义补丁选项
   <kbd>R</kbd>: 刷新
-  <kbd>x</kbd>: 打开菜单
+  <kbd>?</kbd>: 打开菜单
   <kbd>+</kbd>: 下一屏模式（正常/半屏/全屏）
   <kbd>_</kbd>: 上一屏模式
   <kbd>ctrl+s</kbd>: 查看按路径过滤选项

@@ -11,7 +11,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>m</kbd>: view merge/rebase options
   <kbd>ctrl+p</kbd>: view custom patch options
   <kbd>R</kbd>: refresh
-  <kbd>x</kbd>: open menu
+  <kbd>?</kbd>: open menu
   <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
   <kbd>_</kbd>: prev screen mode
   <kbd>ctrl+s</kbd>: view filter-by-path options

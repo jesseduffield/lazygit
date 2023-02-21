@@ -31,7 +31,7 @@ func (self *FilesController) createResetMenu() error {
 
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 			},
-			Key:     'D',
+			Key:     'x',
 			Tooltip: self.c.Tr.NukeDescription,
 		},
 		{

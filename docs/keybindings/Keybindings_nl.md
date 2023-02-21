@@ -11,7 +11,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>m</kbd>: bekijk merge/rebase opties
   <kbd>ctrl+p</kbd>: bekijk aangepaste patch opties
   <kbd>R</kbd>: verversen
-  <kbd>x</kbd>: open menu
+  <kbd>?</kbd>: open menu
   <kbd>+</kbd>: volgende scherm modus (normaal/half/groot)
   <kbd>_</kbd>: vorige scherm modus
   <kbd>ctrl+s</kbd>: bekijk scoping opties

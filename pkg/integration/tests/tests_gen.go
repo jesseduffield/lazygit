@@ -21,6 +21,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/submodule"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/tag"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/ui"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/undo"
 )
 
@@ -115,6 +116,7 @@ var tests = []*components.IntegrationTest{
 	tag.CrudAnnotated,
 	tag.CrudLightweight,
 	tag.Reset,
+	ui.SwitchTabFromMenu,
 	undo.UndoCheckoutAndDrop,
 	undo.UndoDrop,
 }

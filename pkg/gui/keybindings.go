@@ -145,17 +145,19 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.LcRefresh,
 		},
 		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.OptionMenu),
-			Handler:     self.handleCreateOptionsMenu,
-			Description: self.c.Tr.LcOpenMenu,
-			OpensMenu:   true,
+			ViewName:  "",
+			Key:       opts.GetKey(opts.Config.Universal.OptionMenu),
+			Handler:   self.handleCreateOptionsMenu,
+			OpensMenu: true,
 		},
 		{
 			ViewName: "",
 			Key:      opts.GetKey(opts.Config.Universal.OptionMenuAlt1),
 			Modifier: gocui.ModNone,
-			Handler:  self.handleCreateOptionsMenu,
+			// we have the description on the alt key and not the main key for legacy reasons
+			// (the original main key was 'x' but we've reassigned that to other purposes)
+			Description: self.c.Tr.LcOpenMenu,
+			Handler:     self.handleCreateOptionsMenu,
 		},
 		{
 			ViewName:    "status",
