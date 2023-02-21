@@ -140,6 +140,10 @@ func (self *Shell) CreateLightweightTag(name string, ref string) *Shell {
 	return self.RunCommand(fmt.Sprintf("git tag %s %s", name, ref))
 }
 
+func (self *Shell) CreateAnnotatedTag(name string, message string, ref string) *Shell {
+	return self.RunCommand(fmt.Sprintf("git tag -a %s -m \"%s\" %s", name, message, ref))
+}
+
 // convenience method for creating a file and adding it
 func (self *Shell) CreateFileAndAdd(fileName string, fileContents string) *Shell {
 	return self.
