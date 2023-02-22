@@ -179,7 +179,7 @@ func (self *Shell) StashWithMessage(message string) *Shell {
 }
 
 func (self *Shell) SetConfig(key string, value string) *Shell {
-	self.RunCommand(fmt.Sprintf(`git config --local "%s" %s`, key, value))
+	self.RunCommand(fmt.Sprintf(`git config --local "%s" "%s"`, key, value))
 	return self
 }
 

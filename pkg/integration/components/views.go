@@ -127,3 +127,7 @@ func (self *Views) Suggestions() *ViewDriver {
 func (self *Views) MergeConflicts() *ViewDriver {
 	return self.byName("mergeConflicts")
 }
+
+func (self *Views) Search() *ViewDriver {
+	return self.byName("search")
+}

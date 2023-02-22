@@ -32,8 +32,7 @@ func (self *PromptDriver) Type(value string) *PromptDriver {
 }
 
 func (self *PromptDriver) Clear() *PromptDriver {
-	// TODO: soft-code this
-	self.t.press("<c-u>")
+	self.t.press(ClearKey)
 
 	return self
 }
