@@ -358,6 +358,12 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action string, commit
 func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 	index := self.context().GetSelectedLineIdx()
 	commits := self.model.Commits
+
+	// can't move past the initial commit
+	if index >= len(commits)-1 {
+		return nil
+	}
+
 	if commit.Status == "rebasing" {
 		if commits[index+1].Status != "rebasing" {
 			return nil

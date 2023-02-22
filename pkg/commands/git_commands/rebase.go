@@ -95,17 +95,15 @@ func (self *RebaseCommands) GenericAmend(commits []*models.Commit, index int, f 
 }
 
 func (self *RebaseCommands) MoveCommitDown(commits []*models.Commit, index int) error {
-	// we must ensure that we have at least two commits after the selected one
-	if len(commits) <= index+2 {
-		// assuming they aren't picking the bottom commit
-		return errors.New(self.Tr.NoRoom)
-	}
-
-	orderedCommits := append(commits[0:index], commits[index+1], commits[index])
+	// not appending to original slice so that we don't mutate it
+	orderedCommits := append([]*models.Commit{}, commits[0:index]...)
+	orderedCommits = append(orderedCommits, commits[index+1], commits[index])
 
 	todoLines := self.BuildTodoLinesSingleAction(orderedCommits, "pick")
 
-	return self.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todoLines, true).Run()
+	baseShaOrRoot := getBaseShaOrRoot(commits, index+2)
+
+	return self.PrepareInteractiveRebaseCommand(baseShaOrRoot, todoLines, true).Run()
 }
 
 func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index int, action string) error {
@@ -189,12 +187,9 @@ func (self *RebaseCommands) BuildSingleActionTodo(commits []*models.Commit, acti
 		}
 	})
 
-	baseSha := "--root"
-	if baseIndex < len(commits) {
-		baseSha = commits[baseIndex].Sha
-	}
+	baseShaOrRoot := getBaseShaOrRoot(commits, baseIndex)
 
-	return todoLines, baseSha, nil
+	return todoLines, baseShaOrRoot, nil
 }
 
 // AmendTo amends the given commit with whatever files are staged
@@ -416,5 +411,19 @@ func (self *TodoLine) ToString() string {
 		return self.Action + "\n"
 	} else {
 		return self.Action + " " + self.Commit.Sha + " " + self.Commit.Name + "\n"
+	}
+}
+
+// we can't start an interactive rebase from the first commit without passing the
+// '--root' arg
+func getBaseShaOrRoot(commits []*models.Commit, index int) string {
+	// We assume that the commits slice contains the initial commit of the repo.
+	// Technically this assumption could prove false, but it's unlikely you'll
+	// be starting a rebase from 300 commits ago (which is the original commit limit
+	// at time of writing)
+	if index < len(commits) {
+		return commits[index].Sha
+	} else {
+		return "--root"
 	}
 }
