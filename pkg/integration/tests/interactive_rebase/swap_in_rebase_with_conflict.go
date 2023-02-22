@@ -49,21 +49,7 @@ var SwapInRebaseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 })
 
 func handleConflictsFromSwap(t *TestDriver) {
-	continueMerge := func() {
-		t.ExpectPopup().Confirmation().
-			Title(Equals("continue")).
-			Content(Contains("all merge conflicts resolved. Continue?")).
-			Confirm()
-	}
-
-	acceptConflicts := func() {
-		t.ExpectPopup().Confirmation().
-			Title(Equals("Auto-merge failed")).
-			Content(Contains("Conflicts!")).
-			Confirm()
-	}
-
-	acceptConflicts()
+	t.Actions().AcknowledgeConflicts()
 
 	t.Views().Files().
 		IsFocused().
@@ -84,9 +70,9 @@ func handleConflictsFromSwap(t *TestDriver) {
 		SelectNextItem().
 		PressPrimaryAction() // pick "three"
 
-	continueMerge()
+	t.Actions().ContinueOnConflictsResolved()
 
-	acceptConflicts()
+	t.Actions().AcknowledgeConflicts()
 
 	t.Views().Files().
 		IsFocused().
@@ -107,7 +93,7 @@ func handleConflictsFromSwap(t *TestDriver) {
 		SelectNextItem().
 		PressPrimaryAction() // pick "two"
 
-	continueMerge()
+	t.Actions().ContinueOnConflictsResolved()
 
 	t.Views().Commits().
 		Focus().
