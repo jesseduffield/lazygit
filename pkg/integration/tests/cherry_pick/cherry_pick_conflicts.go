@@ -47,7 +47,10 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Commits.PasteCommits)
 
-		t.ExpectPopup().Alert().Title(Equals("Cherry-Pick")).Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).Confirm()
+		t.ExpectPopup().Alert().
+			Title(Equals("Cherry-Pick")).
+			Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
+			Confirm()
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Auto-merge failed")).

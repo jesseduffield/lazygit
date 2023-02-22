@@ -17,6 +17,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/patch_building"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/reflog"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/submodule"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
@@ -87,6 +88,10 @@ var tests = []*components.IntegrationTest{
 	misc.ConfirmOnQuit,
 	misc.InitialOpen,
 	patch_building.CopyPatchToClipboard,
+	reflog.Checkout,
+	reflog.CherryPick,
+	reflog.Patch,
+	reflog.Reset,
 	stash.Apply,
 	stash.ApplyPatch,
 	stash.CreateBranch,
