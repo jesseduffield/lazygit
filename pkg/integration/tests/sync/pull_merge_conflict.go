@@ -15,7 +15,8 @@ var PullMergeConflict = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Commit("one")
 		shell.UpdateFileAndAdd("file", "content2")
 		shell.Commit("two")
-		shell.EmptyCommit("three")
+		shell.CreateFileAndAdd("file2", "content3")
+		shell.Commit("three")
 
 		shell.CloneIntoRemote("origin")
 

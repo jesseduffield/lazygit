@@ -22,7 +22,8 @@ var PullRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.SetBranchUpstream("master", "origin/master")
 
 		shell.HardReset("HEAD^^")
-		shell.EmptyCommit("four")
+		shell.CreateFileAndAdd("file2", "content3")
+		shell.Commit("four")
 
 		shell.SetConfig("pull.rebase", "true")
 	},

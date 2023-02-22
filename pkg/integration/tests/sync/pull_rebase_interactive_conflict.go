@@ -24,7 +24,8 @@ var PullRebaseInteractiveConflict = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.HardReset("HEAD^^")
 		shell.UpdateFileAndAdd("file", "content4")
 		shell.Commit("four")
-		shell.EmptyCommit("five")
+		shell.CreateFileAndAdd("file2", "content5")
+		shell.Commit("five")
 
 		shell.SetConfig("pull.rebase", "interactive")
 	},
