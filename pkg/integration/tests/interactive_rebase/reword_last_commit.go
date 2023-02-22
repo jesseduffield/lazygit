@@ -5,11 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-// Rewording the first commit is tricky because you can't rebase from its parent commit,
-// hence having a specific test for this
-
-var RewordFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Rewords the first commit, just to show that it's possible",
+var RewordLastCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Rewords the last (HEAD) commit",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -21,22 +18,21 @@ var RewordFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 02"),
+				Contains("commit 02").IsSelected(),
 				Contains("commit 01"),
 			).
-			NavigateToListItem(Contains("commit 01")).
 			Press(keys.Commits.RenameCommit).
 			Tap(func() {
 				t.ExpectPopup().Prompt().
 					Title(Equals("reword commit")).
-					InitialText(Equals("commit 01")).
+					InitialText(Equals("commit 02")).
 					Clear().
-					Type("renamed 01").
+					Type("renamed 02").
 					Confirm()
 			}).
 			Lines(
-				Contains("commit 02"),
-				Contains("renamed 01"),
+				Contains("renamed 02"),
+				Contains("commit 01"),
 			)
 	},
 })
