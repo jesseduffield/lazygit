@@ -159,6 +159,19 @@ func (self *TestDriver) ExpectClipboard(matcher *matcher) {
 	})
 }
 
+func (self *TestDriver) ExpectSearch() *SearchDriver {
+	self.inSearch()
+
+	return &SearchDriver{t: self}
+}
+
+func (self *TestDriver) inSearch() {
+	self.assertWithRetries(func() (bool, string) {
+		currentView := self.gui.CurrentContext().GetView()
+		return currentView.Name() == "search", "Expected search prompt to be focused"
+	})
+}
+
 // for making assertions through git itself
 func (self *TestDriver) Git() *Git {
 	return &Git{assertionHelper: self.assertionHelper, shell: self.shell}

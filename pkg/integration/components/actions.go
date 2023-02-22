@@ -17,3 +17,17 @@ func (self *Actions) ContinueMerge() {
 func (self *Actions) ContinueRebase() {
 	self.ContinueMerge()
 }
+
+func (self *Actions) AcknowledgeConflicts() {
+	self.t.ExpectPopup().Confirmation().
+		Title(Equals("Auto-merge failed")).
+		Content(Contains("Conflicts!")).
+		Confirm()
+}
+
+func (self *Actions) ContinueOnConflictsResolved() {
+	self.t.ExpectPopup().Confirmation().
+		Title(Equals("continue")).
+		Content(Contains("all merge conflicts resolved. Continue?")).
+		Confirm()
+}

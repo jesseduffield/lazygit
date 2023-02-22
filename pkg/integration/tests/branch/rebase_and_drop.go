@@ -43,10 +43,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("rebasing"))
 
-		t.ExpectPopup().Confirmation().
-			Title(Equals("Auto-merge failed")).
-			Content(Contains("Conflicts!")).
-			Confirm()
+		t.Actions().AcknowledgeConflicts()
 
 		t.Views().Files().IsFocused().
 			SelectedLine(MatchesRegexp("UU.*file"))
@@ -78,10 +75,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			PressPrimaryAction()
 
-		t.ExpectPopup().Confirmation().
-			Title(Equals("continue")).
-			Content(Contains("all merge conflicts resolved. Continue?")).
-			Confirm()
+		t.Actions().ContinueOnConflictsResolved()
 
 		t.Views().Information().Content(DoesNotContain("rebasing"))
 

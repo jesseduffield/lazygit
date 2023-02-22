@@ -17,6 +17,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/patch_building"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/reflog"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/staging"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/stash"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/submodule"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/sync"
@@ -37,6 +39,8 @@ var tests = []*components.IntegrationTest{
 	branch.RebaseAndDrop,
 	branch.RebaseDoesNotAutosquash,
 	branch.Reset,
+	branch.ResetUpstream,
+	branch.SetUpstream,
 	branch.Suggestions,
 	cherry_pick.CherryPick,
 	cherry_pick.CherryPickConflicts,
@@ -45,8 +49,11 @@ var tests = []*components.IntegrationTest{
 	commit.CreateTag,
 	commit.DiscardOldFileChange,
 	commit.NewBranch,
+	commit.ResetAuthor,
 	commit.Revert,
 	commit.RevertMerge,
+	commit.Search,
+	commit.SetAuthor,
 	commit.StageRangeOfLines,
 	commit.Staged,
 	commit.StagedWithoutHooks,
@@ -87,6 +94,11 @@ var tests = []*components.IntegrationTest{
 	misc.ConfirmOnQuit,
 	misc.InitialOpen,
 	patch_building.CopyPatchToClipboard,
+	reflog.Checkout,
+	reflog.CherryPick,
+	reflog.Patch,
+	reflog.Reset,
+	staging.Search,
 	stash.Apply,
 	stash.ApplyPatch,
 	stash.CreateBranch,
@@ -109,6 +121,12 @@ var tests = []*components.IntegrationTest{
 	sync.ForcePushMultipleUpstream,
 	sync.Pull,
 	sync.PullAndSetUpstream,
+	sync.PullMerge,
+	sync.PullMergeConflict,
+	sync.PullRebase,
+	sync.PullRebaseConflict,
+	sync.PullRebaseInteractiveConflict,
+	sync.PullRebaseInteractiveConflictDrop,
 	sync.Push,
 	sync.PushAndAutoSetUpstream,
 	sync.PushAndSetUpstream,
