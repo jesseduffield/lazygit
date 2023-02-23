@@ -37,6 +37,13 @@ func (self *TestDriver) press(keyStr string) {
 	self.gui.PressKey(keyStr)
 }
 
+// Should only be used in specific cases where you're doing something weird!
+// E.g. invoking a global keybinding from within a popup.
+// You probably shouldn't use this function, and should instead go through a view like t.Views().Commit().Focus().Press(...)
+func (self *TestDriver) GlobalPress(keyStr string) {
+	self.press(keyStr)
+}
+
 func (self *TestDriver) typeContent(content string) {
 	for _, char := range content {
 		self.press(string(char))
