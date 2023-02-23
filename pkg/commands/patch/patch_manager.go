@@ -245,6 +245,8 @@ func (p *PatchManager) GetFileIncLineIndices(filename string) ([]int, error) {
 }
 
 func (p *PatchManager) ApplyPatches(reverse bool) error {
+	patch := ""
+
 	applyFlags := []string{"index", "3way"}
 	if reverse {
 		applyFlags = append(applyFlags, "reverse")
@@ -255,16 +257,10 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 			continue
 		}
 
-		patch := p.RenderPatchForFile(filename, true, reverse)
-		if patch != "" {
-			err := p.applyPatch(patch, applyFlags...)
-			if err != nil {
-				return err
-			}
-		}
+		patch += p.RenderPatchForFile(filename, true, reverse)
 	}
 
-	return nil
+	return p.applyPatch(patch, applyFlags...)
 }
 
 // clears the patch

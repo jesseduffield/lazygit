@@ -52,7 +52,7 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 		t.ExpectPopup().Alert().
 			Title(Equals("Error")).
 			Content(Contains("Applied patch to 'file1' with conflicts.").
-				DoesNotContain("Applied patch to 'file2' cleanly.")).
+				Contains("Applied patch to 'file2' cleanly.")).
 			Confirm()
 
 		t.Views().Files().
@@ -79,6 +79,7 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("M").Contains("file1").IsSelected(),
+				Contains("M").Contains("file2"),
 			)
 
 		t.Views().Main().
