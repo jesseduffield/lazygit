@@ -255,21 +255,12 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 			continue
 		}
 
-		var err error
-		// first run we try with the original header, then without
-		for _, keepOriginalHeader := range []bool{true, false} {
-			patch := p.RenderPatchForFile(filename, true, false, reverse, keepOriginalHeader)
-			if patch == "" {
-				continue
+		patch := p.RenderPatchForFile(filename, true, false, reverse, true)
+		if patch != "" {
+			err := p.applyPatch(patch, applyFlags...)
+			if err != nil {
+				return err
 			}
-			if err = p.applyPatch(patch, applyFlags...); err != nil {
-				continue
-			}
-			break
-		}
-
-		if err != nil {
-			return err
 		}
 	}
 
