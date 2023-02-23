@@ -96,6 +96,10 @@ func NewPatchModifier(log *logrus.Entry, filename string, diffText string) *Patc
 }
 
 func (d *PatchModifier) ModifiedPatchForLines(lineIndices []int, opts PatchOptions) string {
+	if opts.Reverse && opts.KeepOriginalHeader {
+		panic("reverse and keepOriginalHeader are not compatible")
+	}
+
 	// step one is getting only those hunks which we care about
 	hunksInRange := []*PatchHunk{}
 outer:
