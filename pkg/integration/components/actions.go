@@ -31,3 +31,10 @@ func (self *Actions) ContinueOnConflictsResolved() {
 		Content(Contains("all merge conflicts resolved. Continue?")).
 		Confirm()
 }
+
+func (self *Actions) ConfirmDiscardLines() {
+	self.t.ExpectPopup().Confirmation().
+		Title(Equals("Unstage lines")).
+		Content(Contains("Are you sure you want to delete the selected lines")).
+		Confirm()
+}
