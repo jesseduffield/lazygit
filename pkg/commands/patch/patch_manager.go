@@ -162,7 +162,7 @@ func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLi
 	return nil
 }
 
-func (p *PatchManager) renderPlainPatchForFile(filename string, reverse bool, willBeAppliedReverse bool, keepOriginalHeader bool) string {
+func (p *PatchManager) renderPlainPatchForFile(filename string, willBeAppliedReverse bool) string {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		p.Log.Error(err)
@@ -178,17 +178,17 @@ func (p *PatchManager) renderPlainPatchForFile(filename string, reverse bool, wi
 		// generate a new diff with just the selected lines
 		return ModifiedPatchForLines(p.Log, filename, info.diff, info.includedLineIndices,
 			PatchOptions{
-				Reverse:              reverse,
+				Reverse:              false,
 				WillBeAppliedReverse: willBeAppliedReverse,
-				KeepOriginalHeader:   keepOriginalHeader,
+				KeepOriginalHeader:   true,
 			})
 	default:
 		return ""
 	}
 }
 
-func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool, willBeAppliedReverse bool, keepOriginalHeader bool) string {
-	patch := p.renderPlainPatchForFile(filename, reverse, willBeAppliedReverse, keepOriginalHeader)
+func (p *PatchManager) RenderPatchForFile(filename string, plain bool, willBeAppliedReverse bool) string {
+	patch := p.renderPlainPatchForFile(filename, willBeAppliedReverse)
 	if plain {
 		return patch
 	}
@@ -204,7 +204,7 @@ func (p *PatchManager) renderEachFilePatch(plain bool) []string {
 
 	sort.Strings(filenames)
 	patches := slices.Map(filenames, func(filename string) string {
-		return p.RenderPatchForFile(filename, plain, false, false, true)
+		return p.RenderPatchForFile(filename, plain, false)
 	})
 	output := slices.Filter(patches, func(patch string) bool {
 		return patch != ""
@@ -255,7 +255,7 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 			continue
 		}
 
-		patch := p.RenderPatchForFile(filename, true, false, reverse, true)
+		patch := p.RenderPatchForFile(filename, true, reverse)
 		if patch != "" {
 			err := p.applyPatch(patch, applyFlags...)
 			if err != nil {
