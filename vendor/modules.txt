@@ -39,7 +39,9 @@ github.com/fsnotify/fsnotify
 # github.com/gdamore/encoding v1.0.0
 ## explicit; go 1.9
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.5.4
+# github.com/gdamore/tcell v1.4.0
+## explicit; go 1.12
+# github.com/gdamore/tcell/v2 v2.6.0
 ## explicit; go 1.12
 github.com/gdamore/tcell/v2
 github.com/gdamore/tcell/v2/terminfo
@@ -233,7 +235,7 @@ github.com/petermattis/goid
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/rivo/uniseg v0.4.3
+# github.com/rivo/uniseg v0.4.4
 ## explicit; go 1.18
 github.com/rivo/uniseg
 # github.com/sahilm/fuzzy v0.1.0

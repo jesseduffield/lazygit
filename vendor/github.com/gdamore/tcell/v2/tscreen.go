@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build !(js && wasm)
+// +build !js !wasm
+
 package tcell
 
 import (
@@ -341,6 +344,11 @@ func (t *tScreen) prepareBracketedPaste() {
 }
 
 func (t *tScreen) prepareExtendedOSC() {
+	// Linux is a special beast - because it has a mouse entry, but does
+	// not swallow these OSC commands properly.
+	if (strings.Contains(t.ti.Name, "linux")) {
+		return;
+	}
 	// More stuff for limits in terminfo.  This time we are applying
 	// the most common OSC (operating system commands).  Generally
 	// terminals that don't understand these will ignore them.
