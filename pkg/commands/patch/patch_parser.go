@@ -134,7 +134,8 @@ func coloredString(textStyle style.TextStyle, str string, selected bool, include
 }
 
 func parsePatch(patch string) ([]int, []int, []*PatchLine) {
-	lines := strings.Split(patch, "\n")
+	// ignore trailing newline.
+	lines := strings.Split(strings.TrimSuffix(patch, "\n"), "\n")
 	hunkStarts := []int{}
 	stageableLines := []int{}
 	pastFirstHunkHeader := false
@@ -179,6 +180,7 @@ func parsePatch(patch string) ([]int, []int, []*PatchLine) {
 		}
 		patchLines[index] = &PatchLine{Kind: lineKind, Content: line}
 	}
+
 	return hunkStarts, stageableLines, patchLines
 }
 

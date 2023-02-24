@@ -50,31 +50,80 @@ var DiffContextChange = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Staging().
 			IsFocused().
-			Content(Contains("@@ -1,6 +1,6 @@").DoesNotContain(" 7a")).
-			SelectedLine(Contains("-3a")).
+			Press(keys.Main.ToggleSelectHunk).
+			SelectedLines(
+				Contains(`@@ -1,6 +1,6 @@`),
+				Contains(` 1a`),
+				Contains(` 2a`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+				Contains(` 4a`),
+				Contains(` 5a`),
+				Contains(` 6a`),
+			).
 			Press(keys.Universal.IncreaseContextInDiffView).
-			// still on the same line
-			SelectedLine(Contains("-3a")).
-			// '7a' is now visible
-			Content(Contains("@@ -1,7 +1,7 @@").Contains(" 7a")).
+			SelectedLines(
+				Contains(`@@ -1,7 +1,7 @@`),
+				Contains(` 1a`),
+				Contains(` 2a`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+				Contains(` 4a`),
+				Contains(` 5a`),
+				Contains(` 6a`),
+				Contains(` 7a`),
+			).
 			Press(keys.Universal.DecreaseContextInDiffView).
-			SelectedLine(Contains("-3a")).
-			Content(Contains("@@ -1,6 +1,6 @@").DoesNotContain(" 7a")).
+			SelectedLines(
+				Contains(`@@ -1,6 +1,6 @@`),
+				Contains(` 1a`),
+				Contains(` 2a`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+				Contains(` 4a`),
+				Contains(` 5a`),
+				Contains(` 6a`),
+			).
 			Press(keys.Universal.DecreaseContextInDiffView).
-			SelectedLine(Contains("-3a")).
-			Content(Contains("@@ -1,5 +1,5 @@").DoesNotContain(" 6a")).
+			SelectedLines(
+				Contains(`@@ -1,5 +1,5 @@`),
+				Contains(` 1a`),
+				Contains(` 2a`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+				Contains(` 4a`),
+				Contains(` 5a`),
+			).
 			Press(keys.Universal.DecreaseContextInDiffView).
-			// arguably we should still be on -3a, but at the moment the logic puts us on on +3b
-			SelectedLine(Contains("+3b")).
-			Content(Contains("@@ -2,3 +2,3 @@").DoesNotContain(" 5a")).
+			SelectedLines(
+				Contains(`@@ -2,3 +2,3 @@`),
+				Contains(` 2a`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+				Contains(` 4a`),
+			).
 			PressPrimaryAction().
-			Content(DoesNotContain("+3b")).
 			Press(keys.Universal.TogglePanel)
 
 		t.Views().StagingSecondary().
 			IsFocused().
-			Content(Contains("@@ -3,2 +3,3 @@\n 3a\n+3b\n 4a")).
+			Press(keys.Main.ToggleSelectHunk).
+			SelectedLines(
+				Contains(`@@ -2,3 +2,3 @@`),
+				Contains(` 2a`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+				Contains(` 4a`),
+			).
 			Press(keys.Universal.IncreaseContextInDiffView).
-			Content(Contains("@@ -2,4 +2,5 @@\n 2a\n 3a\n+3b\n 4a\n 5a"))
+			SelectedLines(
+				Contains(`@@ -1,5 +1,5 @@`),
+				Contains(` 1a`),
+				Contains(` 2a`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+				Contains(` 4a`),
+				Contains(` 5a`),
+			)
 	},
 })

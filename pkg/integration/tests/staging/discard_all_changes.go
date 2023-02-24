@@ -29,13 +29,13 @@ var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Staging().
 			IsFocused().
-			SelectedLine(Contains("+three")).
+			SelectedLines(Contains("+three")).
 			// discard the line
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.Actions().ConfirmDiscardLines()
 			}).
-			SelectedLine(Contains("+four")).
+			SelectedLines(Contains("+four")).
 			// discard the other line
 			Press(keys.Universal.Remove).
 			Tap(func() {
@@ -49,6 +49,6 @@ var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			// assert we are still in the staging panel, but now looking at the changes of the other file
 			IsFocused().
-			SelectedLine(Contains("+3"))
+			SelectedLines(Contains("+3"))
 	},
 })

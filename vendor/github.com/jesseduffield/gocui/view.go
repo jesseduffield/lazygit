@@ -1302,6 +1302,9 @@ func (v *View) SelectedLineIdx() int {
 
 // expected to only be used in tests
 func (v *View) SelectedLine() string {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
 	if len(v.lines) == 0 {
 		return ""
 	}

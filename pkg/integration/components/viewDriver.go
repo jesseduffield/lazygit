@@ -10,9 +10,10 @@ import (
 
 type ViewDriver struct {
 	// context is prepended to any error messages e.g. 'context: "current view"'
-	context string
-	getView func() *gocui.View
-	t       *TestDriver
+	context            string
+	getView            func() *gocui.View
+	t                  *TestDriver
+	getSelectedLinesFn func() ([]string, error)
 }
 
 // asserts that the view has the expected title
@@ -48,6 +49,74 @@ func (self *ViewDriver) Lines(matchers ...*matcher) *ViewDriver {
 	self.LineCount(len(matchers))
 
 	return self.assertLines(matchers...)
+}
+
+func (self *ViewDriver) getSelectedLines() ([]string, error) {
+	if self.getSelectedLinesFn == nil {
+		view := self.t.gui.View(self.getView().Name())
+
+		return []string{view.SelectedLine()}, nil
+	}
+
+	return self.getSelectedLinesFn()
+}
+
+func (self *ViewDriver) SelectedLines(matchers ...*matcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		selectedLines, err := self.getSelectedLines()
+		if err != nil {
+			return false, err.Error()
+		}
+
+		selectedContent := strings.Join(selectedLines, "\n")
+		expectedContent := expectedContentFromMatchers(matchers)
+
+		if len(selectedLines) != len(matchers) {
+			return false, fmt.Sprintf("Expected the following to be selected:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----", expectedContent, selectedContent)
+		}
+
+		for i, line := range selectedLines {
+			ok, message := matchers[i].test(line)
+			if !ok {
+				return false, fmt.Sprintf("Error: %s. Expected the following to be selected:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----", message, expectedContent, selectedContent)
+			}
+		}
+
+		return true, ""
+	})
+
+	return self
+}
+
+func (self *ViewDriver) ContainsLines(matchers ...*matcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		content := self.getView().Buffer()
+		lines := strings.Split(content, "\n")
+
+		for i := 0; i < len(lines)-len(matchers)+1; i++ {
+			matches := true
+			for j, matcher := range matchers {
+				ok, _ := matcher.test(lines[i+j])
+				if !ok {
+					matches = false
+					break
+				}
+			}
+			if matches {
+				return true, ""
+			}
+		}
+
+		expectedContent := expectedContentFromMatchers(matchers)
+
+		return false, fmt.Sprintf(
+			"Expected the following to be contained in the staging panel:\n-----\n%s\n-----\nBut got:\n-----\n%s\n-----",
+			expectedContent,
+			content,
+		)
+	})
+
+	return self
 }
 
 func (self *ViewDriver) assertLines(matchers ...*matcher) *ViewDriver {
@@ -86,9 +155,35 @@ func (self *ViewDriver) Content(matcher *matcher) *ViewDriver {
 
 // asserts on the selected line of the view
 func (self *ViewDriver) SelectedLine(matcher *matcher) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		selectedLines, err := self.getSelectedLines()
+		if err != nil {
+			return false, err.Error()
+		}
+
+		if len(selectedLines) == 0 {
+			return false, "No line selected. Expected exactly one line to be selected"
+		} else if len(selectedLines) > 1 {
+			return false, fmt.Sprintf(
+				"Multiple lines selected. Expected only a single line to be selected. Selected lines:\n---\n%s\n---\n\nExpected line: %s",
+				strings.Join(selectedLines, "\n"),
+				matcher.name(),
+			)
+		}
+
+		value := selectedLines[0]
+		return matcher.context(fmt.Sprintf("%s: Unexpected selected line.", self.context)).test(value)
+	})
+
 	self.t.matchString(matcher, fmt.Sprintf("%s: Unexpected selected line.", self.context),
 		func() string {
-			return self.getView().SelectedLine()
+			selectedLines, err := self.getSelectedLines()
+			if err != nil {
+				self.t.gui.Fail(err.Error())
+				return "<failed to obtain selected line>"
+			}
+
+			return selectedLines[0]
 		},
 	)
 
@@ -252,4 +347,10 @@ func (self *ViewDriver) Tap(f func()) *ViewDriver {
 	f()
 
 	return self
+}
+
+func expectedContentFromMatchers(matchers []*matcher) string {
+	return strings.Join(lo.Map(matchers, func(matcher *matcher, _ int) string {
+		return matcher.name()
+	}), "\n")
 }

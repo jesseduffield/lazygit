@@ -2,8 +2,11 @@ package components
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 )
 
 type Views struct {
@@ -36,98 +39,129 @@ func (self *Views) Secondary() *ViewDriver {
 	}
 }
 
-func (self *Views) byName(viewName string) *ViewDriver {
+func (self *Views) regularView(viewName string) *ViewDriver {
+	return self.newStaticViewDriver(viewName, nil)
+}
+
+func (self *Views) patchExplorerViewByName(viewName string) *ViewDriver {
+	return self.newStaticViewDriver(viewName, func() ([]string, error) {
+		ctx := self.t.gui.ContextForView(viewName).(*context.PatchExplorerContext)
+		state := ctx.GetState()
+		if state == nil {
+			return nil, errors.New("Expected patch explorer to be activated")
+		}
+		selectedContent := state.PlainRenderSelected()
+		// the above method returns a string with a trailing newline so we need to remove that before splitting
+		selectedLines := strings.Split(strings.TrimSuffix(selectedContent, "\n"), "\n")
+		return selectedLines, nil
+	})
+}
+
+// 'static' because it'll always refer to the same view, as opposed to the 'main' view which could actually be
+// one of several views, or the 'current' view which depends on focus.
+func (self *Views) newStaticViewDriver(viewName string, getSelectedLinesFn func() ([]string, error)) *ViewDriver {
 	return &ViewDriver{
-		context: fmt.Sprintf("%s view", viewName),
-		getView: func() *gocui.View { return self.t.gui.View(viewName) },
-		t:       self.t,
+		context:            fmt.Sprintf("%s view", viewName),
+		getView:            func() *gocui.View { return self.t.gui.View(viewName) },
+		getSelectedLinesFn: getSelectedLinesFn,
+		t:                  self.t,
 	}
 }
 
 func (self *Views) Commits() *ViewDriver {
-	return self.byName("commits")
+	return self.regularView("commits")
 }
 
 func (self *Views) Files() *ViewDriver {
-	return self.byName("files")
+	return self.regularView("files")
 }
 
 func (self *Views) Status() *ViewDriver {
-	return self.byName("status")
+	return self.regularView("status")
 }
 
 func (self *Views) Submodules() *ViewDriver {
-	return self.byName("submodules")
+	return self.regularView("submodules")
 }
 
 func (self *Views) Information() *ViewDriver {
-	return self.byName("information")
+	return self.regularView("information")
 }
 
 func (self *Views) AppStatus() *ViewDriver {
-	return self.byName("appStatus")
+	return self.regularView("appStatus")
 }
 
 func (self *Views) Branches() *ViewDriver {
-	return self.byName("localBranches")
+	return self.regularView("localBranches")
 }
 
 func (self *Views) Remotes() *ViewDriver {
-	return self.byName("remotes")
+	return self.regularView("remotes")
 }
 
 func (self *Views) RemoteBranches() *ViewDriver {
-	return self.byName("remoteBranches")
+	return self.regularView("remoteBranches")
 }
 
 func (self *Views) Tags() *ViewDriver {
-	return self.byName("tags")
+	return self.regularView("tags")
 }
 
 func (self *Views) ReflogCommits() *ViewDriver {
-	return self.byName("reflogCommits")
+	return self.regularView("reflogCommits")
 }
 
 func (self *Views) SubCommits() *ViewDriver {
-	return self.byName("subCommits")
+	return self.regularView("subCommits")
 }
 
 func (self *Views) CommitFiles() *ViewDriver {
-	return self.byName("commitFiles")
+	return self.regularView("commitFiles")
 }
 
 func (self *Views) Stash() *ViewDriver {
-	return self.byName("stash")
+	return self.regularView("stash")
 }
 
 func (self *Views) Staging() *ViewDriver {
-	return self.byName("staging")
+	return self.patchExplorerViewByName("staging")
 }
 
 func (self *Views) StagingSecondary() *ViewDriver {
-	return self.byName("stagingSecondary")
+	return self.patchExplorerViewByName("stagingSecondary")
+}
+
+func (self *Views) PatchBuilding() *ViewDriver {
+	return self.patchExplorerViewByName("patchBuilding")
+}
+
+func (self *Views) PatchBuildingSecondary() *ViewDriver {
+	// this is not a patch explorer view because you can't actually focus it: it
+	// just renders content
+	return self.regularView("patchBuildingSecondary")
 }
 
 func (self *Views) Menu() *ViewDriver {
-	return self.byName("menu")
+	return self.regularView("menu")
 }
 
 func (self *Views) Confirmation() *ViewDriver {
-	return self.byName("confirmation")
+	return self.regularView("confirmation")
 }
 
 func (self *Views) CommitMessage() *ViewDriver {
-	return self.byName("commitMessage")
+	return self.regularView("commitMessage")
 }
 
 func (self *Views) Suggestions() *ViewDriver {
-	return self.byName("suggestions")
+	return self.regularView("suggestions")
 }
 
 func (self *Views) MergeConflicts() *ViewDriver {
-	return self.byName("mergeConflicts")
+	return self.regularView("mergeConflicts")
 }
 
 func (self *Views) Search() *ViewDriver {
-	return self.byName("search")
+	return self.regularView("search")
 }

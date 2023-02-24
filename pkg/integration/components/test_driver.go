@@ -7,7 +7,6 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
@@ -84,9 +83,7 @@ func (self *TestDriver) Shell() *Shell {
 // in the current page and failing that, jump to the top of the view and iterate through all of it,
 // looking for the item.
 func (self *TestDriver) navigateToListItem(matcher *matcher) {
-	self.inListContext()
-
-	currentContext := self.gui.CurrentContext().(types.IListContext)
+	currentContext := self.gui.CurrentContext()
 
 	view := currentContext.GetView()
 
@@ -131,14 +128,6 @@ func (self *TestDriver) navigateToListItem(matcher *matcher) {
 		self.Views().current().SelectedLine(matcher)
 		return
 	}
-}
-
-func (self *TestDriver) inListContext() {
-	self.assertWithRetries(func() (bool, string) {
-		currentContext := self.gui.CurrentContext()
-		_, ok := currentContext.(types.IListContext)
-		return ok, fmt.Sprintf("Expected current context to be a list context, but got %s", currentContext.GetKey())
-	})
 }
 
 // for making assertions on lazygit views

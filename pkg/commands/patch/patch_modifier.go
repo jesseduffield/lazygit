@@ -27,7 +27,9 @@ func GetHunksFromDiff(diff string) []*PatchHunk {
 	var hunkLines []string //nolint:prealloc
 	pastDiffHeader := false
 
-	for lineIdx, line := range strings.SplitAfter(diff, "\n") {
+	lines := strings.SplitAfter(diff, "\n")
+
+	for lineIdx, line := range lines {
 		isHunkHeader := strings.HasPrefix(line, "@@ -")
 
 		if isHunkHeader {
@@ -41,6 +43,10 @@ func GetHunksFromDiff(diff string) []*PatchHunk {
 		}
 
 		if !pastDiffHeader { // skip through the stuff that precedes the first hunk
+			continue
+		}
+
+		if lineIdx == len(lines)-1 && line == "" { // skip the trailing newline
 			continue
 		}
 
