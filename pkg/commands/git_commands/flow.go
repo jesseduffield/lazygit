@@ -24,7 +24,7 @@ func (self *FlowCommands) GitFlowEnabled() bool {
 	return self.config.GetGitFlowPrefixes() != ""
 }
 
-func (self *FlowCommands) FinishCmdObj(branchName string) (oscommands.ICmdObj, error) {
+func (self *FlowCommands) FinishCmdObj(branchName string, willPush bool) (oscommands.ICmdObj, error) {
 	prefixes := self.config.GetGitFlowPrefixes()
 
 	// need to find out what kind of branch this is
@@ -46,6 +46,10 @@ func (self *FlowCommands) FinishCmdObj(branchName string) (oscommands.ICmdObj, e
 
 	if branchType == "" {
 		return nil, errors.New(self.Tr.NotAGitFlowBranch)
+	}
+
+	if willPush == true {
+		return self.cmd.New("git flow " + branchType + " finish -pm " + suffix), nil
 	}
 
 	return self.cmd.New("git flow " + branchType + " finish " + suffix), nil
