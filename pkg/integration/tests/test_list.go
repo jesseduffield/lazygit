@@ -99,6 +99,7 @@ var tests = []*components.IntegrationTest{
 	misc.InitialOpen,
 	patch_building.Apply,
 	patch_building.ApplyInReverse,
+	patch_building.ApplyInReverseWithConflict,
 	patch_building.CopyPatchToClipboard,
 	patch_building.MoveToIndex,
 	patch_building.MoveToIndexPartial,
