@@ -61,6 +61,11 @@ func (self *matcher) Contains(target string) *matcher {
 	return self.appendRule(matcherRule{
 		name: fmt.Sprintf("contains '%s'", target),
 		testFn: func(value string) (bool, string) {
+			// everything contains the empty string so we unconditionally return true here
+			if target == "" {
+				return true, ""
+			}
+
 			return strings.Contains(value, target), fmt.Sprintf("Expected '%s' to be found in '%s'", target, value)
 		},
 	})

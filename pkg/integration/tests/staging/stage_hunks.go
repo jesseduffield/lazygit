@@ -50,42 +50,108 @@ var StageHunks = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Staging().
 			IsFocused().
-			SelectedLine(Contains("-3a")).
+			SelectedLines(
+				Contains("-3a"),
+			).
 			Press(keys.Universal.NextBlock).
-			SelectedLine(Contains("-13a")).
+			SelectedLines(
+				Contains("-13a"),
+			).
 			Press(keys.Main.ToggleSelectHunk).
+			SelectedLines(
+				Contains("@@ -10,6 +10,6 @@"),
+				Contains(" 10a"),
+				Contains(" 11a"),
+				Contains(" 12a"),
+				Contains("-13a"),
+				Contains("+13b"),
+				Contains(" 14a"),
+				Contains(" 15a"),
+				Contains(`\ No newline at end of file`),
+			).
 			// when in hunk mode, pressing up/down moves us up/down by a hunk
 			SelectPreviousItem().
-			SelectedLine(Contains("-3a")).
+			SelectedLines(
+				Contains(`@@ -1,6 +1,6 @@`),
+				Contains(` 1a`),
+				Contains(` 2a`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+				Contains(` 4a`),
+				Contains(` 5a`),
+				Contains(` 6a`),
+			).
 			SelectNextItem().
-			SelectedLine(Contains("-13a")).
+			SelectedLines(
+				Contains("@@ -10,6 +10,6 @@"),
+				Contains(" 10a"),
+				Contains(" 11a"),
+				Contains(" 12a"),
+				Contains("-13a"),
+				Contains("+13b"),
+				Contains(" 14a"),
+				Contains(" 15a"),
+				Contains(`\ No newline at end of file`),
+			).
 			// stage the second hunk
 			PressPrimaryAction().
-			Content(Contains("-3a\n+3b")).
+			ContainsLines(
+				Contains("-3a"),
+				Contains("+3b"),
+			).
 			Tap(func() {
 				t.Views().StagingSecondary().
-					Content(Contains("-13a\n+13b"))
+					ContainsLines(
+						Contains("-13a"),
+						Contains("+13b"),
+					)
 			}).
 			Press(keys.Universal.TogglePanel)
 
 		t.Views().StagingSecondary().
 			IsFocused().
-			SelectedLine(Contains("-13a")).
 			// after toggling panel, we're back to only having selected a single line
+			SelectedLines(
+				Contains("-13a"),
+			).
 			PressPrimaryAction().
-			SelectedLine(Contains("+13b")).
+			SelectedLines(
+				Contains("+13b"),
+			).
 			PressPrimaryAction().
 			IsEmpty()
 
 		t.Views().Staging().
 			IsFocused().
-			SelectedLine(Contains("-3a")).
+			SelectedLines(
+				Contains("-3a"),
+			).
 			Press(keys.Main.ToggleSelectHunk).
+			SelectedLines(
+				Contains(`@@ -1,6 +1,6 @@`),
+				Contains(` 1a`),
+				Contains(` 2a`),
+				Contains(`-3a`),
+				Contains(`+3b`),
+				Contains(` 4a`),
+				Contains(` 5a`),
+				Contains(` 6a`),
+			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.Actions().ConfirmDiscardLines()
 			}).
-			SelectedLine(Contains("-13a")).
-			Content(DoesNotContain("-3a").DoesNotContain("+3b"))
+			Content(DoesNotContain("-3a").DoesNotContain("+3b")).
+			SelectedLines(
+				Contains("@@ -10,6 +10,6 @@"),
+				Contains(" 10a"),
+				Contains(" 11a"),
+				Contains(" 12a"),
+				Contains("-13a"),
+				Contains("+13b"),
+				Contains(" 14a"),
+				Contains(" 15a"),
+				Contains(`\ No newline at end of file`),
+			)
 	},
 })

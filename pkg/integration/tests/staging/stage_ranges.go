@@ -26,50 +26,81 @@ var StageRanges = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Staging().
 			IsFocused().
-			SelectedLine(Contains("+three")).
+			SelectedLines(
+				Contains("+three"),
+			).
 			Press(keys.Main.ToggleDragSelect).
-			SelectNextItem().
-			SelectedLine(Contains("+four")).
-			SelectNextItem().
-			SelectedLine(Contains("+five")).
+			NavigateToListItem(Contains("+five")).
+			SelectedLines(
+				Contains("+three"),
+				Contains("+four"),
+				Contains("+five"),
+			).
 			// stage the three lines we've just selected
 			PressPrimaryAction().
-			Content(Contains(" five\n+six")).
+			SelectedLines(
+				Contains("+six"),
+			).
+			ContainsLines(
+				Contains(" five"),
+				Contains("+six"),
+			).
 			Tap(func() {
 				t.Views().StagingSecondary().
-					Content(Contains("+three\n+four\n+five"))
+					ContainsLines(
+						Contains("+three"),
+						Contains("+four"),
+						Contains("+five"),
+					)
 			}).
 			Press(keys.Universal.TogglePanel)
 
 		t.Views().StagingSecondary().
 			IsFocused().
-			SelectedLine(Contains("+three")).
+			SelectedLines(
+				Contains("+three"),
+			).
 			Press(keys.Main.ToggleDragSelect).
-			SelectNextItem().
-			SelectedLine(Contains("+four")).
-			SelectNextItem().
-			SelectedLine(Contains("+five")).
+			NavigateToListItem(Contains("+five")).
+			SelectedLines(
+				Contains("+three"),
+				Contains("+four"),
+				Contains("+five"),
+			).
 			// unstage the three selected lines
 			PressPrimaryAction().
 			// nothing left in our staging secondary panel
 			IsEmpty().
 			Tap(func() {
 				t.Views().Staging().
-					Content(Contains("+three\n+four\n+five\n+six"))
+					ContainsLines(
+						Contains("+three"),
+						Contains("+four"),
+						Contains("+five"),
+						Contains("+six"),
+					)
 			})
 
 		t.Views().Staging().
 			IsFocused().
 			// coincidentally we land at '+four' here. Maybe we should instead land
 			// at '+three'? given it's at the start of the hunk?
-			SelectedLine(Contains("+four")).
+			SelectedLines(
+				Contains("+four"),
+			).
 			Press(keys.Main.ToggleDragSelect).
 			SelectNextItem().
-			SelectedLine(Contains("+five")).
+			SelectedLines(
+				Contains("+four"),
+				Contains("+five"),
+			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.Actions().ConfirmDiscardLines()
 			}).
-			Content(Contains("+three\n+six"))
+			ContainsLines(
+				Contains("+three"),
+				Contains("+six"),
+			)
 	},
 })

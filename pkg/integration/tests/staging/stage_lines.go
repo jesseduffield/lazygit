@@ -26,16 +26,18 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Staging().
 			IsFocused().
-			SelectedLine(Contains("+three")).
+			SelectedLines(Contains("+three")).
 			// stage 'three'
 			PressPrimaryAction().
 			// 'three' moves over to the staging secondary panel
 			Content(DoesNotContain("+three")).
 			Tap(func() {
 				t.Views().StagingSecondary().
-					Content(Contains("+three"))
+					ContainsLines(
+						Contains("+three"),
+					)
 			}).
-			SelectedLine(Contains("+four")).
+			SelectedLines(Contains("+four")).
 			// stage 'four'
 			PressPrimaryAction().
 			// nothing left in our staging panel
@@ -45,15 +47,20 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 		// do the same thing as above, moving the lines back to the staging panel
 		t.Views().StagingSecondary().
 			IsFocused().
-			Content(Contains("+three\n+four")).
-			SelectedLine(Contains("+three")).
+			ContainsLines(
+				Contains("+three"),
+				Contains("+four"),
+			).
+			SelectedLines(Contains("+three")).
 			PressPrimaryAction().
 			Content(DoesNotContain("+three")).
 			Tap(func() {
 				t.Views().Staging().
-					Content(Contains("+three"))
+					ContainsLines(
+						Contains("+three"),
+					)
 			}).
-			SelectedLine(Contains("+four")).
+			SelectedLines(Contains("+four")).
 			// pressing 'remove' has the same effect as pressing space when in the staging secondary panel
 			Press(keys.Universal.Remove).
 			IsEmpty()
@@ -61,8 +68,11 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 		// stage one line and then manually toggle to the staging secondary panel
 		t.Views().Staging().
 			IsFocused().
-			Content(Contains("+three\n+four")).
-			SelectedLine(Contains("+three")).
+			ContainsLines(
+				Contains("+three"),
+				Contains("+four"),
+			).
+			SelectedLines(Contains("+three")).
 			PressPrimaryAction().
 			Content(DoesNotContain("+three")).
 			Tap(func() {
@@ -77,7 +87,7 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.TogglePanel)
 
 		t.Views().Staging().
-			SelectedLine(Contains("+four")).
+			SelectedLines(Contains("+four")).
 			// discard the line
 			Press(keys.Universal.Remove).
 			Tap(func() {
@@ -90,7 +100,9 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().StagingSecondary().
 			IsFocused().
-			Content(Contains("+three\n")).
+			ContainsLines(
+				Contains("+three"),
+			).
 			// return to file
 			PressEscape()
 
