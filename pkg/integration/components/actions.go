@@ -38,3 +38,9 @@ func (self *Actions) ConfirmDiscardLines() {
 		Content(Contains("Are you sure you want to delete the selected lines")).
 		Confirm()
 }
+
+func (self *Actions) SelectPatchOption(matcher *Matcher) {
+	self.t.GlobalPress(self.t.keys.Universal.CreatePatchOptionsMenu)
+
+	self.t.ExpectPopup().Menu().Title(Equals("Patch Options")).Select(matcher).Confirm()
+}

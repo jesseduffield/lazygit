@@ -9,7 +9,7 @@ func (self *CommitMessagePanelDriver) getViewDriver() *ViewDriver {
 }
 
 // asserts on the text initially present in the prompt
-func (self *CommitMessagePanelDriver) InitialText(expected *matcher) *CommitMessagePanelDriver {
+func (self *CommitMessagePanelDriver) InitialText(expected *Matcher) *CommitMessagePanelDriver {
 	self.getViewDriver().Content(expected)
 
 	return self

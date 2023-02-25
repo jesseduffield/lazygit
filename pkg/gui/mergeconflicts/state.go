@@ -1,6 +1,8 @@
 package mergeconflicts
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -188,9 +190,30 @@ func (s *State) ContentAfterConflictResolve(selection Selection) (bool, string, 
 func (s *State) GetSelectedLine() int {
 	conflict := s.currentConflict()
 	if conflict == nil {
+		// TODO: see why this is 1 and not 0
 		return 1
 	}
 	selection := s.Selection()
 	startIndex, _ := selection.bounds(conflict)
 	return startIndex + 1
+}
+
+func (s *State) GetSelectedRange() (int, int) {
+	conflict := s.currentConflict()
+	if conflict == nil {
+		return 0, 0
+	}
+	selection := s.Selection()
+	startIndex, endIndex := selection.bounds(conflict)
+	return startIndex, endIndex
+}
+
+func (s *State) PlainRenderSelected() string {
+	startIndex, endIndex := s.GetSelectedRange()
+
+	content := s.GetContent()
+
+	contentLines := utils.SplitLines(content)
+
+	return strings.Join(contentLines[startIndex:endIndex+1], "\n")
 }

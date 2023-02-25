@@ -13,7 +13,7 @@ type assertionHelper struct {
 // milliseconds we'll wait when an assertion fails.
 var retryWaitTimes = []int{0, 1, 1, 1, 1, 1, 5, 10, 20, 40, 100, 200, 500, 1000, 2000, 4000}
 
-func (self *assertionHelper) matchString(matcher *matcher, context string, getValue func() string) {
+func (self *assertionHelper) matchString(matcher *Matcher, context string, getValue func() string) {
 	self.assertWithRetries(func() (bool, string) {
 		value := getValue()
 		return matcher.context(context).test(value)
