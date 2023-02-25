@@ -5,10 +5,10 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var CopyPatchToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Create a patch from the commits and copy the patch to clipbaord.",
+var Apply = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Apply a custom patch",
 	ExtraCmdArgs: "",
-	Skip:         true, // skipping because CI doesn't have clipboard functionality
+	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.NewBranch("branch-a")
@@ -29,10 +29,18 @@ var CopyPatchToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("branch-b"),
 			).
 			Press(keys.Universal.NextItem).
-			PressEnter().
 			PressEnter()
-		t.Views().
-			CommitFiles().
+
+		t.Views().SubCommits().
+			IsFocused().
+			Lines(
+				Contains("update").IsSelected(),
+				Contains("first commit"),
+			).
+			PressEnter()
+
+		t.Views().CommitFiles().
+			IsFocused().
 			Lines(
 				Contains("M file1").IsSelected(),
 			).
@@ -40,10 +48,17 @@ var CopyPatchToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("building patch"))
 
-		t.Actions().SelectPatchOption(Contains("copy patch to clipboard"))
+		t.Views().PatchBuildingSecondary().Content(Contains("second line"))
 
-		t.ExpectToast(Contains("Patch copied to clipboard"))
+		t.Actions().SelectPatchOption(MatchesRegexp(`apply patch$`))
 
-		t.ExpectClipboard(Contains("diff --git a/file1 b/file1"))
+		t.Views().Files().
+			Focus().
+			Lines(
+				Contains("file1").IsSelected(),
+			)
+
+		t.Views().Main().
+			Content(Contains("second line"))
 	},
 })

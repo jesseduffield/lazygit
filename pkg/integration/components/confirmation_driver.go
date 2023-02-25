@@ -11,7 +11,7 @@ func (self *ConfirmationDriver) getViewDriver() *ViewDriver {
 }
 
 // asserts that the confirmation view has the expected title
-func (self *ConfirmationDriver) Title(expected *matcher) *ConfirmationDriver {
+func (self *ConfirmationDriver) Title(expected *Matcher) *ConfirmationDriver {
 	self.getViewDriver().Title(expected)
 
 	self.hasCheckedTitle = true
@@ -20,7 +20,7 @@ func (self *ConfirmationDriver) Title(expected *matcher) *ConfirmationDriver {
 }
 
 // asserts that the confirmation view has the expected content
-func (self *ConfirmationDriver) Content(expected *matcher) *ConfirmationDriver {
+func (self *ConfirmationDriver) Content(expected *Matcher) *ConfirmationDriver {
 	self.getViewDriver().Content(expected)
 
 	self.hasCheckedContent = true

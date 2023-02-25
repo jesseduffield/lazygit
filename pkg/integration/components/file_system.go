@@ -26,7 +26,7 @@ func (self *FileSystem) PathNotPresent(path string) {
 }
 
 // Asserts that the file at the given path has the given content
-func (self *FileSystem) FileContent(path string, matcher *matcher) {
+func (self *FileSystem) FileContent(path string, matcher *Matcher) {
 	self.assertWithRetries(func() (bool, string) {
 		_, err := os.Stat(path)
 		if os.IsNotExist(err) {
