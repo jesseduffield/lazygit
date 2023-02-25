@@ -12,17 +12,19 @@ var FixupSecondCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.
-			CreateNCommits(3)
+			CreateFileAndAdd("file1.txt", "File1 Content\n").Commit("First Commit").
+			CreateFileAndAdd("file2.txt", "Fixup Content\n").Commit("Fixup Commit Message").
+			CreateFileAndAdd("file3.txt", "File3 Content\n").Commit("Third Commit")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("Third Commit"),
+				Contains("Fixup Commit Message"),
+				Contains("First Commit"),
 			).
-			NavigateToLine(Contains("commit 02")).
+			NavigateToLine(Contains("Fixup Commit Message")).
 			Press(keys.Commits.MarkCommitAsFixup).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
@@ -31,14 +33,17 @@ var FixupSecondCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 			}).
 			Lines(
-				Contains("commit 03"),
-				Contains("commit 01").IsSelected(),
+				Contains("Third Commit"),
+				Contains("First Commit").IsSelected(),
 			)
 
 		t.Views().Main().
-			Content(Contains("commit 01")).
-			Content(DoesNotContain("commit 02")).
-			Content(Contains("+file01 content")).
-			Content(Contains("+file02 content"))
+			// Make sure that the resulting commit message doesn't contain the
+			// message of the fixup commit; compare this to
+			// squash_down_second_commit.go, where it does.
+			Content(Contains("First Commit")).
+			Content(DoesNotContain("Fixup Commit Message")).
+			Content(Contains("+File1 Content")).
+			Content(Contains("+Fixup Content"))
 	},
 })
