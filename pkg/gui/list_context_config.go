@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -118,7 +119,11 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 					selectedCommitSha = selectedCommit.Sha
 				}
 			}
+
+			showYouAreHereLabel := gui.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING
+
 			return presentation.GetCommitListDisplayStrings(
+				gui.Common,
 				gui.State.Model.Commits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
@@ -130,6 +135,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 				length,
 				gui.shouldShowGraph(),
 				gui.State.Model.BisectInfo,
+				showYouAreHereLabel,
 			)
 		},
 		OnFocusWrapper(gui.onCommitFocus),
@@ -152,6 +158,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 				}
 			}
 			return presentation.GetCommitListDisplayStrings(
+				gui.Common,
 				gui.State.Model.SubCommits,
 				gui.State.ScreenMode != SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
@@ -163,6 +170,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 				length,
 				gui.shouldShowGraph(),
 				git_commands.NewNullBisectInfo(),
+				false,
 			)
 		},
 		nil,

@@ -15,7 +15,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 // context:
@@ -68,10 +67,6 @@ type GetCommitsOptions struct {
 func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, error) {
 	commits := []*models.Commit{}
 	var rebasingCommits []*models.Commit
-	rebaseMode, err := self.getRebaseMode()
-	if err != nil {
-		return nil, err
-	}
 
 	if opts.IncludeRebaseCommits && opts.FilterPath == "" {
 		var err error
@@ -104,12 +99,6 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 
 	if len(commits) == 0 {
 		return commits, nil
-	}
-
-	if rebaseMode != enums.REBASE_MODE_NONE {
-		currentCommit := commits[len(rebasingCommits)]
-		youAreHere := style.FgYellow.Sprintf("<-- %s ---", self.Tr.YouAreHere)
-		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
 	}
 
 	commits, err = self.setCommitMergedStatuses(opts.RefName, commits)
