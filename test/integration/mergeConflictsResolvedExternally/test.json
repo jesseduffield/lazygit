@@ -1,4 +1,0 @@
-{
-  "description": "This test verifies that merge conflicts resolved externally are recognised by lazygit and the user is prompted to continue",
-  "speed": 10
-}
