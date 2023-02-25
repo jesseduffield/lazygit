@@ -180,6 +180,7 @@ var extIconMap = map[string]string{
 	".jxl":            "\uf1c5", // 
 	".ksh":            "\uf489", // 
 	".kt":             "\ue634", // 
+	".kts":            "\ue634", // 
 	".latex":          "\uf034", // 
 	".less":           "\ue758", // 
 	".lhs":            "\ue777", // 
