@@ -69,6 +69,20 @@ index e48a11c..b2ab81b 100644
  ...
 `
 
+const twoChangesInOneHunk = `diff --git a/filename b/filename
+index 9320895..6d79956 100644
+--- a/filename
++++ b/filename
+@@ -1,5 +1,5 @@
+ apple
+-grape
++kiwi
+ orange
+-pear
++banana
+ lemon
+`
+
 const newFile = `diff --git a/newfile b/newfile
 new file mode 100644
 index 0000000..4e680cc
@@ -101,13 +115,14 @@ const exampleHunk = `@@ -1,5 +1,5 @@
 // TestModifyPatchForRange is a function.
 func TestModifyPatchForRange(t *testing.T) {
 	type scenario struct {
-		testName       string
-		filename       string
-		diffText       string
-		firstLineIndex int
-		lastLineIndex  int
-		reverse        bool
-		expected       string
+		testName             string
+		filename             string
+		diffText             string
+		firstLineIndex       int
+		lastLineIndex        int
+		reverse              bool
+		willBeAppliedReverse bool
+		expected             string
 	}
 
 	scenarios := []scenario{
@@ -508,13 +523,55 @@ func TestModifyPatchForRange(t *testing.T) {
 \ No newline at end of file
 `,
 		},
+		{
+			testName:             "adding part of a hunk",
+			filename:             "filename",
+			firstLineIndex:       6,
+			lastLineIndex:        7,
+			reverse:              false,
+			willBeAppliedReverse: false,
+			diffText:             twoChangesInOneHunk,
+			expected: `--- a/filename
++++ b/filename
+@@ -1,5 +1,5 @@
+ apple
+-grape
++kiwi
+ orange
+ pear
+ lemon
+`,
+		},
+		{
+			testName:             "adding part of a hunk, will-be-applied-reverse",
+			filename:             "filename",
+			firstLineIndex:       6,
+			lastLineIndex:        7,
+			reverse:              false,
+			willBeAppliedReverse: true,
+			diffText:             twoChangesInOneHunk,
+			expected: `--- a/filename
++++ b/filename
+@@ -1,5 +1,5 @@
+ apple
+-grape
++kiwi
+ orange
+ banana
+ lemon
+`,
+		},
 	}
 
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			result := ModifiedPatchForRange(nil, s.filename, s.diffText, s.firstLineIndex, s.lastLineIndex,
-				PatchOptions{Reverse: s.reverse, KeepOriginalHeader: false})
+				PatchOptions{
+					Reverse:              s.reverse,
+					WillBeAppliedReverse: s.willBeAppliedReverse,
+					KeepOriginalHeader:   false,
+				})
 			if !assert.Equal(t, s.expected, result) {
 				fmt.Println(result)
 			}
