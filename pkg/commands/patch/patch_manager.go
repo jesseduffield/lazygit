@@ -176,7 +176,8 @@ func (p *PatchManager) renderPlainPatchForFile(filename string, reverse bool, ke
 		return info.diff
 	case PART:
 		// generate a new diff with just the selected lines
-		return ModifiedPatchForLines(p.Log, filename, info.diff, info.includedLineIndices, reverse, keepOriginalHeader)
+		return ModifiedPatchForLines(p.Log, filename, info.diff, info.includedLineIndices,
+			PatchOptions{Reverse: reverse, KeepOriginalHeader: keepOriginalHeader})
 	default:
 		return ""
 	}
