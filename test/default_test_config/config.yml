@@ -8,8 +8,6 @@ gui:
     - bold
     SelectedRangeBgcolor:
     - reverse
-  # TODO: we should update most tests to use a file tree now that it's the default
-  showFileTree: false
 git:
   # We don't want to run any periodic background git commands because it'll introduce race conditions and flakiness.
   # If we need to refresh something from within the test (which should only really happen if we've invoked a

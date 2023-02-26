@@ -9,9 +9,7 @@ var SwitchTabFromMenu = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Switch tab via the options menu",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Git.AutoFetch = false
-	},
+	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
