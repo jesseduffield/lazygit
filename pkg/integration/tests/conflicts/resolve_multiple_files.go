@@ -49,6 +49,6 @@ var ResolveMultipleFiles = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction()
 
-		t.Actions().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved()
 	},
 })

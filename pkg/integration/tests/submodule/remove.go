@@ -12,8 +12,7 @@ var Remove = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("first commit")
-		shell.RunCommand("git clone --bare . ../other_repo")
-		shell.RunCommand("git submodule add ../other_repo my_submodule")
+		shell.CloneIntoSubmodule("my_submodule")
 		shell.GitAddAll()
 		shell.Commit("add submodule")
 	},

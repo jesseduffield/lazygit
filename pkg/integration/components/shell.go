@@ -38,6 +38,15 @@ func (self *Shell) RunCommand(cmdStr string) *Shell {
 	return self
 }
 
+// Help files are located at test/files from the root the lazygit repo.
+// E.g. You may want to create a pre-commit hook file there, then call this
+// function to copy it into your test repo.
+func (self *Shell) CopyHelpFile(source string, destination string) *Shell {
+	self.RunCommand(fmt.Sprintf("cp ../../../../../files/%s %s", source, destination))
+
+	return self
+}
+
 func (self *Shell) runCommandWithOutput(cmdStr string) (string, error) {
 	args := str.ToArgv(cmdStr)
 	cmd := secureexec.Command(args[0], args[1:]...)
@@ -190,9 +199,23 @@ func (self *Shell) SetConfig(key string, value string) *Shell {
 // creates a clone of the repo in a sibling directory and adds the clone
 // as a remote, then fetches it.
 func (self *Shell) CloneIntoRemote(name string) *Shell {
-	self.RunCommand(fmt.Sprintf("git clone --bare . ../%s", name))
+	self.Clone(name)
 	self.RunCommand(fmt.Sprintf("git remote add %s ../%s", name, name))
 	self.RunCommand(fmt.Sprintf("git fetch %s", name))
+
+	return self
+}
+
+func (self *Shell) CloneIntoSubmodule(submoduleName string) *Shell {
+	self.Clone("other_repo")
+	self.RunCommand(fmt.Sprintf("git submodule add ../other_repo %s", submoduleName))
+
+	return self
+}
+
+// clones repo into a sibling directory
+func (self *Shell) Clone(repoName string) *Shell {
+	self.RunCommand(fmt.Sprintf("git clone --bare . ../%s", repoName))
 
 	return self
 }

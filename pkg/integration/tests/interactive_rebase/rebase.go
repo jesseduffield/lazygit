@@ -31,7 +31,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("first commit to edit"),
 				Contains("initial commit"),
 			).
-			NavigateToListItem(Contains("first commit to edit")).
+			NavigateToLine(Contains("first commit to edit")).
 			Press(keys.Universal.Edit).
 			Lines(
 				MatchesRegexp("pick.*commit to fixup"),
@@ -82,7 +82,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("initial commit"),
 			).
 			Tap(func() {
-				t.Actions().ContinueRebase()
+				t.Common().ContinueRebase()
 			}).
 			Lines(
 				MatchesRegexp("fixup.*commit to fixup").IsSelected(),
@@ -92,7 +92,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("initial commit"),
 			).
 			Tap(func() {
-				t.Actions().ContinueRebase()
+				t.Common().ContinueRebase()
 			}).
 			Lines(
 				Contains("second commit to edit").IsSelected(),

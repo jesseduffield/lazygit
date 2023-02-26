@@ -40,9 +40,9 @@ var MoveToIndexWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("building patch"))
 
-		t.Actions().SelectPatchOption(Contains("move patch out into index"))
+		t.Common().SelectPatchOption(Contains("move patch out into index"))
 
-		t.Actions().AcknowledgeConflicts()
+		t.Common().AcknowledgeConflicts()
 
 		t.Views().Files().
 			IsFocused().
@@ -62,7 +62,7 @@ var MoveToIndexWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction()
 
-		t.Actions().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved()
 
 		t.ExpectPopup().Alert().
 			Title(Equals("Error")).

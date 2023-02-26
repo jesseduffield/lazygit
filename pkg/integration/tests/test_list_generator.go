@@ -1,7 +1,7 @@
 //go:build ignore
 
-// This file is invoked with `go generate ./...` and it generates the tests_gen.go file
-// The tests_gen.go file is a list of all the integration tests.
+// This file is invoked with `go generate ./...` and it generates the test_list.go file
+// The test_list.go file is a list of all the integration tests.
 // It's annoying to have to manually add an entry in that file for each test you
 // create, so this generator is here to make the process easier.
 
@@ -26,7 +26,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err := ioutil.WriteFile("tests_gen.go", formattedCode, 0o644); err != nil {
+	if err := ioutil.WriteFile("test_list.go", formattedCode, 0o644); err != nil {
 		panic(err)
 	}
 }

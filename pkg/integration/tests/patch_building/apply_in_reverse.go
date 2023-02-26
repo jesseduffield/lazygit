@@ -35,7 +35,7 @@ var ApplyInReverse = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().PatchBuildingSecondary().Content(Contains("+file1 content"))
 
-		t.Actions().SelectPatchOption(Contains("apply patch in reverse"))
+		t.Common().SelectPatchOption(Contains("apply patch in reverse"))
 
 		t.Views().Files().
 			Focus().

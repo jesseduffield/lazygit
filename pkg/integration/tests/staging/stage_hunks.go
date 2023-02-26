@@ -139,7 +139,7 @@ var StageHunks = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.Actions().ConfirmDiscardLines()
+				t.Common().ConfirmDiscardLines()
 			}).
 			Content(DoesNotContain("-3a").DoesNotContain("+3b")).
 			SelectedLines(

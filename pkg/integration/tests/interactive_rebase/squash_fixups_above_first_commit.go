@@ -22,7 +22,7 @@ var SquashFixupsAboveFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 02"),
 				Contains("commit 01"),
 			).
-			NavigateToListItem(Contains("commit 01")).
+			NavigateToLine(Contains("commit 01")).
 			Press(keys.Commits.CreateFixupCommit).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
@@ -30,7 +30,7 @@ var SquashFixupsAboveFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Contains("Are you sure you want to create a fixup! commit for commit")).
 					Confirm()
 			}).
-			NavigateToListItem(Contains("commit 01")).
+			NavigateToLine(Contains("commit 01")).
 			Press(keys.Commits.SquashAboveCommits).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().

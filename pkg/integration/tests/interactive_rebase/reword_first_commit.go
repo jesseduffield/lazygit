@@ -24,7 +24,7 @@ var RewordFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 02"),
 				Contains("commit 01"),
 			).
-			NavigateToListItem(Contains("commit 01")).
+			NavigateToLine(Contains("commit 01")).
 			Press(keys.Commits.RenameCommit).
 			Tap(func() {
 				t.ExpectPopup().Prompt().

@@ -22,7 +22,7 @@ var MoveInRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 02"),
 				Contains("commit 01"),
 			).
-			NavigateToListItem(Contains("commit 01")).
+			NavigateToLine(Contains("commit 01")).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("commit 04"),
@@ -84,7 +84,7 @@ var MoveInRebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("YOU ARE HERE").Contains("commit 01"),
 			).
 			Tap(func() {
-				t.Actions().ContinueRebase()
+				t.Common().ContinueRebase()
 			}).
 			Lines(
 				Contains("commit 04"),

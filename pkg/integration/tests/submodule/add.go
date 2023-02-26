@@ -12,7 +12,7 @@ var Add = NewIntegrationTest(NewIntegrationTestArgs{
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("first commit")
-		shell.RunCommand("git clone --bare . ../other_repo")
+		shell.Clone("other_repo")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Submodules().Focus().

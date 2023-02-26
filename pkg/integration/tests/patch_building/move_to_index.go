@@ -35,7 +35,7 @@ var MoveToIndex = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().PatchBuildingSecondary().Content(Contains("+file1 content"))
 
-		t.Actions().SelectPatchOption(Contains("move patch out into index"))
+		t.Common().SelectPatchOption(Contains("move patch out into index"))
 
 		t.Views().Files().
 			Lines(

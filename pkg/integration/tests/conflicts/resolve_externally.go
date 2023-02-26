@@ -25,7 +25,7 @@ var ResolveExternally = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Press(keys.Universal.Refresh)
 
-		t.Actions().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved()
 
 		t.Views().Files().
 			IsEmpty()

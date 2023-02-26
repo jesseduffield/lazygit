@@ -1,3 +1,5 @@
+# This is the global git config we use for all our integration tests
+
 [user]
 	name = CI
 	email = CI@example.com

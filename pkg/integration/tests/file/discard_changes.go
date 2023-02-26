@@ -99,7 +99,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "DU", label: "deleted-us.txt", menuTitle: "deleted-us.txt"},
 		})
 
-		t.Actions().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved()
 
 		discardOneByOne([]statusFile{
 			{status: "MD", label: "change-delete.txt", menuTitle: "change-delete.txt"},

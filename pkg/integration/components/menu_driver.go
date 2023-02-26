@@ -31,7 +31,7 @@ func (self *MenuDriver) Cancel() {
 }
 
 func (self *MenuDriver) Select(option *Matcher) *MenuDriver {
-	self.getViewDriver().NavigateToListItem(option)
+	self.getViewDriver().NavigateToLine(option)
 
 	return self
 }

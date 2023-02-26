@@ -5,25 +5,6 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-func createTwoBranchesReadyToForcePush(shell *Shell) {
-	shell.EmptyCommit("one")
-	shell.EmptyCommit("two")
-
-	shell.NewBranch("other_branch")
-
-	shell.CloneIntoRemote("origin")
-
-	shell.SetBranchUpstream("master", "origin/master")
-	shell.SetBranchUpstream("other_branch", "origin/other_branch")
-
-	// remove the 'two' commit so that we have something to pull from the remote
-	shell.HardReset("HEAD^")
-
-	shell.Checkout("master")
-	// doing the same for master
-	shell.HardReset("HEAD^")
-}
-
 var ForcePushMultipleUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Force push to only the upstream branch of the current branch because the user has push.default upstream",
 	ExtraCmdArgs: "",

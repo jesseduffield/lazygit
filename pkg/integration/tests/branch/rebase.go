@@ -35,7 +35,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?")).
 			Confirm()
 
-		t.Actions().AcknowledgeConflicts()
+		t.Common().AcknowledgeConflicts()
 
 		t.Views().Files().
 			IsFocused().
@@ -48,7 +48,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("rebasing"))
 
-		t.Actions().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved()
 
 		t.Views().Information().Content(DoesNotContain("rebasing"))
 

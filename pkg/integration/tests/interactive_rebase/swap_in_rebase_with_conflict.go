@@ -26,7 +26,7 @@ var SwapInRebaseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit two"),
 				Contains("commit one"),
 			).
-			NavigateToListItem(Contains("commit one")).
+			NavigateToLine(Contains("commit one")).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("commit three"),
@@ -41,72 +41,9 @@ var SwapInRebaseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("YOU ARE HERE").Contains("commit one"),
 			).
 			Tap(func() {
-				t.Actions().ContinueRebase()
+				t.Common().ContinueRebase()
 			})
 
 		handleConflictsFromSwap(t)
 	},
 })
-
-func handleConflictsFromSwap(t *TestDriver) {
-	t.Actions().AcknowledgeConflicts()
-
-	t.Views().Files().
-		IsFocused().
-		Lines(
-			Contains("UU myfile"),
-		).
-		PressEnter()
-
-	t.Views().MergeConflicts().
-		IsFocused().
-		TopLines(
-			Contains("<<<<<<< HEAD"),
-			Contains("one"),
-			Contains("======="),
-			Contains("three"),
-			Contains(">>>>>>>"),
-		).
-		SelectNextItem().
-		PressPrimaryAction() // pick "three"
-
-	t.Actions().ContinueOnConflictsResolved()
-
-	t.Actions().AcknowledgeConflicts()
-
-	t.Views().Files().
-		IsFocused().
-		Lines(
-			Contains("UU myfile"),
-		).
-		PressEnter()
-
-	t.Views().MergeConflicts().
-		IsFocused().
-		TopLines(
-			Contains("<<<<<<< HEAD"),
-			Contains("three"),
-			Contains("======="),
-			Contains("two"),
-			Contains(">>>>>>>"),
-		).
-		SelectNextItem().
-		PressPrimaryAction() // pick "two"
-
-	t.Actions().ContinueOnConflictsResolved()
-
-	t.Views().Commits().
-		Focus().
-		Lines(
-			Contains("commit two").IsSelected(),
-			Contains("commit three"),
-			Contains("commit one"),
-		).
-		Tap(func() {
-			t.Views().Main().Content(Contains("-three").Contains("+two"))
-		}).
-		SelectNextItem().
-		Tap(func() {
-			t.Views().Main().Content(Contains("-one").Contains("+three"))
-		})
-}
