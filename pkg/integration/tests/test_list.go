@@ -105,6 +105,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.DropTodoCommitWithUpdateRefShowBranchHeads,
 	interactive_rebase.EditFirstCommit,
 	interactive_rebase.EditNonTodoCommitDuringRebase,
+	interactive_rebase.EditTheConflCommit,
 	interactive_rebase.FixupFirstCommit,
 	interactive_rebase.FixupSecondCommit,
 	interactive_rebase.Move,

@@ -385,6 +385,10 @@ func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand) e
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
 func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoCommand, commit *models.Commit) (bool, error) {
+	if commit.Action == models.ActionConflict {
+		return true, self.c.ErrorMsg(self.c.Tr.ChangingThisActionIsNotAllowed)
+	}
+
 	if !commit.IsTODO() {
 		if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
 			// If we are in a rebase, the only action that is allowed for
@@ -434,7 +438,7 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 	}
 
 	if commit.IsTODO() {
-		if !commits[index+1].IsTODO() {
+		if !commits[index+1].IsTODO() || commits[index+1].Action == models.ActionConflict {
 			return nil
 		}
 

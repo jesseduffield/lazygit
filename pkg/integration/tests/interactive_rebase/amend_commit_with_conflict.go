@@ -35,8 +35,8 @@ var AmendCommitWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("pick").Contains("three"),
-				// Would be nice to see "fixup! two" here, because that's what git is trying to apply right now
-				Contains("<-- YOU ARE HERE --- two"),
+				Contains("conflict").Contains("<-- YOU ARE HERE --- fixup! two"),
+				Contains("two"),
 				Contains("one"),
 			)
 
@@ -66,8 +66,8 @@ var AmendCommitWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Lines(
-				// Would be nice to see "three" here, because that's what git is trying to apply right now
-				Contains("<-- YOU ARE HERE --- two"),
+				Contains("<-- YOU ARE HERE --- three"),
+				Contains("two"),
 				Contains("one"),
 			)
 	},
