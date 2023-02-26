@@ -3,7 +3,7 @@ package components
 import "path/filepath"
 
 // convenience struct for easily getting directories within our test directory.
-// We have one test directory for each test, found in test/integration_new.
+// We have one test directory for each test, found in test/integration.
 type Paths struct {
 	// e.g. test/integration/test_name
 	root string

@@ -52,7 +52,7 @@ There are three ways to invoke a test:
 
 1. go run cmd/integration_test/main.go cli [--slow or --sandbox] [testname or testpath...]
 2. go run cmd/integration_test/main.go tui
-3. go test pkg/integration/clients/go_test.go
+3. go test pkg/integration/clients/*.go
 
 The first, the test runner, is for directly running a test from the command line. If you pass no arguments, it runs all tests.
 The second, the TUI, is for running tests from a terminal UI where it's easier to find a test and run it without having to copy it's name and paste it into the terminal. This is the easiest approach by far.
@@ -62,7 +62,7 @@ The name of a test is based on its path, so the name of the test at `pkg/integra
 
 You can pass the KEY_PRESS_DELAY env var to the test runner in order to set a delay in milliseconds between keypresses, which helps for watching a test at a realistic speed to understand what it's doing. Or you can pass the '--slow' flag which sets a pre-set 'slow' key delay. In the tui you can press 't' to run the test in slow mode.
 
-The resultant repo will be stored in `test/integration_new`, so if you're not sure what went wrong you can go there and inspect the repo.
+The resultant repo will be stored in `test/integration`, so if you're not sure what went wrong you can go there and inspect the repo.
 
 ### Running tests in VSCode
 
@@ -78,21 +78,3 @@ The test will run in a VSCode terminal:
 Say you want to do a manual test of how lazygit handles merge-conflicts, but you can't be bothered actually finding a way to create merge conflicts in a repo. To make your life easier, you can simply run a merge-conflicts test in sandbox mode, meaning the setup step is run for you, and then instead of the test driving the lazygit session, you're allowed to drive it yourself.
 
 To run a test in sandbox mode you can press 's' on a test in the test TUI or in the test runner pass the --sandbox argument.
-
-## Migration process
-
-You can watch how to migrate tests in this youtube [video](https://youtu.be/cJtOJu6-HcA).
-
-At the time of writing, most tests are created under an old approach, where you would record yourself in a lazygit session and then the test would replay the keybindings with the same timestamps. This old approach is great for writing tests quickly, but is much harder to maintain. It has to rely on snapshots to determining if a test passes or fails, and can't do assertions along the way. It's also harder to grok what's the intention behind certain actions that take place within the test (e.g. was the recorder intentionally switching to another panel or was that just a misclick?).
-
-At the moment, all the deprecated test code lives in pkg/integration/deprecated. Hopefully in the very near future we migrate everything across so that we don't need to maintain two systems.
-
-We should never write any new tests under the old method, and if a given test breaks because of new functionality, it's best to simply rewrite it under the new approach. If you want to run a test for the sake of watching what it does so that you can transcribe it into the new approach, you can run:
-
-```
-go run pkg/integration/deprecated/cmd/tui/main.go
-```
-
-The tests in the old format live in test/integration. In the old format, test definitions are co-located with snapshots. The setup step is done in a `setup.sh` shell script and the `recording.json` file contains the recorded keypresses to be replayed during the test.
-
-If you have rewritten an integration test under the new pattern, be sure to delete the old integration test directory.

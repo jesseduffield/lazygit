@@ -46,36 +46,6 @@ jobs:
         # we're passing -short so that we skip the integration tests, which will be run in parallel below
         run: |
           go test ./... -short
-  integration-tests-old:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        parallelism: [5]
-        index: [0,1,2,3,4]
-    name: "Integration Tests (Old pattern) (${{ matrix.index }}/${{ matrix.parallelism }})"
-    env:
-      GOFLAGS: -mod=vendor
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Setup Go
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.18.x
-      - name: Cache build
-        uses: actions/cache@v1
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
-          restore-keys: |
-            ${{runner.os}}-go-
-      - name: Test code
-        # for file.allow thing see https://vielmetti.typepad.com/logbook/2022/10/git-security-fixes-lead-to-fatal-transport-file-not-allowed-error-in-ci-systems-cve-2022-39253.html
-        run: |
-          git config --global protocol.file.allow always && PARALLEL_TOTAL=${{ matrix.parallelism }} PARALLEL_INDEX=${{ matrix.index }} go test pkg/integration/deprecated/*.go
   integration-tests:
     runs-on: ubuntu-latest
     name: "Integration Tests"
