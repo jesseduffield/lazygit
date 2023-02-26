@@ -32,14 +32,14 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			SelectedLine(Contains("commit 10")).
-			NavigateToListItem(Contains("commit 09")).
+			NavigateToLine(Contains("commit 09")).
 			Tap(func() {
 				markCommitAsBad()
 
 				t.Views().Information().Content(Contains("bisecting"))
 			}).
 			SelectedLine(Contains("<-- bad")).
-			NavigateToListItem(Contains("commit 02")).
+			NavigateToLine(Contains("commit 02")).
 			Tap(markCommitAsGood).
 			// lazygit will land us in the commit between our good and bad commits.
 			SelectedLine(Contains("commit 05").Contains("<-- current")).

@@ -13,16 +13,6 @@ type Views struct {
 	t *TestDriver
 }
 
-// not exporting this because I want the test to always be explicit about what
-// view it's dealing with.
-func (self *Views) current() *ViewDriver {
-	return &ViewDriver{
-		context: "current view",
-		getView: func() *gocui.View { return self.t.gui.CurrentContext().GetView() },
-		t:       self.t,
-	}
-}
-
 func (self *Views) Main() *ViewDriver {
 	return &ViewDriver{
 		context: "main view",

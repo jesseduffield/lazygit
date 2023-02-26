@@ -63,6 +63,7 @@ func (self *ViewDriver) Title(expected *Matcher) *ViewDriver {
 
 // asserts that the view has lines matching the given matchers. One matcher must be passed for each line.
 // If you only care about the top n lines, use the TopLines method instead.
+// If you only care about a subset of lines, use the ContainsLines method instead.
 func (self *ViewDriver) Lines(matchers ...*Matcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
 	self.LineCount(len(matchers))
@@ -81,6 +82,7 @@ func (self *ViewDriver) TopLines(matchers ...*Matcher) *ViewDriver {
 	return self.assertLines(0, matchers...)
 }
 
+// asserts that somewhere in the view there are consequetive lines matching the given matchers.
 func (self *ViewDriver) ContainsLines(matchers ...*Matcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
 	self.validateEnoughLines(matchers)
@@ -131,7 +133,7 @@ func (self *ViewDriver) ContainsLines(matchers ...*Matcher) *ViewDriver {
 	return self
 }
 
-// asserts on the lines that are selected in the view.
+// asserts on the lines that are selected in the view. Don't use the `IsSelected` matcher with this because it's redundant.
 func (self *ViewDriver) SelectedLines(matchers ...*Matcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
 	self.validateEnoughLines(matchers)
@@ -373,7 +375,7 @@ func (self *ViewDriver) PressEscape() *ViewDriver {
 // If this changes in future, we'll need to update this code to first attempt to find the item
 // in the current page and failing that, jump to the top of the view and iterate through all of it,
 // looking for the item.
-func (self *ViewDriver) NavigateToListItem(matcher *Matcher) *ViewDriver {
+func (self *ViewDriver) NavigateToLine(matcher *Matcher) *ViewDriver {
 	self.IsFocused()
 
 	view := self.getView()

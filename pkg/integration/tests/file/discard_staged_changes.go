@@ -25,15 +25,15 @@ var DiscardStagedChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Contains(` M file2`).IsSelected(),
-				Contains(` M fileToRemove`),
 				Contains(`?? file3`),
+				Contains(` M fileToRemove`),
 			).
-			SelectNextItem().
+			NavigateToLine(Contains(`fileToRemove`)).
 			PressPrimaryAction().
 			Lines(
 				Contains(` M file2`),
-				Contains(`M  fileToRemove`).IsSelected(),
 				Contains(`?? file3`),
+				Contains(`M  fileToRemove`).IsSelected(),
 			).
 			Press(keys.Files.ViewResetOptions)
 

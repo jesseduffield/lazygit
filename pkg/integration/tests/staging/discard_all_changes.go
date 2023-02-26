@@ -33,13 +33,13 @@ var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			// discard the line
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.Actions().ConfirmDiscardLines()
+				t.Common().ConfirmDiscardLines()
 			}).
 			SelectedLines(Contains("+four")).
 			// discard the other line
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.Actions().ConfirmDiscardLines()
+				t.Common().ConfirmDiscardLines()
 
 				// because there are no more changes in file1 we switch to file2
 				t.Views().Files().

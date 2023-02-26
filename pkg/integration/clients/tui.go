@@ -137,7 +137,7 @@ func RunTUI() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code test/integration_new/%s", currentTest.Name()))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code test/results/%s", currentTest.Name()))
 		if err := cmd.Run(); err != nil {
 			return err
 		}

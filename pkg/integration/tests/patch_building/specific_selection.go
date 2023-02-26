@@ -43,7 +43,7 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 
 				t.Views().Secondary().Content(Contains("direct file content"))
 			}).
-			NavigateToListItem(Contains("hunk-file")).
+			NavigateToLine(Contains("hunk-file")).
 			PressEnter()
 
 		t.Views().PatchBuilding().
@@ -92,7 +92,7 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().CommitFiles().
 			IsFocused().
-			NavigateToListItem(Contains("line-file")).
+			NavigateToLine(Contains("line-file")).
 			PressEnter()
 
 		t.Views().PatchBuilding().
@@ -106,11 +106,11 @@ var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("+2a"),
 			).
 			PressPrimaryAction().
-			NavigateToListItem(Contains("+2c")).
+			NavigateToLine(Contains("+2c")).
 			Press(keys.Main.ToggleDragSelect).
-			NavigateToListItem(Contains("+2e")).
+			NavigateToLine(Contains("+2e")).
 			PressPrimaryAction().
-			NavigateToListItem(Contains("+2g")).
+			NavigateToLine(Contains("+2g")).
 			PressPrimaryAction().
 			Tap(func() {
 				t.Views().Information().Content(Contains("building patch"))

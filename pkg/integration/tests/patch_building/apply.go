@@ -50,7 +50,7 @@ var Apply = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().PatchBuildingSecondary().Content(Contains("second line"))
 
-		t.Actions().SelectPatchOption(MatchesRegexp(`apply patch$`))
+		t.Common().SelectPatchOption(MatchesRegexp(`apply patch$`))
 
 		t.Views().Files().
 			Focus().

@@ -43,7 +43,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("rebasing"))
 
-		t.Actions().AcknowledgeConflicts()
+		t.Common().AcknowledgeConflicts()
 
 		t.Views().Files().IsFocused().
 			SelectedLine(MatchesRegexp("UU.*file"))
@@ -75,7 +75,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			PressPrimaryAction()
 
-		t.Actions().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved()
 
 		t.Views().Information().Content(DoesNotContain("rebasing"))
 

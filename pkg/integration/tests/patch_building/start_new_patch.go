@@ -41,7 +41,7 @@ var StartNewPatch = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			IsFocused().
-			NavigateToListItem(Contains("first commit")).
+			NavigateToLine(Contains("first commit")).
 			PressEnter()
 
 		t.Views().CommitFiles().

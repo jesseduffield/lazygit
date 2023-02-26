@@ -40,7 +40,7 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("building patch"))
 
-		t.Actions().SelectPatchOption(Contains("move patch into new commit"))
+		t.Common().SelectPatchOption(Contains("move patch into new commit"))
 
 		t.Views().CommitFiles().
 			IsFocused().

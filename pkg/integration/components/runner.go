@@ -11,14 +11,16 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
-// this is the integration runner for the new and improved integration interface
-
 const (
 	TEST_NAME_ENV_VAR         = "TEST_NAME"
 	SANDBOX_ENV_VAR           = "SANDBOX"
 	GIT_CONFIG_GLOBAL_ENV_VAR = "GIT_CONFIG_GLOBAL"
 )
 
+// This function lets you run tests either from within `go test` or from a regular binary.
+// The reason for having two separate ways of testing is that `go test` isn't great at
+// showing what's actually happening during the test, but it's still good at running
+// tests in telling you about their results.
 func RunTests(
 	tests []*IntegrationTest,
 	logf func(format string, formatArgs ...interface{}),
@@ -34,7 +36,7 @@ func RunTests(
 		return err
 	}
 
-	testDir := filepath.Join(projectRootDir, "test", "integration_new")
+	testDir := filepath.Join(projectRootDir, "test", "results")
 
 	if err := buildLazygit(); err != nil {
 		return err

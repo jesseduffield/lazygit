@@ -48,8 +48,8 @@ func (self *TestDriver) typeContent(content string) {
 	}
 }
 
-func (self *TestDriver) Actions() *Actions {
-	return &Actions{t: self}
+func (self *TestDriver) Common() *Common {
+	return &Common{t: self}
 }
 
 // for when you want to allow lazygit to process something before continuing

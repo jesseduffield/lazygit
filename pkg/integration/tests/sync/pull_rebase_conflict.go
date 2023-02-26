@@ -40,7 +40,7 @@ var PullRebaseConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Press(keys.Universal.Pull)
 
-		t.Actions().AcknowledgeConflicts()
+		t.Common().AcknowledgeConflicts()
 
 		t.Views().Files().
 			IsFocused().
@@ -61,7 +61,7 @@ var PullRebaseConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			PressPrimaryAction() // choose 'content4'
 
-		t.Actions().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved()
 
 		t.Views().Status().Content(Contains("↑1 repo → master"))
 

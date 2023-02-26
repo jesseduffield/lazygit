@@ -79,6 +79,6 @@ func (self *PromptDriver) ConfirmSuggestion(matcher *Matcher) {
 	self.t.press(self.t.keys.Universal.TogglePanel)
 	self.t.Views().Suggestions().
 		IsFocused().
-		NavigateToListItem(matcher).
+		NavigateToLine(matcher).
 		PressEnter()
 }

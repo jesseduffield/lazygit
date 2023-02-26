@@ -40,7 +40,7 @@ var CopyPatchToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("building patch"))
 
-		t.Actions().SelectPatchOption(Contains("copy patch to clipboard"))
+		t.Common().SelectPatchOption(Contains("copy patch to clipboard"))
 
 		t.ExpectToast(Contains("Patch copied to clipboard"))
 

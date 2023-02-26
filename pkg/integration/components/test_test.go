@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// this file is for testing our test code (meta, I know)
+
 type fakeGuiDriver struct {
 	failureMessage string
 	pressedKeys    []string

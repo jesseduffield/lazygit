@@ -28,7 +28,7 @@ var MoveToIndexPartial = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("second commit"),
 				Contains("first commit"),
 			).
-			NavigateToListItem(Contains("second commit")).
+			NavigateToLine(Contains("second commit")).
 			PressEnter()
 
 		t.Views().CommitFiles().
@@ -61,7 +61,7 @@ var MoveToIndexPartial = NewIntegrationTest(NewIntegrationTestArgs{
 						Contains(` third line`),
 					)
 
-				t.Actions().SelectPatchOption(Contains("move patch out into index"))
+				t.Common().SelectPatchOption(Contains("move patch out into index"))
 
 				t.Views().Files().
 					Lines(

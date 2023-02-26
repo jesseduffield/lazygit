@@ -10,9 +10,7 @@ var DirWithUntrackedFile = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "When selecting a directory that contains an untracked file, we should not get an error",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Gui.ShowFileTree = true
-	},
+	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateDir("dir")
 		shell.CreateFile("dir/file", "foo")

@@ -20,8 +20,7 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("first commit")
-		shell.RunCommand("git clone --bare . ../other_repo")
-		shell.RunCommand("git submodule add ../other_repo my_submodule")
+		shell.CloneIntoSubmodule("my_submodule")
 		shell.GitAddAll()
 		shell.Commit("add submodule")
 	},

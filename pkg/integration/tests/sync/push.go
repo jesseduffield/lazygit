@@ -30,28 +30,3 @@ var Push = NewIntegrationTest(NewIntegrationTestArgs{
 		assertSuccessfullyPushed(t)
 	},
 })
-
-func assertSuccessfullyPushed(t *TestDriver) {
-	t.Views().Status().Content(Contains("✓ repo → master"))
-
-	t.Views().Remotes().
-		Focus().
-		Lines(
-			Contains("origin"),
-		).
-		PressEnter()
-
-	t.Views().RemoteBranches().
-		IsFocused().
-		Lines(
-			Contains("master"),
-		).
-		PressEnter()
-
-	t.Views().SubCommits().
-		IsFocused().
-		Lines(
-			Contains("two"),
-			Contains("one"),
-		)
-}

@@ -1,4 +1,0 @@
-{
-  "description": "Verify that when we get merge conflicts we filter out any non-conflicted files",
-  "speed": 5
-}

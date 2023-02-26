@@ -1,6 +1,0 @@
-disableStartupPopups: true
-customCommands:
-  - key: 'N'
-    description: 'Resolve conflict'
-    context: 'files'
-    command: 'echo "master2" > file'

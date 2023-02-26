@@ -21,14 +21,14 @@ var EditFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 02"),
 				Contains("commit 01"),
 			).
-			NavigateToListItem(Contains("commit 01")).
+			NavigateToLine(Contains("commit 01")).
 			Press(keys.Universal.Edit).
 			Lines(
 				Contains("commit 02"),
 				MatchesRegexp("YOU ARE HERE.*commit 01").IsSelected(),
 			).
 			Tap(func() {
-				t.Actions().ContinueRebase()
+				t.Common().ContinueRebase()
 			}).
 			Lines(
 				Contains("commit 02"),

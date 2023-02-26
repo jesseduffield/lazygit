@@ -23,8 +23,7 @@ var PushWithCredentialPrompt = NewIntegrationTest(NewIntegrationTestArgs{
 		// actually getting a password prompt is tricky: it requires SSH'ing into localhost under a newly created, restricted, user.
 		// This is not easy to do in a cross-platform way, nor is it easy to do in a docker container.
 		// If you can think of a way to do it, please let me know!
-		shell.RunCommand("cp ../../../../../hooks/pre-push .git/hooks/pre-push")
-		shell.RunCommand("chmod +x .git/hooks/pre-push")
+		shell.CopyHelpFile("pre-push", ".git/hooks/pre-push")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Status().Content(Contains("↑1 repo → master"))

@@ -52,7 +52,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
 			Confirm()
 
-		t.Actions().AcknowledgeConflicts()
+		t.Common().AcknowledgeConflicts()
 
 		t.Views().Files().
 			IsFocused().
@@ -65,7 +65,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			PressPrimaryAction()
 
-		t.Actions().ContinueOnConflictsResolved()
+		t.Common().ContinueOnConflictsResolved()
 
 		t.Views().Files().IsEmpty()
 
