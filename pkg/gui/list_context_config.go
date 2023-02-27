@@ -120,7 +120,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 				}
 			}
 
-			showYouAreHereLabel := gui.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING
+			showYouAreHereLabel := gui.State.Model.WorkingTreeStateAtLastCommitRefresh == enums.REBASE_MODE_REBASING
 
 			return presentation.GetCommitListDisplayStrings(
 				gui.Common,
