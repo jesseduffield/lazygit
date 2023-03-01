@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/sasha-s/go-deadlock"
@@ -154,9 +155,10 @@ type Model struct {
 	// one and the same
 	ReflogCommits []*models.Commit
 
-	BisectInfo     *git_commands.BisectInfo
-	RemoteBranches []*models.RemoteBranch
-	Tags           []*models.Tag
+	BisectInfo                          *git_commands.BisectInfo
+	WorkingTreeStateAtLastCommitRefresh enums.RebaseMode
+	RemoteBranches                      []*models.RemoteBranch
+	Tags                                []*models.Tag
 
 	// for displaying suggestions while typing in a file name
 	FilesTrie *patricia.Trie

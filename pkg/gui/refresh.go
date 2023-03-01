@@ -236,6 +236,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 		return err
 	}
 	gui.State.Model.Commits = commits
+	gui.State.Model.WorkingTreeStateAtLastCommitRefresh = gui.git.Status.WorkingTreeState()
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.LocalCommits)
 }
@@ -264,6 +265,7 @@ func (gui *Gui) refreshRebaseCommits() error {
 		return err
 	}
 	gui.State.Model.Commits = updatedCommits
+	gui.State.Model.WorkingTreeStateAtLastCommitRefresh = gui.git.Status.WorkingTreeState()
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.LocalCommits)
 }
