@@ -54,7 +54,9 @@ type FetchOptions struct {
 
 // Fetch fetch git repo
 func (self *SyncCommands) FetchCmdObj(opts FetchOptions) oscommands.ICmdObj {
-	cmdArgs := NewGitCmd("fetch").ToArgv()
+	cmdArgs := NewGitCmd("fetch").
+		ArgIf(self.UserConfig.Git.FetchAll, "--all").
+		ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
 	if opts.Background {
