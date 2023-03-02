@@ -37,21 +37,13 @@ func TestGetTextStyle(t *testing.T) {
 			name:       "hex color, fg",
 			keys:       []string{"#123456"},
 			background: false,
-			/* EXPECTED:
 			expected:   style.New().SetFg(style.NewRGBColor(color.RGBColor{0x12, 0x34, 0x56, 0})),
-			ACTUAL:
-			*/
-			expected:   style.New(),
 		},
 		{
 			name:       "hex color, bg",
 			keys:       []string{"#abcdef"},
 			background: true,
-			/* EXPECTED:
 			expected:   style.New().SetBg(style.NewRGBColor(color.RGBColor{0xab, 0xcd, 0xef, 1})),
-			ACTUAL:
-			*/
-			expected:   style.New(),
 		},
 	}
 
