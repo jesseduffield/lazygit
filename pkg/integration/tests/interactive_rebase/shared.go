@@ -7,6 +7,13 @@ import (
 func handleConflictsFromSwap(t *TestDriver) {
 	t.Common().AcknowledgeConflicts()
 
+	t.Views().Commits().
+		Lines(
+			Contains("pick").Contains("commit two"),
+			// Would be nice to see "three" here, it's the one that conflicted
+			Contains("<-- YOU ARE HERE --- commit one"),
+		)
+
 	t.Views().Files().
 		IsFocused().
 		Lines(
