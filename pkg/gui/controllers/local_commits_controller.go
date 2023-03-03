@@ -229,7 +229,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 func (self *LocalCommitsController) doRewordEditor() error {
 	self.c.LogAction(self.c.Tr.Actions.RewordCommit)
 
-	if self.context().GetSelectedLineIdx() == 0 {
+	if self.isHeadCommit() {
 		return self.c.RunSubprocessAndRefresh(self.os.Cmd.New("git commit --allow-empty --amend --only"))
 	}
 
@@ -727,4 +727,8 @@ func (self *LocalCommitsController) context() *context.LocalCommitsContext {
 
 func (self *LocalCommitsController) paste() error {
 	return self.helpers.CherryPick.Paste()
+}
+
+func (self *LocalCommitsController) isHeadCommit() bool {
+	return models.IsHeadCommit(self.model.Commits, self.context().GetSelectedLineIdx())
 }

@@ -90,6 +90,8 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.Rebase,
 	interactive_rebase.RewordFirstCommit,
 	interactive_rebase.RewordLastCommit,
+	interactive_rebase.RewordYouAreHereCommit,
+	interactive_rebase.RewordYouAreHereCommitWithEditor,
 	interactive_rebase.SquashDownFirstCommit,
 	interactive_rebase.SquashDownSecondCommit,
 	interactive_rebase.SquashFixupsAboveFirstCommit,
