@@ -326,7 +326,7 @@ func (self *LocalCommitsController) interactiveRebase(action string) error {
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
 func (self *LocalCommitsController) handleMidRebaseCommand(action string, commit *models.Commit) (bool, error) {
-	if commit.Status != "rebasing" {
+	if !commit.IsTODO() {
 		return false, nil
 	}
 
@@ -364,8 +364,8 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		return nil
 	}
 
-	if commit.Status == "rebasing" {
-		if commits[index+1].Status != "rebasing" {
+	if commit.IsTODO() {
+		if !commits[index+1].IsTODO() {
 			return nil
 		}
 
@@ -399,7 +399,7 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		return nil
 	}
 
-	if commit.Status == "rebasing" {
+	if commit.IsTODO() {
 		// logging directly here because MoveTodoDown doesn't have enough information
 		// to provide a useful log
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
