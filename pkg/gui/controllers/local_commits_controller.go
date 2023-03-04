@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -327,6 +328,14 @@ func (self *LocalCommitsController) interactiveRebase(action string) error {
 // begin a rebase. It then updates the todo file with that action
 func (self *LocalCommitsController) handleMidRebaseCommand(action string, commit *models.Commit) (bool, error) {
 	if !commit.IsTODO() {
+		if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+			// If we are in a rebase, the only action that is allowed for
+			// non-todo commits is rewording the current head commit
+			if !(action == "reword" && self.isHeadCommit()) {
+				return true, self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
+			}
+		}
+
 		return false, nil
 	}
 
@@ -383,6 +392,10 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		})
 	}
 
+	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
+	}
+
 	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 		err := self.git.Rebase.MoveCommitDown(self.model.Commits, index)
@@ -415,6 +428,10 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		return self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
 		})
+	}
+
+	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
 	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func() error {
