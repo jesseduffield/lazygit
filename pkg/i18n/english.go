@@ -46,6 +46,7 @@ type TranslationSet struct {
 	ToggleStaged                        string
 	ToggleStagedAll                     string
 	ToggleTreeView                      string
+	OpenDiffTool                        string
 	OpenMergeTool                       string
 	Refresh                             string
 	Push                                string
@@ -782,6 +783,7 @@ type Actions struct {
 	Undo                              string
 	Redo                              string
 	CopyPullRequestURL                string
+	OpenDiffTool                      string
 	OpenMergeTool                     string
 	OpenCommitInBrowser               string
 	OpenPullRequest                   string
@@ -862,6 +864,7 @@ func EnglishTranslationSet() TranslationSet {
 		ToggleStaged:                        "Toggle staged",
 		ToggleStagedAll:                     "Stage/unstage all",
 		ToggleTreeView:                      "Toggle file tree view",
+		OpenDiffTool:                        "Open external diff tool (git difftool)",
 		OpenMergeTool:                       "Open external merge tool (git mergetool)",
 		Refresh:                             "Refresh",
 		Push:                                "Push",
@@ -1558,6 +1561,7 @@ func EnglishTranslationSet() TranslationSet {
 			Undo:                              "Undo",
 			Redo:                              "Redo",
 			CopyPullRequestURL:                "Copy pull request URL",
+			OpenDiffTool:                      "Open diff tool",
 			OpenMergeTool:                     "Open merge tool",
 			OpenCommitInBrowser:               "Open commit in browser",
 			OpenPullRequest:                   "Open pull request in browser",

@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -75,6 +76,11 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key:         opts.GetKey(opts.Config.Commits.ResetCherryPick),
 			Handler:     self.c.Helpers().CherryPick.Reset,
 			Description: self.c.Tr.ResetCherryPick,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Handler:     self.checkSelected(self.openDiffTool),
+			Description: self.c.Tr.OpenDiffTool,
 		},
 	}
 
@@ -271,4 +277,19 @@ func (self *BasicCommitsController) copy(commit *models.Commit) error {
 
 func (self *BasicCommitsController) copyRange(*models.Commit) error {
 	return self.c.Helpers().CherryPick.CopyRange(self.context.GetSelectedLineIdx(), self.context.GetCommits(), self.context)
+}
+
+func (self *BasicCommitsController) openDiffTool(commit *models.Commit) error {
+	to := commit.RefName()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(commit.ParentRefName())
+	_, err := self.c.RunSubprocess(self.c.Git().Diff.OpenDiffToolCmdObj(
+		git_commands.DiffToolCmdOptions{
+			Filepath:    ".",
+			FromCommit:  from,
+			ToCommit:    to,
+			Reverse:     reverse,
+			IsDirectory: true,
+			Staged:      false,
+		}))
+	return err
 }

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -46,6 +47,11 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.checkSelected(self.edit),
 			Description: self.c.Tr.EditFile,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.OpenDiffTool),
+			Handler:     self.checkSelected(self.openDiffTool),
+			Description: self.c.Tr.OpenDiffTool,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),
@@ -199,6 +205,22 @@ func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
 	}
 
 	return self.c.Helpers().Files.EditFile(node.GetPath())
+}
+
+func (self *CommitFilesController) openDiffTool(node *filetree.CommitFileNode) error {
+	ref := self.context().GetRef()
+	to := ref.RefName()
+	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+	_, err := self.c.RunSubprocess(self.c.Git().Diff.OpenDiffToolCmdObj(
+		git_commands.DiffToolCmdOptions{
+			Filepath:    node.GetPath(),
+			FromCommit:  from,
+			ToCommit:    to,
+			Reverse:     reverse,
+			IsDirectory: !node.IsFile(),
+			Staged:      false,
+		}))
+	return err
 }
 
 func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode) error {
