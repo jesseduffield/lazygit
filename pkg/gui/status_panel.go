@@ -160,11 +160,15 @@ func (gui *Gui) handleClone() error {
 						},
 					)
 
+					// TODO: this seems to freeze
 					return gui.c.WithLoaderPanel(message, func() error {
 						err := gui.git.Clone.Clone(url, destination)
 						if err != nil {
 							return gui.c.Error(err)
 						}
+
+						// TODO: add to recent repos list
+						// gui.c.GetAppState().RecentRepos = gui.
 
 						return gui.c.Confirm(types.ConfirmOpts{
 							Title:  "Switch repository",
