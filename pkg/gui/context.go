@@ -78,12 +78,15 @@ func (gui *Gui) pushToContextStack(c types.Context) []types.Context {
 		gui.State.ContextManager.ContextStack = []types.Context{c}
 	} else if c.GetKind() == types.MAIN_CONTEXT {
 		// if we're switching to a main context, remove all other main contexts in the stack
+		contextsToKeep := []types.Context{}
 		for _, stackContext := range gui.State.ContextManager.ContextStack {
 			if stackContext.GetKind() == types.MAIN_CONTEXT {
 				contextsToDeactivate = append(contextsToDeactivate, stackContext)
+			} else {
+				contextsToKeep = append(contextsToKeep, stackContext)
 			}
 		}
-		gui.State.ContextManager.ContextStack = []types.Context{c}
+		gui.State.ContextManager.ContextStack = append(contextsToKeep, c)
 	} else {
 		topContext := gui.currentContextWithoutLock()
 

@@ -133,7 +133,7 @@ func (self *StagingController) EditFile() error {
 }
 
 func (self *StagingController) Escape() error {
-	return self.c.PushContext(self.contexts.Files)
+	return self.c.PopContext()
 }
 
 func (self *StagingController) TogglePanel() error {

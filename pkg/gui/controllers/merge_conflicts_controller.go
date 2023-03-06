@@ -162,7 +162,7 @@ func (self *MergeConflictsController) context() *context.MergeConflictsContext {
 }
 
 func (self *MergeConflictsController) Escape() error {
-	return self.c.PushContext(self.contexts.Files)
+	return self.c.PopContext()
 }
 
 func (self *MergeConflictsController) HandleEditFile() error {
