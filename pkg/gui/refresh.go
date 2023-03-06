@@ -722,3 +722,25 @@ func (gui *Gui) refreshMergePanel(isFocused bool) error {
 		},
 	})
 }
+
+func (gui *Gui) refreshSubCommitsWithLimit() error {
+	gui.Mutexes.SubCommitsMutex.Lock()
+	defer gui.Mutexes.SubCommitsMutex.Unlock()
+
+	context := gui.State.Contexts.SubCommits
+
+	commits, err := gui.git.Loaders.CommitLoader.GetCommits(
+		git_commands.GetCommitsOptions{
+			Limit:                context.GetLimitCommits(),
+			FilterPath:           gui.State.Modes.Filtering.GetPath(),
+			IncludeRebaseCommits: false,
+			RefName:              context.GetRef().FullRefName(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	gui.State.Model.SubCommits = commits
+
+	return gui.c.PostRefreshUpdate(gui.State.Contexts.SubCommits)
+}

@@ -171,6 +171,7 @@ type Mutexes struct {
 	RefreshingStatusMutex *deadlock.Mutex
 	SyncMutex             *deadlock.Mutex
 	LocalCommitsMutex     *deadlock.Mutex
+	SubCommitsMutex       *deadlock.Mutex
 	SubprocessMutex       *deadlock.Mutex
 	PopupMutex            *deadlock.Mutex
 	PtyMutex              *deadlock.Mutex

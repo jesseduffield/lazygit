@@ -173,7 +173,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 				false,
 			)
 		},
-		nil,
+		OnFocusWrapper(gui.onSubCommitFocus),
 		gui.withDiffModeCheck(gui.subCommitsRenderToMain),
 		nil,
 		gui.c,
