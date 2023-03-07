@@ -14,17 +14,11 @@ var (
 )
 
 type PatchOptions struct {
-	// Create a reverse patch; in other words, flip all the '+' and '-' while
-	// generating the patch.
-	Reverse bool
-
 	// If true, we're building a patch that we are going to apply using
 	// "git apply --reverse". In other words, we are not flipping the '+' and
 	// '-' ourselves while creating the patch, but git is going to do that when
 	// applying. This has consequences for which lines we need to keep or
 	// discard when filtering lines from partial hunks.
-	//
-	// Currently incompatible with Reverse.
 	WillBeAppliedReverse bool
 
 	// Whether to keep or discard the original diff header including the
@@ -96,10 +90,6 @@ func NewPatchModifier(log *logrus.Entry, filename string, diffText string) *Patc
 }
 
 func (d *PatchModifier) ModifiedPatchForLines(lineIndices []int, opts PatchOptions) string {
-	if opts.Reverse && opts.KeepOriginalHeader {
-		panic("reverse and keepOriginalHeader are not compatible")
-	}
-
 	// step one is getting only those hunks which we care about
 	hunksInRange := []*PatchHunk{}
 outer:
@@ -119,7 +109,7 @@ outer:
 	var formattedHunk string
 	for _, hunk := range hunksInRange {
 		startOffset, formattedHunk = hunk.formatWithChanges(
-			lineIndices, opts.Reverse, opts.WillBeAppliedReverse, startOffset)
+			lineIndices, opts.WillBeAppliedReverse, startOffset)
 		formattedHunks += formattedHunk
 	}
 

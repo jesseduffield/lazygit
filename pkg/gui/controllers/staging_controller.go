@@ -182,7 +182,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 
 	firstLineIdx, lastLineIdx := state.SelectedRange()
 	patch := patch.ModifiedPatchForRange(self.c.Log, path, state.GetDiff(), firstLineIdx, lastLineIdx,
-		patch.PatchOptions{Reverse: false, WillBeAppliedReverse: reverse, KeepOriginalHeader: false})
+		patch.PatchOptions{WillBeAppliedReverse: reverse, KeepOriginalHeader: false})
 
 	if patch == "" {
 		return nil
@@ -232,7 +232,7 @@ func (self *StagingController) editHunk() error {
 	hunk := state.CurrentHunk()
 	patchText := patch.ModifiedPatchForRange(
 		self.c.Log, path, state.GetDiff(), hunk.FirstLineIdx, hunk.LastLineIdx(),
-		patch.PatchOptions{Reverse: false, WillBeAppliedReverse: self.staged, KeepOriginalHeader: false},
+		patch.PatchOptions{WillBeAppliedReverse: self.staged, KeepOriginalHeader: false},
 	)
 	patchFilepath, err := self.git.WorkingTree.SaveTemporaryPatch(patchText)
 	if err != nil {
@@ -255,7 +255,7 @@ func (self *StagingController) editHunk() error {
 	lineCount := strings.Count(editedPatchText, "\n") + 1
 	newPatchText := patch.ModifiedPatchForRange(
 		self.c.Log, path, editedPatchText, 0, lineCount,
-		patch.PatchOptions{Reverse: false, KeepOriginalHeader: false},
+		patch.PatchOptions{KeepOriginalHeader: false},
 	)
 
 	applyFlags := []string{"cached"}
