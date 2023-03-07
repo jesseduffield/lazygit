@@ -162,7 +162,7 @@ func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLi
 	return nil
 }
 
-func (p *PatchManager) renderPlainPatchForFile(filename string, willBeAppliedReverse bool) string {
+func (p *PatchManager) renderPlainPatchForFile(filename string, reverse bool) string {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		p.Log.Error(err)
@@ -178,16 +178,16 @@ func (p *PatchManager) renderPlainPatchForFile(filename string, willBeAppliedRev
 		// generate a new diff with just the selected lines
 		return ModifiedPatchForLines(p.Log, filename, info.diff, info.includedLineIndices,
 			PatchOptions{
-				WillBeAppliedReverse: willBeAppliedReverse,
-				KeepOriginalHeader:   true,
+				Reverse:            reverse,
+				KeepOriginalHeader: true,
 			})
 	default:
 		return ""
 	}
 }
 
-func (p *PatchManager) RenderPatchForFile(filename string, plain bool, willBeAppliedReverse bool) string {
-	patch := p.renderPlainPatchForFile(filename, willBeAppliedReverse)
+func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool) string {
+	patch := p.renderPlainPatchForFile(filename, reverse)
 	if plain {
 		return patch
 	}

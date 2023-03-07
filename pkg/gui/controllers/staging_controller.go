@@ -182,7 +182,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 
 	firstLineIdx, lastLineIdx := state.SelectedRange()
 	patch := patch.ModifiedPatchForRange(self.c.Log, path, state.GetDiff(), firstLineIdx, lastLineIdx,
-		patch.PatchOptions{WillBeAppliedReverse: reverse, KeepOriginalHeader: false})
+		patch.PatchOptions{Reverse: reverse, KeepOriginalHeader: false})
 
 	if patch == "" {
 		return nil
@@ -232,7 +232,7 @@ func (self *StagingController) editHunk() error {
 	hunk := state.CurrentHunk()
 	patchText := patch.ModifiedPatchForRange(
 		self.c.Log, path, state.GetDiff(), hunk.FirstLineIdx, hunk.LastLineIdx(),
-		patch.PatchOptions{WillBeAppliedReverse: self.staged, KeepOriginalHeader: false},
+		patch.PatchOptions{Reverse: self.staged, KeepOriginalHeader: false},
 	)
 	patchFilepath, err := self.git.WorkingTree.SaveTemporaryPatch(patchText)
 	if err != nil {

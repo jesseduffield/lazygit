@@ -14,12 +14,12 @@ var (
 )
 
 type PatchOptions struct {
-	// If true, we're building a patch that we are going to apply using
-	// "git apply --reverse". In other words, we are not flipping the '+' and
-	// '-' ourselves while creating the patch, but git is going to do that when
-	// applying. This has consequences for which lines we need to keep or
-	// discard when filtering lines from partial hunks.
-	WillBeAppliedReverse bool
+	// Create a patch that will applied in reverse with `git apply --reverse`.
+	// This affects how unselected lines are treated when only parts of a hunk
+	// are selected: usually, for unselected lines we change '-' lines to
+	// context lines and remove '+' lines, but when Reverse is true we need to
+	// turn '+' lines into context lines and remove '-' lines.
+	Reverse bool
 
 	// Whether to keep or discard the original diff header including the
 	// "index deadbeef..fa1afe1 100644" line.
@@ -109,7 +109,7 @@ outer:
 	var formattedHunk string
 	for _, hunk := range hunksInRange {
 		startOffset, formattedHunk = hunk.formatWithChanges(
-			lineIndices, opts.WillBeAppliedReverse, startOffset)
+			lineIndices, opts.Reverse, startOffset)
 		formattedHunks += formattedHunk
 	}
 

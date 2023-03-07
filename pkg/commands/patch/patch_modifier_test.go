@@ -115,13 +115,13 @@ const exampleHunk = `@@ -1,5 +1,5 @@
 // TestModifyPatchForRange is a function.
 func TestModifyPatchForRange(t *testing.T) {
 	type scenario struct {
-		testName             string
-		filename             string
-		diffText             string
-		firstLineIndex       int
-		lastLineIndex        int
-		willBeAppliedReverse bool
-		expected             string
+		testName       string
+		filename       string
+		diffText       string
+		firstLineIndex int
+		lastLineIndex  int
+		reverse        bool
+		expected       string
 	}
 
 	scenarios := []scenario{
@@ -366,12 +366,12 @@ func TestModifyPatchForRange(t *testing.T) {
 `,
 		},
 		{
-			testName:             "adding part of a hunk",
-			filename:             "filename",
-			firstLineIndex:       6,
-			lastLineIndex:        7,
-			willBeAppliedReverse: false,
-			diffText:             twoChangesInOneHunk,
+			testName:       "adding part of a hunk",
+			filename:       "filename",
+			firstLineIndex: 6,
+			lastLineIndex:  7,
+			reverse:        false,
+			diffText:       twoChangesInOneHunk,
 			expected: `--- a/filename
 +++ b/filename
 @@ -1,5 +1,5 @@
@@ -384,12 +384,12 @@ func TestModifyPatchForRange(t *testing.T) {
 `,
 		},
 		{
-			testName:             "adding part of a hunk, will-be-applied-reverse",
-			filename:             "filename",
-			firstLineIndex:       6,
-			lastLineIndex:        7,
-			willBeAppliedReverse: true,
-			diffText:             twoChangesInOneHunk,
+			testName:       "adding part of a hunk, reverse",
+			filename:       "filename",
+			firstLineIndex: 6,
+			lastLineIndex:  7,
+			reverse:        true,
+			diffText:       twoChangesInOneHunk,
 			expected: `--- a/filename
 +++ b/filename
 @@ -1,5 +1,5 @@
@@ -408,8 +408,8 @@ func TestModifyPatchForRange(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			result := ModifiedPatchForRange(nil, s.filename, s.diffText, s.firstLineIndex, s.lastLineIndex,
 				PatchOptions{
-					WillBeAppliedReverse: s.willBeAppliedReverse,
-					KeepOriginalHeader:   false,
+					Reverse:            s.reverse,
+					KeepOriginalHeader: false,
 				})
 			if !assert.Equal(t, s.expected, result) {
 				fmt.Println(result)

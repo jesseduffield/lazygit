@@ -45,7 +45,7 @@ func headerInfo(header string) (int, int, string) {
 	return oldStart, newStart, heading
 }
 
-func (hunk *PatchHunk) updatedLines(lineIndices []int, willBeAppliedReverse bool) []string {
+func (hunk *PatchHunk) updatedLines(lineIndices []int, reverse bool) []string {
 	skippedNewlineMessageIndex := -1
 	newLines := []string{}
 
@@ -58,7 +58,7 @@ func (hunk *PatchHunk) updatedLines(lineIndices []int, willBeAppliedReverse bool
 		isLineSelected := lo.Contains(lineIndices, lineIdx)
 
 		firstChar, content := line[:1], line[1:]
-		transformedFirstChar := transformedFirstChar(firstChar, willBeAppliedReverse, isLineSelected)
+		transformedFirstChar := transformedFirstChar(firstChar, reverse, isLineSelected)
 
 		if isLineSelected || (transformedFirstChar == "\\" && skippedNewlineMessageIndex != lineIdx) || transformedFirstChar == " " {
 			newLines = append(newLines, transformedFirstChar+content)
@@ -74,9 +74,9 @@ func (hunk *PatchHunk) updatedLines(lineIndices []int, willBeAppliedReverse bool
 	return newLines
 }
 
-func transformedFirstChar(firstChar string, willBeAppliedReverse bool, isLineSelected bool) string {
+func transformedFirstChar(firstChar string, reverse bool, isLineSelected bool) string {
 	linesToKeepInPatchContext := "-"
-	if willBeAppliedReverse {
+	if reverse {
 		linesToKeepInPatchContext = "+"
 	}
 	if !isLineSelected && firstChar == linesToKeepInPatchContext {
@@ -90,8 +90,8 @@ func (hunk *PatchHunk) formatHeader(oldStart int, oldLength int, newStart int, n
 	return fmt.Sprintf("@@ -%d,%d +%d,%d @@%s\n", oldStart, oldLength, newStart, newLength, heading)
 }
 
-func (hunk *PatchHunk) formatWithChanges(lineIndices []int, willBeAppliedReverse bool, startOffset int) (int, string) {
-	bodyLines := hunk.updatedLines(lineIndices, willBeAppliedReverse)
+func (hunk *PatchHunk) formatWithChanges(lineIndices []int, reverse bool, startOffset int) (int, string) {
+	bodyLines := hunk.updatedLines(lineIndices, reverse)
 	startOffset, header, ok := hunk.updatedHeader(bodyLines, startOffset)
 	if !ok {
 		return startOffset, ""
