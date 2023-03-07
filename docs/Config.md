@@ -9,7 +9,7 @@ Default path for the config file:
 For old installations (slightly embarrassing: I didn't realise at the time that you didn't need to supply a vendor name to the path so I just used my name):
 
 - Linux: `~/.config/jesseduffield/lazygit/config.yml`
-- MacOS: `~/Library/Application Support/jesseduffield/lazygit/config.yml`
+- MacOS: `~/Library/Application\ Support/jesseduffield/lazygit/config.yml`
 - Windows: `%APPDATA%\jesseduffield\lazygit\config.yml`
 
 If you want to change the config directory:
