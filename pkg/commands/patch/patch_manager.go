@@ -162,39 +162,37 @@ func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLi
 	return nil
 }
 
-func (p *PatchManager) renderPlainPatchForFile(filename string, reverse bool) string {
+func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool) string {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		p.Log.Error(err)
 		return ""
 	}
 
-	switch info.mode {
-	case WHOLE:
-		// use the whole diff
-		// the reverse flag is only for part patches so we're ignoring it here
-		return info.diff
-	case PART:
-		// generate a new diff with just the selected lines
-		return ModifiedPatchForLines(p.Log, filename, info.diff, info.includedLineIndices,
-			PatchOptions{
-				Reverse:            reverse,
-				KeepOriginalHeader: true,
-			})
-	default:
+	if info.mode == UNSELECTED {
 		return ""
 	}
-}
 
-func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool) string {
-	patch := p.renderPlainPatchForFile(filename, reverse)
-	if plain {
-		return patch
+	if info.mode == WHOLE && plain {
+		// Use the whole diff (spares us parsing it and then formatting it).
+		// TODO: see if this is actually noticeably faster.
+		// The reverse flag is only for part patches so we're ignoring it here.
+		return info.diff
 	}
-	parser := NewPatchParser(p.Log, patch)
 
-	// not passing included lines because we don't want to see them in the secondary panel
-	return parser.Render(false, -1, -1, nil)
+	patch := Parse(info.diff).
+		Transform(TransformOpts{
+			Reverse:             reverse,
+			IncludedLineIndices: info.includedLineIndices,
+		})
+
+	if plain {
+		return patch.FormatPlain()
+	} else {
+		return patch.FormatView(FormatViewOpts{
+			IsFocused: false,
+		})
+	}
 }
 
 func (p *PatchManager) renderEachFilePatch(plain bool) []string {
@@ -212,14 +210,8 @@ func (p *PatchManager) renderEachFilePatch(plain bool) []string {
 	return output
 }
 
-func (p *PatchManager) RenderAggregatedPatchColored(plain bool) string {
-	result := ""
-	for _, patch := range p.renderEachFilePatch(plain) {
-		if patch != "" {
-			result += patch + "\n"
-		}
-	}
-	return result
+func (p *PatchManager) RenderAggregatedPatch(plain bool) string {
+	return strings.Join(p.renderEachFilePatch(plain), "")
 }
 
 func (p *PatchManager) GetFileStatus(filename string, parent string) PatchStatus {

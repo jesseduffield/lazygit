@@ -52,7 +52,7 @@ func (gui *Gui) branchCommitsRenderToMain() error {
 
 func (gui *Gui) secondaryPatchPanelUpdateOpts() *types.ViewUpdateOpts {
 	if gui.git.Patch.PatchManager.Active() {
-		patch := gui.git.Patch.PatchManager.RenderAggregatedPatchColored(false)
+		patch := gui.git.Patch.PatchManager.RenderAggregatedPatch(false)
 
 		return &types.ViewUpdateOpts{
 			Task:  types.NewRenderStringWithoutScrollTask(patch),

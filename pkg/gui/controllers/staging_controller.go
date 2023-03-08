@@ -181,10 +181,16 @@ func (self *StagingController) applySelection(reverse bool) error {
 	}
 
 	firstLineIdx, lastLineIdx := state.SelectedRange()
-	patch := patch.ModifiedPatchForRange(self.c.Log, path, state.GetDiff(), firstLineIdx, lastLineIdx,
-		patch.PatchOptions{Reverse: reverse, KeepOriginalHeader: false})
+	patchToApply := patch.
+		Parse(state.GetDiff()).
+		Transform(patch.TransformOpts{
+			Reverse:             reverse,
+			IncludedLineIndices: patch.ExpandRange(firstLineIdx, lastLineIdx),
+			FileNameOverride:    path,
+		}).
+		FormatPlain()
 
-	if patch == "" {
+	if patchToApply == "" {
 		return nil
 	}
 
@@ -198,7 +204,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 		applyFlags = append(applyFlags, "cached")
 	}
 	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
-	err := self.git.WorkingTree.ApplyPatch(patch, applyFlags...)
+	err := self.git.WorkingTree.ApplyPatch(patchToApply, applyFlags...)
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -229,18 +235,23 @@ func (self *StagingController) editHunk() error {
 		return nil
 	}
 
-	hunk := state.CurrentHunk()
-	patchText := patch.ModifiedPatchForRange(
-		self.c.Log, path, state.GetDiff(), hunk.FirstLineIdx, hunk.LastLineIdx(),
-		patch.PatchOptions{Reverse: self.staged, KeepOriginalHeader: false},
-	)
+	hunkStartIdx, hunkEndIdx := state.CurrentHunkBounds()
+	patchText := patch.
+		Parse(state.GetDiff()).
+		Transform(patch.TransformOpts{
+			Reverse:             self.staged,
+			IncludedLineIndices: patch.ExpandRange(hunkStartIdx, hunkEndIdx),
+			FileNameOverride:    path,
+		}).
+		FormatPlain()
+
 	patchFilepath, err := self.git.WorkingTree.SaveTemporaryPatch(patchText)
 	if err != nil {
 		return err
 	}
 
 	lineOffset := 3
-	lineIdxInHunk := state.GetSelectedLineIdx() - hunk.FirstLineIdx
+	lineIdxInHunk := state.GetSelectedLineIdx() - hunkStartIdx
 	if err := self.helpers.Files.EditFileAtLine(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
 		return err
 	}
@@ -253,10 +264,13 @@ func (self *StagingController) editHunk() error {
 	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
 
 	lineCount := strings.Count(editedPatchText, "\n") + 1
-	newPatchText := patch.ModifiedPatchForRange(
-		self.c.Log, path, editedPatchText, 0, lineCount,
-		patch.PatchOptions{KeepOriginalHeader: false},
-	)
+	newPatchText := patch.
+		Parse(editedPatchText).
+		Transform(patch.TransformOpts{
+			IncludedLineIndices: patch.ExpandRange(0, lineCount),
+			FileNameOverride:    path,
+		}).
+		FormatPlain()
 
 	applyFlags := []string{"cached"}
 	if self.staged {

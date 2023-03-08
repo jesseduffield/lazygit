@@ -202,7 +202,7 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 }
 
 func (gui *Gui) copyPatchToClipboard() error {
-	patch := gui.git.Patch.PatchManager.RenderAggregatedPatchColored(true)
+	patch := gui.git.Patch.PatchManager.RenderAggregatedPatch(true)
 
 	gui.c.LogAction(gui.c.Tr.Actions.CopyPatchToClipboard)
 	if err := gui.os.CopyToClipboard(patch); err != nil {
