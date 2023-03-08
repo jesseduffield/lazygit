@@ -672,7 +672,7 @@ func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 		return err
 	}
 
-	secondaryDiff := gui.git.Patch.PatchManager.RenderPatchForFile(path, false, false, true)
+	secondaryDiff := gui.git.Patch.PatchManager.RenderPatchForFile(path, false, false)
 	if err != nil {
 		return err
 	}

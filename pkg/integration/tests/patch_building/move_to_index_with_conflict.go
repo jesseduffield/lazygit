@@ -8,7 +8,7 @@ import (
 var MoveToIndexWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Move a patch from a commit to the index, causing a conflict",
 	ExtraCmdArgs: "",
-	Skip:         true, // Skipping until https://github.com/jesseduffield/lazygit/pull/2471 is merged
+	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateFileAndAdd("file1", "file1 content")

@@ -13,6 +13,19 @@ var (
 	patchHeaderRegexp = regexp.MustCompile(`(?ms)(^diff.*?)^@@`)
 )
 
+type PatchOptions struct {
+	// Create a patch that will applied in reverse with `git apply --reverse`.
+	// This affects how unselected lines are treated when only parts of a hunk
+	// are selected: usually, for unselected lines we change '-' lines to
+	// context lines and remove '+' lines, but when Reverse is true we need to
+	// turn '+' lines into context lines and remove '-' lines.
+	Reverse bool
+
+	// Whether to keep or discard the original diff header including the
+	// "index deadbeef..fa1afe1 100644" line.
+	KeepOriginalHeader bool
+}
+
 func GetHeaderFromDiff(diff string) string {
 	match := patchHeaderRegexp.FindStringSubmatch(diff)
 	if len(match) <= 1 {
@@ -76,7 +89,7 @@ func NewPatchModifier(log *logrus.Entry, filename string, diffText string) *Patc
 	}
 }
 
-func (d *PatchModifier) ModifiedPatchForLines(lineIndices []int, reverse bool, keepOriginalHeader bool) string {
+func (d *PatchModifier) ModifiedPatchForLines(lineIndices []int, opts PatchOptions) string {
 	// step one is getting only those hunks which we care about
 	hunksInRange := []*PatchHunk{}
 outer:
@@ -95,7 +108,8 @@ outer:
 	formattedHunks := ""
 	var formattedHunk string
 	for _, hunk := range hunksInRange {
-		startOffset, formattedHunk = hunk.formatWithChanges(lineIndices, reverse, startOffset)
+		startOffset, formattedHunk = hunk.formatWithChanges(
+			lineIndices, opts.Reverse, startOffset)
 		formattedHunks += formattedHunk
 	}
 
@@ -108,7 +122,7 @@ outer:
 	// it makes git confused e.g. when dealing with deleted/added files
 	// but with building and applying patches the original header gives git
 	// information it needs to cleanly apply patches
-	if keepOriginalHeader {
+	if opts.KeepOriginalHeader {
 		fileHeader = d.header
 	} else {
 		fileHeader = fmt.Sprintf("--- a/%s\n+++ b/%s\n", d.filename, d.filename)
@@ -117,13 +131,13 @@ outer:
 	return fileHeader + formattedHunks
 }
 
-func (d *PatchModifier) ModifiedPatchForRange(firstLineIdx int, lastLineIdx int, reverse bool, keepOriginalHeader bool) string {
+func (d *PatchModifier) ModifiedPatchForRange(firstLineIdx int, lastLineIdx int, opts PatchOptions) string {
 	// generate array of consecutive line indices from our range
 	selectedLines := []int{}
 	for i := firstLineIdx; i <= lastLineIdx; i++ {
 		selectedLines = append(selectedLines, i)
 	}
-	return d.ModifiedPatchForLines(selectedLines, reverse, keepOriginalHeader)
+	return d.ModifiedPatchForLines(selectedLines, opts)
 }
 
 func (d *PatchModifier) OriginalPatchLength() int {
@@ -134,14 +148,14 @@ func (d *PatchModifier) OriginalPatchLength() int {
 	return d.hunks[len(d.hunks)-1].LastLineIdx()
 }
 
-func ModifiedPatchForRange(log *logrus.Entry, filename string, diffText string, firstLineIdx int, lastLineIdx int, reverse bool, keepOriginalHeader bool) string {
+func ModifiedPatchForRange(log *logrus.Entry, filename string, diffText string, firstLineIdx int, lastLineIdx int, opts PatchOptions) string {
 	p := NewPatchModifier(log, filename, diffText)
-	return p.ModifiedPatchForRange(firstLineIdx, lastLineIdx, reverse, keepOriginalHeader)
+	return p.ModifiedPatchForRange(firstLineIdx, lastLineIdx, opts)
 }
 
-func ModifiedPatchForLines(log *logrus.Entry, filename string, diffText string, includedLineIndices []int, reverse bool, keepOriginalHeader bool) string {
+func ModifiedPatchForLines(log *logrus.Entry, filename string, diffText string, includedLineIndices []int, opts PatchOptions) string {
 	p := NewPatchModifier(log, filename, diffText)
-	return p.ModifiedPatchForLines(includedLineIndices, reverse, keepOriginalHeader)
+	return p.ModifiedPatchForLines(includedLineIndices, opts)
 }
 
 // I want to know, given a hunk, what line a given index is on

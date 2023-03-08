@@ -181,7 +181,8 @@ func (self *StagingController) applySelection(reverse bool) error {
 	}
 
 	firstLineIdx, lastLineIdx := state.SelectedRange()
-	patch := patch.ModifiedPatchForRange(self.c.Log, path, state.GetDiff(), firstLineIdx, lastLineIdx, reverse, false)
+	patch := patch.ModifiedPatchForRange(self.c.Log, path, state.GetDiff(), firstLineIdx, lastLineIdx,
+		patch.PatchOptions{Reverse: reverse, KeepOriginalHeader: false})
 
 	if patch == "" {
 		return nil
@@ -190,6 +191,9 @@ func (self *StagingController) applySelection(reverse bool) error {
 	// apply the patch then refresh this panel
 	// create a new temp file with the patch, then call git apply with that patch
 	applyFlags := []string{}
+	if reverse {
+		applyFlags = append(applyFlags, "reverse")
+	}
 	if !reverse || self.staged {
 		applyFlags = append(applyFlags, "cached")
 	}
@@ -227,7 +231,8 @@ func (self *StagingController) editHunk() error {
 
 	hunk := state.CurrentHunk()
 	patchText := patch.ModifiedPatchForRange(
-		self.c.Log, path, state.GetDiff(), hunk.FirstLineIdx, hunk.LastLineIdx(), self.staged, false,
+		self.c.Log, path, state.GetDiff(), hunk.FirstLineIdx, hunk.LastLineIdx(),
+		patch.PatchOptions{Reverse: self.staged, KeepOriginalHeader: false},
 	)
 	patchFilepath, err := self.git.WorkingTree.SaveTemporaryPatch(patchText)
 	if err != nil {
@@ -249,9 +254,15 @@ func (self *StagingController) editHunk() error {
 
 	lineCount := strings.Count(editedPatchText, "\n") + 1
 	newPatchText := patch.ModifiedPatchForRange(
-		self.c.Log, path, editedPatchText, 0, lineCount, false, false,
+		self.c.Log, path, editedPatchText, 0, lineCount,
+		patch.PatchOptions{KeepOriginalHeader: false},
 	)
-	if err := self.git.WorkingTree.ApplyPatch(newPatchText, "cached"); err != nil {
+
+	applyFlags := []string{"cached"}
+	if self.staged {
+		applyFlags = append(applyFlags, "reverse")
+	}
+	if err := self.git.WorkingTree.ApplyPatch(newPatchText, applyFlags...); err != nil {
 		return self.c.Error(err)
 	}
 

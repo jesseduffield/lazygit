@@ -162,7 +162,7 @@ func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLi
 	return nil
 }
 
-func (p *PatchManager) renderPlainPatchForFile(filename string, reverse bool, keepOriginalHeader bool) string {
+func (p *PatchManager) renderPlainPatchForFile(filename string, reverse bool) string {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		p.Log.Error(err)
@@ -176,14 +176,18 @@ func (p *PatchManager) renderPlainPatchForFile(filename string, reverse bool, ke
 		return info.diff
 	case PART:
 		// generate a new diff with just the selected lines
-		return ModifiedPatchForLines(p.Log, filename, info.diff, info.includedLineIndices, reverse, keepOriginalHeader)
+		return ModifiedPatchForLines(p.Log, filename, info.diff, info.includedLineIndices,
+			PatchOptions{
+				Reverse:            reverse,
+				KeepOriginalHeader: true,
+			})
 	default:
 		return ""
 	}
 }
 
-func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool, keepOriginalHeader bool) string {
-	patch := p.renderPlainPatchForFile(filename, reverse, keepOriginalHeader)
+func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool) string {
+	patch := p.renderPlainPatchForFile(filename, reverse)
 	if plain {
 		return patch
 	}
@@ -199,7 +203,7 @@ func (p *PatchManager) renderEachFilePatch(plain bool) []string {
 
 	sort.Strings(filenames)
 	patches := slices.Map(filenames, func(filename string) string {
-		return p.RenderPatchForFile(filename, plain, false, true)
+		return p.RenderPatchForFile(filename, plain, false)
 	})
 	output := slices.Filter(patches, func(patch string) bool {
 		return patch != ""
@@ -240,42 +244,22 @@ func (p *PatchManager) GetFileIncLineIndices(filename string) ([]int, error) {
 }
 
 func (p *PatchManager) ApplyPatches(reverse bool) error {
-	// for whole patches we'll apply the patch in reverse
-	// but for part patches we'll apply a reverse patch forwards
+	patch := ""
+
+	applyFlags := []string{"index", "3way"}
+	if reverse {
+		applyFlags = append(applyFlags, "reverse")
+	}
+
 	for filename, info := range p.fileInfoMap {
 		if info.mode == UNSELECTED {
 			continue
 		}
 
-		applyFlags := []string{"index", "3way"}
-		reverseOnGenerate := false
-		if reverse {
-			if info.mode == WHOLE {
-				applyFlags = append(applyFlags, "reverse")
-			} else {
-				reverseOnGenerate = true
-			}
-		}
-
-		var err error
-		// first run we try with the original header, then without
-		for _, keepOriginalHeader := range []bool{true, false} {
-			patch := p.RenderPatchForFile(filename, true, reverseOnGenerate, keepOriginalHeader)
-			if patch == "" {
-				continue
-			}
-			if err = p.applyPatch(patch, applyFlags...); err != nil {
-				continue
-			}
-			break
-		}
-
-		if err != nil {
-			return err
-		}
+		patch += p.RenderPatchForFile(filename, true, reverse)
 	}
 
-	return nil
+	return p.applyPatch(patch, applyFlags...)
 }
 
 // clears the patch

@@ -75,19 +75,11 @@ func (hunk *PatchHunk) updatedLines(lineIndices []int, reverse bool) []string {
 }
 
 func transformedFirstChar(firstChar string, reverse bool, isLineSelected bool) string {
+	linesToKeepInPatchContext := "-"
 	if reverse {
-		if !isLineSelected && firstChar == "+" {
-			return " "
-		} else if firstChar == "-" {
-			return "+"
-		} else if firstChar == "+" {
-			return "-"
-		} else {
-			return firstChar
-		}
+		linesToKeepInPatchContext = "+"
 	}
-
-	if !isLineSelected && firstChar == "-" {
+	if !isLineSelected && firstChar == linesToKeepInPatchContext {
 		return " "
 	}
 
@@ -100,14 +92,14 @@ func (hunk *PatchHunk) formatHeader(oldStart int, oldLength int, newStart int, n
 
 func (hunk *PatchHunk) formatWithChanges(lineIndices []int, reverse bool, startOffset int) (int, string) {
 	bodyLines := hunk.updatedLines(lineIndices, reverse)
-	startOffset, header, ok := hunk.updatedHeader(bodyLines, startOffset, reverse)
+	startOffset, header, ok := hunk.updatedHeader(bodyLines, startOffset)
 	if !ok {
 		return startOffset, ""
 	}
 	return startOffset, header + strings.Join(bodyLines, "")
 }
 
-func (hunk *PatchHunk) updatedHeader(newBodyLines []string, startOffset int, reverse bool) (int, string, bool) {
+func (hunk *PatchHunk) updatedHeader(newBodyLines []string, startOffset int) (int, string, bool) {
 	changeCount := nLinesWithPrefix(newBodyLines, []string{"+", "-"})
 	oldLength := nLinesWithPrefix(newBodyLines, []string{" ", "-"})
 	newLength := nLinesWithPrefix(newBodyLines, []string{"+", " "})
@@ -117,12 +109,7 @@ func (hunk *PatchHunk) updatedHeader(newBodyLines []string, startOffset int, rev
 		return startOffset, "", false
 	}
 
-	var oldStart int
-	if reverse {
-		oldStart = hunk.newStart
-	} else {
-		oldStart = hunk.oldStart
-	}
+	oldStart := hunk.oldStart
 
 	var newStartOffset int
 	// if the hunk went from zero to positive length, we need to increment the starting point by one
