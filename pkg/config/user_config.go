@@ -205,6 +205,7 @@ type KeybindingStatusConfig struct {
 	CheckForUpdate      string `yaml:"checkForUpdate"`
 	RecentRepos         string `yaml:"recentRepos"`
 	AllBranchesLogGraph string `yaml:"allBranchesLogGraph"`
+	Clone               string `yaml:"clone"`
 }
 
 type KeybindingFilesConfig struct {
@@ -494,6 +495,7 @@ func GetDefaultConfig() *UserConfig {
 				CheckForUpdate:      "u",
 				RecentRepos:         "<enter>",
 				AllBranchesLogGraph: "a",
+				Clone:               "c",
 			},
 			Files: KeybindingFilesConfig{
 				CommitChanges:            "c",

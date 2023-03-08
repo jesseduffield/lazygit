@@ -202,6 +202,12 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.LcAllBranchesLogGraph,
 		},
 		{
+			ViewName:    "status",
+			Key:         opts.GetKey(opts.Config.Status.Clone),
+			Handler:     self.handleClone,
+			Description: self.c.Tr.Clone,
+		},
+		{
 			ViewName:    "files",
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.handleCopySelectedSideContextItemToClipboard,

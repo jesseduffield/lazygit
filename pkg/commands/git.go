@@ -36,6 +36,7 @@ type GitCommand struct {
 	Tag         *git_commands.TagCommands
 	WorkingTree *git_commands.WorkingTreeCommands
 	Bisect      *git_commands.BisectCommands
+	Clone       *git_commands.CloneCommands
 
 	Loaders Loaders
 }
@@ -117,6 +118,7 @@ func NewGitCommandAux(
 	workingTreeCommands := git_commands.NewWorkingTreeCommands(gitCommon, submoduleCommands, fileLoader)
 	rebaseCommands := git_commands.NewRebaseCommands(gitCommon, commitCommands, workingTreeCommands)
 	stashCommands := git_commands.NewStashCommands(gitCommon, fileLoader, workingTreeCommands)
+	cloneCommands := git_commands.NewCloneCommands(gitCommon)
 	// TODO: have patch manager take workingTreeCommands in its entirety
 	patchManager := patch.NewPatchManager(cmn.Log, workingTreeCommands.ApplyPatch,
 		func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
@@ -152,6 +154,7 @@ func NewGitCommandAux(
 		Tag:         tagCommands,
 		Bisect:      bisectCommands,
 		WorkingTree: workingTreeCommands,
+		Clone:       cloneCommands,
 		Loaders: Loaders{
 			BranchLoader:       branchLoader,
 			CommitFileLoader:   commitFileLoader,

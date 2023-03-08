@@ -128,6 +128,62 @@ func (gui *Gui) handleEditConfig() error {
 	return gui.askForConfigFile(gui.helpers.Files.EditFile)
 }
 
+// Minimises a repository url to "author/repo-name" if applicable
+func minimiseURL(url string) string {
+	sshPrefix := "git@github.com:"
+	httpsPrefix := "https://github.com/"
+
+	if s, found := strings.CutPrefix(url, sshPrefix); found {
+		return s
+	}
+
+	if s, found := strings.CutPrefix(url, httpsPrefix); found {
+		return s
+	}
+
+	// do nothing if there is no prefix to remove
+	return url
+}
+
+func (gui *Gui) handleClone() error {
+	return gui.c.Prompt(types.PromptOpts{
+		Title: "Repository url",
+		HandleConfirm: func(url string) error {
+			return gui.c.Prompt(types.PromptOpts{
+				Title: "Destination folder",
+				HandleConfirm: func(destination string) error {
+					message := utils.ResolvePlaceholderString(
+						gui.c.Tr.Cloning,
+						map[string]string{
+							"url":         minimiseURL(url),
+							"destination": destination,
+						},
+					)
+
+					// TODO: this seems to freeze
+					return gui.c.WithLoaderPanel(message, func() error {
+						err := gui.git.Clone.Clone(url, destination)
+						if err != nil {
+							return gui.c.Error(err)
+						}
+
+						// TODO: add to recent repos list
+						// gui.c.GetAppState().RecentRepos = gui.
+
+						return gui.c.Confirm(types.ConfirmOpts{
+							Title:  "Switch repository",
+							Prompt: "Do you want to switch to the repository that you just cloned?",
+							HandleConfirm: func() error {
+								return gui.dispatchSwitchToRepo(destination, false)
+							},
+						})
+					})
+				},
+			})
+		},
+	})
+}
+
 func lazygitTitle() string {
 	return `
    _                       _ _

@@ -165,6 +165,7 @@ type TranslationSet struct {
 	ConfirmQuit                         string
 	SwitchRepo                          string
 	LcAllBranchesLogGraph               string
+	Clone                               string
 	UnsupportedGitService               string
 	LcCreatePullRequest                 string
 	LcCopyPullRequestURL                string
@@ -184,6 +185,7 @@ type TranslationSet struct {
 	ReturnToFilesPanel                  string
 	FastForward                         string
 	Fetching                            string
+	Cloning                             string
 	FoundConflicts                      string
 	FoundConflictsTitle                 string
 	PickHunk                            string
@@ -814,6 +816,7 @@ func EnglishTranslationSet() TranslationSet {
 		ConfirmQuit:                         `Are you sure you want to quit?`,
 		SwitchRepo:                          `switch to a recent repo`,
 		LcAllBranchesLogGraph:               `show all branch logs`,
+		Clone:                               `clone a repository`,
 		UnsupportedGitService:               `Unsupported git service`,
 		LcCreatePullRequest:                 `create pull request`,
 		LcCopyPullRequestURL:                `copy pull request URL to clipboard`,
@@ -833,6 +836,7 @@ func EnglishTranslationSet() TranslationSet {
 		ReturnToFilesPanel:                  `return to files panel`,
 		FastForward:                         `fast-forward this branch from its upstream`,
 		Fetching:                            "fetching and fast-forwarding {{.from}} -> {{.to}} ...",
+		Cloning:                             "cloning {{.url}} into {{.destination}} ...",
 		FoundConflicts:                      "Conflicts! To abort press 'esc', otherwise press 'enter'",
 		FoundConflictsTitle:                 "Auto-merge failed",
 		PickHunk:                            "pick hunk",
