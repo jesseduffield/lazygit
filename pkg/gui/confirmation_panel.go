@@ -243,17 +243,7 @@ func (gui *Gui) setKeyBindings(cancel context.CancelFunc, opts types.CreatePopup
 		},
 		{
 			ViewName: "confirmation",
-			Key:      keybindings.GetKey(keybindingConfig.Universal.ConfirmAlt1),
-			Handler:  onConfirm,
-		},
-		{
-			ViewName: "confirmation",
 			Key:      keybindings.GetKey(keybindingConfig.Universal.Return),
-			Handler:  gui.wrappedConfirmationFunction(cancel, opts.HandleClose),
-		},
-		{
-			ViewName: "confirmation",
-			Key:      keybindings.GetKey(keybindingConfig.Universal.ReturnAlt1),
 			Handler:  gui.wrappedConfirmationFunction(cancel, opts.HandleClose),
 		},
 		{
@@ -273,17 +263,7 @@ func (gui *Gui) setKeyBindings(cancel context.CancelFunc, opts types.CreatePopup
 		},
 		{
 			ViewName: "suggestions",
-			Key:      keybindings.GetKey(keybindingConfig.Universal.ConfirmAlt1),
-			Handler:  onSuggestionConfirm,
-		},
-		{
-			ViewName: "suggestions",
 			Key:      keybindings.GetKey(keybindingConfig.Universal.Return),
-			Handler:  gui.wrappedConfirmationFunction(cancel, opts.HandleClose),
-		},
-		{
-			ViewName: "suggestions",
-			Key:      keybindings.GetKey(keybindingConfig.Universal.ReturnAlt1),
 			Handler:  gui.wrappedConfirmationFunction(cancel, opts.HandleClose),
 		},
 		{
@@ -305,13 +285,9 @@ func (gui *Gui) setKeyBindings(cancel context.CancelFunc, opts types.CreatePopup
 func (gui *Gui) clearConfirmationViewKeyBindings() {
 	keybindingConfig := gui.c.UserConfig.Keybinding
 	_ = gui.g.DeleteKeybinding("confirmation", keybindings.GetKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("confirmation", keybindings.GetKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("confirmation", keybindings.GetKey(keybindingConfig.Universal.Return), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("confirmation", keybindings.GetKey(keybindingConfig.Universal.ReturnAlt1), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("suggestions", keybindings.GetKey(keybindingConfig.Universal.Confirm), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("suggestions", keybindings.GetKey(keybindingConfig.Universal.ConfirmAlt1), gocui.ModNone)
 	_ = gui.g.DeleteKeybinding("suggestions", keybindings.GetKey(keybindingConfig.Universal.Return), gocui.ModNone)
-	_ = gui.g.DeleteKeybinding("suggestions", keybindings.GetKey(keybindingConfig.Universal.ReturnAlt1), gocui.ModNone)
 }
 
 func (gui *Gui) refreshSuggestions() {

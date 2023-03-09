@@ -32,15 +32,7 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Handler: self.press,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.ConfirmAlt1),
-			Handler: self.press,
-		},
-		{
 			Key:     opts.GetKey(opts.Config.Universal.Return),
-			Handler: self.close,
-		},
-		{
-			Key:     opts.GetKey(opts.Config.Universal.ReturnAlt1),
 			Handler: self.close,
 		},
 	}
