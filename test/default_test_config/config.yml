@@ -1,6 +1,8 @@
 # This config is used in our integration tests. If we want to modify this for a specific test, you can do so in the SetupConfig function
 
 disableStartupPopups: true
+promptToReturnFromSubprocess: false
+
 gui:
   theme:
     activeBorderColor:
