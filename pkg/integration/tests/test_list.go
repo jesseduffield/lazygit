@@ -121,6 +121,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.SquashDownSecondCommit,
 	interactive_rebase.SquashFixupsAboveFirstCommit,
 	interactive_rebase.SwapInRebaseWithConflict,
+	interactive_rebase.SwapInRebaseWithConflictAndEdit,
 	interactive_rebase.SwapWithConflict,
 	misc.ConfirmOnQuit,
 	misc.InitialOpen,
