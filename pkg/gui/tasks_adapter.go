@@ -16,9 +16,6 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		cmdStr,
 	).Debug("RunCommand")
 
-	_, height := view.Size()
-	_, oy := view.Origin()
-
 	manager := gui.getManager(view)
 
 	start := func() (*exec.Cmd, io.Reader) {
@@ -35,7 +32,8 @@ func (gui *Gui) newCmdTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		return cmd, r
 	}
 
-	if err := manager.NewTask(manager.NewCmdTask(start, prefix, height+oy+10, nil), cmdStr); err != nil {
+	linesToRead := gui.linesToReadFromCmdTask(view)
+	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, nil), cmdStr); err != nil {
 		gui.c.Log.Error(err)
 	}
 

@@ -39,7 +39,7 @@ type ViewBufferManager struct {
 	taskIDMutex  deadlock.Mutex
 	Log          *logrus.Entry
 	newTaskID    int
-	readLines    chan int
+	readLines    chan LinesToRead
 	taskKey      string
 	onNewKey     func()
 
@@ -53,6 +53,16 @@ type ViewBufferManager struct {
 	// it can slow things down quite a bit. In these situations we
 	// want to throttle the spawning of processes.
 	throttle bool
+}
+
+type LinesToRead struct {
+	// Total number of lines to read
+	Total int
+
+	// Number of lines after which we have read enough to fill the view, and can
+	// do an initial refresh. Only set for the initial read request; -1 for
+	// subsequent requests.
+	InitialRefreshAfter int
 }
 
 func (m *ViewBufferManager) GetTaskKey() string {
@@ -73,19 +83,19 @@ func NewViewBufferManager(
 		beforeStart:  beforeStart,
 		refreshView:  refreshView,
 		onEndOfInput: onEndOfInput,
-		readLines:    make(chan int, 1024),
+		readLines:    make(chan LinesToRead, 1024),
 		onNewKey:     onNewKey,
 	}
 }
 
 func (self *ViewBufferManager) ReadLines(n int) {
 	go utils.Safe(func() {
-		self.readLines <- n
+		self.readLines <- LinesToRead{Total: n, InitialRefreshAfter: -1}
 	})
 }
 
 // note: onDone may be called twice
-func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead int, onDone func()) func(chan struct{}) error {
+func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDone func()) func(chan struct{}) error {
 	return func(stop chan struct{}) error {
 		var once sync.Once
 		var onDoneWrapper func()
@@ -130,7 +140,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		loadingMutex := deadlock.Mutex{}
 
 		// not sure if it's the right move to redefine this or not
-		self.readLines = make(chan int, 1024)
+		self.readLines = make(chan LinesToRead, 1024)
 
 		done := make(chan struct{})
 
@@ -163,7 +173,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				case <-stop:
 					break outer
 				case linesToRead := <-self.readLines:
-					for i := 0; i < linesToRead; i++ {
+					for i := 0; i < linesToRead.Total; i++ {
 						select {
 						case <-stop:
 							break outer
@@ -188,6 +198,13 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 							break outer
 						}
 						_, _ = self.writer.Write(append(scanner.Bytes(), '\n'))
+
+						if i+1 == linesToRead.InitialRefreshAfter {
+							// We have read enough lines to fill the view, so do a first refresh
+							// here to show what we have. Continue reading and refresh again at
+							// the end to make sure the scrollbar has the right size.
+							self.refreshView()
+						}
 					}
 					self.refreshView()
 				}

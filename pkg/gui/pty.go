@@ -55,9 +55,6 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 	cmd.Env = append(cmd.Env, "GIT_PAGER="+pager)
 
-	_, height := view.Size()
-	_, oy := view.Origin()
-
 	manager := gui.getManager(view)
 
 	var ptmx *os.File
@@ -82,7 +79,8 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 		gui.Mutexes.PtyMutex.Unlock()
 	}
 
-	if err := manager.NewTask(manager.NewCmdTask(start, prefix, height+oy+10, onClose), cmdStr); err != nil {
+	linesToRead := gui.linesToReadFromCmdTask(view)
+	if err := manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), cmdStr); err != nil {
 		return err
 	}
 
