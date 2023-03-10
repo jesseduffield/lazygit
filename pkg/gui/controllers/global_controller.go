@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -37,10 +39,12 @@ func (self *GlobalController) customCommand() error {
 		Title:               self.c.Tr.CustomCommand,
 		FindSuggestionsFunc: self.GetCustomCommandsHistorySuggestionsFunc(),
 		HandleConfirm: func(command string) error {
-			self.c.GetAppState().CustomCommandsHistory = utils.Limit(
-				lo.Uniq(append(self.c.GetAppState().CustomCommandsHistory, command)),
-				1000,
-			)
+			if self.shouldSaveCommand(command) {
+				self.c.GetAppState().CustomCommandsHistory = utils.Limit(
+					lo.Uniq(append(self.c.GetAppState().CustomCommandsHistory, command)),
+					1000,
+				)
+			}
 
 			err := self.c.SaveAppState()
 			if err != nil {
@@ -53,6 +57,12 @@ func (self *GlobalController) customCommand() error {
 			)
 		},
 	})
+}
+
+// this mimics the shell functionality `ignorespace`
+// which doesn't save a command to history if it starts with a space
+func (self *GlobalController) shouldSaveCommand(command string) bool {
+	return !strings.HasPrefix(command, " ")
 }
 
 func (self *GlobalController) GetCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {

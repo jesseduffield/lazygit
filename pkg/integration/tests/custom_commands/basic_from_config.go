@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var Basic = NewIntegrationTest(NewIntegrationTestArgs{
+var BasicCmdFromConfig = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using a custom command to create a new file",
 	ExtraCmdArgs: "",
 	Skip:         false,
