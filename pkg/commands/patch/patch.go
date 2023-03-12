@@ -149,3 +149,8 @@ func (self *Patch) LineCount() int {
 	}
 	return count
 }
+
+// Returns the number of hunks of the patch
+func (self *Patch) HunkCount() int {
+	return len(self.hunks)
+}

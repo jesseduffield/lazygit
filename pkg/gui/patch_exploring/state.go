@@ -143,8 +143,13 @@ func (s *State) CycleHunk(forward bool) {
 	}
 
 	hunkIdx := s.patch.HunkContainingLine(s.selectedLineIdx)
-	start := s.patch.HunkStartIdx(hunkIdx + change)
-	s.selectedLineIdx = s.patch.GetNextChangeIdx(start)
+	if hunkIdx != -1 {
+		newHunkIdx := hunkIdx + change
+		if newHunkIdx >= 0 && newHunkIdx < s.patch.HunkCount() {
+			start := s.patch.HunkStartIdx(newHunkIdx)
+			s.selectedLineIdx = s.patch.GetNextChangeIdx(start)
+		}
+	}
 }
 
 func (s *State) CycleLine(forward bool) {
