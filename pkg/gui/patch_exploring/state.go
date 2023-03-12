@@ -216,8 +216,8 @@ func (s *State) SelectTop() {
 	s.SelectLine(0)
 }
 
-func (s *State) CalculateOrigin(currentOrigin int, bufferHeight int) int {
+func (s *State) CalculateOrigin(currentOrigin int, bufferHeight int, numLines int) int {
 	firstLineIdx, lastLineIdx := s.SelectedRange()
 
-	return calculateOrigin(currentOrigin, bufferHeight, firstLineIdx, lastLineIdx, s.GetSelectedLineIdx(), s.selectMode)
+	return calculateOrigin(currentOrigin, bufferHeight, numLines, firstLineIdx, lastLineIdx, s.GetSelectedLineIdx(), s.selectMode)
 }
