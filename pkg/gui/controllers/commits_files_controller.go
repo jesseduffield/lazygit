@@ -161,9 +161,16 @@ func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error 
 		return err
 	}
 
+	prompt := self.c.Tr.DiscardFileChangesPrompt
+	if node.File.Added() {
+		prompt = self.c.Tr.DiscardAddedFileChangesPrompt
+	} else if node.File.Deleted() {
+		prompt = self.c.Tr.DiscardDeletedFileChangesPrompt
+	}
+
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardFileChangesTitle,
-		Prompt: self.c.Tr.DiscardFileChangesPrompt,
+		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.DiscardOldFileChange)
