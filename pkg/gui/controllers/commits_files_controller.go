@@ -153,6 +153,10 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 }
 
 func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error {
+	if node.File == nil {
+		return self.c.ErrorMsg(self.c.Tr.DiscardNotSupportedForDirectory)
+	}
+
 	if ok, err := self.c.Helpers().PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
 		return err
 	}
