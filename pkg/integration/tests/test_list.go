@@ -111,6 +111,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.MoveInRebase,
 	interactive_rebase.PickRescheduled,
 	interactive_rebase.Rebase,
+	interactive_rebase.RewordCommitWithEditorAndFail,
 	interactive_rebase.RewordFirstCommit,
 	interactive_rebase.RewordLastCommit,
 	interactive_rebase.RewordYouAreHereCommit,
