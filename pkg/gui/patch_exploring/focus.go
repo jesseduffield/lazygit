@@ -10,7 +10,7 @@ func calculateOrigin(currentOrigin int, bufferHeight int, firstLineIdx int, last
 
 // we want to scroll our origin so that the index we need to see is in view
 // and the other index we want to see (e.g. the other side of a line range)
-// is in as close to being in view as possible.
+// is as close to being in view as possible.
 func calculateNewOriginWithNeededAndWantedIdx(currentOrigin int, bufferHeight int, needToSeeIdx int, wantToSeeIdx int) int {
 	origin := currentOrigin
 	if needToSeeIdx < currentOrigin {
