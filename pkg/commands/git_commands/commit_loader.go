@@ -410,9 +410,11 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 		limitFlag = " -300"
 	}
 
+	followFlag := ""
 	filterFlag := ""
 	if opts.FilterPath != "" {
-		filterFlag = fmt.Sprintf(" --follow -- %s", self.cmd.Quote(opts.FilterPath))
+		followFlag = " --follow"
+		filterFlag = fmt.Sprintf(" %s", self.cmd.Quote(opts.FilterPath))
 	}
 
 	config := self.UserConfig.Git.Log
@@ -428,13 +430,14 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 	return self.cmd.New(
 		fmt.Sprintf(
-			"git -c log.showSignature=false log %s%s%s --oneline %s%s --abbrev=%d%s",
+			"git log %s%s%s --oneline %s%s --abbrev=%d%s --no-show-signature --%s",
 			self.cmd.Quote(opts.RefName),
 			orderFlag,
 			allFlag,
 			prettyFormat,
 			limitFlag,
 			40,
+			followFlag,
 			filterFlag,
 		),
 	).DontLog()
