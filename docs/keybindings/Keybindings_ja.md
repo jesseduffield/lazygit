@@ -203,8 +203,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>e</kbd>: ファイルを編集
   <kbd>o</kbd>: ファイルを開く
-  <kbd>◄</kbd>: 前のコンフリクトを選択
-  <kbd>►</kbd>: 次のコンフリクトを選択
+  <kbd>◀</kbd>: 前のコンフリクトを選択
+  <kbd>▶</kbd>: 次のコンフリクトを選択
   <kbd>▲</kbd>: 前のhunkを選択
   <kbd>▼</kbd>: 次のhunkを選択
   <kbd>z</kbd>: アンドゥ
@@ -224,8 +224,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## メインパネル (Patch Building)
 
 <pre>
-  <kbd>◄</kbd>: 前のhunkを選択
-  <kbd>►</kbd>: 次のhunkを選択
+  <kbd>◀</kbd>: 前のhunkを選択
+  <kbd>▶</kbd>: 次のhunkを選択
   <kbd>v</kbd>: 範囲選択を切り替え
   <kbd>V</kbd>: 範囲選択を切り替え
   <kbd>a</kbd>: hunk選択を切り替え
@@ -239,8 +239,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## メインパネル (Staging)
 
 <pre>
-  <kbd>◄</kbd>: 前のhunkを選択
-  <kbd>►</kbd>: 次のhunkを選択
+  <kbd>◀</kbd>: 前のhunkを選択
+  <kbd>▶</kbd>: 次のhunkを選択
   <kbd>v</kbd>: 範囲選択を切り替え
   <kbd>V</kbd>: 範囲選択を切り替え
   <kbd>a</kbd>: hunk選択を切り替え
