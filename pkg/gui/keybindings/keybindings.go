@@ -32,8 +32,8 @@ var keyMapReversed = map[gocui.Key]string{
 	gocui.KeyPgdn:        "pgdown",
 	gocui.KeyArrowUp:     "▲",
 	gocui.KeyArrowDown:   "▼",
-	gocui.KeyArrowLeft:   "◄",
-	gocui.KeyArrowRight:  "►",
+	gocui.KeyArrowLeft:   "◀",
+	gocui.KeyArrowRight:  "▶",
 	gocui.KeyTab:         "tab", // ctrl+i
 	gocui.KeyBacktab:     "shift+tab",
 	gocui.KeyEnter:       "enter", // ctrl+m

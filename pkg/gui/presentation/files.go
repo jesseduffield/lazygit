@@ -14,7 +14,7 @@ import (
 
 const (
 	EXPANDED_ARROW  = "▼"
-	COLLAPSED_ARROW = "►"
+	COLLAPSED_ARROW = "▶"
 )
 
 // keeping these here as individual constants in case later on people want the old tree shape
