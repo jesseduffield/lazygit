@@ -1,11 +1,13 @@
 package presentation
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
@@ -32,6 +34,7 @@ type bisectBounds struct {
 }
 
 func GetCommitListDisplayStrings(
+	common *common.Common,
 	commits []*models.Commit,
 	fullDescription bool,
 	cherryPickedCommitShaSet *set.Set[string],
@@ -43,6 +46,7 @@ func GetCommitListDisplayStrings(
 	length int,
 	showGraph bool,
 	bisectInfo *git_commands.BisectInfo,
+	showYouAreHereLabel bool,
 ) [][]string {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -95,7 +99,9 @@ func GetCommitListDisplayStrings(
 	for i, commit := range filteredCommits {
 		unfilteredIdx := i + startIdx
 		bisectStatus = getBisectStatus(unfilteredIdx, commit.Sha, bisectInfo, bisectBounds)
+		isYouAreHereCommit := showYouAreHereLabel && unfilteredIdx == rebaseOffset
 		lines = append(lines, displayCommit(
+			common,
 			commit,
 			cherryPickedCommitShaSet,
 			diffName,
@@ -105,6 +111,7 @@ func GetCommitListDisplayStrings(
 			fullDescription,
 			bisectStatus,
 			bisectInfo,
+			isYouAreHereCommit,
 		))
 	}
 	return lines
@@ -240,6 +247,7 @@ func getBisectStatusText(bisectStatus BisectStatus, bisectInfo *git_commands.Bis
 }
 
 func displayCommit(
+	common *common.Common,
 	commit *models.Commit,
 	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
@@ -249,6 +257,7 @@ func displayCommit(
 	fullDescription bool,
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
+	isYouAreHereCommit bool,
 ) []string {
 	shaColor := getShaColor(commit, diffName, cherryPickedCommitShaSet, bisectStatus, bisectInfo)
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
@@ -272,6 +281,11 @@ func displayCommit(
 	name := commit.Name
 	if parseEmoji {
 		name = emoji.Sprint(name)
+	}
+
+	if isYouAreHereCommit {
+		youAreHere := style.FgYellow.Sprintf("<-- %s ---", common.Tr.YouAreHere)
+		name = fmt.Sprintf("%s %s", youAreHere, name)
 	}
 
 	authorFunc := authors.ShortAuthor

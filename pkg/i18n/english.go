@@ -59,8 +59,6 @@ type TranslationSet struct {
 	MergeConflictsTitle                 string
 	LcCheckout                          string
 	NoChangedFiles                      string
-	NoFilesDisplay                      string
-	NotAFile                            string
 	PullWait                            string
 	PushWait                            string
 	FetchWait                           string
@@ -89,8 +87,7 @@ type TranslationSet struct {
 	LcQuit                              string
 	LcSquashDown                        string
 	LcFixupCommit                       string
-	OnlySquashTopmostCommit             string
-	YouNoCommitsToSquash                string
+	CannotSquashOrFixupFirstCommit      string
 	Fixup                               string
 	SureFixupThisCommit                 string
 	SureSquashThisCommit                string
@@ -118,6 +115,8 @@ type TranslationSet struct {
 	LcRedoReflog                        string
 	UndoTooltip                         string
 	RedoTooltip                         string
+	DiscardAllTooltip                   string
+	DiscardUnstagedTooltip              string
 	LcPop                               string
 	LcDrop                              string
 	LcApply                             string
@@ -222,8 +221,6 @@ type TranslationSet struct {
 	LcPasteCommits                      string
 	SureCherryPick                      string
 	CherryPick                          string
-	CannotRebaseOntoFirstCommit         string
-	CannotSquashOntoSecondCommit        string
 	Donate                              string
 	AskQuestion                         string
 	PrevLine                            string
@@ -466,6 +463,7 @@ type TranslationSet struct {
 	CommitURLCopiedToClipboard          string
 	CommitMessageCopiedToClipboard      string
 	CommitAuthorCopiedToClipboard       string
+	PatchCopiedToClipboard              string
 	LcCopiedToClipboard                 string
 	ErrCannotEditDirectory              string
 	ErrStageDirWithInlineMergeConflicts string
@@ -569,6 +567,7 @@ type Actions struct {
 	CopyCommitURLToClipboard          string
 	CopyCommitAuthorToClipboard       string
 	CopyCommitAttributeToClipboard    string
+	CopyPatchToClipboard              string
 	CustomCommand                     string
 	DiscardAllChangesInDirectory      string
 	DiscardUnstagedChangesInDirectory string
@@ -709,8 +708,6 @@ func EnglishTranslationSet() TranslationSet {
 		FilterUnstagedFiles:                 "Show only unstaged files",
 		ResetCommitFilterState:              "Reset filter",
 		NoChangedFiles:                      "No changed files",
-		NoFilesDisplay:                      "No file to display",
-		NotAFile:                            "Not a file",
 		PullWait:                            "Pulling...",
 		PushWait:                            "Pushing...",
 		FetchWait:                           "Fetching...",
@@ -740,8 +737,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcSquashDown:                        "squash down",
 		LcFixupCommit:                       "fixup commit",
 		NoCommitsThisBranch:                 "No commits for this branch",
-		OnlySquashTopmostCommit:             "Can only squash topmost commit",
-		YouNoCommitsToSquash:                "You have no commits to squash with",
+		CannotSquashOrFixupFirstCommit:      "There's no commit below to squash into",
 		Fixup:                               "Fixup",
 		SureFixupThisCommit:                 "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
 		SureSquashThisCommit:                "Are you sure you want to squash this commit into the commit below?",
@@ -768,6 +764,8 @@ func EnglishTranslationSet() TranslationSet {
 		LcRedoReflog:                        "redo (via reflog) (experimental)",
 		UndoTooltip:                         "The reflog will be used to determine what git command to run to undo the last git command. This does not include changes to the working tree; only commits are taken into consideration.",
 		RedoTooltip:                         "The reflog will be used to determine what git command to run to redo the last git command. This does not include changes to the working tree; only commits are taken into consideration.",
+		DiscardAllTooltip:                   "Discard both staged and unstaged changes in '{{.path}}'.",
+		DiscardUnstagedTooltip:              "Discard unstaged changes in '{{.path}}'.",
 		LcPop:                               "pop",
 		LcDrop:                              "drop",
 		LcApply:                             "apply",
@@ -873,8 +871,6 @@ func EnglishTranslationSet() TranslationSet {
 		LcPasteCommits:                      "paste commits (cherry-pick)",
 		SureCherryPick:                      "Are you sure you want to cherry-pick the copied commits onto this branch?",
 		CherryPick:                          "Cherry-Pick",
-		CannotRebaseOntoFirstCommit:         "You cannot interactive rebase onto the first commit",
-		CannotSquashOntoSecondCommit:        "You cannot squash/fixup onto the second commit",
 		Donate:                              "Donate",
 		AskQuestion:                         "Ask Question",
 		PrevLine:                            "select previous line",
@@ -989,7 +985,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcTagCommit:                         "tag commit",
 		TagMenuTitle:                        "Create tag",
 		TagNameTitle:                        "Tag name:",
-		TagMessageTitle:                     "Tag message: ",
+		TagMessageTitle:                     "Tag message:",
 		LcAnnotatedTag:                      "annotated tag",
 		LcLightweightTag:                    "lightweight tag",
 		LcDeleteTag:                         "delete tag",
@@ -1076,7 +1072,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcCreateNewBranchFromCommit:         "create new branch off of commit",
 		LcBuildingPatch:                     "building patch",
 		LcViewCommits:                       "view commits",
-		MinGitVersionError:                  "Git version must be at least 2.0 (i.e. from 2014 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
+		MinGitVersionError:                  "Git version must be at least 2.20 (i.e. from 2018 onwards). Please upgrade your git version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
 		LcRunningCustomCommandStatus:        "running custom command",
 		LcSubmoduleStashAndReset:            "stash uncommitted submodule changes and update",
 		LcAndResetSubmodules:                "and reset submodules",
@@ -1117,6 +1113,7 @@ func EnglishTranslationSet() TranslationSet {
 		CommitURLCopiedToClipboard:          "Commit URL copied to clipboard",
 		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
 		CommitAuthorCopiedToClipboard:       "Commit author copied to clipboard",
+		PatchCopiedToClipboard:              "Patch copied to clipboard",
 		LcCopiedToClipboard:                 "copied to clipboard",
 		ErrCannotEditDirectory:              "Cannot edit directory: you can only edit individual files",
 		ErrStageDirWithInlineMergeConflicts: "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
@@ -1201,6 +1198,7 @@ func EnglishTranslationSet() TranslationSet {
 			CopyCommitURLToClipboard:          "Copy commit URL to clipboard",
 			CopyCommitAuthorToClipboard:       "Copy commit author to clipboard",
 			CopyCommitAttributeToClipboard:    "Copy to clipboard",
+			CopyPatchToClipboard:              "Copy patch to clipboard",
 			MoveCommitUp:                      "Move commit up",
 			MoveCommitDown:                    "Move commit down",
 			CustomCommand:                     "Custom command",

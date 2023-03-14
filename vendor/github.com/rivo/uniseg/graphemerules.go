@@ -48,7 +48,7 @@ var grTransitions = map[[2]int][3]int{
 	{grControlLF, prAny}: {grAny, grBoundary, 40},
 
 	// GB3.
-	{grCR, prLF}: {grAny, grNoBoundary, 30},
+	{grCR, prLF}: {grControlLF, grNoBoundary, 30},
 
 	// GB6.
 	{grAny, prL}: {grL, grBoundary, 9990},

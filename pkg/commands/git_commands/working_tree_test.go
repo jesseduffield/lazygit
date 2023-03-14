@@ -323,37 +323,51 @@ func TestWorkingTreeDiff(t *testing.T) {
 
 func TestWorkingTreeShowFileDiff(t *testing.T) {
 	type scenario struct {
-		testName    string
-		from        string
-		to          string
-		reverse     bool
-		plain       bool
-		contextSize int
-		runner      *oscommands.FakeCmdObjRunner
+		testName         string
+		from             string
+		to               string
+		reverse          bool
+		plain            bool
+		ignoreWhitespace bool
+		contextSize      int
+		runner           *oscommands.FakeCmdObjRunner
 	}
 
 	const expectedResult = "pretend this is an actual git diff"
 
 	scenarios := []scenario{
 		{
-			testName:    "Default case",
-			from:        "1234567890",
-			to:          "0987654321",
-			reverse:     false,
-			plain:       false,
-			contextSize: 3,
+			testName:         "Default case",
+			from:             "1234567890",
+			to:               "0987654321",
+			reverse:          false,
+			plain:            false,
+			ignoreWhitespace: false,
+			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git diff --submodule --no-ext-diff --unified=3 --no-renames --color=always 1234567890 0987654321 -- "test.txt"`, expectedResult, nil),
 		},
 		{
-			testName:    "Show diff with custom context size",
-			from:        "1234567890",
-			to:          "0987654321",
-			reverse:     false,
-			plain:       false,
-			contextSize: 123,
+			testName:         "Show diff with custom context size",
+			from:             "1234567890",
+			to:               "0987654321",
+			reverse:          false,
+			plain:            false,
+			ignoreWhitespace: false,
+			contextSize:      123,
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git diff --submodule --no-ext-diff --unified=123 --no-renames --color=always 1234567890 0987654321 -- "test.txt"`, expectedResult, nil),
+		},
+		{
+			testName:         "Default case (ignore whitespace)",
+			from:             "1234567890",
+			to:               "0987654321",
+			reverse:          false,
+			plain:            false,
+			ignoreWhitespace: true,
+			contextSize:      3,
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git diff --submodule --no-ext-diff --unified=3 --no-renames --color=always 1234567890 0987654321 --ignore-all-space -- "test.txt"`, expectedResult, nil),
 		},
 	}
 
@@ -365,7 +379,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig})
 
-			result, err := instance.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
+			result, err := instance.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain, s.ignoreWhitespace)
 			assert.NoError(t, err)
 			assert.Equal(t, expectedResult, result)
 			s.runner.CheckForMissingCalls()

@@ -110,6 +110,11 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			Handler:     self.Escape,
 			Description: self.c.Tr.ReturnToFilesPanel,
 		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Handler:     self.Escape,
+			Description: self.c.Tr.ReturnToFilesPanel,
+		},
 	}
 
 	return bindings
@@ -157,7 +162,7 @@ func (self *MergeConflictsController) context() *context.MergeConflictsContext {
 }
 
 func (self *MergeConflictsController) Escape() error {
-	return self.c.PushContext(self.contexts.Files)
+	return self.c.PopContext()
 }
 
 func (self *MergeConflictsController) HandleEditFile() error {

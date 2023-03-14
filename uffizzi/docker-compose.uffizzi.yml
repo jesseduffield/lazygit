@@ -1,0 +1,20 @@
+version: "3"
+
+x-uffizzi:
+  ingress:
+    service: application
+    port: 7681
+
+services:
+
+  application:
+    image: "${APP_IMAGE}"
+    entrypoint: ["/bin/bash", "-c"]
+    command: ["ttyd /usr/local/go/bin/go run /go/src/github.com/jesseduffield/lazygit/cmd/integration_test/main.go tui"]    
+    ports:
+    - "7700:7700"
+    - "7681:7681"
+    deploy:
+      resources:
+        limits:
+          memory: 2000M

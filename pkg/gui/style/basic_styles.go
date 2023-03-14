@@ -39,7 +39,7 @@ var (
 		Foreground TextStyle
 		Background TextStyle
 	}{
-		"default": {FgWhite, BgBlack},
+		"default": {FgDefault, BgDefault},
 		"black":   {FgBlack, BgBlack},
 		"red":     {FgRed, BgRed},
 		"green":   {FgGreen, BgGreen},

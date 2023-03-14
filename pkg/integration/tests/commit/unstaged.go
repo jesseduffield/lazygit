@@ -5,8 +5,6 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-// TODO: find out why we can't use .SelectedLine() on the staging/stagingSecondary views.
-
 var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Staging a couple files, going in the unstaged files menu, staging a line and committing",
 	ExtraCmdArgs: "",
@@ -30,11 +28,13 @@ var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Tap(func() {
 				t.Views().StagingSecondary().Content(DoesNotContain("+myfile content"))
+				t.Views().Staging().SelectedLine(Equals("+myfile content"))
 			}).
 			// stage the first line
 			PressPrimaryAction().
 			Tap(func() {
-				t.Views().Staging().Content(DoesNotContain("+myfile content"))
+				t.Views().Staging().Content(DoesNotContain("+myfile content")).
+					SelectedLine(Equals("+with a second line"))
 				t.Views().StagingSecondary().Content(Contains("+myfile content"))
 			}).
 			Press(keys.Files.CommitChanges)

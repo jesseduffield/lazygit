@@ -1,7 +1,7 @@
 package git_commands
 
 import (
-	"fmt"
+	"regexp"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -12,40 +12,42 @@ import (
 
 type TagLoader struct {
 	*common.Common
-	version *GitVersion
-	cmd     oscommands.ICmdObjBuilder
+	cmd oscommands.ICmdObjBuilder
 }
 
 func NewTagLoader(
 	common *common.Common,
-	version *GitVersion,
 	cmd oscommands.ICmdObjBuilder,
 ) *TagLoader {
 	return &TagLoader{
-		Common:  common,
-		version: version,
-		cmd:     cmd,
+		Common: common,
+		cmd:    cmd,
 	}
 }
 
 func (self *TagLoader) GetTags() ([]*models.Tag, error) {
 	// get remote branches, sorted  by creation date (descending)
 	// see: https://git-scm.com/docs/git-tag#Documentation/git-tag.txt---sortltkeygt
-	sortKey := "-creatordate"
-	if self.version.IsOlderThan(2, 7, 0) {
-		sortKey = "-v:refname"
-	}
-
-	tagsOutput, err := self.cmd.New(fmt.Sprintf(`git tag --list --sort=%s`, sortKey)).DontLog().RunWithOutput()
+	tagsOutput, err := self.cmd.New(`git tag --list -n --sort=-creatordate`).DontLog().RunWithOutput()
 	if err != nil {
 		return nil, err
 	}
 
 	split := utils.SplitLines(tagsOutput)
 
-	tags := slices.Map(split, func(tagName string) *models.Tag {
+	lineRegex := regexp.MustCompile(`^([^\s]+)(\s+)?(.*)$`)
+
+	tags := slices.Map(split, func(line string) *models.Tag {
+		matches := lineRegex.FindStringSubmatch(line)
+		tagName := matches[1]
+		message := ""
+		if len(matches) > 3 {
+			message = matches[3]
+		}
+
 		return &models.Tag{
-			Name: tagName,
+			Name:    tagName,
+			Message: message,
 		}
 	})
 

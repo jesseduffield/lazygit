@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
+	"github.com/samber/lo"
 )
 
 // see pkg/integration/README.md
@@ -65,6 +66,12 @@ func getTestsToRun(testNames []string) []*components.IntegrationTest {
 		)
 	})
 
+	if lo.SomeBy(testNames, func(name string) bool {
+		return strings.HasSuffix(name, "/shared")
+	}) {
+		log.Fatalf("'shared' is a reserved name for tests that are shared between multiple test files. Please rename your test.")
+	}
+
 outer:
 	for _, testName := range testNames {
 		// check if our given test name actually exists
@@ -74,7 +81,7 @@ outer:
 				continue outer
 			}
 		}
-		log.Fatalf("test %s not found. Perhaps you forgot to add it to `pkg/integration/integration_tests/tests.go`?", testName)
+		log.Fatalf("test %s not found. Perhaps you forgot to add it to `pkg/integration/integration_tests/test_list.go`? This can be done by running `go generate ./...` from the Lazygit root. You'll need to ensure that your test name and the file name match (where the test name is in PascalCase and the file name is in snake_case).", testName)
 	}
 
 	return testsToRun

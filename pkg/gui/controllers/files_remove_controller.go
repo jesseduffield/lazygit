@@ -5,6 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // splitting this action out into its own file because it's self-contained
@@ -51,7 +52,13 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 					}
 					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 				},
-				Key: 'd',
+				Key: 'x',
+				Tooltip: utils.ResolvePlaceholderString(
+					self.c.Tr.DiscardAllTooltip,
+					map[string]string{
+						"path": node.GetPath(),
+					},
+				),
 			},
 		}
 
@@ -67,6 +74,12 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 				},
 				Key: 'u',
+				Tooltip: utils.ResolvePlaceholderString(
+					self.c.Tr.DiscardUnstagedTooltip,
+					map[string]string{
+						"path": node.GetPath(),
+					},
+				),
 			})
 		}
 	} else {
@@ -95,7 +108,13 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 						}
 						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 					},
-					Key: 'd',
+					Key: 'x',
+					Tooltip: utils.ResolvePlaceholderString(
+						self.c.Tr.DiscardAllTooltip,
+						map[string]string{
+							"path": node.GetPath(),
+						},
+					),
 				},
 			}
 
@@ -111,6 +130,12 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
 					},
 					Key: 'u',
+					Tooltip: utils.ResolvePlaceholderString(
+						self.c.Tr.DiscardUnstagedTooltip,
+						map[string]string{
+							"path": node.GetPath(),
+						},
+					),
 				})
 			}
 		}

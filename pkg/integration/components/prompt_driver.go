@@ -10,7 +10,7 @@ func (self *PromptDriver) getViewDriver() *ViewDriver {
 }
 
 // asserts that the popup has the expected title
-func (self *PromptDriver) Title(expected *matcher) *PromptDriver {
+func (self *PromptDriver) Title(expected *Matcher) *PromptDriver {
 	self.getViewDriver().Title(expected)
 
 	self.hasCheckedTitle = true
@@ -19,7 +19,7 @@ func (self *PromptDriver) Title(expected *matcher) *PromptDriver {
 }
 
 // asserts on the text initially present in the prompt
-func (self *PromptDriver) InitialText(expected *matcher) *PromptDriver {
+func (self *PromptDriver) InitialText(expected *Matcher) *PromptDriver {
 	self.getViewDriver().Content(expected)
 
 	return self
@@ -32,7 +32,9 @@ func (self *PromptDriver) Type(value string) *PromptDriver {
 }
 
 func (self *PromptDriver) Clear() *PromptDriver {
-	panic("Clear method not yet implemented!")
+	self.t.press(ClearKey)
+
+	return self
 }
 
 func (self *PromptDriver) Confirm() {
@@ -53,13 +55,13 @@ func (self *PromptDriver) checkNecessaryChecksCompleted() {
 	}
 }
 
-func (self *PromptDriver) SuggestionLines(matchers ...*matcher) *PromptDriver {
+func (self *PromptDriver) SuggestionLines(matchers ...*Matcher) *PromptDriver {
 	self.t.Views().Suggestions().Lines(matchers...)
 
 	return self
 }
 
-func (self *PromptDriver) SuggestionTopLines(matchers ...*matcher) *PromptDriver {
+func (self *PromptDriver) SuggestionTopLines(matchers ...*Matcher) *PromptDriver {
 	self.t.Views().Suggestions().TopLines(matchers...)
 
 	return self
@@ -73,10 +75,10 @@ func (self *PromptDriver) ConfirmFirstSuggestion() {
 		PressEnter()
 }
 
-func (self *PromptDriver) ConfirmSuggestion(matcher *matcher) {
+func (self *PromptDriver) ConfirmSuggestion(matcher *Matcher) {
 	self.t.press(self.t.keys.Universal.TogglePanel)
 	self.t.Views().Suggestions().
 		IsFocused().
-		NavigateToListItem(matcher).
+		NavigateToLine(matcher).
 		PressEnter()
 }

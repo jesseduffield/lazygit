@@ -2,18 +2,11 @@ package git_commands
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
-
-// this takes something like:
-// * (HEAD detached at 264fc6f5)
-// remotes
-// and returns '264fc6f5' as the second match
-const CurrentBranchNameRegex = `(?m)^\*.*?([^ ]*?)\)?$`
 
 type BranchCommands struct {
 	*GitCommon
@@ -41,19 +34,18 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 			DetachedHead: false,
 		}, nil
 	}
-	output, err := self.cmd.New("git branch --contains").DontLog().RunWithOutput()
+	output, err := self.cmd.New(`git branch --points-at=HEAD --format="%(HEAD)%00%(objectname)%00%(refname)"`).DontLog().RunWithOutput()
 	if err != nil {
 		return BranchInfo{}, err
 	}
 	for _, line := range utils.SplitLines(output) {
-		re := regexp.MustCompile(CurrentBranchNameRegex)
-		match := re.FindStringSubmatch(line)
-		if len(match) > 0 {
-			branchName = match[1]
-			displayBranchName := match[0][2:]
+		split := strings.Split(strings.TrimRight(line, "\r\n"), "\x00")
+		if len(split) == 3 && split[0] == "*" {
+			sha := split[1]
+			displayName := split[2]
 			return BranchInfo{
-				RefName:      branchName,
-				DisplayName:  displayBranchName,
+				RefName:      sha,
+				DisplayName:  displayName,
 				DetachedHead: true,
 			}, nil
 		}

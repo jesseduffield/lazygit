@@ -26,7 +26,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 			testName: "successful rebase",
 			arg:      "master",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty master`, "", nil),
+				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash master`, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -35,7 +35,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 			testName: "unsuccessful rebase",
 			arg:      "master",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty master`, "", errors.New("error")),
+				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash master`, "", errors.New("error")),
 			test: func(err error) {
 				assert.Error(t, err)
 			},
@@ -62,6 +62,7 @@ func TestRebaseSkipEditorCommand(t *testing.T) {
 			`^VISUAL=.*$`,
 			`^EDITOR=.*$`,
 			`^GIT_EDITOR=.*$`,
+			`^GIT_SEQUENCE_EDITOR=.*$`,
 			"^" + daemon.DaemonKindEnvKey + "=" + string(daemon.ExitImmediately) + "$",
 		} {
 			regexStr := regexStr
@@ -124,7 +125,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 			commitIndex: 0,
 			fileName:    "test999.txt",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty abcdef`, "", nil).
+				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash abcdef`, "", nil).
 				Expect(`git cat-file -e HEAD^:"test999.txt"`, "", nil).
 				Expect(`git checkout HEAD^ -- "test999.txt"`, "", nil).
 				Expect(`git commit --amend --no-edit --allow-empty`, "", nil).

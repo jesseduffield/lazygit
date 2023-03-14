@@ -9,7 +9,7 @@ Default path for the config file:
 For old installations (slightly embarrassing: I didn't realise at the time that you didn't need to supply a vendor name to the path so I just used my name):
 
 - Linux: `~/.config/jesseduffield/lazygit/config.yml`
-- MacOS: `~/Library/Application Support/jesseduffield/lazygit/config.yml`
+- MacOS: `~/Library/Application\ Support/jesseduffield/lazygit/config.yml`
 - Windows: `%APPDATA%\jesseduffield\lazygit\config.yml`
 
 If you want to change the config directory:
@@ -21,6 +21,7 @@ If you want to change the config directory:
 ```yaml
 gui:
   # stuff relating to the UI
+  windowSize: 'normal' # one of 'normal' | 'half' | 'full' default is 'normal'
   scrollHeight: 2 # how many lines you scroll by
   scrollPastBottom: true # enable scrolling past the bottom
   sidePanelWidth: 0.3333 # number from 0 to 1
@@ -61,6 +62,7 @@ gui:
   showIcons: false
   commandLogSize: 8
   splitDiff: 'auto' # one of 'auto' | 'always'
+  skipRewordInEditorWarning: false # for skipping the confirmation before launching the reword editor
 git:
   paging:
     colorArg: always
@@ -74,7 +76,7 @@ git:
     # extra args passed to `git merge`, e.g. --no-ff
     args: ''
   log:
-    # one of date-order, author-date-order, topo-order.
+    # one of date-order, author-date-order, topo-order or default.
     # topo-order makes it easier to read the git log graph, but commits may not
     # appear chronologically. See https://git-scm.com/docs/git-log#_commit_ordering
     order: 'topo-order'
@@ -134,7 +136,7 @@ keybinding:
     jumpToBlock: ['1', '2', '3', '4', '5'] # goto the Nth block / panel
     nextMatch: 'n'
     prevMatch: 'N'
-    optionMenu: 'x' # show help menu
+    optionMenu: null # show help menu
     optionMenu-alt1: '?' # show help menu
     select: '<space>'
     goInto: '<enter>'
@@ -201,6 +203,7 @@ keybinding:
     mergeIntoCurrentBranch: 'M'
     viewGitFlowOptions: 'i'
     fastForward: 'f' # fast-forward this branch from its upstream
+    createTag: 'T'
     pushTag: 'P'
     setUpstream: 'u' # set as upstream of checked-out branch
     fetchRemote: 'f'

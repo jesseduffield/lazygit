@@ -35,10 +35,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 			Content(Contains("Are you sure you want to rebase 'first-change-branch' on top of 'second-change-branch'?")).
 			Confirm()
 
-		t.ExpectPopup().Confirmation().
-			Title(Equals("Auto-merge failed")).
-			Content(Contains("Conflicts!")).
-			Confirm()
+		t.Common().AcknowledgeConflicts()
 
 		t.Views().Files().
 			IsFocused().
@@ -51,10 +48,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("rebasing"))
 
-		t.ExpectPopup().Confirmation().
-			Title(Equals("continue")).
-			Content(Contains("all merge conflicts resolved. Continue?")).
-			Confirm()
+		t.Common().ContinueOnConflictsResolved()
 
 		t.Views().Information().Content(DoesNotContain("rebasing"))
 

@@ -50,8 +50,13 @@ func uniqueBindings(bindings []*types.Binding) []*types.Binding {
 }
 
 func (gui *Gui) handleCreateOptionsMenu() error {
-	context := gui.currentContext()
-	bindings := gui.getBindings(context)
+	ctx := gui.currentContext()
+	// Don't show menu while displaying popup.
+	if ctx.GetKind() == types.PERSISTENT_POPUP || ctx.GetKind() == types.TEMPORARY_POPUP {
+		return nil
+	}
+
+	bindings := gui.getBindings(ctx)
 
 	menuItems := slices.Map(bindings, func(binding *types.Binding) *types.MenuItem {
 		return &types.MenuItem{

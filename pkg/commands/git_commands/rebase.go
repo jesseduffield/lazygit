@@ -95,17 +95,15 @@ func (self *RebaseCommands) GenericAmend(commits []*models.Commit, index int, f 
 }
 
 func (self *RebaseCommands) MoveCommitDown(commits []*models.Commit, index int) error {
-	// we must ensure that we have at least two commits after the selected one
-	if len(commits) <= index+2 {
-		// assuming they aren't picking the bottom commit
-		return errors.New(self.Tr.NoRoom)
-	}
-
-	orderedCommits := append(commits[0:index], commits[index+1], commits[index])
+	// not appending to original slice so that we don't mutate it
+	orderedCommits := append([]*models.Commit{}, commits[0:index]...)
+	orderedCommits = append(orderedCommits, commits[index+1], commits[index])
 
 	todoLines := self.BuildTodoLinesSingleAction(orderedCommits, "pick")
 
-	return self.PrepareInteractiveRebaseCommand(commits[index+2].Sha, todoLines, true).Run()
+	baseShaOrRoot := getBaseShaOrRoot(commits, index+2)
+
+	return self.PrepareInteractiveRebaseCommand(baseShaOrRoot, todoLines, true).Run()
 }
 
 func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index int, action string) error {
@@ -117,10 +115,20 @@ func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index in
 	return self.PrepareInteractiveRebaseCommand(sha, todo, true).Run()
 }
 
+func (self *RebaseCommands) InteractiveRebaseBreakAfter(commits []*models.Commit, index int) error {
+	todo, sha, err := self.BuildSingleActionTodo(commits, index-1, "pick")
+	if err != nil {
+		return err
+	}
+
+	todo = append(todo, TodoLine{Action: "break", Commit: nil})
+	return self.PrepareInteractiveRebaseCommand(sha, todo, true).Run()
+}
+
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit a todo string to write to the todo file
-func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseSha string, todoLines []TodoLine, overrideEditor bool) oscommands.ICmdObj {
+func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseShaOrRoot string, todoLines []TodoLine, overrideEditor bool) oscommands.ICmdObj {
 	todo := self.buildTodo(todoLines)
 	ex := oscommands.GetLazygitPath()
 
@@ -129,7 +137,7 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseSha string, todo
 		debug = "TRUE"
 	}
 
-	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty %s", baseSha)
+	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty --no-autosquash %s", baseShaOrRoot)
 	self.Log.WithField("command", cmdStr).Debug("RunCommand")
 
 	cmdObj := self.cmd.New(cmdStr)
@@ -162,16 +170,8 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseSha string, todo
 func (self *RebaseCommands) BuildSingleActionTodo(commits []*models.Commit, actionIndex int, action string) ([]TodoLine, string, error) {
 	baseIndex := actionIndex + 1
 
-	if len(commits) <= baseIndex {
-		return nil, "", errors.New(self.Tr.CannotRebaseOntoFirstCommit)
-	}
-
 	if action == "squash" || action == "fixup" {
 		baseIndex++
-
-		if len(commits) <= baseIndex {
-			return nil, "", errors.New(self.Tr.CannotSquashOntoSecondCommit)
-		}
 	}
 
 	todoLines := self.BuildTodoLines(commits[0:baseIndex], func(commit *models.Commit, i int) string {
@@ -187,16 +187,18 @@ func (self *RebaseCommands) BuildSingleActionTodo(commits []*models.Commit, acti
 		}
 	})
 
-	return todoLines, commits[baseIndex].Sha, nil
+	baseShaOrRoot := getBaseShaOrRoot(commits, baseIndex)
+
+	return todoLines, baseShaOrRoot, nil
 }
 
 // AmendTo amends the given commit with whatever files are staged
-func (self *RebaseCommands) AmendTo(sha string) error {
-	if err := self.commit.CreateFixupCommit(sha); err != nil {
+func (self *RebaseCommands) AmendTo(commit *models.Commit) error {
+	if err := self.commit.CreateFixupCommit(commit.Sha); err != nil {
 		return err
 	}
 
-	return self.SquashAllAboveFixupCommits(sha)
+	return self.SquashAllAboveFixupCommits(commit)
 }
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
@@ -251,12 +253,17 @@ func (self *RebaseCommands) MoveTodoDown(index int) error {
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one
-func (self *RebaseCommands) SquashAllAboveFixupCommits(sha string) error {
+func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) error {
+	shaOrRoot := commit.Sha + "^"
+	if commit.IsFirstCommit() {
+		shaOrRoot = "--root"
+	}
+
 	return self.runSkipEditorCommand(
 		self.cmd.New(
 			fmt.Sprintf(
-				"git rebase --interactive --rebase-merges --autostash --autosquash %s^",
-				sha,
+				"git rebase --interactive --rebase-merges --autostash --autosquash %s",
+				shaOrRoot,
 			),
 		),
 	)
@@ -332,6 +339,7 @@ func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) erro
 		AddEnvVars(
 			daemon.DaemonKindEnvKey+"="+string(daemon.ExitImmediately),
 			"GIT_EDITOR="+lazyGitPath,
+			"GIT_SEQUENCE_EDITOR="+lazyGitPath,
 			"EDITOR="+lazyGitPath,
 			"VISUAL="+lazyGitPath,
 		).
@@ -399,5 +407,23 @@ type TodoLine struct {
 }
 
 func (self *TodoLine) ToString() string {
-	return self.Action + " " + self.Commit.Sha + " " + self.Commit.Name + "\n"
+	if self.Action == "break" {
+		return self.Action + "\n"
+	} else {
+		return self.Action + " " + self.Commit.Sha + " " + self.Commit.Name + "\n"
+	}
+}
+
+// we can't start an interactive rebase from the first commit without passing the
+// '--root' arg
+func getBaseShaOrRoot(commits []*models.Commit, index int) string {
+	// We assume that the commits slice contains the initial commit of the repo.
+	// Technically this assumption could prove false, but it's unlikely you'll
+	// be starting a rebase from 300 commits ago (which is the original commit limit
+	// at time of writing)
+	if index < len(commits) {
+		return commits[index].Sha
+	} else {
+		return "--root"
+	}
 }

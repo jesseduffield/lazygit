@@ -236,6 +236,7 @@ func (gui *Gui) refreshCommitsWithLimit() error {
 		return err
 	}
 	gui.State.Model.Commits = commits
+	gui.State.Model.WorkingTreeStateAtLastCommitRefresh = gui.git.Status.WorkingTreeState()
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.LocalCommits)
 }
@@ -264,6 +265,7 @@ func (gui *Gui) refreshRebaseCommits() error {
 		return err
 	}
 	gui.State.Model.Commits = updatedCommits
+	gui.State.Model.WorkingTreeStateAtLastCommitRefresh = gui.git.Status.WorkingTreeState()
 
 	return gui.c.PostRefreshUpdate(gui.State.Contexts.LocalCommits)
 }
@@ -618,6 +620,12 @@ func (gui *Gui) refreshStagingPanel(focusOpts types.OnFocusOpts) error {
 		return gui.c.PushContext(mainContext, focusOpts)
 	}
 
+	if secondaryFocused {
+		gui.State.Contexts.StagingSecondary.FocusSelection()
+	} else {
+		gui.State.Contexts.Staging.FocusSelection()
+	}
+
 	return gui.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: gui.c.MainViewPairs().Staging,
 		Main: &types.ViewUpdateOpts{
@@ -658,12 +666,13 @@ func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 	ref := gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.GetRef()
 	to := ref.RefName()
 	from, reverse := gui.State.Modes.Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
-	diff, err := gui.git.WorkingTree.ShowFileDiff(from, to, reverse, path, true)
+	diff, err := gui.git.WorkingTree.ShowFileDiff(from, to, reverse, path, true,
+		gui.IgnoreWhitespaceInDiffView)
 	if err != nil {
 		return err
 	}
 
-	secondaryDiff := gui.git.Patch.PatchManager.RenderPatchForFile(path, false, false, true)
+	secondaryDiff := gui.git.Patch.PatchManager.RenderPatchForFile(path, false, false)
 	if err != nil {
 		return err
 	}
@@ -677,6 +686,8 @@ func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 	if state == nil {
 		return gui.helpers.PatchBuilding.Escape()
 	}
+
+	gui.State.Contexts.CustomPatchBuilder.FocusSelection()
 
 	mainContent := context.GetContentToRender(true)
 
@@ -710,4 +721,26 @@ func (gui *Gui) refreshMergePanel(isFocused bool) error {
 			Task: task,
 		},
 	})
+}
+
+func (gui *Gui) refreshSubCommitsWithLimit() error {
+	gui.Mutexes.SubCommitsMutex.Lock()
+	defer gui.Mutexes.SubCommitsMutex.Unlock()
+
+	context := gui.State.Contexts.SubCommits
+
+	commits, err := gui.git.Loaders.CommitLoader.GetCommits(
+		git_commands.GetCommitsOptions{
+			Limit:                context.GetLimitCommits(),
+			FilterPath:           gui.State.Modes.Filtering.GetPath(),
+			IncludeRebaseCommits: false,
+			RefName:              context.GetRef().FullRefName(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	gui.State.Model.SubCommits = commits
+
+	return gui.c.PostRefreshUpdate(gui.State.Contexts.SubCommits)
 }

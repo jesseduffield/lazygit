@@ -10,7 +10,7 @@ func (self *MenuDriver) getViewDriver() *ViewDriver {
 }
 
 // asserts that the popup has the expected title
-func (self *MenuDriver) Title(expected *matcher) *MenuDriver {
+func (self *MenuDriver) Title(expected *Matcher) *MenuDriver {
 	self.getViewDriver().Title(expected)
 
 	self.hasCheckedTitle = true
@@ -30,8 +30,20 @@ func (self *MenuDriver) Cancel() {
 	self.getViewDriver().PressEscape()
 }
 
-func (self *MenuDriver) Select(option *matcher) *MenuDriver {
-	self.getViewDriver().NavigateToListItem(option)
+func (self *MenuDriver) Select(option *Matcher) *MenuDriver {
+	self.getViewDriver().NavigateToLine(option)
+
+	return self
+}
+
+func (self *MenuDriver) Lines(matchers ...*Matcher) *MenuDriver {
+	self.getViewDriver().Lines(matchers...)
+
+	return self
+}
+
+func (self *MenuDriver) TopLines(matchers ...*Matcher) *MenuDriver {
+	self.getViewDriver().TopLines(matchers...)
 
 	return self
 }

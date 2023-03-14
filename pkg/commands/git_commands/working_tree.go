@@ -287,11 +287,15 @@ func (self *WorkingTreeCommands) SaveTemporaryPatch(patch string) (string, error
 
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
 // but when we're in diff mode it could be any 'from' to any 'to'. The reverse flag is also here thanks to diff mode.
-func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool) (string, error) {
-	return self.ShowFileDiffCmdObj(from, to, reverse, fileName, plain).RunWithOutput()
+func (self *WorkingTreeCommands) ShowFileDiff(from string, to string, reverse bool, fileName string, plain bool,
+	ignoreWhitespace bool,
+) (string, error) {
+	return self.ShowFileDiffCmdObj(from, to, reverse, fileName, plain, ignoreWhitespace).RunWithOutput()
 }
 
-func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool) oscommands.ICmdObj {
+func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reverse bool, fileName string, plain bool,
+	ignoreWhitespace bool,
+) oscommands.ICmdObj {
 	colorArg := self.UserConfig.Git.Paging.ColorArg
 	contextSize := self.UserConfig.Git.DiffContextSize
 	if plain {
@@ -303,11 +307,16 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 		reverseFlag = " -R"
 	}
 
+	ignoreWhitespaceFlag := ""
+	if ignoreWhitespace {
+		ignoreWhitespaceFlag = " --ignore-all-space"
+	}
+
 	return self.cmd.
 		New(
 			fmt.Sprintf(
-				"git diff --submodule --no-ext-diff --unified=%d --no-renames --color=%s%s%s%s -- %s",
-				contextSize, colorArg, pad(from), pad(to), reverseFlag, self.cmd.Quote(fileName)),
+				"git diff --submodule --no-ext-diff --unified=%d --no-renames --color=%s%s%s%s%s -- %s",
+				contextSize, colorArg, pad(from), pad(to), reverseFlag, ignoreWhitespaceFlag, self.cmd.Quote(fileName)),
 		).
 		DontLog()
 }

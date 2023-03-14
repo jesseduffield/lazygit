@@ -2,11 +2,10 @@ package components
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
+	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 )
 
@@ -36,14 +35,21 @@ func (self *TestDriver) press(keyStr string) {
 	self.gui.PressKey(keyStr)
 }
 
+// Should only be used in specific cases where you're doing something weird!
+// E.g. invoking a global keybinding from within a popup.
+// You probably shouldn't use this function, and should instead go through a view like t.Views().Commit().Focus().Press(...)
+func (self *TestDriver) GlobalPress(keyStr string) {
+	self.press(keyStr)
+}
+
 func (self *TestDriver) typeContent(content string) {
 	for _, char := range content {
 		self.press(string(char))
 	}
 }
 
-func (self *TestDriver) Actions() *Actions {
-	return &Actions{t: self}
+func (self *TestDriver) Common() *Common {
+	return &Common{t: self}
 }
 
 // for when you want to allow lazygit to process something before continuing
@@ -64,75 +70,6 @@ func (self *TestDriver) Shell() *Shell {
 	return self.shell
 }
 
-// this will look for a list item in the current panel and if it finds it, it will
-// enter the keypresses required to navigate to it.
-// The test will fail if:
-// - the user is not in a list item
-// - no list item is found containing the given text
-// - multiple list items are found containing the given text in the initial page of items
-//
-// NOTE: this currently assumes that ViewBufferLines returns all the lines that can be accessed.
-// If this changes in future, we'll need to update this code to first attempt to find the item
-// in the current page and failing that, jump to the top of the view and iterate through all of it,
-// looking for the item.
-func (self *TestDriver) navigateToListItem(matcher *matcher) {
-	self.inListContext()
-
-	currentContext := self.gui.CurrentContext().(types.IListContext)
-
-	view := currentContext.GetView()
-
-	var matchIndex int
-
-	self.assertWithRetries(func() (bool, string) {
-		matchIndex = -1
-		var matches []string
-		lines := view.ViewBufferLines()
-		// first we look for a duplicate on the current screen. We won't bother looking beyond that though.
-		for i, line := range lines {
-			ok, _ := matcher.test(line)
-			if ok {
-				matches = append(matches, line)
-				matchIndex = i
-			}
-		}
-		if len(matches) > 1 {
-			return false, fmt.Sprintf("Found %d matches for `%s`, expected only a single match. Matching lines:\n%s", len(matches), matcher.name(), strings.Join(matches, "\n"))
-		} else if len(matches) == 0 {
-			return false, fmt.Sprintf("Could not find item matching: %s. Lines:\n%s", matcher.name(), strings.Join(lines, "\n"))
-		} else {
-			return true, ""
-		}
-	})
-
-	selectedLineIdx := view.SelectedLineIdx()
-	if selectedLineIdx == matchIndex {
-		self.Views().current().SelectedLine(matcher)
-		return
-	}
-	if selectedLineIdx < matchIndex {
-		for i := selectedLineIdx; i < matchIndex; i++ {
-			self.Views().current().SelectNextItem()
-		}
-		self.Views().current().SelectedLine(matcher)
-		return
-	} else {
-		for i := selectedLineIdx; i > matchIndex; i-- {
-			self.Views().current().SelectPreviousItem()
-		}
-		self.Views().current().SelectedLine(matcher)
-		return
-	}
-}
-
-func (self *TestDriver) inListContext() {
-	self.assertWithRetries(func() (bool, string) {
-		currentContext := self.gui.CurrentContext()
-		_, ok := currentContext.(types.IListContext)
-		return ok, fmt.Sprintf("Expected current context to be a list context, but got %s", currentContext.GetKey())
-	})
-}
-
 // for making assertions on lazygit views
 func (self *TestDriver) Views() *Views {
 	return &Views{t: self}
@@ -141,6 +78,34 @@ func (self *TestDriver) Views() *Views {
 // for interacting with popups
 func (self *TestDriver) ExpectPopup() *Popup {
 	return &Popup{t: self}
+}
+
+func (self *TestDriver) ExpectToast(matcher *Matcher) {
+	self.Views().AppStatus().Content(matcher)
+}
+
+func (self *TestDriver) ExpectClipboard(matcher *Matcher) {
+	self.assertWithRetries(func() (bool, string) {
+		text, err := clipboard.ReadAll()
+		if err != nil {
+			return false, "Error occured when reading from clipboard: " + err.Error()
+		}
+		ok, _ := matcher.test(text)
+		return ok, fmt.Sprintf("Expected clipboard to match %s, but got %s", matcher.name(), text)
+	})
+}
+
+func (self *TestDriver) ExpectSearch() *SearchDriver {
+	self.inSearch()
+
+	return &SearchDriver{t: self}
+}
+
+func (self *TestDriver) inSearch() {
+	self.assertWithRetries(func() (bool, string) {
+		currentView := self.gui.CurrentContext().GetView()
+		return currentView.Name() == "search", "Expected search prompt to be focused"
+	})
 }
 
 // for making assertions through git itself

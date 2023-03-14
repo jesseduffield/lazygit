@@ -1,4 +1,0 @@
-{
-  "description": "Force push to only one branch because the user has push.default upstream",
-  "speed": 10
-}

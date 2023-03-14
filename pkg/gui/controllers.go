@@ -133,7 +133,12 @@ func (gui *Gui) resetControllers() {
 	patchBuildingController := controllers.NewPatchBuildingController(common)
 	snakeController := controllers.NewSnakeController(common, func() *snake.Game { return gui.snakeGame })
 
-	setSubCommits := func(commits []*models.Commit) { gui.State.Model.SubCommits = commits }
+	setSubCommits := func(commits []*models.Commit) {
+		gui.Mutexes.SubCommitsMutex.Lock()
+		defer gui.Mutexes.SubCommitsMutex.Unlock()
+
+		gui.State.Model.SubCommits = commits
+	}
 
 	for _, context := range []controllers.CanSwitchToSubCommits{
 		gui.State.Contexts.Branches,

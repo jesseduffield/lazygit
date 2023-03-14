@@ -99,10 +99,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "DU", label: "deleted-us.txt", menuTitle: "deleted-us.txt"},
 		})
 
-		t.ExpectPopup().Confirmation().
-			Title(Equals("continue")).
-			Content(Contains("all merge conflicts resolved. Continue?")).
-			Cancel()
+		t.Common().ContinueOnConflictsResolved()
 
 		discardOneByOne([]statusFile{
 			{status: "MD", label: "change-delete.txt", menuTitle: "change-delete.txt"},

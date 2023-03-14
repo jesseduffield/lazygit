@@ -39,6 +39,10 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Key:     opts.GetKey(opts.Config.Universal.Return),
 			Handler: self.close,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Handler: self.close,
+		},
 	}
 
 	return bindings

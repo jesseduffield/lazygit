@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// this file is for testing our test code (meta, I know)
+
 type fakeGuiDriver struct {
 	failureMessage string
 	pressedKeys    []string
@@ -27,6 +29,10 @@ func (self *fakeGuiDriver) Keys() config.KeybindingConfig {
 }
 
 func (self *fakeGuiDriver) CurrentContext() types.Context {
+	return nil
+}
+
+func (self *fakeGuiDriver) ContextForView(viewName string) types.Context {
 	return nil
 }
 

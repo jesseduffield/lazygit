@@ -37,11 +37,12 @@ func NewPatchExplorerContext(
 		mutex:                  &deadlock.Mutex{},
 		getIncludedLineIndices: getIncludedLineIndices,
 		SimpleContext: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-			View:       view,
-			WindowName: windowName,
-			Key:        key,
-			Kind:       types.MAIN_CONTEXT,
-			Focusable:  true,
+			View:             view,
+			WindowName:       windowName,
+			Key:              key,
+			Kind:             types.MAIN_CONTEXT,
+			Focusable:        true,
+			HighlightOnFocus: true,
 		}), ContextCallbackOpts{
 			OnFocus:     onFocus,
 			OnFocusLost: onFocusLost,
@@ -68,7 +69,7 @@ func (self *PatchExplorerContext) GetIncludedLineIndices() []int {
 func (self *PatchExplorerContext) RenderAndFocus(isFocused bool) error {
 	self.setContent(isFocused)
 
-	self.focusSelection()
+	self.FocusSelection()
 	self.c.Render()
 
 	return nil
@@ -83,7 +84,7 @@ func (self *PatchExplorerContext) Render(isFocused bool) error {
 }
 
 func (self *PatchExplorerContext) Focus() error {
-	self.focusSelection()
+	self.FocusSelection()
 	self.c.Render()
 
 	return nil
@@ -93,19 +94,18 @@ func (self *PatchExplorerContext) setContent(isFocused bool) {
 	self.GetView().SetContent(self.GetContentToRender(isFocused))
 }
 
-func (self *PatchExplorerContext) focusSelection() {
+func (self *PatchExplorerContext) FocusSelection() {
 	view := self.GetView()
 	state := self.GetState()
 	_, viewHeight := view.Size()
 	bufferHeight := viewHeight - 1
 	_, origin := view.Origin()
 
-	selectedLineIdx := state.GetSelectedLineIdx()
+	newOriginY := state.CalculateOrigin(origin, bufferHeight)
 
-	newOrigin := state.CalculateOrigin(origin, bufferHeight)
+	_ = view.SetOriginY(newOriginY)
 
-	_ = view.SetOriginY(newOrigin)
-	_ = view.SetCursor(0, selectedLineIdx-newOrigin)
+	view.SetCursorY(state.GetSelectedLineIdx() - newOriginY)
 }
 
 func (self *PatchExplorerContext) GetContentToRender(isFocused bool) string {

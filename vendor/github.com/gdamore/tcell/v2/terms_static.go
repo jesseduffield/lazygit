@@ -1,5 +1,5 @@
-//go:build tcell_minimal || nacl || js || zos || plan9 || windows || android
-// +build tcell_minimal nacl js zos plan9 windows android
+//go:build tcell_minimal || nacl || zos || plan9 || windows || android || js
+// +build tcell_minimal nacl zos plan9 windows android js
 
 // Copyright 2019 The TCell Authors
 //

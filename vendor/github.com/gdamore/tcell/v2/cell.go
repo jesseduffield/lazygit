@@ -50,6 +50,10 @@ func (cb *CellBuffer) SetContent(x int, y int,
 	if x >= 0 && y >= 0 && x < cb.w && y < cb.h {
 		c := &cb.cells[(y*cb.w)+x]
 
+		for i := 1; i < c.width; i++ {
+			cb.SetDirty(x+i, y, true)
+		}
+
 		c.currComb = append([]rune{}, combc...)
 
 		if c.currMain != mainc {
@@ -178,13 +182,14 @@ func (cb *CellBuffer) Fill(r rune, style Style) {
 	}
 }
 
-var runeConfig *runewidth.Condition;
+var runeConfig *runewidth.Condition
+
 func init() {
 	// The defaults for the runewidth package are poorly chosen for terminal
 	// applications.  We however will honor the setting in the environment if
 	// it is set.
 	if os.Getenv("RUNEWIDTH_EASTASIAN") == "" {
-		runewidth.DefaultCondition.EastAsianWidth = false;
+		runewidth.DefaultCondition.EastAsianWidth = false
 	}
 
 	// For performance reasons, we create a lookup table.  However some users

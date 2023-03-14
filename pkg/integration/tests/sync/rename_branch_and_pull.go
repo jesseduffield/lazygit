@@ -9,9 +9,7 @@ var RenameBranchAndPull = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Rename a branch to no longer match its upstream, then pull from the upstream",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Git.AutoFetch = false
-	},
+	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")
 		shell.EmptyCommit("two")
@@ -46,7 +44,7 @@ var RenameBranchAndPull = NewIntegrationTest(NewIntegrationTestArgs{
 					Type("-local").
 					Confirm()
 			}).
-			Press(keys.Universal.PullFiles)
+			Press(keys.Universal.Pull)
 
 		t.Views().Commits().
 			Lines(

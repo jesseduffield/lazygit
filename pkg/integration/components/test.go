@@ -11,7 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-// Test describes an integration tests that will be run against the lazygit gui.
+// IntegrationTest describes an integration test that will be run against the lazygit gui.
 
 // our unit tests will use this description to avoid a panic caused by attempting
 // to get the test's name via it's file's path.

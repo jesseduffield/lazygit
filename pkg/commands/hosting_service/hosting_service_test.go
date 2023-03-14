@@ -3,8 +3,8 @@ package hosting_service
 import (
 	"testing"
 
+	"github.com/jesseduffield/lazygit/pkg/fakes"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
-	"github.com/jesseduffield/lazygit/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -328,7 +328,7 @@ func TestGetPullRequestURL(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			tr := i18n.EnglishTranslationSet()
-			log := &test.FakeFieldLogger{}
+			log := &fakes.FakeFieldLogger{}
 			hostingServiceMgr := NewHostingServiceMgr(log, &tr, s.remoteUrl, s.configServiceDomains)
 			s.test(hostingServiceMgr.GetPullRequestURL(s.from, s.to))
 			log.AssertErrors(t, s.expectedLoggedErrors)

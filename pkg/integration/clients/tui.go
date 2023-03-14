@@ -121,7 +121,7 @@ func RunTUI() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code -r pkg/integration/tests/%s", currentTest.Name()))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code -r pkg/integration/tests/%s.go", currentTest.Name()))
 		if err := cmd.Run(); err != nil {
 			return err
 		}
@@ -137,7 +137,7 @@ func RunTUI() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code test/integration_new/%s", currentTest.Name()))
+		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code test/results/%s", currentTest.Name()))
 		if err := cmd.Run(); err != nil {
 			return err
 		}
@@ -298,7 +298,7 @@ func (self *app) layout(g *gocui.Gui) error {
 	g.FgColor = gocui.ColorGreen
 	listView, err := g.SetView("list", 0, 0, maxX-1, maxY-descriptionViewHeight-keybindingsViewHeight-editorViewHeight-1, 0)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if !gocui.IsUnknownView(err) {
 			return err
 		}
 
@@ -307,6 +307,7 @@ func (self *app) layout(g *gocui.Gui) error {
 		}
 
 		listView.Highlight = true
+		listView.SelBgColor = gocui.ColorBlue
 		self.renderTests()
 		listView.Title = "Tests"
 		listView.FgColor = gocui.ColorDefault
@@ -317,7 +318,7 @@ func (self *app) layout(g *gocui.Gui) error {
 
 	descriptionView, err := g.SetViewBeneath("description", "list", descriptionViewHeight)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if !gocui.IsUnknownView(err) {
 			return err
 		}
 		descriptionView.Title = "Test description"
@@ -327,7 +328,7 @@ func (self *app) layout(g *gocui.Gui) error {
 
 	keybindingsView, err := g.SetViewBeneath("keybindings", "description", keybindingsViewHeight)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if !gocui.IsUnknownView(err) {
 			return err
 		}
 		keybindingsView.Title = "Keybindings"
@@ -338,7 +339,7 @@ func (self *app) layout(g *gocui.Gui) error {
 
 	editorView, err := g.SetViewBeneath("editor", "keybindings", editorViewHeight)
 	if err != nil {
-		if err.Error() != "unknown view" {
+		if !gocui.IsUnknownView(err) {
 			return err
 		}
 

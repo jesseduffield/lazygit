@@ -1,1 +1,0 @@
-{ "description": "When user has configured pull with rebase, ensure we rebase upon pull", "speed": 10 }

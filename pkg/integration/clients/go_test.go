@@ -3,8 +3,8 @@
 
 package clients
 
-// this is the new way of running tests. See pkg/integration/integration_tests/commit.go
-// for an example
+// This file allows you to use `go test` to run integration tests.
+// See See pkg/integration/README.md for more info.
 
 import (
 	"bytes"

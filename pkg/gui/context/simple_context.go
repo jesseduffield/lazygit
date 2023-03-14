@@ -50,6 +50,10 @@ func NewDisplayContext(key types.ContextKey, view *gocui.View, windowName string
 }
 
 func (self *SimpleContext) HandleFocus(opts types.OnFocusOpts) error {
+	if self.highlightOnFocus {
+		self.GetViewTrait().SetHighlight(true)
+	}
+
 	if self.OnFocus != nil {
 		if err := self.OnFocus(opts); err != nil {
 			return err

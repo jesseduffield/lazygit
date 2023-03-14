@@ -1021,7 +1021,7 @@ func (g *Gui) drawSubtitle(v *View, fgColor, bgColor Attribute) error {
 		return nil
 	}
 
-	start := v.x1 - 5 - len(v.Subtitle)
+	start := v.x1 - 5 - runewidth.StringWidth(v.Subtitle)
 	if start < v.x0 {
 		return nil
 	}
@@ -1050,7 +1050,7 @@ func (g *Gui) drawListFooter(v *View, fgColor, bgColor Attribute) error {
 		return nil
 	}
 
-	start := v.x1 - 1 - len(message)
+	start := v.x1 - 1 - runewidth.StringWidth(message)
 	if start < v.x0 {
 		return nil
 	}
@@ -1226,8 +1226,10 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 				newCx = lastCharForLine
 			}
 		}
-		if err := v.SetCursor(newCx, newCy); err != nil {
-			return err
+		if !IsMouseScrollKey(ev.Key) {
+			if err := v.SetCursor(newCx, newCy); err != nil {
+				return err
+			}
 		}
 
 		if IsMouseKey(ev.Key) {
@@ -1279,6 +1281,19 @@ func IsMouseKey(key interface{}) bool {
 		MouseRight,
 		MouseMiddle,
 		MouseRelease,
+		MouseWheelUp,
+		MouseWheelDown,
+		MouseWheelLeft,
+		MouseWheelRight:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsMouseScrollKey(key interface{}) bool {
+	switch key {
+	case
 		MouseWheelUp,
 		MouseWheelDown,
 		MouseWheelLeft,
@@ -1539,4 +1554,31 @@ func (g *Gui) matchView(v *View, kb *keybinding) bool {
 		return false
 	}
 	return true
+}
+
+// returns a string representation of the current state of the gui, character-for-character
+func (g *Gui) Snapshot() string {
+	if g.screen == nil {
+		return "<no screen rendered>"
+	}
+
+	width, height := g.screen.Size()
+
+	builder := &strings.Builder{}
+
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			char, _, _, charWidth := g.screen.GetContent(x, y)
+			if charWidth == 0 {
+				continue
+			}
+			builder.WriteRune(char)
+			if charWidth > 1 {
+				x += charWidth - 1
+			}
+		}
+		builder.WriteRune('\n')
+	}
+
+	return builder.String()
 }

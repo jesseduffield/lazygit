@@ -134,7 +134,8 @@ func coloredString(textStyle style.TextStyle, str string, selected bool, include
 }
 
 func parsePatch(patch string) ([]int, []int, []*PatchLine) {
-	lines := strings.Split(patch, "\n")
+	// ignore trailing newline.
+	lines := strings.Split(strings.TrimSuffix(patch, "\n"), "\n")
 	hunkStarts := []int{}
 	stageableLines := []int{}
 	pastFirstHunkHeader := false
@@ -179,6 +180,7 @@ func parsePatch(patch string) ([]int, []int, []*PatchLine) {
 		}
 		patchLines[index] = &PatchLine{Kind: lineKind, Content: line}
 	}
+
 	return hunkStarts, stageableLines, patchLines
 }
 
@@ -202,10 +204,6 @@ func (p *PatchParser) Render(isFocused bool, firstLineIndex int, lastLineIndex i
 	return result
 }
 
-func (p *PatchParser) RenderPlain() string {
-	return renderLinesPlain(p.PatchLines)
-}
-
 // RenderLinesPlain returns the non-coloured string of diff part from firstLineIndex to
 // lastLineIndex
 func (p *PatchParser) RenderLinesPlain(firstLineIndex, lastLineIndex int) string {
@@ -214,10 +212,10 @@ func (p *PatchParser) RenderLinesPlain(firstLineIndex, lastLineIndex int) string
 
 func renderLinesPlain(lines []*PatchLine) string {
 	renderedLines := slices.Map(lines, func(line *PatchLine) string {
-		return line.Content
+		return line.Content + "\n"
 	})
 
-	return strings.Join(renderedLines, "\n")
+	return strings.Join(renderedLines, "")
 }
 
 // GetNextStageableLineIndex takes a line index and returns the line index of the next stageable line

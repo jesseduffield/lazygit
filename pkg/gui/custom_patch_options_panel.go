@@ -69,6 +69,14 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 		}
 	}
 
+	menuItems = append(menuItems, []*types.MenuItem{
+		{
+			Label:   "copy patch to clipboard",
+			OnPress: func() error { return gui.copyPatchToClipboard() },
+			Key:     'y',
+		},
+	}...)
+
 	return gui.c.Menu(types.CreateMenuOptions{Title: gui.c.Tr.PatchOptionsTitle, Items: menuItems})
 }
 
@@ -191,4 +199,17 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 		return gui.c.Error(err)
 	}
 	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+}
+
+func (gui *Gui) copyPatchToClipboard() error {
+	patch := gui.git.Patch.PatchManager.RenderAggregatedPatchColored(true)
+
+	gui.c.LogAction(gui.c.Tr.Actions.CopyPatchToClipboard)
+	if err := gui.os.CopyToClipboard(patch); err != nil {
+		return gui.c.Error(err)
+	}
+
+	gui.c.Toast(gui.c.Tr.PatchCopiedToClipboard)
+
+	return nil
 }

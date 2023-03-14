@@ -1,9 +1,0 @@
-0000000000000000000000000000000000000000 4479c0a1c7e43a55a3a6909be88a810dbad3fc42 CI <CI@example.com> 1641696830 +1100	commit (initial): file0
-4479c0a1c7e43a55a3a6909be88a810dbad3fc42 3c3125afd7a6475dcdd4c4a6b20cc920b31eb96f CI <CI@example.com> 1641696830 +1100	commit: file1
-3c3125afd7a6475dcdd4c4a6b20cc920b31eb96f 7c5b8c907caad01842aa84e91b7d4724d57de4fd CI <CI@example.com> 1641696830 +1100	commit: file2
-7c5b8c907caad01842aa84e91b7d4724d57de4fd 7c5b8c907caad01842aa84e91b7d4724d57de4fd CI <CI@example.com> 1641696835 +1100	rebase: updating HEAD
-7c5b8c907caad01842aa84e91b7d4724d57de4fd 4479c0a1c7e43a55a3a6909be88a810dbad3fc42 CI <CI@example.com> 1641696835 +1100	rebase -i (start): checkout 4479c0a1c7e43a55a3a6909be88a810dbad3fc42
-4479c0a1c7e43a55a3a6909be88a810dbad3fc42 3c3125afd7a6475dcdd4c4a6b20cc920b31eb96f CI <CI@example.com> 1641696835 +1100	rebase -i: fast-forward
-3c3125afd7a6475dcdd4c4a6b20cc920b31eb96f 1bcb7e30b3a5a5ae64397dcfe6b74cc18fc55784 CI <CI@example.com> 1641696835 +1100	commit (amend): file1 2
-1bcb7e30b3a5a5ae64397dcfe6b74cc18fc55784 9d793e4fc04a0583eed7670d52fbb16b402f7499 CI <CI@example.com> 1641696835 +1100	rebase -i (pick): file2
-9d793e4fc04a0583eed7670d52fbb16b402f7499 9d793e4fc04a0583eed7670d52fbb16b402f7499 CI <CI@example.com> 1641696835 +1100	rebase -i (finish): returning to refs/heads/master

@@ -11,13 +11,14 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>m</kbd>: view merge/rebase options
   <kbd>ctrl+p</kbd>: view custom patch options
   <kbd>R</kbd>: リフレッシュ
-  <kbd>x</kbd>: メニューを開く
+  <kbd>?</kbd>: メニューを開く
   <kbd>+</kbd>: 次のスクリーンモード (normal/half/fullscreen)
   <kbd>_</kbd>: 前のスクリーンモード
   <kbd>ctrl+s</kbd>: view filter-by-path options
   <kbd>W</kbd>: 差分メニューを開く
   <kbd>ctrl+e</kbd>: 差分メニューを開く
   <kbd>@</kbd>: コマンドログメニューを開く
+  <kbd>ctrl+w</kbd>: 空白文字の差分の表示有無を切り替え
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
   <kbd>:</kbd>: カスタムコマンドを実行
@@ -152,7 +153,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 <pre>
   <kbd>ctrl+o</kbd>: ファイル名をクリップボードにコピー
-  <kbd>ctrl+w</kbd>: 空白文字の差分の表示有無を切り替え
   <kbd>d</kbd>: view 'discard changes' options
   <kbd>space</kbd>: ステージ/アンステージ
   <kbd>ctrl+b</kbd>: ファイルをフィルタ (ステージ/アンステージ)
@@ -191,6 +191,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>r</kbd>: rebase checked-out branch onto this branch
   <kbd>M</kbd>: 現在のブランチにマージ
   <kbd>f</kbd>: fast-forward this branch from its upstream
+  <kbd>T</kbd>: タグを作成
   <kbd>g</kbd>: view reset options
   <kbd>R</kbd>: ブランチ名を変更
   <kbd>u</kbd>: set/unset upstream
@@ -268,6 +269,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## リモートブランチ
 
 <pre>
+  <kbd>ctrl+o</kbd>: ブランチ名をクリップボードにコピー
   <kbd>space</kbd>: チェックアウト
   <kbd>n</kbd>: 新しいブランチを作成
   <kbd>M</kbd>: 現在のブランチにマージ

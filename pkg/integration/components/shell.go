@@ -38,6 +38,15 @@ func (self *Shell) RunCommand(cmdStr string) *Shell {
 	return self
 }
 
+// Help files are located at test/files from the root the lazygit repo.
+// E.g. You may want to create a pre-commit hook file there, then call this
+// function to copy it into your test repo.
+func (self *Shell) CopyHelpFile(source string, destination string) *Shell {
+	self.RunCommand(fmt.Sprintf("cp ../../../../../files/%s %s", source, destination))
+
+	return self
+}
+
 func (self *Shell) runCommandWithOutput(cmdStr string) (string, error) {
 	args := str.ToArgv(cmdStr)
 	cmd := secureexec.Command(args[0], args[1:]...)
@@ -116,6 +125,10 @@ func (self *Shell) Merge(name string) *Shell {
 	return self.RunCommand("git merge --commit --no-ff " + name)
 }
 
+func (self *Shell) ContinueMerge() *Shell {
+	return self.RunCommand("git -c core.editor=true merge --continue")
+}
+
 func (self *Shell) GitAdd(path string) *Shell {
 	return self.RunCommand(fmt.Sprintf("git add \"%s\"", path))
 }
@@ -130,6 +143,18 @@ func (self *Shell) Commit(message string) *Shell {
 
 func (self *Shell) EmptyCommit(message string) *Shell {
 	return self.RunCommand(fmt.Sprintf("git commit --allow-empty -m \"%s\"", message))
+}
+
+func (self *Shell) Revert(ref string) *Shell {
+	return self.RunCommand(fmt.Sprintf("git revert %s", ref))
+}
+
+func (self *Shell) CreateLightweightTag(name string, ref string) *Shell {
+	return self.RunCommand(fmt.Sprintf("git tag %s %s", name, ref))
+}
+
+func (self *Shell) CreateAnnotatedTag(name string, message string, ref string) *Shell {
+	return self.RunCommand(fmt.Sprintf("git tag -a %s -m \"%s\" %s", name, message, ref))
 }
 
 // convenience method for creating a file and adding it
@@ -167,16 +192,30 @@ func (self *Shell) StashWithMessage(message string) *Shell {
 }
 
 func (self *Shell) SetConfig(key string, value string) *Shell {
-	self.RunCommand(fmt.Sprintf(`git config --local "%s" %s`, key, value))
+	self.RunCommand(fmt.Sprintf(`git config --local "%s" "%s"`, key, value))
 	return self
 }
 
 // creates a clone of the repo in a sibling directory and adds the clone
 // as a remote, then fetches it.
 func (self *Shell) CloneIntoRemote(name string) *Shell {
-	self.RunCommand(fmt.Sprintf("git clone --bare . ../%s", name))
+	self.Clone(name)
 	self.RunCommand(fmt.Sprintf("git remote add %s ../%s", name, name))
 	self.RunCommand(fmt.Sprintf("git fetch %s", name))
+
+	return self
+}
+
+func (self *Shell) CloneIntoSubmodule(submoduleName string) *Shell {
+	self.Clone("other_repo")
+	self.RunCommand(fmt.Sprintf("git submodule add ../other_repo %s", submoduleName))
+
+	return self
+}
+
+// clones repo into a sibling directory
+func (self *Shell) Clone(repoName string) *Shell {
+	self.RunCommand(fmt.Sprintf("git clone --bare . ../%s", repoName))
 
 	return self
 }
@@ -196,6 +235,12 @@ func (self *Shell) RemoveRemoteBranch(remoteName string, branch string) *Shell {
 
 func (self *Shell) HardReset(ref string) *Shell {
 	self.RunCommand(fmt.Sprintf("git reset --hard %s", ref))
+
+	return self
+}
+
+func (self *Shell) Stash(message string) *Shell {
+	self.RunCommand(fmt.Sprintf("git stash -m \"%s\"", message))
 
 	return self
 }

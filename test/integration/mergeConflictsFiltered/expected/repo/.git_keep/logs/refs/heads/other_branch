@@ -1,2 +1,0 @@
-0000000000000000000000000000000000000000 c62b5bc94e327ddb9b545213ff77b207ade48aba CI <CI@example.com> 1643618835 +1100	branch: Created from HEAD
-c62b5bc94e327ddb9b545213ff77b207ade48aba d7d52ecd690fe82c7d820ddb437e82d78b0fa7b2 CI <CI@example.com> 1643618855 +1100	commit (merge): Merge branch 'develop' into other_branch

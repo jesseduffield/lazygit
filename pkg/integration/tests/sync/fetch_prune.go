@@ -9,9 +9,7 @@ var FetchPrune = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Fetch from the remote with the 'prune' option set in the git config",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Git.AutoFetch = false
-	},
+	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		// This option makes it so that git checks for deleted branches in the remote
 		// upon fetching.

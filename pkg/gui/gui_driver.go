@@ -49,11 +49,28 @@ func (self *GuiDriver) CurrentContext() types.Context {
 	return self.gui.c.CurrentContext()
 }
 
+func (self *GuiDriver) ContextForView(viewName string) types.Context {
+	context, ok := self.gui.contextForView(viewName)
+	if !ok {
+		return nil
+	}
+
+	return context
+}
+
 func (self *GuiDriver) Fail(message string) {
+	currentView := self.gui.g.CurrentView()
+	fullMessage := fmt.Sprintf(
+		"%s\nFinal Lazygit state:\n%s\nUpon failure, focused view was '%s'.\nLog:\n%s", message,
+		self.gui.g.Snapshot(),
+		currentView.Name(),
+		strings.Join(self.gui.CmdLog, "\n"),
+	)
+
 	self.gui.g.Close()
 	// need to give the gui time to close
 	time.Sleep(time.Millisecond * 100)
-	panic(fmt.Sprintf("%s\nLog:\n%s", message, strings.Join(self.gui.CmdLog, "\n")))
+	panic(fullMessage)
 }
 
 // logs to the normal place that you log to i.e. viewable with `lazygit --logs`

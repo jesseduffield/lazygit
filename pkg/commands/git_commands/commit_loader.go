@@ -15,7 +15,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
 )
 
 // context:
@@ -68,10 +67,6 @@ type GetCommitsOptions struct {
 func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, error) {
 	commits := []*models.Commit{}
 	var rebasingCommits []*models.Commit
-	rebaseMode, err := self.getRebaseMode()
-	if err != nil {
-		return nil, err
-	}
 
 	if opts.IncludeRebaseCommits && opts.FilterPath == "" {
 		var err error
@@ -104,12 +99,6 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 
 	if len(commits) == 0 {
 		return commits, nil
-	}
-
-	if rebaseMode != enums.REBASE_MODE_NONE {
-		currentCommit := commits[len(rebasingCommits)]
-		youAreHere := style.FgYellow.Sprintf("<-- %s ---", self.Tr.YouAreHere)
-		currentCommit.Name = fmt.Sprintf("%s %s", youAreHere, currentCommit.Name)
 	}
 
 	commits, err = self.setCommitMergedStatuses(opts.RefName, commits)
@@ -401,7 +390,9 @@ func ignoringWarnings(commandOutput string) string {
 func (self *CommitLoader) getFirstPushedCommit(refName string) (string, error) {
 	output, err := self.cmd.
 		New(
-			fmt.Sprintf("git merge-base %s %s@{u}", self.cmd.Quote(refName), self.cmd.Quote(refName)),
+			fmt.Sprintf("git merge-base %s %s@{u}",
+				self.cmd.Quote(refName),
+				self.cmd.Quote(strings.TrimPrefix(refName, "refs/heads/"))),
 		).
 		DontLog().
 		RunWithOutput()
@@ -426,7 +417,10 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 	config := self.UserConfig.Git.Log
 
-	orderFlag := "--" + config.Order
+	orderFlag := ""
+	if config.Order != "default" {
+		orderFlag = " --" + config.Order
+	}
 	allFlag := ""
 	if opts.All {
 		allFlag = " --all"
@@ -434,7 +428,7 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 
 	return self.cmd.New(
 		fmt.Sprintf(
-			"git -c log.showSignature=false log %s %s %s --oneline %s%s --abbrev=%d%s",
+			"git -c log.showSignature=false log %s%s%s --oneline %s%s --abbrev=%d%s",
 			self.cmd.Quote(opts.RefName),
 			orderFlag,
 			allFlag,

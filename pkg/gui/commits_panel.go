@@ -35,7 +35,8 @@ func (gui *Gui) branchCommitsRenderToMain() error {
 	if commit == nil {
 		task = types.NewRenderStringTask(gui.c.Tr.NoCommitsThisBranch)
 	} else {
-		cmdObj := gui.git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath())
+		cmdObj := gui.git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath(),
+			gui.IgnoreWhitespaceInDiffView)
 		task = types.NewRunPtyTask(cmdObj.GetCmd())
 	}
 

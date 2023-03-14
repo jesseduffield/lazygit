@@ -28,12 +28,12 @@ func NewSyncController(
 func (self *SyncController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.PushFiles),
+			Key:         opts.GetKey(opts.Config.Universal.Push),
 			Handler:     opts.Guards.NoPopupPanel(self.HandlePush),
 			Description: self.c.Tr.LcPush,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.PullFiles),
+			Key:         opts.GetKey(opts.Config.Universal.Pull),
 			Handler:     opts.Guards.NoPopupPanel(self.HandlePull),
 			Description: self.c.Tr.LcPull,
 		},

@@ -42,12 +42,13 @@ func NewMergeConflictsContext(
 		mutex:     &deadlock.Mutex{},
 		Context: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{
-				Kind:            types.MAIN_CONTEXT,
-				View:            view,
-				WindowName:      "main",
-				Key:             MERGE_CONFLICTS_CONTEXT_KEY,
-				OnGetOptionsMap: getOptionsMap,
-				Focusable:       true,
+				Kind:             types.MAIN_CONTEXT,
+				View:             view,
+				WindowName:       "main",
+				Key:              MERGE_CONFLICTS_CONTEXT_KEY,
+				OnGetOptionsMap:  getOptionsMap,
+				Focusable:        true,
+				HighlightOnFocus: true,
 			}),
 			opts,
 		),
@@ -77,7 +78,7 @@ func (self *MergeConflictsContext) IsUserScrolling() bool {
 
 func (self *MergeConflictsContext) RenderAndFocus(isFocused bool) error {
 	self.setContent(isFocused)
-	self.focusSelection()
+	self.FocusSelection()
 
 	self.c.Render()
 
@@ -104,9 +105,9 @@ func (self *MergeConflictsContext) setContent(isFocused bool) {
 	self.GetView().SetContent(self.GetContentToRender(isFocused))
 }
 
-func (self *MergeConflictsContext) focusSelection() {
+func (self *MergeConflictsContext) FocusSelection() {
 	if !self.IsUserScrolling() {
-		_ = self.GetView().SetOrigin(self.GetView().OriginX(), self.GetOriginY())
+		_ = self.GetView().SetOriginY(self.GetOriginY())
 	}
 }
 

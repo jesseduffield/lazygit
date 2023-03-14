@@ -47,6 +47,10 @@ func (self *SnakeController) GetKeybindings(opts types.KeybindingsOpts) []*types
 			Key:     opts.GetKey(opts.Config.Universal.Return),
 			Handler: self.Escape,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.ReturnAlt1),
+			Handler: self.Escape,
+		},
 	}
 
 	return bindings
