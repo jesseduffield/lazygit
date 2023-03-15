@@ -357,7 +357,7 @@ func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*mod
 		if strings.HasPrefix(ancestor, commit.Sha) {
 			passedAncestor = true
 		}
-		if commit.Status != models.StatusPushed {
+		if commit.Status != models.StatusPushed && commit.Status != models.StatusUnpushed {
 			continue
 		}
 		if passedAncestor {
