@@ -220,8 +220,13 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 		return err
 	}
 
-	// add patches to index
-	if err := self.PatchManager.ApplyPatches(false); err != nil {
+	patch, err := self.diffHeadAgainstCommit(commits[commitIdx])
+	if err != nil {
+		_ = self.rebase.AbortRebase()
+		return err
+	}
+
+	if err := self.rebase.workingTree.ApplyPatch(patch, "index", "3way"); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
@@ -238,4 +243,13 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 
 	self.PatchManager.Reset()
 	return self.rebase.ContinueRebase()
+}
+
+// We have just applied a patch in reverse to discard it from a commit; if we
+// now try to apply the patch again to move it to a later commit, or to the
+// index, then this would conflict "with itself" in case the patch contained
+// only some lines of a range of adjacent added lines. To solve this, we
+// get the diff of HEAD and the original commit and then apply that.
+func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string, error) {
+	return self.cmd.New(fmt.Sprintf("git diff HEAD..%s", commit.Sha)).RunWithOutput()
 }
