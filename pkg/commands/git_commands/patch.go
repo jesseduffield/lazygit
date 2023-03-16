@@ -128,6 +128,12 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 		return err
 	}
 
+	patch, err := restorePatchFromOriginalCommit(self, commits[sourceCommitIdx])
+	if err != nil {
+		_ = self.rebase.AbortRebase()
+		return err
+	}
+
 	if self.rebase.onSuccessfulContinue != nil {
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
@@ -135,7 +141,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	self.rebase.onSuccessfulContinue = func() error {
 		// now we should be up to the destination, so let's apply forward these patches to that.
 		// ideally we would ensure we're on the right commit but I'm not sure if that check is necessary
-		if err := self.PatchManager.ApplyPatches(false); err != nil {
+		if err := self.rebase.workingTree.ApplyPatch(patch, "index", "3way"); err != nil {
 			// Don't abort the rebase here; this might cause conflicts, so give
 			// the user a chance to resolve them
 			return err
@@ -257,4 +263,28 @@ func restoreOriginalCommit(self *PatchCommands, originalCommitSha string) error 
 
 	// Now checkout the files from the original commit
 	return self.cmd.New(fmt.Sprintf("git checkout %s -- .", originalCommitSha)).Run()
+}
+
+// We have just applied a patch in reverse to discard it from a commit; if we
+// now try to apply the patch again to move it to a later commit, or to the
+// index, then this would conflict "with itself" in case the patch contained
+// only some lines of a range of adjacent added lines. To solve this, we
+// reconstruct a new patch by checking out the original commit again, getting
+// its diff, and resetting it again. This gives us an equivalent patch to the
+// original one, except that it no longer conflicts.
+func restorePatchFromOriginalCommit(self *PatchCommands, commit *models.Commit) (string, error) {
+	if err := restoreOriginalCommit(self, commit.Sha); err != nil {
+		return "", err
+	}
+
+	patch, err := self.cmd.New("git diff --cached").RunWithOutput()
+	if err != nil {
+		return "", err
+	}
+
+	if err := self.cmd.New("git reset --hard").Run(); err != nil {
+		return "", err
+	}
+
+	return patch, nil
 }

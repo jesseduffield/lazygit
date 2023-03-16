@@ -106,6 +106,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.MoveToIndexPartial,
 	patch_building.MoveToIndexWithConflict,
 	patch_building.MoveToLaterCommit,
+	patch_building.MoveToLaterCommitPartialHunk,
 	patch_building.MoveToNewCommit,
 	patch_building.MoveToNewCommitPartialHunk,
 	patch_building.RemoveFromCommit,
