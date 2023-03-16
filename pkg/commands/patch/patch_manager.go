@@ -286,3 +286,13 @@ func (p *PatchManager) IsEmpty() bool {
 func (p *PatchManager) NewPatchRequired(from string, to string, reverse bool) bool {
 	return from != p.From || to != p.To || reverse != p.reverse
 }
+
+func (p *PatchManager) AllFilesInPatch() []string {
+	files := make([]string, 0, len(p.fileInfoMap))
+
+	for filename := range p.fileInfoMap {
+		files = append(files, filename)
+	}
+
+	return files
+}

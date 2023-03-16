@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -220,8 +221,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 		return err
 	}
 
-	// add patches to index
-	if err := self.PatchManager.ApplyPatches(false); err != nil {
+	if err := restoreOriginalCommit(self, commits[commitIdx].Sha); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
@@ -239,4 +239,22 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 
 	self.PatchManager.Reset()
 	return self.rebase.ContinueRebase()
+}
+
+func restoreOriginalCommit(self *PatchCommands, originalCommitSha string) error {
+	// We first need to "git rm" the files in the patch; this is really only
+	// needed for files that were added in the patch, i.e. that are missing from
+	// the original commit; "git checkout" wouldn't remove these. For files that
+	// are only modified it wouldn't be necessary, but it doesn't hurt either,
+	// so we don't bother making a distinction.
+	for _, filename := range self.PatchManager.AllFilesInPatch() {
+		if _, err := os.Stat(filename); err == nil {
+			if err := self.cmd.New(fmt.Sprintf("git rm %s", self.cmd.Quote(filename))).Run(); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Now checkout the files from the original commit
+	return self.cmd.New(fmt.Sprintf("git checkout %s -- .", originalCommitSha)).Run()
 }
