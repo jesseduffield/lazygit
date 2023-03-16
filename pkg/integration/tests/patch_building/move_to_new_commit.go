@@ -11,13 +11,17 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
-		shell.CreateFileAndAdd("file1", "file1 content")
+		shell.CreateDir("dir")
+		shell.CreateFileAndAdd("dir/file1", "file1 content")
+		shell.CreateFileAndAdd("dir/file2", "file2 content")
 		shell.Commit("first commit")
 
-		shell.UpdateFileAndAdd("file1", "file1 content with old changes")
-		shell.Commit("second commit")
+		shell.UpdateFileAndAdd("dir/file1", "file1 content with old changes")
+		shell.DeleteFileAndAdd("dir/file2")
+		shell.CreateFileAndAdd("dir/file3", "file3 content")
+		shell.Commit("commit to move from")
 
-		shell.UpdateFileAndAdd("file1", "file1 content with new changes")
+		shell.UpdateFileAndAdd("dir/file1", "file1 content with new changes")
 		shell.Commit("third commit")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
@@ -25,7 +29,7 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Lines(
 				Contains("third commit").IsSelected(),
-				Contains("second commit"),
+				Contains("commit to move from"),
 				Contains("first commit"),
 			).
 			SelectNextItem().
@@ -34,18 +38,35 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("file1").IsSelected(),
+				Contains("dir").IsSelected(),
+				Contains("  M file1"),
+				Contains("  D file2"),
+				Contains("  A file3"),
 			).
-			PressPrimaryAction()
+			PressPrimaryAction().
+			PressEscape()
 
 		t.Views().Information().Content(Contains("building patch"))
 
 		t.Common().SelectPatchOption(Contains("move patch into new commit"))
 
+		t.Views().Commits().
+			IsFocused().
+			Lines(
+				Contains("third commit"),
+				Contains(`Split from "commit to move from"`).IsSelected(),
+				Contains("commit to move from"),
+				Contains("first commit"),
+			).
+			PressEnter()
+
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("file1").IsSelected(),
+				Contains("dir").IsSelected(),
+				Contains("  M file1"),
+				Contains("  D file2"),
+				Contains("  A file3"),
 			).
 			PressEscape()
 
@@ -53,8 +74,8 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Contains("third commit"),
-				Contains(`Split from "second commit"`).IsSelected(),
-				Contains("second commit"),
+				Contains(`Split from "commit to move from"`).IsSelected(),
+				Contains("commit to move from"),
 				Contains("first commit"),
 			).
 			SelectNextItem().
