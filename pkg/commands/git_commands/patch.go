@@ -45,9 +45,7 @@ func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, com
 
 	// apply each patch in reverse
 	if err := self.PatchManager.ApplyPatches(true); err != nil {
-		if err := self.rebase.AbortRebase(); err != nil {
-			return err
-		}
+		_ = self.rebase.AbortRebase()
 		return err
 	}
 
@@ -120,9 +118,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 	// apply each patch in reverse
 	if err := self.PatchManager.ApplyPatches(true); err != nil {
-		if err := self.rebase.AbortRebase(); err != nil {
-			return err
-		}
+		_ = self.rebase.AbortRebase()
 		return err
 	}
 
@@ -173,9 +169,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 
 	if err := self.PatchManager.ApplyPatches(true); err != nil {
 		if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-			if err := self.rebase.AbortRebase(); err != nil {
-				return err
-			}
+			_ = self.rebase.AbortRebase()
 		}
 		return err
 	}
@@ -193,9 +187,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 		// add patches to index
 		if err := self.PatchManager.ApplyPatches(false); err != nil {
 			if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-				if err := self.rebase.AbortRebase(); err != nil {
-					return err
-				}
+				_ = self.rebase.AbortRebase()
 			}
 			return err
 		}
@@ -219,9 +211,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 	}
 
 	if err := self.PatchManager.ApplyPatches(true); err != nil {
-		if err := self.rebase.AbortRebase(); err != nil {
-			return err
-		}
+		_ = self.rebase.AbortRebase()
 		return err
 	}
 
@@ -232,9 +222,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 
 	// add patches to index
 	if err := self.PatchManager.ApplyPatches(false); err != nil {
-		if err := self.rebase.AbortRebase(); err != nil {
-			return err
-		}
+		_ = self.rebase.AbortRebase()
 		return err
 	}
 
