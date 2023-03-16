@@ -73,9 +73,8 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 		// apply each patch forward
 		if err := self.PatchManager.ApplyPatches(false); err != nil {
-			if err := self.rebase.AbortRebase(); err != nil {
-				return err
-			}
+			// Don't abort the rebase here; this might cause conflicts, so give
+			// the user a chance to resolve them
 			return err
 		}
 
@@ -140,9 +139,8 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 		// now we should be up to the destination, so let's apply forward these patches to that.
 		// ideally we would ensure we're on the right commit but I'm not sure if that check is necessary
 		if err := self.PatchManager.ApplyPatches(false); err != nil {
-			if err := self.rebase.AbortRebase(); err != nil {
-				return err
-			}
+			// Don't abort the rebase here; this might cause conflicts, so give
+			// the user a chance to resolve them
 			return err
 		}
 
