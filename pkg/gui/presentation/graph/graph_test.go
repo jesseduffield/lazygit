@@ -537,26 +537,26 @@ func BenchmarkRenderCommitGraph(b *testing.B) {
 }
 
 func generateCommits(count int) []*models.Commit {
-	rand.Seed(1234)
+	rnd := rand.New(rand.NewSource(1234))
 	pool := []*models.Commit{{Sha: "a", AuthorName: "A"}}
 	commits := make([]*models.Commit, 0, count)
 	authorPool := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
 	for len(commits) < count {
-		currentCommitIdx := rand.Intn(len(pool))
+		currentCommitIdx := rnd.Intn(len(pool))
 		currentCommit := pool[currentCommitIdx]
 		pool = append(pool[0:currentCommitIdx], pool[currentCommitIdx+1:]...)
 		// I need to pick a random number of parents to add
-		parentCount := rand.Intn(2) + 1
+		parentCount := rnd.Intn(2) + 1
 
 		for j := 0; j < parentCount; j++ {
-			reuseParent := rand.Intn(6) != 1 && j <= len(pool)-1 && j != 0
+			reuseParent := rnd.Intn(6) != 1 && j <= len(pool)-1 && j != 0
 			var newParent *models.Commit
 			if reuseParent {
 				newParent = pool[j]
 			} else {
 				newParent = &models.Commit{
 					Sha:        fmt.Sprintf("%s%d", currentCommit.Sha, j),
-					AuthorName: authorPool[rand.Intn(len(authorPool))],
+					AuthorName: authorPool[rnd.Intn(len(authorPool))],
 				}
 				pool = append(pool, newParent)
 			}
