@@ -34,10 +34,6 @@ func (self *gitCmdObjBuilder) New(cmdStr string) oscommands.ICmdObj {
 	return self.innerBuilder.New(cmdStr).AddEnvVars(defaultEnvVar)
 }
 
-func (self *gitCmdObjBuilder) NewFromArgs(args []string) oscommands.ICmdObj {
-	return self.innerBuilder.NewFromArgs(args).AddEnvVars(defaultEnvVar)
-}
-
 func (self *gitCmdObjBuilder) NewShell(cmdStr string) oscommands.ICmdObj {
 	return self.innerBuilder.NewShell(cmdStr).AddEnvVars(defaultEnvVar)
 }
