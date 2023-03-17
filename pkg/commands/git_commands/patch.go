@@ -186,13 +186,19 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 		return err
 	}
 
+	patch, err := restorePatchFromOriginalCommit(self, commits[commitIdx])
+	if err != nil {
+		_ = self.rebase.AbortRebase()
+		return err
+	}
+
 	if self.rebase.onSuccessfulContinue != nil {
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
 
 	self.rebase.onSuccessfulContinue = func() error {
 		// add patches to index
-		if err := self.PatchManager.ApplyPatches(false); err != nil {
+		if err := self.rebase.workingTree.ApplyPatch(patch, "index", "3way"); err != nil {
 			if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 				_ = self.rebase.AbortRebase()
 			}
