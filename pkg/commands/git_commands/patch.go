@@ -2,7 +2,6 @@ package git_commands
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -128,7 +127,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 		return err
 	}
 
-	patch, err := restorePatchFromOriginalCommit(self, commits[sourceCommitIdx])
+	patch, err := self.diffHeadAgainstCommit(commits[sourceCommitIdx])
 	if err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
@@ -186,7 +185,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 		return err
 	}
 
-	patch, err := restorePatchFromOriginalCommit(self, commits[commitIdx])
+	patch, err := self.diffHeadAgainstCommit(commits[commitIdx])
 	if err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
@@ -233,14 +232,21 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 		return err
 	}
 
-	if err := restoreOriginalCommit(self, commits[commitIdx].Sha); err != nil {
+	patch, err := self.diffHeadAgainstCommit(commits[commitIdx])
+	if err != nil {
 		_ = self.rebase.AbortRebase()
+		return err
+	}
+
+	if err := self.rebase.workingTree.ApplyPatch(patch, "index", "3way"); err != nil {
+		// Don't abort the rebase here; this might cause conflicts, so give
+		// the user a chance to resolve them
 		return err
 	}
 
 	head_message, _ := self.commit.GetHeadCommitMessage()
 	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	err := self.commit.CommitCmdObj(new_message).Run()
+	err = self.commit.CommitCmdObj(new_message).Run()
 	if err != nil {
 		return err
 	}
@@ -253,44 +259,11 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 	return self.rebase.ContinueRebase()
 }
 
-func restoreOriginalCommit(self *PatchCommands, originalCommitSha string) error {
-	// We first need to "git rm" the files in the patch; this is really only
-	// needed for files that were added in the patch, i.e. that are missing from
-	// the original commit; "git checkout" wouldn't remove these. For files that
-	// are only modified it wouldn't be necessary, but it doesn't hurt either,
-	// so we don't bother making a distinction.
-	for _, filename := range self.PatchManager.AllFilesInPatch() {
-		if _, err := os.Stat(filename); err == nil {
-			if err := self.cmd.New(fmt.Sprintf("git rm %s", self.cmd.Quote(filename))).Run(); err != nil {
-				return err
-			}
-		}
-	}
-
-	// Now checkout the files from the original commit
-	return self.cmd.New(fmt.Sprintf("git checkout %s -- .", originalCommitSha)).Run()
-}
-
 // We have just applied a patch in reverse to discard it from a commit; if we
 // now try to apply the patch again to move it to a later commit, or to the
 // index, then this would conflict "with itself" in case the patch contained
 // only some lines of a range of adjacent added lines. To solve this, we
-// reconstruct a new patch by checking out the original commit again, getting
-// its diff, and resetting it again. This gives us an equivalent patch to the
-// original one, except that it no longer conflicts.
-func restorePatchFromOriginalCommit(self *PatchCommands, commit *models.Commit) (string, error) {
-	if err := restoreOriginalCommit(self, commit.Sha); err != nil {
-		return "", err
-	}
-
-	patch, err := self.cmd.New("git diff --cached").RunWithOutput()
-	if err != nil {
-		return "", err
-	}
-
-	if err := self.cmd.New("git reset --hard").Run(); err != nil {
-		return "", err
-	}
-
-	return patch, nil
+// get the diff of HEAD and the original commit and then apply that.
+func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string, error) {
+	return self.cmd.New(fmt.Sprintf("git diff HEAD..%s", commit.Sha)).RunWithOutput()
 }
