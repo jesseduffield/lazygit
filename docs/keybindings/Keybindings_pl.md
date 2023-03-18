@@ -101,8 +101,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Main Panel (Patch Building)
 
 <pre>
-  <kbd>◄</kbd>: poprzedni kawałek
-  <kbd>►</kbd>: następny kawałek
+  <kbd>◀</kbd>: poprzedni kawałek
+  <kbd>▶</kbd>: następny kawałek
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
@@ -156,8 +156,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Poczekalnia
 
 <pre>
-  <kbd>◄</kbd>: poprzedni kawałek
-  <kbd>►</kbd>: następny kawałek
+  <kbd>◀</kbd>: poprzedni kawałek
+  <kbd>▶</kbd>: następny kawałek
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
@@ -218,8 +218,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>e</kbd>: edytuj plik
   <kbd>o</kbd>: otwórz plik
-  <kbd>◄</kbd>: poprzedni konflikt
-  <kbd>►</kbd>: następny konflikt
+  <kbd>◀</kbd>: poprzedni konflikt
+  <kbd>▶</kbd>: następny konflikt
   <kbd>▲</kbd>: wybierz poprzedni kawałek
   <kbd>▼</kbd>: wybierz następny kawałek
   <kbd>z</kbd>: cofnij

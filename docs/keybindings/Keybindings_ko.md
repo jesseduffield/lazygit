@@ -88,8 +88,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>e</kbd>: 파일 편집
   <kbd>o</kbd>: 파일 닫기
-  <kbd>◄</kbd>: 이전 충돌을 선택
-  <kbd>►</kbd>: 다음 충돌을 선택
+  <kbd>◀</kbd>: 이전 충돌을 선택
+  <kbd>▶</kbd>: 다음 충돌을 선택
   <kbd>▲</kbd>: 이전 hunk를 선택
   <kbd>▼</kbd>: 다음 hunk를 선택
   <kbd>z</kbd>: 되돌리기
@@ -109,8 +109,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 메인 패널 (Patch Building)
 
 <pre>
-  <kbd>◄</kbd>: 이전 hunk를 선택
-  <kbd>►</kbd>: 다음 hunk를 선택
+  <kbd>◀</kbd>: 이전 hunk를 선택
+  <kbd>▶</kbd>: 다음 hunk를 선택
   <kbd>v</kbd>: 드래그 선택 전환
   <kbd>V</kbd>: 드래그 선택 전환
   <kbd>a</kbd>: toggle select hunk
@@ -124,8 +124,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 메인 패널 (Staging)
 
 <pre>
-  <kbd>◄</kbd>: 이전 hunk를 선택
-  <kbd>►</kbd>: 다음 hunk를 선택
+  <kbd>◀</kbd>: 이전 hunk를 선택
+  <kbd>▶</kbd>: 다음 hunk를 선택
   <kbd>v</kbd>: 드래그 선택 전환
   <kbd>V</kbd>: 드래그 선택 전환
   <kbd>a</kbd>: toggle select hunk

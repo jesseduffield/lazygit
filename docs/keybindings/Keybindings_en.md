@@ -143,8 +143,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>e</kbd>: edit file
   <kbd>o</kbd>: open file
-  <kbd>◄</kbd>: select previous conflict
-  <kbd>►</kbd>: select next conflict
+  <kbd>◀</kbd>: select previous conflict
+  <kbd>▶</kbd>: select next conflict
   <kbd>▲</kbd>: select previous hunk
   <kbd>▼</kbd>: select next hunk
   <kbd>z</kbd>: undo
@@ -164,8 +164,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Main Panel (Patch Building)
 
 <pre>
-  <kbd>◄</kbd>: select previous hunk
-  <kbd>►</kbd>: select next hunk
+  <kbd>◀</kbd>: select previous hunk
+  <kbd>▶</kbd>: select next hunk
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk
@@ -179,8 +179,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Main Panel (Staging)
 
 <pre>
-  <kbd>◄</kbd>: select previous hunk
-  <kbd>►</kbd>: select next hunk
+  <kbd>◀</kbd>: select previous hunk
+  <kbd>▶</kbd>: select next hunk
   <kbd>v</kbd>: toggle drag select
   <kbd>V</kbd>: toggle drag select
   <kbd>a</kbd>: toggle select hunk

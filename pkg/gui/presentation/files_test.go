@@ -53,7 +53,7 @@ func TestRenderFileTree(t *testing.T) {
 			},
 			expected: toStringSlice(
 				`
-► dir1
+▶ dir1
 ▼ dir2
   ▼ dir2
      M file3
@@ -112,7 +112,7 @@ func TestRenderCommitFileTree(t *testing.T) {
 			},
 			expected: toStringSlice(
 				`
-► dir1
+▶ dir1
 ▼ dir2
   ▼ dir2
     D file3

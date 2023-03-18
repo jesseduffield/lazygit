@@ -184,8 +184,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 构建补丁中
 
 <pre>
-  <kbd>◄</kbd>: 选择上一个区块
-  <kbd>►</kbd>: 选择下一个区块
+  <kbd>◀</kbd>: 选择上一个区块
+  <kbd>▶</kbd>: 选择下一个区块
   <kbd>v</kbd>: 切换拖动选择
   <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块
@@ -212,8 +212,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>e</kbd>: 编辑文件
   <kbd>o</kbd>: 打开文件
-  <kbd>◄</kbd>: 选择上一个冲突
-  <kbd>►</kbd>: 选择下一个冲突
+  <kbd>◀</kbd>: 选择上一个冲突
+  <kbd>▶</kbd>: 选择下一个冲突
   <kbd>▲</kbd>: 选择顶部块
   <kbd>▼</kbd>: 选择底部块
   <kbd>z</kbd>: 撤销
@@ -226,8 +226,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 正在暂存
 
 <pre>
-  <kbd>◄</kbd>: 选择上一个区块
-  <kbd>►</kbd>: 选择下一个区块
+  <kbd>◀</kbd>: 选择上一个区块
+  <kbd>▶</kbd>: 选择下一个区块
   <kbd>v</kbd>: 切换拖动选择
   <kbd>V</kbd>: 切换拖动选择
   <kbd>a</kbd>: 切换选择区块

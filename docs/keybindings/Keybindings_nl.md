@@ -143,8 +143,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 <pre>
   <kbd>e</kbd>: verander bestand
   <kbd>o</kbd>: open bestand
-  <kbd>◄</kbd>: selecteer voorgaand conflict
-  <kbd>►</kbd>: selecteer volgende conflict
+  <kbd>◀</kbd>: selecteer voorgaand conflict
+  <kbd>▶</kbd>: selecteer volgende conflict
   <kbd>▲</kbd>: selecteer bovenste hunk
   <kbd>▼</kbd>: selecteer onderste hunk
   <kbd>z</kbd>: ongedaan maken
@@ -164,8 +164,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Patch Bouwen
 
 <pre>
-  <kbd>◄</kbd>: selecteer de vorige hunk
-  <kbd>►</kbd>: selecteer de volgende hunk
+  <kbd>◀</kbd>: selecteer de vorige hunk
+  <kbd>▶</kbd>: selecteer de volgende hunk
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
@@ -218,8 +218,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Staging
 
 <pre>
-  <kbd>◄</kbd>: selecteer de vorige hunk
-  <kbd>►</kbd>: selecteer de volgende hunk
+  <kbd>◀</kbd>: selecteer de vorige hunk
+  <kbd>▶</kbd>: selecteer de volgende hunk
   <kbd>v</kbd>: toggle drag selecteer
   <kbd>V</kbd>: toggle drag selecteer
   <kbd>a</kbd>: toggle selecteer hunk
