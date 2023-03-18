@@ -114,12 +114,23 @@ func (gui *Gui) windowForView(viewName string) string {
 }
 
 func (gui *Gui) createAllViews() error {
+	frameRunes := []rune{'─', '│', '┌', '┐', '└', '┘'}
+	switch gui.c.UserConfig.Gui.Border {
+	case "double":
+		frameRunes = []rune{'═', '║', '╔', '╗', '╚', '╝'}
+	case "rounded":
+		frameRunes = []rune{'─', '│', '╭', '╮', '╰', '╯'}
+	case "hidden":
+		frameRunes = []rune{' ', ' ', ' ', ' ', ' ', ' '}
+	}
+
 	var err error
 	for _, mapping := range gui.orderedViewNameMappings() {
 		*mapping.viewPtr, err = gui.prepareView(mapping.name)
 		if err != nil && !gocui.IsUnknownView(err) {
 			return err
 		}
+		(*mapping.viewPtr).FrameRunes = frameRunes
 	}
 
 	gui.Views.Options.FgColor = theme.OptionsColor
