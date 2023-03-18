@@ -20,12 +20,12 @@ jobs:
         run: echo "UUID_APP_TAG=$(uuidgen)" >> $GITHUB_ENV
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: registry.uffizzi.com/${{ env.UUID_APP_TAG }}
           tags: type=raw,value=60d
       - name: Build and Push Image to registry.uffizzi.com ephemeral registry
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           push: true
           context: ./
@@ -60,17 +60,11 @@ jobs:
           name: preview-spec
           path: docker-compose.rendered.yml
           retention-days: 2
-      - name: Serialize PR Event to File
-        run: |
-          cat << EOF > event.json
-          ${{ toJSON(github.event) }} 
-
-          EOF
       - name: Upload PR Event as Artifact
         uses: actions/upload-artifact@v3
         with:
           name: preview-spec
-          path: event.json
+          path: ${{ github.event_path }}
           retention-days: 2
 
   delete-preview:
@@ -79,11 +73,9 @@ jobs:
     if: ${{ github.event.action == 'closed' }}
     steps:
       # If this PR is closing, we will not render a compose file nor pass it to the next workflow.
-      - name: Serialize PR Event to File
-        run: echo '${{ toJSON(github.event) }}' > event.json
       - name: Upload PR Event as Artifact
         uses: actions/upload-artifact@v3
         with:
           name: preview-spec
-          path: event.json
+          path: ${{ github.event_path }}
           retention-days: 2

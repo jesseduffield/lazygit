@@ -7,11 +7,11 @@ on:
     types:
       - completed
 
-
 jobs:
   cache-compose-file:
     name: Cache Compose File
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
       compose-file-cache-key: ${{ env.COMPOSE_FILE_HASH }}
       pr-number: ${{ env.PR_NUMBER }}
@@ -29,6 +29,9 @@ jobs:
             let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "preview-spec"
             })[0];
+            if (matchArtifact === undefined) {
+              throw TypeError('Build Artifact not found!');
+            }
             let download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
                repo: context.repo.repo,
@@ -39,16 +42,18 @@ jobs:
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/preview-spec.zip`, Buffer.from(download.data));
       - name: 'Unzip artifact'
         run: unzip preview-spec.zip
+
       - name: Read Event into ENV
         run: |
           echo 'EVENT_JSON<<EOF' >> $GITHUB_ENV
           cat event.json >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
+          echo -e '\nEOF' >> $GITHUB_ENV
       - name: Hash Rendered Compose File
         id: hash
         # If the previous workflow was triggered by a PR close event, we will not have a compose file artifact.
         if: ${{ fromJSON(env.EVENT_JSON).action != 'closed' }}
         run: echo "COMPOSE_FILE_HASH=$(md5sum docker-compose.rendered.yml | awk '{ print $1 }')" >> $GITHUB_ENV
+
       - name: Cache Rendered Compose File
         if: ${{ fromJSON(env.EVENT_JSON).action != 'closed' }}
         uses: actions/cache@v3
@@ -70,7 +75,8 @@ jobs:
     name: Use Remote Workflow to Preview on Uffizzi
     needs:
       - cache-compose-file
-    uses: UffizziCloud/preview-action/.github/workflows/reusable.yaml@v2.6.1
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: UffizziCloud/preview-action/.github/workflows/reusable.yaml@v2
     with:
       # If this workflow was triggered by a PR close event, cache-key will be an empty string
       # and this reusable workflow will delete the preview deployment.
