@@ -64,9 +64,9 @@ type ContextManager struct {
 	sync.RWMutex
 }
 
-func NewContextManager(initialContext types.Context) ContextManager {
+func NewContextManager() ContextManager {
 	return ContextManager{
-		ContextStack: []types.Context{initialContext},
+		ContextStack: []types.Context{},
 		RWMutex:      sync.RWMutex{},
 	}
 }
@@ -299,9 +299,13 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 		},
 		ScreenMode: initialScreenMode,
 		// TODO: put contexts in the context manager
-		ContextManager:    NewContextManager(initialContext),
+		ContextManager:    NewContextManager(),
 		Contexts:          contextTree,
 		WindowViewNameMap: initialWindowViewNameMap,
+	}
+
+	if err := gui.c.PushContext(initialContext); err != nil {
+		gui.c.Log.Error(err)
 	}
 
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
