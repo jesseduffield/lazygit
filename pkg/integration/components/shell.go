@@ -94,6 +94,16 @@ func (self *Shell) CreateFile(path string, content string) *Shell {
 	return self
 }
 
+func (self *Shell) DeleteFile(path string) *Shell {
+	fullPath := filepath.Join(self.dir, path)
+	err := os.Remove(fullPath)
+	if err != nil {
+		self.fail(fmt.Sprintf("error deleting file: %s\n%s", fullPath, err))
+	}
+
+	return self
+}
+
 func (self *Shell) CreateDir(path string) *Shell {
 	fullPath := filepath.Join(self.dir, path)
 	if err := os.MkdirAll(fullPath, 0o755); err != nil {
@@ -168,6 +178,13 @@ func (self *Shell) CreateFileAndAdd(fileName string, fileContents string) *Shell
 func (self *Shell) UpdateFileAndAdd(fileName string, fileContents string) *Shell {
 	return self.
 		UpdateFile(fileName, fileContents).
+		GitAdd(fileName)
+}
+
+// convenience method for deleting a file and adding it
+func (self *Shell) DeleteFileAndAdd(fileName string) *Shell {
+	return self.
+		DeleteFile(fileName).
 		GitAdd(fileName)
 }
 

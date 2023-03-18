@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Move a patch from a commit to a new commit",
+var MoveToLaterCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Move a patch from a commit to a later commit",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -21,14 +21,14 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFileAndAdd("dir/file3", "file3 content")
 		shell.Commit("commit to move from")
 
-		shell.UpdateFileAndAdd("dir/file1", "file1 content with new changes")
-		shell.Commit("third commit")
+		shell.CreateFileAndAdd("unrelated-file", "")
+		shell.Commit("destination commit")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("third commit").IsSelected(),
+				Contains("destination commit").IsSelected(),
 				Contains("commit to move from"),
 				Contains("first commit"),
 			).
@@ -48,13 +48,16 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Information().Content(Contains("building patch"))
 
-		t.Common().SelectPatchOption(Contains("move patch into new commit"))
+		t.Views().Commits().
+			IsFocused().
+			SelectPreviousItem()
+
+		t.Common().SelectPatchOption(Contains("move patch to selected commit"))
 
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("third commit"),
-				Contains(`Split from "commit to move from"`).IsSelected(),
+				Contains("destination commit").IsSelected(),
 				Contains("commit to move from"),
 				Contains("first commit"),
 			).
@@ -67,17 +70,12 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("  M file1"),
 				Contains("  D file2"),
 				Contains("  A file3"),
+				Contains("A unrelated-file"),
 			).
 			PressEscape()
 
 		t.Views().Commits().
 			IsFocused().
-			Lines(
-				Contains("third commit"),
-				Contains(`Split from "commit to move from"`).IsSelected(),
-				Contains("commit to move from"),
-				Contains("first commit"),
-			).
 			SelectNextItem().
 			PressEnter()
 

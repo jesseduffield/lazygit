@@ -45,9 +45,7 @@ func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, com
 
 	// apply each patch in reverse
 	if err := self.PatchManager.ApplyPatches(true); err != nil {
-		if err := self.rebase.AbortRebase(); err != nil {
-			return err
-		}
+		_ = self.rebase.AbortRebase()
 		return err
 	}
 
@@ -73,9 +71,8 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 		// apply each patch forward
 		if err := self.PatchManager.ApplyPatches(false); err != nil {
-			if err := self.rebase.AbortRebase(); err != nil {
-				return err
-			}
+			// Don't abort the rebase here; this might cause conflicts, so give
+			// the user a chance to resolve them
 			return err
 		}
 
@@ -121,14 +118,18 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 	// apply each patch in reverse
 	if err := self.PatchManager.ApplyPatches(true); err != nil {
-		if err := self.rebase.AbortRebase(); err != nil {
-			return err
-		}
+		_ = self.rebase.AbortRebase()
 		return err
 	}
 
 	// amend the source commit
 	if err := self.commit.AmendHead(); err != nil {
+		return err
+	}
+
+	patch, err := self.diffHeadAgainstCommit(commits[sourceCommitIdx])
+	if err != nil {
+		_ = self.rebase.AbortRebase()
 		return err
 	}
 
@@ -139,10 +140,9 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	self.rebase.onSuccessfulContinue = func() error {
 		// now we should be up to the destination, so let's apply forward these patches to that.
 		// ideally we would ensure we're on the right commit but I'm not sure if that check is necessary
-		if err := self.PatchManager.ApplyPatches(false); err != nil {
-			if err := self.rebase.AbortRebase(); err != nil {
-				return err
-			}
+		if err := self.rebase.workingTree.ApplyPatch(patch, "index", "3way"); err != nil {
+			// Don't abort the rebase here; this might cause conflicts, so give
+			// the user a chance to resolve them
 			return err
 		}
 
@@ -175,9 +175,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 
 	if err := self.PatchManager.ApplyPatches(true); err != nil {
 		if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-			if err := self.rebase.AbortRebase(); err != nil {
-				return err
-			}
+			_ = self.rebase.AbortRebase()
 		}
 		return err
 	}
@@ -187,17 +185,21 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 		return err
 	}
 
+	patch, err := self.diffHeadAgainstCommit(commits[commitIdx])
+	if err != nil {
+		_ = self.rebase.AbortRebase()
+		return err
+	}
+
 	if self.rebase.onSuccessfulContinue != nil {
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
 
 	self.rebase.onSuccessfulContinue = func() error {
 		// add patches to index
-		if err := self.PatchManager.ApplyPatches(false); err != nil {
+		if err := self.rebase.workingTree.ApplyPatch(patch, "index", "3way"); err != nil {
 			if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-				if err := self.rebase.AbortRebase(); err != nil {
-					return err
-				}
+				_ = self.rebase.AbortRebase()
 			}
 			return err
 		}
@@ -221,9 +223,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 	}
 
 	if err := self.PatchManager.ApplyPatches(true); err != nil {
-		if err := self.rebase.AbortRebase(); err != nil {
-			return err
-		}
+		_ = self.rebase.AbortRebase()
 		return err
 	}
 
@@ -232,18 +232,20 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 		return err
 	}
 
-	// add patches to index
-	if err := self.PatchManager.ApplyPatches(false); err != nil {
-		if err := self.rebase.AbortRebase(); err != nil {
-			return err
-		}
+	patch, err := self.diffHeadAgainstCommit(commits[commitIdx])
+	if err != nil {
+		_ = self.rebase.AbortRebase()
+		return err
+	}
+
+	if err := self.rebase.workingTree.ApplyPatch(patch, "index", "3way"); err != nil {
+		_ = self.rebase.AbortRebase()
 		return err
 	}
 
 	head_message, _ := self.commit.GetHeadCommitMessage()
 	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	err := self.commit.CommitCmdObj(new_message).Run()
-	if err != nil {
+	if err := self.commit.CommitCmdObj(new_message).Run(); err != nil {
 		return err
 	}
 
@@ -253,4 +255,13 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 
 	self.PatchManager.Reset()
 	return self.rebase.ContinueRebase()
+}
+
+// We have just applied a patch in reverse to discard it from a commit; if we
+// now try to apply the patch again to move it to a later commit, or to the
+// index, then this would conflict "with itself" in case the patch contained
+// only some lines of a range of adjacent added lines. To solve this, we
+// get the diff of HEAD and the original commit and then apply that.
+func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string, error) {
+	return self.cmd.New(fmt.Sprintf("git diff HEAD..%s", commit.Sha)).RunWithOutput()
 }

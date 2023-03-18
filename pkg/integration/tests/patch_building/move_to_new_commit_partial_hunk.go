@@ -5,23 +5,19 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Move a patch from a commit to a new commit",
+var MoveToNewCommitPartialHunk = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Move a patch from a commit to a new commit, with only parts of a hunk in the patch",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
-		shell.CreateDir("dir")
-		shell.CreateFileAndAdd("dir/file1", "file1 content")
-		shell.CreateFileAndAdd("dir/file2", "file2 content")
+		shell.CreateFileAndAdd("file1", "")
 		shell.Commit("first commit")
 
-		shell.UpdateFileAndAdd("dir/file1", "file1 content with old changes")
-		shell.DeleteFileAndAdd("dir/file2")
-		shell.CreateFileAndAdd("dir/file3", "file3 content")
+		shell.UpdateFileAndAdd("file1", "1st line\n2nd line\n")
 		shell.Commit("commit to move from")
 
-		shell.UpdateFileAndAdd("dir/file1", "file1 content with new changes")
+		shell.UpdateFileAndAdd("file1", "1st line\n2nd line\n3rd line\n")
 		shell.Commit("third commit")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
@@ -38,36 +34,28 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("dir").IsSelected(),
-				Contains("  M file1"),
-				Contains("  D file2"),
-				Contains("  A file3"),
+				Contains("file1").IsSelected(),
 			).
-			PressPrimaryAction().
-			PressEscape()
+			PressEnter()
+
+		t.Views().PatchBuilding().
+			IsFocused().
+			PressEnter().
+			PressPrimaryAction()
 
 		t.Views().Information().Content(Contains("building patch"))
 
 		t.Common().SelectPatchOption(Contains("move patch into new commit"))
 
-		t.Views().Commits().
-			IsFocused().
-			Lines(
-				Contains("third commit"),
-				Contains(`Split from "commit to move from"`).IsSelected(),
-				Contains("commit to move from"),
-				Contains("first commit"),
-			).
-			PressEnter()
-
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("dir").IsSelected(),
-				Contains("  M file1"),
-				Contains("  D file2"),
-				Contains("  A file3"),
+				Contains("file1").IsSelected(),
 			).
+			Tap(func() {
+				t.Views().Main().
+					Content(Contains("+1st line\n 2nd line"))
+			}).
 			PressEscape()
 
 		t.Views().Commits().
@@ -81,11 +69,15 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			PressEnter()
 
-		// the original commit has no more files in it
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
-				Contains("(none)"),
-			)
+				Contains("file1").IsSelected(),
+			).
+			Tap(func() {
+				t.Views().Main().
+					Content(Contains("+2nd line").
+						DoesNotContain("1st line"))
+			})
 	},
 })
