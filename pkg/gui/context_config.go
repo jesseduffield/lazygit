@@ -150,15 +150,15 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			func(opts types.OnFocusLostOpts) error {
 				gui.Views.PatchBuilding.Wrap = true
 
-				if gui.git.Patch.PatchManager.IsEmpty() {
-					gui.git.Patch.PatchManager.Reset()
+				if gui.git.Patch.PatchBuilder.IsEmpty() {
+					gui.git.Patch.PatchBuilder.Reset()
 				}
 
 				return nil
 			},
 			func() []int {
 				filename := gui.State.Contexts.CommitFiles.GetSelectedPath()
-				includedLineIndices, err := gui.git.Patch.PatchManager.GetFileIncLineIndices(filename)
+				includedLineIndices, err := gui.git.Patch.PatchBuilder.GetFileIncLineIndices(filename)
 				if err != nil {
 					gui.Log.Error(err)
 					return nil

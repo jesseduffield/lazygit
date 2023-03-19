@@ -30,7 +30,7 @@ func (gui *Gui) modeStatuses() []modeStatus {
 			reset: gui.exitDiffMode,
 		},
 		{
-			isActive: gui.git.Patch.PatchManager.Active,
+			isActive: gui.git.Patch.PatchBuilder.Active,
 			description: func() string {
 				return gui.withResetButton(gui.c.Tr.LcBuildingPatch, style.FgYellow.SetBold())
 			},

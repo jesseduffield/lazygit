@@ -16,7 +16,7 @@ type PatchCommands struct {
 	status *StatusCommands
 	stash  *StashCommands
 
-	PatchManager *patch.PatchManager
+	PatchBuilder *patch.PatchBuilder
 }
 
 func NewPatchCommands(
@@ -25,7 +25,7 @@ func NewPatchCommands(
 	commit *CommitCommands,
 	status *StatusCommands,
 	stash *StashCommands,
-	patchManager *patch.PatchManager,
+	patchBuilder *patch.PatchBuilder,
 ) *PatchCommands {
 	return &PatchCommands{
 		GitCommon:    gitCommon,
@@ -33,7 +33,7 @@ func NewPatchCommands(
 		commit:       commit,
 		status:       status,
 		stash:        stash,
-		PatchManager: patchManager,
+		PatchBuilder: patchBuilder,
 	}
 }
 
@@ -44,7 +44,7 @@ func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, com
 	}
 
 	// apply each patch in reverse
-	if err := self.PatchManager.ApplyPatches(true); err != nil {
+	if err := self.PatchBuilder.ApplyPatches(true); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
@@ -55,7 +55,7 @@ func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, com
 	}
 
 	self.rebase.onSuccessfulContinue = func() error {
-		self.PatchManager.Reset()
+		self.PatchBuilder.Reset()
 		return nil
 	}
 
@@ -70,7 +70,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 		}
 
 		// apply each patch forward
-		if err := self.PatchManager.ApplyPatches(false); err != nil {
+		if err := self.PatchBuilder.ApplyPatches(false); err != nil {
 			// Don't abort the rebase here; this might cause conflicts, so give
 			// the user a chance to resolve them
 			return err
@@ -82,7 +82,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 		}
 
 		self.rebase.onSuccessfulContinue = func() error {
-			self.PatchManager.Reset()
+			self.PatchBuilder.Reset()
 			return nil
 		}
 
@@ -117,7 +117,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	}
 
 	// apply each patch in reverse
-	if err := self.PatchManager.ApplyPatches(true); err != nil {
+	if err := self.PatchBuilder.ApplyPatches(true); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
@@ -152,7 +152,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 		}
 
 		self.rebase.onSuccessfulContinue = func() error {
-			self.PatchManager.Reset()
+			self.PatchBuilder.Reset()
 			return nil
 		}
 
@@ -173,7 +173,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 		return err
 	}
 
-	if err := self.PatchManager.ApplyPatches(true); err != nil {
+	if err := self.PatchBuilder.ApplyPatches(true); err != nil {
 		if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 			_ = self.rebase.AbortRebase()
 		}
@@ -210,7 +210,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 			}
 		}
 
-		self.PatchManager.Reset()
+		self.PatchBuilder.Reset()
 		return nil
 	}
 
@@ -222,7 +222,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 		return err
 	}
 
-	if err := self.PatchManager.ApplyPatches(true); err != nil {
+	if err := self.PatchBuilder.ApplyPatches(true); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
@@ -253,7 +253,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 		return errors.New("You are midway through another rebase operation. Please abort to start again")
 	}
 
-	self.PatchManager.Reset()
+	self.PatchBuilder.Reset()
 	return self.rebase.ContinueRebase()
 }
 

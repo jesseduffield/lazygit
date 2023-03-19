@@ -101,7 +101,7 @@ func (self *ContextLinesController) applyChange() error {
 }
 
 func (self *ContextLinesController) checkCanChangeContext() error {
-	if self.git.Patch.PatchManager.Active() {
+	if self.git.Patch.PatchBuilder.Active() {
 		return errors.New(self.c.Tr.CantChangeContextSizeError)
 	}
 

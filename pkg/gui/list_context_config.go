@@ -243,7 +243,7 @@ func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 				return [][]string{{style.FgRed.Sprint("(none)")}}
 			}
 
-			lines := presentation.RenderCommitFileTree(gui.State.Contexts.CommitFiles.CommitFileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.git.Patch.PatchManager)
+			lines := presentation.RenderCommitFileTree(gui.State.Contexts.CommitFiles.CommitFileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.git.Patch.PatchBuilder)
 			return slices.Map(lines, func(line string) []string {
 				return []string{line}
 			})
