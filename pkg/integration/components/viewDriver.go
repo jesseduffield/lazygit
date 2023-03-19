@@ -176,9 +176,11 @@ func (self *ViewDriver) validateMatchersPassed(matchers []*Matcher) {
 }
 
 func (self *ViewDriver) validateEnoughLines(matchers []*Matcher) {
+	view := self.getView()
+
 	self.t.assertWithRetries(func() (bool, string) {
-		lines := self.getView().BufferLines()
-		return len(lines) >= len(matchers), fmt.Sprintf("unexpected number of lines in view. Expected at least %d, got %d", len(matchers), len(lines))
+		lines := view.BufferLines()
+		return len(lines) >= len(matchers), fmt.Sprintf("unexpected number of lines in view '%s'. Expected at least %d, got %d", view.Name(), len(matchers), len(lines))
 	})
 }
 
@@ -440,21 +442,23 @@ func (self *ViewDriver) LineCount(expectedCount int) *ViewDriver {
 		return self.IsEmpty()
 	}
 
+	view := self.getView()
+
 	self.t.assertWithRetries(func() (bool, string) {
-		lines := self.getView().BufferLines()
-		return len(lines) == expectedCount, fmt.Sprintf("unexpected number of lines in view. Expected %d, got %d", expectedCount, len(lines))
+		lines := view.BufferLines()
+		return len(lines) == expectedCount, fmt.Sprintf("unexpected number of lines in view '%s'. Expected %d, got %d", view.Name(), expectedCount, len(lines))
 	})
 
 	self.t.assertWithRetries(func() (bool, string) {
-		lines := self.getView().BufferLines()
+		lines := view.BufferLines()
 
 		// if the view has a single blank line (often the case) we want to treat that as having no lines
 		if len(lines) == 1 && expectedCount == 1 {
-			actual := strings.TrimSpace(self.getView().Buffer())
-			return actual != "", "unexpected number of lines in view. Expected 1, got 0"
+			actual := strings.TrimSpace(view.Buffer())
+			return actual != "", fmt.Sprintf("unexpected number of lines in view '%s'. Expected 1, got 0", view.Name())
 		}
 
-		return len(lines) == expectedCount, fmt.Sprintf("unexpected number of lines in view. Expected %d, got %d", expectedCount, len(lines))
+		return len(lines) == expectedCount, fmt.Sprintf("unexpected number of lines in view '%s'. Expected %d, got %d", view.Name(), expectedCount, len(lines))
 	})
 
 	return self
