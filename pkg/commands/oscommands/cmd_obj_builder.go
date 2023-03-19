@@ -52,7 +52,7 @@ func (self *CmdObjBuilder) NewFromArgs(args []string) ICmdObj {
 }
 
 func (self *CmdObjBuilder) NewShell(commandStr string) ICmdObj {
-	quotedCommand := ""
+	var quotedCommand string
 	// Windows does not seem to like quotes around the command
 	if self.platform.OS == "windows" {
 		quotedCommand = strings.NewReplacer(

@@ -23,7 +23,7 @@ func (gui *Gui) getCurrentBranch(path string) string {
 		if err == nil {
 			content := strings.TrimSpace(string(headFile))
 			refsPrefix := "ref: refs/heads/"
-			branchDisplay := ""
+			var branchDisplay string
 			if strings.HasPrefix(content, refsPrefix) {
 				// is a branch
 				branchDisplay = strings.TrimPrefix(content, refsPrefix)
