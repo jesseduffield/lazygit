@@ -42,15 +42,18 @@ const (
 	stateOSC
 	stateOSCEscape
 
-	bold               fontEffect = 1
-	faint              fontEffect = 2
-	italic             fontEffect = 3
-	underline          fontEffect = 4
-	blink              fontEffect = 5
-	reverse            fontEffect = 7
-	strike             fontEffect = 9
-	setForegroundColor fontEffect = 38
-	setBackgroundColor fontEffect = 48
+	bold      fontEffect = 1
+	faint     fontEffect = 2
+	italic    fontEffect = 3
+	underline fontEffect = 4
+	blink     fontEffect = 5
+	reverse   fontEffect = 7
+	strike    fontEffect = 9
+
+	setForegroundColor     int = 38
+	defaultForegroundColor int = 39
+	setBackgroundColor     int = 48
+	defaultBackgroundColor int = 49
 )
 
 var (
@@ -158,16 +161,7 @@ func (ei *escapeInterpreter) parseOne(ch rune) (isEscape bool, err error) {
 			ei.csiParam = append(ei.csiParam, "")
 			return true, nil
 		case ch == 'm':
-			var err error
-			switch ei.mode {
-			case OutputNormal:
-				err = ei.outputNormal()
-			case Output256:
-				err = ei.output256()
-			case OutputTrue:
-				err = ei.outputTrue()
-			}
-			if err != nil {
+			if err := ei.outputCSI(); err != nil {
 				return false, errCSIParseError
 			}
 
@@ -210,140 +204,122 @@ func (ei *escapeInterpreter) parseOne(ch rune) (isEscape bool, err error) {
 	return false, nil
 }
 
-// outputNormal provides 8 different colors:
-//   black, red, green, yellow, blue, magenta, cyan, white
-func (ei *escapeInterpreter) outputNormal() error {
-	for _, param := range ei.csiParam {
-		p, err := strconv.Atoi(param)
+func (ei *escapeInterpreter) outputCSI() error {
+	n := len(ei.csiParam)
+	for i := 0; i < n; {
+		p, err := strconv.Atoi(ei.csiParam[i])
 		if err != nil {
 			return errCSIParseError
 		}
 
+		skip := 1
 		switch {
-		case p >= 30 && p <= 37:
-			ei.curFgColor = Get256Color(int32(p) - 30)
-		case p == 39:
-			ei.curFgColor = ColorDefault
-		case p >= 40 && p <= 47:
-			ei.curBgColor = Get256Color(int32(p) - 40)
-		case p == 49:
-			ei.curBgColor = ColorDefault
-		case p == 0:
+		case p == 0: // reset style and color
 			ei.curFgColor = ColorDefault
 			ei.curBgColor = ColorDefault
-		case p >= 21 && p <= 29:
-			ei.curFgColor &= ^getFontEffect(p - 20)
-		default:
+		case p >= 1 && p <= 9: // set style
 			ei.curFgColor |= getFontEffect(p)
+		case p >= 21 && p <= 29: // reset style
+			ei.curFgColor &= ^getFontEffect(p - 20)
+		case p >= 30 && p <= 37: // set foreground color
+			ei.curFgColor &= AttrStyleBits
+			ei.curFgColor |= Get256Color(int32(p) - 30)
+		case p == setForegroundColor: // set foreground color (256-color or true color)
+			var color Attribute
+			var err error
+			color, skip, err = ei.csiColor(ei.csiParam[i:])
+			if err != nil {
+				return err
+			}
+			ei.curFgColor &= AttrStyleBits
+			ei.curFgColor |= color
+		case p == defaultForegroundColor: // reset foreground color
+			ei.curFgColor &= AttrStyleBits
+			ei.curFgColor |= ColorDefault
+		case p >= 40 && p <= 47: // set background color
+			ei.curBgColor &= AttrStyleBits
+			ei.curBgColor |= Get256Color(int32(p) - 40)
+		case p == setBackgroundColor: // set background color (256-color or true color)
+			var color Attribute
+			var err error
+			color, skip, err = ei.csiColor(ei.csiParam[i:])
+			if err != nil {
+				return err
+			}
+			ei.curBgColor &= AttrStyleBits
+			ei.curBgColor |= color
+		case p == defaultBackgroundColor: // reset background color
+			ei.curBgColor &= AttrStyleBits
+			ei.curBgColor |= ColorDefault
+		case p >= 90 && p <= 97: // set bright foreground color
+			ei.curFgColor &= AttrStyleBits
+			ei.curFgColor |= Get256Color(int32(p) - 90 + 8)
+		case p >= 100 && p <= 107: // set bright background color
+			ei.curBgColor &= AttrStyleBits
+			ei.curBgColor |= Get256Color(int32(p) - 100 + 8)
+		default:
 		}
+		i += skip
 	}
 
 	return nil
 }
 
-// output256 allows you to leverage the 256-colors terminal mode:
-//   0x01 - 0x08: the 8 colors as in OutputNormal
-//   0x09 - 0x10: Color* | AttrBold
-//   0x11 - 0xe8: 216 different colors
-//   0xe9 - 0x1ff: 24 different shades of grey
-func (ei *escapeInterpreter) output256() error {
-	if len(ei.csiParam) < 3 {
-		return ei.outputNormal()
+func (ei *escapeInterpreter) csiColor(param []string) (color Attribute, skip int, err error) {
+	if len(param) < 2 {
+		err = errCSIParseError
+		return
 	}
 
-	mode, err := strconv.Atoi(ei.csiParam[1])
-	if err != nil {
-		return errCSIParseError
-	}
-	if mode != 5 {
-		return ei.outputNormal()
-	}
-
-	for _, param := range splitFgBg(ei.csiParam, 3) {
-		fgbg, err := strconv.Atoi(param[0])
+	switch param[1] {
+	case "2":
+		// 24-bit color
+		if ei.mode < OutputTrue {
+			err = errCSIParseError
+			return
+		}
+		if len(param) < 5 {
+			err = errCSIParseError
+			return
+		}
+		var red, green, blue int
+		red, err = strconv.Atoi(param[2])
 		if err != nil {
-			return errCSIParseError
+			err = errCSIParseError
+			return
 		}
-		color, err := strconv.Atoi(param[2])
+		green, err = strconv.Atoi(param[3])
 		if err != nil {
-			return errCSIParseError
+			err = errCSIParseError
+			return
 		}
-
-		switch fontEffect(fgbg) {
-		case setForegroundColor:
-			ei.curFgColor = Get256Color(int32(color))
-
-			for _, s := range param[3:] {
-				p, err := strconv.Atoi(s)
-				if err != nil {
-					return errCSIParseError
-				}
-
-				ei.curFgColor |= getFontEffect(p)
-			}
-		case setBackgroundColor:
-			ei.curBgColor = Get256Color(int32(color))
-		default:
-			return errCSIParseError
-		}
-	}
-	return nil
-}
-
-// outputTrue allows you to leverage the true-color terminal mode.
-//
-// Works with rgb ANSI sequence: `\x1b[38;2;<r>;<g>;<b>m`, `\x1b[48;2;<r>;<g>;<b>m`
-func (ei *escapeInterpreter) outputTrue() error {
-	if len(ei.csiParam) < 5 {
-		return ei.output256()
-	}
-
-	mode, err := strconv.Atoi(ei.csiParam[1])
-	if err != nil {
-		return errCSIParseError
-	}
-	if mode != 2 {
-		return ei.output256()
-	}
-
-	for _, param := range splitFgBg(ei.csiParam, 5) {
-		fgbg, err := strconv.Atoi(param[0])
+		blue, err = strconv.Atoi(param[4])
 		if err != nil {
-			return errCSIParseError
+			err = errCSIParseError
+			return
 		}
-		colr, err := strconv.Atoi(param[2])
+		return NewRGBColor(int32(red), int32(green), int32(blue)), 5, nil
+	case "5":
+		// 8-bit color
+		if ei.mode < Output256 {
+			err = errCSIParseError
+			return
+		}
+		if len(param) < 3 {
+			err = errCSIParseError
+			return
+		}
+		var hex int
+		hex, err = strconv.Atoi(param[2])
 		if err != nil {
-			return errCSIParseError
+			err = errCSIParseError
+			return
 		}
-		colg, err := strconv.Atoi(param[3])
-		if err != nil {
-			return errCSIParseError
-		}
-		colb, err := strconv.Atoi(param[4])
-		if err != nil {
-			return errCSIParseError
-		}
-		color := NewRGBColor(int32(colr), int32(colg), int32(colb))
-
-		switch fontEffect(fgbg) {
-		case setForegroundColor:
-			ei.curFgColor = color
-
-			for _, s := range param[5:] {
-				p, err := strconv.Atoi(s)
-				if err != nil {
-					return errCSIParseError
-				}
-
-				ei.curFgColor |= getFontEffect(p)
-			}
-		case setBackgroundColor:
-			ei.curBgColor = color
-		default:
-			return errCSIParseError
-		}
+		return Get256Color(int32(hex)), 3, nil
+	default:
+		err = errCSIParseError
+		return
 	}
-	return nil
 }
 
 // splitFgBg splits foreground and background color according to ANSI sequence.

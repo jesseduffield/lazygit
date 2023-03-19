@@ -31,7 +31,8 @@ const (
 )
 
 // Color attributes. These colors are compatible with tcell.Color type and can be expanded like:
-//  g.FgColor := gocui.Attribute(tcell.ColorLime)
+//
+//	g.FgColor := gocui.Attribute(tcell.ColorLime)
 const (
 	ColorBlack Attribute = AttrIsValidColor + iota
 	ColorRed

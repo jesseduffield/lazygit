@@ -407,14 +407,7 @@ func (g *Gui) CopyContent(fromView *View, toView *View) {
 	g.Mutexes.ViewsMutex.Lock()
 	defer g.Mutexes.ViewsMutex.Unlock()
 
-	toView.clear()
-
-	toView.lines = fromView.lines
-	toView.viewLines = fromView.viewLines
-	toView.ox = fromView.ox
-	toView.oy = fromView.oy
-	toView.cx = fromView.cx
-	toView.cy = fromView.cy
+	toView.CopyContent(fromView)
 }
 
 // Views returns all the views in the GUI.

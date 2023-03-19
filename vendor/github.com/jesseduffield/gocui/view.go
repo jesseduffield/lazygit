@@ -812,6 +812,20 @@ func (v *View) SetContent(str string) {
 	v.writeString(str)
 }
 
+func (v *View) CopyContent(from *View) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.clear()
+
+	v.lines = from.lines
+	v.viewLines = from.viewLines
+	v.ox = from.ox
+	v.oy = from.oy
+	v.cx = from.cx
+	v.cy = from.cy
+}
+
 // Rewind sets read and write pos to (0, 0).
 func (v *View) Rewind() {
 	v.writeMutex.Lock()
