@@ -323,6 +323,23 @@ func (self *cmdObjRunner) processOutput(reader io.Reader, writer io.Writer, prom
 // having a function that returns a function because we need to maintain some state inbetween calls hence the closure
 func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (CredentialType, bool) {
 	var ttyText strings.Builder
+	prompts := map[string]CredentialType{
+		`Password:`:                              Password,
+		`.+'s password:`:                         Password,
+		`Password\s*for\s*'.+':`:                 Password,
+		`Username\s*for\s*'.+':`:                 Username,
+		`Enter\s*passphrase\s*for\s*key\s*'.+':`: Passphrase,
+		`Enter\s*PIN\s*for\s*.+\s*key\s*.+:`:     PIN,
+	}
+
+	compiledPrompts := map[*regexp.Regexp]CredentialType{}
+	for pattern, askFor := range prompts {
+		compiledPattern := regexp.MustCompile(pattern)
+		compiledPrompts[compiledPattern] = askFor
+	}
+
+	newlineRegex := regexp.MustCompile("\n")
+
 	// this function takes each word of output from the command and builds up a string to see if we're being asked for a password
 	return func(newBytes []byte) (CredentialType, bool) {
 		_, err := ttyText.Write(newBytes)
@@ -330,22 +347,18 @@ func (self *cmdObjRunner) getCheckForCredentialRequestFunc() func([]byte) (Crede
 			self.log.Error(err)
 		}
 
-		prompts := map[string]CredentialType{
-			`Password:`:                              Password,
-			`.+'s password:`:                         Password,
-			`Password\s*for\s*'.+':`:                 Password,
-			`Username\s*for\s*'.+':`:                 Username,
-			`Enter\s*passphrase\s*for\s*key\s*'.+':`: Passphrase,
-			`Enter\s*PIN\s*for\s*.+\s*key\s*.+:`:     PIN,
-		}
-
-		for pattern, askFor := range prompts {
-			if match, _ := regexp.MatchString(pattern, ttyText.String()); match {
+		for pattern, askFor := range compiledPrompts {
+			if match := pattern.Match([]byte(ttyText.String())); match {
 				ttyText.Reset()
 				return askFor, true
 			}
 		}
 
+		if indices := newlineRegex.FindIndex([]byte(ttyText.String())); indices != nil {
+			newText := []byte(ttyText.String()[indices[1]:])
+			ttyText.Reset()
+			ttyText.Write(newText)
+		}
 		return 0, false
 	}
 }
