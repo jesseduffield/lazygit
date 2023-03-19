@@ -291,7 +291,7 @@ golang.org/x/crypto/ssh/knownhosts
 ## explicit; go 1.18
 golang.org/x/exp/constraints
 golang.org/x/exp/slices
-# golang.org/x/net v0.0.0-20220722155237-a158d28d115b
+# golang.org/x/net v0.7.0
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/internal/socks
