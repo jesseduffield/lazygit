@@ -40,7 +40,7 @@ func RenderFileTree(
 func RenderCommitFileTree(
 	tree *filetree.CommitFileTreeViewModel,
 	diffName string,
-	patchManager *patch.PatchManager,
+	patchBuilder *patch.PatchBuilder,
 ) []string {
 	return renderAux(tree.GetRoot().Raw(), tree.CollapsedPaths(), "", -1, func(node *filetree.Node[models.CommitFile], depth int) string {
 		// This is a little convoluted because we're dealing with either a leaf or a non-leaf.
@@ -49,11 +49,11 @@ func RenderCommitFileTree(
 		// based on the leaves of that subtree
 		var status patch.PatchStatus
 		if node.EveryFile(func(file *models.CommitFile) bool {
-			return patchManager.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.WHOLE
+			return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.WHOLE
 		}) {
 			status = patch.WHOLE
 		} else if node.EveryFile(func(file *models.CommitFile) bool {
-			return patchManager.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.UNSELECTED
+			return patchBuilder.GetFileStatus(file.Name, tree.GetRef().RefName()) == patch.UNSELECTED
 		}) {
 			status = patch.UNSELECTED
 		} else {

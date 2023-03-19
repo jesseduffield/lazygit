@@ -117,14 +117,14 @@ func NewGitCommandAux(
 	workingTreeCommands := git_commands.NewWorkingTreeCommands(gitCommon, submoduleCommands, fileLoader)
 	rebaseCommands := git_commands.NewRebaseCommands(gitCommon, commitCommands, workingTreeCommands)
 	stashCommands := git_commands.NewStashCommands(gitCommon, fileLoader, workingTreeCommands)
-	// TODO: have patch manager take workingTreeCommands in its entirety
-	patchManager := patch.NewPatchManager(cmn.Log, workingTreeCommands.ApplyPatch,
+	// TODO: have patch builder take workingTreeCommands in its entirety
+	patchBuilder := patch.NewPatchBuilder(cmn.Log, workingTreeCommands.ApplyPatch,
 		func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
-			// TODO: make patch manager take Gui.IgnoreWhitespaceInDiffView into
+			// TODO: make patch builder take Gui.IgnoreWhitespaceInDiffView into
 			// account. For now we just pass false.
 			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, plain, false)
 		})
-	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchManager)
+	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
 
 	branchLoader := git_commands.NewBranchLoader(cmn, branchCommands.GetRawBranches, branchCommands.CurrentBranchInfo, configCommands)

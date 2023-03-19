@@ -33,8 +33,8 @@ type (
 	loadFileDiffFunc func(from string, to string, reverse bool, filename string, plain bool) (string, error)
 )
 
-// PatchManager manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
-type PatchManager struct {
+// PatchBuilder manages the building of a patch for a commit to be applied to another commit (or the working tree, or removed from the current commit). We also support building patches from things like stashes, for which there is less flexibility
+type PatchBuilder struct {
 	// To is the commit sha if we're dealing with files of a commit, or a stash ref for a stash
 	To      string
 	From    string
@@ -53,17 +53,16 @@ type PatchManager struct {
 	loadFileDiff loadFileDiffFunc
 }
 
-// NewPatchManager returns a new PatchManager
-func NewPatchManager(log *logrus.Entry, applyPatch applyPatchFunc, loadFileDiff loadFileDiffFunc) *PatchManager {
-	return &PatchManager{
+// NewPatchBuilder returns a new PatchBuilder
+func NewPatchBuilder(log *logrus.Entry, applyPatch applyPatchFunc, loadFileDiff loadFileDiffFunc) *PatchBuilder {
+	return &PatchBuilder{
 		Log:          log,
 		applyPatch:   applyPatch,
 		loadFileDiff: loadFileDiff,
 	}
 }
 
-// NewPatchManager returns a new PatchManager
-func (p *PatchManager) Start(from, to string, reverse bool, canRebase bool) {
+func (p *PatchBuilder) Start(from, to string, reverse bool, canRebase bool) {
 	p.To = to
 	p.From = from
 	p.reverse = reverse
@@ -71,7 +70,7 @@ func (p *PatchManager) Start(from, to string, reverse bool, canRebase bool) {
 	p.fileInfoMap = map[string]*fileInfo{}
 }
 
-func (p *PatchManager) addFileWhole(info *fileInfo) {
+func (p *PatchBuilder) addFileWhole(info *fileInfo) {
 	info.mode = WHOLE
 	lineCount := len(strings.Split(info.diff, "\n"))
 	// add every line index
@@ -82,12 +81,12 @@ func (p *PatchManager) addFileWhole(info *fileInfo) {
 	}
 }
 
-func (p *PatchManager) removeFile(info *fileInfo) {
+func (p *PatchBuilder) removeFile(info *fileInfo) {
 	info.mode = UNSELECTED
 	info.includedLineIndices = nil
 }
 
-func (p *PatchManager) AddFileWhole(filename string) error {
+func (p *PatchBuilder) AddFileWhole(filename string) error {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		return err
@@ -98,7 +97,7 @@ func (p *PatchManager) AddFileWhole(filename string) error {
 	return nil
 }
 
-func (p *PatchManager) RemoveFile(filename string) error {
+func (p *PatchBuilder) RemoveFile(filename string) error {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		return err
@@ -117,7 +116,7 @@ func getIndicesForRange(first, last int) []int {
 	return indices
 }
 
-func (p *PatchManager) getFileInfo(filename string) (*fileInfo, error) {
+func (p *PatchBuilder) getFileInfo(filename string) (*fileInfo, error) {
 	info, ok := p.fileInfoMap[filename]
 	if ok {
 		return info, nil
@@ -137,7 +136,7 @@ func (p *PatchManager) getFileInfo(filename string) (*fileInfo, error) {
 	return info, nil
 }
 
-func (p *PatchManager) AddFileLineRange(filename string, firstLineIdx, lastLineIdx int) error {
+func (p *PatchBuilder) AddFileLineRange(filename string, firstLineIdx, lastLineIdx int) error {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		return err
@@ -148,7 +147,7 @@ func (p *PatchManager) AddFileLineRange(filename string, firstLineIdx, lastLineI
 	return nil
 }
 
-func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLineIdx int) error {
+func (p *PatchBuilder) RemoveFileLineRange(filename string, firstLineIdx, lastLineIdx int) error {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		return err
@@ -162,42 +161,40 @@ func (p *PatchManager) RemoveFileLineRange(filename string, firstLineIdx, lastLi
 	return nil
 }
 
-func (p *PatchManager) renderPlainPatchForFile(filename string, reverse bool) string {
+func (p *PatchBuilder) RenderPatchForFile(filename string, plain bool, reverse bool) string {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		p.Log.Error(err)
 		return ""
 	}
 
-	switch info.mode {
-	case WHOLE:
-		// use the whole diff
-		// the reverse flag is only for part patches so we're ignoring it here
-		return info.diff
-	case PART:
-		// generate a new diff with just the selected lines
-		return ModifiedPatchForLines(p.Log, filename, info.diff, info.includedLineIndices,
-			PatchOptions{
-				Reverse:            reverse,
-				KeepOriginalHeader: true,
-			})
-	default:
+	if info.mode == UNSELECTED {
 		return ""
 	}
-}
 
-func (p *PatchManager) RenderPatchForFile(filename string, plain bool, reverse bool) string {
-	patch := p.renderPlainPatchForFile(filename, reverse)
-	if plain {
-		return patch
+	if info.mode == WHOLE && plain {
+		// Use the whole diff (spares us parsing it and then formatting it).
+		// TODO: see if this is actually noticeably faster.
+		// The reverse flag is only for part patches so we're ignoring it here.
+		return info.diff
 	}
-	parser := NewPatchParser(p.Log, patch)
 
-	// not passing included lines because we don't want to see them in the secondary panel
-	return parser.Render(false, -1, -1, nil)
+	patch := Parse(info.diff).
+		Transform(TransformOpts{
+			Reverse:             reverse,
+			IncludedLineIndices: info.includedLineIndices,
+		})
+
+	if plain {
+		return patch.FormatPlain()
+	} else {
+		return patch.FormatView(FormatViewOpts{
+			IsFocused: false,
+		})
+	}
 }
 
-func (p *PatchManager) renderEachFilePatch(plain bool) []string {
+func (p *PatchBuilder) renderEachFilePatch(plain bool) []string {
 	// sort files by name then iterate through and render each patch
 	filenames := maps.Keys(p.fileInfoMap)
 
@@ -212,17 +209,11 @@ func (p *PatchManager) renderEachFilePatch(plain bool) []string {
 	return output
 }
 
-func (p *PatchManager) RenderAggregatedPatchColored(plain bool) string {
-	result := ""
-	for _, patch := range p.renderEachFilePatch(plain) {
-		if patch != "" {
-			result += patch + "\n"
-		}
-	}
-	return result
+func (p *PatchBuilder) RenderAggregatedPatch(plain bool) string {
+	return strings.Join(p.renderEachFilePatch(plain), "")
 }
 
-func (p *PatchManager) GetFileStatus(filename string, parent string) PatchStatus {
+func (p *PatchBuilder) GetFileStatus(filename string, parent string) PatchStatus {
 	if parent != p.To {
 		return UNSELECTED
 	}
@@ -235,7 +226,7 @@ func (p *PatchManager) GetFileStatus(filename string, parent string) PatchStatus
 	return info.mode
 }
 
-func (p *PatchManager) GetFileIncLineIndices(filename string) ([]int, error) {
+func (p *PatchBuilder) GetFileIncLineIndices(filename string) ([]int, error) {
 	info, err := p.getFileInfo(filename)
 	if err != nil {
 		return nil, err
@@ -243,7 +234,7 @@ func (p *PatchManager) GetFileIncLineIndices(filename string) ([]int, error) {
 	return info.includedLineIndices, nil
 }
 
-func (p *PatchManager) ApplyPatches(reverse bool) error {
+func (p *PatchBuilder) ApplyPatches(reverse bool) error {
 	patch := ""
 
 	applyFlags := []string{"index", "3way"}
@@ -263,16 +254,16 @@ func (p *PatchManager) ApplyPatches(reverse bool) error {
 }
 
 // clears the patch
-func (p *PatchManager) Reset() {
+func (p *PatchBuilder) Reset() {
 	p.To = ""
 	p.fileInfoMap = map[string]*fileInfo{}
 }
 
-func (p *PatchManager) Active() bool {
+func (p *PatchBuilder) Active() bool {
 	return p.To != ""
 }
 
-func (p *PatchManager) IsEmpty() bool {
+func (p *PatchBuilder) IsEmpty() bool {
 	for _, fileInfo := range p.fileInfoMap {
 		if fileInfo.mode == WHOLE || (fileInfo.mode == PART && len(fileInfo.includedLineIndices) > 0) {
 			return false
@@ -283,11 +274,11 @@ func (p *PatchManager) IsEmpty() bool {
 }
 
 // if any of these things change we'll need to reset and start a new patch
-func (p *PatchManager) NewPatchRequired(from string, to string, reverse bool) bool {
+func (p *PatchBuilder) NewPatchRequired(from string, to string, reverse bool) bool {
 	return from != p.From || to != p.To || reverse != p.reverse
 }
 
-func (p *PatchManager) AllFilesInPatch() []string {
+func (p *PatchBuilder) AllFilesInPatch() []string {
 	files := make([]string, 0, len(p.fileInfoMap))
 
 	for filename := range p.fileInfoMap {

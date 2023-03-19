@@ -1,130 +1,67 @@
 package patch
 
-import (
-	"fmt"
-	"strings"
+import "fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/samber/lo"
-)
+// Example hunk:
+// @@ -16,2 +14,3 @@ func (f *CommitFile) Description() string {
+// 	return f.Name
+// -}
+// +
+// +// test
 
-type PatchHunk struct {
-	FirstLineIdx int
-	oldStart     int
-	newStart     int
-	heading      string
-	bodyLines    []string
+type Hunk struct {
+	// the line number of the first line in the old file ('16' in the above example)
+	oldStart int
+	// the line number of the first line in the new file ('14' in the above example)
+	newStart int
+	// the context at the end of the header line (' func (f *CommitFile) Description() string {' in the above example)
+	headerContext string
+	// the body of the hunk, excluding the header line
+	bodyLines []*PatchLine
 }
 
-func (hunk *PatchHunk) LastLineIdx() int {
-	return hunk.FirstLineIdx + len(hunk.bodyLines)
+// Returns the number of lines in the hunk in the original file ('2' in the above example)
+func (self *Hunk) oldLength() int {
+	return nLinesWithKind(self.bodyLines, []PatchLineKind{CONTEXT, DELETION})
 }
 
-func newHunk(lines []string, firstLineIdx int) *PatchHunk {
-	header := lines[0]
-	bodyLines := lines[1:]
-
-	oldStart, newStart, heading := headerInfo(header)
-
-	return &PatchHunk{
-		oldStart:     oldStart,
-		newStart:     newStart,
-		heading:      heading,
-		FirstLineIdx: firstLineIdx,
-		bodyLines:    bodyLines,
-	}
+// Returns the number of lines in the hunk in the new file ('3' in the above example)
+func (self *Hunk) newLength() int {
+	return nLinesWithKind(self.bodyLines, []PatchLineKind{CONTEXT, ADDITION})
 }
 
-func headerInfo(header string) (int, int, string) {
-	match := hunkHeaderRegexp.FindStringSubmatch(header)
-
-	oldStart := utils.MustConvertToInt(match[1])
-	newStart := utils.MustConvertToInt(match[2])
-	heading := match[3]
-
-	return oldStart, newStart, heading
+// Returns true if the hunk contains any changes (i.e. if it's not just a context hunk).
+// We'll end up with a context hunk if we're transforming a patch and one of the hunks
+// has no selected lines.
+func (self *Hunk) containsChanges() bool {
+	return nLinesWithKind(self.bodyLines, []PatchLineKind{ADDITION, DELETION}) > 0
 }
 
-func (hunk *PatchHunk) updatedLines(lineIndices []int, reverse bool) []string {
-	skippedNewlineMessageIndex := -1
-	newLines := []string{}
+// Returns the number of lines in the hunk, including the header line
+func (self *Hunk) lineCount() int {
+	return len(self.bodyLines) + 1
+}
 
-	lineIdx := hunk.FirstLineIdx
-	for _, line := range hunk.bodyLines {
-		lineIdx++ // incrementing at the start to skip the header line
-		if line == "" {
-			break
-		}
-		isLineSelected := lo.Contains(lineIndices, lineIdx)
+// Returns all lines in the hunk, including the header line
+func (self *Hunk) allLines() []*PatchLine {
+	lines := []*PatchLine{{Content: self.formatHeaderLine(), Kind: HUNK_HEADER}}
+	lines = append(lines, self.bodyLines...)
+	return lines
+}
 
-		firstChar, content := line[:1], line[1:]
-		transformedFirstChar := transformedFirstChar(firstChar, reverse, isLineSelected)
+// Returns the header line, including the unified diff header and the context
+func (self *Hunk) formatHeaderLine() string {
+	return fmt.Sprintf("%s%s", self.formatHeaderStart(), self.headerContext)
+}
 
-		if isLineSelected || (transformedFirstChar == "\\" && skippedNewlineMessageIndex != lineIdx) || transformedFirstChar == " " {
-			newLines = append(newLines, transformedFirstChar+content)
-			continue
-		}
-
-		if transformedFirstChar == "+" {
-			// we don't want to include the 'newline at end of file' line if it involves an addition we're not including
-			skippedNewlineMessageIndex = lineIdx + 1
-		}
+// Returns the first part of the header line i.e. the unified diff part (excluding any context)
+func (self *Hunk) formatHeaderStart() string {
+	newLengthDisplay := ""
+	newLength := self.newLength()
+	// if the new length is 1, it's omitted
+	if newLength != 1 {
+		newLengthDisplay = fmt.Sprintf(",%d", newLength)
 	}
 
-	return newLines
-}
-
-func transformedFirstChar(firstChar string, reverse bool, isLineSelected bool) string {
-	linesToKeepInPatchContext := "-"
-	if reverse {
-		linesToKeepInPatchContext = "+"
-	}
-	if !isLineSelected && firstChar == linesToKeepInPatchContext {
-		return " "
-	}
-
-	return firstChar
-}
-
-func (hunk *PatchHunk) formatHeader(oldStart int, oldLength int, newStart int, newLength int, heading string) string {
-	return fmt.Sprintf("@@ -%d,%d +%d,%d @@%s\n", oldStart, oldLength, newStart, newLength, heading)
-}
-
-func (hunk *PatchHunk) formatWithChanges(lineIndices []int, reverse bool, startOffset int) (int, string) {
-	bodyLines := hunk.updatedLines(lineIndices, reverse)
-	startOffset, header, ok := hunk.updatedHeader(bodyLines, startOffset)
-	if !ok {
-		return startOffset, ""
-	}
-	return startOffset, header + strings.Join(bodyLines, "")
-}
-
-func (hunk *PatchHunk) updatedHeader(newBodyLines []string, startOffset int) (int, string, bool) {
-	changeCount := nLinesWithPrefix(newBodyLines, []string{"+", "-"})
-	oldLength := nLinesWithPrefix(newBodyLines, []string{" ", "-"})
-	newLength := nLinesWithPrefix(newBodyLines, []string{"+", " "})
-
-	if changeCount == 0 {
-		// if nothing has changed we just return nothing
-		return startOffset, "", false
-	}
-
-	oldStart := hunk.oldStart
-
-	var newStartOffset int
-	// if the hunk went from zero to positive length, we need to increment the starting point by one
-	// if the hunk went from positive to zero length, we need to decrement the starting point by one
-	if oldLength == 0 {
-		newStartOffset = 1
-	} else if newLength == 0 {
-		newStartOffset = -1
-	} else {
-		newStartOffset = 0
-	}
-
-	newStart := oldStart + startOffset + newStartOffset
-
-	newStartOffset = startOffset + newLength - oldLength
-	formattedHeader := hunk.formatHeader(oldStart, oldLength, newStart, newLength, hunk.heading)
-	return newStartOffset, formattedHeader, true
+	return fmt.Sprintf("@@ -%d,%d +%d%s @@", self.oldStart, self.oldLength(), self.newStart, newLengthDisplay)
 }

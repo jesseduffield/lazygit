@@ -653,7 +653,7 @@ func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 		selectedLineIdx = opts.ClickedViewLineIdx
 	}
 
-	if !gui.git.Patch.PatchManager.Active() {
+	if !gui.git.Patch.PatchBuilder.Active() {
 		return gui.helpers.PatchBuilding.Escape()
 	}
 
@@ -672,7 +672,7 @@ func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {
 		return err
 	}
 
-	secondaryDiff := gui.git.Patch.PatchManager.RenderPatchForFile(path, false, false)
+	secondaryDiff := gui.git.Patch.PatchBuilder.RenderPatchForFile(path, false, false)
 	if err != nil {
 		return err
 	}

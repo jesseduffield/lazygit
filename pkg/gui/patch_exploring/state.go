@@ -1,6 +1,7 @@
 package patch_exploring
 
 import (
+	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/sirupsen/logrus"
 )
@@ -12,7 +13,7 @@ type State struct {
 	selectedLineIdx   int
 	rangeStartLineIdx int
 	diff              string
-	patchParser       *patch.PatchParser
+	patch             *patch.Patch
 	selectMode        selectMode
 }
 
@@ -33,9 +34,9 @@ func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Ent
 		return oldState
 	}
 
-	patchParser := patch.NewPatchParser(log, diff)
+	patch := patch.Parse(diff)
 
-	if len(patchParser.StageableLines) == 0 {
+	if !patch.ContainsChanges() {
 		return nil
 	}
 
@@ -54,13 +55,13 @@ func NewState(diff string, selectedLineIdx int, oldState *State, log *logrus.Ent
 		if oldState.selectMode == HUNK {
 			selectMode = HUNK
 		}
-		selectedLineIdx = patchParser.GetNextStageableLineIndex(oldState.selectedLineIdx)
+		selectedLineIdx = patch.GetNextChangeIdx(oldState.selectedLineIdx)
 	} else {
-		selectedLineIdx = patchParser.StageableLines[0]
+		selectedLineIdx = patch.GetNextChangeIdx(0)
 	}
 
 	return &State{
-		patchParser:       patchParser,
+		patch:             patch,
 		selectedLineIdx:   selectedLineIdx,
 		selectMode:        selectMode,
 		rangeStartLineIdx: rangeStartLineIdx,
@@ -112,8 +113,8 @@ func (s *State) SetLineSelectMode() {
 func (s *State) SelectLine(newSelectedLineIdx int) {
 	if newSelectedLineIdx < 0 {
 		newSelectedLineIdx = 0
-	} else if newSelectedLineIdx > len(s.patchParser.PatchLines)-1 {
-		newSelectedLineIdx = len(s.patchParser.PatchLines) - 1
+	} else if newSelectedLineIdx > s.patch.LineCount()-1 {
+		newSelectedLineIdx = s.patch.LineCount() - 1
 	}
 
 	s.selectedLineIdx = newSelectedLineIdx
@@ -141,8 +142,9 @@ func (s *State) CycleHunk(forward bool) {
 		change = -1
 	}
 
-	newHunk := s.patchParser.GetHunkContainingLine(s.selectedLineIdx, change)
-	s.selectedLineIdx = s.patchParser.GetNextStageableLineIndex(newHunk.FirstLineIdx)
+	hunkIdx := s.patch.HunkContainingLine(s.selectedLineIdx)
+	start := s.patch.HunkStartIdx(hunkIdx + change)
+	s.selectedLineIdx = s.patch.GetNextChangeIdx(start)
 }
 
 func (s *State) CycleLine(forward bool) {
@@ -154,15 +156,18 @@ func (s *State) CycleLine(forward bool) {
 	s.SelectLine(s.selectedLineIdx + change)
 }
 
-func (s *State) CurrentHunk() *patch.PatchHunk {
-	return s.patchParser.GetHunkContainingLine(s.selectedLineIdx, 0)
+// returns first and last patch line index of current hunk
+func (s *State) CurrentHunkBounds() (int, int) {
+	hunkIdx := s.patch.HunkContainingLine(s.selectedLineIdx)
+	start := s.patch.HunkStartIdx(hunkIdx)
+	end := s.patch.HunkEndIdx(hunkIdx)
+	return start, end
 }
 
 func (s *State) SelectedRange() (int, int) {
 	switch s.selectMode {
 	case HUNK:
-		hunk := s.CurrentHunk()
-		return hunk.FirstLineIdx, hunk.LastLineIdx()
+		return s.CurrentHunkBounds()
 	case RANGE:
 		if s.rangeStartLineIdx > s.selectedLineIdx {
 			return s.selectedLineIdx, s.rangeStartLineIdx
@@ -178,7 +183,7 @@ func (s *State) SelectedRange() (int, int) {
 }
 
 func (s *State) CurrentLineNumber() int {
-	return s.CurrentHunk().LineNumberOfLine(s.selectedLineIdx)
+	return s.patch.LineNumberOfLine(s.selectedLineIdx)
 }
 
 func (s *State) AdjustSelectedLineIdx(change int) {
@@ -187,17 +192,23 @@ func (s *State) AdjustSelectedLineIdx(change int) {
 
 func (s *State) RenderForLineIndices(isFocused bool, includedLineIndices []int) string {
 	firstLineIdx, lastLineIdx := s.SelectedRange()
-	return s.patchParser.Render(isFocused, firstLineIdx, lastLineIdx, includedLineIndices)
+	includedLineIndicesSet := set.NewFromSlice(includedLineIndices)
+	return s.patch.FormatView(patch.FormatViewOpts{
+		IsFocused:      isFocused,
+		FirstLineIndex: firstLineIdx,
+		LastLineIndex:  lastLineIdx,
+		IncLineIndices: includedLineIndicesSet,
+	})
 }
 
 func (s *State) PlainRenderSelected() string {
 	firstLineIdx, lastLineIdx := s.SelectedRange()
-	return s.patchParser.RenderLinesPlain(firstLineIdx, lastLineIdx)
+	return s.patch.FormatRangePlain(firstLineIdx, lastLineIdx)
 }
 
 func (s *State) SelectBottom() {
 	s.SetLineSelectMode()
-	s.SelectLine(len(s.patchParser.PatchLines) - 1)
+	s.SelectLine(s.patch.LineCount() - 1)
 }
 
 func (s *State) SelectTop() {

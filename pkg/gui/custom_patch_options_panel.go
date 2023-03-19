@@ -8,7 +8,7 @@ import (
 )
 
 func (gui *Gui) handleCreatePatchOptionsMenu() error {
-	if !gui.git.Patch.PatchManager.Active() {
+	if !gui.git.Patch.PatchBuilder.Active() {
 		return gui.c.ErrorMsg(gui.c.Tr.NoPatchError)
 	}
 
@@ -30,10 +30,10 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 		},
 	}
 
-	if gui.git.Patch.PatchManager.CanRebase && gui.git.Status.WorkingTreeState() == enums.REBASE_MODE_NONE {
+	if gui.git.Patch.PatchBuilder.CanRebase && gui.git.Status.WorkingTreeState() == enums.REBASE_MODE_NONE {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				Label:   fmt.Sprintf("remove patch from original commit (%s)", gui.git.Patch.PatchManager.To),
+				Label:   fmt.Sprintf("remove patch from original commit (%s)", gui.git.Patch.PatchBuilder.To),
 				OnPress: gui.handleDeletePatchFromCommit,
 				Key:     'd',
 			},
@@ -51,7 +51,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 
 		if gui.currentContext().GetKey() == gui.State.Contexts.LocalCommits.GetKey() {
 			selectedCommit := gui.getSelectedLocalCommit()
-			if selectedCommit != nil && gui.git.Patch.PatchManager.To != selectedCommit.Sha {
+			if selectedCommit != nil && gui.git.Patch.PatchBuilder.To != selectedCommit.Sha {
 				// adding this option to index 1
 				menuItems = append(
 					menuItems[:1],
@@ -82,7 +82,7 @@ func (gui *Gui) handleCreatePatchOptionsMenu() error {
 
 func (gui *Gui) getPatchCommitIndex() int {
 	for index, commit := range gui.State.Model.Commits {
-		if commit.Sha == gui.git.Patch.PatchManager.To {
+		if commit.Sha == gui.git.Patch.PatchBuilder.To {
 			return index
 		}
 	}
@@ -195,14 +195,14 @@ func (gui *Gui) handleApplyPatch(reverse bool) error {
 		action = "Apply patch in reverse"
 	}
 	gui.c.LogAction(action)
-	if err := gui.git.Patch.PatchManager.ApplyPatches(reverse); err != nil {
+	if err := gui.git.Patch.PatchBuilder.ApplyPatches(reverse); err != nil {
 		return gui.c.Error(err)
 	}
 	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (gui *Gui) copyPatchToClipboard() error {
-	patch := gui.git.Patch.PatchManager.RenderAggregatedPatchColored(true)
+	patch := gui.git.Patch.PatchBuilder.RenderAggregatedPatch(true)
 
 	gui.c.LogAction(gui.c.Tr.Actions.CopyPatchToClipboard)
 	if err := gui.os.CopyToClipboard(patch); err != nil {

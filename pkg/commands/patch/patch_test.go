@@ -1,8 +1,6 @@
 package patch
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -112,8 +110,7 @@ const exampleHunk = `@@ -1,5 +1,5 @@
 ...
 `
 
-// TestModifyPatchForRange is a function.
-func TestModifyPatchForRange(t *testing.T) {
+func TestTransform(t *testing.T) {
 	type scenario struct {
 		testName       string
 		filename       string
@@ -431,7 +428,7 @@ func TestModifyPatchForRange(t *testing.T) {
 			diffText:       addNewlineToPreviouslyEmptyFile,
 			expected: `--- a/newfile
 +++ b/newfile
-@@ -0,0 +1,1 @@
+@@ -0,0 +1 @@
 +new line
 \ No newline at end of file
 `,
@@ -445,7 +442,7 @@ func TestModifyPatchForRange(t *testing.T) {
 			reverse:        true,
 			expected: `--- a/newfile
 +++ b/newfile
-@@ -0,0 +1,1 @@
+@@ -0,0 +1 @@
 +new line
 \ No newline at end of file
 `,
@@ -491,41 +488,128 @@ func TestModifyPatchForRange(t *testing.T) {
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
-			result := ModifiedPatchForRange(nil, s.filename, s.diffText, s.firstLineIndex, s.lastLineIndex,
-				PatchOptions{
-					Reverse:            s.reverse,
-					KeepOriginalHeader: false,
-				})
-			if !assert.Equal(t, s.expected, result) {
-				fmt.Println(result)
-			}
+			lineIndices := ExpandRange(s.firstLineIndex, s.lastLineIndex)
+
+			result := Parse(s.diffText).
+				Transform(TransformOpts{
+					Reverse:             s.reverse,
+					FileNameOverride:    s.filename,
+					IncludedLineIndices: lineIndices,
+				}).
+				FormatPlain()
+
+			assert.Equal(t, s.expected, result)
 		})
 	}
 }
 
-func TestLineNumberOfLine(t *testing.T) {
-	type scenario struct {
+func TestParseAndFormatPlain(t *testing.T) {
+	scenarios := []struct {
 		testName string
-		hunk     *PatchHunk
-		idx      int
-		expected int
-	}
-
-	scenarios := []scenario{
+		patchStr string
+	}{
 		{
-			testName: "nothing selected",
-			hunk:     newHunk(strings.SplitAfter(exampleHunk, "\n"), 10),
-			idx:      15,
-			expected: 3,
+			testName: "simpleDiff",
+			patchStr: simpleDiff,
+		},
+		{
+			testName: "addNewlineToEndOfFile",
+			patchStr: addNewlineToEndOfFile,
+		},
+		{
+			testName: "removeNewlinefromEndOfFile",
+			patchStr: removeNewlinefromEndOfFile,
+		},
+		{
+			testName: "twoHunks",
+			patchStr: twoHunks,
+		},
+		{
+			testName: "twoChangesInOneHunk",
+			patchStr: twoChangesInOneHunk,
+		},
+		{
+			testName: "newFile",
+			patchStr: newFile,
+		},
+		{
+			testName: "addNewlineToPreviouslyEmptyFile",
+			patchStr: addNewlineToPreviouslyEmptyFile,
+		},
+		{
+			testName: "exampleHunk",
+			patchStr: exampleHunk,
 		},
 	}
 
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
-			result := s.hunk.LineNumberOfLine(s.idx)
-			if !assert.Equal(t, s.expected, result) {
-				fmt.Println(result)
+			// here we parse the patch, then format it, and ensure the result
+			// matches the original patch. Note that unified diffs allow omitting
+			// the new length in a hunk header if the value is 1, and currently we always
+			// omit the new length in such cases.
+			patch := Parse(s.patchStr)
+			result := formatPlain(patch)
+			assert.Equal(t, s.patchStr, result)
+		})
+	}
+}
+
+func TestLineNumberOfLine(t *testing.T) {
+	type scenario struct {
+		testName  string
+		patchStr  string
+		indexes   []int
+		expecteds []int
+	}
+
+	scenarios := []scenario{
+		{
+			testName: "twoHunks",
+			patchStr: twoHunks,
+			// this is really more of a characteristic test than anything.
+			indexes:   []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 1000},
+			expecteds: []int{1, 1, 1, 1, 1, 1, 2, 2, 3, 4, 5, 8, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 15, 15},
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			for i, idx := range s.indexes {
+				patch := Parse(s.patchStr)
+				result := patch.LineNumberOfLine(idx)
+				assert.Equal(t, s.expecteds[i], result)
+			}
+		})
+	}
+}
+
+func TestGetNextStageableLineIndex(t *testing.T) {
+	type scenario struct {
+		testName  string
+		patchStr  string
+		indexes   []int
+		expecteds []int
+	}
+
+	scenarios := []scenario{
+		{
+			testName:  "twoHunks",
+			patchStr:  twoHunks,
+			indexes:   []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 1000},
+			expecteds: []int{6, 6, 6, 6, 6, 6, 6, 7, 15, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16, 16},
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			for i, idx := range s.indexes {
+				patch := Parse(s.patchStr)
+				result := patch.GetNextChangeIdx(idx)
+				assert.Equal(t, s.expecteds[i], result)
 			}
 		})
 	}

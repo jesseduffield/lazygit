@@ -157,8 +157,8 @@ func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
 func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode) error {
 	toggle := func() error {
 		return self.c.WithWaitingStatus(self.c.Tr.LcUpdatingPatch, func() error {
-			if !self.git.Patch.PatchManager.Active() {
-				if err := self.startPatchManager(); err != nil {
+			if !self.git.Patch.PatchBuilder.Active() {
+				if err := self.startPatchBuilder(); err != nil {
 					return err
 				}
 			}
@@ -166,34 +166,34 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 			// if there is any file that hasn't been fully added we'll fully add everything,
 			// otherwise we'll remove everything
 			adding := node.SomeFile(func(file *models.CommitFile) bool {
-				return self.git.Patch.PatchManager.GetFileStatus(file.Name, self.context().GetRef().RefName()) != patch.WHOLE
+				return self.git.Patch.PatchBuilder.GetFileStatus(file.Name, self.context().GetRef().RefName()) != patch.WHOLE
 			})
 
 			err := node.ForEachFile(func(file *models.CommitFile) error {
 				if adding {
-					return self.git.Patch.PatchManager.AddFileWhole(file.Name)
+					return self.git.Patch.PatchBuilder.AddFileWhole(file.Name)
 				} else {
-					return self.git.Patch.PatchManager.RemoveFile(file.Name)
+					return self.git.Patch.PatchBuilder.RemoveFile(file.Name)
 				}
 			})
 			if err != nil {
 				return self.c.Error(err)
 			}
 
-			if self.git.Patch.PatchManager.IsEmpty() {
-				self.git.Patch.PatchManager.Reset()
+			if self.git.Patch.PatchBuilder.IsEmpty() {
+				self.git.Patch.PatchBuilder.Reset()
 			}
 
 			return self.c.PostRefreshUpdate(self.context())
 		})
 	}
 
-	if self.git.Patch.PatchManager.Active() && self.git.Patch.PatchManager.To != self.context().GetRef().RefName() {
+	if self.git.Patch.PatchBuilder.Active() && self.git.Patch.PatchBuilder.To != self.context().GetRef().RefName() {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {
-				self.git.Patch.PatchManager.Reset()
+				self.git.Patch.PatchBuilder.Reset()
 				return toggle()
 			},
 		})
@@ -207,7 +207,7 @@ func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode)
 	return self.toggleForPatch(root)
 }
 
-func (self *CommitFilesController) startPatchManager() error {
+func (self *CommitFilesController) startPatchBuilder() error {
 	commitFilesContext := self.context()
 
 	canRebase := commitFilesContext.GetCanRebase()
@@ -215,7 +215,7 @@ func (self *CommitFilesController) startPatchManager() error {
 	to := ref.RefName()
 	from, reverse := self.modes.Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
 
-	self.git.Patch.PatchManager.Start(from, to, reverse, canRebase)
+	self.git.Patch.PatchBuilder.Start(from, to, reverse, canRebase)
 	return nil
 }
 
@@ -229,8 +229,8 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 	}
 
 	enterTheFile := func() error {
-		if !self.git.Patch.PatchManager.Active() {
-			if err := self.startPatchManager(); err != nil {
+		if !self.git.Patch.PatchBuilder.Active() {
+			if err := self.startPatchBuilder(); err != nil {
 				return err
 			}
 		}
@@ -238,12 +238,12 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 		return self.c.PushContext(self.contexts.CustomPatchBuilder, opts)
 	}
 
-	if self.git.Patch.PatchManager.Active() && self.git.Patch.PatchManager.To != self.context().GetRef().RefName() {
+	if self.git.Patch.PatchBuilder.Active() && self.git.Patch.PatchBuilder.To != self.context().GetRef().RefName() {
 		return self.c.Confirm(types.ConfirmOpts{
 			Title:  self.c.Tr.DiscardPatch,
 			Prompt: self.c.Tr.DiscardPatchConfirm,
 			HandleConfirm: func() error {
-				self.git.Patch.PatchManager.Reset()
+				self.git.Patch.PatchBuilder.Reset()
 				return enterTheFile()
 			},
 		})

@@ -43,7 +43,7 @@ func (self *PatchBuildingHelper) Escape() error {
 
 // kills the custom patch and returns us back to the commit files panel if needed
 func (self *PatchBuildingHelper) Reset() error {
-	self.git.Patch.PatchManager.Reset()
+	self.git.Patch.PatchBuilder.Reset()
 
 	if self.c.CurrentStaticContext().GetKind() != types.SIDE_CONTEXT {
 		if err := self.Escape(); err != nil {
