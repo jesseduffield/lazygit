@@ -452,6 +452,10 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 	}
 
+	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
+	}
+
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
