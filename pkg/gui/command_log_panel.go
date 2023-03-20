@@ -191,7 +191,7 @@ func (gui *Gui) getRandomTip() string {
 		),
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	randomIndex := rand.Intn(len(tips))
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	randomIndex := rnd.Intn(len(tips))
 	return tips[randomIndex]
 }
