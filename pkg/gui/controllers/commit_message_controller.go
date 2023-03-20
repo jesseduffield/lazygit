@@ -41,10 +41,6 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 			Key:     opts.GetKey(opts.Config.Universal.Return),
 			Handler: self.close,
 		},
-		{
-			Key:     opts.GetKey(opts.Config.Universal.ReturnAlt1),
-			Handler: self.close,
-		},
 	}
 
 	return bindings

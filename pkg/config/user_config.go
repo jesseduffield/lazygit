@@ -138,7 +138,6 @@ type KeybindingUniversalConfig struct {
 	Quit                         string   `yaml:"quit"`
 	QuitAlt1                     string   `yaml:"quit-alt1"`
 	Return                       string   `yaml:"return"`
-	ReturnAlt1                   string   `yaml:"return-alt1"`
 	QuitWithoutChangingDirectory string   `yaml:"quitWithoutChangingDirectory"`
 	TogglePanel                  string   `yaml:"togglePanel"`
 	PrevItem                     string   `yaml:"prevItem"`
@@ -166,7 +165,6 @@ type KeybindingUniversalConfig struct {
 	Select                       string   `yaml:"select"`
 	GoInto                       string   `yaml:"goInto"`
 	Confirm                      string   `yaml:"confirm"`
-	ConfirmAlt1                  string   `yaml:"confirm-alt1"`
 	Remove                       string   `yaml:"remove"`
 	New                          string   `yaml:"new"`
 	Edit                         string   `yaml:"edit"`
@@ -429,7 +427,6 @@ func GetDefaultConfig() *UserConfig {
 				Quit:                         "q",
 				QuitAlt1:                     "<c-c>",
 				Return:                       "<esc>",
-				ReturnAlt1:                   "",
 				QuitWithoutChangingDirectory: "Q",
 				TogglePanel:                  "<tab>",
 				PrevItem:                     "<up>",
@@ -457,7 +454,6 @@ func GetDefaultConfig() *UserConfig {
 				Select:                       "<space>",
 				GoInto:                       "<enter>",
 				Confirm:                      "<enter>",
-				ConfirmAlt1:                  "y",
 				Remove:                       "d",
 				New:                          "n",
 				Edit:                         "e",

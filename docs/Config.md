@@ -116,8 +116,6 @@ keybinding:
     quit: 'q'
     quit-alt1: '<c-c>' # alternative/alias of quit
     return: '<esc>' # return to previous menu, will quit if there's nowhere to return
-    # When set to a printable character, this will work for returning from non-prompt panels
-    return-alt1: null
     quitWithoutChangingDirectory: 'Q'
     togglePanel: '<tab>' # goto the next panel
     prevItem: '<up>' # go one line up
@@ -143,7 +141,6 @@ keybinding:
     goInto: '<enter>'
     openRecentRepos: '<c-r>'
     confirm: '<enter>'
-    confirm-alt1: 'y'
     remove: 'd'
     new: 'n'
     edit: 'e'
