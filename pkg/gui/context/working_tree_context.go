@@ -32,7 +32,7 @@ func NewWorkingTreeContext(
 				Key:        FILES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
-			}), ContextCallbackOpts{}),
+			})),
 			list:              viewModel,
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,

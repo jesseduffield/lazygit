@@ -34,7 +34,7 @@ func NewRemotesContext(
 				Key:        REMOTES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
-			}), ContextCallbackOpts{}),
+			})),
 			list:              viewModel,
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,

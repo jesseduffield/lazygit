@@ -29,7 +29,7 @@ func NewMenuContext(
 				Kind:                  types.TEMPORARY_POPUP,
 				Focusable:             true,
 				HasUncontrolledBounds: true,
-			}), ContextCallbackOpts{}),
+			})),
 			getDisplayStrings: viewModel.GetDisplayStrings,
 			list:              viewModel,
 			c:                 c,

@@ -27,8 +27,6 @@ type ConflictsViewModel struct {
 func NewMergeConflictsContext(
 	view *gocui.View,
 
-	opts ContextCallbackOpts,
-
 	c *types.HelperCommon,
 ) *MergeConflictsContext {
 	viewModel := &ConflictsViewModel{
@@ -48,7 +46,6 @@ func NewMergeConflictsContext(
 				Focusable:        true,
 				HighlightOnFocus: true,
 			}),
-			opts,
 		),
 		c: c,
 	}

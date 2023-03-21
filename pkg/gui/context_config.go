@@ -17,7 +17,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Focusable:             false,
 				HasUncontrolledBounds: true, // setting to true because the global context doesn't even have a view
 			}),
-			context.ContextCallbackOpts{},
 		),
 		Status: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
@@ -27,7 +26,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.STATUS_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			context.ContextCallbackOpts{},
 		),
 		Snake: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
@@ -37,7 +35,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.SNAKE_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			context.ContextCallbackOpts{},
 		),
 		Files:          gui.filesListContext(),
 		Submodules:     gui.submodulesListContext(),
@@ -60,7 +57,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.NORMAL_MAIN_CONTEXT_KEY,
 				Focusable:  false,
 			}),
-			context.ContextCallbackOpts{},
 		),
 		NormalSecondary: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
@@ -70,7 +66,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.NORMAL_SECONDARY_CONTEXT_KEY,
 				Focusable:  false,
 			}),
-			context.ContextCallbackOpts{},
 		),
 		Staging: context.NewPatchExplorerContext(
 			gui.Views.Staging,
@@ -110,11 +105,9 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.PATCH_BUILDING_SECONDARY_CONTEXT_KEY,
 				Focusable:  false,
 			}),
-			context.ContextCallbackOpts{},
 		),
 		MergeConflicts: context.NewMergeConflictsContext(
 			gui.Views.MergeConflicts,
-			context.ContextCallbackOpts{},
 			gui.c,
 		),
 		Confirmation:  context.NewConfirmationContext(gui.c),
@@ -127,7 +120,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.SEARCH_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			context.ContextCallbackOpts{},
 		),
 		CommandLog: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
@@ -137,7 +129,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.COMMAND_LOG_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			context.ContextCallbackOpts{},
 		),
 		Options:      context.NewDisplayContext(context.OPTIONS_CONTEXT_KEY, gui.Views.Options, "options"),
 		AppStatus:    context.NewDisplayContext(context.APP_STATUS_CONTEXT_KEY, gui.Views.AppStatus, "appStatus"),

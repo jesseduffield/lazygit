@@ -29,7 +29,6 @@ func NewCommitMessageContext(
 				Focusable:             true,
 				HasUncontrolledBounds: true,
 			}),
-			ContextCallbackOpts{},
 		),
 	}
 }

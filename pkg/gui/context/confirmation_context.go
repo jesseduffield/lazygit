@@ -30,6 +30,6 @@ func NewConfirmationContext(
 			Kind:                  types.TEMPORARY_POPUP,
 			Focusable:             true,
 			HasUncontrolledBounds: true,
-		}), ContextCallbackOpts{}),
+		})),
 	}
 }

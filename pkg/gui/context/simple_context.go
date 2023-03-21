@@ -6,18 +6,11 @@ import (
 )
 
 type SimpleContext struct {
-	OnRender func() error
-
 	*BaseContext
 }
 
-type ContextCallbackOpts struct {
-	OnRender func() error
-}
-
-func NewSimpleContext(baseContext *BaseContext, opts ContextCallbackOpts) *SimpleContext {
+func NewSimpleContext(baseContext *BaseContext) *SimpleContext {
 	return &SimpleContext{
-		OnRender:    opts.OnRender,
 		BaseContext: baseContext,
 	}
 }
@@ -35,7 +28,6 @@ func NewDisplayContext(key types.ContextKey, view *gocui.View, windowName string
 			Focusable:  false,
 			Transient:  false,
 		}),
-		ContextCallbackOpts{},
 	)
 }
 
@@ -67,9 +59,6 @@ func (self *SimpleContext) HandleFocusLost(opts types.OnFocusLostOpts) error {
 }
 
 func (self *SimpleContext) HandleRender() error {
-	if self.OnRender != nil {
-		return self.OnRender()
-	}
 	return nil
 }
 

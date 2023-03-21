@@ -53,7 +53,7 @@ func NewSuggestionsContext(
 				Kind:                  types.PERSISTENT_POPUP,
 				Focusable:             true,
 				HasUncontrolledBounds: true,
-			}), ContextCallbackOpts{}),
+			})),
 			list:              viewModel,
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,

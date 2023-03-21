@@ -40,7 +40,7 @@ func NewCommitFilesContext(
 					Focusable:  true,
 					Transient:  true,
 				}),
-				ContextCallbackOpts{}),
+			),
 			list:              viewModel,
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,

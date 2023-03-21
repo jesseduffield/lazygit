@@ -41,7 +41,7 @@ func NewPatchExplorerContext(
 			Kind:             types.MAIN_CONTEXT,
 			Focusable:        true,
 			HighlightOnFocus: true,
-		}), ContextCallbackOpts{}),
+		})),
 	}
 }
 
