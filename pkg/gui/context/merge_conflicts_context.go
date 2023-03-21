@@ -3,7 +3,6 @@ package context
 import (
 	"math"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/sasha-s/go-deadlock"
@@ -25,8 +24,6 @@ type ConflictsViewModel struct {
 }
 
 func NewMergeConflictsContext(
-	view *gocui.View,
-
 	c *types.HelperCommon,
 ) *MergeConflictsContext {
 	viewModel := &ConflictsViewModel{
@@ -40,7 +37,7 @@ func NewMergeConflictsContext(
 		Context: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{
 				Kind:             types.MAIN_CONTEXT,
-				View:             view,
+				View:             c.Views().MergeConflicts,
 				WindowName:       "main",
 				Key:              MERGE_CONFLICTS_CONTEXT_KEY,
 				Focusable:        true,

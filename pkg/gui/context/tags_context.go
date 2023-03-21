@@ -1,7 +1,6 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -18,7 +17,6 @@ var (
 
 func NewTagsContext(
 	getModel func() []*models.Tag,
-	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
@@ -29,7 +27,7 @@ func NewTagsContext(
 		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       view,
+				View:       c.Views().Tags,
 				WindowName: "branches",
 				Key:        TAGS_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,

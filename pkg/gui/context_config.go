@@ -107,7 +107,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			}),
 		),
 		MergeConflicts: context.NewMergeConflictsContext(
-			gui.Views.MergeConflicts,
 			gui.c,
 		),
 		Confirmation:  context.NewConfirmationContext(gui.c),

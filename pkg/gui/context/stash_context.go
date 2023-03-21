@@ -1,7 +1,6 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -18,7 +17,6 @@ var (
 
 func NewStashContext(
 	getModel func() []*models.StashEntry,
-	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
@@ -29,7 +27,7 @@ func NewStashContext(
 		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       view,
+				View:       c.Views().Stash,
 				WindowName: "stash",
 				Key:        STASH_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,

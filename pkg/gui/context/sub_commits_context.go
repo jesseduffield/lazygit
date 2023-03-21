@@ -3,7 +3,6 @@ package context
 import (
 	"fmt"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -22,7 +21,6 @@ var (
 
 func NewSubCommitsContext(
 	getModel func() []*models.Commit,
-	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
@@ -39,7 +37,7 @@ func NewSubCommitsContext(
 		ViewportListContextTrait: &ViewportListContextTrait{
 			ListContextTrait: &ListContextTrait{
 				Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-					View:       view,
+					View:       c.Views().SubCommits,
 					WindowName: "branches",
 					Key:        SUB_COMMITS_CONTEXT_KEY,
 					Kind:       types.SIDE_CONTEXT,

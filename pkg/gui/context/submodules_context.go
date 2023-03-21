@@ -1,7 +1,6 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -15,7 +14,6 @@ var _ types.IListContext = (*SubmodulesContext)(nil)
 
 func NewSubmodulesContext(
 	getModel func() []*models.SubmoduleConfig,
-	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
@@ -26,7 +24,7 @@ func NewSubmodulesContext(
 		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       view,
+				View:       c.Views().Submodules,
 				WindowName: "files",
 				Key:        SUBMODULES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,

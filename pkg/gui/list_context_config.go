@@ -20,7 +20,6 @@ func (gui *Gui) menuListContext() *context.MenuContext {
 func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 	return context.NewWorkingTreeContext(
 		func() []*models.File { return gui.State.Model.Files },
-		gui.Views.Files,
 		func(startIdx int, length int) [][]string {
 			lines := presentation.RenderFileTree(gui.State.Contexts.Files.FileTreeViewModel, gui.State.Modes.Diffing.Ref, gui.State.Model.Submodules)
 			return slices.Map(lines, func(line string) []string {
@@ -34,7 +33,6 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 func (gui *Gui) branchesListContext() *context.BranchesContext {
 	return context.NewBranchesContext(
 		func() []*models.Branch { return gui.State.Model.Branches },
-		gui.Views.Branches,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetBranchListDisplayStrings(gui.State.Model.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref, gui.Tr)
 		},
@@ -45,7 +43,6 @@ func (gui *Gui) branchesListContext() *context.BranchesContext {
 func (gui *Gui) remotesListContext() *context.RemotesContext {
 	return context.NewRemotesContext(
 		func() []*models.Remote { return gui.State.Model.Remotes },
-		gui.Views.Remotes,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetRemoteListDisplayStrings(gui.State.Model.Remotes, gui.State.Modes.Diffing.Ref)
 		},
@@ -56,7 +53,6 @@ func (gui *Gui) remotesListContext() *context.RemotesContext {
 func (gui *Gui) remoteBranchesListContext() *context.RemoteBranchesContext {
 	return context.NewRemoteBranchesContext(
 		func() []*models.RemoteBranch { return gui.State.Model.RemoteBranches },
-		gui.Views.RemoteBranches,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetRemoteBranchListDisplayStrings(gui.State.Model.RemoteBranches, gui.State.Modes.Diffing.Ref)
 		},
@@ -77,7 +73,6 @@ func (gui *Gui) withDiffModeCheck(f func() error) func() error {
 func (gui *Gui) tagsListContext() *context.TagsContext {
 	return context.NewTagsContext(
 		func() []*models.Tag { return gui.State.Model.Tags },
-		gui.Views.Tags,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetTagListDisplayStrings(gui.State.Model.Tags, gui.State.Modes.Diffing.Ref)
 		},
@@ -88,7 +83,6 @@ func (gui *Gui) tagsListContext() *context.TagsContext {
 func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 	return context.NewLocalCommitsContext(
 		func() []*models.Commit { return gui.State.Model.Commits },
-		gui.Views.Commits,
 		func(startIdx int, length int) [][]string {
 			selectedCommitSha := ""
 			if gui.c.CurrentContext().GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
@@ -123,7 +117,6 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 	return context.NewSubCommitsContext(
 		func() []*models.Commit { return gui.State.Model.SubCommits },
-		gui.Views.SubCommits,
 		func(startIdx int, length int) [][]string {
 			selectedCommitSha := ""
 			if gui.c.CurrentContext().GetKey() == context.SUB_COMMITS_CONTEXT_KEY {
@@ -174,7 +167,6 @@ func (gui *Gui) shouldShowGraph() bool {
 func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 	return context.NewReflogCommitsContext(
 		func() []*models.Commit { return gui.State.Model.FilteredReflogCommits },
-		gui.Views.ReflogCommits,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetReflogCommitListDisplayStrings(
 				gui.State.Model.FilteredReflogCommits,
@@ -192,7 +184,6 @@ func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 func (gui *Gui) stashListContext() *context.StashContext {
 	return context.NewStashContext(
 		func() []*models.StashEntry { return gui.State.Model.StashEntries },
-		gui.Views.Stash,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetStashEntryListDisplayStrings(gui.State.Model.StashEntries, gui.State.Modes.Diffing.Ref)
 		},
@@ -203,7 +194,6 @@ func (gui *Gui) stashListContext() *context.StashContext {
 func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 	return context.NewCommitFilesContext(
 		func() []*models.CommitFile { return gui.State.Model.CommitFiles },
-		gui.Views.CommitFiles,
 		func(startIdx int, length int) [][]string {
 			if gui.State.Contexts.CommitFiles.CommitFileTreeViewModel.Len() == 0 {
 				return [][]string{{style.FgRed.Sprint("(none)")}}
@@ -221,7 +211,6 @@ func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
 func (gui *Gui) submodulesListContext() *context.SubmodulesContext {
 	return context.NewSubmodulesContext(
 		func() []*models.SubmoduleConfig { return gui.State.Model.Submodules },
-		gui.Views.Submodules,
 		func(startIdx int, length int) [][]string {
 			return presentation.GetSubmoduleListDisplayStrings(gui.State.Model.Submodules)
 		},

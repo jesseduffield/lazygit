@@ -1,7 +1,6 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -20,7 +19,6 @@ var (
 
 func NewCommitFilesContext(
 	getModel func() []*models.CommitFile,
-	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
@@ -33,7 +31,7 @@ func NewCommitFilesContext(
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(
 				NewBaseContext(NewBaseContextOpts{
-					View:       view,
+					View:       c.Views().CommitFiles,
 					WindowName: "commits",
 					Key:        COMMIT_FILES_CONTEXT_KEY,
 					Kind:       types.SIDE_CONTEXT,

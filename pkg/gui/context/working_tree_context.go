@@ -1,7 +1,6 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -16,7 +15,6 @@ var _ types.IListContext = (*WorkingTreeContext)(nil)
 
 func NewWorkingTreeContext(
 	getModel func() []*models.File,
-	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
@@ -27,7 +25,7 @@ func NewWorkingTreeContext(
 		FileTreeViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       view,
+				View:       c.Views().Files,
 				WindowName: "files",
 				Key:        FILES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,

@@ -1,7 +1,6 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -19,7 +18,6 @@ var (
 
 func NewRemoteBranchesContext(
 	getModel func() []*models.RemoteBranch,
-	view *gocui.View,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
@@ -31,7 +29,7 @@ func NewRemoteBranchesContext(
 		DynamicTitleBuilder: NewDynamicTitleBuilder(c.Tr.RemoteBranchesDynamicTitle),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       view,
+				View:       c.Views().RemoteBranches,
 				WindowName: "branches",
 				Key:        REMOTE_BRANCHES_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
