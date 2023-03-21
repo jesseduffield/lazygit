@@ -16,12 +16,11 @@ var (
 )
 
 func NewTagsContext(
-	getModel func() []*models.Tag,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
 ) *TagsContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewBasicViewModel(func() []*models.Tag { return c.Model().Tags })
 
 	return &TagsContext{
 		BasicViewModel: viewModel,

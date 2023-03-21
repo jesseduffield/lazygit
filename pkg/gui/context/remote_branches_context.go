@@ -17,12 +17,11 @@ var (
 )
 
 func NewRemoteBranchesContext(
-	getModel func() []*models.RemoteBranch,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
 ) *RemoteBranchesContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewBasicViewModel(func() []*models.RemoteBranch { return c.Model().RemoteBranches })
 
 	return &RemoteBranchesContext{
 		BasicViewModel:      viewModel,

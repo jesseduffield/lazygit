@@ -16,12 +16,11 @@ var (
 )
 
 func NewStashContext(
-	getModel func() []*models.StashEntry,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
 ) *StashContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewBasicViewModel(func() []*models.StashEntry { return c.Model().StashEntries })
 
 	return &StashContext{
 		BasicViewModel: viewModel,

@@ -16,12 +16,11 @@ var (
 )
 
 func NewRemotesContext(
-	getModel func() []*models.Remote,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
 ) *RemotesContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewBasicViewModel(func() []*models.Remote { return c.Model().Remotes })
 
 	return &RemotesContext{
 		BasicViewModel: viewModel,

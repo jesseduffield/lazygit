@@ -18,12 +18,15 @@ var (
 )
 
 func NewCommitFilesContext(
-	getModel func() []*models.CommitFile,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
 ) *CommitFilesContext {
-	viewModel := filetree.NewCommitFileTreeViewModel(getModel, c.Log, c.UserConfig.Gui.ShowFileTree)
+	viewModel := filetree.NewCommitFileTreeViewModel(
+		func() []*models.CommitFile { return c.Model().CommitFiles },
+		c.Log,
+		c.UserConfig.Gui.ShowFileTree,
+	)
 
 	return &CommitFilesContext{
 		CommitFileTreeViewModel: viewModel,

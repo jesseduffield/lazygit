@@ -16,12 +16,14 @@ var (
 )
 
 func NewLocalCommitsContext(
-	getModel func() []*models.Commit,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
 ) *LocalCommitsContext {
-	viewModel := NewLocalCommitsViewModel(getModel, c)
+	viewModel := NewLocalCommitsViewModel(
+		func() []*models.Commit { return c.Model().Commits },
+		c,
+	)
 
 	return &LocalCommitsContext{
 		LocalCommitsViewModel: viewModel,

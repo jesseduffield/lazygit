@@ -16,12 +16,11 @@ var (
 )
 
 func NewReflogCommitsContext(
-	getModel func() []*models.Commit,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
 ) *ReflogCommitsContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewBasicViewModel(func() []*models.Commit { return c.Model().FilteredReflogCommits })
 
 	return &ReflogCommitsContext{
 		BasicViewModel: viewModel,

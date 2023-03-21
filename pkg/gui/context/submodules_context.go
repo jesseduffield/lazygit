@@ -13,12 +13,11 @@ type SubmodulesContext struct {
 var _ types.IListContext = (*SubmodulesContext)(nil)
 
 func NewSubmodulesContext(
-	getModel func() []*models.SubmoduleConfig,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
 ) *SubmodulesContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewBasicViewModel(func() []*models.SubmoduleConfig { return c.Model().Submodules })
 
 	return &SubmodulesContext{
 		BasicViewModel: viewModel,

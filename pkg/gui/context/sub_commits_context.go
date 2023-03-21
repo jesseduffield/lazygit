@@ -20,15 +20,16 @@ var (
 )
 
 func NewSubCommitsContext(
-	getModel func() []*models.Commit,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
 ) *SubCommitsContext {
 	viewModel := &SubCommitsViewModel{
-		BasicViewModel: NewBasicViewModel(getModel),
-		ref:            nil,
-		limitCommits:   true,
+		BasicViewModel: NewBasicViewModel(
+			func() []*models.Commit { return c.Model().SubCommits },
+		),
+		ref:          nil,
+		limitCommits: true,
 	}
 
 	return &SubCommitsContext{

@@ -16,12 +16,11 @@ var (
 )
 
 func NewBranchesContext(
-	getModel func() []*models.Branch,
 	getDisplayStrings func(startIdx int, length int) [][]string,
 
 	c *types.HelperCommon,
 ) *BranchesContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewBasicViewModel(func() []*models.Branch { return c.Model().Branches })
 
 	self := &BranchesContext{
 		BasicViewModel: viewModel,
