@@ -23,8 +23,8 @@ func (gui *Gui) exitFilterMode() error {
 
 func (gui *Gui) clearFiltering() error {
 	gui.State.Modes.Filtering.Reset()
-	if gui.State.ScreenMode == SCREEN_HALF {
-		gui.State.ScreenMode = SCREEN_NORMAL
+	if gui.State.ScreenMode == types.SCREEN_HALF {
+		gui.State.ScreenMode = types.SCREEN_NORMAL
 	}
 
 	return gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}})
@@ -32,8 +32,8 @@ func (gui *Gui) clearFiltering() error {
 
 func (gui *Gui) setFiltering(path string) error {
 	gui.State.Modes.Filtering.SetPath(path)
-	if gui.State.ScreenMode == SCREEN_NORMAL {
-		gui.State.ScreenMode = SCREEN_HALF
+	if gui.State.ScreenMode == types.SCREEN_NORMAL {
+		gui.State.ScreenMode = types.SCREEN_HALF
 	}
 
 	if err := gui.c.PushContext(gui.State.Contexts.LocalCommits); err != nil {

@@ -225,6 +225,7 @@ type IRepoStateAccessor interface {
 	SetStartupStage(stage StartupStage)
 	GetCurrentPopupOpts() *CreatePopupPanelOpts
 	SetCurrentPopupOpts(*CreatePopupPanelOpts)
+	GetScreenMode() WindowMaximisation
 }
 
 // startup stages so we don't need to load everything at once
@@ -238,3 +239,15 @@ const (
 type IFileWatcher interface {
 	AddFilesToFileWatcher(files []*models.File) error
 }
+
+// screen sizing determines how much space your selected window takes up (window
+// as in panel, not your terminal's window). Sometimes you want a bit more space
+// to see the contents of a panel, and this keeps track of how much maximisation
+// you've set
+type WindowMaximisation int
+
+const (
+	SCREEN_NORMAL WindowMaximisation = iota
+	SCREEN_HALF
+	SCREEN_FULL
+)

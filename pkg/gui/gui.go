@@ -42,18 +42,6 @@ import (
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
-// screen sizing determines how much space your selected window takes up (window
-// as in panel, not your terminal's window). Sometimes you want a bit more space
-// to see the contents of a panel, and this keeps track of how much maximisation
-// you've set
-type WindowMaximisation int
-
-const (
-	SCREEN_NORMAL WindowMaximisation = iota
-	SCREEN_HALF
-	SCREEN_FULL
-)
-
 const StartupPopupVersion = 5
 
 // OverlappingEdges determines if panel edges overlap
@@ -216,7 +204,7 @@ type GuiRepoState struct {
 	// panel without committing or if our commit failed
 	savedCommitMessage string
 
-	ScreenMode WindowMaximisation
+	ScreenMode types.WindowMaximisation
 
 	CurrentPopupOpts *types.CreatePopupPanelOpts
 }
@@ -245,6 +233,10 @@ func (self *GuiRepoState) GetCurrentPopupOpts() *types.CreatePopupPanelOpts {
 
 func (self *GuiRepoState) SetCurrentPopupOpts(value *types.CreatePopupPanelOpts) {
 	self.CurrentPopupOpts = value
+}
+
+func (self *GuiRepoState) GetScreenMode() types.WindowMaximisation {
+	return self.ScreenMode
 }
 
 type searchingState struct {
@@ -353,19 +345,19 @@ func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSaf
 	return result
 }
 
-func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) WindowMaximisation {
+func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) types.WindowMaximisation {
 	if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
-		return SCREEN_HALF
+		return types.SCREEN_HALF
 	} else {
 		defaultWindowSize := config.GetUserConfig().Gui.WindowSize
 
 		switch defaultWindowSize {
 		case "half":
-			return SCREEN_HALF
+			return types.SCREEN_HALF
 		case "full":
-			return SCREEN_FULL
+			return types.SCREEN_FULL
 		default:
-			return SCREEN_NORMAL
+			return types.SCREEN_NORMAL
 		}
 	}
 }

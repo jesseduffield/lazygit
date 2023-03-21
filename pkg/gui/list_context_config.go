@@ -21,12 +21,7 @@ func (gui *Gui) filesListContext() *context.WorkingTreeContext {
 }
 
 func (gui *Gui) branchesListContext() *context.BranchesContext {
-	return context.NewBranchesContext(
-		func(startIdx int, length int) [][]string {
-			return presentation.GetBranchListDisplayStrings(gui.State.Model.Branches, gui.State.ScreenMode != SCREEN_NORMAL, gui.State.Modes.Diffing.Ref, gui.Tr)
-		},
-		gui.c,
-	)
+	return context.NewBranchesContext(gui.c)
 }
 
 func (gui *Gui) remotesListContext() *context.RemotesContext {
@@ -82,7 +77,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 			return presentation.GetCommitListDisplayStrings(
 				gui.Common,
 				gui.State.Model.Commits,
-				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.State.ScreenMode != types.SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Gui.TimeFormat,
@@ -112,7 +107,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 			return presentation.GetCommitListDisplayStrings(
 				gui.Common,
 				gui.State.Model.SubCommits,
-				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.State.ScreenMode != types.SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Gui.TimeFormat,
@@ -141,7 +136,7 @@ func (gui *Gui) shouldShowGraph() bool {
 	case "never":
 		return false
 	case "when-maximised":
-		return gui.State.ScreenMode != SCREEN_NORMAL
+		return gui.State.ScreenMode != types.SCREEN_NORMAL
 	}
 
 	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
@@ -153,7 +148,7 @@ func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 		func(startIdx int, length int) [][]string {
 			return presentation.GetReflogCommitListDisplayStrings(
 				gui.State.Model.FilteredReflogCommits,
-				gui.State.ScreenMode != SCREEN_NORMAL,
+				gui.State.ScreenMode != types.SCREEN_NORMAL,
 				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Gui.TimeFormat,

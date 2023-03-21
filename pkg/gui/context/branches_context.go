@@ -2,6 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -15,12 +16,17 @@ var (
 	_ types.DiffableContext = (*BranchesContext)(nil)
 )
 
-func NewBranchesContext(
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	c *types.HelperCommon,
-) *BranchesContext {
+func NewBranchesContext(c *types.HelperCommon) *BranchesContext {
 	viewModel := NewBasicViewModel(func() []*models.Branch { return c.Model().Branches })
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetBranchListDisplayStrings(
+			c.Model().Branches,
+			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
+			c.Modes().Diffing.Ref,
+			c.Tr,
+		)
+	}
 
 	self := &BranchesContext{
 		BasicViewModel: viewModel,
