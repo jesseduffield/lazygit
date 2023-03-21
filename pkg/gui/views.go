@@ -156,6 +156,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
 
 	gui.Views.Confirmation.Visible = false
+	gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.defaultEditor)
 
 	gui.Views.Suggestions.Visible = false
 

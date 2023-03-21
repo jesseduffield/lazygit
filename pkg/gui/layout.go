@@ -163,7 +163,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// if you run `lazygit --logs`
 	// this will let you see these branches as prettified json
 	// gui.c.Log.Info(utils.AsJson(gui.State.Model.Branches[0:4]))
-	return gui.resizeCurrentPopupPanel()
+	return gui.helpers.Confirmation.ResizeCurrentPopupPanel()
 }
 
 func (gui *Gui) prepareView(viewName string) (*gocui.View, error) {
@@ -245,7 +245,7 @@ func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
 	return func(g *gocui.Gui) error {
 		newView := gui.g.CurrentView()
 		// for now we don't consider losing focus to a popup panel as actually losing focus
-		if newView != previousView && !gui.isPopupPanel(newView.Name()) {
+		if newView != previousView && !gui.helpers.Confirmation.IsPopupPanel(newView.Name()) {
 			if err := gui.onViewFocusLost(previousView); err != nil {
 				return err
 			}

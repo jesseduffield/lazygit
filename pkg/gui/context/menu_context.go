@@ -2,7 +2,6 @@ package context
 
 import (
 	"github.com/jesseduffield/generics/slices"
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -16,11 +15,7 @@ type MenuContext struct {
 var _ types.IListContext = (*MenuContext)(nil)
 
 func NewMenuContext(
-	view *gocui.View,
-
 	c *types.HelperCommon,
-	getOptionsMap func() map[string]string,
-	renderToDescriptionView func(string),
 ) *MenuContext {
 	viewModel := NewMenuViewModel()
 
@@ -28,11 +23,10 @@ func NewMenuContext(
 		MenuViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:                  view,
+				View:                  c.Views().Menu,
 				WindowName:            "menu",
 				Key:                   "menu",
 				Kind:                  types.TEMPORARY_POPUP,
-				OnGetOptionsMap:       getOptionsMap,
 				Focusable:             true,
 				HasUncontrolledBounds: true,
 			}), ContextCallbackOpts{}),

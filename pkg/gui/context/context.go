@@ -96,8 +96,8 @@ type ContextTree struct {
 	CustomPatchBuilder          *PatchExplorerContext
 	CustomPatchBuilderSecondary types.Context
 	MergeConflicts              *MergeConflictsContext
-	Confirmation                types.Context
-	CommitMessage               types.Context
+	Confirmation                *ConfirmationContext
+	CommitMessage               *CommitMessageContext
 	CommandLog                  types.Context
 
 	// display contexts

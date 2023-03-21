@@ -22,14 +22,27 @@ func NewSuggestionsController(
 }
 
 func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
-	bindings := []*types.Binding{}
+	bindings := []*types.Binding{
+		{
+			Key:     opts.GetKey(opts.Config.Universal.Confirm),
+			Handler: func() error { return self.context().State.OnConfirm() },
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.Return),
+			Handler: func() error { return self.context().State.OnClose() },
+		},
+		{
+			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
+			Handler: func() error { return self.c.ReplaceContext(self.contexts.Confirmation) },
+		},
+	}
 
 	return bindings
 }
 
 func (self *SuggestionsController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
 	return func(types.OnFocusLostOpts) error {
-		deactivateConfirmationPrompt
+		self.helpers.Confirmation.DeactivateConfirmationPrompt()
 		return nil
 	}
 }

@@ -17,16 +17,6 @@ func (gui *Gui) validateNotInFilterMode() bool {
 	return true
 }
 
-func (gui *Gui) outsideFilterMode(f func() error) func() error {
-	return func() error {
-		if !gui.validateNotInFilterMode() {
-			return nil
-		}
-
-		return f()
-	}
-}
-
 func (gui *Gui) exitFilterMode() error {
 	return gui.clearFiltering()
 }

@@ -24,7 +24,7 @@ func (gui *Gui) resetControllers() {
 	)
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
-	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
+	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.State.Contexts)
 	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	getSavedCommitMessage := func() string {
 		return gui.State.savedCommitMessage
@@ -66,6 +66,7 @@ func (gui *Gui) resetControllers() {
 		Window:          helpers.NewWindowHelper(helperCommon, viewHelper, gui.State.Contexts),
 		View:            viewHelper,
 		Refresh:         refreshHelper,
+		Confirmation:    helpers.NewConfirmationHelper(helperCommon, gui.State.Contexts),
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(
@@ -151,6 +152,9 @@ func (gui *Gui) resetControllers() {
 	reflogCommitsController := controllers.NewReflogCommitsController(common, gui.State.Contexts.ReflogCommits)
 	subCommitsController := controllers.NewSubCommitsController(common, gui.State.Contexts.SubCommits)
 	statusController := controllers.NewStatusController(common)
+	commandLogController := controllers.NewCommandLogController(common)
+	confirmationController := controllers.NewConfirmationController(common)
+	suggestionsController := controllers.NewSuggestionsController(common)
 
 	setSubCommits := func(commits []*models.Commit) {
 		gui.Mutexes.SubCommitsMutex.Lock()
@@ -279,6 +283,18 @@ func (gui *Gui) resetControllers() {
 		statusController,
 	)
 
+	controllers.AttachControllers(gui.State.Contexts.CommandLog,
+		commandLogController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Confirmation,
+		confirmationController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Suggestions,
+		suggestionsController,
+	)
+
 	controllers.AttachControllers(gui.State.Contexts.Global,
 		syncController,
 		undoController,
@@ -303,7 +319,7 @@ func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
 		view := getView()
 		view.ClearTextArea()
 		view.TextArea.TypeString(text)
-		_ = gui.resizePopupPanel(view, view.TextArea.GetContent())
+		_ = gui.helpers.Confirmation.ResizePopupPanel(view, view.TextArea.GetContent())
 		view.RenderTextArea()
 	}
 }

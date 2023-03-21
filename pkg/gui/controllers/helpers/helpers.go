@@ -25,6 +25,7 @@ type Helpers struct {
 	Window          *WindowHelper
 	View            *ViewHelper
 	Refresh         *RefreshHelper
+	Confirmation    *ConfirmationHelper
 }
 
 func NewStubHelpers() *Helpers {
@@ -52,5 +53,6 @@ func NewStubHelpers() *Helpers {
 		Window:          &WindowHelper{},
 		View:            &ViewHelper{},
 		Refresh:         &RefreshHelper{},
+		Confirmation:    &ConfirmationHelper{},
 	}
 }

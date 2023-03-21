@@ -71,12 +71,12 @@ func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod g
 	// This function is called again on refresh as part of the general resize popup call,
 	// but we need to call it here so that when we go to render the text area it's not
 	// considered out of bounds to add a newline, meaning we can avoid unnecessary scrolling.
-	err := gui.resizePopupPanel(v, v.TextArea.GetContent())
+	err := gui.helpers.Confirmation.ResizePopupPanel(v, v.TextArea.GetContent())
 	if err != nil {
 		gui.c.Log.Error(err)
 	}
 	v.RenderTextArea()
-	gui.RenderCommitLength()
+	gui.State.Contexts.CommitMessage.RenderCommitLength()
 
 	return matched
 }
@@ -86,11 +86,12 @@ func (gui *Gui) defaultEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.M
 
 	v.RenderTextArea()
 
-	if gui.findSuggestions != nil {
+	suggestionsContext := gui.State.Contexts.Suggestions
+	if suggestionsContext.State.FindSuggestions != nil {
 		input := v.TextArea.GetContent()
-		gui.suggestionsAsyncHandler.Do(func() func() {
-			suggestions := gui.findSuggestions(input)
-			return func() { gui.setSuggestions(suggestions) }
+		suggestionsContext.State.AsyncHandler.Do(func() func() {
+			suggestions := suggestionsContext.State.FindSuggestions(input)
+			return func() { suggestionsContext.SetSuggestions(suggestions) }
 		})
 	}
 

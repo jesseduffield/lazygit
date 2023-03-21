@@ -80,10 +80,10 @@ type TranslationSet struct {
 	LcNewBranch                         string
 	LcDeleteBranch                      string
 	NoBranchesThisRepo                  string
-	CommitMessageConfirm                string
 	CommitWithoutMessageErr             string
-	CloseConfirm                        string
 	LcClose                             string
+	LcCloseCancel                       string
+	LcConfirm                           string
 	LcQuit                              string
 	LcSquashDown                        string
 	LcFixupCommit                       string
@@ -107,8 +107,6 @@ type TranslationSet struct {
 	NoCommitsThisBranch                 string
 	UpdateRefHere                       string
 	Error                               string
-	LcSelectHunk                        string
-	LcNavigateConflicts                 string
 	LcPickHunk                          string
 	LcPickAllHunks                      string
 	LcUndo                              string
@@ -750,10 +748,10 @@ func EnglishTranslationSet() TranslationSet {
 		LcNewBranch:                         "new branch",
 		LcDeleteBranch:                      "delete branch",
 		NoBranchesThisRepo:                  "No branches for this repo",
-		CommitMessageConfirm:                "{{.keyBindClose}}: close, {{.keyBindNewLine}}: new line, {{.keyBindConfirm}}: confirm",
 		CommitWithoutMessageErr:             "You cannot commit without a commit message",
-		CloseConfirm:                        "{{.keyBindClose}}: close/cancel, {{.keyBindConfirm}}: confirm",
 		LcClose:                             "close",
+		LcCloseCancel:                       "close/cancel",
+		LcConfirm:                           "confirm",
 		LcQuit:                              "quit",
 		LcSquashDown:                        "squash down",
 		LcFixupCommit:                       "fixup commit",
@@ -777,8 +775,6 @@ func EnglishTranslationSet() TranslationSet {
 		SureResetCommitAuthor:               "The author field of this commit will be updated to match the configured user. This also renews the author timestamp. Continue?",
 		LcRenameCommitEditor:                "reword commit with editor",
 		Error:                               "Error",
-		LcSelectHunk:                        "select hunk",
-		LcNavigateConflicts:                 "navigate conflicts",
 		LcPickHunk:                          "pick hunk",
 		LcPickAllHunks:                      "pick all hunks",
 		LcUndo:                              "undo",

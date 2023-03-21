@@ -59,6 +59,27 @@ func (self *PatchBuildingController) GetMouseKeybindings(opts types.KeybindingsO
 	return []*gocui.ViewMouseBinding{}
 }
 
+func (self *PatchBuildingController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(opts types.OnFocusOpts) error {
+		// no need to change wrap on the secondary view because it can't be interacted with
+		self.c.Views().PatchBuilding.Wrap = false
+
+		return self.helpers.PatchBuilding.RefreshPatchBuildingPanel(opts)
+	}
+}
+
+func (self *PatchBuildingController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
+	return func(opts types.OnFocusLostOpts) error {
+		self.c.Views().PatchBuilding.Wrap = true
+
+		if self.git.Patch.PatchBuilder.IsEmpty() {
+			self.git.Patch.PatchBuilder.Reset()
+		}
+
+		return nil
+	}
+}
+
 func (self *PatchBuildingController) OpenFile() error {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()

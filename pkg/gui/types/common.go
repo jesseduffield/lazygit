@@ -82,6 +82,8 @@ type IGuiCommon interface {
 	Mutexes() Mutexes
 
 	State() IStateAccessor
+
+	KeybindingsOpts() KeybindingsOpts
 }
 
 type IPopupHandler interface {

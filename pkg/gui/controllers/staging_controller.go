@@ -99,6 +99,29 @@ func (self *StagingController) GetMouseKeybindings(opts types.KeybindingsOpts) [
 	return []*gocui.ViewMouseBinding{}
 }
 
+func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(opts types.OnFocusOpts) error {
+		self.c.Views().Staging.Wrap = false
+		self.c.Views().StagingSecondary.Wrap = false
+
+		return self.helpers.Staging.RefreshStagingPanel(opts)
+	}
+}
+
+func (self *StagingController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
+	return func(opts types.OnFocusLostOpts) error {
+		self.context.SetState(nil)
+
+		if opts.NewContextKey != self.otherContext.GetKey() {
+			self.c.Views().Staging.Wrap = true
+			self.c.Views().StagingSecondary.Wrap = true
+			_ = self.contexts.Staging.Render(false)
+			_ = self.contexts.StagingSecondary.Render(false)
+		}
+		return nil
+	}
+}
+
 func (self *StagingController) OpenFile() error {
 	self.context.GetMutex().Lock()
 	defer self.context.GetMutex().Unlock()

@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -35,8 +36,8 @@ type ISuggestionsHelper interface {
 type SuggestionsHelper struct {
 	c *types.HelperCommon
 
-	model                *types.Model
-	refreshSuggestionsFn func()
+	model    *types.Model
+	contexts *context.ContextTree
 }
 
 var _ ISuggestionsHelper = &SuggestionsHelper{}
@@ -44,12 +45,12 @@ var _ ISuggestionsHelper = &SuggestionsHelper{}
 func NewSuggestionsHelper(
 	c *types.HelperCommon,
 	model *types.Model,
-	refreshSuggestionsFn func(),
+	contexts *context.ContextTree,
 ) *SuggestionsHelper {
 	return &SuggestionsHelper{
-		c:                    c,
-		model:                model,
-		refreshSuggestionsFn: refreshSuggestionsFn,
+		c:        c,
+		model:    model,
+		contexts: contexts,
 	}
 }
 
@@ -127,7 +128,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 		// cache the trie for future use
 		self.model.FilesTrie = trie
 
-		self.refreshSuggestionsFn()
+		self.contexts.Suggestions.RefreshSuggestions()
 
 		return err
 	})

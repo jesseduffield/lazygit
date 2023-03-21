@@ -76,23 +76,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			gui.Views.Staging,
 			"main",
 			context.STAGING_MAIN_CONTEXT_KEY,
-			func(opts types.OnFocusOpts) error {
-				gui.Views.Staging.Wrap = false
-				gui.Views.StagingSecondary.Wrap = false
-
-				return gui.helpers.Staging.RefreshStagingPanel(opts)
-			},
-			func(opts types.OnFocusLostOpts) error {
-				gui.State.Contexts.Staging.SetState(nil)
-
-				if opts.NewContextKey != context.STAGING_SECONDARY_CONTEXT_KEY {
-					gui.Views.Staging.Wrap = true
-					gui.Views.StagingSecondary.Wrap = true
-					_ = gui.State.Contexts.Staging.Render(false)
-					_ = gui.State.Contexts.StagingSecondary.Render(false)
-				}
-				return nil
-			},
 			func() []int { return nil },
 			gui.c,
 		),
@@ -100,23 +83,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			gui.Views.StagingSecondary,
 			"secondary",
 			context.STAGING_SECONDARY_CONTEXT_KEY,
-			func(opts types.OnFocusOpts) error {
-				gui.Views.Staging.Wrap = false
-				gui.Views.StagingSecondary.Wrap = false
-
-				return gui.helpers.Staging.RefreshStagingPanel(opts)
-			},
-			func(opts types.OnFocusLostOpts) error {
-				gui.State.Contexts.StagingSecondary.SetState(nil)
-
-				if opts.NewContextKey != context.STAGING_MAIN_CONTEXT_KEY {
-					gui.Views.Staging.Wrap = true
-					gui.Views.StagingSecondary.Wrap = true
-					_ = gui.State.Contexts.Staging.Render(false)
-					_ = gui.State.Contexts.StagingSecondary.Render(false)
-				}
-				return nil
-			},
 			func() []int { return nil },
 			gui.c,
 		),
@@ -124,21 +90,6 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			gui.Views.PatchBuilding,
 			"main",
 			context.PATCH_BUILDING_MAIN_CONTEXT_KEY,
-			func(opts types.OnFocusOpts) error {
-				// no need to change wrap on the secondary view because it can't be interacted with
-				gui.Views.PatchBuilding.Wrap = false
-
-				return gui.helpers.PatchBuilding.RefreshPatchBuildingPanel(opts)
-			},
-			func(opts types.OnFocusLostOpts) error {
-				gui.Views.PatchBuilding.Wrap = true
-
-				if gui.git.Patch.PatchBuilder.IsEmpty() {
-					gui.git.Patch.PatchBuilder.Reset()
-				}
-
-				return nil
-			},
 			func() []int {
 				filename := gui.State.Contexts.CommitFiles.GetSelectedPath()
 				includedLineIndices, err := gui.git.Patch.PatchBuilder.GetFileIncLineIndices(filename)
@@ -165,37 +116,9 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			gui.Views.MergeConflicts,
 			context.ContextCallbackOpts{},
 			gui.c,
-			func() map[string]string {
-				// wrapping in a function because contexts are initialized before helpers
-				return gui.helpers.MergeConflicts.GetMergingOptions()
-			},
 		),
-		Confirmation: context.NewSimpleContext(
-			context.NewBaseContext(context.NewBaseContextOpts{
-				Kind:                  types.TEMPORARY_POPUP,
-				View:                  gui.Views.Confirmation,
-				WindowName:            "confirmation",
-				Key:                   context.CONFIRMATION_CONTEXT_KEY,
-				Focusable:             true,
-				HasUncontrolledBounds: true,
-			}),
-			context.ContextCallbackOpts{
-				OnFocus: OnFocusWrapper(gui.handleAskFocused),
-			},
-		),
-		CommitMessage: context.NewSimpleContext(
-			context.NewBaseContext(context.NewBaseContextOpts{
-				Kind:                  types.PERSISTENT_POPUP,
-				View:                  gui.Views.CommitMessage,
-				WindowName:            "commitMessage",
-				Key:                   context.COMMIT_MESSAGE_CONTEXT_KEY,
-				Focusable:             true,
-				HasUncontrolledBounds: true,
-			}),
-			context.ContextCallbackOpts{
-				OnFocus: OnFocusWrapper(gui.handleCommitMessageFocused),
-			},
-		),
+		Confirmation:  context.NewConfirmationContext(gui.c),
+		CommitMessage: context.NewCommitMessageContext(gui.c),
 		Search: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.PERSISTENT_POPUP,
@@ -214,12 +137,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 				Key:        context.COMMAND_LOG_CONTEXT_KEY,
 				Focusable:  true,
 			}),
-			context.ContextCallbackOpts{
-				OnFocusLost: func(opts types.OnFocusLostOpts) error {
-					gui.Views.Extras.Autoscroll = true
-					return nil
-				},
-			},
+			context.ContextCallbackOpts{},
 		),
 		Options:      context.NewDisplayContext(context.OPTIONS_CONTEXT_KEY, gui.Views.Options, "options"),
 		AppStatus:    context.NewDisplayContext(context.APP_STATUS_CONTEXT_KEY, gui.Views.AppStatus, "appStatus"),

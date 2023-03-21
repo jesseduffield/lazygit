@@ -30,7 +30,6 @@ func NewMergeConflictsContext(
 	opts ContextCallbackOpts,
 
 	c *types.HelperCommon,
-	getOptionsMap func() map[string]string,
 ) *MergeConflictsContext {
 	viewModel := &ConflictsViewModel{
 		state:                 mergeconflicts.NewState(),
@@ -46,7 +45,6 @@ func NewMergeConflictsContext(
 				View:             view,
 				WindowName:       "main",
 				Key:              MERGE_CONFLICTS_CONTEXT_KEY,
-				OnGetOptionsMap:  getOptionsMap,
 				Focusable:        true,
 				HighlightOnFocus: true,
 			}),

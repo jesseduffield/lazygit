@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -31,19 +32,30 @@ func NewCommitMessageController(
 	}
 }
 
+// TODO: merge that commit panel PR because we're not currently showing how to add a newline as it's
+// handled by the editor func rather than by the controller here.
 func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:     opts.GetKey(opts.Config.Universal.SubmitEditorText),
-			Handler: self.confirm,
+			Key:         opts.GetKey(opts.Config.Universal.SubmitEditorText),
+			Handler:     self.confirm,
+			Description: self.c.Tr.LcConfirm,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.Return),
-			Handler: self.close,
+			Key:         opts.GetKey(opts.Config.Universal.Return),
+			Handler:     self.close,
+			Description: self.c.Tr.LcClose,
 		},
 	}
 
 	return bindings
+}
+
+func (self *CommitMessageController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
+	return func(types.OnFocusLostOpts) error {
+		self.context().RenderCommitLength()
+		return nil
+	}
 }
 
 func (self *CommitMessageController) Context() types.Context {
@@ -52,7 +64,7 @@ func (self *CommitMessageController) Context() types.Context {
 
 // this method is pointless in this context but I'm keeping it consistent
 // with other contexts so that when generics arrive it's easier to refactor
-func (self *CommitMessageController) context() types.Context {
+func (self *CommitMessageController) context() *context.CommitMessageContext {
 	return self.contexts.CommitMessage
 }
 

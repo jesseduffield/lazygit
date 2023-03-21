@@ -53,8 +53,8 @@ func (self *SubCommitsController) GetOnRenderToMain() func() error {
 	}
 }
 
-func (self *SubCommitsController) GetOnFocus() func() error {
-	return func() error {
+func (self *SubCommitsController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(types.OnFocusOpts) error {
 		context := self.context
 		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
 			context.SetLimitCommits(false)

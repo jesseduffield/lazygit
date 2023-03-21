@@ -11,7 +11,17 @@ import (
 
 func (gui *Gui) noPopupPanel(f func() error) func() error {
 	return func() error {
-		if gui.popupPanelFocused() {
+		if gui.helpers.Confirmation.IsPopupPanelFocused() {
+			return nil
+		}
+
+		return f()
+	}
+}
+
+func (gui *Gui) outsideFilterMode(f func() error) func() error {
+	return func() error {
+		if !gui.validateNotInFilterMode() {
 			return nil
 		}
 
@@ -34,8 +44,7 @@ func (self *Gui) GetCheatsheetKeybindings() []*types.Binding {
 	return bindings
 }
 
-// renaming receiver to 'self' to aid refactoring. Will probably end up moving all Gui handlers to this pattern eventually.
-func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+func (self *Gui) keybindingOpts() types.KeybindingsOpts {
 	config := self.c.UserConfig.Keybinding
 
 	guards := types.KeybindingGuards{
@@ -43,11 +52,18 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		NoPopupPanel:      self.noPopupPanel,
 	}
 
-	opts := types.KeybindingsOpts{
+	return types.KeybindingsOpts{
 		GetKey: keybindings.GetKey,
 		Config: config,
 		Guards: guards,
 	}
+}
+
+// renaming receiver to 'self' to aid refactoring. Will probably end up moving all Gui handlers to this pattern eventually.
+func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+	config := self.c.UserConfig.Keybinding
+
+	opts := self.c.KeybindingsOpts()
 
 	bindings := []*types.Binding{
 		{
@@ -486,7 +502,7 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 	if gocui.IsMouseKey(binding.Key) {
 		handler = func() error {
 			// we ignore click events on views that aren't popup panels, when a popup panel is focused
-			if gui.popupPanelFocused() && gui.currentViewName() != binding.ViewName {
+			if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName {
 				return nil
 			}
 
@@ -502,7 +518,7 @@ func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 	baseHandler := binding.Handler
 	newHandler := func(opts gocui.ViewMouseBindingOpts) error {
 		// we ignore click events on views that aren't popup panels, when a popup panel is focused
-		if gui.popupPanelFocused() && gui.currentViewName() != binding.ViewName {
+		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName {
 			return nil
 		}
 

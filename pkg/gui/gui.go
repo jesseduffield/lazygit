@@ -1,6 +1,7 @@
 package gui
 
 import (
+	goContext "context"
 	"fmt"
 	"io"
 	"os"
@@ -94,10 +95,6 @@ type Gui struct {
 
 	Mutexes types.Mutexes
 
-	// findSuggestions will take a string that the user has typed into a prompt
-	// and return a slice of suggestions which match that string.
-	findSuggestions func(string) []*types.Suggestion
-
 	// when you enter into a submodule we'll append the superproject's path to this array
 	// so that you can return to the superproject
 	RepoPathStack *utils.StringStack
@@ -112,8 +109,6 @@ type Gui struct {
 
 	// the extras window contains things like the command log
 	ShowExtrasWindow bool
-
-	suggestionsAsyncHandler *tasks.AsyncHandler
 
 	PopupHandler types.IPopupHandler
 
@@ -197,9 +192,6 @@ type PrevLayout struct {
 type GuiRepoState struct {
 	Model *types.Model
 	Modes *types.Modes
-
-	// Suggestions will sometimes appear when typing into a prompt
-	Suggestions []*types.Suggestion
 
 	SplitMainPanel bool
 	LimitCommits   bool
@@ -412,18 +404,17 @@ func NewGui(
 	initialDir string,
 ) (*Gui, error) {
 	gui := &Gui{
-		Common:                  cmn,
-		gitVersion:              gitVersion,
-		Config:                  config,
-		Updater:                 updater,
-		statusManager:           &statusManager{},
-		viewBufferManagerMap:    map[string]*tasks.ViewBufferManager{},
-		viewPtmxMap:             map[string]*os.File{},
-		showRecentRepos:         showRecentRepos,
-		RepoPathStack:           &utils.StringStack{},
-		RepoStateMap:            map[Repo]*GuiRepoState{},
-		CmdLog:                  []string{},
-		suggestionsAsyncHandler: tasks.NewAsyncHandler(),
+		Common:               cmn,
+		gitVersion:           gitVersion,
+		Config:               config,
+		Updater:              updater,
+		statusManager:        &statusManager{},
+		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
+		viewPtmxMap:          map[string]*os.File{},
+		showRecentRepos:      showRecentRepos,
+		RepoPathStack:        &utils.StringStack{},
+		RepoStateMap:         map[Repo]*GuiRepoState{},
+		CmdLog:               []string{},
 
 		// originally we could only hide the command log permanently via the config
 		// but now we do it via state. So we need to still support the config for the
@@ -446,7 +437,9 @@ func NewGui(
 
 	gui.PopupHandler = popup.NewPopupHandler(
 		cmn,
-		gui.createPopupPanel,
+		func(ctx goContext.Context, opts types.CreatePopupPanelOpts) error {
+			return gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
+		},
 		func() error { return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}) },
 		gui.popContext,
 		gui.currentContext,

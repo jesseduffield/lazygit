@@ -41,21 +41,25 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			Key:         opts.GetKey(opts.Config.Universal.PrevBlock),
 			Handler:     self.withRenderAndFocus(self.PrevConflict),
 			Description: self.c.Tr.PrevConflict,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.NextBlock),
 			Handler:     self.withRenderAndFocus(self.NextConflict),
 			Description: self.c.Tr.NextConflict,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.PrevItem),
 			Handler:     self.withRenderAndFocus(self.PrevConflictHunk),
 			Description: self.c.Tr.SelectPrevHunk,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.NextItem),
 			Handler:     self.withRenderAndFocus(self.NextConflictHunk),
 			Description: self.c.Tr.SelectNextHunk,
+			Display:     true,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.PrevBlockAlt),
@@ -89,6 +93,7 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			Key:         opts.GetKey(opts.Config.Universal.Undo),
 			Handler:     self.withRenderAndFocus(self.HandleUndo),
 			Description: self.c.Tr.LcUndo,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
@@ -99,11 +104,13 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.withRenderAndFocus(self.HandlePickHunk),
 			Description: self.c.Tr.PickHunk,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Main.PickBothHunks),
 			Handler:     self.withRenderAndFocus(self.HandlePickAllHunks),
 			Description: self.c.Tr.PickAllHunks,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Return),

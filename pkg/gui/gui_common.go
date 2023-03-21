@@ -144,3 +144,7 @@ func (self *guiCommon) MainViewPairs() types.MainViewPairs {
 func (self *guiCommon) State() types.IStateAccessor {
 	return self.gui.stateAccessor
 }
+
+func (self *guiCommon) KeybindingsOpts() types.KeybindingsOpts {
+	return self.gui.keybindingOpts()
+}

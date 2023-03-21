@@ -2,12 +2,11 @@ package gui
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
-	"github.com/jesseduffield/generics/maps"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type OptionsMapMgr struct {
@@ -21,36 +20,73 @@ func (gui *Gui) renderContextOptionsMap(c types.Context) {
 
 // render the options available for the current context at the bottom of the screen
 func (self *OptionsMapMgr) renderContextOptionsMap(c types.Context) {
-	optionsMap := c.GetOptionsMap()
-	if optionsMap == nil {
-		optionsMap = self.globalOptionsMap()
+	bindingsToDisplay := lo.Filter(c.GetKeybindings(self.c.KeybindingsOpts()), func(binding *types.Binding, _ int) bool {
+		return binding.Display
+	})
+
+	var optionsMap []bindingInfo
+	if len(bindingsToDisplay) == 0 {
+		optionsMap = self.globalOptions()
+	} else {
+		optionsMap = lo.Map(bindingsToDisplay, func(binding *types.Binding, _ int) bindingInfo {
+			return bindingInfo{
+				key:         keybindings.LabelFromKey(binding.Key),
+				description: binding.Description,
+			}
+		})
 	}
 
-	self.renderOptions(self.optionsMapToString(optionsMap))
+	self.renderOptions(self.formatBindingInfos(optionsMap))
 }
 
-func (self *OptionsMapMgr) optionsMapToString(optionsMap map[string]string) string {
-	options := maps.MapToSlice(optionsMap, func(key string, description string) string {
-		return key + ": " + description
-	})
-	sort.Strings(options)
-	return strings.Join(options, ", ")
+func (self *OptionsMapMgr) formatBindingInfos(bindingInfos []bindingInfo) string {
+	return strings.Join(
+		lo.Map(bindingInfos, func(bindingInfo bindingInfo, _ int) string {
+			return fmt.Sprintf("%s: %s", bindingInfo.key, bindingInfo.description)
+		}),
+		", ")
 }
 
 func (self *OptionsMapMgr) renderOptions(options string) {
 	self.c.SetViewContent(self.c.Views().Options, options)
 }
 
-func (self *OptionsMapMgr) globalOptionsMap() map[string]string {
+func (self *OptionsMapMgr) globalOptions() []bindingInfo {
 	keybindingConfig := self.c.UserConfig.Keybinding
 
-	return map[string]string{
-		fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollUpMain), keybindings.Label(keybindingConfig.Universal.ScrollDownMain)):                                                                                                               self.c.Tr.LcScroll,
-		fmt.Sprintf("%s %s %s %s", keybindings.Label(keybindingConfig.Universal.PrevBlock), keybindings.Label(keybindingConfig.Universal.NextBlock), keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)): self.c.Tr.LcNavigate,
-		keybindings.Label(keybindingConfig.Universal.Return):         self.c.Tr.LcCancel,
-		keybindings.Label(keybindingConfig.Universal.Quit):           self.c.Tr.LcQuit,
-		keybindings.Label(keybindingConfig.Universal.OptionMenuAlt1): self.c.Tr.LcMenu,
-		fmt.Sprintf("%s-%s", keybindings.Label(keybindingConfig.Universal.JumpToBlock[0]), keybindings.Label(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])): self.c.Tr.LcJump,
-		fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollLeft), keybindings.Label(keybindingConfig.Universal.ScrollRight)):                                                    self.c.Tr.LcScrollLeftRight,
+	return []bindingInfo{
+		{
+			key:         fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollUpMain), keybindings.Label(keybindingConfig.Universal.ScrollDownMain)),
+			description: self.c.Tr.LcScroll,
+		},
+		{
+			key:         fmt.Sprintf("%s %s %s %s", keybindings.Label(keybindingConfig.Universal.PrevBlock), keybindings.Label(keybindingConfig.Universal.NextBlock), keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)),
+			description: self.c.Tr.LcNavigate,
+		},
+		{
+			key:         keybindings.Label(keybindingConfig.Universal.Return),
+			description: self.c.Tr.LcCancel,
+		},
+		{
+			key:         keybindings.Label(keybindingConfig.Universal.Quit),
+			description: self.c.Tr.LcQuit,
+		},
+		{
+			key:         keybindings.Label(keybindingConfig.Universal.OptionMenuAlt1),
+			description: self.c.Tr.LcMenu,
+		},
+		{
+			key:         fmt.Sprintf("%s-%s", keybindings.Label(keybindingConfig.Universal.JumpToBlock[0]), keybindings.Label(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])),
+			description: self.c.Tr.LcJump,
+		},
+		{
+			key:         fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollLeft), keybindings.Label(keybindingConfig.Universal.ScrollRight)),
+			description: self.c.Tr.LcScrollLeftRight,
+		},
 	}
+}
+
+type bindingInfo struct {
+	key         string
+	description string
 }

@@ -1,11 +1,8 @@
 package helpers
 
 import (
-	"fmt"
-
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -24,18 +21,6 @@ func NewMergeConflictsHelper(
 		c:        c,
 		contexts: contexts,
 		git:      git,
-	}
-}
-
-func (self *MergeConflictsHelper) GetMergingOptions() map[string]string {
-	keybindingConfig := self.c.UserConfig.Keybinding
-
-	return map[string]string{
-		fmt.Sprintf("%s %s", keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)):   self.c.Tr.LcSelectHunk,
-		fmt.Sprintf("%s %s", keybindings.Label(keybindingConfig.Universal.PrevBlock), keybindings.Label(keybindingConfig.Universal.NextBlock)): self.c.Tr.LcNavigateConflicts,
-		keybindings.Label(keybindingConfig.Universal.Select):   self.c.Tr.LcPickHunk,
-		keybindings.Label(keybindingConfig.Main.PickBothHunks): self.c.Tr.LcPickAllHunks,
-		keybindings.Label(keybindingConfig.Universal.Undo):     self.c.Tr.LcUndo,
 	}
 }
 
