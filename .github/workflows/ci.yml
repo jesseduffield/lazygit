@@ -28,7 +28,7 @@ jobs:
       GOFLAGS: -mod=vendor
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Go
         uses: actions/setup-go@v1
         with:
@@ -84,7 +84,7 @@ jobs:
           path: ~/git-${{matrix.git-version}}
           key: ${{runner.os}}-git-${{matrix.git-version}}
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Go
         uses: actions/setup-go@v1
         with:
@@ -111,7 +111,7 @@ jobs:
       GOARCH: amd64
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Go
         uses: actions/setup-go@v1
         with:
@@ -147,7 +147,7 @@ jobs:
       GOARCH: amd64
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Go
         uses: actions/setup-go@v1
         with:
@@ -179,7 +179,7 @@ jobs:
       GOFLAGS: -mod=vendor
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup Go
         uses: actions/setup-go@v1
         with:
