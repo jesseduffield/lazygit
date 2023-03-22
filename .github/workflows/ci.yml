@@ -68,7 +68,7 @@ jobs:
           path: ~/git-${{matrix.git-version}}
           key: ${{runner.os}}-git-${{matrix.git-version}}
       - name: Install Git dependencies
-        run: sudo apt-get install --no-install-recommends -y build-essential ca-certificates curl gettext libexpat1-dev libssl-dev libz-dev openssl
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential ca-certificates curl gettext libexpat1-dev libssl-dev libz-dev openssl
       - name: Build Git ${{matrix.git-version}}
         if: steps.cache-git-restore.outputs.cache-hit != 'true'
         run: >
