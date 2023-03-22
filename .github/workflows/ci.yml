@@ -61,6 +61,8 @@ jobs:
     env:
       GOFLAGS: -mod=vendor
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Restore Git cache
         id: cache-git-restore
         uses: actions/cache/restore@v3
@@ -83,8 +85,6 @@ jobs:
         with:
           path: ~/git-${{matrix.git-version}}
           key: ${{runner.os}}-git-${{matrix.git-version}}
-      - name: Checkout code
-        uses: actions/checkout@v3
       - name: Setup Go
         uses: actions/setup-go@v1
         with:
