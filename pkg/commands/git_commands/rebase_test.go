@@ -15,16 +15,18 @@ import (
 
 func TestRebaseRebaseBranch(t *testing.T) {
 	type scenario struct {
-		testName string
-		arg      string
-		runner   *oscommands.FakeCmdObjRunner
-		test     func(error)
+		testName   string
+		arg        string
+		gitVersion *GitVersion
+		runner     *oscommands.FakeCmdObjRunner
+		test       func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			testName: "successful rebase",
-			arg:      "master",
+			testName:   "successful rebase",
+			arg:        "master",
+			gitVersion: &GitVersion{2, 26, 0, ""},
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git rebase --interactive --autostash --keep-empty --empty=keep --no-autosquash master`, "", nil),
 			test: func(err error) {
@@ -32,12 +34,23 @@ func TestRebaseRebaseBranch(t *testing.T) {
 			},
 		},
 		{
-			testName: "unsuccessful rebase",
-			arg:      "master",
+			testName:   "unsuccessful rebase",
+			arg:        "master",
+			gitVersion: &GitVersion{2, 26, 0, ""},
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git rebase --interactive --autostash --keep-empty --empty=keep --no-autosquash master`, "", errors.New("error")),
 			test: func(err error) {
 				assert.Error(t, err)
+			},
+		},
+		{
+			testName:   "successful rebase (< 2.26.0)",
+			arg:        "master",
+			gitVersion: &GitVersion{2, 25, 5, ""},
+			runner: oscommands.NewFakeRunner(t).
+				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash master`, "", nil),
+			test: func(err error) {
+				assert.NoError(t, err)
 			},
 		},
 	}
@@ -45,7 +58,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 	for _, s := range scenarios {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
-			instance := buildRebaseCommands(commonDeps{runner: s.runner})
+			instance := buildRebaseCommands(commonDeps{runner: s.runner, gitVersion: s.gitVersion})
 			s.test(instance.RebaseBranch(s.arg))
 		})
 	}
@@ -142,8 +155,9 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildRebaseCommands(commonDeps{
-				runner:    s.runner,
-				gitConfig: git_config.NewFakeGitConfig(s.gitConfigMockResponses),
+				runner:     s.runner,
+				gitVersion: &GitVersion{2, 26, 0, ""},
+				gitConfig:  git_config.NewFakeGitConfig(s.gitConfigMockResponses),
 			})
 
 			s.test(instance.DiscardOldFileChanges(s.commits, s.commitIndex, s.fileName))
