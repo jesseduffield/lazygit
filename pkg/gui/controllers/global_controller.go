@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -52,6 +53,21 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Handler:     self.prevScreenMode,
 			Description: self.c.Tr.LcPrevScreenMode,
 		},
+		{
+			ViewName:  "",
+			Key:       opts.GetKey(opts.Config.Universal.OptionMenu),
+			Handler:   self.createOptionsMenu,
+			OpensMenu: true,
+		},
+		{
+			ViewName: "",
+			Key:      opts.GetKey(opts.Config.Universal.OptionMenuAlt1),
+			Modifier: gocui.ModNone,
+			// we have the description on the alt key and not the main key for legacy reasons
+			// (the original main key was 'x' but we've reassigned that to other purposes)
+			Description: self.c.Tr.LcOpenMenu,
+			Handler:     self.createOptionsMenu,
+		},
 	}
 }
 
@@ -77,4 +93,8 @@ func (self *GlobalController) nextScreenMode() error {
 
 func (self *GlobalController) prevScreenMode() error {
 	return (&ScreenModeActions{c: self.c}).Prev()
+}
+
+func (self *GlobalController) createOptionsMenu() error {
+	return (&OptionsMenuAction{c: self.c}).Call()
 }

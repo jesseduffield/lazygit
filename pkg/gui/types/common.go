@@ -92,6 +92,9 @@ type IGuiCommon interface {
 	State() IStateAccessor
 
 	KeybindingsOpts() KeybindingsOpts
+
+	// hopefully we can remove this once we've moved all our keybinding stuff out of the gui god struct.
+	GetInitialKeybindingsWithCustomCommands() ([]*Binding, []*gocui.ViewMouseBinding)
 }
 
 type IModeMgr interface {

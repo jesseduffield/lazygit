@@ -154,5 +154,9 @@ func (self *guiCommon) KeybindingsOpts() types.KeybindingsOpts {
 }
 
 func (self *guiCommon) IsAnyModeActive() bool {
-	return self.IsAnyModeActive()
+	return self.gui.helpers.Mode.IsAnyModeActive()
+}
+
+func (self *guiCommon) GetInitialKeybindingsWithCustomCommands() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+	return self.gui.GetInitialKeybindingsWithCustomCommands()
 }

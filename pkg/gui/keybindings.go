@@ -135,21 +135,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:  self.scrollDownMain,
 		},
 		{
-			ViewName:  "",
-			Key:       opts.GetKey(opts.Config.Universal.OptionMenu),
-			Handler:   self.handleCreateOptionsMenu,
-			OpensMenu: true,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.OptionMenuAlt1),
-			Modifier: gocui.ModNone,
-			// we have the description on the alt key and not the main key for legacy reasons
-			// (the original main key was 'x' but we've reassigned that to other purposes)
-			Description: self.c.Tr.LcOpenMenu,
-			Handler:     self.handleCreateOptionsMenu,
-		},
-		{
 			ViewName:    "files",
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.handleCopySelectedSideContextItemToClipboard,
@@ -417,17 +402,21 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 	return bindings, mouseKeybindings
 }
 
-func (gui *Gui) resetKeybindings() error {
-	gui.g.DeleteAllKeybindings()
-
-	bindings, mouseBindings := gui.GetInitialKeybindings()
-
-	// prepending because we want to give our custom keybindings precedence over default keybindings
-	customBindings, err := gui.CustomCommandsClient.GetCustomCommandKeybindings()
+func (self *Gui) GetInitialKeybindingsWithCustomCommands() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+	bindings, mouseBindings := self.GetInitialKeybindings()
+	customBindings, err := self.CustomCommandsClient.GetCustomCommandKeybindings()
 	if err != nil {
 		log.Fatal(err)
 	}
+	// prepending because we want to give our custom keybindings precedence over default keybindings
 	bindings = append(customBindings, bindings...)
+	return bindings, mouseBindings
+}
+
+func (gui *Gui) resetKeybindings() error {
+	gui.g.DeleteAllKeybindings()
+
+	bindings, mouseBindings := gui.GetInitialKeybindingsWithCustomCommands()
 
 	for _, binding := range bindings {
 		if err := gui.SetKeybinding(binding); err != nil {

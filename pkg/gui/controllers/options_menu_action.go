@@ -1,23 +1,52 @@
-package gui
+package controllers
 
 import (
-	"log"
-
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
 
-func (gui *Gui) getBindings(context types.Context) []*types.Binding {
+type OptionsMenuAction struct {
+	c *ControllerCommon
+}
+
+func (self *OptionsMenuAction) Call() error {
+	ctx := self.c.CurrentContext()
+	// Don't show menu while displaying popup.
+	if ctx.GetKind() == types.PERSISTENT_POPUP || ctx.GetKind() == types.TEMPORARY_POPUP {
+		return nil
+	}
+
+	bindings := self.getBindings(ctx)
+
+	menuItems := slices.Map(bindings, func(binding *types.Binding) *types.MenuItem {
+		return &types.MenuItem{
+			OpensMenu: binding.OpensMenu,
+			Label:     binding.Description,
+			OnPress: func() error {
+				if binding.Handler == nil {
+					return nil
+				}
+
+				return binding.Handler()
+			},
+			Key:     binding.Key,
+			Tooltip: binding.Tooltip,
+		}
+	})
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title:      self.c.Tr.MenuTitle,
+		Items:      menuItems,
+		HideCancel: true,
+	})
+}
+
+func (self *OptionsMenuAction) getBindings(context types.Context) []*types.Binding {
 	var bindingsGlobal, bindingsPanel, bindingsNavigation []*types.Binding
 
-	bindings, _ := gui.GetInitialKeybindings()
-	customBindings, err := gui.CustomCommandsClient.GetCustomCommandKeybindings()
-	if err != nil {
-		log.Fatal(err)
-	}
-	bindings = append(customBindings, bindings...)
+	bindings, _ := self.c.GetInitialKeybindingsWithCustomCommands()
 
 	for _, binding := range bindings {
 		if keybindings.LabelFromKey(binding.Key) != "" && binding.Description != "" {
@@ -46,37 +75,5 @@ func (gui *Gui) getBindings(context types.Context) []*types.Binding {
 func uniqueBindings(bindings []*types.Binding) []*types.Binding {
 	return lo.UniqBy(bindings, func(binding *types.Binding) string {
 		return binding.Description
-	})
-}
-
-func (gui *Gui) handleCreateOptionsMenu() error {
-	ctx := gui.c.CurrentContext()
-	// Don't show menu while displaying popup.
-	if ctx.GetKind() == types.PERSISTENT_POPUP || ctx.GetKind() == types.TEMPORARY_POPUP {
-		return nil
-	}
-
-	bindings := gui.getBindings(ctx)
-
-	menuItems := slices.Map(bindings, func(binding *types.Binding) *types.MenuItem {
-		return &types.MenuItem{
-			OpensMenu: binding.OpensMenu,
-			Label:     binding.Description,
-			OnPress: func() error {
-				if binding.Handler == nil {
-					return nil
-				}
-
-				return binding.Handler()
-			},
-			Key:     binding.Key,
-			Tooltip: binding.Tooltip,
-		}
-	})
-
-	return gui.c.Menu(types.CreateMenuOptions{
-		Title:      gui.c.Tr.MenuTitle,
-		Items:      menuItems,
-		HideCancel: true,
 	})
 }
