@@ -2,6 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -15,12 +16,19 @@ var (
 	_ types.DiffableContext = (*ReflogCommitsContext)(nil)
 )
 
-func NewReflogCommitsContext(
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	c *types.HelperCommon,
-) *ReflogCommitsContext {
+func NewReflogCommitsContext(c *types.HelperCommon) *ReflogCommitsContext {
 	viewModel := NewBasicViewModel(func() []*models.Commit { return c.Model().FilteredReflogCommits })
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetReflogCommitListDisplayStrings(
+			c.Model().FilteredReflogCommits,
+			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
+			c.Modes().CherryPicking.SelectedShaSet(),
+			c.Modes().Diffing.Ref,
+			c.UserConfig.Gui.TimeFormat,
+			c.UserConfig.Git.ParseEmoji,
+		)
+	}
 
 	return &ReflogCommitsContext{
 		BasicViewModel: viewModel,

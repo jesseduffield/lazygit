@@ -3,7 +3,9 @@ package context
 import (
 	"fmt"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -20,8 +22,6 @@ var (
 )
 
 func NewSubCommitsContext(
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
 	c *types.HelperCommon,
 ) *SubCommitsContext {
 	viewModel := &SubCommitsViewModel{
@@ -30,6 +30,31 @@ func NewSubCommitsContext(
 		),
 		ref:          nil,
 		limitCommits: true,
+	}
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		selectedCommitSha := ""
+		if c.CurrentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
+			selectedCommit := viewModel.GetSelected()
+			if selectedCommit != nil {
+				selectedCommitSha = selectedCommit.Sha
+			}
+		}
+		return presentation.GetCommitListDisplayStrings(
+			c.Common,
+			c.Model().SubCommits,
+			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
+			c.Modes().CherryPicking.SelectedShaSet(),
+			c.Modes().Diffing.Ref,
+			c.UserConfig.Gui.TimeFormat,
+			c.UserConfig.Git.ParseEmoji,
+			selectedCommitSha,
+			startIdx,
+			length,
+			shouldShowGraph(c),
+			git_commands.NewNullBisectInfo(),
+			false,
+		)
 	}
 
 	return &SubCommitsContext{

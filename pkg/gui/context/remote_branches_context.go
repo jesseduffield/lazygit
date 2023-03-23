@@ -2,6 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -17,11 +18,13 @@ var (
 )
 
 func NewRemoteBranchesContext(
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
 	c *types.HelperCommon,
 ) *RemoteBranchesContext {
 	viewModel := NewBasicViewModel(func() []*models.RemoteBranch { return c.Model().RemoteBranches })
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetRemoteBranchListDisplayStrings(c.Model().RemoteBranches, c.Modes().Diffing.Ref)
+	}
 
 	return &RemoteBranchesContext{
 		BasicViewModel:      viewModel,

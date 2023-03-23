@@ -1,7 +1,11 @@
 package context
 
 import (
+	"log"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -15,15 +19,40 @@ var (
 	_ types.DiffableContext = (*LocalCommitsContext)(nil)
 )
 
-func NewLocalCommitsContext(
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	c *types.HelperCommon,
-) *LocalCommitsContext {
+func NewLocalCommitsContext(c *types.HelperCommon) *LocalCommitsContext {
 	viewModel := NewLocalCommitsViewModel(
 		func() []*models.Commit { return c.Model().Commits },
 		c,
 	)
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		selectedCommitSha := ""
+
+		if c.CurrentContext().GetKey() == LOCAL_COMMITS_CONTEXT_KEY {
+			selectedCommit := viewModel.GetSelected()
+			if selectedCommit != nil {
+				selectedCommitSha = selectedCommit.Sha
+			}
+		}
+
+		showYouAreHereLabel := c.Model().WorkingTreeStateAtLastCommitRefresh == enums.REBASE_MODE_REBASING
+
+		return presentation.GetCommitListDisplayStrings(
+			c.Common,
+			c.Model().Commits,
+			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
+			c.Modes().CherryPicking.SelectedShaSet(),
+			c.Modes().Diffing.Ref,
+			c.UserConfig.Gui.TimeFormat,
+			c.UserConfig.Git.ParseEmoji,
+			selectedCommitSha,
+			startIdx,
+			length,
+			shouldShowGraph(c),
+			c.Model().BisectInfo,
+			showYouAreHereLabel,
+		)
+	}
 
 	return &LocalCommitsContext{
 		LocalCommitsViewModel: viewModel,
@@ -110,4 +139,23 @@ func (self *LocalCommitsViewModel) GetShowWholeGitGraph() bool {
 
 func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 	return self.getModel()
+}
+
+func shouldShowGraph(c *types.HelperCommon) bool {
+	if c.Modes().Filtering.Active() {
+		return false
+	}
+
+	value := c.UserConfig.Git.Log.ShowGraph
+	switch value {
+	case "always":
+		return true
+	case "never":
+		return false
+	case "when-maximised":
+		return c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL
+	}
+
+	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
+	return false
 }

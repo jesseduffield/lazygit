@@ -1,8 +1,11 @@
 package context
 
 import (
+	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -17,16 +20,23 @@ var (
 	_ types.DiffableContext = (*CommitFilesContext)(nil)
 )
 
-func NewCommitFilesContext(
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	c *types.HelperCommon,
-) *CommitFilesContext {
+func NewCommitFilesContext(c *types.HelperCommon) *CommitFilesContext {
 	viewModel := filetree.NewCommitFileTreeViewModel(
 		func() []*models.CommitFile { return c.Model().CommitFiles },
 		c.Log,
 		c.UserConfig.Gui.ShowFileTree,
 	)
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		if viewModel.Len() == 0 {
+			return [][]string{{style.FgRed.Sprint("(none)")}}
+		}
+
+		lines := presentation.RenderCommitFileTree(viewModel, c.Modes().Diffing.Ref, c.Git().Patch.PatchBuilder)
+		return slices.Map(lines, func(line string) []string {
+			return []string{line}
+		})
+	}
 
 	return &CommitFilesContext{
 		CommitFileTreeViewModel: viewModel,

@@ -2,6 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -16,11 +17,13 @@ var (
 )
 
 func NewStashContext(
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
 	c *types.HelperCommon,
 ) *StashContext {
 	viewModel := NewBasicViewModel(func() []*models.StashEntry { return c.Model().StashEntries })
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetStashEntryListDisplayStrings(c.Model().StashEntries, c.Modes().Diffing.Ref)
+	}
 
 	return &StashContext{
 		BasicViewModel: viewModel,

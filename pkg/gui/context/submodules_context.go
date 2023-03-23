@@ -2,6 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -12,12 +13,12 @@ type SubmodulesContext struct {
 
 var _ types.IListContext = (*SubmodulesContext)(nil)
 
-func NewSubmodulesContext(
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	c *types.HelperCommon,
-) *SubmodulesContext {
+func NewSubmodulesContext(c *types.HelperCommon) *SubmodulesContext {
 	viewModel := NewBasicViewModel(func() []*models.SubmoduleConfig { return c.Model().Submodules })
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetSubmoduleListDisplayStrings(c.Model().Submodules)
+	}
 
 	return &SubmodulesContext{
 		BasicViewModel: viewModel,

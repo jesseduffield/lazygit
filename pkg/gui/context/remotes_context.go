@@ -2,6 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -15,12 +16,12 @@ var (
 	_ types.DiffableContext = (*RemotesContext)(nil)
 )
 
-func NewRemotesContext(
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	c *types.HelperCommon,
-) *RemotesContext {
+func NewRemotesContext(c *types.HelperCommon) *RemotesContext {
 	viewModel := NewBasicViewModel(func() []*models.Remote { return c.Model().Remotes })
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetRemoteListDisplayStrings(c.Model().Remotes, c.Modes().Diffing.Ref)
+	}
 
 	return &RemotesContext{
 		BasicViewModel: viewModel,

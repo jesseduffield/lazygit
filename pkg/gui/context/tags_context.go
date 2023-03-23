@@ -2,6 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -16,11 +17,13 @@ var (
 )
 
 func NewTagsContext(
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
 	c *types.HelperCommon,
 ) *TagsContext {
 	viewModel := NewBasicViewModel(func() []*models.Tag { return c.Model().Tags })
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetTagListDisplayStrings(c.Model().Tags, c.Modes().Diffing.Ref)
+	}
 
 	return &TagsContext{
 		BasicViewModel: viewModel,
