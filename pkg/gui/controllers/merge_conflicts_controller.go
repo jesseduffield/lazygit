@@ -11,17 +11,17 @@ import (
 
 type MergeConflictsController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &MergeConflictsController{}
 
 func NewMergeConflictsController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *MergeConflictsController {
 	return &MergeConflictsController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -97,7 +97,7 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
-			Handler:     self.helpers.WorkingTree.OpenMergeTool,
+			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
 			Description: self.c.Tr.LcOpenMergeTool,
 		},
 		{
@@ -145,7 +145,7 @@ func (self *MergeConflictsController) GetOnFocus() func(types.OnFocusOpts) error
 	return func(types.OnFocusOpts) error {
 		self.c.Views().MergeConflicts.Wrap = false
 
-		return self.helpers.MergeConflicts.Render(true)
+		return self.c.Helpers().MergeConflicts.Render(true)
 	}
 }
 
@@ -187,11 +187,11 @@ func (self *MergeConflictsController) Escape() error {
 
 func (self *MergeConflictsController) HandleEditFile() error {
 	lineNumber := self.context().GetState().GetSelectedLine()
-	return self.helpers.Files.EditFileAtLine(self.context().GetState().GetPath(), lineNumber)
+	return self.c.Helpers().Files.EditFileAtLine(self.context().GetState().GetPath(), lineNumber)
 }
 
 func (self *MergeConflictsController) HandleOpenFile() error {
-	return self.helpers.Files.OpenFile(self.context().GetState().GetPath())
+	return self.c.Helpers().Files.OpenFile(self.context().GetState().GetPath())
 }
 
 func (self *MergeConflictsController) HandleScrollLeft() error {

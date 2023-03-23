@@ -11,17 +11,17 @@ import (
 
 type CommitFilesController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &CommitFilesController{}
 
 func NewCommitFilesController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *CommitFilesController {
 	return &CommitFilesController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -120,7 +120,7 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 }
 
 func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error {
-	if ok, err := self.helpers.PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
+	if ok, err := self.c.Helpers().PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
 		return err
 	}
 
@@ -131,7 +131,7 @@ func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error 
 			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.DiscardOldFileChange)
 				if err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), node.GetPath()); err != nil {
-					if err := self.helpers.MergeAndRebase.CheckMergeOrRebase(err); err != nil {
+					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
 						return err
 					}
 				}
@@ -143,7 +143,7 @@ func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error 
 }
 
 func (self *CommitFilesController) open(node *filetree.CommitFileNode) error {
-	return self.helpers.Files.OpenFile(node.GetPath())
+	return self.c.Helpers().Files.OpenFile(node.GetPath())
 }
 
 func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
@@ -151,7 +151,7 @@ func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
 		return self.c.ErrorMsg(self.c.Tr.ErrCannotEditDirectory)
 	}
 
-	return self.helpers.Files.EditFile(node.GetPath())
+	return self.c.Helpers().Files.EditFile(node.GetPath())
 }
 
 func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode) error {

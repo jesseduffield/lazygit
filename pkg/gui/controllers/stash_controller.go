@@ -9,17 +9,17 @@ import (
 
 type StashController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &StashController{}
 
 func NewStashController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *StashController {
 	return &StashController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -57,7 +57,7 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 
 func (self *StashController) GetOnRenderToMain() func() error {
 	return func() error {
-		return self.helpers.Diff.WithDiffModeCheck(func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
 			var task types.UpdateTask
 			stashEntry := self.context().GetSelected()
 			if stashEntry == nil {
@@ -165,7 +165,7 @@ func (self *StashController) postStashRefresh() error {
 }
 
 func (self *StashController) handleNewBranchOffStashEntry(stashEntry *models.StashEntry) error {
-	return self.helpers.Refs.NewBranch(stashEntry.RefName(), stashEntry.Description(), "")
+	return self.c.Helpers().Refs.NewBranch(stashEntry.RefName(), stashEntry.Description(), "")
 }
 
 func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntry) error {

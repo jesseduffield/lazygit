@@ -8,8 +8,13 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/status"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
+
+func (gui *Gui) Helpers() *helpers.Helpers {
+	return gui.helpers
+}
 
 func (gui *Gui) resetControllers() {
 	helperCommon := gui.c
@@ -28,27 +33,30 @@ func (gui *Gui) resetControllers() {
 	stagingHelper := helpers.NewStagingHelper(helperCommon)
 	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
 	refreshHelper := helpers.NewRefreshHelper(helperCommon, refsHelper, rebaseHelper, patchBuildingHelper, stagingHelper, mergeConflictsHelper, gui.fileWatcher)
+	diffHelper := helpers.NewDiffHelper(helperCommon)
+	cherryPickHelper := helpers.NewCherryPickHelper(
+		helperCommon,
+		rebaseHelper,
+	)
+	bisectHelper := helpers.NewBisectHelper(helperCommon)
 	gui.helpers = &helpers.Helpers{
-		Refs:           refsHelper,
-		Host:           helpers.NewHostHelper(helperCommon),
-		PatchBuilding:  patchBuildingHelper,
-		Staging:        stagingHelper,
-		Bisect:         helpers.NewBisectHelper(helperCommon),
-		Suggestions:    suggestionsHelper,
-		Files:          helpers.NewFilesHelper(helperCommon),
-		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, refsHelper, setCommitMessage, getSavedCommitMessage),
-		Tags:           helpers.NewTagsHelper(helperCommon),
-		GPG:            gpgHelper,
-		MergeAndRebase: rebaseHelper,
-		MergeConflicts: mergeConflictsHelper,
-		CherryPick: helpers.NewCherryPickHelper(
-			helperCommon,
-			rebaseHelper,
-		),
+		Refs:            refsHelper,
+		Host:            helpers.NewHostHelper(helperCommon),
+		PatchBuilding:   patchBuildingHelper,
+		Staging:         stagingHelper,
+		Bisect:          bisectHelper,
+		Suggestions:     suggestionsHelper,
+		Files:           helpers.NewFilesHelper(helperCommon),
+		WorkingTree:     helpers.NewWorkingTreeHelper(helperCommon, refsHelper, setCommitMessage, getSavedCommitMessage),
+		Tags:            helpers.NewTagsHelper(helperCommon),
+		GPG:             helpers.NewGpgHelper(helperCommon),
+		MergeAndRebase:  rebaseHelper,
+		MergeConflicts:  mergeConflictsHelper,
+		CherryPick:      cherryPickHelper,
 		Upstream:        helpers.NewUpstreamHelper(helperCommon, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
 		AmendHelper:     helpers.NewAmendHelper(helperCommon, gpgHelper),
 		Snake:           helpers.NewSnakeHelper(helperCommon),
-		Diff:            helpers.NewDiffHelper(helperCommon),
+		Diff:            diffHelper,
 		Repos:           helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo),
 		RecordDirectory: recordDirectoryHelper,
 		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater),
@@ -56,17 +64,26 @@ func (gui *Gui) resetControllers() {
 		View:            viewHelper,
 		Refresh:         refreshHelper,
 		Confirmation:    helpers.NewConfirmationHelper(helperCommon),
+		Mode: helpers.NewModeHelper(
+			helperCommon,
+			diffHelper,
+			patchBuildingHelper,
+			cherryPickHelper,
+			rebaseHelper,
+			bisectHelper,
+		),
+		AppStatus: helpers.NewAppStatusHelper(
+			helperCommon,
+			func() *status.StatusManager { return gui.statusManager },
+		),
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(
 		helperCommon,
-		gui.os,
-		gui.git,
-		gui.State.Contexts,
 		gui.helpers,
 	)
 
-	common := controllers.NewControllerCommon(helperCommon, gui.helpers)
+	common := controllers.NewControllerCommon(helperCommon, gui)
 
 	syncController := controllers.NewSyncController(
 		common,

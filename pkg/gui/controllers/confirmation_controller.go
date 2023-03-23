@@ -7,17 +7,17 @@ import (
 
 type ConfirmationController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &ConfirmationController{}
 
 func NewConfirmationController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *ConfirmationController {
 	return &ConfirmationController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -51,7 +51,7 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 
 func (self *ConfirmationController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
 	return func(types.OnFocusLostOpts) error {
-		self.helpers.Confirmation.DeactivateConfirmationPrompt()
+		self.c.Helpers().Confirmation.DeactivateConfirmationPrompt()
 		return nil
 	}
 }

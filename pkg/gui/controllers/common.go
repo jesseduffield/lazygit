@@ -4,17 +4,21 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 )
 
-type controllerCommon struct {
-	c       *helpers.HelperCommon
-	helpers *helpers.Helpers
+type ControllerCommon struct {
+	*helpers.HelperCommon
+	IGetHelpers
+}
+
+type IGetHelpers interface {
+	Helpers() *helpers.Helpers
 }
 
 func NewControllerCommon(
 	c *helpers.HelperCommon,
-	helpers *helpers.Helpers,
-) *controllerCommon {
-	return &controllerCommon{
-		c:       c,
-		helpers: helpers,
+	IGetHelpers IGetHelpers,
+) *ControllerCommon {
+	return &ControllerCommon{
+		HelperCommon: c,
+		IGetHelpers:  IGetHelpers,
 	}
 }

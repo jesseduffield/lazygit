@@ -20,17 +20,17 @@ type ContextMgr struct {
 	gui *Gui
 }
 
-func NewContextMgr(initialContext types.Context, gui *Gui) ContextMgr {
-	return ContextMgr{
-		ContextStack: []types.Context{},
+func NewContextMgr(initialContext types.Context, gui *Gui) *ContextMgr {
+	return &ContextMgr{
+		ContextStack: []types.Context{initialContext},
 		RWMutex:      sync.RWMutex{},
 		gui:          gui,
 	}
 }
 
-// use replaceContext when you don't want to return to the original context upon
+// use when you don't want to return to the original context upon
 // hitting escape: you want to go that context's parent instead.
-func (self *ContextMgr) replaceContext(c types.Context) error {
+func (self *ContextMgr) Replace(c types.Context) error {
 	if !c.IsFocusable() {
 		return nil
 	}
@@ -49,9 +49,9 @@ func (self *ContextMgr) replaceContext(c types.Context) error {
 	return self.activateContext(c, types.OnFocusOpts{})
 }
 
-func (self *ContextMgr) pushContext(c types.Context, opts ...types.OnFocusOpts) error {
+func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) error {
 	if len(opts) > 1 {
-		return errors.New("cannot pass multiple opts to pushContext")
+		return errors.New("cannot pass multiple opts to Push")
 	}
 
 	singleOpts := types.OnFocusOpts{}
@@ -135,7 +135,7 @@ func (self *ContextMgr) pushToContextStack(c types.Context) ([]types.Context, ty
 	return contextsToDeactivate, c
 }
 
-func (self *ContextMgr) popContext() error {
+func (self *ContextMgr) Pop() error {
 	self.Lock()
 
 	if len(self.ContextStack) == 1 {
@@ -213,7 +213,7 @@ func (self *ContextMgr) activateContext(c types.Context, opts types.OnFocusOpts)
 	return nil
 }
 
-func (self *ContextMgr) currentContext() types.Context {
+func (self *ContextMgr) Current() types.Context {
 	self.RLock()
 	defer self.RUnlock()
 
@@ -229,16 +229,11 @@ func (self *ContextMgr) currentContextWithoutLock() types.Context {
 }
 
 // Note that this could return the 'status' context which is not itself a list context.
-func (self *ContextMgr) currentSideContext() types.Context {
+func (self *ContextMgr) CurrentSide() types.Context {
 	self.RLock()
 	defer self.RUnlock()
 
 	stack := self.ContextStack
-
-	// on startup the stack can be empty so we'll return an empty string in that case
-	if len(stack) == 0 {
-		return self.gui.defaultSideContext()
-	}
 
 	// find the first context in the stack with the type of types.SIDE_CONTEXT
 	for i := range stack {
@@ -253,7 +248,7 @@ func (self *ContextMgr) currentSideContext() types.Context {
 }
 
 // static as opposed to popup
-func (self *ContextMgr) currentStaticContext() types.Context {
+func (self *ContextMgr) CurrentStatic() types.Context {
 	self.RLock()
 	defer self.RUnlock()
 
@@ -277,4 +272,17 @@ func (self *ContextMgr) currentStaticContextWithoutLock() types.Context {
 	}
 
 	return self.gui.defaultSideContext()
+}
+
+func (self *ContextMgr) ForEach(f func(types.Context)) {
+	self.RLock()
+	defer self.RUnlock()
+
+	for _, context := range self.gui.State.ContextMgr.ContextStack {
+		f(context)
+	}
+}
+
+func (self *ContextMgr) IsCurrent(c types.Context) bool {
+	return self.Current().GetKey() == c.GetKey()
 }

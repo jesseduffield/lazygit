@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -22,7 +21,7 @@ type (
 
 type LocalCommitsController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 
 	pullFiles PullFilesFn
 }
@@ -30,13 +29,13 @@ type LocalCommitsController struct {
 var _ types.IController = &LocalCommitsController{}
 
 func NewLocalCommitsController(
-	common *controllerCommon,
+	common *ControllerCommon,
 	pullFiles PullFilesFn,
 ) *LocalCommitsController {
 	return &LocalCommitsController{
-		baseController:   baseController{},
-		controllerCommon: common,
-		pullFiles:        pullFiles,
+		baseController: baseController{},
+		c:              common,
+		pullFiles:      pullFiles,
 	}
 }
 
@@ -156,7 +155,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 
 func (self *LocalCommitsController) GetOnRenderToMain() func() error {
 	return func() error {
-		return self.helpers.Diff.WithDiffModeCheck(func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
 			var task types.UpdateTask
 			commit := self.context().GetSelected()
 			if commit == nil {
@@ -185,7 +184,7 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() error {
 	}
 }
 
-func secondaryPatchPanelUpdateOpts(c *helpers.HelperCommon) *types.ViewUpdateOpts {
+func secondaryPatchPanelUpdateOpts(c *ControllerCommon) *types.ViewUpdateOpts {
 	if c.Git().Patch.PatchBuilder.Active() {
 		patch := c.Git().Patch.PatchBuilder.RenderAggregatedPatch(false)
 
@@ -350,7 +349,7 @@ func (self *LocalCommitsController) edit(commit *models.Commit) error {
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
 		err := self.c.Git().Rebase.InteractiveRebaseBreakAfter(self.c.Model().Commits, self.context().GetSelectedLineIdx())
-		return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
 
@@ -370,7 +369,7 @@ func (self *LocalCommitsController) pick(commit *models.Commit) error {
 
 func (self *LocalCommitsController) interactiveRebase(action string) error {
 	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, self.context().GetSelectedLineIdx(), action)
-	return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
+	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
 
 // handleMidRebaseCommand sees if the selected commit is in fact a rebasing
@@ -454,7 +453,7 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		if err == nil {
 			self.context().MoveSelectedLine(1)
 		}
-		return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
 
@@ -492,13 +491,13 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		if err == nil {
 			self.context().MoveSelectedLine(-1)
 		}
-		return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
 
 func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 	if self.isHeadCommit() {
-		if err := self.helpers.AmendHelper.AmendHead(); err != nil {
+		if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
 			return err
 		}
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
@@ -515,14 +514,14 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
 				err := self.c.Git().Rebase.AmendTo(commit)
-				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
+				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 			})
 		},
 	})
 }
 
 func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error {
-	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE && !self.isHeadCommit() {
+	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE && !self.isHeadCommit() {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
@@ -559,7 +558,7 @@ func (self *LocalCommitsController) resetAuthor() error {
 func (self *LocalCommitsController) setAuthor() error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.SetAuthorPromptTitle,
-		FindSuggestionsFunc: self.helpers.Suggestions.GetAuthorsSuggestionsFunc(),
+		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
@@ -662,14 +661,14 @@ func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Co
 			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
 				err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
-				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
+				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 			})
 		},
 	})
 }
 
 func (self *LocalCommitsController) createTag(commit *models.Commit) error {
-	return self.helpers.Tags.CreateTagMenu(commit.Sha, func() {})
+	return self.c.Helpers().Tags.CreateTagMenu(commit.Sha, func() {})
 }
 
 func (self *LocalCommitsController) openSearch() error {
@@ -826,7 +825,7 @@ func (self *LocalCommitsController) context() *context.LocalCommitsContext {
 }
 
 func (self *LocalCommitsController) paste() error {
-	return self.helpers.CherryPick.Paste()
+	return self.c.Helpers().CherryPick.Paste()
 }
 
 func (self *LocalCommitsController) isHeadCommit() bool {

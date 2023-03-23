@@ -13,7 +13,7 @@ import (
 
 type FilesController struct {
 	baseController // nolint: unused
-	*controllerCommon
+	c              *ControllerCommon
 
 	setCommitMessage      func(message string)
 	getSavedCommitMessage func() string
@@ -22,12 +22,12 @@ type FilesController struct {
 var _ types.IController = &FilesController{}
 
 func NewFilesController(
-	common *controllerCommon,
+	common *ControllerCommon,
 	setCommitMessage func(message string),
 	getSavedCommitMessage func() string,
 ) *FilesController {
 	return &FilesController{
-		controllerCommon:      common,
+		c:                     common,
 		setCommitMessage:      setCommitMessage,
 		getSavedCommitMessage: getSavedCommitMessage,
 	}
@@ -47,12 +47,12 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
-			Handler:     self.helpers.WorkingTree.HandleCommitPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
 			Description: self.c.Tr.CommitChanges,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
-			Handler:     self.helpers.WorkingTree.HandleWIPCommitPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleWIPCommitPress,
 			Description: self.c.Tr.LcCommitChangesWithoutHook,
 		},
 		{
@@ -62,7 +62,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
-			Handler:     self.helpers.WorkingTree.HandleCommitEditorPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleCommitEditorPress,
 			Description: self.c.Tr.CommitChangesWithEditor,
 		},
 		{
@@ -126,7 +126,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
-			Handler:     self.helpers.WorkingTree.OpenMergeTool,
+			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
 			Description: self.c.Tr.LcOpenMergeTool,
 		},
 		{
@@ -174,7 +174,7 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 
 func (self *FilesController) GetOnRenderToMain() func() error {
 	return func() error {
-		return self.helpers.Diff.WithDiffModeCheck(func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
 			node := self.context().GetSelected()
 
 			if node == nil {
@@ -188,17 +188,17 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 			}
 
 			if node.File != nil && node.File.HasInlineMergeConflicts {
-				hasConflicts, err := self.helpers.MergeConflicts.SetMergeState(node.GetPath())
+				hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.GetPath())
 				if err != nil {
 					return err
 				}
 
 				if hasConflicts {
-					return self.helpers.MergeConflicts.Render(false)
+					return self.c.Helpers().MergeConflicts.Render(false)
 				}
 			}
 
-			self.helpers.MergeConflicts.ResetMergeState()
+			self.c.Helpers().MergeConflicts.ResetMergeState()
 
 			pair := self.c.MainViewPairs().Normal
 			if node.File != nil {
@@ -444,7 +444,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 	submoduleConfigs := self.c.Model().Submodules
 	if file.IsSubmodule(submoduleConfigs) {
 		submoduleConfig := file.SubmoduleConfig(submoduleConfigs)
-		return self.helpers.Repos.EnterSubmodule(submoduleConfig)
+		return self.c.Helpers().Repos.EnterSubmodule(submoduleConfig)
 	}
 
 	if file.HasInlineMergeConflicts {
@@ -624,15 +624,15 @@ func (self *FilesController) handleAmendCommitPress() error {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
-	if !self.helpers.WorkingTree.AnyStagedFiles() {
-		return self.helpers.WorkingTree.PromptToStageAllAndRetry(self.handleAmendCommitPress)
+	if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
+		return self.c.Helpers().WorkingTree.PromptToStageAllAndRetry(self.handleAmendCommitPress)
 	}
 
 	if len(self.c.Model().Commits) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
 	}
 
-	return self.helpers.AmendHelper.AmendHead()
+	return self.c.Helpers().AmendHelper.AmendHead()
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
@@ -671,7 +671,7 @@ func (self *FilesController) edit(node *filetree.FileNode) error {
 		return self.c.ErrorMsg(self.c.Tr.ErrCannotEditDirectory)
 	}
 
-	return self.helpers.Files.EditFile(node.GetPath())
+	return self.c.Helpers().Files.EditFile(node.GetPath())
 }
 
 func (self *FilesController) Open() error {
@@ -680,7 +680,7 @@ func (self *FilesController) Open() error {
 		return nil
 	}
 
-	return self.helpers.Files.OpenFile(node.GetPath())
+	return self.c.Helpers().Files.OpenFile(node.GetPath())
 }
 
 func (self *FilesController) switchToMerge() error {
@@ -689,7 +689,7 @@ func (self *FilesController) switchToMerge() error {
 		return nil
 	}
 
-	return self.helpers.MergeConflicts.SwitchToMerge(file.Name)
+	return self.c.Helpers().MergeConflicts.SwitchToMerge(file.Name)
 }
 
 func (self *FilesController) createStashMenu() error {
@@ -699,7 +699,7 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.LcStashAllChanges,
 				OnPress: func() error {
-					if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.Save, self.c.Tr.Actions.StashAllChanges)
@@ -709,7 +709,7 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.LcStashAllChangesKeepIndex,
 				OnPress: func() error {
-					if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
 					}
 					// if there are no staged files it behaves the same as Stash.Save
@@ -728,7 +728,7 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.LcStashStagedChanges,
 				OnPress: func() error {
 					// there must be something in staging otherwise the current implementation mucks the stash up
-					if !self.helpers.WorkingTree.AnyStagedFiles() {
+					if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
 						return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
 					}
 					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
@@ -738,10 +738,10 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.LcStashUnstagedChanges,
 				OnPress: func() error {
-					if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
 					}
-					if self.helpers.WorkingTree.AnyStagedFiles() {
+					if self.c.Helpers().WorkingTree.AnyStagedFiles() {
 						return self.handleStashSave(self.c.Git().Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges)
 					}
 					// ordinary stash
@@ -758,7 +758,7 @@ func (self *FilesController) stash() error {
 }
 
 func (self *FilesController) createResetToUpstreamMenu() error {
-	return self.helpers.Refs.CreateGitResetMenu("@{upstream}")
+	return self.c.Helpers().Refs.CreateGitResetMenu("@{upstream}")
 }
 
 func (self *FilesController) handleToggleDirCollapsed() error {

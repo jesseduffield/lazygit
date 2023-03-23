@@ -8,17 +8,17 @@ import (
 
 type SubCommitsController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &SubCommitsController{}
 
 func NewSubCommitsController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *SubCommitsController {
 	return &SubCommitsController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -32,7 +32,7 @@ func (self *SubCommitsController) context() *context.SubCommitsContext {
 
 func (self *SubCommitsController) GetOnRenderToMain() func() error {
 	return func() error {
-		return self.helpers.Diff.WithDiffModeCheck(func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
 			commit := self.context().GetSelected()
 			var task types.UpdateTask
 			if commit == nil {

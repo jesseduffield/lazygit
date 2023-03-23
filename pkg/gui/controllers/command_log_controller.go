@@ -6,17 +6,17 @@ import (
 
 type CommandLogController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &CommandLogController{}
 
 func NewCommandLogController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *CommandLogController {
 	return &CommandLogController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 

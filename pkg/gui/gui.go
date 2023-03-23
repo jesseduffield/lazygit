@@ -30,6 +30,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
+	"github.com/jesseduffield/lazygit/pkg/gui/status"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
@@ -67,7 +68,7 @@ type Gui struct {
 	RepoStateMap         map[Repo]*GuiRepoState
 	Config               config.AppConfigurer
 	Updater              *updates.Updater
-	statusManager        *statusManager
+	statusManager        *status.StatusManager
 	waitForIntro         sync.WaitGroup
 	fileWatcher          *fileWatcher
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager
@@ -127,9 +128,8 @@ type Gui struct {
 
 	Updating bool
 
-	c             *helpers.HelperCommon
-	contextCommon *context.ContextCommon
-	helpers       *helpers.Helpers
+	c       *helpers.HelperCommon
+	helpers *helpers.Helpers
 }
 
 type StateAccessor struct {
@@ -170,6 +170,14 @@ func (self *StateAccessor) SetIsRefreshingFiles(value bool) {
 	self.gui.IsRefreshingFiles = value
 }
 
+func (self *StateAccessor) GetShowExtrasWindow() bool {
+	return self.gui.ShowExtrasWindow
+}
+
+func (self *StateAccessor) SetShowExtrasWindow(value bool) {
+	self.gui.ShowExtrasWindow = value
+}
+
 // we keep track of some stuff from one render to the next to see if certain
 // things have changed
 type PrevLayout struct {
@@ -188,7 +196,7 @@ type GuiRepoState struct {
 	Searching    searchingState
 	StartupStage types.StartupStage // Allows us to not load everything at once
 
-	ContextMgr ContextMgr
+	ContextMgr *ContextMgr
 	Contexts   *context.ContextTree
 
 	// WindowViewNameMap is a mapping of windows to the current view of that window.
@@ -238,6 +246,22 @@ func (self *GuiRepoState) SetCurrentPopupOpts(value *types.CreatePopupPanelOpts)
 
 func (self *GuiRepoState) GetScreenMode() types.WindowMaximisation {
 	return self.ScreenMode
+}
+
+func (self *GuiRepoState) SetScreenMode(value types.WindowMaximisation) {
+	self.ScreenMode = value
+}
+
+func (self *GuiRepoState) IsSearching() bool {
+	return self.Searching.isSearching
+}
+
+func (self *GuiRepoState) SetSplitMainPanel(value bool) {
+	self.SplitMainPanel = value
+}
+
+func (self *GuiRepoState) GetSplitMainPanel() bool {
+	return self.SplitMainPanel
 }
 
 type searchingState struct {
@@ -405,7 +429,7 @@ func NewGui(
 		gitVersion:           gitVersion,
 		Config:               config,
 		Updater:              updater,
-		statusManager:        &statusManager{},
+		statusManager:        status.NewStatusManager(),
 		viewBufferManagerMap: map[string]*tasks.ViewBufferManager{},
 		viewPtmxMap:          map[string]*os.File{},
 		showRecentRepos:      showRecentRepos,
@@ -438,17 +462,16 @@ func NewGui(
 			return gui.helpers.Confirmation.CreatePopupPanel(ctx, opts)
 		},
 		func() error { return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}) },
-		gui.popContext,
-		gui.currentContext,
+		func() error { return gui.State.ContextMgr.Pop() },
+		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
-		gui.withWaitingStatus,
-		gui.toast,
+		func(message string, f func() error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
+		func(message string) { gui.helpers.AppStatus.Toast(message) },
 		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
 	)
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
 	helperCommon := &helpers.HelperCommon{IGuiCommon: guiCommon, Common: cmn, IGetContexts: gui}
-	contextCommon := &context.ContextCommon{IGuiCommon: guiCommon, Common: cmn}
 
 	credentialsHelper := helpers.NewCredentialsHelper(helperCommon)
 
@@ -466,8 +489,6 @@ func NewGui(
 	// storing this stuff on the gui for now to ease refactoring
 	// TODO: reset these controllers upon changing repos due to state changing
 	gui.c = helperCommon
-
-	gui.contextCommon = contextCommon
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
 	icons.SetIconEnabled(gui.UserConfig.Gui.ShowIcons)
@@ -804,30 +825,15 @@ func (gui *Gui) startBackgroundRoutines() {
 }
 
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
-	windowArranger := &WindowArranger{gui: gui}
+	windowArranger := NewWindowArranger(
+		gui.c,
+		gui.helpers.Window,
+		gui.helpers.Mode,
+		gui.helpers.AppStatus,
+	)
 	return windowArranger.getWindowDimensions(informationStr, appStatus)
 }
 
-func (gui *Gui) replaceContext(c types.Context) error {
-	return gui.State.ContextMgr.replaceContext(c)
-}
-
-func (gui *Gui) pushContext(c types.Context, opts ...types.OnFocusOpts) error {
-	return gui.State.ContextMgr.pushContext(c, opts...)
-}
-
 func (gui *Gui) popContext() error {
-	return gui.State.ContextMgr.popContext()
-}
-
-func (gui *Gui) currentContext() types.Context {
-	return gui.State.ContextMgr.currentContext()
-}
-
-func (gui *Gui) currentSideContext() types.Context {
-	return gui.State.ContextMgr.currentSideContext()
-}
-
-func (gui *Gui) currentStaticContext() types.Context {
-	return gui.State.ContextMgr.currentStaticContext()
+	return gui.State.ContextMgr.Pop()
 }

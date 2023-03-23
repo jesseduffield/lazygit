@@ -16,17 +16,17 @@ import (
 
 type StatusController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &StatusController{}
 
 func NewStatusController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *StatusController {
 	return &StatusController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -49,7 +49,7 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Status.RecentRepos),
-			Handler:     self.helpers.Repos.CreateRecentReposMenu,
+			Handler:     self.c.Helpers().Repos.CreateRecentReposMenu,
 			Description: self.c.Tr.SwitchRepo,
 		},
 		{
@@ -96,7 +96,7 @@ func (self *StatusController) Context() types.Context {
 
 func (self *StatusController) onClick() error {
 	// TODO: move into some abstraction (status is currently not a listViewContext where a lot of this code lives)
-	currentBranch := self.helpers.Refs.GetCheckedOutRef()
+	currentBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 	if currentBranch == nil {
 		// need to wait for branches to refresh
 		return nil
@@ -114,14 +114,14 @@ func (self *StatusController) onClick() error {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", presentation.FormatWorkingTreeState(workingTreeState))
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
-			return self.helpers.MergeAndRebase.CreateRebaseOptionsMenu()
+			return self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu()
 		}
 		if cursorInSubstring(cx, upstreamStatus+" "+workingTreeStatus+" ", repoName) {
-			return self.helpers.Repos.CreateRecentReposMenu()
+			return self.c.Helpers().Repos.CreateRecentReposMenu()
 		}
 	default:
 		if cursorInSubstring(cx, upstreamStatus+" ", repoName) {
-			return self.helpers.Repos.CreateRecentReposMenu()
+			return self.c.Helpers().Repos.CreateRecentReposMenu()
 		}
 	}
 
@@ -173,11 +173,11 @@ func (self *StatusController) askForConfigFile(action func(file string) error) e
 }
 
 func (self *StatusController) openConfig() error {
-	return self.askForConfigFile(self.helpers.Files.OpenFile)
+	return self.askForConfigFile(self.c.Helpers().Files.OpenFile)
 }
 
 func (self *StatusController) editConfig() error {
-	return self.askForConfigFile(self.helpers.Files.EditFile)
+	return self.askForConfigFile(self.c.Helpers().Files.EditFile)
 }
 
 func (self *StatusController) showAllBranchLogs() error {
@@ -194,5 +194,5 @@ func (self *StatusController) showAllBranchLogs() error {
 }
 
 func (self *StatusController) handleCheckForUpdate() error {
-	return self.helpers.Update.CheckForUpdateInForeground()
+	return self.c.Helpers().Update.CheckForUpdateInForeground()
 }

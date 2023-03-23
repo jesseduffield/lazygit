@@ -20,17 +20,17 @@ import (
 
 type UndoController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &UndoController{}
 
 func NewUndoController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *UndoController {
 	return &UndoController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -104,7 +104,7 @@ func (self *UndoController) reflogUndo() error {
 				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.from),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Undo)
-					return self.helpers.Refs.CheckoutRef(action.from, types.CheckoutRefOptions{
+					return self.c.Helpers().Refs.CheckoutRef(action.from, types.CheckoutRefOptions{
 						EnvVars:       undoEnvVars,
 						WaitingStatus: undoingStatus,
 					})
@@ -156,7 +156,7 @@ func (self *UndoController) reflogRedo() error {
 				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.to),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Redo)
-					return self.helpers.Refs.CheckoutRef(action.to, types.CheckoutRefOptions{
+					return self.c.Helpers().Refs.CheckoutRef(action.to, types.CheckoutRefOptions{
 						EnvVars:       redoEnvVars,
 						WaitingStatus: redoingStatus,
 					})
@@ -233,14 +233,14 @@ type hardResetOptions struct {
 // only to be used in the undo flow for now (does an autostash)
 func (self *UndoController) hardResetWithAutoStash(commitSha string, options hardResetOptions) error {
 	reset := func() error {
-		if err := self.helpers.Refs.ResetToRef(commitSha, "hard", options.EnvVars); err != nil {
+		if err := self.c.Helpers().Refs.ResetToRef(commitSha, "hard", options.EnvVars); err != nil {
 			return self.c.Error(err)
 		}
 		return nil
 	}
 
 	// if we have any modified tracked files we need to ask the user if they want us to stash for them
-	dirtyWorkingTree := self.helpers.WorkingTree.IsWorkingTreeDirty()
+	dirtyWorkingTree := self.c.Helpers().WorkingTree.IsWorkingTreeDirty()
 	if dirtyWorkingTree {
 		// offer to autostash changes
 		return self.c.Confirm(types.ConfirmOpts{

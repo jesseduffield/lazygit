@@ -49,7 +49,7 @@ func (gui *Gui) handleCreateFilteringMenuPanel() error {
 	if gui.State.Modes.Filtering.Active() {
 		menuItems = append(menuItems, &types.MenuItem{
 			Label:   gui.c.Tr.LcExitFilterMode,
-			OnPress: gui.clearFiltering,
+			OnPress: gui.helpers.Mode.ClearFiltering,
 		})
 	}
 

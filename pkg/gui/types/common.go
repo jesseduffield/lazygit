@@ -60,6 +60,9 @@ type IGuiCommon interface {
 	CurrentStaticContext() Context
 	CurrentSideContext() Context
 	IsCurrentContext(Context) bool
+	// TODO: replace the above context-based methods with just using Context() e.g. replace PushContext() with Context().Push()
+	Context() IContextMgr
+
 	// enters search mode for the current view
 	OpenSearch()
 
@@ -81,6 +84,7 @@ type IGuiCommon interface {
 	Git() *commands.GitCommand
 	OS() *oscommands.OSCommand
 	Model() *Model
+
 	Modes() *Modes
 
 	Mutexes() Mutexes
@@ -88,6 +92,10 @@ type IGuiCommon interface {
 	State() IStateAccessor
 
 	KeybindingsOpts() KeybindingsOpts
+}
+
+type IModeMgr interface {
+	IsAnyModeActive() bool
 }
 
 type IPopupHandler interface {
@@ -220,6 +228,8 @@ type IStateAccessor interface {
 	SetUpdating(bool)
 	SetIsRefreshingFiles(bool)
 	GetIsRefreshingFiles() bool
+	GetShowExtrasWindow() bool
+	SetShowExtrasWindow(bool)
 }
 
 type IRepoStateAccessor interface {
@@ -230,6 +240,10 @@ type IRepoStateAccessor interface {
 	GetCurrentPopupOpts() *CreatePopupPanelOpts
 	SetCurrentPopupOpts(*CreatePopupPanelOpts)
 	GetScreenMode() WindowMaximisation
+	SetScreenMode(WindowMaximisation)
+	IsSearching() bool
+	SetSplitMainPanel(bool)
+	GetSplitMainPanel() bool
 }
 
 // startup stages so we don't need to load everything at once

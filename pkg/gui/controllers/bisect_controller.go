@@ -12,17 +12,17 @@ import (
 
 type BisectController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &BisectController{}
 
 func NewBisectController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *BisectController {
 	return &BisectController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -105,7 +105,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 		{
 			Label: self.c.Tr.Bisect.ResetOption,
 			OnPress: func() error {
-				return self.helpers.Bisect.Reset()
+				return self.c.Helpers().Bisect.Reset()
 			},
 			Key: 'r',
 		},
@@ -133,7 +133,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 						return self.c.Error(err)
 					}
 
-					return self.helpers.Bisect.PostBisectCommandRefresh()
+					return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 				},
 				Key: 'b',
 			},
@@ -149,7 +149,7 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 						return self.c.Error(err)
 					}
 
-					return self.helpers.Bisect.PostBisectCommandRefresh()
+					return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 				},
 				Key: 'g',
 			},
@@ -177,7 +177,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateShas []string) 
 				return self.c.Error(err)
 			}
 
-			return self.helpers.Bisect.PostBisectCommandRefresh()
+			return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 		},
 	})
 }
@@ -211,7 +211,7 @@ func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToR
 	} else {
 		selectFn()
 
-		return self.helpers.Bisect.PostBisectCommandRefresh()
+		return self.c.Helpers().Bisect.PostBisectCommandRefresh()
 	}
 }
 

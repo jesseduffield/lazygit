@@ -23,7 +23,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	width, height := g.Size()
 
 	informationStr := gui.informationStr()
-	appStatus := gui.statusManager.getStatusString()
+
+	appStatus := gui.helpers.AppStatus.GetStatusString()
 
 	viewDimensions := gui.getWindowDimensions(informationStr, appStatus)
 

@@ -12,17 +12,17 @@ import (
 
 type FilesRemoveController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &FilesRemoveController{}
 
 func NewFilesRemoveController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *FilesRemoveController {
 	return &FilesRemoveController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -148,7 +148,7 @@ func (self *FilesRemoveController) ResetSubmodule(submodule *models.SubmoduleCon
 	return self.c.WithWaitingStatus(self.c.Tr.LcResettingSubmoduleStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.ResetSubmodule)
 
-		file := self.helpers.WorkingTree.FileForSubmodule(submodule)
+		file := self.c.Helpers().WorkingTree.FileForSubmodule(submodule)
 		if file != nil {
 			if err := self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
 				return self.c.Error(err)

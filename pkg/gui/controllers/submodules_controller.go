@@ -13,17 +13,17 @@ import (
 
 type SubmodulesController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &SubmodulesController{}
 
 func NewSubmodulesController(
-	controllerCommon *controllerCommon,
+	controllerCommon *ControllerCommon,
 ) *SubmodulesController {
 	return &SubmodulesController{
-		baseController:   baseController{},
-		controllerCommon: controllerCommon,
+		baseController: baseController{},
+		c:              controllerCommon,
 	}
 }
 
@@ -79,7 +79,7 @@ func (self *SubmodulesController) GetOnClick() func() error {
 
 func (self *SubmodulesController) GetOnRenderToMain() func() error {
 	return func() error {
-		return self.helpers.Diff.WithDiffModeCheck(func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
 			var task types.UpdateTask
 			submodule := self.context().GetSelected()
 			if submodule == nil {
@@ -92,7 +92,7 @@ func (self *SubmodulesController) GetOnRenderToMain() func() error {
 					style.FgCyan.Sprint(submodule.Url),
 				)
 
-				file := self.helpers.WorkingTree.FileForSubmodule(submodule)
+				file := self.c.Helpers().WorkingTree.FileForSubmodule(submodule)
 				if file == nil {
 					task = types.NewRenderStringTask(prefix)
 				} else {
@@ -113,7 +113,7 @@ func (self *SubmodulesController) GetOnRenderToMain() func() error {
 }
 
 func (self *SubmodulesController) enter(submodule *models.SubmoduleConfig) error {
-	return self.helpers.Repos.EnterSubmodule(submodule)
+	return self.c.Helpers().Repos.EnterSubmodule(submodule)
 }
 
 func (self *SubmodulesController) add() error {

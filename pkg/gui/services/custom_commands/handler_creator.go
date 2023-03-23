@@ -5,8 +5,6 @@ import (
 	"text/template"
 
 	"github.com/jesseduffield/generics/slices"
-	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -17,8 +15,6 @@ import (
 // takes a custom command and returns a function that will be called when the corresponding user-defined keybinding is pressed
 type HandlerCreator struct {
 	c                  *helpers.HelperCommon
-	os                 *oscommands.OSCommand
-	git                *commands.GitCommand
 	sessionStateLoader *SessionStateLoader
 	resolver           *Resolver
 	menuGenerator      *MenuGenerator
@@ -26,8 +22,6 @@ type HandlerCreator struct {
 
 func NewHandlerCreator(
 	c *helpers.HelperCommon,
-	os *oscommands.OSCommand,
-	git *commands.GitCommand,
 	sessionStateLoader *SessionStateLoader,
 ) *HandlerCreator {
 	resolver := NewResolver(c.Common)
@@ -35,8 +29,6 @@ func NewHandlerCreator(
 
 	return &HandlerCreator{
 		c:                  c,
-		os:                 os,
-		git:                git,
 		sessionStateLoader: sessionStateLoader,
 		resolver:           resolver,
 		menuGenerator:      menuGenerator,
@@ -144,7 +136,7 @@ func (self *HandlerCreator) confirmPrompt(prompt *config.CustomCommandPrompt, ha
 
 func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
 	// Run and save output
-	message, err := self.git.Custom.RunWithOutput(prompt.Command)
+	message, err := self.c.Git().Custom.RunWithOutput(prompt.Command)
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -181,7 +173,7 @@ func (self *HandlerCreator) getResolveTemplateFn(form map[string]string, promptR
 	}
 
 	funcs := template.FuncMap{
-		"quote": self.os.Quote,
+		"quote": self.c.OS().Quote,
 	}
 
 	return func(templateStr string) (string, error) { return utils.ResolveTemplate(templateStr, objects, funcs) }
@@ -194,7 +186,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		return self.c.Error(err)
 	}
 
-	cmdObj := self.os.Cmd.NewShell(cmdStr)
+	cmdObj := self.c.OS().Cmd.NewShell(cmdStr)
 
 	if customCommand.Subprocess {
 		return self.c.RunSubprocessAndRefresh(cmdObj)

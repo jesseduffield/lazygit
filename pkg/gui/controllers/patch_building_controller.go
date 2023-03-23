@@ -8,17 +8,17 @@ import (
 
 type PatchBuildingController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &PatchBuildingController{}
 
 func NewPatchBuildingController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *PatchBuildingController {
 	return &PatchBuildingController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -64,7 +64,7 @@ func (self *PatchBuildingController) GetOnFocus() func(types.OnFocusOpts) error 
 		// no need to change wrap on the secondary view because it can't be interacted with
 		self.c.Views().PatchBuilding.Wrap = false
 
-		return self.helpers.PatchBuilding.RefreshPatchBuildingPanel(opts)
+		return self.c.Helpers().PatchBuilding.RefreshPatchBuildingPanel(opts)
 	}
 }
 
@@ -90,7 +90,7 @@ func (self *PatchBuildingController) OpenFile() error {
 		return nil
 	}
 
-	return self.helpers.Files.OpenFile(path)
+	return self.c.Helpers().Files.OpenFile(path)
 }
 
 func (self *PatchBuildingController) EditFile() error {
@@ -104,7 +104,7 @@ func (self *PatchBuildingController) EditFile() error {
 	}
 
 	lineNumber := self.context().GetState().CurrentLineNumber()
-	return self.helpers.Files.EditFileAtLine(path, lineNumber)
+	return self.c.Helpers().Files.EditFileAtLine(path, lineNumber)
 }
 
 func (self *PatchBuildingController) ToggleSelectionAndRefresh() error {
@@ -154,5 +154,5 @@ func (self *PatchBuildingController) toggleSelection() error {
 }
 
 func (self *PatchBuildingController) Escape() error {
-	return self.helpers.PatchBuilding.Escape()
+	return self.c.Helpers().PatchBuilding.Escape()
 }

@@ -41,31 +41,35 @@ func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
 }
 
 func (self *guiCommon) PushContext(context types.Context, opts ...types.OnFocusOpts) error {
-	return self.gui.pushContext(context, opts...)
+	return self.gui.State.ContextMgr.Push(context, opts...)
 }
 
 func (self *guiCommon) PopContext() error {
-	return self.gui.popContext()
+	return self.gui.State.ContextMgr.Pop()
 }
 
 func (self *guiCommon) ReplaceContext(context types.Context) error {
-	return self.gui.replaceContext(context)
+	return self.gui.State.ContextMgr.Replace(context)
 }
 
 func (self *guiCommon) CurrentContext() types.Context {
-	return self.gui.currentContext()
+	return self.gui.State.ContextMgr.Current()
 }
 
 func (self *guiCommon) CurrentStaticContext() types.Context {
-	return self.gui.currentStaticContext()
+	return self.gui.State.ContextMgr.CurrentStatic()
 }
 
 func (self *guiCommon) CurrentSideContext() types.Context {
-	return self.gui.currentSideContext()
+	return self.gui.State.ContextMgr.CurrentSide()
 }
 
 func (self *guiCommon) IsCurrentContext(c types.Context) bool {
-	return self.CurrentContext().GetKey() == c.GetKey()
+	return self.gui.State.ContextMgr.IsCurrent(c)
+}
+
+func (self *guiCommon) Context() types.IContextMgr {
+	return self.gui.State.ContextMgr
 }
 
 func (self *guiCommon) GetAppState() *config.AppState {
@@ -147,4 +151,8 @@ func (self *guiCommon) State() types.IStateAccessor {
 
 func (self *guiCommon) KeybindingsOpts() types.KeybindingsOpts {
 	return self.gui.keybindingOpts()
+}
+
+func (self *guiCommon) IsAnyModeActive() bool {
+	return self.IsAnyModeActive()
 }

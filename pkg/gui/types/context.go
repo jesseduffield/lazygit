@@ -198,3 +198,14 @@ type ListItem interface {
 	// Description is something we would show in a message e.g. '123as14: push blah' for a commit
 	Description() string
 }
+
+type IContextMgr interface {
+	Push(context Context, opts ...OnFocusOpts) error
+	Pop() error
+	Replace(context Context) error
+	Current() Context
+	CurrentStatic() Context
+	CurrentSide() Context
+	IsCurrent(c Context) bool
+	ForEach(func(Context))
+}

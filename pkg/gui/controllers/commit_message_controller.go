@@ -7,7 +7,7 @@ import (
 
 type CommitMessageController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 
 	getCommitMessage func() string
 	onCommitAttempt  func(message string)
@@ -17,14 +17,14 @@ type CommitMessageController struct {
 var _ types.IController = &CommitMessageController{}
 
 func NewCommitMessageController(
-	common *controllerCommon,
+	common *ControllerCommon,
 	getCommitMessage func() string,
 	onCommitAttempt func(message string),
 	onCommitSuccess func(),
 ) *CommitMessageController {
 	return &CommitMessageController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 
 		getCommitMessage: getCommitMessage,
 		onCommitAttempt:  onCommitAttempt,
@@ -80,7 +80,7 @@ func (self *CommitMessageController) confirm() error {
 	self.c.LogAction(self.c.Tr.Actions.Commit)
 
 	_ = self.c.PopContext()
-	return self.helpers.GPG.WithGpgHandling(cmdObj, self.c.Tr.CommittingStatus, func() error {
+	return self.c.Helpers().GPG.WithGpgHandling(cmdObj, self.c.Tr.CommittingStatus, func() error {
 		self.onCommitSuccess()
 		return nil
 	})

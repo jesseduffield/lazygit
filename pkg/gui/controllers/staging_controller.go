@@ -10,7 +10,7 @@ import (
 
 type StagingController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 
 	context      types.IPatchExplorerContext
 	otherContext types.IPatchExplorerContext
@@ -22,17 +22,17 @@ type StagingController struct {
 var _ types.IController = &StagingController{}
 
 func NewStagingController(
-	common *controllerCommon,
+	common *ControllerCommon,
 	context types.IPatchExplorerContext,
 	otherContext types.IPatchExplorerContext,
 	staged bool,
 ) *StagingController {
 	return &StagingController{
-		baseController:   baseController{},
-		controllerCommon: common,
-		context:          context,
-		otherContext:     otherContext,
-		staged:           staged,
+		baseController: baseController{},
+		c:              common,
+		context:        context,
+		otherContext:   otherContext,
+		staged:         staged,
 	}
 }
 
@@ -75,17 +75,17 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
-			Handler:     self.helpers.WorkingTree.HandleCommitPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
 			Description: self.c.Tr.CommitChanges,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
-			Handler:     self.helpers.WorkingTree.HandleWIPCommitPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleWIPCommitPress,
 			Description: self.c.Tr.LcCommitChangesWithoutHook,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
-			Handler:     self.helpers.WorkingTree.HandleCommitEditorPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleCommitEditorPress,
 			Description: self.c.Tr.CommitChangesWithEditor,
 		},
 	}
@@ -104,7 +104,7 @@ func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) error {
 		self.c.Views().Staging.Wrap = false
 		self.c.Views().StagingSecondary.Wrap = false
 
-		return self.helpers.Staging.RefreshStagingPanel(opts)
+		return self.c.Helpers().Staging.RefreshStagingPanel(opts)
 	}
 }
 
@@ -132,7 +132,7 @@ func (self *StagingController) OpenFile() error {
 		return nil
 	}
 
-	return self.helpers.Files.OpenFile(path)
+	return self.c.Helpers().Files.OpenFile(path)
 }
 
 func (self *StagingController) EditFile() error {
@@ -146,7 +146,7 @@ func (self *StagingController) EditFile() error {
 	}
 
 	lineNumber := self.context.GetState().CurrentLineNumber()
-	return self.helpers.Files.EditFileAtLine(path, lineNumber)
+	return self.c.Helpers().Files.EditFileAtLine(path, lineNumber)
 }
 
 func (self *StagingController) Escape() error {
@@ -269,7 +269,7 @@ func (self *StagingController) editHunk() error {
 
 	lineOffset := 3
 	lineIdxInHunk := state.GetSelectedLineIdx() - hunkStartIdx
-	if err := self.helpers.Files.EditFileAtLineAndWait(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
+	if err := self.c.Helpers().Files.EditFileAtLineAndWait(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
 		return err
 	}
 

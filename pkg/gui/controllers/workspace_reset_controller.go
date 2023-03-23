@@ -72,7 +72,7 @@ func (self *FilesController) createResetMenu() error {
 			Tooltip: self.c.Tr.DiscardStagedChangesDescription,
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RemoveStagedFiles)
-				if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
+				if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 					return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
 				}
 				if err := self.c.Git().Stash.SaveStagedChanges("[lazygit] tmp stash"); err != nil {

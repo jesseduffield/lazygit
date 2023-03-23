@@ -3,15 +3,14 @@ package gui
 import (
 	"fmt"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/mattn/go-runewidth"
 )
 
 func (gui *Gui) informationStr() string {
-	if activeMode, ok := gui.getActiveMode(); ok {
-		return activeMode.description()
+	if activeMode, ok := gui.helpers.Mode.GetActiveMode(); ok {
+		return activeMode.Description()
 	}
 
 	if gui.g.Mouse {
@@ -21,18 +20,6 @@ func (gui *Gui) informationStr() string {
 	} else {
 		return gui.Config.GetVersion()
 	}
-}
-
-func (gui *Gui) getActiveMode() (modeStatus, bool) {
-	return slices.Find(gui.modeStatuses(), func(mode modeStatus) bool {
-		return mode.isActive()
-	})
-}
-
-func (gui *Gui) isAnyModeActive() bool {
-	return slices.Some(gui.modeStatuses(), func(mode modeStatus) bool {
-		return mode.isActive()
-	})
 }
 
 func (gui *Gui) handleInfoClick() error {
@@ -45,11 +32,11 @@ func (gui *Gui) handleInfoClick() error {
 	cx, _ := view.Cursor()
 	width, _ := view.Size()
 
-	if activeMode, ok := gui.getActiveMode(); ok {
+	if activeMode, ok := gui.helpers.Mode.GetActiveMode(); ok {
 		if width-cx > runewidth.StringWidth(gui.c.Tr.ResetInParentheses) {
 			return nil
 		}
-		return activeMode.reset()
+		return activeMode.Reset()
 	}
 
 	// if we're not in an active mode we show the donate button

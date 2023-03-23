@@ -14,17 +14,17 @@ import (
 
 type BranchesController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &BranchesController{}
 
 func NewBranchesController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *BranchesController {
 	return &BranchesController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -113,7 +113,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 
 func (self *BranchesController) GetOnRenderToMain() func() error {
 	return func() error {
-		return self.helpers.Diff.WithDiffModeCheck(func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
 			var task types.UpdateTask
 			branch := self.context().GetSelected()
 			if branch == nil {
@@ -161,8 +161,8 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 			{
 				LabelColumns: []string{self.c.Tr.LcSetUpstream},
 				OnPress: func() error {
-					return self.helpers.Upstream.PromptForUpstreamWithoutInitialContent(selectedBranch, func(upstream string) error {
-						upstreamRemote, upstreamBranch, err := self.helpers.Upstream.ParseUpstream(upstream)
+					return self.c.Helpers().Upstream.PromptForUpstreamWithoutInitialContent(selectedBranch, func(upstream string) error {
+						upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
 						if err != nil {
 							return self.c.Error(err)
 						}
@@ -197,12 +197,12 @@ func (self *BranchesController) context() *context.BranchesContext {
 }
 
 func (self *BranchesController) press(selectedBranch *models.Branch) error {
-	if selectedBranch == self.helpers.Refs.GetCheckedOutRef() {
+	if selectedBranch == self.c.Helpers().Refs.GetCheckedOutRef() {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyCheckedOutBranch)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-	return self.helpers.Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
+	return self.c.Helpers().Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
 }
 
 func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {
@@ -210,7 +210,7 @@ func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.B
 }
 
 func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *models.Branch) error {
-	checkedOutBranch := self.helpers.Refs.GetCheckedOutRef()
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 
 	return self.createPullRequestMenu(selectedBranch, checkedOutBranch)
 }
@@ -224,7 +224,7 @@ func (self *BranchesController) copyPullRequestURL() error {
 		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
 	}
 
-	url, err := self.helpers.Host.GetPullRequestURL(branch.Name, "")
+	url, err := self.c.Helpers().Host.GetPullRequestURL(branch.Name, "")
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -259,10 +259,10 @@ func (self *BranchesController) forceCheckout() error {
 func (self *BranchesController) checkoutByName() error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.BranchName + ":",
-		FindSuggestionsFunc: self.helpers.Suggestions.GetRefsSuggestionsFunc(),
+		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
 			self.c.LogAction("Checkout branch")
-			return self.helpers.Refs.CheckoutRef(response, types.CheckoutRefOptions{
+			return self.c.Helpers().Refs.CheckoutRef(response, types.CheckoutRefOptions{
 				OnRefNotFound: func(ref string) error {
 					return self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.BranchNotFoundTitle,
@@ -293,7 +293,7 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 }
 
 func (self *BranchesController) delete(branch *models.Branch) error {
-	checkedOutBranch := self.helpers.Refs.GetCheckedOutRef()
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 	if checkedOutBranch.Name == branch.Name {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCheckOutBranch)
 	}
@@ -334,12 +334,12 @@ func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, f
 
 func (self *BranchesController) merge() error {
 	selectedBranchName := self.context().GetSelected().Name
-	return self.helpers.MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName)
+	return self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName)
 }
 
 func (self *BranchesController) rebase() error {
 	selectedBranchName := self.context().GetSelected().Name
-	return self.helpers.MergeAndRebase.RebaseOntoRef(selectedBranchName)
+	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranchName)
 }
 
 func (self *BranchesController) fastForward(branch *models.Branch) error {
@@ -364,7 +364,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	)
 
 	return self.c.WithLoaderPanel(message, func() error {
-		if branch == self.helpers.Refs.GetCheckedOutRef() {
+		if branch == self.c.Helpers().Refs.GetCheckedOutRef() {
 			self.c.LogAction(action)
 
 			err := self.c.Git().Sync.Pull(
@@ -393,11 +393,11 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 }
 
 func (self *BranchesController) createTag(branch *models.Branch) error {
-	return self.helpers.Tags.CreateTagMenu(branch.FullRefName(), func() {})
+	return self.c.Helpers().Tags.CreateTagMenu(branch.FullRefName(), func() {})
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {
-	return self.helpers.Refs.CreateGitResetMenu(selectedBranch.Name)
+	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.Name)
 }
 
 func (self *BranchesController) rename(branch *models.Branch) error {
@@ -444,7 +444,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 }
 
 func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
-	return self.helpers.Refs.NewBranch(selectedBranch.FullRefName(), selectedBranch.RefName(), "")
+	return self.c.Helpers().Refs.NewBranch(selectedBranch.FullRefName(), selectedBranch.RefName(), "")
 }
 
 func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
@@ -467,7 +467,7 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 				OnPress: func() error {
 					return self.c.Prompt(types.PromptOpts{
 						Title:               branch.Name + " →",
-						FindSuggestionsFunc: self.helpers.Suggestions.GetBranchNameSuggestionsFunc(),
+						FindSuggestionsFunc: self.c.Helpers().Suggestions.GetBranchNameSuggestionsFunc(),
 						HandleConfirm: func(targetBranchName string) error {
 							return self.createPullRequest(branch.Name, targetBranchName)
 						},
@@ -495,7 +495,7 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 }
 
 func (self *BranchesController) createPullRequest(from string, to string) error {
-	url, err := self.helpers.Host.GetPullRequestURL(from, to)
+	url, err := self.c.Helpers().Host.GetPullRequestURL(from, to)
 	if err != nil {
 		return self.c.Error(err)
 	}

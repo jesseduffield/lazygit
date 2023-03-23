@@ -7,17 +7,17 @@ import (
 
 type ReflogCommitsController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &ReflogCommitsController{}
 
 func NewReflogCommitsController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *ReflogCommitsController {
 	return &ReflogCommitsController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -31,7 +31,7 @@ func (self *ReflogCommitsController) context() *context.ReflogCommitsContext {
 
 func (self *ReflogCommitsController) GetOnRenderToMain() func() error {
 	return func() error {
-		return self.helpers.Diff.WithDiffModeCheck(func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
 			commit := self.context().GetSelected()
 			var task types.UpdateTask
 			if commit == nil {

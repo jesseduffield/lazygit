@@ -12,17 +12,17 @@ import (
 
 type RemoteBranchesController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &RemoteBranchesController{}
 
 func NewRemoteBranchesController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *RemoteBranchesController {
 	return &RemoteBranchesController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -75,7 +75,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 
 func (self *RemoteBranchesController) GetOnRenderToMain() func() error {
 	return func() error {
-		return self.helpers.Diff.WithDiffModeCheck(func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
 			var task types.UpdateTask
 			remoteBranch := self.context().GetSelected()
 			if remoteBranch == nil {
@@ -140,19 +140,19 @@ func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch
 }
 
 func (self *RemoteBranchesController) merge(selectedBranch *models.RemoteBranch) error {
-	return self.helpers.MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranch.FullName())
+	return self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranch.FullName())
 }
 
 func (self *RemoteBranchesController) rebase(selectedBranch *models.RemoteBranch) error {
-	return self.helpers.MergeAndRebase.RebaseOntoRef(selectedBranch.FullName())
+	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranch.FullName())
 }
 
 func (self *RemoteBranchesController) createResetMenu(selectedBranch *models.RemoteBranch) error {
-	return self.helpers.Refs.CreateGitResetMenu(selectedBranch.FullName())
+	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.FullName())
 }
 
 func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.RemoteBranch) error {
-	checkedOutBranch := self.helpers.Refs.GetCheckedOutRef()
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 
 	message := utils.ResolvePlaceholderString(
 		self.c.Tr.SetUpstreamMessage,
@@ -180,5 +180,5 @@ func (self *RemoteBranchesController) newLocalBranch(selectedBranch *models.Remo
 	// will set to the remote's branch name without the remote name
 	nameSuggestion := strings.SplitAfterN(selectedBranch.RefName(), "/", 2)[1]
 
-	return self.helpers.Refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), nameSuggestion)
+	return self.c.Helpers().Refs.NewBranch(selectedBranch.RefName(), selectedBranch.RefName(), nameSuggestion)
 }

@@ -15,22 +15,22 @@ type CanSwitchToSubCommits interface {
 
 type SwitchToSubCommitsController struct {
 	baseController
-	*controllerCommon
+	c       *ControllerCommon
 	context CanSwitchToSubCommits
 
 	setSubCommits func([]*models.Commit)
 }
 
 func NewSwitchToSubCommitsController(
-	controllerCommon *controllerCommon,
+	controllerCommon *ControllerCommon,
 	setSubCommits func([]*models.Commit),
 	context CanSwitchToSubCommits,
 ) *SwitchToSubCommitsController {
 	return &SwitchToSubCommitsController{
-		baseController:   baseController{},
-		controllerCommon: controllerCommon,
-		context:          context,
-		setSubCommits:    setSubCommits,
+		baseController: baseController{},
+		c:              controllerCommon,
+		context:        context,
+		setSubCommits:  setSubCommits,
 	}
 }
 

@@ -17,19 +17,19 @@ type CanSwitchToDiffFiles interface {
 
 type SwitchToDiffFilesController struct {
 	baseController
-	*controllerCommon
+	c                *ControllerCommon
 	context          CanSwitchToDiffFiles
 	diffFilesContext *context.CommitFilesContext
 }
 
 func NewSwitchToDiffFilesController(
-	controllerCommon *controllerCommon,
+	c *ControllerCommon,
 	context CanSwitchToDiffFiles,
 	diffFilesContext *context.CommitFilesContext,
 ) *SwitchToDiffFilesController {
 	return &SwitchToDiffFilesController{
 		baseController:   baseController{},
-		controllerCommon: controllerCommon,
+		c:                c,
 		context:          context,
 		diffFilesContext: diffFilesContext,
 	}

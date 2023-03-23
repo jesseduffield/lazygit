@@ -7,17 +7,17 @@ import (
 
 type MenuController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &MenuController{}
 
 func NewMenuController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *MenuController {
 	return &MenuController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 

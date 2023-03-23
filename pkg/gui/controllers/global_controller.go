@@ -12,15 +12,15 @@ import (
 
 type GlobalController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 func NewGlobalController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *GlobalController {
 	return &GlobalController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 

@@ -13,7 +13,7 @@ import (
 
 type RemotesController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 
 	setRemoteBranches func([]*models.RemoteBranch)
 }
@@ -21,12 +21,12 @@ type RemotesController struct {
 var _ types.IController = &RemotesController{}
 
 func NewRemotesController(
-	common *controllerCommon,
+	common *ControllerCommon,
 	setRemoteBranches func([]*models.RemoteBranch),
 ) *RemotesController {
 	return &RemotesController{
 		baseController:    baseController{},
-		controllerCommon:  common,
+		c:                 common,
 		setRemoteBranches: setRemoteBranches,
 	}
 }
@@ -72,7 +72,7 @@ func (self *RemotesController) context() *context.RemotesContext {
 
 func (self *RemotesController) GetOnRenderToMain() func() error {
 	return func() error {
-		return self.helpers.Diff.WithDiffModeCheck(func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
 			var task types.UpdateTask
 			remote := self.context().GetSelected()
 			if remote == nil {

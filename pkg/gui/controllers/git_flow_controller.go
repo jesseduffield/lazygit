@@ -11,17 +11,17 @@ import (
 
 type GitFlowController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &GitFlowController{}
 
 func NewGitFlowController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *GitFlowController {
 	return &GitFlowController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 

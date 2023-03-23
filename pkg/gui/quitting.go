@@ -24,9 +24,9 @@ func (gui *Gui) handleTopLevelReturn() error {
 		return gui.c.PushContext(parentContext)
 	}
 
-	for _, mode := range gui.modeStatuses() {
-		if mode.isActive() {
-			return mode.reset()
+	for _, mode := range gui.helpers.Mode.Statuses() {
+		if mode.IsActive() {
+			return mode.Reset()
 		}
 	}
 
