@@ -29,6 +29,19 @@ func (gui *Gui) outsideFilterMode(f func() error) func() error {
 	}
 }
 
+func (gui *Gui) validateNotInFilterMode() bool {
+	if gui.State.Modes.Filtering.Active() {
+		_ = gui.c.Confirm(types.ConfirmOpts{
+			Title:         gui.c.Tr.MustExitFilterModeTitle,
+			Prompt:        gui.c.Tr.MustExitFilterModePrompt,
+			HandleConfirm: gui.helpers.Mode.ExitFilterMode,
+		})
+
+		return false
+	}
+	return true
+}
+
 // only to be called from the cheatsheet generate script. This mutates the Gui struct.
 func (self *Gui) GetCheatsheetKeybindings() []*types.Binding {
 	self.g = &gocui.Gui{}
@@ -187,20 +200,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.handleCopySelectedSideContextItemToClipboard,
 			Description: self.c.Tr.LcCopyCommitFileNameToClipboard,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.DiffingMenu),
-			Handler:     self.handleCreateDiffingMenuPanel,
-			Description: self.c.Tr.LcOpenDiffingMenu,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.DiffingMenuAlt),
-			Handler:     self.handleCreateDiffingMenuPanel,
-			Description: self.c.Tr.LcOpenDiffingMenu,
-			OpensMenu:   true,
 		},
 		{
 			ViewName:    "",

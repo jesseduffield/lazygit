@@ -75,6 +75,18 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Description: self.c.Tr.LcOpenFilteringMenu,
 			OpensMenu:   true,
 		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.DiffingMenu),
+			Handler:     self.createDiffingMenu,
+			Description: self.c.Tr.LcOpenDiffingMenu,
+			OpensMenu:   true,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.DiffingMenuAlt),
+			Handler:     self.createDiffingMenu,
+			Description: self.c.Tr.LcOpenDiffingMenu,
+			OpensMenu:   true,
+		},
 	}
 }
 
@@ -108,4 +120,8 @@ func (self *GlobalController) createOptionsMenu() error {
 
 func (self *GlobalController) createFilteringMenu() error {
 	return (&FilteringMenuAction{c: self.c}).Call()
+}
+
+func (self *GlobalController) createDiffingMenu() error {
+	return (&DiffingMenuAction{c: self.c}).Call()
 }
