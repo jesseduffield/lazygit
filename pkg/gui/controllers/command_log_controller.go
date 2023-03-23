@@ -38,5 +38,5 @@ func (self *CommandLogController) Context() types.Context {
 }
 
 func (self *CommandLogController) context() types.Context {
-	return self.contexts.CommandLog
+	return self.c.Contexts().CommandLog
 }

@@ -42,7 +42,7 @@ func (self *BisectController) GetKeybindings(opts types.KeybindingsOpts) []*type
 func (self *BisectController) openMenu(commit *models.Commit) error {
 	// no shame in getting this directly rather than using the cached value
 	// given how cheap it is to obtain
-	info := self.git.Bisect.GetInfo()
+	info := self.c.Git().Bisect.GetInfo()
 	if info.Started() {
 		return self.openMidBisectMenu(info, commit)
 	} else {
@@ -63,14 +63,14 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	selectCurrentAfter := info.GetCurrentSha() == "" || info.GetCurrentSha() == commit.Sha
 	// we need to wait to reselect if our bisect commits aren't ancestors of our 'start'
 	// ref, because we'll be reloading our commits in that case.
-	waitToReselect := selectCurrentAfter && !self.git.Bisect.ReachableFromStart(info)
+	waitToReselect := selectCurrentAfter && !self.c.Git().Bisect.ReachableFromStart(info)
 
 	menuItems := []*types.MenuItem{
 		{
 			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortSha(), info.NewTerm()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
-				if err := self.git.Bisect.Mark(commit.Sha, info.NewTerm()); err != nil {
+				if err := self.c.Git().Bisect.Mark(commit.Sha, info.NewTerm()); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -82,7 +82,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortSha(), info.OldTerm()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
-				if err := self.git.Bisect.Mark(commit.Sha, info.OldTerm()); err != nil {
+				if err := self.c.Git().Bisect.Mark(commit.Sha, info.OldTerm()); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -94,7 +94,7 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Label: fmt.Sprintf(self.c.Tr.Bisect.Skip, commit.ShortSha()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
-				if err := self.git.Bisect.Skip(commit.Sha); err != nil {
+				if err := self.c.Git().Bisect.Skip(commit.Sha); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -125,11 +125,11 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 				Label: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.NewTerm()),
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.StartBisect)
-					if err := self.git.Bisect.Start(); err != nil {
+					if err := self.c.Git().Bisect.Start(); err != nil {
 						return self.c.Error(err)
 					}
 
-					if err := self.git.Bisect.Mark(commit.Sha, info.NewTerm()); err != nil {
+					if err := self.c.Git().Bisect.Mark(commit.Sha, info.NewTerm()); err != nil {
 						return self.c.Error(err)
 					}
 
@@ -141,11 +141,11 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 				Label: fmt.Sprintf(self.c.Tr.Bisect.MarkStart, commit.ShortSha(), info.OldTerm()),
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.StartBisect)
-					if err := self.git.Bisect.Start(); err != nil {
+					if err := self.c.Git().Bisect.Start(); err != nil {
 						return self.c.Error(err)
 					}
 
-					if err := self.git.Bisect.Mark(commit.Sha, info.OldTerm()); err != nil {
+					if err := self.c.Git().Bisect.Mark(commit.Sha, info.OldTerm()); err != nil {
 						return self.c.Error(err)
 					}
 
@@ -163,7 +163,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateShas []string) 
 		prompt = self.c.Tr.Bisect.CompletePromptIndeterminate
 	}
 
-	formattedCommits, err := self.git.Commit.GetCommitsOneline(candidateShas)
+	formattedCommits, err := self.c.Git().Commit.GetCommitsOneline(candidateShas)
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -173,7 +173,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateShas []string) 
 		Prompt: fmt.Sprintf(prompt, strings.TrimSpace(formattedCommits)),
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.ResetBisect)
-			if err := self.git.Bisect.Reset(); err != nil {
+			if err := self.c.Git().Bisect.Reset(); err != nil {
 				return self.c.Error(err)
 			}
 
@@ -183,7 +183,7 @@ func (self *BisectController) showBisectCompleteMessage(candidateShas []string) 
 }
 
 func (self *BisectController) afterMark(selectCurrent bool, waitToReselect bool) error {
-	done, candidateShas, err := self.git.Bisect.IsDone()
+	done, candidateShas, err := self.c.Git().Bisect.IsDone()
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -216,10 +216,10 @@ func (self *BisectController) afterBisectMarkRefresh(selectCurrent bool, waitToR
 }
 
 func (self *BisectController) selectCurrentBisectCommit() {
-	info := self.git.Bisect.GetInfo()
+	info := self.c.Git().Bisect.GetInfo()
 	if info.GetCurrentSha() != "" {
 		// find index of commit with that sha, move cursor to that.
-		for i, commit := range self.model.Commits {
+		for i, commit := range self.c.Model().Commits {
 			if commit.Sha == info.GetCurrentSha() {
 				self.context().SetSelectedLineIdx(i)
 				_ = self.context().HandleFocus(types.OnFocusOpts{})
@@ -245,5 +245,5 @@ func (self *BisectController) Context() types.Context {
 }
 
 func (self *BisectController) context() *context.LocalCommitsContext {
-	return self.contexts.LocalCommits
+	return self.c.Contexts().LocalCommits
 }

@@ -63,7 +63,7 @@ func (self *StashController) GetOnRenderToMain() func() error {
 			if stashEntry == nil {
 				task = types.NewRenderStringTask(self.c.Tr.NoStashEntries)
 			} else {
-				task = types.NewRunPtyTask(self.git.Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
+				task = types.NewRunPtyTask(self.c.Git().Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
 			}
 
 			return self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -93,13 +93,13 @@ func (self *StashController) Context() types.Context {
 }
 
 func (self *StashController) context() *context.StashContext {
-	return self.contexts.Stash
+	return self.c.Contexts().Stash
 }
 
 func (self *StashController) handleStashApply(stashEntry *models.StashEntry) error {
 	apply := func() error {
 		self.c.LogAction(self.c.Tr.Actions.Stash)
-		err := self.git.Stash.Apply(stashEntry.Index)
+		err := self.c.Git().Stash.Apply(stashEntry.Index)
 		_ = self.postStashRefresh()
 		if err != nil {
 			return self.c.Error(err)
@@ -123,7 +123,7 @@ func (self *StashController) handleStashApply(stashEntry *models.StashEntry) err
 func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error {
 	pop := func() error {
 		self.c.LogAction(self.c.Tr.Actions.Stash)
-		err := self.git.Stash.Pop(stashEntry.Index)
+		err := self.c.Git().Stash.Pop(stashEntry.Index)
 		_ = self.postStashRefresh()
 		if err != nil {
 			return self.c.Error(err)
@@ -150,7 +150,7 @@ func (self *StashController) handleStashDrop(stashEntry *models.StashEntry) erro
 		Prompt: self.c.Tr.SureDropStashEntry,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.Stash)
-			err := self.git.Stash.Drop(stashEntry.Index)
+			err := self.c.Git().Stash.Drop(stashEntry.Index)
 			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			if err != nil {
 				return self.c.Error(err)
@@ -181,7 +181,7 @@ func (self *StashController) handleRenameStashEntry(stashEntry *models.StashEntr
 		InitialContent: stashEntry.Name,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.RenameStash)
-			err := self.git.Stash.Rename(stashEntry.Index, response)
+			err := self.c.Git().Stash.Rename(stashEntry.Index, response)
 			_ = self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.STASH}})
 			if err != nil {
 				return err

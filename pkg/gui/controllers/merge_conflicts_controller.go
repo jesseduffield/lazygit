@@ -178,7 +178,7 @@ func (self *MergeConflictsController) Context() types.Context {
 }
 
 func (self *MergeConflictsController) context() *context.MergeConflictsContext {
-	return self.contexts.MergeConflicts
+	return self.c.Contexts().MergeConflicts
 }
 
 func (self *MergeConflictsController) Escape() error {

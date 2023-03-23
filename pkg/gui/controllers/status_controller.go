@@ -91,7 +91,7 @@ func (self *StatusController) GetOnClick() func() error {
 }
 
 func (self *StatusController) Context() types.Context {
-	return self.contexts.Status
+	return self.c.Contexts().Status
 }
 
 func (self *StatusController) onClick() error {
@@ -109,7 +109,7 @@ func (self *StatusController) onClick() error {
 	cx, _ := self.c.Views().Status.Cursor()
 	upstreamStatus := presentation.BranchStatus(currentBranch, self.c.Tr)
 	repoName := utils.GetCurrentRepoName()
-	workingTreeState := self.git.Status.WorkingTreeState()
+	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
 		workingTreeStatus := fmt.Sprintf("(%s)", presentation.FormatWorkingTreeState(workingTreeState))
@@ -181,7 +181,7 @@ func (self *StatusController) editConfig() error {
 }
 
 func (self *StatusController) showAllBranchLogs() error {
-	cmdObj := self.git.Branch.AllBranchesLogCmdObj()
+	cmdObj := self.c.Git().Branch.AllBranchesLogCmdObj()
 	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
 	return self.c.RenderToMainViews(types.RefreshMainOpts{

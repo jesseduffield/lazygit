@@ -38,8 +38,8 @@ func (self *ConfirmationController) GetKeybindings(opts types.KeybindingsOpts) [
 		{
 			Key: opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler: func() error {
-				if len(self.contexts.Suggestions.State.Suggestions) > 0 {
-					return self.c.ReplaceContext(self.contexts.Suggestions)
+				if len(self.c.Contexts().Suggestions.State.Suggestions) > 0 {
+					return self.c.ReplaceContext(self.c.Contexts().Suggestions)
 				}
 				return nil
 			},
@@ -61,5 +61,5 @@ func (self *ConfirmationController) Context() types.Context {
 }
 
 func (self *ConfirmationController) context() *context.ConfirmationContext {
-	return self.contexts.Confirmation
+	return self.c.Contexts().Confirmation
 }

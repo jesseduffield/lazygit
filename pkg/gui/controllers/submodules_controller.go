@@ -96,7 +96,7 @@ func (self *SubmodulesController) GetOnRenderToMain() func() error {
 				if file == nil {
 					task = types.NewRenderStringTask(prefix)
 				} else {
-					cmdObj := self.git.WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, self.c.State().GetIgnoreWhitespaceInDiffView())
+					cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, self.c.State().GetIgnoreWhitespaceInDiffView())
 					task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix)
 				}
 			}
@@ -132,7 +132,7 @@ func (self *SubmodulesController) add() error {
 						HandleConfirm: func(submodulePath string) error {
 							return self.c.WithWaitingStatus(self.c.Tr.LcAddingSubmoduleStatus, func() error {
 								self.c.LogAction(self.c.Tr.Actions.AddSubmodule)
-								err := self.git.Submodule.Add(submoduleName, submodulePath, submoduleUrl)
+								err := self.c.Git().Submodule.Add(submoduleName, submodulePath, submoduleUrl)
 								if err != nil {
 									_ = self.c.Error(err)
 								}
@@ -154,7 +154,7 @@ func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) err
 		HandleConfirm: func(newUrl string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.LcUpdatingSubmoduleUrlStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.UpdateSubmoduleUrl)
-				err := self.git.Submodule.UpdateUrl(submodule.Name, submodule.Path, newUrl)
+				err := self.c.Git().Submodule.UpdateUrl(submodule.Name, submodule.Path, newUrl)
 				if err != nil {
 					_ = self.c.Error(err)
 				}
@@ -168,7 +168,7 @@ func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) err
 func (self *SubmodulesController) init(submodule *models.SubmoduleConfig) error {
 	return self.c.WithWaitingStatus(self.c.Tr.LcInitializingSubmoduleStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.InitialiseSubmodule)
-		err := self.git.Submodule.Init(submodule.Path)
+		err := self.c.Git().Submodule.Init(submodule.Path)
 		if err != nil {
 			_ = self.c.Error(err)
 		}
@@ -182,11 +182,11 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 		Title: self.c.Tr.LcBulkSubmoduleOptions,
 		Items: []*types.MenuItem{
 			{
-				LabelColumns: []string{self.c.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(self.git.Submodule.BulkInitCmdObj().ToString())},
+				LabelColumns: []string{self.c.Tr.LcBulkInitSubmodules, style.FgGreen.Sprint(self.c.Git().Submodule.BulkInitCmdObj().ToString())},
 				OnPress: func() error {
 					return self.c.WithWaitingStatus(self.c.Tr.LcRunningCommand, func() error {
 						self.c.LogAction(self.c.Tr.Actions.BulkInitialiseSubmodules)
-						err := self.git.Submodule.BulkInitCmdObj().Run()
+						err := self.c.Git().Submodule.BulkInitCmdObj().Run()
 						if err != nil {
 							return self.c.Error(err)
 						}
@@ -197,11 +197,11 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 				Key: 'i',
 			},
 			{
-				LabelColumns: []string{self.c.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(self.git.Submodule.BulkUpdateCmdObj().ToString())},
+				LabelColumns: []string{self.c.Tr.LcBulkUpdateSubmodules, style.FgYellow.Sprint(self.c.Git().Submodule.BulkUpdateCmdObj().ToString())},
 				OnPress: func() error {
 					return self.c.WithWaitingStatus(self.c.Tr.LcRunningCommand, func() error {
 						self.c.LogAction(self.c.Tr.Actions.BulkUpdateSubmodules)
-						if err := self.git.Submodule.BulkUpdateCmdObj().Run(); err != nil {
+						if err := self.c.Git().Submodule.BulkUpdateCmdObj().Run(); err != nil {
 							return self.c.Error(err)
 						}
 
@@ -211,11 +211,11 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 				Key: 'u',
 			},
 			{
-				LabelColumns: []string{self.c.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(self.git.Submodule.BulkDeinitCmdObj().ToString())},
+				LabelColumns: []string{self.c.Tr.LcBulkDeinitSubmodules, style.FgRed.Sprint(self.c.Git().Submodule.BulkDeinitCmdObj().ToString())},
 				OnPress: func() error {
 					return self.c.WithWaitingStatus(self.c.Tr.LcRunningCommand, func() error {
 						self.c.LogAction(self.c.Tr.Actions.BulkDeinitialiseSubmodules)
-						if err := self.git.Submodule.BulkDeinitCmdObj().Run(); err != nil {
+						if err := self.c.Git().Submodule.BulkDeinitCmdObj().Run(); err != nil {
 							return self.c.Error(err)
 						}
 
@@ -231,7 +231,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 func (self *SubmodulesController) update(submodule *models.SubmoduleConfig) error {
 	return self.c.WithWaitingStatus(self.c.Tr.LcUpdatingSubmoduleStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.UpdateSubmodule)
-		err := self.git.Submodule.Update(submodule.Path)
+		err := self.c.Git().Submodule.Update(submodule.Path)
 		if err != nil {
 			_ = self.c.Error(err)
 		}
@@ -246,7 +246,7 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 		Prompt: fmt.Sprintf(self.c.Tr.RemoveSubmodulePrompt, submodule.Name),
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RemoveSubmodule)
-			if err := self.git.Submodule.Delete(submodule); err != nil {
+			if err := self.c.Git().Submodule.Delete(submodule); err != nil {
 				return self.c.Error(err)
 			}
 
@@ -256,7 +256,7 @@ func (self *SubmodulesController) remove(submodule *models.SubmoduleConfig) erro
 }
 
 func (self *SubmodulesController) easterEgg() error {
-	return self.c.PushContext(self.contexts.Snake)
+	return self.c.PushContext(self.c.Contexts().Snake)
 }
 
 func (self *SubmodulesController) checkSelected(callback func(*models.SubmoduleConfig) error) func() error {
@@ -275,5 +275,5 @@ func (self *SubmodulesController) Context() types.Context {
 }
 
 func (self *SubmodulesController) context() *context.SubmodulesContext {
-	return self.contexts.Submodules
+	return self.c.Contexts().Submodules
 }

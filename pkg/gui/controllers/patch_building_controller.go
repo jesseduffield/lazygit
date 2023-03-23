@@ -48,11 +48,11 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 }
 
 func (self *PatchBuildingController) Context() types.Context {
-	return self.contexts.CustomPatchBuilder
+	return self.c.Contexts().CustomPatchBuilder
 }
 
 func (self *PatchBuildingController) context() types.IPatchExplorerContext {
-	return self.contexts.CustomPatchBuilder
+	return self.c.Contexts().CustomPatchBuilder
 }
 
 func (self *PatchBuildingController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
@@ -72,8 +72,8 @@ func (self *PatchBuildingController) GetOnFocusLost() func(types.OnFocusLostOpts
 	return func(opts types.OnFocusLostOpts) error {
 		self.c.Views().PatchBuilding.Wrap = true
 
-		if self.git.Patch.PatchBuilder.IsEmpty() {
-			self.git.Patch.PatchBuilder.Reset()
+		if self.c.Git().Patch.PatchBuilder.IsEmpty() {
+			self.c.Git().Patch.PatchBuilder.Reset()
 		}
 
 		return nil
@@ -84,7 +84,7 @@ func (self *PatchBuildingController) OpenFile() error {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	path := self.contexts.CommitFiles.GetSelectedPath()
+	path := self.c.Contexts().CommitFiles.GetSelectedPath()
 
 	if path == "" {
 		return nil
@@ -97,7 +97,7 @@ func (self *PatchBuildingController) EditFile() error {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	path := self.contexts.CommitFiles.GetSelectedPath()
+	path := self.c.Contexts().CommitFiles.GetSelectedPath()
 
 	if path == "" {
 		return nil
@@ -121,21 +121,21 @@ func (self *PatchBuildingController) toggleSelection() error {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	toggleFunc := self.git.Patch.PatchBuilder.AddFileLineRange
-	filename := self.contexts.CommitFiles.GetSelectedPath()
+	toggleFunc := self.c.Git().Patch.PatchBuilder.AddFileLineRange
+	filename := self.c.Contexts().CommitFiles.GetSelectedPath()
 	if filename == "" {
 		return nil
 	}
 
 	state := self.context().GetState()
 
-	includedLineIndices, err := self.git.Patch.PatchBuilder.GetFileIncLineIndices(filename)
+	includedLineIndices, err := self.c.Git().Patch.PatchBuilder.GetFileIncLineIndices(filename)
 	if err != nil {
 		return err
 	}
 	currentLineIsStaged := lo.Contains(includedLineIndices, state.GetSelectedLineIdx())
 	if currentLineIsStaged {
-		toggleFunc = self.git.Patch.PatchBuilder.RemoveFileLineRange
+		toggleFunc = self.c.Git().Patch.PatchBuilder.RemoveFileLineRange
 	}
 
 	// add range of lines to those set for the file

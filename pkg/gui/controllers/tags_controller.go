@@ -64,7 +64,7 @@ func (self *TagsController) GetOnRenderToMain() func() error {
 			if tag == nil {
 				task = types.NewRenderStringTask("No tags")
 			} else {
-				cmdObj := self.git.Branch.GetGraphCmdObj(tag.FullRefName())
+				cmdObj := self.c.Git().Branch.GetGraphCmdObj(tag.FullRefName())
 				task = types.NewRunCommandTask(cmdObj.GetCmd())
 			}
 
@@ -84,7 +84,7 @@ func (self *TagsController) checkout(tag *models.Tag) error {
 	if err := self.helpers.Refs.CheckoutRef(tag.Name, types.CheckoutRefOptions{}); err != nil {
 		return err
 	}
-	return self.c.PushContext(self.contexts.Branches)
+	return self.c.PushContext(self.c.Contexts().Branches)
 }
 
 func (self *TagsController) delete(tag *models.Tag) error {
@@ -100,7 +100,7 @@ func (self *TagsController) delete(tag *models.Tag) error {
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.DeleteTag)
-			if err := self.git.Tag.Delete(tag.Name); err != nil {
+			if err := self.c.Git().Tag.Delete(tag.Name); err != nil {
 				return self.c.Error(err)
 			}
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
@@ -123,7 +123,7 @@ func (self *TagsController) push(tag *models.Tag) error {
 		HandleConfirm: func(response string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.PushingTagStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.PushTag)
-				err := self.git.Tag.Push(response, tag.Name)
+				err := self.c.Git().Tag.Push(response, tag.Name)
 				if err != nil {
 					_ = self.c.Error(err)
 				}
@@ -159,5 +159,5 @@ func (self *TagsController) Context() types.Context {
 }
 
 func (self *TagsController) context() *context.TagsContext {
-	return self.contexts.Tags
+	return self.c.Contexts().Tags
 }

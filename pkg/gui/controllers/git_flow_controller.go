@@ -39,7 +39,7 @@ func (self *GitFlowController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 }
 
 func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) error {
-	if !self.git.Flow.GitFlowEnabled() {
+	if !self.c.Git().Flow.GitFlowEnabled() {
 		return self.c.ErrorMsg("You need to install git-flow and enable it in this repo to use git-flow features")
 	}
 
@@ -52,7 +52,7 @@ func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) er
 				HandleConfirm: func(name string) error {
 					self.c.LogAction(self.c.Tr.Actions.GitFlowStart)
 					return self.c.RunSubprocessAndRefresh(
-						self.git.Flow.StartCmdObj(branchType, name),
+						self.c.Git().Flow.StartCmdObj(branchType, name),
 					)
 				},
 			})
@@ -94,7 +94,7 @@ func (self *GitFlowController) handleCreateGitFlowMenu(branch *models.Branch) er
 }
 
 func (self *GitFlowController) gitFlowFinishBranch(branchName string) error {
-	cmdObj, err := self.git.Flow.FinishCmdObj(branchName)
+	cmdObj, err := self.c.Git().Flow.FinishCmdObj(branchName)
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -119,5 +119,5 @@ func (self *GitFlowController) Context() types.Context {
 }
 
 func (self *GitFlowController) context() *context.BranchesContext {
-	return self.contexts.Branches
+	return self.c.Contexts().Branches
 }

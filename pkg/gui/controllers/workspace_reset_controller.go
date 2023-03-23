@@ -13,7 +13,7 @@ func (self *FilesController) createResetMenu() error {
 	red := style.FgRed
 
 	nukeStr := "git reset --hard HEAD && git clean -fd"
-	if len(self.model.Submodules) > 0 {
+	if len(self.c.Model().Submodules) > 0 {
 		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, self.c.Tr.LcAndResetSubmodules)
 	}
 
@@ -25,7 +25,7 @@ func (self *FilesController) createResetMenu() error {
 			},
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.NukeWorkingTree)
-				if err := self.git.WorkingTree.ResetAndClean(); err != nil {
+				if err := self.c.Git().WorkingTree.ResetAndClean(); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -41,7 +41,7 @@ func (self *FilesController) createResetMenu() error {
 			},
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.DiscardUnstagedFileChanges)
-				if err := self.git.WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
+				if err := self.c.Git().WorkingTree.DiscardAnyUnstagedFileChanges(); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -56,7 +56,7 @@ func (self *FilesController) createResetMenu() error {
 			},
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RemoveUntrackedFiles)
-				if err := self.git.WorkingTree.RemoveUntrackedFiles(); err != nil {
+				if err := self.c.Git().WorkingTree.RemoveUntrackedFiles(); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -75,10 +75,10 @@ func (self *FilesController) createResetMenu() error {
 				if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
 					return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
 				}
-				if err := self.git.Stash.SaveStagedChanges("[lazygit] tmp stash"); err != nil {
+				if err := self.c.Git().Stash.SaveStagedChanges("[lazygit] tmp stash"); err != nil {
 					return self.c.Error(err)
 				}
-				if err := self.git.Stash.DropNewest(); err != nil {
+				if err := self.c.Git().Stash.DropNewest(); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -93,7 +93,7 @@ func (self *FilesController) createResetMenu() error {
 			},
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.SoftReset)
-				if err := self.git.WorkingTree.ResetSoft("HEAD"); err != nil {
+				if err := self.c.Git().WorkingTree.ResetSoft("HEAD"); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -108,7 +108,7 @@ func (self *FilesController) createResetMenu() error {
 			},
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.MixedReset)
-				if err := self.git.WorkingTree.ResetMixed("HEAD"); err != nil {
+				if err := self.c.Git().WorkingTree.ResetMixed("HEAD"); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -123,7 +123,7 @@ func (self *FilesController) createResetMenu() error {
 			},
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.HardReset)
-				if err := self.git.WorkingTree.ResetHard("HEAD"); err != nil {
+				if err := self.c.Git().WorkingTree.ResetHard("HEAD"); err != nil {
 					return self.c.Error(err)
 				}
 

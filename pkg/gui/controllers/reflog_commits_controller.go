@@ -8,30 +8,31 @@ import (
 type ReflogCommitsController struct {
 	baseController
 	*controllerCommon
-	context *context.ReflogCommitsContext
 }
 
 var _ types.IController = &ReflogCommitsController{}
 
 func NewReflogCommitsController(
 	common *controllerCommon,
-	context *context.ReflogCommitsContext,
 ) *ReflogCommitsController {
 	return &ReflogCommitsController{
 		baseController:   baseController{},
 		controllerCommon: common,
-		context:          context,
 	}
 }
 
 func (self *ReflogCommitsController) Context() types.Context {
-	return self.context
+	return self.context()
+}
+
+func (self *ReflogCommitsController) context() *context.ReflogCommitsContext {
+	return self.c.Contexts().ReflogCommits
 }
 
 func (self *ReflogCommitsController) GetOnRenderToMain() func() error {
 	return func() error {
 		return self.helpers.Diff.WithDiffModeCheck(func() error {
-			commit := self.context.GetSelected()
+			commit := self.context().GetSelected()
 			var task types.UpdateTask
 			if commit == nil {
 				task = types.NewRenderStringTask("No reflog history")

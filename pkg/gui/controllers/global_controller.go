@@ -53,7 +53,7 @@ func (self *GlobalController) customCommand() error {
 
 			self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 			return self.c.RunSubprocessAndRefresh(
-				self.os.Cmd.NewShell(command),
+				self.c.OS().Cmd.NewShell(command),
 			)
 		},
 	})

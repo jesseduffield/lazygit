@@ -13,8 +13,6 @@ import (
 
 func (gui *Gui) resetControllers() {
 	helperCommon := gui.c
-	osCommand := gui.os
-	model := gui.State.Model
 	refsHelper := helpers.NewRefsHelper(helperCommon)
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, refsHelper)
@@ -68,16 +66,7 @@ func (gui *Gui) resetControllers() {
 		gui.helpers,
 	)
 
-	common := controllers.NewControllerCommon(
-		helperCommon,
-		osCommand,
-		gui.git,
-		gui.helpers,
-		model,
-		gui.State.Contexts,
-		gui.State.Modes,
-		&gui.Mutexes,
-	)
+	common := controllers.NewControllerCommon(helperCommon, gui.helpers)
 
 	syncController := controllers.NewSyncController(
 		common,
@@ -140,8 +129,8 @@ func (gui *Gui) resetControllers() {
 	stagingSecondaryController := controllers.NewStagingController(common, gui.State.Contexts.StagingSecondary, gui.State.Contexts.Staging, true)
 	patchBuildingController := controllers.NewPatchBuildingController(common)
 	snakeController := controllers.NewSnakeController(common)
-	reflogCommitsController := controllers.NewReflogCommitsController(common, gui.State.Contexts.ReflogCommits)
-	subCommitsController := controllers.NewSubCommitsController(common, gui.State.Contexts.SubCommits)
+	reflogCommitsController := controllers.NewReflogCommitsController(common)
+	subCommitsController := controllers.NewSubCommitsController(common)
 	statusController := controllers.NewStatusController(common)
 	commandLogController := controllers.NewCommandLogController(common)
 	confirmationController := controllers.NewConfirmationController(common)

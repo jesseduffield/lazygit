@@ -199,7 +199,7 @@ func secondaryPatchPanelUpdateOpts(c *helpers.HelperCommon) *types.ViewUpdateOpt
 }
 
 func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
-	if self.context().GetSelectedLineIdx() >= len(self.model.Commits)-1 {
+	if self.context().GetSelectedLineIdx() >= len(self.c.Model().Commits)-1 {
 		return self.c.ErrorMsg(self.c.Tr.CannotSquashOrFixupFirstCommit)
 	}
 
@@ -224,7 +224,7 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) fixup(commit *models.Commit) error {
-	if self.context().GetSelectedLineIdx() >= len(self.model.Commits)-1 {
+	if self.context().GetSelectedLineIdx() >= len(self.c.Model().Commits)-1 {
 		return self.c.ErrorMsg(self.c.Tr.CannotSquashOrFixupFirstCommit)
 	}
 
@@ -257,7 +257,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 		return nil
 	}
 
-	message, err := self.git.Commit.GetCommitMessage(commit.Sha)
+	message, err := self.c.Git().Commit.GetCommitMessage(commit.Sha)
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -268,7 +268,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 		InitialContent: message,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.RewordCommit)
-			if err := self.git.Rebase.RewordCommit(self.model.Commits, self.context().GetSelectedLineIdx(), response); err != nil {
+			if err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.context().GetSelectedLineIdx(), response); err != nil {
 				return self.c.Error(err)
 			}
 
@@ -281,11 +281,11 @@ func (self *LocalCommitsController) doRewordEditor() error {
 	self.c.LogAction(self.c.Tr.Actions.RewordCommit)
 
 	if self.isHeadCommit() {
-		return self.c.RunSubprocessAndRefresh(self.os.Cmd.New("git commit --allow-empty --amend --only"))
+		return self.c.RunSubprocessAndRefresh(self.c.OS().Cmd.New("git commit --allow-empty --amend --only"))
 	}
 
-	subProcess, err := self.git.Rebase.RewordCommitInEditor(
-		self.model.Commits, self.context().GetSelectedLineIdx(),
+	subProcess, err := self.c.Git().Rebase.RewordCommitInEditor(
+		self.c.Model().Commits, self.context().GetSelectedLineIdx(),
 	)
 	if err != nil {
 		return self.c.Error(err)
@@ -349,7 +349,7 @@ func (self *LocalCommitsController) edit(commit *models.Commit) error {
 
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
-		err := self.git.Rebase.InteractiveRebaseBreakAfter(self.model.Commits, self.context().GetSelectedLineIdx())
+		err := self.c.Git().Rebase.InteractiveRebaseBreakAfter(self.c.Model().Commits, self.context().GetSelectedLineIdx())
 		return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
@@ -369,7 +369,7 @@ func (self *LocalCommitsController) pick(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) interactiveRebase(action string) error {
-	err := self.git.Rebase.InteractiveRebase(self.model.Commits, self.context().GetSelectedLineIdx(), action)
+	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, self.context().GetSelectedLineIdx(), action)
 	return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 }
 
@@ -378,7 +378,7 @@ func (self *LocalCommitsController) interactiveRebase(action string) error {
 // begin a rebase. It then updates the todo file with that action
 func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoCommand, commit *models.Commit) (bool, error) {
 	if !commit.IsTODO() {
-		if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
 			// If we are in a rebase, the only action that is allowed for
 			// non-todo commits is rewording the current head commit
 			if !(action == todo.Reword && self.isHeadCommit()) {
@@ -407,7 +407,7 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoComma
 		false,
 	)
 
-	if err := self.git.Rebase.EditRebaseTodo(commit, action); err != nil {
+	if err := self.c.Git().Rebase.EditRebaseTodo(commit, action); err != nil {
 		return false, self.c.Error(err)
 	}
 
@@ -418,7 +418,7 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoComma
 
 func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 	index := self.context().GetSelectedLineIdx()
-	commits := self.model.Commits
+	commits := self.c.Model().Commits
 
 	// can't move past the initial commit
 	if index >= len(commits)-1 {
@@ -435,7 +435,7 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 		self.c.LogCommand(fmt.Sprintf("Moving commit %s down", commit.ShortSha()), false)
 
-		if err := self.git.Rebase.MoveTodoDown(commit); err != nil {
+		if err := self.c.Git().Rebase.MoveTodoDown(commit); err != nil {
 			return self.c.Error(err)
 		}
 		self.context().MoveSelectedLine(1)
@@ -444,13 +444,13 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		})
 	}
 
-	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
 	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
-		err := self.git.Rebase.MoveCommitDown(self.model.Commits, index)
+		err := self.c.Git().Rebase.MoveCommitDown(self.c.Model().Commits, index)
 		if err == nil {
 			self.context().MoveSelectedLine(1)
 		}
@@ -473,7 +473,7 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 			false,
 		)
 
-		if err := self.git.Rebase.MoveTodoUp(self.model.Commits[index]); err != nil {
+		if err := self.c.Git().Rebase.MoveTodoUp(self.c.Model().Commits[index]); err != nil {
 			return self.c.Error(err)
 		}
 		self.context().MoveSelectedLine(-1)
@@ -482,13 +482,13 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		})
 	}
 
-	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
 	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
-		err := self.git.Rebase.MoveCommitDown(self.model.Commits, index-1)
+		err := self.c.Git().Rebase.MoveCommitDown(self.c.Model().Commits, index-1)
 		if err == nil {
 			self.context().MoveSelectedLine(-1)
 		}
@@ -504,7 +504,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 	}
 
-	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
@@ -514,7 +514,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-				err := self.git.Rebase.AmendTo(commit)
+				err := self.c.Git().Rebase.AmendTo(commit)
 				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 			})
 		},
@@ -548,7 +548,7 @@ func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error 
 func (self *LocalCommitsController) resetAuthor() error {
 	return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
-		if err := self.git.Rebase.ResetCommitAuthor(self.model.Commits, self.context().GetSelectedLineIdx()); err != nil {
+		if err := self.c.Git().Rebase.ResetCommitAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx()); err != nil {
 			return self.c.Error(err)
 		}
 
@@ -563,7 +563,7 @@ func (self *LocalCommitsController) setAuthor() error {
 		HandleConfirm: func(value string) error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
-				if err := self.git.Rebase.SetCommitAuthor(self.model.Commits, self.context().GetSelectedLineIdx(), value); err != nil {
+				if err := self.c.Git().Rebase.SetCommitAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx(), value); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -586,7 +586,7 @@ func (self *LocalCommitsController) revert(commit *models.Commit) error {
 				}),
 			HandleConfirm: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RevertCommit)
-				if err := self.git.Commit.Revert(commit.Sha); err != nil {
+				if err := self.c.Git().Commit.Revert(commit.Sha); err != nil {
 					return self.c.Error(err)
 				}
 				return self.afterRevertCommit()
@@ -599,7 +599,7 @@ func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.C
 	menuItems := make([]*types.MenuItem, len(commit.Parents))
 	for i, parentSha := range commit.Parents {
 		i := i
-		message, err := self.git.Commit.GetCommitMessageFirstLine(parentSha)
+		message, err := self.c.Git().Commit.GetCommitMessageFirstLine(parentSha)
 		if err != nil {
 			return self.c.Error(err)
 		}
@@ -609,7 +609,7 @@ func (self *LocalCommitsController) createRevertMergeCommitMenu(commit *models.C
 			OnPress: func() error {
 				parentNumber := i + 1
 				self.c.LogAction(self.c.Tr.Actions.RevertCommit)
-				if err := self.git.Commit.RevertMerge(commit.Sha, parentNumber); err != nil {
+				if err := self.c.Git().Commit.RevertMerge(commit.Sha, parentNumber); err != nil {
 					return self.c.Error(err)
 				}
 				return self.afterRevertCommit()
@@ -640,7 +640,7 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
-			if err := self.git.Commit.CreateFixupCommit(commit.Sha); err != nil {
+			if err := self.c.Git().Commit.CreateFixupCommit(commit.Sha); err != nil {
 				return self.c.Error(err)
 			}
 
@@ -661,7 +661,7 @@ func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Co
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
-				err := self.git.Rebase.SquashAllAboveFixupCommits(commit)
+				err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
 				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 			})
 		},
@@ -822,7 +822,7 @@ func (self *LocalCommitsController) Context() types.Context {
 }
 
 func (self *LocalCommitsController) context() *context.LocalCommitsContext {
-	return self.contexts.LocalCommits
+	return self.c.Contexts().LocalCommits
 }
 
 func (self *LocalCommitsController) paste() error {
@@ -830,7 +830,7 @@ func (self *LocalCommitsController) paste() error {
 }
 
 func (self *LocalCommitsController) isHeadCommit() bool {
-	return models.IsHeadCommit(self.model.Commits, self.context().GetSelectedLineIdx())
+	return models.IsHeadCommit(self.c.Model().Commits, self.context().GetSelectedLineIdx())
 }
 
 func isChangeOfRebaseTodoAllowed(action todo.TodoCommand) bool {

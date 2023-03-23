@@ -142,7 +142,7 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 			{
 				LabelColumns: []string{self.c.Tr.LcUnsetUpstream},
 				OnPress: func() error {
-					if err := self.git.Branch.UnsetUpstream(selectedBranch.Name); err != nil {
+					if err := self.c.Git().Branch.UnsetUpstream(selectedBranch.Name); err != nil {
 						return self.c.Error(err)
 					}
 					if err := self.c.Refresh(types.RefreshOptions{
@@ -167,7 +167,7 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 							return self.c.Error(err)
 						}
 
-						if err := self.git.Branch.SetUpstream(upstreamRemote, upstreamBranch, selectedBranch.Name); err != nil {
+						if err := self.c.Git().Branch.SetUpstream(upstreamRemote, upstreamBranch, selectedBranch.Name); err != nil {
 							return self.c.Error(err)
 						}
 						if err := self.c.Refresh(types.RefreshOptions{
@@ -193,7 +193,7 @@ func (self *BranchesController) Context() types.Context {
 }
 
 func (self *BranchesController) context() *context.BranchesContext {
-	return self.contexts.Branches
+	return self.c.Contexts().Branches
 }
 
 func (self *BranchesController) press(selectedBranch *models.Branch) error {
@@ -218,7 +218,7 @@ func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *mode
 func (self *BranchesController) copyPullRequestURL() error {
 	branch := self.context().GetSelected()
 
-	branchExistsOnRemote := self.git.Remote.CheckRemoteBranchExists(branch.Name)
+	branchExistsOnRemote := self.c.Git().Remote.CheckRemoteBranchExists(branch.Name)
 
 	if !branchExistsOnRemote {
 		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
@@ -229,7 +229,7 @@ func (self *BranchesController) copyPullRequestURL() error {
 		return self.c.Error(err)
 	}
 	self.c.LogAction(self.c.Tr.Actions.CopyPullRequestURL)
-	if err := self.os.CopyToClipboard(url); err != nil {
+	if err := self.c.OS().CopyToClipboard(url); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -248,7 +248,7 @@ func (self *BranchesController) forceCheckout() error {
 		Prompt: message,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.ForceCheckoutBranch)
-			if err := self.git.Branch.Checkout(branch.Name, git_commands.CheckoutOptions{Force: true}); err != nil {
+			if err := self.c.Git().Branch.Checkout(branch.Name, git_commands.CheckoutOptions{Force: true}); err != nil {
 				_ = self.c.Error(err)
 			}
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
@@ -284,7 +284,7 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 		return nil
 	}
 
-	if err := self.git.Branch.New(newBranchName, branch.FullRefName()); err != nil {
+	if err := self.c.Git().Branch.New(newBranchName, branch.FullRefName()); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -320,7 +320,7 @@ func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, f
 		Prompt: message,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.DeleteBranch)
-			if err := self.git.Branch.Delete(selectedBranch.Name, force); err != nil {
+			if err := self.c.Git().Branch.Delete(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
 				if !force && strings.Contains(errMessage, "git branch -D ") {
 					return self.deleteWithForce(selectedBranch, true)
@@ -367,7 +367,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 		if branch == self.helpers.Refs.GetCheckedOutRef() {
 			self.c.LogAction(action)
 
-			err := self.git.Sync.Pull(
+			err := self.c.Git().Sync.Pull(
 				git_commands.PullOptions{
 					RemoteName:      branch.UpstreamRemote,
 					BranchName:      branch.UpstreamBranch,
@@ -381,7 +381,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		} else {
 			self.c.LogAction(action)
-			err := self.git.Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
+			err := self.c.Git().Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
 			if err != nil {
 				_ = self.c.Error(err)
 			}
@@ -407,7 +407,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 			InitialContent: branch.Name,
 			HandleConfirm: func(newBranchName string) error {
 				self.c.LogAction(self.c.Tr.Actions.RenameBranch)
-				if err := self.git.Branch.Rename(branch.Name, newBranchName); err != nil {
+				if err := self.c.Git().Branch.Rename(branch.Name, newBranchName); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -415,7 +415,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 				_ = self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 
 				// now that we've got our stuff again we need to find that branch and reselect it.
-				for i, newBranch := range self.model.Branches {
+				for i, newBranch := range self.c.Model().Branches {
 					if newBranch.Name == newBranchName {
 						self.context().SetSelectedLineIdx(i)
 						if err := self.context().HandleRender(); err != nil {
@@ -502,7 +502,7 @@ func (self *BranchesController) createPullRequest(from string, to string) error 
 
 	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
 
-	if err := self.os.OpenLink(url); err != nil {
+	if err := self.c.OS().OpenLink(url); err != nil {
 		return self.c.Error(err)
 	}
 

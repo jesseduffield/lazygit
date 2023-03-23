@@ -254,7 +254,7 @@ func (self *PatchExplorerController) CopySelectedToClipboard() error {
 	selected := self.context.GetState().PlainRenderSelected()
 
 	self.c.LogAction(self.c.Tr.Actions.CopySelectedTextToClipboard)
-	if err := self.os.CopyToClipboard(selected); err != nil {
+	if err := self.c.OS().CopyToClipboard(selected); err != nil {
 		return self.c.Error(err)
 	}
 

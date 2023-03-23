@@ -65,7 +65,7 @@ func (self *CommitMessageController) Context() types.Context {
 // this method is pointless in this context but I'm keeping it consistent
 // with other contexts so that when generics arrive it's easier to refactor
 func (self *CommitMessageController) context() *context.CommitMessageContext {
-	return self.contexts.CommitMessage
+	return self.c.Contexts().CommitMessage
 }
 
 func (self *CommitMessageController) confirm() error {
@@ -76,7 +76,7 @@ func (self *CommitMessageController) confirm() error {
 		return self.c.ErrorMsg(self.c.Tr.CommitWithoutMessageErr)
 	}
 
-	cmdObj := self.git.Commit.CommitCmdObj(message)
+	cmdObj := self.c.Git().Commit.CommitCmdObj(message)
 	self.c.LogAction(self.c.Tr.Actions.Commit)
 
 	_ = self.c.PopContext()

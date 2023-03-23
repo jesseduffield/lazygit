@@ -115,8 +115,8 @@ func (self *StagingController) GetOnFocusLost() func(types.OnFocusLostOpts) erro
 		if opts.NewContextKey != self.otherContext.GetKey() {
 			self.c.Views().Staging.Wrap = true
 			self.c.Views().StagingSecondary.Wrap = true
-			_ = self.contexts.Staging.Render(false)
-			_ = self.contexts.StagingSecondary.Render(false)
+			_ = self.c.Contexts().Staging.Render(false)
+			_ = self.c.Contexts().StagingSecondary.Render(false)
 		}
 		return nil
 	}
@@ -221,7 +221,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 		applyFlags = append(applyFlags, "cached")
 	}
 	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
-	err := self.git.WorkingTree.ApplyPatch(patchToApply, applyFlags...)
+	err := self.c.Git().WorkingTree.ApplyPatch(patchToApply, applyFlags...)
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -262,7 +262,7 @@ func (self *StagingController) editHunk() error {
 		}).
 		FormatPlain()
 
-	patchFilepath, err := self.git.WorkingTree.SaveTemporaryPatch(patchText)
+	patchFilepath, err := self.c.Git().WorkingTree.SaveTemporaryPatch(patchText)
 	if err != nil {
 		return err
 	}
@@ -273,7 +273,7 @@ func (self *StagingController) editHunk() error {
 		return err
 	}
 
-	editedPatchText, err := self.git.File.Cat(patchFilepath)
+	editedPatchText, err := self.c.Git().File.Cat(patchFilepath)
 	if err != nil {
 		return err
 	}
@@ -293,7 +293,7 @@ func (self *StagingController) editHunk() error {
 	if self.staged {
 		applyFlags = append(applyFlags, "reverse")
 	}
-	if err := self.git.WorkingTree.ApplyPatch(newPatchText, applyFlags...); err != nil {
+	if err := self.c.Git().WorkingTree.ApplyPatch(newPatchText, applyFlags...); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -301,5 +301,5 @@ func (self *StagingController) editHunk() error {
 }
 
 func (self *StagingController) FilePath() string {
-	return self.contexts.Files.GetSelectedPath()
+	return self.c.Contexts().Files.GetSelectedPath()
 }

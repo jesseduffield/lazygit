@@ -57,10 +57,10 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 	}
 
 	// need to populate my sub commits
-	commits, err := self.git.Loaders.CommitLoader.GetCommits(
+	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
 			Limit:                true,
-			FilterPath:           self.modes.Filtering.GetPath(),
+			FilterPath:           self.c.Modes().Filtering.GetPath(),
 			IncludeRebaseCommits: false,
 			RefName:              ref.FullRefName(),
 		},
@@ -71,19 +71,19 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 
 	self.setSubCommits(commits)
 
-	self.contexts.SubCommits.SetSelectedLineIdx(0)
-	self.contexts.SubCommits.SetParentContext(self.context)
-	self.contexts.SubCommits.SetWindowName(self.context.GetWindowName())
-	self.contexts.SubCommits.SetTitleRef(ref.Description())
-	self.contexts.SubCommits.SetRef(ref)
-	self.contexts.SubCommits.SetLimitCommits(true)
+	self.c.Contexts().SubCommits.SetSelectedLineIdx(0)
+	self.c.Contexts().SubCommits.SetParentContext(self.context)
+	self.c.Contexts().SubCommits.SetWindowName(self.context.GetWindowName())
+	self.c.Contexts().SubCommits.SetTitleRef(ref.Description())
+	self.c.Contexts().SubCommits.SetRef(ref)
+	self.c.Contexts().SubCommits.SetLimitCommits(true)
 
-	err = self.c.PostRefreshUpdate(self.contexts.SubCommits)
+	err = self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
 	if err != nil {
 		return err
 	}
 
-	return self.c.PushContext(self.contexts.SubCommits)
+	return self.c.PushContext(self.c.Contexts().SubCommits)
 }
 
 func (self *SwitchToSubCommitsController) Context() types.Context {

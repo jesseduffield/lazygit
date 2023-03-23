@@ -33,7 +33,7 @@ func (self *SuggestionsController) GetKeybindings(opts types.KeybindingsOpts) []
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
-			Handler: func() error { return self.c.ReplaceContext(self.contexts.Confirmation) },
+			Handler: func() error { return self.c.ReplaceContext(self.c.Contexts().Confirmation) },
 		},
 	}
 
@@ -52,5 +52,5 @@ func (self *SuggestionsController) Context() types.Context {
 }
 
 func (self *SuggestionsController) context() *context.SuggestionsContext {
-	return self.contexts.Suggestions
+	return self.c.Contexts().Suggestions
 }

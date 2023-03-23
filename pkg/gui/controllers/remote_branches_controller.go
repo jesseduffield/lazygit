@@ -81,7 +81,7 @@ func (self *RemoteBranchesController) GetOnRenderToMain() func() error {
 			if remoteBranch == nil {
 				task = types.NewRenderStringTask("No branches for this remote")
 			} else {
-				cmdObj := self.git.Branch.GetGraphCmdObj(remoteBranch.FullRefName())
+				cmdObj := self.c.Git().Branch.GetGraphCmdObj(remoteBranch.FullRefName())
 				task = types.NewRunCommandTask(cmdObj.GetCmd())
 			}
 
@@ -101,7 +101,7 @@ func (self *RemoteBranchesController) Context() types.Context {
 }
 
 func (self *RemoteBranchesController) context() *context.RemoteBranchesContext {
-	return self.contexts.RemoteBranches
+	return self.c.Contexts().RemoteBranches
 }
 
 func (self *RemoteBranchesController) checkSelected(callback func(*models.RemoteBranch) error) func() error {
@@ -116,7 +116,7 @@ func (self *RemoteBranchesController) checkSelected(callback func(*models.Remote
 }
 
 func (self *RemoteBranchesController) escape() error {
-	return self.c.PushContext(self.contexts.Remotes)
+	return self.c.PushContext(self.c.Contexts().Remotes)
 }
 
 func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch) error {
@@ -128,7 +128,7 @@ func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
-				err := self.git.Remote.DeleteRemoteBranch(selectedBranch.RemoteName, selectedBranch.Name)
+				err := self.c.Git().Remote.DeleteRemoteBranch(selectedBranch.RemoteName, selectedBranch.Name)
 				if err != nil {
 					_ = self.c.Error(err)
 				}
@@ -167,7 +167,7 @@ func (self *RemoteBranchesController) setAsUpstream(selectedBranch *models.Remot
 		Prompt: message,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.SetBranchUpstream)
-			if err := self.git.Branch.SetUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
+			if err := self.c.Git().Branch.SetUpstream(selectedBranch.RemoteName, selectedBranch.Name, checkedOutBranch.Name); err != nil {
 				return self.c.Error(err)
 			}
 

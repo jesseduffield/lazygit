@@ -69,5 +69,5 @@ func (self *MenuController) Context() types.Context {
 }
 
 func (self *MenuController) context() *context.MenuContext {
-	return self.contexts.Menu
+	return self.c.Contexts().Menu
 }

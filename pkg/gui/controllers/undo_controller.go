@@ -76,7 +76,7 @@ func (self *UndoController) reflogUndo() error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := self.c.Tr.UndoingStatus
 
-	if self.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 		return self.c.ErrorMsg(self.c.Tr.LcCantUndoWhileRebasing)
 	}
 
@@ -124,7 +124,7 @@ func (self *UndoController) reflogRedo() error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := self.c.Tr.RedoingStatus
 
-	if self.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 		return self.c.ErrorMsg(self.c.Tr.LcCantRedoWhileRebasing)
 	}
 
@@ -179,7 +179,7 @@ func (self *UndoController) reflogRedo() error {
 // Though we might support this later, hence the use of the CURRENT_REBASE action kind.
 func (self *UndoController) parseReflogForActions(onUserAction func(counter int, action reflogAction) (bool, error)) error {
 	counter := 0
-	reflogCommits := self.model.FilteredReflogCommits
+	reflogCommits := self.c.Model().FilteredReflogCommits
 	rebaseFinishCommitSha := ""
 	var action *reflogAction
 	for reflogCommitIdx, reflogCommit := range reflogCommits {
@@ -248,14 +248,14 @@ func (self *UndoController) hardResetWithAutoStash(commitSha string, options har
 			Prompt: self.c.Tr.AutoStashPrompt,
 			HandleConfirm: func() error {
 				return self.c.WithWaitingStatus(options.WaitingStatus, func() error {
-					if err := self.git.Stash.Save(self.c.Tr.StashPrefix + commitSha); err != nil {
+					if err := self.c.Git().Stash.Save(self.c.Tr.StashPrefix + commitSha); err != nil {
 						return self.c.Error(err)
 					}
 					if err := reset(); err != nil {
 						return err
 					}
 
-					err := self.git.Stash.Pop(0)
+					err := self.c.Git().Stash.Pop(0)
 					if err := self.c.Refresh(types.RefreshOptions{}); err != nil {
 						return err
 					}

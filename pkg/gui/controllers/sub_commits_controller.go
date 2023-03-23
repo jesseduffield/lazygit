@@ -9,35 +9,36 @@ import (
 type SubCommitsController struct {
 	baseController
 	*controllerCommon
-	context *context.SubCommitsContext
 }
 
 var _ types.IController = &SubCommitsController{}
 
 func NewSubCommitsController(
 	common *controllerCommon,
-	context *context.SubCommitsContext,
 ) *SubCommitsController {
 	return &SubCommitsController{
 		baseController:   baseController{},
 		controllerCommon: common,
-		context:          context,
 	}
 }
 
 func (self *SubCommitsController) Context() types.Context {
-	return self.context
+	return self.context()
+}
+
+func (self *SubCommitsController) context() *context.SubCommitsContext {
+	return self.c.Contexts().SubCommits
 }
 
 func (self *SubCommitsController) GetOnRenderToMain() func() error {
 	return func() error {
 		return self.helpers.Diff.WithDiffModeCheck(func() error {
-			commit := self.context.GetSelected()
+			commit := self.context().GetSelected()
 			var task types.UpdateTask
 			if commit == nil {
 				task = types.NewRenderStringTask("No commits")
 			} else {
-				cmdObj := self.git.Commit.ShowCmdObj(commit.Sha, self.modes.Filtering.GetPath(), self.c.State().GetIgnoreWhitespaceInDiffView())
+				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Sha, self.c.Modes().Filtering.GetPath(), self.c.State().GetIgnoreWhitespaceInDiffView())
 
 				task = types.NewRunPtyTask(cmdObj.GetCmd())
 			}
@@ -55,7 +56,7 @@ func (self *SubCommitsController) GetOnRenderToMain() func() error {
 
 func (self *SubCommitsController) GetOnFocus() func(types.OnFocusOpts) error {
 	return func(types.OnFocusOpts) error {
-		context := self.context
+		context := self.context()
 		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
 			context.SetLimitCommits(false)
 			go utils.Safe(func() {
