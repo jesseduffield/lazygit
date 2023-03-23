@@ -10,7 +10,7 @@ import (
 type ListContextTrait struct {
 	types.Context
 
-	c                 *types.HelperCommon
+	c                 *ContextCommon
 	list              types.IList
 	getDisplayStrings func(startIdx int, length int) [][]string
 }

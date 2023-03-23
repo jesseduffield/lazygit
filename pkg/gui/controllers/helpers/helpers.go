@@ -1,5 +1,21 @@
 package helpers
 
+import (
+	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
+
+type HelperCommon struct {
+	*common.Common
+	types.IGuiCommon
+	IGetContexts
+}
+
+type IGetContexts interface {
+	Contexts() *context.ContextTree
+}
+
 type Helpers struct {
 	Refs           *RefsHelper
 	Bisect         *BisectHelper

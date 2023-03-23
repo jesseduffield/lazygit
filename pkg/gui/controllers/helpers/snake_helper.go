@@ -5,16 +5,15 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/snake"
 )
 
 type SnakeHelper struct {
-	c    *types.HelperCommon
+	c    *HelperCommon
 	game *snake.Game
 }
 
-func NewSnakeHelper(c *types.HelperCommon) *SnakeHelper {
+func NewSnakeHelper(c *HelperCommon) *SnakeHelper {
 	return &SnakeHelper{
 		c: c,
 	}

@@ -9,7 +9,7 @@ import (
 )
 
 type UpstreamHelper struct {
-	c     *types.HelperCommon
+	c     *HelperCommon
 	model *types.Model
 
 	getRemoteBranchesSuggestionsFunc func(string) func(string) []*types.Suggestion
@@ -25,7 +25,7 @@ type IUpstreamHelper interface {
 var _ IUpstreamHelper = &UpstreamHelper{}
 
 func NewUpstreamHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	model *types.Model,
 	getRemoteBranchesSuggestionsFunc func(string) func(string) []*types.Suggestion,
 ) *UpstreamHelper {

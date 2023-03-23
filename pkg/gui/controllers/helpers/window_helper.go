@@ -11,12 +11,12 @@ import (
 )
 
 type WindowHelper struct {
-	c          *types.HelperCommon
+	c          *HelperCommon
 	viewHelper *ViewHelper
 	contexts   *context.ContextTree
 }
 
-func NewWindowHelper(c *types.HelperCommon, viewHelper *ViewHelper, contexts *context.ContextTree) *WindowHelper {
+func NewWindowHelper(c *HelperCommon, viewHelper *ViewHelper, contexts *context.ContextTree) *WindowHelper {
 	return &WindowHelper{
 		c:          c,
 		viewHelper: viewHelper,

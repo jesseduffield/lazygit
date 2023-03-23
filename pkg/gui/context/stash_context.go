@@ -17,7 +17,7 @@ var (
 )
 
 func NewStashContext(
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *StashContext {
 	viewModel := NewBasicViewModel(func() []*models.StashEntry { return c.Model().StashEntries })
 

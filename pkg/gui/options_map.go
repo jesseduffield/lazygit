@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/samber/lo"
 )
 
 type OptionsMapMgr struct {
-	c *types.HelperCommon
+	c *helpers.HelperCommon
 }
 
 func (gui *Gui) renderContextOptionsMap(c types.Context) {

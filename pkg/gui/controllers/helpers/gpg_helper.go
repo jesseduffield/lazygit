@@ -9,13 +9,13 @@ import (
 )
 
 type GpgHelper struct {
-	c   *types.HelperCommon
+	c   *HelperCommon
 	os  *oscommands.OSCommand
 	git *commands.GitCommand
 }
 
 func NewGpgHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	os *oscommands.OSCommand,
 	git *commands.GitCommand,
 ) *GpgHelper {

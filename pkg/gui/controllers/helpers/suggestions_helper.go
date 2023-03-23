@@ -34,7 +34,7 @@ type ISuggestionsHelper interface {
 }
 
 type SuggestionsHelper struct {
-	c *types.HelperCommon
+	c *HelperCommon
 
 	model    *types.Model
 	contexts *context.ContextTree
@@ -43,7 +43,7 @@ type SuggestionsHelper struct {
 var _ ISuggestionsHelper = &SuggestionsHelper{}
 
 func NewSuggestionsHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	model *types.Model,
 	contexts *context.ContextTree,
 ) *SuggestionsHelper {

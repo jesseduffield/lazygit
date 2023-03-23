@@ -13,13 +13,13 @@ type IPatchBuildingHelper interface {
 }
 
 type PatchBuildingHelper struct {
-	c        *types.HelperCommon
+	c        *HelperCommon
 	git      *commands.GitCommand
 	contexts *context.ContextTree
 }
 
 func NewPatchBuildingHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 ) *PatchBuildingHelper {

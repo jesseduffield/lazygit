@@ -15,6 +15,10 @@ import (
 )
 
 type HelperCommon struct {
+	*ContextCommon
+}
+
+type ContextCommon struct {
 	*common.Common
 	IGuiCommon
 }

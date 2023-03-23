@@ -11,7 +11,7 @@ import (
 type MergeConflictsContext struct {
 	types.Context
 	viewModel *ConflictsViewModel
-	c         *types.HelperCommon
+	c         *ContextCommon
 	mutex     *deadlock.Mutex
 }
 
@@ -24,7 +24,7 @@ type ConflictsViewModel struct {
 }
 
 func NewMergeConflictsContext(
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *MergeConflictsContext {
 	viewModel := &ConflictsViewModel{
 		state:                 mergeconflicts.NewState(),

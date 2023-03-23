@@ -7,11 +7,11 @@ import (
 )
 
 type UpdateHelper struct {
-	c       *types.HelperCommon
+	c       *HelperCommon
 	updater *updates.Updater
 }
 
-func NewUpdateHelper(c *types.HelperCommon, updater *updates.Updater) *UpdateHelper {
+func NewUpdateHelper(c *HelperCommon, updater *updates.Updater) *UpdateHelper {
 	return &UpdateHelper{
 		c:       c,
 		updater: updater,

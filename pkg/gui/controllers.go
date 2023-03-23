@@ -40,7 +40,7 @@ func (gui *Gui) resetControllers() {
 		Host:           helpers.NewHostHelper(helperCommon, gui.git),
 		PatchBuilding:  patchBuildingHelper,
 		Staging:        stagingHelper,
-		Bisect:         helpers.NewBisectHelper(helperCommon, gui.git),
+		Bisect:         helpers.NewBisectHelper(helperCommon),
 		Suggestions:    suggestionsHelper,
 		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
 		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, gui.State.Contexts, refsHelper, model, setCommitMessage, getSavedCommitMessage),
@@ -50,7 +50,6 @@ func (gui *Gui) resetControllers() {
 		MergeConflicts: mergeConflictsHelper,
 		CherryPick: helpers.NewCherryPickHelper(
 			helperCommon,
-			gui.git,
 			gui.State.Contexts,
 			rebaseHelper,
 		),
@@ -305,7 +304,7 @@ func (gui *Gui) resetControllers() {
 	)
 
 	// this must come last so that we've got our click handlers defined against the context
-	listControllerFactory := controllers.NewListControllerFactory(gui.c)
+	listControllerFactory := controllers.NewListControllerFactory(common)
 	for _, context := range gui.getListContexts() {
 		controllers.AttachControllers(context, listControllerFactory.Create(context))
 	}

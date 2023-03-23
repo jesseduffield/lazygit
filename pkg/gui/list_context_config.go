@@ -6,55 +6,55 @@ import (
 )
 
 func (gui *Gui) menuListContext() *context.MenuContext {
-	return context.NewMenuContext(gui.c)
+	return context.NewMenuContext(gui.contextCommon)
 }
 
 func (gui *Gui) filesListContext() *context.WorkingTreeContext {
-	return context.NewWorkingTreeContext(gui.c)
+	return context.NewWorkingTreeContext(gui.contextCommon)
 }
 
 func (gui *Gui) branchesListContext() *context.BranchesContext {
-	return context.NewBranchesContext(gui.c)
+	return context.NewBranchesContext(gui.contextCommon)
 }
 
 func (gui *Gui) remotesListContext() *context.RemotesContext {
-	return context.NewRemotesContext(gui.c)
+	return context.NewRemotesContext(gui.contextCommon)
 }
 
 func (gui *Gui) remoteBranchesListContext() *context.RemoteBranchesContext {
-	return context.NewRemoteBranchesContext(gui.c)
+	return context.NewRemoteBranchesContext(gui.contextCommon)
 }
 
 func (gui *Gui) tagsListContext() *context.TagsContext {
-	return context.NewTagsContext(gui.c)
+	return context.NewTagsContext(gui.contextCommon)
 }
 
 func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
-	return context.NewLocalCommitsContext(gui.c)
+	return context.NewLocalCommitsContext(gui.contextCommon)
 }
 
 func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
-	return context.NewSubCommitsContext(gui.c)
+	return context.NewSubCommitsContext(gui.contextCommon)
 }
 
 func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
-	return context.NewReflogCommitsContext(gui.c)
+	return context.NewReflogCommitsContext(gui.contextCommon)
 }
 
 func (gui *Gui) stashListContext() *context.StashContext {
-	return context.NewStashContext(gui.c)
+	return context.NewStashContext(gui.contextCommon)
 }
 
 func (gui *Gui) commitFilesListContext() *context.CommitFilesContext {
-	return context.NewCommitFilesContext(gui.c)
+	return context.NewCommitFilesContext(gui.contextCommon)
 }
 
 func (gui *Gui) submodulesListContext() *context.SubmodulesContext {
-	return context.NewSubmodulesContext(gui.c)
+	return context.NewSubmodulesContext(gui.contextCommon)
 }
 
 func (gui *Gui) suggestionsListContext() *context.SuggestionsContext {
-	return context.NewSuggestionsContext(gui.c)
+	return context.NewSuggestionsContext(gui.contextCommon)
 }
 
 func (gui *Gui) getListContexts() []types.IListContext {

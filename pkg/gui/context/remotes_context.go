@@ -16,7 +16,7 @@ var (
 	_ types.DiffableContext = (*RemotesContext)(nil)
 )
 
-func NewRemotesContext(c *types.HelperCommon) *RemotesContext {
+func NewRemotesContext(c *ContextCommon) *RemotesContext {
 	viewModel := NewBasicViewModel(func() []*models.Remote { return c.Model().Remotes })
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {

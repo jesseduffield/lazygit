@@ -6,11 +6,11 @@ import (
 )
 
 type ViewHelper struct {
-	c        *types.HelperCommon
+	c        *HelperCommon
 	contexts *context.ContextTree
 }
 
-func NewViewHelper(c *types.HelperCommon, contexts *context.ContextTree) *ViewHelper {
+func NewViewHelper(c *HelperCommon, contexts *context.ContextTree) *ViewHelper {
 	return &ViewHelper{
 		c:        c,
 		contexts: contexts,

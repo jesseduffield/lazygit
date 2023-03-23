@@ -18,7 +18,7 @@ type Client struct {
 }
 
 func NewClient(
-	c *types.HelperCommon,
+	c *helpers.HelperCommon,
 	os *oscommands.OSCommand,
 	git *commands.GitCommand,
 	contexts *context.ContextTree,

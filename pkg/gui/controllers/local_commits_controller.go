@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -184,7 +185,7 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() error {
 	}
 }
 
-func secondaryPatchPanelUpdateOpts(c *types.HelperCommon) *types.ViewUpdateOpts {
+func secondaryPatchPanelUpdateOpts(c *helpers.HelperCommon) *types.ViewUpdateOpts {
 	if c.Git().Patch.PatchBuilder.Active() {
 		patch := c.Git().Patch.PatchBuilder.RenderAggregatedPatch(false)
 

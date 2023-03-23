@@ -16,7 +16,7 @@ var (
 	_ types.DiffableContext = (*ReflogCommitsContext)(nil)
 )
 
-func NewReflogCommitsContext(c *types.HelperCommon) *ReflogCommitsContext {
+func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	viewModel := NewBasicViewModel(func() []*models.Commit { return c.Model().FilteredReflogCommits })
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {

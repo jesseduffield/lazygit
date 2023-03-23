@@ -15,7 +15,7 @@ type MenuContext struct {
 var _ types.IListContext = (*MenuContext)(nil)
 
 func NewMenuContext(
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *MenuContext {
 	viewModel := NewMenuViewModel()
 

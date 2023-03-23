@@ -10,11 +10,11 @@ import (
 // and the commits context.
 
 type TagsHelper struct {
-	c   *types.HelperCommon
+	c   *HelperCommon
 	git *commands.GitCommand
 }
 
-func NewTagsHelper(c *types.HelperCommon, git *commands.GitCommand) *TagsHelper {
+func NewTagsHelper(c *HelperCommon, git *commands.GitCommand) *TagsHelper {
 	return &TagsHelper{
 		c:   c,
 		git: git,

@@ -7,13 +7,13 @@ import (
 )
 
 type MergeConflictsHelper struct {
-	c        *types.HelperCommon
+	c        *HelperCommon
 	contexts *context.ContextTree
 	git      *commands.GitCommand
 }
 
 func NewMergeConflictsHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	contexts *context.ContextTree,
 	git *commands.GitCommand,
 ) *MergeConflictsHelper {

@@ -19,7 +19,7 @@ var (
 	_ types.DiffableContext = (*LocalCommitsContext)(nil)
 )
 
-func NewLocalCommitsContext(c *types.HelperCommon) *LocalCommitsContext {
+func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 	viewModel := NewLocalCommitsViewModel(
 		func() []*models.Commit { return c.Model().Commits },
 		c,
@@ -93,7 +93,7 @@ type LocalCommitsViewModel struct {
 	showWholeGitGraph bool
 }
 
-func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *types.HelperCommon) *LocalCommitsViewModel {
+func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon) *LocalCommitsViewModel {
 	self := &LocalCommitsViewModel{
 		BasicViewModel:    NewBasicViewModel(getModel),
 		limitCommits:      true,
@@ -141,7 +141,7 @@ func (self *LocalCommitsViewModel) GetCommits() []*models.Commit {
 	return self.getModel()
 }
 
-func shouldShowGraph(c *types.HelperCommon) bool {
+func shouldShowGraph(c *ContextCommon) bool {
 	if c.Modes().Filtering.Active() {
 		return false
 	}

@@ -21,7 +21,7 @@ import (
 )
 
 type RefreshHelper struct {
-	c                    *types.HelperCommon
+	c                    *HelperCommon
 	contexts             *context.ContextTree
 	git                  *commands.GitCommand
 	refsHelper           *RefsHelper
@@ -33,7 +33,7 @@ type RefreshHelper struct {
 }
 
 func NewRefreshHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	contexts *context.ContextTree,
 	git *commands.GitCommand,
 	refsHelper *RefsHelper,

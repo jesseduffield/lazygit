@@ -3,7 +3,6 @@ package helpers
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type IFilesHelper interface {
@@ -13,13 +12,13 @@ type IFilesHelper interface {
 }
 
 type FilesHelper struct {
-	c   *types.HelperCommon
+	c   *HelperCommon
 	git *commands.GitCommand
 	os  *oscommands.OSCommand
 }
 
 func NewFilesHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	git *commands.GitCommand,
 	os *oscommands.OSCommand,
 ) *FilesHelper {

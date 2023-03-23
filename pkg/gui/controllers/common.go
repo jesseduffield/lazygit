@@ -9,7 +9,7 @@ import (
 )
 
 type controllerCommon struct {
-	c        *types.HelperCommon
+	c        *helpers.HelperCommon
 	helpers  *helpers.Helpers
 	contexts *context.ContextTree
 
@@ -26,7 +26,7 @@ type controllerCommon struct {
 }
 
 func NewControllerCommon(
-	c *types.HelperCommon,
+	c *helpers.HelperCommon,
 	os *oscommands.OSCommand,
 	git *commands.GitCommand,
 	helpers *helpers.Helpers,

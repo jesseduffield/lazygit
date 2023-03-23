@@ -6,7 +6,7 @@ import (
 
 type ConfirmationContext struct {
 	*SimpleContext
-	c *types.HelperCommon
+	c *ContextCommon
 
 	State ConfirmationContextState
 }
@@ -19,7 +19,7 @@ type ConfirmationContextState struct {
 var _ types.Context = (*ConfirmationContext)(nil)
 
 func NewConfirmationContext(
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *ConfirmationContext {
 	return &ConfirmationContext{
 		c: c,

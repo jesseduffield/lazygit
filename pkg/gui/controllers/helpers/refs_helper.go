@@ -23,14 +23,14 @@ type IRefsHelper interface {
 }
 
 type RefsHelper struct {
-	c        *types.HelperCommon
+	c        *HelperCommon
 	git      *commands.GitCommand
 	contexts *context.ContextTree
 	model    *types.Model
 }
 
 func NewRefsHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 	model *types.Model,

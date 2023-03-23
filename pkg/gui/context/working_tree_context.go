@@ -15,7 +15,7 @@ type WorkingTreeContext struct {
 
 var _ types.IListContext = (*WorkingTreeContext)(nil)
 
-func NewWorkingTreeContext(c *types.HelperCommon) *WorkingTreeContext {
+func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	viewModel := filetree.NewFileTreeViewModel(
 		func() []*models.File { return c.Model().Files },
 		c.Log,

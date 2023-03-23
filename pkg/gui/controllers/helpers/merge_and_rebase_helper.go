@@ -14,14 +14,14 @@ import (
 )
 
 type MergeAndRebaseHelper struct {
-	c          *types.HelperCommon
+	c          *HelperCommon
 	contexts   *context.ContextTree
 	git        *commands.GitCommand
 	refsHelper *RefsHelper
 }
 
 func NewMergeAndRebaseHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	contexts *context.ContextTree,
 	git *commands.GitCommand,
 	refsHelper *RefsHelper,

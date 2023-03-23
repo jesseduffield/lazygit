@@ -15,12 +15,12 @@ import (
 )
 
 type ConfirmationHelper struct {
-	c        *types.HelperCommon
+	c        *HelperCommon
 	contexts *context.ContextTree
 }
 
 func NewConfirmationHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	contexts *context.ContextTree,
 ) *ConfirmationHelper {
 	return &ConfirmationHelper{

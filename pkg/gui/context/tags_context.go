@@ -17,7 +17,7 @@ var (
 )
 
 func NewTagsContext(
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *TagsContext {
 	viewModel := NewBasicViewModel(func() []*models.Tag { return c.Model().Tags })
 

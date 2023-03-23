@@ -10,13 +10,13 @@ import (
 
 type CommitMessageContext struct {
 	*SimpleContext
-	c *types.HelperCommon
+	c *ContextCommon
 }
 
 var _ types.Context = (*CommitMessageContext)(nil)
 
 func NewCommitMessageContext(
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *CommitMessageContext {
 	return &CommitMessageContext{
 		c: c,

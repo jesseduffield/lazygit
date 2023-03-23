@@ -2,15 +2,13 @@ package helpers
 
 import (
 	"os"
-
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type RecordDirectoryHelper struct {
-	c *types.HelperCommon
+	c *HelperCommon
 }
 
-func NewRecordDirectoryHelper(c *types.HelperCommon) *RecordDirectoryHelper {
+func NewRecordDirectoryHelper(c *HelperCommon) *RecordDirectoryHelper {
 	return &RecordDirectoryHelper{
 		c: c,
 	}

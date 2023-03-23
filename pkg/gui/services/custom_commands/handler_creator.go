@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -15,7 +16,7 @@ import (
 
 // takes a custom command and returns a function that will be called when the corresponding user-defined keybinding is pressed
 type HandlerCreator struct {
-	c                  *types.HelperCommon
+	c                  *helpers.HelperCommon
 	os                 *oscommands.OSCommand
 	git                *commands.GitCommand
 	sessionStateLoader *SessionStateLoader
@@ -24,7 +25,7 @@ type HandlerCreator struct {
 }
 
 func NewHandlerCreator(
-	c *types.HelperCommon,
+	c *helpers.HelperCommon,
 	os *oscommands.OSCommand,
 	git *commands.GitCommand,
 	sessionStateLoader *SessionStateLoader,

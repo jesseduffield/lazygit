@@ -3,7 +3,6 @@ package helpers
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // this helper just wraps our hosting_service package
@@ -14,12 +13,12 @@ type IHostHelper interface {
 }
 
 type HostHelper struct {
-	c   *types.HelperCommon
+	c   *HelperCommon
 	git *commands.GitCommand
 }
 
 func NewHostHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	git *commands.GitCommand,
 ) *HostHelper {
 	return &HostHelper{

@@ -72,14 +72,14 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			"main",
 			context.STAGING_MAIN_CONTEXT_KEY,
 			func() []int { return nil },
-			gui.c,
+			gui.contextCommon,
 		),
 		StagingSecondary: context.NewPatchExplorerContext(
 			gui.Views.StagingSecondary,
 			"secondary",
 			context.STAGING_SECONDARY_CONTEXT_KEY,
 			func() []int { return nil },
-			gui.c,
+			gui.contextCommon,
 		),
 		CustomPatchBuilder: context.NewPatchExplorerContext(
 			gui.Views.PatchBuilding,
@@ -95,7 +95,7 @@ func (gui *Gui) contextTree() *context.ContextTree {
 
 				return includedLineIndices
 			},
-			gui.c,
+			gui.contextCommon,
 		),
 		CustomPatchBuilderSecondary: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
@@ -107,10 +107,10 @@ func (gui *Gui) contextTree() *context.ContextTree {
 			}),
 		),
 		MergeConflicts: context.NewMergeConflictsContext(
-			gui.c,
+			gui.contextCommon,
 		),
-		Confirmation:  context.NewConfirmationContext(gui.c),
-		CommitMessage: context.NewCommitMessageContext(gui.c),
+		Confirmation:  context.NewConfirmationContext(gui.contextCommon),
+		CommitMessage: context.NewCommitMessageContext(gui.contextCommon),
 		Search: context.NewSimpleContext(
 			context.NewBaseContext(context.NewBaseContextOpts{
 				Kind:       types.PERSISTENT_POPUP,

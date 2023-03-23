@@ -20,7 +20,7 @@ type IWorkingTreeHelper interface {
 }
 
 type WorkingTreeHelper struct {
-	c                     *types.HelperCommon
+	c                     *HelperCommon
 	git                   *commands.GitCommand
 	contexts              *context.ContextTree
 	refHelper             *RefsHelper
@@ -30,7 +30,7 @@ type WorkingTreeHelper struct {
 }
 
 func NewWorkingTreeHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 	refHelper *RefsHelper,

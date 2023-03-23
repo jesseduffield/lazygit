@@ -20,7 +20,7 @@ var (
 	_ types.DiffableContext = (*CommitFilesContext)(nil)
 )
 
-func NewCommitFilesContext(c *types.HelperCommon) *CommitFilesContext {
+func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 	viewModel := filetree.NewCommitFileTreeViewModel(
 		func() []*models.CommitFile { return c.Model().CommitFiles },
 		c.Log,
@@ -102,7 +102,7 @@ func (self *CommitFilesContext) renderToMain() error {
 	})
 }
 
-func secondaryPatchPanelUpdateOpts(c *types.HelperCommon) *types.ViewUpdateOpts {
+func secondaryPatchPanelUpdateOpts(c *ContextCommon) *types.ViewUpdateOpts {
 	if c.Git().Patch.PatchBuilder.Active() {
 		patch := c.Git().Patch.PatchBuilder.RenderAggregatedPatch(false)
 

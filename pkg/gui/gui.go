@@ -127,8 +127,9 @@ type Gui struct {
 
 	Updating bool
 
-	c       *types.HelperCommon
-	helpers *helpers.Helpers
+	c             *helpers.HelperCommon
+	contextCommon *context.ContextCommon
+	helpers       *helpers.Helpers
 }
 
 type StateAccessor struct {
@@ -385,6 +386,10 @@ func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartAr
 	return initialContext
 }
 
+func (gui *Gui) Contexts() *context.ContextTree {
+	return gui.State.Contexts
+}
+
 // for now the split view will always be on
 // NewGui builds a new gui handler
 func NewGui(
@@ -442,7 +447,8 @@ func NewGui(
 	)
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
-	helperCommon := &types.HelperCommon{IGuiCommon: guiCommon, Common: cmn}
+	helperCommon := &helpers.HelperCommon{IGuiCommon: guiCommon, Common: cmn, IGetContexts: gui}
+	contextCommon := &context.ContextCommon{IGuiCommon: guiCommon, Common: cmn}
 
 	credentialsHelper := helpers.NewCredentialsHelper(helperCommon)
 
@@ -460,6 +466,8 @@ func NewGui(
 	// storing this stuff on the gui for now to ease refactoring
 	// TODO: reset these controllers upon changing repos due to state changing
 	gui.c = helperCommon
+
+	gui.contextCommon = contextCommon
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
 	icons.SetIconEnabled(gui.UserConfig.Gui.ShowIcons)

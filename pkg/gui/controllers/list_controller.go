@@ -6,26 +6,26 @@ import (
 )
 
 type ListControllerFactory struct {
-	c *types.HelperCommon
+	*controllerCommon
 }
 
-func NewListControllerFactory(c *types.HelperCommon) *ListControllerFactory {
+func NewListControllerFactory(c *controllerCommon) *ListControllerFactory {
 	return &ListControllerFactory{
-		c: c,
+		controllerCommon: c,
 	}
 }
 
 func (self *ListControllerFactory) Create(context types.IListContext) *ListController {
 	return &ListController{
-		baseController: baseController{},
-		c:              self.c,
-		context:        context,
+		baseController:   baseController{},
+		controllerCommon: self.controllerCommon,
+		context:          context,
 	}
 }
 
 type ListController struct {
 	baseController
-	c *types.HelperCommon
+	*controllerCommon
 
 	context types.IListContext
 }

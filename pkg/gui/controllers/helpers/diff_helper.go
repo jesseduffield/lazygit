@@ -10,10 +10,10 @@ import (
 )
 
 type DiffHelper struct {
-	c *types.HelperCommon
+	c *HelperCommon
 }
 
-func NewDiffHelper(c *types.HelperCommon) *DiffHelper {
+func NewDiffHelper(c *HelperCommon) *DiffHelper {
 	return &DiffHelper{
 		c: c,
 	}

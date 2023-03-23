@@ -18,7 +18,7 @@ var (
 )
 
 func NewRemoteBranchesContext(
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *RemoteBranchesContext {
 	viewModel := NewBasicViewModel(func() []*models.RemoteBranch { return c.Model().RemoteBranches })
 

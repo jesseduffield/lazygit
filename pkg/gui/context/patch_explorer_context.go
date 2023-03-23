@@ -13,7 +13,7 @@ type PatchExplorerContext struct {
 	state                  *patch_exploring.State
 	viewTrait              *ViewTrait
 	getIncludedLineIndices func() []int
-	c                      *types.HelperCommon
+	c                      *ContextCommon
 	mutex                  *deadlock.Mutex
 }
 
@@ -26,7 +26,7 @@ func NewPatchExplorerContext(
 
 	getIncludedLineIndices func() []int,
 
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *PatchExplorerContext {
 	return &PatchExplorerContext{
 		state:                  nil,

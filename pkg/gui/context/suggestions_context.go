@@ -27,7 +27,7 @@ type SuggestionsContextState struct {
 var _ types.IListContext = (*SuggestionsContext)(nil)
 
 func NewSuggestionsContext(
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *SuggestionsContext {
 	state := &SuggestionsContextState{
 		AsyncHandler: tasks.NewAsyncHandler(),

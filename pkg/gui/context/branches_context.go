@@ -16,7 +16,7 @@ var (
 	_ types.DiffableContext = (*BranchesContext)(nil)
 )
 
-func NewBranchesContext(c *types.HelperCommon) *BranchesContext {
+func NewBranchesContext(c *ContextCommon) *BranchesContext {
 	viewModel := NewBasicViewModel(func() []*models.Branch { return c.Model().Branches })
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {

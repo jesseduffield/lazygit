@@ -9,13 +9,13 @@ import (
 )
 
 type StagingHelper struct {
-	c        *types.HelperCommon
+	c        *HelperCommon
 	git      *commands.GitCommand
 	contexts *context.ContextTree
 }
 
 func NewStagingHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 ) *StagingHelper {

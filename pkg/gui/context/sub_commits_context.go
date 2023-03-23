@@ -22,7 +22,7 @@ var (
 )
 
 func NewSubCommitsContext(
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *SubCommitsContext {
 	viewModel := &SubCommitsViewModel{
 		BasicViewModel: NewBasicViewModel(

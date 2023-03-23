@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
@@ -9,9 +8,7 @@ import (
 )
 
 type CherryPickHelper struct {
-	c *types.HelperCommon
-
-	git *commands.GitCommand
+	c *HelperCommon
 
 	contexts *context.ContextTree
 
@@ -22,14 +19,12 @@ type CherryPickHelper struct {
 // even if in truth we're running git cherry-pick
 
 func NewCherryPickHelper(
-	c *types.HelperCommon,
-	git *commands.GitCommand,
+	c *HelperCommon,
 	contexts *context.ContextTree,
 	rebaseHelper *MergeAndRebaseHelper,
 ) *CherryPickHelper {
 	return &CherryPickHelper{
 		c:            c,
-		git:          git,
 		contexts:     contexts,
 		rebaseHelper: rebaseHelper,
 	}
@@ -87,7 +82,7 @@ func (self *CherryPickHelper) Paste() error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.CherryPickingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
-				err := self.git.Rebase.CherryPickCommits(self.getData().CherryPickedCommits)
+				err := self.c.Git().Rebase.CherryPickCommits(self.getData().CherryPickedCommits)
 				return self.rebaseHelper.CheckMergeOrRebase(err)
 			})
 		},

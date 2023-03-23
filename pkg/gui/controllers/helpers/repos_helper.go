@@ -22,13 +22,13 @@ type onNewRepoFn func(startArgs appTypes.StartArgs, reuseState bool) error
 
 // helps switch back and forth between repos
 type ReposHelper struct {
-	c                     *types.HelperCommon
+	c                     *HelperCommon
 	recordDirectoryHelper *RecordDirectoryHelper
 	onNewRepo             onNewRepoFn
 }
 
 func NewRecentReposHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 	recordDirectoryHelper *RecordDirectoryHelper,
 	onNewRepo onNewRepoFn,
 ) *ReposHelper {
