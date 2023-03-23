@@ -143,13 +143,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.CreatePatchOptionsMenu),
-			Handler:     self.handleCreatePatchOptionsMenu,
-			Description: self.c.Tr.ViewPatchOptions,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.Refresh),
 			Handler:     self.handleRefresh,
 			Description: self.c.Tr.LcRefresh,
