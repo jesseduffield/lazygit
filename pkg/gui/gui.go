@@ -825,13 +825,7 @@ func (gui *Gui) startBackgroundRoutines() {
 }
 
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
-	windowArranger := NewWindowArranger(
-		gui.c,
-		gui.helpers.Window,
-		gui.helpers.Mode,
-		gui.helpers.AppStatus,
-	)
-	return windowArranger.getWindowDimensions(informationStr, appStatus)
+	return gui.helpers.WindowArrangement.GetWindowDimensions(informationStr, appStatus)
 }
 
 func (gui *Gui) popContext() error {

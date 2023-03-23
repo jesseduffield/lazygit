@@ -39,6 +39,19 @@ func (gui *Gui) resetControllers() {
 		rebaseHelper,
 	)
 	bisectHelper := helpers.NewBisectHelper(helperCommon)
+	windowHelper := helpers.NewWindowHelper(helperCommon, viewHelper)
+	modeHelper := helpers.NewModeHelper(
+		helperCommon,
+		diffHelper,
+		patchBuildingHelper,
+		cherryPickHelper,
+		rebaseHelper,
+		bisectHelper,
+	)
+	appStatusHelper := helpers.NewAppStatusHelper(
+		helperCommon,
+		func() *status.StatusManager { return gui.statusManager },
+	)
 	gui.helpers = &helpers.Helpers{
 		Refs:            refsHelper,
 		Host:            helpers.NewHostHelper(helperCommon),
@@ -60,21 +73,17 @@ func (gui *Gui) resetControllers() {
 		Repos:           helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo),
 		RecordDirectory: recordDirectoryHelper,
 		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater),
-		Window:          helpers.NewWindowHelper(helperCommon, viewHelper),
+		Window:          windowHelper,
 		View:            viewHelper,
 		Refresh:         refreshHelper,
 		Confirmation:    helpers.NewConfirmationHelper(helperCommon),
-		Mode: helpers.NewModeHelper(
-			helperCommon,
-			diffHelper,
-			patchBuildingHelper,
-			cherryPickHelper,
-			rebaseHelper,
-			bisectHelper,
-		),
-		AppStatus: helpers.NewAppStatusHelper(
-			helperCommon,
-			func() *status.StatusManager { return gui.statusManager },
+		Mode:            modeHelper,
+		AppStatus:       appStatusHelper,
+		WindowArrangement: helpers.NewWindowArrangementHelper(
+			gui.c,
+			windowHelper,
+			modeHelper,
+			appStatusHelper,
 		),
 	}
 

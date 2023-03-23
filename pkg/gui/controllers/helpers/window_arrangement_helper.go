@@ -1,9 +1,9 @@
-package gui
+package helpers
 
 import (
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
+	"github.com/jesseduffield/lazygit/pkg/gui/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/mattn/go-runewidth"
@@ -12,22 +12,20 @@ import (
 // In this file we use the boxlayout package, along with knowledge about the app's state,
 // to arrange the windows (i.e. panels) on the screen.
 
-const INFO_SECTION_PADDING = " "
-
-type WindowArranger struct {
-	c               *helpers.HelperCommon
-	windowHelper    *helpers.WindowHelper
-	modeHelper      *helpers.ModeHelper
-	appStatusHelper *helpers.AppStatusHelper
+type WindowArrangementHelper struct {
+	c               *HelperCommon
+	windowHelper    *WindowHelper
+	modeHelper      *ModeHelper
+	appStatusHelper *AppStatusHelper
 }
 
-func NewWindowArranger(
-	c *helpers.HelperCommon,
-	windowHelper *helpers.WindowHelper,
-	modeHelper *helpers.ModeHelper,
-	appStatusHelper *helpers.AppStatusHelper,
-) *WindowArranger {
-	return &WindowArranger{
+func NewWindowArrangementHelper(
+	c *HelperCommon,
+	windowHelper *WindowHelper,
+	modeHelper *ModeHelper,
+	appStatusHelper *AppStatusHelper,
+) *WindowArrangementHelper {
+	return &WindowArrangementHelper{
 		c:               c,
 		windowHelper:    windowHelper,
 		modeHelper:      modeHelper,
@@ -35,7 +33,9 @@ func NewWindowArranger(
 	}
 }
 
-func (self *WindowArranger) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
+const INFO_SECTION_PADDING = " "
+
+func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
 	width, height := self.c.GocuiGui().Size()
 
 	sideSectionWeight, mainSectionWeight := self.getMidSectionWeights()
@@ -118,7 +118,7 @@ func MergeMaps[K comparable, V any](maps ...map[K]V) map[K]V {
 	return result
 }
 
-func (self *WindowArranger) mainSectionChildren() []*boxlayout.Box {
+func (self *WindowArrangementHelper) mainSectionChildren() []*boxlayout.Box {
 	currentWindow := self.windowHelper.CurrentWindow()
 
 	// if we're not in split mode we can just show the one main panel. Likewise if
@@ -144,7 +144,7 @@ func (self *WindowArranger) mainSectionChildren() []*boxlayout.Box {
 	}
 }
 
-func (self *WindowArranger) getMidSectionWeights() (int, int) {
+func (self *WindowArrangementHelper) getMidSectionWeights() (int, int) {
 	currentWindow := self.windowHelper.CurrentWindow()
 
 	// we originally specified this as a ratio i.e. .20 would correspond to a weight of 1 against 4
@@ -174,12 +174,12 @@ func (self *WindowArranger) getMidSectionWeights() (int, int) {
 	return sideSectionWeight, mainSectionWeight
 }
 
-func (self *WindowArranger) infoSectionChildren(informationStr string, appStatus string) []*boxlayout.Box {
+func (self *WindowArrangementHelper) infoSectionChildren(informationStr string, appStatus string) []*boxlayout.Box {
 	if self.c.State().GetRepoState().IsSearching() {
 		return []*boxlayout.Box{
 			{
 				Window: "searchPrefix",
-				Size:   runewidth.StringWidth(SEARCH_PREFIX),
+				Size:   runewidth.StringWidth(constants.SEARCH_PREFIX),
 			},
 			{
 				Window: "search",
@@ -212,7 +212,7 @@ func (self *WindowArranger) infoSectionChildren(informationStr string, appStatus
 	return result
 }
 
-func (self *WindowArranger) splitMainPanelSideBySide() bool {
+func (self *WindowArrangementHelper) splitMainPanelSideBySide() bool {
 	if !self.c.State().GetRepoState().GetSplitMainPanel() {
 		return false
 	}
@@ -234,7 +234,7 @@ func (self *WindowArranger) splitMainPanelSideBySide() bool {
 	}
 }
 
-func (self *WindowArranger) getExtrasWindowSize(screenHeight int) int {
+func (self *WindowArrangementHelper) getExtrasWindowSize(screenHeight int) int {
 	if !self.c.State().GetShowExtrasWindow() {
 		return 0
 	}
@@ -256,7 +256,7 @@ func (self *WindowArranger) getExtrasWindowSize(screenHeight int) int {
 // too much space, but if you access it it should take up some space. This is
 // the default behaviour when accordion mode is NOT in effect. If it is in effect
 // then when it's accessed it will have weight 2, not 1.
-func (self *WindowArranger) getDefaultStashWindowBox() *boxlayout.Box {
+func (self *WindowArrangementHelper) getDefaultStashWindowBox() *boxlayout.Box {
 	stashWindowAccessed := false
 	self.c.Context().ForEach(func(context types.Context) {
 		if context.GetWindowName() == "stash" {
@@ -275,7 +275,7 @@ func (self *WindowArranger) getDefaultStashWindowBox() *boxlayout.Box {
 	return box
 }
 
-func (self *WindowArranger) sidePanelChildren(width int, height int) []*boxlayout.Box {
+func (self *WindowArrangementHelper) sidePanelChildren(width int, height int) []*boxlayout.Box {
 	currentWindow := self.c.CurrentSideContext().GetWindowName()
 
 	screenMode := self.c.State().GetRepoState().GetScreenMode()

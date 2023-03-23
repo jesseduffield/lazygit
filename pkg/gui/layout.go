@@ -7,8 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
-const SEARCH_PREFIX = "search: "
-
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
 	if !gui.ViewsSetup {

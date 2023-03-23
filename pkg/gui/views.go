@@ -3,6 +3,7 @@ package gui
 import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/constants"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -92,7 +93,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.SearchPrefix.BgColor = gocui.ColorDefault
 	gui.Views.SearchPrefix.FgColor = gocui.ColorGreen
 	gui.Views.SearchPrefix.Frame = false
-	gui.c.SetViewContent(gui.Views.SearchPrefix, SEARCH_PREFIX)
+	gui.c.SetViewContent(gui.Views.SearchPrefix, constants.SEARCH_PREFIX)
 
 	gui.Views.Stash.Title = gui.c.Tr.StashTitle
 
