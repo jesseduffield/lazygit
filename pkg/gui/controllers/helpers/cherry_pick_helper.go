@@ -1,8 +1,6 @@
 package helpers
 
 import (
-	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -16,7 +14,6 @@ type CherryPickHelper struct {
 	git *commands.GitCommand
 
 	contexts *context.ContextTree
-	getData  func() *cherrypicking.CherryPicking
 
 	rebaseHelper *MergeAndRebaseHelper
 }
@@ -28,16 +25,18 @@ func NewCherryPickHelper(
 	c *types.HelperCommon,
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
-	getData func() *cherrypicking.CherryPicking,
 	rebaseHelper *MergeAndRebaseHelper,
 ) *CherryPickHelper {
 	return &CherryPickHelper{
 		c:            c,
 		git:          git,
 		contexts:     contexts,
-		getData:      getData,
 		rebaseHelper: rebaseHelper,
 	}
+}
+
+func (self *CherryPickHelper) getData() *cherrypicking.CherryPicking {
+	return self.c.Modes().CherryPicking
 }
 
 func (self *CherryPickHelper) Copy(commit *models.Commit, commitsList []*models.Commit, context types.Context) error {
@@ -46,17 +45,12 @@ func (self *CherryPickHelper) Copy(commit *models.Commit, commitsList []*models.
 	}
 
 	// we will un-copy it if it's already copied
-	for index, cherryPickedCommit := range self.getData().CherryPickedCommits {
-		if commit.Sha == cherryPickedCommit.Sha {
-			self.getData().CherryPickedCommits = append(
-				self.getData().CherryPickedCommits[0:index],
-				self.getData().CherryPickedCommits[index+1:]...,
-			)
-			return self.rerender()
-		}
+	if self.getData().SelectedShaSet().Includes(commit.Sha) {
+		self.getData().Remove(commit, commitsList)
+	} else {
+		self.getData().Add(commit, commitsList)
 	}
 
-	self.add(commit, commitsList)
 	return self.rerender()
 }
 
@@ -65,7 +59,7 @@ func (self *CherryPickHelper) CopyRange(selectedIndex int, commitsList []*models
 		return err
 	}
 
-	commitSet := self.CherryPickedCommitShaSet()
+	commitSet := self.getData().SelectedShaSet()
 
 	// find the last commit that is copied that's above our position
 	// if there are none, startIndex = 0
@@ -78,7 +72,7 @@ func (self *CherryPickHelper) CopyRange(selectedIndex int, commitsList []*models
 
 	for index := startIndex; index <= selectedIndex; index++ {
 		commit := commitsList[index]
-		self.add(commit, commitsList)
+		self.getData().Add(commit, commitsList)
 	}
 
 	return self.rerender()
@@ -105,26 +99,6 @@ func (self *CherryPickHelper) Reset() error {
 	self.getData().CherryPickedCommits = nil
 
 	return self.rerender()
-}
-
-func (self *CherryPickHelper) CherryPickedCommitShaSet() *set.Set[string] {
-	shas := slices.Map(self.getData().CherryPickedCommits, func(commit *models.Commit) string {
-		return commit.Sha
-	})
-	return set.NewFromSlice(shas)
-}
-
-func (self *CherryPickHelper) add(selectedCommit *models.Commit, commitsList []*models.Commit) {
-	commitSet := self.CherryPickedCommitShaSet()
-	commitSet.Add(selectedCommit.Sha)
-
-	cherryPickedCommits := slices.Filter(commitsList, func(commit *models.Commit) bool {
-		return commitSet.Includes(commit.Sha)
-	})
-
-	self.getData().CherryPickedCommits = slices.Map(cherryPickedCommits, func(commit *models.Commit) *models.Commit {
-		return &models.Commit{Name: commit.Name, Sha: commit.Sha}
-	})
 }
 
 // you can only copy from one context at a time, because the order and position of commits matter

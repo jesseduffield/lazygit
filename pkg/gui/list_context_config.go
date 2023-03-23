@@ -42,16 +42,6 @@ func (gui *Gui) remoteBranchesListContext() *context.RemoteBranchesContext {
 	)
 }
 
-func (gui *Gui) withDiffModeCheck(f func() error) func() error {
-	return func() error {
-		if gui.State.Modes.Diffing.Active() {
-			return gui.helpers.Diff.RenderDiff()
-		}
-
-		return f()
-	}
-}
-
 func (gui *Gui) tagsListContext() *context.TagsContext {
 	return context.NewTagsContext(
 		func(startIdx int, length int) [][]string {
@@ -78,7 +68,7 @@ func (gui *Gui) branchCommitsListContext() *context.LocalCommitsContext {
 				gui.Common,
 				gui.State.Model.Commits,
 				gui.State.ScreenMode != types.SCREEN_NORMAL,
-				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
+				gui.c.Modes().CherryPicking.SelectedShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Gui.TimeFormat,
 				gui.c.UserConfig.Git.ParseEmoji,
@@ -108,7 +98,7 @@ func (gui *Gui) subCommitsListContext() *context.SubCommitsContext {
 				gui.Common,
 				gui.State.Model.SubCommits,
 				gui.State.ScreenMode != types.SCREEN_NORMAL,
-				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
+				gui.c.Modes().CherryPicking.SelectedShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Gui.TimeFormat,
 				gui.c.UserConfig.Git.ParseEmoji,
@@ -149,7 +139,7 @@ func (gui *Gui) reflogCommitsListContext() *context.ReflogCommitsContext {
 			return presentation.GetReflogCommitListDisplayStrings(
 				gui.State.Model.FilteredReflogCommits,
 				gui.State.ScreenMode != types.SCREEN_NORMAL,
-				gui.helpers.CherryPick.CherryPickedCommitShaSet(),
+				gui.c.Modes().CherryPicking.SelectedShaSet(),
 				gui.State.Modes.Diffing.Ref,
 				gui.c.UserConfig.Gui.TimeFormat,
 				gui.c.UserConfig.Git.ParseEmoji,

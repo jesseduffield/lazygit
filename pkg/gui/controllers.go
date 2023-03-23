@@ -7,7 +7,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -53,7 +52,6 @@ func (gui *Gui) resetControllers() {
 			helperCommon,
 			gui.git,
 			gui.State.Contexts,
-			func() *cherrypicking.CherryPicking { return gui.State.Modes.CherryPicking },
 			rebaseHelper,
 		),
 		Upstream:        helpers.NewUpstreamHelper(helperCommon, model, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
