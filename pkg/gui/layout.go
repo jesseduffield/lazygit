@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
@@ -95,7 +96,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	gui.Views.Tooltip.Visible = gui.Views.Menu.Visible && gui.Views.Tooltip.Buffer() != ""
 
-	for _, context := range gui.TransientContexts() {
+	for _, context := range gui.transientContexts() {
 		view, err := gui.g.View(context.GetViewName())
 		if err != nil && !gocui.IsUnknownView(err) {
 			return err
@@ -188,6 +189,16 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 	return gui.loadNewRepo()
 }
 
+func (gui *Gui) popupViewNames() []string {
+	popups := slices.Filter(gui.State.Contexts.Flatten(), func(c types.Context) bool {
+		return c.GetKind() == types.PERSISTENT_POPUP || c.GetKind() == types.TEMPORARY_POPUP
+	})
+
+	return slices.Map(popups, func(c types.Context) string {
+		return c.GetViewName()
+	})
+}
+
 func (gui *Gui) onInitialViewsCreation() error {
 	// now we order the views (in order of bottom first)
 	for _, view := range gui.orderedViews() {
@@ -265,4 +276,10 @@ func (gui *Gui) onViewFocusLost(oldView *gocui.View) error {
 	_ = oldView.SetOriginX(0)
 
 	return nil
+}
+
+func (gui *Gui) transientContexts() []types.Context {
+	return slices.Filter(gui.State.Contexts.Flatten(), func(context types.Context) bool {
+		return context.IsTransient()
+	})
 }

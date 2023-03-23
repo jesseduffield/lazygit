@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -22,26 +21,10 @@ func OnFocusWrapper(f func() error) func(opts types.OnFocusOpts) error {
 	}
 }
 
-func (gui *Gui) popupViewNames() []string {
-	popups := slices.Filter(gui.State.Contexts.Flatten(), func(c types.Context) bool {
-		return c.GetKind() == types.PERSISTENT_POPUP || c.GetKind() == types.TEMPORARY_POPUP
-	})
-
-	return slices.Map(popups, func(c types.Context) string {
-		return c.GetViewName()
-	})
-}
-
 func (gui *Gui) defaultSideContext() types.Context {
 	if gui.State.Modes.Filtering.Active() {
 		return gui.State.Contexts.LocalCommits
 	} else {
 		return gui.State.Contexts.Files
 	}
-}
-
-func (gui *Gui) TransientContexts() []types.Context {
-	return slices.Filter(gui.State.Contexts.Flatten(), func(context types.Context) bool {
-		return context.IsTransient()
-	})
 }
