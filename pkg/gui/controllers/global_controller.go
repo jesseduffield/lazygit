@@ -68,6 +68,13 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Description: self.c.Tr.LcOpenMenu,
 			Handler:     self.createOptionsMenu,
 		},
+		{
+			ViewName:    "",
+			Key:         opts.GetKey(opts.Config.Universal.FilteringMenu),
+			Handler:     self.createFilteringMenu,
+			Description: self.c.Tr.LcOpenFilteringMenu,
+			OpensMenu:   true,
+		},
 	}
 }
 
@@ -97,4 +104,8 @@ func (self *GlobalController) prevScreenMode() error {
 
 func (self *GlobalController) createOptionsMenu() error {
 	return (&OptionsMenuAction{c: self.c}).Call()
+}
+
+func (self *GlobalController) createFilteringMenu() error {
+	return (&FilteringMenuAction{c: self.c}).Call()
 }

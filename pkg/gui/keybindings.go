@@ -190,13 +190,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.FilteringMenu),
-			Handler:     self.handleCreateFilteringMenuPanel,
-			Description: self.c.Tr.LcOpenFilteringMenu,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.DiffingMenu),
 			Handler:     self.handleCreateDiffingMenuPanel,
 			Description: self.c.Tr.LcOpenDiffingMenu,
