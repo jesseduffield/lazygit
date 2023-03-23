@@ -347,8 +347,8 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 			Diffing:       diffing.New(),
 		},
 		ScreenMode: initialScreenMode,
-		// TODO: put contexts in the context manager
-		ContextMgr:        NewContextMgr(initialContext, gui),
+		// TODO: only use contexts from context manager
+		ContextMgr:        NewContextMgr(initialContext, gui, contextTree),
 		Contexts:          contextTree,
 		WindowViewNameMap: initialWindowViewNameMap(contextTree),
 	}

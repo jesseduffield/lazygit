@@ -135,19 +135,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:  self.scrollDownMain,
 		},
 		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.CreateRebaseOptionsMenu),
-			Handler:     self.helpers.MergeAndRebase.CreateRebaseOptionsMenu,
-			Description: self.c.Tr.ViewMergeRebaseOptions,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.Refresh),
-			Handler:     self.handleRefresh,
-			Description: self.c.Tr.LcRefresh,
-		},
-		{
 			ViewName:  "",
 			Key:       opts.GetKey(opts.Config.Universal.OptionMenu),
 			Handler:   self.handleCreateOptionsMenu,
@@ -162,19 +149,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Description: self.c.Tr.LcOpenMenu,
 			Handler:     self.handleCreateOptionsMenu,
 		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.NextScreenMode),
-			Handler:     self.nextScreenMode,
-			Description: self.c.Tr.LcNextScreenMode,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.PrevScreenMode),
-			Handler:     self.prevScreenMode,
-			Description: self.c.Tr.LcPrevScreenMode,
-		},
-
 		{
 			ViewName:    "files",
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),

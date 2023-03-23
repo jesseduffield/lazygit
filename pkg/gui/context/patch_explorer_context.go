@@ -45,6 +45,8 @@ func NewPatchExplorerContext(
 	}
 }
 
+func (self *PatchExplorerContext) IsPatchExplorerContext() {}
+
 func (self *PatchExplorerContext) GetState() *patch_exploring.State {
 	return self.state
 }

@@ -15,6 +15,8 @@ type ListContextTrait struct {
 	getDisplayStrings func(startIdx int, length int) [][]string
 }
 
+func (self *ListContextTrait) IsListContext() {}
+
 func (self *ListContextTrait) GetList() types.IList {
 	return self.list
 }

@@ -314,7 +314,7 @@ func (gui *Gui) resetControllers() {
 
 	// this must come last so that we've got our click handlers defined against the context
 	listControllerFactory := controllers.NewListControllerFactory(common)
-	for _, context := range gui.getListContexts() {
+	for _, context := range gui.c.Context().AllList() {
 		controllers.AttachControllers(context, listControllerFactory.Create(context))
 	}
 }

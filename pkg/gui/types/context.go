@@ -106,6 +106,7 @@ type IListContext interface {
 
 	OnSearchSelect(selectedLineIdx int) error
 	FocusLine()
+	IsListContext() // used for type switch
 }
 
 type IPatchExplorerContext interface {
@@ -120,6 +121,7 @@ type IPatchExplorerContext interface {
 	GetContentToRender(isFocused bool) string
 	NavigateTo(isFocused bool, selectedLineIdx int) error
 	GetMutex() *deadlock.Mutex
+	IsPatchExplorerContext() // used for type switch
 }
 
 type IViewTrait interface {
@@ -208,4 +210,6 @@ type IContextMgr interface {
 	CurrentSide() Context
 	IsCurrent(c Context) bool
 	ForEach(func(Context))
+	AllList() []IListContext
+	AllPatchExplorer() []IPatchExplorerContext
 }

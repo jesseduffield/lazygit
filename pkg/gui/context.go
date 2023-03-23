@@ -18,13 +18,20 @@ type ContextMgr struct {
 	ContextStack []types.Context
 	sync.RWMutex
 	gui *Gui
+
+	allContexts *context.ContextTree
 }
 
-func NewContextMgr(initialContext types.Context, gui *Gui) *ContextMgr {
+func NewContextMgr(
+	initialContext types.Context,
+	gui *Gui,
+	allContexts *context.ContextTree,
+) *ContextMgr {
 	return &ContextMgr{
 		ContextStack: []types.Context{initialContext},
 		RWMutex:      sync.RWMutex{},
 		gui:          gui,
+		allContexts:  allContexts,
 	}
 }
 
@@ -285,4 +292,29 @@ func (self *ContextMgr) ForEach(f func(types.Context)) {
 
 func (self *ContextMgr) IsCurrent(c types.Context) bool {
 	return self.Current().GetKey() == c.GetKey()
+}
+
+// all list contexts
+func (self *ContextMgr) AllList() []types.IListContext {
+	var listContexts []types.IListContext
+
+	for _, context := range self.allContexts.Flatten() {
+		if listContext, ok := context.(types.IListContext); ok {
+			listContexts = append(listContexts, listContext)
+		}
+	}
+
+	return listContexts
+}
+
+func (self *ContextMgr) AllPatchExplorer() []types.IPatchExplorerContext {
+	var listContexts []types.IPatchExplorerContext
+
+	for _, context := range self.allContexts.Flatten() {
+		if listContext, ok := context.(types.IPatchExplorerContext); ok {
+			listContexts = append(listContexts, listContext)
+		}
+	}
+
+	return listContexts
 }

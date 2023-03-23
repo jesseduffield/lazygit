@@ -11,55 +11,6 @@ import (
 
 const HORIZONTAL_SCROLL_FACTOR = 3
 
-// these views need to be re-rendered when the screen mode changes. The commits view,
-// for example, will show authorship information in half and full screen mode.
-func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
-	// for now we re-render all list views.
-	for _, context := range gui.getListContexts() {
-		if err := gui.rerenderView(context.GetView()); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func nextIntInCycle(sl []types.WindowMaximisation, current types.WindowMaximisation) types.WindowMaximisation {
-	for i, val := range sl {
-		if val == current {
-			if i == len(sl)-1 {
-				return sl[0]
-			}
-			return sl[i+1]
-		}
-	}
-	return sl[0]
-}
-
-func prevIntInCycle(sl []types.WindowMaximisation, current types.WindowMaximisation) types.WindowMaximisation {
-	for i, val := range sl {
-		if val == current {
-			if i > 0 {
-				return sl[i-1]
-			}
-			return sl[len(sl)-1]
-		}
-	}
-	return sl[len(sl)-1]
-}
-
-func (gui *Gui) nextScreenMode() error {
-	gui.State.ScreenMode = nextIntInCycle([]types.WindowMaximisation{types.SCREEN_NORMAL, types.SCREEN_HALF, types.SCREEN_FULL}, gui.State.ScreenMode)
-
-	return gui.rerenderViewsWithScreenModeDependentContent()
-}
-
-func (gui *Gui) prevScreenMode() error {
-	gui.State.ScreenMode = prevIntInCycle([]types.WindowMaximisation{types.SCREEN_NORMAL, types.SCREEN_HALF, types.SCREEN_FULL}, gui.State.ScreenMode)
-
-	return gui.rerenderViewsWithScreenModeDependentContent()
-}
-
 func (gui *Gui) scrollUpView(view *gocui.View) {
 	view.ScrollUp(gui.c.UserConfig.Gui.ScrollHeight)
 }
@@ -157,10 +108,6 @@ func (gui *Gui) scrollDownConfirmationPanel() error {
 	return nil
 }
 
-func (gui *Gui) handleRefresh() error {
-	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-}
-
 func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	// important to note that this assumes we've selected an item in a side context
 	currentSideContext := gui.c.CurrentSideContext()
@@ -189,14 +136,4 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	gui.c.Toast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.c.Tr.LcCopiedToClipboard))
 
 	return nil
-}
-
-func (gui *Gui) rerenderView(view *gocui.View) error {
-	context, ok := gui.helpers.View.ContextForView(view.Name())
-	if !ok {
-		gui.Log.Errorf("no context found for view %s", view.Name())
-		return nil
-	}
-
-	return context.HandleRender()
 }

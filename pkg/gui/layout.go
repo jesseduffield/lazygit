@@ -124,7 +124,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		gui.State.ViewsSetup = true
 	}
 
-	for _, listContext := range gui.getListContexts() {
+	for _, listContext := range gui.c.Context().AllList() {
 		view, err := gui.g.View(listContext.GetViewName())
 		if err != nil {
 			continue
@@ -138,7 +138,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		view.SetOnSelectItem(gui.onSelectItemWrapper(listContext.OnSearchSelect))
 	}
 
-	for _, context := range gui.getPatchExplorerContexts() {
+	for _, context := range gui.c.Context().AllPatchExplorer() {
 		context := context
 		context.GetView().SetOnSelectItem(gui.onSelectItemWrapper(
 			func(selectedLineIdx int) error {

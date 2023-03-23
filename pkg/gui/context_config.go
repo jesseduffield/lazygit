@@ -45,29 +45,3 @@ func (gui *Gui) TransientContexts() []types.Context {
 		return context.IsTransient()
 	})
 }
-
-func (gui *Gui) getListContexts() []types.IListContext {
-	return []types.IListContext{
-		gui.State.Contexts.Menu,
-		gui.State.Contexts.Files,
-		gui.State.Contexts.Branches,
-		gui.State.Contexts.Remotes,
-		gui.State.Contexts.RemoteBranches,
-		gui.State.Contexts.Tags,
-		gui.State.Contexts.LocalCommits,
-		gui.State.Contexts.ReflogCommits,
-		gui.State.Contexts.SubCommits,
-		gui.State.Contexts.Stash,
-		gui.State.Contexts.CommitFiles,
-		gui.State.Contexts.Submodules,
-		gui.State.Contexts.Suggestions,
-	}
-}
-
-func (gui *Gui) getPatchExplorerContexts() []types.IPatchExplorerContext {
-	return []types.IPatchExplorerContext{
-		gui.State.Contexts.Staging,
-		gui.State.Contexts.StagingSecondary,
-		gui.State.Contexts.CustomPatchBuilder,
-	}
-}
