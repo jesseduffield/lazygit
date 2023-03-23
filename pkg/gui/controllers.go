@@ -15,55 +15,49 @@ func (gui *Gui) resetControllers() {
 	helperCommon := gui.c
 	osCommand := gui.os
 	model := gui.State.Model
-	refsHelper := helpers.NewRefsHelper(
-		helperCommon,
-		gui.git,
-		gui.State.Contexts,
-		model,
-	)
+	refsHelper := helpers.NewRefsHelper(helperCommon)
 
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
-	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.State.Contexts)
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, refsHelper)
+	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon)
 	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	getSavedCommitMessage := func() string {
 		return gui.State.savedCommitMessage
 	}
-	gpgHelper := helpers.NewGpgHelper(helperCommon, gui.os, gui.git)
+	gpgHelper := helpers.NewGpgHelper(helperCommon)
 	viewHelper := helpers.NewViewHelper(helperCommon, gui.State.Contexts)
 	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
-	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon, gui.git, gui.State.Contexts)
-	stagingHelper := helpers.NewStagingHelper(helperCommon, gui.git, gui.State.Contexts)
-	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon, gui.State.Contexts, gui.git)
-	refreshHelper := helpers.NewRefreshHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper, rebaseHelper, patchBuildingHelper, stagingHelper, mergeConflictsHelper, gui.fileWatcher)
+	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
+	stagingHelper := helpers.NewStagingHelper(helperCommon)
+	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
+	refreshHelper := helpers.NewRefreshHelper(helperCommon, refsHelper, rebaseHelper, patchBuildingHelper, stagingHelper, mergeConflictsHelper, gui.fileWatcher)
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
-		Host:           helpers.NewHostHelper(helperCommon, gui.git),
+		Host:           helpers.NewHostHelper(helperCommon),
 		PatchBuilding:  patchBuildingHelper,
 		Staging:        stagingHelper,
 		Bisect:         helpers.NewBisectHelper(helperCommon),
 		Suggestions:    suggestionsHelper,
-		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
-		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, gui.State.Contexts, refsHelper, model, setCommitMessage, getSavedCommitMessage),
-		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
+		Files:          helpers.NewFilesHelper(helperCommon),
+		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, refsHelper, setCommitMessage, getSavedCommitMessage),
+		Tags:           helpers.NewTagsHelper(helperCommon),
 		GPG:            gpgHelper,
 		MergeAndRebase: rebaseHelper,
 		MergeConflicts: mergeConflictsHelper,
 		CherryPick: helpers.NewCherryPickHelper(
 			helperCommon,
-			gui.State.Contexts,
 			rebaseHelper,
 		),
-		Upstream:        helpers.NewUpstreamHelper(helperCommon, model, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
-		AmendHelper:     helpers.NewAmendHelper(helperCommon, gui.git, gpgHelper),
+		Upstream:        helpers.NewUpstreamHelper(helperCommon, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
+		AmendHelper:     helpers.NewAmendHelper(helperCommon, gpgHelper),
 		Snake:           helpers.NewSnakeHelper(helperCommon),
 		Diff:            helpers.NewDiffHelper(helperCommon),
 		Repos:           helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo),
 		RecordDirectory: recordDirectoryHelper,
 		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater),
-		Window:          helpers.NewWindowHelper(helperCommon, viewHelper, gui.State.Contexts),
+		Window:          helpers.NewWindowHelper(helperCommon, viewHelper),
 		View:            viewHelper,
 		Refresh:         refreshHelper,
-		Confirmation:    helpers.NewConfirmationHelper(helperCommon, gui.State.Contexts),
+		Confirmation:    helpers.NewConfirmationHelper(helperCommon),
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(

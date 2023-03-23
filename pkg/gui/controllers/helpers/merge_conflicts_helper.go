@@ -1,26 +1,19 @@
 package helpers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type MergeConflictsHelper struct {
-	c        *HelperCommon
-	contexts *context.ContextTree
-	git      *commands.GitCommand
+	c *HelperCommon
 }
 
 func NewMergeConflictsHelper(
 	c *HelperCommon,
-	contexts *context.ContextTree,
-	git *commands.GitCommand,
 ) *MergeConflictsHelper {
 	return &MergeConflictsHelper{
-		c:        c,
-		contexts: contexts,
-		git:      git,
+		c: c,
 	}
 }
 
@@ -32,7 +25,7 @@ func (self *MergeConflictsHelper) SetMergeState(path string) (bool, error) {
 }
 
 func (self *MergeConflictsHelper) setMergeStateWithoutLock(path string) (bool, error) {
-	content, err := self.git.File.Cat(path)
+	content, err := self.c.Git().File.Cat(path)
 	if err != nil {
 		return false, err
 	}
@@ -63,7 +56,7 @@ func (self *MergeConflictsHelper) EscapeMerge() error {
 
 	// doing this in separate UI thread so that we're not still holding the lock by the time refresh the file
 	self.c.OnUIThread(func() error {
-		return self.c.PushContext(self.contexts.Files)
+		return self.c.PushContext(self.c.Contexts().Files)
 	})
 	return nil
 }
@@ -92,11 +85,11 @@ func (self *MergeConflictsHelper) SwitchToMerge(path string) error {
 		}
 	}
 
-	return self.c.PushContext(self.contexts.MergeConflicts)
+	return self.c.PushContext(self.c.Contexts().MergeConflicts)
 }
 
 func (self *MergeConflictsHelper) context() *context.MergeConflictsContext {
-	return self.contexts.MergeConflicts
+	return self.c.Contexts().MergeConflicts
 }
 
 func (self *MergeConflictsHelper) Render(isFocused bool) error {
@@ -119,14 +112,14 @@ func (self *MergeConflictsHelper) Render(isFocused bool) error {
 }
 
 func (self *MergeConflictsHelper) RefreshMergeState() error {
-	self.contexts.MergeConflicts.GetMutex().Lock()
-	defer self.contexts.MergeConflicts.GetMutex().Unlock()
+	self.c.Contexts().MergeConflicts.GetMutex().Lock()
+	defer self.c.Contexts().MergeConflicts.GetMutex().Unlock()
 
 	if self.c.CurrentContext().GetKey() != context.MERGE_CONFLICTS_CONTEXT_KEY {
 		return nil
 	}
 
-	hasConflicts, err := self.SetConflictsAndRender(self.contexts.MergeConflicts.GetState().GetPath(), true)
+	hasConflicts, err := self.SetConflictsAndRender(self.c.Contexts().MergeConflicts.GetState().GetPath(), true)
 	if err != nil {
 		return self.c.Error(err)
 	}

@@ -1,28 +1,20 @@
 package helpers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type StagingHelper struct {
-	c        *HelperCommon
-	git      *commands.GitCommand
-	contexts *context.ContextTree
+	c *HelperCommon
 }
 
 func NewStagingHelper(
 	c *HelperCommon,
-	git *commands.GitCommand,
-	contexts *context.ContextTree,
 ) *StagingHelper {
 	return &StagingHelper{
-		c:        c,
-		git:      git,
-		contexts: contexts,
+		c: c,
 	}
 }
 
@@ -40,11 +32,11 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 		}
 	}
 
-	mainContext := self.contexts.Staging
-	secondaryContext := self.contexts.StagingSecondary
+	mainContext := self.c.Contexts().Staging
+	secondaryContext := self.c.Contexts().StagingSecondary
 
 	var file *models.File
-	node := self.contexts.Files.GetSelected()
+	node := self.c.Contexts().Files.GetSelected()
 	if node != nil {
 		file = node.File
 	}
@@ -53,8 +45,8 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 		return self.handleStagingEscape()
 	}
 
-	mainDiff := self.git.WorkingTree.WorktreeFileDiff(file, true, false, false)
-	secondaryDiff := self.git.WorkingTree.WorktreeFileDiff(file, true, true, false)
+	mainDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, true, false, false)
+	secondaryDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, true, true, false)
 
 	// grabbing locks here and releasing before we finish the function
 	// because pushing say the secondary context could mean entering this function
@@ -92,9 +84,9 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 	}
 
 	if secondaryFocused {
-		self.contexts.StagingSecondary.FocusSelection()
+		self.c.Contexts().StagingSecondary.FocusSelection()
 	} else {
-		self.contexts.Staging.FocusSelection()
+		self.c.Contexts().Staging.FocusSelection()
 	}
 
 	return self.c.RenderToMainViews(types.RefreshMainOpts{
@@ -111,9 +103,9 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 }
 
 func (self *StagingHelper) handleStagingEscape() error {
-	return self.c.PushContext(self.contexts.Files)
+	return self.c.PushContext(self.c.Contexts().Files)
 }
 
 func (self *StagingHelper) secondaryStagingFocused() bool {
-	return self.c.CurrentStaticContext().GetKey() == self.contexts.StagingSecondary.GetKey()
+	return self.c.CurrentStaticContext().GetKey() == self.c.Contexts().StagingSecondary.GetKey()
 }

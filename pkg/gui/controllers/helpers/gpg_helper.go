@@ -3,26 +3,17 @@ package helpers
 import (
 	"fmt"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type GpgHelper struct {
-	c   *HelperCommon
-	os  *oscommands.OSCommand
-	git *commands.GitCommand
+	c *HelperCommon
 }
 
-func NewGpgHelper(
-	c *HelperCommon,
-	os *oscommands.OSCommand,
-	git *commands.GitCommand,
-) *GpgHelper {
+func NewGpgHelper(c *HelperCommon) *GpgHelper {
 	return &GpgHelper{
-		c:   c,
-		os:  os,
-		git: git,
+		c: c,
 	}
 }
 
@@ -32,9 +23,9 @@ func NewGpgHelper(
 // we don't need to see a loading status if we're in a subprocess.
 // TODO: we shouldn't need to use a shell here, but looks like that NewShell function contains some windows specific quoting stuff. We should centralise that.
 func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
-	useSubprocess := self.git.Config.UsingGpg()
+	useSubprocess := self.c.Git().Config.UsingGpg()
 	if useSubprocess {
-		success, err := self.c.RunSubprocess(self.os.Cmd.NewShell(cmdObj.ToString()))
+		success, err := self.c.RunSubprocess(self.c.OS().Cmd.NewShell(cmdObj.ToString()))
 		if success && onSuccess != nil {
 			if err := onSuccess(); err != nil {
 				return err
@@ -51,7 +42,7 @@ func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus 
 }
 
 func (self *GpgHelper) runAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
-	cmdObj = self.os.Cmd.NewShell(cmdObj.ToString())
+	cmdObj = self.c.OS().Cmd.NewShell(cmdObj.ToString())
 
 	return self.c.WithWaitingStatus(waitingStatus, func() error {
 		if err := cmdObj.StreamOutput().Run(); err != nil {

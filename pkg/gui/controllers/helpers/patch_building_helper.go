@@ -1,9 +1,7 @@
 package helpers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -13,25 +11,19 @@ type IPatchBuildingHelper interface {
 }
 
 type PatchBuildingHelper struct {
-	c        *HelperCommon
-	git      *commands.GitCommand
-	contexts *context.ContextTree
+	c *HelperCommon
 }
 
 func NewPatchBuildingHelper(
 	c *HelperCommon,
-	git *commands.GitCommand,
-	contexts *context.ContextTree,
 ) *PatchBuildingHelper {
 	return &PatchBuildingHelper{
-		c:        c,
-		git:      git,
-		contexts: contexts,
+		c: c,
 	}
 }
 
 func (self *PatchBuildingHelper) ValidateNormalWorkingTreeState() (bool, error) {
-	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
 		return false, self.c.ErrorMsg(self.c.Tr.CantPatchWhileRebasingError)
 	}
 	return true, nil
@@ -44,7 +36,7 @@ func (self *PatchBuildingHelper) Escape() error {
 
 // kills the custom patch and returns us back to the commit files panel if needed
 func (self *PatchBuildingHelper) Reset() error {
-	self.git.Patch.PatchBuilder.Reset()
+	self.c.Git().Patch.PatchBuilder.Reset()
 
 	if self.c.CurrentStaticContext().GetKind() != types.SIDE_CONTEXT {
 		if err := self.Escape(); err != nil {
@@ -68,30 +60,30 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 		selectedLineIdx = opts.ClickedViewLineIdx
 	}
 
-	if !self.git.Patch.PatchBuilder.Active() {
+	if !self.c.Git().Patch.PatchBuilder.Active() {
 		return self.Escape()
 	}
 
 	// get diff from commit file that's currently selected
-	path := self.contexts.CommitFiles.GetSelectedPath()
+	path := self.c.Contexts().CommitFiles.GetSelectedPath()
 	if path == "" {
 		return nil
 	}
 
-	ref := self.contexts.CommitFiles.CommitFileTreeViewModel.GetRef()
+	ref := self.c.Contexts().CommitFiles.CommitFileTreeViewModel.GetRef()
 	to := ref.RefName()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
-	diff, err := self.git.WorkingTree.ShowFileDiff(from, to, reverse, path, true, self.c.State().GetIgnoreWhitespaceInDiffView())
+	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, path, true, self.c.State().GetIgnoreWhitespaceInDiffView())
 	if err != nil {
 		return err
 	}
 
-	secondaryDiff := self.git.Patch.PatchBuilder.RenderPatchForFile(path, false, false)
+	secondaryDiff := self.c.Git().Patch.PatchBuilder.RenderPatchForFile(path, false, false)
 	if err != nil {
 		return err
 	}
 
-	context := self.contexts.CustomPatchBuilder
+	context := self.c.Contexts().CustomPatchBuilder
 
 	oldState := context.GetState()
 
@@ -103,7 +95,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 
 	mainContent := context.GetContentToRender(true)
 
-	self.contexts.CustomPatchBuilder.FocusSelection()
+	self.c.Contexts().CustomPatchBuilder.FocusSelection()
 
 	return self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().PatchBuilding,

@@ -6,7 +6,6 @@ import (
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -35,27 +34,20 @@ type ISuggestionsHelper interface {
 
 type SuggestionsHelper struct {
 	c *HelperCommon
-
-	model    *types.Model
-	contexts *context.ContextTree
 }
 
 var _ ISuggestionsHelper = &SuggestionsHelper{}
 
 func NewSuggestionsHelper(
 	c *HelperCommon,
-	model *types.Model,
-	contexts *context.ContextTree,
 ) *SuggestionsHelper {
 	return &SuggestionsHelper{
-		c:        c,
-		model:    model,
-		contexts: contexts,
+		c: c,
 	}
 }
 
 func (self *SuggestionsHelper) getRemoteNames() []string {
-	return slices.Map(self.model.Remotes, func(remote *models.Remote) string {
+	return slices.Map(self.c.Model().Remotes, func(remote *models.Remote) string {
 		return remote.Name
 	})
 }
@@ -76,7 +68,7 @@ func (self *SuggestionsHelper) GetRemoteSuggestionsFunc() func(string) []*types.
 }
 
 func (self *SuggestionsHelper) getBranchNames() []string {
-	return slices.Map(self.model.Branches, func(branch *models.Branch) string {
+	return slices.Map(self.c.Model().Branches, func(branch *models.Branch) string {
 		return branch.Name
 	})
 }
@@ -102,8 +94,8 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 }
 
 // here we asynchronously fetch the latest set of paths in the repo and store in
-// self.model.FilesTrie. On the main thread we'll be doing a fuzzy search via
-// self.model.FilesTrie. So if we've looked for a file previously, we'll start with
+// self.c.Model().FilesTrie. On the main thread we'll be doing a fuzzy search via
+// self.c.Model().FilesTrie. So if we've looked for a file previously, we'll start with
 // the old trie and eventually it'll be swapped out for the new one.
 // Notably, unlike other suggestion functions we're not showing all the options
 // if nothing has been typed because there'll be too much to display efficiently
@@ -126,16 +118,16 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 			})
 
 		// cache the trie for future use
-		self.model.FilesTrie = trie
+		self.c.Model().FilesTrie = trie
 
-		self.contexts.Suggestions.RefreshSuggestions()
+		self.c.Contexts().Suggestions.RefreshSuggestions()
 
 		return err
 	})
 
 	return func(input string) []*types.Suggestion {
 		matchingNames := []string{}
-		_ = self.model.FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
+		_ = self.c.Model().FilesTrie.VisitFuzzy(patricia.Prefix(input), true, func(prefix patricia.Prefix, item patricia.Item, skipped int) error {
 			matchingNames = append(matchingNames, item.(string))
 			return nil
 		})
@@ -148,7 +140,7 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 }
 
 func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
-	return slices.FlatMap(self.model.Remotes, func(remote *models.Remote) []string {
+	return slices.FlatMap(self.c.Model().Remotes, func(remote *models.Remote) []string {
 		return slices.Map(remote.Branches, func(branch *models.RemoteBranch) string {
 			return fmt.Sprintf("%s%s%s", remote.Name, separator, branch.Name)
 		})
@@ -160,7 +152,7 @@ func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string
 }
 
 func (self *SuggestionsHelper) getTagNames() []string {
-	return slices.Map(self.model.Tags, func(tag *models.Tag) string {
+	return slices.Map(self.c.Model().Tags, func(tag *models.Tag) string {
 		return tag.Name
 	})
 }
@@ -177,7 +169,7 @@ func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Su
 }
 
 func (self *SuggestionsHelper) GetAuthorsSuggestionsFunc() func(string) []*types.Suggestion {
-	authors := lo.Uniq(slices.Map(self.model.Commits, func(commit *models.Commit) string {
+	authors := lo.Uniq(slices.Map(self.c.Model().Commits, func(commit *models.Commit) string {
 		return fmt.Sprintf("%s <%s>", commit.AuthorName, commit.AuthorEmail)
 	}))
 

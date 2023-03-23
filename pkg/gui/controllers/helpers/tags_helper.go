@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -10,14 +9,12 @@ import (
 // and the commits context.
 
 type TagsHelper struct {
-	c   *HelperCommon
-	git *commands.GitCommand
+	c *HelperCommon
 }
 
-func NewTagsHelper(c *HelperCommon, git *commands.GitCommand) *TagsHelper {
+func NewTagsHelper(c *HelperCommon) *TagsHelper {
 	return &TagsHelper{
-		c:   c,
-		git: git,
+		c: c,
 	}
 }
 
@@ -56,7 +53,7 @@ func (self *TagsHelper) handleCreateAnnotatedTag(ref string, onCreate func()) er
 				Title: self.c.Tr.TagMessageTitle,
 				HandleConfirm: func(msg string) error {
 					self.c.LogAction(self.c.Tr.Actions.CreateAnnotatedTag)
-					if err := self.git.Tag.CreateAnnotated(tagName, ref, msg); err != nil {
+					if err := self.c.Git().Tag.CreateAnnotated(tagName, ref, msg); err != nil {
 						return self.c.Error(err)
 					}
 					return self.afterTagCreate(onCreate)
@@ -71,7 +68,7 @@ func (self *TagsHelper) handleCreateLightweightTag(ref string, onCreate func()) 
 		Title: self.c.Tr.TagNameTitle,
 		HandleConfirm: func(tagName string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateLightweightTag)
-			if err := self.git.Tag.CreateLightweight(tagName, ref); err != nil {
+			if err := self.c.Git().Tag.CreateLightweight(tagName, ref); err != nil {
 				return self.c.Error(err)
 			}
 			return self.afterTagCreate(onCreate)

@@ -5,10 +5,8 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/slices"
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -23,23 +21,14 @@ type IRefsHelper interface {
 }
 
 type RefsHelper struct {
-	c        *HelperCommon
-	git      *commands.GitCommand
-	contexts *context.ContextTree
-	model    *types.Model
+	c *HelperCommon
 }
 
 func NewRefsHelper(
 	c *HelperCommon,
-	git *commands.GitCommand,
-	contexts *context.ContextTree,
-	model *types.Model,
 ) *RefsHelper {
 	return &RefsHelper{
-		c:        c,
-		git:      git,
-		contexts: contexts,
-		model:    model,
+		c: c,
 	}
 }
 
@@ -54,15 +43,15 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 	cmdOptions := git_commands.CheckoutOptions{Force: false, EnvVars: options.EnvVars}
 
 	onSuccess := func() {
-		self.contexts.Branches.SetSelectedLineIdx(0)
-		self.contexts.ReflogCommits.SetSelectedLineIdx(0)
-		self.contexts.LocalCommits.SetSelectedLineIdx(0)
+		self.c.Contexts().Branches.SetSelectedLineIdx(0)
+		self.c.Contexts().ReflogCommits.SetSelectedLineIdx(0)
+		self.c.Contexts().LocalCommits.SetSelectedLineIdx(0)
 		// loading a heap of commits is slow so we limit them whenever doing a reset
-		self.contexts.LocalCommits.SetLimitCommits(true)
+		self.c.Contexts().LocalCommits.SetLimitCommits(true)
 	}
 
 	return self.c.WithWaitingStatus(waitingStatus, func() error {
-		if err := self.git.Branch.Checkout(ref, cmdOptions); err != nil {
+		if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
 			// note, this will only work for english-language git commands. If we force git to use english, and the error isn't this one, then the user will receive an english command they may not understand. I'm not sure what the best solution to this is. Running the command once in english and a second time in the native language is one option
 
 			if options.OnRefNotFound != nil && strings.Contains(err.Error(), "did not match any file(s) known to git") {
@@ -75,15 +64,15 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 					Title:  self.c.Tr.AutoStashTitle,
 					Prompt: self.c.Tr.AutoStashPrompt,
 					HandleConfirm: func() error {
-						if err := self.git.Stash.Save(self.c.Tr.StashPrefix + ref); err != nil {
+						if err := self.c.Git().Stash.Save(self.c.Tr.StashPrefix + ref); err != nil {
 							return self.c.Error(err)
 						}
-						if err := self.git.Branch.Checkout(ref, cmdOptions); err != nil {
+						if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {
 							return self.c.Error(err)
 						}
 
 						onSuccess()
-						if err := self.git.Stash.Pop(0); err != nil {
+						if err := self.c.Git().Stash.Pop(0); err != nil {
 							if err := self.c.Refresh(types.RefreshOptions{Mode: types.BLOCK_UI}); err != nil {
 								return err
 							}
@@ -105,22 +94,22 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 }
 
 func (self *RefsHelper) GetCheckedOutRef() *models.Branch {
-	if len(self.model.Branches) == 0 {
+	if len(self.c.Model().Branches) == 0 {
 		return nil
 	}
 
-	return self.model.Branches[0]
+	return self.c.Model().Branches[0]
 }
 
 func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string) error {
-	if err := self.git.Commit.ResetToCommit(ref, strength, envVars); err != nil {
+	if err := self.c.Git().Commit.ResetToCommit(ref, strength, envVars); err != nil {
 		return self.c.Error(err)
 	}
 
-	self.contexts.LocalCommits.SetSelectedLineIdx(0)
-	self.contexts.ReflogCommits.SetSelectedLineIdx(0)
+	self.c.Contexts().LocalCommits.SetSelectedLineIdx(0)
+	self.c.Contexts().ReflogCommits.SetSelectedLineIdx(0)
 	// loading a heap of commits is slow so we limit them whenever doing a reset
-	self.contexts.LocalCommits.SetLimitCommits(true)
+	self.c.Contexts().LocalCommits.SetLimitCommits(true)
 
 	if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES, types.BRANCHES, types.REFLOG, types.COMMITS}}); err != nil {
 		return err
@@ -173,18 +162,18 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateBranch)
-			if err := self.git.Branch.New(sanitizedBranchName(response), from); err != nil {
+			if err := self.c.Git().Branch.New(sanitizedBranchName(response), from); err != nil {
 				return err
 			}
 
-			if self.c.CurrentContext() != self.contexts.Branches {
-				if err := self.c.PushContext(self.contexts.Branches); err != nil {
+			if self.c.CurrentContext() != self.c.Contexts().Branches {
+				if err := self.c.PushContext(self.c.Contexts().Branches); err != nil {
 					return err
 				}
 			}
 
-			self.contexts.LocalCommits.SetSelectedLineIdx(0)
-			self.contexts.Branches.SetSelectedLineIdx(0)
+			self.c.Contexts().LocalCommits.SetSelectedLineIdx(0)
+			self.c.Contexts().Branches.SetSelectedLineIdx(0)
 
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		},

@@ -6,14 +6,12 @@ import (
 )
 
 type ViewHelper struct {
-	c        *HelperCommon
-	contexts *context.ContextTree
+	c *HelperCommon
 }
 
 func NewViewHelper(c *HelperCommon, contexts *context.ContextTree) *ViewHelper {
 	return &ViewHelper{
-		c:        c,
-		contexts: contexts,
+		c: c,
 	}
 }
 
@@ -23,7 +21,7 @@ func (self *ViewHelper) ContextForView(viewName string) (types.Context, bool) {
 		return nil, false
 	}
 
-	for _, context := range self.contexts.Flatten() {
+	for _, context := range self.c.Contexts().Flatten() {
 		if context.GetViewName() == view.Name() {
 			return context, true
 		}

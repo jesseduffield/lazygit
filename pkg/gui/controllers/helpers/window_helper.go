@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -13,14 +12,12 @@ import (
 type WindowHelper struct {
 	c          *HelperCommon
 	viewHelper *ViewHelper
-	contexts   *context.ContextTree
 }
 
-func NewWindowHelper(c *HelperCommon, viewHelper *ViewHelper, contexts *context.ContextTree) *WindowHelper {
+func NewWindowHelper(c *HelperCommon, viewHelper *ViewHelper) *WindowHelper {
 	return &WindowHelper{
 		c:          c,
 		viewHelper: viewHelper,
-		contexts:   contexts,
 	}
 }
 
@@ -75,7 +72,7 @@ func (self *WindowHelper) resetWindowContext(c types.Context) {
 			continue
 		}
 		if viewName == c.GetViewName() && windowName != c.GetWindowName() {
-			for _, context := range self.contexts.Flatten() {
+			for _, context := range self.c.Contexts().Flatten() {
 				if context.GetKey() != c.GetKey() && context.GetWindowName() == windowName {
 					self.windowViewNameMap().Set(windowName, context.GetViewName())
 				}
@@ -119,7 +116,7 @@ func (self *WindowHelper) TopViewInWindow(windowName string) *gocui.View {
 
 func (self *WindowHelper) viewNamesInWindow(windowName string) []string {
 	result := []string{}
-	for _, context := range self.contexts.Flatten() {
+	for _, context := range self.c.Contexts().Flatten() {
 		if context.GetWindowName() == windowName {
 			result = append(result, context.GetViewName())
 		}

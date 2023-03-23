@@ -2,15 +2,12 @@ package helpers
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type CherryPickHelper struct {
 	c *HelperCommon
-
-	contexts *context.ContextTree
 
 	rebaseHelper *MergeAndRebaseHelper
 }
@@ -20,12 +17,10 @@ type CherryPickHelper struct {
 
 func NewCherryPickHelper(
 	c *HelperCommon,
-	contexts *context.ContextTree,
 	rebaseHelper *MergeAndRebaseHelper,
 ) *CherryPickHelper {
 	return &CherryPickHelper{
 		c:            c,
-		contexts:     contexts,
 		rebaseHelper: rebaseHelper,
 	}
 }
@@ -111,9 +106,9 @@ func (self *CherryPickHelper) resetIfNecessary(context types.Context) error {
 
 func (self *CherryPickHelper) rerender() error {
 	for _, context := range []types.Context{
-		self.contexts.LocalCommits,
-		self.contexts.ReflogCommits,
-		self.contexts.SubCommits,
+		self.c.Contexts().LocalCommits,
+		self.c.Contexts().ReflogCommits,
+		self.c.Contexts().SubCommits,
 	} {
 		if err := self.c.PostRefreshUpdate(context); err != nil {
 			return err

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -15,17 +14,12 @@ import (
 )
 
 type ConfirmationHelper struct {
-	c        *HelperCommon
-	contexts *context.ContextTree
+	c *HelperCommon
 }
 
-func NewConfirmationHelper(
-	c *HelperCommon,
-	contexts *context.ContextTree,
-) *ConfirmationHelper {
+func NewConfirmationHelper(c *HelperCommon) *ConfirmationHelper {
 	return &ConfirmationHelper{
-		c:        c,
-		contexts: contexts,
+		c: c,
 	}
 }
 
@@ -133,7 +127,7 @@ func (self *ConfirmationHelper) prepareConfirmationPanel(
 	self.c.Views().Confirmation.Mask = runeForMask(opts.Mask)
 	_ = self.c.Views().Confirmation.SetOrigin(0, 0)
 
-	suggestionsContext := self.contexts.Suggestions
+	suggestionsContext := self.c.Contexts().Suggestions
 	suggestionsContext.State.FindSuggestions = opts.FindSuggestionsFunc
 	if opts.FindSuggestionsFunc != nil {
 		suggestionsView := self.c.Views().Suggestions
@@ -210,7 +204,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 
 	self.c.State().GetRepoState().SetCurrentPopupOpts(&opts)
 
-	return self.c.PushContext(self.contexts.Confirmation)
+	return self.c.PushContext(self.c.Contexts().Confirmation)
 }
 
 func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts types.CreatePopupPanelOpts) error {
@@ -229,24 +223,24 @@ func (self *ConfirmationHelper) setKeyBindings(cancel goContext.CancelFunc, opts
 
 	onClose := self.wrappedConfirmationFunction(cancel, opts.HandleClose)
 
-	self.contexts.Confirmation.State.OnConfirm = onConfirm
-	self.contexts.Confirmation.State.OnClose = onClose
-	self.contexts.Suggestions.State.OnConfirm = onSuggestionConfirm
-	self.contexts.Suggestions.State.OnClose = onClose
+	self.c.Contexts().Confirmation.State.OnConfirm = onConfirm
+	self.c.Contexts().Confirmation.State.OnClose = onClose
+	self.c.Contexts().Suggestions.State.OnConfirm = onSuggestionConfirm
+	self.c.Contexts().Suggestions.State.OnClose = onClose
 
 	return nil
 }
 
 func (self *ConfirmationHelper) clearConfirmationViewKeyBindings() {
 	noop := func() error { return nil }
-	self.contexts.Confirmation.State.OnConfirm = noop
-	self.contexts.Confirmation.State.OnClose = noop
-	self.contexts.Suggestions.State.OnConfirm = noop
-	self.contexts.Suggestions.State.OnClose = noop
+	self.c.Contexts().Confirmation.State.OnConfirm = noop
+	self.c.Contexts().Confirmation.State.OnClose = noop
+	self.c.Contexts().Suggestions.State.OnConfirm = noop
+	self.c.Contexts().Suggestions.State.OnClose = noop
 }
 
 func (self *ConfirmationHelper) getSelectedSuggestionValue() string {
-	selectedSuggestion := self.contexts.Suggestions.GetSelected()
+	selectedSuggestion := self.c.Contexts().Suggestions.GetSelected()
 
 	if selectedSuggestion != nil {
 		return selectedSuggestion.Value
@@ -300,7 +294,7 @@ func (self *ConfirmationHelper) ResizePopupPanel(v *gocui.View, content string) 
 }
 
 func (self *ConfirmationHelper) resizeMenu() {
-	itemCount := self.contexts.Menu.GetList().Len()
+	itemCount := self.c.Contexts().Menu.GetList().Len()
 	offset := 3
 	panelWidth := self.getConfirmationPanelWidth()
 	x0, y0, x1, y1 := self.getConfirmationPanelDimensionsForContentHeight(panelWidth, itemCount+offset)
@@ -308,7 +302,7 @@ func (self *ConfirmationHelper) resizeMenu() {
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Menu.Name(), x0, y0, x1, menuBottom, 0)
 
 	tooltipTop := menuBottom + 1
-	tooltipHeight := getMessageHeight(true, self.contexts.Menu.GetSelected().Tooltip, panelWidth) + 2 // plus 2 for the frame
+	tooltipHeight := getMessageHeight(true, self.c.Contexts().Menu.GetSelected().Tooltip, panelWidth) + 2 // plus 2 for the frame
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Tooltip.Name(), x0, tooltipTop, x1, tooltipTop+tooltipHeight-1, 0)
 }
 
