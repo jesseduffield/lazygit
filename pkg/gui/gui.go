@@ -3,7 +3,6 @@ package gui
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"sync"
@@ -436,17 +435,9 @@ var RuneReplacements = map[rune]string{
 }
 
 func (gui *Gui) initGocui(headless bool, test integrationTypes.IntegrationTest) (*gocui.Gui, error) {
-	recordEvents := RecordingEvents()
-	playMode := gocui.NORMAL
-	if recordEvents {
-		playMode = gocui.RECORDING
-	} else if Replaying() {
-		playMode = gocui.REPLAYING
-	} else if test != nil && os.Getenv(components.SANDBOX_ENV_VAR) != "true" {
-		playMode = gocui.REPLAYING_NEW
-	}
+	playRecording := test != nil && os.Getenv(components.SANDBOX_ENV_VAR) != "true"
 
-	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playMode, headless, RuneReplacements)
+	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playRecording, headless, RuneReplacements)
 	if err != nil {
 		return nil, err
 	}
@@ -577,10 +568,6 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 					}
 				}
 
-				if err := SaveRecording(gui.g.Recording); err != nil {
-					return err
-				}
-
 				return nil
 
 			default:
@@ -610,14 +597,6 @@ func (gui *Gui) runSubprocessWithSuspenseAndRefresh(subprocess oscommands.ICmdOb
 func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, error) {
 	gui.Mutexes.SubprocessMutex.Lock()
 	defer gui.Mutexes.SubprocessMutex.Unlock()
-
-	if Replaying() {
-		// we do not yet support running subprocesses within integration tests. So if
-		// we're replaying an integration test and we're inside this method, something
-		// has gone wrong, so we should fail
-
-		log.Fatal("opening subprocesses not yet supported in integration tests. Chances are that this test is running too fast and a subprocess is accidentally opened")
-	}
 
 	if err := gui.g.Suspend(); err != nil {
 		return false, gui.c.Error(err)
