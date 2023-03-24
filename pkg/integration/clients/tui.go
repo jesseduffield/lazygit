@@ -28,7 +28,7 @@ func RunTUI() {
 	app := newApp(testDir)
 	app.loadTests()
 
-	g, err := gocui.NewGui(gocui.OutputTrue, false, gocui.NORMAL, false, gui.RuneReplacements)
+	g, err := gocui.NewGui(gocui.OutputTrue, false, false, false, gui.RuneReplacements)
 	if err != nil {
 		log.Panicln(err)
 	}
