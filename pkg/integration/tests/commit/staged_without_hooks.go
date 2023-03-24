@@ -53,8 +53,12 @@ var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("WIP" + commitMessage),
 			)
 
-		t.Views().StagingSecondary().IsFocused()
+		t.Views().StagingSecondary().
+			IsEmpty()
 
-		// TODO: assert that the staging panel has been refreshed (it currently does not get correctly refreshed)
+		t.Views().Staging().
+			IsFocused().
+			Content(Contains("+myfile content")).
+			Content(DoesNotContain("+with a second line"))
 	},
 })

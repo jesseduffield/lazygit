@@ -52,7 +52,7 @@ func (gui *Gui) pushContext(c types.Context, opts types.OnFocusOpts) error {
 		return nil
 	}
 
-	contextsToDeactivate := gui.pushToContextStack(c)
+	contextsToDeactivate, contextToActivate := gui.pushToContextStack(c)
 
 	for _, contextToDeactivate := range contextsToDeactivate {
 		if err := gui.deactivateContext(contextToDeactivate, types.OnFocusLostOpts{NewContextKey: c.GetKey()}); err != nil {
@@ -60,15 +60,27 @@ func (gui *Gui) pushContext(c types.Context, opts types.OnFocusOpts) error {
 		}
 	}
 
-	return gui.activateContext(c, opts)
+	if contextToActivate == nil {
+		return nil
+	}
+
+	return gui.activateContext(contextToActivate, opts)
 }
 
-// Adjusts the context stack based on the context that's being pushed and returns contexts to deactivate
-func (gui *Gui) pushToContextStack(c types.Context) []types.Context {
+// Adjusts the context stack based on the context that's being pushed and
+// returns (contexts to deactivate, context to activate)
+func (gui *Gui) pushToContextStack(c types.Context) ([]types.Context, types.Context) {
 	contextsToDeactivate := []types.Context{}
 
 	gui.State.ContextManager.Lock()
 	defer gui.State.ContextManager.Unlock()
+
+	if len(gui.State.ContextManager.ContextStack) > 0 &&
+		c == gui.State.ContextManager.ContextStack[len(gui.State.ContextManager.ContextStack)-1] {
+		// Context being pushed is already on top of the stack: nothing to
+		// deactivate or activate
+		return contextsToDeactivate, nil
+	}
 
 	if len(gui.State.ContextManager.ContextStack) == 0 {
 		gui.State.ContextManager.ContextStack = append(gui.State.ContextManager.ContextStack, c)
@@ -108,7 +120,7 @@ func (gui *Gui) pushToContextStack(c types.Context) []types.Context {
 		}
 	}
 
-	return contextsToDeactivate
+	return contextsToDeactivate, c
 }
 
 func (gui *Gui) popContext() error {
