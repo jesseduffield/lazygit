@@ -131,6 +131,7 @@ func (gui *Gui) createAllViews() error {
 			return err
 		}
 		(*mapping.viewPtr).FrameRunes = frameRunes
+		(*mapping.viewPtr).FgColor = theme.GocuiDefaultTextColor
 	}
 
 	gui.Views.Options.FgColor = theme.OptionsColor
@@ -142,34 +143,22 @@ func (gui *Gui) createAllViews() error {
 	gui.setViewContent(gui.Views.SearchPrefix, SEARCH_PREFIX)
 
 	gui.Views.Stash.Title = gui.c.Tr.StashTitle
-	gui.Views.Stash.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Commits.Title = gui.c.Tr.CommitsTitle
-	gui.Views.Commits.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.CommitFiles.Title = gui.c.Tr.CommitFiles
-	gui.Views.CommitFiles.FgColor = theme.GocuiDefaultTextColor
-
-	gui.Views.SubCommits.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Branches.Title = gui.c.Tr.BranchesTitle
-	gui.Views.Branches.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Remotes.Title = gui.c.Tr.RemotesTitle
-	gui.Views.Remotes.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Tags.Title = gui.c.Tr.TagsTitle
-	gui.Views.Tags.FgColor = theme.GocuiDefaultTextColor
-
-	gui.Views.RemoteBranches.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Files.Title = gui.c.Tr.FilesTitle
-	gui.Views.Files.FgColor = theme.GocuiDefaultTextColor
 
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.Staging, gui.Views.StagingSecondary, gui.Views.PatchBuilding, gui.Views.PatchBuildingSecondary, gui.Views.MergeConflicts} {
 		view.Title = gui.c.Tr.DiffTitle
 		view.Wrap = true
-		view.FgColor = theme.GocuiDefaultTextColor
 		view.IgnoreCarriageReturns = true
 		view.CanScrollPastBottom = gui.c.UserConfig.Gui.ScrollPastBottom
 	}
@@ -198,7 +187,6 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Limit.Wrap = true
 
 	gui.Views.Status.Title = gui.c.Tr.StatusTitle
-	gui.Views.Status.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Search.BgColor = gocui.ColorDefault
 	gui.Views.Search.FgColor = gocui.ColorGreen
@@ -212,15 +200,12 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.CommitMessage.Visible = false
 	gui.Views.CommitMessage.Title = gui.c.Tr.CommitMessage
-	gui.Views.CommitMessage.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.CommitMessage.Editable = true
 	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
 
 	gui.Views.Confirmation.Visible = false
 
 	gui.Views.Suggestions.Visible = false
-
-	gui.Views.Tooltip.FgColor = theme.GocuiDefaultTextColor
 
 	gui.Views.Menu.Visible = false
 
@@ -231,7 +216,6 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Information.Frame = false
 
 	gui.Views.Extras.Title = gui.c.Tr.CommandLog
-	gui.Views.Extras.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.Extras.Autoscroll = true
 	gui.Views.Extras.Wrap = true
 
