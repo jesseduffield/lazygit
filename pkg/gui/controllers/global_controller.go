@@ -107,6 +107,11 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Modifier: gocui.ModNone,
 			Handler:  self.escape,
 		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.ToggleWhitespaceInDiffView),
+			Handler:     self.toggleWhitespace,
+			Description: self.c.Tr.ToggleWhitespaceInDiffView,
+		},
 	}
 }
 
@@ -156,4 +161,8 @@ func (self *GlobalController) quitWithoutChangingDirectory() error {
 
 func (self *GlobalController) escape() error {
 	return (&QuitActions{c: self.c}).Escape()
+}
+
+func (self *GlobalController) toggleWhitespace() error {
+	return (&ToggleWhitespaceAction{c: self.c}).Call()
 }
