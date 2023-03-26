@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEditFileCmdStr(t *testing.T) {
+func TestEditFileCmdStrLegacy(t *testing.T) {
 	type scenario struct {
 		filename                  string
 		configEditCommand         string
@@ -172,7 +172,206 @@ func TestEditFileCmdStr(t *testing.T) {
 			getenv:     s.getenv,
 		})
 
-		s.test(instance.GetEditCmdStr(s.filename, 1))
+		s.test(instance.GetEditCmdStrLegacy(s.filename, 1))
 		s.runner.CheckForMissingCalls()
+	}
+}
+
+func TestEditFileCmd(t *testing.T) {
+	type scenario struct {
+		filename               string
+		osConfig               config.OSConfig
+		expectedCmdStr         string
+		expectedEditInTerminal bool
+	}
+
+	scenarios := []scenario{
+		{
+			filename:               "test",
+			osConfig:               config.OSConfig{},
+			expectedCmdStr:         `vim -- "test"`,
+			expectedEditInTerminal: true,
+		},
+		{
+			filename: "test",
+			osConfig: config.OSConfig{
+				Edit: "nano {{filename}}",
+			},
+			expectedCmdStr:         `nano "test"`,
+			expectedEditInTerminal: true,
+		},
+		{
+			filename: "file/with space",
+			osConfig: config.OSConfig{
+				EditPreset: "sublime",
+			},
+			expectedCmdStr:         `subl -- "file/with space"`,
+			expectedEditInTerminal: false,
+		},
+	}
+
+	for _, s := range scenarios {
+		userConfig := config.GetDefaultConfig()
+		userConfig.OS = s.osConfig
+
+		instance := buildFileCommands(commonDeps{
+			userConfig: userConfig,
+		})
+
+		cmdStr, editInTerminal := instance.GetEditCmdStr(s.filename)
+		assert.Equal(t, s.expectedCmdStr, cmdStr)
+		assert.Equal(t, s.expectedEditInTerminal, editInTerminal)
+	}
+}
+
+func TestEditFileAtLineCmd(t *testing.T) {
+	type scenario struct {
+		filename               string
+		lineNumber             int
+		osConfig               config.OSConfig
+		expectedCmdStr         string
+		expectedEditInTerminal bool
+	}
+
+	scenarios := []scenario{
+		{
+			filename:               "test",
+			lineNumber:             42,
+			osConfig:               config.OSConfig{},
+			expectedCmdStr:         `vim +42 -- "test"`,
+			expectedEditInTerminal: true,
+		},
+		{
+			filename:   "test",
+			lineNumber: 35,
+			osConfig: config.OSConfig{
+				EditAtLine: "nano +{{line}} {{filename}}",
+			},
+			expectedCmdStr:         `nano +35 "test"`,
+			expectedEditInTerminal: true,
+		},
+		{
+			filename:   "file/with space",
+			lineNumber: 12,
+			osConfig: config.OSConfig{
+				EditPreset: "sublime",
+			},
+			expectedCmdStr:         `subl -- "file/with space":12`,
+			expectedEditInTerminal: false,
+		},
+	}
+
+	for _, s := range scenarios {
+		userConfig := config.GetDefaultConfig()
+		userConfig.OS = s.osConfig
+
+		instance := buildFileCommands(commonDeps{
+			userConfig: userConfig,
+		})
+
+		cmdStr, editInTerminal := instance.GetEditAtLineCmdStr(s.filename, s.lineNumber)
+		assert.Equal(t, s.expectedCmdStr, cmdStr)
+		assert.Equal(t, s.expectedEditInTerminal, editInTerminal)
+	}
+}
+
+func TestEditFileAtLineAndWaitCmd(t *testing.T) {
+	type scenario struct {
+		filename       string
+		lineNumber     int
+		osConfig       config.OSConfig
+		expectedCmdStr string
+	}
+
+	scenarios := []scenario{
+		{
+			filename:       "test",
+			lineNumber:     42,
+			osConfig:       config.OSConfig{},
+			expectedCmdStr: `vim +42 -- "test"`,
+		},
+		{
+			filename:   "file/with space",
+			lineNumber: 12,
+			osConfig: config.OSConfig{
+				EditPreset: "sublime",
+			},
+			expectedCmdStr: `subl --wait -- "file/with space":12`,
+		},
+	}
+
+	for _, s := range scenarios {
+		userConfig := config.GetDefaultConfig()
+		userConfig.OS = s.osConfig
+
+		instance := buildFileCommands(commonDeps{
+			userConfig: userConfig,
+		})
+
+		cmdStr := instance.GetEditAtLineAndWaitCmdStr(s.filename, s.lineNumber)
+		assert.Equal(t, s.expectedCmdStr, cmdStr)
+	}
+}
+
+func TestGuessDefaultEditor(t *testing.T) {
+	type scenario struct {
+		gitConfigMockResponses map[string]string
+		getenv                 func(string) string
+		expectedResult         string
+	}
+
+	scenarios := []scenario{
+		{
+			gitConfigMockResponses: nil,
+			getenv: func(env string) string {
+				return ""
+			},
+			expectedResult: "",
+		},
+		{
+			gitConfigMockResponses: map[string]string{"core.editor": "nano"},
+			getenv: func(env string) string {
+				return ""
+			},
+			expectedResult: "nano",
+		},
+		{
+			gitConfigMockResponses: map[string]string{"core.editor": "code -w"},
+			getenv: func(env string) string {
+				return ""
+			},
+			expectedResult: "code",
+		},
+		{
+			gitConfigMockResponses: nil,
+			getenv: func(env string) string {
+				if env == "VISUAL" {
+					return "emacs"
+				}
+
+				return ""
+			},
+			expectedResult: "emacs",
+		},
+		{
+			gitConfigMockResponses: nil,
+			getenv: func(env string) string {
+				if env == "EDITOR" {
+					return "bbedit -w"
+				}
+
+				return ""
+			},
+			expectedResult: "bbedit",
+		},
+	}
+
+	for _, s := range scenarios {
+		instance := buildFileCommands(commonDeps{
+			gitConfig: git_config.NewFakeGitConfig(s.gitConfigMockResponses),
+			getenv:    s.getenv,
+		})
+
+		assert.Equal(t, s.expectedResult, instance.guessDefaultEditor())
 	}
 }

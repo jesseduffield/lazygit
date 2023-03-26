@@ -291,10 +291,39 @@ type KeybindingSubmodulesConfig struct {
 
 // OSConfig contains config on the level of the os
 type OSConfig struct {
-	// EditCommand is the command for editing a file
+	// Command for editing a file. Should contain "{{filename}}".
+	Edit string `yaml:"edit,omitempty"`
+
+	// Command for editing a file at a given line number. Should contain
+	// "{{filename}}", and may optionally contain "{{line}}".
+	EditAtLine string `yaml:"editAtLine,omitempty"`
+
+	// Same as EditAtLine, except that the command needs to wait until the
+	// window is closed.
+	EditAtLineAndWait string `yaml:"editAtLineAndWait,omitempty"`
+
+	// Whether the given edit commands use the terminal. Used to decide whether
+	// lazygit needs to suspend to the background before calling the editor.
+	// Pointer to bool so that we can distinguish unset (nil) from false.
+	EditInTerminal *bool `yaml:"editInTerminal,omitempty"`
+
+	// A built-in preset that sets all of the above settings. Supported presets
+	// are defined in the getPreset function in editor_presets.go.
+	EditPreset string `yaml:"editPreset,omitempty"`
+
+	// --------
+
+	// The following configs are all deprecated and kept for backward
+	// compatibility. They will be removed in the future.
+
+	// EditCommand is the command for editing a file.
+	// Deprecated: use Edit instead. Note that semantics are different:
+	// EditCommand is just the command itself, whereas Edit contains a
+	// "{{filename}}" variable.
 	EditCommand string `yaml:"editCommand,omitempty"`
 
 	// EditCommandTemplate is the command template for editing a file
+	// Deprecated: use EditAtLine instead.
 	EditCommandTemplate string `yaml:"editCommandTemplate,omitempty"`
 
 	// OpenCommand is the command for opening a file

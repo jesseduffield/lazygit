@@ -29,17 +29,13 @@ func isContainer() bool {
 func GetPlatformDefaultConfig() OSConfig {
 	if isWSL() && !isContainer() {
 		return OSConfig{
-			EditCommand:         ``,
-			EditCommandTemplate: "",
-			OpenCommand:         `powershell.exe start explorer.exe {{filename}} >/dev/null`,
-			OpenLinkCommand:     `powershell.exe start {{link}} >/dev/null`,
+			OpenCommand:     `powershell.exe start explorer.exe {{filename}} >/dev/null`,
+			OpenLinkCommand: `powershell.exe start {{link}} >/dev/null`,
 		}
 	}
 
 	return OSConfig{
-		EditCommand:         ``,
-		EditCommandTemplate: "",
-		OpenCommand:         `xdg-open {{filename}} >/dev/null`,
-		OpenLinkCommand:     `xdg-open {{link}} >/dev/null`,
+		OpenCommand:     `xdg-open {{filename}} >/dev/null`,
+		OpenLinkCommand: `xdg-open {{link}} >/dev/null`,
 	}
 }

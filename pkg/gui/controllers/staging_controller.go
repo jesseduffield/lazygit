@@ -247,7 +247,7 @@ func (self *StagingController) editHunk() error {
 
 	lineOffset := 3
 	lineIdxInHunk := state.GetSelectedLineIdx() - hunkStartIdx
-	if err := self.helpers.Files.EditFileAtLine(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
+	if err := self.helpers.Files.EditFileAtLineAndWait(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
 		return err
 	}
 
