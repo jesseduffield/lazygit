@@ -80,30 +80,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 
 	bindings := []*types.Binding{
 		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.Quit),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleQuit,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.QuitWithoutChangingDirectory),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleQuitWithoutChangingDirectory,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.QuitAlt1),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleQuit,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.Return),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleTopLevelReturn,
-		},
-		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.OpenRecentRepos),
 			Handler:     self.helpers.Repos.CreateRecentReposMenu,

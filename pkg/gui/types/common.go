@@ -233,6 +233,8 @@ type IStateAccessor interface {
 	GetIsRefreshingFiles() bool
 	GetShowExtrasWindow() bool
 	SetShowExtrasWindow(bool)
+	GetRetainOriginalDir() bool
+	SetRetainOriginalDir(bool)
 }
 
 type IRepoStateAccessor interface {

@@ -87,6 +87,26 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Description: self.c.Tr.LcOpenDiffingMenu,
 			OpensMenu:   true,
 		},
+		{
+			Key:      opts.GetKey(opts.Config.Universal.Quit),
+			Modifier: gocui.ModNone,
+			Handler:  self.quit,
+		},
+		{
+			Key:      opts.GetKey(opts.Config.Universal.QuitAlt1),
+			Modifier: gocui.ModNone,
+			Handler:  self.quit,
+		},
+		{
+			Key:      opts.GetKey(opts.Config.Universal.QuitWithoutChangingDirectory),
+			Modifier: gocui.ModNone,
+			Handler:  self.quitWithoutChangingDirectory,
+		},
+		{
+			Key:      opts.GetKey(opts.Config.Universal.Return),
+			Modifier: gocui.ModNone,
+			Handler:  self.escape,
+		},
 	}
 }
 
@@ -124,4 +144,16 @@ func (self *GlobalController) createFilteringMenu() error {
 
 func (self *GlobalController) createDiffingMenu() error {
 	return (&DiffingMenuAction{c: self.c}).Call()
+}
+
+func (self *GlobalController) quit() error {
+	return (&QuitActions{c: self.c}).Quit()
+}
+
+func (self *GlobalController) quitWithoutChangingDirectory() error {
+	return (&QuitActions{c: self.c}).QuitWithoutChangingDirectory()
+}
+
+func (self *GlobalController) escape() error {
+	return (&QuitActions{c: self.c}).Escape()
 }

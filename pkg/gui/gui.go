@@ -178,6 +178,14 @@ func (self *StateAccessor) SetShowExtrasWindow(value bool) {
 	self.gui.ShowExtrasWindow = value
 }
 
+func (self *StateAccessor) GetRetainOriginalDir() bool {
+	return self.gui.RetainOriginalDir
+}
+
+func (self *StateAccessor) SetRetainOriginalDir(value bool) {
+	self.gui.RetainOriginalDir = value
+}
+
 // we keep track of some stuff from one render to the next to see if certain
 // things have changed
 type PrevLayout struct {
@@ -632,7 +640,7 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 
 			switch err {
 			case gocui.ErrQuit:
-				if gui.RetainOriginalDir {
+				if gui.c.State().GetRetainOriginalDir() {
 					if err := gui.helpers.RecordDirectory.RecordDirectory(gui.InitialDir); err != nil {
 						return err
 					}
