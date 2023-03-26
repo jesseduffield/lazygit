@@ -5,29 +5,60 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
+var (
+	initialFileContent = "first-line\nold-second-line\nthird-line\n"
+	// We're indenting each line and modifying the second line
+	updatedFileContent = " first-line\n new-second-line\n third-line\n"
+)
+
 var IgnoreWhitespace = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "View diff with and without ignoring whitespace",
+	Description:  "Toggle whitespace in the diff",
 	ExtraCmdArgs: "",
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
-		shell.CreateFileAndAdd("file1", "first line\nsecond line\n")
-		shell.Commit("first commit")
-		// First line has a real change, second line changes only indentation:
-		shell.UpdateFileAndAdd("file1", "first line changed\n  second line\n")
-		shell.Commit("second commit")
+		shell.CreateFileAndAdd("myfile", initialFileContent)
+		shell.Commit("initial commit")
+		shell.UpdateFile("myfile", updatedFileContent)
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Commits().
-			Focus().
-			Tap(func() {
-				// By default, both changes are shown in the diff:
-				t.Views().Main().Content(Contains("-first line\n-second line\n+first line changed\n+  second line\n"))
-			}).
-			Press(keys.Universal.ToggleWhitespaceInDiffView).
-			Tap(func() {
-				// After enabling ignore whitespace, only the real change remains:
-				t.Views().Main().Content(Contains("-first line\n+first line changed\n"))
-			})
+		t.Views().Main().ContainsLines(
+			Contains(`-first-line`),
+			Contains(`-old-second-line`),
+			Contains(`-third-line`),
+			Contains(`+ first-line`),
+			Contains(`+ new-second-line`),
+			Contains(`+ third-line`),
+		)
+
+		t.Views().Files().
+			IsFocused().
+			Press(keys.Universal.ToggleWhitespaceInDiffView)
+
+		t.ExpectToast(Equals("Whitespace will be ignored in the diff view"))
+
+		// lines with only whitespace changes are ignored (first and third lines)
+		t.Views().Main().ContainsLines(
+			Contains(`  first-line`),
+			Contains(`-old-second-line`),
+			Contains(`+ new-second-line`),
+			Contains(`  third-line`),
+		)
+
+		// when toggling again it goes back to showing whitespace
+		t.Views().Files().
+			IsFocused().
+			Press(keys.Universal.ToggleWhitespaceInDiffView)
+
+		t.ExpectToast(Equals("Whitespace will be shown in the diff view"))
+
+		t.Views().Main().ContainsLines(
+			Contains(`-first-line`),
+			Contains(`-old-second-line`),
+			Contains(`-third-line`),
+			Contains(`+ first-line`),
+			Contains(`+ new-second-line`),
+			Contains(`+ third-line`),
+		)
 	},
 })
