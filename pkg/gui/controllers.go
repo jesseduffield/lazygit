@@ -161,6 +161,27 @@ func (gui *Gui) resetControllers() {
 	commandLogController := controllers.NewCommandLogController(common)
 	confirmationController := controllers.NewConfirmationController(common)
 	suggestionsController := controllers.NewSuggestionsController(common)
+	jumpToSideWindowController := controllers.NewJumpToSideWindowController(common)
+
+	sideWindowControllerFactory := controllers.NewSideWindowControllerFactory(common)
+
+	// allow for navigating between side window contexts
+	for _, context := range []types.Context{
+		gui.State.Contexts.Status,
+		gui.State.Contexts.Remotes,
+		gui.State.Contexts.Tags,
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Files,
+		gui.State.Contexts.Submodules,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.CommitFiles,
+		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.Stash,
+	} {
+		controllers.AttachControllers(context, sideWindowControllerFactory.Create(context))
+	}
 
 	setSubCommits := func(commits []*models.Commit) {
 		gui.Mutexes.SubCommitsMutex.Lock()
@@ -306,6 +327,7 @@ func (gui *Gui) resetControllers() {
 		undoController,
 		globalController,
 		contextLinesController,
+		jumpToSideWindowController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Snake,

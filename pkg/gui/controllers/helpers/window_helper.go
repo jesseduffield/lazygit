@@ -133,3 +133,7 @@ func (self *WindowHelper) WindowForView(viewName string) string {
 
 	return context.GetWindowName()
 }
+
+func (self *WindowHelper) SideWindows() []string {
+	return []string{"status", "files", "branches", "commits", "stash"}
+}

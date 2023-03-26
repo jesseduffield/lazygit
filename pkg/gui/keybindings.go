@@ -74,8 +74,6 @@ func (self *Gui) keybindingOpts() types.KeybindingsOpts {
 
 // renaming receiver to 'self' to aid refactoring. Will probably end up moving all Gui handlers to this pattern eventually.
 func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBinding) {
-	config := self.c.UserConfig.Keybinding
-
 	opts := self.c.KeybindingsOpts()
 
 	bindings := []*types.Binding{
@@ -315,33 +313,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		}
 
 		mouseKeybindings = append(mouseKeybindings, c.GetMouseKeybindings(opts)...)
-	}
-
-	for _, viewName := range []string{"status", "remotes", "tags", "localBranches", "remoteBranches", "files", "submodules", "reflogCommits", "commits", "commitFiles", "subCommits", "stash"} {
-		bindings = append(bindings, []*types.Binding{
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.PrevBlock), Modifier: gocui.ModNone, Handler: self.previousSideWindow},
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.NextBlock), Modifier: gocui.ModNone, Handler: self.nextSideWindow},
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.PrevBlockAlt), Modifier: gocui.ModNone, Handler: self.previousSideWindow},
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.NextBlockAlt), Modifier: gocui.ModNone, Handler: self.nextSideWindow},
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.PrevBlockAlt2), Modifier: gocui.ModNone, Handler: self.previousSideWindow},
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.NextBlockAlt2), Modifier: gocui.ModNone, Handler: self.nextSideWindow},
-		}...)
-	}
-
-	// Appends keybindings to jump to a particular sideView using numbers
-	windows := []string{"status", "files", "branches", "commits", "stash"}
-
-	if len(config.Universal.JumpToBlock) != len(windows) {
-		log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
-	} else {
-		for i, window := range windows {
-			bindings = append(bindings, &types.Binding{
-				ViewName: "",
-				Key:      opts.GetKey(opts.Config.Universal.JumpToBlock[i]),
-				Modifier: gocui.ModNone,
-				Handler:  self.goToSideWindow(window),
-			})
-		}
 	}
 
 	bindings = append(bindings, []*types.Binding{
