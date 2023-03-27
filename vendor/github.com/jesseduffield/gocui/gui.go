@@ -737,7 +737,11 @@ func (g *Gui) clear(fg, bg Attribute) (int, int) {
 
 // drawFrameEdges draws the horizontal and vertical edges of a view.
 func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
-	runeH, runeV := '─', '│'
+	runeH, runeV, runeT := '─', '│', '│'
+	if v.Highlight {
+		runeT = '╡'
+	}
+
 	if len(v.FrameRunes) >= 2 {
 		runeH, runeV = v.FrameRunes[0], v.FrameRunes[1]
 	}
@@ -764,8 +768,14 @@ func (g *Gui) drawFrameEdges(v *View, fgColor, bgColor Attribute) error {
 			continue
 		}
 		if v.x0 > -1 && v.x0 < g.maxX {
-			if err := g.SetRune(v.x0, y, runeV, fgColor, bgColor); err != nil {
-				return err
+			if y == v.cy+v.y0+1 {
+				if err := g.SetRune(v.x0, y, runeT, fgColor, bgColor); err != nil {
+					return err
+				}
+			} else {
+				if err := g.SetRune(v.x0, y, runeV, fgColor, bgColor); err != nil {
+					return err
+				}
 			}
 		}
 		if v.x1 > -1 && v.x1 < g.maxX {
