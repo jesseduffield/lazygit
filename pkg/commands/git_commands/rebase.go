@@ -126,6 +126,11 @@ func (self *RebaseCommands) InteractiveRebaseBreakAfter(commits []*models.Commit
 	return self.PrepareInteractiveRebaseCommand(sha, todo, true, false).Run()
 }
 
+func (self *RebaseCommands) EditRebase(branchRef string) error {
+	commands := []TodoLine{{Action: "break"}}
+	return self.PrepareInteractiveRebaseCommand(branchRef, commands, false, true).Run()
+}
+
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit a todo string to write to the todo file

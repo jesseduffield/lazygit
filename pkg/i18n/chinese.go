@@ -201,8 +201,6 @@ func chineseTranslationSet() TranslationSet {
 		ReflogCommitsTitle:                  "Reflog 页面",
 		GlobalTitle:                         "全局键绑定",
 		ConflictsResolved:                   "已解决所有冲突。是否继续？",
-		RebasingTitle:                       "变基",
-		ConfirmRebase:                       "您确定要将分支 {{.checkedOutBranch}} 变基到 {{.selectedBranch}} 吗？",
 		ConfirmMerge:                        "您确定要将分支 {{.selectedBranch}} 合并到 {{.checkedOutBranch}} 吗？",
 		FwdNoUpstream:                       "此分支没有上游，无法快进",
 		FwdNoLocalUpstream:                  "此分支的远程未在本地注册，无法快进",
