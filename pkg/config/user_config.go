@@ -311,6 +311,13 @@ type OSConfig struct {
 	// are defined in the getPreset function in editor_presets.go.
 	EditPreset string `yaml:"editPreset,omitempty"`
 
+	// Command for opening a file, as if the file is double-clicked. Should
+	// contain "{{filename}}", but doesn't support "{{line}}".
+	Open string `yaml:"open,omitempty"`
+
+	// Command for opening a link. Should contain "{{link}}".
+	OpenLink string `yaml:"openLink,omitempty"`
+
 	// --------
 
 	// The following configs are all deprecated and kept for backward
@@ -327,9 +334,11 @@ type OSConfig struct {
 	EditCommandTemplate string `yaml:"editCommandTemplate,omitempty"`
 
 	// OpenCommand is the command for opening a file
+	// Deprecated: use Open instead.
 	OpenCommand string `yaml:"openCommand,omitempty"`
 
 	// OpenLinkCommand is the command for opening a link
+	// Deprecated: use OpenLink instead.
 	OpenLinkCommand string `yaml:"openLinkCommand,omitempty"`
 }
 
