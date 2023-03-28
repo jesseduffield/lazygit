@@ -76,6 +76,13 @@ func (self *FileCommands) GetEditCmdStrLegacy(filename string, lineNumber int) (
 }
 
 func (self *FileCommands) GetEditCmdStr(filename string) (string, bool) {
+	// Legacy support for old config; to be removed at some point
+	if self.UserConfig.OS.Edit == "" && self.UserConfig.OS.EditCommandTemplate != "" {
+		if cmdStr, err := self.GetEditCmdStrLegacy(filename, 1); err == nil {
+			return cmdStr, true
+		}
+	}
+
 	template, editInTerminal := config.GetEditTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
 
 	templateValues := map[string]string{
@@ -87,6 +94,13 @@ func (self *FileCommands) GetEditCmdStr(filename string) (string, bool) {
 }
 
 func (self *FileCommands) GetEditAtLineCmdStr(filename string, lineNumber int) (string, bool) {
+	// Legacy support for old config; to be removed at some point
+	if self.UserConfig.OS.EditAtLine == "" && self.UserConfig.OS.EditCommandTemplate != "" {
+		if cmdStr, err := self.GetEditCmdStrLegacy(filename, lineNumber); err == nil {
+			return cmdStr, true
+		}
+	}
+
 	template, editInTerminal := config.GetEditAtLineTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
 
 	templateValues := map[string]string{
@@ -99,6 +113,13 @@ func (self *FileCommands) GetEditAtLineCmdStr(filename string, lineNumber int) (
 }
 
 func (self *FileCommands) GetEditAtLineAndWaitCmdStr(filename string, lineNumber int) string {
+	// Legacy support for old config; to be removed at some point
+	if self.UserConfig.OS.EditAtLineAndWait == "" && self.UserConfig.OS.EditCommandTemplate != "" {
+		if cmdStr, err := self.GetEditCmdStrLegacy(filename, lineNumber); err == nil {
+			return cmdStr
+		}
+	}
+
 	template := config.GetEditAtLineAndWaitTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
 
 	templateValues := map[string]string{
