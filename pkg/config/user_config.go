@@ -599,7 +599,7 @@ func GetDefaultConfig() *UserConfig {
 				BulkMenu: "b",
 			},
 		},
-		OS:                           GetPlatformDefaultConfig(),
+		OS:                           OSConfig{},
 		DisableStartupPopups:         false,
 		CustomCommands:               []CustomCommand(nil),
 		Services:                     map[string]string(nil),
