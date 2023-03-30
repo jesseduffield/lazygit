@@ -63,6 +63,9 @@ type IBaseContext interface {
 	// true if the view needs to be rerendered when its width changes
 	NeedsRerenderOnWidthChange() bool
 
+	// true if the view needs to be rerendered when its height changes
+	NeedsRerenderOnHeightChange() bool
+
 	// returns the desired title for the view upon activation. If there is no desired title (returns empty string), then
 	// no title will be set
 	Title() string
@@ -172,6 +175,8 @@ type IViewTrait interface {
 	SetRangeSelectStart(yIdx int)
 	CancelRangeSelect()
 	SetViewPortContent(content string)
+	SetViewPortContentAndClearEverythingElse(content string)
+	SetContentLineCount(lineCount int)
 	SetContent(content string)
 	SetFooter(value string)
 	SetOriginX(value int)

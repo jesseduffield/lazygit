@@ -115,13 +115,14 @@ func NewSubCommitsContext(
 		DynamicTitleBuilder: NewDynamicTitleBuilder(c.Tr.SubCommitsDynamicTitle),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:                       c.Views().SubCommits,
-				WindowName:                 "branches",
-				Key:                        SUB_COMMITS_CONTEXT_KEY,
-				Kind:                       types.SIDE_CONTEXT,
-				Focusable:                  true,
-				Transient:                  true,
-				NeedsRerenderOnWidthChange: true,
+				View:                        c.Views().SubCommits,
+				WindowName:                  "branches",
+				Key:                         SUB_COMMITS_CONTEXT_KEY,
+				Kind:                        types.SIDE_CONTEXT,
+				Focusable:                   true,
+				Transient:                   true,
+				NeedsRerenderOnWidthChange:  true,
+				NeedsRerenderOnHeightChange: true,
 			})),
 			ListRenderer: ListRenderer{
 				list:              viewModel,
@@ -130,6 +131,7 @@ func NewSubCommitsContext(
 			},
 			c:                       c,
 			refreshViewportOnChange: true,
+			renderOnlyVisibleLines:  true,
 		},
 	}
 
