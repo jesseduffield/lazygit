@@ -72,13 +72,25 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			frameOffset = 0
 		}
 
+		mustRerender := false
 		if context.NeedsRerenderOnWidthChange() {
 			// view.Width() returns the width -1 for some reason
 			oldWidth := view.Width() + 1
 			newWidth := dimensionsObj.X1 - dimensionsObj.X0 + 2*frameOffset
 			if oldWidth != newWidth {
-				contextsToRerender = append(contextsToRerender, context)
+				mustRerender = true
 			}
+		}
+		if context.NeedsRerenderOnHeightChange() {
+			// view.Height() returns the height -1 for some reason
+			oldHeight := view.Height() + 1
+			newHeight := dimensionsObj.Y1 - dimensionsObj.Y0 + 2*frameOffset
+			if oldHeight != newHeight {
+				mustRerender = true
+			}
+		}
+		if mustRerender {
+			contextsToRerender = append(contextsToRerender, context)
 		}
 
 		_, err = g.SetView(
