@@ -1586,11 +1586,7 @@ func (v *View) ClearTextArea() {
 	_ = v.SetCursor(0, 0)
 }
 
-// only call this function if you don't care where v.wx and v.wy end up
-func (v *View) OverwriteLines(y int, content string) {
-	v.writeMutex.Lock()
-	defer v.writeMutex.Unlock()
-
+func (v *View) overwriteLines(y int, content string) {
 	// break by newline, then for each line, write it, then add that erase command
 	v.wx = 0
 	v.wy = y
@@ -1602,6 +1598,30 @@ func (v *View) OverwriteLines(y int, content string) {
 		lines += "\x1b[K"
 	}
 	v.writeString(lines)
+}
+
+// only call this function if you don't care where v.wx and v.wy end up
+func (v *View) OverwriteLines(y int, content string) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.overwriteLines(y, content)
+}
+
+// only call this function if you don't care where v.wx and v.wy end up
+func (v *View) OverwriteLinesAndClearEverythingElse(y int, content string) {
+	v.writeMutex.Lock()
+	defer v.writeMutex.Unlock()
+
+	v.overwriteLines(y, content)
+
+	for i := 0; i < y; i += 1 {
+		v.lines[i] = nil
+	}
+
+	for i := v.wy + 1; i < len(v.lines); i += 1 {
+		v.lines[i] = nil
+	}
 }
 
 func (v *View) SetContentLineCount(lineCount int) {
