@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"fmt"
+	"runtime"
 	"strings"
 	"time"
 
@@ -30,6 +32,29 @@ func (gui *Gui) startBackgroundRoutines() {
 				"Value of config option 'refresher.refreshInterval' (%d) is invalid, disabling auto-refresh",
 				refreshInterval)
 		}
+	}
+
+	if gui.Config.GetDebug() {
+		gui.goEvery(time.Second*time.Duration(10), gui.stopChan, func() error {
+			formatBytes := func(b uint64) string {
+				const unit = 1000
+				if b < unit {
+					return fmt.Sprintf("%d B", b)
+				}
+				div, exp := uint64(unit), 0
+				for n := b / unit; n >= unit; n /= unit {
+					div *= unit
+					exp++
+				}
+				return fmt.Sprintf("%.1f %cB",
+					float64(b)/float64(div), "kMGTPE"[exp])
+			}
+
+			m := runtime.MemStats{}
+			runtime.ReadMemStats(&m)
+			gui.c.Log.Infof("Heap memory in use: %s", formatBytes(m.HeapAlloc))
+			return nil
+		})
 	}
 }
 
