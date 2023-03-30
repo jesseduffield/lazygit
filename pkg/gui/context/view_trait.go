@@ -26,6 +26,10 @@ func (self *ViewTrait) SetViewPortContent(content string) {
 	self.view.OverwriteLines(y, content)
 }
 
+func (self *ViewTrait) SetContentLineCount(lineCount int) {
+	self.view.SetContentLineCount(lineCount)
+}
+
 func (self *ViewTrait) SetContent(content string) {
 	self.view.SetContent(content)
 }
