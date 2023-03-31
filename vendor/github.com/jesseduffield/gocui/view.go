@@ -724,8 +724,8 @@ func (v *View) parseInput(ch rune, x int, y int) (bool, []cell) {
 			// fill rest of line
 			v.ei.instructionRead()
 			cx := 0
-			for _, cell := range v.lines[v.wy] {
-				cx += runewidth.RuneWidth(cell.chr)
+			for ix := 0; ix < v.wx; ix += 1 {
+				cx += runewidth.RuneWidth(v.lines[v.wy][ix].chr)
 			}
 			repeatCount = v.InnerWidth() - cx
 			ch = ' '
