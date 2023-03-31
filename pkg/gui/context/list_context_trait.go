@@ -49,9 +49,15 @@ func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) error 
 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
 func (self *ListContextTrait) HandleRender() error {
+	return self.handleRenderImpl(func() {
+		content := utils.RenderDisplayStrings(self.getDisplayStrings(0, self.list.Len()))
+		self.GetViewTrait().SetContent(content)
+	})
+}
+
+func (self *ListContextTrait) handleRenderImpl(setContentFunc func()) error {
 	self.list.RefreshSelectedIdx()
-	content := utils.RenderDisplayStrings(self.getDisplayStrings(0, self.list.Len()))
-	self.GetViewTrait().SetContent(content)
+	setContentFunc()
 	self.c.Render()
 	self.setFooter()
 
