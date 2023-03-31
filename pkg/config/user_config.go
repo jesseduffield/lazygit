@@ -137,6 +137,10 @@ type KeybindingConfig struct {
 type KeybindingUniversalConfig struct {
 	Quit                         string   `yaml:"quit"`
 	QuitAlt1                     string   `yaml:"quit-alt1"`
+	QuitAlt2                     string   `yaml:"quit-alt2"`
+	QuitAlt3                     string   `yaml:"quit-alt3"`
+	QuitAlt4                     string   `yaml:"quit-alt4"`
+	QuitAlt5                     string   `yaml:"quit-alt5"`
 	Return                       string   `yaml:"return"`
 	QuitWithoutChangingDirectory string   `yaml:"quitWithoutChangingDirectory"`
 	TogglePanel                  string   `yaml:"togglePanel"`

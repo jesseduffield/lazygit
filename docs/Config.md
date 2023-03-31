@@ -115,6 +115,7 @@ keybinding:
   universal:
     quit: 'q'
     quit-alt1: '<c-c>' # alternative/alias of quit
+    # quit-alt(N) # continuation to 5.
     return: '<esc>' # return to previous menu, will quit if there's nowhere to return
     quitWithoutChangingDirectory: 'Q'
     togglePanel: '<tab>' # goto the next panel

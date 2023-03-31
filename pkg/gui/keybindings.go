@@ -70,6 +70,30 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName: "",
+			Key:      opts.GetKey(opts.Config.Universal.QuitAlt2),
+			Modifier: gocui.ModNone,
+			Handler:  self.handleQuit,
+		},
+		{
+			ViewName: "",
+			Key:      opts.GetKey(opts.Config.Universal.QuitAlt3),
+			Modifier: gocui.ModNone,
+			Handler:  self.handleQuit,
+		},
+		{
+			ViewName: "",
+			Key:      opts.GetKey(opts.Config.Universal.QuitAlt4),
+			Modifier: gocui.ModNone,
+			Handler:  self.handleQuit,
+		},
+		{
+			ViewName: "",
+			Key:      opts.GetKey(opts.Config.Universal.QuitAlt5),
+			Modifier: gocui.ModNone,
+			Handler:  self.handleQuit,
+		},
+		{
+			ViewName: "",
 			Key:      opts.GetKey(opts.Config.Universal.Return),
 			Modifier: gocui.ModNone,
 			Handler:  self.handleTopLevelReturn,
