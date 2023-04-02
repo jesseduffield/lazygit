@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -229,7 +230,7 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 func (self *LocalCommitsController) doRewordEditor() error {
 	self.c.LogAction(self.c.Tr.Actions.RewordCommit)
 
-	if self.context().GetSelectedLineIdx() == 0 {
+	if self.isHeadCommit() {
 		return self.c.RunSubprocessAndRefresh(self.os.Cmd.New("git commit --allow-empty --amend --only"))
 	}
 
@@ -326,7 +327,15 @@ func (self *LocalCommitsController) interactiveRebase(action string) error {
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
 func (self *LocalCommitsController) handleMidRebaseCommand(action string, commit *models.Commit) (bool, error) {
-	if commit.Status != "rebasing" {
+	if !commit.IsTODO() {
+		if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+			// If we are in a rebase, the only action that is allowed for
+			// non-todo commits is rewording the current head commit
+			if !(action == "reword" && self.isHeadCommit()) {
+				return true, self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
+			}
+		}
+
 		return false, nil
 	}
 
@@ -364,8 +373,8 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		return nil
 	}
 
-	if commit.Status == "rebasing" {
-		if commits[index+1].Status != "rebasing" {
+	if commit.IsTODO() {
+		if !commits[index+1].IsTODO() {
 			return nil
 		}
 
@@ -381,6 +390,10 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		return self.c.Refresh(types.RefreshOptions{
 			Mode: types.SYNC, Scope: []types.RefreshableView{types.REBASE_COMMITS},
 		})
+	}
+
+	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
 	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func() error {
@@ -399,7 +412,7 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		return nil
 	}
 
-	if commit.Status == "rebasing" {
+	if commit.IsTODO() {
 		// logging directly here because MoveTodoDown doesn't have enough information
 		// to provide a useful log
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
@@ -417,6 +430,10 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		})
 	}
 
+	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
+	}
+
 	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
 		err := self.git.Rebase.MoveCommitDown(self.model.Commits, index-1)
@@ -428,6 +445,17 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
+	if self.isHeadCommit() {
+		if err := self.helpers.AmendHelper.AmendHead(); err != nil {
+			return err
+		}
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+	}
+
+	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
+	}
+
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
@@ -727,4 +755,8 @@ func (self *LocalCommitsController) context() *context.LocalCommitsContext {
 
 func (self *LocalCommitsController) paste() error {
 	return self.helpers.CherryPick.Paste()
+}
+
+func (self *LocalCommitsController) isHeadCommit() bool {
+	return models.IsHeadCommit(self.model.Commits, self.context().GetSelectedLineIdx())
 }

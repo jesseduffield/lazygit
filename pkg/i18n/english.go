@@ -190,6 +190,7 @@ type TranslationSet struct {
 	PickAllHunks                        string
 	ViewMergeRebaseOptions              string
 	NotMergingOrRebasing                string
+	AlreadyRebasing                     string
 	RecentRepos                         string
 	MergeOptionsTitle                   string
 	RebaseOptionsTitle                  string
@@ -839,6 +840,7 @@ func EnglishTranslationSet() TranslationSet {
 		PickAllHunks:                        "pick all hunks",
 		ViewMergeRebaseOptions:              "view merge/rebase options",
 		NotMergingOrRebasing:                "You are currently neither rebasing nor merging",
+		AlreadyRebasing:                     "Can't perform this action during a rebase",
 		RecentRepos:                         "recent repositories",
 		MergeOptionsTitle:                   "Merge Options",
 		RebaseOptionsTitle:                  "Rebase Options",

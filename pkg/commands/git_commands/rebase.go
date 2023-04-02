@@ -34,7 +34,7 @@ func NewRebaseCommands(
 }
 
 func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, message string) error {
-	if index == 0 {
+	if models.IsHeadCommit(commits, index) {
 		// we've selected the top commit so no rebase is required
 		return self.commit.RewordLastCommit(message)
 	}

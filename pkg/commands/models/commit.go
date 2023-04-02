@@ -65,3 +65,7 @@ func (c *Commit) IsMerge() bool {
 func (c *Commit) IsTODO() bool {
 	return c.Action != ""
 }
+
+func IsHeadCommit(commits []*Commit, index int) bool {
+	return !commits[index].IsTODO() && (index == 0 || commits[index-1].IsTODO())
+}

@@ -567,15 +567,7 @@ func (self *FilesController) handleAmendCommitPress() error {
 		return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
 	}
 
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.AmendLastCommitTitle,
-		Prompt: self.c.Tr.SureToAmend,
-		HandleConfirm: func() error {
-			cmdObj := self.git.Commit.AmendHeadCmdObj()
-			self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-			return self.helpers.GPG.WithGpgHandling(cmdObj, self.c.Tr.AmendingStatus, nil)
-		},
-	})
+	return self.helpers.AmendHelper.AmendHead()
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {

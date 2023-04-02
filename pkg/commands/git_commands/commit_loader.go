@@ -113,7 +113,7 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 	// chances are we have as many commits as last time so we'll set the capacity to be the old length
 	result := make([]*models.Commit, 0, len(commits))
 	for i, commit := range commits {
-		if commit.Status != "rebasing" { // removing the existing rebase commits so we can add the refreshed ones
+		if !commit.IsTODO() { // removing the existing rebase commits so we can add the refreshed ones
 			result = append(result, commits[i:]...)
 			break
 		}
