@@ -111,7 +111,11 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 		}
 	})
 
-	err := self.rebase.PrepareInteractiveRebaseCommand(commits[baseIndex].Sha, todoLines, true, false).Run()
+	err := self.rebase.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseShaOrRoot:  commits[baseIndex].Sha,
+		todoLines:      todoLines,
+		overrideEditor: true,
+	}).Run()
 	if err != nil {
 		return err
 	}

@@ -60,7 +60,10 @@ func (self *RebaseCommands) RewordCommitInEditor(commits []*models.Commit, index
 		return nil, err
 	}
 
-	return self.PrepareInteractiveRebaseCommand(sha, todo, false, false), nil
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseShaOrRoot: sha,
+		todoLines:     todo,
+	}), nil
 }
 
 func (self *RebaseCommands) ResetCommitAuthor(commits []*models.Commit, index int) error {
@@ -104,7 +107,11 @@ func (self *RebaseCommands) MoveCommitDown(commits []*models.Commit, index int) 
 
 	baseShaOrRoot := getBaseShaOrRoot(commits, index+2)
 
-	return self.PrepareInteractiveRebaseCommand(baseShaOrRoot, todoLines, true, false).Run()
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseShaOrRoot:  baseShaOrRoot,
+		todoLines:      todoLines,
+		overrideEditor: true,
+	}).Run()
 }
 
 func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index int, action string) error {
@@ -113,7 +120,11 @@ func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index in
 		return err
 	}
 
-	return self.PrepareInteractiveRebaseCommand(sha, todo, true, false).Run()
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseShaOrRoot:  sha,
+		todoLines:      todo,
+		overrideEditor: true,
+	}).Run()
 }
 
 func (self *RebaseCommands) InteractiveRebaseBreakAfter(commits []*models.Commit, index int) error {
@@ -123,22 +134,37 @@ func (self *RebaseCommands) InteractiveRebaseBreakAfter(commits []*models.Commit
 	}
 
 	todo = append(todo, TodoLine{Action: "break", Commit: nil})
-	return self.PrepareInteractiveRebaseCommand(sha, todo, true, false).Run()
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseShaOrRoot:  sha,
+		todoLines:      todo,
+		overrideEditor: true,
+	}).Run()
 }
 
 func (self *RebaseCommands) EditRebase(branchRef string) error {
 	commands := []TodoLine{{Action: "break"}}
-	return self.PrepareInteractiveRebaseCommand(branchRef, commands, false, true).Run()
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseShaOrRoot: branchRef,
+		todoLines:     commands,
+		prepend:       true,
+	}).Run()
+}
+
+type PrepareInteractiveRebaseCommandOpts struct {
+	baseShaOrRoot  string
+	todoLines      []TodoLine
+	overrideEditor bool
+	prepend        bool
 }
 
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit a todo string to write to the todo file
-func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseShaOrRoot string, todoLines []TodoLine, overrideEditor bool, prepend bool) oscommands.ICmdObj {
-	todo := self.buildTodo(todoLines)
+func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteractiveRebaseCommandOpts) oscommands.ICmdObj {
+	todo := self.buildTodo(opts.todoLines)
 	ex := oscommands.GetLazygitPath()
 	prependLines := ""
-	if prepend {
+	if opts.prepend {
 		prependLines = "TRUE"
 	}
 
@@ -147,7 +173,7 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseShaOrRoot string
 		debug = "TRUE"
 	}
 
-	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty --empty=keep --no-autosquash %s", baseShaOrRoot)
+	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty --empty=keep --no-autosquash %s", opts.baseShaOrRoot)
 	self.Log.WithField("command", cmdStr).Debug("RunCommand")
 
 	cmdObj := self.cmd.New(cmdStr)
@@ -169,7 +195,7 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(baseShaOrRoot string
 		"GIT_SEQUENCE_EDITOR="+gitSequenceEditor,
 	)
 
-	if overrideEditor {
+	if opts.overrideEditor {
 		cmdObj.AddEnvVars("GIT_EDITOR=" + ex)
 	}
 
@@ -283,12 +309,16 @@ func (self *RebaseCommands) BeginInteractiveRebaseForCommit(commits []*models.Co
 		return err
 	}
 
-	return self.PrepareInteractiveRebaseCommand(sha, todo, true, false).Run()
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseShaOrRoot:  sha,
+		todoLines:      todo,
+		overrideEditor: true,
+	}).Run()
 }
 
 // RebaseBranch interactive rebases onto a branch
 func (self *RebaseCommands) RebaseBranch(branchName string) error {
-	return self.PrepareInteractiveRebaseCommand(branchName, nil, false, false).Run()
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{baseShaOrRoot: branchName}).Run()
 }
 
 func (self *RebaseCommands) GenericMergeOrRebaseActionCmdObj(commandType string, command string) oscommands.ICmdObj {
@@ -373,7 +403,10 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 	todoLines := self.BuildTodoLinesSingleAction(commits, "pick")
 
-	return self.PrepareInteractiveRebaseCommand("HEAD", todoLines, false, false).Run()
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseShaOrRoot: "HEAD",
+		todoLines:     todoLines,
+	}).Run()
 }
 
 func (self *RebaseCommands) buildTodo(todoLines []TodoLine) string {
