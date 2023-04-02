@@ -6,6 +6,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/spkg/bom"
 )
@@ -13,6 +14,33 @@ import (
 func (gui *Gui) resetOrigin(v *gocui.View) error {
 	_ = v.SetCursor(0, 0)
 	return v.SetOrigin(0, 0)
+}
+
+// Returns the number of lines that we should read initially from a cmd task so
+// that the scrollbar has the correct size, along with the number of lines after
+// which the view is filled and we can do a first refresh.
+func (gui *Gui) linesToReadFromCmdTask(v *gocui.View) tasks.LinesToRead {
+	_, height := v.Size()
+	_, oy := v.Origin()
+
+	linesForFirstRefresh := height + oy + 10
+
+	// We want to read as many lines initially as necessary to let the
+	// scrollbar go to its minimum height, so that the scrollbar thumb doesn't
+	// change size as you scroll down.
+	minScrollbarHeight := 2
+	linesToReadForAccurateScrollbar := height*(height-1)/minScrollbarHeight + oy
+
+	// However, cap it at some arbitrary max limit, so that we don't get
+	// performance problems for huge monitors or tiny font sizes
+	if linesToReadForAccurateScrollbar > 5000 {
+		linesToReadForAccurateScrollbar = 5000
+	}
+
+	return tasks.LinesToRead{
+		Total:               linesToReadForAccurateScrollbar,
+		InitialRefreshAfter: linesForFirstRefresh,
+	}
 }
 
 func (gui *Gui) cleanString(s string) string {
