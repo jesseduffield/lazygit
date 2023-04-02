@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type RebaseCommands struct {
@@ -202,25 +203,27 @@ func (self *RebaseCommands) AmendTo(commit *models.Commit) error {
 	return self.SquashAllAboveFixupCommits(commit)
 }
 
-// EditRebaseTodo sets the action at a given index in the git-rebase-todo file
-func (self *RebaseCommands) EditRebaseTodo(index int, action todo.TodoCommand) error {
+// EditRebaseTodo sets the action for a given rebase commit in the git-rebase-todo file
+func (self *RebaseCommands) EditRebaseTodo(commit *models.Commit, action todo.TodoCommand) error {
 	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
-	bytes, err := os.ReadFile(fileName)
+	todos, err := utils.ReadRebaseTodoFile(fileName)
 	if err != nil {
 		return err
 	}
 
-	content := strings.Split(string(bytes), "\n")
-	commitCount := self.getTodoCommitCount(content)
+	for i := range todos {
+		t := &todos[i]
+		// Comparing just the sha is not enough; we need to compare both the
+		// action and the sha, as the sha could appear multiple times (e.g. in a
+		// pick and later in a merge)
+		if t.Command == commit.Action && t.Commit == commit.Sha {
+			t.Command = action
+			return utils.WriteRebaseTodoFile(fileName, todos)
+		}
+	}
 
-	// we have the most recent commit at the bottom whereas the todo file has
-	// it at the bottom, so we need to subtract our index from the commit count
-	contentIndex := commitCount - 1 - index
-	splitLine := strings.Split(content[contentIndex], " ")
-	content[contentIndex] = action.String() + " " + strings.Join(splitLine[1:], " ")
-	result := strings.Join(content, "\n")
-
-	return os.WriteFile(fileName, []byte(result), 0o644)
+	// Should never get here
+	return fmt.Errorf("Todo %s not found in git-rebase-todo", commit.Sha)
 }
 
 func (self *RebaseCommands) getTodoCommitCount(content []string) int {

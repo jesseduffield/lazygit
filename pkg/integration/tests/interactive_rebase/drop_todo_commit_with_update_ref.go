@@ -60,10 +60,7 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Contains("(*) commit 06"),
-				/* EXPECTED:
 				Contains("commit 04"),
-				ACTUAL: */
-				Contains("commit 05"),
 				Contains("(*) commit 03"),
 				Contains("commit 02"),
 				Contains("commit 01"),

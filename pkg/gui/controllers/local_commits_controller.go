@@ -354,9 +354,7 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoComma
 		false,
 	)
 
-	if err := self.git.Rebase.EditRebaseTodo(
-		self.context().GetSelectedLineIdx(), action,
-	); err != nil {
+	if err := self.git.Rebase.EditRebaseTodo(commit, action); err != nil {
 		return false, self.c.Error(err)
 	}
 
