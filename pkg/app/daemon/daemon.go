@@ -79,25 +79,11 @@ type rebaseDaemon struct {
 func (self *rebaseDaemon) Run() error {
 	self.c.Log.Info("Lazygit invoked as interactive rebase demon")
 	self.c.Log.Info("args: ", os.Args)
-	filePath := os.Args[1]
+	path := os.Args[1]
 
-	if strings.HasSuffix(filePath, "git-rebase-todo") {
-		todoEnvKey := os.Getenv(RebaseTODOEnvKey)
-
-		var todoContent []byte
-		if v := os.Getenv(PrependLinesEnvKey); v != "" {
-			existingContent, err := os.ReadFile(filePath)
-			if err != nil {
-				return err
-			}
-
-			todoContent = append([]byte(todoEnvKey), existingContent...)
-		} else {
-			todoContent = []byte(todoEnvKey)
-		}
-
-		return os.WriteFile(filePath, todoContent, 0o644)
-	} else if strings.HasSuffix(filePath, filepath.Join(gitDir(), "COMMIT_EDITMSG")) { // TODO: test
+	if strings.HasSuffix(path, "git-rebase-todo") {
+		return self.writeTodoFile(path)
+	} else if strings.HasSuffix(path, filepath.Join(gitDir(), "COMMIT_EDITMSG")) { // TODO: test
 		// if we are rebasing and squashing, we'll see a COMMIT_EDITMSG
 		// but in this case we don't need to edit it, so we'll just return
 	} else {
@@ -105,6 +91,22 @@ func (self *rebaseDaemon) Run() error {
 	}
 
 	return nil
+}
+
+func (self *rebaseDaemon) writeTodoFile(path string) error {
+	todoContent := []byte(os.Getenv(RebaseTODOEnvKey))
+
+	prependLines := os.Getenv(PrependLinesEnvKey) != ""
+	if prependLines {
+		existingContent, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		todoContent = append(todoContent, existingContent...)
+	}
+
+	return os.WriteFile(path, todoContent, 0o644)
 }
 
 func gitDir() string {
