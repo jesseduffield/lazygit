@@ -167,6 +167,18 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		})
 
 		go utils.Safe(func() {
+			isViewStale := true
+			writeToView := func(content []byte) {
+				_, _ = self.writer.Write(content)
+				isViewStale = true
+			}
+			refreshViewIfStale := func() {
+				if isViewStale {
+					self.refreshView()
+					isViewStale = false
+				}
+			}
+
 		outer:
 			for {
 				select {
@@ -185,7 +197,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 						if !loaded {
 							self.beforeStart()
 							if prefix != "" {
-								_, _ = self.writer.Write([]byte(prefix))
+								writeToView([]byte(prefix))
 							}
 							loaded = true
 						}
@@ -197,20 +209,20 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 							self.onEndOfInput()
 							break outer
 						}
-						_, _ = self.writer.Write(append(scanner.Bytes(), '\n'))
+						writeToView(append(scanner.Bytes(), '\n'))
 
 						if i+1 == linesToRead.InitialRefreshAfter {
 							// We have read enough lines to fill the view, so do a first refresh
 							// here to show what we have. Continue reading and refresh again at
 							// the end to make sure the scrollbar has the right size.
-							self.refreshView()
+							refreshViewIfStale()
 						}
 					}
-					self.refreshView()
+					refreshViewIfStale()
 				}
 			}
 
-			self.refreshView()
+			refreshViewIfStale()
 
 			if err := cmd.Wait(); err != nil {
 				// it's fine if we've killed this program ourselves
