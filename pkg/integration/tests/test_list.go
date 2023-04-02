@@ -83,6 +83,7 @@ var tests = []*components.IntegrationTest{
 	filter_by_path.CliArg,
 	filter_by_path.SelectFile,
 	filter_by_path.TypeFile,
+	interactive_rebase.AdvancedInteractiveRebase,
 	interactive_rebase.AmendFirstCommit,
 	interactive_rebase.AmendHeadCommitDuringRebase,
 	interactive_rebase.AmendMerge,
