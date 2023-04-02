@@ -495,6 +495,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 		return err
 	}
 
+	defer gui.checkForDeprecatedEditConfigs()
+
 	gui.g = g
 	defer gui.g.Close()
 
@@ -581,6 +583,37 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 
 		return nil
 	})
+}
+
+func (gui *Gui) checkForDeprecatedEditConfigs() {
+	osConfig := &gui.UserConfig.OS
+	deprecatedConfigs := []struct {
+		config  string
+		oldName string
+		newName string
+	}{
+		{osConfig.EditCommand, "EditCommand", "Edit"},
+		{osConfig.EditCommandTemplate, "EditCommandTemplate", "Edit,EditAtLine"},
+		{osConfig.OpenCommand, "OpenCommand", "Open"},
+		{osConfig.OpenLinkCommand, "OpenLinkCommand", "OpenLink"},
+	}
+	deprecatedConfigStrings := []string{}
+
+	for _, dc := range deprecatedConfigs {
+		if dc.config != "" {
+			deprecatedConfigStrings = append(deprecatedConfigStrings, fmt.Sprintf("   OS.%s -> OS.%s", dc.oldName, dc.newName))
+		}
+	}
+	if len(deprecatedConfigStrings) != 0 {
+		warningMessage := utils.ResolvePlaceholderString(
+			gui.c.Tr.DeprecatedEditConfigWarning,
+			map[string]string{
+				"configs": strings.Join(deprecatedConfigStrings, "\n"),
+			},
+		)
+
+		os.Stdout.Write([]byte(warningMessage))
+	}
 }
 
 // returns whether command exited without error or not
