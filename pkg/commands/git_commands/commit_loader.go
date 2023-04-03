@@ -313,7 +313,7 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 			Sha:    t.Commit,
 			Name:   t.Msg,
 			Status: models.StatusRebasing,
-			Action: t.Command.String(),
+			Action: t.Command,
 		})
 	}
 

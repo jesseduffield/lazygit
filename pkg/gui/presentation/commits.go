@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -263,8 +264,9 @@ func displayCommit(
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
 
 	actionString := ""
-	if commit.Action != "" {
-		actionString = actionColorMap(commit.Action).Sprint(commit.Action) + " "
+	if commit.Action != models.ActionNone {
+		todoString := commit.Action.String()
+		actionString = actionColorMap(commit.Action).Sprint(todoString) + " "
 	}
 
 	tagString := ""
@@ -368,15 +370,15 @@ func getShaColor(
 	return shaColor
 }
 
-func actionColorMap(str string) style.TextStyle {
-	switch str {
-	case "pick":
+func actionColorMap(action todo.TodoCommand) style.TextStyle {
+	switch action {
+	case todo.Pick:
 		return style.FgCyan
-	case "drop":
+	case todo.Drop:
 		return style.FgRed
-	case "edit":
+	case todo.Edit:
 		return style.FgGreen
-	case "fixup":
+	case todo.Fixup:
 		return style.FgMagenta
 	default:
 		return style.FgYellow

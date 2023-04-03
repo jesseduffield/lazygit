@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -21,12 +22,18 @@ const (
 	StatusReflog
 )
 
+const (
+	// Conveniently for us, the todo package starts the enum at 1, and given
+	// that it doesn't have a "none" value, we're setting ours to 0
+	ActionNone todo.TodoCommand = 0
+)
+
 // Commit : A git commit
 type Commit struct {
 	Sha           string
 	Name          string
 	Status        CommitStatus
-	Action        string // one of "", "pick", "edit", "squash", "reword", "drop", "fixup"
+	Action        todo.TodoCommand
 	Tags          []string
 	ExtraInfo     string // something like 'HEAD -> master, tag: v0.15.2'
 	AuthorName    string // something like 'Jesse Duffield'
@@ -75,7 +82,7 @@ func (c *Commit) IsMerge() bool {
 // returns true if this commit is not actually in the git log but instead
 // is from a TODO file for an interactive rebase.
 func (c *Commit) IsTODO() bool {
-	return c.Action != ""
+	return c.Action != ActionNone
 }
 
 func IsHeadCommit(commits []*Commit, index int) bool {

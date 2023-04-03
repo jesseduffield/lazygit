@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -153,7 +154,7 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.CannotSquashOrFixupFirstCommit)
 	}
 
-	applied, err := self.handleMidRebaseCommand("squash", commit)
+	applied, err := self.handleMidRebaseCommand(todo.Squash, commit)
 	if err != nil {
 		return err
 	}
@@ -178,7 +179,7 @@ func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.CannotSquashOrFixupFirstCommit)
 	}
 
-	applied, err := self.handleMidRebaseCommand("fixup", commit)
+	applied, err := self.handleMidRebaseCommand(todo.Fixup, commit)
 	if err != nil {
 		return err
 	}
@@ -199,7 +200,7 @@ func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) reword(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand("reword", commit)
+	applied, err := self.handleMidRebaseCommand(todo.Reword, commit)
 	if err != nil {
 		return err
 	}
@@ -248,7 +249,7 @@ func (self *LocalCommitsController) doRewordEditor() error {
 }
 
 func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
-	midRebase, err := self.handleMidRebaseCommand("reword", commit)
+	midRebase, err := self.handleMidRebaseCommand(todo.Reword, commit)
 	if err != nil {
 		return err
 	}
@@ -268,7 +269,7 @@ func (self *LocalCommitsController) rewordEditor(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) drop(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand("drop", commit)
+	applied, err := self.handleMidRebaseCommand(todo.Drop, commit)
 	if err != nil {
 		return err
 	}
@@ -289,7 +290,7 @@ func (self *LocalCommitsController) drop(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) edit(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand("edit", commit)
+	applied, err := self.handleMidRebaseCommand(todo.Edit, commit)
 	if err != nil {
 		return err
 	}
@@ -305,7 +306,7 @@ func (self *LocalCommitsController) edit(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) pick(commit *models.Commit) error {
-	applied, err := self.handleMidRebaseCommand("pick", commit)
+	applied, err := self.handleMidRebaseCommand(todo.Pick, commit)
 	if err != nil {
 		return err
 	}
@@ -326,12 +327,12 @@ func (self *LocalCommitsController) interactiveRebase(action string) error {
 // handleMidRebaseCommand sees if the selected commit is in fact a rebasing
 // commit meaning you are trying to edit the todo file rather than actually
 // begin a rebase. It then updates the todo file with that action
-func (self *LocalCommitsController) handleMidRebaseCommand(action string, commit *models.Commit) (bool, error) {
+func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoCommand, commit *models.Commit) (bool, error) {
 	if !commit.IsTODO() {
 		if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
 			// If we are in a rebase, the only action that is allowed for
 			// non-todo commits is rewording the current head commit
-			if !(action == "reword" && self.isHeadCommit()) {
+			if !(action == todo.Reword && self.isHeadCommit()) {
 				return true, self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 			}
 		}
@@ -343,13 +344,13 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action string, commit
 	// and that means we either unconditionally wait around for the subprocess to ask for
 	// our input or we set a lazygit client as the EDITOR env variable and have it
 	// request us to edit the commit message when prompted.
-	if action == "reword" {
+	if action == todo.Reword {
 		return true, self.c.ErrorMsg(self.c.Tr.LcRewordNotSupported)
 	}
 
 	self.c.LogAction("Update rebase TODO")
 	self.c.LogCommand(
-		fmt.Sprintf("Updating rebase action of commit %s to '%s'", commit.ShortSha(), action),
+		fmt.Sprintf("Updating rebase action of commit %s to '%s'", commit.ShortSha(), action.String()),
 		false,
 	)
 

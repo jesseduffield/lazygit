@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
@@ -202,7 +203,7 @@ func (self *RebaseCommands) AmendTo(commit *models.Commit) error {
 }
 
 // EditRebaseTodo sets the action at a given index in the git-rebase-todo file
-func (self *RebaseCommands) EditRebaseTodo(index int, action string) error {
+func (self *RebaseCommands) EditRebaseTodo(index int, action todo.TodoCommand) error {
 	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
 	bytes, err := os.ReadFile(fileName)
 	if err != nil {
@@ -216,7 +217,7 @@ func (self *RebaseCommands) EditRebaseTodo(index int, action string) error {
 	// it at the bottom, so we need to subtract our index from the commit count
 	contentIndex := commitCount - 1 - index
 	splitLine := strings.Split(content[contentIndex], " ")
-	content[contentIndex] = action + " " + strings.Join(splitLine[1:], " ")
+	content[contentIndex] = action.String() + " " + strings.Join(splitLine[1:], " ")
 	result := strings.Join(content, "\n")
 
 	return os.WriteFile(fileName, []byte(result), 0o644)
