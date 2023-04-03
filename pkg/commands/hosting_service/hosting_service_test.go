@@ -87,6 +87,16 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on github with specific target branch (different git username)",
+			from:      "feature/sum-operation",
+			to:        "feature/operations",
+			remoteUrl: "ssh://org-12345@github.com:peter/calculator.git",
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://github.com/peter/calculator/compare/feature%2Foperations...feature%2Fsum-operation?expand=1", url)
+			},
+		},
+		{
 			testName:  "Opens a link to new pull request on github with https remote url with specific target branch",
 			from:      "feature/sum-operation",
 			to:        "feature/operations",

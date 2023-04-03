@@ -4,7 +4,7 @@ package hosting_service
 // at regoio.herokuapp.com
 var defaultUrlRegexStrings = []string{
 	`^(?:https?|ssh)://[^/]+/(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
-	`^git@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
+	`^.*?@.*:(?P<owner>.*)/(?P<repo>.*?)(?:\.git)?$`,
 }
 var defaultRepoURLTemplate = "https://{{.webDomain}}/{{.owner}}/{{.repo}}"
 
