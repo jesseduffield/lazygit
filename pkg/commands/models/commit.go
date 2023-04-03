@@ -9,11 +9,23 @@ import (
 // Special commit hash for empty tree object
 const EmptyTreeCommitHash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
+type CommitStatus int
+
+const (
+	StatusNone CommitStatus = iota
+	StatusUnpushed
+	StatusPushed
+	StatusMerged
+	StatusRebasing
+	StatusSelected
+	StatusReflog
+)
+
 // Commit : A git commit
 type Commit struct {
 	Sha           string
 	Name          string
-	Status        string // one of "unpushed", "pushed", "merged", "rebasing" or "selected"
+	Status        CommitStatus
 	Action        string // one of "", "pick", "edit", "squash", "reword", "drop", "fixup"
 	Tags          []string
 	ExtraInfo     string // something like 'HEAD -> master, tag: v0.15.2'

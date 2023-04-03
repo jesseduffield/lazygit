@@ -346,16 +346,17 @@ func getShaColor(
 	diffed := commit.Sha == diffName
 	shaColor := theme.DefaultTextColor
 	switch commit.Status {
-	case "unpushed":
+	case models.StatusUnpushed:
 		shaColor = style.FgRed
-	case "pushed":
+	case models.StatusPushed:
 		shaColor = style.FgYellow
-	case "merged":
+	case models.StatusMerged:
 		shaColor = style.FgGreen
-	case "rebasing":
+	case models.StatusRebasing:
 		shaColor = style.FgBlue
-	case "reflog":
+	case models.StatusReflog:
 		shaColor = style.FgBlue
+	default:
 	}
 
 	if diffed {

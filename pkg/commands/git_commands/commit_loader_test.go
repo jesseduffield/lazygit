@@ -78,7 +78,7 @@ func TestGetCommits(t *testing.T) {
 				{
 					Sha:           "0eea75e8c631fba6b58135697835d58ba4c18dbc",
 					Name:          "better typing for rebase mode",
-					Status:        "unpushed",
+					Status:        models.StatusUnpushed,
 					Action:        "",
 					Tags:          []string{},
 					ExtraInfo:     "(HEAD -> better-tests)",
@@ -92,7 +92,7 @@ func TestGetCommits(t *testing.T) {
 				{
 					Sha:           "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164",
 					Name:          "fix logging",
-					Status:        "pushed",
+					Status:        models.StatusPushed,
 					Action:        "",
 					Tags:          []string{},
 					ExtraInfo:     "(origin/better-tests)",
@@ -106,7 +106,7 @@ func TestGetCommits(t *testing.T) {
 				{
 					Sha:           "e94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c",
 					Name:          "refactor",
-					Status:        "pushed",
+					Status:        models.StatusPushed,
 					Action:        "",
 					Tags:          []string{},
 					ExtraInfo:     "",
@@ -120,7 +120,7 @@ func TestGetCommits(t *testing.T) {
 				{
 					Sha:           "d8084cd558925eb7c9c38afeed5725c21653ab90",
 					Name:          "WIP",
-					Status:        "pushed",
+					Status:        models.StatusPushed,
 					Action:        "",
 					Tags:          []string{},
 					ExtraInfo:     "",
@@ -134,7 +134,7 @@ func TestGetCommits(t *testing.T) {
 				{
 					Sha:           "65f910ebd85283b5cce9bf67d03d3f1a9ea3813a",
 					Name:          "WIP",
-					Status:        "pushed",
+					Status:        models.StatusPushed,
 					Action:        "",
 					Tags:          []string{},
 					ExtraInfo:     "",
@@ -148,7 +148,7 @@ func TestGetCommits(t *testing.T) {
 				{
 					Sha:           "26c07b1ab33860a1a7591a0638f9925ccf497ffa",
 					Name:          "WIP",
-					Status:        "merged",
+					Status:        models.StatusMerged,
 					Action:        "",
 					Tags:          []string{},
 					ExtraInfo:     "",
@@ -162,7 +162,7 @@ func TestGetCommits(t *testing.T) {
 				{
 					Sha:           "3d4470a6c072208722e5ae9a54bcb9634959a1c5",
 					Name:          "WIP",
-					Status:        "merged",
+					Status:        models.StatusMerged,
 					Action:        "",
 					Tags:          []string{},
 					ExtraInfo:     "",
@@ -176,7 +176,7 @@ func TestGetCommits(t *testing.T) {
 				{
 					Sha:           "053a66a7be3da43aacdc7aa78e1fe757b82c4dd2",
 					Name:          "refactoring the config struct",
-					Status:        "merged",
+					Status:        models.StatusMerged,
 					Action:        "",
 					Tags:          []string{},
 					ExtraInfo:     "",

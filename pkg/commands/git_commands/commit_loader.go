@@ -89,7 +89,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		if commit.Sha == firstPushedCommit {
 			passedFirstPushedCommit = true
 		}
-		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
+		commit.Status = map[bool]models.CommitStatus{true: models.StatusUnpushed, false: models.StatusPushed}[!passedFirstPushedCommit]
 		commits = append(commits, commit)
 		return false, nil
 	})
@@ -312,7 +312,7 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 		commits = slices.Prepend(commits, &models.Commit{
 			Sha:    t.Commit,
 			Name:   t.Msg,
-			Status: "rebasing",
+			Status: models.StatusRebasing,
 			Action: t.Command.String(),
 		})
 	}
@@ -332,7 +332,7 @@ func (self *CommitLoader) commitFromPatch(content string) *models.Commit {
 	return &models.Commit{
 		Sha:    sha,
 		Name:   name,
-		Status: "rebasing",
+		Status: models.StatusRebasing,
 	}
 }
 
@@ -349,11 +349,11 @@ func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*mod
 		if strings.HasPrefix(ancestor, commit.Sha) {
 			passedAncestor = true
 		}
-		if commit.Status != "pushed" {
+		if commit.Status != models.StatusPushed {
 			continue
 		}
 		if passedAncestor {
-			commits[i].Status = "merged"
+			commits[i].Status = models.StatusMerged
 		}
 	}
 	return commits, nil
