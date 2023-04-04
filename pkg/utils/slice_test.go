@@ -233,3 +233,85 @@ func TestLimitStr(t *testing.T) {
 		}
 	}
 }
+
+func TestMoveElement(t *testing.T) {
+	type scenario struct {
+		testName string
+		list     []int
+		from     int
+		to       int
+		expected []int
+	}
+
+	scenarios := []scenario{
+		{
+			"no elements",
+			[]int{},
+			0,
+			0,
+			[]int{},
+		},
+		{
+			"one element",
+			[]int{1},
+			0,
+			0,
+			[]int{1},
+		},
+		{
+			"two elements, moving first to second",
+			[]int{1, 2},
+			0,
+			1,
+			[]int{2, 1},
+		},
+		{
+			"two elements, moving second to first",
+			[]int{1, 2},
+			1,
+			0,
+			[]int{2, 1},
+		},
+		{
+			"three elements, moving first to second",
+			[]int{1, 2, 3},
+			0,
+			1,
+			[]int{2, 1, 3},
+		},
+		{
+			"three elements, moving second to first",
+			[]int{1, 2, 3},
+			1,
+			0,
+			[]int{2, 1, 3},
+		},
+		{
+			"three elements, moving second to third",
+			[]int{1, 2, 3},
+			1,
+			2,
+			[]int{1, 3, 2},
+		},
+		{
+			"three elements, moving third to second",
+			[]int{1, 2, 3},
+			2,
+			1,
+			[]int{1, 3, 2},
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			assert.EqualValues(t, s.expected, MoveElement(s.list, s.from, s.to))
+		})
+	}
+
+	t.Run("from out of bounds", func(t *testing.T) {
+		assert.Panics(t, func() {
+			MoveElement([]int{1, 2, 3}, 3, 0)
+		})
+	})
+}

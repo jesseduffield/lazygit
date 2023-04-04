@@ -2,7 +2,6 @@ package git_commands
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -226,34 +225,16 @@ func (self *RebaseCommands) EditRebaseTodo(commit *models.Commit, action todo.To
 	return fmt.Errorf("Todo %s not found in git-rebase-todo", commit.Sha)
 }
 
-func (self *RebaseCommands) getTodoCommitCount(content []string) int {
-	// count lines that are not blank and are not comments
-	commitCount := 0
-	for _, line := range content {
-		if line != "" && !strings.HasPrefix(line, "#") {
-			commitCount++
-		}
-	}
-	return commitCount
+// MoveTodoDown moves a rebase todo item down by one position
+func (self *RebaseCommands) MoveTodoDown(commit *models.Commit) error {
+	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
+	return utils.MoveTodoDown(fileName, commit.Sha, commit.Action)
 }
 
 // MoveTodoDown moves a rebase todo item down by one position
-func (self *RebaseCommands) MoveTodoDown(index int) error {
+func (self *RebaseCommands) MoveTodoUp(commit *models.Commit) error {
 	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
-	bytes, err := os.ReadFile(fileName)
-	if err != nil {
-		return err
-	}
-
-	content := strings.Split(string(bytes), "\n")
-	commitCount := self.getTodoCommitCount(content)
-	contentIndex := commitCount - 1 - index
-
-	rearrangedContent := append(content[0:contentIndex-1], content[contentIndex], content[contentIndex-1])
-	rearrangedContent = append(rearrangedContent, content[contentIndex+1:]...)
-	result := strings.Join(rearrangedContent, "\n")
-
-	return os.WriteFile(fileName, []byte(result), 0o644)
+	return utils.MoveTodoUp(fileName, commit.Sha, commit.Action)
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one

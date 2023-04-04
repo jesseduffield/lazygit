@@ -382,7 +382,7 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 		self.c.LogCommand(fmt.Sprintf("Moving commit %s down", commit.ShortSha()), false)
 
-		if err := self.git.Rebase.MoveTodoDown(index); err != nil {
+		if err := self.git.Rebase.MoveTodoDown(commit); err != nil {
 			return self.c.Error(err)
 		}
 		self.context().MoveSelectedLine(1)
@@ -420,7 +420,7 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 			false,
 		)
 
-		if err := self.git.Rebase.MoveTodoDown(index - 1); err != nil {
+		if err := self.git.Rebase.MoveTodoUp(self.model.Commits[index]); err != nil {
 			return self.c.Error(err)
 		}
 		self.context().MoveSelectedLine(-1)
