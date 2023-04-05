@@ -311,7 +311,9 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 	}
 
 	for _, t := range todos {
-		if t.Commit == "" {
+		if t.Command == todo.UpdateRef {
+			t.Msg = strings.TrimPrefix(t.Ref, "refs/heads/")
+		} else if t.Commit == "" {
 			// Command does not have a commit associated, skip
 			continue
 		}

@@ -105,6 +105,7 @@ type TranslationSet struct {
 	SureResetCommitAuthor               string
 	LcRenameCommitEditor                string
 	NoCommitsThisBranch                 string
+	UpdateRefHere                       string
 	Error                               string
 	LcSelectHunk                        string
 	LcNavigateConflicts                 string
@@ -754,6 +755,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcSquashDown:                        "squash down",
 		LcFixupCommit:                       "fixup commit",
 		NoCommitsThisBranch:                 "No commits for this branch",
+		UpdateRefHere:                       "Update branch '{{.ref}}' here",
 		CannotSquashOrFixupFirstCommit:      "There's no commit below to squash into",
 		Fixup:                               "Fixup",
 		SureFixupThisCommit:                 "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",

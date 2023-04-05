@@ -347,7 +347,7 @@ func getShaColor(
 		return getBisectStatusColor(bisectStatus)
 	}
 
-	diffed := commit.Sha == diffName
+	diffed := commit.Sha != "" && commit.Sha == diffName
 	shaColor := theme.DefaultTextColor
 	switch commit.Status {
 	case models.StatusUnpushed:
