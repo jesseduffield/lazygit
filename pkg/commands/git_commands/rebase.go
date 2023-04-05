@@ -127,20 +127,6 @@ func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index in
 	}).Run()
 }
 
-func (self *RebaseCommands) InteractiveRebaseBreakAfter(commits []*models.Commit, index int) error {
-	todo, sha, err := self.BuildSingleActionTodo(commits, index-1, "pick")
-	if err != nil {
-		return err
-	}
-
-	todo = append(todo, TodoLine{Action: "break", Commit: nil})
-	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseShaOrRoot:  sha,
-		todoLines:      todo,
-		overrideEditor: true,
-	}).Run()
-}
-
 func (self *RebaseCommands) EditRebase(branchRef string) error {
 	commands := []TodoLine{{Action: "break"}}
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{

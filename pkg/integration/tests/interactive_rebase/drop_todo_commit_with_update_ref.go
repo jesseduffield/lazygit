@@ -30,17 +30,8 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 02"),
 				Contains("commit 01"),
 			).
-			// Once "e" is fixed we can just hit "e", but for now we need to
-			// manually do a command-line rebase
-			// NavigateToLine(Contains("commit 01")).
-			// Press(keys.Universal.Edit).
-			Tap(func() {
-				t.GlobalPress(keys.Universal.ExecuteCustomCommand)
-				t.ExpectPopup().Prompt().
-					Title(Equals("Custom Command:")).
-					Type(`git -c core.editor="perl -i -lpe 'print \"break\" if $.==1'" rebase -i HEAD~5`).
-					Confirm()
-			}).
+			NavigateToLine(Contains("commit 01")).
+			Press(keys.Universal.Edit).
 			Focus().
 			Lines(
 				Contains("pick").Contains("(*) commit 06"),
