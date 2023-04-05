@@ -1,13 +1,16 @@
 package daemon
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // Sometimes lazygit will be invoked in daemon mode from a parent lazygit process.
@@ -34,6 +37,15 @@ const (
 	// to prepend the content of `RebaseTODOEnvKey` to the default `git-rebase-todo`
 	// file instead of using it as a replacement.
 	PrependLinesEnvKey string = "LAZYGIT_PREPEND_LINES"
+
+	// If this is set, it tells lazygit to read the original todo file, and
+	// change the action for one or more entries in it. The value of the variable
+	// will have one or more lines of the form "Sha1:newAction", e.g.
+	// a02b54e1b7e7e8dd8bc1958c11ef4ee4df459ea4:edit
+	// The existing action of the todo to be changed is expected to be "pick".
+	//
+	// If this is used, the value of RebaseTODOEnvKey must be empty.
+	ChangeTodoActionEnvKey string = "LAZYGIT_CHANGE_TODO_ACTION"
 )
 
 type Daemon interface {
@@ -94,19 +106,52 @@ func (self *rebaseDaemon) Run() error {
 }
 
 func (self *rebaseDaemon) writeTodoFile(path string) error {
-	todoContent := []byte(os.Getenv(RebaseTODOEnvKey))
+	if changeTodoActionEnvValue := os.Getenv(ChangeTodoActionEnvKey); changeTodoActionEnvValue != "" {
+		return self.changeTodoAction(path, changeTodoActionEnvValue)
+	} else {
+		todoContent := []byte(os.Getenv(RebaseTODOEnvKey))
 
-	prependLines := os.Getenv(PrependLinesEnvKey) != ""
-	if prependLines {
-		existingContent, err := os.ReadFile(path)
-		if err != nil {
-			return err
+		prependLines := os.Getenv(PrependLinesEnvKey) != ""
+		if prependLines {
+			existingContent, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+
+			todoContent = append(todoContent, existingContent...)
 		}
 
-		todoContent = append(todoContent, existingContent...)
+		return os.WriteFile(path, todoContent, 0o644)
+	}
+}
+
+func (self *rebaseDaemon) changeTodoAction(path string, changeTodoActionEnvValue string) error {
+	lines := strings.Split(changeTodoActionEnvValue, "\n")
+	for _, line := range lines {
+		fields := strings.Split(line, ":")
+		if len(fields) != 2 {
+			return fmt.Errorf("Unexpected value for %s: %s", ChangeTodoActionEnvKey, changeTodoActionEnvValue)
+		}
+		sha, newAction := fields[0], self.actionFromString(fields[1])
+		if int(newAction) == 0 {
+			return fmt.Errorf("Unknown action in %s", changeTodoActionEnvValue)
+		}
+		if err := utils.EditRebaseTodo(path, sha, todo.Pick, newAction); err != nil {
+			return err
+		}
 	}
 
-	return os.WriteFile(path, todoContent, 0o644)
+	return nil
+}
+
+func (self *rebaseDaemon) actionFromString(actionString string) todo.TodoCommand {
+	for t := todo.Pick; t < todo.Comment; t++ {
+		if t.String() == actionString {
+			return t
+		}
+	}
+
+	return 0
 }
 
 func gitDir() string {

@@ -169,7 +169,7 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
-				return self.interactiveRebase("squash")
+				return self.interactiveRebase(todo.Squash)
 			})
 		},
 	})
@@ -194,7 +194,7 @@ func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.FixupCommit)
-				return self.interactiveRebase("fixup")
+				return self.interactiveRebase(todo.Fixup)
 			})
 		},
 	})
@@ -284,7 +284,7 @@ func (self *LocalCommitsController) drop(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
-				return self.interactiveRebase("drop")
+				return self.interactiveRebase(todo.Drop)
 			})
 		},
 	})
@@ -320,7 +320,7 @@ func (self *LocalCommitsController) pick(commit *models.Commit) error {
 	return self.pullFiles()
 }
 
-func (self *LocalCommitsController) interactiveRebase(action string) error {
+func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand) error {
 	err := self.git.Rebase.InteractiveRebase(self.model.Commits, self.context().GetSelectedLineIdx(), action)
 	return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 }

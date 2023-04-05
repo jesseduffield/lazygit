@@ -55,14 +55,14 @@ func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, me
 }
 
 func (self *RebaseCommands) RewordCommitInEditor(commits []*models.Commit, index int) (oscommands.ICmdObj, error) {
-	todo, sha, err := self.BuildSingleActionTodo(commits, index, "reword")
-	if err != nil {
-		return nil, err
-	}
-
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseShaOrRoot: sha,
-		todoLines:     todo,
+		baseShaOrRoot: getBaseShaOrRoot(commits, index+1),
+		changeTodoActions: []ChangeTodoAction{
+			{
+				sha:       commits[index].Sha,
+				newAction: todo.Reword,
+			},
+		},
 	}), nil
 }
 
@@ -114,16 +114,21 @@ func (self *RebaseCommands) MoveCommitDown(commits []*models.Commit, index int) 
 	}).Run()
 }
 
-func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index int, action string) error {
-	todo, sha, err := self.BuildSingleActionTodo(commits, index, action)
-	if err != nil {
-		return err
+func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index int, action todo.TodoCommand) error {
+	baseIndex := index + 1
+	if action == todo.Squash || action == todo.Fixup {
+		baseIndex++
 	}
 
+	baseShaOrRoot := getBaseShaOrRoot(commits, baseIndex)
+
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseShaOrRoot:  sha,
-		todoLines:      todo,
+		baseShaOrRoot:  baseShaOrRoot,
 		overrideEditor: true,
+		changeTodoActions: []ChangeTodoAction{{
+			sha:       commits[index].Sha,
+			newAction: action,
+		}},
 	}).Run()
 }
 
@@ -136,11 +141,17 @@ func (self *RebaseCommands) EditRebase(branchRef string) error {
 	}).Run()
 }
 
+type ChangeTodoAction struct {
+	sha       string
+	newAction todo.TodoCommand
+}
+
 type PrepareInteractiveRebaseCommandOpts struct {
-	baseShaOrRoot  string
-	todoLines      []TodoLine
-	overrideEditor bool
-	prepend        bool
+	baseShaOrRoot     string
+	todoLines         []TodoLine
+	overrideEditor    bool
+	prepend           bool
+	changeTodoActions []ChangeTodoAction
 }
 
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
@@ -159,6 +170,14 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 		debug = "TRUE"
 	}
 
+	changeTodoValue := strings.Join(slices.Map(opts.changeTodoActions, func(c ChangeTodoAction) string {
+		return fmt.Sprintf("%s:%s", c.sha, c.newAction)
+	}), "\n")
+
+	if todo != "" && changeTodoValue != "" {
+		panic("It's not allowed to pass both todoLines and changeActionOpts")
+	}
+
 	rebaseMergesArg := " --rebase-merges"
 	if self.version.IsOlderThan(2, 22, 0) {
 		rebaseMergesArg = ""
@@ -170,16 +189,19 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 	cmdObj := self.cmd.New(cmdStr)
 
 	gitSequenceEditor := ex
-	if todo == "" {
-		gitSequenceEditor = "true"
-	} else {
+	if todo != "" {
 		self.os.LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
+	} else if changeTodoValue != "" {
+		self.os.LogCommand(fmt.Sprintf("Changing TODO action: %s", changeTodoValue), false)
+	} else {
+		gitSequenceEditor = "true"
 	}
 
 	cmdObj.AddEnvVars(
 		daemon.DaemonKindEnvKey+"="+string(daemon.InteractiveRebase),
 		daemon.RebaseTODOEnvKey+"="+todo,
 		daemon.PrependLinesEnvKey+"="+prependLines,
+		daemon.ChangeTodoActionEnvKey+"="+changeTodoValue,
 		"DEBUG="+debug,
 		"LANG=en_US.UTF-8",   // Force using EN as language
 		"LC_ALL=en_US.UTF-8", // Force using EN as language
@@ -191,33 +213,6 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 	}
 
 	return cmdObj
-}
-
-// produces TodoLines where every commit is picked (or dropped for merge commits) except for the commit at the given index, which
-// will have the given action applied to it.
-func (self *RebaseCommands) BuildSingleActionTodo(commits []*models.Commit, actionIndex int, action string) ([]TodoLine, string, error) {
-	baseIndex := actionIndex + 1
-
-	if action == "squash" || action == "fixup" {
-		baseIndex++
-	}
-
-	todoLines := self.BuildTodoLines(commits[0:baseIndex], func(commit *models.Commit, i int) string {
-		if i == actionIndex {
-			return action
-		} else if commit.IsMerge() {
-			// your typical interactive rebase will actually drop merge commits by default. Damn git CLI, you scary!
-			// doing this means we don't need to worry about rebasing over merges which always causes problems.
-			// you typically shouldn't be doing rebases that pass over merge commits anyway.
-			return "drop"
-		} else {
-			return "pick"
-		}
-	})
-
-	baseShaOrRoot := getBaseShaOrRoot(commits, baseIndex)
-
-	return todoLines, baseShaOrRoot, nil
 }
 
 // AmendTo amends the given commit with whatever files are staged
@@ -278,15 +273,13 @@ func (self *RebaseCommands) BeginInteractiveRebaseForCommit(commits []*models.Co
 		return errors.New(self.Tr.DisabledForGPG)
 	}
 
-	todo, sha, err := self.BuildSingleActionTodo(commits, commitIndex, "edit")
-	if err != nil {
-		return err
-	}
-
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseShaOrRoot:  sha,
-		todoLines:      todo,
+		baseShaOrRoot:  getBaseShaOrRoot(commits, commitIndex+1),
 		overrideEditor: true,
+		changeTodoActions: []ChangeTodoAction{{
+			sha:       commits[commitIndex].Sha,
+			newAction: todo.Edit,
+		}},
 	}).Run()
 }
 
