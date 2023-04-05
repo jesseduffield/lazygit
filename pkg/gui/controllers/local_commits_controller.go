@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type (
@@ -346,6 +347,10 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoComma
 	// request us to edit the commit message when prompted.
 	if action == todo.Reword {
 		return true, self.c.ErrorMsg(self.c.Tr.LcRewordNotSupported)
+	}
+
+	if allowed := isChangeOfRebaseTodoAllowed(action); !allowed {
+		return true, self.c.ErrorMsg(self.c.Tr.LcChangingThisActionIsNotAllowed)
 	}
 
 	self.c.LogAction("Update rebase TODO")
@@ -758,4 +763,17 @@ func (self *LocalCommitsController) paste() error {
 
 func (self *LocalCommitsController) isHeadCommit() bool {
 	return models.IsHeadCommit(self.model.Commits, self.context().GetSelectedLineIdx())
+}
+
+func isChangeOfRebaseTodoAllowed(action todo.TodoCommand) bool {
+	allowedActions := []todo.TodoCommand{
+		todo.Pick,
+		todo.Drop,
+		todo.Edit,
+		todo.Fixup,
+		todo.Squash,
+		todo.Reword,
+	}
+
+	return lo.Contains(allowedActions, action)
 }
