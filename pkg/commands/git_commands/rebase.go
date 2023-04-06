@@ -231,25 +231,8 @@ func (self *RebaseCommands) AmendTo(commit *models.Commit) error {
 
 // EditRebaseTodo sets the action for a given rebase commit in the git-rebase-todo file
 func (self *RebaseCommands) EditRebaseTodo(commit *models.Commit, action todo.TodoCommand) error {
-	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
-	todos, err := utils.ReadRebaseTodoFile(fileName)
-	if err != nil {
-		return err
-	}
-
-	for i := range todos {
-		t := &todos[i]
-		// Comparing just the sha is not enough; we need to compare both the
-		// action and the sha, as the sha could appear multiple times (e.g. in a
-		// pick and later in a merge)
-		if t.Command == commit.Action && t.Commit == commit.Sha {
-			t.Command = action
-			return utils.WriteRebaseTodoFile(fileName, todos)
-		}
-	}
-
-	// Should never get here
-	return fmt.Errorf("Todo %s not found in git-rebase-todo", commit.Sha)
+	return utils.EditRebaseTodo(
+		filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo"), commit.Sha, commit.Action, action)
 }
 
 // MoveTodoDown moves a rebase todo item down by one position

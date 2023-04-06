@@ -9,6 +9,29 @@ import (
 	"github.com/samber/lo"
 )
 
+// Read a git-rebase-todo file, change the action for the given sha to
+// newAction, and write it back
+func EditRebaseTodo(filePath string, sha string, oldAction todo.TodoCommand, newAction todo.TodoCommand) error {
+	todos, err := ReadRebaseTodoFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	for i := range todos {
+		t := &todos[i]
+		// Comparing just the sha is not enough; we need to compare both the
+		// action and the sha, as the sha could appear multiple times (e.g. in a
+		// pick and later in a merge)
+		if t.Command == oldAction && equalShas(t.Commit, sha) {
+			t.Command = newAction
+			return WriteRebaseTodoFile(filePath, todos)
+		}
+	}
+
+	// Should never get here
+	return fmt.Errorf("Todo %s not found in git-rebase-todo", sha)
+}
+
 func equalShas(a, b string) bool {
 	return strings.HasPrefix(a, b) || strings.HasPrefix(b, a)
 }
