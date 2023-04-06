@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -57,11 +58,11 @@ func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, me
 func (self *RebaseCommands) RewordCommitInEditor(commits []*models.Commit, index int) (oscommands.ICmdObj, error) {
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot: getBaseShaOrRoot(commits, index+1),
-		changeTodoActions: []ChangeTodoAction{
-			{
-				sha:       commits[index].Sha,
-				newAction: todo.Reword,
-			},
+		instruction: ChangeTodoActionsInstruction{
+			actions: []daemon.ChangeTodoAction{{
+				Sha:       commits[index].Sha,
+				NewAction: todo.Reword,
+			}},
 		},
 	}), nil
 }
@@ -103,8 +104,8 @@ func (self *RebaseCommands) MoveCommitDown(commits []*models.Commit, index int) 
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  baseShaOrRoot,
+		instruction:    MoveDownInstruction{sha: commits[index].Sha},
 		overrideEditor: true,
-		moveDown:       commits[index].Sha,
 	}).Run()
 }
 
@@ -113,8 +114,8 @@ func (self *RebaseCommands) MoveCommitUp(commits []*models.Commit, index int) er
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  baseShaOrRoot,
+		instruction:    MoveUpInstruction{sha: commits[index].Sha},
 		overrideEditor: true,
-		moveUp:         commits[index].Sha,
 	}).Run()
 }
 
@@ -127,12 +128,14 @@ func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index in
 	baseShaOrRoot := getBaseShaOrRoot(commits, baseIndex)
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseShaOrRoot:  baseShaOrRoot,
+		baseShaOrRoot: baseShaOrRoot,
+		instruction: ChangeTodoActionsInstruction{
+			actions: []daemon.ChangeTodoAction{{
+				Sha:       commits[index].Sha,
+				NewAction: action,
+			}},
+		},
 		overrideEditor: true,
-		changeTodoActions: []ChangeTodoAction{{
-			sha:       commits[index].Sha,
-			newAction: action,
-		}},
 	}).Run()
 }
 
@@ -140,57 +143,70 @@ func (self *RebaseCommands) EditRebase(branchRef string) error {
 	commands := []TodoLine{{Action: "break"}}
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot: branchRef,
-		todoLines:     commands,
-		prepend:       true,
+		instruction:   PrependLinesInstruction{todoLines: commands},
 	}).Run()
 }
 
-type ChangeTodoAction struct {
-	sha       string
-	newAction todo.TodoCommand
+type InteractiveRebaseInstruction interface {
+	// Add our data to the instructions struct, and return a log string
+	serialize(instructions *daemon.InteractiveRebaseInstructions) string
+}
+
+type PrependLinesInstruction struct {
+	todoLines []TodoLine
+}
+
+func (self PrependLinesInstruction) serialize(instructions *daemon.InteractiveRebaseInstructions) string {
+	todoStr := TodoLinesToString(self.todoLines)
+	instructions.LinesToPrependToRebaseTODO = todoStr
+	return fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todoStr)
+}
+
+type ChangeTodoActionsInstruction struct {
+	actions []daemon.ChangeTodoAction
+}
+
+func (self ChangeTodoActionsInstruction) serialize(instructions *daemon.InteractiveRebaseInstructions) string {
+	instructions.ChangeTodoActions = self.actions
+	changeTodoStr := strings.Join(slices.Map(self.actions, func(c daemon.ChangeTodoAction) string {
+		return fmt.Sprintf("%s:%s", c.Sha, c.NewAction)
+	}), "\n")
+	return fmt.Sprintf("Changing TODO actions: %s", changeTodoStr)
+}
+
+type MoveDownInstruction struct {
+	sha string
+}
+
+func (self MoveDownInstruction) serialize(instructions *daemon.InteractiveRebaseInstructions) string {
+	instructions.ShaToMoveDown = self.sha
+	return fmt.Sprintf("Moving TODO down: %s", self.sha)
+}
+
+type MoveUpInstruction struct {
+	sha string
+}
+
+func (self MoveUpInstruction) serialize(instructions *daemon.InteractiveRebaseInstructions) string {
+	instructions.ShaToMoveUp = self.sha
+	return fmt.Sprintf("Moving TODO up: %s", self.sha)
 }
 
 type PrepareInteractiveRebaseCommandOpts struct {
-	baseShaOrRoot     string
-	todoLines         []TodoLine
-	overrideEditor    bool
-	prepend           bool
-	changeTodoActions []ChangeTodoAction
-	moveDown          string
-	moveUp            string
+	baseShaOrRoot  string
+	instruction    InteractiveRebaseInstruction
+	overrideEditor bool
 }
 
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
 // we tell git to run lazygit to edit the todo list, and we pass the client
 // lazygit a todo string to write to the todo file
 func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteractiveRebaseCommandOpts) oscommands.ICmdObj {
-	todo := self.buildTodo(opts.todoLines)
 	ex := oscommands.GetLazygitPath()
-	prependLines := ""
-	if opts.prepend {
-		prependLines = "TRUE"
-	}
 
 	debug := "FALSE"
 	if self.Debug {
 		debug = "TRUE"
-	}
-
-	changeTodoValue := strings.Join(slices.Map(opts.changeTodoActions, func(c ChangeTodoAction) string {
-		return fmt.Sprintf("%s:%s", c.sha, c.newAction)
-	}), "\n")
-
-	moveDownValue := ""
-	if opts.moveDown != "" {
-		moveDownValue = opts.moveDown
-	}
-	moveUpValue := ""
-	if opts.moveUp != "" {
-		moveUpValue = opts.moveUp
-	}
-
-	if todo != "" && changeTodoValue != "" {
-		panic("It's not allowed to pass both todoLines and changeActionOpts")
 	}
 
 	rebaseMergesArg := " --rebase-merges"
@@ -204,25 +220,24 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 	cmdObj := self.cmd.New(cmdStr)
 
 	gitSequenceEditor := ex
-	if todo != "" {
-		self.os.LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
-	} else if changeTodoValue != "" {
-		self.os.LogCommand(fmt.Sprintf("Changing TODO action: %s", changeTodoValue), false)
-	} else if moveDownValue != "" {
-		self.os.LogCommand(fmt.Sprintf("Moving TODO down: %s", moveDownValue), false)
-	} else if moveUpValue != "" {
-		self.os.LogCommand(fmt.Sprintf("Moving TODO up: %s", moveUpValue), false)
+
+	if opts.instruction != nil {
+		instructions := daemon.InteractiveRebaseInstructions{}
+		logStr := opts.instruction.serialize(&instructions)
+		jsonData, err := json.Marshal(instructions)
+		if err == nil {
+			envVar := fmt.Sprintf("%s=%s", daemon.InteractiveRebaseInstructionsEnvKey, jsonData)
+			cmdObj.AddEnvVars(envVar)
+			self.os.LogCommand(logStr, false)
+		} else {
+			self.Log.Error(err)
+		}
 	} else {
 		gitSequenceEditor = "true"
 	}
 
 	cmdObj.AddEnvVars(
 		daemon.DaemonKindEnvKey+"="+string(daemon.InteractiveRebase),
-		daemon.RebaseTODOEnvKey+"="+todo,
-		daemon.PrependLinesEnvKey+"="+prependLines,
-		daemon.ChangeTodoActionEnvKey+"="+changeTodoValue,
-		daemon.MoveTodoDownEnvKey+"="+moveDownValue,
-		daemon.MoveTodoUpEnvKey+"="+moveUpValue,
 		"DEBUG="+debug,
 		"LANG=en_US.UTF-8",   // Force using EN as language
 		"LC_ALL=en_US.UTF-8", // Force using EN as language
@@ -297,10 +312,12 @@ func (self *RebaseCommands) BeginInteractiveRebaseForCommit(commits []*models.Co
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  getBaseShaOrRoot(commits, commitIndex+1),
 		overrideEditor: true,
-		changeTodoActions: []ChangeTodoAction{{
-			sha:       commits[commitIndex].Sha,
-			newAction: todo.Edit,
-		}},
+		instruction: ChangeTodoActionsInstruction{
+			actions: []daemon.ChangeTodoAction{{
+				Sha:       commits[commitIndex].Sha,
+				NewAction: todo.Edit,
+			}},
+		},
 	}).Run()
 }
 
@@ -393,11 +410,13 @@ func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot: "HEAD",
-		todoLines:     todoLines,
+		instruction: PrependLinesInstruction{
+			todoLines: todoLines,
+		},
 	}).Run()
 }
 
-func (self *RebaseCommands) buildTodo(todoLines []TodoLine) string {
+func TodoLinesToString(todoLines []TodoLine) string {
 	lines := slices.Map(todoLines, func(todoLine TodoLine) string {
 		return todoLine.ToString()
 	})

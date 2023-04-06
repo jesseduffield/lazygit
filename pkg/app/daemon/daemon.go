@@ -1,8 +1,7 @@
 package daemon
 
 import (
-	"fmt"
-	"io"
+	"encoding/json"
 	"log"
 	"os"
 	"path/filepath"
@@ -32,39 +31,39 @@ const (
 
 const (
 	DaemonKindEnvKey string = "LAZYGIT_DAEMON_KIND"
-	RebaseTODOEnvKey string = "LAZYGIT_REBASE_TODO"
 
-	// The `PrependLinesEnvKey` env variable is set to `true` to tell our daemon
-	// to prepend the content of `RebaseTODOEnvKey` to the default `git-rebase-todo`
-	// file instead of using it as a replacement.
-	PrependLinesEnvKey string = "LAZYGIT_PREPEND_LINES"
+	// Contains a json-encoded instance of the InteractiveRebaseInstructions struct
+	InteractiveRebaseInstructionsEnvKey string = "LAZYGIT_DAEMON_INSTRUCTIONS"
+)
 
-	// If this is set, it tells lazygit to read the original todo file, and
-	// change the action for one or more entries in it. The value of the variable
-	// will have one or more lines of the form "Sha1:newAction", e.g.
-	// a02b54e1b7e7e8dd8bc1958c11ef4ee4df459ea4:edit
+// Exactly one of the fields in this struct is expected to be non-empty
+type InteractiveRebaseInstructions struct {
+	// If this is non-empty, this string is prepended to the git-rebase-todo
+	// file. The string is expected to have newlines at the end of each line.
+	LinesToPrependToRebaseTODO string
+
+	// If this is non-empty, it tells lazygit to read the original todo file, and
+	// change the action for one or more entries in it.
 	// The existing action of the todo to be changed is expected to be "pick".
-	//
-	// If this is used, the value of RebaseTODOEnvKey must be empty.
-	ChangeTodoActionEnvKey string = "LAZYGIT_CHANGE_TODO_ACTION"
+	ChangeTodoActions []ChangeTodoAction
 
 	// Can be set to the sha of a "pick" todo that will be moved down by one.
-	MoveTodoDownEnvKey string = "LAZYGIT_MOVE_COMMIT_DOWN"
+	ShaToMoveDown string
 
 	// Can be set to the sha of a "pick" todo that will be moved up by one.
-	MoveTodoUpEnvKey string = "LAZYGIT_MOVE_COMMIT_UP"
-)
+	ShaToMoveUp string
+}
+
+type ChangeTodoAction struct {
+	Sha       string
+	NewAction todo.TodoCommand
+}
 
 type Daemon interface {
 	Run() error
 }
 
-var logFile io.StringWriter
-
 func Handle(common *common.Common) {
-	logFile, _ = os.Create("/tmp/daemon-log.txt")
-	_, _ = logFile.WriteString("Hello Daemon\n")
-
 	d := getDaemon(common)
 	if d == nil {
 		return
@@ -118,58 +117,35 @@ func (self *rebaseDaemon) Run() error {
 }
 
 func (self *rebaseDaemon) writeTodoFile(path string) error {
-	if changeTodoActionEnvValue := os.Getenv(ChangeTodoActionEnvKey); changeTodoActionEnvValue != "" {
-		return self.changeTodoAction(path, changeTodoActionEnvValue)
-	} else if shaToMoveDown := os.Getenv(MoveTodoDownEnvKey); shaToMoveDown != "" {
-		_, _ = logFile.WriteString(fmt.Sprintf("Moving commit down: %s\n", shaToMoveDown))
-		return utils.MoveTodoDown(path, shaToMoveDown, todo.Pick)
-	} else if shaToMoveUp := os.Getenv(MoveTodoUpEnvKey); shaToMoveUp != "" {
-		_, _ = logFile.WriteString(fmt.Sprintf("Moving commit up: %s\n", shaToMoveUp))
-		return utils.MoveTodoUp(path, shaToMoveUp, todo.Pick)
-	} else {
-		todoContent := []byte(os.Getenv(RebaseTODOEnvKey))
-
-		prependLines := os.Getenv(PrependLinesEnvKey) != ""
-		if prependLines {
-			existingContent, err := os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-
-			todoContent = append(todoContent, existingContent...)
-		}
-
-		return os.WriteFile(path, todoContent, 0o644)
+	jsonData := os.Getenv(InteractiveRebaseInstructionsEnvKey)
+	instructions := InteractiveRebaseInstructions{}
+	err := json.Unmarshal([]byte(jsonData), &instructions)
+	if err != nil {
+		return err
 	}
+
+	if instructions.LinesToPrependToRebaseTODO != "" {
+		return utils.PrependStrToTodoFile(path, []byte(instructions.LinesToPrependToRebaseTODO))
+	} else if len(instructions.ChangeTodoActions) != 0 {
+		return self.changeTodoAction(path, instructions.ChangeTodoActions)
+	} else if instructions.ShaToMoveDown != "" {
+		return utils.MoveTodoDown(path, instructions.ShaToMoveDown, todo.Pick)
+	} else if instructions.ShaToMoveUp != "" {
+		return utils.MoveTodoUp(path, instructions.ShaToMoveUp, todo.Pick)
+	}
+
+	self.c.Log.Error("No instructions were given to daemon")
+	return nil
 }
 
-func (self *rebaseDaemon) changeTodoAction(path string, changeTodoActionEnvValue string) error {
-	lines := strings.Split(changeTodoActionEnvValue, "\n")
-	for _, line := range lines {
-		fields := strings.Split(line, ":")
-		if len(fields) != 2 {
-			return fmt.Errorf("Unexpected value for %s: %s", ChangeTodoActionEnvKey, changeTodoActionEnvValue)
-		}
-		sha, newAction := fields[0], self.actionFromString(fields[1])
-		if int(newAction) == 0 {
-			return fmt.Errorf("Unknown action in %s", changeTodoActionEnvValue)
-		}
-		if err := utils.EditRebaseTodo(path, sha, todo.Pick, newAction); err != nil {
+func (self *rebaseDaemon) changeTodoAction(path string, changeTodoActions []ChangeTodoAction) error {
+	for _, c := range changeTodoActions {
+		if err := utils.EditRebaseTodo(path, c.Sha, todo.Pick, c.NewAction); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func (self *rebaseDaemon) actionFromString(actionString string) todo.TodoCommand {
-	for t := todo.Pick; t < todo.Comment; t++ {
-		if t.String() == actionString {
-			return t
-		}
-	}
-
-	return 0
 }
 
 func gitDir() string {

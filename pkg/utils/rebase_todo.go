@@ -63,6 +63,16 @@ func WriteRebaseTodoFile(fileName string, todos []todo.Todo) error {
 	return err
 }
 
+func PrependStrToTodoFile(filePath string, linesToPrepend []byte) error {
+	existingContent, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	linesToPrepend = append(linesToPrepend, existingContent...)
+	return os.WriteFile(filePath, linesToPrepend, 0o644)
+}
+
 func MoveTodoDown(fileName string, sha string, action todo.TodoCommand) error {
 	todos, err := ReadRebaseTodoFile(fileName)
 	if err != nil {

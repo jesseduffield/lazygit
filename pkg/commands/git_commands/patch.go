@@ -5,6 +5,7 @@ import (
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -107,9 +108,11 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	err := self.rebase.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  commits[baseIndex].Sha,
 		overrideEditor: true,
-		changeTodoActions: []ChangeTodoAction{
-			{sha: commits[sourceCommitIdx].Sha, newAction: todo.Edit},
-			{sha: commits[destinationCommitIdx].Sha, newAction: todo.Edit},
+		instruction: ChangeTodoActionsInstruction{
+			actions: []daemon.ChangeTodoAction{
+				{Sha: commits[sourceCommitIdx].Sha, NewAction: todo.Edit},
+				{Sha: commits[destinationCommitIdx].Sha, NewAction: todo.Edit},
+			},
 		},
 	}).Run()
 	if err != nil {
