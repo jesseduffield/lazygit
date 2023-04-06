@@ -99,18 +99,22 @@ func (self *RebaseCommands) GenericAmend(commits []*models.Commit, index int, f 
 }
 
 func (self *RebaseCommands) MoveCommitDown(commits []*models.Commit, index int) error {
-	// not appending to original slice so that we don't mutate it
-	orderedCommits := append([]*models.Commit{}, commits[0:index]...)
-	orderedCommits = append(orderedCommits, commits[index+1], commits[index])
-
-	todoLines := self.BuildTodoLinesSingleAction(orderedCommits, "pick")
-
 	baseShaOrRoot := getBaseShaOrRoot(commits, index+2)
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  baseShaOrRoot,
-		todoLines:      todoLines,
 		overrideEditor: true,
+		moveDown:       commits[index].Sha,
+	}).Run()
+}
+
+func (self *RebaseCommands) MoveCommitUp(commits []*models.Commit, index int) error {
+	baseShaOrRoot := getBaseShaOrRoot(commits, index+1)
+
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseShaOrRoot:  baseShaOrRoot,
+		overrideEditor: true,
+		moveUp:         commits[index].Sha,
 	}).Run()
 }
 
@@ -152,6 +156,8 @@ type PrepareInteractiveRebaseCommandOpts struct {
 	overrideEditor    bool
 	prepend           bool
 	changeTodoActions []ChangeTodoAction
+	moveDown          string
+	moveUp            string
 }
 
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
@@ -174,6 +180,15 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 		return fmt.Sprintf("%s:%s", c.sha, c.newAction)
 	}), "\n")
 
+	moveDownValue := ""
+	if opts.moveDown != "" {
+		moveDownValue = opts.moveDown
+	}
+	moveUpValue := ""
+	if opts.moveUp != "" {
+		moveUpValue = opts.moveUp
+	}
+
 	if todo != "" && changeTodoValue != "" {
 		panic("It's not allowed to pass both todoLines and changeActionOpts")
 	}
@@ -193,6 +208,10 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 		self.os.LogCommand(fmt.Sprintf("Creating TODO file for interactive rebase: \n\n%s", todo), false)
 	} else if changeTodoValue != "" {
 		self.os.LogCommand(fmt.Sprintf("Changing TODO action: %s", changeTodoValue), false)
+	} else if moveDownValue != "" {
+		self.os.LogCommand(fmt.Sprintf("Moving TODO down: %s", moveDownValue), false)
+	} else if moveUpValue != "" {
+		self.os.LogCommand(fmt.Sprintf("Moving TODO up: %s", moveUpValue), false)
 	} else {
 		gitSequenceEditor = "true"
 	}
@@ -202,6 +221,8 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 		daemon.RebaseTODOEnvKey+"="+todo,
 		daemon.PrependLinesEnvKey+"="+prependLines,
 		daemon.ChangeTodoActionEnvKey+"="+changeTodoValue,
+		daemon.MoveTodoDownEnvKey+"="+moveDownValue,
+		daemon.MoveTodoUpEnvKey+"="+moveUpValue,
 		"DEBUG="+debug,
 		"LANG=en_US.UTF-8",   // Force using EN as language
 		"LC_ALL=en_US.UTF-8", // Force using EN as language

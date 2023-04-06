@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -46,13 +47,24 @@ const (
 	//
 	// If this is used, the value of RebaseTODOEnvKey must be empty.
 	ChangeTodoActionEnvKey string = "LAZYGIT_CHANGE_TODO_ACTION"
+
+	// Can be set to the sha of a "pick" todo that will be moved down by one.
+	MoveTodoDownEnvKey string = "LAZYGIT_MOVE_COMMIT_DOWN"
+
+	// Can be set to the sha of a "pick" todo that will be moved up by one.
+	MoveTodoUpEnvKey string = "LAZYGIT_MOVE_COMMIT_UP"
 )
 
 type Daemon interface {
 	Run() error
 }
 
+var logFile io.StringWriter
+
 func Handle(common *common.Common) {
+	logFile, _ = os.Create("/tmp/daemon-log.txt")
+	_, _ = logFile.WriteString("Hello Daemon\n")
+
 	d := getDaemon(common)
 	if d == nil {
 		return
@@ -108,6 +120,12 @@ func (self *rebaseDaemon) Run() error {
 func (self *rebaseDaemon) writeTodoFile(path string) error {
 	if changeTodoActionEnvValue := os.Getenv(ChangeTodoActionEnvKey); changeTodoActionEnvValue != "" {
 		return self.changeTodoAction(path, changeTodoActionEnvValue)
+	} else if shaToMoveDown := os.Getenv(MoveTodoDownEnvKey); shaToMoveDown != "" {
+		_, _ = logFile.WriteString(fmt.Sprintf("Moving commit down: %s\n", shaToMoveDown))
+		return utils.MoveTodoDown(path, shaToMoveDown, todo.Pick)
+	} else if shaToMoveUp := os.Getenv(MoveTodoUpEnvKey); shaToMoveUp != "" {
+		_, _ = logFile.WriteString(fmt.Sprintf("Moving commit up: %s\n", shaToMoveUp))
+		return utils.MoveTodoUp(path, shaToMoveUp, todo.Pick)
 	} else {
 		todoContent := []byte(os.Getenv(RebaseTODOEnvKey))
 

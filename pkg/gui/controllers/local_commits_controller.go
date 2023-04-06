@@ -440,7 +440,7 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 
 	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
-		err := self.git.Rebase.MoveCommitDown(self.model.Commits, index-1)
+		err := self.git.Rebase.MoveCommitUp(self.model.Commits, index)
 		if err == nil {
 			self.context().MoveSelectedLine(-1)
 		}
