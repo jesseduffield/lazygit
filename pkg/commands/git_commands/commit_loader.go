@@ -194,8 +194,8 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 		return nil, nil
 	}
 
-	commitShas := slices.Map(commits, func(commit *models.Commit) string {
-		return commit.Sha
+	commitShas := slices.FilterMap(commits, func(commit *models.Commit) (string, bool) {
+		return commit.Sha, commit.Sha != ""
 	})
 
 	// note that we're not filtering these as we do non-rebasing commits just because
@@ -209,19 +209,25 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 		),
 	).DontLog()
 
-	hydratedCommits := make([]*models.Commit, 0, len(commits))
-	i := 0
+	fullCommits := map[string]*models.Commit{}
 	err = cmdObj.RunAndProcessLines(func(line string) (bool, error) {
 		commit := self.extractCommitFromLine(line)
-		matchingCommit := commits[i]
-		commit.Action = matchingCommit.Action
-		commit.Status = matchingCommit.Status
-		hydratedCommits = append(hydratedCommits, commit)
-		i++
+		fullCommits[commit.Sha] = commit
 		return false, nil
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	hydratedCommits := make([]*models.Commit, 0, len(commits))
+	for _, rebasingCommit := range commits {
+		if rebasingCommit.Sha == "" {
+			hydratedCommits = append(hydratedCommits, rebasingCommit)
+		} else if commit := fullCommits[rebasingCommit.Sha]; commit != nil {
+			commit.Action = rebasingCommit.Action
+			commit.Status = rebasingCommit.Status
+			hydratedCommits = append(hydratedCommits, commit)
+		}
 	}
 	return hydratedCommits, nil
 }
