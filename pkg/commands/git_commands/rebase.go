@@ -292,8 +292,8 @@ func (self *RebaseCommands) BeginInteractiveRebaseForCommit(commits []*models.Co
 }
 
 // RebaseBranch interactive rebases onto a branch
-func (self *RebaseCommands) RebaseBranch(branchName string) error {
-	return self.PrepareInteractiveRebaseCommand(branchName, nil, false).Run()
+func (self *RebaseCommands) RebaseBranch(branchName string) oscommands.ICmdObj {
+	return self.PrepareInteractiveRebaseCommand(branchName, nil, false)
 }
 
 func (self *RebaseCommands) GenericMergeOrRebaseActionCmdObj(commandType string, command string) oscommands.ICmdObj {

@@ -23,8 +23,9 @@ func (gui *Gui) resetControllers() {
 		gui.State.Contexts,
 		model,
 	)
+	gpgHelper := helpers.NewGpgHelper(helperCommon, gui.os, gui.git)
 
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper, gpgHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
 	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	getSavedCommitMessage := func() string {
