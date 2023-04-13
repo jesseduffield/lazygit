@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/jesseduffield/lazycore/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
 
@@ -42,6 +43,11 @@ func RunTests(
 		return err
 	}
 
+	gitVersion, err := getGitVersion()
+	if err != nil {
+		return err
+	}
+
 	for _, test := range tests {
 		test := test
 
@@ -51,7 +57,7 @@ func RunTests(
 			)
 
 			for i := 0; i < maxAttempts; i++ {
-				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, keyPressDelay)
+				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, keyPressDelay, gitVersion)
 				if err != nil {
 					if i == maxAttempts-1 {
 						return err
@@ -77,9 +83,15 @@ func runTest(
 	runCmd func(cmd *exec.Cmd) error,
 	sandbox bool,
 	keyPressDelay int,
+	gitVersion *git_commands.GitVersion,
 ) error {
 	if test.Skip() {
 		logf("Skipping test %s", test.Name())
+		return nil
+	}
+
+	if !test.ShouldRunForGitVersion(gitVersion) {
+		logf("Skipping test %s for git version %d.%d.%d", test.Name(), gitVersion.Major, gitVersion.Minor, gitVersion.Patch)
 		return nil
 	}
 
@@ -142,6 +154,16 @@ func createFixture(test *IntegrationTest, paths Paths, rootDir string) error {
 
 func globalGitConfigPath(rootDir string) string {
 	return filepath.Join(rootDir, "test", "global_git_config")
+}
+
+func getGitVersion() (*git_commands.GitVersion, error) {
+	osCommand := oscommands.NewDummyOSCommand()
+	cmdObj := osCommand.Cmd.New("git --version")
+	versionStr, err := cmdObj.RunWithOutput()
+	if err != nil {
+		return nil, err
+	}
+	return git_commands.ParseGitVersion(versionStr)
 }
 
 func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandbox bool, keyPressDelay int) (*exec.Cmd, error) {
