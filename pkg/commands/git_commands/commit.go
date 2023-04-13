@@ -160,7 +160,7 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string, ignoreWhit
 		ignoreWhitespaceArg = " --ignore-all-space"
 	}
 
-	cmdStr := fmt.Sprintf("git show --submodule --color=%s --unified=%d --no-renames --stat -p %s%s%s",
+	cmdStr := fmt.Sprintf("git show --submodule --color=%s --unified=%d --stat -p %s%s%s",
 		self.UserConfig.Git.Paging.ColorArg, contextSize, sha, ignoreWhitespaceArg, filterPathArg)
 	return self.cmd.New(cmdStr).DontLog()
 }
