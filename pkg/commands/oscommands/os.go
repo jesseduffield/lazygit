@@ -78,21 +78,30 @@ func FileType(path string) string {
 }
 
 func (c *OSCommand) OpenFile(filename string) error {
-	return c.OpenFileAtLine(filename, 1)
-}
-
-func (c *OSCommand) OpenFileAtLine(filename string, lineNumber int) error {
-	commandTemplate := c.UserConfig.OS.OpenCommand
+	commandTemplate := c.UserConfig.OS.Open
+	if commandTemplate == "" {
+		// Legacy support
+		commandTemplate = c.UserConfig.OS.OpenCommand
+	}
+	if commandTemplate == "" {
+		commandTemplate = config.GetPlatformDefaultConfig().Open
+	}
 	templateValues := map[string]string{
 		"filename": c.Quote(filename),
-		"line":     fmt.Sprintf("%d", lineNumber),
 	}
 	command := utils.ResolvePlaceholderString(commandTemplate, templateValues)
 	return c.Cmd.NewShell(command).Run()
 }
 
 func (c *OSCommand) OpenLink(link string) error {
-	commandTemplate := c.UserConfig.OS.OpenLinkCommand
+	commandTemplate := c.UserConfig.OS.OpenLink
+	if commandTemplate == "" {
+		// Legacy support
+		commandTemplate = c.UserConfig.OS.OpenLinkCommand
+	}
+	if commandTemplate == "" {
+		commandTemplate = config.GetPlatformDefaultConfig().OpenLink
+	}
 	templateValues := map[string]string{
 		"link": c.Quote(link),
 	}

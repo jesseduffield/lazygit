@@ -6,6 +6,7 @@ package oscommands
 import (
 	"testing"
 
+	"github.com/cli/safeexec"
 	"github.com/go-errors/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,11 +20,13 @@ func TestOSCommandOpenFileWindows(t *testing.T) {
 		test     func(error)
 	}
 
+	fullCmdPath, _ := safeexec.LookPath("cmd")
+
 	scenarios := []scenario{
 		{
 			filename: "test",
 			runner: NewFakeRunner(t).
-				ExpectArgs([]string{"cmd", "/c", "start", "", "test"}, "", errors.New("error")),
+				ExpectArgs([]string{fullCmdPath, "/c", "start", "", "test"}, "", errors.New("error")),
 			test: func(err error) {
 				assert.Error(t, err)
 			},
@@ -31,7 +34,7 @@ func TestOSCommandOpenFileWindows(t *testing.T) {
 		{
 			filename: "test",
 			runner: NewFakeRunner(t).
-				ExpectArgs([]string{"cmd", "/c", "start", "", "test"}, "", nil),
+				ExpectArgs([]string{fullCmdPath, "/c", "start", "", "test"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -39,7 +42,7 @@ func TestOSCommandOpenFileWindows(t *testing.T) {
 		{
 			filename: "filename with spaces",
 			runner: NewFakeRunner(t).
-				ExpectArgs([]string{"cmd", "/c", "start", "", "filename with spaces"}, "", nil),
+				ExpectArgs([]string{fullCmdPath, "/c", "start", "", "filename with spaces"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -47,7 +50,7 @@ func TestOSCommandOpenFileWindows(t *testing.T) {
 		{
 			filename: "let's_test_with_single_quote",
 			runner: NewFakeRunner(t).
-				ExpectArgs([]string{"cmd", "/c", "start", "", "let's_test_with_single_quote"}, "", nil),
+				ExpectArgs([]string{fullCmdPath, "/c", "start", "", "let's_test_with_single_quote"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -55,7 +58,7 @@ func TestOSCommandOpenFileWindows(t *testing.T) {
 		{
 			filename: "$USER.txt",
 			runner: NewFakeRunner(t).
-				ExpectArgs([]string{"cmd", "/c", "start", "", "$USER.txt"}, "", nil),
+				ExpectArgs([]string{fullCmdPath, "/c", "start", "", "$USER.txt"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},

@@ -96,9 +96,12 @@ git:
   parseEmoji: false
   diffContextSize: 3 # how many lines of context are shown around a change in diffs
 os:
-  editCommand: '' # see 'Configuring File Editing' section
-  editCommandTemplate: ''
-  openCommand: ''
+  editPreset: '' # see 'Configuring File Editing' section
+  edit: ''
+  editAtLine: ''
+  editAtLineAndWait: ''
+  open: ''
+  openLink: ''
 refresher:
   refreshInterval: 10 # File/submodule refresh interval in seconds. Auto-refresh can be disabled via option 'git.autoRefresh'.
   fetchInterval: 60 # Re-fetch interval in seconds. Auto-fetch can be disabled via option 'git.autoFetch'.
@@ -268,40 +271,41 @@ os:
 
 ### Configuring File Editing
 
-Lazygit will edit a file with the first set editor in the following:
+There are two commands for opening files, `o` for "open" and `e` for "edit". `o`
+acts as if the file was double-clicked in the Finder/Explorer, so it also works
+for non-text files, whereas `e` opens the file in an editor. `e` can also jump
+to the right line in the file if you invoke it from the staging panel, for
+example.
 
-1. config.yaml
-
-```yaml
-os:
-  editCommand: 'vim' # as an example
-```
-
-2. \$(git config core.editor)
-3. \$GIT_EDITOR
-4. \$VISUAL
-5. \$EDITOR
-6. \$(which vi)
-
-Lazygit will log an error if none of these options are set.
-
-You can specify the current line number when you're in the patch explorer.
+To tell lazygit which editor to use for the `e` command, the easiest way to do
+that is to provide an editPreset config, e.g.
 
 ```yaml
 os:
-  editCommand: 'vim'
-  editCommandTemplate: '{{editor}} +{{line}} -- {{filename}}'
+  editPreset: 'vscode'
 ```
 
-or
+Supported presets are `vim`, `emacs`, `nano`, `vscode`, `sublime`, `bbedit`, and
+`xcode`. In many cases lazygit will be able to guess the right preset from your
+$(git config core.editor), or an environment variable such as $VISUAL or $EDITOR.
+
+If for some reason you are not happy with the default commands from a preset, or
+there simply is no preset for your editor, you can customize the commands by
+setting the `edit`, `editAtLine`, and `editAtLineAndWait` options, e.g.:
 
 ```yaml
 os:
-  editCommand: 'code'
-  editCommandTemplate: '{{editor}} --goto -- {{filename}}:{{line}}'
+  edit: 'myeditor {{filename}}'
+  editAtLine: 'myeditor --line={{line}} {{filename}}'
+  editAtLineAndWait: 'myeditor --block --line={{line}} {{filename}}'
+  editInTerminal: true
 ```
 
-`{{editor}}` in `editCommandTemplate` is replaced with the value of `editCommand`.
+The `editInTerminal` option is used to decide whether lazygit needs to suspend
+itself to the background before calling the editor.
+
+Contributions of new editor presets are welcome; see the `getPreset` function in
+[`editor_presets.go`](https://github.com/jesseduffield/lazygit/blob/master/pkg/config/editor_presets.go).
 
 ### Overriding default config file location
 
@@ -315,15 +319,6 @@ If you want to merge a specific config file into a more general config file, per
 lazygit --use-config-file="$HOME/.base_lg_conf,$HOME/.light_theme_lg_conf"
 or
 LG_CONFIG_FILE="$HOME/.base_lg_conf,$HOME/.light_theme_lg_conf" lazygit
-```
-
-### Recommended Config Values
-
-for users of VSCode
-
-```yaml
-os:
-  openCommand: 'code -rg {{filename}}'
 ```
 
 ## Color Attributes

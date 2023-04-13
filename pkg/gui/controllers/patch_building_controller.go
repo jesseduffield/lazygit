@@ -69,8 +69,7 @@ func (self *PatchBuildingController) OpenFile() error {
 		return nil
 	}
 
-	lineNumber := self.context().GetState().CurrentLineNumber()
-	return self.helpers.Files.OpenFileAtLine(path, lineNumber)
+	return self.helpers.Files.OpenFile(path)
 }
 
 func (self *PatchBuildingController) EditFile() error {

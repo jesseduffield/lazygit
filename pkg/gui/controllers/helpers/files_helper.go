@@ -10,7 +10,6 @@ type IFilesHelper interface {
 	EditFile(filename string) error
 	EditFileAtLine(filename string, lineNumber int) error
 	OpenFile(filename string) error
-	OpenFileAtLine(filename string, lineNumber int) error
 }
 
 type FilesHelper struct {
@@ -34,28 +33,37 @@ func NewFilesHelper(
 var _ IFilesHelper = &FilesHelper{}
 
 func (self *FilesHelper) EditFile(filename string) error {
-	return self.EditFileAtLine(filename, 1)
+	cmdStr, editInTerminal := self.git.File.GetEditCmdStr(filename)
+	return self.callEditor(cmdStr, editInTerminal)
 }
 
 func (self *FilesHelper) EditFileAtLine(filename string, lineNumber int) error {
-	cmdStr, err := self.git.File.GetEditCmdStr(filename, lineNumber)
-	if err != nil {
-		return self.c.Error(err)
+	cmdStr, editInTerminal := self.git.File.GetEditAtLineCmdStr(filename, lineNumber)
+	return self.callEditor(cmdStr, editInTerminal)
+}
+
+func (self *FilesHelper) EditFileAtLineAndWait(filename string, lineNumber int) error {
+	cmdStr := self.git.File.GetEditAtLineAndWaitCmdStr(filename, lineNumber)
+
+	// Always suspend, regardless of the value of the editInTerminal config,
+	// since we want to prevent interacting with the UI until the editor
+	// returns, even if the editor doesn't use the terminal
+	return self.callEditor(cmdStr, true)
+}
+
+func (self *FilesHelper) callEditor(cmdStr string, editInTerminal bool) error {
+	if editInTerminal {
+		return self.c.RunSubprocessAndRefresh(
+			self.os.Cmd.NewShell(cmdStr),
+		)
 	}
 
-	self.c.LogAction(self.c.Tr.Actions.EditFile)
-	return self.c.RunSubprocessAndRefresh(
-		self.os.Cmd.NewShell(cmdStr),
-	)
+	return self.os.Cmd.NewShell(cmdStr).Run()
 }
 
 func (self *FilesHelper) OpenFile(filename string) error {
-	return self.OpenFileAtLine(filename, 1)
-}
-
-func (self *FilesHelper) OpenFileAtLine(filename string, lineNumber int) error {
 	self.c.LogAction(self.c.Tr.Actions.OpenFile)
-	if err := self.os.OpenFileAtLine(filename, lineNumber); err != nil {
+	if err := self.os.OpenFile(filename); err != nil {
 		return self.c.Error(err)
 	}
 	return nil

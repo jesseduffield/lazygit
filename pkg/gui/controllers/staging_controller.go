@@ -109,8 +109,7 @@ func (self *StagingController) OpenFile() error {
 		return nil
 	}
 
-	lineNumber := self.context.GetState().CurrentLineNumber()
-	return self.helpers.Files.OpenFileAtLine(path, lineNumber)
+	return self.helpers.Files.OpenFile(path)
 }
 
 func (self *StagingController) EditFile() error {
@@ -247,7 +246,7 @@ func (self *StagingController) editHunk() error {
 
 	lineOffset := 3
 	lineIdxInHunk := state.GetSelectedLineIdx() - hunkStartIdx
-	if err := self.helpers.Files.EditFileAtLine(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
+	if err := self.helpers.Files.EditFileAtLineAndWait(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
 		return err
 	}
 

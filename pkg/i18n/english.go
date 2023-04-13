@@ -155,6 +155,7 @@ type TranslationSet struct {
 	MergeToolTitle                      string
 	MergeToolPrompt                     string
 	IntroPopupMessage                   string
+	DeprecatedEditConfigWarning         string
 	GitconfigParseErr                   string
 	LcEditFile                          string
 	LcOpenFile                          string
@@ -659,6 +660,21 @@ Thanks for using lazygit! Seriously you rock. Three things to share with you:
     Or even just star the repo to share the love!
 `
 
+const englishDeprecatedEditConfigWarning = `
+### Deprecated config warning ###
+
+The following config settings are deprecated and will be removed in a future
+version:
+{{configs}}
+
+Please refer to
+
+  https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing
+
+for up-to-date information how to configure your editor.
+
+`
+
 // exporting this so we can use it in tests
 func EnglishTranslationSet() TranslationSet {
 	return TranslationSet{
@@ -805,6 +821,7 @@ func EnglishTranslationSet() TranslationSet {
 		MergeToolTitle:                      "Merge tool",
 		MergeToolPrompt:                     "Are you sure you want to open `git mergetool`?",
 		IntroPopupMessage:                   englishIntroPopupMessage,
+		DeprecatedEditConfigWarning:         englishDeprecatedEditConfigWarning,
 		GitconfigParseErr:                   `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		LcEditFile:                          `edit file`,
 		LcOpenFile:                          `open file`,

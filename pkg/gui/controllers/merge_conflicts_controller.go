@@ -166,8 +166,7 @@ func (self *MergeConflictsController) HandleEditFile() error {
 }
 
 func (self *MergeConflictsController) HandleOpenFile() error {
-	lineNumber := self.context().GetState().GetSelectedLine()
-	return self.helpers.Files.OpenFileAtLine(self.context().GetState().GetPath(), lineNumber)
+	return self.helpers.Files.OpenFile(self.context().GetState().GetPath())
 }
 
 func (self *MergeConflictsController) HandleScrollLeft() error {
