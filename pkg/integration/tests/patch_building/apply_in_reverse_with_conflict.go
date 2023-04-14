@@ -39,10 +39,14 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			// Add both files to the patch; the first will conflict, the second won't
 			PressPrimaryAction().
+			Tap(func() {
+				t.Views().Information().Content(Contains("building patch"))
+
+				t.Views().PatchBuildingSecondary().Content(
+					Contains("+more file1 content"))
+			}).
 			SelectNextItem().
 			PressPrimaryAction()
-
-		t.Views().Information().Content(Contains("building patch"))
 
 		t.Views().PatchBuildingSecondary().Content(
 			Contains("+more file1 content").Contains("+more file2 content"))

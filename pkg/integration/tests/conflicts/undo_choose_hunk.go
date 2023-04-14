@@ -25,6 +25,13 @@ var UndoChooseHunk = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().MergeConflicts().
 			IsFocused().
 			Content(Contains("<<<<<<< HEAD\nFirst Change")).
+			// explicitly asserting on the selection because sometimes the content renders
+			// before the selection is ready for user input
+			SelectedLines(
+				Contains("<<<<<<< HEAD"),
+				Contains("First Change"),
+				Contains("======="),
+			).
 			PressPrimaryAction().
 			// choosing the first hunk
 			Content(DoesNotContain("<<<<<<< HEAD\nFirst Change")).
