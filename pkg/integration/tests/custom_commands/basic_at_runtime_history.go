@@ -5,7 +5,7 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var OmitFromHistory = NewIntegrationTest(NewIntegrationTestArgs{
+var BasicAtRuntimeHistory = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Omitting a runtime custom command from history if it begins with space",
 	ExtraCmdArgs: "",
 	Skip:         false,
