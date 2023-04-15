@@ -218,7 +218,10 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
 				err := self.git.Rebase.EditRebase(ref)
-				return self.CheckMergeOrRebase(err)
+				if err = self.CheckMergeOrRebase(err); err != nil {
+					return err
+				}
+				return self.c.PushContext(self.contexts.LocalCommits)
 			},
 		},
 	}
