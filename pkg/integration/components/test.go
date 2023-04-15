@@ -60,7 +60,7 @@ type GitVersionRestriction struct {
 }
 
 // Verifies the version is at least the given version (inclusive)
-func From(version string) GitVersionRestriction {
+func AtLeast(version string) GitVersionRestriction {
 	return GitVersionRestriction{from: version}
 }
 

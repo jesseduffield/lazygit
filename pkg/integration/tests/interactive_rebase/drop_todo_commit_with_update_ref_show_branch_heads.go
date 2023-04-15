@@ -9,7 +9,7 @@ var DropTodoCommitWithUpdateRefShowBranchHeads = NewIntegrationTest(NewIntegrati
 	Description:  "Drops a commit during interactive rebase when there is an update-ref in the git-rebase-todo file (with experimentalShowBranchHeads on)",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	GitVersion:   From("2.38.0"),
+	GitVersion:   AtLeast("2.38.0"),
 	SetupConfig: func(config *config.AppConfig) {
 		config.UserConfig.Gui.ExperimentalShowBranchHeads = true
 	},

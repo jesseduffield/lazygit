@@ -9,7 +9,7 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Drops a commit during interactive rebase when there is an update-ref in the git-rebase-todo file",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	GitVersion:   From("2.38.0"),
+	GitVersion:   AtLeast("2.38.0"),
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.
