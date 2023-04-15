@@ -52,6 +52,7 @@ func (self *Gui) GetCheatsheetKeybindings() []*types.Binding {
 	self.helpers = helpers.NewStubHelpers()
 	self.State = &GuiRepoState{}
 	self.State.Contexts = self.contextTree()
+	self.State.ContextMgr = NewContextMgr(nil, self, self.State.Contexts)
 	self.resetControllers()
 	bindings, _ := self.GetInitialKeybindings()
 	return bindings

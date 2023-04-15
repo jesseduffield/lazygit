@@ -8,20 +8,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+r</kbd>: wissel naar een recente repo
   <kbd>pgup</kbd>: scroll naar beneden vanaf hoofdpaneel (fn+up/shift+k)
   <kbd>pgdown</kbd>: scroll naar beneden vanaf hoofdpaneel (fn+down/shift+j)
-  <kbd>m</kbd>: bekijk merge/rebase opties
-  <kbd>ctrl+p</kbd>: bekijk aangepaste patch opties
-  <kbd>R</kbd>: verversen
-  <kbd>?</kbd>: open menu
-  <kbd>+</kbd>: volgende scherm modus (normaal/half/groot)
-  <kbd>_</kbd>: vorige scherm modus
-  <kbd>ctrl+s</kbd>: bekijk scoping opties
-  <kbd>W</kbd>: open diff menu
-  <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
-  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
   <kbd>:</kbd>: voer aangepaste commando uit
+  <kbd>ctrl+p</kbd>: bekijk aangepaste patch opties
+  <kbd>m</kbd>: bekijk merge/rebase opties
+  <kbd>R</kbd>: verversen
+  <kbd>+</kbd>: volgende scherm modus (normaal/half/groot)
+  <kbd>_</kbd>: vorige scherm modus
+  <kbd>?</kbd>: open menu
+  <kbd>ctrl+s</kbd>: bekijk scoping opties
+  <kbd>W</kbd>: open diff menu
+  <kbd>ctrl+e</kbd>: open diff menu
+  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>z</kbd>: ongedaan maken (via reflog) (experimenteel)
   <kbd>ctrl+z</kbd>: redo (via reflog) (experimenteel)
   <kbd>P</kbd>: push
@@ -68,6 +68,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>f</kbd>: fetch
 </pre>
 
+## Bevestigingspaneel
+
+<pre>
+  <kbd>enter</kbd>: bevestig
+  <kbd>esc</kbd>: sluiten
+</pre>
+
 ## Branches
 
 <pre>
@@ -89,6 +96,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>R</kbd>: hernoem branch
   <kbd>u</kbd>: set/unset upstream
   <kbd>enter</kbd>: bekijk commits
+</pre>
+
+## Commit Bericht
+
+<pre>
+  <kbd>enter</kbd>: bevestig
+  <kbd>esc</kbd>: sluiten
 </pre>
 
 ## Commit bestanden
@@ -136,6 +150,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>c</kbd>: kopieer commit (cherry-pick)
   <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
   <kbd>enter</kbd>: bekijk gecommite bestanden
+</pre>
+
+## Menu
+
+<pre>
+  <kbd>enter</kbd>: uitvoeren
+  <kbd>esc</kbd>: sluiten
 </pre>
 
 ## Mergen
@@ -250,8 +271,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Status
 
 <pre>
-  <kbd>e</kbd>: verander config bestand
   <kbd>o</kbd>: open config bestand
+  <kbd>e</kbd>: verander config bestand
   <kbd>u</kbd>: check voor updates
   <kbd>enter</kbd>: wissel naar een recente repo
   <kbd>a</kbd>: alle logs van de branch laten zien
