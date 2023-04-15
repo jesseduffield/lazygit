@@ -32,7 +32,7 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Rebase 'first-change-branch' onto 'second-change-branch'")).
-			Select(Contains("Simple rebase")).
+			Select(Contains("simple rebase")).
 			Confirm()
 
 		t.Common().AcknowledgeConflicts()

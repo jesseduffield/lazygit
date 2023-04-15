@@ -38,7 +38,7 @@ var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Rebase 'first-change-branch' onto 'second-change-branch'")).
-			Select(Contains("Simple rebase")).
+			Select(Contains("simple rebase")).
 			Confirm()
 
 		t.Views().Information().Content(Contains("rebasing"))
