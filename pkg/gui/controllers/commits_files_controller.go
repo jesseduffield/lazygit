@@ -102,6 +102,38 @@ func (self *CommitFilesController) context() *context.CommitFilesContext {
 	return self.c.Contexts().CommitFiles
 }
 
+func (self *CommitFilesController) GetOnRenderToMain() func() error {
+	return func() error {
+		node := self.context().GetSelected()
+		if node == nil {
+			return nil
+		}
+
+		ref := self.context().GetRef()
+		to := ref.RefName()
+		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
+
+		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(
+			from, to, reverse, node.GetPath(), false, self.c.State().GetIgnoreWhitespaceInDiffView(),
+		)
+		task := types.NewRunPtyTask(cmdObj.GetCmd())
+
+		pair := self.c.MainViewPairs().Normal
+		if node.File != nil {
+			pair = self.c.MainViewPairs().PatchBuilding
+		}
+
+		return self.c.RenderToMainViews(types.RefreshMainOpts{
+			Pair: pair,
+			Main: &types.ViewUpdateOpts{
+				Title: self.c.Tr.Patch,
+				Task:  task,
+			},
+			Secondary: secondaryPatchPanelUpdateOpts(self.c),
+		})
+	}
+}
+
 func (self *CommitFilesController) onClickMain(opts gocui.ViewMouseBindingOpts) error {
 	node := self.context().GetSelected()
 	if node == nil {
