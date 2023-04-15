@@ -5,11 +5,11 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var MoveToEarlierCommit = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Move a patch from a commit to an earlier commit",
+var MoveToEarlierCommitNoKeepEmpty = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Move a patch from a commit to an earlier commit, for older git versions that don't keep the empty commit",
 	ExtraCmdArgs: "",
 	Skip:         false,
-	GitVersion:   AtLeast("2.26.0"),
+	GitVersion:   Before("2.26.0"),
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateDir("dir")
@@ -57,10 +57,10 @@ var MoveToEarlierCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("commit to move from"),
-				Contains("destination commit").IsSelected(),
-				Contains("first commit"),
+				Contains("destination commit"),
+				Contains("first commit").IsSelected(),
 			).
+			SelectPreviousItem().
 			PressEnter()
 
 		t.Views().CommitFiles().
@@ -73,17 +73,5 @@ var MoveToEarlierCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("A unrelated-file"),
 			).
 			PressEscape()
-
-		t.Views().Commits().
-			IsFocused().
-			SelectPreviousItem().
-			PressEnter()
-
-		// the original commit has no more files in it
-		t.Views().CommitFiles().
-			IsFocused().
-			Lines(
-				Contains("(none)"),
-			)
 	},
 })
