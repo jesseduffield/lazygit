@@ -16,7 +16,7 @@ func (gui *Gui) Helpers() *helpers.Helpers {
 	return gui.helpers
 }
 
-func (gui *Gui) resetControllers() {
+func (gui *Gui) resetHelpersAndControllers() {
 	helperCommon := gui.c
 	refsHelper := helpers.NewRefsHelper(helperCommon)
 

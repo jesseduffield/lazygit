@@ -291,11 +291,15 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool) error {
 		return err
 	}
 
-	gui.resetState(startArgs, reuseState)
+	contextToPush := gui.resetState(startArgs, reuseState)
 
-	gui.resetControllers()
+	gui.resetHelpersAndControllers()
 
 	if err := gui.resetKeybindings(); err != nil {
+		return err
+	}
+
+	if err := gui.c.PushContext(contextToPush); err != nil {
 		return err
 	}
 
@@ -311,7 +315,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool) error {
 // it gets a bit confusing to land back in the status panel when visiting a repo
 // you've already switched from. There's no doubt some easy way to make the UX
 // optimal for all cases but I'm too lazy to think about what that is right now
-func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
+func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) types.Context {
 	currentDir, err := os.Getwd()
 
 	if reuseState {
@@ -326,7 +330,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 				gui.State.CurrentPopupOpts = nil
 				gui.Mutexes.PopupMutex.Unlock()
 
-				return
+				return gui.c.CurrentContext()
 			}
 		} else {
 			gui.c.Log.Error(err)
@@ -335,7 +339,6 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 
 	contextTree := gui.contextTree()
 
-	initialContext := initialContext(contextTree, startArgs)
 	initialScreenMode := initialScreenMode(startArgs, gui.Config)
 
 	gui.State = &GuiRepoState{
@@ -356,16 +359,14 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) {
 		},
 		ScreenMode: initialScreenMode,
 		// TODO: only use contexts from context manager
-		ContextMgr:        NewContextMgr(initialContext, gui, contextTree),
+		ContextMgr:        NewContextMgr(gui, contextTree),
 		Contexts:          contextTree,
 		WindowViewNameMap: initialWindowViewNameMap(contextTree),
 	}
 
-	if err := gui.c.PushContext(initialContext); err != nil {
-		gui.c.Log.Error(err)
-	}
-
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
+
+	return initialContext(contextTree, startArgs)
 }
 
 func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSafeMap[string, string] {

@@ -23,12 +23,11 @@ type ContextMgr struct {
 }
 
 func NewContextMgr(
-	initialContext types.Context,
 	gui *Gui,
 	allContexts *context.ContextTree,
 ) *ContextMgr {
 	return &ContextMgr{
-		ContextStack: []types.Context{initialContext},
+		ContextStack: []types.Context{},
 		RWMutex:      sync.RWMutex{},
 		gui:          gui,
 		allContexts:  allContexts,
