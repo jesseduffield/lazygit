@@ -42,9 +42,8 @@ var AdvancedInteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 			Title(Equals(fmt.Sprintf("Rebase '%s' onto '%s'", TOP_BRANCH, BASE_BRANCH))).
 			Select(Contains("interactive rebase")).
 			Confirm()
-
 		t.Views().Commits().
-			Focus().
+			IsFocused().
 			Lines(
 				Contains(TOP_COMMIT),
 				Contains(BASE_COMMIT).Contains("YOU ARE HERE"),
