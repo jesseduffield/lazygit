@@ -105,6 +105,7 @@ type TranslationSet struct {
 	SureResetCommitAuthor               string
 	LcRenameCommitEditor                string
 	NoCommitsThisBranch                 string
+	UpdateRefHere                       string
 	Error                               string
 	LcSelectHunk                        string
 	LcNavigateConflicts                 string
@@ -218,6 +219,7 @@ type TranslationSet struct {
 	YouAreHere                          string
 	YouDied                             string
 	LcRewordNotSupported                string
+	LcChangingThisActionIsNotAllowed    string
 	LcCherryPickCopy                    string
 	LcCherryPickCopyRange               string
 	LcPasteCommits                      string
@@ -754,6 +756,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcSquashDown:                        "squash down",
 		LcFixupCommit:                       "fixup commit",
 		NoCommitsThisBranch:                 "No commits for this branch",
+		UpdateRefHere:                       "Update branch '{{.ref}}' here",
 		CannotSquashOrFixupFirstCommit:      "There's no commit below to squash into",
 		Fixup:                               "Fixup",
 		SureFixupThisCommit:                 "Are you sure you want to 'fixup' this commit? It will be merged into the commit below",
@@ -885,6 +888,7 @@ func EnglishTranslationSet() TranslationSet {
 		YouAreHere:                          "YOU ARE HERE",
 		YouDied:                             "YOU DIED!",
 		LcRewordNotSupported:                "rewording commits while interactively rebasing is not currently supported",
+		LcChangingThisActionIsNotAllowed:    "changing this kind of rebase todo entry is not allowed",
 		LcCherryPickCopy:                    "copy commit (cherry-pick)",
 		LcCherryPickCopyRange:               "copy commit range (cherry-pick)",
 		LcPasteCommits:                      "paste commits (cherry-pick)",

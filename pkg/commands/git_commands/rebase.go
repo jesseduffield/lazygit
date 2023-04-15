@@ -2,15 +2,16 @@ package git_commands
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type RebaseCommands struct {
@@ -201,55 +202,39 @@ func (self *RebaseCommands) AmendTo(commit *models.Commit) error {
 	return self.SquashAllAboveFixupCommits(commit)
 }
 
-// EditRebaseTodo sets the action at a given index in the git-rebase-todo file
-func (self *RebaseCommands) EditRebaseTodo(index int, action string) error {
+// EditRebaseTodo sets the action for a given rebase commit in the git-rebase-todo file
+func (self *RebaseCommands) EditRebaseTodo(commit *models.Commit, action todo.TodoCommand) error {
 	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
-	bytes, err := os.ReadFile(fileName)
+	todos, err := utils.ReadRebaseTodoFile(fileName)
 	if err != nil {
 		return err
 	}
 
-	content := strings.Split(string(bytes), "\n")
-	commitCount := self.getTodoCommitCount(content)
-
-	// we have the most recent commit at the bottom whereas the todo file has
-	// it at the bottom, so we need to subtract our index from the commit count
-	contentIndex := commitCount - 1 - index
-	splitLine := strings.Split(content[contentIndex], " ")
-	content[contentIndex] = action + " " + strings.Join(splitLine[1:], " ")
-	result := strings.Join(content, "\n")
-
-	return os.WriteFile(fileName, []byte(result), 0o644)
-}
-
-func (self *RebaseCommands) getTodoCommitCount(content []string) int {
-	// count lines that are not blank and are not comments
-	commitCount := 0
-	for _, line := range content {
-		if line != "" && !strings.HasPrefix(line, "#") {
-			commitCount++
+	for i := range todos {
+		t := &todos[i]
+		// Comparing just the sha is not enough; we need to compare both the
+		// action and the sha, as the sha could appear multiple times (e.g. in a
+		// pick and later in a merge)
+		if t.Command == commit.Action && t.Commit == commit.Sha {
+			t.Command = action
+			return utils.WriteRebaseTodoFile(fileName, todos)
 		}
 	}
-	return commitCount
+
+	// Should never get here
+	return fmt.Errorf("Todo %s not found in git-rebase-todo", commit.Sha)
 }
 
 // MoveTodoDown moves a rebase todo item down by one position
-func (self *RebaseCommands) MoveTodoDown(index int) error {
+func (self *RebaseCommands) MoveTodoDown(commit *models.Commit) error {
 	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
-	bytes, err := os.ReadFile(fileName)
-	if err != nil {
-		return err
-	}
+	return utils.MoveTodoDown(fileName, commit.Sha, commit.Action)
+}
 
-	content := strings.Split(string(bytes), "\n")
-	commitCount := self.getTodoCommitCount(content)
-	contentIndex := commitCount - 1 - index
-
-	rearrangedContent := append(content[0:contentIndex-1], content[contentIndex], content[contentIndex-1])
-	rearrangedContent = append(rearrangedContent, content[contentIndex+1:]...)
-	result := strings.Join(rearrangedContent, "\n")
-
-	return os.WriteFile(fileName, []byte(result), 0o644)
+// MoveTodoDown moves a rebase todo item down by one position
+func (self *RebaseCommands) MoveTodoUp(commit *models.Commit) error {
+	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
+	return utils.MoveTodoUp(fileName, commit.Sha, commit.Action)
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one

@@ -52,7 +52,7 @@ func (self *ReflogCommitLoader) GetReflogCommits(lastReflogCommit *models.Commit
 			Sha:           fields[0],
 			Name:          fields[2],
 			UnixTimestamp: int64(unixTimestamp),
-			Status:        "reflog",
+			Status:        models.StatusReflog,
 			Parents:       parents,
 		}
 

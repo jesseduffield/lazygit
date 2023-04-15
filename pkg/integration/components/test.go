@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
@@ -28,6 +30,7 @@ type IntegrationTest struct {
 		testDriver *TestDriver,
 		keys config.KeybindingConfig,
 	)
+	gitVersion GitVersionRestriction
 }
 
 var _ integrationTypes.IntegrationTest = &IntegrationTest{}
@@ -45,6 +48,56 @@ type NewIntegrationTestArgs struct {
 	ExtraCmdArgs string
 	// for when a test is flakey
 	Skip bool
+	// to run a test only on certain git versions
+	GitVersion GitVersionRestriction
+}
+
+type GitVersionRestriction struct {
+	// Only one of these fields can be non-empty; use functions below to construct
+	from     string
+	before   string
+	includes []string
+}
+
+// Verifies the version is at least the given version (inclusive)
+func From(version string) GitVersionRestriction {
+	return GitVersionRestriction{from: version}
+}
+
+// Verifies the version is before the given version (exclusive)
+func Before(version string) GitVersionRestriction {
+	return GitVersionRestriction{before: version}
+}
+
+func Includes(versions ...string) GitVersionRestriction {
+	return GitVersionRestriction{includes: versions}
+}
+
+func (self GitVersionRestriction) shouldRunOnVersion(version *git_commands.GitVersion) bool {
+	if self.from != "" {
+		from, err := git_commands.ParseGitVersion(self.from)
+		if err != nil {
+			panic("Invalid git version string: " + self.from)
+		}
+		return !version.IsOlderThanVersion(from)
+	}
+	if self.before != "" {
+		before, err := git_commands.ParseGitVersion(self.before)
+		if err != nil {
+			panic("Invalid git version string: " + self.before)
+		}
+		return version.IsOlderThanVersion(before)
+	}
+	if len(self.includes) != 0 {
+		return slices.Some(self.includes, func(str string) bool {
+			v, err := git_commands.ParseGitVersion(str)
+			if err != nil {
+				panic("Invalid git version string: " + str)
+			}
+			return version.Major == v.Major && version.Minor == v.Minor && version.Patch == v.Patch
+		})
+	}
+	return true
 }
 
 func NewIntegrationTest(args NewIntegrationTestArgs) *IntegrationTest {
@@ -63,6 +116,7 @@ func NewIntegrationTest(args NewIntegrationTestArgs) *IntegrationTest {
 		setupRepo:    args.SetupRepo,
 		setupConfig:  args.SetupConfig,
 		run:          args.Run,
+		gitVersion:   args.GitVersion,
 	}
 }
 
@@ -80,6 +134,10 @@ func (self *IntegrationTest) ExtraCmdArgs() string {
 
 func (self *IntegrationTest) Skip() bool {
 	return self.skip
+}
+
+func (self *IntegrationTest) ShouldRunForGitVersion(version *git_commands.GitVersion) bool {
+	return self.gitVersion.shouldRunOnVersion(version)
 }
 
 func (self *IntegrationTest) SetupConfig(config *config.AppConfig) {

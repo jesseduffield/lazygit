@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -34,6 +35,13 @@ func (gui *Gui) branchCommitsRenderToMain() error {
 	commit := gui.State.Contexts.LocalCommits.GetSelected()
 	if commit == nil {
 		task = types.NewRenderStringTask(gui.c.Tr.NoCommitsThisBranch)
+	} else if commit.Action == todo.UpdateRef {
+		task = types.NewRenderStringTask(
+			utils.ResolvePlaceholderString(
+				gui.c.Tr.UpdateRefHere,
+				map[string]string{
+					"ref": commit.Name,
+				}))
 	} else {
 		cmdObj := gui.git.Commit.ShowCmdObj(commit.Sha, gui.State.Modes.Filtering.GetPath(),
 			gui.IgnoreWhitespaceInDiffView)

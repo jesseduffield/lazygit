@@ -89,7 +89,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		if commit.Sha == firstPushedCommit {
 			passedFirstPushedCommit = true
 		}
-		commit.Status = map[bool]string{true: "unpushed", false: "pushed"}[!passedFirstPushedCommit]
+		commit.Status = map[bool]models.CommitStatus{true: models.StatusUnpushed, false: models.StatusPushed}[!passedFirstPushedCommit]
 		commits = append(commits, commit)
 		return false, nil
 	})
@@ -194,8 +194,8 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 		return nil, nil
 	}
 
-	commitShas := slices.Map(commits, func(commit *models.Commit) string {
-		return commit.Sha
+	commitShas := slices.FilterMap(commits, func(commit *models.Commit) (string, bool) {
+		return commit.Sha, commit.Sha != ""
 	})
 
 	// note that we're not filtering these as we do non-rebasing commits just because
@@ -209,19 +209,25 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 		),
 	).DontLog()
 
-	hydratedCommits := make([]*models.Commit, 0, len(commits))
-	i := 0
+	fullCommits := map[string]*models.Commit{}
 	err = cmdObj.RunAndProcessLines(func(line string) (bool, error) {
 		commit := self.extractCommitFromLine(line)
-		matchingCommit := commits[i]
-		commit.Action = matchingCommit.Action
-		commit.Status = matchingCommit.Status
-		hydratedCommits = append(hydratedCommits, commit)
-		i++
+		fullCommits[commit.Sha] = commit
 		return false, nil
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	hydratedCommits := make([]*models.Commit, 0, len(commits))
+	for _, rebasingCommit := range commits {
+		if rebasingCommit.Sha == "" {
+			hydratedCommits = append(hydratedCommits, rebasingCommit)
+		} else if commit := fullCommits[rebasingCommit.Sha]; commit != nil {
+			commit.Action = rebasingCommit.Action
+			commit.Status = rebasingCommit.Status
+			hydratedCommits = append(hydratedCommits, commit)
+		}
 	}
 	return hydratedCommits, nil
 }
@@ -305,15 +311,17 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 	}
 
 	for _, t := range todos {
-		if t.Commit == "" {
+		if t.Command == todo.UpdateRef {
+			t.Msg = strings.TrimPrefix(t.Ref, "refs/heads/")
+		} else if t.Commit == "" {
 			// Command does not have a commit associated, skip
 			continue
 		}
 		commits = slices.Prepend(commits, &models.Commit{
 			Sha:    t.Commit,
 			Name:   t.Msg,
-			Status: "rebasing",
-			Action: t.Command.String(),
+			Status: models.StatusRebasing,
+			Action: t.Command,
 		})
 	}
 
@@ -332,7 +340,7 @@ func (self *CommitLoader) commitFromPatch(content string) *models.Commit {
 	return &models.Commit{
 		Sha:    sha,
 		Name:   name,
-		Status: "rebasing",
+		Status: models.StatusRebasing,
 	}
 }
 
@@ -349,11 +357,11 @@ func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*mod
 		if strings.HasPrefix(ancestor, commit.Sha) {
 			passedAncestor = true
 		}
-		if commit.Status != "pushed" {
+		if commit.Status != models.StatusPushed {
 			continue
 		}
 		if passedAncestor {
-			commits[i].Status = "merged"
+			commits[i].Status = models.StatusMerged
 		}
 	}
 	return commits, nil

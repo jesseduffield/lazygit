@@ -18,6 +18,7 @@ const (
 
 	NoOp
 	Drop
+	UpdateRef
 
 	Comment
 )
@@ -27,10 +28,12 @@ const CommentChar = "#"
 type Todo struct {
 	Command     TodoCommand
 	Commit      string
+	Flag        string
 	Comment     string
 	ExecCommand string
 	Label       string
 	Msg         string
+	Ref         string
 }
 
 func (t TodoCommand) String() string {
@@ -38,23 +41,24 @@ func (t TodoCommand) String() string {
 }
 
 var commandToString = map[TodoCommand]string{
-	Pick:    "pick",
-	Revert:  "revert",
-	Edit:    "edit",
-	Reword:  "reword",
-	Fixup:   "fixup",
-	Squash:  "squash",
-	Exec:    "exec",
-	Break:   "break",
-	Label:   "label",
-	Reset:   "reset",
-	Merge:   "merge",
-	NoOp:    "noop",
-	Drop:    "drop",
-	Comment: "comment",
+	Pick:      "pick",
+	Revert:    "revert",
+	Edit:      "edit",
+	Reword:    "reword",
+	Fixup:     "fixup",
+	Squash:    "squash",
+	Exec:      "exec",
+	Break:     "break",
+	Label:     "label",
+	Reset:     "reset",
+	Merge:     "merge",
+	NoOp:      "noop",
+	Drop:      "drop",
+	UpdateRef: "update-ref",
+	Comment:   "comment",
 }
 
-var todoCommandInfo = [14]struct {
+var todoCommandInfo = [15]struct {
 	nickname string
 	cmd      string
 }{
@@ -72,4 +76,5 @@ var todoCommandInfo = [14]struct {
 	{"m", "merge"},
 	{"", "noop"},
 	{"d", "drop"},
+	{"u", "update-ref"},
 }

@@ -92,3 +92,24 @@ func MuiltiGroupBy[T any, K comparable](slice []T, f func(T) []K) map[K][]T {
 	}
 	return result
 }
+
+// Returns a new slice with the element at index 'from' moved to index 'to'.
+// Does not mutate original slice.
+func MoveElement[T any](slice []T, from int, to int) []T {
+	newSlice := make([]T, len(slice))
+	copy(newSlice, slice)
+
+	if from == to {
+		return newSlice
+	}
+
+	if from < to {
+		copy(newSlice[from:to+1], newSlice[from+1:to+1])
+	} else {
+		copy(newSlice[to+1:from+1], newSlice[to:from])
+	}
+
+	newSlice[to] = slice[from]
+
+	return newSlice
+}

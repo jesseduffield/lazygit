@@ -192,7 +192,11 @@ func (self *Shell) DeleteFileAndAdd(fileName string) *Shell {
 // The reason for padding with zeroes is so that it's easier to do string
 // matches on the commit messages when there are many of them
 func (self *Shell) CreateNCommits(n int) *Shell {
-	for i := 1; i <= n; i++ {
+	return self.CreateNCommitsStartingAt(n, 1)
+}
+
+func (self *Shell) CreateNCommitsStartingAt(n, startIndex int) *Shell {
+	for i := startIndex; i < startIndex+n; i++ {
 		self.CreateFileAndAdd(
 			fmt.Sprintf("file%02d.txt", i),
 			fmt.Sprintf("file%02d content", i),

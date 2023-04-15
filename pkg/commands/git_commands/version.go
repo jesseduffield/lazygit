@@ -32,7 +32,7 @@ func ParseGitVersion(versionStr string) (*GitVersion, error) {
 	// versionStr should be something like:
 	// git version 2.39.0
 	// git version 2.37.1 (Apple Git-137.1)
-	re := regexp.MustCompile(`[^\d]+(\d+)(\.\d+)?(\.\d+)?(.*)`)
+	re := regexp.MustCompile(`[^\d]*(\d+)(\.\d+)?(\.\d+)?(.*)`)
 	matches := re.FindStringSubmatch(versionStr)
 
 	if len(matches) < 5 {
@@ -64,4 +64,8 @@ func (v *GitVersion) IsOlderThan(major, minor, patch int) bool {
 	actual := v.Major*1000*1000 + v.Minor*1000 + v.Patch
 	required := major*1000*1000 + minor*1000 + patch
 	return actual < required
+}
+
+func (v *GitVersion) IsOlderThanVersion(version *GitVersion) bool {
+	return v.IsOlderThan(version.Major, version.Minor, version.Patch)
 }

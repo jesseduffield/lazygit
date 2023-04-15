@@ -87,6 +87,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.AmendHeadCommitDuringRebase,
 	interactive_rebase.AmendMerge,
 	interactive_rebase.AmendNonHeadCommitDuringRebase,
+	interactive_rebase.DropTodoCommitWithUpdateRef,
 	interactive_rebase.EditFirstCommit,
 	interactive_rebase.EditNonTodoCommitDuringRebase,
 	interactive_rebase.FixupFirstCommit,

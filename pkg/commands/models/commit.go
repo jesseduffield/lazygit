@@ -3,18 +3,37 @@ package models
 import (
 	"fmt"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // Special commit hash for empty tree object
 const EmptyTreeCommitHash = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
+type CommitStatus int
+
+const (
+	StatusNone CommitStatus = iota
+	StatusUnpushed
+	StatusPushed
+	StatusMerged
+	StatusRebasing
+	StatusSelected
+	StatusReflog
+)
+
+const (
+	// Conveniently for us, the todo package starts the enum at 1, and given
+	// that it doesn't have a "none" value, we're setting ours to 0
+	ActionNone todo.TodoCommand = 0
+)
+
 // Commit : A git commit
 type Commit struct {
 	Sha           string
 	Name          string
-	Status        string // one of "unpushed", "pushed", "merged", "rebasing" or "selected"
-	Action        string // one of "", "pick", "edit", "squash", "reword", "drop", "fixup"
+	Status        CommitStatus
+	Action        todo.TodoCommand
 	Tags          []string
 	ExtraInfo     string // something like 'HEAD -> master, tag: v0.15.2'
 	AuthorName    string // something like 'Jesse Duffield'
@@ -63,7 +82,7 @@ func (c *Commit) IsMerge() bool {
 // returns true if this commit is not actually in the git log but instead
 // is from a TODO file for an interactive rebase.
 func (c *Commit) IsTODO() bool {
-	return c.Action != ""
+	return c.Action != ActionNone
 }
 
 func IsHeadCommit(commits []*Commit, index int) bool {

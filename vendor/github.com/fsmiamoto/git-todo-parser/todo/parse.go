@@ -13,6 +13,7 @@ var (
 	ErrMissingLabel      = errors.New("missing label")
 	ErrMissingCommit     = errors.New("missing commit")
 	ErrMissingExecCmd    = errors.New("missing command for exec")
+	ErrMissingRef        = errors.New("missing ref")
 )
 
 func Parse(f io.Reader) ([]Todo, error) {
@@ -55,9 +56,9 @@ func parseLine(line string) (Todo, error) {
 
 	fields := strings.Fields(line)
 
-	for i := TodoCommand(Pick); i < Comment; i++ {
+	for i := Pick; i < Comment; i++ {
 		if isCommand(i, fields[0]) {
-			todo.Command = TodoCommand(i)
+			todo.Command = i
 			fields = fields[1:]
 			break
 		}
@@ -90,6 +91,7 @@ func parseLine(line string) (Todo, error) {
 
 	if todo.Command == Merge {
 		if fields[0] == "-C" || fields[0] == "-c" {
+			todo.Flag = fields[0]
 			fields = fields[1:]
 			if len(fields) == 0 {
 				return todo, ErrMissingCommit
@@ -115,8 +117,17 @@ func parseLine(line string) (Todo, error) {
 		}
 		// Skip flags
 		if fields[0] == "-C" || fields[0] == "-c" {
+			todo.Flag = fields[0]
 			fields = fields[1:]
 		}
+	}
+
+	if todo.Command == UpdateRef {
+		if len(fields) == 0 {
+			return todo, ErrMissingRef
+		}
+		todo.Ref = fields[0]
+		return todo, nil
 	}
 
 	if len(fields) == 0 {

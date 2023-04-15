@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -263,8 +264,9 @@ func displayCommit(
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
 
 	actionString := ""
-	if commit.Action != "" {
-		actionString = actionColorMap(commit.Action).Sprint(commit.Action) + " "
+	if commit.Action != models.ActionNone {
+		todoString := commit.Action.String()
+		actionString = actionColorMap(commit.Action).Sprint(todoString) + " "
 	}
 
 	tagString := ""
@@ -275,6 +277,8 @@ func displayCommit(
 	} else {
 		if len(commit.Tags) > 0 {
 			tagString = theme.DiffTerminalColor.SetBold().Sprint(strings.Join(commit.Tags, " ")) + " "
+		} else if commit.ExtraInfo != "" {
+			tagString = style.FgMagenta.SetBold().Sprint("(*)") + " "
 		}
 	}
 
@@ -343,19 +347,20 @@ func getShaColor(
 		return getBisectStatusColor(bisectStatus)
 	}
 
-	diffed := commit.Sha == diffName
+	diffed := commit.Sha != "" && commit.Sha == diffName
 	shaColor := theme.DefaultTextColor
 	switch commit.Status {
-	case "unpushed":
+	case models.StatusUnpushed:
 		shaColor = style.FgRed
-	case "pushed":
+	case models.StatusPushed:
 		shaColor = style.FgYellow
-	case "merged":
+	case models.StatusMerged:
 		shaColor = style.FgGreen
-	case "rebasing":
+	case models.StatusRebasing:
 		shaColor = style.FgBlue
-	case "reflog":
+	case models.StatusReflog:
 		shaColor = style.FgBlue
+	default:
 	}
 
 	if diffed {
@@ -367,15 +372,15 @@ func getShaColor(
 	return shaColor
 }
 
-func actionColorMap(str string) style.TextStyle {
-	switch str {
-	case "pick":
+func actionColorMap(action todo.TodoCommand) style.TextStyle {
+	switch action {
+	case todo.Pick:
 		return style.FgCyan
-	case "drop":
+	case todo.Drop:
 		return style.FgRed
-	case "edit":
+	case todo.Edit:
 		return style.FgGreen
-	case "fixup":
+	case todo.Fixup:
 		return style.FgMagenta
 	default:
 		return style.FgYellow
