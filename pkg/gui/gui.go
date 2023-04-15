@@ -827,15 +827,6 @@ func (gui *Gui) onUIThread(f func() error) {
 	})
 }
 
-func (gui *Gui) startBackgroundRoutines() {
-	mgr := &BackgroundRoutineMgr{gui: gui}
-	mgr.startBackgroundRoutines()
-}
-
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
 	return gui.helpers.WindowArrangement.GetWindowDimensions(informationStr, appStatus)
-}
-
-func (gui *Gui) popContext() error {
-	return gui.State.ContextMgr.Pop()
 }

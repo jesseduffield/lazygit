@@ -18,7 +18,7 @@ func NewUpdateHelper(c *HelperCommon, updater *updates.Updater) *UpdateHelper {
 	}
 }
 
-func (self *UpdateHelper) CheckForUpdateInBackground() error {
+func (self *UpdateHelper) CheckForUpdateInBackground() {
 	self.updater.CheckForNewUpdate(func(newVersion string, err error) error {
 		if err != nil {
 			// ignoring the error for now so that I'm not annoying users
@@ -34,8 +34,6 @@ func (self *UpdateHelper) CheckForUpdateInBackground() error {
 		}
 		return self.showUpdatePrompt(newVersion)
 	}, false)
-
-	return nil
 }
 
 func (self *UpdateHelper) CheckForUpdateInForeground() error {

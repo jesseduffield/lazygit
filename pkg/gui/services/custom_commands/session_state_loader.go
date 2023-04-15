@@ -9,7 +9,6 @@ import (
 // in the custom command's template strings
 type SessionStateLoader struct {
 	c          *helpers.HelperCommon
-	helpers    *helpers.Helpers
 	refsHelper *helpers.RefsHelper
 }
 

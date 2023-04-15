@@ -146,7 +146,3 @@ func (gui *Gui) refreshMainViews(opts types.RefreshMainOpts) error {
 func (gui *Gui) splitMainPanel(splitMainPanel bool) {
 	gui.State.SplitMainPanel = splitMainPanel
 }
-
-func (gui *Gui) isMainPanelSplit() bool {
-	return gui.State.SplitMainPanel
-}
