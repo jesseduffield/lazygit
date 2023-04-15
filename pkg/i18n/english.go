@@ -209,7 +209,9 @@ type TranslationSet struct {
 	ReflogCommitsTitle                  string
 	ConflictsResolved                   string
 	RebasingTitle                       string
-	ConfirmRebase                       string
+	SimpleRebase                        string
+	InteractiveRebase                   string
+	InteractiveRebaseTooltip            string
 	ConfirmMerge                        string
 	FwdNoUpstream                       string
 	FwdNoLocalUpstream                  string
@@ -877,8 +879,10 @@ func EnglishTranslationSet() TranslationSet {
 		ReflogCommitsTitle:                  "Reflog",
 		GlobalTitle:                         "Global Keybindings",
 		ConflictsResolved:                   "all merge conflicts resolved. Continue?",
-		RebasingTitle:                       "Rebasing",
-		ConfirmRebase:                       "Are you sure you want to rebase '{{.checkedOutBranch}}' on top of '{{.selectedBranch}}'?",
+		RebasingTitle:                       "Rebase '{{.checkedOutBranch}}' onto '{{.ref}}'",
+		SimpleRebase:                        "simple rebase",
+		InteractiveRebase:                   "interactive rebase",
+		InteractiveRebaseTooltip:            "Begin an interactive rebase with a break at the start, so you can update the TODO commits before continuing",
 		ConfirmMerge:                        "Are you sure you want to merge '{{.selectedBranch}}' into '{{.checkedOutBranch}}'?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                  "Cannot fast-forward a branch whose remote is not registered locally",

@@ -201,22 +201,42 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	if ref == checkedOutBranch {
 		return self.c.ErrorMsg(self.c.Tr.CantRebaseOntoSelf)
 	}
-	prompt := utils.ResolvePlaceholderString(
-		self.c.Tr.ConfirmRebase,
+	menuItems := []*types.MenuItem{
+		{
+			Label: self.c.Tr.SimpleRebase,
+			Key:   's',
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
+				err := self.git.Rebase.RebaseBranch(ref)
+				return self.CheckMergeOrRebase(err)
+			},
+		},
+		{
+			Label:   self.c.Tr.InteractiveRebase,
+			Key:     'i',
+			Tooltip: self.c.Tr.InteractiveRebaseTooltip,
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
+				err := self.git.Rebase.EditRebase(ref)
+				if err = self.CheckMergeOrRebase(err); err != nil {
+					return err
+				}
+				return self.c.PushContext(self.contexts.LocalCommits)
+			},
+		},
+	}
+
+	title := utils.ResolvePlaceholderString(
+		self.c.Tr.RebasingTitle,
 		map[string]string{
 			"checkedOutBranch": checkedOutBranch,
-			"selectedBranch":   ref,
+			"ref":              ref,
 		},
 	)
 
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.RebasingTitle,
-		Prompt: prompt,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
-			err := self.git.Rebase.RebaseBranch(ref)
-			return self.CheckMergeOrRebase(err)
-		},
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: title,
+		Items: menuItems,
 	})
 }
 

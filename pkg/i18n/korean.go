@@ -202,8 +202,6 @@ func koreanTranslationSet() TranslationSet {
 		ReflogCommitsTitle:                  "Reflog",
 		GlobalTitle:                         "글로벌 키 바인딩",
 		ConflictsResolved:                   "모든 병합 충돌이 해결되었습니다. 계속 할까요?",
-		RebasingTitle:                       "리베이스 중",
-		ConfirmRebase:                       "정말로 '{{.checkedOutBranch}}' 을(를) '{{.selectedBranch}}'에 리베이스 하시겠습니까?",
 		ConfirmMerge:                        "정말로 '{{.selectedBranch}}' 을(를) '{{.checkedOutBranch}}'에 병합하시겠습니까?",
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                  "Cannot fast-forward a branch whose remote is not registered locally",

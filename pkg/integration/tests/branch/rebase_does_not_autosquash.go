@@ -39,9 +39,9 @@ var RebaseDoesNotAutosquash = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Branches.RebaseBranch)
 
-		t.ExpectPopup().Confirmation().
-			Title(Equals("Rebasing")).
-			Content(Contains("Are you sure you want to rebase 'my-branch' on top of 'master'?")).
+		t.ExpectPopup().Menu().
+			Title(Equals("Rebase 'my-branch' onto 'master'")).
+			Select(Contains("simple rebase")).
 			Confirm()
 
 		t.Views().Commits().Lines(
