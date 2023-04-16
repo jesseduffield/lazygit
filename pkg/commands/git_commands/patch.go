@@ -105,15 +105,16 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 	baseIndex := sourceCommitIdx + 1
 
+	changes := []daemon.ChangeTodoAction{
+		{Sha: commits[sourceCommitIdx].Sha, NewAction: todo.Edit},
+		{Sha: commits[destinationCommitIdx].Sha, NewAction: todo.Edit},
+	}
+	self.os.LogCommand(logTodoChanges(changes), false)
+
 	err := self.rebase.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  commits[baseIndex].Sha,
 		overrideEditor: true,
-		instruction: ChangeTodoActionsInstruction{
-			actions: []daemon.ChangeTodoAction{
-				{Sha: commits[sourceCommitIdx].Sha, NewAction: todo.Edit},
-				{Sha: commits[destinationCommitIdx].Sha, NewAction: todo.Edit},
-			},
-		},
+		instruction:    daemon.NewChangeTodoActionsInstruction(changes),
 	}).Run()
 	if err != nil {
 		return err
