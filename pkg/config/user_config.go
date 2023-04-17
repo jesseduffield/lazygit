@@ -32,7 +32,7 @@ type GuiConfig struct {
 	ScrollHeight                int                `yaml:"scrollHeight"`
 	ScrollPastBottom            bool               `yaml:"scrollPastBottom"`
 	MouseEvents                 bool               `yaml:"mouseEvents"`
-	SkipUnstageLineWarning      bool               `yaml:"skipUnstageLineWarning"`
+	SkipDiscardChangeWarning    bool               `yaml:"skipDiscardChangeWarning"`
 	SkipStashWarning            bool               `yaml:"skipStashWarning"`
 	SidePanelWidth              float64            `yaml:"sidePanelWidth"`
 	ExpandFocusedSidePanel      bool               `yaml:"expandFocusedSidePanel"`
@@ -397,17 +397,17 @@ type CustomCommandMenuOption struct {
 func GetDefaultConfig() *UserConfig {
 	return &UserConfig{
 		Gui: GuiConfig{
-			ScrollHeight:           2,
-			ScrollPastBottom:       true,
-			MouseEvents:            true,
-			SkipUnstageLineWarning: false,
-			SkipStashWarning:       false,
-			SidePanelWidth:         0.3333,
-			ExpandFocusedSidePanel: false,
-			MainPanelSplitMode:     "flexible",
-			Language:               "auto",
-			TimeFormat:             "02 Jan 06",
-			ShortTimeFormat:        time.Kitchen,
+			ScrollHeight:             2,
+			ScrollPastBottom:         true,
+			MouseEvents:              true,
+			SkipDiscardChangeWarning: false,
+			SkipStashWarning:         false,
+			SidePanelWidth:           0.3333,
+			ExpandFocusedSidePanel:   false,
+			MainPanelSplitMode:       "flexible",
+			Language:                 "auto",
+			TimeFormat:               "02 Jan 06",
+			ShortTimeFormat:          time.Kitchen,
 			Theme: ThemeConfig{
 				ActiveBorderColor:         []string{"green", "bold"},
 				InactiveBorderColor:       []string{"default"},

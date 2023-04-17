@@ -34,8 +34,8 @@ func (self *Common) ContinueOnConflictsResolved() {
 
 func (self *Common) ConfirmDiscardLines() {
 	self.t.ExpectPopup().Confirmation().
-		Title(Equals("Unstage lines")).
-		Content(Contains("Are you sure you want to delete the selected lines")).
+		Title(Equals("Discard change")).
+		Content(Contains("Are you sure you want to discard this change")).
 		Confirm()
 }
 

@@ -428,8 +428,8 @@ type TranslationSet struct {
 	BranchNotFoundTitle                 string
 	BranchNotFoundPrompt                string
 	BranchUnknown                       string
-	UnstageLinesTitle                   string
-	UnstageLinesPrompt                  string
+	DiscardChangeTitle                  string
+	DiscardChangePrompt                 string
 	CreateNewBranchFromCommit           string
 	BuildingPatch                       string
 	ViewCommits                         string
@@ -1119,8 +1119,8 @@ func EnglishTranslationSet() TranslationSet {
 		BranchNotFoundTitle:                 "Branch not found",
 		BranchNotFoundPrompt:                "Branch not found. Create a new branch named",
 		BranchUnknown:                       "Branch unknown",
-		UnstageLinesTitle:                   "Unstage lines",
-		UnstageLinesPrompt:                  "Are you sure you want to delete the selected lines (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipUnstageLineWarning' to true",
+		DiscardChangeTitle:                  "Discard change",
+		DiscardChangePrompt:                 "Are you sure you want to discard this change (git reset)? It is irreversible.\nTo disable this dialogue set the config key of 'gui.skipDiscardChangeWarning' to true",
 		CreateNewBranchFromCommit:           "Create new branch off of commit",
 		BuildingPatch:                       "Building patch",
 		ViewCommits:                         "View commits",

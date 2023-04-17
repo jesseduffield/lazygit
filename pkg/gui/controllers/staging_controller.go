@@ -169,10 +169,10 @@ func (self *StagingController) ToggleStaged() error {
 func (self *StagingController) ResetSelection() error {
 	reset := func() error { return self.applySelectionAndRefresh(true) }
 
-	if !self.staged && !self.c.UserConfig.Gui.SkipUnstageLineWarning {
+	if !self.staged && !self.c.UserConfig.Gui.SkipDiscardChangeWarning {
 		return self.c.Confirm(types.ConfirmOpts{
-			Title:         self.c.Tr.UnstageLinesTitle,
-			Prompt:        self.c.Tr.UnstageLinesPrompt,
+			Title:         self.c.Tr.DiscardChangeTitle,
+			Prompt:        self.c.Tr.DiscardChangePrompt,
 			HandleConfirm: reset,
 		})
 	}
