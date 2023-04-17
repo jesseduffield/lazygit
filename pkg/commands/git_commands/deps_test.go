@@ -15,7 +15,6 @@ import (
 type commonDeps struct {
 	runner     *oscommands.FakeCmdObjRunner
 	userConfig *config.UserConfig
-	gitVersion *GitVersion
 	gitConfig  *git_config.FakeGitConfig
 	getenv     func(string) string
 	removeFile func(string) error
@@ -47,11 +46,6 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 	gitCommon.Common.UserConfig = deps.userConfig
 	if gitCommon.Common.UserConfig == nil {
 		gitCommon.Common.UserConfig = config.GetDefaultConfig()
-	}
-
-	gitCommon.version = deps.gitVersion
-	if gitCommon.version == nil {
-		gitCommon.version = &GitVersion{2, 0, 0, ""}
 	}
 
 	gitConfig := deps.gitConfig
