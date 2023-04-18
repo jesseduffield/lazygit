@@ -79,7 +79,7 @@ func (self *RebaseCommands) SetCommitAuthor(commits []*models.Commit, index int,
 }
 
 func (self *RebaseCommands) GenericAmend(commits []*models.Commit, index int, f func() error) error {
-	if index == 0 {
+	if models.IsHeadCommit(commits, index) {
 		// we've selected the top commit so no rebase is required
 		return f()
 	}
