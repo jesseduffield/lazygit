@@ -13,7 +13,7 @@ import (
 	"github.com/jesseduffield/generics/slices"
 )
 
-// This package is for handling logic specific to a git hosting service like github, gitlab, bitbucket, etc.
+// This package is for handling logic specific to a git hosting service like github, gitlab, bitbucket, gitea, etc.
 // Different git hosting services have different URL formats for when you want to open a PR or view a commit,
 // and this package's responsibility is to determine which service you're using based on the remote URL,
 // and then which URL you need for whatever use case you have.
