@@ -85,6 +85,7 @@ var tests = []*components.IntegrationTest{
 	filter_by_path.TypeFile,
 	interactive_rebase.AdvancedInteractiveRebase,
 	interactive_rebase.AmendFirstCommit,
+	interactive_rebase.AmendFixupCommit,
 	interactive_rebase.AmendHeadCommitDuringRebase,
 	interactive_rebase.AmendMerge,
 	interactive_rebase.AmendNonHeadCommitDuringRebase,

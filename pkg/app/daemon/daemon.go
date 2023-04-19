@@ -37,6 +37,7 @@ const (
 	DaemonKindMoveTodoDown
 	DaemonKindInsertBreak
 	DaemonKindChangeTodoActions
+	DaemonKindMoveFixupCommitDown
 )
 
 const (
@@ -50,12 +51,13 @@ func getInstruction() Instruction {
 	jsonData := os.Getenv(DaemonInstructionEnvKey)
 
 	mapping := map[DaemonKind]func(string) Instruction{
-		DaemonKindExitImmediately:   deserializeInstruction[*ExitImmediatelyInstruction],
-		DaemonKindCherryPick:        deserializeInstruction[*CherryPickCommitsInstruction],
-		DaemonKindChangeTodoActions: deserializeInstruction[*ChangeTodoActionsInstruction],
-		DaemonKindMoveTodoUp:        deserializeInstruction[*MoveTodoUpInstruction],
-		DaemonKindMoveTodoDown:      deserializeInstruction[*MoveTodoDownInstruction],
-		DaemonKindInsertBreak:       deserializeInstruction[*InsertBreakInstruction],
+		DaemonKindExitImmediately:     deserializeInstruction[*ExitImmediatelyInstruction],
+		DaemonKindCherryPick:          deserializeInstruction[*CherryPickCommitsInstruction],
+		DaemonKindChangeTodoActions:   deserializeInstruction[*ChangeTodoActionsInstruction],
+		DaemonKindMoveFixupCommitDown: deserializeInstruction[*MoveFixupCommitDownInstruction],
+		DaemonKindMoveTodoUp:          deserializeInstruction[*MoveTodoUpInstruction],
+		DaemonKindMoveTodoDown:        deserializeInstruction[*MoveTodoDownInstruction],
+		DaemonKindInsertBreak:         deserializeInstruction[*InsertBreakInstruction],
 	}
 
 	return mapping[getDaemonKind()](jsonData)
@@ -203,6 +205,35 @@ func (self *ChangeTodoActionsInstruction) run(common *common.Common) error {
 		}
 
 		return nil
+	})
+}
+
+// Takes the sha of some commit, and the sha of a fixup commit that was created
+// at the end of the branch, then moves the fixup commit down to right after the
+// original commit, changing its type to "fixup"
+type MoveFixupCommitDownInstruction struct {
+	OriginalSha string
+	FixupSha    string
+}
+
+func NewMoveFixupCommitDownInstruction(originalSha string, fixupSha string) Instruction {
+	return &MoveFixupCommitDownInstruction{
+		OriginalSha: originalSha,
+		FixupSha:    fixupSha,
+	}
+}
+
+func (self *MoveFixupCommitDownInstruction) Kind() DaemonKind {
+	return DaemonKindMoveFixupCommitDown
+}
+
+func (self *MoveFixupCommitDownInstruction) SerializedInstructions() string {
+	return serializeInstruction(self)
+}
+
+func (self *MoveFixupCommitDownInstruction) run(common *common.Common) error {
+	return handleInteractiveRebase(common, func(path string) error {
+		return utils.MoveFixupCommitDown(path, self.OriginalSha, self.FixupSha)
 	})
 }
 

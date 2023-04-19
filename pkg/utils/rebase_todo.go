@@ -134,6 +134,42 @@ func moveTodoUp(todos []todo.Todo, sha string, action todo.TodoCommand) ([]todo.
 	return rearrangedTodos, nil
 }
 
+func MoveFixupCommitDown(fileName string, originalSha string, fixupSha string) error {
+	todos, err := ReadRebaseTodoFile(fileName)
+	if err != nil {
+		return err
+	}
+
+	newTodos := []todo.Todo{}
+	numOriginalShaLinesFound := 0
+	numFixupShaLinesFound := 0
+
+	for _, t := range todos {
+		if t.Command == todo.Pick {
+			if equalShas(t.Commit, originalSha) {
+				numOriginalShaLinesFound += 1
+				// append the original commit, and then the fixup
+				newTodos = append(newTodos, t)
+				newTodos = append(newTodos, todo.Todo{Command: todo.Fixup, Commit: fixupSha})
+				continue
+			} else if equalShas(t.Commit, fixupSha) {
+				numFixupShaLinesFound += 1
+				// skip the fixup here
+				continue
+			}
+		}
+
+		newTodos = append(newTodos, t)
+	}
+
+	if numOriginalShaLinesFound != 1 || numFixupShaLinesFound != 1 {
+		return fmt.Errorf("Expected exactly one each of originalSha and fixupSha, got %d, %d",
+			numOriginalShaLinesFound, numFixupShaLinesFound)
+	}
+
+	return WriteRebaseTodoFile(fileName, newTodos)
+}
+
 // We render a todo in the commits view if it's a commit or if it's an
 // update-ref. We don't render label, reset, or comment lines.
 func isRenderedTodo(t todo.Todo) bool {

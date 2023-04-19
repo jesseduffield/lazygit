@@ -214,12 +214,24 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 }
 
 // AmendTo amends the given commit with whatever files are staged
-func (self *RebaseCommands) AmendTo(commit *models.Commit) error {
+func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) error {
+	commit := commits[commitIndex]
+
 	if err := self.commit.CreateFixupCommit(commit.Sha); err != nil {
 		return err
 	}
 
-	return self.SquashAllAboveFixupCommits(commit)
+	// Get the sha of the commit we just created
+	fixupSha, err := self.cmd.New("git rev-parse --verify HEAD").RunWithOutput()
+	if err != nil {
+		return err
+	}
+
+	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
+		baseShaOrRoot:  getBaseShaOrRoot(commits, commitIndex+1),
+		overrideEditor: true,
+		instruction:    daemon.NewMoveFixupCommitDownInstruction(commit.Sha, fixupSha),
+	}).Run()
 }
 
 // EditRebaseTodo sets the action for a given rebase commit in the git-rebase-todo file

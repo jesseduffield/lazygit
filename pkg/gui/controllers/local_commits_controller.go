@@ -466,7 +466,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-				err := self.git.Rebase.AmendTo(commit)
+				err := self.git.Rebase.AmendTo(self.model.Commits, self.context().GetView().SelectedLineIdx())
 				return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
 			})
 		},
