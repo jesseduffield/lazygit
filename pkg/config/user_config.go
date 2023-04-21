@@ -53,6 +53,7 @@ type GuiConfig struct {
 	SkipRewordInEditorWarning bool               `yaml:"skipRewordInEditorWarning"`
 	WindowSize                string             `yaml:"windowSize"`
 	Border                    string             `yaml:"border"`
+	CommitSummaryFormat       string             `yaml:"commitSummaryFormat"`
 }
 
 type ThemeConfig struct {
@@ -420,6 +421,7 @@ func GetDefaultConfig() *UserConfig {
 			SplitDiff:                 "auto",
 			SkipRewordInEditorWarning: false,
 			Border:                    "single",
+			CommitSummaryFormat:       "SHA: %H%nDate: %aD%nAuthor: %aN <%aE>%n%n%B",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{

@@ -64,6 +64,7 @@ gui:
   splitDiff: 'auto' # one of 'auto' | 'always'
   skipRewordInEditorWarning: false # for skipping the confirmation before launching the reword editor
   border: 'single' # one of 'single' | 'double' | 'rounded' | 'hidden'
+  commitSummaryFormat: 'SHA: %H%nDate: %aD%nAuthor: %aN <%aE>%n%n%B' # for copying into clipboard a summary of a commit
 git:
   paging:
     colorArg: always
@@ -344,6 +345,15 @@ The available attributes are:
 - default
 - reverse # useful for high-contrast
 - underline
+
+## Commit summary format for copying into clipboard
+
+Copying commit's summary to a clipboard invokes the following git command under the hood:
+```
+git show --no-patch --format=<format> <SHA>
+```
+For all possible values `<format>` might be, please refere to the [manual](https://git-scm.com/docs/git-show#_pretty_formats).
+
 
 ## Highlighting the selected line
 

@@ -411,6 +411,7 @@ type TranslationSet struct {
 	LcCopyCommitMessageToClipboard      string
 	LcCommitMessage                     string
 	LcCommitAuthor                      string
+	LcCommitSummary                     string
 	LcCopyCommitAttributeToClipboard    string
 	LcCopyBranchNameToClipboard         string
 	LcCopyFileNameToClipboard           string
@@ -469,6 +470,7 @@ type TranslationSet struct {
 	CommitURLCopiedToClipboard          string
 	CommitMessageCopiedToClipboard      string
 	CommitAuthorCopiedToClipboard       string
+	CommitSummaryCopiedToClipboard      string
 	PatchCopiedToClipboard              string
 	LcCopiedToClipboard                 string
 	ErrCannotEditDirectory              string
@@ -572,6 +574,7 @@ type Actions struct {
 	CopyCommitSHAToClipboard          string
 	CopyCommitURLToClipboard          string
 	CopyCommitAuthorToClipboard       string
+	CopyCommitSummaryToClipboard      string
 	CopyCommitAttributeToClipboard    string
 	CopyPatchToClipboard              string
 	CustomCommand                     string
@@ -1083,6 +1086,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcCopyCommitMessageToClipboard:      "copy commit message to clipboard",
 		LcCommitMessage:                     "commit message",
 		LcCommitAuthor:                      "commit author",
+		LcCommitSummary:                     "commit summary",
 		LcCopyCommitAttributeToClipboard:    "copy commit attribute",
 		LcCopyBranchNameToClipboard:         "copy branch name to clipboard",
 		LcCopyFileNameToClipboard:           "copy the file name to the clipboard",
@@ -1140,6 +1144,7 @@ func EnglishTranslationSet() TranslationSet {
 		CommitURLCopiedToClipboard:          "Commit URL copied to clipboard",
 		CommitMessageCopiedToClipboard:      "Commit message copied to clipboard",
 		CommitAuthorCopiedToClipboard:       "Commit author copied to clipboard",
+		CommitSummaryCopiedToClipboard:      "Commit summary copied to clipboard",
 		PatchCopiedToClipboard:              "Patch copied to clipboard",
 		LcCopiedToClipboard:                 "copied to clipboard",
 		ErrCannotEditDirectory:              "Cannot edit directory: you can only edit individual files",
@@ -1224,6 +1229,7 @@ func EnglishTranslationSet() TranslationSet {
 			CopyCommitSHAToClipboard:          "Copy commit SHA to clipboard",
 			CopyCommitURLToClipboard:          "Copy commit URL to clipboard",
 			CopyCommitAuthorToClipboard:       "Copy commit author to clipboard",
+			CopyCommitSummaryToClipboard:      "Copy summary to clipboard",
 			CopyCommitAttributeToClipboard:    "Copy to clipboard",
 			CopyPatchToClipboard:              "Copy patch to clipboard",
 			MoveCommitUp:                      "Move commit up",

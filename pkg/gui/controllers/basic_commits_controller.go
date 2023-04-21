@@ -135,6 +135,13 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 				},
 				Key: 'a',
 			},
+			{
+				Label: self.c.Tr.LcCommitSummary,
+				OnPress: func() error {
+					return self.copySummaryToClipboard(commit)
+				},
+				Key: 'S',
+			},
 		},
 	})
 }
@@ -189,6 +196,21 @@ func (self *BasicCommitsController) copyAuthorToClipboard(commit *models.Commit)
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitAuthorToClipboard)
 	if err := self.os.CopyToClipboard(formattedAuthor); err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.Toast(self.c.Tr.CommitAuthorCopiedToClipboard)
+	return nil
+}
+
+func (self *BasicCommitsController) copySummaryToClipboard(commit *models.Commit) error {
+	summary, err := self.git.Commit.GetCommitSummary(commit.Sha, self.c.UserConfig.Gui.CommitSummaryFormat)
+	if err != nil {
+		return self.c.Error(err)
+	}
+
+	self.c.LogAction(self.c.Tr.Actions.CopyCommitSummaryToClipboard)
+	if err := self.os.CopyToClipboard(summary); err != nil {
 		return self.c.Error(err)
 	}
 

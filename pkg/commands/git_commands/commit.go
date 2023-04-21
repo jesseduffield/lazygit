@@ -124,6 +124,19 @@ func (self *CommitCommands) GetCommitAuthor(commitSha string) (Author, error) {
 	return author, err
 }
 
+func (self *CommitCommands) GetCommitSummary(commitSha string, summaryFormat string) (string, error) {
+	//this relies on the logic described in https://git-scm.com/docs/git-show#Documentation/git-show.txt---formatltformatgt
+	//'When <format> is none of the above, and has %placeholder in it, it acts as if --pretty=tformat:<format> were given'
+	//in other words it's possible to pass not only a format string with %placeholder, but also pre-defined
+	//'oneline', 'short', 'medium', 'full', etc.
+	cmdStr := fmt.Sprintf("git show --no-patch --format=%s %s", self.cmd.Quote(summaryFormat), commitSha)
+
+	var output string
+	output, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	output = strings.TrimSpace(output)
+	return output, err
+}
+
 func (self *CommitCommands) GetCommitMessageFirstLine(sha string) (string, error) {
 	return self.GetCommitMessagesFirstLine([]string{sha})
 }
