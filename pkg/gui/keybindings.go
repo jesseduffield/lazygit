@@ -120,6 +120,16 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName:    "",
+			Key:         opts.GetKey(opts.Config.Universal.ScrollUpSecondary),
+			Handler:     self.scrollUpSecondary,
+		},
+		{
+			ViewName:    "",
+			Key:         opts.GetKey(opts.Config.Universal.ScrollDownSecondary),
+			Handler:     self.scrollDownSecondary,
+		},
+		{
+			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.CreateRebaseOptionsMenu),
 			Handler:     self.helpers.MergeAndRebase.CreateRebaseOptionsMenu,
 			Description: self.c.Tr.ViewMergeRebaseOptions,
