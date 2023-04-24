@@ -15,14 +15,17 @@ import (
 const (
 	xsel               = "xsel"
 	xclip              = "xclip"
-	wlcopy = "wl-copy"
-	wlpaste = "wl-paste"
+	powershellExe      = "powershell.exe"
+	clipExe            = "clip.exe"
+	wlcopy             = "wl-copy"
+	wlpaste            = "wl-paste"
 	termuxClipboardGet = "termux-clipboard-get"
 	termuxClipboardSet = "termux-clipboard-set"
 )
 
 var (
 	Primary bool
+	trimDos bool
 
 	pasteCmdArgs []string
 	copyCmdArgs  []string
@@ -33,8 +36,11 @@ var (
 	xclipPasteArgs = []string{xclip, "-out", "-selection", "clipboard"}
 	xclipCopyArgs  = []string{xclip, "-in", "-selection", "clipboard"}
 
+	powershellExePasteArgs = []string{powershellExe, "Get-Clipboard"}
+	clipExeCopyArgs        = []string{clipExe}
+
 	wlpasteArgs = []string{wlpaste, "--no-newline"}
-	wlcopyArgs = []string{wlcopy}
+	wlcopyArgs  = []string{wlcopy}
 
 	termuxPasteArgs = []string{termuxClipboardGet}
 	termuxCopyArgs  = []string{termuxClipboardSet}
@@ -44,8 +50,8 @@ var (
 
 func init() {
 	if os.Getenv("WAYLAND_DISPLAY") != "" {
-		pasteCmdArgs = wlpasteArgs;
-		copyCmdArgs = wlcopyArgs;
+		pasteCmdArgs = wlpasteArgs
+		copyCmdArgs = wlcopyArgs
 
 		if _, err := exec.LookPath(wlcopy); err == nil {
 			if _, err := exec.LookPath(wlpaste); err == nil {
@@ -77,6 +83,16 @@ func init() {
 		}
 	}
 
+	pasteCmdArgs = powershellExePasteArgs
+	copyCmdArgs = clipExeCopyArgs
+	trimDos = true
+
+	if _, err := exec.LookPath(clipExe); err == nil {
+		if _, err := exec.LookPath(powershellExe); err == nil {
+			return
+		}
+	}
+
 	Unsupported = true
 }
 
@@ -103,7 +119,11 @@ func readAll() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(out), nil
+	result := string(out)
+	if trimDos && len(result) > 1 {
+		result = result[:len(result)-2]
+	}
+	return result, nil
 }
 
 func writeAll(text string) error {
