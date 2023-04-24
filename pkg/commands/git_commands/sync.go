@@ -29,11 +29,7 @@ func (self *SyncCommands) PushCmdObj(opts PushOpts) (oscommands.ICmdObj, error) 
 	cmdStr := "git push"
 
 	if opts.Force {
-		if self.version.IsOlderThan(2, 30, 0) {
-			cmdStr += " --force-with-lease"
-		} else {
-			cmdStr += " --force-with-lease --force-if-includes"
-		}
+		cmdStr += " --force-with-lease"
 	}
 
 	if opts.SetUpstream {
