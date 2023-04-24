@@ -265,6 +265,60 @@ func TestGetPullRequestURL(t *testing.T) {
 			},
 		},
 		{
+			testName:  "Opens a link to new pull request on Gitea Server (SSH)",
+			from:      "feature/new",
+			remoteUrl: "ssh://git@mycompany.gitea.io/myproject/myrepo.git",
+			configServiceDomains: map[string]string{
+				// valid configuration for a gitea server URL
+				"mycompany.gitea.io": "gitea:mycompany.gitea.io",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://mycompany.gitea.io/myproject/myrepo/compare/feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Gitea Server (SSH) with specific target",
+			from:      "feature/new",
+			to:        "dev",
+			remoteUrl: "ssh://git@mycompany.gitea.io/myproject/myrepo.git",
+			configServiceDomains: map[string]string{
+				// valid configuration for a gitea server URL
+				"mycompany.gitea.io": "gitea:mycompany.gitea.io",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://mycompany.gitea.io/myproject/myrepo/compare/dev...feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Gitea Server (HTTP)",
+			from:      "feature/new",
+			remoteUrl: "https://mycompany.gitea.io/myproject/myrepo.git",
+			configServiceDomains: map[string]string{
+				// valid configuration for a gitea server URL
+				"mycompany.gitea.io": "gitea:mycompany.gitea.io",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://mycompany.gitea.io/myproject/myrepo/compare/feature%2Fnew", url)
+			},
+		},
+		{
+			testName:  "Opens a link to new pull request on Gitea Server (HTTP) with specific target",
+			from:      "feature/new",
+			to:        "dev",
+			remoteUrl: "https://mycompany.gitea.io/myproject/myrepo.git",
+			configServiceDomains: map[string]string{
+				// valid configuration for a gitea server URL
+				"mycompany.gitea.io": "gitea:mycompany.gitea.io",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://mycompany.gitea.io/myproject/myrepo/compare/dev...feature%2Fnew", url)
+			},
+		},
+		{
 			testName:  "Throws an error if git service is unsupported",
 			from:      "feature/divide-operation",
 			remoteUrl: "git@something.com:peter/calculator.git",
@@ -310,7 +364,7 @@ func TestGetPullRequestURL(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, "https://bitbucket.org/johndoe/social_network/pull-requests/new?source=feature%2Fprofile-page&t=1", url)
 			},
-			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab, azuredevops, bitbucketServer"},
+			expectedLoggedErrors: []string{"Unknown git service type: 'noservice'. Expected one of github, bitbucket, gitlab, azuredevops, bitbucketServer, gitea"},
 		},
 		{
 			testName:  "Escapes reserved URL characters in from branch name",
