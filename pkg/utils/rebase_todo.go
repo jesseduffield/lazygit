@@ -140,34 +140,41 @@ func MoveFixupCommitDown(fileName string, originalSha string, fixupSha string) e
 		return err
 	}
 
-	newTodos := []todo.Todo{}
-	numOriginalShaLinesFound := 0
-	numFixupShaLinesFound := 0
-
-	for _, t := range todos {
-		if t.Command == todo.Pick {
-			if equalShas(t.Commit, originalSha) {
-				numOriginalShaLinesFound += 1
-				// append the original commit, and then the fixup
-				newTodos = append(newTodos, t)
-				newTodos = append(newTodos, todo.Todo{Command: todo.Fixup, Commit: fixupSha})
-				continue
-			} else if equalShas(t.Commit, fixupSha) {
-				numFixupShaLinesFound += 1
-				// skip the fixup here
-				continue
-			}
-		}
-
-		newTodos = append(newTodos, t)
-	}
-
-	if numOriginalShaLinesFound != 1 || numFixupShaLinesFound != 1 {
-		return fmt.Errorf("Expected exactly one each of originalSha and fixupSha, got %d, %d",
-			numOriginalShaLinesFound, numFixupShaLinesFound)
+	newTodos, err := moveFixupCommitDown(todos, originalSha, fixupSha)
+	if err != nil {
+		return err
 	}
 
 	return WriteRebaseTodoFile(fileName, newTodos)
+}
+
+func moveFixupCommitDown(todos []todo.Todo, originalSha string, fixupSha string) ([]todo.Todo, error) {
+	isOriginal := func(t todo.Todo) bool {
+		return t.Command == todo.Pick && equalShas(t.Commit, originalSha)
+	}
+
+	isFixup := func(t todo.Todo) bool {
+		return t.Command == todo.Pick && equalShas(t.Commit, fixupSha)
+	}
+
+	originalShaCount := lo.CountBy(todos, isOriginal)
+	if originalShaCount != 1 {
+		return nil, fmt.Errorf("Expected exactly one original SHA, found %d", originalShaCount)
+	}
+
+	fixupShaCount := lo.CountBy(todos, isFixup)
+	if fixupShaCount != 1 {
+		return nil, fmt.Errorf("Expected exactly one fixup SHA, found %d", fixupShaCount)
+	}
+
+	_, fixupIndex, _ := lo.FindIndexOf(todos, isFixup)
+	_, originalIndex, _ := lo.FindIndexOf(todos, isOriginal)
+
+	newTodos := MoveElement(todos, fixupIndex, originalIndex+1)
+
+	newTodos[originalIndex+1].Command = todo.Fixup
+
+	return newTodos, nil
 }
 
 // We render a todo in the commits view if it's a commit or if it's an
