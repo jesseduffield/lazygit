@@ -26,6 +26,12 @@ type CommitMessageViewModel struct {
 	preservedMessage string
 	// invoked when pressing enter in the commit message panel
 	onConfirm func(string) error
+
+	// The message typed in before cycling through history
+	// We store this separately to 'preservedMessage' because 'preservedMessage'
+	// is specifically for committing staged files and we don't want this affected
+	// by cycling through history in the context of rewording an old commit.
+	historyMessage string
 }
 
 func NewCommitMessageContext(
@@ -61,6 +67,22 @@ func (self *CommitMessageContext) GetPreserveMessage() bool {
 	return self.viewModel.preserveMessage
 }
 
+func (self *CommitMessageContext) GetPreservedMessage() string {
+	return self.viewModel.preservedMessage
+}
+
+func (self *CommitMessageContext) SetPreservedMessage(message string) {
+	self.viewModel.preservedMessage = message
+}
+
+func (self *CommitMessageContext) GetHistoryMessage() string {
+	return self.viewModel.historyMessage
+}
+
+func (self *CommitMessageContext) SetHistoryMessage(message string) {
+	self.viewModel.historyMessage = message
+}
+
 func (self *CommitMessageContext) OnConfirm(message string) error {
 	return self.viewModel.onConfirm(message)
 }
@@ -70,12 +92,4 @@ func (self *CommitMessageContext) SetPanelState(index int, title string, preserv
 	self.viewModel.preserveMessage = preserveMessage
 	self.viewModel.onConfirm = onConfirm
 	self.GetView().Title = title
-}
-
-func (self *CommitMessageContext) SetPreservedMessage(message string) {
-	self.viewModel.preservedMessage = message
-}
-
-func (self *CommitMessageContext) GetPreservedMessage() string {
-	return self.viewModel.preservedMessage
 }

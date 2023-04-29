@@ -65,7 +65,7 @@ func (self *CommitsHelper) SetMessageAndDescriptionInView(message string) {
 	self.renderCommitLength()
 }
 
-func (self *CommitsHelper) joinCommitMessageAndDescription() string {
+func (self *CommitsHelper) JoinCommitMessageAndDescription() string {
 	if len(self.getCommitDescription()) == 0 {
 		return self.getCommitSummary()
 	}
@@ -116,7 +116,7 @@ func (self *CommitsHelper) OnCommitSuccess() {
 }
 
 func (self *CommitsHelper) HandleCommitConfirm() error {
-	fullMessage := self.joinCommitMessageAndDescription()
+	fullMessage := self.JoinCommitMessageAndDescription()
 
 	if fullMessage == "" {
 		return self.c.ErrorMsg(self.c.Tr.CommitWithoutMessageErr)
@@ -132,16 +132,19 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 
 func (self *CommitsHelper) CloseCommitMessagePanel() error {
 	if self.contexts.CommitMessage.GetPreserveMessage() {
-		message := self.joinCommitMessageAndDescription()
+		message := self.JoinCommitMessageAndDescription()
 
 		self.contexts.CommitMessage.SetPreservedMessage(message)
 	} else {
 		self.SetMessageAndDescriptionInView("")
 	}
-	return self.EscapeCommitsPanel()
+
+	self.contexts.CommitMessage.SetHistoryMessage("")
+
+	return self.PopCommitMessageContexts()
 }
 
-func (self *CommitsHelper) EscapeCommitsPanel() error {
+func (self *CommitsHelper) PopCommitMessageContexts() error {
 	return self.c.RemoveContexts(self.commitMessageContexts())
 }
 
