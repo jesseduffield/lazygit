@@ -279,7 +279,7 @@ func (self *LocalCommitsController) handleReword(message string) error {
 		return self.c.Error(err)
 	}
 	self.c.Helpers().Commits.OnCommitSuccess()
-	_ = self.c.Helpers().Commits.EscapeCommitsPanel()
+	_ = self.c.Helpers().Commits.PopCommitMessageContexts()
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 

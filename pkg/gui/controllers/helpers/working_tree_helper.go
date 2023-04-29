@@ -111,7 +111,7 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 func (self *WorkingTreeHelper) handleCommit(message string) error {
 	cmdObj := self.c.Git().Commit.CommitCmdObj(message)
 	self.c.LogAction(self.c.Tr.Actions.Commit)
-	_ = self.commitsHelper.EscapeCommitsPanel()
+	_ = self.commitsHelper.PopCommitMessageContexts()
 	return self.gpgHelper.WithGpgHandling(cmdObj, self.c.Tr.CommittingStatus, func() error {
 		self.commitsHelper.OnCommitSuccess()
 		return nil

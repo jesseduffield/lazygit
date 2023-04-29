@@ -49,6 +49,8 @@ var tests = []*components.IntegrationTest{
 	commit.CommitMultiline,
 	commit.CreateTag,
 	commit.DiscardOldFileChange,
+	commit.History,
+	commit.HistoryComplex,
 	commit.NewBranch,
 	commit.ResetAuthor,
 	commit.Revert,
