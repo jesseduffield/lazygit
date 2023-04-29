@@ -80,6 +80,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 				types.REMOTES,
 				types.STATUS,
 				types.BISECT_INFO,
+				types.STAGING,
 			})
 		} else {
 			scopeSet = set.NewFromSlice(options.Scope)

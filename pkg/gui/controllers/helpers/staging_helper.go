@@ -21,6 +21,13 @@ func NewStagingHelper(
 // NOTE: used from outside this file
 func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) error {
 	secondaryFocused := self.secondaryStagingFocused()
+	mainFocused := self.mainStagingFocused()
+
+	// this method could be called when the staging panel is not being used,
+	// in which case we don't want to do anything.
+	if !mainFocused && !secondaryFocused {
+		return nil
+	}
 
 	mainSelectedLineIdx := -1
 	secondarySelectedLineIdx := -1
@@ -108,4 +115,8 @@ func (self *StagingHelper) handleStagingEscape() error {
 
 func (self *StagingHelper) secondaryStagingFocused() bool {
 	return self.c.CurrentStaticContext().GetKey() == self.c.Contexts().StagingSecondary.GetKey()
+}
+
+func (self *StagingHelper) mainStagingFocused() bool {
+	return self.c.CurrentStaticContext().GetKey() == self.c.Contexts().Staging.GetKey()
 }
