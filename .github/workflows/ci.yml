@@ -140,6 +140,8 @@ jobs:
         run: |
           go generate pkg/integration/tests/tests.go && git diff --exit-code || (echo "Integration test list not up to date. Run 'go generate pkg/integration/tests/tests.go' locally and commit the changes" && exit 1)
         shell: bash # needed so that we get "-o pipefail"
+      - name: Check Filenames
+        run: scripts/check_filenames.sh
   lint:
     runs-on: ubuntu-latest
     env:
