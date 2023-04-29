@@ -474,6 +474,10 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 }
 
 func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error {
+	if self.git.Status.WorkingTreeState() != enums.REBASE_MODE_NONE && !self.isHeadCommit() {
+		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
+	}
+
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: "Amend commit attribute",
 		Items: []*types.MenuItem{
