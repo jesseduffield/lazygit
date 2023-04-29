@@ -37,11 +37,12 @@ type editPreset struct {
 
 func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset {
 	presets := map[string]*editPreset{
-		"vi":    standardTerminalEditorPreset("vi"),
-		"vim":   standardTerminalEditorPreset("vim"),
-		"nvim":  standardTerminalEditorPreset("nvim"),
-		"emacs": standardTerminalEditorPreset("emacs"),
-		"nano":  standardTerminalEditorPreset("nano"),
+		"vi":      standardTerminalEditorPreset("vi"),
+		"vim":     standardTerminalEditorPreset("vim"),
+		"nvim":    standardTerminalEditorPreset("nvim"),
+		"emacs":   standardTerminalEditorPreset("emacs"),
+		"nano":    standardTerminalEditorPreset("nano"),
+		"kakoune": standardTerminalEditorPreset("kakoune"),
 		"vscode": {
 			editTemplate:              "code --reuse-window -- {{filename}}",
 			editAtLineTemplate:        "code --reuse-window --goto -- {{filename}}:{{line}}",
@@ -70,6 +71,7 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 
 	// Some of our presets have a different name than the editor they are using.
 	editorToPreset := map[string]string{
+		"kak":  "kakoune",
 		"code": "vscode",
 		"subl": "sublime",
 		"xed":  "xcode",
