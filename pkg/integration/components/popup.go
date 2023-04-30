@@ -62,9 +62,22 @@ func (self *Popup) CommitMessagePanel() *CommitMessagePanelDriver {
 	return &CommitMessagePanelDriver{t: self.t}
 }
 
+func (self *Popup) CommitDescriptionPanel() *CommitMessagePanelDriver {
+	self.inCommitDescriptionPanel()
+
+	return &CommitMessagePanelDriver{t: self.t}
+}
+
 func (self *Popup) inCommitMessagePanel() {
 	self.t.assertWithRetries(func() (bool, string) {
 		currentView := self.t.gui.CurrentContext().GetView()
 		return currentView.Name() == "commitMessage", "Expected commit message panel to be focused"
+	})
+}
+
+func (self *Popup) inCommitDescriptionPanel() {
+	self.t.assertWithRetries(func() (bool, string) {
+		currentView := self.t.gui.CurrentContext().GetView()
+		return currentView.Name() == "commitDescription", "Expected commit description panel to be focused"
 	})
 }

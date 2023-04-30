@@ -83,13 +83,13 @@ func (gui *Gui) filesRenderToMain() error {
 	return gui.c.RenderToMainViews(refreshOpts)
 }
 
-func (gui *Gui) getSetTextareaTextFn(getView func() *gocui.View) func(string) {
+func (gui *Gui) getCommitMessageSetTextareaTextFn(getView func() *gocui.View) func(string) {
 	return func(text string) {
 		// using a getView function so that we don't need to worry about when the view is created
 		view := getView()
 		view.ClearTextArea()
 		view.TextArea.TypeString(text)
-		_ = gui.resizePopupPanel(view, view.TextArea.GetContent())
+		gui.resizeCommitMessagePanels()
 		view.RenderTextArea()
 	}
 }

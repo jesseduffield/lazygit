@@ -15,7 +15,6 @@ func (gui *Gui) handleCommitMessageFocused() error {
 		map[string]string{
 			"keyBindClose":   keybindings.Label(gui.c.UserConfig.Keybinding.Universal.Return),
 			"keyBindConfirm": keybindings.Label(gui.c.UserConfig.Keybinding.Universal.Confirm),
-			"keyBindNewLine": keybindings.Label(gui.c.UserConfig.Keybinding.Universal.AppendNewline),
 		},
 	)
 

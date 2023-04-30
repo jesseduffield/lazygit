@@ -15,9 +15,8 @@ type FilesController struct {
 	baseController // nolint: unused
 	*controllerCommon
 
-	enterSubmodule        func(submodule *models.SubmoduleConfig) error
-	setCommitMessage      func(message string)
-	getSavedCommitMessage func() string
+	enterSubmodule   func(submodule *models.SubmoduleConfig) error
+	setCommitMessage func(message string)
 }
 
 var _ types.IController = &FilesController{}
@@ -26,13 +25,11 @@ func NewFilesController(
 	common *controllerCommon,
 	enterSubmodule func(submodule *models.SubmoduleConfig) error,
 	setCommitMessage func(message string),
-	getSavedCommitMessage func() string,
 ) *FilesController {
 	return &FilesController{
-		controllerCommon:      common,
-		enterSubmodule:        enterSubmodule,
-		setCommitMessage:      setCommitMessage,
-		getSavedCommitMessage: getSavedCommitMessage,
+		controllerCommon: common,
+		enterSubmodule:   enterSubmodule,
+		setCommitMessage: setCommitMessage,
 	}
 }
 

@@ -78,17 +78,11 @@ func (gui *Gui) getMessageHeight(wrap bool, message string, width int) int {
 	return lineCount
 }
 
-func (gui *Gui) getConfirmationPanelDimensions(wrap bool, prompt string) (int, int, int, int) {
-	panelWidth := gui.getConfirmationPanelWidth()
-	panelHeight := gui.getMessageHeight(wrap, prompt, panelWidth)
-	return gui.getConfirmationPanelDimensionsAux(panelWidth, panelHeight)
+func (gui *Gui) getPopupPanelDimensionsForContentHeight(panelWidth, contentHeight int) (int, int, int, int) {
+	return gui.getPopupPanelDimensionsAux(panelWidth, contentHeight)
 }
 
-func (gui *Gui) getConfirmationPanelDimensionsForContentHeight(panelWidth, contentHeight int) (int, int, int, int) {
-	return gui.getConfirmationPanelDimensionsAux(panelWidth, contentHeight)
-}
-
-func (gui *Gui) getConfirmationPanelDimensionsAux(panelWidth int, panelHeight int) (int, int, int, int) {
+func (gui *Gui) getPopupPanelDimensionsAux(panelWidth int, panelHeight int) (int, int, int, int) {
 	width, height := gui.g.Size()
 	if panelHeight > height*3/4 {
 		panelHeight = height * 3 / 4
@@ -186,7 +180,7 @@ func (gui *Gui) createPopupPanel(ctx context.Context, opts types.CreatePopupPane
 	}
 	confirmationView := gui.Views.Confirmation
 	confirmationView.Editable = opts.Editable
-	confirmationView.Editor = gocui.EditorFunc(gui.defaultEditor)
+	confirmationView.Editor = gocui.EditorFunc(gui.promptEditor)
 
 	if opts.Editable {
 		textArea := confirmationView.TextArea

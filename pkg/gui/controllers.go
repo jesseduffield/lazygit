@@ -9,7 +9,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/snake"
 )
 
@@ -26,10 +25,24 @@ func (gui *Gui) resetControllers() {
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
 	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
-	setCommitMessage := gui.getSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
-	getSavedCommitMessage := func() string {
-		return gui.State.savedCommitMessage
+	setCommitSummary := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
+	setCommitDescription := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitDescription })
+	getCommitSummary := func() string {
+		return strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
 	}
+
+	getCommitDescription := func() string {
+		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetContent())
+	}
+	commitsHelper := helpers.NewCommitsHelper(helperCommon,
+		gui.State.Model,
+		gui.State.Contexts,
+		getCommitSummary,
+		setCommitSummary,
+		getCommitDescription,
+		setCommitDescription,
+		gui.RenderCommitLength,
+	)
 	gpgHelper := helpers.NewGpgHelper(helperCommon, gui.os, gui.git)
 	gui.helpers = &helpers.Helpers{
 		Refs:           refsHelper,
@@ -38,7 +51,7 @@ func (gui *Gui) resetControllers() {
 		Bisect:         helpers.NewBisectHelper(helperCommon, gui.git),
 		Suggestions:    suggestionsHelper,
 		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
-		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, gui.State.Contexts, refsHelper, model, setCommitMessage, getSavedCommitMessage),
+		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, gui.State.Contexts, refsHelper, model, setCommitSummary, commitsHelper, gpgHelper),
 		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
 		GPG:            gpgHelper,
 		MergeAndRebase: rebaseHelper,
@@ -52,6 +65,7 @@ func (gui *Gui) resetControllers() {
 		),
 		Upstream:    helpers.NewUpstreamHelper(helperCommon, model, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
 		AmendHelper: helpers.NewAmendHelper(helperCommon, gui.git, gpgHelper),
+		Commits:     commitsHelper,
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(
@@ -84,27 +98,12 @@ func (gui *Gui) resetControllers() {
 
 	bisectController := controllers.NewBisectController(common)
 
-	getCommitMessage := func() string {
-		return strings.TrimSpace(gui.Views.CommitMessage.TextArea.GetContent())
-	}
-
-	onCommitAttempt := func(message string) {
-		gui.State.savedCommitMessage = message
-		gui.Views.CommitMessage.ClearTextArea()
-	}
-
-	onCommitSuccess := func() {
-		gui.State.savedCommitMessage = ""
-		_ = gui.c.Refresh(types.RefreshOptions{
-			Scope: []types.RefreshableView{types.STAGING},
-		})
-	}
-
 	commitMessageController := controllers.NewCommitMessageController(
 		common,
-		getCommitMessage,
-		onCommitAttempt,
-		onCommitSuccess,
+	)
+
+	commitDescriptionController := controllers.NewCommitDescriptionController(
+		common,
 	)
 
 	remoteBranchesController := controllers.NewRemoteBranchesController(common)
@@ -115,8 +114,7 @@ func (gui *Gui) resetControllers() {
 	filesController := controllers.NewFilesController(
 		common,
 		gui.enterSubmodule,
-		setCommitMessage,
-		getSavedCommitMessage,
+		setCommitSummary,
 	)
 	mergeConflictsController := controllers.NewMergeConflictsController(common)
 	remotesController := controllers.NewRemotesController(
@@ -248,6 +246,10 @@ func (gui *Gui) resetControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.CommitMessage,
 		commitMessageController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.CommitDescription,
+		commitDescriptionController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.RemoteBranches,

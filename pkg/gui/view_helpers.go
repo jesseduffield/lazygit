@@ -78,28 +78,24 @@ func (gui *Gui) resizeCurrentPopupPanel() error {
 		return nil
 	}
 
-	if v == gui.Views.Menu {
+	c := gui.c.CurrentContext()
+
+	if c == gui.State.Contexts.Menu {
 		gui.resizeMenu()
-	} else if v == gui.Views.Confirmation || v == gui.Views.Suggestions {
+	} else if c == gui.State.Contexts.Confirmation || c == gui.State.Contexts.Suggestions {
 		gui.resizeConfirmationPanel()
-	} else if gui.isPopupPanel(v.Name()) {
-		return gui.resizePopupPanel(v, v.Buffer())
+	} else if c == gui.State.Contexts.CommitMessage || c == gui.State.Contexts.CommitDescription {
+		gui.resizeCommitMessagePanels()
 	}
 
 	return nil
-}
-
-func (gui *Gui) resizePopupPanel(v *gocui.View, content string) error {
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensions(v.Wrap, content)
-	_, err := gui.g.SetView(v.Name(), x0, y0, x1, y1, 0)
-	return err
 }
 
 func (gui *Gui) resizeMenu() {
 	itemCount := gui.State.Contexts.Menu.GetList().Len()
 	offset := 3
 	panelWidth := gui.getConfirmationPanelWidth()
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsForContentHeight(panelWidth, itemCount+offset)
+	x0, y0, x1, y1 := gui.getPopupPanelDimensionsForContentHeight(panelWidth, itemCount+offset)
 	menuBottom := y1 - offset
 	_, _ = gui.g.SetView(gui.Views.Menu.Name(), x0, y0, x1, menuBottom, 0)
 
@@ -121,12 +117,27 @@ func (gui *Gui) resizeConfirmationPanel() {
 		wrap = false
 	}
 	panelHeight := gui.getMessageHeight(wrap, prompt, panelWidth) + suggestionsViewHeight
-	x0, y0, x1, y1 := gui.getConfirmationPanelDimensionsAux(panelWidth, panelHeight)
+	x0, y0, x1, y1 := gui.getPopupPanelDimensionsAux(panelWidth, panelHeight)
 	confirmationViewBottom := y1 - suggestionsViewHeight
 	_, _ = gui.g.SetView(gui.Views.Confirmation.Name(), x0, y0, x1, confirmationViewBottom, 0)
 
 	suggestionsViewTop := confirmationViewBottom + 1
 	_, _ = gui.g.SetView(gui.Views.Suggestions.Name(), x0, suggestionsViewTop, x1, suggestionsViewTop+suggestionsViewHeight, 0)
+}
+
+func (gui *Gui) resizeCommitMessagePanels() {
+	panelWidth := gui.getConfirmationPanelWidth()
+	content := gui.Views.CommitDescription.TextArea.GetContent()
+	summaryViewHeight := 3
+	panelHeight := gui.getMessageHeight(false, content, panelWidth)
+	minHeight := 7
+	if panelHeight < minHeight {
+		panelHeight = minHeight
+	}
+	x0, y0, x1, y1 := gui.getPopupPanelDimensionsAux(panelWidth, panelHeight)
+
+	_, _ = gui.g.SetView(gui.Views.CommitMessage.Name(), x0, y0, x1, y0+summaryViewHeight-1, 0)
+	_, _ = gui.g.SetView(gui.Views.CommitDescription.Name(), x0, y0+summaryViewHeight, x1, y1+summaryViewHeight, 0)
 }
 
 func (gui *Gui) globalOptionsMap() map[string]string {

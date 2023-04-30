@@ -195,10 +195,6 @@ type GuiRepoState struct {
 	// back in sync with the repo state
 	ViewsSetup bool
 
-	// we store a commit message in this field if we've escaped the commit message
-	// panel without committing or if our commit failed
-	savedCommitMessage string
-
 	ScreenMode WindowMaximisation
 
 	CurrentPopupOpts *types.CreatePopupPanelOpts

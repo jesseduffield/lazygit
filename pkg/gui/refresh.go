@@ -85,6 +85,7 @@ func (gui *Gui) Refresh(options types.RefreshOptions) error {
 				types.REMOTES,
 				types.STATUS,
 				types.BISECT_INFO,
+				types.STAGING,
 			})
 		} else {
 			scopeSet = set.NewFromSlice(options.Scope)
@@ -563,6 +564,13 @@ func (gui *Gui) refreshStatus() {
 
 func (gui *Gui) refreshStagingPanel(focusOpts types.OnFocusOpts) error {
 	secondaryFocused := gui.secondaryStagingFocused()
+	mainFocused := gui.mainStagingFocused()
+
+	// this method could be called when the staging panel is not being used,
+	// in which case we don't want to do anything.
+	if !mainFocused && !secondaryFocused {
+		return nil
+	}
 
 	mainSelectedLineIdx := -1
 	secondarySelectedLineIdx := -1
@@ -645,6 +653,10 @@ func (gui *Gui) handleStagingEscape() error {
 
 func (gui *Gui) secondaryStagingFocused() bool {
 	return gui.currentStaticContext().GetKey() == gui.State.Contexts.StagingSecondary.GetKey()
+}
+
+func (gui *Gui) mainStagingFocused() bool {
+	return gui.currentStaticContext().GetKey() == gui.State.Contexts.Staging.GetKey()
 }
 
 func (gui *Gui) refreshPatchBuildingPanel(opts types.OnFocusOpts) error {

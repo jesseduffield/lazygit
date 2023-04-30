@@ -20,13 +20,14 @@ type IWorkingTreeHelper interface {
 }
 
 type WorkingTreeHelper struct {
-	c                     *types.HelperCommon
-	git                   *commands.GitCommand
-	contexts              *context.ContextTree
-	refHelper             *RefsHelper
-	model                 *types.Model
-	setCommitMessage      func(message string)
-	getSavedCommitMessage func() string
+	c                *types.HelperCommon
+	git              *commands.GitCommand
+	contexts         *context.ContextTree
+	refHelper        *RefsHelper
+	model            *types.Model
+	setCommitMessage func(message string)
+	commitsHelper    *CommitsHelper
+	gpgHelper        *GpgHelper
 }
 
 func NewWorkingTreeHelper(
@@ -36,16 +37,18 @@ func NewWorkingTreeHelper(
 	refHelper *RefsHelper,
 	model *types.Model,
 	setCommitMessage func(message string),
-	getSavedCommitMessage func() string,
+	commitsHelper *CommitsHelper,
+	gpgHelper *GpgHelper,
 ) *WorkingTreeHelper {
 	return &WorkingTreeHelper{
-		c:                     c,
-		git:                   git,
-		contexts:              contexts,
-		refHelper:             refHelper,
-		model:                 model,
-		setCommitMessage:      setCommitMessage,
-		getSavedCommitMessage: getSavedCommitMessage,
+		c:                c,
+		git:              git,
+		contexts:         contexts,
+		refHelper:        refHelper,
+		model:            model,
+		setCommitMessage: setCommitMessage,
+		commitsHelper:    commitsHelper,
+		gpgHelper:        gpgHelper,
 	}
 }
 
@@ -94,7 +97,7 @@ func (self *WorkingTreeHelper) OpenMergeTool() error {
 	})
 }
 
-func (self *WorkingTreeHelper) HandleCommitPress() error {
+func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage string) error {
 	if err := self.prepareFilesForCommit(); err != nil {
 		return self.c.Error(err)
 	}
@@ -107,28 +110,25 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 		return self.PromptToStageAllAndRetry(self.HandleCommitPress)
 	}
 
-	savedCommitMessage := self.getSavedCommitMessage()
-	if len(savedCommitMessage) > 0 {
-		self.setCommitMessage(savedCommitMessage)
-	} else {
-		commitPrefixConfig := self.commitPrefixConfigForRepo()
-		if commitPrefixConfig != nil {
-			prefixPattern := commitPrefixConfig.Pattern
-			prefixReplace := commitPrefixConfig.Replace
-			rgx, err := regexp.Compile(prefixPattern)
-			if err != nil {
-				return self.c.ErrorMsg(fmt.Sprintf("%s: %s", self.c.Tr.LcCommitPrefixPatternError, err.Error()))
-			}
-			prefix := rgx.ReplaceAllString(self.refHelper.GetCheckedOutRef().Name, prefixReplace)
-			self.setCommitMessage(prefix)
-		}
-	}
+	return self.commitsHelper.OpenCommitMessagePanel(
+		&OpenCommitMessagePanelOpts{
+			CommitIndex:     context.NoCommitIndex,
+			InitialMessage:  initialMessage,
+			Title:           self.c.Tr.CommitSummary,
+			PreserveMessage: true,
+			OnConfirm:       self.handleCommit,
+		},
+	)
+}
 
-	if err := self.c.PushContext(self.contexts.CommitMessage); err != nil {
-		return err
-	}
-
-	return nil
+func (self *WorkingTreeHelper) handleCommit(message string) error {
+	cmdObj := self.git.Commit.CommitCmdObj(message)
+	self.c.LogAction(self.c.Tr.Actions.Commit)
+	_ = self.commitsHelper.PopCommitMessageContexts()
+	return self.gpgHelper.WithGpgHandling(cmdObj, self.c.Tr.CommittingStatus, func() error {
+		self.commitsHelper.OnCommitSuccess()
+		return nil
+	})
 }
 
 // HandleCommitEditorPress - handle when the user wants to commit changes via
@@ -154,9 +154,27 @@ func (self *WorkingTreeHelper) HandleWIPCommitPress() error {
 		return self.c.ErrorMsg(self.c.Tr.SkipHookPrefixNotConfigured)
 	}
 
-	self.setCommitMessage(skipHookPrefix)
+	return self.HandleCommitPressWithMessage(skipHookPrefix)
+}
 
-	return self.HandleCommitPress()
+func (self *WorkingTreeHelper) HandleCommitPress() error {
+	message := self.contexts.CommitMessage.GetPreservedMessage()
+
+	if message != "" {
+		commitPrefixConfig := self.commitPrefixConfigForRepo()
+		if commitPrefixConfig != nil {
+			prefixPattern := commitPrefixConfig.Pattern
+			prefixReplace := commitPrefixConfig.Replace
+			rgx, err := regexp.Compile(prefixPattern)
+			if err != nil {
+				return self.c.ErrorMsg(fmt.Sprintf("%s: %s", self.c.Tr.LcCommitPrefixPatternError, err.Error()))
+			}
+			prefix := rgx.ReplaceAllString(self.refHelper.GetCheckedOutRef().Name, prefixReplace)
+			message = prefix
+		}
+	}
+
+	return self.HandleCommitPressWithMessage(message)
 }
 
 func (self *WorkingTreeHelper) PromptToStageAllAndRetry(retry func() error) error {

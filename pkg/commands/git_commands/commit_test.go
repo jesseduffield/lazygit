@@ -9,12 +9,32 @@ import (
 )
 
 func TestCommitRewordCommit(t *testing.T) {
-	runner := oscommands.NewFakeRunner(t).
-		ExpectGitArgs([]string{"commit", "--allow-empty", "--amend", "--only", "-m", "test"}, "", nil)
-	instance := buildCommitCommands(commonDeps{runner: runner})
+	type scenario struct {
+		testName string
+		runner   *oscommands.FakeCmdObjRunner
+		input    string
+	}
+	scenarios := []scenario{
+		{
+			"Single line reword",
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"commit", "--allow-empty", "--amend", "--only", "-m", "test"}, "", nil),
+			"test",
+		},
+		{
+			"Multi line reword",
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"commit", "--allow-empty", "--amend", "--only", "-m", "test", "-m", "line 2\nline 3"}, "", nil),
+			"test\nline 2\nline 3",
+		},
+	}
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			instance := buildCommitCommands(commonDeps{runner: s.runner})
 
-	assert.NoError(t, instance.RewordLastCommit("test"))
-	runner.CheckForMissingCalls()
+			assert.NoError(t, instance.RewordLastCommit(s.input))
+			s.runner.CheckForMissingCalls()
+		})
+	}
 }
 
 func TestCommitResetToCommit(t *testing.T) {
@@ -271,6 +291,43 @@ Merge pull request #1750 from mark2185/fix-issue-template
 			assert.NoError(t, err)
 
 			assert.Equal(t, s.expectedOutput, output)
+		})
+	}
+}
+
+func TestGetCommitMessageFromHistory(t *testing.T) {
+	type scenario struct {
+		testName string
+		runner   *oscommands.FakeCmdObjRunner
+		test     func(string, error)
+	}
+	scenarios := []scenario{
+		{
+			"Empty message",
+			oscommands.NewFakeRunner(t).Expect("git log -1 --skip=2 --pretty=%H", "", nil).Expect("git rev-list --format=%B --max-count=1 ", "", nil),
+			func(output string, err error) {
+				assert.Error(t, err)
+			},
+		},
+		{
+			"Default case to retrieve a commit in history",
+			oscommands.NewFakeRunner(t).Expect("git log -1 --skip=2 --pretty=%H", "sha3 \n", nil).Expect("git rev-list --format=%B --max-count=1 sha3", `commit sha3
+				use generics to DRY up context code`, nil),
+			func(output string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "use generics to DRY up context code", output)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			instance := buildCommitCommands(commonDeps{runner: s.runner})
+
+			output, err := instance.GetCommitMessageFromHistory(2)
+
+			s.test(output, err)
 		})
 	}
 }

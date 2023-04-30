@@ -42,6 +42,10 @@ type IGuiCommon interface {
 
 	PushContext(context Context, opts ...OnFocusOpts) error
 	PopContext() error
+	// Removes all given contexts from the stack. If a given context is not in the stack, it is ignored.
+	// This is for when you have a group of contexts that are bundled together e.g. with the commit message panel.
+	// If you want to remove a single context, you should probably use PopContext instead.
+	RemoveContexts([]Context) error
 	CurrentContext() Context
 	CurrentStaticContext() Context
 	IsCurrentContext(Context) bool
