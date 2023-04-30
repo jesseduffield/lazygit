@@ -33,7 +33,6 @@ type App struct {
 	Config    config.AppConfigurer
 	OSCommand *oscommands.OSCommand
 	Gui       *gui.Gui
-	Updater   *updates.Updater // may only need this on the Gui
 }
 
 func Run(
@@ -87,8 +86,7 @@ func NewApp(config config.AppConfigurer, common *common.Common) (*App, error) {
 
 	app.OSCommand = oscommands.NewOSCommand(common, config, oscommands.GetPlatform(), oscommands.NewNullGuiIO(app.Log))
 
-	var err error
-	app.Updater, err = updates.NewUpdater(common, config, app.OSCommand)
+	updater, err := updates.NewUpdater(common, config, app.OSCommand)
 	if err != nil {
 		return app, err
 	}
@@ -108,7 +106,7 @@ func NewApp(config config.AppConfigurer, common *common.Common) (*App, error) {
 		return app, err
 	}
 
-	app.Gui, err = gui.NewGui(common, config, gitVersion, app.Updater, showRecentRepos, dirName)
+	app.Gui, err = gui.NewGui(common, config, gitVersion, updater, showRecentRepos, dirName)
 	if err != nil {
 		return app, err
 	}

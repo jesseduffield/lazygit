@@ -6,17 +6,17 @@ import (
 
 type CommitDescriptionController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &CommitMessageController{}
 
 func NewCommitDescriptionController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *CommitDescriptionController {
 	return &CommitDescriptionController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -44,17 +44,17 @@ func (self *CommitDescriptionController) Context() types.Context {
 }
 
 func (self *CommitDescriptionController) context() types.Context {
-	return self.contexts.CommitMessage
+	return self.c.Contexts().CommitMessage
 }
 
 func (self *CommitDescriptionController) switchToCommitMessage() error {
-	return self.c.PushContext(self.contexts.CommitMessage)
+	return self.c.PushContext(self.c.Contexts().CommitMessage)
 }
 
 func (self *CommitDescriptionController) close() error {
-	return self.helpers.Commits.CloseCommitMessagePanel()
+	return self.c.Helpers().Commits.CloseCommitMessagePanel()
 }
 
 func (self *CommitDescriptionController) confirm() error {
-	return self.helpers.Commits.HandleCommitConfirm()
+	return self.c.Helpers().Commits.HandleCommitConfirm()
 }

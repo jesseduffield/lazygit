@@ -24,17 +24,17 @@ var CONTEXT_KEYS_SHOWING_DIFFS = []types.ContextKey{
 
 type ContextLinesController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &ContextLinesController{}
 
 func NewContextLinesController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *ContextLinesController {
 	return &ContextLinesController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -101,7 +101,7 @@ func (self *ContextLinesController) applyChange() error {
 }
 
 func (self *ContextLinesController) checkCanChangeContext() error {
-	if self.git.Patch.PatchBuilder.Active() {
+	if self.c.Git().Patch.PatchBuilder.Active() {
 		return errors.New(self.c.Tr.CantChangeContextSizeError)
 	}
 

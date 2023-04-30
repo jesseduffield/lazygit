@@ -13,7 +13,7 @@ type PatchExplorerContext struct {
 	state                  *patch_exploring.State
 	viewTrait              *ViewTrait
 	getIncludedLineIndices func() []int
-	c                      *types.HelperCommon
+	c                      *ContextCommon
 	mutex                  *deadlock.Mutex
 }
 
@@ -24,11 +24,9 @@ func NewPatchExplorerContext(
 	windowName string,
 	key types.ContextKey,
 
-	onFocus func(types.OnFocusOpts) error,
-	onFocusLost func(opts types.OnFocusLostOpts) error,
 	getIncludedLineIndices func() []int,
 
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *PatchExplorerContext {
 	return &PatchExplorerContext{
 		state:                  nil,
@@ -43,12 +41,11 @@ func NewPatchExplorerContext(
 			Kind:             types.MAIN_CONTEXT,
 			Focusable:        true,
 			HighlightOnFocus: true,
-		}), ContextCallbackOpts{
-			OnFocus:     onFocus,
-			OnFocusLost: onFocusLost,
-		}),
+		})),
 	}
 }
+
+func (self *PatchExplorerContext) IsPatchExplorerContext() {}
 
 func (self *PatchExplorerContext) GetState() *patch_exploring.State {
 	return self.state

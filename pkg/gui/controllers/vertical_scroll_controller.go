@@ -9,13 +9,13 @@ import (
 // given we have no fields here, arguably we shouldn't even need this factory
 // struct, but we're maintaining consistency with the other files.
 type VerticalScrollControllerFactory struct {
-	controllerCommon     *controllerCommon
+	c                    *ControllerCommon
 	viewBufferManagerMap *map[string]*tasks.ViewBufferManager
 }
 
-func NewVerticalScrollControllerFactory(c *controllerCommon, viewBufferManagerMap *map[string]*tasks.ViewBufferManager) *VerticalScrollControllerFactory {
+func NewVerticalScrollControllerFactory(c *ControllerCommon, viewBufferManagerMap *map[string]*tasks.ViewBufferManager) *VerticalScrollControllerFactory {
 	return &VerticalScrollControllerFactory{
-		controllerCommon:     c,
+		c:                    c,
 		viewBufferManagerMap: viewBufferManagerMap,
 	}
 }
@@ -23,7 +23,7 @@ func NewVerticalScrollControllerFactory(c *controllerCommon, viewBufferManagerMa
 func (self *VerticalScrollControllerFactory) Create(context types.Context) types.IController {
 	return &VerticalScrollController{
 		baseController:       baseController{},
-		controllerCommon:     self.controllerCommon,
+		c:                    self.c,
 		context:              context,
 		viewBufferManagerMap: self.viewBufferManagerMap,
 	}
@@ -31,7 +31,7 @@ func (self *VerticalScrollControllerFactory) Create(context types.Context) types
 
 type VerticalScrollController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 
 	context              types.Context
 	viewBufferManagerMap *map[string]*tasks.ViewBufferManager

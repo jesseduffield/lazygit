@@ -2,21 +2,20 @@ package custom_commands
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 )
 
 // loads the session state at the time that a custom command is invoked, for use
 // in the custom command's template strings
 type SessionStateLoader struct {
-	contexts *context.ContextTree
-	helpers  *helpers.Helpers
+	c          *helpers.HelperCommon
+	refsHelper *helpers.RefsHelper
 }
 
-func NewSessionStateLoader(contexts *context.ContextTree, helpers *helpers.Helpers) *SessionStateLoader {
+func NewSessionStateLoader(c *helpers.HelperCommon, refsHelper *helpers.RefsHelper) *SessionStateLoader {
 	return &SessionStateLoader{
-		contexts: contexts,
-		helpers:  helpers,
+		c:          c,
+		refsHelper: refsHelper,
 	}
 }
 
@@ -39,18 +38,18 @@ type SessionState struct {
 
 func (self *SessionStateLoader) call() *SessionState {
 	return &SessionState{
-		SelectedFile:           self.contexts.Files.GetSelectedFile(),
-		SelectedPath:           self.contexts.Files.GetSelectedPath(),
-		SelectedLocalCommit:    self.contexts.LocalCommits.GetSelected(),
-		SelectedReflogCommit:   self.contexts.ReflogCommits.GetSelected(),
-		SelectedLocalBranch:    self.contexts.Branches.GetSelected(),
-		SelectedRemoteBranch:   self.contexts.RemoteBranches.GetSelected(),
-		SelectedRemote:         self.contexts.Remotes.GetSelected(),
-		SelectedTag:            self.contexts.Tags.GetSelected(),
-		SelectedStashEntry:     self.contexts.Stash.GetSelected(),
-		SelectedCommitFile:     self.contexts.CommitFiles.GetSelectedFile(),
-		SelectedCommitFilePath: self.contexts.CommitFiles.GetSelectedPath(),
-		SelectedSubCommit:      self.contexts.SubCommits.GetSelected(),
-		CheckedOutBranch:       self.helpers.Refs.GetCheckedOutRef(),
+		SelectedFile:           self.c.Contexts().Files.GetSelectedFile(),
+		SelectedPath:           self.c.Contexts().Files.GetSelectedPath(),
+		SelectedLocalCommit:    self.c.Contexts().LocalCommits.GetSelected(),
+		SelectedReflogCommit:   self.c.Contexts().ReflogCommits.GetSelected(),
+		SelectedLocalBranch:    self.c.Contexts().Branches.GetSelected(),
+		SelectedRemoteBranch:   self.c.Contexts().RemoteBranches.GetSelected(),
+		SelectedRemote:         self.c.Contexts().Remotes.GetSelected(),
+		SelectedTag:            self.c.Contexts().Tags.GetSelected(),
+		SelectedStashEntry:     self.c.Contexts().Stash.GetSelected(),
+		SelectedCommitFile:     self.c.Contexts().CommitFiles.GetSelectedFile(),
+		SelectedCommitFilePath: self.c.Contexts().CommitFiles.GetSelectedPath(),
+		SelectedSubCommit:      self.c.Contexts().SubCommits.GetSelected(),
+		CheckedOutBranch:       self.refsHelper.GetCheckedOutRef(),
 	}
 }

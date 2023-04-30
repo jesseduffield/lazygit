@@ -1,10 +1,7 @@
 package custom_commands
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -18,15 +15,12 @@ type Client struct {
 }
 
 func NewClient(
-	c *types.HelperCommon,
-	os *oscommands.OSCommand,
-	git *commands.GitCommand,
-	contexts *context.ContextTree,
+	c *helpers.HelperCommon,
 	helpers *helpers.Helpers,
 ) *Client {
-	sessionStateLoader := NewSessionStateLoader(contexts, helpers)
-	handlerCreator := NewHandlerCreator(c, os, git, sessionStateLoader)
-	keybindingCreator := NewKeybindingCreator(contexts)
+	sessionStateLoader := NewSessionStateLoader(c, helpers.Refs)
+	handlerCreator := NewHandlerCreator(c, sessionStateLoader)
+	keybindingCreator := NewKeybindingCreator(c)
 	customCommands := c.UserConfig.CustomCommands
 
 	return &Client{

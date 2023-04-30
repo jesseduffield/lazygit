@@ -5,61 +5,11 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 const HORIZONTAL_SCROLL_FACTOR = 3
-
-// these views need to be re-rendered when the screen mode changes. The commits view,
-// for example, will show authorship information in half and full screen mode.
-func (gui *Gui) rerenderViewsWithScreenModeDependentContent() error {
-	// for now we re-render all list views.
-	for _, context := range gui.getListContexts() {
-		if err := gui.rerenderView(context.GetView()); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func nextIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
-	for i, val := range sl {
-		if val == current {
-			if i == len(sl)-1 {
-				return sl[0]
-			}
-			return sl[i+1]
-		}
-	}
-	return sl[0]
-}
-
-func prevIntInCycle(sl []WindowMaximisation, current WindowMaximisation) WindowMaximisation {
-	for i, val := range sl {
-		if val == current {
-			if i > 0 {
-				return sl[i-1]
-			}
-			return sl[len(sl)-1]
-		}
-	}
-	return sl[len(sl)-1]
-}
-
-func (gui *Gui) nextScreenMode() error {
-	gui.State.ScreenMode = nextIntInCycle([]WindowMaximisation{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
-
-	return gui.rerenderViewsWithScreenModeDependentContent()
-}
-
-func (gui *Gui) prevScreenMode() error {
-	gui.State.ScreenMode = prevIntInCycle([]WindowMaximisation{SCREEN_NORMAL, SCREEN_HALF, SCREEN_FULL}, gui.State.ScreenMode)
-
-	return gui.rerenderViewsWithScreenModeDependentContent()
-}
 
 func (gui *Gui) scrollUpView(view *gocui.View) {
 	view.ScrollUp(gui.c.UserConfig.Gui.ScrollHeight)
@@ -113,13 +63,13 @@ func (gui *Gui) scrollDownMain() error {
 }
 
 func (gui *Gui) mainView() *gocui.View {
-	viewName := gui.getViewNameForWindow("main")
+	viewName := gui.helpers.Window.GetViewNameForWindow("main")
 	view, _ := gui.g.View(viewName)
 	return view
 }
 
 func (gui *Gui) secondaryView() *gocui.View {
-	viewName := gui.getViewNameForWindow("secondary")
+	viewName := gui.helpers.Window.GetViewNameForWindow("secondary")
 	view, _ := gui.g.View(viewName)
 	return view
 }
@@ -158,21 +108,19 @@ func (gui *Gui) scrollDownConfirmationPanel() error {
 	return nil
 }
 
-func (gui *Gui) handleRefresh() error {
-	return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
-}
-
-func (gui *Gui) backgroundFetch() (err error) {
-	err = gui.git.Sync.Fetch(git_commands.FetchOptions{Background: true})
-
-	_ = gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
-
-	return err
-}
-
 func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	// important to note that this assumes we've selected an item in a side context
-	itemId := gui.getSideContextSelectedItemId()
+	currentSideContext := gui.c.CurrentSideContext()
+	if currentSideContext == nil {
+		return nil
+	}
+
+	listContext, ok := currentSideContext.(types.IListContext)
+	if !ok {
+		return nil
+	}
+
+	itemId := listContext.GetSelectedItemId()
 
 	if itemId == "" {
 		return nil

@@ -11,12 +11,35 @@ import (
 
 func (gui *Gui) noPopupPanel(f func() error) func() error {
 	return func() error {
-		if gui.popupPanelFocused() {
+		if gui.helpers.Confirmation.IsPopupPanelFocused() {
 			return nil
 		}
 
 		return f()
 	}
+}
+
+func (gui *Gui) outsideFilterMode(f func() error) func() error {
+	return func() error {
+		if !gui.validateNotInFilterMode() {
+			return nil
+		}
+
+		return f()
+	}
+}
+
+func (gui *Gui) validateNotInFilterMode() bool {
+	if gui.State.Modes.Filtering.Active() {
+		_ = gui.c.Confirm(types.ConfirmOpts{
+			Title:         gui.c.Tr.MustExitFilterModeTitle,
+			Prompt:        gui.c.Tr.MustExitFilterModePrompt,
+			HandleConfirm: gui.helpers.Mode.ExitFilterMode,
+		})
+
+		return false
+	}
+	return true
 }
 
 // only to be called from the cheatsheet generate script. This mutates the Gui struct.
@@ -29,13 +52,13 @@ func (self *Gui) GetCheatsheetKeybindings() []*types.Binding {
 	self.helpers = helpers.NewStubHelpers()
 	self.State = &GuiRepoState{}
 	self.State.Contexts = self.contextTree()
-	self.resetControllers()
+	self.State.ContextMgr = NewContextMgr(self, self.State.Contexts)
+	self.resetHelpersAndControllers()
 	bindings, _ := self.GetInitialKeybindings()
 	return bindings
 }
 
-// renaming receiver to 'self' to aid refactoring. Will probably end up moving all Gui handlers to this pattern eventually.
-func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+func (self *Gui) keybindingOpts() types.KeybindingsOpts {
 	config := self.c.UserConfig.Keybinding
 
 	guards := types.KeybindingGuards{
@@ -43,41 +66,22 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		NoPopupPanel:      self.noPopupPanel,
 	}
 
-	opts := types.KeybindingsOpts{
+	return types.KeybindingsOpts{
 		GetKey: keybindings.GetKey,
 		Config: config,
 		Guards: guards,
 	}
+}
+
+// renaming receiver to 'self' to aid refactoring. Will probably end up moving all Gui handlers to this pattern eventually.
+func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+	opts := self.c.KeybindingsOpts()
 
 	bindings := []*types.Binding{
 		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.Quit),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleQuit,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.QuitWithoutChangingDirectory),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleQuitWithoutChangingDirectory,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.QuitAlt1),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleQuit,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.Return),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleTopLevelReturn,
-		},
-		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.OpenRecentRepos),
-			Handler:     self.handleCreateRecentReposMenu,
+			Handler:     self.helpers.Repos.CreateRecentReposMenu,
 			Description: self.c.Tr.SwitchRepo,
 		},
 		{
@@ -117,83 +121,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Key:      opts.GetKey(opts.Config.Universal.ScrollDownMainAlt2),
 			Modifier: gocui.ModNone,
 			Handler:  self.scrollDownMain,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.CreateRebaseOptionsMenu),
-			Handler:     self.helpers.MergeAndRebase.CreateRebaseOptionsMenu,
-			Description: self.c.Tr.ViewMergeRebaseOptions,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.CreatePatchOptionsMenu),
-			Handler:     self.handleCreatePatchOptionsMenu,
-			Description: self.c.Tr.ViewPatchOptions,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.Refresh),
-			Handler:     self.handleRefresh,
-			Description: self.c.Tr.LcRefresh,
-		},
-		{
-			ViewName:  "",
-			Key:       opts.GetKey(opts.Config.Universal.OptionMenu),
-			Handler:   self.handleCreateOptionsMenu,
-			OpensMenu: true,
-		},
-		{
-			ViewName: "",
-			Key:      opts.GetKey(opts.Config.Universal.OptionMenuAlt1),
-			Modifier: gocui.ModNone,
-			// we have the description on the alt key and not the main key for legacy reasons
-			// (the original main key was 'x' but we've reassigned that to other purposes)
-			Description: self.c.Tr.LcOpenMenu,
-			Handler:     self.handleCreateOptionsMenu,
-		},
-		{
-			ViewName:    "status",
-			Key:         opts.GetKey(opts.Config.Universal.Edit),
-			Handler:     self.handleEditConfig,
-			Description: self.c.Tr.EditConfig,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.NextScreenMode),
-			Handler:     self.nextScreenMode,
-			Description: self.c.Tr.LcNextScreenMode,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.PrevScreenMode),
-			Handler:     self.prevScreenMode,
-			Description: self.c.Tr.LcPrevScreenMode,
-		},
-		{
-			ViewName:    "status",
-			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
-			Handler:     self.handleOpenConfig,
-			Description: self.c.Tr.OpenConfig,
-		},
-		{
-			ViewName:    "status",
-			Key:         opts.GetKey(opts.Config.Status.CheckForUpdate),
-			Handler:     self.handleCheckForUpdate,
-			Description: self.c.Tr.LcCheckForUpdate,
-		},
-		{
-			ViewName:    "status",
-			Key:         opts.GetKey(opts.Config.Status.RecentRepos),
-			Handler:     self.handleCreateRecentReposMenu,
-			Description: self.c.Tr.SwitchRepo,
-		},
-		{
-			ViewName:    "status",
-			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraph),
-			Handler:     self.handleShowAllBranchLogs,
-			Description: self.c.Tr.LcAllBranchesLogGraph,
 		},
 		{
 			ViewName:    "files",
@@ -251,27 +178,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		},
 		{
 			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.FilteringMenu),
-			Handler:     self.handleCreateFilteringMenuPanel,
-			Description: self.c.Tr.LcOpenFilteringMenu,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.DiffingMenu),
-			Handler:     self.handleCreateDiffingMenuPanel,
-			Description: self.c.Tr.LcOpenDiffingMenu,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.DiffingMenuAlt),
-			Handler:     self.handleCreateDiffingMenuPanel,
-			Description: self.c.Tr.LcOpenDiffingMenu,
-			OpensMenu:   true,
-		},
-		{
-			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.ExtrasMenu),
 			Handler:     self.handleCreateExtrasMenuPanel,
 			Description: self.c.Tr.LcOpenExtrasMenu,
@@ -308,12 +214,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Key:      gocui.MouseWheelUp,
 			Modifier: gocui.ModNone,
 			Handler:  self.scrollUpSecondary,
-		},
-		{
-			ViewName: "status",
-			Key:      gocui.MouseLeft,
-			Modifier: gocui.ModNone,
-			Handler:  self.handleStatusClick,
 		},
 		{
 			ViewName: "search",
@@ -356,12 +256,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.handleCopySelectedSideContextItemToClipboard,
 			Description: self.c.Tr.LcCopySubmoduleNameToClipboard,
-		},
-		{
-			ViewName:    "",
-			Key:         opts.GetKey(opts.Config.Universal.ToggleWhitespaceInDiffView),
-			Handler:     self.toggleWhitespaceInDiffView,
-			Description: self.c.Tr.ToggleWhitespaceInDiffView,
 		},
 		{
 			ViewName: "extras",
@@ -422,33 +316,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 		mouseKeybindings = append(mouseKeybindings, c.GetMouseKeybindings(opts)...)
 	}
 
-	for _, viewName := range []string{"status", "remotes", "tags", "localBranches", "remoteBranches", "files", "submodules", "reflogCommits", "commits", "commitFiles", "subCommits", "stash"} {
-		bindings = append(bindings, []*types.Binding{
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.PrevBlock), Modifier: gocui.ModNone, Handler: self.previousSideWindow},
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.NextBlock), Modifier: gocui.ModNone, Handler: self.nextSideWindow},
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.PrevBlockAlt), Modifier: gocui.ModNone, Handler: self.previousSideWindow},
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.NextBlockAlt), Modifier: gocui.ModNone, Handler: self.nextSideWindow},
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.PrevBlockAlt2), Modifier: gocui.ModNone, Handler: self.previousSideWindow},
-			{ViewName: viewName, Key: opts.GetKey(opts.Config.Universal.NextBlockAlt2), Modifier: gocui.ModNone, Handler: self.nextSideWindow},
-		}...)
-	}
-
-	// Appends keybindings to jump to a particular sideView using numbers
-	windows := []string{"status", "files", "branches", "commits", "stash"}
-
-	if len(config.Universal.JumpToBlock) != len(windows) {
-		log.Fatal("Jump to block keybindings cannot be set. Exactly 5 keybindings must be supplied.")
-	} else {
-		for i, window := range windows {
-			bindings = append(bindings, &types.Binding{
-				ViewName: "",
-				Key:      opts.GetKey(opts.Config.Universal.JumpToBlock[i]),
-				Modifier: gocui.ModNone,
-				Handler:  self.goToSideWindow(window),
-			})
-		}
-	}
-
 	bindings = append(bindings, []*types.Binding{
 		{
 			ViewName:    "",
@@ -469,17 +336,21 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 	return bindings, mouseKeybindings
 }
 
-func (gui *Gui) resetKeybindings() error {
-	gui.g.DeleteAllKeybindings()
-
-	bindings, mouseBindings := gui.GetInitialKeybindings()
-
-	// prepending because we want to give our custom keybindings precedence over default keybindings
-	customBindings, err := gui.CustomCommandsClient.GetCustomCommandKeybindings()
+func (self *Gui) GetInitialKeybindingsWithCustomCommands() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+	bindings, mouseBindings := self.GetInitialKeybindings()
+	customBindings, err := self.CustomCommandsClient.GetCustomCommandKeybindings()
 	if err != nil {
 		log.Fatal(err)
 	}
+	// prepending because we want to give our custom keybindings precedence over default keybindings
 	bindings = append(customBindings, bindings...)
+	return bindings, mouseBindings
+}
+
+func (gui *Gui) resetKeybindings() error {
+	gui.g.DeleteAllKeybindings()
+
+	bindings, mouseBindings := gui.GetInitialKeybindingsWithCustomCommands()
 
 	for _, binding := range bindings {
 		if err := gui.SetKeybinding(binding); err != nil {
@@ -496,7 +367,9 @@ func (gui *Gui) resetKeybindings() error {
 	for _, values := range gui.viewTabMap() {
 		for _, value := range values {
 			viewName := value.ViewName
-			tabClickCallback := func(tabIndex int) error { return gui.onViewTabClick(gui.windowForView(viewName), tabIndex) }
+			tabClickCallback := func(tabIndex int) error {
+				return gui.onViewTabClick(gui.helpers.Window.WindowForView(viewName), tabIndex)
+			}
 
 			if err := gui.g.SetTabClickBinding(viewName, tabClickCallback); err != nil {
 				return err
@@ -519,7 +392,7 @@ func (gui *Gui) SetKeybinding(binding *types.Binding) error {
 	if gocui.IsMouseKey(binding.Key) {
 		handler = func() error {
 			// we ignore click events on views that aren't popup panels, when a popup panel is focused
-			if gui.popupPanelFocused() && gui.currentViewName() != binding.ViewName {
+			if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName {
 				return nil
 			}
 
@@ -535,7 +408,7 @@ func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 	baseHandler := binding.Handler
 	newHandler := func(opts gocui.ViewMouseBindingOpts) error {
 		// we ignore click events on views that aren't popup panels, when a popup panel is focused
-		if gui.popupPanelFocused() && gui.currentViewName() != binding.ViewName {
+		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != binding.ViewName {
 			return nil
 		}
 

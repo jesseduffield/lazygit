@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -20,40 +19,28 @@ type IWorkingTreeHelper interface {
 }
 
 type WorkingTreeHelper struct {
-	c                *types.HelperCommon
-	git              *commands.GitCommand
-	contexts         *context.ContextTree
-	refHelper        *RefsHelper
-	model            *types.Model
-	setCommitMessage func(message string)
-	commitsHelper    *CommitsHelper
-	gpgHelper        *GpgHelper
+	c             *HelperCommon
+	refHelper     *RefsHelper
+	commitsHelper *CommitsHelper
+	gpgHelper     *GpgHelper
 }
 
 func NewWorkingTreeHelper(
-	c *types.HelperCommon,
-	git *commands.GitCommand,
-	contexts *context.ContextTree,
+	c *HelperCommon,
 	refHelper *RefsHelper,
-	model *types.Model,
-	setCommitMessage func(message string),
 	commitsHelper *CommitsHelper,
 	gpgHelper *GpgHelper,
 ) *WorkingTreeHelper {
 	return &WorkingTreeHelper{
-		c:                c,
-		git:              git,
-		contexts:         contexts,
-		refHelper:        refHelper,
-		model:            model,
-		setCommitMessage: setCommitMessage,
-		commitsHelper:    commitsHelper,
-		gpgHelper:        gpgHelper,
+		c:             c,
+		refHelper:     refHelper,
+		commitsHelper: commitsHelper,
+		gpgHelper:     gpgHelper,
 	}
 }
 
 func (self *WorkingTreeHelper) AnyStagedFiles() bool {
-	for _, file := range self.model.Files {
+	for _, file := range self.c.Model().Files {
 		if file.HasStagedChanges {
 			return true
 		}
@@ -62,7 +49,7 @@ func (self *WorkingTreeHelper) AnyStagedFiles() bool {
 }
 
 func (self *WorkingTreeHelper) AnyTrackedFiles() bool {
-	for _, file := range self.model.Files {
+	for _, file := range self.c.Model().Files {
 		if file.Tracked {
 			return true
 		}
@@ -75,7 +62,7 @@ func (self *WorkingTreeHelper) IsWorkingTreeDirty() bool {
 }
 
 func (self *WorkingTreeHelper) FileForSubmodule(submodule *models.SubmoduleConfig) *models.File {
-	for _, file := range self.model.Files {
+	for _, file := range self.c.Model().Files {
 		if file.IsSubmodule([]*models.SubmoduleConfig{submodule}) {
 			return file
 		}
@@ -91,7 +78,7 @@ func (self *WorkingTreeHelper) OpenMergeTool() error {
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.OpenMergeTool)
 			return self.c.RunSubprocessAndRefresh(
-				self.git.WorkingTree.OpenMergeToolCmdObj(),
+				self.c.Git().WorkingTree.OpenMergeToolCmdObj(),
 			)
 		},
 	})
@@ -102,7 +89,7 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 		return self.c.Error(err)
 	}
 
-	if len(self.model.Files) == 0 {
+	if len(self.c.Model().Files) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
@@ -122,7 +109,7 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 }
 
 func (self *WorkingTreeHelper) handleCommit(message string) error {
-	cmdObj := self.git.Commit.CommitCmdObj(message)
+	cmdObj := self.c.Git().Commit.CommitCmdObj(message)
 	self.c.LogAction(self.c.Tr.Actions.Commit)
 	_ = self.commitsHelper.PopCommitMessageContexts()
 	return self.gpgHelper.WithGpgHandling(cmdObj, self.c.Tr.CommittingStatus, func() error {
@@ -134,7 +121,7 @@ func (self *WorkingTreeHelper) handleCommit(message string) error {
 // HandleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (self *WorkingTreeHelper) HandleCommitEditorPress() error {
-	if len(self.model.Files) == 0 {
+	if len(self.c.Model().Files) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
@@ -144,7 +131,7 @@ func (self *WorkingTreeHelper) HandleCommitEditorPress() error {
 
 	self.c.LogAction(self.c.Tr.Actions.Commit)
 	return self.c.RunSubprocessAndRefresh(
-		self.git.Commit.CommitEditorCmdObj(),
+		self.c.Git().Commit.CommitEditorCmdObj(),
 	)
 }
 
@@ -158,7 +145,7 @@ func (self *WorkingTreeHelper) HandleWIPCommitPress() error {
 }
 
 func (self *WorkingTreeHelper) HandleCommitPress() error {
-	message := self.contexts.CommitMessage.GetPreservedMessage()
+	message := self.c.Contexts().CommitMessage.GetPreservedMessage()
 
 	if message != "" {
 		commitPrefixConfig := self.commitPrefixConfigForRepo()
@@ -183,7 +170,7 @@ func (self *WorkingTreeHelper) PromptToStageAllAndRetry(retry func() error) erro
 		Prompt: self.c.Tr.NoFilesStagedPrompt,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-			if err := self.git.WorkingTree.StageAll(); err != nil {
+			if err := self.c.Git().WorkingTree.StageAll(); err != nil {
 				return self.c.Error(err)
 			}
 			if err := self.syncRefresh(); err != nil {
@@ -204,7 +191,7 @@ func (self *WorkingTreeHelper) prepareFilesForCommit() error {
 	noStagedFiles := !self.AnyStagedFiles()
 	if noStagedFiles && self.c.UserConfig.Gui.SkipNoStagedFilesWarning {
 		self.c.LogAction(self.c.Tr.Actions.StageAllFiles)
-		err := self.git.WorkingTree.StageAll()
+		err := self.c.Git().WorkingTree.StageAll()
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -16,21 +17,21 @@ type CanSwitchToDiffFiles interface {
 
 type SwitchToDiffFilesController struct {
 	baseController
-	*controllerCommon
-	context   CanSwitchToDiffFiles
-	viewFiles func(SwitchToCommitFilesContextOpts) error
+	c                *ControllerCommon
+	context          CanSwitchToDiffFiles
+	diffFilesContext *context.CommitFilesContext
 }
 
 func NewSwitchToDiffFilesController(
-	controllerCommon *controllerCommon,
-	viewFiles func(SwitchToCommitFilesContextOpts) error,
+	c *ControllerCommon,
 	context CanSwitchToDiffFiles,
+	diffFilesContext *context.CommitFilesContext,
 ) *SwitchToDiffFilesController {
 	return &SwitchToDiffFilesController{
 		baseController:   baseController{},
-		controllerCommon: controllerCommon,
+		c:                c,
 		context:          context,
-		viewFiles:        viewFiles,
+		diffFilesContext: diffFilesContext,
 	}
 }
 
@@ -71,4 +72,23 @@ func (self *SwitchToDiffFilesController) enter(ref types.Ref) error {
 
 func (self *SwitchToDiffFilesController) Context() types.Context {
 	return self.context
+}
+
+func (self *SwitchToDiffFilesController) viewFiles(opts SwitchToCommitFilesContextOpts) error {
+	diffFilesContext := self.diffFilesContext
+
+	diffFilesContext.SetSelectedLineIdx(0)
+	diffFilesContext.SetRef(opts.Ref)
+	diffFilesContext.SetTitleRef(opts.Ref.Description())
+	diffFilesContext.SetCanRebase(opts.CanRebase)
+	diffFilesContext.SetParentContext(opts.Context)
+	diffFilesContext.SetWindowName(opts.Context.GetWindowName())
+
+	if err := self.c.Refresh(types.RefreshOptions{
+		Scope: []types.RefreshableView{types.COMMIT_FILES},
+	}); err != nil {
+		return err
+	}
+
+	return self.c.PushContext(diffFilesContext)
 }

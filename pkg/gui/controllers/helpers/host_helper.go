@@ -1,9 +1,7 @@
 package helpers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/hosting_service"
-	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // this helper just wraps our hosting_service package
@@ -14,17 +12,14 @@ type IHostHelper interface {
 }
 
 type HostHelper struct {
-	c   *types.HelperCommon
-	git *commands.GitCommand
+	c *HelperCommon
 }
 
 func NewHostHelper(
-	c *types.HelperCommon,
-	git *commands.GitCommand,
+	c *HelperCommon,
 ) *HostHelper {
 	return &HostHelper{
-		c:   c,
-		git: git,
+		c: c,
 	}
 }
 
@@ -40,7 +35,7 @@ func (self *HostHelper) GetCommitURL(commitSha string) (string, error) {
 // from one invocation to the next. Note however that we're currently caching config
 // results so we might want to invalidate the cache here if it becomes a problem.
 func (self *HostHelper) getHostingServiceMgr() *hosting_service.HostingServiceMgr {
-	remoteUrl := self.git.Config.GetRemoteURL()
+	remoteUrl := self.c.Git().Config.GetRemoteURL()
 	configServices := self.c.UserConfig.Services
 	return hosting_service.NewHostingServiceMgr(self.c.Log, self.c.Tr, remoteUrl, configServices)
 }

@@ -1,8 +1,8 @@
 package gui
 
 import (
-	"errors"
-
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -25,7 +25,7 @@ func (self *guiCommon) LogCommand(cmdStr string, isCommandLine bool) {
 }
 
 func (self *guiCommon) Refresh(opts types.RefreshOptions) error {
-	return self.gui.Refresh(opts)
+	return self.gui.helpers.Refresh.Refresh(opts)
 }
 
 func (self *guiCommon) PostRefreshUpdate(context types.Context) error {
@@ -41,37 +41,39 @@ func (self *guiCommon) RunSubprocess(cmdObj oscommands.ICmdObj) (bool, error) {
 }
 
 func (self *guiCommon) PushContext(context types.Context, opts ...types.OnFocusOpts) error {
-	singleOpts := types.OnFocusOpts{}
-	if len(opts) > 0 {
-		// using triple dot but you should only ever pass one of these opt structs
-		if len(opts) > 1 {
-			return errors.New("cannot pass multiple opts to pushContext")
-		}
-
-		singleOpts = opts[0]
-	}
-
-	return self.gui.pushContext(context, singleOpts)
+	return self.gui.State.ContextMgr.Push(context, opts...)
 }
 
 func (self *guiCommon) PopContext() error {
-	return self.gui.popContext()
+	return self.gui.State.ContextMgr.Pop()
+}
+
+func (self *guiCommon) ReplaceContext(context types.Context) error {
+	return self.gui.State.ContextMgr.Replace(context)
 }
 
 func (self *guiCommon) RemoveContexts(contexts []types.Context) error {
-	return self.gui.removeContexts(contexts)
+	return self.gui.State.ContextMgr.RemoveContexts(contexts)
 }
 
 func (self *guiCommon) CurrentContext() types.Context {
-	return self.gui.currentContext()
+	return self.gui.State.ContextMgr.Current()
 }
 
 func (self *guiCommon) CurrentStaticContext() types.Context {
-	return self.gui.currentStaticContext()
+	return self.gui.State.ContextMgr.CurrentStatic()
+}
+
+func (self *guiCommon) CurrentSideContext() types.Context {
+	return self.gui.State.ContextMgr.CurrentSide()
 }
 
 func (self *guiCommon) IsCurrentContext(c types.Context) bool {
-	return self.CurrentContext().GetKey() == c.GetKey()
+	return self.gui.State.ContextMgr.IsCurrent(c)
+}
+
+func (self *guiCommon) Context() types.IContextMgr {
+	return self.gui.State.ContextMgr
 }
 
 func (self *guiCommon) GetAppState() *config.AppState {
@@ -82,12 +84,52 @@ func (self *guiCommon) SaveAppState() error {
 	return self.gui.Config.SaveAppState()
 }
 
+func (self *guiCommon) GetConfig() config.AppConfigurer {
+	return self.gui.Config
+}
+
+func (self *guiCommon) ResetViewOrigin(view *gocui.View) {
+	self.gui.resetViewOrigin(view)
+}
+
+func (self *guiCommon) SetViewContent(view *gocui.View, content string) {
+	self.gui.setViewContent(view, content)
+}
+
 func (self *guiCommon) Render() {
 	self.gui.render()
 }
 
+func (self *guiCommon) Views() types.Views {
+	return self.gui.Views
+}
+
+func (self *guiCommon) Git() *commands.GitCommand {
+	return self.gui.git
+}
+
+func (self *guiCommon) OS() *oscommands.OSCommand {
+	return self.gui.os
+}
+
+func (self *guiCommon) Modes() *types.Modes {
+	return self.gui.State.Modes
+}
+
+func (self *guiCommon) Model() *types.Model {
+	return self.gui.State.Model
+}
+
+func (self *guiCommon) Mutexes() types.Mutexes {
+	return self.gui.Mutexes
+}
+
 func (self *guiCommon) OpenSearch() {
 	_ = self.gui.handleOpenSearch(self.gui.currentViewName())
+}
+
+func (self *guiCommon) GocuiGui() *gocui.Gui {
+	return self.gui.g
 }
 
 func (self *guiCommon) OnUIThread(f func() error) {
@@ -105,4 +147,20 @@ func (self *guiCommon) MainViewPairs() types.MainViewPairs {
 		PatchBuilding:  self.gui.patchBuildingMainContextPair(),
 		MergeConflicts: self.gui.mergingMainContextPair(),
 	}
+}
+
+func (self *guiCommon) State() types.IStateAccessor {
+	return self.gui.stateAccessor
+}
+
+func (self *guiCommon) KeybindingsOpts() types.KeybindingsOpts {
+	return self.gui.keybindingOpts()
+}
+
+func (self *guiCommon) IsAnyModeActive() bool {
+	return self.gui.helpers.Mode.IsAnyModeActive()
+}
+
+func (self *guiCommon) GetInitialKeybindingsWithCustomCommands() ([]*types.Binding, []*gocui.ViewMouseBinding) {
+	return self.gui.GetInitialKeybindingsWithCustomCommands()
 }

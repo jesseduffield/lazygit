@@ -1,14 +1,20 @@
 package context
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type CommitMessageContext struct {
+	c *ContextCommon
 	types.Context
 	viewModel *CommitMessageViewModel
 }
+
+var _ types.Context = (*CommitMessageContext)(nil)
 
 // when selectedIndex (see below) is set to this value, it means that we're not
 // currently viewing a commit message of an existing commit: instead we're making our own
@@ -35,22 +41,21 @@ type CommitMessageViewModel struct {
 }
 
 func NewCommitMessageContext(
-	view *gocui.View,
-	opts ContextCallbackOpts,
+	c *ContextCommon,
 ) *CommitMessageContext {
 	viewModel := &CommitMessageViewModel{}
 	return &CommitMessageContext{
+		c:         c,
 		viewModel: viewModel,
 		Context: NewSimpleContext(
 			NewBaseContext(NewBaseContextOpts{
 				Kind:                  types.PERSISTENT_POPUP,
-				View:                  view,
+				View:                  c.Views().CommitMessage,
 				WindowName:            "commitMessage",
 				Key:                   COMMIT_MESSAGE_CONTEXT_KEY,
 				Focusable:             true,
 				HasUncontrolledBounds: true,
 			}),
-			opts,
 		),
 	}
 }
@@ -92,4 +97,16 @@ func (self *CommitMessageContext) SetPanelState(index int, title string, preserv
 	self.viewModel.preserveMessage = preserveMessage
 	self.viewModel.onConfirm = onConfirm
 	self.GetView().Title = title
+}
+
+func (self *CommitMessageContext) RenderCommitLength() {
+	if !self.c.UserConfig.Gui.CommitLength.Show {
+		return
+	}
+
+	self.c.Views().CommitMessage.Subtitle = getBufferLength(self.c.Views().CommitMessage)
+}
+
+func getBufferLength(view *gocui.View) string {
+	return " " + strconv.Itoa(strings.Count(view.TextArea.GetContent(), "")-1) + " "
 }

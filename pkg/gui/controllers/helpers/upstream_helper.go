@@ -9,8 +9,7 @@ import (
 )
 
 type UpstreamHelper struct {
-	c     *types.HelperCommon
-	model *types.Model
+	c *HelperCommon
 
 	getRemoteBranchesSuggestionsFunc func(string) func(string) []*types.Suggestion
 }
@@ -25,13 +24,11 @@ type IUpstreamHelper interface {
 var _ IUpstreamHelper = &UpstreamHelper{}
 
 func NewUpstreamHelper(
-	c *types.HelperCommon,
-	model *types.Model,
+	c *HelperCommon,
 	getRemoteBranchesSuggestionsFunc func(string) func(string) []*types.Suggestion,
 ) *UpstreamHelper {
 	return &UpstreamHelper{
 		c:                                c,
-		model:                            model,
 		getRemoteBranchesSuggestionsFunc: getRemoteBranchesSuggestionsFunc,
 	}
 }
@@ -70,7 +67,7 @@ func (self *UpstreamHelper) PromptForUpstreamWithoutInitialContent(_ *models.Bra
 }
 
 func (self *UpstreamHelper) GetSuggestedRemote() string {
-	return getSuggestedRemote(self.model.Remotes)
+	return getSuggestedRemote(self.c.Model().Remotes)
 }
 
 func getSuggestedRemote(remotes []*models.Remote) string {

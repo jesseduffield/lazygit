@@ -8,18 +8,19 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // KeybindingCreator takes a custom command along with its handler and returns a corresponding keybinding
 type KeybindingCreator struct {
-	contexts *context.ContextTree
+	c *helpers.HelperCommon
 }
 
-func NewKeybindingCreator(contexts *context.ContextTree) *KeybindingCreator {
+func NewKeybindingCreator(c *helpers.HelperCommon) *KeybindingCreator {
 	return &KeybindingCreator{
-		contexts: contexts,
+		c: c,
 	}
 }
 
@@ -62,7 +63,7 @@ func (self *KeybindingCreator) getViewNameAndContexts(customCommand config.Custo
 }
 
 func (self *KeybindingCreator) contextForContextKey(contextKey types.ContextKey) (types.Context, bool) {
-	for _, context := range self.contexts.Flatten() {
+	for _, context := range self.c.Contexts().Flatten() {
 		if context.GetKey() == contextKey {
 			return context, true
 		}

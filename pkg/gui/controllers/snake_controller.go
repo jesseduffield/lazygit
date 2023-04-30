@@ -7,21 +7,17 @@ import (
 
 type SnakeController struct {
 	baseController
-	*controllerCommon
-
-	getGame func() *snake.Game
+	c *ControllerCommon
 }
 
 var _ types.IController = &SnakeController{}
 
 func NewSnakeController(
-	common *controllerCommon,
-	getGame func() *snake.Game,
+	common *ControllerCommon,
 ) *SnakeController {
 	return &SnakeController{
-		baseController:   baseController{},
-		controllerCommon: common,
-		getGame:          getGame,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -53,16 +49,31 @@ func (self *SnakeController) GetKeybindings(opts types.KeybindingsOpts) []*types
 }
 
 func (self *SnakeController) Context() types.Context {
-	return self.contexts.Snake
+	return self.c.Contexts().Snake
+}
+
+func (self *SnakeController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(types.OnFocusOpts) error {
+		self.c.Helpers().Snake.StartGame()
+		return nil
+	}
+}
+
+func (self *SnakeController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
+	return func(types.OnFocusLostOpts) error {
+		self.c.Helpers().Snake.ExitGame()
+		self.c.Helpers().Window.MoveToTopOfWindow(self.c.Contexts().Submodules)
+		return nil
+	}
 }
 
 func (self *SnakeController) SetDirection(direction snake.Direction) func() error {
 	return func() error {
-		self.getGame().SetDirection(direction)
+		self.c.Helpers().Snake.SetDirection(direction)
 		return nil
 	}
 }
 
 func (self *SnakeController) Escape() error {
-	return self.c.PushContext(self.contexts.Submodules)
+	return self.c.PushContext(self.c.Contexts().Submodules)
 }

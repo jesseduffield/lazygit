@@ -3,7 +3,6 @@ package helpers
 import (
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -12,38 +11,29 @@ type ICommitsHelper interface {
 }
 
 type CommitsHelper struct {
-	c *types.HelperCommon
+	c *HelperCommon
 
-	model                *types.Model
-	contexts             *context.ContextTree
 	getCommitSummary     func() string
 	setCommitSummary     func(string)
 	getCommitDescription func() string
 	setCommitDescription func(string)
-	renderCommitLength   func()
 }
 
 var _ ICommitsHelper = &CommitsHelper{}
 
 func NewCommitsHelper(
-	c *types.HelperCommon,
-	model *types.Model,
-	contexts *context.ContextTree,
+	c *HelperCommon,
 	getCommitSummary func() string,
 	setCommitSummary func(string),
 	getCommitDescription func() string,
 	setCommitDescription func(string),
-	renderCommitLength func(),
 ) *CommitsHelper {
 	return &CommitsHelper{
 		c:                    c,
-		model:                model,
-		contexts:             contexts,
 		getCommitSummary:     getCommitSummary,
 		setCommitSummary:     setCommitSummary,
 		getCommitDescription: getCommitDescription,
 		setCommitDescription: setCommitDescription,
-		renderCommitLength:   renderCommitLength,
 	}
 }
 
@@ -62,7 +52,7 @@ func (self *CommitsHelper) SetMessageAndDescriptionInView(message string) {
 
 	self.setCommitSummary(summary)
 	self.setCommitDescription(description)
-	self.renderCommitLength()
+	self.c.Contexts().CommitMessage.RenderCommitLength()
 }
 
 func (self *CommitsHelper) JoinCommitMessageAndDescription() string {
@@ -78,7 +68,7 @@ func (self *CommitsHelper) UpdateCommitPanelView(message string) {
 		self.SetMessageAndDescriptionInView(message)
 		return
 	}
-	message = self.contexts.CommitMessage.GetPreservedMessage()
+	message = self.c.Contexts().CommitMessage.GetPreservedMessage()
 	if message != "" {
 		self.SetMessageAndDescriptionInView(message)
 	} else {
@@ -95,7 +85,7 @@ type OpenCommitMessagePanelOpts struct {
 }
 
 func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOpts) error {
-	self.contexts.CommitMessage.SetPanelState(
+	self.c.Contexts().CommitMessage.SetPanelState(
 		opts.CommitIndex,
 		opts.Title,
 		opts.PreserveMessage,
@@ -109,8 +99,8 @@ func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOp
 
 func (self *CommitsHelper) OnCommitSuccess() {
 	// if we have a preserved message we want to clear it on success
-	if self.contexts.CommitMessage.GetPreserveMessage() {
-		self.contexts.CommitMessage.SetPreservedMessage("")
+	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
+		self.c.Contexts().CommitMessage.SetPreservedMessage("")
 	}
 	self.SetMessageAndDescriptionInView("")
 }
@@ -122,7 +112,7 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 		return self.c.ErrorMsg(self.c.Tr.CommitWithoutMessageErr)
 	}
 
-	err := self.contexts.CommitMessage.OnConfirm(fullMessage)
+	err := self.c.Contexts().CommitMessage.OnConfirm(fullMessage)
 	if err != nil {
 		return err
 	}
@@ -131,15 +121,15 @@ func (self *CommitsHelper) HandleCommitConfirm() error {
 }
 
 func (self *CommitsHelper) CloseCommitMessagePanel() error {
-	if self.contexts.CommitMessage.GetPreserveMessage() {
+	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
 		message := self.JoinCommitMessageAndDescription()
 
-		self.contexts.CommitMessage.SetPreservedMessage(message)
+		self.c.Contexts().CommitMessage.SetPreservedMessage(message)
 	} else {
 		self.SetMessageAndDescriptionInView("")
 	}
 
-	self.contexts.CommitMessage.SetHistoryMessage("")
+	self.c.Contexts().CommitMessage.SetHistoryMessage("")
 
 	return self.PopCommitMessageContexts()
 }
@@ -160,7 +150,7 @@ func (self *CommitsHelper) pushCommitMessageContexts() error {
 
 func (self *CommitsHelper) commitMessageContexts() []types.Context {
 	return []types.Context{
-		self.contexts.CommitDescription,
-		self.contexts.CommitMessage,
+		self.c.Contexts().CommitDescription,
+		self.c.Contexts().CommitMessage,
 	}
 }

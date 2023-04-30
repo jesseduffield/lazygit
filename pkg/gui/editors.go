@@ -62,14 +62,14 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 func (gui *Gui) commitMessageEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
 	v.RenderTextArea()
-	gui.RenderCommitLength()
+	gui.c.Contexts().CommitMessage.RenderCommitLength()
 	return matched
 }
 
 func (gui *Gui) commitDescriptionEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
 	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, true)
 	v.RenderTextArea()
-	gui.RenderCommitLength()
+	gui.c.Contexts().CommitMessage.RenderCommitLength()
 	return matched
 }
 
@@ -78,11 +78,12 @@ func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mo
 
 	v.RenderTextArea()
 
-	if gui.findSuggestions != nil {
+	suggestionsContext := gui.State.Contexts.Suggestions
+	if suggestionsContext.State.FindSuggestions != nil {
 		input := v.TextArea.GetContent()
-		gui.suggestionsAsyncHandler.Do(func() func() {
-			suggestions := gui.findSuggestions(input)
-			return func() { gui.setSuggestions(suggestions) }
+		suggestionsContext.State.AsyncHandler.Do(func() func() {
+			suggestions := suggestionsContext.State.FindSuggestions(input)
+			return func() { suggestionsContext.SetSuggestions(suggestions) }
 		})
 	}
 

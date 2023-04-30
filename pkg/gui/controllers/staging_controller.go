@@ -10,7 +10,7 @@ import (
 
 type StagingController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 
 	context      types.IPatchExplorerContext
 	otherContext types.IPatchExplorerContext
@@ -22,17 +22,17 @@ type StagingController struct {
 var _ types.IController = &StagingController{}
 
 func NewStagingController(
-	common *controllerCommon,
+	common *ControllerCommon,
 	context types.IPatchExplorerContext,
 	otherContext types.IPatchExplorerContext,
 	staged bool,
 ) *StagingController {
 	return &StagingController{
-		baseController:   baseController{},
-		controllerCommon: common,
-		context:          context,
-		otherContext:     otherContext,
-		staged:           staged,
+		baseController: baseController{},
+		c:              common,
+		context:        context,
+		otherContext:   otherContext,
+		staged:         staged,
 	}
 }
 
@@ -75,17 +75,17 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
-			Handler:     self.helpers.WorkingTree.HandleCommitPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
 			Description: self.c.Tr.CommitChanges,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
-			Handler:     self.helpers.WorkingTree.HandleWIPCommitPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleWIPCommitPress,
 			Description: self.c.Tr.LcCommitChangesWithoutHook,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
-			Handler:     self.helpers.WorkingTree.HandleCommitEditorPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleCommitEditorPress,
 			Description: self.c.Tr.CommitChangesWithEditor,
 		},
 	}
@@ -99,6 +99,29 @@ func (self *StagingController) GetMouseKeybindings(opts types.KeybindingsOpts) [
 	return []*gocui.ViewMouseBinding{}
 }
 
+func (self *StagingController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(opts types.OnFocusOpts) error {
+		self.c.Views().Staging.Wrap = false
+		self.c.Views().StagingSecondary.Wrap = false
+
+		return self.c.Helpers().Staging.RefreshStagingPanel(opts)
+	}
+}
+
+func (self *StagingController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
+	return func(opts types.OnFocusLostOpts) error {
+		self.context.SetState(nil)
+
+		if opts.NewContextKey != self.otherContext.GetKey() {
+			self.c.Views().Staging.Wrap = true
+			self.c.Views().StagingSecondary.Wrap = true
+			_ = self.c.Contexts().Staging.Render(false)
+			_ = self.c.Contexts().StagingSecondary.Render(false)
+		}
+		return nil
+	}
+}
+
 func (self *StagingController) OpenFile() error {
 	self.context.GetMutex().Lock()
 	defer self.context.GetMutex().Unlock()
@@ -109,7 +132,7 @@ func (self *StagingController) OpenFile() error {
 		return nil
 	}
 
-	return self.helpers.Files.OpenFile(path)
+	return self.c.Helpers().Files.OpenFile(path)
 }
 
 func (self *StagingController) EditFile() error {
@@ -123,7 +146,7 @@ func (self *StagingController) EditFile() error {
 	}
 
 	lineNumber := self.context.GetState().CurrentLineNumber()
-	return self.helpers.Files.EditFileAtLine(path, lineNumber)
+	return self.c.Helpers().Files.EditFileAtLine(path, lineNumber)
 }
 
 func (self *StagingController) Escape() error {
@@ -198,7 +221,7 @@ func (self *StagingController) applySelection(reverse bool) error {
 		applyFlags = append(applyFlags, "cached")
 	}
 	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
-	err := self.git.WorkingTree.ApplyPatch(patchToApply, applyFlags...)
+	err := self.c.Git().WorkingTree.ApplyPatch(patchToApply, applyFlags...)
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -239,18 +262,18 @@ func (self *StagingController) editHunk() error {
 		}).
 		FormatPlain()
 
-	patchFilepath, err := self.git.WorkingTree.SaveTemporaryPatch(patchText)
+	patchFilepath, err := self.c.Git().WorkingTree.SaveTemporaryPatch(patchText)
 	if err != nil {
 		return err
 	}
 
 	lineOffset := 3
 	lineIdxInHunk := state.GetSelectedLineIdx() - hunkStartIdx
-	if err := self.helpers.Files.EditFileAtLineAndWait(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
+	if err := self.c.Helpers().Files.EditFileAtLineAndWait(patchFilepath, lineIdxInHunk+lineOffset); err != nil {
 		return err
 	}
 
-	editedPatchText, err := self.git.File.Cat(patchFilepath)
+	editedPatchText, err := self.c.Git().File.Cat(patchFilepath)
 	if err != nil {
 		return err
 	}
@@ -270,7 +293,7 @@ func (self *StagingController) editHunk() error {
 	if self.staged {
 		applyFlags = append(applyFlags, "reverse")
 	}
-	if err := self.git.WorkingTree.ApplyPatch(newPatchText, applyFlags...); err != nil {
+	if err := self.c.Git().WorkingTree.ApplyPatch(newPatchText, applyFlags...); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -278,5 +301,5 @@ func (self *StagingController) editHunk() error {
 }
 
 func (self *StagingController) FilePath() string {
-	return self.contexts.Files.GetSelectedPath()
+	return self.c.Contexts().Files.GetSelectedPath()
 }

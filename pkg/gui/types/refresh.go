@@ -6,6 +6,7 @@ type RefreshableView int
 const (
 	COMMITS RefreshableView = iota
 	REBASE_COMMITS
+	SUB_COMMITS
 	BRANCHES
 	FILES
 	STASH
@@ -32,6 +33,6 @@ const (
 
 type RefreshOptions struct {
 	Then  func()
-	Scope []RefreshableView // e.g. []int{COMMITS, BRANCHES}. Leave empty to refresh everything
+	Scope []RefreshableView // e.g. []RefreshableView{COMMITS, BRANCHES}. Leave empty to refresh everything
 	Mode  RefreshMode       // one of SYNC (default), ASYNC, and BLOCK_UI
 }

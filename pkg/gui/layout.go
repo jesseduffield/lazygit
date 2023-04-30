@@ -4,10 +4,9 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
-
-const SEARCH_PREFIX = "search: "
 
 // layout is called for every screen re-render e.g. when the screen is resized
 func (gui *Gui) layout(g *gocui.Gui) error {
@@ -23,7 +22,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	width, height := g.Size()
 
 	informationStr := gui.informationStr()
-	appStatus := gui.statusManager.getStatusString()
+
+	appStatus := gui.helpers.AppStatus.GetStatusString()
 
 	viewDimensions := gui.getWindowDimensions(informationStr, appStatus)
 
@@ -96,16 +96,16 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	gui.Views.Tooltip.Visible = gui.Views.Menu.Visible && gui.Views.Tooltip.Buffer() != ""
 
-	for _, context := range gui.TransientContexts() {
+	for _, context := range gui.transientContexts() {
 		view, err := gui.g.View(context.GetViewName())
 		if err != nil && !gocui.IsUnknownView(err) {
 			return err
 		}
-		view.Visible = gui.getViewNameForWindow(context.GetWindowName()) == context.GetViewName()
+		view.Visible = gui.helpers.Window.GetViewNameForWindow(context.GetWindowName()) == context.GetViewName()
 	}
 
 	if gui.PrevLayout.Information != informationStr {
-		gui.setViewContent(gui.Views.Information, informationStr)
+		gui.c.SetViewContent(gui.Views.Information, informationStr)
 		gui.PrevLayout.Information = informationStr
 	}
 
@@ -125,7 +125,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		gui.State.ViewsSetup = true
 	}
 
-	for _, listContext := range gui.getListContexts() {
+	for _, listContext := range gui.c.Context().AllList() {
 		view, err := gui.g.View(listContext.GetViewName())
 		if err != nil {
 			continue
@@ -139,7 +139,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		view.SetOnSelectItem(gui.onSelectItemWrapper(listContext.OnSearchSelect))
 	}
 
-	for _, context := range gui.getPatchExplorerContexts() {
+	for _, context := range gui.c.Context().AllPatchExplorer() {
 		context := context
 		context.GetView().SetOnSelectItem(gui.onSelectItemWrapper(
 			func(selectedLineIdx int) error {
@@ -163,7 +163,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// if you run `lazygit --logs`
 	// this will let you see these branches as prettified json
 	// gui.c.Log.Info(utils.AsJson(gui.State.Model.Branches[0:4]))
-	return gui.resizeCurrentPopupPanel()
+	return gui.helpers.Confirmation.ResizeCurrentPopupPanel()
 }
 
 func (gui *Gui) prepareView(viewName string) (*gocui.View, error) {
@@ -181,12 +181,22 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 		}
 	}
 
-	initialContext := gui.currentSideContext()
+	initialContext := gui.c.CurrentSideContext()
 	if err := gui.c.PushContext(initialContext); err != nil {
 		return err
 	}
 
 	return gui.loadNewRepo()
+}
+
+func (gui *Gui) popupViewNames() []string {
+	popups := slices.Filter(gui.State.Contexts.Flatten(), func(c types.Context) bool {
+		return c.GetKind() == types.PERSISTENT_POPUP || c.GetKind() == types.TEMPORARY_POPUP
+	})
+
+	return slices.Map(popups, func(c types.Context) string {
+		return c.GetViewName()
+	})
 }
 
 func (gui *Gui) onInitialViewsCreation() error {
@@ -226,15 +236,50 @@ func (gui *Gui) onInitialViewsCreation() error {
 	}
 
 	if gui.showRecentRepos {
-		if err := gui.handleCreateRecentReposMenu(); err != nil {
+		if err := gui.helpers.Repos.CreateRecentReposMenu(); err != nil {
 			return err
 		}
 		gui.showRecentRepos = false
 	}
 
-	gui.Updater.CheckForNewUpdate(gui.onBackgroundUpdateCheckFinish, false)
+	gui.helpers.Update.CheckForUpdateInBackground()
 
 	gui.waitForIntro.Done()
 
 	return nil
+}
+
+// getFocusLayout returns a manager function for when view gain and lose focus
+func (gui *Gui) getFocusLayout() func(g *gocui.Gui) error {
+	var previousView *gocui.View
+	return func(g *gocui.Gui) error {
+		newView := gui.g.CurrentView()
+		// for now we don't consider losing focus to a popup panel as actually losing focus
+		if newView != previousView && !gui.helpers.Confirmation.IsPopupPanel(newView.Name()) {
+			if err := gui.onViewFocusLost(previousView); err != nil {
+				return err
+			}
+
+			previousView = newView
+		}
+		return nil
+	}
+}
+
+func (gui *Gui) onViewFocusLost(oldView *gocui.View) error {
+	if oldView == nil {
+		return nil
+	}
+
+	oldView.Highlight = false
+
+	_ = oldView.SetOriginX(0)
+
+	return nil
+}
+
+func (gui *Gui) transientContexts() []types.Context {
+	return slices.Filter(gui.State.Contexts.Flatten(), func(context types.Context) bool {
+		return context.IsTransient()
+	})
 }

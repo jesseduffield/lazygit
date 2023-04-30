@@ -3,48 +3,9 @@ package gui
 import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/constants"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 )
-
-type Views struct {
-	Status         *gocui.View
-	Submodules     *gocui.View
-	Files          *gocui.View
-	Branches       *gocui.View
-	Remotes        *gocui.View
-	Tags           *gocui.View
-	RemoteBranches *gocui.View
-	ReflogCommits  *gocui.View
-	Commits        *gocui.View
-	Stash          *gocui.View
-
-	Main                   *gocui.View
-	Secondary              *gocui.View
-	Staging                *gocui.View
-	StagingSecondary       *gocui.View
-	PatchBuilding          *gocui.View
-	PatchBuildingSecondary *gocui.View
-	MergeConflicts         *gocui.View
-
-	Options           *gocui.View
-	Confirmation      *gocui.View
-	Menu              *gocui.View
-	CommitMessage     *gocui.View
-	CommitDescription *gocui.View
-	CommitFiles       *gocui.View
-	SubCommits        *gocui.View
-	Information       *gocui.View
-	AppStatus         *gocui.View
-	Search            *gocui.View
-	SearchPrefix      *gocui.View
-	Limit             *gocui.View
-	Suggestions       *gocui.View
-	Tooltip           *gocui.View
-	Extras            *gocui.View
-
-	// for playing the easter egg snake game
-	Snake *gocui.View
-}
 
 type viewNameMapping struct {
 	viewPtr **gocui.View
@@ -106,15 +67,6 @@ func (gui *Gui) orderedViewNameMappings() []viewNameMapping {
 	}
 }
 
-func (gui *Gui) windowForView(viewName string) string {
-	context, ok := gui.contextForView(viewName)
-	if !ok {
-		panic("todo: deal with this")
-	}
-
-	return context.GetWindowName()
-}
-
 func (gui *Gui) createAllViews() error {
 	frameRunes := []rune{'─', '│', '┌', '┐', '└', '┘'}
 	switch gui.c.UserConfig.Gui.Border {
@@ -142,7 +94,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.SearchPrefix.BgColor = gocui.ColorDefault
 	gui.Views.SearchPrefix.FgColor = gocui.ColorGreen
 	gui.Views.SearchPrefix.Frame = false
-	gui.setViewContent(gui.Views.SearchPrefix, SEARCH_PREFIX)
+	gui.c.SetViewContent(gui.Views.SearchPrefix, constants.SEARCH_PREFIX)
 
 	gui.Views.Stash.Title = gui.c.Tr.StashTitle
 
@@ -213,6 +165,7 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.CommitDescription.Editor = gocui.EditorFunc(gui.commitDescriptionEditor)
 
 	gui.Views.Confirmation.Visible = false
+	gui.Views.Confirmation.Editor = gocui.EditorFunc(gui.promptEditor)
 
 	gui.Views.Suggestions.Visible = false
 

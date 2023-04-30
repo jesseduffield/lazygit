@@ -1,16 +1,19 @@
 package controllers
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type RemotesController struct {
 	baseController
-	*controllerCommon
-	context *context.RemotesContext
+	c *ControllerCommon
 
 	setRemoteBranches func([]*models.RemoteBranch)
 }
@@ -18,13 +21,12 @@ type RemotesController struct {
 var _ types.IController = &RemotesController{}
 
 func NewRemotesController(
-	common *controllerCommon,
+	common *ControllerCommon,
 	setRemoteBranches func([]*models.RemoteBranch),
 ) *RemotesController {
 	return &RemotesController{
 		baseController:    baseController{},
-		controllerCommon:  common,
-		context:           common.contexts.Remotes,
+		c:                 common,
 		setRemoteBranches: setRemoteBranches,
 	}
 }
@@ -60,6 +62,36 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 	return bindings
 }
 
+func (self *RemotesController) Context() types.Context {
+	return self.context()
+}
+
+func (self *RemotesController) context() *context.RemotesContext {
+	return self.c.Contexts().Remotes
+}
+
+func (self *RemotesController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+			var task types.UpdateTask
+			remote := self.context().GetSelected()
+			if remote == nil {
+				task = types.NewRenderStringTask("No remotes")
+			} else {
+				task = types.NewRenderStringTask(fmt.Sprintf("%s\nUrls:\n%s", style.FgGreen.Sprint(remote.Name), strings.Join(remote.Urls, "\n")))
+			}
+
+			return self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title: "Remote",
+					Task:  task,
+				},
+			})
+		})
+	}
+}
+
 func (self *RemotesController) GetOnClick() func() error {
 	return self.checkSelected(self.enter)
 }
@@ -72,14 +104,14 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	if len(remote.Branches) == 0 {
 		newSelectedLine = -1
 	}
-	self.contexts.RemoteBranches.SetSelectedLineIdx(newSelectedLine)
-	self.contexts.RemoteBranches.SetTitleRef(remote.Name)
+	self.c.Contexts().RemoteBranches.SetSelectedLineIdx(newSelectedLine)
+	self.c.Contexts().RemoteBranches.SetTitleRef(remote.Name)
 
-	if err := self.c.PostRefreshUpdate(self.contexts.RemoteBranches); err != nil {
+	if err := self.c.PostRefreshUpdate(self.c.Contexts().RemoteBranches); err != nil {
 		return err
 	}
 
-	return self.c.PushContext(self.contexts.RemoteBranches)
+	return self.c.PushContext(self.c.Contexts().RemoteBranches)
 }
 
 func (self *RemotesController) add() error {
@@ -90,7 +122,7 @@ func (self *RemotesController) add() error {
 				Title: self.c.Tr.LcNewRemoteUrl,
 				HandleConfirm: func(remoteUrl string) error {
 					self.c.LogAction(self.c.Tr.Actions.AddRemote)
-					if err := self.git.Remote.AddRemote(remoteName, remoteUrl); err != nil {
+					if err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl); err != nil {
 						return err
 					}
 					return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.REMOTES}})
@@ -106,7 +138,7 @@ func (self *RemotesController) remove(remote *models.Remote) error {
 		Prompt: self.c.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RemoveRemote)
-			if err := self.git.Remote.RemoveRemote(remote.Name); err != nil {
+			if err := self.c.Git().Remote.RemoveRemote(remote.Name); err != nil {
 				return self.c.Error(err)
 			}
 
@@ -129,7 +161,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 		HandleConfirm: func(updatedRemoteName string) error {
 			if updatedRemoteName != remote.Name {
 				self.c.LogAction(self.c.Tr.Actions.UpdateRemote)
-				if err := self.git.Remote.RenameRemote(remote.Name, updatedRemoteName); err != nil {
+				if err := self.c.Git().Remote.RenameRemote(remote.Name, updatedRemoteName); err != nil {
 					return self.c.Error(err)
 				}
 			}
@@ -152,7 +184,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 				InitialContent: url,
 				HandleConfirm: func(updatedRemoteUrl string) error {
 					self.c.LogAction(self.c.Tr.Actions.UpdateRemote)
-					if err := self.git.Remote.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
+					if err := self.c.Git().Remote.UpdateRemoteUrl(updatedRemoteName, updatedRemoteUrl); err != nil {
 						return self.c.Error(err)
 					}
 					return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
@@ -164,7 +196,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 
 func (self *RemotesController) fetch(remote *models.Remote) error {
 	return self.c.WithWaitingStatus(self.c.Tr.FetchingRemoteStatus, func() error {
-		err := self.git.Sync.FetchRemote(remote.Name)
+		err := self.c.Git().Sync.FetchRemote(remote.Name)
 		if err != nil {
 			_ = self.c.Error(err)
 		}
@@ -175,15 +207,11 @@ func (self *RemotesController) fetch(remote *models.Remote) error {
 
 func (self *RemotesController) checkSelected(callback func(*models.Remote) error) func() error {
 	return func() error {
-		file := self.context.GetSelected()
+		file := self.context().GetSelected()
 		if file == nil {
 			return nil
 		}
 
 		return callback(file)
 	}
-}
-
-func (self *RemotesController) Context() types.Context {
-	return self.context
 }
