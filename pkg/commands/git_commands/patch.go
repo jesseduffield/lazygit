@@ -3,7 +3,9 @@ package git_commands
 import (
 	"fmt"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -103,18 +105,16 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 	baseIndex := sourceCommitIdx + 1
 
-	todoLines := self.rebase.BuildTodoLines(commits[0:baseIndex], func(commit *models.Commit, i int) string {
-		if i == sourceCommitIdx || i == destinationCommitIdx {
-			return "edit"
-		} else {
-			return "pick"
-		}
-	})
+	changes := []daemon.ChangeTodoAction{
+		{Sha: commits[sourceCommitIdx].Sha, NewAction: todo.Edit},
+		{Sha: commits[destinationCommitIdx].Sha, NewAction: todo.Edit},
+	}
+	self.os.LogCommand(logTodoChanges(changes), false)
 
 	err := self.rebase.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  commits[baseIndex].Sha,
-		todoLines:      todoLines,
 		overrideEditor: true,
+		instruction:    daemon.NewChangeTodoActionsInstruction(changes),
 	}).Run()
 	if err != nil {
 		return err
