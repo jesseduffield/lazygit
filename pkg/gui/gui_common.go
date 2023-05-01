@@ -74,6 +74,10 @@ func (self *guiCommon) IsCurrentContext(c types.Context) bool {
 	return self.CurrentContext().GetKey() == c.GetKey()
 }
 
+func (self *guiCommon) ActivateContext(context types.Context) error {
+	return self.gui.activateContext(context, types.OnFocusOpts{})
+}
+
 func (self *guiCommon) GetAppState() *config.AppState {
 	return self.gui.Config.GetAppState()
 }

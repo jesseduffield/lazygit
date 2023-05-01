@@ -182,7 +182,7 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 	}
 
 	initialContext := gui.currentSideContext()
-	if err := gui.c.PushContext(initialContext); err != nil {
+	if err := gui.c.ActivateContext(initialContext); err != nil {
 		return err
 	}
 

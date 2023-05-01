@@ -49,6 +49,7 @@ type IGuiCommon interface {
 	CurrentContext() Context
 	CurrentStaticContext() Context
 	IsCurrentContext(Context) bool
+	ActivateContext(context Context) error
 	// enters search mode for the current view
 	OpenSearch()
 
