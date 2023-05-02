@@ -53,7 +53,7 @@ func (self *ContextMgr) Replace(c types.Context) error {
 
 	defer self.Unlock()
 
-	return self.activateContext(c, types.OnFocusOpts{})
+	return self.ActivateContext(c, types.OnFocusOpts{})
 }
 
 func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) error {
@@ -83,7 +83,7 @@ func (self *ContextMgr) Push(c types.Context, opts ...types.OnFocusOpts) error {
 		return nil
 	}
 
-	return self.activateContext(contextToActivate, singleOpts)
+	return self.ActivateContext(contextToActivate, singleOpts)
 }
 
 // Adjusts the context stack based on the context that's being pushed and
@@ -162,7 +162,7 @@ func (self *ContextMgr) Pop() error {
 		return err
 	}
 
-	return self.activateContext(newContext, types.OnFocusOpts{})
+	return self.ActivateContext(newContext, types.OnFocusOpts{})
 }
 
 func (self *ContextMgr) RemoveContexts(contextsToRemove []types.Context) error {
@@ -192,7 +192,7 @@ func (self *ContextMgr) RemoveContexts(contextsToRemove []types.Context) error {
 	}
 
 	// activate the item at the top of the stack
-	return self.activateContext(contextToActivate, types.OnFocusOpts{})
+	return self.ActivateContext(contextToActivate, types.OnFocusOpts{})
 }
 
 func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLostOpts) error {
@@ -218,7 +218,7 @@ func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLos
 	return nil
 }
 
-func (self *ContextMgr) activateContext(c types.Context, opts types.OnFocusOpts) error {
+func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts) error {
 	viewName := c.GetViewName()
 	v, err := self.gui.c.GocuiGui().View(viewName)
 	if err != nil {

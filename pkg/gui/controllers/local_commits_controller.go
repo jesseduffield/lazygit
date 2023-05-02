@@ -217,7 +217,7 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
-				return self.interactiveRebase("squash")
+				return self.interactiveRebase(todo.Squash)
 			})
 		},
 	})
@@ -242,7 +242,7 @@ func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.FixupCommit)
-				return self.interactiveRebase("fixup")
+				return self.interactiveRebase(todo.Fixup)
 			})
 		},
 	})
@@ -338,7 +338,7 @@ func (self *LocalCommitsController) drop(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
-				return self.interactiveRebase("drop")
+				return self.interactiveRebase(todo.Drop)
 			})
 		},
 	})
@@ -355,7 +355,7 @@ func (self *LocalCommitsController) edit(commit *models.Commit) error {
 
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
-		err := self.c.Git().Rebase.InteractiveRebaseBreakAfter(self.c.Model().Commits, self.context().GetSelectedLineIdx())
+		err := self.c.Git().Rebase.EditRebase(commit.Sha)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 	})
 }
@@ -374,7 +374,7 @@ func (self *LocalCommitsController) pick(commit *models.Commit) error {
 	return self.pullFiles()
 }
 
-func (self *LocalCommitsController) interactiveRebase(action string) error {
+func (self *LocalCommitsController) interactiveRebase(action todo.TodoCommand) error {
 	err := self.c.Git().Rebase.InteractiveRebase(self.c.Model().Commits, self.context().GetSelectedLineIdx(), action)
 	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
@@ -494,7 +494,7 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 
 	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
-		err := self.c.Git().Rebase.MoveCommitDown(self.c.Model().Commits, index-1)
+		err := self.c.Git().Rebase.MoveCommitUp(self.c.Model().Commits, index)
 		if err == nil {
 			self.context().MoveSelectedLine(-1)
 		}
@@ -520,7 +520,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-				err := self.c.Git().Rebase.AmendTo(commit)
+				err := self.c.Git().Rebase.AmendTo(self.c.Model().Commits, self.context().GetView().SelectedLineIdx())
 				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 			})
 		},

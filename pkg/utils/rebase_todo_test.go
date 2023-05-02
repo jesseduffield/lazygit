@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
@@ -226,5 +227,112 @@ func TestRebaseCommands_moveTodoUp(t *testing.T) {
 			assert.Equal(t, s.expectedTodos, rearrangedTodos)
 		},
 		)
+	}
+}
+
+func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
+	scenarios := []struct {
+		name          string
+		todos         []todo.Todo
+		originalSha   string
+		fixupSha      string
+		expectedTodos []todo.Todo
+		expectedErr   error
+	}{
+		{
+			name: "fixup commit is the last commit",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "original"},
+				{Command: todo.Pick, Commit: "fixup"},
+			},
+			originalSha: "original",
+			fixupSha:    "fixup",
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "original"},
+				{Command: todo.Fixup, Commit: "fixup"},
+			},
+			expectedErr: nil,
+		},
+		{
+			// TODO: is this something we actually want to support?
+			name: "fixup commit is separated from original commit",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "original"},
+				{Command: todo.Pick, Commit: "other"},
+				{Command: todo.Pick, Commit: "fixup"},
+			},
+			originalSha: "original",
+			fixupSha:    "fixup",
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "original"},
+				{Command: todo.Fixup, Commit: "fixup"},
+				{Command: todo.Pick, Commit: "other"},
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "More original SHAs than expected",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "original"},
+				{Command: todo.Pick, Commit: "original"},
+				{Command: todo.Pick, Commit: "fixup"},
+			},
+			originalSha:   "original",
+			fixupSha:      "fixup",
+			expectedTodos: nil,
+			expectedErr:   errors.New("Expected exactly one original SHA, found 2"),
+		},
+		{
+			name: "More fixup SHAs than expected",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "original"},
+				{Command: todo.Pick, Commit: "fixup"},
+				{Command: todo.Pick, Commit: "fixup"},
+			},
+			originalSha:   "original",
+			fixupSha:      "fixup",
+			expectedTodos: nil,
+			expectedErr:   errors.New("Expected exactly one fixup SHA, found 2"),
+		},
+		{
+			name: "No fixup SHAs found",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "original"},
+			},
+			originalSha:   "original",
+			fixupSha:      "fixup",
+			expectedTodos: nil,
+			expectedErr:   errors.New("Expected exactly one fixup SHA, found 0"),
+		},
+		{
+			name: "No original SHAs found",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "fixup"},
+			},
+			originalSha:   "original",
+			fixupSha:      "fixup",
+			expectedTodos: nil,
+			expectedErr:   errors.New("Expected exactly one original SHA, found 0"),
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.name, func(t *testing.T) {
+			actualTodos, actualErr := moveFixupCommitDown(scenario.todos, scenario.originalSha, scenario.fixupSha)
+
+			if scenario.expectedErr == nil {
+				if !assert.NoError(t, actualErr) {
+					t.Errorf("Expected no error, got: %v", actualErr)
+				}
+			} else {
+				if !assert.EqualError(t, actualErr, scenario.expectedErr.Error()) {
+					t.Errorf("Expected err: %v, got: %v", scenario.expectedErr, actualErr)
+				}
+			}
+
+			if !assert.EqualValues(t, actualTodos, scenario.expectedTodos) {
+				t.Errorf("Expected todos: %v, got: %v", scenario.expectedTodos, actualTodos)
+			}
+		})
 	}
 }

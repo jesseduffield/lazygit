@@ -56,9 +56,11 @@ func parseLine(line string) (Todo, error) {
 
 	fields := strings.Fields(line)
 
+	var commandLen int
 	for i := Pick; i < Comment; i++ {
 		if isCommand(i, fields[0]) {
 			todo.Command = i
+			commandLen = len(fields[0])
 			fields = fields[1:]
 			break
 		}
@@ -74,10 +76,14 @@ func parseLine(line string) (Todo, error) {
 	}
 
 	if todo.Command == Label || todo.Command == Reset {
-		if len(fields) == 0 {
+		restOfLine := strings.TrimSpace(line[commandLen:])
+		if todo.Command == Reset && restOfLine == "[new root]" {
+			todo.Label = restOfLine
+		} else if len(fields) == 0 {
 			return todo, ErrMissingLabel
+		} else {
+			todo.Label = fields[0]
 		}
-		todo.Label = fields[0]
 		return todo, nil
 	}
 

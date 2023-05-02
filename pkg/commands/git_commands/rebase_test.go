@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/go-errors/errors"
@@ -63,7 +64,7 @@ func TestRebaseSkipEditorCommand(t *testing.T) {
 			`^EDITOR=.*$`,
 			`^GIT_EDITOR=.*$`,
 			`^GIT_SEQUENCE_EDITOR=.*$`,
-			"^" + daemon.DaemonKindEnvKey + "=" + string(daemon.ExitImmediately) + "$",
+			"^" + daemon.DaemonKindEnvKey + "=" + strconv.Itoa(int(daemon.DaemonKindExitImmediately)) + "$",
 		} {
 			regexStr := regexStr
 			foundMatch := lo.ContainsBy(envVars, func(envVar string) bool {

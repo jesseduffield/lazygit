@@ -57,6 +57,7 @@ gui:
   showFileTree: true # for rendering changes files in a tree format
   showListFooter: true # for seeing the '5 of 20' message in list panels
   showRandomTip: true
+  experimentalShowBranchHeads: false # visualize branch heads with (*) in commits list
   showBottomLine: true # for hiding the bottom information line (unless it has important information to tell you)
   showCommandLog: true
   showIcons: false

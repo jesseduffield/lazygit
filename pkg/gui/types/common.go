@@ -67,6 +67,7 @@ type IGuiCommon interface {
 	// TODO: replace the above context-based methods with just using Context() e.g. replace PushContext() with Context().Push()
 	Context() IContextMgr
 
+	ActivateContext(context Context) error
 	// enters search mode for the current view
 	OpenSearch()
 

@@ -76,6 +76,10 @@ func (self *guiCommon) Context() types.IContextMgr {
 	return self.gui.State.ContextMgr
 }
 
+func (self *guiCommon) ActivateContext(context types.Context) error {
+	return self.gui.State.ContextMgr.ActivateContext(context, types.OnFocusOpts{})
+}
+
 func (self *guiCommon) GetAppState() *config.AppState {
 	return self.gui.Config.GetAppState()
 }
