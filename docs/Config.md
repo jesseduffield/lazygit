@@ -252,21 +252,21 @@ keybinding:
 
 ```yaml
 os:
-  openCommand: 'start "" {{filename}}'
+  open: 'start "" {{filename}}'
 ```
 
 ### Linux
 
 ```yaml
 os:
-  openCommand: 'xdg-open {{filename}} >/dev/null'
+  open: 'xdg-open {{filename}} >/dev/null'
 ```
 
 ### OSX
 
 ```yaml
 os:
-  openCommand: 'open {{filename}}'
+  open: 'open {{filename}}'
 ```
 
 ### Configuring File Editing
