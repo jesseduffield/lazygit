@@ -285,7 +285,7 @@ os:
   editPreset: 'vscode'
 ```
 
-Supported presets are `vim`, `emacs`, `nano`, `vscode`, `sublime`, `bbedit`, and
+Supported presets are `vim`, `nvim`, `emacs`, `nano`, `vscode`, `sublime`, `bbedit`, and
 `xcode`. In many cases lazygit will be able to guess the right preset from your
 $(git config core.editor), or an environment variable such as $VISUAL or $EDITOR.
 
