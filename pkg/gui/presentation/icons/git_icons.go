@@ -7,12 +7,12 @@ import (
 )
 
 const (
-	BRANCH_ICON         = "\ufb2b" // שׂ
+	BRANCH_ICON         = "\ufb2b" // 󰘬
 	DETACHED_HEAD_ICON  = "\ue729" // 
 	TAG_ICON            = "\uf02b" // 
-	COMMIT_ICON         = "\ufc16" // ﰖ
-	MERGE_COMMIT_ICON   = "\ufb2c" // שּׁ
-	DEFAULT_REMOTE_ICON = "\uf7a1" // 
+	COMMIT_ICON         = "\ufc16" // 󰜘
+	MERGE_COMMIT_ICON   = "\ufb2c" // 󰘭
+	DEFAULT_REMOTE_ICON = "\uf7a1" // 󰊢
 	STASH_ICON          = "\uf01c" // 
 )
 
@@ -25,7 +25,7 @@ var remoteIcons = []remoteIcon{
 	{domain: "github.com", icon: "\ue709"},    // 
 	{domain: "bitbucket.org", icon: "\ue703"}, // 
 	{domain: "gitlab.com", icon: "\uf296"},    // 
-	{domain: "dev.azure.com", icon: "\ufd03"}, // ﴃ
+	{domain: "dev.azure.com", icon: "\ufd03"}, // 
 }
 
 func IconForBranch(branch *models.Branch) string {
