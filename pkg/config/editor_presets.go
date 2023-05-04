@@ -35,6 +35,7 @@ type editPreset struct {
 	editInTerminal            bool
 }
 
+// IF YOU ADD A PRESET TO THIS FUNCTION YOU MUST UPDATE THE `Supported presets` SECTION OF docs/Config.md
 func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset {
 	presets := map[string]*editPreset{
 		"vi":      standardTerminalEditorPreset("vi"),
