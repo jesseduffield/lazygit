@@ -235,11 +235,22 @@ func (self *LocalCommitsController) handleReword(message string) error {
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
+func (self *LocalCommitsController) verboseFlag() string {
+	switch self.c.UserConfig.Git.Commit.Verbose {
+	case "always":
+		return " --verbose"
+	case "never":
+		return " --no-verbose"
+	default:
+		return ""
+	}
+}
+
 func (self *LocalCommitsController) doRewordEditor() error {
 	self.c.LogAction(self.c.Tr.Actions.RewordCommit)
 
 	if self.isHeadCommit() {
-		return self.c.RunSubprocessAndRefresh(self.os.Cmd.New("git commit --allow-empty --amend --only"))
+		return self.c.RunSubprocessAndRefresh(self.os.Cmd.New(fmt.Sprintf("git commit --allow-empty --amend --only%s", self.verboseFlag())))
 	}
 
 	subProcess, err := self.git.Rebase.RewordCommitInEditor(
