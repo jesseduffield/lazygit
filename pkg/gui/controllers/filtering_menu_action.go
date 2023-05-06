@@ -74,5 +74,6 @@ func (self *FilteringMenuAction) setFiltering(path string) error {
 
 	return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}, Then: func() {
 		self.c.Contexts().LocalCommits.SetSelectedLineIdx(0)
+		self.c.Contexts().LocalCommits.FocusLine()
 	}})
 }

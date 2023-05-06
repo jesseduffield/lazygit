@@ -54,12 +54,6 @@ func (self *ListController) HandleScrollUp() error {
 	scrollHeight := self.c.UserConfig.Gui.ScrollHeight
 	self.context.GetViewTrait().ScrollUp(scrollHeight)
 
-	// we only need to do a line change if our line has been pushed out of the viewport, because
-	// at the moment much logic depends on the selected line always being visible
-	if !self.isSelectedLineInViewPort() {
-		return self.handleLineChange(-scrollHeight)
-	}
-
 	return nil
 }
 
@@ -67,17 +61,7 @@ func (self *ListController) HandleScrollDown() error {
 	scrollHeight := self.c.UserConfig.Gui.ScrollHeight
 	self.context.GetViewTrait().ScrollDown(scrollHeight)
 
-	if !self.isSelectedLineInViewPort() {
-		return self.handleLineChange(scrollHeight)
-	}
-
 	return nil
-}
-
-func (self *ListController) isSelectedLineInViewPort() bool {
-	selectedLineIdx := self.context.GetList().GetSelectedLineIdx()
-	startIdx, length := self.context.GetViewTrait().ViewPortYBounds()
-	return selectedLineIdx >= startIdx && selectedLineIdx < startIdx+length
 }
 
 func (self *ListController) scrollHorizontal(scrollFunc func()) error {

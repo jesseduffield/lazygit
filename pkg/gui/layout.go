@@ -131,8 +131,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			continue
 		}
 
-		listContext.FocusLine()
-
 		view.SelBgColor = theme.GocuiSelectedLineBgColor
 
 		// I doubt this is expensive though it's admittedly redundant after the first render
