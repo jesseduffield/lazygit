@@ -89,13 +89,13 @@ var extIconMap = map[string]string{
 	".cp":             "\ue61d", // 
 	".cpio":           "\uf410", // 
 	".cpp":            "\ue61d", // 
-	".cs":             "\uf81a", // 
+	".cs":             "\U000f031b", // 󰌛
 	".csh":            "\uf489", // 
 	".cshtml":         "\uf1fa", // 
-	".csproj":         "\uf81a", // 
+	".csproj":         "\U000f031b", // 󰌛
 	".css":            "\ue749", // 
 	".csv":            "\uf1c3", // 
-	".csx":            "\uf81a", // 
+	".csx":            "\U000f031b", // 󰌛
 	".cxx":            "\ue61d", // 
 	".d":              "\ue7af", // 
 	".dart":           "\ue798", // 
@@ -184,7 +184,7 @@ var extIconMap = map[string]string{
 	".latex":          "\uf034", // 
 	".less":           "\ue758", // 
 	".lhs":            "\ue777", // 
-	".license":        "\uf718", // 
+	".license":        "\U000f0219", // 󰈙
 	".localized":      "\uf179", // 
 	".lock":           "\uf023", // 
 	".log":            "\uf18d", // 
@@ -210,7 +210,7 @@ var extIconMap = map[string]string{
 	".msi":            "\ue70f", // 
 	".mustache":       "\ue60f", // 
 	".nix":            "\uf313", // 
-	".node":           "\uf898", // 
+	".node":           "\U000f0399", // 󰎙
 	".npmignore":      "\ue71e", // 
 	".odp":            "\uf1c4", // 
 	".ods":            "\uf1c3", // 
@@ -251,7 +251,7 @@ var extIconMap = map[string]string{
 	".rspec_parallel": "\ue21e", // 
 	".rspec_status":   "\ue21e", // 
 	".rss":            "\uf09e", // 
-	".rtf":            "\uf718", // 
+	".rtf":            "\U000f0219", // 󰈙
 	".ru":             "\ue21e", // 
 	".rubydoc":        "\ue73b", // 
 	".sass":           "\ue603", // 
@@ -290,7 +290,7 @@ var extIconMap = map[string]string{
 	".tzo":            "\uf410", // 
 	".video":          "\uf03d", // 
 	".vim":            "\ue62b", // 
-	".vue":            "\ufd42", // ﵂
+	".vue":            "\U000f0844", // 󰡄
 	".war":            "\ue256", // 
 	".wav":            "\uf001", // 
 	".webm":           "\uf03d", // 
