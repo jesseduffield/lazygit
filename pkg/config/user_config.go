@@ -76,6 +76,7 @@ type GitConfig struct {
 	Paging              PagingConfig                  `yaml:"paging"`
 	Commit              CommitConfig                  `yaml:"commit"`
 	Merging             MergingConfig                 `yaml:"merging"`
+	MainBranches        []string                      `yaml:"mainBranches"`
 	SkipHookPrefix      string                        `yaml:"skipHookPrefix"`
 	AutoFetch           bool                          `yaml:"autoFetch"`
 	AutoRefresh         bool                          `yaml:"autoRefresh"`
@@ -443,6 +444,7 @@ func GetDefaultConfig() *UserConfig {
 				ShowWholeGraph: false,
 			},
 			SkipHookPrefix:      "WIP",
+			MainBranches:        []string{"master", "main"},
 			AutoFetch:           true,
 			AutoRefresh:         true,
 			BranchLogCmd:        "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
