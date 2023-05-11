@@ -96,18 +96,18 @@ func TestGitVersionRestriction(t *testing.T) {
 		expectedShouldRun bool
 	}{
 		{
-			testName:          "From, current is newer",
-			gitVersion:        From("2.24.9"),
+			testName:          "AtLeast, current is newer",
+			gitVersion:        AtLeast("2.24.9"),
 			expectedShouldRun: true,
 		},
 		{
-			testName:          "From, current is same",
-			gitVersion:        From("2.25.0"),
+			testName:          "AtLeast, current is same",
+			gitVersion:        AtLeast("2.25.0"),
 			expectedShouldRun: true,
 		},
 		{
-			testName:          "From, current is older",
-			gitVersion:        From("2.26.0"),
+			testName:          "AtLeast, current is older",
+			gitVersion:        AtLeast("2.26.0"),
 			expectedShouldRun: false,
 		},
 		{

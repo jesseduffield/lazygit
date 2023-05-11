@@ -181,12 +181,18 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 		debug = "TRUE"
 	}
 
+	emptyArg := " --empty=keep"
+	if self.version.IsOlderThan(2, 26, 0) {
+		emptyArg = ""
+	}
+
 	rebaseMergesArg := " --rebase-merges"
 	if self.version.IsOlderThan(2, 22, 0) {
 		rebaseMergesArg = ""
 	}
-	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty --empty=keep --no-autosquash%s %s",
-		rebaseMergesArg, opts.baseShaOrRoot)
+
+	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty%s --no-autosquash%s %s",
+		emptyArg, rebaseMergesArg, opts.baseShaOrRoot)
 	self.Log.WithField("command", cmdStr).Debug("RunCommand")
 
 	cmdObj := self.cmd.New(cmdStr)
