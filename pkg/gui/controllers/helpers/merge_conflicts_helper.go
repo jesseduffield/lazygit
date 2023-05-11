@@ -1,41 +1,19 @@
 package helpers
 
 import (
-	"fmt"
-
-	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 type MergeConflictsHelper struct {
-	c        *types.HelperCommon
-	contexts *context.ContextTree
-	git      *commands.GitCommand
+	c *HelperCommon
 }
 
 func NewMergeConflictsHelper(
-	c *types.HelperCommon,
-	contexts *context.ContextTree,
-	git *commands.GitCommand,
+	c *HelperCommon,
 ) *MergeConflictsHelper {
 	return &MergeConflictsHelper{
-		c:        c,
-		contexts: contexts,
-		git:      git,
-	}
-}
-
-func (self *MergeConflictsHelper) GetMergingOptions() map[string]string {
-	keybindingConfig := self.c.UserConfig.Keybinding
-
-	return map[string]string{
-		fmt.Sprintf("%s %s", keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)):   self.c.Tr.LcSelectHunk,
-		fmt.Sprintf("%s %s", keybindings.Label(keybindingConfig.Universal.PrevBlock), keybindings.Label(keybindingConfig.Universal.NextBlock)): self.c.Tr.LcNavigateConflicts,
-		keybindings.Label(keybindingConfig.Universal.Select):   self.c.Tr.LcPickHunk,
-		keybindings.Label(keybindingConfig.Main.PickBothHunks): self.c.Tr.LcPickAllHunks,
-		keybindings.Label(keybindingConfig.Universal.Undo):     self.c.Tr.LcUndo,
+		c: c,
 	}
 }
 
@@ -47,7 +25,7 @@ func (self *MergeConflictsHelper) SetMergeState(path string) (bool, error) {
 }
 
 func (self *MergeConflictsHelper) setMergeStateWithoutLock(path string) (bool, error) {
-	content, err := self.git.File.Cat(path)
+	content, err := self.c.Git().File.Cat(path)
 	if err != nil {
 		return false, err
 	}
@@ -78,7 +56,7 @@ func (self *MergeConflictsHelper) EscapeMerge() error {
 
 	// doing this in separate UI thread so that we're not still holding the lock by the time refresh the file
 	self.c.OnUIThread(func() error {
-		return self.c.PushContext(self.contexts.Files)
+		return self.c.PushContext(self.c.Contexts().Files)
 	})
 	return nil
 }
@@ -107,9 +85,48 @@ func (self *MergeConflictsHelper) SwitchToMerge(path string) error {
 		}
 	}
 
-	return self.c.PushContext(self.contexts.MergeConflicts)
+	return self.c.PushContext(self.c.Contexts().MergeConflicts)
 }
 
 func (self *MergeConflictsHelper) context() *context.MergeConflictsContext {
-	return self.contexts.MergeConflicts
+	return self.c.Contexts().MergeConflicts
+}
+
+func (self *MergeConflictsHelper) Render(isFocused bool) error {
+	content := self.context().GetContentToRender(isFocused)
+
+	var task types.UpdateTask
+	if self.context().IsUserScrolling() {
+		task = types.NewRenderStringWithoutScrollTask(content)
+	} else {
+		originY := self.context().GetOriginY()
+		task = types.NewRenderStringWithScrollTask(content, 0, originY)
+	}
+
+	return self.c.RenderToMainViews(types.RefreshMainOpts{
+		Pair: self.c.MainViewPairs().MergeConflicts,
+		Main: &types.ViewUpdateOpts{
+			Task: task,
+		},
+	})
+}
+
+func (self *MergeConflictsHelper) RefreshMergeState() error {
+	self.c.Contexts().MergeConflicts.GetMutex().Lock()
+	defer self.c.Contexts().MergeConflicts.GetMutex().Unlock()
+
+	if self.c.CurrentContext().GetKey() != context.MERGE_CONFLICTS_CONTEXT_KEY {
+		return nil
+	}
+
+	hasConflicts, err := self.SetConflictsAndRender(self.c.Contexts().MergeConflicts.GetState().GetPath(), true)
+	if err != nil {
+		return self.c.Error(err)
+	}
+
+	if !hasConflicts {
+		return self.EscapeMerge()
+	}
+
+	return nil
 }

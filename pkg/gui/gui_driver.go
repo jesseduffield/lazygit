@@ -50,7 +50,7 @@ func (self *GuiDriver) CurrentContext() types.Context {
 }
 
 func (self *GuiDriver) ContextForView(viewName string) types.Context {
-	context, ok := self.gui.contextForView(viewName)
+	context, ok := self.gui.helpers.View.ContextForView(viewName)
 	if !ok {
 		return nil
 	}

@@ -6,26 +6,26 @@ import (
 )
 
 type PatchExplorerControllerFactory struct {
-	*controllerCommon
+	c *ControllerCommon
 }
 
-func NewPatchExplorerControllerFactory(c *controllerCommon) *PatchExplorerControllerFactory {
+func NewPatchExplorerControllerFactory(c *ControllerCommon) *PatchExplorerControllerFactory {
 	return &PatchExplorerControllerFactory{
-		controllerCommon: c,
+		c: c,
 	}
 }
 
 func (self *PatchExplorerControllerFactory) Create(context types.IPatchExplorerContext) *PatchExplorerController {
 	return &PatchExplorerController{
-		baseController:   baseController{},
-		controllerCommon: self.controllerCommon,
-		context:          context,
+		baseController: baseController{},
+		c:              self.c,
+		context:        context,
 	}
 }
 
 type PatchExplorerController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 
 	context types.IPatchExplorerContext
 }
@@ -254,7 +254,7 @@ func (self *PatchExplorerController) CopySelectedToClipboard() error {
 	selected := self.context.GetState().PlainRenderSelected()
 
 	self.c.LogAction(self.c.Tr.Actions.CopySelectedTextToClipboard)
-	if err := self.os.CopyToClipboard(selected); err != nil {
+	if err := self.c.OS().CopyToClipboard(selected); err != nil {
 		return self.c.Error(err)
 	}
 

@@ -1,0 +1,71 @@
+package controllers
+
+import (
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+)
+
+type SubCommitsController struct {
+	baseController
+	c *ControllerCommon
+}
+
+var _ types.IController = &SubCommitsController{}
+
+func NewSubCommitsController(
+	common *ControllerCommon,
+) *SubCommitsController {
+	return &SubCommitsController{
+		baseController: baseController{},
+		c:              common,
+	}
+}
+
+func (self *SubCommitsController) Context() types.Context {
+	return self.context()
+}
+
+func (self *SubCommitsController) context() *context.SubCommitsContext {
+	return self.c.Contexts().SubCommits
+}
+
+func (self *SubCommitsController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+			commit := self.context().GetSelected()
+			var task types.UpdateTask
+			if commit == nil {
+				task = types.NewRenderStringTask("No commits")
+			} else {
+				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Sha, self.c.Modes().Filtering.GetPath(), self.c.State().GetIgnoreWhitespaceInDiffView())
+
+				task = types.NewRunPtyTask(cmdObj.GetCmd())
+			}
+
+			return self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title: "Commit",
+					Task:  task,
+				},
+			})
+		})
+	}
+}
+
+func (self *SubCommitsController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(types.OnFocusOpts) error {
+		context := self.context()
+		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
+			context.SetLimitCommits(false)
+			go utils.Safe(func() {
+				if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUB_COMMITS}}); err != nil {
+					_ = self.c.Error(err)
+				}
+			})
+		}
+
+		return nil
+	}
+}

@@ -72,6 +72,10 @@ type IBaseContext interface {
 	// our list controller can come along and wrap it in a list-specific click handler.
 	// We'll need to think of a better way to do this.
 	AddOnClickFn(func() error)
+
+	AddOnRenderToMainFn(func() error)
+	AddOnFocusFn(func(OnFocusOpts) error)
+	AddOnFocusLostFn(func(OnFocusLostOpts) error)
 }
 
 type Context interface {
@@ -83,6 +87,16 @@ type Context interface {
 	HandleRenderToMain() error
 }
 
+type DiffableContext interface {
+	Context
+
+	// Returns the current diff terminals of the currently selected item.
+	// in the case of a branch it returns both the branch and it's upstream name,
+	// which becomes an option when you bring up the diff menu, but when you're just
+	// flicking through branches it will be using the local branch name.
+	GetDiffTerminals() []string
+}
+
 type IListContext interface {
 	Context
 
@@ -92,6 +106,7 @@ type IListContext interface {
 
 	OnSearchSelect(selectedLineIdx int) error
 	FocusLine()
+	IsListContext() // used for type switch
 }
 
 type IPatchExplorerContext interface {
@@ -106,6 +121,7 @@ type IPatchExplorerContext interface {
 	GetContentToRender(isFocused bool) string
 	NavigateTo(isFocused bool, selectedLineIdx int) error
 	GetMutex() *deadlock.Mutex
+	IsPatchExplorerContext() // used for type switch
 }
 
 type IViewTrait interface {
@@ -150,6 +166,9 @@ type HasKeybindings interface {
 	GetKeybindings(opts KeybindingsOpts) []*Binding
 	GetMouseKeybindings(opts KeybindingsOpts) []*gocui.ViewMouseBinding
 	GetOnClick() func() error
+	GetOnRenderToMain() func() error
+	GetOnFocus() func(OnFocusOpts) error
+	GetOnFocusLost() func(OnFocusLostOpts) error
 }
 
 type IController interface {
@@ -180,4 +199,17 @@ type ListItem interface {
 
 	// Description is something we would show in a message e.g. '123as14: push blah' for a commit
 	Description() string
+}
+
+type IContextMgr interface {
+	Push(context Context, opts ...OnFocusOpts) error
+	Pop() error
+	Replace(context Context) error
+	Current() Context
+	CurrentStatic() Context
+	CurrentSide() Context
+	IsCurrent(c Context) bool
+	ForEach(func(Context))
+	AllList() []IListContext
+	AllPatchExplorer() []IPatchExplorerContext
 }

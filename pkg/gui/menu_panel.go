@@ -1,24 +1,11 @@
 package gui
 
 import (
-	"fmt"
-
-	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
-
-func (gui *Gui) getMenuOptions() map[string]string {
-	keybindingConfig := gui.c.UserConfig.Keybinding
-
-	return map[string]string{
-		keybindings.Label(keybindingConfig.Universal.Return): gui.c.Tr.LcClose,
-		fmt.Sprintf("%s %s", keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)): gui.c.Tr.LcNavigate,
-		keybindings.Label(keybindingConfig.Universal.Select): gui.c.Tr.LcExecute,
-	}
-}
 
 // note: items option is mutated by this function
 func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {

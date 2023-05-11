@@ -8,17 +8,17 @@ import (
 
 type PatchBuildingController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &PatchBuildingController{}
 
 func NewPatchBuildingController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *PatchBuildingController {
 	return &PatchBuildingController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -48,42 +48,63 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 }
 
 func (self *PatchBuildingController) Context() types.Context {
-	return self.contexts.CustomPatchBuilder
+	return self.c.Contexts().CustomPatchBuilder
 }
 
 func (self *PatchBuildingController) context() types.IPatchExplorerContext {
-	return self.contexts.CustomPatchBuilder
+	return self.c.Contexts().CustomPatchBuilder
 }
 
 func (self *PatchBuildingController) GetMouseKeybindings(opts types.KeybindingsOpts) []*gocui.ViewMouseBinding {
 	return []*gocui.ViewMouseBinding{}
 }
 
+func (self *PatchBuildingController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(opts types.OnFocusOpts) error {
+		// no need to change wrap on the secondary view because it can't be interacted with
+		self.c.Views().PatchBuilding.Wrap = false
+
+		return self.c.Helpers().PatchBuilding.RefreshPatchBuildingPanel(opts)
+	}
+}
+
+func (self *PatchBuildingController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
+	return func(opts types.OnFocusLostOpts) error {
+		self.c.Views().PatchBuilding.Wrap = true
+
+		if self.c.Git().Patch.PatchBuilder.IsEmpty() {
+			self.c.Git().Patch.PatchBuilder.Reset()
+		}
+
+		return nil
+	}
+}
+
 func (self *PatchBuildingController) OpenFile() error {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	path := self.contexts.CommitFiles.GetSelectedPath()
+	path := self.c.Contexts().CommitFiles.GetSelectedPath()
 
 	if path == "" {
 		return nil
 	}
 
-	return self.helpers.Files.OpenFile(path)
+	return self.c.Helpers().Files.OpenFile(path)
 }
 
 func (self *PatchBuildingController) EditFile() error {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	path := self.contexts.CommitFiles.GetSelectedPath()
+	path := self.c.Contexts().CommitFiles.GetSelectedPath()
 
 	if path == "" {
 		return nil
 	}
 
 	lineNumber := self.context().GetState().CurrentLineNumber()
-	return self.helpers.Files.EditFileAtLine(path, lineNumber)
+	return self.c.Helpers().Files.EditFileAtLine(path, lineNumber)
 }
 
 func (self *PatchBuildingController) ToggleSelectionAndRefresh() error {
@@ -100,21 +121,21 @@ func (self *PatchBuildingController) toggleSelection() error {
 	self.context().GetMutex().Lock()
 	defer self.context().GetMutex().Unlock()
 
-	toggleFunc := self.git.Patch.PatchBuilder.AddFileLineRange
-	filename := self.contexts.CommitFiles.GetSelectedPath()
+	toggleFunc := self.c.Git().Patch.PatchBuilder.AddFileLineRange
+	filename := self.c.Contexts().CommitFiles.GetSelectedPath()
 	if filename == "" {
 		return nil
 	}
 
 	state := self.context().GetState()
 
-	includedLineIndices, err := self.git.Patch.PatchBuilder.GetFileIncLineIndices(filename)
+	includedLineIndices, err := self.c.Git().Patch.PatchBuilder.GetFileIncLineIndices(filename)
 	if err != nil {
 		return err
 	}
 	currentLineIsStaged := lo.Contains(includedLineIndices, state.GetSelectedLineIdx())
 	if currentLineIsStaged {
-		toggleFunc = self.git.Patch.PatchBuilder.RemoveFileLineRange
+		toggleFunc = self.c.Git().Patch.PatchBuilder.RemoveFileLineRange
 	}
 
 	// add range of lines to those set for the file
@@ -133,5 +154,5 @@ func (self *PatchBuildingController) toggleSelection() error {
 }
 
 func (self *PatchBuildingController) Escape() error {
-	return self.helpers.PatchBuilding.Escape()
+	return self.c.Helpers().PatchBuilding.Escape()
 }

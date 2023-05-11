@@ -7,24 +7,22 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
-	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/services/custom_commands"
-	"github.com/jesseduffield/lazygit/pkg/snake"
+	"github.com/jesseduffield/lazygit/pkg/gui/status"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-func (gui *Gui) resetControllers() {
-	helperCommon := gui.c
-	osCommand := gui.os
-	model := gui.State.Model
-	refsHelper := helpers.NewRefsHelper(
-		helperCommon,
-		gui.git,
-		gui.State.Contexts,
-		model,
-	)
+func (gui *Gui) Helpers() *helpers.Helpers {
+	return gui.helpers
+}
 
-	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, gui.State.Contexts, gui.git, refsHelper)
-	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon, model, gui.refreshSuggestions)
+func (gui *Gui) resetHelpersAndControllers() {
+	helperCommon := gui.c
+	refsHelper := helpers.NewRefsHelper(helperCommon)
+
+	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, refsHelper)
+	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon)
+
 	setCommitSummary := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	setCommitDescription := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitDescription })
 	getCommitSummary := func() string {
@@ -35,66 +33,86 @@ func (gui *Gui) resetControllers() {
 		return strings.TrimSpace(gui.Views.CommitDescription.TextArea.GetContent())
 	}
 	commitsHelper := helpers.NewCommitsHelper(helperCommon,
-		gui.State.Model,
-		gui.State.Contexts,
 		getCommitSummary,
 		setCommitSummary,
 		getCommitDescription,
 		setCommitDescription,
-		gui.RenderCommitLength,
 	)
-	gpgHelper := helpers.NewGpgHelper(helperCommon, gui.os, gui.git)
+
+	gpgHelper := helpers.NewGpgHelper(helperCommon)
+	viewHelper := helpers.NewViewHelper(helperCommon, gui.State.Contexts)
+	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
+	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
+	stagingHelper := helpers.NewStagingHelper(helperCommon)
+	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
+	refreshHelper := helpers.NewRefreshHelper(helperCommon, refsHelper, rebaseHelper, patchBuildingHelper, stagingHelper, mergeConflictsHelper, gui.fileWatcher)
+	diffHelper := helpers.NewDiffHelper(helperCommon)
+	cherryPickHelper := helpers.NewCherryPickHelper(
+		helperCommon,
+		rebaseHelper,
+	)
+	bisectHelper := helpers.NewBisectHelper(helperCommon)
+	windowHelper := helpers.NewWindowHelper(helperCommon, viewHelper)
+	modeHelper := helpers.NewModeHelper(
+		helperCommon,
+		diffHelper,
+		patchBuildingHelper,
+		cherryPickHelper,
+		rebaseHelper,
+		bisectHelper,
+	)
+	appStatusHelper := helpers.NewAppStatusHelper(
+		helperCommon,
+		func() *status.StatusManager { return gui.statusManager },
+	)
 	gui.helpers = &helpers.Helpers{
-		Refs:           refsHelper,
-		Host:           helpers.NewHostHelper(helperCommon, gui.git),
-		PatchBuilding:  helpers.NewPatchBuildingHelper(helperCommon, gui.git, gui.State.Contexts),
-		Bisect:         helpers.NewBisectHelper(helperCommon, gui.git),
-		Suggestions:    suggestionsHelper,
-		Files:          helpers.NewFilesHelper(helperCommon, gui.git, osCommand),
-		WorkingTree:    helpers.NewWorkingTreeHelper(helperCommon, gui.git, gui.State.Contexts, refsHelper, model, setCommitSummary, commitsHelper, gpgHelper),
-		Tags:           helpers.NewTagsHelper(helperCommon, gui.git),
-		GPG:            gpgHelper,
-		MergeAndRebase: rebaseHelper,
-		MergeConflicts: helpers.NewMergeConflictsHelper(helperCommon, gui.State.Contexts, gui.git),
-		CherryPick: helpers.NewCherryPickHelper(
-			helperCommon,
-			gui.git,
-			gui.State.Contexts,
-			func() *cherrypicking.CherryPicking { return gui.State.Modes.CherryPicking },
-			rebaseHelper,
+		Refs:            refsHelper,
+		Host:            helpers.NewHostHelper(helperCommon),
+		PatchBuilding:   patchBuildingHelper,
+		Staging:         stagingHelper,
+		Bisect:          bisectHelper,
+		Suggestions:     suggestionsHelper,
+		Files:           helpers.NewFilesHelper(helperCommon),
+		WorkingTree:     helpers.NewWorkingTreeHelper(helperCommon, refsHelper, commitsHelper, gpgHelper),
+		Tags:            helpers.NewTagsHelper(helperCommon),
+		GPG:             helpers.NewGpgHelper(helperCommon),
+		MergeAndRebase:  rebaseHelper,
+		MergeConflicts:  mergeConflictsHelper,
+		CherryPick:      cherryPickHelper,
+		Upstream:        helpers.NewUpstreamHelper(helperCommon, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
+		AmendHelper:     helpers.NewAmendHelper(helperCommon, gpgHelper),
+		Commits:         commitsHelper,
+		Snake:           helpers.NewSnakeHelper(helperCommon),
+		Diff:            diffHelper,
+		Repos:           helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo),
+		RecordDirectory: recordDirectoryHelper,
+		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater),
+		Window:          windowHelper,
+		View:            viewHelper,
+		Refresh:         refreshHelper,
+		Confirmation:    helpers.NewConfirmationHelper(helperCommon),
+		Mode:            modeHelper,
+		AppStatus:       appStatusHelper,
+		WindowArrangement: helpers.NewWindowArrangementHelper(
+			gui.c,
+			windowHelper,
+			modeHelper,
+			appStatusHelper,
 		),
-		Upstream:    helpers.NewUpstreamHelper(helperCommon, model, suggestionsHelper.GetRemoteBranchesSuggestionsFunc),
-		AmendHelper: helpers.NewAmendHelper(helperCommon, gui.git, gpgHelper),
-		Commits:     commitsHelper,
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(
 		helperCommon,
-		gui.os,
-		gui.git,
-		gui.State.Contexts,
 		gui.helpers,
 	)
 
-	common := controllers.NewControllerCommon(
-		helperCommon,
-		osCommand,
-		gui.git,
-		gui.helpers,
-		model,
-		gui.State.Contexts,
-		gui.State.Modes,
-		&gui.Mutexes,
-	)
+	common := controllers.NewControllerCommon(helperCommon, gui)
 
 	syncController := controllers.NewSyncController(
 		common,
 	)
 
-	submodulesController := controllers.NewSubmodulesController(
-		common,
-		gui.enterSubmodule,
-	)
+	submodulesController := controllers.NewSubmodulesController(common)
 
 	bisectController := controllers.NewBisectController(common)
 
@@ -113,8 +131,6 @@ func (gui *Gui) resetControllers() {
 	tagsController := controllers.NewTagsController(common)
 	filesController := controllers.NewFilesController(
 		common,
-		gui.enterSubmodule,
-		setCommitSummary,
 	)
 	mergeConflictsController := controllers.NewMergeConflictsController(common)
 	remotesController := controllers.NewRemotesController(
@@ -135,7 +151,34 @@ func (gui *Gui) resetControllers() {
 	stagingController := controllers.NewStagingController(common, gui.State.Contexts.Staging, gui.State.Contexts.StagingSecondary, false)
 	stagingSecondaryController := controllers.NewStagingController(common, gui.State.Contexts.StagingSecondary, gui.State.Contexts.Staging, true)
 	patchBuildingController := controllers.NewPatchBuildingController(common)
-	snakeController := controllers.NewSnakeController(common, func() *snake.Game { return gui.snakeGame })
+	snakeController := controllers.NewSnakeController(common)
+	reflogCommitsController := controllers.NewReflogCommitsController(common)
+	subCommitsController := controllers.NewSubCommitsController(common)
+	statusController := controllers.NewStatusController(common)
+	commandLogController := controllers.NewCommandLogController(common)
+	confirmationController := controllers.NewConfirmationController(common)
+	suggestionsController := controllers.NewSuggestionsController(common)
+	jumpToSideWindowController := controllers.NewJumpToSideWindowController(common)
+
+	sideWindowControllerFactory := controllers.NewSideWindowControllerFactory(common)
+
+	// allow for navigating between side window contexts
+	for _, context := range []types.Context{
+		gui.State.Contexts.Status,
+		gui.State.Contexts.Remotes,
+		gui.State.Contexts.Tags,
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Files,
+		gui.State.Contexts.Submodules,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.CommitFiles,
+		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.Stash,
+	} {
+		controllers.AttachControllers(context, sideWindowControllerFactory.Create(context))
+	}
 
 	setSubCommits := func(commits []*models.Commit) {
 		gui.Mutexes.SubCommitsMutex.Lock()
@@ -161,7 +204,7 @@ func (gui *Gui) resetControllers() {
 		gui.State.Contexts.Stash,
 	} {
 		controllers.AttachControllers(context, controllers.NewSwitchToDiffFilesController(
-			common, gui.SwitchToCommitFilesContext, context,
+			common, context, gui.State.Contexts.CommitFiles,
 		))
 	}
 
@@ -172,6 +215,14 @@ func (gui *Gui) resetControllers() {
 	} {
 		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
 	}
+
+	controllers.AttachControllers(gui.State.Contexts.ReflogCommits,
+		reflogCommitsController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.SubCommits,
+		subCommitsController,
+	)
 
 	// TODO: add scroll controllers for main panels (need to bring some more functionality across for that e.g. reading more from the currently displayed git command)
 	controllers.AttachControllers(gui.State.Contexts.Staging,
@@ -256,11 +307,28 @@ func (gui *Gui) resetControllers() {
 		remoteBranchesController,
 	)
 
+	controllers.AttachControllers(gui.State.Contexts.Status,
+		statusController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.CommandLog,
+		commandLogController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Confirmation,
+		confirmationController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Suggestions,
+		suggestionsController,
+	)
+
 	controllers.AttachControllers(gui.State.Contexts.Global,
 		syncController,
 		undoController,
 		globalController,
 		contextLinesController,
+		jumpToSideWindowController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Snake,
@@ -268,8 +336,19 @@ func (gui *Gui) resetControllers() {
 	)
 
 	// this must come last so that we've got our click handlers defined against the context
-	listControllerFactory := controllers.NewListControllerFactory(gui.c)
-	for _, context := range gui.getListContexts() {
+	listControllerFactory := controllers.NewListControllerFactory(common)
+	for _, context := range gui.c.Context().AllList() {
 		controllers.AttachControllers(context, listControllerFactory.Create(context))
+	}
+}
+
+func (gui *Gui) getCommitMessageSetTextareaTextFn(getView func() *gocui.View) func(string) {
+	return func(text string) {
+		// using a getView function so that we don't need to worry about when the view is created
+		view := getView()
+		view.ClearTextArea()
+		view.TextArea.TypeString(text)
+		gui.helpers.Confirmation.ResizeCommitMessagePanels()
+		view.RenderTextArea()
 	}
 }

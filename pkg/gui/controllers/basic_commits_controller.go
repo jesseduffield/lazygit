@@ -20,15 +20,15 @@ type ContainsCommits interface {
 
 type BasicCommitsController struct {
 	baseController
-	*controllerCommon
+	c       *ControllerCommon
 	context ContainsCommits
 }
 
-func NewBasicCommitsController(controllerCommon *controllerCommon, context ContainsCommits) *BasicCommitsController {
+func NewBasicCommitsController(controllerCommon *ControllerCommon, context ContainsCommits) *BasicCommitsController {
 	return &BasicCommitsController{
-		baseController:   baseController{},
-		controllerCommon: controllerCommon,
-		context:          context,
+		baseController: baseController{},
+		c:              controllerCommon,
+		context:        context,
 	}
 }
 
@@ -73,7 +73,7 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ResetCherryPick),
-			Handler:     self.helpers.CherryPick.Reset,
+			Handler:     self.c.Helpers().CherryPick.Reset,
 			Description: self.c.Tr.LcResetCherryPick,
 		},
 	}
@@ -141,7 +141,7 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 
 func (self *BasicCommitsController) copyCommitSHAToClipboard(commit *models.Commit) error {
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitSHAToClipboard)
-	if err := self.os.CopyToClipboard(commit.Sha); err != nil {
+	if err := self.c.OS().CopyToClipboard(commit.Sha); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -150,13 +150,13 @@ func (self *BasicCommitsController) copyCommitSHAToClipboard(commit *models.Comm
 }
 
 func (self *BasicCommitsController) copyCommitURLToClipboard(commit *models.Commit) error {
-	url, err := self.helpers.Host.GetCommitURL(commit.Sha)
+	url, err := self.c.Helpers().Host.GetCommitURL(commit.Sha)
 	if err != nil {
 		return err
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitURLToClipboard)
-	if err := self.os.CopyToClipboard(url); err != nil {
+	if err := self.c.OS().CopyToClipboard(url); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -165,13 +165,13 @@ func (self *BasicCommitsController) copyCommitURLToClipboard(commit *models.Comm
 }
 
 func (self *BasicCommitsController) copyCommitDiffToClipboard(commit *models.Commit) error {
-	diff, err := self.git.Commit.GetCommitDiff(commit.Sha)
+	diff, err := self.c.Git().Commit.GetCommitDiff(commit.Sha)
 	if err != nil {
 		return self.c.Error(err)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitDiffToClipboard)
-	if err := self.os.CopyToClipboard(diff); err != nil {
+	if err := self.c.OS().CopyToClipboard(diff); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -180,7 +180,7 @@ func (self *BasicCommitsController) copyCommitDiffToClipboard(commit *models.Com
 }
 
 func (self *BasicCommitsController) copyAuthorToClipboard(commit *models.Commit) error {
-	author, err := self.git.Commit.GetCommitAuthor(commit.Sha)
+	author, err := self.c.Git().Commit.GetCommitAuthor(commit.Sha)
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -188,7 +188,7 @@ func (self *BasicCommitsController) copyAuthorToClipboard(commit *models.Commit)
 	formattedAuthor := fmt.Sprintf("%s <%s>", author.Name, author.Email)
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitAuthorToClipboard)
-	if err := self.os.CopyToClipboard(formattedAuthor); err != nil {
+	if err := self.c.OS().CopyToClipboard(formattedAuthor); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -197,13 +197,13 @@ func (self *BasicCommitsController) copyAuthorToClipboard(commit *models.Commit)
 }
 
 func (self *BasicCommitsController) copyCommitMessageToClipboard(commit *models.Commit) error {
-	message, err := self.git.Commit.GetCommitMessage(commit.Sha)
+	message, err := self.c.Git().Commit.GetCommitMessage(commit.Sha)
 	if err != nil {
 		return self.c.Error(err)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitMessageToClipboard)
-	if err := self.os.CopyToClipboard(message); err != nil {
+	if err := self.c.OS().CopyToClipboard(message); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -212,13 +212,13 @@ func (self *BasicCommitsController) copyCommitMessageToClipboard(commit *models.
 }
 
 func (self *BasicCommitsController) openInBrowser(commit *models.Commit) error {
-	url, err := self.helpers.Host.GetCommitURL(commit.Sha)
+	url, err := self.c.Helpers().Host.GetCommitURL(commit.Sha)
 	if err != nil {
 		return self.c.Error(err)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.OpenCommitInBrowser)
-	if err := self.os.OpenLink(url); err != nil {
+	if err := self.c.OS().OpenLink(url); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -226,11 +226,11 @@ func (self *BasicCommitsController) openInBrowser(commit *models.Commit) error {
 }
 
 func (self *BasicCommitsController) newBranch(commit *models.Commit) error {
-	return self.helpers.Refs.NewBranch(commit.RefName(), commit.Description(), "")
+	return self.c.Helpers().Refs.NewBranch(commit.RefName(), commit.Description(), "")
 }
 
 func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error {
-	return self.helpers.Refs.CreateGitResetMenu(commit.Sha)
+	return self.c.Helpers().Refs.CreateGitResetMenu(commit.Sha)
 }
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {
@@ -239,15 +239,15 @@ func (self *BasicCommitsController) checkout(commit *models.Commit) error {
 		Prompt: self.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)
-			return self.helpers.Refs.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
+			return self.c.Helpers().Refs.CheckoutRef(commit.Sha, types.CheckoutRefOptions{})
 		},
 	})
 }
 
 func (self *BasicCommitsController) copy(commit *models.Commit) error {
-	return self.helpers.CherryPick.Copy(commit, self.context.GetCommits(), self.context)
+	return self.c.Helpers().CherryPick.Copy(commit, self.context.GetCommits(), self.context)
 }
 
 func (self *BasicCommitsController) copyRange(*models.Commit) error {
-	return self.helpers.CherryPick.CopyRange(self.context.GetSelectedLineIdx(), self.context.GetCommits(), self.context)
+	return self.c.Helpers().CherryPick.CopyRange(self.context.GetSelectedLineIdx(), self.context.GetCommits(), self.context)
 }

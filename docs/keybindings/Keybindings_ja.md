@@ -8,20 +8,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+r</kbd>: 最近使用したリポジトリに切り替え
   <kbd>pgup</kbd>: メインパネルを上にスクロール (fn+up/shift+k)
   <kbd>pgdown</kbd>: メインパネルを下にスクロール (fn+down/shift+j)
-  <kbd>m</kbd>: view merge/rebase options
-  <kbd>ctrl+p</kbd>: view custom patch options
-  <kbd>R</kbd>: リフレッシュ
-  <kbd>?</kbd>: メニューを開く
-  <kbd>+</kbd>: 次のスクリーンモード (normal/half/fullscreen)
-  <kbd>_</kbd>: 前のスクリーンモード
-  <kbd>ctrl+s</kbd>: view filter-by-path options
-  <kbd>W</kbd>: 差分メニューを開く
-  <kbd>ctrl+e</kbd>: 差分メニューを開く
   <kbd>@</kbd>: コマンドログメニューを開く
-  <kbd>ctrl+w</kbd>: 空白文字の差分の表示有無を切り替え
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
   <kbd>:</kbd>: カスタムコマンドを実行
+  <kbd>ctrl+p</kbd>: view custom patch options
+  <kbd>m</kbd>: view merge/rebase options
+  <kbd>R</kbd>: リフレッシュ
+  <kbd>+</kbd>: 次のスクリーンモード (normal/half/fullscreen)
+  <kbd>_</kbd>: 前のスクリーンモード
+  <kbd>?</kbd>: メニューを開く
+  <kbd>ctrl+s</kbd>: view filter-by-path options
+  <kbd>W</kbd>: 差分メニューを開く
+  <kbd>ctrl+e</kbd>: 差分メニューを開く
+  <kbd>ctrl+w</kbd>: 空白文字の差分の表示有無を切り替え
   <kbd>z</kbd>: アンドゥ (via reflog) (experimental)
   <kbd>ctrl+z</kbd>: リドゥ (via reflog) (experimental)
   <kbd>P</kbd>: push
@@ -115,6 +115,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: ファイルツリーの表示を切り替え
 </pre>
 
+## コミットメッセージ
+
+<pre>
+  <kbd>enter</kbd>: 確認
+  <kbd>esc</kbd>: 閉じる
+</pre>
+
 ## サブモジュール
 
 <pre>
@@ -131,8 +138,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## ステータス
 
 <pre>
-  <kbd>e</kbd>: 設定ファイルを編集
   <kbd>o</kbd>: 設定ファイルを開く
+  <kbd>e</kbd>: 設定ファイルを編集
   <kbd>u</kbd>: 更新を確認
   <kbd>enter</kbd>: 最近使用したリポジトリに切り替え
   <kbd>a</kbd>: すべてのブランチログを表示
@@ -257,6 +264,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: gitエディタを使用して変更をコミット
 </pre>
 
+## メニュー
+
+<pre>
+  <kbd>enter</kbd>: 実行
+  <kbd>esc</kbd>: 閉じる
+</pre>
+
 ## リモート
 
 <pre>
@@ -294,4 +308,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: コミットを範囲コピー (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>enter</kbd>: コミットを閲覧
+</pre>
+
+## 確認パネル
+
+<pre>
+  <kbd>enter</kbd>: 確認
+  <kbd>esc</kbd>: 閉じる/キャンセル
 </pre>

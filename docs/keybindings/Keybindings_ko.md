@@ -8,20 +8,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+r</kbd>: 최근에 사용한 저장소로 전환
   <kbd>pgup</kbd>: 메인 패널을 위로 스크롤 (fn+up/shift+k)
   <kbd>pgdown</kbd>: 메인 패널을 아래로로 스크롤 (fn+down/shift+j)
-  <kbd>m</kbd>: view merge/rebase options
-  <kbd>ctrl+p</kbd>: 커스텀 Patch 옵션 보기
-  <kbd>R</kbd>: 새로고침
-  <kbd>?</kbd>: 매뉴 열기
-  <kbd>+</kbd>: 다음 스크린 모드 (normal/half/fullscreen)
-  <kbd>_</kbd>: 이전 스크린 모드
-  <kbd>ctrl+s</kbd>: view filter-by-path options
-  <kbd>W</kbd>: Diff 메뉴 열기
-  <kbd>ctrl+e</kbd>: Diff 메뉴 열기
   <kbd>@</kbd>: 명령어 로그 메뉴 열기
-  <kbd>ctrl+w</kbd>: 공백문자를 Diff 뷰에서 표시 여부 전환
   <kbd>}</kbd>: diff 보기의 변경 사항 주위에 표시되는 컨텍스트의 크기를 늘리기
   <kbd>{</kbd>: diff 보기의 변경 사항 주위에 표시되는 컨텍스트 크기 줄이기
   <kbd>:</kbd>: execute custom command
+  <kbd>ctrl+p</kbd>: 커스텀 Patch 옵션 보기
+  <kbd>m</kbd>: view merge/rebase options
+  <kbd>R</kbd>: 새로고침
+  <kbd>+</kbd>: 다음 스크린 모드 (normal/half/fullscreen)
+  <kbd>_</kbd>: 이전 스크린 모드
+  <kbd>?</kbd>: 매뉴 열기
+  <kbd>ctrl+s</kbd>: view filter-by-path options
+  <kbd>W</kbd>: Diff 메뉴 열기
+  <kbd>ctrl+e</kbd>: Diff 메뉴 열기
+  <kbd>ctrl+w</kbd>: 공백문자를 Diff 뷰에서 표시 여부 전환
   <kbd>z</kbd>: 되돌리기 (reflog) (실험적)
   <kbd>ctrl+z</kbd>: 다시 실행 (reflog) (실험적)
   <kbd>P</kbd>: 푸시
@@ -81,6 +81,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: 커밋을 범위로 복사 (cherry-pick)
   <kbd>ctrl+r</kbd>: reset cherry-picked (copied) commits selection
   <kbd>enter</kbd>: view selected item's files
+</pre>
+
+## 메뉴
+
+<pre>
+  <kbd>enter</kbd>: 실행
+  <kbd>esc</kbd>: 닫기
 </pre>
 
 ## 메인 패널 (Merging)
@@ -168,8 +175,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## 상태
 
 <pre>
-  <kbd>e</kbd>: 설정 파일 수정
   <kbd>o</kbd>: 설정 파일 열기
+  <kbd>e</kbd>: 설정 파일 수정
   <kbd>u</kbd>: 업데이트 확인
   <kbd>enter</kbd>: 최근에 사용한 저장소로 전환
   <kbd>a</kbd>: 모든 브랜치 로그 표시
@@ -259,6 +266,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: 파일 트리뷰로 전환
 </pre>
 
+## 커밋메시지
+
+<pre>
+  <kbd>enter</kbd>: 확인
+  <kbd>esc</kbd>: 닫기
+</pre>
+
 ## 태그
 
 <pre>
@@ -294,4 +308,11 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: 파일 트리뷰로 전환
   <kbd>M</kbd>: git mergetool를 열기
   <kbd>f</kbd>: fetch
+</pre>
+
+## 확인 패널
+
+<pre>
+  <kbd>enter</kbd>: 확인
+  <kbd>esc</kbd>: 닫기/취소
 </pre>

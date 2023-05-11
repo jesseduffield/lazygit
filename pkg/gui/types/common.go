@@ -1,17 +1,24 @@
 package types
 
 import (
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
 type HelperCommon struct {
+	*ContextCommon
+}
+
+type ContextCommon struct {
 	*common.Common
 	IGuiCommon
 }
@@ -27,6 +34,12 @@ type IGuiCommon interface {
 	// e.g. expanding or collapsing a folder in a file view. Calling 'Refresh' in this
 	// case would be overkill, although refresh will internally call 'PostRefreshUpdate'
 	PostRefreshUpdate(Context) error
+
+	// renders string to a view without resetting its origin
+	SetViewContent(view *gocui.View, content string)
+	// resets cursor and origin of view. Often used before calling SetViewContent
+	ResetViewOrigin(view *gocui.View)
+
 	// this just re-renders the screen
 	Render()
 	// allows rendering to main views (i.e. the ones to the right of the side panel)
@@ -42,17 +55,23 @@ type IGuiCommon interface {
 
 	PushContext(context Context, opts ...OnFocusOpts) error
 	PopContext() error
+	ReplaceContext(context Context) error
 	// Removes all given contexts from the stack. If a given context is not in the stack, it is ignored.
 	// This is for when you have a group of contexts that are bundled together e.g. with the commit message panel.
 	// If you want to remove a single context, you should probably use PopContext instead.
 	RemoveContexts([]Context) error
 	CurrentContext() Context
 	CurrentStaticContext() Context
+	CurrentSideContext() Context
 	IsCurrentContext(Context) bool
+	// TODO: replace the above context-based methods with just using Context() e.g. replace PushContext() with Context().Push()
+	Context() IContextMgr
+
 	ActivateContext(context Context) error
 	// enters search mode for the current view
 	OpenSearch()
 
+	GetConfig() config.AppConfigurer
 	GetAppState() *config.AppState
 	SaveAppState() error
 
@@ -60,6 +79,31 @@ type IGuiCommon interface {
 	// Only necessary to call if you're not already on the UI thread i.e. you're inside a goroutine.
 	// All controller handlers are executed on the UI thread.
 	OnUIThread(f func() error)
+
+	// returns the gocui Gui struct. There is a good chance you don't actually want to use
+	// this struct and instead want to use another method above
+	GocuiGui() *gocui.Gui
+
+	Views() Views
+
+	Git() *commands.GitCommand
+	OS() *oscommands.OSCommand
+	Model() *Model
+
+	Modes() *Modes
+
+	Mutexes() Mutexes
+
+	State() IStateAccessor
+
+	KeybindingsOpts() KeybindingsOpts
+
+	// hopefully we can remove this once we've moved all our keybinding stuff out of the gui god struct.
+	GetInitialKeybindingsWithCustomCommands() ([]*Binding, []*gocui.ViewMouseBinding)
+}
+
+type IModeMgr interface {
+	IsAnyModeActive() bool
 }
 
 type IPopupHandler interface {
@@ -181,3 +225,57 @@ type Mutexes struct {
 	PopupMutex            *deadlock.Mutex
 	PtyMutex              *deadlock.Mutex
 }
+
+type IStateAccessor interface {
+	GetIgnoreWhitespaceInDiffView() bool
+	SetIgnoreWhitespaceInDiffView(value bool)
+	GetRepoPathStack() *utils.StringStack
+	GetRepoState() IRepoStateAccessor
+	// tells us whether we're currently updating lazygit
+	GetUpdating() bool
+	SetUpdating(bool)
+	SetIsRefreshingFiles(bool)
+	GetIsRefreshingFiles() bool
+	GetShowExtrasWindow() bool
+	SetShowExtrasWindow(bool)
+	GetRetainOriginalDir() bool
+	SetRetainOriginalDir(bool)
+}
+
+type IRepoStateAccessor interface {
+	GetViewsSetup() bool
+	GetWindowViewNameMap() *utils.ThreadSafeMap[string, string]
+	GetStartupStage() StartupStage
+	SetStartupStage(stage StartupStage)
+	GetCurrentPopupOpts() *CreatePopupPanelOpts
+	SetCurrentPopupOpts(*CreatePopupPanelOpts)
+	GetScreenMode() WindowMaximisation
+	SetScreenMode(WindowMaximisation)
+	IsSearching() bool
+	SetSplitMainPanel(bool)
+	GetSplitMainPanel() bool
+}
+
+// startup stages so we don't need to load everything at once
+type StartupStage int
+
+const (
+	INITIAL StartupStage = iota
+	COMPLETE
+)
+
+type IFileWatcher interface {
+	AddFilesToFileWatcher(files []*models.File) error
+}
+
+// screen sizing determines how much space your selected window takes up (window
+// as in panel, not your terminal's window). Sometimes you want a bit more space
+// to see the contents of a panel, and this keeps track of how much maximisation
+// you've set
+type WindowMaximisation int
+
+const (
+	SCREEN_NORMAL WindowMaximisation = iota
+	SCREEN_HALF
+	SCREEN_FULL
+)

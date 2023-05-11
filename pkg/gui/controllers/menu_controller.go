@@ -7,17 +7,17 @@ import (
 
 type MenuController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &MenuController{}
 
 func NewMenuController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *MenuController {
 	return &MenuController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -28,12 +28,16 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Handler: self.press,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.Confirm),
-			Handler: self.press,
+			Key:         opts.GetKey(opts.Config.Universal.Confirm),
+			Handler:     self.press,
+			Description: self.c.Tr.LcExecute,
+			Display:     true,
 		},
 		{
-			Key:     opts.GetKey(opts.Config.Universal.Return),
-			Handler: self.close,
+			Key:         opts.GetKey(opts.Config.Universal.Return),
+			Handler:     self.close,
+			Description: self.c.Tr.LcClose,
+			Display:     true,
 		},
 	}
 
@@ -42,6 +46,14 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 
 func (self *MenuController) GetOnClick() func() error {
 	return self.press
+}
+
+func (self *MenuController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(types.OnFocusOpts) error {
+		selectedMenuItem := self.context().GetSelected()
+		self.c.Views().Tooltip.SetContent(selectedMenuItem.Tooltip)
+		return nil
+	}
 }
 
 func (self *MenuController) press() error {
@@ -57,5 +69,5 @@ func (self *MenuController) Context() types.Context {
 }
 
 func (self *MenuController) context() *context.MenuContext {
-	return self.contexts.Menu
+	return self.c.Contexts().Menu
 }

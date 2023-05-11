@@ -13,23 +13,16 @@ import (
 
 type FilesController struct {
 	baseController // nolint: unused
-	*controllerCommon
-
-	enterSubmodule   func(submodule *models.SubmoduleConfig) error
-	setCommitMessage func(message string)
+	c              *ControllerCommon
 }
 
 var _ types.IController = &FilesController{}
 
 func NewFilesController(
-	common *controllerCommon,
-	enterSubmodule func(submodule *models.SubmoduleConfig) error,
-	setCommitMessage func(message string),
+	common *ControllerCommon,
 ) *FilesController {
 	return &FilesController{
-		controllerCommon: common,
-		enterSubmodule:   enterSubmodule,
-		setCommitMessage: setCommitMessage,
+		c: common,
 	}
 }
 
@@ -47,12 +40,12 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
-			Handler:     self.helpers.WorkingTree.HandleCommitPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleCommitPress,
 			Description: self.c.Tr.CommitChanges,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
-			Handler:     self.helpers.WorkingTree.HandleWIPCommitPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleWIPCommitPress,
 			Description: self.c.Tr.LcCommitChangesWithoutHook,
 		},
 		{
@@ -62,7 +55,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),
-			Handler:     self.helpers.WorkingTree.HandleCommitEditorPress,
+			Handler:     self.c.Helpers().WorkingTree.HandleCommitEditorPress,
 			Description: self.c.Tr.CommitChangesWithEditor,
 		},
 		{
@@ -126,7 +119,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
-			Handler:     self.helpers.WorkingTree.OpenMergeTool,
+			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
 			Description: self.c.Tr.LcOpenMergeTool,
 		},
 		{
@@ -169,6 +162,74 @@ func (self *FilesController) GetMouseKeybindings(opts types.KeybindingsOpts) []*
 			Handler:     self.onClickSecondary,
 			FocusedView: self.context().GetViewName(),
 		},
+	}
+}
+
+func (self *FilesController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+			node := self.context().GetSelected()
+
+			if node == nil {
+				return self.c.RenderToMainViews(types.RefreshMainOpts{
+					Pair: self.c.MainViewPairs().Normal,
+					Main: &types.ViewUpdateOpts{
+						Title: self.c.Tr.DiffTitle,
+						Task:  types.NewRenderStringTask(self.c.Tr.NoChangedFiles),
+					},
+				})
+			}
+
+			if node.File != nil && node.File.HasInlineMergeConflicts {
+				hasConflicts, err := self.c.Helpers().MergeConflicts.SetMergeState(node.GetPath())
+				if err != nil {
+					return err
+				}
+
+				if hasConflicts {
+					return self.c.Helpers().MergeConflicts.Render(false)
+				}
+			}
+
+			self.c.Helpers().MergeConflicts.ResetMergeState()
+
+			pair := self.c.MainViewPairs().Normal
+			if node.File != nil {
+				pair = self.c.MainViewPairs().Staging
+			}
+
+			split := self.c.UserConfig.Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
+			mainShowsStaged := !split && node.GetHasStagedChanges()
+
+			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, self.c.State().GetIgnoreWhitespaceInDiffView())
+			title := self.c.Tr.UnstagedChanges
+			if mainShowsStaged {
+				title = self.c.Tr.StagedChanges
+			}
+			refreshOpts := types.RefreshMainOpts{
+				Pair: pair,
+				Main: &types.ViewUpdateOpts{
+					Task:  types.NewRunPtyTask(cmdObj.GetCmd()),
+					Title: title,
+				},
+			}
+
+			if split {
+				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, self.c.State().GetIgnoreWhitespaceInDiffView())
+
+				title := self.c.Tr.StagedChanges
+				if mainShowsStaged {
+					title = self.c.Tr.UnstagedChanges
+				}
+
+				refreshOpts.Secondary = &types.ViewUpdateOpts{
+					Title: title,
+					Task:  types.NewRunPtyTask(cmdObj.GetCmd()),
+				}
+			}
+
+			return self.c.RenderToMainViews(refreshOpts)
+		})
 	}
 }
 
@@ -227,7 +288,7 @@ func (self *FilesController) optimisticChange(node *filetree.FileNode, optimisti
 	rerender := false
 	err := node.ForEachFile(func(f *models.File) error {
 		// can't act on the file itself: we need to update the original model file
-		for _, modelFile := range self.model.Files {
+		for _, modelFile := range self.c.Model().Files {
 			if modelFile.Name == f.Name {
 				if optimisticChangeFn(modelFile) {
 					rerender = true
@@ -242,7 +303,7 @@ func (self *FilesController) optimisticChange(node *filetree.FileNode, optimisti
 		return err
 	}
 	if rerender {
-		if err := self.c.PostRefreshUpdate(self.contexts.Files); err != nil {
+		if err := self.c.PostRefreshUpdate(self.c.Contexts().Files); err != nil {
 			return err
 		}
 	}
@@ -253,8 +314,8 @@ func (self *FilesController) optimisticChange(node *filetree.FileNode, optimisti
 func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 	// Obtaining this lock because optimistic rendering requires us to mutate
 	// the files in our model.
-	self.mutexes.RefreshingFilesMutex.Lock()
-	defer self.mutexes.RefreshingFilesMutex.Unlock()
+	self.c.Mutexes().RefreshingFilesMutex.Lock()
+	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
 	if node.IsFile() {
 		file := node.File
@@ -266,7 +327,7 @@ func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 				return err
 			}
 
-			if err := self.git.WorkingTree.StageFile(file.Name); err != nil {
+			if err := self.c.Git().WorkingTree.StageFile(file.Name); err != nil {
 				return self.c.Error(err)
 			}
 		} else {
@@ -276,7 +337,7 @@ func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 				return err
 			}
 
-			if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
+			if err := self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
 				return self.c.Error(err)
 			}
 		}
@@ -294,7 +355,7 @@ func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 				return err
 			}
 
-			if err := self.git.WorkingTree.StageFile(node.Path); err != nil {
+			if err := self.c.Git().WorkingTree.StageFile(node.Path); err != nil {
 				return self.c.Error(err)
 			}
 		} else {
@@ -305,7 +366,7 @@ func (self *FilesController) pressWithLock(node *filetree.FileNode) error {
 			}
 
 			// pretty sure it doesn't matter that we're always passing true here
-			if err := self.git.WorkingTree.UnStageFile([]string{node.Path}, true); err != nil {
+			if err := self.c.Git().WorkingTree.UnStageFile([]string{node.Path}, true); err != nil {
 				return self.c.Error(err)
 			}
 		}
@@ -346,7 +407,7 @@ func (self *FilesController) Context() types.Context {
 }
 
 func (self *FilesController) context() *context.WorkingTreeContext {
-	return self.contexts.Files
+	return self.c.Contexts().Files
 }
 
 func (self *FilesController) getSelectedFile() *models.File {
@@ -373,10 +434,10 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 
 	file := node.File
 
-	submoduleConfigs := self.model.Submodules
+	submoduleConfigs := self.c.Model().Submodules
 	if file.IsSubmodule(submoduleConfigs) {
 		submoduleConfig := file.SubmoduleConfig(submoduleConfigs)
-		return self.enterSubmodule(submoduleConfig)
+		return self.c.Helpers().Repos.EnterSubmodule(submoduleConfig)
 	}
 
 	if file.HasInlineMergeConflicts {
@@ -386,7 +447,7 @@ func (self *FilesController) EnterFile(opts types.OnFocusOpts) error {
 		return self.c.ErrorMsg(self.c.Tr.FileStagingRequirements)
 	}
 
-	return self.c.PushContext(self.contexts.Staging, opts)
+	return self.c.PushContext(self.c.Contexts().Staging, opts)
 }
 
 func (self *FilesController) toggleStagedAll() error {
@@ -402,8 +463,8 @@ func (self *FilesController) toggleStagedAll() error {
 }
 
 func (self *FilesController) toggleStagedAllWithLock() error {
-	self.mutexes.RefreshingFilesMutex.Lock()
-	defer self.mutexes.RefreshingFilesMutex.Unlock()
+	self.c.Mutexes().RefreshingFilesMutex.Lock()
+	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
 	root := self.context().FileTreeViewModel.GetRoot()
 
@@ -420,7 +481,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 			return err
 		}
 
-		if err := self.git.WorkingTree.StageAll(); err != nil {
+		if err := self.c.Git().WorkingTree.StageAll(); err != nil {
 			return self.c.Error(err)
 		}
 	} else {
@@ -430,7 +491,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 			return err
 		}
 
-		if err := self.git.WorkingTree.UnstageAll(); err != nil {
+		if err := self.c.Git().WorkingTree.UnstageAll(); err != nil {
 			return self.c.Error(err)
 		}
 	}
@@ -441,7 +502,7 @@ func (self *FilesController) toggleStagedAllWithLock() error {
 func (self *FilesController) unstageFiles(node *filetree.FileNode) error {
 	return node.ForEachFile(func(file *models.File) error {
 		if file.HasStagedChanges {
-			if err := self.git.WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
+			if err := self.c.Git().WorkingTree.UnStageFile(file.Names(), file.Tracked); err != nil {
 				return err
 			}
 		}
@@ -457,7 +518,7 @@ func (self *FilesController) ignoreOrExcludeTracked(node *filetree.FileNode, trA
 		return err
 	}
 
-	if err := self.git.WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
+	if err := self.c.Git().WorkingTree.RemoveTrackedFiles(node.GetPath()); err != nil {
 		return err
 	}
 
@@ -495,7 +556,7 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
 		return self.c.ErrorMsg(self.c.Tr.Actions.IgnoreFileErr)
 	}
-	err := self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.LcIgnoreExcludeFile, self.git.WorkingTree.Ignore)
+	err := self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.LcIgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
 	if err != nil {
 		return err
 	}
@@ -512,7 +573,7 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 		return self.c.ErrorMsg(self.c.Tr.Actions.ExcludeGitIgnoreErr)
 	}
 
-	err := self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.git.WorkingTree.Exclude)
+	err := self.ignoreOrExcludeFile(node, self.c.Tr.ExcludeTracked, self.c.Tr.ExcludeTrackedPrompt, self.c.Tr.Actions.ExcludeFile, self.c.Git().WorkingTree.Exclude)
 	if err != nil {
 		return err
 	}
@@ -552,19 +613,19 @@ func (self *FilesController) refresh() error {
 }
 
 func (self *FilesController) handleAmendCommitPress() error {
-	if len(self.model.Files) == 0 {
+	if len(self.c.Model().Files) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
 	}
 
-	if !self.helpers.WorkingTree.AnyStagedFiles() {
-		return self.helpers.WorkingTree.PromptToStageAllAndRetry(self.handleAmendCommitPress)
+	if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
+		return self.c.Helpers().WorkingTree.PromptToStageAllAndRetry(self.handleAmendCommitPress)
 	}
 
-	if len(self.model.Commits) == 0 {
+	if len(self.c.Model().Commits) == 0 {
 		return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
 	}
 
-	return self.helpers.AmendHelper.AmendHead()
+	return self.c.Helpers().AmendHelper.AmendHead()
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
@@ -603,7 +664,7 @@ func (self *FilesController) edit(node *filetree.FileNode) error {
 		return self.c.ErrorMsg(self.c.Tr.ErrCannotEditDirectory)
 	}
 
-	return self.helpers.Files.EditFile(node.GetPath())
+	return self.c.Helpers().Files.EditFile(node.GetPath())
 }
 
 func (self *FilesController) Open() error {
@@ -612,7 +673,7 @@ func (self *FilesController) Open() error {
 		return nil
 	}
 
-	return self.helpers.Files.OpenFile(node.GetPath())
+	return self.c.Helpers().Files.OpenFile(node.GetPath())
 }
 
 func (self *FilesController) switchToMerge() error {
@@ -621,7 +682,7 @@ func (self *FilesController) switchToMerge() error {
 		return nil
 	}
 
-	return self.helpers.MergeConflicts.SwitchToMerge(file.Name)
+	return self.c.Helpers().MergeConflicts.SwitchToMerge(file.Name)
 }
 
 func (self *FilesController) createStashMenu() error {
@@ -631,28 +692,28 @@ func (self *FilesController) createStashMenu() error {
 			{
 				Label: self.c.Tr.LcStashAllChanges,
 				OnPress: func() error {
-					if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
 					}
-					return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges)
+					return self.handleStashSave(self.c.Git().Stash.Save, self.c.Tr.Actions.StashAllChanges)
 				},
 				Key: 'a',
 			},
 			{
 				Label: self.c.Tr.LcStashAllChangesKeepIndex,
 				OnPress: func() error {
-					if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
 					}
 					// if there are no staged files it behaves the same as Stash.Save
-					return self.handleStashSave(self.git.Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex)
+					return self.handleStashSave(self.c.Git().Stash.StashAndKeepIndex, self.c.Tr.Actions.StashAllChangesKeepIndex)
 				},
 				Key: 'i',
 			},
 			{
 				Label: self.c.Tr.LcStashIncludeUntrackedChanges,
 				OnPress: func() error {
-					return self.handleStashSave(self.git.Stash.StashIncludeUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges)
+					return self.handleStashSave(self.c.Git().Stash.StashIncludeUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges)
 				},
 				Key: 'U',
 			},
@@ -660,24 +721,24 @@ func (self *FilesController) createStashMenu() error {
 				Label: self.c.Tr.LcStashStagedChanges,
 				OnPress: func() error {
 					// there must be something in staging otherwise the current implementation mucks the stash up
-					if !self.helpers.WorkingTree.AnyStagedFiles() {
+					if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
 						return self.c.ErrorMsg(self.c.Tr.NoTrackedStagedFilesStash)
 					}
-					return self.handleStashSave(self.git.Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
+					return self.handleStashSave(self.c.Git().Stash.SaveStagedChanges, self.c.Tr.Actions.StashStagedChanges)
 				},
 				Key: 's',
 			},
 			{
 				Label: self.c.Tr.LcStashUnstagedChanges,
 				OnPress: func() error {
-					if !self.helpers.WorkingTree.IsWorkingTreeDirty() {
+					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
 					}
-					if self.helpers.WorkingTree.AnyStagedFiles() {
-						return self.handleStashSave(self.git.Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges)
+					if self.c.Helpers().WorkingTree.AnyStagedFiles() {
+						return self.handleStashSave(self.c.Git().Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges)
 					}
 					// ordinary stash
-					return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashUnstagedChanges)
+					return self.handleStashSave(self.c.Git().Stash.Save, self.c.Tr.Actions.StashUnstagedChanges)
 				},
 				Key: 'u',
 			},
@@ -686,11 +747,11 @@ func (self *FilesController) createStashMenu() error {
 }
 
 func (self *FilesController) stash() error {
-	return self.handleStashSave(self.git.Stash.Save, self.c.Tr.Actions.StashAllChanges)
+	return self.handleStashSave(self.c.Git().Stash.Save, self.c.Tr.Actions.StashAllChanges)
 }
 
 func (self *FilesController) createResetToUpstreamMenu() error {
-	return self.helpers.Refs.CreateGitResetMenu("@{upstream}")
+	return self.c.Helpers().Refs.CreateGitResetMenu("@{upstream}")
 }
 
 func (self *FilesController) handleToggleDirCollapsed() error {
@@ -701,7 +762,7 @@ func (self *FilesController) handleToggleDirCollapsed() error {
 
 	self.context().FileTreeViewModel.ToggleCollapsed(node.GetPath())
 
-	if err := self.c.PostRefreshUpdate(self.contexts.Files); err != nil {
+	if err := self.c.PostRefreshUpdate(self.c.Contexts().Files); err != nil {
 		self.c.Log.Error(err)
 	}
 
@@ -747,7 +808,7 @@ func (self *FilesController) fetch() error {
 
 func (self *FilesController) fetchAux() (err error) {
 	self.c.LogAction("Fetch")
-	err = self.git.Sync.Fetch(git_commands.FetchOptions{})
+	err = self.c.Git().Sync.Fetch(git_commands.FetchOptions{})
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
 		_ = self.c.ErrorMsg(self.c.Tr.PassUnameWrong)

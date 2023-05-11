@@ -20,17 +20,17 @@ import (
 
 type UndoController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &UndoController{}
 
 func NewUndoController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *UndoController {
 	return &UndoController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -76,7 +76,7 @@ func (self *UndoController) reflogUndo() error {
 	undoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit undo]"}
 	undoingStatus := self.c.Tr.UndoingStatus
 
-	if self.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 		return self.c.ErrorMsg(self.c.Tr.LcCantUndoWhileRebasing)
 	}
 
@@ -104,7 +104,7 @@ func (self *UndoController) reflogUndo() error {
 				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.from),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Undo)
-					return self.helpers.Refs.CheckoutRef(action.from, types.CheckoutRefOptions{
+					return self.c.Helpers().Refs.CheckoutRef(action.from, types.CheckoutRefOptions{
 						EnvVars:       undoEnvVars,
 						WaitingStatus: undoingStatus,
 					})
@@ -124,7 +124,7 @@ func (self *UndoController) reflogRedo() error {
 	redoEnvVars := []string{"GIT_REFLOG_ACTION=[lazygit redo]"}
 	redoingStatus := self.c.Tr.RedoingStatus
 
-	if self.git.Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
+	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 		return self.c.ErrorMsg(self.c.Tr.LcCantRedoWhileRebasing)
 	}
 
@@ -156,7 +156,7 @@ func (self *UndoController) reflogRedo() error {
 				Prompt: fmt.Sprintf(self.c.Tr.CheckoutPrompt, action.to),
 				HandleConfirm: func() error {
 					self.c.LogAction(self.c.Tr.Actions.Redo)
-					return self.helpers.Refs.CheckoutRef(action.to, types.CheckoutRefOptions{
+					return self.c.Helpers().Refs.CheckoutRef(action.to, types.CheckoutRefOptions{
 						EnvVars:       redoEnvVars,
 						WaitingStatus: redoingStatus,
 					})
@@ -179,7 +179,7 @@ func (self *UndoController) reflogRedo() error {
 // Though we might support this later, hence the use of the CURRENT_REBASE action kind.
 func (self *UndoController) parseReflogForActions(onUserAction func(counter int, action reflogAction) (bool, error)) error {
 	counter := 0
-	reflogCommits := self.model.FilteredReflogCommits
+	reflogCommits := self.c.Model().FilteredReflogCommits
 	rebaseFinishCommitSha := ""
 	var action *reflogAction
 	for reflogCommitIdx, reflogCommit := range reflogCommits {
@@ -233,14 +233,14 @@ type hardResetOptions struct {
 // only to be used in the undo flow for now (does an autostash)
 func (self *UndoController) hardResetWithAutoStash(commitSha string, options hardResetOptions) error {
 	reset := func() error {
-		if err := self.helpers.Refs.ResetToRef(commitSha, "hard", options.EnvVars); err != nil {
+		if err := self.c.Helpers().Refs.ResetToRef(commitSha, "hard", options.EnvVars); err != nil {
 			return self.c.Error(err)
 		}
 		return nil
 	}
 
 	// if we have any modified tracked files we need to ask the user if they want us to stash for them
-	dirtyWorkingTree := self.helpers.WorkingTree.IsWorkingTreeDirty()
+	dirtyWorkingTree := self.c.Helpers().WorkingTree.IsWorkingTreeDirty()
 	if dirtyWorkingTree {
 		// offer to autostash changes
 		return self.c.Confirm(types.ConfirmOpts{
@@ -248,14 +248,14 @@ func (self *UndoController) hardResetWithAutoStash(commitSha string, options har
 			Prompt: self.c.Tr.AutoStashPrompt,
 			HandleConfirm: func() error {
 				return self.c.WithWaitingStatus(options.WaitingStatus, func() error {
-					if err := self.git.Stash.Save(self.c.Tr.StashPrefix + commitSha); err != nil {
+					if err := self.c.Git().Stash.Save(self.c.Tr.StashPrefix + commitSha); err != nil {
 						return self.c.Error(err)
 					}
 					if err := reset(); err != nil {
 						return err
 					}
 
-					err := self.git.Stash.Pop(0)
+					err := self.c.Git().Stash.Pop(0)
 					if err := self.c.Refresh(types.RefreshOptions{}); err != nil {
 						return err
 					}

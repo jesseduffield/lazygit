@@ -8,11 +8,11 @@ import (
 )
 
 type CredentialsHelper struct {
-	c *types.HelperCommon
+	c *HelperCommon
 }
 
 func NewCredentialsHelper(
-	c *types.HelperCommon,
+	c *HelperCommon,
 ) *CredentialsHelper {
 	return &CredentialsHelper{
 		c: c,

@@ -95,8 +95,6 @@ func runTest(
 		return nil
 	}
 
-	logf("path: %s", paths.Root())
-
 	if err := prepareTestDir(test, paths, projectRootDir); err != nil {
 		return err
 	}

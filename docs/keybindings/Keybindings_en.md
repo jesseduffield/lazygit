@@ -8,20 +8,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+r</kbd>: switch to a recent repo
   <kbd>pgup</kbd>: scroll up main panel (fn+up/shift+k)
   <kbd>pgdown</kbd>: scroll down main panel (fn+down/shift+j)
-  <kbd>m</kbd>: view merge/rebase options
-  <kbd>ctrl+p</kbd>: view custom patch options
-  <kbd>R</kbd>: refresh
-  <kbd>?</kbd>: open menu
-  <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
-  <kbd>_</kbd>: prev screen mode
-  <kbd>ctrl+s</kbd>: view filter-by-path options
-  <kbd>W</kbd>: open diff menu
-  <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
-  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
   <kbd>:</kbd>: execute custom command
+  <kbd>ctrl+p</kbd>: view custom patch options
+  <kbd>m</kbd>: view merge/rebase options
+  <kbd>R</kbd>: refresh
+  <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
+  <kbd>_</kbd>: prev screen mode
+  <kbd>?</kbd>: open menu
+  <kbd>ctrl+s</kbd>: view filter-by-path options
+  <kbd>W</kbd>: open diff menu
+  <kbd>ctrl+e</kbd>: open diff menu
+  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>z</kbd>: undo (via reflog) (experimental)
   <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
   <kbd>P</kbd>: push
@@ -56,6 +56,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: toggle file tree view
 </pre>
 
+## Commit Summary
+
+<pre>
+  <kbd>enter</kbd>: confirm
+  <kbd>esc</kbd>: close
+</pre>
+
 ## Commits
 
 <pre>
@@ -87,6 +94,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>c</kbd>: copy commit (cherry-pick)
   <kbd>C</kbd>: copy commit range (cherry-pick)
   <kbd>enter</kbd>: view selected item's files
+</pre>
+
+## Confirmation Panel
+
+<pre>
+  <kbd>enter</kbd>: confirm
+  <kbd>esc</kbd>: close/cancel
 </pre>
 
 ## Files
@@ -197,6 +211,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>C</kbd>: commit changes using git editor
 </pre>
 
+## Menu
+
+<pre>
+  <kbd>enter</kbd>: execute
+  <kbd>esc</kbd>: close
+</pre>
+
 ## Reflog
 
 <pre>
@@ -250,8 +271,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Status
 
 <pre>
-  <kbd>e</kbd>: edit config file
   <kbd>o</kbd>: open config file
+  <kbd>e</kbd>: edit config file
   <kbd>u</kbd>: check for update
   <kbd>enter</kbd>: switch to a recent repo
   <kbd>a</kbd>: show all branch logs

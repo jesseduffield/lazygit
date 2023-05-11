@@ -1,8 +1,8 @@
 package context
 
 import (
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -11,35 +11,30 @@ type StashContext struct {
 	*ListContextTrait
 }
 
-var _ types.IListContext = (*StashContext)(nil)
+var (
+	_ types.IListContext    = (*StashContext)(nil)
+	_ types.DiffableContext = (*StashContext)(nil)
+)
 
 func NewStashContext(
-	getModel func() []*models.StashEntry,
-	view *gocui.View,
-	getDisplayStrings func(startIdx int, length int) [][]string,
-
-	onFocus func(types.OnFocusOpts) error,
-	onRenderToMain func() error,
-	onFocusLost func(opts types.OnFocusLostOpts) error,
-
-	c *types.HelperCommon,
+	c *ContextCommon,
 ) *StashContext {
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewBasicViewModel(func() []*models.StashEntry { return c.Model().StashEntries })
+
+	getDisplayStrings := func(startIdx int, length int) [][]string {
+		return presentation.GetStashEntryListDisplayStrings(c.Model().StashEntries, c.Modes().Diffing.Ref)
+	}
 
 	return &StashContext{
 		BasicViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-				View:       view,
+				View:       c.Views().Stash,
 				WindowName: "stash",
 				Key:        STASH_CONTEXT_KEY,
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
-			}), ContextCallbackOpts{
-				OnFocus:        onFocus,
-				OnFocusLost:    onFocusLost,
-				OnRenderToMain: onRenderToMain,
-			}),
+			})),
 			list:              viewModel,
 			getDisplayStrings: getDisplayStrings,
 			c:                 c,
@@ -66,4 +61,10 @@ func (self *StashContext) GetSelectedRef() types.Ref {
 		return nil
 	}
 	return stash
+}
+
+func (self *StashContext) GetDiffTerminals() []string {
+	itemId := self.GetSelectedItemId()
+
+	return []string{itemId}
 }

@@ -17,6 +17,12 @@ type Binding struct {
 	Tag         string // e.g. 'navigation'. Used for grouping things in the cheatsheet
 	OpensMenu   bool
 
+	// If true, the keybinding will appear at the bottom of the screen. If
+	// the given view has no bindings with Display: true, the default keybindings
+	// will be displayed instead.
+	// TODO: implement this
+	Display bool
+
 	// to be displayed if the keybinding is highlighted from within a menu
 	Tooltip string
 }

@@ -8,20 +8,20 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>ctrl+r</kbd>: switch to a recent repo
   <kbd>pgup</kbd>: scroll up main panel (fn+up/shift+k)
   <kbd>pgdown</kbd>: scroll down main panel (fn+down/shift+j)
-  <kbd>m</kbd>: widok scalenia/opcje zmiany bazy
-  <kbd>ctrl+p</kbd>: view custom patch options
-  <kbd>R</kbd>: odśwież
-  <kbd>?</kbd>: open menu
-  <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
-  <kbd>_</kbd>: prev screen mode
-  <kbd>ctrl+s</kbd>: view filter-by-path options
-  <kbd>W</kbd>: open diff menu
-  <kbd>ctrl+e</kbd>: open diff menu
   <kbd>@</kbd>: open command log menu
-  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
   <kbd>:</kbd>: wykonaj własną komendę
+  <kbd>ctrl+p</kbd>: view custom patch options
+  <kbd>m</kbd>: widok scalenia/opcje zmiany bazy
+  <kbd>R</kbd>: odśwież
+  <kbd>+</kbd>: next screen mode (normal/half/fullscreen)
+  <kbd>_</kbd>: prev screen mode
+  <kbd>?</kbd>: open menu
+  <kbd>ctrl+s</kbd>: view filter-by-path options
+  <kbd>W</kbd>: open diff menu
+  <kbd>ctrl+e</kbd>: open diff menu
+  <kbd>ctrl+w</kbd>: Toggle whether or not whitespace changes are shown in the diff view
   <kbd>z</kbd>: undo (via reflog) (experimental)
   <kbd>ctrl+z</kbd>: redo (via reflog) (experimental)
   <kbd>P</kbd>: push
@@ -40,6 +40,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>L</kbd>: scroll right
   <kbd>]</kbd>: next tab
   <kbd>[</kbd>: previous tab
+</pre>
+
+## Commit Summary
+
+<pre>
+  <kbd>enter</kbd>: potwierdź
+  <kbd>esc</kbd>: zamknij
 </pre>
 
 ## Commity
@@ -73,6 +80,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>c</kbd>: kopiuj commit (przebieranie)
   <kbd>C</kbd>: kopiuj zakres commitów (przebieranie)
   <kbd>enter</kbd>: przeglądaj pliki commita
+</pre>
+
+## Confirmation Panel
+
+<pre>
+  <kbd>enter</kbd>: potwierdź
+  <kbd>esc</kbd>: zamknij
 </pre>
 
 ## Local Branches
@@ -111,6 +125,13 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>e</kbd>: edytuj plik
   <kbd>space</kbd>: add/remove line(s) to patch
   <kbd>esc</kbd>: wyście z trybu "linia po linii"
+</pre>
+
+## Menu
+
+<pre>
+  <kbd>enter</kbd>: wykonaj
+  <kbd>esc</kbd>: zamknij
 </pre>
 
 ## Pliki
@@ -243,8 +264,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 ## Status
 
 <pre>
-  <kbd>e</kbd>: edytuj konfigurację
   <kbd>o</kbd>: otwórz konfigurację
+  <kbd>e</kbd>: edytuj konfigurację
   <kbd>u</kbd>: sprawdź aktualizacje
   <kbd>enter</kbd>: switch to a recent repo
   <kbd>a</kbd>: pokaż wszystkie logi gałęzi

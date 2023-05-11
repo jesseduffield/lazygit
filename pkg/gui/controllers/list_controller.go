@@ -6,10 +6,10 @@ import (
 )
 
 type ListControllerFactory struct {
-	c *types.HelperCommon
+	c *ControllerCommon
 }
 
-func NewListControllerFactory(c *types.HelperCommon) *ListControllerFactory {
+func NewListControllerFactory(c *ControllerCommon) *ListControllerFactory {
 	return &ListControllerFactory{
 		c: c,
 	}
@@ -25,7 +25,7 @@ func (self *ListControllerFactory) Create(context types.IListContext) *ListContr
 
 type ListController struct {
 	baseController
-	c *types.HelperCommon
+	c *ControllerCommon
 
 	context types.IListContext
 }

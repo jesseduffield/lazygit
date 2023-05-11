@@ -11,17 +11,17 @@ import (
 
 type MergeConflictsController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &MergeConflictsController{}
 
 func NewMergeConflictsController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *MergeConflictsController {
 	return &MergeConflictsController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -41,21 +41,25 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			Key:         opts.GetKey(opts.Config.Universal.PrevBlock),
 			Handler:     self.withRenderAndFocus(self.PrevConflict),
 			Description: self.c.Tr.PrevConflict,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.NextBlock),
 			Handler:     self.withRenderAndFocus(self.NextConflict),
 			Description: self.c.Tr.NextConflict,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.PrevItem),
 			Handler:     self.withRenderAndFocus(self.PrevConflictHunk),
 			Description: self.c.Tr.SelectPrevHunk,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.NextItem),
 			Handler:     self.withRenderAndFocus(self.NextConflictHunk),
 			Description: self.c.Tr.SelectNextHunk,
+			Display:     true,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.PrevBlockAlt),
@@ -89,21 +93,24 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 			Key:         opts.GetKey(opts.Config.Universal.Undo),
 			Handler:     self.withRenderAndFocus(self.HandleUndo),
 			Description: self.c.Tr.LcUndo,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
-			Handler:     self.helpers.WorkingTree.OpenMergeTool,
+			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
 			Description: self.c.Tr.LcOpenMergeTool,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.withRenderAndFocus(self.HandlePickHunk),
 			Description: self.c.Tr.PickHunk,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Main.PickBothHunks),
 			Handler:     self.withRenderAndFocus(self.HandlePickAllHunks),
 			Description: self.c.Tr.PickAllHunks,
+			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Return),
@@ -134,6 +141,24 @@ func (self *MergeConflictsController) GetMouseKeybindings(opts types.Keybindings
 	}
 }
 
+func (self *MergeConflictsController) GetOnFocus() func(types.OnFocusOpts) error {
+	return func(types.OnFocusOpts) error {
+		self.c.Views().MergeConflicts.Wrap = false
+
+		return self.c.Helpers().MergeConflicts.Render(true)
+	}
+}
+
+func (self *MergeConflictsController) GetOnFocusLost() func(types.OnFocusLostOpts) error {
+	return func(types.OnFocusLostOpts) error {
+		self.context().SetUserScrolling(false)
+		self.context().GetState().ResetConflictSelection()
+		self.c.Views().MergeConflicts.Wrap = true
+
+		return nil
+	}
+}
+
 func (self *MergeConflictsController) HandleScrollUp() error {
 	self.context().SetUserScrolling(true)
 	self.context().GetViewTrait().ScrollUp(self.c.UserConfig.Gui.ScrollHeight)
@@ -153,7 +178,7 @@ func (self *MergeConflictsController) Context() types.Context {
 }
 
 func (self *MergeConflictsController) context() *context.MergeConflictsContext {
-	return self.contexts.MergeConflicts
+	return self.c.Contexts().MergeConflicts
 }
 
 func (self *MergeConflictsController) Escape() error {
@@ -162,11 +187,11 @@ func (self *MergeConflictsController) Escape() error {
 
 func (self *MergeConflictsController) HandleEditFile() error {
 	lineNumber := self.context().GetState().GetSelectedLine()
-	return self.helpers.Files.EditFileAtLine(self.context().GetState().GetPath(), lineNumber)
+	return self.c.Helpers().Files.EditFileAtLine(self.context().GetState().GetPath(), lineNumber)
 }
 
 func (self *MergeConflictsController) HandleOpenFile() error {
-	return self.helpers.Files.OpenFile(self.context().GetState().GetPath())
+	return self.c.Helpers().Files.OpenFile(self.context().GetState().GetPath())
 }
 
 func (self *MergeConflictsController) HandleScrollLeft() error {

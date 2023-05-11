@@ -14,17 +14,17 @@ import (
 
 type BranchesController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &BranchesController{}
 
 func NewBranchesController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *BranchesController {
 	return &BranchesController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -111,6 +111,30 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 	}
 }
 
+func (self *BranchesController) GetOnRenderToMain() func() error {
+	return func() error {
+		return self.c.Helpers().Diff.WithDiffModeCheck(func() error {
+			var task types.UpdateTask
+			branch := self.context().GetSelected()
+			if branch == nil {
+				task = types.NewRenderStringTask(self.c.Tr.NoBranchesThisRepo)
+			} else {
+				cmdObj := self.c.Git().Branch.GetGraphCmdObj(branch.FullRefName())
+
+				task = types.NewRunPtyTask(cmdObj.GetCmd())
+			}
+
+			return self.c.RenderToMainViews(types.RefreshMainOpts{
+				Pair: self.c.MainViewPairs().Normal,
+				Main: &types.ViewUpdateOpts{
+					Title: self.c.Tr.LogTitle,
+					Task:  task,
+				},
+			})
+		})
+	}
+}
+
 func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error {
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Actions.SetUnsetUpstream,
@@ -118,7 +142,7 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 			{
 				LabelColumns: []string{self.c.Tr.LcUnsetUpstream},
 				OnPress: func() error {
-					if err := self.git.Branch.UnsetUpstream(selectedBranch.Name); err != nil {
+					if err := self.c.Git().Branch.UnsetUpstream(selectedBranch.Name); err != nil {
 						return self.c.Error(err)
 					}
 					if err := self.c.Refresh(types.RefreshOptions{
@@ -137,13 +161,13 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 			{
 				LabelColumns: []string{self.c.Tr.LcSetUpstream},
 				OnPress: func() error {
-					return self.helpers.Upstream.PromptForUpstreamWithoutInitialContent(selectedBranch, func(upstream string) error {
-						upstreamRemote, upstreamBranch, err := self.helpers.Upstream.ParseUpstream(upstream)
+					return self.c.Helpers().Upstream.PromptForUpstreamWithoutInitialContent(selectedBranch, func(upstream string) error {
+						upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
 						if err != nil {
 							return self.c.Error(err)
 						}
 
-						if err := self.git.Branch.SetUpstream(upstreamRemote, upstreamBranch, selectedBranch.Name); err != nil {
+						if err := self.c.Git().Branch.SetUpstream(upstreamRemote, upstreamBranch, selectedBranch.Name); err != nil {
 							return self.c.Error(err)
 						}
 						if err := self.c.Refresh(types.RefreshOptions{
@@ -169,16 +193,16 @@ func (self *BranchesController) Context() types.Context {
 }
 
 func (self *BranchesController) context() *context.BranchesContext {
-	return self.contexts.Branches
+	return self.c.Contexts().Branches
 }
 
 func (self *BranchesController) press(selectedBranch *models.Branch) error {
-	if selectedBranch == self.helpers.Refs.GetCheckedOutRef() {
+	if selectedBranch == self.c.Helpers().Refs.GetCheckedOutRef() {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyCheckedOutBranch)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
-	return self.helpers.Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
+	return self.c.Helpers().Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
 }
 
 func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {
@@ -186,7 +210,7 @@ func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.B
 }
 
 func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *models.Branch) error {
-	checkedOutBranch := self.helpers.Refs.GetCheckedOutRef()
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 
 	return self.createPullRequestMenu(selectedBranch, checkedOutBranch)
 }
@@ -194,18 +218,18 @@ func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *mode
 func (self *BranchesController) copyPullRequestURL() error {
 	branch := self.context().GetSelected()
 
-	branchExistsOnRemote := self.git.Remote.CheckRemoteBranchExists(branch.Name)
+	branchExistsOnRemote := self.c.Git().Remote.CheckRemoteBranchExists(branch.Name)
 
 	if !branchExistsOnRemote {
 		return self.c.Error(errors.New(self.c.Tr.NoBranchOnRemote))
 	}
 
-	url, err := self.helpers.Host.GetPullRequestURL(branch.Name, "")
+	url, err := self.c.Helpers().Host.GetPullRequestURL(branch.Name, "")
 	if err != nil {
 		return self.c.Error(err)
 	}
 	self.c.LogAction(self.c.Tr.Actions.CopyPullRequestURL)
-	if err := self.os.CopyToClipboard(url); err != nil {
+	if err := self.c.OS().CopyToClipboard(url); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -224,7 +248,7 @@ func (self *BranchesController) forceCheckout() error {
 		Prompt: message,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.ForceCheckoutBranch)
-			if err := self.git.Branch.Checkout(branch.Name, git_commands.CheckoutOptions{Force: true}); err != nil {
+			if err := self.c.Git().Branch.Checkout(branch.Name, git_commands.CheckoutOptions{Force: true}); err != nil {
 				_ = self.c.Error(err)
 			}
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
@@ -235,10 +259,10 @@ func (self *BranchesController) forceCheckout() error {
 func (self *BranchesController) checkoutByName() error {
 	return self.c.Prompt(types.PromptOpts{
 		Title:               self.c.Tr.BranchName + ":",
-		FindSuggestionsFunc: self.helpers.Suggestions.GetRefsSuggestionsFunc(),
+		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
 			self.c.LogAction("Checkout branch")
-			return self.helpers.Refs.CheckoutRef(response, types.CheckoutRefOptions{
+			return self.c.Helpers().Refs.CheckoutRef(response, types.CheckoutRefOptions{
 				OnRefNotFound: func(ref string) error {
 					return self.c.Confirm(types.ConfirmOpts{
 						Title:  self.c.Tr.BranchNotFoundTitle,
@@ -260,7 +284,7 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 		return nil
 	}
 
-	if err := self.git.Branch.New(newBranchName, branch.FullRefName()); err != nil {
+	if err := self.c.Git().Branch.New(newBranchName, branch.FullRefName()); err != nil {
 		return self.c.Error(err)
 	}
 
@@ -269,7 +293,7 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 }
 
 func (self *BranchesController) delete(branch *models.Branch) error {
-	checkedOutBranch := self.helpers.Refs.GetCheckedOutRef()
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 	if checkedOutBranch.Name == branch.Name {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCheckOutBranch)
 	}
@@ -296,7 +320,7 @@ func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, f
 		Prompt: message,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.DeleteBranch)
-			if err := self.git.Branch.Delete(selectedBranch.Name, force); err != nil {
+			if err := self.c.Git().Branch.Delete(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
 				if !force && strings.Contains(errMessage, "git branch -D ") {
 					return self.deleteWithForce(selectedBranch, true)
@@ -310,12 +334,12 @@ func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, f
 
 func (self *BranchesController) merge() error {
 	selectedBranchName := self.context().GetSelected().Name
-	return self.helpers.MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName)
+	return self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName)
 }
 
 func (self *BranchesController) rebase() error {
 	selectedBranchName := self.context().GetSelected().Name
-	return self.helpers.MergeAndRebase.RebaseOntoRef(selectedBranchName)
+	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranchName)
 }
 
 func (self *BranchesController) fastForward(branch *models.Branch) error {
@@ -340,10 +364,10 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	)
 
 	return self.c.WithLoaderPanel(message, func() error {
-		if branch == self.helpers.Refs.GetCheckedOutRef() {
+		if branch == self.c.Helpers().Refs.GetCheckedOutRef() {
 			self.c.LogAction(action)
 
-			err := self.git.Sync.Pull(
+			err := self.c.Git().Sync.Pull(
 				git_commands.PullOptions{
 					RemoteName:      branch.UpstreamRemote,
 					BranchName:      branch.UpstreamBranch,
@@ -357,7 +381,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		} else {
 			self.c.LogAction(action)
-			err := self.git.Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
+			err := self.c.Git().Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
 			if err != nil {
 				_ = self.c.Error(err)
 			}
@@ -369,11 +393,11 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 }
 
 func (self *BranchesController) createTag(branch *models.Branch) error {
-	return self.helpers.Tags.CreateTagMenu(branch.FullRefName(), func() {})
+	return self.c.Helpers().Tags.CreateTagMenu(branch.FullRefName(), func() {})
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {
-	return self.helpers.Refs.CreateGitResetMenu(selectedBranch.Name)
+	return self.c.Helpers().Refs.CreateGitResetMenu(selectedBranch.Name)
 }
 
 func (self *BranchesController) rename(branch *models.Branch) error {
@@ -383,7 +407,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 			InitialContent: branch.Name,
 			HandleConfirm: func(newBranchName string) error {
 				self.c.LogAction(self.c.Tr.Actions.RenameBranch)
-				if err := self.git.Branch.Rename(branch.Name, newBranchName); err != nil {
+				if err := self.c.Git().Branch.Rename(branch.Name, newBranchName); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -391,7 +415,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 				_ = self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 
 				// now that we've got our stuff again we need to find that branch and reselect it.
-				for i, newBranch := range self.model.Branches {
+				for i, newBranch := range self.c.Model().Branches {
 					if newBranch.Name == newBranchName {
 						self.context().SetSelectedLineIdx(i)
 						if err := self.context().HandleRender(); err != nil {
@@ -420,7 +444,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 }
 
 func (self *BranchesController) newBranch(selectedBranch *models.Branch) error {
-	return self.helpers.Refs.NewBranch(selectedBranch.FullRefName(), selectedBranch.RefName(), "")
+	return self.c.Helpers().Refs.NewBranch(selectedBranch.FullRefName(), selectedBranch.RefName(), "")
 }
 
 func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Branch, checkedOutBranch *models.Branch) error {
@@ -443,7 +467,7 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 				OnPress: func() error {
 					return self.c.Prompt(types.PromptOpts{
 						Title:               branch.Name + " →",
-						FindSuggestionsFunc: self.helpers.Suggestions.GetBranchNameSuggestionsFunc(),
+						FindSuggestionsFunc: self.c.Helpers().Suggestions.GetBranchNameSuggestionsFunc(),
 						HandleConfirm: func(targetBranchName string) error {
 							return self.createPullRequest(branch.Name, targetBranchName)
 						},
@@ -471,14 +495,14 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 }
 
 func (self *BranchesController) createPullRequest(from string, to string) error {
-	url, err := self.helpers.Host.GetPullRequestURL(from, to)
+	url, err := self.c.Helpers().Host.GetPullRequestURL(from, to)
 	if err != nil {
 		return self.c.Error(err)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.OpenPullRequest)
 
-	if err := self.os.OpenLink(url); err != nil {
+	if err := self.c.OS().OpenLink(url); err != nil {
 		return self.c.Error(err)
 	}
 

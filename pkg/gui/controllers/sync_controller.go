@@ -11,17 +11,17 @@ import (
 
 type SyncController struct {
 	baseController
-	*controllerCommon
+	c *ControllerCommon
 }
 
 var _ types.IController = &SyncController{}
 
 func NewSyncController(
-	common *controllerCommon,
+	common *ControllerCommon,
 ) *SyncController {
 	return &SyncController{
-		baseController:   baseController{},
-		controllerCommon: common,
+		baseController: baseController{},
+		c:              common,
 	}
 }
 
@@ -56,7 +56,7 @@ func (self *SyncController) HandlePull() error {
 
 func (self *SyncController) branchCheckedOut(f func(*models.Branch) error) func() error {
 	return func() error {
-		currentBranch := self.helpers.Refs.GetCheckedOutRef()
+		currentBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 		if currentBranch == nil {
 			// need to wait for branches to refresh
 			return nil
@@ -76,11 +76,11 @@ func (self *SyncController) push(currentBranch *models.Branch) error {
 			return self.pushAux(opts)
 		}
 	} else {
-		if self.git.Config.GetPushToCurrent() {
+		if self.c.Git().Config.GetPushToCurrent() {
 			return self.pushAux(pushOpts{setUpstream: true})
 		} else {
-			return self.helpers.Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
-				upstreamRemote, upstreamBranch, err := self.helpers.Upstream.ParseUpstream(upstream)
+			return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
+				upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
 				if err != nil {
 					return self.c.Error(err)
 				}
@@ -100,7 +100,7 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 
 	// if we have no upstream branch we need to set that first
 	if !currentBranch.IsTrackingRemote() {
-		return self.helpers.Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
+		return self.c.Helpers().Upstream.PromptForUpstreamWithInitialContent(currentBranch, func(upstream string) error {
 			if err := self.setCurrentBranchUpstream(upstream); err != nil {
 				return self.c.Error(err)
 			}
@@ -113,12 +113,12 @@ func (self *SyncController) pull(currentBranch *models.Branch) error {
 }
 
 func (self *SyncController) setCurrentBranchUpstream(upstream string) error {
-	upstreamRemote, upstreamBranch, err := self.helpers.Upstream.ParseUpstream(upstream)
+	upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
 	if err != nil {
 		return err
 	}
 
-	if err := self.git.Branch.SetCurrentBranchUpstream(upstreamRemote, upstreamBranch); err != nil {
+	if err := self.c.Git().Branch.SetCurrentBranchUpstream(upstreamRemote, upstreamBranch); err != nil {
 		if strings.Contains(err.Error(), "does not exist") {
 			return fmt.Errorf(
 				"upstream branch %s/%s not found.\nIf you expect it to exist, you should fetch (with 'f').\nOtherwise, you should push (with 'shift+P')",
@@ -146,7 +146,7 @@ func (self *SyncController) PullAux(opts PullFilesOptions) error {
 func (self *SyncController) pullWithLock(opts PullFilesOptions) error {
 	self.c.LogAction(opts.Action)
 
-	err := self.git.Sync.Pull(
+	err := self.c.Git().Sync.Pull(
 		git_commands.PullOptions{
 			RemoteName:      opts.UpstreamRemote,
 			BranchName:      opts.UpstreamBranch,
@@ -154,7 +154,7 @@ func (self *SyncController) pullWithLock(opts PullFilesOptions) error {
 		},
 	)
 
-	return self.helpers.MergeAndRebase.CheckMergeOrRebase(err)
+	return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
 }
 
 type pushOpts struct {
@@ -167,7 +167,7 @@ type pushOpts struct {
 func (self *SyncController) pushAux(opts pushOpts) error {
 	return self.c.WithLoaderPanel(self.c.Tr.PushWait, func() error {
 		self.c.LogAction(self.c.Tr.Actions.Push)
-		err := self.git.Sync.Push(git_commands.PushOpts{
+		err := self.c.Git().Sync.Push(git_commands.PushOpts{
 			Force:          opts.force,
 			UpstreamRemote: opts.upstreamRemote,
 			UpstreamBranch: opts.upstreamBranch,
