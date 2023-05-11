@@ -177,6 +177,8 @@ type KeybindingUniversalConfig struct {
 	ScrollDownMainAlt1           string   `yaml:"scrollDownMain-alt1"`
 	ScrollUpMainAlt2             string   `yaml:"scrollUpMain-alt2"`
 	ScrollDownMainAlt2           string   `yaml:"scrollDownMain-alt2"`
+	ScrollUpSecondary            string   `yaml:"scrollUpSecondary"`
+	ScrollDownSecondary          string   `yaml:"scrollDownSecondary"`
 	ExecuteCustomCommand         string   `yaml:"executeCustomCommand"`
 	CreateRebaseOptionsMenu      string   `yaml:"createRebaseOptionsMenu"`
 	Push                         string   `yaml:"pushFiles"` // 'Files' appended for legacy reasons
@@ -302,6 +304,7 @@ type OSConfig struct {
 	// Same as EditAtLine, except that the command needs to wait until the
 	// window is closed.
 	EditAtLineAndWait string `yaml:"editAtLineAndWait,omitempty"`
+
 
 	// Whether the given edit commands use the terminal. Used to decide whether
 	// lazygit needs to suspend to the background before calling the editor.
@@ -506,6 +509,8 @@ func GetDefaultConfig() *UserConfig {
 				ScrollDownMainAlt1:           "J",
 				ScrollUpMainAlt2:             "<c-u>",
 				ScrollDownMainAlt2:           "<c-d>",
+				ScrollUpSecondary:            "<c-h>",
+				ScrollDownSecondary:          "<c-l>",
 				ExecuteCustomCommand:         ":",
 				CreateRebaseOptionsMenu:      "m",
 				Push:                         "P",

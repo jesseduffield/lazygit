@@ -155,6 +155,8 @@ keybinding:
     scrollDownMain-alt1: 'J' # main panel scroll down
     scrollUpMain-alt2: '<c-u>' # main panel scroll up
     scrollDownMain-alt2: '<c-d>' # main panel scroll down
+    scrollUpSecondary:  '<c-h>' # secondary panel scroll up
+    scrollDownSecondary: '<c-l>' # secondary panel scroll down
     executeCustomCommand: ':'
     createRebaseOptionsMenu: 'm'
     pushFiles: 'P'
@@ -446,6 +448,8 @@ keybinding:
     scrollDownMain-alt1: 'E'
     scrollUpMain-alt2: '<c-u>'
     scrollDownMain-alt2: '<c-e>'
+    scrollUpSecondary: '<c-h>'
+    scrollDownSecondary: '<c-l>'
     undo: 'l'
     redo: '<c-r>'
     diffingMenu: 'M'
