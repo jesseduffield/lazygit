@@ -56,7 +56,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>`</kbd>: toggle file tree view
 </pre>
 
-## Commit Message
+## Commit Summary
 
 <pre>
   <kbd>enter</kbd>: confirm

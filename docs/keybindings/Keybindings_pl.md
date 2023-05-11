@@ -42,7 +42,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>[</kbd>: previous tab
 </pre>
 
-## Commit Message
+## Commit Summary
 
 <pre>
   <kbd>enter</kbd>: potwierdź
