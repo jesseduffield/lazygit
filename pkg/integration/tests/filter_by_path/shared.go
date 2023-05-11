@@ -14,6 +14,8 @@ func commonSetup(shell *Shell) {
 
 	shell.UpdateFileAndAdd("filterFile", "new filterFile content")
 	shell.Commit("only filterFile")
+
+	shell.EmptyCommit("none of the two")
 }
 
 func postFilterTest(t *TestDriver) {
