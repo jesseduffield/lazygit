@@ -64,7 +64,7 @@ func (self *GuiDriver) Fail(message string) {
 		"%s\nFinal Lazygit state:\n%s\nUpon failure, focused view was '%s'.\nLog:\n%s", message,
 		self.gui.g.Snapshot(),
 		currentView.Name(),
-		strings.Join(self.gui.CmdLog, "\n"),
+		strings.Join(self.gui.GuiLog, "\n"),
 	)
 
 	self.gui.g.Close()
