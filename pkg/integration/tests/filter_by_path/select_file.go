@@ -18,10 +18,12 @@ var SelectFile = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains(`only filterFile`).IsSelected(),
+				Contains(`none of the two`).IsSelected(),
+				Contains(`only filterFile`),
 				Contains(`only otherFile`),
 				Contains(`both files`),
 			).
+			SelectNextItem().
 			PressEnter()
 
 		// when you click into the commit itself, you see all files from that commit
