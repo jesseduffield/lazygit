@@ -288,6 +288,15 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		return err
 	}
 
+	gui.g.SetFocusHandler(func(Focused bool) error {
+		if Focused {
+			gui.c.Log.Info("Receiving focus - refreshing")
+			return gui.helpers.Refresh.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		}
+
+		return nil
+	})
+
 	// if a context key has been given, push that instead, and set its index to 0
 	if contextKey != context.NO_CONTEXT {
 		contextToPush = gui.c.ContextForKey(contextKey)
