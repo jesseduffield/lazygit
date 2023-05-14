@@ -275,7 +275,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
   <kbd>e</kbd>: edit config file
   <kbd>u</kbd>: check for update
   <kbd>enter</kbd>: switch to a recent repo
-  <kbd>a</kbd>: show all branch logs
+  <kbd>a</kbd>: show or cycle through all branch logs
 </pre>
 
 ## Sub-commits
