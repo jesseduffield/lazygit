@@ -93,8 +93,8 @@ type Gui struct {
 
 	Views types.Views
 
-	// Log of the commands that get run, to be displayed to the user.
-	CmdLog []string
+	// Log of the commands/actions logged in the Command Log panel.
+	GuiLog []string
 
 	// the extras window contains things like the command log
 	ShowExtrasWindow bool
@@ -440,7 +440,7 @@ func NewGui(
 		showRecentRepos:      showRecentRepos,
 		RepoPathStack:        &utils.StringStack{},
 		RepoStateMap:         map[Repo]*GuiRepoState{},
-		CmdLog:               []string{},
+		GuiLog:               []string{},
 
 		// originally we could only hide the command log permanently via the config
 		// but now we do it via state. So we need to still support the config for the

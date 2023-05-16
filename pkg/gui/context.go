@@ -95,7 +95,7 @@ func (self *ContextMgr) pushToContextStack(c types.Context) ([]types.Context, ty
 	defer self.Unlock()
 
 	if len(self.ContextStack) > 0 &&
-		c == self.ContextStack[len(self.ContextStack)-1] {
+		c.GetKey() == self.ContextStack[len(self.ContextStack)-1].GetKey() {
 		// Context being pushed is already on top of the stack: nothing to
 		// deactivate or activate
 		return contextsToDeactivate, nil
@@ -105,7 +105,9 @@ func (self *ContextMgr) pushToContextStack(c types.Context) ([]types.Context, ty
 		self.ContextStack = append(self.ContextStack, c)
 	} else if c.GetKind() == types.SIDE_CONTEXT {
 		// if we are switching to a side context, remove all other contexts in the stack
-		contextsToDeactivate = self.ContextStack
+		contextsToDeactivate = lo.Filter(self.ContextStack, func(context types.Context, _ int) bool {
+			return context.GetKey() != c.GetKey()
+		})
 		self.ContextStack = []types.Context{c}
 	} else if c.GetKind() == types.MAIN_CONTEXT {
 		// if we're switching to a main context, remove all other main contexts in the stack
