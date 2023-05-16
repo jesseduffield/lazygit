@@ -95,7 +95,7 @@ func (self *ContextMgr) pushToContextStack(c types.Context) ([]types.Context, ty
 	defer self.Unlock()
 
 	if len(self.ContextStack) > 0 &&
-		c == self.ContextStack[len(self.ContextStack)-1] {
+		c.GetKey() == self.ContextStack[len(self.ContextStack)-1].GetKey() {
 		// Context being pushed is already on top of the stack: nothing to
 		// deactivate or activate
 		return contextsToDeactivate, nil
