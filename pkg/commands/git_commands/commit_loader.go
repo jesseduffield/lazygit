@@ -15,6 +15,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/samber/lo"
 )
 
 // context:
@@ -28,11 +29,14 @@ type CommitLoader struct {
 	*common.Common
 	cmd oscommands.ICmdObjBuilder
 
-	getCurrentBranchInfo func() (BranchInfo, error)
-	getRebaseMode        func() (enums.RebaseMode, error)
-	readFile             func(filename string) ([]byte, error)
-	walkFiles            func(root string, fn filepath.WalkFunc) error
-	dotGitDir            string
+	getRebaseMode func() (enums.RebaseMode, error)
+	readFile      func(filename string) ([]byte, error)
+	walkFiles     func(root string, fn filepath.WalkFunc) error
+	dotGitDir     string
+	// List of main branches that exist in the repo, quoted for direct use in a git command.
+	// We use these to obtain the merge base of the branch.
+	// When nil, we're yet to obtain the list of main branches.
+	quotedMainBranches *string
 }
 
 // making our dependencies explicit for the sake of easier testing
@@ -40,17 +44,16 @@ func NewCommitLoader(
 	cmn *common.Common,
 	cmd oscommands.ICmdObjBuilder,
 	dotGitDir string,
-	getCurrentBranchInfo func() (BranchInfo, error),
 	getRebaseMode func() (enums.RebaseMode, error),
 ) *CommitLoader {
 	return &CommitLoader{
-		Common:               cmn,
-		cmd:                  cmd,
-		getCurrentBranchInfo: getCurrentBranchInfo,
-		getRebaseMode:        getRebaseMode,
-		readFile:             os.ReadFile,
-		walkFiles:            filepath.Walk,
-		dotGitDir:            dotGitDir,
+		Common:             cmn,
+		cmd:                cmd,
+		getRebaseMode:      getRebaseMode,
+		readFile:           os.ReadFile,
+		walkFiles:          filepath.Walk,
+		dotGitDir:          dotGitDir,
+		quotedMainBranches: nil,
 	}
 }
 
@@ -101,10 +104,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		return commits, nil
 	}
 
-	commits, err = self.setCommitMergedStatuses(opts.RefName, commits)
-	if err != nil {
-		return nil, err
-	}
+	commits = self.setCommitMergedStatuses(opts.RefName, commits)
 
 	return commits, nil
 }
@@ -344,13 +344,10 @@ func (self *CommitLoader) commitFromPatch(content string) *models.Commit {
 	}
 }
 
-func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*models.Commit) ([]*models.Commit, error) {
-	ancestor, err := self.getMergeBase(refName)
-	if err != nil {
-		return nil, err
-	}
+func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*models.Commit) []*models.Commit {
+	ancestor := self.getMergeBase(refName)
 	if ancestor == "" {
-		return commits, nil
+		return commits
 	}
 	passedAncestor := false
 	for i, commit := range commits {
@@ -364,23 +361,41 @@ func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*mod
 			commits[i].Status = models.StatusMerged
 		}
 	}
-	return commits, nil
+	return commits
 }
 
-func (self *CommitLoader) getMergeBase(refName string) (string, error) {
-	info, err := self.getCurrentBranchInfo()
+func (self *CommitLoader) getMergeBase(refName string) string {
+	if self.quotedMainBranches == nil {
+		self.quotedMainBranches = lo.ToPtr(self.getExistingMainBranches())
+	}
+
+	if *self.quotedMainBranches == "" {
+		return ""
+	}
+
+	// We pass all configured main branches to the merge-base call; git will
+	// return the base commit for the closest one.
+	output, err := self.cmd.New(fmt.Sprintf("git merge-base %s %s",
+		self.cmd.Quote(refName), *self.quotedMainBranches)).DontLog().RunWithOutput()
 	if err != nil {
-		return "", err
+		// If there's an error, it must be because one of the main branches that
+		// used to exist when we called getExistingMainBranches() was deleted
+		// meanwhile. To fix this for next time, throw away our cache.
+		self.quotedMainBranches = nil
 	}
+	return ignoringWarnings(output)
+}
 
-	baseBranch := "master"
-	if strings.HasPrefix(info.RefName, "feature/") {
-		baseBranch = "develop"
-	}
-
-	// swallowing error because it's not a big deal; probably because there are no commits yet
-	output, _ := self.cmd.New(fmt.Sprintf("git merge-base %s %s", self.cmd.Quote(refName), self.cmd.Quote(baseBranch))).DontLog().RunWithOutput()
-	return ignoringWarnings(output), nil
+func (self *CommitLoader) getExistingMainBranches() string {
+	return strings.Join(
+		lo.FilterMap(self.UserConfig.Git.MainBranches,
+			func(branchName string, _ int) (string, bool) {
+				quotedRef := self.cmd.Quote("refs/heads/" + branchName)
+				if err := self.cmd.New(fmt.Sprintf("git rev-parse --verify --quiet %s", quotedRef)).DontLog().Run(); err != nil {
+					return "", false
+				}
+				return quotedRef, true
+			}), " ")
 }
 
 func ignoringWarnings(commandOutput string) string {

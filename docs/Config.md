@@ -88,6 +88,9 @@ git:
     # displays the whole git graph by default in the commits panel (equivalent to passing the `--all` argument to `git log`)
     showWholeGraph: false
   skipHookPrefix: WIP
+  # The main branches. We colour commits green if they belong to one of these branches, 
+  # so that you can easily see which commits are unique to your branch (coloured in yellow)
+  mainBranches: [master, main]
   autoFetch: true
   autoRefresh: true
   branchLogCmd: 'git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --'

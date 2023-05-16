@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"errors"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -21,25 +22,26 @@ d8084cd558925eb7c9c38afeed5725c21653ab90|1640821426|Jesse Duffield|jessedduffiel
 3d4470a6c072208722e5ae9a54bcb9634959a1c5|1640748818|Jesse Duffield|jessedduffield@gmail.com||053a66a7be3da43aacdc|WIP
 053a66a7be3da43aacdc7aa78e1fe757b82c4dd2|1640739815|Jesse Duffield|jessedduffield@gmail.com||985fe482e806b172aea4|refactoring the config struct`, "|", "\x00", -1)
 
+var singleCommitOutput = strings.Replace(`0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com| (HEAD -> better-tests)|b21997d6b4cbdf84b149|better typing for rebase mode`, "|", "\x00", -1)
+
 func TestGetCommits(t *testing.T) {
 	type scenario struct {
-		testName          string
-		runner            *oscommands.FakeCmdObjRunner
-		expectedCommits   []*models.Commit
-		expectedError     error
-		logOrder          string
-		rebaseMode        enums.RebaseMode
-		currentBranchName string
-		opts              GetCommitsOptions
+		testName        string
+		runner          *oscommands.FakeCmdObjRunner
+		expectedCommits []*models.Commit
+		expectedError   error
+		logOrder        string
+		rebaseMode      enums.RebaseMode
+		opts            GetCommitsOptions
+		mainBranches    []string
 	}
 
 	scenarios := []scenario{
 		{
-			testName:          "should return no commits if there are none",
-			logOrder:          "topo-order",
-			rebaseMode:        enums.REBASE_MODE_NONE,
-			currentBranchName: "master",
-			opts:              GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			testName:   "should return no commits if there are none",
+			logOrder:   "topo-order",
+			rebaseMode: enums.REBASE_MODE_NONE,
+			opts:       GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				Expect(`git log "HEAD" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, "", nil),
@@ -48,11 +50,10 @@ func TestGetCommits(t *testing.T) {
 			expectedError:   nil,
 		},
 		{
-			testName:          "should use proper upstream name for branch",
-			logOrder:          "topo-order",
-			rebaseMode:        enums.REBASE_MODE_NONE,
-			currentBranchName: "mybranch",
-			opts:              GetCommitsOptions{RefName: "refs/heads/mybranch", IncludeRebaseCommits: false},
+			testName:   "should use proper upstream name for branch",
+			logOrder:   "topo-order",
+			rebaseMode: enums.REBASE_MODE_NONE,
+			opts:       GetCommitsOptions{RefName: "refs/heads/mybranch", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git merge-base "refs/heads/mybranch" "mybranch"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				Expect(`git log "refs/heads/mybranch" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, "", nil),
@@ -61,18 +62,21 @@ func TestGetCommits(t *testing.T) {
 			expectedError:   nil,
 		},
 		{
-			testName:          "should return commits if they are present",
-			logOrder:          "topo-order",
-			rebaseMode:        enums.REBASE_MODE_NONE,
-			currentBranchName: "master",
-			opts:              GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			testName:     "should return commits if they are present",
+			logOrder:     "topo-order",
+			rebaseMode:   enums.REBASE_MODE_NONE,
+			opts:         GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			mainBranches: []string{"master", "main"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
 				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
 				Expect(`git log "HEAD" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, commitsOutput, nil).
+				// here it's testing which of the configured main branches exist
+				Expect(`git rev-parse --verify --quiet "refs/heads/master"`, "", nil).               // this one does
+				Expect(`git rev-parse --verify --quiet "refs/heads/main"`, "", errors.New("error")). // this one doesn't
 				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
-				Expect(`git merge-base "HEAD" "master"`, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
+				Expect(`git merge-base "HEAD" "refs/heads/master"`, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
 
 			expectedCommits: []*models.Commit{
 				{
@@ -191,11 +195,80 @@ func TestGetCommits(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			testName:          "should not specify order if `log.order` is `default`",
-			logOrder:          "default",
-			rebaseMode:        enums.REBASE_MODE_NONE,
-			currentBranchName: "master",
-			opts:              GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			testName:     "should not call merge-base for mainBranches if none exist",
+			logOrder:     "topo-order",
+			rebaseMode:   enums.REBASE_MODE_NONE,
+			opts:         GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			mainBranches: []string{"master", "main"},
+			runner: oscommands.NewFakeRunner(t).
+				// here it's seeing which commits are yet to be pushed
+				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				// here it's actually getting all the commits in a formatted form, one per line
+				Expect(`git log "HEAD" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, singleCommitOutput, nil).
+				// here it's testing which of the configured main branches exist; neither does
+				Expect(`git rev-parse --verify --quiet "refs/heads/master"`, "", errors.New("error")).
+				Expect(`git rev-parse --verify --quiet "refs/heads/main"`, "", errors.New("error")),
+
+			expectedCommits: []*models.Commit{
+				{
+					Sha:           "0eea75e8c631fba6b58135697835d58ba4c18dbc",
+					Name:          "better typing for rebase mode",
+					Status:        models.StatusUnpushed,
+					Action:        models.ActionNone,
+					Tags:          []string{},
+					ExtraInfo:     "(HEAD -> better-tests)",
+					AuthorName:    "Jesse Duffield",
+					AuthorEmail:   "jessedduffield@gmail.com",
+					UnixTimestamp: 1640826609,
+					Parents: []string{
+						"b21997d6b4cbdf84b149",
+					},
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			testName:     "should call merge-base for all main branches that exist",
+			logOrder:     "topo-order",
+			rebaseMode:   enums.REBASE_MODE_NONE,
+			opts:         GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			mainBranches: []string{"master", "main", "develop", "1.0-hotfixes"},
+			runner: oscommands.NewFakeRunner(t).
+				// here it's seeing which commits are yet to be pushed
+				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				// here it's actually getting all the commits in a formatted form, one per line
+				Expect(`git log "HEAD" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, singleCommitOutput, nil).
+				// here it's testing which of the configured main branches exist
+				Expect(`git rev-parse --verify --quiet "refs/heads/master"`, "", nil).
+				Expect(`git rev-parse --verify --quiet "refs/heads/main"`, "", errors.New("error")).
+				Expect(`git rev-parse --verify --quiet "refs/heads/develop"`, "", nil).
+				Expect(`git rev-parse --verify --quiet "refs/heads/1.0-hotfixes"`, "", nil).
+				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
+				Expect(`git merge-base "HEAD" "refs/heads/master" "refs/heads/develop" "refs/heads/1.0-hotfixes"`, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
+
+			expectedCommits: []*models.Commit{
+				{
+					Sha:           "0eea75e8c631fba6b58135697835d58ba4c18dbc",
+					Name:          "better typing for rebase mode",
+					Status:        models.StatusUnpushed,
+					Action:        models.ActionNone,
+					Tags:          []string{},
+					ExtraInfo:     "(HEAD -> better-tests)",
+					AuthorName:    "Jesse Duffield",
+					AuthorEmail:   "jessedduffield@gmail.com",
+					UnixTimestamp: 1640826609,
+					Parents: []string{
+						"b21997d6b4cbdf84b149",
+					},
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			testName:   "should not specify order if `log.order` is `default`",
+			logOrder:   "default",
+			rebaseMode: enums.REBASE_MODE_NONE,
+			opts:       GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				Expect(`git log "HEAD" --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, "", nil),
@@ -204,11 +277,10 @@ func TestGetCommits(t *testing.T) {
 			expectedError:   nil,
 		},
 		{
-			testName:          "should set filter path",
-			logOrder:          "default",
-			rebaseMode:        enums.REBASE_MODE_NONE,
-			currentBranchName: "master",
-			opts:              GetCommitsOptions{RefName: "HEAD", FilterPath: "src"},
+			testName:   "should set filter path",
+			logOrder:   "default",
+			rebaseMode: enums.REBASE_MODE_NONE,
+			opts:       GetCommitsOptions{RefName: "HEAD", FilterPath: "src"},
 			runner: oscommands.NewFakeRunner(t).
 				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				Expect(`git log "HEAD" --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --follow --no-show-signature -- "src"`, "", nil),
@@ -225,11 +297,8 @@ func TestGetCommits(t *testing.T) {
 			common.UserConfig.Git.Log.Order = scenario.logOrder
 
 			builder := &CommitLoader{
-				Common: common,
-				cmd:    oscommands.NewDummyCmdObjBuilder(scenario.runner),
-				getCurrentBranchInfo: func() (BranchInfo, error) {
-					return BranchInfo{RefName: scenario.currentBranchName, DisplayName: scenario.currentBranchName, DetachedHead: false}, nil
-				},
+				Common:        common,
+				cmd:           oscommands.NewDummyCmdObjBuilder(scenario.runner),
 				getRebaseMode: func() (enums.RebaseMode, error) { return scenario.rebaseMode, nil },
 				dotGitDir:     ".git",
 				readFile: func(filename string) ([]byte, error) {
@@ -240,6 +309,7 @@ func TestGetCommits(t *testing.T) {
 				},
 			}
 
+			common.UserConfig.Git.MainBranches = scenario.mainBranches
 			commits, err := builder.GetCommits(scenario.opts)
 
 			assert.Equal(t, scenario.expectedCommits, commits)
