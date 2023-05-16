@@ -56,7 +56,15 @@ func (self *MergeConflictsHelper) EscapeMerge() error {
 
 	// doing this in separate UI thread so that we're not still holding the lock by the time refresh the file
 	self.c.OnUIThread(func() error {
-		return self.c.PushContext(self.c.Contexts().Files)
+		// There is a race condition here: refreshing the files scope can trigger the
+		// confirmation context to be pushed if all conflicts are resolved (prompting
+		// to continue the merge/rebase. In that case, we don't want to then push the
+		// files context over it.
+		// So long as both places call OnUIThread, we're fine.
+		if self.c.IsCurrentContext(self.c.Contexts().MergeConflicts) {
+			return self.c.PushContext(self.c.Contexts().Files)
+		}
+		return nil
 	})
 	return nil
 }
