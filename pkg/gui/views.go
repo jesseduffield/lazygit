@@ -3,7 +3,9 @@ package gui
 import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type viewNameMapping struct {
@@ -159,7 +161,10 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.CommitDescription.Visible = false
 	gui.Views.CommitDescription.Title = gui.c.Tr.CommitDescriptionTitle
-	gui.Views.CommitDescription.Subtitle = gui.Tr.CommitDescriptionSubTitle
+	gui.Views.CommitDescription.Subtitle = utils.ResolvePlaceholderString(gui.Tr.CommitDescriptionSubTitle,
+		map[string]string{
+			"togglePanelKeyBinding": keybindings.Label(gui.UserConfig.Keybinding.Universal.TogglePanel),
+		})
 	gui.Views.CommitDescription.FgColor = theme.GocuiDefaultTextColor
 	gui.Views.CommitDescription.Editable = true
 	gui.Views.CommitDescription.Editor = gocui.EditorFunc(gui.commitDescriptionEditor)
