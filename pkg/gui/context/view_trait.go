@@ -23,7 +23,11 @@ func (self *ViewTrait) FocusPoint(yIdx int) {
 
 func (self *ViewTrait) SetViewPortContent(content string) {
 	_, y := self.view.Origin()
-	self.view.OverwriteLines(y, content)
+	self.view.OverwriteLinesAndClearEverythingElse(y, content)
+}
+
+func (self *ViewTrait) SetContentLineCount(lineCount int) {
+	self.view.SetContentLineCount(lineCount)
 }
 
 func (self *ViewTrait) SetContent(content string) {

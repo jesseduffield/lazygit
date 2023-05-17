@@ -127,6 +127,7 @@ type IPatchExplorerContext interface {
 type IViewTrait interface {
 	FocusPoint(yIdx int)
 	SetViewPortContent(content string)
+	SetContentLineCount(lineCount int)
 	SetContent(content string)
 	SetFooter(value string)
 	SetOriginX(value int)

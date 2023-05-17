@@ -724,8 +724,8 @@ func (v *View) parseInput(ch rune, x int, y int) (bool, []cell) {
 			// fill rest of line
 			v.ei.instructionRead()
 			cx := 0
-			for _, cell := range v.lines[v.wy] {
-				cx += runewidth.RuneWidth(cell.chr)
+			for ix := 0; ix < v.wx; ix += 1 {
+				cx += runewidth.RuneWidth(v.lines[v.wy][ix].chr)
 			}
 			repeatCount = v.InnerWidth() - cx
 			ch = ' '
@@ -1382,7 +1382,7 @@ func (v *View) ClearTextArea() {
 }
 
 // only call this function if you don't care where v.wx and v.wy end up
-func (v *View) OverwriteLines(y int, content string) {
+func (v *View) OverwriteLinesAndClearEverythingElse(y int, content string) {
 	v.writeMutex.Lock()
 	defer v.writeMutex.Unlock()
 
@@ -1392,6 +1392,20 @@ func (v *View) OverwriteLines(y int, content string) {
 
 	lines := strings.Replace(content, "\n", "\x1b[K\n", -1)
 	v.writeString(lines)
+
+	for i := 0; i < y; i += 1 {
+		v.lines[i] = nil
+	}
+
+	for i := v.wy + 1; i < len(v.lines); i += 1 {
+		v.lines[i] = nil
+	}
+}
+
+func (v *View) SetContentLineCount(lineCount int) {
+	if lineCount > 0 {
+		v.makeWriteable(0, lineCount-1)
+	}
 }
 
 func (v *View) ScrollUp(amount int) {

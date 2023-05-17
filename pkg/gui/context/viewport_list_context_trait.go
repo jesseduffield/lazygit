@@ -20,3 +20,15 @@ func (self *ViewportListContextTrait) FocusLine() {
 	content := utils.RenderDisplayStrings(displayStrings)
 	self.GetViewTrait().SetViewPortContent(content)
 }
+
+func (self *ViewportListContextTrait) HandleRender() error {
+	return self.handleRenderImpl(func() {
+		// Only render the visible area, since we re-render on every FocusLine()
+		// call anyway. Saves a ton of cell memory.
+		self.GetViewTrait().SetContentLineCount(self.list.Len())
+		startIdx, length := self.GetViewTrait().ViewPortYBounds()
+		displayStrings := self.getDisplayStrings(startIdx, length)
+		content := utils.RenderDisplayStrings(displayStrings)
+		self.GetViewTrait().SetViewPortContent(content)
+	})
+}
