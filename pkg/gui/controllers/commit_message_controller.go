@@ -22,8 +22,6 @@ func NewCommitMessageController(
 	}
 }
 
-// TODO: merge that commit panel PR because we're not currently showing how to add a newline as it's
-// handled by the editor func rather than by the controller here.
 func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
