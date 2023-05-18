@@ -5,7 +5,10 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type CommitMessageContext struct {
@@ -108,6 +111,13 @@ func (self *CommitMessageContext) SetPanelState(
 	self.viewModel.onSwitchToEditor = onSwitchToEditor
 	self.GetView().Title = summaryTitle
 	self.c.Views().CommitDescription.Title = descriptionTitle
+
+	subtitleTemplate := lo.Ternary(onSwitchToEditor != nil, self.c.Tr.CommitDescriptionSubTitle, self.c.Tr.CommitDescriptionSubTitleNoSwitch)
+	self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(subtitleTemplate,
+		map[string]string{
+			"togglePanelKeyBinding":    keybindings.Label(self.c.UserConfig.Keybinding.Universal.TogglePanel),
+			"switchToEditorKeyBinding": keybindings.Label(self.c.UserConfig.Keybinding.CommitMessage.SwitchToEditor),
+		})
 }
 
 func (self *CommitMessageContext) RenderCommitLength() {
