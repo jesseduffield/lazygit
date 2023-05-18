@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -34,6 +35,10 @@ func (self *CommitDescriptionController) GetKeybindings(opts types.KeybindingsOp
 			Key:     opts.GetKey(opts.Config.Universal.ConfirmInEditor),
 			Handler: self.confirm,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.CommitMessage.SwitchToEditor),
+			Handler: self.switchToEditor,
+		},
 	}
 
 	return bindings
@@ -43,7 +48,7 @@ func (self *CommitDescriptionController) Context() types.Context {
 	return self.context()
 }
 
-func (self *CommitDescriptionController) context() types.Context {
+func (self *CommitDescriptionController) context() *context.CommitMessageContext {
 	return self.c.Contexts().CommitMessage
 }
 
@@ -57,4 +62,8 @@ func (self *CommitDescriptionController) close() error {
 
 func (self *CommitDescriptionController) confirm() error {
 	return self.c.Helpers().Commits.HandleCommitConfirm()
+}
+
+func (self *CommitDescriptionController) switchToEditor() error {
+	return self.c.Helpers().Commits.SwitchToEditor()
 }

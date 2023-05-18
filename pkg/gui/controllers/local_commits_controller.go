@@ -279,8 +279,35 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
 			PreserveMessage:  false,
 			OnConfirm:        self.handleReword,
+			OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
 		},
 	)
+}
+
+func (self *LocalCommitsController) switchFromCommitMessagePanelToEditor(filepath string) error {
+	if self.isHeadCommit() {
+		return self.c.RunSubprocessAndRefresh(
+			self.c.Git().Commit.RewordLastCommitInEditorWithMessageFileCmdObj(filepath))
+	}
+
+	err := self.c.Git().Rebase.BeginInteractiveRebaseForCommit(self.c.Model().Commits, self.context().GetSelectedLineIdx(), false)
+	if err != nil {
+		return err
+	}
+
+	// now the selected commit should be our head so we'll amend it with the new message
+	err = self.c.RunSubprocessAndRefresh(
+		self.c.Git().Commit.RewordLastCommitInEditorWithMessageFileCmdObj(filepath))
+	if err != nil {
+		return err
+	}
+
+	err = self.c.Git().Rebase.ContinueRebase()
+	if err != nil {
+		return err
+	}
+
+	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (self *LocalCommitsController) handleReword(summary string, description string) error {

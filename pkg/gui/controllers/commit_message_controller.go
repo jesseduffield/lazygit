@@ -46,6 +46,10 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 			Key:     opts.GetKey(opts.Config.Universal.TogglePanel),
 			Handler: self.switchToCommitDescription,
 		},
+		{
+			Key:     opts.GetKey(opts.Config.CommitMessage.SwitchToEditor),
+			Handler: self.switchToEditor,
+		},
 	}
 
 	return bindings
@@ -82,6 +86,10 @@ func (self *CommitMessageController) switchToCommitDescription() error {
 		return err
 	}
 	return nil
+}
+
+func (self *CommitMessageController) switchToEditor() error {
+	return self.c.Helpers().Commits.SwitchToEditor()
 }
 
 func (self *CommitMessageController) handleCommitIndexChange(value int) error {

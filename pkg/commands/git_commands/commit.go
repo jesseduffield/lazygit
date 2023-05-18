@@ -68,6 +68,19 @@ func (self *CommitCommands) RewordLastCommitInEditorCmdObj() oscommands.ICmdObj 
 	return self.cmd.New(NewGitCmd("commit").Arg("--allow-empty", "--amend", "--only").ToArgv())
 }
 
+func (self *CommitCommands) RewordLastCommitInEditorWithMessageFileCmdObj(tmpMessageFile string) oscommands.ICmdObj {
+	return self.cmd.New(NewGitCmd("commit").
+		Arg("--allow-empty", "--amend", "--only", "--edit", "--file="+tmpMessageFile).ToArgv())
+}
+
+func (self *CommitCommands) CommitInEditorWithMessageFileCmdObj(tmpMessageFile string) oscommands.ICmdObj {
+	return self.cmd.New(NewGitCmd("commit").
+		Arg("--edit").
+		Arg("--file="+tmpMessageFile).
+		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
+		ToArgv())
+}
+
 // RewordLastCommit rewords the topmost commit with the given message
 func (self *CommitCommands) RewordLastCommit(summary string, description string) error {
 	messageArgs := self.commitMessageArgs(summary, description)
