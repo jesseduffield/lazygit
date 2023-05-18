@@ -482,8 +482,6 @@ type TranslationSet struct {
 	SelectParentCommitForMerge          string
 	ToggleWhitespaceInDiffView          string
 	IgnoreWhitespaceDiffViewSubTitle    string
-	IgnoringWhitespaceInDiffView        string
-	ShowingWhitespaceInDiffView         string
 	IgnoreWhitespaceNotSupportedHere    string
 	IncreaseContextInDiffView           string
 	DecreaseContextInDiffView           string
@@ -1155,8 +1153,6 @@ func EnglishTranslationSet() TranslationSet {
 		SelectParentCommitForMerge:          "Select parent commit for merge",
 		ToggleWhitespaceInDiffView:          "Toggle whether or not whitespace changes are shown in the diff view",
 		IgnoreWhitespaceDiffViewSubTitle:    "(ignoring whitespace)",
-		IgnoringWhitespaceInDiffView:        "Whitespace will be ignored in the diff view",
-		ShowingWhitespaceInDiffView:         "Whitespace will be shown in the diff view",
 		IgnoreWhitespaceNotSupportedHere:    "Ignoring whitespace is not supported in this view",
 		IncreaseContextInDiffView:           "Increase the size of the context shown around changes in the diff view",
 		DecreaseContextInDiffView:           "Decrease the size of the context shown around changes in the diff view",
