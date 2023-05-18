@@ -174,8 +174,9 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 				return self.c.RenderToMainViews(types.RefreshMainOpts{
 					Pair: self.c.MainViewPairs().Normal,
 					Main: &types.ViewUpdateOpts{
-						Title: self.c.Tr.DiffTitle,
-						Task:  types.NewRenderStringTask(self.c.Tr.NoChangedFiles),
+						Title:    self.c.Tr.DiffTitle,
+						SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+						Task:     types.NewRenderStringTask(self.c.Tr.NoChangedFiles),
 					},
 				})
 			}
@@ -209,8 +210,9 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 			refreshOpts := types.RefreshMainOpts{
 				Pair: pair,
 				Main: &types.ViewUpdateOpts{
-					Task:  types.NewRunPtyTask(cmdObj.GetCmd()),
-					Title: title,
+					Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
+					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					Title:    title,
 				},
 			}
 
@@ -223,8 +225,9 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 				}
 
 				refreshOpts.Secondary = &types.ViewUpdateOpts{
-					Title: title,
-					Task:  types.NewRunPtyTask(cmdObj.GetCmd()),
+					Title:    title,
+					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					Task:     types.NewRunPtyTask(cmdObj.GetCmd()),
 				}
 			}
 

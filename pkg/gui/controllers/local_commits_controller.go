@@ -176,8 +176,9 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() error {
 			return self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
-					Title: "Patch",
-					Task:  task,
+					Title:    "Patch",
+					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					Task:     task,
 				},
 				Secondary: secondaryPatchPanelUpdateOpts(self.c),
 			})

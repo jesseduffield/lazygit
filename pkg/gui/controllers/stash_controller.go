@@ -74,8 +74,9 @@ func (self *StashController) GetOnRenderToMain() func() error {
 			return self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
-					Title: "Stash",
-					Task:  task,
+					Title:    "Stash",
+					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					Task:     task,
 				},
 			})
 		})

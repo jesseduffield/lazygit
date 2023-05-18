@@ -21,7 +21,8 @@ type MainViewPairs struct {
 }
 
 type ViewUpdateOpts struct {
-	Title string
+	Title    string
+	SubTitle string
 
 	Task UpdateTask
 }

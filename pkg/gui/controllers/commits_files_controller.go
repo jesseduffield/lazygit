@@ -126,8 +126,9 @@ func (self *CommitFilesController) GetOnRenderToMain() func() error {
 		return self.c.RenderToMainViews(types.RefreshMainOpts{
 			Pair: pair,
 			Main: &types.ViewUpdateOpts{
-				Title: self.c.Tr.Patch,
-				Task:  task,
+				Title:    self.c.Tr.Patch,
+				SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+				Task:     task,
 			},
 			Secondary: secondaryPatchPanelUpdateOpts(self.c),
 		})

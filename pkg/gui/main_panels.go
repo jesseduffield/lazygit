@@ -66,6 +66,8 @@ func (gui *Gui) RefreshMainView(opts *types.ViewUpdateOpts, context types.Contex
 		view.Title = opts.Title
 	}
 
+	view.Subtitle = opts.SubTitle
+
 	if err := gui.runTaskForView(view, opts.Task); err != nil {
 		gui.c.Log.Error(err)
 		return nil
