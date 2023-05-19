@@ -3,14 +3,11 @@ package git_commands
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type WorkingTreeCommands struct {
@@ -271,33 +268,6 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 		ToString()
 
 	return self.cmd.New(cmdStr).DontLog()
-}
-
-func (self *WorkingTreeCommands) ApplyPatch(patch string, flags ...string) error {
-	filepath, err := self.SaveTemporaryPatch(patch)
-	if err != nil {
-		return err
-	}
-
-	return self.ApplyPatchFile(filepath, flags...)
-}
-
-func (self *WorkingTreeCommands) ApplyPatchFile(filepath string, flags ...string) error {
-	flagStr := ""
-	for _, flag := range flags {
-		flagStr += " --" + flag
-	}
-
-	return self.cmd.New(fmt.Sprintf("git apply%s %s", flagStr, self.cmd.Quote(filepath))).Run()
-}
-
-func (self *WorkingTreeCommands) SaveTemporaryPatch(patch string) (string, error) {
-	filepath := filepath.Join(self.os.GetTempDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
-	self.Log.Infof("saving temporary patch to %s", filepath)
-	if err := self.os.CreateFileWithContent(filepath, patch); err != nil {
-		return "", err
-	}
-	return filepath, nil
 }
 
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc

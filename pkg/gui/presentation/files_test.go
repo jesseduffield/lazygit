@@ -136,7 +136,6 @@ M file1
 			}
 			patchBuilder := patch.NewPatchBuilder(
 				utils.NewDummyLog(),
-				func(patch string, flags ...string) error { return nil },
 				func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
 					return "", nil
 				},

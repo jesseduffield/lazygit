@@ -199,7 +199,7 @@ func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {
 		action = "Apply patch in reverse"
 	}
 	self.c.LogAction(action)
-	if err := self.c.Git().Patch.PatchBuilder.ApplyPatches(reverse); err != nil {
+	if err := self.c.Git().Patch.ApplyCustomPatch(reverse); err != nil {
 		return self.c.Error(err)
 	}
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})

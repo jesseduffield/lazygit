@@ -2,6 +2,8 @@ package git_commands
 
 import (
 	"fmt"
+	"path/filepath"
+	"time"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
@@ -9,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type PatchCommands struct {
@@ -39,6 +42,53 @@ func NewPatchCommands(
 	}
 }
 
+type ApplyPatchOpts struct {
+	ThreeWay bool
+	Cached   bool
+	Index    bool
+	Reverse  bool
+}
+
+func (self *PatchCommands) ApplyCustomPatch(reverse bool) error {
+	patch := self.PatchBuilder.PatchToApply(reverse)
+
+	return self.ApplyPatch(patch, ApplyPatchOpts{
+		Index:    true,
+		ThreeWay: true,
+		Reverse:  reverse,
+	})
+}
+
+func (self *PatchCommands) ApplyPatch(patch string, opts ApplyPatchOpts) error {
+	filepath, err := self.SaveTemporaryPatch(patch)
+	if err != nil {
+		return err
+	}
+
+	return self.applyPatchFile(filepath, opts)
+}
+
+func (self *PatchCommands) applyPatchFile(filepath string, opts ApplyPatchOpts) error {
+	cmdStr := NewGitCmd("apply").
+		ArgIf(opts.ThreeWay, "--3way").
+		ArgIf(opts.Cached, "--cached").
+		ArgIf(opts.Index, "--index").
+		ArgIf(opts.Reverse, "--reverse").
+		Arg(self.cmd.Quote(filepath)).
+		ToString()
+
+	return self.cmd.New(cmdStr).Run()
+}
+
+func (self *PatchCommands) SaveTemporaryPatch(patch string) (string, error) {
+	filepath := filepath.Join(self.os.GetTempDir(), utils.GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
+	self.Log.Infof("saving temporary patch to %s", filepath)
+	if err := self.os.CreateFileWithContent(filepath, patch); err != nil {
+		return "", err
+	}
+	return filepath, nil
+}
+
 // DeletePatchesFromCommit applies a patch in reverse for a commit
 func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int) error {
 	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
@@ -46,7 +96,7 @@ func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, com
 	}
 
 	// apply each patch in reverse
-	if err := self.PatchBuilder.ApplyPatches(true); err != nil {
+	if err := self.ApplyCustomPatch(true); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
@@ -72,7 +122,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 		}
 
 		// apply each patch forward
-		if err := self.PatchBuilder.ApplyPatches(false); err != nil {
+		if err := self.ApplyCustomPatch(false); err != nil {
 			// Don't abort the rebase here; this might cause conflicts, so give
 			// the user a chance to resolve them
 			return err
@@ -121,7 +171,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	}
 
 	// apply each patch in reverse
-	if err := self.PatchBuilder.ApplyPatches(true); err != nil {
+	if err := self.ApplyCustomPatch(true); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
@@ -144,7 +194,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	self.rebase.onSuccessfulContinue = func() error {
 		// now we should be up to the destination, so let's apply forward these patches to that.
 		// ideally we would ensure we're on the right commit but I'm not sure if that check is necessary
-		if err := self.rebase.workingTree.ApplyPatch(patch, "index", "3way"); err != nil {
+		if err := self.ApplyPatch(patch, ApplyPatchOpts{Index: true, ThreeWay: true}); err != nil {
 			// Don't abort the rebase here; this might cause conflicts, so give
 			// the user a chance to resolve them
 			return err
@@ -177,7 +227,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 		return err
 	}
 
-	if err := self.PatchBuilder.ApplyPatches(true); err != nil {
+	if err := self.ApplyCustomPatch(true); err != nil {
 		if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 			_ = self.rebase.AbortRebase()
 		}
@@ -201,7 +251,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 
 	self.rebase.onSuccessfulContinue = func() error {
 		// add patches to index
-		if err := self.rebase.workingTree.ApplyPatch(patch, "index", "3way"); err != nil {
+		if err := self.ApplyPatch(patch, ApplyPatchOpts{Index: true, ThreeWay: true}); err != nil {
 			if self.status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
 				_ = self.rebase.AbortRebase()
 			}
@@ -226,7 +276,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 		return err
 	}
 
-	if err := self.PatchBuilder.ApplyPatches(true); err != nil {
+	if err := self.ApplyCustomPatch(true); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
@@ -242,7 +292,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 		return err
 	}
 
-	if err := self.rebase.workingTree.ApplyPatch(patch, "index", "3way"); err != nil {
+	if err := self.ApplyPatch(patch, ApplyPatchOpts{Index: true, ThreeWay: true}); err != nil {
 		_ = self.rebase.AbortRebase()
 		return err
 	}
