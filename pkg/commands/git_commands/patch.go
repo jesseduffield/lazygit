@@ -267,5 +267,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 // only some lines of a range of adjacent added lines. To solve this, we
 // get the diff of HEAD and the original commit and then apply that.
 func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string, error) {
-	return self.cmd.New(fmt.Sprintf("git diff HEAD..%s", commit.Sha)).RunWithOutput()
+	cmdStr := NewGitCmd("diff").Arg("HEAD.." + commit.Sha).ToString()
+
+	return self.cmd.New(cmdStr).RunWithOutput()
 }

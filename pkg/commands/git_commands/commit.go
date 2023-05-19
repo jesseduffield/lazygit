@@ -22,18 +22,27 @@ func NewCommitCommands(gitCommon *GitCommon) *CommitCommands {
 
 // ResetAuthor resets the author of the topmost commit
 func (self *CommitCommands) ResetAuthor() error {
-	return self.cmd.New("git commit --allow-empty --only --no-edit --amend --reset-author").Run()
+	cmdStr := NewGitCmd("commit").
+		Arg("--allow-empty", "--only", "--no-edit", "--amend", "--reset-author").
+		ToString()
+
+	return self.cmd.New(cmdStr).Run()
 }
 
 // Sets the commit's author to the supplied value. Value is expected to be of the form 'Name <Email>'
 func (self *CommitCommands) SetAuthor(value string) error {
-	commandStr := fmt.Sprintf("git commit --allow-empty --only --no-edit --amend --author=%s", self.cmd.Quote(value))
-	return self.cmd.New(commandStr).Run()
+	cmdStr := NewGitCmd("commit").
+		Arg("--allow-empty", "--only", "--no-edit", "--amend", "--author="+self.cmd.Quote(value)).
+		ToString()
+
+	return self.cmd.New(cmdStr).Run()
 }
 
 // ResetToCommit reset to commit
 func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars []string) error {
-	return self.cmd.New(fmt.Sprintf("git reset --%s %s", strength, sha)).
+	cmdStr := NewGitCmd("reset").Arg("--"+strength, sha).ToString()
+
+	return self.cmd.New(cmdStr).
 		// prevents git from prompting us for input which would freeze the program
 		// TODO: see if this is actually needed here
 		AddEnvVars("GIT_TERMINAL_PROMPT=0").
@@ -45,38 +54,52 @@ func (self *CommitCommands) CommitCmdObj(message string) oscommands.ICmdObj {
 	messageArgs := self.commitMessageArgs(message)
 
 	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
-	noVerifyFlag := ""
-	if skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix) {
-		noVerifyFlag = " --no-verify"
-	}
 
-	return self.cmd.New(fmt.Sprintf("git commit%s%s%s", noVerifyFlag, self.signoffFlag(), messageArgs))
+	cmdStr := NewGitCmd("commit").
+		ArgIf(skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix), "--no-verify").
+		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
+		Arg(messageArgs...).
+		ToString()
+
+	return self.cmd.New(cmdStr)
 }
 
 // RewordLastCommit rewords the topmost commit with the given message
 func (self *CommitCommands) RewordLastCommit(message string) error {
 	messageArgs := self.commitMessageArgs(message)
-	return self.cmd.New(fmt.Sprintf("git commit --allow-empty --amend --only%s", messageArgs)).Run()
+
+	cmdStr := NewGitCmd("commit").
+		Arg("--allow-empty", "--amend", "--only").
+		Arg(messageArgs...).
+		ToString()
+
+	return self.cmd.New(cmdStr).Run()
 }
 
-func (self *CommitCommands) commitMessageArgs(message string) string {
+func (self *CommitCommands) commitMessageArgs(message string) []string {
 	msg, description, _ := strings.Cut(message, "\n")
-	descriptionArgs := ""
+	args := []string{"-m", self.cmd.Quote(msg)}
+
 	if description != "" {
-		descriptionArgs = fmt.Sprintf(" -m %s", self.cmd.Quote(description))
+		args = append(args, "-m", self.cmd.Quote(description))
 	}
 
-	return fmt.Sprintf(" -m %s%s", self.cmd.Quote(msg), descriptionArgs)
+	return args
 }
 
 // runs git commit without the -m argument meaning it will invoke the user's editor
 func (self *CommitCommands) CommitEditorCmdObj() oscommands.ICmdObj {
-	return self.cmd.New(fmt.Sprintf("git commit%s%s", self.signoffFlag(), self.verboseFlag()))
+	cmdStr := NewGitCmd("commit").
+		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
+		ArgIf(self.verboseFlag() != "", self.verboseFlag()).
+		ToString()
+
+	return self.cmd.New(cmdStr)
 }
 
 func (self *CommitCommands) signoffFlag() string {
 	if self.UserConfig.Git.Commit.SignOff {
-		return " --signoff"
+		return "--signoff"
 	} else {
 		return ""
 	}
@@ -85,9 +108,9 @@ func (self *CommitCommands) signoffFlag() string {
 func (self *CommitCommands) verboseFlag() string {
 	switch self.config.UserConfig.Git.Commit.Verbose {
 	case "always":
-		return " --verbose"
+		return "--verbose"
 	case "never":
-		return " --no-verbose"
+		return "--no-verbose"
 	default:
 		return ""
 	}
@@ -95,19 +118,25 @@ func (self *CommitCommands) verboseFlag() string {
 
 // Get the subject of the HEAD commit
 func (self *CommitCommands) GetHeadCommitMessage() (string, error) {
-	message, err := self.cmd.New("git log -1 --pretty=%s").DontLog().RunWithOutput()
+	cmdStr := NewGitCmd("log").Arg("-1", "--pretty=%s").ToString()
+
+	message, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
 	return strings.TrimSpace(message), err
 }
 
 func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
-	cmdStr := "git rev-list --format=%B --max-count=1 " + commitSha
+	cmdStr := NewGitCmd("rev-list").
+		Arg("--format=%B", "--max-count=1", commitSha).
+		ToString()
+
 	messageWithHeader, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
 	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "")
 	return strings.TrimSpace(message), err
 }
 
 func (self *CommitCommands) GetCommitDiff(commitSha string) (string, error) {
-	cmdStr := "git show --no-color " + commitSha
+	cmdStr := NewGitCmd("show").Arg("--no-color", commitSha).ToString()
+
 	diff, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
 	return diff, err
 }
@@ -118,7 +147,10 @@ type Author struct {
 }
 
 func (self *CommitCommands) GetCommitAuthor(commitSha string) (Author, error) {
-	cmdStr := "git show --no-patch --pretty=format:'%an%x00%ae' " + commitSha
+	cmdStr := NewGitCmd("show").
+		Arg("--no-patch", "--pretty=format:'%an%x00%ae'", commitSha).
+		ToString()
+
 	output, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
 	if err != nil {
 		return Author{}, err
@@ -138,15 +170,21 @@ func (self *CommitCommands) GetCommitMessageFirstLine(sha string) (string, error
 }
 
 func (self *CommitCommands) GetCommitMessagesFirstLine(shas []string) (string, error) {
-	return self.cmd.New(
-		fmt.Sprintf("git show --no-patch --pretty=format:%%s %s", strings.Join(shas, " ")),
-	).DontLog().RunWithOutput()
+	cmdStr := NewGitCmd("show").
+		Arg("--no-patch", "--pretty=format:%s").
+		Arg(shas...).
+		ToString()
+
+	return self.cmd.New(cmdStr).DontLog().RunWithOutput()
 }
 
 func (self *CommitCommands) GetCommitsOneline(shas []string) (string, error) {
-	return self.cmd.New(
-		fmt.Sprintf("git show --no-patch --oneline %s", strings.Join(shas, " ")),
-	).DontLog().RunWithOutput()
+	cmdStr := NewGitCmd("show").
+		Arg("--no-patch", "--oneline").
+		Arg(shas...).
+		ToString()
+
+	return self.cmd.New(cmdStr).DontLog().RunWithOutput()
 }
 
 // AmendHead amends HEAD with whatever is staged in your working tree
@@ -155,42 +193,57 @@ func (self *CommitCommands) AmendHead() error {
 }
 
 func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
-	return self.cmd.New("git commit --amend --no-edit --allow-empty")
+	cmdStr := NewGitCmd("commit").
+		Arg("--amend", "--no-edit", "--allow-empty").
+		ToString()
+
+	return self.cmd.New(cmdStr)
 }
 
 func (self *CommitCommands) ShowCmdObj(sha string, filterPath string, ignoreWhitespace bool) oscommands.ICmdObj {
 	contextSize := self.UserConfig.Git.DiffContextSize
-	filterPathArg := ""
-	if filterPath != "" {
-		filterPathArg = fmt.Sprintf(" -- %s", self.cmd.Quote(filterPath))
-	}
-	ignoreWhitespaceArg := ""
-	if ignoreWhitespace {
-		ignoreWhitespaceArg = " --ignore-all-space"
-	}
 
-	cmdStr := fmt.Sprintf("git show --submodule --color=%s --unified=%d --stat -p %s%s%s",
-		self.UserConfig.Git.Paging.ColorArg, contextSize, sha, ignoreWhitespaceArg, filterPathArg)
+	cmdStr := NewGitCmd("show").
+		Arg("--submodule").
+		Arg("--color="+self.UserConfig.Git.Paging.ColorArg).
+		Arg(fmt.Sprintf("--unified=%d", contextSize)).
+		Arg("--stat").
+		Arg("-p").
+		Arg(sha).
+		ArgIf(ignoreWhitespace, "--ignore-all-space").
+		ArgIf(filterPath != "", "--", self.cmd.Quote(filterPath)).
+		ToString()
+
 	return self.cmd.New(cmdStr).DontLog()
 }
 
 // Revert reverts the selected commit by sha
 func (self *CommitCommands) Revert(sha string) error {
-	return self.cmd.New(fmt.Sprintf("git revert %s", sha)).Run()
+	cmdStr := NewGitCmd("revert").Arg(sha).ToString()
+
+	return self.cmd.New(cmdStr).Run()
 }
 
 func (self *CommitCommands) RevertMerge(sha string, parentNumber int) error {
-	return self.cmd.New(fmt.Sprintf("git revert %s -m %d", sha, parentNumber)).Run()
+	cmdStr := NewGitCmd("revert").Arg(sha, "-m", fmt.Sprintf("%d", parentNumber)).
+		ToString()
+
+	return self.cmd.New(cmdStr).Run()
 }
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
 func (self *CommitCommands) CreateFixupCommit(sha string) error {
-	return self.cmd.New(fmt.Sprintf("git commit --fixup=%s", sha)).Run()
+	cmdStr := NewGitCmd("commit").Arg("--fixup=" + sha).ToString()
+
+	return self.cmd.New(cmdStr).Run()
 }
 
 // a value of 0 means the head commit, 1 is the parent commit, etc
 func (self *CommitCommands) GetCommitMessageFromHistory(value int) (string, error) {
-	hash, _ := self.cmd.New(fmt.Sprintf("git log -1 --skip=%d --pretty=%%H", value)).DontLog().RunWithOutput()
+	cmdStr := NewGitCmd("log").Arg("-1", fmt.Sprintf("--skip=%d", value), "--pretty=%H").
+		ToString()
+
+	hash, _ := self.cmd.New(cmdStr).DontLog().RunWithOutput()
 	formattedHash := strings.TrimSpace(hash)
 	if len(formattedHash) == 0 {
 		return "", ErrInvalidCommitIndex

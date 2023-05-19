@@ -1,7 +1,6 @@
 package git_commands
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jesseduffield/generics/slices"
@@ -25,12 +24,18 @@ func NewCommitFileLoader(common *common.Common, cmd oscommands.ICmdObjBuilder) *
 
 // GetFilesInDiff get the specified commit files
 func (self *CommitFileLoader) GetFilesInDiff(from string, to string, reverse bool) ([]*models.CommitFile, error) {
-	reverseFlag := ""
-	if reverse {
-		reverseFlag = " -R "
-	}
+	cmdStr := NewGitCmd("diff").
+		Arg("--submodule").
+		Arg("--no-ext-diff").
+		Arg("--name-status").
+		Arg("-z").
+		Arg("--no-renames").
+		ArgIf(reverse, "-R").
+		Arg(from).
+		Arg(to).
+		ToString()
 
-	filenames, err := self.cmd.New(fmt.Sprintf("git diff --submodule --no-ext-diff --name-status -z --no-renames %s %s %s", reverseFlag, from, to)).DontLog().RunWithOutput()
+	filenames, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
 	if err != nil {
 		return nil, err
 	}

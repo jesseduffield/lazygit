@@ -201,12 +201,11 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 	// note that we're not filtering these as we do non-rebasing commits just because
 	// I suspect that will cause some damage
 	cmdObj := self.cmd.New(
-		fmt.Sprintf(
-			"git -c log.showSignature=false show %s --no-patch --oneline %s --abbrev=%d",
-			strings.Join(commitShas, " "),
-			prettyFormat,
-			20,
-		),
+		NewGitCmd("show").
+			Config("log.showSignature=false").
+			Arg("--no-patch", "--oneline", "--abbrev=20", prettyFormat).
+			Arg(commitShas...).
+			ToString(),
 	).DontLog()
 
 	fullCommits := map[string]*models.Commit{}
@@ -375,8 +374,11 @@ func (self *CommitLoader) getMergeBase(refName string) string {
 
 	// We pass all configured main branches to the merge-base call; git will
 	// return the base commit for the closest one.
-	output, err := self.cmd.New(fmt.Sprintf("git merge-base %s %s",
-		self.cmd.Quote(refName), *self.quotedMainBranches)).DontLog().RunWithOutput()
+
+	output, err := self.cmd.New(
+		NewGitCmd("merge-base").Arg(self.cmd.Quote(refName), *self.quotedMainBranches).
+			ToString(),
+	).DontLog().RunWithOutput()
 	if err != nil {
 		// If there's an error, it must be because one of the main branches that
 		// used to exist when we called getExistingMainBranches() was deleted
@@ -391,7 +393,9 @@ func (self *CommitLoader) getExistingMainBranches() string {
 		lo.FilterMap(self.UserConfig.Git.MainBranches,
 			func(branchName string, _ int) (string, bool) {
 				quotedRef := self.cmd.Quote("refs/heads/" + branchName)
-				if err := self.cmd.New(fmt.Sprintf("git rev-parse --verify --quiet %s", quotedRef)).DontLog().Run(); err != nil {
+				if err := self.cmd.New(
+					NewGitCmd("rev-parse").Arg("--verify", "--quiet", quotedRef).ToString(),
+				).DontLog().Run(); err != nil {
 					return "", false
 				}
 				return quotedRef, true
@@ -413,9 +417,10 @@ func ignoringWarnings(commandOutput string) string {
 func (self *CommitLoader) getFirstPushedCommit(refName string) (string, error) {
 	output, err := self.cmd.
 		New(
-			fmt.Sprintf("git merge-base %s %s@{u}",
-				self.cmd.Quote(refName),
-				self.cmd.Quote(strings.TrimPrefix(refName, "refs/heads/"))),
+			NewGitCmd("merge-base").
+				Arg(self.cmd.Quote(refName)).
+				Arg(self.cmd.Quote(strings.TrimPrefix(refName, "refs/heads/")) + "@{u}").
+				ToString(),
 		).
 		DontLog().
 		RunWithOutput()
@@ -428,42 +433,23 @@ func (self *CommitLoader) getFirstPushedCommit(refName string) (string, error) {
 
 // getLog gets the git log.
 func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
-	limitFlag := ""
-	if opts.Limit {
-		limitFlag = " -300"
-	}
-
-	followFlag := ""
-	filterFlag := ""
-	if opts.FilterPath != "" {
-		followFlag = " --follow"
-		filterFlag = fmt.Sprintf(" %s", self.cmd.Quote(opts.FilterPath))
-	}
-
 	config := self.UserConfig.Git.Log
 
-	orderFlag := ""
-	if config.Order != "default" {
-		orderFlag = " --" + config.Order
-	}
-	allFlag := ""
-	if opts.All {
-		allFlag = " --all"
-	}
+	cmdStr := NewGitCmd("log").
+		Arg(self.cmd.Quote(opts.RefName)).
+		ArgIf(config.Order != "default", "--"+config.Order).
+		ArgIf(opts.All, "--all").
+		Arg("--oneline").
+		Arg(prettyFormat).
+		Arg("--abbrev=40").
+		ArgIf(opts.Limit, "-300").
+		ArgIf(opts.FilterPath != "", "--follow").
+		Arg("--no-show-signature").
+		Arg("--").
+		ArgIf(opts.FilterPath != "", self.cmd.Quote(opts.FilterPath)).
+		ToString()
 
-	return self.cmd.New(
-		fmt.Sprintf(
-			"git log %s%s%s --oneline %s%s --abbrev=%d%s --no-show-signature --%s",
-			self.cmd.Quote(opts.RefName),
-			orderFlag,
-			allFlag,
-			prettyFormat,
-			limitFlag,
-			40,
-			followFlag,
-			filterFlag,
-		),
-	).DontLog()
+	return self.cmd.New(cmdStr).DontLog()
 }
 
 const prettyFormat = `--pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s"`

@@ -176,23 +176,21 @@ type PrepareInteractiveRebaseCommandOpts struct {
 func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteractiveRebaseCommandOpts) oscommands.ICmdObj {
 	ex := oscommands.GetLazygitPath()
 
+	cmdStr := NewGitCmd("rebase").
+		Arg("--interactive").
+		Arg("--autostash").
+		Arg("--keep-empty").
+		ArgIf(!self.version.IsOlderThan(2, 26, 0), "--empty=keep").
+		Arg("--no-autosquash").
+		ArgIf(!self.version.IsOlderThan(2, 22, 0), "--rebase-merges").
+		Arg(opts.baseShaOrRoot).
+		ToString()
+
 	debug := "FALSE"
 	if self.Debug {
 		debug = "TRUE"
 	}
 
-	emptyArg := " --empty=keep"
-	if self.version.IsOlderThan(2, 26, 0) {
-		emptyArg = ""
-	}
-
-	rebaseMergesArg := " --rebase-merges"
-	if self.version.IsOlderThan(2, 22, 0) {
-		rebaseMergesArg = ""
-	}
-
-	cmdStr := fmt.Sprintf("git rebase --interactive --autostash --keep-empty%s --no-autosquash%s %s",
-		emptyArg, rebaseMergesArg, opts.baseShaOrRoot)
 	self.Log.WithField("command", cmdStr).Debug("RunCommand")
 
 	cmdObj := self.cmd.New(cmdStr)
@@ -228,7 +226,8 @@ func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) e
 	}
 
 	// Get the sha of the commit we just created
-	fixupSha, err := self.cmd.New("git rev-parse --verify HEAD").RunWithOutput()
+	cmdStr := NewGitCmd("rev-parse").Arg("--verify", "HEAD").ToString()
+	fixupSha, err := self.cmd.New(cmdStr).RunWithOutput()
 	if err != nil {
 		return err
 	}
@@ -265,14 +264,11 @@ func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) er
 		shaOrRoot = "--root"
 	}
 
-	return self.runSkipEditorCommand(
-		self.cmd.New(
-			fmt.Sprintf(
-				"git rebase --interactive --rebase-merges --autostash --autosquash %s",
-				shaOrRoot,
-			),
-		),
-	)
+	cmdStr := NewGitCmd("rebase").
+		Arg("--interactive", "--rebase-merges", "--autostash", "--autosquash", shaOrRoot).
+		ToString()
+
+	return self.runSkipEditorCommand(self.cmd.New(cmdStr))
 }
 
 // BeginInteractiveRebaseForCommit starts an interactive rebase to edit the current
@@ -308,7 +304,9 @@ func (self *RebaseCommands) RebaseBranch(branchName string) error {
 }
 
 func (self *RebaseCommands) GenericMergeOrRebaseActionCmdObj(commandType string, command string) oscommands.ICmdObj {
-	return self.cmd.New("git " + commandType + " --" + command)
+	cmdStr := NewGitCmd(commandType).Arg("--" + command).ToString()
+
+	return self.cmd.New(cmdStr)
 }
 
 func (self *RebaseCommands) ContinueRebase() error {
@@ -365,7 +363,9 @@ func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, comm
 	}
 
 	// check if file exists in previous commit (this command returns an error if the file doesn't exist)
-	if err := self.cmd.New("git cat-file -e HEAD^:" + self.cmd.Quote(fileName)).Run(); err != nil {
+	cmdStr := NewGitCmd("cat-file").Arg("-e", "HEAD^:"+self.cmd.Quote(fileName)).ToString()
+
+	if err := self.cmd.New(cmdStr).Run(); err != nil {
 		if err := self.os.Remove(fileName); err != nil {
 			return err
 		}
