@@ -29,7 +29,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 			arg:        "master",
 			gitVersion: &GitVersion{2, 26, 0, ""},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty --empty=keep --no-autosquash --rebase-merges master`, "", nil),
+				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash --rebase-merges master`, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -39,7 +39,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 			arg:        "master",
 			gitVersion: &GitVersion{2, 26, 0, ""},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty --empty=keep --no-autosquash --rebase-merges master`, "", errors.New("error")),
+				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash --rebase-merges master`, "", errors.New("error")),
 			test: func(err error) {
 				assert.Error(t, err)
 			},
@@ -149,7 +149,7 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 			commitIndex: 0,
 			fileName:    "test999.txt",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty --empty=keep --no-autosquash --rebase-merges abcdef`, "", nil).
+				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash --rebase-merges abcdef`, "", nil).
 				Expect(`git cat-file -e HEAD^:"test999.txt"`, "", nil).
 				Expect(`git checkout HEAD^ -- "test999.txt"`, "", nil).
 				Expect(`git commit --amend --no-edit --allow-empty`, "", nil).

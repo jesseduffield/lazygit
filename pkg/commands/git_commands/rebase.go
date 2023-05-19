@@ -41,7 +41,7 @@ func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, me
 		return self.commit.RewordLastCommit(message)
 	}
 
-	err := self.BeginInteractiveRebaseForCommit(commits, index)
+	err := self.BeginInteractiveRebaseForCommit(commits, index, false)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (self *RebaseCommands) GenericAmend(commits []*models.Commit, index int, f 
 		return f()
 	}
 
-	err := self.BeginInteractiveRebaseForCommit(commits, index)
+	err := self.BeginInteractiveRebaseForCommit(commits, index, false)
 	if err != nil {
 		return err
 	}
@@ -165,9 +165,10 @@ func logTodoChanges(changes []daemon.ChangeTodoAction) string {
 }
 
 type PrepareInteractiveRebaseCommandOpts struct {
-	baseShaOrRoot  string
-	instruction    daemon.Instruction
-	overrideEditor bool
+	baseShaOrRoot              string
+	instruction                daemon.Instruction
+	overrideEditor             bool
+	keepCommitsThatBecomeEmpty bool
 }
 
 // PrepareInteractiveRebaseCommand returns the cmd for an interactive rebase
@@ -180,7 +181,7 @@ func (self *RebaseCommands) PrepareInteractiveRebaseCommand(opts PrepareInteract
 		Arg("--interactive").
 		Arg("--autostash").
 		Arg("--keep-empty").
-		ArgIf(!self.version.IsOlderThan(2, 26, 0), "--empty=keep").
+		ArgIf(opts.keepCommitsThatBecomeEmpty && !self.version.IsOlderThan(2, 26, 0), "--empty=keep").
 		Arg("--no-autosquash").
 		ArgIf(!self.version.IsOlderThan(2, 22, 0), "--rebase-merges").
 		Arg(opts.baseShaOrRoot).
@@ -273,7 +274,9 @@ func (self *RebaseCommands) SquashAllAboveFixupCommits(commit *models.Commit) er
 
 // BeginInteractiveRebaseForCommit starts an interactive rebase to edit the current
 // commit and pick all others. After this you'll want to call `self.ContinueRebase()
-func (self *RebaseCommands) BeginInteractiveRebaseForCommit(commits []*models.Commit, commitIndex int) error {
+func (self *RebaseCommands) BeginInteractiveRebaseForCommit(
+	commits []*models.Commit, commitIndex int, keepCommitsThatBecomeEmpty bool,
+) error {
 	if len(commits)-1 < commitIndex {
 		return errors.New("index outside of range of commits")
 	}
@@ -292,9 +295,10 @@ func (self *RebaseCommands) BeginInteractiveRebaseForCommit(commits []*models.Co
 	self.os.LogCommand(logTodoChanges(changes), false)
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseShaOrRoot:  getBaseShaOrRoot(commits, commitIndex+1),
-		overrideEditor: true,
-		instruction:    daemon.NewChangeTodoActionsInstruction(changes),
+		baseShaOrRoot:              getBaseShaOrRoot(commits, commitIndex+1),
+		overrideEditor:             true,
+		keepCommitsThatBecomeEmpty: keepCommitsThatBecomeEmpty,
+		instruction:                daemon.NewChangeTodoActionsInstruction(changes),
 	}).Run()
 }
 
@@ -358,7 +362,7 @@ func (self *RebaseCommands) runSkipEditorCommand(cmdObj oscommands.ICmdObj) erro
 
 // DiscardOldFileChanges discards changes to a file from an old commit
 func (self *RebaseCommands) DiscardOldFileChanges(commits []*models.Commit, commitIndex int, fileName string) error {
-	if err := self.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
+	if err := self.BeginInteractiveRebaseForCommit(commits, commitIndex, false); err != nil {
 		return err
 	}
 
