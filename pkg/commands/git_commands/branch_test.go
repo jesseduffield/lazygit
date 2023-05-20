@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -99,12 +100,53 @@ func TestBranchDeleteBranch(t *testing.T) {
 }
 
 func TestBranchMerge(t *testing.T) {
-	runner := oscommands.NewFakeRunner(t).
-		Expect(`git merge --no-edit "test"`, "", nil)
-	instance := buildBranchCommands(commonDeps{runner: runner})
+	scenarios := []struct {
+		testName   string
+		userConfig *config.UserConfig
+		opts       MergeOpts
+		branchName string
+		expected   string
+	}{
+		{
+			testName:   "basic",
+			userConfig: &config.UserConfig{},
+			opts:       MergeOpts{},
+			branchName: "mybranch",
+			expected:   `git merge --no-edit "mybranch"`,
+		},
+		{
+			testName: "merging args",
+			userConfig: &config.UserConfig{
+				Git: config.GitConfig{
+					Merging: config.MergingConfig{
+						Args: "--merging-args", // it's up to the user what they put here
+					},
+				},
+			},
+			opts:       MergeOpts{},
+			branchName: "mybranch",
+			expected:   `git merge --no-edit --merging-args "mybranch"`,
+		},
+		{
+			testName:   "fast forward only",
+			userConfig: &config.UserConfig{},
+			opts:       MergeOpts{FastForwardOnly: true},
+			branchName: "mybranch",
+			expected:   `git merge --no-edit --ff-only "mybranch"`,
+		},
+	}
 
-	assert.NoError(t, instance.Merge("test", MergeOpts{}))
-	runner.CheckForMissingCalls()
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			runner := oscommands.NewFakeRunner(t).
+				Expect(s.expected, "", nil)
+			instance := buildBranchCommands(commonDeps{runner: runner, userConfig: s.userConfig})
+
+			assert.NoError(t, instance.Merge(s.branchName, s.opts))
+			runner.CheckForMissingCalls()
+		})
+	}
 }
 
 func TestBranchCheckout(t *testing.T) {

@@ -150,3 +150,9 @@ func buildBranchCommands(deps commonDeps) *BranchCommands {
 
 	return NewBranchCommands(gitCommon)
 }
+
+func buildFlowCommands(deps commonDeps) *FlowCommands {
+	gitCommon := buildGitCommon(deps)
+
+	return NewFlowCommands(gitCommon)
+}
