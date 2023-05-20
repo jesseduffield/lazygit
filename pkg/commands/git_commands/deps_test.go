@@ -7,6 +7,7 @@ import (
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -117,6 +118,26 @@ func buildWorkingTreeCommands(deps commonDeps) *WorkingTreeCommands {
 	return NewWorkingTreeCommands(gitCommon, submoduleCommands, fileLoader)
 }
 
+func buildPatchCommands(deps commonDeps) *PatchCommands {
+	gitCommon := buildGitCommon(deps)
+	rebaseCommands := buildRebaseCommands(deps)
+	commitCommands := buildCommitCommands(deps)
+	statusCommands := buildStatusCommands(deps)
+	stashCommands := buildStashCommands(deps)
+	loadFileFn := func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
+		return "", nil
+	}
+	patchBuilder := patch.NewPatchBuilder(gitCommon.Log, loadFileFn)
+
+	return NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
+}
+
+func buildStatusCommands(deps commonDeps) *StatusCommands {
+	gitCommon := buildGitCommon(deps)
+
+	return NewStatusCommands(gitCommon)
+}
+
 func buildStashCommands(deps commonDeps) *StashCommands {
 	gitCommon := buildGitCommon(deps)
 	fileLoader := buildFileLoader(gitCommon)
@@ -149,4 +170,10 @@ func buildBranchCommands(deps commonDeps) *BranchCommands {
 	gitCommon := buildGitCommon(deps)
 
 	return NewBranchCommands(gitCommon)
+}
+
+func buildFlowCommands(deps commonDeps) *FlowCommands {
+	gitCommon := buildGitCommon(deps)
+
+	return NewFlowCommands(gitCommon)
 }

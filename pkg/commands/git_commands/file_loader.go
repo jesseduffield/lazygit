@@ -42,7 +42,7 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 	}
 	untrackedFilesArg := fmt.Sprintf("--untracked-files=%s", untrackedFilesSetting)
 
-	statuses, err := self.GitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
+	statuses, err := self.gitStatus(GitStatusOptions{NoRenames: opts.NoRenames, UntrackedFilesArg: untrackedFilesArg})
 	if err != nil {
 		self.Log.Error(err)
 	}
@@ -81,13 +81,15 @@ type FileStatus struct {
 	PreviousName string
 }
 
-func (c *FileLoader) GitStatus(opts GitStatusOptions) ([]FileStatus, error) {
-	noRenamesFlag := ""
-	if opts.NoRenames {
-		noRenamesFlag = " --no-renames"
-	}
+func (c *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {
+	cmdStr := NewGitCmd("status").
+		Arg(opts.UntrackedFilesArg).
+		Arg("--porcelain").
+		Arg("-z").
+		ArgIf(opts.NoRenames, "--no-renames").
+		ToString()
 
-	statusLines, _, err := c.cmd.New(fmt.Sprintf("git status %s --porcelain -z%s", opts.UntrackedFilesArg, noRenamesFlag)).DontLog().RunWithOutputs()
+	statusLines, _, err := c.cmd.New(cmdStr).DontLog().RunWithOutputs()
 	if err != nil {
 		return []FileStatus{}, err
 	}

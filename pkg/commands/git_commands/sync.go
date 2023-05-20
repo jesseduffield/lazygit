@@ -1,8 +1,6 @@
 package git_commands
 
 import (
-	"fmt"
-
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
@@ -26,26 +24,16 @@ type PushOpts struct {
 }
 
 func (self *SyncCommands) PushCmdObj(opts PushOpts) (oscommands.ICmdObj, error) {
-	cmdStr := "git push"
-
-	if opts.Force {
-		cmdStr += " --force-with-lease"
+	if opts.UpstreamBranch != "" && opts.UpstreamRemote == "" {
+		return nil, errors.New(self.Tr.MustSpecifyOriginError)
 	}
 
-	if opts.SetUpstream {
-		cmdStr += " --set-upstream"
-	}
-
-	if opts.UpstreamRemote != "" {
-		cmdStr += " " + self.cmd.Quote(opts.UpstreamRemote)
-	}
-
-	if opts.UpstreamBranch != "" {
-		if opts.UpstreamRemote == "" {
-			return nil, errors.New(self.Tr.MustSpecifyOriginError)
-		}
-		cmdStr += " " + self.cmd.Quote(opts.UpstreamBranch)
-	}
+	cmdStr := NewGitCmd("push").
+		ArgIf(opts.Force, "--force-with-lease").
+		ArgIf(opts.SetUpstream, "--set-upstream").
+		ArgIf(opts.UpstreamRemote != "", self.cmd.Quote(opts.UpstreamRemote)).
+		ArgIf(opts.UpstreamBranch != "", self.cmd.Quote(opts.UpstreamBranch)).
+		ToString()
 
 	cmdObj := self.cmd.New(cmdStr).PromptOnCredentialRequest().WithMutex(self.syncMutex)
 	return cmdObj, nil
@@ -68,14 +56,10 @@ type FetchOptions struct {
 
 // Fetch fetch git repo
 func (self *SyncCommands) Fetch(opts FetchOptions) error {
-	cmdStr := "git fetch"
-
-	if opts.RemoteName != "" {
-		cmdStr = fmt.Sprintf("%s %s", cmdStr, self.cmd.Quote(opts.RemoteName))
-	}
-	if opts.BranchName != "" {
-		cmdStr = fmt.Sprintf("%s %s", cmdStr, self.cmd.Quote(opts.BranchName))
-	}
+	cmdStr := NewGitCmd("fetch").
+		ArgIf(opts.RemoteName != "", self.cmd.Quote(opts.RemoteName)).
+		ArgIf(opts.BranchName != "", self.cmd.Quote(opts.BranchName)).
+		ToString()
 
 	cmdObj := self.cmd.New(cmdStr)
 	if opts.Background {
@@ -93,18 +77,12 @@ type PullOptions struct {
 }
 
 func (self *SyncCommands) Pull(opts PullOptions) error {
-	cmdStr := "git pull --no-edit"
-
-	if opts.FastForwardOnly {
-		cmdStr += " --ff-only"
-	}
-
-	if opts.RemoteName != "" {
-		cmdStr = fmt.Sprintf("%s %s", cmdStr, self.cmd.Quote(opts.RemoteName))
-	}
-	if opts.BranchName != "" {
-		cmdStr = fmt.Sprintf("%s %s", cmdStr, self.cmd.Quote(opts.BranchName))
-	}
+	cmdStr := NewGitCmd("pull").
+		Arg("--no-edit").
+		ArgIf(opts.FastForwardOnly, "--ff-only").
+		ArgIf(opts.RemoteName != "", self.cmd.Quote(opts.RemoteName)).
+		ArgIf(opts.BranchName != "", self.cmd.Quote(opts.BranchName)).
+		ToString()
 
 	// setting GIT_SEQUENCE_EDITOR to ':' as a way of skipping it, in case the user
 	// has 'pull.rebase = interactive' configured.
@@ -112,11 +90,18 @@ func (self *SyncCommands) Pull(opts PullOptions) error {
 }
 
 func (self *SyncCommands) FastForward(branchName string, remoteName string, remoteBranchName string) error {
-	cmdStr := fmt.Sprintf("git fetch %s %s:%s", self.cmd.Quote(remoteName), self.cmd.Quote(remoteBranchName), self.cmd.Quote(branchName))
+	cmdStr := NewGitCmd("fetch").
+		Arg(self.cmd.Quote(remoteName)).
+		Arg(self.cmd.Quote(remoteBranchName) + ":" + self.cmd.Quote(branchName)).
+		ToString()
+
 	return self.cmd.New(cmdStr).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
 }
 
 func (self *SyncCommands) FetchRemote(remoteName string) error {
-	cmdStr := fmt.Sprintf("git fetch %s", self.cmd.Quote(remoteName))
+	cmdStr := NewGitCmd("fetch").
+		Arg(self.cmd.Quote(remoteName)).
+		ToString()
+
 	return self.cmd.New(cmdStr).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
 }

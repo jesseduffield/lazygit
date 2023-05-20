@@ -117,8 +117,7 @@ func NewGitCommandAux(
 	workingTreeCommands := git_commands.NewWorkingTreeCommands(gitCommon, submoduleCommands, fileLoader)
 	rebaseCommands := git_commands.NewRebaseCommands(gitCommon, commitCommands, workingTreeCommands)
 	stashCommands := git_commands.NewStashCommands(gitCommon, fileLoader, workingTreeCommands)
-	// TODO: have patch builder take workingTreeCommands in its entirety
-	patchBuilder := patch.NewPatchBuilder(cmn.Log, workingTreeCommands.ApplyPatch,
+	patchBuilder := patch.NewPatchBuilder(cmn.Log,
 		func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
 			// TODO: make patch builder take Gui.IgnoreWhitespaceInDiffView into
 			// account. For now we just pass false.

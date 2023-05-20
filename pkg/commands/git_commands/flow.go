@@ -34,6 +34,7 @@ func (self *FlowCommands) FinishCmdObj(branchName string) (oscommands.ICmdObj, e
 	branchType := ""
 	for _, line := range strings.Split(strings.TrimSpace(prefixes), "\n") {
 		if strings.HasPrefix(line, "gitflow.prefix.") && strings.HasSuffix(line, prefix) {
+
 			regex := regexp.MustCompile("gitflow.prefix.([^ ]*) .*")
 			matches := regex.FindAllStringSubmatch(line, 1)
 
@@ -48,9 +49,13 @@ func (self *FlowCommands) FinishCmdObj(branchName string) (oscommands.ICmdObj, e
 		return nil, errors.New(self.Tr.NotAGitFlowBranch)
 	}
 
-	return self.cmd.New("git flow " + branchType + " finish " + suffix), nil
+	cmdStr := NewGitCmd("flow").Arg(branchType, "finish", suffix).ToString()
+
+	return self.cmd.New(cmdStr), nil
 }
 
 func (self *FlowCommands) StartCmdObj(branchType string, name string) oscommands.ICmdObj {
-	return self.cmd.New("git flow " + branchType + " start " + name)
+	cmdStr := NewGitCmd("flow").Arg(branchType, "start", name).ToString()
+
+	return self.cmd.New(cmdStr)
 }

@@ -29,7 +29,6 @@ type fileInfo struct {
 }
 
 type (
-	applyPatchFunc   func(patch string, flags ...string) error
 	loadFileDiffFunc func(from string, to string, reverse bool, filename string, plain bool) (string, error)
 )
 
@@ -47,17 +46,14 @@ type PatchBuilder struct {
 	// fileInfoMap starts empty but you add files to it as you go along
 	fileInfoMap map[string]*fileInfo
 	Log         *logrus.Entry
-	applyPatch  applyPatchFunc
 
 	// loadFileDiff loads the diff of a file, for a given to (typically a commit SHA)
 	loadFileDiff loadFileDiffFunc
 }
 
-// NewPatchBuilder returns a new PatchBuilder
-func NewPatchBuilder(log *logrus.Entry, applyPatch applyPatchFunc, loadFileDiff loadFileDiffFunc) *PatchBuilder {
+func NewPatchBuilder(log *logrus.Entry, loadFileDiff loadFileDiffFunc) *PatchBuilder {
 	return &PatchBuilder{
 		Log:          log,
-		applyPatch:   applyPatch,
 		loadFileDiff: loadFileDiff,
 	}
 }
@@ -68,6 +64,20 @@ func (p *PatchBuilder) Start(from, to string, reverse bool, canRebase bool) {
 	p.reverse = reverse
 	p.CanRebase = canRebase
 	p.fileInfoMap = map[string]*fileInfo{}
+}
+
+func (p *PatchBuilder) PatchToApply(reverse bool) string {
+	patch := ""
+
+	for filename, info := range p.fileInfoMap {
+		if info.mode == UNSELECTED {
+			continue
+		}
+
+		patch += p.RenderPatchForFile(filename, true, reverse)
+	}
+
+	return patch
 }
 
 func (p *PatchBuilder) addFileWhole(info *fileInfo) {
@@ -232,25 +242,6 @@ func (p *PatchBuilder) GetFileIncLineIndices(filename string) ([]int, error) {
 		return nil, err
 	}
 	return info.includedLineIndices, nil
-}
-
-func (p *PatchBuilder) ApplyPatches(reverse bool) error {
-	patch := ""
-
-	applyFlags := []string{"index", "3way"}
-	if reverse {
-		applyFlags = append(applyFlags, "reverse")
-	}
-
-	for filename, info := range p.fileInfoMap {
-		if info.mode == UNSELECTED {
-			continue
-		}
-
-		patch += p.RenderPatchForFile(filename, true, reverse)
-	}
-
-	return p.applyPatch(patch, applyFlags...)
 }
 
 // clears the patch

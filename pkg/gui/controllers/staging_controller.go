@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -213,15 +214,14 @@ func (self *StagingController) applySelection(reverse bool) error {
 
 	// apply the patch then refresh this panel
 	// create a new temp file with the patch, then call git apply with that patch
-	applyFlags := []string{}
-	if reverse {
-		applyFlags = append(applyFlags, "reverse")
-	}
-	if !reverse || self.staged {
-		applyFlags = append(applyFlags, "cached")
-	}
 	self.c.LogAction(self.c.Tr.Actions.ApplyPatch)
-	err := self.c.Git().WorkingTree.ApplyPatch(patchToApply, applyFlags...)
+	err := self.c.Git().Patch.ApplyPatch(
+		patchToApply,
+		git_commands.ApplyPatchOpts{
+			Reverse: reverse,
+			Cached:  !reverse || self.staged,
+		},
+	)
 	if err != nil {
 		return self.c.Error(err)
 	}
@@ -262,7 +262,7 @@ func (self *StagingController) editHunk() error {
 		}).
 		FormatPlain()
 
-	patchFilepath, err := self.c.Git().WorkingTree.SaveTemporaryPatch(patchText)
+	patchFilepath, err := self.c.Git().Patch.SaveTemporaryPatch(patchText)
 	if err != nil {
 		return err
 	}
@@ -289,11 +289,13 @@ func (self *StagingController) editHunk() error {
 		}).
 		FormatPlain()
 
-	applyFlags := []string{"cached"}
-	if self.staged {
-		applyFlags = append(applyFlags, "reverse")
-	}
-	if err := self.c.Git().WorkingTree.ApplyPatch(newPatchText, applyFlags...); err != nil {
+	if err := self.c.Git().Patch.ApplyPatch(
+		newPatchText,
+		git_commands.ApplyPatchOpts{
+			Reverse: self.staged,
+			Cached:  true,
+		},
+	); err != nil {
 		return self.c.Error(err)
 	}
 
