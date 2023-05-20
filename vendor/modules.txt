@@ -13,7 +13,7 @@ github.com/cli/safeexec
 # github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 ## explicit
 github.com/cloudfoundry/jibber_jabber
-# github.com/creack/pty v1.1.11
+# github.com/creack/pty v1.1.11 => github.com/photostorm/pty v1.1.19-0.20230324012736-6794a5ba0ba0
 ## explicit; go 1.13
 github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
@@ -320,3 +320,4 @@ gopkg.in/warnings.v0
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
+# github.com/creack/pty => github.com/photostorm/pty v1.1.19-0.20230324012736-6794a5ba0ba0

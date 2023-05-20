@@ -1,6 +1,3 @@
-//go:build !windows
-// +build !windows
-
 package clients
 
 // This file allows you to use `go test` to run integration tests.

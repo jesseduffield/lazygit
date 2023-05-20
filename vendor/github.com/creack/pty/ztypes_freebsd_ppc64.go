@@ -1,8 +1,5 @@
-//go:build amd64 && dragonfly
-// +build amd64,dragonfly
-
 // Created by cgo -godefs - DO NOT EDIT
-// cgo -godefs types_dragonfly.go
+// cgo -godefs types_freebsd.go
 
 package pty
 
@@ -11,7 +8,7 @@ const (
 )
 
 type fiodgnameArg struct {
-	Name      *byte
-	Len       uint32
+	Len       int32
 	Pad_cgo_0 [4]byte
+	Buf       *byte
 }

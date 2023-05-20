@@ -73,3 +73,5 @@ require (
 	golang.org/x/text v0.8.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
+
+replace github.com/creack/pty => github.com/photostorm/pty v1.1.19-0.20230324012736-6794a5ba0ba0

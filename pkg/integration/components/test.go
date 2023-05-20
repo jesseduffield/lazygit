@@ -2,6 +2,7 @@ package components
 
 import (
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -171,6 +172,10 @@ func testNameFromCurrentFilePath() string {
 }
 
 func TestNameFromFilePath(path string) string {
+	if runtime.GOOS == "windows" {
+		path = strings.Replace(path, "\\", "/", -1)
+	}
+
 	name := strings.Split(path, "integration/tests/")[1]
 
 	return name[:len(name)-len(".go")]

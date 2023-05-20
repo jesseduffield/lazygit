@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -198,7 +199,12 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandb
 }
 
 func tempLazygitPath() string {
-	return filepath.Join("/tmp", "lazygit", "test_lazygit")
+	filename := "test_lazygit"
+	if runtime.GOOS == "windows" {
+		filename += ".exe"
+	}
+
+	return filepath.Join(os.TempDir(), "lazygit", filename)
 }
 
 func findOrCreateDir(path string) {
