@@ -104,7 +104,7 @@ func (gui *Gui) getRandomTip() string {
 		),
 		fmt.Sprintf(
 			"to hard reset onto your current upstream branch, press '%s' in the files panel",
-			formattedKey(config.Files.ViewResetOptions),
+			formattedKey(config.Commits.ViewResetOptions),
 		),
 		fmt.Sprintf(
 			"To push a tag, navigate to the tag in the tags tab and press '%s'",
