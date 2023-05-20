@@ -214,9 +214,13 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 }
 
 func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
-	checkedOutBranch := self.refsHelper.GetCheckedOutRef().Name
-	if ref == checkedOutBranch {
-		return self.c.ErrorMsg(self.c.Tr.CantRebaseOntoSelf)
+	checkedOutBranch := self.refsHelper.GetCheckedOutRef()
+	if ref == checkedOutBranch.Name {
+		if checkedOutBranch.IsTrackingRemote() {
+			ref = checkedOutBranch.UpstreamRemote + "/" + checkedOutBranch.UpstreamBranch
+		} else {
+			return self.c.ErrorMsg(self.c.Tr.CantRebaseOntoSelf)
+		}
 	}
 	menuItems := []*types.MenuItem{
 		{
@@ -246,7 +250,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	title := utils.ResolvePlaceholderString(
 		self.c.Tr.RebasingTitle,
 		map[string]string{
-			"checkedOutBranch": checkedOutBranch,
+			"checkedOutBranch": checkedOutBranch.Name,
 			"ref":              ref,
 		},
 	)
