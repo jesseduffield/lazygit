@@ -35,8 +35,6 @@ var IgnoreWhitespace = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Press(keys.Universal.ToggleWhitespaceInDiffView)
 
-		t.ExpectToast(Equals("Whitespace will be ignored in the diff view"))
-
 		// lines with only whitespace changes are ignored (first and third lines)
 		t.Views().Main().ContainsLines(
 			Contains(`  first-line`),
@@ -49,8 +47,6 @@ var IgnoreWhitespace = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Press(keys.Universal.ToggleWhitespaceInDiffView)
-
-		t.ExpectToast(Equals("Whitespace will be shown in the diff view"))
 
 		t.Views().Main().ContainsLines(
 			Contains(`-first-line`),

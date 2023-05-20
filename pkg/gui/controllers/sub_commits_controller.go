@@ -46,8 +46,9 @@ func (self *SubCommitsController) GetOnRenderToMain() func() error {
 			return self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
-					Title: "Commit",
-					Task:  task,
+					Title:    "Commit",
+					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					Task:     task,
 				},
 			})
 		})

@@ -59,8 +59,9 @@ func (self *DiffHelper) RenderDiff() error {
 	return self.c.RenderToMainViews(types.RefreshMainOpts{
 		Pair: self.c.MainViewPairs().Normal,
 		Main: &types.ViewUpdateOpts{
-			Title: "Diff",
-			Task:  task,
+			Title:    "Diff",
+			SubTitle: self.IgnoringWhitespaceSubTitle(),
+			Task:     task,
 		},
 	})
 }
@@ -111,4 +112,12 @@ func (self *DiffHelper) WithDiffModeCheck(f func() error) error {
 	}
 
 	return f()
+}
+
+func (self *DiffHelper) IgnoringWhitespaceSubTitle() string {
+	if self.c.State().GetIgnoreWhitespaceInDiffView() {
+		return self.c.Tr.IgnoreWhitespaceDiffViewSubTitle
+	}
+
+	return ""
 }

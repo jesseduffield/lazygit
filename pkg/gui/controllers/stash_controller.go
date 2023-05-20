@@ -63,14 +63,20 @@ func (self *StashController) GetOnRenderToMain() func() error {
 			if stashEntry == nil {
 				task = types.NewRenderStringTask(self.c.Tr.NoStashEntries)
 			} else {
-				task = types.NewRunPtyTask(self.c.Git().Stash.ShowStashEntryCmdObj(stashEntry.Index).GetCmd())
+				task = types.NewRunPtyTask(
+					self.c.Git().Stash.ShowStashEntryCmdObj(
+						stashEntry.Index,
+						self.c.State().GetIgnoreWhitespaceInDiffView(),
+					).GetCmd(),
+				)
 			}
 
 			return self.c.RenderToMainViews(types.RefreshMainOpts{
 				Pair: self.c.MainViewPairs().Normal,
 				Main: &types.ViewUpdateOpts{
-					Title: "Stash",
-					Task:  task,
+					Title:    "Stash",
+					SubTitle: self.c.Helpers().Diff.IgnoringWhitespaceSubTitle(),
+					Task:     task,
 				},
 			})
 		})

@@ -452,8 +452,6 @@ func koreanTranslationSet() TranslationSet {
 		RandomTip:                           "랜덤 Tip",
 		SelectParentCommitForMerge:          "병합을 위한 상위 커밋 선택",
 		ToggleWhitespaceInDiffView:          "공백문자를 Diff 뷰에서 표시 여부 전환",
-		IgnoringWhitespaceInDiffView:        "공백문자를 Diff 뷰에서 무시",
-		ShowingWhitespaceInDiffView:         "공백문자를 Diff 뷰에서 표시",
 		IncreaseContextInDiffView:           "diff 보기의 변경 사항 주위에 표시되는 컨텍스트의 크기를 늘리기",
 		DecreaseContextInDiffView:           "diff 보기의 변경 사항 주위에 표시되는 컨텍스트 크기 줄이기",
 		CreatePullRequest:                   "풀 리퀘스트 생성",

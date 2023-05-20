@@ -437,8 +437,6 @@ func chineseTranslationSet() TranslationSet {
 		RandomTip:                           "随机小提示",
 		SelectParentCommitForMerge:          "选择父提交进行合并",
 		ToggleWhitespaceInDiffView:          "切换是否在差异视图中显示空白字符差异",
-		IgnoringWhitespaceInDiffView:        "将会在差异视图中忽略空格字符差异",
-		ShowingWhitespaceInDiffView:         "将会在差异视图中显示空白字符差异",
 		IncreaseContextInDiffView:           "扩大差异视图中显示的上下文范围",
 		DecreaseContextInDiffView:           "缩小差异视图中显示的上下文范围",
 		CreatePullRequest:                   "创建抓取请求",
