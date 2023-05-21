@@ -88,7 +88,7 @@ git:
     # displays the whole git graph by default in the commits panel (equivalent to passing the `--all` argument to `git log`)
     showWholeGraph: false
   skipHookPrefix: WIP
-  # The main branches. We colour commits green if they belong to one of these branches, 
+  # The main branches. We colour commits green if they belong to one of these branches,
   # so that you can easily see which commits are unique to your branch (coloured in yellow)
   mainBranches: [master, main]
   autoFetch: true
@@ -347,6 +347,7 @@ The available attributes are:
 - default
 - reverse # useful for high-contrast
 - underline
+- strikethrough
 
 ## Highlighting the selected line
 
