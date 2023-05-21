@@ -13,6 +13,8 @@ type ListContextTrait struct {
 	c                 *ContextCommon
 	list              types.IList
 	getDisplayStrings func(startIdx int, length int) [][]string
+	// alignment for each column. If nil, the default is left alignment
+	columnAlignments []utils.Alignment
 }
 
 func (self *ListContextTrait) IsListContext() {}
@@ -52,7 +54,10 @@ func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) error 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
 func (self *ListContextTrait) HandleRender() error {
 	self.list.RefreshSelectedIdx()
-	content := utils.RenderDisplayStrings(self.getDisplayStrings(0, self.list.Len()))
+	content := utils.RenderDisplayStrings(
+		self.getDisplayStrings(0, self.list.Len()),
+		self.columnAlignments,
+	)
 	self.GetViewTrait().SetContent(content)
 	self.c.Render()
 	self.setFooter()

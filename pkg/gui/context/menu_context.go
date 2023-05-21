@@ -5,6 +5,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -37,6 +38,7 @@ func NewMenuContext(
 			getDisplayStrings: viewModel.GetDisplayStrings,
 			list:              viewModel,
 			c:                 c,
+			columnAlignments:  []utils.Alignment{utils.AlignRight, utils.AlignLeft},
 		},
 	}
 }

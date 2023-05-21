@@ -8,20 +8,52 @@ import (
 	"github.com/samber/lo"
 )
 
+type Alignment int
+
+const (
+	AlignLeft Alignment = iota
+	AlignRight
+)
+
+type ColumnConfig struct {
+	Width     int
+	Alignment Alignment
+}
+
 // WithPadding pads a string as much as you want
-func WithPadding(str string, padding int) string {
+func WithPadding(str string, padding int, alignment Alignment) string {
 	uncoloredStr := Decolorise(str)
 	width := runewidth.StringWidth(uncoloredStr)
 	if padding < width {
 		return str
 	}
-	return str + strings.Repeat(" ", padding-width)
+	space := strings.Repeat(" ", padding-width)
+	if alignment == AlignLeft {
+		return str + space
+	} else {
+		return space + str
+	}
 }
 
-func RenderDisplayStrings(displayStringsArr [][]string) string {
+// defaults to left-aligning each column. If you want to set the alignment of
+// each column, pass in a slice of Alignment values.
+func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Alignment) string {
 	displayStringsArr = excludeBlankColumns(displayStringsArr)
 	padWidths := getPadWidths(displayStringsArr)
-	output := getPaddedDisplayStrings(displayStringsArr, padWidths)
+	columnConfigs := make([]ColumnConfig, len(padWidths))
+	for i, padWidth := range padWidths {
+		// gracefully handle when columnAlignments is shorter than padWidths
+		alignment := AlignLeft
+		if len(columnAlignments) > i {
+			alignment = columnAlignments[i]
+		}
+
+		columnConfigs[i] = ColumnConfig{
+			Width:     padWidth,
+			Alignment: alignment,
+		}
+	}
+	output := getPaddedDisplayStrings(displayStringsArr, columnConfigs)
 
 	return output
 }
@@ -59,23 +91,23 @@ outer:
 	return displayStringsArr
 }
 
-func getPaddedDisplayStrings(stringArrays [][]string, padWidths []int) string {
+func getPaddedDisplayStrings(stringArrays [][]string, columnConfigs []ColumnConfig) string {
 	builder := strings.Builder{}
 	for i, stringArray := range stringArrays {
 		if len(stringArray) == 0 {
 			continue
 		}
-		for j, padWidth := range padWidths {
+		for j, columnConfig := range columnConfigs {
 			if len(stringArray)-1 < j {
 				continue
 			}
-			builder.WriteString(WithPadding(stringArray[j], padWidth))
+			builder.WriteString(WithPadding(stringArray[j], columnConfig.Width, columnConfig.Alignment))
 			builder.WriteString(" ")
 		}
-		if len(stringArray)-1 < len(padWidths) {
+		if len(stringArray)-1 < len(columnConfigs) {
 			continue
 		}
-		builder.WriteString(stringArray[len(padWidths)])
+		builder.WriteString(stringArray[len(columnConfigs)])
 
 		if i < len(stringArrays)-1 {
 			builder.WriteString("\n")

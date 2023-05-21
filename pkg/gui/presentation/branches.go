@@ -35,7 +35,7 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 	}
 
 	coloredName := nameTextStyle.Sprint(displayName)
-	branchStatus := utils.WithPadding(ColoredBranchStatus(b, tr), 2)
+	branchStatus := utils.WithPadding(ColoredBranchStatus(b, tr), 2, utils.AlignLeft)
 	coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)
 
 	recencyColor := style.FgCyan

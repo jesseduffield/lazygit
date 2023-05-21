@@ -42,7 +42,7 @@ func LongAuthor(authorName string) string {
 		return value
 	}
 
-	paddedAuthorName := utils.WithPadding(authorName, 17)
+	paddedAuthorName := utils.WithPadding(authorName, 17, utils.AlignLeft)
 	truncatedName := utils.TruncateWithEllipsis(paddedAuthorName, 17)
 	value := AuthorStyle(authorName).Sprint(truncatedName)
 	authorNameCache[authorName] = value

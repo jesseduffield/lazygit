@@ -17,6 +17,6 @@ func (self *ViewportListContextTrait) FocusLine() {
 
 	startIdx, length := self.GetViewTrait().ViewPortYBounds()
 	displayStrings := self.ListContextTrait.getDisplayStrings(startIdx, length)
-	content := utils.RenderDisplayStrings(displayStrings)
+	content := utils.RenderDisplayStrings(displayStrings, nil)
 	self.GetViewTrait().SetViewPortContent(content)
 }
