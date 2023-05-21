@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jesseduffield/generics/maps"
 	"github.com/jesseduffield/generics/slices"
@@ -183,6 +184,8 @@ func getHeader(binding *types.Binding, tr *i18n.TranslationSet) header {
 func formatSections(tr *i18n.TranslationSet, bindingSections []*bindingSection) string {
 	content := fmt.Sprintf("# Lazygit %s\n", tr.Keybindings)
 
+	content += fmt.Sprintf("\n%s\n", italicize(tr.KeybindingsLegend))
+
 	for _, section := range bindingSections {
 		content += formatTitle(section.title)
 		content += "<pre>\n"
@@ -200,13 +203,21 @@ func formatTitle(title string) string {
 }
 
 func formatBinding(binding *types.Binding) string {
+	result := fmt.Sprintf("  <kbd>%s</kbd>: %s", escapeAngleBrackets(keybindings.LabelFromKey(binding.Key)), binding.Description)
 	if binding.Alternative != "" {
-		return fmt.Sprintf(
-			"  <kbd>%s</kbd>: %s (%s)\n",
-			keybindings.LabelFromKey(binding.Key),
-			binding.Description,
-			binding.Alternative,
-		)
+		result += fmt.Sprintf(" (%s)", binding.Alternative)
 	}
-	return fmt.Sprintf("  <kbd>%s</kbd>: %s\n", keybindings.LabelFromKey(binding.Key), binding.Description)
+	result += "\n"
+
+	return result
+}
+
+func escapeAngleBrackets(str string) string {
+	result := strings.ReplaceAll(str, ">", "&gt;")
+	result = strings.ReplaceAll(result, "<", "&lt;")
+	return result
+}
+
+func italicize(str string) string {
+	return fmt.Sprintf("_%s_", str)
 }
