@@ -91,7 +91,7 @@ func (self *PatchCommands) SaveTemporaryPatch(patch string) (string, error) {
 
 // DeletePatchesFromCommit applies a patch in reverse for a commit
 func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, commitIndex int) error {
-	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIndex); err != nil {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIndex, false); err != nil {
 		return err
 	}
 
@@ -117,7 +117,10 @@ func (self *PatchCommands) DeletePatchesFromCommit(commits []*models.Commit, com
 
 func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, sourceCommitIdx int, destinationCommitIdx int) error {
 	if sourceCommitIdx < destinationCommitIdx {
-		if err := self.rebase.BeginInteractiveRebaseForCommit(commits, destinationCommitIdx); err != nil {
+		// Passing true for keepCommitsThatBecomeEmpty: if the moved-from
+		// commit becomes empty, we want to keep it, mainly for consistency with
+		// moving the patch to a *later* commit, which behaves the same.
+		if err := self.rebase.BeginInteractiveRebaseForCommit(commits, destinationCommitIdx, true); err != nil {
 			return err
 		}
 
@@ -223,7 +226,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 		}
 	}
 
-	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx, false); err != nil {
 		return err
 	}
 
@@ -272,7 +275,7 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 }
 
 func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int) error {
-	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx); err != nil {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx, false); err != nil {
 		return err
 	}
 
