@@ -6,34 +6,49 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestWithPadding is a function.
 func TestWithPadding(t *testing.T) {
 	type scenario struct {
-		str      string
-		padding  int
-		expected string
+		str       string
+		padding   int
+		alignment Alignment
+		expected  string
 	}
 
 	scenarios := []scenario{
 		{
-			"hello world !",
-			1,
-			"hello world !",
+			str:       "hello world !",
+			padding:   1,
+			alignment: AlignLeft,
+			expected:  "hello world !",
 		},
 		{
-			"hello world !",
-			14,
-			"hello world ! ",
+			str:       "hello world !",
+			padding:   14,
+			alignment: AlignLeft,
+			expected:  "hello world ! ",
 		},
 		{
-			"Güçlü",
-			7,
-			"Güçlü  ",
+			str:       "hello world !",
+			padding:   14,
+			alignment: AlignRight,
+			expected:  " hello world !",
+		},
+		{
+			str:       "Güçlü",
+			padding:   7,
+			alignment: AlignLeft,
+			expected:  "Güçlü  ",
+		},
+		{
+			str:       "Güçlü",
+			padding:   7,
+			alignment: AlignRight,
+			expected:  "  Güçlü",
 		},
 	}
 
 	for _, s := range scenarios {
-		assert.EqualValues(t, s.expected, WithPadding(s.str, s.padding))
+		assert.EqualValues(t, s.expected, WithPadding(s.str, s.padding, s.alignment))
 	}
 }
 
@@ -144,39 +159,66 @@ func TestTruncateWithEllipsis(t *testing.T) {
 
 func TestRenderDisplayStrings(t *testing.T) {
 	type scenario struct {
-		input    [][]string
-		expected string
+		input            [][]string
+		columnAlignments []Alignment
+		expected         string
 	}
 
 	tests := []scenario{
 		{
-			[][]string{{""}, {""}},
-			"",
+			input:            [][]string{{""}, {""}},
+			columnAlignments: nil,
+			expected:         "",
 		},
 		{
-			[][]string{{"a"}, {""}},
-			"a\n",
+			input:            [][]string{{"a"}, {""}},
+			columnAlignments: nil,
+			expected:         "a\n",
 		},
 		{
-			[][]string{{"a"}, {"b"}},
-			"a\nb",
+			input:            [][]string{{"a"}, {"b"}},
+			columnAlignments: nil,
+			expected:         "a\nb",
 		},
 		{
-			[][]string{{"a", "b"}, {"c", "d"}},
-			"a b\nc d",
+			input:            [][]string{{"a", "b"}, {"c", "d"}},
+			columnAlignments: nil,
+			expected:         "a b\nc d",
 		},
 		{
-			[][]string{{"a", "", "c"}, {"d", "", "f"}},
-			"a c\nd f",
+			input:            [][]string{{"a", "", "c"}, {"d", "", "f"}},
+			columnAlignments: nil,
+			expected:         "a c\nd f",
 		},
 		{
-			[][]string{{"a", "", "c", ""}, {"d", "", "f", ""}},
-			"a c\nd f",
+			input:            [][]string{{"a", "", "c", ""}, {"d", "", "f", ""}},
+			columnAlignments: nil,
+			expected:         "a c\nd f",
+		},
+		{
+			input:            [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
+			columnAlignments: nil,
+			expected:         "abc d\ne   f",
+		},
+		{
+			input:            [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
+			columnAlignments: []Alignment{AlignLeft, AlignLeft}, // same as nil (default)
+			expected:         "abc d\ne   f",
+		},
+		{
+			input:            [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
+			columnAlignments: []Alignment{AlignRight, AlignLeft},
+			expected:         "abc d\n  e f",
+		},
+		{
+			input:            [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
+			columnAlignments: []Alignment{AlignRight}, // gracefully defaults unspecified columns to left-align
+			expected:         "abc d\n  e f",
 		},
 	}
 
 	for _, test := range tests {
-		output := RenderDisplayStrings(test.input)
+		output := RenderDisplayStrings(test.input, test.columnAlignments)
 		if !assert.EqualValues(t, output, test.expected) {
 			t.Errorf("RenderDisplayStrings(%v) = %v, want %v", test.input, output, test.expected)
 		}
