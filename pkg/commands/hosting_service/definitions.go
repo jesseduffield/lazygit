@@ -33,8 +33,8 @@ var bitbucketServiceDef = ServiceDefinition{
 
 var gitLabServiceDef = ServiceDefinition{
 	provider:                        "gitlab",
-	pullRequestURLIntoDefaultBranch: "/merge_requests/new?merge_request[source_branch]={{.From}}",
-	pullRequestURLIntoTargetBranch:  "/merge_requests/new?merge_request[source_branch]={{.From}}&merge_request[target_branch]={{.To}}",
+	pullRequestURLIntoDefaultBranch: "/-/merge_requests/new?merge_request[source_branch]={{.From}}",
+	pullRequestURLIntoTargetBranch:  "/-/merge_requests/new?merge_request[source_branch]={{.From}}&merge_request[target_branch]={{.To}}",
 	commitURL:                       "/commit/{{.CommitSha}}",
 	regexStrings:                    defaultUrlRegexStrings,
 	repoURLTemplate:                 defaultRepoURLTemplate,
