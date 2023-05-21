@@ -61,10 +61,6 @@ func (self *OptionsMapMgr) globalOptions() []bindingInfo {
 			description: self.c.Tr.LcScroll,
 		},
 		{
-			key:         fmt.Sprintf("%s %s %s %s", keybindings.Label(keybindingConfig.Universal.PrevBlock), keybindings.Label(keybindingConfig.Universal.NextBlock), keybindings.Label(keybindingConfig.Universal.PrevItem), keybindings.Label(keybindingConfig.Universal.NextItem)),
-			description: self.c.Tr.LcNavigate,
-		},
-		{
 			key:         keybindings.Label(keybindingConfig.Universal.Return),
 			description: self.c.Tr.LcCancel,
 		},
