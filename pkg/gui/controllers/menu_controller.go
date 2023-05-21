@@ -21,6 +21,8 @@ func NewMenuController(
 	}
 }
 
+// NOTE: if you add a new keybinding here, you'll also need to add it to
+// `reservedKeys` in `pkg/gui/context/menu_context.go`
 func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
