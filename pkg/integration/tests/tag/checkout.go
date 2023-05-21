@@ -7,7 +7,7 @@ import (
 
 var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Checkout a tag",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

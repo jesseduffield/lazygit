@@ -7,7 +7,7 @@ import (
 
 var ConfirmOnQuit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Quitting with a confirm prompt",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		config.UserConfig.ConfirmOnQuit = true

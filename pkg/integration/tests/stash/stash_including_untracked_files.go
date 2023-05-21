@@ -7,7 +7,7 @@ import (
 
 var StashIncludingUntrackedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Stashing all files including untracked ones",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

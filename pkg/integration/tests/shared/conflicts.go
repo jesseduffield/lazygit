@@ -51,7 +51,7 @@ var MergeConflictsSetup = func(shell *Shell) {
 var CreateMergeConflictFile = func(shell *Shell) {
 	MergeConflictsSetup(shell)
 
-	shell.RunShellCommandExpectError("git merge --no-edit second-change-branch")
+	shell.RunCommandExpectError([]string{"git", "merge", "--no-edit", "second-change-branch"})
 }
 
 var CreateMergeCommit = func(shell *Shell) {
@@ -84,7 +84,7 @@ var CreateMergeConflictFiles = func(shell *Shell) {
 		EmptyCommit("second-change-branch unrelated change").
 		Checkout("first-change-branch")
 
-	shell.RunShellCommandExpectError("git merge --no-edit second-change-branch")
+	shell.RunCommandExpectError([]string{"git", "merge", "--no-edit", "second-change-branch"})
 }
 
 // These 'multiple' variants are just like the short ones but with longer file contents and with multiple conflicts within the file.
@@ -155,5 +155,5 @@ var CreateMergeConflictFileMultiple = func(shell *Shell) {
 		EmptyCommit("second-change-branch unrelated change").
 		Checkout("first-change-branch")
 
-	shell.RunShellCommandExpectError("git merge --no-edit second-change-branch")
+	shell.RunCommandExpectError([]string{"git", "merge", "--no-edit", "second-change-branch"})
 }

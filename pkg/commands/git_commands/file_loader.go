@@ -82,14 +82,14 @@ type FileStatus struct {
 }
 
 func (c *FileLoader) gitStatus(opts GitStatusOptions) ([]FileStatus, error) {
-	cmdStr := NewGitCmd("status").
+	cmdArgs := NewGitCmd("status").
 		Arg(opts.UntrackedFilesArg).
 		Arg("--porcelain").
 		Arg("-z").
 		ArgIf(opts.NoRenames, "--no-renames").
-		ToString()
+		ToArgv()
 
-	statusLines, _, err := c.cmd.New(cmdStr).DontLog().RunWithOutputs()
+	statusLines, _, err := c.cmd.New(cmdArgs).DontLog().RunWithOutputs()
 	if err != nil {
 		return []FileStatus{}, err
 	}

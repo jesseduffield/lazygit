@@ -7,7 +7,7 @@ import (
 
 var DiscardAllChanges = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Discard all changes of a file in the staging panel, then assert we land in the staging panel of the next file",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

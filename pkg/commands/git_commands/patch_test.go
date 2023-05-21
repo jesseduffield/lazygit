@@ -3,7 +3,6 @@ package git_commands
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/go-errors/errors"
@@ -11,21 +10,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestWorkingTreeApplyPatch(t *testing.T) {
+func TestPatchApplyPatch(t *testing.T) {
 	type scenario struct {
 		testName string
+		opts     ApplyPatchOpts
 		runner   *oscommands.FakeCmdObjRunner
 		test     func(error)
 	}
 
-	expectFn := func(regexStr string, errToReturn error) func(cmdObj oscommands.ICmdObj) (string, error) {
+	// expectedArgs excludes the last argument which is an indeterminate filename
+	expectFn := func(expectedArgs []string, errToReturn error) func(cmdObj oscommands.ICmdObj) (string, error) {
 		return func(cmdObj oscommands.ICmdObj) (string, error) {
-			re := regexp.MustCompile(regexStr)
-			cmdStr := cmdObj.ToString()
-			matches := re.FindStringSubmatch(cmdStr)
-			assert.Equal(t, 2, len(matches), fmt.Sprintf("unexpected command: %s", cmdStr))
+			args := cmdObj.Args()
 
-			filename := matches[1]
+			assert.Equal(t, len(args), len(expectedArgs)+1, fmt.Sprintf("unexpected command: %s", cmdObj.ToString()))
+
+			filename := args[len(args)-1]
 
 			content, err := os.ReadFile(filename)
 			assert.NoError(t, err)
@@ -39,16 +39,18 @@ func TestWorkingTreeApplyPatch(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName: "valid case",
+			opts:     ApplyPatchOpts{Cached: true},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectFunc(expectFn(`git apply --cached "(.*)"`, nil)),
+				ExpectFunc(expectFn([]string{"git", "apply", "--cached"}, nil)),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
 		},
 		{
 			testName: "command returns error",
+			opts:     ApplyPatchOpts{Cached: true},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectFunc(expectFn(`git apply --cached "(.*)"`, errors.New("error"))),
+				ExpectFunc(expectFn([]string{"git", "apply", "--cached"}, errors.New("error"))),
 			test: func(err error) {
 				assert.Error(t, err)
 			},
@@ -59,7 +61,7 @@ func TestWorkingTreeApplyPatch(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildPatchCommands(commonDeps{runner: s.runner})
-			s.test(instance.ApplyPatch("test", ApplyPatchOpts{Cached: true}))
+			s.test(instance.ApplyPatch("test", s.opts))
 			s.runner.CheckForMissingCalls()
 		})
 	}

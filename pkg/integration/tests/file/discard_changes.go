@@ -7,7 +7,7 @@ import (
 
 var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Discarding all possible permutations of changed files",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         true, // failing due to index.lock file being created
 	SetupConfig: func(config *config.AppConfig) {
 	},
@@ -51,7 +51,7 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.RunShellCommand(`rm deleted-us.txt && git add deleted-us.txt`)
 		shell.RunShellCommand(`git commit -m "three"`)
 		shell.RunShellCommand(`git reset --hard conflict_second`)
-		shell.RunShellCommandExpectError(`git merge conflict`)
+		shell.RunCommandExpectError([]string{"git", "merge", "conflict"})
 
 		shell.RunShellCommand(`echo "new" > new.txt`)
 		shell.RunShellCommand(`echo "new staged" > new-staged.txt && git add new-staged.txt`)

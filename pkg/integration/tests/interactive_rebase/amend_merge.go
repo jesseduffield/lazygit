@@ -12,7 +12,7 @@ var (
 
 var AmendMerge = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Amends a staged file to a merge commit.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/go-errors/errors"
+	"github.com/samber/lo"
 
 	"github.com/atotto/clipboard"
 	"github.com/jesseduffield/generics/slices"
@@ -187,12 +188,18 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 }
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
-func (c *OSCommand) PipeCommands(commandStrings ...string) error {
-	cmds := slices.Map(commandStrings, func(cmdString string) *exec.Cmd {
-		return c.Cmd.New(cmdString).GetCmd()
+func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
+	cmds := slices.Map(cmdObjs, func(cmdObj ICmdObj) *exec.Cmd {
+		return cmdObj.GetCmd()
 	})
 
-	logCmdStr := strings.Join(commandStrings, " | ")
+	logCmdStr := strings.Join(
+		lo.Map(cmdObjs, func(cmdObj ICmdObj, _ int) string {
+			return cmdObj.ToString()
+		}),
+		" | ",
+	)
+
 	c.LogCommand(logCmdStr, true)
 
 	for i := 0; i < len(cmds)-1; i++ {

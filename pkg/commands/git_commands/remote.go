@@ -15,52 +15,52 @@ func NewRemoteCommands(gitCommon *GitCommon) *RemoteCommands {
 }
 
 func (self *RemoteCommands) AddRemote(name string, url string) error {
-	cmdStr := NewGitCmd("remote").
-		Arg("add", self.cmd.Quote(name), self.cmd.Quote(url)).
-		ToString()
+	cmdArgs := NewGitCmd("remote").
+		Arg("add", name, url).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *RemoteCommands) RemoveRemote(name string) error {
-	cmdStr := NewGitCmd("remote").
-		Arg("remove", self.cmd.Quote(name)).
-		ToString()
+	cmdArgs := NewGitCmd("remote").
+		Arg("remove", name).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *RemoteCommands) RenameRemote(oldRemoteName string, newRemoteName string) error {
-	cmdStr := NewGitCmd("remote").
-		Arg("rename", self.cmd.Quote(oldRemoteName), self.cmd.Quote(newRemoteName)).
-		ToString()
+	cmdArgs := NewGitCmd("remote").
+		Arg("rename", oldRemoteName, newRemoteName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *RemoteCommands) UpdateRemoteUrl(remoteName string, updatedUrl string) error {
-	cmdStr := NewGitCmd("remote").
-		Arg("set-url", self.cmd.Quote(remoteName), self.cmd.Quote(updatedUrl)).
-		ToString()
+	cmdArgs := NewGitCmd("remote").
+		Arg("set-url", remoteName, updatedUrl).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *RemoteCommands) DeleteRemoteBranch(remoteName string, branchName string) error {
-	cmdStr := NewGitCmd("push").
-		Arg(self.cmd.Quote(remoteName), "--delete", self.cmd.Quote(branchName)).
-		ToString()
+	cmdArgs := NewGitCmd("push").
+		Arg(remoteName, "--delete", branchName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
 }
 
 // CheckRemoteBranchExists Returns remote branch
 func (self *RemoteCommands) CheckRemoteBranchExists(branchName string) bool {
-	cmdStr := NewGitCmd("show-ref").
-		Arg("--verify", "--", fmt.Sprintf("refs/remotes/origin/%s", self.cmd.Quote(branchName))).
-		ToString()
+	cmdArgs := NewGitCmd("show-ref").
+		Arg("--verify", "--", fmt.Sprintf("refs/remotes/origin/%s", branchName)).
+		ToArgv()
 
-	_, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	_, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 
 	return err == nil
 }

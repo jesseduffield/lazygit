@@ -7,7 +7,7 @@ import (
 
 var CheckoutByName = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Try to checkout branch by name. Verify that it also works on the branch with the special name @.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

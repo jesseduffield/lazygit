@@ -7,7 +7,7 @@ import (
 
 var PushAndSetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Push a commit and set the upstream via a prompt",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

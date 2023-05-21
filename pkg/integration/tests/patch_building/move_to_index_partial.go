@@ -7,7 +7,7 @@ import (
 
 var MoveToIndexPartial = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Move a patch from a commit to the index. This is different from the MoveToIndex test in that we're only selecting a partial patch from a file",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

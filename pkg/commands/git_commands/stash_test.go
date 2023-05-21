@@ -103,7 +103,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 		index            int
 		contextSize      int
 		ignoreWhitespace bool
-		expected         string
+		expected         []string
 	}
 
 	scenarios := []scenario{
@@ -112,21 +112,21 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			index:            5,
 			contextSize:      3,
 			ignoreWhitespace: false,
-			expected:         "git stash show -p --stat --color=always --unified=3 stash@{5}",
+			expected:         []string{"git", "stash", "show", "-p", "--stat", "--color=always", "--unified=3", "stash@{5}"},
 		},
 		{
 			testName:         "Show diff with custom context size",
 			index:            5,
 			contextSize:      77,
 			ignoreWhitespace: false,
-			expected:         "git stash show -p --stat --color=always --unified=77 stash@{5}",
+			expected:         []string{"git", "stash", "show", "-p", "--stat", "--color=always", "--unified=77", "stash@{5}"},
 		},
 		{
 			testName:         "Default case",
 			index:            5,
 			contextSize:      3,
 			ignoreWhitespace: true,
-			expected:         "git stash show -p --stat --color=always --unified=3 --ignore-all-space stash@{5}",
+			expected:         []string{"git", "stash", "show", "-p", "--stat", "--color=always", "--unified=3", "--ignore-all-space", "stash@{5}"},
 		},
 	}
 
@@ -137,7 +137,7 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 			userConfig.Git.DiffContextSize = s.contextSize
 			instance := buildStashCommands(commonDeps{userConfig: userConfig})
 
-			cmdStr := instance.ShowStashEntryCmdObj(s.index, s.ignoreWhitespace).ToString()
+			cmdStr := instance.ShowStashEntryCmdObj(s.index, s.ignoreWhitespace).Args()
 			assert.Equal(t, s.expected, cmdStr)
 		})
 	}

@@ -7,7 +7,7 @@ import (
 
 var Add = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Add a submodule",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

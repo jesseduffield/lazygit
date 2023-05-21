@@ -7,7 +7,7 @@ import (
 
 var NewBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Creating a new branch from a commit",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

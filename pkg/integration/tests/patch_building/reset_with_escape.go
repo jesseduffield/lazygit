@@ -7,7 +7,7 @@ import (
 
 var ResetWithEscape = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Reset a custom patch with the escape keybinding",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

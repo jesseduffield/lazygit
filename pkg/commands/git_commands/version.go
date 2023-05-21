@@ -15,7 +15,7 @@ type GitVersion struct {
 }
 
 func GetGitVersion(osCommand *oscommands.OSCommand) (*GitVersion, error) {
-	versionStr, _, err := osCommand.Cmd.New(NewGitCmd("--version").ToString()).RunWithOutputs()
+	versionStr, _, err := osCommand.Cmd.New(NewGitCmd("--version").ToArgv()).RunWithOutputs()
 	if err != nil {
 		return nil, err
 	}

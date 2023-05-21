@@ -12,13 +12,13 @@ func TestStartCmdObj(t *testing.T) {
 		testName   string
 		branchType string
 		name       string
-		expected   string
+		expected   []string
 	}{
 		{
 			testName:   "basic",
 			branchType: "feature",
 			name:       "test",
-			expected:   "git flow feature start test",
+			expected:   []string{"git", "flow", "feature", "start", "test"},
 		},
 	}
 
@@ -28,7 +28,7 @@ func TestStartCmdObj(t *testing.T) {
 			instance := buildFlowCommands(commonDeps{})
 
 			assert.Equal(t,
-				instance.StartCmdObj(s.branchType, s.name).ToString(),
+				instance.StartCmdObj(s.branchType, s.name).Args(),
 				s.expected,
 			)
 		})
@@ -39,28 +39,28 @@ func TestFinishCmdObj(t *testing.T) {
 	scenarios := []struct {
 		testName               string
 		branchName             string
-		expected               string
+		expected               []string
 		expectedError          string
 		gitConfigMockResponses map[string]string
 	}{
 		{
 			testName:               "not a git flow branch",
 			branchName:             "mybranch",
-			expected:               "",
+			expected:               nil,
 			expectedError:          "This does not seem to be a git flow branch",
 			gitConfigMockResponses: nil,
 		},
 		{
 			testName:               "feature branch without config",
 			branchName:             "feature/mybranch",
-			expected:               "",
+			expected:               nil,
 			expectedError:          "This does not seem to be a git flow branch",
 			gitConfigMockResponses: nil,
 		},
 		{
 			testName:      "feature branch with config",
 			branchName:    "feature/mybranch",
-			expected:      "git flow feature finish mybranch",
+			expected:      []string{"git", "flow", "feature", "finish", "mybranch"},
 			expectedError: "",
 			gitConfigMockResponses: map[string]string{
 				"--local --get-regexp gitflow.prefix": "gitflow.prefix.feature feature/",
@@ -85,7 +85,7 @@ func TestFinishCmdObj(t *testing.T) {
 				}
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, cmd.ToString(), s.expected)
+				assert.Equal(t, cmd.Args(), s.expected)
 			}
 		})
 	}

@@ -7,7 +7,7 @@ import (
 
 var MultiplePrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using a custom command with multiple prompts",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("blah")

@@ -7,7 +7,7 @@ import (
 
 var StashAll = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Stashing all changes (via the menu)",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

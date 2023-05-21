@@ -53,7 +53,7 @@ func TestCommitCommitCmdObj(t *testing.T) {
 		message              string
 		configSignoff        bool
 		configSkipHookPrefix string
-		expected             string
+		expectedArgs         []string
 	}
 
 	scenarios := []scenario{
@@ -62,35 +62,35 @@ func TestCommitCommitCmdObj(t *testing.T) {
 			message:              "test",
 			configSignoff:        false,
 			configSkipHookPrefix: "",
-			expected:             `git commit -m "test"`,
+			expectedArgs:         []string{"commit", "-m", "test"},
 		},
 		{
 			testName:             "Commit with --no-verify flag",
 			message:              "WIP: test",
 			configSignoff:        false,
 			configSkipHookPrefix: "WIP",
-			expected:             `git commit --no-verify -m "WIP: test"`,
+			expectedArgs:         []string{"commit", "--no-verify", "-m", "WIP: test"},
 		},
 		{
 			testName:             "Commit with multiline message",
 			message:              "line1\nline2",
 			configSignoff:        false,
 			configSkipHookPrefix: "",
-			expected:             `git commit -m "line1" -m "line2"`,
+			expectedArgs:         []string{"commit", "-m", "line1", "-m", "line2"},
 		},
 		{
 			testName:             "Commit with signoff",
 			message:              "test",
 			configSignoff:        true,
 			configSkipHookPrefix: "",
-			expected:             `git commit --signoff -m "test"`,
+			expectedArgs:         []string{"commit", "--signoff", "-m", "test"},
 		},
 		{
 			testName:             "Commit with signoff and no-verify",
 			message:              "WIP: test",
 			configSignoff:        true,
 			configSkipHookPrefix: "WIP",
-			expected:             `git commit --no-verify --signoff -m "WIP: test"`,
+			expectedArgs:         []string{"commit", "--no-verify", "--signoff", "-m", "WIP: test"},
 		},
 	}
 
@@ -101,10 +101,11 @@ func TestCommitCommitCmdObj(t *testing.T) {
 			userConfig.Git.Commit.SignOff = s.configSignoff
 			userConfig.Git.SkipHookPrefix = s.configSkipHookPrefix
 
-			instance := buildCommitCommands(commonDeps{userConfig: userConfig})
+			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expectedArgs, "", nil)
+			instance := buildCommitCommands(commonDeps{userConfig: userConfig, runner: runner})
 
-			cmdStr := instance.CommitCmdObj(s.message).ToString()
-			assert.Equal(t, s.expected, cmdStr)
+			assert.NoError(t, instance.CommitCmdObj(s.message).Run())
+			runner.CheckForMissingCalls()
 		})
 	}
 }
@@ -114,7 +115,7 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 		testName      string
 		configSignoff bool
 		configVerbose string
-		expected      string
+		expected      []string
 	}
 
 	scenarios := []scenario{
@@ -122,31 +123,31 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 			testName:      "Commit using editor",
 			configSignoff: false,
 			configVerbose: "default",
-			expected:      `git commit`,
+			expected:      []string{"commit"},
 		},
 		{
 			testName:      "Commit with --no-verbose flag",
 			configSignoff: false,
 			configVerbose: "never",
-			expected:      `git commit --no-verbose`,
+			expected:      []string{"commit", "--no-verbose"},
 		},
 		{
 			testName:      "Commit with --verbose flag",
 			configSignoff: false,
 			configVerbose: "always",
-			expected:      `git commit --verbose`,
+			expected:      []string{"commit", "--verbose"},
 		},
 		{
 			testName:      "Commit with --signoff",
 			configSignoff: true,
 			configVerbose: "default",
-			expected:      `git commit --signoff`,
+			expected:      []string{"commit", "--signoff"},
 		},
 		{
 			testName:      "Commit with --signoff and --no-verbose",
 			configSignoff: true,
 			configVerbose: "never",
-			expected:      `git commit --signoff --no-verbose`,
+			expected:      []string{"commit", "--signoff", "--no-verbose"},
 		},
 	}
 
@@ -157,10 +158,11 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 			userConfig.Git.Commit.SignOff = s.configSignoff
 			userConfig.Git.Commit.Verbose = s.configVerbose
 
-			instance := buildCommitCommands(commonDeps{userConfig: userConfig})
+			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expected, "", nil)
+			instance := buildCommitCommands(commonDeps{userConfig: userConfig, runner: runner})
 
-			cmdStr := instance.CommitEditorCmdObj().ToString()
-			assert.Equal(t, s.expected, cmdStr)
+			assert.NoError(t, instance.CommitEditorCmdObj().Run())
+			runner.CheckForMissingCalls()
 		})
 	}
 }
@@ -178,7 +180,7 @@ func TestCommitCreateFixupCommit(t *testing.T) {
 			testName: "valid case",
 			sha:      "12345",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git commit --fixup=12345`, "", nil),
+				ExpectGitArgs([]string{"commit", "--fixup=12345"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -201,7 +203,7 @@ func TestCommitShowCmdObj(t *testing.T) {
 		filterPath       string
 		contextSize      int
 		ignoreWhitespace bool
-		expected         string
+		expected         []string
 	}
 
 	scenarios := []scenario{
@@ -210,28 +212,28 @@ func TestCommitShowCmdObj(t *testing.T) {
 			filterPath:       "",
 			contextSize:      3,
 			ignoreWhitespace: false,
-			expected:         "git show --submodule --color=always --unified=3 --stat -p 1234567890",
+			expected:         []string{"show", "--submodule", "--color=always", "--unified=3", "--stat", "-p", "1234567890"},
 		},
 		{
 			testName:         "Default case with filter path",
 			filterPath:       "file.txt",
 			contextSize:      3,
 			ignoreWhitespace: false,
-			expected:         `git show --submodule --color=always --unified=3 --stat -p 1234567890 -- "file.txt"`,
+			expected:         []string{"show", "--submodule", "--color=always", "--unified=3", "--stat", "-p", "1234567890", "--", "file.txt"},
 		},
 		{
 			testName:         "Show diff with custom context size",
 			filterPath:       "",
 			contextSize:      77,
 			ignoreWhitespace: false,
-			expected:         "git show --submodule --color=always --unified=77 --stat -p 1234567890",
+			expected:         []string{"show", "--submodule", "--color=always", "--unified=77", "--stat", "-p", "1234567890"},
 		},
 		{
 			testName:         "Show diff, ignoring whitespace",
 			filterPath:       "",
 			contextSize:      77,
 			ignoreWhitespace: true,
-			expected:         "git show --submodule --color=always --unified=77 --stat -p 1234567890 --ignore-all-space",
+			expected:         []string{"show", "--submodule", "--color=always", "--unified=77", "--stat", "-p", "1234567890", "--ignore-all-space"},
 		},
 	}
 
@@ -241,10 +243,11 @@ func TestCommitShowCmdObj(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.DiffContextSize = s.contextSize
 
-			instance := buildCommitCommands(commonDeps{userConfig: userConfig})
+			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expected, "", nil)
+			instance := buildCommitCommands(commonDeps{userConfig: userConfig, runner: runner})
 
-			cmdStr := instance.ShowCmdObj("1234567890", s.filterPath, s.ignoreWhitespace).ToString()
-			assert.Equal(t, s.expected, cmdStr)
+			assert.NoError(t, instance.ShowCmdObj("1234567890", s.filterPath, s.ignoreWhitespace).Run())
+			runner.CheckForMissingCalls()
 		})
 	}
 }
@@ -283,7 +286,7 @@ Merge pull request #1750 from mark2185/fix-issue-template
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{
-				runner: oscommands.NewFakeRunner(t).Expect("git rev-list --format=%B --max-count=1 deadbeef", s.input, nil),
+				runner: oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"rev-list", "--format=%B", "--max-count=1", "deadbeef"}, s.input, nil),
 			})
 
 			output, err := instance.GetCommitMessage("deadbeef")
@@ -304,14 +307,14 @@ func TestGetCommitMessageFromHistory(t *testing.T) {
 	scenarios := []scenario{
 		{
 			"Empty message",
-			oscommands.NewFakeRunner(t).Expect("git log -1 --skip=2 --pretty=%H", "", nil).Expect("git rev-list --format=%B --max-count=1 ", "", nil),
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "-1", "--skip=2", "--pretty=%H"}, "", nil).ExpectGitArgs([]string{"rev-list", "--format=%B", "--max-count=1"}, "", nil),
 			func(output string, err error) {
 				assert.Error(t, err)
 			},
 		},
 		{
 			"Default case to retrieve a commit in history",
-			oscommands.NewFakeRunner(t).Expect("git log -1 --skip=2 --pretty=%H", "sha3 \n", nil).Expect("git rev-list --format=%B --max-count=1 sha3", `commit sha3
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"log", "-1", "--skip=2", "--pretty=%H"}, "sha3 \n", nil).ExpectGitArgs([]string{"rev-list", "--format=%B", "--max-count=1", "sha3"}, `commit sha3
 				use generics to DRY up context code`, nil),
 			func(output string, err error) {
 				assert.NoError(t, err)

@@ -8,7 +8,7 @@ import (
 
 var UndoChooseHunk = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Chooses a hunk when resolving a merge conflict and then undoes the choice",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -7,7 +7,7 @@ import (
 
 var Move = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Directly move a commit all the way down and all the way back up",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

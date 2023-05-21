@@ -27,7 +27,7 @@ func TestEditFileCmdStrLegacy(t *testing.T) {
 			configEditCommand:         "",
 			configEditCommandTemplate: "{{editor}} {{filename}}",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`which vi`, "", errors.New("error")),
+				ExpectArgs([]string{"which", "vi"}, "", errors.New("error")),
 			getenv: func(env string) string {
 				return ""
 			},
@@ -105,7 +105,7 @@ func TestEditFileCmdStrLegacy(t *testing.T) {
 			configEditCommand:         "",
 			configEditCommandTemplate: "{{editor}} {{filename}}",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`which vi`, "/usr/bin/vi", nil),
+				ExpectArgs([]string{"which", "vi"}, "/usr/bin/vi", nil),
 			getenv: func(env string) string {
 				return ""
 			},
@@ -120,7 +120,7 @@ func TestEditFileCmdStrLegacy(t *testing.T) {
 			configEditCommand:         "",
 			configEditCommandTemplate: "{{editor}} {{filename}}",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`which vi`, "/usr/bin/vi", nil),
+				ExpectArgs([]string{"which", "vi"}, "/usr/bin/vi", nil),
 			getenv: func(env string) string {
 				return ""
 			},

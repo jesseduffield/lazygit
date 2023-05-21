@@ -7,7 +7,7 @@ import (
 
 var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Begins an interactive rebase, then fixups, drops, and squashes some commits",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

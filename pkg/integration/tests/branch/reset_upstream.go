@@ -7,7 +7,7 @@ import (
 
 var ResetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Reset the upstream of a branch",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

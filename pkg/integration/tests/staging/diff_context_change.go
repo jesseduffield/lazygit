@@ -7,7 +7,7 @@ import (
 
 var DiffContextChange = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Change the number of diff context lines while in the staging panel",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

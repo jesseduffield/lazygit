@@ -7,7 +7,7 @@ import (
 
 var Apply = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Apply a custom patch",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

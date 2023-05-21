@@ -7,7 +7,7 @@ import (
 
 var PushWithCredentialPrompt = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Push a commit to a pre-configured upstream, where credentials are required",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},

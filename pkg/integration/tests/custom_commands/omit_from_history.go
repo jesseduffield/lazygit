@@ -7,7 +7,7 @@ import (
 
 var OmitFromHistory = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Omitting a runtime custom command from history if it begins with space",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("blah")

@@ -1,8 +1,6 @@
 package helpers
 
 import (
-	"fmt"
-
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -19,27 +17,29 @@ func NewDiffHelper(c *HelperCommon) *DiffHelper {
 	}
 }
 
-func (self *DiffHelper) DiffStr() string {
-	output := self.c.Modes().Diffing.Ref
+func (self *DiffHelper) DiffArgs() []string {
+	output := []string{self.c.Modes().Diffing.Ref}
 
 	right := self.currentDiffTerminal()
 	if right != "" {
-		output += " " + right
+		output = append(output, right)
 	}
 
 	if self.c.Modes().Diffing.Reverse {
-		output += " -R"
+		output = append(output, "-R")
 	}
 
 	if self.c.State().GetIgnoreWhitespaceInDiffView() {
-		output += " --ignore-all-space"
+		output = append(output, "--ignore-all-space")
 	}
+
+	output = append(output, "--")
 
 	file := self.currentlySelectedFilename()
 	if file != "" {
-		output += " -- " + file
+		output = append(output, file)
 	} else if self.c.Modes().Filtering.Active() {
-		output += " -- " + self.c.Modes().Filtering.GetPath()
+		output = append(output, self.c.Modes().Filtering.GetPath())
 	}
 
 	return output
@@ -51,9 +51,7 @@ func (self *DiffHelper) ExitDiffMode() error {
 }
 
 func (self *DiffHelper) RenderDiff() error {
-	cmdObj := self.c.OS().Cmd.New(
-		fmt.Sprintf("git diff --submodule --no-ext-diff --color %s", self.DiffStr()),
-	)
+	cmdObj := self.c.Git().Diff.DiffCmdObj(self.DiffArgs())
 	task := types.NewRunPtyTask(cmdObj.GetCmd())
 
 	return self.c.RenderToMainViews(types.RefreshMainOpts{

@@ -7,7 +7,7 @@ import (
 
 var Amend = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Amends the last commit from the files panel",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

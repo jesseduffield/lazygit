@@ -7,7 +7,7 @@ import (
 
 var RenameBranchAndPull = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Rename a branch to no longer match its upstream, then pull from the upstream",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -7,7 +7,7 @@ import (
 
 var SquashDownSecondCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Squash down the second commit into the first (initial)",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

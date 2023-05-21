@@ -9,7 +9,7 @@ import (
 
 var MenuFromCommand = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using menuFromCommand prompt type",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
 		shell.

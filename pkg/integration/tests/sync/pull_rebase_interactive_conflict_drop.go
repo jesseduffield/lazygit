@@ -7,7 +7,7 @@ import (
 
 var PullRebaseInteractiveConflictDrop = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Pull with an interactive rebase strategy, where a conflict occurs. Also drop a commit while rebasing",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

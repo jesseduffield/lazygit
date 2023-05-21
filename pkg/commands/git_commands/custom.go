@@ -1,5 +1,7 @@
 package git_commands
 
+import "github.com/mgutz/str"
+
 type CustomCommands struct {
 	*GitCommon
 }
@@ -14,5 +16,5 @@ func NewCustomCommands(gitCommon *GitCommon) *CustomCommands {
 // If you want to run a new command, try finding a place for it in one of the neighbouring
 // files, or creating a new BlahCommands struct to hold it.
 func (self *CustomCommands) RunWithOutput(cmdStr string) (string, error) {
-	return self.cmd.New(cmdStr).RunWithOutput()
+	return self.cmd.New(str.ToArgv(cmdStr)).RunWithOutput()
 }

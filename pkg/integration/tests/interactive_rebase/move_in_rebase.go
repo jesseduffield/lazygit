@@ -7,7 +7,7 @@ import (
 
 var MoveInRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Via a single interactive rebase move a commit all the way up then back down then slightly back up again and apply the change",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

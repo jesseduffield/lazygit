@@ -7,7 +7,7 @@ import (
 
 var StagedWithoutHooks = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Staging a couple files, going in the staged files menu, unstaging a line then committing without pre-commit hooks",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

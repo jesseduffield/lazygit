@@ -7,7 +7,7 @@ import (
 
 var MoveToLaterCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Move a patch from a commit to a later commit",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

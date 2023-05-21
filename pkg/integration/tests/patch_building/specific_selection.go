@@ -7,7 +7,7 @@ import (
 
 var SpecificSelection = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Build a custom patch with a specific selection of lines, adding individual lines, as well as a range and hunk, and adding a file directly",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
@@ -29,7 +28,7 @@ func NewWorkingTreeCommands(
 }
 
 func (self *WorkingTreeCommands) OpenMergeToolCmdObj() oscommands.ICmdObj {
-	return self.cmd.New(NewGitCmd("mergetool").ToString())
+	return self.cmd.New(NewGitCmd("mergetool").ToArgv())
 }
 
 func (self *WorkingTreeCommands) OpenMergeTool() error {
@@ -42,25 +41,21 @@ func (self *WorkingTreeCommands) StageFile(path string) error {
 }
 
 func (self *WorkingTreeCommands) StageFiles(paths []string) error {
-	quotedPaths := slices.Map(paths, func(path string) string {
-		return self.cmd.Quote(path)
-	})
+	cmdArgs := NewGitCmd("add").Arg("--").Arg(paths...).ToArgv()
 
-	cmdStr := NewGitCmd("add").Arg("--").Arg(quotedPaths...).ToString()
-
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // StageAll stages all files
 func (self *WorkingTreeCommands) StageAll() error {
-	cmdStr := NewGitCmd("add").Arg("-A").ToString()
+	cmdArgs := NewGitCmd("add").Arg("-A").ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // UnstageAll unstages all files
 func (self *WorkingTreeCommands) UnstageAll() error {
-	return self.cmd.New(NewGitCmd("reset").ToString()).Run()
+	return self.cmd.New(NewGitCmd("reset").ToArgv()).Run()
 }
 
 // UnStageFile unstages a file
@@ -68,14 +63,14 @@ func (self *WorkingTreeCommands) UnstageAll() error {
 // we accept the current name and the previous name
 func (self *WorkingTreeCommands) UnStageFile(fileNames []string, reset bool) error {
 	for _, name := range fileNames {
-		var cmdStr string
+		var cmdArgs []string
 		if reset {
-			cmdStr = NewGitCmd("reset").Arg("HEAD", "--", self.cmd.Quote(name)).ToString()
+			cmdArgs = NewGitCmd("reset").Arg("HEAD", "--", name).ToArgv()
 		} else {
-			cmdStr = NewGitCmd("rm").Arg("--cached", "--force", "--", self.cmd.Quote(name)).ToString()
+			cmdArgs = NewGitCmd("rm").Arg("--cached", "--force", "--", name).ToArgv()
 		}
 
-		err := self.cmd.New(cmdStr).Run()
+		err := self.cmd.New(cmdArgs).Run()
 		if err != nil {
 			return err
 		}
@@ -137,17 +132,15 @@ func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error 
 		return nil
 	}
 
-	quotedFileName := self.cmd.Quote(file.Name)
-
 	if file.ShortStatus == "AA" {
 		if err := self.cmd.New(
-			NewGitCmd("checkout").Arg("--ours", "--", quotedFileName).ToString(),
+			NewGitCmd("checkout").Arg("--ours", "--", file.Name).ToArgv(),
 		).Run(); err != nil {
 			return err
 		}
 
 		if err := self.cmd.New(
-			NewGitCmd("add").Arg("--", quotedFileName).ToString(),
+			NewGitCmd("add").Arg("--", file.Name).ToArgv(),
 		).Run(); err != nil {
 			return err
 		}
@@ -156,14 +149,14 @@ func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error 
 
 	if file.ShortStatus == "DU" {
 		return self.cmd.New(
-			NewGitCmd("rm").Arg("rm", "--", quotedFileName).ToString(),
+			NewGitCmd("rm").Arg("rm", "--", file.Name).ToArgv(),
 		).Run()
 	}
 
 	// if the file isn't tracked, we assume you want to delete it
 	if file.HasStagedChanges || file.HasMergeConflicts {
 		if err := self.cmd.New(
-			NewGitCmd("reset").Arg("--", quotedFileName).ToString(),
+			NewGitCmd("reset").Arg("--", file.Name).ToArgv(),
 		).Run(); err != nil {
 			return err
 		}
@@ -195,9 +188,8 @@ func (self *WorkingTreeCommands) DiscardUnstagedDirChanges(node IFileNode) error
 		return err
 	}
 
-	quotedPath := self.cmd.Quote(node.GetPath())
-	cmdStr := NewGitCmd("checkout").Arg("--", quotedPath).ToString()
-	if err := self.cmd.New(cmdStr).Run(); err != nil {
+	cmdArgs := NewGitCmd("checkout").Arg("--", node.GetPath()).ToArgv()
+	if err := self.cmd.New(cmdArgs).Run(); err != nil {
 		return err
 	}
 
@@ -221,9 +213,8 @@ func (self *WorkingTreeCommands) RemoveUntrackedDirFiles(node IFileNode) error {
 
 // DiscardUnstagedFileChanges directly
 func (self *WorkingTreeCommands) DiscardUnstagedFileChanges(file *models.File) error {
-	quotedFileName := self.cmd.Quote(file.Name)
-	cmdStr := NewGitCmd("checkout").Arg("--", quotedFileName).ToString()
-	return self.cmd.New(cmdStr).Run()
+	cmdArgs := NewGitCmd("checkout").Arg("--", file.Name).ToArgv()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // Ignore adds a file to the gitignore for the repo
@@ -253,7 +244,7 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
 
-	cmdStr := NewGitCmd("diff").
+	cmdArgs := NewGitCmd("diff").
 		Arg("--submodule").
 		Arg("--no-ext-diff").
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
@@ -263,11 +254,11 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 		ArgIf(noIndex, "--no-index").
 		Arg("--").
 		ArgIf(noIndex, "/dev/null").
-		Arg(self.cmd.Quote(node.GetPath())).
-		ArgIf(prevPath != "", self.cmd.Quote(prevPath)).
-		ToString()
+		Arg(node.GetPath()).
+		ArgIf(prevPath != "", prevPath).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).DontLog()
+	return self.cmd.New(cmdArgs).DontLog()
 }
 
 // ShowFileDiff get the diff of specified from and to. Typically this will be used for a single commit so it'll be 123abc^..123abc
@@ -288,7 +279,7 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 		colorArg = "never"
 	}
 
-	cmdStr := NewGitCmd("diff").
+	cmdArgs := NewGitCmd("diff").
 		Arg("--submodule").
 		Arg("--no-ext-diff").
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
@@ -299,41 +290,41 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 		ArgIf(reverse, "-R").
 		ArgIf(ignoreWhitespace, "--ignore-all-space").
 		Arg("--").
-		Arg(self.cmd.Quote(fileName)).
-		ToString()
+		Arg(fileName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).DontLog()
+	return self.cmd.New(cmdArgs).DontLog()
 }
 
 // CheckoutFile checks out the file for the given commit
 func (self *WorkingTreeCommands) CheckoutFile(commitSha, fileName string) error {
-	cmdStr := NewGitCmd("checkout").Arg(commitSha, "--", self.cmd.Quote(fileName)).
-		ToString()
+	cmdArgs := NewGitCmd("checkout").Arg(commitSha, "--", fileName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // DiscardAnyUnstagedFileChanges discards any unstaged file changes via `git checkout -- .`
 func (self *WorkingTreeCommands) DiscardAnyUnstagedFileChanges() error {
-	cmdStr := NewGitCmd("checkout").Arg("--", ".").
-		ToString()
+	cmdArgs := NewGitCmd("checkout").Arg("--", ".").
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // RemoveTrackedFiles will delete the given file(s) even if they are currently tracked
 func (self *WorkingTreeCommands) RemoveTrackedFiles(name string) error {
-	cmdStr := NewGitCmd("rm").Arg("-r", "--cached", "--", self.cmd.Quote(name)).
-		ToString()
+	cmdArgs := NewGitCmd("rm").Arg("-r", "--cached", "--", name).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // RemoveUntrackedFiles runs `git clean -fd`
 func (self *WorkingTreeCommands) RemoveUntrackedFiles() error {
-	cmdStr := NewGitCmd("clean").Arg("-fd").ToString()
+	cmdArgs := NewGitCmd("clean").Arg("-fd").ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // ResetAndClean removes all unstaged changes and removes all untracked files
@@ -358,23 +349,23 @@ func (self *WorkingTreeCommands) ResetAndClean() error {
 
 // ResetHardHead runs `git reset --hard`
 func (self *WorkingTreeCommands) ResetHard(ref string) error {
-	cmdStr := NewGitCmd("reset").Arg("--hard", self.cmd.Quote(ref)).
-		ToString()
+	cmdArgs := NewGitCmd("reset").Arg("--hard", ref).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // ResetSoft runs `git reset --soft HEAD`
 func (self *WorkingTreeCommands) ResetSoft(ref string) error {
-	cmdStr := NewGitCmd("reset").Arg("--soft", self.cmd.Quote(ref)).
-		ToString()
+	cmdArgs := NewGitCmd("reset").Arg("--soft", ref).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *WorkingTreeCommands) ResetMixed(ref string) error {
-	cmdStr := NewGitCmd("reset").Arg("--mixed", self.cmd.Quote(ref)).
-		ToString()
+	cmdArgs := NewGitCmd("reset").Arg("--mixed", ref).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }

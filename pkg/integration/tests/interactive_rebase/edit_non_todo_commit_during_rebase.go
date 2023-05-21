@@ -7,7 +7,7 @@ import (
 
 var EditNonTodoCommitDuringRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Tries to edit a non-todo commit while already rebasing, resulting in an error message",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -69,15 +69,15 @@ func (self *PatchCommands) ApplyPatch(patch string, opts ApplyPatchOpts) error {
 }
 
 func (self *PatchCommands) applyPatchFile(filepath string, opts ApplyPatchOpts) error {
-	cmdStr := NewGitCmd("apply").
+	cmdArgs := NewGitCmd("apply").
 		ArgIf(opts.ThreeWay, "--3way").
 		ArgIf(opts.Cached, "--cached").
 		ArgIf(opts.Index, "--index").
 		ArgIf(opts.Reverse, "--reverse").
-		Arg(self.cmd.Quote(filepath)).
-		ToString()
+		Arg(filepath).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *PatchCommands) SaveTemporaryPatch(patch string) (string, error) {
@@ -320,7 +320,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 // only some lines of a range of adjacent added lines. To solve this, we
 // get the diff of HEAD and the original commit and then apply that.
 func (self *PatchCommands) diffHeadAgainstCommit(commit *models.Commit) (string, error) {
-	cmdStr := NewGitCmd("diff").Arg("HEAD.." + commit.Sha).ToString()
+	cmdArgs := NewGitCmd("diff").Arg("HEAD.." + commit.Sha).ToArgv()
 
-	return self.cmd.New(cmdStr).RunWithOutput()
+	return self.cmd.New(cmdArgs).RunWithOutput()
 }

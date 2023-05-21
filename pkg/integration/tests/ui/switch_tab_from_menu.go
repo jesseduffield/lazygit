@@ -7,7 +7,7 @@ import (
 
 var SwitchTabFromMenu = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Switch tab via the options menu",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

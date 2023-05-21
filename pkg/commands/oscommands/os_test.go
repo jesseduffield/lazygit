@@ -10,13 +10,13 @@ import (
 
 func TestOSCommandRun(t *testing.T) {
 	type scenario struct {
-		command string
-		test    func(error)
+		args []string
+		test func(error)
 	}
 
 	scenarios := []scenario{
 		{
-			"rmdir unexisting-folder",
+			[]string{"rmdir", "unexisting-folder"},
 			func(err error) {
 				assert.Regexp(t, "rmdir.*unexisting-folder.*", err.Error())
 			},
@@ -25,7 +25,7 @@ func TestOSCommandRun(t *testing.T) {
 
 	for _, s := range scenarios {
 		c := NewDummyOSCommand()
-		s.test(c.Cmd.New(s.command).Run())
+		s.test(c.Cmd.New(s.args).Run())
 	}
 }
 

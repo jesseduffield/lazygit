@@ -8,7 +8,7 @@ import (
 
 var RebaseAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Rebase onto another branch, deal with the conflicts. Also mark a commit to be dropped before continuing.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

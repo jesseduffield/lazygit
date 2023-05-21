@@ -7,7 +7,7 @@ import (
 
 var CrudLightweight = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Create and delete a lightweight tag in the tags panel",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -21,11 +21,10 @@ func NewGpgHelper(c *HelperCommon) *GpgHelper {
 // WithWaitingStatus we get stuck there and can't return to lazygit. We could
 // fix this bug, or just stop running subprocesses from within there, given that
 // we don't need to see a loading status if we're in a subprocess.
-// TODO: we shouldn't need to use a shell here, but looks like that NewShell function contains some windows specific quoting stuff. We should centralise that.
 func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
 	useSubprocess := self.c.Git().Config.UsingGpg()
 	if useSubprocess {
-		success, err := self.c.RunSubprocess(self.c.OS().Cmd.NewShell(cmdObj.ToString()))
+		success, err := self.c.RunSubprocess(cmdObj)
 		if success && onSuccess != nil {
 			if err := onSuccess(); err != nil {
 				return err
@@ -42,8 +41,6 @@ func (self *GpgHelper) WithGpgHandling(cmdObj oscommands.ICmdObj, waitingStatus 
 }
 
 func (self *GpgHelper) runAndStream(cmdObj oscommands.ICmdObj, waitingStatus string, onSuccess func() error) error {
-	cmdObj = self.c.OS().Cmd.NewShell(cmdObj.ToString())
-
 	return self.c.WithWaitingStatus(waitingStatus, func() error {
 		if err := cmdObj.StreamOutput().Run(); err != nil {
 			_ = self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})

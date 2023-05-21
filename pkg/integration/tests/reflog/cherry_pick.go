@@ -7,7 +7,7 @@ import (
 
 var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Cherry pick a reflog commit",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

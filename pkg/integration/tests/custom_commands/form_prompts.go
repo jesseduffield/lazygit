@@ -7,7 +7,7 @@ import (
 
 var FormPrompts = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using a custom command reffering prompt responses by name",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("blah")

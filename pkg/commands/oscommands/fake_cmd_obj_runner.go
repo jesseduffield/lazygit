@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -91,7 +92,18 @@ func (self *FakeCmdObjRunner) Expect(expectedCmdStr string, output string, err e
 func (self *FakeCmdObjRunner) ExpectArgs(expectedArgs []string, output string, err error) *FakeCmdObjRunner {
 	self.ExpectFunc(func(cmdObj ICmdObj) (string, error) {
 		args := cmdObj.GetCmd().Args
-		assert.EqualValues(self.t, expectedArgs, args, fmt.Sprintf("command %d did not match expectation", self.expectedCmdIndex+1))
+
+		if runtime.GOOS == "windows" {
+			// thanks to the secureexec package, the first arg is something like
+			// '"C:\\Program Files\\Git\\mingw64\\bin\\<command>.exe"
+			// on windows so we'll just ensure it contains our program
+			assert.Contains(self.t, args[0], expectedArgs[0])
+		} else {
+			// first arg is the program name
+			assert.Equal(self.t, expectedArgs[0], args[0])
+		}
+
+		assert.EqualValues(self.t, expectedArgs[1:], args[1:], fmt.Sprintf("command %d did not match expectation", self.expectedCmdIndex+1))
 
 		return output, err
 	})

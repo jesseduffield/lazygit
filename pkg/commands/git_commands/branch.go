@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/mgutz/str"
 )
 
 type BranchCommands struct {
@@ -20,11 +21,11 @@ func NewBranchCommands(gitCommon *GitCommon) *BranchCommands {
 
 // New creates a new branch
 func (self *BranchCommands) New(name string, base string) error {
-	cmdStr := NewGitCmd("checkout").
-		Arg("-b", self.cmd.Quote(name), self.cmd.Quote(base)).
-		ToString()
+	cmdArgs := NewGitCmd("checkout").
+		Arg("-b", name, base).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // CurrentBranchInfo get the current branch information.
@@ -32,7 +33,7 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	branchName, err := self.cmd.New(
 		NewGitCmd("symbolic-ref").
 			Arg("--short", "HEAD").
-			ToString(),
+			ToArgv(),
 	).DontLog().RunWithOutput()
 	if err == nil && branchName != "HEAD\n" {
 		trimmedBranchName := strings.TrimSpace(branchName)
@@ -44,8 +45,8 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	}
 	output, err := self.cmd.New(
 		NewGitCmd("branch").
-			Arg("--points-at=HEAD", "--format=\"%(HEAD)%00%(objectname)%00%(refname)\"").
-			ToString(),
+			Arg("--points-at=HEAD", "--format=%(HEAD)%00%(objectname)%00%(refname)").
+			ToArgv(),
 	).DontLog().RunWithOutput()
 	if err != nil {
 		return BranchInfo{}, err
@@ -71,12 +72,12 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 
 // Delete delete branch
 func (self *BranchCommands) Delete(branch string, force bool) error {
-	cmdStr := NewGitCmd("branch").
+	cmdArgs := NewGitCmd("branch").
 		ArgIfElse(force, "-D", "-d").
-		Arg(self.cmd.Quote(branch)).
-		ToString()
+		Arg(branch).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // Checkout checks out a branch (or commit), with --force if you set the force arg to true
@@ -86,12 +87,12 @@ type CheckoutOptions struct {
 }
 
 func (self *BranchCommands) Checkout(branch string, options CheckoutOptions) error {
-	cmdStr := NewGitCmd("checkout").
+	cmdArgs := NewGitCmd("checkout").
 		ArgIf(options.Force, "--force").
-		Arg(self.cmd.Quote(branch)).
-		ToString()
+		Arg(branch).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).
+	return self.cmd.New(cmdArgs).
 		// prevents git from prompting us for input which would freeze the program
 		// TODO: see if this is actually needed here
 		AddEnvVars("GIT_TERMINAL_PROMPT=0").
@@ -111,31 +112,34 @@ func (self *BranchCommands) GetGraphCmdObj(branchName string) oscommands.ICmdObj
 	templateValues := map[string]string{
 		"branchName": self.cmd.Quote(branchName),
 	}
-	return self.cmd.New(utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)).DontLog()
+
+	resolvedTemplate := utils.ResolvePlaceholderString(branchLogCmdTemplate, templateValues)
+
+	return self.cmd.New(str.ToArgv(resolvedTemplate)).DontLog()
 }
 
 func (self *BranchCommands) SetCurrentBranchUpstream(remoteName string, remoteBranchName string) error {
-	cmdStr := NewGitCmd("branch").
-		Arg(fmt.Sprintf("--set-upstream-to=%s/%s", self.cmd.Quote(remoteName), self.cmd.Quote(remoteBranchName))).
-		ToString()
+	cmdArgs := NewGitCmd("branch").
+		Arg(fmt.Sprintf("--set-upstream-to=%s/%s", remoteName, remoteBranchName)).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *BranchCommands) SetUpstream(remoteName string, remoteBranchName string, branchName string) error {
-	cmdStr := NewGitCmd("branch").
-		Arg(fmt.Sprintf("--set-upstream-to=%s/%s", self.cmd.Quote(remoteName), self.cmd.Quote(remoteBranchName))).
-		Arg(self.cmd.Quote(branchName)).
-		ToString()
+	cmdArgs := NewGitCmd("branch").
+		Arg(fmt.Sprintf("--set-upstream-to=%s/%s", remoteName, remoteBranchName)).
+		Arg(branchName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *BranchCommands) UnsetUpstream(branchName string) error {
-	cmdStr := NewGitCmd("branch").Arg("--unset-upstream", self.cmd.Quote(branchName)).
-		ToString()
+	cmdArgs := NewGitCmd("branch").Arg("--unset-upstream", branchName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *BranchCommands) GetCurrentBranchUpstreamDifferenceCount() (string, string) {
@@ -161,37 +165,37 @@ func (self *BranchCommands) GetCommitDifferences(from, to string) (string, strin
 }
 
 func (self *BranchCommands) countDifferences(from, to string) (string, error) {
-	cmdStr := NewGitCmd("rev-list").
+	cmdArgs := NewGitCmd("rev-list").
 		Arg(fmt.Sprintf("%s..%s", from, to)).
 		Arg("--count").
-		ToString()
+		ToArgv()
 
-	return self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
 func (self *BranchCommands) IsHeadDetached() bool {
-	cmdStr := NewGitCmd("symbolic-ref").Arg("-q", "HEAD").ToString()
+	cmdArgs := NewGitCmd("symbolic-ref").Arg("-q", "HEAD").ToArgv()
 
-	err := self.cmd.New(cmdStr).DontLog().Run()
+	err := self.cmd.New(cmdArgs).DontLog().Run()
 	return err != nil
 }
 
 func (self *BranchCommands) Rename(oldName string, newName string) error {
-	cmdStr := NewGitCmd("branch").
-		Arg("--move", self.cmd.Quote(oldName), self.cmd.Quote(newName)).
-		ToString()
+	cmdArgs := NewGitCmd("branch").
+		Arg("--move", oldName, newName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *BranchCommands) GetRawBranches() (string, error) {
-	cmdStr := NewGitCmd("for-each-ref").
+	cmdArgs := NewGitCmd("for-each-ref").
 		Arg("--sort=-committerdate").
-		Arg(`--format="%(HEAD)%00%(refname:short)%00%(upstream:short)%00%(upstream:track)"`).
+		Arg(`--format=%(HEAD)%00%(refname:short)%00%(upstream:short)%00%(upstream:track)`).
 		Arg("refs/heads").
-		ToString()
+		ToArgv()
 
-	return self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
 type MergeOpts struct {
@@ -199,16 +203,16 @@ type MergeOpts struct {
 }
 
 func (self *BranchCommands) Merge(branchName string, opts MergeOpts) error {
-	command := NewGitCmd("merge").
+	cmdArgs := NewGitCmd("merge").
 		Arg("--no-edit").
 		ArgIf(self.UserConfig.Git.Merging.Args != "", self.UserConfig.Git.Merging.Args).
 		ArgIf(opts.FastForwardOnly, "--ff-only").
-		Arg(self.cmd.Quote(branchName)).
-		ToString()
+		Arg(branchName).
+		ToArgv()
 
-	return self.cmd.New(command).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *BranchCommands) AllBranchesLogCmdObj() oscommands.ICmdObj {
-	return self.cmd.New(self.UserConfig.Git.AllBranchesLogCmd).DontLog()
+	return self.cmd.New(str.ToArgv(self.UserConfig.Git.AllBranchesLogCmd)).DontLog()
 }

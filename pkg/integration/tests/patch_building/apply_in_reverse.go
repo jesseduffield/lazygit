@@ -7,7 +7,7 @@ import (
 
 var ApplyInReverse = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Apply a custom patch in reverse",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

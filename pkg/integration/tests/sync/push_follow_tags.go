@@ -7,7 +7,7 @@ import (
 
 var PushFollowTags = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Push with --follow-tags configured in git config",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},

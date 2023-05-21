@@ -7,7 +7,7 @@ import (
 
 var MoveToEarlierCommitNoKeepEmpty = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Move a patch from a commit to an earlier commit, for older git versions that don't keep the empty commit",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	GitVersion:   Before("2.26.0"),
 	SetupConfig:  func(config *config.AppConfig) {},

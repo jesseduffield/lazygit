@@ -1,7 +1,6 @@
 package git_commands
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -27,12 +26,15 @@ func NewReflogCommitLoader(common *common.Common, cmd oscommands.ICmdObjBuilder)
 func (self *ReflogCommitLoader) GetReflogCommits(lastReflogCommit *models.Commit, filterPath string) ([]*models.Commit, bool, error) {
 	commits := make([]*models.Commit, 0)
 
-	filterPathArg := ""
-	if filterPath != "" {
-		filterPathArg = fmt.Sprintf(" --follow -- %s", self.cmd.Quote(filterPath))
-	}
+	cmdArgs := NewGitCmd("log").
+		Config("log.showSignature=false").
+		Arg("-g").
+		Arg("--abbrev=40").
+		Arg("--format=%h%x00%ct%x00%gs%x00%p").
+		ArgIf(filterPath != "", "--follow", "--", filterPath).
+		ToArgv()
 
-	cmdObj := self.cmd.New(fmt.Sprintf(`git -c log.showSignature=false log -g --abbrev=40 --format="%s"%s`, "%h%x00%ct%x00%gs%x00%p", filterPathArg)).DontLog()
+	cmdObj := self.cmd.New(cmdArgs).DontLog()
 	onlyObtainedNewReflogCommits := false
 	err := cmdObj.RunAndProcessLines(func(line string) (bool, error) {
 		fields := strings.SplitN(line, "\x00", 4)

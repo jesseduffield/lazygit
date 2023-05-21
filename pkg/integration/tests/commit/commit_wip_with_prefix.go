@@ -7,7 +7,7 @@ import (
 
 var CommitWipWithPrefix = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Commit with skip hook and config commitPrefix is defined. Prefix is ignored when creating WIP commits.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(testConfig *config.AppConfig) {
 		testConfig.UserConfig.Git.CommitPrefixes = map[string]config.CommitPrefixConfig{"repo": {Pattern: "^\\w+\\/(\\w+-\\w+).*", Replace: "[$1]: "}}

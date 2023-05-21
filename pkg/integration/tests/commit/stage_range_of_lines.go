@@ -7,7 +7,7 @@ import (
 
 var StageRangeOfLines = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Staging a range of lines",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

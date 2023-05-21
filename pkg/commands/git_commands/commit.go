@@ -22,27 +22,27 @@ func NewCommitCommands(gitCommon *GitCommon) *CommitCommands {
 
 // ResetAuthor resets the author of the topmost commit
 func (self *CommitCommands) ResetAuthor() error {
-	cmdStr := NewGitCmd("commit").
+	cmdArgs := NewGitCmd("commit").
 		Arg("--allow-empty", "--only", "--no-edit", "--amend", "--reset-author").
-		ToString()
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // Sets the commit's author to the supplied value. Value is expected to be of the form 'Name <Email>'
 func (self *CommitCommands) SetAuthor(value string) error {
-	cmdStr := NewGitCmd("commit").
-		Arg("--allow-empty", "--only", "--no-edit", "--amend", "--author="+self.cmd.Quote(value)).
-		ToString()
+	cmdArgs := NewGitCmd("commit").
+		Arg("--allow-empty", "--only", "--no-edit", "--amend", "--author="+value).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // ResetToCommit reset to commit
 func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars []string) error {
-	cmdStr := NewGitCmd("reset").Arg("--"+strength, sha).ToString()
+	cmdArgs := NewGitCmd("reset").Arg("--"+strength, sha).ToArgv()
 
-	return self.cmd.New(cmdStr).
+	return self.cmd.New(cmdArgs).
 		// prevents git from prompting us for input which would freeze the program
 		// TODO: see if this is actually needed here
 		AddEnvVars("GIT_TERMINAL_PROMPT=0").
@@ -55,33 +55,37 @@ func (self *CommitCommands) CommitCmdObj(message string) oscommands.ICmdObj {
 
 	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
 
-	cmdStr := NewGitCmd("commit").
+	cmdArgs := NewGitCmd("commit").
 		ArgIf(skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix), "--no-verify").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
 		Arg(messageArgs...).
-		ToString()
+		ToArgv()
 
-	return self.cmd.New(cmdStr)
+	return self.cmd.New(cmdArgs)
+}
+
+func (self *CommitCommands) RewordLastCommitInEditorCmdObj() oscommands.ICmdObj {
+	return self.cmd.New(NewGitCmd("commit").Arg("--allow-empty", "--amend", "--only").ToArgv())
 }
 
 // RewordLastCommit rewords the topmost commit with the given message
 func (self *CommitCommands) RewordLastCommit(message string) error {
 	messageArgs := self.commitMessageArgs(message)
 
-	cmdStr := NewGitCmd("commit").
+	cmdArgs := NewGitCmd("commit").
 		Arg("--allow-empty", "--amend", "--only").
 		Arg(messageArgs...).
-		ToString()
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *CommitCommands) commitMessageArgs(message string) []string {
 	msg, description, _ := strings.Cut(message, "\n")
-	args := []string{"-m", self.cmd.Quote(msg)}
+	args := []string{"-m", msg}
 
 	if description != "" {
-		args = append(args, "-m", self.cmd.Quote(description))
+		args = append(args, "-m", description)
 	}
 
 	return args
@@ -89,12 +93,12 @@ func (self *CommitCommands) commitMessageArgs(message string) []string {
 
 // runs git commit without the -m argument meaning it will invoke the user's editor
 func (self *CommitCommands) CommitEditorCmdObj() oscommands.ICmdObj {
-	cmdStr := NewGitCmd("commit").
+	cmdArgs := NewGitCmd("commit").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
 		ArgIf(self.verboseFlag() != "", self.verboseFlag()).
-		ToString()
+		ToArgv()
 
-	return self.cmd.New(cmdStr)
+	return self.cmd.New(cmdArgs)
 }
 
 func (self *CommitCommands) signoffFlag() string {
@@ -118,26 +122,26 @@ func (self *CommitCommands) verboseFlag() string {
 
 // Get the subject of the HEAD commit
 func (self *CommitCommands) GetHeadCommitMessage() (string, error) {
-	cmdStr := NewGitCmd("log").Arg("-1", "--pretty=%s").ToString()
+	cmdArgs := NewGitCmd("log").Arg("-1", "--pretty=%s").ToArgv()
 
-	message, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	message, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	return strings.TrimSpace(message), err
 }
 
 func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
-	cmdStr := NewGitCmd("rev-list").
+	cmdArgs := NewGitCmd("rev-list").
 		Arg("--format=%B", "--max-count=1", commitSha).
-		ToString()
+		ToArgv()
 
-	messageWithHeader, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	messageWithHeader, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	message := strings.Join(strings.SplitAfter(messageWithHeader, "\n")[1:], "")
 	return strings.TrimSpace(message), err
 }
 
 func (self *CommitCommands) GetCommitDiff(commitSha string) (string, error) {
-	cmdStr := NewGitCmd("show").Arg("--no-color", commitSha).ToString()
+	cmdArgs := NewGitCmd("show").Arg("--no-color", commitSha).ToArgv()
 
-	diff, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	diff, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	return diff, err
 }
 
@@ -147,11 +151,11 @@ type Author struct {
 }
 
 func (self *CommitCommands) GetCommitAuthor(commitSha string) (Author, error) {
-	cmdStr := NewGitCmd("show").
+	cmdArgs := NewGitCmd("show").
 		Arg("--no-patch", "--pretty=format:'%an%x00%ae'", commitSha).
-		ToString()
+		ToArgv()
 
-	output, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
 		return Author{}, err
 	}
@@ -170,21 +174,21 @@ func (self *CommitCommands) GetCommitMessageFirstLine(sha string) (string, error
 }
 
 func (self *CommitCommands) GetCommitMessagesFirstLine(shas []string) (string, error) {
-	cmdStr := NewGitCmd("show").
+	cmdArgs := NewGitCmd("show").
 		Arg("--no-patch", "--pretty=format:%s").
 		Arg(shas...).
-		ToString()
+		ToArgv()
 
-	return self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
 func (self *CommitCommands) GetCommitsOneline(shas []string) (string, error) {
-	cmdStr := NewGitCmd("show").
+	cmdArgs := NewGitCmd("show").
 		Arg("--no-patch", "--oneline").
 		Arg(shas...).
-		ToString()
+		ToArgv()
 
-	return self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
 // AmendHead amends HEAD with whatever is staged in your working tree
@@ -193,17 +197,17 @@ func (self *CommitCommands) AmendHead() error {
 }
 
 func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
-	cmdStr := NewGitCmd("commit").
+	cmdArgs := NewGitCmd("commit").
 		Arg("--amend", "--no-edit", "--allow-empty").
-		ToString()
+		ToArgv()
 
-	return self.cmd.New(cmdStr)
+	return self.cmd.New(cmdArgs)
 }
 
 func (self *CommitCommands) ShowCmdObj(sha string, filterPath string, ignoreWhitespace bool) oscommands.ICmdObj {
 	contextSize := self.UserConfig.Git.DiffContextSize
 
-	cmdStr := NewGitCmd("show").
+	cmdArgs := NewGitCmd("show").
 		Arg("--submodule").
 		Arg("--color="+self.UserConfig.Git.Paging.ColorArg).
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
@@ -211,39 +215,39 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string, ignoreWhit
 		Arg("-p").
 		Arg(sha).
 		ArgIf(ignoreWhitespace, "--ignore-all-space").
-		ArgIf(filterPath != "", "--", self.cmd.Quote(filterPath)).
-		ToString()
+		ArgIf(filterPath != "", "--", filterPath).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).DontLog()
+	return self.cmd.New(cmdArgs).DontLog()
 }
 
 // Revert reverts the selected commit by sha
 func (self *CommitCommands) Revert(sha string) error {
-	cmdStr := NewGitCmd("revert").Arg(sha).ToString()
+	cmdArgs := NewGitCmd("revert").Arg(sha).ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *CommitCommands) RevertMerge(sha string, parentNumber int) error {
-	cmdStr := NewGitCmd("revert").Arg(sha, "-m", fmt.Sprintf("%d", parentNumber)).
-		ToString()
+	cmdArgs := NewGitCmd("revert").Arg(sha, "-m", fmt.Sprintf("%d", parentNumber)).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // CreateFixupCommit creates a commit that fixes up a previous commit
 func (self *CommitCommands) CreateFixupCommit(sha string) error {
-	cmdStr := NewGitCmd("commit").Arg("--fixup=" + sha).ToString()
+	cmdArgs := NewGitCmd("commit").Arg("--fixup=" + sha).ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // a value of 0 means the head commit, 1 is the parent commit, etc
 func (self *CommitCommands) GetCommitMessageFromHistory(value int) (string, error) {
-	cmdStr := NewGitCmd("log").Arg("-1", fmt.Sprintf("--skip=%d", value), "--pretty=%H").
-		ToString()
+	cmdArgs := NewGitCmd("log").Arg("-1", fmt.Sprintf("--skip=%d", value), "--pretty=%H").
+		ToArgv()
 
-	hash, _ := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	hash, _ := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	formattedHash := strings.TrimSpace(hash)
 	if len(formattedHash) == 0 {
 		return "", ErrInvalidCommitIndex

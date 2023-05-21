@@ -7,7 +7,7 @@ import (
 
 var Stash = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Stashing files directly (not going through the stash menu)",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

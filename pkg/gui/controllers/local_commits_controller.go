@@ -288,7 +288,7 @@ func (self *LocalCommitsController) doRewordEditor() error {
 	self.c.LogAction(self.c.Tr.Actions.RewordCommit)
 
 	if self.isHeadCommit() {
-		return self.c.RunSubprocessAndRefresh(self.c.OS().Cmd.New("git commit --allow-empty --amend --only"))
+		return self.c.RunSubprocessAndRefresh(self.c.Git().Commit.RewordLastCommitInEditorCmdObj())
 	}
 
 	subProcess, err := self.c.Git().Rebase.RewordCommitInEditor(

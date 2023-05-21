@@ -7,7 +7,7 @@ import (
 
 var AmendFixupCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Amends a staged file to a fixup commit, and checks that other unrelated fixup commits are not auto-squashed.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

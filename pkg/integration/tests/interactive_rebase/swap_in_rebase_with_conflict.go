@@ -7,7 +7,7 @@ import (
 
 var SwapInRebaseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Via an edit-triggered rebase, swap two commits, causing a conflict. Then resolve the conflict and continue",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

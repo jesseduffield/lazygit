@@ -7,7 +7,7 @@ import (
 
 var RemoveFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Remove a custom patch from a commit",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

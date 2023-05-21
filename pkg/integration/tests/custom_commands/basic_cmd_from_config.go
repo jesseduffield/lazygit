@@ -7,7 +7,7 @@ import (
 
 var BasicCmdFromConfig = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using a custom command to create a new file",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("blah")

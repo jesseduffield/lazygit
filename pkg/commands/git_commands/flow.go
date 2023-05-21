@@ -49,13 +49,13 @@ func (self *FlowCommands) FinishCmdObj(branchName string) (oscommands.ICmdObj, e
 		return nil, errors.New(self.Tr.NotAGitFlowBranch)
 	}
 
-	cmdStr := NewGitCmd("flow").Arg(branchType, "finish", suffix).ToString()
+	cmdArgs := NewGitCmd("flow").Arg(branchType, "finish", suffix).ToArgv()
 
-	return self.cmd.New(cmdStr), nil
+	return self.cmd.New(cmdArgs), nil
 }
 
 func (self *FlowCommands) StartCmdObj(branchType string, name string) oscommands.ICmdObj {
-	cmdStr := NewGitCmd("flow").Arg(branchType, "start", name).ToString()
+	cmdArgs := NewGitCmd("flow").Arg(branchType, "start", name).ToArgv()
 
-	return self.cmd.New(cmdStr)
+	return self.cmd.New(cmdArgs)
 }

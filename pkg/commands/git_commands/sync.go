@@ -28,14 +28,14 @@ func (self *SyncCommands) PushCmdObj(opts PushOpts) (oscommands.ICmdObj, error) 
 		return nil, errors.New(self.Tr.MustSpecifyOriginError)
 	}
 
-	cmdStr := NewGitCmd("push").
+	cmdArgs := NewGitCmd("push").
 		ArgIf(opts.Force, "--force-with-lease").
 		ArgIf(opts.SetUpstream, "--set-upstream").
-		ArgIf(opts.UpstreamRemote != "", self.cmd.Quote(opts.UpstreamRemote)).
-		ArgIf(opts.UpstreamBranch != "", self.cmd.Quote(opts.UpstreamBranch)).
-		ToString()
+		ArgIf(opts.UpstreamRemote != "", opts.UpstreamRemote).
+		ArgIf(opts.UpstreamBranch != "", opts.UpstreamBranch).
+		ToArgv()
 
-	cmdObj := self.cmd.New(cmdStr).PromptOnCredentialRequest().WithMutex(self.syncMutex)
+	cmdObj := self.cmd.New(cmdArgs).PromptOnCredentialRequest().WithMutex(self.syncMutex)
 	return cmdObj, nil
 }
 
@@ -56,12 +56,12 @@ type FetchOptions struct {
 
 // Fetch fetch git repo
 func (self *SyncCommands) Fetch(opts FetchOptions) error {
-	cmdStr := NewGitCmd("fetch").
-		ArgIf(opts.RemoteName != "", self.cmd.Quote(opts.RemoteName)).
-		ArgIf(opts.BranchName != "", self.cmd.Quote(opts.BranchName)).
-		ToString()
+	cmdArgs := NewGitCmd("fetch").
+		ArgIf(opts.RemoteName != "", opts.RemoteName).
+		ArgIf(opts.BranchName != "", opts.BranchName).
+		ToArgv()
 
-	cmdObj := self.cmd.New(cmdStr)
+	cmdObj := self.cmd.New(cmdArgs)
 	if opts.Background {
 		cmdObj.DontLog().FailOnCredentialRequest()
 	} else {
@@ -77,31 +77,31 @@ type PullOptions struct {
 }
 
 func (self *SyncCommands) Pull(opts PullOptions) error {
-	cmdStr := NewGitCmd("pull").
+	cmdArgs := NewGitCmd("pull").
 		Arg("--no-edit").
 		ArgIf(opts.FastForwardOnly, "--ff-only").
-		ArgIf(opts.RemoteName != "", self.cmd.Quote(opts.RemoteName)).
-		ArgIf(opts.BranchName != "", self.cmd.Quote(opts.BranchName)).
-		ToString()
+		ArgIf(opts.RemoteName != "", opts.RemoteName).
+		ArgIf(opts.BranchName != "", opts.BranchName).
+		ToArgv()
 
 	// setting GIT_SEQUENCE_EDITOR to ':' as a way of skipping it, in case the user
 	// has 'pull.rebase = interactive' configured.
-	return self.cmd.New(cmdStr).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
 }
 
 func (self *SyncCommands) FastForward(branchName string, remoteName string, remoteBranchName string) error {
-	cmdStr := NewGitCmd("fetch").
-		Arg(self.cmd.Quote(remoteName)).
-		Arg(self.cmd.Quote(remoteBranchName) + ":" + self.cmd.Quote(branchName)).
-		ToString()
+	cmdArgs := NewGitCmd("fetch").
+		Arg(remoteName).
+		Arg(remoteBranchName + ":" + branchName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
 }
 
 func (self *SyncCommands) FetchRemote(remoteName string) error {
-	cmdStr := NewGitCmd("fetch").
-		Arg(self.cmd.Quote(remoteName)).
-		ToString()
+	cmdArgs := NewGitCmd("fetch").
+		Arg(remoteName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
 }

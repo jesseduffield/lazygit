@@ -7,7 +7,7 @@ import (
 
 var StartNewPatch = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Attempt to add a file from another commit to a patch, then agree to start a new patch",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

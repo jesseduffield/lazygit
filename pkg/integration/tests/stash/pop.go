@@ -7,7 +7,7 @@ import (
 
 var Pop = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Pop a stash entry",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

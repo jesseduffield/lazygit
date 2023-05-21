@@ -7,7 +7,7 @@ import (
 
 var PushAndAutoSetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Push a commit and set the upstream automatically as configured by git",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},

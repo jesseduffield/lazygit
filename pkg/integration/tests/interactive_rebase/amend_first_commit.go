@@ -7,7 +7,7 @@ import (
 
 var AmendFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Amends a staged file to the first (initial) commit.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

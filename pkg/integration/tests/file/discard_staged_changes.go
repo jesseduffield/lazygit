@@ -7,7 +7,7 @@ import (
 
 var DiscardStagedChanges = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Discarding staged changes",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},

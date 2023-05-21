@@ -7,7 +7,7 @@ import (
 
 var Unstaged = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Staging a couple files, going in the unstaged files menu, staging a line and committing",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

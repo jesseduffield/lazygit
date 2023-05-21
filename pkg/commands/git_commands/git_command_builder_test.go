@@ -8,8 +8,8 @@ import (
 
 func TestGitCommandBuilder(t *testing.T) {
 	scenarios := []struct {
-		input    string
-		expected string
+		input    []string
+		expected []string
 	}{
 		{
 			input: NewGitCmd("push").
@@ -17,36 +17,36 @@ func TestGitCommandBuilder(t *testing.T) {
 				Arg("--set-upstream").
 				Arg("origin").
 				Arg("master").
-				ToString(),
-			expected: "git push --force-with-lease --set-upstream origin master",
+				ToArgv(),
+			expected: []string{"git", "push", "--force-with-lease", "--set-upstream", "origin", "master"},
 		},
 		{
-			input:    NewGitCmd("push").ArgIf(true, "--test").ToString(),
-			expected: "git push --test",
+			input:    NewGitCmd("push").ArgIf(true, "--test").ToArgv(),
+			expected: []string{"git", "push", "--test"},
 		},
 		{
-			input:    NewGitCmd("push").ArgIf(false, "--test").ToString(),
-			expected: "git push",
+			input:    NewGitCmd("push").ArgIf(false, "--test").ToArgv(),
+			expected: []string{"git", "push"},
 		},
 		{
-			input:    NewGitCmd("push").ArgIfElse(true, "-b", "-a").ToString(),
-			expected: "git push -b",
+			input:    NewGitCmd("push").ArgIfElse(true, "-b", "-a").ToArgv(),
+			expected: []string{"git", "push", "-b"},
 		},
 		{
-			input:    NewGitCmd("push").ArgIfElse(false, "-a", "-b").ToString(),
-			expected: "git push -b",
+			input:    NewGitCmd("push").ArgIfElse(false, "-a", "-b").ToArgv(),
+			expected: []string{"git", "push", "-b"},
 		},
 		{
-			input:    NewGitCmd("push").Arg("-a", "-b").ToString(),
-			expected: "git push -a -b",
+			input:    NewGitCmd("push").Arg("-a", "-b").ToArgv(),
+			expected: []string{"git", "push", "-a", "-b"},
 		},
 		{
-			input:    NewGitCmd("push").Config("user.name=foo").Config("user.email=bar").ToString(),
-			expected: "git -c user.email=bar -c user.name=foo push",
+			input:    NewGitCmd("push").Config("user.name=foo").Config("user.email=bar").ToArgv(),
+			expected: []string{"git", "-c", "user.email=bar", "-c", "user.name=foo", "push"},
 		},
 		{
-			input:    NewGitCmd("push").RepoPath("a/b/c").ToString(),
-			expected: "git -C a/b/c push",
+			input:    NewGitCmd("push").RepoPath("a/b/c").ToArgv(),
+			expected: []string{"git", "-C", "a/b/c", "push"},
 		},
 	}
 

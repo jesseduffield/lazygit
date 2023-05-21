@@ -7,7 +7,7 @@ import (
 
 var ResetAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Reset author on a commit",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -7,7 +7,7 @@ import (
 
 var UndoDrop = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Drop some commits and then undo/redo the actions",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

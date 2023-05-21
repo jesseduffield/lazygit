@@ -7,7 +7,7 @@ import (
 
 var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Apply a custom patch in reverse, resulting in a conflict",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

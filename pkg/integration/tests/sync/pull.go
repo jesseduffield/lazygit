@@ -7,7 +7,7 @@ import (
 
 var Pull = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Pull a commit from the remote",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

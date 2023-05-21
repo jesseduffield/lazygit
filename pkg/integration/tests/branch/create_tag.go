@@ -7,7 +7,7 @@ import (
 
 var CreateTag = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Create a new tag on branch",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
