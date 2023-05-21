@@ -368,6 +368,7 @@ type TranslationSet struct {
 	LcStartSearch                       string
 	Panel                               string
 	Keybindings                         string
+	KeybindingsLegend                   string
 	LcRenameBranch                      string
 	LcSetUnsetUpstream                  string
 	NewGitFlowBranchPrompt              string
@@ -1039,6 +1040,7 @@ func EnglishTranslationSet() TranslationSet {
 		LcStartSearch:                       "start search",
 		Panel:                               "Panel",
 		Keybindings:                         "Keybindings",
+		KeybindingsLegend:                   "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
 		LcRenameBranch:                      "rename branch",
 		LcSetUnsetUpstream:                  "set/unset upstream",
 		NewBranchNamePrompt:                 "Enter new branch name for branch",

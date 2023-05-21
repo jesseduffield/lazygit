@@ -3,9 +3,10 @@ package style
 import "github.com/gookit/color"
 
 type Decoration struct {
-	bold      bool
-	underline bool
-	reverse   bool
+	bold          bool
+	underline     bool
+	reverse       bool
+	strikethrough bool
 }
 
 func (d *Decoration) SetBold() {
@@ -18,6 +19,10 @@ func (d *Decoration) SetUnderline() {
 
 func (d *Decoration) SetReverse() {
 	d.reverse = true
+}
+
+func (d *Decoration) SetStrikethrough() {
+	d.strikethrough = true
 }
 
 func (d Decoration) ToOpts() color.Opts {
@@ -35,6 +40,10 @@ func (d Decoration) ToOpts() color.Opts {
 		opts = append(opts, color.OpReverse)
 	}
 
+	if d.strikethrough {
+		opts = append(opts, color.OpStrikethrough)
+	}
+
 	return opts
 }
 
@@ -49,6 +58,10 @@ func (d Decoration) Merge(other Decoration) Decoration {
 
 	if other.reverse {
 		d.reverse = true
+	}
+
+	if other.strikethrough {
+		d.strikethrough = true
 	}
 
 	return d

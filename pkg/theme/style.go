@@ -17,6 +17,8 @@ func GetTextStyle(keys []string, background bool) style.TextStyle {
 			s = s.SetReverse()
 		case "underline":
 			s = s.SetUnderline()
+		case "strikethrough":
+			s = s.SetStrikethrough()
 		default:
 			value, present := style.ColorMap[key]
 			if present {

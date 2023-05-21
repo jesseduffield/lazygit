@@ -5,8 +5,8 @@
   "tasks": [
     {
       "label": "Generate cheatsheet",
-      "type": "process",
-      "command": "go run scripts/cheatsheet/main.go ",
+      "type": "shell",
+      "command": "go run scripts/cheatsheet/main.go generate",
       "problemMatcher": [],
     },
     {

@@ -98,6 +98,12 @@ func (b TextStyle) SetReverse() TextStyle {
 	return b
 }
 
+func (b TextStyle) SetStrikethrough() TextStyle {
+	b.decoration.SetStrikethrough()
+	b.Style = b.deriveStyle()
+	return b
+}
+
 func (b TextStyle) SetBg(color Color) TextStyle {
 	b.bg = &color
 	b.Style = b.deriveStyle()
