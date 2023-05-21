@@ -16,6 +16,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/kyokomi/emoji/v2"
+	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 )
 
@@ -48,6 +49,8 @@ func GetCommitListDisplayStrings(
 	showGraph bool,
 	bisectInfo *git_commands.BisectInfo,
 	showYouAreHereLabel bool,
+	recentCommitsWhichChangedFile []string,
+	markRecentFileChanges bool,
 ) [][]string {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -113,6 +116,8 @@ func GetCommitListDisplayStrings(
 			bisectStatus,
 			bisectInfo,
 			isYouAreHereCommit,
+			recentCommitsWhichChangedFile,
+			markRecentFileChanges,
 		))
 	}
 	return lines
@@ -259,6 +264,8 @@ func displayCommit(
 	bisectStatus BisectStatus,
 	bisectInfo *git_commands.BisectInfo,
 	isYouAreHereCommit bool,
+	recentCommitsWhichChangedFile []string,
+	markRecentFileChanges bool,
 ) []string {
 	shaColor := getShaColor(commit, diffName, cherryPickedCommitShaSet, bisectStatus, bisectInfo)
 	bisectString := getBisectStatusText(bisectStatus, bisectInfo)
@@ -299,7 +306,23 @@ func displayCommit(
 
 	cols := make([]string, 0, 7)
 	if icons.IsIconEnabled() {
-		cols = append(cols, shaColor.Sprint(icons.IconForCommit(commit)))
+		if markRecentFileChanges && lo.SomeBy(recentCommitsWhichChangedFile, func(sha string) bool {
+			return utils.ShortSha(sha) == utils.ShortSha(commit.Sha)
+		}) {
+			cols = append(cols, style.FgDefault.Sprint(">"))
+		} else {
+			cols = append(cols, shaColor.Sprint(icons.IconForCommit(commit)))
+		}
+	} else {
+		if markRecentFileChanges {
+			if lo.SomeBy(recentCommitsWhichChangedFile, func(sha string) bool {
+				return utils.ShortSha(sha) == utils.ShortSha(commit.Sha)
+			}) {
+				cols = append(cols, style.FgDefault.Sprint(">"))
+			} else {
+				cols = append(cols, " ")
+			}
+		}
 	}
 	cols = append(cols, shaColor.Sprint(commit.ShortSha()))
 	cols = append(cols, bisectString)

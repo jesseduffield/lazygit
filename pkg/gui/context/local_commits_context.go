@@ -3,6 +3,7 @@ package context
 import (
 	"log"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -37,20 +38,14 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 
 		showYouAreHereLabel := c.Model().WorkingTreeStateAtLastCommitRefresh == enums.REBASE_MODE_REBASING
 
-		return presentation.GetCommitListDisplayStrings(
-			c.Common,
+		return getCommitsDisplayStrings(
+			c,
 			c.Model().Commits,
-			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
-			c.Modes().CherryPicking.SelectedShaSet(),
-			c.Modes().Diffing.Ref,
-			c.UserConfig.Gui.TimeFormat,
-			c.UserConfig.Git.ParseEmoji,
-			selectedCommitSha,
 			startIdx,
 			length,
-			shouldShowGraph(c),
-			c.Model().BisectInfo,
+			selectedCommitSha,
 			showYouAreHereLabel,
+			c.Model().BisectInfo,
 		)
 	}
 
@@ -158,4 +153,32 @@ func shouldShowGraph(c *ContextCommon) bool {
 
 	log.Fatalf("Unknown value for git.log.showGraph: %s. Expected one of: 'always', 'never', 'when-maximised'", value)
 	return false
+}
+
+func getCommitsDisplayStrings(
+	c *ContextCommon,
+	commits []*models.Commit,
+	startIdx int,
+	length int,
+	selectedCommitSha string,
+	showYouAreHereLabel bool,
+	bisectInfo *git_commands.BisectInfo,
+) [][]string {
+	return presentation.GetCommitListDisplayStrings(
+		c.Common,
+		commits,
+		c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
+		c.Modes().CherryPicking.SelectedShaSet(),
+		c.Modes().Diffing.Ref,
+		c.UserConfig.Gui.TimeFormat,
+		c.UserConfig.Git.ParseEmoji,
+		selectedCommitSha,
+		startIdx,
+		length,
+		shouldShowGraph(c),
+		bisectInfo,
+		showYouAreHereLabel,
+		c.State().GetRepoState().GetRecentCommitsWhichChangedFile(),
+		c.UserConfig.Gui.ExperimentalMarkCommitsWhichChangedFile,
+	)
 }

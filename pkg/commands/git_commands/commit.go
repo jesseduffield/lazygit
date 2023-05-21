@@ -3,6 +3,7 @@ package git_commands
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -249,4 +250,20 @@ func (self *CommitCommands) GetCommitMessageFromHistory(value int) (string, erro
 		return "", ErrInvalidCommitIndex
 	}
 	return self.GetCommitMessage(formattedHash)
+}
+
+// Returns hashes of recent commits which changed the given file
+// Note: This does not look for the last X commits to change a file, instead
+// it looks among the last X commits and see which of them happened to have changed the file.
+// This is more efficient.
+func (self *CommitCommands) GetRecentCommitsWhichChangedFile(path string) []string {
+	t := time.Now()
+	// Checking last X commits. Funnily this seems to actually consider more than the last
+	// X, perhaps because of topological sorting.
+	cmdStr := NewGitCmd("log").Arg("HEAD~50..HEAD", "--pretty=%H", "--", self.cmd.Quote(path)).
+		ToString()
+
+	hashes, _ := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	self.Log.Warn(fmt.Sprintf("GetRecentCommitsWhichChangedFile took %s", time.Since(t)))
+	return strings.Split(strings.TrimSpace(hashes), "\n")
 }
