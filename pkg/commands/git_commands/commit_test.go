@@ -114,7 +114,6 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 	type scenario struct {
 		testName      string
 		configSignoff bool
-		configVerbose string
 		expected      []string
 	}
 
@@ -122,32 +121,12 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 		{
 			testName:      "Commit using editor",
 			configSignoff: false,
-			configVerbose: "default",
 			expected:      []string{"commit"},
-		},
-		{
-			testName:      "Commit with --no-verbose flag",
-			configSignoff: false,
-			configVerbose: "never",
-			expected:      []string{"commit", "--no-verbose"},
-		},
-		{
-			testName:      "Commit with --verbose flag",
-			configSignoff: false,
-			configVerbose: "always",
-			expected:      []string{"commit", "--verbose"},
 		},
 		{
 			testName:      "Commit with --signoff",
 			configSignoff: true,
-			configVerbose: "default",
 			expected:      []string{"commit", "--signoff"},
-		},
-		{
-			testName:      "Commit with --signoff and --no-verbose",
-			configSignoff: true,
-			configVerbose: "never",
-			expected:      []string{"commit", "--signoff", "--no-verbose"},
 		},
 	}
 
@@ -156,7 +135,6 @@ func TestCommitCommitEditorCmdObj(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.Commit.SignOff = s.configSignoff
-			userConfig.Git.Commit.Verbose = s.configVerbose
 
 			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expected, "", nil)
 			instance := buildCommitCommands(commonDeps{userConfig: userConfig, runner: runner})
