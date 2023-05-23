@@ -149,7 +149,7 @@ func (self *WorkingTreeCommands) DiscardAllFileChanges(file *models.File) error 
 
 	if file.ShortStatus == "DU" {
 		return self.cmd.New(
-			NewGitCmd("rm").Arg("rm", "--", file.Name).ToArgv(),
+			NewGitCmd("rm").Arg("--", file.Name).ToArgv(),
 		).Run()
 	}
 

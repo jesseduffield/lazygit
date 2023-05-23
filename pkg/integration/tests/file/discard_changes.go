@@ -99,9 +99,13 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "DU", label: "deleted-us.txt", menuTitle: "deleted-us.txt"},
 		})
 
-		t.Common().ContinueOnConflictsResolved()
+		t.ExpectPopup().Confirmation().
+			Title(Equals("continue")).
+			Content(Contains("all merge conflicts resolved. Continue?")).
+			Cancel()
 
 		discardOneByOne([]statusFile{
+			{status: "AM", label: "added-changed.txt", menuTitle: "added-changed.txt"},
 			{status: "MD", label: "change-delete.txt", menuTitle: "change-delete.txt"},
 			{status: "D ", label: "delete-change.txt", menuTitle: "delete-change.txt"},
 			{status: "D ", label: "deleted-staged.txt", menuTitle: "deleted-staged.txt"},
@@ -109,11 +113,10 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			{status: "MM", label: "double-modded.txt", menuTitle: "double-modded.txt"},
 			{status: "M ", label: "modded-staged.txt", menuTitle: "modded-staged.txt"},
 			{status: " M", label: "modded.txt", menuTitle: "modded.txt"},
-			// the menu title only includes the new file
-			{status: "R ", label: "renamed.txt → renamed2.txt", menuTitle: "renamed2.txt"},
-			{status: "AM", label: "added-changed.txt", menuTitle: "added-changed.txt"},
 			{status: "A ", label: "new-staged.txt", menuTitle: "new-staged.txt"},
 			{status: "??", label: "new.txt", menuTitle: "new.txt"},
+			// the menu title only includes the new file
+			{status: "R ", label: "renamed.txt → renamed2.txt", menuTitle: "renamed2.txt"},
 		})
 
 		t.Views().Files().IsEmpty()
