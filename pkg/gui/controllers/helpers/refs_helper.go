@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -27,6 +28,7 @@ type RefsHelper struct {
 	git      *commands.GitCommand
 	contexts *context.ContextTree
 	model    *types.Model
+	config   *config.UserConfig
 }
 
 func NewRefsHelper(
@@ -34,12 +36,14 @@ func NewRefsHelper(
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 	model *types.Model,
+	config *config.UserConfig,
 ) *RefsHelper {
 	return &RefsHelper{
 		c:        c,
 		git:      git,
 		contexts: contexts,
 		model:    model,
+		config:   config,
 	}
 }
 
@@ -177,7 +181,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateBranch)
-			if err := self.git.Branch.New(sanitizedBranchName(response), from); err != nil {
+			if err := self.git.Branch.New(self.sanitizedBranchName(response), from); err != nil {
 				return err
 			}
 
@@ -197,6 +201,6 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 
 // sanitizedBranchName will remove all spaces in favor of a dash "-" to meet
 // git's branch naming requirement.
-func sanitizedBranchName(input string) string {
-	return strings.Replace(input, " ", "-", -1)
+func (self *RefsHelper) sanitizedBranchName(input string) string {
+	return strings.Replace(input, " ", self.config.Gui.BranchWhitespaceChar, -1)
 }

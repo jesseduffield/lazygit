@@ -52,6 +52,7 @@ type GuiConfig struct {
 	ShowIcons                bool               `yaml:"showIcons"`
 	CommandLogSize           int                `yaml:"commandLogSize"`
 	SplitDiff                string             `yaml:"splitDiff"`
+	BranchWhitespaceChar	 string				`yaml:"branchWhitespaceChar"`
 }
 
 type ThemeConfig struct {
@@ -376,6 +377,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowIcons:                false,
 			CommandLogSize:           8,
 			SplitDiff:                "auto",
+			BranchWhitespaceChar: 	  "-",
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
