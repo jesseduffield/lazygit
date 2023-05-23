@@ -21,11 +21,25 @@ import (
 // you call `git status` from the command line directly but no harm in playing it
 // safe.
 
+var pathCache = map[string]string{}
+
 func Command(name string, args ...string) *exec.Cmd {
-	bin, err := safeexec.LookPath(name)
-	if err != nil {
-		bin = name
+	path := getPath(name)
+
+	return exec.Command(path, args...)
+}
+
+func getPath(name string) string {
+	if path, ok := pathCache[name]; ok {
+		return path
 	}
 
-	return exec.Command(bin, args...)
+	path, err := safeexec.LookPath(name)
+	if err != nil {
+		pathCache[name] = name
+		return name
+	}
+
+	pathCache[name] = path
+	return path
 }
