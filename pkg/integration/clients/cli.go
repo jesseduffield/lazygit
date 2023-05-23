@@ -30,6 +30,11 @@ func RunCLI(testNames []string, slow bool, sandbox bool) {
 		keyPressDelay = SLOW_KEY_PRESS_DELAY
 	}
 
+	// replace backslashes with forward slashes for windows compatibility
+	testNames = lo.Map(testNames, func(name string, _ int) string {
+		return strings.ReplaceAll(name, "\\", "/")
+	})
+
 	err := components.RunTests(
 		getTestsToRun(testNames),
 		log.Printf,
