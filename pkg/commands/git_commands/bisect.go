@@ -97,15 +97,15 @@ func (self *BisectCommands) GetInfo() *BisectInfo {
 }
 
 func (self *BisectCommands) Reset() error {
-	cmdStr := NewGitCmd("bisect").Arg("reset").ToString()
+	cmdArgs := NewGitCmd("bisect").Arg("reset").ToArgv()
 
-	return self.cmd.New(cmdStr).StreamOutput().Run()
+	return self.cmd.New(cmdArgs).StreamOutput().Run()
 }
 
 func (self *BisectCommands) Mark(ref string, term string) error {
-	cmdStr := NewGitCmd("bisect").Arg(term, ref).ToString()
+	cmdArgs := NewGitCmd("bisect").Arg(term, ref).ToArgv()
 
-	return self.cmd.New(cmdStr).
+	return self.cmd.New(cmdArgs).
 		IgnoreEmptyError().
 		StreamOutput().
 		Run()
@@ -116,9 +116,9 @@ func (self *BisectCommands) Skip(ref string) error {
 }
 
 func (self *BisectCommands) Start() error {
-	cmdStr := NewGitCmd("bisect").Arg("start").ToString()
+	cmdArgs := NewGitCmd("bisect").Arg("start").ToArgv()
 
-	return self.cmd.New(cmdStr).StreamOutput().Run()
+	return self.cmd.New(cmdArgs).StreamOutput().Run()
 }
 
 // tells us whether we've found our problem commit(s). We return a string slice of
@@ -140,8 +140,8 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 	done := false
 	candidates := []string{}
 
-	cmdStr := NewGitCmd("rev-list").Arg(newSha).ToString()
-	err := self.cmd.New(cmdStr).RunAndProcessLines(func(line string) (bool, error) {
+	cmdArgs := NewGitCmd("rev-list").Arg(newSha).ToArgv()
+	err := self.cmd.New(cmdArgs).RunAndProcessLines(func(line string) (bool, error) {
 		sha := strings.TrimSpace(line)
 
 		if status, ok := info.statusMap[sha]; ok {
@@ -171,11 +171,11 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 // bisecting is actually a descendant of our current bisect commit. If it's not, we need to
 // render the commits from the bad commit.
 func (self *BisectCommands) ReachableFromStart(bisectInfo *BisectInfo) bool {
-	cmdStr := NewGitCmd("merge-base").
+	cmdArgs := NewGitCmd("merge-base").
 		Arg("--is-ancestor", bisectInfo.GetNewSha(), bisectInfo.GetStartSha()).
-		ToString()
+		ToArgv()
 
-	err := self.cmd.New(cmdStr).DontLog().Run()
+	err := self.cmd.New(cmdArgs).DontLog().Run()
 
 	return err == nil
 }

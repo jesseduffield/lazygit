@@ -7,7 +7,7 @@ import (
 
 var RemoteNamedStar = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Having a config remote.*",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
 		shell.

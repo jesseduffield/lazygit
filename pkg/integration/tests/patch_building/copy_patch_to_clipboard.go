@@ -7,7 +7,7 @@ import (
 
 var CopyPatchToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Create a patch from the commits and copy the patch to clipbaord.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         true, // skipping because CI doesn't have clipboard functionality
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

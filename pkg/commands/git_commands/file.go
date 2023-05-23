@@ -45,7 +45,7 @@ func (self *FileCommands) GetEditCmdStrLegacy(filename string, lineNumber int) (
 		editor = self.os.Getenv("EDITOR")
 	}
 	if editor == "" {
-		if err := self.cmd.New("which vi").DontLog().Run(); err == nil {
+		if err := self.cmd.New([]string{"which", "vi"}).DontLog().Run(); err == nil {
 			editor = "vi"
 		}
 	}

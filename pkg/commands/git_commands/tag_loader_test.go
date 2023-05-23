@@ -26,14 +26,14 @@ func TestGetTags(t *testing.T) {
 		{
 			testName: "should return no tags if there are none",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git tag --list -n --sort=-creatordate`, "", nil),
+				ExpectGitArgs([]string{"tag", "--list", "-n", "--sort=-creatordate"}, "", nil),
 			expectedTags:  []*models.Tag{},
 			expectedError: nil,
 		},
 		{
 			testName: "should return tags if present",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git tag --list -n --sort=-creatordate`, tagsOutput, nil),
+				ExpectGitArgs([]string{"tag", "--list", "-n", "--sort=-creatordate"}, tagsOutput, nil),
 			expectedTags: []*models.Tag{
 				{Name: "tag1", Message: "this is my message"},
 				{Name: "tag2", Message: ""},

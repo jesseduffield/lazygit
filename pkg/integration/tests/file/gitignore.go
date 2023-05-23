@@ -7,7 +7,7 @@ import (
 
 var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Verify that we can't ignore the .gitignore file, then ignore/exclude other files",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},

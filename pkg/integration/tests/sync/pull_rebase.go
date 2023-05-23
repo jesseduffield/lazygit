@@ -7,7 +7,7 @@ import (
 
 var PullRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Pull with a rebase strategy",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

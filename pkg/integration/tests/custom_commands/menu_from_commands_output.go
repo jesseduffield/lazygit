@@ -7,7 +7,7 @@ import (
 
 var MenuFromCommandsOutput = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Using prompt response in menuFromCommand entries",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
 		shell.

@@ -7,7 +7,7 @@ import (
 
 var TypeFile = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Filter commits by file path, by finding file in UI and filtering on it",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},

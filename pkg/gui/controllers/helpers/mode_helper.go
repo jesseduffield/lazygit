@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -53,7 +54,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 					fmt.Sprintf(
 						"%s %s",
 						self.c.Tr.LcShowingGitDiff,
-						"git diff "+self.diffHelper.DiffStr(),
+						"git diff "+strings.Join(self.diffHelper.DiffArgs(), " "),
 					),
 					style.FgMagenta,
 				)

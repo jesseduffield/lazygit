@@ -7,7 +7,7 @@ import (
 
 var InitialOpen = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Confirms a popup appears on first opening Lazygit",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 		config.UserConfig.DisableStartupPopups = false

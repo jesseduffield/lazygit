@@ -7,7 +7,7 @@ import (
 
 var SetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Set the upstream of a branch",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

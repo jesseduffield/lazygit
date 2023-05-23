@@ -7,7 +7,7 @@ import (
 
 var Patch = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Build a patch from a reflog commit and apply it",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

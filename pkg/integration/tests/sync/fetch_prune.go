@@ -7,7 +7,7 @@ import (
 
 var FetchPrune = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Fetch from the remote with the 'prune' option set in the git config",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

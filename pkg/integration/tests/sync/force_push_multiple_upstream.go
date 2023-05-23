@@ -7,7 +7,7 @@ import (
 
 var ForcePushMultipleUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Force push to only the upstream branch of the current branch because the user has push.default upstream",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

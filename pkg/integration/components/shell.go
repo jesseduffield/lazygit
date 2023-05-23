@@ -2,11 +2,12 @@ package components
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
-	"github.com/mgutz/str"
 )
 
 // this is for running shell commands, mostly for the sake of setting up the repo
@@ -24,31 +25,25 @@ func NewShell(dir string, fail func(string)) *Shell {
 	return &Shell{dir: dir, fail: fail}
 }
 
-func (self *Shell) RunCommand(cmdStr string) *Shell {
-	args := str.ToArgv(cmdStr)
-	cmd := secureexec.Command(args[0], args[1:]...)
-	cmd.Env = os.Environ()
-	cmd.Dir = self.dir
-
-	output, err := cmd.CombinedOutput()
+func (self *Shell) RunCommand(args []string) *Shell {
+	output, err := self.runCommandWithOutput(args)
 	if err != nil {
-		self.fail(fmt.Sprintf("error running command: %s\n%s", cmdStr, string(output)))
+		self.fail(fmt.Sprintf("error running command: %v\n%s", args, output))
 	}
 
 	return self
 }
 
-// Help files are located at test/files from the root the lazygit repo.
-// E.g. You may want to create a pre-commit hook file there, then call this
-// function to copy it into your test repo.
-func (self *Shell) CopyHelpFile(source string, destination string) *Shell {
-	self.RunCommand(fmt.Sprintf("cp ../../../../../files/%s %s", source, destination))
+func (self *Shell) RunCommandExpectError(args []string) *Shell {
+	output, err := self.runCommandWithOutput(args)
+	if err == nil {
+		self.fail(fmt.Sprintf("Expected error running shell command: %v\n%s", args, output))
+	}
 
 	return self
 }
 
-func (self *Shell) runCommandWithOutput(cmdStr string) (string, error) {
-	args := str.ToArgv(cmdStr)
+func (self *Shell) runCommandWithOutput(args []string) (string, error) {
 	cmd := secureexec.Command(args[0], args[1:]...)
 	cmd.Env = os.Environ()
 	cmd.Dir = self.dir
@@ -59,26 +54,20 @@ func (self *Shell) runCommandWithOutput(cmdStr string) (string, error) {
 }
 
 func (self *Shell) RunShellCommand(cmdStr string) *Shell {
-	cmd := secureexec.Command("sh", "-c", cmdStr)
+	shell := "sh"
+	shellArg := "-c"
+	if runtime.GOOS == "windows" {
+		shell = "cmd"
+		shellArg = "/C"
+	}
+
+	cmd := secureexec.Command(shell, shellArg, cmdStr)
 	cmd.Env = os.Environ()
 	cmd.Dir = self.dir
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		self.fail(fmt.Sprintf("error running shell command: %s\n%s", cmdStr, string(output)))
-	}
-
-	return self
-}
-
-func (self *Shell) RunShellCommandExpectError(cmdStr string) *Shell {
-	cmd := secureexec.Command("sh", "-c", cmdStr)
-	cmd.Env = os.Environ()
-	cmd.Dir = self.dir
-
-	output, err := cmd.CombinedOutput()
-	if err == nil {
-		self.fail(fmt.Sprintf("Expected error running shell command: %s\n%s", cmdStr, string(output)))
 	}
 
 	return self
@@ -124,47 +113,47 @@ func (self *Shell) UpdateFile(path string, content string) *Shell {
 }
 
 func (self *Shell) NewBranch(name string) *Shell {
-	return self.RunCommand("git checkout -b " + name)
+	return self.RunCommand([]string{"git", "checkout", "-b", name})
 }
 
 func (self *Shell) Checkout(name string) *Shell {
-	return self.RunCommand("git checkout " + name)
+	return self.RunCommand([]string{"git", "checkout", name})
 }
 
 func (self *Shell) Merge(name string) *Shell {
-	return self.RunCommand("git merge --commit --no-ff " + name)
+	return self.RunCommand([]string{"git", "merge", "--commit", "--no-ff", name})
 }
 
 func (self *Shell) ContinueMerge() *Shell {
-	return self.RunCommand("git -c core.editor=true merge --continue")
+	return self.RunCommand([]string{"git", "-c", "core.editor=true", "merge", "--continue"})
 }
 
 func (self *Shell) GitAdd(path string) *Shell {
-	return self.RunCommand(fmt.Sprintf("git add \"%s\"", path))
+	return self.RunCommand([]string{"git", "add", path})
 }
 
 func (self *Shell) GitAddAll() *Shell {
-	return self.RunCommand("git add -A")
+	return self.RunCommand([]string{"git", "add", "-A"})
 }
 
 func (self *Shell) Commit(message string) *Shell {
-	return self.RunCommand(fmt.Sprintf("git commit -m \"%s\"", message))
+	return self.RunCommand([]string{"git", "commit", "-m", message})
 }
 
 func (self *Shell) EmptyCommit(message string) *Shell {
-	return self.RunCommand(fmt.Sprintf("git commit --allow-empty -m \"%s\"", message))
+	return self.RunCommand([]string{"git", "commit", "--allow-empty", "-m", message})
 }
 
 func (self *Shell) Revert(ref string) *Shell {
-	return self.RunCommand(fmt.Sprintf("git revert %s", ref))
+	return self.RunCommand([]string{"git", "revert", ref})
 }
 
 func (self *Shell) CreateLightweightTag(name string, ref string) *Shell {
-	return self.RunCommand(fmt.Sprintf("git tag %s %s", name, ref))
+	return self.RunCommand([]string{"git", "tag", name, ref})
 }
 
 func (self *Shell) CreateAnnotatedTag(name string, message string, ref string) *Shell {
-	return self.RunCommand(fmt.Sprintf("git tag -a %s -m \"%s\" %s", name, message, ref))
+	return self.RunCommand([]string{"git", "tag", "-a", name, "-m", message, ref})
 }
 
 // convenience method for creating a file and adding it
@@ -208,60 +197,115 @@ func (self *Shell) CreateNCommitsStartingAt(n, startIndex int) *Shell {
 }
 
 func (self *Shell) StashWithMessage(message string) *Shell {
-	self.RunCommand(fmt.Sprintf(`git stash -m "%s"`, message))
+	self.RunCommand([]string{"git", "stash", "-m", message})
 	return self
 }
 
 func (self *Shell) SetConfig(key string, value string) *Shell {
-	self.RunCommand(fmt.Sprintf(`git config --local "%s" "%s"`, key, value))
+	self.RunCommand([]string{"git", "config", "--local", key, value})
 	return self
 }
 
-// creates a clone of the repo in a sibling directory and adds the clone
-// as a remote, then fetches it.
 func (self *Shell) CloneIntoRemote(name string) *Shell {
 	self.Clone(name)
-	self.RunCommand(fmt.Sprintf("git remote add %s ../%s", name, name))
-	self.RunCommand(fmt.Sprintf("git fetch %s", name))
+	self.RunCommand([]string{"git", "remote", "add", name, "../" + name})
+	self.RunCommand([]string{"git", "fetch", name})
 
 	return self
 }
 
 func (self *Shell) CloneIntoSubmodule(submoduleName string) *Shell {
 	self.Clone("other_repo")
-	self.RunCommand(fmt.Sprintf("git submodule add ../other_repo %s", submoduleName))
+	self.RunCommand([]string{"git", "submodule", "add", "../other_repo", submoduleName})
 
 	return self
 }
 
-// clones repo into a sibling directory
 func (self *Shell) Clone(repoName string) *Shell {
-	self.RunCommand(fmt.Sprintf("git clone --bare . ../%s", repoName))
+	self.RunCommand([]string{"git", "clone", "--bare", ".", "../" + repoName})
 
 	return self
 }
 
-// e.g. branch: 'master', upstream: 'origin/master'
 func (self *Shell) SetBranchUpstream(branch string, upstream string) *Shell {
-	self.RunCommand(fmt.Sprintf("git branch --set-upstream-to=%s %s", upstream, branch))
+	self.RunCommand([]string{"git", "branch", "--set-upstream-to=" + upstream, branch})
 
 	return self
 }
 
 func (self *Shell) RemoveRemoteBranch(remoteName string, branch string) *Shell {
-	self.RunCommand(fmt.Sprintf("git -C ../%s branch -d %s", remoteName, branch))
+	self.RunCommand([]string{"git", "-C", "../" + remoteName, "branch", "-d", branch})
 
 	return self
 }
 
 func (self *Shell) HardReset(ref string) *Shell {
-	self.RunCommand(fmt.Sprintf("git reset --hard %s", ref))
-
+	self.RunCommand([]string{"git", "reset", "--hard", ref})
 	return self
 }
 
 func (self *Shell) Stash(message string) *Shell {
-	self.RunCommand(fmt.Sprintf("git stash -m \"%s\"", message))
+	self.RunCommand([]string{"git", "stash", "-m", message})
+	return self
+}
+
+func (self *Shell) StartBisect(good string, bad string) *Shell {
+	self.RunCommand([]string{"git", "bisect", "start", good, bad})
+	return self
+}
+
+func (self *Shell) Init(mainBranch string) *Shell {
+	self.RunCommand([]string{"git", "init", "-b", mainBranch})
+	return self
+}
+
+func (self *Shell) MakeExecutable(path string) *Shell {
+	// 0755 sets the executable permission for owner, and read/execute permissions for group and others
+	err := os.Chmod(filepath.Join(self.dir, path), 0o755)
+	if err != nil {
+		panic(err)
+	}
+
+	return self
+}
+
+// Help files are located at test/files from the root the lazygit repo.
+// E.g. You may want to create a pre-commit hook file there, then call this
+// function to copy it into your test repo.
+func (self *Shell) CopyHelpFile(source string, destination string) *Shell {
+	return self.CopyFile(fmt.Sprintf("../../../../../files/%s", source), destination)
+}
+
+func (self *Shell) CopyFile(source string, destination string) *Shell {
+	absSourcePath := filepath.Join(self.dir, source)
+	absDestPath := filepath.Join(self.dir, destination)
+	sourceFile, err := os.Open(absSourcePath)
+	if err != nil {
+		self.fail(err.Error())
+	}
+	defer sourceFile.Close()
+
+	destinationFile, err := os.Create(absDestPath)
+	if err != nil {
+		self.fail(err.Error())
+	}
+	defer destinationFile.Close()
+
+	_, err = io.Copy(destinationFile, sourceFile)
+	if err != nil {
+		self.fail(err.Error())
+	}
+
+	// copy permissions to destination file too
+	sourceFileInfo, err := os.Stat(absSourcePath)
+	if err != nil {
+		self.fail(err.Error())
+	}
+
+	err = os.Chmod(absDestPath, sourceFileInfo.Mode())
+	if err != nil {
+		self.fail(err.Error())
+	}
 
 	return self
 }

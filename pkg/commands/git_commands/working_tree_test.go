@@ -13,7 +13,7 @@ import (
 
 func TestWorkingTreeStageFile(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		Expect(`git add -- "test.txt"`, "", nil)
+		ExpectGitArgs([]string{"add", "--", "test.txt"}, "", nil)
 
 	instance := buildWorkingTreeCommands(commonDeps{runner: runner})
 
@@ -23,7 +23,7 @@ func TestWorkingTreeStageFile(t *testing.T) {
 
 func TestWorkingTreeStageFiles(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		Expect(`git add -- "test.txt" "test2.txt"`, "", nil)
+		ExpectGitArgs([]string{"add", "--", "test.txt", "test2.txt"}, "", nil)
 
 	instance := buildWorkingTreeCommands(commonDeps{runner: runner})
 
@@ -44,7 +44,7 @@ func TestWorkingTreeUnstageFile(t *testing.T) {
 			testName: "Remove an untracked file from staging",
 			reset:    false,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rm --cached --force -- "test.txt"`, "", nil),
+				ExpectGitArgs([]string{"rm", "--cached", "--force", "--", "test.txt"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -53,7 +53,7 @@ func TestWorkingTreeUnstageFile(t *testing.T) {
 			testName: "Remove a tracked file from staging",
 			reset:    true,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git reset HEAD -- "test.txt"`, "", nil),
+				ExpectGitArgs([]string{"reset", "HEAD", "--", "test.txt"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -90,7 +90,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git reset -- "test"`, "", errors.New("error")),
+				ExpectGitArgs([]string{"reset", "--", "test"}, "", errors.New("error")),
 			expectedError: "error",
 		},
 		{
@@ -115,7 +115,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git checkout -- "test"`, "", errors.New("error")),
+				ExpectGitArgs([]string{"checkout", "--", "test"}, "", errors.New("error")),
 			expectedError: "error",
 		},
 		{
@@ -127,7 +127,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git checkout -- "test"`, "", nil),
+				ExpectGitArgs([]string{"checkout", "--", "test"}, "", nil),
 			expectedError: "",
 		},
 		{
@@ -139,8 +139,8 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git reset -- "test"`, "", nil).
-				Expect(`git checkout -- "test"`, "", nil),
+				ExpectGitArgs([]string{"reset", "--", "test"}, "", nil).
+				ExpectGitArgs([]string{"checkout", "--", "test"}, "", nil),
 			expectedError: "",
 		},
 		{
@@ -152,8 +152,8 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 			},
 			removeFile: func(string) error { return nil },
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git reset -- "test"`, "", nil).
-				Expect(`git checkout -- "test"`, "", nil),
+				ExpectGitArgs([]string{"reset", "--", "test"}, "", nil).
+				ExpectGitArgs([]string{"checkout", "--", "test"}, "", nil),
 			expectedError: "",
 		},
 		{
@@ -169,7 +169,7 @@ func TestWorkingTreeDiscardAllFileChanges(t *testing.T) {
 				return nil
 			},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git reset -- "test"`, "", nil),
+				ExpectGitArgs([]string{"reset", "--", "test"}, "", nil),
 			expectedError: "",
 		},
 		{
@@ -231,7 +231,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git diff --submodule --no-ext-diff --unified=3 --color=always -- "test.txt"`, expectedResult, nil),
+				ExpectGitArgs([]string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "cached",
@@ -245,7 +245,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git diff --submodule --no-ext-diff --unified=3 --color=always --cached -- "test.txt"`, expectedResult, nil),
+				ExpectGitArgs([]string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--cached", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "plain",
@@ -259,7 +259,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git diff --submodule --no-ext-diff --unified=3 --color=never -- "test.txt"`, expectedResult, nil),
+				ExpectGitArgs([]string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=never", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "File not tracked and file has no staged changes",
@@ -273,7 +273,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git diff --submodule --no-ext-diff --unified=3 --color=always --no-index -- /dev/null "test.txt"`, expectedResult, nil),
+				ExpectGitArgs([]string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--no-index", "--", "/dev/null", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "Default case (ignore whitespace)",
@@ -287,7 +287,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: true,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git diff --submodule --no-ext-diff --unified=3 --color=always --ignore-all-space -- "test.txt"`, expectedResult, nil),
+				ExpectGitArgs([]string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--color=always", "--ignore-all-space", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName: "Show diff with custom context size",
@@ -301,7 +301,7 @@ func TestWorkingTreeDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      17,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git diff --submodule --no-ext-diff --unified=17 --color=always -- "test.txt"`, expectedResult, nil),
+				ExpectGitArgs([]string{"diff", "--submodule", "--no-ext-diff", "--unified=17", "--color=always", "--", "test.txt"}, expectedResult, nil),
 		},
 	}
 
@@ -343,7 +343,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git diff --submodule --no-ext-diff --unified=3 --no-renames --color=always 1234567890 0987654321 -- "test.txt"`, expectedResult, nil),
+				ExpectGitArgs([]string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--no-renames", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName:         "Show diff with custom context size",
@@ -354,7 +354,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 			ignoreWhitespace: false,
 			contextSize:      123,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git diff --submodule --no-ext-diff --unified=123 --no-renames --color=always 1234567890 0987654321 -- "test.txt"`, expectedResult, nil),
+				ExpectGitArgs([]string{"diff", "--submodule", "--no-ext-diff", "--unified=123", "--no-renames", "--color=always", "1234567890", "0987654321", "--", "test.txt"}, expectedResult, nil),
 		},
 		{
 			testName:         "Default case (ignore whitespace)",
@@ -365,7 +365,7 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 			ignoreWhitespace: true,
 			contextSize:      3,
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git diff --submodule --no-ext-diff --unified=3 --no-renames --color=always 1234567890 0987654321 --ignore-all-space -- "test.txt"`, expectedResult, nil),
+				ExpectGitArgs([]string{"diff", "--submodule", "--no-ext-diff", "--unified=3", "--no-renames", "--color=always", "1234567890", "0987654321", "--ignore-all-space", "--", "test.txt"}, expectedResult, nil),
 		},
 	}
 
@@ -400,7 +400,7 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 			commitSha: "11af912",
 			fileName:  "test999.txt",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git checkout 11af912 -- "test999.txt"`, "", nil),
+				ExpectGitArgs([]string{"checkout", "11af912", "--", "test999.txt"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -410,7 +410,7 @@ func TestWorkingTreeCheckoutFile(t *testing.T) {
 			commitSha: "11af912",
 			fileName:  "test999.txt",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git checkout 11af912 -- "test999.txt"`, "", errors.New("error")),
+				ExpectGitArgs([]string{"checkout", "11af912", "--", "test999.txt"}, "", errors.New("error")),
 			test: func(err error) {
 				assert.Error(t, err)
 			},
@@ -441,7 +441,7 @@ func TestWorkingTreeDiscardUnstagedFileChanges(t *testing.T) {
 			testName: "valid case",
 			file:     &models.File{Name: "test.txt"},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git checkout -- "test.txt"`, "", nil),
+				ExpectGitArgs([]string{"checkout", "--", "test.txt"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -469,7 +469,7 @@ func TestWorkingTreeDiscardAnyUnstagedFileChanges(t *testing.T) {
 		{
 			testName: "valid case",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git checkout -- .`, "", nil),
+				ExpectGitArgs([]string{"checkout", "--", "."}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -497,7 +497,7 @@ func TestWorkingTreeRemoveUntrackedFiles(t *testing.T) {
 		{
 			testName: "valid case",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git clean -fd`, "", nil),
+				ExpectGitArgs([]string{"clean", "-fd"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -527,7 +527,7 @@ func TestWorkingTreeResetHard(t *testing.T) {
 			"valid case",
 			"HEAD",
 			oscommands.NewFakeRunner(t).
-				Expect(`git reset --hard "HEAD"`, "", nil),
+				ExpectGitArgs([]string{"reset", "--hard", "HEAD"}, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},

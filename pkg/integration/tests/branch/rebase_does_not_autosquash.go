@@ -7,7 +7,7 @@ import (
 
 var RebaseDoesNotAutosquash = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Rebase a branch that has fixups onto another branch, and verify that the fixups are not squashed even if rebase.autoSquash is enabled globally.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

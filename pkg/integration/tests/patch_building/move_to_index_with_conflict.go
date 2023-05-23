@@ -7,7 +7,7 @@ import (
 
 var MoveToIndexWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Move a patch from a commit to the index, causing a conflict",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

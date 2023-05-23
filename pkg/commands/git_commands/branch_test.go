@@ -21,21 +21,21 @@ func TestBranchGetCommitDifferences(t *testing.T) {
 		{
 			"Can't retrieve pushable count",
 			oscommands.NewFakeRunner(t).
-				Expect("git rev-list @{u}..HEAD --count", "", errors.New("error")),
+				ExpectGitArgs([]string{"rev-list", "@{u}..HEAD", "--count"}, "", errors.New("error")),
 			"?", "?",
 		},
 		{
 			"Can't retrieve pullable count",
 			oscommands.NewFakeRunner(t).
-				Expect("git rev-list @{u}..HEAD --count", "1\n", nil).
-				Expect("git rev-list HEAD..@{u} --count", "", errors.New("error")),
+				ExpectGitArgs([]string{"rev-list", "@{u}..HEAD", "--count"}, "1\n", nil).
+				ExpectGitArgs([]string{"rev-list", "HEAD..@{u}", "--count"}, "", errors.New("error")),
 			"?", "?",
 		},
 		{
 			"Retrieve pullable and pushable count",
 			oscommands.NewFakeRunner(t).
-				Expect("git rev-list @{u}..HEAD --count", "1\n", nil).
-				Expect("git rev-list HEAD..@{u} --count", "2\n", nil),
+				ExpectGitArgs([]string{"rev-list", "@{u}..HEAD", "--count"}, "1\n", nil).
+				ExpectGitArgs([]string{"rev-list", "HEAD..@{u}", "--count"}, "2\n", nil),
 			"1", "2",
 		},
 	}
@@ -54,7 +54,7 @@ func TestBranchGetCommitDifferences(t *testing.T) {
 
 func TestBranchNewBranch(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		Expect(`git checkout -b "test" "refs/heads/master"`, "", nil)
+		ExpectGitArgs([]string{"checkout", "-b", "test", "refs/heads/master"}, "", nil)
 	instance := buildBranchCommands(commonDeps{runner: runner})
 
 	assert.NoError(t, instance.New("test", "refs/heads/master"))
@@ -73,7 +73,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 		{
 			"Delete a branch",
 			false,
-			oscommands.NewFakeRunner(t).Expect(`git branch -d "test"`, "", nil),
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"branch", "-d", "test"}, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -81,7 +81,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 		{
 			"Force delete a branch",
 			true,
-			oscommands.NewFakeRunner(t).Expect(`git branch -D "test"`, "", nil),
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"branch", "-D", "test"}, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -105,14 +105,14 @@ func TestBranchMerge(t *testing.T) {
 		userConfig *config.UserConfig
 		opts       MergeOpts
 		branchName string
-		expected   string
+		expected   []string
 	}{
 		{
 			testName:   "basic",
 			userConfig: &config.UserConfig{},
 			opts:       MergeOpts{},
 			branchName: "mybranch",
-			expected:   `git merge --no-edit "mybranch"`,
+			expected:   []string{"merge", "--no-edit", "mybranch"},
 		},
 		{
 			testName: "merging args",
@@ -125,14 +125,14 @@ func TestBranchMerge(t *testing.T) {
 			},
 			opts:       MergeOpts{},
 			branchName: "mybranch",
-			expected:   `git merge --no-edit --merging-args "mybranch"`,
+			expected:   []string{"merge", "--no-edit", "--merging-args", "mybranch"},
 		},
 		{
 			testName:   "fast forward only",
 			userConfig: &config.UserConfig{},
 			opts:       MergeOpts{FastForwardOnly: true},
 			branchName: "mybranch",
-			expected:   `git merge --no-edit --ff-only "mybranch"`,
+			expected:   []string{"merge", "--no-edit", "--ff-only", "mybranch"},
 		},
 	}
 
@@ -140,7 +140,7 @@ func TestBranchMerge(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t).
-				Expect(s.expected, "", nil)
+				ExpectGitArgs(s.expected, "", nil)
 			instance := buildBranchCommands(commonDeps{runner: runner, userConfig: s.userConfig})
 
 			assert.NoError(t, instance.Merge(s.branchName, s.opts))
@@ -160,7 +160,7 @@ func TestBranchCheckout(t *testing.T) {
 	scenarios := []scenario{
 		{
 			"Checkout",
-			oscommands.NewFakeRunner(t).Expect(`git checkout "test"`, "", nil),
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"checkout", "test"}, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -168,7 +168,7 @@ func TestBranchCheckout(t *testing.T) {
 		},
 		{
 			"Checkout forced",
-			oscommands.NewFakeRunner(t).Expect(`git checkout --force "test"`, "", nil),
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"checkout", "--force", "test"}, "", nil),
 			func(err error) {
 				assert.NoError(t, err)
 			},
@@ -214,7 +214,7 @@ func TestBranchCurrentBranchInfo(t *testing.T) {
 	scenarios := []scenario{
 		{
 			"says we are on the master branch if we are",
-			oscommands.NewFakeRunner(t).Expect(`git symbolic-ref --short HEAD`, "master", nil),
+			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"symbolic-ref", "--short", "HEAD"}, "master", nil),
 			func(info BranchInfo, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "master", info.RefName)
@@ -225,8 +225,9 @@ func TestBranchCurrentBranchInfo(t *testing.T) {
 		{
 			"falls back to git `git branch --points-at=HEAD` if symbolic-ref fails",
 			oscommands.NewFakeRunner(t).
-				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
-				Expect(`git branch --points-at=HEAD --format="%(HEAD)%00%(objectname)%00%(refname)"`, "*\x006f71c57a8d4bd6c11399c3f55f42c815527a73a4\x00(HEAD detached at 6f71c57a)\n", nil),
+				ExpectGitArgs([]string{"symbolic-ref", "--short", "HEAD"}, "", errors.New("error")).
+				ExpectGitArgs([]string{"branch", "--points-at=HEAD", "--format=%(HEAD)%00%(objectname)%00%(refname)"},
+					"*\x006f71c57a8d4bd6c11399c3f55f42c815527a73a4\x00(HEAD detached at 6f71c57a)\n", nil),
 			func(info BranchInfo, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "6f71c57a8d4bd6c11399c3f55f42c815527a73a4", info.RefName)
@@ -237,9 +238,9 @@ func TestBranchCurrentBranchInfo(t *testing.T) {
 		{
 			"handles a detached head (LANG=zh_CN.UTF-8)",
 			oscommands.NewFakeRunner(t).
-				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
-				Expect(
-					`git branch --points-at=HEAD --format="%(HEAD)%00%(objectname)%00%(refname)"`,
+				ExpectGitArgs([]string{"symbolic-ref", "--short", "HEAD"}, "", errors.New("error")).
+				ExpectGitArgs(
+					[]string{"branch", "--points-at=HEAD", "--format=%(HEAD)%00%(objectname)%00%(refname)"},
 					"*\x00679b0456f3db7c505b398def84e7d023e5b55a8d\x00（头指针在 679b0456 分离）\n"+
 						" \x00679b0456f3db7c505b398def84e7d023e5b55a8d\x00refs/heads/master\n",
 					nil),
@@ -253,8 +254,8 @@ func TestBranchCurrentBranchInfo(t *testing.T) {
 		{
 			"bubbles up error if there is one",
 			oscommands.NewFakeRunner(t).
-				Expect(`git symbolic-ref --short HEAD`, "", errors.New("error")).
-				Expect(`git branch --points-at=HEAD --format="%(HEAD)%00%(objectname)%00%(refname)"`, "", errors.New("error")),
+				ExpectGitArgs([]string{"symbolic-ref", "--short", "HEAD"}, "", errors.New("error")).
+				ExpectGitArgs([]string{"branch", "--points-at=HEAD", "--format=%(HEAD)%00%(objectname)%00%(refname)"}, "", errors.New("error")),
 			func(info BranchInfo, err error) {
 				assert.Error(t, err)
 				assert.EqualValues(t, "", info.RefName)

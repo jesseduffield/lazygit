@@ -8,7 +8,7 @@ import (
 
 var Filter = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Ensures that when there are merge conflicts, the files panel only shows conflicted files",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -29,7 +29,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 			arg:        "master",
 			gitVersion: &GitVersion{2, 26, 0, ""},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash --rebase-merges master`, "", nil),
+				ExpectGitArgs([]string{"rebase", "--interactive", "--autostash", "--keep-empty", "--no-autosquash", "--rebase-merges", "master"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -39,7 +39,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 			arg:        "master",
 			gitVersion: &GitVersion{2, 26, 0, ""},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash --rebase-merges master`, "", errors.New("error")),
+				ExpectGitArgs([]string{"rebase", "--interactive", "--autostash", "--keep-empty", "--no-autosquash", "--rebase-merges", "master"}, "", errors.New("error")),
 			test: func(err error) {
 				assert.Error(t, err)
 			},
@@ -49,7 +49,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 			arg:        "master",
 			gitVersion: &GitVersion{2, 25, 5, ""},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash --rebase-merges master`, "", nil),
+				ExpectGitArgs([]string{"rebase", "--interactive", "--autostash", "--keep-empty", "--no-autosquash", "--rebase-merges", "master"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -59,7 +59,7 @@ func TestRebaseRebaseBranch(t *testing.T) {
 			arg:        "master",
 			gitVersion: &GitVersion{2, 21, 9, ""},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash master`, "", nil),
+				ExpectGitArgs([]string{"rebase", "--interactive", "--autostash", "--keep-empty", "--no-autosquash", "master"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},
@@ -78,9 +78,9 @@ func TestRebaseRebaseBranch(t *testing.T) {
 // TestRebaseSkipEditorCommand confirms that SkipEditorCommand injects
 // environment variables that suppress an interactive editor
 func TestRebaseSkipEditorCommand(t *testing.T) {
-	commandStr := "git blah"
+	cmdArgs := []string{"git", "blah"}
 	runner := oscommands.NewFakeRunner(t).ExpectFunc(func(cmdObj oscommands.ICmdObj) (string, error) {
-		assert.Equal(t, commandStr, cmdObj.ToString())
+		assert.EqualValues(t, cmdArgs, cmdObj.Args())
 		envVars := cmdObj.GetEnvVars()
 		for _, regexStr := range []string{
 			`^VISUAL=.*$`,
@@ -100,7 +100,7 @@ func TestRebaseSkipEditorCommand(t *testing.T) {
 		return "", nil
 	})
 	instance := buildRebaseCommands(commonDeps{runner: runner})
-	err := instance.runSkipEditorCommand(instance.cmd.New(commandStr))
+	err := instance.runSkipEditorCommand(instance.cmd.New(cmdArgs))
 	assert.NoError(t, err)
 	runner.CheckForMissingCalls()
 }
@@ -149,11 +149,11 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 			commitIndex: 0,
 			fileName:    "test999.txt",
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git rebase --interactive --autostash --keep-empty --no-autosquash --rebase-merges abcdef`, "", nil).
-				Expect(`git cat-file -e HEAD^:"test999.txt"`, "", nil).
-				Expect(`git checkout HEAD^ -- "test999.txt"`, "", nil).
-				Expect(`git commit --amend --no-edit --allow-empty`, "", nil).
-				Expect(`git rebase --continue`, "", nil),
+				ExpectGitArgs([]string{"rebase", "--interactive", "--autostash", "--keep-empty", "--no-autosquash", "--rebase-merges", "abcdef"}, "", nil).
+				ExpectGitArgs([]string{"cat-file", "-e", "HEAD^:test999.txt"}, "", nil).
+				ExpectGitArgs([]string{"checkout", "HEAD^", "--", "test999.txt"}, "", nil).
+				ExpectGitArgs([]string{"commit", "--amend", "--no-edit", "--allow-empty"}, "", nil).
+				ExpectGitArgs([]string{"rebase", "--continue"}, "", nil),
 			test: func(err error) {
 				assert.NoError(t, err)
 			},

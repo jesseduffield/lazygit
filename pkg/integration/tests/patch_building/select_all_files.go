@@ -7,7 +7,7 @@ import (
 
 var SelectAllFiles = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "All all files of a commit to a custom patch with the 'a' keybinding",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

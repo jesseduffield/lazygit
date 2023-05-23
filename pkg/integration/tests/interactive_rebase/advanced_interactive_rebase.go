@@ -16,7 +16,7 @@ const (
 
 var AdvancedInteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "It begins an interactive rebase and verifies to have the possibility of editing the commits of the branch before proceeding with the actual rebase",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.

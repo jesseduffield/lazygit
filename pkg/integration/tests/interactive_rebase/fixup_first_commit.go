@@ -7,7 +7,7 @@ import (
 
 var FixupFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Tries to fixup the first commit, which results in an error message",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

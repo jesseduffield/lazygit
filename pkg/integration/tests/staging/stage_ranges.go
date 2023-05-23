@@ -7,7 +7,7 @@ import (
 
 var StageRanges = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Stage and unstage various ranges of a file in the staging panel",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

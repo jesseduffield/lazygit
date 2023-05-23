@@ -7,7 +7,7 @@ import (
 
 var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Start a git bisect to find a bad commit",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
 		shell.

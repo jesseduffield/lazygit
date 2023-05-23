@@ -7,7 +7,7 @@ import (
 
 var StashStaged = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Stash staged changes",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

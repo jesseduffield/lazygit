@@ -20,14 +20,13 @@ func TestFileGetStatusFiles(t *testing.T) {
 		{
 			"No files found",
 			oscommands.NewFakeRunner(t).
-				Expect(`git status --untracked-files=yes --porcelain -z`, "", nil),
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z"}, "", nil),
 			[]*models.File{},
 		},
 		{
 			"Several files found",
 			oscommands.NewFakeRunner(t).
-				Expect(
-					`git status --untracked-files=yes --porcelain -z`,
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z"},
 					"MM file1.txt\x00A  file3.txt\x00AM file2.txt\x00?? file4.txt\x00UU file5.txt",
 					nil,
 				),
@@ -102,7 +101,7 @@ func TestFileGetStatusFiles(t *testing.T) {
 		{
 			"File with new line char",
 			oscommands.NewFakeRunner(t).
-				Expect(`git status --untracked-files=yes --porcelain -z`, "MM a\nb.txt", nil),
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z"}, "MM a\nb.txt", nil),
 			[]*models.File{
 				{
 					Name:                    "a\nb.txt",
@@ -122,8 +121,7 @@ func TestFileGetStatusFiles(t *testing.T) {
 		{
 			"Renamed files",
 			oscommands.NewFakeRunner(t).
-				Expect(
-					`git status --untracked-files=yes --porcelain -z`,
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z"},
 					"R  after1.txt\x00before1.txt\x00RM after2.txt\x00before2.txt",
 					nil,
 				),
@@ -161,8 +159,7 @@ func TestFileGetStatusFiles(t *testing.T) {
 		{
 			"File with arrow in name",
 			oscommands.NewFakeRunner(t).
-				Expect(
-					`git status --untracked-files=yes --porcelain -z`,
+				ExpectGitArgs([]string{"status", "--untracked-files=yes", "--porcelain", "-z"},
 					`?? a -> b.txt`,
 					nil,
 				),

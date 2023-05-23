@@ -11,32 +11,32 @@ func NewTagCommands(gitCommon *GitCommon) *TagCommands {
 }
 
 func (self *TagCommands) CreateLightweight(tagName string, ref string) error {
-	cmdStr := NewGitCmd("tag").Arg("--", self.cmd.Quote(tagName)).
-		ArgIf(len(ref) > 0, self.cmd.Quote(ref)).
-		ToString()
+	cmdArgs := NewGitCmd("tag").Arg("--", tagName).
+		ArgIf(len(ref) > 0, ref).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *TagCommands) CreateAnnotated(tagName, ref, msg string) error {
-	cmdStr := NewGitCmd("tag").Arg(self.cmd.Quote(tagName)).
-		ArgIf(len(ref) > 0, self.cmd.Quote(ref)).
-		Arg("-m", self.cmd.Quote(msg)).
-		ToString()
+	cmdArgs := NewGitCmd("tag").Arg(tagName).
+		ArgIf(len(ref) > 0, ref).
+		Arg("-m", msg).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *TagCommands) Delete(tagName string) error {
-	cmdStr := NewGitCmd("tag").Arg("-d", self.cmd.Quote(tagName)).
-		ToString()
+	cmdArgs := NewGitCmd("tag").Arg("-d", tagName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *TagCommands) Push(remoteName string, tagName string) error {
-	cmdStr := NewGitCmd("push").Arg(self.cmd.Quote(remoteName), "tag", self.cmd.Quote(tagName)).
-		ToString()
+	cmdArgs := NewGitCmd("push").Arg(remoteName, "tag", tagName).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
 }

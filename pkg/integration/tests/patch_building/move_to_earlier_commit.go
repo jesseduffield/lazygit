@@ -7,7 +7,7 @@ import (
 
 var MoveToEarlierCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Move a patch from a commit to an earlier commit",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	GitVersion:   AtLeast("2.26.0"),
 	SetupConfig:  func(config *config.AppConfig) {},

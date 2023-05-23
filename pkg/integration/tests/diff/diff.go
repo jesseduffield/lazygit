@@ -7,7 +7,7 @@ import (
 
 var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "View the diff of two branches, then view the reverse diff",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

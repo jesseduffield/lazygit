@@ -10,7 +10,7 @@ import (
 
 var RewordFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Rewords the first commit, just to show that it's possible",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

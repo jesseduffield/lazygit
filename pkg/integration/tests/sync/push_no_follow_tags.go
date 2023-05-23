@@ -7,7 +7,7 @@ import (
 
 var PushNoFollowTags = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Push with --follow-tags NOT configured in git config",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         true, // turns out this actually DOES push the tag. I have no idea why
 	SetupConfig: func(config *config.AppConfig) {
 	},

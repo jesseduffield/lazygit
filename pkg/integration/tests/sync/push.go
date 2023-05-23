@@ -7,7 +7,7 @@ import (
 
 var Push = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Push a commit to a pre-configured upstream",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},

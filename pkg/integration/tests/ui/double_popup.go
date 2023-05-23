@@ -7,7 +7,7 @@ import (
 
 var DoublePopup = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Open a popup from within another popup and assert you can escape back to the side panels",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

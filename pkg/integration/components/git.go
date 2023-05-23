@@ -11,18 +11,18 @@ type Git struct {
 }
 
 func (self *Git) CurrentBranchName(expectedName string) *Git {
-	return self.assert("git rev-parse --abbrev-ref HEAD", expectedName)
+	return self.assert([]string{"git", "rev-parse", "--abbrev-ref", "HEAD"}, expectedName)
 }
 
 func (self *Git) TagNamesAt(ref string, expectedNames []string) *Git {
-	return self.assert(fmt.Sprintf(`git tag --sort=v:refname --points-at "%s"`, ref), strings.Join(expectedNames, "\n"))
+	return self.assert([]string{"git", "tag", "--sort=v:refname", "--points-at", ref}, strings.Join(expectedNames, "\n"))
 }
 
-func (self *Git) assert(cmdStr string, expected string) *Git {
+func (self *Git) assert(cmdArgs []string, expected string) *Git {
 	self.assertWithRetries(func() (bool, string) {
-		output, err := self.shell.runCommandWithOutput(cmdStr)
+		output, err := self.shell.runCommandWithOutput(cmdArgs)
 		if err != nil {
-			return false, fmt.Sprintf("Unexpected error running command: `%s`. Error: %s", cmdStr, err.Error())
+			return false, fmt.Sprintf("Unexpected error running command: `%v`. Error: %s", cmdArgs, err.Error())
 		}
 		actual := strings.TrimSpace(output)
 		return actual == expected, fmt.Sprintf("Expected current branch name to be '%s', but got '%s'", expected, actual)

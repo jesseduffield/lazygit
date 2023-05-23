@@ -7,7 +7,7 @@ import (
 
 var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Create a patch from the diff between two branches and apply the patch.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

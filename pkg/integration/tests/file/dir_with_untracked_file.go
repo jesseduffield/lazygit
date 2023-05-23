@@ -8,7 +8,7 @@ import (
 var DirWithUntrackedFile = NewIntegrationTest(NewIntegrationTestArgs{
 	// notably, we currently _don't_ actually see the untracked file in the diff. Not sure how to get around that.
 	Description:  "When selecting a directory that contains an untracked file, we should not get an error",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

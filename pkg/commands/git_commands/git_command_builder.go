@@ -49,6 +49,10 @@ func (self *GitCommandBuilder) RepoPath(value string) *GitCommandBuilder {
 	return self
 }
 
+func (self *GitCommandBuilder) ToArgv() []string {
+	return append([]string{"git"}, self.args...)
+}
+
 func (self *GitCommandBuilder) ToString() string {
-	return "git " + strings.Join(self.args, " ")
+	return strings.Join(self.ToArgv(), " ")
 }

@@ -7,7 +7,7 @@ import (
 
 var PushTag = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Push a specific tag",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},

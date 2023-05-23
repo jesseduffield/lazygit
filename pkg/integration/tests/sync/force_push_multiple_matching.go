@@ -7,7 +7,7 @@ import (
 
 var ForcePushMultipleMatching = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Force push to multiple branches because the user has push.default matching",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},

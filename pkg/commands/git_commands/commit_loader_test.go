@@ -43,8 +43,8 @@ func TestGetCommits(t *testing.T) {
 			rebaseMode: enums.REBASE_MODE_NONE,
 			opts:       GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
-				Expect(`git log "HEAD" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, "", nil),
+				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
 			expectedError:   nil,
@@ -55,8 +55,8 @@ func TestGetCommits(t *testing.T) {
 			rebaseMode: enums.REBASE_MODE_NONE,
 			opts:       GetCommitsOptions{RefName: "refs/heads/mybranch", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git merge-base "refs/heads/mybranch" "mybranch"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
-				Expect(`git log "refs/heads/mybranch" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, "", nil),
+				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"log", "refs/heads/mybranch", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
 			expectedError:   nil,
@@ -69,14 +69,14 @@ func TestGetCommits(t *testing.T) {
 			mainBranches: []string{"master", "main"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
-				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
-				Expect(`git log "HEAD" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, commitsOutput, nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, commitsOutput, nil).
 				// here it's testing which of the configured main branches exist
-				Expect(`git rev-parse --verify --quiet "refs/heads/master"`, "", nil).               // this one does
-				Expect(`git rev-parse --verify --quiet "refs/heads/main"`, "", errors.New("error")). // this one doesn't
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/master"}, "", nil).               // this one does
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/main"}, "", errors.New("error")). // this one doesn't
 				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
-				Expect(`git merge-base "HEAD" "refs/heads/master"`, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
+				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/heads/master"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
 
 			expectedCommits: []*models.Commit{
 				{
@@ -202,12 +202,12 @@ func TestGetCommits(t *testing.T) {
 			mainBranches: []string{"master", "main"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
-				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
-				Expect(`git log "HEAD" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, singleCommitOutput, nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
 				// here it's testing which of the configured main branches exist; neither does
-				Expect(`git rev-parse --verify --quiet "refs/heads/master"`, "", errors.New("error")).
-				Expect(`git rev-parse --verify --quiet "refs/heads/main"`, "", errors.New("error")),
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/master"}, "", errors.New("error")).
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/main"}, "", errors.New("error")),
 
 			expectedCommits: []*models.Commit{
 				{
@@ -235,16 +235,16 @@ func TestGetCommits(t *testing.T) {
 			mainBranches: []string{"master", "main", "develop", "1.0-hotfixes"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
-				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
-				Expect(`git log "HEAD" --topo-order --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, singleCommitOutput, nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
 				// here it's testing which of the configured main branches exist
-				Expect(`git rev-parse --verify --quiet "refs/heads/master"`, "", nil).
-				Expect(`git rev-parse --verify --quiet "refs/heads/main"`, "", errors.New("error")).
-				Expect(`git rev-parse --verify --quiet "refs/heads/develop"`, "", nil).
-				Expect(`git rev-parse --verify --quiet "refs/heads/1.0-hotfixes"`, "", nil).
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/master"}, "", nil).
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/main"}, "", errors.New("error")).
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/develop"}, "", nil).
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/1.0-hotfixes"}, "", nil).
 				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
-				Expect(`git merge-base "HEAD" "refs/heads/master" "refs/heads/develop" "refs/heads/1.0-hotfixes"`, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
+				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/heads/master", "refs/heads/develop", "refs/heads/1.0-hotfixes"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
 
 			expectedCommits: []*models.Commit{
 				{
@@ -270,8 +270,8 @@ func TestGetCommits(t *testing.T) {
 			rebaseMode: enums.REBASE_MODE_NONE,
 			opts:       GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
-				Expect(`git log "HEAD" --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --no-show-signature --`, "", nil),
+				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
 			expectedError:   nil,
@@ -282,8 +282,8 @@ func TestGetCommits(t *testing.T) {
 			rebaseMode: enums.REBASE_MODE_NONE,
 			opts:       GetCommitsOptions{RefName: "HEAD", FilterPath: "src"},
 			runner: oscommands.NewFakeRunner(t).
-				Expect(`git merge-base "HEAD" "HEAD"@{u}`, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
-				Expect(`git log "HEAD" --oneline --pretty=format:"%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s" --abbrev=40 --follow --no-show-signature -- "src"`, "", nil),
+				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--follow", "--no-show-signature", "--", "src"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
 			expectedError:   nil,

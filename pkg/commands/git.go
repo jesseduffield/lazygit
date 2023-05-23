@@ -24,6 +24,7 @@ type GitCommand struct {
 	Commit      *git_commands.CommitCommands
 	Config      *git_commands.ConfigCommands
 	Custom      *git_commands.CustomCommands
+	Diff        *git_commands.DiffCommands
 	File        *git_commands.FileCommands
 	Flow        *git_commands.FlowCommands
 	Patch       *git_commands.PatchCommands
@@ -112,6 +113,7 @@ func NewGitCommandAux(
 	tagCommands := git_commands.NewTagCommands(gitCommon)
 	commitCommands := git_commands.NewCommitCommands(gitCommon)
 	customCommands := git_commands.NewCustomCommands(gitCommon)
+	diffCommands := git_commands.NewDiffCommands(gitCommon)
 	fileCommands := git_commands.NewFileCommands(gitCommon)
 	submoduleCommands := git_commands.NewSubmoduleCommands(gitCommon)
 	workingTreeCommands := git_commands.NewWorkingTreeCommands(gitCommon, submoduleCommands, fileLoader)
@@ -139,6 +141,7 @@ func NewGitCommandAux(
 		Commit:      commitCommands,
 		Config:      configCommands,
 		Custom:      customCommands,
+		Diff:        diffCommands,
 		File:        fileCommands,
 		Flow:        flowCommands,
 		Patch:       patchCommands,
@@ -274,5 +277,5 @@ func findDotGitDir(stat func(string) (os.FileInfo, error), readFile func(filenam
 }
 
 func VerifyInGitRepo(osCommand *oscommands.OSCommand) error {
-	return osCommand.Cmd.New("git rev-parse --git-dir").DontLog().Run()
+	return osCommand.Cmd.New(git_commands.NewGitCmd("rev-parse").Arg("--git-dir").ToArgv()).DontLog().Run()
 }

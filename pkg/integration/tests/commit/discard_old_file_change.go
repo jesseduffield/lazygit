@@ -7,7 +7,7 @@ import (
 
 var DiscardOldFileChange = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Discarding a single file from an old commit (does rebase in background to remove the file but retain the other one)",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

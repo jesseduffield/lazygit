@@ -31,8 +31,8 @@ func NewRemoteLoader(
 }
 
 func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
-	cmdStr := NewGitCmd("branch").Arg("-r").ToString()
-	remoteBranchesStr, err := self.cmd.New(cmdStr).DontLog().RunWithOutput()
+	cmdArgs := NewGitCmd("branch").Arg("-r").ToArgv()
+	remoteBranchesStr, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
 		return nil, err
 	}

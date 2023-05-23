@@ -7,7 +7,7 @@ import (
 
 var OpenWithCliArg = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Open straight to branches panel using a CLI arg",
-	ExtraCmdArgs: "branch",
+	ExtraCmdArgs: []string{"branch"},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

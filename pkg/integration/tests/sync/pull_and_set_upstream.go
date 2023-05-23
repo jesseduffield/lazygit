@@ -7,7 +7,7 @@ import (
 
 var PullAndSetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Pull a commit from the remote, setting the upstream branch in the process",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

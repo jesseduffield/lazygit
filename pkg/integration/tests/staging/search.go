@@ -7,7 +7,7 @@ import (
 
 var Search = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Use the search feature in the staging panel",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

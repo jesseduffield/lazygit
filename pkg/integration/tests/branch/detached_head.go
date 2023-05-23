@@ -7,7 +7,7 @@ import (
 
 var DetachedHead = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Create a new branch on detached head",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

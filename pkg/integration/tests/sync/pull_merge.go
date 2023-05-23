@@ -7,7 +7,7 @@ import (
 
 var PullMerge = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Pull with a merge strategy",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

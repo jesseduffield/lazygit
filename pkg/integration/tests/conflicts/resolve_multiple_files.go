@@ -8,7 +8,7 @@ import (
 
 var ResolveMultipleFiles = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Ensures that upon resolving conflicts for one file, the next file is selected",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

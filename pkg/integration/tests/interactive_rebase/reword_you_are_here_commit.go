@@ -7,7 +7,7 @@ import (
 
 var RewordYouAreHereCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Rewords the current HEAD commit in an interactive rebase",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -7,7 +7,7 @@ import (
 
 var Remove = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Remove a submodule",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

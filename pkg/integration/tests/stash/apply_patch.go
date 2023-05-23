@@ -7,7 +7,7 @@ import (
 
 var ApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Restore part of a stash entry via applying a custom patch",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

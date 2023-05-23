@@ -8,7 +8,7 @@ import (
 
 var ResolveExternally = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Ensures that when merge conflicts are resolved outside of lazygit, lazygit prompts you to continue",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -7,7 +7,7 @@ import (
 
 var SwapWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Directly swap two commits, causing a conflict. Then resolve the conflict and continue",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

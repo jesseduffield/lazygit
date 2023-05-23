@@ -7,7 +7,7 @@ import (
 
 var ForcePush = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Push to a remote with new commits, requiring a force push",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

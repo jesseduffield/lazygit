@@ -7,7 +7,7 @@ import (
 
 var MoveToIndexPartOfAdjacentAddedLines = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Move a patch from a commit to the index, with only some lines of a range of adjacent added lines in the patch",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

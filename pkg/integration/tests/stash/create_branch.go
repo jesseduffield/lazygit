@@ -7,7 +7,7 @@ import (
 
 var CreateBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Create a branch from a stash entry",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

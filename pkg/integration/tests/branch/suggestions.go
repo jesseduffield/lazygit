@@ -7,7 +7,7 @@ import (
 
 var Suggestions = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Checking out a branch with name suggestions",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

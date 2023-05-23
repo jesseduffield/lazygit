@@ -57,7 +57,7 @@ func (self *StatusCommands) IsBareRepo() (bool, error) {
 
 func IsBareRepo(osCommand *oscommands.OSCommand) (bool, error) {
 	res, err := osCommand.Cmd.New(
-		NewGitCmd("rev-parse").Arg("--is-bare-repository").ToString(),
+		NewGitCmd("rev-parse").Arg("--is-bare-repository").ToArgv(),
 	).DontLog().RunWithOutput()
 	if err != nil {
 		return false, err

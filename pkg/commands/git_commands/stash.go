@@ -26,84 +26,84 @@ func NewStashCommands(
 }
 
 func (self *StashCommands) DropNewest() error {
-	cmdStr := NewGitCmd("stash").Arg("drop").ToString()
+	cmdArgs := NewGitCmd("stash").Arg("drop").ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *StashCommands) Drop(index int) error {
-	cmdStr := NewGitCmd("stash").Arg("drop", fmt.Sprintf("stash@{%d}", index)).
-		ToString()
+	cmdArgs := NewGitCmd("stash").Arg("drop", fmt.Sprintf("stash@{%d}", index)).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *StashCommands) Pop(index int) error {
-	cmdStr := NewGitCmd("stash").Arg("pop", fmt.Sprintf("stash@{%d}", index)).
-		ToString()
+	cmdArgs := NewGitCmd("stash").Arg("pop", fmt.Sprintf("stash@{%d}", index)).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *StashCommands) Apply(index int) error {
-	cmdStr := NewGitCmd("stash").Arg("apply", fmt.Sprintf("stash@{%d}", index)).
-		ToString()
+	cmdArgs := NewGitCmd("stash").Arg("apply", fmt.Sprintf("stash@{%d}", index)).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 // Save save stash
 func (self *StashCommands) Save(message string) error {
-	cmdStr := NewGitCmd("stash").Arg("save", self.cmd.Quote(message)).
-		ToString()
+	cmdArgs := NewGitCmd("stash").Arg("save", message).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *StashCommands) Store(sha string, message string) error {
 	trimmedMessage := strings.Trim(message, " \t")
 
-	cmdStr := NewGitCmd("stash").Arg("store", self.cmd.Quote(sha)).
-		ArgIf(trimmedMessage != "", "-m", self.cmd.Quote(trimmedMessage)).
-		ToString()
+	cmdArgs := NewGitCmd("stash").Arg("store", sha).
+		ArgIf(trimmedMessage != "", "-m", trimmedMessage).
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *StashCommands) Sha(index int) (string, error) {
-	cmdStr := NewGitCmd("rev-parse").
+	cmdArgs := NewGitCmd("rev-parse").
 		Arg(fmt.Sprintf("refs/stash@{%d}", index)).
-		ToString()
+		ToArgv()
 
-	sha, _, err := self.cmd.New(cmdStr).DontLog().RunWithOutputs()
+	sha, _, err := self.cmd.New(cmdArgs).DontLog().RunWithOutputs()
 	return strings.Trim(sha, "\r\n"), err
 }
 
 func (self *StashCommands) ShowStashEntryCmdObj(index int, ignoreWhitespace bool) oscommands.ICmdObj {
-	cmdStr := NewGitCmd("stash").Arg("show").
+	cmdArgs := NewGitCmd("stash").Arg("show").
 		Arg("-p").
 		Arg("--stat").
 		Arg(fmt.Sprintf("--color=%s", self.UserConfig.Git.Paging.ColorArg)).
 		Arg(fmt.Sprintf("--unified=%d", self.UserConfig.Git.DiffContextSize)).
 		ArgIf(ignoreWhitespace, "--ignore-all-space").
 		Arg(fmt.Sprintf("stash@{%d}", index)).
-		ToString()
+		ToArgv()
 
-	return self.cmd.New(cmdStr).DontLog()
+	return self.cmd.New(cmdArgs).DontLog()
 }
 
 func (self *StashCommands) StashAndKeepIndex(message string) error {
-	cmdStr := NewGitCmd("stash").Arg("save", self.cmd.Quote(message), "--keep-index").
-		ToString()
+	cmdArgs := NewGitCmd("stash").Arg("save", message, "--keep-index").
+		ToArgv()
 
-	return self.cmd.New(cmdStr).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *StashCommands) StashUnstagedChanges(message string) error {
 	if err := self.cmd.New(
 		NewGitCmd("commit").
-			Arg("--no-verify", "-m", self.cmd.Quote("[lazygit] stashing unstaged changes")).
-			ToString(),
+			Arg("--no-verify", "-m", "[lazygit] stashing unstaged changes").
+			ToArgv(),
 	).Run(); err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (self *StashCommands) StashUnstagedChanges(message string) error {
 	}
 
 	if err := self.cmd.New(
-		NewGitCmd("reset").Arg("--soft", "HEAD^").ToString(),
+		NewGitCmd("reset").Arg("--soft", "HEAD^").ToArgv(),
 	).Run(); err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (self *StashCommands) StashUnstagedChanges(message string) error {
 func (self *StashCommands) SaveStagedChanges(message string) error {
 	// wrap in 'writing', which uses a mutex
 	if err := self.cmd.New(
-		NewGitCmd("stash").Arg("--keep-index").ToString(),
+		NewGitCmd("stash").Arg("--keep-index").ToArgv(),
 	).Run(); err != nil {
 		return err
 	}
@@ -134,20 +134,20 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 	}
 
 	if err := self.cmd.New(
-		NewGitCmd("stash").Arg("apply", "stash@{1}").ToString(),
+		NewGitCmd("stash").Arg("apply", "stash@{1}").ToArgv(),
 	).Run(); err != nil {
 		return err
 	}
 
 	if err := self.os.PipeCommands(
-		NewGitCmd("stash").Arg("show", "-p").ToString(),
-		NewGitCmd("apply").Arg("-R").ToString(),
+		self.cmd.New(NewGitCmd("stash").Arg("show", "-p").ToArgv()),
+		self.cmd.New(NewGitCmd("apply").Arg("-R").ToArgv()),
 	); err != nil {
 		return err
 	}
 
 	if err := self.cmd.New(
-		NewGitCmd("stash").Arg("drop", "stash@{1}").ToString(),
+		NewGitCmd("stash").Arg("drop", "stash@{1}").ToArgv(),
 	).Run(); err != nil {
 		return err
 	}
@@ -171,8 +171,8 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 
 func (self *StashCommands) StashIncludeUntrackedChanges(message string) error {
 	return self.cmd.New(
-		NewGitCmd("stash").Arg("save", self.cmd.Quote(message), "--include-untracked").
-			ToString(),
+		NewGitCmd("stash").Arg("save", message, "--include-untracked").
+			ToArgv(),
 	).Run()
 }
 

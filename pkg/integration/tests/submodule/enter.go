@@ -7,7 +7,7 @@ import (
 
 var Enter = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Enter a submodule, add a commit, and then stage the change in the parent repo",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig: func(cfg *config.AppConfig) {
 		cfg.UserConfig.CustomCommands = []config.CustomCommand{

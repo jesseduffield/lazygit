@@ -7,7 +7,7 @@ import (
 
 var Rename = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Try to rename the stash.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -7,7 +7,7 @@ import (
 
 var SquashFixupsAboveFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Squashes all fixups above the first (initial) commit.",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

@@ -7,7 +7,7 @@ import (
 
 var PullMergeConflict = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Pull with a merge strategy, where a conflict occurs",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

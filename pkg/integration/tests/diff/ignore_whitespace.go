@@ -13,7 +13,7 @@ var (
 
 var IgnoreWhitespace = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Toggle whitespace in the diff",
-	ExtraCmdArgs: "",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {

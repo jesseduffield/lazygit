@@ -10,12 +10,10 @@ import (
 )
 
 type ICmdObjBuilder interface {
-	// New returns a new command object based on the string provided
-	New(cmdStr string) ICmdObj
+	// NewFromArgs takes a slice of strings like []string{"git", "commit"} and returns a new command object.
+	New(args []string) ICmdObj
 	// NewShell takes a string like `git commit` and returns an executable shell command for it e.g. `sh -c 'git commit'`
 	NewShell(commandStr string) ICmdObj
-	// NewFromArgs takes a slice of strings like []string{"git", "commit"} and returns a new command object. This can be useful when you don't want to worry about whitespace and quoting and stuff.
-	NewFromArgs(args []string) ICmdObj
 	// Quote wraps a string in quotes with any necessary escaping applied. The reason for bundling this up with the other methods in this interface is that we basically always need to make use of this when creating new command objects.
 	Quote(str string) string
 }
@@ -28,24 +26,12 @@ type CmdObjBuilder struct {
 // poor man's version of explicitly saying that struct X implements interface Y
 var _ ICmdObjBuilder = &CmdObjBuilder{}
 
-func (self *CmdObjBuilder) New(cmdStr string) ICmdObj {
-	args := str.ToArgv(cmdStr)
+func (self *CmdObjBuilder) New(args []string) ICmdObj {
 	cmd := secureexec.Command(args[0], args[1:]...)
 	cmd.Env = os.Environ()
 
 	return &CmdObj{
-		cmdStr: cmdStr,
-		cmd:    cmd,
-		runner: self.runner,
-	}
-}
-
-func (self *CmdObjBuilder) NewFromArgs(args []string) ICmdObj {
-	cmd := secureexec.Command(args[0], args[1:]...)
-	cmd.Env = os.Environ()
-
-	return &CmdObj{
-		cmdStr: strings.Join(args, " "),
+		args:   args,
 		cmd:    cmd,
 		runner: self.runner,
 	}
@@ -67,8 +53,9 @@ func (self *CmdObjBuilder) NewShell(commandStr string) ICmdObj {
 		quotedCommand = self.Quote(commandStr)
 	}
 
-	shellCommand := fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand)
-	return self.New(shellCommand)
+	cmdArgs := str.ToArgv(fmt.Sprintf("%s %s %s", self.platform.Shell, self.platform.ShellArg, quotedCommand))
+
+	return self.New(cmdArgs)
 }
 
 func (self *CmdObjBuilder) CloneWithNewRunner(decorate func(ICmdObjRunner) ICmdObjRunner) *CmdObjBuilder {
@@ -80,6 +67,9 @@ func (self *CmdObjBuilder) CloneWithNewRunner(decorate func(ICmdObjRunner) ICmdO
 	}
 }
 
+const CHARS_REQUIRING_QUOTES = "\"\\$` "
+
+// If you update this method, be sure to update CHARS_REQUIRING_QUOTES
 func (self *CmdObjBuilder) Quote(message string) string {
 	var quote string
 	if self.platform.OS == "windows" {
