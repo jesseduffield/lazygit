@@ -9,6 +9,7 @@ package clients
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/result"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -63,6 +65,9 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 		"TERM=xterm",
 	)
 
+	resultPath := result.GetResultPath()
+	result.SetResultPathEnvVar(cmd, resultPath)
+
 	// not writing stderr to the pty because we want to capture a panic if
 	// there is one. But some commands will not be in tty mode if stderr is
 	// not a terminal. We'll need to keep an eye out for that.
@@ -79,10 +84,20 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 
 	_, _ = io.Copy(ioutil.Discard, f)
 
-	if cmd.Wait() != nil {
-		// return an error with the stderr output
-		return errors.New(stderr.String())
+	_ = cmd.Wait()
+
+	result, err := result.ReadResult(resultPath)
+	if err != nil {
+		return fmt.Errorf("Error reading integration test result: %w", err)
 	}
+	if !result.Success {
+		return errors.New(result.Message)
+	}
+
+	// if cmd.Wait() != nil {
+	// 	// return an error with the stderr output
+	// 	return errors.New(stderr.String())
+	// }
 
 	return f.Close()
 }
