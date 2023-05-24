@@ -59,6 +59,7 @@ gui:
   showIcons: false
   commandLogSize: 8
   splitDiff: 'auto' # one of 'auto' | 'always'
+  branchWhitespaceChar: '-' # to replace whitespace in new branch names
 git:
   paging:
     colorArg: always

@@ -2,13 +2,13 @@ package helpers
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -28,7 +28,6 @@ type RefsHelper struct {
 	git      *commands.GitCommand
 	contexts *context.ContextTree
 	model    *types.Model
-	config   *config.UserConfig
 }
 
 func NewRefsHelper(
@@ -36,14 +35,12 @@ func NewRefsHelper(
 	git *commands.GitCommand,
 	contexts *context.ContextTree,
 	model *types.Model,
-	config *config.UserConfig,
 ) *RefsHelper {
 	return &RefsHelper{
 		c:        c,
 		git:      git,
 		contexts: contexts,
 		model:    model,
-		config:   config,
 	}
 }
 
@@ -202,5 +199,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 // sanitizedBranchName will remove all spaces in favor of a dash "-" to meet
 // git's branch naming requirement.
 func (self *RefsHelper) sanitizedBranchName(input string) string {
-	return strings.Replace(input, " ", self.config.Gui.BranchWhitespaceChar, -1)
+	reg1 := regexp.MustCompile(`^-+`)
+	reg2 := regexp.MustCompile(`\.|\/\.|\.\.|~|\^|:|\/$|\.lock$|\.lock\/|\\|\*|\s|^\s*$|\.$|\[|\]$`)
+	return reg2.ReplaceAllString(reg1.ReplaceAllString(strings.TrimSpace(input), ""), self.c.UserConfig.Gui.BranchWhitespaceChar)
 }
