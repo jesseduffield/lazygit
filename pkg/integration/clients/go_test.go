@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
 	"testing"
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/result"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -68,6 +68,9 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 		"TERM=xterm",
 	)
 
+	resultPath := result.GetResultPath()
+	result.SetResultPathEnvVar(cmd, resultPath)
+
 	// not writing stderr to the pty because we want to capture a panic if
 	// there is one. But some commands will not be in tty mode if stderr is
 	// not a terminal. We'll need to keep an eye out for that.
@@ -77,7 +80,7 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	// these rows and columns are ignored because internally we use tcell's
 	// simulation screen. However we still need the pty for the sake of
 	// running other commands in a pty.
-	f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 300, Cols: 300})
+	_, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 300, Cols: 300})
 
 	if err != nil {
 		panic(err)
@@ -86,24 +89,14 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 
 	fmt.Println("about to wait")
 
-	if cmd.Wait() != nil {
-		if runtime.GOOS == "windows" {
-			fmt.Printf("test failed")
-			// do nothing
-		} else {
-			// return an error with the stderr output
-			return errors.New(stderr.String())
-		}
+	_ = cmd.Wait()
+
+	result, err := result.ReadResult(resultPath)
+	if err != nil {
+		return fmt.Errorf("Error reading integration test result: %w", err)
 	}
-
-	fmt.Printf("error: %s\n", stderr.String())
-
-	if runtime.GOOS != "windows" {
-		if err := f.Close(); err != nil {
-			// swallowing error for windows: we always get access denied here for some reason
-			fmt.Println("failed to close pty")
-			return err
-		}
+	if !result.Success {
+		return errors.New(result.Message)
 	}
 
 	return nil
