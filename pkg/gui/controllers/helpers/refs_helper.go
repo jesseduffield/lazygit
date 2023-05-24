@@ -196,7 +196,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 	})
 }
 
-// sanitizedBranchName will remove all spaces in favor of a dash "-" to meet
+// sanitizedBranchName will remove all spaces in favor of a replacement char to meet
 // git's branch naming requirement.
 func (self *RefsHelper) sanitizedBranchName(input string) string {
 	reg1 := regexp.MustCompile(`^-+`)
