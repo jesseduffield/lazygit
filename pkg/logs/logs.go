@@ -1,34 +1,64 @@
 package logs
 
 import (
-	"fmt"
+	"io"
 	"log"
 	"os"
 
-	"github.com/aybabtme/humanlog"
-	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/sirupsen/logrus"
 )
 
-// TailLogs lets us run `lazygit --logs` to print the logs produced by other lazygit processes.
-// This makes for easier debugging.
-func TailLogs() {
-	logFilePath, err := config.LogPath()
-	if err != nil {
-		log.Fatal(err)
+// It's important that this package does not depend on any other package because we
+// may want to import it from anywhere, and we don't want to create a circular dependency
+// (because Go refuses to compile circular dependencies).
+
+// Global is a global logger that can be used anywhere in the app, for
+// _development purposes only_. I want to avoid global variables when possible,
+// so if you want to log something that's printed when the -debug flag is set,
+// you'll need to ensure the struct you're working with has a logger field (
+// and most of them do).
+// Global is only available if the LAZYGIT_LOG_PATH environment variable is set.
+var Global *logrus.Entry
+
+func init() {
+	logPath := os.Getenv("LAZYGIT_LOG_PATH")
+	if logPath != "" {
+		Global = NewDevelopmentLogger(logPath)
 	}
+}
 
-	fmt.Printf("Tailing log file %s\n\n", logFilePath)
+func NewProductionLogger() *logrus.Entry {
+	logger := logrus.New()
+	logger.Out = io.Discard
+	logger.SetLevel(logrus.ErrorLevel)
+	return formatted(logger)
+}
 
-	opts := humanlog.DefaultOptions
-	opts.Truncates = false
+func NewDevelopmentLogger(logPath string) *logrus.Entry {
+	logger := logrus.New()
+	logger.SetLevel(getLogLevel())
 
-	_, err = os.Stat(logFilePath)
+	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
 	if err != nil {
-		if os.IsNotExist(err) {
-			log.Fatal("Log file does not exist. Run `lazygit --debug` first to create the log file")
-		}
-		log.Fatal(err)
+		log.Fatalf("Unable to log to log file: %v", err)
 	}
+	logger.SetOutput(file)
+	return formatted(logger)
+}
 
-	TailLogsForPlatform(logFilePath, opts)
+func formatted(log *logrus.Logger) *logrus.Entry {
+	// highly recommended: tail -f development.log | humanlog
+	// https://github.com/aybabtme/humanlog
+	log.Formatter = &logrus.JSONFormatter{}
+
+	return log.WithFields(logrus.Fields{})
+}
+
+func getLogLevel() logrus.Level {
+	strLevel := os.Getenv("LOG_LEVEL")
+	level, err := logrus.ParseLevel(strLevel)
+	if err != nil {
+		return logrus.DebugLevel
+	}
+	return level
 }

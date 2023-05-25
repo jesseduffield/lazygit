@@ -1,7 +1,7 @@
 //go:build !windows
 // +build !windows
 
-package logs
+package tail
 
 import (
 	"log"
@@ -11,7 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
-func TailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {
+func tailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {
 	cmd := secureexec.Command("tail", "-f", logFilePath)
 
 	stdout, _ := cmd.StdoutPipe()

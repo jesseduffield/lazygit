@@ -1,7 +1,7 @@
 //go:build windows
 // +build windows
 
-package logs
+package tail
 
 import (
 	"bufio"
@@ -13,7 +13,7 @@ import (
 	"github.com/aybabtme/humanlog"
 )
 
-func TailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {
+func tailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {
 	var lastModified int64 = 0
 	var lastOffset int64 = 0
 	for {
@@ -22,7 +22,7 @@ func TailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {
 			log.Fatal(err)
 		}
 		if stat.ModTime().Unix() > lastModified {
-			err = TailFrom(lastOffset, logFilePath, opts)
+			err = tailFrom(lastOffset, logFilePath, opts)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -32,7 +32,7 @@ func TailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {
 	}
 }
 
-func OpenAndSeek(filepath string, offset int64) (*os.File, error) {
+func openAndSeek(filepath string, offset int64) (*os.File, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, err
@@ -46,8 +46,8 @@ func OpenAndSeek(filepath string, offset int64) (*os.File, error) {
 	return file, nil
 }
 
-func TailFrom(lastOffset int64, logFilePath string, opts *humanlog.HandlerOptions) error {
-	file, err := OpenAndSeek(logFilePath, lastOffset)
+func tailFrom(lastOffset int64, logFilePath string, opts *humanlog.HandlerOptions) error {
+	file, err := openAndSeek(logFilePath, lastOffset)
 	if err != nil {
 		return err
 	}

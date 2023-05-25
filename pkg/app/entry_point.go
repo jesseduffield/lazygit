@@ -16,7 +16,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/env"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
-	"github.com/jesseduffield/lazygit/pkg/logs"
+	"github.com/jesseduffield/lazygit/pkg/logs/tail"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
@@ -106,7 +106,12 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 	}
 
 	if cliArgs.TailLogs {
-		logs.TailLogs()
+		logPath, err := config.LogPath()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		tail.TailLogs(logPath)
 		os.Exit(0)
 	}
 
