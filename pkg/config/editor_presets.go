@@ -79,6 +79,7 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 	// Some of our presets have a different name than the editor they are using.
 	editorToPreset := map[string]string{
 		"kak":  "kakoune",
+		"hx":   "helix",
 		"code": "vscode",
 		"subl": "sublime",
 		"xed":  "xcode",
