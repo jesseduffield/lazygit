@@ -12,7 +12,7 @@ import (
 
 type SubCommitsContext struct {
 	*SubCommitsViewModel
-	*ViewportListContextTrait
+	*ListContextTrait
 	*DynamicTitleBuilder
 }
 
@@ -60,20 +60,19 @@ func NewSubCommitsContext(
 	return &SubCommitsContext{
 		SubCommitsViewModel: viewModel,
 		DynamicTitleBuilder: NewDynamicTitleBuilder(c.Tr.SubCommitsDynamicTitle),
-		ViewportListContextTrait: &ViewportListContextTrait{
-			ListContextTrait: &ListContextTrait{
-				Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-					View:       c.Views().SubCommits,
-					WindowName: "branches",
-					Key:        SUB_COMMITS_CONTEXT_KEY,
-					Kind:       types.SIDE_CONTEXT,
-					Focusable:  true,
-					Transient:  true,
-				})),
-				list:              viewModel,
-				getDisplayStrings: getDisplayStrings,
-				c:                 c,
-			},
+		ListContextTrait: &ListContextTrait{
+			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
+				View:       c.Views().SubCommits,
+				WindowName: "branches",
+				Key:        SUB_COMMITS_CONTEXT_KEY,
+				Kind:       types.SIDE_CONTEXT,
+				Focusable:  true,
+				Transient:  true,
+			})),
+			list:                       viewModel,
+			getDisplayStrings:          getDisplayStrings,
+			c:                          c,
+			refreshViewportOnLineFocus: true,
 		},
 	}
 }

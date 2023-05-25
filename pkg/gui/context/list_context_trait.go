@@ -13,8 +13,15 @@ type ListContextTrait struct {
 	c                 *ContextCommon
 	list              types.IList
 	getDisplayStrings func(startIdx int, length int) [][]string
-	// alignment for each column. If nil, the default is left alignment
+	// Alignment for each column. If nil, the default is left alignment
 	columnAlignments []utils.Alignment
+	// Some contexts, like the commit context, will highlight the path from the selected commit
+	// to its parents, because it's ambiguous otherwise. For these, we need to refresh the viewport
+	// so that we show the highlighted path.
+	// TODO: now that we allow scrolling, we should be smarter about what gets refreshed:
+	// we should find out exactly which lines are now part of the path and refresh those.
+	// We should also keep track of the previous path and refresh those lines too.
+	refreshViewportOnLineFocus bool
 }
 
 func (self *ListContextTrait) IsListContext() {}
@@ -24,9 +31,19 @@ func (self *ListContextTrait) GetList() types.IList {
 }
 
 func (self *ListContextTrait) FocusLine() {
-	// we need a way of knowing whether we've rendered to the view yet.
 	self.GetViewTrait().FocusPoint(self.list.GetSelectedLineIdx())
 	self.setFooter()
+
+	if self.refreshViewportOnLineFocus {
+		self.refreshViewport()
+	}
+}
+
+func (self *ListContextTrait) refreshViewport() {
+	startIdx, length := self.GetViewTrait().ViewPortYBounds()
+	displayStrings := self.getDisplayStrings(startIdx, length)
+	content := utils.RenderDisplayStrings(displayStrings, nil)
+	self.GetViewTrait().SetViewPortContent(content)
 }
 
 func (self *ListContextTrait) setFooter() {
