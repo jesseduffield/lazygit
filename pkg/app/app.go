@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/jesseduffield/generics/slices"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
@@ -22,6 +23,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/env"
 	"github.com/jesseduffield/lazygit/pkg/gui"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/jesseduffield/lazygit/pkg/logs"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 )
 
@@ -74,6 +76,18 @@ func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 		UserConfig: userConfig,
 		Debug:      config.GetDebug(),
 	}, nil
+}
+
+func newLogger(cfg config.AppConfigurer) *logrus.Entry {
+	if cfg.GetDebug() {
+		logPath, err := config.LogPath()
+		if err != nil {
+			log.Fatal(err)
+		}
+		return logs.NewDevelopmentLogger(logPath)
+	} else {
+		return logs.NewProductionLogger()
+	}
 }
 
 // NewApp bootstrap a new application

@@ -301,5 +301,9 @@ func getDefaultAppState() *AppState {
 }
 
 func LogPath() (string, error) {
+	if os.Getenv("LAZYGIT_LOG_PATH") != "" {
+		return os.Getenv("LAZYGIT_LOG_PATH"), nil
+	}
+
 	return configFilePath("development.log")
 }
