@@ -27,7 +27,7 @@ var CreateBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.New).
 			Tap(func() {
 				t.ExpectPopup().Prompt().
-					Title(Contains("New Branch Name (Branch is off of 'stash@{0}: On master: stash one'")).
+					Title(Contains("New branch name (branch is off of 'stash@{0}: On master: stash one'")).
 					Type("new_branch").
 					Confirm()
 			})

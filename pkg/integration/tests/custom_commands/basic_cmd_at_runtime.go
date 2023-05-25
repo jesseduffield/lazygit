@@ -20,7 +20,7 @@ var BasicCmdAtRuntime = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.ExecuteCustomCommand)
 
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom Command:")).
+			Title(Equals("Custom command:")).
 			Type("touch file.txt").
 			Confirm()
 

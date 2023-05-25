@@ -54,13 +54,13 @@ func (self *UndoController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Undo),
 			Handler:     self.reflogUndo,
-			Description: self.c.Tr.LcUndoReflog,
+			Description: self.c.Tr.UndoReflog,
 			Tooltip:     self.c.Tr.UndoTooltip,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Redo),
 			Handler:     self.reflogRedo,
-			Description: self.c.Tr.LcRedoReflog,
+			Description: self.c.Tr.RedoReflog,
 			Tooltip:     self.c.Tr.RedoTooltip,
 		},
 	}
@@ -77,7 +77,7 @@ func (self *UndoController) reflogUndo() error {
 	undoingStatus := self.c.Tr.UndoingStatus
 
 	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-		return self.c.ErrorMsg(self.c.Tr.LcCantUndoWhileRebasing)
+		return self.c.ErrorMsg(self.c.Tr.CantUndoWhileRebasing)
 	}
 
 	return self.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {
@@ -125,7 +125,7 @@ func (self *UndoController) reflogRedo() error {
 	redoingStatus := self.c.Tr.RedoingStatus
 
 	if self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_REBASING {
-		return self.c.ErrorMsg(self.c.Tr.LcCantRedoWhileRebasing)
+		return self.c.ErrorMsg(self.c.Tr.CantRedoWhileRebasing)
 	}
 
 	return self.parseReflogForActions(func(counter int, action reflogAction) (bool, error) {

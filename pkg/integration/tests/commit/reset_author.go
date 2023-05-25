@@ -29,7 +29,7 @@ var ResetAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Amend commit attribute")).
-					Select(Contains("reset author")).
+					Select(Contains("Reset author")).
 					Confirm()
 			}).
 			Lines(

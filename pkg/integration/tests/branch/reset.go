@@ -36,8 +36,8 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Commits.ViewResetOptions)
 
 		t.ExpectPopup().Menu().
-			Title(Contains("reset to other-branch")).
-			Select(Contains("hard reset")).
+			Title(Contains("Reset to other-branch")).
+			Select(Contains("Hard reset")).
 			Confirm()
 
 		// assert that we now have the expected commits in the commit panel

@@ -32,32 +32,32 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Key: opts.GetKey(opts.Config.Universal.Select),
 			// gonna use the exact same handler as the 'n' keybinding because everybody wants this to happen when they checkout a remote branch
 			Handler:     self.checkSelected(self.newLocalBranch),
-			Description: self.c.Tr.LcCheckout,
+			Description: self.c.Tr.Checkout,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.checkSelected(self.newLocalBranch),
-			Description: self.c.Tr.LcNewBranch,
+			Description: self.c.Tr.NewBranch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
 			Handler:     opts.Guards.OutsideFilterMode(self.checkSelected(self.merge)),
-			Description: self.c.Tr.LcMergeIntoCurrentBranch,
+			Description: self.c.Tr.MergeIntoCurrentBranch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.RebaseBranch),
 			Handler:     opts.Guards.OutsideFilterMode(self.checkSelected(self.rebase)),
-			Description: self.c.Tr.LcRebaseBranch,
+			Description: self.c.Tr.RebaseBranch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelected(self.delete),
-			Description: self.c.Tr.LcDeleteBranch,
+			Description: self.c.Tr.DeleteBranch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.SetUpstream),
 			Handler:     self.checkSelected(self.setAsUpstream),
-			Description: self.c.Tr.LcSetAsUpstream,
+			Description: self.c.Tr.SetAsUpstream,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Return),
@@ -67,7 +67,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.checkSelected(self.createResetMenu),
-			Description: self.c.Tr.LcViewResetOptions,
+			Description: self.c.Tr.ViewResetOptions,
 			OpensMenu:   true,
 		},
 	}

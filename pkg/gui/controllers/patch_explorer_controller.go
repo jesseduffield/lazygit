@@ -93,24 +93,24 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Tag:         "navigation",
 			Key:         opts.GetKey(opts.Config.Universal.PrevPage),
 			Handler:     self.withRenderAndFocus(self.HandlePrevPage),
-			Description: self.c.Tr.LcPrevPage,
+			Description: self.c.Tr.PrevPage,
 		},
 		{
 			Tag:         "navigation",
 			Key:         opts.GetKey(opts.Config.Universal.NextPage),
 			Handler:     self.withRenderAndFocus(self.HandleNextPage),
-			Description: self.c.Tr.LcNextPage,
+			Description: self.c.Tr.NextPage,
 		},
 		{
 			Tag:         "navigation",
 			Key:         opts.GetKey(opts.Config.Universal.GotoTop),
 			Handler:     self.withRenderAndFocus(self.HandleGotoTop),
-			Description: self.c.Tr.LcGotoTop,
+			Description: self.c.Tr.GotoTop,
 		},
 		{
 			Tag:         "navigation",
 			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
-			Description: self.c.Tr.LcGotoBottom,
+			Description: self.c.Tr.GotoBottom,
 			Handler:     self.withRenderAndFocus(self.HandleGotoBottom),
 		},
 		{
@@ -127,12 +127,12 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Tag:         "navigation",
 			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
 			Handler:     func() error { self.c.OpenSearch(); return nil },
-			Description: self.c.Tr.LcStartSearch,
+			Description: self.c.Tr.StartSearch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.withLock(self.CopySelectedToClipboard),
-			Description: self.c.Tr.LcCopySelectedTexToClipboard,
+			Description: self.c.Tr.CopySelectedTexToClipboard,
 		},
 	}
 }

@@ -194,7 +194,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 
 	loadingText := customCommand.LoadingText
 	if loadingText == "" {
-		loadingText = self.c.Tr.LcRunningCustomCommandStatus
+		loadingText = self.c.Tr.RunningCustomCommandStatus
 	}
 
 	return self.c.WithWaitingStatus(loadingText, func() error {

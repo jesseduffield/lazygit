@@ -31,7 +31,7 @@ func (self *FilesRemoveController) GetKeybindings(opts types.KeybindingsOpts) []
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelectedFileNode(self.remove),
-			Description: self.c.Tr.LcViewDiscardOptions,
+			Description: self.c.Tr.ViewDiscardOptions,
 			OpensMenu:   true,
 		},
 	}
@@ -44,7 +44,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 	if node.File == nil {
 		menuItems = []*types.MenuItem{
 			{
-				Label: self.c.Tr.LcDiscardAllChanges,
+				Label: self.c.Tr.DiscardAllChanges,
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInDirectory)
 					if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
@@ -64,7 +64,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 
 		if node.GetHasStagedChanges() && node.GetHasUnstagedChanges() {
 			menuItems = append(menuItems, &types.MenuItem{
-				Label: self.c.Tr.LcDiscardUnstagedChanges,
+				Label: self.c.Tr.DiscardUnstagedChanges,
 				OnPress: func() error {
 					self.c.LogAction(self.c.Tr.Actions.DiscardUnstagedChangesInDirectory)
 					if err := self.c.Git().WorkingTree.DiscardUnstagedDirChanges(node); err != nil {
@@ -91,7 +91,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 
 			menuItems = []*types.MenuItem{
 				{
-					Label: self.c.Tr.LcSubmoduleStashAndReset,
+					Label: self.c.Tr.SubmoduleStashAndReset,
 					OnPress: func() error {
 						return self.ResetSubmodule(submodule)
 					},
@@ -100,7 +100,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 		} else {
 			menuItems = []*types.MenuItem{
 				{
-					Label: self.c.Tr.LcDiscardAllChanges,
+					Label: self.c.Tr.DiscardAllChanges,
 					OnPress: func() error {
 						self.c.LogAction(self.c.Tr.Actions.DiscardAllChangesInFile)
 						if err := self.c.Git().WorkingTree.DiscardAllFileChanges(file); err != nil {
@@ -120,7 +120,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 
 			if file.HasStagedChanges && file.HasUnstagedChanges {
 				menuItems = append(menuItems, &types.MenuItem{
-					Label: self.c.Tr.LcDiscardUnstagedChanges,
+					Label: self.c.Tr.DiscardUnstagedChanges,
 					OnPress: func() error {
 						self.c.LogAction(self.c.Tr.Actions.DiscardAllUnstagedChangesInFile)
 						if err := self.c.Git().WorkingTree.DiscardUnstagedFileChanges(file); err != nil {
@@ -145,7 +145,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 }
 
 func (self *FilesRemoveController) ResetSubmodule(submodule *models.SubmoduleConfig) error {
-	return self.c.WithWaitingStatus(self.c.Tr.LcResettingSubmoduleStatus, func() error {
+	return self.c.WithWaitingStatus(self.c.Tr.ResettingSubmoduleStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.ResetSubmodule)
 
 		file := self.c.Helpers().WorkingTree.FileForSubmodule(submodule)

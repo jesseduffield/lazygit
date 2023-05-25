@@ -23,13 +23,13 @@ func (self *TagsHelper) CreateTagMenu(ref string, onCreate func()) error {
 		Title: self.c.Tr.TagMenuTitle,
 		Items: []*types.MenuItem{
 			{
-				Label: self.c.Tr.LcLightweightTag,
+				Label: self.c.Tr.LightweightTag,
 				OnPress: func() error {
 					return self.handleCreateLightweightTag(ref, onCreate)
 				},
 			},
 			{
-				Label: self.c.Tr.LcAnnotatedTag,
+				Label: self.c.Tr.AnnotatedTag,
 				OnPress: func() error {
 					return self.handleCreateAnnotatedTag(ref, onCreate)
 				},

@@ -32,13 +32,13 @@ func (self *MenuController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Confirm),
 			Handler:     self.press,
-			Description: self.c.Tr.LcExecute,
+			Description: self.c.Tr.Execute,
 			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Return),
 			Handler:     self.close,
-			Description: self.c.Tr.LcClose,
+			Description: self.c.Tr.Close,
 			Display:     true,
 		},
 	}

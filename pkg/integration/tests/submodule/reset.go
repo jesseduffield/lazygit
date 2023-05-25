@@ -71,7 +71,7 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("my_submodule")).Select(Contains("stash uncommitted submodule changes and update")).Confirm()
+				t.ExpectPopup().Menu().Title(Equals("my_submodule")).Select(Contains("Stash uncommitted submodule changes and update")).Confirm()
 			}).
 			IsEmpty()
 

@@ -28,9 +28,9 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.DiffingMenu).
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(MatchesRegexp(`diff \w+`)).Confirm()
+				t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(MatchesRegexp(`Diff \w+`)).Confirm()
 
-				t.Views().Information().Content(Contains("showing output for: git diff"))
+				t.Views().Information().Content(Contains("Showing output for: git diff"))
 			}).
 			SelectNextItem().
 			SelectNextItem().
@@ -40,7 +40,7 @@ var DiffCommits = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Press(keys.Universal.DiffingMenu).
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
+				t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains("Reverse diff direction")).Confirm()
 
 				t.Views().Main().Content(Contains("+second line\n+third line"))
 			}).

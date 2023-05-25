@@ -40,22 +40,22 @@ func (self *RemotesController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		{
 			Key:         opts.GetKey(opts.Config.Branches.FetchRemote),
 			Handler:     self.checkSelected(self.fetch),
-			Description: self.c.Tr.LcFetchRemote,
+			Description: self.c.Tr.FetchRemote,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.add,
-			Description: self.c.Tr.LcAddNewRemote,
+			Description: self.c.Tr.AddNewRemote,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelected(self.remove),
-			Description: self.c.Tr.LcRemoveRemote,
+			Description: self.c.Tr.RemoveRemote,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.checkSelected(self.edit),
-			Description: self.c.Tr.LcEditRemote,
+			Description: self.c.Tr.EditRemote,
 		},
 	}
 
@@ -116,10 +116,10 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 
 func (self *RemotesController) add() error {
 	return self.c.Prompt(types.PromptOpts{
-		Title: self.c.Tr.LcNewRemoteName,
+		Title: self.c.Tr.NewRemoteName,
 		HandleConfirm: func(remoteName string) error {
 			return self.c.Prompt(types.PromptOpts{
-				Title: self.c.Tr.LcNewRemoteUrl,
+				Title: self.c.Tr.NewRemoteUrl,
 				HandleConfirm: func(remoteUrl string) error {
 					self.c.LogAction(self.c.Tr.Actions.AddRemote)
 					if err := self.c.Git().Remote.AddRemote(remoteName, remoteUrl); err != nil {
@@ -134,8 +134,8 @@ func (self *RemotesController) add() error {
 
 func (self *RemotesController) remove(remote *models.Remote) error {
 	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.LcRemoveRemote,
-		Prompt: self.c.Tr.LcRemoveRemotePrompt + " '" + remote.Name + "'?",
+		Title:  self.c.Tr.RemoveRemote,
+		Prompt: self.c.Tr.RemoveRemotePrompt + " '" + remote.Name + "'?",
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.RemoveRemote)
 			if err := self.c.Git().Remote.RemoveRemote(remote.Name); err != nil {
@@ -149,7 +149,7 @@ func (self *RemotesController) remove(remote *models.Remote) error {
 
 func (self *RemotesController) edit(remote *models.Remote) error {
 	editNameMessage := utils.ResolvePlaceholderString(
-		self.c.Tr.LcEditRemoteName,
+		self.c.Tr.EditRemoteName,
 		map[string]string{
 			"remoteName": remote.Name,
 		},
@@ -167,7 +167,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 			}
 
 			editUrlMessage := utils.ResolvePlaceholderString(
-				self.c.Tr.LcEditRemoteUrl,
+				self.c.Tr.EditRemoteUrl,
 				map[string]string{
 					"remoteName": updatedRemoteName,
 				},

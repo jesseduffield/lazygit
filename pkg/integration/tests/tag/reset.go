@@ -29,8 +29,8 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Commits.ViewResetOptions)
 
 		t.ExpectPopup().Menu().
-			Title(Contains("reset to tag")).
-			Select(Contains("hard reset")).
+			Title(Contains("Reset to tag")).
+			Select(Contains("Hard reset")).
 			Confirm()
 
 		t.Views().Commits().Lines(

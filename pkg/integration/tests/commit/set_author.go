@@ -32,7 +32,7 @@ var SetAuthor = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Amend commit attribute")).
-					Select(Contains(" set author")). // adding space at start to distinguish from 'reset author'
+					Select(Contains(" Set author")). // adding space at start to distinguish from 'reset author'
 					Confirm()
 
 				t.ExpectPopup().Prompt().

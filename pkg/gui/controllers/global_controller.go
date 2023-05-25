@@ -24,7 +24,7 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		{
 			Key:         opts.GetKey(opts.Config.Universal.ExecuteCustomCommand),
 			Handler:     self.customCommand,
-			Description: self.c.Tr.LcExecuteCustomCommand,
+			Description: self.c.Tr.ExecuteCustomCommand,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.CreatePatchOptionsMenu),
@@ -41,17 +41,17 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Refresh),
 			Handler:     self.refresh,
-			Description: self.c.Tr.LcRefresh,
+			Description: self.c.Tr.Refresh,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.NextScreenMode),
 			Handler:     self.nextScreenMode,
-			Description: self.c.Tr.LcNextScreenMode,
+			Description: self.c.Tr.NextScreenMode,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.PrevScreenMode),
 			Handler:     self.prevScreenMode,
-			Description: self.c.Tr.LcPrevScreenMode,
+			Description: self.c.Tr.PrevScreenMode,
 		},
 		{
 			ViewName:  "",
@@ -65,26 +65,26 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Modifier: gocui.ModNone,
 			// we have the description on the alt key and not the main key for legacy reasons
 			// (the original main key was 'x' but we've reassigned that to other purposes)
-			Description: self.c.Tr.LcOpenMenu,
+			Description: self.c.Tr.OpenMenu,
 			Handler:     self.createOptionsMenu,
 		},
 		{
 			ViewName:    "",
 			Key:         opts.GetKey(opts.Config.Universal.FilteringMenu),
 			Handler:     self.createFilteringMenu,
-			Description: self.c.Tr.LcOpenFilteringMenu,
+			Description: self.c.Tr.OpenFilteringMenu,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.DiffingMenu),
 			Handler:     self.createDiffingMenu,
-			Description: self.c.Tr.LcOpenDiffingMenu,
+			Description: self.c.Tr.OpenDiffingMenu,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.DiffingMenuAlt),
 			Handler:     self.createDiffingMenu,
-			Description: self.c.Tr.LcOpenDiffingMenu,
+			Description: self.c.Tr.OpenDiffingMenu,
 			OpensMenu:   true,
 		},
 		{

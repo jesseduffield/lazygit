@@ -16,13 +16,13 @@ var OmitFromHistory = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.GlobalPress(keys.Universal.ExecuteCustomCommand)
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom Command:")).
+			Title(Equals("Custom command:")).
 			Type("echo aubergine").
 			Confirm()
 
 		t.GlobalPress(keys.Universal.ExecuteCustomCommand)
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom Command:")).
+			Title(Equals("Custom command:")).
 			SuggestionLines(Contains("aubergine")).
 			SuggestionLines(DoesNotContain("tangerine")).
 			Type(" echo tangerine").
@@ -30,7 +30,7 @@ var OmitFromHistory = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.GlobalPress(keys.Universal.ExecuteCustomCommand)
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom Command:")).
+			Title(Equals("Custom command:")).
 			SuggestionLines(Contains("aubergine")).
 			SuggestionLines(DoesNotContain("tangerine")).
 			Cancel()

@@ -32,7 +32,7 @@ var Delete = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
-					Title(Equals("Delete Branch")).
+					Title(Equals("Delete branch")).
 					Content(Contains("Are you sure you want to delete the branch 'branch-one'?")).
 					Confirm()
 			}).

@@ -154,7 +154,7 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 			prefixReplace := commitPrefixConfig.Replace
 			rgx, err := regexp.Compile(prefixPattern)
 			if err != nil {
-				return self.c.ErrorMsg(fmt.Sprintf("%s: %s", self.c.Tr.LcCommitPrefixPatternError, err.Error()))
+				return self.c.ErrorMsg(fmt.Sprintf("%s: %s", self.c.Tr.CommitPrefixPatternError, err.Error()))
 			}
 			prefix := rgx.ReplaceAllString(self.refHelper.GetCheckedOutRef().Name, prefixReplace)
 			message = prefix

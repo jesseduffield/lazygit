@@ -24,8 +24,8 @@ var SetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.SetUpstream).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Equals("Set/unset upstream")).
-					Select(Contains(" set upstream of selected branch")). // using leading space to disambiguate from the 'reset' option
+					Title(Equals("Set/Unset upstream")).
+					Select(Contains(" Set upstream of selected branch")). // using leading space to disambiguate from the 'reset' option
 					Confirm()
 
 				t.ExpectPopup().Prompt().

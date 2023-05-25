@@ -23,7 +23,7 @@ var SelectFile = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(`only otherFile`),
 				Contains(`both files`),
 			).
-			SelectNextItem().
+			NavigateToLine(Contains(`only filterFile`)).
 			PressEnter()
 
 		// when you click into the commit itself, you see all files from that commit
@@ -34,7 +34,7 @@ var SelectFile = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.FilteringMenu)
 
-		t.ExpectPopup().Menu().Title(Equals("Filtering")).Select(Contains("filter by 'filterFile'")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Filtering")).Select(Contains("Filter by 'filterFile'")).Confirm()
 
 		postFilterTest(t)
 	},

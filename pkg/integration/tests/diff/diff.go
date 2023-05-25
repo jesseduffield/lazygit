@@ -30,16 +30,16 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Universal.DiffingMenu)
 
-		t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains(`diff branch-a`)).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains(`Diff branch-a`)).Confirm()
 
 		t.Views().Branches().
 			IsFocused().
 			Tap(func() {
-				t.Views().Information().Content(Contains("showing output for: git diff branch-a branch-a"))
+				t.Views().Information().Content(Contains("Showing output for: git diff branch-a branch-a"))
 			}).
 			SelectNextItem().
 			Tap(func() {
-				t.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b"))
+				t.Views().Information().Content(Contains("Showing output for: git diff branch-a branch-b"))
 				t.Views().Main().Content(Contains("+second line"))
 			}).
 			PressEnter()
@@ -66,8 +66,8 @@ var Diff = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Press(keys.Universal.DiffingMenu)
 
-		t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains("reverse diff direction")).Confirm()
-		t.Views().Information().Content(Contains("showing output for: git diff branch-a branch-b -R"))
+		t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains("Reverse diff direction")).Confirm()
+		t.Views().Information().Content(Contains("Showing output for: git diff branch-a branch-b -R"))
 		t.Views().Main().Content(Contains("-second line"))
 	},
 })

@@ -37,44 +37,44 @@ func (self *BasicCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CheckoutCommit),
 			Handler:     self.checkSelected(self.checkout),
-			Description: self.c.Tr.LcCheckoutCommit,
+			Description: self.c.Tr.CheckoutCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CopyCommitAttributeToClipboard),
 			Handler:     self.checkSelected(self.copyCommitAttribute),
-			Description: self.c.Tr.LcCopyCommitAttributeToClipboard,
+			Description: self.c.Tr.CopyCommitAttributeToClipboard,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.OpenInBrowser),
 			Handler:     self.checkSelected(self.openInBrowser),
-			Description: self.c.Tr.LcOpenCommitInBrowser,
+			Description: self.c.Tr.OpenCommitInBrowser,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.checkSelected(self.newBranch),
-			Description: self.c.Tr.LcCreateNewBranchFromCommit,
+			Description: self.c.Tr.CreateNewBranchFromCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.checkSelected(self.createResetMenu),
-			Description: self.c.Tr.LcViewResetOptions,
+			Description: self.c.Tr.ViewResetOptions,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopy),
 			Handler:     self.checkSelected(self.copy),
-			Description: self.c.Tr.LcCherryPickCopy,
+			Description: self.c.Tr.CherryPickCopy,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CherryPickCopyRange),
 			Handler:     self.checkSelected(self.copyRange),
-			Description: self.c.Tr.LcCherryPickCopyRange,
+			Description: self.c.Tr.CherryPickCopyRange,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ResetCherryPick),
 			Handler:     self.c.Helpers().CherryPick.Reset,
-			Description: self.c.Tr.LcResetCherryPick,
+			Description: self.c.Tr.ResetCherryPick,
 		},
 	}
 
@@ -101,35 +101,35 @@ func (self *BasicCommitsController) copyCommitAttribute(commit *models.Commit) e
 		Title: self.c.Tr.Actions.CopyCommitAttributeToClipboard,
 		Items: []*types.MenuItem{
 			{
-				Label: self.c.Tr.LcCommitSha,
+				Label: self.c.Tr.CommitSha,
 				OnPress: func() error {
 					return self.copyCommitSHAToClipboard(commit)
 				},
 				Key: 's',
 			},
 			{
-				Label: self.c.Tr.LcCommitURL,
+				Label: self.c.Tr.CommitURL,
 				OnPress: func() error {
 					return self.copyCommitURLToClipboard(commit)
 				},
 				Key: 'u',
 			},
 			{
-				Label: self.c.Tr.LcCommitDiff,
+				Label: self.c.Tr.CommitDiff,
 				OnPress: func() error {
 					return self.copyCommitDiffToClipboard(commit)
 				},
 				Key: 'd',
 			},
 			{
-				Label: self.c.Tr.LcCommitMessage,
+				Label: self.c.Tr.CommitMessage,
 				OnPress: func() error {
 					return self.copyCommitMessageToClipboard(commit)
 				},
 				Key: 'm',
 			},
 			{
-				Label: self.c.Tr.LcCommitAuthor,
+				Label: self.c.Tr.CommitAuthor,
 				OnPress: func() error {
 					return self.copyAuthorToClipboard(commit)
 				},
@@ -235,7 +235,7 @@ func (self *BasicCommitsController) createResetMenu(commit *models.Commit) error
 
 func (self *BasicCommitsController) checkout(commit *models.Commit) error {
 	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.LcCheckoutCommit,
+		Title:  self.c.Tr.CheckoutCommit,
 		Prompt: self.c.Tr.SureCheckoutThisCommit,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.CheckoutCommit)

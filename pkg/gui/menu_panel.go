@@ -12,7 +12,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 	if !opts.HideCancel {
 		// this is mutative but I'm okay with that for now
 		opts.Items = append(opts.Items, &types.MenuItem{
-			LabelColumns: []string{gui.c.Tr.LcCancel},
+			LabelColumns: []string{gui.c.Tr.Cancel},
 			OnPress: func() error {
 				return nil
 			},

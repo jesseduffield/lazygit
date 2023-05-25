@@ -53,7 +53,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 				return self.withResetButton(
 					fmt.Sprintf(
 						"%s %s",
-						self.c.Tr.LcShowingGitDiff,
+						self.c.Tr.ShowingGitDiff,
 						"git diff "+strings.Join(self.diffHelper.DiffArgs(), " "),
 					),
 					style.FgMagenta,
@@ -64,7 +64,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 		{
 			IsActive: self.c.Git().Patch.PatchBuilder.Active,
 			Description: func() string {
-				return self.withResetButton(self.c.Tr.LcBuildingPatch, style.FgYellow.SetBold())
+				return self.withResetButton(self.c.Tr.BuildingPatch, style.FgYellow.SetBold())
 			},
 			Reset: self.patchBuildingHelper.Reset,
 		},
@@ -74,7 +74,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 				return self.withResetButton(
 					fmt.Sprintf(
 						"%s '%s'",
-						self.c.Tr.LcFilteringBy,
+						self.c.Tr.FilteringBy,
 						self.c.Modes().Filtering.GetPath(),
 					),
 					style.FgRed,
@@ -86,9 +86,9 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 			IsActive: self.c.Modes().CherryPicking.Active,
 			Description: func() string {
 				copiedCount := len(self.c.Modes().CherryPicking.CherryPickedCommits)
-				text := self.c.Tr.LcCommitsCopied
+				text := self.c.Tr.CommitsCopied
 				if copiedCount == 1 {
-					text = self.c.Tr.LcCommitCopied
+					text = self.c.Tr.CommitCopied
 				}
 
 				return self.withResetButton(
@@ -109,7 +109,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 			Description: func() string {
 				workingTreeState := self.c.Git().Status.WorkingTreeState()
 				return self.withResetButton(
-					presentation.FormatWorkingTreeState(workingTreeState), style.FgYellow,
+					presentation.FormatWorkingTreeStateTitle(self.c.Tr, workingTreeState), style.FgYellow,
 				)
 			},
 			Reset: self.mergeAndRebaseHelper.AbortMergeOrRebaseWithConfirm,
@@ -119,7 +119,7 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 				return self.c.Model().BisectInfo.Started()
 			},
 			Description: func() string {
-				return self.withResetButton("bisecting", style.FgGreen)
+				return self.withResetButton(self.c.Tr.Bisect.Bisecting, style.FgGreen)
 			},
 			Reset: self.bisectHelper.Reset,
 		},

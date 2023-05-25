@@ -51,9 +51,9 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 			gui.c.SetViewContent(
 				gui.Views.Search,
 				fmt.Sprintf(
-					"no matches for '%s' %s",
+					gui.Tr.NoMatchesFor,
 					gui.State.Searching.searchString,
-					theme.OptionsFgColor.Sprintf("%s: exit search mode", keybindings.Label(keybindingConfig.Universal.Return)),
+					theme.OptionsFgColor.Sprintf(gui.Tr.ExitSearchMode, keybindings.Label(keybindingConfig.Universal.Return)),
 				),
 			)
 			return nil
@@ -61,12 +61,12 @@ func (gui *Gui) onSelectItemWrapper(innerFunc func(int) error) func(int, int, in
 		gui.c.SetViewContent(
 			gui.Views.Search,
 			fmt.Sprintf(
-				"matches for '%s' (%d of %d) %s",
+				gui.Tr.MatchesFor,
 				gui.State.Searching.searchString,
 				index+1,
 				total,
 				theme.OptionsFgColor.Sprintf(
-					"%s: next match, %s: previous match, %s: exit search mode",
+					gui.Tr.SearchKeybindings,
 					keybindings.Label(keybindingConfig.Universal.NextMatch),
 					keybindings.Label(keybindingConfig.Universal.PrevMatch),
 					keybindings.Label(keybindingConfig.Universal.Return),

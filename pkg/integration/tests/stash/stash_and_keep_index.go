@@ -28,7 +28,7 @@ var StashAndKeepIndex = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Files.ViewStashOptions)
 
-		t.ExpectPopup().Menu().Title(Equals("Stash options")).Select(Contains("stash all changes and keep index")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Stash options")).Select(Contains("Stash all changes and keep index")).Confirm()
 
 		t.ExpectPopup().Prompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
 

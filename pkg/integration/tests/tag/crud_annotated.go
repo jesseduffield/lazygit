@@ -21,7 +21,7 @@ var CrudAnnotated = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().
 					Title(Equals("Create tag")).
-					Select(Contains("annotated")).
+					Select(Contains("Annotated")).
 					Confirm()
 
 				t.ExpectPopup().Prompt().

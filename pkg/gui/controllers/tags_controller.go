@@ -28,27 +28,27 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.withSelectedTag(self.checkout),
-			Description: self.c.Tr.LcCheckout,
+			Description: self.c.Tr.Checkout,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.withSelectedTag(self.delete),
-			Description: self.c.Tr.LcDeleteTag,
+			Description: self.c.Tr.DeleteTag,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.PushTag),
 			Handler:     self.withSelectedTag(self.push),
-			Description: self.c.Tr.LcPushTag,
+			Description: self.c.Tr.PushTag,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.create,
-			Description: self.c.Tr.LcCreateTag,
+			Description: self.c.Tr.CreateTag,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.withSelectedTag(self.createResetMenu),
-			Description: self.c.Tr.LcViewResetOptions,
+			Description: self.c.Tr.ViewResetOptions,
 			OpensMenu:   true,
 		},
 	}

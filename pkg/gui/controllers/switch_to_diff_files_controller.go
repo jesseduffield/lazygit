@@ -40,7 +40,7 @@ func (self *SwitchToDiffFilesController) GetKeybindings(opts types.KeybindingsOp
 		{
 			Key:         opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.LcViewItemFiles,
+			Description: self.c.Tr.ViewItemFiles,
 		},
 	}
 

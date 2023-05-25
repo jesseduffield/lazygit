@@ -51,7 +51,7 @@ var MoveToIndexPartial = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			PressPrimaryAction().
 			Tap(func() {
-				t.Views().Information().Content(Contains("building patch"))
+				t.Views().Information().Content(Contains("Building patch"))
 
 				t.Views().PatchBuildingSecondary().
 					ContainsLines(
@@ -61,7 +61,7 @@ var MoveToIndexPartial = NewIntegrationTest(NewIntegrationTestArgs{
 						Contains(` third line`),
 					)
 
-				t.Common().SelectPatchOption(Contains("move patch out into index"))
+				t.Common().SelectPatchOption(Contains("Move patch out into index"))
 
 				t.Views().Files().
 					Lines(

@@ -19,14 +19,14 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 			t.Views().Commits().
 				Press(keys.Commits.ViewBisectOptions)
 
-			t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as bad`)).Confirm()
+			t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`Mark .* as bad`)).Confirm()
 		}
 
 		markCommitAsGood := func() {
 			t.Views().Commits().
 				Press(keys.Commits.ViewBisectOptions)
 
-			t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
+			t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`Mark .* as good`)).Confirm()
 		}
 
 		t.Views().Commits().
@@ -36,7 +36,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				markCommitAsBad()
 
-				t.Views().Information().Content(Contains("bisecting"))
+				t.Views().Information().Content(Contains("Bisecting"))
 			}).
 			SelectedLine(Contains("<-- bad")).
 			NavigateToLine(Contains("commit 02")).
@@ -54,6 +54,6 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Content(Contains("commit 04"))
 
-		t.Views().Information().Content(DoesNotContain("bisecting"))
+		t.Views().Information().Content(DoesNotContain("Bisecting"))
 	},
 })

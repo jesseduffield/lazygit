@@ -30,12 +30,12 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.HandleEditFile,
-			Description: self.c.Tr.LcEditFile,
+			Description: self.c.Tr.EditFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.HandleOpenFile,
-			Description: self.c.Tr.LcOpenFile,
+			Description: self.c.Tr.OpenFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.PrevBlock),
@@ -80,25 +80,25 @@ func (self *MergeConflictsController) GetKeybindings(opts types.KeybindingsOpts)
 		{
 			Key:         opts.GetKey(opts.Config.Universal.ScrollLeft),
 			Handler:     self.withRenderAndFocus(self.HandleScrollLeft),
-			Description: self.c.Tr.LcScrollLeft,
+			Description: self.c.Tr.ScrollLeft,
 			Tag:         "navigation",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.ScrollRight),
 			Handler:     self.withRenderAndFocus(self.HandleScrollRight),
-			Description: self.c.Tr.LcScrollRight,
+			Description: self.c.Tr.ScrollRight,
 			Tag:         "navigation",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Undo),
 			Handler:     self.withRenderAndFocus(self.HandleUndo),
-			Description: self.c.Tr.LcUndo,
+			Description: self.c.Tr.Undo,
 			Display:     true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
 			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
-			Description: self.c.Tr.LcOpenMergeTool,
+			Description: self.c.Tr.OpenMergeTool,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),

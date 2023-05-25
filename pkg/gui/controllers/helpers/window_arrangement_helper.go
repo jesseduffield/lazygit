@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"github.com/jesseduffield/lazycore/pkg/boxlayout"
-	"github.com/jesseduffield/lazygit/pkg/gui/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -179,7 +178,7 @@ func (self *WindowArrangementHelper) infoSectionChildren(informationStr string, 
 		return []*boxlayout.Box{
 			{
 				Window: "searchPrefix",
-				Size:   runewidth.StringWidth(constants.SEARCH_PREFIX),
+				Size:   runewidth.StringWidth(self.c.Tr.SearchPrefix),
 			},
 			{
 				Window: "search",

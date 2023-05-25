@@ -45,75 +45,75 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		{
 			Key:         opts.GetKey(opts.Config.Commits.SquashDown),
 			Handler:     self.checkSelected(self.squashDown),
-			Description: self.c.Tr.LcSquashDown,
+			Description: self.c.Tr.SquashDown,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.MarkCommitAsFixup),
 			Handler:     self.checkSelected(self.fixup),
-			Description: self.c.Tr.LcFixupCommit,
+			Description: self.c.Tr.FixupCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.RenameCommit),
 			Handler:     self.checkSelected(self.reword),
-			Description: self.c.Tr.LcRewordCommit,
+			Description: self.c.Tr.RewordCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.RenameCommitWithEditor),
 			Handler:     self.checkSelected(self.rewordEditor),
-			Description: self.c.Tr.LcRenameCommitEditor,
+			Description: self.c.Tr.RenameCommitEditor,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelected(self.drop),
-			Description: self.c.Tr.LcDeleteCommit,
+			Description: self.c.Tr.DeleteCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.checkSelected(self.edit),
-			Description: self.c.Tr.LcEditCommit,
+			Description: self.c.Tr.EditCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.PickCommit),
 			Handler:     self.checkSelected(self.pick),
-			Description: self.c.Tr.LcPickCommit,
+			Description: self.c.Tr.PickCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CreateFixupCommit),
 			Handler:     self.checkSelected(self.createFixupCommit),
-			Description: self.c.Tr.LcCreateFixupCommit,
+			Description: self.c.Tr.CreateFixupCommitDescription,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.SquashAboveCommits),
 			Handler:     self.checkSelected(self.squashAllAboveFixupCommits),
-			Description: self.c.Tr.LcSquashAboveCommits,
+			Description: self.c.Tr.SquashAboveCommits,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.MoveDownCommit),
 			Handler:     self.checkSelected(self.moveDown),
-			Description: self.c.Tr.LcMoveDownCommit,
+			Description: self.c.Tr.MoveDownCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.MoveUpCommit),
 			Handler:     self.checkSelected(self.moveUp),
-			Description: self.c.Tr.LcMoveUpCommit,
+			Description: self.c.Tr.MoveUpCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.PasteCommits),
 			Handler:     opts.Guards.OutsideFilterMode(self.paste),
-			Description: self.c.Tr.LcPasteCommits,
+			Description: self.c.Tr.PasteCommits,
 		},
 		// overriding these navigation keybindings because we might need to load
 		// more commits on demand
 		{
 			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
 			Handler:     self.openSearch,
-			Description: self.c.Tr.LcStartSearch,
+			Description: self.c.Tr.StartSearch,
 			Tag:         "navigation",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
 			Handler:     self.gotoBottom,
-			Description: self.c.Tr.LcGotoBottom,
+			Description: self.c.Tr.GotoBottom,
 			Tag:         "navigation",
 		},
 	}
@@ -126,27 +126,28 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		{
 			Key:         opts.GetKey(opts.Config.Commits.AmendToCommit),
 			Handler:     self.checkSelected(self.amendTo),
-			Description: self.c.Tr.LcAmendToCommit,
+			Description: self.c.Tr.AmendToCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ResetCommitAuthor),
 			Handler:     self.checkSelected(self.amendAttribute),
-			Description: self.c.Tr.LcResetCommitAuthor,
+			Description: self.c.Tr.SetResetCommitAuthor,
+			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.RevertCommit),
 			Handler:     self.checkSelected(self.revert),
-			Description: self.c.Tr.LcRevertCommit,
+			Description: self.c.Tr.RevertCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.CreateTag),
 			Handler:     self.checkSelected(self.createTag),
-			Description: self.c.Tr.LcTagCommit,
+			Description: self.c.Tr.TagCommit,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.OpenLogMenu),
 			Handler:     self.handleOpenLogMenu,
-			Description: self.c.Tr.LcOpenLogMenu,
+			Description: self.c.Tr.OpenLogMenu,
 			OpensMenu:   true,
 		},
 	}...)
@@ -401,11 +402,11 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoComma
 	// our input or we set a lazygit client as the EDITOR env variable and have it
 	// request us to edit the commit message when prompted.
 	if action == todo.Reword {
-		return true, self.c.ErrorMsg(self.c.Tr.LcRewordNotSupported)
+		return true, self.c.ErrorMsg(self.c.Tr.RewordNotSupported)
 	}
 
 	if allowed := isChangeOfRebaseTodoAllowed(action); !allowed {
-		return true, self.c.ErrorMsg(self.c.Tr.LcChangingThisActionIsNotAllowed)
+		return true, self.c.ErrorMsg(self.c.Tr.ChangingThisActionIsNotAllowed)
 	}
 
 	self.c.LogAction("Update rebase TODO")
@@ -537,13 +538,13 @@ func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error 
 		Title: "Amend commit attribute",
 		Items: []*types.MenuItem{
 			{
-				Label:   "reset author",
+				Label:   self.c.Tr.ResetAuthor,
 				OnPress: self.resetAuthor,
 				Key:     'a',
 				Tooltip: "Reset the commit's author to the currently configured user. This will also renew the author timestamp",
 			},
 			{
-				Label:   "set author",
+				Label:   self.c.Tr.SetAuthor,
 				OnPress: self.setAuthor,
 				Key:     'A',
 				Tooltip: "Set the author based on a prompt",
@@ -720,7 +721,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						self.context().SetLimitCommits(false)
 					}
 
-					return self.c.WithWaitingStatus(self.c.Tr.LcLoadingCommits, func() error {
+					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func() error {
 						return self.c.Refresh(
 							types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}},
 						)
@@ -763,7 +764,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 					onPress := func(value string) func() error {
 						return func() error {
 							self.c.UserConfig.Git.Log.Order = value
-							return self.c.WithWaitingStatus(self.c.Tr.LcLoadingCommits, func() error {
+							return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func() error {
 								return self.c.Refresh(
 									types.RefreshOptions{
 										Mode:  types.SYNC,

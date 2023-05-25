@@ -34,7 +34,7 @@ var RenameBranchAndPull = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.RenameBranch).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
-					Title(Equals("rename branch")).
+					Title(Equals("Rename branch")).
 					Content(Equals("This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?")).
 					Confirm()
 

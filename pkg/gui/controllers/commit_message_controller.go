@@ -29,12 +29,12 @@ func (self *CommitMessageController) GetKeybindings(opts types.KeybindingsOpts) 
 		{
 			Key:         opts.GetKey(opts.Config.Universal.SubmitEditorText),
 			Handler:     self.confirm,
-			Description: self.c.Tr.LcConfirm,
+			Description: self.c.Tr.Confirm,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Return),
 			Handler:     self.close,
-			Description: self.c.Tr.LcClose,
+			Description: self.c.Tr.Close,
 		},
 		{
 			Key:     opts.GetKey(opts.Config.Universal.PrevItem),

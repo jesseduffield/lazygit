@@ -4,317 +4,317 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
-## Globale Sneltoetsen
+## Globale sneltoetsen
 
 <pre>
-  <kbd>&lt;c-r&gt;</kbd>: wissel naar een recente repo
-  <kbd>&lt;pgup&gt;</kbd>: scroll naar beneden vanaf hoofdpaneel (fn+up/shift+k)
-  <kbd>&lt;pgdown&gt;</kbd>: scroll naar beneden vanaf hoofdpaneel (fn+down/shift+j)
-  <kbd>@</kbd>: open command log menu
+  <kbd>&lt;c-r&gt;</kbd>: Wissel naar een recente repo
+  <kbd>&lt;pgup&gt;</kbd>: Scroll naar beneden vanaf hoofdpaneel (fn+up/shift+k)
+  <kbd>&lt;pgdown&gt;</kbd>: Scroll naar beneden vanaf hoofdpaneel (fn+down/shift+j)
+  <kbd>@</kbd>: Open command log menu
   <kbd>}</kbd>: Increase the size of the context shown around changes in the diff view
   <kbd>{</kbd>: Decrease the size of the context shown around changes in the diff view
-  <kbd>:</kbd>: voer aangepaste commando uit
-  <kbd>&lt;c-p&gt;</kbd>: bekijk aangepaste patch opties
-  <kbd>m</kbd>: bekijk merge/rebase opties
-  <kbd>R</kbd>: verversen
-  <kbd>+</kbd>: volgende scherm modus (normaal/half/groot)
-  <kbd>_</kbd>: vorige scherm modus
-  <kbd>?</kbd>: open menu
-  <kbd>&lt;c-s&gt;</kbd>: bekijk scoping opties
-  <kbd>W</kbd>: open diff menu
-  <kbd>&lt;c-e&gt;</kbd>: open diff menu
+  <kbd>:</kbd>: Voer aangepaste commando uit
+  <kbd>&lt;c-p&gt;</kbd>: Bekijk aangepaste patch opties
+  <kbd>m</kbd>: Bekijk merge/rebase opties
+  <kbd>R</kbd>: Verversen
+  <kbd>+</kbd>: Volgende scherm modus (normaal/half/groot)
+  <kbd>_</kbd>: Vorige scherm modus
+  <kbd>?</kbd>: Open menu
+  <kbd>&lt;c-s&gt;</kbd>: Bekijk scoping opties
+  <kbd>W</kbd>: Open diff menu
+  <kbd>&lt;c-e&gt;</kbd>: Open diff menu
   <kbd>&lt;c-w&gt;</kbd>: Toggle whether or not whitespace changes are shown in the diff view
-  <kbd>z</kbd>: ongedaan maken (via reflog) (experimenteel)
-  <kbd>&lt;c-z&gt;</kbd>: redo (via reflog) (experimenteel)
-  <kbd>P</kbd>: push
-  <kbd>p</kbd>: pull
+  <kbd>z</kbd>: Ongedaan maken (via reflog) (experimenteel)
+  <kbd>&lt;c-z&gt;</kbd>: Redo (via reflog) (experimenteel)
+  <kbd>P</kbd>: Push
+  <kbd>p</kbd>: Pull
 </pre>
 
-## Lijstpaneel Navigatie
+## Lijstpaneel navigatie
 
 <pre>
-  <kbd>,</kbd>: vorige pagina
-  <kbd>.</kbd>: volgende pagina
-  <kbd>&lt;</kbd>: scroll naar boven
-  <kbd>/</kbd>: start met zoeken
-  <kbd>&gt;</kbd>: scroll naar beneden
-  <kbd>H</kbd>: scroll left
-  <kbd>L</kbd>: scroll right
-  <kbd>]</kbd>: volgende tabblad
-  <kbd>[</kbd>: vorige tabblad
+  <kbd>,</kbd>: Vorige pagina
+  <kbd>.</kbd>: Volgende pagina
+  <kbd>&lt;</kbd>: Scroll naar boven
+  <kbd>/</kbd>: Start met zoeken
+  <kbd>&gt;</kbd>: Scroll naar beneden
+  <kbd>H</kbd>: Scroll left
+  <kbd>L</kbd>: Scroll right
+  <kbd>]</kbd>: Volgende tabblad
+  <kbd>[</kbd>: Vorige tabblad
 </pre>
 
 ## Bestanden
 
 <pre>
-  <kbd>&lt;c-o&gt;</kbd>: kopieer de bestandsnaam naar het klembord
-  <kbd>d</kbd>: bekijk 'veranderingen ongedaan maken' opties
-  <kbd>&lt;space&gt;</kbd>: toggle staged
+  <kbd>&lt;c-o&gt;</kbd>: Kopieer de bestandsnaam naar het klembord
+  <kbd>d</kbd>: Bekijk 'veranderingen ongedaan maken' opties
+  <kbd>&lt;space&gt;</kbd>: Toggle staged
   <kbd>&lt;c-b&gt;</kbd>: Filter files (staged/unstaged)
-  <kbd>c</kbd>: commit veranderingen
-  <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
-  <kbd>A</kbd>: wijzig laatste commit
-  <kbd>C</kbd>: commit veranderingen met de git editor
-  <kbd>e</kbd>: verander bestand
-  <kbd>o</kbd>: open bestand
-  <kbd>i</kbd>: ignore or exclude file
-  <kbd>r</kbd>: refresh bestanden
-  <kbd>s</kbd>: stash-bestanden
-  <kbd>S</kbd>: bekijk stash opties
-  <kbd>a</kbd>: toggle staged alle
-  <kbd>&lt;enter&gt;</kbd>: stage individuele hunks/lijnen
-  <kbd>g</kbd>: bekijk upstream reset opties
-  <kbd>D</kbd>: bekijk reset opties
-  <kbd>`</kbd>: toggle bestandsboom weergave
-  <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>f</kbd>: fetch
+  <kbd>c</kbd>: Commit veranderingen
+  <kbd>w</kbd>: Commit veranderingen zonder pre-commit hook
+  <kbd>A</kbd>: Wijzig laatste commit
+  <kbd>C</kbd>: Commit veranderingen met de git editor
+  <kbd>e</kbd>: Verander bestand
+  <kbd>o</kbd>: Open bestand
+  <kbd>i</kbd>: Ignore or exclude file
+  <kbd>r</kbd>: Refresh bestanden
+  <kbd>s</kbd>: Stash-bestanden
+  <kbd>S</kbd>: Bekijk stash opties
+  <kbd>a</kbd>: Toggle staged alle
+  <kbd>&lt;enter&gt;</kbd>: Stage individuele hunks/lijnen
+  <kbd>g</kbd>: Bekijk upstream reset opties
+  <kbd>D</kbd>: Bekijk reset opties
+  <kbd>`</kbd>: Toggle bestandsboom weergave
+  <kbd>M</kbd>: Open external merge tool (git mergetool)
+  <kbd>f</kbd>: Fetch
 </pre>
 
 ## Bevestigingspaneel
 
 <pre>
-  <kbd>&lt;enter&gt;</kbd>: bevestig
-  <kbd>&lt;esc&gt;</kbd>: sluiten
+  <kbd>&lt;enter&gt;</kbd>: Bevestig
+  <kbd>&lt;esc&gt;</kbd>: Sluiten
 </pre>
 
 ## Branches
 
 <pre>
-  <kbd>&lt;c-o&gt;</kbd>: kopieer branch name naar klembord
-  <kbd>i</kbd>: laat git-flow opties zien
-  <kbd>&lt;space&gt;</kbd>: uitchecken
-  <kbd>n</kbd>: nieuwe branch
-  <kbd>o</kbd>: maak een pull-request
-  <kbd>O</kbd>: bekijk opties voor pull-aanvraag
-  <kbd>&lt;c-y&gt;</kbd>: kopieer de URL van het pull-verzoek naar het klembord
-  <kbd>c</kbd>: uitchecken bij naam
-  <kbd>F</kbd>: forceer checkout
-  <kbd>d</kbd>: verwijder branch
-  <kbd>r</kbd>: rebase branch
-  <kbd>M</kbd>: merge in met huidige checked out branch
-  <kbd>f</kbd>: fast-forward deze branch vanaf zijn upstream
-  <kbd>T</kbd>: creëer tag
-  <kbd>g</kbd>: bekijk reset opties
-  <kbd>R</kbd>: hernoem branch
-  <kbd>u</kbd>: set/unset upstream
-  <kbd>&lt;enter&gt;</kbd>: bekijk commits
+  <kbd>&lt;c-o&gt;</kbd>: Kopieer branch name naar klembord
+  <kbd>i</kbd>: Laat git-flow opties zien
+  <kbd>&lt;space&gt;</kbd>: Uitchecken
+  <kbd>n</kbd>: Nieuwe branch
+  <kbd>o</kbd>: Maak een pull-request
+  <kbd>O</kbd>: Bekijk opties voor pull-aanvraag
+  <kbd>&lt;c-y&gt;</kbd>: Kopieer de URL van het pull-verzoek naar het klembord
+  <kbd>c</kbd>: Uitchecken bij naam
+  <kbd>F</kbd>: Forceer checkout
+  <kbd>d</kbd>: Verwijder branch
+  <kbd>r</kbd>: Rebase branch
+  <kbd>M</kbd>: Merge in met huidige checked out branch
+  <kbd>f</kbd>: Fast-forward deze branch vanaf zijn upstream
+  <kbd>T</kbd>: Creëer tag
+  <kbd>g</kbd>: Bekijk reset opties
+  <kbd>R</kbd>: Hernoem branch
+  <kbd>u</kbd>: Set/Unset upstream
+  <kbd>&lt;enter&gt;</kbd>: Bekijk commits
 </pre>
 
-## Commit Bericht
+## Commit bericht
 
 <pre>
-  <kbd>&lt;enter&gt;</kbd>: bevestig
-  <kbd>&lt;esc&gt;</kbd>: sluiten
+  <kbd>&lt;enter&gt;</kbd>: Bevestig
+  <kbd>&lt;esc&gt;</kbd>: Sluiten
 </pre>
 
 ## Commit bestanden
 
 <pre>
-  <kbd>&lt;c-o&gt;</kbd>: kopieer de vastgelegde bestandsnaam naar het klembord
-  <kbd>c</kbd>: bestand uitchecken
-  <kbd>d</kbd>: uitsluit deze commit zijn veranderingen aan dit bestand
-  <kbd>o</kbd>: open bestand
-  <kbd>e</kbd>: verander bestand
-  <kbd>&lt;space&gt;</kbd>: toggle bestand inbegrepen in patch
-  <kbd>a</kbd>: toggle all files included in patch
-  <kbd>&lt;enter&gt;</kbd>: enter bestand om geselecteerde regels toe te voegen aan de patch
-  <kbd>`</kbd>: toggle bestandsboom weergave
+  <kbd>&lt;c-o&gt;</kbd>: Kopieer de vastgelegde bestandsnaam naar het klembord
+  <kbd>c</kbd>: Bestand uitchecken
+  <kbd>d</kbd>: Uitsluit deze commit zijn veranderingen aan dit bestand
+  <kbd>o</kbd>: Open bestand
+  <kbd>e</kbd>: Verander bestand
+  <kbd>&lt;space&gt;</kbd>: Toggle bestand inbegrepen in patch
+  <kbd>a</kbd>: Toggle all files included in patch
+  <kbd>&lt;enter&gt;</kbd>: Enter bestand om geselecteerde regels toe te voegen aan de patch
+  <kbd>`</kbd>: Toggle bestandsboom weergave
 </pre>
 
 ## Commits
 
 <pre>
-  <kbd>&lt;c-o&gt;</kbd>: kopieer commit SHA naar klembord
-  <kbd>&lt;c-r&gt;</kbd>: reset cherry-picked (gekopieerde) commits selectie
-  <kbd>b</kbd>: view bisect options
-  <kbd>s</kbd>: squash beneden
+  <kbd>&lt;c-o&gt;</kbd>: Kopieer commit SHA naar klembord
+  <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (gekopieerde) commits selectie
+  <kbd>b</kbd>: View bisect options
+  <kbd>s</kbd>: Squash beneden
   <kbd>f</kbd>: Fixup commit
-  <kbd>r</kbd>: hernoem commit
-  <kbd>R</kbd>: hernoem commit met editor
-  <kbd>d</kbd>: verwijder commit
-  <kbd>e</kbd>: wijzig commit
-  <kbd>p</kbd>: kies commit (wanneer midden in rebase)
-  <kbd>F</kbd>: creëer fixup commit voor deze commit
-  <kbd>S</kbd>: squash bovenstaande commits
-  <kbd>&lt;c-j&gt;</kbd>: verplaats commit 1 naar beneden
-  <kbd>&lt;c-k&gt;</kbd>: verplaats commit 1 naar boven
-  <kbd>v</kbd>: plak commits (cherry-pick)
-  <kbd>A</kbd>: wijzig commit met staged veranderingen
-  <kbd>a</kbd>: reset commit author
-  <kbd>t</kbd>: commit ongedaan maken
-  <kbd>T</kbd>: tag commit
-  <kbd>&lt;c-l&gt;</kbd>: open log menu
-  <kbd>&lt;space&gt;</kbd>: checkout commit
-  <kbd>y</kbd>: copy commit attribute
-  <kbd>o</kbd>: open commit in browser
-  <kbd>n</kbd>: creëer nieuwe branch van commit
-  <kbd>g</kbd>: bekijk reset opties
-  <kbd>c</kbd>: kopieer commit (cherry-pick)
-  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
-  <kbd>&lt;enter&gt;</kbd>: bekijk gecommite bestanden
+  <kbd>r</kbd>: Hernoem commit
+  <kbd>R</kbd>: Hernoem commit met editor
+  <kbd>d</kbd>: Verwijder commit
+  <kbd>e</kbd>: Wijzig commit
+  <kbd>p</kbd>: Kies commit (wanneer midden in rebase)
+  <kbd>F</kbd>: Creëer fixup commit
+  <kbd>S</kbd>: Squash bovenstaande commits
+  <kbd>&lt;c-j&gt;</kbd>: Verplaats commit 1 naar beneden
+  <kbd>&lt;c-k&gt;</kbd>: Verplaats commit 1 naar boven
+  <kbd>v</kbd>: Plak commits (cherry-pick)
+  <kbd>A</kbd>: Wijzig commit met staged veranderingen
+  <kbd>a</kbd>: Set/Reset commit author
+  <kbd>t</kbd>: Commit ongedaan maken
+  <kbd>T</kbd>: Tag commit
+  <kbd>&lt;c-l&gt;</kbd>: Open log menu
+  <kbd>&lt;space&gt;</kbd>: Checkout commit
+  <kbd>y</kbd>: Copy commit attribute
+  <kbd>o</kbd>: Open commit in browser
+  <kbd>n</kbd>: Creëer nieuwe branch van commit
+  <kbd>g</kbd>: Bekijk reset opties
+  <kbd>c</kbd>: Kopieer commit (cherry-pick)
+  <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
+  <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden
 </pre>
 
 ## Menu
 
 <pre>
-  <kbd>&lt;enter&gt;</kbd>: uitvoeren
-  <kbd>&lt;esc&gt;</kbd>: sluiten
+  <kbd>&lt;enter&gt;</kbd>: Uitvoeren
+  <kbd>&lt;esc&gt;</kbd>: Sluiten
 </pre>
 
 ## Mergen
 
 <pre>
-  <kbd>e</kbd>: verander bestand
-  <kbd>o</kbd>: open bestand
-  <kbd>&lt;left&gt;</kbd>: selecteer voorgaand conflict
-  <kbd>&lt;right&gt;</kbd>: selecteer volgende conflict
-  <kbd>&lt;up&gt;</kbd>: selecteer bovenste hunk
-  <kbd>&lt;down&gt;</kbd>: selecteer onderste hunk
-  <kbd>z</kbd>: ongedaan maken
-  <kbd>M</kbd>: open external merge tool (git mergetool)
-  <kbd>&lt;space&gt;</kbd>: kies hunk
-  <kbd>b</kbd>: kies bijde hunks
-  <kbd>&lt;esc&gt;</kbd>: ga terug naar het bestanden paneel
+  <kbd>e</kbd>: Verander bestand
+  <kbd>o</kbd>: Open bestand
+  <kbd>&lt;left&gt;</kbd>: Selecteer voorgaand conflict
+  <kbd>&lt;right&gt;</kbd>: Selecteer volgende conflict
+  <kbd>&lt;up&gt;</kbd>: Selecteer bovenste hunk
+  <kbd>&lt;down&gt;</kbd>: Selecteer onderste hunk
+  <kbd>z</kbd>: Ongedaan maken
+  <kbd>M</kbd>: Open external merge tool (git mergetool)
+  <kbd>&lt;space&gt;</kbd>: Kies stuk
+  <kbd>b</kbd>: Kies beide stukken
+  <kbd>&lt;esc&gt;</kbd>: Ga terug naar het bestanden paneel
 </pre>
 
 ## Normaal
 
 <pre>
-  <kbd>mouse wheel down</kbd>: scroll omlaag (fn+up)
-  <kbd>mouse wheel up</kbd>: scroll omhoog (fn+down)
+  <kbd>mouse wheel down</kbd>: Scroll omlaag (fn+up)
+  <kbd>mouse wheel up</kbd>: Scroll omhoog (fn+down)
 </pre>
 
-## Patch Bouwen
+## Patch bouwen
 
 <pre>
-  <kbd>&lt;left&gt;</kbd>: selecteer de vorige hunk
-  <kbd>&lt;right&gt;</kbd>: selecteer de volgende hunk
-  <kbd>v</kbd>: toggle drag selecteer
-  <kbd>V</kbd>: toggle drag selecteer
-  <kbd>a</kbd>: toggle selecteer hunk
-  <kbd>&lt;c-o&gt;</kbd>: copy the selected text to the clipboard
-  <kbd>o</kbd>: open bestand
-  <kbd>e</kbd>: verander bestand
-  <kbd>&lt;space&gt;</kbd>: voeg toe/verwijder lijn(en) in patch
-  <kbd>&lt;esc&gt;</kbd>: sluit lijn-bij-lijn modus
+  <kbd>&lt;left&gt;</kbd>: Selecteer de vorige hunk
+  <kbd>&lt;right&gt;</kbd>: Selecteer de volgende hunk
+  <kbd>v</kbd>: Toggle drag selecteer
+  <kbd>V</kbd>: Toggle drag selecteer
+  <kbd>a</kbd>: Toggle selecteer hunk
+  <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
+  <kbd>o</kbd>: Open bestand
+  <kbd>e</kbd>: Verander bestand
+  <kbd>&lt;space&gt;</kbd>: Voeg toe/verwijder lijn(en) in patch
+  <kbd>&lt;esc&gt;</kbd>: Sluit lijn-bij-lijn modus
 </pre>
 
 ## Reflog
 
 <pre>
-  <kbd>&lt;c-o&gt;</kbd>: kopieer commit SHA naar klembord
-  <kbd>&lt;space&gt;</kbd>: checkout commit
-  <kbd>y</kbd>: copy commit attribute
-  <kbd>o</kbd>: open commit in browser
-  <kbd>n</kbd>: creëer nieuwe branch van commit
-  <kbd>g</kbd>: bekijk reset opties
-  <kbd>c</kbd>: kopieer commit (cherry-pick)
-  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
-  <kbd>&lt;c-r&gt;</kbd>: reset cherry-picked (gekopieerde) commits selectie
-  <kbd>&lt;enter&gt;</kbd>: bekijk commits
+  <kbd>&lt;c-o&gt;</kbd>: Kopieer commit SHA naar klembord
+  <kbd>&lt;space&gt;</kbd>: Checkout commit
+  <kbd>y</kbd>: Copy commit attribute
+  <kbd>o</kbd>: Open commit in browser
+  <kbd>n</kbd>: Creëer nieuwe branch van commit
+  <kbd>g</kbd>: Bekijk reset opties
+  <kbd>c</kbd>: Kopieer commit (cherry-pick)
+  <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
+  <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (gekopieerde) commits selectie
+  <kbd>&lt;enter&gt;</kbd>: Bekijk commits
 </pre>
 
-## Remote Branches
+## Remote branches
 
 <pre>
-  <kbd>&lt;c-o&gt;</kbd>: kopieer branch name naar klembord
-  <kbd>&lt;space&gt;</kbd>: uitchecken
-  <kbd>n</kbd>: nieuwe branch
-  <kbd>M</kbd>: merge in met huidige checked out branch
-  <kbd>r</kbd>: rebase branch
-  <kbd>d</kbd>: verwijder branch
-  <kbd>u</kbd>: stel in als upstream van uitgecheckte branch
-  <kbd>&lt;esc&gt;</kbd>: ga terug naar remotes lijst
-  <kbd>g</kbd>: bekijk reset opties
-  <kbd>&lt;enter&gt;</kbd>: bekijk commits
+  <kbd>&lt;c-o&gt;</kbd>: Kopieer branch name naar klembord
+  <kbd>&lt;space&gt;</kbd>: Uitchecken
+  <kbd>n</kbd>: Nieuwe branch
+  <kbd>M</kbd>: Merge in met huidige checked out branch
+  <kbd>r</kbd>: Rebase branch
+  <kbd>d</kbd>: Verwijder branch
+  <kbd>u</kbd>: Stel in als upstream van uitgecheckte branch
+  <kbd>&lt;esc&gt;</kbd>: Ga terug naar remotes lijst
+  <kbd>g</kbd>: Bekijk reset opties
+  <kbd>&lt;enter&gt;</kbd>: Bekijk commits
 </pre>
 
 ## Remotes
 
 <pre>
-  <kbd>f</kbd>: fetch remote
-  <kbd>n</kbd>: voeg een nieuwe remote toe
-  <kbd>d</kbd>: verwijder remote
-  <kbd>e</kbd>: wijzig remote
+  <kbd>f</kbd>: Fetch remote
+  <kbd>n</kbd>: Voeg een nieuwe remote toe
+  <kbd>d</kbd>: Verwijder remote
+  <kbd>e</kbd>: Wijzig remote
 </pre>
 
 ## Staging
 
 <pre>
-  <kbd>&lt;left&gt;</kbd>: selecteer de vorige hunk
-  <kbd>&lt;right&gt;</kbd>: selecteer de volgende hunk
-  <kbd>v</kbd>: toggle drag selecteer
-  <kbd>V</kbd>: toggle drag selecteer
-  <kbd>a</kbd>: toggle selecteer hunk
-  <kbd>&lt;c-o&gt;</kbd>: copy the selected text to the clipboard
-  <kbd>o</kbd>: open bestand
-  <kbd>e</kbd>: verander bestand
-  <kbd>&lt;esc&gt;</kbd>: ga terug naar het bestanden paneel
-  <kbd>&lt;tab&gt;</kbd>: ga naar een ander paneel
-  <kbd>&lt;space&gt;</kbd>: toggle lijnen staged / unstaged
-  <kbd>d</kbd>: verwijdert change (git reset)
-  <kbd>E</kbd>: edit hunk
-  <kbd>c</kbd>: commit veranderingen
-  <kbd>w</kbd>: commit veranderingen zonder pre-commit hook
-  <kbd>C</kbd>: commit veranderingen met de git editor
+  <kbd>&lt;left&gt;</kbd>: Selecteer de vorige hunk
+  <kbd>&lt;right&gt;</kbd>: Selecteer de volgende hunk
+  <kbd>v</kbd>: Toggle drag selecteer
+  <kbd>V</kbd>: Toggle drag selecteer
+  <kbd>a</kbd>: Toggle selecteer hunk
+  <kbd>&lt;c-o&gt;</kbd>: Copy the selected text to the clipboard
+  <kbd>o</kbd>: Open bestand
+  <kbd>e</kbd>: Verander bestand
+  <kbd>&lt;esc&gt;</kbd>: Ga terug naar het bestanden paneel
+  <kbd>&lt;tab&gt;</kbd>: Ga naar een ander paneel
+  <kbd>&lt;space&gt;</kbd>: Toggle lijnen staged / unstaged
+  <kbd>d</kbd>: Verwijdert change (git reset)
+  <kbd>E</kbd>: Edit hunk
+  <kbd>c</kbd>: Commit veranderingen
+  <kbd>w</kbd>: Commit veranderingen zonder pre-commit hook
+  <kbd>C</kbd>: Commit veranderingen met de git editor
 </pre>
 
 ## Stash
 
 <pre>
-  <kbd>&lt;space&gt;</kbd>: toepassen
-  <kbd>g</kbd>: pop
-  <kbd>d</kbd>: laten vallen
-  <kbd>n</kbd>: nieuwe branch
-  <kbd>r</kbd>: rename stash
-  <kbd>&lt;enter&gt;</kbd>: bekijk gecommite bestanden
+  <kbd>&lt;space&gt;</kbd>: Toepassen
+  <kbd>g</kbd>: Pop
+  <kbd>d</kbd>: Laten vallen
+  <kbd>n</kbd>: Nieuwe branch
+  <kbd>r</kbd>: Rename stash
+  <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden
 </pre>
 
 ## Status
 
 <pre>
-  <kbd>o</kbd>: open config bestand
-  <kbd>e</kbd>: verander config bestand
-  <kbd>u</kbd>: check voor updates
-  <kbd>&lt;enter&gt;</kbd>: wissel naar een recente repo
-  <kbd>a</kbd>: alle logs van de branch laten zien
+  <kbd>o</kbd>: Open config bestand
+  <kbd>e</kbd>: Verander config bestand
+  <kbd>u</kbd>: Check voor updates
+  <kbd>&lt;enter&gt;</kbd>: Wissel naar een recente repo
+  <kbd>a</kbd>: Alle logs van de branch laten zien
 </pre>
 
 ## Sub-commits
 
 <pre>
-  <kbd>&lt;c-o&gt;</kbd>: kopieer commit SHA naar klembord
-  <kbd>&lt;space&gt;</kbd>: checkout commit
-  <kbd>y</kbd>: copy commit attribute
-  <kbd>o</kbd>: open commit in browser
-  <kbd>n</kbd>: creëer nieuwe branch van commit
-  <kbd>g</kbd>: bekijk reset opties
-  <kbd>c</kbd>: kopieer commit (cherry-pick)
-  <kbd>C</kbd>: kopieer commit reeks (cherry-pick)
-  <kbd>&lt;c-r&gt;</kbd>: reset cherry-picked (gekopieerde) commits selectie
-  <kbd>&lt;enter&gt;</kbd>: bekijk gecommite bestanden
+  <kbd>&lt;c-o&gt;</kbd>: Kopieer commit SHA naar klembord
+  <kbd>&lt;space&gt;</kbd>: Checkout commit
+  <kbd>y</kbd>: Copy commit attribute
+  <kbd>o</kbd>: Open commit in browser
+  <kbd>n</kbd>: Creëer nieuwe branch van commit
+  <kbd>g</kbd>: Bekijk reset opties
+  <kbd>c</kbd>: Kopieer commit (cherry-pick)
+  <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
+  <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (gekopieerde) commits selectie
+  <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden
 </pre>
 
 ## Submodules
 
 <pre>
-  <kbd>&lt;c-o&gt;</kbd>: kopieer submodule naam naar klembord
-  <kbd>&lt;enter&gt;</kbd>: enter submodule
-  <kbd>d</kbd>: remove submodule
-  <kbd>u</kbd>: update submodule
-  <kbd>n</kbd>: voeg nieuwe submodule toe
-  <kbd>e</kbd>: update submodule URL
-  <kbd>i</kbd>: initialiseer submodule
-  <kbd>b</kbd>: bekijk bulk submodule opties
+  <kbd>&lt;c-o&gt;</kbd>: Kopieer submodule naam naar klembord
+  <kbd>&lt;enter&gt;</kbd>: Enter submodule
+  <kbd>d</kbd>: Remove submodule
+  <kbd>u</kbd>: Update submodule
+  <kbd>n</kbd>: Voeg nieuwe submodule toe
+  <kbd>e</kbd>: Update submodule URL
+  <kbd>i</kbd>: Initialiseer submodule
+  <kbd>b</kbd>: Bekijk bulk submodule opties
 </pre>
 
 ## Tags
 
 <pre>
-  <kbd>&lt;space&gt;</kbd>: uitchecken
-  <kbd>d</kbd>: verwijder tag
-  <kbd>P</kbd>: push tag
-  <kbd>n</kbd>: creëer tag
-  <kbd>g</kbd>: bekijk reset opties
-  <kbd>&lt;enter&gt;</kbd>: bekijk commits
+  <kbd>&lt;space&gt;</kbd>: Uitchecken
+  <kbd>d</kbd>: Verwijder tag
+  <kbd>P</kbd>: Push tag
+  <kbd>n</kbd>: Creëer tag
+  <kbd>g</kbd>: Bekijk reset opties
+  <kbd>&lt;enter&gt;</kbd>: Bekijk commits
 </pre>

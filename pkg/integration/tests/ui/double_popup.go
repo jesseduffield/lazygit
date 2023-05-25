@@ -25,7 +25,7 @@ var DoublePopup = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.GlobalPress(keys.Universal.OpenRecentRepos)
 
-		t.ExpectPopup().Menu().Title(Contains("recent repositories")).Cancel()
+		t.ExpectPopup().Menu().Title(Contains("Recent repositories")).Cancel()
 
 		t.Views().Branches().IsFocused()
 

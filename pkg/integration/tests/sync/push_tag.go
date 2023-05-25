@@ -28,7 +28,7 @@ var PushTag = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Branches.PushTag)
 
 		t.ExpectPopup().Prompt().
-			Title(Equals("remote to push tag 'mytag' to:")).
+			Title(Equals("Remote to push tag 'mytag' to:")).
 			InitialText(Equals("origin")).
 			SuggestionLines(
 				Contains("origin"),

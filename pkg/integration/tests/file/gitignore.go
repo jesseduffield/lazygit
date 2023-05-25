@@ -27,14 +27,14 @@ var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Files.IgnoreFile).
 			// ensure we can't exclude the .gitignore file
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("ignore or exclude file")).Select(Contains("add to .git/info/exclude")).Confirm()
+				t.ExpectPopup().Menu().Title(Equals("Ignore or exclude file")).Select(Contains("Add to .git/info/exclude")).Confirm()
 
 				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Equals("Cannot exclude .gitignore")).Confirm()
 			}).
 			Press(keys.Files.IgnoreFile).
 			// ensure we can't ignore the .gitignore file
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("ignore or exclude file")).Select(Contains("add to .gitignore")).Confirm()
+				t.ExpectPopup().Menu().Title(Equals("Ignore or exclude file")).Select(Contains("Add to .gitignore")).Confirm()
 
 				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Equals("Cannot ignore .gitignore")).Confirm()
 
@@ -45,7 +45,7 @@ var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Files.IgnoreFile).
 			// exclude a file
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("ignore or exclude file")).Select(Contains("add to .git/info/exclude")).Confirm()
+				t.ExpectPopup().Menu().Title(Equals("Ignore or exclude file")).Select(Contains("Add to .git/info/exclude")).Confirm()
 
 				t.FileSystem().FileContent(".gitignore", Equals(""))
 				t.FileSystem().FileContent(".git/info/exclude", Contains("toExclude"))
@@ -54,7 +54,7 @@ var Gitignore = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Files.IgnoreFile).
 			// ignore a file
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("ignore or exclude file")).Select(Contains("add to .gitignore")).Confirm()
+				t.ExpectPopup().Menu().Title(Equals("Ignore or exclude file")).Select(Contains("Add to .gitignore")).Confirm()
 
 				t.FileSystem().FileContent(".gitignore", Equals("toIgnore\n"))
 				t.FileSystem().FileContent(".git/info/exclude", Contains("toExclude"))
