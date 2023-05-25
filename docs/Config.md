@@ -289,7 +289,7 @@ os:
 ```
 
 Supported presets are `vim`, `nvim`, `emacs`, `nano`, `vscode`, `sublime`, `bbedit`,
-`kakoune` and `xcode`. In many cases lazygit will be able to guess the right preset
+`kakoune`, `helix`, and `xcode`. In many cases lazygit will be able to guess the right preset
 from your $(git config core.editor), or an environment variable such as $VISUAL or $EDITOR.
 
 If for some reason you are not happy with the default commands from a preset, or

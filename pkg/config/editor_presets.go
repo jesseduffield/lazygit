@@ -44,6 +44,7 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 		"emacs":   standardTerminalEditorPreset("emacs"),
 		"nano":    standardTerminalEditorPreset("nano"),
 		"kakoune": standardTerminalEditorPreset("kakoune"),
+		"hx":      helixEditorPreset(),
 		"vscode": {
 			editTemplate:              "code --reuse-window -- {{filename}}",
 			editAtLineTemplate:        "code --reuse-window --goto -- {{filename}}:{{line}}",
@@ -100,6 +101,15 @@ func standardTerminalEditorPreset(editor string) *editPreset {
 		editTemplate:              editor + " -- {{filename}}",
 		editAtLineTemplate:        editor + " +{{line}} -- {{filename}}",
 		editAtLineAndWaitTemplate: editor + " +{{line}} -- {{filename}}",
+		editInTerminal:            true,
+	}
+}
+
+func helixEditorPreset() *editPreset {
+	return &editPreset{
+		editTemplate:              "hx -- {{filename}}",
+		editAtLineTemplate:        "hx -- {{filename}}:{{line}}",
+		editAtLineAndWaitTemplate: "hx -- {{filename}}:{{line}}",
 		editInTerminal:            true,
 	}
 }
