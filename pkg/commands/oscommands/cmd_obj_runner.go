@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/creack/pty"
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -267,8 +268,21 @@ func (self *cmdObjRunner) runAndStreamAux(
 	self.log.WithField("command", cmdObj.ToString()).Debug("RunCommand")
 	cmd := cmdObj.GetCmd()
 
+	// Some commands behaves differently when they see a pty and or a pipe as stderr
+	// For instance "git pull" with a ssh-secure-key (-sk) with a pty will output:
+	//   "Confirm user presence for key ..."
+	// whereas a pipe will get
+	//   "notifiy_start: exec(...): No such file or directory"
+	ptmx, tty, err := pty.Open()
+	if err != nil {
+		return err
+	}
+	defer ptmx.Close()
+	defer tty.Close()
+
 	var stderr bytes.Buffer
-	cmd.Stderr = io.MultiWriter(cmdWriter, &stderr)
+	go io.Copy(io.MultiWriter(cmdWriter, &stderr), ptmx)
+	cmd.Stderr = tty
 
 	handler, err := self.getCmdHandler(cmd)
 	if err != nil {
