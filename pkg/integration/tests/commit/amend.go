@@ -26,7 +26,7 @@ var Amend = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Commits.AmendToCommit)
 
 		t.ExpectPopup().Confirmation().Title(
-			Equals("Amend Last Commit")).
+			Equals("Amend last commit")).
 			Content(Contains("Are you sure you want to amend last commit?")).
 			Confirm()
 

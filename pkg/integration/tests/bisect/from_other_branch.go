@@ -19,7 +19,7 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	SetupConfig: func(cfg *config.AppConfig) {},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.Views().Information().Content(Contains("bisecting"))
+		t.Views().Information().Content(Contains("Bisecting"))
 
 		t.Views().Commits().
 			Focus().
@@ -32,11 +32,11 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Commits.ViewBisectOptions).
 			Tap(func() {
-				t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`mark .* as good`)).Confirm()
+				t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`Mark .* as good`)).Confirm()
 
 				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 08.*Do you want to reset")).Confirm()
 
-				t.Views().Information().Content(DoesNotContain("bisecting"))
+				t.Views().Information().Content(DoesNotContain("Bisecting"))
 			}).
 			// back in master branch which just had the one commit
 			Lines(

@@ -29,8 +29,8 @@ var Reset = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Commits.ViewResetOptions).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Contains("reset to")).
-					Select(Contains("hard reset")).
+					Title(Contains("Reset to")).
+					Select(Contains("Hard reset")).
 					Confirm()
 			}).
 			TopLines(

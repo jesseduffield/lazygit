@@ -58,27 +58,27 @@ func (self *OptionsMapMgr) globalOptions() []bindingInfo {
 	return []bindingInfo{
 		{
 			key:         fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollUpMain), keybindings.Label(keybindingConfig.Universal.ScrollDownMain)),
-			description: self.c.Tr.LcScroll,
+			description: self.c.Tr.Scroll,
 		},
 		{
 			key:         keybindings.Label(keybindingConfig.Universal.Return),
-			description: self.c.Tr.LcCancel,
+			description: self.c.Tr.Cancel,
 		},
 		{
 			key:         keybindings.Label(keybindingConfig.Universal.Quit),
-			description: self.c.Tr.LcQuit,
+			description: self.c.Tr.Quit,
 		},
 		{
 			key:         keybindings.Label(keybindingConfig.Universal.OptionMenuAlt1),
-			description: self.c.Tr.LcMenu,
+			description: self.c.Tr.Keybindings,
 		},
 		{
 			key:         fmt.Sprintf("%s-%s", keybindings.Label(keybindingConfig.Universal.JumpToBlock[0]), keybindings.Label(keybindingConfig.Universal.JumpToBlock[len(keybindingConfig.Universal.JumpToBlock)-1])),
-			description: self.c.Tr.LcJump,
+			description: self.c.Tr.Jump,
 		},
 		{
 			key:         fmt.Sprintf("%s/%s", keybindings.Label(keybindingConfig.Universal.ScrollLeft), keybindings.Label(keybindingConfig.Universal.ScrollRight)),
-			description: self.c.Tr.LcScrollLeftRight,
+			description: self.c.Tr.ScrollLeftRight,
 		},
 	}
 }

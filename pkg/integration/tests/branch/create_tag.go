@@ -28,7 +28,7 @@ var CreateTag = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Create tag")).
-			Select(Contains("lightweight")).
+			Select(Contains("Lightweight")).
 			Confirm()
 
 		t.ExpectPopup().Prompt().

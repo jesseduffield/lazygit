@@ -19,7 +19,7 @@ func commonSetup(shell *Shell) {
 }
 
 func postFilterTest(t *TestDriver) {
-	t.Views().Information().Content(Contains("filtering by 'filterFile'"))
+	t.Views().Information().Content(Contains("Filtering by 'filterFile'"))
 
 	t.Views().Commits().
 		IsFocused().

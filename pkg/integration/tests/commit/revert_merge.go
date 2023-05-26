@@ -26,7 +26,7 @@ var RevertMerge = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("first change"),
 				Contains("second-change-branch unrelated change"),
-				Contains("cancel"),
+				Contains("Cancel"),
 			).
 			Select(Contains("first change")).
 			Confirm()

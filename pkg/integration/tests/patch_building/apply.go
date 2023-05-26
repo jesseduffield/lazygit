@@ -46,11 +46,11 @@ var Apply = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction()
 
-		t.Views().Information().Content(Contains("building patch"))
+		t.Views().Information().Content(Contains("Building patch"))
 
 		t.Views().PatchBuildingSecondary().Content(Contains("second line"))
 
-		t.Common().SelectPatchOption(MatchesRegexp(`apply patch$`))
+		t.Common().SelectPatchOption(MatchesRegexp(`Apply patch$`))
 
 		t.Views().Files().
 			Focus().

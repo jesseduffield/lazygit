@@ -20,7 +20,7 @@ var ComplexCmdAtRuntime = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.ExecuteCustomCommand)
 
 		t.ExpectPopup().Prompt().
-			Title(Equals("Custom Command:")).
+			Title(Equals("Custom command:")).
 			Type("sh -c \"touch file.txt\"").
 			Confirm()
 

@@ -9,7 +9,7 @@ func (self *Common) ContinueMerge() {
 	self.t.GlobalPress(self.t.keys.Universal.CreateRebaseOptionsMenu)
 
 	self.t.ExpectPopup().Menu().
-		Title(Equals("Rebase Options")).
+		Title(Equals("Rebase options")).
 		Select(Contains("continue")).
 		Confirm()
 }
@@ -27,8 +27,8 @@ func (self *Common) AcknowledgeConflicts() {
 
 func (self *Common) ContinueOnConflictsResolved() {
 	self.t.ExpectPopup().Confirmation().
-		Title(Equals("continue")).
-		Content(Contains("all merge conflicts resolved. Continue?")).
+		Title(Equals("Continue")).
+		Content(Contains("All merge conflicts resolved. Continue?")).
 		Confirm()
 }
 
@@ -42,5 +42,5 @@ func (self *Common) ConfirmDiscardLines() {
 func (self *Common) SelectPatchOption(matcher *Matcher) {
 	self.t.GlobalPress(self.t.keys.Universal.CreatePatchOptionsMenu)
 
-	self.t.ExpectPopup().Menu().Title(Equals("Patch Options")).Select(matcher).Confirm()
+	self.t.ExpectPopup().Menu().Title(Equals("Patch options")).Select(matcher).Confirm()
 }

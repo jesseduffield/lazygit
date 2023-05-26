@@ -31,7 +31,7 @@ func (self *BisectController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewBisectOptions),
 			Handler:     opts.Guards.OutsideFilterMode(self.checkSelected(self.openMenu)),
-			Description: self.c.Tr.LcViewBisectOptions,
+			Description: self.c.Tr.ViewBisectOptions,
 			OpensMenu:   true,
 		},
 	}

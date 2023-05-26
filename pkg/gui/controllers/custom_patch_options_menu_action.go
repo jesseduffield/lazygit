@@ -18,17 +18,17 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 
 	menuItems := []*types.MenuItem{
 		{
-			Label:   "reset patch",
+			Label:   self.c.Tr.ResetPatch,
 			OnPress: self.c.Helpers().PatchBuilding.Reset,
 			Key:     'c',
 		},
 		{
-			Label:   "apply patch",
+			Label:   self.c.Tr.ApplyPatch,
 			OnPress: func() error { return self.handleApplyPatch(false) },
 			Key:     'a',
 		},
 		{
-			Label:   "apply patch in reverse",
+			Label:   self.c.Tr.ApplyPatchInReverse,
 			OnPress: func() error { return self.handleApplyPatch(true) },
 			Key:     'r',
 		},
@@ -37,17 +37,17 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 	if self.c.Git().Patch.PatchBuilder.CanRebase && self.c.Git().Status.WorkingTreeState() == enums.REBASE_MODE_NONE {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				Label:   fmt.Sprintf("remove patch from original commit (%s)", self.c.Git().Patch.PatchBuilder.To),
+				Label:   fmt.Sprintf(self.c.Tr.RemovePatchFromOriginalCommit, self.c.Git().Patch.PatchBuilder.To),
 				OnPress: self.handleDeletePatchFromCommit,
 				Key:     'd',
 			},
 			{
-				Label:   "move patch out into index",
+				Label:   self.c.Tr.MovePatchOutIntoIndex,
 				OnPress: self.handleMovePatchIntoWorkingTree,
 				Key:     'i',
 			},
 			{
-				Label:   "move patch into new commit",
+				Label:   self.c.Tr.MovePatchIntoNewCommit,
 				OnPress: self.handlePullPatchIntoNewCommit,
 				Key:     'n',
 			},
@@ -62,7 +62,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 					append(
 						[]*types.MenuItem{
 							{
-								Label:   fmt.Sprintf("move patch to selected commit (%s)", selectedCommit.Sha),
+								Label:   fmt.Sprintf(self.c.Tr.MovePatchToSelectedCommit, selectedCommit.Sha),
 								OnPress: self.handleMovePatchToSelectedCommit,
 								Key:     'm',
 							},
@@ -75,7 +75,7 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 
 	menuItems = append(menuItems, []*types.MenuItem{
 		{
-			Label:   "copy patch to clipboard",
+			Label:   self.c.Tr.CopyPatchToClipboard,
 			OnPress: func() error { return self.copyPatchToClipboard() },
 			Key:     'y',
 		},

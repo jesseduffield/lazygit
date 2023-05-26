@@ -37,7 +37,7 @@ func (self *OptionsMenuAction) Call() error {
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{
-		Title:      self.c.Tr.MenuTitle,
+		Title:      self.c.Tr.Keybindings,
 		Items:      menuItems,
 		HideCancel: true,
 	})

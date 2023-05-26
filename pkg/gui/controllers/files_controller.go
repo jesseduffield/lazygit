@@ -31,12 +31,12 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.checkSelectedFileNode(self.press),
-			Description: self.c.Tr.LcToggleStaged,
+			Description: self.c.Tr.ToggleStaged,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenStatusFilter),
 			Handler:     self.handleStatusFilterPressed,
-			Description: self.c.Tr.LcFileFilter,
+			Description: self.c.Tr.FileFilter,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChanges),
@@ -46,7 +46,7 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
 			Handler:     self.c.Helpers().WorkingTree.HandleWIPCommitPress,
-			Description: self.c.Tr.LcCommitChangesWithoutHook,
+			Description: self.c.Tr.CommitChangesWithoutHook,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.AmendLastCommit),
@@ -61,39 +61,39 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.checkSelectedFileNode(self.edit),
-			Description: self.c.Tr.LcEditFile,
+			Description: self.c.Tr.EditFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.Open,
-			Description: self.c.Tr.LcOpenFile,
+			Description: self.c.Tr.OpenFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.IgnoreFile),
 			Handler:     self.checkSelectedFileNode(self.ignoreOrExcludeMenu),
-			Description: self.c.Tr.Actions.LcIgnoreExcludeFile,
+			Description: self.c.Tr.Actions.IgnoreExcludeFile,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.RefreshFiles),
 			Handler:     self.refresh,
-			Description: self.c.Tr.LcRefreshFiles,
+			Description: self.c.Tr.RefreshFiles,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.StashAllChanges),
 			Handler:     self.stash,
-			Description: self.c.Tr.LcStashAllChanges,
+			Description: self.c.Tr.StashAllChanges,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ViewStashOptions),
 			Handler:     self.createStashMenu,
-			Description: self.c.Tr.LcViewStashOptions,
+			Description: self.c.Tr.ViewStashOptions,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
 			Handler:     self.toggleStagedAll,
-			Description: self.c.Tr.LcToggleStagedAll,
+			Description: self.c.Tr.ToggleStagedAll,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.GoInto),
@@ -103,29 +103,29 @@ func (self *FilesController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.createResetToUpstreamMenu,
-			Description: self.c.Tr.LcViewResetToUpstreamOptions,
+			Description: self.c.Tr.ViewResetToUpstreamOptions,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ViewResetOptions),
 			Handler:     self.createResetMenu,
-			Description: self.c.Tr.LcViewResetOptions,
+			Description: self.c.Tr.ViewResetOptions,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
-			Description: self.c.Tr.LcToggleTreeView,
+			Description: self.c.Tr.ToggleTreeView,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.OpenMergeTool),
 			Handler:     self.c.Helpers().WorkingTree.OpenMergeTool,
-			Description: self.c.Tr.LcOpenMergeTool,
+			Description: self.c.Tr.OpenMergeTool,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.Fetch),
 			Handler:     self.fetch,
-			Description: self.c.Tr.LcFetch,
+			Description: self.c.Tr.Fetch,
 		},
 	}
 }
@@ -559,7 +559,7 @@ func (self *FilesController) ignore(node *filetree.FileNode) error {
 	if node.GetPath() == ".gitignore" {
 		return self.c.ErrorMsg(self.c.Tr.Actions.IgnoreFileErr)
 	}
-	err := self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.LcIgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
+	err := self.ignoreOrExcludeFile(node, self.c.Tr.IgnoreTracked, self.c.Tr.IgnoreTrackedPrompt, self.c.Tr.Actions.IgnoreExcludeFile, self.c.Git().WorkingTree.Ignore)
 	if err != nil {
 		return err
 	}
@@ -585,10 +585,10 @@ func (self *FilesController) exclude(node *filetree.FileNode) error {
 
 func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error {
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.Actions.LcIgnoreExcludeFile,
+		Title: self.c.Tr.Actions.IgnoreExcludeFile,
 		Items: []*types.MenuItem{
 			{
-				LabelColumns: []string{self.c.Tr.LcIgnoreFile},
+				LabelColumns: []string{self.c.Tr.IgnoreFile},
 				OnPress: func() error {
 					if err := self.ignore(node); err != nil {
 						return self.c.Error(err)
@@ -598,7 +598,7 @@ func (self *FilesController) ignoreOrExcludeMenu(node *filetree.FileNode) error 
 				Key: 'i',
 			},
 			{
-				LabelColumns: []string{self.c.Tr.LcExcludeFile},
+				LabelColumns: []string{self.c.Tr.ExcludeFile},
 				OnPress: func() error {
 					if err := self.exclude(node); err != nil {
 						return self.c.Error(err)
@@ -690,10 +690,10 @@ func (self *FilesController) switchToMerge() error {
 
 func (self *FilesController) createStashMenu() error {
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.LcStashOptions,
+		Title: self.c.Tr.StashOptions,
 		Items: []*types.MenuItem{
 			{
-				Label: self.c.Tr.LcStashAllChanges,
+				Label: self.c.Tr.StashAllChanges,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
@@ -703,7 +703,7 @@ func (self *FilesController) createStashMenu() error {
 				Key: 'a',
 			},
 			{
-				Label: self.c.Tr.LcStashAllChangesKeepIndex,
+				Label: self.c.Tr.StashAllChangesKeepIndex,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
@@ -714,14 +714,14 @@ func (self *FilesController) createStashMenu() error {
 				Key: 'i',
 			},
 			{
-				Label: self.c.Tr.LcStashIncludeUntrackedChanges,
+				Label: self.c.Tr.StashIncludeUntrackedChanges,
 				OnPress: func() error {
 					return self.handleStashSave(self.c.Git().Stash.StashIncludeUntrackedChanges, self.c.Tr.Actions.StashIncludeUntrackedChanges)
 				},
 				Key: 'U',
 			},
 			{
-				Label: self.c.Tr.LcStashStagedChanges,
+				Label: self.c.Tr.StashStagedChanges,
 				OnPress: func() error {
 					// there must be something in staging otherwise the current implementation mucks the stash up
 					if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
@@ -732,7 +732,7 @@ func (self *FilesController) createStashMenu() error {
 				Key: 's',
 			},
 			{
-				Label: self.c.Tr.LcStashUnstagedChanges,
+				Label: self.c.Tr.StashUnstagedChanges,
 				OnPress: func() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)

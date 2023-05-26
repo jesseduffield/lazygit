@@ -30,7 +30,7 @@ func (self *FilteringMenuAction) Call() error {
 
 	if fileName != "" {
 		menuItems = append(menuItems, &types.MenuItem{
-			Label: fmt.Sprintf("%s '%s'", self.c.Tr.LcFilterBy, fileName),
+			Label: fmt.Sprintf("%s '%s'", self.c.Tr.FilterBy, fileName),
 			OnPress: func() error {
 				return self.setFiltering(fileName)
 			},
@@ -38,7 +38,7 @@ func (self *FilteringMenuAction) Call() error {
 	}
 
 	menuItems = append(menuItems, &types.MenuItem{
-		Label: self.c.Tr.LcFilterPathOption,
+		Label: self.c.Tr.FilterPathOption,
 		OnPress: func() error {
 			return self.c.Prompt(types.PromptOpts{
 				FindSuggestionsFunc: self.c.Helpers().Suggestions.GetFilePathSuggestionsFunc(),
@@ -52,7 +52,7 @@ func (self *FilteringMenuAction) Call() error {
 
 	if self.c.Modes().Filtering.Active() {
 		menuItems = append(menuItems, &types.MenuItem{
-			Label:   self.c.Tr.LcExitFilterMode,
+			Label:   self.c.Tr.ExitFilterMode,
 			OnPress: self.c.Helpers().Mode.ClearFiltering,
 		})
 	}

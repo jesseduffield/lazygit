@@ -584,7 +584,7 @@ func (self *RefreshHelper) refreshStatus() {
 
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	if workingTreeState != enums.REBASE_MODE_NONE {
-		status += style.FgYellow.Sprintf("(%s) ", presentation.FormatWorkingTreeState(workingTreeState))
+		status += style.FgYellow.Sprintf("(%s) ", presentation.FormatWorkingTreeStateLower(self.c.Tr, workingTreeState))
 	}
 
 	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)

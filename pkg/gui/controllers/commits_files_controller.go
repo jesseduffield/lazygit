@@ -30,42 +30,42 @@ func (self *CommitFilesController) GetKeybindings(opts types.KeybindingsOpts) []
 		{
 			Key:         opts.GetKey(opts.Config.CommitFiles.CheckoutCommitFile),
 			Handler:     self.checkSelected(self.checkout),
-			Description: self.c.Tr.LcCheckoutCommitFile,
+			Description: self.c.Tr.CheckoutCommitFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelected(self.discard),
-			Description: self.c.Tr.LcDiscardOldFileChange,
+			Description: self.c.Tr.DiscardOldFileChange,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.checkSelected(self.open),
-			Description: self.c.Tr.LcOpenFile,
+			Description: self.c.Tr.OpenFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.checkSelected(self.edit),
-			Description: self.c.Tr.LcEditFile,
+			Description: self.c.Tr.EditFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.checkSelected(self.toggleForPatch),
-			Description: self.c.Tr.LcToggleAddToPatch,
+			Description: self.c.Tr.ToggleAddToPatch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleStagedAll),
 			Handler:     self.checkSelected(self.toggleAllForPatch),
-			Description: self.c.Tr.LcToggleAllInPatch,
+			Description: self.c.Tr.ToggleAllInPatch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.GoInto),
 			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.LcEnterFile,
+			Description: self.c.Tr.EnterFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.ToggleTreeView),
 			Handler:     self.toggleTreeView,
-			Description: self.c.Tr.LcToggleTreeView,
+			Description: self.c.Tr.ToggleTreeView,
 		},
 	}
 
@@ -189,7 +189,7 @@ func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
 
 func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode) error {
 	toggle := func() error {
-		return self.c.WithWaitingStatus(self.c.Tr.LcUpdatingPatch, func() error {
+		return self.c.WithWaitingStatus(self.c.Tr.UpdatingPatch, func() error {
 			if !self.c.Git().Patch.PatchBuilder.Active() {
 				if err := self.startPatchBuilder(); err != nil {
 					return err

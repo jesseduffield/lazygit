@@ -29,7 +29,7 @@ var Checkout = NewIntegrationTest(NewIntegrationTestArgs{
 			PressPrimaryAction().
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
-					Title(Contains("checkout commit")).
+					Title(Contains("Checkout commit")).
 					Content(Contains("Are you sure you want to checkout this commit?")).
 					Confirm()
 			}).

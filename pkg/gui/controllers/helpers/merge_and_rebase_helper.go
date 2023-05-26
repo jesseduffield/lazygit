@@ -180,7 +180,7 @@ func (self *MergeAndRebaseHelper) workingTreeStateNoun() string {
 // PromptToContinueRebase asks the user if they want to continue the rebase/merge that's in progress
 func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 	return self.c.Confirm(types.ConfirmOpts{
-		Title:  "continue",
+		Title:  self.c.Tr.Continue,
 		Prompt: self.c.Tr.ConflictsResolved,
 		HandleConfirm: func() error {
 			return self.genericMergeCommand(REBASE_OPTION_CONTINUE)

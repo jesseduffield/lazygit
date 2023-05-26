@@ -21,7 +21,7 @@ var TypeFile = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Menu().
 			Title(Equals("Filtering")).
-			Select(Contains("enter path to filter by")).
+			Select(Contains("Enter path to filter by")).
 			Confirm()
 
 		t.ExpectPopup().Prompt().

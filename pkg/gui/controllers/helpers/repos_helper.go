@@ -88,7 +88,7 @@ func (self *ReposHelper) getCurrentBranch(path string) string {
 		}
 	}
 
-	return self.c.Tr.LcBranchUnknown
+	return self.c.Tr.BranchUnknown
 }
 
 func (self *ReposHelper) CreateRecentReposMenu() error {

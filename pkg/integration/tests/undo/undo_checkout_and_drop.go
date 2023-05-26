@@ -24,7 +24,7 @@ var UndoCheckoutAndDrop = NewIntegrationTest(NewIntegrationTestArgs{
 
 		confirmCommitDrop := func() {
 			t.ExpectPopup().Confirmation().
-				Title(Equals("Delete Commit")).
+				Title(Equals("Delete commit")).
 				Content(Equals("Are you sure you want to delete this commit?")).
 				Confirm()
 		}

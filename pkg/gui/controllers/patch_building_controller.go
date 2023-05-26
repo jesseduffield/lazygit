@@ -27,12 +27,12 @@ func (self *PatchBuildingController) GetKeybindings(opts types.KeybindingsOpts) 
 		{
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.OpenFile,
-			Description: self.c.Tr.LcOpenFile,
+			Description: self.c.Tr.OpenFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.EditFile,
-			Description: self.c.Tr.LcEditFile,
+			Description: self.c.Tr.EditFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),

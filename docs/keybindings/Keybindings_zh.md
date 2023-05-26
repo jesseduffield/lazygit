@@ -49,7 +49,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 将提交的 SHA 复制到剪贴板
   <kbd>&lt;space&gt;</kbd>: 检出提交
-  <kbd>y</kbd>: copy commit attribute
+  <kbd>y</kbd>: Copy commit attribute
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
   <kbd>g</kbd>: 查看重置选项
@@ -78,7 +78,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>T</kbd>: 创建标签
   <kbd>g</kbd>: 查看重置选项
   <kbd>R</kbd>: 重命名分支
-  <kbd>u</kbd>: set/unset upstream
+  <kbd>u</kbd>: Set/Unset upstream
   <kbd>&lt;enter&gt;</kbd>: 查看提交
 </pre>
 
@@ -87,7 +87,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 将提交的 SHA 复制到剪贴板
   <kbd>&lt;space&gt;</kbd>: 检出提交
-  <kbd>y</kbd>: copy commit attribute
+  <kbd>y</kbd>: Copy commit attribute
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
   <kbd>g</kbd>: 查看重置选项
@@ -123,18 +123,18 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: 删除提交
   <kbd>e</kbd>: 编辑提交
   <kbd>p</kbd>: 选择提交（变基过程中）
-  <kbd>F</kbd>: 为此提交创建修正
+  <kbd>F</kbd>: 创建修正提交
   <kbd>S</kbd>: 压缩在所选提交之上的所有“fixup!”提交（自动压缩）
   <kbd>&lt;c-j&gt;</kbd>: 下移提交
   <kbd>&lt;c-k&gt;</kbd>: 上移提交
   <kbd>v</kbd>: 粘贴提交（拣选）
   <kbd>A</kbd>: 用已暂存的更改来修补提交
-  <kbd>a</kbd>: reset commit author
+  <kbd>a</kbd>: Set/Reset commit author
   <kbd>t</kbd>: 还原提交
   <kbd>T</kbd>: 标签提交
   <kbd>&lt;c-l&gt;</kbd>: 打开日志菜单
   <kbd>&lt;space&gt;</kbd>: 检出提交
-  <kbd>y</kbd>: copy commit attribute
+  <kbd>y</kbd>: Copy commit attribute
   <kbd>o</kbd>: 在浏览器中打开提交
   <kbd>n</kbd>: 从提交创建新分支
   <kbd>g</kbd>: 查看重置选项
@@ -152,7 +152,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>o</kbd>: 打开文件
   <kbd>e</kbd>: 编辑文件
   <kbd>&lt;space&gt;</kbd>: 补丁中包含的切换文件
-  <kbd>a</kbd>: toggle all files included in patch
+  <kbd>a</kbd>: Toggle all files included in patch
   <kbd>&lt;enter&gt;</kbd>: 输入文件以将所选行添加到补丁中（或切换目录折叠）
   <kbd>`</kbd>: 切换文件树视图
 </pre>
@@ -247,7 +247,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;tab&gt;</kbd>: 切换到其他面板
   <kbd>&lt;space&gt;</kbd>: 切换行暂存状态
   <kbd>d</kbd>: 取消变更 (git reset)
-  <kbd>E</kbd>: edit hunk
+  <kbd>E</kbd>: Edit hunk
   <kbd>c</kbd>: 提交更改
   <kbd>w</kbd>: 提交更改而无需预先提交钩子
   <kbd>C</kbd>: 提交更改（使用编辑器编辑提交信息）
@@ -291,7 +291,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>g</kbd>: 应用并删除
   <kbd>d</kbd>: 删除
   <kbd>n</kbd>: 新分支
-  <kbd>r</kbd>: rename stash
+  <kbd>r</kbd>: Rename stash
   <kbd>&lt;enter&gt;</kbd>: 查看提交的文件
 </pre>
 

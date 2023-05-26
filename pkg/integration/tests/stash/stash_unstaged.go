@@ -28,7 +28,7 @@ var StashUnstaged = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Files.ViewStashOptions)
 
-		t.ExpectPopup().Menu().Title(Equals("Stash options")).Select(MatchesRegexp("stash unstaged changes$")).Confirm()
+		t.ExpectPopup().Menu().Title(Equals("Stash options")).Select(MatchesRegexp("Stash unstaged changes$")).Confirm()
 
 		t.ExpectPopup().Prompt().Title(Equals("Stash changes")).Type("my stashed file").Confirm()
 

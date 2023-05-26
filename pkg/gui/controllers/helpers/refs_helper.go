@@ -121,18 +121,20 @@ func (self *RefsHelper) ResetToRef(ref string, strength string, envVars []string
 func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 	type strengthWithKey struct {
 		strength string
+		label    string
 		key      types.Key
 	}
 	strengths := []strengthWithKey{
-		{strength: "soft", key: 's'},
-		{strength: "mixed", key: 'm'},
-		{strength: "hard", key: 'h'},
+		// not i18'ing because it's git terminology
+		{strength: "soft", label: "Soft reset", key: 's'},
+		{strength: "mixed", label: "Mixed reset", key: 'm'},
+		{strength: "hard", label: "Hard reset", key: 'h'},
 	}
 
 	menuItems := slices.Map(strengths, func(row strengthWithKey) *types.MenuItem {
 		return &types.MenuItem{
 			LabelColumns: []string{
-				fmt.Sprintf("%s reset", row.strength),
+				row.label,
 				style.FgRed.Sprintf("reset --%s %s", row.strength, ref),
 			},
 			OnPress: func() error {
@@ -144,7 +146,7 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: fmt.Sprintf("%s %s", self.c.Tr.LcResetTo, ref),
+		Title: fmt.Sprintf("%s %s", self.c.Tr.ResetTo, ref),
 		Items: menuItems,
 	})
 }

@@ -33,53 +33,53 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.checkSelected(self.press),
-			Description: self.c.Tr.LcCheckout,
+			Description: self.c.Tr.Checkout,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.checkSelected(self.newBranch),
-			Description: self.c.Tr.LcNewBranch,
+			Description: self.c.Tr.NewBranch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.CreatePullRequest),
 			Handler:     self.checkSelected(self.handleCreatePullRequest),
-			Description: self.c.Tr.LcCreatePullRequest,
+			Description: self.c.Tr.CreatePullRequest,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.ViewPullRequestOptions),
 			Handler:     self.checkSelected(self.handleCreatePullRequestMenu),
-			Description: self.c.Tr.LcCreatePullRequestOptions,
+			Description: self.c.Tr.CreatePullRequestOptions,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.CopyPullRequestURL),
 			Handler:     self.copyPullRequestURL,
-			Description: self.c.Tr.LcCopyPullRequestURL,
+			Description: self.c.Tr.CopyPullRequestURL,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.CheckoutBranchByName),
 			Handler:     self.checkoutByName,
-			Description: self.c.Tr.LcCheckoutByName,
+			Description: self.c.Tr.CheckoutByName,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.ForceCheckoutBranch),
 			Handler:     self.forceCheckout,
-			Description: self.c.Tr.LcForceCheckout,
+			Description: self.c.Tr.ForceCheckout,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelectedAndReal(self.delete),
-			Description: self.c.Tr.LcDeleteBranch,
+			Description: self.c.Tr.DeleteBranch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.RebaseBranch),
 			Handler:     opts.Guards.OutsideFilterMode(self.rebase),
-			Description: self.c.Tr.LcRebaseBranch,
+			Description: self.c.Tr.RebaseBranch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
 			Handler:     opts.Guards.OutsideFilterMode(self.merge),
-			Description: self.c.Tr.LcMergeIntoCurrentBranch,
+			Description: self.c.Tr.MergeIntoCurrentBranch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.FastForward),
@@ -89,23 +89,23 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		{
 			Key:         opts.GetKey(opts.Config.Branches.CreateTag),
 			Handler:     self.checkSelected(self.createTag),
-			Description: self.c.Tr.LcCreateTag,
+			Description: self.c.Tr.CreateTag,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.checkSelected(self.createResetMenu),
-			Description: self.c.Tr.LcViewResetOptions,
+			Description: self.c.Tr.ViewResetOptions,
 			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.RenameBranch),
 			Handler:     self.checkSelectedAndReal(self.rename),
-			Description: self.c.Tr.LcRenameBranch,
+			Description: self.c.Tr.RenameBranch,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.SetUpstream),
 			Handler:     self.checkSelected(self.setUpstream),
-			Description: self.c.Tr.LcSetUnsetUpstream,
+			Description: self.c.Tr.SetUnsetUpstream,
 			OpensMenu:   true,
 		},
 	}
@@ -140,7 +140,7 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 		Title: self.c.Tr.Actions.SetUnsetUpstream,
 		Items: []*types.MenuItem{
 			{
-				LabelColumns: []string{self.c.Tr.LcUnsetUpstream},
+				LabelColumns: []string{self.c.Tr.UnsetUpstream},
 				OnPress: func() error {
 					if err := self.c.Git().Branch.UnsetUpstream(selectedBranch.Name); err != nil {
 						return self.c.Error(err)
@@ -159,7 +159,7 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 				Key: 'u',
 			},
 			{
-				LabelColumns: []string{self.c.Tr.LcSetUpstream},
+				LabelColumns: []string{self.c.Tr.SetUpstream},
 				OnPress: func() error {
 					return self.c.Helpers().Upstream.PromptForUpstreamWithoutInitialContent(selectedBranch, func(upstream string) error {
 						upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
@@ -437,7 +437,7 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 	}
 
 	return self.c.Confirm(types.ConfirmOpts{
-		Title:         self.c.Tr.LcRenameBranch,
+		Title:         self.c.Tr.RenameBranch,
 		Prompt:        self.c.Tr.RenameBranchWarning,
 		HandleConfirm: promptForNewName,
 	})
@@ -457,13 +457,13 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 	menuItemsForBranch := func(branch *models.Branch) []*types.MenuItem {
 		return []*types.MenuItem{
 			{
-				LabelColumns: fromToLabelColumns(branch.Name, self.c.Tr.LcDefaultBranch),
+				LabelColumns: fromToLabelColumns(branch.Name, self.c.Tr.DefaultBranch),
 				OnPress: func() error {
 					return self.createPullRequest(branch.Name, "")
 				},
 			},
 			{
-				LabelColumns: fromToLabelColumns(branch.Name, self.c.Tr.LcSelectBranch),
+				LabelColumns: fromToLabelColumns(branch.Name, self.c.Tr.SelectBranch),
 				OnPress: func() error {
 					return self.c.Prompt(types.PromptOpts{
 						Title:               branch.Name + " →",

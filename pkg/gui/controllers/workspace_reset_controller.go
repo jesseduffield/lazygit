@@ -14,13 +14,13 @@ func (self *FilesController) createResetMenu() error {
 
 	nukeStr := "git reset --hard HEAD && git clean -fd"
 	if len(self.c.Model().Submodules) > 0 {
-		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, self.c.Tr.LcAndResetSubmodules)
+		nukeStr = fmt.Sprintf("%s (%s)", nukeStr, self.c.Tr.AndResetSubmodules)
 	}
 
 	menuItems := []*types.MenuItem{
 		{
 			LabelColumns: []string{
-				self.c.Tr.LcDiscardAllChangesToAllFiles,
+				self.c.Tr.DiscardAllChangesToAllFiles,
 				red.Sprint(nukeStr),
 			},
 			OnPress: func() error {
@@ -36,7 +36,7 @@ func (self *FilesController) createResetMenu() error {
 		},
 		{
 			LabelColumns: []string{
-				self.c.Tr.LcDiscardAnyUnstagedChanges,
+				self.c.Tr.DiscardAnyUnstagedChanges,
 				red.Sprint("git checkout -- ."),
 			},
 			OnPress: func() error {
@@ -51,7 +51,7 @@ func (self *FilesController) createResetMenu() error {
 		},
 		{
 			LabelColumns: []string{
-				self.c.Tr.LcDiscardUntrackedFiles,
+				self.c.Tr.DiscardUntrackedFiles,
 				red.Sprint("git clean -fd"),
 			},
 			OnPress: func() error {
@@ -66,7 +66,7 @@ func (self *FilesController) createResetMenu() error {
 		},
 		{
 			LabelColumns: []string{
-				self.c.Tr.LcDiscardStagedChanges,
+				self.c.Tr.DiscardStagedChanges,
 				red.Sprint("stash staged and drop stash"),
 			},
 			Tooltip: self.c.Tr.DiscardStagedChangesDescription,
@@ -88,7 +88,7 @@ func (self *FilesController) createResetMenu() error {
 		},
 		{
 			LabelColumns: []string{
-				self.c.Tr.LcSoftReset,
+				self.c.Tr.SoftReset,
 				red.Sprint("git reset --soft HEAD"),
 			},
 			OnPress: func() error {
@@ -118,7 +118,7 @@ func (self *FilesController) createResetMenu() error {
 		},
 		{
 			LabelColumns: []string{
-				self.c.Tr.LcHardReset,
+				self.c.Tr.HardReset,
 				red.Sprint("git reset --hard HEAD"),
 			},
 			OnPress: func() error {

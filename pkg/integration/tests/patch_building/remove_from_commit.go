@@ -31,11 +31,11 @@ var RemoveFromCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction()
 
-		t.Views().Information().Content(Contains("building patch"))
+		t.Views().Information().Content(Contains("Building patch"))
 
 		t.Views().PatchBuildingSecondary().Content(Contains("+file1 content"))
 
-		t.Common().SelectPatchOption(Contains("remove patch from original commit"))
+		t.Common().SelectPatchOption(Contains("Remove patch from original commit"))
 
 		t.Views().Files().IsEmpty()
 

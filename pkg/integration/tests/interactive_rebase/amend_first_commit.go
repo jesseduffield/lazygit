@@ -26,7 +26,7 @@ var AmendFirstCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Commits.AmendToCommit).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
-					Title(Equals("Amend Commit")).
+					Title(Equals("Amend commit")).
 					Content(Contains("Are you sure you want to amend this commit with your staged files?")).
 					Confirm()
 			}).

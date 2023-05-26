@@ -25,7 +25,7 @@ var DetachedHead = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.New)
 
 		t.ExpectPopup().Prompt().
-			Title(MatchesRegexp(`^New Branch Name \(Branch is off of '[0-9a-f]+'\)$`)).
+			Title(MatchesRegexp(`^New branch name \(branch is off of '[0-9a-f]+'\)$`)).
 			Type("new-branch").
 			Confirm()
 

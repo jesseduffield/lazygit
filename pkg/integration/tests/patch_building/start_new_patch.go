@@ -33,7 +33,7 @@ var StartNewPatch = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction().
 			Tap(func() {
-				t.Views().Information().Content(Contains("building patch"))
+				t.Views().Information().Content(Contains("Building patch"))
 
 				t.Views().Secondary().Content(Contains("file2"))
 			}).
@@ -52,7 +52,7 @@ var StartNewPatch = NewIntegrationTest(NewIntegrationTestArgs{
 			PressPrimaryAction().
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
-					Title(Contains("Discard Patch")).
+					Title(Contains("Discard patch")).
 					Content(Contains("You can only build a patch from one commit/stash-entry at a time. Discard current patch?")).
 					Confirm()
 

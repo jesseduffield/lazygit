@@ -48,7 +48,7 @@ var CherryPickConflicts = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Commits.PasteCommits)
 
 		t.ExpectPopup().Alert().
-			Title(Equals("Cherry-Pick")).
+			Title(Equals("Cherry-pick")).
 			Content(Contains("Are you sure you want to cherry-pick the copied commits onto this branch?")).
 			Confirm()
 

@@ -45,7 +45,7 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		{
 			Key:         opts.GetKey(opts.Config.Status.CheckForUpdate),
 			Handler:     self.handleCheckForUpdate,
-			Description: self.c.Tr.LcCheckForUpdate,
+			Description: self.c.Tr.CheckForUpdate,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Status.RecentRepos),
@@ -55,7 +55,7 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		{
 			Key:         opts.GetKey(opts.Config.Status.AllBranchesLogGraph),
 			Handler:     self.showAllBranchLogs,
-			Description: self.c.Tr.LcAllBranchesLogGraph,
+			Description: self.c.Tr.AllBranchesLogGraph,
 		},
 	}
 
@@ -112,7 +112,7 @@ func (self *StatusController) onClick() error {
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:
-		workingTreeStatus := fmt.Sprintf("(%s)", presentation.FormatWorkingTreeState(workingTreeState))
+		workingTreeStatus := fmt.Sprintf("(%s)", presentation.FormatWorkingTreeStateLower(self.c.Tr, workingTreeState))
 		if cursorInSubstring(cx, upstreamStatus+" ", workingTreeStatus) {
 			return self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu()
 		}

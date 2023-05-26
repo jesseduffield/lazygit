@@ -33,7 +33,7 @@ var SelectAllFiles = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			Press(keys.Files.ToggleStagedAll)
 
-		t.Views().Information().Content(Contains("building patch"))
+		t.Views().Information().Content(Contains("Building patch"))
 
 		t.Views().Secondary().Content(
 			Contains("file1").Contains("file3").Contains("file3"),

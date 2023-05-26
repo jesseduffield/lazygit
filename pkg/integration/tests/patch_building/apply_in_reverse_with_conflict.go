@@ -40,7 +40,7 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 			// Add both files to the patch; the first will conflict, the second won't
 			PressPrimaryAction().
 			Tap(func() {
-				t.Views().Information().Content(Contains("building patch"))
+				t.Views().Information().Content(Contains("Building patch"))
 
 				t.Views().PatchBuildingSecondary().Content(
 					Contains("+more file1 content"))
@@ -51,7 +51,7 @@ var ApplyInReverseWithConflict = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().PatchBuildingSecondary().Content(
 			Contains("+more file1 content").Contains("+more file2 content"))
 
-		t.Common().SelectPatchOption(Contains("apply patch in reverse"))
+		t.Common().SelectPatchOption(Contains("Apply patch in reverse"))
 
 		t.ExpectPopup().Alert().
 			Title(Equals("Error")).

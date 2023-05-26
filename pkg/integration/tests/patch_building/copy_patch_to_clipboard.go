@@ -38,7 +38,7 @@ var CopyPatchToClipboard = NewIntegrationTest(NewIntegrationTestArgs{
 			).
 			PressPrimaryAction()
 
-		t.Views().Information().Content(Contains("building patch"))
+		t.Views().Information().Content(Contains("Building patch"))
 
 		t.Common().SelectPatchOption(Contains("copy patch to clipboard"))
 

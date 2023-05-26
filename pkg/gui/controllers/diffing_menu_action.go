@@ -20,7 +20,7 @@ func (self *DiffingMenuAction) Call() error {
 		name := name
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				Label: fmt.Sprintf("%s %s", self.c.Tr.LcDiff, name),
+				Label: fmt.Sprintf("%s %s", self.c.Tr.Diff, name),
 				OnPress: func() error {
 					self.c.Modes().Diffing.Ref = name
 					// can scope this down based on current view but too lazy right now
@@ -32,10 +32,10 @@ func (self *DiffingMenuAction) Call() error {
 
 	menuItems = append(menuItems, []*types.MenuItem{
 		{
-			Label: self.c.Tr.LcEnterRefToDiff,
+			Label: self.c.Tr.EnterRefToDiff,
 			OnPress: func() error {
 				return self.c.Prompt(types.PromptOpts{
-					Title:               self.c.Tr.LcEnteRefName,
+					Title:               self.c.Tr.EnteRefName,
 					FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
 					HandleConfirm: func(response string) error {
 						self.c.Modes().Diffing.Ref = strings.TrimSpace(response)
@@ -49,14 +49,14 @@ func (self *DiffingMenuAction) Call() error {
 	if self.c.Modes().Diffing.Active() {
 		menuItems = append(menuItems, []*types.MenuItem{
 			{
-				Label: self.c.Tr.LcSwapDiff,
+				Label: self.c.Tr.SwapDiff,
 				OnPress: func() error {
 					self.c.Modes().Diffing.Reverse = !self.c.Modes().Diffing.Reverse
 					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 				},
 			},
 			{
-				Label: self.c.Tr.LcExitDiffMode,
+				Label: self.c.Tr.ExitDiffMode,
 				OnPress: func() error {
 					self.c.Modes().Diffing = diffing.New()
 					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})

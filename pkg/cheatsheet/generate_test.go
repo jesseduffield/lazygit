@@ -54,7 +54,7 @@ func TestGetBindingSections(t *testing.T) {
 			},
 			expected: []*bindingSection{
 				{
-					title: "Global Keybindings",
+					title: "Global keybindings",
 					bindings: []*types.Binding{
 						{
 							ViewName:    "",
@@ -139,7 +139,7 @@ func TestGetBindingSections(t *testing.T) {
 			},
 			expected: []*bindingSection{
 				{
-					title: "List Panel Navigation",
+					title: "List panel navigation",
 					bindings: []*types.Binding{
 						{
 							ViewName:    "files",
@@ -215,7 +215,7 @@ func TestGetBindingSections(t *testing.T) {
 			},
 			expected: []*bindingSection{
 				{
-					title: "List Panel Navigation",
+					title: "List panel navigation",
 					bindings: []*types.Binding{
 						{
 							ViewName:    "files",

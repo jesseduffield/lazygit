@@ -42,12 +42,12 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		{
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.OpenFile,
-			Description: self.c.Tr.LcOpenFile,
+			Description: self.c.Tr.OpenFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Edit),
 			Handler:     self.EditFile,
-			Description: self.c.Tr.LcEditFile,
+			Description: self.c.Tr.EditFile,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Return),
@@ -82,7 +82,7 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithoutHook),
 			Handler:     self.c.Helpers().WorkingTree.HandleWIPCommitPress,
-			Description: self.c.Tr.LcCommitChangesWithoutHook,
+			Description: self.c.Tr.CommitChangesWithoutHook,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Files.CommitChangesWithEditor),

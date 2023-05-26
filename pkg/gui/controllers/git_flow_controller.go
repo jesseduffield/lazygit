@@ -30,7 +30,7 @@ func (self *GitFlowController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		{
 			Key:         opts.GetKey(opts.Config.Branches.ViewGitFlowOptions),
 			Handler:     self.checkSelected(self.handleCreateGitFlowMenu),
-			Description: self.c.Tr.LcGitFlowOptions,
+			Description: self.c.Tr.GitFlowOptions,
 			OpensMenu:   true,
 		},
 	}
