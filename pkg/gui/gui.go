@@ -220,6 +220,8 @@ type GuiRepoState struct {
 	ScreenMode types.WindowMaximisation
 
 	CurrentPopupOpts *types.CreatePopupPanelOpts
+
+	RecentCommitsWhichChangedFile []string
 }
 
 var _ types.IRepoStateAccessor = new(GuiRepoState)
@@ -266,6 +268,14 @@ func (self *GuiRepoState) SetSplitMainPanel(value bool) {
 
 func (self *GuiRepoState) GetSplitMainPanel() bool {
 	return self.SplitMainPanel
+}
+
+func (self *GuiRepoState) SetRecentCommitsWhichChangedFile(value []string) {
+	self.RecentCommitsWhichChangedFile = value
+}
+
+func (self *GuiRepoState) GetRecentCommitsWhichChangedFile() []string {
+	return self.RecentCommitsWhichChangedFile
 }
 
 type searchingState struct {

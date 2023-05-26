@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type FilesController struct {
@@ -190,6 +191,16 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 				if hasConflicts {
 					return self.c.Helpers().MergeConflicts.Render(false)
 				}
+			}
+
+			if self.c.UserConfig.Gui.ExperimentalMarkCommitsWhichChangedFile {
+				go utils.Safe(func() {
+					recentCommitsWhichChangedFile := self.c.Git().Commit.GetRecentCommitsWhichChangedFile(node.GetPath())
+					self.c.OnUIThread(func() error {
+						self.c.State().GetRepoState().SetRecentCommitsWhichChangedFile(recentCommitsWhichChangedFile)
+						return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
+					})
+				})
 			}
 
 			self.c.Helpers().MergeConflicts.ResetMergeState()

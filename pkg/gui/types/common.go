@@ -254,6 +254,8 @@ type IRepoStateAccessor interface {
 	IsSearching() bool
 	SetSplitMainPanel(bool)
 	GetSplitMainPanel() bool
+	SetRecentCommitsWhichChangedFile([]string)
+	GetRecentCommitsWhichChangedFile() []string
 }
 
 // startup stages so we don't need to load everything at once
