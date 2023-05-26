@@ -11,7 +11,7 @@ import (
 
 type LocalCommitsContext struct {
 	*LocalCommitsViewModel
-	*ViewportListContextTrait
+	*ListContextTrait
 }
 
 var (
@@ -56,19 +56,18 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 
 	return &LocalCommitsContext{
 		LocalCommitsViewModel: viewModel,
-		ViewportListContextTrait: &ViewportListContextTrait{
-			ListContextTrait: &ListContextTrait{
-				Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
-					View:       c.Views().Commits,
-					WindowName: "commits",
-					Key:        LOCAL_COMMITS_CONTEXT_KEY,
-					Kind:       types.SIDE_CONTEXT,
-					Focusable:  true,
-				})),
-				list:              viewModel,
-				getDisplayStrings: getDisplayStrings,
-				c:                 c,
-			},
+		ListContextTrait: &ListContextTrait{
+			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
+				View:       c.Views().Commits,
+				WindowName: "commits",
+				Key:        LOCAL_COMMITS_CONTEXT_KEY,
+				Kind:       types.SIDE_CONTEXT,
+				Focusable:  true,
+			})),
+			list:                       viewModel,
+			getDisplayStrings:          getDisplayStrings,
+			c:                          c,
+			refreshViewportOnLineFocus: true,
 		},
 	}
 }
