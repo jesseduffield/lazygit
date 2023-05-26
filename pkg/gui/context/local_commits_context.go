@@ -2,6 +2,7 @@ package context
 
 import (
 	"log"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -44,6 +45,8 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			c.Modes().CherryPicking.SelectedShaSet(),
 			c.Modes().Diffing.Ref,
 			c.UserConfig.Gui.TimeFormat,
+			c.UserConfig.Gui.ShortTimeFormat,
+			time.Now(),
 			c.UserConfig.Git.ParseEmoji,
 			selectedCommitSha,
 			startIdx,

@@ -2,6 +2,7 @@ package context
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -47,6 +48,8 @@ func NewSubCommitsContext(
 			c.Modes().CherryPicking.SelectedShaSet(),
 			c.Modes().Diffing.Ref,
 			c.UserConfig.Gui.TimeFormat,
+			c.UserConfig.Gui.ShortTimeFormat,
+			time.Now(),
 			c.UserConfig.Git.ParseEmoji,
 			selectedCommitSha,
 			startIdx,

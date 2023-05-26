@@ -3,6 +3,7 @@ package presentation
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/generics/set"
@@ -41,6 +42,8 @@ func GetCommitListDisplayStrings(
 	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
 	timeFormat string,
+	shortTimeFormat string,
+	now time.Time,
 	parseEmoji bool,
 	selectedCommitSha string,
 	startIdx int,
@@ -107,6 +110,8 @@ func GetCommitListDisplayStrings(
 			cherryPickedCommitShaSet,
 			diffName,
 			timeFormat,
+			shortTimeFormat,
+			now,
 			parseEmoji,
 			getGraphLine(unfilteredIdx),
 			fullDescription,
@@ -253,6 +258,8 @@ func displayCommit(
 	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
 	timeFormat string,
+	shortTimeFormat string,
+	now time.Time,
 	parseEmoji bool,
 	graphLine string,
 	fullDescription bool,
@@ -304,7 +311,9 @@ func displayCommit(
 	cols = append(cols, shaColor.Sprint(commit.ShortSha()))
 	cols = append(cols, bisectString)
 	if fullDescription {
-		cols = append(cols, style.FgBlue.Sprint(utils.UnixToDate(commit.UnixTimestamp, timeFormat)))
+		cols = append(cols, style.FgBlue.Sprint(
+			utils.UnixToDateSmart(now, commit.UnixTimestamp, timeFormat, shortTimeFormat),
+		))
 	}
 	cols = append(
 		cols,

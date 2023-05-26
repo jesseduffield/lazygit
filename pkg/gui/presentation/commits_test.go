@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/gookit/color"
@@ -31,6 +32,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		cherryPickedCommitShaSet *set.Set[string]
 		diffName                 string
 		timeFormat               string
+		shortTimeFormat          string
+		now                      time.Time
 		parseEmoji               bool
 		selectedCommitSha        string
 		startIdx                 int
@@ -49,6 +52,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected:                 "",
 		},
 		{
@@ -62,6 +66,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		sha1 commit1
 		sha2 commit2
@@ -81,6 +86,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			showGraph:                true,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		sha1 ⏣─╮ commit1
 		sha2 ◯ │ commit2
@@ -104,6 +110,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
 			showYouAreHereLabel:      true,
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		sha1 pick  commit1
 		sha2 pick  commit2
@@ -127,6 +134,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
 			showYouAreHereLabel:      true,
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		sha2 pick  commit2
 		sha3       ◯ <-- YOU ARE HERE --- commit3
@@ -149,6 +157,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
 			showYouAreHereLabel:      true,
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		sha4 ◯ commit4
 		sha5 ◯ commit5
@@ -169,6 +178,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
 			showYouAreHereLabel:      true,
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		sha1 pick  commit1
 		sha2 pick  commit2
@@ -189,6 +199,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
 			showYouAreHereLabel:      true,
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 			sha5 ◯ commit5
 				`),
@@ -208,6 +219,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
 			showYouAreHereLabel:      true,
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 			sha1 pick  commit1
 			sha2 pick  commit2
@@ -226,6 +238,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
 			showYouAreHereLabel:      false,
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			expected: formatExpected(`
 		sha1 pick  commit1
 		sha2       ◯ commit2
@@ -235,19 +248,21 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		{
 			testName: "custom time format",
 			commits: []*models.Commit{
-				{Name: "commit1", Sha: "sha1", UnixTimestamp: 1652443200, AuthorName: "Jesse Duffield"},
-				{Name: "commit2", Sha: "sha2", UnixTimestamp: 1652529600, AuthorName: "Jesse Duffield"},
+				{Name: "commit1", Sha: "sha1", UnixTimestamp: 1577844184, AuthorName: "Jesse Duffield"},
+				{Name: "commit2", Sha: "sha2", UnixTimestamp: 1576844184, AuthorName: "Jesse Duffield"},
 			},
 			fullDescription:          true,
-			timeFormat:               "2006-01-02 15:04:05",
+			timeFormat:               "2006-01-02",
+			shortTimeFormat:          "3:04PM",
 			startIdx:                 0,
 			length:                   2,
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
+			now:                      time.Date(2020, 1, 1, 5, 3, 4, 0, time.UTC),
 			expected: formatExpected(`
-		sha1 2022-05-13 12:00:00 Jesse Duffield    commit1
-		sha2 2022-05-14 12:00:00 Jesse Duffield    commit2
+		sha1 2:03AM     Jesse Duffield    commit1
+		sha2 2019-12-20 Jesse Duffield    commit2
 						`),
 		},
 	}
@@ -274,6 +289,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.cherryPickedCommitShaSet,
 					s.diffName,
 					s.timeFormat,
+					s.shortTimeFormat,
+					s.now,
 					s.parseEmoji,
 					s.selectedCommitSha,
 					s.startIdx,
