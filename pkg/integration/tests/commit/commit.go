@@ -55,7 +55,7 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Contains("A myfile"),
-				Contains("A myfile2"),
+				Contains("A myfile3"),
 			)
 	},
 })

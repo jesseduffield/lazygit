@@ -40,7 +40,9 @@ func success() IntegrationTestResult {
 func writeResult(result IntegrationTestResult) error {
 	resultPath := os.Getenv(PathEnvVar)
 	if resultPath == "" {
-		return fmt.Errorf("Environment variable %s not set", PathEnvVar)
+		panic("path env var not set!")
+		// path env var not set so we'll assume we don't need to write the result to a file
+		return nil
 	}
 
 	file, err := os.Create(resultPath)
@@ -62,7 +64,7 @@ func writeResult(result IntegrationTestResult) error {
 func ReadResult(resultPath string) (IntegrationTestResult, error) {
 	file, err := os.Open(resultPath)
 	if err != nil {
-		return IntegrationTestResult{}, fmt.Errorf("Error creating file: %w", err)
+		return IntegrationTestResult{}, fmt.Errorf("Error reading file: %w", err)
 	}
 
 	decoder := json.NewDecoder(file)
@@ -74,7 +76,7 @@ func ReadResult(resultPath string) (IntegrationTestResult, error) {
 	}
 
 	file.Close()
-	_ = os.Remove(resultPath)
+	// _ = os.Remove(resultPath)
 
 	return result, nil
 }

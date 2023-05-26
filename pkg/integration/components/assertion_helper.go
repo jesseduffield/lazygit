@@ -18,7 +18,7 @@ func retryWaitTimes() []int {
 		// give it more leeway compared to when we're running things locally.
 		return []int{0, 1, 1, 1, 1, 1, 5, 10, 20, 40, 100, 200, 500, 1000, 2000, 4000}
 	} else {
-		return []int{0, 1, 1, 1, 1, 1}
+		return []int{0, 1, 1, 1, 1, 1, 5, 10, 20, 40, 100, 200, 500, 1000, 2000, 4000}
 	}
 }
 

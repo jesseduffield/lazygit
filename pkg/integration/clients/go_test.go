@@ -29,8 +29,6 @@ func TestIntegration(t *testing.T) {
 
 	tests := tests.GetTests()
 
-	tests = tests[0:3]
-
 	err := components.RunTests(
 		tests,
 		t.Logf,
@@ -46,7 +44,7 @@ func TestIntegration(t *testing.T) {
 			// }
 
 			t.Run(test.Name(), func(t *testing.T) {
-				// t.Parallel()
+				t.Parallel()
 				err := f()
 				assert.NoError(t, err)
 			})
@@ -98,6 +96,7 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	if !result.Success {
 		return errors.New(result.Message)
 	}
+	fmt.Printf("test succeeded")
 
 	return nil
 }
