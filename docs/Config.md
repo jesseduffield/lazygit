@@ -28,7 +28,8 @@ gui:
   expandFocusedSidePanel: false
   mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
   language: 'auto' # one of 'auto' | 'en' | 'zh' | 'pl' | 'nl' | 'ja' | 'ko'
-  timeFormat: '02 Jan 06 15:04 MST' # https://pkg.go.dev/time#Time.Format
+  timeFormat: '02 Jan 06' # https://pkg.go.dev/time#Time.Format
+  shortTimeFormat: '3:04PM'
   theme:
     activeBorderColor:
       - green

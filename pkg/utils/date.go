@@ -20,6 +20,13 @@ func UnixToTimeAgo(timestamp int64) string {
 	return fmt.Sprintf("%dy", int(delta))
 }
 
-func UnixToDate(timestamp int64, timeFormat string) string {
-	return time.Unix(timestamp, 0).Format(timeFormat)
+// formats the date in a smart way, if the date is today, it will show the time, otherwise it will show the date
+func UnixToDateSmart(now time.Time, timestamp int64, longTimeFormat string, shortTimeFormat string) string {
+	date := time.Unix(timestamp, 0)
+
+	if date.Day() == now.Day() && date.Month() == now.Month() && date.Year() == now.Year() {
+		return date.Format(shortTimeFormat)
+	}
+
+	return date.Format(longTimeFormat)
 }

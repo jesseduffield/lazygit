@@ -1,6 +1,8 @@
 package context
 
 import (
+	"time"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -25,7 +27,9 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().CherryPicking.SelectedShaSet(),
 			c.Modes().Diffing.Ref,
+			time.Now(),
 			c.UserConfig.Gui.TimeFormat,
+			c.UserConfig.Gui.ShortTimeFormat,
 			c.UserConfig.Git.ParseEmoji,
 		)
 	}

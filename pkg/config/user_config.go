@@ -39,6 +39,7 @@ type GuiConfig struct {
 	MainPanelSplitMode          string             `yaml:"mainPanelSplitMode"`
 	Language                    string             `yaml:"language"`
 	TimeFormat                  string             `yaml:"timeFormat"`
+	ShortTimeFormat             string             `yaml:"shortTimeFormat"`
 	Theme                       ThemeConfig        `yaml:"theme"`
 	CommitLength                CommitLengthConfig `yaml:"commitLength"`
 	SkipNoStagedFilesWarning    bool               `yaml:"skipNoStagedFilesWarning"`
@@ -398,7 +399,8 @@ func GetDefaultConfig() *UserConfig {
 			ExpandFocusedSidePanel: false,
 			MainPanelSplitMode:     "flexible",
 			Language:               "auto",
-			TimeFormat:             time.RFC822,
+			TimeFormat:             "02 Jan 06",
+			ShortTimeFormat:        time.Kitchen,
 			Theme: ThemeConfig{
 				ActiveBorderColor:         []string{"green", "bold"},
 				InactiveBorderColor:       []string{"default"},
