@@ -56,6 +56,14 @@ func (self *RemoteCommands) DeleteRemoteBranch(task gocui.Task, remoteName strin
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
 }
 
+func (self *RemoteCommands) DeleteRemoteTag(task gocui.Task, remoteName string, tagName string) error {
+	cmdArgs := NewGitCmd("push").
+		Arg(remoteName, "--delete", tagName).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
+}
+
 // CheckRemoteBranchExists Returns remote branch
 func (self *RemoteCommands) CheckRemoteBranchExists(branchName string) bool {
 	cmdArgs := NewGitCmd("show-ref").
