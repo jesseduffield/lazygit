@@ -101,7 +101,7 @@ func (self *TagsController) delete(tag *models.Tag) error {
 		Prompt: prompt,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.DeleteTag)
-			if err := self.c.Git().Tag.Delete(tag.Name); err != nil {
+			if err := self.c.Git().Tag.LocalDelete(tag.Name); err != nil {
 				return self.c.Error(err)
 			}
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
