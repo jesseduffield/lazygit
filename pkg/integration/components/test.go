@@ -2,7 +2,8 @@ package components
 
 import (
 	"os"
-	"runtime"
+	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -171,14 +172,14 @@ func testNameFromCurrentFilePath() string {
 	return TestNameFromFilePath(path)
 }
 
+// takes either a path or a test name and returns a test name
+// so commit/commit -> commit/commit
+// and /my/path/to/lazygit/pkg/integration/tests/commit/commit -> commit/commit
 func TestNameFromFilePath(path string) string {
-	if runtime.GOOS == "windows" {
-		path = strings.Replace(path, "\\", "/", -1)
-	}
-
-	name := strings.Split(path, "integration/tests/")[1]
-
-	return name[:len(name)-len(".go")]
+	return strings.TrimSuffix(
+		regexp.MustCompile(`.*pkg/integration/tests/`).ReplaceAllString(filepath.ToSlash(path), ""),
+		".go",
+	)
 }
 
 // this is the delay in milliseconds between keypresses

@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"github.com/jesseduffield/lazygit/pkg/integration/clients"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/samber/lo"
 )
 
 var usage = `
@@ -48,6 +50,11 @@ func main() {
 				sandbox = true
 			}
 		}
+
+		// allowing full test paths to be passed for convenience
+		testNames = lo.Map(testNames, func(name string, _ int) string {
+			return components.TestNameFromFilePath(name)
+		})
 
 		clients.RunCLI(testNames, slow, sandbox)
 	case "tui":

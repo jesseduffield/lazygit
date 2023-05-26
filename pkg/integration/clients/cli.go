@@ -4,11 +4,9 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/samber/lo"
@@ -62,14 +60,6 @@ func getTestsToRun(testNames []string) []*components.IntegrationTest {
 	if len(testNames) == 0 {
 		return allIntegrationTests
 	}
-
-	testNames = slices.Map(testNames, func(name string) string {
-		// allowing full test paths to be passed for convenience
-		return strings.TrimSuffix(
-			regexp.MustCompile(`.*pkg/integration/tests/`).ReplaceAllString(name, ""),
-			".go",
-		)
-	})
 
 	if lo.SomeBy(testNames, func(name string) bool {
 		return strings.HasSuffix(name, "/shared")
