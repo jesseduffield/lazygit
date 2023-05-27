@@ -36,8 +36,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>,</kbd>: 前のページ
   <kbd>.</kbd>: 次のページ
   <kbd>&lt;</kbd>: 最上部までスクロール
-  <kbd>/</kbd>: 検索を開始
   <kbd>&gt;</kbd>: 最下部までスクロール
+  <kbd>/</kbd>: 検索を開始
   <kbd>H</kbd>: 左スクロール
   <kbd>L</kbd>: 右スクロール
   <kbd>]</kbd>: 次のタブ
@@ -53,6 +53,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 新しいブランチを作成
   <kbd>r</kbd>: Stashを変更
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## Sub-commits
@@ -68,6 +69,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>C</kbd>: コミットを範囲コピー (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
+  <kbd>/</kbd>: 検索を開始
 </pre>
 
 ## コミット
@@ -101,6 +103,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>c</kbd>: コミットをコピー (cherry-pick)
   <kbd>C</kbd>: コミットを範囲コピー (cherry-pick)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
+  <kbd>/</kbd>: 検索を開始
 </pre>
 
 ## コミットファイル
@@ -115,6 +118,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>a</kbd>: Toggle all files included in patch
   <kbd>&lt;enter&gt;</kbd>: Enter file to add selected lines to the patch (or toggle directory collapsed)
   <kbd>`</kbd>: ファイルツリーの表示を切り替え
+  <kbd>/</kbd>: 検索を開始
 </pre>
 
 ## コミットメッセージ
@@ -135,6 +139,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>e</kbd>: サブモジュールのURLを更新
   <kbd>i</kbd>: サブモジュールを初期化
   <kbd>b</kbd>: View bulk submodule options
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## ステータス
@@ -156,6 +161,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: タグを作成
   <kbd>g</kbd>: View reset options
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## ファイル
@@ -182,6 +188,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>`</kbd>: ファイルツリーの表示を切り替え
   <kbd>M</kbd>: Git mergetoolを開く
   <kbd>f</kbd>: Fetch
+  <kbd>/</kbd>: 検索を開始
 </pre>
 
 ## ブランチ
@@ -205,6 +212,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: ブランチ名を変更
   <kbd>u</kbd>: Set/Unset upstream
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## メインパネル (Merging)
@@ -243,6 +251,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>e</kbd>: ファイルを編集
   <kbd>&lt;space&gt;</kbd>: 行をパッチに追加/削除
   <kbd>&lt;esc&gt;</kbd>: Exit custom patch builder
+  <kbd>/</kbd>: 検索を開始
 </pre>
 
 ## メインパネル (Staging)
@@ -264,6 +273,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>c</kbd>: 変更をコミット
   <kbd>w</kbd>: pre-commitフックを実行せずに変更をコミット
   <kbd>C</kbd>: gitエディタを使用して変更をコミット
+  <kbd>/</kbd>: 検索を開始
 </pre>
 
 ## メニュー
@@ -271,6 +281,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;enter&gt;</kbd>: 実行
   <kbd>&lt;esc&gt;</kbd>: 閉じる
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## リモート
@@ -280,6 +291,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: リモートを新規追加
   <kbd>d</kbd>: リモートを削除
   <kbd>e</kbd>: リモートを編集
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## リモートブランチ
@@ -292,9 +304,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>r</kbd>: Rebase checked-out branch onto this branch
   <kbd>d</kbd>: ブランチを削除
   <kbd>u</kbd>: Set as upstream of checked-out branch
-  <kbd>&lt;esc&gt;</kbd>: リモート一覧に戻る
   <kbd>g</kbd>: View reset options
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## 参照ログ
@@ -310,6 +322,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>C</kbd>: コミットを範囲コピー (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## 確認パネル

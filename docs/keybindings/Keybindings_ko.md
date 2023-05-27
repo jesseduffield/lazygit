@@ -36,8 +36,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>,</kbd>: 이전 페이지
   <kbd>.</kbd>: 다음 페이지
   <kbd>&lt;</kbd>: 맨 위로 스크롤 
-  <kbd>/</kbd>: 검색 시작
   <kbd>&gt;</kbd>: 맨 아래로 스크롤 
+  <kbd>/</kbd>: 검색 시작
   <kbd>H</kbd>: 우 스크롤
   <kbd>L</kbd>: 좌 스크롤
   <kbd>]</kbd>: 이전 탭
@@ -57,6 +57,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>C</kbd>: 커밋을 범위로 복사 (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## Stash
@@ -68,6 +69,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 새 브랜치 생성
   <kbd>r</kbd>: Rename stash
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## Sub-commits
@@ -83,6 +85,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>C</kbd>: 커밋을 범위로 복사 (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
+  <kbd>/</kbd>: 검색 시작
 </pre>
 
 ## 메뉴
@@ -90,6 +93,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;enter&gt;</kbd>: 실행
   <kbd>&lt;esc&gt;</kbd>: 닫기
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## 메인 패널 (Merging)
@@ -128,6 +132,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>e</kbd>: 파일 편집
   <kbd>&lt;space&gt;</kbd>: Line(s)을 패치에 추가/삭제
   <kbd>&lt;esc&gt;</kbd>: Exit custom patch builder
+  <kbd>/</kbd>: 검색 시작
 </pre>
 
 ## 메인 패널 (Staging)
@@ -149,6 +154,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>c</kbd>: 커밋 변경내용
   <kbd>w</kbd>: Commit changes without pre-commit hook
   <kbd>C</kbd>: Git 편집기를 사용하여 변경 내용을 커밋합니다.
+  <kbd>/</kbd>: 검색 시작
 </pre>
 
 ## 브랜치
@@ -172,6 +178,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: 브랜치 이름 변경
   <kbd>u</kbd>: Set/Unset upstream
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## 상태
@@ -195,6 +202,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>e</kbd>: 서브모듈의 URL을 수정
   <kbd>i</kbd>: 서브모듈 초기화
   <kbd>b</kbd>: View bulk submodule options
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## 원격
@@ -204,6 +212,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 새로운 Remote 추가
   <kbd>d</kbd>: Remote를 삭제
   <kbd>e</kbd>: Remote를 수정
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## 원격 브랜치
@@ -216,9 +225,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>r</kbd>: 체크아웃된 브랜치를 이 브랜치에 리베이스
   <kbd>d</kbd>: 브랜치 삭제
   <kbd>u</kbd>: Set as upstream of checked-out branch
-  <kbd>&lt;esc&gt;</kbd>: 원격목록으로 돌아가기
   <kbd>g</kbd>: View reset options
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## 커밋
@@ -252,6 +261,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>c</kbd>: 커밋을 복사 (cherry-pick)
   <kbd>C</kbd>: 커밋을 범위로 복사 (cherry-pick)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
+  <kbd>/</kbd>: 검색 시작
 </pre>
 
 ## 커밋 파일
@@ -266,6 +276,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>a</kbd>: Toggle all files included in patch
   <kbd>&lt;enter&gt;</kbd>: Enter file to add selected lines to the patch (or toggle directory collapsed)
   <kbd>`</kbd>: 파일 트리뷰로 전환
+  <kbd>/</kbd>: 검색 시작
 </pre>
 
 ## 커밋메시지
@@ -284,6 +295,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 태그를 생성
   <kbd>g</kbd>: View reset options
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
+  <kbd>/</kbd>: Filter the current view
 </pre>
 
 ## 파일
@@ -310,6 +322,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>`</kbd>: 파일 트리뷰로 전환
   <kbd>M</kbd>: Git mergetool를 열기
   <kbd>f</kbd>: Fetch
+  <kbd>/</kbd>: 검색 시작
 </pre>
 
 ## 확인 패널
