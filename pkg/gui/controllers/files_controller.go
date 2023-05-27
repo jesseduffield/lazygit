@@ -658,7 +658,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 }
 
 func (self *FilesController) setStatusFiltering(filter filetree.FileTreeDisplayFilter) error {
-	self.context().FileTreeViewModel.SetFilter(filter)
+	self.context().FileTreeViewModel.SetStatusFilter(filter)
 	return self.c.PostRefreshUpdate(self.context())
 }
 

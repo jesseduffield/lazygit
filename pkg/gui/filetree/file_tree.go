@@ -34,7 +34,7 @@ type IFileTree interface {
 	ITree[models.File]
 
 	FilterFiles(test func(*models.File) bool) []*models.File
-	SetFilter(filter FileTreeDisplayFilter)
+	SetStatusFilter(filter FileTreeDisplayFilter)
 	Get(index int) *FileNode
 	GetFile(path string) *models.File
 	GetAllItems() []*FileNode
@@ -91,7 +91,7 @@ func (self *FileTree) FilterFiles(test func(*models.File) bool) []*models.File {
 	return slices.Filter(self.getFiles(), test)
 }
 
-func (self *FileTree) SetFilter(filter FileTreeDisplayFilter) {
+func (self *FileTree) SetStatusFilter(filter FileTreeDisplayFilter) {
 	self.filter = filter
 	self.SetTree()
 }
@@ -102,7 +102,7 @@ func (self *FileTree) ToggleShowTree() {
 }
 
 func (self *FileTree) Get(index int) *FileNode {
-	// need to traverse the three depth first until we get to the index.
+	// need to traverse the tree depth first until we get to the index.
 	return NewFileNode(self.tree.GetNodeAtIndex(index+1, self.collapsedPaths)) // ignoring root
 }
 

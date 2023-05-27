@@ -10,6 +10,7 @@ import (
 )
 
 type CommitFilesContext struct {
+	*FilteredList[*models.CommitFile]
 	*filetree.CommitFileTreeViewModel
 	*ListContextTrait
 	*DynamicTitleBuilder
@@ -21,8 +22,13 @@ var (
 )
 
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
-	viewModel := filetree.NewCommitFileTreeViewModel(
+	filteredList := NewFilteredList(
 		func() []*models.CommitFile { return c.Model().CommitFiles },
+		func(file *models.CommitFile) []string { return []string{file.GetPath()} },
+	)
+
+	viewModel := filetree.NewCommitFileTreeViewModel(
+		func() []*models.CommitFile { return filteredList.GetFilteredList() },
 		c.Log,
 		c.UserConfig.Gui.ShowFileTree,
 	)
@@ -39,6 +45,7 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 	}
 
 	return &CommitFilesContext{
+		FilteredList:            filteredList,
 		CommitFileTreeViewModel: viewModel,
 		DynamicTitleBuilder:     NewDynamicTitleBuilder(c.Tr.CommitFilesDynamicTitle),
 		ListContextTrait: &ListContextTrait{
@@ -70,4 +77,18 @@ func (self *CommitFilesContext) GetSelectedItemId() string {
 
 func (self *CommitFilesContext) GetDiffTerminals() []string {
 	return []string{self.GetRef().RefName()}
+}
+
+// used for type switch
+func (self *CommitFilesContext) IsFilterableContext() {}
+
+// TODO: see if we can just call SetTree() within HandleRender(). It doesn't seem
+// right that we need to imperatively refresh the view model like this
+func (self *CommitFilesContext) SetFilter(filter string) {
+	self.FilteredList.SetFilter(filter)
+	self.SetTree()
+}
+
+func (self *CommitFilesContext) ClearFilter() {
+	self.SetFilter("")
 }

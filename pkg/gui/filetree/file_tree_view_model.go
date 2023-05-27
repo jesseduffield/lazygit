@@ -26,8 +26,6 @@ type FileTreeViewModel struct {
 
 var _ IFileTreeViewModel = &FileTreeViewModel{}
 
-// how to tackle this? We could just filter down the list of files at a high point and then the rest will take care of itself.
-
 func NewFileTreeViewModel(getFiles func() []*models.File, log *logrus.Entry, showTree bool) *FileTreeViewModel {
 	fileTree := NewFileTree(getFiles, log, showTree)
 	listCursor := traits.NewListCursor(fileTree)
@@ -128,8 +126,8 @@ func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNod
 	return -1
 }
 
-func (self *FileTreeViewModel) SetFilter(filter FileTreeDisplayFilter) {
-	self.IFileTree.SetFilter(filter)
+func (self *FileTreeViewModel) SetStatusFilter(filter FileTreeDisplayFilter) {
+	self.IFileTree.SetStatusFilter(filter)
 	self.IListCursor.SetSelectedLineIdx(0)
 }
 

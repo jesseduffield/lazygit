@@ -23,3 +23,7 @@ func (f *CommitFile) Added() bool {
 func (f *CommitFile) Deleted() bool {
 	return f.ChangeStatus == "D"
 }
+
+func (f *CommitFile) GetPath() string {
+	return f.Name
+}
