@@ -9,6 +9,7 @@ import (
 
 type PatchExplorerContext struct {
 	*SimpleContext
+	*SearchTrait
 
 	state                  *patch_exploring.State
 	viewTrait              *ViewTrait
@@ -28,7 +29,7 @@ func NewPatchExplorerContext(
 
 	c *ContextCommon,
 ) *PatchExplorerContext {
-	return &PatchExplorerContext{
+	ctx := &PatchExplorerContext{
 		state:                  nil,
 		viewTrait:              NewViewTrait(view),
 		c:                      c,
@@ -42,7 +43,18 @@ func NewPatchExplorerContext(
 			Focusable:        true,
 			HighlightOnFocus: true,
 		})),
+		SearchTrait: NewSearchTrait(c),
 	}
+
+	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(
+		func(selectedLineIdx int) error {
+			ctx.GetMutex().Lock()
+			defer ctx.GetMutex().Unlock()
+			return ctx.NavigateTo(ctx.c.IsCurrentContext(ctx), selectedLineIdx)
+		}),
+	)
+
+	return ctx
 }
 
 func (self *PatchExplorerContext) IsPatchExplorerContext() {}

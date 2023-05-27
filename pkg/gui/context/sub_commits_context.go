@@ -12,9 +12,12 @@ import (
 )
 
 type SubCommitsContext struct {
+	c *ContextCommon
+
 	*SubCommitsViewModel
 	*ListContextTrait
 	*DynamicTitleBuilder
+	*SearchTrait
 }
 
 var (
@@ -26,7 +29,7 @@ func NewSubCommitsContext(
 	c *ContextCommon,
 ) *SubCommitsContext {
 	viewModel := &SubCommitsViewModel{
-		BasicViewModel: NewBasicViewModel(
+		ListViewModel: NewListViewModel(
 			func() []*models.Commit { return c.Model().SubCommits },
 		),
 		ref:          nil,
@@ -60,8 +63,10 @@ func NewSubCommitsContext(
 		)
 	}
 
-	return &SubCommitsContext{
+	ctx := &SubCommitsContext{
+		c:                   c,
 		SubCommitsViewModel: viewModel,
+		SearchTrait:         NewSearchTrait(c),
 		DynamicTitleBuilder: NewDynamicTitleBuilder(c.Tr.SubCommitsDynamicTitle),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
@@ -78,12 +83,19 @@ func NewSubCommitsContext(
 			refreshViewportOnChange: true,
 		},
 	}
+
+	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
+		ctx.GetList().SetSelectedLineIdx(selectedLineIdx)
+		return ctx.HandleFocus(types.OnFocusOpts{})
+	}))
+
+	return ctx
 }
 
 type SubCommitsViewModel struct {
 	// name of the ref that the sub-commits are shown for
 	ref types.Ref
-	*BasicViewModel[*models.Commit]
+	*ListViewModel[*models.Commit]
 
 	limitCommits bool
 }

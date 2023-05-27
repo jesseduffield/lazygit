@@ -201,7 +201,7 @@ type GuiRepoState struct {
 	SplitMainPanel bool
 	LimitCommits   bool
 
-	Searching    searchingState
+	SearchState  *types.SearchState
 	StartupStage types.StartupStage // Allows us to not load everything at once
 
 	ContextMgr *ContextMgr
@@ -256,8 +256,12 @@ func (self *GuiRepoState) SetScreenMode(value types.WindowMaximisation) {
 	self.ScreenMode = value
 }
 
-func (self *GuiRepoState) IsSearching() bool {
-	return self.Searching.isSearching
+func (self *GuiRepoState) InSearchPrompt() bool {
+	return self.SearchState.SearchType() != types.SearchTypeNone
+}
+
+func (self *GuiRepoState) GetSearchState() *types.SearchState {
+	return self.SearchState
 }
 
 func (self *GuiRepoState) SetSplitMainPanel(value bool) {
@@ -266,12 +270,6 @@ func (self *GuiRepoState) SetSplitMainPanel(value bool) {
 
 func (self *GuiRepoState) GetSplitMainPanel() bool {
 	return self.SplitMainPanel
-}
-
-type searchingState struct {
-	view         *gocui.View
-	isSearching  bool
-	searchString string
 }
 
 func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool) error {
@@ -358,6 +356,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) types.
 		ContextMgr:        NewContextMgr(gui, contextTree),
 		Contexts:          contextTree,
 		WindowViewNameMap: initialWindowViewNameMap(contextTree),
+		SearchState:       types.NewSearchState(),
 	}
 
 	gui.RepoStateMap[Repo(currentDir)] = gui.State
@@ -584,11 +583,12 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	})
 	deadlock.Opts.Disable = !gui.Debug
 
-	gui.g.OnSearchEscape = gui.onSearchEscape
 	if err := gui.Config.ReloadUserConfig(); err != nil {
 		return nil
 	}
 	userConfig := gui.UserConfig
+
+	gui.g.OnSearchEscape = func() error { gui.helpers.Search.Cancel(); return nil }
 	gui.g.SearchEscapeKey = keybindings.GetKey(userConfig.Keybinding.Universal.Return)
 	gui.g.NextSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.NextMatch)
 	gui.g.PrevSearchMatchKey = keybindings.GetKey(userConfig.Keybinding.Universal.PrevMatch)

@@ -136,10 +136,6 @@ func (gui *Gui) getRandomTip() string {
 			formattedKey(config.Universal.Return),
 		),
 		fmt.Sprintf(
-			"To search for a string in your panel, press '%s'",
-			formattedKey(config.Universal.StartSearch),
-		),
-		fmt.Sprintf(
 			"You can page through the items of a panel using '%s' and '%s'",
 			formattedKey(config.Universal.PrevPage),
 			formattedKey(config.Universal.NextPage),

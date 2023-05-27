@@ -99,6 +99,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 			modeHelper,
 			appStatusHelper,
 		),
+		Search: helpers.NewSearchHelper(helperCommon),
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(
@@ -161,6 +162,16 @@ func (gui *Gui) resetHelpersAndControllers() {
 	jumpToSideWindowController := controllers.NewJumpToSideWindowController(common)
 
 	sideWindowControllerFactory := controllers.NewSideWindowControllerFactory(common)
+
+	filterControllerFactory := controllers.NewFilterControllerFactory(common)
+	for _, context := range gui.c.Context().AllFilterable() {
+		controllers.AttachControllers(context, filterControllerFactory.Create(context))
+	}
+
+	searchControllerFactory := controllers.NewSearchControllerFactory(common)
+	for _, context := range gui.c.Context().AllSearchable() {
+		controllers.AttachControllers(context, searchControllerFactory.Create(context))
+	}
 
 	// allow for navigating between side window contexts
 	for _, context := range []types.Context{
@@ -321,6 +332,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Suggestions,
 		suggestionsController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Search,
+		controllers.NewSearchPromptController(common),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Global,

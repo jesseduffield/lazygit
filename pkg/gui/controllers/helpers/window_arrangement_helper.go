@@ -55,7 +55,7 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 	self.c.Modes().Filtering.Active()
 
 	showInfoSection := self.c.UserConfig.Gui.ShowBottomLine ||
-		self.c.State().GetRepoState().IsSearching() ||
+		self.c.State().GetRepoState().InSearchPrompt() ||
 		self.modeHelper.IsAnyModeActive() ||
 		self.appStatusHelper.HasStatus()
 	infoSectionSize := 0
@@ -174,11 +174,17 @@ func (self *WindowArrangementHelper) getMidSectionWeights() (int, int) {
 }
 
 func (self *WindowArrangementHelper) infoSectionChildren(informationStr string, appStatus string) []*boxlayout.Box {
-	if self.c.State().GetRepoState().IsSearching() {
+	if self.c.State().GetRepoState().InSearchPrompt() {
+		var prefix string
+		if self.c.State().GetRepoState().GetSearchState().SearchType() == types.SearchTypeSearch {
+			prefix = self.c.Tr.SearchPrefix
+		} else {
+			prefix = self.c.Tr.FilterPrefix
+		}
 		return []*boxlayout.Box{
 			{
 				Window: "searchPrefix",
-				Size:   runewidth.StringWidth(self.c.Tr.SearchPrefix),
+				Size:   runewidth.StringWidth(prefix),
 			},
 			{
 				Window: "search",

@@ -95,6 +95,8 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.SearchPrefix.Frame = false
 	gui.c.SetViewContent(gui.Views.SearchPrefix, gui.Tr.SearchPrefix)
 
+	gui.Views.Search.Editor = gocui.EditorFunc(gui.searchEditor)
+
 	gui.Views.Stash.Title = gui.c.Tr.StashTitle
 
 	gui.Views.Commits.Title = gui.c.Tr.CommitsTitle

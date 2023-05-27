@@ -150,18 +150,7 @@ func (self *ListController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoTop), Handler: self.HandleGotoTop, Description: self.c.Tr.GotoTop},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollLeft), Handler: self.HandleScrollLeft},
 		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.ScrollRight), Handler: self.HandleScrollRight},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
-			Handler:     func() error { self.c.OpenSearch(); return nil },
-			Description: self.c.Tr.StartSearch,
-			Tag:         "navigation",
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.GotoBottom),
-			Description: self.c.Tr.GotoBottom,
-			Handler:     self.HandleGotoBottom,
-			Tag:         "navigation",
-		},
+		{Tag: "navigation", Key: opts.GetKey(opts.Config.Universal.GotoBottom), Handler: self.HandleGotoBottom, Description: self.c.Tr.GotoBottom},
 	}
 }
 

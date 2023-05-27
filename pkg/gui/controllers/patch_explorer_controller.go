@@ -124,12 +124,6 @@ func (self *PatchExplorerController) GetKeybindings(opts types.KeybindingsOpts) 
 			Handler: self.withRenderAndFocus(self.HandleScrollRight),
 		},
 		{
-			Tag:         "navigation",
-			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
-			Handler:     func() error { self.c.OpenSearch(); return nil },
-			Description: self.c.Tr.StartSearch,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Universal.CopyToClipboard),
 			Handler:     self.withLock(self.CopySelectedToClipboard),
 			Description: self.c.Tr.CopySelectedTexToClipboard,

@@ -200,9 +200,21 @@ func (self *ContextMgr) RemoveContexts(contextsToRemove []types.Context) error {
 func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLostOpts) error {
 	view, _ := self.gui.c.GocuiGui().View(c.GetViewName())
 
-	if view != nil && view.IsSearching() {
-		if err := self.gui.onSearchEscape(); err != nil {
-			return err
+	if opts.NewContextKey != context.SEARCH_CONTEXT_KEY {
+
+		if searchableContext, ok := c.(types.ISearchableContext); ok {
+			if view != nil && view.IsSearching() {
+				view.ClearSearch()
+				searchableContext.ClearSearchString()
+				self.gui.helpers.Search.Cancel()
+			}
+		}
+
+		if filterableContext, ok := c.(types.IFilterableContext); ok {
+			if filterableContext.GetFilter() != "" {
+				filterableContext.ClearFilter()
+				self.gui.helpers.Search.Cancel()
+			}
 		}
 	}
 
@@ -232,6 +244,17 @@ func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts)
 	self.gui.helpers.Window.MoveToTopOfWindow(c)
 	if _, err := self.gui.c.GocuiGui().SetCurrentView(viewName); err != nil {
 		return err
+	}
+
+	if searchableContext, ok := c.(types.ISearchableContext); ok {
+		if searchableContext.GetSearchString() != "" {
+			self.gui.helpers.Search.DisplaySearchPrompt(searchableContext)
+		}
+	}
+	if filterableContext, ok := c.(types.IFilterableContext); ok {
+		if filterableContext.GetFilter() != "" {
+			self.gui.helpers.Search.DisplayFilterPrompt(filterableContext)
+		}
 	}
 
 	desiredTitle := c.Title()
@@ -324,6 +347,30 @@ func (self *ContextMgr) ForEach(f func(types.Context)) {
 
 func (self *ContextMgr) IsCurrent(c types.Context) bool {
 	return self.Current().GetKey() == c.GetKey()
+}
+
+func (self *ContextMgr) AllFilterable() []types.IFilterableContext {
+	var result []types.IFilterableContext
+
+	for _, context := range self.allContexts.Flatten() {
+		if ctx, ok := context.(types.IFilterableContext); ok {
+			result = append(result, ctx)
+		}
+	}
+
+	return result
+}
+
+func (self *ContextMgr) AllSearchable() []types.ISearchableContext {
+	var result []types.ISearchableContext
+
+	for _, context := range self.allContexts.Flatten() {
+		if ctx, ok := context.(types.ISearchableContext); ok {
+			result = append(result, ctx)
+		}
+	}
+
+	return result
 }
 
 // all list contexts

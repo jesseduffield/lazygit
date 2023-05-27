@@ -87,6 +87,24 @@ type Context interface {
 	HandleRenderToMain() error
 }
 
+type IFilterableContext interface {
+	Context
+
+	SetFilter(string)
+	GetFilter() string
+	ClearFilter()
+	IsFilterableContext()
+}
+
+type ISearchableContext interface {
+	Context
+
+	SetSearchString(string)
+	GetSearchString() string
+	ClearSearchString()
+	IsSearchableContext()
+}
+
 type DiffableContext interface {
 	Context
 
@@ -104,7 +122,6 @@ type IListContext interface {
 
 	GetList() IList
 
-	OnSearchSelect(selectedLineIdx int) error
 	FocusLine()
 	IsListContext() // used for type switch
 }
@@ -211,5 +228,7 @@ type IContextMgr interface {
 	IsCurrent(c Context) bool
 	ForEach(func(Context))
 	AllList() []IListContext
+	AllFilterable() []IFilterableContext
+	AllSearchable() []ISearchableContext
 	AllPatchExplorer() []IPatchExplorerContext
 }

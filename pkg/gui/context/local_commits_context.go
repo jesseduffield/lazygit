@@ -13,6 +13,7 @@ import (
 type LocalCommitsContext struct {
 	*LocalCommitsViewModel
 	*ListContextTrait
+	*SearchTrait
 }
 
 var (
@@ -57,8 +58,9 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 		)
 	}
 
-	return &LocalCommitsContext{
+	ctx := &LocalCommitsContext{
 		LocalCommitsViewModel: viewModel,
+		SearchTrait:           NewSearchTrait(c),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:       c.Views().Commits,
@@ -73,6 +75,13 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			refreshViewportOnChange: true,
 		},
 	}
+
+	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
+		ctx.GetList().SetSelectedLineIdx(selectedLineIdx)
+		return ctx.HandleFocus(types.OnFocusOpts{})
+	}))
+
+	return ctx
 }
 
 func (self *LocalCommitsContext) GetSelectedItemId() string {
@@ -85,7 +94,7 @@ func (self *LocalCommitsContext) GetSelectedItemId() string {
 }
 
 type LocalCommitsViewModel struct {
-	*BasicViewModel[*models.Commit]
+	*ListViewModel[*models.Commit]
 
 	// If this is true we limit the amount of commits we load, for the sake of keeping things fast.
 	// If the user attempts to scroll past the end of the list, we will load more commits.
@@ -97,7 +106,7 @@ type LocalCommitsViewModel struct {
 
 func NewLocalCommitsViewModel(getModel func() []*models.Commit, c *ContextCommon) *LocalCommitsViewModel {
 	self := &LocalCommitsViewModel{
-		BasicViewModel:    NewBasicViewModel(getModel),
+		ListViewModel:     NewListViewModel(getModel),
 		limitCommits:      true,
 		showWholeGitGraph: c.UserConfig.Git.Log.ShowWholeGraph,
 	}

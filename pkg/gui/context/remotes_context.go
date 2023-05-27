@@ -7,7 +7,7 @@ import (
 )
 
 type RemotesContext struct {
-	*BasicViewModel[*models.Remote]
+	*FilteredListViewModel[*models.Remote]
 	*ListContextTrait
 }
 
@@ -17,14 +17,19 @@ var (
 )
 
 func NewRemotesContext(c *ContextCommon) *RemotesContext {
-	viewModel := NewBasicViewModel(func() []*models.Remote { return c.Model().Remotes })
+	viewModel := NewFilteredListViewModel(
+		func() []*models.Remote { return c.Model().Remotes },
+		func(remote *models.Remote) []string {
+			return []string{remote.Name}
+		},
+	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
-		return presentation.GetRemoteListDisplayStrings(c.Model().Remotes, c.Modes().Diffing.Ref)
+		return presentation.GetRemoteListDisplayStrings(viewModel.GetItems(), c.Modes().Diffing.Ref)
 	}
 
 	return &RemotesContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:       c.Views().Remotes,

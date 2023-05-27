@@ -371,6 +371,7 @@ type TranslationSet struct {
 	NextScreenMode                      string
 	PrevScreenMode                      string
 	StartSearch                         string
+	StartFilter                         string
 	Panel                               string
 	Keybindings                         string
 	KeybindingsLegend                   string
@@ -536,6 +537,7 @@ type TranslationSet struct {
 	MatchesFor                          string
 	SearchKeybindings                   string
 	SearchPrefix                        string
+	FilterPrefix                        string
 	ExitSearchMode                      string
 	Actions                             Actions
 	Bisect                              Bisect
@@ -1061,7 +1063,8 @@ func EnglishTranslationSet() TranslationSet {
 		ViewResetToUpstreamOptions:          "View upstream reset options",
 		NextScreenMode:                      "Next screen mode (normal/half/fullscreen)",
 		PrevScreenMode:                      "Prev screen mode",
-		StartSearch:                         "Start search",
+		StartSearch:                         "Search the current view",
+		StartFilter:                         "Filter the current view",
 		Panel:                               "Panel",
 		KeybindingsLegend:                   "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
 		RenameBranch:                        "Rename branch",
@@ -1226,6 +1229,7 @@ func EnglishTranslationSet() TranslationSet {
 		MatchesFor:                          "matches for '%s' (%d of %d) %s", // lowercase because it's after other text
 		SearchKeybindings:                   "%s: Next match, %s: Previous match, %s: Exit search mode",
 		SearchPrefix:                        "Search: ",
+		FilterPrefix:                        "Filter: ",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

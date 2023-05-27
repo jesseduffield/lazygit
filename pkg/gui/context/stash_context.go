@@ -7,7 +7,7 @@ import (
 )
 
 type StashContext struct {
-	*BasicViewModel[*models.StashEntry]
+	*FilteredListViewModel[*models.StashEntry]
 	*ListContextTrait
 }
 
@@ -19,14 +19,19 @@ var (
 func NewStashContext(
 	c *ContextCommon,
 ) *StashContext {
-	viewModel := NewBasicViewModel(func() []*models.StashEntry { return c.Model().StashEntries })
+	viewModel := NewFilteredListViewModel(
+		func() []*models.StashEntry { return c.Model().StashEntries },
+		func(stashEntry *models.StashEntry) []string {
+			return []string{stashEntry.Name}
+		},
+	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
-		return presentation.GetStashEntryListDisplayStrings(c.Model().StashEntries, c.Modes().Diffing.Ref)
+		return presentation.GetStashEntryListDisplayStrings(viewModel.GetItems(), c.Modes().Diffing.Ref)
 	}
 
 	return &StashContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:       c.Views().Stash,

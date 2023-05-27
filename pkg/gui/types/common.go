@@ -68,8 +68,6 @@ type IGuiCommon interface {
 	Context() IContextMgr
 
 	ActivateContext(context Context) error
-	// enters search mode for the current view
-	OpenSearch()
 
 	GetConfig() config.AppConfigurer
 	GetAppState() *config.AppState
@@ -251,7 +249,8 @@ type IRepoStateAccessor interface {
 	SetCurrentPopupOpts(*CreatePopupPanelOpts)
 	GetScreenMode() WindowMaximisation
 	SetScreenMode(WindowMaximisation)
-	IsSearching() bool
+	InSearchPrompt() bool
+	GetSearchState() *SearchState
 	SetSplitMainPanel(bool)
 	GetSplitMainPanel() bool
 }

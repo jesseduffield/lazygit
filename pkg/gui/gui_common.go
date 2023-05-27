@@ -128,10 +128,6 @@ func (self *guiCommon) Mutexes() types.Mutexes {
 	return self.gui.Mutexes
 }
 
-func (self *guiCommon) OpenSearch() {
-	_ = self.gui.handleOpenSearch(self.gui.currentViewName())
-}
-
 func (self *guiCommon) GocuiGui() *gocui.Gui {
 	return self.gui.g
 }
