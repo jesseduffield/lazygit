@@ -1,8 +1,6 @@
 package context
 
 import (
-	"strings"
-
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -35,6 +33,10 @@ func (self *FilteredList[T]) ClearFilter() {
 	self.SetFilter("")
 }
 
+func (self *FilteredList[T]) IsFiltering() bool {
+	return self.filter != ""
+}
+
 func (self *FilteredList[T]) GetFilteredList() []T {
 	if self.filteredIndices == nil {
 		return self.getList()
@@ -54,11 +56,15 @@ func (self *FilteredList[T]) applyFilter() {
 		self.filteredIndices = []int{}
 		for i, item := range self.getList() {
 			for _, field := range self.getFilterFields(item) {
-				if strings.Contains(field, self.filter) {
+				if self.match(field, self.filter) {
 					self.filteredIndices = append(self.filteredIndices, i)
 					break
 				}
 			}
 		}
 	}
+}
+
+func (self *FilteredList[T]) match(haystack string, needle string) bool {
+	return utils.CaseInsensitiveContains(haystack, needle)
 }

@@ -32,7 +32,6 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
-		c.Log.Warn("in get display strings")
 		lines := presentation.RenderFileTree(viewModel, c.Modes().Diffing.Ref, c.Model().Submodules)
 		return slices.Map(lines, func(line string) []string {
 			return []string{line}
