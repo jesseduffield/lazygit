@@ -68,3 +68,7 @@ func (self *SearchTrait) onSelectItemWrapper(innerFunc func(int) error) func(int
 		return nil
 	}
 }
+
+func (self *SearchTrait) IsSearching() bool {
+	return self.searchString != ""
+}

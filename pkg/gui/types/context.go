@@ -93,6 +93,7 @@ type IFilterableContext interface {
 	SetFilter(string)
 	GetFilter() string
 	ClearFilter()
+	IsFiltering() bool
 	IsFilterableContext()
 }
 
@@ -102,6 +103,7 @@ type ISearchableContext interface {
 	SetSearchString(string)
 	GetSearchString() string
 	ClearSearchString()
+	IsSearching() bool
 	IsSearchableContext()
 }
 

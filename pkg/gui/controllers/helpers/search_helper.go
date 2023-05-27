@@ -138,10 +138,6 @@ func (self *SearchHelper) ConfirmFilter() error {
 func (self *SearchHelper) ConfirmSearch() error {
 	state := self.searchState()
 
-	if err := self.c.PopContext(); err != nil {
-		return err
-	}
-
 	context, ok := state.Context.(types.ISearchableContext)
 	if !ok {
 		self.c.Log.Warnf("Context %s is searchable", state.Context.GetKey())
@@ -152,6 +148,10 @@ func (self *SearchHelper) ConfirmSearch() error {
 	context.SetSearchString(searchString)
 
 	view := context.GetView()
+
+	if err := self.c.PopContext(); err != nil {
+		return err
+	}
 
 	if err := view.Search(searchString); err != nil {
 		return err
@@ -171,9 +171,10 @@ func (self *SearchHelper) Cancel() {
 
 	switch context := state.Context.(type) {
 	case types.IFilterableContext:
-		context.SetFilter("")
+		context.ClearFilter()
 		_ = self.c.PostRefreshUpdate(context)
 	case types.ISearchableContext:
+		context.ClearSearchString()
 		context.GetView().ClearSearch()
 	default:
 		// do nothing

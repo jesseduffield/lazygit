@@ -211,7 +211,7 @@ func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLos
 		}
 
 		if filterableContext, ok := c.(types.IFilterableContext); ok {
-			if filterableContext.GetFilter() != "" {
+			if filterableContext.IsFiltering() {
 				filterableContext.ClearFilter()
 				self.gui.helpers.Search.Cancel()
 			}
@@ -247,12 +247,12 @@ func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts)
 	}
 
 	if searchableContext, ok := c.(types.ISearchableContext); ok {
-		if searchableContext.GetSearchString() != "" {
+		if searchableContext.IsSearching() {
 			self.gui.helpers.Search.DisplaySearchPrompt(searchableContext)
 		}
 	}
 	if filterableContext, ok := c.(types.IFilterableContext); ok {
-		if filterableContext.GetFilter() != "" {
+		if filterableContext.IsFiltering() {
 			self.gui.helpers.Search.DisplayFilterPrompt(filterableContext)
 		}
 	}

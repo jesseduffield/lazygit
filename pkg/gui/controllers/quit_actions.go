@@ -50,6 +50,19 @@ func (self *QuitActions) confirmQuitDuringUpdate() error {
 func (self *QuitActions) Escape() error {
 	currentContext := self.c.CurrentContext()
 
+	switch ctx := currentContext.(type) {
+	case types.IFilterableContext:
+		if ctx.IsFiltering() {
+			self.c.Helpers().Search.Cancel()
+			return nil
+		}
+	case types.ISearchableContext:
+		if ctx.IsSearching() {
+			self.c.Helpers().Search.Cancel()
+			return nil
+		}
+	}
+
 	parentContext, hasParent := currentContext.GetParentContext()
 	if hasParent && currentContext != nil && parentContext != nil {
 		// TODO: think about whether this should be marked as a return rather than adding to the stack
