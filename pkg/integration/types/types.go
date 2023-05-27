@@ -13,6 +13,7 @@ import (
 type IntegrationTest interface {
 	Run(GuiDriver)
 	SetupConfig(config *config.AppConfig)
+	Name() string
 }
 
 // this is the interface through which our integration tests interact with the lazygit gui

@@ -82,11 +82,8 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	_, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 300, Cols: 300})
 
 	if err != nil {
-		panic(err)
 		return err
 	}
-
-	fmt.Println("about to wait")
 
 	_ = cmd.Wait()
 
@@ -99,7 +96,6 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	if !result.Success {
 		return errors.New(result.Message)
 	}
-	fmt.Printf("test succeeded")
 
 	return nil
 }

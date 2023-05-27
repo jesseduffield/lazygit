@@ -35,14 +35,12 @@ func RunTests(
 	projectRootDir := utils.GetLazyRootDirectory()
 	err := os.Chdir(projectRootDir)
 	if err != nil {
-		panic(err)
 		return err
 	}
 
 	testDir := filepath.Join(projectRootDir, "test", "results")
 
 	if err := buildLazygit(); err != nil {
-		panic(err)
 		return err
 	}
 
@@ -63,7 +61,6 @@ func RunTests(
 				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, keyPressDelay, gitVersion)
 				if err != nil {
 					if i == maxAttempts-1 {
-						panic(err)
 						return err
 					}
 					logf("retrying test %s", test.Name())
@@ -100,18 +97,17 @@ func runTest(
 	}
 
 	if err := prepareTestDir(test, paths, projectRootDir); err != nil {
-		panic(err)
 		return err
 	}
 
 	cmd, err := getLazygitCommand(test, paths, projectRootDir, sandbox, keyPressDelay)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	err = runCmd(cmd)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	return nil
@@ -164,7 +160,6 @@ func getGitVersion() (*git_commands.GitVersion, error) {
 	cmdObj := osCommand.Cmd.New([]string{"git", "--version"})
 	versionStr, err := cmdObj.RunWithOutput()
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 	return git_commands.ParseGitVersion(versionStr)
@@ -175,14 +170,12 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandb
 
 	err := os.RemoveAll(paths.Config())
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 
 	templateConfigDir := filepath.Join(rootDir, "test", "default_test_config")
 	err = oscommands.CopyDir(templateConfigDir, paths.Config())
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 

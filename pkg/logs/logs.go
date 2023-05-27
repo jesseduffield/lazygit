@@ -35,6 +35,7 @@ func NewProductionLogger() *logrus.Entry {
 }
 
 func NewDevelopmentLogger(logPath string) *logrus.Entry {
+	logPath = `C:\Users\New\AppData\Roaming\jesseduffield\lazygit\development.log`
 	logger := logrus.New()
 	logger.SetLevel(getLogLevel())
 

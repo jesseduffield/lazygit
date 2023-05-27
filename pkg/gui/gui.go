@@ -617,6 +617,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	gui.c.Log.Info("starting main loop")
 
+	defer gui.handlePanicInTest(startArgs.IntegrationTest)
 	gui.handleTestMode(startArgs.IntegrationTest)
 
 	return gui.g.MainLoop()

@@ -19,45 +19,53 @@ type IntegrationTest interface {
 }
 
 func (gui *Gui) handleTestMode(test integrationTypes.IntegrationTest) {
-	if os.Getenv(components.SANDBOX_ENV_VAR) == "true" {
+	if os.Getenv(components.SANDBOX_ENV_VAR) == "true" || test == nil {
 		return
 	}
 
-	if test != nil {
-		go func() {
-			time.Sleep(time.Millisecond * 100)
+	go func() {
+		defer gui.handlePanicInTest(test)
 
-			defer handlePanic()
+		time.Sleep(time.Millisecond * 100)
 
-			guiDriver := &GuiDriver{gui: gui}
-			test.Run(guiDriver)
+		guiDriver := &GuiDriver{gui: gui}
+		test.Run(guiDriver)
 
-			// if we're here then the test must have passed: it panics upon failure
-			if err := result.LogSuccess(); err != nil {
-				panic(err)
-			}
+		// if we're here then the test must have passed: it panics upon failure
+		gui.Log.Warnf("test %s logging success", test.Name())
+		if err := result.LogSuccess(); err != nil {
+			gui.Log.Warnf("test %s failed to log success!", test.Name())
+			panic(err)
+		}
 
-			gui.g.Update(func(*gocui.Gui) error {
-				return gocui.ErrQuit
-			})
-
-			time.Sleep(time.Second * 1)
-
-			log.Fatal("gocui should have already exited")
-		}()
-
-		go utils.Safe(func() {
-			time.Sleep(time.Second * 40)
-			log.Fatal("40 seconds is up, lazygit recording took too long to complete")
+		gui.g.Update(func(*gocui.Gui) error {
+			return gocui.ErrQuit
 		})
-	}
+
+		time.Sleep(time.Second * 1)
+
+		log.Fatal("gocui should have already exited")
+	}()
+
+	go utils.Safe(func() {
+		defer gui.handlePanicInTest(test)
+
+		time.Sleep(time.Second * 40)
+		panic("40 seconds is up, lazygit recording took too long to complete")
+	})
 }
 
-func handlePanic() {
+func (gui *Gui) handlePanicInTest(test integrationTypes.IntegrationTest) {
+	if test == nil {
+		return
+	}
+
 	if r := recover(); r != nil {
 		buf := make([]byte, 4096*4) // arbitrarily large buffer size
 		stackSize := runtime.Stack(buf, false)
 		stackTrace := string(buf[:stackSize])
+
+		gui.Log.Warnf("test %s panicked!", test.Name())
 
 		if err := result.LogFailure(fmt.Sprintf("%v\n%s", r, stackTrace)); err != nil {
 			panic(err)
