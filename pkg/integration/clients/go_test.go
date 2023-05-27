@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"testing"
+	"time"
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
@@ -88,6 +89,8 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	fmt.Println("about to wait")
 
 	_ = cmd.Wait()
+
+	time.Sleep(time.Second)
 
 	result, err := result.ReadResult(resultPath)
 	if err != nil {

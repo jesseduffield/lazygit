@@ -40,7 +40,6 @@ func success() IntegrationTestResult {
 func writeResult(result IntegrationTestResult) error {
 	resultPath := os.Getenv(PathEnvVar)
 	if resultPath == "" {
-		panic("path env var not set!")
 		// path env var not set so we'll assume we don't need to write the result to a file
 		return nil
 	}

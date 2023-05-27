@@ -21,7 +21,7 @@ import (
 var Global *logrus.Entry
 
 func init() {
-	logPath := os.Getenv("LAZYGIT_LOG_PATH")
+	logPath := `C:\Users\New\AppData\Roaming\jesseduffield\lazygit\development.log`
 	if logPath != "" {
 		Global = NewDevelopmentLogger(logPath)
 	}
