@@ -195,3 +195,36 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 		// do nothing (shouldn't land here)
 	}
 }
+
+func (self *SearchHelper) DisplaySearchInfoIfSearching(c types.Context) {
+	if searchableContext, ok := c.(types.ISearchableContext); ok {
+		if searchableContext.IsSearching() {
+			self.DisplaySearchPrompt(searchableContext)
+		}
+	}
+	if filterableContext, ok := c.(types.IFilterableContext); ok {
+		if filterableContext.IsFiltering() {
+			self.DisplayFilterPrompt(filterableContext)
+		}
+	}
+}
+
+func (self *SearchHelper) CancelSearchIfSearching(c types.Context) {
+	if searchableContext, ok := c.(types.ISearchableContext); ok {
+		view := searchableContext.GetView()
+		if view != nil && view.IsSearching() {
+			view.ClearSearch()
+			searchableContext.ClearSearchString()
+			self.Cancel()
+		}
+		return
+	}
+
+	if filterableContext, ok := c.(types.IFilterableContext); ok {
+		if filterableContext.IsFiltering() {
+			filterableContext.ClearFilter()
+			self.Cancel()
+		}
+		return
+	}
+}

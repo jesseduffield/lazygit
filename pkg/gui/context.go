@@ -201,21 +201,7 @@ func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLos
 	view, _ := self.gui.c.GocuiGui().View(c.GetViewName())
 
 	if opts.NewContextKey != context.SEARCH_CONTEXT_KEY {
-
-		if searchableContext, ok := c.(types.ISearchableContext); ok {
-			if view != nil && view.IsSearching() {
-				view.ClearSearch()
-				searchableContext.ClearSearchString()
-				self.gui.helpers.Search.Cancel()
-			}
-		}
-
-		if filterableContext, ok := c.(types.IFilterableContext); ok {
-			if filterableContext.IsFiltering() {
-				filterableContext.ClearFilter()
-				self.gui.helpers.Search.Cancel()
-			}
-		}
+		self.gui.helpers.Search.CancelSearchIfSearching(c)
 	}
 
 	// if we are the kind of context that is sent to back upon deactivation, we should do that
@@ -246,16 +232,7 @@ func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts)
 		return err
 	}
 
-	if searchableContext, ok := c.(types.ISearchableContext); ok {
-		if searchableContext.IsSearching() {
-			self.gui.helpers.Search.DisplaySearchPrompt(searchableContext)
-		}
-	}
-	if filterableContext, ok := c.(types.IFilterableContext); ok {
-		if filterableContext.IsFiltering() {
-			self.gui.helpers.Search.DisplayFilterPrompt(filterableContext)
-		}
-	}
+	self.gui.helpers.Search.DisplaySearchInfoIfSearching(c)
 
 	desiredTitle := c.Title()
 	if desiredTitle != "" {
