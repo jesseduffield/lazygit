@@ -17,7 +17,7 @@ type Localizer struct {
 
 func NewTranslationSetFromConfig(log *logrus.Entry, configLanguage string) (*TranslationSet, error) {
 	if configLanguage == "auto" {
-		language := detectLanguage(jibber_jabber.DetectLanguage)
+		language := detectLanguage(jibber_jabber.DetectIETF)
 		return NewTranslationSet(log, language), nil
 	}
 
@@ -46,12 +46,13 @@ func NewTranslationSet(log *logrus.Entry, language string) *TranslationSet {
 // GetTranslationSets gets all the translation sets, keyed by language code
 func GetTranslationSets() map[string]TranslationSet {
 	return map[string]TranslationSet{
-		"pl": polishTranslationSet(),
-		"nl": dutchTranslationSet(),
-		"en": EnglishTranslationSet(),
-		"zh": chineseTranslationSet(),
-		"ja": japaneseTranslationSet(),
-		"ko": koreanTranslationSet(),
+		"pl":    polishTranslationSet(),
+		"nl":    dutchTranslationSet(),
+		"en":    EnglishTranslationSet(),
+		"zh-CN": chineseTranslationSet(), // Simplified Chinese
+		"zh-TW": traditionalChineseTranslationSet(),
+		"ja":    japaneseTranslationSet(),
+		"ko":    koreanTranslationSet(),
 	}
 }
 

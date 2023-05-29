@@ -2,8 +2,8 @@
 
 Todo list when making a new translation
 - Copy this file and rename it to the language you want to translate to like someLanguage.go
-- Change the addEnglish() name to the language you want to translate to like addSomeLanguage()
-- change the first function argument of i18nObject.AddMessages( to the language you want to translate to like language.SomeLanguage
+- Change the EnglishTranslationSet() name to the language you want to translate to like SomeLanguageTranslationSet()
+- Add an entry of someLanguage in GetTranslationSets()
 - Remove this todo and the about section
 
 */
