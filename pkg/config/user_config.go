@@ -358,16 +358,14 @@ type CustomCommand struct {
 }
 
 type CustomCommandPrompt struct {
-	Key string `yaml:"key"`
-
 	// one of 'input', 'menu', 'confirm', or 'menuFromCommand'
-	Type string `yaml:"type"`
-
+	Type  string `yaml:"type"`
+	Key   string `yaml:"key"`
 	Title string `yaml:"title"`
 
-	// this only apply to input prompts
-	InitialValue      string `yaml:"initialValue"`
-	SuggestionsPreset string `yaml:"suggestionsPreset"`
+	// these only apply to input prompts
+	InitialValue string                   `yaml:"initialValue"`
+	Suggestions  CustomCommandSuggestions `yaml:"suggestions"`
 
 	// this only applies to confirm prompts
 	Body string `yaml:"body"`
@@ -380,6 +378,11 @@ type CustomCommandPrompt struct {
 	Filter      string `yaml:"filter"`
 	ValueFormat string `yaml:"valueFormat"`
 	LabelFormat string `yaml:"labelFormat"`
+}
+
+type CustomCommandSuggestions struct {
+	Preset  string `yaml:"preset"`
+	Command string `yaml:"command"`
 }
 
 type CustomCommandMenuOption struct {

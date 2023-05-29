@@ -34,7 +34,12 @@ func (self *Resolver) resolvePrompt(
 		return nil, err
 	}
 
-	result.SuggestionsPreset, err = resolveTemplate(prompt.SuggestionsPreset)
+	result.Suggestions.Preset, err = resolveTemplate(prompt.Suggestions.Preset)
+	if err != nil {
+		return nil, err
+	}
+
+	result.Suggestions.Command, err = resolveTemplate(prompt.Suggestions.Command)
 	if err != nil {
 		return nil, err
 	}

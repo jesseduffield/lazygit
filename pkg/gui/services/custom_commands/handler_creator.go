@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 // takes a custom command and returns a function that will be called when the corresponding user-defined keybinding is pressed
@@ -108,13 +109,9 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 }
 
 func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
-	var findSuggestionsFn func(string) []*types.Suggestion
-	if prompt.SuggestionsPreset != "" {
-		var err error
-		findSuggestionsFn, err = self.getPresetSuggestionsFn(prompt.SuggestionsPreset)
-		if err != nil {
-			return err
-		}
+	findSuggestionsFn, err := self.generateFindSuggestionsFunc(prompt)
+	if err != nil {
+		return self.c.Error(err)
 	}
 
 	return self.c.Prompt(types.PromptOpts{
@@ -125,6 +122,41 @@ func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrap
 			return wrappedF(str)
 		},
 	})
+}
+
+func (self *HandlerCreator) generateFindSuggestionsFunc(prompt *config.CustomCommandPrompt) (func(string) []*types.Suggestion, error) {
+	if prompt.Suggestions.Preset != "" && prompt.Suggestions.Command != "" {
+		return nil, fmt.Errorf(
+			fmt.Sprintf(
+				"Custom command prompt cannot have both a preset and a command for suggestions. Preset: '%s', Command: '%s'",
+				prompt.Suggestions.Preset,
+				prompt.Suggestions.Command,
+			),
+		)
+	} else if prompt.Suggestions.Preset != "" {
+		return self.getPresetSuggestionsFn(prompt.Suggestions.Preset)
+	} else if prompt.Suggestions.Command != "" {
+		return self.getCommandSuggestionsFn(prompt.Suggestions.Command)
+	}
+
+	return nil, nil
+}
+
+func (self *HandlerCreator) getCommandSuggestionsFn(command string) (func(string) []*types.Suggestion, error) {
+	lines := []*types.Suggestion{}
+	err := self.c.OS().Cmd.NewShell(command).RunAndProcessLines(func(line string) (bool, error) {
+		lines = append(lines, &types.Suggestion{Value: line, Label: line})
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return func(currentWord string) []*types.Suggestion {
+		return lo.Filter(lines, func(suggestion *types.Suggestion, _ int) bool {
+			return strings.Contains(strings.ToLower(suggestion.Value), strings.ToLower(currentWord))
+		})
+	}, nil
 }
 
 func (self *HandlerCreator) getPresetSuggestionsFn(preset string) (func(string) []*types.Suggestion, error) {
@@ -144,6 +176,14 @@ func (self *HandlerCreator) getPresetSuggestionsFn(preset string) (func(string) 
 	}
 }
 
+func (self *HandlerCreator) confirmPrompt(prompt *config.CustomCommandPrompt, handleConfirm func() error) error {
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:         prompt.Title,
+		Prompt:        prompt.Body,
+		HandleConfirm: handleConfirm,
+	})
+}
+
 func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
 	menuItems := slices.Map(prompt.Options, func(option config.CustomCommandMenuOption) *types.MenuItem {
 		return &types.MenuItem{
@@ -155,14 +195,6 @@ func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrapp
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{Title: prompt.Title, Items: menuItems})
-}
-
-func (self *HandlerCreator) confirmPrompt(prompt *config.CustomCommandPrompt, handleConfirm func() error) error {
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:         prompt.Title,
-		Prompt:        prompt.Body,
-		HandleConfirm: handleConfirm,
-	})
 }
 
 func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
