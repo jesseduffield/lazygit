@@ -1,6 +1,7 @@
 package custom_commands
 
 import (
+	"fmt"
 	"strings"
 	"text/template"
 
@@ -18,11 +19,13 @@ type HandlerCreator struct {
 	sessionStateLoader *SessionStateLoader
 	resolver           *Resolver
 	menuGenerator      *MenuGenerator
+	suggestionsHelper  *helpers.SuggestionsHelper
 }
 
 func NewHandlerCreator(
 	c *helpers.HelperCommon,
 	sessionStateLoader *SessionStateLoader,
+	suggestionsHelper *helpers.SuggestionsHelper,
 ) *HandlerCreator {
 	resolver := NewResolver(c.Common)
 	menuGenerator := NewMenuGenerator(c.Common)
@@ -32,6 +35,7 @@ func NewHandlerCreator(
 		sessionStateLoader: sessionStateLoader,
 		resolver:           resolver,
 		menuGenerator:      menuGenerator,
+		suggestionsHelper:  suggestionsHelper,
 	}
 }
 
@@ -104,13 +108,40 @@ func (self *HandlerCreator) call(customCommand config.CustomCommand) func() erro
 }
 
 func (self *HandlerCreator) inputPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
+	var findSuggestionsFn func(string) []*types.Suggestion
+	if prompt.SuggestionsPreset != "" {
+		var err error
+		findSuggestionsFn, err = self.getPresetSuggestionsFn(prompt.SuggestionsPreset)
+		if err != nil {
+			return err
+		}
+	}
+
 	return self.c.Prompt(types.PromptOpts{
-		Title:          prompt.Title,
-		InitialContent: prompt.InitialValue,
+		Title:               prompt.Title,
+		InitialContent:      prompt.InitialValue,
+		FindSuggestionsFunc: findSuggestionsFn,
 		HandleConfirm: func(str string) error {
 			return wrappedF(str)
 		},
 	})
+}
+
+func (self *HandlerCreator) getPresetSuggestionsFn(preset string) (func(string) []*types.Suggestion, error) {
+	switch preset {
+	case "files":
+		return self.suggestionsHelper.GetFilePathSuggestionsFunc(), nil
+	case "branches":
+		return self.suggestionsHelper.GetBranchNameSuggestionsFunc(), nil
+	case "remotes":
+		return self.suggestionsHelper.GetRemoteSuggestionsFunc(), nil
+	case "remoteBranches":
+		return self.suggestionsHelper.GetRemoteBranchesSuggestionsFunc("/"), nil
+	case "refs":
+		return self.suggestionsHelper.GetRefsSuggestionsFunc(), nil
+	default:
+		return nil, fmt.Errorf("Unknown value for suggestionsPreset in custom command: %s. Valid values: files, branches, remotes, remoteBranches, refs", preset)
+	}
 }
 
 func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {

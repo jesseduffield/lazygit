@@ -107,6 +107,7 @@ The permitted prompt fields are:
 | type              | one of 'input', 'menu', or 'confirm'                                                           | yes        |
 | title             | the title to display in the popup panel                                                        | no         |
 | initialValue      | (only applicable to 'input' prompts) the initial value to appear in the text box               | no         |
+| suggestionsPreset | (only applicable to 'input prompts'. Shows suggestions as the value is typed. One of 'files', 'branches', 'remotes', 'remoteBranches', refs'.                                 | no         |
 | body              | (only applicable to 'confirm' prompts) the immutable body text to appear in the text box       | no         |
 | options           | (only applicable to 'menu' prompts) the options to display in the menu                         | no         |
 | command           | (only applicable to 'menuFromCommand' prompts) the command to run to generate                  | yes        |

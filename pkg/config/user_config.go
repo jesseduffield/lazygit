@@ -366,7 +366,8 @@ type CustomCommandPrompt struct {
 	Title string `yaml:"title"`
 
 	// this only apply to input prompts
-	InitialValue string `yaml:"initialValue"`
+	InitialValue      string `yaml:"initialValue"`
+	SuggestionsPreset string `yaml:"suggestionsPreset"`
 
 	// this only applies to confirm prompts
 	Body string `yaml:"body"`

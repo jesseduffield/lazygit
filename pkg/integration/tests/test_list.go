@@ -77,6 +77,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.MenuFromCommandsOutput,
 	custom_commands.MultiplePrompts,
 	custom_commands.OmitFromHistory,
+	custom_commands.SuggestionsPreset,
 	diff.Diff,
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,

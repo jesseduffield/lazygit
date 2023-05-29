@@ -19,7 +19,7 @@ func NewClient(
 	helpers *helpers.Helpers,
 ) *Client {
 	sessionStateLoader := NewSessionStateLoader(c, helpers.Refs)
-	handlerCreator := NewHandlerCreator(c, sessionStateLoader)
+	handlerCreator := NewHandlerCreator(c, sessionStateLoader, helpers.Suggestions)
 	keybindingCreator := NewKeybindingCreator(c)
 	customCommands := c.UserConfig.CustomCommands
 
