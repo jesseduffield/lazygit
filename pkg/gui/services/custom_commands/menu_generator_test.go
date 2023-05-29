@@ -14,7 +14,7 @@ func TestMenuGenerator(t *testing.T) {
 		filter      string
 		valueFormat string
 		labelFormat string
-		test        func([]*commandMenuEntry, error)
+		test        func([]*commandMenuItem, error)
 	}
 
 	scenarios := []scenario{
@@ -24,7 +24,7 @@ func TestMenuGenerator(t *testing.T) {
 			"(?P<remote>[a-z_]+)/(?P<branch>.*)",
 			"{{ .branch }}",
 			"Remote: {{ .remote }}",
-			func(actualEntry []*commandMenuEntry, err error) {
+			func(actualEntry []*commandMenuItem, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "pr-1", actualEntry[0].value)
 				assert.EqualValues(t, "Remote: upstream", actualEntry[0].label)
@@ -36,7 +36,7 @@ func TestMenuGenerator(t *testing.T) {
 			"(?P<remote>[a-z]*)/(?P<branch>.*)",
 			"{{ .branch }}|{{ .remote }}",
 			"",
-			func(actualEntry []*commandMenuEntry, err error) {
+			func(actualEntry []*commandMenuItem, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].value)
 				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].label)
@@ -48,10 +48,34 @@ func TestMenuGenerator(t *testing.T) {
 			"(?P<remote>[a-z]*)/(?P<branch>.*)",
 			"{{ .group_2 }}|{{ .group_1 }}",
 			"Remote: {{ .group_1 }}",
-			func(actualEntry []*commandMenuEntry, err error) {
+			func(actualEntry []*commandMenuItem, err error) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].value)
 				assert.EqualValues(t, "Remote: upstream", actualEntry[0].label)
+			},
+		},
+		{
+			"No named groups",
+			"upstream/pr-1",
+			"([a-z]*)/(.*)",
+			"{{ .group_2 }}|{{ .group_1 }}",
+			"Remote: {{ .group_1 }}",
+			func(actualEntry []*commandMenuItem, err error) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, "pr-1|upstream", actualEntry[0].value)
+				assert.EqualValues(t, "Remote: upstream", actualEntry[0].label)
+			},
+		},
+		{
+			"No filter",
+			"upstream/pr-1",
+			"",
+			"",
+			"",
+			func(actualEntry []*commandMenuItem, err error) {
+				assert.NoError(t, err)
+				assert.EqualValues(t, "upstream/pr-1", actualEntry[0].value)
+				assert.EqualValues(t, "upstream/pr-1", actualEntry[0].label)
 			},
 		},
 	}

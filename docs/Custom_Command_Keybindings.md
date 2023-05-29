@@ -264,6 +264,20 @@ Here's an example using unnamed groups:
         labelFormat: '{{ .group_1 | green }}'
 ```
 
+Here's an example using a command but not specifying anything else: so each line from the command becomes the value and label of the menu items
+
+```yml
+  - key : 'a'
+    description: 'Checkout a remote branch as FETCH_HEAD'
+    command: "open {{.Form.File | quote}}"
+    context: 'global'
+    prompts:
+      - type: 'menuFromCommand'
+        title: 'File:'
+        key: 'File'
+        command: 'ls'
+```
+
 ## Placeholder values
 
 Your commands can contain placeholder strings using Go's [template syntax](https://jan.newmarch.name/golang/template/chapter-template.html). The template syntax is pretty powerful, letting you do things like conditionals if you want, but for the most part you'll simply want to be accessing the fields on the following objects:

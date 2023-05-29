@@ -210,7 +210,7 @@ func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPr
 		return self.c.Error(err)
 	}
 
-	menuItems := slices.Map(candidates, func(candidate *commandMenuEntry) *types.MenuItem {
+	menuItems := slices.Map(candidates, func(candidate *commandMenuItem) *types.MenuItem {
 		return &types.MenuItem{
 			LabelColumns: []string{candidate.label},
 			OnPress: func() error {
