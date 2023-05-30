@@ -113,7 +113,7 @@ func (r *keyring) Unlock(passphrase []byte) error {
 
 // expireKeysLocked removes expired keys from the keyring. If a key was added
 // with a lifetimesecs contraint and seconds >= lifetimesecs seconds have
-// ellapsed, it is removed. The caller *must* be holding the keyring mutex.
+// elapsed, it is removed. The caller *must* be holding the keyring mutex.
 func (r *keyring) expireKeysLocked() {
 	for _, k := range r.keys {
 		if k.expire != nil && time.Now().After(*k.expire) {
@@ -205,9 +205,9 @@ func (r *keyring) SignWithFlags(key ssh.PublicKey, data []byte, flags SignatureF
 					var algorithm string
 					switch flags {
 					case SignatureFlagRsaSha256:
-						algorithm = ssh.SigAlgoRSASHA2256
+						algorithm = ssh.KeyAlgoRSASHA256
 					case SignatureFlagRsaSha512:
-						algorithm = ssh.SigAlgoRSASHA2512
+						algorithm = ssh.KeyAlgoRSASHA512
 					default:
 						return nil, fmt.Errorf("agent: unsupported signature flags: %d", flags)
 					}

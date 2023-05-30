@@ -268,7 +268,7 @@ func HashIdToString(id byte) (name string, ok bool) {
 	return "", false
 }
 
-// HashIdToHash returns an OpenPGP hash id which corresponds the given Hash.
+// HashToHashId returns an OpenPGP hash id which corresponds the given Hash.
 func HashToHashId(h crypto.Hash) (id byte, ok bool) {
 	for _, m := range hashToHashIdMapping {
 		if m.hash == h {
