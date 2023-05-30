@@ -185,9 +185,6 @@ github.com/jesseduffield/lazycore/pkg/utils
 # github.com/jesseduffield/minimal/gitignore v0.3.3-0.20211018110810-9cde264e6b1e
 ## explicit; go 1.15
 github.com/jesseduffield/minimal/gitignore
-# github.com/jesseduffield/yaml v2.1.0+incompatible
-## explicit
-github.com/jesseduffield/yaml
 # github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 ## explicit
 github.com/kardianos/osext
