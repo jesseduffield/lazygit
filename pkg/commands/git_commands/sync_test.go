@@ -92,3 +92,40 @@ func TestSyncPush(t *testing.T) {
 		})
 	}
 }
+
+func TestSyncFetch(t *testing.T) {
+	type scenario struct {
+		testName string
+		opts     FetchOptions
+		test     func(oscommands.ICmdObj)
+	}
+
+	scenarios := []scenario{
+		{
+			testName: "Fetch in foreground",
+			opts:     FetchOptions{Background: false},
+			test: func(cmdObj oscommands.ICmdObj) {
+				assert.True(t, cmdObj.ShouldLog())
+				assert.Equal(t, cmdObj.GetCredentialStrategy(), oscommands.PROMPT)
+				assert.Equal(t, cmdObj.Args(), []string{"git", "fetch"})
+			},
+		},
+		{
+			testName: "Fetch in background",
+			opts:     FetchOptions{Background: true},
+			test: func(cmdObj oscommands.ICmdObj) {
+				assert.False(t, cmdObj.ShouldLog())
+				assert.Equal(t, cmdObj.GetCredentialStrategy(), oscommands.FAIL)
+				assert.Equal(t, cmdObj.Args(), []string{"git", "fetch"})
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			instance := buildSyncCommands(commonDeps{})
+			s.test(instance.FetchCmdObj(s.opts))
+		})
+	}
+}
