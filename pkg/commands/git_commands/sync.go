@@ -53,7 +53,7 @@ type FetchOptions struct {
 }
 
 // Fetch fetch git repo
-func (self *SyncCommands) Fetch(opts FetchOptions) error {
+func (self *SyncCommands) FetchCmdObj(opts FetchOptions) oscommands.ICmdObj {
 	cmdArgs := NewGitCmd("fetch").ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
@@ -62,7 +62,12 @@ func (self *SyncCommands) Fetch(opts FetchOptions) error {
 	} else {
 		cmdObj.PromptOnCredentialRequest()
 	}
-	return cmdObj.WithMutex(self.syncMutex).Run()
+	return cmdObj.WithMutex(self.syncMutex)
+}
+
+func (self *SyncCommands) Fetch(opts FetchOptions) error {
+	cmdObj := self.FetchCmdObj(opts)
+	return cmdObj.Run()
 }
 
 type PullOptions struct {
