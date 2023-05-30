@@ -22,12 +22,41 @@ func NewMenuGenerator(c *common.Common) *MenuGenerator {
 	return &MenuGenerator{c: c}
 }
 
-type commandMenuEntry struct {
+type commandMenuItem struct {
 	label string
 	value string
 }
 
-func (self *MenuGenerator) call(commandOutput, filter, valueFormat, labelFormat string) ([]*commandMenuEntry, error) {
+func (self *MenuGenerator) call(commandOutput, filter, valueFormat, labelFormat string) ([]*commandMenuItem, error) {
+	menuItemFromLine, err := self.getMenuItemFromLinefn(filter, valueFormat, labelFormat)
+	if err != nil {
+		return nil, err
+	}
+
+	menuItems := []*commandMenuItem{}
+	for _, line := range strings.Split(commandOutput, "\n") {
+		if line == "" {
+			continue
+		}
+
+		menuItem, err := menuItemFromLine(line)
+		if err != nil {
+			return nil, err
+		}
+		menuItems = append(menuItems, menuItem)
+	}
+
+	return menuItems, nil
+}
+
+func (self *MenuGenerator) getMenuItemFromLinefn(filter string, valueFormat string, labelFormat string) (func(line string) (*commandMenuItem, error), error) {
+	if filter == "" && valueFormat == "" && labelFormat == "" {
+		// showing command output lines as-is in suggestions panel
+		return func(line string) (*commandMenuItem, error) {
+			return &commandMenuItem{label: line, value: line}, nil
+		}, nil
+	}
+
 	regex, err := regexp.Compile(filter)
 	if err != nil {
 		return nil, errors.New("unable to parse filter regex, error: " + err.Error())
@@ -51,37 +80,25 @@ func (self *MenuGenerator) call(commandOutput, filter, valueFormat, labelFormat 
 		labelTemplate = valueTemplate
 	}
 
-	candidates := []*commandMenuEntry{}
-	for _, line := range strings.Split(commandOutput, "\n") {
-		if line == "" {
-			continue
-		}
-
-		candidate, err := self.generateMenuCandidate(
+	return func(line string) (*commandMenuItem, error) {
+		return self.generateMenuItem(
 			line,
 			regex,
 			valueTemplate,
 			labelTemplate,
 		)
-		if err != nil {
-			return nil, err
-		}
-
-		candidates = append(candidates, candidate)
-	}
-
-	return candidates, err
+	}, nil
 }
 
-func (self *MenuGenerator) generateMenuCandidate(
+func (self *MenuGenerator) generateMenuItem(
 	line string,
 	regex *regexp.Regexp,
 	valueTemplate *TrimmerTemplate,
 	labelTemplate *TrimmerTemplate,
-) (*commandMenuEntry, error) {
+) (*commandMenuItem, error) {
 	tmplData := self.parseLine(line, regex)
 
-	entry := &commandMenuEntry{}
+	entry := &commandMenuItem{}
 
 	var err error
 	entry.value, err = valueTemplate.execute(tmplData)

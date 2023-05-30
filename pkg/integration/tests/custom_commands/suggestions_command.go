@@ -5,8 +5,8 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var SuggestionsPreset = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Using a custom command that uses a suggestions preset in a prompt step",
+var SuggestionsCommand = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Using a custom command that uses a suggestions command in a prompt step",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
@@ -31,7 +31,7 @@ var SuggestionsPreset = NewIntegrationTest(NewIntegrationTestArgs{
 						Type:  "input",
 						Title: "Enter a branch name",
 						Suggestions: config.CustomCommandSuggestions{
-							Preset: "branches",
+							Command: "git branch --format='%(refname:short)'",
 						},
 					},
 				},
