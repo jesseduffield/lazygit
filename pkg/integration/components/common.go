@@ -19,9 +19,9 @@ func (self *Common) ContinueRebase() {
 }
 
 func (self *Common) AcknowledgeConflicts() {
-	self.t.ExpectPopup().Confirmation().
-		Title(Equals("Auto-merge failed")).
-		Content(Contains("Conflicts!")).
+	self.t.ExpectPopup().Menu().
+		Title(Equals("Conflicts!")).
+		Select(Contains("View conflicts")).
 		Confirm()
 }
 

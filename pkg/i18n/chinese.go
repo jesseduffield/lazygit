@@ -175,7 +175,6 @@ func chineseTranslationSet() TranslationSet {
 		ReturnToFilesPanel:                  `返回文件面板`,
 		FastForward:                         `从上游快进此分支`,
 		Fetching:                            "抓取并快进 {{.from}} -> {{.to}} ...",
-		FoundConflicts:                      "冲突！需要中止操作请按‘esc’, 否则按‘enter’",
 		FoundConflictsTitle:                 "自动合并失败",
 		ViewMergeRebaseOptions:              "查看 合并/变基 选项",
 		NotMergingOrRebasing:                "您目前既不进行变基也不进行合并",

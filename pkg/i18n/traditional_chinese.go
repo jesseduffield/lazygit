@@ -240,7 +240,6 @@ func traditionalChineseTranslationSet() TranslationSet {
 		ReturnToFilesPanel:                  `返回檔案面板`,
 		FastForward:                         `從上游快進此分支`,
 		Fetching:                            "{{.from}} -> {{.to}} 的擷取和快進中...",
-		FoundConflicts:                      "衝突！按 'esc' 退出，否則按 'enter'",
 		FoundConflictsTitle:                 "自動合併失敗",
 		ViewMergeRebaseOptions:              "查看合併/變基選項",
 		NotMergingOrRebasing:                "你當前既不在變基也不在合併中",
