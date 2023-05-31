@@ -39,6 +39,7 @@ var tests = []*components.IntegrationTest{
 	branch.CreateTag,
 	branch.Delete,
 	branch.DetachedHead,
+	branch.OpenPullRequestNoUpstream,
 	branch.OpenWithCliArg,
 	branch.Rebase,
 	branch.RebaseAbortOnConflict,

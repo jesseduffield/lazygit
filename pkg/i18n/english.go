@@ -224,6 +224,7 @@ type TranslationSet struct {
 	FwdNoUpstream                       string
 	FwdNoLocalUpstream                  string
 	FwdCommitsToPush                    string
+	PullRequestNoUpstream               string
 	ErrorOccurred                       string
 	NoRoom                              string
 	YouAreHere                          string
@@ -1019,6 +1020,7 @@ func EnglishTranslationSet() TranslationSet {
 		FwdNoUpstream:                       "Cannot fast-forward a branch with no upstream",
 		FwdNoLocalUpstream:                  "Cannot fast-forward a branch whose remote is not registered locally",
 		FwdCommitsToPush:                    "Cannot fast-forward a branch with commits to push",
+		PullRequestNoUpstream:               "Cannot open a pull request for a branch with no upstream",
 		ErrorOccurred:                       "An error occurred! Please create an issue at",
 		NoRoom:                              "Not enough room",
 		YouAreHere:                          "YOU ARE HERE",

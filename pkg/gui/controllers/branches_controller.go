@@ -296,7 +296,10 @@ func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktr
 }
 
 func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {
-	return self.createPullRequest(selectedBranch.Name, "")
+	if !selectedBranch.IsTrackingRemote() {
+		return self.c.ErrorMsg(self.c.Tr.PullRequestNoUpstream)
+	}
+	return self.createPullRequest(selectedBranch.UpstreamBranch, "")
 }
 
 func (self *BranchesController) handleCreatePullRequestMenu(selectedBranch *models.Branch) error {
@@ -655,7 +658,7 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 			{
 				LabelColumns: fromToLabelColumns(branch.Name, self.c.Tr.DefaultBranch),
 				OnPress: func() error {
-					return self.createPullRequest(branch.Name, "")
+					return self.handleCreatePullRequest(branch)
 				},
 			},
 			{
@@ -663,7 +666,7 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 				OnPress: func() error {
 					return self.c.Prompt(types.PromptOpts{
 						Title:               branch.Name + " →",
-						FindSuggestionsFunc: self.c.Helpers().Suggestions.GetBranchNameSuggestionsFunc(),
+						FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteBranchesSuggestionsFunc("/"),
 						HandleConfirm: func(targetBranchName string) error {
 							return self.createPullRequest(branch.Name, targetBranchName)
 						},
@@ -678,7 +681,10 @@ func (self *BranchesController) createPullRequestMenu(selectedBranch *models.Bra
 			&types.MenuItem{
 				LabelColumns: fromToLabelColumns(checkedOutBranch.Name, selectedBranch.Name),
 				OnPress: func() error {
-					return self.createPullRequest(checkedOutBranch.Name, selectedBranch.Name)
+					if !checkedOutBranch.IsTrackingRemote() || !selectedBranch.IsTrackingRemote() {
+						return self.c.ErrorMsg(self.c.Tr.PullRequestNoUpstream)
+					}
+					return self.createPullRequest(checkedOutBranch.UpstreamBranch, selectedBranch.UpstreamBranch)
 				},
 			},
 		)
