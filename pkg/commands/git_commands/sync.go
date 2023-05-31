@@ -50,16 +50,11 @@ func (self *SyncCommands) Push(opts PushOpts) error {
 
 type FetchOptions struct {
 	Background bool
-	RemoteName string
-	BranchName string
 }
 
 // Fetch fetch git repo
 func (self *SyncCommands) Fetch(opts FetchOptions) error {
-	cmdArgs := NewGitCmd("fetch").
-		ArgIf(opts.RemoteName != "", opts.RemoteName).
-		ArgIf(opts.BranchName != "", opts.BranchName).
-		ToArgv()
+	cmdArgs := NewGitCmd("fetch").ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
 	if opts.Background {
