@@ -6,6 +6,7 @@ import (
 
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
@@ -15,15 +16,27 @@ import (
 
 var branchPrefixColorCache = make(map[string]style.TextStyle)
 
-func GetBranchListDisplayStrings(branches []*models.Branch, fullDescription bool, diffName string, tr *i18n.TranslationSet) [][]string {
+func GetBranchListDisplayStrings(
+	branches []*models.Branch,
+	fullDescription bool,
+	diffName string,
+	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
+) [][]string {
 	return slices.Map(branches, func(branch *models.Branch) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, fullDescription, diffed, tr)
+		return getBranchDisplayStrings(branch, fullDescription, diffed, tr, userConfig)
 	})
 }
 
 // getBranchDisplayStrings returns the display string of branch
-func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool, tr *i18n.TranslationSet) []string {
+func getBranchDisplayStrings(
+	b *models.Branch,
+	fullDescription bool,
+	diffed bool,
+	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
+) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
 		displayName = b.DisplayName
@@ -43,12 +56,18 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 		recencyColor = style.FgGreen
 	}
 
-	res := make([]string, 0, 4)
+	res := make([]string, 0, 6)
 	res = append(res, recencyColor.Sprint(b.Recency))
 	if icons.IsIconEnabled() {
 		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
 	}
+
+	if fullDescription || userConfig.Gui.ShowBranchCommitHash {
+		res = append(res, b.CommitHash)
+	}
+
 	res = append(res, coloredName)
+
 	if fullDescription {
 		res = append(
 			res,
@@ -56,6 +75,7 @@ func getBranchDisplayStrings(b *models.Branch, fullDescription bool, diffed bool
 				style.FgYellow.Sprint(b.UpstreamRemote),
 				style.FgYellow.Sprint(b.UpstreamBranch),
 			),
+			utils.TruncateWithEllipsis(b.Subject, 60),
 		)
 	}
 	return res

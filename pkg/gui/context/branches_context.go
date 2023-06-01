@@ -25,6 +25,7 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().Diffing.Ref,
 			c.Tr,
+			c.UserConfig,
 		)
 	}
 

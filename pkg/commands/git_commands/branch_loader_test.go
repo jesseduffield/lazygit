@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestObtainBanch(t *testing.T) {
+func TestObtainBranch(t *testing.T) {
 	type scenario struct {
 		testName       string
 		input          []string
@@ -17,29 +17,65 @@ func TestObtainBanch(t *testing.T) {
 
 	scenarios := []scenario{
 		{
-			testName:       "TrimHeads",
-			input:          []string{"", "heads/a_branch", "", ""},
-			expectedBranch: &models.Branch{Name: "a_branch", Pushables: "?", Pullables: "?", Head: false},
+			testName: "TrimHeads",
+			input:    []string{"", "heads/a_branch", "", "", "subject", "123"},
+			expectedBranch: &models.Branch{
+				Name:       "a_branch",
+				Pushables:  "?",
+				Pullables:  "?",
+				Head:       false,
+				Subject:    "subject",
+				CommitHash: "123",
+			},
 		},
 		{
-			testName:       "NoUpstream",
-			input:          []string{"", "a_branch", "", ""},
-			expectedBranch: &models.Branch{Name: "a_branch", Pushables: "?", Pullables: "?", Head: false},
+			testName: "NoUpstream",
+			input:    []string{"", "a_branch", "", "", "subject", "123"},
+			expectedBranch: &models.Branch{
+				Name:       "a_branch",
+				Pushables:  "?",
+				Pullables:  "?",
+				Head:       false,
+				Subject:    "subject",
+				CommitHash: "123",
+			},
 		},
 		{
-			testName:       "IsHead",
-			input:          []string{"*", "a_branch", "", ""},
-			expectedBranch: &models.Branch{Name: "a_branch", Pushables: "?", Pullables: "?", Head: true},
+			testName: "IsHead",
+			input:    []string{"*", "a_branch", "", "", "subject", "123"},
+			expectedBranch: &models.Branch{
+				Name:       "a_branch",
+				Pushables:  "?",
+				Pullables:  "?",
+				Head:       true,
+				Subject:    "subject",
+				CommitHash: "123",
+			},
 		},
 		{
-			testName:       "IsBehindAndAhead",
-			input:          []string{"", "a_branch", "a_remote/a_branch", "[behind 2, ahead 3]"},
-			expectedBranch: &models.Branch{Name: "a_branch", Pushables: "3", Pullables: "2", Head: false},
+			testName: "IsBehindAndAhead",
+			input:    []string{"", "a_branch", "a_remote/a_branch", "[behind 2, ahead 3]", "subject", "123"},
+			expectedBranch: &models.Branch{
+				Name:       "a_branch",
+				Pushables:  "3",
+				Pullables:  "2",
+				Head:       false,
+				Subject:    "subject",
+				CommitHash: "123",
+			},
 		},
 		{
-			testName:       "RemoteBranchIsGone",
-			input:          []string{"", "a_branch", "a_remote/a_branch", "[gone]"},
-			expectedBranch: &models.Branch{Name: "a_branch", UpstreamGone: true, Pushables: "?", Pullables: "?", Head: false},
+			testName: "RemoteBranchIsGone",
+			input:    []string{"", "a_branch", "a_remote/a_branch", "[gone]", "subject", "123"},
+			expectedBranch: &models.Branch{
+				Name:         "a_branch",
+				UpstreamGone: true,
+				Pushables:    "?",
+				Pullables:    "?",
+				Head:         false,
+				Subject:      "subject",
+				CommitHash:   "123",
+			},
 		},
 	}
 
