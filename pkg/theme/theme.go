@@ -7,8 +7,11 @@ import (
 )
 
 var (
+	// DefaultTextColor is the default text color
+	DefaultTextColor = style.FgDefault
+
 	// GocuiDefaultTextColor does the same as DefaultTextColor but this one only colors gocui default text colors
-	GocuiDefaultTextColor gocui.Attribute
+	GocuiDefaultTextColor = gocui.ColorDefault
 
 	// ActiveBorderColor is the border color of the active frame
 	ActiveBorderColor gocui.Attribute
@@ -20,9 +23,6 @@ var (
 	GocuiSelectedLineBgColor gocui.Attribute
 
 	OptionsColor gocui.Attribute
-
-	// DefaultTextColor is the default text color
-	DefaultTextColor = style.FgWhite
 
 	// SelectedLineBgColor is the background color for the selected line
 	SelectedLineBgColor = style.New()
