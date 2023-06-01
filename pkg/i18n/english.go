@@ -181,8 +181,9 @@ type TranslationSet struct {
 	ReturnToFilesPanel                  string
 	FastForward                         string
 	Fetching                            string
-	FoundConflicts                      string
 	FoundConflictsTitle                 string
+	ViewConflictsMenuItem               string
+	AbortMenuItem                       string
 	PickHunk                            string
 	PickAllHunks                        string
 	ViewMergeRebaseOptions              string
@@ -867,8 +868,9 @@ func EnglishTranslationSet() TranslationSet {
 		ReturnToFilesPanel:                  `Return to files panel`,
 		FastForward:                         `Fast-forward this branch from its upstream`,
 		Fetching:                            "Fetching and fast-forwarding {{.from}} -> {{.to}} ...",
-		FoundConflicts:                      "Conflicts! To abort press 'esc', otherwise press 'enter'",
-		FoundConflictsTitle:                 "Auto-merge failed",
+		FoundConflictsTitle:                 "Conflicts!",
+		ViewConflictsMenuItem:               "View conflicts",
+		AbortMenuItem:                       "Abort the %s",
 		ViewMergeRebaseOptions:              "View merge/rebase options",
 		NotMergingOrRebasing:                "You are currently neither rebasing nor merging",
 		AlreadyRebasing:                     "Can't perform this action during a rebase",

@@ -138,15 +138,26 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
 		// assume in this case that we're already done
 		return nil
 	} else if isMergeConflictErr(result.Error()) {
-		return self.c.Confirm(types.ConfirmOpts{
-			Title:  self.c.Tr.FoundConflictsTitle,
-			Prompt: self.c.Tr.FoundConflicts,
-			HandleConfirm: func() error {
-				return self.c.PushContext(self.c.Contexts().Files)
+		mode := self.workingTreeStateNoun()
+		return self.c.Menu(types.CreateMenuOptions{
+			Title: self.c.Tr.FoundConflictsTitle,
+			Items: []*types.MenuItem{
+				{
+					Label: self.c.Tr.ViewConflictsMenuItem,
+					OnPress: func() error {
+						return self.c.PushContext(self.c.Contexts().Files)
+					},
+					Key: 'v',
+				},
+				{
+					Label: fmt.Sprintf(self.c.Tr.AbortMenuItem, mode),
+					OnPress: func() error {
+						return self.genericMergeCommand(REBASE_OPTION_ABORT)
+					},
+					Key: 'a',
+				},
 			},
-			HandleClose: func() error {
-				return self.genericMergeCommand(REBASE_OPTION_ABORT)
-			},
+			HideCancel: true,
 		})
 	} else {
 		return self.c.ErrorMsg(result.Error())
