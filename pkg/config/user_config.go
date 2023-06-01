@@ -81,6 +81,7 @@ type GitConfig struct {
 	SkipHookPrefix      string                        `yaml:"skipHookPrefix"`
 	AutoFetch           bool                          `yaml:"autoFetch"`
 	AutoRefresh         bool                          `yaml:"autoRefresh"`
+	FetchAll            bool                          `yaml:"fetchAll"`
 	BranchLogCmd        string                        `yaml:"branchLogCmd"`
 	AllBranchesLogCmd   string                        `yaml:"allBranchesLogCmd"`
 	OverrideGpg         bool                          `yaml:"overrideGpg"`
@@ -453,6 +454,7 @@ func GetDefaultConfig() *UserConfig {
 			MainBranches:        []string{"master", "main"},
 			AutoFetch:           true,
 			AutoRefresh:         true,
+			FetchAll:            true,
 			BranchLogCmd:        "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --",
 			AllBranchesLogCmd:   "git log --graph --all --color=always --abbrev-commit --decorate --date=relative  --pretty=medium",
 			DisableForcePushing: false,
