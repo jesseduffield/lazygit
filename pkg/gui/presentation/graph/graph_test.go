@@ -509,6 +509,18 @@ func TestGetNextPipes(t *testing.T) {
 				{fromPos: 1, toPos: 1, fromSha: "d", toSha: "e", kind: STARTS, style: style.FgDefault},
 			},
 		},
+		{
+			prevPipes: []*Pipe{
+				{fromPos: 0, toPos: 0, fromSha: "a", toSha: "root", kind: TERMINATES, style: style.FgDefault},
+			},
+			commit: &models.Commit{
+				Sha:     "root",
+				Parents: []string{},
+			},
+			expected: []*Pipe{
+				{fromPos: 1, toPos: 1, fromSha: "root", toSha: models.EmptyTreeCommitHash, kind: STARTS, style: style.FgDefault},
+			},
+		},
 	}
 
 	for _, test := range tests {
