@@ -21,7 +21,7 @@ type ListContextTrait struct {
 	// TODO: now that we allow scrolling, we should be smarter about what gets refreshed:
 	// we should find out exactly which lines are now part of the path and refresh those.
 	// We should also keep track of the previous path and refresh those lines too.
-	refreshViewportOnLineFocus bool
+	refreshViewportOnChange bool
 }
 
 func (self *ListContextTrait) IsListContext() {}
@@ -34,7 +34,7 @@ func (self *ListContextTrait) FocusLine() {
 	self.GetViewTrait().FocusPoint(self.list.GetSelectedLineIdx())
 	self.setFooter()
 
-	if self.refreshViewportOnLineFocus {
+	if self.refreshViewportOnChange {
 		self.refreshViewport()
 	}
 }
@@ -64,6 +64,10 @@ func (self *ListContextTrait) HandleFocus(opts types.OnFocusOpts) error {
 
 func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) error {
 	self.GetViewTrait().SetOriginX(0)
+
+	if self.refreshViewportOnChange {
+		self.refreshViewport()
+	}
 
 	return self.Context.HandleFocusLost(opts)
 }

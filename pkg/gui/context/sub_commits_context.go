@@ -72,10 +72,10 @@ func NewSubCommitsContext(
 				Focusable:  true,
 				Transient:  true,
 			})),
-			list:                       viewModel,
-			getDisplayStrings:          getDisplayStrings,
-			c:                          c,
-			refreshViewportOnLineFocus: true,
+			list:                    viewModel,
+			getDisplayStrings:       getDisplayStrings,
+			c:                       c,
+			refreshViewportOnChange: true,
 		},
 	}
 }
