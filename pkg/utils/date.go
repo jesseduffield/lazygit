@@ -7,17 +7,54 @@ import (
 
 func UnixToTimeAgo(timestamp int64) string {
 	now := time.Now().Unix()
-	delta := float64(now - timestamp)
-	// we go seconds, minutes, hours, days, weeks, months, years
-	conversions := []float64{60, 60, 24, 7, 4.34524, 12}
-	labels := []string{"s", "m", "h", "d", "w", "m", "y"}
-	for i, conversion := range conversions {
-		if delta < conversion {
-			return fmt.Sprintf("%d%s", int(delta), labels[i])
+	return formatSecondsAgo(now - timestamp)
+}
+
+const (
+	SECONDS_IN_SECOND = 1
+	SECONDS_IN_MINUTE = 60
+	SECONDS_IN_HOUR   = 3600
+	SECONDS_IN_DAY    = 86400
+	SECONDS_IN_WEEK   = 604800
+	SECONDS_IN_YEAR   = 31536000
+	SECONDS_IN_MONTH  = SECONDS_IN_YEAR / 12
+)
+
+type period struct {
+	label           string
+	secondsInPeriod int64
+}
+
+var periods = []period{
+	{"s", SECONDS_IN_SECOND},
+	{"m", SECONDS_IN_MINUTE},
+	{"h", SECONDS_IN_HOUR},
+	{"d", SECONDS_IN_DAY},
+	{"w", SECONDS_IN_WEEK},
+	// we're using 'm' for both minutes and months which is ambiguous but
+	// disambiguating with another character feels like overkill.
+	{"m", SECONDS_IN_MONTH},
+	{"y", SECONDS_IN_YEAR},
+}
+
+func formatSecondsAgo(secondsAgo int64) string {
+	for i, period := range periods {
+		if i == 0 {
+			continue
 		}
-		delta /= conversion
+
+		if secondsAgo < period.secondsInPeriod {
+			return fmt.Sprintf("%d%s",
+				secondsAgo/periods[i-1].secondsInPeriod,
+				periods[i-1].label,
+			)
+		}
 	}
-	return fmt.Sprintf("%dy", int(delta))
+
+	return fmt.Sprintf("%d%s",
+		secondsAgo/periods[len(periods)-1].secondsInPeriod,
+		periods[len(periods)-1].label,
+	)
 }
 
 // formats the date in a smart way, if the date is today, it will show the time, otherwise it will show the date
