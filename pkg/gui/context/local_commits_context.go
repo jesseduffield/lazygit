@@ -67,10 +67,10 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
 			})),
-			list:                       viewModel,
-			getDisplayStrings:          getDisplayStrings,
-			c:                          c,
-			refreshViewportOnLineFocus: true,
+			list:                    viewModel,
+			getDisplayStrings:       getDisplayStrings,
+			c:                       c,
+			refreshViewportOnChange: true,
 		},
 	}
 }

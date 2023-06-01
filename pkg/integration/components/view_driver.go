@@ -133,6 +133,34 @@ func (self *ViewDriver) ContainsLines(matchers ...*Matcher) *ViewDriver {
 	return self
 }
 
+func (self *ViewDriver) ContainsColoredText(fgColorStr string, text string) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		ok := self.getView().ContainsColoredText(fgColorStr, text)
+		if !ok {
+			return false, fmt.Sprintf("expected view '%s' to contain colored text '%s' but it didn't", view.Name(), text)
+		}
+
+		return true, ""
+	})
+
+	return self
+}
+
+func (self *ViewDriver) DoesNotContainColoredText(fgColorStr string, text string) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		view := self.getView()
+		ok := !self.getView().ContainsColoredText(fgColorStr, text)
+		if !ok {
+			return false, fmt.Sprintf("expected view '%s' to NOT contain colored text '%s' but it didn't", view.Name(), text)
+		}
+
+		return true, ""
+	})
+
+	return self
+}
+
 // asserts on the lines that are selected in the view. Don't use the `IsSelected` matcher with this because it's redundant.
 func (self *ViewDriver) SelectedLines(matchers ...*Matcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
