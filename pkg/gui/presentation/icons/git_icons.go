@@ -52,6 +52,22 @@ func IconForCommit(commit *models.Commit) string {
 	return COMMIT_ICON
 }
 
+func IconForPull() string {
+	if IsIconEnabled() {
+		return PULL_ICON + " "
+	} else {
+		return "↓"
+	}
+}
+
+func IconForPush() string {
+	if IsIconEnabled() {
+		return PUSH_ICON + " "
+	} else {
+		return "↑"
+	}
+}
+
 func IconForRemote(remote *models.Remote) string {
 	for _, r := range remoteIcons {
 		for _, url := range remote.Urls {
