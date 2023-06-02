@@ -14,6 +14,8 @@ const (
 	MERGE_COMMIT_ICON   = "\ufb2c" // שּׁ
 	DEFAULT_REMOTE_ICON = "\uf7a1" // 
 	STASH_ICON          = "\uf01c" // 
+	PULL_ICON           = "\ueb40" // 
+	PUSH_ICON           = "\ueb41" // 
 )
 
 type remoteIcon struct {
