@@ -222,12 +222,18 @@ func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 // e.g. in the case of switching branches.
 func (self *RefreshHelper) refreshCommits() {
 	wg := sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(3)
 
 	go utils.Safe(func() {
 		self.refreshReflogCommitsConsideringStartup()
 
 		self.refreshBranches()
+		wg.Done()
+	})
+
+	go utils.Safe(func() {
+		self.refreshCommitStore()
+
 		wg.Done()
 	})
 
@@ -252,6 +258,16 @@ func (self *RefreshHelper) refreshCommits() {
 	})
 
 	wg.Wait()
+}
+
+func (self *RefreshHelper) refreshCommitStore() {
+	self.c.Mutexes().CommitStoreMutex.Lock()
+	defer self.c.Mutexes().CommitStoreMutex.Unlock()
+
+	err := self.c.Git().Loaders.CommitStoreLoader.Load(self.c.Model().CommitStore)
+	if err != nil {
+		_ = self.c.Error(err)
+	}
 }
 
 func (self *RefreshHelper) refreshCommitsWithLimit() error {

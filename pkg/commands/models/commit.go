@@ -18,7 +18,6 @@ const (
 	StatusPushed
 	StatusMerged
 	StatusRebasing
-	StatusSelected
 	StatusReflog
 )
 
@@ -30,18 +29,21 @@ const (
 
 // Commit : A git commit
 type Commit struct {
-	Sha           string
+	// TODO: rename to hash
+	Sha string
+	// Commit message subject line
 	Name          string
-	Status        CommitStatus
-	Action        todo.TodoCommand
-	Tags          []string
-	ExtraInfo     string // something like 'HEAD -> master, tag: v0.15.2'
 	AuthorName    string // something like 'Jesse Duffield'
 	AuthorEmail   string // something like 'jessedduffield@gmail.com'
 	UnixTimestamp int64
-
 	// SHAs of parent commits (will be multiple if it's a merge commit)
 	Parents []string
+
+	// mutable fields
+	Status    CommitStatus
+	Action    todo.TodoCommand
+	Tags      []string
+	ExtraInfo string // something like 'HEAD -> master, tag: v0.15.2'
 }
 
 func (c *Commit) ShortSha() string {

@@ -192,6 +192,7 @@ type Model struct {
 	Submodules   []*models.SubmoduleConfig
 	Branches     []*models.Branch
 	Commits      []*models.Commit
+	CommitStore  *models.CommitStore
 	StashEntries []*models.StashEntry
 	SubCommits   []*models.Commit
 	Remotes      []*models.Remote
@@ -220,6 +221,7 @@ type Mutexes struct {
 	RefreshingStatusMutex *deadlock.Mutex
 	SyncMutex             *deadlock.Mutex
 	LocalCommitsMutex     *deadlock.Mutex
+	CommitStoreMutex      *deadlock.Mutex
 	SubCommitsMutex       *deadlock.Mutex
 	SubprocessMutex       *deadlock.Mutex
 	PopupMutex            *deadlock.Mutex

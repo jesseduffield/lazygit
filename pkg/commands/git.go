@@ -45,6 +45,7 @@ type Loaders struct {
 	BranchLoader       *git_commands.BranchLoader
 	CommitFileLoader   *git_commands.CommitFileLoader
 	CommitLoader       *git_commands.CommitLoader
+	CommitStoreLoader  *git_commands.CommitStoreLoader
 	FileLoader         *git_commands.FileLoader
 	ReflogCommitLoader *git_commands.ReflogCommitLoader
 	RemoteLoader       *git_commands.RemoteLoader
@@ -131,6 +132,7 @@ func NewGitCommandAux(
 	branchLoader := git_commands.NewBranchLoader(cmn, cmd, branchCommands.CurrentBranchInfo, configCommands)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
 	commitLoader := git_commands.NewCommitLoader(cmn, cmd, dotGitDir, statusCommands.RebaseMode)
+	commitStoreLoader := git_commands.NewCommitStoreLoader(cmn, cmd)
 	reflogCommitLoader := git_commands.NewReflogCommitLoader(cmn, cmd)
 	remoteLoader := git_commands.NewRemoteLoader(cmn, cmd, repo.Remotes)
 	stashLoader := git_commands.NewStashLoader(cmn, cmd)
@@ -158,6 +160,7 @@ func NewGitCommandAux(
 			BranchLoader:       branchLoader,
 			CommitFileLoader:   commitFileLoader,
 			CommitLoader:       commitLoader,
+			CommitStoreLoader:  commitStoreLoader,
 			FileLoader:         fileLoader,
 			ReflogCommitLoader: reflogCommitLoader,
 			RemoteLoader:       remoteLoader,
