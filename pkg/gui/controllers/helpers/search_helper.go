@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
@@ -198,19 +199,27 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 	}
 }
 
-func (self *SearchHelper) DisplaySearchStatusIfSearching(c types.Context) {
+func (self *SearchHelper) RenderSearchStatus(c types.Context) {
+	if c.GetKey() == context.SEARCH_CONTEXT_KEY {
+		return
+	}
+
 	if searchableContext, ok := c.(types.ISearchableContext); ok {
 		if searchableContext.IsSearching() {
 			self.setSearchingFrameColor()
 			self.DisplaySearchStatus(searchableContext)
+			return
 		}
 	}
 	if filterableContext, ok := c.(types.IFilterableContext); ok {
 		if filterableContext.IsFiltering() {
 			self.setSearchingFrameColor()
 			self.DisplayFilterStatus(filterableContext)
+			return
 		}
 	}
+
+	self.HidePrompt()
 }
 
 func (self *SearchHelper) CancelSearchIfSearching(c types.Context) {

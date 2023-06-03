@@ -42,6 +42,7 @@ var Search = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.StartSearch).
 			Tap(func() {
 				t.ExpectSearch().
+					Clear().
 					Type("o").
 					Confirm()
 

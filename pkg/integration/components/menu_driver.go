@@ -48,6 +48,18 @@ func (self *MenuDriver) TopLines(matchers ...*TextMatcher) *MenuDriver {
 	return self
 }
 
+func (self *MenuDriver) Filter(text string) *MenuDriver {
+	self.getViewDriver().FilterOrSearch(text)
+
+	return self
+}
+
+func (self *MenuDriver) LineCount(matcher *IntMatcher) *MenuDriver {
+	self.getViewDriver().LineCount(matcher)
+
+	return self
+}
+
 func (self *MenuDriver) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedTitle {
 		self.t.Fail("You must check the title of a menu popup by calling Title() before calling Confirm()/Cancel().")
