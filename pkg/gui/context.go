@@ -201,7 +201,10 @@ func (self *ContextMgr) deactivateContext(c types.Context, opts types.OnFocusLos
 	view, _ := self.gui.c.GocuiGui().View(c.GetViewName())
 
 	if opts.NewContextKey != context.SEARCH_CONTEXT_KEY {
-		self.gui.helpers.Search.CancelSearchIfSearching(c)
+		self.gui.helpers.Search.HidePrompt()
+		if c.GetKind() == types.MAIN_CONTEXT || c.GetKind() == types.TEMPORARY_POPUP {
+			self.gui.helpers.Search.CancelSearchIfSearching(c)
+		}
 	}
 
 	// if we are the kind of context that is sent to back upon deactivation, we should do that

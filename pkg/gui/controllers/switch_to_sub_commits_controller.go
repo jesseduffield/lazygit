@@ -71,12 +71,15 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 
 	self.setSubCommits(commits)
 
-	self.c.Contexts().SubCommits.SetSelectedLineIdx(0)
-	self.c.Contexts().SubCommits.SetParentContext(self.context)
-	self.c.Contexts().SubCommits.SetWindowName(self.context.GetWindowName())
-	self.c.Contexts().SubCommits.SetTitleRef(ref.Description())
-	self.c.Contexts().SubCommits.SetRef(ref)
-	self.c.Contexts().SubCommits.SetLimitCommits(true)
+	subCommitsContext := self.c.Contexts().SubCommits
+	subCommitsContext.SetSelectedLineIdx(0)
+	subCommitsContext.SetParentContext(self.context)
+	subCommitsContext.SetWindowName(self.context.GetWindowName())
+	subCommitsContext.SetTitleRef(ref.Description())
+	subCommitsContext.SetRef(ref)
+	subCommitsContext.SetLimitCommits(true)
+	subCommitsContext.ClearSearchString()
+	subCommitsContext.GetView().ClearSearch()
 
 	err = self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
 	if err != nil {

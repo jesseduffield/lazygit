@@ -83,6 +83,7 @@ func (self *SwitchToDiffFilesController) viewFiles(opts SwitchToCommitFilesConte
 	diffFilesContext.SetCanRebase(opts.CanRebase)
 	diffFilesContext.SetParentContext(opts.Context)
 	diffFilesContext.SetWindowName(opts.Context.GetWindowName())
+	diffFilesContext.ClearFilter()
 
 	if err := self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.COMMIT_FILES},
