@@ -28,6 +28,12 @@ var Patch = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit (initial): one"),
 			).
 			SelectNextItem().
+			Lines(
+				Contains("reset: moving to HEAD^^"),
+				Contains("commit: three").IsSelected(),
+				Contains("commit: two"),
+				Contains("commit (initial): one"),
+			).
 			PressEnter()
 
 		t.Views().SubCommits().
