@@ -201,11 +201,13 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 func (self *SearchHelper) DisplaySearchStatusIfSearching(c types.Context) {
 	if searchableContext, ok := c.(types.ISearchableContext); ok {
 		if searchableContext.IsSearching() {
+			self.setSearchingFrameColor()
 			self.DisplaySearchStatus(searchableContext)
 		}
 	}
 	if filterableContext, ok := c.(types.IFilterableContext); ok {
 		if filterableContext.IsFiltering() {
+			self.setSearchingFrameColor()
 			self.DisplayFilterStatus(filterableContext)
 		}
 	}
@@ -232,6 +234,18 @@ func (self *SearchHelper) CancelSearchIfSearching(c types.Context) {
 }
 
 func (self *SearchHelper) HidePrompt() {
+	self.setNonSearchingFrameColor()
+
 	state := self.searchState()
 	state.Context = nil
+}
+
+func (self *SearchHelper) setSearchingFrameColor() {
+	self.c.GocuiGui().SelFgColor = theme.SearchingActiveBorderColor
+	self.c.GocuiGui().SelFrameColor = theme.SearchingActiveBorderColor
+}
+
+func (self *SearchHelper) setNonSearchingFrameColor() {
+	self.c.GocuiGui().SelFgColor = theme.ActiveBorderColor
+	self.c.GocuiGui().SelFrameColor = theme.ActiveBorderColor
 }

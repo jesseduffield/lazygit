@@ -91,10 +91,14 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Options.Frame = false
 
 	gui.Views.SearchPrefix.BgColor = gocui.ColorDefault
-	gui.Views.SearchPrefix.FgColor = gocui.ColorGreen
+	gui.Views.SearchPrefix.FgColor = gocui.ColorCyan
 	gui.Views.SearchPrefix.Frame = false
 	gui.c.SetViewContent(gui.Views.SearchPrefix, gui.Tr.SearchPrefix)
 
+	gui.Views.Search.BgColor = gocui.ColorDefault
+	gui.Views.Search.FgColor = gocui.ColorCyan
+	gui.Views.Search.Editable = true
+	gui.Views.Search.Frame = false
 	gui.Views.Search.Editor = gocui.EditorFunc(gui.searchEditor)
 
 	gui.Views.Stash.Title = gui.c.Tr.StashTitle
@@ -142,11 +146,6 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Limit.Wrap = true
 
 	gui.Views.Status.Title = gui.c.Tr.StatusTitle
-
-	gui.Views.Search.BgColor = gocui.ColorDefault
-	gui.Views.Search.FgColor = gocui.ColorGreen
-	gui.Views.Search.Editable = true
-	gui.Views.Search.Frame = false
 
 	gui.Views.AppStatus.BgColor = gocui.ColorDefault
 	gui.Views.AppStatus.FgColor = gocui.ColorCyan

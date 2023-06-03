@@ -19,6 +19,9 @@ var (
 	// InactiveBorderColor is the border color of the inactive active frames
 	InactiveBorderColor gocui.Attribute
 
+	// FilteredActiveBorderColor is the border color of the active frame, when it's being searched/filtered
+	SearchingActiveBorderColor gocui.Attribute
+
 	// GocuiSelectedLineBgColor is the background color for the selected line in gocui
 	GocuiSelectedLineBgColor gocui.Attribute
 
@@ -44,6 +47,7 @@ var (
 func UpdateTheme(themeConfig config.ThemeConfig) {
 	ActiveBorderColor = GetGocuiStyle(themeConfig.ActiveBorderColor)
 	InactiveBorderColor = GetGocuiStyle(themeConfig.InactiveBorderColor)
+	SearchingActiveBorderColor = GetGocuiStyle(themeConfig.SearchingActiveBorderColor)
 	SelectedLineBgColor = GetTextStyle(themeConfig.SelectedLineBgColor, true)
 	SelectedRangeBgColor = GetTextStyle(themeConfig.SelectedRangeBgColor, true)
 
