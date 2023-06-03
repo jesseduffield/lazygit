@@ -89,6 +89,7 @@ type Context interface {
 
 type IFilterableContext interface {
 	Context
+	IListPanelState
 
 	SetFilter(string)
 	GetFilter() string

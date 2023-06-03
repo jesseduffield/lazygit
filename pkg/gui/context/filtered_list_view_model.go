@@ -21,3 +21,13 @@ func NewFilteredListViewModel[T any](getList func() []T, getFilterFields func(T)
 
 // used for type switch
 func (self *FilteredListViewModel[T]) IsFilterableContext() {}
+
+func (self *FilteredListViewModel[T]) ClearFilter() {
+	// Set the selected line index to the unfiltered index of the currently selected line,
+	// so that the current item is still selected after the filter is cleared.
+	unfilteredIndex := self.FilteredList.UnfilteredIndex(self.GetSelectedLineIdx())
+
+	self.FilteredList.ClearFilter()
+
+	self.SetSelectedLineIdx(unfilteredIndex)
+}

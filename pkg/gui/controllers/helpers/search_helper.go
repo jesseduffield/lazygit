@@ -123,14 +123,13 @@ func (self *SearchHelper) ConfirmFilter() error {
 	// We also do this on each keypress but we do it here again just in case
 	state := self.searchState()
 
-	context, ok := state.Context.(types.IFilterableContext)
+	_, ok := state.Context.(types.IFilterableContext)
 	if !ok {
 		self.c.Log.Warnf("Context %s is not filterable", state.Context.GetKey())
 		return nil
 	}
 
-	context.SetFilter(self.promptContent())
-	_ = self.c.PostRefreshUpdate(state.Context)
+	self.OnPromptContentChanged(self.promptContent())
 
 	return self.c.PopContext()
 }
@@ -187,6 +186,8 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 	state := self.searchState()
 	switch context := state.Context.(type) {
 	case types.IFilterableContext:
+		context.SetSelectedLineIdx(0)
+		_ = context.GetView().SetOriginY(0)
 		context.SetFilter(searchString)
 		_ = self.c.PostRefreshUpdate(context)
 	case types.ISearchableContext:
