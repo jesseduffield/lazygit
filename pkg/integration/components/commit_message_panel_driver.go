@@ -9,19 +9,19 @@ func (self *CommitMessagePanelDriver) getViewDriver() *ViewDriver {
 }
 
 // asserts on the text initially present in the prompt
-func (self *CommitMessagePanelDriver) InitialText(expected *Matcher) *CommitMessagePanelDriver {
+func (self *CommitMessagePanelDriver) InitialText(expected *TextMatcher) *CommitMessagePanelDriver {
 	return self.Content(expected)
 }
 
 // asserts on the current context in the prompt
-func (self *CommitMessagePanelDriver) Content(expected *Matcher) *CommitMessagePanelDriver {
+func (self *CommitMessagePanelDriver) Content(expected *TextMatcher) *CommitMessagePanelDriver {
 	self.getViewDriver().Content(expected)
 
 	return self
 }
 
 // asserts that the confirmation view has the expected title
-func (self *CommitMessagePanelDriver) Title(expected *Matcher) *CommitMessagePanelDriver {
+func (self *CommitMessagePanelDriver) Title(expected *TextMatcher) *CommitMessagePanelDriver {
 	self.getViewDriver().Title(expected)
 
 	return self

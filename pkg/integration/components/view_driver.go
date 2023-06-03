@@ -52,7 +52,7 @@ func (self *ViewDriver) getSelectedLineIdx() (int, error) {
 }
 
 // asserts that the view has the expected title
-func (self *ViewDriver) Title(expected *Matcher) *ViewDriver {
+func (self *ViewDriver) Title(expected *TextMatcher) *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
 		actual := self.getView().Title
 		return expected.context(fmt.Sprintf("%s title", self.context)).test(actual)
@@ -64,7 +64,7 @@ func (self *ViewDriver) Title(expected *Matcher) *ViewDriver {
 // asserts that the view has lines matching the given matchers. One matcher must be passed for each line.
 // If you only care about the top n lines, use the TopLines method instead.
 // If you only care about a subset of lines, use the ContainsLines method instead.
-func (self *ViewDriver) Lines(matchers ...*Matcher) *ViewDriver {
+func (self *ViewDriver) Lines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
 	self.LineCount(len(matchers))
 
@@ -75,7 +75,7 @@ func (self *ViewDriver) Lines(matchers ...*Matcher) *ViewDriver {
 // are passed, we only check the first three lines of the view.
 // This method is convenient when you have a list of commits but you only want to
 // assert on the first couple of commits.
-func (self *ViewDriver) TopLines(matchers ...*Matcher) *ViewDriver {
+func (self *ViewDriver) TopLines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
 	self.validateEnoughLines(matchers)
 
@@ -83,7 +83,7 @@ func (self *ViewDriver) TopLines(matchers ...*Matcher) *ViewDriver {
 }
 
 // asserts that somewhere in the view there are consequetive lines matching the given matchers.
-func (self *ViewDriver) ContainsLines(matchers ...*Matcher) *ViewDriver {
+func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
 	self.validateEnoughLines(matchers)
 
@@ -162,7 +162,7 @@ func (self *ViewDriver) DoesNotContainColoredText(fgColorStr string, text string
 }
 
 // asserts on the lines that are selected in the view. Don't use the `IsSelected` matcher with this because it's redundant.
-func (self *ViewDriver) SelectedLines(matchers ...*Matcher) *ViewDriver {
+func (self *ViewDriver) SelectedLines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
 	self.validateEnoughLines(matchers)
 
@@ -197,13 +197,13 @@ func (self *ViewDriver) SelectedLines(matchers ...*Matcher) *ViewDriver {
 	return self
 }
 
-func (self *ViewDriver) validateMatchersPassed(matchers []*Matcher) {
+func (self *ViewDriver) validateMatchersPassed(matchers []*TextMatcher) {
 	if len(matchers) < 1 {
 		self.t.fail("'Lines' methods require at least one matcher to be passed as an argument. If you are trying to assert that there are no lines, use .IsEmpty()")
 	}
 }
 
-func (self *ViewDriver) validateEnoughLines(matchers []*Matcher) {
+func (self *ViewDriver) validateEnoughLines(matchers []*TextMatcher) {
 	view := self.getView()
 
 	self.t.assertWithRetries(func() (bool, string) {
@@ -212,7 +212,7 @@ func (self *ViewDriver) validateEnoughLines(matchers []*Matcher) {
 	})
 }
 
-func (self *ViewDriver) assertLines(offset int, matchers ...*Matcher) *ViewDriver {
+func (self *ViewDriver) assertLines(offset int, matchers ...*TextMatcher) *ViewDriver {
 	view := self.getView()
 
 	for matcherIndex, matcher := range matchers {
@@ -252,7 +252,7 @@ func (self *ViewDriver) assertLines(offset int, matchers ...*Matcher) *ViewDrive
 }
 
 // asserts on the content of the view i.e. the stuff within the view's frame.
-func (self *ViewDriver) Content(matcher *Matcher) *ViewDriver {
+func (self *ViewDriver) Content(matcher *TextMatcher) *ViewDriver {
 	self.t.matchString(matcher, fmt.Sprintf("%s: Unexpected content.", self.context),
 		func() string {
 			return self.getView().Buffer()
@@ -265,7 +265,7 @@ func (self *ViewDriver) Content(matcher *Matcher) *ViewDriver {
 // asserts on the selected line of the view. If your view has multiple lines selected,
 // but also has a concept of a cursor position, this will assert on the line that
 // the cursor is on. Otherwise it will assert on the first line of the selection.
-func (self *ViewDriver) SelectedLine(matcher *Matcher) *ViewDriver {
+func (self *ViewDriver) SelectedLine(matcher *TextMatcher) *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
 		selectedLineIdx, err := self.getSelectedLineIdx()
 		if err != nil {
@@ -410,7 +410,7 @@ func (self *ViewDriver) PressEscape() *ViewDriver {
 // If this changes in future, we'll need to update this code to first attempt to find the item
 // in the current page and failing that, jump to the top of the view and iterate through all of it,
 // looking for the item.
-func (self *ViewDriver) NavigateToLine(matcher *Matcher) *ViewDriver {
+func (self *ViewDriver) NavigateToLine(matcher *TextMatcher) *ViewDriver {
 	self.IsFocused()
 
 	view := self.getView()
@@ -510,8 +510,8 @@ func (self *ViewDriver) Self() *ViewDriver {
 	return self
 }
 
-func expectedContentFromMatchers(matchers []*Matcher) string {
-	return strings.Join(lo.Map(matchers, func(matcher *Matcher, _ int) string {
+func expectedContentFromMatchers(matchers []*TextMatcher) string {
+	return strings.Join(lo.Map(matchers, func(matcher *TextMatcher, _ int) string {
 		return matcher.name()
 	}), "\n")
 }
