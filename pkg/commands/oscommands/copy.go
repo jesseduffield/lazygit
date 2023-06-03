@@ -39,13 +39,13 @@ import (
 func CopyFile(src, dst string) (err error) {
 	in, err := os.Open(src)
 	if err != nil {
-		return
+		return //nolint: nakedret
 	}
 	defer in.Close()
 
 	out, err := os.Create(dst)
 	if err != nil {
-		return
+		return //nolint: nakedret
 	}
 	defer func() {
 		if e := out.Close(); e != nil {
@@ -55,21 +55,21 @@ func CopyFile(src, dst string) (err error) {
 
 	_, err = io.Copy(out, in)
 	if err != nil {
-		return
+		return //nolint: nakedret
 	}
 
 	err = out.Sync()
 	if err != nil {
-		return
+		return //nolint: nakedret
 	}
 
 	si, err := os.Stat(src)
 	if err != nil {
-		return
+		return //nolint: nakedret
 	}
 	err = os.Chmod(dst, si.Mode())
 	if err != nil {
-		return
+		return //nolint: nakedret
 	}
 
 	return //nolint: nakedret
@@ -92,7 +92,7 @@ func CopyDir(src string, dst string) (err error) {
 
 	_, err = os.Stat(dst)
 	if err != nil && !os.IsNotExist(err) {
-		return
+		return //nolint: nakedret
 	}
 	if err == nil {
 		// it exists so let's remove it
@@ -103,12 +103,12 @@ func CopyDir(src string, dst string) (err error) {
 
 	err = os.MkdirAll(dst, si.Mode())
 	if err != nil {
-		return
+		return //nolint: nakedret
 	}
 
 	entries, err := ioutil.ReadDir(src)
 	if err != nil {
-		return
+		return //nolint: nakedret
 	}
 
 	for _, entry := range entries {
@@ -118,7 +118,7 @@ func CopyDir(src string, dst string) (err error) {
 		if entry.IsDir() {
 			err = CopyDir(srcPath, dstPath)
 			if err != nil {
-				return
+				return //nolint: nakedret
 			}
 		} else {
 			// Skip symlinks.
@@ -128,7 +128,7 @@ func CopyDir(src string, dst string) (err error) {
 
 			err = CopyFile(srcPath, dstPath)
 			if err != nil {
-				return
+				return //nolint: nakedret
 			}
 		}
 	}
