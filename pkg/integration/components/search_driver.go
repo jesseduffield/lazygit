@@ -12,7 +12,7 @@ func (self *SearchDriver) getViewDriver() *ViewDriver {
 }
 
 // asserts on the text initially present in the prompt
-func (self *SearchDriver) InitialText(expected *Matcher) *SearchDriver {
+func (self *SearchDriver) InitialText(expected *TextMatcher) *SearchDriver {
 	self.getViewDriver().Content(expected)
 
 	return self

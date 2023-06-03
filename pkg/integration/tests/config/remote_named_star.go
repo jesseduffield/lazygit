@@ -19,8 +19,8 @@ var RemoteNamedStar = NewIntegrationTest(NewIntegrationTestArgs{
 		// here we're just asserting that we haven't panicked upon starting lazygit
 		t.Views().Commits().
 			Lines(
-				Anything(),
-				Anything(),
+				AnyString(),
+				AnyString(),
 			)
 	},
 })

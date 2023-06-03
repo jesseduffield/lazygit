@@ -11,7 +11,7 @@ func (self *AlertDriver) getViewDriver() *ViewDriver {
 }
 
 // asserts that the alert view has the expected title
-func (self *AlertDriver) Title(expected *Matcher) *AlertDriver {
+func (self *AlertDriver) Title(expected *TextMatcher) *AlertDriver {
 	self.getViewDriver().Title(expected)
 
 	self.hasCheckedTitle = true
@@ -20,7 +20,7 @@ func (self *AlertDriver) Title(expected *Matcher) *AlertDriver {
 }
 
 // asserts that the alert view has the expected content
-func (self *AlertDriver) Content(expected *Matcher) *AlertDriver {
+func (self *AlertDriver) Content(expected *TextMatcher) *AlertDriver {
 	self.getViewDriver().Content(expected)
 
 	self.hasCheckedContent = true

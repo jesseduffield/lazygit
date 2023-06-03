@@ -39,7 +39,7 @@ func (self *Common) ConfirmDiscardLines() {
 		Confirm()
 }
 
-func (self *Common) SelectPatchOption(matcher *Matcher) {
+func (self *Common) SelectPatchOption(matcher *TextMatcher) {
 	self.t.GlobalPress(self.t.keys.Universal.CreatePatchOptionsMenu)
 
 	self.t.ExpectPopup().Menu().Title(Equals("Patch options")).Select(matcher).Confirm()
