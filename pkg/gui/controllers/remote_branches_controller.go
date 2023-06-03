@@ -60,11 +60,6 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 			Description: self.c.Tr.SetAsUpstream,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Return),
-			Handler:     self.escape,
-			Description: self.c.Tr.ReturnToRemotesList,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Commits.ViewResetOptions),
 			Handler:     self.checkSelected(self.createResetMenu),
 			Description: self.c.Tr.ViewResetOptions,
@@ -113,10 +108,6 @@ func (self *RemoteBranchesController) checkSelected(callback func(*models.Remote
 
 		return callback(selectedItem)
 	}
-}
-
-func (self *RemoteBranchesController) escape() error {
-	return self.c.PushContext(self.c.Contexts().Remotes)
 }
 
 func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch) error {
