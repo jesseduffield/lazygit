@@ -1,8 +1,12 @@
 package helpers
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/theme"
 )
 
 // NOTE: this helper supports both filtering and searching. Filtering is when
@@ -60,31 +64,26 @@ func (self *SearchHelper) OpenSearchPrompt(context types.ISearchableContext) err
 	return nil
 }
 
-func (self *SearchHelper) DisplayFilterPrompt(context types.IFilterableContext) {
+func (self *SearchHelper) DisplayFilterStatus(context types.IFilterableContext) {
 	state := self.searchState()
 
 	state.Context = context
 	searchString := context.GetFilter()
 
 	self.searchPrefixView().SetContent(self.c.Tr.FilterPrefix)
+
 	promptView := self.promptView()
-	promptView.ClearTextArea()
-	promptView.TextArea.TypeString(searchString)
-	promptView.RenderTextArea()
+	keybindingConfig := self.c.UserConfig.Keybinding
+	promptView.SetContent(fmt.Sprintf("matches for '%s' ", searchString) + theme.OptionsFgColor.Sprintf(self.c.Tr.ExitTextFilterMode, keybindings.Label(keybindingConfig.Universal.Return)))
 }
 
-func (self *SearchHelper) DisplaySearchPrompt(context types.ISearchableContext) {
+func (self *SearchHelper) DisplaySearchStatus(context types.ISearchableContext) {
 	state := self.searchState()
 
 	state.Context = context
-	searchString := context.GetSearchString()
 
+	self.searchPrefixView().SetContent(self.c.Tr.SearchPrefix)
 	_ = context.GetView().SelectCurrentSearchResult()
-
-	promptView := self.promptView()
-	promptView.ClearTextArea()
-	promptView.TextArea.TypeString(searchString)
-	promptView.RenderTextArea()
 }
 
 func (self *SearchHelper) searchState() *types.SearchState {
@@ -199,15 +198,15 @@ func (self *SearchHelper) OnPromptContentChanged(searchString string) {
 	}
 }
 
-func (self *SearchHelper) DisplaySearchInfoIfSearching(c types.Context) {
+func (self *SearchHelper) DisplaySearchStatusIfSearching(c types.Context) {
 	if searchableContext, ok := c.(types.ISearchableContext); ok {
 		if searchableContext.IsSearching() {
-			self.DisplaySearchPrompt(searchableContext)
+			self.DisplaySearchStatus(searchableContext)
 		}
 	}
 	if filterableContext, ok := c.(types.IFilterableContext); ok {
 		if filterableContext.IsFiltering() {
-			self.DisplayFilterPrompt(filterableContext)
+			self.DisplayFilterStatus(filterableContext)
 		}
 	}
 }

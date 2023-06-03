@@ -235,7 +235,7 @@ func (self *ContextMgr) ActivateContext(c types.Context, opts types.OnFocusOpts)
 		return err
 	}
 
-	self.gui.helpers.Search.DisplaySearchInfoIfSearching(c)
+	self.gui.helpers.Search.DisplaySearchStatusIfSearching(c)
 
 	desiredTitle := c.Title()
 	if desiredTitle != "" {
