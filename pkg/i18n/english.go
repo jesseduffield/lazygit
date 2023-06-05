@@ -172,7 +172,7 @@ type TranslationSet struct {
 	FileEnter                           string
 	FileStagingRequirements             string
 	StageSelection                      string
-	ResetSelection                      string
+	DiscardSelection                    string
 	ToggleDragSelect                    string
 	ToggleSelectHunk                    string
 	ToggleSelectionForPatch             string
@@ -863,7 +863,7 @@ func EnglishTranslationSet() TranslationSet {
 		FileEnter:                           `Stage individual hunks/lines for file, or collapse/expand for directory`,
 		FileStagingRequirements:             `Can only stage individual lines for tracked files`,
 		StageSelection:                      `Toggle line staged / unstaged`,
-		ResetSelection:                      `Delete change (git reset)`,
+		DiscardSelection:                    `Discard change (git reset)`,
 		ToggleDragSelect:                    `Toggle drag select`,
 		ToggleSelectHunk:                    `Toggle select hunk`,
 		ToggleSelectionForPatch:             `Add/Remove line(s) to patch`,

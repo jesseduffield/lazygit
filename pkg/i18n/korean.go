@@ -168,7 +168,7 @@ func koreanTranslationSet() TranslationSet {
 		FileEnter:                           `Stage individual hunks/lines for file, or collapse/expand for directory`,
 		FileStagingRequirements:             `추적된 파일에 대해 개별 라인만 stage할 수 있습니다.`,
 		StageSelection:                      `선택한 행을 staged / unstaged`,
-		ResetSelection:                      `변경을 삭제 (git reset)`,
+		DiscardSelection:                    `변경을 삭제 (git reset)`,
 		ToggleDragSelect:                    `드래그 선택 전환`,
 		ToggleSelectHunk:                    `Toggle select hunk`,
 		ToggleSelectionForPatch:             `Line(s)을 패치에 추가/삭제`,

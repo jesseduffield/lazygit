@@ -206,7 +206,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;esc&gt;</kbd>: Return to files panel
   <kbd>&lt;tab&gt;</kbd>: Switch to other panel (staged/unstaged changes)
   <kbd>&lt;space&gt;</kbd>: Toggle line staged / unstaged
-  <kbd>d</kbd>: Delete change (git reset)
+  <kbd>d</kbd>: Discard change (git reset)
   <kbd>E</kbd>: Edit hunk
   <kbd>c</kbd>: Commit changes
   <kbd>w</kbd>: Commit changes without pre-commit hook

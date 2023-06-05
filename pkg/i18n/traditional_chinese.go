@@ -231,7 +231,7 @@ func traditionalChineseTranslationSet() TranslationSet {
 		FileEnter:                           `選擇檔案中的單個程式碼塊/行，或展開/折疊目錄`,
 		FileStagingRequirements:             `只能選擇跟踪檔案中的單個行`,
 		StageSelection:                      `切換現有行的狀態 (已預存/未預存)`,
-		ResetSelection:                      `刪除變更 (git reset)`,
+		DiscardSelection:                    `刪除變更 (git reset)`,
 		ToggleDragSelect:                    `切換拖曳選擇`,
 		ToggleSelectHunk:                    `切換選擇程式碼塊`,
 		ToggleSelectionForPatch:             `向 (或從) 補丁中添加/刪除行`,

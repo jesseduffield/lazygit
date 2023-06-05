@@ -167,7 +167,7 @@ func chineseTranslationSet() TranslationSet {
 		FileEnter:                           `暂存单个 块/行 用于文件, 或 折叠/展开 目录`,
 		FileStagingRequirements:             `只能暂存跟踪文件的单独行`,
 		StageSelection:                      `切换行暂存状态`,
-		ResetSelection:                      `取消变更 (git reset)`,
+		DiscardSelection:                    `取消变更 (git reset)`,
 		ToggleDragSelect:                    `切换拖动选择`,
 		ToggleSelectHunk:                    `切换选择区块`,
 		ToggleSelectionForPatch:             `添加/移除 行到补丁`,
