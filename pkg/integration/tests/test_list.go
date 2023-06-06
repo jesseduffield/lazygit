@@ -155,6 +155,7 @@ var tests = []*components.IntegrationTest{
 	stash.CreateBranch,
 	stash.Drop,
 	stash.Pop,
+	stash.PreventDiscardingFileChanges,
 	stash.Rename,
 	stash.Stash,
 	stash.StashAll,
