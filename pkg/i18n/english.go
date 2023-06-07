@@ -265,6 +265,7 @@ type TranslationSet struct {
 	ViewItemFiles                       string
 	CommitFilesTitle                    string
 	CheckoutCommitFile                  string
+	CanOnlyDiscardFromLocalCommits      string
 	DiscardOldFileChange                string
 	DiscardFileChangesTitle             string
 	DiscardFileChangesPrompt            string
@@ -955,6 +956,7 @@ func EnglishTranslationSet() TranslationSet {
 		ViewItemFiles:                       "View selected item's files",
 		CommitFilesTitle:                    "Commit files",
 		CheckoutCommitFile:                  "Checkout file",
+		CanOnlyDiscardFromLocalCommits:      "Changes can only be discarded from local commits",
 		DiscardOldFileChange:                "Discard this commit's changes to this file",
 		DiscardFileChangesTitle:             "Discard file changes",
 		DiscardFileChangesPrompt:            "Are you sure you want to discard this commit's changes to this file?",

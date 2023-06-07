@@ -153,6 +153,11 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 }
 
 func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error {
+	parentContext, ok := self.c.CurrentContext().GetParentContext()
+	if !ok || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
+		return self.c.ErrorMsg(self.c.Tr.CanOnlyDiscardFromLocalCommits)
+	}
+
 	if node.File == nil {
 		return self.c.ErrorMsg(self.c.Tr.DiscardNotSupportedForDirectory)
 	}
