@@ -101,7 +101,7 @@ These fields are applicable to all prompts.
 The permitted suggestions fields are:
 | _field_ | _description_ | _required_ |
 |-----------------|----------------------|-|
-| preset | Uses built-in logic to obtain the suggestions. One of 'files', 'branches', 'remotes', 'remoteBranches', 'refs' | no |
+| preset | Uses built-in logic to obtain the suggestions. One of 'authors', 'branches', 'files', 'refs', 'remotes', 'remoteBranches', 'tags' | no |
 | command | Command to run such that each line in the output becomes a suggestion. Mutually exclusive with 'preset' field. | no |
 
 Here's an example of passing a preset:

@@ -157,6 +157,12 @@ func (self *SuggestionsHelper) getTagNames() []string {
 	})
 }
 
+func (self *SuggestionsHelper) GetTagsSuggestionsFunc() func(string) []*types.Suggestion {
+	tagNames := self.getTagNames()
+
+	return FuzzySearchFunc(tagNames)
+}
+
 func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Suggestion {
 	remoteBranchNames := self.getRemoteBranchNames("/")
 	localBranchNames := self.getBranchNames()

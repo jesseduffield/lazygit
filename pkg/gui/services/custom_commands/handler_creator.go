@@ -161,16 +161,20 @@ func (self *HandlerCreator) getCommandSuggestionsFn(command string) (func(string
 
 func (self *HandlerCreator) getPresetSuggestionsFn(preset string) (func(string) []*types.Suggestion, error) {
 	switch preset {
-	case "files":
-		return self.suggestionsHelper.GetFilePathSuggestionsFunc(), nil
+	case "authors":
+		return self.suggestionsHelper.GetAuthorsSuggestionsFunc(), nil
 	case "branches":
 		return self.suggestionsHelper.GetBranchNameSuggestionsFunc(), nil
+	case "files":
+		return self.suggestionsHelper.GetFilePathSuggestionsFunc(), nil
+	case "refs":
+		return self.suggestionsHelper.GetRefsSuggestionsFunc(), nil
 	case "remotes":
 		return self.suggestionsHelper.GetRemoteSuggestionsFunc(), nil
 	case "remoteBranches":
 		return self.suggestionsHelper.GetRemoteBranchesSuggestionsFunc("/"), nil
-	case "refs":
-		return self.suggestionsHelper.GetRefsSuggestionsFunc(), nil
+	case "tags":
+		return self.suggestionsHelper.GetTagsSuggestionsFunc(), nil
 	default:
 		return nil, fmt.Errorf("Unknown value for suggestionsPreset in custom command: %s. Valid values: files, branches, remotes, remoteBranches, refs", preset)
 	}
