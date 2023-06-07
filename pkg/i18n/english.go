@@ -268,6 +268,9 @@ type TranslationSet struct {
 	DiscardOldFileChange                string
 	DiscardFileChangesTitle             string
 	DiscardFileChangesPrompt            string
+	DiscardAddedFileChangesPrompt       string
+	DiscardDeletedFileChangesPrompt     string
+	DiscardNotSupportedForDirectory     string
 	DisabledForGPG                      string
 	CreateRepo                          string
 	BareRepo                            string
@@ -954,7 +957,10 @@ func EnglishTranslationSet() TranslationSet {
 		CheckoutCommitFile:                  "Checkout file",
 		DiscardOldFileChange:                "Discard this commit's changes to this file",
 		DiscardFileChangesTitle:             "Discard file changes",
-		DiscardFileChangesPrompt:            "Are you sure you want to discard this commit's changes to this file? If this file was created in this commit, it will be deleted",
+		DiscardFileChangesPrompt:            "Are you sure you want to discard this commit's changes to this file?",
+		DiscardAddedFileChangesPrompt:       "Are you sure you want to discard this commit's changes to this file? The file was added in this commit, so it will be deleted again.",
+		DiscardDeletedFileChangesPrompt:     "Are you sure you want to discard this commit's changes to this file? The file was deleted in this commit, so it will reappear.",
+		DiscardNotSupportedForDirectory:     "Discarding changes is not supported for entire directories. Please use a custom patch for this.",
 		DisabledForGPG:                      "Feature not available for users using GPG",
 		CreateRepo:                          "Not in a git repository. Create a new git repository? (y/n): ",
 		BareRepo:                            "You've attempted to open Lazygit in a bare repo but Lazygit does not yet support bare repos. Open most recent repo? (y/n) ",
