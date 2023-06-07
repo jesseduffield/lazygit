@@ -187,6 +187,11 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandb
 	if sandbox {
 		cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", SANDBOX_ENV_VAR, "true"))
 	}
+	if test.ExtraEnvVars() != nil {
+		for key, value := range test.ExtraEnvVars() {
+			cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", key, value))
+		}
+	}
 
 	if keyPressDelay > 0 {
 		cmdObj.AddEnvVars(fmt.Sprintf("KEY_PRESS_DELAY=%d", keyPressDelay))
