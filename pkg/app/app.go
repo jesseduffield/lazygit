@@ -120,6 +120,11 @@ func NewApp(config config.AppConfigurer, common *common.Common) (*App, error) {
 		return app, err
 	}
 
+	// used for testing purposes
+	if os.Getenv("SHOW_RECENT_REPOS") == "true" {
+		showRecentRepos = true
+	}
+
 	app.Gui, err = gui.NewGui(common, config, gitVersion, updater, showRecentRepos, dirName)
 	if err != nil {
 		return app, err

@@ -120,6 +120,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.SwapWithConflict,
 	misc.ConfirmOnQuit,
 	misc.InitialOpen,
+	misc.RecentReposOnLaunch,
 	patch_building.Apply,
 	patch_building.ApplyInReverse,
 	patch_building.ApplyInReverseWithConflict,
