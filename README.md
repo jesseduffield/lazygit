@@ -62,11 +62,15 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 - [Donate](#donate)
 - [Alternatives](#alternatives)
 
-Github Sponsors is matching all donations dollar-for-dollar for 12 months so if you're feeling generous consider [sponsoring me](https://github.com/sponsors/jesseduffield)
+Lazygit is not my fulltime job but it is a hefty part time job so if you want to support the project please consider [sponsoring me](https://github.com/sponsors/jesseduffield)
 
 [<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
 
 ## Installation
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/lazygit.svg)](https://repology.org/project/lazygit/versions)
+
+_Most of the above packages are maintained by third parties so be sure to vet them yourself and confirm that the maintainer is a trustworthy looking person who attends local sports games and gives back to their communities with barbeque fundraisers etc_
 
 ### Binary Releases
 
