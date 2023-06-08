@@ -95,3 +95,58 @@ func lookupKey(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
 
 	return nil, nil
 }
+
+// takes a yaml document in bytes, a path to a key, and a new name for the key.
+// Will rename the key to the new name if it exists, and do nothing otherwise.
+func RenameYamlKey(yamlBytes []byte, path []string, newKey string) ([]byte, error) {
+	// Parse the YAML file.
+	var node yaml.Node
+	err := yaml.Unmarshal(yamlBytes, &node)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse YAML: %w", err)
+	}
+
+	// Empty document: nothing to do.
+	if len(node.Content) == 0 {
+		return yamlBytes, nil
+	}
+
+	body := node.Content[0]
+
+	if err := renameYamlKey(body, path, newKey); err != nil {
+		return yamlBytes, err
+	}
+
+	// Convert the updated YAML node back to YAML bytes.
+	updatedYAMLBytes, err := yaml.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert YAML node to bytes: %w", err)
+	}
+
+	return updatedYAMLBytes, nil
+}
+
+// Recursive function to rename the YAML key.
+func renameYamlKey(node *yaml.Node, path []string, newKey string) error {
+	if node.Kind != yaml.MappingNode {
+		return errors.New("yaml node in path is not a dictionary")
+	}
+
+	keyNode, valueNode := lookupKey(node, path[0])
+	if keyNode == nil {
+		return nil
+	}
+
+	// end of path reached: rename key
+	if len(path) == 1 {
+		// Check that new key doesn't exist yet
+		if newKeyNode, _ := lookupKey(node, newKey); newKeyNode != nil {
+			return fmt.Errorf("new key `%s' already exists", newKey)
+		}
+
+		keyNode.Value = newKey
+		return nil
+	}
+
+	return renameYamlKey(valueNode, path[1:], newKey)
+}

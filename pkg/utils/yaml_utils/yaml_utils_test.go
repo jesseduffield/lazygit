@@ -106,3 +106,80 @@ func TestUpdateYamlValue(t *testing.T) {
 		})
 	}
 }
+
+func TestRenameYamlKey(t *testing.T) {
+	tests := []struct {
+		name        string
+		in          string
+		path        []string
+		newKey      string
+		expectedOut string
+		expectedErr string
+	}{
+		{
+			name:        "rename key",
+			in:          "foo: 5\n",
+			path:        []string{"foo"},
+			newKey:      "bar",
+			expectedOut: "bar: 5\n",
+			expectedErr: "",
+		},
+		{
+			name:   "rename key, nested",
+			in:     "foo:\n  bar: 5\n",
+			path:   []string{"foo", "bar"},
+			newKey: "baz",
+			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
+			expectedOut: "foo:\n    baz: 5\n",
+			expectedErr: "",
+		},
+		{
+			name:   "rename non-scalar key",
+			in:     "foo:\n  bar: 5\n",
+			path:   []string{"foo"},
+			newKey: "qux",
+			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
+			expectedOut: "qux:\n    bar: 5\n",
+			expectedErr: "",
+		},
+
+		// Error cases
+		{
+			name:        "existing document is not a dictionary",
+			in:          "42\n",
+			path:        []string{"foo"},
+			newKey:      "bar",
+			expectedOut: "42\n",
+			expectedErr: "yaml node in path is not a dictionary",
+		},
+		{
+			name:        "not all path elements are dictionaries",
+			in:          "foo:\n  bar: [1, 2, 3]\n",
+			path:        []string{"foo", "bar", "baz"},
+			newKey:      "qux",
+			expectedOut: "foo:\n  bar: [1, 2, 3]\n",
+			expectedErr: "yaml node in path is not a dictionary",
+		},
+		{
+			name:        "new key exists",
+			in:          "foo: 5\nbar: 7\n",
+			path:        []string{"foo"},
+			newKey:      "bar",
+			expectedOut: "foo: 5\nbar: 7\n",
+			expectedErr: "new key `bar' already exists",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			out, actualErr := RenameYamlKey([]byte(test.in), test.path, test.newKey)
+			if test.expectedErr == "" {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.EqualError(t, actualErr, test.expectedErr)
+			}
+
+			assert.Equal(t, test.expectedOut, string(out))
+		})
+	}
+}
