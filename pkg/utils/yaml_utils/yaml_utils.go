@@ -57,10 +57,8 @@ func updateYamlNode(node *yaml.Node, path []string, value string) error {
 	}
 
 	key := path[0]
-	for i := 0; i < len(node.Content)-1; i += 2 {
-		if node.Content[i].Value == key {
-			return updateYamlNode(node.Content[i+1], path[1:], value)
-		}
+	if _, valueNode := lookupKey(node, key); valueNode != nil {
+		return updateYamlNode(valueNode, path[1:], value)
 	}
 
 	// if the key doesn't exist, we'll add it
@@ -86,4 +84,14 @@ func updateYamlNode(node *yaml.Node, path []string, value string) error {
 		Value: key,
 	}, newNode)
 	return updateYamlNode(newNode, path[1:], value)
+}
+
+func lookupKey(node *yaml.Node, key string) (*yaml.Node, *yaml.Node) {
+	for i := 0; i < len(node.Content)-1; i += 2 {
+		if node.Content[i].Value == key {
+			return node.Content[i], node.Content[i+1]
+		}
+	}
+
+	return nil, nil
 }
