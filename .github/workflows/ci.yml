@@ -43,12 +43,23 @@ jobs:
           restore-keys: |
             ${{runner.os}}-go-
       - name: Test code
-        # we're passing -short so that we skip the integration tests, which will be run in parallel below
+        # we're passing -short so that we skip the integration tests, which will be run below
         run: |
           go test ./... -short
   integration-tests:
-    runs-on: ubuntu-latest
-    name: "Integration Tests"
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+        include:
+          - os: ubuntu-latest
+            cache_path: ~/.cache/go-build
+          - os: windows-latest
+            cache_path: ~\AppData\Local\go-build
+    runs-on: ${{matrix.os}}
+    name: "Integration Tests - ${{matrix.os}}"
     env:
       GOFLAGS: -mod=vendor
     steps:
@@ -59,18 +70,20 @@ jobs:
         with:
           go-version: 1.18.x
       - name: Cache build
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
+            ${{matrix.cache_path}}
             ~/go/pkg/mod
           key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
           restore-keys: |
             ${{runner.os}}-go-
       - name: Test code
-        # LONG_WAIT_BEFORE_FAIL means that for a given test assertion, we'll wait longer before failing
+        env:
+          # LONG_WAIT_BEFORE_FAIL means that for a given test assertion, we'll wait longer before failing
+          LONG_WAIT_BEFORE_FAIL: true
         run: |
-          LONG_WAIT_BEFORE_FAIL=true go test pkg/integration/clients/*.go
+          go test ./pkg/integration/clients
   build:
     runs-on: ubuntu-latest
     env:

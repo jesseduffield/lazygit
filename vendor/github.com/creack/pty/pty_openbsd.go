@@ -1,3 +1,6 @@
+//go:build openbsd
+// +build openbsd
+
 package pty
 
 import (
@@ -5,6 +8,17 @@ import (
 	"syscall"
 	"unsafe"
 )
+
+func cInt8ToString(in []int8) string {
+	var s []byte
+	for _, v := range in {
+		if v == 0 {
+			break
+		}
+		s = append(s, byte(v))
+	}
+	return string(s)
+}
 
 func open() (pty, tty *os.File, err error) {
 	/*
@@ -26,8 +40,8 @@ func open() (pty, tty *os.File, err error) {
 		return nil, nil, err
 	}
 
-	pty = os.NewFile(uintptr(ptm.Cfd), "/dev/ptm")
-	tty = os.NewFile(uintptr(ptm.Sfd), "/dev/ptm")
+	pty = os.NewFile(uintptr(ptm.Cfd), cInt8ToString(ptm.Cn[:]))
+	tty = os.NewFile(uintptr(ptm.Sfd), cInt8ToString(ptm.Sn[:]))
 
 	return pty, tty, nil
 }

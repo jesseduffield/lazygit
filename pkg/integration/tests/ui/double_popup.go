@@ -16,6 +16,9 @@ var DoublePopup = NewIntegrationTest(NewIntegrationTestArgs{
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
 			Focus().
+			Lines(
+				Contains("master"),
+			).
 			// arbitrarily bringing up a popup
 			PressPrimaryAction()
 

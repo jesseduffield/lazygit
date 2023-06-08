@@ -1,3 +1,6 @@
+//go:build darwin
+// +build darwin
+
 package pty
 
 import (
@@ -33,7 +36,7 @@ func open() (pty, tty *os.File, err error) {
 		return nil, nil, err
 	}
 
-	t, err := os.OpenFile(sname, os.O_RDWR, 0)
+	t, err := os.OpenFile(sname, os.O_RDWR|syscall.O_NOCTTY, 0)
 	if err != nil {
 		return nil, nil, err
 	}

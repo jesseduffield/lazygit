@@ -1,6 +1,3 @@
-//go:build !windows
-// +build !windows
-
 package clients
 
 // This file allows you to use `go test` to run integration tests.
@@ -9,14 +6,15 @@ package clients
 import (
 	"bytes"
 	"errors"
-	"io"
-	"io/ioutil"
+	"fmt"
 	"os"
 	"os/exec"
 	"testing"
+	"time"
 
 	"github.com/creack/pty"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/jesseduffield/lazygit/pkg/integration/result"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,8 +28,10 @@ func TestIntegration(t *testing.T) {
 	parallelIndex := tryConvert(os.Getenv("PARALLEL_INDEX"), 0)
 	testNumber := 0
 
+	tests := tests.GetTests()
+
 	err := components.RunTests(
-		tests.GetTests(),
+		tests,
 		t.Logf,
 		runCmdHeadless,
 		func(test *components.IntegrationTest, f func() error) {
@@ -39,6 +39,10 @@ func TestIntegration(t *testing.T) {
 			if testNumber%parallelTotal != parallelIndex {
 				return
 			}
+
+			// if test.Name() != "commit/commit" {
+			// 	return
+			// }
 
 			t.Run(test.Name(), func(t *testing.T) {
 				t.Parallel()
@@ -63,6 +67,9 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 		"TERM=xterm",
 	)
 
+	resultPath := result.GetResultPath()
+	result.SetResultPathEnvVar(cmd, resultPath)
+
 	// not writing stderr to the pty because we want to capture a panic if
 	// there is one. But some commands will not be in tty mode if stderr is
 	// not a terminal. We'll need to keep an eye out for that.
@@ -72,17 +79,23 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	// these rows and columns are ignored because internally we use tcell's
 	// simulation screen. However we still need the pty for the sake of
 	// running other commands in a pty.
-	f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 300, Cols: 300})
+	_, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 300, Cols: 300})
+
 	if err != nil {
 		return err
 	}
 
-	_, _ = io.Copy(ioutil.Discard, f)
+	_ = cmd.Wait()
 
-	if cmd.Wait() != nil {
-		// return an error with the stderr output
-		return errors.New(stderr.String())
+	time.Sleep(time.Second)
+
+	result, err := result.ReadResult(resultPath)
+	if err != nil {
+		return fmt.Errorf("Error reading integration test result: %w", err)
+	}
+	if !result.Success {
+		return errors.New(result.Message)
 	}
 
-	return f.Close()
+	return nil
 }

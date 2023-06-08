@@ -1,6 +1,5 @@
-//go:build (mips || mipsle || mips64 || mips64le) && linux
-// +build mips mipsle mips64 mips64le
-// +build linux
+//go:build loong64
+// +build loong64
 
 // Created by cgo -godefs - DO NOT EDIT
 // cgo -godefs types.go

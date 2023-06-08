@@ -27,7 +27,7 @@ func GetTests() []*components.IntegrationTest {
 
 	missingTestNames := []string{}
 
-	if err := filepath.Walk(filepath.Join(utils.GetLazyRootDirectory(), "pkg/integration/tests"), func(path string, info os.FileInfo, err error) error {
+	if err := filepath.Walk(filepath.Join(utils.GetLazyRootDirectory(), "pkg", "integration", "tests"), func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() && strings.HasSuffix(path, ".go") {
 			// ignoring non-test files
 			if filepath.Base(path) == "tests.go" || filepath.Base(path) == "test_list.go" || filepath.Base(path) == "test_list_generator.go" {

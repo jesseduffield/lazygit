@@ -5,7 +5,6 @@ package gui
 
 import (
 	"io"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -57,7 +56,7 @@ func (gui *Gui) newPtyTask(view *gocui.View, cmd *exec.Cmd, prefix string) error
 
 	manager := gui.getManager(view)
 
-	var ptmx *os.File
+	var ptmx pty.Pty
 	start := func() (*exec.Cmd, io.Reader) {
 		var err error
 		ptmx, err = pty.StartWithSize(cmd, gui.desiredPtySize())

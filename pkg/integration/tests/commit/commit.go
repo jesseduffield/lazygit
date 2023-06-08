@@ -27,7 +27,7 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 			PressPrimaryAction(). // stage file
 			Lines(
 				Contains("A  myfile").IsSelected(),
-				Contains("?? myfile2"),
+				Contains("?? myfile23"),
 			).
 			SelectNextItem().
 			PressPrimaryAction(). // stage other file
@@ -55,7 +55,7 @@ var Commit = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Contains("A myfile"),
-				Contains("A myfile2"),
+				Contains("A myfile3"),
 			)
 	},
 })

@@ -70,6 +70,7 @@ func (self *GuiDriver) Fail(message string) {
 	self.gui.g.Close()
 	// need to give the gui time to close
 	time.Sleep(time.Millisecond * 100)
+	self.Log("test failed")
 	panic(fullMessage)
 }
 
