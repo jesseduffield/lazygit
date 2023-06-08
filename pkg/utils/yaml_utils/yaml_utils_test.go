@@ -56,6 +56,14 @@ func TestUpdateYamlValue(t *testing.T) {
 			expectedOut: "foo:\n    bar: qux\n",
 			expectedErr: "",
 		},
+		{
+			name:        "nested where parents doesn't exist yet",
+			in:          "",
+			path:        []string{"foo", "bar", "baz"},
+			value:       "qux",
+			expectedOut: "foo:\n    bar:\n        baz: qux\n",
+			expectedErr: "",
+		},
 
 		// Error cases
 		{
