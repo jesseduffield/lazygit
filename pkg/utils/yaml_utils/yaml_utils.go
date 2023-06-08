@@ -1,6 +1,7 @@
 package yaml_utils
 
 import (
+	"errors"
 	"fmt"
 
 	"gopkg.in/yaml.v3"
@@ -23,6 +24,10 @@ func UpdateYamlValue(yamlBytes []byte, path []string, value string) ([]byte, err
 	}
 
 	body := node.Content[0]
+
+	if body.Kind != yaml.MappingNode {
+		return yamlBytes, errors.New("yaml document is not a dictionary")
+	}
 
 	updateYamlNode(body, path, value)
 

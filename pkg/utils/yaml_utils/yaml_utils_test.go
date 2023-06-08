@@ -56,6 +56,16 @@ func TestUpdateYamlValue(t *testing.T) {
 			expectedOut: "foo:\n    bar: qux\n",
 			expectedErr: "",
 		},
+
+		// Error cases
+		{
+			name:        "existing document is not a dictionary",
+			in:          "42\n",
+			path:        []string{"foo"},
+			value:       "bar",
+			expectedOut: "42\n",
+			expectedErr: "yaml document is not a dictionary",
+		},
 	}
 
 	for _, test := range tests {
