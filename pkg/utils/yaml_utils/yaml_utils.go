@@ -7,7 +7,7 @@ import (
 )
 
 // takes a yaml document in bytes, a path to a key, and a value to set. The value must be a scalar.
-func UpdateYaml(yamlBytes []byte, path []string, value string) ([]byte, error) {
+func UpdateYamlValue(yamlBytes []byte, path []string, value string) ([]byte, error) {
 	// Parse the YAML file.
 	var node yaml.Node
 	err := yaml.Unmarshal(yamlBytes, &node)

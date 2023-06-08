@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateYaml(t *testing.T) {
+func TestUpdateYamlValue(t *testing.T) {
 	tests := []struct {
 		name        string
 		in          string
@@ -53,7 +53,7 @@ func TestUpdateYaml(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			out, actualErr := UpdateYaml([]byte(test.in), test.path, test.value)
+			out, actualErr := UpdateYamlValue([]byte(test.in), test.path, test.value)
 			if test.expectedErr == "" {
 				assert.NoError(t, actualErr)
 			} else {
