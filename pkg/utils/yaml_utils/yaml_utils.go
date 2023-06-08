@@ -15,6 +15,13 @@ func UpdateYamlValue(yamlBytes []byte, path []string, value string) ([]byte, err
 		return nil, fmt.Errorf("failed to parse YAML: %w", err)
 	}
 
+	// Empty document: need to create the top-level map ourselves
+	if len(node.Content) == 0 {
+		node.Content = append(node.Content, &yaml.Node{
+			Kind: yaml.MappingNode,
+		})
+	}
+
 	body := node.Content[0]
 
 	updateYamlNode(body, path, value)

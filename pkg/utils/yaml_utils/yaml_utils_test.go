@@ -32,6 +32,14 @@ func TestUpdateYamlValue(t *testing.T) {
 			expectedErr: "",
 		},
 		{
+			name:        "add new key and value when document was empty",
+			in:          "",
+			path:        []string{"foo"},
+			value:       "bar",
+			expectedOut: "foo: bar\n",
+			expectedErr: "",
+		},
+		{
 			name:        "preserve inline comment",
 			in:          "foo: bar # my comment\n",
 			path:        []string{"foo2"},
