@@ -52,6 +52,10 @@ func updateYamlNode(node *yaml.Node, path []string, value string) error {
 		return nil
 	}
 
+	if node.Kind != yaml.MappingNode {
+		return errors.New("yaml node in path is not a dictionary")
+	}
+
 	key := path[0]
 	for i := 0; i < len(node.Content)-1; i += 2 {
 		if node.Content[i].Value == key {

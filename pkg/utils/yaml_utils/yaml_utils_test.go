@@ -74,6 +74,14 @@ func TestUpdateYamlValue(t *testing.T) {
 			expectedOut: "foo: [1, 2, 3]\n",
 			expectedErr: "yaml node is not a scalar",
 		},
+		{
+			name:        "not all path elements are dictionaries",
+			in:          "foo:\n  bar: [1, 2, 3]\n",
+			path:        []string{"foo", "bar", "baz"},
+			value:       "qux",
+			expectedOut: "foo:\n  bar: [1, 2, 3]\n",
+			expectedErr: "yaml node in path is not a dictionary",
+		},
 	}
 
 	for _, test := range tests {
