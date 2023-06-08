@@ -66,6 +66,14 @@ func TestUpdateYamlValue(t *testing.T) {
 			expectedOut: "42\n",
 			expectedErr: "yaml document is not a dictionary",
 		},
+		{
+			name:        "trying to update a note that is not a scalar",
+			in:          "foo: [1, 2, 3]\n",
+			path:        []string{"foo"},
+			value:       "bar",
+			expectedOut: "foo: [1, 2, 3]\n",
+			expectedErr: "yaml node is not a scalar",
+		},
 	}
 
 	for _, test := range tests {

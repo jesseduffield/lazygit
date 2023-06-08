@@ -29,7 +29,9 @@ func UpdateYamlValue(yamlBytes []byte, path []string, value string) ([]byte, err
 		return yamlBytes, errors.New("yaml document is not a dictionary")
 	}
 
-	updateYamlNode(body, path, value)
+	if err := updateYamlNode(body, path, value); err != nil {
+		return yamlBytes, err
+	}
 
 	// Convert the updated YAML node back to YAML bytes.
 	updatedYAMLBytes, err := yaml.Marshal(body)
@@ -41,17 +43,19 @@ func UpdateYamlValue(yamlBytes []byte, path []string, value string) ([]byte, err
 }
 
 // Recursive function to update the YAML node.
-func updateYamlNode(node *yaml.Node, path []string, value string) {
+func updateYamlNode(node *yaml.Node, path []string, value string) error {
 	if len(path) == 0 {
+		if node.Kind != yaml.ScalarNode {
+			return errors.New("yaml node is not a scalar")
+		}
 		node.Value = value
-		return
+		return nil
 	}
 
 	key := path[0]
 	for i := 0; i < len(node.Content)-1; i += 2 {
 		if node.Content[i].Value == key {
-			updateYamlNode(node.Content[i+1], path[1:], value)
-			return
+			return updateYamlNode(node.Content[i+1], path[1:], value)
 		}
 	}
 
@@ -63,4 +67,5 @@ func updateYamlNode(node *yaml.Node, path []string, value string) {
 		Kind:  yaml.ScalarNode,
 		Value: value,
 	})
+	return nil
 }
