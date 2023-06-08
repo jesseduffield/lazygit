@@ -200,6 +200,6 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 // git's branch naming requirement.
 func (self *RefsHelper) sanitizedBranchName(input string) string {
 	reg1 := regexp.MustCompile(`^-+`)
-	reg2 := regexp.MustCompile(`\.|\/\.|\.\.|~|\^|:|\/$|\.lock$|\.lock\/|\\|\*|\s|^\s*$|\.$|\[|\]$`)
+	reg2 := regexp.MustCompile(`\.|\/\.|\.\.|~|\^|:|\/$|\\|\*|\s|^\s*$|\.$|\[|\]$`)
 	return reg2.ReplaceAllString(reg1.ReplaceAllString(strings.TrimSpace(input), ""), self.c.UserConfig.Gui.BranchWhitespaceChar)
 }
