@@ -349,12 +349,25 @@ func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*mod
 	if ancestor == "" {
 		return commits
 	}
+	inMainBranch := false
+	branchRef, err := self.cmd.New(
+		NewGitCmd("symbolic-ref").Arg("HEAD").
+			ToArgv(),
+	).DontLog().RunWithOutput()
+	if err == nil {
+		branchRef = strings.TrimSpace(branchRef)
+		for _, mainRef := range self.mainBranches {
+			if mainRef == branchRef {
+				inMainBranch = true
+			}
+		}
+	}
 	passedAncestor := false
 	for i, commit := range commits {
 		if strings.HasPrefix(ancestor, commit.Sha) {
 			passedAncestor = true
 		}
-		if commit.Status != models.StatusPushed && commit.Status != models.StatusUnpushed {
+		if commit.Status != models.StatusPushed && (inMainBranch || commit.Status != models.StatusUnpushed) {
 			continue
 		}
 		if passedAncestor {
