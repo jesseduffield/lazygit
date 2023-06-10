@@ -490,13 +490,33 @@ func (self *CommitLoader) getMergeBase(refName string) string {
 func (self *CommitLoader) getExistingMainBranches() []string {
 	return lo.FilterMap(self.UserConfig.Git.MainBranches,
 		func(branchName string, _ int) (string, bool) {
-			ref := "refs/heads/" + branchName
+			// Try to determine upstream of local main branch
+			if ref, err := self.cmd.New(
+				NewGitCmd("rev-parse").Arg("--symbolic-full-name", branchName+"@{u}").ToArgv(),
+			).DontLog().RunWithOutput(); err == nil {
+				return strings.TrimSpace(ref), true
+			}
+
+			// If this failed, a local branch for this main branch doesn't exist or it
+			// has no upstream configured. Try looking for one in the "origin" remote.
+			ref := "refs/remotes/origin/" + branchName
 			if err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
-			).DontLog().Run(); err != nil {
-				return "", false
+			).DontLog().Run(); err == nil {
+				return ref, true
 			}
-			return ref, true
+
+			// If this failed as well, try if we have the main branch as a local
+			// branch. This covers the case where somebody is using git locally
+			// for something, but never pushing anywhere.
+			ref = "refs/heads/" + branchName
+			if err := self.cmd.New(
+				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
+			).DontLog().Run(); err == nil {
+				return ref, true
+			}
+
+			return "", false
 		})
 }
 
