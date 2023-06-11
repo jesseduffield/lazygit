@@ -49,6 +49,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().CherryPicking.SelectedShaSet(),
 			c.Modes().Diffing.Ref,
+			c.Modes().MarkedBaseCommit.GetSha(),
 			c.UserConfig.Gui.TimeFormat,
 			c.UserConfig.Gui.ShortTimeFormat,
 			time.Now(),

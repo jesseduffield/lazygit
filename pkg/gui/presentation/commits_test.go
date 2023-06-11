@@ -33,6 +33,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		hasUpdateRefConfig       bool
 		fullDescription          bool
 		cherryPickedCommitShaSet *set.Set[string]
+		markedBaseCommit         string
 		diffName                 string
 		timeFormat               string
 		shortTimeFormat          string
@@ -408,6 +409,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.fullDescription,
 					s.cherryPickedCommitShaSet,
 					s.diffName,
+					s.markedBaseCommit,
 					s.timeFormat,
 					s.shortTimeFormat,
 					s.now,

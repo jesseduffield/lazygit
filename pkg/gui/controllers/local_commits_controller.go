@@ -103,6 +103,12 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler:     self.paste,
 			Description: self.c.Tr.PasteCommits,
 		},
+		{
+			Key:         opts.GetKey(opts.Config.Commits.MarkCommitAsBaseForRebase),
+			Handler:     self.checkSelected(self.markAsBaseCommit),
+			Description: self.c.Tr.MarkAsBaseCommit,
+			Tooltip:     self.c.Tr.MarkAsBaseCommitTooltip,
+		},
 		// overriding these navigation keybindings because we might need to load
 		// more commits on demand
 		{
@@ -838,6 +844,16 @@ func (self *LocalCommitsController) context() *context.LocalCommitsContext {
 
 func (self *LocalCommitsController) paste() error {
 	return self.c.Helpers().CherryPick.Paste()
+}
+
+func (self *LocalCommitsController) markAsBaseCommit(commit *models.Commit) error {
+	if commit.Sha == self.c.Modes().MarkedBaseCommit.GetSha() {
+		// Reset when invoking it again on the marked commit
+		self.c.Modes().MarkedBaseCommit.SetSha("")
+	} else {
+		self.c.Modes().MarkedBaseCommit.SetSha(commit.Sha)
+	}
+	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
 }
 
 func (self *LocalCommitsController) isHeadCommit() bool {

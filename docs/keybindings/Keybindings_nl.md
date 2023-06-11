@@ -143,6 +143,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-j&gt;</kbd>: Verplaats commit 1 naar beneden
   <kbd>&lt;c-k&gt;</kbd>: Verplaats commit 1 naar boven
   <kbd>v</kbd>: Plak commits (cherry-pick)
+  <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: Wijzig commit met staged veranderingen
   <kbd>a</kbd>: Set/Reset commit author
   <kbd>t</kbd>: Commit ongedaan maken

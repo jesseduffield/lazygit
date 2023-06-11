@@ -45,6 +45,7 @@ func GetCommitListDisplayStrings(
 	fullDescription bool,
 	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
+	markedBaseCommit string,
 	timeFormat string,
 	shortTimeFormat string,
 	now time.Time,
@@ -128,6 +129,7 @@ func GetCommitListDisplayStrings(
 
 	lines := make([][]string, 0, len(filteredCommits))
 	var bisectStatus BisectStatus
+	willBeRebased := markedBaseCommit == ""
 	for i, commit := range filteredCommits {
 		unfilteredIdx := i + startIdx
 		bisectStatus = getBisectStatus(unfilteredIdx, commit.Sha, bisectInfo, bisectBounds)
@@ -136,11 +138,17 @@ func GetCommitListDisplayStrings(
 			isYouAreHereCommit = true
 			showYouAreHereLabel = false
 		}
+		isMarkedBaseCommit := commit.Sha != "" && commit.Sha == markedBaseCommit
+		if isMarkedBaseCommit {
+			willBeRebased = true
+		}
 		lines = append(lines, displayCommit(
 			common,
 			commit,
 			branchHeadsToVisualize,
 			cherryPickedCommitShaSet,
+			isMarkedBaseCommit,
+			willBeRebased,
 			diffName,
 			timeFormat,
 			shortTimeFormat,
@@ -290,6 +298,8 @@ func displayCommit(
 	commit *models.Commit,
 	branchHeadsToVisualize *set.Set[string],
 	cherryPickedCommitShaSet *set.Set[string],
+	isMarkedBaseCommit bool,
+	willBeRebased bool,
 	diffName string,
 	timeFormat string,
 	shortTimeFormat string,
@@ -335,6 +345,12 @@ func displayCommit(
 		color := lo.Ternary(commit.Action == models.ActionConflict, style.FgRed, style.FgYellow)
 		youAreHere := color.Sprintf("<-- %s ---", common.Tr.YouAreHere)
 		name = fmt.Sprintf("%s %s", youAreHere, name)
+	} else if isMarkedBaseCommit {
+		rebaseFromHere := style.FgYellow.Sprint(common.Tr.MarkedCommitMarker)
+		name = fmt.Sprintf("%s %s", rebaseFromHere, name)
+	} else if !willBeRebased {
+		willBeRebased := style.FgYellow.Sprint("✓")
+		name = fmt.Sprintf("%s %s", willBeRebased, name)
 	}
 
 	authorFunc := authors.ShortAuthor

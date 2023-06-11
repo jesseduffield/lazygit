@@ -69,6 +69,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-j&gt;</kbd>: Przenieś commit 1 w dół
   <kbd>&lt;c-k&gt;</kbd>: Przenieś commit 1 w górę
   <kbd>v</kbd>: Wklej commity (przebieranie)
+  <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: Popraw commit zmianami z poczekalni
   <kbd>a</kbd>: Set/Reset commit author
   <kbd>t</kbd>: Odwróć commit

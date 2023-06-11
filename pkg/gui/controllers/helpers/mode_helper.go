@@ -83,6 +83,16 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 			Reset: self.ExitFilterMode,
 		},
 		{
+			IsActive: self.c.Modes().MarkedBaseCommit.Active,
+			Description: func() string {
+				return self.withResetButton(
+					self.c.Tr.MarkedBaseCommitStatus,
+					style.FgCyan,
+				)
+			},
+			Reset: self.mergeAndRebaseHelper.ResetMarkedBaseCommit,
+		},
+		{
 			IsActive: self.c.Modes().CherryPicking.Active,
 			Description: func() string {
 				copiedCount := len(self.c.Modes().CherryPicking.CherryPickedCommits)
