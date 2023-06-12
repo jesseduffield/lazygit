@@ -100,7 +100,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Commits.PasteCommits),
-			Handler:     opts.Guards.OutsideFilterMode(self.paste),
+			Handler:     self.paste,
 			Description: self.c.Tr.PasteCommits,
 		},
 		// overriding these navigation keybindings because we might need to load
