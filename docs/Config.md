@@ -63,6 +63,7 @@ gui:
   showBottomLine: true # for hiding the bottom information line (unless it has important information to tell you)
   showCommandLog: true
   showIcons: false
+  nerdFontsVersion: 2
   commandLogSize: 8
   splitDiff: 'auto' # one of 'auto' | 'always'
   skipRewordInEditorWarning: false # for skipping the confirmation before launching the reword editor
@@ -421,6 +422,12 @@ If you are using [Nerd Fonts](https://www.nerdfonts.com), you can display icons.
 ```yaml
 gui:
   showIcons: true
+```
+
+You can choose the Nerd Fonts version. The default version is 2
+```yaml
+gui:
+  nerdFontsVersion: 2
 ```
 
 ## Keybindings

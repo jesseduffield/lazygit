@@ -116,7 +116,7 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 	menuItems := slices.Map(recentRepoPaths, func(path string) *types.MenuItem {
 		branchName, _ := currentBranches.Load(path)
 		if icons.IsIconEnabled() {
-			branchName = icons.BRANCH_ICON + " " + fmt.Sprintf("%v", branchName)
+			branchName = icons.BRANCH_ICON[icons.GetNerdFontsVersion()] + " " + fmt.Sprintf("%v", branchName)
 		}
 
 		return &types.MenuItem{
