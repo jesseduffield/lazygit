@@ -496,7 +496,11 @@ func NewGui(
 	gui.c = helperCommon
 
 	authors.SetCustomAuthors(gui.UserConfig.Gui.AuthorColors)
-	icons.SetIconEnabled(gui.UserConfig.Gui.ShowIcons)
+	if gui.UserConfig.Gui.NerdFontsVersion != "" {
+		icons.SetNerdFontsVersion(gui.UserConfig.Gui.NerdFontsVersion)
+	} else if gui.UserConfig.Gui.ShowIcons {
+		icons.SetNerdFontsVersion("2")
+	}
 	presentation.SetCustomBranches(gui.UserConfig.Gui.BranchColors)
 
 	gui.BackgroundRoutineMgr = &BackgroundRoutineMgr{gui: gui}
