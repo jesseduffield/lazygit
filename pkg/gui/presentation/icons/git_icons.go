@@ -16,16 +16,11 @@ const (
 	STASH_ICON          = "\uf01c" // 
 )
 
-type remoteIcon struct {
-	domain string
-	icon   string
-}
-
-var remoteIcons = []remoteIcon{
-	{domain: "github.com", icon: "\ue709"},    // 
-	{domain: "bitbucket.org", icon: "\ue703"}, // 
-	{domain: "gitlab.com", icon: "\uf296"},    // 
-	{domain: "dev.azure.com", icon: "\ufd03"}, // ﴃ
+var remoteIcons = map[string]string{
+	"github.com":    "\ue709", // 
+	"bitbucket.org": "\ue703", // 
+	"gitlab.com":    "\uf296", // 
+	"dev.azure.com": "\ufd03", // ﴃ
 }
 
 func IconForBranch(branch *models.Branch) string {
@@ -51,10 +46,10 @@ func IconForCommit(commit *models.Commit) string {
 }
 
 func IconForRemote(remote *models.Remote) string {
-	for _, r := range remoteIcons {
+	for domain, icon := range remoteIcons {
 		for _, url := range remote.Urls {
-			if strings.Contains(url, r.domain) {
-				return r.icon
+			if strings.Contains(url, domain) {
+				return icon
 			}
 		}
 	}
