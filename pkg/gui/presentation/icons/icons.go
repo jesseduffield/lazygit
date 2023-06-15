@@ -1,7 +1,9 @@
 package icons
 
-var isIconEnabled = false
-var nerdFontsVersion = 2
+var (
+	isIconEnabled    = false
+	nerdFontsVersion = 2
+)
 
 func IsIconEnabled() bool {
 	return isIconEnabled
@@ -12,9 +14,9 @@ func SetIconEnabled(showIcons bool) {
 }
 
 func GetNerdFontsVersion() int {
-    return nerdFontsVersion
+	return nerdFontsVersion
 }
 
 func SetNerdFontsVersion(version int) {
-    nerdFontsVersion = version
+	nerdFontsVersion = version
 }
