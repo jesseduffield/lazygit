@@ -34,7 +34,8 @@ func (self *TagsController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.withSelectedTag(self.delete),
-			Description: self.c.Tr.DeleteTag,
+			Description: self.c.Tr.ViewDeleteOptions,
+			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.PushTag),
@@ -88,24 +89,90 @@ func (self *TagsController) checkout(tag *models.Tag) error {
 	return self.c.PushContext(self.c.Contexts().Branches)
 }
 
-func (self *TagsController) delete(tag *models.Tag) error {
-	prompt := utils.ResolvePlaceholderString(
-		self.c.Tr.DeleteTagPrompt,
+func (self *TagsController) localDelete(tag *models.Tag) error {
+	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.DeleteLocalTag)
+		if err := self.c.Git().Tag.LocalDelete(tag.Name); err != nil {
+			return self.c.Error(err)
+		}
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+	})
+}
+
+func (self *TagsController) remoteDelete(tag *models.Tag) error {
+	title := utils.ResolvePlaceholderString(
+		self.c.Tr.SelectRemoteTagUpstream,
 		map[string]string{
 			"tagName": tag.Name,
 		},
 	)
 
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.DeleteTagTitle,
-		Prompt: prompt,
-		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.DeleteTag)
-			if err := self.c.Git().Tag.LocalDelete(tag.Name); err != nil {
-				return self.c.Error(err)
-			}
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+	return self.c.Prompt(types.PromptOpts{
+		Title:               title,
+		InitialContent:      "origin",
+		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteSuggestionsFunc(),
+		HandleConfirm: func(upstream string) error {
+			confirmTitle := utils.ResolvePlaceholderString(
+				self.c.Tr.DeleteTagTitle,
+				map[string]string{
+					"tagName": tag.Name,
+				},
+			)
+			confirmPrompt := utils.ResolvePlaceholderString(
+				self.c.Tr.DeleteRemoteTagPrompt,
+				map[string]string{
+					"tagName":  tag.Name,
+					"upstream": upstream,
+				},
+			)
+
+			return self.c.Confirm(types.ConfirmOpts{
+				Title:  confirmTitle,
+				Prompt: confirmPrompt,
+				HandleConfirm: func() error {
+					return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(t gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.DeleteRemoteTag)
+						if err := self.c.Git().Remote.DeleteRemoteTag(t, upstream, tag.Name); err != nil {
+							return self.c.Error(err)
+						}
+						self.c.Toast(self.c.Tr.RemoteTagDeletedMessage)
+						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.COMMITS, types.TAGS}})
+					})
+				},
+			})
 		},
+	})
+}
+
+func (self *TagsController) delete(tag *models.Tag) error {
+	menuTitle := utils.ResolvePlaceholderString(
+		self.c.Tr.DeleteTagTitle,
+		map[string]string{
+			"tagName": tag.Name,
+		},
+	)
+
+	menuItems := []*types.MenuItem{
+		{
+			Label: self.c.Tr.DeleteLocalTag,
+			Key:   'c',
+			OnPress: func() error {
+				return self.localDelete(tag)
+			},
+		},
+		{
+			Label:     self.c.Tr.DeleteRemoteTag,
+			Key:       'r',
+			OpensMenu: true,
+			OnPress: func() error {
+				return self.remoteDelete(tag)
+			},
+		},
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: menuTitle,
+		Items: menuItems,
 	})
 }
 

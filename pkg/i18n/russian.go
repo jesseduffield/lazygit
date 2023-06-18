@@ -377,7 +377,6 @@ func RussianTranslationSet() TranslationSet {
 		LightweightTag:                      "Легковесный тег",
 		DeleteTag:                           "Удалить тег",
 		DeleteTagTitle:                      "Удалить тег",
-		DeleteTagPrompt:                     "Вы уверены, что хотите удалить тег '{{.tagName}}'?",
 		PushTagTitle:                        "Удалённый репозитории для отправки тега '{{.tagName}}' в:",
 		PushTag:                             "Отправить тег",
 		CreateTag:                           "Создать тег",

@@ -292,6 +292,7 @@ type TranslationSet struct {
 	DiscardUntrackedFiles               string
 	DiscardStagedChanges                string
 	HardReset                           string
+	ViewDeleteOptions                   string
 	ViewResetOptions                    string
 	CreateFixupCommit                   string
 	CreateFixupCommitDescription        string
@@ -354,7 +355,11 @@ type TranslationSet struct {
 	AnnotatedTag                        string
 	DeleteTag                           string
 	DeleteTagTitle                      string
-	DeleteTagPrompt                     string
+	DeleteLocalTag                      string
+	DeleteRemoteTag                     string
+	SelectRemoteTagUpstream             string
+	DeleteRemoteTagPrompt               string
+	RemoteTagDeletedMessage             string
 	PushTagTitle                        string
 	PushTag                             string
 	CreateTag                           string
@@ -715,6 +720,8 @@ type Actions struct {
 	CreateLightweightTag              string
 	CreateAnnotatedTag                string
 	DeleteTag                         string
+	DeleteLocalTag                    string
+	DeleteRemoteTag                   string
 	PushTag                           string
 	NukeWorkingTree                   string
 	DiscardUnstagedFileChanges        string
@@ -1055,6 +1062,7 @@ func EnglishTranslationSet() TranslationSet {
 		DiscardUntrackedFiles:               "Discard untracked files",
 		DiscardStagedChanges:                "Discard staged changes",
 		HardReset:                           "Hard reset",
+		ViewDeleteOptions:                   "View delete options",
 		ViewResetOptions:                    `View reset options`,
 		CreateFixupCommitDescription:        `Create fixup commit for this commit`,
 		SquashAboveCommits:                  `Squash all 'fixup!' commits above selected commit (autosquash)`,
@@ -1115,9 +1123,12 @@ func EnglishTranslationSet() TranslationSet {
 		TagMessageTitle:                     "Tag description",
 		AnnotatedTag:                        "Annotated tag",
 		LightweightTag:                      "Lightweight tag",
-		DeleteTag:                           "Delete tag",
-		DeleteTagTitle:                      "Delete tag",
-		DeleteTagPrompt:                     "Are you sure you want to delete tag '{{.tagName}}'?",
+		DeleteTagTitle:                      "Delete tag '{{.tagName}}'?",
+		DeleteLocalTag:                      "Delete local tag",
+		DeleteRemoteTag:                     "Delete remote tag",
+		RemoteTagDeletedMessage:             "Remote tag deleted",
+		SelectRemoteTagUpstream:             "Remote from which to remove tag '{{.tagName}}':",
+		DeleteRemoteTagPrompt:               "Are you sure you want to delete the remote tag '{{.tagName}}' from '{{.upstream}}'?",
 		PushTagTitle:                        "Remote to push tag '{{.tagName}}' to:",
 		PushTag:                             "Push tag",
 		CreateTag:                           "Create tag",
@@ -1434,7 +1445,9 @@ func EnglishTranslationSet() TranslationSet {
 			BulkUpdateSubmodules:              "Bulk update submodules",
 			BulkDeinitialiseSubmodules:        "Bulk deinitialise submodules",
 			UpdateSubmodule:                   "Update submodule",
-			DeleteTag:                         "Delete tag",
+			DeleteTag:                         "Delete local and remote tag",
+			DeleteLocalTag:                    "Delete local tag",
+			DeleteRemoteTag:                   "Delete remote tag",
 			PushTag:                           "Push tag",
 			NukeWorkingTree:                   "Nuke working tree",
 			DiscardUnstagedFileChanges:        "Discard unstaged file changes",

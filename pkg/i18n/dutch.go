@@ -266,7 +266,6 @@ func dutchTranslationSet() TranslationSet {
 		TagNameTitle:                        "Tag naam",
 		DeleteTag:                           "Verwijder tag",
 		DeleteTagTitle:                      "Verwijder tag",
-		DeleteTagPrompt:                     "Weet je zeker dat je '{{.tagName}}' wil verwijderen?",
 		PushTagTitle:                        "Remote om tag '{{.tagName}}' te pushen naar:",
 		PushTag:                             "Push tag",
 		CreateTag:                           "Creëer tag",

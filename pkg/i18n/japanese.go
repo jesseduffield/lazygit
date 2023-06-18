@@ -321,7 +321,6 @@ func japaneseTranslationSet() TranslationSet {
 		LightweightTag:         "軽量タグ",
 		DeleteTag:              "タグを削除",
 		DeleteTagTitle:         "タグを削除",
-		DeleteTagPrompt:        "タグ '{{.tagName}}' を削除します。よろしいですか?",
 		PushTagTitle:           "リモートにタグ '{{.tagName}}' をpush",
 		PushTag:                "タグをpush",
 		CreateTag:              "タグを作成",

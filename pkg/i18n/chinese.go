@@ -311,7 +311,6 @@ func chineseTranslationSet() TranslationSet {
 		LightweightTag:                      "轻量标签",
 		DeleteTag:                           "删除标签",
 		DeleteTagTitle:                      "删除标签",
-		DeleteTagPrompt:                     "您确定要删除标签 {{.tagName}} 吗？",
 		PushTagTitle:                        "将 {{.tagName}} 推送到远程仓库：",
 		PushTag:                             "推送标签",
 		CreateTag:                           "创建标签",

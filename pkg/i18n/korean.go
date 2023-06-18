@@ -316,7 +316,6 @@ func koreanTranslationSet() TranslationSet {
 		LightweightTag:             "Lightweight tag",
 		DeleteTag:                  "태그 삭제",
 		DeleteTagTitle:             "태그 삭제",
-		DeleteTagPrompt:            "정말로 태그 '{{.tagName}}' 를 삭제하시겠습니까?",
 		PushTagTitle:               "원격에 태그 '{{.tagName}}' 를 푸시",
 		PushTag:                    "태그를 push",
 		CreateTag:                  "태그를 생성",
