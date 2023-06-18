@@ -373,11 +373,9 @@ func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *model
 
 func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, force bool) error {
 	title := self.c.Tr.DeleteBranch
-	var templateStr string
+	templateStr := self.c.Tr.DeleteBranchMessage
 	if force {
 		templateStr = self.c.Tr.ForceDeleteBranchMessage
-	} else {
-		templateStr = self.c.Tr.DeleteBranchMessage
 	}
 	message := utils.ResolvePlaceholderString(
 		templateStr,
@@ -391,7 +389,7 @@ func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, f
 		Prompt: message,
 		HandleConfirm: func() error {
 			self.c.LogAction(self.c.Tr.Actions.DeleteBranch)
-			if err := self.c.Git().Branch.Delete(selectedBranch.Name, force); err != nil {
+			if err := self.c.Git().Branch.LocalDelete(selectedBranch.Name, force); err != nil {
 				errMessage := err.Error()
 				if !force && strings.Contains(errMessage, "git branch -D ") {
 					return self.deleteWithForce(selectedBranch, true)
