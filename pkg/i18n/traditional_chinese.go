@@ -402,8 +402,6 @@ func traditionalChineseTranslationSet() TranslationSet {
 		TagMessageTitle:                     "標籤訊息",
 		AnnotatedTag:                        "附註標籤",
 		LightweightTag:                      "輕量標籤",
-		DeleteTag:                           "刪除標籤",
-		DeleteTagTitle:                      "刪除標籤",
 		PushTagTitle:                        "推送標籤 '{{.tagName}}' 至遠端：",
 		PushTag:                             "推送標籤",
 		CreateTag:                           "建立標籤",

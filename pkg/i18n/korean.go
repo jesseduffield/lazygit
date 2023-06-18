@@ -314,8 +314,6 @@ func koreanTranslationSet() TranslationSet {
 		TagMessageTitle:            "태그 메시지",
 		AnnotatedTag:               "Annotated tag",
 		LightweightTag:             "Lightweight tag",
-		DeleteTag:                  "태그 삭제",
-		DeleteTagTitle:             "태그 삭제",
 		PushTagTitle:               "원격에 태그 '{{.tagName}}' 를 푸시",
 		PushTag:                    "태그를 push",
 		CreateTag:                  "태그를 생성",
