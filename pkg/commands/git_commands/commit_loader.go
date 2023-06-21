@@ -157,24 +157,7 @@ func (self *CommitLoader) extractCommitFromLine(line string, remotes []*models.R
 	parentHashes := split[5]
 	message := split[6]
 
-	tags := []string{}
-	hasLocalBranchHeads := false
-
-	if extraInfo != "" {
-		extraInfoFields := strings.Split(extraInfo, ",")
-		for _, extraInfoField := range extraInfoFields {
-			extraInfoField = strings.TrimSpace(extraInfoField)
-			re := regexp.MustCompile(`tag: (.+)`)
-			tagMatch := re.FindStringSubmatch(extraInfoField)
-			if len(tagMatch) > 1 {
-				tags = append(tags, tagMatch[1])
-			} else {
-				hasLocalBranchHeads = hasLocalBranchHeads || self.isLocalBranchHead(extraInfoField, remotes)
-			}
-		}
-
-		extraInfo = "(" + extraInfo + ")"
-	}
+	extraInfo, tags, hasLocalBranchHeads := self.parseExtraInfo(extraInfo, remotes)
 
 	unitTimestampInt, _ := strconv.Atoi(unixTimestamp)
 
@@ -194,6 +177,29 @@ func (self *CommitLoader) extractCommitFromLine(line string, remotes []*models.R
 		AuthorEmail:         authorEmail,
 		Parents:             parents,
 	}
+}
+
+func (self *CommitLoader) parseExtraInfo(extraInfo string, remotes []*models.Remote) (string, []string, bool) {
+	if extraInfo == "" {
+		return "", []string{}, false
+	}
+
+	tags := []string{}
+	hasLocalBranchHeads := false
+
+	extraInfoFields := strings.Split(extraInfo, ",")
+	for _, extraInfoField := range extraInfoFields {
+		extraInfoField = strings.TrimSpace(extraInfoField)
+		re := regexp.MustCompile(`tag: (.+)`)
+		tagMatch := re.FindStringSubmatch(extraInfoField)
+		if len(tagMatch) > 1 {
+			tags = append(tags, tagMatch[1])
+		} else {
+			hasLocalBranchHeads = hasLocalBranchHeads || self.isLocalBranchHead(extraInfoField, remotes)
+		}
+	}
+
+	return "(" + extraInfo + ")", tags, hasLocalBranchHeads
 }
 
 func (self *CommitLoader) isLocalBranchHead(extraInfoField string, remotes []*models.Remote) bool {

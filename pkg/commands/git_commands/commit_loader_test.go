@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -507,6 +508,121 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 
 			sha := builder.getConflictedCommitImpl(scenario.todos, scenario.doneTodos, scenario.amendFileExists)
 			assert.Equal(t, scenario.expectedSha, sha)
+		})
+	}
+}
+
+func TestParseExtraInfo(t *testing.T) {
+	type scenario struct {
+		testName                    string
+		extraInfo                   string
+		mainBranches                []string
+		remoteNames                 []string
+		expectedExtraInfo           string
+		expectedTags                []string
+		expectedHasLocalBranchHeads bool
+	}
+
+	scenarios := []scenario{
+		{
+			testName:                    "empty",
+			extraInfo:                   "",
+			mainBranches:                []string{},
+			remoteNames:                 []string{},
+			expectedExtraInfo:           "",
+			expectedTags:                []string{},
+			expectedHasLocalBranchHeads: false,
+		},
+		{
+			testName:                    "local branch",
+			extraInfo:                   "mybranch",
+			mainBranches:                []string{"master"},
+			remoteNames:                 []string{},
+			expectedExtraInfo:           "(mybranch)",
+			expectedTags:                []string{},
+			expectedHasLocalBranchHeads: true,
+		},
+		{
+			testName:                    "remote branch",
+			extraInfo:                   "origin/mybranch",
+			mainBranches:                []string{},
+			remoteNames:                 []string{"origin"},
+			expectedExtraInfo:           "(origin/mybranch)",
+			expectedTags:                []string{},
+			expectedHasLocalBranchHeads: false,
+		},
+		{
+			testName:                    "local branch in folder",
+			extraInfo:                   "myfolder/mybranch",
+			mainBranches:                []string{},
+			remoteNames:                 []string{"origin"},
+			expectedExtraInfo:           "(myfolder/mybranch)",
+			expectedTags:                []string{},
+			expectedHasLocalBranchHeads: true,
+		},
+		{
+			testName:                    "main branch",
+			extraInfo:                   "master",
+			mainBranches:                []string{"master"},
+			remoteNames:                 []string{},
+			expectedExtraInfo:           "(master)",
+			expectedTags:                []string{},
+			expectedHasLocalBranchHeads: false,
+		},
+		{
+			testName:                    "tags",
+			extraInfo:                   "tag: v1.0, tag: v2.7b1",
+			mainBranches:                []string{},
+			remoteNames:                 []string{},
+			expectedExtraInfo:           "(tag: v1.0, tag: v2.7b1)",
+			expectedTags:                []string{"v1.0", "v2.7b1"},
+			expectedHasLocalBranchHeads: false,
+		},
+		{
+			testName:                    "more complex example with local branch",
+			extraInfo:                   "HEAD -> better-tests, tag: v1.0, origin/master, origin/HEAD, mybranch",
+			mainBranches:                []string{},
+			remoteNames:                 []string{},
+			expectedExtraInfo:           "(HEAD -> better-tests, tag: v1.0, origin/master, origin/HEAD, mybranch)",
+			expectedTags:                []string{"v1.0"},
+			expectedHasLocalBranchHeads: true,
+		},
+		{
+			testName:                    "more complex example without local branch",
+			extraInfo:                   "HEAD -> better-tests, tag: v1.0, origin/master, origin/HEAD",
+			mainBranches:                []string{},
+			remoteNames:                 []string{"origin"},
+			expectedExtraInfo:           "(HEAD -> better-tests, tag: v1.0, origin/master, origin/HEAD)",
+			expectedTags:                []string{"v1.0"},
+			expectedHasLocalBranchHeads: false,
+		},
+	}
+
+	for _, scenario := range scenarios {
+		scenario := scenario
+		t.Run(scenario.testName, func(t *testing.T) {
+			common := utils.NewDummyCommon()
+
+			builder := &CommitLoader{
+				Common:        common,
+				cmd:           oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
+				getRebaseMode: func() (enums.RebaseMode, error) { return enums.REBASE_MODE_NONE, nil },
+				dotGitDir:     ".git",
+				readFile: func(filename string) ([]byte, error) {
+					return []byte(""), nil
+				},
+				walkFiles: func(root string, fn filepath.WalkFunc) error {
+					return nil
+				},
+			}
+
+			common.UserConfig.Git.MainBranches = scenario.mainBranches
+			remotes := lo.Map(scenario.remoteNames, func(name string, _ int) *models.Remote { return &models.Remote{Name: name} })
+			extraInfo, tags, hasLocalBranchHeads := builder.parseExtraInfo(scenario.extraInfo, remotes)
+
+			assert.Equal(t, scenario.expectedExtraInfo, extraInfo)
+			assert.Equal(t, scenario.expectedTags, tags)
+			assert.Equal(t, scenario.expectedHasLocalBranchHeads, hasLocalBranchHeads)
 		})
 	}
 }
