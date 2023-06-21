@@ -25,26 +25,26 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 07").IsSelected(),
-				Contains("commit 06"),
-				Contains("commit 05"),
-				Contains("commit 04"),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("CI commit 07").IsSelected(),
+				Contains("CI commit 06"),
+				Contains("CI commit 05"),
+				Contains("CI commit 04"),
+				Contains("CI commit 03"),
+				Contains("CI commit 02"),
+				Contains("CI commit 01"),
 			).
 			NavigateToLine(Contains("commit 02")).
 			Press(keys.Universal.Edit).
 			Focus().
 			Lines(
-				Contains("pick").Contains("commit 07"),
-				Contains("pick").Contains("commit 06"),
-				Contains("pick").Contains("commit 05"),
+				Contains("pick").Contains("CI commit 07"),
+				Contains("pick").Contains("CI commit 06"),
+				Contains("pick").Contains("CI commit 05"),
 				Contains("update-ref").Contains("branch1"),
-				Contains("pick").Contains("commit 04"),
-				Contains("pick").Contains("commit 03"),
+				Contains("pick").Contains("CI commit 04"),
+				Contains("pick").Contains("CI commit 03"),
 				Contains("<-- YOU ARE HERE --- commit 02"),
-				Contains("commit 01"),
+				Contains("CI commit 01"),
 			).
 			NavigateToLine(Contains("commit 06")).
 			Press(keys.Universal.Remove)
@@ -54,12 +54,12 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("commit 07"),
-				Contains("commit 05"),
-				Contains("commit 04"),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("CI commit 07"),
+				Contains("CI commit 05"),
+				Contains("CI commit 04"),
+				Contains("CI commit 03"),
+				Contains("CI commit 02"),
+				Contains("CI commit 01"),
 			)
 	},
 })
