@@ -16,7 +16,7 @@ import (
 
 var commitsOutput = strings.Replace(`0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com| (HEAD -> better-tests)|b21997d6b4cbdf84b149|better typing for rebase mode
 b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164|1640824515|Jesse Duffield|jessedduffield@gmail.com| (origin/better-tests)|e94e8fc5b6fab4cb755f|fix logging
-e94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c|1640823749|Jesse Duffield|jessedduffield@gmail.com||d8084cd558925eb7c9c3|refactor
+e94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c|1640823749|Jesse Duffield|jessedduffield@gmail.com| (tag: 123, tag: 456)|d8084cd558925eb7c9c3|refactor
 d8084cd558925eb7c9c38afeed5725c21653ab90|1640821426|Jesse Duffield|jessedduffield@gmail.com||65f910ebd85283b5cce9|WIP
 65f910ebd85283b5cce9bf67d03d3f1a9ea3813a|1640821275|Jesse Duffield|jessedduffield@gmail.com||26c07b1ab33860a1a759|WIP
 26c07b1ab33860a1a7591a0638f9925ccf497ffa|1640750752|Jesse Duffield|jessedduffield@gmail.com||3d4470a6c072208722e5|WIP
@@ -117,8 +117,8 @@ func TestGetCommits(t *testing.T) {
 					Name:          "refactor",
 					Status:        models.StatusPushed,
 					Action:        models.ActionNone,
-					Tags:          []string{},
-					ExtraInfo:     "",
+					Tags:          []string{"123"},
+					ExtraInfo:     "(tag: 123, tag: 456)",
 					AuthorName:    "Jesse Duffield",
 					AuthorEmail:   "jessedduffield@gmail.com",
 					UnixTimestamp: 1640823749,
