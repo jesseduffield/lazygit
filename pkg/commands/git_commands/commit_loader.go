@@ -159,11 +159,17 @@ func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
 	tags := []string{}
 
 	if extraInfo != "" {
-		re := regexp.MustCompile(`tag: ([^,\)]+)`)
-		tagMatch := re.FindStringSubmatch(extraInfo)
-		if len(tagMatch) > 1 {
-			tags = append(tags, tagMatch[1])
+		extraInfoFields := strings.Split(extraInfo, ",")
+		for _, extraInfoField := range extraInfoFields {
+			extraInfoField = strings.TrimSpace(extraInfoField)
+			re := regexp.MustCompile(`tag: (.+)`)
+			tagMatch := re.FindStringSubmatch(extraInfoField)
+			if len(tagMatch) > 1 {
+				tags = append(tags, tagMatch[1])
+			}
 		}
+
+		extraInfo = "(" + extraInfo + ")"
 	}
 
 	unitTimestampInt, _ := strconv.Atoi(unixTimestamp)
@@ -569,4 +575,4 @@ func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) oscommands.ICmdObj {
 	return self.cmd.New(cmdArgs).DontLog()
 }
 
-const prettyFormat = `--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s`
+const prettyFormat = `--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s`
