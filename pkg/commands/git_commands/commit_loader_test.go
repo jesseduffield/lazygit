@@ -63,10 +63,14 @@ func TestGetCommits(t *testing.T) {
 			expectedError:   nil,
 		},
 		{
-			testName:     "should return commits if they are present",
-			logOrder:     "topo-order",
-			rebaseMode:   enums.REBASE_MODE_NONE,
-			opts:         GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			testName:   "should return commits if they are present",
+			logOrder:   "topo-order",
+			rebaseMode: enums.REBASE_MODE_NONE,
+			opts: GetCommitsOptions{
+				RefName:              "HEAD",
+				IncludeRebaseCommits: false,
+				Remotes:              []*models.Remote{{Name: "origin"}},
+			},
 			mainBranches: []string{"master", "main", "develop"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed

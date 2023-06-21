@@ -289,7 +289,7 @@ func displayCommit(
 	} else {
 		if len(commit.Tags) > 0 {
 			tagString = theme.DiffTerminalColor.SetBold().Sprint(strings.Join(commit.Tags, " ")) + " "
-		} else if common.UserConfig.Gui.ExperimentalShowBranchHeads && commit.ExtraInfo != "" {
+		} else if common.UserConfig.Gui.ExperimentalShowBranchHeads && commit.HasLocalBranchHeads {
 			tagString = style.FgMagenta.SetBold().Sprint("(*)") + " "
 		}
 	}

@@ -32,15 +32,16 @@ const (
 
 // Commit : A git commit
 type Commit struct {
-	Sha           string
-	Name          string
-	Status        CommitStatus
-	Action        todo.TodoCommand
-	Tags          []string
-	ExtraInfo     string // something like 'HEAD -> master, tag: v0.15.2'
-	AuthorName    string // something like 'Jesse Duffield'
-	AuthorEmail   string // something like 'jessedduffield@gmail.com'
-	UnixTimestamp int64
+	Sha                 string
+	Name                string
+	Status              CommitStatus
+	Action              todo.TodoCommand
+	Tags                []string
+	ExtraInfo           string // something like 'HEAD -> master, tag: v0.15.2'
+	HasLocalBranchHeads bool   // whether there are any local branches pointing to this commit; derived from ExtraInfo
+	AuthorName          string // something like 'Jesse Duffield'
+	AuthorEmail         string // something like 'jessedduffield@gmail.com'
+	UnixTimestamp       int64
 
 	// SHAs of parent commits (will be multiple if it's a merge commit)
 	Parents []string

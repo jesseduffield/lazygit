@@ -63,6 +63,7 @@ type GetCommitsOptions struct {
 	FilterPath           string
 	IncludeRebaseCommits bool
 	RefName              string // e.g. "HEAD" or "my_branch"
+	Remotes              []*models.Remote
 	// determines if we show the whole git graph i.e. pass the '--all' flag
 	All bool
 }
@@ -74,7 +75,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 
 	if opts.IncludeRebaseCommits && opts.FilterPath == "" {
 		var err error
-		rebasingCommits, err = self.MergeRebasingCommits(commits)
+		rebasingCommits, err = self.MergeRebasingCommits(commits, opts.Remotes)
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +90,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	}
 
 	err = self.getLogCmd(opts).RunAndProcessLines(func(line string) (bool, error) {
-		commit := self.extractCommitFromLine(line)
+		commit := self.extractCommitFromLine(line, opts.Remotes)
 		if commit.Sha == firstPushedCommit {
 			passedFirstPushedCommit = true
 		}
@@ -110,7 +111,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	return commits, nil
 }
 
-func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*models.Commit, error) {
+func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit, remotes []*models.Remote) ([]*models.Commit, error) {
 	// chances are we have as many commits as last time so we'll set the capacity to be the old length
 	result := make([]*models.Commit, 0, len(commits))
 	for i, commit := range commits {
@@ -130,7 +131,7 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 		return result, nil
 	}
 
-	rebasingCommits, err := self.getHydratedRebasingCommits(rebaseMode)
+	rebasingCommits, err := self.getHydratedRebasingCommits(rebaseMode, remotes)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +146,7 @@ func (self *CommitLoader) MergeRebasingCommits(commits []*models.Commit) ([]*mod
 // then puts them into a commit object
 // example input:
 // 8ad01fe32fcc20f07bc6693f87aa4977c327f1e1|10 hours ago|Jesse Duffield| (HEAD -> master, tag: v0.15.2)|refresh commits when adding a tag
-func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
+func (self *CommitLoader) extractCommitFromLine(line string, remotes []*models.Remote) *models.Commit {
 	split := strings.SplitN(line, "\x00", 7)
 
 	sha := split[0]
@@ -157,6 +158,7 @@ func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
 	message := split[6]
 
 	tags := []string{}
+	hasLocalBranchHeads := false
 
 	if extraInfo != "" {
 		extraInfoFields := strings.Split(extraInfo, ",")
@@ -166,6 +168,8 @@ func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
 			tagMatch := re.FindStringSubmatch(extraInfoField)
 			if len(tagMatch) > 1 {
 				tags = append(tags, tagMatch[1])
+			} else {
+				hasLocalBranchHeads = hasLocalBranchHeads || self.isLocalBranchHead(extraInfoField, remotes)
 			}
 		}
 
@@ -180,18 +184,38 @@ func (self *CommitLoader) extractCommitFromLine(line string) *models.Commit {
 	}
 
 	return &models.Commit{
-		Sha:           sha,
-		Name:          message,
-		Tags:          tags,
-		ExtraInfo:     extraInfo,
-		UnixTimestamp: int64(unitTimestampInt),
-		AuthorName:    authorName,
-		AuthorEmail:   authorEmail,
-		Parents:       parents,
+		Sha:                 sha,
+		Name:                message,
+		Tags:                tags,
+		ExtraInfo:           extraInfo,
+		HasLocalBranchHeads: hasLocalBranchHeads,
+		UnixTimestamp:       int64(unitTimestampInt),
+		AuthorName:          authorName,
+		AuthorEmail:         authorEmail,
+		Parents:             parents,
 	}
 }
 
-func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode) ([]*models.Commit, error) {
+func (self *CommitLoader) isLocalBranchHead(extraInfoField string, remotes []*models.Remote) bool {
+	if strings.Contains(extraInfoField, "->") {
+		return false
+	}
+	if extraInfoField == "HEAD" {
+		return false
+	}
+	if lo.Contains(self.UserConfig.Git.MainBranches, extraInfoField) {
+		return false
+	}
+	for _, remote := range remotes {
+		if strings.HasPrefix(extraInfoField, remote.Name+"/") {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode, remotes []*models.Remote) ([]*models.Commit, error) {
 	commits, err := self.getRebasingCommits(rebaseMode)
 	if err != nil {
 		return nil, err
@@ -217,7 +241,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 
 	fullCommits := map[string]*models.Commit{}
 	err = cmdObj.RunAndProcessLines(func(line string) (bool, error) {
-		commit := self.extractCommitFromLine(line)
+		commit := self.extractCommitFromLine(line, remotes)
 		fullCommits[commit.Sha] = commit
 		return false, nil
 	})

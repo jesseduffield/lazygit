@@ -63,6 +63,7 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 			FilterPath:           self.c.Modes().Filtering.GetPath(),
 			IncludeRebaseCommits: false,
 			RefName:              ref.FullRefName(),
+			Remotes:              self.c.Model().Remotes,
 		},
 	)
 	if err != nil {

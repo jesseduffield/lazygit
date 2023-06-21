@@ -264,6 +264,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 			FilterPath:           self.c.Modes().Filtering.GetPath(),
 			IncludeRebaseCommits: true,
 			RefName:              self.refForLog(),
+			Remotes:              self.c.Model().Remotes,
 			All:                  self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
 		},
 	)
@@ -286,6 +287,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 			FilterPath:           self.c.Modes().Filtering.GetPath(),
 			IncludeRebaseCommits: false,
 			RefName:              self.c.Contexts().SubCommits.GetRef().FullRefName(),
+			Remotes:              self.c.Model().Remotes,
 		},
 	)
 	if err != nil {
@@ -315,7 +317,7 @@ func (self *RefreshHelper) refreshRebaseCommits() error {
 	self.c.Mutexes().LocalCommitsMutex.Lock()
 	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
 
-	updatedCommits, err := self.c.Git().Loaders.CommitLoader.MergeRebasingCommits(self.c.Model().Commits)
+	updatedCommits, err := self.c.Git().Loaders.CommitLoader.MergeRebasingCommits(self.c.Model().Commits, self.c.Model().Remotes)
 	if err != nil {
 		return err
 	}
