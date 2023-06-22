@@ -321,18 +321,12 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 			actualTodos, actualErr := moveFixupCommitDown(scenario.todos, scenario.originalSha, scenario.fixupSha)
 
 			if scenario.expectedErr == nil {
-				if !assert.NoError(t, actualErr) {
-					t.Errorf("Expected no error, got: %v", actualErr)
-				}
+				assert.NoError(t, actualErr)
 			} else {
-				if !assert.EqualError(t, actualErr, scenario.expectedErr.Error()) {
-					t.Errorf("Expected err: %v, got: %v", scenario.expectedErr, actualErr)
-				}
+				assert.EqualError(t, actualErr, scenario.expectedErr.Error())
 			}
 
-			if !assert.EqualValues(t, actualTodos, scenario.expectedTodos) {
-				t.Errorf("Expected todos: %v, got: %v", scenario.expectedTodos, actualTodos)
-			}
+			assert.EqualValues(t, actualTodos, scenario.expectedTodos)
 		})
 	}
 }
