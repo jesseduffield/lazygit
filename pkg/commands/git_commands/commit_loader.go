@@ -184,6 +184,13 @@ func (self *CommitLoader) parseExtraInfo(extraInfo string, remotes []*models.Rem
 		return "", []string{}, false
 	}
 
+	rebaseHeadName := ""
+	bytesContent, err := self.readFile(filepath.Join(self.dotGitDir, "rebase-merge", "head-name"))
+	if err == nil {
+		rebasedRef := string(bytesContent)
+		rebaseHeadName = strings.TrimSpace(strings.TrimPrefix(rebasedRef, "refs/heads/"))
+	}
+
 	tags := []string{}
 	hasLocalBranchHeads := false
 
@@ -195,18 +202,21 @@ func (self *CommitLoader) parseExtraInfo(extraInfo string, remotes []*models.Rem
 		if len(tagMatch) > 1 {
 			tags = append(tags, tagMatch[1])
 		} else {
-			hasLocalBranchHeads = hasLocalBranchHeads || self.isLocalBranchHead(extraInfoField, remotes)
+			hasLocalBranchHeads = hasLocalBranchHeads || self.isLocalBranchHead(extraInfoField, remotes, rebaseHeadName)
 		}
 	}
 
 	return "(" + extraInfo + ")", tags, hasLocalBranchHeads
 }
 
-func (self *CommitLoader) isLocalBranchHead(extraInfoField string, remotes []*models.Remote) bool {
+func (self *CommitLoader) isLocalBranchHead(extraInfoField string, remotes []*models.Remote, rebaseHeadName string) bool {
 	if strings.Contains(extraInfoField, "->") {
 		return false
 	}
 	if extraInfoField == "HEAD" {
+		return false
+	}
+	if extraInfoField == rebaseHeadName {
 		return false
 	}
 	if lo.Contains(self.UserConfig.Git.MainBranches, extraInfoField) {

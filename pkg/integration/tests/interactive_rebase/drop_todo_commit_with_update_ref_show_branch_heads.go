@@ -39,7 +39,7 @@ var DropTodoCommitWithUpdateRefShowBranchHeads = NewIntegrationTest(NewIntegrati
 			Press(keys.Universal.Edit).
 			Focus().
 			Lines(
-				Contains("pick").Contains("CI (*) commit 07"),
+				Contains("pick").Contains("CI commit 07"),
 				Contains("pick").Contains("CI commit 06"),
 				Contains("pick").Contains("CI commit 05"),
 				Contains("update-ref").Contains("branch1"),

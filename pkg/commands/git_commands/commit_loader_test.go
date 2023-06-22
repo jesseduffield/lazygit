@@ -518,6 +518,7 @@ func TestParseExtraInfo(t *testing.T) {
 		extraInfo                   string
 		mainBranches                []string
 		remoteNames                 []string
+		rebaseHeadName              string
 		expectedExtraInfo           string
 		expectedTags                []string
 		expectedHasLocalBranchHeads bool
@@ -529,6 +530,7 @@ func TestParseExtraInfo(t *testing.T) {
 			extraInfo:                   "",
 			mainBranches:                []string{},
 			remoteNames:                 []string{},
+			rebaseHeadName:              "",
 			expectedExtraInfo:           "",
 			expectedTags:                []string{},
 			expectedHasLocalBranchHeads: false,
@@ -538,6 +540,7 @@ func TestParseExtraInfo(t *testing.T) {
 			extraInfo:                   "mybranch",
 			mainBranches:                []string{"master"},
 			remoteNames:                 []string{},
+			rebaseHeadName:              "",
 			expectedExtraInfo:           "(mybranch)",
 			expectedTags:                []string{},
 			expectedHasLocalBranchHeads: true,
@@ -547,6 +550,7 @@ func TestParseExtraInfo(t *testing.T) {
 			extraInfo:                   "origin/mybranch",
 			mainBranches:                []string{},
 			remoteNames:                 []string{"origin"},
+			rebaseHeadName:              "",
 			expectedExtraInfo:           "(origin/mybranch)",
 			expectedTags:                []string{},
 			expectedHasLocalBranchHeads: false,
@@ -556,6 +560,7 @@ func TestParseExtraInfo(t *testing.T) {
 			extraInfo:                   "myfolder/mybranch",
 			mainBranches:                []string{},
 			remoteNames:                 []string{"origin"},
+			rebaseHeadName:              "",
 			expectedExtraInfo:           "(myfolder/mybranch)",
 			expectedTags:                []string{},
 			expectedHasLocalBranchHeads: true,
@@ -565,7 +570,18 @@ func TestParseExtraInfo(t *testing.T) {
 			extraInfo:                   "master",
 			mainBranches:                []string{"master"},
 			remoteNames:                 []string{},
+			rebaseHeadName:              "",
 			expectedExtraInfo:           "(master)",
+			expectedTags:                []string{},
+			expectedHasLocalBranchHeads: false,
+		},
+		{
+			testName:                    "rebased branch",
+			extraInfo:                   "mybranch",
+			mainBranches:                []string{},
+			remoteNames:                 []string{},
+			rebaseHeadName:              "refs/heads/mybranch\n",
+			expectedExtraInfo:           "(mybranch)",
 			expectedTags:                []string{},
 			expectedHasLocalBranchHeads: false,
 		},
@@ -574,6 +590,7 @@ func TestParseExtraInfo(t *testing.T) {
 			extraInfo:                   "tag: v1.0, tag: v2.7b1",
 			mainBranches:                []string{},
 			remoteNames:                 []string{},
+			rebaseHeadName:              "",
 			expectedExtraInfo:           "(tag: v1.0, tag: v2.7b1)",
 			expectedTags:                []string{"v1.0", "v2.7b1"},
 			expectedHasLocalBranchHeads: false,
@@ -583,6 +600,7 @@ func TestParseExtraInfo(t *testing.T) {
 			extraInfo:                   "HEAD -> better-tests, tag: v1.0, origin/master, origin/HEAD, mybranch",
 			mainBranches:                []string{},
 			remoteNames:                 []string{},
+			rebaseHeadName:              "",
 			expectedExtraInfo:           "(HEAD -> better-tests, tag: v1.0, origin/master, origin/HEAD, mybranch)",
 			expectedTags:                []string{"v1.0"},
 			expectedHasLocalBranchHeads: true,
@@ -592,6 +610,7 @@ func TestParseExtraInfo(t *testing.T) {
 			extraInfo:                   "HEAD -> better-tests, tag: v1.0, origin/master, origin/HEAD",
 			mainBranches:                []string{},
 			remoteNames:                 []string{"origin"},
+			rebaseHeadName:              "",
 			expectedExtraInfo:           "(HEAD -> better-tests, tag: v1.0, origin/master, origin/HEAD)",
 			expectedTags:                []string{"v1.0"},
 			expectedHasLocalBranchHeads: false,
@@ -609,7 +628,10 @@ func TestParseExtraInfo(t *testing.T) {
 				getRebaseMode: func() (enums.RebaseMode, error) { return enums.REBASE_MODE_NONE, nil },
 				dotGitDir:     ".git",
 				readFile: func(filename string) ([]byte, error) {
-					return []byte(""), nil
+					if filename != filepath.Join(".git", "rebase-merge", "head-name") {
+						assert.Fail(t, "Unexpected filename to read: "+filename)
+					}
+					return []byte(scenario.rebaseHeadName), nil
 				},
 				walkFiles: func(root string, fn filepath.WalkFunc) error {
 					return nil
