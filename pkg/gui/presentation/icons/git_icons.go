@@ -6,26 +6,30 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
-const (
-	BRANCH_ICON         = "\ufb2b" // שׂ
-	DETACHED_HEAD_ICON  = "\ue729" // 
-	TAG_ICON            = "\uf02b" // 
-	COMMIT_ICON         = "\ufc16" // ﰖ
-	MERGE_COMMIT_ICON   = "\ufb2c" // שּׁ
-	DEFAULT_REMOTE_ICON = "\uf7a1" // 
-	STASH_ICON          = "\uf01c" // 
+var (
+	BRANCH_ICON         = "\U000f062c" // 󰘬
+	DETACHED_HEAD_ICON  = "\ue729"     // 
+	TAG_ICON            = "\uf02b"     // 
+	COMMIT_ICON         = "\U000f0718" // 󰜘
+	MERGE_COMMIT_ICON   = "\U000f062d" // 󰘭
+	DEFAULT_REMOTE_ICON = "\uf02a2"    // 󰊢
+	STASH_ICON          = "\uf01c"     // 
 )
 
-type remoteIcon struct {
-	domain string
-	icon   string
+var remoteIcons = map[string]string{
+	"github.com":    "\ue709",     // 
+	"bitbucket.org": "\ue703",     // 
+	"gitlab.com":    "\uf296",     // 
+	"dev.azure.com": "\U000f0805", // 󰠅
 }
 
-var remoteIcons = []remoteIcon{
-	{domain: "github.com", icon: "\ue709"},    // 
-	{domain: "bitbucket.org", icon: "\ue703"}, // 
-	{domain: "gitlab.com", icon: "\uf296"},    // 
-	{domain: "dev.azure.com", icon: "\ufd03"}, // ﴃ
+func patchGitIconsForNerdFontsV2() {
+	BRANCH_ICON = "\ufb2b"         // שׂ
+	COMMIT_ICON = "\ufc16"         // ﰖ
+	MERGE_COMMIT_ICON = "\ufb2c"   // שּׁ
+	DEFAULT_REMOTE_ICON = "\uf7a1" // 
+
+	remoteIcons["dev.azure.com"] = "\ufd03" // ﴃ
 }
 
 func IconForBranch(branch *models.Branch) string {
@@ -51,10 +55,10 @@ func IconForCommit(commit *models.Commit) string {
 }
 
 func IconForRemote(remote *models.Remote) string {
-	for _, r := range remoteIcons {
+	for domain, icon := range remoteIcons {
 		for _, url := range remote.Urls {
-			if strings.Contains(url, r.domain) {
-				return r.icon
+			if strings.Contains(url, domain) {
+				return icon
 			}
 		}
 	}

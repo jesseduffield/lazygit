@@ -62,7 +62,8 @@ gui:
   experimentalShowBranchHeads: false # visualize branch heads with (*) in commits list
   showBottomLine: true # for hiding the bottom information line (unless it has important information to tell you)
   showCommandLog: true
-  showIcons: false
+  showIcons: false # deprecated: use nerdFontsVersion instead
+  nerdFontsVersion: "" # nerd fonts version to use ("2" or "3"); empty means don't show nerd font icons
   commandLogSize: 8
   splitDiff: 'auto' # one of 'auto' | 'always'
   skipRewordInEditorWarning: false # for skipping the confirmation before launching the reword editor
@@ -420,8 +421,11 @@ If you are using [Nerd Fonts](https://www.nerdfonts.com), you can display icons.
 
 ```yaml
 gui:
-  showIcons: true
+  nerdFontsVersion: "3"
 ```
+
+Supported versions are "2" and "3". The deprecated config `showIcons` sets the
+version to "2" for backwards compatibility.
 
 ## Keybindings
 
