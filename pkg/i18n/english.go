@@ -70,6 +70,11 @@ type TranslationSet struct {
 	CantDeleteCheckOutBranch            string
 	DeleteBranch                        string
 	DeleteBranchMessage                 string
+	DeleteBranchTitle                   string
+	DeleteLocalBranch                   string
+	DeleteRemoteBranchOption            string
+	DeleteRemoteBranchPrompt            string
+	ForceDeleteBranchTitle              string
 	ForceDeleteBranchMessage            string
 	RebaseBranch                        string
 	CantRebaseOntoSelf                  string
@@ -637,6 +642,7 @@ type Actions struct {
 	CheckoutTag                       string
 	CheckoutBranch                    string
 	ForceCheckoutBranch               string
+	DeleteLocalBranch                 string
 	DeleteBranch                      string
 	Merge                             string
 	RebaseBranch                      string
@@ -837,6 +843,12 @@ func EnglishTranslationSet() TranslationSet {
 		CantDeleteCheckOutBranch:            "You cannot delete the checked out branch!",
 		DeleteBranch:                        "Delete branch",
 		DeleteBranchMessage:                 "Are you sure you want to delete the branch '{{.selectedBranchName}}'?",
+		DeleteBranch:                        "Delete local and remote branch",
+		DeleteBranchTitle:                   "Delete branch '{{.selectedBranchName}}'?",
+		DeleteLocalBranch:                   "Delete local branch",
+		DeleteRemoteBranchOption:            "Delete remote branch",
+		DeleteRemoteBranchPrompt:            "Are you sure you want to delete the remote branch '{{.selectedBranchName}}' from '{{.upstream}}'?",
+		ForceDeleteBranchTitle:              "Force delete branch",
 		ForceDeleteBranchMessage:            "'{{.selectedBranchName}}' is not fully merged. Are you sure you want to delete it?",
 		RebaseBranch:                        "Rebase checked-out branch onto this branch",
 		CantRebaseOntoSelf:                  "You cannot rebase a branch onto itself",
@@ -1109,7 +1121,7 @@ func EnglishTranslationSet() TranslationSet {
 		EditRemoteUrl:                       `Enter updated remote url for {{.remoteName}}:`,
 		RemoveRemote:                        `Remove remote`,
 		RemoveRemotePrompt:                  "Are you sure you want to remove remote",
-		DeleteRemoteBranch:                  "Delete Remote Branch",
+		DeleteRemoteBranch:                  "Delete remote branch",
 		DeleteRemoteBranchMessage:           "Are you sure you want to delete remote branch",
 		SetAsUpstream:                       "Set as upstream of checked-out branch",
 		SetUpstream:                         "Set upstream of selected branch",
@@ -1364,6 +1376,7 @@ func EnglishTranslationSet() TranslationSet {
 			CheckoutTag:                       "Checkout tag",
 			CheckoutBranch:                    "Checkout branch",
 			ForceCheckoutBranch:               "Force checkout branch",
+			DeleteLocalBranch:                 "Delete local branch",
 			DeleteBranch:                      "Delete branch",
 			Merge:                             "Merge",
 			RebaseBranch:                      "Rebase branch",

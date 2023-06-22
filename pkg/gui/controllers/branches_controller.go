@@ -71,6 +71,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelectedAndReal(self.delete),
 			Description: self.c.Tr.DeleteBranch,
+			OpensMenu:   true,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.RebaseBranch),
@@ -316,19 +317,6 @@ func (self *BranchesController) createNewBranchWithName(newBranchName string) er
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
-func (self *BranchesController) delete(branch *models.Branch) error {
-	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
-	if checkedOutBranch.Name == branch.Name {
-		return self.c.ErrorMsg(self.c.Tr.CantDeleteCheckOutBranch)
-	}
-
-	if self.checkedOutByOtherWorktree(branch) {
-		return self.promptWorktreeBranchDelete(branch)
-	}
-
-	return self.deleteWithForce(branch, false)
-}
-
 func (self *BranchesController) checkedOutByOtherWorktree(branch *models.Branch) bool {
 	return git_commands.CheckedOutByOtherWorktree(branch, self.c.Model().Worktrees)
 }
@@ -371,16 +359,58 @@ func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *model
 	})
 }
 
-func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, force bool) error {
-	title := self.c.Tr.DeleteBranch
-	templateStr := self.c.Tr.DeleteBranchMessage
-	if force {
-		templateStr = self.c.Tr.ForceDeleteBranchMessage
+func (self *BranchesController) localDelete(branch *models.Branch) error {
+	if self.checkedOutByOtherWorktree(branch) {
+		return self.promptWorktreeBranchDelete(branch)
 	}
-	message := utils.ResolvePlaceholderString(
-		templateStr,
+
+	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(_ gocui.Task) error {
+		self.c.LogAction(self.c.Tr.Actions.DeleteLocalBranch)
+		err := self.c.Git().Branch.LocalDelete(branch.Name, false)
+		if err != nil && strings.Contains(err.Error(), "git branch -D ") {
+			return self.forceDelete(branch)
+		}
+		if err != nil {
+			return self.c.Error(err)
+		}
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+	})
+}
+
+func (self *BranchesController) remoteDelete(branch *models.Branch) error {
+	title := utils.ResolvePlaceholderString(
+		self.c.Tr.DeleteBranchTitle,
 		map[string]string{
-			"selectedBranchName": selectedBranch.Name,
+			"selectedBranchName": branch.Name,
+		},
+	)
+	prompt := utils.ResolvePlaceholderString(
+		self.c.Tr.DeleteRemoteBranchPrompt,
+		map[string]string{
+			"selectedBranchName": branch.Name,
+		},
+	)
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  title,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
+				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
+				if err := self.c.Git().Remote.DeleteRemoteBranch(task, branch.UpstreamRemote, branch.Name); err != nil {
+					return self.c.Error(err)
+				}
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
+			})
+		},
+	})
+}
+
+func (self *BranchesController) forceDelete(branch *models.Branch) error {
+	title := self.c.Tr.ForceDeleteBranchTitle
+	message := utils.ResolvePlaceholderString(
+		self.c.Tr.ForceDeleteBranchMessage,
+		map[string]string{
+			"selectedBranchName": branch.Name,
 		},
 	)
 
@@ -388,16 +418,57 @@ func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, f
 		Title:  title,
 		Prompt: message,
 		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.DeleteBranch)
-			if err := self.c.Git().Branch.LocalDelete(selectedBranch.Name, force); err != nil {
-				errMessage := err.Error()
-				if !force && strings.Contains(errMessage, "git branch -D ") {
-					return self.deleteWithForce(selectedBranch, true)
-				}
-				return self.c.ErrorMsg(errMessage)
+			if err := self.c.Git().Branch.LocalDelete(branch.Name, true); err != nil {
+				return self.c.ErrorMsg(err.Error())
 			}
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 		},
+	})
+}
+
+func (self *BranchesController) delete(branch *models.Branch) error {
+	menuItems := []*types.MenuItem{}
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
+
+	localDeleteItem := &types.MenuItem{
+		Label: self.c.Tr.DeleteLocalBranch,
+		Key:   'c',
+		OnPress: func() error {
+			return self.localDelete(branch)
+		},
+	}
+	if checkedOutBranch.Name == branch.Name {
+		localDeleteItem = &types.MenuItem{
+			Label:   self.c.Tr.DeleteLocalBranch,
+			Key:     'c',
+			Tooltip: self.c.Tr.CantDeleteCheckOutBranch,
+			OnPress: func() error {
+				return self.c.ErrorMsg(self.c.Tr.CantDeleteCheckOutBranch)
+			},
+		}
+	}
+	menuItems = append(menuItems, localDeleteItem)
+
+	if branch.IsTrackingRemote() && !branch.UpstreamGone {
+		menuItems = append(menuItems, &types.MenuItem{
+			Label: self.c.Tr.DeleteRemoteBranch,
+			Key:   'r',
+			OnPress: func() error {
+				return self.remoteDelete(branch)
+			},
+		})
+	}
+
+	menuTitle := utils.ResolvePlaceholderString(
+		self.c.Tr.DeleteBranchTitle,
+		map[string]string{
+			"selectedBranchName": branch.Name,
+		},
+	)
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: menuTitle,
+		Items: menuItems,
 	})
 }
 
