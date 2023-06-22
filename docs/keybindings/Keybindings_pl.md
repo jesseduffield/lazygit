@@ -106,7 +106,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-y&gt;</kbd>: Skopiuj adres URL żądania pobrania do schowka
   <kbd>c</kbd>: Przełącz używając nazwy
   <kbd>F</kbd>: Wymuś przełączenie
-  <kbd>d</kbd>: Usuń gałąź
+  <kbd>d</kbd>: View delete options
   <kbd>r</kbd>: Zmiana bazy gałęzi
   <kbd>M</kbd>: Scal do obecnej gałęzi
   <kbd>f</kbd>: Fast-forward this branch from its upstream
@@ -232,7 +232,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: Nowa gałąź
   <kbd>M</kbd>: Scal do obecnej gałęzi
   <kbd>r</kbd>: Zmiana bazy gałęzi
-  <kbd>d</kbd>: Usuń gałąź
+  <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: Set as upstream of checked-out branch
   <kbd>g</kbd>: Wyświetl opcje resetu
   <kbd>w</kbd>: View worktree options
@@ -325,7 +325,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;space&gt;</kbd>: Przełącz
-  <kbd>d</kbd>: Delete tag
+  <kbd>d</kbd>: View delete options
   <kbd>P</kbd>: Push tag
   <kbd>n</kbd>: Create tag
   <kbd>g</kbd>: Wyświetl opcje resetu

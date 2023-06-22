@@ -256,7 +256,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>&lt;c-y&gt;</kbd>: 複製拉取請求的 URL 到剪貼板
   <kbd>c</kbd>: 根據名稱檢出
   <kbd>F</kbd>: 強制檢出
-  <kbd>d</kbd>: 刪除分支
+  <kbd>d</kbd>: View delete options
   <kbd>r</kbd>: 將已檢出的分支變基至此分支
   <kbd>M</kbd>: 合併到當前檢出的分支
   <kbd>f</kbd>: 從上游快進此分支
@@ -273,7 +273,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 
 <pre>
   <kbd>&lt;space&gt;</kbd>: 檢出
-  <kbd>d</kbd>: 刪除標籤
+  <kbd>d</kbd>: View delete options
   <kbd>P</kbd>: 推送標籤
   <kbd>n</kbd>: 建立標籤
   <kbd>g</kbd>: 檢視重設選項
@@ -344,7 +344,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>n</kbd>: 新分支
   <kbd>M</kbd>: 合併到當前檢出的分支
   <kbd>r</kbd>: 將已檢出的分支變基至此分支
-  <kbd>d</kbd>: 刪除分支
+  <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: 將此分支設為當前分支之上游
   <kbd>g</kbd>: 檢視重設選項
   <kbd>w</kbd>: View worktree options

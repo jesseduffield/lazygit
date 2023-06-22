@@ -183,7 +183,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-y&gt;</kbd>: 풀 리퀘스트 URL을 클립보드에 복사
   <kbd>c</kbd>: 이름으로 체크아웃
   <kbd>F</kbd>: 강제 체크아웃
-  <kbd>d</kbd>: 브랜치 삭제
+  <kbd>d</kbd>: View delete options
   <kbd>r</kbd>: 체크아웃된 브랜치를 이 브랜치에 리베이스
   <kbd>M</kbd>: 현재 브랜치에 병합
   <kbd>f</kbd>: Fast-forward this branch from its upstream
@@ -239,7 +239,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 새 브랜치 생성
   <kbd>M</kbd>: 현재 브랜치에 병합
   <kbd>r</kbd>: 체크아웃된 브랜치를 이 브랜치에 리베이스
-  <kbd>d</kbd>: 브랜치 삭제
+  <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: Set as upstream of checked-out branch
   <kbd>g</kbd>: View reset options
   <kbd>w</kbd>: View worktree options
@@ -309,7 +309,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;space&gt;</kbd>: 체크아웃
-  <kbd>d</kbd>: 태그 삭제
+  <kbd>d</kbd>: View delete options
   <kbd>P</kbd>: 태그를 push
   <kbd>n</kbd>: 태그를 생성
   <kbd>g</kbd>: View reset options

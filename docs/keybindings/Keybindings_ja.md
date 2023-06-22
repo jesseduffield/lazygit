@@ -172,7 +172,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;space&gt;</kbd>: チェックアウト
-  <kbd>d</kbd>: タグを削除
+  <kbd>d</kbd>: View delete options
   <kbd>P</kbd>: タグをpush
   <kbd>n</kbd>: タグを作成
   <kbd>g</kbd>: View reset options
@@ -220,7 +220,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-y&gt;</kbd>: Pull RequestのURLをクリップボードにコピー
   <kbd>c</kbd>: Checkout by name
   <kbd>F</kbd>: Force checkout
-  <kbd>d</kbd>: ブランチを削除
+  <kbd>d</kbd>: View delete options
   <kbd>r</kbd>: Rebase checked-out branch onto this branch
   <kbd>M</kbd>: 現在のブランチにマージ
   <kbd>f</kbd>: Fast-forward this branch from its upstream
@@ -320,7 +320,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 新しいブランチを作成
   <kbd>M</kbd>: 現在のブランチにマージ
   <kbd>r</kbd>: Rebase checked-out branch onto this branch
-  <kbd>d</kbd>: ブランチを削除
+  <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: Set as upstream of checked-out branch
   <kbd>g</kbd>: View reset options
   <kbd>w</kbd>: View worktree options
