@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -316,6 +317,182 @@ func TestGetCommits(t *testing.T) {
 			assert.Equal(t, scenario.expectedError, err)
 
 			scenario.runner.CheckForMissingCalls()
+		})
+	}
+}
+
+func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
+	scenarios := []struct {
+		testName        string
+		todos           []todo.Todo
+		doneTodos       []todo.Todo
+		amendFileExists bool
+		expectedSha     string
+	}{
+		{
+			testName:        "no done todos",
+			todos:           []todo.Todo{},
+			doneTodos:       []todo.Todo{},
+			amendFileExists: false,
+			expectedSha:     "",
+		},
+		{
+			testName: "common case (conflict)",
+			todos:    []todo.Todo{},
+			doneTodos: []todo.Todo{
+				{
+					Command: todo.Pick,
+					Commit:  "deadbeef",
+				},
+				{
+					Command: todo.Pick,
+					Commit:  "fa1afe1",
+				},
+			},
+			amendFileExists: false,
+			expectedSha:     "fa1afe1",
+		},
+		{
+			testName: "last command was 'break'",
+			todos:    []todo.Todo{},
+			doneTodos: []todo.Todo{
+				{Command: todo.Break},
+			},
+			amendFileExists: false,
+			expectedSha:     "",
+		},
+		{
+			testName: "last command was 'exec'",
+			todos:    []todo.Todo{},
+			doneTodos: []todo.Todo{
+				{
+					Command:     todo.Exec,
+					ExecCommand: "make test",
+				},
+			},
+			amendFileExists: false,
+			expectedSha:     "",
+		},
+		{
+			testName: "last command was 'reword'",
+			todos:    []todo.Todo{},
+			doneTodos: []todo.Todo{
+				{Command: todo.Reword},
+			},
+			amendFileExists: false,
+			expectedSha:     "",
+		},
+		{
+			testName: "'pick' was rescheduled",
+			todos: []todo.Todo{
+				{
+					Command: todo.Pick,
+					Commit:  "fa1afe1",
+				},
+			},
+			doneTodos: []todo.Todo{
+				{
+					Command: todo.Pick,
+					Commit:  "fa1afe1",
+				},
+			},
+			amendFileExists: false,
+			expectedSha:     "",
+		},
+		{
+			testName: "'pick' was rescheduled, buggy git version",
+			todos: []todo.Todo{
+				{
+					Command: todo.Pick,
+					Commit:  "fa1afe1",
+				},
+			},
+			doneTodos: []todo.Todo{
+				{
+					Command: todo.Pick,
+					Commit:  "deadbeaf",
+				},
+				{
+					Command: todo.Pick,
+					Commit:  "fa1afe1",
+				},
+				{
+					Command: todo.Pick,
+					Commit:  "deadbeaf",
+				},
+			},
+			amendFileExists: false,
+			expectedSha:     "",
+		},
+		{
+			testName: "conflicting 'pick' after 'exec'",
+			todos: []todo.Todo{
+				{
+					Command:     todo.Exec,
+					ExecCommand: "make test",
+				},
+			},
+			doneTodos: []todo.Todo{
+				{
+					Command: todo.Pick,
+					Commit:  "deadbeaf",
+				},
+				{
+					Command:     todo.Exec,
+					ExecCommand: "make test",
+				},
+				{
+					Command: todo.Pick,
+					Commit:  "fa1afe1",
+				},
+			},
+			amendFileExists: false,
+			expectedSha:     "fa1afe1",
+		},
+		{
+			testName: "'edit' with amend file",
+			todos:    []todo.Todo{},
+			doneTodos: []todo.Todo{
+				{
+					Command: todo.Edit,
+					Commit:  "fa1afe1",
+				},
+			},
+			amendFileExists: true,
+			expectedSha:     "",
+		},
+		{
+			testName: "'edit' without amend file",
+			todos:    []todo.Todo{},
+			doneTodos: []todo.Todo{
+				{
+					Command: todo.Edit,
+					Commit:  "fa1afe1",
+				},
+			},
+			amendFileExists: false,
+			expectedSha:     "fa1afe1",
+		},
+	}
+	for _, scenario := range scenarios {
+		t.Run(scenario.testName, func(t *testing.T) {
+			common := utils.NewDummyCommon()
+
+			builder := &CommitLoader{
+				Common:        common,
+				cmd:           oscommands.NewDummyCmdObjBuilder(oscommands.NewFakeRunner(t)),
+				getRebaseMode: func() (enums.RebaseMode, error) { return enums.REBASE_MODE_INTERACTIVE, nil },
+				dotGitDir:     ".git",
+				readFile: func(filename string) ([]byte, error) {
+					return []byte(""), nil
+				},
+				walkFiles: func(root string, fn filepath.WalkFunc) error {
+					return nil
+				},
+			}
+
+			sha := builder.getConflictedCommitImpl(scenario.todos, scenario.doneTodos, scenario.amendFileExists)
+			assert.Equal(t, scenario.expectedSha, sha)
 		})
 	}
 }

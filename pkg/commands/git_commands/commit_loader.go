@@ -310,6 +310,17 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 		return nil, nil
 	}
 
+	// See if the current commit couldn't be applied because it conflicted; if
+	// so, add a fake entry for it
+	if conflictedCommitSha := self.getConflictedCommit(todos); conflictedCommitSha != "" {
+		commits = append(commits, &models.Commit{
+			Sha:    conflictedCommitSha,
+			Name:   "",
+			Status: models.StatusRebasing,
+			Action: models.ActionConflict,
+		})
+	}
+
 	for _, t := range todos {
 		if t.Command == todo.UpdateRef {
 			t.Msg = strings.TrimPrefix(t.Ref, "refs/heads/")
@@ -326,6 +337,93 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 	}
 
 	return commits, nil
+}
+
+func (self *CommitLoader) getConflictedCommit(todos []todo.Todo) string {
+	bytesContent, err := self.readFile(filepath.Join(self.dotGitDir, "rebase-merge/done"))
+	if err != nil {
+		self.Log.Error(fmt.Sprintf("error occurred reading rebase-merge/done: %s", err.Error()))
+		return ""
+	}
+
+	doneTodos, err := todo.Parse(bytes.NewBuffer(bytesContent))
+	if err != nil {
+		self.Log.Error(fmt.Sprintf("error occurred while parsing rebase-merge/done file: %s", err.Error()))
+		return ""
+	}
+
+	amendFileExists := false
+	if _, err := os.Stat(filepath.Join(self.dotGitDir, "rebase-merge/amend")); err == nil {
+		amendFileExists = true
+	}
+
+	return self.getConflictedCommitImpl(todos, doneTodos, amendFileExists)
+}
+
+func (self *CommitLoader) getConflictedCommitImpl(todos []todo.Todo, doneTodos []todo.Todo, amendFileExists bool) string {
+	// Should never be possible, but just to be safe:
+	if len(doneTodos) == 0 {
+		self.Log.Error("no done entries in rebase-merge/done file")
+		return ""
+	}
+	lastTodo := doneTodos[len(doneTodos)-1]
+	if lastTodo.Command == todo.Break || lastTodo.Command == todo.Exec || lastTodo.Command == todo.Reword {
+		return ""
+	}
+
+	// In certain cases, git reschedules commands that failed. One example is if
+	// a patch would overwrite an untracked file (another one is an "exec" that
+	// failed, but we don't care about that here because we dealt with exec
+	// already above). To detect this, compare the last command of the "done"
+	// file against the first command of "git-rebase-todo"; if they are the
+	// same, the command was rescheduled.
+	if len(doneTodos) > 0 && len(todos) > 0 && doneTodos[len(doneTodos)-1] == todos[0] {
+		// Command was rescheduled, no need to display it
+		return ""
+	}
+
+	// Older versions of git have a bug whereby, if a command is rescheduled,
+	// the last successful command is appended to the "done" file again. To
+	// detect this, we need to compare the second-to-last done entry against the
+	// first todo entry, and also compare the last done entry against the
+	// last-but-two done entry; this latter check is needed for the following
+	// case:
+	//   pick A
+	//   exec make test
+	//   pick B
+	//   exec make test
+	// If pick B fails with conflicts, then the "done" file contains
+	//   pick A
+	//   exec make test
+	//   pick B
+	// and git-rebase-todo contains
+	//   exec make test
+	// Without the last condition we would erroneously treat this as the exec
+	// command being rescheduled, so we wouldn't display our fake entry for
+	// "pick B".
+	if len(doneTodos) >= 3 && len(todos) > 0 && doneTodos[len(doneTodos)-2] == todos[0] &&
+		doneTodos[len(doneTodos)-1] == doneTodos[len(doneTodos)-3] {
+		// Command was rescheduled, no need to display it
+		return ""
+	}
+
+	if lastTodo.Command == todo.Edit {
+		if amendFileExists {
+			// Special case for "edit": if the "amend" file exists, the "edit"
+			// command was successful, otherwise it wasn't
+			return ""
+		}
+	}
+
+	// I don't think this is ever possible, but again, just to be safe:
+	if lastTodo.Commit == "" {
+		self.Log.Error("last command in rebase-merge/done file doesn't have a commit")
+		return ""
+	}
+
+	// Any other todo that has a commit associated with it must have failed with
+	// a conflict, otherwise we wouldn't have stopped the rebase:
+	return lastTodo.Commit
 }
 
 // assuming the file starts like this:

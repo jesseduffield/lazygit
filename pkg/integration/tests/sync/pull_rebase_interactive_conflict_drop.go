@@ -48,14 +48,16 @@ var PullRebaseInteractiveConflictDrop = NewIntegrationTest(NewIntegrationTestArg
 			Focus().
 			Lines(
 				Contains("pick").Contains("five").IsSelected(),
-				Contains("YOU ARE HERE").Contains("three"),
+				Contains("conflict").Contains("YOU ARE HERE").Contains("four"),
+				Contains("three"),
 				Contains("two"),
 				Contains("one"),
 			).
 			Press(keys.Universal.Remove).
 			Lines(
 				Contains("drop").Contains("five").IsSelected(),
-				Contains("YOU ARE HERE").Contains("three"),
+				Contains("conflict").Contains("YOU ARE HERE").Contains("four"),
+				Contains("three"),
 				Contains("two"),
 				Contains("one"),
 			)
