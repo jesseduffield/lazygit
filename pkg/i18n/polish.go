@@ -43,8 +43,6 @@ func polishTranslationSet() TranslationSet {
 		BranchName:                          "Nazwa gałęzi",
 		NewBranchNameBranchOff:              "Nazwa nowej gałęzi (gałąź na bazie '{{.branchName}}')",
 		CantDeleteCheckOutBranch:            "Nie możesz usunąć obecnie przełączonej gałęzi!",
-		DeleteBranch:                        "Usuń gałąź",
-		DeleteBranchMessage:                 "Jesteś pewien, że chcesz usunąć gałąź '{{.selectedBranchName}}' ?",
 		ForceDeleteBranchMessage:            "Na pewno wymusić usunięcie gałęzi '{{.selectedBranchName}}'?",
 		RebaseBranch:                        "Zmiana bazy gałęzi",
 		CantRebaseOntoSelf:                  "Nie możesz zmienić bazy gałęzi na nią samą",

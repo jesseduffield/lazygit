@@ -48,8 +48,6 @@ func dutchTranslationSet() TranslationSet {
 		BranchName:                          "Branch naam",
 		NewBranchNameBranchOff:              "Nieuw branch naam (Branch is afgeleid van '{{.branchName}}')",
 		CantDeleteCheckOutBranch:            "Je kan een uitgecheckte branch niet verwijderen!",
-		DeleteBranch:                        "Verwijder branch",
-		DeleteBranchMessage:                 "Weet je zeker dat je branch '{{.selectedBranchName}}' wilt verwijderen?",
 		ForceDeleteBranchMessage:            "Weet je zeker dat je branch '{{.selectedBranchName}}' geforceerd wil verwijderen?",
 		RebaseBranch:                        "Rebase branch",
 		CantRebaseOntoSelf:                  "Je kan niet een branch rebasen op zichzelf",

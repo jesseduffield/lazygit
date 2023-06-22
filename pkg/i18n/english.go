@@ -68,8 +68,6 @@ type TranslationSet struct {
 	BranchName                          string
 	NewBranchNameBranchOff              string
 	CantDeleteCheckOutBranch            string
-	DeleteBranch                        string
-	DeleteBranchMessage                 string
 	DeleteBranchTitle                   string
 	DeleteLocalBranch                   string
 	DeleteRemoteBranchOption            string
@@ -358,7 +356,6 @@ type TranslationSet struct {
 	TagMessageTitle                     string
 	LightweightTag                      string
 	AnnotatedTag                        string
-	DeleteTag                           string
 	DeleteTagTitle                      string
 	DeleteLocalTag                      string
 	DeleteRemoteTag                     string
@@ -725,7 +722,6 @@ type Actions struct {
 	UpdateSubmodule                   string
 	CreateLightweightTag              string
 	CreateAnnotatedTag                string
-	DeleteTag                         string
 	DeleteLocalTag                    string
 	DeleteRemoteTag                   string
 	PushTag                           string
@@ -841,9 +837,6 @@ func EnglishTranslationSet() TranslationSet {
 		BranchName:                          "Branch name",
 		NewBranchNameBranchOff:              "New branch name (branch is off of '{{.branchName}}')",
 		CantDeleteCheckOutBranch:            "You cannot delete the checked out branch!",
-		DeleteBranch:                        "Delete branch",
-		DeleteBranchMessage:                 "Are you sure you want to delete the branch '{{.selectedBranchName}}'?",
-		DeleteBranch:                        "Delete local and remote branch",
 		DeleteBranchTitle:                   "Delete branch '{{.selectedBranchName}}'?",
 		DeleteLocalBranch:                   "Delete local branch",
 		DeleteRemoteBranchOption:            "Delete remote branch",
@@ -1458,7 +1451,6 @@ func EnglishTranslationSet() TranslationSet {
 			BulkUpdateSubmodules:              "Bulk update submodules",
 			BulkDeinitialiseSubmodules:        "Bulk deinitialise submodules",
 			UpdateSubmodule:                   "Update submodule",
-			DeleteTag:                         "Delete local and remote tag",
 			DeleteLocalTag:                    "Delete local tag",
 			DeleteRemoteTag:                   "Delete remote tag",
 			PushTag:                           "Push tag",
