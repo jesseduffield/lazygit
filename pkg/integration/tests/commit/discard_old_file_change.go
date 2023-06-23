@@ -43,7 +43,7 @@ var DiscardOldFileChange = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Discard file changes")).
-			Content(Contains("Are you sure you want to discard this commit's changes to this file?")).
+			Content(Equals("Are you sure you want to discard this commit's changes to this file? The file was added in this commit, so it will be deleted again.")).
 			Confirm()
 
 		t.Views().CommitFiles().

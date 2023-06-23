@@ -49,6 +49,7 @@ type GuiConfig struct {
 	ShowCommandLog              bool               `yaml:"showCommandLog"`
 	ShowBottomLine              bool               `yaml:"showBottomLine"`
 	ShowIcons                   bool               `yaml:"showIcons"`
+	NerdFontsVersion            string             `yaml:"nerdFontsVersion"`
 	ShowBranchCommitHash        bool               `yaml:"showBranchCommitHash"`
 	ExperimentalShowBranchHeads bool               `yaml:"experimentalShowBranchHeads"`
 	CommandLogSize              int                `yaml:"commandLogSize"`
@@ -426,6 +427,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowFileTree:                true,
 			ShowRandomTip:               true,
 			ShowIcons:                   false,
+			NerdFontsVersion:            "",
 			ExperimentalShowBranchHeads: false,
 			ShowBranchCommitHash:        false,
 			CommandLogSize:              8,

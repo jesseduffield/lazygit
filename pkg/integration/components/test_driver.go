@@ -80,11 +80,11 @@ func (self *TestDriver) ExpectPopup() *Popup {
 	return &Popup{t: self}
 }
 
-func (self *TestDriver) ExpectToast(matcher *Matcher) {
+func (self *TestDriver) ExpectToast(matcher *TextMatcher) {
 	self.Views().AppStatus().Content(matcher)
 }
 
-func (self *TestDriver) ExpectClipboard(matcher *Matcher) {
+func (self *TestDriver) ExpectClipboard(matcher *TextMatcher) {
 	self.assertWithRetries(func() (bool, string) {
 		text, err := clipboard.ReadAll()
 		if err != nil {

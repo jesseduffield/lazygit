@@ -72,13 +72,13 @@ type prefixWriter struct {
 	writer        io.Writer
 }
 
-func (self *prefixWriter) Write(p []byte) (n int, err error) {
+func (self *prefixWriter) Write(p []byte) (int, error) {
 	if !self.prefixWritten {
 		self.prefixWritten = true
 		// assuming we can write this prefix in one go
-		_, err = self.writer.Write([]byte(self.prefix))
+		n, err := self.writer.Write([]byte(self.prefix))
 		if err != nil {
-			return
+			return n, err
 		}
 	}
 	return self.writer.Write(p)

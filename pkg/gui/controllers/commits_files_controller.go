@@ -153,13 +153,29 @@ func (self *CommitFilesController) checkout(node *filetree.CommitFileNode) error
 }
 
 func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error {
+	parentContext, ok := self.c.CurrentContext().GetParentContext()
+	if !ok || parentContext.GetKey() != context.LOCAL_COMMITS_CONTEXT_KEY {
+		return self.c.ErrorMsg(self.c.Tr.CanOnlyDiscardFromLocalCommits)
+	}
+
+	if node.File == nil {
+		return self.c.ErrorMsg(self.c.Tr.DiscardNotSupportedForDirectory)
+	}
+
 	if ok, err := self.c.Helpers().PatchBuilding.ValidateNormalWorkingTreeState(); !ok {
 		return err
 	}
 
+	prompt := self.c.Tr.DiscardFileChangesPrompt
+	if node.File.Added() {
+		prompt = self.c.Tr.DiscardAddedFileChangesPrompt
+	} else if node.File.Deleted() {
+		prompt = self.c.Tr.DiscardDeletedFileChangesPrompt
+	}
+
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.DiscardFileChangesTitle,
-		Prompt: self.c.Tr.DiscardFileChangesPrompt,
+		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func() error {
 				self.c.LogAction(self.c.Tr.Actions.DiscardOldFileChange)

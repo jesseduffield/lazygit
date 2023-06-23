@@ -17,6 +17,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/kyokomi/emoji/v2"
+	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 )
 
@@ -103,7 +104,11 @@ func GetCommitListDisplayStrings(
 	for i, commit := range filteredCommits {
 		unfilteredIdx := i + startIdx
 		bisectStatus = getBisectStatus(unfilteredIdx, commit.Sha, bisectInfo, bisectBounds)
-		isYouAreHereCommit := showYouAreHereLabel && unfilteredIdx == rebaseOffset
+		isYouAreHereCommit := false
+		if showYouAreHereLabel && (commit.Action == models.ActionConflict || unfilteredIdx == rebaseOffset) {
+			isYouAreHereCommit = true
+			showYouAreHereLabel = false
+		}
 		lines = append(lines, displayCommit(
 			common,
 			commit,
@@ -272,7 +277,7 @@ func displayCommit(
 
 	actionString := ""
 	if commit.Action != models.ActionNone {
-		todoString := commit.Action.String()
+		todoString := lo.Ternary(commit.Action == models.ActionConflict, "conflict", commit.Action.String())
 		actionString = actionColorMap(commit.Action).Sprint(todoString) + " "
 	}
 
@@ -295,7 +300,8 @@ func displayCommit(
 	}
 
 	if isYouAreHereCommit {
-		youAreHere := style.FgYellow.Sprintf("<-- %s ---", common.Tr.YouAreHere)
+		color := lo.Ternary(commit.Action == models.ActionConflict, style.FgRed, style.FgYellow)
+		youAreHere := color.Sprintf("<-- %s ---", common.Tr.YouAreHere)
 		name = fmt.Sprintf("%s %s", youAreHere, name)
 	}
 
@@ -391,6 +397,8 @@ func actionColorMap(action todo.TodoCommand) style.TextStyle {
 		return style.FgGreen
 	case todo.Fixup:
 		return style.FgMagenta
+	case models.ActionConflict:
+		return style.FgRed
 	default:
 		return style.FgYellow
 	}

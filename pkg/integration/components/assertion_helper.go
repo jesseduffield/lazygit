@@ -22,7 +22,7 @@ func retryWaitTimes() []int {
 	}
 }
 
-func (self *assertionHelper) matchString(matcher *Matcher, context string, getValue func() string) {
+func (self *assertionHelper) matchString(matcher *TextMatcher, context string, getValue func() string) {
 	self.assertWithRetries(func() (bool, string) {
 		value := getValue()
 		return matcher.context(context).test(value)

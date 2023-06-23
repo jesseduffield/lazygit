@@ -15,3 +15,11 @@ func (f *CommitFile) ID() string {
 func (f *CommitFile) Description() string {
 	return f.Name
 }
+
+func (f *CommitFile) Added() bool {
+	return f.ChangeStatus == "A"
+}
+
+func (f *CommitFile) Deleted() bool {
+	return f.ChangeStatus == "D"
+}

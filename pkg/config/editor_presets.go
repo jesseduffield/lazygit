@@ -43,7 +43,7 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 		"nvim":    standardTerminalEditorPreset("nvim"),
 		"emacs":   standardTerminalEditorPreset("emacs"),
 		"nano":    standardTerminalEditorPreset("nano"),
-		"kakoune": standardTerminalEditorPreset("kakoune"),
+		"kakoune": standardTerminalEditorPreset("kak"),
 		"helix": {
 			editTemplate:              "hx -- {{filename}}",
 			editAtLineTemplate:        "hx -- {{filename}}:{{line}}",
