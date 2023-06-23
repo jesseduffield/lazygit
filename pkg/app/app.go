@@ -210,7 +210,7 @@ func (app *App) setupRepo() (bool, error) {
 		}
 
 		if shouldInitRepo {
-			if err := app.OSCommand.Cmd.New([]string{"git", "init", initialBranchArg}).Run(); err != nil {
+			if err := app.OSCommand.Cmd.NewShell("git init " + initialBranchArg).Run(); err != nil {
 				return false, err
 			}
 			return false, nil
