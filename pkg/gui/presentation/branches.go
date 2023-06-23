@@ -133,7 +133,7 @@ func BranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
 	result := ""
 
 	if branch.HasCommitsToPush() {
-		result = fmt.Sprintf(icons.IconForPush()+"%s", branch.Pushables)
+		result = fmt.Sprintf(icons.IconForPush()+"%s ", branch.Pushables)
 	}
 	if branch.HasCommitsToPull() {
 		if branch.HasCommitsToPush() {
