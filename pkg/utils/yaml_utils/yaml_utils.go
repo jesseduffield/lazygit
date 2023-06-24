@@ -29,7 +29,7 @@ func UpdateYamlValue(yamlBytes []byte, path []string, value string) ([]byte, err
 		return yamlBytes, errors.New("yaml document is not a dictionary")
 	}
 
-	if err := updateYamlNode(body, path, value); err != nil {
+	if didChange, err := updateYamlNode(body, path, value); err != nil || !didChange {
 		return yamlBytes, err
 	}
 
@@ -43,17 +43,20 @@ func UpdateYamlValue(yamlBytes []byte, path []string, value string) ([]byte, err
 }
 
 // Recursive function to update the YAML node.
-func updateYamlNode(node *yaml.Node, path []string, value string) error {
+func updateYamlNode(node *yaml.Node, path []string, value string) (bool, error) {
 	if len(path) == 0 {
 		if node.Kind != yaml.ScalarNode {
-			return errors.New("yaml node is not a scalar")
+			return false, errors.New("yaml node is not a scalar")
 		}
-		node.Value = value
-		return nil
+		if node.Value != value {
+			node.Value = value
+			return true, nil
+		}
+		return false, nil
 	}
 
 	if node.Kind != yaml.MappingNode {
-		return errors.New("yaml node in path is not a dictionary")
+		return false, errors.New("yaml node in path is not a dictionary")
 	}
 
 	key := path[0]
@@ -72,7 +75,7 @@ func updateYamlNode(node *yaml.Node, path []string, value string) error {
 			Kind:  yaml.ScalarNode,
 			Value: value,
 		})
-		return nil
+		return true, nil
 	}
 
 	// otherwise, create the missing intermediate node and continue
@@ -113,7 +116,7 @@ func RenameYamlKey(yamlBytes []byte, path []string, newKey string) ([]byte, erro
 
 	body := node.Content[0]
 
-	if err := renameYamlKey(body, path, newKey); err != nil {
+	if didRename, err := renameYamlKey(body, path, newKey); err != nil || !didRename {
 		return yamlBytes, err
 	}
 
@@ -127,25 +130,25 @@ func RenameYamlKey(yamlBytes []byte, path []string, newKey string) ([]byte, erro
 }
 
 // Recursive function to rename the YAML key.
-func renameYamlKey(node *yaml.Node, path []string, newKey string) error {
+func renameYamlKey(node *yaml.Node, path []string, newKey string) (bool, error) {
 	if node.Kind != yaml.MappingNode {
-		return errors.New("yaml node in path is not a dictionary")
+		return false, errors.New("yaml node in path is not a dictionary")
 	}
 
 	keyNode, valueNode := lookupKey(node, path[0])
 	if keyNode == nil {
-		return nil
+		return false, nil
 	}
 
 	// end of path reached: rename key
 	if len(path) == 1 {
 		// Check that new key doesn't exist yet
 		if newKeyNode, _ := lookupKey(node, newKey); newKeyNode != nil {
-			return fmt.Errorf("new key `%s' already exists", newKey)
+			return false, fmt.Errorf("new key `%s' already exists", newKey)
 		}
 
 		keyNode.Value = newKey
-		return nil
+		return true, nil
 	}
 
 	return renameYamlKey(valueNode, path[1:], newKey)

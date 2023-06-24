@@ -64,6 +64,14 @@ func TestUpdateYamlValue(t *testing.T) {
 			expectedOut: "foo:\n    bar:\n        baz: qux\n",
 			expectedErr: "",
 		},
+		{
+			name:        "don't rewrite file if value didn't change",
+			in:          "foo:\n  bar: baz\n",
+			path:        []string{"foo", "bar"},
+			value:       "baz",
+			expectedOut: "foo:\n  bar: baz\n",
+			expectedErr: "",
+		},
 
 		// Error cases
 		{
@@ -140,6 +148,14 @@ func TestRenameYamlKey(t *testing.T) {
 			newKey: "qux",
 			// indentation is not preserved. See https://github.com/go-yaml/yaml/issues/899
 			expectedOut: "qux:\n    bar: 5\n",
+			expectedErr: "",
+		},
+		{
+			name:        "don't rewrite file if value didn't change",
+			in:          "foo:\n  bar: 5\n",
+			path:        []string{"nonExistingKey"},
+			newKey:      "qux",
+			expectedOut: "foo:\n  bar: 5\n",
 			expectedErr: "",
 		},
 
