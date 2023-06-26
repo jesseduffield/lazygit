@@ -67,17 +67,21 @@ func TestGetCommits(t *testing.T) {
 			logOrder:     "topo-order",
 			rebaseMode:   enums.REBASE_MODE_NONE,
 			opts:         GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
-			mainBranches: []string{"master", "main"},
+			mainBranches: []string{"master", "main", "develop"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
 				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, commitsOutput, nil).
-				// here it's testing which of the configured main branches exist
-				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/master"}, "", nil).               // this one does
-				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/main"}, "", errors.New("error")). // this one doesn't
+				// here it's testing which of the configured main branches have an upstream
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "master@{u}"}, "refs/remotes/origin/master", nil).       // this one does
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "main@{u}"}, "", errors.New("error")).                   // this one doesn't, so it checks origin instead
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/main"}, "", nil).                    // yep, origin/main exists
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "develop@{u}"}, "", errors.New("error")).                // this one doesn't, so it checks origin instead
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/develop"}, "", errors.New("error")). // doesn't exist there, either, so it checks for a local branch
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/develop"}, "", errors.New("error")).          // no local branch either
 				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
-				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/heads/master"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
+				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/remotes/origin/master", "refs/remotes/origin/main"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
 
 			expectedCommits: []*models.Commit{
 				{
@@ -207,7 +211,11 @@ func TestGetCommits(t *testing.T) {
 				// here it's actually getting all the commits in a formatted form, one per line
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
 				// here it's testing which of the configured main branches exist; neither does
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "master@{u}"}, "", errors.New("error")).
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/master"}, "", errors.New("error")).
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/master"}, "", errors.New("error")).
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "main@{u}"}, "", errors.New("error")).
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/main"}, "", errors.New("error")).
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/main"}, "", errors.New("error")),
 
 			expectedCommits: []*models.Commit{
@@ -240,12 +248,14 @@ func TestGetCommits(t *testing.T) {
 				// here it's actually getting all the commits in a formatted form, one per line
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
 				// here it's testing which of the configured main branches exist
-				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/master"}, "", nil).
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "master@{u}"}, "refs/remotes/origin/master", nil).
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "main@{u}"}, "", errors.New("error")).
+				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/main"}, "", errors.New("error")).
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/main"}, "", errors.New("error")).
-				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/develop"}, "", nil).
-				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/heads/1.0-hotfixes"}, "", nil).
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "develop@{u}"}, "refs/remotes/origin/develop", nil).
+				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "1.0-hotfixes@{u}"}, "refs/remotes/origin/1.0-hotfixes", nil).
 				// here it's seeing where our branch diverged from the master branch so that we can mark that commit and parent commits as 'merged'
-				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/heads/master", "refs/heads/develop", "refs/heads/1.0-hotfixes"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
+				ExpectGitArgs([]string{"merge-base", "HEAD", "refs/remotes/origin/master", "refs/remotes/origin/develop", "refs/remotes/origin/1.0-hotfixes"}, "26c07b1ab33860a1a7591a0638f9925ccf497ffa", nil),
 
 			expectedCommits: []*models.Commit{
 				{
