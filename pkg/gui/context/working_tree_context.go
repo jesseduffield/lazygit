@@ -9,24 +9,16 @@ import (
 )
 
 type WorkingTreeContext struct {
-	*FilteredList[*models.File]
 	*filetree.FileTreeViewModel
 	*ListContextTrait
+	*SearchTrait
 }
 
-var (
-	_ types.IListContext       = (*WorkingTreeContext)(nil)
-	_ types.IFilterableContext = (*WorkingTreeContext)(nil)
-)
+var _ types.IListContext = (*WorkingTreeContext)(nil)
 
 func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
-	filteredList := NewFilteredList(
-		func() []*models.File { return c.Model().Files },
-		func(file *models.File) []string { return []string{file.GetPath()} },
-	)
-
 	viewModel := filetree.NewFileTreeViewModel(
-		func() []*models.File { return filteredList.GetFilteredList() },
+		func() []*models.File { return c.Model().Files },
 		c.Log,
 		c.UserConfig.Gui.ShowFileTree,
 	)
@@ -38,8 +30,8 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 		})
 	}
 
-	return &WorkingTreeContext{
-		FilteredList:      filteredList,
+	ctx := &WorkingTreeContext{
+		SearchTrait:       NewSearchTrait(c),
 		FileTreeViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
@@ -54,6 +46,13 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 			c:                 c,
 		},
 	}
+
+	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
+		ctx.GetList().SetSelectedLineIdx(selectedLineIdx)
+		return ctx.HandleFocus(types.OnFocusOpts{})
+	}))
+
+	return ctx
 }
 
 func (self *WorkingTreeContext) GetSelectedItemId() string {
@@ -63,18 +62,4 @@ func (self *WorkingTreeContext) GetSelectedItemId() string {
 	}
 
 	return item.ID()
-}
-
-// used for type switch
-func (self *WorkingTreeContext) IsFilterableContext() {}
-
-// TODO: see if we can just call SetTree() within HandleRender(). It doesn't seem
-// right that we need to imperatively refresh the view model like this
-func (self *WorkingTreeContext) SetFilter(filter string) {
-	self.FilteredList.SetFilter(filter)
-	self.SetTree()
-}
-
-func (self *WorkingTreeContext) ClearFilter() {
-	self.SetFilter("")
 }

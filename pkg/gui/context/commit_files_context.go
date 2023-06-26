@@ -10,10 +10,10 @@ import (
 )
 
 type CommitFilesContext struct {
-	*FilteredList[*models.CommitFile]
 	*filetree.CommitFileTreeViewModel
 	*ListContextTrait
 	*DynamicTitleBuilder
+	*SearchTrait
 }
 
 var (
@@ -22,13 +22,8 @@ var (
 )
 
 func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
-	filteredList := NewFilteredList(
-		func() []*models.CommitFile { return c.Model().CommitFiles },
-		func(file *models.CommitFile) []string { return []string{file.GetPath()} },
-	)
-
 	viewModel := filetree.NewCommitFileTreeViewModel(
-		func() []*models.CommitFile { return filteredList.GetFilteredList() },
+		func() []*models.CommitFile { return c.Model().CommitFiles },
 		c.Log,
 		c.UserConfig.Gui.ShowFileTree,
 	)
@@ -44,10 +39,10 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 		})
 	}
 
-	return &CommitFilesContext{
-		FilteredList:            filteredList,
+	ctx := &CommitFilesContext{
 		CommitFileTreeViewModel: viewModel,
 		DynamicTitleBuilder:     NewDynamicTitleBuilder(c.Tr.CommitFilesDynamicTitle),
+		SearchTrait:             NewSearchTrait(c),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(
 				NewBaseContext(NewBaseContextOpts{
@@ -64,6 +59,13 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 			c:                 c,
 		},
 	}
+
+	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
+		ctx.GetList().SetSelectedLineIdx(selectedLineIdx)
+		return ctx.HandleFocus(types.OnFocusOpts{})
+	}))
+
+	return ctx
 }
 
 func (self *CommitFilesContext) GetSelectedItemId() string {
@@ -77,18 +79,4 @@ func (self *CommitFilesContext) GetSelectedItemId() string {
 
 func (self *CommitFilesContext) GetDiffTerminals() []string {
 	return []string{self.GetRef().RefName()}
-}
-
-// used for type switch
-func (self *CommitFilesContext) IsFilterableContext() {}
-
-// TODO: see if we can just call SetTree() within HandleRender(). It doesn't seem
-// right that we need to imperatively refresh the view model like this
-func (self *CommitFilesContext) SetFilter(filter string) {
-	self.FilteredList.SetFilter(filter)
-	self.SetTree()
-}
-
-func (self *CommitFilesContext) ClearFilter() {
-	self.SetFilter("")
 }

@@ -8,7 +8,7 @@ import (
 var FilterCommitFiles = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Basic commit file filtering by text",
 	ExtraCmdArgs: []string{},
-	Skip:         false,
+	Skip:         true, // skipping until we have implemented file view filtering
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateDir("folder1")

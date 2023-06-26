@@ -72,9 +72,10 @@ var NestedFilterTransient = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains(`file-one`).IsSelected(),
 				Contains(`file-two`),
 			).
-			FilterOrSearch("one").
+			FilterOrSearch("two").
 			Lines(
-				Contains(`file-one`).IsSelected(),
+				Contains(`file-one`),
+				Contains(`file-two`).IsSelected(),
 			)
 
 		t.Views().Branches().
