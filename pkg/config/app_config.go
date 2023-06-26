@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/OpenPeeDeeP/xdg"
+	"github.com/jesseduffield/lazygit/pkg/utils/yaml_utils"
 	"gopkg.in/yaml.v3"
 )
 
@@ -156,12 +157,41 @@ func loadUserConfig(configFiles []string, base *UserConfig) (*UserConfig, error)
 			return nil, err
 		}
 
+		content, err = migrateUserConfig(path, content)
+		if err != nil {
+			return nil, err
+		}
+
 		if err := yaml.Unmarshal(content, base); err != nil {
 			return nil, fmt.Errorf("The config at `%s` couldn't be parsed, please inspect it before opening up an issue.\n%w", path, err)
 		}
 	}
 
 	return base, nil
+}
+
+// Do any backward-compatibility migrations of things that have changed in the
+// config over time; examples are renaming a key to a better name, moving a key
+// from one container to another, or changing the type of a key (e.g. from bool
+// to an enum).
+func migrateUserConfig(path string, content []byte) ([]byte, error) {
+	changedContent, err := yaml_utils.RenameYamlKey(content, []string{"gui", "skipUnstageLineWarning"},
+		"skipDiscardChangeWarning")
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't migrate config file at `%s`: %s", path, err)
+	}
+
+	// Add more migrations here...
+
+	// Write config back if changed
+	if string(changedContent) != string(content) {
+		if err := os.WriteFile(path, changedContent, 0o644); err != nil {
+			return nil, fmt.Errorf("Couldn't write migrated config back to `%s`: %s", path, err)
+		}
+		return changedContent, nil
+	}
+
+	return content, nil
 }
 
 func (c *AppConfig) GetDebug() bool {

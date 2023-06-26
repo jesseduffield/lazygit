@@ -66,8 +66,8 @@ func (self *StagingController) GetKeybindings(opts types.KeybindingsOpts) []*typ
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.ResetSelection,
-			Description: self.c.Tr.ResetSelection,
+			Handler:     self.DiscardSelection,
+			Description: self.c.Tr.DiscardSelection,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Main.EditSelectHunk),
@@ -166,13 +166,13 @@ func (self *StagingController) ToggleStaged() error {
 	return self.applySelectionAndRefresh(self.staged)
 }
 
-func (self *StagingController) ResetSelection() error {
+func (self *StagingController) DiscardSelection() error {
 	reset := func() error { return self.applySelectionAndRefresh(true) }
 
-	if !self.staged && !self.c.UserConfig.Gui.SkipUnstageLineWarning {
+	if !self.staged && !self.c.UserConfig.Gui.SkipDiscardChangeWarning {
 		return self.c.Confirm(types.ConfirmOpts{
-			Title:         self.c.Tr.UnstageLinesTitle,
-			Prompt:        self.c.Tr.UnstageLinesPrompt,
+			Title:         self.c.Tr.DiscardChangeTitle,
+			Prompt:        self.c.Tr.DiscardChangePrompt,
 			HandleConfirm: reset,
 		})
 	}

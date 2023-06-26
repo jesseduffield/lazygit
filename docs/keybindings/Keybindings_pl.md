@@ -190,7 +190,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;esc&gt;</kbd>: Wróć do panelu plików
   <kbd>&lt;tab&gt;</kbd>: Switch to other panel (staged/unstaged changes)
   <kbd>&lt;space&gt;</kbd>: Toggle line staged / unstaged
-  <kbd>d</kbd>: Delete change (git reset)
+  <kbd>d</kbd>: Discard change (git reset)
   <kbd>E</kbd>: Edit hunk
   <kbd>c</kbd>: Zatwierdź zmiany
   <kbd>w</kbd>: Zatwierdź zmiany bez skryptu pre-commit
