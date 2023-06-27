@@ -222,11 +222,24 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 		return nil, err
 	}
 
+	findFullCommit := lo.Ternary(self.version.IsOlderThan(2, 25, 2),
+		func(sha string) *models.Commit {
+			for s, c := range fullCommits {
+				if strings.HasPrefix(s, sha) {
+					return c
+				}
+			}
+			return nil
+		},
+		func(sha string) *models.Commit {
+			return fullCommits[sha]
+		})
+
 	hydratedCommits := make([]*models.Commit, 0, len(commits))
 	for _, rebasingCommit := range commits {
 		if rebasingCommit.Sha == "" {
 			hydratedCommits = append(hydratedCommits, rebasingCommit)
-		} else if commit := fullCommits[rebasingCommit.Sha]; commit != nil {
+		} else if commit := findFullCommit(rebasingCommit.Sha); commit != nil {
 			commit.Action = rebasingCommit.Action
 			commit.Status = rebasingCommit.Status
 			hydratedCommits = append(hydratedCommits, commit)
