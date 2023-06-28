@@ -212,6 +212,7 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string, ignoreWhit
 		Arg("--color="+self.UserConfig.Git.Paging.ColorArg).
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		Arg("--stat").
+		Arg("--decorate").
 		Arg("-p").
 		Arg(sha).
 		ArgIf(ignoreWhitespace, "--ignore-all-space").
