@@ -12,6 +12,8 @@ import (
 	"github.com/samber/lo"
 )
 
+var KeyNone = "<none>"
+
 var labelByKey = map[gocui.Key]string{
 	gocui.KeyF1:          "<f1>",
 	gocui.KeyF2:          "<f2>",
@@ -99,6 +101,10 @@ func LabelFromKey(key types.Key) string {
 }
 
 func GetKey(key string) types.Key {
+	if key == KeyNone {
+		return nil
+	}
+
 	runeCount := utf8.RuneCountInString(key)
 	if runeCount > 1 {
 		binding, ok := keyByLabel[strings.ToLower(key)]

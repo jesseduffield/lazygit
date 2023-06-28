@@ -49,7 +49,7 @@ func (self *OptionsMenuAction) getBindings(context types.Context) []*types.Bindi
 	bindings, _ := self.c.GetInitialKeybindingsWithCustomCommands()
 
 	for _, binding := range bindings {
-		if keybindings.LabelFromKey(binding.Key) != "" && binding.Description != "" {
+		if keybindings.LabelFromKey(binding.Key) != "" && binding.Description != "" && binding.Key != nil {
 			if binding.ViewName == "" {
 				bindingsGlobal = append(bindingsGlobal, binding)
 			} else if binding.Tag == "navigation" {
