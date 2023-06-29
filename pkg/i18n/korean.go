@@ -364,7 +364,7 @@ func koreanTranslationSet() TranslationSet {
 		MustExitFilterModePrompt:   "Command not available in filtered mode. Exit filtered mode?",
 		Diff:                       "Diff",
 		EnterRefToDiff:             "Enter ref to diff",
-		EnteRefName:                "Ref 입력:",
+		EnterRefName:               "Ref 입력:",
 		ExitDiffMode:               "Diff 모드 종료",
 		DiffingMenuTitle:           "Diff",
 		SwapDiff:                   "Reverse diff direction",

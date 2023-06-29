@@ -35,7 +35,7 @@ func (self *DiffingMenuAction) Call() error {
 			Label: self.c.Tr.EnterRefToDiff,
 			OnPress: func() error {
 				return self.c.Prompt(types.PromptOpts{
-					Title:               self.c.Tr.EnteRefName,
+					Title:               self.c.Tr.EnterRefName,
 					FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRefsSuggestionsFunc(),
 					HandleConfirm: func(response string) error {
 						self.c.Modes().Diffing.Ref = strings.TrimSpace(response)

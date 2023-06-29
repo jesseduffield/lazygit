@@ -359,7 +359,7 @@ func chineseTranslationSet() TranslationSet {
 		MustExitFilterModePrompt:            "命令在过滤模式下不可用。退出过滤模式？",
 		Diff:                                "差异",
 		EnterRefToDiff:                      "输入 ref 以 diff",
-		EnteRefName:                         "输入 ref：",
+		EnterRefName:                        "输入 ref：",
 		ExitDiffMode:                        "退出差异模式",
 		DiffingMenuTitle:                    "正在 diff",
 		SwapDiff:                            "反向 diff",

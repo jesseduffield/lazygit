@@ -369,7 +369,7 @@ func japaneseTranslationSet() TranslationSet {
 		// MustExitFilterModePrompt:            "Command not available in filtered mode. Exit filtered mode?",
 		Diff: "差分",
 		// LcEnterRefToDiff:                    "Enter ref to diff",
-		EnteRefName:      "参照を入力:",
+		EnterRefName:     "参照を入力:",
 		ExitDiffMode:     "差分モードを終了",
 		DiffingMenuTitle: "差分",
 		// LcSwapDiff:                          "Reverse diff direction",

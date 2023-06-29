@@ -428,7 +428,7 @@ func RussianTranslationSet() TranslationSet {
 		MustExitFilterModePrompt:            "Команда недоступна в режиме фильтрации. Выйти из режима фильтрации?",
 		Diff:                                "Разница",
 		EnterRefToDiff:                      "Введите ссылку для сравнения",
-		EnteRefName:                         "Введите ссылку:",
+		EnterRefName:                        "Введите ссылку:",
 		ExitDiffMode:                        "Выйти из режима сравнения",
 		DiffingMenuTitle:                    "Сравнение",
 		SwapDiff:                            "Обратное направление сравнении",

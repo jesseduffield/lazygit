@@ -403,7 +403,7 @@ type TranslationSet struct {
 	MustExitFilterModePrompt            string
 	Diff                                string
 	EnterRefToDiff                      string
-	EnteRefName                         string
+	EnterRefName                        string
 	ExitDiffMode                        string
 	DiffingMenuTitle                    string
 	SwapDiff                            string
@@ -1093,7 +1093,7 @@ func EnglishTranslationSet() TranslationSet {
 		MustExitFilterModePrompt:            "Command not available in filtered mode. Exit filtered mode?",
 		Diff:                                "Diff",
 		EnterRefToDiff:                      "Enter ref to diff",
-		EnteRefName:                         "Enter ref:",
+		EnterRefName:                        "Enter ref:",
 		ExitDiffMode:                        "Exit diff mode",
 		DiffingMenuTitle:                    "Diffing",
 		SwapDiff:                            "Reverse diff direction",

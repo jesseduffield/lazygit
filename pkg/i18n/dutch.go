@@ -314,7 +314,7 @@ func dutchTranslationSet() TranslationSet {
 		MustExitFilterModePrompt:            "Command niet beschikbaar in filter modus. Sluit filter modus?",
 		Diff:                                "Diff",
 		EnterRefToDiff:                      "Vul in ref naar diff",
-		EnteRefName:                         "Vul in ref:",
+		EnterRefName:                        "Vul in ref:",
 		ExitDiffMode:                        "Sluit diff mode",
 		DiffingMenuTitle:                    "Diffen",
 		SwapDiff:                            "Keer diff richting om",

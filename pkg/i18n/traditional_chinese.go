@@ -455,7 +455,7 @@ func traditionalChineseTranslationSet() TranslationSet {
 		MustExitFilterModePrompt:            "在按路徑篩選的模式下，該命令不可用。是否退出按路徑篩選的模式？",
 		Diff:                                "差異",
 		EnterRefToDiff:                      "輸入要比較的 Ref",
-		EnteRefName:                         "輸入 Ref：",
+		EnterRefName:                        "輸入 Ref：",
 		ExitDiffMode:                        "退出差異模式",
 		DiffingMenuTitle:                    "差異比較",
 		SwapDiff:                            "反轉差異方向",
