@@ -243,10 +243,13 @@ func (self *WorkingTreeCommands) WorktreeFileDiffCmdObj(node models.IFile, plain
 	contextSize := self.UserConfig.Git.DiffContextSize
 	prevPath := node.GetPreviousPath()
 	noIndex := !node.GetIsTracked() && !node.GetHasStagedChanges() && !cached && node.GetIsFile()
+	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
+	useExtDiff := extDiffCmd != "" && !plain
 
 	cmdArgs := NewGitCmd("diff").
+		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
+		ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
 		Arg("--submodule").
-		Arg("--no-ext-diff").
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		Arg(fmt.Sprintf("--color=%s", colorArg)).
 		ArgIf(ignoreWhitespace, "--ignore-all-space").
@@ -279,9 +282,13 @@ func (self *WorkingTreeCommands) ShowFileDiffCmdObj(from string, to string, reve
 		colorArg = "never"
 	}
 
+	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
+	useExtDiff := extDiffCmd != "" && !plain
+
 	cmdArgs := NewGitCmd("diff").
+		ConfigIf(useExtDiff, "diff.external="+extDiffCmd).
+		ArgIfElse(useExtDiff, "--ext-diff", "--no-ext-diff").
 		Arg("--submodule").
-		Arg("--no-ext-diff").
 		Arg(fmt.Sprintf("--unified=%d", contextSize)).
 		Arg("--no-renames").
 		Arg(fmt.Sprintf("--color=%s", colorArg)).

@@ -101,9 +101,10 @@ type GitConfig struct {
 }
 
 type PagingConfig struct {
-	ColorArg  string `yaml:"colorArg"`
-	Pager     string `yaml:"pager"`
-	UseConfig bool   `yaml:"useConfig"`
+	ColorArg            string `yaml:"colorArg"`
+	Pager               string `yaml:"pager"`
+	UseConfig           bool   `yaml:"useConfig"`
+	ExternalDiffCommand string `yaml:"externalDiffCommand"`
 }
 
 type CommitConfig struct {
@@ -469,9 +470,10 @@ func GetDefaultConfig() *UserConfig {
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
-				ColorArg:  "always",
-				Pager:     "",
-				UseConfig: false,
+				ColorArg:            "always",
+				Pager:               "",
+				UseConfig:           false,
+				ExternalDiffCommand: "",
 			},
 			Commit: CommitConfig{
 				SignOff: false,
