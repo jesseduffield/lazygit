@@ -255,7 +255,7 @@ func (self *Shell) StartBisect(good string, bad string) *Shell {
 }
 
 func (self *Shell) Init() *Shell {
-	self.RunCommand([]string{"git", "init", "-b", "master"})
+	self.RunCommand([]string{"git", "-c", "init.defaultBranch=master", "init"})
 	return self
 }
 
