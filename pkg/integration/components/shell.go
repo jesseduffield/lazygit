@@ -240,7 +240,7 @@ func (self *Shell) HardReset(ref string) *Shell {
 }
 
 func (self *Shell) Stash(message string) *Shell {
-	self.RunCommand([]string{"git", "stash", "-m", message})
+	self.RunCommand([]string{"git", "stash", "push", "-m", message})
 	return self
 }
 
