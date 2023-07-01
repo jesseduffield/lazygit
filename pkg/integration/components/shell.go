@@ -196,11 +196,6 @@ func (self *Shell) CreateNCommitsStartingAt(n, startIndex int) *Shell {
 	return self
 }
 
-func (self *Shell) StashWithMessage(message string) *Shell {
-	self.RunCommand([]string{"git", "stash", "-m", message})
-	return self
-}
-
 func (self *Shell) SetConfig(key string, value string) *Shell {
 	self.RunCommand([]string{"git", "config", "--local", key, value})
 	return self
