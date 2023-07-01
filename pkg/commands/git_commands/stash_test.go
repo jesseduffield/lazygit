@@ -37,10 +37,10 @@ func TestStashPop(t *testing.T) {
 
 func TestStashSave(t *testing.T) {
 	runner := oscommands.NewFakeRunner(t).
-		ExpectGitArgs([]string{"stash", "save", "A stash message"}, "", nil)
+		ExpectGitArgs([]string{"stash", "push", "-m", "A stash message"}, "", nil)
 	instance := buildStashCommands(commonDeps{runner: runner})
 
-	assert.NoError(t, instance.Save("A stash message"))
+	assert.NoError(t, instance.Push("A stash message"))
 	runner.CheckForMissingCalls()
 }
 

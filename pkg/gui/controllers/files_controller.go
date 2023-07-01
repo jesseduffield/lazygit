@@ -697,7 +697,7 @@ func (self *FilesController) createStashMenu() error {
 					if !self.c.Helpers().WorkingTree.IsWorkingTreeDirty() {
 						return self.c.ErrorMsg(self.c.Tr.NoFilesToStash)
 					}
-					return self.handleStashSave(self.c.Git().Stash.Save, self.c.Tr.Actions.StashAllChanges)
+					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
 				},
 				Key: 'a',
 			},
@@ -740,7 +740,7 @@ func (self *FilesController) createStashMenu() error {
 						return self.handleStashSave(self.c.Git().Stash.StashUnstagedChanges, self.c.Tr.Actions.StashUnstagedChanges)
 					}
 					// ordinary stash
-					return self.handleStashSave(self.c.Git().Stash.Save, self.c.Tr.Actions.StashUnstagedChanges)
+					return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashUnstagedChanges)
 				},
 				Key: 'u',
 			},
@@ -749,7 +749,7 @@ func (self *FilesController) createStashMenu() error {
 }
 
 func (self *FilesController) stash() error {
-	return self.handleStashSave(self.c.Git().Stash.Save, self.c.Tr.Actions.StashAllChanges)
+	return self.handleStashSave(self.c.Git().Stash.Push, self.c.Tr.Actions.StashAllChanges)
 }
 
 func (self *FilesController) createResetToUpstreamMenu() error {
