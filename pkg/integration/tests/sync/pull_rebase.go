@@ -15,14 +15,16 @@ var PullRebase = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.Commit("one")
 		shell.UpdateFileAndAdd("file", "content2")
 		shell.Commit("two")
-		shell.EmptyCommit("three")
+		shell.CreateFileAndAdd("file3", "content3")
+		shell.Commit("three")
 
 		shell.CloneIntoRemote("origin")
 
 		shell.SetBranchUpstream("master", "origin/master")
 
 		shell.HardReset("HEAD^^")
-		shell.EmptyCommit("four")
+		shell.CreateFileAndAdd("file4", "content4")
+		shell.Commit("four")
 
 		shell.SetConfig("pull.rebase", "true")
 	},
