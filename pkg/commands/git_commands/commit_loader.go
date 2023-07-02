@@ -304,7 +304,7 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 
 	commits := []*models.Commit{}
 
-	todos, err := todo.Parse(bytes.NewBuffer(bytesContent))
+	todos, err := todo.Parse(bytes.NewBuffer(bytesContent), '#')
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred while parsing git-rebase-todo file: %s", err.Error()))
 		return nil, nil
@@ -346,7 +346,7 @@ func (self *CommitLoader) getConflictedCommit(todos []todo.Todo) string {
 		return ""
 	}
 
-	doneTodos, err := todo.Parse(bytes.NewBuffer(bytesContent))
+	doneTodos, err := todo.Parse(bytes.NewBuffer(bytesContent), '#')
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred while parsing rebase-merge/done file: %s", err.Error()))
 		return ""

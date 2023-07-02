@@ -42,7 +42,7 @@ func ReadRebaseTodoFile(fileName string) ([]todo.Todo, error) {
 		return nil, err
 	}
 
-	todos, err := todo.Parse(f)
+	todos, err := todo.Parse(f, '#')
 	err2 := f.Close()
 	if err == nil {
 		err = err2
@@ -55,7 +55,7 @@ func WriteRebaseTodoFile(fileName string, todos []todo.Todo) error {
 	if err != nil {
 		return err
 	}
-	err = todo.Write(f, todos)
+	err = todo.Write(f, todos, '#')
 	err2 := f.Close()
 	if err == nil {
 		err = err2

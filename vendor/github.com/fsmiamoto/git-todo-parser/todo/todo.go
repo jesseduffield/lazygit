@@ -23,8 +23,6 @@ const (
 	Comment
 )
 
-const CommentChar = "#"
-
 type Todo struct {
 	Command     TodoCommand
 	Commit      string
