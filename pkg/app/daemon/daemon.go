@@ -10,6 +10,7 @@ import (
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -88,6 +89,15 @@ func getDaemonKind() DaemonKind {
 	}
 
 	return DaemonKind(intValue)
+}
+
+func getCommentChar() byte {
+	cmd := secureexec.Command("git", "config", "--get", "--null", "core.commentChar")
+	if output, err := cmd.Output(); err == nil && len(output) == 2 {
+		return output[0]
+	}
+
+	return '#'
 }
 
 // An Instruction is a command to be run by lazygit in daemon mode.
@@ -199,7 +209,7 @@ func (self *ChangeTodoActionsInstruction) SerializedInstructions() string {
 func (self *ChangeTodoActionsInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
 		for _, c := range self.Changes {
-			if err := utils.EditRebaseTodo(path, c.Sha, todo.Pick, c.NewAction); err != nil {
+			if err := utils.EditRebaseTodo(path, c.Sha, todo.Pick, c.NewAction, getCommentChar()); err != nil {
 				return err
 			}
 		}
@@ -233,7 +243,7 @@ func (self *MoveFixupCommitDownInstruction) SerializedInstructions() string {
 
 func (self *MoveFixupCommitDownInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveFixupCommitDown(path, self.OriginalSha, self.FixupSha)
+		return utils.MoveFixupCommitDown(path, self.OriginalSha, self.FixupSha, getCommentChar())
 	})
 }
 
@@ -257,7 +267,7 @@ func (self *MoveTodoUpInstruction) SerializedInstructions() string {
 
 func (self *MoveTodoUpInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodoUp(path, self.Sha, todo.Pick)
+		return utils.MoveTodoUp(path, self.Sha, todo.Pick, getCommentChar())
 	})
 }
 
@@ -281,7 +291,7 @@ func (self *MoveTodoDownInstruction) SerializedInstructions() string {
 
 func (self *MoveTodoDownInstruction) run(common *common.Common) error {
 	return handleInteractiveRebase(common, func(path string) error {
-		return utils.MoveTodoDown(path, self.Sha, todo.Pick)
+		return utils.MoveTodoDown(path, self.Sha, todo.Pick, getCommentChar())
 	})
 }
 

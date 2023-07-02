@@ -28,8 +28,8 @@ github.com/fatih/color v1.7.1-0.20180516100307-2d684516a886/go.mod h1:Zm6kSWBoL9
 github.com/fatih/color v1.9.0 h1:8xPHl4/q1VyqGIPif1F+1V3Y3lSmrq01EabUW3CoW5s=
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
-github.com/fsmiamoto/git-todo-parser v0.0.4 h1:fzcGaoAFDHWzJRKw//CSZFrXucsLKplIvOSab3FtWWM=
-github.com/fsmiamoto/git-todo-parser v0.0.4/go.mod h1:B+AgTbNE2BARvJqzXygThzqxLIaEWvwr2sxKYYb0Fas=
+github.com/fsmiamoto/git-todo-parser v0.0.5 h1:Bhzd/vz/6Qm3udfkd6NO9fWfD3TpwR9ucp3N75/J5I8=
+github.com/fsmiamoto/git-todo-parser v0.0.5/go.mod h1:B+AgTbNE2BARvJqzXygThzqxLIaEWvwr2sxKYYb0Fas=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/gdamore/encoding v1.0.0 h1:+7OoQ1Bc6eTm5niUzBa0Ctsh6JbMW6Ra+YNuAtDBdko=

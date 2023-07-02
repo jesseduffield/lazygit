@@ -11,8 +11,8 @@ import (
 
 // Read a git-rebase-todo file, change the action for the given sha to
 // newAction, and write it back
-func EditRebaseTodo(filePath string, sha string, oldAction todo.TodoCommand, newAction todo.TodoCommand) error {
-	todos, err := ReadRebaseTodoFile(filePath)
+func EditRebaseTodo(filePath string, sha string, oldAction todo.TodoCommand, newAction todo.TodoCommand, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(filePath, commentChar)
 	if err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func EditRebaseTodo(filePath string, sha string, oldAction todo.TodoCommand, new
 		// pick and later in a merge)
 		if t.Command == oldAction && equalShas(t.Commit, sha) {
 			t.Command = newAction
-			return WriteRebaseTodoFile(filePath, todos)
+			return WriteRebaseTodoFile(filePath, todos, commentChar)
 		}
 	}
 
@@ -36,13 +36,13 @@ func equalShas(a, b string) bool {
 	return strings.HasPrefix(a, b) || strings.HasPrefix(b, a)
 }
 
-func ReadRebaseTodoFile(fileName string) ([]todo.Todo, error) {
+func ReadRebaseTodoFile(fileName string, commentChar byte) ([]todo.Todo, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
 	}
 
-	todos, err := todo.Parse(f)
+	todos, err := todo.Parse(f, commentChar)
 	err2 := f.Close()
 	if err == nil {
 		err = err2
@@ -50,12 +50,12 @@ func ReadRebaseTodoFile(fileName string) ([]todo.Todo, error) {
 	return todos, err
 }
 
-func WriteRebaseTodoFile(fileName string, todos []todo.Todo) error {
+func WriteRebaseTodoFile(fileName string, todos []todo.Todo, commentChar byte) error {
 	f, err := os.Create(fileName)
 	if err != nil {
 		return err
 	}
-	err = todo.Write(f, todos)
+	err = todo.Write(f, todos, commentChar)
 	err2 := f.Close()
 	if err == nil {
 		err = err2
@@ -73,8 +73,8 @@ func PrependStrToTodoFile(filePath string, linesToPrepend []byte) error {
 	return os.WriteFile(filePath, linesToPrepend, 0o644)
 }
 
-func MoveTodoDown(fileName string, sha string, action todo.TodoCommand) error {
-	todos, err := ReadRebaseTodoFile(fileName)
+func MoveTodoDown(fileName string, sha string, action todo.TodoCommand, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {
 		return err
 	}
@@ -82,11 +82,11 @@ func MoveTodoDown(fileName string, sha string, action todo.TodoCommand) error {
 	if err != nil {
 		return err
 	}
-	return WriteRebaseTodoFile(fileName, rearrangedTodos)
+	return WriteRebaseTodoFile(fileName, rearrangedTodos, commentChar)
 }
 
-func MoveTodoUp(fileName string, sha string, action todo.TodoCommand) error {
-	todos, err := ReadRebaseTodoFile(fileName)
+func MoveTodoUp(fileName string, sha string, action todo.TodoCommand, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func MoveTodoUp(fileName string, sha string, action todo.TodoCommand) error {
 	if err != nil {
 		return err
 	}
-	return WriteRebaseTodoFile(fileName, rearrangedTodos)
+	return WriteRebaseTodoFile(fileName, rearrangedTodos, commentChar)
 }
 
 func moveTodoDown(todos []todo.Todo, sha string, action todo.TodoCommand) ([]todo.Todo, error) {
@@ -134,8 +134,8 @@ func moveTodoUp(todos []todo.Todo, sha string, action todo.TodoCommand) ([]todo.
 	return rearrangedTodos, nil
 }
 
-func MoveFixupCommitDown(fileName string, originalSha string, fixupSha string) error {
-	todos, err := ReadRebaseTodoFile(fileName)
+func MoveFixupCommitDown(fileName string, originalSha string, fixupSha string, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func MoveFixupCommitDown(fileName string, originalSha string, fixupSha string) e
 		return err
 	}
 
-	return WriteRebaseTodoFile(fileName, newTodos)
+	return WriteRebaseTodoFile(fileName, newTodos, commentChar)
 }
 
 func moveFixupCommitDown(todos []todo.Todo, originalSha string, fixupSha string) ([]todo.Todo, error) {

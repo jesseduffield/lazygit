@@ -99,3 +99,11 @@ func (self *ConfigCommands) Branches() (map[string]*config.Branch, error) {
 func (self *ConfigCommands) GetGitFlowPrefixes() string {
 	return self.gitConfig.GetGeneral("--local --get-regexp gitflow.prefix")
 }
+
+func (self *ConfigCommands) GetCoreCommentChar() byte {
+	if commentCharStr := self.gitConfig.Get("core.commentChar"); len(commentCharStr) == 1 {
+		return commentCharStr[0]
+	}
+
+	return '#'
+}

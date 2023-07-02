@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-func Write(f io.Writer, todos []Todo) error {
+func Write(f io.Writer, todos []Todo, commentChar byte) error {
 	for _, todo := range todos {
-		if err := writeTodo(f, todo); err != nil {
+		if err := writeTodo(f, todo, commentChar); err != nil {
 			return err
 		}
 	}
@@ -15,7 +15,7 @@ func Write(f io.Writer, todos []Todo) error {
 	return nil
 }
 
-func writeTodo(f io.Writer, todo Todo) error {
+func writeTodo(f io.Writer, todo Todo, commentChar byte) error {
 	var sb strings.Builder
 	if todo.Command != Comment {
 		sb.WriteString(todo.Command.String())
@@ -26,7 +26,7 @@ func writeTodo(f io.Writer, todo Todo) error {
 		return nil
 
 	case Comment:
-		sb.WriteString(CommentChar)
+		sb.WriteByte(commentChar)
 		sb.WriteString(todo.Comment)
 
 	case Break:

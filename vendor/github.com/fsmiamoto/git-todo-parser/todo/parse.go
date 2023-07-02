@@ -16,7 +16,7 @@ var (
 	ErrMissingRef        = errors.New("missing ref")
 )
 
-func Parse(f io.Reader) ([]Todo, error) {
+func Parse(f io.Reader, commentChar byte) ([]Todo, error) {
 	var result []Todo
 
 	scanner := bufio.NewScanner(f)
@@ -30,7 +30,7 @@ func Parse(f io.Reader) ([]Todo, error) {
 			continue
 		}
 
-		cmd, err := parseLine(line)
+		cmd, err := parseLine(line, commentChar)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse line %q: %w", line, err)
 		}
@@ -45,12 +45,12 @@ func Parse(f io.Reader) ([]Todo, error) {
 	return result, nil
 }
 
-func parseLine(line string) (Todo, error) {
+func parseLine(line string, commentChar byte) (Todo, error) {
 	var todo Todo
 
-	if strings.HasPrefix(line, CommentChar) {
+	if line[0] == commentChar {
 		todo.Command = Comment
-		todo.Comment = strings.TrimLeft(line, CommentChar)
+		todo.Comment = line[1:]
 		return todo, nil
 	}
 
@@ -143,8 +143,8 @@ func parseLine(line string) (Todo, error) {
 	todo.Commit = fields[0]
 	fields = fields[1:]
 
-	// Trim # and whitespace
-	todo.Msg = strings.TrimPrefix(strings.Join(fields, " "), CommentChar+" ")
+	// Trim comment char and whitespace
+	todo.Msg = strings.TrimPrefix(strings.Join(fields, " "), fmt.Sprintf("%c ", commentChar))
 
 	return todo, nil
 }
