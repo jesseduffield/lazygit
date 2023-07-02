@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -70,7 +71,8 @@ func (self *GuiDriver) Fail(message string) {
 	self.gui.g.Close()
 	// need to give the gui time to close
 	time.Sleep(time.Millisecond * 100)
-	panic(fullMessage)
+	fmt.Fprintln(os.Stderr, fullMessage)
+	panic("Test failed")
 }
 
 // logs to the normal place that you log to i.e. viewable with `lazygit --logs`
