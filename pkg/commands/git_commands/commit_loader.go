@@ -38,6 +38,7 @@ type CommitLoader struct {
 	// When nil, we're yet to obtain the list of existing main branches.
 	// When an empty slice, we've obtained the list and it's empty.
 	mainBranches []string
+	*GitCommon
 }
 
 // making our dependencies explicit for the sake of easier testing
@@ -46,6 +47,7 @@ func NewCommitLoader(
 	cmd oscommands.ICmdObjBuilder,
 	dotGitDir string,
 	getRebaseMode func() (enums.RebaseMode, error),
+	gitCommon *GitCommon,
 ) *CommitLoader {
 	return &CommitLoader{
 		Common:        cmn,
@@ -55,6 +57,7 @@ func NewCommitLoader(
 		walkFiles:     filepath.Walk,
 		dotGitDir:     dotGitDir,
 		mainBranches:  nil,
+		GitCommon:     gitCommon,
 	}
 }
 
@@ -304,7 +307,7 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 
 	commits := []*models.Commit{}
 
-	todos, err := todo.Parse(bytes.NewBuffer(bytesContent), '#')
+	todos, err := todo.Parse(bytes.NewBuffer(bytesContent), self.config.GetCoreCommentChar())
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred while parsing git-rebase-todo file: %s", err.Error()))
 		return nil, nil
@@ -346,7 +349,7 @@ func (self *CommitLoader) getConflictedCommit(todos []todo.Todo) string {
 		return ""
 	}
 
-	doneTodos, err := todo.Parse(bytes.NewBuffer(bytesContent), '#')
+	doneTodos, err := todo.Parse(bytes.NewBuffer(bytesContent), self.config.GetCoreCommentChar())
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred while parsing rebase-merge/done file: %s", err.Error()))
 		return ""

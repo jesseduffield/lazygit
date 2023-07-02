@@ -21,13 +21,11 @@ var MoveWithCustomCommentChar = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("commit 01"),
 			).
 			Press(keys.Commits.MoveDownCommit).
-			// The following behavior requires correction:
-			Tap(func() {
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Contains("failed to parse line")).
-					Confirm()
-			}).
+			Lines(
+				Contains("commit 01"),
+				Contains("commit 02").IsSelected(),
+			).
+			Press(keys.Commits.MoveUpCommit).
 			Lines(
 				Contains("commit 02").IsSelected(),
 				Contains("commit 01"),

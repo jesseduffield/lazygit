@@ -27,16 +27,8 @@ var DropWithCustomCommentChar = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Equals("Are you sure you want to delete this commit?")).
 					Confirm()
 			}).
-			// The following behavior requires correction:
-			Tap(func() {
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Contains("failed to parse line")).
-					Confirm()
-			}).
 			Lines(
-				Contains("commit 02").IsSelected(),
-				Contains("commit 01"),
+				Contains("commit 01").IsSelected(),
 			)
 	},
 })
