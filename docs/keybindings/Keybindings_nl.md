@@ -50,7 +50,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-o&gt;</kbd>: Kopieer de bestandsnaam naar het klembord
   <kbd>d</kbd>: Bekijk 'veranderingen ongedaan maken' opties
   <kbd>&lt;space&gt;</kbd>: Toggle staged
-  <kbd>&lt;c-b&gt;</kbd>: Filter files (staged/unstaged)
+  <kbd>&lt;c-b&gt;</kbd>: Filter files by status
   <kbd>c</kbd>: Commit veranderingen
   <kbd>w</kbd>: Commit veranderingen zonder pre-commit hook
   <kbd>A</kbd>: Wijzig laatste commit
@@ -99,7 +99,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: Hernoem branch
   <kbd>u</kbd>: Set/Unset upstream
   <kbd>&lt;enter&gt;</kbd>: Bekijk commits
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Commit bericht
@@ -163,7 +163,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;enter&gt;</kbd>: Uitvoeren
   <kbd>&lt;esc&gt;</kbd>: Sluiten
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Mergen
@@ -218,7 +218,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>C</kbd>: Kopieer commit reeks (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (gekopieerde) commits selectie
   <kbd>&lt;enter&gt;</kbd>: Bekijk commits
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Remote branches
@@ -233,7 +233,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>u</kbd>: Stel in als upstream van uitgecheckte branch
   <kbd>g</kbd>: Bekijk reset opties
   <kbd>&lt;enter&gt;</kbd>: Bekijk commits
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Remotes
@@ -243,7 +243,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: Voeg een nieuwe remote toe
   <kbd>d</kbd>: Verwijder remote
   <kbd>e</kbd>: Wijzig remote
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Staging
@@ -277,7 +277,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: Nieuwe branch
   <kbd>r</kbd>: Rename stash
   <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Status
@@ -317,7 +317,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>e</kbd>: Update submodule URL
   <kbd>i</kbd>: Initialiseer submodule
   <kbd>b</kbd>: Bekijk bulk submodule opties
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Tags
@@ -329,5 +329,5 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: Creëer tag
   <kbd>g</kbd>: Bekijk reset opties
   <kbd>&lt;enter&gt;</kbd>: Bekijk commits
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>

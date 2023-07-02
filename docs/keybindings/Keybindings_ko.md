@@ -57,7 +57,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>C</kbd>: 커밋을 범위로 복사 (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Stash
@@ -69,7 +69,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 새 브랜치 생성
   <kbd>r</kbd>: Rename stash
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Sub-commits
@@ -93,7 +93,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;enter&gt;</kbd>: 실행
   <kbd>&lt;esc&gt;</kbd>: 닫기
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 메인 패널 (Merging)
@@ -178,7 +178,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: 브랜치 이름 변경
   <kbd>u</kbd>: Set/Unset upstream
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 상태
@@ -202,7 +202,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>e</kbd>: 서브모듈의 URL을 수정
   <kbd>i</kbd>: 서브모듈 초기화
   <kbd>b</kbd>: View bulk submodule options
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 원격
@@ -212,7 +212,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 새로운 Remote 추가
   <kbd>d</kbd>: Remote를 삭제
   <kbd>e</kbd>: Remote를 수정
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 원격 브랜치
@@ -227,7 +227,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>u</kbd>: Set as upstream of checked-out branch
   <kbd>g</kbd>: View reset options
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 커밋
@@ -295,7 +295,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 태그를 생성
   <kbd>g</kbd>: View reset options
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 파일

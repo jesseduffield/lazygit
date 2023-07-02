@@ -57,7 +57,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>C</kbd>: 複製提交範圍 (揀選)
   <kbd>&lt;c-r&gt;</kbd>: 重設選定的揀選 (複製) 提交
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 主視窗 (一般)
@@ -126,7 +126,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 <pre>
   <kbd>&lt;enter&gt;</kbd>: 執行
   <kbd>&lt;esc&gt;</kbd>: 關閉
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 子提交
@@ -156,7 +156,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>e</kbd>: 更新子模組 URL
   <kbd>i</kbd>: 初始化子模組
   <kbd>b</kbd>: 查看批量子模組選項
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 提交
@@ -224,7 +224,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>n</kbd>: 新分支
   <kbd>r</kbd>: 重新命名收藏
   <kbd>&lt;enter&gt;</kbd>: 檢視所選項目的檔案
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 本地分支
@@ -248,7 +248,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>R</kbd>: 重新命名分支
   <kbd>u</kbd>: 設定/取消設定上游
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 標籤
@@ -260,7 +260,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>n</kbd>: 建立標籤
   <kbd>g</kbd>: 檢視重設選項
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 檔案
@@ -314,7 +314,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>n</kbd>: 新增遠端
   <kbd>d</kbd>: 移除遠端
   <kbd>e</kbd>: 編輯遠端
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 遠端分支
@@ -329,5 +329,5 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>u</kbd>: 將此分支設為當前分支之上游
   <kbd>g</kbd>: 檢視重設選項
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>

@@ -648,7 +648,7 @@ func (self *FilesController) handleStatusFilterPressed() error {
 				},
 			},
 			{
-				Label: self.c.Tr.ResetCommitFilterState,
+				Label: self.c.Tr.ResetFilter,
 				OnPress: func() error {
 					return self.setStatusFiltering(filetree.DisplayAll)
 				},

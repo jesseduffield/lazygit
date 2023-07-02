@@ -53,7 +53,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 新しいブランチを作成
   <kbd>r</kbd>: Stashを変更
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Sub-commits
@@ -139,7 +139,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>e</kbd>: サブモジュールのURLを更新
   <kbd>i</kbd>: サブモジュールを初期化
   <kbd>b</kbd>: View bulk submodule options
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## ステータス
@@ -161,7 +161,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: タグを作成
   <kbd>g</kbd>: View reset options
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## ファイル
@@ -212,7 +212,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: ブランチ名を変更
   <kbd>u</kbd>: Set/Unset upstream
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## メインパネル (Merging)
@@ -281,7 +281,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;enter&gt;</kbd>: 実行
   <kbd>&lt;esc&gt;</kbd>: 閉じる
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## リモート
@@ -291,7 +291,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: リモートを新規追加
   <kbd>d</kbd>: リモートを削除
   <kbd>e</kbd>: リモートを編集
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## リモートブランチ
@@ -306,7 +306,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>u</kbd>: Set as upstream of checked-out branch
   <kbd>g</kbd>: View reset options
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 参照ログ
@@ -322,7 +322,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>C</kbd>: コミットを範囲コピー (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
-  <kbd>/</kbd>: Filter the current view
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 確認パネル

@@ -61,7 +61,7 @@ func japaneseTranslationSet() TranslationSet {
 		FileFilter:              "ファイルをフィルタ (ステージ/アンステージ)",
 		FilterStagedFiles:       "ステージされたファイルのみを表示",
 		FilterUnstagedFiles:     "ステージされていないファイルのみを表示",
-		ResetCommitFilterState:  "フィルタをリセット",
+		ResetFilter:             "フィルタをリセット",
 		// NoChangedFiles:                      "No changed files",
 		PullWait:                "Pull中...",
 		PushWait:                "Push中...",

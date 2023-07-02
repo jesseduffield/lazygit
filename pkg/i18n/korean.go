@@ -60,7 +60,7 @@ func koreanTranslationSet() TranslationSet {
 		FileFilter:                          "파일을 필터하기 (Staged/unstaged)",
 		FilterStagedFiles:                   "Staged된 파일만 표시",
 		FilterUnstagedFiles:                 "Stage되지 않은 파일만 표시",
-		ResetCommitFilterState:              "필터 리셋",
+		ResetFilter:                         "필터 리셋",
 		NoChangedFiles:                      "변경된 파일이 없습니다.",
 		PullWait:                            "업데이트 중...",
 		PushWait:                            "푸시 중...",
