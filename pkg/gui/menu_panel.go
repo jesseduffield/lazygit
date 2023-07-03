@@ -46,9 +46,6 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 
 	gui.Views.Menu.Title = opts.Title
 	gui.Views.Menu.FgColor = theme.GocuiDefaultTextColor
-	gui.Views.Menu.SetOnSelectItem(gui.onSelectItemWrapper(func(selectedLine int) error {
-		return nil
-	}))
 
 	gui.Views.Tooltip.Wrap = true
 	gui.Views.Tooltip.FgColor = theme.GocuiDefaultTextColor

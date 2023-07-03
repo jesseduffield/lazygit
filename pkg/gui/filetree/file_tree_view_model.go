@@ -126,8 +126,8 @@ func (self *FileTreeViewModel) findNewSelectedIdx(prevNodes []*FileNode, currNod
 	return -1
 }
 
-func (self *FileTreeViewModel) SetFilter(filter FileTreeDisplayFilter) {
-	self.IFileTree.SetFilter(filter)
+func (self *FileTreeViewModel) SetStatusFilter(filter FileTreeDisplayFilter) {
+	self.IFileTree.SetStatusFilter(filter)
 	self.IListCursor.SetSelectedLineIdx(0)
 }
 

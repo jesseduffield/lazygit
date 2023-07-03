@@ -9,7 +9,7 @@ import (
 )
 
 type ReflogCommitsContext struct {
-	*BasicViewModel[*models.Commit]
+	*FilteredListViewModel[*models.Commit]
 	*ListContextTrait
 }
 
@@ -19,11 +19,16 @@ var (
 )
 
 func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
-	viewModel := NewBasicViewModel(func() []*models.Commit { return c.Model().FilteredReflogCommits })
+	viewModel := NewFilteredListViewModel(
+		func() []*models.Commit { return c.Model().FilteredReflogCommits },
+		func(commit *models.Commit) []string {
+			return []string{commit.ShortSha(), commit.Name}
+		},
+	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
 		return presentation.GetReflogCommitListDisplayStrings(
-			c.Model().FilteredReflogCommits,
+			viewModel.GetItems(),
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().CherryPicking.SelectedShaSet(),
 			c.Modes().Diffing.Ref,
@@ -35,7 +40,7 @@ func NewReflogCommitsContext(c *ContextCommon) *ReflogCommitsContext {
 	}
 
 	return &ReflogCommitsContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:       c.Views().ReflogCommits,

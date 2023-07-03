@@ -113,3 +113,14 @@ func MoveElement[T any](slice []T, from int, to int) []T {
 
 	return newSlice
 }
+
+func ValuesAtIndices[T any](slice []T, indices []int) []T {
+	result := make([]T, len(indices))
+	for i, index := range indices {
+		// gracefully handling the situation where the index is out of bounds
+		if index < len(slice) {
+			result[i] = slice[index]
+		}
+	}
+	return result
+}

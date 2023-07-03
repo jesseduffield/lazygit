@@ -13,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_and_search"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_by_path"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/interactive_rebase"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/misc"
@@ -87,10 +88,19 @@ var tests = []*components.IntegrationTest{
 	diff.DiffCommits,
 	diff.IgnoreWhitespace,
 	file.DirWithUntrackedFile,
+	file.DiscardAllDirChanges,
 	file.DiscardChanges,
 	file.DiscardStagedChanges,
+	file.DiscardUnstagedDirChanges,
+	file.DiscardUnstagedFileChanges,
 	file.Gitignore,
 	file.RememberCommitMessageAfterFail,
+	filter_and_search.FilterCommitFiles,
+	filter_and_search.FilterFiles,
+	filter_and_search.FilterMenu,
+	filter_and_search.FilterRemoteBranches,
+	filter_and_search.NestedFilter,
+	filter_and_search.NestedFilterTransient,
 	filter_by_path.CliArg,
 	filter_by_path.SelectFile,
 	filter_by_path.TypeFile,

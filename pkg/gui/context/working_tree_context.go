@@ -11,6 +11,7 @@ import (
 type WorkingTreeContext struct {
 	*filetree.FileTreeViewModel
 	*ListContextTrait
+	*SearchTrait
 }
 
 var _ types.IListContext = (*WorkingTreeContext)(nil)
@@ -29,7 +30,8 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 		})
 	}
 
-	return &WorkingTreeContext{
+	ctx := &WorkingTreeContext{
+		SearchTrait:       NewSearchTrait(c),
 		FileTreeViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
@@ -44,6 +46,13 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 			c:                 c,
 		},
 	}
+
+	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
+		ctx.GetList().SetSelectedLineIdx(selectedLineIdx)
+		return ctx.HandleFocus(types.OnFocusOpts{})
+	}))
+
+	return ctx
 }
 
 func (self *WorkingTreeContext) GetSelectedItemId() string {

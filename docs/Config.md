@@ -36,6 +36,9 @@ gui:
       - bold
     inactiveBorderColor:
       - white
+    searchingActiveBorderColor:
+      - cyan
+      - bold
     optionsTextColor:
       - blue
     selectedLineBgColor:

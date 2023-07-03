@@ -112,7 +112,7 @@ func traditionalChineseTranslationSet() TranslationSet {
 		FileFilter:                          "篩選檔案 (預存/未預存)",
 		FilterStagedFiles:                   "僅顯示預存的檔案",
 		FilterUnstagedFiles:                 "僅顯示未預存的檔案",
-		ResetCommitFilterState:              "重設篩選",
+		ResetFilter:                         "重設篩選",
 		NoChangedFiles:                      "沒有變更的檔案",
 		PullWait:                            "拉取...",
 		PushWait:                            "推送...",

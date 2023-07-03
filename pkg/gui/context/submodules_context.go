@@ -7,21 +7,26 @@ import (
 )
 
 type SubmodulesContext struct {
-	*BasicViewModel[*models.SubmoduleConfig]
+	*FilteredListViewModel[*models.SubmoduleConfig]
 	*ListContextTrait
 }
 
 var _ types.IListContext = (*SubmodulesContext)(nil)
 
 func NewSubmodulesContext(c *ContextCommon) *SubmodulesContext {
-	viewModel := NewBasicViewModel(func() []*models.SubmoduleConfig { return c.Model().Submodules })
+	viewModel := NewFilteredListViewModel(
+		func() []*models.SubmoduleConfig { return c.Model().Submodules },
+		func(submodule *models.SubmoduleConfig) []string {
+			return []string{submodule.Name}
+		},
+	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
-		return presentation.GetSubmoduleListDisplayStrings(c.Model().Submodules)
+		return presentation.GetSubmoduleListDisplayStrings(viewModel.GetItems())
 	}
 
 	return &SubmodulesContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:       c.Views().Submodules,

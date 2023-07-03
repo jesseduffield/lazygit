@@ -60,15 +60,16 @@ type GuiConfig struct {
 }
 
 type ThemeConfig struct {
-	ActiveBorderColor         []string `yaml:"activeBorderColor"`
-	InactiveBorderColor       []string `yaml:"inactiveBorderColor"`
-	OptionsTextColor          []string `yaml:"optionsTextColor"`
-	SelectedLineBgColor       []string `yaml:"selectedLineBgColor"`
-	SelectedRangeBgColor      []string `yaml:"selectedRangeBgColor"`
-	CherryPickedCommitBgColor []string `yaml:"cherryPickedCommitBgColor"`
-	CherryPickedCommitFgColor []string `yaml:"cherryPickedCommitFgColor"`
-	UnstagedChangesColor      []string `yaml:"unstagedChangesColor"`
-	DefaultFgColor            []string `yaml:"defaultFgColor"`
+	ActiveBorderColor          []string `yaml:"activeBorderColor"`
+	InactiveBorderColor        []string `yaml:"inactiveBorderColor"`
+	SearchingActiveBorderColor []string `yaml:"searchingActiveBorderColor"`
+	OptionsTextColor           []string `yaml:"optionsTextColor"`
+	SelectedLineBgColor        []string `yaml:"selectedLineBgColor"`
+	SelectedRangeBgColor       []string `yaml:"selectedRangeBgColor"`
+	CherryPickedCommitBgColor  []string `yaml:"cherryPickedCommitBgColor"`
+	CherryPickedCommitFgColor  []string `yaml:"cherryPickedCommitFgColor"`
+	UnstagedChangesColor       []string `yaml:"unstagedChangesColor"`
+	DefaultFgColor             []string `yaml:"defaultFgColor"`
 }
 
 type CommitLengthConfig struct {
@@ -409,15 +410,16 @@ func GetDefaultConfig() *UserConfig {
 			TimeFormat:               "02 Jan 06",
 			ShortTimeFormat:          time.Kitchen,
 			Theme: ThemeConfig{
-				ActiveBorderColor:         []string{"green", "bold"},
-				InactiveBorderColor:       []string{"default"},
-				OptionsTextColor:          []string{"blue"},
-				SelectedLineBgColor:       []string{"blue"},
-				SelectedRangeBgColor:      []string{"blue"},
-				CherryPickedCommitBgColor: []string{"cyan"},
-				CherryPickedCommitFgColor: []string{"blue"},
-				UnstagedChangesColor:      []string{"red"},
-				DefaultFgColor:            []string{"default"},
+				ActiveBorderColor:          []string{"green", "bold"},
+				SearchingActiveBorderColor: []string{"cyan", "bold"},
+				InactiveBorderColor:        []string{"default"},
+				OptionsTextColor:           []string{"blue"},
+				SelectedLineBgColor:        []string{"blue"},
+				SelectedRangeBgColor:       []string{"blue"},
+				CherryPickedCommitBgColor:  []string{"cyan"},
+				CherryPickedCommitFgColor:  []string{"blue"},
+				UnstagedChangesColor:       []string{"red"},
+				DefaultFgColor:             []string{"default"},
 			},
 			CommitLength:                CommitLengthConfig{Show: true},
 			SkipNoStagedFilesWarning:    false,

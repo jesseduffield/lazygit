@@ -54,7 +54,7 @@ type TranslationSet struct {
 	FileFilter                          string
 	FilterStagedFiles                   string
 	FilterUnstagedFiles                 string
-	ResetCommitFilterState              string
+	ResetFilter                         string
 	MergeConflictsTitle                 string
 	Checkout                            string
 	NoChangedFiles                      string
@@ -371,6 +371,7 @@ type TranslationSet struct {
 	NextScreenMode                      string
 	PrevScreenMode                      string
 	StartSearch                         string
+	StartFilter                         string
 	Panel                               string
 	Keybindings                         string
 	KeybindingsLegend                   string
@@ -536,7 +537,9 @@ type TranslationSet struct {
 	MatchesFor                          string
 	SearchKeybindings                   string
 	SearchPrefix                        string
+	FilterPrefix                        string
 	ExitSearchMode                      string
+	ExitTextFilterMode                  string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -741,10 +744,10 @@ func EnglishTranslationSet() TranslationSet {
 		Scroll:                              "Scroll",
 		MergeConflictsTitle:                 "Merge conflicts",
 		Checkout:                            "Checkout",
-		FileFilter:                          "Filter files (staged/unstaged)",
+		FileFilter:                          "Filter files by status",
 		FilterStagedFiles:                   "Show only staged files",
 		FilterUnstagedFiles:                 "Show only unstaged files",
-		ResetCommitFilterState:              "Reset filter",
+		ResetFilter:                         "Reset filter",
 		NoChangedFiles:                      "No changed files",
 		PullWait:                            "Pulling...",
 		PushWait:                            "Pushing...",
@@ -1054,50 +1057,52 @@ func EnglishTranslationSet() TranslationSet {
 		GitFlowOptions:                      "Show git-flow options",
 		NotAGitFlowBranch:                   "This does not seem to be a git flow branch",
 		NewGitFlowBranchPrompt:              "New {{.branchType}} name:",
-		IgnoreTracked:                       "Ignore tracked file",
-		IgnoreTrackedPrompt:                 "Are you sure you want to ignore a tracked file?",
-		ExcludeTracked:                      "Exclude tracked file",
-		ExcludeTrackedPrompt:                "Are you sure you want to exclude a tracked file?",
-		ViewResetToUpstreamOptions:          "View upstream reset options",
-		NextScreenMode:                      "Next screen mode (normal/half/fullscreen)",
-		PrevScreenMode:                      "Prev screen mode",
-		StartSearch:                         "Start search",
-		Panel:                               "Panel",
-		KeybindingsLegend:                   "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
-		RenameBranch:                        "Rename branch",
-		SetUnsetUpstream:                    "Set/Unset upstream",
-		NewBranchNamePrompt:                 "Enter new branch name for branch",
-		RenameBranchWarning:                 "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
-		OpenMenu:                            "Open menu",
-		ResetCherryPick:                     "Reset cherry-picked (copied) commits selection",
-		NextTab:                             "Next tab",
-		PrevTab:                             "Previous tab",
-		CantUndoWhileRebasing:               "Can't undo while rebasing",
-		CantRedoWhileRebasing:               "Can't redo while rebasing",
-		MustStashWarning:                    "Pulling a patch out into the index requires stashing and unstashing your changes. If something goes wrong, you'll be able to access your files from the stash. Continue?",
-		MustStashTitle:                      "Must stash",
-		ConfirmationTitle:                   "Confirmation panel",
-		PrevPage:                            "Previous page",
-		NextPage:                            "Next page",
-		GotoTop:                             "Scroll to top",
-		GotoBottom:                          "Scroll to bottom",
-		FilteringBy:                         "Filtering by",
-		ResetInParentheses:                  "(Reset)",
-		OpenFilteringMenu:                   "View filter-by-path options",
-		FilterBy:                            "Filter by",
-		ExitFilterMode:                      "Stop filtering by path",
-		FilterPathOption:                    "Enter path to filter by",
-		EnterFileName:                       "Enter path:",
-		FilteringMenuTitle:                  "Filtering",
-		MustExitFilterModeTitle:             "Command not available",
-		MustExitFilterModePrompt:            "Command not available in filtered mode. Exit filtered mode?",
-		Diff:                                "Diff",
-		EnterRefToDiff:                      "Enter ref to diff",
-		EnterRefName:                        "Enter ref:",
-		ExitDiffMode:                        "Exit diff mode",
-		DiffingMenuTitle:                    "Diffing",
-		SwapDiff:                            "Reverse diff direction",
-		OpenDiffingMenu:                     "Open diff menu",
+
+		IgnoreTracked:              "Ignore tracked file",
+		IgnoreTrackedPrompt:        "Are you sure you want to ignore a tracked file?",
+		ExcludeTracked:             "Exclude tracked file",
+		ExcludeTrackedPrompt:       "Are you sure you want to exclude a tracked file?",
+		ViewResetToUpstreamOptions: "View upstream reset options",
+		NextScreenMode:             "Next screen mode (normal/half/fullscreen)",
+		PrevScreenMode:             "Prev screen mode",
+		StartSearch:                "Search the current view by text",
+		StartFilter:                "Filter the current view by text",
+		Panel:                      "Panel",
+		KeybindingsLegend:          "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
+		RenameBranch:               "Rename branch",
+		SetUnsetUpstream:           "Set/Unset upstream",
+		NewBranchNamePrompt:        "Enter new branch name for branch",
+		RenameBranchWarning:        "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
+		OpenMenu:                   "Open menu",
+		ResetCherryPick:            "Reset cherry-picked (copied) commits selection",
+		NextTab:                    "Next tab",
+		PrevTab:                    "Previous tab",
+		CantUndoWhileRebasing:      "Can't undo while rebasing",
+		CantRedoWhileRebasing:      "Can't redo while rebasing",
+		MustStashWarning:           "Pulling a patch out into the index requires stashing and unstashing your changes. If something goes wrong, you'll be able to access your files from the stash. Continue?",
+		MustStashTitle:             "Must stash",
+		ConfirmationTitle:          "Confirmation panel",
+		PrevPage:                   "Previous page",
+		NextPage:                   "Next page",
+		GotoTop:                    "Scroll to top",
+		GotoBottom:                 "Scroll to bottom",
+		FilteringBy:                "Filtering by",
+		ResetInParentheses:         "(Reset)",
+		OpenFilteringMenu:          "View filter-by-path options",
+		FilterBy:                   "Filter by",
+		ExitFilterMode:             "Stop filtering by path",
+		FilterPathOption:           "Enter path to filter by",
+		EnterFileName:              "Enter path:",
+		FilteringMenuTitle:         "Filtering",
+		MustExitFilterModeTitle:    "Command not available",
+		MustExitFilterModePrompt:   "Command not available in filter-by-path mode. Exit filter-by-path mode?",
+		Diff:                       "Diff",
+		EnterRefToDiff:             "Enter ref to diff",
+		EnterRefName:               "Enter ref:",
+		ExitDiffMode:               "Exit diff mode",
+		DiffingMenuTitle:           "Diffing",
+		SwapDiff:                   "Reverse diff direction",
+		OpenDiffingMenu:            "Open diff menu",
 		// the actual view is the extras view which I intend to give more tabs in future but for now we'll only mention the command log part
 		OpenExtrasMenu:                      "Open command log menu",
 		ShowingGitDiff:                      "Showing output for:",
@@ -1223,9 +1228,11 @@ func EnglishTranslationSet() TranslationSet {
 		CopyPatchToClipboard:                "Copy patch to clipboard",
 		NoMatchesFor:                        "No matches for '%s' %s",
 		ExitSearchMode:                      "%s: Exit search mode",
+		ExitTextFilterMode:                  "%s: Exit filter mode",
 		MatchesFor:                          "matches for '%s' (%d of %d) %s", // lowercase because it's after other text
 		SearchKeybindings:                   "%s: Next match, %s: Previous match, %s: Exit search mode",
 		SearchPrefix:                        "Search: ",
+		FilterPrefix:                        "Filter: ",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

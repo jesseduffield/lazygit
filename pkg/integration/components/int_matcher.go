@@ -10,9 +10,9 @@ type IntMatcher struct {
 
 func (self *IntMatcher) EqualsInt(target int) *IntMatcher {
 	self.appendRule(matcherRule[int]{
-		name: fmt.Sprintf("equals '%d'", target),
+		name: fmt.Sprintf("equals %d", target),
 		testFn: func(value int) (bool, string) {
-			return value == target, fmt.Sprintf("Expected '%d' to equal '%d'", value, target)
+			return value == target, fmt.Sprintf("Expected %d to equal %d", value, target)
 		},
 	})
 
@@ -21,9 +21,9 @@ func (self *IntMatcher) EqualsInt(target int) *IntMatcher {
 
 func (self *IntMatcher) GreaterThan(target int) *IntMatcher {
 	self.appendRule(matcherRule[int]{
-		name: fmt.Sprintf("greater than '%d'", target),
+		name: fmt.Sprintf("greater than %d", target),
 		testFn: func(value int) (bool, string) {
-			return value > target, fmt.Sprintf("Expected '%d' to greater than '%d'", value, target)
+			return value > target, fmt.Sprintf("Expected %d to greater than %d", value, target)
 		},
 	})
 
@@ -32,9 +32,9 @@ func (self *IntMatcher) GreaterThan(target int) *IntMatcher {
 
 func (self *IntMatcher) LessThan(target int) *IntMatcher {
 	self.appendRule(matcherRule[int]{
-		name: fmt.Sprintf("less than '%d'", target),
+		name: fmt.Sprintf("less than %d", target),
 		testFn: func(value int) (bool, string) {
-			return value < target, fmt.Sprintf("Expected '%d' to less than '%d'", value, target)
+			return value < target, fmt.Sprintf("Expected %d to less than %d", value, target)
 		},
 	})
 

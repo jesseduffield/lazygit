@@ -56,7 +56,7 @@ func (self *MenuContext) GetSelectedItemId() string {
 type MenuViewModel struct {
 	c         *ContextCommon
 	menuItems []*types.MenuItem
-	*BasicViewModel[*types.MenuItem]
+	*FilteredListViewModel[*types.MenuItem]
 }
 
 func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
@@ -65,7 +65,10 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 		c:         c,
 	}
 
-	self.BasicViewModel = NewBasicViewModel(func() []*types.MenuItem { return self.menuItems })
+	self.FilteredListViewModel = NewFilteredListViewModel(
+		func() []*types.MenuItem { return self.menuItems },
+		func(item *types.MenuItem) []string { return item.LabelColumns },
+	)
 
 	return self
 }
@@ -76,11 +79,12 @@ func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem) {
 
 // TODO: move into presentation package
 func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]string {
-	showKeys := slices.Some(self.menuItems, func(item *types.MenuItem) bool {
+	menuItems := self.FilteredListViewModel.GetItems()
+	showKeys := slices.Some(menuItems, func(item *types.MenuItem) bool {
 		return item.Key != nil
 	})
 
-	return slices.Map(self.menuItems, func(item *types.MenuItem) []string {
+	return slices.Map(menuItems, func(item *types.MenuItem) []string {
 		displayStrings := item.LabelColumns
 
 		if !showKeys {
@@ -93,6 +97,7 @@ func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]str
 			self.c.UserConfig.Keybinding.Universal.Confirm,
 			self.c.UserConfig.Keybinding.Universal.Select,
 			self.c.UserConfig.Keybinding.Universal.Return,
+			self.c.UserConfig.Keybinding.Universal.StartSearch,
 		}
 		keyLabel := keybindings.LabelFromKey(item.Key)
 		keyStyle := style.FgCyan

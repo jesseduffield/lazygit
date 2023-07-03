@@ -7,7 +7,7 @@ import (
 )
 
 type SuggestionsContext struct {
-	*BasicViewModel[*types.Suggestion]
+	*ListViewModel[*types.Suggestion]
 	*ListContextTrait
 
 	State *SuggestionsContextState
@@ -40,11 +40,11 @@ func NewSuggestionsContext(
 		return presentation.GetSuggestionListDisplayStrings(state.Suggestions)
 	}
 
-	viewModel := NewBasicViewModel(getModel)
+	viewModel := NewListViewModel(getModel)
 
 	return &SuggestionsContext{
-		State:          state,
-		BasicViewModel: viewModel,
+		State:         state,
+		ListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:                  c.Views().Suggestions,

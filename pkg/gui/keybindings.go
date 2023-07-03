@@ -216,18 +216,6 @@ func (self *Gui) GetInitialKeybindings() ([]*types.Binding, []*gocui.ViewMouseBi
 			Handler:  self.scrollUpSecondary,
 		},
 		{
-			ViewName: "search",
-			Key:      opts.GetKey(opts.Config.Universal.Confirm),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleSearch,
-		},
-		{
-			ViewName: "search",
-			Key:      opts.GetKey(opts.Config.Universal.Return),
-			Modifier: gocui.ModNone,
-			Handler:  self.handleSearchEscape,
-		},
-		{
 			ViewName: "confirmation",
 			Key:      opts.GetKey(opts.Config.Universal.PrevItem),
 			Modifier: gocui.ModNone,

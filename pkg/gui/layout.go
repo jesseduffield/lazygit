@@ -132,20 +132,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		}
 
 		view.SelBgColor = theme.GocuiSelectedLineBgColor
-
-		// I doubt this is expensive though it's admittedly redundant after the first render
-		view.SetOnSelectItem(gui.onSelectItemWrapper(listContext.OnSearchSelect))
-	}
-
-	for _, context := range gui.c.Context().AllPatchExplorer() {
-		context := context
-		context.GetView().SetOnSelectItem(gui.onSelectItemWrapper(
-			func(selectedLineIdx int) error {
-				context.GetMutex().Lock()
-				defer context.GetMutex().Unlock()
-				return context.NavigateTo(gui.c.IsCurrentContext(context), selectedLineIdx)
-			}),
-		)
 	}
 
 	mainViewWidth, mainViewHeight := gui.Views.Main.Size()

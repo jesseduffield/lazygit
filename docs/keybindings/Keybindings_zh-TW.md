@@ -36,8 +36,8 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>,</kbd>: 上一頁
   <kbd>.</kbd>: 下一頁
   <kbd>&lt;</kbd>: 捲動到頂部
-  <kbd>/</kbd>: 開始搜尋
   <kbd>&gt;</kbd>: 捲動到底部
+  <kbd>/</kbd>: 開始搜尋
   <kbd>H</kbd>: 向左捲動
   <kbd>L</kbd>: 向右捲動
   <kbd>]</kbd>: 下一個索引標籤
@@ -57,6 +57,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>C</kbd>: 複製提交範圍 (揀選)
   <kbd>&lt;c-r&gt;</kbd>: 重設選定的揀選 (複製) 提交
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 主視窗 (一般)
@@ -101,6 +102,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>c</kbd>: 提交變更
   <kbd>w</kbd>: 沒有預提交 hook 就提交更改
   <kbd>C</kbd>: 使用 git 編輯器提交變更
+  <kbd>/</kbd>: 開始搜尋
 </pre>
 
 ## 主面板 (補丁生成)
@@ -116,6 +118,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>e</kbd>: 編輯檔案
   <kbd>&lt;space&gt;</kbd>: 向 (或從) 補丁中添加/刪除行
   <kbd>&lt;esc&gt;</kbd>: 退出自訂補丁建立器
+  <kbd>/</kbd>: 開始搜尋
 </pre>
 
 ## 功能表
@@ -123,6 +126,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 <pre>
   <kbd>&lt;enter&gt;</kbd>: 執行
   <kbd>&lt;esc&gt;</kbd>: 關閉
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 子提交
@@ -138,6 +142,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>C</kbd>: 複製提交範圍 (揀選)
   <kbd>&lt;c-r&gt;</kbd>: 重設選定的揀選 (複製) 提交
   <kbd>&lt;enter&gt;</kbd>: 檢視所選項目的檔案
+  <kbd>/</kbd>: 開始搜尋
 </pre>
 
 ## 子模組
@@ -151,6 +156,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>e</kbd>: 更新子模組 URL
   <kbd>i</kbd>: 初始化子模組
   <kbd>b</kbd>: 查看批量子模組選項
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 提交
@@ -184,6 +190,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>c</kbd>: 複製提交 (揀選)
   <kbd>C</kbd>: 複製提交範圍 (揀選)
   <kbd>&lt;enter&gt;</kbd>: 檢視所選項目的檔案
+  <kbd>/</kbd>: 開始搜尋
 </pre>
 
 ## 提交摘要
@@ -205,6 +212,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>a</kbd>: 切換所有檔案是否包含在補丁中
   <kbd>&lt;enter&gt;</kbd>: 輸入檔案以將選定的行添加至補丁（或切換目錄折疊）
   <kbd>`</kbd>: 切換檔案樹狀視圖
+  <kbd>/</kbd>: 開始搜尋
 </pre>
 
 ## 收藏 (Stash)
@@ -216,6 +224,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>n</kbd>: 新分支
   <kbd>r</kbd>: 重新命名收藏
   <kbd>&lt;enter&gt;</kbd>: 檢視所選項目的檔案
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 本地分支
@@ -239,6 +248,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>R</kbd>: 重新命名分支
   <kbd>u</kbd>: 設定/取消設定上游
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 標籤
@@ -250,6 +260,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>n</kbd>: 建立標籤
   <kbd>g</kbd>: 檢視重設選項
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 檔案
@@ -276,6 +287,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>`</kbd>: 切換檔案樹狀視圖
   <kbd>M</kbd>: 開啟外部合併工具 (git mergetool)
   <kbd>f</kbd>: 擷取
+  <kbd>/</kbd>: 開始搜尋
 </pre>
 
 ## 狀態
@@ -302,6 +314,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>n</kbd>: 新增遠端
   <kbd>d</kbd>: 移除遠端
   <kbd>e</kbd>: 編輯遠端
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 遠端分支
@@ -314,7 +327,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>r</kbd>: 將已檢出的分支變基至此分支
   <kbd>d</kbd>: 刪除分支
   <kbd>u</kbd>: 將此分支設為當前分支之上游
-  <kbd>&lt;esc&gt;</kbd>: 返回遠端列表
   <kbd>g</kbd>: 檢視重設選項
   <kbd>&lt;enter&gt;</kbd>: 檢視提交
+  <kbd>/</kbd>: Filter the current view by text
 </pre>

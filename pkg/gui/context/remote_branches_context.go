@@ -7,7 +7,7 @@ import (
 )
 
 type RemoteBranchesContext struct {
-	*BasicViewModel[*models.RemoteBranch]
+	*FilteredListViewModel[*models.RemoteBranch]
 	*ListContextTrait
 	*DynamicTitleBuilder
 }
@@ -20,15 +20,20 @@ var (
 func NewRemoteBranchesContext(
 	c *ContextCommon,
 ) *RemoteBranchesContext {
-	viewModel := NewBasicViewModel(func() []*models.RemoteBranch { return c.Model().RemoteBranches })
+	viewModel := NewFilteredListViewModel(
+		func() []*models.RemoteBranch { return c.Model().RemoteBranches },
+		func(remoteBranch *models.RemoteBranch) []string {
+			return []string{remoteBranch.Name}
+		},
+	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
-		return presentation.GetRemoteBranchListDisplayStrings(c.Model().RemoteBranches, c.Modes().Diffing.Ref)
+		return presentation.GetRemoteBranchListDisplayStrings(viewModel.GetItems(), c.Modes().Diffing.Ref)
 	}
 
 	return &RemoteBranchesContext{
-		BasicViewModel:      viewModel,
-		DynamicTitleBuilder: NewDynamicTitleBuilder(c.Tr.RemoteBranchesDynamicTitle),
+		FilteredListViewModel: viewModel,
+		DynamicTitleBuilder:   NewDynamicTitleBuilder(c.Tr.RemoteBranchesDynamicTitle),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:       c.Views().RemoteBranches,

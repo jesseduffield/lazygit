@@ -7,7 +7,7 @@ import (
 )
 
 type TagsContext struct {
-	*BasicViewModel[*models.Tag]
+	*FilteredListViewModel[*models.Tag]
 	*ListContextTrait
 }
 
@@ -19,14 +19,19 @@ var (
 func NewTagsContext(
 	c *ContextCommon,
 ) *TagsContext {
-	viewModel := NewBasicViewModel(func() []*models.Tag { return c.Model().Tags })
+	viewModel := NewFilteredListViewModel(
+		func() []*models.Tag { return c.Model().Tags },
+		func(tag *models.Tag) []string {
+			return []string{tag.Name, tag.Message}
+		},
+	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
-		return presentation.GetTagListDisplayStrings(c.Model().Tags, c.Modes().Diffing.Ref)
+		return presentation.GetTagListDisplayStrings(viewModel.GetItems(), c.Modes().Diffing.Ref)
 	}
 
 	return &TagsContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:       c.Views().Tags,

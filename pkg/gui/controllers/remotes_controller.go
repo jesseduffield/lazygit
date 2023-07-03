@@ -104,14 +104,16 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	if len(remote.Branches) == 0 {
 		newSelectedLine = -1
 	}
-	self.c.Contexts().RemoteBranches.SetSelectedLineIdx(newSelectedLine)
-	self.c.Contexts().RemoteBranches.SetTitleRef(remote.Name)
+	remoteBranchesContext := self.c.Contexts().RemoteBranches
+	remoteBranchesContext.SetSelectedLineIdx(newSelectedLine)
+	remoteBranchesContext.SetTitleRef(remote.Name)
+	remoteBranchesContext.SetParentContext(self.Context())
 
-	if err := self.c.PostRefreshUpdate(self.c.Contexts().RemoteBranches); err != nil {
+	if err := self.c.PostRefreshUpdate(remoteBranchesContext); err != nil {
 		return err
 	}
 
-	return self.c.PushContext(self.c.Contexts().RemoteBranches)
+	return self.c.PushContext(remoteBranchesContext)
 }
 
 func (self *RemotesController) add() error {

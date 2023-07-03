@@ -89,3 +89,14 @@ func (gui *Gui) promptEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Mo
 
 	return matched
 }
+
+func (gui *Gui) searchEditor(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) bool {
+	matched := gui.handleEditorKeypress(v.TextArea, key, ch, mod, false)
+	v.RenderTextArea()
+
+	searchString := v.TextArea.GetContent()
+
+	gui.helpers.Search.OnPromptContentChanged(searchString)
+
+	return matched
+}

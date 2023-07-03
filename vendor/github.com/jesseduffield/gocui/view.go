@@ -207,6 +207,10 @@ func (v *View) gotoPreviousMatch() error {
 	return v.SelectSearchResult(v.searcher.currentSearchIndex)
 }
 
+func (v *View) SelectCurrentSearchResult() error {
+	return v.SelectSearchResult(v.searcher.currentSearchIndex)
+}
+
 func (v *View) SelectSearchResult(index int) error {
 	itemCount := len(v.searcher.searchPositions)
 	if itemCount == 0 {

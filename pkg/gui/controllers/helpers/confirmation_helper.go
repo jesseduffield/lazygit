@@ -292,7 +292,9 @@ func (self *ConfirmationHelper) ResizePopupPanel(v *gocui.View, content string) 
 }
 
 func (self *ConfirmationHelper) resizeMenu() {
-	itemCount := self.c.Contexts().Menu.GetList().Len()
+	// we want the unfiltered length here so that if we're filtering we don't
+	// resize the window
+	itemCount := self.c.Contexts().Menu.UnfilteredLen()
 	offset := 3
 	panelWidth := self.getPopupPanelWidth()
 	x0, y0, x1, y1 := self.getPopupPanelDimensionsForContentHeight(panelWidth, itemCount+offset)

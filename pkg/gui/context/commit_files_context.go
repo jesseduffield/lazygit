@@ -13,6 +13,7 @@ type CommitFilesContext struct {
 	*filetree.CommitFileTreeViewModel
 	*ListContextTrait
 	*DynamicTitleBuilder
+	*SearchTrait
 }
 
 var (
@@ -38,9 +39,10 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 		})
 	}
 
-	return &CommitFilesContext{
+	ctx := &CommitFilesContext{
 		CommitFileTreeViewModel: viewModel,
 		DynamicTitleBuilder:     NewDynamicTitleBuilder(c.Tr.CommitFilesDynamicTitle),
+		SearchTrait:             NewSearchTrait(c),
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(
 				NewBaseContext(NewBaseContextOpts{
@@ -57,6 +59,13 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 			c:                 c,
 		},
 	}
+
+	ctx.GetView().SetOnSelectItem(ctx.SearchTrait.onSelectItemWrapper(func(selectedLineIdx int) error {
+		ctx.GetList().SetSelectedLineIdx(selectedLineIdx)
+		return ctx.HandleFocus(types.OnFocusOpts{})
+	}))
+
+	return ctx
 }
 
 func (self *CommitFilesContext) GetSelectedItemId() string {

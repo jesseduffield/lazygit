@@ -7,7 +7,7 @@ import (
 )
 
 type BranchesContext struct {
-	*BasicViewModel[*models.Branch]
+	*FilteredListViewModel[*models.Branch]
 	*ListContextTrait
 }
 
@@ -17,11 +17,16 @@ var (
 )
 
 func NewBranchesContext(c *ContextCommon) *BranchesContext {
-	viewModel := NewBasicViewModel(func() []*models.Branch { return c.Model().Branches })
+	viewModel := NewFilteredListViewModel(
+		func() []*models.Branch { return c.Model().Branches },
+		func(branch *models.Branch) []string {
+			return []string{branch.Name}
+		},
+	)
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
 		return presentation.GetBranchListDisplayStrings(
-			c.Model().Branches,
+			viewModel.GetItems(),
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().Diffing.Ref,
 			c.Tr,
@@ -30,7 +35,7 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 	}
 
 	self := &BranchesContext{
-		BasicViewModel: viewModel,
+		FilteredListViewModel: viewModel,
 		ListContextTrait: &ListContextTrait{
 			Context: NewSimpleContext(NewBaseContext(NewBaseContextOpts{
 				View:       c.Views().Branches,

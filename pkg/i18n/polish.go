@@ -31,7 +31,7 @@ func polishTranslationSet() TranslationSet {
 		Scroll:                              "Przewiń",
 		FilterStagedFiles:                   "Pokaż tylko pliki w poczekalni",
 		FilterUnstagedFiles:                 "Pokaż tylko pliki poza poczekalnią",
-		ResetCommitFilterState:              "Resetuj filtr commitów",
+		ResetFilter:                         "Resetuj filtr commitów",
 		Checkout:                            "Przełącz",
 		NoChangedFiles:                      "Brak zmienionych plików",
 		PullWait:                            "Pobieranie zmian...",

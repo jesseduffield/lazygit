@@ -464,10 +464,10 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	// I'd prefer to maintain as little state as possible.
 	if conflictFileCount > 0 {
 		if fileTreeViewModel.GetFilter() == filetree.DisplayAll {
-			fileTreeViewModel.SetFilter(filetree.DisplayConflicted)
+			fileTreeViewModel.SetStatusFilter(filetree.DisplayConflicted)
 		}
 	} else if fileTreeViewModel.GetFilter() == filetree.DisplayConflicted {
-		fileTreeViewModel.SetFilter(filetree.DisplayAll)
+		fileTreeViewModel.SetStatusFilter(filetree.DisplayAll)
 	}
 
 	self.c.Model().Files = files

@@ -36,8 +36,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>,</kbd>: Previous page
   <kbd>.</kbd>: Next page
   <kbd>&lt;</kbd>: Scroll to top
-  <kbd>/</kbd>: Start search
   <kbd>&gt;</kbd>: Scroll to bottom
+  <kbd>/</kbd>: Search the current view by text
   <kbd>H</kbd>: Scroll left
   <kbd>L</kbd>: Scroll right
   <kbd>]</kbd>: Next tab
@@ -56,6 +56,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>a</kbd>: Toggle all files included in patch
   <kbd>&lt;enter&gt;</kbd>: Enter file to add selected lines to the patch (or toggle directory collapsed)
   <kbd>`</kbd>: Toggle file tree view
+  <kbd>/</kbd>: Search the current view by text
 </pre>
 
 ## Commit summary
@@ -96,6 +97,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>c</kbd>: Copy commit (cherry-pick)
   <kbd>C</kbd>: Copy commit range (cherry-pick)
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
+  <kbd>/</kbd>: Search the current view by text
 </pre>
 
 ## Confirmation panel
@@ -111,7 +113,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-o&gt;</kbd>: Copy the file name to the clipboard
   <kbd>d</kbd>: View 'discard changes' options
   <kbd>&lt;space&gt;</kbd>: Toggle staged
-  <kbd>&lt;c-b&gt;</kbd>: Filter files (staged/unstaged)
+  <kbd>&lt;c-b&gt;</kbd>: Filter files by status
   <kbd>c</kbd>: Commit changes
   <kbd>w</kbd>: Commit changes without pre-commit hook
   <kbd>A</kbd>: Amend last commit
@@ -129,6 +131,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>`</kbd>: Toggle file tree view
   <kbd>M</kbd>: Open external merge tool (git mergetool)
   <kbd>f</kbd>: Fetch
+  <kbd>/</kbd>: Search the current view by text
 </pre>
 
 ## Local branches
@@ -152,6 +155,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>R</kbd>: Rename branch
   <kbd>u</kbd>: Set/Unset upstream
   <kbd>&lt;enter&gt;</kbd>: View commits
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Main panel (merging)
@@ -190,6 +194,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>e</kbd>: Edit file
   <kbd>&lt;space&gt;</kbd>: Add/Remove line(s) to patch
   <kbd>&lt;esc&gt;</kbd>: Exit custom patch builder
+  <kbd>/</kbd>: Search the current view by text
 </pre>
 
 ## Main panel (staging)
@@ -211,6 +216,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>c</kbd>: Commit changes
   <kbd>w</kbd>: Commit changes without pre-commit hook
   <kbd>C</kbd>: Commit changes using git editor
+  <kbd>/</kbd>: Search the current view by text
 </pre>
 
 ## Menu
@@ -218,6 +224,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;enter&gt;</kbd>: Execute
   <kbd>&lt;esc&gt;</kbd>: Close
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Reflog
@@ -233,6 +240,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>C</kbd>: Copy commit range (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;enter&gt;</kbd>: View commits
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Remote branches
@@ -245,9 +253,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>r</kbd>: Rebase checked-out branch onto this branch
   <kbd>d</kbd>: Delete branch
   <kbd>u</kbd>: Set as upstream of checked-out branch
-  <kbd>&lt;esc&gt;</kbd>: Return to remotes list
   <kbd>g</kbd>: View reset options
   <kbd>&lt;enter&gt;</kbd>: View commits
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Remotes
@@ -257,6 +265,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: Add new remote
   <kbd>d</kbd>: Remove remote
   <kbd>e</kbd>: Edit remote
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Stash
@@ -268,6 +277,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: New branch
   <kbd>r</kbd>: Rename stash
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Status
@@ -293,6 +303,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>C</kbd>: Copy commit range (cherry-pick)
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
+  <kbd>/</kbd>: Search the current view by text
 </pre>
 
 ## Submodules
@@ -306,6 +317,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>e</kbd>: Update submodule URL
   <kbd>i</kbd>: Initialize submodule
   <kbd>b</kbd>: View bulk submodule options
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## Tags
@@ -317,4 +329,5 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: Create tag
   <kbd>g</kbd>: View reset options
   <kbd>&lt;enter&gt;</kbd>: View commits
+  <kbd>/</kbd>: Filter the current view by text
 </pre>

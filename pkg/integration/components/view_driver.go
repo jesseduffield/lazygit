@@ -66,7 +66,7 @@ func (self *ViewDriver) Title(expected *TextMatcher) *ViewDriver {
 // If you only care about a subset of lines, use the ContainsLines method instead.
 func (self *ViewDriver) Lines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
-	self.LineCount(len(matchers))
+	self.LineCount(EqualsInt(len(matchers)))
 
 	return self.assertLines(0, matchers...)
 }
@@ -470,29 +470,56 @@ func (self *ViewDriver) IsEmpty() *ViewDriver {
 	return self
 }
 
-func (self *ViewDriver) LineCount(expectedCount int) *ViewDriver {
-	if expectedCount == 0 {
-		return self.IsEmpty()
-	}
-
+func (self *ViewDriver) LineCount(matcher *IntMatcher) *ViewDriver {
 	view := self.getView()
 
 	self.t.assertWithRetries(func() (bool, string) {
-		lines := view.BufferLines()
-		return len(lines) == expectedCount, fmt.Sprintf("unexpected number of lines in view '%s'. Expected %d, got %d", view.Name(), expectedCount, len(lines))
+		lineCount := self.getLineCount()
+		ok, _ := matcher.test(lineCount)
+		return ok, fmt.Sprintf("unexpected number of lines in view '%s'. Expected %s, got %d", view.Name(), matcher.name(), lineCount)
 	})
 
+	return self
+}
+
+func (self *ViewDriver) getLineCount() int {
+	// can't rely entirely on view.BufferLines because it returns 1 even if there's nothing in the view
+	if strings.TrimSpace(self.getView().Buffer()) == "" {
+		return 0
+	}
+
+	view := self.getView()
+	return len(view.BufferLines())
+}
+
+func (self *ViewDriver) IsVisible() *ViewDriver {
 	self.t.assertWithRetries(func() (bool, string) {
-		lines := view.BufferLines()
-
-		// if the view has a single blank line (often the case) we want to treat that as having no lines
-		if len(lines) == 1 && expectedCount == 1 {
-			actual := strings.TrimSpace(view.Buffer())
-			return actual != "", fmt.Sprintf("unexpected number of lines in view '%s'. Expected 1, got 0", view.Name())
-		}
-
-		return len(lines) == expectedCount, fmt.Sprintf("unexpected number of lines in view '%s'. Expected %d, got %d", view.Name(), expectedCount, len(lines))
+		return self.getView().Visible, fmt.Sprintf("%s: Expected view to be visible, but it was not", self.context)
 	})
+
+	return self
+}
+
+func (self *ViewDriver) IsInvisible() *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		return !self.getView().Visible, fmt.Sprintf("%s: Expected view to be visible, but it was not", self.context)
+	})
+
+	return self
+}
+
+// will filter or search depending on whether the view supports filtering/searching
+func (self *ViewDriver) FilterOrSearch(text string) *ViewDriver {
+	self.IsFocused()
+
+	self.Press(self.t.keys.Universal.StartSearch).
+		Tap(func() {
+			self.t.ExpectSearch().
+				Type(text).
+				Confirm()
+
+			self.t.Views().Search().IsVisible().Content(Contains(fmt.Sprintf("matches for '%s'", text)))
+		})
 
 	return self
 }
