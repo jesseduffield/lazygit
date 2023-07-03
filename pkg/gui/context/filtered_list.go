@@ -2,6 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/sasha-s/go-deadlock"
 )
 
 type FilteredList[T any] struct {
@@ -10,12 +11,15 @@ type FilteredList[T any] struct {
 	getList         func() []T
 	getFilterFields func(T) []string
 	filter          string
+
+	mutex *deadlock.Mutex
 }
 
 func NewFilteredList[T any](getList func() []T, getFilterFields func(T) []string) *FilteredList[T] {
 	return &FilteredList[T]{
 		getList:         getList,
 		getFilterFields: getFilterFields,
+		mutex:           &deadlock.Mutex{},
 	}
 }
 
@@ -50,6 +54,9 @@ func (self *FilteredList[T]) UnfilteredLen() int {
 }
 
 func (self *FilteredList[T]) applyFilter() {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
 	if self.filter == "" {
 		self.filteredIndices = nil
 	} else {
@@ -70,6 +77,9 @@ func (self *FilteredList[T]) match(haystack string, needle string) bool {
 }
 
 func (self *FilteredList[T]) UnfilteredIndex(index int) int {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
 	if self.filteredIndices == nil {
 		return index
 	}
@@ -79,6 +89,5 @@ func (self *FilteredList[T]) UnfilteredIndex(index int) int {
 		return -1
 	}
 
-	// TODO: mutex
 	return self.filteredIndices[index]
 }
