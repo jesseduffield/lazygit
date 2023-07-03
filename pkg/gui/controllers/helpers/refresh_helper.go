@@ -90,7 +90,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			wg.Add(1)
 			func() {
 				if options.Mode == types.ASYNC {
-					go utils.Safe(f)
+					self.c.OnWorker(f)
 				} else {
 					f()
 				}
@@ -206,7 +206,7 @@ func getModeName(mode types.RefreshMode) string {
 func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
-		go utils.Safe(func() {
+		self.c.OnWorker(func() {
 			_ = self.refreshReflogCommits()
 			self.refreshBranches()
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)

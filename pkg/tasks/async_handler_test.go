@@ -12,7 +12,10 @@ func TestAsyncHandler(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
-	handler := NewAsyncHandler()
+	onWorker := func(f func()) {
+		go f()
+	}
+	handler := NewAsyncHandler(onWorker)
 	handler.onReject = func() {
 		wg.Done()
 	}

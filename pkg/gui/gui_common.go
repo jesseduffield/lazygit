@@ -136,6 +136,10 @@ func (self *guiCommon) OnUIThread(f func() error) {
 	self.gui.onUIThread(f)
 }
 
+func (self *guiCommon) OnWorker(f func()) {
+	self.gui.onWorker(f)
+}
+
 func (self *guiCommon) RenderToMainViews(opts types.RefreshMainOpts) error {
 	return self.gui.refreshMainViews(opts)
 }

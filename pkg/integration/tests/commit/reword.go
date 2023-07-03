@@ -61,6 +61,7 @@ var Reword = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Lines(
 				Contains(wipCommitMessage),
+				Contains(commitMessage),
 			)
 	},
 })

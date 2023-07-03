@@ -19,6 +19,11 @@ func getCounter() (func(), func() int) {
 	return func() { counter++ }, func() int { return counter }
 }
 
+func getIncDecCounter(initialValue int) (func(), func(), func() int) {
+	counter := initialValue
+	return func() { counter++ }, func() { counter-- }, func() int { return counter }
+}
+
 func TestNewCmdTaskInstantStop(t *testing.T) {
 	writer := bytes.NewBuffer(nil)
 	beforeStart, getBeforeStartCallCount := getCounter()
@@ -26,6 +31,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
 	onNewKey, getOnNewKeyCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
+	incBusyCount, decBusyCount, getBusyCount := getIncDecCounter(1)
 
 	manager := NewViewBufferManager(
 		utils.NewDummyLog(),
@@ -34,6 +40,8 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		refreshView,
 		onEndOfInput,
 		onNewKey,
+		incBusyCount,
+		decBusyCount,
 	)
 
 	stop := make(chan struct{})
@@ -49,7 +57,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 
 	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1}, onDone)
 
-	_ = fn(stop)
+	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: decBusyCount})
 
 	callCountExpectations := []struct {
 		expected int
@@ -68,6 +76,10 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		}
 	}
 
+	if getBusyCount() != 0 {
+		t.Errorf("expected busy count to be 0, got %d", getBusyCount())
+	}
+
 	expectedContent := ""
 	actualContent := writer.String()
 	if actualContent != expectedContent {
@@ -82,6 +94,7 @@ func TestNewCmdTask(t *testing.T) {
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
 	onNewKey, getOnNewKeyCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
+	incBusyCount, decBusyCount, getBusyCount := getIncDecCounter(1)
 
 	manager := NewViewBufferManager(
 		utils.NewDummyLog(),
@@ -90,6 +103,8 @@ func TestNewCmdTask(t *testing.T) {
 		refreshView,
 		onEndOfInput,
 		onNewKey,
+		incBusyCount,
+		decBusyCount,
 	)
 
 	stop := make(chan struct{})
@@ -109,7 +124,7 @@ func TestNewCmdTask(t *testing.T) {
 		close(stop)
 		wg.Done()
 	}()
-	_ = fn(stop)
+	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: decBusyCount})
 
 	wg.Wait()
 
@@ -128,6 +143,10 @@ func TestNewCmdTask(t *testing.T) {
 		if expectation.actual != expectation.expected {
 			t.Errorf("expected %s to be called %d times, got %d", expectation.name, expectation.expected, expectation.actual)
 		}
+	}
+
+	if getBusyCount() != 0 {
+		t.Errorf("expected busy count to be 0, got %d", getBusyCount())
 	}
 
 	expectedContent := "prefix\ntest\n"
@@ -208,6 +227,8 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 			lineCountsOnRefresh = append(lineCountsOnRefresh, strings.Count(writer.String(), "\n"))
 		}
 
+		decBusyCount := func() {}
+
 		manager := NewViewBufferManager(
 			utils.NewDummyLog(),
 			writer,
@@ -215,6 +236,8 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 			refreshView,
 			func() {},
 			func() {},
+			func() {},
+			decBusyCount,
 		)
 
 		stop := make(chan struct{})
@@ -234,7 +257,7 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 			close(stop)
 			wg.Done()
 		}()
-		_ = fn(stop)
+		_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: decBusyCount})
 
 		wg.Wait()
 

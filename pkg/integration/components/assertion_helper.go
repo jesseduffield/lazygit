@@ -13,6 +13,8 @@ type assertionHelper struct {
 
 // milliseconds we'll wait when an assertion fails.
 func retryWaitTimes() []int {
+	return []int{0}
+
 	if os.Getenv("LONG_WAIT_BEFORE_FAIL") == "true" {
 		// CI has limited hardware, may be throttled, runs tests in parallel, etc, so we
 		// give it more leeway compared to when we're running things locally.

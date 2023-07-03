@@ -48,6 +48,10 @@ type ViewBufferManager struct {
 	refreshView  func()
 	onEndOfInput func()
 
+	// see docs/dev/Busy.md
+	incrementBusyCount func()
+	decrementBusyCount func()
+
 	// if the user flicks through a heap of items, with each one
 	// spawning a process to render something to the main view,
 	// it can slow things down quite a bit. In these situations we
@@ -76,15 +80,19 @@ func NewViewBufferManager(
 	refreshView func(),
 	onEndOfInput func(),
 	onNewKey func(),
+	incrementBusyCount func(),
+	decrementBusyCount func(),
 ) *ViewBufferManager {
 	return &ViewBufferManager{
-		Log:          log,
-		writer:       writer,
-		beforeStart:  beforeStart,
-		refreshView:  refreshView,
-		onEndOfInput: onEndOfInput,
-		readLines:    make(chan LinesToRead, 1024),
-		onNewKey:     onNewKey,
+		Log:                log,
+		writer:             writer,
+		beforeStart:        beforeStart,
+		refreshView:        refreshView,
+		onEndOfInput:       onEndOfInput,
+		readLines:          make(chan LinesToRead, 1024),
+		onNewKey:           onNewKey,
+		incrementBusyCount: incrementBusyCount,
+		decrementBusyCount: decrementBusyCount,
 	}
 }
 
@@ -94,13 +102,22 @@ func (self *ViewBufferManager) ReadLines(n int) {
 	})
 }
 
-// note: onDone may be called twice
-func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDone func()) func(chan struct{}) error {
-	return func(stop chan struct{}) error {
-		var once sync.Once
-		var onDoneWrapper func()
-		if onDone != nil {
-			onDoneWrapper = func() { once.Do(onDone) }
+func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), prefix string, linesToRead LinesToRead, onDoneFn func()) func(TaskOpts) error {
+	return func(opts TaskOpts) error {
+		var onDoneOnce sync.Once
+		var onFirstPageShownOnce sync.Once
+
+		onFirstPageShown := func() {
+			onFirstPageShownOnce.Do(func() {
+				opts.InitialContentLoaded()
+			})
+		}
+
+		onDone := func() {
+			if onDoneFn != nil {
+				onDoneOnce.Do(onDoneFn)
+			}
+			onFirstPageShown()
 		}
 
 		if self.throttle {
@@ -109,7 +126,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		}
 
 		select {
-		case <-stop:
+		case <-opts.Stop:
+			onDone()
 			return nil
 		default:
 		}
@@ -119,7 +137,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		timeToStart := time.Since(startTime)
 
 		go utils.Safe(func() {
-			<-stop
+			<-opts.Stop
 			// we use the time it took to start the program as a way of checking if things
 			// are running slow at the moment. This is admittedly a crude estimate, but
 			// the point is that we only want to throttle when things are running slow
@@ -132,9 +150,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 			}
 
 			// for pty's we need to call onDone here so that cmd.Wait() doesn't block forever
-			if onDoneWrapper != nil {
-				onDoneWrapper()
-			}
+			onDone()
 		})
 
 		loadingMutex := deadlock.Mutex{}
@@ -153,7 +169,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 			ticker := time.NewTicker(time.Millisecond * 200)
 			defer ticker.Stop()
 			select {
-			case <-stop:
+			case <-opts.Stop:
 				return
 			case <-ticker.C:
 				loadingMutex.Lock()
@@ -182,12 +198,12 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		outer:
 			for {
 				select {
-				case <-stop:
+				case <-opts.Stop:
 					break outer
 				case linesToRead := <-self.readLines:
 					for i := 0; i < linesToRead.Total; i++ {
 						select {
-						case <-stop:
+						case <-opts.Stop:
 							break outer
 						default:
 						}
@@ -219,6 +235,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 						}
 					}
 					refreshViewIfStale()
+					onFirstPageShown()
 				}
 			}
 
@@ -231,10 +248,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 				}
 			}
 
-			// calling onDoneWrapper here again in case the program ended on its own accord
-			if onDoneWrapper != nil {
-				onDoneWrapper()
-			}
+			// calling this here again in case the program ended on its own accord
+			onDone()
 
 			close(done)
 		})
@@ -272,8 +287,30 @@ func (self *ViewBufferManager) Close() {
 // 1) command based, where the manager can be asked to read more lines,  but the command can be killed
 // 2) string based, where the manager can also be asked to read more lines
 
-func (self *ViewBufferManager) NewTask(f func(stop chan struct{}) error, key string) error {
+type TaskOpts struct {
+	// Channel that tells the task to stop, because another task wants to run.
+	Stop chan struct{}
+
+	// Only for tasks which are long-running, where we read more lines sporadically.
+	// We use this to keep track of when a user's action is complete (i.e. all views
+	// have been refreshed to display the results of their action)
+	InitialContentLoaded func()
+}
+
+func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error {
+	self.incrementBusyCount()
+
+	var decrementCounterOnce sync.Once
+
+	decrementCounter := func() {
+		decrementCounterOnce.Do(func() {
+			self.decrementBusyCount()
+		})
+	}
+
 	go utils.Safe(func() {
+		defer decrementCounter()
+
 		self.taskIDMutex.Lock()
 		self.newTaskID++
 		taskID := self.newTaskID
@@ -286,9 +323,9 @@ func (self *ViewBufferManager) NewTask(f func(stop chan struct{}) error, key str
 		self.taskIDMutex.Unlock()
 
 		self.waitingMutex.Lock()
-		defer self.waitingMutex.Unlock()
 
 		if taskID < self.newTaskID {
+			self.waitingMutex.Unlock()
 			return
 		}
 
@@ -307,13 +344,13 @@ func (self *ViewBufferManager) NewTask(f func(stop chan struct{}) error, key str
 
 		self.stopCurrentTask = func() { once.Do(onStop) }
 
-		go utils.Safe(func() {
-			if err := f(stop); err != nil {
-				self.Log.Error(err) // might need an onError callback
-			}
+		self.waitingMutex.Unlock()
 
-			close(notifyStopped)
-		})
+		if err := f(TaskOpts{Stop: stop, InitialContentLoaded: decrementCounter}); err != nil {
+			self.Log.Error(err) // might need an onError callback
+		}
+
+		close(notifyStopped)
 	})
 
 	return nil

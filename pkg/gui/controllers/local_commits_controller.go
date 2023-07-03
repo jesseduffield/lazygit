@@ -816,7 +816,7 @@ func (self *LocalCommitsController) GetOnFocus() func(types.OnFocusOpts) error {
 		context := self.context()
 		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
 			context.SetLimitCommits(false)
-			go utils.Safe(func() {
+			self.c.OnWorker(func() {
 				if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}}); err != nil {
 					_ = self.c.Error(err)
 				}

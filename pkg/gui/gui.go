@@ -130,6 +130,8 @@ type Gui struct {
 
 	c       *helpers.HelperCommon
 	helpers *helpers.Helpers
+
+	integrationTest integrationTypes.IntegrationTest
 }
 
 type StateAccessor struct {
@@ -472,6 +474,7 @@ func NewGui(
 		func(message string, f func() error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
 		func(message string) { gui.helpers.AppStatus.Toast(message) },
 		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
+		func(f func()) { gui.c.OnWorker(f) },
 	)
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
@@ -620,7 +623,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	gui.c.Log.Info("starting main loop")
 
-	gui.handleTestMode(startArgs.IntegrationTest)
+	// setting here so we can use it in layout.go
+	gui.integrationTest = startArgs.IntegrationTest
 
 	return gui.g.MainLoop()
 }
@@ -779,16 +783,15 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 	gui.waitForIntro.Add(len(tasks))
 	done := make(chan struct{})
 
-	go utils.Safe(func() {
+	gui.c.OnWorker(func() {
 		for _, task := range tasks {
-			task := task
-			go utils.Safe(func() {
-				if err := task(done); err != nil {
-					_ = gui.c.Error(err)
-				}
-			})
+			if err := task(done); err != nil {
+				_ = gui.c.Error(err)
+			}
 
+			gui.g.DecrementBusyCount()
 			<-done
+			gui.g.IncrementBusyCount()
 			gui.waitForIntro.Done()
 		}
 	})
@@ -796,9 +799,10 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 
 func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
 	onConfirm := func() error {
-		done <- struct{}{}
 		gui.c.GetAppState().StartupPopupVersion = StartupPopupVersion
-		return gui.c.SaveAppState()
+		err := gui.c.SaveAppState()
+		done <- struct{}{}
+		return err
 	}
 
 	return gui.c.Confirm(types.ConfirmOpts{
@@ -826,6 +830,10 @@ func (gui *Gui) onUIThread(f func() error) {
 	gui.g.Update(func(*gocui.Gui) error {
 		return f()
 	})
+}
+
+func (gui *Gui) onWorker(f func()) {
+	gui.g.OnWorker(f)
 }
 
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {

@@ -9,7 +9,6 @@ import (
 	gctx "github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 )
 
@@ -25,6 +24,7 @@ type PopupHandler struct {
 	withWaitingStatusFn func(message string, f func() error)
 	toastFn             func(message string)
 	getPromptInputFn    func() string
+	onWorker            func(func())
 }
 
 var _ types.IPopupHandler = &PopupHandler{}
@@ -39,6 +39,7 @@ func NewPopupHandler(
 	withWaitingStatusFn func(message string, f func() error),
 	toastFn func(message string),
 	getPromptInputFn func() string,
+	onWorker func(func()),
 ) *PopupHandler {
 	return &PopupHandler{
 		Common:              common,
@@ -51,6 +52,7 @@ func NewPopupHandler(
 		withWaitingStatusFn: withWaitingStatusFn,
 		toastFn:             toastFn,
 		getPromptInputFn:    getPromptInputFn,
+		onWorker:            onWorker,
 	}
 }
 
@@ -141,7 +143,7 @@ func (self *PopupHandler) WithLoaderPanel(message string, f func() error) error 
 		return nil
 	}
 
-	go utils.Safe(func() {
+	self.onWorker(func() {
 		if err := f(); err != nil {
 			self.Log.Error(err)
 		}

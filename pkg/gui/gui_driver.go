@@ -18,7 +18,8 @@ import (
 // this gives our integration test a way of interacting with the gui for sending keypresses
 // and reading state.
 type GuiDriver struct {
-	gui *Gui
+	gui        *Gui
+	isIdleChan chan struct{}
 }
 
 var _ integrationTypes.GuiDriver = &GuiDriver{}
@@ -40,6 +41,9 @@ func (self *GuiDriver) PressKey(keyStr string) {
 		tcell.NewEventKey(tcellKey, r, tcell.ModNone),
 		0,
 	)
+
+	// wait until lazygit is idle (i.e. all processing is done) before continuing
+	<-self.isIdleChan
 }
 
 func (self *GuiDriver) Keys() config.KeybindingConfig {
@@ -71,7 +75,10 @@ func (self *GuiDriver) Fail(message string) {
 	self.gui.g.Close()
 	// need to give the gui time to close
 	time.Sleep(time.Millisecond * 100)
-	fmt.Fprintln(os.Stderr, fullMessage)
+	_, err := fmt.Fprintln(os.Stderr, fullMessage)
+	if err != nil {
+		panic("Test failed. Failed writing to stderr")
+	}
 	panic("Test failed")
 }
 

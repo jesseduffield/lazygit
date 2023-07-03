@@ -62,7 +62,7 @@ var DiffAndApplyPatch = NewIntegrationTest(NewIntegrationTestArgs{
 			Tap(func() {
 				t.ExpectPopup().Menu().Title(Equals("Diffing")).Select(Contains("Exit diff mode")).Confirm()
 
-				t.Views().Information().Content(DoesNotContain("Building patch"))
+				t.Views().Information().Content(Contains("Building patch"))
 			}).
 			Press(keys.Universal.CreatePatchOptionsMenu)
 

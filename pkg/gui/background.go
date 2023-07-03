@@ -79,7 +79,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 				if self.pauseBackgroundThreads {
 					continue
 				}
-				_ = function()
+				self.gui.c.OnWorker(func() { _ = function() })
 			case <-stop:
 				return
 			}

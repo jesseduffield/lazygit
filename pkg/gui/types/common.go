@@ -77,6 +77,9 @@ type IGuiCommon interface {
 	// Only necessary to call if you're not already on the UI thread i.e. you're inside a goroutine.
 	// All controller handlers are executed on the UI thread.
 	OnUIThread(f func() error)
+	// Runs a function in a goroutine. Use this whenever you want to run a goroutine and keep track of the fact
+	// that lazygit is still busy.
+	OnWorker(f func())
 
 	// returns the gocui Gui struct. There is a good chance you don't actually want to use
 	// this struct and instead want to use another method above

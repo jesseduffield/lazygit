@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/status"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type AppStatusHelper struct {
@@ -28,7 +27,7 @@ func (self *AppStatusHelper) Toast(message string) {
 
 // withWaitingStatus wraps a function and shows a waiting status while the function is still executing
 func (self *AppStatusHelper) WithWaitingStatus(message string, f func() error) {
-	go utils.Safe(func() {
+	self.c.OnWorker(func() {
 		self.statusMgr().WithWaitingStatus(message, func() {
 			self.renderAppStatus()
 
@@ -50,7 +49,7 @@ func (self *AppStatusHelper) GetStatusString() string {
 }
 
 func (self *AppStatusHelper) renderAppStatus() {
-	go utils.Safe(func() {
+	self.c.OnWorker(func() {
 		ticker := time.NewTicker(time.Millisecond * 50)
 		defer ticker.Stop()
 		for range ticker.C {

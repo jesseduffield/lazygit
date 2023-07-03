@@ -120,7 +120,10 @@ func (gui *Gui) WatchFilesForChanges() {
 				}
 				// only refresh if we're not already
 				if !gui.IsRefreshingFiles {
-					_ = gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+					gui.c.OnUIThread(func() error {
+						// TODO: find out if refresh needs to be run on the UI thread
+						return gui.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+					})
 				}
 
 			// watch for errors

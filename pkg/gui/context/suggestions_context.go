@@ -30,7 +30,7 @@ func NewSuggestionsContext(
 	c *ContextCommon,
 ) *SuggestionsContext {
 	state := &SuggestionsContextState{
-		AsyncHandler: tasks.NewAsyncHandler(),
+		AsyncHandler: tasks.NewAsyncHandler(c.OnWorker),
 	}
 	getModel := func() []*types.Suggestion {
 		return state.Suggestions
