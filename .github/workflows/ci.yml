@@ -68,9 +68,8 @@ jobs:
           restore-keys: |
             ${{runner.os}}-go-
       - name: Test code
-        # LONG_WAIT_BEFORE_FAIL means that for a given test assertion, we'll wait longer before failing
         run: |
-          LONG_WAIT_BEFORE_FAIL=true go test pkg/integration/clients/*.go
+          go test pkg/integration/clients/*.go
   build:
     runs-on: ubuntu-latest
     env:
