@@ -1,8 +1,6 @@
 package helpers
 
 import (
-	"sync"
-
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -20,11 +18,11 @@ func NewCredentialsHelper(
 }
 
 // promptUserForCredential wait for a username, password or passphrase input from the credentials popup
-func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.CredentialType) string {
-	waitGroup := sync.WaitGroup{}
-	waitGroup.Add(1)
-
-	userInput := ""
+// We return a channel rather than returning the string directly so that the calling function knows
+// when the prompt has been created (before the user has entered anything) so that it can
+// note that we're now waiting on user input and lazygit isn't processing anything.
+func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.CredentialType) <-chan string {
+	ch := make(chan string)
 
 	self.c.OnUIThread(func() error {
 		title, mask := self.getTitleAndMask(passOrUname)
@@ -33,24 +31,19 @@ func (self *CredentialsHelper) PromptUserForCredential(passOrUname oscommands.Cr
 			Title: title,
 			Mask:  mask,
 			HandleConfirm: func(input string) error {
-				userInput = input
-
-				waitGroup.Done()
+				ch <- input + "\n"
 
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 			},
 			HandleClose: func() error {
-				waitGroup.Done()
+				ch <- "\n"
 
 				return nil
 			},
 		})
 	})
 
-	// wait for username/passwords/passphrase input
-	waitGroup.Wait()
-
-	return userInput + "\n"
+	return ch
 }
 
 func (self *CredentialsHelper) getTitleAndMask(passOrUname oscommands.CredentialType) (string, bool) {

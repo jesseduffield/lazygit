@@ -487,6 +487,8 @@ func NewGui(
 		gui.LogCommand,
 		gui.getCmdWriter,
 		credentialsHelper.PromptUserForCredential,
+		func() { gui.g.IncrementBusyCount() },
+		func() { gui.g.DecrementBusyCount() },
 	)
 
 	osCommand := oscommands.NewOSCommand(cmn, config, oscommands.GetPlatform(), guiIO)

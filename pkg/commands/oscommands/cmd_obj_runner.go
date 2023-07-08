@@ -19,15 +19,6 @@ type ICmdObjRunner interface {
 	RunAndProcessLines(cmdObj ICmdObj, onLine func(line string) (bool, error)) error
 }
 
-type CredentialType int
-
-const (
-	Password CredentialType = iota
-	Username
-	Passphrase
-	PIN
-)
-
 type cmdObjRunner struct {
 	log   *logrus.Entry
 	guiIO *guiIO
@@ -182,26 +173,6 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 	return nil
 }
 
-// Whenever we're asked for a password we just enter a newline, which will
-// eventually cause the command to fail.
-var failPromptFn = func(CredentialType) string { return "\n" }
-
-func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
-	var promptFn func(CredentialType) string
-
-	switch cmdObj.GetCredentialStrategy() {
-	case PROMPT:
-		promptFn = self.guiIO.promptForCredentialFn
-	case FAIL:
-		promptFn = failPromptFn
-	case NONE:
-		// we should never land here
-		return errors.New("runWithCredentialHandling called but cmdObj does not have a credential strategy")
-	}
-
-	return self.runAndDetectCredentialRequest(cmdObj, promptFn)
-}
-
 func (self *cmdObjRunner) logCmdObj(cmdObj ICmdObj) {
 	self.guiIO.logCommandFn(cmdObj.ToString(), true)
 }
@@ -230,25 +201,6 @@ func (self *cmdObjRunner) runAndStream(cmdObj ICmdObj) error {
 		go func() {
 			_, _ = io.Copy(cmdWriter, handler.stdoutPipe)
 		}()
-	})
-}
-
-// runAndDetectCredentialRequest detect a username / password / passphrase question in a command
-// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
-// The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
-func (self *cmdObjRunner) runAndDetectCredentialRequest(
-	cmdObj ICmdObj,
-	promptUserForCredential func(CredentialType) string,
-) error {
-	// setting the output to english so we can parse it for a username/password request
-	cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
-
-	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
-		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
-
-		go utils.Safe(func() {
-			self.processOutput(tr, handler.stdinPipe, promptUserForCredential)
-		})
 	})
 }
 
@@ -302,7 +254,70 @@ func (self *cmdObjRunner) runAndStreamAux(
 	return nil
 }
 
-func (self *cmdObjRunner) processOutput(reader io.Reader, writer io.Writer, promptUserForCredential func(CredentialType) string) {
+type CredentialType int
+
+const (
+	Password CredentialType = iota
+	Username
+	Passphrase
+	PIN
+)
+
+// Whenever we're asked for a password we just enter a newline, which will
+// eventually cause the command to fail.
+var failPromptFn = func(CredentialType) <-chan string {
+	ch := make(chan string)
+	go func() {
+		ch <- "\n"
+	}()
+	return ch
+}
+
+func (self *cmdObjRunner) runWithCredentialHandling(cmdObj ICmdObj) error {
+	promptFn, err := self.getCredentialPromptFn(cmdObj)
+	if err != nil {
+		return err
+	}
+
+	return self.runAndDetectCredentialRequest(cmdObj, promptFn)
+}
+
+func (self *cmdObjRunner) getCredentialPromptFn(cmdObj ICmdObj) (func(CredentialType) <-chan string, error) {
+	switch cmdObj.GetCredentialStrategy() {
+	case PROMPT:
+		return self.guiIO.promptForCredentialFn, nil
+	case FAIL:
+		return failPromptFn, nil
+	default:
+		// we should never land here
+		return nil, errors.New("runWithCredentialHandling called but cmdObj does not have a credential strategy")
+	}
+}
+
+// runAndDetectCredentialRequest detect a username / password / passphrase question in a command
+// promptUserForCredential is a function that gets executed when this function detect you need to fillin a password or passphrase
+// The promptUserForCredential argument will be "username", "password" or "passphrase" and expects the user's password/passphrase or username back
+func (self *cmdObjRunner) runAndDetectCredentialRequest(
+	cmdObj ICmdObj,
+	promptUserForCredential func(CredentialType) <-chan string,
+) error {
+	// setting the output to english so we can parse it for a username/password request
+	cmdObj.AddEnvVars("LANG=en_US.UTF-8", "LC_ALL=en_US.UTF-8")
+
+	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
+		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
+
+		go utils.Safe(func() {
+			self.processOutput(tr, handler.stdinPipe, promptUserForCredential)
+		})
+	})
+}
+
+func (self *cmdObjRunner) processOutput(
+	reader io.Reader,
+	writer io.Writer,
+	promptUserForCredential func(CredentialType) <-chan string,
+) {
 	checkForCredentialRequest := self.getCheckForCredentialRequestFunc()
 
 	scanner := bufio.NewScanner(reader)
@@ -311,7 +326,14 @@ func (self *cmdObjRunner) processOutput(reader io.Reader, writer io.Writer, prom
 		newBytes := scanner.Bytes()
 		askFor, ok := checkForCredentialRequest(newBytes)
 		if ok {
-			toInput := promptUserForCredential(askFor)
+			responseChan := promptUserForCredential(askFor)
+			// We assume that the busy count is greater than zero here because we're
+			// in the middle of a command. We decrement it so that The user can be prompted
+			// without lazygit thinking it's still doing its own processing. This helps
+			// integration tests know how long to wait before typing in a response.
+			self.guiIO.DecrementBusyCount()
+			toInput := <-responseChan
+			self.guiIO.IncrementBusyCount()
 			// If the return data is empty we don't write anything to stdin
 			if toInput != "" {
 				_, _ = writer.Write([]byte(toInput))

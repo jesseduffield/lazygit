@@ -15,6 +15,18 @@ func getRunner() *cmdObjRunner {
 	}
 }
 
+func toChanFn(f func(ct CredentialType) string) func(CredentialType) <-chan string {
+	return func(ct CredentialType) <-chan string {
+		ch := make(chan string)
+
+		go func() {
+			ch <- f(ct)
+		}()
+
+		return ch
+	}
+}
+
 func TestProcessOutput(t *testing.T) {
 	defaultPromptUserForCredential := func(ct CredentialType) string {
 		switch ct {
@@ -99,7 +111,7 @@ func TestProcessOutput(t *testing.T) {
 			reader := strings.NewReader(scenario.output)
 			writer := &strings.Builder{}
 
-			runner.processOutput(reader, writer, scenario.promptUserForCredential)
+			runner.processOutput(reader, writer, toChanFn(scenario.promptUserForCredential))
 
 			if writer.String() != scenario.expectedToWrite {
 				t.Errorf("expected to write '%s' but got '%s'", scenario.expectedToWrite, writer.String())
