@@ -6,3 +6,4 @@
 * [Keybindings](./keybindings)
 * [Undo/Redo](./Undoing.md)
 * [Searching/Filtering](./Searching.md)
+* [Dev docs](./dev)
