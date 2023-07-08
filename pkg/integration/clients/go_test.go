@@ -48,9 +48,8 @@ func TestIntegration(t *testing.T) {
 		},
 		false,
 		0,
-		// allowing two attempts at the test. If a test fails intermittently,
-		// there may be a concurrency issue that we need to resolve.
-		2,
+		// Only allowing one attempt per test. We'll see if we get any flakiness
+		1,
 	)
 
 	assert.NoError(t, err)
