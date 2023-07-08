@@ -15,11 +15,11 @@ type BackgroundRoutineMgr struct {
 	// if we've suspended the gui (e.g. because we've switched to a subprocess)
 	// we typically want to pause some things that are running like background
 	// file refreshes
-	pauseBackgroundThreads bool
+	pauseBackgroundRefreshes bool
 }
 
-func (self *BackgroundRoutineMgr) PauseBackgroundThreads(pause bool) {
-	self.pauseBackgroundThreads = pause
+func (self *BackgroundRoutineMgr) PauseBackgroundRefreshes(pause bool) {
+	self.pauseBackgroundRefreshes = pause
 }
 
 func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
@@ -39,9 +39,7 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 	if userConfig.Git.AutoRefresh {
 		refreshInterval := userConfig.Refresher.RefreshInterval
 		if refreshInterval > 0 {
-			self.goEvery(time.Second*time.Duration(refreshInterval), self.gui.stopChan, func() error {
-				return self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-			})
+			go utils.Safe(func() { self.startBackgroundFilesRefresh(refreshInterval) })
 		} else {
 			self.gui.c.Log.Errorf(
 				"Value of config option 'refresher.refreshInterval' (%d) is invalid, disabling auto-refresh",
@@ -52,6 +50,7 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 
 func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	self.gui.waitForIntro.Wait()
+
 	isNew := self.gui.IsNewRepo
 	userConfig := self.gui.UserConfig
 	if !isNew {
@@ -69,6 +68,14 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	}
 }
 
+func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh(refreshInterval int) {
+	self.gui.waitForIntro.Wait()
+
+	self.goEvery(time.Second*time.Duration(refreshInterval), self.gui.stopChan, func() error {
+		return self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+	})
+}
+
 func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func() error) {
 	go utils.Safe(func() {
 		ticker := time.NewTicker(interval)
@@ -76,7 +83,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 		for {
 			select {
 			case <-ticker.C:
-				if self.pauseBackgroundThreads {
+				if self.pauseBackgroundRefreshes {
 					continue
 				}
 				self.gui.c.OnWorker(func() { _ = function() })

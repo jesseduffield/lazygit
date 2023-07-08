@@ -722,8 +722,8 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 		return false, gui.c.Error(err)
 	}
 
-	gui.BackgroundRoutineMgr.PauseBackgroundThreads(true)
-	defer gui.BackgroundRoutineMgr.PauseBackgroundThreads(false)
+	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(true)
+	defer gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(false)
 
 	cmdErr := gui.runSubprocess(subprocess)
 
