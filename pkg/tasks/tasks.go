@@ -324,10 +324,13 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 
 		self.waitingMutex.Lock()
 
+		self.taskIDMutex.Lock()
 		if taskID < self.newTaskID {
 			self.waitingMutex.Unlock()
+			self.taskIDMutex.Unlock()
 			return
 		}
+		self.taskIDMutex.Unlock()
 
 		if self.stopCurrentTask != nil {
 			self.stopCurrentTask()
