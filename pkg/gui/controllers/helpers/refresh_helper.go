@@ -63,8 +63,6 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		)
 	}
 
-	wg := sync.WaitGroup{}
-
 	f := func() {
 		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
@@ -87,15 +85,11 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		}
 
 		refresh := func(f func()) {
-			wg.Add(1)
-			func() {
-				if options.Mode == types.ASYNC {
-					self.c.OnWorker(f)
-				} else {
-					f()
-				}
-				wg.Done()
-			}()
+			if options.Mode == types.ASYNC {
+				self.c.OnWorker(f)
+			} else {
+				f()
+			}
 		}
 
 		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) || scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
@@ -142,8 +136,6 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		if scopeSet.Includes(types.MERGE_CONFLICTS) || scopeSet.Includes(types.FILES) {
 			refresh(func() { _ = self.mergeConflictsHelper.RefreshMergeState() })
 		}
-
-		wg.Wait()
 
 		self.refreshStatus()
 
