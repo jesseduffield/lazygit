@@ -217,14 +217,15 @@ type Model struct {
 // if you add a new mutex here be sure to instantiate it. We're using pointers to
 // mutexes so that we can pass the mutexes to controllers.
 type Mutexes struct {
-	RefreshingFilesMutex  *deadlock.Mutex
-	RefreshingStatusMutex *deadlock.Mutex
-	SyncMutex             *deadlock.Mutex
-	LocalCommitsMutex     *deadlock.Mutex
-	SubCommitsMutex       *deadlock.Mutex
-	SubprocessMutex       *deadlock.Mutex
-	PopupMutex            *deadlock.Mutex
-	PtyMutex              *deadlock.Mutex
+	RefreshingFilesMutex    *deadlock.Mutex
+	RefreshingBranchesMutex *deadlock.Mutex
+	RefreshingStatusMutex   *deadlock.Mutex
+	SyncMutex               *deadlock.Mutex
+	LocalCommitsMutex       *deadlock.Mutex
+	SubCommitsMutex         *deadlock.Mutex
+	SubprocessMutex         *deadlock.Mutex
+	PopupMutex              *deadlock.Mutex
+	PtyMutex                *deadlock.Mutex
 }
 
 type IStateAccessor interface {

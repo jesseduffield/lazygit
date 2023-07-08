@@ -342,6 +342,9 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
 func (self *RefreshHelper) refreshBranches() {
+	self.c.Mutexes().RefreshingBranchesMutex.Lock()
+	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
+
 	reflogCommits := self.c.Model().FilteredReflogCommits
 	if self.c.Modes().Filtering.Active() {
 		// in filter mode we filter our reflog commits to just those containing the path

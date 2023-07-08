@@ -448,14 +448,15 @@ func NewGui(
 		// sake of backwards compatibility. We're making use of short circuiting here
 		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
 		Mutexes: types.Mutexes{
-			RefreshingFilesMutex:  &deadlock.Mutex{},
-			RefreshingStatusMutex: &deadlock.Mutex{},
-			SyncMutex:             &deadlock.Mutex{},
-			LocalCommitsMutex:     &deadlock.Mutex{},
-			SubCommitsMutex:       &deadlock.Mutex{},
-			SubprocessMutex:       &deadlock.Mutex{},
-			PopupMutex:            &deadlock.Mutex{},
-			PtyMutex:              &deadlock.Mutex{},
+			RefreshingFilesMutex:    &deadlock.Mutex{},
+			RefreshingBranchesMutex: &deadlock.Mutex{},
+			RefreshingStatusMutex:   &deadlock.Mutex{},
+			SyncMutex:               &deadlock.Mutex{},
+			LocalCommitsMutex:       &deadlock.Mutex{},
+			SubCommitsMutex:         &deadlock.Mutex{},
+			SubprocessMutex:         &deadlock.Mutex{},
+			PopupMutex:              &deadlock.Mutex{},
+			PtyMutex:                &deadlock.Mutex{},
 		},
 		InitialDir: initialDir,
 	}
