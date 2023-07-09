@@ -3,6 +3,7 @@ package git_config
 import (
 	"os/exec"
 	"strings"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 )
@@ -20,6 +21,7 @@ type CachedGitConfig struct {
 	cache           map[string]string
 	runGitConfigCmd func(*exec.Cmd) (string, error)
 	log             *logrus.Entry
+	mutex           sync.Mutex
 }
 
 func NewStdCachedGitConfig(log *logrus.Entry) *CachedGitConfig {
@@ -31,10 +33,14 @@ func NewCachedGitConfig(runGitConfigCmd func(*exec.Cmd) (string, error), log *lo
 		cache:           make(map[string]string),
 		runGitConfigCmd: runGitConfigCmd,
 		log:             log,
+		mutex:           sync.Mutex{},
 	}
 }
 
 func (self *CachedGitConfig) Get(key string) string {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
 	if value, ok := self.cache[key]; ok {
 		self.log.Debugf("using cache for key " + key)
 		return value
@@ -46,6 +52,9 @@ func (self *CachedGitConfig) Get(key string) string {
 }
 
 func (self *CachedGitConfig) GetGeneral(args string) string {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
 	if value, ok := self.cache[args]; ok {
 		self.log.Debugf("using cache for args " + args)
 		return value
