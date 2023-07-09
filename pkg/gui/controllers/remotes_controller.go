@@ -198,7 +198,7 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 }
 
 func (self *RemotesController) fetch(remote *models.Remote) error {
-	return self.c.WithWaitingStatus(self.c.Tr.FetchingRemoteStatus, func(task *gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.FetchingRemoteStatus, func(task gocui.Task) error {
 		err := self.c.Git().Sync.FetchRemote(task, remote.Name)
 		if err != nil {
 			_ = self.c.Error(err)

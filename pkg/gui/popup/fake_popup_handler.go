@@ -33,12 +33,12 @@ func (self *FakePopupHandler) Prompt(opts types.PromptOpts) error {
 	return self.OnPrompt(opts)
 }
 
-func (self *FakePopupHandler) WithLoaderPanel(message string, f func(*gocui.Task) error) error {
-	return f(&gocui.Task{})
+func (self *FakePopupHandler) WithLoaderPanel(message string, f func(gocui.Task) error) error {
+	return f(gocui.NewFakeTask())
 }
 
-func (self *FakePopupHandler) WithWaitingStatus(message string, f func(*gocui.Task) error) error {
-	return f(&gocui.Task{})
+func (self *FakePopupHandler) WithWaitingStatus(message string, f func(gocui.Task) error) error {
+	return f(gocui.NewFakeTask())
 }
 
 func (self *FakePopupHandler) Menu(opts types.CreateMenuOptions) error {

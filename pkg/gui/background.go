@@ -86,7 +86,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 				if self.pauseBackgroundRefreshes {
 					continue
 				}
-				self.gui.c.OnWorker(func(*gocui.Task) { _ = function() })
+				self.gui.c.OnWorker(func(gocui.Task) { _ = function() })
 			case <-stop:
 				return
 			}

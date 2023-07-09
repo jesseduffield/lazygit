@@ -318,7 +318,7 @@ func (self *cmdObjRunner) processOutput(
 	reader io.Reader,
 	writer io.Writer,
 	promptUserForCredential func(CredentialType) <-chan string,
-	task *gocui.Task,
+	task gocui.Task,
 ) {
 	checkForCredentialRequest := self.getCheckForCredentialRequestFunc()
 

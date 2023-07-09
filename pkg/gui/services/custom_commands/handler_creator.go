@@ -265,7 +265,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		loadingText = self.c.Tr.RunningCustomCommandStatus
 	}
 
-	return self.c.WithWaitingStatus(loadingText, func(*gocui.Task) error {
+	return self.c.WithWaitingStatus(loadingText, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 
 		if customCommand.Stream {

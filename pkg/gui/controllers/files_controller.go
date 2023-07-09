@@ -800,7 +800,7 @@ func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) e
 }
 
 func (self *FilesController) fetch() error {
-	return self.c.WithLoaderPanel(self.c.Tr.FetchWait, func(task *gocui.Task) error {
+	return self.c.WithLoaderPanel(self.c.Tr.FetchWait, func(task gocui.Task) error {
 		if err := self.fetchAux(task); err != nil {
 			_ = self.c.Error(err)
 		}
@@ -808,7 +808,7 @@ func (self *FilesController) fetch() error {
 	})
 }
 
-func (self *FilesController) fetchAux(task *gocui.Task) (err error) {
+func (self *FilesController) fetchAux(task gocui.Task) (err error) {
 	self.c.LogAction("Fetch")
 	err = self.c.Git().Sync.Fetch(task)
 

@@ -60,7 +60,7 @@ func (self *SubCommitsController) GetOnFocus() func(types.OnFocusOpts) error {
 		context := self.context()
 		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
 			context.SetLimitCommits(false)
-			self.c.OnWorker(func(_ *gocui.Task) {
+			self.c.OnWorker(func(_ gocui.Task) {
 				if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.SUB_COMMITS}}); err != nil {
 					_ = self.c.Error(err)
 				}

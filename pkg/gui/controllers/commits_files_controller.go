@@ -177,7 +177,7 @@ func (self *CommitFilesController) discard(node *filetree.CommitFileNode) error 
 		Title:  self.c.Tr.DiscardFileChangesTitle,
 		Prompt: prompt,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(*gocui.Task) error {
+			return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DiscardOldFileChange)
 				if err := self.c.Git().Rebase.DiscardOldFileChanges(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), node.GetPath()); err != nil {
 					if err := self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err); err != nil {
@@ -205,7 +205,7 @@ func (self *CommitFilesController) edit(node *filetree.CommitFileNode) error {
 
 func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode) error {
 	toggle := func() error {
-		return self.c.WithWaitingStatus(self.c.Tr.UpdatingPatch, func(*gocui.Task) error {
+		return self.c.WithWaitingStatus(self.c.Tr.UpdatingPatch, func(gocui.Task) error {
 			if !self.c.Git().Patch.PatchBuilder.Active() {
 				if err := self.startPatchBuilder(); err != nil {
 					return err

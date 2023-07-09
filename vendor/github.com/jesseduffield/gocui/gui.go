@@ -177,87 +177,6 @@ type Gui struct {
 	taskManager *TaskManager
 }
 
-type TaskManager struct {
-	// Tracks whether the program is busy (i.e. either something is happening on
-	// the main goroutine or a worker goroutine). Used by integration tests
-	// to wait until the program is idle before progressing.
-	idleListeners []chan struct{}
-	tasks         map[int]*Task
-	newTaskId     int
-	tasksMutex    sync.Mutex
-}
-
-func newTaskManager() *TaskManager {
-	return &TaskManager{
-		tasks:         make(map[int]*Task),
-		idleListeners: []chan struct{}{},
-	}
-}
-
-func (self *TaskManager) NewTask() *Task {
-	self.tasksMutex.Lock()
-	defer self.tasksMutex.Unlock()
-
-	self.newTaskId++
-	taskId := self.newTaskId
-
-	withMutex := func(f func()) {
-		self.tasksMutex.Lock()
-		defer self.tasksMutex.Unlock()
-
-		f()
-
-		// Check if all tasks are done
-		for _, task := range self.tasks {
-			if task.isBusy {
-				return
-			}
-		}
-
-		// If we get here, all tasks are done, so
-		// notify listeners that the program is idle
-		for _, listener := range self.idleListeners {
-			listener <- struct{}{}
-		}
-	}
-	onDone := func() {
-		withMutex(func() {
-			delete(self.tasks, taskId)
-		})
-	}
-	task := &Task{id: taskId, isBusy: true, onDone: onDone, withMutex: withMutex}
-	self.tasks[taskId] = task
-
-	return task
-}
-
-func (self *TaskManager) AddIdleListener(c chan struct{}) {
-	self.idleListeners = append(self.idleListeners, c)
-}
-
-type Task struct {
-	id        int
-	isBusy    bool
-	onDone    func()
-	withMutex func(func())
-}
-
-func (self *Task) Done() {
-	self.onDone()
-}
-
-func (self *Task) Pause() {
-	self.withMutex(func() {
-		self.isBusy = false
-	})
-}
-
-func (self *Task) Continue() {
-	self.withMutex(func() {
-		self.isBusy = true
-	})
-}
-
 // NewGui returns a new Gui object with a given output mode.
 func NewGui(mode OutputMode, supportOverlaps bool, playRecording bool, headless bool, runeReplacements map[rune]string) (*Gui, error) {
 	g := &Gui{}
@@ -314,7 +233,7 @@ func NewGui(mode OutputMode, supportOverlaps bool, playRecording bool, headless 
 	return g, nil
 }
 
-func (g *Gui) NewTask() *Task {
+func (g *Gui) NewTask() *TaskImpl {
 	return g.taskManager.NewTask()
 }
 
@@ -322,7 +241,7 @@ func (g *Gui) NewTask() *Task {
 // integration tests which can wait for the program to be idle before taking
 // the next step in the test.
 func (g *Gui) AddIdleListener(c chan struct{}) {
-	g.taskManager.AddIdleListener(c)
+	g.taskManager.addIdleListener(c)
 }
 
 // Close finalizes the library. It should be called after a successful
@@ -689,7 +608,7 @@ func getKey(key interface{}) (Key, rune, error) {
 // userEvent represents an event triggered by the user.
 type userEvent struct {
 	f    func(*Gui) error
-	task *Task
+	task Task
 }
 
 // Update executes the passed function. This method can be called safely from a
@@ -712,7 +631,7 @@ func (g *Gui) UpdateAsync(f func(*Gui) error) {
 	g.updateAsyncAux(f, task)
 }
 
-func (g *Gui) updateAsyncAux(f func(*Gui) error, task *Task) {
+func (g *Gui) updateAsyncAux(f func(*Gui) error, task Task) {
 	g.userEvents <- userEvent{f: f, task: task}
 }
 
@@ -722,7 +641,7 @@ func (g *Gui) updateAsyncAux(f func(*Gui) error, task *Task) {
 // consider itself 'busy` as it runs the code. Don't use for long-running
 // background goroutines where you wouldn't want lazygit to be considered busy
 // (i.e. when you wouldn't want a loader to be shown to the user)
-func (g *Gui) OnWorker(f func(*Task)) {
+func (g *Gui) OnWorker(f func(Task)) {
 	task := g.NewTask()
 	go func() {
 		g.onWorkerAux(f, task)
@@ -730,7 +649,7 @@ func (g *Gui) OnWorker(f func(*Task)) {
 	}()
 }
 
-func (g *Gui) onWorkerAux(f func(*Task), task *Task) {
+func (g *Gui) onWorkerAux(f func(Task), task Task) {
 	panicking := true
 	defer func() {
 		if panicking && Screen != nil {

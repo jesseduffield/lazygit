@@ -472,10 +472,10 @@ func NewGui(
 		func() error { return gui.State.ContextMgr.Pop() },
 		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
-		func(message string, f func(*gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
+		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
 		func(message string) { gui.helpers.AppStatus.Toast(message) },
 		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
-		func(f func(*gocui.Task)) { gui.c.OnWorker(f) },
+		func(f func(gocui.Task)) { gui.c.OnWorker(f) },
 	)
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
@@ -780,19 +780,19 @@ func (gui *Gui) loadNewRepo() error {
 	return nil
 }
 
-func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
-	gui.waitForIntro.Add(len(tasks))
+func (gui *Gui) showInitialPopups(popupTasks []func(chan struct{}) error) {
+	gui.waitForIntro.Add(len(popupTasks))
 	done := make(chan struct{})
 
-	gui.c.OnWorker(func(gocuiTask *gocui.Task) {
-		for _, task := range tasks {
-			if err := task(done); err != nil {
+	gui.c.OnWorker(func(task gocui.Task) {
+		for _, popupTask := range popupTasks {
+			if err := popupTask(done); err != nil {
 				_ = gui.c.Error(err)
 			}
 
-			gocuiTask.Pause()
+			task.Pause()
 			<-done
-			gocuiTask.Continue()
+			task.Continue()
 			gui.waitForIntro.Done()
 		}
 	})
@@ -833,7 +833,7 @@ func (gui *Gui) onUIThread(f func() error) {
 	})
 }
 
-func (gui *Gui) onWorker(f func(*gocui.Task)) {
+func (gui *Gui) onWorker(f func(gocui.Task)) {
 	gui.g.OnWorker(f)
 }
 

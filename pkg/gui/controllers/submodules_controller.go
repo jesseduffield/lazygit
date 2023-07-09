@@ -131,7 +131,7 @@ func (self *SubmodulesController) add() error {
 						Title:          self.c.Tr.NewSubmodulePath,
 						InitialContent: submoduleName,
 						HandleConfirm: func(submodulePath string) error {
-							return self.c.WithWaitingStatus(self.c.Tr.AddingSubmoduleStatus, func(*gocui.Task) error {
+							return self.c.WithWaitingStatus(self.c.Tr.AddingSubmoduleStatus, func(gocui.Task) error {
 								self.c.LogAction(self.c.Tr.Actions.AddSubmodule)
 								err := self.c.Git().Submodule.Add(submoduleName, submodulePath, submoduleUrl)
 								if err != nil {
@@ -153,7 +153,7 @@ func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) err
 		Title:          fmt.Sprintf(self.c.Tr.UpdateSubmoduleUrl, submodule.Name),
 		InitialContent: submodule.Url,
 		HandleConfirm: func(newUrl string) error {
-			return self.c.WithWaitingStatus(self.c.Tr.UpdatingSubmoduleUrlStatus, func(*gocui.Task) error {
+			return self.c.WithWaitingStatus(self.c.Tr.UpdatingSubmoduleUrlStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.UpdateSubmoduleUrl)
 				err := self.c.Git().Submodule.UpdateUrl(submodule.Name, submodule.Path, newUrl)
 				if err != nil {
@@ -167,7 +167,7 @@ func (self *SubmodulesController) editURL(submodule *models.SubmoduleConfig) err
 }
 
 func (self *SubmodulesController) init(submodule *models.SubmoduleConfig) error {
-	return self.c.WithWaitingStatus(self.c.Tr.InitializingSubmoduleStatus, func(*gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.InitializingSubmoduleStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.InitialiseSubmodule)
 		err := self.c.Git().Submodule.Init(submodule.Path)
 		if err != nil {
@@ -185,7 +185,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 			{
 				LabelColumns: []string{self.c.Tr.BulkInitSubmodules, style.FgGreen.Sprint(self.c.Git().Submodule.BulkInitCmdObj().ToString())},
 				OnPress: func() error {
-					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(*gocui.Task) error {
+					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.BulkInitialiseSubmodules)
 						err := self.c.Git().Submodule.BulkInitCmdObj().Run()
 						if err != nil {
@@ -200,7 +200,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 			{
 				LabelColumns: []string{self.c.Tr.BulkUpdateSubmodules, style.FgYellow.Sprint(self.c.Git().Submodule.BulkUpdateCmdObj().ToString())},
 				OnPress: func() error {
-					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(*gocui.Task) error {
+					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.BulkUpdateSubmodules)
 						if err := self.c.Git().Submodule.BulkUpdateCmdObj().Run(); err != nil {
 							return self.c.Error(err)
@@ -214,7 +214,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 			{
 				LabelColumns: []string{self.c.Tr.BulkDeinitSubmodules, style.FgRed.Sprint(self.c.Git().Submodule.BulkDeinitCmdObj().ToString())},
 				OnPress: func() error {
-					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(*gocui.Task) error {
+					return self.c.WithWaitingStatus(self.c.Tr.RunningCommand, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.BulkDeinitialiseSubmodules)
 						if err := self.c.Git().Submodule.BulkDeinitCmdObj().Run(); err != nil {
 							return self.c.Error(err)
@@ -230,7 +230,7 @@ func (self *SubmodulesController) openBulkActionsMenu() error {
 }
 
 func (self *SubmodulesController) update(submodule *models.SubmoduleConfig) error {
-	return self.c.WithWaitingStatus(self.c.Tr.UpdatingSubmoduleStatus, func(*gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.UpdatingSubmoduleStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.UpdateSubmodule)
 		err := self.c.Git().Submodule.Update(submodule.Path)
 		if err != nil {

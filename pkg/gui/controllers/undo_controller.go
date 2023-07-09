@@ -248,7 +248,7 @@ func (self *UndoController) hardResetWithAutoStash(commitSha string, options har
 			Title:  self.c.Tr.AutoStashTitle,
 			Prompt: self.c.Tr.AutoStashPrompt,
 			HandleConfirm: func() error {
-				return self.c.WithWaitingStatus(options.WaitingStatus, func(*gocui.Task) error {
+				return self.c.WithWaitingStatus(options.WaitingStatus, func(gocui.Task) error {
 					if err := self.c.Git().Stash.Save(self.c.Tr.StashPrefix + commitSha); err != nil {
 						return self.c.Error(err)
 					}
@@ -269,7 +269,7 @@ func (self *UndoController) hardResetWithAutoStash(commitSha string, options har
 		})
 	}
 
-	return self.c.WithWaitingStatus(options.WaitingStatus, func(*gocui.Task) error {
+	return self.c.WithWaitingStatus(options.WaitingStatus, func(gocui.Task) error {
 		return reset()
 	})
 }

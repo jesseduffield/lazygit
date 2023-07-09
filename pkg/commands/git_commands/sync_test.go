@@ -3,6 +3,7 @@ package git_commands
 import (
 	"testing"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/stretchr/testify/assert"
 )
@@ -88,7 +89,8 @@ func TestSyncPush(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildSyncCommands(commonDeps{})
-			s.test(instance.PushCmdObj(s.opts))
+			task := gocui.NewFakeTask()
+			s.test(instance.PushCmdObj(task, s.opts))
 		})
 	}
 }
@@ -96,7 +98,6 @@ func TestSyncPush(t *testing.T) {
 func TestSyncFetch(t *testing.T) {
 	type scenario struct {
 		testName       string
-		opts           FetchOptions
 		fetchAllConfig bool
 		test           func(oscommands.ICmdObj)
 	}
@@ -104,7 +105,6 @@ func TestSyncFetch(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName:       "Fetch in foreground (all=false)",
-			opts:           FetchOptions{Background: false},
 			fetchAllConfig: false,
 			test: func(cmdObj oscommands.ICmdObj) {
 				assert.True(t, cmdObj.ShouldLog())
@@ -114,7 +114,6 @@ func TestSyncFetch(t *testing.T) {
 		},
 		{
 			testName:       "Fetch in foreground (all=true)",
-			opts:           FetchOptions{Background: false},
 			fetchAllConfig: true,
 			test: func(cmdObj oscommands.ICmdObj) {
 				assert.True(t, cmdObj.ShouldLog())
@@ -122,9 +121,29 @@ func TestSyncFetch(t *testing.T) {
 				assert.Equal(t, cmdObj.Args(), []string{"git", "fetch", "--all"})
 			},
 		},
+	}
+
+	for _, s := range scenarios {
+		s := s
+		t.Run(s.testName, func(t *testing.T) {
+			instance := buildSyncCommands(commonDeps{})
+			instance.UserConfig.Git.FetchAll = s.fetchAllConfig
+			task := gocui.NewFakeTask()
+			s.test(instance.FetchCmdObj(task))
+		})
+	}
+}
+
+func TestSyncFetchBackground(t *testing.T) {
+	type scenario struct {
+		testName       string
+		fetchAllConfig bool
+		test           func(oscommands.ICmdObj)
+	}
+
+	scenarios := []scenario{
 		{
 			testName:       "Fetch in background (all=false)",
-			opts:           FetchOptions{Background: true},
 			fetchAllConfig: false,
 			test: func(cmdObj oscommands.ICmdObj) {
 				assert.False(t, cmdObj.ShouldLog())
@@ -134,7 +153,6 @@ func TestSyncFetch(t *testing.T) {
 		},
 		{
 			testName:       "Fetch in background (all=true)",
-			opts:           FetchOptions{Background: true},
 			fetchAllConfig: true,
 			test: func(cmdObj oscommands.ICmdObj) {
 				assert.False(t, cmdObj.ShouldLog())
@@ -149,7 +167,7 @@ func TestSyncFetch(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildSyncCommands(commonDeps{})
 			instance.UserConfig.Git.FetchAll = s.fetchAllConfig
-			s.test(instance.FetchCmdObj(s.opts))
+			s.test(instance.FetchBackgroundCmdObj())
 		})
 	}
 }

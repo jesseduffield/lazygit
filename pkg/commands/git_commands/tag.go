@@ -36,7 +36,7 @@ func (self *TagCommands) Delete(tagName string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *TagCommands) Push(task *gocui.Task, remoteName string, tagName string) error {
+func (self *TagCommands) Push(task gocui.Task, remoteName string, tagName string) error {
 	cmdArgs := NewGitCmd("push").Arg(remoteName, "tag", tagName).
 		ToArgv()
 

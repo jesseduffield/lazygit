@@ -364,7 +364,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 		},
 	)
 
-	return self.c.WithLoaderPanel(message, func(task *gocui.Task) error {
+	return self.c.WithLoaderPanel(message, func(task gocui.Task) error {
 		if branch == self.c.Helpers().Refs.GetCheckedOutRef() {
 			self.c.LogAction(action)
 

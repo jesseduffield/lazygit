@@ -118,7 +118,7 @@ func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch
 		Title:  self.c.Tr.DeleteRemoteBranch,
 		Prompt: message,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task *gocui.Task) error {
+			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
 				err := self.c.Git().Remote.DeleteRemoteBranch(task, selectedBranch.RemoteName, selectedBranch.Name)
 				if err != nil {

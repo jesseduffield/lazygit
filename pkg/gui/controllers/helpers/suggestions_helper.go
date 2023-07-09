@@ -101,7 +101,7 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 // Notably, unlike other suggestion functions we're not showing all the options
 // if nothing has been typed because there'll be too much to display efficiently
 func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*types.Suggestion {
-	_ = self.c.WithWaitingStatus(self.c.Tr.LoadingFileSuggestions, func(*gocui.Task) error {
+	_ = self.c.WithWaitingStatus(self.c.Tr.LoadingFileSuggestions, func(gocui.Task) error {
 		trie := patricia.NewTrie()
 		// load every non-gitignored file in the repo
 		ignore, err := gitignore.FromGit()

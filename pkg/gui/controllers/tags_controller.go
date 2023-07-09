@@ -122,7 +122,7 @@ func (self *TagsController) push(tag *models.Tag) error {
 		InitialContent:      "origin",
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetRemoteSuggestionsFunc(),
 		HandleConfirm: func(response string) error {
-			return self.c.WithWaitingStatus(self.c.Tr.PushingTagStatus, func(task *gocui.Task) error {
+			return self.c.WithWaitingStatus(self.c.Tr.PushingTagStatus, func(task gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.PushTag)
 				err := self.c.Git().Tag.Push(task, response, tag.Name)
 				if err != nil {

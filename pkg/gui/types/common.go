@@ -79,7 +79,7 @@ type IGuiCommon interface {
 	OnUIThread(f func() error)
 	// Runs a function in a goroutine. Use this whenever you want to run a goroutine and keep track of the fact
 	// that lazygit is still busy. See docs/dev/Busy.md
-	OnWorker(f func(*gocui.Task))
+	OnWorker(f func(gocui.Task))
 
 	// returns the gocui Gui struct. There is a good chance you don't actually want to use
 	// this struct and instead want to use another method above
@@ -121,8 +121,8 @@ type IPopupHandler interface {
 	Confirm(opts ConfirmOpts) error
 	// Shows a popup prompting the user for input.
 	Prompt(opts PromptOpts) error
-	WithLoaderPanel(message string, f func(*gocui.Task) error) error
-	WithWaitingStatus(message string, f func(*gocui.Task) error) error
+	WithLoaderPanel(message string, f func(gocui.Task) error) error
+	WithWaitingStatus(message string, f func(gocui.Task) error) error
 	Menu(opts CreateMenuOptions) error
 	Toast(message string)
 	GetPromptInput() string

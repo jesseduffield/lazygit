@@ -27,8 +27,8 @@ func (self *AppStatusHelper) Toast(message string) {
 }
 
 // withWaitingStatus wraps a function and shows a waiting status while the function is still executing
-func (self *AppStatusHelper) WithWaitingStatus(message string, f func(*gocui.Task) error) {
-	self.c.OnWorker(func(task *gocui.Task) {
+func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task) error) {
+	self.c.OnWorker(func(task gocui.Task) {
 		self.statusMgr().WithWaitingStatus(message, func() {
 			self.renderAppStatus()
 
@@ -50,7 +50,7 @@ func (self *AppStatusHelper) GetStatusString() string {
 }
 
 func (self *AppStatusHelper) renderAppStatus() {
-	self.c.OnWorker(func(_ *gocui.Task) {
+	self.c.OnWorker(func(_ gocui.Task) {
 		ticker := time.NewTicker(time.Millisecond * 50)
 		defer ticker.Stop()
 		for range ticker.C {

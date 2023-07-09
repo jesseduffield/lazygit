@@ -130,7 +130,7 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			func() {
 				_ = view.SetOrigin(0, 0)
 			},
-			func() *gocui.Task {
+			func() gocui.Task {
 				return gui.c.GocuiGui().NewTask()
 			},
 		)

@@ -24,7 +24,7 @@ type PushOpts struct {
 	SetUpstream    bool
 }
 
-func (self *SyncCommands) PushCmdObj(task *gocui.Task, opts PushOpts) (oscommands.ICmdObj, error) {
+func (self *SyncCommands) PushCmdObj(task gocui.Task, opts PushOpts) (oscommands.ICmdObj, error) {
 	if opts.UpstreamBranch != "" && opts.UpstreamRemote == "" {
 		return nil, errors.New(self.Tr.MustSpecifyOriginError)
 	}
@@ -40,7 +40,7 @@ func (self *SyncCommands) PushCmdObj(task *gocui.Task, opts PushOpts) (oscommand
 	return cmdObj, nil
 }
 
-func (self *SyncCommands) Push(task *gocui.Task, opts PushOpts) error {
+func (self *SyncCommands) Push(task gocui.Task, opts PushOpts) error {
 	cmdObj, err := self.PushCmdObj(task, opts)
 	if err != nil {
 		return err
@@ -49,24 +49,33 @@ func (self *SyncCommands) Push(task *gocui.Task, opts PushOpts) error {
 	return cmdObj.Run()
 }
 
-func (self *SyncCommands) Fetch(task *gocui.Task) error {
+func (self *SyncCommands) FetchCmdObj(task gocui.Task) oscommands.ICmdObj {
 	cmdArgs := NewGitCmd("fetch").
 		ArgIf(self.UserConfig.Git.FetchAll, "--all").
 		ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
 	cmdObj.PromptOnCredentialRequest(task)
-	return cmdObj.WithMutex(self.syncMutex).Run()
+	return cmdObj
 }
 
-func (self *SyncCommands) FetchBackground() error {
+func (self *SyncCommands) Fetch(task gocui.Task) error {
+	return self.FetchCmdObj(task).Run()
+}
+
+func (self *SyncCommands) FetchBackgroundCmdObj() oscommands.ICmdObj {
 	cmdArgs := NewGitCmd("fetch").
 		ArgIf(self.UserConfig.Git.FetchAll, "--all").
 		ToArgv()
 
 	cmdObj := self.cmd.New(cmdArgs)
 	cmdObj.DontLog().FailOnCredentialRequest()
-	return cmdObj.WithMutex(self.syncMutex).Run()
+	cmdObj.WithMutex(self.syncMutex)
+	return cmdObj
+}
+
+func (self *SyncCommands) FetchBackground() error {
+	return self.FetchBackgroundCmdObj().Run()
 }
 
 type PullOptions struct {
@@ -75,7 +84,7 @@ type PullOptions struct {
 	FastForwardOnly bool
 }
 
-func (self *SyncCommands) Pull(task *gocui.Task, opts PullOptions) error {
+func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 	cmdArgs := NewGitCmd("pull").
 		Arg("--no-edit").
 		ArgIf(opts.FastForwardOnly, "--ff-only").
@@ -88,7 +97,7 @@ func (self *SyncCommands) Pull(task *gocui.Task, opts PullOptions) error {
 	return self.cmd.New(cmdArgs).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
 }
 
-func (self *SyncCommands) FastForward(task *gocui.Task, branchName string, remoteName string, remoteBranchName string) error {
+func (self *SyncCommands) FastForward(task gocui.Task, branchName string, remoteName string, remoteBranchName string) error {
 	cmdArgs := NewGitCmd("fetch").
 		Arg(remoteName).
 		Arg(remoteBranchName + ":" + branchName).
@@ -97,7 +106,7 @@ func (self *SyncCommands) FastForward(task *gocui.Task, branchName string, remot
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
 }
 
-func (self *SyncCommands) FetchRemote(task *gocui.Task, remoteName string) error {
+func (self *SyncCommands) FetchRemote(task gocui.Task, remoteName string) error {
 	cmdArgs := NewGitCmd("fetch").
 		Arg(remoteName).
 		ToArgv()

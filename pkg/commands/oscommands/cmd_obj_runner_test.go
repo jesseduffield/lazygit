@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -111,7 +112,8 @@ func TestProcessOutput(t *testing.T) {
 			reader := strings.NewReader(scenario.output)
 			writer := &strings.Builder{}
 
-			runner.processOutput(reader, writer, toChanFn(scenario.promptUserForCredential))
+			task := gocui.NewFakeTask()
+			runner.processOutput(reader, writer, toChanFn(scenario.promptUserForCredential), task)
 
 			if writer.String() != scenario.expectedToWrite {
 				t.Errorf("expected to write '%s' but got '%s'", scenario.expectedToWrite, writer.String())

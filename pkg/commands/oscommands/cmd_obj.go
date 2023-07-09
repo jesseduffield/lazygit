@@ -57,14 +57,14 @@ type ICmdObj interface {
 	// returns true if IgnoreEmptyError() was called
 	ShouldIgnoreEmptyError() bool
 
-	PromptOnCredentialRequest(task *gocui.Task) ICmdObj
+	PromptOnCredentialRequest(task gocui.Task) ICmdObj
 	FailOnCredentialRequest() ICmdObj
 
 	WithMutex(mutex *deadlock.Mutex) ICmdObj
 	Mutex() *deadlock.Mutex
 
 	GetCredentialStrategy() CredentialStrategy
-	GetTask() *gocui.Task
+	GetTask() gocui.Task
 }
 
 type CmdObj struct {
@@ -87,7 +87,7 @@ type CmdObj struct {
 
 	// if set to true, it means we might be asked to enter a username/password by this command.
 	credentialStrategy CredentialStrategy
-	task               *gocui.Task
+	task               gocui.Task
 
 	// can be set so that we don't run certain commands simultaneously
 	mutex *deadlock.Mutex
@@ -195,7 +195,7 @@ func (self *CmdObj) RunAndProcessLines(onLine func(line string) (bool, error)) e
 	return self.runner.RunAndProcessLines(self, onLine)
 }
 
-func (self *CmdObj) PromptOnCredentialRequest(task *gocui.Task) ICmdObj {
+func (self *CmdObj) PromptOnCredentialRequest(task gocui.Task) ICmdObj {
 	self.credentialStrategy = PROMPT
 	self.task = task
 
@@ -212,6 +212,6 @@ func (self *CmdObj) GetCredentialStrategy() CredentialStrategy {
 	return self.credentialStrategy
 }
 
-func (self *CmdObj) GetTask() *gocui.Task {
+func (self *CmdObj) GetTask() gocui.Task {
 	return self.task
 }

@@ -76,7 +76,7 @@ func (self *CherryPickHelper) Paste() error {
 		Title:  self.c.Tr.CherryPick,
 		Prompt: self.c.Tr.SureCherryPick,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.CherryPickingStatus, func(*gocui.Task) error {
+			return self.c.WithWaitingStatus(self.c.Tr.CherryPickingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.CherryPick)
 				err := self.c.Git().Rebase.CherryPickCommits(self.getData().CherryPickedCommits)
 				return self.rebaseHelper.CheckMergeOrRebase(err)

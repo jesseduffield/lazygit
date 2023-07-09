@@ -87,7 +87,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 
 		refresh := func(f func()) {
 			if options.Mode == types.ASYNC {
-				self.c.OnWorker(func(t *gocui.Task) {
+				self.c.OnWorker(func(t gocui.Task) {
 					f()
 				})
 			} else {
@@ -201,7 +201,7 @@ func getModeName(mode types.RefreshMode) string {
 func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
-		self.c.OnWorker(func(_ *gocui.Task) {
+		self.c.OnWorker(func(_ gocui.Task) {
 			_ = self.refreshReflogCommits()
 			self.refreshBranches()
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)

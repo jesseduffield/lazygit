@@ -20,11 +20,6 @@ func getCounter() (func(), func() int) {
 	return func() { counter++ }, func() int { return counter }
 }
 
-func getIncDecCounter(initialValue int) (func(), func(), func() int) {
-	counter := initialValue
-	return func() { counter++ }, func() { counter-- }, func() int { return counter }
-}
-
 func TestNewCmdTaskInstantStop(t *testing.T) {
 	writer := bytes.NewBuffer(nil)
 	beforeStart, getBeforeStartCallCount := getCounter()
@@ -32,8 +27,8 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
 	onNewKey, getOnNewKeyCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
-	task := &gocui.Task{}
-	newTask := func() *gocui.Task {
+	task := gocui.NewFakeTask()
+	newTask := func() gocui.Task {
 		return task
 	}
 
@@ -79,8 +74,8 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		}
 	}
 
-	if getBusyCount() != 0 {
-		t.Errorf("expected busy count to be 0, got %d", getBusyCount())
+	if task.Status() != gocui.TaskStatusDone {
+		t.Errorf("expected task status to be 'done', got '%s'", task.FormatStatus())
 	}
 
 	expectedContent := ""
@@ -97,7 +92,10 @@ func TestNewCmdTask(t *testing.T) {
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
 	onNewKey, getOnNewKeyCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
-	incBusyCount, decBusyCount, getBusyCount := getIncDecCounter(1)
+	task := gocui.NewFakeTask()
+	newTask := func() gocui.Task {
+		return task
+	}
 
 	manager := NewViewBufferManager(
 		utils.NewDummyLog(),
@@ -106,8 +104,7 @@ func TestNewCmdTask(t *testing.T) {
 		refreshView,
 		onEndOfInput,
 		onNewKey,
-		incBusyCount,
-		decBusyCount,
+		newTask,
 	)
 
 	stop := make(chan struct{})
@@ -127,7 +124,7 @@ func TestNewCmdTask(t *testing.T) {
 		close(stop)
 		wg.Done()
 	}()
-	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: decBusyCount})
+	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
 
 	wg.Wait()
 
@@ -148,8 +145,8 @@ func TestNewCmdTask(t *testing.T) {
 		}
 	}
 
-	if getBusyCount() != 0 {
-		t.Errorf("expected busy count to be 0, got %d", getBusyCount())
+	if task.Status() != gocui.TaskStatusDone {
+		t.Errorf("expected task status to be 'done', got '%s'", task.FormatStatus())
 	}
 
 	expectedContent := "prefix\ntest\n"
@@ -230,7 +227,10 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 			lineCountsOnRefresh = append(lineCountsOnRefresh, strings.Count(writer.String(), "\n"))
 		}
 
-		decBusyCount := func() {}
+		task := gocui.NewFakeTask()
+		newTask := func() gocui.Task {
+			return task
+		}
 
 		manager := NewViewBufferManager(
 			utils.NewDummyLog(),
@@ -239,8 +239,7 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 			refreshView,
 			func() {},
 			func() {},
-			func() {},
-			decBusyCount,
+			newTask,
 		)
 
 		stop := make(chan struct{})
@@ -260,7 +259,7 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 			close(stop)
 			wg.Done()
 		}()
-		_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: decBusyCount})
+		_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
 
 		wg.Wait()
 

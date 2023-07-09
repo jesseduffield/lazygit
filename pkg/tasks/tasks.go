@@ -50,7 +50,10 @@ type ViewBufferManager struct {
 	onEndOfInput func()
 
 	// see docs/dev/Busy.md
-	newTask func() *gocui.Task
+	// A gocui task is not the same thing as the tasks defined in this file.
+	// A gocui task simply represents the fact that lazygit is busy doing something,
+	// whereas the tasks in this file are about rendering content to a view.
+	newGocuiTask func() gocui.Task
 
 	// if the user flicks through a heap of items, with each one
 	// spawning a process to render something to the main view,
@@ -80,7 +83,7 @@ func NewViewBufferManager(
 	refreshView func(),
 	onEndOfInput func(),
 	onNewKey func(),
-	newTask func() *gocui.Task,
+	newGocuiTask func() gocui.Task,
 ) *ViewBufferManager {
 	return &ViewBufferManager{
 		Log:          log,
@@ -90,7 +93,7 @@ func NewViewBufferManager(
 		onEndOfInput: onEndOfInput,
 		readLines:    make(chan LinesToRead, 1024),
 		onNewKey:     onNewKey,
-		newTask:      newTask,
+		newGocuiTask: newGocuiTask,
 	}
 }
 
@@ -296,7 +299,7 @@ type TaskOpts struct {
 }
 
 func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error {
-	task := self.newTask()
+	task := self.newGocuiTask()
 
 	var completeTaskOnce sync.Once
 

@@ -117,7 +117,7 @@ func (self *CustomPatchOptionsMenuAction) handleDeletePatchFromCommit() error {
 		return err
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(*gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		commitIndex := self.getPatchCommitIndex()
 		self.c.LogAction(self.c.Tr.Actions.RemovePatchFromCommit)
 		err := self.c.Git().Patch.DeletePatchesFromCommit(self.c.Model().Commits, commitIndex)
@@ -134,7 +134,7 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchToSelectedCommit() erro
 		return err
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(*gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		commitIndex := self.getPatchCommitIndex()
 		self.c.LogAction(self.c.Tr.Actions.MovePatchToSelectedCommit)
 		err := self.c.Git().Patch.MovePatchToSelectedCommit(self.c.Model().Commits, commitIndex, self.c.Contexts().LocalCommits.GetSelectedLineIdx())
@@ -152,7 +152,7 @@ func (self *CustomPatchOptionsMenuAction) handleMovePatchIntoWorkingTree() error
 	}
 
 	pull := func(stash bool) error {
-		return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(*gocui.Task) error {
+		return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 			commitIndex := self.getPatchCommitIndex()
 			self.c.LogAction(self.c.Tr.Actions.MovePatchIntoIndex)
 			err := self.c.Git().Patch.MovePatchIntoIndex(self.c.Model().Commits, commitIndex, stash)
@@ -182,7 +182,7 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 		return err
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(*gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		commitIndex := self.getPatchCommitIndex()
 		self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
 		err := self.c.Git().Patch.PullPatchIntoNewCommit(self.c.Model().Commits, commitIndex)
