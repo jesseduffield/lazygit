@@ -472,10 +472,10 @@ func NewGui(
 		func() error { return gui.State.ContextMgr.Pop() },
 		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
-		func(message string, f func() error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
+		func(message string, f func(*gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
 		func(message string) { gui.helpers.AppStatus.Toast(message) },
 		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
-		func(f func()) { gui.c.OnWorker(f) },
+		func(f func(*gocui.Task)) { gui.c.OnWorker(f) },
 	)
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
@@ -488,8 +488,6 @@ func NewGui(
 		gui.LogCommand,
 		gui.getCmdWriter,
 		credentialsHelper.PromptUserForCredential,
-		func() { gui.g.IncrementBusyCount() },
-		func() { gui.g.DecrementBusyCount() },
 	)
 
 	osCommand := oscommands.NewOSCommand(cmn, config, oscommands.GetPlatform(), guiIO)
@@ -786,15 +784,15 @@ func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
 	gui.waitForIntro.Add(len(tasks))
 	done := make(chan struct{})
 
-	gui.c.OnWorker(func() {
+	gui.c.OnWorker(func(gocuiTask *gocui.Task) {
 		for _, task := range tasks {
 			if err := task(done); err != nil {
 				_ = gui.c.Error(err)
 			}
 
-			gui.g.DecrementBusyCount()
+			gocuiTask.Pause()
 			<-done
-			gui.g.IncrementBusyCount()
+			gocuiTask.Continue()
 			gui.waitForIntro.Done()
 		}
 	})
@@ -835,7 +833,7 @@ func (gui *Gui) onUIThread(f func() error) {
 	})
 }
 
-func (gui *Gui) onWorker(f func()) {
+func (gui *Gui) onWorker(f func(*gocui.Task)) {
 	gui.g.OnWorker(f)
 }
 

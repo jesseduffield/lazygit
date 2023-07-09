@@ -174,12 +174,88 @@ type Gui struct {
 	suspendedMutex sync.Mutex
 	suspended      bool
 
+	taskManager *TaskManager
+}
+
+type TaskManager struct {
 	// Tracks whether the program is busy (i.e. either something is happening on
 	// the main goroutine or a worker goroutine). Used by integration tests
 	// to wait until the program is idle before progressing.
-	busyCount      int
-	busyCountMutex sync.Mutex
-	idleListeners  []chan struct{}
+	idleListeners []chan struct{}
+	tasks         map[int]*Task
+	newTaskId     int
+	tasksMutex    sync.Mutex
+}
+
+func newTaskManager() *TaskManager {
+	return &TaskManager{
+		tasks:         make(map[int]*Task),
+		idleListeners: []chan struct{}{},
+	}
+}
+
+func (self *TaskManager) NewTask() *Task {
+	self.tasksMutex.Lock()
+	defer self.tasksMutex.Unlock()
+
+	self.newTaskId++
+	taskId := self.newTaskId
+
+	withMutex := func(f func()) {
+		self.tasksMutex.Lock()
+		defer self.tasksMutex.Unlock()
+
+		f()
+
+		// Check if all tasks are done
+		for _, task := range self.tasks {
+			if task.isBusy {
+				return
+			}
+		}
+
+		// If we get here, all tasks are done, so
+		// notify listeners that the program is idle
+		for _, listener := range self.idleListeners {
+			listener <- struct{}{}
+		}
+	}
+	onDone := func() {
+		withMutex(func() {
+			delete(self.tasks, taskId)
+		})
+	}
+	task := &Task{id: taskId, isBusy: true, onDone: onDone, withMutex: withMutex}
+	self.tasks[taskId] = task
+
+	return task
+}
+
+func (self *TaskManager) AddIdleListener(c chan struct{}) {
+	self.idleListeners = append(self.idleListeners, c)
+}
+
+type Task struct {
+	id        int
+	isBusy    bool
+	onDone    func()
+	withMutex func(func())
+}
+
+func (self *Task) Done() {
+	self.onDone()
+}
+
+func (self *Task) Pause() {
+	self.withMutex(func() {
+		self.isBusy = false
+	})
+}
+
+func (self *Task) Continue() {
+	self.withMutex(func() {
+		self.isBusy = true
+	})
 }
 
 // NewGui returns a new Gui object with a given output mode.
@@ -212,6 +288,7 @@ func NewGui(mode OutputMode, supportOverlaps bool, playRecording bool, headless 
 
 	g.gEvents = make(chan GocuiEvent, 20)
 	g.userEvents = make(chan userEvent, 20)
+	g.taskManager = newTaskManager()
 
 	if playRecording {
 		g.ReplayedEvents = replayedEvents{
@@ -237,11 +314,15 @@ func NewGui(mode OutputMode, supportOverlaps bool, playRecording bool, headless 
 	return g, nil
 }
 
+func (g *Gui) NewTask() *Task {
+	return g.taskManager.NewTask()
+}
+
 // An idle listener listens for when the program is idle. This is useful for
 // integration tests which can wait for the program to be idle before taking
 // the next step in the test.
 func (g *Gui) AddIdleListener(c chan struct{}) {
-	g.idleListeners = append(g.idleListeners, c)
+	g.taskManager.AddIdleListener(c)
 }
 
 // Close finalizes the library. It should be called after a successful
@@ -607,7 +688,8 @@ func getKey(key interface{}) (Key, rune, error) {
 
 // userEvent represents an event triggered by the user.
 type userEvent struct {
-	f func(*Gui) error
+	f    func(*Gui) error
+	task *Task
 }
 
 // Update executes the passed function. This method can be called safely from a
@@ -616,22 +698,22 @@ type userEvent struct {
 // the user events queue. Given that Update spawns a goroutine, the order in
 // which the user events will be handled is not guaranteed.
 func (g *Gui) Update(f func(*Gui) error) {
-	g.IncrementBusyCount()
+	task := g.NewTask()
 
-	go g.updateAsyncAux(f)
+	go g.updateAsyncAux(f, task)
 }
 
 // UpdateAsync is a version of Update that does not spawn a go routine, it can
 // be a bit more efficient in cases where Update is called many times like when
 // tailing a file.  In general you should use Update()
 func (g *Gui) UpdateAsync(f func(*Gui) error) {
-	g.IncrementBusyCount()
+	task := g.NewTask()
 
-	g.updateAsyncAux(f)
+	g.updateAsyncAux(f, task)
 }
 
-func (g *Gui) updateAsyncAux(f func(*Gui) error) {
-	g.userEvents <- userEvent{f: f}
+func (g *Gui) updateAsyncAux(f func(*Gui) error, task *Task) {
+	g.userEvents <- userEvent{f: f, task: task}
 }
 
 // Calls a function in a goroutine. Handles panics gracefully and tracks
@@ -640,15 +722,15 @@ func (g *Gui) updateAsyncAux(f func(*Gui) error) {
 // consider itself 'busy` as it runs the code. Don't use for long-running
 // background goroutines where you wouldn't want lazygit to be considered busy
 // (i.e. when you wouldn't want a loader to be shown to the user)
-func (g *Gui) OnWorker(f func()) {
-	g.IncrementBusyCount()
+func (g *Gui) OnWorker(f func(*Task)) {
+	task := g.NewTask()
 	go func() {
-		g.onWorkerAux(f)
-		g.DecrementBusyCount()
+		g.onWorkerAux(f, task)
+		task.Done()
 	}()
 }
 
-func (g *Gui) onWorkerAux(f func()) {
+func (g *Gui) onWorkerAux(f func(*Task), task *Task) {
 	panicking := true
 	defer func() {
 		if panicking && Screen != nil {
@@ -656,7 +738,7 @@ func (g *Gui) onWorkerAux(f func()) {
 		}
 	}()
 
-	f()
+	f(task)
 
 	panicking = false
 }
@@ -722,43 +804,17 @@ func (g *Gui) MainLoop() error {
 	}
 }
 
-func (g *Gui) IncrementBusyCount() {
-	g.busyCountMutex.Lock()
-	defer g.busyCountMutex.Unlock()
-
-	g.busyCount++
-}
-
-func (g *Gui) DecrementBusyCount() {
-	g.busyCountMutex.Lock()
-	defer g.busyCountMutex.Unlock()
-
-	if g.busyCount == 0 {
-		panic("busyCount is already 0")
-	}
-
-	if g.busyCount == 1 {
-		// notify listeners that the program is idle
-		for _, listener := range g.idleListeners {
-			listener <- struct{}{}
-		}
-	}
-
-	g.busyCount--
-}
-
 func (g *Gui) processEvent() error {
 	select {
 	case ev := <-g.gEvents:
-		g.IncrementBusyCount()
-		defer func() { g.DecrementBusyCount() }()
+		task := g.NewTask()
+		defer func() { task.Done() }()
 
 		if err := g.handleEvent(&ev); err != nil {
 			return err
 		}
 	case ev := <-g.userEvents:
-		// user events increment busyCount ahead of time
-		defer func() { g.DecrementBusyCount() }()
+		defer func() { ev.task.Done() }()
 
 		if err := ev.f(g); err != nil {
 			return err
@@ -785,7 +841,7 @@ func (g *Gui) processRemainingEvents() error {
 			}
 		case ev := <-g.userEvents:
 			err := ev.f(g)
-			g.DecrementBusyCount()
+			ev.task.Done()
 			if err != nil {
 				return err
 			}

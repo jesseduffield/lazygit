@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-errors/errors"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
@@ -308,7 +309,7 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
 
 		go utils.Safe(func() {
-			self.processOutput(tr, handler.stdinPipe, promptUserForCredential)
+			self.processOutput(tr, handler.stdinPipe, promptUserForCredential, cmdObj.GetTask())
 		})
 	})
 }
@@ -317,6 +318,7 @@ func (self *cmdObjRunner) processOutput(
 	reader io.Reader,
 	writer io.Writer,
 	promptUserForCredential func(CredentialType) <-chan string,
+	task *gocui.Task,
 ) {
 	checkForCredentialRequest := self.getCheckForCredentialRequestFunc()
 
@@ -327,13 +329,9 @@ func (self *cmdObjRunner) processOutput(
 		askFor, ok := checkForCredentialRequest(newBytes)
 		if ok {
 			responseChan := promptUserForCredential(askFor)
-			// We assume that the busy count is greater than zero here because we're
-			// in the middle of a command. We decrement it so that The user can be prompted
-			// without lazygit thinking it's still doing its own processing. This helps
-			// integration tests know how long to wait before typing in a response.
-			self.guiIO.DecrementBusyCount()
+			task.Pause()
 			toInput := <-responseChan
-			self.guiIO.IncrementBusyCount()
+			task.Continue()
 			// If the return data is empty we don't write anything to stdin
 			if toInput != "" {
 				_, _ = writer.Write([]byte(toInput))

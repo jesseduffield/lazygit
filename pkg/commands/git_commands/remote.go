@@ -2,6 +2,8 @@ package git_commands
 
 import (
 	"fmt"
+
+	"github.com/jesseduffield/gocui"
 )
 
 type RemoteCommands struct {
@@ -46,12 +48,12 @@ func (self *RemoteCommands) UpdateRemoteUrl(remoteName string, updatedUrl string
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *RemoteCommands) DeleteRemoteBranch(remoteName string, branchName string) error {
+func (self *RemoteCommands) DeleteRemoteBranch(task *gocui.Task, remoteName string, branchName string) error {
 	cmdArgs := NewGitCmd("push").
 		Arg(remoteName, "--delete", branchName).
 		ToArgv()
 
-	return self.cmd.New(cmdArgs).PromptOnCredentialRequest().WithMutex(self.syncMutex).Run()
+	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
 }
 
 // CheckRemoteBranchExists Returns remote branch

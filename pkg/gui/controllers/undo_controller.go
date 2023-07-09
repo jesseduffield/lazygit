@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -247,7 +248,7 @@ func (self *UndoController) hardResetWithAutoStash(commitSha string, options har
 			Title:  self.c.Tr.AutoStashTitle,
 			Prompt: self.c.Tr.AutoStashPrompt,
 			HandleConfirm: func() error {
-				return self.c.WithWaitingStatus(options.WaitingStatus, func() error {
+				return self.c.WithWaitingStatus(options.WaitingStatus, func(*gocui.Task) error {
 					if err := self.c.Git().Stash.Save(self.c.Tr.StashPrefix + commitSha); err != nil {
 						return self.c.Error(err)
 					}
@@ -268,7 +269,7 @@ func (self *UndoController) hardResetWithAutoStash(commitSha string, options har
 		})
 	}
 
-	return self.c.WithWaitingStatus(options.WaitingStatus, func() error {
+	return self.c.WithWaitingStatus(options.WaitingStatus, func(*gocui.Task) error {
 		return reset()
 	})
 }

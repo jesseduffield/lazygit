@@ -5,6 +5,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,8 +13,8 @@ func TestAsyncHandler(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
-	onWorker := func(f func()) {
-		go f()
+	onWorker := func(f func(*gocui.Task)) {
+		go f(&gocui.Task{})
 	}
 	handler := NewAsyncHandler(onWorker)
 	handler.onReject = func() {

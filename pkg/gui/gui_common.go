@@ -136,7 +136,7 @@ func (self *guiCommon) OnUIThread(f func() error) {
 	self.gui.onUIThread(f)
 }
 
-func (self *guiCommon) OnWorker(f func()) {
+func (self *guiCommon) OnWorker(f func(*gocui.Task)) {
 	self.gui.onWorker(f)
 }
 

@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/sasha-s/go-deadlock"
 )
 
@@ -17,10 +18,10 @@ type AsyncHandler struct {
 	lastId    int
 	mutex     deadlock.Mutex
 	onReject  func()
-	onWorker  func(func())
+	onWorker  func(func(*gocui.Task))
 }
 
-func NewAsyncHandler(onWorker func(func())) *AsyncHandler {
+func NewAsyncHandler(onWorker func(func(*gocui.Task))) *AsyncHandler {
 	return &AsyncHandler{
 		mutex:    deadlock.Mutex{},
 		onWorker: onWorker,
@@ -33,7 +34,7 @@ func (self *AsyncHandler) Do(f func() func()) {
 	id := self.currentId
 	self.mutex.Unlock()
 
-	self.onWorker(func() {
+	self.onWorker(func(*gocui.Task) {
 		after := f()
 		self.handle(after, id)
 	})

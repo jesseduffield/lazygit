@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -31,7 +32,10 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 	onEndOfInput, getOnEndOfInputCallCount := getCounter()
 	onNewKey, getOnNewKeyCallCount := getCounter()
 	onDone, getOnDoneCallCount := getCounter()
-	incBusyCount, decBusyCount, getBusyCount := getIncDecCounter(1)
+	task := &gocui.Task{}
+	newTask := func() *gocui.Task {
+		return task
+	}
 
 	manager := NewViewBufferManager(
 		utils.NewDummyLog(),
@@ -40,8 +44,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 		refreshView,
 		onEndOfInput,
 		onNewKey,
-		incBusyCount,
-		decBusyCount,
+		newTask,
 	)
 
 	stop := make(chan struct{})
@@ -57,7 +60,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 
 	fn := manager.NewCmdTask(start, "prefix\n", LinesToRead{20, -1}, onDone)
 
-	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: decBusyCount})
+	_ = fn(TaskOpts{Stop: stop, InitialContentLoaded: func() { task.Done() }})
 
 	callCountExpectations := []struct {
 		expected int

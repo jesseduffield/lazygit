@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -86,7 +87,9 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 
 		refresh := func(f func()) {
 			if options.Mode == types.ASYNC {
-				self.c.OnWorker(f)
+				self.c.OnWorker(func(t *gocui.Task) {
+					f()
+				})
 			} else {
 				f()
 			}
@@ -198,7 +201,7 @@ func getModeName(mode types.RefreshMode) string {
 func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
-		self.c.OnWorker(func() {
+		self.c.OnWorker(func(_ *gocui.Task) {
 			_ = self.refreshReflogCommits()
 			self.refreshBranches()
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)

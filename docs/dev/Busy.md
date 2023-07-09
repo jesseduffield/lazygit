@@ -25,27 +25,27 @@ First, it's important to distinguish three different types of goroutines:
 
 The point of distinguishing worker goroutines from background goroutines is that when any worker goroutine is running, we consider Lazygit to be 'busy', whereas this is not the case with background goroutines. It would be pointless to have background goroutines be considered 'busy' because then Lazygit would be considered busy for the entire duration of the program!
 
-Lazygit is considered to be 'busy' so long as the counter remains greater than zero, and as soon as it hits zero, Lazygit is considered 'idle' and the integration test is notified. So it's important that we play by the rules below to ensure that after the user does anything, all the processing that follows happens in a contiguous block of busy-ness with no gaps.
+In gocui, the underlying package we use for managing the UI and events, we keep track of how many busy goroutines there are using the `Task` type. A task represents some work being done by lazygit. The gocui Gui struct holds a map of tasks and allows creating a new task (which adds it to the map), pausing/continuing a task, and marking a task as done (which removes it from the map). Lazygit is considered to be busy so long as there is at least one busy task in the map; otherwise it's considered idle. When Lazygit goes from busy to idle, it notifies the integration test.
 
-In gocui, the underlying package we use for managing the UI and events, we keep track of how many busy goroutines there are with a `busyCount` counter.
+It's important that we play by the rules below to ensure that after the user does anything, all the processing that follows happens in a contiguous block of busy-ness with no gaps.
 
 ### Spawning a worker goroutine
 
-Here's the basic implementation of `OnWorker`:
+Here's the basic implementation of `OnWorker` (using the same flow as `WaitGroup`s):
 
 ```go
-func (g *Gui) OnWorker(f func()) {
-	g.IncrementBusyCount()
+func (g *Gui) OnWorker(f func(*Task)) {
+	task := g.NewTask()
 	go func() {
-		f()
-		g.DecrementBusyCount()
+		f(task)
+		task.Done()
 	}()
 }
 ```
 
-The crucial thing here is that we increment the busy count _before_ spawning the goroutine, because it means that our counter never goes to zero while there's still work being done. If we incremented the busy count within the goroutine, the current function could exit and decrement the counter to zero before the goroutine starts.
+The crucial thing here is that we create the task _before_ spawning the goroutine, because it means that we'll have at least one busy task in the map until the completion of the goroutine. If we created the task within the goroutine, the current function could exit and Lazygit would be considered idle before the goroutine starts, leading to our integration test prematurely progressing.
 
-You typically invoke this with `self.c.OnWorker(f)`
+You typically invoke this with `self.c.OnWorker(f)`. Note that the callback function receives the task. This allows the callback to pause/continue the task (see below).
 
 ### Spawning a background goroutine
 
@@ -59,30 +59,20 @@ Where `utils.Safe` is a helper function that ensures we clean up the gui if the 
 
 ### Programmatically enqueing a UI event
 
-This is invoked with `self.c.OnUIThread(f)`. Internally, it increments the counter before enqueuing the function as an event and once that event is processed by the event queue (and any other pending events are processed) the counter is decremented again.
+This is invoked with `self.c.OnUIThread(f)`. Internally, it creates a task before enqueuing the function as an event (including the task in the event struct) and once that event is processed by the event queue (and any other pending events are processed) the task is removed from the map by calling `task.Done()`.
 
 ### Pressing a key
 
-If the user presses a key, an event will be enqueued automatically and the counter will be incremented before (and decremented after) the event is processed.
+If the user presses a key, an event will be enqueued automatically and a task will be created before (and `Done`'d after) the event is processed.
 
 ## Special cases
 
-There are a couple of special cases where we manually increment/decrement the counter in the code. These are subject to change but for the sake of completeness:
+There are a couple of special cases where we manually pause/continue the task directly in the client code. These are subject to change but for the sake of completeness:
 
 ### Writing to the main view(s)
 
-If the user focuses a file in the files panel, we run a `git diff` command for that file and write the output to the main view. But we only read enough of the command's output to fill the view's viewport: further loading only happens if the user scrolls. Given that we have a background goroutine for running the command and writing more output upon scrolling, we manually increment the busy count within that goroutine and then decrement it once the viewport is filled.
+If the user focuses a file in the files panel, we run a `git diff` command for that file and write the output to the main view. But we only read enough of the command's output to fill the view's viewport: further loading only happens if the user scrolls. Given that we have a background goroutine for running the command and writing more output upon scrolling, we create our own task and call `Done` on it as soon as the viewport is filled.
 
 ### Requesting credentials from a git command
 
-Some git commands (e.g. git push) may request credentials. This is the same deal as above; we use a background goroutine and manually increment/decrement the counter as we go from waiting on the git command to waiting on user input.
-
-## Future improvements
-
-### Better API
-
-The current approach is fairly simple in terms of the API which, except for the special cases above, encapsulates the incrementing/decrementing of the busy counter. But the counter is a form of global state and in future we may switch to an API where we have objects representing a task in progress, and those objects have `Start()`, `Finish()`, and `Pause()` methods. This would better defend against bugs caused by a random goroutine accidentally decrementing twice, for example.
-
-### More applications
-
-We could use the concept of idle/busy to show a loader whenever Lazygit is busy. But our current situation is pretty good: we have the `WithWaitingStatus()` method for running a function on a worker goroutine along with a message to show within the loader e.g. 'Refreshing branches'. If we find a situation where we're a function is taking a while and a loader isn't appearing, that's because we're running the code on the UI goroutine and we should just wrap the code in `WithWaitingStatus()`.
+Some git commands (e.g. git push) may request credentials. This is the same deal as above; we use a worker goroutine and manually pause continue its task as we go from waiting on the git command to waiting on user input. This requires passing the task through to the `Push` method so that it can be paused/continued.

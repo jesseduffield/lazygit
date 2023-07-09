@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -86,7 +86,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 				if self.pauseBackgroundRefreshes {
 					continue
 				}
-				self.gui.c.OnWorker(func() { _ = function() })
+				self.gui.c.OnWorker(func(*gocui.Task) { _ = function() })
 			case <-stop:
 				return
 			}
@@ -95,7 +95,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 }
 
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
-	err = self.gui.git.Sync.Fetch(git_commands.FetchOptions{Background: true})
+	err = self.gui.git.Sync.FetchBackground()
 
 	_ = self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -363,11 +364,12 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 		},
 	)
 
-	return self.c.WithLoaderPanel(message, func() error {
+	return self.c.WithLoaderPanel(message, func(task *gocui.Task) error {
 		if branch == self.c.Helpers().Refs.GetCheckedOutRef() {
 			self.c.LogAction(action)
 
 			err := self.c.Git().Sync.Pull(
+				task,
 				git_commands.PullOptions{
 					RemoteName:      branch.UpstreamRemote,
 					BranchName:      branch.UpstreamBranch,
@@ -381,7 +383,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		} else {
 			self.c.LogAction(action)
-			err := self.c.Git().Sync.FastForward(branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
+			err := self.c.Git().Sync.FastForward(task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
 			if err != nil {
 				_ = self.c.Error(err)
 			}

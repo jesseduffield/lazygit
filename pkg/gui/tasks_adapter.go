@@ -130,8 +130,9 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			func() {
 				_ = view.SetOrigin(0, 0)
 			},
-			gui.c.GocuiGui().IncrementBusyCount,
-			gui.c.GocuiGui().DecrementBusyCount,
+			func() *gocui.Task {
+				return gui.c.GocuiGui().NewTask()
+			},
 		)
 		gui.viewBufferManagerMap[view.Name()] = manager
 	}

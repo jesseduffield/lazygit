@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
@@ -49,8 +50,7 @@ type ViewBufferManager struct {
 	onEndOfInput func()
 
 	// see docs/dev/Busy.md
-	incrementBusyCount func()
-	decrementBusyCount func()
+	newTask func() *gocui.Task
 
 	// if the user flicks through a heap of items, with each one
 	// spawning a process to render something to the main view,
@@ -80,19 +80,17 @@ func NewViewBufferManager(
 	refreshView func(),
 	onEndOfInput func(),
 	onNewKey func(),
-	incrementBusyCount func(),
-	decrementBusyCount func(),
+	newTask func() *gocui.Task,
 ) *ViewBufferManager {
 	return &ViewBufferManager{
-		Log:                log,
-		writer:             writer,
-		beforeStart:        beforeStart,
-		refreshView:        refreshView,
-		onEndOfInput:       onEndOfInput,
-		readLines:          make(chan LinesToRead, 1024),
-		onNewKey:           onNewKey,
-		incrementBusyCount: incrementBusyCount,
-		decrementBusyCount: decrementBusyCount,
+		Log:          log,
+		writer:       writer,
+		beforeStart:  beforeStart,
+		refreshView:  refreshView,
+		onEndOfInput: onEndOfInput,
+		readLines:    make(chan LinesToRead, 1024),
+		onNewKey:     onNewKey,
+		newTask:      newTask,
 	}
 }
 
@@ -298,18 +296,18 @@ type TaskOpts struct {
 }
 
 func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error {
-	self.incrementBusyCount()
+	task := self.newTask()
 
-	var decrementCounterOnce sync.Once
+	var completeTaskOnce sync.Once
 
-	decrementCounter := func() {
-		decrementCounterOnce.Do(func() {
-			self.decrementBusyCount()
+	completeTask := func() {
+		completeTaskOnce.Do(func() {
+			task.Done()
 		})
 	}
 
 	go utils.Safe(func() {
-		defer decrementCounter()
+		defer completeTask()
 
 		self.taskIDMutex.Lock()
 		self.newTaskID++
@@ -349,7 +347,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 
 		self.waitingMutex.Unlock()
 
-		if err := f(TaskOpts{Stop: stop, InitialContentLoaded: decrementCounter}); err != nil {
+		if err := f(TaskOpts{Stop: stop, InitialContentLoaded: completeTask}); err != nil {
 			self.Log.Error(err) // might need an onError callback
 		}
 

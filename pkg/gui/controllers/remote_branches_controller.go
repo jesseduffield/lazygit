@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -117,9 +118,9 @@ func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch
 		Title:  self.c.Tr.DeleteRemoteBranch,
 		Prompt: message,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task *gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
-				err := self.c.Git().Remote.DeleteRemoteBranch(selectedBranch.RemoteName, selectedBranch.Name)
+				err := self.c.Git().Remote.DeleteRemoteBranch(task, selectedBranch.RemoteName, selectedBranch.Name)
 				if err != nil {
 					_ = self.c.Error(err)
 				}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -138,15 +139,16 @@ type PullFilesOptions struct {
 }
 
 func (self *SyncController) PullAux(opts PullFilesOptions) error {
-	return self.c.WithLoaderPanel(self.c.Tr.PullWait, func() error {
-		return self.pullWithLock(opts)
+	return self.c.WithLoaderPanel(self.c.Tr.PullWait, func(task *gocui.Task) error {
+		return self.pullWithLock(task, opts)
 	})
 }
 
-func (self *SyncController) pullWithLock(opts PullFilesOptions) error {
+func (self *SyncController) pullWithLock(task *gocui.Task, opts PullFilesOptions) error {
 	self.c.LogAction(opts.Action)
 
 	err := self.c.Git().Sync.Pull(
+		task,
 		git_commands.PullOptions{
 			RemoteName:      opts.UpstreamRemote,
 			BranchName:      opts.UpstreamBranch,
@@ -165,14 +167,16 @@ type pushOpts struct {
 }
 
 func (self *SyncController) pushAux(opts pushOpts) error {
-	return self.c.WithLoaderPanel(self.c.Tr.PushWait, func() error {
+	return self.c.WithLoaderPanel(self.c.Tr.PushWait, func(task *gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.Push)
-		err := self.c.Git().Sync.Push(git_commands.PushOpts{
-			Force:          opts.force,
-			UpstreamRemote: opts.upstreamRemote,
-			UpstreamBranch: opts.upstreamBranch,
-			SetUpstream:    opts.setUpstream,
-		})
+		err := self.c.Git().Sync.Push(
+			task,
+			git_commands.PushOpts{
+				Force:          opts.force,
+				UpstreamRemote: opts.upstreamRemote,
+				UpstreamBranch: opts.upstreamBranch,
+				SetUpstream:    opts.setUpstream,
+			})
 		if err != nil {
 			if !opts.force && strings.Contains(err.Error(), "Updates were rejected") {
 				forcePushDisabled := self.c.UserConfig.Git.DisableForcePushing

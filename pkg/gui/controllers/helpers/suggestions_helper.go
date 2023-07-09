@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -100,7 +101,7 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 // Notably, unlike other suggestion functions we're not showing all the options
 // if nothing has been typed because there'll be too much to display efficiently
 func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*types.Suggestion {
-	_ = self.c.WithWaitingStatus(self.c.Tr.LoadingFileSuggestions, func() error {
+	_ = self.c.WithWaitingStatus(self.c.Tr.LoadingFileSuggestions, func(*gocui.Task) error {
 		trie := patricia.NewTrie()
 		// load every non-gitignored file in the repo
 		ignore, err := gitignore.FromGit()

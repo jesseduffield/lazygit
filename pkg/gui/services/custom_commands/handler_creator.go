@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -264,7 +265,7 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 		loadingText = self.c.Tr.RunningCustomCommandStatus
 	}
 
-	return self.c.WithWaitingStatus(loadingText, func() error {
+	return self.c.WithWaitingStatus(loadingText, func(*gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.CustomCommand)
 
 		if customCommand.Stream {

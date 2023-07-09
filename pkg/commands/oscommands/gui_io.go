@@ -27,9 +27,6 @@ type guiIO struct {
 	// that a command requests it.
 	// the 'credential' arg is something like 'username' or 'password'
 	promptForCredentialFn func(credential CredentialType) <-chan string
-
-	IncrementBusyCount func()
-	DecrementBusyCount func()
 }
 
 func NewGuiIO(
@@ -37,16 +34,12 @@ func NewGuiIO(
 	logCommandFn func(string, bool),
 	newCmdWriterFn func() io.Writer,
 	promptForCredentialFn func(CredentialType) <-chan string,
-	IncrementBusyCount func(),
-	DecrementBusyCount func(),
 ) *guiIO {
 	return &guiIO{
 		log:                   log,
 		logCommandFn:          logCommandFn,
 		newCmdWriterFn:        newCmdWriterFn,
 		promptForCredentialFn: promptForCredentialFn,
-		IncrementBusyCount:    IncrementBusyCount,
-		DecrementBusyCount:    DecrementBusyCount,
 	}
 }
 
@@ -58,7 +51,5 @@ func NewNullGuiIO(log *logrus.Entry) *guiIO {
 		logCommandFn:          func(string, bool) {},
 		newCmdWriterFn:        func() io.Writer { return io.Discard },
 		promptForCredentialFn: failPromptFn,
-		IncrementBusyCount:    func() {},
-		DecrementBusyCount:    func() {},
 	}
 }
