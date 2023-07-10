@@ -52,9 +52,9 @@ func (self *StashCommands) Apply(index int) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-// Save save stash
-func (self *StashCommands) Save(message string) error {
-	cmdArgs := NewGitCmd("stash").Arg("save", message).
+// Push push stash
+func (self *StashCommands) Push(message string) error {
+	cmdArgs := NewGitCmd("stash").Arg("push", "-m", message).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
@@ -63,8 +63,9 @@ func (self *StashCommands) Save(message string) error {
 func (self *StashCommands) Store(sha string, message string) error {
 	trimmedMessage := strings.Trim(message, " \t")
 
-	cmdArgs := NewGitCmd("stash").Arg("store", sha).
+	cmdArgs := NewGitCmd("stash").Arg("store").
 		ArgIf(trimmedMessage != "", "-m", trimmedMessage).
+		Arg(sha).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
@@ -93,7 +94,7 @@ func (self *StashCommands) ShowStashEntryCmdObj(index int, ignoreWhitespace bool
 }
 
 func (self *StashCommands) StashAndKeepIndex(message string) error {
-	cmdArgs := NewGitCmd("stash").Arg("save", message, "--keep-index").
+	cmdArgs := NewGitCmd("stash").Arg("push", "--keep-index", "-m", message).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
@@ -107,7 +108,7 @@ func (self *StashCommands) StashUnstagedChanges(message string) error {
 	).Run(); err != nil {
 		return err
 	}
-	if err := self.Save(message); err != nil {
+	if err := self.Push(message); err != nil {
 		return err
 	}
 
@@ -129,7 +130,7 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 		return err
 	}
 
-	if err := self.Save(message); err != nil {
+	if err := self.Push(message); err != nil {
 		return err
 	}
 
@@ -171,7 +172,7 @@ func (self *StashCommands) SaveStagedChanges(message string) error {
 
 func (self *StashCommands) StashIncludeUntrackedChanges(message string) error {
 	return self.cmd.New(
-		NewGitCmd("stash").Arg("save", message, "--include-untracked").
+		NewGitCmd("stash").Arg("push", "--include-untracked", "-m", message).
 			ToArgv(),
 	).Run()
 }

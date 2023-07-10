@@ -196,11 +196,6 @@ func (self *Shell) CreateNCommitsStartingAt(n, startIndex int) *Shell {
 	return self
 }
 
-func (self *Shell) StashWithMessage(message string) *Shell {
-	self.RunCommand([]string{"git", "stash", "-m", message})
-	return self
-}
-
 func (self *Shell) SetConfig(key string, value string) *Shell {
 	self.RunCommand([]string{"git", "config", "--local", key, value})
 	return self
@@ -245,7 +240,7 @@ func (self *Shell) HardReset(ref string) *Shell {
 }
 
 func (self *Shell) Stash(message string) *Shell {
-	self.RunCommand([]string{"git", "stash", "-m", message})
+	self.RunCommand([]string{"git", "stash", "push", "-m", message})
 	return self
 }
 
@@ -254,8 +249,8 @@ func (self *Shell) StartBisect(good string, bad string) *Shell {
 	return self
 }
 
-func (self *Shell) Init(mainBranch string) *Shell {
-	self.RunCommand([]string{"git", "init", "-b", mainBranch})
+func (self *Shell) Init() *Shell {
+	self.RunCommand([]string{"git", "-c", "init.defaultBranch=master", "init"})
 	return self
 }
 

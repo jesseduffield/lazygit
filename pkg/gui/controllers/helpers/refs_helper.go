@@ -65,7 +65,7 @@ func (self *RefsHelper) CheckoutRef(ref string, options types.CheckoutRefOptions
 					Title:  self.c.Tr.AutoStashTitle,
 					Prompt: self.c.Tr.AutoStashPrompt,
 					HandleConfirm: func() error {
-						if err := self.c.Git().Stash.Save(self.c.Tr.StashPrefix + ref); err != nil {
+						if err := self.c.Git().Stash.Push(self.c.Tr.StashPrefix + ref); err != nil {
 							return self.c.Error(err)
 						}
 						if err := self.c.Git().Branch.Checkout(ref, cmdOptions); err != nil {

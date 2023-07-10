@@ -221,7 +221,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitIdx int, stash bool) error {
 	if stash {
-		if err := self.stash.Save(self.Tr.StashPrefix + commits[commitIdx].Sha); err != nil {
+		if err := self.stash.Push(self.Tr.StashPrefix + commits[commitIdx].Sha); err != nil {
 			return err
 		}
 	}

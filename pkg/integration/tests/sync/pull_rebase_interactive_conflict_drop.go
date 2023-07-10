@@ -15,7 +15,8 @@ var PullRebaseInteractiveConflictDrop = NewIntegrationTest(NewIntegrationTestArg
 		shell.Commit("one")
 		shell.UpdateFileAndAdd("file", "content2")
 		shell.Commit("two")
-		shell.EmptyCommit("three")
+		shell.CreateFileAndAdd("file3", "content3")
+		shell.Commit("three")
 
 		shell.CloneIntoRemote("origin")
 
@@ -24,7 +25,8 @@ var PullRebaseInteractiveConflictDrop = NewIntegrationTest(NewIntegrationTestArg
 		shell.HardReset("HEAD^^")
 		shell.UpdateFileAndAdd("file", "content4")
 		shell.Commit("four")
-		shell.EmptyCommit("five")
+		shell.CreateFileAndAdd("fil5", "content5")
+		shell.Commit("five")
 
 		shell.SetConfig("pull.rebase", "interactive")
 	},
