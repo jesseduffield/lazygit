@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -197,8 +198,8 @@ func (self *RemotesController) edit(remote *models.Remote) error {
 }
 
 func (self *RemotesController) fetch(remote *models.Remote) error {
-	return self.c.WithWaitingStatus(self.c.Tr.FetchingRemoteStatus, func() error {
-		err := self.c.Git().Sync.FetchRemote(remote.Name)
+	return self.c.WithWaitingStatus(self.c.Tr.FetchingRemoteStatus, func(task gocui.Task) error {
+		err := self.c.Git().Sync.FetchRemote(task, remote.Name)
 		if err != nil {
 			_ = self.c.Error(err)
 		}

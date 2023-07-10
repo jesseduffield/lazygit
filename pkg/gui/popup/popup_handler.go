@@ -9,7 +9,6 @@ import (
 	gctx "github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 )
 
@@ -22,9 +21,10 @@ type PopupHandler struct {
 	popContextFn        func() error
 	currentContextFn    func() types.Context
 	createMenuFn        func(types.CreateMenuOptions) error
-	withWaitingStatusFn func(message string, f func() error)
+	withWaitingStatusFn func(message string, f func(gocui.Task) error)
 	toastFn             func(message string)
 	getPromptInputFn    func() string
+	onWorker            func(func(gocui.Task))
 }
 
 var _ types.IPopupHandler = &PopupHandler{}
@@ -36,9 +36,10 @@ func NewPopupHandler(
 	popContextFn func() error,
 	currentContextFn func() types.Context,
 	createMenuFn func(types.CreateMenuOptions) error,
-	withWaitingStatusFn func(message string, f func() error),
+	withWaitingStatusFn func(message string, f func(gocui.Task) error),
 	toastFn func(message string),
 	getPromptInputFn func() string,
+	onWorker func(func(gocui.Task)),
 ) *PopupHandler {
 	return &PopupHandler{
 		Common:              common,
@@ -51,6 +52,7 @@ func NewPopupHandler(
 		withWaitingStatusFn: withWaitingStatusFn,
 		toastFn:             toastFn,
 		getPromptInputFn:    getPromptInputFn,
+		onWorker:            onWorker,
 	}
 }
 
@@ -62,7 +64,7 @@ func (self *PopupHandler) Toast(message string) {
 	self.toastFn(message)
 }
 
-func (self *PopupHandler) WithWaitingStatus(message string, f func() error) error {
+func (self *PopupHandler) WithWaitingStatus(message string, f func(gocui.Task) error) error {
 	self.withWaitingStatusFn(message, f)
 	return nil
 }
@@ -122,7 +124,7 @@ func (self *PopupHandler) Prompt(opts types.PromptOpts) error {
 	})
 }
 
-func (self *PopupHandler) WithLoaderPanel(message string, f func() error) error {
+func (self *PopupHandler) WithLoaderPanel(message string, f func(gocui.Task) error) error {
 	index := 0
 	self.Lock()
 	self.index++
@@ -141,8 +143,8 @@ func (self *PopupHandler) WithLoaderPanel(message string, f func() error) error 
 		return nil
 	}
 
-	go utils.Safe(func() {
-		if err := f(); err != nil {
+	self.onWorker(func(task gocui.Task) {
+		if err := f(task); err != nil {
 			self.Log.Error(err)
 		}
 

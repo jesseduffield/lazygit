@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -217,7 +218,7 @@ func (self *LocalCommitsController) squashDown(commit *models.Commit) error {
 		Title:  self.c.Tr.Squash,
 		Prompt: self.c.Tr.SureSquashThisCommit,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SquashCommitDown)
 				return self.interactiveRebase(todo.Squash)
 			})
@@ -242,7 +243,7 @@ func (self *LocalCommitsController) fixup(commit *models.Commit) error {
 		Title:  self.c.Tr.Fixup,
 		Prompt: self.c.Tr.SureFixupThisCommit,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.FixingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.FixupCommit)
 				return self.interactiveRebase(todo.Fixup)
 			})
@@ -338,7 +339,7 @@ func (self *LocalCommitsController) drop(commit *models.Commit) error {
 		Title:  self.c.Tr.DeleteCommitTitle,
 		Prompt: self.c.Tr.DeleteCommitPrompt,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.DropCommit)
 				return self.interactiveRebase(todo.Drop)
 			})
@@ -355,7 +356,7 @@ func (self *LocalCommitsController) edit(commit *models.Commit) error {
 		return nil
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func() error {
+	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
 		err := self.c.Git().Rebase.EditRebase(commit.Sha)
 		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
@@ -460,7 +461,7 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func() error {
+	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 		err := self.c.Git().Rebase.MoveCommitDown(self.c.Model().Commits, index)
 		if err == nil {
@@ -498,7 +499,7 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func() error {
+	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
 		err := self.c.Git().Rebase.MoveCommitUp(self.c.Model().Commits, index)
 		if err == nil {
@@ -524,7 +525,7 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
 				err := self.c.Git().Rebase.AmendTo(self.c.Model().Commits, self.context().GetView().SelectedLineIdx())
 				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
@@ -558,7 +559,7 @@ func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error 
 }
 
 func (self *LocalCommitsController) resetAuthor() error {
-	return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
+	return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.ResetCommitAuthor)
 		if err := self.c.Git().Rebase.ResetCommitAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx()); err != nil {
 			return self.c.Error(err)
@@ -573,7 +574,7 @@ func (self *LocalCommitsController) setAuthor() error {
 		Title:               self.c.Tr.SetAuthorPromptTitle,
 		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
 		HandleConfirm: func(value string) error {
-			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SetCommitAuthor)
 				if err := self.c.Git().Rebase.SetCommitAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx(), value); err != nil {
 					return self.c.Error(err)
@@ -671,7 +672,7 @@ func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Co
 		Title:  self.c.Tr.SquashAboveCommits,
 		Prompt: prompt,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
 				self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
 				err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
 				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
@@ -723,7 +724,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 						self.context().SetLimitCommits(false)
 					}
 
-					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func() error {
+					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
 						return self.c.Refresh(
 							types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.COMMITS}},
 						)
@@ -766,7 +767,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 					onPress := func(value string) func() error {
 						return func() error {
 							self.c.UserConfig.Git.Log.Order = value
-							return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func() error {
+							return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
 								return self.c.Refresh(
 									types.RefreshOptions{
 										Mode:  types.SYNC,
@@ -816,7 +817,7 @@ func (self *LocalCommitsController) GetOnFocus() func(types.OnFocusOpts) error {
 		context := self.context()
 		if context.GetSelectedLineIdx() > COMMIT_THRESHOLD && context.GetLimitCommits() {
 			context.SetLimitCommits(false)
-			go utils.Safe(func() {
+			self.c.OnWorker(func(_ gocui.Task) {
 				if err := self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}}); err != nil {
 					_ = self.c.Error(err)
 				}

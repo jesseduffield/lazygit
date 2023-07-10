@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -145,7 +146,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 }
 
 func (self *FilesRemoveController) ResetSubmodule(submodule *models.SubmoduleConfig) error {
-	return self.c.WithWaitingStatus(self.c.Tr.ResettingSubmoduleStatus, func() error {
+	return self.c.WithWaitingStatus(self.c.Tr.ResettingSubmoduleStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.ResetSubmodule)
 
 		file := self.c.Helpers().WorkingTree.FileForSubmodule(submodule)

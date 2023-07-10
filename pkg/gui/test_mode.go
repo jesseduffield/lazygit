@@ -7,28 +7,38 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
-	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type IntegrationTest interface {
-	Run(guiAdapter *GuiDriver)
+	Run(*GuiDriver)
 }
 
-func (gui *Gui) handleTestMode(test integrationTypes.IntegrationTest) {
+func (gui *Gui) handleTestMode() {
+	test := gui.integrationTest
 	if os.Getenv(components.SANDBOX_ENV_VAR) == "true" {
 		return
 	}
 
 	if test != nil {
-		go func() {
-			time.Sleep(time.Millisecond * 100)
+		isIdleChan := make(chan struct{})
 
-			test.Run(&GuiDriver{gui: gui})
+		gui.c.GocuiGui().AddIdleListener(isIdleChan)
+
+		waitUntilIdle := func() {
+			<-isIdleChan
+		}
+
+		go func() {
+			waitUntilIdle()
+
+			test.Run(&GuiDriver{gui: gui, isIdleChan: isIdleChan})
 
 			gui.g.Update(func(*gocui.Gui) error {
 				return gocui.ErrQuit
 			})
+
+			waitUntilIdle()
 
 			time.Sleep(time.Second * 1)
 

@@ -77,6 +77,9 @@ type IGuiCommon interface {
 	// Only necessary to call if you're not already on the UI thread i.e. you're inside a goroutine.
 	// All controller handlers are executed on the UI thread.
 	OnUIThread(f func() error)
+	// Runs a function in a goroutine. Use this whenever you want to run a goroutine and keep track of the fact
+	// that lazygit is still busy. See docs/dev/Busy.md
+	OnWorker(f func(gocui.Task))
 
 	// returns the gocui Gui struct. There is a good chance you don't actually want to use
 	// this struct and instead want to use another method above
@@ -118,8 +121,8 @@ type IPopupHandler interface {
 	Confirm(opts ConfirmOpts) error
 	// Shows a popup prompting the user for input.
 	Prompt(opts PromptOpts) error
-	WithLoaderPanel(message string, f func() error) error
-	WithWaitingStatus(message string, f func() error) error
+	WithLoaderPanel(message string, f func(gocui.Task) error) error
+	WithWaitingStatus(message string, f func(gocui.Task) error) error
 	Menu(opts CreateMenuOptions) error
 	Toast(message string)
 	GetPromptInput() string
@@ -214,14 +217,15 @@ type Model struct {
 // if you add a new mutex here be sure to instantiate it. We're using pointers to
 // mutexes so that we can pass the mutexes to controllers.
 type Mutexes struct {
-	RefreshingFilesMutex  *deadlock.Mutex
-	RefreshingStatusMutex *deadlock.Mutex
-	SyncMutex             *deadlock.Mutex
-	LocalCommitsMutex     *deadlock.Mutex
-	SubCommitsMutex       *deadlock.Mutex
-	SubprocessMutex       *deadlock.Mutex
-	PopupMutex            *deadlock.Mutex
-	PtyMutex              *deadlock.Mutex
+	RefreshingFilesMutex    *deadlock.Mutex
+	RefreshingBranchesMutex *deadlock.Mutex
+	RefreshingStatusMutex   *deadlock.Mutex
+	SyncMutex               *deadlock.Mutex
+	LocalCommitsMutex       *deadlock.Mutex
+	SubCommitsMutex         *deadlock.Mutex
+	SubprocessMutex         *deadlock.Mutex
+	PopupMutex              *deadlock.Mutex
+	PtyMutex                *deadlock.Mutex
 }
 
 type IStateAccessor interface {

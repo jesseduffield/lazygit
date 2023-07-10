@@ -3,8 +3,8 @@ package helpers
 import (
 	"time"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/status"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type AppStatusHelper struct {
@@ -27,12 +27,12 @@ func (self *AppStatusHelper) Toast(message string) {
 }
 
 // withWaitingStatus wraps a function and shows a waiting status while the function is still executing
-func (self *AppStatusHelper) WithWaitingStatus(message string, f func() error) {
-	go utils.Safe(func() {
+func (self *AppStatusHelper) WithWaitingStatus(message string, f func(gocui.Task) error) {
+	self.c.OnWorker(func(task gocui.Task) {
 		self.statusMgr().WithWaitingStatus(message, func() {
 			self.renderAppStatus()
 
-			if err := f(); err != nil {
+			if err := f(task); err != nil {
 				self.c.OnUIThread(func() error {
 					return self.c.Error(err)
 				})
@@ -50,7 +50,7 @@ func (self *AppStatusHelper) GetStatusString() string {
 }
 
 func (self *AppStatusHelper) renderAppStatus() {
-	go utils.Safe(func() {
+	self.c.OnWorker(func(_ gocui.Task) {
 		ticker := time.NewTicker(time.Millisecond * 50)
 		defer ticker.Stop()
 		for range ticker.C {

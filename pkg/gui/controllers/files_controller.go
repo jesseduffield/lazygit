@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
@@ -801,17 +800,17 @@ func (self *FilesController) onClickSecondary(opts gocui.ViewMouseBindingOpts) e
 }
 
 func (self *FilesController) fetch() error {
-	return self.c.WithLoaderPanel(self.c.Tr.FetchWait, func() error {
-		if err := self.fetchAux(); err != nil {
+	return self.c.WithLoaderPanel(self.c.Tr.FetchWait, func(task gocui.Task) error {
+		if err := self.fetchAux(task); err != nil {
 			_ = self.c.Error(err)
 		}
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 	})
 }
 
-func (self *FilesController) fetchAux() (err error) {
+func (self *FilesController) fetchAux(task gocui.Task) (err error) {
 	self.c.LogAction("Fetch")
-	err = self.c.Git().Sync.Fetch(git_commands.FetchOptions{})
+	err = self.c.Git().Sync.Fetch(task)
 
 	if err != nil && strings.Contains(err.Error(), "exit status 128") {
 		_ = self.c.ErrorMsg(self.c.Tr.PassUnameWrong)

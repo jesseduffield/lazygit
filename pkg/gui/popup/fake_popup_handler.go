@@ -1,6 +1,9 @@
 package popup
 
-import "github.com/jesseduffield/lazygit/pkg/gui/types"
+import (
+	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
+)
 
 type FakePopupHandler struct {
 	OnErrorMsg func(message string) error
@@ -30,12 +33,12 @@ func (self *FakePopupHandler) Prompt(opts types.PromptOpts) error {
 	return self.OnPrompt(opts)
 }
 
-func (self *FakePopupHandler) WithLoaderPanel(message string, f func() error) error {
-	return f()
+func (self *FakePopupHandler) WithLoaderPanel(message string, f func(gocui.Task) error) error {
+	return f(gocui.NewFakeTask())
 }
 
-func (self *FakePopupHandler) WithWaitingStatus(message string, f func() error) error {
-	return f()
+func (self *FakePopupHandler) WithWaitingStatus(message string, f func(gocui.Task) error) error {
+	return f(gocui.NewFakeTask())
 }
 
 func (self *FakePopupHandler) Menu(opts types.CreateMenuOptions) error {

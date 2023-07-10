@@ -48,7 +48,7 @@ func (gui *Gui) newStringTask(view *gocui.View, str string) error {
 func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 	manager := gui.getManager(view)
 
-	f := func(stop chan struct{}) error {
+	f := func(tasks.TaskOpts) error {
 		gui.c.SetViewContent(view, str)
 		return nil
 	}
@@ -65,7 +65,7 @@ func (gui *Gui) newStringTaskWithoutScroll(view *gocui.View, str string) error {
 func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX int, originY int) error {
 	manager := gui.getManager(view)
 
-	f := func(stop chan struct{}) error {
+	f := func(tasks.TaskOpts) error {
 		gui.c.SetViewContent(view, str)
 		_ = view.SetOrigin(originX, originY)
 		return nil
@@ -81,7 +81,7 @@ func (gui *Gui) newStringTaskWithScroll(view *gocui.View, str string, originX in
 func (gui *Gui) newStringTaskWithKey(view *gocui.View, str string, key string) error {
 	manager := gui.getManager(view)
 
-	f := func(stop chan struct{}) error {
+	f := func(tasks.TaskOpts) error {
 		gui.c.ResetViewOrigin(view)
 		gui.c.SetViewContent(view, str)
 		return nil
@@ -129,6 +129,9 @@ func (gui *Gui) getManager(view *gocui.View) *tasks.ViewBufferManager {
 			},
 			func() {
 				_ = view.SetOrigin(0, 0)
+			},
+			func() gocui.Task {
+				return gui.c.GocuiGui().NewTask()
 			},
 		)
 		gui.viewBufferManagerMap[view.Name()] = manager

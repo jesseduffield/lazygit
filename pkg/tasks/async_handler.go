@@ -1,7 +1,7 @@
 package tasks
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/gocui"
 	"github.com/sasha-s/go-deadlock"
 )
 
@@ -18,11 +18,13 @@ type AsyncHandler struct {
 	lastId    int
 	mutex     deadlock.Mutex
 	onReject  func()
+	onWorker  func(func(gocui.Task))
 }
 
-func NewAsyncHandler() *AsyncHandler {
+func NewAsyncHandler(onWorker func(func(gocui.Task))) *AsyncHandler {
 	return &AsyncHandler{
-		mutex: deadlock.Mutex{},
+		mutex:    deadlock.Mutex{},
+		onWorker: onWorker,
 	}
 }
 
@@ -32,7 +34,7 @@ func (self *AsyncHandler) Do(f func() func()) {
 	id := self.currentId
 	self.mutex.Unlock()
 
-	go utils.Safe(func() {
+	self.onWorker(func(gocui.Task) {
 		after := f()
 		self.handle(after, id)
 	})

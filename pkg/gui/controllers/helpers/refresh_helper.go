@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -63,8 +64,6 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		)
 	}
 
-	wg := sync.WaitGroup{}
-
 	f := func() {
 		var scopeSet *set.Set[types.RefreshableView]
 		if len(options.Scope) == 0 {
@@ -87,15 +86,13 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		}
 
 		refresh := func(f func()) {
-			wg.Add(1)
-			func() {
-				if options.Mode == types.ASYNC {
-					go utils.Safe(f)
-				} else {
+			if options.Mode == types.ASYNC {
+				self.c.OnWorker(func(t gocui.Task) {
 					f()
-				}
-				wg.Done()
-			}()
+				})
+			} else {
+				f()
+			}
 		}
 
 		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) || scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
@@ -142,8 +139,6 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		if scopeSet.Includes(types.MERGE_CONFLICTS) || scopeSet.Includes(types.FILES) {
 			refresh(func() { _ = self.mergeConflictsHelper.RefreshMergeState() })
 		}
-
-		wg.Wait()
 
 		self.refreshStatus()
 
@@ -206,7 +201,7 @@ func getModeName(mode types.RefreshMode) string {
 func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	switch self.c.State().GetRepoState().GetStartupStage() {
 	case types.INITIAL:
-		go utils.Safe(func() {
+		self.c.OnWorker(func(_ gocui.Task) {
 			_ = self.refreshReflogCommits()
 			self.refreshBranches()
 			self.c.State().GetRepoState().SetStartupStage(types.COMPLETE)
@@ -350,6 +345,9 @@ func (self *RefreshHelper) refreshStateSubmoduleConfigs() error {
 // self.refreshStatus is called at the end of this because that's when we can
 // be sure there is a State.Model.Branches array to pick the current branch from
 func (self *RefreshHelper) refreshBranches() {
+	self.c.Mutexes().RefreshingBranchesMutex.Lock()
+	defer self.c.Mutexes().RefreshingBranchesMutex.Unlock()
+
 	reflogCommits := self.c.Model().FilteredReflogCommits
 	if self.c.Modes().Filtering.Active() {
 		// in filter mode we filter our reflog commits to just those containing the path

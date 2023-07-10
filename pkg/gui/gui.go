@@ -130,6 +130,8 @@ type Gui struct {
 
 	c       *helpers.HelperCommon
 	helpers *helpers.Helpers
+
+	integrationTest integrationTypes.IntegrationTest
 }
 
 type StateAccessor struct {
@@ -446,14 +448,15 @@ func NewGui(
 		// sake of backwards compatibility. We're making use of short circuiting here
 		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
 		Mutexes: types.Mutexes{
-			RefreshingFilesMutex:  &deadlock.Mutex{},
-			RefreshingStatusMutex: &deadlock.Mutex{},
-			SyncMutex:             &deadlock.Mutex{},
-			LocalCommitsMutex:     &deadlock.Mutex{},
-			SubCommitsMutex:       &deadlock.Mutex{},
-			SubprocessMutex:       &deadlock.Mutex{},
-			PopupMutex:            &deadlock.Mutex{},
-			PtyMutex:              &deadlock.Mutex{},
+			RefreshingFilesMutex:    &deadlock.Mutex{},
+			RefreshingBranchesMutex: &deadlock.Mutex{},
+			RefreshingStatusMutex:   &deadlock.Mutex{},
+			SyncMutex:               &deadlock.Mutex{},
+			LocalCommitsMutex:       &deadlock.Mutex{},
+			SubCommitsMutex:         &deadlock.Mutex{},
+			SubprocessMutex:         &deadlock.Mutex{},
+			PopupMutex:              &deadlock.Mutex{},
+			PtyMutex:                &deadlock.Mutex{},
 		},
 		InitialDir: initialDir,
 	}
@@ -469,9 +472,10 @@ func NewGui(
 		func() error { return gui.State.ContextMgr.Pop() },
 		func() types.Context { return gui.State.ContextMgr.Current() },
 		gui.createMenu,
-		func(message string, f func() error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
+		func(message string, f func(gocui.Task) error) { gui.helpers.AppStatus.WithWaitingStatus(message, f) },
 		func(message string) { gui.helpers.AppStatus.Toast(message) },
 		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
+		func(f func(gocui.Task)) { gui.c.OnWorker(f) },
 	)
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}
@@ -620,7 +624,8 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 
 	gui.c.Log.Info("starting main loop")
 
-	gui.handleTestMode(startArgs.IntegrationTest)
+	// setting here so we can use it in layout.go
+	gui.integrationTest = startArgs.IntegrationTest
 
 	return gui.g.MainLoop()
 }
@@ -716,8 +721,8 @@ func (gui *Gui) runSubprocessWithSuspense(subprocess oscommands.ICmdObj) (bool, 
 		return false, gui.c.Error(err)
 	}
 
-	gui.BackgroundRoutineMgr.PauseBackgroundThreads(true)
-	defer gui.BackgroundRoutineMgr.PauseBackgroundThreads(false)
+	gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(true)
+	defer gui.BackgroundRoutineMgr.PauseBackgroundRefreshes(false)
 
 	cmdErr := gui.runSubprocess(subprocess)
 
@@ -775,37 +780,23 @@ func (gui *Gui) loadNewRepo() error {
 	return nil
 }
 
-func (gui *Gui) showInitialPopups(tasks []func(chan struct{}) error) {
-	gui.waitForIntro.Add(len(tasks))
-	done := make(chan struct{})
+func (gui *Gui) showIntroPopupMessage() {
+	gui.waitForIntro.Add(1)
 
-	go utils.Safe(func() {
-		for _, task := range tasks {
-			task := task
-			go utils.Safe(func() {
-				if err := task(done); err != nil {
-					_ = gui.c.Error(err)
-				}
-			})
-
-			<-done
+	gui.c.OnUIThread(func() error {
+		onConfirm := func() error {
+			gui.c.GetAppState().StartupPopupVersion = StartupPopupVersion
+			err := gui.c.SaveAppState()
 			gui.waitForIntro.Done()
+			return err
 		}
-	})
-}
 
-func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
-	onConfirm := func() error {
-		done <- struct{}{}
-		gui.c.GetAppState().StartupPopupVersion = StartupPopupVersion
-		return gui.c.SaveAppState()
-	}
-
-	return gui.c.Confirm(types.ConfirmOpts{
-		Title:         "",
-		Prompt:        gui.c.Tr.IntroPopupMessage,
-		HandleConfirm: onConfirm,
-		HandleClose:   onConfirm,
+		return gui.c.Confirm(types.ConfirmOpts{
+			Title:         "",
+			Prompt:        gui.c.Tr.IntroPopupMessage,
+			HandleConfirm: onConfirm,
+			HandleClose:   onConfirm,
+		})
 	})
 }
 
@@ -826,6 +817,10 @@ func (gui *Gui) onUIThread(f func() error) {
 	gui.g.Update(func(*gocui.Gui) error {
 		return f()
 	})
+}
+
+func (gui *Gui) onWorker(f func(gocui.Task)) {
+	gui.g.OnWorker(f)
 }
 
 func (gui *Gui) getWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {

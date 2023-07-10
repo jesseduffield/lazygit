@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -15,11 +15,11 @@ type BackgroundRoutineMgr struct {
 	// if we've suspended the gui (e.g. because we've switched to a subprocess)
 	// we typically want to pause some things that are running like background
 	// file refreshes
-	pauseBackgroundThreads bool
+	pauseBackgroundRefreshes bool
 }
 
-func (self *BackgroundRoutineMgr) PauseBackgroundThreads(pause bool) {
-	self.pauseBackgroundThreads = pause
+func (self *BackgroundRoutineMgr) PauseBackgroundRefreshes(pause bool) {
+	self.pauseBackgroundRefreshes = pause
 }
 
 func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
@@ -39,9 +39,7 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 	if userConfig.Git.AutoRefresh {
 		refreshInterval := userConfig.Refresher.RefreshInterval
 		if refreshInterval > 0 {
-			self.goEvery(time.Second*time.Duration(refreshInterval), self.gui.stopChan, func() error {
-				return self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
-			})
+			go utils.Safe(func() { self.startBackgroundFilesRefresh(refreshInterval) })
 		} else {
 			self.gui.c.Log.Errorf(
 				"Value of config option 'refresher.refreshInterval' (%d) is invalid, disabling auto-refresh",
@@ -52,6 +50,7 @@ func (self *BackgroundRoutineMgr) startBackgroundRoutines() {
 
 func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	self.gui.waitForIntro.Wait()
+
 	isNew := self.gui.IsNewRepo
 	userConfig := self.gui.UserConfig
 	if !isNew {
@@ -69,17 +68,31 @@ func (self *BackgroundRoutineMgr) startBackgroundFetch() {
 	}
 }
 
+func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh(refreshInterval int) {
+	self.gui.waitForIntro.Wait()
+
+	self.goEvery(time.Second*time.Duration(refreshInterval), self.gui.stopChan, func() error {
+		return self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.FILES}})
+	})
+}
+
 func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func() error) {
+	done := make(chan struct{})
 	go utils.Safe(func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:
-				if self.pauseBackgroundThreads {
+				if self.pauseBackgroundRefreshes {
 					continue
 				}
-				_ = function()
+				self.gui.c.OnWorker(func(gocui.Task) {
+					_ = function()
+					done <- struct{}{}
+				})
+				// waiting so that we don't bunch up refreshes if the refresh takes longer than the interval
+				<-done
 			case <-stop:
 				return
 			}
@@ -88,7 +101,7 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 }
 
 func (self *BackgroundRoutineMgr) backgroundFetch() (err error) {
-	err = self.gui.git.Sync.Fetch(git_commands.FetchOptions{Background: true})
+	err = self.gui.git.Sync.FetchBackground()
 
 	_ = self.gui.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.COMMITS, types.REMOTES, types.TAGS}, Mode: types.ASYNC})
 

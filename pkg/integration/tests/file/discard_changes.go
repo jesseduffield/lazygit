@@ -8,7 +8,7 @@ import (
 var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Discarding all possible permutations of changed files",
 	ExtraCmdArgs: []string{},
-	Skip:         true, // failing due to index.lock file being created
+	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},
 	SetupRepo: func(shell *Shell) {
@@ -22,8 +22,8 @@ var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.RunShellCommand(`echo bothmodded > both-modded.txt && git add both-modded.txt`)
 		shell.RunShellCommand(`echo haha > deleted-them.txt && git add deleted-them.txt`)
 		shell.RunShellCommand(`echo haha2 > deleted-us.txt && git add deleted-us.txt`)
-		shell.RunShellCommand(`echo mod > modded.txt & git add modded.txt`)
-		shell.RunShellCommand(`echo mod > modded-staged.txt & git add modded-staged.txt`)
+		shell.RunShellCommand(`echo mod > modded.txt && git add modded.txt`)
+		shell.RunShellCommand(`echo mod > modded-staged.txt && git add modded-staged.txt`)
 		shell.RunShellCommand(`echo del > deleted.txt && git add deleted.txt`)
 		shell.RunShellCommand(`echo del > deleted-staged.txt && git add deleted-staged.txt`)
 		shell.RunShellCommand(`echo change-delete > change-delete.txt && git add change-delete.txt`)

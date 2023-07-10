@@ -114,6 +114,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			return err
 		}
 
+		gui.handleTestMode()
+
 		gui.ViewsSetup = true
 	}
 
@@ -211,12 +213,10 @@ func (gui *Gui) onInitialViewsCreation() error {
 	gui.g.Mutexes.ViewsMutex.Unlock()
 
 	if !gui.c.UserConfig.DisableStartupPopups {
-		popupTasks := []func(chan struct{}) error{}
 		storedPopupVersion := gui.c.GetAppState().StartupPopupVersion
 		if storedPopupVersion < StartupPopupVersion {
-			popupTasks = append(popupTasks, gui.showIntroPopupMessage)
+			gui.showIntroPopupMessage()
 		}
-		gui.showInitialPopups(popupTasks)
 	}
 
 	if gui.showRecentRepos {
