@@ -77,6 +77,7 @@ func (self *BackgroundRoutineMgr) startBackgroundFilesRefresh(refreshInterval in
 }
 
 func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan struct{}, function func() error) {
+	done := make(chan struct{})
 	go utils.Safe(func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
@@ -86,7 +87,12 @@ func (self *BackgroundRoutineMgr) goEvery(interval time.Duration, stop chan stru
 				if self.pauseBackgroundRefreshes {
 					continue
 				}
-				self.gui.c.OnWorker(func(gocui.Task) { _ = function() })
+				self.gui.c.OnWorker(func(gocui.Task) {
+					_ = function()
+					done <- struct{}{}
+				})
+				// waiting so that we don't bunch up refreshes if the refresh takes longer than the interval
+				<-done
 			case <-stop:
 				return
 			}
