@@ -65,6 +65,8 @@ type ICmdObj interface {
 
 	GetCredentialStrategy() CredentialStrategy
 	GetTask() gocui.Task
+
+	Clone() ICmdObj
 }
 
 type CmdObj struct {
@@ -214,4 +216,18 @@ func (self *CmdObj) GetCredentialStrategy() CredentialStrategy {
 
 func (self *CmdObj) GetTask() gocui.Task {
 	return self.task
+}
+
+func (self *CmdObj) Clone() ICmdObj {
+	clone := &CmdObj{}
+	*clone = *self
+	clone.cmd = cloneCmd(self.cmd)
+	return clone
+}
+
+func cloneCmd(cmd *exec.Cmd) *exec.Cmd {
+	clone := &exec.Cmd{}
+	*clone = *cmd
+
+	return clone
 }

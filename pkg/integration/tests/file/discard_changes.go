@@ -8,7 +8,7 @@ import (
 var DiscardChanges = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Discarding all possible permutations of changed files",
 	ExtraCmdArgs: []string{},
-	Skip:         true, // failing due to index.lock file being created
+	Skip:         false,
 	SetupConfig: func(config *config.AppConfig) {
 	},
 	SetupRepo: func(shell *Shell) {
