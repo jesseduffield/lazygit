@@ -780,37 +780,23 @@ func (gui *Gui) loadNewRepo() error {
 	return nil
 }
 
-func (gui *Gui) showInitialPopups(popupTasks []func(chan struct{}) error) {
-	gui.waitForIntro.Add(len(popupTasks))
-	done := make(chan struct{})
+func (gui *Gui) showIntroPopupMessage() {
+	gui.waitForIntro.Add(1)
 
-	gui.c.OnWorker(func(task gocui.Task) {
-		for _, popupTask := range popupTasks {
-			if err := popupTask(done); err != nil {
-				_ = gui.c.Error(err)
-			}
-
-			task.Pause()
-			<-done
-			task.Continue()
+	gui.c.OnUIThread(func() error {
+		onConfirm := func() error {
+			gui.c.GetAppState().StartupPopupVersion = StartupPopupVersion
+			err := gui.c.SaveAppState()
 			gui.waitForIntro.Done()
+			return err
 		}
-	})
-}
 
-func (gui *Gui) showIntroPopupMessage(done chan struct{}) error {
-	onConfirm := func() error {
-		gui.c.GetAppState().StartupPopupVersion = StartupPopupVersion
-		err := gui.c.SaveAppState()
-		done <- struct{}{}
-		return err
-	}
-
-	return gui.c.Confirm(types.ConfirmOpts{
-		Title:         "",
-		Prompt:        gui.c.Tr.IntroPopupMessage,
-		HandleConfirm: onConfirm,
-		HandleClose:   onConfirm,
+		return gui.c.Confirm(types.ConfirmOpts{
+			Title:         "",
+			Prompt:        gui.c.Tr.IntroPopupMessage,
+			HandleConfirm: onConfirm,
+			HandleClose:   onConfirm,
+		})
 	})
 }
 
