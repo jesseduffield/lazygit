@@ -249,7 +249,11 @@ func (self *cmdObjRunner) runAndStreamAux(
 		if cmdObj.ShouldIgnoreEmptyError() {
 			return nil
 		}
-		return errors.New(stdout.String())
+		stdoutStr := stdout.String()
+		if stdoutStr != "" {
+			return errors.New(stdoutStr)
+		}
+		return errors.New("Command exited with non-zero exit code, but no output")
 	}
 
 	return nil
@@ -308,9 +312,7 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
 		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
 
-		go utils.Safe(func() {
-			self.processOutput(tr, handler.stdinPipe, promptUserForCredential, cmdObj.GetTask())
-		})
+		self.processOutput(tr, handler.stdinPipe, promptUserForCredential, cmdObj.GetTask())
 	})
 }
 
