@@ -155,6 +155,8 @@ keybinding:
     goInto: '<enter>'
     openRecentRepos: '<c-r>'
     confirm: '<enter>'
+    # confirm-prompt: 'y' # confirm prompt messages (alternative to the 'confirm')
+    # cancel-prompt: 'n' # close/abort prompt messages (alternative to the 'return')
     remove: 'd'
     new: 'n'
     edit: 'e'

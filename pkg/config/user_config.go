@@ -173,6 +173,8 @@ type KeybindingUniversalConfig struct {
 	GoInto                       string   `yaml:"goInto"`
 	Confirm                      string   `yaml:"confirm"`
 	ConfirmInEditor              string   `yaml:"confirmInEditor"`
+	ConfirmPrompt                string   `yaml:"confirm-prompt"`
+	CancelPrompt                 string   `yaml:"cancel-prompt"`
 	Remove                       string   `yaml:"remove"`
 	New                          string   `yaml:"new"`
 	Edit                         string   `yaml:"edit"`
