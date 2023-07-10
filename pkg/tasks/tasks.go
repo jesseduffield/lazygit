@@ -186,8 +186,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		go utils.Safe(func() {
 			isViewStale := true
 			writeToView := func(content []byte) {
-				_, _ = self.writer.Write(content)
 				isViewStale = true
+				_, _ = self.writer.Write(content)
 			}
 			refreshViewIfStale := func() {
 				if isViewStale {
@@ -299,18 +299,18 @@ type TaskOpts struct {
 }
 
 func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error {
-	task := self.newGocuiTask()
+	gocuiTask := self.newGocuiTask()
 
 	var completeTaskOnce sync.Once
 
-	completeTask := func() {
+	completeGocuiTask := func() {
 		completeTaskOnce.Do(func() {
-			task.Done()
+			gocuiTask.Done()
 		})
 	}
 
 	go utils.Safe(func() {
-		defer completeTask()
+		defer completeGocuiTask()
 
 		self.taskIDMutex.Lock()
 		self.newTaskID++
@@ -350,7 +350,7 @@ func (self *ViewBufferManager) NewTask(f func(TaskOpts) error, key string) error
 
 		self.waitingMutex.Unlock()
 
-		if err := f(TaskOpts{Stop: stop, InitialContentLoaded: completeTask}); err != nil {
+		if err := f(TaskOpts{Stop: stop, InitialContentLoaded: completeGocuiTask}); err != nil {
 			self.Log.Error(err) // might need an onError callback
 		}
 
