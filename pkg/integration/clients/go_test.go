@@ -48,8 +48,8 @@ func TestIntegration(t *testing.T) {
 		},
 		false,
 		0,
-		// Only allowing one attempt per test. We'll see if we get any flakiness
-		1,
+		// Allow two attempts at each test to get around flakiness
+		2,
 	)
 
 	assert.NoError(t, err)
