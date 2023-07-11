@@ -10,7 +10,9 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	GitVersion:   AtLeast("2.38.0"),
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.MainBranches = []string{"master"}
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.
 			CreateNCommits(1).
@@ -28,7 +30,7 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("CI commit 07").IsSelected(),
 				Contains("CI commit 06"),
 				Contains("CI commit 05"),
-				Contains("CI commit 04"),
+				Contains("CI * commit 04"),
 				Contains("CI commit 03"),
 				Contains("CI commit 02"),
 				Contains("CI commit 01"),
@@ -40,8 +42,8 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("pick").Contains("CI commit 07"),
 				Contains("pick").Contains("CI commit 06"),
 				Contains("pick").Contains("CI commit 05"),
-				Contains("update-ref").Contains("branch1"),
-				Contains("pick").Contains("CI commit 04"),
+				Contains("update-ref").Contains("branch1").DoesNotContain("*"),
+				Contains("pick").Contains("CI * commit 04"),
 				Contains("pick").Contains("CI commit 03"),
 				Contains("<-- YOU ARE HERE --- commit 02"),
 				Contains("CI commit 01"),
@@ -56,7 +58,7 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("CI commit 07"),
 				Contains("CI commit 05"),
-				Contains("CI commit 04"),
+				Contains("CI * commit 04"),
 				Contains("CI commit 03"),
 				Contains("CI commit 02"),
 				Contains("CI commit 01"),

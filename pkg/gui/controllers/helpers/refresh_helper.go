@@ -439,6 +439,12 @@ func (self *RefreshHelper) refreshBranches() {
 		self.c.Log.Error(err)
 	}
 
+	// Need to re-render the commits view because the visualization of local
+	// branch heads might have changed
+	if err := self.c.Contexts().LocalCommits.HandleRender(); err != nil {
+		self.c.Log.Error(err)
+	}
+
 	self.refreshStatus()
 }
 

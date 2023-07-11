@@ -37,6 +37,13 @@ func NewSubCommitsContext(
 	}
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
+		// This can happen if a sub-commits view is asked to be rerendered while
+		// it is invisble; for example when switching screen modes, which
+		// rerenders all views.
+		if viewModel.GetRef() == nil {
+			return [][]string{}
+		}
+
 		selectedCommitSha := ""
 		if c.CurrentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
@@ -47,6 +54,8 @@ func NewSubCommitsContext(
 		return presentation.GetCommitListDisplayStrings(
 			c.Common,
 			c.Model().SubCommits,
+			c.Model().Branches,
+			viewModel.GetRef().RefName(),
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().CherryPicking.SelectedShaSet(),
 			c.Modes().Diffing.Ref,
