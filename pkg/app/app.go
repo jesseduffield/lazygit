@@ -194,7 +194,7 @@ func (app *App) setupRepo() (bool, error) {
 				fmt.Print(app.Tr.InitialBranch)
 				response, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 				if trimmedResponse := strings.Trim(response, " \r\n"); len(trimmedResponse) > 0 {
-					initialBranchArg += "--initial-branch=" + app.OSCommand.Quote(trimmedResponse)
+					initialBranchArg += "--initial-branch=" + trimmedResponse
 				}
 			}
 		case "create":
@@ -210,7 +210,11 @@ func (app *App) setupRepo() (bool, error) {
 		}
 
 		if shouldInitRepo {
-			if err := app.OSCommand.Cmd.New([]string{"git", "init", initialBranchArg}).Run(); err != nil {
+			args := []string{"git", "init"}
+			if initialBranchArg != "" {
+				args = append(args, initialBranchArg)
+			}
+			if err := app.OSCommand.Cmd.New(args).Run(); err != nil {
 				return false, err
 			}
 			return false, nil
