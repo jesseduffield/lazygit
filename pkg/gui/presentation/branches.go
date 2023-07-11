@@ -71,7 +71,7 @@ func getBranchDisplayStrings(
 	}
 
 	if fullDescription || userConfig.Gui.ShowBranchCommitHash {
-		res = append(res, b.CommitHash)
+		res = append(res, utils.ShortSha(b.CommitHash))
 	}
 
 	res = append(res, coloredName)
