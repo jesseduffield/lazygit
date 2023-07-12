@@ -217,6 +217,10 @@ type Model struct {
 	RemoteBranches                      []*models.RemoteBranch
 	Tags                                []*models.Tag
 
+	// Name of the currently checked out branch. This will be set even when
+	// we're on a detached head because we're rebasing or bisecting.
+	CheckedOutBranch string
+
 	// for displaying suggestions while typing in a file name
 	FilesTrie *patricia.Trie
 
