@@ -137,31 +137,45 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
 	} else if strings.Contains(result.Error(), "No rebase in progress?") {
 		// assume in this case that we're already done
 		return nil
-	} else if isMergeConflictErr(result.Error()) {
-		mode := self.workingTreeStateNoun()
-		return self.c.Menu(types.CreateMenuOptions{
-			Title: self.c.Tr.FoundConflictsTitle,
-			Items: []*types.MenuItem{
-				{
-					Label: self.c.Tr.ViewConflictsMenuItem,
-					OnPress: func() error {
-						return self.c.PushContext(self.c.Contexts().Files)
-					},
-					Key: 'v',
-				},
-				{
-					Label: fmt.Sprintf(self.c.Tr.AbortMenuItem, mode),
-					OnPress: func() error {
-						return self.genericMergeCommand(REBASE_OPTION_ABORT)
-					},
-					Key: 'a',
-				},
-			},
-			HideCancel: true,
-		})
+	} else {
+		return self.CheckForConflicts(result)
+	}
+}
+
+func (self *MergeAndRebaseHelper) CheckForConflicts(result error) error {
+	if result == nil {
+		return nil
+	}
+
+	if isMergeConflictErr(result.Error()) {
+		return self.PromptForConflictHandling()
 	} else {
 		return self.c.ErrorMsg(result.Error())
 	}
+}
+
+func (self *MergeAndRebaseHelper) PromptForConflictHandling() error {
+	mode := self.workingTreeStateNoun()
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.FoundConflictsTitle,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.ViewConflictsMenuItem,
+				OnPress: func() error {
+					return self.c.PushContext(self.c.Contexts().Files)
+				},
+				Key: 'v',
+			},
+			{
+				Label: fmt.Sprintf(self.c.Tr.AbortMenuItem, mode),
+				OnPress: func() error {
+					return self.genericMergeCommand(REBASE_OPTION_ABORT)
+				},
+				Key: 'a',
+			},
+		},
+		HideCancel: true,
+	})
 }
 
 func (self *MergeAndRebaseHelper) AbortMergeOrRebaseWithConfirm() error {

@@ -17,27 +17,30 @@ import (
 
 // takes a custom command and returns a function that will be called when the corresponding user-defined keybinding is pressed
 type HandlerCreator struct {
-	c                  *helpers.HelperCommon
-	sessionStateLoader *SessionStateLoader
-	resolver           *Resolver
-	menuGenerator      *MenuGenerator
-	suggestionsHelper  *helpers.SuggestionsHelper
+	c                    *helpers.HelperCommon
+	sessionStateLoader   *SessionStateLoader
+	resolver             *Resolver
+	menuGenerator        *MenuGenerator
+	suggestionsHelper    *helpers.SuggestionsHelper
+	mergeAndRebaseHelper *helpers.MergeAndRebaseHelper
 }
 
 func NewHandlerCreator(
 	c *helpers.HelperCommon,
 	sessionStateLoader *SessionStateLoader,
 	suggestionsHelper *helpers.SuggestionsHelper,
+	mergeAndRebaseHelper *helpers.MergeAndRebaseHelper,
 ) *HandlerCreator {
 	resolver := NewResolver(c.Common)
 	menuGenerator := NewMenuGenerator(c.Common)
 
 	return &HandlerCreator{
-		c:                  c,
-		sessionStateLoader: sessionStateLoader,
-		resolver:           resolver,
-		menuGenerator:      menuGenerator,
-		suggestionsHelper:  suggestionsHelper,
+		c:                    c,
+		sessionStateLoader:   sessionStateLoader,
+		resolver:             resolver,
+		menuGenerator:        menuGenerator,
+		suggestionsHelper:    suggestionsHelper,
+		mergeAndRebaseHelper: mergeAndRebaseHelper,
 	}
 }
 
@@ -272,7 +275,16 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 			cmdObj.StreamOutput()
 		}
 		output, err := cmdObj.RunWithOutput()
+
+		if refreshErr := self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
+			self.c.Log.Error(refreshErr)
+		}
+
 		if err != nil {
+			if customCommand.After.CheckForConflicts {
+				return self.mergeAndRebaseHelper.CheckForConflicts(err)
+			}
+
 			return self.c.Error(err)
 		}
 
@@ -280,11 +292,9 @@ func (self *HandlerCreator) finalHandler(customCommand config.CustomCommand, ses
 			if strings.TrimSpace(output) == "" {
 				output = self.c.Tr.EmptyOutput
 			}
-			if err = self.c.Alert(cmdStr, output); err != nil {
-				return self.c.Error(err)
-			}
-			return self.c.Refresh(types.RefreshOptions{})
+			return self.c.Alert(cmdStr, output)
 		}
-		return self.c.Refresh(types.RefreshOptions{})
+
+		return nil
 	})
 }
