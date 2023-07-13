@@ -78,11 +78,6 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			Description: self.c.Tr.RebaseBranch,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
-			Handler:     opts.Guards.OutsideFilterMode(self.merge),
-			Description: self.c.Tr.MergeIntoCurrentBranch,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Branches.FastForward),
 			Handler:     self.checkSelectedAndReal(self.fastForward),
 			Description: self.c.Tr.FastForward,
@@ -331,11 +326,6 @@ func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, f
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES}})
 		},
 	})
-}
-
-func (self *BranchesController) merge() error {
-	selectedBranchName := self.context().GetSelected().Name
-	return self.c.Helpers().MergeAndRebase.MergeRefIntoCheckedOutBranch(selectedBranchName)
 }
 
 func (self *BranchesController) rebase() error {

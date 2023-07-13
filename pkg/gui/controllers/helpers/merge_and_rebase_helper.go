@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -33,6 +34,23 @@ const (
 	REBASE_OPTION_ABORT    string = "abort"
 	REBASE_OPTION_SKIP     string = "skip"
 )
+
+func (self *MergeAndRebaseHelper) CreateMergeRebaseOptionsMenu() error {
+	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
+		return self.CreateRebaseOptionsMenu()
+	}
+
+	currentContext := self.c.CurrentContext()
+	if currentContext.GetKey() != context.LOCAL_BRANCHES_CONTEXT_KEY {
+		return self.c.ErrorMsg("Not currently merging/rebasing")
+	}
+
+	branchesContext := currentContext.(*context.BranchesContext)
+
+	// TODO: handle filter mode (see OutsideFilterMode)
+	selectedBranchName := branchesContext.GetSelected().Name
+	return self.MergeRefIntoCheckedOutBranch(selectedBranchName)
+}
 
 func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 	type optionAndKey struct {

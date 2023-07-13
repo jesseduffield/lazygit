@@ -34,7 +34,7 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.CreateRebaseOptionsMenu),
-			Handler:     self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu,
+			Handler:     self.c.Helpers().MergeAndRebase.CreateMergeRebaseOptionsMenu,
 			Description: self.c.Tr.ViewMergeRebaseOptions,
 			OpensMenu:   true,
 		},
