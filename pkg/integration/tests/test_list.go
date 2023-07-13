@@ -75,6 +75,7 @@ var tests = []*components.IntegrationTest{
 	conflicts.UndoChooseHunk,
 	custom_commands.BasicCmdAtRuntime,
 	custom_commands.BasicCmdFromConfig,
+	custom_commands.CheckForConflicts,
 	custom_commands.ComplexCmdAtRuntime,
 	custom_commands.FormPrompts,
 	custom_commands.MenuFromCommand,

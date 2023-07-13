@@ -349,16 +349,21 @@ type OSConfig struct {
 	OpenLinkCommand string `yaml:"openLinkCommand,omitempty"`
 }
 
+type CustomCommandAfterHook struct {
+	CheckForConflicts bool `yaml:"checkForConflicts"`
+}
+
 type CustomCommand struct {
-	Key         string                `yaml:"key"`
-	Context     string                `yaml:"context"`
-	Command     string                `yaml:"command"`
-	Subprocess  bool                  `yaml:"subprocess"`
-	Prompts     []CustomCommandPrompt `yaml:"prompts"`
-	LoadingText string                `yaml:"loadingText"`
-	Description string                `yaml:"description"`
-	Stream      bool                  `yaml:"stream"`
-	ShowOutput  bool                  `yaml:"showOutput"`
+	Key         string                 `yaml:"key"`
+	Context     string                 `yaml:"context"`
+	Command     string                 `yaml:"command"`
+	Subprocess  bool                   `yaml:"subprocess"`
+	Prompts     []CustomCommandPrompt  `yaml:"prompts"`
+	LoadingText string                 `yaml:"loadingText"`
+	Description string                 `yaml:"description"`
+	Stream      bool                   `yaml:"stream"`
+	ShowOutput  bool                   `yaml:"showOutput"`
+	After       CustomCommandAfterHook `yaml:"after"`
 }
 
 type CustomCommandPrompt struct {
