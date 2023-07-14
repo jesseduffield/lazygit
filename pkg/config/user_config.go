@@ -103,8 +103,7 @@ type PagingConfig struct {
 }
 
 type CommitConfig struct {
-	SignOff bool   `yaml:"signOff"`
-	Verbose string `yaml:"verbose"`
+	SignOff bool `yaml:"signOff"`
 }
 
 type MergingConfig struct {
@@ -450,7 +449,6 @@ func GetDefaultConfig() *UserConfig {
 			},
 			Commit: CommitConfig{
 				SignOff: false,
-				Verbose: "default",
 			},
 			Merging: MergingConfig{
 				ManualCommit: false,

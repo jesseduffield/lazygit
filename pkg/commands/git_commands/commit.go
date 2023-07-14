@@ -95,7 +95,6 @@ func (self *CommitCommands) commitMessageArgs(message string) []string {
 func (self *CommitCommands) CommitEditorCmdObj() oscommands.ICmdObj {
 	cmdArgs := NewGitCmd("commit").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
-		ArgIf(self.verboseFlag() != "", self.verboseFlag()).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs)
@@ -105,17 +104,6 @@ func (self *CommitCommands) signoffFlag() string {
 	if self.UserConfig.Git.Commit.SignOff {
 		return "--signoff"
 	} else {
-		return ""
-	}
-}
-
-func (self *CommitCommands) verboseFlag() string {
-	switch self.config.UserConfig.Git.Commit.Verbose {
-	case "always":
-		return "--verbose"
-	case "never":
-		return "--no-verbose"
-	default:
 		return ""
 	}
 }
