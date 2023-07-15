@@ -14,16 +14,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var commitsOutput = strings.Replace(`0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com| (HEAD -> better-tests)|b21997d6b4cbdf84b149|better typing for rebase mode
-b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164|1640824515|Jesse Duffield|jessedduffield@gmail.com| (origin/better-tests)|e94e8fc5b6fab4cb755f|fix logging
-e94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c|1640823749|Jesse Duffield|jessedduffield@gmail.com||d8084cd558925eb7c9c3|refactor
+var commitsOutput = strings.Replace(`0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com|HEAD -> better-tests|b21997d6b4cbdf84b149|better typing for rebase mode
+b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164|1640824515|Jesse Duffield|jessedduffield@gmail.com|origin/better-tests|e94e8fc5b6fab4cb755f|fix logging
+e94e8fc5b6fab4cb755f29f1bdb3ee5e001df35c|1640823749|Jesse Duffield|jessedduffield@gmail.com|tag: 123, tag: 456|d8084cd558925eb7c9c3|refactor
 d8084cd558925eb7c9c38afeed5725c21653ab90|1640821426|Jesse Duffield|jessedduffield@gmail.com||65f910ebd85283b5cce9|WIP
 65f910ebd85283b5cce9bf67d03d3f1a9ea3813a|1640821275|Jesse Duffield|jessedduffield@gmail.com||26c07b1ab33860a1a759|WIP
 26c07b1ab33860a1a7591a0638f9925ccf497ffa|1640750752|Jesse Duffield|jessedduffield@gmail.com||3d4470a6c072208722e5|WIP
 3d4470a6c072208722e5ae9a54bcb9634959a1c5|1640748818|Jesse Duffield|jessedduffield@gmail.com||053a66a7be3da43aacdc|WIP
 053a66a7be3da43aacdc7aa78e1fe757b82c4dd2|1640739815|Jesse Duffield|jessedduffield@gmail.com||985fe482e806b172aea4|refactoring the config struct`, "|", "\x00", -1)
 
-var singleCommitOutput = strings.Replace(`0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com| (HEAD -> better-tests)|b21997d6b4cbdf84b149|better typing for rebase mode`, "|", "\x00", -1)
+var singleCommitOutput = strings.Replace(`0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com|HEAD -> better-tests|b21997d6b4cbdf84b149|better typing for rebase mode`, "|", "\x00", -1)
 
 func TestGetCommits(t *testing.T) {
 	type scenario struct {
@@ -45,7 +45,7 @@ func TestGetCommits(t *testing.T) {
 			opts:       GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
-				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
 			expectedError:   nil,
@@ -57,7 +57,7 @@ func TestGetCommits(t *testing.T) {
 			opts:       GetCommitsOptions{RefName: "refs/heads/mybranch", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
-				ExpectGitArgs([]string{"log", "refs/heads/mybranch", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
+				ExpectGitArgs([]string{"log", "refs/heads/mybranch", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
 			expectedError:   nil,
@@ -72,7 +72,7 @@ func TestGetCommits(t *testing.T) {
 				// here it's seeing which commits are yet to be pushed
 				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
-				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, commitsOutput, nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, commitsOutput, nil).
 				// here it's testing which of the configured main branches have an upstream
 				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "master@{u}"}, "refs/remotes/origin/master", nil).       // this one does
 				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "main@{u}"}, "", errors.New("error")).                   // this one doesn't, so it checks origin instead
@@ -117,8 +117,8 @@ func TestGetCommits(t *testing.T) {
 					Name:          "refactor",
 					Status:        models.StatusPushed,
 					Action:        models.ActionNone,
-					Tags:          []string{},
-					ExtraInfo:     "",
+					Tags:          []string{"123", "456"},
+					ExtraInfo:     "(tag: 123, tag: 456)",
 					AuthorName:    "Jesse Duffield",
 					AuthorEmail:   "jessedduffield@gmail.com",
 					UnixTimestamp: 1640823749,
@@ -209,7 +209,7 @@ func TestGetCommits(t *testing.T) {
 				// here it's seeing which commits are yet to be pushed
 				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
-				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
 				// here it's testing which of the configured main branches exist; neither does
 				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "master@{u}"}, "", errors.New("error")).
 				ExpectGitArgs([]string{"rev-parse", "--verify", "--quiet", "refs/remotes/origin/master"}, "", errors.New("error")).
@@ -246,7 +246,7 @@ func TestGetCommits(t *testing.T) {
 				// here it's seeing which commits are yet to be pushed
 				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
-				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
 				// here it's testing which of the configured main branches exist
 				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "master@{u}"}, "refs/remotes/origin/master", nil).
 				ExpectGitArgs([]string{"rev-parse", "--symbolic-full-name", "main@{u}"}, "", errors.New("error")).
@@ -282,7 +282,7 @@ func TestGetCommits(t *testing.T) {
 			opts:       GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
-				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
+				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
 			expectedError:   nil,
@@ -294,7 +294,7 @@ func TestGetCommits(t *testing.T) {
 			opts:       GetCommitsOptions{RefName: "HEAD", FilterPath: "src"},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
-				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%d%x00%p%x00%s", "--abbrev=40", "--follow", "--no-show-signature", "--", "src"}, "", nil),
+				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--follow", "--no-show-signature", "--", "src"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
 			expectedError:   nil,
