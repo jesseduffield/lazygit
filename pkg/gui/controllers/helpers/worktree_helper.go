@@ -18,12 +18,14 @@ type IWorktreeHelper interface {
 }
 
 type WorktreeHelper struct {
-	c *HelperCommon
+	c           *HelperCommon
+	reposHelper *ReposHelper
 }
 
-func NewWorktreeHelper(c *HelperCommon) *WorktreeHelper {
+func NewWorktreeHelper(c *HelperCommon, reposHelper *ReposHelper) *WorktreeHelper {
 	return &WorktreeHelper{
-		c: c,
+		c:           c,
+		reposHelper: reposHelper,
 	}
 }
 
@@ -74,4 +76,18 @@ func (self *WorktreeHelper) NewWorktree() error {
 			})
 		},
 	})
+}
+
+func (self *WorktreeHelper) Switch(worktree *models.Worktree) error {
+	if self.c.Git().Worktree.IsCurrentWorktree(worktree) {
+		return self.c.ErrorMsg(self.c.Tr.AlreadyInWorktree)
+	}
+
+	self.c.LogAction(self.c.Tr.SwitchToWorktree)
+
+	// if we were in a submodule, we want to forget about that stack of repos
+	// so that hitting escape in the new repo does nothing
+	self.c.State().GetRepoPathStack().Clear()
+
+	return self.reposHelper.DispatchSwitchTo(worktree.Path, true, self.c.Tr.ErrWorktreeMovedOrDeleted)
 }

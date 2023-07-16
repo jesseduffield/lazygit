@@ -542,7 +542,7 @@ type TranslationSet struct {
 	FilterPrefix                        string
 	ExitSearchMode                      string
 	ExitTextFilterMode                  string
-	EnterWorktree                       string
+	SwitchToWorktree                    string
 	RemoveWorktree                      string
 	RemoveWorktreeTitle                 string
 	WorktreesTitle                      string
@@ -1262,7 +1262,7 @@ func EnglishTranslationSet() TranslationSet {
 		FilterPrefix:                        "Filter: ",
 		WorktreesTitle:                      "Worktrees",
 		WorktreeTitle:                       "Worktree",
-		EnterWorktree:                       "Enter worktree",
+		SwitchToWorktree:                    "Switch to worktree",
 		RemoveWorktree:                      "Remove worktree",
 		RemoveWorktreeTitle:                 "Remove worktree",
 		RemoveWorktreePrompt:                "Are you sure you want to remove worktree '{{.worktreeName}}'?",
