@@ -58,12 +58,17 @@ func (self *WorktreeHelper) IsWorktreePathMissing(w *models.Worktree) bool {
 func (self *WorktreeHelper) NewWorktree() error {
 	return self.c.Prompt(types.PromptOpts{
 		Title: self.c.Tr.NewWorktreePath,
-		HandleConfirm: func(response string) error {
-			self.c.LogAction(self.c.Tr.Actions.CreateWorktree)
-			if err := self.c.Git().Worktree.New(sanitizedBranchName(response)); err != nil {
-				return err
-			}
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		HandleConfirm: func(path string) error {
+			return self.c.Prompt(types.PromptOpts{
+				Title: self.c.Tr.NewWorktreePath,
+				HandleConfirm: func(committish string) error {
+					self.c.LogAction(self.c.Tr.Actions.CreateWorktree)
+					if err := self.c.Git().Worktree.New(sanitizedBranchName(path), committish); err != nil {
+						return err
+					}
+					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				},
+			})
 		},
 	})
 }

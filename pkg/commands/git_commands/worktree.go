@@ -20,8 +20,8 @@ func NewWorktreeCommands(gitCommon *GitCommon) *WorktreeCommands {
 	}
 }
 
-func (self *WorktreeCommands) New(worktreePath string) error {
-	cmdArgs := NewGitCmd("worktree").Arg("add", worktreePath).ToArgv()
+func (self *WorktreeCommands) New(worktreePath string, committish string) error {
+	cmdArgs := NewGitCmd("worktree").Arg("add", worktreePath, committish).ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }

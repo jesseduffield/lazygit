@@ -1,14 +1,13 @@
 package models
 
-import (
-	"path/filepath"
-)
-
-// Worktree : A git worktree
+// A git worktree
 type Worktree struct {
+	// if false, this is a linked worktree
 	IsMain bool
 	Path   string
 	Branch string
+	// based on the path, but uniquified
+	NameField string
 }
 
 func (w *Worktree) RefName() string {
@@ -16,7 +15,7 @@ func (w *Worktree) RefName() string {
 }
 
 func (w *Worktree) ID() string {
-	return w.RefName()
+	return w.Path
 }
 
 func (w *Worktree) Description() string {
@@ -24,7 +23,7 @@ func (w *Worktree) Description() string {
 }
 
 func (w *Worktree) Name() string {
-	return filepath.Base(w.Path)
+	return w.NameField
 }
 
 func (w *Worktree) Main() bool {
