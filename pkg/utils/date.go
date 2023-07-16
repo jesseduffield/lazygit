@@ -31,9 +31,7 @@ var periods = []period{
 	{"h", SECONDS_IN_HOUR},
 	{"d", SECONDS_IN_DAY},
 	{"w", SECONDS_IN_WEEK},
-	// we're using 'm' for both minutes and months which is ambiguous but
-	// disambiguating with another character feels like overkill.
-	{"m", SECONDS_IN_MONTH},
+	{"M", SECONDS_IN_MONTH},
 	{"y", SECONDS_IN_YEAR},
 }
 
