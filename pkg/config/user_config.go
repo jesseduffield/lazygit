@@ -132,6 +132,7 @@ type KeybindingConfig struct {
 	Status      KeybindingStatusConfig      `yaml:"status"`
 	Files       KeybindingFilesConfig       `yaml:"files"`
 	Branches    KeybindingBranchesConfig    `yaml:"branches"`
+	Worktrees   KeybindingWorktreesConfig   `yaml:"worktrees"`
 	Commits     KeybindingCommitsConfig     `yaml:"commits"`
 	Stash       KeybindingStashConfig       `yaml:"stash"`
 	CommitFiles KeybindingCommitFilesConfig `yaml:"commitFiles"`
@@ -244,6 +245,10 @@ type KeybindingBranchesConfig struct {
 	PushTag                string `yaml:"pushTag"`
 	SetUpstream            string `yaml:"setUpstream"`
 	FetchRemote            string `yaml:"fetchRemote"`
+}
+
+type KeybindingWorktreesConfig struct {
+	ViewWorktreeOptions string `yaml:"viewWorktreeOptions"`
 }
 
 type KeybindingCommitsConfig struct {
@@ -583,6 +588,9 @@ func GetDefaultConfig() *UserConfig {
 				PushTag:                "P",
 				SetUpstream:            "u",
 				FetchRemote:            "f",
+			},
+			Worktrees: KeybindingWorktreesConfig{
+				ViewWorktreeOptions: "w",
 			},
 			Commits: KeybindingCommitsConfig{
 				SquashDown:                     "s",
