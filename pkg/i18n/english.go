@@ -1275,7 +1275,7 @@ func EnglishTranslationSet() TranslationSet {
 		MissingWorktree:                     "(missing)",
 		MainWorktree:                        "(main)",
 		CreateWorktree:                      "Create worktree",
-		NewWorktreePath:                     "New Worktree path",
+		NewWorktreePath:                     "New worktree path",
 		Name:                                "Name",
 		Branch:                              "Branch",
 		Path:                                "Path",
