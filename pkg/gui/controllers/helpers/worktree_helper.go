@@ -85,9 +85,5 @@ func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.C
 
 	self.c.LogAction(self.c.Tr.SwitchToWorktree)
 
-	// if we were in a submodule, we want to forget about that stack of repos
-	// so that hitting escape in the new repo does nothing
-	self.c.State().GetRepoPathStack().Clear()
-
 	return self.reposHelper.DispatchSwitchTo(worktree.Path, true, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 }
