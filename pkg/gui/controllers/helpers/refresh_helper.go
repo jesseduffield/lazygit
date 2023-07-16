@@ -16,7 +16,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -626,24 +625,10 @@ func (self *RefreshHelper) refreshStatus() {
 		// need to wait for branches to refresh
 		return
 	}
-	status := ""
-
-	if currentBranch.IsRealBranch() {
-		status += presentation.ColoredBranchStatus(currentBranch, self.c.Tr) + " "
-	}
 
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
-	if workingTreeState != enums.REBASE_MODE_NONE {
-		status += style.FgYellow.Sprintf("(%s) ", presentation.FormatWorkingTreeStateLower(self.c.Tr, workingTreeState))
-	}
-
-	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
-	repoName := utils.GetCurrentRepoName()
 	mainWorktreeName := self.worktreeHelper.GetMainWorktreeName()
-	if repoName != mainWorktreeName {
-		repoName = fmt.Sprintf("%s(%s)", mainWorktreeName, style.FgBlue.Sprint(repoName))
-	}
-	status += fmt.Sprintf("%s → %s ", repoName, name)
+	status := presentation.FormatStatus(currentBranch, mainWorktreeName, workingTreeState, self.c.Tr)
 
 	self.c.SetViewContent(self.c.Views().Status, status)
 }
