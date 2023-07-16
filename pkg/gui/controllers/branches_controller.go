@@ -202,8 +202,35 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyCheckedOutBranch)
 	}
 
+	if selectedBranch.CheckedOutByOtherWorktree {
+		worktreeForRef, ok := self.worktreeForRef(selectedBranch.Name)
+		if ok && !self.c.Git().Worktree.IsCurrentWorktree(worktreeForRef) {
+			return self.promptToCheckoutWorktree(worktreeForRef)
+		}
+	}
+
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
 	return self.c.Helpers().Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
+}
+
+func (self *BranchesController) worktreeForRef(ref string) (*models.Worktree, bool) {
+	for _, worktree := range self.c.Model().Worktrees {
+		if worktree.Branch == ref {
+			return worktree, true
+		}
+	}
+
+	return nil, false
+}
+
+func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktree) error {
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  "Switch to worktree",
+		Prompt: fmt.Sprintf("This branch is checked out by worktree %s. Do you want to switch to that worktree?", worktree.Name()),
+		HandleConfirm: func() error {
+			return self.c.Helpers().Worktree.Switch(worktree)
+		},
+	})
 }
 
 func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {

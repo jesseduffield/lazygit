@@ -45,7 +45,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
 	stagingHelper := helpers.NewStagingHelper(helperCommon)
 	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
-	worktreeHelper := helpers.NewWorktreeHelper(helperCommon)
+	reposHelper := helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo)
+	worktreeHelper := helpers.NewWorktreeHelper(helperCommon, reposHelper)
 	refreshHelper := helpers.NewRefreshHelper(
 		helperCommon,
 		refsHelper,
@@ -94,7 +95,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Commits:         commitsHelper,
 		Snake:           helpers.NewSnakeHelper(helperCommon),
 		Diff:            diffHelper,
-		Repos:           helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo),
+		Repos:           reposHelper,
 		RecordDirectory: recordDirectoryHelper,
 		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater),
 		Window:          windowHelper,
