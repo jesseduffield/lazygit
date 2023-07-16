@@ -51,7 +51,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 					if err := self.c.Git().WorkingTree.DiscardAllDirChanges(node); err != nil {
 						return self.c.Error(err)
 					}
-					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 				},
 				Key: 'x',
 				Tooltip: utils.ResolvePlaceholderString(
@@ -72,7 +72,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 						return self.c.Error(err)
 					}
 
-					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 				},
 				Key: 'u',
 				Tooltip: utils.ResolvePlaceholderString(
@@ -107,7 +107,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 						if err := self.c.Git().WorkingTree.DiscardAllFileChanges(file); err != nil {
 							return self.c.Error(err)
 						}
-						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 					},
 					Key: 'x',
 					Tooltip: utils.ResolvePlaceholderString(
@@ -128,7 +128,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 							return self.c.Error(err)
 						}
 
-						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 					},
 					Key: 'u',
 					Tooltip: utils.ResolvePlaceholderString(
