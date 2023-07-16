@@ -76,7 +76,8 @@ func (self *WorktreeHelper) NewWorktree() error {
 			InitialContent:      currentBranchName,
 			FindSuggestionsFunc: self.suggestionsHelper.GetRefsSuggestionsFunc(),
 			HandleConfirm: func(base string) error {
-				canCheckoutBase := base != currentBranchName
+				// we assume that the base can be checked out
+				canCheckoutBase := true
 				return self.NewWorktreeCheckout(base, canCheckoutBase, detached)
 			},
 		})
