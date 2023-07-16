@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"strings"
 
@@ -50,7 +49,8 @@ func (self *WorktreeHelper) GetMainWorktreeName() string {
 func (self *WorktreeHelper) IsCurrentWorktree(w *models.Worktree) bool {
 	pwd, err := os.Getwd()
 	if err != nil {
-		log.Fatalln(err.Error())
+		self.c.Log.Errorf("failed to obtain current working directory: %w", err)
+		return false
 	}
 
 	return pwd == w.Path
@@ -61,7 +61,8 @@ func (self *WorktreeHelper) IsWorktreePathMissing(w *models.Worktree) bool {
 		if errors.Is(err, fs.ErrNotExist) {
 			return true
 		}
-		log.Fatalln(fmt.Errorf("failed to check if worktree path `%s` exists\n%w", w.Path, err).Error())
+		self.c.Log.Errorf("failed to check if worktree path `%s` exists: %w", w.Path, err)
+		return false
 	}
 	return false
 }
