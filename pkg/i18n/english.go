@@ -156,6 +156,7 @@ type TranslationSet struct {
 	GitconfigParseErr                   string
 	EditFile                            string
 	OpenFile                            string
+	OpenInEditor                        string
 	IgnoreFile                          string
 	ExcludeFile                         string
 	RefreshFiles                        string
@@ -877,6 +878,7 @@ func EnglishTranslationSet() TranslationSet {
 		GitconfigParseErr:                   `Gogit failed to parse your gitconfig file due to the presence of unquoted '\' characters. Removing these should fix the issue.`,
 		EditFile:                            `Edit file`,
 		OpenFile:                            `Open file`,
+		OpenInEditor:                        "Open in editor",
 		IgnoreFile:                          `Add to .gitignore`,
 		ExcludeFile:                         `Add to .git/info/exclude`,
 		RefreshFiles:                        `Refresh files`,
