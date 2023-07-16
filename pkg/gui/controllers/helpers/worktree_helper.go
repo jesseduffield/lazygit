@@ -65,7 +65,7 @@ func (self *WorktreeHelper) NewWorktree() error {
 		Title: self.c.Tr.NewWorktreePath,
 		HandleConfirm: func(path string) error {
 			return self.c.Prompt(types.PromptOpts{
-				Title: self.c.Tr.NewWorktreePath,
+				Title: self.c.Tr.NewWorktreeBranch,
 				HandleConfirm: func(committish string) error {
 					return self.c.WithWaitingStatus(self.c.Tr.AddingWorktree, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.AddWorktree)
