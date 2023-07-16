@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -62,11 +63,13 @@ func (self *WorktreeHelper) NewWorktree() error {
 			return self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.NewWorktreePath,
 				HandleConfirm: func(committish string) error {
-					self.c.LogAction(self.c.Tr.Actions.CreateWorktree)
-					if err := self.c.Git().Worktree.New(sanitizedBranchName(path), committish); err != nil {
-						return err
-					}
-					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+					return self.c.WithWaitingStatus(self.c.Tr.AddingWorktree, func(gocui.Task) error {
+						self.c.LogAction(self.c.Tr.Actions.AddWorktree)
+						if err := self.c.Git().Worktree.New(sanitizedBranchName(path), committish); err != nil {
+							return err
+						}
+						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+					})
 				},
 			})
 		},
