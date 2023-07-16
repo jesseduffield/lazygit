@@ -5,12 +5,10 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type WorktreesController struct {
@@ -101,41 +99,7 @@ func (self *WorktreesController) remove(worktree *models.Worktree) error {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCurrentWorktree)
 	}
 
-	return self.removeWithForce(worktree, false)
-}
-
-func (self *WorktreesController) removeWithForce(worktree *models.Worktree, force bool) error {
-	title := self.c.Tr.RemoveWorktreeTitle
-	var templateStr string
-	if force {
-		templateStr = self.c.Tr.ForceRemoveWorktreePrompt
-	} else {
-		templateStr = self.c.Tr.RemoveWorktreePrompt
-	}
-	message := utils.ResolvePlaceholderString(
-		templateStr,
-		map[string]string{
-			"worktreeName": worktree.Name(),
-		},
-	)
-
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  title,
-		Prompt: message,
-		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.RemovingWorktree, func(gocui.Task) error {
-				self.c.LogAction(self.c.Tr.RemovingWorktree)
-				if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
-					errMessage := err.Error()
-					if !force {
-						return self.removeWithForce(worktree, true)
-					}
-					return self.c.ErrorMsg(errMessage)
-				}
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES}})
-			})
-		},
-	})
+	return self.c.Helpers().Worktree.Remove(worktree, false)
 }
 
 func (self *WorktreesController) GetOnClick() func() error {

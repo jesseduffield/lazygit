@@ -32,6 +32,12 @@ func (self *WorktreeCommands) Delete(worktreePath string, force bool) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+func (self *WorktreeCommands) Detach(worktreePath string) error {
+	cmdArgs := NewGitCmd("checkout").Arg("--detach").WorktreePath(worktreePath).ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 func (self *WorktreeCommands) IsCurrentWorktree(w *models.Worktree) bool {
 	return IsCurrentWorktree(w)
 }

@@ -545,6 +545,8 @@ type TranslationSet struct {
 	SwitchToWorktree                    string
 	RemoveWorktree                      string
 	RemoveWorktreeTitle                 string
+	DetachWorktree                      string
+	DetachingWorktree                   string
 	WorktreesTitle                      string
 	WorktreeTitle                       string
 	RemoveWorktreePrompt                string
@@ -1268,6 +1270,8 @@ func EnglishTranslationSet() TranslationSet {
 		RemoveWorktreePrompt:                "Are you sure you want to remove worktree '{{.worktreeName}}'?",
 		ForceRemoveWorktreePrompt:           "'{{.worktreeName}}' contains modified or untracked files (to be honest, it could contain both). Are you sure you want to remove it?",
 		RemovingWorktree:                    "Deleting worktree",
+		DetachWorktree:                      "Detach worktree",
+		DetachingWorktree:                   "Detaching worktree",
 		AddingWorktree:                      "Adding worktree",
 		CantDeleteCurrentWorktree:           "You cannot remove the current worktree!",
 		AlreadyInWorktree:                   "You are already in the selected worktree",
