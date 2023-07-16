@@ -6,7 +6,7 @@ import (
 
 // Worktree : A git worktree
 type Worktree struct {
-	Id     int
+	IsMain bool
 	Path   string
 	Branch string
 }
@@ -28,5 +28,5 @@ func (w *Worktree) Name() string {
 }
 
 func (w *Worktree) Main() bool {
-	return w.Id == 0
+	return w.IsMain
 }

@@ -44,8 +44,8 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		if strings.HasPrefix(splitLine, "worktree ") {
 			path := strings.SplitN(splitLine, " ", 2)[1]
 			currentWorktree = &models.Worktree{
-				Id:   len(worktrees),
-				Path: path,
+				IsMain: len(worktrees) == 0,
+				Path:   path,
 			}
 		} else if strings.HasPrefix(splitLine, "branch ") {
 			branch := strings.SplitN(splitLine, " ", 2)[1]

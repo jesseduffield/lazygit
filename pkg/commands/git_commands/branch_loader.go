@@ -144,14 +144,7 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 			return nil, false
 		}
 
-		branchDir := split[6]
-		if len(branchDir) > 0 && branchDir != currentDir {
-			// Ignore line because it is a branch checked out in a different worktree
-			// Branches which are not checked out will not have a path, so we should not ignore them.
-			return nil, false
-		}
-
-		return obtainBranch(split), true
+		return obtainBranch(split, currentDir), true
 	})
 }
 
@@ -183,25 +176,28 @@ var branchFields = []string{
 }
 
 // Obtain branch information from parsed line output of getRawBranches()
-func obtainBranch(split []string) *models.Branch {
+func obtainBranch(split []string, currentDir string) *models.Branch {
 	headMarker := split[0]
 	fullName := split[1]
 	upstreamName := split[2]
 	track := split[3]
 	subject := split[4]
 	commitHash := split[5]
+	branchDir := split[6]
+	checkedOutByOtherWorktree := len(branchDir) > 0 && branchDir != currentDir
 
 	name := strings.TrimPrefix(fullName, "heads/")
 	pushables, pullables, gone := parseUpstreamInfo(upstreamName, track)
 
 	return &models.Branch{
-		Name:         name,
-		Pushables:    pushables,
-		Pullables:    pullables,
-		UpstreamGone: gone,
-		Head:         headMarker == "*",
-		Subject:      subject,
-		CommitHash:   commitHash,
+		Name:                      name,
+		Pushables:                 pushables,
+		Pullables:                 pullables,
+		UpstreamGone:              gone,
+		Head:                      headMarker == "*",
+		Subject:                   subject,
+		CommitHash:                commitHash,
+		CheckedOutByOtherWorktree: checkedOutByOtherWorktree,
 	}
 }
 
