@@ -346,6 +346,9 @@ type OSConfig struct {
 	// OpenLinkCommand is the command for opening a link
 	// Deprecated: use OpenLink instead.
 	OpenLinkCommand string `yaml:"openLinkCommand,omitempty"`
+
+	// CopyToClipboardCmd is the command for copying to clipboard
+	CopyToClipboardCmd string `yaml:"copyToClipboardCmd,omitempty"`
 }
 
 type CustomCommandAfterHook struct {

@@ -267,6 +267,13 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 	escaped := strings.Replace(str, "\n", "\\n", -1)
 	truncated := utils.TruncateWithEllipsis(escaped, 40)
 	c.LogCommand(fmt.Sprintf("Copying '%s' to clipboard", truncated), false)
+	if c.UserConfig.OS.CopyToClipboardCmd != "" {
+		cmdStr := utils.ResolvePlaceholderString(c.UserConfig.OS.CopyToClipboardCmd, map[string]string{
+			"text": c.Cmd.Quote(str),
+		})
+		return c.Cmd.NewShell(cmdStr).Run()
+	}
+
 	return clipboard.WriteAll(str)
 }
 

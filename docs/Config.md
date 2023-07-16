@@ -106,6 +106,7 @@ git:
   parseEmoji: false
   diffContextSize: 3 # how many lines of context are shown around a change in diffs
 os:
+  copyToClipboardCmd: '' # See 'Custom Command for Copying to Clipboard' section
   editPreset: '' # see 'Configuring File Editing' section
   edit: ''
   editAtLine: ''
@@ -277,6 +278,20 @@ os:
 os:
   open: 'open {{filename}}'
 ```
+
+### Custom Command for Copying to Clipboard
+```yaml
+os:
+  copyToClipboardCmd: ''
+```
+Specify an external command to invoke when copying to clipboard is requested. `{{text}` will be replaced by text to be copied. Default is to copy to system clipboard.
+
+If you are working on a terminal that supports OSC52, the following command will let you take advantage of it:
+```
+os:
+  copyToClipboardCmd: printf "\033]52;c;$(printf {{text}} | base64)\a" > /dev/tty
+```
+
 
 ### Configuring File Editing
 
