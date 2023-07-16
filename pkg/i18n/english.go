@@ -543,12 +543,14 @@ type TranslationSet struct {
 	ExitSearchMode                      string
 	ExitTextFilterMode                  string
 	EnterWorktree                       string
-	DeleteWorktree                      string
-	DeleteWorktreeTitle                 string
+	RemoveWorktree                      string
+	RemoveWorktreeTitle                 string
 	WorktreesTitle                      string
 	WorktreeTitle                       string
-	DeleteWorktreePrompt                string
-	ForceDeleteWorktreePrompt           string
+	RemoveWorktreePrompt                string
+	ForceRemoveWorktreePrompt           string
+	RemovingWorktree                    string
+	AddingWorktree                      string
 	CantDeleteCurrentWorktree           string
 	AlreadyInWorktree                   string
 	CantDeleteMainWorktree              string
@@ -687,8 +689,8 @@ type Actions struct {
 	ResetBisect                       string
 	BisectSkip                        string
 	BisectMark                        string
-	DeleteWorktree                    string
-	CreateWorktree                    string
+	RemoveWorktree                    string
+	AddWorktree                       string
 }
 
 const englishIntroPopupMessage = `
@@ -1261,13 +1263,15 @@ func EnglishTranslationSet() TranslationSet {
 		WorktreesTitle:                      "Worktrees",
 		WorktreeTitle:                       "Worktree",
 		EnterWorktree:                       "Enter worktree",
-		DeleteWorktree:                      "Delete worktree",
-		DeleteWorktreeTitle:                 "Delete worktree",
-		DeleteWorktreePrompt:                "Are you sure you want to delete worktree '{{.worktreeName}}'?",
-		ForceDeleteWorktreePrompt:           "'{{.worktreeName}}' is not fully merged. Are you sure you want to delete it?",
-		CantDeleteCurrentWorktree:           "You cannot delete the current worktree!",
+		RemoveWorktree:                      "Remove worktree",
+		RemoveWorktreeTitle:                 "Remove worktree",
+		RemoveWorktreePrompt:                "Are you sure you want to remove worktree '{{.worktreeName}}'?",
+		ForceRemoveWorktreePrompt:           "'{{.worktreeName}}' is not fully merged. Are you sure you want to remove it?",
+		RemovingWorktree:                    "Deleting worktree",
+		AddingWorktree:                      "Adding worktree",
+		CantDeleteCurrentWorktree:           "You cannot remove the current worktree!",
 		AlreadyInWorktree:                   "You are already in the selected worktree",
-		CantDeleteMainWorktree:              "You cannot delete the main worktree!",
+		CantDeleteMainWorktree:              "You cannot remove the main worktree!",
 		NoWorktreesThisRepo:                 "No worktrees",
 		MissingWorktree:                     "(missing)",
 		MainWorktree:                        "(main)",
@@ -1384,8 +1388,8 @@ func EnglishTranslationSet() TranslationSet {
 			ResetBisect:                       "Reset bisect",
 			BisectSkip:                        "Bisect skip",
 			BisectMark:                        "Bisect mark",
-			DeleteWorktree:                    "Delete worktree",
-			CreateWorktree:                    "Create worktree",
+			RemoveWorktree:                    "Remove worktree",
+			AddWorktree:                       "Add worktree",
 		},
 		Bisect: Bisect{
 			Mark:                        "Mark %s as %s",
