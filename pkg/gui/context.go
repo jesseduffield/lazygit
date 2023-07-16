@@ -376,3 +376,16 @@ func (self *ContextMgr) AllPatchExplorer() []types.IPatchExplorerContext {
 
 	return listContexts
 }
+
+func (self *ContextMgr) ContextForKey(key types.ContextKey) types.Context {
+	self.RLock()
+	defer self.RUnlock()
+
+	for _, context := range self.allContexts.Flatten() {
+		if context.GetKey() == key {
+			return context
+		}
+	}
+
+	return nil
+}

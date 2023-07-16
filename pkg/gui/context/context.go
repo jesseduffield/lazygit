@@ -5,6 +5,9 @@ import (
 )
 
 const (
+	// used as a nil value when passing a context key as an arg
+	NO_CONTEXT types.ContextKey = "none"
+
 	GLOBAL_CONTEXT_KEY                   types.ContextKey = "global"
 	STATUS_CONTEXT_KEY                   types.ContextKey = "status"
 	SNAKE_CONTEXT_KEY                    types.ContextKey = "snake"

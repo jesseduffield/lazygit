@@ -481,7 +481,7 @@ type TranslationSet struct {
 	ErrCannotEditDirectory              string
 	ErrStageDirWithInlineMergeConflicts string
 	ErrRepositoryMovedOrDeleted         string
-	ErrWorktreeMovedOrDeleted           string
+	ErrWorktreeMovedOrRemoved           string
 	CommandLog                          string
 	ToggleShowCommandLog                string
 	FocusCommandLog                     string
@@ -1201,7 +1201,7 @@ func EnglishTranslationSet() TranslationSet {
 		ErrStageDirWithInlineMergeConflicts: "Cannot stage/unstage directory containing files with inline merge conflicts. Please fix up the merge conflicts first",
 		ErrRepositoryMovedOrDeleted:         "Cannot find repo. It might have been moved or deleted ¯\\_(ツ)_/¯",
 		CommandLog:                          "Command log",
-		ErrWorktreeMovedOrDeleted:           "Cannot find worktree. It might have been moved or deleted ¯\\_(ツ)_/¯",
+		ErrWorktreeMovedOrRemoved:           "Cannot find worktree. It might have been moved or removed ¯\\_(ツ)_/¯",
 		ToggleShowCommandLog:                "Toggle show/hide command log",
 		FocusCommandLog:                     "Focus command log",
 		CommandLogHeader:                    "You can hide/focus this panel by pressing '%s'\n",

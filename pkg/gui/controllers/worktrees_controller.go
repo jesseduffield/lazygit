@@ -143,7 +143,7 @@ func (self *WorktreesController) GetOnClick() func() error {
 }
 
 func (self *WorktreesController) enter(worktree *models.Worktree) error {
-	return self.c.Helpers().Worktree.Switch(worktree)
+	return self.c.Helpers().Worktree.Switch(worktree, context.WORKTREES_CONTEXT_KEY)
 }
 
 func (self *WorktreesController) checkSelected(callback func(worktree *models.Worktree) error) func() error {

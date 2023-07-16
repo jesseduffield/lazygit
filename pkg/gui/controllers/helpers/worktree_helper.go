@@ -78,7 +78,7 @@ func (self *WorktreeHelper) NewWorktree() error {
 	})
 }
 
-func (self *WorktreeHelper) Switch(worktree *models.Worktree) error {
+func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.ContextKey) error {
 	if self.c.Git().Worktree.IsCurrentWorktree(worktree) {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyInWorktree)
 	}
@@ -89,5 +89,5 @@ func (self *WorktreeHelper) Switch(worktree *models.Worktree) error {
 	// so that hitting escape in the new repo does nothing
 	self.c.State().GetRepoPathStack().Clear()
 
-	return self.reposHelper.DispatchSwitchTo(worktree.Path, true, self.c.Tr.ErrWorktreeMovedOrDeleted)
+	return self.reposHelper.DispatchSwitchTo(worktree.Path, true, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 }
