@@ -38,6 +38,12 @@ func GetWorktreeDisplayString(isCurrent bool, isPathMissing bool, worktree *mode
 	if icons.IsIconEnabled() {
 		res = append(res, textStyle.Sprint(icon))
 	}
-	res = append(res, textStyle.Sprint(worktree.Name()))
+
+	name := worktree.Name()
+	if worktree.Main() {
+		// TODO: i18n
+		name += " (main worktree)"
+	}
+	res = append(res, textStyle.Sprint(name))
 	return res
 }
