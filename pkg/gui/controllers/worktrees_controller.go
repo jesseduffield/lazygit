@@ -87,22 +87,6 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 	}
 }
 
-//func (self *WorktreesController) switchToWorktree(worktree *models.Worktree) error {
-//	//self.c.LogAction(self.c.Tr.Actions.CheckoutTag)
-//	//if err := self.helpers.Refs.CheckoutRef(tag.Name, types.CheckoutRefOptions{}); err != nil {
-//	//	return err
-//	//}
-//	//return self.c.PushContext(self.contexts.Branches)
-//
-//	wd, err := os.Getwd()
-//	if err != nil {
-//		return err
-//	}
-//	gui.RepoPathStack.Push(wd)
-//
-//	return gui.dispatchSwitchToRepo(submodule.Path, true)
-//}
-
 func (self *WorktreesController) create() error {
 	return self.c.Helpers().Worktree.NewWorktree()
 }
