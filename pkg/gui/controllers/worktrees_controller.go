@@ -140,6 +140,10 @@ func (self *WorktreesController) GetOnClick() func() error {
 }
 
 func (self *WorktreesController) enter(worktree *models.Worktree) error {
+	if self.c.Git().Worktree.IsCurrentWorktree(worktree) {
+		return self.c.ErrorMsg(self.c.Tr.AlreadyInWorktree)
+	}
+
 	// if we were in a submodule, we want to forget about that stack of repos
 	// so that hitting escape in the new repo does nothing
 	self.c.State().GetRepoPathStack().Clear()

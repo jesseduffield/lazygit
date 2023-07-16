@@ -549,6 +549,7 @@ type TranslationSet struct {
 	DeleteWorktreePrompt                string
 	ForceDeleteWorktreePrompt           string
 	CantDeleteCurrentWorktree           string
+	AlreadyInWorktree                   string
 	CantDeleteMainWorktree              string
 	NoWorktreesThisRepo                 string
 	MissingWorktree                     string
@@ -1262,6 +1263,7 @@ func EnglishTranslationSet() TranslationSet {
 		DeleteWorktreePrompt:                "Are you sure you want to delete worktree '{{.worktreeName}}'?",
 		ForceDeleteWorktreePrompt:           "'{{.worktreeName}}' is not fully merged. Are you sure you want to delete it?",
 		CantDeleteCurrentWorktree:           "You cannot delete the current worktree!",
+		AlreadyInWorktree:                   "You are already in the selected worktree",
 		CantDeleteMainWorktree:              "You cannot delete the main worktree!",
 		NoWorktreesThisRepo:                 "No worktrees",
 		MissingWorktree:                     "(missing)",
