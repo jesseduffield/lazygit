@@ -34,7 +34,7 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Select),
 			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.EnterWorktree,
+			Description: self.c.Tr.SwitchToWorktree,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
@@ -143,15 +143,7 @@ func (self *WorktreesController) GetOnClick() func() error {
 }
 
 func (self *WorktreesController) enter(worktree *models.Worktree) error {
-	if self.c.Git().Worktree.IsCurrentWorktree(worktree) {
-		return self.c.ErrorMsg(self.c.Tr.AlreadyInWorktree)
-	}
-
-	// if we were in a submodule, we want to forget about that stack of repos
-	// so that hitting escape in the new repo does nothing
-	self.c.State().GetRepoPathStack().Clear()
-
-	return self.c.Helpers().Repos.DispatchSwitchTo(worktree.Path, true, self.c.Tr.ErrWorktreeMovedOrDeleted)
+	return self.c.Helpers().Worktree.Switch(worktree)
 }
 
 func (self *WorktreesController) checkSelected(callback func(worktree *models.Worktree) error) func() error {
