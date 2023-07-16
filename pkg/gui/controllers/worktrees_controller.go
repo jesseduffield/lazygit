@@ -44,6 +44,11 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 			Handler:     self.add,
 			Description: self.c.Tr.CreateWorktree,
 		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
+			Handler:     self.checkSelected(self.open),
+			Description: self.c.Tr.OpenInEditor,
+		},
 	}
 
 	return bindings
@@ -108,6 +113,10 @@ func (self *WorktreesController) GetOnClick() func() error {
 
 func (self *WorktreesController) enter(worktree *models.Worktree) error {
 	return self.c.Helpers().Worktree.Switch(worktree.Path, context.WORKTREES_CONTEXT_KEY)
+}
+
+func (self *WorktreesController) open(worktree *models.Worktree) error {
+	return self.c.Helpers().Files.OpenFile(worktree.Path)
 }
 
 func (self *WorktreesController) checkSelected(callback func(worktree *models.Worktree) error) func() error {
