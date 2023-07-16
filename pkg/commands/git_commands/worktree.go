@@ -33,12 +33,16 @@ func (self *WorktreeCommands) Delete(worktreePath string, force bool) error {
 }
 
 func (self *WorktreeCommands) IsCurrentWorktree(w *models.Worktree) bool {
+	return IsCurrentWorktree(w)
+}
+
+func IsCurrentWorktree(w *models.Worktree) bool {
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	return pwd == w.Path
+	return EqualPath(pwd, w.Path)
 }
 
 func (self *WorktreeCommands) IsWorktreePathMissing(w *models.Worktree) bool {
@@ -49,4 +53,10 @@ func (self *WorktreeCommands) IsWorktreePathMissing(w *models.Worktree) bool {
 		log.Fatalln(fmt.Errorf("failed to check if worktree path `%s` exists\n%w", w.Path, err).Error())
 	}
 	return false
+}
+
+// checks if two paths are equal
+// TODO: support relative paths
+func EqualPath(a string, b string) bool {
+	return a == b
 }
