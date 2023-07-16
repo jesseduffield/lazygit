@@ -18,6 +18,9 @@ func (gui *Gui) Helpers() *helpers.Helpers {
 
 func (gui *Gui) resetHelpersAndControllers() {
 	helperCommon := gui.c
+	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
+	reposHelper := helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo)
+	worktreeHelper := helpers.NewWorktreeHelper(helperCommon, reposHelper)
 	refsHelper := helpers.NewRefsHelper(helperCommon)
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, refsHelper)
@@ -41,12 +44,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	gpgHelper := helpers.NewGpgHelper(helperCommon)
 	viewHelper := helpers.NewViewHelper(helperCommon, gui.State.Contexts)
-	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
 	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
 	stagingHelper := helpers.NewStagingHelper(helperCommon)
 	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
-	reposHelper := helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo)
-	worktreeHelper := helpers.NewWorktreeHelper(helperCommon, reposHelper)
+
 	refreshHelper := helpers.NewRefreshHelper(
 		helperCommon,
 		refsHelper,
@@ -239,6 +240,18 @@ func (gui *Gui) resetHelpersAndControllers() {
 		gui.State.Contexts.SubCommits,
 	} {
 		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
+	}
+
+	for _, context := range []controllers.CanViewWorktreeOptions{
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.Stash,
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Tags,
+	} {
+		controllers.AttachControllers(context, controllers.NewWorktreeOptionsController(common, context))
 	}
 
 	controllers.AttachControllers(gui.State.Contexts.ReflogCommits,

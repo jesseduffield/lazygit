@@ -8,11 +8,11 @@ import (
 	"github.com/samber/lo"
 )
 
-func GetWorktreeDisplayStrings(worktrees []*models.Worktree, isCurrent func(*models.Worktree) bool, isMissing func(*models.Worktree) bool) [][]string {
+func GetWorktreeDisplayStrings(worktrees []*models.Worktree, isCurrent func(string) bool, isMissing func(string) bool) [][]string {
 	return lo.Map(worktrees, func(worktree *models.Worktree, _ int) []string {
 		return GetWorktreeDisplayString(
-			isCurrent(worktree),
-			isMissing(worktree),
+			isCurrent(worktree.Path),
+			isMissing(worktree.Path),
 			worktree)
 	})
 }

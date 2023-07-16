@@ -561,6 +561,7 @@ type TranslationSet struct {
 	CreateWorktree                      string
 	NewWorktreePath                     string
 	NewWorktreeBranch                   string
+	ViewWorktreeOptions                 string
 	Name                                string
 	Branch                              string
 	Path                                string
@@ -1280,6 +1281,7 @@ func EnglishTranslationSet() TranslationSet {
 		CreateWorktree:                      "Create worktree",
 		NewWorktreePath:                     "New worktree path",
 		NewWorktreeBranch:                   "New worktree branch (leave blank to use the current branch)",
+		ViewWorktreeOptions:                 "View worktree options",
 		Name:                                "Name",
 		Branch:                              "Branch",
 		Path:                                "Path",

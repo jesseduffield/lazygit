@@ -204,7 +204,7 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 
 	if selectedBranch.CheckedOutByOtherWorktree {
 		worktreeForRef, ok := self.worktreeForBranch(selectedBranch)
-		if ok && !self.c.Git().Worktree.IsCurrentWorktree(worktreeForRef) {
+		if ok && !self.c.Git().Worktree.IsCurrentWorktree(worktreeForRef.Path) {
 			return self.promptToCheckoutWorktree(worktreeForRef)
 		}
 	}
@@ -228,7 +228,7 @@ func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktr
 		Title:  "Switch to worktree",
 		Prompt: fmt.Sprintf("This branch is checked out by worktree %s. Do you want to switch to that worktree?", worktree.Name()),
 		HandleConfirm: func() error {
-			return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
+			return self.c.Helpers().Worktree.Switch(worktree.Path, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		},
 	})
 }
@@ -346,7 +346,7 @@ func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *model
 			{
 				Label: "Switch to worktree",
 				OnPress: func() error {
-					return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
+					return self.c.Helpers().Worktree.Switch(worktree.Path, context.LOCAL_BRANCHES_CONTEXT_KEY)
 				},
 			},
 			{
