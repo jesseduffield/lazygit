@@ -1266,7 +1266,7 @@ func EnglishTranslationSet() TranslationSet {
 		RemoveWorktree:                      "Remove worktree",
 		RemoveWorktreeTitle:                 "Remove worktree",
 		RemoveWorktreePrompt:                "Are you sure you want to remove worktree '{{.worktreeName}}'?",
-		ForceRemoveWorktreePrompt:           "'{{.worktreeName}}' is not fully merged. Are you sure you want to remove it?",
+		ForceRemoveWorktreePrompt:           "'{{.worktreeName}}' contains modified or untracked files (to be honest, it could contain both). Are you sure you want to remove it?",
 		RemovingWorktree:                    "Deleting worktree",
 		AddingWorktree:                      "Adding worktree",
 		CantDeleteCurrentWorktree:           "You cannot remove the current worktree!",
