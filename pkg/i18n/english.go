@@ -562,8 +562,14 @@ type TranslationSet struct {
 	MainWorktree                        string
 	CreateWorktree                      string
 	NewWorktreePath                     string
-	NewWorktreeBranch                   string
+	NewWorktreeBase                     string
+	BranchNameCannotBeBlank             string
+	NewBranchName                       string
+	NewBranchNameLeaveBlank             string
 	ViewWorktreeOptions                 string
+	CreateWorktreeFrom                  string
+	CreateWorktreeFromDetached          string
+	LcWorktree                          string
 	Name                                string
 	Branch                              string
 	Path                                string
@@ -1284,8 +1290,14 @@ func EnglishTranslationSet() TranslationSet {
 		MainWorktree:                        "(main)",
 		CreateWorktree:                      "Create worktree",
 		NewWorktreePath:                     "New worktree path",
-		NewWorktreeBranch:                   "New worktree branch (leave blank to use the current branch)",
+		NewWorktreeBase:                     "New worktree base ref",
+		BranchNameCannotBeBlank:             "Branch name cannot be blank",
+		NewBranchName:                       "New branch name",
+		NewBranchNameLeaveBlank:             "New branch name (leave blank to checkout {{.default}})",
 		ViewWorktreeOptions:                 "View worktree options",
+		CreateWorktreeFrom:                  "Create worktree from {{.ref}}",
+		CreateWorktreeFromDetached:          "Create worktree from {{.ref}} (detached)",
+		LcWorktree:                          "worktree",
 		Name:                                "Name",
 		Branch:                              "Branch",
 		Path:                                "Path",

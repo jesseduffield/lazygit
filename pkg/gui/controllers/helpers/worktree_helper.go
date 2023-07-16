@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"errors"
-	"fmt"
 	"io/fs"
 	"os"
 	"strings"
@@ -73,7 +72,7 @@ func (self *WorktreeHelper) NewWorktree() error {
 
 	f := func(detached bool) error {
 		return self.c.Prompt(types.PromptOpts{
-			Title:               self.c.Tr.NewWorktreeBranch,
+			Title:               self.c.Tr.NewWorktreeBase,
 			InitialContent:      currentBranchName,
 			FindSuggestionsFunc: self.suggestionsHelper.GetRefsSuggestionsFunc(),
 			HandleConfirm: func(base string) error {
@@ -83,17 +82,19 @@ func (self *WorktreeHelper) NewWorktree() error {
 		})
 	}
 
+	placeholders := map[string]string{"ref": "ref"}
+
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.WorktreeTitle,
 		Items: []*types.MenuItem{
 			{
-				LabelColumns: []string{"Create new worktree from ref"},
+				LabelColumns: []string{utils.ResolvePlaceholderString(self.c.Tr.CreateWorktreeFrom, placeholders)},
 				OnPress: func() error {
 					return f(false)
 				},
 			},
 			{
-				LabelColumns: []string{"Create new worktree from ref (detached)"},
+				LabelColumns: []string{utils.ResolvePlaceholderString(self.c.Tr.CreateWorktreeFromDetached, placeholders)},
 				OnPress: func() error {
 					return f(true)
 				},
@@ -128,9 +129,10 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 			}
 
 			if canCheckoutBase {
+				title := utils.ResolvePlaceholderString(self.c.Tr.NewBranchNameLeaveBlank, map[string]string{"default": base})
 				// prompt for the new branch name where a blank means we just check out the branch
 				return self.c.Prompt(types.PromptOpts{
-					Title: fmt.Sprintf("New branch name (leave blank to checkout %s)", base),
+					Title: title,
 					HandleConfirm: func(branchName string) error {
 						opts.Branch = branchName
 
@@ -140,10 +142,10 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 			} else {
 				// prompt for the new branch name where a blank means we just check out the branch
 				return self.c.Prompt(types.PromptOpts{
-					Title: "New branch name",
+					Title: self.c.Tr.NewBranchName,
 					HandleConfirm: func(branchName string) error {
 						if branchName == "" {
-							return self.c.ErrorMsg("Branch name cannot be blank")
+							return self.c.ErrorMsg(self.c.Tr.BranchNameCannotBeBlank)
 						}
 
 						opts.Branch = branchName
@@ -217,47 +219,28 @@ func (self *WorktreeHelper) Detach(worktree *models.Worktree) error {
 }
 
 func (self *WorktreeHelper) ViewWorktreeOptions(context types.IListContext, ref string) error {
-	if context == self.c.Contexts().Branches {
-		return self.ViewBranchWorktreeOptions(ref)
-	}
+	currentBranch := self.refsHelper.GetCheckedOutRef()
+	canCheckoutBase := context == self.c.Contexts().Branches && ref != currentBranch.RefName()
 
-	return self.ViewRefWorktreeOptions(ref)
+	return self.ViewBranchWorktreeOptions(ref, canCheckoutBase)
 }
 
-func (self *WorktreeHelper) ViewBranchWorktreeOptions(branchName string) error {
+func (self *WorktreeHelper) ViewBranchWorktreeOptions(branchName string, canCheckoutBase bool) error {
+	placeholders := map[string]string{"ref": branchName}
+
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.WorktreeTitle,
 		Items: []*types.MenuItem{
 			{
-				LabelColumns: []string{"Create new worktree from branch"},
+				LabelColumns: []string{utils.ResolvePlaceholderString(self.c.Tr.CreateWorktreeFrom, placeholders)},
 				OnPress: func() error {
-					return self.NewWorktreeCheckout(branchName, true, false)
+					return self.NewWorktreeCheckout(branchName, canCheckoutBase, false)
 				},
 			},
 			{
-				LabelColumns: []string{"Create new worktree from branch (detached)"},
+				LabelColumns: []string{utils.ResolvePlaceholderString(self.c.Tr.CreateWorktreeFromDetached, placeholders)},
 				OnPress: func() error {
-					return self.NewWorktreeCheckout(branchName, true, true)
-				},
-			},
-		},
-	})
-}
-
-func (self *WorktreeHelper) ViewRefWorktreeOptions(ref string) error {
-	return self.c.Menu(types.CreateMenuOptions{
-		Title: self.c.Tr.WorktreeTitle,
-		Items: []*types.MenuItem{
-			{
-				LabelColumns: []string{"Create new worktree from ref"},
-				OnPress: func() error {
-					return self.NewWorktreeCheckout(ref, false, false)
-				},
-			},
-			{
-				LabelColumns: []string{"Create new worktree from ref (detached)"},
-				OnPress: func() error {
-					return self.NewWorktreeCheckout(ref, false, true)
+					return self.NewWorktreeCheckout(branchName, canCheckoutBase, true)
 				},
 			},
 		},
