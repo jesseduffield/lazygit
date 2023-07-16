@@ -49,6 +49,13 @@ func (self *GitCommandBuilder) RepoPath(value string) *GitCommandBuilder {
 	return self
 }
 
+func (self *GitCommandBuilder) WorktreePath(path string) *GitCommandBuilder {
+	// worktree path comes before the command
+	self.args = append([]string{"--work-tree", path}, self.args...)
+
+	return self
+}
+
 func (self *GitCommandBuilder) ToArgv() []string {
 	return append([]string{"git"}, self.args...)
 }

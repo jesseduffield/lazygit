@@ -203,7 +203,7 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 	}
 
 	if selectedBranch.CheckedOutByOtherWorktree {
-		worktreeForRef, ok := self.worktreeForRef(selectedBranch.Name)
+		worktreeForRef, ok := self.worktreeForBranch(selectedBranch)
 		if ok && !self.c.Git().Worktree.IsCurrentWorktree(worktreeForRef) {
 			return self.promptToCheckoutWorktree(worktreeForRef)
 		}
@@ -213,9 +213,9 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 	return self.c.Helpers().Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
 }
 
-func (self *BranchesController) worktreeForRef(ref string) (*models.Worktree, bool) {
+func (self *BranchesController) worktreeForBranch(branch *models.Branch) (*models.Worktree, bool) {
 	for _, worktree := range self.c.Model().Worktrees {
-		if worktree.Branch == ref {
+		if worktree.Branch == branch.Name {
 			return worktree, true
 		}
 	}
@@ -325,7 +325,45 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 	if checkedOutBranch.Name == branch.Name {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCheckOutBranch)
 	}
+
+	if branch.CheckedOutByOtherWorktree {
+		return self.promptWorktreeBranchDelete(branch)
+	}
+
 	return self.deleteWithForce(branch, false)
+}
+
+func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *models.Branch) error {
+	worktree, ok := self.worktreeForBranch(selectedBranch)
+	if !ok {
+		self.c.Log.Error("CheckedOutByOtherWorktree out of sync with list of worktrees")
+		return nil
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: fmt.Sprintf("Branch %s is checked out by worktree %s", selectedBranch.Name, worktree.Name()),
+		Items: []*types.MenuItem{
+			{
+				Label: "Switch to worktree " + worktree.Name(),
+				OnPress: func() error {
+					return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
+				},
+			},
+			{
+				Label:   "Detach worktree",
+				Tooltip: "This will run `git checkout --detach` on the worktree so that it stops hogging the branch, but the worktree's working tree will be left alone",
+				OnPress: func() error {
+					return self.c.Helpers().Worktree.Detach(worktree)
+				},
+			},
+			{
+				Label: "Remove worktree",
+				OnPress: func() error {
+					return self.c.Helpers().Worktree.Remove(worktree, false)
+				},
+			},
+		},
+	})
 }
 
 func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, force bool) error {
