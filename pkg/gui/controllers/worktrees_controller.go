@@ -62,7 +62,7 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 			}
 
 			missing := ""
-			if self.c.Git().Worktree.IsWorktreePathMissing(worktree) {
+			if self.c.Git().Worktree.IsWorktreePathMissing(worktree.Path) {
 				missing = style.FgRed.Sprintf(" %s", self.c.Tr.MissingWorktree)
 			}
 
@@ -95,7 +95,7 @@ func (self *WorktreesController) remove(worktree *models.Worktree) error {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteMainWorktree)
 	}
 
-	if self.c.Git().Worktree.IsCurrentWorktree(worktree) {
+	if self.c.Git().Worktree.IsCurrentWorktree(worktree.Path) {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCurrentWorktree)
 	}
 
@@ -107,7 +107,7 @@ func (self *WorktreesController) GetOnClick() func() error {
 }
 
 func (self *WorktreesController) enter(worktree *models.Worktree) error {
-	return self.c.Helpers().Worktree.Switch(worktree, context.WORKTREES_CONTEXT_KEY)
+	return self.c.Helpers().Worktree.Switch(worktree.Path, context.WORKTREES_CONTEXT_KEY)
 }
 
 func (self *WorktreesController) checkSelected(callback func(worktree *models.Worktree) error) func() error {

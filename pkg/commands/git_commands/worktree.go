@@ -6,8 +6,6 @@ import (
 	"io/fs"
 	"log"
 	"os"
-
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 type WorktreeCommands struct {
@@ -20,10 +18,30 @@ func NewWorktreeCommands(gitCommon *GitCommon) *WorktreeCommands {
 	}
 }
 
-func (self *WorktreeCommands) New(worktreePath string, committish string) error {
-	cmdArgs := NewGitCmd("worktree").Arg("add", worktreePath, committish).ToArgv()
+type NewWorktreeOpts struct {
+	// required. The path of the new worktree.
+	Path string
+	// required. The base branch/ref.
+	Base string
 
-	return self.cmd.New(cmdArgs).Run()
+	// if true, ends up with a detached head
+	Detach bool
+
+	// optional. if empty, and if detach is false, we will checkout the base
+	Branch string
+}
+
+func (self *WorktreeCommands) New(opts NewWorktreeOpts) error {
+	if opts.Detach && opts.Branch != "" {
+		panic("cannot specify branch when detaching")
+	}
+
+	cmdArgs := NewGitCmd("worktree").Arg("add").
+		ArgIf(opts.Detach, "--detach").
+		ArgIf(opts.Branch != "", "-b", opts.Branch).
+		Arg(opts.Path, opts.Base)
+
+	return self.cmd.New(cmdArgs.ToArgv()).Run()
 }
 
 func (self *WorktreeCommands) Delete(worktreePath string, force bool) error {
@@ -38,25 +56,25 @@ func (self *WorktreeCommands) Detach(worktreePath string) error {
 	return self.cmd.New(cmdArgs).SetWd(worktreePath).Run()
 }
 
-func (self *WorktreeCommands) IsCurrentWorktree(w *models.Worktree) bool {
-	return IsCurrentWorktree(w)
+func (self *WorktreeCommands) IsCurrentWorktree(path string) bool {
+	return IsCurrentWorktree(path)
 }
 
-func IsCurrentWorktree(w *models.Worktree) bool {
+func IsCurrentWorktree(path string) bool {
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	return EqualPath(pwd, w.Path)
+	return EqualPath(pwd, path)
 }
 
-func (self *WorktreeCommands) IsWorktreePathMissing(w *models.Worktree) bool {
-	if _, err := os.Stat(w.Path); err != nil {
+func (self *WorktreeCommands) IsWorktreePathMissing(path string) bool {
+	if _, err := os.Stat(path); err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return true
 		}
-		log.Fatalln(fmt.Errorf("failed to check if worktree path `%s` exists\n%w", w.Path, err).Error())
+		log.Fatalln(fmt.Errorf("failed to check if worktree path `%s` exists\n%w", path, err).Error())
 	}
 	return false
 }

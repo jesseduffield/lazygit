@@ -9,7 +9,9 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -66,10 +68,14 @@ func (self *WorktreeHelper) NewWorktree() error {
 		HandleConfirm: func(path string) error {
 			return self.c.Prompt(types.PromptOpts{
 				Title: self.c.Tr.NewWorktreeBranch,
-				HandleConfirm: func(committish string) error {
+				// TODO: suggestions
+				HandleConfirm: func(base string) error {
 					return self.c.WithWaitingStatus(self.c.Tr.AddingWorktree, func(gocui.Task) error {
 						self.c.LogAction(self.c.Tr.Actions.AddWorktree)
-						if err := self.c.Git().Worktree.New(sanitizedBranchName(path), committish); err != nil {
+						if err := self.c.Git().Worktree.New(git_commands.NewWorktreeOpts{
+							Path: path,
+							Base: base,
+						}); err != nil {
 							return err
 						}
 						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
@@ -80,14 +86,70 @@ func (self *WorktreeHelper) NewWorktree() error {
 	})
 }
 
-func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.ContextKey) error {
-	if self.c.Git().Worktree.IsCurrentWorktree(worktree) {
+func (self *WorktreeHelper) NewWorktreeCheckout(base string, isBranch bool, detached bool) error {
+	opts := git_commands.NewWorktreeOpts{
+		Base:   base,
+		Detach: detached,
+	}
+
+	f := func() error {
+		return self.c.WithWaitingStatus(self.c.Tr.AddingWorktree, func(gocui.Task) error {
+			self.c.LogAction(self.c.Tr.Actions.AddWorktree)
+			if err := self.c.Git().Worktree.New(opts); err != nil {
+				return err
+			}
+			return self.Switch(opts.Path, context.LOCAL_BRANCHES_CONTEXT_KEY)
+		})
+	}
+
+	return self.c.Prompt(types.PromptOpts{
+		Title: self.c.Tr.NewWorktreePath,
+		HandleConfirm: func(path string) error {
+			opts.Path = path
+
+			if detached {
+				return f()
+			}
+
+			if isBranch {
+				// prompt for the new branch name where a blank means we just check out the branch
+				return self.c.Prompt(types.PromptOpts{
+					Title: fmt.Sprintf("New branch name (leave blank to checkout %s)", base),
+					// TODO: suggestions
+					HandleConfirm: func(branchName string) error {
+						opts.Branch = branchName
+
+						return f()
+					},
+				})
+			} else {
+				// prompt for the new branch name where a blank means we just check out the branch
+				return self.c.Prompt(types.PromptOpts{
+					Title: "New branch name",
+					// TODO: suggestions
+					HandleConfirm: func(branchName string) error {
+						if branchName == "" {
+							return self.c.ErrorMsg("Branch name cannot be blank")
+						}
+
+						opts.Branch = branchName
+
+						return f()
+					},
+				})
+			}
+		},
+	})
+}
+
+func (self *WorktreeHelper) Switch(path string, contextKey types.ContextKey) error {
+	if self.c.Git().Worktree.IsCurrentWorktree(path) {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyInWorktree)
 	}
 
 	self.c.LogAction(self.c.Tr.SwitchToWorktree)
 
-	return self.reposHelper.DispatchSwitchTo(worktree.Path, true, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
+	return self.reposHelper.DispatchSwitchTo(path, true, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 }
 
 func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error {
@@ -137,5 +199,53 @@ func (self *WorktreeHelper) Detach(worktree *models.Worktree) error {
 			return self.c.Error(err)
 		}
 		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
+	})
+}
+
+func (self *WorktreeHelper) ViewWorktreeOptions(context types.IListContext, ref string) error {
+	if context == self.c.Contexts().Branches {
+		return self.ViewBranchWorktreeOptions(ref)
+	}
+
+	return self.ViewRefWorktreeOptions(ref)
+}
+
+func (self *WorktreeHelper) ViewBranchWorktreeOptions(branchName string) error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.WorktreeTitle,
+		Items: []*types.MenuItem{
+			{
+				LabelColumns: []string{"Create new worktree from branch"},
+				OnPress: func() error {
+					return self.NewWorktreeCheckout(branchName, true, false)
+				},
+			},
+			{
+				LabelColumns: []string{"Create new worktree from branch (detached)"},
+				OnPress: func() error {
+					return self.NewWorktreeCheckout(branchName, true, true)
+				},
+			},
+		},
+	})
+}
+
+func (self *WorktreeHelper) ViewRefWorktreeOptions(ref string) error {
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.WorktreeTitle,
+		Items: []*types.MenuItem{
+			{
+				LabelColumns: []string{"Create new worktree from ref"},
+				OnPress: func() error {
+					return self.NewWorktreeCheckout(ref, false, false)
+				},
+			},
+			{
+				LabelColumns: []string{"Create new worktree from ref (detached)"},
+				OnPress: func() error {
+					return self.NewWorktreeCheckout(ref, false, true)
+				},
+			},
+		},
 	})
 }
