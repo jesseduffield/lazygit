@@ -6,10 +6,12 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type IWorktreeHelper interface {
@@ -86,4 +88,50 @@ func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.C
 	self.c.LogAction(self.c.Tr.SwitchToWorktree)
 
 	return self.reposHelper.DispatchSwitchTo(worktree.Path, true, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
+}
+
+func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error {
+	title := self.c.Tr.RemoveWorktreeTitle
+	var templateStr string
+	if force {
+		templateStr = self.c.Tr.ForceRemoveWorktreePrompt
+	} else {
+		templateStr = self.c.Tr.RemoveWorktreePrompt
+	}
+	message := utils.ResolvePlaceholderString(
+		templateStr,
+		map[string]string{
+			"worktreeName": worktree.Name(),
+		},
+	)
+
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  title,
+		Prompt: message,
+		HandleConfirm: func() error {
+			return self.c.WithWaitingStatus(self.c.Tr.RemovingWorktree, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.RemoveWorktree)
+				if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
+					errMessage := err.Error()
+					if !strings.Contains(errMessage, "--force") {
+						return self.c.Error(err)
+					}
+
+					if !force {
+						return self.Remove(worktree, true)
+					}
+					return self.c.ErrorMsg(errMessage)
+				}
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES}})
+			})
+		},
+	})
+}
+
+func (self *WorktreeHelper) Detach(worktree *models.Worktree) error {
+	return self.c.WithWaitingStatus(self.c.Tr.DetachingWorktree, func(gocui.Task) error {
+		self.c.LogAction(self.c.Tr.RemovingWorktree)
+
+		return self.c.Git().Worktree.Detach(worktree.Path)
+	})
 }
