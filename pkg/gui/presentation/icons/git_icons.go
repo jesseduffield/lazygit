@@ -71,10 +71,7 @@ func IconForStash(stash *models.StashEntry) string {
 	return STASH_ICON
 }
 
-func IconForWorktree(worktree *models.Worktree, missing bool) string {
-	if worktree.Main() {
-		return ""
-	}
+func IconForWorktree(missing bool) string {
 	if missing {
 		return MISSING_LINKED_WORKTREE_ICON
 	}

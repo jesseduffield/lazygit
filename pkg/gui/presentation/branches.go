@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 var branchPrefixColorCache = make(map[string]style.TextStyle)
@@ -49,6 +50,10 @@ func getBranchDisplayStrings(
 
 	coloredName := nameTextStyle.Sprint(displayName)
 	branchStatus := utils.WithPadding(ColoredBranchStatus(b, tr), 2, utils.AlignLeft)
+	if b.CheckedOutByOtherWorktree {
+		worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, "(worktree)")
+		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
+	}
 	coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)
 
 	recencyColor := style.FgCyan
@@ -58,6 +63,7 @@ func getBranchDisplayStrings(
 
 	res := make([]string, 0, 6)
 	res = append(res, recencyColor.Sprint(b.Recency))
+
 	if icons.IsIconEnabled() {
 		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
 	}
