@@ -24,12 +24,14 @@ type IWorktreeHelper interface {
 type WorktreeHelper struct {
 	c           *HelperCommon
 	reposHelper *ReposHelper
+	refsHelper  *RefsHelper
 }
 
-func NewWorktreeHelper(c *HelperCommon, reposHelper *ReposHelper) *WorktreeHelper {
+func NewWorktreeHelper(c *HelperCommon, reposHelper *ReposHelper, refsHelper *RefsHelper) *WorktreeHelper {
 	return &WorktreeHelper{
 		c:           c,
 		reposHelper: reposHelper,
+		refsHelper:  refsHelper,
 	}
 }
 
@@ -63,30 +65,42 @@ func (self *WorktreeHelper) IsWorktreePathMissing(w *models.Worktree) bool {
 }
 
 func (self *WorktreeHelper) NewWorktree() error {
-	return self.c.Prompt(types.PromptOpts{
-		Title: self.c.Tr.NewWorktreePath,
-		HandleConfirm: func(path string) error {
-			return self.c.Prompt(types.PromptOpts{
-				Title: self.c.Tr.NewWorktreeBranch,
-				// TODO: suggestions
-				HandleConfirm: func(base string) error {
-					return self.c.WithWaitingStatus(self.c.Tr.AddingWorktree, func(gocui.Task) error {
-						self.c.LogAction(self.c.Tr.Actions.AddWorktree)
-						if err := self.c.Git().Worktree.New(git_commands.NewWorktreeOpts{
-							Path: path,
-							Base: base,
-						}); err != nil {
-							return err
-						}
-						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
-					})
+	// what is the current branch?
+	branch := self.refsHelper.GetCheckedOutRef()
+	currentBranchName := branch.RefName()
+
+	f := func(detached bool) error {
+		return self.c.Prompt(types.PromptOpts{
+			Title:          self.c.Tr.NewWorktreeBranch,
+			InitialContent: currentBranchName,
+			// TODO: suggestions
+			HandleConfirm: func(base string) error {
+				canCheckoutBase := base != currentBranchName
+				return self.NewWorktreeCheckout(base, canCheckoutBase, detached)
+			},
+		})
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: self.c.Tr.WorktreeTitle,
+		Items: []*types.MenuItem{
+			{
+				LabelColumns: []string{"Create new worktree from ref"},
+				OnPress: func() error {
+					return f(false)
 				},
-			})
+			},
+			{
+				LabelColumns: []string{"Create new worktree from ref (detached)"},
+				OnPress: func() error {
+					return f(true)
+				},
+			},
 		},
 	})
 }
 
-func (self *WorktreeHelper) NewWorktreeCheckout(base string, isBranch bool, detached bool) error {
+func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase bool, detached bool) error {
 	opts := git_commands.NewWorktreeOpts{
 		Base:   base,
 		Detach: detached,
@@ -111,7 +125,7 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, isBranch bool, deta
 				return f()
 			}
 
-			if isBranch {
+			if canCheckoutBase {
 				// prompt for the new branch name where a blank means we just check out the branch
 				return self.c.Prompt(types.PromptOpts{
 					Title: fmt.Sprintf("New branch name (leave blank to checkout %s)", base),
