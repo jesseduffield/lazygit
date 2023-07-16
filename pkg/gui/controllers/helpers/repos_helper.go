@@ -12,13 +12,14 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type onNewRepoFn func(startArgs appTypes.StartArgs, reuseState bool) error
+type onNewRepoFn func(startArgs appTypes.StartArgs, reuseState bool, contextKey types.ContextKey) error
 
 // helps switch back and forth between repos
 type ReposHelper struct {
@@ -46,7 +47,7 @@ func (self *ReposHelper) EnterSubmodule(submodule *models.SubmoduleConfig) error
 	}
 	self.c.State().GetRepoPathStack().Push(wd)
 
-	return self.DispatchSwitchToRepo(submodule.Path, true)
+	return self.DispatchSwitchToRepo(submodule.Path, true, context.NO_CONTEXT)
 }
 
 func (self *ReposHelper) getCurrentBranch(path string) string {
@@ -129,7 +130,7 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 				// if we were in a submodule, we want to forget about that stack of repos
 				// so that hitting escape in the new repo does nothing
 				self.c.State().GetRepoPathStack().Clear()
-				return self.DispatchSwitchToRepo(path, false)
+				return self.DispatchSwitchToRepo(path, false, context.NO_CONTEXT)
 			},
 		}
 	})
@@ -137,11 +138,11 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.RecentRepos, Items: menuItems})
 }
 
-func (self *ReposHelper) DispatchSwitchToRepo(path string, reuse bool) error {
-	return self.DispatchSwitchTo(path, reuse, self.c.Tr.ErrRepositoryMovedOrDeleted)
+func (self *ReposHelper) DispatchSwitchToRepo(path string, reuse bool, contextKey types.ContextKey) error {
+	return self.DispatchSwitchTo(path, reuse, self.c.Tr.ErrRepositoryMovedOrDeleted, contextKey)
 }
 
-func (self *ReposHelper) DispatchSwitchTo(path string, reuse bool, errMsg string) error {
+func (self *ReposHelper) DispatchSwitchTo(path string, reuse bool, errMsg string, contextKey types.ContextKey) error {
 	env.UnsetGitDirEnvs()
 	originalPath, err := os.Getwd()
 	if err != nil {
@@ -175,5 +176,5 @@ func (self *ReposHelper) DispatchSwitchTo(path string, reuse bool, errMsg string
 	self.c.Mutexes().RefreshingFilesMutex.Lock()
 	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
-	return self.onNewRepo(appTypes.StartArgs{}, reuse)
+	return self.onNewRepo(appTypes.StartArgs{}, reuse, contextKey)
 }

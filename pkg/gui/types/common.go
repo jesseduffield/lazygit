@@ -66,6 +66,7 @@ type IGuiCommon interface {
 	IsCurrentContext(Context) bool
 	// TODO: replace the above context-based methods with just using Context() e.g. replace PushContext() with Context().Push()
 	Context() IContextMgr
+	ContextForKey(key ContextKey) Context
 
 	ActivateContext(context Context) error
 
