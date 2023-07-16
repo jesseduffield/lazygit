@@ -72,7 +72,7 @@ func (self *WorktreeHelper) NewWorktree() error {
 						if err := self.c.Git().Worktree.New(sanitizedBranchName(path), committish); err != nil {
 							return err
 						}
-						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 					})
 				},
 			})
@@ -122,7 +122,7 @@ func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error 
 					}
 					return self.c.ErrorMsg(errMessage)
 				}
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES}})
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 			})
 		},
 	})
@@ -132,6 +132,10 @@ func (self *WorktreeHelper) Detach(worktree *models.Worktree) error {
 	return self.c.WithWaitingStatus(self.c.Tr.DetachingWorktree, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.RemovingWorktree)
 
-		return self.c.Git().Worktree.Detach(worktree.Path)
+		err := self.c.Git().Worktree.Detach(worktree.Path)
+		if err != nil {
+			return self.c.Error(err)
+		}
+		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES, types.BRANCHES, types.FILES}})
 	})
 }

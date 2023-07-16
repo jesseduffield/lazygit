@@ -24,6 +24,9 @@ type ICmdObj interface {
 	AddEnvVars(...string) ICmdObj
 	GetEnvVars() []string
 
+	// sets the working directory
+	SetWd(string) ICmdObj
+
 	// runs the command and returns an error if any
 	Run() error
 	// runs the command and returns the output as a string, and an error if any
@@ -140,6 +143,12 @@ func (self *CmdObj) AddEnvVars(vars ...string) ICmdObj {
 
 func (self *CmdObj) GetEnvVars() []string {
 	return self.cmd.Env
+}
+
+func (self *CmdObj) SetWd(wd string) ICmdObj {
+	self.cmd.Dir = wd
+
+	return self
 }
 
 func (self *CmdObj) DontLog() ICmdObj {

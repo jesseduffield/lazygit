@@ -344,7 +344,7 @@ func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *model
 		Title: fmt.Sprintf("Branch %s is checked out by worktree %s", selectedBranch.Name, worktree.Name()),
 		Items: []*types.MenuItem{
 			{
-				Label: "Switch to worktree " + worktree.Name(),
+				Label: "Switch to worktree",
 				OnPress: func() error {
 					return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
 				},
