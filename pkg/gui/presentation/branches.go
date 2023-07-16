@@ -51,7 +51,7 @@ func getBranchDisplayStrings(
 	coloredName := nameTextStyle.Sprint(displayName)
 	branchStatus := utils.WithPadding(ColoredBranchStatus(b, tr), 2, utils.AlignLeft)
 	if b.CheckedOutByOtherWorktree {
-		worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, "(worktree)")
+		worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, fmt.Sprintf("(%s)", tr.LcWorktree))
 		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
 	}
 	coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)
