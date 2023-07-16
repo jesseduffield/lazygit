@@ -22,16 +22,18 @@ type IWorktreeHelper interface {
 }
 
 type WorktreeHelper struct {
-	c           *HelperCommon
-	reposHelper *ReposHelper
-	refsHelper  *RefsHelper
+	c                 *HelperCommon
+	reposHelper       *ReposHelper
+	refsHelper        *RefsHelper
+	suggestionsHelper *SuggestionsHelper
 }
 
-func NewWorktreeHelper(c *HelperCommon, reposHelper *ReposHelper, refsHelper *RefsHelper) *WorktreeHelper {
+func NewWorktreeHelper(c *HelperCommon, reposHelper *ReposHelper, refsHelper *RefsHelper, suggestionsHelper *SuggestionsHelper) *WorktreeHelper {
 	return &WorktreeHelper{
-		c:           c,
-		reposHelper: reposHelper,
-		refsHelper:  refsHelper,
+		c:                 c,
+		reposHelper:       reposHelper,
+		refsHelper:        refsHelper,
+		suggestionsHelper: suggestionsHelper,
 	}
 }
 
@@ -65,15 +67,14 @@ func (self *WorktreeHelper) IsWorktreePathMissing(w *models.Worktree) bool {
 }
 
 func (self *WorktreeHelper) NewWorktree() error {
-	// what is the current branch?
 	branch := self.refsHelper.GetCheckedOutRef()
 	currentBranchName := branch.RefName()
 
 	f := func(detached bool) error {
 		return self.c.Prompt(types.PromptOpts{
-			Title:          self.c.Tr.NewWorktreeBranch,
-			InitialContent: currentBranchName,
-			// TODO: suggestions
+			Title:               self.c.Tr.NewWorktreeBranch,
+			InitialContent:      currentBranchName,
+			FindSuggestionsFunc: self.suggestionsHelper.GetRefsSuggestionsFunc(),
 			HandleConfirm: func(base string) error {
 				canCheckoutBase := base != currentBranchName
 				return self.NewWorktreeCheckout(base, canCheckoutBase, detached)
@@ -129,7 +130,6 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 				// prompt for the new branch name where a blank means we just check out the branch
 				return self.c.Prompt(types.PromptOpts{
 					Title: fmt.Sprintf("New branch name (leave blank to checkout %s)", base),
-					// TODO: suggestions
 					HandleConfirm: func(branchName string) error {
 						opts.Branch = branchName
 
@@ -140,7 +140,6 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 				// prompt for the new branch name where a blank means we just check out the branch
 				return self.c.Prompt(types.PromptOpts{
 					Title: "New branch name",
-					// TODO: suggestions
 					HandleConfirm: func(branchName string) error {
 						if branchName == "" {
 							return self.c.ErrorMsg("Branch name cannot be blank")
