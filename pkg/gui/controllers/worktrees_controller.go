@@ -5,6 +5,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -37,12 +38,12 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelected(self.delete),
-			Description: self.c.Tr.DeleteWorktree,
+			Handler:     self.checkSelected(self.remove),
+			Description: self.c.Tr.RemoveWorktree,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
-			Handler:     self.create,
+			Handler:     self.add,
 			Description: self.c.Tr.CreateWorktree,
 		},
 	}
@@ -87,11 +88,11 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 	}
 }
 
-func (self *WorktreesController) create() error {
+func (self *WorktreesController) add() error {
 	return self.c.Helpers().Worktree.NewWorktree()
 }
 
-func (self *WorktreesController) delete(worktree *models.Worktree) error {
+func (self *WorktreesController) remove(worktree *models.Worktree) error {
 	if worktree.Main() {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteMainWorktree)
 	}
@@ -100,16 +101,16 @@ func (self *WorktreesController) delete(worktree *models.Worktree) error {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCurrentWorktree)
 	}
 
-	return self.deleteWithForce(worktree, false)
+	return self.removeWithForce(worktree, false)
 }
 
-func (self *WorktreesController) deleteWithForce(worktree *models.Worktree, force bool) error {
-	title := self.c.Tr.DeleteWorktreeTitle
+func (self *WorktreesController) removeWithForce(worktree *models.Worktree, force bool) error {
+	title := self.c.Tr.RemoveWorktreeTitle
 	var templateStr string
 	if force {
-		templateStr = self.c.Tr.ForceDeleteWorktreePrompt
+		templateStr = self.c.Tr.ForceRemoveWorktreePrompt
 	} else {
-		templateStr = self.c.Tr.DeleteWorktreePrompt
+		templateStr = self.c.Tr.RemoveWorktreePrompt
 	}
 	message := utils.ResolvePlaceholderString(
 		templateStr,
@@ -122,15 +123,17 @@ func (self *WorktreesController) deleteWithForce(worktree *models.Worktree, forc
 		Title:  title,
 		Prompt: message,
 		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.DeleteWorktree)
-			if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
-				errMessage := err.Error()
-				if !force {
-					return self.deleteWithForce(worktree, true)
+			return self.c.WithWaitingStatus(self.c.Tr.RemovingWorktree, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.RemovingWorktree)
+				if err := self.c.Git().Worktree.Delete(worktree.Path, force); err != nil {
+					errMessage := err.Error()
+					if !force {
+						return self.removeWithForce(worktree, true)
+					}
+					return self.c.ErrorMsg(errMessage)
 				}
-				return self.c.ErrorMsg(errMessage)
-			}
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES}})
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.WORKTREES}})
+			})
 		},
 	})
 }
