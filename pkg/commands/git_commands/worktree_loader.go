@@ -1,6 +1,7 @@
 package git_commands
 
 import (
+	"os"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -34,22 +35,22 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 	splitLines := strings.Split(worktreesOutput, "\x00")
 
 	var worktrees []*models.Worktree
-	var currentWorktree *models.Worktree
+	var current *models.Worktree
 	for _, splitLine := range splitLines {
-		if len(splitLine) == 0 && currentWorktree != nil {
-			worktrees = append(worktrees, currentWorktree)
-			currentWorktree = nil
+		if len(splitLine) == 0 && current != nil {
+			worktrees = append(worktrees, current)
+			current = nil
 			continue
 		}
 		if strings.HasPrefix(splitLine, "worktree ") {
 			path := strings.SplitN(splitLine, " ", 2)[1]
-			currentWorktree = &models.Worktree{
+			current = &models.Worktree{
 				IsMain: len(worktrees) == 0,
 				Path:   path,
 			}
 		} else if strings.HasPrefix(splitLine, "branch ") {
 			branch := strings.SplitN(splitLine, " ", 2)[1]
-			currentWorktree.Branch = strings.TrimPrefix(branch, "refs/heads/")
+			current.Branch = strings.TrimPrefix(branch, "refs/heads/")
 		}
 	}
 
@@ -59,6 +60,20 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 
 	for index, worktree := range worktrees {
 		worktree.NameField = names[index]
+	}
+
+	pwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	// move current worktree to the top
+	for i, worktree := range worktrees {
+		if EqualPath(worktree.Path, pwd) {
+			worktrees = append(worktrees[:i], worktrees[i+1:]...)
+			worktrees = append([]*models.Worktree{worktree}, worktrees...)
+			break
+		}
 	}
 
 	return worktrees, nil
