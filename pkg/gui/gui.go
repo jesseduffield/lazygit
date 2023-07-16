@@ -276,7 +276,7 @@ func (self *GuiRepoState) GetSplitMainPanel() bool {
 	return self.SplitMainPanel
 }
 
-func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool) error {
+func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool, contextKey types.ContextKey) error {
 	var err error
 	gui.git, err = commands.NewGitCommand(
 		gui.Common,
@@ -295,6 +295,17 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool) error {
 
 	if err := gui.resetKeybindings(); err != nil {
 		return err
+	}
+
+	// if a context key has been given, push that instead, and set its index to 0
+	if contextKey != context.NO_CONTEXT {
+		contextToPush = gui.c.ContextForKey(contextKey)
+		// when we pass a list context, the expectation is that our cursor goes to the top,
+		// because e.g. with worktrees, we'll show the current worktree at the top of the list.
+		listContext, ok := contextToPush.(types.IListContext)
+		if ok {
+			listContext.GetList().SetSelectedLineIdx(0)
+		}
 	}
 
 	if err := gui.c.PushContext(contextToPush); err != nil {
@@ -643,7 +654,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	}
 
 	// onNewRepo must be called after g.SetManager because SetManager deletes keybindings
-	if err := gui.onNewRepo(startArgs, false); err != nil {
+	if err := gui.onNewRepo(startArgs, false, context.NO_CONTEXT); err != nil {
 		return err
 	}
 

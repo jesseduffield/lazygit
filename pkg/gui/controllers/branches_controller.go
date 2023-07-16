@@ -228,7 +228,7 @@ func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktr
 		Title:  "Switch to worktree",
 		Prompt: fmt.Sprintf("This branch is checked out by worktree %s. Do you want to switch to that worktree?", worktree.Name()),
 		HandleConfirm: func() error {
-			return self.c.Helpers().Worktree.Switch(worktree)
+			return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		},
 	})
 }
