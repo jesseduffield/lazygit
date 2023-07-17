@@ -6,6 +6,8 @@ import (
 	"io/fs"
 	"log"
 	"os"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
 
 type WorktreeCommands struct {
@@ -83,4 +85,23 @@ func (self *WorktreeCommands) IsWorktreePathMissing(path string) bool {
 // TODO: support relative paths
 func EqualPath(a string, b string) bool {
 	return a == b
+}
+
+func WorktreeForBranch(branch *models.Branch, worktrees []*models.Worktree) (*models.Worktree, bool) {
+	for _, worktree := range worktrees {
+		if worktree.Branch == branch.Name {
+			return worktree, true
+		}
+	}
+
+	return nil, false
+}
+
+func CheckedOutByOtherWorktree(branch *models.Branch, worktrees []*models.Worktree) bool {
+	worktree, ok := WorktreeForBranch(branch, worktrees)
+	if !ok {
+		return false
+	}
+
+	return !IsCurrentWorktree(worktree.Path)
 }
