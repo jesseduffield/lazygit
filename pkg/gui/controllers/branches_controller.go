@@ -70,7 +70,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelectedAndReal(self.delete),
-			Description: self.c.Tr.DeleteBranch,
+			Description: self.c.Tr.ViewDeleteOptions,
 			OpensMenu:   true,
 		},
 		{
@@ -378,31 +378,7 @@ func (self *BranchesController) localDelete(branch *models.Branch) error {
 }
 
 func (self *BranchesController) remoteDelete(branch *models.Branch) error {
-	title := utils.ResolvePlaceholderString(
-		self.c.Tr.DeleteBranchTitle,
-		map[string]string{
-			"selectedBranchName": branch.Name,
-		},
-	)
-	prompt := utils.ResolvePlaceholderString(
-		self.c.Tr.DeleteRemoteBranchPrompt,
-		map[string]string{
-			"selectedBranchName": branch.Name,
-		},
-	)
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  title,
-		Prompt: prompt,
-		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
-				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
-				if err := self.c.Git().Remote.DeleteRemoteBranch(task, branch.UpstreamRemote, branch.Name); err != nil {
-					return self.c.Error(err)
-				}
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
-			})
-		},
-	})
+	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(branch.UpstreamRemote, branch.Name)
 }
 
 func (self *BranchesController) forceDelete(branch *models.Branch) error {

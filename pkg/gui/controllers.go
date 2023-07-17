@@ -86,6 +86,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Files:           helpers.NewFilesHelper(helperCommon),
 		WorkingTree:     helpers.NewWorkingTreeHelper(helperCommon, refsHelper, commitsHelper, gpgHelper),
 		Tags:            helpers.NewTagsHelper(helperCommon, commitsHelper),
+		BranchesHelper:  helpers.NewBranchesHelper(helperCommon),
 		GPG:             helpers.NewGpgHelper(helperCommon),
 		MergeAndRebase:  rebaseHelper,
 		MergeConflicts:  mergeConflictsHelper,
