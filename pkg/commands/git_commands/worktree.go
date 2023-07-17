@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
@@ -104,4 +105,39 @@ func CheckedOutByOtherWorktree(branch *models.Branch, worktrees []*models.Worktr
 	}
 
 	return !IsCurrentWorktree(worktree.Path)
+}
+
+func GetCurrentRepoName() string {
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	// check if .git is a file or a directory
+	gitPath := filepath.Join(pwd, ".git")
+	gitFileInfo, err := os.Stat(gitPath)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	// must be a worktree or bare repo
+	if !gitFileInfo.IsDir() {
+		worktreeGitPath, ok := WorktreeGitPath(pwd)
+		if !ok {
+			return basePath()
+		}
+
+		// now we just jump up three directories to get the repo name
+		return filepath.Base(filepath.Dir(filepath.Dir(filepath.Dir(worktreeGitPath))))
+	}
+
+	return basePath()
+}
+
+func basePath() string {
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	return filepath.Base(pwd)
 }

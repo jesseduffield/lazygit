@@ -98,7 +98,7 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 
 func rebaseBranch(worktreePath string) (string, bool) {
 	// need to find the actual path of the worktree in the .git dir
-	gitPath, ok := worktreeGitPath(worktreePath)
+	gitPath, ok := WorktreeGitPath(worktreePath)
 	if !ok {
 		return "", false
 	}
@@ -116,7 +116,7 @@ func rebaseBranch(worktreePath string) (string, bool) {
 	return shortHeadName, true
 }
 
-func worktreeGitPath(worktreePath string) (string, bool) {
+func WorktreeGitPath(worktreePath string) (string, bool) {
 	// first we get the path of the worktree, then we look at the contents of the `.git` file in that path
 	// then we look for the line that says `gitdir: /path/to/.git/worktrees/<worktree-name>`
 	// then we return that path

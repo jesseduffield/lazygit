@@ -637,7 +637,9 @@ func (self *RefreshHelper) refreshStatus() {
 		linkedWorktreeName = self.worktreeHelper.GetLinkedWorktreeName()
 	}
 
-	status := presentation.FormatStatus(currentBranch, linkedWorktreeName, workingTreeState, self.c.Tr)
+	repoName := git_commands.GetCurrentRepoName()
+
+	status := presentation.FormatStatus(repoName, currentBranch, linkedWorktreeName, workingTreeState, self.c.Tr)
 
 	self.c.SetViewContent(self.c.Views().Status, status)
 }

@@ -3,9 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -14,15 +12,6 @@ import (
 
 	"github.com/jesseduffield/gocui"
 )
-
-// GetCurrentRepoName gets the repo's base name
-func GetCurrentRepoName() string {
-	pwd, err := os.Getwd()
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-	return filepath.Base(pwd)
-}
 
 // GetProjectRoot returns the path to the root of the project. Only to be used
 // in testing contexts, as with binaries it's unlikely this path will exist on
