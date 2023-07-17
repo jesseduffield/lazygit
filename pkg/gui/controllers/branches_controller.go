@@ -202,11 +202,9 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyCheckedOutBranch)
 	}
 
-	if selectedBranch.CheckedOutByOtherWorktree {
-		worktreeForRef, ok := self.worktreeForBranch(selectedBranch)
-		if ok && !self.c.Git().Worktree.IsCurrentWorktree(worktreeForRef.Path) {
-			return self.promptToCheckoutWorktree(worktreeForRef)
-		}
+	worktreeForRef, ok := self.worktreeForBranch(selectedBranch)
+	if ok && !self.c.Git().Worktree.IsCurrentWorktree(worktreeForRef.Path) {
+		return self.promptToCheckoutWorktree(worktreeForRef)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
@@ -214,13 +212,7 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 }
 
 func (self *BranchesController) worktreeForBranch(branch *models.Branch) (*models.Worktree, bool) {
-	for _, worktree := range self.c.Model().Worktrees {
-		if worktree.Branch == branch.Name {
-			return worktree, true
-		}
-	}
-
-	return nil, false
+	return git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees)
 }
 
 func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktree) error {
@@ -326,11 +318,15 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCheckOutBranch)
 	}
 
-	if branch.CheckedOutByOtherWorktree {
+	if self.checkedOutByOtherWorktree(branch) {
 		return self.promptWorktreeBranchDelete(branch)
 	}
 
 	return self.deleteWithForce(branch, false)
+}
+
+func (self *BranchesController) checkedOutByOtherWorktree(branch *models.Branch) bool {
+	return git_commands.CheckedOutByOtherWorktree(branch, self.c.Model().Worktrees)
 }
 
 func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *models.Branch) error {

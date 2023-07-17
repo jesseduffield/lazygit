@@ -2,7 +2,6 @@ package git_commands
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -118,11 +117,6 @@ outer:
 }
 
 func (self *BranchLoader) obtainBranches() []*models.Branch {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
 	output, err := self.getRawBranches()
 	if err != nil {
 		panic(err)
@@ -144,7 +138,7 @@ func (self *BranchLoader) obtainBranches() []*models.Branch {
 			return nil, false
 		}
 
-		return obtainBranch(split, currentDir), true
+		return obtainBranch(split), true
 	})
 }
 
@@ -172,32 +166,28 @@ var branchFields = []string{
 	"upstream:track",
 	"subject",
 	fmt.Sprintf("objectname:short=%d", utils.COMMIT_HASH_SHORT_SIZE),
-	"worktreepath",
 }
 
 // Obtain branch information from parsed line output of getRawBranches()
-func obtainBranch(split []string, currentDir string) *models.Branch {
+func obtainBranch(split []string) *models.Branch {
 	headMarker := split[0]
 	fullName := split[1]
 	upstreamName := split[2]
 	track := split[3]
 	subject := split[4]
 	commitHash := split[5]
-	branchDir := split[6]
-	checkedOutByOtherWorktree := len(branchDir) > 0 && branchDir != currentDir
 
 	name := strings.TrimPrefix(fullName, "heads/")
 	pushables, pullables, gone := parseUpstreamInfo(upstreamName, track)
 
 	return &models.Branch{
-		Name:                      name,
-		Pushables:                 pushables,
-		Pullables:                 pullables,
-		UpstreamGone:              gone,
-		Head:                      headMarker == "*",
-		Subject:                   subject,
-		CommitHash:                commitHash,
-		CheckedOutByOtherWorktree: checkedOutByOtherWorktree,
+		Name:         name,
+		Pushables:    pushables,
+		Pullables:    pullables,
+		UpstreamGone: gone,
+		Head:         headMarker == "*",
+		Subject:      subject,
+		CommitHash:   commitHash,
 	}
 }
 

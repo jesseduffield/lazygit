@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -76,7 +77,64 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		}
 	}
 
+	// Some worktrees are on a branch but are mid-rebase, and in those cases,
+	// `git worktree list` will not show the branch name. We can get the branch
+	// name from the `rebase-merge/head-name` file (if it exists) in the folder
+	// for the worktree in the parent repo's .git/worktrees folder.
+	for _, worktree := range worktrees {
+		// No point checking if we already have a branch name
+		if worktree.Branch != "" {
+			continue
+		}
+
+		rebaseBranch, ok := rebaseBranch(worktree.Path)
+		if ok {
+			worktree.Branch = rebaseBranch
+		}
+	}
+
 	return worktrees, nil
+}
+
+func rebaseBranch(worktreePath string) (string, bool) {
+	// need to find the actual path of the worktree in the .git dir
+	gitPath, ok := worktreeGitPath(worktreePath)
+	if !ok {
+		return "", false
+	}
+
+	// now we look inside that git path for a file `rebase-merge/head-name`
+	// if it exists, we update the worktree to say that it has that for a head
+	headNameContents, err := os.ReadFile(filepath.Join(gitPath, "rebase-merge", "head-name"))
+	if err != nil {
+		return "", false
+	}
+
+	headName := strings.TrimSpace(string(headNameContents))
+	shortHeadName := strings.TrimPrefix(headName, "refs/heads/")
+
+	return shortHeadName, true
+}
+
+func worktreeGitPath(worktreePath string) (string, bool) {
+	// first we get the path of the worktree, then we look at the contents of the `.git` file in that path
+	// then we look for the line that says `gitdir: /path/to/.git/worktrees/<worktree-name>`
+	// then we return that path
+	gitFileContents, err := os.ReadFile(filepath.Join(worktreePath, ".git"))
+	if err != nil {
+		return "", false
+	}
+
+	gitDirLine := lo.Filter(strings.Split(string(gitFileContents), "\n"), func(line string, _ int) bool {
+		return strings.HasPrefix(line, "gitdir: ")
+	})
+
+	if len(gitDirLine) == 0 {
+		return "", false
+	}
+
+	gitDir := strings.TrimPrefix(gitDirLine[0], "gitdir: ")
+	return gitDir, true
 }
 
 type pathWithIndexT struct {
