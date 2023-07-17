@@ -2,7 +2,6 @@ package git_commands
 
 import (
 	"errors"
-	"fmt"
 	"io/fs"
 	"log"
 	"os"
@@ -67,7 +66,7 @@ func (self *WorktreeCommands) IsCurrentWorktree(path string) bool {
 func IsCurrentWorktree(path string) bool {
 	pwd, err := os.Getwd()
 	if err != nil {
-		log.Fatalln(err.Error())
+		return false
 	}
 
 	return EqualPath(pwd, path)
@@ -78,7 +77,8 @@ func (self *WorktreeCommands) IsWorktreePathMissing(path string) bool {
 		if errors.Is(err, fs.ErrNotExist) {
 			return true
 		}
-		log.Fatalln(fmt.Errorf("failed to check if worktree path `%s` exists\n%w", path, err).Error())
+		self.Log.Errorf("failed to check if worktree path `%s` exists\n%v", path, err)
+		return false
 	}
 	return false
 }
@@ -118,7 +118,8 @@ func GetCurrentRepoPath() string {
 	gitPath := filepath.Join(pwd, ".git")
 	gitFileInfo, err := os.Stat(gitPath)
 	if err != nil {
-		log.Fatalln(err.Error())
+		// fallback
+		return currentPath()
 	}
 
 	if gitFileInfo.IsDir() {
