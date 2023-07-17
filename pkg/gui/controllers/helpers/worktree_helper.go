@@ -3,7 +3,9 @@ package helpers
 import (
 	"errors"
 	"io/fs"
+	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -262,4 +264,39 @@ func (self *WorktreeHelper) ViewBranchWorktreeOptions(branchName string, canChec
 			},
 		},
 	})
+}
+
+func (self *WorktreeHelper) GetCurrentRepoName() string {
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	// check if .git is a file or a directory
+	gitPath := filepath.Join(pwd, ".git")
+	gitFileInfo, err := os.Stat(gitPath)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	// must be a worktree or bare repo
+	if !gitFileInfo.IsDir() {
+		worktreeGitPath, ok := git_commands.WorktreeGitPath(pwd)
+		if !ok {
+			return basePath()
+		}
+
+		// now we just jump up three directories to get the repo name
+		return filepath.Base(filepath.Dir(filepath.Dir(filepath.Dir(worktreeGitPath))))
+	}
+
+	return basePath()
+}
+
+func basePath() string {
+	pwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	return filepath.Base(pwd)
 }
