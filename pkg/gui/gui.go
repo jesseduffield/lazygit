@@ -596,22 +596,15 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 				Tab:      gui.c.Tr.FilesTitle,
 				ViewName: "files",
 			},
+			context.TabView{
+				Tab:      gui.c.Tr.WorktreesTitle,
+				ViewName: "worktrees",
+			},
 			{
 				Tab:      gui.c.Tr.SubmodulesTitle,
 				ViewName: "submodules",
 			},
 		},
-	}
-
-	if gui.c.Git().Version.SupportsWorktrees() {
-		// insert between files and submodules tabs
-		result["files"] = append(result["files"][0:1],
-			context.TabView{
-				Tab:      gui.c.Tr.WorktreesTitle,
-				ViewName: "worktrees",
-			},
-			result["files"][1],
-		)
 	}
 
 	return result

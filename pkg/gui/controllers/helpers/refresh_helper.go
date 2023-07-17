@@ -598,11 +598,6 @@ func (self *RefreshHelper) refreshRemotes() error {
 }
 
 func (self *RefreshHelper) refreshWorktrees() error {
-	if !self.c.Git().Version.SupportsWorktrees() {
-		self.c.Model().Worktrees = []*models.Worktree{}
-		return nil
-	}
-
 	worktrees, err := self.c.Git().Loaders.Worktrees.GetWorktrees()
 	if err != nil {
 		self.c.Log.Error(err)
@@ -634,10 +629,7 @@ func (self *RefreshHelper) refreshStatus() {
 	}
 
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
-	var linkedWorktreeName string
-	if self.c.Git().Version.SupportsWorktrees() {
-		linkedWorktreeName = self.worktreeHelper.GetLinkedWorktreeName()
-	}
+	linkedWorktreeName := self.worktreeHelper.GetLinkedWorktreeName()
 
 	repoName := git_commands.GetCurrentRepoName()
 

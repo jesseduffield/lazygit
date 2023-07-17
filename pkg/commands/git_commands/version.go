@@ -69,7 +69,3 @@ func (v *GitVersion) IsOlderThan(major, minor, patch int) bool {
 func (v *GitVersion) IsOlderThanVersion(version *GitVersion) bool {
 	return v.IsOlderThan(version.Major, version.Minor, version.Patch)
 }
-
-func (v *GitVersion) SupportsWorktrees() bool {
-	return !v.IsOlderThan(2, 5, 0)
-}
