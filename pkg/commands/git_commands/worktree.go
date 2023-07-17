@@ -108,6 +108,8 @@ func CheckedOutByOtherWorktree(branch *models.Branch, worktrees []*models.Worktr
 	return !IsCurrentWorktree(worktree.Path)
 }
 
+// If in a non-bare repo, this returns the path of the main worktree
+// TODO: see if this works with a bare repo.
 func GetCurrentRepoPath() string {
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -128,7 +130,7 @@ func GetCurrentRepoPath() string {
 	}
 
 	// either in a submodule, a worktree, or a bare repo
-	worktreeGitPath, ok := WorktreeGitPath(pwd)
+	worktreeGitPath, ok := LinkedWorktreeGitPath(pwd)
 	if !ok {
 		// fallback
 		return currentPath()

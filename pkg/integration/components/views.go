@@ -129,6 +129,10 @@ func (self *Views) Files() *ViewDriver {
 	return self.regularView("files")
 }
 
+func (self *Views) Worktrees() *ViewDriver {
+	return self.regularView("worktrees")
+}
+
 func (self *Views) Status() *ViewDriver {
 	return self.regularView("status")
 }

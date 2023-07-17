@@ -28,6 +28,8 @@ func NewWorktreeLoader(
 }
 
 func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
+	currentRepoPath := GetCurrentRepoPath()
+
 	cmdArgs := NewGitCmd("worktree").Arg("list", "--porcelain").ToArgv()
 	worktreesOutput, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
@@ -46,8 +48,9 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		}
 		if strings.HasPrefix(splitLine, "worktree ") {
 			path := strings.SplitN(splitLine, " ", 2)[1]
+
 			current = &models.Worktree{
-				IsMain: len(worktrees) == 0,
+				IsMain: path == currentRepoPath,
 				Path:   path,
 			}
 		} else if strings.HasPrefix(splitLine, "branch ") {
@@ -88,7 +91,7 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			continue
 		}
 
-		rebaseBranch, ok := rebaseBranch(worktree.Path)
+		rebaseBranch, ok := rebaseBranch(worktree)
 		if ok {
 			worktree.Branch = rebaseBranch
 		}
@@ -97,11 +100,17 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 	return worktrees, nil
 }
 
-func rebaseBranch(worktreePath string) (string, bool) {
-	// need to find the actual path of the worktree in the .git dir
-	gitPath, ok := WorktreeGitPath(worktreePath)
-	if !ok {
-		return "", false
+func rebaseBranch(worktree *models.Worktree) (string, bool) {
+	var gitPath string
+	if worktree.Main() {
+		gitPath = filepath.Join(worktree.Path, ".git")
+	} else {
+		// need to find the path of the linked worktree in the .git dir
+		var ok bool
+		gitPath, ok = LinkedWorktreeGitPath(worktree.Path)
+		if !ok {
+			return "", false
+		}
 	}
 
 	// now we look inside that git path for a file `rebase-merge/head-name`
@@ -117,7 +126,7 @@ func rebaseBranch(worktreePath string) (string, bool) {
 	return shortHeadName, true
 }
 
-func WorktreeGitPath(worktreePath string) (string, bool) {
+func LinkedWorktreeGitPath(worktreePath string) (string, bool) {
 	// first we get the path of the worktree, then we look at the contents of the `.git` file in that path
 	// then we look for the line that says `gitdir: /path/to/.git/worktrees/<worktree-name>`
 	// then we return that path

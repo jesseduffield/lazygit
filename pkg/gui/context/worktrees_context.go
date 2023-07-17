@@ -23,6 +23,7 @@ func NewWorktreesContext(c *ContextCommon) *WorktreesContext {
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
 		return presentation.GetWorktreeDisplayStrings(
+			c.Tr,
 			viewModel.GetFilteredList(),
 			c.Git().Worktree.IsCurrentWorktree,
 			c.Git().Worktree.IsWorktreePathMissing,
