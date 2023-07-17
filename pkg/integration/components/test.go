@@ -8,7 +8,6 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
-	"github.com/jesseduffield/lazygit/pkg/env"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -170,11 +169,12 @@ func (self *IntegrationTest) SetupRepo(shell *Shell) {
 }
 
 func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
-	// we pass the --pass arg to lazygit when running an integration test, and that
-	// ends up stored in the following env var
-	repoPath := env.GetGitWorkTreeEnv()
+	pwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
 
-	shell := NewShell(repoPath, func(errorMsg string) { gui.Fail(errorMsg) })
+	shell := NewShell(pwd, func(errorMsg string) { gui.Fail(errorMsg) })
 	keys := gui.Keys()
 	testDriver := NewTestDriver(gui, shell, keys, KeyPressDelay())
 
