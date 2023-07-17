@@ -64,7 +64,7 @@ func (self *WorktreeHelper) GetLinkedWorktreeName() string {
 func (self *WorktreeHelper) IsCurrentWorktree(w *models.Worktree) bool {
 	pwd, err := os.Getwd()
 	if err != nil {
-		self.c.Log.Errorf("failed to obtain current working directory: %w", err)
+		self.c.Log.Errorf("failed to obtain current working directory: %v", err)
 		return false
 	}
 
@@ -76,7 +76,7 @@ func (self *WorktreeHelper) IsWorktreePathMissing(w *models.Worktree) bool {
 		if errors.Is(err, fs.ErrNotExist) {
 			return true
 		}
-		self.c.Log.Errorf("failed to check if worktree path `%s` exists: %w", w.Path, err)
+		self.c.Log.Errorf("failed to check if worktree path `%s` exists: %v", w.Path, err)
 		return false
 	}
 	return false
