@@ -566,32 +566,21 @@ func (gui *Gui) initGocui(headless bool, test integrationTypes.IntegrationTest) 
 }
 
 func (gui *Gui) viewTabMap() map[string][]context.TabView {
-	branchesTabs := []context.TabView{
-		{
-			Tab:      gui.c.Tr.LocalBranchesTitle,
-			ViewName: "localBranches",
-		},
-		{
-			Tab:      gui.c.Tr.RemotesTitle,
-			ViewName: "remotes",
-		},
-		{
-			Tab:      gui.c.Tr.TagsTitle,
-			ViewName: "tags",
-		},
-	}
-
-	if gui.c.Git().Version.SupportsWorktrees() {
-		branchesTabs = append(branchesTabs,
-			context.TabView{
-				Tab:      gui.c.Tr.WorktreesTitle,
-				ViewName: "worktrees",
+	result := map[string][]context.TabView{
+		"branches": {
+			{
+				Tab:      gui.c.Tr.LocalBranchesTitle,
+				ViewName: "localBranches",
 			},
-		)
-	}
-
-	return map[string][]context.TabView{
-		"branches": branchesTabs,
+			{
+				Tab:      gui.c.Tr.RemotesTitle,
+				ViewName: "remotes",
+			},
+			{
+				Tab:      gui.c.Tr.TagsTitle,
+				ViewName: "tags",
+			},
+		},
 		"commits": {
 			{
 				Tab:      gui.c.Tr.CommitsTitle,
@@ -613,6 +602,19 @@ func (gui *Gui) viewTabMap() map[string][]context.TabView {
 			},
 		},
 	}
+
+	if gui.c.Git().Version.SupportsWorktrees() {
+		// insert between files and submodules tabs
+		result["files"] = append(result["files"][0:1],
+			context.TabView{
+				Tab:      gui.c.Tr.WorktreesTitle,
+				ViewName: "worktrees",
+			},
+			result["files"][1],
+		)
+	}
+
+	return result
 }
 
 // Run: setup the gui with keybindings and start the mainloop
