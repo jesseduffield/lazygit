@@ -632,8 +632,12 @@ func (self *RefreshHelper) refreshStatus() {
 	}
 
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
-	mainWorktreeName := self.worktreeHelper.GetMainWorktreeName()
-	status := presentation.FormatStatus(currentBranch, mainWorktreeName, workingTreeState, self.c.Tr)
+	var linkedWorktreeName string
+	if self.c.Git().Version.SupportsWorktrees() {
+		linkedWorktreeName = self.worktreeHelper.GetLinkedWorktreeName()
+	}
+
+	status := presentation.FormatStatus(currentBranch, linkedWorktreeName, workingTreeState, self.c.Tr)
 
 	self.c.SetViewContent(self.c.Views().Status, status)
 }

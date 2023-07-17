@@ -10,7 +10,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-func FormatStatus(currentBranch *models.Branch, mainWorktreeName string, workingTreeState enums.RebaseMode, tr *i18n.TranslationSet) string {
+func FormatStatus(currentBranch *models.Branch, linkedWorktreeName string, workingTreeState enums.RebaseMode, tr *i18n.TranslationSet) string {
 	status := ""
 
 	if currentBranch.IsRealBranch() {
@@ -23,8 +23,9 @@ func FormatStatus(currentBranch *models.Branch, mainWorktreeName string, working
 
 	name := GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
 	repoName := utils.GetCurrentRepoName()
-	if repoName != mainWorktreeName {
-		repoName = fmt.Sprintf("%s(%s)", mainWorktreeName, style.FgCyan.Sprint(repoName))
+	// If the user is in a linked worktree (i.e. not the main worktree) we'll display that
+	if linkedWorktreeName != "" {
+		repoName = fmt.Sprintf("%s(%s)", repoName, style.FgCyan.Sprint(linkedWorktreeName))
 	}
 	status += fmt.Sprintf("%s → %s ", repoName, name)
 
