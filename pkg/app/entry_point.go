@@ -76,7 +76,10 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 	}
 
 	if cliArgs.WorkTree != "" {
-		env.SetGitWorkTreeEnv(cliArgs.WorkTree)
+		err := os.Chdir(cliArgs.WorkTree)
+		if err != nil {
+			log.Fatalf("Failed to change directory to %s: %v", cliArgs.WorkTree, err)
+		}
 	}
 
 	if cliArgs.GitDir != "" {
