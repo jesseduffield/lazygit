@@ -30,24 +30,24 @@ func NewWorktreesController(
 func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	bindings := []*types.Binding{
 		{
-			Key:         opts.GetKey(opts.Config.Universal.Select),
-			Handler:     self.checkSelected(self.enter),
-			Description: self.c.Tr.SwitchToWorktree,
-		},
-		{
-			Key:         opts.GetKey(opts.Config.Universal.Remove),
-			Handler:     self.checkSelected(self.remove),
-			Description: self.c.Tr.RemoveWorktree,
-		},
-		{
 			Key:         opts.GetKey(opts.Config.Universal.New),
 			Handler:     self.add,
 			Description: self.c.Tr.CreateWorktree,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Universal.Select),
+			Handler:     self.checkSelected(self.enter),
+			Description: self.c.Tr.SwitchToWorktree,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.checkSelected(self.open),
 			Description: self.c.Tr.OpenInEditor,
+		},
+		{
+			Key:         opts.GetKey(opts.Config.Universal.Remove),
+			Handler:     self.checkSelected(self.remove),
+			Description: self.c.Tr.RemoveWorktree,
 		},
 	}
 

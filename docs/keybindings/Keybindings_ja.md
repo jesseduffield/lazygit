@@ -52,6 +52,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: Drop
   <kbd>n</kbd>: 新しいブランチを作成
   <kbd>r</kbd>: Stashを変更
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -60,6 +61,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: コミットのSHAをクリップボードにコピー
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: コミットをチェックアウト
   <kbd>y</kbd>: コミットの情報をコピー
   <kbd>o</kbd>: ブラウザでコミットを開く
@@ -70,6 +72,16 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: 検索を開始
+</pre>
+
+## Worktrees
+
+<pre>
+  <kbd>n</kbd>: Create worktree
+  <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>o</kbd>: Open in editor
+  <kbd>d</kbd>: Remove worktree
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## コミット
@@ -95,6 +107,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>t</kbd>: コミットをrevert
   <kbd>T</kbd>: タグを作成
   <kbd>&lt;c-l&gt;</kbd>: ログメニューを開く
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: コミットをチェックアウト
   <kbd>y</kbd>: コミットの情報をコピー
   <kbd>o</kbd>: ブラウザでコミットを開く
@@ -160,6 +173,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>P</kbd>: タグをpush
   <kbd>n</kbd>: タグを作成
   <kbd>g</kbd>: View reset options
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -211,6 +225,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>g</kbd>: View reset options
   <kbd>R</kbd>: ブランチ名を変更
   <kbd>u</kbd>: Set/Unset upstream
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -305,6 +320,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: ブランチを削除
   <kbd>u</kbd>: Set as upstream of checked-out branch
   <kbd>g</kbd>: View reset options
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -313,6 +329,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: コミットのSHAをクリップボードにコピー
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: コミットをチェックアウト
   <kbd>y</kbd>: コミットの情報をコピー
   <kbd>o</kbd>: ブラウザでコミットを開く

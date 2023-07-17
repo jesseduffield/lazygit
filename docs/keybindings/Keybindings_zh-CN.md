@@ -48,6 +48,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 将提交的 SHA 复制到剪贴板
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: 检出提交
   <kbd>y</kbd>: Copy commit attribute
   <kbd>o</kbd>: 在浏览器中打开提交
@@ -57,6 +58,16 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>C</kbd>: 复制提交范围（拣选）
   <kbd>&lt;c-r&gt;</kbd>: 重置已拣选（复制）的提交
   <kbd>&lt;enter&gt;</kbd>: 查看提交
+  <kbd>/</kbd>: Filter the current view by text
+</pre>
+
+## Worktrees
+
+<pre>
+  <kbd>n</kbd>: Create worktree
+  <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>o</kbd>: Open in editor
+  <kbd>d</kbd>: Remove worktree
   <kbd>/</kbd>: Filter the current view by text
 </pre>
 
@@ -80,6 +91,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>g</kbd>: 查看重置选项
   <kbd>R</kbd>: 重命名分支
   <kbd>u</kbd>: Set/Unset upstream
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 查看提交
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -88,6 +100,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 将提交的 SHA 复制到剪贴板
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: 检出提交
   <kbd>y</kbd>: Copy commit attribute
   <kbd>o</kbd>: 在浏览器中打开提交
@@ -137,6 +150,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>t</kbd>: 还原提交
   <kbd>T</kbd>: 标签提交
   <kbd>&lt;c-l&gt;</kbd>: 打开日志菜单
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: 检出提交
   <kbd>y</kbd>: Copy commit attribute
   <kbd>o</kbd>: 在浏览器中打开提交
@@ -221,6 +235,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>P</kbd>: 推送标签
   <kbd>n</kbd>: 创建标签
   <kbd>g</kbd>: 查看重置选项
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 查看提交
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -303,6 +318,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: 删除
   <kbd>n</kbd>: 新分支
   <kbd>r</kbd>: Rename stash
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 查看提交的文件
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -318,6 +334,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: 删除分支
   <kbd>u</kbd>: 设置为检出分支的上游
   <kbd>g</kbd>: 查看重置选项
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 查看提交
   <kbd>/</kbd>: Filter the current view by text
 </pre>

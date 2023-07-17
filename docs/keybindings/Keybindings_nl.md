@@ -98,6 +98,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>g</kbd>: Bekijk reset opties
   <kbd>R</kbd>: Hernoem branch
   <kbd>u</kbd>: Set/Unset upstream
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: Bekijk commits
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -147,6 +148,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>t</kbd>: Commit ongedaan maken
   <kbd>T</kbd>: Tag commit
   <kbd>&lt;c-l&gt;</kbd>: Open log menu
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: Checkout commit
   <kbd>y</kbd>: Copy commit attribute
   <kbd>o</kbd>: Open commit in browser
@@ -209,6 +211,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Kopieer commit SHA naar klembord
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: Checkout commit
   <kbd>y</kbd>: Copy commit attribute
   <kbd>o</kbd>: Open commit in browser
@@ -232,6 +235,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: Verwijder branch
   <kbd>u</kbd>: Stel in als upstream van uitgecheckte branch
   <kbd>g</kbd>: Bekijk reset opties
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: Bekijk commits
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -276,6 +280,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: Laten vallen
   <kbd>n</kbd>: Nieuwe branch
   <kbd>r</kbd>: Rename stash
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: Bekijk gecommite bestanden
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -294,6 +299,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Kopieer commit SHA naar klembord
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: Checkout commit
   <kbd>y</kbd>: Copy commit attribute
   <kbd>o</kbd>: Open commit in browser
@@ -328,6 +334,17 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>P</kbd>: Push tag
   <kbd>n</kbd>: Creëer tag
   <kbd>g</kbd>: Bekijk reset opties
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: Bekijk commits
+  <kbd>/</kbd>: Filter the current view by text
+</pre>
+
+## Worktrees
+
+<pre>
+  <kbd>n</kbd>: Create worktree
+  <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>o</kbd>: Open in editor
+  <kbd>d</kbd>: Remove worktree
   <kbd>/</kbd>: Filter the current view by text
 </pre>
