@@ -598,6 +598,11 @@ func (self *RefreshHelper) refreshRemotes() error {
 }
 
 func (self *RefreshHelper) refreshWorktrees() error {
+	if !self.c.Git().Version.SupportsWorktrees() {
+		self.c.Model().Worktrees = []*models.Worktree{}
+		return nil
+	}
+
 	worktrees, err := self.c.Git().Loaders.Worktrees.GetWorktrees()
 	if err != nil {
 		return self.c.Error(err)

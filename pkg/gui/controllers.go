@@ -242,16 +242,18 @@ func (gui *Gui) resetHelpersAndControllers() {
 		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
 	}
 
-	for _, context := range []controllers.CanViewWorktreeOptions{
-		gui.State.Contexts.LocalCommits,
-		gui.State.Contexts.ReflogCommits,
-		gui.State.Contexts.SubCommits,
-		gui.State.Contexts.Stash,
-		gui.State.Contexts.Branches,
-		gui.State.Contexts.RemoteBranches,
-		gui.State.Contexts.Tags,
-	} {
-		controllers.AttachControllers(context, controllers.NewWorktreeOptionsController(common, context))
+	if gui.c.Git().Version.SupportsWorktrees() {
+		for _, context := range []controllers.CanViewWorktreeOptions{
+			gui.State.Contexts.LocalCommits,
+			gui.State.Contexts.ReflogCommits,
+			gui.State.Contexts.SubCommits,
+			gui.State.Contexts.Stash,
+			gui.State.Contexts.Branches,
+			gui.State.Contexts.RemoteBranches,
+			gui.State.Contexts.Tags,
+		} {
+			controllers.AttachControllers(context, controllers.NewWorktreeOptionsController(common, context))
+		}
 	}
 
 	controllers.AttachControllers(gui.State.Contexts.ReflogCommits,
