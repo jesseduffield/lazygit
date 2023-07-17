@@ -323,7 +323,7 @@ func patchFileIconsForNerdFontsV2() {
 	extIconMap[".vue"] = "\ufd42"     // ﵂
 }
 
-func IconForFile(name string, isSubmodule bool, isDirectory bool) string {
+func IconForFile(name string, isSubmodule bool, isLinkedWorktree bool, isDirectory bool) string {
 	base := filepath.Base(name)
 	if icon, ok := nameIconMap[base]; ok {
 		return icon
@@ -336,6 +336,8 @@ func IconForFile(name string, isSubmodule bool, isDirectory bool) string {
 
 	if isSubmodule {
 		return DEFAULT_SUBMODULE_ICON
+	} else if isLinkedWorktree {
+		return LINKED_WORKTREE_ICON
 	} else if isDirectory {
 		return DEFAULT_DIRECTORY_ICON
 	}

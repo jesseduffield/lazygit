@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -58,11 +59,30 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 			Name:          status.Name,
 			PreviousName:  status.PreviousName,
 			DisplayString: status.StatusString,
-			Type:          self.getFileType(status.Name),
 		}
 
 		models.SetStatusFields(file, status.Change)
 		files = append(files, file)
+	}
+
+	// Go through the worktrees to see if any of these files are actually worktrees
+	// so that we can render them correctly
+	worktreePaths := linkedWortkreePaths()
+	for _, file := range files {
+		for _, worktreePath := range worktreePaths {
+			absFilePath, err := filepath.Abs(file.Name)
+			if err != nil {
+				self.Log.Error(err)
+				continue
+			}
+			if absFilePath == worktreePath {
+				file.IsWorktree = true
+				// `git status` renders this worktree as a folder with a trailing slash but we'll represent it as a singular worktree
+				// If we include the slash, it will be rendered as a folder with a null file inside.
+				file.Name = strings.TrimSuffix(file.Name, "/")
+				break
+			}
+		}
 	}
 
 	return files

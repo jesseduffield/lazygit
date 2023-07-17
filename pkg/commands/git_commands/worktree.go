@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 )
@@ -107,7 +108,7 @@ func CheckedOutByOtherWorktree(branch *models.Branch, worktrees []*models.Worktr
 	return !IsCurrentWorktree(worktree.Path)
 }
 
-func GetCurrentRepoName() string {
+func GetCurrentRepoPath() string {
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalln(err.Error())
@@ -120,24 +121,58 @@ func GetCurrentRepoName() string {
 		log.Fatalln(err.Error())
 	}
 
-	// must be a worktree or bare repo
-	if !gitFileInfo.IsDir() {
-		worktreeGitPath, ok := WorktreeGitPath(pwd)
-		if !ok {
-			return basePath()
-		}
-
-		// now we just jump up three directories to get the repo name
-		return filepath.Base(filepath.Dir(filepath.Dir(filepath.Dir(worktreeGitPath))))
+	if gitFileInfo.IsDir() {
+		// must be in the main worktree
+		return currentPath()
 	}
 
-	return basePath()
+	// must be a worktree or bare repo
+	worktreeGitPath, ok := WorktreeGitPath(pwd)
+	if !ok {
+		// fallback
+		return currentPath()
+	}
+
+	// now we just jump up three directories to get the repo name
+	return filepath.Dir(filepath.Dir(filepath.Dir(worktreeGitPath)))
 }
 
-func basePath() string {
+func GetCurrentRepoName() string {
+	return filepath.Base(GetCurrentRepoPath())
+}
+
+func currentPath() string {
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	return filepath.Base(pwd)
+	return pwd
+}
+
+func linkedWortkreePaths() []string {
+	// first we need to get the repo dir
+	repoPath := GetCurrentRepoPath()
+	result := []string{}
+	worktreePath := filepath.Join(repoPath, ".git", "worktrees")
+	// for each directory in this path we're going to cat the `gitdir` file and append its contents to our result
+	err := filepath.Walk(worktreePath, func(path string, info fs.FileInfo, err error) error {
+		if info.IsDir() {
+			gitDirPath := filepath.Join(path, "gitdir")
+			gitDirBytes, err := os.ReadFile(gitDirPath)
+			if err != nil {
+				// ignoring error
+				return nil
+			}
+			trimmedGitDir := strings.TrimSpace(string(gitDirBytes))
+			// removing the .git part
+			worktreeDir := filepath.Dir(trimmedGitDir)
+			result = append(result, worktreeDir)
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	return result
 }
