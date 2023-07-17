@@ -81,7 +81,7 @@ func TestObtainBranch(t *testing.T) {
 
 	for _, s := range scenarios {
 		t.Run(s.testName, func(t *testing.T) {
-			branch := obtainBranch(s.input, "current-dir")
+			branch := obtainBranch(s.input)
 			assert.EqualValues(t, s.expectedBranch, branch)
 		})
 	}

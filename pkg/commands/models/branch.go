@@ -26,8 +26,6 @@ type Branch struct {
 	Subject string
 	// commit hash
 	CommitHash string
-
-	CheckedOutByOtherWorktree bool
 }
 
 func (b *Branch) FullRefName() string {
