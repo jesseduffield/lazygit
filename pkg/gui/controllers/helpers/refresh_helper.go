@@ -605,7 +605,9 @@ func (self *RefreshHelper) refreshWorktrees() error {
 
 	worktrees, err := self.c.Git().Loaders.Worktrees.GetWorktrees()
 	if err != nil {
-		return self.c.Error(err)
+		self.c.Log.Error(err)
+		self.c.Model().Worktrees = []*models.Worktree{}
+		return nil
 	}
 
 	self.c.Model().Worktrees = worktrees

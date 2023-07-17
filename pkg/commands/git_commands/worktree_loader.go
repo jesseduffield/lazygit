@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -27,13 +28,13 @@ func NewWorktreeLoader(
 }
 
 func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
-	cmdArgs := NewGitCmd("worktree").Arg("list", "--porcelain", "-z").ToArgv()
+	cmdArgs := NewGitCmd("worktree").Arg("list", "--porcelain").ToArgv()
 	worktreesOutput, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
 		return nil, err
 	}
 
-	splitLines := strings.Split(worktreesOutput, "\x00")
+	splitLines := utils.SplitLines(worktreesOutput)
 
 	var worktrees []*models.Worktree
 	var current *models.Worktree
