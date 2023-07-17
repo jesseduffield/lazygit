@@ -26,6 +26,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/tag"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/ui"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/undo"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/worktree"
 )
 
 var tests = []*components.IntegrationTest{
@@ -217,4 +218,8 @@ var tests = []*components.IntegrationTest{
 	ui.SwitchTabFromMenu,
 	undo.UndoCheckoutAndDrop,
 	undo.UndoDrop,
+	worktree.AddFromBranch,
+	worktree.Crud,
+	worktree.Rebase,
+	worktree.WorktreeInRepo,
 }

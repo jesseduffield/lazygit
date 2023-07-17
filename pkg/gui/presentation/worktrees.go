@@ -4,20 +4,22 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
+	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
 )
 
-func GetWorktreeDisplayStrings(worktrees []*models.Worktree, isCurrent func(string) bool, isMissing func(string) bool) [][]string {
+func GetWorktreeDisplayStrings(tr *i18n.TranslationSet, worktrees []*models.Worktree, isCurrent func(string) bool, isMissing func(string) bool) [][]string {
 	return lo.Map(worktrees, func(worktree *models.Worktree, _ int) []string {
 		return GetWorktreeDisplayString(
+			tr,
 			isCurrent(worktree.Path),
 			isMissing(worktree.Path),
 			worktree)
 	})
 }
 
-func GetWorktreeDisplayString(isCurrent bool, isPathMissing bool, worktree *models.Worktree) []string {
+func GetWorktreeDisplayString(tr *i18n.TranslationSet, isCurrent bool, isPathMissing bool, worktree *models.Worktree) []string {
 	textStyle := theme.DefaultTextColor
 
 	current := ""
@@ -41,8 +43,10 @@ func GetWorktreeDisplayString(isCurrent bool, isPathMissing bool, worktree *mode
 
 	name := worktree.Name()
 	if worktree.Main() {
-		// TODO: i18n
-		name += " (main worktree)"
+		name += " " + tr.MainWorktree
+	}
+	if isPathMissing && !icons.IsIconEnabled() {
+		name += " " + tr.MissingWorktree
 	}
 	res = append(res, textStyle.Sprint(name))
 	return res

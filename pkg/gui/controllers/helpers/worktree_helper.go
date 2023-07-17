@@ -94,7 +94,7 @@ func (self *WorktreeHelper) NewWorktree() error {
 			HandleConfirm: func(base string) error {
 				// we assume that the base can be checked out
 				canCheckoutBase := true
-				return self.NewWorktreeCheckout(base, canCheckoutBase, detached)
+				return self.NewWorktreeCheckout(base, canCheckoutBase, detached, context.WORKTREES_CONTEXT_KEY)
 			},
 		})
 	}
@@ -120,7 +120,7 @@ func (self *WorktreeHelper) NewWorktree() error {
 	})
 }
 
-func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase bool, detached bool) error {
+func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase bool, detached bool, contextKey types.ContextKey) error {
 	opts := git_commands.NewWorktreeOpts{
 		Base:   base,
 		Detach: detached,
@@ -132,7 +132,7 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 			if err := self.c.Git().Worktree.New(opts); err != nil {
 				return err
 			}
-			return self.Switch(opts.Path, context.LOCAL_BRANCHES_CONTEXT_KEY)
+			return self.Switch(opts.Path, contextKey)
 		})
 	}
 
@@ -251,13 +251,13 @@ func (self *WorktreeHelper) ViewBranchWorktreeOptions(branchName string, canChec
 			{
 				LabelColumns: []string{utils.ResolvePlaceholderString(self.c.Tr.CreateWorktreeFrom, placeholders)},
 				OnPress: func() error {
-					return self.NewWorktreeCheckout(branchName, canCheckoutBase, false)
+					return self.NewWorktreeCheckout(branchName, canCheckoutBase, false, context.LOCAL_BRANCHES_CONTEXT_KEY)
 				},
 			},
 			{
 				LabelColumns: []string{utils.ResolvePlaceholderString(self.c.Tr.CreateWorktreeFromDetached, placeholders)},
 				OnPress: func() error {
-					return self.NewWorktreeCheckout(branchName, canCheckoutBase, true)
+					return self.NewWorktreeCheckout(branchName, canCheckoutBase, true, context.LOCAL_BRANCHES_CONTEXT_KEY)
 				},
 			},
 		},
