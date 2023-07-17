@@ -48,6 +48,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 커밋 SHA를 클립보드에 복사
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: 커밋을 체크아웃
   <kbd>y</kbd>: 커밋 attribute 복사
   <kbd>o</kbd>: 브라우저에서 커밋 열기
@@ -68,6 +69,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: Drop
   <kbd>n</kbd>: 새 브랜치 생성
   <kbd>r</kbd>: Rename stash
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -76,6 +78,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 커밋 SHA를 클립보드에 복사
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: 커밋을 체크아웃
   <kbd>y</kbd>: 커밋 attribute 복사
   <kbd>o</kbd>: 브라우저에서 커밋 열기
@@ -86,6 +89,16 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-r&gt;</kbd>: Reset cherry-picked (copied) commits selection
   <kbd>&lt;enter&gt;</kbd>: View selected item's files
   <kbd>/</kbd>: 검색 시작
+</pre>
+
+## Worktrees
+
+<pre>
+  <kbd>n</kbd>: Create worktree
+  <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>o</kbd>: Open in editor
+  <kbd>d</kbd>: Remove worktree
+  <kbd>/</kbd>: Filter the current view by text
 </pre>
 
 ## 메뉴
@@ -177,6 +190,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>g</kbd>: View reset options
   <kbd>R</kbd>: 브랜치 이름 변경
   <kbd>u</kbd>: Set/Unset upstream
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -226,6 +240,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>d</kbd>: 브랜치 삭제
   <kbd>u</kbd>: Set as upstream of checked-out branch
   <kbd>g</kbd>: View reset options
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -253,6 +268,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>t</kbd>: 커밋 되돌리기
   <kbd>T</kbd>: Tag commit
   <kbd>&lt;c-l&gt;</kbd>: 로그 메뉴 열기
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: 커밋을 체크아웃
   <kbd>y</kbd>: 커밋 attribute 복사
   <kbd>o</kbd>: 브라우저에서 커밋 열기
@@ -294,6 +310,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>P</kbd>: 태그를 push
   <kbd>n</kbd>: 태그를 생성
   <kbd>g</kbd>: View reset options
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
   <kbd>/</kbd>: Filter the current view by text
 </pre>

@@ -44,6 +44,16 @@ _Связки клавиш_
   <kbd>[</kbd>: Предыдущая вкладка
 </pre>
 
+## Worktrees
+
+<pre>
+  <kbd>n</kbd>: Create worktree
+  <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>o</kbd>: Open in editor
+  <kbd>d</kbd>: Remove worktree
+  <kbd>/</kbd>: Filter the current view by text
+</pre>
+
 ## Главная панель (Индексирование)
 
 <pre>
@@ -109,6 +119,7 @@ _Связки клавиш_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Скопировать SHA коммита в буфер обмена
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: Переключить коммит
   <kbd>y</kbd>: Скопировать атрибут коммита
   <kbd>o</kbd>: Открыть коммит в браузере
@@ -144,6 +155,7 @@ _Связки клавиш_
   <kbd>t</kbd>: Отменить коммит
   <kbd>T</kbd>: Пометить коммит тегом
   <kbd>&lt;c-l&gt;</kbd>: Открыть меню журнала
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: Переключить коммит
   <kbd>y</kbd>: Скопировать атрибут коммита
   <kbd>o</kbd>: Открыть коммит в браузере
@@ -175,6 +187,7 @@ _Связки клавиш_
   <kbd>g</kbd>: Просмотреть параметры сброса
   <kbd>R</kbd>: Переименовать ветку
   <kbd>u</kbd>: Установить/убрать upstream-ветку
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: Просмотреть коммиты
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -198,6 +211,7 @@ _Связки клавиш_
 
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Скопировать SHA коммита в буфер обмена
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;space&gt;</kbd>: Переключить коммит
   <kbd>y</kbd>: Скопировать атрибут коммита
   <kbd>o</kbd>: Открыть коммит в браузере
@@ -264,6 +278,7 @@ _Связки клавиш_
   <kbd>P</kbd>: Отправить тег
   <kbd>n</kbd>: Создать тег
   <kbd>g</kbd>: Просмотреть параметры сброса
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: Просмотреть коммиты
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -279,6 +294,7 @@ _Связки клавиш_
   <kbd>d</kbd>: Удалить ветку
   <kbd>u</kbd>: Установить как upstream-ветку переключённую ветку
   <kbd>g</kbd>: Просмотреть параметры сброса
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: Просмотреть коммиты
   <kbd>/</kbd>: Filter the current view by text
 </pre>
@@ -328,6 +344,7 @@ _Связки клавиш_
   <kbd>d</kbd>: Удалить припрятанные изменения из хранилища
   <kbd>n</kbd>: Новая ветка
   <kbd>r</kbd>: Переименовать хранилище
+  <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: Просмотреть файлы выбранного элемента
   <kbd>/</kbd>: Filter the current view by text
 </pre>
