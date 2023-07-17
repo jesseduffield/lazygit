@@ -38,6 +38,7 @@ type GitCommand struct {
 	WorkingTree *git_commands.WorkingTreeCommands
 	Bisect      *git_commands.BisectCommands
 	Worktree    *git_commands.WorktreeCommands
+	Version     *git_commands.GitVersion
 
 	Loaders Loaders
 }
@@ -159,6 +160,7 @@ func NewGitCommandAux(
 		Bisect:      bisectCommands,
 		WorkingTree: workingTreeCommands,
 		Worktree:    worktreeCommands,
+		Version:     version,
 		Loaders: Loaders{
 			BranchLoader:       branchLoader,
 			CommitFileLoader:   commitFileLoader,
