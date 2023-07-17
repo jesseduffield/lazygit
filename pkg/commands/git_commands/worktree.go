@@ -155,7 +155,17 @@ func linkedWortkreePaths() []string {
 	result := []string{}
 	worktreePath := filepath.Join(repoPath, ".git", "worktrees")
 	// for each directory in this path we're going to cat the `gitdir` file and append its contents to our result
-	err := filepath.Walk(worktreePath, func(path string, info fs.FileInfo, err error) error {
+
+	// ensure the directory exists
+	_, err := os.Stat(worktreePath)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return result
+		}
+		log.Fatalln(err.Error())
+	}
+
+	err = filepath.Walk(worktreePath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			gitDirPath := filepath.Join(path, "gitdir")
 			gitDirBytes, err := os.ReadFile(gitDirPath)
