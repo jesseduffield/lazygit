@@ -116,7 +116,7 @@ func (self *WorktreesController) enter(worktree *models.Worktree) error {
 }
 
 func (self *WorktreesController) open(worktree *models.Worktree) error {
-	return self.c.Helpers().Files.OpenFile(worktree.Path)
+	return self.c.Helpers().Files.OpenDirInEditor(worktree.Path)
 }
 
 func (self *WorktreesController) checkSelected(callback func(worktree *models.Worktree) error) func() error {

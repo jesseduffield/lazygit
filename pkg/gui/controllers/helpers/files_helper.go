@@ -37,6 +37,13 @@ func (self *FilesHelper) EditFileAtLineAndWait(filename string, lineNumber int) 
 	return self.callEditor(cmdStr, true)
 }
 
+func (self *FilesHelper) OpenDirInEditor(path string) error {
+	cmdStr := self.c.Git().File.GetOpenDirInEditorCmdStr(path)
+
+	// Not editing in terminal because surely that's not a thing.
+	return self.callEditor(cmdStr, false)
+}
+
 func (self *FilesHelper) callEditor(cmdStr string, editInTerminal bool) error {
 	if editInTerminal {
 		return self.c.RunSubprocessAndRefresh(

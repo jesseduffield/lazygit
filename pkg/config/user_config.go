@@ -318,6 +318,9 @@ type OSConfig struct {
 	// Pointer to bool so that we can distinguish unset (nil) from false.
 	EditInTerminal *bool `yaml:"editInTerminal,omitempty"`
 
+	// For opening a directory in an editor
+	OpenDirInEditor string `yaml:"openDirInEditor,omitempty"`
+
 	// A built-in preset that sets all of the above settings. Supported presets
 	// are defined in the getPreset function in editor_presets.go.
 	EditPreset string `yaml:"editPreset,omitempty"`

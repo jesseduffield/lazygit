@@ -308,6 +308,7 @@ os:
   editAtLine: 'myeditor --line={{line}} {{filename}}'
   editAtLineAndWait: 'myeditor --block --line={{line}} {{filename}}'
   editInTerminal: true
+  openDirInEditor: 'myeditor {{dir}}'
 ```
 
 The `editInTerminal` option is used to decide whether lazygit needs to suspend
