@@ -126,15 +126,22 @@ func GetCurrentRepoPath() string {
 		return currentPath()
 	}
 
-	// must be a worktree or bare repo
+	// either in a submodule, a worktree, or a bare repo
 	worktreeGitPath, ok := WorktreeGitPath(pwd)
 	if !ok {
 		// fallback
 		return currentPath()
 	}
 
-	// now we just jump up three directories to get the repo name
-	return filepath.Dir(filepath.Dir(filepath.Dir(worktreeGitPath)))
+	// confirm whether the next directory up is the 'worktrees' directory
+	parent := filepath.Dir(worktreeGitPath)
+	if filepath.Base(parent) != "worktrees" {
+		// fallback
+		return currentPath()
+	}
+
+	// now we just jump up two more directories to get the repo name
+	return filepath.Dir(filepath.Dir(parent))
 }
 
 func GetCurrentRepoName() string {
@@ -159,10 +166,7 @@ func linkedWortkreePaths() []string {
 	// ensure the directory exists
 	_, err := os.Stat(worktreePath)
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			return result
-		}
-		log.Fatalln(err.Error())
+		return result
 	}
 
 	err = filepath.Walk(worktreePath, func(path string, info fs.FileInfo, err error) error {
@@ -181,7 +185,7 @@ func linkedWortkreePaths() []string {
 		return nil
 	})
 	if err != nil {
-		log.Fatalln(err.Error())
+		return result
 	}
 
 	return result

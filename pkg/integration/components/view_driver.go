@@ -330,7 +330,7 @@ func (self *ViewDriver) Focus() *ViewDriver {
 	}
 	windows := []window{
 		{name: "status", viewNames: []string{"status"}},
-		{name: "files", viewNames: []string{"files", "submodules"}},
+		{name: "files", viewNames: []string{"files", "worktrees", "submodules"}},
 		{name: "branches", viewNames: []string{"localBranches", "remotes", "tags"}},
 		{name: "commits", viewNames: []string{"commits", "reflogCommits"}},
 		{name: "stash", viewNames: []string{"stash"}},
