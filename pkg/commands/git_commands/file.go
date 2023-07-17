@@ -131,6 +131,17 @@ func (self *FileCommands) GetEditAtLineAndWaitCmdStr(filename string, lineNumber
 	return cmdStr
 }
 
+func (self *FileCommands) GetOpenDirInEditorCmdStr(path string) string {
+	template := config.GetOpenDirInEditorTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
+
+	templateValues := map[string]string{
+		"dir": self.cmd.Quote(path),
+	}
+
+	cmdStr := utils.ResolvePlaceholderString(template, templateValues)
+	return cmdStr
+}
+
 func (self *FileCommands) guessDefaultEditor() string {
 	// Try to query a few places where editors get configured
 	editor := self.config.GetCoreEditor()
