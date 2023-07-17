@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/gocui"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -143,40 +144,42 @@ func (self *ReposHelper) DispatchSwitchToRepo(path string, reuse bool, contextKe
 }
 
 func (self *ReposHelper) DispatchSwitchTo(path string, reuse bool, errMsg string, contextKey types.ContextKey) error {
-	env.UnsetGitDirEnvs()
-	originalPath, err := os.Getwd()
-	if err != nil {
-		return nil
-	}
-
-	self.c.LogCommand(fmt.Sprintf("Changing directory to %s", path), false)
-
-	if err := os.Chdir(path); err != nil {
-		if os.IsNotExist(err) {
-			return self.c.ErrorMsg(errMsg)
+	return self.c.WithWaitingStatus(self.c.Tr.Switching, func(gocui.Task) error {
+		env.UnsetGitDirEnvs()
+		originalPath, err := os.Getwd()
+		if err != nil {
+			return nil
 		}
-		return err
-	}
 
-	if err := commands.VerifyInGitRepo(self.c.OS()); err != nil {
-		if err := os.Chdir(originalPath); err != nil {
+		self.c.LogCommand(fmt.Sprintf("Changing directory to %s", path), false)
+
+		if err := os.Chdir(path); err != nil {
+			if os.IsNotExist(err) {
+				return self.c.ErrorMsg(errMsg)
+			}
 			return err
 		}
 
-		return err
-	}
+		if err := commands.VerifyInGitRepo(self.c.OS()); err != nil {
+			if err := os.Chdir(originalPath); err != nil {
+				return err
+			}
 
-	if err := self.recordDirectoryHelper.RecordCurrentDirectory(); err != nil {
-		return err
-	}
+			return err
+		}
 
-	// these two mutexes are used by our background goroutines (triggered via `self.goEvery`. We don't want to
-	// switch to a repo while one of these goroutines is in the process of updating something
-	self.c.Mutexes().SyncMutex.Lock()
-	defer self.c.Mutexes().SyncMutex.Unlock()
+		if err := self.recordDirectoryHelper.RecordCurrentDirectory(); err != nil {
+			return err
+		}
 
-	self.c.Mutexes().RefreshingFilesMutex.Lock()
-	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
+		// these two mutexes are used by our background goroutines (triggered via `self.goEvery`. We don't want to
+		// switch to a repo while one of these goroutines is in the process of updating something
+		self.c.Mutexes().SyncMutex.Lock()
+		defer self.c.Mutexes().SyncMutex.Unlock()
 
-	return self.onNewRepo(appTypes.StartArgs{}, reuse, contextKey)
+		self.c.Mutexes().RefreshingFilesMutex.Lock()
+		defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
+
+		return self.onNewRepo(appTypes.StartArgs{}, reuse, contextKey)
+	})
 }

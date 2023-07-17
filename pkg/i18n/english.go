@@ -544,6 +544,7 @@ type TranslationSet struct {
 	ExitSearchMode                      string
 	ExitTextFilterMode                  string
 	SwitchToWorktree                    string
+	Switching                           string
 	RemoveWorktree                      string
 	RemoveWorktreeTitle                 string
 	DetachWorktree                      string
@@ -1278,6 +1279,7 @@ func EnglishTranslationSet() TranslationSet {
 		WorktreesTitle:                      "Worktrees",
 		WorktreeTitle:                       "Worktree",
 		SwitchToWorktree:                    "Switch to worktree",
+		Switching:                           "Switching",
 		RemoveWorktree:                      "Remove worktree",
 		RemoveWorktreeTitle:                 "Remove worktree",
 		RemoveWorktreePrompt:                "Are you sure you want to remove worktree '{{.worktreeName}}'?",
