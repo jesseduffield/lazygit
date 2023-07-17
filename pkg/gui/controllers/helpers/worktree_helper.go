@@ -45,6 +45,22 @@ func (self *WorktreeHelper) GetMainWorktreeName() string {
 	return ""
 }
 
+// If we're on the main worktree, we return an empty string
+func (self *WorktreeHelper) GetLinkedWorktreeName() string {
+	worktrees := self.c.Model().Worktrees
+	if len(worktrees) == 0 {
+		return ""
+	}
+
+	// worktrees always have the current worktree on top
+	currentWorktree := worktrees[0]
+	if currentWorktree.Main() {
+		return ""
+	}
+
+	return currentWorktree.Name()
+}
+
 func (self *WorktreeHelper) IsCurrentWorktree(w *models.Worktree) bool {
 	pwd, err := os.Getwd()
 	if err != nil {
