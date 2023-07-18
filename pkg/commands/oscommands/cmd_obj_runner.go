@@ -331,9 +331,13 @@ func (self *cmdObjRunner) processOutput(
 		askFor, ok := checkForCredentialRequest(newBytes)
 		if ok {
 			responseChan := promptUserForCredential(askFor)
-			task.Pause()
+			if task != nil {
+				task.Pause()
+			}
 			toInput := <-responseChan
-			task.Continue()
+			if task != nil {
+				task.Continue()
+			}
 			// If the return data is empty we don't write anything to stdin
 			if toInput != "" {
 				_, _ = writer.Write([]byte(toInput))
