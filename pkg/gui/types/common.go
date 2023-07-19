@@ -196,6 +196,7 @@ type Model struct {
 	StashEntries []*models.StashEntry
 	SubCommits   []*models.Commit
 	Remotes      []*models.Remote
+	PullRequests []*models.GithubPullRequest
 
 	// FilteredReflogCommits are the ones that appear in the reflog panel.
 	// when in filtering mode we only include the ones that match the given path
@@ -217,15 +218,16 @@ type Model struct {
 // if you add a new mutex here be sure to instantiate it. We're using pointers to
 // mutexes so that we can pass the mutexes to controllers.
 type Mutexes struct {
-	RefreshingFilesMutex    *deadlock.Mutex
-	RefreshingBranchesMutex *deadlock.Mutex
-	RefreshingStatusMutex   *deadlock.Mutex
-	SyncMutex               *deadlock.Mutex
-	LocalCommitsMutex       *deadlock.Mutex
-	SubCommitsMutex         *deadlock.Mutex
-	SubprocessMutex         *deadlock.Mutex
-	PopupMutex              *deadlock.Mutex
-	PtyMutex                *deadlock.Mutex
+	RefreshingFilesMutex        *deadlock.Mutex
+	RefreshingBranchesMutex     *deadlock.Mutex
+	RefreshingStatusMutex       *deadlock.Mutex
+	RefreshingPullRequestsMutex *deadlock.Mutex
+	SyncMutex                   *deadlock.Mutex
+	LocalCommitsMutex           *deadlock.Mutex
+	SubCommitsMutex             *deadlock.Mutex
+	SubprocessMutex             *deadlock.Mutex
+	PopupMutex                  *deadlock.Mutex
+	PtyMutex                    *deadlock.Mutex
 }
 
 type IStateAccessor interface {
@@ -242,6 +244,8 @@ type IStateAccessor interface {
 	SetShowExtrasWindow(bool)
 	GetRetainOriginalDir() bool
 	SetRetainOriginalDir(bool)
+	GetGitHubCliState() GitHubCliState
+	SetGitHubCliState(GitHubCliState)
 }
 
 type IRepoStateAccessor interface {
@@ -281,4 +285,14 @@ const (
 	SCREEN_NORMAL WindowMaximisation = iota
 	SCREEN_HALF
 	SCREEN_FULL
+)
+
+// for keeping track of whether our github CLI is installed and on a valid version
+type GitHubCliState int
+
+const (
+	UNKNOWN GitHubCliState = iota
+	VALID
+	NOT_INSTALLED
+	INVALID_VERSION
 )

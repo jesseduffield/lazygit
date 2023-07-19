@@ -93,6 +93,7 @@ type GitConfig struct {
 	// this should really be under 'gui', not 'git'
 	ParseEmoji      bool      `yaml:"parseEmoji"`
 	Log             LogConfig `yaml:"log"`
+	EnableGithubCli bool      `yaml:"enableGithubCli"`
 	DiffContextSize int       `yaml:"diffContextSize"`
 }
 
@@ -470,6 +471,7 @@ func GetDefaultConfig() *UserConfig {
 			CommitPrefixes:      map[string]CommitPrefixConfig(nil),
 			ParseEmoji:          false,
 			DiffContextSize:     3,
+			EnableGithubCli:     true,
 		},
 		Refresher: RefresherConfig{
 			RefreshInterval: 10,

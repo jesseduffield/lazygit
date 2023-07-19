@@ -48,13 +48,13 @@ func Run(
 		err = app.Run(startArgs)
 	}
 
+	// not using if/else here because we're reassigning to `err` above
 	if err != nil {
 		if errorMessage, known := knownError(common.Tr, err); known {
 			log.Fatal(errorMessage)
 		}
 		newErr := errors.Wrap(err, 0)
 		stackTrace := newErr.ErrorStack()
-		app.Log.Error(stackTrace)
 
 		log.Fatalf("%s: %s\n\n%s", common.Tr.ErrorOccurred, constants.Links.Issues, stackTrace)
 	}
@@ -129,6 +129,7 @@ func NewApp(config config.AppConfigurer, common *common.Common) (*App, error) {
 	if err != nil {
 		return app, err
 	}
+
 	return app, nil
 }
 

@@ -2,9 +2,11 @@ package presentation
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
@@ -18,14 +20,22 @@ var branchPrefixColorCache = make(map[string]style.TextStyle)
 
 func GetBranchListDisplayStrings(
 	branches []*models.Branch,
+	pullRequests []*models.GithubPullRequest,
+	remotes []*models.Remote,
 	fullDescription bool,
 	diffName string,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 ) [][]string {
+	prs := git_commands.GenerateGithubPullRequestMap(
+		pullRequests,
+		branches,
+		remotes,
+	)
+
 	return slices.Map(branches, func(branch *models.Branch) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, fullDescription, diffed, tr, userConfig)
+		return getBranchDisplayStrings(branch, fullDescription, diffed, tr, userConfig, prs)
 	})
 }
 
@@ -36,6 +46,7 @@ func getBranchDisplayStrings(
 	diffed bool,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
+	prs map[string]*models.GithubPullRequest,
 ) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
@@ -57,16 +68,19 @@ func getBranchDisplayStrings(
 	}
 
 	res := make([]string, 0, 6)
+
 	res = append(res, recencyColor.Sprint(b.Recency))
+
+	pr, hasPr := prs[b.Name]
+	res = append(res, coloredPrNumber(pr, hasPr))
 	if icons.IsIconEnabled() {
 		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
 	}
+	res = append(res, coloredName)
 
 	if fullDescription || userConfig.Gui.ShowBranchCommitHash {
 		res = append(res, b.CommitHash)
 	}
-
-	res = append(res, coloredName)
 
 	if fullDescription {
 		res = append(
@@ -143,4 +157,25 @@ func BranchStatus(branch *models.Branch, tr *i18n.TranslationSet) string {
 
 func SetCustomBranches(customBranchColors map[string]string) {
 	branchPrefixColorCache = utils.SetCustomColors(customBranchColors)
+}
+
+func coloredPrNumber(pr *models.GithubPullRequest, hasPr bool) string {
+	if hasPr {
+		return prColor(pr.State).Sprint("#" + strconv.Itoa(pr.Number))
+	}
+
+	return ("")
+}
+
+func prColor(state string) style.TextStyle {
+	switch state {
+	case "OPEN":
+		return style.FgGreen
+	case "CLOSED":
+		return style.FgRed
+	case "MERGED":
+		return style.FgMagenta
+	default:
+		return style.FgDefault
+	}
 }

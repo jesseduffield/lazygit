@@ -74,6 +74,30 @@ func (self *SuggestionsHelper) getBranchNames() []string {
 	})
 }
 
+func (self *SuggestionsHelper) GetRemoteRepoSuggestionsFunc() func(string) []*types.Suggestion {
+	remotesNames := self.getRemoteRepoNames()
+
+	return FuzzySearchFunc(remotesNames)
+}
+
+func (self *SuggestionsHelper) getRemoteRepoNames() []string {
+	remotes := self.c.Model().Remotes
+	result := make([]string, 0, len(remotes))
+	for _, remote := range remotes {
+		if len(remote.Urls) == 0 {
+			continue
+		}
+		repoName, err := self.c.Git().HostingService.GetRepoNameFromRemoteURL(remote.Urls[0])
+		if err != nil {
+			self.c.Log.Error(err)
+			continue
+		}
+		result = append(result, repoName)
+	}
+
+	return result
+}
+
 func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*types.Suggestion {
 	branchNames := self.getBranchNames()
 

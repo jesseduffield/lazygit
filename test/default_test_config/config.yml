@@ -17,3 +17,4 @@ git:
   # TODO: add tests which explicitly test auto-refresh functionality
   autoRefresh: false
   autoFetch: false
+  enableGithubCli: false

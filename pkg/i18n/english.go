@@ -372,6 +372,8 @@ type TranslationSet struct {
 	PrevScreenMode                      string
 	StartSearch                         string
 	StartFilter                         string
+	SelectRemoteRepository              string
+	LcSelectingRemote                   string
 	Panel                               string
 	Keybindings                         string
 	KeybindingsLegend                   string
@@ -440,6 +442,8 @@ type TranslationSet struct {
 	AndResetSubmodules                  string
 	EnterSubmodule                      string
 	CopySubmoduleNameToClipboard        string
+	MinGhVersionError                   string
+	FailedToObtainGhVersionError        string
 	RemoveSubmodule                     string
 	RemoveSubmodulePrompt               string
 	ResettingSubmoduleStatus            string
@@ -1135,6 +1139,8 @@ func EnglishTranslationSet() TranslationSet {
 		AndResetSubmodules:                  "And reset submodules",
 		EnterSubmodule:                      "Enter submodule",
 		CopySubmoduleNameToClipboard:        "Copy submodule name to clipboard",
+		MinGhVersionError:                   "GH version must be at least 2.0. Please upgrade your gh version. Alternatively raise an issue at https://github.com/jesseduffield/lazygit/issues for lazygit to be more backwards compatible.",
+		FailedToObtainGhVersionError:        "Failed to obtain gh version. Output from running 'gh --version' was: %s",
 		RemoveSubmodule:                     "Remove submodule",
 		RemoveSubmodulePrompt:               "Are you sure you want to remove submodule '%s' and its corresponding directory? This is irreversible.",
 		ResettingSubmoduleStatus:            "Resetting submodule",

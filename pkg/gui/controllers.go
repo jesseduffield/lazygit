@@ -45,7 +45,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
 	stagingHelper := helpers.NewStagingHelper(helperCommon)
 	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
-	refreshHelper := helpers.NewRefreshHelper(helperCommon, refsHelper, rebaseHelper, patchBuildingHelper, stagingHelper, mergeConflictsHelper, gui.fileWatcher)
+	refreshHelper := helpers.NewRefreshHelper(helperCommon, refsHelper, rebaseHelper, patchBuildingHelper, stagingHelper, mergeConflictsHelper, suggestionsHelper, gui.fileWatcher)
 	diffHelper := helpers.NewDiffHelper(helperCommon)
 	cherryPickHelper := helpers.NewCherryPickHelper(
 		helperCommon,

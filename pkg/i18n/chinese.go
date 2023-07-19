@@ -422,6 +422,8 @@ func chineseTranslationSet() TranslationSet {
 		CopiedToClipboard:                   "复制到剪贴板",
 		ErrCannotEditDirectory:              "无法编辑目录：您只能编辑单个文件",
 		ErrStageDirWithInlineMergeConflicts: "无法 暂存/取消暂存 包含具有内联合并冲突的文件的目录。请先解决合并冲突",
+		SelectRemoteRepository:              "选择存储库",
+		LcSelectingRemote:                   "选择遥控器",
 		ErrRepositoryMovedOrDeleted:         "找不到仓库。它可能已被移动或删除 ¯\\_(ツ)_/¯",
 		CommandLog:                          "命令日志",
 		ToggleShowCommandLog:                "切换 显示/隐藏 命令日志",

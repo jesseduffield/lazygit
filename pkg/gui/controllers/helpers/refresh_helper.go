@@ -27,6 +27,7 @@ type RefreshHelper struct {
 	patchBuildingHelper  *PatchBuildingHelper
 	stagingHelper        *StagingHelper
 	mergeConflictsHelper *MergeConflictsHelper
+	suggestionsHelper    *SuggestionsHelper
 	fileWatcher          types.IFileWatcher
 }
 
@@ -37,6 +38,7 @@ func NewRefreshHelper(
 	patchBuildingHelper *PatchBuildingHelper,
 	stagingHelper *StagingHelper,
 	mergeConflictsHelper *MergeConflictsHelper,
+	suggestionsHelper *SuggestionsHelper,
 	fileWatcher types.IFileWatcher,
 ) *RefreshHelper {
 	return &RefreshHelper{
@@ -46,6 +48,7 @@ func NewRefreshHelper(
 		patchBuildingHelper:  patchBuildingHelper,
 		stagingHelper:        stagingHelper,
 		mergeConflictsHelper: mergeConflictsHelper,
+		suggestionsHelper:    suggestionsHelper,
 		fileWatcher:          fileWatcher,
 	}
 }
@@ -93,6 +96,10 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			} else {
 				f()
 			}
+		}
+
+		if scopeSet.Includes(types.PULL_REQUESTS) {
+			refresh(func() { _ = self.refreshGithubPullRequests() })
 		}
 
 		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) || scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
@@ -606,4 +613,93 @@ func (self *RefreshHelper) refForLog() string {
 	}
 
 	return bisectInfo.GetStartSha()
+}
+
+func (self *RefreshHelper) refreshGithubPullRequests() error {
+	self.c.Mutexes().RefreshingPullRequestsMutex.Lock()
+	defer self.c.Mutexes().RefreshingPullRequestsMutex.Unlock()
+
+	if !self.c.UserConfig.Git.EnableGithubCli {
+		return nil
+	}
+
+	if !self.c.Git().GitHub.InGithubRepo() {
+		self.c.Model().PullRequests = []*models.GithubPullRequest{}
+		return nil
+	}
+
+	switch self.c.State().GetGitHubCliState() {
+	case types.UNKNOWN:
+		state := self.determineGithubCliState()
+		self.c.State().SetGitHubCliState(state)
+		if state != types.VALID {
+			if state == types.INVALID_VERSION {
+				// todo: i18n
+				self.c.LogAction("gh version is too old (must be version 2 or greater), so pull requests will not be shown against branches.")
+			}
+			return nil
+		}
+	case types.VALID:
+		// continue on
+	default:
+		return nil
+	}
+
+	if err := self.c.Git().GitHub.BaseRepo(); err != nil {
+		return self.promptForBaseGithubRepo()
+	}
+
+	if err := self.setGithubPullRequests(); err != nil {
+		self.c.LogAction(fmt.Sprintf("Error fetching pull requests from GitHub: %s", err.Error()))
+	}
+
+	return nil
+}
+
+func (self *RefreshHelper) promptForBaseGithubRepo() error {
+	err := self.refreshRemotes()
+	if err != nil {
+		return err
+	}
+
+	_ = self.c.Prompt(types.PromptOpts{
+		Title:               self.c.Tr.SelectRemoteRepository,
+		InitialContent:      "",
+		FindSuggestionsFunc: self.suggestionsHelper.GetRemoteRepoSuggestionsFunc(),
+		HandleConfirm: func(repository string) error {
+			return self.c.WithWaitingStatus(self.c.Tr.LcSelectingRemote, func(gocui.Task) error {
+				// `repository` is something like 'jesseduffield/lazygit'
+				_, err := self.c.Git().GitHub.SetBaseRepo(repository)
+				if err != nil {
+					return self.c.Error(err)
+				}
+
+				return self.refreshGithubPullRequests()
+			})
+		},
+	})
+
+	return nil
+}
+
+func (self *RefreshHelper) determineGithubCliState() types.GitHubCliState {
+	installed, validVersion := self.c.Git().GitHub.DetermineGitHubCliState()
+	if validVersion {
+		return types.VALID
+	} else if installed {
+		return types.INVALID_VERSION
+	} else {
+		return types.NOT_INSTALLED
+	}
+}
+
+func (self *RefreshHelper) setGithubPullRequests() error {
+	prs, err := self.c.Git().GitHub.FetchRecentPRs()
+	if err != nil {
+		return err
+	}
+
+	self.c.Model().PullRequests = prs
+
+	return self.c.PostRefreshUpdate(self.c.Contexts().Branches)
 }

@@ -26,7 +26,6 @@ type Helpers struct {
 	MergeAndRebase *MergeAndRebaseHelper
 	MergeConflicts *MergeConflictsHelper
 	CherryPick     *CherryPickHelper
-	Host           *HostHelper
 	PatchBuilding  *PatchBuildingHelper
 	Staging        *StagingHelper
 	GPG            *GpgHelper
@@ -47,6 +46,7 @@ type Helpers struct {
 	AppStatus         *AppStatusHelper
 	WindowArrangement *WindowArrangementHelper
 	Search            *SearchHelper
+	Host              *HostHelper
 }
 
 func NewStubHelpers() *Helpers {

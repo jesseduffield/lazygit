@@ -132,6 +132,8 @@ type Gui struct {
 	helpers *helpers.Helpers
 
 	integrationTest integrationTypes.IntegrationTest
+
+	gitHubCliState types.GitHubCliState
 }
 
 type StateAccessor struct {
@@ -186,6 +188,14 @@ func (self *StateAccessor) GetRetainOriginalDir() bool {
 
 func (self *StateAccessor) SetRetainOriginalDir(value bool) {
 	self.gui.RetainOriginalDir = value
+}
+
+func (self *StateAccessor) GetGitHubCliState() types.GitHubCliState {
+	return self.gui.gitHubCliState
+}
+
+func (self *StateAccessor) SetGitHubCliState(value types.GitHubCliState) {
+	self.gui.gitHubCliState = value
 }
 
 // we keep track of some stuff from one render to the next to see if certain
@@ -347,6 +357,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) types.
 			ReflogCommits:         make([]*models.Commit, 0),
 			BisectInfo:            git_commands.NewNullBisectInfo(),
 			FilesTrie:             patricia.NewTrie(),
+			PullRequests:          make([]*models.GithubPullRequest, 0),
 		},
 		Modes: &types.Modes{
 			Filtering:     filtering.New(startArgs.FilterPath),
@@ -448,15 +459,16 @@ func NewGui(
 		// sake of backwards compatibility. We're making use of short circuiting here
 		ShowExtrasWindow: cmn.UserConfig.Gui.ShowCommandLog && !config.GetAppState().HideCommandLog,
 		Mutexes: types.Mutexes{
-			RefreshingFilesMutex:    &deadlock.Mutex{},
-			RefreshingBranchesMutex: &deadlock.Mutex{},
-			RefreshingStatusMutex:   &deadlock.Mutex{},
-			SyncMutex:               &deadlock.Mutex{},
-			LocalCommitsMutex:       &deadlock.Mutex{},
-			SubCommitsMutex:         &deadlock.Mutex{},
-			SubprocessMutex:         &deadlock.Mutex{},
-			PopupMutex:              &deadlock.Mutex{},
-			PtyMutex:                &deadlock.Mutex{},
+			RefreshingFilesMutex:        &deadlock.Mutex{},
+			RefreshingBranchesMutex:     &deadlock.Mutex{},
+			RefreshingStatusMutex:       &deadlock.Mutex{},
+			RefreshingPullRequestsMutex: &deadlock.Mutex{},
+			SyncMutex:                   &deadlock.Mutex{},
+			LocalCommitsMutex:           &deadlock.Mutex{},
+			SubCommitsMutex:             &deadlock.Mutex{},
+			SubprocessMutex:             &deadlock.Mutex{},
+			PopupMutex:                  &deadlock.Mutex{},
+			PtyMutex:                    &deadlock.Mutex{},
 		},
 		InitialDir: initialDir,
 	}

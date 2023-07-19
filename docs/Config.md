@@ -104,6 +104,8 @@ git:
   overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
   disableForcePushing: false
   parseEmoji: false
+  # if `gh` is installed and on version >=2, we will use it to display pull requests against branches.
+  enableGithubCli: true
   diffContextSize: 3 # how many lines of context are shown around a change in diffs
 os:
   editPreset: '' # see 'Configuring File Editing' section
