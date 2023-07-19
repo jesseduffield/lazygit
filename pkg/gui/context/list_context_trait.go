@@ -31,7 +31,14 @@ func (self *ListContextTrait) GetList() types.IList {
 }
 
 func (self *ListContextTrait) FocusLine() {
-	self.GetViewTrait().FocusPoint(self.list.GetSelectedLineIdx())
+	// Doing this at the end of the layout function because we need the view to be
+	// resized before we focus the line, otherwise if we're in accordion mode
+	// the view could be squashed and won't how to adjust the cursor/origin
+	self.c.AfterLayout(func() error {
+		self.GetViewTrait().FocusPoint(self.list.GetSelectedLineIdx())
+		return nil
+	})
+
 	self.setFooter()
 
 	if self.refreshViewportOnChange {

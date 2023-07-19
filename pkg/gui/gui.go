@@ -132,6 +132,8 @@ type Gui struct {
 	helpers *helpers.Helpers
 
 	integrationTest integrationTypes.IntegrationTest
+
+	afterLayoutFuncs chan func() error
 }
 
 type StateAccessor struct {
@@ -458,7 +460,8 @@ func NewGui(
 			PopupMutex:              &deadlock.Mutex{},
 			PtyMutex:                &deadlock.Mutex{},
 		},
-		InitialDir: initialDir,
+		InitialDir:       initialDir,
+		afterLayoutFuncs: make(chan func() error, 1000),
 	}
 
 	gui.WatchFilesForChanges()
