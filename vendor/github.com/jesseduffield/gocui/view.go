@@ -269,7 +269,7 @@ func (v *View) FocusPoint(cx int, cy int) {
 	_, height := v.Size()
 
 	ly := height - 1
-	if ly == -1 {
+	if ly < 0 {
 		ly = 0
 	}
 
