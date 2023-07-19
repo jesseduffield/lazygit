@@ -82,6 +82,20 @@ func (self *ViewDriver) TopLines(matchers ...*TextMatcher) *ViewDriver {
 	return self.assertLines(0, matchers...)
 }
 
+// Asserts on the visible lines of the view.
+// Note, this assumes that the view's viewport is filled with lines
+func (self *ViewDriver) VisibleLines(matchers ...*TextMatcher) *ViewDriver {
+	self.validateMatchersPassed(matchers)
+	self.validateVisibleLineCount(matchers)
+
+	// Get the origin of the view and offset that.
+	// Note that we don't do any retrying here so if we want to bring back retry logic
+	// we'll need to update this.
+	originY := self.getView().OriginY()
+
+	return self.assertLines(originY, matchers...)
+}
+
 // asserts that somewhere in the view there are consequetive lines matching the given matchers.
 func (self *ViewDriver) ContainsLines(matchers ...*TextMatcher) *ViewDriver {
 	self.validateMatchersPassed(matchers)
@@ -209,6 +223,16 @@ func (self *ViewDriver) validateEnoughLines(matchers []*TextMatcher) {
 	self.t.assertWithRetries(func() (bool, string) {
 		lines := view.BufferLines()
 		return len(lines) >= len(matchers), fmt.Sprintf("unexpected number of lines in view '%s'. Expected at least %d, got %d", view.Name(), len(matchers), len(lines))
+	})
+}
+
+// assumes the view's viewport is filled with lines
+func (self *ViewDriver) validateVisibleLineCount(matchers []*TextMatcher) {
+	view := self.getView()
+
+	self.t.assertWithRetries(func() (bool, string) {
+		count := view.InnerHeight() + 1
+		return count == len(matchers), fmt.Sprintf("unexpected number of visible lines in view '%s'. Expected exactly %d, got %d", view.Name(), len(matchers), count)
 	})
 }
 

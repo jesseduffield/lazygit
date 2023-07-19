@@ -13,6 +13,9 @@ import (
 type IntegrationTest interface {
 	Run(GuiDriver)
 	SetupConfig(config *config.AppConfig)
+	RequiresHeadless() bool
+	// width and height when running headless
+	HeadlessDimensions() (int, int)
 }
 
 // this is the interface through which our integration tests interact with the lazygit gui
