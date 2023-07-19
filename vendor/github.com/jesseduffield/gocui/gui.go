@@ -177,13 +177,26 @@ type Gui struct {
 	taskManager *TaskManager
 }
 
+type NewGuiOpts struct {
+	OutputMode      OutputMode
+	SupportOverlaps bool
+	PlayRecording   bool
+	Headless        bool
+	// only applicable when Headless is true
+	Width int
+	// only applicable when Headless is true
+	Height int
+
+	RuneReplacements map[rune]string
+}
+
 // NewGui returns a new Gui object with a given output mode.
-func NewGui(mode OutputMode, supportOverlaps bool, playRecording bool, headless bool, runeReplacements map[rune]string) (*Gui, error) {
+func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g := &Gui{}
 
 	var err error
-	if headless {
-		err = g.tcellInitSimulation()
+	if opts.Headless {
+		err = g.tcellInitSimulation(opts.Width, opts.Height)
 	} else {
 		err = g.tcellInit(runeReplacements)
 	}
@@ -191,7 +204,7 @@ func NewGui(mode OutputMode, supportOverlaps bool, playRecording bool, headless 
 		return nil, err
 	}
 
-	if headless || runtime.GOOS == "windows" {
+	if opts.Headless || runtime.GOOS == "windows" {
 		g.maxX, g.maxY = g.screen.Size()
 	} else {
 		// TODO: find out if we actually need this bespoke logic for linux
@@ -201,7 +214,7 @@ func NewGui(mode OutputMode, supportOverlaps bool, playRecording bool, headless 
 		}
 	}
 
-	g.outputMode = mode
+	g.outputMode = opts.OutputMode
 
 	g.stop = make(chan struct{})
 
@@ -209,7 +222,7 @@ func NewGui(mode OutputMode, supportOverlaps bool, playRecording bool, headless 
 	g.userEvents = make(chan userEvent, 20)
 	g.taskManager = newTaskManager()
 
-	if playRecording {
+	if opts.PlayRecording {
 		g.ReplayedEvents = replayedEvents{
 			Keys:    make(chan *TcellKeyEventWrapper),
 			Resizes: make(chan *TcellResizeEventWrapper),
@@ -221,14 +234,14 @@ func NewGui(mode OutputMode, supportOverlaps bool, playRecording bool, headless 
 
 	// SupportOverlaps is true when we allow for view edges to overlap with other
 	// view edges
-	g.SupportOverlaps = supportOverlaps
+	g.SupportOverlaps = opts.SupportOverlaps
 
 	// default keys for when searching strings in a view
 	g.SearchEscapeKey = KeyEsc
 	g.NextSearchMatchKey = 'n'
 	g.PrevSearchMatchKey = 'N'
 
-	g.playRecording = playRecording
+	g.playRecording = opts.PlayRecording
 
 	return g, nil
 }

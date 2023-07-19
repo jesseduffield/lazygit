@@ -168,3 +168,12 @@ func (self *guiCommon) IsAnyModeActive() bool {
 func (self *guiCommon) GetInitialKeybindingsWithCustomCommands() ([]*types.Binding, []*gocui.ViewMouseBinding) {
 	return self.gui.GetInitialKeybindingsWithCustomCommands()
 }
+
+func (self *guiCommon) AfterLayout(f func() error) {
+	select {
+	case self.gui.afterLayoutFuncs <- f:
+	default:
+		// hopefully this never happens
+		self.gui.c.Log.Error("afterLayoutFuncs channel is full, skipping function")
+	}
+}

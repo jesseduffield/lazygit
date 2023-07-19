@@ -80,6 +80,10 @@ type IGuiCommon interface {
 	// Runs a function in a goroutine. Use this whenever you want to run a goroutine and keep track of the fact
 	// that lazygit is still busy. See docs/dev/Busy.md
 	OnWorker(f func(gocui.Task))
+	// Function to call at the end of our 'layout' function which renders views
+	// For example, you may want a view's line to be focused only after that view is
+	// resized, if in accordion mode.
+	AfterLayout(f func() error)
 
 	// returns the gocui Gui struct. There is a good chance you don't actually want to use
 	// this struct and instead want to use another method above

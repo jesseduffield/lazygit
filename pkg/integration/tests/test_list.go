@@ -209,6 +209,7 @@ var tests = []*components.IntegrationTest{
 	tag.CrudAnnotated,
 	tag.CrudLightweight,
 	tag.Reset,
+	ui.Accordion,
 	ui.DoublePopup,
 	ui.SwitchTabFromMenu,
 	undo.UndoCheckoutAndDrop,

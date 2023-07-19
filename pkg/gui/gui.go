@@ -132,6 +132,8 @@ type Gui struct {
 	helpers *helpers.Helpers
 
 	integrationTest integrationTypes.IntegrationTest
+
+	afterLayoutFuncs chan func() error
 }
 
 type StateAccessor struct {
@@ -458,7 +460,8 @@ func NewGui(
 			PopupMutex:              &deadlock.Mutex{},
 			PtyMutex:                &deadlock.Mutex{},
 		},
-		InitialDir: initialDir,
+		InitialDir:       initialDir,
+		afterLayoutFuncs: make(chan func() error, 1000),
 	}
 
 	gui.WatchFilesForChanges()
@@ -519,9 +522,29 @@ var RuneReplacements = map[rune]string{
 }
 
 func (gui *Gui) initGocui(headless bool, test integrationTypes.IntegrationTest) (*gocui.Gui, error) {
-	playRecording := test != nil && os.Getenv(components.SANDBOX_ENV_VAR) != "true"
+	runInSandbox := os.Getenv(components.SANDBOX_ENV_VAR) == "true"
+	playRecording := test != nil && !runInSandbox
 
-	g, err := gocui.NewGui(gocui.OutputTrue, OverlappingEdges, playRecording, headless, RuneReplacements)
+	width, height := 0, 0
+	if test != nil {
+		if test.RequiresHeadless() {
+			if runInSandbox {
+				panic("Test requires headless, can't run in sandbox")
+			}
+			headless = true
+		}
+		width, height = test.HeadlessDimensions()
+	}
+
+	g, err := gocui.NewGui(gocui.NewGuiOpts{
+		OutputMode:       gocui.OutputTrue,
+		SupportOverlaps:  OverlappingEdges,
+		PlayRecording:    playRecording,
+		Headless:         headless,
+		RuneReplacements: RuneReplacements,
+		Width:            width,
+		Height:           height,
+	})
 	if err != nil {
 		return nil, err
 	}

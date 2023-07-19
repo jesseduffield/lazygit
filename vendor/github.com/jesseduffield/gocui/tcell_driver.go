@@ -81,7 +81,7 @@ func registerRuneFallbacks(s tcell.Screen, additional map[rune]string) {
 }
 
 // tcellInitSimulation initializes tcell screen for use.
-func (g *Gui) tcellInitSimulation() error {
+func (g *Gui) tcellInitSimulation(width int, height int) error {
 	s := tcell.NewSimulationScreen("")
 	if e := s.Init(); e != nil {
 		return e
@@ -90,7 +90,7 @@ func (g *Gui) tcellInitSimulation() error {
 		Screen = s
 		// setting to a larger value than the typical terminal size
 		// so that during a test we're more likely to see an item to select in a view.
-		s.SetSize(100, 100)
+		s.SetSize(width, height)
 		s.Sync()
 		return nil
 	}

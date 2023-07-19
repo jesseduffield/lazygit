@@ -19,6 +19,11 @@ import (
 // to get the test's name via it's file's path.
 const unitTestDescription = "test test"
 
+const (
+	defaultWidth  = 100
+	defaultHeight = 100
+)
+
 type IntegrationTest struct {
 	name         string
 	description  string
@@ -32,6 +37,8 @@ type IntegrationTest struct {
 		keys config.KeybindingConfig,
 	)
 	gitVersion GitVersionRestriction
+	width      int
+	height     int
 }
 
 var _ integrationTypes.IntegrationTest = &IntegrationTest{}
@@ -52,6 +59,11 @@ type NewIntegrationTestArgs struct {
 	Skip         bool
 	// to run a test only on certain git versions
 	GitVersion GitVersionRestriction
+	// width and height when running in headless mode, for testing
+	// the UI in different sizes.
+	// If these are set, the test must be run in headless mode
+	Width  int
+	Height int
 }
 
 type GitVersionRestriction struct {
@@ -120,6 +132,8 @@ func NewIntegrationTest(args NewIntegrationTestArgs) *IntegrationTest {
 		setupConfig:  args.SetupConfig,
 		run:          args.Run,
 		gitVersion:   args.GitVersion,
+		width:        args.Width,
+		height:       args.Height,
 	}
 }
 
@@ -170,6 +184,18 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 		// the dev would want to see the final state if they're running in slow mode
 		testDriver.Wait(2000)
 	}
+}
+
+func (self *IntegrationTest) HeadlessDimensions() (int, int) {
+	if self.width == 0 && self.height == 0 {
+		return defaultWidth, defaultHeight
+	}
+
+	return self.width, self.height
+}
+
+func (self *IntegrationTest) RequiresHeadless() bool {
+	return self.width != 0 && self.height != 0
 }
 
 func testNameFromCurrentFilePath() string {

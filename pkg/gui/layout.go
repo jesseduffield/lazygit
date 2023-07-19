@@ -149,7 +149,23 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// if you run `lazygit --logs`
 	// this will let you see these branches as prettified json
 	// gui.c.Log.Info(utils.AsJson(gui.State.Model.Branches[0:4]))
-	return gui.helpers.Confirmation.ResizeCurrentPopupPanel()
+	if err := gui.helpers.Confirmation.ResizeCurrentPopupPanel(); err != nil {
+		return err
+	}
+
+outer:
+	for {
+		select {
+		case f := <-gui.afterLayoutFuncs:
+			if err := f(); err != nil {
+				return err
+			}
+		default:
+			break outer
+		}
+	}
+
+	return nil
 }
 
 func (gui *Gui) prepareView(viewName string) (*gocui.View, error) {
