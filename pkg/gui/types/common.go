@@ -133,9 +133,10 @@ type IPopupHandler interface {
 }
 
 type CreateMenuOptions struct {
-	Title      string
-	Items      []*MenuItem
-	HideCancel bool
+	Title           string
+	Items           []*MenuItem
+	HideCancel      bool
+	ColumnAlignment []utils.Alignment
 }
 
 type CreatePopupPanelOpts struct {

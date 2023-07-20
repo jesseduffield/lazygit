@@ -35,10 +35,10 @@ func NewMenuContext(
 				Focusable:             true,
 				HasUncontrolledBounds: true,
 			})),
-			getDisplayStrings: viewModel.GetDisplayStrings,
-			list:              viewModel,
-			c:                 c,
-			columnAlignments:  []utils.Alignment{utils.AlignRight, utils.AlignLeft},
+			getDisplayStrings:   viewModel.GetDisplayStrings,
+			list:                viewModel,
+			c:                   c,
+			getColumnAlignments: func() []utils.Alignment { return viewModel.columnAlignment },
 		},
 	}
 }
@@ -54,8 +54,9 @@ func (self *MenuContext) GetSelectedItemId() string {
 }
 
 type MenuViewModel struct {
-	c         *ContextCommon
-	menuItems []*types.MenuItem
+	c               *ContextCommon
+	menuItems       []*types.MenuItem
+	columnAlignment []utils.Alignment
 	*FilteredListViewModel[*types.MenuItem]
 }
 
@@ -73,8 +74,9 @@ func NewMenuViewModel(c *ContextCommon) *MenuViewModel {
 	return self
 }
 
-func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem) {
+func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem, columnAlignment []utils.Alignment) {
 	self.menuItems = items
+	self.columnAlignment = columnAlignment
 }
 
 // TODO: move into presentation package

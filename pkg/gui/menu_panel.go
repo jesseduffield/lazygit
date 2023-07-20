@@ -41,7 +41,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		}
 	}
 
-	gui.State.Contexts.Menu.SetMenuItems(opts.Items)
+	gui.State.Contexts.Menu.SetMenuItems(opts.Items, opts.ColumnAlignment)
 	gui.State.Contexts.Menu.SetSelectedLineIdx(0)
 
 	gui.Views.Menu.Title = opts.Title
