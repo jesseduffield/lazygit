@@ -135,6 +135,10 @@ func (self *MenuContext) OnMenuPress(selectedItem *types.MenuItem) error {
 		return err
 	}
 
+	if selectedItem == nil {
+		return nil
+	}
+
 	if err := selectedItem.OnPress(); err != nil {
 		return err
 	}
