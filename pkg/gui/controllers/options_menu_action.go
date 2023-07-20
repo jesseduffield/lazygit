@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -37,9 +38,10 @@ func (self *OptionsMenuAction) Call() error {
 	})
 
 	return self.c.Menu(types.CreateMenuOptions{
-		Title:      self.c.Tr.Keybindings,
-		Items:      menuItems,
-		HideCancel: true,
+		Title:           self.c.Tr.Keybindings,
+		Items:           menuItems,
+		HideCancel:      true,
+		ColumnAlignment: []utils.Alignment{utils.AlignRight, utils.AlignLeft},
 	})
 }
 

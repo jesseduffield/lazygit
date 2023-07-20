@@ -14,7 +14,7 @@ type ListContextTrait struct {
 	list              types.IList
 	getDisplayStrings func(startIdx int, length int) [][]string
 	// Alignment for each column. If nil, the default is left alignment
-	columnAlignments []utils.Alignment
+	getColumnAlignments func() []utils.Alignment
 	// Some contexts, like the commit context, will highlight the path from the selected commit
 	// to its parents, because it's ambiguous otherwise. For these, we need to refresh the viewport
 	// so that we show the highlighted path.
@@ -82,9 +82,13 @@ func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) error 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
 func (self *ListContextTrait) HandleRender() error {
 	self.list.RefreshSelectedIdx()
+	var columnAlignments []utils.Alignment
+	if self.getColumnAlignments != nil {
+		columnAlignments = self.getColumnAlignments()
+	}
 	content := utils.RenderDisplayStrings(
 		self.getDisplayStrings(0, self.list.Len()),
-		self.columnAlignments,
+		columnAlignments,
 	)
 	self.GetViewTrait().SetContent(content)
 	self.c.Render()
