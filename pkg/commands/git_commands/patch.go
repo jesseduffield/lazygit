@@ -1,7 +1,6 @@
 package git_commands
 
 import (
-	"fmt"
 	"path/filepath"
 	"time"
 
@@ -274,7 +273,12 @@ func (self *PatchCommands) MovePatchIntoIndex(commits []*models.Commit, commitId
 	return self.rebase.ContinueRebase()
 }
 
-func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, commitIdx int) error {
+func (self *PatchCommands) PullPatchIntoNewCommit(
+	commits []*models.Commit,
+	commitIdx int,
+	commitSummary string,
+	commitDescription string,
+) error {
 	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx, false); err != nil {
 		return err
 	}
@@ -300,9 +304,7 @@ func (self *PatchCommands) PullPatchIntoNewCommit(commits []*models.Commit, comm
 		return err
 	}
 
-	head_message, _ := self.commit.GetHeadCommitMessage()
-	new_message := fmt.Sprintf("Split from \"%s\"", head_message)
-	if err := self.commit.CommitCmdObj(new_message, "").Run(); err != nil {
+	if err := self.commit.CommitCmdObj(commitSummary, commitDescription).Run(); err != nil {
 		return err
 	}
 

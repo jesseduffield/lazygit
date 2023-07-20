@@ -107,14 +107,6 @@ func (self *CommitCommands) signoffFlag() string {
 	}
 }
 
-// Get the subject of the HEAD commit
-func (self *CommitCommands) GetHeadCommitMessage() (string, error) {
-	cmdArgs := NewGitCmd("log").Arg("-1", "--pretty=%s").ToArgv()
-
-	message, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-	return strings.TrimSpace(message), err
-}
-
 func (self *CommitCommands) GetCommitMessage(commitSha string) (string, error) {
 	cmdArgs := NewGitCmd("rev-list").
 		Arg("--format=%B", "--max-count=1", commitSha).
