@@ -8,10 +8,10 @@ changelog:
         - feature
     - title: Enhancements 🔥
       labels:
-        - improvement
+        - enhancement
     - title: Fixes 🔧
       labels:
-        - bugfix
+        - bug
     - title: Maintenance ⚙️
       labels:
         - maintenance
