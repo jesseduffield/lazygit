@@ -204,3 +204,14 @@ jobs:
       - name: errors
         run: golangci-lint run
         if: ${{ failure() }}
+  label:
+    runs-on: ubuntu-latest
+    # permissions:
+    #   issues: write
+    #   pull-requests: write
+    steps:
+      - uses: mheap/github-action-required-labels@v5
+        with:
+          mode: exactly
+          count: 1
+          labels: "ignore-for-release, feature, enhancement, maintenance, docs, i18n"
