@@ -199,8 +199,8 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;space&gt;</kbd>: チェックアウト
   <kbd>n</kbd>: 新しいブランチを作成
   <kbd>o</kbd>: Pull Requestを作成
-  <kbd>O</kbd>: Create pull request options
-  <kbd>&lt;c-y&gt;</kbd>: Pull RequestのURLをクリップボードにコピー
+  <kbd>O</kbd>: Create pull request options (assumes origin remote is user repo)
+  <kbd>&lt;c-y&gt;</kbd>: Pull RequestのURLをクリップボードにコピー (assumes origin remote is user repo)
   <kbd>c</kbd>: Checkout by name
   <kbd>F</kbd>: Force checkout
   <kbd>d</kbd>: ブランチを削除

@@ -141,9 +141,9 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>i</kbd>: Show git-flow options
   <kbd>&lt;space&gt;</kbd>: Checkout
   <kbd>n</kbd>: New branch
-  <kbd>o</kbd>: Create pull request
-  <kbd>O</kbd>: Create pull request options
-  <kbd>&lt;c-y&gt;</kbd>: Copy pull request URL to clipboard
+  <kbd>o</kbd>: Create pull request (assumes origin remote is user repo)
+  <kbd>O</kbd>: Create pull request options (assumes origin remote is user repo)
+  <kbd>&lt;c-y&gt;</kbd>: Copy pull request URL to clipboard (assumes origin remote is user repo)
   <kbd>c</kbd>: Checkout by name
   <kbd>F</kbd>: Force checkout
   <kbd>d</kbd>: Delete branch
