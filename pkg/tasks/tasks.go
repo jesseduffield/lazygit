@@ -149,6 +149,11 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 
 		data := make(chan []byte)
 
+		// We're reading from the scanner in a separate goroutine because on windows
+		// if running git through a shim, we sometimes kill the parent process without
+		// killing its children, meaning the scanner blocks forever. This solution
+		// leaves us with a dead goroutine, but it's better than blocking all
+		// rendering to main views.
 		go utils.Safe(func() {
 			for scanner.Scan() {
 				data <- scanner.Bytes()
