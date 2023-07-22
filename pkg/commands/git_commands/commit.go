@@ -50,13 +50,13 @@ func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars [
 		Run()
 }
 
-func (self *CommitCommands) CommitCmdObj(message string) oscommands.ICmdObj {
-	messageArgs := self.commitMessageArgs(message)
+func (self *CommitCommands) CommitCmdObj(summary string, description string) oscommands.ICmdObj {
+	messageArgs := self.commitMessageArgs(summary, description)
 
 	skipHookPrefix := self.UserConfig.Git.SkipHookPrefix
 
 	cmdArgs := NewGitCmd("commit").
-		ArgIf(skipHookPrefix != "" && strings.HasPrefix(message, skipHookPrefix), "--no-verify").
+		ArgIf(skipHookPrefix != "" && strings.HasPrefix(summary, skipHookPrefix), "--no-verify").
 		ArgIf(self.signoffFlag() != "", self.signoffFlag()).
 		Arg(messageArgs...).
 		ToArgv()
@@ -69,8 +69,8 @@ func (self *CommitCommands) RewordLastCommitInEditorCmdObj() oscommands.ICmdObj 
 }
 
 // RewordLastCommit rewords the topmost commit with the given message
-func (self *CommitCommands) RewordLastCommit(message string) error {
-	messageArgs := self.commitMessageArgs(message)
+func (self *CommitCommands) RewordLastCommit(summary string, description string) error {
+	messageArgs := self.commitMessageArgs(summary, description)
 
 	cmdArgs := NewGitCmd("commit").
 		Arg("--allow-empty", "--amend", "--only").
@@ -80,9 +80,8 @@ func (self *CommitCommands) RewordLastCommit(message string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *CommitCommands) commitMessageArgs(message string) []string {
-	msg, description, _ := strings.Cut(message, "\n")
-	args := []string{"-m", msg}
+func (self *CommitCommands) commitMessageArgs(summary string, description string) []string {
+	args := []string{"-m", summary}
 
 	if description != "" {
 		args = append(args, "-m", description)

@@ -63,33 +63,44 @@ func (self *CommitsHelper) JoinCommitMessageAndDescription() string {
 }
 
 func (self *CommitsHelper) UpdateCommitPanelView(message string) {
-	// first try the passed in message, if not fallback to context -> view in that order
 	if message != "" {
 		self.SetMessageAndDescriptionInView(message)
 		return
 	}
-	message = self.c.Contexts().CommitMessage.GetPreservedMessage()
-	if message != "" {
-		self.SetMessageAndDescriptionInView(message)
-	} else {
-		self.SetMessageAndDescriptionInView(self.getCommitSummary())
+
+	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
+		preservedMessage := self.c.Contexts().CommitMessage.GetPreservedMessage()
+		self.SetMessageAndDescriptionInView(preservedMessage)
+		return
 	}
+
+	self.SetMessageAndDescriptionInView("")
 }
 
 type OpenCommitMessagePanelOpts struct {
-	CommitIndex     int
-	Title           string
-	PreserveMessage bool
-	OnConfirm       func(string) error
-	InitialMessage  string
+	CommitIndex      int
+	SummaryTitle     string
+	DescriptionTitle string
+	PreserveMessage  bool
+	OnConfirm        func(summary string, description string) error
+	InitialMessage   string
 }
 
 func (self *CommitsHelper) OpenCommitMessagePanel(opts *OpenCommitMessagePanelOpts) error {
+	onConfirm := func(summary string, description string) error {
+		if err := self.CloseCommitMessagePanel(); err != nil {
+			return err
+		}
+
+		return opts.OnConfirm(summary, description)
+	}
+
 	self.c.Contexts().CommitMessage.SetPanelState(
 		opts.CommitIndex,
-		opts.Title,
+		opts.SummaryTitle,
+		opts.DescriptionTitle,
 		opts.PreserveMessage,
-		opts.OnConfirm,
+		onConfirm,
 	)
 
 	self.UpdateCommitPanelView(opts.InitialMessage)
@@ -102,17 +113,16 @@ func (self *CommitsHelper) OnCommitSuccess() {
 	if self.c.Contexts().CommitMessage.GetPreserveMessage() {
 		self.c.Contexts().CommitMessage.SetPreservedMessage("")
 	}
-	self.SetMessageAndDescriptionInView("")
 }
 
 func (self *CommitsHelper) HandleCommitConfirm() error {
-	fullMessage := self.JoinCommitMessageAndDescription()
+	summary, description := self.getCommitSummary(), self.getCommitDescription()
 
-	if fullMessage == "" {
+	if summary == "" {
 		return self.c.ErrorMsg(self.c.Tr.CommitWithoutMessageErr)
 	}
 
-	err := self.c.Contexts().CommitMessage.OnConfirm(fullMessage)
+	err := self.c.Contexts().CommitMessage.OnConfirm(summary, description)
 	if err != nil {
 		return err
 	}

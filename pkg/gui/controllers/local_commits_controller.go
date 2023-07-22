@@ -267,22 +267,22 @@ func (self *LocalCommitsController) reword(commit *models.Commit) error {
 
 	return self.c.Helpers().Commits.OpenCommitMessagePanel(
 		&helpers.OpenCommitMessagePanelOpts{
-			CommitIndex:     self.context().GetSelectedLineIdx(),
-			InitialMessage:  commitMessage,
-			Title:           self.c.Tr.Actions.RewordCommit,
-			PreserveMessage: false,
-			OnConfirm:       self.handleReword,
+			CommitIndex:      self.context().GetSelectedLineIdx(),
+			InitialMessage:   commitMessage,
+			SummaryTitle:     self.c.Tr.Actions.RewordCommit,
+			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
+			PreserveMessage:  false,
+			OnConfirm:        self.handleReword,
 		},
 	)
 }
 
-func (self *LocalCommitsController) handleReword(message string) error {
-	err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), message)
+func (self *LocalCommitsController) handleReword(summary string, description string) error {
+	err := self.c.Git().Rebase.RewordCommit(self.c.Model().Commits, self.c.Contexts().LocalCommits.GetSelectedLineIdx(), summary, description)
 	if err != nil {
 		return self.c.Error(err)
 	}
 	self.c.Helpers().Commits.OnCommitSuccess()
-	_ = self.c.Helpers().Commits.PopCommitMessageContexts()
 	return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 }
 
@@ -682,7 +682,7 @@ func (self *LocalCommitsController) squashAllAboveFixupCommits(commit *models.Co
 }
 
 func (self *LocalCommitsController) createTag(commit *models.Commit) error {
-	return self.c.Helpers().Tags.CreateTagMenu(commit.Sha, func() {})
+	return self.c.Helpers().Tags.OpenCreateTagPrompt(commit.Sha, func() {})
 }
 
 func (self *LocalCommitsController) openSearch() error {

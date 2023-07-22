@@ -207,6 +207,7 @@ var tests = []*components.IntegrationTest{
 	sync.PushWithCredentialPrompt,
 	sync.RenameBranchAndPull,
 	tag.Checkout,
+	tag.CreateWhileCommitting,
 	tag.CrudAnnotated,
 	tag.CrudLightweight,
 	tag.Reset,

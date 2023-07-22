@@ -23,3 +23,9 @@ func (self *CommitDescriptionPanelDriver) AddNewline() *CommitDescriptionPanelDr
 	self.t.press(self.t.keys.Universal.Confirm)
 	return self
 }
+
+func (self *CommitDescriptionPanelDriver) Title(expected *TextMatcher) *CommitDescriptionPanelDriver {
+	self.getViewDriver().Title(expected)
+
+	return self
+}

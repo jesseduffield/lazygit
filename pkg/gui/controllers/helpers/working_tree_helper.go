@@ -99,19 +99,19 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 
 	return self.commitsHelper.OpenCommitMessagePanel(
 		&OpenCommitMessagePanelOpts{
-			CommitIndex:     context.NoCommitIndex,
-			InitialMessage:  initialMessage,
-			Title:           self.c.Tr.CommitSummary,
-			PreserveMessage: true,
-			OnConfirm:       self.handleCommit,
+			CommitIndex:      context.NoCommitIndex,
+			InitialMessage:   initialMessage,
+			SummaryTitle:     self.c.Tr.CommitSummaryTitle,
+			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
+			PreserveMessage:  true,
+			OnConfirm:        self.handleCommit,
 		},
 	)
 }
 
-func (self *WorkingTreeHelper) handleCommit(message string) error {
-	cmdObj := self.c.Git().Commit.CommitCmdObj(message)
+func (self *WorkingTreeHelper) handleCommit(summary string, description string) error {
+	cmdObj := self.c.Git().Commit.CommitCmdObj(summary, description)
 	self.c.LogAction(self.c.Tr.Actions.Commit)
-	_ = self.commitsHelper.PopCommitMessageContexts()
 	return self.gpgHelper.WithGpgHandling(cmdObj, self.c.Tr.CommittingStatus, func() error {
 		self.commitsHelper.OnCommitSuccess()
 		return nil

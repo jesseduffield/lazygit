@@ -31,7 +31,7 @@ type CommitMessageViewModel struct {
 	// the full preserved message (combined summary and description)
 	preservedMessage string
 	// invoked when pressing enter in the commit message panel
-	onConfirm func(string) error
+	onConfirm func(string, string) error
 
 	// The message typed in before cycling through history
 	// We store this separately to 'preservedMessage' because 'preservedMessage'
@@ -88,15 +88,22 @@ func (self *CommitMessageContext) SetHistoryMessage(message string) {
 	self.viewModel.historyMessage = message
 }
 
-func (self *CommitMessageContext) OnConfirm(message string) error {
-	return self.viewModel.onConfirm(message)
+func (self *CommitMessageContext) OnConfirm(summary string, description string) error {
+	return self.viewModel.onConfirm(summary, description)
 }
 
-func (self *CommitMessageContext) SetPanelState(index int, title string, preserveMessage bool, onConfirm func(string) error) {
+func (self *CommitMessageContext) SetPanelState(
+	index int,
+	summaryTitle string,
+	descriptionTitle string,
+	preserveMessage bool,
+	onConfirm func(string, string) error,
+) {
 	self.viewModel.selectedindex = index
 	self.viewModel.preserveMessage = preserveMessage
 	self.viewModel.onConfirm = onConfirm
-	self.GetView().Title = title
+	self.GetView().Title = summaryTitle
+	self.c.Views().CommitDescription.Title = descriptionTitle
 }
 
 func (self *CommitMessageContext) RenderCommitLength() {

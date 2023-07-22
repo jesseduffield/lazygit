@@ -35,10 +35,10 @@ func NewRebaseCommands(
 	}
 }
 
-func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, message string) error {
+func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, summary string, description string) error {
 	if models.IsHeadCommit(commits, index) {
 		// we've selected the top commit so no rebase is required
-		return self.commit.RewordLastCommit(message)
+		return self.commit.RewordLastCommit(summary, description)
 	}
 
 	err := self.BeginInteractiveRebaseForCommit(commits, index, false)
@@ -47,7 +47,7 @@ func (self *RebaseCommands) RewordCommit(commits []*models.Commit, index int, me
 	}
 
 	// now the selected commit should be our head so we'll amend it with the new message
-	err = self.commit.RewordLastCommit(message)
+	err = self.commit.RewordLastCommit(summary, description)
 	if err != nil {
 		return err
 	}

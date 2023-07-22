@@ -19,13 +19,8 @@ var CrudLightweight = NewIntegrationTest(NewIntegrationTestArgs{
 			IsEmpty().
 			Press(keys.Universal.New).
 			Tap(func() {
-				t.ExpectPopup().Menu().
-					Title(Equals("Create tag")).
-					Select(Contains("Lightweight")).
-					Confirm()
-
-				t.ExpectPopup().Prompt().
-					Title(Equals("Tag name:")).
+				t.ExpectPopup().CommitMessagePanel().
+					Title(Equals("Tag name")).
 					Type("new-tag").
 					Confirm()
 			}).

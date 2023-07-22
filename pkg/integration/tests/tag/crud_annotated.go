@@ -19,19 +19,13 @@ var CrudAnnotated = NewIntegrationTest(NewIntegrationTestArgs{
 			IsEmpty().
 			Press(keys.Universal.New).
 			Tap(func() {
-				t.ExpectPopup().Menu().
-					Title(Equals("Create tag")).
-					Select(Contains("Annotated")).
-					Confirm()
-
-				t.ExpectPopup().Prompt().
-					Title(Equals("Tag name:")).
+				t.ExpectPopup().CommitMessagePanel().
+					Title(Equals("Tag name")).
 					Type("new-tag").
-					Confirm()
-
-				t.ExpectPopup().Prompt().
-					Title(Equals("Tag message:")).
+					SwitchToDescription().
+					Title(Equals("Tag description")).
 					Type("message").
+					SwitchToSummary().
 					Confirm()
 			}).
 			Lines(
@@ -44,6 +38,13 @@ var CrudAnnotated = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Equals("Are you sure you want to delete tag 'new-tag'?")).
 					Confirm()
 			}).
-			IsEmpty()
+			IsEmpty().
+			Press(keys.Universal.New).
+			Tap(func() {
+				// confirm content is cleared on next tag create
+				t.ExpectPopup().CommitMessagePanel().
+					Title(Equals("Tag name")).
+					InitialText(Equals(""))
+			})
 	},
 })
