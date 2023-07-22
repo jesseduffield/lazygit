@@ -349,6 +349,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) types.
 			ReflogCommits:         make([]*models.Commit, 0),
 			BisectInfo:            git_commands.NewNullBisectInfo(),
 			FilesTrie:             patricia.NewTrie(),
+			Authors:               map[string]*models.Author{},
 		},
 		Modes: &types.Modes{
 			Filtering:     filtering.New(startArgs.FilterPath),
@@ -456,6 +457,7 @@ func NewGui(
 			SyncMutex:               &deadlock.Mutex{},
 			LocalCommitsMutex:       &deadlock.Mutex{},
 			SubCommitsMutex:         &deadlock.Mutex{},
+			AuthorsMutex:            &deadlock.Mutex{},
 			SubprocessMutex:         &deadlock.Mutex{},
 			PopupMutex:              &deadlock.Mutex{},
 			PtyMutex:                &deadlock.Mutex{},

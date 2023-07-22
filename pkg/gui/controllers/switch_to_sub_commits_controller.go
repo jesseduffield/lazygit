@@ -70,6 +70,7 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 	}
 
 	self.setSubCommits(commits)
+	self.c.Helpers().Refresh.RefreshAuthors(commits)
 
 	subCommitsContext := self.c.Contexts().SubCommits
 	subCommitsContext.SetSelectedLineIdx(0)
