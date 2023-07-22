@@ -539,6 +539,7 @@ func (self *ViewDriver) FilterOrSearch(text string) *ViewDriver {
 	self.Press(self.t.keys.Universal.StartSearch).
 		Tap(func() {
 			self.t.ExpectSearch().
+				Clear().
 				Type(text).
 				Confirm()
 

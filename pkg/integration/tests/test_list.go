@@ -98,6 +98,7 @@ var tests = []*components.IntegrationTest{
 	file.RememberCommitMessageAfterFail,
 	filter_and_search.FilterCommitFiles,
 	filter_and_search.FilterFiles,
+	filter_and_search.FilterFuzzy,
 	filter_and_search.FilterMenu,
 	filter_and_search.FilterRemoteBranches,
 	filter_and_search.NestedFilter,
