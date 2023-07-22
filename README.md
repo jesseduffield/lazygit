@@ -2,17 +2,17 @@
   <img width="536" src="https://user-images.githubusercontent.com/8456633/174470852-339b5011-5800-4bb9-a628-ff230aa8cd4e.png">
 </p>
 
+<div align="center">
 
-![CI](https://github.com/jesseduffield/lazygit/workflows/Continuous%20Integration/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit)
-[![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com)
-[![GitHub Releases](https://img.shields.io/github/downloads/jesseduffield/lazygit/total)](https://github.com/jesseduffield/lazygit/releases)
-[![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases/latest)
-[![homebrew](https://img.shields.io/homebrew/v/lazygit)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/lazygit.rb)
+A simple terminal UI for git commands
+<br/>
 
-A simple terminal UI for git commands, written in Go with the [gocui](https://github.com/jroimartin/gocui "gocui") library.
+[![GitHub Releases](https://img.shields.io/github/downloads/jesseduffield/lazygit/total)](https://github.com/jesseduffield/lazygit/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases/latest) [![homebrew](https://img.shields.io/homebrew/v/lazygit)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/lazygit.rb)  
 
 ![Gif](../assets/staging.gif)
+</div>
+
+
 
 ## Sponsors
 
@@ -277,16 +277,18 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 
 - [Video Tutorial](https://youtu.be/VDXvbHZYeKY)
 - [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
-- [Twitch Stream](https://www.twitch.tv/jesseduffield)
 
 ## Cool features
 
-- Adding files easily
-- Resolving merge conflicts
-- Easily check out recent branches
-- Scroll through logs/diffs of branches/commits/stash
-- Quick pushing/pulling
-- Squash down and reword commits
+- Add files easily
+- Resolve merge conflicts
+- Fuzzy searching
+- Git bisect
+- Amend old commits
+- Slice, dice, squash, and rearrange commits
+- Submodules support
+- diff branches easily
+- Cherry-pick commits like it's copy+paste
 
 ### Resolving merge conflicts
 
