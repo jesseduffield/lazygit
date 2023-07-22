@@ -26,13 +26,8 @@ var CreateTag = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			Press(keys.Branches.CreateTag)
 
-		t.ExpectPopup().Menu().
-			Title(Equals("Create tag")).
-			Select(Contains("Lightweight")).
-			Confirm()
-
-		t.ExpectPopup().Prompt().
-			Title(Equals("Tag name:")).
+		t.ExpectPopup().CommitMessagePanel().
+			Title(Equals("Tag name")).
 			Type("new-tag").
 			Confirm()
 

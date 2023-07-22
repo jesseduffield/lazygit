@@ -74,7 +74,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Suggestions:     suggestionsHelper,
 		Files:           helpers.NewFilesHelper(helperCommon),
 		WorkingTree:     helpers.NewWorkingTreeHelper(helperCommon, refsHelper, commitsHelper, gpgHelper),
-		Tags:            helpers.NewTagsHelper(helperCommon),
+		Tags:            helpers.NewTagsHelper(helperCommon, commitsHelper),
 		GPG:             helpers.NewGpgHelper(helperCommon),
 		MergeAndRebase:  rebaseHelper,
 		MergeConflicts:  mergeConflictsHelper,

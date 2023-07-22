@@ -192,7 +192,7 @@ type TranslationSet struct {
 	RecentRepos                         string
 	MergeOptionsTitle                   string
 	RebaseOptionsTitle                  string
-	CommitMessageTitle                  string
+	CommitSummaryTitle                  string
 	CommitDescriptionTitle              string
 	CommitDescriptionSubTitle           string
 	LocalBranchesTitle                  string
@@ -355,7 +355,7 @@ type TranslationSet struct {
 	PushTagTitle                        string
 	PushTag                             string
 	CreateTag                           string
-	CreateTagTitle                      string
+	CreatingTag                         string
 	FetchRemote                         string
 	FetchingRemoteStatus                string
 	CheckoutCommit                      string
@@ -884,7 +884,7 @@ func EnglishTranslationSet() TranslationSet {
 		RecentRepos:                         "Recent repositories",
 		MergeOptionsTitle:                   "Merge options",
 		RebaseOptionsTitle:                  "Rebase options",
-		CommitMessageTitle:                  "Commit summary",
+		CommitSummaryTitle:                  "Commit summary",
 		CommitDescriptionTitle:              "Commit description",
 		CommitDescriptionSubTitle:           "Press {{.togglePanelKeyBinding}} to toggle focus",
 		LocalBranchesTitle:                  "Local branches",
@@ -1039,8 +1039,8 @@ func EnglishTranslationSet() TranslationSet {
 		EditRemote:                          "Edit remote",
 		TagCommit:                           "Tag commit",
 		TagMenuTitle:                        "Create tag",
-		TagNameTitle:                        "Tag name:",
-		TagMessageTitle:                     "Tag message:",
+		TagNameTitle:                        "Tag name",
+		TagMessageTitle:                     "Tag description",
 		AnnotatedTag:                        "Annotated tag",
 		LightweightTag:                      "Lightweight tag",
 		DeleteTag:                           "Delete tag",
@@ -1049,7 +1049,7 @@ func EnglishTranslationSet() TranslationSet {
 		PushTagTitle:                        "Remote to push tag '{{.tagName}}' to:",
 		PushTag:                             "Push tag",
 		CreateTag:                           "Create tag",
-		CreateTagTitle:                      "Tag name:",
+		CreatingTag:                         "Creating tag",
 		FetchRemote:                         "Fetch remote",
 		FetchingRemoteStatus:                "Fetching remote",
 		CheckoutCommit:                      "Checkout commit",

@@ -395,7 +395,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 }
 
 func (self *BranchesController) createTag(branch *models.Branch) error {
-	return self.c.Helpers().Tags.CreateTagMenu(branch.FullRefName(), func() {})
+	return self.c.Helpers().Tags.OpenCreateTagPrompt(branch.FullRefName(), func() {})
 }
 
 func (self *BranchesController) createResetMenu(selectedBranch *models.Branch) error {

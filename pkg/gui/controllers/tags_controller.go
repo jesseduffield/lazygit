@@ -141,7 +141,7 @@ func (self *TagsController) createResetMenu(tag *models.Tag) error {
 
 func (self *TagsController) create() error {
 	// leaving commit SHA blank so that we're just creating the tag for the current commit
-	return self.c.Helpers().Tags.CreateTagMenu("", func() { self.context().SetSelectedLineIdx(0) })
+	return self.c.Helpers().Tags.OpenCreateTagPrompt("", func() { self.context().SetSelectedLineIdx(0) })
 }
 
 func (self *TagsController) withSelectedTag(f func(tag *models.Tag) error) func() error {

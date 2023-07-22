@@ -10,20 +10,23 @@ import (
 
 func TestCommitRewordCommit(t *testing.T) {
 	type scenario struct {
-		testName string
-		runner   *oscommands.FakeCmdObjRunner
-		input    string
+		testName    string
+		runner      *oscommands.FakeCmdObjRunner
+		summary     string
+		description string
 	}
 	scenarios := []scenario{
 		{
 			"Single line reword",
 			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"commit", "--allow-empty", "--amend", "--only", "-m", "test"}, "", nil),
 			"test",
+			"",
 		},
 		{
 			"Multi line reword",
 			oscommands.NewFakeRunner(t).ExpectGitArgs([]string{"commit", "--allow-empty", "--amend", "--only", "-m", "test", "-m", "line 2\nline 3"}, "", nil),
-			"test\nline 2\nline 3",
+			"test",
+			"line 2\nline 3",
 		},
 	}
 	for _, s := range scenarios {
@@ -31,7 +34,7 @@ func TestCommitRewordCommit(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildCommitCommands(commonDeps{runner: s.runner})
 
-			assert.NoError(t, instance.RewordLastCommit(s.input))
+			assert.NoError(t, instance.RewordLastCommit(s.summary, s.description))
 			s.runner.CheckForMissingCalls()
 		})
 	}
@@ -50,7 +53,8 @@ func TestCommitResetToCommit(t *testing.T) {
 func TestCommitCommitCmdObj(t *testing.T) {
 	type scenario struct {
 		testName             string
-		message              string
+		summary              string
+		description          string
 		configSignoff        bool
 		configSkipHookPrefix string
 		expectedArgs         []string
@@ -59,35 +63,36 @@ func TestCommitCommitCmdObj(t *testing.T) {
 	scenarios := []scenario{
 		{
 			testName:             "Commit",
-			message:              "test",
+			summary:              "test",
 			configSignoff:        false,
 			configSkipHookPrefix: "",
 			expectedArgs:         []string{"commit", "-m", "test"},
 		},
 		{
 			testName:             "Commit with --no-verify flag",
-			message:              "WIP: test",
+			summary:              "WIP: test",
 			configSignoff:        false,
 			configSkipHookPrefix: "WIP",
 			expectedArgs:         []string{"commit", "--no-verify", "-m", "WIP: test"},
 		},
 		{
 			testName:             "Commit with multiline message",
-			message:              "line1\nline2",
+			summary:              "line1",
+			description:          "line2",
 			configSignoff:        false,
 			configSkipHookPrefix: "",
 			expectedArgs:         []string{"commit", "-m", "line1", "-m", "line2"},
 		},
 		{
 			testName:             "Commit with signoff",
-			message:              "test",
+			summary:              "test",
 			configSignoff:        true,
 			configSkipHookPrefix: "",
 			expectedArgs:         []string{"commit", "--signoff", "-m", "test"},
 		},
 		{
 			testName:             "Commit with signoff and no-verify",
-			message:              "WIP: test",
+			summary:              "WIP: test",
 			configSignoff:        true,
 			configSkipHookPrefix: "WIP",
 			expectedArgs:         []string{"commit", "--no-verify", "--signoff", "-m", "WIP: test"},
@@ -104,7 +109,7 @@ func TestCommitCommitCmdObj(t *testing.T) {
 			runner := oscommands.NewFakeRunner(t).ExpectGitArgs(s.expectedArgs, "", nil)
 			instance := buildCommitCommands(commonDeps{userConfig: userConfig, runner: runner})
 
-			assert.NoError(t, instance.CommitCmdObj(s.message).Run())
+			assert.NoError(t, instance.CommitCmdObj(s.summary, s.description).Run())
 			runner.CheckForMissingCalls()
 		})
 	}
