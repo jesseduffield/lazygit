@@ -6,7 +6,6 @@
 ![CI](https://github.com/jesseduffield/lazygit/workflows/Continuous%20Integration/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit)
 [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com)
-[![GoDoc](https://godoc.org/github.com/jesseduffield/lazygit?status.svg)](http://godoc.org/github.com/jesseduffield/lazygit)
 [![GitHub Releases](https://img.shields.io/github/downloads/jesseduffield/lazygit/total)](https://github.com/jesseduffield/lazygit/releases)
 [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases/latest)
 [![homebrew](https://img.shields.io/homebrew/v/lazygit)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/lazygit.rb)
