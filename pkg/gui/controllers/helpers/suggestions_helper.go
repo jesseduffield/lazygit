@@ -176,9 +176,11 @@ func (self *SuggestionsHelper) GetRefsSuggestionsFunc() func(string) []*types.Su
 }
 
 func (self *SuggestionsHelper) GetAuthorsSuggestionsFunc() func(string) []*types.Suggestion {
-	authors := lo.Uniq(slices.Map(self.c.Model().Commits, func(commit *models.Commit) string {
-		return fmt.Sprintf("%s <%s>", commit.AuthorName, commit.AuthorEmail)
-	}))
+	authors := lo.Map(lo.Values(self.c.Model().Authors), func(author *models.Author, _ int) string {
+		return author.Combined()
+	})
+
+	slices.Sort(authors)
 
 	return FuzzySearchFunc(authors)
 }

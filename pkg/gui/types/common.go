@@ -217,6 +217,8 @@ type Model struct {
 
 	// for displaying suggestions while typing in a file name
 	FilesTrie *patricia.Trie
+
+	Authors map[string]*models.Author
 }
 
 // if you add a new mutex here be sure to instantiate it. We're using pointers to
@@ -228,6 +230,7 @@ type Mutexes struct {
 	SyncMutex               *deadlock.Mutex
 	LocalCommitsMutex       *deadlock.Mutex
 	SubCommitsMutex         *deadlock.Mutex
+	AuthorsMutex            *deadlock.Mutex
 	SubprocessMutex         *deadlock.Mutex
 	PopupMutex              *deadlock.Mutex
 	PtyMutex                *deadlock.Mutex

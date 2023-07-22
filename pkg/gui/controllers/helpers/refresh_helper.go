@@ -266,6 +266,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 		return err
 	}
 	self.c.Model().Commits = commits
+	self.RefreshAuthors(commits)
 	self.c.Model().WorkingTreeStateAtLastCommitRefresh = self.c.Git().Status.WorkingTreeState()
 
 	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
@@ -287,8 +288,24 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 		return err
 	}
 	self.c.Model().SubCommits = commits
+	self.RefreshAuthors(commits)
 
 	return self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
+}
+
+func (self *RefreshHelper) RefreshAuthors(commits []*models.Commit) {
+	self.c.Mutexes().AuthorsMutex.Lock()
+	defer self.c.Mutexes().AuthorsMutex.Unlock()
+
+	authors := self.c.Model().Authors
+	for _, commit := range commits {
+		if _, ok := authors[commit.AuthorEmail]; !ok {
+			authors[commit.AuthorEmail] = &models.Author{
+				Email: commit.AuthorEmail,
+				Name:  commit.AuthorName,
+			}
+		}
+	}
 }
 
 func (self *RefreshHelper) refreshCommitFilesContext() error {
