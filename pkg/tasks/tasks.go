@@ -164,7 +164,8 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		scanner := bufio.NewScanner(r)
 		scanner.Split(bufio.ScanLines)
 
-		data := make(chan []byte)
+		lineChan := make(chan []byte)
+		lineWrittenChan := make(chan struct{})
 
 		// We're reading from the scanner in a separate goroutine because on windows
 		// if running git through a shim, we sometimes kill the parent process without
@@ -172,10 +173,18 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 		// leaves us with a dead goroutine, but it's better than blocking all
 		// rendering to main views.
 		go utils.Safe(func() {
+			defer close(lineChan)
 			for scanner.Scan() {
-				data <- scanner.Bytes()
+				select {
+				case <-opts.Stop:
+					return
+				case lineChan <- scanner.Bytes():
+					// We need to confirm the data has been fed into the view before we
+					// pull more from the scanner because the scanner uses the same backing
+					// array and we don't want to be mutating that while it's being written
+					<-lineWrittenChan
+				}
 			}
-			close(data)
 		})
 
 		loaded := false
@@ -222,7 +231,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 						select {
 						case <-opts.Stop:
 							break outer
-						case line, ok = <-data:
+						case line, ok = <-lineChan:
 							break
 						}
 
@@ -243,6 +252,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 							break outer
 						}
 						writeToView(append(line, '\n'))
+						lineWrittenChan <- struct{}{}
 
 						if i+1 == linesToRead.InitialRefreshAfter {
 							// We have read enough lines to fill the view, so do a first refresh
@@ -269,6 +279,7 @@ func (self *ViewBufferManager) NewCmdTask(start func() (*exec.Cmd, io.Reader), p
 			onDone()
 
 			close(done)
+			close(lineWrittenChan)
 		})
 
 		self.readLines <- linesToRead
