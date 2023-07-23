@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -182,12 +183,26 @@ func (self *CustomPatchOptionsMenuAction) handlePullPatchIntoNewCommit() error {
 		return err
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
-		commitIndex := self.getPatchCommitIndex()
-		self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
-		err := self.c.Git().Patch.PullPatchIntoNewCommit(self.c.Model().Commits, commitIndex)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
-	})
+	commitIndex := self.getPatchCommitIndex()
+	return self.c.Helpers().Commits.OpenCommitMessagePanel(
+		&helpers.OpenCommitMessagePanelOpts{
+			// Pass a commit index of one less than the moved-from commit, so that
+			// you can press up arrow once to recall the original commit message:
+			CommitIndex:      commitIndex - 1,
+			InitialMessage:   "",
+			SummaryTitle:     self.c.Tr.CommitSummaryTitle,
+			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
+			PreserveMessage:  false,
+			OnConfirm: func(summary string, description string) error {
+				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+					_ = self.c.Helpers().Commits.PopCommitMessageContexts()
+					self.c.LogAction(self.c.Tr.Actions.MovePatchIntoNewCommit)
+					err := self.c.Git().Patch.PullPatchIntoNewCommit(self.c.Model().Commits, commitIndex, summary, description)
+					return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+				})
+			},
+		},
+	)
 }
 
 func (self *CustomPatchOptionsMenuAction) handleApplyPatch(reverse bool) error {

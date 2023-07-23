@@ -50,11 +50,15 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Common().SelectPatchOption(Contains("Move patch into new commit"))
 
+		t.ExpectPopup().CommitMessagePanel().
+			InitialText(Equals("")).
+			Type("new commit").Confirm()
+
 		t.Views().Commits().
 			IsFocused().
 			Lines(
 				Contains("third commit"),
-				Contains(`Split from "commit to move from"`).IsSelected(),
+				Contains("new commit").IsSelected(),
 				Contains("commit to move from"),
 				Contains("first commit"),
 			).
@@ -74,7 +78,7 @@ var MoveToNewCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			IsFocused().
 			Lines(
 				Contains("third commit"),
-				Contains(`Split from "commit to move from"`).IsSelected(),
+				Contains("new commit").IsSelected(),
 				Contains("commit to move from"),
 				Contains("first commit"),
 			).
