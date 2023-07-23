@@ -47,8 +47,7 @@ func (gui *Gui) handleEditorKeypress(textArea *gocui.TextArea, key gocui.Key, ch
 	case key == gocui.KeyCtrlY:
 		textArea.Yank()
 
-		// TODO: see if we need all three of these conditions: maybe the final one is sufficient
-	case ch != 0 && mod == 0 && unicode.IsPrint(ch):
+	case unicode.IsPrint(ch):
 		textArea.TypeRune(ch)
 	default:
 		return false
