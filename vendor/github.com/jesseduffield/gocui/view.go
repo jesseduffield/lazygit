@@ -1265,14 +1265,52 @@ func lineWrap(line []cell, columns int) [][]cell {
 
 	var n int
 	var offset int
+	lastWhitespaceIndex := -1
 	lines := make([][]cell, 0, 1)
 	for i := range line {
-		rw := runewidth.RuneWidth(line[i].chr)
+		currChr := line[i].chr
+		rw := runewidth.RuneWidth(currChr)
 		n += rw
+		// if currChr == 'g' {
+		// 	panic(n)
+		// }
 		if n > columns {
-			n = rw
-			lines = append(lines, line[offset:i])
-			offset = i
+			// This code is convoluted but we've got comprehensive tests so feel free to do whatever you want
+			// to the code to simplify it so long as our tests still pass.
+			if currChr == ' ' {
+				// if the line ends in a space, we'll omit it. This means there'll be no
+				// way to distinguish between a clean break and a mid-word break, but
+				// I think it's worth it.
+				lines = append(lines, line[offset:i])
+				offset = i + 1
+				n = 0
+			} else if currChr == '-' {
+				// if the last character is hyphen and the width of line is equal to the columns
+				lines = append(lines, line[offset:i])
+				offset = i
+				n = rw
+			} else if lastWhitespaceIndex != -1 && lastWhitespaceIndex+1 != i {
+				// if there is a space in the line and the line is not breaking at a space/hyphen
+				if line[lastWhitespaceIndex].chr == '-' {
+					// if break occurs at hyphen, we'll retain the hyphen
+					lines = append(lines, line[offset:lastWhitespaceIndex+1])
+					offset = lastWhitespaceIndex + 1
+					n = i - offset
+				} else {
+					// if break occurs at space, we'll omit the space
+					lines = append(lines, line[offset:lastWhitespaceIndex])
+					offset = lastWhitespaceIndex + 1
+					n = i - offset + 1
+				}
+			} else {
+				// in this case we're breaking mid-word
+				lines = append(lines, line[offset:i])
+				offset = i
+				n = rw
+			}
+			lastWhitespaceIndex = -1
+		} else if line[i].chr == ' ' || line[i].chr == '-' {
+			lastWhitespaceIndex = i
 		}
 	}
 
