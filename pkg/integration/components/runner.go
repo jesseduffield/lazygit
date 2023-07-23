@@ -2,12 +2,12 @@ package components
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 
 	"github.com/jesseduffield/lazycore/pkg/utils"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 )
@@ -222,7 +222,7 @@ func findOrCreateDir(path string) {
 
 func deleteAndRecreateEmptyDir(path string) {
 	// remove contents of integration test directory
-	dir, err := ioutil.ReadDir(path)
+	dir, err := os.ReadDir(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			err = os.Mkdir(path, 0o777)

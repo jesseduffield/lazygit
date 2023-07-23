@@ -70,7 +70,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 		return nil
 	}
 
-	ref := self.c.Contexts().CommitFiles.CommitFileTreeViewModel.GetRef()
+	ref := self.c.Contexts().CommitFiles.GetRef()
 	to := ref.RefName()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
 	// Passing false for ignoreWhitespace because the patch building panel

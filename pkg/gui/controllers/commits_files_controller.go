@@ -252,7 +252,7 @@ func (self *CommitFilesController) toggleForPatch(node *filetree.CommitFileNode)
 }
 
 func (self *CommitFilesController) toggleAllForPatch(_ *filetree.CommitFileNode) error {
-	root := self.context().CommitFileTreeViewModel.GetRoot()
+	root := self.context().GetRoot()
 	return self.toggleForPatch(root)
 }
 
@@ -302,7 +302,7 @@ func (self *CommitFilesController) enterCommitFile(node *filetree.CommitFileNode
 }
 
 func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *filetree.CommitFileNode) error {
-	self.context().CommitFileTreeViewModel.ToggleCollapsed(node.GetPath())
+	self.context().ToggleCollapsed(node.GetPath())
 
 	if err := self.c.PostRefreshUpdate(self.context()); err != nil {
 		self.c.Log.Error(err)
@@ -313,7 +313,7 @@ func (self *CommitFilesController) handleToggleCommitFileDirCollapsed(node *file
 
 // NOTE: this is very similar to handleToggleFileTreeView, could be DRY'd with generics
 func (self *CommitFilesController) toggleTreeView() error {
-	self.context().CommitFileTreeViewModel.ToggleShowTree()
+	self.context().ToggleShowTree()
 
 	return self.c.PostRefreshUpdate(self.context())
 }

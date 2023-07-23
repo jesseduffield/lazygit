@@ -12,12 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var reflogOutput = strings.Replace(`c3c4b66b64c97ffeecde|1643150483|checkout: moving from A to B|51baa8c1
+var reflogOutput = strings.ReplaceAll(`c3c4b66b64c97ffeecde|1643150483|checkout: moving from A to B|51baa8c1
 c3c4b66b64c97ffeecde|1643150483|checkout: moving from B to A|51baa8c1
 c3c4b66b64c97ffeecde|1643150483|checkout: moving from A to B|51baa8c1
 c3c4b66b64c97ffeecde|1643150483|checkout: moving from master to A|51baa8c1
 f4ddf2f0d4be4ccc7efa|1643149435|checkout: moving from A to master|51baa8c1
-`, "|", "\x00", -1)
+`, "|", "\x00")
 
 func TestGetReflogCommits(t *testing.T) {
 	type scenario struct {

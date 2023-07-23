@@ -6,7 +6,7 @@ import "strings"
 // currently we are also stripping \r's which may have adverse effects for
 // windows users (but no issues have been raised yet)
 func SplitLines(multilineString string) []string {
-	multilineString = strings.Replace(multilineString, "\r", "", -1)
+	multilineString = strings.ReplaceAll(multilineString, "\r", "")
 	if multilineString == "" || multilineString == "\n" {
 		return make([]string, 0)
 	}
@@ -27,8 +27,8 @@ func SplitNul(str string) []string {
 
 // NormalizeLinefeeds - Removes all Windows and Mac style line feeds
 func NormalizeLinefeeds(str string) string {
-	str = strings.Replace(str, "\r\n", "\n", -1)
-	str = strings.Replace(str, "\r", "", -1)
+	str = strings.ReplaceAll(str, "\r\n", "\n")
+	str = strings.ReplaceAll(str, "\r", "")
 	return str
 }
 

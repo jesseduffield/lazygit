@@ -12,7 +12,7 @@ type ListContextTrait struct {
 
 	c                 *ContextCommon
 	list              types.IList
-	getDisplayStrings func(startIdx int, length int) [][]string
+	getDisplayStrings func(startIdx, length int) [][]string
 	// Alignment for each column. If nil, the default is left alignment
 	getColumnAlignments func() []utils.Alignment
 	// Some contexts, like the commit context, will highlight the path from the selected commit

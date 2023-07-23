@@ -2,6 +2,7 @@ package context
 
 import (
 	"github.com/jesseduffield/generics/slices"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -23,7 +24,7 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 		c.UserConfig.Gui.ShowFileTree,
 	)
 
-	getDisplayStrings := func(startIdx int, length int) [][]string {
+	getDisplayStrings := func(_, _ int) [][]string {
 		lines := presentation.RenderFileTree(viewModel, c.Modes().Diffing.Ref, c.Model().Submodules)
 		return slices.Map(lines, func(line string) []string {
 			return []string{line}

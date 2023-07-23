@@ -348,7 +348,7 @@ func renderPipeSet(
 	}
 
 	for _, pipe := range nonSelectedPipes {
-		if pipe.kind != STARTS && !(pipe.kind == TERMINATES && pipe.fromPos == commitPos && pipe.toPos == commitPos) {
+		if pipe.kind != STARTS && (pipe.kind != TERMINATES || pipe.fromPos != commitPos || pipe.toPos != commitPos) {
 			renderPipe(pipe, pipe.style, false)
 		}
 	}

@@ -10,15 +10,15 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
 
 	"github.com/creack/pty"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestIntegration(t *testing.T) {
@@ -76,7 +76,7 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 		return err
 	}
 
-	_, _ = io.Copy(ioutil.Discard, f)
+	_, _ = io.Copy(io.Discard, f)
 
 	if cmd.Wait() != nil {
 		// return an error with the stderr output

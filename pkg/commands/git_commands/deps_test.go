@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-errors/errors"
 	gogit "github.com/jesseduffield/go-git/v5"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/git_config"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/patch"
@@ -45,9 +46,9 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 	}
 	gitCommon.cmd = cmd
 
-	gitCommon.Common.UserConfig = deps.userConfig
-	if gitCommon.Common.UserConfig == nil {
-		gitCommon.Common.UserConfig = config.GetDefaultConfig()
+	gitCommon.UserConfig = deps.userConfig
+	if gitCommon.UserConfig == nil {
+		gitCommon.UserConfig = config.GetDefaultConfig()
 	}
 
 	gitCommon.version = deps.gitVersion

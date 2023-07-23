@@ -121,5 +121,5 @@ func (self *TestDriver) FileSystem() *FileSystem {
 // for when you just want to fail the test yourself.
 // This runs callbacks to ensure we render the error after closing the gui.
 func (self *TestDriver) Fail(message string) {
-	self.assertionHelper.fail(message)
+	self.fail(message)
 }

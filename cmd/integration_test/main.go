@@ -40,10 +40,11 @@ func main() {
 		sandbox := false
 		// get the next arg if it's --slow
 		if len(os.Args) > 2 {
-			if os.Args[2] == "--slow" || os.Args[2] == "-slow" {
+			switch os.Args[2] {
+			case "--slow", "-slow":
 				testNames = os.Args[3:]
 				slow = true
-			} else if os.Args[2] == "--sandbox" || os.Args[2] == "-sandbox" {
+			case "--sandbox", "-sandbox":
 				testNames = os.Args[3:]
 				sandbox = true
 			}
