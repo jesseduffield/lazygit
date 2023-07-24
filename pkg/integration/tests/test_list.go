@@ -220,6 +220,9 @@ var tests = []*components.IntegrationTest{
 	undo.UndoDrop,
 	worktree.AddFromBranch,
 	worktree.Crud,
+	worktree.DetachWorktreeFromBranch,
+	worktree.ForceRemoveWorktree,
 	worktree.Rebase,
+	worktree.RemoveWorktreeFromBranch,
 	worktree.WorktreeInRepo,
 }

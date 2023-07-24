@@ -42,16 +42,26 @@ func (self *GitCommandBuilder) Config(value string) *GitCommandBuilder {
 	return self
 }
 
-func (self *GitCommandBuilder) RepoPath(value string) *GitCommandBuilder {
+// the -C arg will make git do a `cd` to the directory before doing anything else
+func (self *GitCommandBuilder) Dir(path string) *GitCommandBuilder {
 	// repo path comes before the command
-	self.args = append([]string{"-C", value}, self.args...)
+	self.args = append([]string{"-C", path}, self.args...)
 
 	return self
 }
 
-func (self *GitCommandBuilder) WorktreePath(path string) *GitCommandBuilder {
-	// worktree path comes before the command
+// Note, you may prefer to use the Dir method instead of this one
+func (self *GitCommandBuilder) Worktree(path string) *GitCommandBuilder {
+	// worktree arg comes before the command
 	self.args = append([]string{"--work-tree", path}, self.args...)
+
+	return self
+}
+
+// Note, you may prefer to use the Dir method instead of this one
+func (self *GitCommandBuilder) GitDir(path string) *GitCommandBuilder {
+	// git dir arg comes before the command
+	self.args = append([]string{"--git-dir", path}, self.args...)
 
 	return self
 }

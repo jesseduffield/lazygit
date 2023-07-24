@@ -54,9 +54,9 @@ func (self *WorktreeCommands) Delete(worktreePath string, force bool) error {
 }
 
 func (self *WorktreeCommands) Detach(worktreePath string) error {
-	cmdArgs := NewGitCmd("checkout").Arg("--detach").ToArgv()
+	cmdArgs := NewGitCmd("checkout").Arg("--detach").GitDir(filepath.Join(worktreePath, ".git")).ToArgv()
 
-	return self.cmd.New(cmdArgs).SetWd(worktreePath).Run()
+	return self.cmd.New(cmdArgs).Run()
 }
 
 func (self *WorktreeCommands) IsCurrentWorktree(path string) bool {

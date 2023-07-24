@@ -261,6 +261,16 @@ func (self *Shell) AddWorktree(base string, path string, newBranchName string) *
 	})
 }
 
+func (self *Shell) AddFileInWorktree(worktreePath string) *Shell {
+	self.CreateFile(filepath.Join(worktreePath, "content"), "content")
+
+	self.RunCommand([]string{
+		"git", "-C", worktreePath, "add", "content",
+	})
+
+	return self
+}
+
 func (self *Shell) MakeExecutable(path string) *Shell {
 	// 0755 sets the executable permission for owner, and read/execute permissions for group and others
 	err := os.Chmod(filepath.Join(self.dir, path), 0o755)
