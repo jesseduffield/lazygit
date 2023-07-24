@@ -312,7 +312,9 @@ func (self *cmdObjRunner) runAndDetectCredentialRequest(
 	return self.runAndStreamAux(cmdObj, func(handler *cmdHandler, cmdWriter io.Writer) {
 		tr := io.TeeReader(handler.stdoutPipe, cmdWriter)
 
-		self.processOutput(tr, handler.stdinPipe, promptUserForCredential, cmdObj.GetTask())
+		go utils.Safe(func() {
+			self.processOutput(tr, handler.stdinPipe, promptUserForCredential, cmdObj.GetTask())
+		})
 	})
 }
 
