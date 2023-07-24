@@ -3,8 +3,8 @@ package app
 import (
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
+	"github.com/samber/lo"
 )
 
 type errorMapping struct {
@@ -18,7 +18,7 @@ func knownError(tr *i18n.TranslationSet, err error) (string, bool) {
 
 	knownErrorMessages := []string{tr.MinGitVersionError}
 
-	if slices.Contains(knownErrorMessages, errorMessage) {
+	if lo.Contains(knownErrorMessages, errorMessage) {
 		return errorMessage, true
 	}
 
@@ -29,7 +29,7 @@ func knownError(tr *i18n.TranslationSet, err error) (string, bool) {
 		},
 	}
 
-	if mapping, ok := slices.Find(mappings, func(mapping errorMapping) bool {
+	if mapping, ok := lo.Find(mappings, func(mapping errorMapping) bool {
 		return strings.Contains(errorMessage, mapping.originalError)
 	}); ok {
 		return mapping.newError, true

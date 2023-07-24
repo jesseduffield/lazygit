@@ -3,11 +3,11 @@ package git_commands
 import (
 	"regexp"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type TagLoader struct {
@@ -38,7 +38,7 @@ func (self *TagLoader) GetTags() ([]*models.Tag, error) {
 
 	lineRegex := regexp.MustCompile(`^([^\s]+)(\s+)?(.*)$`)
 
-	tags := slices.Map(split, func(line string) *models.Tag {
+	tags := lo.Map(split, func(line string, _ int) *models.Tag {
 		matches := lineRegex.FindStringSubmatch(line)
 		tagName := matches[1]
 		message := ""

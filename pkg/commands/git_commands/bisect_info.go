@@ -2,7 +2,7 @@ package git_commands
 
 import (
 	"github.com/jesseduffield/generics/maps"
-	"github.com/jesseduffield/generics/slices"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -97,5 +97,5 @@ func (self *BisectInfo) Bisecting() bool {
 		return false
 	}
 
-	return slices.Contains(maps.Values(self.statusMap), BisectStatusOld)
+	return lo.Contains(maps.Values(self.statusMap), BisectStatusOld)
 }

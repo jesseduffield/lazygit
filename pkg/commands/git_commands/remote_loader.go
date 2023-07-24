@@ -4,12 +4,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jesseduffield/generics/slices"
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 type RemoteLoader struct {
@@ -53,7 +54,7 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 		return nil, remoteBranchesErr
 	}
 
-	remotes := slices.Map(goGitRemotes, func(goGitRemote *gogit.Remote) *models.Remote {
+	remotes := lo.Map(goGitRemotes, func(goGitRemote *gogit.Remote, _ int) *models.Remote {
 		remoteName := goGitRemote.Config().Name
 		branches := remoteBranchesByRemoteName[remoteName]
 

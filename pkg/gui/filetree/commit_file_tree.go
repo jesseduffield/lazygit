@@ -1,8 +1,8 @@
 package filetree
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -60,7 +60,7 @@ func (self *CommitFileTree) GetAllItems() []*CommitFileNode {
 	}
 
 	// ignoring root
-	return slices.Map(self.tree.Flatten(self.collapsedPaths)[1:], func(node *Node[models.CommitFile]) *CommitFileNode {
+	return lo.Map(self.tree.Flatten(self.collapsedPaths)[1:], func(node *Node[models.CommitFile], _ int) *CommitFileNode {
 		return NewCommitFileNode(node)
 	})
 }

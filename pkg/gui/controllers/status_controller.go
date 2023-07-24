@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type StatusController struct {
@@ -155,7 +155,7 @@ func (self *StatusController) askForConfigFile(action func(file string) error) e
 	case 1:
 		return action(confPaths[0])
 	default:
-		menuItems := slices.Map(confPaths, func(path string) *types.MenuItem {
+		menuItems := lo.Map(confPaths, func(path string, _ int) *types.MenuItem {
 			return &types.MenuItem{
 				Label: path,
 				OnPress: func() error {

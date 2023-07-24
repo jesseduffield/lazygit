@@ -6,11 +6,11 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 type PipeKind uint8
@@ -67,7 +67,7 @@ func GetPipeSets(commits []*models.Commit, getStyle func(c *models.Commit) style
 
 	pipes := []*Pipe{{fromPos: 0, toPos: 0, fromSha: "START", toSha: commits[0].Sha, kind: STARTS, style: style.FgDefault}}
 
-	return slices.Map(commits, func(commit *models.Commit) []*Pipe {
+	return lo.Map(commits, func(commit *models.Commit, _ int) []*Pipe {
 		pipes = getNextPipes(pipes, commit, getStyle)
 		return pipes
 	})
@@ -108,17 +108,20 @@ func RenderAux(pipeSets [][]*Pipe, commits []*models.Commit, selectedCommitSha s
 
 	wg.Wait()
 
-	return slices.Flatten(chunks)
+	return lo.Flatten(chunks)
 }
 
 func getNextPipes(prevPipes []*Pipe, commit *models.Commit, getStyle func(c *models.Commit) style.TextStyle) []*Pipe {
-	maxPos := slices.MaxBy(prevPipes, func(pipe *Pipe) int {
-		return pipe.toPos
-	})
+	maxPos := 0
+	for _, pipe := range prevPipes {
+		if pipe.toPos > maxPos {
+			maxPos = pipe.toPos
+		}
+	}
 
 	// a pipe that terminated in the previous line has no bearing on the current line
 	// so we'll filter those out
-	currentPipes := slices.Filter(prevPipes, func(pipe *Pipe) bool {
+	currentPipes := lo.Filter(prevPipes, func(pipe *Pipe, _ int) bool {
 		return pipe.kind != TERMINATES
 	})
 
@@ -299,7 +302,7 @@ func renderPipeSet(
 	}
 	isMerge := startCount > 1
 
-	cells := slices.Map(lo.Range(maxPos+1), func(i int) *Cell {
+	cells := lo.Map(lo.Range(maxPos+1), func(i int, _ int) *Cell {
 		return &Cell{cellType: CONNECTION, style: style.FgDefault}
 	})
 
@@ -337,7 +340,7 @@ func renderPipeSet(
 
 	// so we have our commit pos again, now it's time to build the cells.
 	// we'll handle the one that's sourced from our selected commit last so that it can override the other cells.
-	selectedPipes, nonSelectedPipes := slices.Partition(pipes, func(pipe *Pipe) bool {
+	selectedPipes, nonSelectedPipes := utils.Partition(pipes, func(pipe *Pipe) bool {
 		return highlight && equalHashes(pipe.fromSha, selectedCommitSha)
 	})
 

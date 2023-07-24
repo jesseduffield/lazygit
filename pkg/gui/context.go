@@ -4,9 +4,9 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -134,7 +134,7 @@ func (self *ContextMgr) pushToContextStack(c types.Context) ([]types.Context, ty
 				(topContext.GetKind() == types.MAIN_CONTEXT && c.GetKind() == types.MAIN_CONTEXT) {
 
 				contextsToDeactivate = append(contextsToDeactivate, topContext)
-				_, self.ContextStack = slices.Pop(self.ContextStack)
+				_, self.ContextStack = utils.Pop(self.ContextStack)
 			}
 
 			self.ContextStack = append(self.ContextStack, c)
@@ -154,7 +154,7 @@ func (self *ContextMgr) Pop() error {
 	}
 
 	var currentContext types.Context
-	currentContext, self.ContextStack = slices.Pop(self.ContextStack)
+	currentContext, self.ContextStack = utils.Pop(self.ContextStack)
 
 	newContext := self.ContextStack[len(self.ContextStack)-1]
 

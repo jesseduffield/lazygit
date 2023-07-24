@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
@@ -18,6 +17,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type onNewRepoFn func(startArgs appTypes.StartArgs, contextKey types.ContextKey) error
@@ -115,7 +115,7 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 
 	wg.Wait()
 
-	menuItems := slices.Map(recentRepoPaths, func(path string) *types.MenuItem {
+	menuItems := lo.Map(recentRepoPaths, func(path string, _ int) *types.MenuItem {
 		branchName, _ := currentBranches.Load(path)
 		if icons.IsIconEnabled() {
 			branchName = icons.BRANCH_ICON + " " + fmt.Sprintf("%v", branchName)

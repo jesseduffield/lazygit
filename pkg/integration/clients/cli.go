@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/samber/lo"
@@ -58,7 +57,7 @@ func getTestsToRun(testNames []string) []*components.IntegrationTest {
 		return allIntegrationTests
 	}
 
-	testNames = slices.Map(testNames, func(name string) string {
+	testNames = lo.Map(testNames, func(name string, _ int) string {
 		// allowing full test paths to be passed for convenience
 		return strings.TrimSuffix(
 			regexp.MustCompile(`.*pkg/integration/tests/`).ReplaceAllString(name, ""),

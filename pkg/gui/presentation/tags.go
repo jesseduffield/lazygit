@@ -1,15 +1,15 @@
 package presentation
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/samber/lo"
 )
 
 func GetTagListDisplayStrings(tags []*models.Tag, diffName string) [][]string {
-	return slices.Map(tags, func(tag *models.Tag) []string {
+	return lo.Map(tags, func(tag *models.Tag, _ int) []string {
 		diffed := tag.Name == diffName
 		return getTagDisplayStrings(tag, diffed)
 	})

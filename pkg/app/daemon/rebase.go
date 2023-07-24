@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/samber/lo"
 )
 
 type TodoLine struct {
@@ -26,11 +26,11 @@ func (self *TodoLine) ToString() string {
 }
 
 func TodoLinesToString(todoLines []TodoLine) string {
-	lines := slices.Map(todoLines, func(todoLine TodoLine) string {
+	lines := lo.Map(todoLines, func(todoLine TodoLine, _ int) string {
 		return todoLine.ToString()
 	})
 
-	return strings.Join(slices.Reverse(lines), "")
+	return strings.Join(lo.Reverse(lines), "")
 }
 
 type ChangeTodoAction struct {

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -21,7 +20,7 @@ func (self *OptionsMenuAction) Call() error {
 
 	bindings := self.getBindings(ctx)
 
-	menuItems := slices.Map(bindings, func(binding *types.Binding) *types.MenuItem {
+	menuItems := lo.Map(bindings, func(binding *types.Binding, _ int) *types.MenuItem {
 		return &types.MenuItem{
 			OpensMenu: binding.OpensMenu,
 			Label:     binding.Description,

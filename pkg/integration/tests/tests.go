@@ -9,18 +9,18 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/samber/lo"
 )
 
 func GetTests() []*components.IntegrationTest {
 	// first we ensure that each test in this directory has actually been added to the above list.
 	testCount := 0
 
-	testNamesSet := set.NewFromSlice(slices.Map(
+	testNamesSet := set.NewFromSlice(lo.Map(
 		tests,
-		func(test *components.IntegrationTest) string {
+		func(test *components.IntegrationTest, _ int) string {
 			return test.Name()
 		},
 	))

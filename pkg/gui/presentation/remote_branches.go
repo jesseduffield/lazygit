@@ -1,14 +1,14 @@
 package presentation
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/samber/lo"
 )
 
 func GetRemoteBranchListDisplayStrings(branches []*models.RemoteBranch, diffName string) [][]string {
-	return slices.Map(branches, func(branch *models.RemoteBranch) []string {
+	return lo.Map(branches, func(branch *models.RemoteBranch, _ int) []string {
 		diffed := branch.FullName() == diffName
 		return getRemoteBranchDisplayStrings(branch, diffed)
 	})

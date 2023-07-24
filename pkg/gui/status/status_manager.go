@@ -3,8 +3,8 @@ package status
 import (
 	"time"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/sasha-s/go-deadlock"
 )
 
@@ -88,7 +88,7 @@ func (self *StatusManager) removeStatus(id int) {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 
-	self.statuses = slices.Filter(self.statuses, func(status appStatus) bool {
+	self.statuses = lo.Filter(self.statuses, func(status appStatus, _ int) bool {
 		return status.id != id
 	})
 }

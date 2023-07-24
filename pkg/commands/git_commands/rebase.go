@@ -7,7 +7,6 @@ import (
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/app/daemon"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
@@ -158,7 +157,7 @@ func (self *RebaseCommands) EditRebase(branchRef string) error {
 }
 
 func logTodoChanges(changes []daemon.ChangeTodoAction) string {
-	changeTodoStr := strings.Join(slices.Map(changes, func(c daemon.ChangeTodoAction) string {
+	changeTodoStr := strings.Join(lo.Map(changes, func(c daemon.ChangeTodoAction, _ int) string {
 		return fmt.Sprintf("%s:%s", c.Sha, c.NewAction)
 	}), "\n")
 	return fmt.Sprintf("Changing TODO actions: %s", changeTodoStr)

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type ModeHelper struct {
@@ -135,13 +135,13 @@ func (self *ModeHelper) withResetButton(content string, textStyle style.TextStyl
 }
 
 func (self *ModeHelper) GetActiveMode() (ModeStatus, bool) {
-	return slices.Find(self.Statuses(), func(mode ModeStatus) bool {
+	return lo.Find(self.Statuses(), func(mode ModeStatus) bool {
 		return mode.IsActive()
 	})
 }
 
 func (self *ModeHelper) IsAnyModeActive() bool {
-	return slices.Some(self.Statuses(), func(mode ModeStatus) bool {
+	return lo.SomeBy(self.Statuses(), func(mode ModeStatus) bool {
 		return mode.IsActive()
 	})
 }

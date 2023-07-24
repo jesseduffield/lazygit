@@ -3,7 +3,6 @@ package utils
 import (
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/mattn/go-runewidth"
 	"github.com/samber/lo"
 )
@@ -117,20 +116,30 @@ func getPaddedDisplayStrings(stringArrays [][]string, columnConfigs []ColumnConf
 }
 
 func getPadWidths(stringArrays [][]string) []int {
-	maxWidth := slices.MaxBy(stringArrays, func(stringArray []string) int {
+	maxWidth := MaxFn(stringArrays, func(stringArray []string) int {
 		return len(stringArray)
 	})
 
 	if maxWidth-1 < 0 {
 		return []int{}
 	}
-	return slices.Map(lo.Range(maxWidth-1), func(i int) int {
-		return slices.MaxBy(stringArrays, func(stringArray []string) int {
+	return lo.Map(lo.Range(maxWidth-1), func(i int, _ int) int {
+		return MaxFn(stringArrays, func(stringArray []string) int {
 			uncoloredStr := Decolorise(stringArray[i])
 
 			return runewidth.StringWidth(uncoloredStr)
 		})
 	})
+}
+
+func MaxFn[T any](items []T, fn func(T) int) int {
+	max := 0
+	for _, item := range items {
+		if fn(item) > max {
+			max = fn(item)
+		}
+	}
+	return max
 }
 
 // TruncateWithEllipsis returns a string, truncated to a certain length, with an ellipsis

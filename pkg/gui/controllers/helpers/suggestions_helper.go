@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -12,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/jesseduffield/minimal/gitignore"
 	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 	"gopkg.in/ozeidan/fuzzy-patricia.v3/patricia"
 )
 
@@ -48,13 +48,13 @@ func NewSuggestionsHelper(
 }
 
 func (self *SuggestionsHelper) getRemoteNames() []string {
-	return slices.Map(self.c.Model().Remotes, func(remote *models.Remote) string {
+	return lo.Map(self.c.Model().Remotes, func(remote *models.Remote, _ int) string {
 		return remote.Name
 	})
 }
 
 func matchesToSuggestions(matches []string) []*types.Suggestion {
-	return slices.Map(matches, func(match string) *types.Suggestion {
+	return lo.Map(matches, func(match string, _ int) *types.Suggestion {
 		return &types.Suggestion{
 			Value: match,
 			Label: match,
@@ -69,7 +69,7 @@ func (self *SuggestionsHelper) GetRemoteSuggestionsFunc() func(string) []*types.
 }
 
 func (self *SuggestionsHelper) getBranchNames() []string {
-	return slices.Map(self.c.Model().Branches, func(branch *models.Branch) string {
+	return lo.Map(self.c.Model().Branches, func(branch *models.Branch, _ int) string {
 		return branch.Name
 	})
 }
@@ -85,7 +85,7 @@ func (self *SuggestionsHelper) GetBranchNameSuggestionsFunc() func(string) []*ty
 			matchingBranchNames = utils.FuzzySearch(input, branchNames)
 		}
 
-		return slices.Map(matchingBranchNames, func(branchName string) *types.Suggestion {
+		return lo.Map(matchingBranchNames, func(branchName string, _ int) *types.Suggestion {
 			return &types.Suggestion{
 				Value: branchName,
 				Label: presentation.GetBranchTextStyle(branchName).Sprint(branchName),
@@ -141,8 +141,8 @@ func (self *SuggestionsHelper) GetFilePathSuggestionsFunc() func(string) []*type
 }
 
 func (self *SuggestionsHelper) getRemoteBranchNames(separator string) []string {
-	return slices.FlatMap(self.c.Model().Remotes, func(remote *models.Remote) []string {
-		return slices.Map(remote.Branches, func(branch *models.RemoteBranch) string {
+	return lo.FlatMap(self.c.Model().Remotes, func(remote *models.Remote, _ int) []string {
+		return lo.Map(remote.Branches, func(branch *models.RemoteBranch, _ int) string {
 			return fmt.Sprintf("%s%s%s", remote.Name, separator, branch.Name)
 		})
 	})
@@ -153,7 +153,7 @@ func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string
 }
 
 func (self *SuggestionsHelper) getTagNames() []string {
-	return slices.Map(self.c.Model().Tags, func(tag *models.Tag) string {
+	return lo.Map(self.c.Model().Tags, func(tag *models.Tag, _ int) string {
 		return tag.Name
 	})
 }

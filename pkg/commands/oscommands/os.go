@@ -13,7 +13,6 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/atotto/clipboard"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/kill"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -189,7 +188,7 @@ func (c *OSCommand) FileExists(path string) (bool, error) {
 
 // PipeCommands runs a heap of commands and pipes their inputs/outputs together like A | B | C
 func (c *OSCommand) PipeCommands(cmdObjs ...ICmdObj) error {
-	cmds := slices.Map(cmdObjs, func(cmdObj ICmdObj) *exec.Cmd {
+	cmds := lo.Map(cmdObjs, func(cmdObj ICmdObj, _ int) *exec.Cmd {
 		return cmdObj.GetCmd()
 	})
 

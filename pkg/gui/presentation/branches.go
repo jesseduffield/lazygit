@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -26,7 +25,7 @@ func GetBranchListDisplayStrings(
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
 ) [][]string {
-	return slices.Map(branches, func(branch *models.Branch) []string {
+	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
 		diffed := branch.Name == diffName
 		return getBranchDisplayStrings(branch, fullDescription, diffed, tr, userConfig, worktrees)
 	})

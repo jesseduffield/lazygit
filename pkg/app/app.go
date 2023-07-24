@@ -13,7 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 
-	"github.com/jesseduffield/generics/slices"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -267,7 +266,11 @@ func (app *App) Run(startArgs appTypes.StartArgs) error {
 
 // Close closes any resources
 func (app *App) Close() error {
-	return slices.TryForEach(app.closers, func(closer io.Closer) error {
-		return closer.Close()
-	})
+	for _, closer := range app.closers {
+		if err := closer.Close(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

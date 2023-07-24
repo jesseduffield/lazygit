@@ -3,8 +3,8 @@ package filetree
 import (
 	"fmt"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -88,7 +88,7 @@ func (self *FileTree) getFilesForDisplay() []*models.File {
 }
 
 func (self *FileTree) FilterFiles(test func(*models.File) bool) []*models.File {
-	return slices.Filter(self.getFiles(), test)
+	return lo.Filter(self.getFiles(), func(file *models.File, _ int) bool { return test(file) })
 }
 
 func (self *FileTree) SetStatusFilter(filter FileTreeDisplayFilter) {
@@ -130,7 +130,7 @@ func (self *FileTree) GetAllItems() []*FileNode {
 	}
 
 	// ignoring root
-	return slices.Map(self.tree.Flatten(self.collapsedPaths)[1:], func(node *Node[models.File]) *FileNode {
+	return lo.Map(self.tree.Flatten(self.collapsedPaths)[1:], func(node *Node[models.File], _ int) *FileNode {
 		return NewFileNode(node)
 	})
 }

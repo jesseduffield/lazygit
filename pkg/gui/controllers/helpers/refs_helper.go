@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type IRefsHelper interface {
@@ -132,7 +132,7 @@ func (self *RefsHelper) CreateGitResetMenu(ref string) error {
 		{strength: "hard", label: "Hard reset", key: 'h'},
 	}
 
-	menuItems := slices.Map(strengths, func(row strengthWithKey) *types.MenuItem {
+	menuItems := lo.Map(strengths, func(row strengthWithKey, _ int) *types.MenuItem {
 		return &types.MenuItem{
 			LabelColumns: []string{
 				row.label,
