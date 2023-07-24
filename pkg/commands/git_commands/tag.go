@@ -12,21 +12,33 @@ func NewTagCommands(gitCommon *GitCommon) *TagCommands {
 	}
 }
 
-func (self *TagCommands) CreateLightweight(tagName string, ref string) error {
-	cmdArgs := NewGitCmd("tag").Arg("--", tagName).
+func (self *TagCommands) CreateLightweight(tagName string, ref string, force bool) error {
+	cmdArgs := NewGitCmd("tag").
+		ArgIf(force, "--force").
+		Arg("--", tagName).
 		ArgIf(len(ref) > 0, ref).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *TagCommands) CreateAnnotated(tagName, ref, msg string) error {
+func (self *TagCommands) CreateAnnotated(tagName, ref, msg string, force bool) error {
 	cmdArgs := NewGitCmd("tag").Arg(tagName).
+		ArgIf(force, "--force").
 		ArgIf(len(ref) > 0, ref).
 		Arg("-m", msg).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+func (self *TagCommands) HasTag(tagName string) bool {
+	cmdArgs := NewGitCmd("show-ref").
+		Arg("--tags", "--quiet", "--verify", "--").
+		Arg("refs/tags/" + tagName).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run() == nil
 }
 
 func (self *TagCommands) Delete(tagName string) error {
