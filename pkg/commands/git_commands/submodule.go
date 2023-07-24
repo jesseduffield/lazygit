@@ -82,7 +82,7 @@ func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
 	}
 
 	cmdArgs := NewGitCmd("stash").
-		RepoPath(submodule.Path).
+		Dir(submodule.Path).
 		Arg("--include-untracked").
 		ToArgv()
 
