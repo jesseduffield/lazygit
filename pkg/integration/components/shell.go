@@ -261,6 +261,13 @@ func (self *Shell) AddWorktree(base string, path string, newBranchName string) *
 	})
 }
 
+// add worktree and have it checkout the base branch
+func (self *Shell) AddWorktreeCheckout(base string, path string) *Shell {
+	return self.RunCommand([]string{
+		"git", "worktree", "add", path, base,
+	})
+}
+
 func (self *Shell) AddFileInWorktree(worktreePath string) *Shell {
 	self.CreateFile(filepath.Join(worktreePath, "content"), "content")
 

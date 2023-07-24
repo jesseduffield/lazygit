@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -426,8 +427,15 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	)
 
 	return self.c.WithLoaderPanel(message, func(task gocui.Task) error {
-		if branch == self.c.Helpers().Refs.GetCheckedOutRef() {
+		worktree, ok := self.worktreeForBranch(branch)
+		if ok {
 			self.c.LogAction(action)
+
+			worktreeGitDir := ""
+			// if it is the current worktree path, no need to specify the path
+			if !git_commands.IsCurrentWorktree(worktree.Path) {
+				worktreeGitDir = worktree.GitDir
+			}
 
 			err := self.c.Git().Sync.Pull(
 				task,
@@ -435,6 +443,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					RemoteName:      branch.UpstreamRemote,
 					BranchName:      branch.UpstreamBranch,
 					FastForwardOnly: true,
+					WorktreeGitDir:  worktreeGitDir,
 				},
 			)
 			if err != nil {
@@ -444,7 +453,10 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		} else {
 			self.c.LogAction(action)
-			err := self.c.Git().Sync.FastForward(task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
+
+			err := self.c.Git().Sync.FastForward(
+				task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
+			)
 			if err != nil {
 				_ = self.c.Error(err)
 			}
@@ -453,6 +465,20 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 
 		return nil
 	})
+}
+
+func (self *BranchesController) worktreePathForBranch(branch *models.Branch) string {
+	worktreeForRef, ok := self.worktreeForBranch(branch)
+	if ok {
+		return worktreeForRef.Path
+	}
+
+	dir, err := os.Getwd()
+	if err != nil {
+		// swallow for now
+		return ""
+	}
+	return dir
 }
 
 func (self *BranchesController) createTag(branch *models.Branch) error {
