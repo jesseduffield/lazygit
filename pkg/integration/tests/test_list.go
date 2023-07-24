@@ -229,5 +229,6 @@ var tests = []*components.IntegrationTest{
 	worktree.ForceRemoveWorktree,
 	worktree.Rebase,
 	worktree.RemoveWorktreeFromBranch,
+	worktree.RetainedWindowFocus,
 	worktree.WorktreeInRepo,
 }
