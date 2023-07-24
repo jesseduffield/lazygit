@@ -48,10 +48,23 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		}
 		if strings.HasPrefix(splitLine, "worktree ") {
 			path := strings.SplitN(splitLine, " ", 2)[1]
+			isMain := path == currentRepoPath
+
+			var gitDir string
+			if isMain {
+				gitDir = filepath.Join(path, ".git")
+			} else {
+				var ok bool
+				gitDir, ok = LinkedWorktreeGitPath(path)
+				if !ok {
+					self.Log.Warnf("Could not find git dir for worktree %s", path)
+				}
+			}
 
 			current = &models.Worktree{
 				IsMain: path == currentRepoPath,
 				Path:   path,
+				GitDir: gitDir,
 			}
 		} else if strings.HasPrefix(splitLine, "branch ") {
 			branch := strings.SplitN(splitLine, " ", 2)[1]
@@ -91,9 +104,21 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			continue
 		}
 
+		// If we couldn't find the git directory, we can't find the branch name
+		if worktree.GitDir == "" {
+			continue
+		}
+
 		rebaseBranch, ok := rebaseBranch(worktree)
 		if ok {
 			worktree.Branch = rebaseBranch
+			continue
+		}
+
+		bisectBranch, ok := bisectBranch(worktree)
+		if ok {
+			worktree.Branch = bisectBranch
+			continue
 		}
 	}
 
@@ -101,29 +126,25 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 }
 
 func rebaseBranch(worktree *models.Worktree) (string, bool) {
-	var gitPath string
-	if worktree.Main() {
-		gitPath = filepath.Join(worktree.Path, ".git")
-	} else {
-		// need to find the path of the linked worktree in the .git dir
-		var ok bool
-		gitPath, ok = LinkedWorktreeGitPath(worktree.Path)
-		if !ok {
-			return "", false
+	for _, dir := range []string{"rebase-merge", "rebase-apply"} {
+		if bytesContent, err := os.ReadFile(filepath.Join(worktree.GitDir, dir, "head-name")); err == nil {
+			headName := strings.TrimSpace(string(bytesContent))
+			shortHeadName := strings.TrimPrefix(headName, "refs/heads/")
+			return shortHeadName, true
 		}
 	}
 
-	// now we look inside that git path for a file `rebase-merge/head-name`
-	// if it exists, we update the worktree to say that it has that for a head
-	headNameContents, err := os.ReadFile(filepath.Join(gitPath, "rebase-merge", "head-name"))
+	return "", false
+}
+
+func bisectBranch(worktree *models.Worktree) (string, bool) {
+	bisectStartPath := filepath.Join(worktree.GitDir, "BISECT_START")
+	startContent, err := os.ReadFile(bisectStartPath)
 	if err != nil {
 		return "", false
 	}
 
-	headName := strings.TrimSpace(string(headNameContents))
-	shortHeadName := strings.TrimPrefix(headName, "refs/heads/")
-
-	return shortHeadName, true
+	return strings.TrimSpace(string(startContent)), true
 }
 
 func LinkedWorktreeGitPath(worktreePath string) (string, bool) {

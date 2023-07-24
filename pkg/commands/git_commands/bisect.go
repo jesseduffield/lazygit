@@ -19,12 +19,16 @@ func NewBisectCommands(gitCommon *GitCommon) *BisectCommands {
 // This command is pretty cheap to run so we're not storing the result anywhere.
 // But if it becomes problematic we can chang that.
 func (self *BisectCommands) GetInfo() *BisectInfo {
+	return self.GetInfoForGitDir(self.dotGitDir)
+}
+
+func (self *BisectCommands) GetInfoForGitDir(gitDir string) *BisectInfo {
 	var err error
 	info := &BisectInfo{started: false, log: self.Log, newTerm: "bad", oldTerm: "good"}
 	// we return nil if we're not in a git bisect session.
 	// we know we're in a session by the presence of a .git/BISECT_START file
 
-	bisectStartPath := filepath.Join(self.dotGitDir, "BISECT_START")
+	bisectStartPath := filepath.Join(gitDir, "BISECT_START")
 	exists, err := self.os.FileExists(bisectStartPath)
 	if err != nil {
 		self.Log.Infof("error getting git bisect info: %s", err.Error())
@@ -44,7 +48,7 @@ func (self *BisectCommands) GetInfo() *BisectInfo {
 	info.started = true
 	info.start = strings.TrimSpace(string(startContent))
 
-	termsContent, err := os.ReadFile(filepath.Join(self.dotGitDir, "BISECT_TERMS"))
+	termsContent, err := os.ReadFile(filepath.Join(gitDir, "BISECT_TERMS"))
 	if err != nil {
 		// old git versions won't have this file so we default to bad/good
 	} else {
@@ -53,7 +57,7 @@ func (self *BisectCommands) GetInfo() *BisectInfo {
 		info.oldTerm = splitContent[1]
 	}
 
-	bisectRefsDir := filepath.Join(self.dotGitDir, "refs", "bisect")
+	bisectRefsDir := filepath.Join(gitDir, "refs", "bisect")
 	files, err := os.ReadDir(bisectRefsDir)
 	if err != nil {
 		self.Log.Infof("error getting git bisect info: %s", err.Error())
@@ -85,7 +89,7 @@ func (self *BisectCommands) GetInfo() *BisectInfo {
 		info.statusMap[sha] = status
 	}
 
-	currentContent, err := os.ReadFile(filepath.Join(self.dotGitDir, "BISECT_EXPECTED_REV"))
+	currentContent, err := os.ReadFile(filepath.Join(gitDir, "BISECT_EXPECTED_REV"))
 	if err != nil {
 		self.Log.Infof("error getting git bisect info: %s", err.Error())
 		return info
