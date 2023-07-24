@@ -82,6 +82,7 @@ type PullOptions struct {
 	RemoteName      string
 	BranchName      string
 	FastForwardOnly bool
+	WorktreeGitDir  string
 }
 
 func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
@@ -90,6 +91,7 @@ func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 		ArgIf(opts.FastForwardOnly, "--ff-only").
 		ArgIf(opts.RemoteName != "", opts.RemoteName).
 		ArgIf(opts.BranchName != "", opts.BranchName).
+		GitDirIf(opts.WorktreeGitDir != "", opts.WorktreeGitDir).
 		ToArgv()
 
 	// setting GIT_SEQUENCE_EDITOR to ':' as a way of skipping it, in case the user
@@ -97,7 +99,12 @@ func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 	return self.cmd.New(cmdArgs).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest(task).WithMutex(self.syncMutex).Run()
 }
 
-func (self *SyncCommands) FastForward(task gocui.Task, branchName string, remoteName string, remoteBranchName string) error {
+func (self *SyncCommands) FastForward(
+	task gocui.Task,
+	branchName string,
+	remoteName string,
+	remoteBranchName string,
+) error {
 	cmdArgs := NewGitCmd("fetch").
 		Arg(remoteName).
 		Arg(remoteBranchName + ":" + branchName).

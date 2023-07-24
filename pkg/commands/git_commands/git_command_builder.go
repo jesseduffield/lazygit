@@ -1,6 +1,8 @@
 package git_commands
 
-import "strings"
+import (
+	"strings"
+)
 
 // convenience struct for building git commands. Especially useful when
 // including conditional args
@@ -62,6 +64,14 @@ func (self *GitCommandBuilder) Worktree(path string) *GitCommandBuilder {
 func (self *GitCommandBuilder) GitDir(path string) *GitCommandBuilder {
 	// git dir arg comes before the command
 	self.args = append([]string{"--git-dir", path}, self.args...)
+
+	return self
+}
+
+func (self *GitCommandBuilder) GitDirIf(condition bool, path string) *GitCommandBuilder {
+	if condition {
+		return self.GitDir(path)
+	}
 
 	return self
 }
