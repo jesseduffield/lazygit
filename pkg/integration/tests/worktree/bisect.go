@@ -6,15 +6,14 @@ import (
 )
 
 // This is important because `git worktree list` will show a worktree being in a detached head state (which is true)
-// when it's in the middle of a rebase, but it won't tell you about the branch it's on.
+// when it's in the middle of a bisect, but it won't tell you about the branch it's on.
 // Even so, if you attempt to check out that branch from another worktree git won't let you, so we need to
 // keep track of the association ourselves.
 
-// We need different logic for associated the branch depending on whether it's a main worktree or
-// linked worktree, so this test handles both.
+// not bothering to test the linked worktree here because it's the same logic as the rebase test
 
-var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Verify that when you start a rebase in a linked or main worktree, Lazygit still associates the worktree with the branch",
+var Bisect = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Verify that when you start a bisect in a linked worktree, Lazygit still associates the worktree with the branch",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -34,13 +33,27 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("newbranch (worktree)"),
 			)
 
-		// start a rebase on the main worktree
+		// start a bisect on the main worktree
 		t.Views().Commits().
 			Focus().
-			NavigateToLine(Contains("commit 2")).
-			Press(keys.Universal.Edit)
+			SelectedLine(Contains("commit 3")).
+			Press(keys.Commits.ViewBisectOptions).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Bisect")).
+					Select(MatchesRegexp(`Mark .* as bad`)).
+					Confirm()
 
-		t.Views().Information().Content(Contains("Rebasing"))
+				t.Views().Information().Content(Contains("Bisecting"))
+			}).
+			NavigateToLine(Contains("initial commit")).
+			Press(keys.Commits.ViewBisectOptions).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Bisect")).
+					Select(MatchesRegexp(`Mark .* as good`)).
+					Confirm()
+			})
 
 		t.Views().Branches().
 			Focus().
@@ -53,20 +66,12 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 					Content(Equals("This branch is checked out by worktree linked-worktree. Do you want to switch to that worktree?")).
 					Confirm()
 
-				t.Views().Information().Content(DoesNotContain("Rebasing"))
+				t.Views().Information().Content(DoesNotContain("Bisecting"))
 			}).
 			Lines(
 				Contains("newbranch").IsSelected(),
 				Contains("mybranch (worktree)"),
 			)
-
-		// start a rebase on the linked worktree
-		t.Views().Commits().
-			Focus().
-			NavigateToLine(Contains("commit 2")).
-			Press(keys.Universal.Edit)
-
-		t.Views().Information().Content(Contains("Rebasing"))
 
 		// switch back to main worktree
 		t.Views().Branches().
@@ -78,12 +83,6 @@ var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
 					Title(Equals("Switch to worktree")).
 					Content(Equals("This branch is checked out by worktree repo. Do you want to switch to that worktree?")).
 					Confirm()
-			}).
-			Lines(
-				Contains("(no branch").IsSelected(),
-				Contains("mybranch"),
-				// even though the linked worktree is rebasing, we still associate it with the branch
-				Contains("newbranch (worktree)"),
-			)
+			})
 	},
 })

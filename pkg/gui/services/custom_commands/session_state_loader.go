@@ -33,6 +33,7 @@ type SessionState struct {
 	SelectedStashEntry     *models.StashEntry
 	SelectedCommitFile     *models.CommitFile
 	SelectedCommitFilePath string
+	SelectedWorktree       *models.Worktree
 	CheckedOutBranch       *models.Branch
 }
 
@@ -50,6 +51,7 @@ func (self *SessionStateLoader) call() *SessionState {
 		SelectedCommitFile:     self.c.Contexts().CommitFiles.GetSelectedFile(),
 		SelectedCommitFilePath: self.c.Contexts().CommitFiles.GetSelectedPath(),
 		SelectedSubCommit:      self.c.Contexts().SubCommits.GetSelected(),
+		SelectedWorktree:       self.c.Contexts().Worktrees.GetSelected(),
 		CheckedOutBranch:       self.refsHelper.GetCheckedOutRef(),
 	}
 }
