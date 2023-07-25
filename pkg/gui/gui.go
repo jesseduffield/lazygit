@@ -103,9 +103,6 @@ type Gui struct {
 
 	IsNewRepo bool
 
-	// flag as to whether or not the diff view should ignore whitespace
-	IgnoreWhitespaceInDiffView bool
-
 	IsRefreshingFiles bool
 
 	// we use this to decide whether we'll return to the original directory that
@@ -141,14 +138,6 @@ type StateAccessor struct {
 }
 
 var _ types.IStateAccessor = new(StateAccessor)
-
-func (self *StateAccessor) GetIgnoreWhitespaceInDiffView() bool {
-	return self.gui.IgnoreWhitespaceInDiffView
-}
-
-func (self *StateAccessor) SetIgnoreWhitespaceInDiffView(value bool) {
-	self.gui.IgnoreWhitespaceInDiffView = value
-}
 
 func (self *StateAccessor) GetRepoPathStack() *utils.StringStack {
 	return self.gui.RepoPathStack

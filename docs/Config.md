@@ -105,6 +105,7 @@ git:
   disableForcePushing: false
   parseEmoji: false
   diffContextSize: 3 # how many lines of context are shown around a change in diffs
+  ignoreWhitespace: false # whether whitespace is ignored in diffs; can be toggled at runtime
 os:
   editPreset: '' # see 'Configuring File Editing' section
   edit: ''

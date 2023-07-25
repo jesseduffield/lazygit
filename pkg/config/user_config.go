@@ -91,9 +91,10 @@ type GitConfig struct {
 	DisableForcePushing bool                          `yaml:"disableForcePushing"`
 	CommitPrefixes      map[string]CommitPrefixConfig `yaml:"commitPrefixes"`
 	// this should really be under 'gui', not 'git'
-	ParseEmoji      bool      `yaml:"parseEmoji"`
-	Log             LogConfig `yaml:"log"`
-	DiffContextSize int       `yaml:"diffContextSize"`
+	ParseEmoji       bool      `yaml:"parseEmoji"`
+	Log              LogConfig `yaml:"log"`
+	DiffContextSize  int       `yaml:"diffContextSize"`
+	IgnoreWhitespace bool      `yaml:"ignoreWhitespace"`
 }
 
 type PagingConfig struct {
