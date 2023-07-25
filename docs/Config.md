@@ -75,6 +75,7 @@ git:
   paging:
     colorArg: always
     useConfig: false
+    pager: delta
   commit:
     signOff: false
   merging:
