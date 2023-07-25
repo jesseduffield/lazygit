@@ -72,3 +72,7 @@ func (self *RemoteBranchesContext) GetDiffTerminals() []string {
 
 	return []string{itemId}
 }
+
+func (self *RemoteBranchesContext) ShowBranchHeadsInSubCommits() bool {
+	return true
+}

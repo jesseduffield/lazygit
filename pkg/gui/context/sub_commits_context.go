@@ -51,10 +51,14 @@ func NewSubCommitsContext(
 				selectedCommitSha = selectedCommit.Sha
 			}
 		}
+		branches := []*models.Branch{}
+		if viewModel.GetShowBranchHeads() {
+			branches = c.Model().Branches
+		}
 		return presentation.GetCommitListDisplayStrings(
 			c.Common,
 			c.Model().SubCommits,
-			c.Model().Branches,
+			branches,
 			viewModel.GetRef().RefName(),
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().CherryPicking.SelectedShaSet(),
@@ -106,7 +110,8 @@ type SubCommitsViewModel struct {
 	ref types.Ref
 	*ListViewModel[*models.Commit]
 
-	limitCommits bool
+	limitCommits    bool
+	showBranchHeads bool
 }
 
 func (self *SubCommitsViewModel) SetRef(ref types.Ref) {
@@ -115,6 +120,14 @@ func (self *SubCommitsViewModel) SetRef(ref types.Ref) {
 
 func (self *SubCommitsViewModel) GetRef() types.Ref {
 	return self.ref
+}
+
+func (self *SubCommitsViewModel) SetShowBranchHeads(value bool) {
+	self.showBranchHeads = value
+}
+
+func (self *SubCommitsViewModel) GetShowBranchHeads() bool {
+	return self.showBranchHeads
 }
 
 func (self *SubCommitsContext) GetSelectedItemId() string {

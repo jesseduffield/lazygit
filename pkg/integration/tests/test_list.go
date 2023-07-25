@@ -163,6 +163,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.StartNewPatch,
 	reflog.Checkout,
 	reflog.CherryPick,
+	reflog.DoNotShowBranchMarkersInReflogSubcommits,
 	reflog.Patch,
 	reflog.Reset,
 	staging.DiffContextChange,
