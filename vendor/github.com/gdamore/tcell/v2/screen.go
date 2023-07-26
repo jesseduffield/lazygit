@@ -139,6 +139,12 @@ type Screen interface {
 	// DisablePaste disables bracketed paste mode.
 	DisablePaste()
 
+	// EnableFocus enables reporting of focus events, if your terminal supports it.
+	EnableFocus()
+
+	// DisableFocus disables reporting of focus events.
+	DisableFocus()
+
 	// HasMouse returns true if the terminal (apparently) supports a
 	// mouse.  Note that the return value of true doesn't guarantee that
 	// a mouse/pointing device is present; a false return definitely

@@ -65,6 +65,7 @@ A brief, and still somewhat rough, [tutorial](TUTORIAL.md) is available.
 - [todo](https://github.com/kyprifog/todo) - simple todo app
 - [gosnakego](https://github.com/liweiyi88/gosnakego) - a snake game
 - [gbb](https://github.com/sdemingo/gbb) - A classical bulletin board app for tildes or public unix servers
+- [lil](https://github.com/andrievsky/lil) - A simple and flexible interface for any service by implementing only list and get operations
 
 ## Pure Go Terminfo Database
 

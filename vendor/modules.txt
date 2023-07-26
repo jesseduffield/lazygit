@@ -36,7 +36,7 @@ github.com/fsnotify/fsnotify
 # github.com/gdamore/encoding v1.0.0
 ## explicit; go 1.9
 github.com/gdamore/encoding
-# github.com/gdamore/tcell/v2 v2.6.0
+# github.com/gdamore/tcell/v2 v2.6.0 => github.com/stefanhaller/tcell/v2 v2.6.1
 ## explicit; go 1.12
 github.com/gdamore/tcell/v2
 github.com/gdamore/tcell/v2/terminfo

@@ -282,6 +282,10 @@ func (s *cScreen) EnablePaste() {}
 
 func (s *cScreen) DisablePaste() {}
 
+func (s *cScreen) EnableFocus() {}
+
+func (s *cScreen) DisableFocus() {}
+
 func (s *cScreen) Fini() {
 	s.disengage()
 }
