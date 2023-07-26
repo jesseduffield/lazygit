@@ -1,7 +1,7 @@
 package config
 
 import (
-	"gopkg.in/yaml.v3"
+	yaml "github.com/jesseduffield/yaml"
 )
 
 // NewDummyAppConfig creates a new dummy AppConfig for testing

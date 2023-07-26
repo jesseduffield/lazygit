@@ -8,7 +8,7 @@ import (
 
 	"github.com/OpenPeeDeeP/xdg"
 	"github.com/jesseduffield/lazygit/pkg/utils/yaml_utils"
-	"gopkg.in/yaml.v3"
+	yaml "github.com/jesseduffield/yaml"
 )
 
 // AppConfig contains the base configuration fields required for lazygit.
