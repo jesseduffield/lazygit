@@ -323,6 +323,7 @@ type TranslationSet struct {
 	ViewPatchOptions                    string
 	PatchOptionsTitle                   string
 	NoPatchError                        string
+	EmptyPatchError                     string
 	EnterFile                           string
 	ExitCustomPatchBuilder              string
 	EnterUpstream                       string
@@ -1017,6 +1018,7 @@ func EnglishTranslationSet() TranslationSet {
 		ViewPatchOptions:                    "View custom patch options",
 		PatchOptionsTitle:                   "Patch options",
 		NoPatchError:                        "No patch created yet. To start building a patch, use 'space' on a commit file or enter to add specific lines",
+		EmptyPatchError:                     "Patch is still empty. Add some files or lines to your patch first.",
 		EnterFile:                           "Enter file to add selected lines to the patch (or toggle directory collapsed)",
 		ExitCustomPatchBuilder:              `Exit custom patch builder`,
 		EnterUpstream:                       `Enter upstream as '<remote> <branchname>'`,
