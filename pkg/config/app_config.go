@@ -318,8 +318,9 @@ type AppState struct {
 	StartupPopupVersion int
 
 	// these are for custom commands typed in directly, not for custom commands in the lazygit config
-	CustomCommandsHistory []string
-	HideCommandLog        bool
+	CustomCommandsHistory      []string
+	HideCommandLog             bool
+	IgnoreWhitespaceInDiffView bool
 }
 
 func getDefaultAppState() *AppState {

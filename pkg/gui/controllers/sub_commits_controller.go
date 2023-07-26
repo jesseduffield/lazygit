@@ -38,7 +38,7 @@ func (self *SubCommitsController) GetOnRenderToMain() func() error {
 			if commit == nil {
 				task = types.NewRenderStringTask("No commits")
 			} else {
-				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Sha, self.c.Modes().Filtering.GetPath(), self.c.State().GetIgnoreWhitespaceInDiffView())
+				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Sha, self.c.Modes().Filtering.GetPath(), self.c.GetAppState().IgnoreWhitespaceInDiffView)
 
 				task = types.NewRunPtyTask(cmdObj.GetCmd())
 			}

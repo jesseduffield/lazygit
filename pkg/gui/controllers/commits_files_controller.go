@@ -114,7 +114,7 @@ func (self *CommitFilesController) GetOnRenderToMain() func() error {
 		from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
 
 		cmdObj := self.c.Git().WorkingTree.ShowFileDiffCmdObj(
-			from, to, reverse, node.GetPath(), false, self.c.State().GetIgnoreWhitespaceInDiffView(),
+			from, to, reverse, node.GetPath(), false, self.c.GetAppState().IgnoreWhitespaceInDiffView,
 		)
 		task := types.NewRunPtyTask(cmdObj.GetCmd())
 
