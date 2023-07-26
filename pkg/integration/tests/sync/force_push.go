@@ -32,7 +32,7 @@ var ForcePush = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.ExpectPopup().Confirmation().
 			Title(Equals("Force push")).
-			Content(Equals("Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.")).
+			Content(Equals("Your branch has diverged from the remote branch. Press <esc> to cancel, or <enter> to force push.")).
 			Confirm()
 
 		t.Views().Commits().

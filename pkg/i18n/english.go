@@ -876,7 +876,7 @@ func EnglishTranslationSet() TranslationSet {
 		OpenConfig:                          "Open config file",
 		EditConfig:                          "Edit config file",
 		ForcePush:                           "Force push",
-		ForcePushPrompt:                     "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
+		ForcePushPrompt:                     "Your branch has diverged from the remote branch. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",
 		ForcePushDisabled:                   "Your branch has diverged from the remote branch and you've disabled force pushing",
 		UpdatesRejectedAndForcePushDisabled: "Updates were rejected and you have disabled force pushing",
 		CheckForUpdate:                      "Check for update",

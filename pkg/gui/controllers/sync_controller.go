@@ -8,6 +8,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type SyncController struct {
@@ -186,7 +187,7 @@ func (self *SyncController) pushAux(opts pushOpts) error {
 				}
 				_ = self.c.Confirm(types.ConfirmOpts{
 					Title:  self.c.Tr.ForcePush,
-					Prompt: self.c.Tr.ForcePushPrompt,
+					Prompt: self.forcePushPrompt(),
 					HandleConfirm: func() error {
 						newOpts := opts
 						newOpts.force = true
@@ -210,10 +211,20 @@ func (self *SyncController) requestToForcePush(opts pushOpts) error {
 
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.ForcePush,
-		Prompt: self.c.Tr.ForcePushPrompt,
+		Prompt: self.forcePushPrompt(),
 		HandleConfirm: func() error {
 			opts.force = true
 			return self.pushAux(opts)
 		},
 	})
+}
+
+func (self *SyncController) forcePushPrompt() string {
+	return utils.ResolvePlaceholderString(
+		self.c.Tr.ForcePushPrompt,
+		map[string]string{
+			"cancelKey":  self.c.UserConfig.Keybinding.Universal.Return,
+			"confirmKey": self.c.UserConfig.Keybinding.Universal.Confirm,
+		},
+	)
 }
