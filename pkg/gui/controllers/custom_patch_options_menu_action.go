@@ -18,6 +18,10 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 		return self.c.ErrorMsg(self.c.Tr.NoPatchError)
 	}
 
+	if self.c.Git().Patch.PatchBuilder.IsEmpty() {
+		return self.c.ErrorMsg(self.c.Tr.EmptyPatchError)
+	}
+
 	menuItems := []*types.MenuItem{
 		{
 			Label:   self.c.Tr.ResetPatch,
