@@ -5,8 +5,15 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var RetainedWindowFocus = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Verify that the focused context in each window is retained when switching worktrees",
+// This is verifying logic that is subject to change (we're just doing the easiest approach)
+// There are two other UX flows we could have:
+// 1) associate window tab states with the repo, so that when you switch back to a repo you get the same window tab states
+// 2) retain the same window tab states when switching repos
+// Option 1 is straightforward, but option 2 is harder because you'd need to deactivate any views containing dependent
+// content e.g. the sub-commits view.
+
+var ResetWindowTabs = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Verify that window tabs are reset whenever switching repos",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -39,7 +46,7 @@ var RetainedWindowFocus = NewIntegrationTest(NewIntegrationTestArgs{
 			// navigate back to the branches window
 			Press(keys.Universal.NextBlock)
 
-		t.Views().Remotes().
+		t.Views().Branches().
 			IsFocused()
 	},
 })

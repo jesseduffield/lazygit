@@ -78,7 +78,7 @@ func (self *QuitActions) Escape() error {
 
 	repoPathStack := self.c.State().GetRepoPathStack()
 	if !repoPathStack.IsEmpty() {
-		return self.c.Helpers().Repos.DispatchSwitchToRepo(repoPathStack.Pop(), true, context.NO_CONTEXT)
+		return self.c.Helpers().Repos.DispatchSwitchToRepo(repoPathStack.Pop(), context.NO_CONTEXT)
 	}
 
 	if self.c.UserConfig.QuitOnTopLevelReturn {

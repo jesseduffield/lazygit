@@ -182,7 +182,7 @@ func (self *WorktreeHelper) Switch(path string, contextKey types.ContextKey) err
 
 	self.c.LogAction(self.c.Tr.SwitchToWorktree)
 
-	return self.reposHelper.DispatchSwitchTo(path, true, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
+	return self.reposHelper.DispatchSwitchTo(path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 }
 
 func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error {
