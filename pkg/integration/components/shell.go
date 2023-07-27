@@ -85,7 +85,7 @@ func (self *Shell) CreateFile(path string, content string) *Shell {
 
 func (self *Shell) DeleteFile(path string) *Shell {
 	fullPath := filepath.Join(self.dir, path)
-	err := os.Remove(fullPath)
+	err := os.RemoveAll(fullPath)
 	if err != nil {
 		self.fail(fmt.Sprintf("error deleting file: %s\n%s", fullPath, err))
 	}
@@ -325,6 +325,14 @@ func (self *Shell) CopyFile(source string, destination string) *Shell {
 	if err != nil {
 		self.fail(err.Error())
 	}
+
+	return self
+}
+
+// NOTE: this only takes effect before running the test;
+// the test will still run in the original directory
+func (self *Shell) Chdir(path string) *Shell {
+	self.dir = filepath.Join(self.dir, path)
 
 	return self
 }
