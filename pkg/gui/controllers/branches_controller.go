@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -465,20 +464,6 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 
 		return nil
 	})
-}
-
-func (self *BranchesController) worktreePathForBranch(branch *models.Branch) string {
-	worktreeForRef, ok := self.worktreeForBranch(branch)
-	if ok {
-		return worktreeForRef.Path
-	}
-
-	dir, err := os.Getwd()
-	if err != nil {
-		// swallow for now
-		return ""
-	}
-	return dir
 }
 
 func (self *BranchesController) createTag(branch *models.Branch) error {
