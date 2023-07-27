@@ -96,6 +96,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>n</kbd>: Create worktree
   <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>&lt;enter&gt;</kbd>: Switch to worktree
   <kbd>o</kbd>: Open in editor
   <kbd>d</kbd>: Remove worktree
   <kbd>/</kbd>: Filter the current view by text
@@ -210,6 +211,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 서브모듈 이름을 클립보드에 복사
   <kbd>&lt;enter&gt;</kbd>: 서브모듈 열기
+  <kbd>&lt;space&gt;</kbd>: 서브모듈 열기
   <kbd>d</kbd>: 서브모듈 삭제
   <kbd>u</kbd>: 서브모듈 업데이트
   <kbd>n</kbd>: 새로운 서브모듈 추가

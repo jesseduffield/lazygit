@@ -49,6 +49,7 @@ _Связки клавиш_
 <pre>
   <kbd>n</kbd>: Create worktree
   <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>&lt;enter&gt;</kbd>: Switch to worktree
   <kbd>o</kbd>: Open in editor
   <kbd>d</kbd>: Remove worktree
   <kbd>/</kbd>: Filter the current view by text
@@ -229,6 +230,7 @@ _Связки клавиш_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Скопировать название подмодуля в буфер обмена
   <kbd>&lt;enter&gt;</kbd>: Ввести подмодуль
+  <kbd>&lt;space&gt;</kbd>: Ввести подмодуль
   <kbd>d</kbd>: Удалить подмодуль
   <kbd>u</kbd>: Обновить подмодуль
   <kbd>n</kbd>: Добавить новый подмодуль

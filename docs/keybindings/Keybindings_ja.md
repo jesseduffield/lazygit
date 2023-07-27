@@ -79,6 +79,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>n</kbd>: Create worktree
   <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>&lt;enter&gt;</kbd>: Switch to worktree
   <kbd>o</kbd>: Open in editor
   <kbd>d</kbd>: Remove worktree
   <kbd>/</kbd>: Filter the current view by text
@@ -146,6 +147,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: サブモジュール名をクリップボードにコピー
   <kbd>&lt;enter&gt;</kbd>: サブモジュールを開く
+  <kbd>&lt;space&gt;</kbd>: サブモジュールを開く
   <kbd>d</kbd>: サブモジュールを削除
   <kbd>u</kbd>: サブモジュールを更新
   <kbd>n</kbd>: サブモジュールを新規追加

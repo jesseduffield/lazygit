@@ -317,6 +317,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: Copy submodule name to clipboard
   <kbd>&lt;enter&gt;</kbd>: Enter submodule
+  <kbd>&lt;space&gt;</kbd>: Enter submodule
   <kbd>d</kbd>: Remove submodule
   <kbd>u</kbd>: Update submodule
   <kbd>n</kbd>: Add new submodule
@@ -344,6 +345,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>n</kbd>: Create worktree
   <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>&lt;enter&gt;</kbd>: Switch to worktree
   <kbd>o</kbd>: Open in editor
   <kbd>d</kbd>: Remove worktree
   <kbd>/</kbd>: Filter the current view by text

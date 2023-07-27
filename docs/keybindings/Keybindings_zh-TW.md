@@ -66,6 +66,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 <pre>
   <kbd>n</kbd>: Create worktree
   <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>&lt;enter&gt;</kbd>: Switch to worktree
   <kbd>o</kbd>: Open in editor
   <kbd>d</kbd>: Remove worktree
   <kbd>/</kbd>: Filter the current view by text
@@ -162,6 +163,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 複製子模組名稱到剪貼簿
   <kbd>&lt;enter&gt;</kbd>: 進入子模組
+  <kbd>&lt;space&gt;</kbd>: 進入子模組
   <kbd>d</kbd>: 移除子模組
   <kbd>u</kbd>: 更新子模組
   <kbd>n</kbd>: 新增子模組
