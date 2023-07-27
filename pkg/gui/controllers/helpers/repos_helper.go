@@ -20,7 +20,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type onNewRepoFn func(startArgs appTypes.StartArgs, reuseState bool, contextKey types.ContextKey) error
+type onNewRepoFn func(startArgs appTypes.StartArgs, contextKey types.ContextKey) error
 
 // helps switch back and forth between repos
 type ReposHelper struct {
@@ -48,7 +48,7 @@ func (self *ReposHelper) EnterSubmodule(submodule *models.SubmoduleConfig) error
 	}
 	self.c.State().GetRepoPathStack().Push(wd)
 
-	return self.DispatchSwitchToRepo(submodule.Path, true, context.NO_CONTEXT)
+	return self.DispatchSwitchToRepo(submodule.Path, context.NO_CONTEXT)
 }
 
 func (self *ReposHelper) getCurrentBranch(path string) string {
@@ -131,7 +131,7 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 				// if we were in a submodule, we want to forget about that stack of repos
 				// so that hitting escape in the new repo does nothing
 				self.c.State().GetRepoPathStack().Clear()
-				return self.DispatchSwitchToRepo(path, false, context.NO_CONTEXT)
+				return self.DispatchSwitchToRepo(path, context.NO_CONTEXT)
 			},
 		}
 	})
@@ -139,11 +139,11 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.RecentRepos, Items: menuItems})
 }
 
-func (self *ReposHelper) DispatchSwitchToRepo(path string, reuse bool, contextKey types.ContextKey) error {
-	return self.DispatchSwitchTo(path, reuse, self.c.Tr.ErrRepositoryMovedOrDeleted, contextKey)
+func (self *ReposHelper) DispatchSwitchToRepo(path string, contextKey types.ContextKey) error {
+	return self.DispatchSwitchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, contextKey)
 }
 
-func (self *ReposHelper) DispatchSwitchTo(path string, reuse bool, errMsg string, contextKey types.ContextKey) error {
+func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey types.ContextKey) error {
 	return self.c.WithWaitingStatus(self.c.Tr.Switching, func(gocui.Task) error {
 		env.UnsetGitDirEnvs()
 		originalPath, err := os.Getwd()
@@ -180,6 +180,6 @@ func (self *ReposHelper) DispatchSwitchTo(path string, reuse bool, errMsg string
 		self.c.Mutexes().RefreshingFilesMutex.Lock()
 		defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
 
-		return self.onNewRepo(appTypes.StartArgs{}, reuse, contextKey)
+		return self.onNewRepo(appTypes.StartArgs{}, contextKey)
 	})
 }

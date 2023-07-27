@@ -276,7 +276,7 @@ func (self *GuiRepoState) GetSplitMainPanel() bool {
 	return self.SplitMainPanel
 }
 
-func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool, contextKey types.ContextKey) error {
+func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.ContextKey) error {
 	var err error
 	gui.git, err = commands.NewGitCommand(
 		gui.Common,
@@ -289,7 +289,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool, context
 		return err
 	}
 
-	contextToPush := gui.resetState(startArgs, reuseState)
+	contextToPush := gui.resetState(startArgs)
 
 	gui.resetHelpersAndControllers()
 
@@ -324,26 +324,26 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, reuseState bool, context
 // it gets a bit confusing to land back in the status panel when visiting a repo
 // you've already switched from. There's no doubt some easy way to make the UX
 // optimal for all cases but I'm too lazy to think about what that is right now
-func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) types.Context {
+func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 	currentDir, err := os.Getwd()
+	if err != nil {
+		gui.c.Log.Error(err)
+	}
 
-	if reuseState {
-		if err == nil {
-			if state := gui.RepoStateMap[Repo(currentDir)]; state != nil {
-				gui.State = state
-				gui.State.ViewsSetup = false
+	if state := gui.RepoStateMap[Repo(currentDir)]; state != nil {
+		gui.State = state
+		gui.State.ViewsSetup = false
 
-				// setting this to nil so we don't get stuck based on a popup that was
-				// previously opened
-				gui.Mutexes.PopupMutex.Lock()
-				gui.State.CurrentPopupOpts = nil
-				gui.Mutexes.PopupMutex.Unlock()
+		contextTree := gui.State.Contexts
+		gui.State.WindowViewNameMap = initialWindowViewNameMap(contextTree)
 
-				return gui.c.CurrentContext()
-			}
-		} else {
-			gui.c.Log.Error(err)
-		}
+		// setting this to nil so we don't get stuck based on a popup that was
+		// previously opened
+		gui.Mutexes.PopupMutex.Lock()
+		gui.State.CurrentPopupOpts = nil
+		gui.Mutexes.PopupMutex.Unlock()
+
+		return gui.c.CurrentContext()
 	}
 
 	contextTree := gui.contextTree()
@@ -351,6 +351,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs, reuseState bool) types.
 	initialScreenMode := initialScreenMode(startArgs, gui.Config)
 
 	gui.State = &GuiRepoState{
+		ViewsSetup: false,
 		Model: &types.Model{
 			CommitFiles:           nil,
 			Files:                 make([]*models.File, 0),
@@ -656,7 +657,7 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 	}
 
 	// onNewRepo must be called after g.SetManager because SetManager deletes keybindings
-	if err := gui.onNewRepo(startArgs, false, context.NO_CONTEXT); err != nil {
+	if err := gui.onNewRepo(startArgs, context.NO_CONTEXT); err != nil {
 		return err
 	}
 

@@ -175,6 +175,10 @@ func (gui *Gui) prepareView(viewName string) (*gocui.View, error) {
 }
 
 func (gui *Gui) onInitialViewsCreationForRepo() error {
+	if err := gui.onRepoViewReset(); err != nil {
+		return err
+	}
+
 	// hide any popup views. This only applies when we've just switched repos
 	for _, viewName := range gui.popupViewNames() {
 		view, err := gui.g.View(viewName)
@@ -201,7 +205,7 @@ func (gui *Gui) popupViewNames() []string {
 	})
 }
 
-func (gui *Gui) onInitialViewsCreation() error {
+func (gui *Gui) onRepoViewReset() error {
 	// now we order the views (in order of bottom first)
 	for _, view := range gui.orderedViews() {
 		if _, err := gui.g.SetViewOnTop(view.Name()); err != nil {
@@ -228,6 +232,10 @@ func (gui *Gui) onInitialViewsCreation() error {
 	}
 	gui.g.Mutexes.ViewsMutex.Unlock()
 
+	return nil
+}
+
+func (gui *Gui) onInitialViewsCreation() error {
 	if !gui.c.UserConfig.DisableStartupPopups {
 		storedPopupVersion := gui.c.GetAppState().StartupPopupVersion
 		if storedPopupVersion < StartupPopupVersion {
