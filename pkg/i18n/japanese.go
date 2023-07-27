@@ -577,7 +577,7 @@ func japaneseTranslationSet() TranslationSet {
 		Bisect: Bisect{
 			// Mark:                        "Mark %s as %s",
 			// MarkStart:                   "Mark %s as %s (start bisect)",
-			Skip:            "%s をスキップする",
+			SkipCurrent:     "%s をスキップする",
 			ResetTitle:      "'git bisect' をリセット",
 			ResetPrompt:     "'git bisect' をリセットします。よろしいですか?",
 			ResetOption:     "Bisectをリセット",

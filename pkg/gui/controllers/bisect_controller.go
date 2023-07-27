@@ -8,6 +8,8 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type BisectController struct {
@@ -65,12 +67,18 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 	// ref, because we'll be reloading our commits in that case.
 	waitToReselect := selectCurrentAfter && !self.c.Git().Bisect.ReachableFromStart(info)
 
+	// If we have a current sha already, then we always want to use that one. If
+	// not, we're still picking the initial commits before we really start, so
+	// use the selected commit in that case.
+	shaToMark := lo.Ternary(info.GetCurrentSha() != "", info.GetCurrentSha(), commit.Sha)
+	shortShaToMark := utils.ShortSha(shaToMark)
+
 	menuItems := []*types.MenuItem{
 		{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortSha(), info.NewTerm()),
+			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortShaToMark, info.NewTerm()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
-				if err := self.c.Git().Bisect.Mark(commit.Sha, info.NewTerm()); err != nil {
+				if err := self.c.Git().Bisect.Mark(shaToMark, info.NewTerm()); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -79,10 +87,10 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Key: 'b',
 		},
 		{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, commit.ShortSha(), info.OldTerm()),
+			Label: fmt.Sprintf(self.c.Tr.Bisect.Mark, shortShaToMark, info.OldTerm()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectMark)
-				if err := self.c.Git().Bisect.Mark(commit.Sha, info.OldTerm()); err != nil {
+				if err := self.c.Git().Bisect.Mark(shaToMark, info.OldTerm()); err != nil {
 					return self.c.Error(err)
 				}
 
@@ -91,7 +99,21 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 			Key: 'g',
 		},
 		{
-			Label: fmt.Sprintf(self.c.Tr.Bisect.Skip, commit.ShortSha()),
+			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipCurrent, shortShaToMark),
+			OnPress: func() error {
+				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
+				if err := self.c.Git().Bisect.Skip(shaToMark); err != nil {
+					return self.c.Error(err)
+				}
+
+				return self.afterMark(selectCurrentAfter, waitToReselect)
+			},
+			Key: 's',
+		},
+	}
+	if info.GetCurrentSha() != "" && info.GetCurrentSha() != commit.Sha {
+		menuItems = append(menuItems, lo.ToPtr(types.MenuItem{
+			Label: fmt.Sprintf(self.c.Tr.Bisect.SkipSelected, commit.ShortSha()),
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.BisectSkip)
 				if err := self.c.Git().Bisect.Skip(commit.Sha); err != nil {
@@ -100,16 +122,16 @@ func (self *BisectController) openMidBisectMenu(info *git_commands.BisectInfo, c
 
 				return self.afterMark(selectCurrentAfter, waitToReselect)
 			},
-			Key: 's',
-		},
-		{
-			Label: self.c.Tr.Bisect.ResetOption,
-			OnPress: func() error {
-				return self.c.Helpers().Bisect.Reset()
-			},
-			Key: 'r',
-		},
+			Key: 'S',
+		}))
 	}
+	menuItems = append(menuItems, lo.ToPtr(types.MenuItem{
+		Label: self.c.Tr.Bisect.ResetOption,
+		OnPress: func() error {
+			return self.c.Helpers().Bisect.Reset()
+		},
+		Key: 'r',
+	}))
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Bisect.BisectMenuTitle,

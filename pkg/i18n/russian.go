@@ -671,7 +671,7 @@ func RussianTranslationSet() TranslationSet {
 		Bisect: Bisect{
 			Mark:                        "Отметить %s как %s",
 			MarkStart:                   "Отметить %s как %s (начать бинарный поиск)",
-			Skip:                        "Пропустить %s",
+			SkipCurrent:                 "Пропустить %s",
 			ResetTitle:                  "Сбросить 'git bisect'",
 			ResetPrompt:                 "Вы уверены, что хотите сбросить 'git bisect'?",
 			ResetOption:                 "Сбросить бинарный поиск",
