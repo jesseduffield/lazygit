@@ -66,6 +66,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>n</kbd>: Create worktree
   <kbd>&lt;space&gt;</kbd>: Switch to worktree
+  <kbd>&lt;enter&gt;</kbd>: Switch to worktree
   <kbd>o</kbd>: Open in editor
   <kbd>d</kbd>: Remove worktree
   <kbd>/</kbd>: Filter the current view by text
@@ -118,6 +119,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 <pre>
   <kbd>&lt;c-o&gt;</kbd>: 将子模块名称复制到剪贴板
   <kbd>&lt;enter&gt;</kbd>: 输入子模块
+  <kbd>&lt;space&gt;</kbd>: 输入子模块
   <kbd>d</kbd>: 删除子模块
   <kbd>u</kbd>: 更新子模块
   <kbd>n</kbd>: 添加新的子模块

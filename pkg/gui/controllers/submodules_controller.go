@@ -36,6 +36,11 @@ func (self *SubmodulesController) GetKeybindings(opts types.KeybindingsOpts) []*
 			Description: self.c.Tr.EnterSubmodule,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Universal.Select),
+			Handler:     self.checkSelected(self.enter),
+			Description: self.c.Tr.EnterSubmodule,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelected(self.remove),
 			Description: self.c.Tr.RemoveSubmodule,
