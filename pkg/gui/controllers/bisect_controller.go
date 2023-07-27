@@ -153,6 +153,28 @@ func (self *BisectController) openStartBisectMenu(info *git_commands.BisectInfo,
 				},
 				Key: 'g',
 			},
+			{
+				Label: self.c.Tr.Bisect.ChooseTerms,
+				OnPress: func() error {
+					return self.c.Prompt(types.PromptOpts{
+						Title: self.c.Tr.Bisect.OldTermPrompt,
+						HandleConfirm: func(oldTerm string) error {
+							return self.c.Prompt(types.PromptOpts{
+								Title: self.c.Tr.Bisect.NewTermPrompt,
+								HandleConfirm: func(newTerm string) error {
+									self.c.LogAction(self.c.Tr.Actions.StartBisect)
+									if err := self.c.Git().Bisect.StartWithTerms(oldTerm, newTerm); err != nil {
+										return self.c.Error(err)
+									}
+
+									return self.c.Helpers().Bisect.PostBisectCommandRefresh()
+								},
+							})
+						},
+					})
+				},
+				Key: 't',
+			},
 		},
 	})
 }

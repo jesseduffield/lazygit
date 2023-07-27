@@ -121,6 +121,15 @@ func (self *BisectCommands) Start() error {
 	return self.cmd.New(cmdArgs).StreamOutput().Run()
 }
 
+func (self *BisectCommands) StartWithTerms(oldTerm string, newTerm string) error {
+	cmdArgs := NewGitCmd("bisect").Arg("start").
+		Arg("--term-old=" + oldTerm).
+		Arg("--term-new=" + newTerm).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).StreamOutput().Run()
+}
+
 // tells us whether we've found our problem commit(s). We return a string slice of
 // commit sha's if we're done, and that slice may have more that one item if
 // skipped commits are involved.
