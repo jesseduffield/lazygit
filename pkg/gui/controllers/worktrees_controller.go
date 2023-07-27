@@ -40,6 +40,11 @@ func (self *WorktreesController) GetKeybindings(opts types.KeybindingsOpts) []*t
 			Description: self.c.Tr.SwitchToWorktree,
 		},
 		{
+			Key:         opts.GetKey(opts.Config.Universal.Confirm),
+			Handler:     self.checkSelected(self.enter),
+			Description: self.c.Tr.SwitchToWorktree,
+		},
+		{
 			Key:         opts.GetKey(opts.Config.Universal.OpenFile),
 			Handler:     self.checkSelected(self.open),
 			Description: self.c.Tr.OpenInEditor,
