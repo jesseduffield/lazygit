@@ -223,6 +223,7 @@ var tests = []*components.IntegrationTest{
 	worktree.AddFromBranch,
 	worktree.AddFromBranchDetached,
 	worktree.AddFromCommit,
+	worktree.BareRepo,
 	worktree.Bisect,
 	worktree.Crud,
 	worktree.CustomCommand,

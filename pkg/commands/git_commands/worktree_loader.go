@@ -46,6 +46,11 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			current = nil
 			continue
 		}
+		if splitLine == "bare" {
+			current = nil
+			continue
+		}
+
 		if strings.HasPrefix(splitLine, "worktree ") {
 			path := strings.SplitN(splitLine, " ", 2)[1]
 			isMain := path == currentRepoPath
