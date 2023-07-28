@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"time"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
@@ -129,6 +131,11 @@ func (gui *Gui) render() {
 // if the context's view is set to another context we do nothing.
 // if the context's view is the current view we trigger a focus; re-selecting the current item.
 func (gui *Gui) postRefreshUpdate(c types.Context) error {
+	t := time.Now()
+	defer func() {
+		gui.Log.Infof("postRefreshUpdate for %s took %s", c.GetKey(), time.Since(t))
+	}()
+
 	if err := c.HandleRender(); err != nil {
 		return err
 	}
