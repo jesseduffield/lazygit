@@ -1,9 +1,6 @@
 package helpers
 
 import (
-	"errors"
-	"io/fs"
-	"os"
 	"strings"
 
 	"github.com/jesseduffield/gocui"
@@ -61,27 +58,6 @@ func (self *WorktreeHelper) GetLinkedWorktreeName() string {
 	return currentWorktree.Name()
 }
 
-func (self *WorktreeHelper) IsCurrentWorktree(w *models.Worktree) bool {
-	pwd, err := os.Getwd()
-	if err != nil {
-		self.c.Log.Errorf("failed to obtain current working directory: %v", err)
-		return false
-	}
-
-	return pwd == w.Path
-}
-
-func (self *WorktreeHelper) IsWorktreePathMissing(w *models.Worktree) bool {
-	if _, err := os.Stat(w.Path); err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			return true
-		}
-		self.c.Log.Errorf("failed to check if worktree path `%s` exists: %v", w.Path, err)
-		return false
-	}
-	return false
-}
-
 func (self *WorktreeHelper) NewWorktree() error {
 	branch := self.refsHelper.GetCheckedOutRef()
 	currentBranchName := branch.RefName()
@@ -132,7 +108,8 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 			if err := self.c.Git().Worktree.New(opts); err != nil {
 				return err
 			}
-			return self.Switch(opts.Path, contextKey)
+
+			return self.reposHelper.DispatchSwitchTo(opts.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 		})
 	}
 
@@ -175,14 +152,14 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 	})
 }
 
-func (self *WorktreeHelper) Switch(path string, contextKey types.ContextKey) error {
-	if self.c.Git().Worktree.IsCurrentWorktree(path) {
+func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.ContextKey) error {
+	if worktree.Current() {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyInWorktree)
 	}
 
 	self.c.LogAction(self.c.Tr.SwitchToWorktree)
 
-	return self.reposHelper.DispatchSwitchTo(path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
+	return self.reposHelper.DispatchSwitchTo(worktree.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 }
 
 func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error {

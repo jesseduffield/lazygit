@@ -1,7 +1,6 @@
 package git_commands
 
 import (
-	"errors"
 	"io/fs"
 	"log"
 	"os"
@@ -59,36 +58,6 @@ func (self *WorktreeCommands) Detach(worktreePath string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
-func (self *WorktreeCommands) IsCurrentWorktree(path string) bool {
-	return IsCurrentWorktree(path)
-}
-
-func IsCurrentWorktree(path string) bool {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return false
-	}
-
-	return EqualPath(pwd, path)
-}
-
-func (self *WorktreeCommands) IsWorktreePathMissing(path string) bool {
-	if _, err := os.Stat(path); err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			return true
-		}
-		self.Log.Errorf("failed to check if worktree path `%s` exists\n%v", path, err)
-		return false
-	}
-	return false
-}
-
-// checks if two paths are equal
-// TODO: support relative paths
-func EqualPath(a string, b string) bool {
-	return a == b
-}
-
 func WorktreeForBranch(branch *models.Branch, worktrees []*models.Worktree) (*models.Worktree, bool) {
 	for _, worktree := range worktrees {
 		if worktree.Branch == branch.Name {
@@ -105,7 +74,7 @@ func CheckedOutByOtherWorktree(branch *models.Branch, worktrees []*models.Worktr
 		return false
 	}
 
-	return !IsCurrentWorktree(worktree.Path)
+	return !worktree.IsCurrent
 }
 
 // If in a non-bare repo, this returns the path of the main worktree
