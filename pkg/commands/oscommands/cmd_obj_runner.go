@@ -6,6 +6,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/gocui"
@@ -102,10 +103,14 @@ func (self *cmdObjRunner) RunWithOutputAux(cmdObj ICmdObj) (string, error) {
 		self.logCmdObj(cmdObj)
 	}
 
+	t := time.Now()
 	output, err := sanitisedCommandOutput(cmdObj.GetCmd().CombinedOutput())
 	if err != nil {
 		self.log.WithField("command", cmdObj.ToString()).Error(output)
 	}
+
+	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
+
 	return output, err
 }
 
@@ -116,11 +121,14 @@ func (self *cmdObjRunner) RunWithOutputsAux(cmdObj ICmdObj) (string, string, err
 		self.logCmdObj(cmdObj)
 	}
 
+	t := time.Now()
 	var outBuffer, errBuffer bytes.Buffer
 	cmd := cmdObj.GetCmd()
 	cmd.Stdout = &outBuffer
 	cmd.Stderr = &errBuffer
 	err := cmd.Run()
+
+	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
 
 	stdout := outBuffer.String()
 	stderr, err := sanitisedCommandOutput(errBuffer.Bytes(), err)
@@ -144,6 +152,7 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 	if cmdObj.ShouldLog() {
 		self.logCmdObj(cmdObj)
 	}
+	t := time.Now()
 
 	cmd := cmdObj.GetCmd()
 	stdoutPipe, err := cmd.StdoutPipe()
@@ -170,6 +179,8 @@ func (self *cmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(line st
 	}
 
 	_ = cmd.Wait()
+
+	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
 
 	return nil
 }
@@ -237,9 +248,14 @@ func (self *cmdObjRunner) runAndStreamAux(
 		}
 	}()
 
+	t := time.Now()
+
 	onRun(handler, cmdWriter)
 
 	err = cmd.Wait()
+
+	self.log.Infof("%s (%s)", cmdObj.ToString(), time.Since(t))
+
 	if err != nil {
 		errStr := stderr.String()
 		if errStr != "" {
