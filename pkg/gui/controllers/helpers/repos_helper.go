@@ -151,7 +151,8 @@ func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey
 			return nil
 		}
 
-		self.c.LogCommand(fmt.Sprintf("Changing directory to %s", path), false)
+		msg := utils.ResolvePlaceholderString(self.c.Tr.ChangingDirectoryTo, map[string]string{"path": path})
+		self.c.LogCommand(msg, false)
 
 		if err := os.Chdir(path); err != nil {
 			if os.IsNotExist(err) {
