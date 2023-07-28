@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/jesseduffield/generics/set"
 	"github.com/jesseduffield/generics/slices"
@@ -51,6 +52,11 @@ func NewRefreshHelper(
 }
 
 func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
+	t := time.Now()
+	defer func() {
+		self.c.Log.Infof(fmt.Sprintf("Refresh took %s", time.Since(t)))
+	}()
+
 	if options.Scope == nil {
 		self.c.Log.Infof(
 			"refreshing all scopes in %s mode",
