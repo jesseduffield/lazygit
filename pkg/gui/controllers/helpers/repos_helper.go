@@ -145,7 +145,7 @@ func (self *ReposHelper) DispatchSwitchToRepo(path string, contextKey types.Cont
 
 func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey types.ContextKey) error {
 	return self.c.WithWaitingStatus(self.c.Tr.Switching, func(gocui.Task) error {
-		env.UnsetGitDirEnvs()
+		env.UnsetGitDirEnv()
 		originalPath, err := os.Getwd()
 		if err != nil {
 			return nil

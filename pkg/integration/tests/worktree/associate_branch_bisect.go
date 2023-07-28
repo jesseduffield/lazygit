@@ -12,7 +12,7 @@ import (
 
 // not bothering to test the linked worktree here because it's the same logic as the rebase test
 
-var Bisect = NewIntegrationTest(NewIntegrationTestArgs{
+var AssociateBranchBisect = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Verify that when you start a bisect in a linked worktree, Lazygit still associates the worktree with the branch",
 	ExtraCmdArgs: []string{},
 	Skip:         false,

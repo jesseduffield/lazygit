@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/slices"
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
@@ -108,8 +107,7 @@ func (self *StatusController) onClick() error {
 
 	cx, _ := self.c.Views().Status.Cursor()
 	upstreamStatus := presentation.BranchStatus(currentBranch, self.c.Tr)
-	// TODO: support worktrees here
-	repoName := git_commands.GetCurrentRepoName()
+	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:

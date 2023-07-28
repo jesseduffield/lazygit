@@ -79,7 +79,7 @@ func (self *PatchCommands) applyPatchFile(filepath string, opts ApplyPatchOpts) 
 }
 
 func (self *PatchCommands) SaveTemporaryPatch(patch string) (string, error) {
-	filepath := filepath.Join(self.os.GetTempDir(), GetCurrentRepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
+	filepath := filepath.Join(self.os.GetTempDir(), self.repoPaths.RepoName(), time.Now().Format("Jan _2 15.04.05.000000000")+".patch")
 	self.Log.Infof("saving temporary patch to %s", filepath)
 	if err := self.os.CreateFileWithContent(filepath, patch); err != nil {
 		return "", err

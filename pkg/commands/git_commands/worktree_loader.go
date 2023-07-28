@@ -9,33 +9,28 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
 type WorktreeLoader struct {
-	*common.Common
+	*GitCommon
 	cmd oscommands.ICmdObjBuilder
 }
 
 func NewWorktreeLoader(
-	common *common.Common,
+	gitCommon *GitCommon,
 	cmd oscommands.ICmdObjBuilder,
 ) *WorktreeLoader {
 	return &WorktreeLoader{
-		Common: common,
-		cmd:    cmd,
+		GitCommon: gitCommon,
+		cmd:       cmd,
 	}
 }
 
 func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
-	currentRepoPath := GetCurrentRepoPath()
-
-	pwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
+	currentRepoPath := self.repoPaths.RepoPath()
+	worktreePath := self.repoPaths.WorktreePath()
 
 	cmdArgs := NewGitCmd("worktree").Arg("list", "--porcelain").ToArgv()
 	worktreesOutput, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
@@ -48,11 +43,15 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 	var worktrees []*models.Worktree
 	var current *models.Worktree
 	for _, splitLine := range splitLines {
+		// worktrees are defined over multiple lines and are separated by blank lines
+		// so if we reach a blank line we're done with the current worktree
 		if len(splitLine) == 0 && current != nil {
 			worktrees = append(worktrees, current)
 			current = nil
 			continue
 		}
+
+		// ignore bare repo (not sure why it's even appearing in this list: it's not a worktree)
 		if splitLine == "bare" {
 			current = nil
 			continue
@@ -61,18 +60,13 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		if strings.HasPrefix(splitLine, "worktree ") {
 			path := strings.SplitN(splitLine, " ", 2)[1]
 			isMain := path == currentRepoPath
-			isCurrent := path == pwd
+			isCurrent := path == worktreePath
 			isPathMissing := self.pathExists(path)
 
 			var gitDir string
-			if isMain {
-				gitDir = filepath.Join(path, ".git")
-			} else {
-				var ok bool
-				gitDir, ok = LinkedWorktreeGitPath(path)
-				if !ok {
-					self.Log.Warnf("Could not find git dir for worktree %s", path)
-				}
+			gitDir, err := worktreeGitDirPath(path)
+			if err != nil {
+				self.Log.Warnf("Could not find git dir for worktree %s: %v", path, err)
 			}
 
 			current = &models.Worktree{
@@ -120,15 +114,15 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			continue
 		}
 
-		rebaseBranch, ok := rebaseBranch(worktree)
+		rebasedBranch, ok := rebasedBranch(worktree)
 		if ok {
-			worktree.Branch = rebaseBranch
+			worktree.Branch = rebasedBranch
 			continue
 		}
 
-		bisectBranch, ok := bisectBranch(worktree)
+		bisectedBranch, ok := bisectedBranch(worktree)
 		if ok {
-			worktree.Branch = bisectBranch
+			worktree.Branch = bisectedBranch
 			continue
 		}
 	}
@@ -147,7 +141,7 @@ func (self *WorktreeLoader) pathExists(path string) bool {
 	return false
 }
 
-func rebaseBranch(worktree *models.Worktree) (string, bool) {
+func rebasedBranch(worktree *models.Worktree) (string, bool) {
 	for _, dir := range []string{"rebase-merge", "rebase-apply"} {
 		if bytesContent, err := os.ReadFile(filepath.Join(worktree.GitDir, dir, "head-name")); err == nil {
 			headName := strings.TrimSpace(string(bytesContent))
@@ -159,7 +153,7 @@ func rebaseBranch(worktree *models.Worktree) (string, bool) {
 	return "", false
 }
 
-func bisectBranch(worktree *models.Worktree) (string, bool) {
+func bisectedBranch(worktree *models.Worktree) (string, bool) {
 	bisectStartPath := filepath.Join(worktree.GitDir, "BISECT_START")
 	startContent, err := os.ReadFile(bisectStartPath)
 	if err != nil {
@@ -167,27 +161,6 @@ func bisectBranch(worktree *models.Worktree) (string, bool) {
 	}
 
 	return strings.TrimSpace(string(startContent)), true
-}
-
-func LinkedWorktreeGitPath(worktreePath string) (string, bool) {
-	// first we get the path of the worktree, then we look at the contents of the `.git` file in that path
-	// then we look for the line that says `gitdir: /path/to/.git/worktrees/<worktree-name>`
-	// then we return that path
-	gitFileContents, err := os.ReadFile(filepath.Join(worktreePath, ".git"))
-	if err != nil {
-		return "", false
-	}
-
-	gitDirLine := lo.Filter(strings.Split(string(gitFileContents), "\n"), func(line string, _ int) bool {
-		return strings.HasPrefix(line, "gitdir: ")
-	})
-
-	if len(gitDirLine) == 0 {
-		return "", false
-	}
-
-	gitDir := strings.TrimPrefix(gitDirLine[0], "gitdir: ")
-	return gitDir, true
 }
 
 type pathWithIndexT struct {

@@ -64,7 +64,8 @@ type Gui struct {
 	CustomCommandsClient *custom_commands.Client
 
 	// this is a mapping of repos to gui states, so that we can restore the original
-	// gui state when returning from a subrepo
+	// gui state when returning from a subrepo.
+	// In repos with multiple worktrees, we store a separate repo state per worktree.
 	RepoStateMap         map[Repo]*GuiRepoState
 	Config               config.AppConfigurer
 	Updater              *updates.Updater
@@ -325,12 +326,9 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 // you've already switched from. There's no doubt some easy way to make the UX
 // optimal for all cases but I'm too lazy to think about what that is right now
 func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		gui.c.Log.Error(err)
-	}
+	worktreePath := gui.git.RepoPaths.WorktreePath()
 
-	if state := gui.RepoStateMap[Repo(currentDir)]; state != nil {
+	if state := gui.RepoStateMap[Repo(worktreePath)]; state != nil {
 		gui.State = state
 		gui.State.ViewsSetup = false
 

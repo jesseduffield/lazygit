@@ -7,7 +7,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type FileLoaderConfig interface {
@@ -15,15 +14,15 @@ type FileLoaderConfig interface {
 }
 
 type FileLoader struct {
-	*common.Common
+	*GitCommon
 	cmd         oscommands.ICmdObjBuilder
 	config      FileLoaderConfig
 	getFileType func(string) string
 }
 
-func NewFileLoader(cmn *common.Common, cmd oscommands.ICmdObjBuilder, config FileLoaderConfig) *FileLoader {
+func NewFileLoader(gitCommon *GitCommon, cmd oscommands.ICmdObjBuilder, config FileLoaderConfig) *FileLoader {
 	return &FileLoader{
-		Common:      cmn,
+		GitCommon:   gitCommon,
 		cmd:         cmd,
 		getFileType: oscommands.FileType,
 		config:      config,
@@ -67,7 +66,7 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 
 	// Go through the files to see if any of these files are actually worktrees
 	// so that we can render them correctly
-	worktreePaths := linkedWortkreePaths()
+	worktreePaths := linkedWortkreePaths(self.repoPaths.RepoGitDirPath())
 	for _, file := range files {
 		for _, worktreePath := range worktreePaths {
 			absFilePath, err := filepath.Abs(file.Name)
