@@ -544,6 +544,9 @@ type TranslationSet struct {
 	ExitSearchMode                      string
 	ExitTextFilterMode                  string
 	SwitchToWorktree                    string
+	AlreadyCheckedOutByWorktree         string
+	BranchCheckedOutByWorktree          string
+	DetachWorktreeTooltip               string
 	Switching                           string
 	RemoveWorktree                      string
 	RemoveWorktreeTitle                 string
@@ -571,6 +574,7 @@ type TranslationSet struct {
 	CreateWorktreeFrom                  string
 	CreateWorktreeFromDetached          string
 	LcWorktree                          string
+	ChangingDirectoryTo                 string
 	Name                                string
 	Branch                              string
 	Path                                string
@@ -1275,6 +1279,9 @@ func EnglishTranslationSet() TranslationSet {
 		WorktreesTitle:                      "Worktrees",
 		WorktreeTitle:                       "Worktree",
 		SwitchToWorktree:                    "Switch to worktree",
+		AlreadyCheckedOutByWorktree:         "This branch is checked out by worktree {{.worktreeName}}. Do you want to switch to that worktree?",
+		BranchCheckedOutByWorktree:          "Branch {{.branchName}} is checked out by worktree {{.worktreeName}}",
+		DetachWorktreeTooltip:               "This will run `git checkout --detach` on the worktree so that it stops hogging the branch, but the worktree's working tree will be left alone",
 		Switching:                           "Switching",
 		RemoveWorktree:                      "Remove worktree",
 		RemoveWorktreeTitle:                 "Remove worktree",
@@ -1300,6 +1307,7 @@ func EnglishTranslationSet() TranslationSet {
 		CreateWorktreeFrom:                  "Create worktree from {{.ref}}",
 		CreateWorktreeFromDetached:          "Create worktree from {{.ref}} (detached)",
 		LcWorktree:                          "worktree",
+		ChangingDirectoryTo:                 "Changing directory to {{.path}}",
 		Name:                                "Name",
 		Branch:                              "Branch",
 		Path:                                "Path",

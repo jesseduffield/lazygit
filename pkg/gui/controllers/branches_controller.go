@@ -216,9 +216,13 @@ func (self *BranchesController) worktreeForBranch(branch *models.Branch) (*model
 }
 
 func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktree) error {
+	prompt := utils.ResolvePlaceholderString(self.c.Tr.AlreadyCheckedOutByWorktree, map[string]string{
+		"worktreeName": worktree.Name,
+	})
+
 	return self.c.Confirm(types.ConfirmOpts{
-		Title:  "Switch to worktree",
-		Prompt: fmt.Sprintf("This branch is checked out by worktree %s. Do you want to switch to that worktree?", worktree.Name),
+		Title:  self.c.Tr.SwitchToWorktree,
+		Prompt: prompt,
 		HandleConfirm: func() error {
 			return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		},
@@ -332,28 +336,33 @@ func (self *BranchesController) checkedOutByOtherWorktree(branch *models.Branch)
 func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *models.Branch) error {
 	worktree, ok := self.worktreeForBranch(selectedBranch)
 	if !ok {
-		self.c.Log.Error("CheckedOutByOtherWorktree out of sync with list of worktrees")
+		self.c.Log.Error("promptWorktreeBranchDelete out of sync with list of worktrees")
 		return nil
 	}
 
+	// TODO: i18n
+	title := utils.ResolvePlaceholderString(self.c.Tr.BranchCheckedOutByWorktree, map[string]string{
+		"worktreeName": worktree.Name,
+		"branchName":   selectedBranch.Name,
+	})
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: fmt.Sprintf("Branch %s is checked out by worktree %s", selectedBranch.Name, worktree.Name),
+		Title: title,
 		Items: []*types.MenuItem{
 			{
-				Label: "Switch to worktree",
+				Label: self.c.Tr.SwitchToWorktree,
 				OnPress: func() error {
 					return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
 				},
 			},
 			{
-				Label:   "Detach worktree",
-				Tooltip: "This will run `git checkout --detach` on the worktree so that it stops hogging the branch, but the worktree's working tree will be left alone",
+				Label:   self.c.Tr.DetachWorktree,
+				Tooltip: self.c.Tr.DetachWorktreeTooltip,
 				OnPress: func() error {
 					return self.c.Helpers().Worktree.Detach(worktree)
 				},
 			},
 			{
-				Label: "Remove worktree",
+				Label: self.c.Tr.RemoveWorktree,
 				OnPress: func() error {
 					return self.c.Helpers().Worktree.Remove(worktree, false)
 				},
