@@ -91,59 +91,70 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			scopeSet = set.NewFromSlice(options.Scope)
 		}
 
-		refresh := func(f func()) {
+		wg := sync.WaitGroup{}
+		refresh := func(name string, f func()) {
 			if options.Mode == types.ASYNC {
 				self.c.OnWorker(func(t gocui.Task) {
 					f()
 				})
 			} else {
-				f()
+				wg.Add(1)
+				go utils.Safe(func() {
+					t := time.Now()
+					defer wg.Done()
+					f()
+					self.c.Log.Infof(fmt.Sprintf("refreshed %s in %s", name, time.Since(t)))
+				})
 			}
 		}
 
 		if scopeSet.Includes(types.COMMITS) || scopeSet.Includes(types.BRANCHES) || scopeSet.Includes(types.REFLOG) || scopeSet.Includes(types.BISECT_INFO) {
-			refresh(self.refreshCommits)
+			// whenever we change commits, we should update branches because the upstream/downstream
+			// counts can change. Whenever we change branches we should also change commits
+			// e.g. in the case of switching branches.
+			refresh("commits and commit files", self.refreshCommitsAndCommitFiles)
+			refresh("reflog and branches", self.refreshReflogAndBranches)
 		} else if scopeSet.Includes(types.REBASE_COMMITS) {
 			// the above block handles rebase commits so we only need to call this one
 			// if we've asked specifically for rebase commits and not those other things
-			refresh(func() { _ = self.refreshRebaseCommits() })
+			refresh("rebase commits", func() { _ = self.refreshRebaseCommits() })
 		}
 
 		if scopeSet.Includes(types.SUB_COMMITS) {
-			refresh(func() { _ = self.refreshSubCommitsWithLimit() })
+			refresh("sub commits", func() { _ = self.refreshSubCommitsWithLimit() })
 		}
 
 		// reason we're not doing this if the COMMITS type is included is that if the COMMITS type _is_ included we will refresh the commit files context anyway
 		if scopeSet.Includes(types.COMMIT_FILES) && !scopeSet.Includes(types.COMMITS) {
-			refresh(func() { _ = self.refreshCommitFilesContext() })
+			refresh("commit files", func() { _ = self.refreshCommitFilesContext() })
 		}
 
 		if scopeSet.Includes(types.FILES) || scopeSet.Includes(types.SUBMODULES) {
-			refresh(func() { _ = self.refreshFilesAndSubmodules() })
+			refresh("files", func() { _ = self.refreshFilesAndSubmodules() })
 		}
 
 		if scopeSet.Includes(types.STASH) {
-			refresh(func() { _ = self.refreshStashEntries() })
+			refresh("stash", func() { _ = self.refreshStashEntries() })
 		}
 
 		if scopeSet.Includes(types.TAGS) {
-			refresh(func() { _ = self.refreshTags() })
+			refresh("tags", func() { _ = self.refreshTags() })
 		}
 
 		if scopeSet.Includes(types.REMOTES) {
-			refresh(func() { _ = self.refreshRemotes() })
+			refresh("remotes", func() { _ = self.refreshRemotes() })
 		}
 
 		if scopeSet.Includes(types.STAGING) {
-			refresh(func() { _ = self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{}) })
+			refresh("staging", func() { _ = self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{}) })
 		}
 
 		if scopeSet.Includes(types.PATCH_BUILDING) {
-			refresh(func() { _ = self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{}) })
+			refresh("patch building", func() { _ = self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{}) })
 		}
 
 		if scopeSet.Includes(types.MERGE_CONFLICTS) || scopeSet.Includes(types.FILES) {
-			refresh(func() { _ = self.mergeConflictsHelper.RefreshMergeState() })
+			refresh("merge conflicts", func() { _ = self.mergeConflictsHelper.RefreshMergeState() })
 		}
 
 		self.refreshStatus()
@@ -151,6 +162,8 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		if options.Then != nil {
 			options.Then()
 		}
+
+		wg.Wait()
 	}
 
 	if options.Mode == types.BLOCK_UI {
@@ -218,41 +231,29 @@ func (self *RefreshHelper) refreshReflogCommitsConsideringStartup() {
 	}
 }
 
-// whenever we change commits, we should update branches because the upstream/downstream
-// counts can change. Whenever we change branches we should probably also change commits
-// e.g. in the case of switching branches.
-func (self *RefreshHelper) refreshCommits() {
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+func (self *RefreshHelper) refreshReflogAndBranches() {
+	self.refreshReflogCommitsConsideringStartup()
 
-	go utils.Safe(func() {
-		self.refreshReflogCommitsConsideringStartup()
+	self.refreshBranches()
+}
 
-		self.refreshBranches()
-		wg.Done()
-	})
-
-	go utils.Safe(func() {
-		_ = self.refreshCommitsWithLimit()
-		ctx, ok := self.c.Contexts().CommitFiles.GetParentContext()
-		if ok && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
-			// This makes sense when we've e.g. just amended a commit, meaning we get a new commit SHA at the same position.
-			// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
-			// showing the contents of a different commit than the one we initially entered.
-			// Ideally we would know when to refresh the commit files context and when not to,
-			// or perhaps we could just pop that context off the stack whenever cycling windows.
-			// For now the awkwardness remains.
-			commit := self.c.Contexts().LocalCommits.GetSelected()
-			if commit != nil {
-				self.c.Contexts().CommitFiles.SetRef(commit)
-				self.c.Contexts().CommitFiles.SetTitleRef(commit.RefName())
-				_ = self.refreshCommitFilesContext()
-			}
+func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
+	_ = self.refreshCommitsWithLimit()
+	ctx, ok := self.c.Contexts().CommitFiles.GetParentContext()
+	if ok && ctx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY {
+		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit SHA at the same position.
+		// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
+		// showing the contents of a different commit than the one we initially entered.
+		// Ideally we would know when to refresh the commit files context and when not to,
+		// or perhaps we could just pop that context off the stack whenever cycling windows.
+		// For now the awkwardness remains.
+		commit := self.c.Contexts().LocalCommits.GetSelected()
+		if commit != nil {
+			self.c.Contexts().CommitFiles.SetRef(commit)
+			self.c.Contexts().CommitFiles.SetTitleRef(commit.RefName())
+			_ = self.refreshCommitFilesContext()
 		}
-		wg.Done()
-	})
-
-	wg.Wait()
+	}
 }
 
 func (self *RefreshHelper) refreshCommitsWithLimit() error {
