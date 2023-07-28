@@ -21,11 +21,11 @@ type Worktree struct {
 	Branch string
 	// based on the path, but uniquified. Not the same name that git uses in the worktrees/ folder (no good reason for this,
 	// I just prefer my naming convention better)
-	NameField string
+	Name string
 }
 
 func (w *Worktree) RefName() string {
-	return w.Name()
+	return w.Name
 }
 
 func (w *Worktree) ID() string {
@@ -34,20 +34,4 @@ func (w *Worktree) ID() string {
 
 func (w *Worktree) Description() string {
 	return w.RefName()
-}
-
-func (w *Worktree) Name() string {
-	return w.NameField
-}
-
-func (w *Worktree) Main() bool {
-	return w.IsMain
-}
-
-func (w *Worktree) Current() bool {
-	return w.IsCurrent
-}
-
-func (w *Worktree) PathMissing() bool {
-	return w.IsPathMissing
 }

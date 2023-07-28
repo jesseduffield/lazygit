@@ -34,8 +34,8 @@ func NewWorktreeHelper(c *HelperCommon, reposHelper *ReposHelper, refsHelper *Re
 
 func (self *WorktreeHelper) GetMainWorktreeName() string {
 	for _, worktree := range self.c.Model().Worktrees {
-		if worktree.Main() {
-			return worktree.Name()
+		if worktree.IsMain {
+			return worktree.Name
 		}
 	}
 
@@ -51,11 +51,11 @@ func (self *WorktreeHelper) GetLinkedWorktreeName() string {
 
 	// worktrees always have the current worktree on top
 	currentWorktree := worktrees[0]
-	if currentWorktree.Main() {
+	if currentWorktree.IsMain {
 		return ""
 	}
 
-	return currentWorktree.Name()
+	return currentWorktree.Name
 }
 
 func (self *WorktreeHelper) NewWorktree() error {
@@ -153,7 +153,7 @@ func (self *WorktreeHelper) NewWorktreeCheckout(base string, canCheckoutBase boo
 }
 
 func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.ContextKey) error {
-	if worktree.Current() {
+	if worktree.IsCurrent {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyInWorktree)
 	}
 
@@ -173,7 +173,7 @@ func (self *WorktreeHelper) Remove(worktree *models.Worktree, force bool) error 
 	message := utils.ResolvePlaceholderString(
 		templateStr,
 		map[string]string{
-			"worktreeName": worktree.Name(),
+			"worktreeName": worktree.Name,
 		},
 	)
 

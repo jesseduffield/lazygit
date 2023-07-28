@@ -67,18 +67,18 @@ func (self *WorktreesController) GetOnRenderToMain() func() error {
 			task = types.NewRenderStringTask(self.c.Tr.NoWorktreesThisRepo)
 		} else {
 			main := ""
-			if worktree.Main() {
+			if worktree.IsMain {
 				main = style.FgDefault.Sprintf(" %s", self.c.Tr.MainWorktree)
 			}
 
 			missing := ""
-			if worktree.PathMissing() {
+			if worktree.IsPathMissing {
 				missing = style.FgRed.Sprintf(" %s", self.c.Tr.MissingWorktree)
 			}
 
 			var builder strings.Builder
 			w := tabwriter.NewWriter(&builder, 0, 0, 2, ' ', 0)
-			_, _ = fmt.Fprintf(w, "%s:\t%s%s\n", self.c.Tr.Name, style.FgGreen.Sprint(worktree.Name()), main)
+			_, _ = fmt.Fprintf(w, "%s:\t%s%s\n", self.c.Tr.Name, style.FgGreen.Sprint(worktree.Name), main)
 			_, _ = fmt.Fprintf(w, "%s:\t%s\n", self.c.Tr.Branch, style.FgYellow.Sprint(worktree.Branch))
 			_, _ = fmt.Fprintf(w, "%s:\t%s%s\n", self.c.Tr.Path, style.FgCyan.Sprint(worktree.Path), missing)
 			_ = w.Flush()
@@ -101,11 +101,11 @@ func (self *WorktreesController) add() error {
 }
 
 func (self *WorktreesController) remove(worktree *models.Worktree) error {
-	if worktree.Main() {
+	if worktree.IsMain {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteMainWorktree)
 	}
 
-	if worktree.Current() {
+	if worktree.IsCurrent {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCurrentWorktree)
 	}
 

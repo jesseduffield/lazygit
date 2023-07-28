@@ -203,7 +203,7 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 	}
 
 	worktreeForRef, ok := self.worktreeForBranch(selectedBranch)
-	if ok && !worktreeForRef.Current() {
+	if ok && !worktreeForRef.IsCurrent {
 		return self.promptToCheckoutWorktree(worktreeForRef)
 	}
 
@@ -218,7 +218,7 @@ func (self *BranchesController) worktreeForBranch(branch *models.Branch) (*model
 func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktree) error {
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  "Switch to worktree",
-		Prompt: fmt.Sprintf("This branch is checked out by worktree %s. Do you want to switch to that worktree?", worktree.Name()),
+		Prompt: fmt.Sprintf("This branch is checked out by worktree %s. Do you want to switch to that worktree?", worktree.Name),
 		HandleConfirm: func() error {
 			return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
 		},
@@ -337,7 +337,7 @@ func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *model
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
-		Title: fmt.Sprintf("Branch %s is checked out by worktree %s", selectedBranch.Name, worktree.Name()),
+		Title: fmt.Sprintf("Branch %s is checked out by worktree %s", selectedBranch.Name, worktree.Name),
 		Items: []*types.MenuItem{
 			{
 				Label: "Switch to worktree",
@@ -432,7 +432,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 
 			worktreeGitDir := ""
 			// if it is the current worktree path, no need to specify the path
-			if !worktree.Current() {
+			if !worktree.IsCurrent {
 				worktreeGitDir = worktree.GitDir
 			}
 

@@ -17,11 +17,9 @@ var SwitchTabFromMenu = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.OptionMenuAlt1)
 
 		t.ExpectPopup().Menu().Title(Equals("Keybindings")).
-			// Looping back around to the end to side-step the worktrees view which is
-			// only present on recent git versions
-			Select(Contains("Previous tab")).
+			Select(Contains("Next tab")).
 			Confirm()
 
-		t.Views().Submodules().IsFocused()
+		t.Views().Worktrees().IsFocused()
 	},
 })
