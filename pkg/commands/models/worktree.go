@@ -4,8 +4,12 @@ package models
 type Worktree struct {
 	// if false, this is a linked worktree
 	IsMain bool
+	// if true, this is the worktree that is currently checked out
+	IsCurrent bool
 	// path to the directory of the worktree i.e. the directory that contains all the user's files
 	Path string
+	// if true, the path is not found
+	IsPathMissing bool
 	// path of the git directory for this worktree. The equivalent of the .git directory
 	// in the main worktree. For linked worktrees this would be <repo_path>/.git/worktrees/<name>
 	GitDir string
@@ -38,4 +42,12 @@ func (w *Worktree) Name() string {
 
 func (w *Worktree) Main() bool {
 	return w.IsMain
+}
+
+func (w *Worktree) Current() bool {
+	return w.IsCurrent
+}
+
+func (w *Worktree) PathMissing() bool {
+	return w.IsPathMissing
 }

@@ -9,28 +9,26 @@ import (
 	"github.com/samber/lo"
 )
 
-func GetWorktreeDisplayStrings(tr *i18n.TranslationSet, worktrees []*models.Worktree, isCurrent func(string) bool, isMissing func(string) bool) [][]string {
+func GetWorktreeDisplayStrings(tr *i18n.TranslationSet, worktrees []*models.Worktree) [][]string {
 	return lo.Map(worktrees, func(worktree *models.Worktree, _ int) []string {
 		return GetWorktreeDisplayString(
 			tr,
-			isCurrent(worktree.Path),
-			isMissing(worktree.Path),
 			worktree)
 	})
 }
 
-func GetWorktreeDisplayString(tr *i18n.TranslationSet, isCurrent bool, isPathMissing bool, worktree *models.Worktree) []string {
+func GetWorktreeDisplayString(tr *i18n.TranslationSet, worktree *models.Worktree) []string {
 	textStyle := theme.DefaultTextColor
 
 	current := ""
 	currentColor := style.FgCyan
-	if isCurrent {
+	if worktree.Current() {
 		current = "  *"
 		currentColor = style.FgGreen
 	}
 
 	icon := icons.IconForWorktree(false)
-	if isPathMissing {
+	if worktree.PathMissing() {
 		textStyle = style.FgRed
 		icon = icons.IconForWorktree(true)
 	}
@@ -45,7 +43,7 @@ func GetWorktreeDisplayString(tr *i18n.TranslationSet, isCurrent bool, isPathMis
 	if worktree.Main() {
 		name += " " + tr.MainWorktree
 	}
-	if isPathMissing && !icons.IsIconEnabled() {
+	if worktree.PathMissing() && !icons.IsIconEnabled() {
 		name += " " + tr.MissingWorktree
 	}
 	res = append(res, textStyle.Sprint(name))

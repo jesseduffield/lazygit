@@ -1,10 +1,12 @@
 package git_commands
 
 import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -30,6 +32,11 @@ func NewWorktreeLoader(
 func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 	currentRepoPath := GetCurrentRepoPath()
 
+	pwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
 	cmdArgs := NewGitCmd("worktree").Arg("list", "--porcelain").ToArgv()
 	worktreesOutput, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 	if err != nil {
@@ -54,6 +61,8 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		if strings.HasPrefix(splitLine, "worktree ") {
 			path := strings.SplitN(splitLine, " ", 2)[1]
 			isMain := path == currentRepoPath
+			isCurrent := path == pwd
+			isPathMissing := self.pathExists(path)
 
 			var gitDir string
 			if isMain {
@@ -67,9 +76,11 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			}
 
 			current = &models.Worktree{
-				IsMain: path == currentRepoPath,
-				Path:   path,
-				GitDir: gitDir,
+				IsMain:        isMain,
+				IsCurrent:     isCurrent,
+				IsPathMissing: isPathMissing,
+				Path:          path,
+				GitDir:        gitDir,
 			}
 		} else if strings.HasPrefix(splitLine, "branch ") {
 			branch := strings.SplitN(splitLine, " ", 2)[1]
@@ -85,14 +96,9 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		worktree.NameField = names[index]
 	}
 
-	pwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
 	// move current worktree to the top
 	for i, worktree := range worktrees {
-		if EqualPath(worktree.Path, pwd) {
+		if worktree.IsCurrent {
 			worktrees = append(worktrees[:i], worktrees[i+1:]...)
 			worktrees = append([]*models.Worktree{worktree}, worktrees...)
 			break
@@ -128,6 +134,17 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 	}
 
 	return worktrees, nil
+}
+
+func (self *WorktreeLoader) pathExists(path string) bool {
+	if _, err := os.Stat(path); err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return true
+		}
+		self.Log.Errorf("failed to check if worktree path `%s` exists\n%v", path, err)
+		return false
+	}
+	return false
 }
 
 func rebaseBranch(worktree *models.Worktree) (string, bool) {

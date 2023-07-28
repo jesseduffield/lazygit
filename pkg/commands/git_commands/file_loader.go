@@ -65,7 +65,7 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 		files = append(files, file)
 	}
 
-	// Go through the worktrees to see if any of these files are actually worktrees
+	// Go through the files to see if any of these files are actually worktrees
 	// so that we can render them correctly
 	worktreePaths := linkedWortkreePaths()
 	for _, file := range files {

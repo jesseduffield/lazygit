@@ -25,8 +25,6 @@ func NewWorktreesContext(c *ContextCommon) *WorktreesContext {
 		return presentation.GetWorktreeDisplayStrings(
 			c.Tr,
 			viewModel.GetFilteredList(),
-			c.Git().Worktree.IsCurrentWorktree,
-			c.Git().Worktree.IsWorktreePathMissing,
 		)
 	}
 
