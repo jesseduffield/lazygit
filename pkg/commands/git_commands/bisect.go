@@ -19,7 +19,7 @@ func NewBisectCommands(gitCommon *GitCommon) *BisectCommands {
 // This command is pretty cheap to run so we're not storing the result anywhere.
 // But if it becomes problematic we can chang that.
 func (self *BisectCommands) GetInfo() *BisectInfo {
-	return self.GetInfoForGitDir(self.dotGitDir)
+	return self.GetInfoForGitDir(self.repoPaths.WorktreeGitDirPath())
 }
 
 func (self *BisectCommands) GetInfoForGitDir(gitDir string) *BisectInfo {

@@ -13,7 +13,7 @@ import (
 // We need different logic for associated the branch depending on whether it's a main worktree or
 // linked worktree, so this test handles both.
 
-var Rebase = NewIntegrationTest(NewIntegrationTestArgs{
+var AssociateBranchRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Verify that when you start a rebase in a linked or main worktree, Lazygit still associates the worktree with the branch",
 	ExtraCmdArgs: []string{},
 	Skip:         false,

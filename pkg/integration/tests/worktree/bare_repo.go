@@ -6,7 +6,7 @@ import (
 )
 
 var BareRepo = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Open lazygit in the worktree of a bare repo",
+	Description:  "Open lazygit in the worktree of a bare repo and do a rebase/bisect",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
@@ -23,6 +23,8 @@ var BareRepo = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.NewBranch("mybranch")
 		shell.CreateFileAndAdd("blah", "blah")
 		shell.Commit("initial commit")
+		shell.EmptyCommit("commit two")
+		shell.EmptyCommit("commit three")
 
 		shell.RunCommand([]string{"git", "clone", "--bare", ".", "../.bare"})
 
@@ -45,6 +47,45 @@ var BareRepo = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("worktree2 (worktree)"),
 			)
 
+		// test that a rebase works fine
+		// (rebase uses the git dir of the worktree so we're confirming that it points
+		// to the right git dir)
+		t.Views().Commits().
+			Focus().
+			Lines(
+				Contains("commit three").IsSelected(),
+				Contains("commit two"),
+				Contains("initial commit"),
+			).
+			Press(keys.Commits.MoveDownCommit).
+			Lines(
+				Contains("commit two"),
+				Contains("commit three").IsSelected(),
+				Contains("initial commit"),
+			).
+			// test that bisect works fine (same logic as above)
+			NavigateToLine(Contains("commit two")).
+			Press(keys.Commits.ViewBisectOptions).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Bisect")).
+					Select(MatchesRegexp(`Mark .* as bad`)).
+					Confirm()
+
+				t.Views().Information().Content(Contains("Bisecting"))
+			}).
+			NavigateToLine(Contains("initial commit")).
+			Press(keys.Commits.ViewBisectOptions).
+			Tap(func() {
+				t.ExpectPopup().Menu().
+					Title(Equals("Bisect")).
+					Select(MatchesRegexp(`Mark .* as good`)).
+					Confirm()
+
+				t.Views().Information().Content(Contains("Bisecting"))
+			})
+
+		// switch to other worktree
 		t.Views().Worktrees().
 			Focus().
 			Lines(

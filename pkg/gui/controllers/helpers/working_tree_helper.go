@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -203,7 +202,7 @@ func (self *WorkingTreeHelper) prepareFilesForCommit() error {
 }
 
 func (self *WorkingTreeHelper) commitPrefixConfigForRepo() *config.CommitPrefixConfig {
-	cfg, ok := self.c.UserConfig.Git.CommitPrefixes[git_commands.GetCurrentRepoName()]
+	cfg, ok := self.c.UserConfig.Git.CommitPrefixes[self.c.Git().RepoPaths.RepoName()]
 	if !ok {
 		return nil
 	}

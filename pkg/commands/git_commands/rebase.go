@@ -243,18 +243,18 @@ func (self *RebaseCommands) AmendTo(commits []*models.Commit, commitIndex int) e
 // EditRebaseTodo sets the action for a given rebase commit in the git-rebase-todo file
 func (self *RebaseCommands) EditRebaseTodo(commit *models.Commit, action todo.TodoCommand) error {
 	return utils.EditRebaseTodo(
-		filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo"), commit.Sha, commit.Action, action, self.config.GetCoreCommentChar())
+		filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"), commit.Sha, commit.Action, action, self.config.GetCoreCommentChar())
 }
 
 // MoveTodoDown moves a rebase todo item down by one position
 func (self *RebaseCommands) MoveTodoDown(commit *models.Commit) error {
-	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
+	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
 	return utils.MoveTodoDown(fileName, commit.Sha, commit.Action, self.config.GetCoreCommentChar())
 }
 
 // MoveTodoDown moves a rebase todo item down by one position
 func (self *RebaseCommands) MoveTodoUp(commit *models.Commit) error {
-	fileName := filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo")
+	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
 	return utils.MoveTodoUp(fileName, commit.Sha, commit.Action, self.config.GetCoreCommentChar())
 }
 
