@@ -82,3 +82,12 @@ If you need to share test logic across test directories you can put helper funct
 ### Don't do too much in one test
 
 If you're testing different pieces of functionality, it's better to test them in isolation using multiple short tests, compared to one larger longer test. Sometimes it's appropriate to have a longer test which tests how various different pieces interact, but err on the side of keeping things short.
+
+## Testing against old git versions
+
+Our CI tests against multiple git versions. If your test fails on an old version, then to troubleshoot you'll need to install the failing git version. One option is to use [rtx](https://github.com/jdxcode/rtx) (see installation steps in the readme) with the git plugin like so:
+```sh
+rtx plugin add git
+rtx install git 2.20.0
+rtx local git 2.20.0
+```
