@@ -87,7 +87,7 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 	}))
 
 	for index, worktree := range worktrees {
-		worktree.NameField = names[index]
+		worktree.Name = names[index]
 	}
 
 	// move current worktree to the top

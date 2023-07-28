@@ -374,7 +374,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 		SearchState:       types.NewSearchState(),
 	}
 
-	gui.RepoStateMap[Repo(currentDir)] = gui.State
+	gui.RepoStateMap[Repo(worktreePath)] = gui.State
 
 	return initialContext(contextTree, startArgs)
 }

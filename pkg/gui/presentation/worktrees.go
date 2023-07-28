@@ -22,13 +22,13 @@ func GetWorktreeDisplayString(tr *i18n.TranslationSet, worktree *models.Worktree
 
 	current := ""
 	currentColor := style.FgCyan
-	if worktree.Current() {
+	if worktree.IsCurrent {
 		current = "  *"
 		currentColor = style.FgGreen
 	}
 
 	icon := icons.IconForWorktree(false)
-	if worktree.PathMissing() {
+	if worktree.IsPathMissing {
 		textStyle = style.FgRed
 		icon = icons.IconForWorktree(true)
 	}
@@ -39,11 +39,11 @@ func GetWorktreeDisplayString(tr *i18n.TranslationSet, worktree *models.Worktree
 		res = append(res, textStyle.Sprint(icon))
 	}
 
-	name := worktree.Name()
-	if worktree.Main() {
+	name := worktree.Name
+	if worktree.IsMain {
 		name += " " + tr.MainWorktree
 	}
-	if worktree.PathMissing() && !icons.IsIconEnabled() {
+	if worktree.IsPathMissing && !icons.IsIconEnabled() {
 		name += " " + tr.MissingWorktree
 	}
 	res = append(res, textStyle.Sprint(name))
