@@ -118,7 +118,7 @@ func buildWorkingTreeCommands(deps commonDeps) *WorkingTreeCommands {
 	return NewWorkingTreeCommands(gitCommon, submoduleCommands, fileLoader)
 }
 
-func buildPatchCommands(deps commonDeps) *PatchCommands {
+func buildPatchCommands(deps commonDeps) *PatchCommands { //nolint:golint,unused
 	gitCommon := buildGitCommon(deps)
 	rebaseCommands := buildRebaseCommands(deps)
 	commitCommands := buildCommitCommands(deps)
@@ -132,7 +132,7 @@ func buildPatchCommands(deps commonDeps) *PatchCommands {
 	return NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 }
 
-func buildStatusCommands(deps commonDeps) *StatusCommands {
+func buildStatusCommands(deps commonDeps) *StatusCommands { //nolint:golint,unused
 	gitCommon := buildGitCommon(deps)
 
 	return NewStatusCommands(gitCommon)
