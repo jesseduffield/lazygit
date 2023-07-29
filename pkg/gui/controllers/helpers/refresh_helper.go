@@ -129,8 +129,13 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			refresh("commit files", func() { _ = self.refreshCommitFilesContext() })
 		}
 
+		fileWg := sync.WaitGroup{}
 		if scopeSet.Includes(types.FILES) || scopeSet.Includes(types.SUBMODULES) {
-			refresh("files", func() { _ = self.refreshFilesAndSubmodules() })
+			fileWg.Add(1)
+			refresh("files", func() {
+				_ = self.refreshFilesAndSubmodules()
+				fileWg.Done()
+			})
 		}
 
 		if scopeSet.Includes(types.STASH) {
@@ -146,7 +151,10 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 		}
 
 		if scopeSet.Includes(types.STAGING) {
-			refresh("staging", func() { _ = self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{}) })
+			refresh("staging", func() {
+				fileWg.Wait()
+				_ = self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
+			})
 		}
 
 		if scopeSet.Includes(types.PATCH_BUILDING) {
