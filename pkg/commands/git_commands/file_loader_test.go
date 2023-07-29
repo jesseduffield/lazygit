@@ -5,7 +5,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -178,7 +177,7 @@ func TestFileGetStatusFiles(t *testing.T) {
 			cmd := oscommands.NewDummyCmdObjBuilder(s.runner)
 
 			loader := &FileLoader{
-				Common:      utils.NewDummyCommon(),
+				GitCommon:   buildGitCommon(commonDeps{}),
 				cmd:         cmd,
 				config:      &FakeFileLoaderConfig{showUntrackedFiles: "yes"},
 				getFileType: func(string) string { return "file" },

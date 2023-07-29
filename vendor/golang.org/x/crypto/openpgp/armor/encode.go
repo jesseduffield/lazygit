@@ -96,7 +96,8 @@ func (l *lineBreaker) Close() (err error) {
 // trailer.
 //
 // It's built into a stack of io.Writers:
-//    encoding -> base64 encoder -> lineBreaker -> out
+//
+//	encoding -> base64 encoder -> lineBreaker -> out
 type encoding struct {
 	out       io.Writer
 	breaker   *lineBreaker
