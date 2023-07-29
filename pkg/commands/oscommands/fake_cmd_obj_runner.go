@@ -6,18 +6,36 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/go-errors/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 // for use in testing
 
 type FakeCmdObjRunner struct {
-	t                *testing.T
-	expectedCmds     []func(ICmdObj) (string, error)
-	expectedCmdIndex int
+	t *testing.T
+	// commands can be run in any order; mimicking the concurrent behaviour of
+	// production code.
+	expectedCmds []CmdObjMatcher
+
+	invokedCmdIndexes []int
+
+	mutex sync.Mutex
+}
+
+type CmdObjMatcher struct {
+	description string
+	// returns true if the matcher matches the command object
+	test func(ICmdObj) bool
+
+	// output of the command
+	output string
+	// error of the command
+	err error
 }
 
 var _ ICmdObjRunner = &FakeCmdObjRunner{}
@@ -26,23 +44,40 @@ func NewFakeRunner(t *testing.T) *FakeCmdObjRunner { //nolint:thelper
 	return &FakeCmdObjRunner{t: t}
 }
 
+func (self *FakeCmdObjRunner) remainingExpectedCmds() []CmdObjMatcher {
+	return lo.Filter(self.expectedCmds, func(_ CmdObjMatcher, i int) bool {
+		return !lo.Contains(self.invokedCmdIndexes, i)
+	})
+}
+
 func (self *FakeCmdObjRunner) Run(cmdObj ICmdObj) error {
 	_, err := self.RunWithOutput(cmdObj)
 	return err
 }
 
 func (self *FakeCmdObjRunner) RunWithOutput(cmdObj ICmdObj) (string, error) {
-	if self.expectedCmdIndex > len(self.expectedCmds)-1 {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	if len(self.remainingExpectedCmds()) == 0 {
 		self.t.Errorf("ran too many commands. Unexpected command: `%s`", cmdObj.ToString())
 		return "", errors.New("ran too many commands")
 	}
 
-	expectedCmd := self.expectedCmds[self.expectedCmdIndex]
-	output, err := expectedCmd(cmdObj)
+	for i := range self.expectedCmds {
+		if lo.Contains(self.invokedCmdIndexes, i) {
+			continue
+		}
+		expectedCmd := self.expectedCmds[i]
+		matched := expectedCmd.test(cmdObj)
+		if matched {
+			self.invokedCmdIndexes = append(self.invokedCmdIndexes, i)
+			return expectedCmd.output, expectedCmd.err
+		}
+	}
 
-	self.expectedCmdIndex++
-
-	return output, err
+	self.t.Errorf("Unexpected command: `%s`", cmdObj.ToString())
+	return "", nil
 }
 
 func (self *FakeCmdObjRunner) RunWithOutputs(cmdObj ICmdObj) (string, string, error) {
@@ -72,63 +107,84 @@ func (self *FakeCmdObjRunner) RunAndProcessLines(cmdObj ICmdObj, onLine func(lin
 	return nil
 }
 
-func (self *FakeCmdObjRunner) ExpectFunc(fn func(cmdObj ICmdObj) (string, error)) *FakeCmdObjRunner {
-	self.expectedCmds = append(self.expectedCmds, fn)
+func (self *FakeCmdObjRunner) ExpectFunc(description string, fn func(cmdObj ICmdObj) bool, output string, err error) *FakeCmdObjRunner {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
 
-	return self
-}
-
-func (self *FakeCmdObjRunner) Expect(expectedCmdStr string, output string, err error) *FakeCmdObjRunner {
-	self.ExpectFunc(func(cmdObj ICmdObj) (string, error) {
-		cmdStr := cmdObj.ToString()
-		assert.Equal(self.t, expectedCmdStr, cmdStr, fmt.Sprintf("expected command %d to be %s, but was %s", self.expectedCmdIndex+1, expectedCmdStr, cmdStr))
-
-		return output, err
+	self.expectedCmds = append(self.expectedCmds, CmdObjMatcher{
+		test:        fn,
+		output:      output,
+		err:         err,
+		description: description,
 	})
 
 	return self
 }
 
 func (self *FakeCmdObjRunner) ExpectArgs(expectedArgs []string, output string, err error) *FakeCmdObjRunner {
-	self.ExpectFunc(func(cmdObj ICmdObj) (string, error) {
+	description := fmt.Sprintf("matches args %s", strings.Join(expectedArgs, " "))
+	self.ExpectFunc(description, func(cmdObj ICmdObj) bool {
 		args := cmdObj.GetCmd().Args
 
 		if runtime.GOOS == "windows" {
 			// thanks to the secureexec package, the first arg is something like
 			// '"C:\\Program Files\\Git\\mingw64\\bin\\<command>.exe"
 			// on windows so we'll just ensure it contains our program
-			assert.Contains(self.t, args[0], expectedArgs[0])
+			if !strings.Contains(args[0], expectedArgs[0]) {
+				return false
+			}
 		} else {
 			// first arg is the program name
-			assert.Equal(self.t, expectedArgs[0], args[0])
+			if expectedArgs[0] != args[0] {
+				return false
+			}
 		}
 
-		assert.EqualValues(self.t, expectedArgs[1:], args[1:], fmt.Sprintf("command %d did not match expectation", self.expectedCmdIndex+1))
+		if !slices.Equal(expectedArgs[1:], args[1:]) {
+			return false
+		}
 
-		return output, err
-	})
+		return true
+	}, output, err)
 
 	return self
 }
 
 func (self *FakeCmdObjRunner) ExpectGitArgs(expectedArgs []string, output string, err error) *FakeCmdObjRunner {
-	self.ExpectFunc(func(cmdObj ICmdObj) (string, error) {
+	description := fmt.Sprintf("matches git args %s", strings.Join(expectedArgs, " "))
+	self.ExpectFunc(description, func(cmdObj ICmdObj) bool {
 		// first arg is 'git' on unix and something like '"C:\\Program Files\\Git\\mingw64\\bin\\git.exe" on windows so we'll just ensure it ends in either 'git' or 'git.exe'
 		re := regexp.MustCompile(`git(\.exe)?$`)
 		args := cmdObj.GetCmd().Args
 		if !re.MatchString(args[0]) {
-			self.t.Errorf("expected first arg to end in .git or .git.exe but was %s", args[0])
+			return false
 		}
-		assert.EqualValues(self.t, expectedArgs, args[1:], fmt.Sprintf("command %d did not match expectation", self.expectedCmdIndex+1))
 
-		return output, err
-	})
+		if !slices.Equal(expectedArgs, args[1:]) {
+			return false
+		}
+
+		return true
+	}, output, err)
 
 	return self
 }
 
 func (self *FakeCmdObjRunner) CheckForMissingCalls() {
-	if self.expectedCmdIndex < len(self.expectedCmds) {
-		self.t.Errorf("expected command %d to be called, but was not", self.expectedCmdIndex+1)
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+
+	remaining := self.remainingExpectedCmds()
+	if len(remaining) > 0 {
+		self.t.Errorf(
+			"expected %d more command(s) to be run. Remaining commands:\n%s",
+			len(remaining),
+			strings.Join(
+				lo.Map(remaining, func(cmdObj CmdObjMatcher, _ int) string {
+					return cmdObj.description
+				}),
+				"\n",
+			),
+		)
 	}
 }

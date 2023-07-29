@@ -1,12 +1,12 @@
 package git_commands
 
 import (
-	"errors"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
+	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"

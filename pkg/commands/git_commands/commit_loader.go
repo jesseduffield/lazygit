@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/generics/slices"
@@ -15,6 +16,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -84,31 +86,60 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		commits = append(commits, rebasingCommits...)
 	}
 
+	wg := sync.WaitGroup{}
+
+	wg.Add(2)
+
+	var logErr error
+	go utils.Safe(func() {
+		defer wg.Done()
+
+		logErr = self.getLogCmd(opts).RunAndProcessLines(func(line string) (bool, error) {
+			commit := self.extractCommitFromLine(line)
+			commits = append(commits, commit)
+			return false, nil
+		})
+	})
+
+	var ancestor string
+	go utils.Safe(func() {
+		defer wg.Done()
+
+		ancestor = self.getMergeBase(opts.RefName)
+	})
+
 	passedFirstPushedCommit := false
+	// I can get this before
 	firstPushedCommit, err := self.getFirstPushedCommit(opts.RefName)
 	if err != nil {
 		// must have no upstream branch so we'll consider everything as pushed
 		passedFirstPushedCommit = true
 	}
 
-	err = self.getLogCmd(opts).RunAndProcessLines(func(line string) (bool, error) {
-		commit := self.extractCommitFromLine(line)
+	wg.Wait()
+
+	if logErr != nil {
+		return nil, logErr
+	}
+
+	for _, commit := range commits {
 		if commit.Sha == firstPushedCommit {
 			passedFirstPushedCommit = true
 		}
-		commit.Status = map[bool]models.CommitStatus{true: models.StatusUnpushed, false: models.StatusPushed}[!passedFirstPushedCommit]
-		commits = append(commits, commit)
-		return false, nil
-	})
-	if err != nil {
-		return nil, err
+		if passedFirstPushedCommit {
+			commit.Status = models.StatusPushed
+		} else {
+			commit.Status = models.StatusUnpushed
+		}
 	}
 
 	if len(commits) == 0 {
 		return commits, nil
 	}
 
-	commits = self.setCommitMergedStatuses(opts.RefName, commits)
+	if ancestor != "" {
+		commits = self.setCommitMergedStatuses(ancestor, commits)
+	}
 
 	return commits, nil
 }
@@ -464,11 +495,7 @@ func (self *CommitLoader) commitFromPatch(content string) *models.Commit {
 	}
 }
 
-func (self *CommitLoader) setCommitMergedStatuses(refName string, commits []*models.Commit) []*models.Commit {
-	ancestor := self.getMergeBase(refName)
-	if ancestor == "" {
-		return commits
-	}
+func (self *CommitLoader) setCommitMergedStatuses(ancestor string, commits []*models.Commit) []*models.Commit {
 	passedAncestor := false
 	for i, commit := range commits {
 		if strings.HasPrefix(ancestor, commit.Sha) {
@@ -510,13 +537,25 @@ func (self *CommitLoader) getMergeBase(refName string) string {
 }
 
 func (self *CommitLoader) getExistingMainBranches() []string {
-	return lo.FilterMap(self.UserConfig.Git.MainBranches,
-		func(branchName string, _ int) (string, bool) {
+	var existingBranches []string
+	var wg sync.WaitGroup
+
+	mainBranches := self.UserConfig.Git.MainBranches
+	existingBranches = make([]string, len(mainBranches))
+
+	for i, branchName := range mainBranches {
+		wg.Add(1)
+		i := i
+		branchName := branchName
+		go utils.Safe(func() {
+			defer wg.Done()
+
 			// Try to determine upstream of local main branch
 			if ref, err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--symbolic-full-name", branchName+"@{u}").ToArgv(),
 			).DontLog().RunWithOutput(); err == nil {
-				return strings.TrimSpace(ref), true
+				existingBranches[i] = strings.TrimSpace(ref)
+				return
 			}
 
 			// If this failed, a local branch for this main branch doesn't exist or it
@@ -525,7 +564,8 @@ func (self *CommitLoader) getExistingMainBranches() []string {
 			if err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
 			).DontLog().Run(); err == nil {
-				return ref, true
+				existingBranches[i] = ref
+				return
 			}
 
 			// If this failed as well, try if we have the main branch as a local
@@ -535,11 +575,18 @@ func (self *CommitLoader) getExistingMainBranches() []string {
 			if err := self.cmd.New(
 				NewGitCmd("rev-parse").Arg("--verify", "--quiet", ref).ToArgv(),
 			).DontLog().Run(); err == nil {
-				return ref, true
+				existingBranches[i] = ref
 			}
-
-			return "", false
 		})
+	}
+
+	wg.Wait()
+
+	existingBranches = lo.Filter(existingBranches, func(branch string, _ int) bool {
+		return branch != ""
+	})
+
+	return existingBranches
 }
 
 func ignoringWarnings(commandOutput string) string {

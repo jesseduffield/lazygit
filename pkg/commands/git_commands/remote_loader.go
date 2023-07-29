@@ -1,15 +1,15 @@
 package git_commands
 
 import (
-	"fmt"
-	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/jesseduffield/generics/slices"
 	gogit "github.com/jesseduffield/go-git/v5"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type RemoteLoader struct {
@@ -31,29 +31,31 @@ func NewRemoteLoader(
 }
 
 func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
-	cmdArgs := NewGitCmd("branch").Arg("-r").ToArgv()
-	remoteBranchesStr, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
-	if err != nil {
-		return nil, err
-	}
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
+	var remoteBranchesByRemoteName map[string][]*models.RemoteBranch
+	var remoteBranchesErr error
+	go utils.Safe(func() {
+		defer wg.Done()
+
+		remoteBranchesByRemoteName, remoteBranchesErr = self.getRemoteBranchesByRemoteName()
+	})
 
 	goGitRemotes, err := self.getGoGitRemotes()
 	if err != nil {
 		return nil, err
 	}
 
-	// first step is to get our remotes from go-git
+	wg.Wait()
+
+	if remoteBranchesErr != nil {
+		return nil, remoteBranchesErr
+	}
+
 	remotes := slices.Map(goGitRemotes, func(goGitRemote *gogit.Remote) *models.Remote {
 		remoteName := goGitRemote.Config().Name
-
-		re := regexp.MustCompile(fmt.Sprintf(`(?m)^\s*%s\/([\S]+)`, regexp.QuoteMeta(remoteName)))
-		matches := re.FindAllStringSubmatch(remoteBranchesStr, -1)
-		branches := slices.Map(matches, func(match []string) *models.RemoteBranch {
-			return &models.RemoteBranch{
-				Name:       match[1],
-				RemoteName: remoteName,
-			}
-		})
+		branches := remoteBranchesByRemoteName[remoteName]
 
 		return &models.Remote{
 			Name:     goGitRemote.Config().Name,
@@ -75,4 +77,43 @@ func (self *RemoteLoader) GetRemotes() ([]*models.Remote, error) {
 	})
 
 	return remotes, nil
+}
+
+func (self *RemoteLoader) getRemoteBranchesByRemoteName() (map[string][]*models.RemoteBranch, error) {
+	remoteBranchesByRemoteName := make(map[string][]*models.RemoteBranch)
+
+	cmdArgs := NewGitCmd("branch").Arg("-r").ToArgv()
+	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line string) (bool, error) {
+		// excluding lines like 'origin/HEAD -> origin/master' (there will be a separate
+		// line for 'origin/master')
+		if strings.Contains(line, "->") {
+			return false, nil
+		}
+
+		line = strings.TrimSpace(line)
+
+		split := strings.SplitN(line, "/", 2)
+		if len(split) != 2 {
+			return false, nil
+		}
+		remoteName := split[0]
+		name := split[1]
+
+		_, ok := remoteBranchesByRemoteName[remoteName]
+		if !ok {
+			remoteBranchesByRemoteName[remoteName] = []*models.RemoteBranch{}
+		}
+
+		remoteBranchesByRemoteName[remoteName] = append(remoteBranchesByRemoteName[remoteName],
+			&models.RemoteBranch{
+				Name:       name,
+				RemoteName: remoteName,
+			})
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return remoteBranchesByRemoteName, nil
 }
