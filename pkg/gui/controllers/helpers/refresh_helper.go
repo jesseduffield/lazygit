@@ -607,6 +607,12 @@ func (self *RefreshHelper) refreshWorktrees() error {
 
 	self.c.Model().Worktrees = worktrees
 
+	// need to refresh branches because the branches view shows worktrees against
+	// branches
+	if err := self.c.PostRefreshUpdate(self.c.Contexts().Branches); err != nil {
+		return err
+	}
+
 	return self.c.PostRefreshUpdate(self.c.Contexts().Worktrees)
 }
 
