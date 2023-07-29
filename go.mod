@@ -37,6 +37,7 @@ require (
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stretchr/testify v1.8.0
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
+	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8
 	gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -66,7 +67,6 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
-	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/term v0.10.0 // indirect
