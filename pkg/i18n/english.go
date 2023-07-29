@@ -552,6 +552,9 @@ type Bisect struct {
 	ResetTitle                  string
 	ResetPrompt                 string
 	ResetOption                 string
+	ChooseTerms                 string
+	OldTermPrompt               string
+	NewTermPrompt               string
 	BisectMenuTitle             string
 	Mark                        string
 	Skip                        string
@@ -1350,6 +1353,9 @@ func EnglishTranslationSet() TranslationSet {
 			ResetTitle:                  "Reset 'git bisect'",
 			ResetPrompt:                 "Are you sure you want to reset 'git bisect'?",
 			ResetOption:                 "Reset bisect",
+			ChooseTerms:                 "Choose bisect terms",
+			OldTermPrompt:               "Term for old/good commit:",
+			NewTermPrompt:               "Term for new/bad commit:",
 			BisectMenuTitle:             "Bisect",
 			CompleteTitle:               "Bisect complete",
 			CompletePrompt:              "Bisect complete! The following commit introduced the change:\n\n%s\n\nDo you want to reset 'git bisect' now?",
