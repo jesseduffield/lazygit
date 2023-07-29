@@ -55,6 +55,11 @@ var AddFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(
 				Contains("mybranch").IsSelected(),
 				Contains("newbranch (worktree)"),
-			)
+			).
+			// Confirm the files view is still showing in the files window
+			Press(keys.Universal.PrevBlock)
+
+		t.Views().Files().
+			IsFocused()
 	},
 })
