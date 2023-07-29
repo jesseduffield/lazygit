@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -77,6 +78,10 @@ func GetRepoPaths() (RepoPaths, error) {
 		return &RepoDirsImpl{}, errors.Errorf("failed to get current path: %v", err)
 	}
 
+	// converting to forward slashes for the sake of windows (which uses backwards slashes). We want everything
+	// to have forward slashes internally
+	currentPath = filepath.ToSlash(currentPath)
+
 	worktreePath := currentPath
 	repoGitDirPath, repoPath, err := GetCurrentRepoGitDirPath(currentPath)
 	if err != nil {
@@ -86,7 +91,7 @@ func GetRepoPaths() (RepoPaths, error) {
 	if err != nil {
 		return &RepoDirsImpl{}, errors.Errorf("failed to get worktree git dir path: %v", err)
 	}
-	repoName := filepath.Base(repoPath)
+	repoName := path.Base(repoPath)
 
 	return &RepoDirsImpl{
 		currentPath:        currentPath,
@@ -103,7 +108,7 @@ func linkedWortkreePaths(repoGitDirPath string) []string {
 	result := []string{}
 	// For each directory in this path we're going to cat the `gitdir` file and append its contents to our result
 	// That file points us to the `.git` file in the worktree.
-	worktreeGitDirsPath := filepath.Join(repoGitDirPath, "worktrees")
+	worktreeGitDirsPath := path.Join(repoGitDirPath, "worktrees")
 
 	// ensure the directory exists
 	_, err := os.Stat(worktreeGitDirsPath)
@@ -111,7 +116,7 @@ func linkedWortkreePaths(repoGitDirPath string) []string {
 		return result
 	}
 
-	_ = filepath.Walk(worktreeGitDirsPath, func(path string, info fs.FileInfo, err error) error {
+	_ = filepath.Walk(worktreeGitDirsPath, func(currPath string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -120,7 +125,7 @@ func linkedWortkreePaths(repoGitDirPath string) []string {
 			return nil
 		}
 
-		gitDirPath := filepath.Join(path, "gitdir")
+		gitDirPath := path.Join(currPath, "gitdir")
 		gitDirBytes, err := os.ReadFile(gitDirPath)
 		if err != nil {
 			// ignoring error
@@ -128,7 +133,7 @@ func linkedWortkreePaths(repoGitDirPath string) []string {
 		}
 		trimmedGitDir := strings.TrimSpace(string(gitDirBytes))
 		// removing the .git part
-		worktreeDir := filepath.Dir(trimmedGitDir)
+		worktreeDir := path.Dir(trimmedGitDir)
 		result = append(result, worktreeDir)
 		return nil
 	})
@@ -142,7 +147,7 @@ func linkedWortkreePaths(repoGitDirPath string) []string {
 func worktreeGitDirPath(worktreePath string) (string, error) {
 	// if .git is a file, we're in a linked worktree, otherwise we're in
 	// the main worktree
-	dotGitPath := filepath.Join(worktreePath, ".git")
+	dotGitPath := path.Join(worktreePath, ".git")
 	gitFileInfo, err := os.Stat(dotGitPath)
 	if err != nil {
 		return "", err
@@ -156,7 +161,7 @@ func worktreeGitDirPath(worktreePath string) (string, error) {
 }
 
 func linkedWorktreeGitDirPath(worktreePath string) (string, error) {
-	dotGitPath := filepath.Join(worktreePath, ".git")
+	dotGitPath := path.Join(worktreePath, ".git")
 	gitFileContents, err := os.ReadFile(dotGitPath)
 	if err != nil {
 		return "", err
@@ -180,7 +185,7 @@ func GetCurrentRepoGitDirPath(currentPath string) (string, string, error) {
 	if env.GetGitDirEnv() != "" {
 		unresolvedGitPath = env.GetGitDirEnv()
 	} else {
-		unresolvedGitPath = filepath.Join(currentPath, ".git")
+		unresolvedGitPath = path.Join(currentPath, ".git")
 	}
 
 	gitPath, err := resolveSymlink(unresolvedGitPath)
@@ -196,7 +201,7 @@ func GetCurrentRepoGitDirPath(currentPath string) (string, string, error) {
 
 	if gitFileInfo.IsDir() {
 		// must be in the main worktree
-		return gitPath, filepath.Dir(gitPath), nil
+		return gitPath, path.Dir(gitPath), nil
 	}
 
 	// either in a submodule, or worktree
@@ -206,18 +211,18 @@ func GetCurrentRepoGitDirPath(currentPath string) (string, string, error) {
 	}
 
 	// confirm whether the next directory up is the worktrees/submodules directory
-	parent := filepath.Dir(worktreeGitPath)
-	if filepath.Base(parent) != "worktrees" && filepath.Base(parent) != "modules" {
+	parent := path.Dir(worktreeGitPath)
+	if path.Base(parent) != "worktrees" && path.Base(parent) != "modules" {
 		return "", "", errors.Errorf("could not find git dir for %s", currentPath)
 	}
 
 	// if it's a submodule, we treat it as its own repo
-	if filepath.Base(parent) == "modules" {
+	if path.Base(parent) == "modules" {
 		return worktreeGitPath, currentPath, nil
 	}
 
-	gitDirPath := filepath.Dir(parent)
-	return gitDirPath, filepath.Dir(gitDirPath), nil
+	gitDirPath := path.Dir(parent)
+	return gitDirPath, path.Dir(gitDirPath), nil
 }
 
 // takes a path containing a symlink and returns the true path
