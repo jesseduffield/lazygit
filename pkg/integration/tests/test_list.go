@@ -32,6 +32,7 @@ var tests = []*components.IntegrationTest{
 	bisect.Basic,
 	bisect.ChooseTerms,
 	bisect.FromOtherBranch,
+	bisect.Skip,
 	branch.CheckoutByName,
 	branch.CreateTag,
 	branch.Delete,

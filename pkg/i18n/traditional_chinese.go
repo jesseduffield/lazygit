@@ -698,7 +698,7 @@ func traditionalChineseTranslationSet() TranslationSet {
 		Bisect: Bisect{
 			Mark:                        "將 %s 標記為 %s",
 			MarkStart:                   "將 %s 標記為 %s（開始二分查找）",
-			Skip:                        "跳過 %s",
+			SkipCurrent:                 "跳過 %s",
 			ResetTitle:                  "重設 'git bisect'",
 			ResetPrompt:                 "你確定要重設 'git bisect' 嗎？",
 			ResetOption:                 "重設二分查找",

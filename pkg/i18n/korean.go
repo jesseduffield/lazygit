@@ -576,7 +576,7 @@ func koreanTranslationSet() TranslationSet {
 		Bisect: Bisect{
 			Mark:                        "Mark %s as %s",
 			MarkStart:                   "Mark %s as %s (start bisect)",
-			Skip:                        "%s 를 스킵",
+			SkipCurrent:                 "%s 를 스킵",
 			ResetTitle:                  "'git bisect' 를 리셋",
 			ResetPrompt:                 "정말로 'git bisect' 를 리셋하시겠습니까?",
 			ResetOption:                 "Bisect를 리셋",
