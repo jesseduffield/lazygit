@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 
 	"github.com/jesseduffield/generics/slices"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
@@ -75,6 +76,7 @@ func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 		Tr:         tr,
 		UserConfig: userConfig,
 		Debug:      config.GetDebug(),
+		Fs:         afero.NewOsFs(),
 	}, nil
 }
 

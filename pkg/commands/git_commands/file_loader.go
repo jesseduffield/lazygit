@@ -66,7 +66,7 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 
 	// Go through the files to see if any of these files are actually worktrees
 	// so that we can render them correctly
-	worktreePaths := linkedWortkreePaths(self.repoPaths.RepoGitDirPath())
+	worktreePaths := linkedWortkreePaths(self.Fs, self.repoPaths.RepoGitDirPath())
 	for _, file := range files {
 		for _, worktreePath := range worktreePaths {
 			absFilePath, err := filepath.Abs(file.Name)

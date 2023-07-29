@@ -1,31 +1,23 @@
 package git_commands
 
 import (
-	"io/fs"
-	"os"
+	iofs "io/fs"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"github.com/spf13/afero"
 )
 
 type WorktreeLoader struct {
 	*GitCommon
-	cmd oscommands.ICmdObjBuilder
 }
 
-func NewWorktreeLoader(
-	gitCommon *GitCommon,
-	cmd oscommands.ICmdObjBuilder,
-) *WorktreeLoader {
-	return &WorktreeLoader{
-		GitCommon: gitCommon,
-		cmd:       cmd,
-	}
+func NewWorktreeLoader(gitCommon *GitCommon) *WorktreeLoader {
+	return &WorktreeLoader{GitCommon: gitCommon}
 }
 
 func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
@@ -38,7 +30,9 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 		return nil, err
 	}
 
-	splitLines := utils.SplitLines(worktreesOutput)
+	splitLines := strings.Split(
+		utils.NormalizeLinefeeds(worktreesOutput), "\n",
+	)
 
 	var worktrees []*models.Worktree
 	var current *models.Worktree
@@ -64,7 +58,7 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			isPathMissing := self.pathExists(path)
 
 			var gitDir string
-			gitDir, err := worktreeGitDirPath(path)
+			gitDir, err := worktreeGitDirPath(self.Fs, path)
 			if err != nil {
 				self.Log.Warnf("Could not find git dir for worktree %s: %v", path, err)
 			}
@@ -114,13 +108,13 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 			continue
 		}
 
-		rebasedBranch, ok := rebasedBranch(worktree)
+		rebasedBranch, ok := self.rebasedBranch(worktree)
 		if ok {
 			worktree.Branch = rebasedBranch
 			continue
 		}
 
-		bisectedBranch, ok := bisectedBranch(worktree)
+		bisectedBranch, ok := self.bisectedBranch(worktree)
 		if ok {
 			worktree.Branch = bisectedBranch
 			continue
@@ -131,8 +125,8 @@ func (self *WorktreeLoader) GetWorktrees() ([]*models.Worktree, error) {
 }
 
 func (self *WorktreeLoader) pathExists(path string) bool {
-	if _, err := os.Stat(path); err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
+	if _, err := self.Fs.Stat(path); err != nil {
+		if errors.Is(err, iofs.ErrNotExist) {
 			return true
 		}
 		self.Log.Errorf("failed to check if worktree path `%s` exists\n%v", path, err)
@@ -141,9 +135,9 @@ func (self *WorktreeLoader) pathExists(path string) bool {
 	return false
 }
 
-func rebasedBranch(worktree *models.Worktree) (string, bool) {
+func (self *WorktreeLoader) rebasedBranch(worktree *models.Worktree) (string, bool) {
 	for _, dir := range []string{"rebase-merge", "rebase-apply"} {
-		if bytesContent, err := os.ReadFile(filepath.Join(worktree.GitDir, dir, "head-name")); err == nil {
+		if bytesContent, err := afero.ReadFile(self.Fs, filepath.Join(worktree.GitDir, dir, "head-name")); err == nil {
 			headName := strings.TrimSpace(string(bytesContent))
 			shortHeadName := strings.TrimPrefix(headName, "refs/heads/")
 			return shortHeadName, true
@@ -153,9 +147,9 @@ func rebasedBranch(worktree *models.Worktree) (string, bool) {
 	return "", false
 }
 
-func bisectedBranch(worktree *models.Worktree) (string, bool) {
+func (self *WorktreeLoader) bisectedBranch(worktree *models.Worktree) (string, bool) {
 	bisectStartPath := filepath.Join(worktree.GitDir, "BISECT_START")
-	startContent, err := os.ReadFile(bisectStartPath)
+	startContent, err := afero.ReadFile(self.Fs, bisectStartPath)
 	if err != nil {
 		return "", false
 	}
