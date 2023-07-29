@@ -135,7 +135,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 	}
 
 	if ancestor != "" {
-		commits = self.setCommitMergedStatuses(ancestor, commits)
+		commits = setCommitMergedStatuses(ancestor, commits)
 	}
 
 	return commits, nil
@@ -492,7 +492,7 @@ func (self *CommitLoader) commitFromPatch(content string) *models.Commit {
 	}
 }
 
-func (self *CommitLoader) setCommitMergedStatuses(ancestor string, commits []*models.Commit) []*models.Commit {
+func setCommitMergedStatuses(ancestor string, commits []*models.Commit) []*models.Commit {
 	passedAncestor := false
 	for i, commit := range commits {
 		if strings.HasPrefix(ancestor, commit.Sha) {
