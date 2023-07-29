@@ -495,7 +495,8 @@ func (self *CommitLoader) commitFromPatch(content string) *models.Commit {
 func setCommitMergedStatuses(ancestor string, commits []*models.Commit) []*models.Commit {
 	passedAncestor := false
 	for i, commit := range commits {
-		if strings.HasPrefix(ancestor, commit.Sha) {
+		// some commits aren't really commits and don't have sha's, such as the update-ref todo
+		if commit.Sha != "" && strings.HasPrefix(ancestor, commit.Sha) {
 			passedAncestor = true
 		}
 		if commit.Status != models.StatusPushed && commit.Status != models.StatusUnpushed {

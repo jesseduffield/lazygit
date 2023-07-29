@@ -541,7 +541,7 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 			expectedCommits: []*models.Commit{
 				{Sha: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
 				{Sha: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
-				{Sha: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusMerged}, // Wrong, expect Pushed
+				{Sha: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
 			},
 		},
 	}
