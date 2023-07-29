@@ -506,3 +506,50 @@ func TestCommitLoader_getConflictedCommitImpl(t *testing.T) {
 		})
 	}
 }
+
+func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
+	type scenario struct {
+		testName        string
+		commits         []*models.Commit
+		ancestor        string
+		expectedCommits []*models.Commit
+	}
+
+	scenarios := []scenario{
+		{
+			testName: "basic",
+			commits: []*models.Commit{
+				{Sha: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Sha: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusPushed},
+				{Sha: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
+			},
+			ancestor: "67890",
+			expectedCommits: []*models.Commit{
+				{Sha: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Sha: "67890", Name: "2", Action: models.ActionNone, Status: models.StatusMerged},
+				{Sha: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusMerged},
+			},
+		},
+		{
+			testName: "with update-ref",
+			commits: []*models.Commit{
+				{Sha: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Sha: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
+				{Sha: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusPushed},
+			},
+			ancestor: "deadbeef",
+			expectedCommits: []*models.Commit{
+				{Sha: "12345", Name: "1", Action: models.ActionNone, Status: models.StatusUnpushed},
+				{Sha: "", Name: "", Action: todo.UpdateRef, Status: models.StatusNone},
+				{Sha: "abcde", Name: "3", Action: models.ActionNone, Status: models.StatusMerged}, // Wrong, expect Pushed
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.testName, func(t *testing.T) {
+			expectedCommits := setCommitMergedStatuses(scenario.ancestor, scenario.commits)
+			assert.Equal(t, scenario.expectedCommits, expectedCommits)
+		})
+	}
+}
