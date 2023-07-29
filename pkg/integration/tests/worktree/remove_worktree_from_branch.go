@@ -46,7 +46,7 @@ var RemoveWorktreeFromBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("mybranch"),
-				Contains("newbranch").DoesNotContain("(worktree").IsSelected(),
+				Contains("newbranch").DoesNotContain("(worktree)").IsSelected(),
 			)
 
 		t.Views().Worktrees().
