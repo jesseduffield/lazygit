@@ -30,6 +30,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		commits                  []*models.Commit
 		branches                 []*models.Branch
 		currentBranchName        string
+		hasUpdateRefConfig       bool
 		fullDescription          bool
 		cherryPickedCommitShaSet *set.Set[string]
 		diffName                 string
@@ -106,6 +107,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "old-branch", CommitHash: "sha4", Head: false},
 			},
 			currentBranchName:        "current-branch",
+			hasUpdateRefConfig:       true,
 			startIdx:                 0,
 			length:                   4,
 			showGraph:                false,
@@ -117,6 +119,52 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		sha2 * commit2
 		sha3 commit3
 		sha4 commit4
+						`),
+		},
+		{
+			testName: "show local branch head for head commit if updateRefs is on",
+			commits: []*models.Commit{
+				{Name: "commit1", Sha: "sha1"},
+				{Name: "commit2", Sha: "sha2"},
+			},
+			branches: []*models.Branch{
+				{Name: "current-branch", CommitHash: "sha1", Head: true},
+				{Name: "other-branch", CommitHash: "sha1", Head: false},
+			},
+			currentBranchName:        "current-branch",
+			hasUpdateRefConfig:       true,
+			startIdx:                 0,
+			length:                   2,
+			showGraph:                false,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		sha1 * commit1
+		sha2 commit2
+						`),
+		},
+		{
+			testName: "don't show local branch head for head commit if updateRefs is off",
+			commits: []*models.Commit{
+				{Name: "commit1", Sha: "sha1"},
+				{Name: "commit2", Sha: "sha2"},
+			},
+			branches: []*models.Branch{
+				{Name: "current-branch", CommitHash: "sha1", Head: true},
+				{Name: "other-branch", CommitHash: "sha1", Head: false},
+			},
+			currentBranchName:        "current-branch",
+			hasUpdateRefConfig:       false,
+			startIdx:                 0,
+			length:                   2,
+			showGraph:                false,
+			bisectInfo:               git_commands.NewNullBisectInfo(),
+			cherryPickedCommitShaSet: set.New[string](),
+			now:                      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			expected: formatExpected(`
+		sha1 commit1
+		sha2 commit2
 						`),
 		},
 		{
@@ -356,6 +404,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.commits,
 					s.branches,
 					s.currentBranchName,
+					s.hasUpdateRefConfig,
 					s.fullDescription,
 					s.cherryPickedCommitShaSet,
 					s.diffName,

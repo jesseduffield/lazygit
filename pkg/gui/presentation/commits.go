@@ -41,6 +41,7 @@ func GetCommitListDisplayStrings(
 	commits []*models.Commit,
 	branches []*models.Branch,
 	currentBranchName string,
+	showBranchMarkerForHeadCommit bool,
 	fullDescription bool,
 	cherryPickedCommitShaSet *set.Set[string],
 	diffName string,
@@ -106,6 +107,9 @@ func GetCommitListDisplayStrings(
 	// that are not the current branch, and not any of the main branches. The
 	// goal is to visualize stacks of local branches, so anything that doesn't
 	// contribute to a branch stack shouldn't show a marker.
+	//
+	// If there are other branches pointing to the current head commit, we only
+	// want to show the marker if the rebase.updateRefs config is on.
 	branchHeadsToVisualize := set.NewFromSlice(lo.FilterMap(branches,
 		func(b *models.Branch, index int) (string, bool) {
 			return b.CommitHash,
@@ -116,7 +120,10 @@ func GetCommitListDisplayStrings(
 					// Don't show a marker for the current branch
 					b.Name != currentBranchName &&
 					// Don't show a marker for main branches
-					!lo.Contains(common.UserConfig.Git.MainBranches, b.Name)
+					!lo.Contains(common.UserConfig.Git.MainBranches, b.Name) &&
+					// Don't show a marker for the head commit unless the
+					// rebase.updateRefs config is on
+					(showBranchMarkerForHeadCommit || b.CommitHash != commits[0].Sha)
 		}))
 
 	lines := make([][]string, 0, len(filteredCommits))
