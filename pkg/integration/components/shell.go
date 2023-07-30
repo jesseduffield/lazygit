@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
-
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
 // this is for running shell commands, mostly for the sake of setting up the repo
@@ -44,7 +43,7 @@ func (self *Shell) RunCommandExpectError(args []string) *Shell {
 }
 
 func (self *Shell) runCommandWithOutput(args []string) (string, error) {
-	cmd := secureexec.Command(args[0], args[1:]...)
+	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = os.Environ()
 	cmd.Dir = self.dir
 
@@ -61,7 +60,7 @@ func (self *Shell) RunShellCommand(cmdStr string) *Shell {
 		shellArg = "/C"
 	}
 
-	cmd := secureexec.Command(shell, shellArg, cmdStr)
+	cmd := exec.Command(shell, shellArg, cmdStr)
 	cmd.Env = os.Environ()
 	cmd.Dir = self.dir
 

@@ -7,8 +7,6 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
-
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
 // including license from https://github.com/tcnksm/go-gitconfig because this file is an adaptation of that repo's code
@@ -55,10 +53,10 @@ func runGitConfigCmd(cmd *exec.Cmd) (string, error) {
 
 func getGitConfigCmd(key string) *exec.Cmd {
 	gitArgs := []string{"config", "--get", "--null", key}
-	return secureexec.Command("git", gitArgs...)
+	return exec.Command("git", gitArgs...)
 }
 
 func getGitConfigGeneralCmd(args string) *exec.Cmd {
 	gitArgs := append([]string{"config"}, strings.Split(args, " ")...)
-	return secureexec.Command("git", gitArgs...)
+	return exec.Command("git", gitArgs...)
 }

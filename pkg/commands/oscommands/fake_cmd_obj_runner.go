@@ -3,8 +3,6 @@ package oscommands
 import (
 	"bufio"
 	"fmt"
-	"regexp"
-	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -124,27 +122,7 @@ func (self *FakeCmdObjRunner) ExpectFunc(description string, fn func(cmdObj ICmd
 func (self *FakeCmdObjRunner) ExpectArgs(expectedArgs []string, output string, err error) *FakeCmdObjRunner {
 	description := fmt.Sprintf("matches args %s", strings.Join(expectedArgs, " "))
 	self.ExpectFunc(description, func(cmdObj ICmdObj) bool {
-		args := cmdObj.GetCmd().Args
-
-		if runtime.GOOS == "windows" {
-			// thanks to the secureexec package, the first arg is something like
-			// '"C:\\Program Files\\Git\\mingw64\\bin\\<command>.exe"
-			// on windows so we'll just ensure it contains our program
-			if !strings.Contains(args[0], expectedArgs[0]) {
-				return false
-			}
-		} else {
-			// first arg is the program name
-			if expectedArgs[0] != args[0] {
-				return false
-			}
-		}
-
-		if !slices.Equal(expectedArgs[1:], args[1:]) {
-			return false
-		}
-
-		return true
+		return slices.Equal(expectedArgs, cmdObj.GetCmd().Args)
 	}, output, err)
 
 	return self
@@ -153,18 +131,7 @@ func (self *FakeCmdObjRunner) ExpectArgs(expectedArgs []string, output string, e
 func (self *FakeCmdObjRunner) ExpectGitArgs(expectedArgs []string, output string, err error) *FakeCmdObjRunner {
 	description := fmt.Sprintf("matches git args %s", strings.Join(expectedArgs, " "))
 	self.ExpectFunc(description, func(cmdObj ICmdObj) bool {
-		// first arg is 'git' on unix and something like '"C:\\Program Files\\Git\\mingw64\\bin\\git.exe" on windows so we'll just ensure it ends in either 'git' or 'git.exe'
-		re := regexp.MustCompile(`git(\.exe)?$`)
-		args := cmdObj.GetCmd().Args
-		if !re.MatchString(args[0]) {
-			return false
-		}
-
-		if !slices.Equal(expectedArgs, args[1:]) {
-			return false
-		}
-
-		return true
+		return slices.Equal(expectedArgs, cmdObj.GetCmd().Args[1:])
 	}, output, err)
 
 	return self

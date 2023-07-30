@@ -6,13 +6,13 @@ package tail
 import (
 	"log"
 	"os"
+	"os/exec"
 
 	"github.com/aybabtme/humanlog"
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 )
 
 func tailLogsForPlatform(logFilePath string, opts *humanlog.HandlerOptions) {
-	cmd := secureexec.Command("tail", "-f", logFilePath)
+	cmd := exec.Command("tail", "-f", logFilePath)
 
 	stdout, _ := cmd.StdoutPipe()
 	if err := cmd.Start(); err != nil {

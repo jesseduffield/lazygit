@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/common"
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
@@ -92,7 +92,7 @@ func getDaemonKind() DaemonKind {
 }
 
 func getCommentChar() byte {
-	cmd := secureexec.Command("git", "config", "--get", "--null", "core.commentChar")
+	cmd := exec.Command("git", "config", "--get", "--null", "core.commentChar")
 	if output, err := cmd.Output(); err == nil && len(output) == 2 {
 		return output[0]
 	}

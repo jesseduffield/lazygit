@@ -3,9 +3,9 @@ package oscommands
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/mgutz/str"
 )
 
@@ -27,11 +27,10 @@ type CmdObjBuilder struct {
 var _ ICmdObjBuilder = &CmdObjBuilder{}
 
 func (self *CmdObjBuilder) New(args []string) ICmdObj {
-	cmd := secureexec.Command(args[0], args[1:]...)
+	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = os.Environ()
 
 	return &CmdObj{
-		args:   args,
 		cmd:    cmd,
 		runner: self.runner,
 	}
