@@ -34,6 +34,7 @@ require (
 	github.com/sanity-io/litter v1.5.2
 	github.com/sasha-s/go-deadlock v0.3.1
 	github.com/sirupsen/logrus v1.4.2
+	github.com/spf13/afero v1.9.5
 	github.com/spkg/bom v0.0.0-20160624110644-59b7046e48ad
 	github.com/stretchr/testify v1.8.0
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
@@ -65,10 +66,8 @@ require (
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
-	github.com/spf13/afero v1.9.5 // indirect
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
-	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/term v0.10.0 // indirect
