@@ -6,4 +6,5 @@
 * [Keybindings](./keybindings)
 * [Undo/Redo](./Undoing.md)
 * [Searching/Filtering](./Searching.md)
+* [Stacked Branches](./Stacked_Branches.md)
 * [Dev docs](./dev)
