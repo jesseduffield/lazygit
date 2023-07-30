@@ -7,9 +7,6 @@ github.com/atotto/clipboard
 # github.com/aybabtme/humanlog v0.4.1
 ## explicit; go 1.13
 github.com/aybabtme/humanlog
-# github.com/cli/safeexec v1.0.0
-## explicit; go 1.15
-github.com/cli/safeexec
 # github.com/cloudfoundry/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 ## explicit
 github.com/cloudfoundry/jibber_jabber

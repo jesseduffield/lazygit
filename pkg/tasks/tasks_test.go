@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/gocui"
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -46,7 +45,7 @@ func TestNewCmdTaskInstantStop(t *testing.T) {
 	reader := bytes.NewBufferString("test")
 	start := func() (*exec.Cmd, io.Reader) {
 		// not actually starting this because it's not necessary
-		cmd := secureexec.Command("blah blah")
+		cmd := exec.Command("blah")
 
 		close(stop)
 
@@ -111,7 +110,7 @@ func TestNewCmdTask(t *testing.T) {
 	reader := bytes.NewBufferString("test")
 	start := func() (*exec.Cmd, io.Reader) {
 		// not actually starting this because it's not necessary
-		cmd := secureexec.Command("blah blah")
+		cmd := exec.Command("blah")
 
 		return cmd, reader
 	}
@@ -246,7 +245,7 @@ func TestNewCmdTaskRefresh(t *testing.T) {
 		reader := BlankLineReader{totalLinesToYield: s.totalTaskLines}
 		start := func() (*exec.Cmd, io.Reader) {
 			// not actually starting this because it's not necessary
-			cmd := secureexec.Command("blah blah")
+			cmd := exec.Command("blah")
 
 			return cmd, &reader
 		}

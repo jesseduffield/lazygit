@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
@@ -17,7 +18,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/env"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/logs/tail"
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
@@ -280,7 +280,7 @@ func mergeBuildInfo(buildInfo *BuildInfo) {
 }
 
 func getGitVersionInfo() string {
-	cmd := secureexec.Command("git", "--version")
+	cmd := exec.Command("git", "--version")
 	stdout, _ := cmd.Output()
 	gitVersion := strings.Trim(strings.TrimPrefix(string(stdout), "git version "), " \r\n")
 	return gitVersion

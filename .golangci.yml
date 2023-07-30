@@ -26,4 +26,4 @@ linters-settings:
     max-func-lines: 0
 
 run:
-  go: 1.18
+  go: 1.20

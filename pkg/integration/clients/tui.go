@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
-	"github.com/jesseduffield/lazygit/pkg/secureexec"
 	"github.com/samber/lo"
 )
 
@@ -124,7 +124,7 @@ func RunTUI() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code -r pkg/integration/tests/%s.go", currentTest.Name()))
+		cmd := exec.Command("sh", "-c", fmt.Sprintf("code -r pkg/integration/tests/%s.go", currentTest.Name()))
 		if err := cmd.Run(); err != nil {
 			return err
 		}
@@ -140,7 +140,7 @@ func RunTUI() {
 			return nil
 		}
 
-		cmd := secureexec.Command("sh", "-c", fmt.Sprintf("code test/results/%s", currentTest.Name()))
+		cmd := exec.Command("sh", "-c", fmt.Sprintf("code test/results/%s", currentTest.Name()))
 		if err := cmd.Run(); err != nil {
 			return err
 		}
