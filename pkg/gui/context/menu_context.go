@@ -1,7 +1,6 @@
 package context
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -82,11 +81,11 @@ func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem, columnAlignment
 // TODO: move into presentation package
 func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]string {
 	menuItems := self.FilteredListViewModel.GetItems()
-	showKeys := slices.Some(menuItems, func(item *types.MenuItem) bool {
+	showKeys := lo.SomeBy(menuItems, func(item *types.MenuItem) bool {
 		return item.Key != nil
 	})
 
-	return slices.Map(menuItems, func(item *types.MenuItem) []string {
+	return lo.Map(menuItems, func(item *types.MenuItem, _ int) []string {
 		displayStrings := item.LabelColumns
 
 		if !showKeys {
@@ -107,18 +106,18 @@ func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]str
 			keyStyle = style.FgDefault.SetStrikethrough()
 		}
 
-		displayStrings = slices.Prepend(displayStrings, keyStyle.Sprint(keyLabel))
+		displayStrings = utils.Prepend(displayStrings, keyStyle.Sprint(keyLabel))
 		return displayStrings
 	})
 }
 
 func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
 	basicBindings := self.ListContextTrait.GetKeybindings(opts)
-	menuItemsWithKeys := slices.Filter(self.menuItems, func(item *types.MenuItem) bool {
+	menuItemsWithKeys := lo.Filter(self.menuItems, func(item *types.MenuItem, _ int) bool {
 		return item.Key != nil
 	})
 
-	menuItemBindings := slices.Map(menuItemsWithKeys, func(item *types.MenuItem) *types.Binding {
+	menuItemBindings := lo.Map(menuItemsWithKeys, func(item *types.MenuItem, _ int) *types.Binding {
 		return &types.Binding{
 			Key:     item.Key,
 			Handler: func() error { return self.OnMenuPress(item) },

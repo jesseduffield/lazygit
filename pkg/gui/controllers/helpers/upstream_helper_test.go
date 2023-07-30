@@ -3,8 +3,8 @@ package helpers
 import (
 	"testing"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +25,7 @@ func TestGetSuggestedRemote(t *testing.T) {
 }
 
 func mkRemoteList(names ...string) []*models.Remote {
-	return slices.Map(names, func(name string) *models.Remote {
+	return lo.Map(names, func(name string, _ int) *models.Remote {
 		return &models.Remote{Name: name}
 	})
 }

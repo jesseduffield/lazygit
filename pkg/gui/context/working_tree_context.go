@@ -1,11 +1,11 @@
 package context
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type WorkingTreeContext struct {
@@ -25,7 +25,7 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
 		lines := presentation.RenderFileTree(viewModel, c.Modes().Diffing.Ref, c.Model().Submodules)
-		return slices.Map(lines, func(line string) []string {
+		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}
 		})
 	}

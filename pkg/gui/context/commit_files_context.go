@@ -1,12 +1,12 @@
 package context
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type CommitFilesContext struct {
@@ -34,7 +34,7 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 		}
 
 		lines := presentation.RenderCommitFileTree(viewModel, c.Modes().Diffing.Ref, c.Git().Patch.PatchBuilder)
-		return slices.Map(lines, func(line string) []string {
+		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}
 		})
 	}

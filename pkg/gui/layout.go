@@ -1,11 +1,12 @@
 package gui
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 // layout is called for every screen re-render e.g. when the screen is resized
@@ -196,11 +197,11 @@ func (gui *Gui) onInitialViewsCreationForRepo() error {
 }
 
 func (gui *Gui) popupViewNames() []string {
-	popups := slices.Filter(gui.State.Contexts.Flatten(), func(c types.Context) bool {
+	popups := lo.Filter(gui.State.Contexts.Flatten(), func(c types.Context, _ int) bool {
 		return c.GetKind() == types.PERSISTENT_POPUP || c.GetKind() == types.TEMPORARY_POPUP
 	})
 
-	return slices.Map(popups, func(c types.Context) string {
+	return lo.Map(popups, func(c types.Context, _ int) string {
 		return c.GetViewName()
 	})
 }
@@ -223,7 +224,7 @@ func (gui *Gui) onRepoViewReset() error {
 			})
 
 			if index != -1 {
-				view.Tabs = slices.Map(values, func(tabContext context.TabView) string {
+				view.Tabs = lo.Map(values, func(tabContext context.TabView, _ int) string {
 					return tabContext.Tab
 				})
 				view.TabIndex = index
@@ -287,7 +288,7 @@ func (gui *Gui) onViewFocusLost(oldView *gocui.View) error {
 }
 
 func (gui *Gui) transientContexts() []types.Context {
-	return slices.Filter(gui.State.Contexts.Flatten(), func(context types.Context) bool {
+	return lo.Filter(gui.State.Contexts.Flatten(), func(context types.Context, _ int) bool {
 		return context.IsTransient()
 	})
 }

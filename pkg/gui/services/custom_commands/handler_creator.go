@@ -5,7 +5,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
@@ -193,7 +192,7 @@ func (self *HandlerCreator) confirmPrompt(prompt *config.CustomCommandPrompt, ha
 }
 
 func (self *HandlerCreator) menuPrompt(prompt *config.CustomCommandPrompt, wrappedF func(string) error) error {
-	menuItems := slices.Map(prompt.Options, func(option config.CustomCommandMenuOption) *types.MenuItem {
+	menuItems := lo.Map(prompt.Options, func(option config.CustomCommandMenuOption, _ int) *types.MenuItem {
 		return &types.MenuItem{
 			LabelColumns: []string{option.Name, style.FgYellow.Sprint(option.Description)},
 			OnPress: func() error {
@@ -218,7 +217,7 @@ func (self *HandlerCreator) menuPromptFromCommand(prompt *config.CustomCommandPr
 		return self.c.Error(err)
 	}
 
-	menuItems := slices.Map(candidates, func(candidate *commandMenuItem) *types.MenuItem {
+	menuItems := lo.Map(candidates, func(candidate *commandMenuItem, _ int) *types.MenuItem {
 		return &types.MenuItem{
 			LabelColumns: []string{candidate.label},
 			OnPress: func() error {

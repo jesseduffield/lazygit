@@ -2,8 +2,8 @@ package cherrypicking
 
 import (
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/samber/lo"
 )
 
 type CherryPicking struct {
@@ -25,7 +25,7 @@ func (self *CherryPicking) Active() bool {
 }
 
 func (self *CherryPicking) SelectedShaSet() *set.Set[string] {
-	shas := slices.Map(self.CherryPickedCommits, func(commit *models.Commit) string {
+	shas := lo.Map(self.CherryPickedCommits, func(commit *models.Commit, _ int) string {
 		return commit.Sha
 	})
 	return set.NewFromSlice(shas)
@@ -46,11 +46,11 @@ func (self *CherryPicking) Remove(selectedCommit *models.Commit, commitsList []*
 }
 
 func (self *CherryPicking) update(selectedShaSet *set.Set[string], commitsList []*models.Commit) {
-	cherryPickedCommits := slices.Filter(commitsList, func(commit *models.Commit) bool {
+	cherryPickedCommits := lo.Filter(commitsList, func(commit *models.Commit, _ int) bool {
 		return selectedShaSet.Includes(commit.Sha)
 	})
 
-	self.CherryPickedCommits = slices.Map(cherryPickedCommits, func(commit *models.Commit) *models.Commit {
+	self.CherryPickedCommits = lo.Map(cherryPickedCommits, func(commit *models.Commit, _ int) *models.Commit {
 		return &models.Commit{Name: commit.Name, Sha: commit.Sha}
 	})
 }

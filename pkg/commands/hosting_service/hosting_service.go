@@ -8,9 +8,10 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 
-	"github.com/jesseduffield/generics/slices"
+	"golang.org/x/exp/slices"
 )
 
 // This package is for handling logic specific to a git hosting service like github, gitlab, bitbucket, gitea, etc.
@@ -111,7 +112,7 @@ func (self *HostingServiceMgr) getCandidateServiceDomains() []ServiceDomain {
 
 			serviceDefinition, ok := serviceDefinitionByProvider[provider]
 			if !ok {
-				providerNames := slices.Map(serviceDefinitions, func(serviceDefinition ServiceDefinition) string {
+				providerNames := lo.Map(serviceDefinitions, func(serviceDefinition ServiceDefinition, _ int) string {
 					return serviceDefinition.provider
 				})
 

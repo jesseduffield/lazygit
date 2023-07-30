@@ -1,11 +1,11 @@
 package gui
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type viewNameMapping struct {
@@ -14,7 +14,7 @@ type viewNameMapping struct {
 }
 
 func (gui *Gui) orderedViews() []*gocui.View {
-	return slices.Map(gui.orderedViewNameMappings(), func(v viewNameMapping) *gocui.View {
+	return lo.Map(gui.orderedViewNameMappings(), func(v viewNameMapping, _ int) *gocui.View {
 		return *v.viewPtr
 	})
 }

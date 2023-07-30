@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type MergeAndRebaseHelper struct {
@@ -51,7 +51,7 @@ func (self *MergeAndRebaseHelper) CreateRebaseOptionsMenu() error {
 		})
 	}
 
-	menuItems := slices.Map(options, func(row optionAndKey) *types.MenuItem {
+	menuItems := lo.Map(options, func(row optionAndKey, _ int) *types.MenuItem {
 		return &types.MenuItem{
 			Label: row.option,
 			OnPress: func() error {

@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazycore/pkg/utils"
 	"github.com/jesseduffield/lazygit/pkg/gui"
@@ -15,6 +14,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/components"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests"
 	"github.com/jesseduffield/lazygit/pkg/secureexec"
+	"github.com/samber/lo"
 )
 
 // This program lets you run integration tests from a TUI. See pkg/integration/README.md for more info.
@@ -245,7 +245,7 @@ func (self *app) filterWithString(needle string) {
 	if needle == "" {
 		self.filteredTests = self.allTests
 	} else {
-		self.filteredTests = slices.Filter(self.allTests, func(test *components.IntegrationTest) bool {
+		self.filteredTests = lo.Filter(self.allTests, func(test *components.IntegrationTest, _ int) bool {
 			return strings.Contains(test.Name(), needle)
 		})
 	}

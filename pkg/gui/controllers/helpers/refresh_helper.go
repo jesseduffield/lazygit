@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/jesseduffield/generics/set"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -18,6 +17,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type RefreshHelper struct {
@@ -211,7 +211,7 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.MERGE_CONFLICTS: "mergeConflicts",
 	}
 
-	return slices.Map(scopes, func(scope types.RefreshableView) string {
+	return lo.Map(scopes, func(scope types.RefreshableView, _ int) string {
 		return scopeNameMap[scope]
 	})
 }

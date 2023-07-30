@@ -1,14 +1,14 @@
 package presentation
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/samber/lo"
 )
 
 func GetStashEntryListDisplayStrings(stashEntries []*models.StashEntry, diffName string) [][]string {
-	return slices.Map(stashEntries, func(stashEntry *models.StashEntry) []string {
+	return lo.Map(stashEntries, func(stashEntry *models.StashEntry, _ int) []string {
 		diffed := stashEntry.RefName() == diffName
 		return getStashEntryDisplayStrings(stashEntry, diffed)
 	})

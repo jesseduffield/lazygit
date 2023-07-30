@@ -1,5 +1,7 @@
 package utils
 
+import "golang.org/x/exp/slices"
+
 // NextIndex returns the index of the element that comes after the given number
 func NextIndex(numbers []int, currentNumber int) int {
 	for index, number := range numbers {
@@ -123,4 +125,57 @@ func ValuesAtIndices[T any](slice []T, indices []int) []T {
 		}
 	}
 	return result
+}
+
+// returns two slices: the first is for elements that pass the test, the second for those that don't.
+func Partition[T any](slice []T, test func(T) bool) ([]T, []T) {
+	left := make([]T, 0, len(slice))
+	right := make([]T, 0, len(slice))
+
+	for _, value := range slice {
+		if test(value) {
+			left = append(left, value)
+		} else {
+			right = append(right, value)
+		}
+	}
+
+	return left, right
+}
+
+// Prepends items to the beginning of a slice.
+// E.g. Prepend([]int{1,2}, 3, 4) = []int{3,4,1,2}
+// Mutates original slice. Intended usage is to reassign the slice result to the input slice.
+func Prepend[T any](slice []T, values ...T) []T {
+	return append(values, slice...)
+}
+
+// Removes the element at the given index. Intended usage is to reassign the result to the input slice.
+func Remove[T any](slice []T, index int) []T {
+	return slices.Delete(slice, index, index+1)
+}
+
+// Removes the element at the 'fromIndex' and then inserts it at 'toIndex'.
+// Operates on the input slice. Expected use is to reassign the result to the input slice.
+func Move[T any](slice []T, fromIndex int, toIndex int) []T {
+	item := slice[fromIndex]
+	slice = Remove(slice, fromIndex)
+	return slices.Insert(slice, toIndex, item)
+}
+
+// Pops item from the end of the slice and returns it, along with the updated slice
+// Mutates original slice. Intended usage is to reassign the slice result to the input slice.
+func Pop[T any](slice []T) (T, []T) {
+	index := len(slice) - 1
+	value := slice[index]
+	slice = slice[0:index]
+	return value, slice
+}
+
+// Shifts item from the beginning of the slice and returns it, along with the updated slice.
+// Mutates original slice. Intended usage is to reassign the slice result to the input slice.
+func Shift[T any](slice []T) (T, []T) {
+	value := slice[0]
+	slice = slice[1:]
+	return value, slice
 }

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/maps"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 )
@@ -209,10 +208,10 @@ func (p *PatchBuilder) renderEachFilePatch(plain bool) []string {
 	filenames := maps.Keys(p.fileInfoMap)
 
 	sort.Strings(filenames)
-	patches := slices.Map(filenames, func(filename string) string {
+	patches := lo.Map(filenames, func(filename string, _ int) string {
 		return p.RenderPatchForFile(filename, plain, false)
 	})
-	output := slices.Filter(patches, func(patch string) bool {
+	output := lo.Filter(patches, func(patch string, _ int) bool {
 		return patch != ""
 	})
 

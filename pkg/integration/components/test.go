@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 // IntegrationTest describes an integration test that will be run against the lazygit gui.
@@ -102,7 +102,7 @@ func (self GitVersionRestriction) shouldRunOnVersion(version *git_commands.GitVe
 		return version.IsOlderThanVersion(before)
 	}
 	if len(self.includes) != 0 {
-		return slices.Some(self.includes, func(str string) bool {
+		return lo.SomeBy(self.includes, func(str string) bool {
 			v, err := git_commands.ParseGitVersion(str)
 			if err != nil {
 				panic("Invalid git version string: " + str)

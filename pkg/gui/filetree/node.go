@@ -1,9 +1,10 @@
 package filetree
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 // Represents a file or directory in a file tree.
@@ -152,7 +153,7 @@ func (self *Node[T]) Flatten(collapsedPaths *CollapsedPaths) []*Node[T] {
 	result := []*Node[T]{self}
 
 	if len(self.Children) > 0 && !collapsedPaths.IsCollapsed(self.GetPath()) {
-		result = append(result, slices.FlatMap(self.Children, func(child *Node[T]) []*Node[T] {
+		result = append(result, lo.FlatMap(self.Children, func(child *Node[T], _ int) []*Node[T] {
 			return child.Flatten(collapsedPaths)
 		})...)
 	}
@@ -273,11 +274,11 @@ func (self *Node[T]) GetPathsMatching(test func(*Node[T]) bool) []string {
 }
 
 func (self *Node[T]) GetFilePathsMatching(test func(*T) bool) []string {
-	matchingFileNodes := slices.Filter(self.GetLeaves(), func(node *Node[T]) bool {
+	matchingFileNodes := lo.Filter(self.GetLeaves(), func(node *Node[T], _ int) bool {
 		return test(node.File)
 	})
 
-	return slices.Map(matchingFileNodes, func(node *Node[T]) string {
+	return lo.Map(matchingFileNodes, func(node *Node[T], _ int) string {
 		return node.GetPath()
 	})
 }
@@ -287,7 +288,7 @@ func (self *Node[T]) GetLeaves() []*Node[T] {
 		return []*Node[T]{self}
 	}
 
-	return slices.FlatMap(self.Children, func(child *Node[T]) []*Node[T] {
+	return lo.FlatMap(self.Children, func(child *Node[T], _ int) []*Node[T] {
 		return child.GetLeaves()
 	})
 }

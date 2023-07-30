@@ -1,15 +1,15 @@
 package presentation
 
 import (
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/samber/lo"
 )
 
 func GetRemoteListDisplayStrings(remotes []*models.Remote, diffName string) [][]string {
-	return slices.Map(remotes, func(remote *models.Remote) []string {
+	return lo.Map(remotes, func(remote *models.Remote, _ int) []string {
 		diffed := remote.Name == diffName
 		return getRemoteDisplayStrings(remote, diffed)
 	})

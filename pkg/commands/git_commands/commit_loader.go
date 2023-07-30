@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
@@ -233,7 +232,7 @@ func (self *CommitLoader) getHydratedRebasingCommits(rebaseMode enums.RebaseMode
 		return nil, nil
 	}
 
-	commitShas := slices.FilterMap(commits, func(commit *models.Commit) (string, bool) {
+	commitShas := lo.FilterMap(commits, func(commit *models.Commit, _ int) (string, bool) {
 		return commit.Sha, commit.Sha != ""
 	})
 
@@ -379,7 +378,7 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 			// Command does not have a commit associated, skip
 			continue
 		}
-		commits = slices.Prepend(commits, &models.Commit{
+		commits = utils.Prepend(commits, &models.Commit{
 			Sha:    t.Commit,
 			Name:   t.Msg,
 			Status: models.StatusRebasing,

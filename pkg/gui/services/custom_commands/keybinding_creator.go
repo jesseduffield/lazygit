@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 // KeybindingCreator takes a custom command along with its handler and returns a corresponding keybinding
@@ -73,7 +73,7 @@ func (self *KeybindingCreator) contextForContextKey(contextKey types.ContextKey)
 }
 
 func formatUnknownContextError(customCommand config.CustomCommand) error {
-	allContextKeyStrings := slices.Map(context.AllContextKeys, func(key types.ContextKey) string {
+	allContextKeyStrings := lo.Map(context.AllContextKeys, func(key types.ContextKey, _ int) string {
 		return string(key)
 	})
 

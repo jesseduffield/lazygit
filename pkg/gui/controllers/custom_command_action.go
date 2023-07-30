@@ -3,7 +3,6 @@ package controllers
 import (
 	"strings"
 
-	"github.com/jesseduffield/generics/slices"
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -41,7 +40,7 @@ func (self *CustomCommandAction) Call() error {
 
 func (self *CustomCommandAction) GetCustomCommandsHistorySuggestionsFunc() func(string) []*types.Suggestion {
 	// reversing so that we display the latest command first
-	history := slices.Reverse(self.c.GetAppState().CustomCommandsHistory)
+	history := lo.Reverse(self.c.GetAppState().CustomCommandsHistory)
 
 	return helpers.FuzzySearchFunc(history)
 }
