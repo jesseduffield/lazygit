@@ -394,6 +394,10 @@ func (c *gcmCipher) readCipherPacket(seqNum uint32, r io.Reader) ([]byte, error)
 	}
 	c.incIV()
 
+	if len(plain) == 0 {
+		return nil, errors.New("ssh: empty packet")
+	}
+
 	padding := plain[0]
 	if padding < 4 {
 		// padding is a byte, so it automatically satisfies
@@ -636,7 +640,7 @@ const chacha20Poly1305ID = "chacha20-poly1305@openssh.com"
 // chacha20Poly1305Cipher implements the chacha20-poly1305@openssh.com
 // AEAD, which is described here:
 //
-//   https://tools.ietf.org/html/draft-josefsson-ssh-chacha20-poly1305-openssh-00
+//	https://tools.ietf.org/html/draft-josefsson-ssh-chacha20-poly1305-openssh-00
 //
 // the methods here also implement padding, which RFC4253 Section 6
 // also requires of stream ciphers.
@@ -709,6 +713,10 @@ func (c *chacha20Poly1305Cipher) readCipherPacket(seqNum uint32, r io.Reader) ([
 
 	plain := c.buf[4:contentEnd]
 	s.XORKeyStream(plain, plain)
+
+	if len(plain) == 0 {
+		return nil, errors.New("ssh: empty packet")
+	}
 
 	padding := plain[0]
 	if padding < 4 {

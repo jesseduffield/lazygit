@@ -28,6 +28,8 @@ func (gui *Gui) updateRecentRepoList() error {
 	}
 	known, recentRepos := newRecentReposList(recentRepos, currentRepo)
 	gui.IsNewRepo = known
+	// TODO: migrate this file to use forward slashes on all OSes for consistency
+	// (windows uses backslashes at the moment)
 	gui.c.GetAppState().RecentRepos = recentRepos
 	return gui.c.SaveAppState()
 }

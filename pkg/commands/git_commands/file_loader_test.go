@@ -5,7 +5,6 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,7 +40,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasMergeConflicts:       false,
 					HasInlineMergeConflicts: false,
 					DisplayString:           "MM file1.txt",
-					Type:                    "file",
 					ShortStatus:             "MM",
 				},
 				{
@@ -54,7 +52,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasMergeConflicts:       false,
 					HasInlineMergeConflicts: false,
 					DisplayString:           "A  file3.txt",
-					Type:                    "file",
 					ShortStatus:             "A ",
 				},
 				{
@@ -67,7 +64,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasMergeConflicts:       false,
 					HasInlineMergeConflicts: false,
 					DisplayString:           "AM file2.txt",
-					Type:                    "file",
 					ShortStatus:             "AM",
 				},
 				{
@@ -80,7 +76,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasMergeConflicts:       false,
 					HasInlineMergeConflicts: false,
 					DisplayString:           "?? file4.txt",
-					Type:                    "file",
 					ShortStatus:             "??",
 				},
 				{
@@ -93,7 +88,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasMergeConflicts:       true,
 					HasInlineMergeConflicts: true,
 					DisplayString:           "UU file5.txt",
-					Type:                    "file",
 					ShortStatus:             "UU",
 				},
 			},
@@ -113,7 +107,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasMergeConflicts:       false,
 					HasInlineMergeConflicts: false,
 					DisplayString:           "MM a\nb.txt",
-					Type:                    "file",
 					ShortStatus:             "MM",
 				},
 			},
@@ -137,7 +130,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasMergeConflicts:       false,
 					HasInlineMergeConflicts: false,
 					DisplayString:           "R  before1.txt -> after1.txt",
-					Type:                    "file",
 					ShortStatus:             "R ",
 				},
 				{
@@ -151,7 +143,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasMergeConflicts:       false,
 					HasInlineMergeConflicts: false,
 					DisplayString:           "RM before2.txt -> after2.txt",
-					Type:                    "file",
 					ShortStatus:             "RM",
 				},
 			},
@@ -174,7 +165,6 @@ func TestFileGetStatusFiles(t *testing.T) {
 					HasMergeConflicts:       false,
 					HasInlineMergeConflicts: false,
 					DisplayString:           "?? a -> b.txt",
-					Type:                    "file",
 					ShortStatus:             "??",
 				},
 			},
@@ -187,7 +177,7 @@ func TestFileGetStatusFiles(t *testing.T) {
 			cmd := oscommands.NewDummyCmdObjBuilder(s.runner)
 
 			loader := &FileLoader{
-				Common:      utils.NewDummyCommon(),
+				GitCommon:   buildGitCommon(commonDeps{}),
 				cmd:         cmd,
 				config:      &FakeFileLoaderConfig{showUntrackedFiles: "yes"},
 				getFileType: func(string) string { return "file" },

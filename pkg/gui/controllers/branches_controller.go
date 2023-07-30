@@ -202,8 +202,31 @@ func (self *BranchesController) press(selectedBranch *models.Branch) error {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyCheckedOutBranch)
 	}
 
+	worktreeForRef, ok := self.worktreeForBranch(selectedBranch)
+	if ok && !worktreeForRef.IsCurrent {
+		return self.promptToCheckoutWorktree(worktreeForRef)
+	}
+
 	self.c.LogAction(self.c.Tr.Actions.CheckoutBranch)
 	return self.c.Helpers().Refs.CheckoutRef(selectedBranch.Name, types.CheckoutRefOptions{})
+}
+
+func (self *BranchesController) worktreeForBranch(branch *models.Branch) (*models.Worktree, bool) {
+	return git_commands.WorktreeForBranch(branch, self.c.Model().Worktrees)
+}
+
+func (self *BranchesController) promptToCheckoutWorktree(worktree *models.Worktree) error {
+	prompt := utils.ResolvePlaceholderString(self.c.Tr.AlreadyCheckedOutByWorktree, map[string]string{
+		"worktreeName": worktree.Name,
+	})
+
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.SwitchToWorktree,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
+		},
+	})
 }
 
 func (self *BranchesController) handleCreatePullRequest(selectedBranch *models.Branch) error {
@@ -298,7 +321,54 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 	if checkedOutBranch.Name == branch.Name {
 		return self.c.ErrorMsg(self.c.Tr.CantDeleteCheckOutBranch)
 	}
+
+	if self.checkedOutByOtherWorktree(branch) {
+		return self.promptWorktreeBranchDelete(branch)
+	}
+
 	return self.deleteWithForce(branch, false)
+}
+
+func (self *BranchesController) checkedOutByOtherWorktree(branch *models.Branch) bool {
+	return git_commands.CheckedOutByOtherWorktree(branch, self.c.Model().Worktrees)
+}
+
+func (self *BranchesController) promptWorktreeBranchDelete(selectedBranch *models.Branch) error {
+	worktree, ok := self.worktreeForBranch(selectedBranch)
+	if !ok {
+		self.c.Log.Error("promptWorktreeBranchDelete out of sync with list of worktrees")
+		return nil
+	}
+
+	// TODO: i18n
+	title := utils.ResolvePlaceholderString(self.c.Tr.BranchCheckedOutByWorktree, map[string]string{
+		"worktreeName": worktree.Name,
+		"branchName":   selectedBranch.Name,
+	})
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: title,
+		Items: []*types.MenuItem{
+			{
+				Label: self.c.Tr.SwitchToWorktree,
+				OnPress: func() error {
+					return self.c.Helpers().Worktree.Switch(worktree, context.LOCAL_BRANCHES_CONTEXT_KEY)
+				},
+			},
+			{
+				Label:   self.c.Tr.DetachWorktree,
+				Tooltip: self.c.Tr.DetachWorktreeTooltip,
+				OnPress: func() error {
+					return self.c.Helpers().Worktree.Detach(worktree)
+				},
+			},
+			{
+				Label: self.c.Tr.RemoveWorktree,
+				OnPress: func() error {
+					return self.c.Helpers().Worktree.Remove(worktree, false)
+				},
+			},
+		},
+	})
 }
 
 func (self *BranchesController) deleteWithForce(selectedBranch *models.Branch, force bool) error {
@@ -365,8 +435,15 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	)
 
 	return self.c.WithLoaderPanel(message, func(task gocui.Task) error {
-		if branch == self.c.Helpers().Refs.GetCheckedOutRef() {
+		worktree, ok := self.worktreeForBranch(branch)
+		if ok {
 			self.c.LogAction(action)
+
+			worktreeGitDir := ""
+			// if it is the current worktree path, no need to specify the path
+			if !worktree.IsCurrent {
+				worktreeGitDir = worktree.GitDir
+			}
 
 			err := self.c.Git().Sync.Pull(
 				task,
@@ -374,6 +451,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 					RemoteName:      branch.UpstreamRemote,
 					BranchName:      branch.UpstreamBranch,
 					FastForwardOnly: true,
+					WorktreeGitDir:  worktreeGitDir,
 				},
 			)
 			if err != nil {
@@ -383,7 +461,10 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 		} else {
 			self.c.LogAction(action)
-			err := self.c.Git().Sync.FastForward(task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch)
+
+			err := self.c.Git().Sync.FastForward(
+				task, branch.Name, branch.UpstreamRemote, branch.UpstreamBranch,
+			)
 			if err != nil {
 				_ = self.c.Error(err)
 			}
@@ -414,7 +495,10 @@ func (self *BranchesController) rename(branch *models.Branch) error {
 				}
 
 				// need to find where the branch is now so that we can re-select it. That means we need to refetch the branches synchronously and then find our branch
-				_ = self.c.Refresh(types.RefreshOptions{Mode: types.SYNC, Scope: []types.RefreshableView{types.BRANCHES}})
+				_ = self.c.Refresh(types.RefreshOptions{
+					Mode:  types.SYNC,
+					Scope: []types.RefreshableView{types.BRANCHES, types.WORKTREES},
+				})
 
 				// now that we've got our stuff again we need to find that branch and reselect it.
 				for i, newBranch := range self.c.Model().Branches {

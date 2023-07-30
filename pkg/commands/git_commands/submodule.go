@@ -82,7 +82,7 @@ func (self *SubmoduleCommands) Stash(submodule *models.SubmoduleConfig) error {
 	}
 
 	cmdArgs := NewGitCmd("stash").
-		RepoPath(submodule.Path).
+		Dir(submodule.Path).
 		Arg("--include-untracked").
 		ToArgv()
 
@@ -139,7 +139,9 @@ func (self *SubmoduleCommands) Delete(submodule *models.SubmoduleConfig) error {
 		self.Log.Error(err)
 	}
 
-	return os.RemoveAll(filepath.Join(self.dotGitDir, "modules", submodule.Path))
+	// We may in fact want to use the repo's git dir path but git docs say not to
+	// mix submodules and worktrees anyway.
+	return os.RemoveAll(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "modules", submodule.Path))
 }
 
 func (self *SubmoduleCommands) Add(name string, path string, url string) error {

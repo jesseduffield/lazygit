@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 )
 
 // NewDummyLog creates a new dummy Log for testing
@@ -22,6 +23,7 @@ func NewDummyCommon() *common.Common {
 		Log:        NewDummyLog(),
 		Tr:         &tr,
 		UserConfig: config.GetDefaultConfig(),
+		Fs:         afero.NewOsFs(),
 	}
 }
 
@@ -31,5 +33,8 @@ func NewDummyCommonWithUserConfig(userConfig *config.UserConfig) *common.Common 
 		Log:        NewDummyLog(),
 		Tr:         &tr,
 		UserConfig: userConfig,
+		// TODO: remove dependency on actual filesystem in tests and switch to using
+		// in-memory for everything
+		Fs: afero.NewOsFs(),
 	}
 }

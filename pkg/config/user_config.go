@@ -132,6 +132,7 @@ type KeybindingConfig struct {
 	Status      KeybindingStatusConfig      `yaml:"status"`
 	Files       KeybindingFilesConfig       `yaml:"files"`
 	Branches    KeybindingBranchesConfig    `yaml:"branches"`
+	Worktrees   KeybindingWorktreesConfig   `yaml:"worktrees"`
 	Commits     KeybindingCommitsConfig     `yaml:"commits"`
 	Stash       KeybindingStashConfig       `yaml:"stash"`
 	CommitFiles KeybindingCommitFilesConfig `yaml:"commitFiles"`
@@ -246,6 +247,10 @@ type KeybindingBranchesConfig struct {
 	FetchRemote            string `yaml:"fetchRemote"`
 }
 
+type KeybindingWorktreesConfig struct {
+	ViewWorktreeOptions string `yaml:"viewWorktreeOptions"`
+}
+
 type KeybindingCommitsConfig struct {
 	SquashDown                     string `yaml:"squashDown"`
 	RenameCommit                   string `yaml:"renameCommit"`
@@ -312,6 +317,9 @@ type OSConfig struct {
 	// lazygit needs to suspend to the background before calling the editor.
 	// Pointer to bool so that we can distinguish unset (nil) from false.
 	EditInTerminal *bool `yaml:"editInTerminal,omitempty"`
+
+	// For opening a directory in an editor
+	OpenDirInEditor string `yaml:"openDirInEditor,omitempty"`
 
 	// A built-in preset that sets all of the above settings. Supported presets
 	// are defined in the getPreset function in editor_presets.go.
@@ -586,6 +594,9 @@ func GetDefaultConfig() *UserConfig {
 				PushTag:                "P",
 				SetUpstream:            "u",
 				FetchRemote:            "f",
+			},
+			Worktrees: KeybindingWorktreesConfig{
+				ViewWorktreeOptions: "w",
 			},
 			Commits: KeybindingCommitsConfig{
 				SquashDown:                     "s",

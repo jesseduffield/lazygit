@@ -47,7 +47,6 @@ type CommitLoader struct {
 func NewCommitLoader(
 	cmn *common.Common,
 	cmd oscommands.ICmdObjBuilder,
-	dotGitDir string,
 	getRebaseMode func() (enums.RebaseMode, error),
 	gitCommon *GitCommon,
 ) *CommitLoader {
@@ -57,7 +56,6 @@ func NewCommitLoader(
 		getRebaseMode: getRebaseMode,
 		readFile:      os.ReadFile,
 		walkFiles:     filepath.Walk,
-		dotGitDir:     dotGitDir,
 		mainBranches:  nil,
 		GitCommon:     gitCommon,
 	}
@@ -299,7 +297,7 @@ func (self *CommitLoader) getRebasingCommits(rebaseMode enums.RebaseMode) ([]*mo
 
 func (self *CommitLoader) getNormalRebasingCommits() ([]*models.Commit, error) {
 	rewrittenCount := 0
-	bytesContent, err := self.readFile(filepath.Join(self.dotGitDir, "rebase-apply/rewritten"))
+	bytesContent, err := self.readFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply/rewritten"))
 	if err == nil {
 		content := string(bytesContent)
 		rewrittenCount = len(strings.Split(content, "\n"))
@@ -307,7 +305,7 @@ func (self *CommitLoader) getNormalRebasingCommits() ([]*models.Commit, error) {
 
 	// we know we're rebasing, so lets get all the files whose names have numbers
 	commits := []*models.Commit{}
-	err = self.walkFiles(filepath.Join(self.dotGitDir, "rebase-apply"), func(path string, f os.FileInfo, err error) error {
+	err = self.walkFiles(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-apply"), func(path string, f os.FileInfo, err error) error {
 		if rewrittenCount > 0 {
 			rewrittenCount--
 			return nil
@@ -348,7 +346,7 @@ func (self *CommitLoader) getNormalRebasingCommits() ([]*models.Commit, error) {
 // and extracts out the sha and names of commits that we still have to go
 // in the rebase:
 func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, error) {
-	bytesContent, err := self.readFile(filepath.Join(self.dotGitDir, "rebase-merge/git-rebase-todo"))
+	bytesContent, err := self.readFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo"))
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred reading git-rebase-todo: %s", err.Error()))
 		// we assume an error means the file doesn't exist so we just return
@@ -393,7 +391,7 @@ func (self *CommitLoader) getInteractiveRebasingCommits() ([]*models.Commit, err
 }
 
 func (self *CommitLoader) getConflictedCommit(todos []todo.Todo) string {
-	bytesContent, err := self.readFile(filepath.Join(self.dotGitDir, "rebase-merge/done"))
+	bytesContent, err := self.readFile(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/done"))
 	if err != nil {
 		self.Log.Error(fmt.Sprintf("error occurred reading rebase-merge/done: %s", err.Error()))
 		return ""
@@ -406,7 +404,7 @@ func (self *CommitLoader) getConflictedCommit(todos []todo.Todo) string {
 	}
 
 	amendFileExists := false
-	if _, err := os.Stat(filepath.Join(self.dotGitDir, "rebase-merge/amend")); err == nil {
+	if _, err := os.Stat(filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/amend")); err == nil {
 		amendFileExists = true
 	}
 

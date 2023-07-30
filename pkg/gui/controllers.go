@@ -18,10 +18,13 @@ func (gui *Gui) Helpers() *helpers.Helpers {
 
 func (gui *Gui) resetHelpersAndControllers() {
 	helperCommon := gui.c
+	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
+	reposHelper := helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo)
 	refsHelper := helpers.NewRefsHelper(helperCommon)
+	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon)
+	worktreeHelper := helpers.NewWorktreeHelper(helperCommon, reposHelper, refsHelper, suggestionsHelper)
 
 	rebaseHelper := helpers.NewMergeAndRebaseHelper(helperCommon, refsHelper)
-	suggestionsHelper := helpers.NewSuggestionsHelper(helperCommon)
 
 	setCommitSummary := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitMessage })
 	setCommitDescription := gui.getCommitMessageSetTextareaTextFn(func() *gocui.View { return gui.Views.CommitDescription })
@@ -41,11 +44,20 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	gpgHelper := helpers.NewGpgHelper(helperCommon)
 	viewHelper := helpers.NewViewHelper(helperCommon, gui.State.Contexts)
-	recordDirectoryHelper := helpers.NewRecordDirectoryHelper(helperCommon)
 	patchBuildingHelper := helpers.NewPatchBuildingHelper(helperCommon)
 	stagingHelper := helpers.NewStagingHelper(helperCommon)
 	mergeConflictsHelper := helpers.NewMergeConflictsHelper(helperCommon)
-	refreshHelper := helpers.NewRefreshHelper(helperCommon, refsHelper, rebaseHelper, patchBuildingHelper, stagingHelper, mergeConflictsHelper, gui.fileWatcher)
+
+	refreshHelper := helpers.NewRefreshHelper(
+		helperCommon,
+		refsHelper,
+		rebaseHelper,
+		patchBuildingHelper,
+		stagingHelper,
+		mergeConflictsHelper,
+		worktreeHelper,
+		gui.fileWatcher,
+	)
 	diffHelper := helpers.NewDiffHelper(helperCommon)
 	cherryPickHelper := helpers.NewCherryPickHelper(
 		helperCommon,
@@ -84,7 +96,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Commits:         commitsHelper,
 		Snake:           helpers.NewSnakeHelper(helperCommon),
 		Diff:            diffHelper,
-		Repos:           helpers.NewRecentReposHelper(helperCommon, recordDirectoryHelper, gui.onNewRepo),
+		Repos:           reposHelper,
 		RecordDirectory: recordDirectoryHelper,
 		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater),
 		Window:          windowHelper,
@@ -99,7 +111,8 @@ func (gui *Gui) resetHelpersAndControllers() {
 			modeHelper,
 			appStatusHelper,
 		),
-		Search: helpers.NewSearchHelper(helperCommon),
+		Search:   helpers.NewSearchHelper(helperCommon),
+		Worktree: worktreeHelper,
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(
@@ -138,6 +151,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		common,
 		func(branches []*models.RemoteBranch) { gui.State.Model.RemoteBranches = branches },
 	)
+	worktreesController := controllers.NewWorktreesController(common)
 	undoController := controllers.NewUndoController(common)
 	globalController := controllers.NewGlobalController(common)
 	contextLinesController := controllers.NewContextLinesController(common)
@@ -177,6 +191,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	for _, context := range []types.Context{
 		gui.State.Contexts.Status,
 		gui.State.Contexts.Remotes,
+		gui.State.Contexts.Worktrees,
 		gui.State.Contexts.Tags,
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
@@ -225,6 +240,18 @@ func (gui *Gui) resetHelpersAndControllers() {
 		gui.State.Contexts.SubCommits,
 	} {
 		controllers.AttachControllers(context, controllers.NewBasicCommitsController(common, context))
+	}
+
+	for _, context := range []controllers.CanViewWorktreeOptions{
+		gui.State.Contexts.LocalCommits,
+		gui.State.Contexts.ReflogCommits,
+		gui.State.Contexts.SubCommits,
+		gui.State.Contexts.Stash,
+		gui.State.Contexts.Branches,
+		gui.State.Contexts.RemoteBranches,
+		gui.State.Contexts.Tags,
+	} {
+		controllers.AttachControllers(context, controllers.NewWorktreeOptionsController(common, context))
 	}
 
 	controllers.AttachControllers(gui.State.Contexts.ReflogCommits,
@@ -296,6 +323,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 
 	controllers.AttachControllers(gui.State.Contexts.Remotes,
 		remotesController,
+	)
+
+	controllers.AttachControllers(gui.State.Contexts.Worktrees,
+		worktreesController,
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Stash,

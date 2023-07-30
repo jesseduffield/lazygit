@@ -20,6 +20,6 @@ var SwitchTabFromMenu = NewIntegrationTest(NewIntegrationTestArgs{
 			Select(Contains("Next tab")).
 			Confirm()
 
-		t.Views().Submodules().IsFocused()
+		t.Views().Worktrees().IsFocused()
 	},
 })

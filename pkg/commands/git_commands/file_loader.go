@@ -2,11 +2,11 @@ package git_commands
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
-	"github.com/jesseduffield/lazygit/pkg/common"
 )
 
 type FileLoaderConfig interface {
@@ -14,15 +14,15 @@ type FileLoaderConfig interface {
 }
 
 type FileLoader struct {
-	*common.Common
+	*GitCommon
 	cmd         oscommands.ICmdObjBuilder
 	config      FileLoaderConfig
 	getFileType func(string) string
 }
 
-func NewFileLoader(cmn *common.Common, cmd oscommands.ICmdObjBuilder, config FileLoaderConfig) *FileLoader {
+func NewFileLoader(gitCommon *GitCommon, cmd oscommands.ICmdObjBuilder, config FileLoaderConfig) *FileLoader {
 	return &FileLoader{
-		Common:      cmn,
+		GitCommon:   gitCommon,
 		cmd:         cmd,
 		getFileType: oscommands.FileType,
 		config:      config,
@@ -58,11 +58,30 @@ func (self *FileLoader) GetStatusFiles(opts GetStatusFileOptions) []*models.File
 			Name:          status.Name,
 			PreviousName:  status.PreviousName,
 			DisplayString: status.StatusString,
-			Type:          self.getFileType(status.Name),
 		}
 
 		models.SetStatusFields(file, status.Change)
 		files = append(files, file)
+	}
+
+	// Go through the files to see if any of these files are actually worktrees
+	// so that we can render them correctly
+	worktreePaths := linkedWortkreePaths(self.Fs, self.repoPaths.RepoGitDirPath())
+	for _, file := range files {
+		for _, worktreePath := range worktreePaths {
+			absFilePath, err := filepath.Abs(file.Name)
+			if err != nil {
+				self.Log.Error(err)
+				continue
+			}
+			if absFilePath == worktreePath {
+				file.IsWorktree = true
+				// `git status` renders this worktree as a folder with a trailing slash but we'll represent it as a singular worktree
+				// If we include the slash, it will be rendered as a folder with a null file inside.
+				file.Name = strings.TrimSuffix(file.Name, "/")
+				break
+			}
+		}
 	}
 
 	return files

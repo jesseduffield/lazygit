@@ -11,7 +11,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type StatusController struct {
@@ -108,7 +107,7 @@ func (self *StatusController) onClick() error {
 
 	cx, _ := self.c.Views().Status.Cursor()
 	upstreamStatus := presentation.BranchStatus(currentBranch, self.c.Tr)
-	repoName := utils.GetCurrentRepoName()
+	repoName := self.c.Git().RepoPaths.RepoName()
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
 	switch workingTreeState {
 	case enums.REBASE_MODE_REBASING, enums.REBASE_MODE_MERGING:

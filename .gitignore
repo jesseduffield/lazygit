@@ -39,3 +39,5 @@ test/results/**
 
 oryxBuildBinary
 __debug_bin
+
+.worktrees

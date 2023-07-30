@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
@@ -12,6 +13,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/i18n"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 var branchPrefixColorCache = make(map[string]style.TextStyle)
@@ -22,10 +24,11 @@ func GetBranchListDisplayStrings(
 	diffName string,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
+	worktrees []*models.Worktree,
 ) [][]string {
 	return slices.Map(branches, func(branch *models.Branch) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, fullDescription, diffed, tr, userConfig)
+		return getBranchDisplayStrings(branch, fullDescription, diffed, tr, userConfig, worktrees)
 	})
 }
 
@@ -36,6 +39,7 @@ func getBranchDisplayStrings(
 	diffed bool,
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
+	worktrees []*models.Worktree,
 ) []string {
 	displayName := b.Name
 	if b.DisplayName != "" {
@@ -49,6 +53,10 @@ func getBranchDisplayStrings(
 
 	coloredName := nameTextStyle.Sprint(displayName)
 	branchStatus := utils.WithPadding(ColoredBranchStatus(b, tr), 2, utils.AlignLeft)
+	if git_commands.CheckedOutByOtherWorktree(b, worktrees) {
+		worktreeIcon := lo.Ternary(icons.IsIconEnabled(), icons.LINKED_WORKTREE_ICON, fmt.Sprintf("(%s)", tr.LcWorktree))
+		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
+	}
 	coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)
 
 	recencyColor := style.FgCyan
@@ -58,6 +66,7 @@ func getBranchDisplayStrings(
 
 	res := make([]string, 0, 6)
 	res = append(res, recencyColor.Sprint(b.Recency))
+
 	if icons.IsIconEnabled() {
 		res = append(res, nameTextStyle.Sprint(icons.IconForBranch(b)))
 	}

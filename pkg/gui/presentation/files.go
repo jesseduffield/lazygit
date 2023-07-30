@@ -155,10 +155,11 @@ func getFileLine(hasUnstagedChanges bool, hasStagedChanges bool, name string, di
 	}
 
 	isSubmodule := file != nil && file.IsSubmodule(submoduleConfigs)
+	isLinkedWorktree := file != nil && file.IsWorktree
 	isDirectory := file == nil
 
 	if icons.IsIconEnabled() {
-		output += restColor.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isDirectory))
+		output += restColor.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory))
 	}
 
 	output += restColor.Sprint(utils.EscapeSpecialChars(name))
@@ -193,10 +194,11 @@ func getCommitFileLine(name string, diffName string, commitFile *models.CommitFi
 	}
 
 	isSubmodule := false
+	isLinkedWorktree := false
 	isDirectory := commitFile == nil
 
 	if icons.IsIconEnabled() {
-		output += colour.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isDirectory))
+		output += colour.Sprintf("%s ", icons.IconForFile(name, isSubmodule, isLinkedWorktree, isDirectory))
 	}
 
 	output += colour.Sprint(name)

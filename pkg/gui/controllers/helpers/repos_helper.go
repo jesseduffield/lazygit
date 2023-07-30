@@ -8,17 +8,19 @@ import (
 	"sync"
 
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/gocui"
 	appTypes "github.com/jesseduffield/lazygit/pkg/app/types"
 	"github.com/jesseduffield/lazygit/pkg/commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/env"
+	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/icons"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
-type onNewRepoFn func(startArgs appTypes.StartArgs, reuseState bool) error
+type onNewRepoFn func(startArgs appTypes.StartArgs, contextKey types.ContextKey) error
 
 // helps switch back and forth between repos
 type ReposHelper struct {
@@ -46,7 +48,7 @@ func (self *ReposHelper) EnterSubmodule(submodule *models.SubmoduleConfig) error
 	}
 	self.c.State().GetRepoPathStack().Push(wd)
 
-	return self.DispatchSwitchToRepo(submodule.Path, true)
+	return self.DispatchSwitchToRepo(submodule.Path, context.NO_CONTEXT)
 }
 
 func (self *ReposHelper) getCurrentBranch(path string) string {
@@ -129,7 +131,7 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 				// if we were in a submodule, we want to forget about that stack of repos
 				// so that hitting escape in the new repo does nothing
 				self.c.State().GetRepoPathStack().Clear()
-				return self.DispatchSwitchToRepo(path, false)
+				return self.DispatchSwitchToRepo(path, context.NO_CONTEXT)
 			},
 		}
 	})
@@ -137,39 +139,48 @@ func (self *ReposHelper) CreateRecentReposMenu() error {
 	return self.c.Menu(types.CreateMenuOptions{Title: self.c.Tr.RecentRepos, Items: menuItems})
 }
 
-func (self *ReposHelper) DispatchSwitchToRepo(path string, reuse bool) error {
-	env.UnsetGitDirEnvs()
-	originalPath, err := os.Getwd()
-	if err != nil {
-		return nil
-	}
+func (self *ReposHelper) DispatchSwitchToRepo(path string, contextKey types.ContextKey) error {
+	return self.DispatchSwitchTo(path, self.c.Tr.ErrRepositoryMovedOrDeleted, contextKey)
+}
 
-	if err := os.Chdir(path); err != nil {
-		if os.IsNotExist(err) {
-			return self.c.ErrorMsg(self.c.Tr.ErrRepositoryMovedOrDeleted)
+func (self *ReposHelper) DispatchSwitchTo(path string, errMsg string, contextKey types.ContextKey) error {
+	return self.c.WithWaitingStatus(self.c.Tr.Switching, func(gocui.Task) error {
+		env.UnsetGitDirEnv()
+		originalPath, err := os.Getwd()
+		if err != nil {
+			return nil
 		}
-		return err
-	}
 
-	if err := commands.VerifyInGitRepo(self.c.OS()); err != nil {
-		if err := os.Chdir(originalPath); err != nil {
+		msg := utils.ResolvePlaceholderString(self.c.Tr.ChangingDirectoryTo, map[string]string{"path": path})
+		self.c.LogCommand(msg, false)
+
+		if err := os.Chdir(path); err != nil {
+			if os.IsNotExist(err) {
+				return self.c.ErrorMsg(errMsg)
+			}
 			return err
 		}
 
-		return err
-	}
+		if err := commands.VerifyInGitRepo(self.c.OS()); err != nil {
+			if err := os.Chdir(originalPath); err != nil {
+				return err
+			}
 
-	if err := self.recordDirectoryHelper.RecordCurrentDirectory(); err != nil {
-		return err
-	}
+			return err
+		}
 
-	// these two mutexes are used by our background goroutines (triggered via `self.goEvery`. We don't want to
-	// switch to a repo while one of these goroutines is in the process of updating something
-	self.c.Mutexes().SyncMutex.Lock()
-	defer self.c.Mutexes().SyncMutex.Unlock()
+		if err := self.recordDirectoryHelper.RecordCurrentDirectory(); err != nil {
+			return err
+		}
 
-	self.c.Mutexes().RefreshingFilesMutex.Lock()
-	defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
+		// these two mutexes are used by our background goroutines (triggered via `self.goEvery`. We don't want to
+		// switch to a repo while one of these goroutines is in the process of updating something
+		self.c.Mutexes().SyncMutex.Lock()
+		defer self.c.Mutexes().SyncMutex.Unlock()
 
-	return self.onNewRepo(appTypes.StartArgs{}, reuse)
+		self.c.Mutexes().RefreshingFilesMutex.Lock()
+		defer self.c.Mutexes().RefreshingFilesMutex.Unlock()
+
+		return self.onNewRepo(appTypes.StartArgs{}, contextKey)
+	})
 }

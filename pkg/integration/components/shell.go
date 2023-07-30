@@ -85,7 +85,7 @@ func (self *Shell) CreateFile(path string, content string) *Shell {
 
 func (self *Shell) DeleteFile(path string) *Shell {
 	fullPath := filepath.Join(self.dir, path)
-	err := os.Remove(fullPath)
+	err := os.RemoveAll(fullPath)
 	if err != nil {
 		self.fail(fmt.Sprintf("error deleting file: %s\n%s", fullPath, err))
 	}
@@ -254,6 +254,30 @@ func (self *Shell) Init() *Shell {
 	return self
 }
 
+func (self *Shell) AddWorktree(base string, path string, newBranchName string) *Shell {
+	return self.RunCommand([]string{
+		"git", "worktree", "add", "-b",
+		newBranchName, path, base,
+	})
+}
+
+// add worktree and have it checkout the base branch
+func (self *Shell) AddWorktreeCheckout(base string, path string) *Shell {
+	return self.RunCommand([]string{
+		"git", "worktree", "add", path, base,
+	})
+}
+
+func (self *Shell) AddFileInWorktree(worktreePath string) *Shell {
+	self.CreateFile(filepath.Join(worktreePath, "content"), "content")
+
+	self.RunCommand([]string{
+		"git", "-C", worktreePath, "add", "content",
+	})
+
+	return self
+}
+
 func (self *Shell) MakeExecutable(path string) *Shell {
 	// 0755 sets the executable permission for owner, and read/execute permissions for group and others
 	err := os.Chmod(filepath.Join(self.dir, path), 0o755)
@@ -301,6 +325,14 @@ func (self *Shell) CopyFile(source string, destination string) *Shell {
 	if err != nil {
 		self.fail(err.Error())
 	}
+
+	return self
+}
+
+// NOTE: this only takes effect before running the test;
+// the test will still run in the original directory
+func (self *Shell) Chdir(path string) *Shell {
+	self.dir = filepath.Join(self.dir, path)
 
 	return self
 }

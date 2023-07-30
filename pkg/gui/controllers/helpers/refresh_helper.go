@@ -16,7 +16,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/filetree"
 	"github.com/jesseduffield/lazygit/pkg/gui/mergeconflicts"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
-	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -28,6 +27,7 @@ type RefreshHelper struct {
 	patchBuildingHelper  *PatchBuildingHelper
 	stagingHelper        *StagingHelper
 	mergeConflictsHelper *MergeConflictsHelper
+	worktreeHelper       *WorktreeHelper
 	fileWatcher          types.IFileWatcher
 }
 
@@ -38,6 +38,7 @@ func NewRefreshHelper(
 	patchBuildingHelper *PatchBuildingHelper,
 	stagingHelper *StagingHelper,
 	mergeConflictsHelper *MergeConflictsHelper,
+	worktreeHelper *WorktreeHelper,
 	fileWatcher types.IFileWatcher,
 ) *RefreshHelper {
 	return &RefreshHelper{
@@ -47,6 +48,7 @@ func NewRefreshHelper(
 		patchBuildingHelper:  patchBuildingHelper,
 		stagingHelper:        stagingHelper,
 		mergeConflictsHelper: mergeConflictsHelper,
+		worktreeHelper:       worktreeHelper,
 		fileWatcher:          fileWatcher,
 	}
 }
@@ -83,6 +85,7 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 				types.REFLOG,
 				types.TAGS,
 				types.REMOTES,
+				types.WORKTREES,
 				types.STATUS,
 				types.BISECT_INFO,
 				types.STAGING,
@@ -150,6 +153,10 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 			refresh("remotes", func() { _ = self.refreshRemotes() })
 		}
 
+		if scopeSet.Includes(types.WORKTREES) {
+			refresh("worktrees", func() { _ = self.refreshWorktrees() })
+		}
+
 		if scopeSet.Includes(types.STAGING) {
 			refresh("staging", func() {
 				fileWg.Wait()
@@ -197,6 +204,7 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.REFLOG:          "reflog",
 		types.TAGS:            "tags",
 		types.REMOTES:         "remotes",
+		types.WORKTREES:       "worktrees",
 		types.STATUS:          "status",
 		types.BISECT_INFO:     "bisect",
 		types.STAGING:         "staging",
@@ -589,6 +597,25 @@ func (self *RefreshHelper) refreshRemotes() error {
 	return nil
 }
 
+func (self *RefreshHelper) refreshWorktrees() error {
+	worktrees, err := self.c.Git().Loaders.Worktrees.GetWorktrees()
+	if err != nil {
+		self.c.Log.Error(err)
+		self.c.Model().Worktrees = []*models.Worktree{}
+		return nil
+	}
+
+	self.c.Model().Worktrees = worktrees
+
+	// need to refresh branches because the branches view shows worktrees against
+	// branches
+	if err := self.c.PostRefreshUpdate(self.c.Contexts().Branches); err != nil {
+		return err
+	}
+
+	return self.c.PostRefreshUpdate(self.c.Contexts().Worktrees)
+}
+
 func (self *RefreshHelper) refreshStashEntries() error {
 	self.c.Model().StashEntries = self.c.Git().Loaders.StashLoader.
 		GetStashEntries(self.c.Modes().Filtering.GetPath())
@@ -606,20 +633,13 @@ func (self *RefreshHelper) refreshStatus() {
 		// need to wait for branches to refresh
 		return
 	}
-	status := ""
-
-	if currentBranch.IsRealBranch() {
-		status += presentation.ColoredBranchStatus(currentBranch, self.c.Tr) + " "
-	}
 
 	workingTreeState := self.c.Git().Status.WorkingTreeState()
-	if workingTreeState != enums.REBASE_MODE_NONE {
-		status += style.FgYellow.Sprintf("(%s) ", presentation.FormatWorkingTreeStateLower(self.c.Tr, workingTreeState))
-	}
+	linkedWorktreeName := self.worktreeHelper.GetLinkedWorktreeName()
 
-	name := presentation.GetBranchTextStyle(currentBranch.Name).Sprint(currentBranch.Name)
-	repoName := utils.GetCurrentRepoName()
-	status += fmt.Sprintf("%s → %s ", repoName, name)
+	repoName := self.c.Git().RepoPaths.RepoName()
+
+	status := presentation.FormatStatus(repoName, currentBranch, linkedWorktreeName, workingTreeState, self.c.Tr)
 
 	self.c.SetViewContent(self.c.Views().Status, status)
 }

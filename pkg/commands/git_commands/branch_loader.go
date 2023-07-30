@@ -81,6 +81,12 @@ outer:
 		}
 	}
 
+	// Sort branches that don't have a recency value alphabetically
+	// (we're really doing this for the sake of deterministic behaviour across git versions)
+	slices.SortFunc(branches, func(a *models.Branch, b *models.Branch) bool {
+		return a.Name < b.Name
+	})
+
 	branches = slices.Prepend(branches, branchesWithRecency...)
 
 	foundHead := false

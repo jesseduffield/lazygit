@@ -28,10 +28,20 @@ func GetEditAtLineAndWaitTemplate(osConfig *OSConfig, guessDefaultEditor func() 
 	return template
 }
 
+func GetOpenDirInEditorTemplate(osConfig *OSConfig, guessDefaultEditor func() string) string {
+	preset := getPreset(osConfig, guessDefaultEditor)
+	template := osConfig.OpenDirInEditor
+	if template == "" {
+		template = preset.openDirInEditorTemplate
+	}
+	return template
+}
+
 type editPreset struct {
 	editTemplate              string
 	editAtLineTemplate        string
 	editAtLineAndWaitTemplate string
+	openDirInEditorTemplate   string
 	editInTerminal            bool
 }
 
@@ -48,30 +58,35 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 			editTemplate:              "hx -- {{filename}}",
 			editAtLineTemplate:        "hx -- {{filename}}:{{line}}",
 			editAtLineAndWaitTemplate: "hx -- {{filename}}:{{line}}",
+			openDirInEditorTemplate:   "hx -- {{dir}}",
 			editInTerminal:            true,
 		},
 		"vscode": {
 			editTemplate:              "code --reuse-window -- {{filename}}",
 			editAtLineTemplate:        "code --reuse-window --goto -- {{filename}}:{{line}}",
 			editAtLineAndWaitTemplate: "code --reuse-window --goto --wait -- {{filename}}:{{line}}",
+			openDirInEditorTemplate:   "code -- {{dir}}",
 			editInTerminal:            false,
 		},
 		"sublime": {
 			editTemplate:              "subl -- {{filename}}",
 			editAtLineTemplate:        "subl -- {{filename}}:{{line}}",
 			editAtLineAndWaitTemplate: "subl --wait -- {{filename}}:{{line}}",
+			openDirInEditorTemplate:   "subl -- {{dir}}",
 			editInTerminal:            false,
 		},
 		"bbedit": {
 			editTemplate:              "bbedit -- {{filename}}",
 			editAtLineTemplate:        "bbedit +{{line}} -- {{filename}}",
 			editAtLineAndWaitTemplate: "bbedit +{{line}} --wait -- {{filename}}",
+			openDirInEditorTemplate:   "bbedit -- {{dir}}",
 			editInTerminal:            false,
 		},
 		"xcode": {
 			editTemplate:              "xed -- {{filename}}",
 			editAtLineTemplate:        "xed --line {{line}} -- {{filename}}",
 			editAtLineAndWaitTemplate: "xed --line {{line}} --wait -- {{filename}}",
+			openDirInEditorTemplate:   "xed -- {{dir}}",
 			editInTerminal:            false,
 		},
 	}
@@ -107,6 +122,7 @@ func standardTerminalEditorPreset(editor string) *editPreset {
 		editTemplate:              editor + " -- {{filename}}",
 		editAtLineTemplate:        editor + " +{{line}} -- {{filename}}",
 		editAtLineAndWaitTemplate: editor + " +{{line}} -- {{filename}}",
+		openDirInEditorTemplate:   editor + " -- {{dir}}",
 		editInTerminal:            true,
 	}
 }

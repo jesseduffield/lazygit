@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/spf13/afero"
 )
 
 type commonDeps struct {
@@ -20,9 +21,10 @@ type commonDeps struct {
 	gitConfig  *git_config.FakeGitConfig
 	getenv     func(string) string
 	removeFile func(string) error
-	dotGitDir  string
 	common     *common.Common
 	cmd        *oscommands.CmdObjBuilder
+	fs         afero.Fs
+	repoPaths  *RepoPaths
 }
 
 func buildGitCommon(deps commonDeps) *GitCommon {
@@ -31,6 +33,16 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 	gitCommon.Common = deps.common
 	if gitCommon.Common == nil {
 		gitCommon.Common = utils.NewDummyCommonWithUserConfig(deps.userConfig)
+	}
+
+	if deps.fs != nil {
+		gitCommon.Fs = deps.fs
+	}
+
+	if deps.repoPaths != nil {
+		gitCommon.repoPaths = deps.repoPaths
+	} else {
+		gitCommon.repoPaths = MockRepoPaths(".git")
 	}
 
 	runner := deps.runner
@@ -81,11 +93,6 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 		TempDir:      os.TempDir(),
 	})
 
-	gitCommon.dotGitDir = deps.dotGitDir
-	if gitCommon.dotGitDir == "" {
-		gitCommon.dotGitDir = ".git"
-	}
-
 	return gitCommon
 }
 
@@ -96,7 +103,7 @@ func buildRepo() *gogit.Repository {
 }
 
 func buildFileLoader(gitCommon *GitCommon) *FileLoader {
-	return NewFileLoader(gitCommon.Common, gitCommon.cmd, gitCommon.config)
+	return NewFileLoader(gitCommon, gitCommon.cmd, gitCommon.config)
 }
 
 func buildSubmoduleCommands(deps commonDeps) *SubmoduleCommands {

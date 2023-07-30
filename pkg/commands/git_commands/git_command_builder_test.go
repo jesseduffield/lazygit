@@ -45,7 +45,7 @@ func TestGitCommandBuilder(t *testing.T) {
 			expected: []string{"git", "-c", "user.email=bar", "-c", "user.name=foo", "push"},
 		},
 		{
-			input:    NewGitCmd("push").RepoPath("a/b/c").ToArgv(),
+			input:    NewGitCmd("push").Dir("a/b/c").ToArgv(),
 			expected: []string{"git", "-C", "a/b/c", "push"},
 		},
 	}

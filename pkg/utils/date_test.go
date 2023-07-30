@@ -68,12 +68,12 @@ func TestFormatSecondsAgo(t *testing.T) {
 		{
 			name: "six months",
 			args: SECONDS_IN_YEAR / 2,
-			want: "6m",
+			want: "6M",
 		},
 		{
 			name: "almost one year",
 			args: 31535999,
-			want: "11m",
+			want: "11M",
 		},
 		{
 			name: "one year",

@@ -12,7 +12,7 @@ type GitCommon struct {
 	version   *GitVersion
 	cmd       oscommands.ICmdObjBuilder
 	os        *oscommands.OSCommand
-	dotGitDir string
+	repoPaths *RepoPaths
 	repo      *gogit.Repository
 	config    *ConfigCommands
 	// mutex for doing things like push/pull/fetch
@@ -24,7 +24,7 @@ func NewGitCommon(
 	version *GitVersion,
 	cmd oscommands.ICmdObjBuilder,
 	osCommand *oscommands.OSCommand,
-	dotGitDir string,
+	repoPaths *RepoPaths,
 	repo *gogit.Repository,
 	config *ConfigCommands,
 	syncMutex *deadlock.Mutex,
@@ -34,7 +34,7 @@ func NewGitCommon(
 		version:   version,
 		cmd:       cmd,
 		os:        osCommand,
-		dotGitDir: dotGitDir,
+		repoPaths: repoPaths,
 		repo:      repo,
 		config:    config,
 		syncMutex: syncMutex,
