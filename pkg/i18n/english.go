@@ -587,6 +587,7 @@ type TranslationSet struct {
 	MarkedCommitMarker                  string
 	Actions                             Actions
 	Bisect                              Bisect
+	Log                                 Log
 }
 
 type Bisect struct {
@@ -607,6 +608,22 @@ type Bisect struct {
 	CompletePrompt              string
 	CompletePromptIndeterminate string
 	Bisecting                   string
+}
+
+type Log struct {
+	EditRebase             string
+	MoveCommitUp           string
+	MoveCommitDown         string
+	CherryPickCommits      string
+	HandleUndo             string
+	HandleMidRebaseCommand string
+	MovingCommitUp         string
+	MovingCommitDown       string
+	RemoveFile             string
+	CopyToClipboard        string
+	Remove                 string
+	CreateFileWithContent  string
+	AppendingLineToFile    string
 }
 
 type Actions struct {
@@ -717,19 +734,6 @@ type Actions struct {
 	BisectMark                        string
 	RemoveWorktree                    string
 	AddWorktree                       string
-	LogEditRebase                     string
-	LogMoveCommitUp                   string
-	LogMoveCommitDown                 string
-	LogCherryPickCommits              string
-	LogHandleUndo                     string
-	LogHandleMidRebaseCommand         string
-	LogMovingCommitUp                 string
-	LogMovingCommitDown               string
-	LogRemoveFile                     string
-	LogCopyToClipboard                string
-	LogRemove                         string
-	LogCreateFileWithContent          string
-	LogAppendingLineToFile            string
 }
 
 const englishIntroPopupMessage = `
@@ -1451,19 +1455,6 @@ func EnglishTranslationSet() TranslationSet {
 			BisectMark:                        "Bisect mark",
 			RemoveWorktree:                    "Remove worktree",
 			AddWorktree:                       "Add worktree",
-			LogEditRebase:                     "Beginning interactive rebase at '{{.ref}}'",
-			LogMoveCommitUp:                   "Moving TODO down: '{{.shortSha}}'",
-			LogMoveCommitDown:                 "Moving TODO down: '{{.shortSha}}'",
-			LogCherryPickCommits:              "Cherry-picking commits:\n'{{.commitLines}}'",
-			LogHandleUndo:                     "Undoing last conflict resolution",
-			LogHandleMidRebaseCommand:         "Updating rebase action of commit {{.shortSha}} to '{{.action}}'",
-			LogMovingCommitUp:                 "Moving commit {{.shortSha}} up",
-			LogMovingCommitDown:               "Moving commit {{.shortSha}} down",
-			LogRemoveFile:                     "Deleting path '{{.path}}'",
-			LogCopyToClipboard:                "Copying '{{.str}}' to clipboard",
-			LogRemove:                         "Removing '{{.filename}}'",
-			LogCreateFileWithContent:          "Creating file '{{.path}}'",
-			LogAppendingLineToFile:            "Appending '{{.line}}' to file '{{.filename}}'",
 		},
 		Bisect: Bisect{
 			Mark:                        "Mark current commit (%s) as %s",
@@ -1481,6 +1472,21 @@ func EnglishTranslationSet() TranslationSet {
 			CompletePrompt:              "Bisect complete! The following commit introduced the change:\n\n%s\n\nDo you want to reset 'git bisect' now?",
 			CompletePromptIndeterminate: "Bisect complete! Some commits were skipped, so any of the following commits may have introduced the change:\n\n%s\n\nDo you want to reset 'git bisect' now?",
 			Bisecting:                   "Bisecting",
+		},
+		Log: Log{
+			EditRebase:             "Beginning interactive rebase at '{{.ref}}'",
+			MoveCommitUp:           "Moving TODO down: '{{.shortSha}}'",
+			MoveCommitDown:         "Moving TODO down: '{{.shortSha}}'",
+			CherryPickCommits:      "Cherry-picking commits:\n'{{.commitLines}}'",
+			HandleUndo:             "Undoing last conflict resolution",
+			HandleMidRebaseCommand: "Updating rebase action of commit {{.shortSha}} to '{{.action}}'",
+			MovingCommitUp:         "Moving commit {{.shortSha}} up",
+			MovingCommitDown:       "Moving commit {{.shortSha}} down",
+			RemoveFile:             "Deleting path '{{.path}}'",
+			CopyToClipboard:        "Copying '{{.str}}' to clipboard",
+			Remove:                 "Removing '{{.filename}}'",
+			CreateFileWithContent:  "Creating file '{{.path}}'",
+			AppendingLineToFile:    "Appending '{{.line}}' to file '{{.filename}}'",
 		},
 	}
 }

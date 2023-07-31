@@ -118,7 +118,7 @@ func (c *OSCommand) Quote(message string) string {
 // AppendLineToFile adds a new line in file
 func (c *OSCommand) AppendLineToFile(filename, line string) error {
 	msg := utils.ResolvePlaceholderString(
-		c.Tr.Actions.LogAppendingLineToFile,
+		c.Tr.Log.AppendingLineToFile,
 		map[string]string{
 			"line":     line,
 			"filename": filename,
@@ -163,7 +163,7 @@ func (c *OSCommand) AppendLineToFile(filename, line string) error {
 // CreateFileWithContent creates a file with the given content
 func (c *OSCommand) CreateFileWithContent(path string, content string) error {
 	msg := utils.ResolvePlaceholderString(
-		c.Tr.Actions.LogCreateFileWithContent,
+		c.Tr.Log.CreateFileWithContent,
 		map[string]string{
 			"path": path,
 		},
@@ -185,7 +185,7 @@ func (c *OSCommand) CreateFileWithContent(path string, content string) error {
 // Remove removes a file or directory at the specified path
 func (c *OSCommand) Remove(filename string) error {
 	msg := utils.ResolvePlaceholderString(
-		c.Tr.Actions.LogRemove,
+		c.Tr.Log.Remove,
 		map[string]string{
 			"filename": filename,
 		},
@@ -287,7 +287,7 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 	truncated := utils.TruncateWithEllipsis(escaped, 40)
 
 	msg := utils.ResolvePlaceholderString(
-		c.Tr.Actions.LogCopyToClipboard,
+		c.Tr.Log.CopyToClipboard,
 		map[string]string{
 			"str": truncated,
 		},
@@ -305,7 +305,7 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 
 func (c *OSCommand) RemoveFile(path string) error {
 	msg := utils.ResolvePlaceholderString(
-		c.Tr.Actions.LogRemoveFile,
+		c.Tr.Log.RemoveFile,
 		map[string]string{
 			"path": path,
 		},

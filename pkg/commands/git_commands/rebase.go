@@ -105,7 +105,7 @@ func (self *RebaseCommands) MoveCommitDown(commits []*models.Commit, index int) 
 	sha := commits[index].Sha
 
 	msg := utils.ResolvePlaceholderString(
-		self.Tr.Actions.LogMoveCommitDown,
+		self.Tr.Log.MoveCommitDown,
 		map[string]string{
 			"shortSha": utils.ShortSha(sha),
 		},
@@ -125,7 +125,7 @@ func (self *RebaseCommands) MoveCommitUp(commits []*models.Commit, index int) er
 	sha := commits[index].Sha
 
 	msg := utils.ResolvePlaceholderString(
-		self.Tr.Actions.LogMoveCommitUp,
+		self.Tr.Log.MoveCommitUp,
 		map[string]string{
 			"shortSha": utils.ShortSha(sha),
 		},
@@ -162,7 +162,7 @@ func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index in
 
 func (self *RebaseCommands) EditRebase(branchRef string) error {
 	msg := utils.ResolvePlaceholderString(
-		self.Tr.Actions.LogEditRebase,
+		self.Tr.Log.EditRebase,
 		map[string]string{
 			"ref": branchRef,
 		},
@@ -431,7 +431,7 @@ func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 		return fmt.Sprintf("%s %s", utils.ShortSha(commit.Sha), commit.Name)
 	})
 	msg := utils.ResolvePlaceholderString(
-		self.Tr.Actions.LogCherryPickCommits,
+		self.Tr.Log.CherryPickCommits,
 		map[string]string{
 			"commitLines": strings.Join(commitLines, "\n"),
 		},

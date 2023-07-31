@@ -423,7 +423,7 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoComma
 	self.c.LogAction("Update rebase TODO")
 
 	msg := utils.ResolvePlaceholderString(
-		self.c.Tr.Actions.LogHandleMidRebaseCommand,
+		self.c.Tr.Log.HandleMidRebaseCommand,
 		map[string]string{
 			"shortSha": commit.ShortSha(),
 			"action":   action.String(),
@@ -459,7 +459,7 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 
 		msg := utils.ResolvePlaceholderString(
-			self.c.Tr.Actions.LogMovingCommitDown,
+			self.c.Tr.Log.MovingCommitDown,
 			map[string]string{
 				"shortSha": commit.ShortSha(),
 			},
@@ -500,7 +500,7 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		// to provide a useful log
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
 		msg := utils.ResolvePlaceholderString(
-			self.c.Tr.Actions.LogMovingCommitUp,
+			self.c.Tr.Log.MovingCommitUp,
 			map[string]string{
 				"shortSha": commit.ShortSha(),
 			},
