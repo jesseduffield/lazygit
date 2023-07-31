@@ -175,7 +175,14 @@ func (self *RebaseCommands) EditRebase(branchRef string) error {
 }
 
 func (self *RebaseCommands) EditRebaseFromBaseCommit(targetBranchName string, baseCommit string) error {
-	self.os.LogCommand(fmt.Sprintf("Beginning interactive rebase from '%s' onto '%s", baseCommit, targetBranchName), false)
+	msg := utils.ResolvePlaceholderString(
+		self.Tr.Log.EditRebaseFromBaseCommit,
+		map[string]string{
+			"baseCommit":       baseCommit,
+			"targetBranchName": targetBranchName,
+		},
+	)
+	self.os.LogCommand(msg, false)
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot: baseCommit,
 		onto:          targetBranchName,

@@ -611,19 +611,20 @@ type Bisect struct {
 }
 
 type Log struct {
-	EditRebase             string
-	MoveCommitUp           string
-	MoveCommitDown         string
-	CherryPickCommits      string
-	HandleUndo             string
-	HandleMidRebaseCommand string
-	MovingCommitUp         string
-	MovingCommitDown       string
-	RemoveFile             string
-	CopyToClipboard        string
-	Remove                 string
-	CreateFileWithContent  string
-	AppendingLineToFile    string
+	EditRebase               string
+	MoveCommitUp             string
+	MoveCommitDown           string
+	CherryPickCommits        string
+	HandleUndo               string
+	HandleMidRebaseCommand   string
+	MovingCommitUp           string
+	MovingCommitDown         string
+	RemoveFile               string
+	CopyToClipboard          string
+	Remove                   string
+	CreateFileWithContent    string
+	AppendingLineToFile      string
+	EditRebaseFromBaseCommit string
 }
 
 type Actions struct {
@@ -1474,19 +1475,20 @@ func EnglishTranslationSet() TranslationSet {
 			Bisecting:                   "Bisecting",
 		},
 		Log: Log{
-			EditRebase:             "Beginning interactive rebase at '{{.ref}}'",
-			MoveCommitUp:           "Moving TODO down: '{{.shortSha}}'",
-			MoveCommitDown:         "Moving TODO down: '{{.shortSha}}'",
-			CherryPickCommits:      "Cherry-picking commits:\n'{{.commitLines}}'",
-			HandleUndo:             "Undoing last conflict resolution",
-			HandleMidRebaseCommand: "Updating rebase action of commit {{.shortSha}} to '{{.action}}'",
-			MovingCommitUp:         "Moving commit {{.shortSha}} up",
-			MovingCommitDown:       "Moving commit {{.shortSha}} down",
-			RemoveFile:             "Deleting path '{{.path}}'",
-			CopyToClipboard:        "Copying '{{.str}}' to clipboard",
-			Remove:                 "Removing '{{.filename}}'",
-			CreateFileWithContent:  "Creating file '{{.path}}'",
-			AppendingLineToFile:    "Appending '{{.line}}' to file '{{.filename}}'",
+			EditRebase:               "Beginning interactive rebase at '{{.ref}}'",
+			MoveCommitUp:             "Moving TODO down: '{{.shortSha}}'",
+			MoveCommitDown:           "Moving TODO down: '{{.shortSha}}'",
+			CherryPickCommits:        "Cherry-picking commits:\n'{{.commitLines}}'",
+			HandleUndo:               "Undoing last conflict resolution",
+			HandleMidRebaseCommand:   "Updating rebase action of commit {{.shortSha}} to '{{.action}}'",
+			MovingCommitUp:           "Moving commit {{.shortSha}} up",
+			MovingCommitDown:         "Moving commit {{.shortSha}} down",
+			RemoveFile:               "Deleting path '{{.path}}'",
+			CopyToClipboard:          "Copying '{{.str}}' to clipboard",
+			Remove:                   "Removing '{{.filename}}'",
+			CreateFileWithContent:    "Creating file '{{.path}}'",
+			AppendingLineToFile:      "Appending '{{.line}}' to file '{{.filename}}'",
+			EditRebaseFromBaseCommit: "Beginning interactive rebase from '{{.baseCommit}}' onto '{{.targetBranchName}}",
 		},
 	}
 }
