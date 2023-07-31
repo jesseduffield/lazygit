@@ -86,3 +86,7 @@ func (self *ReflogCommitsContext) GetDiffTerminals() []string {
 
 	return []string{itemId}
 }
+
+func (self *ReflogCommitsContext) ShowBranchHeadsInSubCommits() bool {
+	return false
+}

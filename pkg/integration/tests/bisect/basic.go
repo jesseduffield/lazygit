@@ -11,6 +11,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
 		shell.
+			NewBranch("mybranch").
 			CreateNCommits(10)
 	},
 	SetupConfig: func(cfg *config.AppConfig) {},
@@ -31,20 +32,21 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			Focus().
-			SelectedLine(Contains("commit 10")).
-			NavigateToLine(Contains("commit 09")).
+			SelectedLine(Contains("CI commit 10")).
+			NavigateToLine(Contains("CI commit 09")).
 			Tap(func() {
 				markCommitAsBad()
 
 				t.Views().Information().Content(Contains("Bisecting"))
 			}).
 			SelectedLine(Contains("<-- bad")).
-			NavigateToLine(Contains("commit 02")).
+			NavigateToLine(Contains("CI commit 02")).
 			Tap(markCommitAsGood).
+			TopLines(Contains("CI commit 10")).
 			// lazygit will land us in the commit between our good and bad commits.
-			SelectedLine(Contains("commit 05").Contains("<-- current")).
+			SelectedLine(Contains("CI commit 05").Contains("<-- current")).
 			Tap(markCommitAsBad).
-			SelectedLine(Contains("commit 04").Contains("<-- current")).
+			SelectedLine(Contains("CI commit 04").Contains("<-- current")).
 			Tap(func() {
 				markCommitAsGood()
 
@@ -52,7 +54,7 @@ var Basic = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectPopup().Alert().Title(Equals("Bisect complete")).Content(MatchesRegexp("(?s)commit 05.*Do you want to reset")).Confirm()
 			}).
 			IsFocused().
-			Content(Contains("commit 04"))
+			Content(Contains("CI commit 04"))
 
 		t.Views().Information().Content(DoesNotContain("Bisecting"))
 	},

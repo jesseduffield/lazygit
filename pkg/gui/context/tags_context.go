@@ -69,3 +69,7 @@ func (self *TagsContext) GetDiffTerminals() []string {
 
 	return []string{itemId}
 }
+
+func (self *TagsContext) ShowBranchHeadsInSubCommits() bool {
+	return true
+}

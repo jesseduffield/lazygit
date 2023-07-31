@@ -70,6 +70,21 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	}, nil
 }
 
+// CurrentBranchName get name of current branch
+func (self *BranchCommands) CurrentBranchName() (string, error) {
+	cmdArgs := NewGitCmd("rev-parse").
+		Arg("--abbrev-ref").
+		Arg("--verify").
+		Arg("HEAD").
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err == nil {
+		return strings.TrimSpace(output), nil
+	}
+	return "", err
+}
+
 // Delete delete branch
 func (self *BranchCommands) Delete(branch string, force bool) error {
 	cmdArgs := NewGitCmd("branch").

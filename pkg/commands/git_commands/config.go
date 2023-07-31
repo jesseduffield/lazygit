@@ -107,3 +107,7 @@ func (self *ConfigCommands) GetCoreCommentChar() byte {
 
 	return '#'
 }
+
+func (self *ConfigCommands) GetRebaseUpdateRefs() bool {
+	return self.gitConfig.GetBool("rebase.updateRefs")
+}

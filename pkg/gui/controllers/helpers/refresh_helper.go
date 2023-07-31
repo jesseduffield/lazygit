@@ -272,6 +272,32 @@ func (self *RefreshHelper) refreshCommitsAndCommitFiles() {
 	}
 }
 
+func (self *RefreshHelper) determineCheckedOutBranchName() string {
+	if rebasedBranch := self.c.Git().Status.BranchBeingRebased(); rebasedBranch != "" {
+		// During a rebase we're on a detached head, so cannot determine the
+		// branch name in the usual way. We need to read it from the
+		// ".git/rebase-merge/head-name" file instead.
+		return strings.TrimPrefix(rebasedBranch, "refs/heads/")
+	}
+
+	if bisectInfo := self.c.Git().Bisect.GetInfo(); bisectInfo.Bisecting() && bisectInfo.GetStartSha() != "" {
+		// Likewise, when we're bisecting we're on a detached head as well. In
+		// this case we read the branch name from the ".git/BISECT_START" file.
+		return bisectInfo.GetStartSha()
+	}
+
+	// In all other cases, get the branch name by asking git what branch is
+	// checked out. Note that if we're on a detached head (for reasons other
+	// than rebasing or bisecting, i.e. it was explicitly checked out), then
+	// this will return its sha.
+	if branchName, err := self.c.Git().Branch.CurrentBranchName(); err == nil {
+		return branchName
+	}
+
+	// Should never get here unless the working copy is corrupt
+	return ""
+}
+
 func (self *RefreshHelper) refreshCommitsWithLimit() error {
 	self.c.Mutexes().LocalCommitsMutex.Lock()
 	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
@@ -291,6 +317,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 	self.c.Model().Commits = commits
 	self.RefreshAuthors(commits)
 	self.c.Model().WorkingTreeStateAtLastCommitRefresh = self.c.Git().Status.WorkingTreeState()
+	self.c.Model().CheckedOutBranch = self.determineCheckedOutBranchName()
 
 	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
 }
@@ -409,6 +436,12 @@ func (self *RefreshHelper) refreshBranches() {
 	self.c.Model().Branches = branches
 
 	if err := self.c.PostRefreshUpdate(self.c.Contexts().Branches); err != nil {
+		self.c.Log.Error(err)
+	}
+
+	// Need to re-render the commits view because the visualization of local
+	// branch heads might have changed
+	if err := self.c.Contexts().LocalCommits.HandleRender(); err != nil {
 		self.c.Log.Error(err)
 	}
 

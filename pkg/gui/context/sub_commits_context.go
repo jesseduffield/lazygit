@@ -37,6 +37,13 @@ func NewSubCommitsContext(
 	}
 
 	getDisplayStrings := func(startIdx int, length int) [][]string {
+		// This can happen if a sub-commits view is asked to be rerendered while
+		// it is invisble; for example when switching screen modes, which
+		// rerenders all views.
+		if viewModel.GetRef() == nil {
+			return [][]string{}
+		}
+
 		selectedCommitSha := ""
 		if c.CurrentContext().GetKey() == SUB_COMMITS_CONTEXT_KEY {
 			selectedCommit := viewModel.GetSelected()
@@ -44,9 +51,17 @@ func NewSubCommitsContext(
 				selectedCommitSha = selectedCommit.Sha
 			}
 		}
+		branches := []*models.Branch{}
+		if viewModel.GetShowBranchHeads() {
+			branches = c.Model().Branches
+		}
+		showBranchMarkerForHeadCommit := c.Git().Config.GetRebaseUpdateRefs()
 		return presentation.GetCommitListDisplayStrings(
 			c.Common,
 			c.Model().SubCommits,
+			branches,
+			viewModel.GetRef().RefName(),
+			showBranchMarkerForHeadCommit,
 			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
 			c.Modes().CherryPicking.SelectedShaSet(),
 			c.Modes().Diffing.Ref,
@@ -97,7 +112,8 @@ type SubCommitsViewModel struct {
 	ref types.Ref
 	*ListViewModel[*models.Commit]
 
-	limitCommits bool
+	limitCommits    bool
+	showBranchHeads bool
 }
 
 func (self *SubCommitsViewModel) SetRef(ref types.Ref) {
@@ -106,6 +122,14 @@ func (self *SubCommitsViewModel) SetRef(ref types.Ref) {
 
 func (self *SubCommitsViewModel) GetRef() types.Ref {
 	return self.ref
+}
+
+func (self *SubCommitsViewModel) SetShowBranchHeads(value bool) {
+	self.showBranchHeads = value
+}
+
+func (self *SubCommitsViewModel) GetShowBranchHeads() bool {
+	return self.showBranchHeads
 }
 
 func (self *SubCommitsContext) GetSelectedItemId() string {

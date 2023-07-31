@@ -10,12 +10,16 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	GitVersion:   AtLeast("2.38.0"),
-	SetupConfig:  func(config *config.AppConfig) {},
+	SetupConfig: func(config *config.AppConfig) {
+		config.GetUserConfig().Git.MainBranches = []string{"master"}
+	},
 	SetupRepo: func(shell *Shell) {
 		shell.
-			CreateNCommits(3).
-			NewBranch("mybranch").
-			CreateNCommitsStartingAt(3, 4)
+			CreateNCommits(1).
+			NewBranch("branch1").
+			CreateNCommitsStartingAt(3, 2).
+			NewBranch("branch2").
+			CreateNCommitsStartingAt(3, 5)
 
 		shell.SetConfig("rebase.updateRefs", "true")
 	},
@@ -23,26 +27,28 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			Focus().
 			Lines(
-				Contains("commit 06").IsSelected(),
-				Contains("commit 05"),
-				Contains("commit 04"),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("CI commit 07").IsSelected(),
+				Contains("CI commit 06"),
+				Contains("CI commit 05"),
+				Contains("CI * commit 04"),
+				Contains("CI commit 03"),
+				Contains("CI commit 02"),
+				Contains("CI commit 01"),
 			).
-			NavigateToLine(Contains("commit 01")).
+			NavigateToLine(Contains("commit 02")).
 			Press(keys.Universal.Edit).
 			Focus().
 			Lines(
-				Contains("pick").Contains("commit 06"),
-				Contains("pick").Contains("commit 05"),
-				Contains("pick").Contains("commit 04"),
-				Contains("update-ref").Contains("master"),
-				Contains("pick").Contains("commit 03"),
-				Contains("pick").Contains("commit 02"),
-				Contains("<-- YOU ARE HERE --- commit 01"),
+				Contains("pick").Contains("CI commit 07"),
+				Contains("pick").Contains("CI commit 06"),
+				Contains("pick").Contains("CI commit 05"),
+				Contains("update-ref").Contains("branch1").DoesNotContain("*"),
+				Contains("pick").Contains("CI * commit 04"),
+				Contains("pick").Contains("CI commit 03"),
+				Contains("<-- YOU ARE HERE --- commit 02"),
+				Contains("CI commit 01"),
 			).
-			NavigateToLine(Contains("commit 05")).
+			NavigateToLine(Contains("commit 06")).
 			Press(keys.Universal.Remove)
 
 		t.Common().ContinueRebase()
@@ -50,11 +56,12 @@ var DropTodoCommitWithUpdateRef = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Commits().
 			IsFocused().
 			Lines(
-				Contains("commit 06"),
-				Contains("commit 04"),
-				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01"),
+				Contains("CI commit 07"),
+				Contains("CI commit 05"),
+				Contains("CI * commit 04"),
+				Contains("CI commit 03"),
+				Contains("CI commit 02"),
+				Contains("CI commit 01"),
 			)
 	},
 })
