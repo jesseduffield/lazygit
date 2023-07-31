@@ -320,7 +320,7 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 
 ### Interactive Rebasing
 
-![Interactive Rebasing](../assets/rebase.gif)
+![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/04d6dbe4-845a-41de-8072-0e475765ec63)
 
 ## Contributing
 
