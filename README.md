@@ -318,6 +318,10 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 
 ![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/b2752a77-3bd0-4b65-8e36-e643ae70c396)
 
+### Cherry-pick
+
+![cherry_pick-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/2d1205c8-9980-40b0-8b6a-221497099715)
+
 ### Interactive Rebasing
 
 ![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/04d6dbe4-845a-41de-8072-0e475765ec63)
