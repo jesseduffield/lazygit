@@ -38,6 +38,7 @@ type IntegrationTest struct {
 	gitVersion GitVersionRestriction
 	width      int
 	height     int
+	isDemo     bool
 }
 
 var _ integrationTypes.IntegrationTest = &IntegrationTest{}
@@ -63,6 +64,8 @@ type NewIntegrationTestArgs struct {
 	// If these are set, the test must be run in headless mode
 	Width  int
 	Height int
+	// If true, this is not a test but a demo to be added to our docs
+	IsDemo bool
 }
 
 type GitVersionRestriction struct {
@@ -133,6 +136,7 @@ func NewIntegrationTest(args NewIntegrationTestArgs) *IntegrationTest {
 		gitVersion:   args.GitVersion,
 		width:        args.Width,
 		height:       args.Height,
+		isDemo:       args.IsDemo,
 	}
 }
 
@@ -154,6 +158,10 @@ func (self *IntegrationTest) ExtraEnvVars() map[string]string {
 
 func (self *IntegrationTest) Skip() bool {
 	return self.skip
+}
+
+func (self *IntegrationTest) IsDemo() bool {
+	return self.isDemo
 }
 
 func (self *IntegrationTest) ShouldRunForGitVersion(version *git_commands.GitVersion) bool {
@@ -178,9 +186,19 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 	keys := gui.Keys()
 	testDriver := NewTestDriver(gui, shell, keys, KeyPressDelay())
 
+	if KeyPressDelay() > 0 {
+		// Setting caption to clear the options menu from whatever it starts with
+		testDriver.SetCaption("")
+		testDriver.SetCaptionPrefix("")
+		testDriver.Wait(1000)
+	}
+
 	self.run(testDriver, keys)
 
 	if KeyPressDelay() > 0 {
+		// Clear whatever caption there was so it doesn't linger
+		testDriver.SetCaption("")
+		testDriver.SetCaptionPrefix("")
 		// the dev would want to see the final state if they're running in slow mode
 		testDriver.Wait(2000)
 	}

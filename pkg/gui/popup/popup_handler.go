@@ -3,6 +3,7 @@ package popup
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -25,6 +26,7 @@ type PopupHandler struct {
 	toastFn             func(message string)
 	getPromptInputFn    func() string
 	onWorker            func(func(gocui.Task))
+	inDemo              func() bool
 }
 
 var _ types.IPopupHandler = &PopupHandler{}
@@ -40,6 +42,7 @@ func NewPopupHandler(
 	toastFn func(message string),
 	getPromptInputFn func() string,
 	onWorker func(func(gocui.Task)),
+	inDemo func() bool,
 ) *PopupHandler {
 	return &PopupHandler{
 		Common:              common,
@@ -53,6 +56,7 @@ func NewPopupHandler(
 		toastFn:             toastFn,
 		getPromptInputFn:    getPromptInputFn,
 		onWorker:            onWorker,
+		inDemo:              inDemo,
 	}
 }
 
@@ -144,6 +148,11 @@ func (self *PopupHandler) WithLoaderPanel(message string, f func(gocui.Task) err
 	}
 
 	self.onWorker(func(task gocui.Task) {
+		// emulating a delay due to network latency
+		if self.inDemo() {
+			time.Sleep(500 * time.Millisecond)
+		}
+
 		if err := f(task); err != nil {
 			self.Log.Error(err)
 		}

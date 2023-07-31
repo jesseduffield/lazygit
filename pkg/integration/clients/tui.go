@@ -19,7 +19,7 @@ import (
 
 // This program lets you run integration tests from a TUI. See pkg/integration/README.md for more info.
 
-var SLOW_KEY_PRESS_DELAY = 300
+var SLOW_KEY_PRESS_DELAY = 600
 
 func RunTUI() {
 	rootDir := utils.GetLazyRootDirectory()

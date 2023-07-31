@@ -201,12 +201,18 @@ func (self *WindowArrangementHelper) infoSectionChildren(informationStr string, 
 		appStatusBox.Weight = 1
 	} else {
 		optionsBox.Weight = 1
-		appStatusBox.Size = runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(appStatus)
+		if self.c.InDemo() {
+			// app status appears very briefly in demos and dislodges the caption,
+			// so better not to show it at all
+			appStatusBox.Size = 0
+		} else {
+			appStatusBox.Size = runewidth.StringWidth(INFO_SECTION_PADDING) + runewidth.StringWidth(appStatus)
+		}
 	}
 
 	result := []*boxlayout.Box{appStatusBox, optionsBox}
 
-	if self.c.UserConfig.Gui.ShowBottomLine || self.modeHelper.IsAnyModeActive() {
+	if (!self.c.InDemo() && self.c.UserConfig.Gui.ShowBottomLine) || self.modeHelper.IsAnyModeActive() {
 		result = append(result, &boxlayout.Box{
 			Window: "information",
 			// unlike appStatus, informationStr has various colors so we need to decolorise before taking the length

@@ -8,8 +8,12 @@ gui:
     activeBorderColor:
     - green
     - bold
+    inactiveBorderColor:
+    - black
     SelectedRangeBgcolor:
     - reverse
+  # Not important in tests but it creates clutter in demos
+  showRandomTip: false
 git:
   # We don't want to run any periodic background git commands because it'll introduce race conditions and flakiness.
   # If we need to refresh something from within the test (which should only really happen if we've invoked a

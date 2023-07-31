@@ -493,6 +493,7 @@ func NewGui(
 		func(message string) { gui.helpers.AppStatus.Toast(message) },
 		func() string { return gui.Views.Confirmation.TextArea.GetContent() },
 		func(f func(gocui.Task)) { gui.c.OnWorker(f) },
+		func() bool { return gui.c.InDemo() },
 	)
 
 	guiCommon := &guiCommon{gui: gui, IPopupHandler: gui.PopupHandler}

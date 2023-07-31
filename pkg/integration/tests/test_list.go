@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/config"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/conflicts"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/custom_commands"
+	"github.com/jesseduffield/lazygit/pkg/integration/tests/demo"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/diff"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/file"
 	"github.com/jesseduffield/lazygit/pkg/integration/tests/filter_and_search"
@@ -88,6 +89,10 @@ var tests = []*components.IntegrationTest{
 	custom_commands.OmitFromHistory,
 	custom_commands.SuggestionsCommand,
 	custom_commands.SuggestionsPreset,
+	demo.Bisect,
+	demo.CherryPick,
+	demo.CommitAndPush,
+	demo.InteractiveRebase,
 	diff.Diff,
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,

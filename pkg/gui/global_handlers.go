@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -136,4 +137,23 @@ func (gui *Gui) handleCopySelectedSideContextItemToClipboard() error {
 	gui.c.Toast(fmt.Sprintf("'%s' %s", truncatedItemId, gui.c.Tr.CopiedToClipboard))
 
 	return nil
+}
+
+func (gui *Gui) setCaption(caption string) {
+	gui.Views.Options.FgColor = gocui.ColorWhite
+	gui.Views.Options.FgColor |= gocui.AttrBold
+	gui.Views.Options.SetContent(captionPrefix + " " + style.FgCyan.SetBold().Sprint(caption))
+	gui.c.Render()
+}
+
+var captionPrefix = ""
+
+func (gui *Gui) setCaptionPrefix(prefix string) {
+	gui.Views.Options.FgColor = gocui.ColorWhite
+	gui.Views.Options.FgColor |= gocui.AttrBold
+
+	captionPrefix = prefix
+
+	gui.Views.Options.SetContent(prefix)
+	gui.c.Render()
 }
