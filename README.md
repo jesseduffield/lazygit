@@ -314,9 +314,9 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 - diff branches easily
 - Cherry-pick commits like it's copy+paste
 
-### Resolving merge conflicts
+### Git Bisect
 
-![Gif](../assets/resolving-merge-conflicts.gif)
+![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/b2752a77-3bd0-4b65-8e36-e643ae70c396)
 
 ### Interactive Rebasing
 
