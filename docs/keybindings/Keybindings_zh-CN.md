@@ -147,6 +147,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-j&gt;</kbd>: 下移提交
   <kbd>&lt;c-k&gt;</kbd>: 上移提交
   <kbd>v</kbd>: 粘贴提交（拣选）
+  <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: 用已暂存的更改来修补提交
   <kbd>a</kbd>: Set/Reset commit author
   <kbd>t</kbd>: 还原提交

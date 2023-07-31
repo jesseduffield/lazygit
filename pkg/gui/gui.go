@@ -24,6 +24,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/cherrypicking"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/diffing"
 	"github.com/jesseduffield/lazygit/pkg/gui/modes/filtering"
+	"github.com/jesseduffield/lazygit/pkg/gui/modes/marked_base_commit"
 	"github.com/jesseduffield/lazygit/pkg/gui/popup"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/authors"
@@ -362,9 +363,10 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 			Authors:               map[string]*models.Author{},
 		},
 		Modes: &types.Modes{
-			Filtering:     filtering.New(startArgs.FilterPath),
-			CherryPicking: cherrypicking.New(),
-			Diffing:       diffing.New(),
+			Filtering:        filtering.New(startArgs.FilterPath),
+			CherryPicking:    cherrypicking.New(),
+			Diffing:          diffing.New(),
+			MarkedBaseCommit: marked_base_commit.New(),
 		},
 		ScreenMode: initialScreenMode,
 		// TODO: only use contexts from context manager

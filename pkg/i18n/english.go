@@ -209,6 +209,7 @@ type TranslationSet struct {
 	ConflictsResolved                   string
 	Continue                            string
 	RebasingTitle                       string
+	RebasingFromBaseCommitTitle         string
 	SimpleRebase                        string
 	InteractiveRebase                   string
 	InteractiveRebaseTooltip            string
@@ -578,6 +579,10 @@ type TranslationSet struct {
 	Name                                string
 	Branch                              string
 	Path                                string
+	MarkedBaseCommitStatus              string
+	MarkAsBaseCommit                    string
+	MarkAsBaseCommitTooltip             string
+	MarkedCommitMarker                  string
 	Actions                             Actions
 	Bisect                              Bisect
 }
@@ -947,6 +952,7 @@ func EnglishTranslationSet() TranslationSet {
 		Continue:                            "Continue",
 		Keybindings:                         "Keybindings",
 		RebasingTitle:                       "Rebase '{{.checkedOutBranch}}' onto '{{.ref}}'",
+		RebasingFromBaseCommitTitle:         "Rebase '{{.checkedOutBranch}}' from marked base onto '{{.ref}}'",
 		SimpleRebase:                        "Simple rebase",
 		InteractiveRebase:                   "Interactive rebase",
 		InteractiveRebaseTooltip:            "Begin an interactive rebase with a break at the start, so you can update the TODO commits before continuing",
@@ -1315,6 +1321,10 @@ func EnglishTranslationSet() TranslationSet {
 		Name:                                "Name",
 		Branch:                              "Branch",
 		Path:                                "Path",
+		MarkedBaseCommitStatus:              "Marked a base commit for rebase",
+		MarkAsBaseCommit:                    "Mark commit as base commit for rebase",
+		MarkAsBaseCommitTooltip:             "Select a base commit for the next rebase; this will effectively perform a 'git rebase --onto'.",
+		MarkedCommitMarker:                  "↑↑↑ Will rebase from here ↑↑↑",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

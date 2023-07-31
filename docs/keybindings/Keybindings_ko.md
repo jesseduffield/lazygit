@@ -265,6 +265,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-j&gt;</kbd>: 커밋을 1개 아래로 이동
   <kbd>&lt;c-k&gt;</kbd>: 커밋을 1개 위로 이동
   <kbd>v</kbd>: 커밋을 붙여넣기 (cherry-pick)
+  <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: Amend commit with staged changes
   <kbd>a</kbd>: Set/Reset commit author
   <kbd>t</kbd>: 커밋 되돌리기

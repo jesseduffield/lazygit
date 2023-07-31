@@ -191,6 +191,7 @@ _說明：`<c-b>` 表示 Ctrl+B、`<a-b>` 表示 Alt+B，`B`表示 Shift+B_
   <kbd>&lt;c-j&gt;</kbd>: 向下移動提交
   <kbd>&lt;c-k&gt;</kbd>: 向上移動提交
   <kbd>v</kbd>: 貼上提交 (揀選)
+  <kbd>B</kbd>: Mark commit as base commit for rebase
   <kbd>A</kbd>: 使用已預存的更改修正提交
   <kbd>a</kbd>: 設置/重設提交作者
   <kbd>t</kbd>: 還原提交

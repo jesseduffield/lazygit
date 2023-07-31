@@ -36,6 +36,9 @@ var (
 	// CherryPickedCommitColor is the text style when cherry picking a commit
 	CherryPickedCommitTextStyle = style.New()
 
+	// MarkedBaseCommitTextStyle is the text style of the marked rebase base commit
+	MarkedBaseCommitTextStyle = style.New()
+
 	OptionsFgColor = style.New()
 
 	DiffTerminalColor = style.FgMagenta
@@ -54,6 +57,10 @@ func UpdateTheme(themeConfig config.ThemeConfig) {
 	cherryPickedCommitBgTextStyle := GetTextStyle(themeConfig.CherryPickedCommitBgColor, true)
 	cherryPickedCommitFgTextStyle := GetTextStyle(themeConfig.CherryPickedCommitFgColor, false)
 	CherryPickedCommitTextStyle = cherryPickedCommitBgTextStyle.MergeStyle(cherryPickedCommitFgTextStyle)
+
+	markedBaseCommitBgTextStyle := GetTextStyle(themeConfig.MarkedBaseCommitBgColor, true)
+	markedBaseCommitFgTextStyle := GetTextStyle(themeConfig.MarkedBaseCommitFgColor, false)
+	MarkedBaseCommitTextStyle = markedBaseCommitBgTextStyle.MergeStyle(markedBaseCommitFgTextStyle)
 
 	unstagedChangesTextStyle := GetTextStyle(themeConfig.UnstagedChangesColor, false)
 	UnstagedChangesColor = unstagedChangesTextStyle
