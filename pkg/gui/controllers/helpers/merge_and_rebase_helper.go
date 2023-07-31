@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -224,18 +225,20 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			Key:   's',
 			OnPress: func() error {
 				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
-				baseCommit := self.c.Modes().MarkedBaseCommit.GetSha()
-				var err error
-				if baseCommit != "" {
-					err = self.c.Git().Rebase.RebaseBranchFromBaseCommit(ref, baseCommit)
-				} else {
-					err = self.c.Git().Rebase.RebaseBranch(ref)
-				}
-				err = self.CheckMergeOrRebase(err)
-				if err == nil {
-					self.c.Modes().MarkedBaseCommit.Reset()
-				}
-				return err
+				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(task gocui.Task) error {
+					baseCommit := self.c.Modes().MarkedBaseCommit.GetSha()
+					var err error
+					if baseCommit != "" {
+						err = self.c.Git().Rebase.RebaseBranchFromBaseCommit(ref, baseCommit)
+					} else {
+						err = self.c.Git().Rebase.RebaseBranch(ref)
+					}
+					err = self.CheckMergeOrRebase(err)
+					if err == nil {
+						self.c.Modes().MarkedBaseCommit.Reset()
+					}
+					return err
+				})
 			},
 		},
 		{
