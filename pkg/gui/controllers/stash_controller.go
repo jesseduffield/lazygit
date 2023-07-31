@@ -66,7 +66,7 @@ func (self *StashController) GetOnRenderToMain() func() error {
 				task = types.NewRunPtyTask(
 					self.c.Git().Stash.ShowStashEntryCmdObj(
 						stashEntry.Index,
-						self.c.State().GetIgnoreWhitespaceInDiffView(),
+						self.c.GetAppState().IgnoreWhitespaceInDiffView,
 					).GetCmd(),
 				)
 			}

@@ -243,8 +243,6 @@ type Mutexes struct {
 }
 
 type IStateAccessor interface {
-	GetIgnoreWhitespaceInDiffView() bool
-	SetIgnoreWhitespaceInDiffView(value bool)
 	GetRepoPathStack() *utils.StringStack
 	GetRepoState() IRepoStateAccessor
 	// tells us whether we're currently updating lazygit

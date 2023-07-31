@@ -29,7 +29,7 @@ func (self *DiffHelper) DiffArgs() []string {
 		output = append(output, "-R")
 	}
 
-	if self.c.State().GetIgnoreWhitespaceInDiffView() {
+	if self.c.GetAppState().IgnoreWhitespaceInDiffView {
 		output = append(output, "--ignore-all-space")
 	}
 
@@ -113,7 +113,7 @@ func (self *DiffHelper) WithDiffModeCheck(f func() error) error {
 }
 
 func (self *DiffHelper) IgnoringWhitespaceSubTitle() string {
-	if self.c.State().GetIgnoreWhitespaceInDiffView() {
+	if self.c.GetAppState().IgnoreWhitespaceInDiffView {
 		return self.c.Tr.IgnoreWhitespaceDiffViewSubTitle
 	}
 

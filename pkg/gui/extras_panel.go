@@ -24,7 +24,9 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 					show := !gui.c.State().GetShowExtrasWindow()
 					gui.c.State().SetShowExtrasWindow(show)
 					gui.c.GetAppState().HideCommandLog = !show
-					_ = gui.c.SaveAppState()
+					if err := gui.c.SaveAppState(); err != nil {
+						gui.c.Log.Errorf("error when saving app state: %v", err)
+					}
 					return nil
 				},
 			},

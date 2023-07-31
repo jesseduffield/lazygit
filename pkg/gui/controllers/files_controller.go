@@ -201,7 +201,7 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 			split := self.c.UserConfig.Gui.SplitDiff == "always" || (node.GetHasUnstagedChanges() && node.GetHasStagedChanges())
 			mainShowsStaged := !split && node.GetHasStagedChanges()
 
-			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, self.c.State().GetIgnoreWhitespaceInDiffView())
+			cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, mainShowsStaged, self.c.GetAppState().IgnoreWhitespaceInDiffView)
 			title := self.c.Tr.UnstagedChanges
 			if mainShowsStaged {
 				title = self.c.Tr.StagedChanges
@@ -216,7 +216,7 @@ func (self *FilesController) GetOnRenderToMain() func() error {
 			}
 
 			if split {
-				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, self.c.State().GetIgnoreWhitespaceInDiffView())
+				cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(node, false, true, self.c.GetAppState().IgnoreWhitespaceInDiffView)
 
 				title := self.c.Tr.StagedChanges
 				if mainShowsStaged {

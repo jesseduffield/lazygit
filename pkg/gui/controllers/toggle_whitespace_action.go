@@ -23,7 +23,10 @@ func (self *ToggleWhitespaceAction) Call() error {
 		return self.c.ErrorMsg(self.c.Tr.IgnoreWhitespaceNotSupportedHere)
 	}
 
-	self.c.State().SetIgnoreWhitespaceInDiffView(!self.c.State().GetIgnoreWhitespaceInDiffView())
+	self.c.GetAppState().IgnoreWhitespaceInDiffView = !self.c.GetAppState().IgnoreWhitespaceInDiffView
+	if err := self.c.SaveAppState(); err != nil {
+		self.c.Log.Errorf("error when saving app state: %v", err)
+	}
 
 	return self.c.CurrentSideContext().HandleFocus(types.OnFocusOpts{})
 }

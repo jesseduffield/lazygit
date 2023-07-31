@@ -102,7 +102,7 @@ func (self *SubmodulesController) GetOnRenderToMain() func() error {
 				if file == nil {
 					task = types.NewRenderStringTask(prefix)
 				} else {
-					cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, self.c.State().GetIgnoreWhitespaceInDiffView())
+					cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, self.c.GetAppState().IgnoreWhitespaceInDiffView)
 					task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix)
 				}
 			}
