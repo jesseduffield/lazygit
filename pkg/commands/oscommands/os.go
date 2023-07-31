@@ -117,7 +117,15 @@ func (c *OSCommand) Quote(message string) string {
 
 // AppendLineToFile adds a new line in file
 func (c *OSCommand) AppendLineToFile(filename, line string) error {
-	c.LogCommand(fmt.Sprintf("Appending '%s' to file '%s'", line, filename), false)
+	msg := utils.ResolvePlaceholderString(
+		c.Tr.Actions.LogAppendingLineToFile,
+		map[string]string{
+			"line":     line,
+			"filename": filename,
+		},
+	)
+	c.LogCommand(msg, false)
+
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0o600)
 	if err != nil {
 		return utils.WrapError(err)
@@ -154,7 +162,13 @@ func (c *OSCommand) AppendLineToFile(filename, line string) error {
 
 // CreateFileWithContent creates a file with the given content
 func (c *OSCommand) CreateFileWithContent(path string, content string) error {
-	c.LogCommand(fmt.Sprintf("Creating file '%s'", path), false)
+	msg := utils.ResolvePlaceholderString(
+		c.Tr.Actions.LogCreateFileWithContent,
+		map[string]string{
+			"path": path,
+		},
+	)
+	c.LogCommand(msg, false)
 	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
 		c.Log.Error(err)
 		return err
@@ -170,7 +184,13 @@ func (c *OSCommand) CreateFileWithContent(path string, content string) error {
 
 // Remove removes a file or directory at the specified path
 func (c *OSCommand) Remove(filename string) error {
-	c.LogCommand(fmt.Sprintf("Removing '%s'", filename), false)
+	msg := utils.ResolvePlaceholderString(
+		c.Tr.Actions.LogRemove,
+		map[string]string{
+			"filename": filename,
+		},
+	)
+	c.LogCommand(msg, false)
 	err := os.RemoveAll(filename)
 	return utils.WrapError(err)
 }
@@ -265,7 +285,14 @@ func PrepareForChildren(cmd *exec.Cmd) {
 func (c *OSCommand) CopyToClipboard(str string) error {
 	escaped := strings.Replace(str, "\n", "\\n", -1)
 	truncated := utils.TruncateWithEllipsis(escaped, 40)
-	c.LogCommand(fmt.Sprintf("Copying '%s' to clipboard", truncated), false)
+
+	msg := utils.ResolvePlaceholderString(
+		c.Tr.Actions.LogCopyToClipboard,
+		map[string]string{
+			"str": truncated,
+		},
+	)
+	c.LogCommand(msg, false)
 	if c.UserConfig.OS.CopyToClipboardCmd != "" {
 		cmdStr := utils.ResolvePlaceholderString(c.UserConfig.OS.CopyToClipboardCmd, map[string]string{
 			"text": c.Cmd.Quote(str),
@@ -277,7 +304,13 @@ func (c *OSCommand) CopyToClipboard(str string) error {
 }
 
 func (c *OSCommand) RemoveFile(path string) error {
-	c.LogCommand(fmt.Sprintf("Deleting path '%s'", path), false)
+	msg := utils.ResolvePlaceholderString(
+		c.Tr.Actions.LogRemoveFile,
+		map[string]string{
+			"path": path,
+		},
+	)
+	c.LogCommand(msg, false)
 
 	return c.removeFileFn(path)
 }

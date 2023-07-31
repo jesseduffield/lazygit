@@ -717,6 +717,19 @@ type Actions struct {
 	BisectMark                        string
 	RemoveWorktree                    string
 	AddWorktree                       string
+	LogEditRebase                     string
+	LogMoveCommitUp                   string
+	LogMoveCommitDown                 string
+	LogCherryPickCommits              string
+	LogHandleUndo                     string
+	LogHandleMidRebaseCommand         string
+	LogMovingCommitUp                 string
+	LogMovingCommitDown               string
+	LogRemoveFile                     string
+	LogCopyToClipboard                string
+	LogRemove                         string
+	LogCreateFileWithContent          string
+	LogAppendingLineToFile            string
 }
 
 const englishIntroPopupMessage = `
@@ -1438,6 +1451,19 @@ func EnglishTranslationSet() TranslationSet {
 			BisectMark:                        "Bisect mark",
 			RemoveWorktree:                    "Remove worktree",
 			AddWorktree:                       "Add worktree",
+			LogEditRebase:                     "Beginning interactive rebase at '{{.ref}}'",
+			LogMoveCommitUp:                   "Moving TODO down: '{{.shortSha}}'",
+			LogMoveCommitDown:                 "Moving TODO down: '{{.shortSha}}'",
+			LogCherryPickCommits:              "Cherry-picking commits:\n'{{.commitLines}}'",
+			LogHandleUndo:                     "Undoing last conflict resolution",
+			LogHandleMidRebaseCommand:         "Updating rebase action of commit {{.shortSha}} to '{{.action}}'",
+			LogMovingCommitUp:                 "Moving commit {{.shortSha}} up",
+			LogMovingCommitDown:               "Moving commit {{.shortSha}} down",
+			LogRemoveFile:                     "Deleting path '{{.path}}'",
+			LogCopyToClipboard:                "Copying '{{.str}}' to clipboard",
+			LogRemove:                         "Removing '{{.filename}}'",
+			LogCreateFileWithContent:          "Creating file '{{.path}}'",
+			LogAppendingLineToFile:            "Appending '{{.line}}' to file '{{.filename}}'",
 		},
 		Bisect: Bisect{
 			Mark:                        "Mark current commit (%s) as %s",

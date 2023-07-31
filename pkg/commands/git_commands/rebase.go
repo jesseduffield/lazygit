@@ -104,7 +104,13 @@ func (self *RebaseCommands) MoveCommitDown(commits []*models.Commit, index int) 
 
 	sha := commits[index].Sha
 
-	self.os.LogCommand(fmt.Sprintf("Moving TODO down: %s", utils.ShortSha(sha)), false)
+	msg := utils.ResolvePlaceholderString(
+		self.Tr.Actions.LogMoveCommitDown,
+		map[string]string{
+			"shortSha": utils.ShortSha(sha),
+		},
+	)
+	self.os.LogCommand(msg, false)
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  baseShaOrRoot,
@@ -118,7 +124,13 @@ func (self *RebaseCommands) MoveCommitUp(commits []*models.Commit, index int) er
 
 	sha := commits[index].Sha
 
-	self.os.LogCommand(fmt.Sprintf("Moving TODO up: %s", utils.ShortSha(sha)), false)
+	msg := utils.ResolvePlaceholderString(
+		self.Tr.Actions.LogMoveCommitUp,
+		map[string]string{
+			"shortSha": utils.ShortSha(sha),
+		},
+	)
+	self.os.LogCommand(msg, false)
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot:  baseShaOrRoot,
@@ -149,7 +161,13 @@ func (self *RebaseCommands) InteractiveRebase(commits []*models.Commit, index in
 }
 
 func (self *RebaseCommands) EditRebase(branchRef string) error {
-	self.os.LogCommand(fmt.Sprintf("Beginning interactive rebase at '%s'", branchRef), false)
+	msg := utils.ResolvePlaceholderString(
+		self.Tr.Actions.LogEditRebase,
+		map[string]string{
+			"ref": branchRef,
+		},
+	)
+	self.os.LogCommand(msg, false)
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot: branchRef,
 		instruction:   daemon.NewInsertBreakInstruction(),
@@ -412,7 +430,13 @@ func (self *RebaseCommands) CherryPickCommits(commits []*models.Commit) error {
 	commitLines := lo.Map(commits, func(commit *models.Commit, _ int) string {
 		return fmt.Sprintf("%s %s", utils.ShortSha(commit.Sha), commit.Name)
 	})
-	self.os.LogCommand(fmt.Sprintf("Cherry-picking commits:\n%s", strings.Join(commitLines, "\n")), false)
+	msg := utils.ResolvePlaceholderString(
+		self.Tr.Actions.LogCherryPickCommits,
+		map[string]string{
+			"commitLines": strings.Join(commitLines, "\n"),
+		},
+	)
+	self.os.LogCommand(msg, false)
 
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
 		baseShaOrRoot: "HEAD",

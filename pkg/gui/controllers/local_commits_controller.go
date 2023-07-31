@@ -421,10 +421,15 @@ func (self *LocalCommitsController) handleMidRebaseCommand(action todo.TodoComma
 	}
 
 	self.c.LogAction("Update rebase TODO")
-	self.c.LogCommand(
-		fmt.Sprintf("Updating rebase action of commit %s to '%s'", commit.ShortSha(), action.String()),
-		false,
+
+	msg := utils.ResolvePlaceholderString(
+		self.c.Tr.Actions.LogHandleMidRebaseCommand,
+		map[string]string{
+			"shortSha": commit.ShortSha(),
+			"action":   action.String(),
+		},
 	)
+	self.c.LogCommand(msg, false)
 
 	if err := self.c.Git().Rebase.EditRebaseTodo(commit, action); err != nil {
 		return false, self.c.Error(err)
@@ -452,7 +457,14 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		// logging directly here because MoveTodoDown doesn't have enough information
 		// to provide a useful log
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
-		self.c.LogCommand(fmt.Sprintf("Moving commit %s down", commit.ShortSha()), false)
+
+		msg := utils.ResolvePlaceholderString(
+			self.c.Tr.Actions.LogMovingCommitDown,
+			map[string]string{
+				"shortSha": commit.ShortSha(),
+			},
+		)
+		self.c.LogCommand(msg, false)
 
 		if err := self.c.Git().Rebase.MoveTodoDown(commit); err != nil {
 			return self.c.Error(err)
@@ -487,10 +499,13 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		// logging directly here because MoveTodoDown doesn't have enough information
 		// to provide a useful log
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
-		self.c.LogCommand(
-			fmt.Sprintf("Moving commit %s up", commit.ShortSha()),
-			false,
+		msg := utils.ResolvePlaceholderString(
+			self.c.Tr.Actions.LogMovingCommitUp,
+			map[string]string{
+				"shortSha": commit.ShortSha(),
+			},
 		)
+		self.c.LogCommand(msg, false)
 
 		if err := self.c.Git().Rebase.MoveTodoUp(self.c.Model().Commits[index]); err != nil {
 			return self.c.Error(err)
