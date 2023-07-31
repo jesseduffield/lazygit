@@ -9,10 +9,9 @@ A simple terminal UI for git commands
 
 [![GitHub Releases](https://img.shields.io/github/downloads/jesseduffield/lazygit/total)](https://github.com/jesseduffield/lazygit/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases/latest) [![homebrew](https://img.shields.io/homebrew/v/lazygit)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/lazygit.rb)  
 
-![Gif](../assets/staging.gif)
+![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/7e77d895-05a9-4571-a55b-240ac80f75eb)
+
 </div>
-
-
 
 ## Sponsors
 
