@@ -30,9 +30,17 @@ func NewTestDriver(gui integrationTypes.GuiDriver, shell *Shell, keys config.Key
 // key is something like 'w' or '<space>'. It's best not to pass a direct value,
 // but instead to go through the default user config to get a more meaningful key name
 func (self *TestDriver) press(keyStr string) {
-	self.Wait(self.pushKeyDelay)
-
+	self.SetCaption(fmt.Sprintf("Pressing %s", keyStr))
 	self.gui.PressKey(keyStr)
+	self.Wait(self.pushKeyDelay)
+}
+
+// for use when typing or navigating, because in demos we want that to happen
+// faster
+func (self *TestDriver) pressFast(keyStr string) {
+	self.SetCaption("")
+	self.gui.PressKey(keyStr)
+	self.Wait(self.pushKeyDelay / 5)
 }
 
 // Should only be used in specific cases where you're doing something weird!
@@ -44,7 +52,7 @@ func (self *TestDriver) GlobalPress(keyStr string) {
 
 func (self *TestDriver) typeContent(content string) {
 	for _, char := range content {
-		self.press(string(char))
+		self.pressFast(string(char))
 	}
 }
 
@@ -55,6 +63,14 @@ func (self *TestDriver) Common() *Common {
 // for when you want to allow lazygit to process something before continuing
 func (self *TestDriver) Wait(milliseconds int) {
 	time.Sleep(time.Duration(milliseconds) * time.Millisecond)
+}
+
+func (self *TestDriver) SetCaption(caption string) {
+	self.gui.SetCaption(caption)
+}
+
+func (self *TestDriver) SetCaptionPrefix(prefix string) {
+	self.gui.SetCaptionPrefix(prefix)
 }
 
 func (self *TestDriver) LogUI(message string) {

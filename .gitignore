@@ -41,3 +41,4 @@ oryxBuildBinary
 __debug_bin
 
 .worktrees
+demo/output/*

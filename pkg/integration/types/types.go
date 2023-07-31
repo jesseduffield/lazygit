@@ -16,6 +16,8 @@ type IntegrationTest interface {
 	RequiresHeadless() bool
 	// width and height when running headless
 	HeadlessDimensions() (int, int)
+	// If true, we are recording/replaying a demo
+	IsDemo() bool
 }
 
 // this is the interface through which our integration tests interact with the lazygit gui
@@ -38,4 +40,6 @@ type GuiDriver interface {
 	// e.g. when we're showing both staged and unstaged changes
 	SecondaryView() *gocui.View
 	View(viewName string) *gocui.View
+	SetCaption(caption string)
+	SetCaptionPrefix(prefix string)
 }

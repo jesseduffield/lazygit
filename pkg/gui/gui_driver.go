@@ -42,7 +42,11 @@ func (self *GuiDriver) PressKey(keyStr string) {
 		0,
 	)
 
-	// wait until lazygit is idle (i.e. all processing is done) before continuing
+	self.waitTillIdle()
+}
+
+// wait until lazygit is idle (i.e. all processing is done) before continuing
+func (self *GuiDriver) waitTillIdle() {
 	<-self.isIdleChan
 }
 
@@ -110,4 +114,14 @@ func (self *GuiDriver) View(viewName string) *gocui.View {
 		panic(err)
 	}
 	return view
+}
+
+func (self *GuiDriver) SetCaption(caption string) {
+	self.gui.setCaption(caption)
+	self.waitTillIdle()
+}
+
+func (self *GuiDriver) SetCaptionPrefix(prefix string) {
+	self.gui.setCaptionPrefix(prefix)
+	self.waitTillIdle()
 }

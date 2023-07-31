@@ -63,6 +63,12 @@ func (self *fakeGuiDriver) View(viewName string) *gocui.View {
 	return nil
 }
 
+func (self *fakeGuiDriver) SetCaption(string) {
+}
+
+func (self *fakeGuiDriver) SetCaptionPrefix(string) {
+}
+
 func TestManualFailure(t *testing.T) {
 	test := NewIntegrationTest(NewIntegrationTestArgs{
 		Description: unitTestDescription,

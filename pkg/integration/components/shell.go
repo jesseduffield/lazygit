@@ -74,6 +74,13 @@ func (self *Shell) RunShellCommand(cmdStr string) *Shell {
 
 func (self *Shell) CreateFile(path string, content string) *Shell {
 	fullPath := filepath.Join(self.dir, path)
+
+	// create any required directories
+	dir := filepath.Dir(fullPath)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		self.fail(fmt.Sprintf("error creating directory: %s\n%s", dir, err))
+	}
+
 	err := os.WriteFile(fullPath, []byte(content), 0o644)
 	if err != nil {
 		self.fail(fmt.Sprintf("error creating file: %s\n%s", fullPath, err))
@@ -190,6 +197,21 @@ func (self *Shell) CreateNCommitsStartingAt(n, startIndex int) *Shell {
 			fmt.Sprintf("file%02d content", i),
 		).
 			Commit(fmt.Sprintf("commit %02d", i))
+	}
+
+	return self
+}
+
+// Only to be used in demos, because the list might change and we don't want
+// tests to break when it does.
+func (self *Shell) CreateNCommitsWithRandomMessages(n int) *Shell {
+	for i := 0; i < n; i++ {
+		file := RandomFiles[i]
+		self.CreateFileAndAdd(
+			file.Name,
+			file.Content,
+		).
+			Commit(RandomCommitMessages[i])
 	}
 
 	return self

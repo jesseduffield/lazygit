@@ -15,6 +15,10 @@ type OptionsMapMgr struct {
 }
 
 func (gui *Gui) renderContextOptionsMap(c types.Context) {
+	// In demos, we render our own content to this view
+	if gui.integrationTest != nil && gui.integrationTest.IsDemo() {
+		return
+	}
 	mgr := OptionsMapMgr{c: gui.c}
 	mgr.renderContextOptionsMap(c)
 }

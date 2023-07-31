@@ -96,7 +96,10 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 
 		wg := sync.WaitGroup{}
 		refresh := func(name string, f func()) {
-			if options.Mode == types.ASYNC {
+			// if we're in a demo we don't want any async refreshes because
+			// everything happens fast and it's better to have everything update
+			// in the one frame
+			if !self.c.InDemo() && options.Mode == types.ASYNC {
 				self.c.OnWorker(func(t gocui.Task) {
 					f()
 				})

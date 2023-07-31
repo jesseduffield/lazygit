@@ -181,3 +181,7 @@ func (self *guiCommon) AfterLayout(f func() error) {
 		self.gui.c.Log.Error("afterLayoutFuncs channel is full, skipping function")
 	}
 }
+
+func (self *guiCommon) InDemo() bool {
+	return self.gui.integrationTest != nil && self.gui.integrationTest.IsDemo()
+}
