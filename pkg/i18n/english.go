@@ -359,6 +359,8 @@ type TranslationSet struct {
 	PushTag                             string
 	CreateTag                           string
 	CreatingTag                         string
+	ForceTag                            string
+	ForceTagPrompt                      string
 	FetchRemote                         string
 	FetchingRemoteStatus                string
 	CheckoutCommit                      string
@@ -874,7 +876,7 @@ func EnglishTranslationSet() TranslationSet {
 		OpenConfig:                          "Open config file",
 		EditConfig:                          "Edit config file",
 		ForcePush:                           "Force push",
-		ForcePushPrompt:                     "Your branch has diverged from the remote branch. Press 'esc' to cancel, or 'enter' to force push.",
+		ForcePushPrompt:                     "Your branch has diverged from the remote branch. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to force push.",
 		ForcePushDisabled:                   "Your branch has diverged from the remote branch and you've disabled force pushing",
 		UpdatesRejectedAndForcePushDisabled: "Updates were rejected and you have disabled force pushing",
 		CheckForUpdate:                      "Check for update",
@@ -1102,6 +1104,8 @@ func EnglishTranslationSet() TranslationSet {
 		PushTag:                             "Push tag",
 		CreateTag:                           "Create tag",
 		CreatingTag:                         "Creating tag",
+		ForceTag:                            "Force Tag",
+		ForceTagPrompt:                      "The tag '{{.tagName}}' exists already. Press {{.cancelKey}} to cancel, or {{.confirmKey}} to overwrite.",
 		FetchRemote:                         "Fetch remote",
 		FetchingRemoteStatus:                "Fetching remote",
 		CheckoutCommit:                      "Checkout commit",

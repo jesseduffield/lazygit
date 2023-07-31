@@ -214,6 +214,8 @@ var tests = []*components.IntegrationTest{
 	tag.CreateWhileCommitting,
 	tag.CrudAnnotated,
 	tag.CrudLightweight,
+	tag.ForceTagAnnotated,
+	tag.ForceTagLightweight,
 	tag.Reset,
 	ui.Accordion,
 	ui.DoublePopup,
