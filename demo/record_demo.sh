@@ -31,6 +31,8 @@ NAME=$(echo "$TEST" | sed -e 's/.*\///' | sed -e 's/\..*//')
 
 go generate pkg/integration/tests/tests.go
 
+mkdir -p demo/output
+
 terminalizer -c demo/config.yml record --skip-sharing -d "go run cmd/integration_test/main.go cli --slow $TEST" "demo/output/$NAME"
 terminalizer render "demo/output/$NAME" -o "demo/output/$NAME.gif"
 gifsicle --colors 256 --use-col=web -O3 < "demo/output/$NAME.gif" > "demo/output/$NAME-compressed.gif"
