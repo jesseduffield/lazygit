@@ -35,6 +35,7 @@ mkdir -p demo/output
 
 terminalizer -c demo/config.yml record --skip-sharing -d "go run cmd/integration_test/main.go cli --slow $TEST" "demo/output/$NAME"
 terminalizer render "demo/output/$NAME" -o "demo/output/$NAME.gif"
-gifsicle --colors 256 --use-col=web -O3 < "demo/output/$NAME.gif" > "demo/output/$NAME-compressed.gif"
+COMPRESSED_PATH="demo/output/$NAME-compressed.gif"
+gifsicle --colors 256 --use-col=web -O3 < "demo/output/$NAME.gif" > "$COMPRESSED_PATH"
 
-echo "Demo recorded to demo/$NAME-compressed.gif"
+echo "Demo recorded to $COMPRESSED_PATH"

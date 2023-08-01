@@ -28,10 +28,10 @@ var InteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.SetCaptionPrefix("Interactive rebase")
+		t.Wait(1000)
 
 		t.Views().Commits().
 			IsFocused().
-			Press(keys.Universal.NextScreenMode).
 			NavigateToLine(Contains("Add TypeScript types to User module")).
 			Press(keys.Universal.Edit).
 			SelectPreviousItem().

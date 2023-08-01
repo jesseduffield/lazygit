@@ -190,7 +190,6 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 		// Setting caption to clear the options menu from whatever it starts with
 		testDriver.SetCaption("")
 		testDriver.SetCaptionPrefix("")
-		testDriver.Wait(1000)
 	}
 
 	self.run(testDriver, keys)

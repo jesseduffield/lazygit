@@ -70,6 +70,7 @@ gui:
   splitDiff: 'auto' # one of 'auto' | 'always'
   skipRewordInEditorWarning: false # for skipping the confirmation before launching the reword editor
   border: 'single' # one of 'single' | 'double' | 'rounded' | 'hidden'
+  animateExplosion: true # shows an explosion animation when nuking the working tree
 git:
   paging:
     colorArg: always
