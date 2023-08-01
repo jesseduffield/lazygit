@@ -346,6 +346,202 @@
         }
       },
       "additionalProperties": false
+    },
+    "git": {
+      "title": "git",
+      "description": "Git settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "object",
+      "properties": {
+        "paging": {
+          "title": "paging",
+          "description": "Pager settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md",
+          "type": "object",
+          "properties": {
+            "colorArg": {
+              "title": "color argument",
+              "description": "A pager color argument\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md",
+              "type": "string",
+              "enum": [
+                "always",
+                "never"
+              ],
+              "default": "always"
+            },
+            "useConfig": {
+              "title": "use config",
+              "description": "Whether to use a config\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md",
+              "type": "boolean",
+              "default": false
+            },
+            "pager": {
+              "title": "pager",
+              "description": "A pager\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md",
+              "type": "string",
+              "minLength": 1,
+              "examples": [
+                "delta --dark --paging=never",
+                "diff-so-fancy",
+                "ydiff -p cat -s --wrap --width={{columnWidth}}"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "commit": {
+          "title": "commit",
+          "description": "Commit settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "signOff": {
+              "title": "sign off",
+              "description": "Whether to sign commits off\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "boolean",
+              "default": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "merging": {
+          "title": "merging",
+          "description": "Merging settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "manualCommit": {
+              "title": "manual commit",
+              "description": "Whether to use manual commits\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "boolean",
+              "default": false
+            },
+            "args": {
+              "title": "arguments",
+              "description": "Additional CLI arguments for 'git merge'\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "--no-ff"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "log": {
+          "title": "log",
+          "description": "Log settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "order": {
+              "title": "order",
+              "description": "A commit order\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "enum": [
+                "date-order",
+                "author-date-order",
+                "topo-order",
+                "default"
+              ],
+              "default": "topo-order"
+            },
+            "showGraph": {
+              "title": "show graph",
+              "description": "Whether to show a graph\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "enum": [
+                "always",
+                "never",
+                "when-maximised"
+              ],
+              "default": "when-maximised"
+            },
+            "showWholeGraph": {
+              "title": "show whole graph",
+              "description": "Whether to show the whole graph\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "boolean",
+              "default": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "skipHookPrefix": {
+          "title": "skip hook prefix",
+          "description": "A prefix to skip\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": "WIP"
+        },
+        "mainBranches": {
+          "title": "main branches",
+          "description": "Main branches\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "description": "A main branch\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              "main",
+              "master"
+            ]
+          },
+          "default": [
+            "main",
+            "master"
+          ]
+        },
+        "autoFetch": {
+          "title": "auto fetch",
+          "description": "Whether to automatically fetch\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
+        "autoRefresh": {
+          "title": "auto refresh",
+          "description": "Whether to automatically refresh\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
+        "fetchAll": {
+          "title": "fetch all",
+          "description": "Whether to fetch everything\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
+        "branchLogCmd": {
+          "title": "branch log cmd",
+          "description": "A log command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
+        },
+        "allBranchesLogCmd": {
+          "title": "all branches log cmd",
+          "description": "A log command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": "git log --graph --all --color=always --abbrev-commit --decorate --date=relative --pretty=medium"
+        },
+        "overrideGpg": {
+          "title": "override gpg",
+          "description": "Whether not to spawn a separate process while using GPG\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": false
+        },
+        "disableForcePushing": {
+          "title": "disable force pushing",
+          "description": "Whether to disable force pushing\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": false
+        },
+        "parseEmoji": {
+          "title": "parse emoji",
+          "description": "Whether to parse emoji\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": false
+        },
+        "diffContextSize": {
+          "title": "diff context size",
+          "description": "how many lines of context are shown around a change in diffs\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "integer",
+          "default": 3
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
