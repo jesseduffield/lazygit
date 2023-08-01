@@ -328,9 +328,9 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 
 ### Nuking the working tree
 
-For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules)
+For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules) [kidpix style](https://www.youtube.com/watch?v=Ur7_A4JusMU)
 
-![nuke_working_tree-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/98df7d09-b3ed-4c71-a8d6-e087b3de3db6)
+![nuke_working_tree-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/06facd9c-166c-4ff5-b011-12e584ff8163)
 
 ## Contributing
 
