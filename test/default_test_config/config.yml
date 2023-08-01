@@ -14,6 +14,7 @@ gui:
     - reverse
   # Not important in tests but it creates clutter in demos
   showRandomTip: false
+  animateExplosion: false # takes too long
 git:
   # We don't want to run any periodic background git commands because it'll introduce race conditions and flakiness.
   # If we need to refresh something from within the test (which should only really happen if we've invoked a

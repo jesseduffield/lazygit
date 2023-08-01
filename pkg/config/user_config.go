@@ -56,6 +56,7 @@ type GuiConfig struct {
 	SkipRewordInEditorWarning bool               `yaml:"skipRewordInEditorWarning"`
 	WindowSize                string             `yaml:"windowSize"`
 	Border                    string             `yaml:"border"`
+	AnimateExplosion          bool               `yaml:"animateExplosion"`
 }
 
 type ThemeConfig struct {
@@ -454,6 +455,7 @@ func GetDefaultConfig() *UserConfig {
 			SplitDiff:                 "auto",
 			SkipRewordInEditorWarning: false,
 			Border:                    "single",
+			AnimateExplosion:          true,
 		},
 		Git: GitConfig{
 			Paging: PagingConfig{
