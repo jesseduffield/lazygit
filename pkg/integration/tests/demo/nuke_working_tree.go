@@ -28,6 +28,7 @@ var NukeWorkingTree = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.SetCaptionPrefix("Nuke the working tree")
+		t.Wait(1000)
 
 		t.Views().Files().
 			IsFocused().

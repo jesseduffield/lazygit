@@ -28,6 +28,7 @@ var Bisect = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.SetCaptionPrefix("Git bisect")
+		t.Wait(1000)
 
 		markCommitAsBad := func() {
 			t.Views().Commits().

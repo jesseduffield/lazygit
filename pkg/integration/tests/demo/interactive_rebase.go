@@ -28,6 +28,7 @@ var InteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.SetCaptionPrefix("Interactive rebase")
+		t.Wait(1000)
 
 		t.Views().Commits().
 			IsFocused().
