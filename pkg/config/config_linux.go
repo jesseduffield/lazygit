@@ -1,18 +1,17 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 )
 
 func isWSL() bool {
-	data, err := ioutil.ReadFile("/proc/sys/kernel/osrelease")
+	data, err := os.ReadFile("/proc/sys/kernel/osrelease")
 	return err == nil && strings.Contains(string(data), "microsoft")
 }
 
 func isContainer() bool {
-	data, err := ioutil.ReadFile("/proc/1/cgroup")
+	data, err := os.ReadFile("/proc/1/cgroup")
 
 	if strings.Contains(string(data), "docker") ||
 		strings.Contains(string(data), "/lxc/") ||
