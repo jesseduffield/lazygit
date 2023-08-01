@@ -332,6 +332,10 @@ For when you really want to just get rid of anything that shows up when you run 
 
 ![nuke_working_tree-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/06facd9c-166c-4ff5-b011-12e584ff8163)
 
+### Amend old commit
+
+![amend_old_commit-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/de7010c0-6902-4fad-8fe5-7197956ca40d)
+
 ## Contributing
 
 We love your input! Please check out the [contributing guide](CONTRIBUTING.md).
