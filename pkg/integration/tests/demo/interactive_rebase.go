@@ -31,7 +31,6 @@ var InteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			IsFocused().
-			Press(keys.Universal.NextScreenMode).
 			NavigateToLine(Contains("Add TypeScript types to User module")).
 			Press(keys.Universal.Edit).
 			SelectPreviousItem().

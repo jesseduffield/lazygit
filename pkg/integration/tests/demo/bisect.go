@@ -45,7 +45,6 @@ var Bisect = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().Commits().
 			IsFocused().
-			Press(keys.Universal.NextScreenMode).
 			Tap(func() {
 				markCommitAsBad()
 

@@ -382,7 +382,7 @@ func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSaf
 
 func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) types.WindowMaximisation {
 	if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
-		return types.SCREEN_HALF
+		return types.SCREEN_FULL
 	} else {
 		defaultWindowSize := config.GetUserConfig().Gui.WindowSize
 
