@@ -215,7 +215,7 @@ func (self *MergeConflictsController) HandleUndo() error {
 	}
 
 	self.c.LogAction("Restoring file to previous state")
-	self.c.LogCommand("Undoing last conflict resolution", false)
+	self.c.LogCommand(self.c.Tr.Log.HandleUndo, false)
 	if err := os.WriteFile(state.GetPath(), []byte(state.GetContent()), 0o644); err != nil {
 		return err
 	}
