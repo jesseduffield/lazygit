@@ -195,7 +195,7 @@ func getExplodeImage(width int, height int, frame int, max int) string {
 	var buf bytes.Buffer
 
 	// Initialize RNG seed
-	rand.Seed(time.Now().UnixNano())
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	// calculate the center of explosion
 	centerX, centerY := width/2, height/2
@@ -223,9 +223,9 @@ func getExplodeImage(width int, height int, frame int, max int) string {
 			// if distance is less than radius and greater than innerRadius, draw explosion char
 			if distance <= radius && distance >= innerRadius {
 				// Make placement random and less likely as explosion progresses
-				if rand.Float64() > progress {
+				if random.Float64() > progress {
 					// Pick a random explosion char
-					char := explosionChars[rand.Intn(len(explosionChars))]
+					char := explosionChars[random.Intn(len(explosionChars))]
 					buf.WriteRune(char)
 				} else {
 					buf.WriteRune(' ')

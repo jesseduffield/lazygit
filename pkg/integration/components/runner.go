@@ -2,7 +2,6 @@ package components
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -222,7 +221,7 @@ func findOrCreateDir(path string) {
 
 func deleteAndRecreateEmptyDir(path string) {
 	// remove contents of integration test directory
-	dir, err := ioutil.ReadDir(path)
+	dir, err := os.ReadDir(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			err = os.Mkdir(path, 0o777)
