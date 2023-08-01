@@ -21,6 +21,7 @@ import (
 
 // GitCommand is our main git interface
 type GitCommand struct {
+	Blame       *git_commands.BlameCommands
 	Branch      *git_commands.BranchCommands
 	Commit      *git_commands.CommitCommands
 	Config      *git_commands.ConfigCommands
@@ -160,6 +161,7 @@ func NewGitCommandAux(
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)
 	worktreeCommands := git_commands.NewWorktreeCommands(gitCommon)
+	blameCommands := git_commands.NewBlameCommands(gitCommon)
 
 	branchLoader := git_commands.NewBranchLoader(cmn, cmd, branchCommands.CurrentBranchInfo, configCommands)
 	commitFileLoader := git_commands.NewCommitFileLoader(cmn, cmd)
@@ -171,6 +173,7 @@ func NewGitCommandAux(
 	tagLoader := git_commands.NewTagLoader(cmn, cmd)
 
 	return &GitCommand{
+		Blame:       blameCommands,
 		Branch:      branchCommands,
 		Commit:      commitCommands,
 		Config:      configCommands,

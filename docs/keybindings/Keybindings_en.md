@@ -123,6 +123,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>w</kbd>: Commit changes without pre-commit hook
   <kbd>A</kbd>: Amend last commit
   <kbd>C</kbd>: Commit changes using git editor
+  <kbd>&lt;c-f&gt;</kbd>: Find base commit for fixup
   <kbd>e</kbd>: Edit file
   <kbd>o</kbd>: Open file
   <kbd>i</kbd>: Ignore or exclude file

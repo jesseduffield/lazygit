@@ -39,6 +39,14 @@ type TranslationSet struct {
 	SureToAmend                         string
 	NoCommitToAmend                     string
 	CommitChangesWithEditor             string
+	FindBaseCommitForFixup              string
+	FindBaseCommitForFixupTooltip       string
+	NoDeletedLinesInDiff                string
+	NoBaseCommitsFound                  string
+	MultipleBaseCommitsFoundStaged      string
+	MultipleBaseCommitsFoundUnstaged    string
+	BaseCommitIsAlreadyOnMainBranch     string
+	BaseCommitIsNotInCurrentView        string
 	StatusTitle                         string
 	GlobalTitle                         string
 	Menu                                string
@@ -858,6 +866,14 @@ func EnglishTranslationSet() TranslationSet {
 		SureToAmend:                         "Are you sure you want to amend last commit? Afterwards, you can change the commit message from the commits panel.",
 		NoCommitToAmend:                     "There's no commit to amend.",
 		CommitChangesWithEditor:             "Commit changes using git editor",
+		FindBaseCommitForFixup:              "Find base commit for fixup",
+		FindBaseCommitForFixupTooltip:       "Find the commit that your current changes are building upon, for the sake of amending/fixing up the commit. This spares you from having to look through your branch's commits one-by-one to see which commit should be amended/fixed up. See docs: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md>",
+		NoDeletedLinesInDiff:                "No deleted lines in diff",
+		NoBaseCommitsFound:                  "No base commits found",
+		MultipleBaseCommitsFoundStaged:      "Multiple base commits found. (Try staging fewer changes at once)",
+		MultipleBaseCommitsFoundUnstaged:    "Multiple base commits found. (Try staging some of the changes)",
+		BaseCommitIsAlreadyOnMainBranch:     "The base commit for this change is already on the main branch",
+		BaseCommitIsNotInCurrentView:        "Base commit is not in current view",
 		StatusTitle:                         "Status",
 		Menu:                                "Menu",
 		Execute:                             "Execute",

@@ -366,6 +366,7 @@ type KeybindingFilesConfig struct {
 	CommitChangesWithoutHook string `yaml:"commitChangesWithoutHook"`
 	AmendLastCommit          string `yaml:"amendLastCommit"`
 	CommitChangesWithEditor  string `yaml:"commitChangesWithEditor"`
+	FindBaseCommitForFixup   string `yaml:"findBaseCommitForFixup"`
 	ConfirmDiscard           string `yaml:"confirmDiscard"`
 	IgnoreFile               string `yaml:"ignoreFile"`
 	RefreshFiles             string `yaml:"refreshFiles"`
@@ -762,6 +763,7 @@ func GetDefaultConfig() *UserConfig {
 				CommitChangesWithoutHook: "w",
 				AmendLastCommit:          "A",
 				CommitChangesWithEditor:  "C",
+				FindBaseCommitForFixup:   "<c-f>",
 				IgnoreFile:               "i",
 				RefreshFiles:             "r",
 				StashAllChanges:          "s",

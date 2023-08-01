@@ -209,6 +209,7 @@ keybinding:
     commitChangesWithoutHook: 'w' # commit changes without pre-commit hook
     amendLastCommit: 'A'
     commitChangesWithEditor: 'C'
+    findBaseCommitForFixup: '<c-f>'
     confirmDiscard: 'x'
     ignoreFile: 'i'
     refreshFiles: 'r'
