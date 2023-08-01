@@ -322,9 +322,15 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 
 ![cherry_pick-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/2d1205c8-9980-40b0-8b6a-221497099715)
 
-### Interactive Rebasing
+### Interactive Rebase
 
 ![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/04d6dbe4-845a-41de-8072-0e475765ec63)
+
+### Nuking the working tree
+
+For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules)
+
+![nuke_working_tree-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/98df7d09-b3ed-4c71-a8d6-e087b3de3db6)
 
 ## Contributing
 
