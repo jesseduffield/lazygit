@@ -40,6 +40,12 @@ func (self *ConfirmationDriver) Cancel() {
 	self.getViewDriver().PressEscape()
 }
 
+func (self *ConfirmationDriver) Wait(milliseconds int) *ConfirmationDriver {
+	self.getViewDriver().Wait(milliseconds)
+
+	return self
+}
+
 func (self *ConfirmationDriver) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedContent || !self.hasCheckedTitle {
 		self.t.Fail("You must both check the content and title of a confirmation popup by calling Title()/Content() before calling Confirm()/Cancel().")

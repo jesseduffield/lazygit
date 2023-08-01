@@ -89,6 +89,7 @@ var tests = []*components.IntegrationTest{
 	custom_commands.OmitFromHistory,
 	custom_commands.SuggestionsCommand,
 	custom_commands.SuggestionsPreset,
+	demo.AmendOldCommit,
 	demo.Bisect,
 	demo.CherryPick,
 	demo.CommitAndPush,
