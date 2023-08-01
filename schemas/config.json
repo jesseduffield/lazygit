@@ -1,0 +1,352 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "color": {
+      "type": "string",
+      "oneOf": [
+        {
+          "examples": [
+            "default",
+            "black",
+            "red",
+            "green",
+            "yellow",
+            "blue",
+            "magenta",
+            "cyan",
+            "white"
+          ]
+        },
+        {
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "examples": [
+            "#ff00ff"
+          ]
+        }
+      ]
+    }
+  },
+  "title": "settings",
+  "description": "Settings of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+  "type": "object",
+  "properties": {
+    "gui": {
+      "title": "gui",
+      "description": "Settings of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "object",
+      "properties": {
+        "windowSize": {
+          "title": "window size",
+          "description": "A window size of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "enum": [
+            "normal",
+            "half",
+            "full"
+          ],
+          "default": "normal"
+        },
+        "scrollHeight": {
+          "title": "scroll height",
+          "description": "A scroll height of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "integer",
+          "minimum": 1,
+          "default": 2
+        },
+        "scrollPastBottom": {
+          "title": "scroll past bottom",
+          "description": "Whether to allow scrolling past bottom of the current window\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
+        "sidePanelWidth": {
+          "title": "side panel width",
+          "description": "A width of the current side panel\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.3333
+        },
+        "expandFocusedSidePanel": {
+          "title": "expand focused side panel",
+          "description": "Whether to expand focused side panel of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": false
+        },
+        "mainPanelSplitMode": {
+          "title": "main panel split mode",
+          "description": "A split mode of the current main panel\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "enum": [
+            "horizontal",
+            "flexible",
+            "vertical"
+          ],
+          "default": "flexible"
+        },
+        "language": {
+          "title": "language",
+          "description": "A language of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "enum": [
+            "auto",
+            "en",
+            "zh",
+            "pl",
+            "nl",
+            "ja",
+            "ko",
+            "ru"
+          ],
+          "default": "auto"
+        },
+        "timeFormat": {
+          "title": "time format",
+          "description": "A time format of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": "02 Jan 06"
+        },
+        "shortTimeFormat": {
+          "title": "short time format",
+          "description": "A short time format of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": "3:04PM"
+        },
+        "theme": {
+          "title": "theme",
+          "description": "Settings of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "activeBorderColor": {
+              "title": "active border color",
+              "description": "Active border colors of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
+              "items": {
+                "description": "An active border color of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+                "$ref": "#/definitions/color"
+              }
+            },
+            "inactiveBorderColor": {
+              "title": "inactive border color",
+              "description": "Inactive border colors of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
+              "items": {
+                "description": "An inactive border color of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+                "$ref": "#/definitions/color"
+              }
+            },
+            "searchingActiveBorderColor": {
+              "title": "searching active border color",
+              "description": "Searching active border colors of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
+              "items": {
+                "description": "A searching active border color of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+                "$ref": "#/definitions/color"
+              }
+            },
+            "optionsTextColor": {
+              "title": "options text color",
+              "description": "Option text colors of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
+              "items": {
+                "description": "An option text color of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+                "$ref": "#/definitions/color"
+              }
+            },
+            "selectedLineBgColor": {
+              "title": "selected line bg color",
+              "description": "Selected line background colors of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
+              "items": {
+                "description": "A selected line background color of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+                "$ref": "#/definitions/color"
+              }
+            },
+            "selectedRangeBgColor": {
+              "title": "selected range bg color",
+              "description": "Selected range background colors of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
+              "items": {
+                "description": "A selected range background color of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+                "$ref": "#/definitions/color"
+              }
+            },
+            "cherryPickedCommitBgColor": {
+              "title": "cherry picked commit bg color",
+              "description": "Cherry picked commit background colors of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
+              "items": {
+                "description": "A cherry picked commit background color of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+                "$ref": "#/definitions/color"
+              }
+            },
+            "cherryPickedCommitFgColor": {
+              "title": "cherry picked commit fg color",
+              "description": "Cherry picked commit foreground colors of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
+              "items": {
+                "description": "A cherry picked commit foreground color of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+                "$ref": "#/definitions/color"
+              }
+            },
+            "unstagedChangesColor": {
+              "title": "unstaged changes color",
+              "description": "Unstaged changes colors of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
+              "items": {
+                "description": "An unstaged changes color of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+                "$ref": "#/definitions/color"
+              }
+            },
+            "defaultFgColor": {
+              "title": "default fg color",
+              "description": "Default foreground colors of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
+              "items": {
+                "description": "A default foreground color of the current theme\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+                "$ref": "#/definitions/color"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "commitLength": {
+          "title": "commit length",
+          "description": "Settings of the current commit length\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "show": {
+              "title": "show",
+              "description": "Whether to show the current commit length\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "mouseEvents": {
+          "title": "mouse events",
+          "description": "Whether to enable mouse events of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
+        "skipDiscardChangeWarning": {
+          "title": "skip discard change warning",
+          "description": "Whether to disable change warning of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": false
+        },
+        "skipStashWarning": {
+          "title": "skip stash warning",
+          "description": "Whether to disable stash warning of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": false
+        },
+        "showFileTree": {
+          "title": "show file tree",
+          "description": "Whether to render render files of the current UI in a tree format\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
+        "showListFooter": {
+          "title": "show list footer",
+          "description": "Whether to show list footer of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
+        "showRandomTip": {
+          "title": "show random tip",
+          "description": "Whether to show a random tip of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
+        "showBranchCommitHash": {
+          "title": "show branch commit hash",
+          "description": "Whether to show a branch commit hash of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": false
+        },
+        "showBottomLine": {
+          "title": "show bottom line",
+          "description": "Whether to show a bottom line of the current UI unless there is an important information\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
+        "showCommandLog": {
+          "title": "show command log",
+          "description": "Whether to show command log of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
+        "nerdFontsVersion": {
+          "title": "nerd fonts version",
+          "description": "A nerd font version of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "enum": [
+            "2",
+            "3",
+            ""
+          ],
+          "default": ""
+        },
+        "commandLogSize": {
+          "title": "command log size",
+          "description": "A command log size of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "integer",
+          "minimum": 0,
+          "default": 8
+        },
+        "splitDiff": {
+          "title": "split diff",
+          "description": "Whether to skip diff of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "enum": [
+            "auto",
+            "always"
+          ],
+          "default": "auto"
+        },
+        "skipRewordInEditorWarning": {
+          "title": "skip reword in editor warning",
+          "description": "Whether to skip a confirmation before launching a reword editor\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": false
+        },
+        "border": {
+          "title": "border",
+          "description": "A border style of the current UI\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "enum": [
+            "single",
+            "double",
+            "rounded",
+            "hidden"
+          ],
+          "default": "single"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
