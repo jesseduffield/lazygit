@@ -12,6 +12,8 @@ Ideally we'd run this whole thing through docker but we haven't got that working
 npm i -g terminalizer
 # for gif compression
 npm i -g gifsicle
+# for mp4 conversion
+brew install ffmpeg
 
 # font with icons
 wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/DejaVuSansMono.tar.xz && \
@@ -37,16 +39,44 @@ You can use the same flow as we use with integration tests when you're writing a
 
 It's good to add captions explaining what task if being performed. Use the existing demos as a guide.
 
+### Setting up the assets worktree
+
+We store assets (which includes demo recordings) in the `assets` branch, which is a branch that shares no history with the main branch and exists purely for storing assets. Storing them separately means we don't clog up the code branches with large binaries.
+
+The scripts and demo definitions live in the code branches but the output lives in the assets branch so to be able to create a video from a demo you'll need to create a linked worktree for the assets branch which you can do with:
+
+```sh
+git worktree add .worktrees/assets assets
+```
+
+Outputs will be stored in `.worktrees/assets/demos/`. We'll store three separate things:
+* the yaml of the recording
+* the original gif
+* either the compressed gif or the mp4 depending on the output you chose (see below)
+
 ### Recording the demo
 
 Once you're happy with your demo you can record it using:
 ```sh
-scripts/record_demo.sh <path>
+scripts/record_demo.sh [gif|mp4] <path>
 # e.g.
-scripts/record_demo.sh pkg/integration/tests/demo/interactive_rebase.go
+scripts/record_demo.sh gif pkg/integration/tests/demo/interactive_rebase.go
 ```
 
-### Storing demos
+~~The gif format is for use in the first video of the readme (it has a larger size but has auto-play and looping)~~
+~~The mp4 format is for everything else (no looping, requires clicking, but smaller size).~~
 
-This part is subject to change. I'm thinking of storing all gifs in the `assets` branch. But yet to finalize on that.
-For now, feel free to upload `demo/demo-compressed.gif` to GitHub by dragging and dropping it in a file in the browser (e.g. the README).
+Turns out that you can't store mp4s in a repo and link them from a README so we're gonna just use gifs across the board for now.
+
+### Including demos in README/docs
+
+If you've followed the above steps you'll end up with your output in your assets worktree.
+
+Within that worktree, stage all three output files and raise a PR against the assets branch.
+
+Then back in the code branch, in the doc, you can embed the recording like so:
+```md
+![Nuke working tree](../assets/demo/interactive_rebase-compressed.gif)
+```
+
+This means we can update assets without needing to update the docs that embed them.
