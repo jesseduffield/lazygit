@@ -128,6 +128,7 @@ type Gui struct {
 	currentView       *View
 	managers          []Manager
 	keybindings       []*keybinding
+	focusHandler      func(bool) error
 	maxX, maxY        int
 	outputMode        OutputMode
 	stop              chan struct{}
@@ -603,6 +604,10 @@ func (g *Gui) WhitelistKeybinding(k Key) error {
 	return ErrNotBlacklisted
 }
 
+func (g *Gui) SetFocusHandler(handler func(bool) error) {
+	g.focusHandler = handler
+}
+
 // getKey takes an empty interface with a key and returns the corresponding
 // typed Key or rune.
 func getKey(key interface{}) (Key, rune, error) {
@@ -728,6 +733,8 @@ func (g *Gui) MainLoop() error {
 		Screen.EnableMouse()
 	}
 
+	Screen.EnableFocus()
+
 	for {
 		err := g.processEvent()
 		if err != nil {
@@ -794,6 +801,8 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	case eventResize:
 		g.onResize()
 		return nil
+	case eventFocus:
+		return g.onFocus(ev)
 	default:
 		return nil
 	}
@@ -1416,6 +1425,14 @@ func (g *Gui) execKeybinding(v *View, kb *keybinding) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func (g *Gui) onFocus(ev *GocuiEvent) error {
+	if g.focusHandler != nil {
+		return g.focusHandler(ev.Focused)
+	}
+
+	return nil
 }
 
 func (g *Gui) StartTicking(ctx context.Context) {

@@ -63,9 +63,7 @@ func SimpleEditor(v *View, key Key, ch rune, mod Modifier) bool {
 		v.TextArea.BackSpaceWord()
 	case key == KeyCtrlY:
 		v.TextArea.Yank()
-
-		// TODO: see if we need all three of these conditions: maybe the final one is sufficient
-	case ch != 0 && mod == 0 && unicode.IsPrint(ch):
+	case unicode.IsPrint(ch):
 		v.TextArea.TypeRune(ch)
 	default:
 		return false
