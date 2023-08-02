@@ -1,0 +1,261 @@
+# The configurations that used for the recording, feel free to edit them
+config:
+
+  # Specify a command to be executed
+  # like `/bin/bash -l`, `ls`, or any other commands
+  # the default is bash for Linux
+  # or powershell.exe for Windows
+  command: go run cmd/integration_test/main.go cli --slow pkg/integration/tests/demo/commit_and_push.go
+  
+  # Specify the current working directory path
+  # the default is the current working directory path
+  cwd: /Users/jesseduffieldduffield/repos/lazygit
+  
+  # Export additional ENV variables
+  env:
+    recording: true
+  
+  # Explicitly set the number of columns
+  # or use `auto` to take the current
+  # number of columns of your shell
+  cols: 120 # 100
+  
+  # Explicitly set the number of rows
+  # or use `auto` to take the current
+  # number of rows of your shell
+  rows: 35 # 30
+  
+  # Amount of times to repeat GIF
+  # If value is -1, play once
+  # If value is 0, loop indefinitely
+  # If value is a positive number, loop n times
+  repeat: 0
+  
+  # Quality
+  # 1 - 100
+  # Higher quality seems to make no difference, but running it through
+  # gifsicle ends up with a much better compressed version.
+  quality: 100
+  
+  # Delay between frames in ms
+  # If the value is `auto` use the actual recording delays
+  frameDelay: auto
+  
+  # Maximum delay between frames in ms
+  # Ignored if the `frameDelay` isn't set to `auto`
+  # Set to `auto` to prevent limiting the max idle time
+  maxIdleTime: 2000
+  
+  # The surrounding frame box
+  # The `type` can be null, window, floating, or solid`
+  # To hide the title use the value null
+  # Don't forget to add a backgroundColor style with a null as type
+  frameBox:
+    type: floating
+    title: Lazygit
+    style:
+      border: 0px black solid
+      backgroundColor: "#1d1d1d"
+      margin: -5px
+  
+  # Add a watermark image to the rendered gif
+  # You need to specify an absolute path for
+  # the image on your machine or a URL, and you can also
+  # add your own CSS styles
+  watermark:
+    imagePath: null
+    style:
+      position: absolute
+      right: 15px
+      bottom: 15px
+      width: 100px
+      opacity: 0.9
+  
+  # Cursor style can be one of
+  # `block`, `underline`, or `bar`
+  cursorStyle: block
+  
+  # Font family
+  # You can use any font that is installed on your machine
+  # in CSS-like syntax
+  fontFamily: "DejaVuSansMono Nerd Font"
+  
+  # The size of the font
+  fontSize: 8
+  
+  # The height of lines
+  lineHeight: 1
+  
+  # The spacing between letters
+  letterSpacing: 0
+  
+  # Theme
+  theme:
+    background: "transparent"
+    foreground: "#dddad6"
+    cursor: "#c7c7c7"
+    black: "#7a7a7a"
+    red: "#fc4384"
+    green: "#b3e33b"
+    yellow: "#ffa727"
+    blue: "#102895"
+    magenta: "#c930c7"
+    cyan: "#00c5c7"
+    white: "#c7c7c7"
+    brightBlack: "#676767"
+    brightRed: "#ff7fac"
+    brightGreen: "#c8ed71"
+    brightYellow: "#ebdf86"
+    brightBlue: "#6871ff"
+    brightMagenta: "#ff76ff"
+    brightCyan: "#5ffdff"
+    brightWhite: "#fffefe"
+  
+# Records, feel free to edit them
+records:
+  - delay: 5233
+    content: "\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?2004l\e[?1049h\e[22;0;0t\e[?1h\e=\e[?25l\e[H\e[2J\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?1000h\e[?1002h\e[?1003h\e[?1006h\e[?1004h"
+  - delay: 87
+    content: "\e[?25l\e[1;1H\e(B\e[m\e[30m\e]8;;\e\\┌─Status───────────────────────────────┐┌─Diff─────────────────────────────────────────────────────────────────────────┐\e[2;1H│\e(B\e[m\e[32m\e]8;;\e\\✓\e(B\e[m\e]8;;\e\\ repo → \e(B\e[m\e[32m\e]8;;\e\\feature/demo\e(B\e[m\e]8;;\e\\                 \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\No changed files                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[3;1H└──────────────────────────────────────┘│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[4;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌─Files \e(B\e[m\e]8;;\e\\- Worktrees - Submodules\e(B\e[m\e[32m\e[1m\e]8;;\e\\───────┐\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[5;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[6;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[7;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[8;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[9;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[10;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[11;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[12;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[13;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\└──────────────────────────────────────┘\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[14;1H┌─\e(B\e[m\e[32m\e]8;;\e\\Local branches \e(B\e[m\e[30m\e]8;;\e\\- Remotes - Tags──────┐│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[15;1H│\e(B\e[m\e[32m\e]8;;\e\\  *\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\שׂ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\feature/demo\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\✓\e(B\e[m\e]8;;\e\\                  \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[16;1H│\e(B\e[m\e[36m\e]8;;\e\\1s\e(B\e[m\e]8;;\e\\  שׂ master                          \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[17;1H│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[18;1H│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[19;1H│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[20;1H│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[21;1H│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[22;1H└───────────────────────────────1 of 2─┘│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[23;1H┌─\e(B\e[m\e[32m\e]8;;\e\\Commits \e(B\e[m\e[30m\e]8;;\e\\- Reflog─────────────────────┐│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[24;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\bed3ebce\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Improve Dockerfile for m\e(B\e[m\e[30m\e]8;;\e\\▲│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[25;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\2a50f5ae\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Implement user blocking \e(B\e[m\e[30m\e]8;;\e\\█│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[26;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\c91f9fa2\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Refactor user notificati\e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[27;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\da4a8746\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Upgrade Rails version to\e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[28;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\c3208fec\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Move global variables to\e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[29;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\3524d2e0\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Fix typos in documentati\e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[30;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\63658a28\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Optimize Lazygit startup\e(B\e[m\e[30m\e]8;;\e\\▼│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[31;1H└──────────────────────────────1 of 30─┘└──────────────────────────────────────────────────────────────────────────────┘\e[32;1H┌─Stash────────────────────────────────┐┌─Command log──────────────────────────────────────────────────────────────────┐\e[33;1H│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[34;1H└───────────────────────────────0 of 0─┘└──────────────────────────────────────────────────────────────────────────────┘\e[35;1H\e(B\e[m\e[34m\e]8;;\e\\<pgup>/<pgdown>: Scroll, <esc>: Cancel, q: Quit, ?: Keybindings, 1-5: Jump to panel, H/L: Scroll left/right             \e[?25l\e[?25l\e[1;43H\e(B\e[m\e[30m\e]8;;\e\\Unstaged changes\e[5;2H\e(B\e[m\e[91;44m\e[1m\e]8;;\e\\??  my-file.txt\e(B\e[m\e[44m\e[1m\e]8;;\e\\                      \e[6;2H\e(B\e[m\e[31m\e]8;;\e\\??  my-other-file.rb                 \e[13;33H\e(B\e[m\e[32m\e[1m\e]8;;\e\\1 of 2\e[?25l"
+  - delay: 11
+    content: "\e[?25l\e[2;42H\e(B\e[m\e[1m\e]8;;\e\\diff --git a/my-file.txt b/my-file.txt\e[2;120H\e(B\e[m\e[30m\e]8;;\e\\▲\e[3;42H\e(B\e[m\e[1m\e]8;;\e\\new file mode 100644\e[3;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[4;42H\e(B\e[m\e[1m\e]8;;\e\\index 0000000..ada5661\e[4;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[5;42H\e(B\e[m\e[1m\e]8;;\e\\--- /dev/null\e[5;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[6;42H\e(B\e[m\e[1m\e]8;;\e\\+++ b/my-file.txt\e[6;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[7;42H\e(B\e[m\e[36m\e]8;;\e\\@@ -0,0 +1 @@\e[7;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[8;42H\e(B\e[m\e[32m\e]8;;\e\\+myfile content\e[8;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[9;42H\e(B\e[m\e]8;;\e\\\\\e[9;44HNo\e[9;47Hnewline\e[9;55Hat\e[9;58Hend\e[9;62Hof\e[9;65Hfile\e[9;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[10;120H█\e[11;120H█\e[12;120H█\e[13;120H█\e[14;120H█\e[15;120H█\e[16;120H█\e[17;120H█\e[18;120H█\e[19;120H█\e[20;120H█\e[21;120H█\e[22;120H█\e[23;120H█\e[30;120H▼\e[?25l\e[?25l\e[35;1H\e(B\e[m\e[37m\e[1m\e]8;;\e\\                                                                                                                        \e[?25l\e[?25l\e[?25l\e[?25l\e[35;1H\e(B\e[m\e[37m\e[1m\e]8;;\e\\Stage\e[35;7Ha\e[35;9Hfile\e[?25l"
+  - delay: 1002
+    content: "\e[?25l\e[35;14H\e(B\e[m\e[36m\e[1m\e]8;;\e\\Pressing <space>                                                                                           \e[?25l"
+  - delay: 75
+    content: "\e[?25l\e[1;43H\e(B\e[m\e[30m\e]8;;\e\\Staged changes──\e[2;42H\e(B\e[m\e]8;;\e\\                                      \e[2;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[3;42H\e(B\e[m\e]8;;\e\\                    \e[3;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[4;42H\e(B\e[m\e]8;;\e\\                      \e[4;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[5;2H\e(B\e[m\e[92;44m\e[1m\e]8;;\e\\A   my-file.txt\e[5;42H\e(B\e[m\e]8;;\e\\             \e[5;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[6;42H\e(B\e[m\e]8;;\e\\                 \e[6;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[7;42H\e(B\e[m\e]8;;\e\\             \e[7;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[8;42H\e(B\e[m\e]8;;\e\\               \e[8;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[9;42H\e(B\e[m\e]8;;\e\\ \e[9;44H  \e[9;47H       \e[9;55H  \e[9;58H   \e[9;62H  \e[9;65H    \e[9;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[10;120H│\e[11;120H│\e[12;120H│\e[13;120H│\e[14;120H│\e[15;120H│\e[16;120H│\e[17;120H│\e[18;120H│\e[19;120H│\e[20;120H│\e[21;120H│\e[22;120H│\e[23;120H│\e[30;120H│\e[33;44H\e(B\e[m\e]8;;\e\\git\e[33;48Hadd\e[33;52H--\e[33;55Hmy-file.txt\e[?25l"
+  - delay: 5
+    content: "\e[?25l\e[?25l"
+  - delay: 17
+    content: "\e[?25l\e[2;42H\e(B\e[m\e[1m\e]8;;\e\\diff --git a/my-file.txt b/my-file.txt\e[2;120H\e(B\e[m\e[30m\e]8;;\e\\▲\e[3;42H\e(B\e[m\e[1m\e]8;;\e\\new file mode 100644\e[3;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[4;42H\e(B\e[m\e[1m\e]8;;\e\\index 0000000..ada5661\e[4;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[5;42H\e(B\e[m\e[1m\e]8;;\e\\--- /dev/null\e[5;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[6;42H\e(B\e[m\e[1m\e]8;;\e\\+++ b/my-file.txt\e[6;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[7;42H\e(B\e[m\e[36m\e]8;;\e\\@@ -0,0 +1 @@\e[7;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[8;42H\e(B\e[m\e[32m\e]8;;\e\\+myfile content\e[8;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[9;42H\e(B\e[m\e]8;;\e\\\\\e[9;44HNo\e[9;47Hnewline\e[9;55Hat\e[9;58Hend\e[9;62Hof\e[9;65Hfile\e[9;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[10;120H█\e[11;120H█\e[12;120H█\e[13;120H█\e[14;120H█\e[15;120H█\e[16;120H█\e[17;120H█\e[18;120H█\e[19;120H█\e[20;120H█\e[21;120H█\e[22;120H█\e[23;120H█\e[30;120H▼\e[?25l"
+  - delay: 602
+    content: "\e[?25l\e[35;1H\e(B\e[m\e[37m\e[1m\e]8;;\e\\Commit our changes                                                                                                      \e[?25l\e[?25l\e[35;20H\e(B\e[m\e[36m\e[1m\e]8;;\e\\Pressing c                                                                                           \e[?25l\e[?25l\e[4;1H\e(B\e[m\e[30m\e]8;;\e\\┌─\e(B\e[m\e[32m\e]8;;\e\\Files \e(B\e[m\e[30m\e]8;;\e\\- Worktrees - Submodules───────┐\e[5;1H│\e[5;40H│\e[6;1H│\e[6;40H│\e[7;1H│\e[7;40H│\e[8;1H│\e[8;40H│\e[9;1H│\e[9;40H│\e[10;1H│\e[10;40H│\e[11;1H│\e[11;40H│\e[12;1H│\e[12;40H│\e[13;1H└───────────────────\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌\e[13;23HCommit summary──\e[13;40H───────────────────────────────────────────────────── 0 ─────┐\e[14;21H│\e(B\e[m\e]8;;\e\\                    \e[14;101H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[15;21H└───────────────────────────────────────────────────────────────────────────────┘\e[16;21H\e(B\e[m\e[30m\e]8;;\e\\┌─Commit description────────────────────────────Press <tab> to toggle focus─────┐\e[17;21H│\e[17;40H\e(B\e[m\e]8;;\e\\  \e[17;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[18;21H│\e[18;40H\e(B\e[m\e]8;;\e\\  \e[18;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[19;21H│\e[19;40H\e(B\e[m\e]8;;\e\\  \e[19;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[20;21H│\e[20;40H\e(B\e[m\e]8;;\e\\  \e[20;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[21;21H│\e[21;40H\e(B\e[m\e]8;;\e\\  \e[21;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[22;21H│\e(B\e[m\e]8;;\e\\                    \e[22;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[23;21H│\e(B\e[m\e]8;;\e\\                    \e[23;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[24;21H└───────────────────────────────────────────────────────────────────────────────┘\e[14;22H\e[?12l\e[?25h\e[0 q"
+  - delay: 603
+    content: "\e[?25l\e[35;20H\e(B\e[m\e[37m\e[1m\e]8;;\e\\                                                                                                     \e[14;22H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\1\e[14;22H\e(B\e[m\e]8;;\e\\m\e[14;23H\e[?12l\e[?25h\e[0 q"
+  - delay: 124
+    content: "\e[?25l\e[14;23H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\2\e[14;23H\e(B\e[m\e]8;;\e\\y\e[14;24H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[14;24H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\3\e[14;25H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[14;25H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\4\e[14;25H\e(B\e[m\e]8;;\e\\c\e[14;26H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[14;26H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\5\e[14;26H\e(B\e[m\e]8;;\e\\o\e[14;27H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[14;27H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\6\e[14;27H\e(B\e[m\e]8;;\e\\m\e[14;28H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[14;28H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\7\e[14;28H\e(B\e[m\e]8;;\e\\m\e[14;29H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[14;29H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\8\e[14;29H\e(B\e[m\e]8;;\e\\i\e[14;30H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[14;30H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\9\e[14;30H\e(B\e[m\e]8;;\e\\t\e[14;31H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[14;31H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;92H\e(B\e[m\e[32m\e[1m\e]8;;\e\\ 10\e[14;32H\e[?12l\e[?25h\e[0 q"
+  - delay: 121
+    content: "\e[?25l\e[14;32H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\1\e[14;32H\e(B\e[m\e]8;;\e\\s\e[14;33H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[14;33H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\2\e[14;33H\e(B\e[m\e]8;;\e\\u\e[14;34H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[14;34H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\3\e[14;34H\e(B\e[m\e]8;;\e\\m\e[14;35H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[14;35H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\4\e[14;35H\e(B\e[m\e]8;;\e\\m\e[14;36H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[14;36H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\5\e[14;36H\e(B\e[m\e]8;;\e\\a\e[14;37H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[14;37H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\6\e[14;37H\e(B\e[m\e]8;;\e\\r\e[14;38H\e[?12l\e[?25h\e[0 q"
+  - delay: 124
+    content: "\e[?25l\e[14;38H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;94H\e(B\e[m\e[32m\e[1m\e]8;;\e\\7\e[14;38H\e(B\e[m\e]8;;\e\\y\e[14;39H\e[?12l\e[?25h\e[0 q"
+  - delay: 124
+    content: "\e[?25l\e[35;20H\e(B\e[m\e[36m\e[1m\e]8;;\e\\Pressing <tab>                                                                                       \e[14;39H\e[?12l\e[?25h\e[0 q\e[?25l\e[5;2H\e(B\e[m\e[32m\e]8;;\e\\A   my-file.txt\e(B\e[m\e]8;;\e\\                      \e[13;21H\e(B\e[m\e[30m\e]8;;\e\\┌─Commit summary─────────────────────────────────────────────────────── 17 ─────┐\e[14;21H│\e[14;101H│\e[15;21H└───────────────────────────────────────────────────────────────────────────────┘\e[16;21H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌─Commit description────────────────────────────Press <tab> to toggle focus─────┐\e[17;21H│\e[17;101H│\e[18;21H│\e[18;101H│\e[19;21H│\e[19;101H│\e[20;21H│\e[20;101H│\e[21;21H│\e[21;101H│\e[22;21H│\e[22;101H│\e[23;21H│\e[23;101H│\e[24;21H└───────────────────────────────────────────────────────────────────────────────┘\e[17;22H\e[?12l\e[?25h\e[0 q"
+  - delay: 602
+    content: "\e[?25l\e[35;20H\e(B\e[m\e[37m\e[1m\e]8;;\e\\                                                                                                     \e[17;22H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;22H\e(B\e[m\e]8;;\e\\m\e[17;23H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[17;23H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;23H\e(B\e[m\e]8;;\e\\y\e[17;24H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[17;24H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;25H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[17;25H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;25H\e(B\e[m\e]8;;\e\\c\e[17;26H\e[?12l\e[?25h\e[0 q"
+  - delay: 124
+    content: "\e[?25l\e[17;26H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;26H\e(B\e[m\e]8;;\e\\o\e[17;27H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[17;27H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;27H\e(B\e[m\e]8;;\e\\m\e[17;28H\e[?12l\e[?25h\e[0 q"
+  - delay: 124
+    content: "\e[?25l\e[17;28H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;28H\e(B\e[m\e]8;;\e\\m\e[17;29H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[17;29H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;29H\e(B\e[m\e]8;;\e\\i\e[17;30H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[17;30H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;30H\e(B\e[m\e]8;;\e\\t\e[17;31H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[17;31H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;32H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[17;32H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;32H\e(B\e[m\e]8;;\e\\d\e[17;33H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[17;33H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\e\e[17;34H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[17;34H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;34H\e(B\e[m\e]8;;\e\\s\e[17;35H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[17;35H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;35H\e(B\e[m\e]8;;\e\\c\e[17;36H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[17;36H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;36H\e(B\e[m\e]8;;\e\\r\e[17;37H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[17;37H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;37H\e(B\e[m\e]8;;\e\\i\e[17;38H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[17;38H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;38H\e(B\e[m\e]8;;\e\\p\e[17;39H\e[?12l\e[?25h\e[0 q"
+  - delay: 124
+    content: "\e[?25l\e[17;39H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;39H\e(B\e[m\e]8;;\e\\t\e[17;40H\e[?12l\e[?25h\e[0 q"
+  - delay: 124
+    content: "\e[?25l\e[17;40H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;40H\e(B\e[m\e]8;;\e\\i\e[17;41H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[17;41H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;41H\e(B\e[m\e]8;;\e\\o\e[17;42H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[17;42H\e[?12l\e[?25h\e[0 q\e[?25l\e[17;42H\e(B\e[m\e]8;;\e\\n\e[17;43H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[35;20H\e(B\e[m\e[36m\e[1m\e]8;;\e\\Pressing <tab>                                                                                       \e[17;43H\e[?12l\e[?25h\e[0 q\e[?25l\e[13;21H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌─Commit summary─────────────────────────────────────────────────────── 17 ─────┐\e[14;21H│\e[14;101H│\e[15;21H└───────────────────────────────────────────────────────────────────────────────┘\e[16;21H\e(B\e[m\e[30m\e]8;;\e\\┌─Commit description────────────────────────────Press <tab> to toggle focus─────┐\e[17;21H│\e[17;101H│\e[18;21H│\e[18;101H│\e[19;21H│\e[19;101H│\e[20;21H│\e[20;101H│\e[21;21H│\e[21;101H│\e[22;21H│\e[22;101H│\e[23;21H│\e[23;101H│\e[24;21H└───────────────────────────────────────────────────────────────────────────────┘\e[14;39H\e[?12l\e[?25h\e[0 q"
+  - delay: 602
+    content: "\e[?25l\e[35;30H\e(B\e[m\e[36m\e[1m\e]8;;\e\\enter>\e[14;39H\e[?12l\e[?25h\e[0 q"
+  - delay: 14
+    content: "\e[?25l\e[4;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌─Files \e(B\e[m\e]8;;\e\\- Worktrees - Submodules\e(B\e[m\e[32m\e[1m\e]8;;\e\\───────┐\e[5;1H│\e(B\e[m\e[92;44m\e[1m\e]8;;\e\\A   my-file.txt\e(B\e[m\e[44m\e[1m\e]8;;\e\\                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[6;1H│\e[6;40H│\e[7;1H│\e[7;40H│\e[8;1H│\e[8;40H│\e[9;1H│\e[9;40H│\e[10;1H│\e[10;40H│\e[11;1H│\e[11;40H│\e[12;1H│\e[12;40H│\e[13;1H└────────────────────\e[13;23H──────────1 of 2\e[13;40H┘\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                            \e[14;21H\e(B\e[m\e[30m\e]8;;\e\\emotes - Tags──────┐│\e[14;101H\e(B\e[m\e]8;;\e\\ \e[15;21H\e(B\e[m\e[32m\e]8;;\e\\✓\e(B\e[m\e]8;;\e\\                  \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                            \e[16;21H                   \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                            \e[17;21H   \e[17;25H      \e[17;32H        \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\ \e[17;101H \e[18;21H \e[18;40H\e(B\e[m\e[30m\e]8;;\e\\││\e[18;101H\e(B\e[m\e]8;;\e\\ \e[19;21H \e[19;40H\e(B\e[m\e[30m\e]8;;\e\\││\e[19;101H\e(B\e[m\e]8;;\e\\ \e[20;21H \e[20;40H\e(B\e[m\e[30m\e]8;;\e\\││\e[20;101H\e(B\e[m\e]8;;\e\\ \e[21;21H \e[21;40H\e(B\e[m\e[30m\e]8;;\e\\││\e[21;101H\e(B\e[m\e]8;;\e\\ \e[22;21H\e(B\e[m\e[30m\e]8;;\e\\────────────1 of 2─┘│\e[22;101H\e(B\e[m\e]8;;\e\\ \e[23;21H\e(B\e[m\e[30m\e]8;;\e\\───────────────────┐│\e[23;101H\e(B\e[m\e]8;;\e\\ \e[24;21Hve Dockerfile for m\e(B\e[m\e[30m\e]8;;\e\\▲│\e(B\e[m\e]8;;\e\\                                                            \e[33;48Hcommit\e[33;55H-m \"my commit\e[33;69Hsummary\"\e[33;78H-m\e[33;81H\"my\e[33;85Hcommit\e[33;92Hdescription\"\e[?25l\e[?25l\e[?25l"
+  - delay: 50
+    content: "\e[?25l\e[33;43H\e(B\e[m\e]8;;\e\\create \e[33;51Hode\e[33;55H100644\e[33;62Hmy-f\e[33;67Hle.txt    \e[33;78H  \e[33;81H   \e[33;85H      \e[33;92H            \e[?25l\e[?25l\e[?25l"
+  - delay: 7
+    content: "\e[?25l\e[?25l"
+  - delay: 5
+    content: "\e[?25l\e[22;33H\e(B\e[m\e[30m\e]8;;\e\\──────\e[?25l\e[?25l\e[1;43H\e(B\e[m\e[30m\e]8;;\e\\Unstaged changes\e[5;2H\e(B\e[m\e[91;44m\e[1m\e]8;;\e\\??  my-other-file.rb                 \e[6;2H\e(B\e[m\e]8;;\e\\                                      \e[13;38H\e(B\e[m\e[32m\e[1m\e]8;;\e\\1\e[22;33H\e(B\e[m\e[30m\e]8;;\e\\1 of 2\e[?25l"
+  - delay: 5
+    content: "\e[?25l\e[15;21H\e(B\e[m\e[33m\e]8;;\e\\↑1\e[16;2H\e(B\e[m\e[36m\e]8;;\e\\9\e[24;2H\e(B\e[m\e[31m\e]8;;\e\\ﰖ\e[24;4H0853c88f\e[24;16H\e(B\e[m\e]8;;\e\\my c\e[24;21Hmmit summary \e[24;35H   \e[24;39H \e[25;4H\e(B\e[m\e[32m\e]8;;\e\\bed3ebc\e[25;19H\e(B\e[m\e]8;;\e\\rov\e[25;23H Dock\e[25;30Hfi\e[25;33He for m\e[26;4H\e(B\e[m\e[32m\e]8;;\e\\2a50f5\e[26;11He\e[26;16H\e(B\e[m\e]8;;\e\\Implement user blocking \e[27;4H\e(B\e[m\e[32m\e]8;;\e\\c91f9fa2\e[27;16H\e(B\e[m\e]8;;\e\\Refactor user\e[27;30Hnotifica\e[27;39Hi\e[28;4H\e(B\e[m\e[32m\e]8;;\e\\da4a\e[28;9H746\e[28;16H\e(B\e[m\e]8;;\e\\Upgrade R\e[28;26Hils version\e[29;4H\e(B\e[m\e[32m\e]8;;\e\\c3\e[29;7H08f\e[29;11Hc\e[29;16H\e(B\e[m\e]8;;\e\\Move gl\e[29;24Hbal variables \e[29;39Ho\e[30;4H\e(B\e[m\e[32m\e]8;;\e\\3524d2e0\e[30;16H\e(B\e[m\e]8;;\e\\Fix typos in documentati\e[31;38H\e(B\e[m\e[30m\e]8;;\e\\1\e[?25l\e[?25l\e[2;2H\e(B\e[m\e[33m\e]8;;\e\\↑1\e(B\e[m\e]8;;\e\\ repo → \e(B\e[m\e[32m\e]8;;\e\\feature/demo\e[?25l\e[?25l\e[2;58H\e(B\e[m\e[1m\e]8;;\e\\oth\e[2;62Hr-file.rb b/my-other-file.rb\e[4;57Hb34702a\e[6;51Hoth\e[6;55Hr-file.rb\e[8;45H\e(B\e[m\e[32m\e]8;;\e\\-other-file content\e[?25l"
+  - delay: 21
+    content: "\e[?25l\e[?25l"
+  - delay: 605
+    content: "\e[?25l\e[35;1H\e(B\e[m\e[37m\e[1m\e]8;;\e\\Push \e[35;7Ho the remote\e[35;20H                                                                                                     \e[?25l\e[?25l\e[35;20H\e(B\e[m\e[36m\e[1m\e]8;;\e\\Pressing P                                                                                           \e[?25l\e[?25l\e[4;1H\e(B\e[m\e[30m\e]8;;\e\\┌─\e(B\e[m\e[32m\e]8;;\e\\Files \e(B\e[m\e[30m\e]8;;\e\\- Worktrees - Submodules───────┐\e[5;1H│\e[5;40H│\e[6;1H│\e[6;40H│\e[7;1H│\e[7;40H│\e[8;1H│\e[8;40H│\e[9;1H│\e[9;40H│\e[10;1H│\e[10;40H│\e[11;1H│\e[11;40H│\e[12;1H│\e[12;40H│\e[13;1H└───────────────────────────────1 of 1─┘\e[16;21H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌───────────────────────────────────────────────────────────────────────────────┐\e[17;21H│\e(B\e[m\e[1m\e]8;;\e\\Pushing...\e[17;33H\e(B\e[m\e]8;;\e\\|\e[17;40H  \e[17;101H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[18;21H└───────────────────────────────────────────────────────────────────────────────┘\e[?25l"
+  - delay: 51
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\/\e[?25l"
+  - delay: 50
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\-\e[?25l"
+  - delay: 49
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\\\\e[?25l"
+  - delay: 50
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\|\e[?25l"
+  - delay: 51
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\/\e[?25l"
+  - delay: 49
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\-\e[?25l"
+  - delay: 51
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\\\\e[?25l"
+  - delay: 50
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\|\e[?25l"
+  - delay: 50
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\/\e[?25l"
+  - delay: 52
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\-\e[33;43H git push  \e[33;55H      \e[33;62H           \e[?25l"
+  - delay: 47
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\\\\e[?25l"
+  - delay: 52
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\|\e[?25l"
+  - delay: 41
+    content: "\e[?25l\e[17;33H\e(B\e[m\e]8;;\e\\/\e[33;44H bed3ebc..0853c88\e[33;63Hfeature/demo\e[33;76H->\e[33;79Hfeature/demo\e[?25l\e[?25l\e[?25l\e[?25l\e[?25l"
+  - delay: 6
+    content: "\e[?25l\e[?25l\e[?25l\e[15;21H\e(B\e[m\e[32m\e]8;;\e\\✓\e(B\e[m\e]8;;\e\\ \e[16;2H\e(B\e[m\e[36m\e]8;;\e\\11s\e[24;2H\e(B\e[m\e[33m\e]8;;\e\\ﰖ\e[24;4H0853c88f\e[?25l\e[?25l\e[2;2H\e(B\e[m\e[32m\e]8;;\e\\✓\e(B\e[m\e]8;;\e\\ repo → \e(B\e[m\e[32m\e]8;;\e\\feature/demo\e(B\e[m\e]8;;\e\\ \e[16;21H                   \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                            \e[17;21H           \e[17;33H \e[17;40H\e(B\e[m\e[30m\e]8;;\e\\││\e[17;101H\e(B\e[m\e]8;;\e\\ \e[18;21H                   \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                            \e[?25l\e[?25l\e[4;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌─Files \e(B\e[m\e]8;;\e\\- Worktrees - Submodules\e(B\e[m\e[32m\e[1m\e]8;;\e\\───────┐\e[5;1H│\e[5;40H│\e[6;1H│\e[6;40H│\e[7;1H│\e[7;40H│\e[8;1H│\e[8;40H│\e[9;1H│\e[9;40H│\e[10;1H│\e[10;40H│\e[11;1H│\e[11;40H│\e[12;1H│\e[12;40H│\e[13;1H└───────────────────────────────1 of 1─┘\e[?25l"
+  - delay: 11
+    content: "\e[?25l\e[?25l"
+  - delay: 601
+    content: "\e[?25l\e[35;20H\e(B\e[m\e[37m\e[1m\e]8;;\e\\                                                                                                     \e[?25l\e[?25l\e[35;1H\e(B\e[m\e[37m\e[1m\e]8;;\e\\    \e[35;6H  \e[35;9H   \e[35;13H      \e[?25l"
+  - delay: 2000
+    content: "\e[?12l\e[?25h\e[39;49m\e(B\e[m\e[H\e[2J\e[?1049l\e[23;0;0t\e[?1l\e>\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?2004l\e[?1004l"
