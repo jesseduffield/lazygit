@@ -30,9 +30,6 @@ github.com/fatih/color
 # github.com/fsmiamoto/git-todo-parser v0.0.5
 ## explicit; go 1.13
 github.com/fsmiamoto/git-todo-parser/todo
-# github.com/fsnotify/fsnotify v1.4.7
-## explicit
-github.com/fsnotify/fsnotify
 # github.com/gdamore/encoding v1.0.0
 ## explicit; go 1.9
 github.com/gdamore/encoding

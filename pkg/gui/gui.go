@@ -72,7 +72,6 @@ type Gui struct {
 	Updater              *updates.Updater
 	statusManager        *status.StatusManager
 	waitForIntro         sync.WaitGroup
-	fileWatcher          *fileWatcher
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager
 	// holds a mapping of view names to ptmx's. This is for rendering command outputs
 	// from within a pty. The point of keeping track of them is so that if we re-size
@@ -476,8 +475,6 @@ func NewGui(
 		afterLayoutFuncs: make(chan func() error, 1000),
 	}
 
-	gui.WatchFilesForChanges()
-
 	gui.PopupHandler = popup.NewPopupHandler(
 		cmn,
 		func(ctx goContext.Context, opts types.CreatePopupPanelOpts) error {
@@ -678,10 +675,6 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 		if err := gui.Run(startArgs); err != nil {
 			for _, manager := range gui.viewBufferManagerMap {
 				manager.Close()
-			}
-
-			if !gui.fileWatcher.Disabled {
-				gui.fileWatcher.Watcher.Close()
 			}
 
 			close(gui.stopChan)

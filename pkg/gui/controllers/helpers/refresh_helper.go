@@ -28,7 +28,6 @@ type RefreshHelper struct {
 	stagingHelper        *StagingHelper
 	mergeConflictsHelper *MergeConflictsHelper
 	worktreeHelper       *WorktreeHelper
-	fileWatcher          types.IFileWatcher
 }
 
 func NewRefreshHelper(
@@ -39,7 +38,6 @@ func NewRefreshHelper(
 	stagingHelper *StagingHelper,
 	mergeConflictsHelper *MergeConflictsHelper,
 	worktreeHelper *WorktreeHelper,
-	fileWatcher types.IFileWatcher,
 ) *RefreshHelper {
 	return &RefreshHelper{
 		c:                    c,
@@ -49,7 +47,6 @@ func NewRefreshHelper(
 		stagingHelper:        stagingHelper,
 		mergeConflictsHelper: mergeConflictsHelper,
 		worktreeHelper:       worktreeHelper,
-		fileWatcher:          fileWatcher,
 	}
 }
 
@@ -547,10 +544,6 @@ func (self *RefreshHelper) refreshStateFiles() error {
 	self.c.Model().Files = files
 	fileTreeViewModel.SetTree()
 	fileTreeViewModel.RWMutex.Unlock()
-
-	if err := self.fileWatcher.AddFilesToFileWatcher(files); err != nil {
-		return err
-	}
 
 	return nil
 }
