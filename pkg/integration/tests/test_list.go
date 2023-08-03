@@ -97,6 +97,7 @@ var tests = []*components.IntegrationTest{
 	demo.InteractiveRebase,
 	demo.NukeWorkingTree,
 	demo.StageLines,
+	demo.Undo,
 	diff.Diff,
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,
