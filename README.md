@@ -107,6 +107,12 @@ You can filter a view with `/`. Here we filter down our branches view and then h
 
 ![filter](../assets/demo/filter-compressed.gif)
 
+### Invoke a custom command
+
+Lazygit has a very flexible [custom command system](docs/Custom_Command_Keybindings.md). In this example a custom command is defined which emulates the built-in branch checkout action.
+
+![custom_command](../assets/demo/custom_command-compressed.gif)
+
 ## Tutorials
 
 [<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
