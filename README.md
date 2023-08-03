@@ -121,6 +121,14 @@ You can create worktrees to have multiple branches going at once without the nee
 
 ### Rebase magic (custom patches)
 
+You can build a custom patch from an old commit and then remove the patch from the commit, split out a new commit, apply the patch in reverse to the index, and more.
+
+In this example we have a redundant comment that we want to remove from an old commit. We hit `<enter>` on the commit to view its files, then `<enter>` on a file to focus the patch, then `<space>` to add the comment line to our custom patch, and then `ctrl+p` to view the custom patch options; selecting to remove the patch from the current commit.
+
+Learn more in the [Rebase magic Youtube tutorial](https://youtu.be/4XaToVut_hs).
+
+![custom_patch](../assets/demo/custom_patch-compressed.gif)
+
 ## Tutorials
 
 [<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
