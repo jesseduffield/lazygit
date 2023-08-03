@@ -546,6 +546,102 @@
         }
       },
       "additionalProperties": false
+    },
+    "os": {
+      "title": "os",
+      "description": "OS settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "object",
+      "properties": {
+        "copyToClipboardCmd": {
+          "title": "copy to clipboard cmd",
+          "description": "A copy to clipboard command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "printf \"\\033]52;c;$(printf {{text}} | base64)\\a\" > /dev/tty"
+          ]
+        },
+        "editPreset": {
+          "title": "edit preset",
+          "description": "An edit preset\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "enum": [
+            "vim",
+            "nvim",
+            "emacs",
+            "nano",
+            "vscode",
+            "sublime",
+            "bbedit",
+            "kakoune",
+            "helix",
+            "xcode"
+          ],
+          "default": ""
+        },
+        "edit": {
+          "title": "edit",
+          "description": "An editor command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "vim",
+            "nvim",
+            "emacs",
+            "nano",
+            "vscode",
+            "sublime",
+            "bbedit",
+            "kakoune",
+            "helix",
+            "xcode"
+          ]
+        },
+        "editAtLine": {
+          "title": "edit at line",
+          "description": "An editor command to open at specific line\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "vim +{{line}} {{filename}}",
+            "nvim +{{line}} {{filename}}",
+            "emacs +{{line}} {{filename}}",
+            "nano +{{line}} {{filename}}",
+            "vscode -g {{filename}}:{{line}}",
+            "vscode --goto {{filename}}:{{line}}",
+            "sublime {{filename}}:{{line}}"
+          ]
+        },
+        "editAtLineAndWait": {
+          "title": "edit at line and wait",
+          "description": "An editor command to open at specific line and wait\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "vim +{{line}} {{filename}}",
+            "nvim +{{line}} {{filename}}",
+            "emacs +{{line}} {{filename}}",
+            "nano +{{line}} {{filename}}",
+            "vscode -g {{filename}}:{{line}} -w",
+            "vscode --goto {{filename}}:{{line}} --wait",
+            "sublime {{filename}}:{{line}} -w",
+            "sublime {{filename}}:{{line}} --wait"
+          ]
+        },
+        "open": {
+          "title": "open",
+          "description": "An editor command for non-text files\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": ""
+        },
+        "openLink": {
+          "title": "open link",
+          "description": "An open link\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
