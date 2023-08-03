@@ -7,9 +7,9 @@
 A simple terminal UI for git commands
 <br/>
 
-[![GitHub Releases](https://img.shields.io/github/downloads/jesseduffield/lazygit/total)](https://github.com/jesseduffield/lazygit/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases/latest) [![homebrew](https://img.shields.io/homebrew/v/lazygit)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/lazygit.rb)  
+[![GitHub Releases](https://img.shields.io/github/downloads/jesseduffield/lazygit/total)](https://github.com/jesseduffield/lazygit/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases/latest) [![homebrew](https://img.shields.io/homebrew/v/lazygit)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/lazygit.rb)
 
-![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/7e77d895-05a9-4571-a55b-240ac80f75eb)
+![commit_and_push](../assets/demo/commit_and_push-compressed.gif)
 
 </div>
 
@@ -316,25 +316,29 @@ See the [docs](docs/Custom_Command_Keybindings.md)
 
 ### Git Bisect
 
-![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/b2752a77-3bd0-4b65-8e36-e643ae70c396)
+![bisect](../assets/demo/bisect-compressed.gif)
 
 ### Cherry-pick
 
-![cherry_pick-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/2d1205c8-9980-40b0-8b6a-221497099715)
+![cherry_pick](../assets/demo/cherry_pick-compressed.gif)
 
 ### Interactive Rebase
 
-![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/04d6dbe4-845a-41de-8072-0e475765ec63)
+![interactive_rebase](../assets/demo/interactive_rebase-compressed.gif)
 
 ### Nuking the working tree
 
 For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules) [kidpix style](https://www.youtube.com/watch?v=Ur7_A4JusMU)
 
-![nuke_working_tree-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/06facd9c-166c-4ff5-b011-12e584ff8163)
+![Nuke working tree](../assets/demo/nuke_working_tree-compressed.gif)
 
 ### Amend old commit
 
-![amend_old_commit-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/de7010c0-6902-4fad-8fe5-7197956ca40d)
+![amend_old_commit](../assets/demo/amend_old_commit-compressed.gif)
+
+### Stage individual lines
+
+![stage_lines](../assets/demo/stage_lines-compressed.gif)
 
 ## Contributing
 
