@@ -99,6 +99,7 @@ var tests = []*components.IntegrationTest{
 	demo.NukeWorkingTree,
 	demo.StageLines,
 	demo.Undo,
+	demo.WorktreeCreateFromBranches,
 	diff.Diff,
 	diff.DiffAndApplyPatch,
 	diff.DiffCommits,

@@ -113,6 +113,14 @@ Lazygit has a very flexible [custom command system](docs/Custom_Command_Keybindi
 
 ![custom_command](../assets/demo/custom_command-compressed.gif)
 
+### Worktrees
+
+You can create worktrees to have multiple branches going at once without the need for stashing or creating WIP commits when switching between them. Press `w` in the branches view to create a worktree from the selected branch and switch to it.
+
+![worktree_create_from_branches](../assets/demo/worktree_create_from_branches-compressed.gif)
+
+### Rebase magic (custom patches)
+
 ## Tutorials
 
 [<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
