@@ -60,6 +60,12 @@ func (self *MenuDriver) LineCount(matcher *IntMatcher) *MenuDriver {
 	return self
 }
 
+func (self *MenuDriver) Wait(milliseconds int) *MenuDriver {
+	self.getViewDriver().Wait(milliseconds)
+
+	return self
+}
+
 func (self *MenuDriver) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedTitle {
 		self.t.Fail("You must check the title of a menu popup by calling Title() before calling Confirm()/Cancel().")
