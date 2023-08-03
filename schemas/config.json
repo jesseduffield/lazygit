@@ -549,12 +549,12 @@
     },
     "os": {
       "title": "os",
-      "description": "OS settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "description": "OS settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing",
       "type": "object",
       "properties": {
         "copyToClipboardCmd": {
           "title": "copy to clipboard cmd",
-          "description": "A copy to clipboard command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "description": "A copy to clipboard command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing",
           "type": "string",
           "default": "",
           "examples": [
@@ -563,7 +563,7 @@
         },
         "editPreset": {
           "title": "edit preset",
-          "description": "An edit preset\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "description": "An edit preset\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing",
           "type": "string",
           "enum": [
             "vim",
@@ -581,7 +581,7 @@
         },
         "edit": {
           "title": "edit",
-          "description": "An editor command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "description": "An editor command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing",
           "type": "string",
           "default": "",
           "examples": [
@@ -599,7 +599,7 @@
         },
         "editAtLine": {
           "title": "edit at line",
-          "description": "An editor command to open at specific line\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "description": "An editor command to open at specific line\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing",
           "type": "string",
           "default": "",
           "examples": [
@@ -614,7 +614,7 @@
         },
         "editAtLineAndWait": {
           "title": "edit at line and wait",
-          "description": "An editor command to open at specific line and wait\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "description": "An editor command to open at specific line and wait\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing",
           "type": "string",
           "default": "",
           "examples": [
@@ -630,7 +630,7 @@
         },
         "open": {
           "title": "open",
-          "description": "An editor command for non-text files\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "description": "An editor command for non-text files\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing",
           "type": "string",
           "default": ""
         },
