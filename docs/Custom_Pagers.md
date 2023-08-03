@@ -1,6 +1,6 @@
 # Custom Pagers
 
-Lazygit supports custom pagers, [configured](/docs/Config.md) in the config.yml file (which can be opened by pressing `o` in the Status panel).
+Lazygit supports custom pagers, [configured](/docs/Config.md) in the config.yml file (which can be opened by pressing `e` in the Status panel).
 
 Support does not extend to Windows users, because we're making use of a package which doesn't have Windows support.
 
