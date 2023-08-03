@@ -125,8 +125,8 @@ func isMergeConflictErr(errStr string) bool {
 	return false
 }
 
-func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
-	if err := self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC}); err != nil {
+func (self *MergeAndRebaseHelper) CheckMergeOrRebaseWithRefreshOptions(result error, refreshOptions types.RefreshOptions) error {
+	if err := self.c.Refresh(refreshOptions); err != nil {
 		return err
 	}
 	if result == nil {
@@ -141,6 +141,10 @@ func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
 	} else {
 		return self.CheckForConflicts(result)
 	}
+}
+
+func (self *MergeAndRebaseHelper) CheckMergeOrRebase(result error) error {
+	return self.CheckMergeOrRebaseWithRefreshOptions(result, types.RefreshOptions{Mode: types.ASYNC})
 }
 
 func (self *MergeAndRebaseHelper) CheckForConflicts(result error) error {

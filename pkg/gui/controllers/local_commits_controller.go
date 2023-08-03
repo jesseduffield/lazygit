@@ -392,7 +392,16 @@ func (self *LocalCommitsController) edit(commit *models.Commit) error {
 	return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.EditCommit)
 		err := self.c.Git().Rebase.EditRebase(commit.Sha)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err,
+			types.RefreshOptions{Mode: types.BLOCK_UI, Then: func() {
+				_, index, ok := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
+					return c.Sha == commit.Sha
+				})
+				if ok {
+					self.context().SetSelectedLineIdx(index)
+				}
+			}})
 	})
 }
 
