@@ -31,6 +31,8 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 
 ## Table of contents
 
+- [Features](#features)
+- [Tutorials](#tutorials)
 - [Installation](#installation)
   - [Binary releases](#binary-releases)
   - [Homebrew](#homebrew)
@@ -55,15 +57,57 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 - [Configuration](#configuration)
   - [Custom pagers](#configuration)
   - [Custom commands](#configuration)
-- [Tutorials](#tutorials)
-- [Cool Features](#cool-features)
 - [Contributing](#contributing)
 - [Donate](#donate)
 - [Alternatives](#alternatives)
 
 Lazygit is not my fulltime job but it is a hefty part time job so if you want to support the project please consider [sponsoring me](https://github.com/sponsors/jesseduffield)
 
+## Features
+
+### Stage individual lines
+
+Press space on the selected line to stage it, or press `v` to start selecting a range of lines. You can also press `a` to select the entirety of the current hunk.
+
+![stage_lines](../assets/demo/stage_lines-compressed.gif)
+
+### Interactive Rebase
+
+Press `e` on a commit to start an interactive rebase on it: causing all above commits to become part of the TODO file. Then squash (`s`), fixup (`f`), drop (`d`), edit (`e`), move up (ctrl+i) or move down (ctrl+j) any of TODO commits, before continuing the rebase by bringing up the rebase options menu with `m` and then selecting `continue`. You can also perform any these actions as a once-off (e.g. pressing `s` on a commit to squash it) without explicitly starting a rebase.
+
+![interactive_rebase](../assets/demo/interactive_rebase-compressed.gif)
+
+### Cherry-pick
+
+Press `c` on a commit to copy it and press `v` to paste (cherry-pick) it.
+
+![cherry_pick](../assets/demo/cherry_pick-compressed.gif)
+
+### Bisect
+
+Press `b` in the commits view to mark a commit as good/bad in order to begin a git bisect.
+
+![bisect](../assets/demo/bisect-compressed.gif)
+
+### Nuking the working tree
+
+For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules) [kidpix style](https://www.youtube.com/watch?v=Ur7_A4JusMU), press `shift+d` to bring up the reset options menu and then select the 'nuke' option.
+
+![Nuke working tree](../assets/demo/nuke_working_tree-compressed.gif)
+
+### Amend an old commit
+
+Pressing `shift+a` on any commit will amend that commit with the currently staged changes (running an interactive rebase in the backkground).
+
+![amend_old_commit](../assets/demo/amend_old_commit-compressed.gif)
+
+## Tutorials
+
 [<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
+
+- [15 Lazygit Features in 15 Minutes](https://youtu.be/CPLdltN7wgE)
+- [Basics Tutorial](https://youtu.be/VDXvbHZYeKY)
+- [Rebase Magic Tutorial](https://youtu.be/4XaToVut_hs)
 
 ## Installation
 
@@ -297,53 +341,10 @@ If lazygit is missing a feature, there's a good chance you can implement it your
 
 See the [docs](docs/Custom_Command_Keybindings.md)
 
-## Tutorials
-
-- [Video Tutorial](https://youtu.be/VDXvbHZYeKY)
-- [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
-
-## Cool features
-
-- Add files easily
-- Resolve merge conflicts
-- Fuzzy searching
-- Git bisect
-- Amend old commits
-- Slice, dice, squash, and rearrange commits
-- Submodules support
-- diff branches easily
-- Cherry-pick commits like it's copy+paste
-
-### Git Bisect
-
-![bisect](../assets/demo/bisect-compressed.gif)
-
-### Cherry-pick
-
-![cherry_pick](../assets/demo/cherry_pick-compressed.gif)
-
-### Interactive Rebase
-
-![interactive_rebase](../assets/demo/interactive_rebase-compressed.gif)
-
-### Nuking the working tree
-
-For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules) [kidpix style](https://www.youtube.com/watch?v=Ur7_A4JusMU)
-
-![Nuke working tree](../assets/demo/nuke_working_tree-compressed.gif)
-
-### Amend old commit
-
-![amend_old_commit](../assets/demo/amend_old_commit-compressed.gif)
-
-### Stage individual lines
-
-![stage_lines](../assets/demo/stage_lines-compressed.gif)
-
 ## Contributing
 
 We love your input! Please check out the [contributing guide](CONTRIBUTING.md).
-For contributor discussion about things not better discussed here in the repo, join the discord channel
+For contributor discussion about things not better discussed here in the repo, join the [discord channel](https://discord.gg/ehwFt2t4wt)
 
 <a href="https://discord.gg/ehwFt2t4wt"><img src='../assets/discord.png' width='75'></a>
 
