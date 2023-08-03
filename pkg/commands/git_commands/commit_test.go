@@ -195,28 +195,28 @@ func TestCommitShowCmdObj(t *testing.T) {
 			filterPath:       "",
 			contextSize:      3,
 			ignoreWhitespace: false,
-			expected:         []string{"show", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890"},
+			expected:         []string{"show", "--submodule", "--no-ext-diff", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890"},
 		},
 		{
 			testName:         "Default case with filter path",
 			filterPath:       "file.txt",
 			contextSize:      3,
 			ignoreWhitespace: false,
-			expected:         []string{"show", "--submodule", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--", "file.txt"},
+			expected:         []string{"show", "--submodule", "--no-ext-diff", "--color=always", "--unified=3", "--stat", "--decorate", "-p", "1234567890", "--", "file.txt"},
 		},
 		{
 			testName:         "Show diff with custom context size",
 			filterPath:       "",
 			contextSize:      77,
 			ignoreWhitespace: false,
-			expected:         []string{"show", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890"},
+			expected:         []string{"show", "--submodule", "--no-ext-diff", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890"},
 		},
 		{
 			testName:         "Show diff, ignoring whitespace",
 			filterPath:       "",
 			contextSize:      77,
 			ignoreWhitespace: true,
-			expected:         []string{"show", "--submodule", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890", "--ignore-all-space"},
+			expected:         []string{"show", "--submodule", "--no-ext-diff", "--color=always", "--unified=77", "--stat", "--decorate", "-p", "1234567890", "--ignore-all-space"},
 		},
 	}
 
