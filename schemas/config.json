@@ -642,6 +642,28 @@
         }
       },
       "additionalProperties": false
+    },
+    "refresher": {
+      "title": "refresher",
+      "description": "Refresh settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "object",
+      "properties": {
+        "refreshInterval": {
+          "title": "refresh interval",
+          "description": "A file/submodule refresh interval in seconds\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "integer",
+          "minimum": 0,
+          "default": 10
+        },
+        "fetchInterval": {
+          "title": "fetch interval",
+          "description": "A re-fetch interval in seconds\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "integer",
+          "minimum": 0,
+          "default": 60
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
