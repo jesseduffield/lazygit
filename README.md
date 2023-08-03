@@ -89,7 +89,7 @@ Press `b` in the commits view to mark a commit as good/bad in order to begin a g
 
 ![bisect](../assets/demo/bisect-compressed.gif)
 
-### Nuking the working tree
+### Nuke the working tree
 
 For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules) [kidpix style](https://www.youtube.com/watch?v=Ur7_A4JusMU), press `shift+d` to bring up the reset options menu and then select the 'nuke' option.
 
@@ -100,6 +100,12 @@ For when you really want to just get rid of anything that shows up when you run 
 Pressing `shift+a` on any commit will amend that commit with the currently staged changes (running an interactive rebase in the backkground).
 
 ![amend_old_commit](../assets/demo/amend_old_commit-compressed.gif)
+
+### Filter
+
+You can filter a view with `/`. Here we filter down our branches view and then hit `enter` to view its commits.
+
+![filter](../assets/demo/filter-compressed.gif)
 
 ## Tutorials
 
