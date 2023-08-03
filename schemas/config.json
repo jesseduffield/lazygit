@@ -6,7 +6,6 @@
       "oneOf": [
         {
           "examples": [
-            "default",
             "black",
             "red",
             "green",
@@ -14,7 +13,12 @@
             "blue",
             "magenta",
             "cyan",
-            "white"
+            "white",
+            "bold",
+            "default",
+            "reverse",
+            "underline",
+            "strikethrough"
           ]
         },
         {
