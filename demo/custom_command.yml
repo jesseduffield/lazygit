@@ -1,0 +1,161 @@
+# The configurations that used for the recording, feel free to edit them
+config:
+
+  # Specify a command to be executed
+  # like `/bin/bash -l`, `ls`, or any other commands
+  # the default is bash for Linux
+  # or powershell.exe for Windows
+  command: go run cmd/integration_test/main.go cli --slow pkg/integration/tests/demo/custom_command.go
+  
+  # Specify the current working directory path
+  # the default is the current working directory path
+  cwd: /Users/jesseduffieldduffield/repos/lazygit
+  
+  # Export additional ENV variables
+  env:
+    recording: true
+  
+  # Explicitly set the number of columns
+  # or use `auto` to take the current
+  # number of columns of your shell
+  cols: 120 # 100
+  
+  # Explicitly set the number of rows
+  # or use `auto` to take the current
+  # number of rows of your shell
+  rows: 35 # 30
+  
+  # Amount of times to repeat GIF
+  # If value is -1, play once
+  # If value is 0, loop indefinitely
+  # If value is a positive number, loop n times
+  repeat: 0
+  
+  # Quality
+  # 1 - 100
+  # Higher quality seems to make no difference, but running it through
+  # gifsicle ends up with a much better compressed version.
+  quality: 100
+  
+  # Delay between frames in ms
+  # If the value is `auto` use the actual recording delays
+  frameDelay: auto
+  
+  # Maximum delay between frames in ms
+  # Ignored if the `frameDelay` isn't set to `auto`
+  # Set to `auto` to prevent limiting the max idle time
+  maxIdleTime: 2000
+  
+  # The surrounding frame box
+  # The `type` can be null, window, floating, or solid`
+  # To hide the title use the value null
+  # Don't forget to add a backgroundColor style with a null as type
+  frameBox:
+    type: floating
+    title: Lazygit
+    style:
+      border: 0px black solid
+      backgroundColor: "#1d1d1d"
+      margin: -5px
+  
+  # Add a watermark image to the rendered gif
+  # You need to specify an absolute path for
+  # the image on your machine or a URL, and you can also
+  # add your own CSS styles
+  watermark:
+    imagePath: null
+    style:
+      position: absolute
+      right: 15px
+      bottom: 15px
+      width: 100px
+      opacity: 0.9
+  
+  # Cursor style can be one of
+  # `block`, `underline`, or `bar`
+  cursorStyle: block
+  
+  # Font family
+  # You can use any font that is installed on your machine
+  # in CSS-like syntax
+  fontFamily: "DejaVuSansMono Nerd Font"
+  
+  # The size of the font
+  fontSize: 8
+  
+  # The height of lines
+  lineHeight: 1
+  
+  # The spacing between letters
+  letterSpacing: 0
+  
+  # Theme
+  theme:
+    background: "transparent"
+    foreground: "#dddad6"
+    cursor: "#c7c7c7"
+    black: "#7a7a7a"
+    red: "#fc4384"
+    green: "#b3e33b"
+    yellow: "#ffa727"
+    blue: "#102895"
+    magenta: "#c930c7"
+    cyan: "#00c5c7"
+    white: "#c7c7c7"
+    brightBlack: "#676767"
+    brightRed: "#ff7fac"
+    brightGreen: "#c8ed71"
+    brightYellow: "#ebdf86"
+    brightBlue: "#6871ff"
+    brightMagenta: "#ff76ff"
+    brightCyan: "#5ffdff"
+    brightWhite: "#fffefe"
+  
+# Records, feel free to edit them
+records:
+  - delay: 5419
+    content: "\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?2004l\e[?1049h\e[22;0;0t\e[?1h\e=\e[?25l\e[H\e[2J\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?1000h\e[?1002h\e[?1003h\e[?1006h\e[?1004h"
+  - delay: 88
+    content: "\e[?25l\e[1;1H\e(B\e[m\e[30m\e]8;;\e\\┌─Status───────────────────────────────┐┌─Diff─────────────────────────────────────────────────────────────────────────┐\e[2;1H│\e(B\e[m\e]8;;\e\\ repo → \e(B\e[m\e[33m\e]8;;\e\\bugfix/fix-crash-bug\e(B\e[m\e]8;;\e\\          \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\No changed files                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[3;1H└──────────────────────────────────────┘│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[4;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌─Files \e(B\e[m\e]8;;\e\\- Worktrees - Submodules\e(B\e[m\e[32m\e[1m\e]8;;\e\\───────┐\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[5;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[6;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[7;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[8;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[9;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[10;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[11;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[12;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[13;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\└──────────────────────────────────────┘\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[14;1H┌─\e(B\e[m\e[32m\e]8;;\e\\Local branches \e(B\e[m\e[30m\e]8;;\e\\- Remotes - Tags──────┐│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[15;1H│\e(B\e[m\e[32m\e]8;;\e\\  *\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[33m\e]8;;\e\\שׂ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[33m\e]8;;\e\\bugfix/fix-crash-bug\e(B\e[m\e]8;;\e\\            \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[16;1H│\e(B\e[m\e[36m\e]8;;\e\\0s\e(B\e[m\e]8;;\e\\  \e(B\e[m\e[33m\e]8;;\e\\שׂ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[33m\e]8;;\e\\bugfix/fix-login-issue\e(B\e[m\e]8;;\e\\          \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[17;1H│\e(B\e[m\e[36m\e]8;;\e\\0s\e(B\e[m\e]8;;\e\\  \e(B\e[m\e[32m\e]8;;\e\\שׂ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\feature/mobile-responsive\e(B\e[m\e]8;;\e\\       \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[18;1H│\e(B\e[m\e[36m\e]8;;\e\\0s\e(B\e[m\e]8;;\e\\  \e(B\e[m\e[32m\e]8;;\e\\שׂ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\feature/search-functionality\e(B\e[m\e]8;;\e\\    \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[19;1H│\e(B\e[m\e[36m\e]8;;\e\\0s\e(B\e[m\e]8;;\e\\  \e(B\e[m\e[32m\e]8;;\e\\שׂ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\feature/payment-processing\e(B\e[m\e]8;;\e\\      \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[20;1H│\e(B\e[m\e[36m\e]8;;\e\\0s\e(B\e[m\e]8;;\e\\  \e(B\e[m\e[32m\e]8;;\e\\שׂ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\feature/user-authentication\e(B\e[m\e]8;;\e\\     \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[21;1H│\e(B\e[m\e[36m\e]8;;\e\\0s\e(B\e[m\e]8;;\e\\  שׂ master                          \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[22;1H└───────────────────────────────1 of 7─┘│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[23;1H┌─\e(B\e[m\e[32m\e]8;;\e\\Commits \e(B\e[m\e[30m\e]8;;\e\\- Reflog─────────────────────┐│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[24;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\04be8ec7\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Improve Dockerfile for m\e(B\e[m\e[30m\e]8;;\e\\▲│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[25;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\a4efad28\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Implement user blocking \e(B\e[m\e[30m\e]8;;\e\\█│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[26;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\6c2cac4f\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Refactor user notificati\e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[27;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\0d15591f\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Upgrade Rails version to\e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[28;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\4a2a1937\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Move global variables to\e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[29;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\984e5618\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Fix typos in documentati\e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[30;1H│\e(B\e[m\e[32m\e]8;;\e\\ﰖ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[32m\e]8;;\e\\60326b21\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[38;2;73;40;205m\e]8;;\e\\CI\e(B\e[m\e]8;;\e\\ Optimize Lazygit startup\e(B\e[m\e[30m\e]8;;\e\\▼│\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[31;1H└──────────────────────────────1 of 30─┘└──────────────────────────────────────────────────────────────────────────────┘\e[32;1H┌─Stash────────────────────────────────┐┌─Command log──────────────────────────────────────────────────────────────────┐\e[33;1H│\e(B\e[m\e]8;;\e\\                                      \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e]8;;\e\\                                                                              \e(B\e[m\e[30m\e]8;;\e\\│\e[34;1H└───────────────────────────────0 of 0─┘└──────────────────────────────────────────────────────────────────────────────┘\e[35;1H\e(B\e[m\e[34m\e]8;;\e\\<pgup>/<pgdown>: Scroll, <esc>: Cancel, q: Quit, ?: Keybindings, 1-5: Jump to panel, H/L: Scroll left/right             \e[?25l\e[?25l\e[1;43H\e(B\e[m\e[30m\e]8;;\e\\Unstaged changes\e[5;2H\e(B\e[m\e[91;44m\e[1m\e]8;;\e\\??  custom_commands_example.yml      \e[13;33H\e(B\e[m\e[32m\e[1m\e]8;;\e\\1 of 1\e[?25l"
+  - delay: 8
+    content: "\e[?25l\e[2;42H\e(B\e[m\e[1m\e]8;;\e\\diff --git a/custom_commands_example.yml b/custom_commands_example.yml\e[2;120H\e(B\e[m\e[30m\e]8;;\e\\▲\e[3;42H\e(B\e[m\e[1m\e]8;;\e\\new file mode 100644\e[3;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[4;42H\e(B\e[m\e[1m\e]8;;\e\\index 0000000..758d20d\e[4;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[5;42H\e(B\e[m\e[1m\e]8;;\e\\--- /dev/null\e[5;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[6;42H\e(B\e[m\e[1m\e]8;;\e\\+++ b/custom_commands_example.yml\e[6;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[7;42H\e(B\e[m\e[36m\e]8;;\e\\@@ -0,0 +1,11 @@\e[7;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[8;42H\e(B\e[m\e[32m\e]8;;\e\\+\e[8;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[9;42H\e(B\e[m\e[32m\e]8;;\e\\+customCommands:\e[9;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[10;42H\e(B\e[m\e[32m\e]8;;\e\\+  - key: 'a'\e[10;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[11;42H\e(B\e[m\e[32m\e]8;;\e\\+    command: 'git checkout {{.Form.Branch}}'\e[11;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[12;42H\e(B\e[m\e[32m\e]8;;\e\\+    context: 'localBranches'\e[12;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[13;42H\e(B\e[m\e[32m\e]8;;\e\\+    prompts:\e[13;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[14;42H\e(B\e[m\e[32m\e]8;;\e\\+    - type: 'input'\e[14;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[15;42H\e(B\e[m\e[32m\e]8;;\e\\+      title: 'Enter a branch name to checkout:'\e[15;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[16;42H\e(B\e[m\e[32m\e]8;;\e\\+      key: 'Branch'\e[16;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[17;42H\e(B\e[m\e[32m\e]8;;\e\\+\e[17;54Hsuggestions:\e[17;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[18;42H\e(B\e[m\e[32m\e]8;;\e\\+\e[18;58Hpreset: 'branches'\e[18;120H\e(B\e[m\e[30m\e]8;;\e\\█\e[19;120H█\e[30;120H▼\e[?25l\e[?25l\e[35;1H\e(B\e[m\e[37m\e[1m\e]8;;\e\\                                                                                                                        \e[?25l\e[?25l\e[?25l\e[?25l\e[35;1H\e(B\e[m\e[37m\e[1m\e]8;;\e\\Invoke\e[35;8Ha\e[35;10Hcustom\e[35;17Hcommand\e[?25l"
+  - delay: 1503
+    content: "\e[?25l\e[35;25H\e(B\e[m\e[36m\e[1m\e]8;;\e\\Pressing 3                                                                                      \e[?25l"
+  - delay: 5
+    content: "\e[?25l\e[1;43H\e(B\e[m\e[30m\e]8;;\e\\Log─────────────\e[4;1H┌─\e(B\e[m\e[32m\e]8;;\e\\Files \e(B\e[m\e[30m\e]8;;\e\\- Worktrees - Submodules───────┐\e[5;1H│\e(B\e[m\e[31m\e]8;;\e\\??  custom_commands_example.yml      \e(B\e[m\e[30m\e]8;;\e\\│\e[6;1H│\e[6;40H│\e[7;1H│\e[7;40H│\e[8;1H│\e[8;40H│\e[9;1H│\e[9;40H│\e[10;1H│\e[10;40H│\e[11;1H│\e[11;40H│\e[12;1H│\e[12;40H│\e[13;1H└───────────────────────────────1 of 1─┘\e[14;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌─Local branches \e(B\e[m\e]8;;\e\\- Remotes - Tags\e(B\e[m\e[32m\e[1m\e]8;;\e\\──────┐\e[15;1H│\e(B\e[m\e[92;44m\e[1m\e]8;;\e\\  *\e(B\e[m\e[44m\e[1m\e]8;;\e\\ \e(B\e[m\e[93;44m\e[1m\e]8;;\e\\שׂ\e(B\e[m\e[44m\e[1m\e]8;;\e\\ \e(B\e[m\e[93;44m\e[1m\e]8;;\e\\bugfix/fix-crash-bug\e(B\e[m\e[44m\e[1m\e]8;;\e\\            \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[16;1H│\e[16;40H│\e[17;1H│\e[17;40H│\e[18;1H│\e[18;40H│\e[19;1H│\e[19;40H│\e[20;1H│\e[20;40H│\e[21;1H│\e[21;40H│\e[22;1H└───────────────────────────────1 of 7─┘\e[?25l"
+  - delay: 10
+    content: "\e[?25l\e[2;42H\e(B\e[m\e]8;;\e\\* \e(B\e[m\e[33m\e]8;;\e\\commit 04be8ec (\e(B\e[m\e[36m\e[1m\e]8;;\e\\HEAD -> \e(B\e[m\e[32m\e[1m\e]8;;\e\\bugfix/fix-crash-bug\e(B\e[m\e[33m\e]8;;\e\\, \e(B\e[m\e[32m\e[1m\e]8;;\e\\master\e(B\e[m\e[33m\e]8;;\e\\, \e(B\e[m\e[32m\e[1m\e]8;;\e\\feature/user-         \e[3;42Hauthentication\e(B\e[m\e[33m\e]8;;\e\\, \e(B\e[m\e[32m\e[1m\e]8;;\e\\feature/search-functionality\e(B\e[m\e[33m\e]8;;\e\\, \e(B\e[m\e[32m\e[1m\e]8;;\e\\feature/payment-processing\e(B\e[m\e[33m\e]8;;\e\\,     \e[4;42H\e(B\e[m\e[32m\e[1m\e]8;;\e\\bugfix/fix-login-issue\e(B\e[m\e[33m\e]8;;\e\\)\e[5;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\ Author: CI <CI@example.com>\e[5;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[6;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\ Date:   2 seconds ago          \e[6;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[7;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\               \e[7;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[8;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[8;48H\e(B\e[m\e]8;;\e\\Improve\e[8;56HDockerfile\e[8;67Hfor\e[8;71Hmore\e[8;76Hefficient\e[8;86Hbuilds\e[8;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[9;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\               \e[9;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[10;42H\e(B\e[m\e]8;;\e\\* \e(B\e[m\e[33m\e]8;;\e\\commit a4efad2\e[10;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[11;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\ Author: CI <CI@example.com>                \e[11;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[12;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\ Date:   3 seconds ago      \e[12;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[13;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\            \e[13;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[14;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\     Implement user\e[14;63Hblocking\e[14;72Hfunctionality\e[14;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[15;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\                                               \e[15;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[16;42H\e(B\e[m\e]8;;\e\\* \e(B\e[m\e[33m\e]8;;\e\\commit 6c2cac4\e(B\e[m\e]8;;\e\\    \e[16;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[17;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[17;44H\e(B\e[m\e]8;;\e\\Author:\e[17;52HCI <CI@example.com>\e[17;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[18;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[18;44H\e(B\e[m\e]8;;\e\\Date:\e[18;52H3\e[18;54Hseconds ago           \e[18;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[19;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[19;120H\e(B\e[m\e[30m\e]8;;\e\\│\e[20;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[20;48H\e(B\e[m\e]8;;\e\\Refactor\e[20;57Huser\e[20;62Hnotifications\e[20;76Hsystem\e[21;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[22;42H\e(B\e[m\e]8;;\e\\*\e[22;44H\e(B\e[m\e[33m\e]8;;\e\\commit 0d15591\e[23;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[23;44H\e(B\e[m\e]8;;\e\\Author:\e[23;52HCI\e[23;55H<CI@example.com>\e[24;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[24;44H\e(B\e[m\e]8;;\e\\Date:\e[24;52H3\e[24;54Hseconds\e[24;62Hago\e[25;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[26;42H|\e[26;48H\e(B\e[m\e]8;;\e\\Upgrade\e[26;56HRails\e[26;62Hversion\e[26;70Hto\e[26;73H6.1.4\e[27;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[28;42H\e(B\e[m\e]8;;\e\\*\e[28;44H\e(B\e[m\e[33m\e]8;;\e\\commit 4a2a193\e[29;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[29;44H\e(B\e[m\e]8;;\e\\Author:\e[29;52HCI\e[29;55H<CI@example.com>\e[30;42H\e(B\e[m\e[31m\e]8;;\e\\|\e[30;44H\e(B\e[m\e]8;;\e\\Date:\e[30;52H3\e[30;54Hseconds\e[30;62Hago\e[?25l\e[?25l\e[?25l"
+  - delay: 1104
+    content: "\e[?25l\e[35;34H\e(B\e[m\e[36m\e[1m\e]8;;\e\\a\e[?25l\e[?25l\e[11;21H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌─Enter a branch name to checkout───────────────────────────────────────────────┐\e[12;21H│\e[12;40H\e(B\e[m\e]8;;\e\\   \e[12;44H     \e[12;52H \e[12;54H       \e[12;62H   \e[12;101H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[13;21H└───────────────────────────────────────────────────────────────────────────────┘\e[14;1H\e(B\e[m\e[30m\e]8;;\e\\┌─\e(B\e[m\e[32m\e]8;;\e\\Local branches \e(B\e[m\e[30m\e]8;;\e\\- R┌─Suggestions (press <tab> to focus)────────────────────────────────────────────┐\e[15;1H│\e[15;21H│\e(B\e[m\e[33m\e]8;;\e\\bugfix/fix-crash-bug\e(B\e[m\e]8;;\e\\ \e[15;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[16;1H│\e[16;21H│\e(B\e[m\e[33m\e]8;;\e\\bugfix/fix-login-issue\e(B\e[m\e]8;;\e\\              \e[16;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[17;1H│\e[17;21H│\e(B\e[m\e[32m\e]8;;\e\\feature/mobile-responsive\e(B\e[m\e]8;;\e\\    \e[17;52H  \e[17;55H                \e[17;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[18;1H│\e[18;21H│\e(B\e[m\e[32m\e]8;;\e\\feature/search-functionality\e[18;52H\e(B\e[m\e]8;;\e\\ \e[18;54H       \e[18;62H   \e[18;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[19;1H│\e[19;21H│\e(B\e[m\e[32m\e]8;;\e\\featur\e[19;29H/payment-processing\e[19;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[20;1H│\e[20;21H│\e(B\e[m\e[32m\e]8;;\e\\feature/user-authentication\e(B\e[m\e]8;;\e\\       \e[20;57H    \e[20;62H             \e[20;76H      \e[20;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[21;1H│\e[21;21H│\e(B\e[m\e]8;;\e\\master\e[21;40H   \e[21;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[22;1H└───────────────────│\e(B\e[m\e]8;;\e\\                     \e[22;44H              \e[22;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[23;21H│\e(B\e[m\e]8;;\e\\                     \e[23;44H       \e[23;52H  \e[23;55H                \e[23;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[24;21H│\e(B\e[m\e]8;;\e\\ \e[24;24H          \e[24;35H   \e[24;39H    \e[24;44H     \e[24;52H \e[24;54H       \e[24;62H   \e[24;101H\e(B\e[m\e[30m\e]8;;\e\\│\e[25;21H└────────────────────────────────────────────────────────────────────────1 of 7─┘\e[12;22H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;22H\e[?12l\e[?25h\e[0 q"
+  - delay: 1103
+    content: "\e[?25l\e[35;25H\e(B\e[m\e[37m\e[1m\e]8;;\e\\                                                                                                \e[12;22H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;22H\e(B\e[m\e]8;;\e\\m\e[15;22Hmaster              \e[16;22H\e(B\e[m\e[32m\e]8;;\e\\feature/mobile-responsive\e[17;30Hpayment-proce\e[17;44Hsing                                                     \e[18;22H\e(B\e[m\e]8;;\e\\                            \e[19;22H                          \e[20;22H                           \e[21;22H      \e[25;99H\e(B\e[m\e[30m\e]8;;\e\\3\e[12;23H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;23H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[12;23H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;23H\e(B\e[m\e]8;;\e\\o\e[15;22H\e(B\e[m\e[32m\e]8;;\e\\feature/mobile-responsive\e[16;30Hpayment-proce\e[16;44Hsing                                                     \e[17;22H\e(B\e[m\e]8;;\e\\                                                                               \e[25;99H\e(B\e[m\e[30m\e]8;;\e\\2\e[12;24H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;24H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[12;24H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;24H\e(B\e[m\e]8;;\e\\b\e[15;47H\e(B\e[m\e[32m\e]8;;\e\\                                                      \e[16;22H\e(B\e[m\e]8;;\e\\                                                                               \e[25;99H\e(B\e[m\e[30m\e]8;;\e\\1\e[12;25H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;25H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[12;25H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;25H\e(B\e[m\e]8;;\e\\i\e[12;26H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;26H\e[?12l\e[?25h\e[0 q"
+  - delay: 121
+    content: "\e[?25l\e[12;26H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;26H\e(B\e[m\e]8;;\e\\l\e[12;27H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;27H\e[?12l\e[?25h\e[0 q"
+  - delay: 123
+    content: "\e[?25l\e[12;27H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;27H\e(B\e[m\e]8;;\e\\e\e[12;28H\e[?12l\e[?25h\e[0 q\e[?25l\e[12;28H\e[?12l\e[?25h\e[0 q"
+  - delay: 122
+    content: "\e[?25l\e[35;25H\e(B\e[m\e[36m\e[1m\e]8;;\e\\Pressing <tab>                                                                                  \e[12;28H\e[?12l\e[?25h\e[0 q\e[?25l\e[11;21H\e(B\e[m\e[30m\e]8;;\e\\┌─Enter a branch name to checkout───────────────────────────────────────────────┐\e[12;21H│\e[12;101H│\e[13;21H└───────────────────────────────────────────────────────────────────────────────┘\e[14;21H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌─Suggestions (press <tab> to focus)────────────────────────────────────────────┐\e[15;2H\e(B\e[m\e[32m\e]8;;\e\\  *\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[33m\e]8;;\e\\שׂ\e(B\e[m\e]8;;\e\\ \e(B\e[m\e[33m\e]8;;\e\\bugfix/fix-cr\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[92;44m\e[1m\e]8;;\e\\feature/mobile-responsive                                                      \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[16;21H│\e[16;101H│\e[17;21H│\e[17;101H│\e[18;21H│\e[18;101H│\e[19;21H│\e[19;101H│\e[20;21H│\e[20;101H│\e[21;21H│\e[21;101H│\e[22;21H│\e[22;101H│\e[23;21H│\e[23;101H│\e[24;21H│\e[24;101H│\e[25;21H└────────────────────────────────────────────────────────────────────────1 of 1─┘\e[?25l"
+  - delay: 602
+    content: "\e[?25l\e[35;35H\e(B\e[m\e[36m\e[1m\e]8;;\e\\enter>\e[?25l"
+  - delay: 5
+    content: "\e[?25l\e[11;21H\e(B\e[m\e]8;;\e\\                   \e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\ Author: CI <CI@example.com>                               \e[12;21H       \e[12;40H\e(B\e[m\e[30m\e]8;;\e\\││\e(B\e[m\e[31m\e]8;;\e\\|\e[12;44H\e(B\e[m\e]8;;\e\\Date:\e[12;52H3\e[12;54Hseconds\e[12;62Hago\e[12;101H \e[13;21H\e(B\e[m\e[30m\e]8;;\e\\─\e[13;33H1 of 1\e[13;40H┘│\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\                                                           \e[14;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\┌─Local branches \e(B\e[m\e]8;;\e\\- Remotes - Tags\e(B\e[m\e[32m\e[1m\e]8;;\e\\──────┐\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\     Implement user blocking functionality                 \e[15;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[92;44m\e[1m\e]8;;\e\\  *\e(B\e[m\e[44m\e[1m\e]8;;\e\\ \e(B\e[m\e[93;44m\e[1m\e]8;;\e\\שׂ\e(B\e[m\e[44m\e[1m\e]8;;\e\\ \e(B\e[m\e[93;44m\e[1m\e]8;;\e\\bugfix/fix-crash-bug\e(B\e[m\e[44m\e[1m\e]8;;\e\\            \e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\                                                           \e[16;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[16;21H\e(B\e[m\e[33m\e]8;;\e\\gin-issue\e[16;40H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\*\e[16;44H\e(B\e[m\e[33m\e]8;;\e\\commit 6c2cac4\e[16;101H\e(B\e[m\e]8;;\e\\ \e[17;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[17;21H\e(B\e[m\e[32m\e]8;;\e\\e-responsive\e[17;40H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e[31m\e]8;;\e\\|\e[17;44H\e(B\e[m\e]8;;\e\\Author:\e[17;52HCI\e[17;55H<CI@example.com>\e[17;101H \e[18;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[18;21H\e(B\e[m\e[32m\e]8;;\e\\h-functionality\e[18;40H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e[31m\e]8;;\e\\|\e[18;44H\e(B\e[m\e]8;;\e\\Date:\e[18;52H3\e[18;54Hseconds\e[18;62Hago\e[18;101H \e[19;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[19;21H\e(B\e[m\e[32m\e]8;;\e\\nt-processing\e[19;40H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e[31m\e]8;;\e\\|\e[19;101H\e(B\e[m\e]8;;\e\\ \e[20;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[20;21H\e(B\e[m\e[32m\e]8;;\e\\authentication\e[20;40H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e[31m\e]8;;\e\\|\e[20;48H\e(B\e[m\e]8;;\e\\Refactor\e[20;57Huser\e[20;62Hnotifications\e[20;76Hsystem\e[20;101H \e[21;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e[21;21H\e(B\e[m\e]8;;\e\\ \e[21;40H\e(B\e[m\e[32m\e[1m\e]8;;\e\\│\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e[31m\e]8;;\e\\|\e[21;101H\e(B\e[m\e]8;;\e\\ \e[22;1H\e(B\e[m\e[32m\e[1m\e]8;;\e\\└───────────────────────────────1 of 7─┘\e(B\e[m\e[30m\e]8;;\e\\│\e(B\e[m\e]8;;\e\\*\e[22;44H\e(B\e[m\e[33m\e]8;;\e\\commit 0d15591\e[22;101H\e(B\e[m\e]8;;\e\\ \e[23;21H\e(B\e[m\e[30m\e]8;;\e\\───────────────────┐│\e(B\e[m\e[31m\e]8;;\e\\|\e[23;44H\e(B\e[m\e]8;;\e\\Author:\e[23;52HCI\e[23;55H<CI@example.com>\e[23;101H \e[24;21Hve\e[24;24HDockerfile\e[24;35Hfor\e[24;39Hm\e(B\e[m\e[30m\e]8;;\e\\▲│\e(B\e[m\e[31m\e]8;;\e\\|\e[24;44H\e(B\e[m\e]8;;\e\\Date:\e[24;52H3\e[24;54Hseconds\e[24;62Hago\e[24;101H \e[25;21Hment user blocking \e(B\e[m\e[30m\e]8;;\e\\█│\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\                                                           \e[33;44Hbash\e[33;49H-c\e[33;52H\"git\e[33;57Hcheckout\e[33;66Hfeature/mobile-responsive\"\e[?25l"
+  - delay: 10
+    content: "\e[?25l\e[6;52H\e(B\e[m\e]8;;\e\\5\e[12;52H6\e[18;52H6\e[24;52H6\e[30;52H6\e[?25l\e[?25l\e[?25l"
+  - delay: 23
+    content: "\e[?25l\e[?25l\e[?25l\e[?25l\e[?25l\e[?25l"
+  - delay: 5
+    content: "\e[?25l\e[15;6H\e(B\e[m\e[92;44m\e[1m\e]8;;\e\\שׂ\e[15;8Hfeature/mobile-responsive\e[16;2H\e(B\e[m\e[36m\e]8;;\e\\5\e[16;19H\e(B\e[m\e[33m\e]8;;\e\\crash\e[16;25Hbug\e(B\e[m\e]8;;\e\\  \e[17;2H\e(B\e[m\e[36m\e]8;;\e\\5\e[17;6H\e(B\e[m\e[33m\e]8;;\e\\שׂ\e[17;8Hbugfix/fix-login-issue\e(B\e[m\e]8;;\e\\   \e[18;2H\e(B\e[m\e[36m\e]8;;\e\\5\e[19;2H5\e[20;2H5\e[21;2H5\e[?25l\e[?25l\e[2;10H\e(B\e[m\e[32m\e]8;;\e\\feature/mobile-responsive\e[24;2H\e(B\e[m\e[33m\e]8;;\e\\ﰖ\e[24;4Hffe5f9ec\e[24;16H\e(B\e[m\e]8;;\e\\Make mobile response  \e[24;39H \e[25;4H\e(B\e[m\e[32m\e]8;;\e\\0\e[25;6Hbe8ec7\e[25;19H\e(B\e[m\e]8;;\e\\rov\e[25;23H Dock\e[25;30Hfi\e[25;33He for m\e[26;4H\e(B\e[m\e[32m\e]8;;\e\\a4ef\e[26;9Hd28\e[26;16H\e(B\e[m\e]8;;\e\\Implement user blocking \e[27;4H\e(B\e[m\e[32m\e]8;;\e\\6c2cac4\e[27;16H\e(B\e[m\e]8;;\e\\Refactor user\e[27;30Hnotifica\e[27;39Hi\e[28;4H\e(B\e[m\e[32m\e]8;;\e\\0d155\e[28;10H1f\e[28;16H\e(B\e[m\e]8;;\e\\Upgrade R\e[28;26Hils version\e[29;4H\e(B\e[m\e[32m\e]8;;\e\\4a2a1937\e[29;16H\e(B\e[m\e]8;;\e\\Move gl\e[29;24Hbal variables \e[29;39Ho\e[30;4H\e(B\e[m\e[32m\e]8;;\e\\984e5618\e[30;16H\e(B\e[m\e]8;;\e\\Fix typos in documentati\e[31;38H\e(B\e[m\e[30m\e]8;;\e\\1\e[?25l\e[?25l\e[?25l"
+  - delay: 10
+    content: "\e[?25l\e[2;51H\e(B\e[m\e[33m\e]8;;\e\\ffe5f9e\e[2;68H\e(B\e[m\e[32m\e[1m\e]8;;\e\\feature/mobile-responsive\e(B\e[m\e[33m\e]8;;\e\\)\e(B\e[m\e]8;;\e\\                          \e[3;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\ Author: CI <CI@example.com>                                                 \e[4;42H\e(B\e[m\e[31m\e]8;;\e\\|\e(B\e[m\e]8;;\e\\ Date:   5 seconds ago\e[5;44H       \e[5;52H  \e[5;55H                \e[6;44H    Make mobile resp\e[6;65Hnse\e[8;42H*\e[8;44H\e(B\e[m\e[33m\e]8;;\e\\commit 04be8ec (\e(B\e[m\e[32m\e[1m\e]8;;\e\\master\e(B\e[m\e[33m\e]8;;\e\\, \e(B\e[m\e[32m\e[1m\e]8;;\e\\feature/user-authentication\e(B\e[m\e[33m\e]8;;\e\\, \e(B\e[m\e[32m\e[1m\e]8;;\e\\feature/search-        \e[9;42Hfunctionality\e(B\e[m\e[33m\e]8;;\e\\, \e(B\e[m\e[32m\e[1m\e]8;;\e\\feature/payment-processing\e(B\e[m\e[33m\e]8;;\e\\, \e(B\e[m\e[32m\e[1m\e]8;;\e\\bugfix/fix-login-issue\e(B\e[m\e[33m\e]8;;\e\\, \e(B\e[m\e[32m\e[1m\e]8;;\e\\bugfix/fix-\e[10;42Hcrash-bug\e(B\e[m\e[33m\e]8;;\e\\)\e(B\e[m\e]8;;\e\\      \e[12;52H5\e[14;51Hrov\e[14;55H Dock\e[14;62Hfi\e[14;65He for more efficient\e[14;86Hbuilds\e[16;51H\e(B\e[m\e[33m\e]8;;\e\\a4ef\e[16;56Hd2\e[20;48H\e(B\e[m\e]8;;\e\\Implement user blocking functionality\e[22;51H\e(B\e[m\e[33m\e]8;;\e\\6c2cac4\e[26;48H\e(B\e[m\e]8;;\e\\Refactor user\e[26;62Hnotifica\e[26;71Hions system\e[28;51H\e(B\e[m\e[33m\e]8;;\e\\0d155\e[28;57H1\e[?25l\e[?25l\e[?25l"
+  - delay: 36
+    content: "\e[?25l\e[?25l"
+  - delay: 603
+    content: "\e[?25l\e[35;25H\e(B\e[m\e[37m\e[1m\e]8;;\e\\                                                                                                \e[?25l\e[?25l\e[35;1H\e(B\e[m\e[37m\e[1m\e]8;;\e\\      \e[35;8H \e[35;10H      \e[35;17H       \e[?25l"
+  - delay: 2001
+    content: "\e[?12l\e[?25h\e[39;49m\e(B\e[m\e[H\e[2J\e[?1049l\e[23;0;0t\e[?1l\e>\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?2004l\e[?1004l"
