@@ -31,7 +31,7 @@
     }
   },
   "title": "ui settings",
-  "description": "Global UI settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+  "description": "UI settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
   "type": "object",
   "properties": {
     "gui": {
