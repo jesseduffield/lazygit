@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 )
 
@@ -87,9 +88,16 @@ type Context interface {
 	HandleRenderToMain() error
 }
 
+type ISearchHistoryContext interface {
+	Context
+
+	GetSearchHistory() *utils.HistoryBuffer[string]
+}
+
 type IFilterableContext interface {
 	Context
 	IListPanelState
+	ISearchHistoryContext
 
 	SetFilter(string)
 	GetFilter() string
@@ -100,6 +108,7 @@ type IFilterableContext interface {
 
 type ISearchableContext interface {
 	Context
+	ISearchHistoryContext
 
 	SetSearchString(string)
 	GetSearchString() string

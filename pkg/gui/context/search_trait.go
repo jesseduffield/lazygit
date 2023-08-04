@@ -9,12 +9,16 @@ import (
 
 type SearchTrait struct {
 	c *ContextCommon
+	*SearchHistory
 
 	searchString string
 }
 
 func NewSearchTrait(c *ContextCommon) *SearchTrait {
-	return &SearchTrait{c: c}
+	return &SearchTrait{
+		c:             c,
+		SearchHistory: NewSearchHistory(),
+	}
 }
 
 func (self *SearchTrait) GetSearchString() string {
