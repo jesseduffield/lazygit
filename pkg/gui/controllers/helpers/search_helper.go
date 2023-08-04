@@ -49,6 +49,8 @@ func (self *SearchHelper) OpenFilterPrompt(context types.IFilterableContext) err
 func (self *SearchHelper) OpenSearchPrompt(context types.ISearchableContext) error {
 	state := self.searchState()
 
+	state.PrevSearchIndex = -1
+
 	state.Context = context
 	searchString := context.GetSearchString()
 
@@ -165,6 +167,31 @@ func (self *SearchHelper) CancelPrompt() error {
 	self.Cancel()
 
 	return self.c.PopContext()
+}
+
+func (self *SearchHelper) ScrollHistory(scrollIncrement int) error {
+	state := self.searchState()
+
+	if _, ok := state.Context.(types.ISearchableContext); !ok {
+		return nil
+	}
+	states := state.Context.(types.ISearchableContext).GetSearchHistory()
+
+	if scrollIncrement == -1 && state.PrevSearchIndex < 1 {
+		return nil
+	}
+
+	state.PrevSearchIndex += scrollIncrement
+
+	if val, err := states.PeekAt(state.PrevSearchIndex); err == nil {
+		self.searchPrefixView().SetContent(self.c.Tr.SearchPrefix)
+		promptView := self.promptView()
+		promptView.ClearTextArea()
+		promptView.TextArea.TypeString(val)
+		promptView.RenderTextArea()
+	}
+
+	return nil
 }
 
 func (self *SearchHelper) Cancel() {

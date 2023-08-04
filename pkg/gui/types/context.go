@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/patch_exploring"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sasha-s/go-deadlock"
 )
 
@@ -104,6 +105,7 @@ type ISearchableContext interface {
 	SetSearchString(string)
 	GetSearchString() string
 	ClearSearchString()
+	GetSearchHistory() *utils.CircularBuffer[string]
 	IsSearching() bool
 	IsSearchableContext()
 }

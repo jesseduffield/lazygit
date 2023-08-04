@@ -5,16 +5,21 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/theme"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type SearchTrait struct {
 	c *ContextCommon
 
-	searchString string
+	searchHistory *utils.CircularBuffer[string]
+	searchString  string
 }
 
 func NewSearchTrait(c *ContextCommon) *SearchTrait {
-	return &SearchTrait{c: c}
+	return &SearchTrait{
+		c:             c,
+		searchHistory: utils.NewCircularBuffer[string](10),
+	}
 }
 
 func (self *SearchTrait) GetSearchString() string {
@@ -23,6 +28,13 @@ func (self *SearchTrait) GetSearchString() string {
 
 func (self *SearchTrait) SetSearchString(searchString string) {
 	self.searchString = searchString
+	if searchString != "" {
+		self.searchHistory.Push(searchString)
+	}
+}
+
+func (self *SearchTrait) GetSearchHistory() *utils.CircularBuffer[string] {
+	return self.searchHistory
 }
 
 func (self *SearchTrait) ClearSearchString() {
