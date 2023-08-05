@@ -690,6 +690,42 @@
         }
       },
       "additionalProperties": false
+    },
+    "confirmOnQuit": {
+      "title": "confirm on quit",
+      "description": "Whether to confirm on on quit\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "boolean",
+      "default": false
+    },
+    "quitOnTopLevelReturn": {
+      "title": "quit on top level return",
+      "description": "Whether to quit on 'esc' press when when there is nothing to cancel/close\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "boolean",
+      "default": false
+    },
+    "disableStartupPopups": {
+      "title": "disable startup popups",
+      "description": "Whether to disable startup popups\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "boolean",
+      "default": false
+    },
+    "notARepository": {
+      "title": "not a repository",
+      "description": "An action for non-repositories\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "string",
+      "enum": [
+        "prompt",
+        "create",
+        "skip",
+        "quit"
+      ],
+      "default": "prompt"
+    },
+    "promptToReturnFromSubprocess": {
+      "title": "prompt to return from subprocess",
+      "description": "Whether to show confirmation on subprocess termination\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "boolean",
+      "default": true
     }
   },
   "additionalProperties": false
