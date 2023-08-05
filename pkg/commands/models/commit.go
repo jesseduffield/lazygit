@@ -30,6 +30,17 @@ const (
 	ActionConflict = todo.Comment + 1
 )
 
+type Divergence int
+
+// For a divergence log (left/right comparison of two refs) this is set to
+// either DivergenceLeft or DivergenceRight for each commit; for normal
+// commit views it is always DivergenceNone.
+const (
+	DivergenceNone Divergence = iota
+	DivergenceLeft
+	DivergenceRight
+)
+
 // Commit : A git commit
 type Commit struct {
 	Sha           string
@@ -41,6 +52,7 @@ type Commit struct {
 	AuthorName    string // something like 'Jesse Duffield'
 	AuthorEmail   string // something like 'jessedduffield@gmail.com'
 	UnixTimestamp int64
+	Divergence    Divergence // set to DivergenceNone unless we are showing the divergence view
 
 	// SHAs of parent commits (will be multiple if it's a merge commit)
 	Parents []string
