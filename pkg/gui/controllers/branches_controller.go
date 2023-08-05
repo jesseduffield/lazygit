@@ -9,6 +9,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -141,6 +142,27 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.Actions.SetUnsetUpstream,
 		Items: []*types.MenuItem{
+			{
+				LabelColumns: []string{self.c.Tr.ViewDivergenceFromUpstream},
+				OnPress: func() error {
+					branch := self.context().GetSelected()
+					if branch == nil {
+						return nil
+					}
+
+					if !branch.RemoteBranchStoredLocally() {
+						return self.c.ErrorMsg(self.c.Tr.DivergenceNoUpstream)
+					}
+					return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
+						Ref:                     branch,
+						TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), branch.ShortUpstreamRefName()),
+						RefToShowDivergenceFrom: branch.FullUpstreamRefName(),
+						Context:                 self.context(),
+						ShowBranchHeads:         false,
+					})
+				},
+				Key: 'v',
+			},
 			{
 				LabelColumns: []string{self.c.Tr.UnsetUpstream},
 				OnPress: func() error {

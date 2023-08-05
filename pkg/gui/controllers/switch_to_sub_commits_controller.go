@@ -54,6 +54,7 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 
 	return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
 		Ref:             ref,
+		TitleRef:        ref.RefName(),
 		Context:         self.context,
 		ShowBranchHeads: self.context.ShowBranchHeadsInSubCommits(),
 	})

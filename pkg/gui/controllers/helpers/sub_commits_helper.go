@@ -27,19 +27,22 @@ func NewSubCommitsHelper(
 }
 
 type ViewSubCommitsOpts struct {
-	Ref             types.Ref
-	Context         types.Context
-	ShowBranchHeads bool
+	Ref                     types.Ref
+	RefToShowDivergenceFrom string
+	TitleRef                string
+	Context                 types.Context
+	ShowBranchHeads         bool
 }
 
 func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                true,
-			FilterPath:           self.c.Modes().Filtering.GetPath(),
-			IncludeRebaseCommits: false,
-			RefName:              opts.Ref.FullRefName(),
-			RefForPushedStatus:   opts.Ref.FullRefName(),
+			Limit:                   true,
+			FilterPath:              self.c.Modes().Filtering.GetPath(),
+			IncludeRebaseCommits:    false,
+			RefName:                 opts.Ref.FullRefName(),
+			RefForPushedStatus:      opts.Ref.FullRefName(),
+			RefToShowDivergenceFrom: opts.RefToShowDivergenceFrom,
 		},
 	)
 	if err != nil {
@@ -53,8 +56,9 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 	subCommitsContext.SetSelectedLineIdx(0)
 	subCommitsContext.SetParentContext(opts.Context)
 	subCommitsContext.SetWindowName(opts.Context.GetWindowName())
-	subCommitsContext.SetTitleRef(utils.TruncateWithEllipsis(opts.Ref.RefName(), 50))
+	subCommitsContext.SetTitleRef(utils.TruncateWithEllipsis(opts.TitleRef, 50))
 	subCommitsContext.SetRef(opts.Ref)
+	subCommitsContext.SetRefToShowDivergenceFrom(opts.RefToShowDivergenceFrom)
 	subCommitsContext.SetLimitCommits(true)
 	subCommitsContext.SetShowBranchHeads(opts.ShowBranchHeads)
 	subCommitsContext.ClearSearchString()

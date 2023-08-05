@@ -1,12 +1,14 @@
 package context
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 type SubCommitsContext struct {
@@ -71,10 +73,39 @@ func NewSubCommitsContext(
 			selectedCommitSha,
 			startIdx,
 			endIdx,
-			shouldShowGraph(c),
+			// Don't show the graph in the left/right view; we'd like to, but
+			// it's too complicated:
+			shouldShowGraph(c) && viewModel.GetRefToShowDivergenceFrom() == "",
 			git_commands.NewNullBisectInfo(),
 			false,
 		)
+	}
+
+	getNonModelItems := func() []*NonModelItem {
+		result := []*NonModelItem{}
+		if viewModel.GetRefToShowDivergenceFrom() != "" {
+			_, upstreamIdx, found := lo.FindIndexOf(
+				c.Model().SubCommits, func(c *models.Commit) bool { return c.Divergence == models.DivergenceRight })
+			if !found {
+				upstreamIdx = 0
+			}
+			result = append(result, &NonModelItem{
+				Index:   upstreamIdx,
+				Content: fmt.Sprintf("--- %s ---", c.Tr.DivergenceSectionHeaderRemote),
+			})
+
+			_, localIdx, found := lo.FindIndexOf(
+				c.Model().SubCommits, func(c *models.Commit) bool { return c.Divergence == models.DivergenceLeft })
+			if !found {
+				localIdx = len(c.Model().SubCommits)
+			}
+			result = append(result, &NonModelItem{
+				Index:   localIdx,
+				Content: fmt.Sprintf("--- %s ---", c.Tr.DivergenceSectionHeaderLocal),
+			})
+		}
+
+		return result
 	}
 
 	ctx := &SubCommitsContext{
@@ -94,6 +125,7 @@ func NewSubCommitsContext(
 			ListRenderer: ListRenderer{
 				list:              viewModel,
 				getDisplayStrings: getDisplayStrings,
+				getNonModelItems:  getNonModelItems,
 			},
 			c:                       c,
 			refreshViewportOnChange: true,
@@ -110,7 +142,8 @@ func NewSubCommitsContext(
 
 type SubCommitsViewModel struct {
 	// name of the ref that the sub-commits are shown for
-	ref types.Ref
+	ref                     types.Ref
+	refToShowDivergenceFrom string
 	*ListViewModel[*models.Commit]
 
 	limitCommits    bool
@@ -123,6 +156,14 @@ func (self *SubCommitsViewModel) SetRef(ref types.Ref) {
 
 func (self *SubCommitsViewModel) GetRef() types.Ref {
 	return self.ref
+}
+
+func (self *SubCommitsViewModel) SetRefToShowDivergenceFrom(ref string) {
+	self.refToShowDivergenceFrom = ref
+}
+
+func (self *SubCommitsViewModel) GetRefToShowDivergenceFrom() string {
+	return self.refToShowDivergenceFrom
 }
 
 func (self *SubCommitsViewModel) SetShowBranchHeads(value bool) {
