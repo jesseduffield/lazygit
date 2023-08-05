@@ -5,7 +5,7 @@
       "type": "string",
       "oneOf": [
         {
-          "examples": [
+          "enum": [
             "black",
             "red",
             "green",
