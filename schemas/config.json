@@ -664,6 +664,32 @@
         }
       },
       "additionalProperties": false
+    },
+    "update": {
+      "title": "update",
+      "description": "Update settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "object",
+      "properties": {
+        "method": {
+          "title": "method",
+          "description": "A method\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "string",
+          "enum": [
+            "prompt",
+            "background",
+            "never"
+          ],
+          "default": "prompt"
+        },
+        "days": {
+          "title": "days",
+          "description": "A day count\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "integer",
+          "minimum": 0,
+          "default": 14
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
