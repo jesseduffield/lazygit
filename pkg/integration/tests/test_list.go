@@ -233,6 +233,7 @@ var tests = []*components.IntegrationTest{
 	ui.Accordion,
 	ui.DoublePopup,
 	ui.EmptyMenu,
+	ui.OpenLinkFailure,
 	ui.SwitchTabFromMenu,
 	undo.UndoCheckoutAndDrop,
 	undo.UndoDrop,
