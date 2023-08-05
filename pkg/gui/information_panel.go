@@ -52,6 +52,12 @@ func (gui *Gui) handleInfoClick() error {
 	}
 	err := gui.os.OpenLink(url)
 	if err != nil {
+		// Opening the link via the OS failed for some reason. (For example, this
+		// can happen if the `os.openLink` config key references a command that
+		// doesn't exist, or that errors when called.)
+		//
+		// In that case, rather than crash the app, fall back to simply showing a
+		// dialog asking the user to visit the URL.
 		placeholders := map[string]string{"url": url}
 		message := utils.ResolvePlaceholderString(gui.c.Tr.PleaseGoToURL, placeholders)
 		return gui.PopupHandler.Alert(title, message)
