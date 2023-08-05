@@ -72,7 +72,6 @@ type Gui struct {
 	Updater              *updates.Updater
 	statusManager        *status.StatusManager
 	waitForIntro         sync.WaitGroup
-	fileWatcher          *fileWatcher
 	viewBufferManagerMap map[string]*tasks.ViewBufferManager
 	// holds a mapping of view names to ptmx's. This is for rendering command outputs
 	// from within a pty. The point of keeping track of them is so that if we re-size
@@ -288,6 +287,15 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		return err
 	}
 
+	gui.g.SetFocusHandler(func(Focused bool) error {
+		if Focused {
+			gui.c.Log.Info("Receiving focus - refreshing")
+			return gui.helpers.Refresh.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		}
+
+		return nil
+	})
+
 	// if a context key has been given, push that instead, and set its index to 0
 	if contextKey != context.NO_CONTEXT {
 		contextToPush = gui.c.ContextForKey(contextKey)
@@ -382,7 +390,7 @@ func initialWindowViewNameMap(contextTree *context.ContextTree) *utils.ThreadSaf
 
 func initialScreenMode(startArgs appTypes.StartArgs, config config.AppConfigurer) types.WindowMaximisation {
 	if startArgs.FilterPath != "" || startArgs.GitArg != appTypes.GitArgNone {
-		return types.SCREEN_HALF
+		return types.SCREEN_FULL
 	} else {
 		defaultWindowSize := config.GetUserConfig().Gui.WindowSize
 
@@ -466,8 +474,6 @@ func NewGui(
 		InitialDir:       initialDir,
 		afterLayoutFuncs: make(chan func() error, 1000),
 	}
-
-	gui.WatchFilesForChanges()
 
 	gui.PopupHandler = popup.NewPopupHandler(
 		cmn,
@@ -669,10 +675,6 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 		if err := gui.Run(startArgs); err != nil {
 			for _, manager := range gui.viewBufferManagerMap {
 				manager.Close()
-			}
-
-			if !gui.fileWatcher.Disabled {
-				gui.fileWatcher.Watcher.Close()
 			}
 
 			close(gui.stopChan)

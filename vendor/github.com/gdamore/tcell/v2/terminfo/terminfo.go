@@ -230,6 +230,8 @@ type Terminfo struct {
 	EnterUrl                string
 	ExitUrl                 string
 	SetWindowSize           string
+	EnableFocusReporting    string
+	DisableFocusReporting   string
 }
 
 const (

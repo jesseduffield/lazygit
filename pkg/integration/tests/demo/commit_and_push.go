@@ -28,6 +28,7 @@ var CommitAndPush = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.SetCaptionPrefix("Stage a file")
+		t.Wait(1000)
 
 		t.Views().Files().
 			IsFocused().

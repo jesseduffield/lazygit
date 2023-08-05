@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"go/format"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -26,19 +25,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err := ioutil.WriteFile("test_list.go", formattedCode, 0o644); err != nil {
+	if err := os.WriteFile("test_list.go", formattedCode, 0o644); err != nil {
 		panic(err)
 	}
 }
 
 func generateCode() []byte {
 	// traverse parent directory to get all subling directories
-	directories, err := ioutil.ReadDir("../tests")
+	directories, err := os.ReadDir("../tests")
 	if err != nil {
 		panic(err)
 	}
 
-	directories = lo.Filter(directories, func(file os.FileInfo, _ int) bool {
+	directories = lo.Filter(directories, func(file fs.DirEntry, _ int) bool {
 		// 'shared' is a special folder containing shared test code so we
 		// ignore it here
 		return file.IsDir() && file.Name() != "shared"
@@ -62,8 +61,8 @@ func generateCode() []byte {
 	return buf.Bytes()
 }
 
-func appendDirTests(dir fs.FileInfo, buf *bytes.Buffer) {
-	files, err := ioutil.ReadDir(fmt.Sprintf("../tests/%s", dir.Name()))
+func appendDirTests(dir fs.DirEntry, buf *bytes.Buffer) {
+	files, err := os.ReadDir(fmt.Sprintf("../tests/%s", dir.Name()))
 	if err != nil {
 		panic(err)
 	}
@@ -77,7 +76,7 @@ func appendDirTests(dir fs.FileInfo, buf *bytes.Buffer) {
 			strings.TrimSuffix(file.Name(), ".go"),
 		)
 
-		fileContents, err := ioutil.ReadFile(fmt.Sprintf("../tests/%s/%s", dir.Name(), file.Name()))
+		fileContents, err := os.ReadFile(fmt.Sprintf("../tests/%s/%s", dir.Name(), file.Name()))
 		if err != nil {
 			panic(err)
 		}

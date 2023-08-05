@@ -282,10 +282,6 @@ const (
 	COMPLETE
 )
 
-type IFileWatcher interface {
-	AddFilesToFileWatcher(files []*models.File) error
-}
-
 // screen sizing determines how much space your selected window takes up (window
 // as in panel, not your terminal's window). Sometimes you want a bit more space
 // to see the contents of a panel, and this keeps track of how much maximisation

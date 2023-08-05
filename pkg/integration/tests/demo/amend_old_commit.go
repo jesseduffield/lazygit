@@ -5,55 +5,57 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-var InteractiveRebase = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Interactive rebase",
-	ExtraCmdArgs: []string{"log"},
+var AmendOldCommit = NewIntegrationTest(NewIntegrationTestArgs{
+	Description:  "Amend old commit",
+	ExtraCmdArgs: []string{},
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {
 		// No idea why I had to use version 2: it should be using my own computer's
 		// font and the one iterm uses is version 3.
 		config.UserConfig.Gui.NerdFontsVersion = "2"
+		config.UserConfig.Gui.ShowFileTree = false
 	},
 	SetupRepo: func(shell *Shell) {
-		shell.CreateFile("my-file.txt", "myfile content")
-		shell.CreateFile("my-other-file.rb", "my-other-file content")
-
 		shell.CreateNCommitsWithRandomMessages(60)
 		shell.NewBranch("feature/demo")
 
 		shell.CloneIntoRemote("origin")
 
 		shell.SetBranchUpstream("feature/demo", "origin/feature/demo")
+
+		shell.UpdateFile("navigation/site_navigation.go", "package navigation\n\nfunc Navigate() {\n\tpanic(\"unimplemented\")\n}")
+		shell.CreateFile("docs/README.md", "my readme content")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
-		t.SetCaptionPrefix("Interactive rebase")
+		t.SetCaptionPrefix("Amend an old commit")
 		t.Wait(1000)
 
-		t.Views().Commits().
+		t.Views().Files().
 			IsFocused().
-			NavigateToLine(Contains("Add TypeScript types to User module")).
-			Press(keys.Universal.Edit).
-			SelectPreviousItem().
-			Press(keys.Universal.Remove).
-			SelectPreviousItem().
-			Press(keys.Commits.SquashDown).
-			SelectPreviousItem().
-			Press(keys.Commits.MarkCommitAsFixup).
-			Press(keys.Universal.CreateRebaseOptionsMenu).
+			SelectedLine(Contains("site_navigation.go")).
+			PressPrimaryAction()
+
+		t.Views().Commits().
+			Focus().
+			NavigateToLine(Contains("Improve accessibility of site navigation")).
+			Wait(500).
+			Press(keys.Commits.AmendToCommit).
 			Tap(func() {
-				t.ExpectPopup().Menu().
-					Title(Contains("Rebase options")).
-					Select(Contains("continue")).
+				t.ExpectPopup().Confirmation().
+					Title(Equals("Amend commit")).
+					Wait(1000).
+					Content(AnyString()).
 					Confirm()
+
+				t.Wait(1000)
 			}).
-			SetCaptionPrefix("Push to remote").
-			Press(keys.Universal.NextScreenMode).
 			Press(keys.Universal.Push).
 			Tap(func() {
 				t.ExpectPopup().Confirmation().
-					Title(Contains("Force push")).
+					Title(Equals("Force push")).
 					Content(AnyString()).
+					Wait(1000).
 					Confirm()
 			})
 	},

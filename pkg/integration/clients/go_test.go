@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
@@ -82,7 +81,7 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 		return err
 	}
 
-	_, _ = io.Copy(ioutil.Discard, f)
+	_, _ = io.Copy(io.Discard, f)
 
 	if cmd.Wait() != nil {
 		// return an error with the stderr output

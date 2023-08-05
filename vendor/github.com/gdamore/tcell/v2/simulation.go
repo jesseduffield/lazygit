@@ -325,6 +325,12 @@ func (s *simscreen) DisablePaste() {
 	s.paste = false
 }
 
+func (s *simscreen) EnableFocus() {
+}
+
+func (s *simscreen) DisableFocus() {
+}
+
 func (s *simscreen) Size() (int, int) {
 	s.Lock()
 	w, h := s.back.Size()

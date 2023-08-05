@@ -7,9 +7,9 @@
 A simple terminal UI for git commands
 <br/>
 
-[![GitHub Releases](https://img.shields.io/github/downloads/jesseduffield/lazygit/total)](https://github.com/jesseduffield/lazygit/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases/latest) [![homebrew](https://img.shields.io/homebrew/v/lazygit)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/lazygit.rb)  
+[![GitHub Releases](https://img.shields.io/github/downloads/jesseduffield/lazygit/total)](https://github.com/jesseduffield/lazygit/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/jesseduffield/lazygit)](https://goreportcard.com/report/github.com/jesseduffield/lazygit) [![GolangCI](https://golangci.com/badges/github.com/jesseduffield/lazygit.svg)](https://golangci.com) [![GitHub tag](https://img.shields.io/github/tag/jesseduffield/lazygit.svg)](https://github.com/jesseduffield/lazygit/releases/latest) [![homebrew](https://img.shields.io/homebrew/v/lazygit)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/lazygit.rb)
 
-![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/7e77d895-05a9-4571-a55b-240ac80f75eb)
+![commit_and_push](../assets/demo/commit_and_push-compressed.gif)
 
 </div>
 
@@ -20,7 +20,7 @@ A simple terminal UI for git commands
 </p>
 
 <p align="center">
-<!-- sponsors --><a href="https://github.com/intabulas"><img src="https://github.com/intabulas.png" width="60px" alt="" /></a><a href="https://github.com/piot"><img src="https://github.com/piot.png" width="60px" alt="" /></a><a href="https://github.com/rgwood"><img src="https://github.com/rgwood.png" width="60px" alt="" /></a><a href="https://github.com/oliverguenther"><img src="https://github.com/oliverguenther.png" width="60px" alt="" /></a><a href="https://github.com/pawanjay176"><img src="https://github.com/pawanjay176.png" width="60px" alt="" /></a><a href="https://github.com/bdach"><img src="https://github.com/bdach.png" width="60px" alt="" /></a><a href="https://github.com/davidklsn"><img src="https://github.com/davidklsn.png" width="60px" alt="" /></a><a href="https://github.com/naoey"><img src="https://github.com/naoey.png" width="60px" alt="" /></a><a href="https://github.com/jryom"><img src="https://github.com/jryom.png" width="60px" alt="" /></a><a href="https://github.com/carstengehling"><img src="https://github.com/carstengehling.png" width="60px" alt="" /></a><a href="https://github.com/ceuk"><img src="https://github.com/ceuk.png" width="60px" alt="" /></a><a href="https://github.com/akospwc"><img src="https://github.com/akospwc.png" width="60px" alt="" /></a><a href="https://github.com/Xetera"><img src="https://github.com/Xetera.png" width="60px" alt="" /></a><a href="https://github.com/HoldenLucas"><img src="https://github.com/HoldenLucas.png" width="60px" alt="" /></a><a href="https://github.com/barbados-clemens"><img src="https://github.com/barbados-clemens.png" width="60px" alt="" /></a><a href="https://github.com/nartc"><img src="https://github.com/nartc.png" width="60px" alt="" /></a><a href="https://github.com/matejcik"><img src="https://github.com/matejcik.png" width="60px" alt="" /></a><a href="https://github.com/lucatume"><img src="https://github.com/lucatume.png" width="60px" alt="" /></a><a href="https://github.com/zach-fuller"><img src="https://github.com/zach-fuller.png" width="60px" alt="" /></a><a href="https://github.com/davdroman"><img src="https://github.com/davdroman.png" width="60px" alt="" /></a><a href="https://github.com/KowalskiPiotr98"><img src="https://github.com/KowalskiPiotr98.png" width="60px" alt="" /></a><a href="https://github.com/nicholascloud"><img src="https://github.com/nicholascloud.png" width="60px" alt="" /></a><a href="https://github.com/PhotonQuantum"><img src="https://github.com/PhotonQuantum.png" width="60px" alt="" /></a><a href="https://github.com/GitSquared"><img src="https://github.com/GitSquared.png" width="60px" alt="" /></a><a href="https://github.com/ava1ar"><img src="https://github.com/ava1ar.png" width="60px" alt="" /></a><a href="https://github.com/pedropombeiro"><img src="https://github.com/pedropombeiro.png" width="60px" alt="" /></a><a href="https://github.com/minidfx"><img src="https://github.com/minidfx.png" width="60px" alt="" /></a><a href="https://github.com/JoeKlemmer"><img src="https://github.com/JoeKlemmer.png" width="60px" alt="" /></a><a href="https://github.com/ColonelBucket8"><img src="https://github.com/ColonelBucket8.png" width="60px" alt="" /></a><a href="https://github.com/tobi"><img src="https://github.com/tobi.png" width="60px" alt="" /></a><a href="https://github.com/benbfortis"><img src="https://github.com/benbfortis.png" width="60px" alt="" /></a><a href="https://github.com/jakewarren"><img src="https://github.com/jakewarren.png" width="60px" alt="" /></a><a href="https://github.com/tgpholly"><img src="https://github.com/tgpholly.png" width="60px" alt="" /></a><a href="https://github.com/jisantuc"><img src="https://github.com/jisantuc.png" width="60px" alt="" /></a><a href="https://github.com/bitprophet"><img src="https://github.com/bitprophet.png" width="60px" alt="" /></a><a href="https://github.com/tayleighr"><img src="https://github.com/tayleighr.png" width="60px" alt="" /></a><a href="https://github.com/Novakov"><img src="https://github.com/Novakov.png" width="60px" alt="" /></a><a href="https://github.com/mthuggett"><img src="https://github.com/mthuggett.png" width="60px" alt="" /></a><a href="https://github.com/portothree"><img src="https://github.com/portothree.png" width="60px" alt="" /></a><a href="https://github.com/farzadmf"><img src="https://github.com/farzadmf.png" width="60px" alt="" /></a><a href="https://github.com/nekhaevskiy"><img src="https://github.com/nekhaevskiy.png" width="60px" alt="" /></a><a href="https://github.com/reivilibre"><img src="https://github.com/reivilibre.png" width="60px" alt="" /></a><a href="https://github.com/andreaskurth"><img src="https://github.com/andreaskurth.png" width="60px" alt="" /></a><a href="https://github.com/BSteffaniak"><img src="https://github.com/BSteffaniak.png" width="60px" alt="" /></a><a href="https://github.com/jordan-gillard"><img src="https://github.com/jordan-gillard.png" width="60px" alt="" /></a><a href="https://github.com/smangels"><img src="https://github.com/smangels.png" width="60px" alt="" /></a><a href="https://github.com/George-Spanos"><img src="https://github.com/George-Spanos.png" width="60px" alt="" /></a><a href="https://github.com/BenGH28"><img src="https://github.com/BenGH28.png" width="60px" alt="" /></a><a href="https://github.com/abradner"><img src="https://github.com/abradner.png" width="60px" alt="" /></a><a href="https://github.com/Thalys"><img src="https://github.com/Thalys.png" width="60px" alt="" /></a><a href="https://github.com/wakywayne"><img src="https://github.com/wakywayne.png" width="60px" alt="" /></a><a href="https://github.com/sktzofrenic"><img src="https://github.com/sktzofrenic.png" width="60px" alt="" /></a><a href="https://github.com/voloshink"><img src="https://github.com/voloshink.png" width="60px" alt="" /></a><a href="https://github.com/frantisekstanko"><img src="https://github.com/frantisekstanko.png" width="60px" alt="" /></a><a href="https://github.com/vlad-psh"><img src="https://github.com/vlad-psh.png" width="60px" alt="" /></a><a href="https://github.com/atlj"><img src="https://github.com/atlj.png" width="60px" alt="" /></a><a href="https://github.com/robclancy"><img src="https://github.com/robclancy.png" width="60px" alt="" /></a><a href="https://github.com/Jaxwood"><img src="https://github.com/Jaxwood.png" width="60px" alt="" /></a><a href="https://github.com/orthodoX"><img src="https://github.com/orthodoX.png" width="60px" alt="" /></a><!-- sponsors -->
+<!-- sponsors --><a href="https://github.com/intabulas"><img src="https://github.com/intabulas.png" width="60px" alt="" /></a><a href="https://github.com/piot"><img src="https://github.com/piot.png" width="60px" alt="" /></a><a href="https://github.com/rgwood"><img src="https://github.com/rgwood.png" width="60px" alt="" /></a><a href="https://github.com/oliverguenther"><img src="https://github.com/oliverguenther.png" width="60px" alt="" /></a><a href="https://github.com/pawanjay176"><img src="https://github.com/pawanjay176.png" width="60px" alt="" /></a><a href="https://github.com/bdach"><img src="https://github.com/bdach.png" width="60px" alt="" /></a><a href="https://github.com/davidklsn"><img src="https://github.com/davidklsn.png" width="60px" alt="" /></a><a href="https://github.com/naoey"><img src="https://github.com/naoey.png" width="60px" alt="" /></a><a href="https://github.com/jryom"><img src="https://github.com/jryom.png" width="60px" alt="" /></a><a href="https://github.com/carstengehling"><img src="https://github.com/carstengehling.png" width="60px" alt="" /></a><a href="https://github.com/ceuk"><img src="https://github.com/ceuk.png" width="60px" alt="" /></a><a href="https://github.com/akospwc"><img src="https://github.com/akospwc.png" width="60px" alt="" /></a><a href="https://github.com/Xetera"><img src="https://github.com/Xetera.png" width="60px" alt="" /></a><a href="https://github.com/HoldenLucas"><img src="https://github.com/HoldenLucas.png" width="60px" alt="" /></a><a href="https://github.com/barbados-clemens"><img src="https://github.com/barbados-clemens.png" width="60px" alt="" /></a><a href="https://github.com/nartc"><img src="https://github.com/nartc.png" width="60px" alt="" /></a><a href="https://github.com/matejcik"><img src="https://github.com/matejcik.png" width="60px" alt="" /></a><a href="https://github.com/lucatume"><img src="https://github.com/lucatume.png" width="60px" alt="" /></a><a href="https://github.com/zach-fuller"><img src="https://github.com/zach-fuller.png" width="60px" alt="" /></a><a href="https://github.com/KowalskiPiotr98"><img src="https://github.com/KowalskiPiotr98.png" width="60px" alt="" /></a><a href="https://github.com/nicholascloud"><img src="https://github.com/nicholascloud.png" width="60px" alt="" /></a><a href="https://github.com/PhotonQuantum"><img src="https://github.com/PhotonQuantum.png" width="60px" alt="" /></a><a href="https://github.com/GitSquared"><img src="https://github.com/GitSquared.png" width="60px" alt="" /></a><a href="https://github.com/ava1ar"><img src="https://github.com/ava1ar.png" width="60px" alt="" /></a><a href="https://github.com/pedropombeiro"><img src="https://github.com/pedropombeiro.png" width="60px" alt="" /></a><a href="https://github.com/minidfx"><img src="https://github.com/minidfx.png" width="60px" alt="" /></a><a href="https://github.com/JoeKlemmer"><img src="https://github.com/JoeKlemmer.png" width="60px" alt="" /></a><a href="https://github.com/ColonelBucket8"><img src="https://github.com/ColonelBucket8.png" width="60px" alt="" /></a><a href="https://github.com/tobi"><img src="https://github.com/tobi.png" width="60px" alt="" /></a><a href="https://github.com/benbfortis"><img src="https://github.com/benbfortis.png" width="60px" alt="" /></a><a href="https://github.com/jakewarren"><img src="https://github.com/jakewarren.png" width="60px" alt="" /></a><a href="https://github.com/tgpholly"><img src="https://github.com/tgpholly.png" width="60px" alt="" /></a><a href="https://github.com/jisantuc"><img src="https://github.com/jisantuc.png" width="60px" alt="" /></a><a href="https://github.com/bitprophet"><img src="https://github.com/bitprophet.png" width="60px" alt="" /></a><a href="https://github.com/tayleighr"><img src="https://github.com/tayleighr.png" width="60px" alt="" /></a><a href="https://github.com/Novakov"><img src="https://github.com/Novakov.png" width="60px" alt="" /></a><a href="https://github.com/mthuggett"><img src="https://github.com/mthuggett.png" width="60px" alt="" /></a><a href="https://github.com/portothree"><img src="https://github.com/portothree.png" width="60px" alt="" /></a><a href="https://github.com/farzadmf"><img src="https://github.com/farzadmf.png" width="60px" alt="" /></a><a href="https://github.com/nekhaevskiy"><img src="https://github.com/nekhaevskiy.png" width="60px" alt="" /></a><a href="https://github.com/reivilibre"><img src="https://github.com/reivilibre.png" width="60px" alt="" /></a><a href="https://github.com/andreaskurth"><img src="https://github.com/andreaskurth.png" width="60px" alt="" /></a><a href="https://github.com/BSteffaniak"><img src="https://github.com/BSteffaniak.png" width="60px" alt="" /></a><a href="https://github.com/jordan-gillard"><img src="https://github.com/jordan-gillard.png" width="60px" alt="" /></a><a href="https://github.com/smangels"><img src="https://github.com/smangels.png" width="60px" alt="" /></a><a href="https://github.com/George-Spanos"><img src="https://github.com/George-Spanos.png" width="60px" alt="" /></a><a href="https://github.com/BenGH28"><img src="https://github.com/BenGH28.png" width="60px" alt="" /></a><a href="https://github.com/abradner"><img src="https://github.com/abradner.png" width="60px" alt="" /></a><a href="https://github.com/Thalys"><img src="https://github.com/Thalys.png" width="60px" alt="" /></a><a href="https://github.com/wakywayne"><img src="https://github.com/wakywayne.png" width="60px" alt="" /></a><a href="https://github.com/sktzofrenic"><img src="https://github.com/sktzofrenic.png" width="60px" alt="" /></a><a href="https://github.com/voloshink"><img src="https://github.com/voloshink.png" width="60px" alt="" /></a><a href="https://github.com/frantisekstanko"><img src="https://github.com/frantisekstanko.png" width="60px" alt="" /></a><a href="https://github.com/vlad-psh"><img src="https://github.com/vlad-psh.png" width="60px" alt="" /></a><a href="https://github.com/atlj"><img src="https://github.com/atlj.png" width="60px" alt="" /></a><a href="https://github.com/robclancy"><img src="https://github.com/robclancy.png" width="60px" alt="" /></a><a href="https://github.com/Jaxwood"><img src="https://github.com/Jaxwood.png" width="60px" alt="" /></a><a href="https://github.com/orthodoX"><img src="https://github.com/orthodoX.png" width="60px" alt="" /></a><a href="https://github.com/Broderick-Westrope"><img src="https://github.com/Broderick-Westrope.png" width="60px" alt="" /></a><!-- sponsors -->
 </p>
 
 ## Elevator Pitch
@@ -31,6 +31,8 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 
 ## Table of contents
 
+- [Features](#features)
+- [Tutorials](#tutorials)
 - [Installation](#installation)
   - [Binary releases](#binary-releases)
   - [Homebrew](#homebrew)
@@ -55,15 +57,85 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 - [Configuration](#configuration)
   - [Custom pagers](#configuration)
   - [Custom commands](#configuration)
-- [Tutorials](#tutorials)
-- [Cool Features](#cool-features)
 - [Contributing](#contributing)
 - [Donate](#donate)
 - [Alternatives](#alternatives)
 
 Lazygit is not my fulltime job but it is a hefty part time job so if you want to support the project please consider [sponsoring me](https://github.com/sponsors/jesseduffield)
 
+## Features
+
+### Stage individual lines
+
+Press space on the selected line to stage it, or press `v` to start selecting a range of lines. You can also press `a` to select the entirety of the current hunk.
+
+![stage_lines](../assets/demo/stage_lines-compressed.gif)
+
+### Interactive Rebase
+
+Press `e` on a commit to start an interactive rebase on it: causing all above commits to become part of the TODO file. Then squash (`s`), fixup (`f`), drop (`d`), edit (`e`), move up (ctrl+i) or move down (ctrl+j) any of TODO commits, before continuing the rebase by bringing up the rebase options menu with `m` and then selecting `continue`. You can also perform any these actions as a once-off (e.g. pressing `s` on a commit to squash it) without explicitly starting a rebase.
+
+![interactive_rebase](../assets/demo/interactive_rebase-compressed.gif)
+
+### Cherry-pick
+
+Press `c` on a commit to copy it and press `v` to paste (cherry-pick) it.
+
+![cherry_pick](../assets/demo/cherry_pick-compressed.gif)
+
+### Bisect
+
+Press `b` in the commits view to mark a commit as good/bad in order to begin a git bisect.
+
+![bisect](../assets/demo/bisect-compressed.gif)
+
+### Nuke the working tree
+
+For when you really want to just get rid of anything that shows up when you run `git status` (and yes that includes dirty submodules) [kidpix style](https://www.youtube.com/watch?v=Ur7_A4JusMU), press `shift+d` to bring up the reset options menu and then select the 'nuke' option.
+
+![Nuke working tree](../assets/demo/nuke_working_tree-compressed.gif)
+
+### Amend an old commit
+
+Pressing `shift+a` on any commit will amend that commit with the currently staged changes (running an interactive rebase in the backkground).
+
+![amend_old_commit](../assets/demo/amend_old_commit-compressed.gif)
+
+### Filter
+
+You can filter a view with `/`. Here we filter down our branches view and then hit `enter` to view its commits.
+
+![filter](../assets/demo/filter-compressed.gif)
+
+### Invoke a custom command
+
+Lazygit has a very flexible [custom command system](docs/Custom_Command_Keybindings.md). In this example a custom command is defined which emulates the built-in branch checkout action.
+
+![custom_command](../assets/demo/custom_command-compressed.gif)
+
+### Worktrees
+
+You can create worktrees to have multiple branches going at once without the need for stashing or creating WIP commits when switching between them. Press `w` in the branches view to create a worktree from the selected branch and switch to it.
+
+![worktree_create_from_branches](../assets/demo/worktree_create_from_branches-compressed.gif)
+
+### Rebase magic (custom patches)
+
+You can build a custom patch from an old commit and then remove the patch from the commit, split out a new commit, apply the patch in reverse to the index, and more.
+
+In this example we have a redundant comment that we want to remove from an old commit. We hit `<enter>` on the commit to view its files, then `<enter>` on a file to focus the patch, then `<space>` to add the comment line to our custom patch, and then `ctrl+p` to view the custom patch options; selecting to remove the patch from the current commit.
+
+Learn more in the [Rebase magic Youtube tutorial](https://youtu.be/4XaToVut_hs).
+
+![custom_patch](../assets/demo/custom_patch-compressed.gif)
+
+## Tutorials
+
 [<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
+
+- [15 Lazygit Features in 15 Minutes](https://youtu.be/CPLdltN7wgE)
+- [Basics Tutorial](https://youtu.be/VDXvbHZYeKY)
+- [Rebase Magic Tutorial](https://youtu.be/4XaToVut_hs)
 
 ## Installation
 
@@ -297,39 +369,10 @@ If lazygit is missing a feature, there's a good chance you can implement it your
 
 See the [docs](docs/Custom_Command_Keybindings.md)
 
-## Tutorials
-
-- [Video Tutorial](https://youtu.be/VDXvbHZYeKY)
-- [Rebase Magic Video Tutorial](https://youtu.be/4XaToVut_hs)
-
-## Cool features
-
-- Add files easily
-- Resolve merge conflicts
-- Fuzzy searching
-- Git bisect
-- Amend old commits
-- Slice, dice, squash, and rearrange commits
-- Submodules support
-- diff branches easily
-- Cherry-pick commits like it's copy+paste
-
-### Git Bisect
-
-![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/b2752a77-3bd0-4b65-8e36-e643ae70c396)
-
-### Cherry-pick
-
-![cherry_pick-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/2d1205c8-9980-40b0-8b6a-221497099715)
-
-### Interactive Rebasing
-
-![demo-compressed](https://github.com/jesseduffield/lazygit/assets/8456633/04d6dbe4-845a-41de-8072-0e475765ec63)
-
 ## Contributing
 
 We love your input! Please check out the [contributing guide](CONTRIBUTING.md).
-For contributor discussion about things not better discussed here in the repo, join the discord channel
+For contributor discussion about things not better discussed here in the repo, join the [discord channel](https://discord.gg/ehwFt2t4wt)
 
 <a href="https://discord.gg/ehwFt2t4wt"><img src='../assets/discord.png' width='75'></a>
 

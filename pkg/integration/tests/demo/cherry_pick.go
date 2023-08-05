@@ -32,6 +32,7 @@ var CherryPick = NewIntegrationTest(NewIntegrationTestArgs{
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.SetCaptionPrefix("Cherry pick commits from another branch")
+		t.Wait(1000)
 
 		t.Views().Branches().
 			Focus().

@@ -61,17 +61,45 @@ func (self *ConfirmationHelper) DeactivateConfirmationPrompt() {
 	self.clearConfirmationViewKeyBindings()
 }
 
+// Temporary hack: we're just duplicating the logic in `gocui.lineWrap`
 func getMessageHeight(wrap bool, message string, width int) int {
-	lines := strings.Split(message, "\n")
-	lineCount := 0
-	// if we need to wrap, calculate height to fit content within view's width
-	if wrap {
-		for _, line := range lines {
-			lineCount += runewidth.StringWidth(line)/width + 1
-		}
-	} else {
-		lineCount = len(lines)
+	if !wrap {
+		return len(strings.Split(message, "\n"))
 	}
+
+	lineCount := 0
+	lines := strings.Split(message, "\n")
+
+	for _, line := range lines {
+		n := 0
+		lastWhitespaceIndex := -1
+		for i, currChr := range line {
+			rw := runewidth.RuneWidth(currChr)
+			n += rw
+
+			if n > width {
+				if currChr == ' ' {
+					n = 0
+				} else if currChr == '-' {
+					n = rw
+				} else if lastWhitespaceIndex != -1 && lastWhitespaceIndex+1 != i {
+					if line[lastWhitespaceIndex] == '-' {
+						n = i - lastWhitespaceIndex
+					} else {
+						n = i - lastWhitespaceIndex + 1
+					}
+				} else {
+					n = rw
+				}
+				lineCount++
+				lastWhitespaceIndex = -1
+			} else if currChr == ' ' || currChr == '-' {
+				lastWhitespaceIndex = i
+			}
+		}
+		lineCount++
+	}
+
 	return lineCount
 }
 
