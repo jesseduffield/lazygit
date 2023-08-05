@@ -347,6 +347,39 @@
             "hidden"
           ],
           "default": "single"
+        },
+        "authorColors": {
+          "title": "author colors",
+          "description": "Author colors",
+          "type": "object",
+          "properties": {
+            "*": {
+              "title": "author color",
+              "description": "An author color",
+              "$ref": "#/definitions/color"
+            }
+          },
+          "patternProperties": {
+            ".": {
+              "title": "author color",
+              "description": "An author color",
+              "$ref": "#/definitions/color"
+            }
+          },
+          "additionalProperties": false
+        },
+        "branchColors": {
+          "title": "branch colors",
+          "description": "Branch colors",
+          "type": "object",
+          "patternProperties": {
+            ".": {
+              "title": "branch color",
+              "description": "A branch color",
+              "$ref": "#/definitions/color"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
