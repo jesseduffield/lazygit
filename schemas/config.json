@@ -1570,6 +1570,20 @@
         }
       },
       "additionalProperties": false
+    },
+    "services": {
+      "title": "services",
+      "description": "Service settings",
+      "type": "object",
+      "patternProperties": {
+        ".": {
+          "title": "service",
+          "description": "A service",
+          "type": "string",
+          "pattern": "^[^:]+:[^:]+$"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
