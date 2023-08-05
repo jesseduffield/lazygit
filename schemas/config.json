@@ -726,6 +726,806 @@
       "description": "Whether to show confirmation on subprocess termination\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
       "type": "boolean",
       "default": true
+    },
+    "keybinding": {
+      "title": "keybinding",
+      "description": "Keybinding settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "type": "object",
+      "properties": {
+        "universal": {
+          "title": "universal",
+          "description": "Universal keybindings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "quit": {
+              "title": "quit",
+              "description": "A quit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "q"
+            },
+            "quit-alt1": {
+              "title": "quit-alt1",
+              "description": "A quit-alt1 keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-c>"
+            },
+            "return": {
+              "title": "return",
+              "description": "A return keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<esc>"
+            },
+            "quitWithoutChangingDirectory": {
+              "title": "quit without changing directory",
+              "description": "A quit without changing directory keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "Q"
+            },
+            "togglePanel": {
+              "title": "toggle panel",
+              "description": "A toggle panel keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<tab>"
+            },
+            "prevItem": {
+              "title": "prev item",
+              "description": "A previous item keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<up>"
+            },
+            "nextItem": {
+              "title": "next item",
+              "description": "A next item keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<down>"
+            },
+            "prevItem-alt": {
+              "title": "prev item-alt",
+              "description": "A previous item-alt keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "k"
+            },
+            "nextItem-alt": {
+              "title": "next item-alt",
+              "description": "A next item-alt keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "j"
+            },
+            "prevPage": {
+              "title": "prev page",
+              "description": "A previous page keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": ","
+            },
+            "nextPage": {
+              "title": "next page",
+              "description": "A next page keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "."
+            },
+            "gotoTop": {
+              "title": "goto top",
+              "description": "A goto top keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<"
+            },
+            "gotoBottom": {
+              "title": "goto bottom",
+              "description": "A goto bottom keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": ">"
+            },
+            "scrollLeft": {
+              "title": "scroll left",
+              "description": "A scroll left keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "H"
+            },
+            "scrollRight": {
+              "title": "scroll right",
+              "description": "A scroll right keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "L"
+            },
+            "prevBlock": {
+              "title": "prev block",
+              "description": "A previous block keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<left>"
+            },
+            "nextBlock": {
+              "title": "next block",
+              "description": "A next block keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<right>"
+            },
+            "prevBlock-alt": {
+              "title": "prev block-alt",
+              "description": "A previous block-alt keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "h"
+            },
+            "nextBlock-alt": {
+              "title": "next block-alt",
+              "description": "A next block-alt keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "l"
+            },
+            "jumpToBlock": {
+              "title": "jump to block",
+              "description": "A jump to block keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "array",
+              "default": [
+                "1",
+                "2",
+                "3",
+                "4",
+                "5"
+              ]
+            },
+            "nextMatch": {
+              "title": "next match",
+              "description": "A next match keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "n"
+            },
+            "prevMatch": {
+              "title": "prev match",
+              "description": "A previous match keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "N"
+            },
+            "optionMenu": {
+              "title": "option menu",
+              "description": "An option menu keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "null",
+              "default": null
+            },
+            "optionMenu-alt1": {
+              "title": "option menu-alt1",
+              "description": "An option menu-alt1 keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "?"
+            },
+            "select": {
+              "title": "select",
+              "description": "A select keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<space>"
+            },
+            "goInto": {
+              "title": "go into",
+              "description": "A go into keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<enter>"
+            },
+            "openRecentRepos": {
+              "title": "open recent repos",
+              "description": "An open recent repos keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-r>"
+            },
+            "confirm": {
+              "title": "confirm",
+              "description": "A confirm keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<enter>"
+            },
+            "remove": {
+              "title": "remove",
+              "description": "A remove keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "d"
+            },
+            "new": {
+              "title": "new",
+              "description": "A new keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "n"
+            },
+            "edit": {
+              "title": "edit",
+              "description": "A edit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "e"
+            },
+            "openFile": {
+              "title": "open file",
+              "description": "An open file keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "o"
+            },
+            "scrollUpMain": {
+              "title": "scroll up main",
+              "description": "A scroll up main keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<pgup>"
+            },
+            "scrollDownMain": {
+              "title": "scroll down main",
+              "description": "A scroll down main keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<pgdown>"
+            },
+            "scrollUpMain-alt1": {
+              "title": "scroll up main-alt1",
+              "description": "A scroll up main-alt1 keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "K"
+            },
+            "scrollDownMain-alt1": {
+              "title": "scroll down main-alt1",
+              "description": "A scroll down main-alt1 keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "J"
+            },
+            "scrollUpMain-alt2": {
+              "title": "scroll up main-alt2",
+              "description": "A scroll up main-alt2 keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-u>"
+            },
+            "scrollDownMain-alt2": {
+              "title": "scroll down main-alt2",
+              "description": "A scroll down main-alt2 keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-d>"
+            },
+            "executeCustomCommand": {
+              "title": "execute custom command",
+              "description": "A execute custom command keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": ":"
+            },
+            "createRebaseOptionsMenu": {
+              "title": "create rebase options menu",
+              "description": "A create rebase options menu keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "m"
+            },
+            "pushFiles": {
+              "title": "push files",
+              "description": "A push files keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "P"
+            },
+            "pullFiles": {
+              "title": "pull files",
+              "description": "A pull files keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "p"
+            },
+            "refresh": {
+              "title": "refresh",
+              "description": "A refresh keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "R"
+            },
+            "createPatchOptionsMenu": {
+              "title": "create patch options menu",
+              "description": "A create patch options menu keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-p>"
+            },
+            "nextTab": {
+              "title": "next tab",
+              "description": "A next tab keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "]"
+            },
+            "prevTab": {
+              "title": "prev tab",
+              "description": "A previous tab keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "["
+            },
+            "nextScreenMode": {
+              "title": "next screen mode",
+              "description": "A next screen mode keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "+"
+            },
+            "prevScreenMode": {
+              "title": "prev screen mode",
+              "description": "A previous screen mode keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "_"
+            },
+            "undo": {
+              "title": "undo",
+              "description": "An undo keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "z"
+            },
+            "redo": {
+              "title": "redo",
+              "description": "A redo keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-z>"
+            },
+            "filteringMenu": {
+              "title": "filtering menu",
+              "description": "A filtering menu keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-s>"
+            },
+            "diffingMenu": {
+              "title": "diffing menu",
+              "description": "A diffing menu keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "W"
+            },
+            "diffingMenu-alt": {
+              "title": "diffing menu-alt",
+              "description": "A diffing menu-alt keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-e>"
+            },
+            "copyToClipboard": {
+              "title": "copy to clipboard",
+              "description": "A copy to clipboard keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-o>"
+            },
+            "submitEditorText": {
+              "title": "submit editor text",
+              "description": "A submit editor text keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<enter>"
+            },
+            "extrasMenu": {
+              "title": "extras menu",
+              "description": "A extras menu keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "@"
+            },
+            "toggleWhitespaceInDiffView": {
+              "title": "toggle whitespace in diff view",
+              "description": "A toggle whitespace in diff view keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-w>"
+            },
+            "increaseContextInDiffView": {
+              "title": "increase context in diff view",
+              "description": "A increase context in diff view keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "}"
+            },
+            "decreaseContextInDiffView": {
+              "title": "decrease context in diff view",
+              "description": "A decrease context in diff view keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "{"
+            }
+          },
+          "additionalProperties": false
+        },
+        "status": {
+          "title": "status",
+          "description": "Status keybindings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "checkForUpdate": {
+              "title": "check for update",
+              "description": "A check for update keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "u"
+            },
+            "recentRepos": {
+              "title": "recent repos",
+              "description": "A recent repos keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<enter>"
+            }
+          },
+          "additionalProperties": false
+        },
+        "files": {
+          "title": "files",
+          "description": "File keybindings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "commitChanges": {
+              "title": "commit changes",
+              "description": "A commit changes keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "c"
+            },
+            "commitChangesWithoutHook": {
+              "title": "commit changes without hook",
+              "description": "A commit changes without hook keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "w"
+            },
+            "amendLastCommit": {
+              "title": "amend last commit",
+              "description": "A amend last commit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "A"
+            },
+            "commitChangesWithEditor": {
+              "title": "commit changes with editor",
+              "description": "A commit changes with editor keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "C"
+            },
+            "ignoreFile": {
+              "title": "ignore file",
+              "description": "A ignore file keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "i"
+            },
+            "refreshFiles": {
+              "title": "refresh files",
+              "description": "A refresh files keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "r"
+            },
+            "stashAllChanges": {
+              "title": "stash all changes",
+              "description": "A stash all changes keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "s"
+            },
+            "viewStashOptions": {
+              "title": "view stash options",
+              "description": "A view stash options keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "S"
+            },
+            "toggleStagedAll": {
+              "title": "toggle staged all",
+              "description": "A toggle staged all keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "a"
+            },
+            "viewResetOptions": {
+              "title": "view reset options",
+              "description": "A view reset options keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "D"
+            },
+            "fetch": {
+              "title": "fetch",
+              "description": "A fetch keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "f"
+            },
+            "toggleTreeView": {
+              "title": "toggle tree view",
+              "description": "A toggle tree view keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "`"
+            },
+            "openMergeTool": {
+              "title": "open merge tool",
+              "description": "A open merge tool keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "M"
+            },
+            "openStatusFilter": {
+              "title": "open status filter",
+              "description": "A open status filter keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-b>"
+            }
+          },
+          "additionalProperties": false
+        },
+        "branches": {
+          "title": "branches",
+          "description": "Branch keybindings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "createPullRequest": {
+              "title": "create pull request",
+              "description": "A create pull request keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "o"
+            },
+            "viewPullRequestOptions": {
+              "title": "view pull request options",
+              "description": "A view pull request options keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "O"
+            },
+            "checkoutBranchByName": {
+              "title": "checkout branch by name",
+              "description": "A checkout branch by name keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "c"
+            },
+            "forceCheckoutBranch": {
+              "title": "force checkout branch",
+              "description": "A force checkout branch keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "F"
+            },
+            "rebaseBranch": {
+              "title": "rebase branch",
+              "description": "A rebase branch keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "r"
+            },
+            "renameBranch": {
+              "title": "rename branch",
+              "description": "A rename branch keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "R"
+            },
+            "mergeIntoCurrentBranch": {
+              "title": "merge into current branch",
+              "description": "A merge into current branch keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "M"
+            },
+            "viewGitFlowOptions": {
+              "title": "view git flow options",
+              "description": "A view git flow options keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "i"
+            },
+            "fastForward": {
+              "title": "fast forward",
+              "description": "A fast forward keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "f"
+            },
+            "createTag": {
+              "title": "create tag",
+              "description": "A create tag keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "T"
+            },
+            "pushTag": {
+              "title": "push tag",
+              "description": "A push tag keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "P"
+            },
+            "setUpstream": {
+              "title": "set upstream",
+              "description": "A set upstream keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "u"
+            },
+            "fetchRemote": {
+              "title": "fetch remote",
+              "description": "A fetch remote keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "f"
+            }
+          },
+          "additionalProperties": false
+        },
+        "commits": {
+          "title": "commits",
+          "description": "Commit keybindings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "squashDown": {
+              "title": "squash down",
+              "description": "A squash down keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "s"
+            },
+            "renameCommit": {
+              "title": "rename commit",
+              "description": "A rename commit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "r"
+            },
+            "renameCommitWithEditor": {
+              "title": "rename commit with editor",
+              "description": "A rename commit with editor keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "R"
+            },
+            "viewResetOptions": {
+              "title": "view reset options",
+              "description": "A view reset options keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "g"
+            },
+            "markCommitAsFixup": {
+              "title": "mark commit as fixup",
+              "description": "A mark commit as fixup keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "f"
+            },
+            "createFixupCommit": {
+              "title": "create fixup commit",
+              "description": "A create fixup commit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "F"
+            },
+            "squashAboveCommits": {
+              "title": "squash above commits",
+              "description": "A squash above commits keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "S"
+            },
+            "moveDownCommit": {
+              "title": "move down commit",
+              "description": "A move down commit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-j>"
+            },
+            "moveUpCommit": {
+              "title": "move up commit",
+              "description": "A move up commit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-k>"
+            },
+            "amendToCommit": {
+              "title": "amend to commit",
+              "description": "A amend to commit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "A"
+            },
+            "pickCommit": {
+              "title": "pick commit",
+              "description": "A pick commit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "p"
+            },
+            "revertCommit": {
+              "title": "revert commit",
+              "description": "A revert commit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "t"
+            },
+            "cherryPickCopy": {
+              "title": "cherry pick copy",
+              "description": "A cherry pick copy keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "c"
+            },
+            "cherryPickCopyRange": {
+              "title": "cherry pick copy range",
+              "description": "A cherry pick copy range keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "C"
+            },
+            "pasteCommits": {
+              "title": "paste commits",
+              "description": "A paste commits keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "v"
+            },
+            "tagCommit": {
+              "title": "tag commit",
+              "description": "A tag commit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "T"
+            },
+            "checkoutCommit": {
+              "title": "checkout commit",
+              "description": "A checkout commit keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<space>"
+            },
+            "resetCherryPick": {
+              "title": "reset cherry pick",
+              "description": "A reset cherry pick keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-R>"
+            },
+            "copyCommitMessageToClipboard": {
+              "title": "copy commit message to clipboard",
+              "description": "A copy commit message to clipboard keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-y>"
+            },
+            "openLogMenu": {
+              "title": "open log menu",
+              "description": "A open log menu keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "<c-l>"
+            },
+            "viewBisectOptions": {
+              "title": "view bisect options",
+              "description": "A view bisect options keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "b"
+            }
+          },
+          "additionalProperties": false
+        },
+        "stash": {
+          "title": "stash",
+          "description": "Stash keybindings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "popStash": {
+              "title": "pop stash",
+              "description": "A pop stash keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "g"
+            },
+            "renameStash": {
+              "title": "rename stash",
+              "description": "A rename stash keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "r"
+            }
+          },
+          "additionalProperties": false
+        },
+        "commitFiles": {
+          "title": "commit files",
+          "description": "Commit file keybindings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "checkoutCommitFile": {
+              "title": "checkout commit file",
+              "description": "A checkout commit file keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "c"
+            }
+          },
+          "additionalProperties": false
+        },
+        "main": {
+          "title": "main",
+          "description": "Main keybindings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "toggleDragSelect": {
+              "title": "toggle drag select",
+              "description": "A toggle drag select keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "v"
+            },
+            "toggleDragSelect-alt": {
+              "title": "toggle drag select-alt",
+              "description": "A toggle drag select-alt keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "V"
+            },
+            "toggleSelectHunk": {
+              "title": "toggle select hunk",
+              "description": "A toggle select hunk keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "a"
+            },
+            "pickBothHunks": {
+              "title": "pick both hunks",
+              "description": "A pick both hunks keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "b"
+            }
+          },
+          "additionalProperties": false
+        },
+        "submodules": {
+          "title": "submodules",
+          "description": "Submodules keybindings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "object",
+          "properties": {
+            "init": {
+              "title": "init",
+              "description": "An init keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "i"
+            },
+            "update": {
+              "title": "update",
+              "description": "An update keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "u"
+            },
+            "bulkMenu": {
+              "title": "bulk menu",
+              "description": "A bulk menu keybinding\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+              "type": "string",
+              "default": "b"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
