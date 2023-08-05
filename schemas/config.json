@@ -361,19 +361,19 @@
         },
         "authorColors": {
           "title": "author colors",
-          "description": "Author colors",
+          "description": "Author colors\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color",
           "type": "object",
           "properties": {
             "*": {
               "title": "author color",
-              "description": "An author color",
+              "description": "An author color\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color",
               "$ref": "#/definitions/color"
             }
           },
           "patternProperties": {
             ".": {
               "title": "author color",
-              "description": "An author color",
+              "description": "An author color\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color",
               "$ref": "#/definitions/color"
             }
           },
@@ -381,12 +381,12 @@
         },
         "branchColors": {
           "title": "branch colors",
-          "description": "Branch colors",
+          "description": "Branch colors\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color",
           "type": "object",
           "patternProperties": {
             ".": {
               "title": "branch color",
-              "description": "A branch color",
+              "description": "A branch color\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-branch-color",
               "$ref": "#/definitions/color"
             }
           },
@@ -590,12 +590,12 @@
         },
         "commitPrefixes": {
           "title": "commit prefixes",
-          "description": "Commit prefixes",
+          "description": "Commit prefixes\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix",
           "type": "object",
           "patternProperties": {
             ".": {
               "title": "repository path",
-              "description": "A repository path",
+              "description": "A repository path\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix",
               "type": "object",
               "required": [
                 "pattern",
@@ -604,7 +604,7 @@
               "properties": {
                 "pattern": {
                   "title": "pattern",
-                  "description": "A pattern",
+                  "description": "A pattern\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix",
                   "type": "string",
                   "minLength": 1,
                   "examples": [
@@ -613,7 +613,7 @@
                 },
                 "replace": {
                   "title": "replace",
-                  "description": "A replacement",
+                  "description": "A replacement\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-commit-message-prefix",
                   "type": "string",
                   "minLength": 1,
                   "examples": [
@@ -1611,12 +1611,12 @@
     },
     "services": {
       "title": "services",
-      "description": "Service settings",
+      "description": "Service settings\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls",
       "type": "object",
       "patternProperties": {
         ".": {
           "title": "service",
-          "description": "A service",
+          "description": "A service\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-pull-request-urls",
           "type": "string",
           "pattern": "^[^:]+:[^:]+$"
         }
