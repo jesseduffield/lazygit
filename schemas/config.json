@@ -587,6 +587,44 @@
           "description": "how many lines of context are shown around a change in diffs\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
           "type": "integer",
           "default": 3
+        },
+        "commitPrefixes": {
+          "title": "commit prefixes",
+          "description": "Commit prefixes",
+          "type": "object",
+          "patternProperties": {
+            ".": {
+              "title": "repository path",
+              "description": "A repository path",
+              "type": "object",
+              "required": [
+                "pattern",
+                "replace"
+              ],
+              "properties": {
+                "pattern": {
+                  "title": "pattern",
+                  "description": "A pattern",
+                  "type": "string",
+                  "minLength": 1,
+                  "examples": [
+                    "^\\w+\\/(\\w+-\\w+).*"
+                  ]
+                },
+                "replace": {
+                  "title": "replace",
+                  "description": "A replacement",
+                  "type": "string",
+                  "minLength": 1,
+                  "examples": [
+                    "[$1] "
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
