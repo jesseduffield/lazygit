@@ -190,9 +190,9 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 
 	shell := NewShell(pwd, func(errorMsg string) { gui.Fail(errorMsg) })
 	keys := gui.Keys()
-	testDriver := NewTestDriver(gui, shell, keys, KeyPressDelay())
+	testDriver := NewTestDriver(gui, shell, keys, InputDelay())
 
-	if KeyPressDelay() > 0 {
+	if InputDelay() > 0 {
 		// Setting caption to clear the options menu from whatever it starts with
 		testDriver.SetCaption("")
 		testDriver.SetCaptionPrefix("")
@@ -200,7 +200,7 @@ func (self *IntegrationTest) Run(gui integrationTypes.GuiDriver) {
 
 	self.run(testDriver, keys)
 
-	if KeyPressDelay() > 0 {
+	if InputDelay() > 0 {
 		// Clear whatever caption there was so it doesn't linger
 		testDriver.SetCaption("")
 		testDriver.SetCaptionPrefix("")
@@ -232,10 +232,10 @@ func TestNameFromFilePath(path string) string {
 	return name[:len(name)-len(".go")]
 }
 
-// this is the delay in milliseconds between keypresses
+// this is the delay in milliseconds between keypresses or mouse clicks
 // defaults to zero
-func KeyPressDelay() int {
-	delayStr := os.Getenv("KEY_PRESS_DELAY")
+func InputDelay() int {
+	delayStr := os.Getenv("INPUT_DELAY")
 	if delayStr == "" {
 		return 0
 	}

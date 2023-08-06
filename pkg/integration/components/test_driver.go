@@ -10,18 +10,18 @@ import (
 )
 
 type TestDriver struct {
-	gui          integrationTypes.GuiDriver
-	keys         config.KeybindingConfig
-	pushKeyDelay int
+	gui        integrationTypes.GuiDriver
+	keys       config.KeybindingConfig
+	inputDelay int
 	*assertionHelper
 	shell *Shell
 }
 
-func NewTestDriver(gui integrationTypes.GuiDriver, shell *Shell, keys config.KeybindingConfig, pushKeyDelay int) *TestDriver {
+func NewTestDriver(gui integrationTypes.GuiDriver, shell *Shell, keys config.KeybindingConfig, inputDelay int) *TestDriver {
 	return &TestDriver{
 		gui:             gui,
 		keys:            keys,
-		pushKeyDelay:    pushKeyDelay,
+		inputDelay:      inputDelay,
 		assertionHelper: &assertionHelper{gui: gui},
 		shell:           shell,
 	}
@@ -32,7 +32,7 @@ func NewTestDriver(gui integrationTypes.GuiDriver, shell *Shell, keys config.Key
 func (self *TestDriver) press(keyStr string) {
 	self.SetCaption(fmt.Sprintf("Pressing %s", keyStr))
 	self.gui.PressKey(keyStr)
-	self.Wait(self.pushKeyDelay)
+	self.Wait(self.inputDelay)
 }
 
 // for use when typing or navigating, because in demos we want that to happen
@@ -40,7 +40,13 @@ func (self *TestDriver) press(keyStr string) {
 func (self *TestDriver) pressFast(keyStr string) {
 	self.SetCaption("")
 	self.gui.PressKey(keyStr)
-	self.Wait(self.pushKeyDelay / 5)
+	self.Wait(self.inputDelay / 5)
+}
+
+func (self *TestDriver) click(x, y int) {
+	self.SetCaption(fmt.Sprintf("Clicking %d, %d", x, y))
+	self.gui.Click(x, y)
+	self.Wait(self.inputDelay)
 }
 
 // Should only be used in specific cases where you're doing something weird!

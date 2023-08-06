@@ -19,7 +19,7 @@ import (
 
 // This program lets you run integration tests from a TUI. See pkg/integration/README.md for more info.
 
-var SLOW_KEY_PRESS_DELAY = 600
+var SLOW_INPUT_DELAY = 600
 
 func RunTUI() {
 	rootDir := utils.GetLazyRootDirectory()
@@ -111,7 +111,7 @@ func RunTUI() {
 			return nil
 		}
 
-		suspendAndRunTest(currentTest, false, SLOW_KEY_PRESS_DELAY)
+		suspendAndRunTest(currentTest, false, SLOW_INPUT_DELAY)
 
 		return nil
 	}); err != nil {
@@ -271,12 +271,12 @@ func (self *app) wrapEditor(f func(v *gocui.View, key gocui.Key, ch rune, mod go
 	}
 }
 
-func suspendAndRunTest(test *components.IntegrationTest, sandbox bool, keyPressDelay int) {
+func suspendAndRunTest(test *components.IntegrationTest, sandbox bool, inputDelay int) {
 	if err := gocui.Screen.Suspend(); err != nil {
 		panic(err)
 	}
 
-	runTuiTest(test, sandbox, keyPressDelay)
+	runTuiTest(test, sandbox, inputDelay)
 
 	fmt.Fprintf(os.Stdout, "\n%s", style.FgGreen.Sprint("press enter to return"))
 	fmt.Scanln() // wait for enter press
@@ -371,14 +371,14 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-func runTuiTest(test *components.IntegrationTest, sandbox bool, keyPressDelay int) {
+func runTuiTest(test *components.IntegrationTest, sandbox bool, inputDelay int) {
 	err := components.RunTests(
 		[]*components.IntegrationTest{test},
 		log.Printf,
 		runCmdInTerminal,
 		runAndPrintError,
 		sandbox,
-		keyPressDelay,
+		inputDelay,
 		1,
 	)
 	if err != nil {

@@ -217,6 +217,29 @@ func (wrapper TcellKeyEventWrapper) toTcellEvent() tcell.Event {
 	return tcell.NewEventKey(wrapper.Key, wrapper.Ch, wrapper.Mod)
 }
 
+type TcellMouseEventWrapper struct {
+	Timestamp  int64
+	X          int
+	Y          int
+	ButtonMask tcell.ButtonMask
+	ModMask    tcell.ModMask
+}
+
+func NewTcellMouseEventWrapper(event *tcell.EventMouse, timestamp int64) *TcellMouseEventWrapper {
+	x, y := event.Position()
+	return &TcellMouseEventWrapper{
+		Timestamp:  timestamp,
+		X:          x,
+		Y:          y,
+		ButtonMask: event.Buttons(),
+		ModMask:    event.Modifiers(),
+	}
+}
+
+func (wrapper TcellMouseEventWrapper) toTcellEvent() tcell.Event {
+	return tcell.NewEventMouse(wrapper.X, wrapper.Y, wrapper.ButtonMask, wrapper.ModMask)
+}
+
 type TcellResizeEventWrapper struct {
 	Timestamp int64
 	Width     int
@@ -245,6 +268,8 @@ func (g *Gui) pollEvent() GocuiEvent {
 		case ev := <-g.ReplayedEvents.Keys:
 			tev = (ev).toTcellEvent()
 		case ev := <-g.ReplayedEvents.Resizes:
+			tev = (ev).toTcellEvent()
+		case ev := <-g.ReplayedEvents.MouseEvents:
 			tev = (ev).toTcellEvent()
 		}
 	} else {
