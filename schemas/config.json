@@ -386,6 +386,12 @@
           ],
           "default": "single"
         },
+        "animateExplosion": {
+          "title": "animate explosion",
+          "description": "Whether to show explosion animation when nuking working tree\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "type": "boolean",
+          "default": true
+        },
         "authorColors": {
           "title": "author colors",
           "description": "Author colors\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color",
