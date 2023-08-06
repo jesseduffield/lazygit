@@ -1791,6 +1791,37 @@
                   },
                   "additionalProperties": false
                 }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "confirm"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "type": {
+                      "$ref": "#/definitions/custom-commands-prompts-type-property"
+                    },
+                    "title": {
+                      "$ref": "#/definitions/custom-commands-prompts-title-property"
+                    },
+                    "key": {
+                      "$ref": "#/definitions/custom-commands-prompts-key-property"
+                    },
+                    "body": {
+                      "title": "body",
+                      "description": "A body\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#confirm",
+                      "type": "string",
+                      "examples": [
+                        "Are you sure you want to push to the remote?"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
               }
             ]
           }
