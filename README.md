@@ -275,6 +275,12 @@ emerge lazygit
 pkg install lazygit
 ```
 
+### Termux
+
+```sh
+apt install lazygit
+```
+
 ### Conda
 
 Released versions are available for different platforms, see <https://anaconda.org/conda-forge/lazygit>
