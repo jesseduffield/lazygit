@@ -1822,6 +1822,69 @@
                   },
                   "additionalProperties": false
                 }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "menu"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "options"
+                  ],
+                  "properties": {
+                    "type": {
+                      "$ref": "#/definitions/custom-commands-prompts-type-property"
+                    },
+                    "title": {
+                      "$ref": "#/definitions/custom-commands-prompts-title-property"
+                    },
+                    "key": {
+                      "$ref": "#/definitions/custom-commands-prompts-key-property"
+                    },
+                    "options": {
+                      "title": "options",
+                      "description": "Options\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
+                      "type": "array",
+                      "uniqueItems": true,
+                      "items": {
+                        "description": "An option",
+                        "type": "object",
+                        "required": [
+                          "value"
+                        ],
+                        "properties": {
+                          "name": {
+                            "title": "name",
+                            "description": "A first label part\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
+                            "type": "string",
+                            "default": ""
+                          },
+                          "description": {
+                            "title": "description",
+                            "description": "A second label part\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
+                            "type": "string",
+                            "default": ""
+                          },
+                          "value": {
+                            "title": "value",
+                            "description": "the value that will be used in the command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
+                            "type": "string",
+                            "minLength": 1,
+                            "examples": [
+                              "feature"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
               }
             ]
           }
