@@ -199,6 +199,7 @@ var extIconMap = map[string]string{
 	".m4a":            "\uf001",     // 
 	".markdown":       "\uf48a",     // 
 	".md":             "\uf48a",     // 
+	".mdx":            "\uf48a",     // 
 	".mjs":            "\ue74e",     // 
 	".mk":             "\uf489",     // 
 	".mkd":            "\uf48a",     // 
@@ -267,6 +268,7 @@ var extIconMap = map[string]string{
 	".sty":            "\uf034",     // 
 	".styl":           "\ue600",     // 
 	".stylus":         "\ue600",     // 
+	".svelte":         "\ue697",     // 
 	".svg":            "\uf1c5",     // 
 	".swift":          "\ue755",     // 
 	".tar":            "\uf410",     // 
