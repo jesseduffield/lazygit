@@ -1707,6 +1707,11 @@
           "items": {
             "description": "A prompt before running a command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
             "type": "object",
+            "required": [
+              "type",
+              "title",
+              "key"
+            ],
             "properties": {
               "type": {
                 "$ref": "#/definitions/custom-commands-prompts-type-property"
