@@ -16,6 +16,15 @@ If you want to change the config directory:
 
 - MacOS: `export XDG_CONFIG_HOME="$HOME/.config"`
 
+JSON schema is available for `config.yml` so that IntelliSence is automatically
+enabled in `**/lazygit/config.yml` files when [YAML Red Hat][yaml] extension is
+installed. Note that you always can [override][settings] the default schema
+applied to `config.yml` if you need some specific features to make your workflow
+faster.
+
+[yaml]: https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml
+[settings]: https://github.com/redhat-developer/vscode-yaml#associating-a-schema-to-a-glob-pattern-via-yamlschemas
+
 ## Default
 
 ```yaml
