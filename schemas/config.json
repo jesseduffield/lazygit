@@ -39,6 +39,33 @@
         "<c-b>",
         "g"
       ]
+    },
+    "custom-commands-prompts-type-property": {
+      "title": "type",
+      "description": "A type\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#common-fields",
+      "type": "string",
+      "enum": [
+        "input",
+        "confirm",
+        "menu",
+        "menuFromCommand"
+      ]
+    },
+    "custom-commands-prompts-title-property": {
+      "title": "title",
+      "description": "A title\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#common-fields",
+      "type": "string",
+      "examples": [
+        "Remote branch:"
+      ]
+    },
+    "custom-commands-prompts-key-property": {
+      "title": "key",
+      "description": "A key\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#common-fields",
+      "type": "string",
+      "examples": [
+        "Branch"
+      ]
     }
   },
   "title": "ui settings",
@@ -1676,9 +1703,92 @@
         "prompts": {
           "title": "prompts",
           "description": "Prompts before running a command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "type": "object",
-          "properties": {},
-          "additionalProperties": false
+          "type": "array",
+          "items": {
+            "description": "A prompt before running a command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "type": "object",
+            "properties": {
+              "type": {
+                "$ref": "#/definitions/custom-commands-prompts-type-property"
+              },
+              "title": {
+                "$ref": "#/definitions/custom-commands-prompts-title-property"
+              },
+              "key": {
+                "$ref": "#/definitions/custom-commands-prompts-key-property"
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "input"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "type": {
+                      "$ref": "#/definitions/custom-commands-prompts-type-property"
+                    },
+                    "title": {
+                      "$ref": "#/definitions/custom-commands-prompts-title-property"
+                    },
+                    "key": {
+                      "$ref": "#/definitions/custom-commands-prompts-key-property"
+                    },
+                    "initialValue": {
+                      "title": "initial value",
+                      "description": "An initial value\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
+                      "type": "string"
+                    },
+                    "suggestions": {
+                      "title": "suggestions",
+                      "description": "Whether to show suggestions as the input is entered\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
+                      "type": "object",
+                      "oneOf": [
+                        {
+                          "properties": {
+                            "preset": {
+                              "title": "preset",
+                              "description": "A preset\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
+                              "type": "string",
+                              "enum": [
+                                "authors",
+                                "branches",
+                                "files",
+                                "refs",
+                                "remotes",
+                                "remoteBranches",
+                                "tags"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "properties": {
+                            "command": {
+                              "title": "command",
+                              "description": "A command where each line in the output is suggestion\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
+                              "type": "string",
+                              "default": "",
+                              "examples": [
+                                "git branch --format='%(refname:short)'"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
         },
         "loadingText": {
           "title": "loading text",
