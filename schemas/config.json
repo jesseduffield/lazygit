@@ -388,7 +388,7 @@
         },
         "animateExplosion": {
           "title": "animate explosion",
-          "description": "Whether to show explosion animation when nuking working tree\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+          "description": "Whether to show explosion animation while nuking working tree\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
           "type": "boolean",
           "default": true
         },
@@ -814,7 +814,7 @@
     },
     "quitOnTopLevelReturn": {
       "title": "quit on top level return",
-      "description": "Whether to quit on 'esc' press when when there is nothing to cancel/close\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
+      "description": "Whether to quit on 'esc' press while there is nothing to cancel/close\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#default",
       "type": "boolean",
       "default": false
     },
