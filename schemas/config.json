@@ -1885,6 +1885,68 @@
                   },
                   "additionalProperties": false
                 }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "menuFromCommand"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "command"
+                  ],
+                  "properties": {
+                    "type": {
+                      "$ref": "#/definitions/custom-commands-prompts-type-property"
+                    },
+                    "title": {
+                      "$ref": "#/definitions/custom-commands-prompts-title-property"
+                    },
+                    "key": {
+                      "$ref": "#/definitions/custom-commands-prompts-key-property"
+                    },
+                    "command": {
+                      "title": "command",
+                      "description": "A command to generate options\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
+                      "type": "string",
+                      "default": "",
+                      "examples": [
+                        "git branch  -r --list {{.SelectedRemote.Name }}/*"
+                      ]
+                    },
+                    "filter": {
+                      "title": "filter",
+                      "description": "A regex specifying groups which kept from command output\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
+                      "type": "string",
+                      "default": "",
+                      "examples": [
+                        ".*{{.SelectedRemote.Name }}/(?P<branch>.*)"
+                      ]
+                    },
+                    "valueFormat": {
+                      "title": "valueFormat",
+                      "description": "A value format\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
+                      "type": "string",
+                      "default": "",
+                      "examples": [
+                        "{{ .branch }}"
+                      ]
+                    },
+                    "labelFormat": {
+                      "title": "labelFormat",
+                      "description": "A label format\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
+                      "type": "string",
+                      "default": "",
+                      "examples": [
+                        "{{ .branch | green }}"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
               }
             ]
           }
