@@ -61,6 +61,18 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 			openDirInEditorTemplate:   "hx -- {{dir}}",
 			editInTerminal:            true,
 		},
+		"emacsclient": {
+			editTemplate:              "emacsclient --create-frame --alternate-editor="" {{filename}}",
+			editAtLineTemplate:        "emacsclient --create-frame --alternate-editor="" +{{line}} {{filename}}",
+			editAtLineAndWaitTemplate: "emacsclient --create-frame --alternate-editor="" +{{line}} {{filename}}",
+			editInTerminal:            true,
+		},
+		"emacsclient_tty": {
+			editTemplate:              "emacsclient --create-frame --tty --alternate-editor="" {{filename}}",
+			editAtLineTemplate:        "emacsclient --create-frame --tty --alternate-editor="" +{{line}} {{filename}}",
+			editAtLineAndWaitTemplate: "emacsclient --create-frame --tty --alternate-editor="" +{{line}} {{filename}}",
+			editInTerminal:            true,
+		},
 		"vscode": {
 			editTemplate:              "code --reuse-window -- {{filename}}",
 			editAtLineTemplate:        "code --reuse-window --goto -- {{filename}}:{{line}}",
