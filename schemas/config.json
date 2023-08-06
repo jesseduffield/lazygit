@@ -1666,350 +1666,355 @@
     "customCommands": {
       "title": "custom commands",
       "description": "Custom commands\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-      "type": "object",
-      "required": [
-        "key",
-        "command",
-        "context"
-      ],
-      "properties": {
-        "key": {
-          "title": "key",
-          "description": "A command trigger\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "$ref": "#/definitions/keybinding"
-        },
-        "command": {
-          "title": "command",
-          "description": "A command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "type": "string",
-          "default": "",
-          "examples": [
-            "git fetch {{.Form.Remote}} {{.Form.Branch}} && git checkout FETCH_HEAD"
-          ]
-        },
-        "context": {
-          "title": "context",
-          "description": "A context\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "type": "string",
-          "enum": [
-            "status",
-            "files",
-            "worktrees",
-            "localBranches",
-            "remotes",
-            "remoteBranches",
-            "tags",
-            "commits",
-            "reflogCommits",
-            "subCommits",
-            "commitFiles",
-            "stash",
-            "global"
-          ]
-        },
-        "subprocess": {
-          "title": "subprocess",
-          "description": "Whether to run command in subprocess\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "type": "boolean",
-          "default": false
-        },
-        "prompts": {
-          "title": "prompts",
-          "description": "Prompts before running a command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "type": "array",
-          "items": {
-            "description": "A prompt before running a command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-            "type": "object",
-            "required": [
-              "type",
-              "title",
-              "key"
-            ],
-            "properties": {
-              "type": {
-                "$ref": "#/definitions/custom-commands-prompts-type-property"
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "description": "A custom command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+        "type": "object",
+        "required": [
+          "key",
+          "command",
+          "context"
+        ],
+        "properties": {
+          "key": {
+            "title": "key",
+            "description": "A command trigger\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "$ref": "#/definitions/keybinding"
+          },
+          "command": {
+            "title": "command",
+            "description": "A command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "type": "string",
+            "default": "",
+            "examples": [
+              "git fetch {{.Form.Remote}} {{.Form.Branch}} && git checkout FETCH_HEAD"
+            ]
+          },
+          "context": {
+            "title": "context",
+            "description": "A context\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "type": "string",
+            "enum": [
+              "status",
+              "files",
+              "worktrees",
+              "localBranches",
+              "remotes",
+              "remoteBranches",
+              "tags",
+              "commits",
+              "reflogCommits",
+              "subCommits",
+              "commitFiles",
+              "stash",
+              "global"
+            ]
+          },
+          "subprocess": {
+            "title": "subprocess",
+            "description": "Whether to run command in subprocess\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "type": "boolean",
+            "default": false
+          },
+          "prompts": {
+            "title": "prompts",
+            "description": "Prompts before running a command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "type": "array",
+            "items": {
+              "description": "A prompt before running a command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+              "type": "object",
+              "required": [
+                "type",
+                "title",
+                "key"
+              ],
+              "properties": {
+                "type": {
+                  "$ref": "#/definitions/custom-commands-prompts-type-property"
+                },
+                "title": {
+                  "$ref": "#/definitions/custom-commands-prompts-title-property"
+                },
+                "key": {
+                  "$ref": "#/definitions/custom-commands-prompts-key-property"
+                }
               },
-              "title": {
-                "$ref": "#/definitions/custom-commands-prompts-title-property"
-              },
-              "key": {
-                "$ref": "#/definitions/custom-commands-prompts-key-property"
-              }
-            },
-            "allOf": [
-              {
-                "if": {
-                  "properties": {
-                    "type": {
-                      "const": "input"
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "input"
+                      }
                     }
+                  },
+                  "then": {
+                    "properties": {
+                      "type": {
+                        "$ref": "#/definitions/custom-commands-prompts-type-property"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/custom-commands-prompts-title-property"
+                      },
+                      "key": {
+                        "$ref": "#/definitions/custom-commands-prompts-key-property"
+                      },
+                      "initialValue": {
+                        "title": "initial value",
+                        "description": "An initial value\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
+                        "type": "string"
+                      },
+                      "suggestions": {
+                        "title": "suggestions",
+                        "description": "Whether to show suggestions as the input is entered\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
+                        "type": "object",
+                        "oneOf": [
+                          {
+                            "properties": {
+                              "preset": {
+                                "title": "preset",
+                                "description": "A preset\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
+                                "type": "string",
+                                "enum": [
+                                  "authors",
+                                  "branches",
+                                  "files",
+                                  "refs",
+                                  "remotes",
+                                  "remoteBranches",
+                                  "tags"
+                                ]
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          {
+                            "properties": {
+                              "command": {
+                                "title": "command",
+                                "description": "A command where each line in the output is suggestion\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
+                                "type": "string",
+                                "default": "",
+                                "examples": [
+                                  "git branch --format='%(refname:short)'"
+                                ]
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
-                "then": {
-                  "properties": {
-                    "type": {
-                      "$ref": "#/definitions/custom-commands-prompts-type-property"
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "confirm"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "type": {
+                        "$ref": "#/definitions/custom-commands-prompts-type-property"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/custom-commands-prompts-title-property"
+                      },
+                      "key": {
+                        "$ref": "#/definitions/custom-commands-prompts-key-property"
+                      },
+                      "body": {
+                        "title": "body",
+                        "description": "A body\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#confirm",
+                        "type": "string",
+                        "examples": [
+                          "Are you sure you want to push to the remote?"
+                        ]
+                      }
                     },
-                    "title": {
-                      "$ref": "#/definitions/custom-commands-prompts-title-property"
-                    },
-                    "key": {
-                      "$ref": "#/definitions/custom-commands-prompts-key-property"
-                    },
-                    "initialValue": {
-                      "title": "initial value",
-                      "description": "An initial value\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
-                      "type": "string"
-                    },
-                    "suggestions": {
-                      "title": "suggestions",
-                      "description": "Whether to show suggestions as the input is entered\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
-                      "type": "object",
-                      "oneOf": [
-                        {
+                    "additionalProperties": false
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "menu"
+                      }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "options"
+                    ],
+                    "properties": {
+                      "type": {
+                        "$ref": "#/definitions/custom-commands-prompts-type-property"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/custom-commands-prompts-title-property"
+                      },
+                      "key": {
+                        "$ref": "#/definitions/custom-commands-prompts-key-property"
+                      },
+                      "options": {
+                        "title": "options",
+                        "description": "Options\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
+                        "type": "array",
+                        "uniqueItems": true,
+                        "items": {
+                          "description": "An option",
+                          "type": "object",
+                          "required": [
+                            "value"
+                          ],
                           "properties": {
-                            "preset": {
-                              "title": "preset",
-                              "description": "A preset\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
+                            "name": {
+                              "title": "name",
+                              "description": "A first label part\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
                               "type": "string",
-                              "enum": [
-                                "authors",
-                                "branches",
-                                "files",
-                                "refs",
-                                "remotes",
-                                "remoteBranches",
-                                "tags"
-                              ]
-                            }
-                          },
-                          "additionalProperties": false
-                        },
-                        {
-                          "properties": {
-                            "command": {
-                              "title": "command",
-                              "description": "A command where each line in the output is suggestion\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#input",
+                              "default": ""
+                            },
+                            "description": {
+                              "title": "description",
+                              "description": "A second label part\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
                               "type": "string",
-                              "default": "",
+                              "default": ""
+                            },
+                            "value": {
+                              "title": "value",
+                              "description": "the value that will be used in the command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
+                              "type": "string",
+                              "minLength": 1,
                               "examples": [
-                                "git branch --format='%(refname:short)'"
+                                "feature"
                               ]
                             }
                           },
                           "additionalProperties": false
                         }
-                      ]
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "type": {
-                      "const": "confirm"
-                    }
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
-                "then": {
-                  "properties": {
-                    "type": {
-                      "$ref": "#/definitions/custom-commands-prompts-type-property"
-                    },
-                    "title": {
-                      "$ref": "#/definitions/custom-commands-prompts-title-property"
-                    },
-                    "key": {
-                      "$ref": "#/definitions/custom-commands-prompts-key-property"
-                    },
-                    "body": {
-                      "title": "body",
-                      "description": "A body\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#confirm",
-                      "type": "string",
-                      "examples": [
-                        "Are you sure you want to push to the remote?"
-                      ]
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "type": {
-                      "const": "menu"
-                    }
-                  }
-                },
-                "then": {
-                  "required": [
-                    "options"
-                  ],
-                  "properties": {
-                    "type": {
-                      "$ref": "#/definitions/custom-commands-prompts-type-property"
-                    },
-                    "title": {
-                      "$ref": "#/definitions/custom-commands-prompts-title-property"
-                    },
-                    "key": {
-                      "$ref": "#/definitions/custom-commands-prompts-key-property"
-                    },
-                    "options": {
-                      "title": "options",
-                      "description": "Options\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
-                      "type": "array",
-                      "uniqueItems": true,
-                      "items": {
-                        "description": "An option",
-                        "type": "object",
-                        "required": [
-                          "value"
-                        ],
-                        "properties": {
-                          "name": {
-                            "title": "name",
-                            "description": "A first label part\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
-                            "type": "string",
-                            "default": ""
-                          },
-                          "description": {
-                            "title": "description",
-                            "description": "A second label part\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
-                            "type": "string",
-                            "default": ""
-                          },
-                          "value": {
-                            "title": "value",
-                            "description": "the value that will be used in the command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu",
-                            "type": "string",
-                            "minLength": 1,
-                            "examples": [
-                              "feature"
-                            ]
-                          }
-                        },
-                        "additionalProperties": false
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "menuFromCommand"
                       }
                     }
                   },
-                  "additionalProperties": false
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "type": {
-                      "const": "menuFromCommand"
-                    }
+                  "then": {
+                    "required": [
+                      "command"
+                    ],
+                    "properties": {
+                      "type": {
+                        "$ref": "#/definitions/custom-commands-prompts-type-property"
+                      },
+                      "title": {
+                        "$ref": "#/definitions/custom-commands-prompts-title-property"
+                      },
+                      "key": {
+                        "$ref": "#/definitions/custom-commands-prompts-key-property"
+                      },
+                      "command": {
+                        "title": "command",
+                        "description": "A command to generate options\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
+                        "type": "string",
+                        "default": "",
+                        "examples": [
+                          "git branch  -r --list {{.SelectedRemote.Name }}/*"
+                        ]
+                      },
+                      "filter": {
+                        "title": "filter",
+                        "description": "A regex specifying groups which kept from command output\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
+                        "type": "string",
+                        "default": "",
+                        "examples": [
+                          ".*{{.SelectedRemote.Name }}/(?P<branch>.*)"
+                        ]
+                      },
+                      "valueFormat": {
+                        "title": "valueFormat",
+                        "description": "A value format\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
+                        "type": "string",
+                        "default": "",
+                        "examples": [
+                          "{{ .branch }}"
+                        ]
+                      },
+                      "labelFormat": {
+                        "title": "labelFormat",
+                        "description": "A label format\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
+                        "type": "string",
+                        "default": "",
+                        "examples": [
+                          "{{ .branch | green }}"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
-                },
-                "then": {
-                  "required": [
-                    "command"
-                  ],
-                  "properties": {
-                    "type": {
-                      "$ref": "#/definitions/custom-commands-prompts-type-property"
-                    },
-                    "title": {
-                      "$ref": "#/definitions/custom-commands-prompts-title-property"
-                    },
-                    "key": {
-                      "$ref": "#/definitions/custom-commands-prompts-key-property"
-                    },
-                    "command": {
-                      "title": "command",
-                      "description": "A command to generate options\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
-                      "type": "string",
-                      "default": "",
-                      "examples": [
-                        "git branch  -r --list {{.SelectedRemote.Name }}/*"
-                      ]
-                    },
-                    "filter": {
-                      "title": "filter",
-                      "description": "A regex specifying groups which kept from command output\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
-                      "type": "string",
-                      "default": "",
-                      "examples": [
-                        ".*{{.SelectedRemote.Name }}/(?P<branch>.*)"
-                      ]
-                    },
-                    "valueFormat": {
-                      "title": "valueFormat",
-                      "description": "A value format\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
-                      "type": "string",
-                      "default": "",
-                      "examples": [
-                        "{{ .branch }}"
-                      ]
-                    },
-                    "labelFormat": {
-                      "title": "labelFormat",
-                      "description": "A label format\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#menu-from-command",
-                      "type": "string",
-                      "default": "",
-                      "examples": [
-                        "{{ .branch | green }}"
-                      ]
-                    }
-                  },
-                  "additionalProperties": false
                 }
-              }
-            ]
-          }
-        },
-        "loadingText": {
-          "title": "loading text",
-          "description": "Text to display while waiting for command to finish\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "type": "string",
-          "default": "",
-          "examples": [
-            "Loading..."
-          ]
-        },
-        "description": {
-          "title": "description",
-          "description": "A description\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "type": "string",
-          "default": "",
-          "examples": [
-            "Checkout a remote branch as FETCH_HEAD"
-          ]
-        },
-        "stream": {
-          "title": "stream",
-          "description": "Whether to stream command output to Command Log panel\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "type": "boolean",
-          "default": false
-        },
-        "showOutput": {
-          "title": "show output",
-          "description": "Whether to show the command output in popup\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "type": "boolean",
-          "default": false
-        },
-        "after": {
-          "title": "after",
-          "description": "Actions to take after the command has completed\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-          "type": "object",
-          "properties": {
-            "checkForConflicts": {
-              "title": "check for conflicts",
-              "description": "Whether to check for conflicts before running command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
-              "type": "boolean",
-              "default": false
+              ]
             }
           },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
+          "loadingText": {
+            "title": "loading text",
+            "description": "Text to display while waiting for command to finish\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "type": "string",
+            "default": "",
+            "examples": [
+              "Loading..."
+            ]
+          },
+          "description": {
+            "title": "description",
+            "description": "A description\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "type": "string",
+            "default": "",
+            "examples": [
+              "Checkout a remote branch as FETCH_HEAD"
+            ]
+          },
+          "stream": {
+            "title": "stream",
+            "description": "Whether to stream command output to Command Log panel\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "type": "boolean",
+            "default": false
+          },
+          "showOutput": {
+            "title": "show output",
+            "description": "Whether to show the command output in popup\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "type": "boolean",
+            "default": false
+          },
+          "after": {
+            "title": "after",
+            "description": "Actions to take after the command has completed\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+            "type": "object",
+            "properties": {
+              "checkForConflicts": {
+                "title": "check for conflicts",
+                "description": "Whether to check for conflicts before running command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false
