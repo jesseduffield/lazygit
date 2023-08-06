@@ -97,7 +97,7 @@ For when you really want to just get rid of anything that shows up when you run 
 
 ### Amend an old commit
 
-Pressing `shift+a` on any commit will amend that commit with the currently staged changes (running an interactive rebase in the backkground).
+Pressing `shift+a` on any commit will amend that commit with the currently staged changes (running an interactive rebase in the background).
 
 ![amend_old_commit](../assets/demo/amend_old_commit-compressed.gif)
 
