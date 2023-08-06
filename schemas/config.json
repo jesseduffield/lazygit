@@ -680,17 +680,24 @@
           "title": "edit preset",
           "description": "An edit preset\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#configuring-file-editing",
           "type": "string",
-          "enum": [
-            "vim",
-            "nvim",
-            "emacs",
-            "nano",
-            "vscode",
-            "sublime",
-            "bbedit",
-            "kakoune",
-            "helix",
-            "xcode"
+          "oneOf": [
+            {
+              "enum": [
+                "vim",
+                "nvim",
+                "emacs",
+                "nano",
+                "vscode",
+                "sublime",
+                "bbedit",
+                "kakoune",
+                "helix",
+                "xcode"
+              ]
+            },
+            {
+              "const": ""
+            }
           ],
           "default": ""
         },
