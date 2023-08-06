@@ -1622,6 +1622,110 @@
         }
       },
       "additionalProperties": false
+    },
+    "customCommands": {
+      "title": "custom commands",
+      "description": "Custom commands\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+      "type": "object",
+      "required": [
+        "key",
+        "command",
+        "context"
+      ],
+      "properties": {
+        "key": {
+          "title": "key",
+          "description": "A command trigger\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+          "$ref": "#/definitions/keybinding"
+        },
+        "command": {
+          "title": "command",
+          "description": "A command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "git fetch {{.Form.Remote}} {{.Form.Branch}} && git checkout FETCH_HEAD"
+          ]
+        },
+        "context": {
+          "title": "context",
+          "description": "A context\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+          "type": "string",
+          "enum": [
+            "status",
+            "files",
+            "worktrees",
+            "localBranches",
+            "remotes",
+            "remoteBranches",
+            "tags",
+            "commits",
+            "reflogCommits",
+            "subCommits",
+            "commitFiles",
+            "stash",
+            "global"
+          ]
+        },
+        "subprocess": {
+          "title": "subprocess",
+          "description": "Whether to run command in subprocess\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+          "type": "boolean",
+          "default": false
+        },
+        "prompts": {
+          "title": "prompts",
+          "description": "Prompts before running a command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "loadingText": {
+          "title": "loading text",
+          "description": "Text to display while waiting for command to finish\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "Loading..."
+          ]
+        },
+        "description": {
+          "title": "description",
+          "description": "A description\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "Checkout a remote branch as FETCH_HEAD"
+          ]
+        },
+        "stream": {
+          "title": "stream",
+          "description": "Whether to stream command output to Command Log panel\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+          "type": "boolean",
+          "default": false
+        },
+        "showOutput": {
+          "title": "show output",
+          "description": "Whether to show the command output in popup\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+          "type": "boolean",
+          "default": false
+        },
+        "after": {
+          "title": "after",
+          "description": "Actions to take after the command has completed\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+          "type": "object",
+          "properties": {
+            "checkForConflicts": {
+              "title": "check for conflicts",
+              "description": "Whether to check for conflicts before running command\nhttps://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Command_Keybindings.md#custom-command-keybindings",
+              "type": "boolean",
+              "default": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
