@@ -27,7 +27,7 @@ gui:
   sidePanelWidth: 0.3333 # number from 0 to 1
   expandFocusedSidePanel: false
   mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
-  language: 'auto' # one of 'auto' | 'en' | 'zh-CN' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
+  language: 'auto' # one of 'auto' | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
   timeFormat: '02 Jan 06' # https://pkg.go.dev/time#Time.Format
   shortTimeFormat: '3:04PM'
   theme:
