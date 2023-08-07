@@ -5,8 +5,6 @@ import (
 	. "github.com/jesseduffield/lazygit/pkg/integration/components"
 )
 
-// TODO: fix confirmation view wrapping issue: https://github.com/jesseduffield/lazygit/issues/2872
-
 var Undo = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Undo",
 	ExtraCmdArgs: []string{},
@@ -38,14 +36,6 @@ var Undo = NewIntegrationTest(NewIntegrationTestArgs{
 				Confirm()
 		}
 
-		confirmRedo := func() {
-			t.ExpectPopup().Confirmation().
-				Title(Equals("Redo")).
-				Content(MatchesRegexp(`Are you sure you want to hard reset to '.*'\? An auto-stash will be performed if necessary\.`)).
-				Wait(500).
-				Confirm()
-		}
-
 		t.Views().Commits().Focus().
 			SetCaptionPrefix("Drop two commits").
 			Wait(1000).
@@ -58,12 +48,6 @@ var Undo = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.Undo).
 			Tap(confirmUndo).
 			Press(keys.Universal.Undo).
-			Tap(confirmUndo).
-			SetCaptionPrefix("Redo the drops").
-			Wait(1000).
-			Press(keys.Universal.Redo).
-			Tap(confirmRedo).
-			Press(keys.Universal.Redo).
-			Tap(confirmRedo)
+			Tap(confirmUndo)
 	},
 })

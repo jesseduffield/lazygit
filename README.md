@@ -129,6 +129,21 @@ Learn more in the [Rebase magic Youtube tutorial](https://youtu.be/4XaToVut_hs).
 
 ![custom_patch](../assets/demo/custom_patch-compressed.gif)
 
+### Undo
+
+You can undo the last action by pressing 'z' and redo with `ctrl+z`. Here we drop a couple of commits and then undo the actions.
+Undo uses the reflog which is specific to commits and branches so we can't undo changes to the working tree or stash.
+
+[More info](/docs/Undoing.md)
+
+![undo](../assets/demo/undo-compressed.gif)
+
+### Commit graph
+
+When viewing the commit graph in an enlarged window (use `+` and `_` to cycle window sizes), the commit graph is shown. Colours correspond to the commit authors, and as you navigate down the graph, the parent commits of the selected commit are highlighted.
+
+![commit_graph](../assets/demo/commit_graph-compressed.gif)
+
 ## Tutorials
 
 [<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
