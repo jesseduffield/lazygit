@@ -206,6 +206,7 @@ jobs:
         if: ${{ failure() }}
   check-required-label:
     runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/master'
     steps:
       - uses: mheap/github-action-required-labels@v5
         with:
