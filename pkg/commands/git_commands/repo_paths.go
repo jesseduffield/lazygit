@@ -157,6 +157,10 @@ func linkedWorktreeGitDirPath(fs afero.Fs, worktreePath string) (string, error) 
 	}
 
 	gitDir := strings.TrimPrefix(gitDirLine[0], "gitdir: ")
+
+	// For windows support
+	gitDir = filepath.ToSlash(gitDir)
+
 	return gitDir, nil
 }
 
@@ -194,19 +198,32 @@ func getCurrentRepoGitDirPath(
 		return "", "", errors.Errorf("could not find git dir for %s: %v", currentPath, err)
 	}
 
-	// confirm whether the next directory up is the worktrees/submodules directory
-	parent := path.Dir(worktreeGitPath)
-	if path.Base(parent) != "worktrees" && path.Base(parent) != "modules" {
-		return "", "", errors.Errorf("could not find git dir for %s", currentPath)
+	_, err = fs.Stat(worktreeGitPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// hardcoding error to get around windows-specific error message
+			return "", "", errors.Errorf("could not find git dir for %s. %s does not exist", currentPath, worktreeGitPath)
+		}
+		return "", "", errors.Errorf("could not find git dir for %s: %v", currentPath, err)
 	}
 
-	// if it's a submodule, we treat it as its own repo
-	if path.Base(parent) == "modules" {
+	// confirm whether the next directory up is the worktrees directory
+	parent := path.Dir(worktreeGitPath)
+	if path.Base(parent) == "worktrees" {
+		gitDirPath := path.Dir(parent)
+		return gitDirPath, path.Dir(gitDirPath), nil
+	}
+
+	// Unlike worktrees, submodules can be nested arbitrarily deep, so we check
+	// if the `modules` directory is anywhere up the chain.
+	if strings.Contains(worktreeGitPath, "/modules/") {
+		// For submodules, we just return the path directly
 		return worktreeGitPath, currentPath, nil
 	}
 
-	gitDirPath := path.Dir(parent)
-	return gitDirPath, path.Dir(gitDirPath), nil
+	// If this error causes issues, we could relax the constraint and just always
+	// return the path
+	return "", "", errors.Errorf("could not find git dir for %s: path is not under `worktrees` or `modules` directories", currentPath)
 }
 
 // takes a path containing a symlink and returns the true path

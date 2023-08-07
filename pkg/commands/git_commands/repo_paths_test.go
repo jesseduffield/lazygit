@@ -73,7 +73,7 @@ func TestGetRepoPathsAux(t *testing.T) {
 			},
 			Path:     "/path/to/repo/worktree2",
 			Expected: nil,
-			Err:      errors.New("failed to get repo git dir path: could not find git dir for /path/to/repo/worktree2"),
+			Err:      errors.New("failed to get repo git dir path: could not find git dir for /path/to/repo/worktree2. /nonexistant does not exist"),
 		},
 		{
 			Name: "submodule",
@@ -91,6 +91,33 @@ func TestGetRepoPathsAux(t *testing.T) {
 				repoName:           "submodule1",
 			},
 			Err: nil,
+		},
+		{
+			Name: "submodule in nested directory",
+			BeforeFunc: func(fs afero.Fs) {
+				_ = fs.MkdirAll("/path/to/repo/.git/modules/my/submodule1", 0o755)
+				_ = afero.WriteFile(fs, "/path/to/repo/my/submodule1/.git", []byte("gitdir: /path/to/repo/.git/modules/my/submodule1"), 0o644)
+			},
+			Path: "/path/to/repo/my/submodule1",
+			Expected: &RepoPaths{
+				currentPath:        "/path/to/repo/my/submodule1",
+				worktreePath:       "/path/to/repo/my/submodule1",
+				worktreeGitDirPath: "/path/to/repo/.git/modules/my/submodule1",
+				repoPath:           "/path/to/repo/my/submodule1",
+				repoGitDirPath:     "/path/to/repo/.git/modules/my/submodule1",
+				repoName:           "submodule1",
+			},
+			Err: nil,
+		},
+		{
+			Name: "submodule git dir not under .git/modules",
+			BeforeFunc: func(fs afero.Fs) {
+				_ = fs.MkdirAll("/random/submodule1", 0o755)
+				_ = afero.WriteFile(fs, "/path/to/repo/my/submodule1/.git", []byte("gitdir: /random/submodule1"), 0o644)
+			},
+			Path:     "/path/to/repo/my/submodule1",
+			Expected: nil,
+			Err:      errors.New("failed to get repo git dir path: could not find git dir for /path/to/repo/my/submodule1: path is not under `worktrees` or `modules` directories"),
 		},
 	}
 
