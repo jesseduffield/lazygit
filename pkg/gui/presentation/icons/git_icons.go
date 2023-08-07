@@ -14,8 +14,8 @@ var (
 	MERGE_COMMIT_ICON            = "\U000f062d" // 󰘭
 	DEFAULT_REMOTE_ICON          = "\uf02a2"    // 󰊢
 	STASH_ICON                   = "\uf01c"     // 
-	LINKED_WORKTREE_ICON         = "\uf838"     // 
-	MISSING_LINKED_WORKTREE_ICON = "\uf839"     // 
+	LINKED_WORKTREE_ICON         = "\U000f0339" // 󰌹
+	MISSING_LINKED_WORKTREE_ICON = "\U000f033a" // 󰌺
 )
 
 var remoteIcons = map[string]string{
@@ -26,10 +26,12 @@ var remoteIcons = map[string]string{
 }
 
 func patchGitIconsForNerdFontsV2() {
-	BRANCH_ICON = "\ufb2b"         // שׂ
-	COMMIT_ICON = "\ufc16"         // ﰖ
-	MERGE_COMMIT_ICON = "\ufb2c"   // שּׁ
-	DEFAULT_REMOTE_ICON = "\uf7a1" // 
+	BRANCH_ICON = "\ufb2b"                  // שׂ
+	COMMIT_ICON = "\ufc16"                  // ﰖ
+	MERGE_COMMIT_ICON = "\ufb2c"            // שּׁ
+	DEFAULT_REMOTE_ICON = "\uf7a1"          // 
+	LINKED_WORKTREE_ICON = "\uf838"         // 
+	MISSING_LINKED_WORKTREE_ICON = "\uf839" // 
 
 	remoteIcons["dev.azure.com"] = "\ufd03" // ﴃ
 }
