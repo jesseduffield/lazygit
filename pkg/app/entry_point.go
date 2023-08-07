@@ -63,8 +63,17 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 			log.Fatal(absRepoPath + " is not a valid git repository.")
 		}
 
-		cliArgs.WorkTree = absRepoPath
 		cliArgs.GitDir = filepath.Join(absRepoPath, ".git")
+		err = os.Chdir(absRepoPath)
+		if err != nil {
+			log.Fatalf("Failed to change directory to %s: %v", absRepoPath, err)
+		}
+	} else if cliArgs.WorkTree != "" {
+		env.SetWorkTreeEnv(cliArgs.WorkTree)
+
+		if err := os.Chdir(cliArgs.WorkTree); err != nil {
+			log.Fatalf("Failed to change directory to %s: %v", cliArgs.WorkTree, err)
+		}
 	}
 
 	if cliArgs.CustomConfigFile != "" {
@@ -73,13 +82,6 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 
 	if cliArgs.UseConfigDir != "" {
 		os.Setenv("CONFIG_DIR", cliArgs.UseConfigDir)
-	}
-
-	if cliArgs.WorkTree != "" {
-		err := os.Chdir(cliArgs.WorkTree)
-		if err != nil {
-			log.Fatalf("Failed to change directory to %s: %v", cliArgs.WorkTree, err)
-		}
 	}
 
 	if cliArgs.GitDir != "" {
@@ -116,12 +118,6 @@ func Start(buildInfo *BuildInfo, integrationTest integrationTypes.IntegrationTes
 
 		tail.TailLogs(logPath)
 		os.Exit(0)
-	}
-
-	if cliArgs.WorkTree != "" {
-		if err := os.Chdir(cliArgs.WorkTree); err != nil {
-			log.Fatal(err.Error())
-		}
 	}
 
 	tempDir, err := os.MkdirTemp("", "lazygit-*")

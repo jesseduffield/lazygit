@@ -91,10 +91,24 @@ func getRepoPathsAux(
 	if err != nil {
 		return nil, errors.Errorf("failed to get repo git dir path: %v", err)
 	}
-	worktreeGitDirPath, err := worktreeGitDirPath(fs, currentPath)
-	if err != nil {
-		return nil, errors.Errorf("failed to get worktree git dir path: %v", err)
+
+	var worktreeGitDirPath string
+	if env.GetWorkTreeEnv() != "" {
+		// This env is set when you pass --work-tree to lazygit. In that case,
+		// we're not dealing with a linked work-tree, we're dealing with a 'specified'
+		// worktree (for lack of a better term). In this case, the worktree has no
+		// .git file and it just contains a bunch of files: it has no idea it's
+		// pointed to by a bare repo. As such it does not have its own git dir within
+		// the bare repo's git dir. Instead, we just use the bare repo's git dir.
+		worktreeGitDirPath = repoGitDirPath
+	} else {
+		var err error
+		worktreeGitDirPath, err = getWorktreeGitDirPath(fs, currentPath)
+		if err != nil {
+			return nil, errors.Errorf("failed to get worktree git dir path: %v", err)
+		}
 	}
+
 	repoName := path.Base(repoPath)
 
 	return &RepoPaths{
@@ -110,7 +124,7 @@ func getRepoPathsAux(
 // Returns the path of the git-dir for the worktree. For linked worktrees, the worktree has
 // a .git file that points to the git-dir (which itself lives in the git-dir
 // of the repo)
-func worktreeGitDirPath(fs afero.Fs, worktreePath string) (string, error) {
+func getWorktreeGitDirPath(fs afero.Fs, worktreePath string) (string, error) {
 	// if .git is a file, we're in a linked worktree, otherwise we're in
 	// the main worktree
 	dotGitPath := path.Join(worktreePath, ".git")

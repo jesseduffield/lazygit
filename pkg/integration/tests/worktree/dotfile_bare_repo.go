@@ -11,7 +11,7 @@ import (
 var DotfileBareRepo = NewIntegrationTest(NewIntegrationTestArgs{
 	Description:  "Open lazygit in the worktree of a dotfile bare repo and add a file and commit",
 	ExtraCmdArgs: []string{"--git-dir={{.actualPath}}/.bare", "--work-tree={{.actualPath}}/repo"},
-	Skip:         true,
+	Skip:         false,
 	// passing this because we're explicitly passing --git-dir and --work-tree args
 	UseCustomPath: true,
 	SetupConfig:   func(config *config.AppConfig) {},
