@@ -3,10 +3,14 @@ package components
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"time"
+
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // this is for running shell commands, mostly for the sake of setting up the repo
@@ -124,6 +128,10 @@ func (self *Shell) NewBranch(name string) *Shell {
 	return self.RunCommand([]string{"git", "checkout", "-b", name})
 }
 
+func (self *Shell) NewBranchFrom(name string, from string) *Shell {
+	return self.RunCommand([]string{"git", "checkout", "-b", name, from})
+}
+
 func (self *Shell) Checkout(name string) *Shell {
 	return self.RunCommand([]string{"git", "checkout", name})
 }
@@ -150,6 +158,10 @@ func (self *Shell) Commit(message string) *Shell {
 
 func (self *Shell) EmptyCommit(message string) *Shell {
 	return self.RunCommand([]string{"git", "commit", "--allow-empty", "-m", message})
+}
+
+func (self *Shell) EmptyCommitDaysAgo(message string, daysAgo int) *Shell {
+	return self.RunCommand([]string{"git", "commit", "--allow-empty", "--date", fmt.Sprintf("%d days ago", daysAgo), "-m", message})
 }
 
 func (self *Shell) Revert(ref string) *Shell {
@@ -218,6 +230,73 @@ func (self *Shell) CreateNCommitsWithRandomMessages(n int) *Shell {
 			file.Content,
 		).
 			Commit(RandomCommitMessages[i])
+	}
+
+	return self
+}
+
+// This creates a repo history of commits
+// It uses a branching strategy where each feature branch is directly branched off
+// of the master branch
+// Only to be used in demos
+func (self *Shell) CreateRepoHistory() *Shell {
+	authors := []string{"Yang Wen-li", "Siegfried Kircheis", "Paul Oberstein", "Oscar Reuenthal", "Fredrica Greenhill"}
+
+	numAuthors := 5
+	numBranches := 10
+	numInitialCommits := 20
+	maxCommitsPerBranch := 5
+	// Each commit will happen on a separate day
+	repoStartDaysAgo := 100
+
+	totalCommits := 0
+
+	// Generate commits
+	for i := 0; i < numInitialCommits; i++ {
+		author := authors[i%numAuthors]
+		commitMessage := RandomCommitMessages[totalCommits%len(RandomCommitMessages)]
+
+		self.SetAuthor(author, "")
+		self.EmptyCommitDaysAgo(commitMessage, repoStartDaysAgo-totalCommits)
+		totalCommits++
+	}
+
+	// Generate branches and merges
+	for i := 0; i < numBranches; i++ {
+		// We'll have one author creating all the commits in the branch
+		author := authors[i%numAuthors]
+		branchName := RandomBranchNames[i%len(RandomBranchNames)]
+
+		// Choose a random commit within the last 20 commits on the master branch
+		lastMasterCommit := totalCommits - 1
+		commitOffset := rand.Intn(utils.Min(lastMasterCommit, 5)) + 1
+
+		// Create the feature branch and checkout the chosen commit
+		self.NewBranchFrom(branchName, fmt.Sprintf("master~%d", commitOffset))
+
+		numCommitsInBranch := rand.Intn(maxCommitsPerBranch) + 1
+		for j := 0; j < numCommitsInBranch; j++ {
+			commitMessage := RandomCommitMessages[totalCommits%len(RandomCommitMessages)]
+
+			self.SetAuthor(author, "")
+			self.EmptyCommitDaysAgo(commitMessage, repoStartDaysAgo-totalCommits)
+			totalCommits++
+		}
+
+		self.Checkout("master")
+
+		prevCommitterDate := os.Getenv("GIT_COMMITTER_DATE")
+		prevAuthorDate := os.Getenv("GIT_AUTHOR_DATE")
+
+		commitDate := time.Now().Add(time.Duration(totalCommits-repoStartDaysAgo) * time.Hour * 24)
+		os.Setenv("GIT_COMMITTER_DATE", commitDate.Format(time.RFC3339))
+		os.Setenv("GIT_AUTHOR_DATE", commitDate.Format(time.RFC3339))
+
+		// Merge branch into master
+		self.RunCommand([]string{"git", "merge", "--no-ff", branchName, "-m", fmt.Sprintf("Merge %s into master", branchName)})
+
+		os.Setenv("GIT_COMMITTER_DATE", prevCommitterDate)
+		os.Setenv("GIT_AUTHOR_DATE", prevAuthorDate)
 	}
 
 	return self

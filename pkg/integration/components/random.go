@@ -472,3 +472,26 @@ func Encrypt(key []byte, plaintext []byte) ([]byte, error) {
 }
 `,
 }
+
+var RandomBranchNames = []string{
+	"hotfix/fix-bug",
+	"r-u-fkn-srs",
+	"iserlohn-build",
+	"hotfix/fezzan-corridor",
+	"terra-investigation",
+	"quash-rebellion",
+	"feature/attack-on-odin",
+	"feature/peace-time",
+	"feature/repair-brunhild",
+	"feature/iserlohn-backdoor",
+	"bugfix/resolve-crash",
+	"enhancement/improve-performance",
+	"experimental/new-feature",
+	"release/v1.0.0",
+	"release/v2.0.0",
+	"chore/update-dependencies",
+	"docs/add-readme",
+	"refactor/cleanup-code",
+	"style/update-css",
+	"test/add-unit-tests",
+}

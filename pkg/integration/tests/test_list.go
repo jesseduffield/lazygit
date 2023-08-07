@@ -93,6 +93,7 @@ var tests = []*components.IntegrationTest{
 	demo.Bisect,
 	demo.CherryPick,
 	demo.CommitAndPush,
+	demo.CommitGraph,
 	demo.CustomCommand,
 	demo.CustomPatch,
 	demo.Filter,
