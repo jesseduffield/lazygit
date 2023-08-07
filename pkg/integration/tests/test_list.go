@@ -245,6 +245,7 @@ var tests = []*components.IntegrationTest{
 	worktree.Crud,
 	worktree.CustomCommand,
 	worktree.DetachWorktreeFromBranch,
+	worktree.DotfileBareRepo,
 	worktree.FastForwardWorktreeBranch,
 	worktree.ForceRemoveWorktree,
 	worktree.RemoveWorktreeFromBranch,

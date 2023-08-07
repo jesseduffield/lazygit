@@ -35,10 +35,11 @@ type IntegrationTest struct {
 		testDriver *TestDriver,
 		keys config.KeybindingConfig,
 	)
-	gitVersion GitVersionRestriction
-	width      int
-	height     int
-	isDemo     bool
+	gitVersion    GitVersionRestriction
+	width         int
+	height        int
+	isDemo        bool
+	useCustomPath bool
 }
 
 var _ integrationTypes.IntegrationTest = &IntegrationTest{}
@@ -66,6 +67,10 @@ type NewIntegrationTestArgs struct {
 	Height int
 	// If true, this is not a test but a demo to be added to our docs
 	IsDemo bool
+	// If true, the test won't invoke lazygit with the --path arg.
+	// Useful for when we're passing --git-dir and --work-tree (because --path is
+	// incompatible with those args)
+	UseCustomPath bool
 }
 
 type GitVersionRestriction struct {
@@ -125,18 +130,19 @@ func NewIntegrationTest(args NewIntegrationTestArgs) *IntegrationTest {
 	}
 
 	return &IntegrationTest{
-		name:         name,
-		description:  args.Description,
-		extraCmdArgs: args.ExtraCmdArgs,
-		extraEnvVars: args.ExtraEnvVars,
-		skip:         args.Skip,
-		setupRepo:    args.SetupRepo,
-		setupConfig:  args.SetupConfig,
-		run:          args.Run,
-		gitVersion:   args.GitVersion,
-		width:        args.Width,
-		height:       args.Height,
-		isDemo:       args.IsDemo,
+		name:          name,
+		description:   args.Description,
+		extraCmdArgs:  args.ExtraCmdArgs,
+		extraEnvVars:  args.ExtraEnvVars,
+		skip:          args.Skip,
+		setupRepo:     args.SetupRepo,
+		setupConfig:   args.SetupConfig,
+		run:           args.Run,
+		gitVersion:    args.GitVersion,
+		width:         args.Width,
+		height:        args.Height,
+		isDemo:        args.IsDemo,
+		useCustomPath: args.UseCustomPath,
 	}
 }
 
