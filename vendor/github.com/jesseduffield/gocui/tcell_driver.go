@@ -5,8 +5,8 @@
 package gocui
 
 import (
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
+	"github.com/stefanhaller/tcell/v2"
 )
 
 // We probably don't want this being a global variable for YOLO for now
