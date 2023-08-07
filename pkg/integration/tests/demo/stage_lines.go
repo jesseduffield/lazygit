@@ -39,9 +39,7 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {
-		// No idea why I had to use version 2: it should be using my own computer's
-		// font and the one iterm uses is version 3.
-		config.UserConfig.Gui.NerdFontsVersion = "2"
+		config.UserConfig.Gui.NerdFontsVersion = "3"
 		config.UserConfig.Gui.ShowFileTree = false
 		config.UserConfig.Gui.ShowCommandLog = false
 	},

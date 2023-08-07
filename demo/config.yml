@@ -75,7 +75,10 @@ cursorStyle: block
 # Font family
 # You can use any font that is installed on your machine
 # in CSS-like syntax
-fontFamily: "DejaVuSansMono Nerd Font"
+# Download from:
+# https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/DejaVuSansMono.zip
+# Not using the mono font because it makes icons too small.
+fontFamily: "DejaVuSansM Nerd Font"
 
 # The size of the font
 fontSize: 8
