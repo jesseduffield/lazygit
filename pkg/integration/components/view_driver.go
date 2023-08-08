@@ -403,6 +403,14 @@ func (self *ViewDriver) PressFast(keyStr string) *ViewDriver {
 	return self
 }
 
+func (self *ViewDriver) Click(x, y int) *ViewDriver {
+	offsetX, offsetY, _, _ := self.getView().Dimensions()
+
+	self.t.click(offsetX+1+x, offsetY+1+y)
+
+	return self
+}
+
 // i.e. pressing down arrow
 func (self *ViewDriver) SelectNextItem() *ViewDriver {
 	return self.PressFast(self.t.keys.Universal.NextItem)

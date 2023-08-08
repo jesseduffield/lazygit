@@ -29,7 +29,7 @@ func RunTests(
 	runCmd func(cmd *exec.Cmd) error,
 	testWrapper func(test *IntegrationTest, f func() error),
 	sandbox bool,
-	keyPressDelay int,
+	inputDelay int,
 	maxAttempts int,
 ) error {
 	projectRootDir := lazycoreUtils.GetLazyRootDirectory()
@@ -58,7 +58,7 @@ func RunTests(
 			)
 
 			for i := 0; i < maxAttempts; i++ {
-				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, keyPressDelay, gitVersion)
+				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, inputDelay, gitVersion)
 				if err != nil {
 					if i == maxAttempts-1 {
 						return err
@@ -83,7 +83,7 @@ func runTest(
 	logf func(format string, formatArgs ...interface{}),
 	runCmd func(cmd *exec.Cmd) error,
 	sandbox bool,
-	keyPressDelay int,
+	inputDelay int,
 	gitVersion *git_commands.GitVersion,
 ) error {
 	if test.Skip() {
@@ -100,7 +100,7 @@ func runTest(
 		return err
 	}
 
-	cmd, err := getLazygitCommand(test, paths, projectRootDir, sandbox, keyPressDelay)
+	cmd, err := getLazygitCommand(test, paths, projectRootDir, sandbox, inputDelay)
 	if err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func getGitVersion() (*git_commands.GitVersion, error) {
 	return git_commands.ParseGitVersion(versionStr)
 }
 
-func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandbox bool, keyPressDelay int) (*exec.Cmd, error) {
+func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandbox bool, inputDelay int) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	err := os.RemoveAll(paths.Config())
@@ -203,8 +203,8 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandb
 		}
 	}
 
-	if keyPressDelay > 0 {
-		cmdObj.AddEnvVars(fmt.Sprintf("KEY_PRESS_DELAY=%d", keyPressDelay))
+	if inputDelay > 0 {
+		cmdObj.AddEnvVars(fmt.Sprintf("INPUT_DELAY=%d", inputDelay))
 	}
 
 	cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", GIT_CONFIG_GLOBAL_ENV_VAR, globalGitConfigPath(rootDir)))

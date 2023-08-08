@@ -103,8 +103,9 @@ type GuiMutexes struct {
 }
 
 type replayedEvents struct {
-	Keys    chan *TcellKeyEventWrapper
-	Resizes chan *TcellResizeEventWrapper
+	Keys        chan *TcellKeyEventWrapper
+	Resizes     chan *TcellResizeEventWrapper
+	MouseEvents chan *TcellMouseEventWrapper
 }
 
 type RecordingConfig struct {
@@ -225,8 +226,9 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 
 	if opts.PlayRecording {
 		g.ReplayedEvents = replayedEvents{
-			Keys:    make(chan *TcellKeyEventWrapper),
-			Resizes: make(chan *TcellResizeEventWrapper),
+			Keys:        make(chan *TcellKeyEventWrapper),
+			Resizes:     make(chan *TcellResizeEventWrapper),
+			MouseEvents: make(chan *TcellMouseEventWrapper),
 		}
 	}
 

@@ -14,15 +14,24 @@ import (
 
 // this file is for testing our test code (meta, I know)
 
+type coordinate struct {
+	x, y int
+}
+
 type fakeGuiDriver struct {
-	failureMessage string
-	pressedKeys    []string
+	failureMessage     string
+	pressedKeys        []string
+	clickedCoordinates []coordinate
 }
 
 var _ integrationTypes.GuiDriver = &fakeGuiDriver{}
 
 func (self *fakeGuiDriver) PressKey(key string) {
 	self.pressedKeys = append(self.pressedKeys, key)
+}
+
+func (self *fakeGuiDriver) Click(x, y int) {
+	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
 }
 
 func (self *fakeGuiDriver) Keys() config.KeybindingConfig {
@@ -87,11 +96,14 @@ func TestSuccess(t *testing.T) {
 		Run: func(t *TestDriver, keys config.KeybindingConfig) {
 			t.press("a")
 			t.press("b")
+			t.click(0, 1)
+			t.click(2, 3)
 		},
 	})
 	driver := &fakeGuiDriver{}
 	test.Run(driver)
 	assert.EqualValues(t, []string{"a", "b"}, driver.pressedKeys)
+	assert.EqualValues(t, []coordinate{{0, 1}, {2, 3}}, driver.clickedCoordinates)
 	assert.Equal(t, "", driver.failureMessage)
 }
 

@@ -16,7 +16,7 @@ Usage:
 		> go run cmd/integration_test/main.go cli [--slow] [--sandbox] <test1> <test2> ...
 	If you pass no test names, it runs all tests
 	Accepted environment variables:
-	KEY_PRESS_DELAY (e.g. 200): the number of milliseconds to wait between keypresses
+	INPUT_DELAY (e.g. 200): the number of milliseconds to wait between keypresses or mouse clicks
 
 	TUI mode:
 		> go run cmd/integration_test/main.go tui

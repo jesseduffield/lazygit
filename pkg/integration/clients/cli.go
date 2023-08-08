@@ -24,9 +24,9 @@ import (
 // If invoked directly, you can specify tests to run by passing their names as positional arguments
 
 func RunCLI(testNames []string, slow bool, sandbox bool) {
-	keyPressDelay := tryConvert(os.Getenv("KEY_PRESS_DELAY"), 0)
+	inputDelay := tryConvert(os.Getenv("INPUT_DELAY"), 0)
 	if slow {
-		keyPressDelay = SLOW_KEY_PRESS_DELAY
+		inputDelay = SLOW_INPUT_DELAY
 	}
 
 	err := components.RunTests(
@@ -35,7 +35,7 @@ func RunCLI(testNames []string, slow bool, sandbox bool) {
 		runCmdInTerminal,
 		runAndPrintFatalError,
 		sandbox,
-		keyPressDelay,
+		inputDelay,
 		1,
 	)
 	if err != nil {
