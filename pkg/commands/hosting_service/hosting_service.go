@@ -101,14 +101,13 @@ func (self *HostingServiceMgr) getCandidateServiceDomains() []ServiceDomain {
 
 	if len(self.configServiceDomains) > 0 {
 		for gitDomain, typeAndDomain := range self.configServiceDomains {
-			splitData := strings.Split(typeAndDomain, ":")
-			if len(splitData) != 2 {
+			provider, webDomain, success := strings.Cut(typeAndDomain, ":")
+
+			// we allow for one ':' for specifying the TCP port
+			if !success || strings.Count(webDomain, ":") > 1 {
 				self.log.Errorf("Unexpected format for git service: '%s'. Expected something like 'github.com:github.com'", typeAndDomain)
 				continue
 			}
-
-			provider := splitData[0]
-			webDomain := splitData[1]
 
 			serviceDefinition, ok := serviceDefinitionByProvider[provider]
 			if !ok {

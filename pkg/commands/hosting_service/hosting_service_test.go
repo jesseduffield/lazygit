@@ -341,6 +341,30 @@ func TestGetPullRequestURL(t *testing.T) {
 			expectedLoggedErrors: nil,
 		},
 		{
+			testName:  "Does not log error when config service webDomain contains a port",
+			from:      "feature/profile-page",
+			remoteUrl: "git@my.domain.test:johndoe/social_network.git",
+			configServiceDomains: map[string]string{
+				"my.domain.test": "gitlab:my.domain.test:1111",
+			},
+			test: func(url string, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "https://my.domain.test:1111/johndoe/social_network/-/merge_requests/new?merge_request[source_branch]=feature%2Fprofile-page", url)
+			},
+		},
+		{
+			testName:  "Logs error when webDomain contains more than one colon",
+			from:      "feature/profile-page",
+			remoteUrl: "git@my.domain.test:johndoe/social_network.git",
+			configServiceDomains: map[string]string{
+				"my.domain.test": "gitlab:my.domain.test:1111:2222",
+			},
+			test: func(url string, err error) {
+				assert.Error(t, err)
+			},
+			expectedLoggedErrors: []string{"Unexpected format for git service: 'gitlab:my.domain.test:1111:2222'. Expected something like 'github.com:github.com'"},
+		},
+		{
 			testName:  "Logs error when config service domain is malformed",
 			from:      "feature/profile-page",
 			remoteUrl: "git@bitbucket.org:johndoe/social_network.git",
