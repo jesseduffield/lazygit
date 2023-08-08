@@ -37,7 +37,7 @@ func WithPadding(str string, padding int, alignment Alignment) string {
 
 // defaults to left-aligning each column. If you want to set the alignment of
 // each column, pass in a slice of Alignment values.
-func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Alignment) string {
+func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Alignment) []string {
 	displayStringsArr = excludeBlankColumns(displayStringsArr)
 	padWidths := getPadWidths(displayStringsArr)
 	columnConfigs := make([]ColumnConfig, len(padWidths))
@@ -53,9 +53,7 @@ func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Align
 			Alignment: alignment,
 		}
 	}
-	output := getPaddedDisplayStrings(displayStringsArr, columnConfigs)
-
-	return output
+	return getPaddedDisplayStrings(displayStringsArr, columnConfigs)
 }
 
 // NOTE: this mutates the input slice for the sake of performance
@@ -91,12 +89,13 @@ outer:
 	return displayStringsArr
 }
 
-func getPaddedDisplayStrings(stringArrays [][]string, columnConfigs []ColumnConfig) string {
-	builder := strings.Builder{}
-	for i, stringArray := range stringArrays {
+func getPaddedDisplayStrings(stringArrays [][]string, columnConfigs []ColumnConfig) []string {
+	result := make([]string, 0, len(stringArrays))
+	for _, stringArray := range stringArrays {
 		if len(stringArray) == 0 {
 			continue
 		}
+		builder := strings.Builder{}
 		for j, columnConfig := range columnConfigs {
 			if len(stringArray)-1 < j {
 				continue
@@ -108,12 +107,9 @@ func getPaddedDisplayStrings(stringArrays [][]string, columnConfigs []ColumnConf
 			continue
 		}
 		builder.WriteString(stringArray[len(columnConfigs)])
-
-		if i < len(stringArrays)-1 {
-			builder.WriteString("\n")
-		}
+		result = append(result, builder.String())
 	}
-	return builder.String()
+	return result
 }
 
 func getPadWidths(stringArrays [][]string) []int {

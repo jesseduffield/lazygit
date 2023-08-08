@@ -1,6 +1,8 @@
 package context
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
@@ -21,7 +23,8 @@ func (self *ListRenderer) renderLines(startIdx int, endIdx int) string {
 	if self.getColumnAlignments != nil {
 		columnAlignments = self.getColumnAlignments()
 	}
-	return utils.RenderDisplayStrings(
+	lines := utils.RenderDisplayStrings(
 		self.getDisplayStrings(startIdx, utils.Min(endIdx, self.list.Len())),
 		columnAlignments)
+	return strings.Join(lines, "\n")
 }

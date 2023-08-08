@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -217,6 +218,6 @@ func TestRenderDisplayStrings(t *testing.T) {
 
 	for _, test := range tests {
 		output := RenderDisplayStrings(test.input, test.columnAlignments)
-		assert.EqualValues(t, test.expected, output)
+		assert.EqualValues(t, test.expected, strings.Join(output, "\n"))
 	}
 }

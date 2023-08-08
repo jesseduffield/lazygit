@@ -422,7 +422,8 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.showYouAreHereLabel,
 				)
 
-				renderedResult := utils.RenderDisplayStrings(result, nil)
+				renderedLines := utils.RenderDisplayStrings(result, nil)
+				renderedResult := strings.Join(renderedLines, "\n")
 				t.Logf("\n%s", renderedResult)
 
 				assert.EqualValues(t, s.expected, renderedResult)
