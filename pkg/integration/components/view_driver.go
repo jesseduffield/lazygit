@@ -456,13 +456,13 @@ func (self *ViewDriver) NavigateToLine(matcher *TextMatcher) *ViewDriver {
 	self.IsFocused()
 
 	view := self.getView()
+	lines := view.BufferLines()
 
 	var matchIndex int
 
 	self.t.assertWithRetries(func() (bool, string) {
 		matchIndex = -1
 		var matches []string
-		lines := view.BufferLines()
 		// first we look for a duplicate on the current screen. We won't bother looking beyond that though.
 		for i, line := range lines {
 			ok, _ := matcher.test(line)
@@ -486,19 +486,38 @@ func (self *ViewDriver) NavigateToLine(matcher *TextMatcher) *ViewDriver {
 		return self
 	}
 	if selectedLineIdx == matchIndex {
-		self.SelectedLine(matcher)
-	} else if selectedLineIdx < matchIndex {
-		for i := selectedLineIdx; i < matchIndex; i++ {
-			self.SelectNextItem()
-		}
-		self.SelectedLine(matcher)
-	} else {
-		for i := selectedLineIdx; i > matchIndex; i-- {
-			self.SelectPreviousItem()
-		}
-		self.SelectedLine(matcher)
+		return self.SelectedLine(matcher)
 	}
 
+	// At this point we can't just take the difference of selected and matched
+	// index and press up or down arrow this many times. The reason is that
+	// there might be section headers between those lines, and these will be
+	// skipped when pressing up or down arrow. So we must keep pressing the
+	// arrow key in a loop, and check after each one whether we now reached the
+	// target line.
+	var maxNumKeyPresses int
+	var keyPress func()
+	if selectedLineIdx < matchIndex {
+		maxNumKeyPresses = matchIndex - selectedLineIdx
+		keyPress = func() { self.SelectNextItem() }
+	} else {
+		maxNumKeyPresses = selectedLineIdx - matchIndex
+		keyPress = func() { self.SelectPreviousItem() }
+	}
+
+	for i := 0; i < maxNumKeyPresses; i++ {
+		keyPress()
+		idx, err := self.getSelectedLineIdx()
+		if err != nil {
+			self.t.fail(err.Error())
+			return self
+		}
+		if ok, _ := matcher.test(lines[idx]); ok {
+			return self
+		}
+	}
+
+	self.t.fail(fmt.Sprintf("Could not navigate to item matching: %s. Lines:\n%s", matcher.name(), strings.Join(lines, "\n")))
 	return self
 }
 

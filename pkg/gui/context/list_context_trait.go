@@ -29,7 +29,8 @@ func (self *ListContextTrait) FocusLine() {
 	self.c.AfterLayout(func() error {
 		oldOrigin, _ := self.GetViewTrait().ViewPortYBounds()
 
-		self.GetViewTrait().FocusPoint(self.list.GetSelectedLineIdx())
+		self.GetViewTrait().FocusPoint(
+			self.ModelIndexToViewIndex(self.list.GetSelectedLineIdx()))
 
 		// If FocusPoint() caused the view to scroll (because the selected line
 		// was out of view before), we need to rerender the view port again.
@@ -84,7 +85,7 @@ func (self *ListContextTrait) HandleFocusLost(opts types.OnFocusLostOpts) error 
 // OnFocus assumes that the content of the context has already been rendered to the view. OnRender is the function which actually renders the content to the view
 func (self *ListContextTrait) HandleRender() error {
 	self.list.RefreshSelectedIdx()
-	content := self.renderLines(0, self.list.Len())
+	content := self.renderLines(-1, -1)
 	self.GetViewTrait().SetContent(content)
 	self.c.Render()
 	self.setFooter()

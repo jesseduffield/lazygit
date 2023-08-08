@@ -83,9 +83,11 @@ func (self *ListController) handleLineChange(change int) error {
 	// we're not constantly re-rendering the main view.
 	if before != after {
 		if change == -1 {
-			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig, before, after)
+			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig,
+				self.context.ModelIndexToViewIndex(before), self.context.ModelIndexToViewIndex(after))
 		} else if change == 1 {
-			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig, before, after)
+			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig,
+				self.context.ModelIndexToViewIndex(before), self.context.ModelIndexToViewIndex(after))
 		}
 
 		return self.context.HandleFocus(types.OnFocusOpts{})
@@ -112,7 +114,7 @@ func (self *ListController) HandleGotoBottom() error {
 
 func (self *ListController) HandleClick(opts gocui.ViewMouseBindingOpts) error {
 	prevSelectedLineIdx := self.context.GetList().GetSelectedLineIdx()
-	newSelectedLineIdx := opts.Y
+	newSelectedLineIdx := self.context.ViewIndexToModelIndex(opts.Y)
 	alreadyFocused := self.isFocused()
 
 	if err := self.pushContextIfNotFocused(); err != nil {
