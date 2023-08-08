@@ -38,7 +38,9 @@ func (self *FilesController) createResetMenu() error {
 					self.animateExplosion()
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return self.c.Refresh(
+					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+				)
 			},
 			Key:     'x',
 			Tooltip: self.c.Tr.NukeDescription,
@@ -54,7 +56,9 @@ func (self *FilesController) createResetMenu() error {
 					return self.c.Error(err)
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return self.c.Refresh(
+					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+				)
 			},
 			Key: 'u',
 		},
@@ -69,7 +73,9 @@ func (self *FilesController) createResetMenu() error {
 					return self.c.Error(err)
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return self.c.Refresh(
+					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+				)
 			},
 			Key: 'c',
 		},
@@ -91,7 +97,9 @@ func (self *FilesController) createResetMenu() error {
 					return self.c.Error(err)
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return self.c.Refresh(
+					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+				)
 			},
 			Key: 'S',
 		},
@@ -106,7 +114,9 @@ func (self *FilesController) createResetMenu() error {
 					return self.c.Error(err)
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return self.c.Refresh(
+					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+				)
 			},
 			Key: 's',
 		},
@@ -121,7 +131,9 @@ func (self *FilesController) createResetMenu() error {
 					return self.c.Error(err)
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return self.c.Refresh(
+					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+				)
 			},
 			Key: 'm',
 		},
@@ -136,7 +148,9 @@ func (self *FilesController) createResetMenu() error {
 					return self.c.Error(err)
 				}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}})
+				return self.c.Refresh(
+					types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES}},
+				)
 			},
 			Key: 'h',
 		},
@@ -173,6 +187,7 @@ func (self *FilesController) Explode(v *gocui.View, onDone func()) {
 			style := styles[(i*len(styles)/max)%len(styles)]
 			coloredImage := style.Sprint(image)
 			self.c.OnUIThread(func() error {
+				_ = v.SetOrigin(0, 0)
 				v.SetContent(coloredImage)
 				return nil
 			})
