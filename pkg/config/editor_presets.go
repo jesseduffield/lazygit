@@ -48,9 +48,17 @@ type editPreset struct {
 // IF YOU ADD A PRESET TO THIS FUNCTION YOU MUST UPDATE THE `Supported presets` SECTION OF docs/Config.md
 func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset {
 	presets := map[string]*editPreset{
-		"vi":      standardTerminalEditorPreset("vi"),
-		"vim":     standardTerminalEditorPreset("vim"),
-		"nvim":    standardTerminalEditorPreset("nvim"),
+		"vi":   standardTerminalEditorPreset("vi"),
+		"vim":  standardTerminalEditorPreset("vim"),
+		"nvim": standardTerminalEditorPreset("nvim"),
+		"nvim-remote": {
+			editTemplate:       `nvim --server "$NVIM" --remote-tab {{filename}}`,
+			editAtLineTemplate: `nvim --server "$NVIM" --remote-tab {{filename}}; [ -z "$NVIM" ] || nvim --server "$NVIM" --remote-send ":{{line}}<CR>"`,
+			// No remote-wait support yet. See https://github.com/neovim/neovim/pull/17856
+			editAtLineAndWaitTemplate: `nvim +{{line}} {{filename}}`,
+			openDirInEditorTemplate:   `nvim --server "$NVIM" --remote-tab {{dir}}`,
+			editInTerminal:            false,
+		},
 		"emacs":   standardTerminalEditorPreset("emacs"),
 		"nano":    standardTerminalEditorPreset("nano"),
 		"kakoune": standardTerminalEditorPreset("kak"),

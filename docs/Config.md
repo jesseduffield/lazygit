@@ -324,9 +324,12 @@ os:
   editPreset: 'vscode'
 ```
 
-Supported presets are `vim`, `nvim`, `emacs`, `nano`, `vscode`, `sublime`, `bbedit`,
+Supported presets are `vim`, `nvim`, `nvim-remote`, `emacs`, `nano`, `vscode`, `sublime`, `bbedit`,
 `kakoune`, `helix`, and `xcode`. In many cases lazygit will be able to guess the right preset
 from your $(git config core.editor), or an environment variable such as $VISUAL or $EDITOR.
+
+`nvim-remote` is an experimental preset for when you have invoked lazygit from within a neovim
+process, allowing lazygit to open the file from within the parent process rather than spawning a new one.
 
 If for some reason you are not happy with the default commands from a preset, or
 there simply is no preset for your editor, you can customize the commands by
