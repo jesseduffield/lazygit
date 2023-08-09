@@ -82,6 +82,12 @@ func (self *ListController) handleLineChange(change int) error {
 	// doing this check so that if we're holding the up key at the start of the list
 	// we're not constantly re-rendering the main view.
 	if before != after {
+		if change == -1 {
+			checkScrollUp(self.context.GetViewTrait(), self.c.UserConfig.Gui.ScrollOffMargin, before, after)
+		} else if change == 1 {
+			checkScrollDown(self.context.GetViewTrait(), self.c.UserConfig.Gui.ScrollOffMargin, before, after)
+		}
+
 		return self.context.HandleFocus(types.OnFocusOpts{})
 	}
 
