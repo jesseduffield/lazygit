@@ -97,12 +97,12 @@ func (self *Patch) LineNumberOfLine(idx int) int {
 	idxInHunk := idx - hunkStartIdx
 
 	if idxInHunk == 0 {
-		return hunk.oldStart
+		return hunk.newStart
 	}
 
 	lines := hunk.bodyLines[:idxInHunk-1]
 	offset := nLinesWithKind(lines, []PatchLineKind{ADDITION, CONTEXT})
-	return hunk.oldStart + offset
+	return hunk.newStart + offset
 }
 
 // Returns hunk index containing the line at the given patch line index
