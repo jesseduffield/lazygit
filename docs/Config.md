@@ -306,7 +306,9 @@ os:
 
 ### Configuring File Editing
 
-There are two commands for opening files, `o` for "open" and `e` for "edit". `o` acts as if the file was double-clicked in the Finder/Explorer, so it also works for non-text files, whereas `e` opens the file in an editor. `e` can also jump to the right line in the file if you invoke it from the staging panel, for example. To tell lazygit which editor to use for the `e` command, the easiest way to do that is to provide an editPreset config, e.g.
+There are two commands for opening files, `o` for "open" and `e` for "edit". `o` acts as if the file was double-clicked in the Finder/Explorer, so it also works for non-text files, whereas `e` opens the file in an editor. `e` can also jump to the right line in the file if you invoke it from the staging panel, for example.
+
+To tell lazygit which editor to use for the `e` command, the easiest way to do that is to provide an editPreset config, e.g.
 
 ```yaml
 os:
@@ -328,7 +330,7 @@ os:
   openDirInEditor: 'myeditor {{dir}}'
 ```
 
-The `editInTerminal` option is used to decide whether lazygit needs to suspend itself to the background before calling the editor.
+The `editInTerminal` option is used to decide whether lazygit needs to suspend itself to the background before calling the editor. It should really be named `suspend` because for some cases like when lazygit is opened from within a neovim session and you're using the `nvim-remote` preset, you're technically still in a terminal. Nonetheless we're sticking with the name `editInTerminal` for backwards compatibility.
 
 Contributions of new editor presets are welcome; see the `getPreset` function in [`editor_presets.go`](https://github.com/jesseduffield/lazygit/blob/master/pkg/config/editor_presets.go).
 

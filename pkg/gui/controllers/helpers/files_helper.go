@@ -19,32 +19,32 @@ func NewFilesHelper(c *HelperCommon) *FilesHelper {
 var _ IFilesHelper = &FilesHelper{}
 
 func (self *FilesHelper) EditFile(filename string) error {
-	cmdStr, editInTerminal := self.c.Git().File.GetEditCmdStr(filename)
-	return self.callEditor(cmdStr, editInTerminal)
+	cmdStr, suspend := self.c.Git().File.GetEditCmdStr(filename)
+	return self.callEditor(cmdStr, suspend)
 }
 
 func (self *FilesHelper) EditFileAtLine(filename string, lineNumber int) error {
-	cmdStr, editInTerminal := self.c.Git().File.GetEditAtLineCmdStr(filename, lineNumber)
-	return self.callEditor(cmdStr, editInTerminal)
+	cmdStr, suspend := self.c.Git().File.GetEditAtLineCmdStr(filename, lineNumber)
+	return self.callEditor(cmdStr, suspend)
 }
 
 func (self *FilesHelper) EditFileAtLineAndWait(filename string, lineNumber int) error {
 	cmdStr := self.c.Git().File.GetEditAtLineAndWaitCmdStr(filename, lineNumber)
 
-	// Always suspend, regardless of the value of the editInTerminal config,
+	// Always suspend, regardless of the value of the suspend config,
 	// since we want to prevent interacting with the UI until the editor
 	// returns, even if the editor doesn't use the terminal
 	return self.callEditor(cmdStr, true)
 }
 
 func (self *FilesHelper) OpenDirInEditor(path string) error {
-	cmdStr, editInTerminal := self.c.Git().File.GetOpenDirInEditorCmdStr(path)
+	cmdStr, suspend := self.c.Git().File.GetOpenDirInEditorCmdStr(path)
 
-	return self.callEditor(cmdStr, editInTerminal)
+	return self.callEditor(cmdStr, suspend)
 }
 
-func (self *FilesHelper) callEditor(cmdStr string, editInTerminal bool) error {
-	if editInTerminal {
+func (self *FilesHelper) callEditor(cmdStr string, suspend bool) error {
+	if suspend {
 		return self.c.RunSubprocessAndRefresh(
 			self.c.OS().Cmd.NewShell(cmdStr),
 		)

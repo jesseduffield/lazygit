@@ -179,34 +179,34 @@ func TestEditFileCmdStrLegacy(t *testing.T) {
 
 func TestEditFileCmd(t *testing.T) {
 	type scenario struct {
-		filename               string
-		osConfig               config.OSConfig
-		expectedCmdStr         string
-		expectedEditInTerminal bool
+		filename       string
+		osConfig       config.OSConfig
+		expectedCmdStr string
+		suspend        bool
 	}
 
 	scenarios := []scenario{
 		{
-			filename:               "test",
-			osConfig:               config.OSConfig{},
-			expectedCmdStr:         `vim -- "test"`,
-			expectedEditInTerminal: true,
+			filename:       "test",
+			osConfig:       config.OSConfig{},
+			expectedCmdStr: `vim -- "test"`,
+			suspend:        true,
 		},
 		{
 			filename: "test",
 			osConfig: config.OSConfig{
 				Edit: "nano {{filename}}",
 			},
-			expectedCmdStr:         `nano "test"`,
-			expectedEditInTerminal: true,
+			expectedCmdStr: `nano "test"`,
+			suspend:        true,
 		},
 		{
 			filename: "file/with space",
 			osConfig: config.OSConfig{
 				EditPreset: "sublime",
 			},
-			expectedCmdStr:         `subl -- "file/with space"`,
-			expectedEditInTerminal: false,
+			expectedCmdStr: `subl -- "file/with space"`,
+			suspend:        false,
 		},
 	}
 
@@ -218,28 +218,28 @@ func TestEditFileCmd(t *testing.T) {
 			userConfig: userConfig,
 		})
 
-		cmdStr, editInTerminal := instance.GetEditCmdStr(s.filename)
+		cmdStr, suspend := instance.GetEditCmdStr(s.filename)
 		assert.Equal(t, s.expectedCmdStr, cmdStr)
-		assert.Equal(t, s.expectedEditInTerminal, editInTerminal)
+		assert.Equal(t, s.suspend, suspend)
 	}
 }
 
 func TestEditFileAtLineCmd(t *testing.T) {
 	type scenario struct {
-		filename               string
-		lineNumber             int
-		osConfig               config.OSConfig
-		expectedCmdStr         string
-		expectedEditInTerminal bool
+		filename       string
+		lineNumber     int
+		osConfig       config.OSConfig
+		expectedCmdStr string
+		suspend        bool
 	}
 
 	scenarios := []scenario{
 		{
-			filename:               "test",
-			lineNumber:             42,
-			osConfig:               config.OSConfig{},
-			expectedCmdStr:         `vim +42 -- "test"`,
-			expectedEditInTerminal: true,
+			filename:       "test",
+			lineNumber:     42,
+			osConfig:       config.OSConfig{},
+			expectedCmdStr: `vim +42 -- "test"`,
+			suspend:        true,
 		},
 		{
 			filename:   "test",
@@ -247,8 +247,8 @@ func TestEditFileAtLineCmd(t *testing.T) {
 			osConfig: config.OSConfig{
 				EditAtLine: "nano +{{line}} {{filename}}",
 			},
-			expectedCmdStr:         `nano +35 "test"`,
-			expectedEditInTerminal: true,
+			expectedCmdStr: `nano +35 "test"`,
+			suspend:        true,
 		},
 		{
 			filename:   "file/with space",
@@ -256,8 +256,8 @@ func TestEditFileAtLineCmd(t *testing.T) {
 			osConfig: config.OSConfig{
 				EditPreset: "sublime",
 			},
-			expectedCmdStr:         `subl -- "file/with space":12`,
-			expectedEditInTerminal: false,
+			expectedCmdStr: `subl -- "file/with space":12`,
+			suspend:        false,
 		},
 	}
 
@@ -269,9 +269,9 @@ func TestEditFileAtLineCmd(t *testing.T) {
 			userConfig: userConfig,
 		})
 
-		cmdStr, editInTerminal := instance.GetEditAtLineCmdStr(s.filename, s.lineNumber)
+		cmdStr, suspend := instance.GetEditAtLineCmdStr(s.filename, s.lineNumber)
 		assert.Equal(t, s.expectedCmdStr, cmdStr)
-		assert.Equal(t, s.expectedEditInTerminal, editInTerminal)
+		assert.Equal(t, s.suspend, suspend)
 	}
 }
 

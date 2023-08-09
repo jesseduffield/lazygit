@@ -316,10 +316,10 @@ type OSConfig struct {
 	// window is closed.
 	EditAtLineAndWait string `yaml:"editAtLineAndWait,omitempty"`
 
-	// Whether the given edit commands use the terminal. Used to decide whether
-	// lazygit needs to suspend to the background before calling the editor.
+	// Whether lazygit suspends until an edit process returns
 	// Pointer to bool so that we can distinguish unset (nil) from false.
-	EditInTerminal *bool `yaml:"editInTerminal,omitempty"`
+	// We're naming this `editInTerminal` for backwards compatibility
+	SuspendOnEdit *bool `yaml:"editInTerminal,omitempty"`
 
 	// For opening a directory in an editor
 	OpenDirInEditor string `yaml:"openDirInEditor,omitempty"`
