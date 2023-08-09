@@ -16,11 +16,7 @@ If you want to change the config directory:
 
 - MacOS: `export XDG_CONFIG_HOME="$HOME/.config"`
 
-JSON schema is available for `config.yml` so that IntelliSense in Visual Studio Code
-(completion and error checking) is automatically enabled when the [YAML Red Hat][yaml]
-extension is installed. However, note that automatic schema detection only works
-if your config file is in one of the standard paths mentioned above. If you
-override the path to the file, you can still make IntelliSense work by adding
+JSON schema is available for `config.yml` so that IntelliSense in Visual Studio Code (completion and error checking) is automatically enabled when the [YAML Red Hat][yaml] extension is installed. However, note that automatic schema detection only works if your config file is in one of the standard paths mentioned above. If you override the path to the file, you can still make IntelliSense work by adding
 
 ```yaml
 # yaml-language-server: $schema=https://json.schemastore.org/lazygit.json
@@ -310,30 +306,18 @@ os:
 
 ### Configuring File Editing
 
-There are two commands for opening files, `o` for "open" and `e` for "edit". `o`
-acts as if the file was double-clicked in the Finder/Explorer, so it also works
-for non-text files, whereas `e` opens the file in an editor. `e` can also jump
-to the right line in the file if you invoke it from the staging panel, for
-example.
-
-To tell lazygit which editor to use for the `e` command, the easiest way to do
-that is to provide an editPreset config, e.g.
+There are two commands for opening files, `o` for "open" and `e` for "edit". `o` acts as if the file was double-clicked in the Finder/Explorer, so it also works for non-text files, whereas `e` opens the file in an editor. `e` can also jump to the right line in the file if you invoke it from the staging panel, for example. To tell lazygit which editor to use for the `e` command, the easiest way to do that is to provide an editPreset config, e.g.
 
 ```yaml
 os:
   editPreset: 'vscode'
 ```
 
-Supported presets are `vim`, `nvim`, `nvim-remote`, `emacs`, `nano`, `vscode`, `sublime`, `bbedit`,
-`kakoune`, `helix`, and `xcode`. In many cases lazygit will be able to guess the right preset
-from your $(git config core.editor), or an environment variable such as $VISUAL or $EDITOR.
+Supported presets are `vim`, `nvim`, `nvim-remote`, `emacs`, `nano`, `vscode`, `sublime`, `bbedit`, `kakoune`, `helix`, and `xcode`. In many cases lazygit will be able to guess the right preset from your $(git config core.editor), or an environment variable such as $VISUAL or $EDITOR.
 
-`nvim-remote` is an experimental preset for when you have invoked lazygit from within a neovim
-process, allowing lazygit to open the file from within the parent process rather than spawning a new one.
+`nvim-remote` is an experimental preset for when you have invoked lazygit from within a neovim process, allowing lazygit to open the file from within the parent process rather than spawning a new one.
 
-If for some reason you are not happy with the default commands from a preset, or
-there simply is no preset for your editor, you can customize the commands by
-setting the `edit`, `editAtLine`, and `editAtLineAndWait` options, e.g.:
+If for some reason you are not happy with the default commands from a preset, or there simply is no preset for your editor, you can customize the commands by setting the `edit`, `editAtLine`, and `editAtLineAndWait` options, e.g.:
 
 ```yaml
 os:
@@ -344,11 +328,9 @@ os:
   openDirInEditor: 'myeditor {{dir}}'
 ```
 
-The `editInTerminal` option is used to decide whether lazygit needs to suspend
-itself to the background before calling the editor.
+The `editInTerminal` option is used to decide whether lazygit needs to suspend itself to the background before calling the editor.
 
-Contributions of new editor presets are welcome; see the `getPreset` function in
-[`editor_presets.go`](https://github.com/jesseduffield/lazygit/blob/master/pkg/config/editor_presets.go).
+Contributions of new editor presets are welcome; see the `getPreset` function in [`editor_presets.go`](https://github.com/jesseduffield/lazygit/blob/master/pkg/config/editor_presets.go).
 
 ### Overriding default config file location
 
@@ -460,8 +442,7 @@ gui:
   nerdFontsVersion: "3"
 ```
 
-Supported versions are "2" and "3". The deprecated config `showIcons` sets the
-version to "2" for backwards compatibility.
+Supported versions are "2" and "3". The deprecated config `showIcons` sets the version to "2" for backwards compatibility.
 
 ## Keybindings
 
@@ -509,9 +490,7 @@ keybinding:
 
 ## Custom pull request URLs
 
-Some git provider setups (e.g. on-premises GitLab) can have distinct URLs for git-related calls and
-the web interface/API itself. To work with those, Lazygit needs to know where it needs to create
-the pull request. You can do so on your `config.yml` file using the following syntax:
+Some git provider setups (e.g. on-premises GitLab) can have distinct URLs for git-related calls and the web interface/API itself. To work with those, Lazygit needs to know where it needs to create the pull request. You can do so on your `config.yml` file using the following syntax:
 
 ```yaml
 services:
@@ -526,8 +505,7 @@ Where:
 
 ## Predefined commit message prefix
 
-In situations where certain naming pattern is used for branches and commits, pattern can be used to populate
-commit message with prefix that is parsed from the branch name.
+In situations where certain naming pattern is used for branches and commits, pattern can be used to populate commit message with prefix that is parsed from the branch name.
 
 Example:
 
@@ -557,9 +535,7 @@ Result:
 
 ## Launching not in a repository behaviour
 
-By default, when launching lazygit from a directory that is not a repository,
-you will be prompted to choose if you would like to initialize a repo. You can
-override this behaviour in the config with one of the following:
+By default, when launching lazygit from a directory that is not a repository, you will be prompted to choose if you would like to initialize a repo. You can override this behaviour in the config with one of the following:
 
 ```yaml
 # for default prompting behaviour
