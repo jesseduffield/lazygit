@@ -28,13 +28,13 @@ func GetEditAtLineAndWaitTemplate(osConfig *OSConfig, guessDefaultEditor func() 
 	return template
 }
 
-func GetOpenDirInEditorTemplate(osConfig *OSConfig, guessDefaultEditor func() string) string {
+func GetOpenDirInEditorTemplate(osConfig *OSConfig, guessDefaultEditor func() string) (string, bool) {
 	preset := getPreset(osConfig, guessDefaultEditor)
 	template := osConfig.OpenDirInEditor
 	if template == "" {
 		template = preset.openDirInEditorTemplate
 	}
-	return template
+	return template, getEditInTerminal(osConfig, preset)
 }
 
 type editPreset struct {

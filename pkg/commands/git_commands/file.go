@@ -131,15 +131,15 @@ func (self *FileCommands) GetEditAtLineAndWaitCmdStr(filename string, lineNumber
 	return cmdStr
 }
 
-func (self *FileCommands) GetOpenDirInEditorCmdStr(path string) string {
-	template := config.GetOpenDirInEditorTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
+func (self *FileCommands) GetOpenDirInEditorCmdStr(path string) (string, bool) {
+	template, editInTerminal := config.GetOpenDirInEditorTemplate(&self.UserConfig.OS, self.guessDefaultEditor)
 
 	templateValues := map[string]string{
 		"dir": self.cmd.Quote(path),
 	}
 
 	cmdStr := utils.ResolvePlaceholderString(template, templateValues)
-	return cmdStr
+	return cmdStr, editInTerminal
 }
 
 func (self *FileCommands) guessDefaultEditor() string {

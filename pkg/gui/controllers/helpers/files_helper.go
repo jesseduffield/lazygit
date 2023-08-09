@@ -38,10 +38,9 @@ func (self *FilesHelper) EditFileAtLineAndWait(filename string, lineNumber int) 
 }
 
 func (self *FilesHelper) OpenDirInEditor(path string) error {
-	cmdStr := self.c.Git().File.GetOpenDirInEditorCmdStr(path)
+	cmdStr, editInTerminal := self.c.Git().File.GetOpenDirInEditorCmdStr(path)
 
-	// Not editing in terminal because surely that's not a thing.
-	return self.callEditor(cmdStr, false)
+	return self.callEditor(cmdStr, editInTerminal)
 }
 
 func (self *FilesHelper) callEditor(cmdStr string, editInTerminal bool) error {
