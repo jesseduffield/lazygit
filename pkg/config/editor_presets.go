@@ -28,13 +28,13 @@ func GetEditAtLineAndWaitTemplate(osConfig *OSConfig, guessDefaultEditor func() 
 	return template
 }
 
-func GetOpenDirInEditorTemplate(osConfig *OSConfig, guessDefaultEditor func() string) string {
+func GetOpenDirInEditorTemplate(osConfig *OSConfig, guessDefaultEditor func() string) (string, bool) {
 	preset := getPreset(osConfig, guessDefaultEditor)
 	template := osConfig.OpenDirInEditor
 	if template == "" {
 		template = preset.openDirInEditorTemplate
 	}
-	return template
+	return template, getEditInTerminal(osConfig, preset)
 }
 
 type editPreset struct {
@@ -42,15 +42,23 @@ type editPreset struct {
 	editAtLineTemplate        string
 	editAtLineAndWaitTemplate string
 	openDirInEditorTemplate   string
-	editInTerminal            bool
+	suspend                   bool
 }
 
 // IF YOU ADD A PRESET TO THIS FUNCTION YOU MUST UPDATE THE `Supported presets` SECTION OF docs/Config.md
 func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset {
 	presets := map[string]*editPreset{
-		"vi":      standardTerminalEditorPreset("vi"),
-		"vim":     standardTerminalEditorPreset("vim"),
-		"nvim":    standardTerminalEditorPreset("nvim"),
+		"vi":   standardTerminalEditorPreset("vi"),
+		"vim":  standardTerminalEditorPreset("vim"),
+		"nvim": standardTerminalEditorPreset("nvim"),
+		"nvim-remote": {
+			editTemplate:       `nvim --server "$NVIM" --remote-tab {{filename}}`,
+			editAtLineTemplate: `nvim --server "$NVIM" --remote-tab {{filename}}; [ -z "$NVIM" ] || nvim --server "$NVIM" --remote-send ":{{line}}<CR>"`,
+			// No remote-wait support yet. See https://github.com/neovim/neovim/pull/17856
+			editAtLineAndWaitTemplate: `nvim +{{line}} {{filename}}`,
+			openDirInEditorTemplate:   `nvim --server "$NVIM" --remote-tab {{dir}}`,
+			suspend:                   false,
+		},
 		"emacs":   standardTerminalEditorPreset("emacs"),
 		"nano":    standardTerminalEditorPreset("nano"),
 		"kakoune": standardTerminalEditorPreset("kak"),
@@ -59,35 +67,35 @@ func getPreset(osConfig *OSConfig, guessDefaultEditor func() string) *editPreset
 			editAtLineTemplate:        "hx -- {{filename}}:{{line}}",
 			editAtLineAndWaitTemplate: "hx -- {{filename}}:{{line}}",
 			openDirInEditorTemplate:   "hx -- {{dir}}",
-			editInTerminal:            true,
+			suspend:                   true,
 		},
 		"vscode": {
 			editTemplate:              "code --reuse-window -- {{filename}}",
 			editAtLineTemplate:        "code --reuse-window --goto -- {{filename}}:{{line}}",
 			editAtLineAndWaitTemplate: "code --reuse-window --goto --wait -- {{filename}}:{{line}}",
 			openDirInEditorTemplate:   "code -- {{dir}}",
-			editInTerminal:            false,
+			suspend:                   false,
 		},
 		"sublime": {
 			editTemplate:              "subl -- {{filename}}",
 			editAtLineTemplate:        "subl -- {{filename}}:{{line}}",
 			editAtLineAndWaitTemplate: "subl --wait -- {{filename}}:{{line}}",
 			openDirInEditorTemplate:   "subl -- {{dir}}",
-			editInTerminal:            false,
+			suspend:                   false,
 		},
 		"bbedit": {
 			editTemplate:              "bbedit -- {{filename}}",
 			editAtLineTemplate:        "bbedit +{{line}} -- {{filename}}",
 			editAtLineAndWaitTemplate: "bbedit +{{line}} --wait -- {{filename}}",
 			openDirInEditorTemplate:   "bbedit -- {{dir}}",
-			editInTerminal:            false,
+			suspend:                   false,
 		},
 		"xcode": {
 			editTemplate:              "xed -- {{filename}}",
 			editAtLineTemplate:        "xed --line {{line}} -- {{filename}}",
 			editAtLineAndWaitTemplate: "xed --line {{line}} --wait -- {{filename}}",
 			openDirInEditorTemplate:   "xed -- {{dir}}",
-			editInTerminal:            false,
+			suspend:                   false,
 		},
 	}
 
@@ -123,13 +131,13 @@ func standardTerminalEditorPreset(editor string) *editPreset {
 		editAtLineTemplate:        editor + " +{{line}} -- {{filename}}",
 		editAtLineAndWaitTemplate: editor + " +{{line}} -- {{filename}}",
 		openDirInEditorTemplate:   editor + " -- {{dir}}",
-		editInTerminal:            true,
+		suspend:                   true,
 	}
 }
 
 func getEditInTerminal(osConfig *OSConfig, preset *editPreset) bool {
-	if osConfig.EditInTerminal != nil {
-		return *osConfig.EditInTerminal
+	if osConfig.SuspendOnEdit != nil {
+		return *osConfig.SuspendOnEdit
 	}
-	return preset.editInTerminal
+	return preset.suspend
 }

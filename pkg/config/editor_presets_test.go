@@ -16,7 +16,7 @@ func TestGetEditTemplate(t *testing.T) {
 		expectedEditTemplate              string
 		expectedEditAtLineTemplate        string
 		expectedEditAtLineAndWaitTemplate string
-		expectedEditInTerminal            bool
+		expectedSuspend                   bool
 	}{
 		{
 			"Default template is vim",
@@ -52,9 +52,9 @@ func TestGetEditTemplate(t *testing.T) {
 		{
 			"Overriding a preset with explicit config (edit)",
 			&OSConfig{
-				EditPreset:     "vscode",
-				Edit:           "myeditor {{filename}}",
-				EditInTerminal: &trueVal,
+				EditPreset:    "vscode",
+				Edit:          "myeditor {{filename}}",
+				SuspendOnEdit: &trueVal,
 			},
 			func() string { return "" },
 			"myeditor {{filename}}",
@@ -65,9 +65,9 @@ func TestGetEditTemplate(t *testing.T) {
 		{
 			"Overriding a preset with explicit config (edit at line)",
 			&OSConfig{
-				EditPreset:     "vscode",
-				EditAtLine:     "myeditor --line={{line}} {{filename}}",
-				EditInTerminal: &trueVal,
+				EditPreset:    "vscode",
+				EditAtLine:    "myeditor --line={{line}} {{filename}}",
+				SuspendOnEdit: &trueVal,
 			},
 			func() string { return "" },
 			"code --reuse-window -- {{filename}}",
@@ -80,7 +80,7 @@ func TestGetEditTemplate(t *testing.T) {
 			&OSConfig{
 				EditPreset:        "vscode",
 				EditAtLineAndWait: "myeditor --line={{line}} -w {{filename}}",
-				EditInTerminal:    &trueVal,
+				SuspendOnEdit:     &trueVal,
 			},
 			func() string { return "" },
 			"code --reuse-window -- {{filename}}",
@@ -111,13 +111,13 @@ func TestGetEditTemplate(t *testing.T) {
 	}
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			template, editInTerminal := GetEditTemplate(s.osConfig, s.guessDefaultEditor)
+			template, suspend := GetEditTemplate(s.osConfig, s.guessDefaultEditor)
 			assert.Equal(t, s.expectedEditTemplate, template)
-			assert.Equal(t, s.expectedEditInTerminal, editInTerminal)
+			assert.Equal(t, s.expectedSuspend, suspend)
 
-			template, editInTerminal = GetEditAtLineTemplate(s.osConfig, s.guessDefaultEditor)
+			template, suspend = GetEditAtLineTemplate(s.osConfig, s.guessDefaultEditor)
 			assert.Equal(t, s.expectedEditAtLineTemplate, template)
-			assert.Equal(t, s.expectedEditInTerminal, editInTerminal)
+			assert.Equal(t, s.expectedSuspend, suspend)
 
 			template = GetEditAtLineAndWaitTemplate(s.osConfig, s.guessDefaultEditor)
 			assert.Equal(t, s.expectedEditAtLineAndWaitTemplate, template)
