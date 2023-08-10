@@ -67,6 +67,29 @@ index e48a11c..b2ab81b 100644
  ...
 `
 
+const twoHunksWithMoreAdditionsThanRemovals = `diff --git a/filename b/filename
+index bac359d75..6e5b89f36 100644
+--- a/filename
++++ b/filename
+@@ -1,5 +1,6 @@
+ apple
+-grape
++orange
++kiwi
+ ...
+ ...
+ ...
+@@ -8,6 +9,8 @@ grape
+ ...
+ ...
+ ...
++pear
++lemon
+ ...
+ ...
+ ...
+`
+
 const twoChangesInOneHunk = `diff --git a/filename b/filename
 index 9320895..6d79956 100644
 --- a/filename
@@ -571,6 +594,12 @@ func TestLineNumberOfLine(t *testing.T) {
 			// this is really more of a characteristic test than anything.
 			indexes:   []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 1000},
 			expecteds: []int{1, 1, 1, 1, 1, 1, 2, 2, 3, 4, 5, 8, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 15, 15},
+		},
+		{
+			testName:  "twoHunksWithMoreAdditionsThanRemovals",
+			patchStr:  twoHunksWithMoreAdditionsThanRemovals,
+			indexes:   []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 1000},
+			expecteds: []int{1, 1, 1, 1, 1, 1, 2, 2, 3, 4, 5, 6, 9, 9, 10, 11, 12, 13, 14, 15, 16, 16, 16, 16, 16, 16},
 		},
 	}
 
