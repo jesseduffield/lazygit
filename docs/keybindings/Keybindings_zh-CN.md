@@ -84,7 +84,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-y&gt;</kbd>: 将抓取请求 URL 复制到剪贴板
   <kbd>c</kbd>: 按名称检出
   <kbd>F</kbd>: 强制检出
-  <kbd>d</kbd>: 删除分支
+  <kbd>d</kbd>: View delete options
   <kbd>r</kbd>: 将已检出的分支变基到该分支
   <kbd>M</kbd>: 合并到当前检出的分支
   <kbd>f</kbd>: 从上游快进此分支
@@ -234,7 +234,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;space&gt;</kbd>: 检出
-  <kbd>d</kbd>: 删除标签
+  <kbd>d</kbd>: View delete options
   <kbd>P</kbd>: 推送标签
   <kbd>n</kbd>: 创建标签
   <kbd>g</kbd>: 查看重置选项
@@ -334,7 +334,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: 新分支
   <kbd>M</kbd>: 合并到当前检出的分支
   <kbd>r</kbd>: 将已检出的分支变基到该分支
-  <kbd>d</kbd>: 删除分支
+  <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: 设置为检出分支的上游
   <kbd>g</kbd>: 查看重置选项
   <kbd>w</kbd>: View worktree options

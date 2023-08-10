@@ -68,8 +68,11 @@ type TranslationSet struct {
 	BranchName                          string
 	NewBranchNameBranchOff              string
 	CantDeleteCheckOutBranch            string
-	DeleteBranch                        string
-	DeleteBranchMessage                 string
+	DeleteBranchTitle                   string
+	DeleteLocalBranch                   string
+	DeleteRemoteBranchOption            string
+	DeleteRemoteBranchPrompt            string
+	ForceDeleteBranchTitle              string
 	ForceDeleteBranchMessage            string
 	RebaseBranch                        string
 	CantRebaseOntoSelf                  string
@@ -292,6 +295,7 @@ type TranslationSet struct {
 	DiscardUntrackedFiles               string
 	DiscardStagedChanges                string
 	HardReset                           string
+	ViewDeleteOptions                   string
 	ViewResetOptions                    string
 	CreateFixupCommit                   string
 	CreateFixupCommitDescription        string
@@ -352,9 +356,12 @@ type TranslationSet struct {
 	TagMessageTitle                     string
 	LightweightTag                      string
 	AnnotatedTag                        string
-	DeleteTag                           string
 	DeleteTagTitle                      string
-	DeleteTagPrompt                     string
+	DeleteLocalTag                      string
+	DeleteRemoteTag                     string
+	SelectRemoteTagUpstream             string
+	DeleteRemoteTagPrompt               string
+	RemoteTagDeletedMessage             string
 	PushTagTitle                        string
 	PushTag                             string
 	CreateTag                           string
@@ -633,6 +640,7 @@ type Actions struct {
 	CheckoutTag                       string
 	CheckoutBranch                    string
 	ForceCheckoutBranch               string
+	DeleteLocalBranch                 string
 	DeleteBranch                      string
 	Merge                             string
 	RebaseBranch                      string
@@ -715,7 +723,8 @@ type Actions struct {
 	UpdateSubmodule                   string
 	CreateLightweightTag              string
 	CreateAnnotatedTag                string
-	DeleteTag                         string
+	DeleteLocalTag                    string
+	DeleteRemoteTag                   string
 	PushTag                           string
 	NukeWorkingTree                   string
 	DiscardUnstagedFileChanges        string
@@ -829,8 +838,11 @@ func EnglishTranslationSet() TranslationSet {
 		BranchName:                          "Branch name",
 		NewBranchNameBranchOff:              "New branch name (branch is off of '{{.branchName}}')",
 		CantDeleteCheckOutBranch:            "You cannot delete the checked out branch!",
-		DeleteBranch:                        "Delete branch",
-		DeleteBranchMessage:                 "Are you sure you want to delete the branch '{{.selectedBranchName}}'?",
+		DeleteBranchTitle:                   "Delete branch '{{.selectedBranchName}}'?",
+		DeleteLocalBranch:                   "Delete local branch",
+		DeleteRemoteBranchOption:            "Delete remote branch",
+		DeleteRemoteBranchPrompt:            "Are you sure you want to delete the remote branch '{{.selectedBranchName}}' from '{{.upstream}}'?",
+		ForceDeleteBranchTitle:              "Force delete branch",
 		ForceDeleteBranchMessage:            "'{{.selectedBranchName}}' is not fully merged. Are you sure you want to delete it?",
 		RebaseBranch:                        "Rebase checked-out branch onto this branch",
 		CantRebaseOntoSelf:                  "You cannot rebase a branch onto itself",
@@ -1056,6 +1068,7 @@ func EnglishTranslationSet() TranslationSet {
 		DiscardUntrackedFiles:               "Discard untracked files",
 		DiscardStagedChanges:                "Discard staged changes",
 		HardReset:                           "Hard reset",
+		ViewDeleteOptions:                   "View delete options",
 		ViewResetOptions:                    `View reset options`,
 		CreateFixupCommitDescription:        `Create fixup commit for this commit`,
 		SquashAboveCommits:                  `Squash all 'fixup!' commits above selected commit (autosquash)`,
@@ -1102,7 +1115,7 @@ func EnglishTranslationSet() TranslationSet {
 		EditRemoteUrl:                       `Enter updated remote url for {{.remoteName}}:`,
 		RemoveRemote:                        `Remove remote`,
 		RemoveRemotePrompt:                  "Are you sure you want to remove remote",
-		DeleteRemoteBranch:                  "Delete Remote Branch",
+		DeleteRemoteBranch:                  "Delete remote branch",
 		DeleteRemoteBranchMessage:           "Are you sure you want to delete remote branch",
 		SetAsUpstream:                       "Set as upstream of checked-out branch",
 		SetUpstream:                         "Set upstream of selected branch",
@@ -1116,9 +1129,12 @@ func EnglishTranslationSet() TranslationSet {
 		TagMessageTitle:                     "Tag description",
 		AnnotatedTag:                        "Annotated tag",
 		LightweightTag:                      "Lightweight tag",
-		DeleteTag:                           "Delete tag",
-		DeleteTagTitle:                      "Delete tag",
-		DeleteTagPrompt:                     "Are you sure you want to delete tag '{{.tagName}}'?",
+		DeleteTagTitle:                      "Delete tag '{{.tagName}}'?",
+		DeleteLocalTag:                      "Delete local tag",
+		DeleteRemoteTag:                     "Delete remote tag",
+		RemoteTagDeletedMessage:             "Remote tag deleted",
+		SelectRemoteTagUpstream:             "Remote from which to remove tag '{{.tagName}}':",
+		DeleteRemoteTagPrompt:               "Are you sure you want to delete the remote tag '{{.tagName}}' from '{{.upstream}}'?",
 		PushTagTitle:                        "Remote to push tag '{{.tagName}}' to:",
 		PushTag:                             "Push tag",
 		CreateTag:                           "Create tag",
@@ -1355,6 +1371,7 @@ func EnglishTranslationSet() TranslationSet {
 			CheckoutTag:                       "Checkout tag",
 			CheckoutBranch:                    "Checkout branch",
 			ForceCheckoutBranch:               "Force checkout branch",
+			DeleteLocalBranch:                 "Delete local branch",
 			DeleteBranch:                      "Delete branch",
 			Merge:                             "Merge",
 			RebaseBranch:                      "Rebase branch",
@@ -1436,7 +1453,8 @@ func EnglishTranslationSet() TranslationSet {
 			BulkUpdateSubmodules:              "Bulk update submodules",
 			BulkDeinitialiseSubmodules:        "Bulk deinitialise submodules",
 			UpdateSubmodule:                   "Update submodule",
-			DeleteTag:                         "Delete tag",
+			DeleteLocalTag:                    "Delete local tag",
+			DeleteRemoteTag:                   "Delete remote tag",
 			PushTag:                           "Push tag",
 			NukeWorkingTree:                   "Nuke working tree",
 			DiscardUnstagedFileChanges:        "Discard unstaged file changes",

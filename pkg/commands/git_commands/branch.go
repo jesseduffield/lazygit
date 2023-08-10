@@ -85,8 +85,8 @@ func (self *BranchCommands) CurrentBranchName() (string, error) {
 	return "", err
 }
 
-// Delete delete branch
-func (self *BranchCommands) Delete(branch string, force bool) error {
+// LocalDelete delete branch locally
+func (self *BranchCommands) LocalDelete(branch string, force bool) error {
 	cmdArgs := NewGitCmd("branch").
 		ArgIfElse(force, "-D", "-d").
 		Arg(branch).

@@ -6,38 +6,110 @@ import (
 )
 
 var Delete = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Try to delete the checked out branch first (to no avail), and then delete another branch.",
+	Description:  "Try all combination of local and remote branch deletions",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupConfig:  func(config *config.AppConfig) {},
 	SetupRepo: func(shell *Shell) {
 		shell.
+			CloneIntoRemote("origin").
 			EmptyCommit("blah").
 			NewBranch("branch-one").
-			NewBranch("branch-two")
+			PushBranch("origin", "branch-one").
+			NewBranch("branch-two").
+			PushBranch("origin", "branch-two").
+			EmptyCommit("deletion blocker").
+			NewBranch("branch-three")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
 		t.Views().Branches().
 			Focus().
 			Lines(
-				MatchesRegexp(`\*.*branch-two`).IsSelected(),
+				MatchesRegexp(`\*.*branch-three`).IsSelected(),
+				MatchesRegexp(`branch-two`),
 				MatchesRegexp(`branch-one`),
 				MatchesRegexp(`master`),
 			).
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Alert().Title(Equals("Error")).Content(Contains("You cannot delete the checked out branch!")).Confirm()
+				t.ExpectPopup().
+					Menu().
+					Tooltip(Contains("You cannot delete the checked out branch!")).
+					Title(Equals("Delete branch 'branch-three'?")).
+					Select(Contains("Delete local branch")).
+					Confirm()
+				t.ExpectPopup().
+					Alert().
+					Title(Equals("Error")).
+					Content(Contains("You cannot delete the checked out branch!")).
+					Confirm()
 			}).
 			SelectNextItem().
 			Press(keys.Universal.Remove).
 			Tap(func() {
-				t.ExpectPopup().Confirmation().
-					Title(Equals("Delete branch")).
-					Content(Contains("Are you sure you want to delete the branch 'branch-one'?")).
+				t.ExpectPopup().
+					Menu().
+					Title(Equals("Delete branch 'branch-two'?")).
+					Select(Contains("Delete local branch")).
+					Confirm()
+			}).
+			Tap(func() {
+				t.ExpectPopup().
+					Confirmation().
+					Title(Equals("Force delete branch")).
+					Content(Equals("'branch-two' is not fully merged. Are you sure you want to delete it?")).
 					Confirm()
 			}).
 			Lines(
-				MatchesRegexp(`\*.*branch-two`),
+				MatchesRegexp(`\*.*branch-three`),
+				MatchesRegexp(`branch-one`).IsSelected(),
+				MatchesRegexp(`master`),
+			).
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				t.ExpectPopup().
+					Menu().
+					Title(Equals("Delete branch 'branch-one'?")).
+					Select(Contains("Delete remote branch")).
+					Confirm()
+			}).
+			Tap(func() {
+				t.ExpectPopup().
+					Confirmation().
+					Title(Equals("Delete branch 'branch-one'?")).
+					Content(Equals("Are you sure you want to delete the remote branch 'branch-one' from 'origin'?")).
+					Confirm()
+			}).
+			Tap(func() {
+				t.Views().Remotes().
+					Focus().
+					Lines(Contains("origin")).
+					PressEnter()
+
+				t.Views().
+					RemoteBranches().
+					Lines(Equals("branch-two")).
+					Press(keys.Universal.Return)
+
+				t.Views().
+					Branches().
+					Focus()
+			}).
+			Lines(
+				MatchesRegexp(`\*.*branch-three`),
+				MatchesRegexp(`branch-one \(upstream gone\)`).IsSelected(),
+				MatchesRegexp(`master`),
+			).
+			Press(keys.Universal.Remove).
+			Tap(func() {
+				t.ExpectPopup().
+					Menu().
+					Title(Equals("Delete branch 'branch-one'?")).
+					Select(Contains("Delete local branch")).
+					Confirm()
+			}).
+			Lines(
+				MatchesRegexp(`\*.*branch-three`),
 				MatchesRegexp(`master`).IsSelected(),
 			)
 	},

@@ -22,6 +22,7 @@ type Helpers struct {
 	Suggestions    *SuggestionsHelper
 	Files          *FilesHelper
 	WorkingTree    *WorkingTreeHelper
+	BranchesHelper *BranchesHelper
 	Tags           *TagsHelper
 	MergeAndRebase *MergeAndRebaseHelper
 	MergeConflicts *MergeConflictsHelper

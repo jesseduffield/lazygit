@@ -93,7 +93,7 @@ func TestBranchDeleteBranch(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			instance := buildBranchCommands(commonDeps{runner: s.runner})
 
-			s.test(instance.Delete("test", s.force))
+			s.test(instance.LocalDelete("test", s.force))
 			s.runner.CheckForMissingCalls()
 		})
 	}

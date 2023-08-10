@@ -148,7 +148,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-y&gt;</kbd>: Copy pull request URL to clipboard
   <kbd>c</kbd>: Checkout by name
   <kbd>F</kbd>: Force checkout
-  <kbd>d</kbd>: Delete branch
+  <kbd>d</kbd>: View delete options
   <kbd>r</kbd>: Rebase checked-out branch onto this branch
   <kbd>M</kbd>: Merge into currently checked out branch
   <kbd>f</kbd>: Fast-forward this branch from its upstream
@@ -255,7 +255,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: New branch
   <kbd>M</kbd>: Merge into currently checked out branch
   <kbd>r</kbd>: Rebase checked-out branch onto this branch
-  <kbd>d</kbd>: Delete branch
+  <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: Set as upstream of checked-out branch
   <kbd>g</kbd>: View reset options
   <kbd>w</kbd>: View worktree options
@@ -332,7 +332,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;space&gt;</kbd>: Checkout
-  <kbd>d</kbd>: Delete tag
+  <kbd>d</kbd>: View delete options
   <kbd>P</kbd>: Push tag
   <kbd>n</kbd>: Create tag
   <kbd>g</kbd>: View reset options

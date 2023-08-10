@@ -66,6 +66,12 @@ func (self *MenuDriver) Wait(milliseconds int) *MenuDriver {
 	return self
 }
 
+func (self *MenuDriver) Tooltip(option *TextMatcher) *MenuDriver {
+	self.t.Views().Tooltip().Content(option)
+
+	return self
+}
+
 func (self *MenuDriver) checkNecessaryChecksCompleted() {
 	if !self.hasCheckedTitle {
 		self.t.Fail("You must check the title of a menu popup by calling Title() before calling Confirm()/Cancel().")

@@ -90,7 +90,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>&lt;c-y&gt;</kbd>: Kopieer de URL van het pull-verzoek naar het klembord
   <kbd>c</kbd>: Uitchecken bij naam
   <kbd>F</kbd>: Forceer checkout
-  <kbd>d</kbd>: Verwijder branch
+  <kbd>d</kbd>: View delete options
   <kbd>r</kbd>: Rebase branch
   <kbd>M</kbd>: Merge in met huidige checked out branch
   <kbd>f</kbd>: Fast-forward deze branch vanaf zijn upstream
@@ -233,7 +233,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>n</kbd>: Nieuwe branch
   <kbd>M</kbd>: Merge in met huidige checked out branch
   <kbd>r</kbd>: Rebase branch
-  <kbd>d</kbd>: Verwijder branch
+  <kbd>d</kbd>: Delete remote tag
   <kbd>u</kbd>: Stel in als upstream van uitgecheckte branch
   <kbd>g</kbd>: Bekijk reset opties
   <kbd>w</kbd>: View worktree options
@@ -332,7 +332,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
 
 <pre>
   <kbd>&lt;space&gt;</kbd>: Uitchecken
-  <kbd>d</kbd>: Verwijder tag
+  <kbd>d</kbd>: View delete options
   <kbd>P</kbd>: Push tag
   <kbd>n</kbd>: Creëer tag
   <kbd>g</kbd>: Bekijk reset opties

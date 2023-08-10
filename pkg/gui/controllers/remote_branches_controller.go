@@ -1,10 +1,8 @@
 package controllers
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -53,7 +51,7 @@ func (self *RemoteBranchesController) GetKeybindings(opts types.KeybindingsOpts)
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Remove),
 			Handler:     self.checkSelected(self.delete),
-			Description: self.c.Tr.DeleteBranch,
+			Description: self.c.Tr.DeleteRemoteTag,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.SetUpstream),
@@ -112,23 +110,7 @@ func (self *RemoteBranchesController) checkSelected(callback func(*models.Remote
 }
 
 func (self *RemoteBranchesController) delete(selectedBranch *models.RemoteBranch) error {
-	message := fmt.Sprintf("%s '%s'?", self.c.Tr.DeleteRemoteBranchMessage, selectedBranch.FullName())
-
-	return self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.DeleteRemoteBranch,
-		Prompt: message,
-		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
-				self.c.LogAction(self.c.Tr.Actions.DeleteRemoteBranch)
-				err := self.c.Git().Remote.DeleteRemoteBranch(task, selectedBranch.RemoteName, selectedBranch.Name)
-				if err != nil {
-					_ = self.c.Error(err)
-				}
-
-				return self.c.Refresh(types.RefreshOptions{Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES}})
-			})
-		},
-	})
+	return self.c.Helpers().BranchesHelper.ConfirmDeleteRemote(selectedBranch.RemoteName, selectedBranch.Name)
 }
 
 func (self *RemoteBranchesController) merge(selectedBranch *models.RemoteBranch) error {
