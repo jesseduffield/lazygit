@@ -264,6 +264,7 @@ keybinding:
   submodules:
     init: 'i'
     update: 'u'
+    sync: 's'
     bulkMenu: 'b'
 ```
 

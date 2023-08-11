@@ -466,10 +466,12 @@ type TranslationSet struct {
 	InitializingSubmoduleStatus         string
 	InitSubmodule                       string
 	SubmoduleUpdate                     string
+	SubmoduleSync                       string
 	UpdatingSubmoduleStatus             string
 	BulkInitSubmodules                  string
 	BulkUpdateSubmodules                string
 	BulkDeinitSubmodules                string
+	BulkSyncSubmodules                  string
 	ViewBulkSubmoduleOptions            string
 	BulkSubmoduleOptions                string
 	RunningCommand                      string
@@ -720,7 +722,9 @@ type Actions struct {
 	BulkInitialiseSubmodules          string
 	BulkUpdateSubmodules              string
 	BulkDeinitialiseSubmodules        string
+	BulkSyncSubmodules                string
 	UpdateSubmodule                   string
+	SyncSubmodule                     string
 	CreateLightweightTag              string
 	CreateAnnotatedTag                string
 	DeleteLocalTag                    string
@@ -1240,10 +1244,12 @@ func EnglishTranslationSet() TranslationSet {
 		InitializingSubmoduleStatus:         "Initializing submodule",
 		InitSubmodule:                       "Initialize submodule",
 		SubmoduleUpdate:                     "Update submodule",
+		SubmoduleSync:                       "Sync submodule",
 		UpdatingSubmoduleStatus:             "Updating submodule",
 		BulkInitSubmodules:                  "Bulk init submodules",
 		BulkUpdateSubmodules:                "Bulk update submodules",
 		BulkDeinitSubmodules:                "Bulk deinit submodules",
+		BulkSyncSubmodules:                  "Bulk sync submodules",
 		ViewBulkSubmoduleOptions:            "View bulk submodule options",
 		BulkSubmoduleOptions:                "Bulk submodule options",
 		RunningCommand:                      "Running command",
@@ -1452,7 +1458,9 @@ func EnglishTranslationSet() TranslationSet {
 			BulkInitialiseSubmodules:          "Bulk initialise submodules",
 			BulkUpdateSubmodules:              "Bulk update submodules",
 			BulkDeinitialiseSubmodules:        "Bulk deinitialise submodules",
+			BulkSyncSubmodules:                "Bulk sync submodules",
 			UpdateSubmodule:                   "Update submodule",
+			SyncSubmodule:                     "Sync submodule",
 			DeleteLocalTag:                    "Delete local tag",
 			DeleteRemoteTag:                   "Delete remote tag",
 			PushTag:                           "Push tag",
