@@ -18,6 +18,8 @@ type Shell struct {
 	// when running the shell outside the gui we can directly panic on failure,
 	// but inside the gui we need to close the gui before panicking
 	fail func(string)
+
+	randomFileContentIndex int
 }
 
 func NewShell(dir string, fail func(string)) *Shell {
@@ -221,6 +223,16 @@ func (self *Shell) CreateNCommitsWithRandomMessages(n int) *Shell {
 	return self
 }
 
+// Creates a commit with a random file
+// Only to be used in demos
+func (self *Shell) RandomChangeCommit(message string) *Shell {
+	index := self.randomFileContentIndex
+	self.randomFileContentIndex++
+	randomFileName := fmt.Sprintf("random-%d.go", index)
+	self.CreateFileAndAdd(randomFileName, RandomFileContents[index%len(RandomFileContents)])
+	return self.Commit(message)
+}
+
 func (self *Shell) SetConfig(key string, value string) *Shell {
 	self.RunCommand([]string{"git", "config", "--local", key, value})
 	return self
@@ -358,6 +370,13 @@ func (self *Shell) CopyFile(source string, destination string) *Shell {
 // the test will still run in the original directory
 func (self *Shell) Chdir(path string) *Shell {
 	self.dir = filepath.Join(self.dir, path)
+
+	return self
+}
+
+func (self *Shell) SetAuthor(authorName string, authorEmail string) *Shell {
+	self.RunCommand([]string{"git", "config", "--local", "user.name", authorName})
+	self.RunCommand([]string{"git", "config", "--local", "user.email", authorEmail})
 
 	return self
 }

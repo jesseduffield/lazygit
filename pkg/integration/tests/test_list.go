@@ -98,6 +98,7 @@ var tests = []*components.IntegrationTest{
 	demo.Filter,
 	demo.InteractiveRebase,
 	demo.NukeWorkingTree,
+	demo.RebaseOnto,
 	demo.StageLines,
 	demo.Undo,
 	demo.WorktreeCreateFromBranches,

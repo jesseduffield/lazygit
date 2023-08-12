@@ -129,6 +129,12 @@ Learn more in the [Rebase magic Youtube tutorial](https://youtu.be/4XaToVut_hs).
 
 ![custom_patch](../assets/demo/custom_patch-compressed.gif)
 
+### Rebase from marked base commit
+
+Say you're on a feature branch that was itself branched off of the develop branch, and you've decided you'd rather be branching off the master branch. You need a way to rebase only the commits from your feature branch. In this demo we check to see which was the last commit on the develop branch, then press `shift+b` to mark that commit as our base commit, then press `r` on the master branch to rebase onto it, only bringing across the commits from our feature branch. Then we push our changes with `shift+p`.
+
+![rebase_onto](../assets/demo/rebase_onto-compressed.gif)
+
 ### Undo
 
 You can undo the last action by pressing 'z' and redo with `ctrl+z`. Here we drop a couple of commits and then undo the actions.
