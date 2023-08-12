@@ -150,6 +150,12 @@ When viewing the commit graph in an enlarged window (use `+` and `_` to cycle wi
 
 ![commit_graph](../assets/demo/commit_graph-compressed.gif)
 
+### Compare two commits
+
+If you press `shift+w` on a commit (or branch/ref) a menu will open that allows you to mark that commit so that any other commit you select will be diffed against it. Once you've selected the second commit, you'll see the diff in the main view and if you press `<enter>` you'll see the files of the diff. You can press `shift+w` to view the diff menu again to see options like reversing the diff direction or exiting diff mode. You can also exit diff mode by pressing `<escape>`.
+
+![diff_commits](../assets/demo/diff_commits-compressed.gif)
+
 ## Tutorials
 
 [<img src="https://i.imgur.com/sVEktDn.png">](https://youtu.be/CPLdltN7wgE)
