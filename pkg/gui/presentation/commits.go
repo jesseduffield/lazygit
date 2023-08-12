@@ -341,16 +341,17 @@ func displayCommit(
 		name = emoji.Sprint(name)
 	}
 
+	mark := ""
 	if isYouAreHereCommit {
 		color := lo.Ternary(commit.Action == models.ActionConflict, style.FgRed, style.FgYellow)
 		youAreHere := color.Sprintf("<-- %s ---", common.Tr.YouAreHere)
-		name = fmt.Sprintf("%s %s", youAreHere, name)
+		mark = fmt.Sprintf("%s ", youAreHere)
 	} else if isMarkedBaseCommit {
 		rebaseFromHere := style.FgYellow.Sprint(common.Tr.MarkedCommitMarker)
-		name = fmt.Sprintf("%s %s", rebaseFromHere, name)
+		mark = fmt.Sprintf("%s ", rebaseFromHere)
 	} else if !willBeRebased {
 		willBeRebased := style.FgYellow.Sprint("✓")
-		name = fmt.Sprintf("%s %s", willBeRebased, name)
+		mark = fmt.Sprintf("%s ", willBeRebased)
 	}
 
 	authorFunc := authors.ShortAuthor
@@ -373,7 +374,7 @@ func displayCommit(
 		cols,
 		actionString,
 		authorFunc(commit.AuthorName),
-		graphLine+tagString+theme.DefaultTextColor.Sprint(name),
+		graphLine+mark+tagString+theme.DefaultTextColor.Sprint(name),
 	)
 
 	return cols
