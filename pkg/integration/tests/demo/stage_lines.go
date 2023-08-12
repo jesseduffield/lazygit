@@ -39,7 +39,7 @@ var StageLines = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Gui.NerdFontsVersion = "3"
+		setDefaultDemoConfig(config)
 		config.UserConfig.Gui.ShowFileTree = false
 		config.UserConfig.Gui.ShowCommandLog = false
 	},
