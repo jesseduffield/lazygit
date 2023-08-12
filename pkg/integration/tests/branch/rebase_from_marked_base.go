@@ -40,12 +40,12 @@ var RebaseFromMarkedBase = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("active one")).
 			Press(keys.Commits.MarkCommitAsBaseForRebase).
 			Lines(
-				Contains("active three"),
-				Contains("active two"),
+				Contains("active three").Contains("✓"),
+				Contains("active two").Contains("✓"),
 				Contains("↑↑↑ Will rebase from here ↑↑↑ active one"),
-				Contains("three"),
-				Contains("two"),
-				Contains("one"),
+				Contains("three").DoesNotContain("✓"),
+				Contains("two").DoesNotContain("✓"),
+				Contains("one").DoesNotContain("✓"),
 			)
 
 		t.Views().Information().Content(Contains("Marked a base commit for rebase"))
@@ -66,13 +66,13 @@ var RebaseFromMarkedBase = NewIntegrationTest(NewIntegrationTestArgs{
 			Confirm()
 
 		t.Views().Commits().Lines(
-			Contains("active three"),
-			Contains("active two"),
-			Contains("target two"),
-			Contains("target one"),
-			Contains("three"),
-			Contains("two"),
-			Contains("one"),
+			Contains("active three").DoesNotContain("✓"),
+			Contains("active two").DoesNotContain("✓"),
+			Contains("target two").DoesNotContain("✓"),
+			Contains("target one").DoesNotContain("✓"),
+			Contains("three").DoesNotContain("✓"),
+			Contains("two").DoesNotContain("✓"),
+			Contains("one").DoesNotContain("✓"),
 		)
 	},
 })

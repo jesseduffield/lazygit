@@ -235,7 +235,7 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 					}
 					err = self.CheckMergeOrRebase(err)
 					if err == nil {
-						self.c.Modes().MarkedBaseCommit.Reset()
+						return self.ResetMarkedBaseCommit()
 					}
 					return err
 				})
@@ -257,7 +257,9 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 				if err = self.CheckMergeOrRebase(err); err != nil {
 					return err
 				}
-				self.c.Modes().MarkedBaseCommit.Reset()
+				if err = self.ResetMarkedBaseCommit(); err != nil {
+					return err
+				}
 				return self.c.PushContext(self.c.Contexts().LocalCommits)
 			},
 		},

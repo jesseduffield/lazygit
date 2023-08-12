@@ -210,3 +210,288 @@ var RandomFiles = []RandomFile{
 	{Name: `seo/alt_text2.go`, Content: `package seo`},
 	{Name: `moderation/comment_moderation2.go`, Content: `package moderation`},
 }
+
+var RandomFileContents = []string{
+	`package main
+
+import (
+	"bytes"
+	"fmt"
+	"go/format"
+	"io/fs"
+	"os"
+	"strings"
+
+	"github.com/samber/lo"
+)
+
+func main() {
+	code := generateCode()
+
+	formattedCode, err := format.Source(code)
+	if err != nil {
+		panic(err)
+	}
+	if err := os.WriteFile("test_list.go", formattedCode, 0o644); err != nil {
+		panic(err)
+	}
+}
+`,
+	`
+package tests
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/lazycore/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/integration/components"
+	"github.com/samber/lo"
+)
+
+func GetTests() []*components.IntegrationTest {
+	// first we ensure that each test in this directory has actually been added to the above list.
+	testCount := 0
+
+	testNamesSet := set.NewFromSlice(lo.Map(
+		tests,
+		func(test *components.IntegrationTest, _ int) string {
+			return test.Name()
+		},
+	))
+}
+`,
+	`
+package components
+
+import (
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
+)
+
+// IntegrationTest describes an integration test that will be run against the lazygit gui.
+
+// our unit tests will use this description to avoid a panic caused by attempting
+// to get the test's name via it's file's path.
+const unitTestDescription = "test test"
+
+const (
+	defaultWidth  = 100
+	defaultHeight = 100
+)
+`,
+	`package components
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/atotto/clipboard"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
+)
+
+type TestDriver struct {
+	gui        integrationTypes.GuiDriver
+	keys       config.KeybindingConfig
+	inputDelay int
+	*assertionHelper
+	shell *Shell
+}
+
+func NewTestDriver(gui integrationTypes.GuiDriver, shell *Shell, keys config.KeybindingConfig, inputDelay int) *TestDriver {
+	return &TestDriver{
+		gui:             gui,
+		keys:            keys,
+		inputDelay:      inputDelay,
+		assertionHelper: &assertionHelper{gui: gui},
+		shell:           shell,
+	}
+}
+
+// key is something like 'w' or '<space>'. It's best not to pass a direct value,
+// but instead to go through the default user config to get a more meaningful key name
+func (self *TestDriver) press(keyStr string) {
+	self.SetCaption(fmt.Sprintf("Pressing %s", keyStr))
+	self.gui.PressKey(keyStr)
+	self.Wait(self.inputDelay)
+}
+`,
+	`package updates
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"time"
+
+	"github.com/go-errors/errors"
+
+	"github.com/kardianos/osext"
+
+	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
+	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/config"
+	"github.com/jesseduffield/lazygit/pkg/constants"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+)
+
+// Updater checks for updates and does updates
+type Updater struct {
+	*common.Common
+	Config    config.AppConfigurer
+	OSCommand *oscommands.OSCommand
+}
+
+// Updaterer implements the check and update methods
+type Updaterer interface {
+	CheckForNewUpdate()
+	Update()
+}
+`,
+	`
+package utils
+
+import (
+	"fmt"
+	"regexp"
+	"strings"
+)
+
+// IsValidEmail checks if an email address is valid
+func IsValidEmail(email string) bool {
+	// Using a regex pattern to validate email addresses
+	// This is a simple example and might not cover all edge cases
+	emailPattern := ` + "`" + `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$` + "`" + `
+	match, _ := regexp.MatchString(emailPattern, email)
+	return match
+}
+`,
+	`
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/jesseduffield/lazygit/pkg/utils"
+)
+
+func main() {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello, the current time is: %s", time.Now().Format(time.RFC3339))
+	})
+
+	port := 8080
+	utils.PrintMessage(fmt.Sprintf("Server is listening on port %d", port))
+	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+}
+`,
+	`
+package logging
+
+import (
+	"fmt"
+	"os"
+	"time"
+)
+
+// LogMessage represents a log message with its timestamp
+type LogMessage struct {
+	Timestamp time.Time
+	Message   string
+}
+
+// Log writes a message to the log file along with a timestamp
+func Log(message string) {
+	logFile, err := os.OpenFile("app.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("Error opening log file:", err)
+		return
+	}
+	defer logFile.Close()
+
+	logEntry := LogMessage{
+		Timestamp: time.Now(),
+		Message:   message,
+	}
+
+	logLine := fmt.Sprintf("[%s] %s\n", logEntry.Timestamp.Format("2006-01-02 15:04:05"), logEntry.Message)
+	_, err = logFile.WriteString(logLine)
+	if err != nil {
+		fmt.Println("Error writing to log file:", err)
+	}
+}
+`,
+	`
+package encryption
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"errors"
+	"io"
+)
+
+// Encrypt encrypts a plaintext using AES-GCM encryption
+func Encrypt(key []byte, plaintext []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, aesGCM.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	ciphertext := aesGCM.Seal(nil, nonce, plaintext, nil)
+	return append(nonce, ciphertext...), nil
+}
+`,
+}
+
+var RandomBranchNames = []string{
+	"hotfix/fix-bug",
+	"r-u-fkn-srs",
+	"iserlohn-build",
+	"hotfix/fezzan-corridor",
+	"terra-investigation",
+	"quash-rebellion",
+	"feature/attack-on-odin",
+	"feature/peace-time",
+	"feature/repair-brunhild",
+	"feature/iserlohn-backdoor",
+	"bugfix/resolve-crash",
+	"enhancement/improve-performance",
+	"experimental/new-feature",
+	"release/v1.0.0",
+	"release/v2.0.0",
+	"chore/update-dependencies",
+	"docs/add-readme",
+	"refactor/cleanup-code",
+	"style/update-css",
+	"test/add-unit-tests",
+}
