@@ -11,7 +11,7 @@ var Filter = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Gui.NerdFontsVersion = "3"
+		setDefaultDemoConfig(config)
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommitsWithRandomMessages(30)

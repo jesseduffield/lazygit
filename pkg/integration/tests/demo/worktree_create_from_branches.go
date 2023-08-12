@@ -11,9 +11,7 @@ var WorktreeCreateFromBranches = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(cfg *config.AppConfig) {
-		// No idea why I had to use version 2: it should be using my own computer's
-		// font and the one iterm uses is version 3.
-		cfg.UserConfig.Gui.NerdFontsVersion = "2"
+		setDefaultDemoConfig(cfg)
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommitsWithRandomMessages(30)

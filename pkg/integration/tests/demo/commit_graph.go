@@ -11,14 +11,8 @@ var CommitGraph = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(config *config.AppConfig) {
-		config.UserConfig.Gui.NerdFontsVersion = "3"
-		config.UserConfig.Gui.AuthorColors = map[string]string{
-			"Fredrica Greenhill": "#fb5aa3",
-			"Oscar Reuenthal":    "#86c82f",
-			"Paul Oberstein":     "#ffd500",
-			"Siegfried Kircheis": "#fe7e11",
-			"Yang Wen-li":        "#8e3ccb",
-		}
+		setDefaultDemoConfig(config)
+		setGeneratedAuthorColours(config)
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateRepoHistory()

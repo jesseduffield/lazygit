@@ -32,6 +32,20 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 ## Table of contents
 
 - [Features](#features)
+  - [Stage individual lines](#stage-individual-lines)
+  - [Interactive Rebase](#interactive-rebase)
+  - [Cherry-pick](#cherry-pick)
+  - [Bisect](#bisect)
+  - [Nuke the working tree](#nuke-the-working-tree)
+  - [Amend an old commit](#amend-an-old-commit)
+  - [Filter](#filter)
+  - [Invoke a custom command](#invoke-a-custom-command)
+  - [Worktrees](#worktrees)
+  - [Rebase magic (custom patches)](#rebase-magic-custom-patches)
+  - [Rebase from marked base commit](#rebase-from-marked-base-commit)
+  - [Undo](#undo)
+  - [Commit graph](#commit-graph)
+  - [Compare two commits](#compare-two-commits)
 - [Tutorials](#tutorials)
 - [Installation](#installation)
   - [Binary releases](#binary-releases)
@@ -149,6 +163,12 @@ Undo uses the reflog which is specific to commits and branches so we can't undo 
 When viewing the commit graph in an enlarged window (use `+` and `_` to cycle window sizes), the commit graph is shown. Colours correspond to the commit authors, and as you navigate down the graph, the parent commits of the selected commit are highlighted.
 
 ![commit_graph](../assets/demo/commit_graph-compressed.gif)
+
+### Compare two commits
+
+If you press `shift+w` on a commit (or branch/ref) a menu will open that allows you to mark that commit so that any other commit you select will be diffed against it. Once you've selected the second commit, you'll see the diff in the main view and if you press `<enter>` you'll see the files of the diff. You can press `shift+w` to view the diff menu again to see options like reversing the diff direction or exiting diff mode. You can also exit diff mode by pressing `<escape>`.
+
+![diff_commits](../assets/demo/diff_commits-compressed.gif)
 
 ## Tutorials
 

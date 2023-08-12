@@ -21,7 +21,7 @@ var CustomPatch = NewIntegrationTest(NewIntegrationTestArgs{
 	Skip:         false,
 	IsDemo:       true,
 	SetupConfig: func(cfg *config.AppConfig) {
-		cfg.UserConfig.Gui.NerdFontsVersion = "3"
+		setDefaultDemoConfig(cfg)
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CreateNCommitsWithRandomMessages(30)

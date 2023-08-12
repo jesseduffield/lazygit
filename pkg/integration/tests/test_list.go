@@ -96,6 +96,7 @@ var tests = []*components.IntegrationTest{
 	demo.CommitGraph,
 	demo.CustomCommand,
 	demo.CustomPatch,
+	demo.DiffCommits,
 	demo.Filter,
 	demo.InteractiveRebase,
 	demo.NukeWorkingTree,
