@@ -39,6 +39,18 @@ func (self *TextMatcher) DoesNotContain(target string) *TextMatcher {
 	return self
 }
 
+func (self *TextMatcher) DoesNotContainAnyOf(targets []string) *TextMatcher {
+	self.appendRule(matcherRule[string]{
+		name: fmt.Sprintf("does not contain any of '%s'", targets),
+		testFn: func(value string) (bool, string) {
+			return lo.NoneBy(targets, func(target string) bool { return strings.Contains(value, target) }),
+				fmt.Sprintf("Expected none of '%s' to be found in '%s'", targets, value)
+		},
+	})
+
+	return self
+}
+
 func (self *TextMatcher) MatchesRegexp(target string) *TextMatcher {
 	self.appendRule(matcherRule[string]{
 		name: fmt.Sprintf("matches regular expression '%s'", target),
@@ -105,6 +117,10 @@ func Contains(target string) *TextMatcher {
 
 func DoesNotContain(target string) *TextMatcher {
 	return AnyString().DoesNotContain(target)
+}
+
+func DoesNotContainAnyOf(targets ...string) *TextMatcher {
+	return AnyString().DoesNotContainAnyOf(targets)
 }
 
 func MatchesRegexp(target string) *TextMatcher {
