@@ -273,25 +273,33 @@ func (v *View) FocusPoint(cx int, cy int) {
 		ly = 0
 	}
 
-	// if line is above origin, move origin and set cursor to zero
-	// if line is below origin + height, move origin and set cursor to max
-	// otherwise set cursor to value - origin
-	if ly > lineCount {
-		v.cx = cx
-		v.cy = cy
-		v.oy = 0
-	} else if cy < v.oy {
-		v.cx = cx
-		v.cy = 0
-		v.oy = cy
-	} else if cy > v.oy+ly {
-		v.cx = cx
-		v.cy = ly
-		v.oy = cy - ly
-	} else {
-		v.cx = cx
-		v.cy = cy - v.oy
+	v.oy = calculateNewOrigin(cy, v.oy, lineCount, ly)
+	v.cx = cx
+	v.cy = cy - v.oy
+}
+
+func calculateNewOrigin(selectedLine int, oldOrigin int, lineCount int, viewHeight int) int {
+	if viewHeight > lineCount {
+		return 0
+	} else if selectedLine < oldOrigin || selectedLine > oldOrigin+viewHeight {
+		// If the selected line is outside the visible area, scroll the view so
+		// that the selected line is in the middle.
+		newOrigin := selectedLine - viewHeight/2
+
+		// However, take care not to overflow if the total line count is less
+		// than the view height.
+		maxOrigin := lineCount - viewHeight - 1
+		if newOrigin > maxOrigin {
+			newOrigin = maxOrigin
+		}
+		if newOrigin < 0 {
+			newOrigin = 0
+		}
+
+		return newOrigin
 	}
+
+	return oldOrigin
 }
 
 func (s *searcher) search(str string) {

@@ -143,8 +143,13 @@ func (s *State) CycleHunk(forward bool) {
 	}
 
 	hunkIdx := s.patch.HunkContainingLine(s.selectedLineIdx)
-	start := s.patch.HunkStartIdx(hunkIdx + change)
-	s.selectedLineIdx = s.patch.GetNextChangeIdx(start)
+	if hunkIdx != -1 {
+		newHunkIdx := hunkIdx + change
+		if newHunkIdx >= 0 && newHunkIdx < s.patch.HunkCount() {
+			start := s.patch.HunkStartIdx(newHunkIdx)
+			s.selectedLineIdx = s.patch.GetNextChangeIdx(start)
+		}
+	}
 }
 
 func (s *State) CycleLine(forward bool) {
@@ -216,8 +221,8 @@ func (s *State) SelectTop() {
 	s.SelectLine(0)
 }
 
-func (s *State) CalculateOrigin(currentOrigin int, bufferHeight int) int {
+func (s *State) CalculateOrigin(currentOrigin int, bufferHeight int, numLines int) int {
 	firstLineIdx, lastLineIdx := s.SelectedRange()
 
-	return calculateOrigin(currentOrigin, bufferHeight, firstLineIdx, lastLineIdx, s.GetSelectedLineIdx(), s.selectMode)
+	return calculateOrigin(currentOrigin, bufferHeight, numLines, firstLineIdx, lastLineIdx, s.GetSelectedLineIdx(), s.selectMode)
 }
