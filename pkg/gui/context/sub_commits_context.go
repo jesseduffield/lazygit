@@ -1,14 +1,12 @@
 package context
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type SubCommitsContext struct {
@@ -158,10 +156,6 @@ func (self *SubCommitsContext) GetSelectedRef() types.Ref {
 
 func (self *SubCommitsContext) GetCommits() []*models.Commit {
 	return self.getModel()
-}
-
-func (self *SubCommitsContext) Title() string {
-	return fmt.Sprintf(self.c.Tr.SubCommitsDynamicTitle, utils.TruncateWithEllipsis(self.ref.RefName(), 50))
 }
 
 func (self *SubCommitsContext) SetLimitCommits(value bool) {

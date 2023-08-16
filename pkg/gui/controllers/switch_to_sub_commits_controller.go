@@ -4,6 +4,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 var _ types.IController = &SwitchToSubCommitsController{}
@@ -78,7 +79,7 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 	subCommitsContext.SetSelectedLineIdx(0)
 	subCommitsContext.SetParentContext(self.context)
 	subCommitsContext.SetWindowName(self.context.GetWindowName())
-	subCommitsContext.SetTitleRef(ref.Description())
+	subCommitsContext.SetTitleRef(utils.TruncateWithEllipsis(ref.RefName(), 50))
 	subCommitsContext.SetRef(ref)
 	subCommitsContext.SetLimitCommits(true)
 	subCommitsContext.SetShowBranchHeads(self.context.ShowBranchHeadsInSubCommits())
