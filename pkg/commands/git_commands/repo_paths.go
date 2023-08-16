@@ -208,7 +208,7 @@ func getCurrentRepoGitDirPath(
 	}
 
 	// confirm whether the next directory up is the worktrees directory
-	parent := path.Dir(path.Clean((worktreeGitPath)))
+	parent := path.Dir(path.Clean(worktreeGitPath))
 	if path.Base(parent) == "worktrees" {
 		gitDirPath := path.Dir(parent)
 		return gitDirPath, path.Dir(gitDirPath), nil
@@ -223,7 +223,7 @@ func getCurrentRepoGitDirPath(
 
 	// If this error causes issues, we could relax the constraint and just always
 	// return the path
-	return "", "", errors.Errorf("could not find git dir for %s: path '%s' is not under `worktrees` or `modules` directories.", currentPath, worktreeGitPath)
+	return "", "", errors.Errorf("could not find git dir for %s: the path '%s' is not under `worktrees` or `modules` directories.", currentPath, worktreeGitPath)
 }
 
 // takes a path containing a symlink and returns the true path
