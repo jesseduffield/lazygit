@@ -47,6 +47,7 @@ var tests = []*components.IntegrationTest{
 	branch.RebaseDoesNotAutosquash,
 	branch.RebaseFromMarkedBase,
 	branch.Reset,
+	branch.ResetToUpstream,
 	branch.ResetUpstream,
 	branch.SetUpstream,
 	branch.ShowDivergenceFromUpstream,
