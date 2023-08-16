@@ -158,6 +158,7 @@ func linkedWorktreeGitDirPath(fs afero.Fs, worktreePath string) (string, error) 
 
 	gitDir := strings.TrimPrefix(gitDirLine[0], "gitdir: ")
 
+	gitDir = filepath.Clean(gitDir)
 	// For windows support
 	gitDir = filepath.ToSlash(gitDir)
 
@@ -208,7 +209,7 @@ func getCurrentRepoGitDirPath(
 	}
 
 	// confirm whether the next directory up is the worktrees directory
-	parent := path.Dir(path.Clean(worktreeGitPath))
+	parent := path.Dir(worktreeGitPath)
 	if path.Base(parent) == "worktrees" {
 		gitDirPath := path.Dir(parent)
 		return gitDirPath, path.Dir(gitDirPath), nil
