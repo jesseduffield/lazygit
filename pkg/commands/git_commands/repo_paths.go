@@ -208,7 +208,7 @@ func getCurrentRepoGitDirPath(
 	}
 
 	// confirm whether the next directory up is the worktrees directory
-	parent := path.Dir(worktreeGitPath)
+	parent := path.Dir(path.Clean((worktreeGitPath)))
 	if path.Base(parent) == "worktrees" {
 		gitDirPath := path.Dir(parent)
 		return gitDirPath, path.Dir(gitDirPath), nil
