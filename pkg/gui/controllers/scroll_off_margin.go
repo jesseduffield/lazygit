@@ -1,17 +1,18 @@
 package controllers
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 // To be called after pressing up-arrow; checks whether the cursor entered the
 // top scroll-off margin, and so the view needs to be scrolled up one line
-func checkScrollUp(view types.IViewTrait, scrollOffMargin int, lineIdxBefore int, lineIdxAfter int) {
+func checkScrollUp(view types.IViewTrait, userConfig *config.UserConfig, lineIdxBefore int, lineIdxAfter int) {
 	viewPortStart, viewPortHeight := view.ViewPortYBounds()
 
 	linesToScroll := calculateLinesToScrollUp(
-		viewPortStart, viewPortHeight, scrollOffMargin, lineIdxBefore, lineIdxAfter)
+		viewPortStart, viewPortHeight, userConfig.Gui.ScrollOffMargin, lineIdxBefore, lineIdxAfter)
 	if linesToScroll != 0 {
 		view.ScrollUp(linesToScroll)
 	}
@@ -19,11 +20,11 @@ func checkScrollUp(view types.IViewTrait, scrollOffMargin int, lineIdxBefore int
 
 // To be called after pressing down-arrow; checks whether the cursor entered the
 // bottom scroll-off margin, and so the view needs to be scrolled down one line
-func checkScrollDown(view types.IViewTrait, scrollOffMargin int, lineIdxBefore int, lineIdxAfter int) {
+func checkScrollDown(view types.IViewTrait, userConfig *config.UserConfig, lineIdxBefore int, lineIdxAfter int) {
 	viewPortStart, viewPortHeight := view.ViewPortYBounds()
 
 	linesToScroll := calculateLinesToScrollDown(
-		viewPortStart, viewPortHeight, scrollOffMargin, lineIdxBefore, lineIdxAfter)
+		viewPortStart, viewPortHeight, userConfig.Gui.ScrollOffMargin, lineIdxBefore, lineIdxAfter)
 	if linesToScroll != 0 {
 		view.ScrollDown(linesToScroll)
 	}
