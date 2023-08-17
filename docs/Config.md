@@ -291,7 +291,7 @@ os:
   open: 'open {{filename}}'
 ```
 
-### Custom Command for Copying to Clipboard
+## Custom Command for Copying to Clipboard
 ```yaml
 os:
   copyToClipboardCmd: ''
@@ -305,7 +305,7 @@ os:
 ```
 
 
-### Configuring File Editing
+## Configuring File Editing
 
 There are two commands for opening files, `o` for "open" and `e` for "edit". `o` acts as if the file was double-clicked in the Finder/Explorer, so it also works for non-text files, whereas `e` opens the file in an editor. `e` can also jump to the right line in the file if you invoke it from the staging panel, for example.
 
@@ -335,7 +335,7 @@ The `editInTerminal` option is used to decide whether lazygit needs to suspend i
 
 Contributions of new editor presets are welcome; see the `getPreset` function in [`editor_presets.go`](https://github.com/jesseduffield/lazygit/blob/master/pkg/config/editor_presets.go).
 
-### Overriding default config file location
+## Overriding default config file location
 
 To override the default config directory, use `CONFIG_DIR="$HOME/.config/lazygit"`. This directory contains the config file in addition to some other files lazygit uses to keep track of state across sessions.
 
