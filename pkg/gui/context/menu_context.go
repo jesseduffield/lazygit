@@ -79,7 +79,7 @@ func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem, columnAlignment
 }
 
 // TODO: move into presentation package
-func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]string {
+func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 	menuItems := self.FilteredListViewModel.GetItems()
 	showKeys := lo.SomeBy(menuItems, func(item *types.MenuItem) bool {
 		return item.Key != nil

@@ -26,7 +26,7 @@ func NewStashContext(
 		},
 	)
 
-	getDisplayStrings := func(startIdx int, length int) [][]string {
+	getDisplayStrings := func(_ int, _ int) [][]string {
 		return presentation.GetStashEntryListDisplayStrings(viewModel.GetItems(), c.Modes().Diffing.Ref)
 	}
 

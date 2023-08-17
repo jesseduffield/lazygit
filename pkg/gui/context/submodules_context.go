@@ -21,7 +21,7 @@ func NewSubmodulesContext(c *ContextCommon) *SubmodulesContext {
 		},
 	)
 
-	getDisplayStrings := func(startIdx int, length int) [][]string {
+	getDisplayStrings := func(_ int, _ int) [][]string {
 		return presentation.GetSubmoduleListDisplayStrings(viewModel.GetItems())
 	}
 

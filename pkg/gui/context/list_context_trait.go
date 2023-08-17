@@ -12,7 +12,7 @@ type ListContextTrait struct {
 
 	c                 *ContextCommon
 	list              types.IList
-	getDisplayStrings func(startIdx int, length int) [][]string
+	getDisplayStrings func(startIdx int, endIdx int) [][]string
 	// Alignment for each column. If nil, the default is left alignment
 	getColumnAlignments func() []utils.Alignment
 	// Some contexts, like the commit context, will highlight the path from the selected commit
@@ -59,7 +59,7 @@ func (self *ListContextTrait) FocusLine() {
 
 func (self *ListContextTrait) refreshViewport() {
 	startIdx, length := self.GetViewTrait().ViewPortYBounds()
-	displayStrings := self.getDisplayStrings(startIdx, length)
+	displayStrings := self.getDisplayStrings(startIdx, startIdx+length)
 	content := utils.RenderDisplayStrings(displayStrings, nil)
 	self.GetViewTrait().SetViewPortContent(content)
 }

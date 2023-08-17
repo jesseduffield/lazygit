@@ -23,7 +23,7 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 		c.UserConfig.Gui.ShowFileTree,
 	)
 
-	getDisplayStrings := func(startIdx int, length int) [][]string {
+	getDisplayStrings := func(_ int, _ int) [][]string {
 		lines := presentation.RenderFileTree(viewModel, c.Modes().Diffing.Ref, c.Model().Submodules)
 		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}

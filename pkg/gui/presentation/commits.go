@@ -52,7 +52,7 @@ func GetCommitListDisplayStrings(
 	parseEmoji bool,
 	selectedCommitSha string,
 	startIdx int,
-	length int,
+	endIdx int,
 	showGraph bool,
 	bisectInfo *git_commands.BisectInfo,
 	showYouAreHereLabel bool,
@@ -68,7 +68,7 @@ func GetCommitListDisplayStrings(
 		return nil
 	}
 
-	end := utils.Min(startIdx+length, len(commits))
+	end := utils.Min(endIdx, len(commits))
 	// this is where my non-TODO commits begin
 	rebaseOffset := utils.Min(indexOfFirstNonTODOCommit(commits), end)
 

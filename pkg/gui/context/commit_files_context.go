@@ -28,7 +28,7 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 		c.UserConfig.Gui.ShowFileTree,
 	)
 
-	getDisplayStrings := func(startIdx int, length int) [][]string {
+	getDisplayStrings := func(_ int, _ int) [][]string {
 		if viewModel.Len() == 0 {
 			return [][]string{{style.FgRed.Sprint("(none)")}}
 		}

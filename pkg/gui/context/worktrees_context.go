@@ -21,7 +21,7 @@ func NewWorktreesContext(c *ContextCommon) *WorktreesContext {
 		},
 	)
 
-	getDisplayStrings := func(startIdx int, length int) [][]string {
+	getDisplayStrings := func(_ int, _ int) [][]string {
 		return presentation.GetWorktreeDisplayStrings(
 			c.Tr,
 			viewModel.GetFilteredList(),
