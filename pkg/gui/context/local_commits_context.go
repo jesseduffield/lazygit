@@ -74,8 +74,10 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
 			})),
-			list:                    viewModel,
-			getDisplayStrings:       getDisplayStrings,
+			ListRenderer: ListRenderer{
+				list:              viewModel,
+				getDisplayStrings: getDisplayStrings,
+			},
 			c:                       c,
 			refreshViewportOnChange: true,
 		},

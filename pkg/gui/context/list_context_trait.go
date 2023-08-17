@@ -4,17 +4,13 @@ import (
 	"fmt"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
-	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type ListContextTrait struct {
 	types.Context
+	ListRenderer
 
-	c                 *ContextCommon
-	list              types.IList
-	getDisplayStrings func(startIdx int, endIdx int) [][]string
-	// Alignment for each column. If nil, the default is left alignment
-	getColumnAlignments func() []utils.Alignment
+	c *ContextCommon
 	// Some contexts, like the commit context, will highlight the path from the selected commit
 	// to its parents, because it's ambiguous otherwise. For these, we need to refresh the viewport
 	// so that we show the highlighted path.
@@ -25,10 +21,6 @@ type ListContextTrait struct {
 }
 
 func (self *ListContextTrait) IsListContext() {}
-
-func (self *ListContextTrait) GetList() types.IList {
-	return self.list
-}
 
 func (self *ListContextTrait) FocusLine() {
 	// Doing this at the end of the layout function because we need the view to be
@@ -55,16 +47,6 @@ func (self *ListContextTrait) FocusLine() {
 	if self.refreshViewportOnChange {
 		self.refreshViewport()
 	}
-}
-
-func (self *ListContextTrait) renderLines(startIdx int, endIdx int) string {
-	var columnAlignments []utils.Alignment
-	if self.getColumnAlignments != nil {
-		columnAlignments = self.getColumnAlignments()
-	}
-	return utils.RenderDisplayStrings(
-		self.getDisplayStrings(startIdx, utils.Min(endIdx, self.list.Len())),
-		columnAlignments)
 }
 
 func (self *ListContextTrait) refreshViewport() {

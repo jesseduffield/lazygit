@@ -45,9 +45,11 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
 			})),
-			list:              viewModel,
-			getDisplayStrings: getDisplayStrings,
-			c:                 c,
+			ListRenderer: ListRenderer{
+				list:              viewModel,
+				getDisplayStrings: getDisplayStrings,
+			},
+			c: c,
 		},
 	}
 

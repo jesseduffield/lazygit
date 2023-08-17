@@ -38,9 +38,11 @@ func NewRemotesContext(c *ContextCommon) *RemotesContext {
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
 			})),
-			list:              viewModel,
-			getDisplayStrings: getDisplayStrings,
-			c:                 c,
+			ListRenderer: ListRenderer{
+				list:              viewModel,
+				getDisplayStrings: getDisplayStrings,
+			},
+			c: c,
 		},
 	}
 }

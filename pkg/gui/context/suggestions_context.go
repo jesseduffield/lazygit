@@ -54,9 +54,11 @@ func NewSuggestionsContext(
 				Focusable:             true,
 				HasUncontrolledBounds: true,
 			})),
-			list:              viewModel,
-			getDisplayStrings: getDisplayStrings,
-			c:                 c,
+			ListRenderer: ListRenderer{
+				list:              viewModel,
+				getDisplayStrings: getDisplayStrings,
+			},
+			c: c,
 		},
 	}
 }

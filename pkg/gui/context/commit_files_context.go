@@ -54,9 +54,11 @@ func NewCommitFilesContext(c *ContextCommon) *CommitFilesContext {
 					Transient:  true,
 				}),
 			),
-			list:              viewModel,
-			getDisplayStrings: getDisplayStrings,
-			c:                 c,
+			ListRenderer: ListRenderer{
+				list:              viewModel,
+				getDisplayStrings: getDisplayStrings,
+			},
+			c: c,
 		},
 	}
 

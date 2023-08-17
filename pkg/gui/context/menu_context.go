@@ -34,10 +34,12 @@ func NewMenuContext(
 				Focusable:             true,
 				HasUncontrolledBounds: true,
 			})),
-			getDisplayStrings:   viewModel.GetDisplayStrings,
-			list:                viewModel,
-			c:                   c,
-			getColumnAlignments: func() []utils.Alignment { return viewModel.columnAlignment },
+			ListRenderer: ListRenderer{
+				list:                viewModel,
+				getDisplayStrings:   viewModel.GetDisplayStrings,
+				getColumnAlignments: func() []utils.Alignment { return viewModel.columnAlignment },
+			},
+			c: c,
 		},
 	}
 }
