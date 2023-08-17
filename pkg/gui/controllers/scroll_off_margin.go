@@ -9,24 +9,28 @@ import (
 // To be called after pressing up-arrow; checks whether the cursor entered the
 // top scroll-off margin, and so the view needs to be scrolled up one line
 func checkScrollUp(view types.IViewTrait, userConfig *config.UserConfig, lineIdxBefore int, lineIdxAfter int) {
-	viewPortStart, viewPortHeight := view.ViewPortYBounds()
+	if userConfig.Gui.ScrollOffBehavior != "jump" {
+		viewPortStart, viewPortHeight := view.ViewPortYBounds()
 
-	linesToScroll := calculateLinesToScrollUp(
-		viewPortStart, viewPortHeight, userConfig.Gui.ScrollOffMargin, lineIdxBefore, lineIdxAfter)
-	if linesToScroll != 0 {
-		view.ScrollUp(linesToScroll)
+		linesToScroll := calculateLinesToScrollUp(
+			viewPortStart, viewPortHeight, userConfig.Gui.ScrollOffMargin, lineIdxBefore, lineIdxAfter)
+		if linesToScroll != 0 {
+			view.ScrollUp(linesToScroll)
+		}
 	}
 }
 
 // To be called after pressing down-arrow; checks whether the cursor entered the
 // bottom scroll-off margin, and so the view needs to be scrolled down one line
 func checkScrollDown(view types.IViewTrait, userConfig *config.UserConfig, lineIdxBefore int, lineIdxAfter int) {
-	viewPortStart, viewPortHeight := view.ViewPortYBounds()
+	if userConfig.Gui.ScrollOffBehavior != "jump" {
+		viewPortStart, viewPortHeight := view.ViewPortYBounds()
 
-	linesToScroll := calculateLinesToScrollDown(
-		viewPortStart, viewPortHeight, userConfig.Gui.ScrollOffMargin, lineIdxBefore, lineIdxAfter)
-	if linesToScroll != 0 {
-		view.ScrollDown(linesToScroll)
+		linesToScroll := calculateLinesToScrollDown(
+			viewPortStart, viewPortHeight, userConfig.Gui.ScrollOffMargin, lineIdxBefore, lineIdxAfter)
+		if linesToScroll != 0 {
+			view.ScrollDown(linesToScroll)
+		}
 	}
 }
 
