@@ -1,6 +1,7 @@
-# github.com/OpenPeeDeeP/xdg v1.0.0
-## explicit
-github.com/OpenPeeDeeP/xdg
+# github.com/adrg/xdg v0.4.0
+## explicit; go 1.14
+github.com/adrg/xdg
+github.com/adrg/xdg/internal/pathutil
 # github.com/atotto/clipboard v0.1.4
 ## explicit
 github.com/atotto/clipboard
