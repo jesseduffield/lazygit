@@ -5,6 +5,7 @@ import (
 
 	"github.com/mattn/go-runewidth"
 	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 type Alignment int
@@ -82,7 +83,7 @@ outer:
 	// remove the columns
 	for i, strings := range displayStringsArr {
 		for j := len(toRemove) - 1; j >= 0; j-- {
-			strings = append(strings[:toRemove[j]], strings[toRemove[j]+1:]...)
+			strings = slices.Delete(strings, toRemove[j], toRemove[j]+1)
 		}
 		displayStringsArr[i] = strings
 	}
