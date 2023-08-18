@@ -63,7 +63,7 @@ func (self *ListContextTrait) renderLines(startIdx int, endIdx int) string {
 		columnAlignments = self.getColumnAlignments()
 	}
 	return utils.RenderDisplayStrings(
-		self.getDisplayStrings(startIdx, endIdx),
+		self.getDisplayStrings(startIdx, utils.Min(endIdx, self.list.Len())),
 		columnAlignments)
 }
 
