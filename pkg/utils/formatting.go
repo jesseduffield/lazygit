@@ -38,7 +38,7 @@ func WithPadding(str string, padding int, alignment Alignment) string {
 // defaults to left-aligning each column. If you want to set the alignment of
 // each column, pass in a slice of Alignment values.
 func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Alignment) []string {
-	displayStringsArr = excludeBlankColumns(displayStringsArr)
+	displayStringsArr, columnAlignments = excludeBlankColumns(displayStringsArr, columnAlignments)
 	padWidths := getPadWidths(displayStringsArr)
 	columnConfigs := make([]ColumnConfig, len(padWidths))
 	for i, padWidth := range padWidths {
@@ -57,9 +57,9 @@ func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Align
 }
 
 // NOTE: this mutates the input slice for the sake of performance
-func excludeBlankColumns(displayStringsArr [][]string) [][]string {
+func excludeBlankColumns(displayStringsArr [][]string, columnAlignments []Alignment) ([][]string, []Alignment) {
 	if len(displayStringsArr) == 0 {
-		return displayStringsArr
+		return displayStringsArr, columnAlignments
 	}
 
 	// if all rows share a blank column, we want to remove that column
@@ -75,7 +75,7 @@ outer:
 	}
 
 	if len(toRemove) == 0 {
-		return displayStringsArr
+		return displayStringsArr, columnAlignments
 	}
 
 	// remove the columns
@@ -86,7 +86,13 @@ outer:
 		displayStringsArr[i] = strings
 	}
 
-	return displayStringsArr
+	for j := len(toRemove) - 1; j >= 0; j-- {
+		if columnAlignments != nil && toRemove[j] < len(columnAlignments) {
+			columnAlignments = slices.Delete(columnAlignments, toRemove[j], toRemove[j]+1)
+		}
+	}
+
+	return displayStringsArr, columnAlignments
 }
 
 func getPaddedDisplayStrings(stringArrays [][]string, columnConfigs []ColumnConfig) []string {
