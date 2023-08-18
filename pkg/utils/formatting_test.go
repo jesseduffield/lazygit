@@ -158,71 +158,84 @@ func TestTruncateWithEllipsis(t *testing.T) {
 
 func TestRenderDisplayStrings(t *testing.T) {
 	type scenario struct {
-		input            [][]string
-		columnAlignments []Alignment
-		expected         string
+		input                   [][]string
+		columnAlignments        []Alignment
+		expectedOutput          string
+		expectedColumnPositions []int
 	}
 
 	tests := []scenario{
 		{
-			input:            [][]string{{""}, {""}},
-			columnAlignments: nil,
-			expected:         "",
+			input:                   [][]string{{""}, {""}},
+			columnAlignments:        nil,
+			expectedOutput:          "",
+			expectedColumnPositions: []int{0},
 		},
 		{
-			input:            [][]string{{"a"}, {""}},
-			columnAlignments: nil,
-			expected:         "a\n",
+			input:                   [][]string{{"a"}, {""}},
+			columnAlignments:        nil,
+			expectedOutput:          "a\n",
+			expectedColumnPositions: []int{0},
 		},
 		{
-			input:            [][]string{{"a"}, {"b"}},
-			columnAlignments: nil,
-			expected:         "a\nb",
+			input:                   [][]string{{"a"}, {"b"}},
+			columnAlignments:        nil,
+			expectedOutput:          "a\nb",
+			expectedColumnPositions: []int{0},
 		},
 		{
-			input:            [][]string{{"a", "b"}, {"c", "d"}},
-			columnAlignments: nil,
-			expected:         "a b\nc d",
+			input:                   [][]string{{"a", "b"}, {"c", "d"}},
+			columnAlignments:        nil,
+			expectedOutput:          "a b\nc d",
+			expectedColumnPositions: []int{0, 2},
 		},
 		{
-			input:            [][]string{{"a", "", "c"}, {"d", "", "f"}},
-			columnAlignments: nil,
-			expected:         "a c\nd f",
+			input:                   [][]string{{"a", "", "c"}, {"d", "", "f"}},
+			columnAlignments:        nil,
+			expectedOutput:          "a c\nd f",
+			expectedColumnPositions: []int{0, 2},
 		},
 		{
-			input:            [][]string{{"a", "", "c", ""}, {"d", "", "f", ""}},
-			columnAlignments: nil,
-			expected:         "a c\nd f",
+			input:                   [][]string{{"a", "", "c", ""}, {"d", "", "f", ""}},
+			columnAlignments:        nil,
+			expectedOutput:          "a c\nd f",
+			expectedColumnPositions: []int{0, 2},
 		},
 		{
-			input:            [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
-			columnAlignments: nil,
-			expected:         "abc d\ne   f",
+			input:                   [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
+			columnAlignments:        nil,
+			expectedOutput:          "abc d\ne   f",
+			expectedColumnPositions: []int{0, 4},
 		},
 		{
-			input:            [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
-			columnAlignments: []Alignment{AlignLeft, AlignLeft}, // same as nil (default)
-			expected:         "abc d\ne   f",
+			input:                   [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
+			columnAlignments:        []Alignment{AlignLeft, AlignLeft}, // same as nil (default)
+			expectedOutput:          "abc d\ne   f",
+			expectedColumnPositions: []int{0, 4},
 		},
 		{
-			input:            [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
-			columnAlignments: []Alignment{AlignRight, AlignLeft},
-			expected:         "abc d\n  e f",
+			input:                   [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
+			columnAlignments:        []Alignment{AlignRight, AlignLeft},
+			expectedOutput:          "abc d\n  e f",
+			expectedColumnPositions: []int{0, 4},
 		},
 		{
-			input:            [][]string{{"a", "", "bcd", "efg", "h"}, {"i", "", "j", "k", "l"}},
-			columnAlignments: []Alignment{AlignLeft, AlignLeft, AlignRight, AlignLeft},
-			expected:         "a bcd efg h\ni   j k   l",
+			input:                   [][]string{{"a", "", "bcd", "efg", "h"}, {"i", "", "j", "k", "l"}},
+			columnAlignments:        []Alignment{AlignLeft, AlignLeft, AlignRight, AlignLeft},
+			expectedOutput:          "a bcd efg h\ni   j k   l",
+			expectedColumnPositions: []int{0, 2, 6, 10},
 		},
 		{
-			input:            [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
-			columnAlignments: []Alignment{AlignRight}, // gracefully defaults unspecified columns to left-align
-			expected:         "abc d\n  e f",
+			input:                   [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
+			columnAlignments:        []Alignment{AlignRight}, // gracefully defaults unspecified columns to left-align
+			expectedOutput:          "abc d\n  e f",
+			expectedColumnPositions: []int{0, 4},
 		},
 	}
 
 	for _, test := range tests {
-		output := RenderDisplayStrings(test.input, test.columnAlignments)
-		assert.EqualValues(t, test.expected, strings.Join(output, "\n"))
+		output, columnPositions := RenderDisplayStrings(test.input, test.columnAlignments)
+		assert.EqualValues(t, test.expectedOutput, strings.Join(output, "\n"))
+		assert.EqualValues(t, test.expectedColumnPositions, columnPositions)
 	}
 }

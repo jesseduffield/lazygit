@@ -422,7 +422,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.showYouAreHereLabel,
 				)
 
-				renderedLines := utils.RenderDisplayStrings(result, nil)
+				renderedLines, _ := utils.RenderDisplayStrings(result, nil)
 				renderedResult := strings.Join(renderedLines, "\n")
 				t.Logf("\n%s", renderedResult)
 

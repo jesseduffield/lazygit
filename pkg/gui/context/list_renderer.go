@@ -23,7 +23,7 @@ func (self *ListRenderer) renderLines(startIdx int, endIdx int) string {
 	if self.getColumnAlignments != nil {
 		columnAlignments = self.getColumnAlignments()
 	}
-	lines := utils.RenderDisplayStrings(
+	lines, _ := utils.RenderDisplayStrings(
 		self.getDisplayStrings(startIdx, utils.Min(endIdx, self.list.Len())),
 		columnAlignments)
 	return strings.Join(lines, "\n")

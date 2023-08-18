@@ -37,10 +37,14 @@ func WithPadding(str string, padding int, alignment Alignment) string {
 
 // defaults to left-aligning each column. If you want to set the alignment of
 // each column, pass in a slice of Alignment values.
-func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Alignment) []string {
+// returns a list of strings that should be joined with "\n", and an array of
+// the column positions
+func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Alignment) ([]string, []int) {
 	displayStringsArr, columnAlignments = excludeBlankColumns(displayStringsArr, columnAlignments)
 	padWidths := getPadWidths(displayStringsArr)
 	columnConfigs := make([]ColumnConfig, len(padWidths))
+	columnPositions := make([]int, len(padWidths)+1)
+	columnPositions[0] = 0
 	for i, padWidth := range padWidths {
 		// gracefully handle when columnAlignments is shorter than padWidths
 		alignment := AlignLeft
@@ -52,8 +56,9 @@ func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Align
 			Width:     padWidth,
 			Alignment: alignment,
 		}
+		columnPositions[i+1] = columnPositions[i] + padWidth + 1
 	}
-	return getPaddedDisplayStrings(displayStringsArr, columnConfigs)
+	return getPaddedDisplayStrings(displayStringsArr, columnConfigs), columnPositions
 }
 
 // NOTE: this mutates the input slice for the sake of performance
