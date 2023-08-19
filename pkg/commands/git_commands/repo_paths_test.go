@@ -135,7 +135,7 @@ func TestGetRepoPathsAux(t *testing.T) {
 			},
 			Path:     "/path/to/repo/my/submodule1",
 			Expected: nil,
-			Err:      errors.New("failed to get repo git dir path: could not find git dir for /path/to/repo/my/submodule1: path is not under `worktrees` or `modules` directories"),
+			Err:      errors.New("failed to get repo git dir path: could not find git dir for /path/to/repo/my/submodule1: the path '/random/submodule1' is not under `worktrees` or `modules` directories"),
 		},
 	}
 
