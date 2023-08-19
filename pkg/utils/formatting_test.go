@@ -210,6 +210,14 @@ func TestRenderDisplayStrings(t *testing.T) {
 			expected:         "abc d\n  e f",
 		},
 		{
+			input:            [][]string{{"a", "", "bcd", "efg", "h"}, {"i", "", "j", "k", "l"}},
+			columnAlignments: []Alignment{AlignLeft, AlignLeft, AlignRight, AlignLeft},
+			expected:         "a bcd efg h\ni j     k l",
+			/* Wrong, it should really be:
+			expected:         "a bcd efg h\ni   j k   l",
+			*/
+		},
+		{
 			input:            [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
 			columnAlignments: []Alignment{AlignRight}, // gracefully defaults unspecified columns to left-align
 			expected:         "abc d\n  e f",
