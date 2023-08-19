@@ -169,7 +169,7 @@ func TestRenderDisplayStrings(t *testing.T) {
 			input:                   [][]string{{""}, {""}},
 			columnAlignments:        nil,
 			expectedOutput:          "",
-			expectedColumnPositions: []int{0},
+			expectedColumnPositions: []int{0, 0},
 		},
 		{
 			input:                   [][]string{{"a"}, {""}},
@@ -193,43 +193,49 @@ func TestRenderDisplayStrings(t *testing.T) {
 			input:                   [][]string{{"a", "", "c"}, {"d", "", "f"}},
 			columnAlignments:        nil,
 			expectedOutput:          "a c\nd f",
-			expectedColumnPositions: []int{0, 2},
+			expectedColumnPositions: []int{0, 2, 2},
 		},
 		{
 			input:                   [][]string{{"a", "", "c", ""}, {"d", "", "f", ""}},
 			columnAlignments:        nil,
 			expectedOutput:          "a c\nd f",
-			expectedColumnPositions: []int{0, 2},
+			expectedColumnPositions: []int{0, 2, 2},
 		},
 		{
 			input:                   [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
 			columnAlignments:        nil,
 			expectedOutput:          "abc d\ne   f",
-			expectedColumnPositions: []int{0, 4},
+			expectedColumnPositions: []int{0, 4, 4},
+		},
+		{
+			input:                   [][]string{{"", "abc", "", "", "d", "e"}, {"", "f", "", "", "g", "h"}},
+			columnAlignments:        nil,
+			expectedOutput:          "abc d e\nf   g h",
+			expectedColumnPositions: []int{0, 0, 4, 4, 4, 6},
 		},
 		{
 			input:                   [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
 			columnAlignments:        []Alignment{AlignLeft, AlignLeft}, // same as nil (default)
 			expectedOutput:          "abc d\ne   f",
-			expectedColumnPositions: []int{0, 4},
+			expectedColumnPositions: []int{0, 4, 4},
 		},
 		{
 			input:                   [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
 			columnAlignments:        []Alignment{AlignRight, AlignLeft},
 			expectedOutput:          "abc d\n  e f",
-			expectedColumnPositions: []int{0, 4},
+			expectedColumnPositions: []int{0, 4, 4},
 		},
 		{
 			input:                   [][]string{{"a", "", "bcd", "efg", "h"}, {"i", "", "j", "k", "l"}},
 			columnAlignments:        []Alignment{AlignLeft, AlignLeft, AlignRight, AlignLeft},
 			expectedOutput:          "a bcd efg h\ni   j k   l",
-			expectedColumnPositions: []int{0, 2, 6, 10},
+			expectedColumnPositions: []int{0, 2, 2, 6, 10},
 		},
 		{
 			input:                   [][]string{{"abc", "", "d", ""}, {"e", "", "f", ""}},
 			columnAlignments:        []Alignment{AlignRight}, // gracefully defaults unspecified columns to left-align
 			expectedOutput:          "abc d\n  e f",
-			expectedColumnPositions: []int{0, 4},
+			expectedColumnPositions: []int{0, 4, 4},
 		},
 	}
 

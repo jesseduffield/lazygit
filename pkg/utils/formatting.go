@@ -40,7 +40,7 @@ func WithPadding(str string, padding int, alignment Alignment) string {
 // returns a list of strings that should be joined with "\n", and an array of
 // the column positions
 func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Alignment) ([]string, []int) {
-	displayStringsArr, columnAlignments = excludeBlankColumns(displayStringsArr, columnAlignments)
+	displayStringsArr, columnAlignments, removedColumns := excludeBlankColumns(displayStringsArr, columnAlignments)
 	padWidths := getPadWidths(displayStringsArr)
 	columnConfigs := make([]ColumnConfig, len(padWidths))
 	columnPositions := make([]int, len(padWidths)+1)
@@ -58,13 +58,21 @@ func RenderDisplayStrings(displayStringsArr [][]string, columnAlignments []Align
 		}
 		columnPositions[i+1] = columnPositions[i] + padWidth + 1
 	}
+	// Add the removed columns back into columnPositions (a removed column gets
+	// the same position as the following column); clients should be able to rely
+	// on them all to be there
+	for _, removedColumn := range removedColumns {
+		if removedColumn < len(columnPositions) {
+			columnPositions = slices.Insert(columnPositions, removedColumn, columnPositions[removedColumn])
+		}
+	}
 	return getPaddedDisplayStrings(displayStringsArr, columnConfigs), columnPositions
 }
 
 // NOTE: this mutates the input slice for the sake of performance
-func excludeBlankColumns(displayStringsArr [][]string, columnAlignments []Alignment) ([][]string, []Alignment) {
+func excludeBlankColumns(displayStringsArr [][]string, columnAlignments []Alignment) ([][]string, []Alignment, []int) {
 	if len(displayStringsArr) == 0 {
-		return displayStringsArr, columnAlignments
+		return displayStringsArr, columnAlignments, []int{}
 	}
 
 	// if all rows share a blank column, we want to remove that column
@@ -80,7 +88,7 @@ outer:
 	}
 
 	if len(toRemove) == 0 {
-		return displayStringsArr, columnAlignments
+		return displayStringsArr, columnAlignments, []int{}
 	}
 
 	// remove the columns
@@ -97,7 +105,7 @@ outer:
 		}
 	}
 
-	return displayStringsArr, columnAlignments
+	return displayStringsArr, columnAlignments, toRemove
 }
 
 func getPaddedDisplayStrings(stringArrays [][]string, columnConfigs []ColumnConfig) []string {
