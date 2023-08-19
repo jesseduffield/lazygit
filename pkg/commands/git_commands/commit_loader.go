@@ -123,10 +123,12 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		if commit.Sha == firstPushedCommit {
 			passedFirstPushedCommit = true
 		}
-		if passedFirstPushedCommit {
-			commit.Status = models.StatusPushed
-		} else {
-			commit.Status = models.StatusUnpushed
+		if commit.Status != models.StatusRebasing {
+			if passedFirstPushedCommit {
+				commit.Status = models.StatusPushed
+			} else {
+				commit.Status = models.StatusUnpushed
+			}
 		}
 	}
 
