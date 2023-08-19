@@ -65,6 +65,7 @@ type GetCommitsOptions struct {
 	FilterPath           string
 	IncludeRebaseCommits bool
 	RefName              string // e.g. "HEAD" or "my_branch"
+	RefForPushedStatus   string // the ref to use for determining pushed/unpushed status
 	// determines if we show the whole git graph i.e. pass the '--all' flag
 	All bool
 }
@@ -107,7 +108,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 
 	passedFirstPushedCommit := false
 	// I can get this before
-	firstPushedCommit, err := self.getFirstPushedCommit(opts.RefName)
+	firstPushedCommit, err := self.getFirstPushedCommit(opts.RefForPushedStatus)
 	if err != nil {
 		// must have no upstream branch so we'll consider everything as pushed
 		passedFirstPushedCommit = true

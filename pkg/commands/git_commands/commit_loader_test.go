@@ -42,9 +42,9 @@ func TestGetCommits(t *testing.T) {
 			testName:   "should return no commits if there are none",
 			logOrder:   "topo-order",
 			rebaseMode: enums.REBASE_MODE_NONE,
-			opts:       GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			opts:       GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
@@ -54,7 +54,7 @@ func TestGetCommits(t *testing.T) {
 			testName:   "should use proper upstream name for branch",
 			logOrder:   "topo-order",
 			rebaseMode: enums.REBASE_MODE_NONE,
-			opts:       GetCommitsOptions{RefName: "refs/heads/mybranch", IncludeRebaseCommits: false},
+			opts:       GetCommitsOptions{RefName: "refs/heads/mybranch", RefForPushedStatus: "refs/heads/mybranch", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"merge-base", "refs/heads/mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "refs/heads/mybranch", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
@@ -66,11 +66,11 @@ func TestGetCommits(t *testing.T) {
 			testName:     "should return commits if they are present",
 			logOrder:     "topo-order",
 			rebaseMode:   enums.REBASE_MODE_NONE,
-			opts:         GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main", "develop"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
-				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, commitsOutput, nil).
 				// here it's testing which of the configured main branches have an upstream
@@ -203,11 +203,11 @@ func TestGetCommits(t *testing.T) {
 			testName:     "should not call merge-base for mainBranches if none exist",
 			logOrder:     "topo-order",
 			rebaseMode:   enums.REBASE_MODE_NONE,
-			opts:         GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
-				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
 				// here it's testing which of the configured main branches exist; neither does
@@ -240,11 +240,11 @@ func TestGetCommits(t *testing.T) {
 			testName:     "should call merge-base for all main branches that exist",
 			logOrder:     "topo-order",
 			rebaseMode:   enums.REBASE_MODE_NONE,
-			opts:         GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			opts:         GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
 			mainBranches: []string{"master", "main", "develop", "1.0-hotfixes"},
 			runner: oscommands.NewFakeRunner(t).
 				// here it's seeing which commits are yet to be pushed
-				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				// here it's actually getting all the commits in a formatted form, one per line
 				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, singleCommitOutput, nil).
 				// here it's testing which of the configured main branches exist
@@ -279,9 +279,9 @@ func TestGetCommits(t *testing.T) {
 			testName:   "should not specify order if `log.order` is `default`",
 			logOrder:   "default",
 			rebaseMode: enums.REBASE_MODE_NONE,
-			opts:       GetCommitsOptions{RefName: "HEAD", IncludeRebaseCommits: false},
+			opts:       GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", IncludeRebaseCommits: false},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
@@ -291,9 +291,9 @@ func TestGetCommits(t *testing.T) {
 			testName:   "should set filter path",
 			logOrder:   "default",
 			rebaseMode: enums.REBASE_MODE_NONE,
-			opts:       GetCommitsOptions{RefName: "HEAD", FilterPath: "src"},
+			opts:       GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: "mybranch", FilterPath: "src"},
 			runner: oscommands.NewFakeRunner(t).
-				ExpectGitArgs([]string{"merge-base", "HEAD", "HEAD@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
+				ExpectGitArgs([]string{"merge-base", "mybranch", "mybranch@{u}"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:%H%x00%at%x00%aN%x00%ae%x00%D%x00%p%x00%s", "--abbrev=40", "--follow", "--no-show-signature", "--", "src"}, "", nil),
 
 			expectedCommits: []*models.Commit{},
