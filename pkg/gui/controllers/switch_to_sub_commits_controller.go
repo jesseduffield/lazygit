@@ -64,6 +64,7 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 			FilterPath:           self.c.Modes().Filtering.GetPath(),
 			IncludeRebaseCommits: false,
 			RefName:              ref.FullRefName(),
+			RefForPushedStatus:   ref.FullRefName(),
 		},
 	)
 	if err != nil {

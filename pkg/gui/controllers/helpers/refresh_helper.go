@@ -302,12 +302,14 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 	self.c.Mutexes().LocalCommitsMutex.Lock()
 	defer self.c.Mutexes().LocalCommitsMutex.Unlock()
 
+	checkedOutBranchName := self.determineCheckedOutBranchName()
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
 			Limit:                self.c.Contexts().LocalCommits.GetLimitCommits(),
 			FilterPath:           self.c.Modes().Filtering.GetPath(),
 			IncludeRebaseCommits: true,
 			RefName:              self.refForLog(),
+			RefForPushedStatus:   checkedOutBranchName,
 			All:                  self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
 		},
 	)
@@ -317,7 +319,7 @@ func (self *RefreshHelper) refreshCommitsWithLimit() error {
 	self.c.Model().Commits = commits
 	self.RefreshAuthors(commits)
 	self.c.Model().WorkingTreeStateAtLastCommitRefresh = self.c.Git().Status.WorkingTreeState()
-	self.c.Model().CheckedOutBranch = self.determineCheckedOutBranchName()
+	self.c.Model().CheckedOutBranch = checkedOutBranchName
 
 	return self.c.PostRefreshUpdate(self.c.Contexts().LocalCommits)
 }
@@ -332,6 +334,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 			FilterPath:           self.c.Modes().Filtering.GetPath(),
 			IncludeRebaseCommits: false,
 			RefName:              self.c.Contexts().SubCommits.GetRef().FullRefName(),
+			RefForPushedStatus:   self.c.Contexts().SubCommits.GetRef().FullRefName(),
 		},
 	)
 	if err != nil {
