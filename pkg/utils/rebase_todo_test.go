@@ -326,7 +326,7 @@ func TestRebaseCommands_moveFixupCommitDown(t *testing.T) {
 				assert.EqualError(t, actualErr, scenario.expectedErr.Error())
 			}
 
-			assert.EqualValues(t, actualTodos, scenario.expectedTodos)
+			assert.EqualValues(t, scenario.expectedTodos, actualTodos)
 		})
 	}
 }

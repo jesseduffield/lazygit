@@ -79,7 +79,7 @@ func TestGetPadWidths(t *testing.T) {
 
 	for _, test := range tests {
 		output := getPadWidths(test.input)
-		assert.EqualValues(t, output, test.expected)
+		assert.EqualValues(t, test.expected, output)
 	}
 }
 
@@ -217,6 +217,6 @@ func TestRenderDisplayStrings(t *testing.T) {
 
 	for _, test := range tests {
 		output := RenderDisplayStrings(test.input, test.columnAlignments)
-		assert.EqualValues(t, output, test.expected)
+		assert.EqualValues(t, test.expected, output)
 	}
 }
