@@ -35,7 +35,18 @@ func (self *ListContextTrait) FocusLine() {
 	// resized before we focus the line, otherwise if we're in accordion mode
 	// the view could be squashed and won't how to adjust the cursor/origin
 	self.c.AfterLayout(func() error {
+		oldOrigin, _ := self.GetViewTrait().ViewPortYBounds()
+
 		self.GetViewTrait().FocusPoint(self.list.GetSelectedLineIdx())
+
+		// If FocusPoint() caused the view to scroll (because the selected line
+		// was out of view before), we need to rerender the view port again.
+		// This can happen when pressing , or . to scroll by pages, or < or > to
+		// jump to the top or bottom.
+		newOrigin, _ := self.GetViewTrait().ViewPortYBounds()
+		if self.refreshViewportOnChange && oldOrigin != newOrigin {
+			self.refreshViewport()
+		}
 		return nil
 	})
 
