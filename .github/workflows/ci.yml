@@ -30,18 +30,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-      - name: Cache build
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{matrix.cache_path}}
-            ~/go/pkg/mod
-          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
-          restore-keys: |
-            ${{runner.os}}-go-
       - name: Test code
         # we're passing -short so that we skip the integration tests, which will be run in parallel below
         run: |
@@ -89,18 +80,9 @@ jobs:
           path: ~/git-${{matrix.git-version}}
           key: ${{runner.os}}-git-${{matrix.git-version}}
       - name: Setup Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-      - name: Cache build
-        uses: actions/cache@v1
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
-          restore-keys: |
-            ${{runner.os}}-go-
       - name: Print git version
         run: git --version
       - name: Test code
@@ -115,18 +97,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-      - name: Cache build
-        uses: actions/cache@v1
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-build
-          restore-keys: |
-            ${{runner.os}}-go-
       - name: Build linux binary
         run: |
           GOOS=linux go build
@@ -151,18 +124,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-      - name: Cache build
-        uses: actions/cache@v1
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-build
-          restore-keys: |
-            ${{runner.os}}-go-
       - name: Check Cheatsheet
         run: |
           go run scripts/cheatsheet/main.go check
@@ -185,18 +149,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-      - name: Cache build
-        uses: actions/cache@v1
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{runner.os}}-go-${{hashFiles('**/go.sum')}}-test
-          restore-keys: |
-            ${{runner.os}}-go-
       - name: Lint
         uses: golangci/golangci-lint-action@v3.1.0
         with:
