@@ -53,6 +53,15 @@ func Test_calculateLinesToScrollUp(t *testing.T) {
 			expectedLinesToScroll: 1,
 		},
 		{
+			name:                  "scroll-off margin is zero - scroll by 1 at end of view",
+			viewPortStart:         10,
+			viewPortHeight:        10,
+			scrollOffMargin:       0,
+			lineIdxBefore:         10,
+			lineIdxAfter:          9,
+			expectedLinesToScroll: 1,
+		},
+		{
 			name:                  "before inside scroll-off margin - scroll by more than 1",
 			viewPortStart:         10,
 			viewPortHeight:        10,
@@ -132,6 +141,15 @@ func Test_calculateLinesToScrollDown(t *testing.T) {
 			scrollOffMargin:       3,
 			lineIdxBefore:         16,
 			lineIdxAfter:          17,
+			expectedLinesToScroll: 1,
+		},
+		{
+			name:                  "scroll-off margin is zero - scroll by 1 at end of view",
+			viewPortStart:         10,
+			viewPortHeight:        10,
+			scrollOffMargin:       0,
+			lineIdxBefore:         19,
+			lineIdxAfter:          20,
 			expectedLinesToScroll: 1,
 		},
 		{

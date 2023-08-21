@@ -32,6 +32,7 @@ type GuiConfig struct {
 	ScrollHeight              int                `yaml:"scrollHeight"`
 	ScrollPastBottom          bool               `yaml:"scrollPastBottom"`
 	ScrollOffMargin           int                `yaml:"scrollOffMargin"`
+	ScrollOffBehavior         string             `yaml:"scrollOffBehavior"`
 	MouseEvents               bool               `yaml:"mouseEvents"`
 	SkipDiscardChangeWarning  bool               `yaml:"skipDiscardChangeWarning"`
 	SkipStashWarning          bool               `yaml:"skipStashWarning"`
@@ -420,6 +421,7 @@ func GetDefaultConfig() *UserConfig {
 			ScrollHeight:             2,
 			ScrollPastBottom:         true,
 			ScrollOffMargin:          2,
+			ScrollOffBehavior:        "margin",
 			MouseEvents:              true,
 			SkipDiscardChangeWarning: false,
 			SkipStashWarning:         false,

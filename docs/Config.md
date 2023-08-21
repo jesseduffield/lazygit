@@ -35,7 +35,8 @@ gui:
   windowSize: 'normal' # one of 'normal' | 'half' | 'full' default is 'normal'
   scrollHeight: 2 # how many lines you scroll by
   scrollPastBottom: true # enable scrolling past the bottom
-  scrollOffMargin: 2 # how many lines to keep before/after the cursor when it reaches the top/bottom of the view
+  scrollOffMargin: 2 # how many lines to keep before/after the cursor when it reaches the top/bottom of the view; see 'Scroll-off Margin' section below
+  scrollOffBehavior: 'margin' # one of 'margin' | 'jump'; see 'Scroll-off Margin' section below
   sidePanelWidth: 0.3333 # number from 0 to 1
   expandFocusedSidePanel: false
   mainPanelSplitMode: 'flexible' # one of 'horizontal' | 'flexible' | 'vertical'
@@ -291,7 +292,7 @@ os:
   open: 'open {{filename}}'
 ```
 
-### Custom Command for Copying to Clipboard
+## Custom Command for Copying to Clipboard
 ```yaml
 os:
   copyToClipboardCmd: ''
@@ -305,7 +306,7 @@ os:
 ```
 
 
-### Configuring File Editing
+## Configuring File Editing
 
 There are two commands for opening files, `o` for "open" and `e` for "edit". `o` acts as if the file was double-clicked in the Finder/Explorer, so it also works for non-text files, whereas `e` opens the file in an editor. `e` can also jump to the right line in the file if you invoke it from the staging panel, for example.
 
@@ -335,7 +336,7 @@ The `editInTerminal` option is used to decide whether lazygit needs to suspend i
 
 Contributions of new editor presets are welcome; see the `getPreset` function in [`editor_presets.go`](https://github.com/jesseduffield/lazygit/blob/master/pkg/config/editor_presets.go).
 
-### Overriding default config file location
+## Overriding default config file location
 
 To override the default config directory, use `CONFIG_DIR="$HOME/.config/lazygit"`. This directory contains the config file in addition to some other files lazygit uses to keep track of state across sessions.
 
@@ -348,6 +349,14 @@ lazygit --use-config-file="$HOME/.base_lg_conf,$HOME/.light_theme_lg_conf"
 or
 LG_CONFIG_FILE="$HOME/.base_lg_conf,$HOME/.light_theme_lg_conf" lazygit
 ```
+
+## Scroll-off Margin
+
+When the selected line gets close to the bottom of the window and you hit down-arrow, there's a feature called "scroll-off margin" that lets the view scroll a little earlier so that you can see a bit of what's coming in the direction that you are moving. This is controlled by the `gui.scrollOffMargin` setting (default: 2), so it keeps 2 lines below the selection visible as you scroll down. It can be set to 0 to scroll only when the selection reaches the bottom of the window.
+
+That's the behavior when `gui.scrollOffBehavior` is set to "margin" (the default). If you set `gui.scrollOffBehavior` to "jump", then upon reaching the last line of a view and hitting down-arrow the view will scroll by half a page so that the selection ends up in the middle of the view. This may feel a little jarring because the cursor jumps around when continuously moving down, but it has the advantage that the view doesn't scroll as often.
+
+This setting applies both to all list views (e.g. commits and branches etc), and to the staging view.
 
 ## Color Attributes
 
