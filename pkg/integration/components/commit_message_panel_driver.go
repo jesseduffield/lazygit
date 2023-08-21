@@ -74,6 +74,10 @@ func (self *CommitMessagePanelDriver) Cancel() {
 	self.getViewDriver().PressEscape()
 }
 
+func (self *CommitMessagePanelDriver) SwitchToEditor() {
+	self.getViewDriver().Press(self.t.keys.CommitMessage.SwitchToEditor)
+}
+
 func (self *CommitMessagePanelDriver) SelectPreviousMessage() *CommitMessagePanelDriver {
 	self.getViewDriver().SelectPreviousItem()
 	return self

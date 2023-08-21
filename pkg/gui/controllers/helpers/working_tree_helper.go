@@ -104,6 +104,7 @@ func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage strin
 			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
 			PreserveMessage:  true,
 			OnConfirm:        self.handleCommit,
+			OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
 		},
 	)
 }
@@ -115,6 +116,21 @@ func (self *WorkingTreeHelper) handleCommit(summary string, description string) 
 		self.commitsHelper.OnCommitSuccess()
 		return nil
 	})
+}
+
+func (self *WorkingTreeHelper) switchFromCommitMessagePanelToEditor(filepath string) error {
+	// We won't be able to tell whether the commit was successful, because
+	// RunSubprocessAndRefresh doesn't return the error (it opens an error alert
+	// itself and returns nil on error). But even if we could, we wouldn't have
+	// access to the last message that the user typed, and it might be very
+	// different from what was last in the commit panel. So the best we can do
+	// here is to always clear the remembered commit message.
+	self.commitsHelper.OnCommitSuccess()
+
+	self.c.LogAction(self.c.Tr.Actions.Commit)
+	return self.c.RunSubprocessAndRefresh(
+		self.c.Git().Commit.CommitInEditorWithMessageFileCmdObj(filepath),
+	)
 }
 
 // HandleCommitEditorPress - handle when the user wants to commit changes via

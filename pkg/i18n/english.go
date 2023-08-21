@@ -199,6 +199,7 @@ type TranslationSet struct {
 	CommitSummaryTitle                  string
 	CommitDescriptionTitle              string
 	CommitDescriptionSubTitle           string
+	CommitDescriptionSubTitleNoSwitch   string
 	LocalBranchesTitle                  string
 	SearchTitle                         string
 	TagsTitle                           string
@@ -969,7 +970,8 @@ func EnglishTranslationSet() TranslationSet {
 		RebaseOptionsTitle:                  "Rebase options",
 		CommitSummaryTitle:                  "Commit summary",
 		CommitDescriptionTitle:              "Commit description",
-		CommitDescriptionSubTitle:           "Press {{.togglePanelKeyBinding}} to toggle focus",
+		CommitDescriptionSubTitle:           "Press {{.togglePanelKeyBinding}} to toggle focus, {{.switchToEditorKeyBinding}} to switch to editor",
+		CommitDescriptionSubTitleNoSwitch:   "Press {{.togglePanelKeyBinding}} to toggle focus",
 		LocalBranchesTitle:                  "Local branches",
 		SearchTitle:                         "Search",
 		TagsTitle:                           "Tags",

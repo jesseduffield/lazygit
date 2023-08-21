@@ -5,7 +5,10 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/keybindings"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type CommitMessageContext struct {
@@ -32,6 +35,8 @@ type CommitMessageViewModel struct {
 	preservedMessage string
 	// invoked when pressing enter in the commit message panel
 	onConfirm func(string, string) error
+	// invoked when pressing the switch-to-editor key binding
+	onSwitchToEditor func(string) error
 
 	// The message typed in before cycling through history
 	// We store this separately to 'preservedMessage' because 'preservedMessage'
@@ -98,12 +103,21 @@ func (self *CommitMessageContext) SetPanelState(
 	descriptionTitle string,
 	preserveMessage bool,
 	onConfirm func(string, string) error,
+	onSwitchToEditor func(string) error,
 ) {
 	self.viewModel.selectedindex = index
 	self.viewModel.preserveMessage = preserveMessage
 	self.viewModel.onConfirm = onConfirm
+	self.viewModel.onSwitchToEditor = onSwitchToEditor
 	self.GetView().Title = summaryTitle
 	self.c.Views().CommitDescription.Title = descriptionTitle
+
+	subtitleTemplate := lo.Ternary(onSwitchToEditor != nil, self.c.Tr.CommitDescriptionSubTitle, self.c.Tr.CommitDescriptionSubTitleNoSwitch)
+	self.c.Views().CommitDescription.Subtitle = utils.ResolvePlaceholderString(subtitleTemplate,
+		map[string]string{
+			"togglePanelKeyBinding":    keybindings.Label(self.c.UserConfig.Keybinding.Universal.TogglePanel),
+			"switchToEditorKeyBinding": keybindings.Label(self.c.UserConfig.Keybinding.CommitMessage.SwitchToEditor),
+		})
 }
 
 func (self *CommitMessageContext) RenderCommitLength() {
@@ -116,4 +130,12 @@ func (self *CommitMessageContext) RenderCommitLength() {
 
 func getBufferLength(view *gocui.View) string {
 	return " " + strconv.Itoa(strings.Count(view.TextArea.GetContent(), "")-1) + " "
+}
+
+func (self *CommitMessageContext) SwitchToEditor(message string) error {
+	return self.viewModel.onSwitchToEditor(message)
+}
+
+func (self *CommitMessageContext) CanSwitchToEditor() bool {
+	return self.viewModel.onSwitchToEditor != nil
 }

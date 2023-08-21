@@ -132,16 +132,17 @@ type UpdateConfig struct {
 }
 
 type KeybindingConfig struct {
-	Universal   KeybindingUniversalConfig   `yaml:"universal"`
-	Status      KeybindingStatusConfig      `yaml:"status"`
-	Files       KeybindingFilesConfig       `yaml:"files"`
-	Branches    KeybindingBranchesConfig    `yaml:"branches"`
-	Worktrees   KeybindingWorktreesConfig   `yaml:"worktrees"`
-	Commits     KeybindingCommitsConfig     `yaml:"commits"`
-	Stash       KeybindingStashConfig       `yaml:"stash"`
-	CommitFiles KeybindingCommitFilesConfig `yaml:"commitFiles"`
-	Main        KeybindingMainConfig        `yaml:"main"`
-	Submodules  KeybindingSubmodulesConfig  `yaml:"submodules"`
+	Universal     KeybindingUniversalConfig     `yaml:"universal"`
+	Status        KeybindingStatusConfig        `yaml:"status"`
+	Files         KeybindingFilesConfig         `yaml:"files"`
+	Branches      KeybindingBranchesConfig      `yaml:"branches"`
+	Worktrees     KeybindingWorktreesConfig     `yaml:"worktrees"`
+	Commits       KeybindingCommitsConfig       `yaml:"commits"`
+	Stash         KeybindingStashConfig         `yaml:"stash"`
+	CommitFiles   KeybindingCommitFilesConfig   `yaml:"commitFiles"`
+	Main          KeybindingMainConfig          `yaml:"main"`
+	Submodules    KeybindingSubmodulesConfig    `yaml:"submodules"`
+	CommitMessage KeybindingCommitMessageConfig `yaml:"commitMessage"`
 }
 
 // damn looks like we have some inconsistencies here with -alt and -alt1
@@ -303,6 +304,10 @@ type KeybindingSubmodulesConfig struct {
 	Init     string `yaml:"init"`
 	Update   string `yaml:"update"`
 	BulkMenu string `yaml:"bulkMenu"`
+}
+
+type KeybindingCommitMessageConfig struct {
+	SwitchToEditor string `yaml:"switchToEditor"`
 }
 
 // OSConfig contains config on the level of the os
@@ -651,6 +656,9 @@ func GetDefaultConfig() *UserConfig {
 				Init:     "i",
 				Update:   "u",
 				BulkMenu: "b",
+			},
+			CommitMessage: KeybindingCommitMessageConfig{
+				SwitchToEditor: "<c-o>",
 			},
 		},
 		OS:                           OSConfig{},
