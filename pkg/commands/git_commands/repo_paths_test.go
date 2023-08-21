@@ -56,6 +56,24 @@ func TestGetRepoPathsAux(t *testing.T) {
 			Err: nil,
 		},
 		{
+			Name: "worktree with trailing separator in path",
+			BeforeFunc: func(fs afero.Fs) {
+				// setup for linked worktree
+				_ = fs.MkdirAll("/path/to/repo/.git/worktrees/worktree1", 0o755)
+				_ = afero.WriteFile(fs, "/path/to/repo/worktree1/.git", []byte("gitdir: /path/to/repo/.git/worktrees/worktree1/"), 0o644)
+			},
+			Path: "/path/to/repo/worktree1",
+			Expected: &RepoPaths{
+				currentPath:        "/path/to/repo/worktree1",
+				worktreePath:       "/path/to/repo/worktree1",
+				worktreeGitDirPath: "/path/to/repo/.git/worktrees/worktree1",
+				repoPath:           "/path/to/repo",
+				repoGitDirPath:     "/path/to/repo/.git",
+				repoName:           "repo",
+			},
+			Err: nil,
+		},
+		{
 			Name: "worktree .git file missing gitdir directive",
 			BeforeFunc: func(fs afero.Fs) {
 				_ = fs.MkdirAll("/path/to/repo/.git/worktrees/worktree2", 0o755)
@@ -117,7 +135,7 @@ func TestGetRepoPathsAux(t *testing.T) {
 			},
 			Path:     "/path/to/repo/my/submodule1",
 			Expected: nil,
-			Err:      errors.New("failed to get repo git dir path: could not find git dir for /path/to/repo/my/submodule1: path is not under `worktrees` or `modules` directories"),
+			Err:      errors.New("failed to get repo git dir path: could not find git dir for /path/to/repo/my/submodule1: the path '/random/submodule1' is not under `worktrees` or `modules` directories"),
 		},
 	}
 

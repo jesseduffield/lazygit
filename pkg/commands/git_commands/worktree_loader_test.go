@@ -186,7 +186,7 @@ branch refs/heads/mybranch-worktree
 				assert.EqualError(t, errors.New(s.expectedErr), err.Error())
 			} else {
 				assert.NoError(t, err)
-				assert.EqualValues(t, worktrees, s.expectedWorktrees)
+				assert.EqualValues(t, s.expectedWorktrees, worktrees)
 			}
 		})
 	}

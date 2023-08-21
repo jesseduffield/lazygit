@@ -158,6 +158,7 @@ func linkedWorktreeGitDirPath(fs afero.Fs, worktreePath string) (string, error) 
 
 	gitDir := strings.TrimPrefix(gitDirLine[0], "gitdir: ")
 
+	gitDir = filepath.Clean(gitDir)
 	// For windows support
 	gitDir = filepath.ToSlash(gitDir)
 
@@ -223,7 +224,7 @@ func getCurrentRepoGitDirPath(
 
 	// If this error causes issues, we could relax the constraint and just always
 	// return the path
-	return "", "", errors.Errorf("could not find git dir for %s: path is not under `worktrees` or `modules` directories", currentPath)
+	return "", "", errors.Errorf("could not find git dir for %s: the path '%s' is not under `worktrees` or `modules` directories", currentPath, worktreeGitPath)
 }
 
 // takes a path containing a symlink and returns the true path
