@@ -548,7 +548,8 @@ func TestCommitLoader_setCommitMergedStatuses(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.testName, func(t *testing.T) {
-			expectedCommits := setCommitMergedStatuses(scenario.ancestor, scenario.commits)
+			expectedCommits := scenario.commits
+			setCommitMergedStatuses(scenario.ancestor, expectedCommits)
 			assert.Equal(t, scenario.expectedCommits, expectedCommits)
 		})
 	}

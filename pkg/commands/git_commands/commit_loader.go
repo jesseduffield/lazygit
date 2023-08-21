@@ -137,9 +137,7 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		return commits, nil
 	}
 
-	if ancestor != "" {
-		commits = setCommitMergedStatuses(ancestor, commits)
-	}
+	setCommitMergedStatuses(ancestor, commits)
 
 	return commits, nil
 }
@@ -495,7 +493,11 @@ func (self *CommitLoader) commitFromPatch(content string) *models.Commit {
 	}
 }
 
-func setCommitMergedStatuses(ancestor string, commits []*models.Commit) []*models.Commit {
+func setCommitMergedStatuses(ancestor string, commits []*models.Commit) {
+	if ancestor == "" {
+		return
+	}
+
 	passedAncestor := false
 	for i, commit := range commits {
 		// some commits aren't really commits and don't have sha's, such as the update-ref todo
@@ -509,7 +511,6 @@ func setCommitMergedStatuses(ancestor string, commits []*models.Commit) []*model
 			commits[i].Status = models.StatusMerged
 		}
 	}
-	return commits
 }
 
 func (self *CommitLoader) getMergeBase(refName string) string {
