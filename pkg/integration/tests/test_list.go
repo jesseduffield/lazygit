@@ -188,6 +188,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.RewordYouAreHereCommitWithEditor,
 	interactive_rebase.SquashDownFirstCommit,
 	interactive_rebase.SquashDownSecondCommit,
+	interactive_rebase.SquashFixupsAbove,
 	interactive_rebase.SquashFixupsAboveFirstCommit,
 	interactive_rebase.SquashFixupsInCurrentBranch,
 	interactive_rebase.SwapInRebaseWithConflict,
