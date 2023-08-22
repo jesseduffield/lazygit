@@ -178,11 +178,11 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 
 		self.refreshStatus()
 
+		wg.Wait()
+
 		if options.Then != nil {
 			options.Then()
 		}
-
-		wg.Wait()
 	}
 
 	if options.Mode == types.BLOCK_UI {
