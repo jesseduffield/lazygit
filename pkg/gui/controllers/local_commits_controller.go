@@ -811,11 +811,14 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 		HandleConfirm: func() error {
 			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
 				self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
-				if err := self.c.Git().Commit.CreateFixupCommit(commit.Sha); err != nil {
-					return self.c.Error(err)
-				}
+				return self.c.WithWaitingStatusSync(self.c.Tr.CreatingFixupCommitStatus, func() error {
+					if err := self.c.Git().Commit.CreateFixupCommit(commit.Sha); err != nil {
+						return self.c.Error(err)
+					}
 
-				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+					self.context().MoveSelectedLine(1)
+					return self.c.Refresh(types.RefreshOptions{Mode: types.SYNC})
+				})
 			})
 		},
 	})

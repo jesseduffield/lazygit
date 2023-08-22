@@ -341,6 +341,7 @@ type TranslationSet struct {
 	CheckingOutStatus                     string
 	CommittingStatus                      string
 	RevertingStatus                       string
+	CreatingFixupCommitStatus             string
 	CommitFiles                           string
 	SubCommitsDynamicTitle                string
 	CommitFilesDynamicTitle               string
@@ -1289,6 +1290,7 @@ func EnglishTranslationSet() TranslationSet {
 		CheckingOutStatus:                   "Checking out",
 		CommittingStatus:                    "Committing",
 		RevertingStatus:                     "Reverting",
+		CreatingFixupCommitStatus:           "Creating fixup commit",
 		CommitFiles:                         "Commit files",
 		SubCommitsDynamicTitle:              "Commits (%s)",
 		CommitFilesDynamicTitle:             "Diff files (%s)",
