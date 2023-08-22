@@ -33,11 +33,10 @@ var SquashFixupsAbove = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("fixup! commit 02"),
-				Contains("commit 03").IsSelected(), // wrong, we want the next line
-				Contains("commit 02"),
+				Contains("commit 03"),
+				Contains("commit 02").IsSelected(),
 				Contains("commit 01"),
 			).
-			SelectNextItem().
 			Press(keys.Commits.SquashAboveCommits).
 			Tap(func() {
 				t.ExpectPopup().Menu().
