@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/fsmiamoto/git-todo-parser/todo"
 	"github.com/go-errors/errors"
@@ -847,37 +848,89 @@ func (self *LocalCommitsController) squashFixupCommits() error {
 }
 
 func (self *LocalCommitsController) squashAllFixupsAboveSelectedCommit(commit *models.Commit) error {
-	return self.squashFixupsImpl(commit)
+	return self.squashFixupsImpl(commit, self.context().GetSelectedLineIdx())
 }
 
 func (self *LocalCommitsController) squashAllFixupsInCurrentBranch() error {
-	commit, err := self.findCommitForSquashFixupsInCurrentBranch()
+	commit, rebaseStartIdx, err := self.findCommitForSquashFixupsInCurrentBranch()
 	if err != nil {
 		return self.c.Error(err)
 	}
 
-	return self.squashFixupsImpl(commit)
+	return self.squashFixupsImpl(commit, rebaseStartIdx)
 }
 
-func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit) error {
-	return self.c.WithWaitingStatus(self.c.Tr.SquashingStatus, func(gocui.Task) error {
+func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit, rebaseStartIdx int) error {
+	selectionOffset := countSquashableCommitsAbove(self.c.Model().Commits, self.context().GetSelectedLineIdx(), rebaseStartIdx)
+	return self.c.WithWaitingStatusSync(self.c.Tr.SquashingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.SquashAllAboveFixupCommits)
 		err := self.c.Git().Rebase.SquashAllAboveFixupCommits(commit)
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+		self.context().MoveSelectedLine(-selectionOffset)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }
 
-func (self *LocalCommitsController) findCommitForSquashFixupsInCurrentBranch() (*models.Commit, error) {
+func (self *LocalCommitsController) findCommitForSquashFixupsInCurrentBranch() (*models.Commit, int, error) {
 	commits := self.c.Model().Commits
 	_, index, ok := lo.FindIndexOf(commits, func(c *models.Commit) bool {
 		return c.IsMerge() || c.Status == models.StatusMerged
 	})
 
 	if !ok || index == 0 {
-		return nil, errors.New(self.c.Tr.CannotSquashCommitsInCurrentBranch)
+		return nil, -1, errors.New(self.c.Tr.CannotSquashCommitsInCurrentBranch)
 	}
 
-	return commits[index-1], nil
+	return commits[index-1], index - 1, nil
+}
+
+// Anticipate how many commits above the selectedIdx are going to get squashed
+// by the SquashAllAboveFixupCommits call, so that we can adjust the selection
+// afterwards. Let's hope we're matching git's behavior correctly here.
+func countSquashableCommitsAbove(commits []*models.Commit, selectedIdx int, rebaseStartIdx int) int {
+	result := 0
+
+	// For each commit _above_ the selection, ...
+	for i, commit := range commits[0:selectedIdx] {
+		// ... see if it is a fixup commit, and get the base subject it applies to
+		if baseSubject, isFixup := isFixupCommit(commit.Name); isFixup {
+			// Then, for each commit after the fixup, up to and including the
+			// rebase start commit, see if we find the base commit
+			for _, baseCommit := range commits[i+1 : rebaseStartIdx+1] {
+				if strings.HasPrefix(baseCommit.Name, baseSubject) {
+					result++
+				}
+			}
+		}
+	}
+	return result
+}
+
+// Check whether the given subject line is the subject of a fixup commit, and
+// returns (trimmedSubject, true) if so (where trimmedSubject is the subject
+// with all fixup prefixes removed), or (subject, false) if not.
+func isFixupCommit(subject string) (string, bool) {
+	prefixes := []string{"fixup! ", "squash! ", "amend! "}
+	trimPrefix := func(s string) (string, bool) {
+		for _, prefix := range prefixes {
+			if strings.HasPrefix(s, prefix) {
+				return strings.TrimPrefix(s, prefix), true
+			}
+		}
+		return s, false
+	}
+
+	if subject, wasTrimmed := trimPrefix(subject); wasTrimmed {
+		for {
+			// handle repeated prefixes like "fixup! amend! fixup! Subject"
+			if subject, wasTrimmed = trimPrefix(subject); !wasTrimmed {
+				break
+			}
+		}
+		return subject, true
+	}
+
+	return subject, false
 }
 
 func (self *LocalCommitsController) createTag(commit *models.Commit) error {
@@ -1070,7 +1123,7 @@ func (self *LocalCommitsController) canFindCommitForQuickStart() *types.Disabled
 }
 
 func (self *LocalCommitsController) canFindCommitForSquashFixupsInCurrentBranch() *types.DisabledReason {
-	if _, err := self.findCommitForSquashFixupsInCurrentBranch(); err != nil {
+	if _, _, err := self.findCommitForSquashFixupsInCurrentBranch(); err != nil {
 		return &types.DisabledReason{Text: err.Error()}
 	}
 

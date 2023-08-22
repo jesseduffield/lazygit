@@ -46,10 +46,9 @@ var SquashFixupsAbove = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("commit 03"),
-				Contains("commit 02"),
-				Contains("commit 01").IsSelected(), // wrong, we want the previous line
-			).
-			SelectPreviousItem()
+				Contains("commit 02").IsSelected(),
+				Contains("commit 01"),
+			)
 
 		t.Views().Main().
 			Content(Contains("fixup content"))
