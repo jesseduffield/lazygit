@@ -84,29 +84,19 @@ func (self *WorkingTreeHelper) OpenMergeTool() error {
 }
 
 func (self *WorkingTreeHelper) HandleCommitPressWithMessage(initialMessage string) error {
-	if err := self.prepareFilesForCommit(); err != nil {
-		return self.c.Error(err)
-	}
-
-	if len(self.c.Model().Files) == 0 {
-		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
-	}
-
-	if !self.AnyStagedFiles() {
-		return self.PromptToStageAllAndRetry(self.HandleCommitPress)
-	}
-
-	return self.commitsHelper.OpenCommitMessagePanel(
-		&OpenCommitMessagePanelOpts{
-			CommitIndex:      context.NoCommitIndex,
-			InitialMessage:   initialMessage,
-			SummaryTitle:     self.c.Tr.CommitSummaryTitle,
-			DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
-			PreserveMessage:  true,
-			OnConfirm:        self.handleCommit,
-			OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
-		},
-	)
+	return self.WithEnsureCommitableFiles(func() error {
+		return self.commitsHelper.OpenCommitMessagePanel(
+			&OpenCommitMessagePanelOpts{
+				CommitIndex:      context.NoCommitIndex,
+				InitialMessage:   initialMessage,
+				SummaryTitle:     self.c.Tr.CommitSummaryTitle,
+				DescriptionTitle: self.c.Tr.CommitDescriptionTitle,
+				PreserveMessage:  true,
+				OnConfirm:        self.handleCommit,
+				OnSwitchToEditor: self.switchFromCommitMessagePanelToEditor,
+			},
+		)
+	})
 }
 
 func (self *WorkingTreeHelper) handleCommit(summary string, description string) error {
@@ -136,18 +126,12 @@ func (self *WorkingTreeHelper) switchFromCommitMessagePanelToEditor(filepath str
 // HandleCommitEditorPress - handle when the user wants to commit changes via
 // their editor rather than via the popup panel
 func (self *WorkingTreeHelper) HandleCommitEditorPress() error {
-	if len(self.c.Model().Files) == 0 {
-		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
-	}
-
-	if !self.AnyStagedFiles() {
-		return self.PromptToStageAllAndRetry(self.HandleCommitEditorPress)
-	}
-
-	self.c.LogAction(self.c.Tr.Actions.Commit)
-	return self.c.RunSubprocessAndRefresh(
-		self.c.Git().Commit.CommitEditorCmdObj(),
-	)
+	return self.WithEnsureCommitableFiles(func() error {
+		self.c.LogAction(self.c.Tr.Actions.Commit)
+		return self.c.RunSubprocessAndRefresh(
+			self.c.Git().Commit.CommitEditorCmdObj(),
+		)
+	})
 }
 
 func (self *WorkingTreeHelper) HandleWIPCommitPress() error {
@@ -179,7 +163,23 @@ func (self *WorkingTreeHelper) HandleCommitPress() error {
 	return self.HandleCommitPressWithMessage(message)
 }
 
-func (self *WorkingTreeHelper) PromptToStageAllAndRetry(retry func() error) error {
+func (self *WorkingTreeHelper) WithEnsureCommitableFiles(handler func() error) error {
+	if err := self.prepareFilesForCommit(); err != nil {
+		return self.c.Error(err)
+	}
+
+	if len(self.c.Model().Files) == 0 {
+		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
+	}
+
+	if !self.AnyStagedFiles() {
+		return self.promptToStageAllAndRetry(handler)
+	}
+
+	return handler()
+}
+
+func (self *WorkingTreeHelper) promptToStageAllAndRetry(retry func() error) error {
 	return self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.NoFilesStagedTitle,
 		Prompt: self.c.Tr.NoFilesStagedPrompt,
