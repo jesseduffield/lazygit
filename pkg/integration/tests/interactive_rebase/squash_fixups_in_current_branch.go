@@ -45,11 +45,10 @@ var SquashFixupsInCurrentBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			}).
 			Lines(
 				Contains("commit 02"),
-				Contains("commit 01"),
-				Contains("fixup! master commit").IsSelected(), // wrong, we want the previous line
+				Contains("commit 01").IsSelected(),
+				Contains("fixup! master commit"),
 				Contains("master commit"),
-			).
-			NavigateToLine(Contains("commit 01"))
+			)
 
 		t.Views().Main().
 			Content(Contains("fixup content"))
