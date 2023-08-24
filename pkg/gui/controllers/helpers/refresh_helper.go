@@ -51,6 +51,10 @@ func NewRefreshHelper(
 }
 
 func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
+	if options.Mode == types.ASYNC && options.Then != nil {
+		panic("RefreshOptions.Then doesn't work with mode ASYNC")
+	}
+
 	t := time.Now()
 	defer func() {
 		self.c.Log.Infof(fmt.Sprintf("Refresh took %s", time.Since(t)))
@@ -174,11 +178,11 @@ func (self *RefreshHelper) Refresh(options types.RefreshOptions) error {
 
 		self.refreshStatus()
 
+		wg.Wait()
+
 		if options.Then != nil {
 			options.Then()
 		}
-
-		wg.Wait()
 	}
 
 	if options.Mode == types.BLOCK_UI {
