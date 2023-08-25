@@ -223,6 +223,7 @@ type KeybindingFilesConfig struct {
 	CommitChangesWithoutHook string `yaml:"commitChangesWithoutHook"`
 	AmendLastCommit          string `yaml:"amendLastCommit"`
 	CommitChangesWithEditor  string `yaml:"commitChangesWithEditor"`
+	ConfirmDiscard           string `yaml:"confirmDiscard"`
 	IgnoreFile               string `yaml:"ignoreFile"`
 	RefreshFiles             string `yaml:"refreshFiles"`
 	StashAllChanges          string `yaml:"stashAllChanges"`
@@ -592,6 +593,7 @@ func GetDefaultConfig() *UserConfig {
 				ToggleTreeView:           "`",
 				OpenMergeTool:            "M",
 				OpenStatusFilter:         "<c-b>",
+				ConfirmDiscard:           "x",
 			},
 			Branches: KeybindingBranchesConfig{
 				CopyPullRequestURL:     "<c-y>",

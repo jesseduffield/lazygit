@@ -53,7 +53,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 					}
 					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 				},
-				Key: 'x',
+				Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
 				Tooltip: utils.ResolvePlaceholderString(
 					self.c.Tr.DiscardAllTooltip,
 					map[string]string{
@@ -109,7 +109,7 @@ func (self *FilesRemoveController) remove(node *filetree.FileNode) error {
 						}
 						return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC, Scope: []types.RefreshableView{types.FILES, types.WORKTREES}})
 					},
-					Key: 'x',
+					Key: self.c.KeybindingsOpts().GetKey(self.c.UserConfig.Keybinding.Files.ConfirmDiscard),
 					Tooltip: utils.ResolvePlaceholderString(
 						self.c.Tr.DiscardAllTooltip,
 						map[string]string{
