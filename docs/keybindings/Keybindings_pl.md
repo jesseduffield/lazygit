@@ -113,7 +113,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>T</kbd>: Create tag
   <kbd>g</kbd>: Wyświetl opcje resetu
   <kbd>R</kbd>: Rename branch
-  <kbd>u</kbd>: Set/Unset upstream
+  <kbd>u</kbd>: View upstream options
   <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: View commits
   <kbd>/</kbd>: Filter the current view by text

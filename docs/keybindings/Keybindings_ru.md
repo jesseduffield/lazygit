@@ -188,7 +188,7 @@ _Связки клавиш_
   <kbd>T</kbd>: Создать тег
   <kbd>g</kbd>: Просмотреть параметры сброса
   <kbd>R</kbd>: Переименовать ветку
-  <kbd>u</kbd>: Установить/убрать upstream-ветку
+  <kbd>u</kbd>: View upstream options
   <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: Просмотреть коммиты
   <kbd>/</kbd>: Filter the current view by text

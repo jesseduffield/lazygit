@@ -476,7 +476,6 @@ func koreanTranslationSet() TranslationSet {
 			Merge:                             "병합",
 			RebaseBranch:                      "브랜치 리베이스",
 			RenameBranch:                      "브랜치 이름 변경",
-			SetUnsetUpstream:                  "Set/Unset upstream",
 			CreateBranch:                      "브랜치 생성",
 			CherryPick:                        "(Cherry-pick) 커밋 붙여넣기",
 			CheckoutFile:                      "체크아웃 파일",
