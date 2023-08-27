@@ -367,6 +367,7 @@ You can install `lazygit` using the `winget` command in the Windows Terminal wit
 ```powershell
 winget install -e --id=JesseDuffield.lazygit
 ```
+
 ### Manual
 
 You'll need to [install Go](https://golang.org/doc/install)
