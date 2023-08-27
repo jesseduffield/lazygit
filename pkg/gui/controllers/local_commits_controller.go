@@ -548,13 +548,14 @@ func (self *LocalCommitsController) moveDown(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitDown)
 		err := self.c.Git().Rebase.MoveCommitDown(self.c.Model().Commits, index)
 		if err == nil {
 			self.context().MoveSelectedLine(1)
 		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }
 
@@ -589,13 +590,14 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 		return self.c.ErrorMsg(self.c.Tr.AlreadyRebasing)
 	}
 
-	return self.c.WithWaitingStatus(self.c.Tr.MovingStatus, func(gocui.Task) error {
+	return self.c.WithWaitingStatusSync(self.c.Tr.MovingStatus, func() error {
 		self.c.LogAction(self.c.Tr.Actions.MoveCommitUp)
 		err := self.c.Git().Rebase.MoveCommitUp(self.c.Model().Commits, index)
 		if err == nil {
 			self.context().MoveSelectedLine(-1)
 		}
-		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+		return self.c.Helpers().MergeAndRebase.CheckMergeOrRebaseWithRefreshOptions(
+			err, types.RefreshOptions{Mode: types.SYNC})
 	})
 }
 
