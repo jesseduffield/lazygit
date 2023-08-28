@@ -62,6 +62,7 @@ func Run(
 
 func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 	userConfig := config.GetUserConfig()
+	appState := config.GetAppState()
 
 	var err error
 	log := newLogger(config)
@@ -74,6 +75,7 @@ func NewCommon(config config.AppConfigurer) (*common.Common, error) {
 		Log:        log,
 		Tr:         tr,
 		UserConfig: userConfig,
+		AppState:   appState,
 		Debug:      config.GetDebug(),
 		Fs:         afero.NewOsFs(),
 	}, nil

@@ -17,6 +17,7 @@ import (
 type commonDeps struct {
 	runner     *oscommands.FakeCmdObjRunner
 	userConfig *config.UserConfig
+	appState   *config.AppState
 	gitVersion *GitVersion
 	gitConfig  *git_config.FakeGitConfig
 	getenv     func(string) string
@@ -32,7 +33,7 @@ func buildGitCommon(deps commonDeps) *GitCommon {
 
 	gitCommon.Common = deps.common
 	if gitCommon.Common == nil {
-		gitCommon.Common = utils.NewDummyCommonWithUserConfig(deps.userConfig)
+		gitCommon.Common = utils.NewDummyCommonWithUserConfigAndAppState(deps.userConfig, deps.appState)
 	}
 
 	if deps.fs != nil {

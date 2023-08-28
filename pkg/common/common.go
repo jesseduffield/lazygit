@@ -12,6 +12,7 @@ type Common struct {
 	Log        *logrus.Entry
 	Tr         *i18n.TranslationSet
 	UserConfig *config.UserConfig
+	AppState   *config.AppState
 	Debug      bool
 	// for interacting with the filesystem. We use afero rather than the default
 	// `os` package for the sake of mocking the filesystem in tests
