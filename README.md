@@ -320,6 +320,25 @@ ebuild lazygit-${LAZYGIT_VERSION}.ebuild manifest
 emerge lazygit
 ```
 
+### openSUSE
+
+The lazygit package is currently built in [devel:languages:go/lazygit](https://build.opensuse.org/package/show/devel:languages:go/lazygit).
+
+To install lazygit on openSUSE Tumbleweed run:
+
+```sh
+sudo zypper ar https://download.opensuse.org/repositories/devel:/languages:/go/openSUSE_Factory/devel:languages:go.repo
+sudo zypper ref && sudo zypper in lazygit
+```
+
+To install lazygit on openSUSE Leap run:
+
+```sh
+source /etc/os-release
+sudo zypper ar https://download.opensuse.org/repositories/devel:/languages:/go/$VERSION_ID/devel:languages:go.repo
+sudo zypper ref && sudo zypper in lazygit
+```
+
 ### FreeBSD
 
 ```sh
