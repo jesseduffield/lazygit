@@ -31,6 +31,9 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
 
 ## Table of contents
 
+- [Sponsors](#sponsors)
+- [Elevator Pitch](#elevator-pitch)
+- [Table of contents](#table-of-contents)
 - [Features](#features)
   - [Stage individual lines](#stage-individual-lines)
   - [Interactive Rebase](#interactive-rebase)
@@ -48,7 +51,7 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Compare two commits](#compare-two-commits)
 - [Tutorials](#tutorials)
 - [Installation](#installation)
-  - [Binary releases](#binary-releases)
+  - [Binary Releases](#binary-releases)
   - [Homebrew](#homebrew)
   - [MacPorts](#macports)
   - [Void Linux](#void-linux)
@@ -60,19 +63,26 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Funtoo Linux](#funtoo-linux)
   - [Gentoo Linux](#gentoo-linux)
   - [FreeBSD](#freebsd)
+  - [Termux](#termux)
   - [Conda](#conda)
   - [Go](#go)
   - [Chocolatey (Windows)](#chocolatey-windows)
+  - [Winget (Windows 10 1709 or later)](#winget-windows-10-1709-or-later)
   - [Manual](#manual)
 - [Usage](#usage)
   - [Keybindings](#keybindings)
-  - [Changing directory on exit](#changing-directory-on-exit)
+  - [Changing Directory On Exit](#changing-directory-on-exit)
   - [Undo/Redo](#undoredo)
 - [Configuration](#configuration)
-  - [Custom pagers](#configuration)
-  - [Custom commands](#configuration)
+  - [Custom Pagers](#custom-pagers)
+  - [Custom Commands](#custom-commands)
+  - [Git flow support](#git-flow-support)
 - [Contributing](#contributing)
+  - [Debugging Locally](#debugging-locally)
 - [Donate](#donate)
+- [FAQ](#faq)
+  - [What do the commit colors represent?](#what-do-the-commit-colors-represent)
+- [Shameless Plug](#shameless-plug)
 - [Alternatives](#alternatives)
 
 Lazygit is not my fulltime job but it is a hefty part time job so if you want to support the project please consider [sponsoring me](https://github.com/sponsors/jesseduffield)
@@ -348,6 +358,14 @@ You can install `lazygit` using [Chocolatey](https://chocolatey.org/):
 
 ```sh
 choco install lazygit
+```
+
+### Winget (Windows 10 1709 or later)
+
+You can install `lazygit` using the `winget` command in the Windows Terminal with the following command:
+
+```powershell
+winget install -e --id=JesseDuffield.lazygit
 ```
 
 ### Manual
