@@ -117,7 +117,6 @@ git:
   overrideGpg: false # prevents lazygit from spawning a separate process when using GPG
   disableForcePushing: false
   parseEmoji: false
-  diffContextSize: 3 # how many lines of context are shown around a change in diffs
 os:
   copyToClipboardCmd: '' # See 'Custom Command for Copying to Clipboard' section
   editPreset: '' # see 'Configuring File Editing' section

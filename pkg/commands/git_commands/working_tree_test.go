@@ -309,9 +309,9 @@ func TestWorkingTreeDiff(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
-			userConfig.Git.DiffContextSize = s.contextSize
 			appState := &config.AppState{}
 			appState.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
+			appState.DiffContextSize = s.contextSize
 
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, appState: appState})
 			result := instance.WorktreeFileDiff(s.file, s.plain, s.cached)
@@ -375,9 +375,9 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
-			userConfig.Git.DiffContextSize = s.contextSize
 			appState := &config.AppState{}
 			appState.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
+			appState.DiffContextSize = s.contextSize
 
 			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, appState: appState})
 

@@ -197,7 +197,7 @@ func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
 }
 
 func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands.ICmdObj {
-	contextSize := self.UserConfig.Git.DiffContextSize
+	contextSize := self.AppState.DiffContextSize
 
 	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
 	cmdArgs := NewGitCmd("show").

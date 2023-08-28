@@ -322,6 +322,7 @@ type AppState struct {
 	CustomCommandsHistory      []string
 	HideCommandLog             bool
 	IgnoreWhitespaceInDiffView bool
+	DiffContextSize            int
 }
 
 func getDefaultAppState() *AppState {
@@ -329,6 +330,7 @@ func getDefaultAppState() *AppState {
 		LastUpdateCheck:     0,
 		RecentRepos:         []string{},
 		StartupPopupVersion: 0,
+		DiffContextSize:     3,
 	}
 }
 

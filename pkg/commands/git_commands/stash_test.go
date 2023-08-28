@@ -134,9 +134,9 @@ func TestStashStashEntryCmdObj(t *testing.T) {
 		s := s
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
-			userConfig.Git.DiffContextSize = s.contextSize
 			appState := &config.AppState{}
 			appState.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
+			appState.DiffContextSize = s.contextSize
 			instance := buildStashCommands(commonDeps{userConfig: userConfig, appState: appState})
 
 			cmdStr := instance.ShowStashEntryCmdObj(s.index).Args()
