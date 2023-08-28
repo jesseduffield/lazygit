@@ -52,8 +52,8 @@ func (self *StagingHelper) RefreshStagingPanel(focusOpts types.OnFocusOpts) erro
 		return self.handleStagingEscape()
 	}
 
-	mainDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, true, false, false)
-	secondaryDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, true, true, false)
+	mainDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, true, false)
+	secondaryDiff := self.c.Git().WorkingTree.WorktreeFileDiff(file, true, true)
 
 	// grabbing locks here and releasing before we finish the function
 	// because pushing say the secondary context could mean entering this function

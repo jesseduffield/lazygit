@@ -196,7 +196,7 @@ func (self *CommitCommands) AmendHeadCmdObj() oscommands.ICmdObj {
 	return self.cmd.New(cmdArgs)
 }
 
-func (self *CommitCommands) ShowCmdObj(sha string, filterPath string, ignoreWhitespace bool) oscommands.ICmdObj {
+func (self *CommitCommands) ShowCmdObj(sha string, filterPath string) oscommands.ICmdObj {
 	contextSize := self.UserConfig.Git.DiffContextSize
 
 	extDiffCmd := self.UserConfig.Git.Paging.ExternalDiffCommand
@@ -210,7 +210,7 @@ func (self *CommitCommands) ShowCmdObj(sha string, filterPath string, ignoreWhit
 		Arg("--decorate").
 		Arg("-p").
 		Arg(sha).
-		ArgIf(ignoreWhitespace, "--ignore-all-space").
+		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		ArgIf(filterPath != "", "--", filterPath).
 		ToArgv()
 

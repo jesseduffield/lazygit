@@ -310,9 +310,11 @@ func TestWorkingTreeDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.DiffContextSize = s.contextSize
+			appState := &config.AppState{}
+			appState.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
 
-			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig})
-			result := instance.WorktreeFileDiff(s.file, s.plain, s.cached, s.ignoreWhitespace)
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, appState: appState})
+			result := instance.WorktreeFileDiff(s.file, s.plain, s.cached)
 			assert.Equal(t, expectedResult, result)
 			s.runner.CheckForMissingCalls()
 		})
@@ -374,10 +376,12 @@ func TestWorkingTreeShowFileDiff(t *testing.T) {
 		t.Run(s.testName, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Git.DiffContextSize = s.contextSize
+			appState := &config.AppState{}
+			appState.IgnoreWhitespaceInDiffView = s.ignoreWhitespace
 
-			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig})
+			instance := buildWorkingTreeCommands(commonDeps{runner: s.runner, userConfig: userConfig, appState: appState})
 
-			result, err := instance.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain, s.ignoreWhitespace)
+			result, err := instance.ShowFileDiff(s.from, s.to, s.reverse, "test.txt", s.plain)
 			assert.NoError(t, err)
 			assert.Equal(t, expectedResult, result)
 			s.runner.CheckForMissingCalls()
