@@ -283,11 +283,13 @@ func (c *AppConfig) SaveAppState() error {
 
 // loadAppState loads recorded AppState from file
 func loadAppState() (*AppState, error) {
+	appState := getDefaultAppState()
+
 	filepath, err := configFilePath("state.yml")
 	if err != nil {
 		if os.IsPermission(err) {
 			// apparently when people have read-only permissions they prefer us to fail silently
-			return getDefaultAppState(), nil
+			return appState, nil
 		}
 		return nil, err
 	}
@@ -298,10 +300,9 @@ func loadAppState() (*AppState, error) {
 	}
 
 	if len(appStateBytes) == 0 {
-		return getDefaultAppState(), nil
+		return appState, nil
 	}
 
-	appState := &AppState{}
 	err = yaml.Unmarshal(appStateBytes, appState)
 	if err != nil {
 		return nil, err
