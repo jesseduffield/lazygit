@@ -36,7 +36,7 @@ func NewSuggestionsContext(
 		return state.Suggestions
 	}
 
-	getDisplayStrings := func(startIdx int, length int) [][]string {
+	getDisplayStrings := func(_ int, _ int) [][]string {
 		return presentation.GetSuggestionListDisplayStrings(state.Suggestions)
 	}
 
@@ -54,9 +54,11 @@ func NewSuggestionsContext(
 				Focusable:             true,
 				HasUncontrolledBounds: true,
 			})),
-			list:              viewModel,
-			getDisplayStrings: getDisplayStrings,
-			c:                 c,
+			ListRenderer: ListRenderer{
+				list:              viewModel,
+				getDisplayStrings: getDisplayStrings,
+			},
+			c: c,
 		},
 	}
 }

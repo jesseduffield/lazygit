@@ -27,7 +27,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 		c,
 	)
 
-	getDisplayStrings := func(startIdx int, length int) [][]string {
+	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
 		selectedCommitSha := ""
 
 		if c.CurrentContext().GetKey() == LOCAL_COMMITS_CONTEXT_KEY {
@@ -56,7 +56,7 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 			c.UserConfig.Git.ParseEmoji,
 			selectedCommitSha,
 			startIdx,
-			length,
+			endIdx,
 			shouldShowGraph(c),
 			c.Model().BisectInfo,
 			showYouAreHereLabel,
@@ -74,8 +74,10 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				Kind:       types.SIDE_CONTEXT,
 				Focusable:  true,
 			})),
-			list:                    viewModel,
-			getDisplayStrings:       getDisplayStrings,
+			ListRenderer: ListRenderer{
+				list:              viewModel,
+				getDisplayStrings: getDisplayStrings,
+			},
 			c:                       c,
 			refreshViewportOnChange: true,
 		},

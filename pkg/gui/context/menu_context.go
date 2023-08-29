@@ -34,10 +34,13 @@ func NewMenuContext(
 				Focusable:             true,
 				HasUncontrolledBounds: true,
 			})),
-			getDisplayStrings:   viewModel.GetDisplayStrings,
-			list:                viewModel,
-			c:                   c,
-			getColumnAlignments: func() []utils.Alignment { return viewModel.columnAlignment },
+			ListRenderer: ListRenderer{
+				list:                viewModel,
+				getDisplayStrings:   viewModel.GetDisplayStrings,
+				getColumnAlignments: func() []utils.Alignment { return viewModel.columnAlignment },
+				getNonModelItems:    viewModel.GetNonModelItems,
+			},
+			c: c,
 		},
 	}
 }
@@ -79,7 +82,7 @@ func (self *MenuViewModel) SetMenuItems(items []*types.MenuItem, columnAlignment
 }
 
 // TODO: move into presentation package
-func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]string {
+func (self *MenuViewModel) GetDisplayStrings(_ int, _ int) [][]string {
 	menuItems := self.FilteredListViewModel.GetItems()
 	showKeys := lo.SomeBy(menuItems, func(item *types.MenuItem) bool {
 		return item.Key != nil
@@ -109,6 +112,40 @@ func (self *MenuViewModel) GetDisplayStrings(_startIdx int, _length int) [][]str
 		displayStrings = utils.Prepend(displayStrings, keyStyle.Sprint(keyLabel))
 		return displayStrings
 	})
+}
+
+func (self *MenuViewModel) GetNonModelItems() []*NonModelItem {
+	// Don't display section headers when we are filtering. The reason is that
+	// filtering changes the order of the items (they are sorted by best match),
+	// so all the sections would be messed up.
+	if self.FilteredListViewModel.IsFiltering() {
+		return []*NonModelItem{}
+	}
+
+	result := []*NonModelItem{}
+	menuItems := self.FilteredListViewModel.GetItems()
+	var prevSection *types.MenuSection = nil
+	for i, menuItem := range menuItems {
+		menuItem := menuItem
+		if menuItem.Section != nil && menuItem.Section != prevSection {
+			if prevSection != nil {
+				result = append(result, &NonModelItem{
+					Index:   i,
+					Column:  1,
+					Content: "",
+				})
+			}
+
+			result = append(result, &NonModelItem{
+				Index:   i,
+				Column:  1,
+				Content: style.FgGreen.SetBold().Sprintf("--- %s ---", menuItem.Section.Title),
+			})
+			prevSection = menuItem.Section
+		}
+	}
+
+	return result
 }
 
 func (self *MenuContext) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {

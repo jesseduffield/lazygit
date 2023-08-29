@@ -41,7 +41,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 		parseEmoji               bool
 		selectedCommitSha        string
 		startIdx                 int
-		length                   int
+		endIdx                   int
 		showGraph                bool
 		bisectInfo               *git_commands.BisectInfo
 		showYouAreHereLabel      bool
@@ -52,7 +52,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			testName:                 "no commits",
 			commits:                  []*models.Commit{},
 			startIdx:                 0,
-			length:                   1,
+			endIdx:                   1,
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -66,7 +66,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit2", Sha: "sha2"},
 			},
 			startIdx:                 0,
-			length:                   2,
+			endIdx:                   2,
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -83,7 +83,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit2", Sha: "sha2"},
 			},
 			startIdx:                 0,
-			length:                   2,
+			endIdx:                   2,
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -110,7 +110,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			currentBranchName:        "current-branch",
 			hasUpdateRefConfig:       true,
 			startIdx:                 0,
-			length:                   4,
+			endIdx:                   4,
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -135,7 +135,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			currentBranchName:        "current-branch",
 			hasUpdateRefConfig:       true,
 			startIdx:                 0,
-			length:                   2,
+			endIdx:                   2,
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -158,7 +158,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			currentBranchName:        "current-branch",
 			hasUpdateRefConfig:       false,
 			startIdx:                 0,
-			length:                   2,
+			endIdx:                   2,
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -179,7 +179,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "some-branch", CommitHash: "sha2"},
 			},
 			startIdx:                 0,
-			length:                   3,
+			endIdx:                   3,
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -200,7 +200,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                 0,
-			length:                   5,
+			endIdx:                   5,
 			showGraph:                true,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -223,7 +223,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                 0,
-			length:                   5,
+			endIdx:                   5,
 			showGraph:                true,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -247,7 +247,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                 1,
-			length:                   10,
+			endIdx:                   5,
 			showGraph:                true,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -270,7 +270,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                 3,
-			length:                   2,
+			endIdx:                   5,
 			showGraph:                true,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -291,7 +291,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                 0,
-			length:                   2,
+			endIdx:                   2,
 			showGraph:                true,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -312,7 +312,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                 4,
-			length:                   2,
+			endIdx:                   5,
 			showGraph:                true,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -332,7 +332,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit5", Sha: "sha5", Parents: []string{"sha7"}},
 			},
 			startIdx:                 0,
-			length:                   2,
+			endIdx:                   2,
 			showGraph:                true,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -351,7 +351,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 				{Name: "commit3", Sha: "sha3", Parents: []string{"sha4"}},
 			},
 			startIdx:                 0,
-			length:                   5,
+			endIdx:                   3,
 			showGraph:                true,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -373,7 +373,7 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 			timeFormat:               "2006-01-02",
 			shortTimeFormat:          "3:04PM",
 			startIdx:                 0,
-			length:                   2,
+			endIdx:                   2,
 			showGraph:                false,
 			bisectInfo:               git_commands.NewNullBisectInfo(),
 			cherryPickedCommitShaSet: set.New[string](),
@@ -416,13 +416,14 @@ func TestGetCommitListDisplayStrings(t *testing.T) {
 					s.parseEmoji,
 					s.selectedCommitSha,
 					s.startIdx,
-					s.length,
+					s.endIdx,
 					s.showGraph,
 					s.bisectInfo,
 					s.showYouAreHereLabel,
 				)
 
-				renderedResult := utils.RenderDisplayStrings(result, nil)
+				renderedLines, _ := utils.RenderDisplayStrings(result, nil)
+				renderedResult := strings.Join(renderedLines, "\n")
 				t.Logf("\n%s", renderedResult)
 
 				assert.EqualValues(t, s.expected, renderedResult)

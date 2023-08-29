@@ -52,7 +52,7 @@ func GetCommitListDisplayStrings(
 	parseEmoji bool,
 	selectedCommitSha string,
 	startIdx int,
-	length int,
+	endIdx int,
 	showGraph bool,
 	bisectInfo *git_commands.BisectInfo,
 	showYouAreHereLabel bool,
@@ -68,11 +68,10 @@ func GetCommitListDisplayStrings(
 		return nil
 	}
 
-	end := utils.Min(startIdx+length, len(commits))
 	// this is where my non-TODO commits begin
-	rebaseOffset := utils.Min(indexOfFirstNonTODOCommit(commits), end)
+	rebaseOffset := utils.Min(indexOfFirstNonTODOCommit(commits), endIdx)
 
-	filteredCommits := commits[startIdx:end]
+	filteredCommits := commits[startIdx:endIdx]
 
 	bisectBounds := getbisectBounds(commits, bisectInfo)
 
@@ -85,8 +84,8 @@ func GetCommitListDisplayStrings(
 
 		pipeSets := loadPipesets(commits[rebaseOffset:])
 		pipeSetOffset := utils.Max(startIdx-rebaseOffset, 0)
-		graphPipeSets := pipeSets[pipeSetOffset:utils.Max(end-rebaseOffset, 0)]
-		graphCommits := commits[graphOffset:end]
+		graphPipeSets := pipeSets[pipeSetOffset:utils.Max(endIdx-rebaseOffset, 0)]
+		graphCommits := commits[graphOffset:endIdx]
 		graphLines := graph.RenderAux(
 			graphPipeSets,
 			graphCommits,

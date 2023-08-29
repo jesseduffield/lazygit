@@ -1,7 +1,8 @@
 package gui
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
+	"fmt"
+
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -27,7 +28,7 @@ func (gui *Gui) createMenu(opts types.CreateMenuOptions) error {
 		}
 
 		if item.OpensMenu {
-			item.LabelColumns[0] = presentation.OpensMenuStyle(item.LabelColumns[0])
+			item.LabelColumns[0] = fmt.Sprintf("%s...", item.LabelColumns[0])
 		}
 
 		maxColumnSize = utils.Max(maxColumnSize, len(item.LabelColumns))

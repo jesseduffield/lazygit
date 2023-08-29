@@ -177,6 +177,11 @@ type PromptOpts struct {
 	Mask        bool
 }
 
+type MenuSection struct {
+	Title  string
+	Column int // The column that this section title should be aligned with
+}
+
 type MenuItem struct {
 	Label string
 
@@ -194,6 +199,14 @@ type MenuItem struct {
 
 	// The tooltip will be displayed upon highlighting the menu item
 	Tooltip string
+
+	// Can be used to group menu items into sections with headers. MenuItems
+	// with the same Section should be contiguous, and will automatically get a
+	// section header. If nil, the item is not part of a section.
+	// Note that pointer comparison is used to determine whether two menu items
+	// belong to the same section, so make sure all your items in a given
+	// section point to the same MenuSection instance.
+	Section *MenuSection
 }
 
 type Model struct {

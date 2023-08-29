@@ -36,7 +36,7 @@ func NewSubCommitsContext(
 		limitCommits: true,
 	}
 
-	getDisplayStrings := func(startIdx int, length int) [][]string {
+	getDisplayStrings := func(startIdx int, endIdx int) [][]string {
 		// This can happen if a sub-commits view is asked to be rerendered while
 		// it is invisble; for example when switching screen modes, which
 		// rerenders all views.
@@ -72,7 +72,7 @@ func NewSubCommitsContext(
 			c.UserConfig.Git.ParseEmoji,
 			selectedCommitSha,
 			startIdx,
-			length,
+			endIdx,
 			shouldShowGraph(c),
 			git_commands.NewNullBisectInfo(),
 			false,
@@ -93,8 +93,10 @@ func NewSubCommitsContext(
 				Focusable:  true,
 				Transient:  true,
 			})),
-			list:                    viewModel,
-			getDisplayStrings:       getDisplayStrings,
+			ListRenderer: ListRenderer{
+				list:              viewModel,
+				getDisplayStrings: getDisplayStrings,
+			},
 			c:                       c,
 			refreshViewportOnChange: true,
 		},
