@@ -170,7 +170,7 @@ func koreanTranslationSet() TranslationSet {
 		ToggleStagingPanel:                  `패널 전환`,
 		ReturnToFilesPanel:                  `파일 목록으로 돌아가기`,
 		FastForward:                         `Fast-forward this branch from its upstream`,
-		Fetching:                            "Fetching and fast-forwarding {{.from}} -> {{.to}} ...",
+		FastForwarding:                      "Fast-forwarding {{.branch}} ...",
 		FoundConflictsTitle:                 "Auto-merge failed",
 		ViewMergeRebaseOptions:              "View merge/rebase options",
 		NotMergingOrRebasing:                "You are currently neither rebasing nor merging",

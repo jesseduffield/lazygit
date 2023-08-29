@@ -537,10 +537,9 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 	action := self.c.Tr.Actions.FastForwardBranch
 
 	message := utils.ResolvePlaceholderString(
-		self.c.Tr.Fetching,
+		self.c.Tr.FastForwarding,
 		map[string]string{
-			"from": fmt.Sprintf("%s/%s", branch.UpstreamRemote, branch.UpstreamBranch),
-			"to":   branch.Name,
+			"branch": branch.Name,
 		},
 	)
 

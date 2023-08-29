@@ -134,7 +134,7 @@ func dutchTranslationSet() TranslationSet {
 		ToggleStagingPanel:                  `Ga naar een ander paneel`,
 		ReturnToFilesPanel:                  `Ga terug naar het bestanden paneel`,
 		FastForward:                         `Fast-forward deze branch vanaf zijn upstream`,
-		Fetching:                            "Fetching en fast-forwarding {{.from}} -> {{.to}} ...",
+		FastForwarding:                      "Fast-forwarding {{.branch}} ...",
 		FoundConflictsTitle:                 "Conflicten!",
 		ViewMergeRebaseOptions:              "Bekijk merge/rebase opties",
 		NotMergingOrRebasing:                "Je bent momenteel niet aan het rebasen of mergen",

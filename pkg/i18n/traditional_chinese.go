@@ -234,7 +234,7 @@ func traditionalChineseTranslationSet() TranslationSet {
 		ToggleStagingPanel:                  `切換至另一個面板 (已預存/未預存更改)`,
 		ReturnToFilesPanel:                  `返回檔案面板`,
 		FastForward:                         `從上游快進此分支`,
-		Fetching:                            "{{.from}} -> {{.to}} 的擷取和快進中...",
+		FastForwarding:                      "{{.branch}} 的擷取和快進中...",
 		FoundConflictsTitle:                 "自動合併失敗",
 		ViewMergeRebaseOptions:              "查看合併/變基選項",
 		NotMergingOrRebasing:                "你當前既不在變基也不在合併中",

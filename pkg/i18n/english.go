@@ -184,7 +184,7 @@ type TranslationSet struct {
 	ToggleStagingPanel                  string
 	ReturnToFilesPanel                  string
 	FastForward                         string
-	Fetching                            string
+	FastForwarding                      string
 	FoundConflictsTitle                 string
 	ViewConflictsMenuItem               string
 	AbortMenuItem                       string
@@ -977,7 +977,7 @@ func EnglishTranslationSet() TranslationSet {
 		ToggleStagingPanel:                  `Switch to other panel (staged/unstaged changes)`,
 		ReturnToFilesPanel:                  `Return to files panel`,
 		FastForward:                         `Fast-forward this branch from its upstream`,
-		Fetching:                            "Fetching and fast-forwarding {{.from}} -> {{.to}} ...",
+		FastForwarding:                      "Fast-forwarding {{.branch}}",
 		FoundConflictsTitle:                 "Conflicts!",
 		ViewConflictsMenuItem:               "View conflicts",
 		AbortMenuItem:                       "Abort the %s",
