@@ -544,7 +544,7 @@ func (self *BranchesController) fastForward(branch *models.Branch) error {
 		},
 	)
 
-	return self.c.WithLoaderPanel(message, func(task gocui.Task) error {
+	return self.c.WithWaitingStatus(message, func(task gocui.Task) error {
 		worktree, ok := self.worktreeForBranch(branch)
 		if ok {
 			self.c.LogAction(action)

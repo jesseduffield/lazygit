@@ -140,7 +140,7 @@ type PullFilesOptions struct {
 }
 
 func (self *SyncController) PullAux(opts PullFilesOptions) error {
-	return self.c.WithLoaderPanel(self.c.Tr.PullWait, func(task gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.PullingStatus, func(task gocui.Task) error {
 		return self.pullWithLock(task, opts)
 	})
 }
@@ -168,7 +168,7 @@ type pushOpts struct {
 }
 
 func (self *SyncController) pushAux(opts pushOpts) error {
-	return self.c.WithLoaderPanel(self.c.Tr.PushWait, func(task gocui.Task) error {
+	return self.c.WithWaitingStatus(self.c.Tr.PushingStatus, func(task gocui.Task) error {
 		self.c.LogAction(self.c.Tr.Actions.Push)
 		err := self.c.Git().Sync.Push(
 			task,
