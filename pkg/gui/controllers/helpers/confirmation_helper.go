@@ -141,13 +141,8 @@ func (self *ConfirmationHelper) getPopupPanelWidth() int {
 }
 
 func (self *ConfirmationHelper) prepareConfirmationPanel(
-	ctx goContext.Context,
 	opts types.ConfirmOpts,
 ) error {
-	self.c.Views().Confirmation.HasLoader = opts.HasLoader
-	if opts.HasLoader {
-		self.c.GocuiGui().StartTicking(ctx)
-	}
 	self.c.Views().Confirmation.Title = opts.Title
 	// for now we do not support wrapping in our editor
 	self.c.Views().Confirmation.Wrap = !opts.Editable
@@ -181,7 +176,7 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 	self.c.Mutexes().PopupMutex.Lock()
 	defer self.c.Mutexes().PopupMutex.Unlock()
 
-	ctx, cancel := goContext.WithCancel(ctx)
+	_, cancel := goContext.WithCancel(ctx)
 
 	// we don't allow interruptions of non-loader popups in case we get stuck somehow
 	// e.g. a credentials popup never gets its required user input so a process hangs
@@ -198,11 +193,9 @@ func (self *ConfirmationHelper) CreatePopupPanel(ctx goContext.Context, opts typ
 	self.clearConfirmationViewKeyBindings()
 
 	err := self.prepareConfirmationPanel(
-		ctx,
 		types.ConfirmOpts{
 			Title:               opts.Title,
 			Prompt:              opts.Prompt,
-			HasLoader:           opts.HasLoader,
 			FindSuggestionsFunc: opts.FindSuggestionsFunc,
 			Editable:            opts.Editable,
 			Mask:                opts.Mask,
