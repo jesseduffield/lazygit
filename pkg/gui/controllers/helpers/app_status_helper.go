@@ -5,6 +5,7 @@ import (
 
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/status"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
 type AppStatusHelper struct {
@@ -77,7 +78,7 @@ func (self *AppStatusHelper) GetStatusString() string {
 
 func (self *AppStatusHelper) renderAppStatus() {
 	self.c.OnWorker(func(_ gocui.Task) {
-		ticker := time.NewTicker(time.Millisecond * 50)
+		ticker := time.NewTicker(time.Millisecond * utils.LoaderAnimationInterval)
 		defer ticker.Stop()
 		for range ticker.C {
 			appStatus := self.statusMgr().GetStatusString()
