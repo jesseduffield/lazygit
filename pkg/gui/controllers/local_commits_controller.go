@@ -568,10 +568,12 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 
 func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 	if self.isHeadCommit() {
-		if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
-			return err
-		}
-		return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+			if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
+				return err
+			}
+			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		})
 	}
 
 	if self.c.Git().Status.WorkingTreeState() != enums.REBASE_MODE_NONE {
@@ -582,10 +584,12 @@ func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 		Title:  self.c.Tr.AmendCommitTitle,
 		Prompt: self.c.Tr.AmendCommitPrompt,
 		HandleConfirm: func() error {
-			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
-				self.c.LogAction(self.c.Tr.Actions.AmendCommit)
-				err := self.c.Git().Rebase.AmendTo(self.c.Model().Commits, self.context().GetView().SelectedLineIdx())
-				return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+				return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+					self.c.LogAction(self.c.Tr.Actions.AmendCommit)
+					err := self.c.Git().Rebase.AmendTo(self.c.Model().Commits, self.context().GetView().SelectedLineIdx())
+					return self.c.Helpers().MergeAndRebase.CheckMergeOrRebase(err)
+				})
 			})
 		},
 	})
@@ -709,12 +713,14 @@ func (self *LocalCommitsController) createFixupCommit(commit *models.Commit) err
 		Title:  self.c.Tr.CreateFixupCommit,
 		Prompt: prompt,
 		HandleConfirm: func() error {
-			self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
-			if err := self.c.Git().Commit.CreateFixupCommit(commit.Sha); err != nil {
-				return self.c.Error(err)
-			}
+			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+				self.c.LogAction(self.c.Tr.Actions.CreateFixupCommit)
+				if err := self.c.Git().Commit.CreateFixupCommit(commit.Sha); err != nil {
+					return self.c.Error(err)
+				}
 
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			})
 		},
 	})
 }

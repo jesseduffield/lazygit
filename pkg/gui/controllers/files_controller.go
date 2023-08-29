@@ -615,19 +615,13 @@ func (self *FilesController) refresh() error {
 }
 
 func (self *FilesController) handleAmendCommitPress() error {
-	if len(self.c.Model().Files) == 0 {
-		return self.c.ErrorMsg(self.c.Tr.NoFilesStagedTitle)
-	}
+	return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+		if len(self.c.Model().Commits) == 0 {
+			return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
+		}
 
-	if !self.c.Helpers().WorkingTree.AnyStagedFiles() {
-		return self.c.Helpers().WorkingTree.PromptToStageAllAndRetry(self.handleAmendCommitPress)
-	}
-
-	if len(self.c.Model().Commits) == 0 {
-		return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
-	}
-
-	return self.c.Helpers().AmendHelper.AmendHead()
+		return self.c.Helpers().AmendHelper.AmendHead()
+	})
 }
 
 func (self *FilesController) handleStatusFilterPressed() error {
