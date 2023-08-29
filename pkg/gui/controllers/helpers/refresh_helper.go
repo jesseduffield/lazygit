@@ -334,11 +334,12 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit() error {
 
 	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                self.c.Contexts().SubCommits.GetLimitCommits(),
-			FilterPath:           self.c.Modes().Filtering.GetPath(),
-			IncludeRebaseCommits: false,
-			RefName:              self.c.Contexts().SubCommits.GetRef().FullRefName(),
-			RefForPushedStatus:   self.c.Contexts().SubCommits.GetRef().FullRefName(),
+			Limit:                   self.c.Contexts().SubCommits.GetLimitCommits(),
+			FilterPath:              self.c.Modes().Filtering.GetPath(),
+			IncludeRebaseCommits:    false,
+			RefName:                 self.c.Contexts().SubCommits.GetRef().FullRefName(),
+			RefToShowDivergenceFrom: self.c.Contexts().SubCommits.GetRefToShowDivergenceFrom(),
+			RefForPushedStatus:      self.c.Contexts().SubCommits.GetRef().FullRefName(),
 		},
 	)
 	if err != nil {

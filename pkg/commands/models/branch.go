@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 // Branch : A git branch
 // duplicating this for now
 type Branch struct {
@@ -41,6 +43,22 @@ func (b *Branch) RefName() string {
 
 func (b *Branch) ParentRefName() string {
 	return b.RefName() + "^"
+}
+
+func (b *Branch) FullUpstreamRefName() string {
+	if b.UpstreamRemote == "" || b.UpstreamBranch == "" {
+		return ""
+	}
+
+	return fmt.Sprintf("refs/remotes/%s/%s", b.UpstreamRemote, b.UpstreamBranch)
+}
+
+func (b *Branch) ShortUpstreamRefName() string {
+	if b.UpstreamRemote == "" || b.UpstreamBranch == "" {
+		return ""
+	}
+
+	return fmt.Sprintf("%s/%s", b.UpstreamRemote, b.UpstreamBranch)
 }
 
 func (b *Branch) ID() string {

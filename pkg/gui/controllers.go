@@ -76,6 +76,13 @@ func (gui *Gui) resetHelpersAndControllers() {
 		helperCommon,
 		func() *status.StatusManager { return gui.statusManager },
 	)
+
+	setSubCommits := func(commits []*models.Commit) {
+		gui.Mutexes.SubCommitsMutex.Lock()
+		defer gui.Mutexes.SubCommitsMutex.Unlock()
+
+		gui.State.Model.SubCommits = commits
+	}
 	gui.helpers = &helpers.Helpers{
 		Refs:            refsHelper,
 		Host:            helpers.NewHostHelper(helperCommon),
@@ -111,8 +118,9 @@ func (gui *Gui) resetHelpersAndControllers() {
 			modeHelper,
 			appStatusHelper,
 		),
-		Search:   helpers.NewSearchHelper(helperCommon),
-		Worktree: worktreeHelper,
+		Search:     helpers.NewSearchHelper(helperCommon),
+		Worktree:   worktreeHelper,
+		SubCommits: helpers.NewSubCommitsHelper(helperCommon, refreshHelper, setSubCommits),
 	}
 
 	gui.CustomCommandsClient = custom_commands.NewClient(
@@ -206,13 +214,6 @@ func (gui *Gui) resetHelpersAndControllers() {
 		controllers.AttachControllers(context, sideWindowControllerFactory.Create(context))
 	}
 
-	setSubCommits := func(commits []*models.Commit) {
-		gui.Mutexes.SubCommitsMutex.Lock()
-		defer gui.Mutexes.SubCommitsMutex.Unlock()
-
-		gui.State.Model.SubCommits = commits
-	}
-
 	for _, context := range []controllers.CanSwitchToSubCommits{
 		gui.State.Contexts.Branches,
 		gui.State.Contexts.RemoteBranches,
@@ -220,7 +221,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		gui.State.Contexts.ReflogCommits,
 	} {
 		controllers.AttachControllers(context, controllers.NewSwitchToSubCommitsController(
-			common, setSubCommits, context,
+			common, context,
 		))
 	}
 

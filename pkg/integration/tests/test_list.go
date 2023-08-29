@@ -49,6 +49,7 @@ var tests = []*components.IntegrationTest{
 	branch.Reset,
 	branch.ResetUpstream,
 	branch.SetUpstream,
+	branch.ShowDivergenceFromUpstream,
 	branch.Suggestions,
 	cherry_pick.CherryPick,
 	cherry_pick.CherryPickConflicts,

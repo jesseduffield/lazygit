@@ -1,8 +1,7 @@
 package controllers
 
 import (
-	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -18,20 +17,16 @@ type SwitchToSubCommitsController struct {
 	baseController
 	c       *ControllerCommon
 	context CanSwitchToSubCommits
-
-	setSubCommits func([]*models.Commit)
 }
 
 func NewSwitchToSubCommitsController(
 	controllerCommon *ControllerCommon,
-	setSubCommits func([]*models.Commit),
 	context CanSwitchToSubCommits,
 ) *SwitchToSubCommitsController {
 	return &SwitchToSubCommitsController{
 		baseController: baseController{},
 		c:              controllerCommon,
 		context:        context,
-		setSubCommits:  setSubCommits,
 	}
 }
 
@@ -57,40 +52,12 @@ func (self *SwitchToSubCommitsController) viewCommits() error {
 		return nil
 	}
 
-	// need to populate my sub commits
-	commits, err := self.c.Git().Loaders.CommitLoader.GetCommits(
-		git_commands.GetCommitsOptions{
-			Limit:                true,
-			FilterPath:           self.c.Modes().Filtering.GetPath(),
-			IncludeRebaseCommits: false,
-			RefName:              ref.FullRefName(),
-			RefForPushedStatus:   ref.FullRefName(),
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	self.setSubCommits(commits)
-	self.c.Helpers().Refresh.RefreshAuthors(commits)
-
-	subCommitsContext := self.c.Contexts().SubCommits
-	subCommitsContext.SetSelectedLineIdx(0)
-	subCommitsContext.SetParentContext(self.context)
-	subCommitsContext.SetWindowName(self.context.GetWindowName())
-	subCommitsContext.SetTitleRef(ref.Description())
-	subCommitsContext.SetRef(ref)
-	subCommitsContext.SetLimitCommits(true)
-	subCommitsContext.SetShowBranchHeads(self.context.ShowBranchHeadsInSubCommits())
-	subCommitsContext.ClearSearchString()
-	subCommitsContext.GetView().ClearSearch()
-
-	err = self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
-	if err != nil {
-		return err
-	}
-
-	return self.c.PushContext(self.c.Contexts().SubCommits)
+	return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
+		Ref:             ref,
+		TitleRef:        ref.RefName(),
+		Context:         self.context,
+		ShowBranchHeads: self.context.ShowBranchHeadsInSubCommits(),
+	})
 }
 
 func (self *SwitchToSubCommitsController) Context() types.Context {
