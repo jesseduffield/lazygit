@@ -182,6 +182,10 @@ func (self *guiCommon) AfterLayout(f func() error) {
 	}
 }
 
+func (self *guiCommon) RunningIntegrationTest() bool {
+	return self.gui.integrationTest != nil
+}
+
 func (self *guiCommon) InDemo() bool {
 	return self.gui.integrationTest != nil && self.gui.integrationTest.IsDemo()
 }

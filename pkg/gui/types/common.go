@@ -107,6 +107,9 @@ type IGuiCommon interface {
 	// hopefully we can remove this once we've moved all our keybinding stuff out of the gui god struct.
 	GetInitialKeybindingsWithCustomCommands() ([]*Binding, []*gocui.ViewMouseBinding)
 
+	// Returns true if we're running an integration test
+	RunningIntegrationTest() bool
+
 	// Returns true if we're in a demo recording/playback
 	InDemo() bool
 }

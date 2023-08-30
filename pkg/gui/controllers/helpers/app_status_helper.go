@@ -21,6 +21,13 @@ func NewAppStatusHelper(c *HelperCommon, statusMgr func() *status.StatusManager)
 }
 
 func (self *AppStatusHelper) Toast(message string) {
+	if self.c.RunningIntegrationTest() {
+		// Don't bother showing toasts in integration tests. You can't check for
+		// them anyway, and they would only slow down the test unnecessarily by
+		// two seconds.
+		return
+	}
+
 	self.statusMgr().AddToastStatus(message)
 
 	self.renderAppStatus()
