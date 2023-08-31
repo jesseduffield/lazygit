@@ -65,6 +65,11 @@ func (self *MenuController) press() error {
 }
 
 func (self *MenuController) close() error {
+	if self.context().IsFiltering() {
+		self.c.Helpers().Search.Cancel()
+		return nil
+	}
+
 	return self.c.PopContext()
 }
 
