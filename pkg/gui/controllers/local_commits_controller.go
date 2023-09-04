@@ -568,11 +568,17 @@ func (self *LocalCommitsController) moveUp(commit *models.Commit) error {
 
 func (self *LocalCommitsController) amendTo(commit *models.Commit) error {
 	if self.isHeadCommit() {
-		return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
-			if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
-				return err
-			}
-			return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+		return self.c.Confirm(types.ConfirmOpts{
+			Title:  self.c.Tr.AmendCommitTitle,
+			Prompt: self.c.Tr.AmendCommitPrompt,
+			HandleConfirm: func() error {
+				return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+					if err := self.c.Helpers().AmendHelper.AmendHead(); err != nil {
+						return err
+					}
+					return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+				})
+			},
 		})
 	}
 

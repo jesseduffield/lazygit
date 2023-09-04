@@ -615,12 +615,18 @@ func (self *FilesController) refresh() error {
 }
 
 func (self *FilesController) handleAmendCommitPress() error {
-	return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
-		if len(self.c.Model().Commits) == 0 {
-			return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
-		}
+	return self.c.Confirm(types.ConfirmOpts{
+		Title:  self.c.Tr.AmendLastCommitTitle,
+		Prompt: self.c.Tr.SureToAmend,
+		HandleConfirm: func() error {
+			return self.c.Helpers().WorkingTree.WithEnsureCommitableFiles(func() error {
+				if len(self.c.Model().Commits) == 0 {
+					return self.c.ErrorMsg(self.c.Tr.NoCommitToAmend)
+				}
 
-		return self.c.Helpers().AmendHelper.AmendHead()
+				return self.c.Helpers().AmendHelper.AmendHead()
+			})
+		},
 	})
 }
 
