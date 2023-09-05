@@ -333,7 +333,7 @@ func (self *ConfirmationHelper) resizeMenu() {
 	tooltip := ""
 	selectedItem := self.c.Contexts().Menu.GetSelected()
 	if selectedItem != nil {
-		tooltip = selectedItem.Tooltip
+		tooltip = self.TooltipForMenuItem(selectedItem)
 	}
 	tooltipHeight := getMessageHeight(true, tooltip, panelWidth) + 2 // plus 2 for the frame
 	_, _ = self.c.GocuiGui().SetView(self.c.Views().Tooltip.Name(), x0, tooltipTop, x1, tooltipTop+tooltipHeight-1, 0)
@@ -381,4 +381,15 @@ func (self *ConfirmationHelper) IsPopupPanel(viewName string) bool {
 
 func (self *ConfirmationHelper) IsPopupPanelFocused() bool {
 	return self.IsPopupPanel(self.c.CurrentContext().GetViewName())
+}
+
+func (self *ConfirmationHelper) TooltipForMenuItem(menuItem *types.MenuItem) string {
+	tooltip := menuItem.Tooltip
+	if menuItem.DisabledReason != "" {
+		if tooltip != "" {
+			tooltip += "\n\n"
+		}
+		tooltip += style.FgRed.Sprintf(self.c.Tr.DisabledMenuItemPrefix) + menuItem.DisabledReason
+	}
+	return tooltip
 }

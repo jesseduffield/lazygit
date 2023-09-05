@@ -54,7 +54,7 @@ func (self *MenuController) GetOnFocus() func(types.OnFocusOpts) error {
 	return func(types.OnFocusOpts) error {
 		selectedMenuItem := self.context().GetSelected()
 		if selectedMenuItem != nil {
-			self.c.Views().Tooltip.SetContent(selectedMenuItem.Tooltip)
+			self.c.Views().Tooltip.SetContent(self.c.Helpers().Confirmation.TooltipForMenuItem(selectedMenuItem))
 		}
 		return nil
 	}
