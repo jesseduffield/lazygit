@@ -468,7 +468,6 @@ func (self *BranchesController) forceDelete(branch *models.Branch) error {
 }
 
 func (self *BranchesController) delete(branch *models.Branch) error {
-	menuItems := []*types.MenuItem{}
 	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 
 	localDeleteItem := &types.MenuItem{
@@ -479,25 +478,18 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 		},
 	}
 	if checkedOutBranch.Name == branch.Name {
-		localDeleteItem = &types.MenuItem{
-			Label:   self.c.Tr.DeleteLocalBranch,
-			Key:     'c',
-			Tooltip: self.c.Tr.CantDeleteCheckOutBranch,
-			OnPress: func() error {
-				return self.c.ErrorMsg(self.c.Tr.CantDeleteCheckOutBranch)
-			},
-		}
+		localDeleteItem.DisabledReason = self.c.Tr.CantDeleteCheckOutBranch
 	}
-	menuItems = append(menuItems, localDeleteItem)
 
-	if branch.IsTrackingRemote() && !branch.UpstreamGone {
-		menuItems = append(menuItems, &types.MenuItem{
-			Label: self.c.Tr.DeleteRemoteBranch,
-			Key:   'r',
-			OnPress: func() error {
-				return self.remoteDelete(branch)
-			},
-		})
+	remoteDeleteItem := &types.MenuItem{
+		Label: self.c.Tr.DeleteRemoteBranch,
+		Key:   'r',
+		OnPress: func() error {
+			return self.remoteDelete(branch)
+		},
+	}
+	if !branch.IsTrackingRemote() || branch.UpstreamGone {
+		remoteDeleteItem.DisabledReason = self.c.Tr.UpstreamNotSetError
 	}
 
 	menuTitle := utils.ResolvePlaceholderString(
@@ -509,7 +501,7 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: menuTitle,
-		Items: menuItems,
+		Items: []*types.MenuItem{localDeleteItem, remoteDeleteItem},
 	})
 }
 
