@@ -25,6 +25,13 @@ type Binding struct {
 
 	// to be displayed if the keybinding is highlighted from within a menu
 	Tooltip string
+
+	// Function to decide whether the command is enabled, and why. If this
+	// returns an empty string, it is; if it returns a non-empty string, it is
+	// disabled and we show the given text in an error message when trying to
+	// invoke it. When left nil, the command is always enabled. Note that this
+	// function must not do expensive calls.
+	GetDisabledReason func() string
 }
 
 // A guard is a decorator which checks something before executing a handler

@@ -171,6 +171,10 @@ func (self *guiCommon) KeybindingsOpts() types.KeybindingsOpts {
 	return self.gui.keybindingOpts()
 }
 
+func (self *guiCommon) CallKeybindingHandler(binding *types.Binding) error {
+	return self.gui.callKeybindingHandler(binding)
+}
+
 func (self *guiCommon) IsAnyModeActive() bool {
 	return self.gui.helpers.Mode.IsAnyModeActive()
 }

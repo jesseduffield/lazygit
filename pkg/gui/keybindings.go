@@ -375,7 +375,10 @@ func (gui *Gui) wrappedHandler(f func() error) func(g *gocui.Gui, v *gocui.View)
 }
 
 func (gui *Gui) SetKeybinding(binding *types.Binding) error {
-	handler := binding.Handler
+	handler := func() error {
+		return gui.callKeybindingHandler(binding)
+	}
+
 	// TODO: move all mouse-ey stuff into new mouse approach
 	if gocui.IsMouseKey(binding.Key) {
 		handler = func() error {
@@ -405,4 +408,15 @@ func (gui *Gui) SetMouseKeybinding(binding *gocui.ViewMouseBinding) error {
 	binding.Handler = newHandler
 
 	return gui.g.SetViewClickBinding(binding)
+}
+
+func (gui *Gui) callKeybindingHandler(binding *types.Binding) error {
+	disabledReason := ""
+	if binding.GetDisabledReason != nil {
+		disabledReason = binding.GetDisabledReason()
+	}
+	if disabledReason != "" {
+		return gui.c.ErrorMsg(disabledReason)
+	}
+	return binding.Handler()
 }
