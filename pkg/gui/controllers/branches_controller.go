@@ -76,9 +76,10 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Branches.RebaseBranch),
-			Handler:     opts.Guards.OutsideFilterMode(self.rebase),
-			Description: self.c.Tr.RebaseBranch,
+			Key:               opts.GetKey(opts.Config.Branches.RebaseBranch),
+			Handler:           opts.Guards.OutsideFilterMode(self.rebase),
+			Description:       self.c.Tr.RebaseBranch,
+			GetDisabledReason: self.getDisabledReasonForRebase,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
@@ -510,6 +511,16 @@ func (self *BranchesController) merge() error {
 func (self *BranchesController) rebase() error {
 	selectedBranchName := self.context().GetSelected().Name
 	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranchName)
+}
+
+func (self *BranchesController) getDisabledReasonForRebase() string {
+	selectedBranchName := self.context().GetSelected().Name
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef().Name
+	if selectedBranchName == checkedOutBranch {
+		return self.c.Tr.CantRebaseOntoSelf
+	}
+
+	return ""
 }
 
 func (self *BranchesController) fastForward(branch *models.Branch) error {
