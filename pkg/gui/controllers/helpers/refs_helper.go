@@ -165,7 +165,7 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 		InitialContent: suggestedBranchName,
 		HandleConfirm: func(response string) error {
 			self.c.LogAction(self.c.Tr.Actions.CreateBranch)
-			if err := self.c.Git().Branch.New(sanitizedBranchName(response), from); err != nil {
+			if err := self.c.Git().Branch.New(SanitizedBranchName(response), from); err != nil {
 				return err
 			}
 
@@ -183,8 +183,8 @@ func (self *RefsHelper) NewBranch(from string, fromFormattedName string, suggest
 	})
 }
 
-// sanitizedBranchName will remove all spaces in favor of a dash "-" to meet
+// SanitizedBranchName will remove all spaces in favor of a dash "-" to meet
 // git's branch naming requirement.
-func sanitizedBranchName(input string) string {
+func SanitizedBranchName(input string) string {
 	return strings.Replace(input, " ", "-", -1)
 }
