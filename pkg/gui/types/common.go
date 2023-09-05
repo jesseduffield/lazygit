@@ -73,6 +73,7 @@ type IGuiCommon interface {
 	GetConfig() config.AppConfigurer
 	GetAppState() *config.AppState
 	SaveAppState() error
+	SaveAppStateAndLogError()
 
 	// Runs the given function on the UI thread (this is for things like showing a popup asking a user for input).
 	// Only necessary to call if you're not already on the UI thread i.e. you're inside a goroutine.

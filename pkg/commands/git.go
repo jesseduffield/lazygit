@@ -159,9 +159,7 @@ func NewGitCommandAux(
 	stashCommands := git_commands.NewStashCommands(gitCommon, fileLoader, workingTreeCommands)
 	patchBuilder := patch.NewPatchBuilder(cmn.Log,
 		func(from string, to string, reverse bool, filename string, plain bool) (string, error) {
-			// TODO: make patch builder take Gui.IgnoreWhitespaceInDiffView into
-			// account. For now we just pass false.
-			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, plain, false)
+			return workingTreeCommands.ShowFileDiff(from, to, reverse, filename, plain)
 		})
 	patchCommands := git_commands.NewPatchCommands(gitCommon, rebaseCommands, commitCommands, statusCommands, stashCommands, patchBuilder)
 	bisectCommands := git_commands.NewBisectCommands(gitCommon)

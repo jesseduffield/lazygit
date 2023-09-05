@@ -177,7 +177,7 @@ func (self *LocalCommitsController) GetOnRenderToMain() func() error {
 							"ref": commit.Name,
 						}))
 			} else {
-				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Sha, self.c.Modes().Filtering.GetPath(), self.c.GetAppState().IgnoreWhitespaceInDiffView)
+				cmdObj := self.c.Git().Commit.ShowCmdObj(commit.Sha, self.c.Modes().Filtering.GetPath())
 				task = types.NewRunPtyTask(cmdObj.GetCmd())
 			}
 

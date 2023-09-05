@@ -80,13 +80,13 @@ func (self *StashCommands) Sha(index int) (string, error) {
 	return strings.Trim(sha, "\r\n"), err
 }
 
-func (self *StashCommands) ShowStashEntryCmdObj(index int, ignoreWhitespace bool) oscommands.ICmdObj {
+func (self *StashCommands) ShowStashEntryCmdObj(index int) oscommands.ICmdObj {
 	cmdArgs := NewGitCmd("stash").Arg("show").
 		Arg("-p").
 		Arg("--stat").
 		Arg(fmt.Sprintf("--color=%s", self.UserConfig.Git.Paging.ColorArg)).
-		Arg(fmt.Sprintf("--unified=%d", self.UserConfig.Git.DiffContextSize)).
-		ArgIf(ignoreWhitespace, "--ignore-all-space").
+		Arg(fmt.Sprintf("--unified=%d", self.AppState.DiffContextSize)).
+		ArgIf(self.AppState.IgnoreWhitespaceInDiffView, "--ignore-all-space").
 		Arg(fmt.Sprintf("stash@{%d}", index)).
 		ToArgv()
 

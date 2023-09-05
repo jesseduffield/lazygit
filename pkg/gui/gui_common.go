@@ -92,6 +92,12 @@ func (self *guiCommon) SaveAppState() error {
 	return self.gui.Config.SaveAppState()
 }
 
+func (self *guiCommon) SaveAppStateAndLogError() {
+	if err := self.gui.Config.SaveAppState(); err != nil {
+		self.gui.Log.Errorf("error when saving app state: %v", err)
+	}
+}
+
 func (self *guiCommon) GetConfig() config.AppConfigurer {
 	return self.gui.Config
 }

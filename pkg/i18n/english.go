@@ -512,6 +512,7 @@ type TranslationSet struct {
 	IgnoreWhitespaceNotSupportedHere    string
 	IncreaseContextInDiffView           string
 	DecreaseContextInDiffView           string
+	DiffContextSizeChanged              string
 	CreatePullRequestOptions            string
 	DefaultBranch                       string
 	SelectBranch                        string
@@ -1293,6 +1294,7 @@ func EnglishTranslationSet() TranslationSet {
 		IgnoreWhitespaceNotSupportedHere:    "Ignoring whitespace is not supported in this view",
 		IncreaseContextInDiffView:           "Increase the size of the context shown around changes in the diff view",
 		DecreaseContextInDiffView:           "Decrease the size of the context shown around changes in the diff view",
+		DiffContextSizeChanged:              "Changed diff context size to %d",
 		CreatePullRequestOptions:            "Create pull request options",
 		DefaultBranch:                       "Default branch",
 		SelectBranch:                        "Select branch",

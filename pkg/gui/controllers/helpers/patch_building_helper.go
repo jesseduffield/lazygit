@@ -73,9 +73,7 @@ func (self *PatchBuildingHelper) RefreshPatchBuildingPanel(opts types.OnFocusOpt
 	ref := self.c.Contexts().CommitFiles.CommitFileTreeViewModel.GetRef()
 	to := ref.RefName()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(ref.ParentRefName())
-	// Passing false for ignoreWhitespace because the patch building panel
-	// doesn't work when whitespace is ignored
-	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, path, true, false)
+	diff, err := self.c.Git().WorkingTree.ShowFileDiff(from, to, reverse, path, true)
 	if err != nil {
 		return err
 	}
