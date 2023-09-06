@@ -227,7 +227,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>T</kbd>: タグを作成
   <kbd>g</kbd>: View reset options
   <kbd>R</kbd>: ブランチ名を変更
-  <kbd>u</kbd>: Set/Unset upstream
+  <kbd>u</kbd>: View upstream options
   <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: コミットを閲覧
   <kbd>/</kbd>: Filter the current view by text

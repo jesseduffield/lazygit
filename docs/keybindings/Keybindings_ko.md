@@ -190,7 +190,7 @@ _Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b_
   <kbd>T</kbd>: 태그를 생성
   <kbd>g</kbd>: View reset options
   <kbd>R</kbd>: 브랜치 이름 변경
-  <kbd>u</kbd>: Set/Unset upstream
+  <kbd>u</kbd>: View upstream options
   <kbd>w</kbd>: View worktree options
   <kbd>&lt;enter&gt;</kbd>: 커밋 보기
   <kbd>/</kbd>: Filter the current view by text

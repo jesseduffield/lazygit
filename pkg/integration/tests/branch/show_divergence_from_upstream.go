@@ -38,7 +38,7 @@ var ShowDivergenceFromUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 			Lines(Contains("master")).
 			Press(keys.Branches.SetUpstream)
 
-		t.ExpectPopup().Menu().Title(Contains("upstream")).Select(Contains("View divergence from upstream")).Confirm()
+		t.ExpectPopup().Menu().Title(Contains("Upstream")).Select(Contains("View divergence from upstream")).Confirm()
 
 		t.Views().SubCommits().
 			IsFocused().

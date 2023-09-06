@@ -352,6 +352,9 @@ type TranslationSet struct {
 	DivergenceNoUpstream                string
 	DivergenceSectionHeaderLocal        string
 	DivergenceSectionHeaderRemote       string
+	ViewUpstreamResetOptions            string
+	ViewUpstreamResetOptionsTooltip     string
+	ViewUpstreamDisabledResetOptions    string
 	SetUpstreamTitle                    string
 	SetUpstreamMessage                  string
 	EditRemote                          string
@@ -396,7 +399,11 @@ type TranslationSet struct {
 	KeybindingsMenuSectionGlobal        string
 	KeybindingsMenuSectionNavigation    string
 	RenameBranch                        string
-	SetUnsetUpstream                    string
+	ViewBranchUpstreamOptions           string
+	BranchUpstreamOptionsTitle          string
+	ViewBranchUpstreamOptionsTooltip    string
+	UpstreamNotStoredLocallyError       string
+	UpstreamNotSetError                 string
 	NewGitFlowBranchPrompt              string
 	RenameBranchWarning                 string
 	OpenMenu                            string
@@ -654,7 +661,6 @@ type Actions struct {
 	Merge                             string
 	RebaseBranch                      string
 	RenameBranch                      string
-	SetUnsetUpstream                  string
 	CreateBranch                      string
 	FastForwardBranch                 string
 	CherryPick                        string
@@ -1137,6 +1143,9 @@ func EnglishTranslationSet() TranslationSet {
 		DivergenceNoUpstream:                "Cannot show divergence of a branch that has no (locally tracked) upstream",
 		DivergenceSectionHeaderLocal:        "Local",
 		DivergenceSectionHeaderRemote:       "Remote",
+		ViewUpstreamResetOptions:            "Reset checked-out branch onto {{.upstream}}",
+		ViewUpstreamResetOptionsTooltip:     "View options for resetting the checked-out branch onto {{upstream}}. Note: this will not reset the selected branch onto the upstream, it will reset the checked-out branch onto the upstream",
+		ViewUpstreamDisabledResetOptions:    "Reset checked-out branch onto upstream of selected branch",
 		SetUpstreamTitle:                    "Set upstream branch",
 		SetUpstreamMessage:                  "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
 		EditRemote:                          "Edit remote",
@@ -1166,51 +1175,55 @@ func EnglishTranslationSet() TranslationSet {
 		NotAGitFlowBranch:                   "This does not seem to be a git flow branch",
 		NewGitFlowBranchPrompt:              "New {{.branchType}} name:",
 
-		IgnoreTracked:              "Ignore tracked file",
-		IgnoreTrackedPrompt:        "Are you sure you want to ignore a tracked file?",
-		ExcludeTracked:             "Exclude tracked file",
-		ExcludeTrackedPrompt:       "Are you sure you want to exclude a tracked file?",
-		ViewResetToUpstreamOptions: "View upstream reset options",
-		NextScreenMode:             "Next screen mode (normal/half/fullscreen)",
-		PrevScreenMode:             "Prev screen mode",
-		StartSearch:                "Search the current view by text",
-		StartFilter:                "Filter the current view by text",
-		Panel:                      "Panel",
-		KeybindingsLegend:          "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
-		RenameBranch:               "Rename branch",
-		SetUnsetUpstream:           "Set/Unset upstream",
-		NewBranchNamePrompt:        "Enter new branch name for branch",
-		RenameBranchWarning:        "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
-		OpenMenu:                   "Open menu",
-		ResetCherryPick:            "Reset cherry-picked (copied) commits selection",
-		NextTab:                    "Next tab",
-		PrevTab:                    "Previous tab",
-		CantUndoWhileRebasing:      "Can't undo while rebasing",
-		CantRedoWhileRebasing:      "Can't redo while rebasing",
-		MustStashWarning:           "Pulling a patch out into the index requires stashing and unstashing your changes. If something goes wrong, you'll be able to access your files from the stash. Continue?",
-		MustStashTitle:             "Must stash",
-		ConfirmationTitle:          "Confirmation panel",
-		PrevPage:                   "Previous page",
-		NextPage:                   "Next page",
-		GotoTop:                    "Scroll to top",
-		GotoBottom:                 "Scroll to bottom",
-		FilteringBy:                "Filtering by",
-		ResetInParentheses:         "(Reset)",
-		OpenFilteringMenu:          "View filter-by-path options",
-		FilterBy:                   "Filter by",
-		ExitFilterMode:             "Stop filtering by path",
-		FilterPathOption:           "Enter path to filter by",
-		EnterFileName:              "Enter path:",
-		FilteringMenuTitle:         "Filtering",
-		MustExitFilterModeTitle:    "Command not available",
-		MustExitFilterModePrompt:   "Command not available in filter-by-path mode. Exit filter-by-path mode?",
-		Diff:                       "Diff",
-		EnterRefToDiff:             "Enter ref to diff",
-		EnterRefName:               "Enter ref:",
-		ExitDiffMode:               "Exit diff mode",
-		DiffingMenuTitle:           "Diffing",
-		SwapDiff:                   "Reverse diff direction",
-		OpenDiffingMenu:            "Open diff menu",
+		IgnoreTracked:                    "Ignore tracked file",
+		IgnoreTrackedPrompt:              "Are you sure you want to ignore a tracked file?",
+		ExcludeTracked:                   "Exclude tracked file",
+		ExcludeTrackedPrompt:             "Are you sure you want to exclude a tracked file?",
+		ViewResetToUpstreamOptions:       "View upstream reset options",
+		NextScreenMode:                   "Next screen mode (normal/half/fullscreen)",
+		PrevScreenMode:                   "Prev screen mode",
+		StartSearch:                      "Search the current view by text",
+		StartFilter:                      "Filter the current view by text",
+		Panel:                            "Panel",
+		KeybindingsLegend:                "Legend: `<c-b>` means ctrl+b, `<a-b>` means alt+b, `B` means shift+b",
+		RenameBranch:                     "Rename branch",
+		BranchUpstreamOptionsTitle:       "Upstream options",
+		ViewBranchUpstreamOptionsTooltip: "View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream",
+		UpstreamNotStoredLocallyError:    "Cannot reset to upstream branch because it is not stored locally",
+		UpstreamNotSetError:              "The selected branch has no upstream",
+		ViewBranchUpstreamOptions:        "View upstream options",
+		NewBranchNamePrompt:              "Enter new branch name for branch",
+		RenameBranchWarning:              "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
+		OpenMenu:                         "Open menu",
+		ResetCherryPick:                  "Reset cherry-picked (copied) commits selection",
+		NextTab:                          "Next tab",
+		PrevTab:                          "Previous tab",
+		CantUndoWhileRebasing:            "Can't undo while rebasing",
+		CantRedoWhileRebasing:            "Can't redo while rebasing",
+		MustStashWarning:                 "Pulling a patch out into the index requires stashing and unstashing your changes. If something goes wrong, you'll be able to access your files from the stash. Continue?",
+		MustStashTitle:                   "Must stash",
+		ConfirmationTitle:                "Confirmation panel",
+		PrevPage:                         "Previous page",
+		NextPage:                         "Next page",
+		GotoTop:                          "Scroll to top",
+		GotoBottom:                       "Scroll to bottom",
+		FilteringBy:                      "Filtering by",
+		ResetInParentheses:               "(Reset)",
+		OpenFilteringMenu:                "View filter-by-path options",
+		FilterBy:                         "Filter by",
+		ExitFilterMode:                   "Stop filtering by path",
+		FilterPathOption:                 "Enter path to filter by",
+		EnterFileName:                    "Enter path:",
+		FilteringMenuTitle:               "Filtering",
+		MustExitFilterModeTitle:          "Command not available",
+		MustExitFilterModePrompt:         "Command not available in filter-by-path mode. Exit filter-by-path mode?",
+		Diff:                             "Diff",
+		EnterRefToDiff:                   "Enter ref to diff",
+		EnterRefName:                     "Enter ref:",
+		ExitDiffMode:                     "Exit diff mode",
+		DiffingMenuTitle:                 "Diffing",
+		SwapDiff:                         "Reverse diff direction",
+		OpenDiffingMenu:                  "Open diff menu",
 		// the actual view is the extras view which I intend to give more tabs in future but for now we'll only mention the command log part
 		OpenExtrasMenu:                      "Open command log menu",
 		ShowingGitDiff:                      "Showing output for:",
@@ -1394,7 +1407,6 @@ func EnglishTranslationSet() TranslationSet {
 			Merge:                             "Merge",
 			RebaseBranch:                      "Rebase branch",
 			RenameBranch:                      "Rename branch",
-			SetUnsetUpstream:                  "Set/Unset upstream",
 			CreateBranch:                      "Create branch",
 			CherryPick:                        "(Cherry-pick) paste commits",
 			CheckoutFile:                      "Checkout file",
