@@ -41,11 +41,11 @@ var ResetToUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 				t.ExpectPopup().Menu().
 					Title(Equals("Upstream options")).
 					Select(Contains("Reset checked-out branch onto upstream of selected branch")).
-					Tooltip(Contains("The selected branch has no upstream")).
+					Tooltip(Contains("Disabled: The selected branch has no upstream (or the upstream is not stored locally)")).
 					Confirm()
 				t.ExpectPopup().Alert().
 					Title(Equals("Error")).
-					Content(Equals("The selected branch has no upstream")).
+					Content(Equals("The selected branch has no upstream (or the upstream is not stored locally)")).
 					Confirm()
 			}).
 			SelectNextItem().
