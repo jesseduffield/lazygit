@@ -1,6 +1,8 @@
 package gui
 
 import (
+	"fmt"
+
 	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/theme"
 	"github.com/samber/lo"
@@ -185,6 +187,28 @@ func (gui *Gui) createAllViews() error {
 
 	gui.Views.Snake.Title = gui.c.Tr.SnakeTitle
 	gui.Views.Snake.FgColor = gocui.ColorGreen
+
+	if gui.c.UserConfig.Gui.ShowPanelJumps {
+		jumpBindings := gui.c.UserConfig.Keybinding.Universal.JumpToBlock
+		jumpLabels := lo.Map(jumpBindings, func(binding string, _ int) string {
+			return fmt.Sprintf("[%s]", binding)
+		})
+
+		gui.Views.Status.TitlePrefix = jumpLabels[0]
+
+		gui.Views.Files.TitlePrefix = jumpLabels[1]
+		gui.Views.Worktrees.TitlePrefix = jumpLabels[1]
+		gui.Views.Submodules.TitlePrefix = jumpLabels[1]
+
+		gui.Views.Branches.TitlePrefix = jumpLabels[2]
+		gui.Views.Remotes.TitlePrefix = jumpLabels[2]
+		gui.Views.Tags.TitlePrefix = jumpLabels[2]
+
+		gui.Views.Commits.TitlePrefix = jumpLabels[3]
+		gui.Views.ReflogCommits.TitlePrefix = jumpLabels[3]
+
+		gui.Views.Stash.TitlePrefix = jumpLabels[4]
+	}
 
 	return nil
 }

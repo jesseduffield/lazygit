@@ -76,6 +76,7 @@ gui:
   showRandomTip: true
   showBranchCommitHash: false # show commit hashes alongside branch names
   showBottomLine: true # for hiding the bottom information line (unless it has important information to tell you)
+  showPanelJumps: true # for showing the jump-to-panel keybindings as panel subtitles
   showCommandLog: true
   showIcons: false # deprecated: use nerdFontsVersion instead
   nerdFontsVersion: "" # nerd fonts version to use ("2" or "3"); empty means don't show nerd font icons
