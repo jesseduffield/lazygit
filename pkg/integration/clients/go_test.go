@@ -27,6 +27,7 @@ func TestIntegration(t *testing.T) {
 
 	parallelTotal := tryConvert(os.Getenv("PARALLEL_TOTAL"), 1)
 	parallelIndex := tryConvert(os.Getenv("PARALLEL_INDEX"), 0)
+	raceDetector := os.Getenv("LAZYGIT_RACE_DETECTOR") != ""
 	testNumber := 0
 
 	err := components.RunTests(
@@ -53,6 +54,7 @@ func TestIntegration(t *testing.T) {
 		},
 		false,
 		false,
+		raceDetector,
 		0,
 		// Allow two attempts at each test to get around flakiness
 		2,

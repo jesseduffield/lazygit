@@ -61,14 +61,23 @@ func main() {
 		slow := false
 		sandbox := false
 		waitForDebugger := false
+		raceDetector := false
 		testNames := parseFlags(os.Args[2:], []flagInfo{
 			{"slow", &slow},
 			{"sandbox", &sandbox},
 			{"debug", &waitForDebugger},
+			{"race", &raceDetector},
 		})
-		clients.RunCLI(testNames, slow, sandbox, waitForDebugger)
+		clients.RunCLI(testNames, slow, sandbox, waitForDebugger, raceDetector)
 	case "tui":
-		clients.RunTUI()
+		raceDetector := false
+		remainingArgs := parseFlags(os.Args[2:], []flagInfo{
+			{"race", &raceDetector},
+		})
+		if len(remainingArgs) > 0 {
+			log.Fatal("tui only supports the -race argument.")
+		}
+		clients.RunTUI(raceDetector)
 	default:
 		log.Fatal(usage)
 	}

@@ -23,7 +23,7 @@ import (
 
 // If invoked directly, you can specify tests to run by passing their names as positional arguments
 
-func RunCLI(testNames []string, slow bool, sandbox bool, waitForDebugger bool) {
+func RunCLI(testNames []string, slow bool, sandbox bool, waitForDebugger bool, raceDetector bool) {
 	inputDelay := tryConvert(os.Getenv("INPUT_DELAY"), 0)
 	if slow {
 		inputDelay = SLOW_INPUT_DELAY
@@ -36,6 +36,7 @@ func RunCLI(testNames []string, slow bool, sandbox bool, waitForDebugger bool) {
 		runAndPrintFatalError,
 		sandbox,
 		waitForDebugger,
+		raceDetector,
 		inputDelay,
 		1,
 	)
