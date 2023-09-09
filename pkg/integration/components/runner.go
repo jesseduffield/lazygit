@@ -29,6 +29,7 @@ func RunTests(
 	runCmd func(cmd *exec.Cmd) error,
 	testWrapper func(test *IntegrationTest, f func() error),
 	sandbox bool,
+	waitForDebugger bool,
 	inputDelay int,
 	maxAttempts int,
 ) error {
@@ -58,7 +59,7 @@ func RunTests(
 			)
 
 			for i := 0; i < maxAttempts; i++ {
-				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, inputDelay, gitVersion)
+				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, waitForDebugger, inputDelay, gitVersion)
 				if err != nil {
 					if i == maxAttempts-1 {
 						return err
@@ -83,6 +84,7 @@ func runTest(
 	logf func(format string, formatArgs ...interface{}),
 	runCmd func(cmd *exec.Cmd) error,
 	sandbox bool,
+	waitForDebugger bool,
 	inputDelay int,
 	gitVersion *git_commands.GitVersion,
 ) error {
@@ -100,7 +102,7 @@ func runTest(
 		return err
 	}
 
-	cmd, err := getLazygitCommand(test, paths, projectRootDir, sandbox, inputDelay)
+	cmd, err := getLazygitCommand(test, paths, projectRootDir, sandbox, waitForDebugger, inputDelay)
 	if err != nil {
 		return err
 	}
@@ -165,7 +167,7 @@ func getGitVersion() (*git_commands.GitVersion, error) {
 	return git_commands.ParseGitVersion(versionStr)
 }
 
-func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandbox bool, inputDelay int) (*exec.Cmd, error) {
+func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandbox bool, waitForDebugger bool, inputDelay int) (*exec.Cmd, error) {
 	osCommand := oscommands.NewDummyOSCommand()
 
 	err := os.RemoveAll(paths.Config())
@@ -196,6 +198,9 @@ func getLazygitCommand(test *IntegrationTest, paths Paths, rootDir string, sandb
 	cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", TEST_NAME_ENV_VAR, test.Name()))
 	if sandbox {
 		cmdObj.AddEnvVars(fmt.Sprintf("%s=%s", SANDBOX_ENV_VAR, "true"))
+	}
+	if waitForDebugger {
+		cmdObj.AddEnvVars("WAIT_FOR_DEBUGGER=true")
 	}
 	if test.ExtraEnvVars() != nil {
 		for key, value := range test.ExtraEnvVars() {

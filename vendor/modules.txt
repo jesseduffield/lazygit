@@ -175,6 +175,9 @@ github.com/mgutz/str
 # github.com/mitchellh/go-homedir v1.1.0
 ## explicit
 github.com/mitchellh/go-homedir
+# github.com/mitchellh/go-ps v1.0.0
+## explicit; go 1.13
+github.com/mitchellh/go-ps
 # github.com/onsi/ginkgo v1.10.3
 ## explicit
 # github.com/onsi/gomega v1.7.1

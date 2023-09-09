@@ -38,6 +38,7 @@ func main() {
 		testNames := os.Args[2:]
 		slow := false
 		sandbox := false
+		waitForDebugger := false
 		// get the next arg if it's --slow
 		if len(os.Args) > 2 {
 			if os.Args[2] == "--slow" || os.Args[2] == "-slow" {
@@ -46,10 +47,13 @@ func main() {
 			} else if os.Args[2] == "--sandbox" || os.Args[2] == "-sandbox" {
 				testNames = os.Args[3:]
 				sandbox = true
+			} else if os.Args[2] == "--debug" || os.Args[2] == "-debug" {
+				testNames = os.Args[3:]
+				waitForDebugger = true
 			}
 		}
 
-		clients.RunCLI(testNames, slow, sandbox)
+		clients.RunCLI(testNames, slow, sandbox, waitForDebugger)
 	case "tui":
 		clients.RunTUI()
 	default:

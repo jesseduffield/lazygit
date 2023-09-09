@@ -41,6 +41,18 @@
       "hideSystemGoroutines": true,
       "console": "integratedTerminal",
     },
+    {
+      // To use this, first start an integration test with the "cli" runner and
+      // use the -debug option; e.g.
+      // $ make integration-test-cli -- -debug tag/reset.go
+      "name": "Attach to integration test runner",
+      "type": "go",
+      "request": "attach",
+      "mode": "local",
+      "processId": "test_lazygit",
+      "hideSystemGoroutines": true,
+      "console": "integratedTerminal",
+    },
   ],
   "compounds": [
     {
