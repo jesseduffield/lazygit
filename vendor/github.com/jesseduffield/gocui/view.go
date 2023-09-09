@@ -122,6 +122,10 @@ type View struct {
 	// If Frame is true, Title allows to configure a title for the view.
 	Title string
 
+	// If non-empty, TitlePrefix is prepended to the title of a view regardless on
+	// the the currently selected tab (if any.)
+	TitlePrefix string
+
 	Tabs     []string
 	TabIndex int
 
@@ -1348,7 +1352,10 @@ func (v *View) GetClickedTabIndex(x int) int {
 		return 0
 	}
 
-	charX := 1
+	charX := len(v.TitlePrefix) + 1
+	if v.TitlePrefix != "" {
+		charX += 1
+	}
 	if x <= charX {
 		return -1
 	}

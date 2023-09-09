@@ -2471,6 +2471,29 @@ func Pselect(nfd int, r *FdSet, w *FdSet, e *FdSet, timeout *Timespec, sigmask *
 	return pselect6(nfd, r, w, e, mutableTimeout, kernelMask)
 }
 
+//sys	schedSetattr(pid int, attr *SchedAttr, flags uint) (err error)
+//sys	schedGetattr(pid int, attr *SchedAttr, size uint, flags uint) (err error)
+
+// SchedSetAttr is a wrapper for sched_setattr(2) syscall.
+// https://man7.org/linux/man-pages/man2/sched_setattr.2.html
+func SchedSetAttr(pid int, attr *SchedAttr, flags uint) error {
+	if attr == nil {
+		return EINVAL
+	}
+	attr.Size = SizeofSchedAttr
+	return schedSetattr(pid, attr, flags)
+}
+
+// SchedGetAttr is a wrapper for sched_getattr(2) syscall.
+// https://man7.org/linux/man-pages/man2/sched_getattr.2.html
+func SchedGetAttr(pid int, flags uint) (*SchedAttr, error) {
+	attr := &SchedAttr{}
+	if err := schedGetattr(pid, attr, SizeofSchedAttr, flags); err != nil {
+		return nil, err
+	}
+	return attr, nil
+}
+
 /*
  * Unimplemented
  */
