@@ -32,6 +32,15 @@
         "hidden": true
       }
     },
+    {
+      "name": "Attach to a running Lazygit",
+      "type": "go",
+      "request": "attach",
+      "mode": "local",
+      "processId": "lazygit",
+      "hideSystemGoroutines": true,
+      "console": "integratedTerminal",
+    },
   ],
   "compounds": [
     {
