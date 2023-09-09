@@ -63,6 +63,7 @@ func (self *SubCommitsHelper) ViewSubCommits(opts ViewSubCommitsOpts) error {
 	subCommitsContext.SetShowBranchHeads(opts.ShowBranchHeads)
 	subCommitsContext.ClearSearchString()
 	subCommitsContext.GetView().ClearSearch()
+	subCommitsContext.GetView().TitlePrefix = opts.Context.GetView().TitlePrefix
 
 	err = self.c.PostRefreshUpdate(self.c.Contexts().SubCommits)
 	if err != nil {

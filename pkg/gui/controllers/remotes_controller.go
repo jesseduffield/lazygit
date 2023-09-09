@@ -109,6 +109,7 @@ func (self *RemotesController) enter(remote *models.Remote) error {
 	remoteBranchesContext.SetSelectedLineIdx(newSelectedLine)
 	remoteBranchesContext.SetTitleRef(remote.Name)
 	remoteBranchesContext.SetParentContext(self.Context())
+	remoteBranchesContext.GetView().TitlePrefix = self.Context().GetView().TitlePrefix
 
 	if err := self.c.PostRefreshUpdate(remoteBranchesContext); err != nil {
 		return err

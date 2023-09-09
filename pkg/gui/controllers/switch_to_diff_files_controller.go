@@ -84,6 +84,7 @@ func (self *SwitchToDiffFilesController) viewFiles(opts SwitchToCommitFilesConte
 	diffFilesContext.SetParentContext(opts.Context)
 	diffFilesContext.SetWindowName(opts.Context.GetWindowName())
 	diffFilesContext.ClearSearchString()
+	diffFilesContext.GetView().TitlePrefix = opts.Context.GetView().TitlePrefix
 
 	if err := self.c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.COMMIT_FILES},

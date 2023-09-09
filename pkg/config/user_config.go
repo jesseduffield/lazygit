@@ -50,6 +50,7 @@ type GuiConfig struct {
 	ShowRandomTip             bool               `yaml:"showRandomTip"`
 	ShowCommandLog            bool               `yaml:"showCommandLog"`
 	ShowBottomLine            bool               `yaml:"showBottomLine"`
+	ShowPanelJumps            bool               `yaml:"showPanelJumps"`
 	ShowIcons                 bool               `yaml:"showIcons"`
 	NerdFontsVersion          string             `yaml:"nerdFontsVersion"`
 	ShowBranchCommitHash      bool               `yaml:"showBranchCommitHash"`
@@ -456,6 +457,7 @@ func GetDefaultConfig() *UserConfig {
 			ShowListFooter:            true,
 			ShowCommandLog:            true,
 			ShowBottomLine:            true,
+			ShowPanelJumps:            true,
 			ShowFileTree:              true,
 			ShowRandomTip:             true,
 			ShowIcons:                 false,

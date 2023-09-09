@@ -1020,6 +1020,14 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 	}
 
 	tabs := v.Tabs
+	prefix := v.TitlePrefix
+	if prefix != "" {
+		if len(v.FrameRunes) > 0 {
+			prefix += string(v.FrameRunes[0])
+		} else {
+			prefix += "─"
+		}
+	}
 	separator := " - "
 	charIndex := 0
 	currentTabStart := -1
@@ -1043,6 +1051,12 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) error {
 	str := strings.Join(tabs, separator)
 
 	x := v.x0 + 2
+	for _, ch := range prefix {
+		if err := g.SetRune(x, v.y0, ch, fgColor, bgColor); err != nil {
+			return err
+		}
+		x += runewidth.RuneWidth(ch)
+	}
 	for i, ch := range str {
 		if x < 0 {
 			continue
