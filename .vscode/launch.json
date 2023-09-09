@@ -7,7 +7,10 @@
       "request": "launch",
       "mode": "auto",
       "program": "main.go",
-      "args": ["--debug", "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"],
+      "args": [
+        "--debug",
+        "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"
+      ],
       "console": "integratedTerminal",
       "presentation": {
         "hidden": true
@@ -19,17 +22,23 @@
       "request": "launch",
       "mode": "auto",
       "program": "main.go",
-      "args": ["--logs", "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"],
+      "args": [
+        "--logs",
+        "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"
+      ],
       "console": "integratedTerminal",
       "presentation": {
         "hidden": true
       }
-    }
+    },
   ],
   "compounds": [
     {
       "name": "Run with logs",
-      "configurations": ["Tail Lazygit logs", "Debug Lazygit"],
+      "configurations": [
+        "Tail Lazygit logs",
+        "Debug Lazygit"
+      ],
       "stopAll": true
     }
   ]
