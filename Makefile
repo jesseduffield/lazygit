@@ -44,7 +44,7 @@ update-cheatsheet:
 # For more details about integration test, see https://github.com/jesseduffield/lazygit/blob/master/pkg/integration/README.md.
 .PHONY: integration-test-tui
 integration-test-tui:
-	go run cmd/integration_test/main.go tui
+	go run cmd/integration_test/main.go tui $(filter-out $@,$(MAKECMDGOALS))
 
 .PHONY: integration-test-cli
 integration-test-cli:
