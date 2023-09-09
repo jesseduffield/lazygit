@@ -11,6 +11,7 @@
         "--debug",
         "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"
       ],
+      "hideSystemGoroutines": true,
       "console": "integratedTerminal",
       "presentation": {
         "hidden": true
