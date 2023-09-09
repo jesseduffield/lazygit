@@ -26,7 +26,7 @@ const (
 func RunTests(
 	tests []*IntegrationTest,
 	logf func(format string, formatArgs ...interface{}),
-	runCmd func(cmd *exec.Cmd) error,
+	runCmd func(cmd *exec.Cmd) (int, error),
 	testWrapper func(test *IntegrationTest, f func() error),
 	sandbox bool,
 	waitForDebugger bool,
@@ -60,7 +60,7 @@ func RunTests(
 			)
 
 			for i := 0; i < maxAttempts; i++ {
-				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, waitForDebugger, inputDelay, gitVersion)
+				err := runTest(test, paths, projectRootDir, logf, runCmd, sandbox, waitForDebugger, raceDetector, inputDelay, gitVersion)
 				if err != nil {
 					if i == maxAttempts-1 {
 						return err
@@ -83,9 +83,10 @@ func runTest(
 	paths Paths,
 	projectRootDir string,
 	logf func(format string, formatArgs ...interface{}),
-	runCmd func(cmd *exec.Cmd) error,
+	runCmd func(cmd *exec.Cmd) (int, error),
 	sandbox bool,
 	waitForDebugger bool,
+	raceDetector bool,
 	inputDelay int,
 	gitVersion *git_commands.GitVersion,
 ) error {
@@ -108,12 +109,17 @@ func runTest(
 		return err
 	}
 
-	err = runCmd(cmd)
-	if err != nil {
-		return err
+	pid, err := runCmd(cmd)
+
+	// Print race detector log regardless of the command's exit status
+	if raceDetector {
+		logPath := fmt.Sprintf("%s.%d", raceDetectorLogsPath(), pid)
+		if bytes, err := os.ReadFile(logPath); err == nil {
+			logf("Race detector log:\n" + string(bytes))
+		}
 	}
 
-	return nil
+	return err
 }
 
 func prepareTestDir(

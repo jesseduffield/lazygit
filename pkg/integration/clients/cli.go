@@ -88,12 +88,15 @@ outer:
 	return testsToRun
 }
 
-func runCmdInTerminal(cmd *exec.Cmd) error {
+func runCmdInTerminal(cmd *exec.Cmd) (int, error) {
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 
-	return cmd.Run()
+	if err := cmd.Start(); err != nil {
+		return -1, err
+	}
+	return cmd.Process.Pid, cmd.Wait()
 }
 
 func tryConvert(numStr string, defaultVal int) int {

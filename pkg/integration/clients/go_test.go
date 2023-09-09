@@ -63,7 +63,7 @@ func TestIntegration(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func runCmdHeadless(cmd *exec.Cmd) error {
+func runCmdHeadless(cmd *exec.Cmd) (int, error) {
 	cmd.Env = append(
 		cmd.Env,
 		"HEADLESS=true",
@@ -81,7 +81,7 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	// running other commands in a pty.
 	f, err := pty.StartWithSize(cmd, &pty.Winsize{Rows: 300, Cols: 300})
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	_, _ = io.Copy(io.Discard, f)
@@ -89,8 +89,8 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	if cmd.Wait() != nil {
 		_ = f.Close()
 		// return an error with the stderr output
-		return errors.New(stderr.String())
+		return cmd.Process.Pid, errors.New(stderr.String())
 	}
 
-	return f.Close()
+	return cmd.Process.Pid, f.Close()
 }
