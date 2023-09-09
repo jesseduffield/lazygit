@@ -466,7 +466,7 @@ func GetDefaultConfig() *UserConfig {
 			CommandLogSize:            8,
 			SplitDiff:                 "auto",
 			SkipRewordInEditorWarning: false,
-			Border:                    "single",
+			Border:                    "rounded",
 			AnimateExplosion:          true,
 		},
 		Git: GitConfig{
