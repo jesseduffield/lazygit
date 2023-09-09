@@ -621,6 +621,12 @@ func (self *LocalCommitsController) amendAttribute(commit *models.Commit) error 
 				Key:     'A',
 				Tooltip: "Set the author based on a prompt",
 			},
+			{
+				Label:   self.c.Tr.AddCoAuthor,
+				OnPress: self.addCoAuthor,
+				Key:     'c',
+				Tooltip: self.c.Tr.AddCoAuthorTooltip,
+			},
 		},
 	})
 }
@@ -647,6 +653,22 @@ func (self *LocalCommitsController) setAuthor() error {
 					return self.c.Error(err)
 				}
 
+				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
+			})
+		},
+	})
+}
+
+func (self *LocalCommitsController) addCoAuthor() error {
+	return self.c.Prompt(types.PromptOpts{
+		Title:               self.c.Tr.AddCoAuthorPromptTitle,
+		FindSuggestionsFunc: self.c.Helpers().Suggestions.GetAuthorsSuggestionsFunc(),
+		HandleConfirm: func(value string) error {
+			return self.c.WithWaitingStatus(self.c.Tr.AmendingStatus, func(gocui.Task) error {
+				self.c.LogAction(self.c.Tr.Actions.AddCommitCoAuthor)
+				if err := self.c.Git().Rebase.AddCommitCoAuthor(self.c.Model().Commits, self.context().GetSelectedLineIdx(), value); err != nil {
+					return self.c.Error(err)
+				}
 				return self.c.Refresh(types.RefreshOptions{Mode: types.ASYNC})
 			})
 		},

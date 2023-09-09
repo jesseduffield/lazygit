@@ -38,6 +38,22 @@ func (self *CommitCommands) SetAuthor(value string) error {
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// Add a commit's coauthor using Github/Gitlab Co-authored-by metadata. Value is expected to be of the form 'Name <Email>'
+func (self *CommitCommands) AddCoAuthor(sha string, value string) error {
+	message, err := self.GetCommitMessage(sha)
+	if err != nil {
+		return err
+	}
+
+	message = message + fmt.Sprintf("\nCo-authored-by: %s", value)
+
+	cmdArgs := NewGitCmd("commit").
+		Arg("--allow-empty", "--amend", "--only", "-m", message).
+		ToArgv()
+
+	return self.cmd.New(cmdArgs).Run()
+}
+
 // ResetToCommit reset to commit
 func (self *CommitCommands) ResetToCommit(sha string, strength string, envVars []string) error {
 	cmdArgs := NewGitCmd("reset").Arg("--"+strength, sha).ToArgv()
