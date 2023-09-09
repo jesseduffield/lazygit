@@ -85,6 +85,7 @@ func runCmdHeadless(cmd *exec.Cmd) error {
 	_, _ = io.Copy(io.Discard, f)
 
 	if cmd.Wait() != nil {
+		_ = f.Close()
 		// return an error with the stderr output
 		return errors.New(stderr.String())
 	}
