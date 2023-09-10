@@ -18,11 +18,31 @@ func (self *OptionsMenuAction) Call() error {
 		return nil
 	}
 
-	local, global, navigation := self.getBindings(ctx)
+	headingMap := map[string]string{
+		"local":          self.c.Tr.KeybindingsMenuSectionLocal,
+		"global":         self.c.Tr.KeybindingsMenuSectionGlobal,
+		"navigation":     self.c.Tr.KeybindingsMenuSectionNavigation,
+		"file":           "File",
+		"workingTree":    "Working tree",
+		"commit":         "Commit",
+		"stash":          "Stash",
+		"filterDisplay":  "Filter/Display",
+		"sync":           "Sync",
+		"customCommands": "Custom commands",
+		"customPatch":    "Custom patch",
+		"rebase":         "Rebase",
+		"misc":           "Miscellaneous",
+		"diff":           "Diff",
+	}
 
 	menuItems := []*types.MenuItem{}
 
-	appendBindings := func(bindings []*types.Binding, section *types.MenuSection) {
+	for groupKey, bindings := range self.getBindingGroups(ctx) {
+		section := &types.MenuSection{
+			Title:  headingMap[groupKey],
+			Column: 1,
+		}
+
 		menuItems = append(menuItems,
 			lo.Map(bindings, func(binding *types.Binding, _ int) *types.MenuItem {
 				return &types.MenuItem{
@@ -42,10 +62,6 @@ func (self *OptionsMenuAction) Call() error {
 			})...)
 	}
 
-	appendBindings(local, &types.MenuSection{Title: self.c.Tr.KeybindingsMenuSectionLocal, Column: 1})
-	appendBindings(global, &types.MenuSection{Title: self.c.Tr.KeybindingsMenuSectionGlobal, Column: 1})
-	appendBindings(navigation, &types.MenuSection{Title: self.c.Tr.KeybindingsMenuSectionNavigation, Column: 1})
-
 	return self.c.Menu(types.CreateMenuOptions{
 		Title:           self.c.Tr.Keybindings,
 		Items:           menuItems,
@@ -54,25 +70,26 @@ func (self *OptionsMenuAction) Call() error {
 	})
 }
 
-// Returns three slices of bindings: local, global, and navigation
-func (self *OptionsMenuAction) getBindings(context types.Context) ([]*types.Binding, []*types.Binding, []*types.Binding) {
-	var bindingsGlobal, bindingsPanel, bindingsNavigation []*types.Binding
-
+func (self *OptionsMenuAction) getBindingGroups(context types.Context) map[string][]*types.Binding {
 	bindings, _ := self.c.GetInitialKeybindingsWithCustomCommands()
+
+	result := map[string][]*types.Binding{}
+	appendToGroup := func(groupKey string, binding *types.Binding) {
+		if _, ok := result[groupKey]; !ok {
+			result[groupKey] = []*types.Binding{}
+		}
+		result[groupKey] = append(result[groupKey], binding)
+	}
 
 	for _, binding := range bindings {
 		if keybindings.LabelFromKey(binding.Key) != "" && binding.Description != "" {
-			if binding.ViewName == "" {
-				bindingsGlobal = append(bindingsGlobal, binding)
-			} else if binding.Tag == "navigation" {
-				bindingsNavigation = append(bindingsNavigation, binding)
-			} else if binding.ViewName == context.GetViewName() {
-				bindingsPanel = append(bindingsPanel, binding)
+			if binding.ViewName == context.GetViewName() || binding.ViewName == "" {
+				appendToGroup(binding.Tag, binding)
 			}
 		}
 	}
 
-	return uniqueBindings(bindingsPanel), uniqueBindings(bindingsGlobal), uniqueBindings(bindingsNavigation)
+	return result
 }
 
 // We shouldn't really need to do this. We should define alternative keys for the same

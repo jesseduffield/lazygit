@@ -39,6 +39,7 @@ func (self *SearchController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Key:         opts.GetKey(opts.Config.Universal.StartSearch),
 			Handler:     self.OpenSearchPrompt,
 			Description: self.c.Tr.StartSearch,
+			Tag:         "filterDisplay",
 		},
 	}
 }

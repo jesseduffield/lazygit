@@ -45,6 +45,7 @@ func (self *KeybindingCreator) call(customCommand config.CustomCommand, handler 
 		Modifier:    gocui.ModNone,
 		Handler:     handler,
 		Description: description,
+		Tag:         "customCommands",
 	}, nil
 }
 

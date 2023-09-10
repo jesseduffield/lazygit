@@ -57,12 +57,14 @@ func (self *UndoController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Handler:     self.reflogUndo,
 			Description: self.c.Tr.UndoReflog,
 			Tooltip:     self.c.Tr.UndoTooltip,
+			Tag:         "misc",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Redo),
 			Handler:     self.reflogRedo,
 			Description: self.c.Tr.RedoReflog,
 			Tooltip:     self.c.Tr.RedoTooltip,
+			Tag:         "misc",
 		},
 	}
 

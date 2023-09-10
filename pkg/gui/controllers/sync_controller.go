@@ -33,11 +33,13 @@ func (self *SyncController) GetKeybindings(opts types.KeybindingsOpts) []*types.
 			Key:         opts.GetKey(opts.Config.Universal.Push),
 			Handler:     opts.Guards.NoPopupPanel(self.HandlePush),
 			Description: self.c.Tr.Push,
+			Tag:         "sync",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Pull),
 			Handler:     opts.Guards.NoPopupPanel(self.HandlePull),
 			Description: self.c.Tr.Pull,
+			Tag:         "sync",
 		},
 	}
 

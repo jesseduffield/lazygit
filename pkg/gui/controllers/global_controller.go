@@ -25,39 +25,46 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Key:         opts.GetKey(opts.Config.Universal.ExecuteCustomCommand),
 			Handler:     self.customCommand,
 			Description: self.c.Tr.ExecuteCustomCommand,
+			Tag:         "customCommands",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.CreatePatchOptionsMenu),
 			Handler:     self.createCustomPatchOptionsMenu,
 			Description: self.c.Tr.ViewPatchOptions,
 			OpensMenu:   true,
+			Tag:         "customPatch",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.CreateRebaseOptionsMenu),
 			Handler:     self.c.Helpers().MergeAndRebase.CreateRebaseOptionsMenu,
 			Description: self.c.Tr.ViewMergeRebaseOptions,
 			OpensMenu:   true,
+			Tag:         "rebase",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.Refresh),
 			Handler:     self.refresh,
 			Description: self.c.Tr.Refresh,
+			Tag:         "misc",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.NextScreenMode),
 			Handler:     self.nextScreenMode,
 			Description: self.c.Tr.NextScreenMode,
+			Tag:         "filterDisplay",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.PrevScreenMode),
 			Handler:     self.prevScreenMode,
 			Description: self.c.Tr.PrevScreenMode,
+			Tag:         "filterDisplay",
 		},
 		{
 			ViewName:  "",
 			Key:       opts.GetKey(opts.Config.Universal.OptionMenu),
 			Handler:   self.createOptionsMenu,
 			OpensMenu: true,
+			Tag:       "misc",
 		},
 		{
 			ViewName: "",
@@ -67,6 +74,7 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			// (the original main key was 'x' but we've reassigned that to other purposes)
 			Description: self.c.Tr.OpenMenu,
 			Handler:     self.createOptionsMenu,
+			Tag:         "misc",
 		},
 		{
 			ViewName:    "",
@@ -74,43 +82,51 @@ func (self *GlobalController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			Handler:     self.createFilteringMenu,
 			Description: self.c.Tr.OpenFilteringMenu,
 			OpensMenu:   true,
+			Tag:         "filterDisplay",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.DiffingMenu),
 			Handler:     self.createDiffingMenu,
 			Description: self.c.Tr.OpenDiffingMenu,
 			OpensMenu:   true,
+			Tag:         "diff",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.DiffingMenuAlt),
 			Handler:     self.createDiffingMenu,
 			Description: self.c.Tr.OpenDiffingMenu,
 			OpensMenu:   true,
+			Tag:         "diff",
 		},
 		{
 			Key:      opts.GetKey(opts.Config.Universal.Quit),
 			Modifier: gocui.ModNone,
 			Handler:  self.quit,
+			Tag:      "misc",
 		},
 		{
 			Key:      opts.GetKey(opts.Config.Universal.QuitAlt1),
 			Modifier: gocui.ModNone,
 			Handler:  self.quit,
+			Tag:      "misc",
 		},
 		{
 			Key:      opts.GetKey(opts.Config.Universal.QuitWithoutChangingDirectory),
 			Modifier: gocui.ModNone,
 			Handler:  self.quitWithoutChangingDirectory,
+			Tag:      "misc",
 		},
 		{
 			Key:      opts.GetKey(opts.Config.Universal.Return),
 			Modifier: gocui.ModNone,
 			Handler:  self.escape,
+			Tag:      "navigation",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.ToggleWhitespaceInDiffView),
 			Handler:     self.toggleWhitespace,
 			Description: self.c.Tr.ToggleWhitespaceInDiffView,
+			Tag:         "diff",
 		},
 	}
 }

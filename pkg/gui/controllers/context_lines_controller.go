@@ -45,11 +45,13 @@ func (self *ContextLinesController) GetKeybindings(opts types.KeybindingsOpts) [
 			Key:         opts.GetKey(opts.Config.Universal.IncreaseContextInDiffView),
 			Handler:     self.Increase,
 			Description: self.c.Tr.IncreaseContextInDiffView,
+			Tag:         "diff",
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Universal.DecreaseContextInDiffView),
 			Handler:     self.Decrease,
 			Description: self.c.Tr.DecreaseContextInDiffView,
+			Tag:         "diff",
 		},
 	}
 
