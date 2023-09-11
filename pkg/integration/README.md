@@ -61,6 +61,15 @@ If you've opened an integration test file in your editor you can run that file b
 The test will run in a VSCode terminal:
 ![image](https://user-images.githubusercontent.com/8456633/201500446-b87abf11-9653-438f-8a9a-e0bf8abdb7ee.png)
 
+### Debugging tests
+
+Debugging an integration test is possible in two ways:
+
+1. Use the -debug option of the integration test runner's "cli" command, e.g. `go run cmd/integration_test/main.go cli -debug tag/reset.go`
+2. Select a test in the "tui" runner and hit "d" to debug it.
+
+In both cases the test runner will print to the console that it is waiting for a debugger to attach, so now you need to tell your debugger to attach to a running process with the name "test_lazygit". If you are using Visual Studio Code, an easy way to do that is to use the "Attach to integration test runner" debug configuration. The test runner will resume automatically when it detects that a debugger was attached. Don't forget to set a breakpoint in the code that you want to step through, otherwise the test will just finish (i.e. it doesn't stop in the debugger automatically).
+
 ### Sandbox mode
 
 Say you want to do a manual test of how lazygit handles merge-conflicts, but you can't be bothered actually finding a way to create merge conflicts in a repo. To make your life easier, you can simply run a merge-conflicts test in sandbox mode, meaning the setup step is run for you, and then instead of the test driving the lazygit session, you're allowed to drive it yourself.

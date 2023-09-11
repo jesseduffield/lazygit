@@ -7,7 +7,11 @@
       "request": "launch",
       "mode": "auto",
       "program": "main.go",
-      "args": ["--debug", "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"],
+      "args": [
+        "--debug",
+        "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"
+      ],
+      "hideSystemGoroutines": true,
       "console": "integratedTerminal",
       "presentation": {
         "hidden": true
@@ -19,17 +23,44 @@
       "request": "launch",
       "mode": "auto",
       "program": "main.go",
-      "args": ["--logs", "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"],
+      "args": [
+        "--logs",
+        "--use-config-file=${workspaceFolder}/.vscode/debugger_config.yml"
+      ],
       "console": "integratedTerminal",
       "presentation": {
         "hidden": true
       }
-    }
+    },
+    {
+      "name": "Attach to a running Lazygit",
+      "type": "go",
+      "request": "attach",
+      "mode": "local",
+      "processId": "lazygit",
+      "hideSystemGoroutines": true,
+      "console": "integratedTerminal",
+    },
+    {
+      // To use this, first start an integration test with the "cli" runner and
+      // use the -debug option; e.g.
+      // $ make integration-test-cli -- -debug tag/reset.go
+      "name": "Attach to integration test runner",
+      "type": "go",
+      "request": "attach",
+      "mode": "local",
+      "processId": "test_lazygit",
+      "hideSystemGoroutines": true,
+      "console": "integratedTerminal",
+    },
   ],
   "compounds": [
     {
       "name": "Run with logs",
-      "configurations": ["Tail Lazygit logs", "Debug Lazygit"],
+      "configurations": [
+        "Tail Lazygit logs",
+        "Debug Lazygit"
+      ],
       "stopAll": true
     }
   ]

@@ -52,6 +52,7 @@ func TestIntegration(t *testing.T) {
 			})
 		},
 		false,
+		false,
 		0,
 		// Allow two attempts at each test to get around flakiness
 		2,

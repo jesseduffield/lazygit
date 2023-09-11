@@ -10,8 +10,8 @@ install:
 	go install
 
 .PHONY: run
-run:
-	go run main.go
+run: build
+	./lazygit
 
 # Run `make run-debug` in one terminal tab and `make print-log` in another to view the program and its log output side by side
 .PHONY: run-debug

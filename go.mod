@@ -25,6 +25,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/mgutz/str v1.2.0
+	github.com/mitchellh/go-ps v1.0.0
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/sahilm/fuzzy v0.1.0
 	github.com/samber/lo v1.31.0
