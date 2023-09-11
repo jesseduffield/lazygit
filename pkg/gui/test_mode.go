@@ -45,10 +45,12 @@ func (gui *Gui) handleTestMode() {
 			log.Fatal("gocui should have already exited")
 		}()
 
-		go utils.Safe(func() {
-			time.Sleep(time.Second * 40)
-			log.Fatal("40 seconds is up, lazygit recording took too long to complete")
-		})
+		if os.Getenv(components.WAIT_FOR_DEBUGGER_ENV_VAR) == "" {
+			go utils.Safe(func() {
+				time.Sleep(time.Second * 40)
+				log.Fatal("40 seconds is up, lazygit recording took too long to complete")
+			})
+		}
 	}
 }
 
