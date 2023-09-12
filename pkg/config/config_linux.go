@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strings"
 )
@@ -26,15 +27,19 @@ func isContainer() bool {
 
 // GetPlatformDefaultConfig gets the defaults for the platform
 func GetPlatformDefaultConfig() OSConfig {
+	osConfig := OSConfig{}
+
 	if isWSL() && !isContainer() {
-		return OSConfig{
-			Open:     `powershell.exe start explorer.exe {{filename}} >/dev/null`,
-			OpenLink: `powershell.exe start {{link}} >/dev/null`,
-		}
+		osConfig.Open = `powershell.exe start explorer.exe {{filename}} >/dev/null`
+		osConfig.OpenLink = `powershell.exe start {{link}} >/dev/null`
+	} else {
+		osConfig.Open = `xdg-open {{filename}} >/dev/null`
+		osConfig.OpenLink = `xdg-open {{link}} >/dev/null`
 	}
 
-	return OSConfig{
-		Open:     `xdg-open {{filename}} >/dev/null`,
-		OpenLink: `xdg-open {{link}} >/dev/null`,
+	if browser, ok := os.LookupEnv("BROWSER"); ok {
+		osConfig.OpenLink = fmt.Sprintf(`"%s" {{link}} >/dev/null`, browser)
 	}
+
+	return osConfig
 }
