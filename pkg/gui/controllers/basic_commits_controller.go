@@ -152,7 +152,7 @@ func (self *BasicCommitsController) copyCommitSHAToClipboard(commit *models.Comm
 func (self *BasicCommitsController) copyCommitURLToClipboard(commit *models.Commit) error {
 	url, err := self.c.Helpers().Host.GetCommitURL(commit.Sha)
 	if err != nil {
-		return err
+		return self.c.Error(err)
 	}
 
 	self.c.LogAction(self.c.Tr.Actions.CopyCommitURLToClipboard)
