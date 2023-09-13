@@ -89,6 +89,7 @@ git:
   paging:
     colorArg: always
     useConfig: false
+    pager: diff
   commit:
     signOff: false
   merging:
