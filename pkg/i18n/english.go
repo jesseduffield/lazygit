@@ -612,6 +612,7 @@ type TranslationSet struct {
 	PleaseGoToURL                       string
 	DisabledMenuItemPrefix              string
 	NoCommitSelected                    string
+	NoCopiedCommits                     string
 	Actions                             Actions
 	Bisect                              Bisect
 	Log                                 Log
@@ -1403,6 +1404,7 @@ func EnglishTranslationSet() TranslationSet {
 		PleaseGoToURL:                       "Please go to {{.url}}",
 		DisabledMenuItemPrefix:              "Disabled: ",
 		NoCommitSelected:                    "No commit selected",
+		NoCopiedCommits:                     "No copied commits",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",

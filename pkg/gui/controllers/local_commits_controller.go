@@ -110,9 +110,10 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Description:       self.c.Tr.MoveUpCommit,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Commits.PasteCommits),
-			Handler:     self.paste,
-			Description: self.c.Tr.PasteCommits,
+			Key:               opts.GetKey(opts.Config.Commits.PasteCommits),
+			Handler:           self.paste,
+			GetDisabledReason: self.getDisabledReasonForPaste,
+			Description:       self.c.Tr.PasteCommits,
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Commits.MarkCommitAsBaseForRebase),
@@ -999,6 +1000,14 @@ func (self *LocalCommitsController) context() *context.LocalCommitsContext {
 
 func (self *LocalCommitsController) paste() error {
 	return self.c.Helpers().CherryPick.Paste()
+}
+
+func (self *LocalCommitsController) getDisabledReasonForPaste() string {
+	if !self.c.Helpers().CherryPick.CanPaste() {
+		return self.c.Tr.NoCopiedCommits
+	}
+
+	return ""
 }
 
 func (self *LocalCommitsController) markAsBaseCommit(commit *models.Commit) error {
