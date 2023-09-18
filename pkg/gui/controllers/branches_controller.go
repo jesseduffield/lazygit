@@ -12,6 +12,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/controllers/helpers"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/samber/lo"
 )
 
 type BranchesController struct {
@@ -75,9 +76,10 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			OpensMenu:   true,
 		},
 		{
-			Key:         opts.GetKey(opts.Config.Branches.RebaseBranch),
-			Handler:     opts.Guards.OutsideFilterMode(self.rebase),
-			Description: self.c.Tr.RebaseBranch,
+			Key:               opts.GetKey(opts.Config.Branches.RebaseBranch),
+			Handler:           opts.Guards.OutsideFilterMode(self.rebase),
+			Description:       self.c.Tr.RebaseBranch,
+			GetDisabledReason: self.getDisabledReasonForRebase,
 		},
 		{
 			Key:         opts.GetKey(opts.Config.Branches.MergeIntoCurrentBranch),
@@ -140,32 +142,55 @@ func (self *BranchesController) GetOnRenderToMain() func() error {
 }
 
 func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error {
-	options := []*types.MenuItem{
-		{
-			LabelColumns: []string{self.c.Tr.ViewDivergenceFromUpstream},
-			OnPress: func() error {
-				branch := self.context().GetSelected()
-				if branch == nil {
-					return nil
+	viewDivergenceItem := &types.MenuItem{
+		LabelColumns: []string{self.c.Tr.ViewDivergenceFromUpstream},
+		OnPress: func() error {
+			branch := self.context().GetSelected()
+			if branch == nil {
+				return nil
+			}
+
+			return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
+				Ref:                     branch,
+				TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), branch.ShortUpstreamRefName()),
+				RefToShowDivergenceFrom: branch.FullUpstreamRefName(),
+				Context:                 self.context(),
+				ShowBranchHeads:         false,
+			})
+		},
+		Key: 'v',
+	}
+
+	unsetUpstreamItem := &types.MenuItem{
+		LabelColumns: []string{self.c.Tr.UnsetUpstream},
+		OnPress: func() error {
+			if err := self.c.Git().Branch.UnsetUpstream(selectedBranch.Name); err != nil {
+				return self.c.Error(err)
+			}
+			if err := self.c.Refresh(types.RefreshOptions{
+				Mode: types.SYNC,
+				Scope: []types.RefreshableView{
+					types.BRANCHES,
+					types.COMMITS,
+				},
+			}); err != nil {
+				return self.c.Error(err)
+			}
+			return nil
+		},
+		Key: 'u',
+	}
+
+	setUpstreamItem := &types.MenuItem{
+		LabelColumns: []string{self.c.Tr.SetUpstream},
+		OnPress: func() error {
+			return self.c.Helpers().Upstream.PromptForUpstreamWithoutInitialContent(selectedBranch, func(upstream string) error {
+				upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
+				if err != nil {
+					return self.c.Error(err)
 				}
 
-				if !branch.RemoteBranchStoredLocally() {
-					return self.c.ErrorMsg(self.c.Tr.DivergenceNoUpstream)
-				}
-				return self.c.Helpers().SubCommits.ViewSubCommits(helpers.ViewSubCommitsOpts{
-					Ref:                     branch,
-					TitleRef:                fmt.Sprintf("%s <-> %s", branch.RefName(), branch.ShortUpstreamRefName()),
-					RefToShowDivergenceFrom: branch.FullUpstreamRefName(),
-					Context:                 self.context(),
-					ShowBranchHeads:         false,
-				})
-			},
-			Key: 'v',
-		},
-		{
-			LabelColumns: []string{self.c.Tr.UnsetUpstream},
-			OnPress: func() error {
-				if err := self.c.Git().Branch.UnsetUpstream(selectedBranch.Name); err != nil {
+				if err := self.c.Git().Branch.SetUpstream(upstreamRemote, upstreamBranch, selectedBranch.Name); err != nil {
 					return self.c.Error(err)
 				}
 				if err := self.c.Refresh(types.RefreshOptions{
@@ -178,75 +203,48 @@ func (self *BranchesController) setUpstream(selectedBranch *models.Branch) error
 					return self.c.Error(err)
 				}
 				return nil
-			},
-			Key: 'u',
+			})
 		},
-		{
-			LabelColumns: []string{self.c.Tr.SetUpstream},
-			OnPress: func() error {
-				return self.c.Helpers().Upstream.PromptForUpstreamWithoutInitialContent(selectedBranch, func(upstream string) error {
-					upstreamRemote, upstreamBranch, err := self.c.Helpers().Upstream.ParseUpstream(upstream)
-					if err != nil {
-						return self.c.Error(err)
-					}
-
-					if err := self.c.Git().Branch.SetUpstream(upstreamRemote, upstreamBranch, selectedBranch.Name); err != nil {
-						return self.c.Error(err)
-					}
-					if err := self.c.Refresh(types.RefreshOptions{
-						Mode: types.SYNC,
-						Scope: []types.RefreshableView{
-							types.BRANCHES,
-							types.COMMITS,
-						},
-					}); err != nil {
-						return self.c.Error(err)
-					}
-					return nil
-				})
-			},
-			Key: 's',
-		},
+		Key: 's',
 	}
 
-	if selectedBranch.IsTrackingRemote() {
-		upstream := fmt.Sprintf("%s/%s", selectedBranch.UpstreamRemote, selectedBranch.Name)
-		upstreamResetOptions := utils.ResolvePlaceholderString(
-			self.c.Tr.ViewUpstreamResetOptions,
-			map[string]string{"upstream": upstream},
-		)
-		upstreamResetTooltip := utils.ResolvePlaceholderString(
-			self.c.Tr.ViewUpstreamResetOptionsTooltip,
-			map[string]string{"upstream": upstream},
-		)
+	upstream := lo.Ternary(selectedBranch.RemoteBranchStoredLocally(),
+		fmt.Sprintf("%s/%s", selectedBranch.UpstreamRemote, selectedBranch.Name),
+		self.c.Tr.UpstreamGenericName)
+	upstreamResetOptions := utils.ResolvePlaceholderString(
+		self.c.Tr.ViewUpstreamResetOptions,
+		map[string]string{"upstream": upstream},
+	)
+	upstreamResetTooltip := utils.ResolvePlaceholderString(
+		self.c.Tr.ViewUpstreamResetOptionsTooltip,
+		map[string]string{"upstream": upstream},
+	)
 
-		options = append(options, &types.MenuItem{
-			LabelColumns: []string{upstreamResetOptions},
-			OpensMenu:    true,
-			OnPress: func() error {
-				if selectedBranch.RemoteBranchNotStoredLocally() {
-					return self.c.ErrorMsg(self.c.Tr.UpstreamNotStoredLocallyError)
-				}
+	upstreamResetItem := &types.MenuItem{
+		LabelColumns: []string{upstreamResetOptions},
+		OpensMenu:    true,
+		OnPress: func() error {
+			err := self.c.Helpers().Refs.CreateGitResetMenu(upstream)
+			if err != nil {
+				return self.c.Error(err)
+			}
+			return nil
+		},
+		Tooltip: upstreamResetTooltip,
+		Key:     'g',
+	}
 
-				err := self.c.Helpers().Refs.CreateGitResetMenu(upstream)
-				if err != nil {
-					return self.c.Error(err)
-				}
-				return nil
-			},
-			Tooltip: upstreamResetTooltip,
-			Key:     'g',
-		})
-	} else {
-		options = append(options, &types.MenuItem{
-			LabelColumns: []string{self.c.Tr.ViewUpstreamDisabledResetOptions},
-			OpensMenu:    true,
-			OnPress: func() error {
-				return self.c.ErrorMsg(self.c.Tr.UpstreamNotSetError)
-			},
-			Tooltip: self.c.Tr.UpstreamNotSetError,
-			Key:     'g',
-		})
+	if !selectedBranch.RemoteBranchStoredLocally() {
+		viewDivergenceItem.DisabledReason = self.c.Tr.UpstreamNotSetError
+		unsetUpstreamItem.DisabledReason = self.c.Tr.UpstreamNotSetError
+		upstreamResetItem.DisabledReason = self.c.Tr.UpstreamNotSetError
+	}
+
+	options := []*types.MenuItem{
+		viewDivergenceItem,
+		unsetUpstreamItem,
+		setUpstreamItem,
+		upstreamResetItem,
 	}
 
 	return self.c.Menu(types.CreateMenuOptions{
@@ -468,7 +466,6 @@ func (self *BranchesController) forceDelete(branch *models.Branch) error {
 }
 
 func (self *BranchesController) delete(branch *models.Branch) error {
-	menuItems := []*types.MenuItem{}
 	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 
 	localDeleteItem := &types.MenuItem{
@@ -479,25 +476,18 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 		},
 	}
 	if checkedOutBranch.Name == branch.Name {
-		localDeleteItem = &types.MenuItem{
-			Label:   self.c.Tr.DeleteLocalBranch,
-			Key:     'c',
-			Tooltip: self.c.Tr.CantDeleteCheckOutBranch,
-			OnPress: func() error {
-				return self.c.ErrorMsg(self.c.Tr.CantDeleteCheckOutBranch)
-			},
-		}
+		localDeleteItem.DisabledReason = self.c.Tr.CantDeleteCheckOutBranch
 	}
-	menuItems = append(menuItems, localDeleteItem)
 
-	if branch.IsTrackingRemote() && !branch.UpstreamGone {
-		menuItems = append(menuItems, &types.MenuItem{
-			Label: self.c.Tr.DeleteRemoteBranch,
-			Key:   'r',
-			OnPress: func() error {
-				return self.remoteDelete(branch)
-			},
-		})
+	remoteDeleteItem := &types.MenuItem{
+		Label: self.c.Tr.DeleteRemoteBranch,
+		Key:   'r',
+		OnPress: func() error {
+			return self.remoteDelete(branch)
+		},
+	}
+	if !branch.IsTrackingRemote() || branch.UpstreamGone {
+		remoteDeleteItem.DisabledReason = self.c.Tr.UpstreamNotSetError
 	}
 
 	menuTitle := utils.ResolvePlaceholderString(
@@ -509,7 +499,7 @@ func (self *BranchesController) delete(branch *models.Branch) error {
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: menuTitle,
-		Items: menuItems,
+		Items: []*types.MenuItem{localDeleteItem, remoteDeleteItem},
 	})
 }
 
@@ -521,6 +511,16 @@ func (self *BranchesController) merge() error {
 func (self *BranchesController) rebase() error {
 	selectedBranchName := self.context().GetSelected().Name
 	return self.c.Helpers().MergeAndRebase.RebaseOntoRef(selectedBranchName)
+}
+
+func (self *BranchesController) getDisabledReasonForRebase() string {
+	selectedBranchName := self.context().GetSelected().Name
+	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef().Name
+	if selectedBranchName == checkedOutBranch {
+		return self.c.Tr.CantRebaseOntoSelf
+	}
+
+	return ""
 }
 
 func (self *BranchesController) fastForward(branch *models.Branch) error {

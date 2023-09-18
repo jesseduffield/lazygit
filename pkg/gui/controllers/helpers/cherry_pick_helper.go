@@ -85,6 +85,10 @@ func (self *CherryPickHelper) Paste() error {
 	})
 }
 
+func (self *CherryPickHelper) CanPaste() bool {
+	return self.getData().Active()
+}
+
 func (self *CherryPickHelper) Reset() error {
 	self.getData().ContextKey = ""
 	self.getData().CherryPickedCommits = nil

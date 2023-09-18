@@ -25,6 +25,10 @@ func (self *OptionsMenuAction) Call() error {
 	appendBindings := func(bindings []*types.Binding, section *types.MenuSection) {
 		menuItems = append(menuItems,
 			lo.Map(bindings, func(binding *types.Binding, _ int) *types.MenuItem {
+				disabledReason := ""
+				if binding.GetDisabledReason != nil {
+					disabledReason = binding.GetDisabledReason()
+				}
 				return &types.MenuItem{
 					OpensMenu: binding.OpensMenu,
 					Label:     binding.Description,
@@ -33,11 +37,12 @@ func (self *OptionsMenuAction) Call() error {
 							return nil
 						}
 
-						return binding.Handler()
+						return self.c.IGuiCommon.CallKeybindingHandler(binding)
 					},
-					Key:     binding.Key,
-					Tooltip: binding.Tooltip,
-					Section: section,
+					Key:            binding.Key,
+					Tooltip:        binding.Tooltip,
+					DisabledReason: disabledReason,
+					Section:        section,
 				}
 			})...)
 	}

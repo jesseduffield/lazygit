@@ -220,9 +220,6 @@ func (self *MergeAndRebaseHelper) PromptToContinueRebase() error {
 
 func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 	checkedOutBranch := self.refsHelper.GetCheckedOutRef().Name
-	if ref == checkedOutBranch {
-		return self.c.ErrorMsg(self.c.Tr.CantRebaseOntoSelf)
-	}
 	menuItems := []*types.MenuItem{
 		{
 			Label: self.c.Tr.SimpleRebase,

@@ -352,12 +352,11 @@ type TranslationSet struct {
 	SetUpstream                         string
 	UnsetUpstream                       string
 	ViewDivergenceFromUpstream          string
-	DivergenceNoUpstream                string
 	DivergenceSectionHeaderLocal        string
 	DivergenceSectionHeaderRemote       string
 	ViewUpstreamResetOptions            string
 	ViewUpstreamResetOptionsTooltip     string
-	ViewUpstreamDisabledResetOptions    string
+	UpstreamGenericName                 string
 	SetUpstreamTitle                    string
 	SetUpstreamMessage                  string
 	EditRemote                          string
@@ -405,7 +404,6 @@ type TranslationSet struct {
 	ViewBranchUpstreamOptions           string
 	BranchUpstreamOptionsTitle          string
 	ViewBranchUpstreamOptionsTooltip    string
-	UpstreamNotStoredLocallyError       string
 	UpstreamNotSetError                 string
 	NewGitFlowBranchPrompt              string
 	RenameBranchWarning                 string
@@ -612,6 +610,9 @@ type TranslationSet struct {
 	MarkAsBaseCommitTooltip             string
 	MarkedCommitMarker                  string
 	PleaseGoToURL                       string
+	DisabledMenuItemPrefix              string
+	NoCommitSelected                    string
+	NoCopiedCommits                     string
 	Actions                             Actions
 	Bisect                              Bisect
 	Log                                 Log
@@ -1147,12 +1148,11 @@ func EnglishTranslationSet() TranslationSet {
 		SetUpstream:                         "Set upstream of selected branch",
 		UnsetUpstream:                       "Unset upstream of selected branch",
 		ViewDivergenceFromUpstream:          "View divergence from upstream",
-		DivergenceNoUpstream:                "Cannot show divergence of a branch that has no (locally tracked) upstream",
 		DivergenceSectionHeaderLocal:        "Local",
 		DivergenceSectionHeaderRemote:       "Remote",
 		ViewUpstreamResetOptions:            "Reset checked-out branch onto {{.upstream}}",
 		ViewUpstreamResetOptionsTooltip:     "View options for resetting the checked-out branch onto {{upstream}}. Note: this will not reset the selected branch onto the upstream, it will reset the checked-out branch onto the upstream",
-		ViewUpstreamDisabledResetOptions:    "Reset checked-out branch onto upstream of selected branch",
+		UpstreamGenericName:                 "upstream of selected branch",
 		SetUpstreamTitle:                    "Set upstream branch",
 		SetUpstreamMessage:                  "Are you sure you want to set the upstream branch of '{{.checkedOut}}' to '{{.selected}}'",
 		EditRemote:                          "Edit remote",
@@ -1196,8 +1196,7 @@ func EnglishTranslationSet() TranslationSet {
 		RenameBranch:                     "Rename branch",
 		BranchUpstreamOptionsTitle:       "Upstream options",
 		ViewBranchUpstreamOptionsTooltip: "View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream",
-		UpstreamNotStoredLocallyError:    "Cannot reset to upstream branch because it is not stored locally",
-		UpstreamNotSetError:              "The selected branch has no upstream",
+		UpstreamNotSetError:              "The selected branch has no upstream (or the upstream is not stored locally)",
 		ViewBranchUpstreamOptions:        "View upstream options",
 		NewBranchNamePrompt:              "Enter new branch name for branch",
 		RenameBranchWarning:              "This branch is tracking a remote. This action will only rename the local branch name, not the name of the remote branch. Continue?",
@@ -1403,6 +1402,9 @@ func EnglishTranslationSet() TranslationSet {
 		MarkAsBaseCommitTooltip:             "Select a base commit for the next rebase; this will effectively perform a 'git rebase --onto'.",
 		MarkedCommitMarker:                  "↑↑↑ Will rebase from here ↑↑↑",
 		PleaseGoToURL:                       "Please go to {{.url}}",
+		DisabledMenuItemPrefix:              "Disabled: ",
+		NoCommitSelected:                    "No commit selected",
+		NoCopiedCommits:                     "No copied commits",
 		Actions: Actions{
 			// TODO: combine this with the original keybinding descriptions (those are all in lowercase atm)
 			CheckoutCommit:                    "Checkout commit",
